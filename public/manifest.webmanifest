@@ -1,0 +1,48 @@
+{
+  "name": "LÉLU",
+  "short_name": "LÉLU",
+  "description": "LÉLU — your living intelligence system. Voice, vision, memory, and cognition in one environment.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "categories": ["productivity", "utilities", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Chat with LÉLU",
+      "short_name": "Chat",
+      "description": "Open the conversation layer",
+      "url": "/?focus=chat"
+    },
+    {
+      "name": "Genesis",
+      "short_name": "Genesis",
+      "description": "Open the Genesis environment",
+      "url": "/?focus=genesis"
+    }
+  ]
+}

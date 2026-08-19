@@ -1,0 +1,995 @@
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg: rgba(47, 48, 58, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+}
+
+#root {
+  width: 1126px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  border-inline: 1px solid var(--border);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+
+/*
+ * Genesis chrome — shared pulse for any dock/panel indicator that
+ * needs to reflect a live signal (thinking, speaking, reasoning...).
+ * Kept global + reusable rather than redefined per component, since
+ * Phase 10 wired live signals (GenesisSignals) that more than one
+ * chrome surface will want to reflect over time.
+ */
+@keyframes genesis-signal-pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 6px currentColor;
+  }
+  50% {
+    opacity: 0.55;
+    box-shadow: 0 0 14px currentColor;
+  }
+}
+
+.genesis-signal-active {
+  animation: genesis-signal-pulse 1.4s ease-in-out infinite;
+}
+
+/*
+ * Phase 13 — respect the OS-level reduced-motion preference for the
+ * one thing here that's pure CSS (the dock/panel signal pulse).
+ * The floating-window hover lift and entry/exit spring are driven by
+ * framer-motion in GenesisWindowFrame.tsx, which checks the same
+ * media query itself before enabling `whileHover`.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .genesis-signal-active {
+    animation: none;
+    box-shadow: 0 0 10px currentColor;
+  }
+}
+
+/*
+ * Floating-window scrollbars. The glass panels (GenesisWindowFrame)
+ * and panel-local scroll bodies (class .genesis-scroll) scroll
+ * internally over a full-screen canvas app whose html/body/#root are
+ * overflow:hidden, so the default fat light-mode scrollbar is both
+ * ugly and easy to miss. Give them a thin, translucent thumb that
+ * reads on dark glass and a contain overscroll so the wheel never
+ * silently falls through to the frozen page behind.
+ */
+.genesis-window-frame,
+.genesis-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.45) rgba(255, 255, 255, 0.06);
+}
+
+.genesis-window-frame::-webkit-scrollbar,
+.genesis-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.genesis-window-frame::-webkit-scrollbar-track,
+.genesis-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+}
+
+.genesis-window-frame::-webkit-scrollbar-thumb,
+.genesis-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: 999px;
+}
+
+.genesis-window-frame::-webkit-scrollbar-thumb:hover,
+.genesis-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.7);
+}
+
+/*
+ * Mobile safety: the canvas app is fixed-position full-screen, so these
+ * guards are invisible on desktop but prevent horizontal overflow and
+ * viewport jumps on phones — iOS Safari's address bar and the on-screen
+ * keyboard resize the viewport, so dynamic viewport units (dvh/svh) are
+ * used instead of a hard 100vh.
+ */
+html,
+body {
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+/* Keep one-handed reach: no tap targets under 40px on touch screens. */
+@media (max-width: 720px) {
+  .genesis-window-frame button,
+  .genesis-agent-workspace-layer button,
+  .genesis-dialogue-layer button {
+    min-height: 34px;
+  }
+}
+
+/*
+ * Visual interface — heartbeat ring pulse. Inline in CSS so the
+ * four visual modes share one fast, consistent motion language
+ * without per-mode animation code.
+ */
+@keyframes visual-ring {
+  from {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(7);
+    opacity: 0;
+  }
+}
+
+/*
+ * Living System UI — the second LÉLU environment. Mode layers crossfade
+ * in fast (short transition, per the brief: responsive, not cinematic),
+ * and the SystemCore beats at the real VisualEngine heartbeat rate.
+ */
+@keyframes living-system-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/*
+ * Environment switch — used by BOTH LÉLU environments when they mount.
+ * Switching between the primary Genesis chrome and the Living System
+ * UI should read as LÉLU changing operating environments: a quick fade
+ * with a barely-there scale settle. Fast, not cinematic.
+ */
+@keyframes lelu-environment-enter {
+  from {
+    opacity: 0;
+    transform: scale(1.015);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes living-core-beat {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  35% {
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/*
+ * ==========================================================
+ * LIVING SYSTEM VISUALS — the second UI's real per-mode renderers
+ *
+ * Heartbeat, Matrix, Nerve, Neuron and Core each mount a genuinely
+ * distinct visualization. These keyframes animate that visualization:
+ * synchronized ECG rings and a traveling trace (heartbeat), floating
+ * microscopic particles and a breathing soma (neuron), and the shared
+ * Genesis Core breathing, ring rotation and conic shimmer (core).
+ * Longhand animation-* is used where inline duration/delay overrides
+ * are applied from React (rings, core surface), so the two never
+ * fight each other.
+ * ==========================================================
+ */
+
+/* Heartbeat — expanding synchronized rings around the pulsing core. */
+.living-heartbeat-ring {
+  animation-name: living-heartbeat-ring;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+}
+@keyframes living-heartbeat-ring {
+  from {
+    transform: scale(0.3);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+/* Heartbeat — the central structure's rhythmic expansion. */
+.living-heartbeat-core {
+  animation-name: living-heartbeat-core;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes living-heartbeat-core {
+  0% {
+    transform: scale(1);
+  }
+  12% {
+    transform: scale(1.16);
+  }
+  26% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Heartbeat — the bright segment traveling the ECG trace. */
+.living-heartbeat-ecg {
+  animation-name: living-heartbeat-ecg;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes living-heartbeat-ecg {
+  from {
+    stroke-dashoffset: 2000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Heartbeat — synchronized signal waves sweeping the field. */
+.living-heartbeat-wave {
+  animation: living-heartbeat-wave 3.6s ease-in-out infinite;
+}
+@keyframes living-heartbeat-wave {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.85;
+  }
+  82% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Neuron — microscopic particles drifting in the cellular field. */
+.living-neuron-particle {
+  animation: living-neuron-particle 6.5s ease-in-out infinite;
+}
+@keyframes living-neuron-particle {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(14px, -20px);
+    opacity: 0.1;
+  }
+}
+
+/* Neuron — the soma's membrane breathing. */
+.living-neuron-soma {
+  animation: living-neuron-soma 3.4s ease-in-out infinite;
+}
+@keyframes living-neuron-soma {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.05);
+  }
+}
+
+/* Core — the shared Genesis Core's outer atmosphere breathing. */
+.living-core-breathe {
+  animation: living-core-breathe 4.2s ease-in-out infinite;
+}
+@keyframes living-core-breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+/* Core — the ONE core surface: brightness pulse only, so the
+ * per-frame JS scale transform from the shared CoreVisualState is
+ * never overridden by the animation. */
+.living-core-surface {
+  animation: living-core-surface 4.2s ease-in-out infinite;
+}
+@keyframes living-core-surface {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.14);
+  }
+}
+
+/* Core — orbital rings rotating around the one core. */
+.living-core-ring {
+  animation-name: living-core-ring;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes living-core-ring {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Core — the internal morphology shimmer rotating. */
+@keyframes living-core-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*
+ * ==========================================================
+ * GENESIS WORKSPACE PREVIEW — shared motion language
+ *
+ * One restrained ambient motion set for the cosmic workspace
+ * surfaces: energy spheres breathe, orbit rings rotate, diamond
+ * markers pulse, waveform bars dance, and connection beams
+ * flow. Every animation is opt-out-able via
+ * prefers-reduced-motion below.
+ * ==========================================================
+ */
+@keyframes genesis-node-breathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.045);
+  }
+}
+
+@keyframes genesis-ring-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes genesis-ring-spin-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes genesis-wave-bar {
+  0%, 100% {
+    transform: scaleY(0.28);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes genesis-beam-pulse {
+  0%, 100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes genesis-marker-pulse {
+  0%, 100% {
+    opacity: 0.85;
+    transform: rotate(45deg) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: rotate(45deg) scale(1.22);
+  }
+}
+
+@keyframes genesis-status-glow {
+  0%, 100% {
+    box-shadow: 0 0 6px currentColor;
+    opacity: 0.9;
+  }
+  50% {
+    box-shadow: 0 0 14px currentColor;
+    opacity: 1;
+  }
+}
+
+/* Hover state for the desktop navigation rail: a localized glow instead
+ * of a hard highlight, so idle icons stay monochrome and thin. */
+.genesis-rail-button:hover {
+  background: rgba(125, 211, 252, 0.1);
+  color: #ffffff !important;
+}
+
+/* ============================================================
+ * GENESIS v2 — CORE TRANSFORMATION LAB
+ * Keyframes for the lab's live core glyphs, orbital geometry,
+ * aurora backdrops and transformation progress.
+ * ============================================================ */
+
+@keyframes genesis-lab-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes genesis-lab-orbital {
+  from {
+    transform: rotateX(70deg) rotateZ(0deg);
+  }
+  to {
+    transform: rotateX(70deg) rotateZ(360deg);
+  }
+}
+
+@keyframes genesis-lab-orbital-rev {
+  from {
+    transform: rotateX(70deg) rotateZ(42deg) rotate(0deg);
+  }
+  to {
+    transform: rotateX(70deg) rotateZ(42deg) rotate(360deg);
+  }
+}
+
+@keyframes genesis-lab-twinkle {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes genesis-lab-aurora {
+  0%, 100% {
+    border-radius: 50% 50% 46% 54% / 56% 44% 56% 44%;
+    transform: translateX(-6px) rotate(-3deg) scale(1);
+  }
+  33% {
+    border-radius: 44% 56% 54% 46% / 48% 58% 42% 52%;
+    transform: translateX(8px) rotate(4deg) scale(1.06);
+  }
+  66% {
+    border-radius: 56% 44% 46% 54% / 54% 46% 56% 44%;
+    transform: translateX(-4px) rotate(-2deg) scale(0.98);
+  }
+}
+
+/* The live core in the lab breathes with the same pulse the renderer
+ * reads — a soft synchronized glow, not a hard flash. */
+.genesis-lab-core-live {
+  animation: genesis-lab-core-breathe 2.6s ease-in-out infinite;
+}
+
+@keyframes genesis-lab-core-breathe {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(103, 232, 249, 0.55));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 22px rgba(103, 232, 249, 0.95));
+    transform: scale(1.035);
+  }
+}
+
+/* Transformation progress bar — a traveling shimmer while morphing. */
+.genesis-lab-progress::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 80%
+  );
+  animation: genesis-lab-progress-shimmer 1.6s linear infinite;
+}
+
+@keyframes genesis-lab-progress-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Core Evolution panel — rotating conic energy sweep across the mini
+ * core glyph surfaces (the evolution strip's living forms). */
+@keyframes genesis-lab-surface-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Traveling energy along the evolution connector lines between the
+ * seven core versions — the strip reads as one evolving sequence. */
+.genesis-evolve-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.85) 50%,
+    transparent 70%
+  );
+  animation: genesis-lab-progress-shimmer 1.4s linear infinite;
+}
+
+/* ============================================================
+ * GENESIS v2 — WORLD (the cinematic second Genesis interface)
+ * Keyframes for the living v2 Core: continuous geometry morph,
+ * morphology-change bursts, star twinkle and slow drift for
+ * the second cosmic world. Additive only — nothing here
+ * touches the v1 scene.
+ * ============================================================ */
+
+/* The ONE Core's body is never a static sphere — its silhouette
+ * continuously flows through organic shapes while the morphology
+ * engine drives color, energy and particle behavior. */
+@keyframes genesis-v2-body {
+  0%, 100% {
+    border-radius: 42% 58% 55% 45% / 55% 45% 58% 42%;
+  }
+  25% {
+    border-radius: 56% 44% 46% 54% / 45% 58% 42% 55%;
+  }
+  50% {
+    border-radius: 47% 53% 58% 42% / 52% 46% 56% 44%;
+  }
+  75% {
+    border-radius: 54% 46% 44% 56% / 48% 56% 44% 52%;
+  }
+}
+
+.genesis-v2-core-body {
+  animation: genesis-v2-body 7s ease-in-out infinite;
+}
+
+/* Morphology-change burst — a ring thrown from the Core each time
+ * the shared engine advances it to a new state. */
+@keyframes genesis-v2-morph-burst {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+/* Stars twinkle and drift slowly — deep-space depth for the v2 world. */
+@keyframes genesis-v2-star-twinkle {
+  0%, 100% {
+    opacity: 0.18;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+.genesis-v2-star {
+  animation: genesis-v2-star-twinkle 3.2s ease-in-out infinite;
+}
+
+@keyframes genesis-v2-drift {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(16px, -10px, 0);
+  }
+}
+
+/* Ocean — expanding current ripples thrown by the ONE Core's body. */
+@keyframes genesis-v2-ripple {
+  0% {
+    transform: scale(0.55);
+    opacity: 0.75;
+  }
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
+.genesis-v2-ripple {
+  animation-name: genesis-v2-ripple;
+}
+
+/* Transformation sweep — a ring of energy circling the Core while a
+ * morph request is in flight. */
+@keyframes genesis-v2-sweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.genesis-v2-sweep {
+  animation-name: genesis-v2-sweep;
+}
+
+/* ============================================================
+ * GENESIS v2 — CORE EVOLUTION STRIP
+ * Per-morphology living detail for the seven core versions.
+ * Each form carries its own internal system (storm filaments,
+ * aurora veils, ocean currents, plasma cells, electric arcs,
+ * bio membrane, hybrid composite) so the strip reads as one
+ * graphic evolution sequence, not seven recolored orbs.
+ * ============================================================ */
+
+/* HAZARD — turbulent storm: jagged filaments whip across the body. */
+@keyframes genesis-morph-filament-drift {
+  0%, 100% {
+    transform: translateY(0) rotate(-2deg);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateY(-7%) rotate(6deg);
+    opacity: 1;
+  }
+}
+
+/* AURORA — flowing veils: translucent ribbons orbit the body. */
+@keyframes genesis-morph-veil-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* OCEAN — deep currents: bright bands sweep across the surface. */
+@keyframes genesis-morph-wave-flow {
+  0% {
+    transform: translateX(-34%);
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(34%);
+    opacity: 0.55;
+  }
+}
+
+/* PLASMA — hot luminous boil: energy cells swell and pop. */
+@keyframes genesis-morph-cell-boil {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.45);
+    opacity: 1;
+  }
+}
+
+/* ELECTRIC — branching energy: arcs flash and sparks travel. */
+@keyframes genesis-morph-arc-flash {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* BIOHAZARD — living membrane: the organic lattice pulses. */
+@keyframes genesis-morph-membrane-pulse {
+  0%, 100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+/* The morph detail plane sits exactly over the core body so the
+ * internal system is visible through the translucent surface. */
+.genesis-morph-detail {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .genesis-morph-filament,
+  .genesis-morph-veil,
+  .genesis-morph-wave,
+  .genesis-morph-cell,
+  .genesis-morph-arc,
+  .genesis-morph-membrane {
+    animation: none !important;
+  }
+  .genesis-node-breathe,
+  .genesis-ring-spin,
+  .genesis-ring-spin-reverse,
+  .genesis-wave-bar,
+  .genesis-beam-pulse,
+  .genesis-marker-pulse,
+  .genesis-status-glow,
+  .living-heartbeat-ring,
+  .living-heartbeat-core,
+  .living-heartbeat-ecg,
+  .living-heartbeat-wave,
+  .living-neuron-particle,
+  .living-neuron-soma,
+  .living-core-breathe,
+  .living-core-surface,
+  .living-core-ring,
+  .genesis-lab-core-live,
+  .genesis-lab-progress::after,
+  .genesis-v2-core-body,
+  .genesis-v2-star,
+  .genesis-v2-ripple,
+  .genesis-v2-sweep,
+  .genesis-v2-morph-burst,
+  .genesis-lab-surface-spin,
+  .genesis-evolve-shimmer::after,
+  .lelu-tab-cloud::before,
+  .lelu-tab-cloud::after {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================
+ * LÉLU · COTTON-CANDY GALAXY TABS
+ *
+ * The adjustable tab system styling: every navigation tab
+ * (mobile dock bar, tablet rail, desktop rail, floating bottom
+ * pills) reads as an "inverted galaxy" — a dark cosmic core
+ * with drifting cotton-candy cloud auras (pink / baby blue /
+ * lavender) and twinkling star dust inside each tab.
+ *
+ * Pure CSS on top of the existing inline-style system — the
+ * components keep their layout/padding inline and add these
+ * classes for the visual language.
+ * ========================================================== */
+
+.lelu-tab-bar {
+  background:
+    radial-gradient(130% 170% at 18% -10%, rgba(38, 14, 60, 0.92), transparent 55%),
+    radial-gradient(130% 170% at 88% 0%, rgba(12, 18, 52, 0.92), transparent 55%),
+    linear-gradient(180deg, rgba(8, 8, 30, 0.9), rgba(16, 6, 40, 0.94));
+  border: 1px solid rgba(216, 178, 255, 0.3);
+  box-shadow:
+    0 12px 44px rgba(2, 6, 23, 0.6),
+    inset 0 0 24px rgba(186, 148, 255, 0.1),
+    0 0 20px rgba(255, 158, 203, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.lelu-tab-cloud {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  color: rgba(242, 230, 255, 0.92);
+  background: linear-gradient(165deg, rgba(30, 16, 54, 0.92), rgba(9, 12, 38, 0.94));
+  border: 1px solid rgba(214, 178, 255, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 2px 10px rgba(2, 6, 23, 0.45);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.lelu-tab-cloud:hover {
+  border-color: rgba(255, 190, 225, 0.55);
+  transform: translateY(-1px);
+}
+
+/* Drifting cotton-candy cloud aura behind the tab content. */
+.lelu-tab-cloud::before {
+  content: "";
+  position: absolute;
+  inset: -45%;
+  z-index: -1;
+  background:
+    radial-gradient(38% 62% at 24% 28%, rgba(255, 158, 203, 0.4), transparent 62%),
+    radial-gradient(38% 62% at 76% 26%, rgba(158, 216, 255, 0.36), transparent 62%),
+    radial-gradient(44% 72% at 50% 78%, rgba(208, 179, 255, 0.34), transparent 66%);
+  filter: blur(14px);
+  animation: lelu-cloud-drift 9s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+/* Twinkling star dust — inverted galaxy core. */
+.lelu-tab-cloud::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    radial-gradient(1.2px 1.2px at 18% 22%, rgba(255, 255, 255, 0.95), transparent 60%),
+    radial-gradient(1px 1px at 64% 14%, rgba(255, 255, 255, 0.7), transparent 60%),
+    radial-gradient(1.4px 1.4px at 82% 52%, rgba(214, 238, 255, 0.85), transparent 60%),
+    radial-gradient(1px 1px at 34% 68%, rgba(255, 255, 255, 0.65), transparent 60%),
+    radial-gradient(1.1px 1.1px at 56% 86%, rgba(255, 214, 240, 0.85), transparent 60%),
+    radial-gradient(1px 1px at 72% 30%, rgba(255, 255, 255, 0.6), transparent 60%);
+  animation: lelu-star-twinkle 3.4s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.lelu-tab-cloud-active {
+  color: #fff6fb;
+  border-color: rgba(255, 190, 225, 0.78);
+  background: linear-gradient(165deg, rgba(58, 24, 82, 0.95), rgba(16, 22, 66, 0.96));
+  box-shadow:
+    0 0 16px rgba(255, 158, 203, 0.5),
+    0 0 36px rgba(158, 216, 255, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 0 18px rgba(255, 182, 215, 0.1);
+}
+
+.lelu-tab-cloud-active::before {
+  opacity: 1;
+  animation-duration: 5.5s;
+}
+
+@keyframes lelu-cloud-drift {
+  from {
+    transform: translate3d(-3%, -1%, 0) rotate(-1deg);
+  }
+  to {
+    transform: translate3d(3%, 2%, 0) rotate(1.5deg);
+  }
+}
+
+@keyframes lelu-star-twinkle {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}

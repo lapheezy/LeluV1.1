@@ -1,0 +1,22 @@
+{
+  "name": "Lelu",
+  "forwardPorts": [5173, 4173],
+  "portsAttributes": {
+    "5173": {
+      "label": "Lélu Vite app",
+      "onAutoForward": "openPreview"
+    },
+    "4173": {
+      "label": "Lélu preview",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "liveServer.settings.port": 5173,
+        "vite.port": 5173
+      }
+    }
+  }
+}

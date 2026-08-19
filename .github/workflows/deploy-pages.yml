@@ -1,0 +1,59 @@
+# LÉLU → GitHub Pages deploy (no Mac required).
+#
+# GitHub's own cloud runners install dependencies, generate the PWA
+# icons, and build the app; the artifact is then published through the
+# Pages API. Enable it at:
+#   Repo → Settings → Pages → Source: "GitHub Actions"
+# Push to `main` (or run it manually from the Actions tab).
+name: Deploy LÉLU to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Generate PWA icons
+        run: bun scripts/generate-icons.mjs
+
+      - name: Build
+        # --base makes assets resolve under the project subpath
+        # (https://<user>.github.io/<repo>/). With a custom domain
+        # or a root-hosted repo, override with a plain `bun run build`.
+        run: bunx vite build --base=/${{ github.event.repository.name }}/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
