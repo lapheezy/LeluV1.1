@@ -78,6 +78,14 @@ import GenesisNotificationCenter
 import VoiceControl
   from "./VoiceControl";
 
+import CosmosCloudNav
+  from "./cosmos/CosmosCloudNav";
+import CosmosOverview
+  from "./cosmos/CosmosOverview";
+
+import { useLeluRuntime }
+  from "../../../core/runtime/useLeluRuntime";
+
 
 /**
  * PAGE 1 — the Genesis v1 cosmic world. Its own 3D canvas and its
@@ -196,6 +204,18 @@ function GenesisWorkspaceRouter() {
       <EngineTick />
 
       {/*
+        * COSMOS UI — floating navigation and overview.
+        * These are HTML/CSS layers above the canvas, only visible
+        * in the v1 workspace (not v2 or system).
+        */}
+      {!v2Active && !systemActive && (
+        <>
+          <CosmosCloudNav />
+          <CosmosOverview />
+        </>
+      )}
+
+      {/*
         * The voice mic and notification toasts belong to the v1 world
         * and the LÉLU system — they must NEVER float over the immersive
         * Genesis v2 scene. While v2 owns the viewport they unmount
@@ -212,9 +232,21 @@ function GenesisWorkspaceRouter() {
   );
 }
 
+/**
+ * Boot the LÉLU Runtime once at the scene root. Every subsystem
+ * (Orchestrator, TaskEngine, BackgroundEngine, ProactiveEngine,
+ * UIOrchestrator, SelfHealing, health monitor) starts here and
+ * lives for the lifetime of the scene.
+ */
+function LeluRuntimeBoot() {
+  useLeluRuntime();
+  return null;
+}
+
 export default function GenesisScene() {
   return (
     <GenesisCore>
+      <LeluRuntimeBoot />
       <GenesisWorkspaceRouter />
     </GenesisCore>
   );

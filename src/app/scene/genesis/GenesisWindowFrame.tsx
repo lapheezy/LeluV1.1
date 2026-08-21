@@ -22,12 +22,19 @@
  * This is chrome only — a clean foundation a later phase can
  * build true simultaneous floating windows on top of, without
  * every panel needing to be touched again.
+ *
+ * Mobile enhancements (iPhone / touch):
+ *   - Bottom sheet mode is now resizable via drag handle at top
+ *   - Content area supports pinch-to-zoom (2× max)
+ *   - Double-tap to toggle zoom
+ *   - Header drag to reposition the sheet on screen
  * ==========================================================
  */
 
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { genesisTheme } from "./GenesisTheme";
+import PinchZoomContainer from "./PinchZoomContainer";
 
 // Phase 13 — read once per render, not reactive to the preference
 // changing mid-session (rare enough not to warrant a matchMedia
@@ -81,6 +88,8 @@ export interface GenesisWindowFrameProps {
   draggable?: boolean;
   /** Allow the shared frame to be resized from its lower-right corner. */
   resizable?: boolean;
+  /** Enable pinch-to-zoom on the content area. Default true. */
+  zoomable?: boolean;
 }
 
 const DEFAULT_WIDTH = "min(92vw, 520px)";
@@ -118,6 +127,7 @@ export default function GenesisWindowFrame({
   overflow = "auto-y",
   draggable = true,
   resizable = true,
+  zoomable = true,
 }: GenesisWindowFrameProps) {
   const depth = genesisTheme.elevation[elevation];
   const reduceMotion = prefersReducedMotion();
@@ -128,11 +138,26 @@ export default function GenesisWindowFrame({
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState<{ width?: number; height?: number }>({});
 
+  /* ---------------------------------------------------------
+   * Mobile: resizable bottom sheet height via top-edge drag
+   * --------------------------------------------------------- */
+  const [mobileHeight, setMobileHeight] = useState<number | null>(null);
+  const mobileResizeRef = useRef<{ pointerId: number; startY: number; originHeight: number } | null>(null);
+
+  /* ---------------------------------------------------------
+   * Mobile: zoom toggle for content
+   * --------------------------------------------------------- */
+  const [mobileZoomed, setMobileZoomed] = useState(false);
+
   useEffect(() => {
     setPosition({ x: 0, y: 0 });
     setSize({});
+    setMobileHeight(null);
   }, [motionKey]);
 
+  /* ---------------------------------------------------------
+   * Pointer event handlers (desktop drag + resize)
+   * --------------------------------------------------------- */
   useEffect(() => {
     function handlePointerMove(event: PointerEvent) {
       if (dragRef.current) {
@@ -150,11 +175,23 @@ export default function GenesisWindowFrame({
           height: Math.max(220, resize.originHeight + event.clientY - resize.startY),
         });
       }
+
+      // Mobile: bottom sheet top-edge resize (drag downward = taller, upward = shorter)
+      if (mobileResizeRef.current) {
+        const mr = mobileResizeRef.current;
+        const delta = mr.startY - event.clientY; // dragging up makes sheet taller
+        const newHeight = Math.max(180, Math.min(
+          window.innerHeight * 0.95,
+          mr.originHeight + delta,
+        ));
+        setMobileHeight(newHeight);
+      }
     }
 
     function stopPointerInteraction() {
       dragRef.current = null;
       resizeRef.current = null;
+      mobileResizeRef.current = null;
       document.body.style.userSelect = "";
     }
 
@@ -166,13 +203,30 @@ export default function GenesisWindowFrame({
     };
   }, []);
 
+  /* ---------------------------------------------------------
+   * Desktop: drag from header
+   * --------------------------------------------------------- */
   function handleHeaderPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
-    if (!draggable || narrow || event.button !== 0 || (event.target as HTMLElement).closest("button")) {
+    if (!draggable || event.button !== 0 || (event.target as HTMLElement).closest("button")) {
       return;
     }
 
     const rect = frameRef.current?.getBoundingClientRect();
     if (!rect) {
+      return;
+    }
+
+    // On mobile narrow mode: allow header drag to move the bottom sheet
+    if (narrow) {
+      dragRef.current = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        originX: position.x,
+        originY: position.y,
+      };
+      document.body.style.userSelect = "none";
+      event.currentTarget.setPointerCapture?.(event.pointerId);
       return;
     }
 
@@ -187,6 +241,9 @@ export default function GenesisWindowFrame({
     event.currentTarget.setPointerCapture?.(event.pointerId);
   }
 
+  /* ---------------------------------------------------------
+   * Desktop: resize from bottom-right corner
+   * --------------------------------------------------------- */
   function handleResizePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     if (!resizable || event.button !== 0 || narrow) {
       return;
@@ -209,34 +266,42 @@ export default function GenesisWindowFrame({
     event.stopPropagation();
   }
 
-  // Phase 13 fix — this used to set a static `transform:
-  // translateX(-50%)` in `style` below *and* animate `y`/`scale`
-  // through framer-motion's `initial`/`animate`/`exit`. Framer takes
-  // full ownership of the `transform` CSS property whenever any
-  // transform-related value (x, y, scale, ...) is animated, so the
-  // static translateX was being silently discarded the moment the
-  // component mounted — every window would render flush against the
-  // left half of its `left: 50%` anchor instead of centered. Folding
-  // the -50% horizontal offset into `x` itself (constant across all
-  // three animation states, so it never actually animates) lets
-  // framer compose it into the same transform it already controls.
+  /* ---------------------------------------------------------
+   * Mobile: resize bottom sheet from top edge handle
+   * --------------------------------------------------------- */
+  function handleMobileResizePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const rect = frameRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    mobileResizeRef.current = {
+      pointerId: event.pointerId,
+      startY: event.clientY,
+      originHeight: mobileHeight ?? rect.height,
+    };
+    document.body.style.userSelect = "none";
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  /* ---------------------------------------------------------
+   * Style computation
+   * --------------------------------------------------------- */
   const frameStyle: CSSProperties = narrow
     ? {
-        // Mobile: a full-width bottom sheet that respects the viewport
-        // and safe-area insets, instead of a desktop window compressed
-        // onto a phone. Drag/resize are disabled — touch swiping a sheet
-        // must never be hijacked by window plumbing.
+        // Mobile: a full-width bottom sheet with touch resize and move
         position: "fixed",
         left: 0,
         right: 0,
         bottom: 0,
         width: "100%",
         maxWidth: "100%",
-        maxHeight: "min(86dvh, 92svh)",
-        height: "min(86dvh, 92svh)",
-        overflowY: "auto",
+        maxHeight: mobileHeight ? `${mobileHeight}px` : "min(86dvh, 92svh)",
+        height: mobileHeight ? `${mobileHeight}px` : "min(86dvh, 92svh)",
+        overflowY: "hidden",
         overscrollBehavior: "contain",
-        touchAction: "pan-y",
+        touchAction: "none",
         scrollbarWidth: "thin",
         scrollbarColor: "rgba(148, 163, 184, 0.45) rgba(255, 255, 255, 0.06)",
         pointerEvents: "auto",
@@ -245,10 +310,13 @@ export default function GenesisWindowFrame({
         borderBottom: "none",
         borderRadius: "18px 18px 0 0",
         padding: 16,
+        paddingTop: 0,
         paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)",
         color: "white",
         boxShadow: "0 -12px 48px rgba(2, 6, 23, 0.6)",
         backdropFilter: depth.backdropFilter,
+        display: "flex",
+        flexDirection: "column",
       }
     : {
         position: "absolute",
@@ -260,11 +328,6 @@ export default function GenesisWindowFrame({
         maxHeight: size.height === undefined && overflow === "auto-y" ? maxHeight : undefined,
         overflowY: overflow === "auto-y" ? "auto" : undefined,
         overflow: overflow === "hidden" ? "hidden" : undefined,
-        // Scroll hardening for auto-y windows: the app's html/body/#root
-        // are overflow:hidden (canvas app), so once the wheel is inside a
-        // panel it must never chain out to the frozen page, and touch
-        // scrolling must not be swallowed by the drag/pointer plumbing.
-        // Thin translucent scrollbar keeps the scroll affordance visible.
         overscrollBehavior: overflow === "auto-y" ? "contain" : undefined,
         touchAction: overflow === "auto-y" ? "pan-y" : undefined,
         scrollbarWidth: overflow === "auto-y" ? "thin" : undefined,
@@ -280,9 +343,6 @@ export default function GenesisWindowFrame({
         color: "white",
         boxShadow: depth.boxShadow,
         backdropFilter: depth.backdropFilter,
-        // Spatial positioning: a window catching a live signal sits a hair
-        // closer to the viewer than an idle inspector, instead of every
-        // panel occupying the exact same visual plane.
         transformOrigin: "bottom center",
       };
 
@@ -291,18 +351,14 @@ export default function GenesisWindowFrame({
       key={motionKey}
       ref={frameRef}
       initial={{ opacity: 0, x: "-50%", y: 24, scale: 0.96 }}
-      animate={{ opacity: 1, x: `calc(-50% + ${position.x}px)`, y: position.y, scale: active ? 1.01 : 1 }}
+      animate={{
+        opacity: 1,
+        x: narrow ? position.x : `calc(-50% + ${position.x}px)`,
+        y: narrow ? position.y : position.y,
+        scale: active ? 1.01 : 1,
+      }}
       exit={{ opacity: 0, x: "-50%", y: 20, scale: 0.96 }}
-      // Phase 13 — slightly stiffer/lighter than Phase 12's tuning so
-      // switching between panels (mode="wait" in GenesisInterface —
-      // one closes before the next opens) reads as one continuous
-      // layer transition rather than two separate animations with a
-      // beat of bare Genesis in between.
       transition={{ type: "spring", stiffness: 260, damping: 26, mass: 0.7 }}
-      // Phase 13 — desktop-only hover lift (framer-motion's
-      // whileHover does not fire for touch input, so phone/tablet
-      // get no extra state to misfire on tap). Skipped entirely when
-      // the OS asks for reduced motion.
       whileHover={
         reduceMotion ? undefined : { y: -3, filter: "brightness(1.03)" }
       }
@@ -311,7 +367,53 @@ export default function GenesisWindowFrame({
       }
       style={frameStyle}
     >
+      {/* Mobile: drag handle at top for resizing the bottom sheet */}
+      {narrow && resizable ? (
+        <div
+          onPointerDown={handleMobileResizePointerDown}
+          style={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            paddingTop: 8,
+            paddingBottom: 4,
+            cursor: "ns-resize",
+            touchAction: "none",
+            flexShrink: 0,
+          }}
+          aria-label="Drag to resize panel"
+        >
+          {/* Handle bar */}
+          <div
+            style={{
+              width: 40,
+              height: 4,
+              borderRadius: 999,
+              background: "rgba(148, 163, 184, 0.35)",
+              marginBottom: 4,
+            }}
+          />
+          {/* Resize grip dots */}
+          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  width: 3,
+                  height: 3,
+                  borderRadius: "50%",
+                  background: "rgba(148, 163, 184, 0.3)",
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {beforeHeader}
+
       <div
         style={{
           display: "flex",
@@ -321,6 +423,7 @@ export default function GenesisWindowFrame({
           gap: 12,
           cursor: draggable ? "grab" : undefined,
           touchAction: draggable ? "none" : undefined,
+          flexShrink: 0,
         }}
         onPointerDown={handleHeaderPointerDown}
       >
@@ -328,7 +431,37 @@ export default function GenesisWindowFrame({
           <div style={genesisTheme.text.eyebrow}>{eyebrow}</div>
           <div style={{ fontWeight: 700, overflowWrap: "anywhere" }}>{title}</div>
         </div>
-        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+        <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
+          {/* Mobile: zoom toggle button */}
+          {narrow && zoomable ? (
+            <button
+              type="button"
+              onClick={() => setMobileZoomed((prev) => !prev)}
+              title={mobileZoomed ? "Reset zoom" : "Zoom content"}
+              aria-label={mobileZoomed ? "Reset zoom" : "Zoom content"}
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 999,
+                border: mobileZoomed
+                  ? "1px solid rgba(103, 232, 249, 0.5)"
+                  : "1px solid rgba(148, 163, 184, 0.24)",
+                background: mobileZoomed
+                  ? "rgba(103, 232, 249, 0.12)"
+                  : "rgba(8, 16, 38, 0.55)",
+                color: mobileZoomed ? "#67e8f9" : "rgba(214, 228, 244, 0.9)",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                fontSize: 13,
+                flexShrink: 0,
+                transition: "background 0.15s ease, border-color 0.15s ease",
+              }}
+            >
+              {mobileZoomed ? "1×" : "⊕"}
+            </button>
+          ) : null}
           {extraActions}
           <button type="button" onClick={onClose} style={genesisTheme.closeButton}>
             {closeLabel}
@@ -336,8 +469,29 @@ export default function GenesisWindowFrame({
         </div>
       </div>
 
-      {children}
-      {resizable ? (
+      {/* Content area — with pinch-to-zoom on mobile */}
+      {narrow && zoomable ? (
+        <PinchZoomContainer
+          enabled={true}
+          minScale={1}
+          maxScale={2.5}
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            overflowX: "hidden",
+            overscrollBehavior: "contain",
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgba(148, 163, 184, 0.45) rgba(255, 255, 255, 0.06)",
+          }}
+        >
+          {children}
+        </PinchZoomContainer>
+      ) : (
+        children
+      )}
+
+      {/* Desktop: resize from bottom-right corner */}
+      {resizable && !narrow ? (
         <div
           aria-label="Resize window"
           role="presentation"

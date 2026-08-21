@@ -144,7 +144,9 @@ export type GenesisPanel =
 
   // Self-development engine — architecture map, capability registry,
   // improvement queue, sandbox-first UI evolution.
-  | "evolution";
+  | "evolution"
+  // Cosmos — infinite cosmos map + navigation
+  | "cosmos";
 
 
 

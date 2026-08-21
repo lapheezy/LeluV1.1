@@ -114,10 +114,12 @@ export default function VoiceControl() {
         ? "Listening · heard…"
         : "Listening"
       : voice.state.phase === "processing"
-        ? "Thinking"
-        : voice.state.phase === "speaking"
-          ? "Speaking"
-          : "Voice";
+        ? "Thinking…"
+        : voice.state.phase === "responding"
+          ? "Responding"
+          : voice.state.phase === "speaking"
+            ? "Speaking"
+            : "Voice";
 
   return (
     <div

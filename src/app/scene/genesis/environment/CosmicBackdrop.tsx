@@ -160,7 +160,7 @@ export default function CosmicBackdrop() {
   return (
     <group ref={group} name="CosmicBackdrop" renderOrder={0}>
       <mesh material={material} renderOrder={0} raycast={() => null} frustumCulled={false}>
-        <sphereGeometry args={[85, 48, 32]} />
+        <sphereGeometry args={[600, 48, 32]} />
       </mesh>
     </group>
   );

@@ -53,10 +53,8 @@ export default function GenesisCameraController({
    * (core, shells, world-nodes) needs a wider field of view to stay inside
    * the frame; wide screens get a tighter, more cinematic angle.
    *
-   * Zoom range: minDistance 4 keeps the close Core view; maxDistance 78
-   * restores the very-wide cosmic view that fits the full star shell,
-   * aurora ring, and all three workspace worlds together (the backdrop
-   * sky sphere is radius 85, so 78 stays inside it).
+   * Zoom range: minDistance 2 for close core view; maxDistance 500
+   * allows infinite-feel navigation through the cosmos.
    */
   useEffect(() => {
     const aspect = size.width / Math.max(1, size.height);
@@ -98,6 +96,52 @@ export default function GenesisCameraController({
   }, [camera]);
 
   /*
+   * Cosmos navigation — dispatched by the cosmos map panel tap.
+   * Smoothly moves the camera AND the OrbitControls target
+   * so the user arrives at the destination with full orbit control.
+   */
+  useEffect(() => {
+    function onCosmosNavigate(e: Event) {
+      const detail = (e as CustomEvent).detail;
+      if (!detail?.pos || !detail?.lookAt) return;
+      const controls = controlsRef.current;
+      if (!controls) return;
+
+      const targetPos = new Vector3(detail.pos.x, detail.pos.y, detail.pos.z);
+      const lookAt = new Vector3(detail.lookAt.x, detail.lookAt.y, detail.lookAt.z);
+
+      // Smoothly animate via lerp in the next frames
+      const startPos = camera.position.clone();
+      const startTarget = controls.target.clone();
+      let progress = 0;
+      const duration = 1.5; // seconds
+      let lastTime = performance.now();
+
+      function animate() {
+        const now = performance.now();
+        const dt = (now - lastTime) / 1000;
+        lastTime = now;
+        progress += dt / duration;
+        const t = Math.min(1, progress);
+        // Smooth ease-in-out
+        const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+        camera.position.lerpVectors(startPos, targetPos, ease);
+        controls.target.lerpVectors(startTarget, lookAt, ease);
+        controls.update();
+
+        if (t < 1) {
+          requestAnimationFrame(animate);
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener("cosmos-navigate", onCosmosNavigate);
+    return () => window.removeEventListener("cosmos-navigate", onCosmosNavigate);
+  }, [camera]);
+
+  /*
    * Spatial controls (zoom + / − / reset from the workspace preview)
    * drive the REAL camera through this bus — the buttons move the
    * actual OrbitControls along their current view axis, clamped to
@@ -122,7 +166,7 @@ export default function GenesisCameraController({
         return;
       }
       const factor = intent.type === "zoom-in" ? 0.76 : 1.3;
-      const next = Math.min(78, Math.max(4, distance * factor));
+      const next = Math.min(1500, Math.max(1, distance * factor));
       camera.position
         .copy(controls.target)
         .add(direction.normalize().multiplyScalar(next));
@@ -137,10 +181,13 @@ export default function GenesisCameraController({
       makeDefault
       enableDamping
       dampingFactor={0.08}
-      enablePan={false}
-      minDistance={4}
-      maxDistance={78}
-      maxPolarAngle={Math.PI / 2.1}
+      enablePan={true}
+      panSpeed={1.5}
+      zoomSpeed={1.2}
+      rotateSpeed={0.5}
+      minDistance={1}
+      maxDistance={1500}
+      maxPolarAngle={Math.PI * 0.98}
       target={[0, 0, 0]}
     />
   );

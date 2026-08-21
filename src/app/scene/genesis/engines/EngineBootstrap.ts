@@ -11,7 +11,7 @@
  */
 
 
-import EngineRegistry from "./EngineRegistry";
+import EngineRegistry, { type GenesisEngine } from "./EngineRegistry";
 
 
 import GenesisSimulation from "./GenesisSimulation";
@@ -48,6 +48,9 @@ import EntropyEngine from "./EntropyEngine";
 import BalanceEngine from "./BalanceEngine";
 import GrowthEngine from "./GrowthEngine";
 import PulseEngine from "./PulseEngine";
+import FloatingCityEngine from "./FloatingCityEngine";
+import VehicleEngine from "./VehicleEngine";
+import TsunamiEngine from "./TsunamiEngine";
 import MemoryEngine from "./MemoryEngine";
 import MemoryEvolutionEngine from "./MemoryEvolutionEngine";
 import DreamEngine from "./DreamEngine";
@@ -162,6 +165,11 @@ export default class EngineBootstrap {
       new TimelineEngine(),
 
       new SimulationEngine(),
+
+      // New engines — Infinite Cosmos Expansion
+      FloatingCityEngine.getInstance() as unknown as GenesisEngine,
+      new VehicleEngine() as unknown as GenesisEngine,
+      new TsunamiEngine() as unknown as GenesisEngine,
 
 
     ];

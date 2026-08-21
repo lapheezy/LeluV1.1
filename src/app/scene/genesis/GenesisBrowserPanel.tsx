@@ -120,6 +120,7 @@ export default function GenesisBrowserPanel({ onClose }: GenesisBrowserPanelProp
       onClose={onClose}
       width="min(94vw, 860px)"
       maxHeight="min(78vh, 640px)"
+      zoomable={false}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "100%" }}>
         {/* Address bar */}

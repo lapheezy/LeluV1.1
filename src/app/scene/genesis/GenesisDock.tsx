@@ -34,6 +34,7 @@ export interface DockItem {
 
 export const DOCK_ITEMS: DockItem[] = [
   { id: "chat", label: "Chat", glyph: "◎", icon: "orbit", group: "core" },
+  { id: "cosmos", label: "Cosmos", glyph: "✦", icon: "spark", group: "core" },
   { id: "history", label: "History", glyph: "≡", icon: "arrows", group: "core" },
   { id: "workspaces", label: "Projects", glyph: "▦", icon: "folder", group: "core" },
   // GENESIS v2 — the Core Transformation Lab. A first-class workspace
@@ -555,6 +556,46 @@ export default function GenesisDock({
   }
 
   /* ----------------------------------------------------------
+   * PINCH-TO-ZOOM on dock: two-finger pinch on the dock bar
+   * cycles through compact → standard → large.
+   * ---------------------------------------------------------- */
+  const pinchRef = useRef<{ dist: number; size: DockSize } | null>(null);
+
+  function handleDockTouchStart(e: React.TouchEvent) {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchRef.current = { dist: Math.hypot(dx, dy), size: dockSettings.settings.size };
+    }
+  }
+
+  function handleDockTouchMove(e: React.TouchEvent) {
+    const pinch = pinchRef.current;
+    if (!pinch || e.touches.length !== 2) return;
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const newDist = Math.hypot(dx, dy);
+    const ratio = newDist / pinch.dist;
+    if (ratio > 1.4 && pinch.size === "compact") {
+      dockSettings.setSize("standard");
+      pinchRef.current = { dist: newDist, size: "standard" };
+    } else if (ratio > 1.4 && pinch.size === "standard") {
+      dockSettings.setSize("large");
+      pinchRef.current = { dist: newDist, size: "large" };
+    } else if (ratio < 0.6 && pinch.size === "large") {
+      dockSettings.setSize("standard");
+      pinchRef.current = { dist: newDist, size: "standard" };
+    } else if (ratio < 0.6 && pinch.size === "standard") {
+      dockSettings.setSize("compact");
+      pinchRef.current = { dist: newDist, size: "compact" };
+    }
+  }
+
+  function handleDockTouchEnd() {
+    pinchRef.current = null;
+  }
+
+  /* ----------------------------------------------------------
    * MOBILE (<720px): horizontal bottom bar — the compact
    * navigation for phones. Every destination stays reachable.
    * ---------------------------------------------------------- */
@@ -563,6 +604,9 @@ export default function GenesisDock({
       <>
         <div
           className="lelu-tab-bar"
+          onTouchStart={handleDockTouchStart}
+          onTouchMove={handleDockTouchMove}
+          onTouchEnd={handleDockTouchEnd}
           style={{
             position: "fixed",
             left: 0,

@@ -37,6 +37,8 @@ import GenesisRenderer
 import GenesisCameraController
   from "./GenesisCameraController";
 
+import CosmosLayer
+  from "./cosmos/CosmosLayer";
 
 import GenesisPlayground
   from "./GenesisPlayground";
@@ -85,6 +87,11 @@ export default function GenesisController() {
       <GenesisPlayground navigator={navigator} />
       <GenesisWorkspace navigator={navigator} />
       <GenesisCameraController navigator={navigator} />
+
+      {/* ==========================================
+          COSMOS LAYER — living universe background
+      ========================================== */}
+      <CosmosLayer />
     </>
   );
 

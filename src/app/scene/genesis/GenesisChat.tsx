@@ -42,6 +42,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 
 import AIService from "../../../core/AIService";
+import Orchestrator from "../../../core/orchestrator/Orchestrator";
 import { useVoice } from "../../../core/voice/useVoice";
 import {
   defaultMediaPrompt,
@@ -420,7 +421,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       return {
         id,
         user: turn.user,
-        assistant: turn.response,
+        assistant: turn.response ?? "",
         fast,
       };
     });
@@ -553,11 +554,18 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     });
 
     try {
-      const response = await ai.chat(
-        prompt,
-        media.length > 0 ? media : undefined,
-      );
-      const assistantText = response.text;
+      // Route through the Orchestrator for multi-step awareness,
+      // verification, and runtime state updates. For requests with
+      // media attachments, fall through to AIService directly since
+      // the Orchestrator does not yet forward media.
+      let assistantText: string;
+      if (media.length > 0) {
+        const response = await ai.chat(prompt, media);
+        assistantText = response.text;
+      } else {
+        const result = await Orchestrator.getInstance().process(prompt);
+        assistantText = result.response;
+      }
 
       if (!assistantText) {
         notify("Lélu Error", "The assistant returned an empty response.");

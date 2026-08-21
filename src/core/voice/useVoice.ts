@@ -2,11 +2,6 @@
  * ==========================================================
  * LÉLU
  * USE VOICE — REACT MIRROR OF THE ONE VOICE ENGINE
- *
- * Thin subscription hook over the VoiceEngine singleton. Any
- * component (the mic control, the app-level voice bridge, the
- * invisible dialogue) mirrors the same engine — one voice
- * session, many views. No second conversation runtime.
  * ==========================================================
  */
 
@@ -23,11 +18,8 @@ export type { VoiceDiagnostics, VoiceErrorKind } from "./VoiceEngine";
 export interface VoiceView {
   engine: VoiceEngine;
   state: VoiceState;
-  /** Live (interim + final) transcript of the current utterance. */
   interim: string;
-  /** Current voice turn: user words + LÉLU's reply once ready. */
   turn: VoiceTurn | null;
-  /** Live mirror of the real voice pipeline (permission, stream, TTS stages). */
   diagnostics: VoiceDiagnostics;
   toggle: () => void;
 }

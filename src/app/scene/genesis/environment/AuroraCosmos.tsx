@@ -47,7 +47,7 @@ interface AuroraRibbon {
   seed: RibbonSeed;
 }
 
-const RIBBON_COUNT = 14;
+const RIBBON_COUNT = 6;
 const RIBBON_SEGMENTS = 36;
 const RIBBON_ROWS = 12;
 
@@ -105,10 +105,10 @@ const fragmentShader = `
     float curtain = smoothstep(0.18, 0.82, vCurtain);
     float turbulence = noise(vec2(vUv.x * 7.0, vUv.y * 4.0 + uTime * 0.18));
     float filament = pow(max(0.0, sin(vUv.x * 22.0 + turbulence * 5.0 - uTime * 1.4)), 5.0);
-    float alpha = edge * (0.10 + curtain * 0.24 + filament * 0.22) * (0.55 + uActivity * 0.7);
+    float alpha = edge * (0.015 + curtain * 0.035 + filament * 0.025) * (0.20 + uActivity * 0.15);
     vec3 color = hue(fract(uHue + uTime * 0.012 + vUv.x * 0.18));
     color = mix(color, vec3(0.35, 0.95, 1.0), 0.28);
-    gl_FragColor = vec4(color * (0.5 + curtain * 0.65), alpha);
+    gl_FragColor = vec4(color * (0.25 + curtain * 0.35), alpha);
   }
 `;
 
@@ -159,7 +159,7 @@ function createRibbon(seed: RibbonSeed): AuroraRibbon {
     toneMapped: false,
     uniforms: {
       uTime: { value: 0 },
-      uActivity: { value: 0.45 },
+      uActivity: { value: 0.12 },
       uPhase: { value: seed.phase },
       uHue: { value: seed.hue },
     },
@@ -223,8 +223,8 @@ export default function AuroraCosmos() {
         liveUniverse.astrology.transit +
         liveUniverse.ocean.stormSurge) / 5;
     const activity = Math.min(
-      1,
-      0.2 + cosmicEnergy * 0.35 + celestialActivity * 0.5,
+      0.15,
+      0.05 + cosmicEnergy * 0.08 + celestialActivity * 0.1,
     );
 
     root.current.rotation.y += delta * (0.004 + activity * 0.012);

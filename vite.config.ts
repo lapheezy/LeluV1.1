@@ -8,6 +8,98 @@ import path from "node:path";
 
 import glslIncludes from "./plugins/glslIncludes.js";
 
+function envCheckPlugin() {
+  return {
+    name: "env-check",
+    configureServer(server: any) {
+      server.middlewares.use("/api/env-check", (_req: any, res: any) => {
+        const env = loadEnv("development", process.cwd(), "");
+        const groqKey = env.VITE_GROQ_API_KEY || "";
+        const openrouterKey = env.VITE_OPENROUTER_API_KEY || "";
+        const response = {
+          VITE_GROQ_API_KEY: groqKey ? `SET (${groqKey.length} chars)` : "MISSING",
+          VITE_OPENROUTER_API_KEY: openrouterKey ? `SET (${openrouterKey.length} chars)` : "MISSING",
+          VITE_GROQ_MODEL: env.VITE_GROQ_MODEL || "MISSING",
+          VITE_DEFAULT_PROVIDER: env.VITE_DEFAULT_PROVIDER || "MISSING",
+        };
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify(response, null, 2));
+      });
+
+      // Live provider health check — tests Groq API connectivity from the server
+      server.middlewares.use("/api/provider-health", async (_req: any, res: any) => {
+        const env = loadEnv("development", process.cwd(), "");
+        const groqKey = env.VITE_GROQ_API_KEY || "";
+        const openrouterKey = env.VITE_OPENROUTER_API_KEY || "";
+        const results: Record<string, any> = {};
+
+        // Test Groq
+        if (groqKey) {
+          try {
+            const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${groqKey}`,
+              },
+              body: JSON.stringify({
+                model: env.VITE_GROQ_MODEL || "llama-3.3-70b-versatile",
+                messages: [{ role: "user", content: "Say OK" }],
+                max_tokens: 5,
+              }),
+              signal: AbortSignal.timeout(15000),
+            });
+            const body = await groqRes.text();
+            results.groq = {
+              status: groqRes.status,
+              ok: groqRes.ok,
+              response: groqRes.ok ? "OK" : body.slice(0, 200),
+            };
+          } catch (e: any) {
+            results.groq = { status: "error", error: e.message };
+          }
+        } else {
+          results.groq = { status: "missing-key" };
+        }
+
+        // Test OpenRouter
+        if (openrouterKey) {
+          try {
+            const orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${openrouterKey}`,
+                "HTTP-Referer": "https://freebuff.com",
+                "X-Title": "Lélu",
+              },
+              body: JSON.stringify({
+                model: "openrouter/free",
+                messages: [{ role: "user", content: "Say OK" }],
+                max_tokens: 5,
+              }),
+              signal: AbortSignal.timeout(15000),
+            });
+            const body = await orRes.text();
+            results.openrouter = {
+              status: orRes.status,
+              ok: orRes.ok,
+              response: orRes.ok ? "OK" : body.slice(0, 200),
+            };
+          } catch (e: any) {
+            results.openrouter = { status: "error", error: e.message };
+          }
+        } else {
+          results.openrouter = { status: "missing-key" };
+        }
+
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify(results, null, 2));
+      });
+    },
+  };
+}
+
 function sandboxApiPlugin() {
   const workspaceRoot = process.cwd();
 
@@ -174,6 +266,8 @@ export default defineConfig(({ mode }) => {
     react(),
 
     sandboxApiPlugin(),
+
+    envCheckPlugin(),
 
     glslIncludes(),
 

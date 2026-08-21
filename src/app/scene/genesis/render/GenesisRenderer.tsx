@@ -20,10 +20,15 @@ import CoreMemoryVeins from "./CoreMemoryVeins";
 import CoreAtmosphere from "../systems/CoreAtmosphere";
 import GenesisCore from "../materials/GenesisCore";
 import CosmicField from "./CosmicField";
+import CoreToPlanet from "./CoreToPlanet";
+
+import { TestPlanet } from "./DebugPlanet";
+
 import { useGenesis } from "../GenesisCore";
 
 export default function GenesisRenderer() {
   const root = useRef<Group>(null);
+  const coreGroupRef = useRef<Group>(null);
   const { engineRuntime } = useGenesis();
 
   useFrame((_, delta) => {
@@ -52,36 +57,20 @@ export default function GenesisRenderer() {
         <CoreMemoryVeins />
       </group>
 
-      <group name="BlueGenesisCore" position={[0, 1.15, 0]}>
-        {/* ONE Core — one origin, one transform, one mutation controller.
-            The single mesh material carries every engine state (ocean,
-            plasma, electric, crystal, halo, bio) weighted by the EngineBus
-            channels, and CoreEmission is energy leaving that same surface
-            — particles, electric arcs, ocean rings. The old second
-            controller (CoreLayer / LivingCoreController) that used to
-            rotate and breathe the same core with its own formula has been
-            merged into this one body: the mesh is the ONLY transform
-            controller of the ONLY core object. The life motes are nested
-            inside the same mesh so they share the one transform.
-
-            The cluster sits at [0, 1.15, 0] so the real Core anchors the
-            workspace-preview diamond (top-center), with Creation Studio
-            to its left and Research Lab to its right (see
-            GenesisWorkspace.tsx) — the reference composition. */}
+      <group ref={coreGroupRef} name="BlueGenesisCore" position={[0, 1.15, 0]}>
+        {/* Core ↔ Planet transition driven by WorldLifecycle */}
+        <CoreToPlanet coreRef={coreGroupRef} />
         <GenesisCore>
           <LifeEvolutionVisualizer />
         </GenesisCore>
-        {/* Transparent geometric/orbital rings around the ONE Core — the
-            reference's ring family. Pure visual layer, raycast-free, driven
-            by the same CoreVisualState so it breathes with the surface. */}
         <CoreOrbitalRings />
         <CoreEmission />
-
-        {/* The Core's light source, driven by the same palette. The aurora
-            lives in the cosmic environment (AuroraCosmos inside the Universe
-            group), never wrapped around the Core. */}
         <CoreAtmosphere />
       </group>
+
+      {/* ═══ TEST PLANET — lifecycle-connected, surrounds Core (r=2.0 vs Core r=0.9) ═══ */}
+      <TestPlanet />
+
     </group>
   );
 }

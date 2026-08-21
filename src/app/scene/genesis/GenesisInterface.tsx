@@ -50,6 +50,8 @@ import GenesisSettingsPanel from "./GenesisSettingsPanel";
 import GenesisCognitionPanel from "./GenesisCognitionPanel";
 import GenesisEngineeringPanel from "./GenesisEngineeringPanel";
 import GenesisSelfDevPanel from "./GenesisSelfDevPanel";
+import GenesisCosmosPanel from "./GenesisCosmosPanel";
+import { CycleIndicator } from "./render/WorldMorph";
 import CognitiveLoop from "../../../core/cognition/CognitiveLoop";
 import VisualInterface from "./VisualInterface";
 import useVisual from "../../../core/visual/useVisual";
@@ -294,6 +296,9 @@ export default function GenesisInterface() {
               beams, bottom nav, spatial controls. Only when expanded. */}
           {state.minimized ? null : <GenesisWorkspacePreview />}
 
+          {/* World lifecycle indicator — phase, speed, developmental age */}
+          <CycleIndicator />
+
           {/*
             * The visual agent workspace: rendered as a layer below the
             * dialogue overlay, driven by REAL agent events (WorkspaceBridge).
@@ -460,6 +465,11 @@ export default function GenesisInterface() {
 
         {systemEnvironmentActive ? null : state.activePanel === "evolution" ? (
           <GenesisSelfDevPanel onClose={handleExitChat} />
+        ) : null}
+
+        {/* Cosmos Map — resizable touch minimap */}
+        {systemEnvironmentActive ? null : state.activePanel === "cosmos" ? (
+          <GenesisCosmosPanel onClose={handleExitChat} />
         ) : null}
       </AnimatePresence>
     </div>

@@ -1,0 +1,401 @@
+/**
+ * ==========================================================
+ * LÉLU TOOL REGISTRY — Universal capability registry
+ *
+ * One authoritative source for every tool/capability LÉLU has.
+ * Cognition queries this when deciding what actions are possible.
+ * Extensible — new tools register themselves and become available.
+ *
+ * Risk levels:
+ *   0 = read-only (safe, automatic)
+ *   1 = local-state (modifies local state, automatic)
+ *   2 = device-action (uses device hardware, ask-once)
+ *   3 = external-action (reaches outside, ask-every-time)
+ *   4 = destructive (irreversible, explicit confirmation)
+ * ==========================================================
+ */
+
+
+
+export type RiskLevel = 0 | 1 | 2 | 3 | 4;
+
+export type PermissionClass =
+  | "READ"
+  | "WRITE"
+  | "EXECUTE"
+  | "EXTERNAL_ACTION"
+  | "DESTRUCTIVE"
+  | "SENSITIVE";
+
+export interface ToolDefinition {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  inputSchema?: Record<string, unknown>;
+  outputSchema?: Record<string, unknown>;
+  permissions: PermissionClass[];
+  riskLevel: RiskLevel;
+  available: boolean;
+  provider?: string;
+  dependency?: string;
+  executionRoute?: string;
+  verificationMethod?: string;
+}
+
+type ToolListener = (tools: ToolDefinition[]) => void;
+
+export default class ToolRegistry {
+  private static instance: ToolRegistry | null = null;
+  private tools = new Map<string, ToolDefinition>();
+  private listeners = new Set<ToolListener>();
+
+  private constructor() {
+    this.registerBuiltinTools();
+  }
+
+  static getInstance(): ToolRegistry {
+    if (!ToolRegistry.instance) {
+      ToolRegistry.instance = new ToolRegistry();
+    }
+    return ToolRegistry.instance;
+  }
+
+  // ---------- REGISTRATION ----------
+
+  register(tool: ToolDefinition): void {
+    this.tools.set(tool.id, tool);
+    this.notify();
+  }
+
+  unregister(toolId: string): void {
+    this.tools.delete(toolId);
+    this.notify();
+  }
+
+  updateAvailability(toolId: string, available: boolean): void {
+    const tool = this.tools.get(toolId);
+    if (tool) {
+      tool.available = available;
+      this.notify();
+    }
+  }
+
+  // ---------- QUERY ----------
+
+  get(toolId: string): ToolDefinition | undefined {
+    return this.tools.get(toolId);
+  }
+
+  all(): ToolDefinition[] {
+    return Array.from(this.tools.values());
+  }
+
+  available(): ToolDefinition[] {
+    return this.all().filter((t) => t.available);
+  }
+
+  byCategory(category: string): ToolDefinition[] {
+    return this.all().filter((t) => t.category === category);
+  }
+
+  byRiskLevel(maxRisk: RiskLevel): ToolDefinition[] {
+    return this.all().filter((t) => t.riskLevel <= maxRisk && t.available);
+  }
+
+  byPermission(permission: PermissionClass): ToolDefinition[] {
+    return this.all().filter((t) => t.permissions.includes(permission) && t.available);
+  }
+
+  /** Get tools safe for automatic execution (risk 0-1). */
+  autoSafe(): ToolDefinition[] {
+    return this.byRiskLevel(1);
+  }
+
+  /** Get tools that need user confirmation (risk 2+). */
+  needsConfirmation(): ToolDefinition[] {
+    return this.all().filter((t) => t.riskLevel >= 2 && t.available);
+  }
+
+  /** Search tools by name/description. */
+  search(query: string): ToolDefinition[] {
+    const lower = query.toLowerCase();
+    return this.all().filter(
+      (t) =>
+        t.name.toLowerCase().includes(lower) ||
+        t.description.toLowerCase().includes(lower) ||
+        t.category.toLowerCase().includes(lower),
+    );
+  }
+
+  /** Format for LÉLU's system prompt so she knows her capabilities. */
+  formatForPrompt(): string {
+    const tools = this.available();
+    if (tools.length === 0) return "No tools currently available.";
+
+    const grouped = new Map<string, ToolDefinition[]>();
+    for (const tool of tools) {
+      const list = grouped.get(tool.category) ?? [];
+      list.push(tool);
+      grouped.set(tool.category, list);
+    }
+
+    const sections: string[] = [];
+    for (const [category, categoryTools] of grouped) {
+      const items = categoryTools
+        .map((t) => `  - ${t.name}: ${t.description} (risk: ${t.riskLevel})`)
+        .join("\n");
+      sections.push(`## ${category}\n${items}`);
+    }
+
+    return sections.join("\n\n");
+  }
+
+  // ---------- SUBSCRIPTION ----------
+
+  subscribe(listener: ToolListener): () => void {
+    this.listeners.add(listener);
+    return () => { this.listeners.delete(listener); };
+  }
+
+  private notify(): void {
+    const snapshot = this.all();
+    for (const listener of this.listeners) {
+      try { listener(snapshot); } catch { /* swallow */ }
+    }
+  }
+
+  // ---------- BUILTIN TOOLS ----------
+
+  private registerBuiltinTools(): void {
+    const builtins: ToolDefinition[] = [
+      // Chat / Conversation
+      {
+        id: "chat",
+        name: "Chat",
+        description: "Conversational interaction through text",
+        category: "Communication",
+        permissions: ["READ", "WRITE"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "AIService.chat",
+      },
+
+      // Memory
+      {
+        id: "memory.recall",
+        name: "Recall Memory",
+        description: "Search and retrieve memories from long-term storage",
+        category: "Memory",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "Brain.recall",
+      },
+      {
+        id: "memory.store",
+        name: "Store Memory",
+        description: "Persist important information to long-term memory",
+        category: "Memory",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "MemoryEngine.learn",
+      },
+
+      // Research
+      {
+        id: "research.web",
+        name: "Web Research",
+        description: "Search Wikipedia, ArXiv, news, and other knowledge sources",
+        category: "Research",
+        permissions: ["READ", "EXTERNAL_ACTION"],
+        riskLevel: 1,
+        available: true,
+        provider: "research",
+        executionRoute: "ResearchResolver",
+      },
+
+      // Providers
+      {
+        id: "ai.generate",
+        name: "AI Generation",
+        description: "Generate text through AI providers with fallback chain",
+        category: "AI",
+        permissions: ["READ", "EXTERNAL_ACTION"],
+        riskLevel: 1,
+        available: true,
+        provider: "provider-chain",
+        executionRoute: "ProviderResolver",
+      },
+
+      // Device Capabilities
+      {
+        id: "device.camera",
+        name: "Camera",
+        description: "Take a photo with the device camera",
+        category: "Device",
+        permissions: ["EXECUTE", "SENSITIVE"],
+        riskLevel: 2,
+        available: false, // detected at runtime
+        executionRoute: "ToolResolver.camera.capture",
+      },
+      {
+        id: "device.microphone",
+        name: "Microphone",
+        description: "Record audio for voice interaction or transcription",
+        category: "Device",
+        permissions: ["EXECUTE", "SENSITIVE"],
+        riskLevel: 2,
+        available: false,
+        executionRoute: "VoiceEngine",
+      },
+      {
+        id: "device.tts",
+        name: "Text to Speech",
+        description: "Speak text aloud through the device speakers",
+        category: "Device",
+        permissions: ["EXECUTE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "VoiceEngine.speakResponse",
+      },
+      {
+        id: "device.share",
+        name: "Share",
+        description: "Open the system share sheet",
+        category: "Device",
+        permissions: ["EXECUTE", "EXTERNAL_ACTION"],
+        riskLevel: 2,
+        available: false,
+        executionRoute: "ToolResolver.share.sheet",
+      },
+      {
+        id: "device.clipboard",
+        name: "Clipboard",
+        description: "Read from or write to the system clipboard",
+        category: "Device",
+        permissions: ["READ", "WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "ToolResolver.clipboard",
+      },
+      {
+        id: "device.notifications",
+        name: "Notifications",
+        description: "Send a local notification",
+        category: "Device",
+        permissions: ["EXECUTE"],
+        riskLevel: 1,
+        available: false,
+        executionRoute: "ToolResolver.notifications.send",
+      },
+      {
+        id: "device.storage",
+        name: "Storage",
+        description: "Estimate available device storage",
+        category: "Device",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "ToolResolver.storage.estimate",
+      },
+      {
+        id: "device.haptics",
+        name: "Haptic Feedback",
+        description: "Trigger vibration feedback",
+        category: "Device",
+        permissions: ["EXECUTE"],
+        riskLevel: 1,
+        available: false,
+        executionRoute: "ToolResolver.haptics.vibrate",
+      },
+
+      // Agents
+      {
+        id: "agent.delegate",
+        name: "Delegate to Agent",
+        description: "Assign a task to a specialist agent",
+        category: "Agents",
+        permissions: ["EXECUTE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "AIService.delegate",
+      },
+
+      // Projects
+      {
+        id: "project.manage",
+        name: "Manage Projects",
+        description: "Create, update, and organize projects",
+        category: "Projects",
+        permissions: ["READ", "WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "ProjectStore",
+      },
+
+      // Planning
+      {
+        id: "plan.create",
+        name: "Create Plan",
+        description: "Create a multi-step plan for a complex task",
+        category: "Planning",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "PlanningEngine.create",
+      },
+
+      // Reasoning
+      {
+        id: "reason.evaluate",
+        name: "Evaluate Hypotheses",
+        description: "Evaluate competing hypotheses with confidence scoring",
+        category: "Reasoning",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "ReasoningEngine.evaluate",
+      },
+
+      // Cosmos / Navigation
+      {
+        id: "cosmos.navigate",
+        name: "Navigate Cosmos",
+        description: "Move the avatar and camera through the cosmic environment",
+        category: "Cosmos",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "CosmosStore.navigateToEntity",
+      },
+      {
+        id: "cosmos.openInterface",
+        name: "Open Interface",
+        description: "Open a panel or interface in the Genesis UI",
+        category: "Cosmos",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "GenesisCore.openPanel",
+      },
+
+      // Self Development
+      {
+        id: "selfdev.analyze",
+        name: "Self Analysis",
+        description: "Analyze own architecture and identify improvements",
+        category: "Self Development",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "SelfDevelopmentEngine",
+      },
+    ];
+
+    for (const tool of builtins) {
+      this.tools.set(tool.id, tool);
+    }
+  }
+}
