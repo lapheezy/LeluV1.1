@@ -33,6 +33,7 @@ import {
   FloatingCitiesVisual,
   CottonCandyClouds,
   CosmicLightning,
+  CosmicEntities,
 } from "./CosmosVisuals";
 import SolarSystem from "./SolarSystem";
 
@@ -695,6 +696,7 @@ export default function CosmosLayer() {
       <CosmicStorms />
       <CottonCandyClouds />
       <CosmicLightning />
+      <CosmicEntities />
       <FloatingCitiesVisual />
 
       {/* ─── ZODIAC OBSERVATORY ─── */}

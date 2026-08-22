@@ -38,6 +38,13 @@ import {
   PlanetWeather,
   PlanetFloatingCities,
 } from "./PlanetCivilization";
+import {
+  PlanetSurfaceLOD,
+  AtlantisWorld,
+  PlanetSun,
+  UnderwaterEffect,
+  CountryBoundaryLayer,
+} from "./PlanetExplorer";
 
 // ── Explosion particles ──
 
@@ -451,18 +458,26 @@ export function TestPlanet() {
           planetRadius={2.0}
           opacity={civilizationOpacity * 0.9}
         />
+
+        {/* Atlantis — fixed discoverable underwater city on the surface */}
+        <AtlantisWorld />
       </group>
+
+      {/* Camera-facing surface patch — streams biome/street LOD as you zoom in */}
+      <PlanetSurfaceLOD />
+
+      {/* Real country border lines (streamed GeoJSON) at planet/continent scale */}
+      <CountryBoundaryLayer />
+
+      {/* Blue depth haze when the camera dives below the ocean surface */}
+      <UnderwaterEffect />
 
       {/* Explosion effects (outside planet group, don't scale with it) */}
       <ExplosionParticles active={isExplosion} progress={(progress - 0.3) / 0.5} />
       <ShockwaveRing active={isExplosion} progress={(progress - 0.3) / 0.5} />
 
-      {/* Directional sunlight */}
-      <directionalLight
-        position={[8, 4, 6]}
-        intensity={isSunset ? 1.5 : 2.5}
-        color={isSunset ? new Color(1.0, 0.7, 0.4) : new Color(1.0, 0.98, 0.92)}
-      />
+      {/* Directional sunlight — orbits the planet on the persistent day/night clock */}
+      <PlanetSun />
       <ambientLight intensity={isSunset ? 0.15 : 0.12} color={new Color(0.2, 0.25, 0.4)} />
     </group>
   );

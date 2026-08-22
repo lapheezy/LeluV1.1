@@ -14,6 +14,7 @@ import type { AIResponse } from "../../providers/AIProvider";
 import type RouterContext from "./RouterContext";
 import type { ProviderResult } from "./RouterResults";
 import AgentEventBus from "../agent/AgentEvents";
+import ModelRouter from "../model/ModelRouter";
 
 export default class ProviderResolver {
   public async execute(context: RouterContext): Promise<ProviderResult> {
@@ -35,12 +36,52 @@ export default class ProviderResolver {
       };
     }
 
+    // The model router decides *how* to route: modality (vision/text),
+    // hardware tier, and explicit offline mode. Remote providers are
+    // optional fallbacks — in offline mode they are skipped even when
+    // a key happens to be configured, so LÉLU stays local-first.
+    const router = ModelRouter.getInstance();
+    const decision = router.route(context.request);
+
+    context.logger.info(
+      "ProviderResolver",
+      "Model routing decision",
+      {
+        modality: decision.modality,
+        hardwareTier: decision.hardware.tier,
+        offlineEnabled: decision.offlineEnabled,
+        preferredProviders: decision.preferredProviders,
+        recommendedModel: decision.model,
+      },
+    );
+
+    const eligible = providers.filter(
+      (provider) => !decision.offlineEnabled || !provider.requiresApiKey,
+    );
+
+    if (eligible.length === 0) {
+      context.logger.error(
+        "ProviderResolver",
+        "Offline mode is active and no local providers are installed.",
+        {
+          reason: "offline-mode-no-local-provider",
+          skippedRemoteProviders: providers.map((p) => p.name),
+        },
+      );
+
+      return {
+        handled: true,
+        response: this.offline(context, true),
+      };
+    }
+
     // Agent delegation can request a preferred provider (and a fallback
-    // provider) per task. Those are tried first, in the requested order;
-    // after they are exhausted the normal priority chain continues, so a
-    // preferred provider failure still falls through to every other
-    // configured provider instead of breaking the agent.
-    const ordered = this.orderByPreference(providers, context.request.preferredProviders);
+    // provider) per task. The router's modality/hardware ordering is
+    // tried first, in the requested order; after it is exhausted the
+    // normal priority chain continues, so a preferred provider failure
+    // still falls through to every other configured provider instead of
+    // breaking the agent.
+    const ordered = this.orderByPreference(eligible, decision.preferredProviders);
 
     for (const provider of ordered) {
       if (!provider.canHandle(context.request.prompt)) {
@@ -193,7 +234,7 @@ export default class ProviderResolver {
     };
   }
 
-  private offline(context: RouterContext): AIResponse {
+  private offline(context: RouterContext, offlineMode = false): AIResponse {
     const started = context.started;
 
     // If knowledge tools already retrieved real data for this
@@ -223,8 +264,9 @@ export default class ProviderResolver {
     }
 
     return {
-      text:
-        "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+      text: offlineMode
+        ? "I'm in local / offline mode right now — remote AI providers are disabled, and no local model runtime is installed yet, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Turn offline mode off in Settings → Local-first model engine, or ask \"who are you\" / \"who am I\"."
+        : "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
       provider: "offline",
       model: "offline",
       processingTime: Date.now() - started,

@@ -483,6 +483,16 @@ body {
   }
 }
 
+/* Multi-Chat tab processing indicator. */
+@keyframes lelu-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes genesis-wave-bar {
   0%, 100% {
     transform: scaleY(0.28);

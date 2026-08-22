@@ -68,7 +68,31 @@ import type { GenesisTarget } from "./GenesisNavigator";
 
 import type { VoicePhase } from "../../../core/voice/VoiceEngine";
 
+import MultiChatStore, {
 
+  type ChatConversation,
+
+  type ConversationSearchScope,
+
+  type ConversationSearchHit,
+
+} from "../../../core/multichat/MultiChatStore";
+
+import CrossChatResolver from "../../../core/multichat/CrossChatResolver";
+
+import NotificationProvider from "../../../core/notifications/NotificationProvider";
+
+
+
+
+
+const multiChat =
+
+  MultiChatStore.getInstance();
+
+const crossChat =
+
+  CrossChatResolver.getInstance();
 
 
 
@@ -285,6 +309,11 @@ export interface GenesisUIState {
 
   messages:GenesisMessage[];
 
+  /** Per-conversation workspace (the active chat's messages mirror `messages`). */
+  conversations:ChatConversation[];
+
+  activeConversationId:string;
+
   notifications:GenesisNotification[];
 
   activePanel:GenesisPanel;
@@ -371,6 +400,33 @@ export interface GenesisContextValue {
 
 
   clearConversation():void;
+
+
+  /** Multi-Chat workspace — one LÉLU cognition, many conversations. */
+  createConversation(title?:string):string;
+
+  switchConversation(id:string):void;
+
+  renameConversation(id:string,title:string):void;
+
+  closeConversation(id:string):void;
+
+  duplicateConversation(id:string):void;
+
+  pinConversation(id:string):void;
+
+  linkConversations(a:string,b:string):void;
+
+  unlinkConversations(a:string,b:string):void;
+
+  setConversationProject(id:string,projectId:string|null):void;
+
+  reorderConversations(ids:string[]):void;
+
+  searchConversations(query:string,scope?:ConversationSearchScope):ConversationSearchHit[];
+
+  /** Compact cross-chat context for the current conversation/query. */
+  crossChatContext(query:string):string;
 
 
 
@@ -617,6 +673,8 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
   }
 }
 
+  const initialWorkspace = multiChat.restoreWorkspace();
+
   const [
 
     state,
@@ -642,7 +700,11 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
     voice:"idle",
 
-    messages:[],
+    messages:initialWorkspace.messages,
+
+    conversations:initialWorkspace.conversations,
+
+    activeConversationId:initialWorkspace.activeId,
 
     notifications:[],
 
@@ -860,6 +922,56 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
    */
 
 
+  /*
+   * Notification provider integration — one abstraction for dedup,
+   * history, and deep-linking:
+   *   1. in-app surface: route every notification into the existing
+   *      state.notifications list (rendered by the notification center);
+   *   2. deep-link: a proactive notification for a specific conversation
+   *      opens that chat — never the wrong conversation.
+   */
+  useEffect(() => {
+    const provider = NotificationProvider.getInstance();
+
+    const removeNotifications = provider.subscribe((record) => {
+      setState((current) => ({
+        ...current,
+        notifications: [
+          ...current.notifications,
+          {
+            id: record.id,
+            title: record.title,
+            description: record.body,
+            created: record.timestamp,
+          },
+        ],
+      }));
+    });
+
+    const removeDeepLink = provider.subscribeDeepLink((link) => {
+      if (link.conversationId) {
+        multiChat.switchActive(link.conversationId);
+      }
+      setState((current) => {
+        const active = multiChat.get(link.conversationId ?? current.activeConversationId);
+        return {
+          ...current,
+          activeConversationId: link.conversationId ?? current.activeConversationId,
+          messages: active ? active.messages : current.messages,
+          conversations: multiChat.list(),
+          activePanel: link.openChat ? "chat" : current.activePanel,
+          minimized: link.openChat ? false : current.minimized,
+        };
+      });
+    });
+
+    return () => {
+      removeNotifications();
+      removeDeepLink();
+    };
+  }, []);
+
+
   const universe =
 
     useMemo(()=>({
@@ -1056,22 +1168,31 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         addMessage(message){
 
 
-          setState(current=>({
+          multiChat.addMessage(state.activeConversationId, message);
 
 
-            ...current,
+          setState(current=>{
 
 
-            messages:[
-
-              ...current.messages,
-
-              message,
-
-            ],
+            const active = multiChat.get(current.activeConversationId);
 
 
-          }));
+            return {
+
+
+              ...current,
+
+
+              messages: active ? active.messages : current.messages,
+
+
+              conversations: multiChat.list(),
+
+
+            };
+
+
+          });
 
 
         },
@@ -1079,6 +1200,9 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
 
         clearConversation(){
+
+
+          multiChat.clear(state.activeConversationId);
 
 
           setState(current=>({
@@ -1090,7 +1214,232 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
             messages:[],
 
 
+            conversations:multiChat.list(),
+
+
           }));
+
+
+        },
+
+
+        createConversation(title){
+
+
+          const conversation = multiChat.create(title);
+
+
+          setState(current=>({
+
+
+            ...current,
+
+
+            activeConversationId:conversation.id,
+
+
+            messages:conversation.messages,
+
+
+            conversations:multiChat.list(),
+
+
+          }));
+
+
+          return conversation.id;
+
+
+        },
+
+
+        switchConversation(id){
+
+
+          const conversation = multiChat.switchActive(id);
+
+
+          if(conversation){
+
+
+            setState(current=>({
+
+
+              ...current,
+
+
+              activeConversationId:id,
+
+
+              messages:conversation.messages,
+
+
+              conversations:multiChat.list(),
+
+
+            }));
+
+
+          }
+
+
+        },
+
+
+        renameConversation(id,title){
+
+
+          multiChat.rename(id,title);
+
+
+          setState(current=>({ ...current, conversations:multiChat.list() }));
+
+
+        },
+
+
+        closeConversation(id){
+
+
+          const nextActiveId = multiChat.remove(id);
+
+
+          setState(current=>{
+
+
+            const active = multiChat.get(nextActiveId);
+
+
+            return {
+
+
+              ...current,
+
+
+              activeConversationId:nextActiveId,
+
+
+              messages:active ? active.messages : [],
+
+
+              conversations:multiChat.list(),
+
+
+            };
+
+
+          });
+
+
+        },
+
+
+        duplicateConversation(id){
+
+
+          const conversation = multiChat.duplicate(id);
+
+
+          if(conversation){
+
+
+            setState(current=>({
+
+
+              ...current,
+
+
+              activeConversationId:conversation.id,
+
+
+              messages:conversation.messages,
+
+
+              conversations:multiChat.list(),
+
+
+            }));
+
+
+          }
+
+
+        },
+
+
+        pinConversation(id){
+
+
+          multiChat.pin(id);
+
+
+          setState(current=>({ ...current, conversations:multiChat.list() }));
+
+
+        },
+
+
+        linkConversations(a,b){
+
+
+          multiChat.link(a,b);
+
+
+          setState(current=>({ ...current, conversations:multiChat.list() }));
+
+
+        },
+
+
+        unlinkConversations(a,b){
+
+
+          multiChat.unlink(a,b);
+
+
+          setState(current=>({ ...current, conversations:multiChat.list() }));
+
+
+        },
+
+
+        setConversationProject(id,projectId){
+
+
+          multiChat.setProject(id,projectId);
+
+
+          setState(current=>({ ...current, conversations:multiChat.list() }));
+
+
+        },
+
+
+        reorderConversations(ids){
+
+
+          multiChat.reorder(ids);
+
+
+          setState(current=>({ ...current, conversations:multiChat.list() }));
+
+
+        },
+
+
+        searchConversations(query,scope){
+
+
+          return multiChat.search(query,scope);
+
+
+        },
+
+
+        crossChatContext(query){
+
+
+          return crossChat.buildContext(state.activeConversationId, query);
 
 
         },

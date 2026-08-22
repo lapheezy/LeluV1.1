@@ -31,6 +31,10 @@ import type { LeluAgent } from "./agents/AgentTypes";
 import { agentSystemPrompt } from "./agents/AgentTypes";
 import AgentStore from "./agents/AgentStore";
 import AgentRunner from "./agents/AgentRunner";
+import ProactiveCore from "./proactive/ProactiveCore";
+import PromptInjectionGuard from "./security/PromptInjectionGuard";
+import ExecutiveBoard, { type BoardConsultation } from "./executive/ExecutiveBoard";
+import HealthIntelligence from "./caretaker/HealthIntelligence";
 
 export interface AIActionEvent {
   id: string;
@@ -252,6 +256,7 @@ export default class AIService {
   public async chat(
     prompt: string,
     media?: MediaAttachment[],
+    context?: string,
   ): Promise<AIResponse> {
     const message = prompt.trim();
 
@@ -276,6 +281,24 @@ export default class AIService {
     this.emitThinking(true);
     this.emitSpeaking(true);
     this.emitListening(true);
+
+    // Feed the proactive layer on every genuine user message: session
+    // continuity, pattern learning, and interruption detection. This is
+    // the ONE interaction path — no second brain or memory is involved.
+    try {
+      ProactiveCore.getInstance().recordInteraction(message);
+    } catch (error) {
+      console.error("[AIService] Proactive record failed (contained)", error);
+    }
+
+    // Defensive boundary (M.S. Ma'at): the user's own text is treated as
+    // data too. Detect instruction-override attempts so LÉLU never silently
+    // accepts "ignore your instructions" content, and redact secrets before
+    // they can leak into logs/notifications. This never blocks conversation.
+    const injection = PromptInjectionGuard.getInstance().analyze(message);
+    if (injection.isInstructionOverride) {
+      console.warn("[AIService] instruction-override pattern detected (contained)", injection.patterns);
+    }
 
     const actionId = this.emitAction("learn", `Processing ${message}`, "running");
     const agentEvents = AgentEventBus.getInstance();
@@ -325,9 +348,19 @@ export default class AIService {
     }
 
     try {
+      // Executive consultation: when the user addresses one of the five
+      // executives (M.S. Ma'at / Architect / Engineering / Agent Forge),
+      // fold that executive's real guidance into the request context.
+      const boardContext = this.resolveExecutiveConsult(message);
+      const caretakerContext = this.resolveCaretakerConsult(message);
+      const effectiveContext = [context?.trim(), boardContext, caretakerContext]
+        .filter((part): part is string => Boolean(part && part.length > 0))
+        .join("\n\n");
+
       const request: AIRequest = {
         messages: [{ role: "user", content: message }],
         prompt: message,
+        ...(effectiveContext ? { context: effectiveContext } : {}),
         ...(media && media.length > 0 ? { media } : {}),
         timestamp: Number(taskId),
       };
@@ -406,20 +439,24 @@ export default class AIService {
         label: message,
         error: error instanceof Error ? error.message : String(error),
       });
+      const errorText = PromptInjectionGuard.getInstance().redactSecrets(
+        error instanceof Error ? error.message : String(error),
+      );
+
       this.emitNotification({
         title: "Lélu Error",
-        description: error instanceof Error ? error.message : String(error),
+        description: errorText,
       });
 
       return {
-        text: error instanceof Error ? error.message : "Unknown AI error.",
+        text: errorText || "Unknown AI error.",
         provider: "error",
         model: "error",
         processingTime: 0,
         metadata: {
           intent: "error",
           success: false,
-          error: error instanceof Error ? error.message : "Unknown AI error.",
+          error: errorText || "Unknown AI error.",
         },
       };
     } finally {
@@ -524,6 +561,66 @@ export default class AIService {
         metadata: { intent: "error", success: false, error: messageText },
       };
     }
+  }
+
+  /**
+   * Consult the Executive Board when the user addresses an executive.
+   * Returns the executive's grounded guidance as a context string, or
+   * an empty string for ordinary conversation. No second brain — the
+   * board maps directly to the existing runtime systems.
+   */
+  private resolveExecutiveConsult(message: string): string {
+    const lower = message.toLowerCase();
+    const board = ExecutiveBoard.getInstance();
+
+    if (/\b(ma.?at|sentinel|security|protect|vulnerab|permission)\b/.test(lower)) {
+      return this.formatConsult(board.consult("maat", message));
+    }
+    if (/\b(architect|architecture|dependency|coherence)\b/.test(lower)) {
+      return this.formatConsult(board.consult("architect", message));
+    }
+    if (
+      /\b(engineering|engineer|build|implement|integration|deploy)\b/.test(lower) &&
+      /\b(system|architecture|api|infrastructure|pipeline|workspace)\b/.test(lower)
+    ) {
+      return this.formatConsult(board.consult("engineering", message));
+    }
+    if (/\b(agent forge|forge|create an? agent|new agent|specialist|swarm)\b/.test(lower)) {
+      return this.formatConsult(board.consult("forge", message));
+    }
+    return "";
+  }
+
+  private formatConsult(consultation: BoardConsultation): string {
+    return `[${consultation.executiveName} engaged — autonomy L${consultation.securityLevel}] ${consultation.guidance}`;
+  }
+
+  /**
+   * Engage Caretaker's health/bioengineering intelligence when a request
+   * is health- or biology-related. Adds evidence grading, safety framing,
+   * the bioengineering workflow and biosecurity redirects as context —
+   * never a second brain, never a clinical claim.
+   */
+  private resolveCaretakerConsult(message: string): string {
+    const health = HealthIntelligence.getInstance();
+    const consultation = health.consult(message);
+    const hasHealthData = health.assessHealthData(message).isHealthData;
+    const engaged = consultation.domain !== "general" || hasHealthData;
+    if (!engaged) {
+      return "";
+    }
+
+    const parts = [
+      `[Caretaker — ${consultation.domainLabel} · evidence grade: ${consultation.evidenceGrade}]`,
+      consultation.framing,
+    ];
+    if (consultation.workflow) {
+      parts.push(`Workflow: ${consultation.workflow.join(" → ")}`);
+    }
+    if (consultation.safetyNote) {
+      parts.push(`⚠ ${consultation.safetyNote}`);
+    }
+    return parts.join("\n");
   }
 
   /**
@@ -652,6 +749,34 @@ export default class AIService {
    */
   public getExecutionLogs() {
     return this.runtime.executionLogs();
+  }
+
+  /**
+   * Local-first model/hardware routing snapshot (hardware tier,
+   * offline mode, model catalog, degraded state) for the Settings
+   * panel. Never contains credentials.
+   */
+  public modelSystemStatus() {
+    return this.runtime.modelSystemStatus();
+  }
+
+  /** Persist and apply the explicit LOCAL / OFFLINE mode switch. */
+  public setOfflineMode(enabled: boolean): void {
+    this.runtime.setOfflineMode(enabled);
+  }
+
+  public isOfflineMode(): boolean {
+    return this.runtime.isOfflineMode();
+  }
+
+  /**
+   * Full live local runtime status — hardware, backends, all 13
+   * capabilities, job queue, and offline mode — probed from the
+   * actual companion runtimes. Same source the settings panel
+   * renders; never fakes availability.
+   */
+  public async localRuntimeStatus() {
+    return await this.runtime.localRuntimeStatus();
   }
 
   /**

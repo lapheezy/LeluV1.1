@@ -200,36 +200,151 @@ function SpaceWaves() {
 }
 
 /* ==================================================================
+ * COSMIC WANDERING — portals, black holes, and transit behavior
+ *
+ * Entities (cars, people, cartoon cats/stars) cruise through the
+ * galaxy, get pulled toward a portal or black hole, are absorbed,
+ * then re-emerge at a random new location.
+ * ================================================================== */
+
+const PORTAL_POSITIONS: [number, number, number][] = [
+  [-80, 20, -60],
+  [90, -15, -100],
+  [0, 40, -150],
+  [-120, -30, -80],
+  [60, 35, -120],
+];
+
+const BLACKHOLE_POSITIONS: [number, number, number][] = [
+  [-50, -20, -90],
+  [110, 10, -130],
+  [-30, 30, -160],
+];
+
+const WANDER_DESTINATIONS: Vector3[] = [
+  ...PORTAL_POSITIONS.map((p) => new Vector3(...p)),
+  ...BLACKHOLE_POSITIONS.map((p) => new Vector3(...p)),
+];
+
+const GALAXY_BOUNDS = { x: 300, y: 140, zMin: -180, zMax: -6 };
+
+function galaxyWrap(pos: Vector3) {
+  if (pos.x > GALAXY_BOUNDS.x) pos.x = -GALAXY_BOUNDS.x;
+  if (pos.x < -GALAXY_BOUNDS.x) pos.x = GALAXY_BOUNDS.x;
+  if (pos.y > GALAXY_BOUNDS.y) pos.y = -GALAXY_BOUNDS.y;
+  if (pos.y < -GALAXY_BOUNDS.y) pos.y = GALAXY_BOUNDS.y;
+  if (pos.z < GALAXY_BOUNDS.zMin) pos.z = GALAXY_BOUNDS.zMax;
+  if (pos.z > GALAXY_BOUNDS.zMax) pos.z = GALAXY_BOUNDS.zMin;
+}
+
+type WanderPhase = "cruise" | "approach" | "absorb" | "emerge";
+
+const _FORWARD = new Vector3(1, 0, 0);
+
+/**
+ * Shared movement engine: cruise → approach a portal/black hole →
+ * get absorbed → teleport to a random far location → emerge.
+ * Returns a ref to attach to the entity's outer group.
+ */
+function usePortalWander(seed: number, speed: number, rotateToVelocity = false) {
+  const ref = useRef<Group>(null);
+  const state = useRef({
+    pos: new Vector3(
+      (Math.sin(seed * 3.1) * 0.5 + 0.5) * 2 * GALAXY_BOUNDS.x - GALAXY_BOUNDS.x,
+      (Math.cos(seed * 2.7) * 0.5 + 0.5) * 2 * GALAXY_BOUNDS.y - GALAXY_BOUNDS.y,
+      GALAXY_BOUNDS.zMin + Math.abs(Math.sin(seed * 1.9)) * (GALAXY_BOUNDS.zMax - GALAXY_BOUNDS.zMin),
+    ),
+    vel: new Vector3(
+      (Math.sin(seed * 5.3) - 0.5) * speed,
+      (Math.cos(seed * 4.1) - 0.5) * speed * 0.5,
+      (Math.sin(seed * 2.2) - 0.5) * speed * 0.4,
+    ),
+    phase: "cruise" as WanderPhase,
+    target: 0,
+    timer: 0,
+    cruiseLeft: 3 + ((seed * 13.7) % 5),
+    scale: 1,
+  });
+
+  useFrame((_, dt) => {
+    const s = state.current;
+    s.timer += dt;
+
+    if (s.phase === "cruise") {
+      s.pos.addScaledVector(s.vel, dt);
+      // gentle cosmic curvature while cruising
+      s.pos.x += Math.sin(s.pos.z * 0.01 + seed) * dt * 2;
+      s.pos.y += Math.cos(s.pos.x * 0.008 + seed) * dt * 1.5;
+      galaxyWrap(s.pos);
+      s.cruiseLeft -= dt;
+      if (s.cruiseLeft <= 0) {
+        s.phase = "approach";
+        s.target = Math.floor(Math.random() * WANDER_DESTINATIONS.length);
+      }
+    } else if (s.phase === "approach") {
+      const dest = WANDER_DESTINATIONS[s.target];
+      const toDest = dest.clone().sub(s.pos).normalize().multiplyScalar(speed * 2.8);
+      s.vel.lerp(toDest, 0.045);
+      s.pos.addScaledVector(s.vel, dt);
+      if (s.pos.distanceTo(dest) < 1.6) {
+        s.phase = "absorb";
+        s.timer = 0;
+      }
+    } else if (s.phase === "absorb") {
+      s.scale = Math.max(0, 1 - s.timer / 0.4);
+      s.pos.lerp(WANDER_DESTINATIONS[s.target], 0.14);
+      if (s.timer >= 0.4) {
+        s.pos.set(
+          (Math.random() - 0.5) * 2 * GALAXY_BOUNDS.x,
+          (Math.random() - 0.5) * 2 * GALAXY_BOUNDS.y,
+          GALAXY_BOUNDS.zMin + Math.random() * (GALAXY_BOUNDS.zMax - GALAXY_BOUNDS.zMin),
+        );
+        s.vel.set(
+          (Math.random() - 0.5) * speed,
+          (Math.random() - 0.5) * speed * 0.5,
+          (Math.random() - 0.5) * speed * 0.4,
+        );
+        s.phase = "emerge";
+        s.timer = 0;
+      }
+    } else if (s.phase === "emerge") {
+      s.scale = Math.min(1, s.timer / 0.4);
+      if (s.timer >= 0.4) {
+        s.phase = "cruise";
+        s.cruiseLeft = 4 + Math.random() * 7;
+        s.timer = 0;
+      }
+    }
+
+    if (ref.current) {
+      ref.current.position.copy(s.pos);
+      ref.current.scale.setScalar(s.scale);
+      if (rotateToVelocity && s.vel.lengthSq() > 0.0001 && s.phase !== "absorb") {
+        ref.current.quaternion.setFromUnitVectors(_FORWARD, s.vel.clone().normalize());
+      }
+    }
+  });
+
+  return ref;
+}
+
+/* ==================================================================
  * 3. FLYING CARS — futuristic vehicles moving through the cosmos
  * ================================================================== */
 
-function FlyingCar({ position, velocity, hue, carType }: { position: Vector3; velocity: Vector3; hue: number; carType: number }) {
-  const meshRef = useRef<Group>(null);
-  const pos = useRef(position.clone());
-  const vel = useRef(velocity.clone());
+function FlyingCar({ seed, hue, carType }: { seed: number; hue: number; carType: number }) {
+  const meshRef = usePortalWander(seed, 14, true);
 
   const carColor = useMemo(() => new Color().setHSL(hue / 360, 0.85, 0.7), [hue]);
   const trailColor = useMemo(() => new Color().setHSL(hue / 360, 0.9, 0.55), [hue]);
   const bodyColor = useMemo(() => new Color().setHSL(hue / 360, 0.3, 0.35), [hue]);
-
-  useFrame((_, delta) => {
-    if (!meshRef.current) return;
-    pos.current.addScaledVector(vel.current, delta);
-    if (pos.current.length() > 120) {
-      pos.current.multiplyScalar(-0.05);
-    }
-    meshRef.current.position.copy(pos.current);
-    if (vel.current.length() > 0.01) {
-      meshRef.current.lookAt(pos.current.clone().add(vel.current));
-    }
-  });
 
   const isFlyingCar = carType % 3 === 0;
   const isSpacecraft = carType % 3 === 1;
   const isHoverCar = carType % 3 === 2;
 
   return (
-    <group ref={meshRef} position={position}>
+    <group ref={meshRef}>
       {/* Main body */}
       {isFlyingCar && (
         <mesh scale={[0.45, 0.08, 0.15]}>
@@ -290,8 +405,7 @@ function FlyingCars() {
   const [cars] = useState(() =>
     Array.from({ length: 25 }, (_, i) => ({
       id: `car-${i}`,
-      pos: new Vector3((Math.random() - 0.5) * 160, (Math.random() - 0.5) * 80, -20 - Math.random() * 60),
-      vel: new Vector3((Math.random() - 0.5) * 12, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 4),
+      seed: i * 11.7 + 1.3,
       hue: Math.random() * 360,
       type: i,
     }))
@@ -299,14 +413,252 @@ function FlyingCars() {
   return (
     <group>
       {cars.map((car) => (
-        <FlyingCar key={car.id} position={car.pos} velocity={car.vel} hue={car.hue} carType={car.type} />
+        <FlyingCar key={car.id} seed={car.seed} hue={car.hue} carType={car.type} />
       ))}
     </group>
   );
 }
 
 /* ==================================================================
- * 4. ZODIAC OBSERVATORY — real astronomical visualization
+ * 4. COSMIC ENTITIES — people, cartoon cats, stars floating through cosmos
+ *
+ * Visible entities that drift, travel through portals, appear randomly.
+ * ================================================================== */
+
+/* --- Floating Person (capsule body + head) --- */
+function FloatingPerson({ seed, idx }: { seed: number; idx: number }) {
+  const ref = usePortalWander(seed, 9, false);
+  const tumbleRef = useRef<Group>(null);
+
+  const bodyColor = useMemo(() => {
+    const hues = [0, 20, 200, 340, 160, 280, 45];
+    return new Color().setHSL(hues[idx % hues.length] / 360, 0.7, 0.6);
+  }, [idx]);
+
+  useFrame(({ clock }) => {
+    if (!tumbleRef.current) return;
+    const t = clock.elapsedTime;
+    tumbleRef.current.rotation.x = Math.sin(t * 0.7 + seed) * 0.5;
+    tumbleRef.current.rotation.z = Math.cos(t * 0.5 + seed) * 0.4;
+  });
+
+  return (
+    <group ref={ref}>
+      <group ref={tumbleRef}>
+        {/* Head */}
+        <mesh position={[0, 0.28, 0]}>
+          <sphereGeometry args={[0.12, 8, 8]} />
+          <meshStandardMaterial color={bodyColor} emissive={bodyColor} emissiveIntensity={0.4} />
+        </mesh>
+        {/* Body (capsule) */}
+        <mesh position={[0, 0.05, 0]} scale={[0.08, 0.18, 0.08]}>
+          <sphereGeometry args={[1, 6, 8]} />
+          <meshStandardMaterial color={bodyColor} emissive={bodyColor} emissiveIntensity={0.3} />
+        </mesh>
+        {/* Glow */}
+        <mesh>
+          <sphereGeometry args={[0.5, 6, 6]} />
+          <meshBasicMaterial color={bodyColor} transparent opacity={0.08} blending={AdditiveBlending} depthWrite={false} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+/* --- Cartoon Cat (round body + ears + tail) --- */
+function CartoonCat({ seed, idx }: { seed: number; idx: number }) {
+  const ref = usePortalWander(seed, 8, false);
+  const tumbleRef = useRef<Group>(null);
+
+  const catColor = useMemo(() => {
+    const hues = [30, 340, 50, 180, 260, 10];
+    return new Color().setHSL(hues[idx % hues.length] / 360, 0.8, 0.55);
+  }, [idx]);
+
+  useFrame(({ clock }) => {
+    if (!tumbleRef.current) return;
+    const t = clock.elapsedTime;
+    tumbleRef.current.rotation.y = Math.sin(t * 0.5 + seed) * 0.6;
+    tumbleRef.current.rotation.x = Math.cos(t * 0.4 + seed) * 0.3;
+  });
+
+  return (
+    <group ref={ref}>
+      <group ref={tumbleRef}>
+      {/* Body */}
+      <mesh>
+        <sphereGeometry args={[0.18, 8, 8]} />
+        <meshStandardMaterial color={catColor} emissive={catColor} emissiveIntensity={0.5} />
+      </mesh>
+      {/* Head */}
+      <mesh position={[0.15, 0.1, 0]}>
+        <sphereGeometry args={[0.1, 8, 8]} />
+        <meshStandardMaterial color={catColor} emissive={catColor} emissiveIntensity={0.5} />
+      </mesh>
+      {/* Left ear */}
+      <mesh position={[0.2, 0.2, -0.05]} scale={[0.03, 0.06, 0.02]}>
+        <coneGeometry args={[1, 2, 4]} />
+        <meshStandardMaterial color={catColor} emissive={catColor} emissiveIntensity={0.6} />
+      </mesh>
+      {/* Right ear */}
+      <mesh position={[0.2, 0.2, 0.05]} scale={[0.03, 0.06, 0.02]}>
+        <coneGeometry args={[1, 2, 4]} />
+        <meshStandardMaterial color={catColor} emissive={catColor} emissiveIntensity={0.6} />
+      </mesh>
+      {/* Eyes */}
+      <mesh position={[0.22, 0.12, -0.04]}>
+        <sphereGeometry args={[0.02, 4, 4]} />
+        <meshBasicMaterial color="#ffffff" />
+      </mesh>
+      <mesh position={[0.22, 0.12, 0.04]}>
+        <sphereGeometry args={[0.02, 4, 4]} />
+        <meshBasicMaterial color="#ffffff" />
+      </mesh>
+      {/* Tail */}
+      <mesh position={[-0.2, 0.05, 0]} rotation={[0, 0, 0.5]} scale={[0.03, 0.12, 0.03]}>
+        <cylinderGeometry args={[0.5, 1, 1, 6]} />
+        <meshStandardMaterial color={catColor} emissive={catColor} emissiveIntensity={0.4} />
+      </mesh>
+      {/* Glow */}
+        <mesh>
+          <sphereGeometry args={[0.5, 6, 6]} />
+          <meshBasicMaterial color={catColor} transparent opacity={0.07} blending={AdditiveBlending} depthWrite={false} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+/* --- Cartoon Star (star-shaped with face) --- */
+function CartoonStar({ seed, idx }: { seed: number; idx: number }) {
+  const ref = usePortalWander(seed, 10, false);
+  const tumbleRef = useRef<Group>(null);
+
+  const starColor = useMemo(() => {
+    const hues = [45, 60, 30, 50, 15];
+    return new Color().setHSL(hues[idx % hues.length] / 360, 1.0, 0.65);
+  }, [idx]);
+
+  useFrame((_, dt) => {
+    if (!tumbleRef.current) return;
+    tumbleRef.current.rotation.z += dt * 2;
+  });
+
+  return (
+    <group ref={ref}>
+      <group ref={tumbleRef}>
+      <mesh>
+        <octahedronGeometry args={[0.15, 0]} />
+        <meshStandardMaterial color={starColor} emissive={starColor} emissiveIntensity={0.8} />
+      </mesh>
+      {/* Eyes */}
+      <mesh position={[0.04, 0.03, 0.12]}>
+        <sphereGeometry args={[0.02, 4, 4]} />
+        <meshBasicMaterial color="#000000" />
+      </mesh>
+      <mesh position={[-0.04, 0.03, 0.12]}>
+        <sphereGeometry args={[0.02, 4, 4]} />
+        <meshBasicMaterial color="#000000" />
+      </mesh>
+      {/* Glow trail */}
+        <mesh>
+          <sphereGeometry args={[0.6, 6, 6]} />
+          <meshBasicMaterial color={starColor} transparent opacity={0.06} blending={AdditiveBlending} depthWrite={false} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+/* --- Portal visual (rotating ring) --- */
+function CosmicPortal({ position }: { position: [number, number, number] }) {
+  const ref = useRef<Group>(null);
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    ref.current.rotation.y = clock.elapsedTime * 0.8;
+    ref.current.rotation.x = Math.sin(clock.elapsedTime * 0.3) * 0.2;
+  });
+
+  return (
+    <group ref={ref} position={position}>
+      <mesh>
+        <torusGeometry args={[2.5, 0.15, 8, 32]} />
+        <meshBasicMaterial color="#8855ff" transparent opacity={0.6} blending={AdditiveBlending} />
+      </mesh>
+      <mesh>
+        <torusGeometry args={[2.2, 0.08, 8, 32]} />
+        <meshBasicMaterial color="#cc88ff" transparent opacity={0.3} blending={AdditiveBlending} />
+      </mesh>
+      <mesh>
+        <sphereGeometry args={[1.5, 12, 12]} />
+        <meshBasicMaterial color="#6633cc" transparent opacity={0.15} blending={AdditiveBlending} depthWrite={false} />
+      </mesh>
+      <pointLight color="#9966ff" intensity={4} distance={20} decay={2} />
+    </group>
+  );
+}
+
+/* --- Black Hole (dark core + accretion ring) --- */
+function CosmicBlackHole({ position }: { position: [number, number, number] }) {
+  const ref = useRef<Group>(null);
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    ref.current.rotation.y = clock.elapsedTime * 0.3;
+  });
+
+  return (
+    <group ref={ref} position={position}>
+      <mesh>
+        <sphereGeometry args={[1.5, 16, 16]} />
+        <meshBasicMaterial color="#000000" />
+      </mesh>
+      <mesh>
+        <torusGeometry args={[3, 0.2, 8, 32]} />
+        <meshBasicMaterial color="#ff6633" transparent opacity={0.4} blending={AdditiveBlending} />
+      </mesh>
+      <mesh>
+        <torusGeometry args={[2.5, 0.1, 8, 32]} />
+        <meshBasicMaterial color="#ffaa44" transparent opacity={0.25} blending={AdditiveBlending} />
+      </mesh>
+      <mesh>
+        <sphereGeometry args={[4, 8, 8]} />
+        <meshBasicMaterial color="#221100" transparent opacity={0.08} blending={AdditiveBlending} depthWrite={false} />
+      </mesh>
+      <pointLight color="#ff8844" intensity={3} distance={25} decay={2} />
+    </group>
+  );
+}
+
+/* --- Combined cosmic entities layer --- */
+function CosmicEntities() {
+  return (
+    <group>
+      {/* Portals */}
+      {PORTAL_POSITIONS.map((pos, i) => (
+        <CosmicPortal key={`portal-${i}`} position={pos} />
+      ))}
+      {/* Black holes */}
+      {BLACKHOLE_POSITIONS.map((pos, i) => (
+        <CosmicBlackHole key={`bh-${i}`} position={pos} />
+      ))}
+      {/* People */}
+      {Array.from({ length: 15 }, (_, i) => (
+        <FloatingPerson key={`person-${i}`} seed={i * 7.3 + 1.1} idx={i} />
+      ))}
+      {/* Cartoon cats */}
+      {Array.from({ length: 8 }, (_, i) => (
+        <CartoonCat key={`cat-${i}`} seed={i * 5.7 + 2.3} idx={i} />
+      ))}
+      {/* Cartoon stars */}
+      {Array.from({ length: 10 }, (_, i) => (
+        <CartoonStar key={`star-${i}`} seed={i * 4.1 + 3.7} idx={i} />
+      ))}
+    </group>
+  );
+}
+
+/* ==================================================================
+ * 4b. ZODIAC OBSERVATORY — real astronomical visualization
  * ================================================================== */
 
 const ZODIAC_POS = { x: 100, y: 10, z: -90 };
@@ -781,126 +1133,247 @@ function FloatingCitiesVisual() {
 }
 
 /* ==================================================================
- * 7. COTTON-CANDY COSMIC CLOUDS — VIVID FLUORESCENT NEBULAE
+ * 7. COTTON-CANDY COSMIC CLOUDS — REAL CLOUD FORMATIONS
  *
- * Massive, layered, high-saturation cloud formations.
- * Hot pinks, magentas, maroons, electric roses.
- * Each cloud is 20+ overlapping spheres with additive + basic blend.
+ * THREE distinct cloud types:
+ *   CUMULUS — tall puffy towers (stacked rounded billows)
+ *   STRATUS — wide flat layers (flattened discs)
+ *   CIRRUS — thin wispy streaks (elongated shards)
+ *
+ * Hot pinks, magentas, maroons, fluorescent roses.
+ * Each cloud DRIFTS through space with visible momentum.
  * ================================================================== */
 
-/** Fluorescent palette — HIGH SATURATION, not pastel */
 const CANDY_PALETTE = [
-  new Color(1.0, 0.05, 0.35),   // hot magenta-pink
-  new Color(0.9, 0.0, 0.25),    // deep maroon-rose
-  new Color(1.0, 0.2, 0.6),     // fluorescent pink
-  new Color(0.7, 0.0, 0.35),    // dark magenta
-  new Color(1.0, 0.35, 0.55),   // bright rose
-  new Color(0.85, 0.05, 0.45),  // burgundy-magenta
-  new Color(0.6, 0.0, 0.5),     // deep violet-maroon
-  new Color(1.0, 0.15, 0.45),   // neon fuchsia
-  new Color(0.95, 0.0, 0.2),    // crimson pink
-  new Color(0.5, 0.0, 0.6),     // royal purple
-  new Color(1.0, 0.5, 0.7),     // warm cotton-candy pink
-  new Color(0.8, 0.0, 0.3),     // dark fuchsia
+  { r: 1.0, g: 0.05, b: 0.35 },   // hot magenta-pink
+  { r: 0.9, g: 0.0,  b: 0.25 },   // deep maroon-rose
+  { r: 1.0, g: 0.2,  b: 0.6 },    // fluorescent pink
+  { r: 0.7, g: 0.0,  b: 0.35 },   // dark magenta
+  { r: 1.0, g: 0.35, b: 0.55 },   // bright rose
+  { r: 0.85,g: 0.05, b: 0.45 },   // burgundy-magenta
+  { r: 0.6, g: 0.0,  b: 0.5 },    // deep violet-maroon
+  { r: 1.0, g: 0.15, b: 0.45 },   // neon fuchsia
+  { r: 0.95,g: 0.0,  b: 0.2 },    // crimson pink
+  { r: 0.5, g: 0.0,  b: 0.6 },    // royal purple
+  { r: 1.0, g: 0.5,  b: 0.7 },    // warm cotton-candy pink
+  { r: 0.8, g: 0.0,  b: 0.3 },    // dark fuchsia
 ];
 
-function CottonCandyCloud({ center, cloudScale, paletteIdx }: {
-  center: [number, number, number]; cloudScale: number; paletteIdx: number;
+function candyColor(idx: number) {
+  const c = CANDY_PALETTE[idx % CANDY_PALETTE.length];
+  return new Color(c.r, c.g, c.b);
+}
+
+/* --- CUMULUS: tall billowy towers with rounded tops --- */
+function CumulusCloud({ center, scale, ci }: {
+  center: [number, number, number]; scale: number; ci: number;
 }) {
-  const groupRef = useRef<Group>(null);
-  const c1 = CANDY_PALETTE[paletteIdx % CANDY_PALETTE.length];
-  const c2 = CANDY_PALETTE[(paletteIdx + 3) % CANDY_PALETTE.length];
+  const ref = useRef<Group>(null);
+  const pos = useRef(new Vector3(center[0], center[1], center[2]));
+  const vel = useMemo(() => new Vector3(
+    Math.sin(ci * 12.9898) * 6,
+    Math.cos(ci * 78.233) * 3,
+    Math.sin(ci * 37.719) * 2,
+  ), [ci]);
+  const c1 = candyColor(ci);
+  const c2 = candyColor(ci + 2);
 
-  /** 24 overlapping spheres per cloud for real volume */
-  const layers = useMemo(() =>
-    Array.from({ length: 24 }, (_, i) => {
-      const a = (i / 24) * Math.PI * 2;
-      const r = (0.3 + Math.sin(i * 1.7 + paletteIdx) * 0.25) * cloudScale;
-      const h = Math.cos(i * 2.1 + paletteIdx * 0.7) * cloudScale * 0.35;
-      const s = cloudScale * (0.35 + Math.sin(i * 0.9 + paletteIdx) * 0.25);
-      return { x: Math.cos(a) * r, y: h, z: Math.sin(a) * r, s };
-    }),
-  [cloudScale, paletteIdx]);
+  // Build a cumulus from stacked deformed spheres (billows)
+  const billows = useMemo(() => {
+    const b: { x: number; y: number; z: number; sx: number; sy: number; sz: number; c: Color }[] = [];
+    // Base layer — wide
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      const r = scale * 0.6 + Math.sin(i * 2.1) * scale * 0.15;
+      b.push({
+        x: Math.cos(a) * r * 0.5,
+        y: -scale * 0.1,
+        z: Math.sin(a) * r * 0.5,
+        sx: scale * (0.4 + Math.sin(i * 1.3) * 0.1),
+        sy: scale * 0.18,
+        sz: scale * (0.35 + Math.cos(i * 1.7) * 0.1),
+        c: i % 2 === 0 ? c1 : c2,
+      });
+    }
+    // Middle layer — fewer, taller
+    for (let i = 0; i < 4; i++) {
+      const a = (i / 4) * Math.PI * 2 + 0.5;
+      b.push({
+        x: Math.cos(a) * scale * 0.2,
+        y: scale * 0.15,
+        z: Math.sin(a) * scale * 0.2,
+        sx: scale * 0.3,
+        sy: scale * 0.25,
+        sz: scale * 0.28,
+        c: i % 2 === 0 ? c2 : c1,
+      });
+    }
+    // Top — big puffy cap
+    b.push({
+      x: 0, y: scale * 0.45, z: 0,
+      sx: scale * 0.35, sy: scale * 0.3, sz: scale * 0.32,
+      c: c1,
+    });
+    return b;
+  }, [scale, c1, c2]);
 
-  useFrame(({ clock }) => {
-    if (!groupRef.current) return;
+  useFrame(({ clock }, dt) => {
+    if (!ref.current) return;
     const t = clock.elapsedTime;
-    groupRef.current.rotation.y = t * 0.015 + paletteIdx;
-    groupRef.current.rotation.x = Math.sin(t * 0.008 + paletteIdx) * 0.1;
-    // slow drift
-    groupRef.current.position.x = center[0] + Math.sin(t * 0.004 + paletteIdx * 2) * 3;
-    groupRef.current.position.y = center[1] + Math.cos(t * 0.003 + paletteIdx) * 2;
-    groupRef.current.position.z = center[2] + Math.sin(t * 0.002 + paletteIdx * 3) * 1.5;
+    pos.current.addScaledVector(vel, dt);
+    galaxyWrap(pos.current);
+    ref.current.position.copy(pos.current);
+    ref.current.rotation.y = t * 0.01 + ci;
   });
 
   return (
-    <group ref={groupRef} position={center}>
-      {layers.map((l, i) => {
-        const useC = i % 3 === 0 ? c2 : c1;
-        const blend = i / 24;
-        // Inner core — brighter, more opaque
-        const isInner = blend < 0.4;
-        return (
-          <group key={i}>
-            {/* Main cloud sphere */}
-            <mesh position={[l.x, l.y, l.z]} scale={l.s}>
-              <sphereGeometry args={[1, 14, 14]} />
-              <meshBasicMaterial
-                color={useC}
-                transparent
-                opacity={isInner ? 0.18 : 0.09}
-                blending={AdditiveBlending}
-                depthWrite={false}
-              />
-            </mesh>
-            {/* Glow halo — double the size, fainter */}
-            <mesh position={[l.x, l.y, l.z]} scale={l.s * 2.5}>
-              <sphereGeometry args={[1, 8, 8]} />
-              <meshBasicMaterial
-                color={useC}
-                transparent
-                opacity={isInner ? 0.06 : 0.03}
-                blending={AdditiveBlending}
-                depthWrite={false}
-              />
-            </mesh>
-          </group>
-        );
-      })}
-      {/* Central luminous core */}
-      <mesh scale={cloudScale * 1.2}>
-        <sphereGeometry args={[1, 10, 10]} />
-        <meshBasicMaterial
-          color={c1}
-          transparent
-          opacity={0.12}
-          blending={AdditiveBlending}
-          depthWrite={false}
-        />
-      </mesh>
+    <group ref={ref} position={center}>
+      {billows.map((b, i) => (
+        <group key={i}>
+          <mesh position={[b.x, b.y, b.z]} scale={[b.sx, b.sy, b.sz]}>
+            <sphereGeometry args={[1, 12, 10]} />
+            <meshBasicMaterial color={b.c} transparent opacity={0.2} blending={AdditiveBlending} depthWrite={false} />
+          </mesh>
+          <mesh position={[b.x, b.y, b.z]} scale={[b.sx * 2, b.sy * 1.8, b.sz * 2]}>
+            <sphereGeometry args={[1, 8, 6]} />
+            <meshBasicMaterial color={b.c} transparent opacity={0.06} blending={AdditiveBlending} depthWrite={false} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+/* --- STRATUS: wide flat layers stretching horizontally --- */
+function StratusCloud({ center, scale, ci }: {
+  center: [number, number, number]; scale: number; ci: number;
+}) {
+  const ref = useRef<Group>(null);
+  const pos = useRef(new Vector3(center[0], center[1], center[2]));
+  const vel = useMemo(() => new Vector3(
+    Math.sin(ci * 91.471) * 5,
+    Math.cos(ci * 31.379) * 2.5,
+    Math.sin(ci * 57.113) * 2,
+  ), [ci]);
+  const c1 = candyColor(ci + 4);
+
+  const layers = useMemo(() =>
+    Array.from({ length: 8 }, () => ({
+      x: (Math.random() - 0.5) * scale * 1.2,
+      y: (Math.random() - 0.5) * scale * 0.05,
+      z: (Math.random() - 0.5) * scale * 0.4,
+      sx: scale * (0.3 + Math.random() * 0.4),
+      sy: scale * 0.04,
+      sz: scale * (0.15 + Math.random() * 0.2),
+    })),
+  [scale]);
+
+  useFrame(({ clock }, dt) => {
+    if (!ref.current) return;
+    const t = clock.elapsedTime;
+    pos.current.addScaledVector(vel, dt);
+    galaxyWrap(pos.current);
+    ref.current.position.copy(pos.current);
+    ref.current.rotation.y = t * 0.005 + ci * 0.5;
+  });
+
+  return (
+    <group ref={ref} position={center}>
+      {layers.map((l, i) => (
+        <group key={i}>
+          <mesh position={[l.x, l.y, l.z]} scale={[l.sx, l.sy, l.sz]}>
+            <boxGeometry args={[1, 1, 1, 1, 1, 1]} />
+            <meshBasicMaterial color={c1} transparent opacity={0.16} blending={AdditiveBlending} depthWrite={false} />
+          </mesh>
+          <mesh position={[l.x, l.y, l.z]} scale={[l.sx * 1.6, l.sy * 3, l.sz * 1.6]}>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshBasicMaterial color={c1} transparent opacity={0.05} blending={AdditiveBlending} depthWrite={false} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+/* --- CIRRUS: thin wispy streaks stretched diagonally --- */
+function CirrusCloud({ center, scale, ci }: {
+  center: [number, number, number]; scale: number; ci: number;
+}) {
+  const ref = useRef<Group>(null);
+  const pos = useRef(new Vector3(center[0], center[1], center[2]));
+  const vel = useMemo(() => new Vector3(
+    Math.sin(ci * 67.819) * 7,
+    Math.cos(ci * 43.297) * 3,
+    Math.sin(ci * 19.713) * 2.5,
+  ), [ci]);
+  const c1 = candyColor(ci + 6);
+
+  const streaks = useMemo(() =>
+    Array.from({ length: 10 }, (_, i) => ({
+      x: (i / 10 - 0.5) * scale * 2.5 + (Math.random() - 0.5) * scale * 0.3,
+      y: Math.sin(i * 0.7) * scale * 0.15,
+      z: (Math.random() - 0.5) * scale * 0.3,
+      sx: scale * (0.4 + Math.random() * 0.5),
+      sy: scale * 0.015,
+      sz: scale * 0.025,
+      rotZ: (Math.random() - 0.5) * 0.3,
+    })),
+  [scale]);
+
+  useFrame(({ clock }, dt) => {
+    if (!ref.current) return;
+    const t = clock.elapsedTime;
+    pos.current.addScaledVector(vel, dt);
+    galaxyWrap(pos.current);
+    ref.current.position.copy(pos.current);
+    ref.current.rotation.y = t * 0.008 + ci;
+  });
+
+  return (
+    <group ref={ref} position={center}>
+      {streaks.map((s, i) => (
+        <group key={i}>
+          <mesh position={[s.x, s.y, s.z]} scale={[s.sx, s.sy, s.sz]} rotation={[0, 0, s.rotZ]}>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshBasicMaterial color={c1} transparent opacity={0.14} blending={AdditiveBlending} depthWrite={false} />
+          </mesh>
+          <mesh position={[s.x, s.y, s.z]} scale={[s.sx * 1.3, s.sy * 5, s.sz * 4]} rotation={[0, 0, s.rotZ]}>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshBasicMaterial color={c1} transparent opacity={0.04} blending={AdditiveBlending} depthWrite={false} />
+          </mesh>
+        </group>
+      ))}
     </group>
   );
 }
 
 function CottonCandyClouds() {
-  const clouds = useMemo(() =>
-    Array.from({ length: 14 }, (_, i) => ({
-      id: `nebula-${i}`,
-      center: [
-        (Math.random() - 0.5) * 400,
-        (Math.random() - 0.5) * 160,
-        -20 - Math.random() * 120,
-      ] as [number, number, number],
-      scale: 8 + Math.random() * 18,
-      pi: i,
-    })),
-  []);
+  const clouds = useMemo(() => {
+    const arr: { id: string; type: 'cumulus' | 'stratus' | 'cirrus'; center: [number, number, number]; scale: number; ci: number }[] = [];
+    const types: ('cumulus' | 'stratus' | 'cirrus')[] = ['cumulus', 'stratus', 'cirrus'];
+    for (let i = 0; i < 21; i++) {
+      arr.push({
+        id: `cloud-${i}`,
+        type: types[i % 3],
+        center: [
+          (Math.random() - 0.5) * 500,
+          (Math.random() - 0.5) * 200,
+          -10 - Math.random() * 140,
+        ],
+        scale: 10 + Math.random() * 22,
+        ci: i,
+      });
+    }
+    return arr;
+  }, []);
 
   return (
     <group>
-      {clouds.map((c) => (
-        <CottonCandyCloud key={c.id} center={c.center} cloudScale={c.scale} paletteIdx={c.pi} />
-      ))}
+      {clouds.map((c) => {
+        if (c.type === 'cumulus') return <CumulusCloud key={c.id} center={c.center} scale={c.scale} ci={c.ci} />;
+        if (c.type === 'stratus') return <StratusCloud key={c.id} center={c.center} scale={c.scale} ci={c.ci} />;
+        return <CirrusCloud key={c.id} center={c.center} scale={c.scale} ci={c.ci} />;
+      })}
     </group>
   );
 }
@@ -1129,4 +1602,5 @@ export {
   FloatingCitiesVisual,
   CottonCandyClouds,
   CosmicLightning,
+  CosmicEntities,
 };

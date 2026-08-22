@@ -259,7 +259,7 @@ function ThinkingDots() {
  * ---------------------------------------------------------- */
 
 export default function GenesisChat({ onExit }: { onExit?: () => void }) {
-  const { state, openPanel, addMessage, setDialogue, notify } = useGenesis();
+  const { state, openPanel, addMessage, setDialogue, notify, crossChatContext } = useGenesis();
   const voice = useVoice();
 
   const [input, setInput] = useState("");
@@ -558,12 +558,17 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       // verification, and runtime state updates. For requests with
       // media attachments, fall through to AIService directly since
       // the Orchestrator does not yet forward media.
+      // Intentional cross-chat retrieval: fold in only the related
+      // conversations LÉLU actually needs for THIS request (never a
+      // dump of every chat). Empty string when nothing is relevant.
+      const context = crossChatContext(prompt || "");
+
       let assistantText: string;
       if (media.length > 0) {
-        const response = await ai.chat(prompt, media);
+        const response = await ai.chat(prompt, media, context);
         assistantText = response.text;
       } else {
-        const result = await Orchestrator.getInstance().process(prompt);
+        const result = await Orchestrator.getInstance().process(prompt, undefined, context);
         assistantText = result.response;
       }
 

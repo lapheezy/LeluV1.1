@@ -14,6 +14,7 @@
 
 import KvStore from "../storage/KvStore";
 import { LELU_IDENTITY_STATEMENT } from "../../brain/LeluIdentity";
+import PersonalityGuard from "../security/PersonalityGuard";
 
 export interface AppearanceConfig {
   face: string;
@@ -153,7 +154,21 @@ export default class AvatarStore {
   }
 
   public updateIdentity(patch: Partial<IdentityConfig>): AvatarProfile {
-    return this.update({ identity: { ...this.get().identity, ...patch } });
+    const previous = this.get();
+    const next = this.update({ identity: { ...this.get().identity, ...patch } });
+
+    // Personality/identity changes are protected, traceable and reversible.
+    PersonalityGuard.getInstance().record({
+      source: "user",
+      target: "avatar-identity",
+      summary: "Avatar identity/personality updated",
+      restore: () => {
+        this.kv.set(AvatarStore.KEY, previous);
+        this.notify();
+      },
+    });
+
+    return next;
   }
 
   public updatePresence(patch: Partial<PresenceConfig>): AvatarProfile {

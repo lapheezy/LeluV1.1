@@ -13,6 +13,7 @@
  */
 
 import KvStore from "../storage/KvStore";
+import PersonalityGuard from "../security/PersonalityGuard";
 
 export interface SelfModelState {
   updatedAt: number;
@@ -135,11 +136,22 @@ export default class SelfModel {
 
   /** Explicit edit from the Cognition workspace. */
   public update(patch: Partial<SelfModelState>): void {
+    const previous = this.state;
     this.commit({
       ...this.state,
       ...patch,
       identity: { ...this.state.identity, ...(patch.identity ?? {}) },
     });
+
+    // Identity changes are protected + traceable (PersonalityGuard).
+    if (patch.identity) {
+      PersonalityGuard.getInstance().record({
+        source: "user",
+        target: "self-model-identity",
+        summary: `Self-model identity updated${patch.identity.name ? ` (name → ${patch.identity.name})` : ""}`,
+        restore: () => this.commit(previous),
+      });
+    }
   }
 
   private addItem(field: keyof SelfModelState, value: string, cap = 60): void {

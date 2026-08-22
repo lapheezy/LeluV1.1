@@ -14,7 +14,7 @@
 
 import KvStore from "../storage/KvStore";
 import AgentEventBus from "../agent/AgentEvents";
-import { AGENT_TEMPLATES, agentFromTemplate, type AgentTemplate } from "./AgentTemplates";
+import { AGENT_TEMPLATES, SCIENTIFIC_AGENT_TEMPLATES, agentFromTemplate, type AgentTemplate } from "./AgentTemplates";
 import type { AgentTask, AgentExecution, LeluAgent, AgentStatus } from "./AgentTypes";
 
 type AgentListener = (agents: LeluAgent[]) => void;
@@ -139,6 +139,28 @@ export default class AgentStore {
     const template = AGENT_TEMPLATES.find((item) => item.id === templateId);
     const agent = agentFromTemplate(template ?? AGENT_TEMPLATES[0]);
     this.mutate((agents) => [...agents, agent]);
+    return agent;
+  }
+
+  /** On-demand scientific specialists (Caretaker health/bioengineering).
+   *  Not auto-seeded — Agent Forge creates them only when needed. */
+  public scientificTemplates(): AgentTemplate[] {
+    return SCIENTIFIC_AGENT_TEMPLATES;
+  }
+
+  /** Forge a scientific specialist on demand. */
+  public createScientificSpecialist(templateId: string): LeluAgent {
+    const template =
+      SCIENTIFIC_AGENT_TEMPLATES.find((item) => item.id === templateId) ??
+      SCIENTIFIC_AGENT_TEMPLATES[0];
+    const agent = agentFromTemplate(template);
+    this.mutate((agents) => [...agents, agent]);
+    this.events.emit({
+      type: "tool_result",
+      taskId: String(Date.now()),
+      tool: "agent-forge",
+      result: `Scientific specialist "${agent.name}" forged`,
+    });
     return agent;
   }
 

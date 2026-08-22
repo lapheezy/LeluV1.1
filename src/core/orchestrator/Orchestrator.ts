@@ -72,7 +72,11 @@ export default class Orchestrator {
 
   // ---------- MAIN ENTRY POINT ----------
 
-  async process(request: string, _conversationHistory: string[] = []): Promise<OrchestratorResult> {
+  async process(
+    request: string,
+    _conversationHistory: string[] = [],
+    context?: string,
+  ): Promise<OrchestratorResult> {
     if (this.executing) {
       console.warn("[Orchestrator] Already executing — skipping re-entry to prevent lock deadlock.");
       return {
@@ -120,7 +124,7 @@ export default class Orchestrator {
 
         // Execute through the existing AI pipeline (with orchestration context)
         const ai = AIService.getInstance();
-        const response = await ai.chat(request);
+        const response = await ai.chat(request, undefined, context);
 
         // Verify the response
         const verified = this.verifyResponse(response);
@@ -160,7 +164,7 @@ export default class Orchestrator {
 
       // Simple request — direct pipeline
       const ai = AIService.getInstance();
-      const response = await ai.chat(request);
+      const response = await ai.chat(request, undefined, context);
 
       actions.push({
         tool: "ai.generate",

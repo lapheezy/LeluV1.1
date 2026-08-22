@@ -9,6 +9,10 @@
  *        ↓
  * Three camera
  *
+ * Also handles planetary exploration: near the LÉLU planet the
+ * OrbitControls target tracks the surface so the user can descend
+ * continuously from orbit → city → street, and WASD/arrow keys walk
+ * streets at close range.
  * ==========================================================
  */
 
@@ -23,6 +27,7 @@ import {
 } from "@react-three/drei";
 
 import {
+  useFrame,
   useThree,
 } from "@react-three/fiber";
 
@@ -37,8 +42,48 @@ import type GenesisNavigator
 import { genesisCameraIntentBus }
   from "./GenesisCameraIntent";
 
+import {
+  PLANET_CENTER,
+  PLANET_RADIUS,
+} from "./render/PlanetExplorer";
+
 interface GenesisCameraControllerProps {
   navigator: GenesisNavigator;
+}
+
+const ORIGIN = new Vector3(0, 0, 0);
+const UP_AXIS = new Vector3(0, 1, 0);
+
+/** Smoothly fly the camera + OrbitControls target to a destination. */
+function flyCameraTo(
+  camera: PerspectiveCamera,
+  controls: any,
+  targetPos: Vector3,
+  lookAt: Vector3,
+  duration = 1.5,
+) {
+  const startPos = camera.position.clone();
+  const startTarget = controls.target.clone();
+  let progress = 0;
+  let lastTime = performance.now();
+
+  function animate() {
+    const now = performance.now();
+    const dt = (now - lastTime) / 1000;
+    lastTime = now;
+    progress += dt / duration;
+    const t = Math.min(1, progress);
+    const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+    camera.position.lerpVectors(startPos, targetPos, ease);
+    controls.target.lerpVectors(startTarget, lookAt, ease);
+    controls.update();
+
+    if (t < 1) {
+      requestAnimationFrame(animate);
+    }
+  }
+  requestAnimationFrame(animate);
 }
 
 export default function GenesisCameraController({
@@ -47,14 +92,12 @@ export default function GenesisCameraController({
   const { camera, size } = useThree();
   const controlsRef = useRef<any>(null);
   const followTarget = useRef(new Vector3(0, 0, 0));
+  const keysRef = useRef<Record<string, boolean>>({});
 
   /*
    * Responsive framing: on narrow/portrait viewports the same composition
    * (core, shells, world-nodes) needs a wider field of view to stay inside
    * the frame; wide screens get a tighter, more cinematic angle.
-   *
-   * Zoom range: minDistance 2 for close core view; maxDistance 500
-   * allows infinite-feel navigation through the cosmos.
    */
   useEffect(() => {
     const aspect = size.width / Math.max(1, size.height);
@@ -109,37 +152,125 @@ export default function GenesisCameraController({
 
       const targetPos = new Vector3(detail.pos.x, detail.pos.y, detail.pos.z);
       const lookAt = new Vector3(detail.lookAt.x, detail.lookAt.y, detail.lookAt.z);
-
-      // Smoothly animate via lerp in the next frames
-      const startPos = camera.position.clone();
-      const startTarget = controls.target.clone();
-      let progress = 0;
-      const duration = 1.5; // seconds
-      let lastTime = performance.now();
-
-      function animate() {
-        const now = performance.now();
-        const dt = (now - lastTime) / 1000;
-        lastTime = now;
-        progress += dt / duration;
-        const t = Math.min(1, progress);
-        // Smooth ease-in-out
-        const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-
-        camera.position.lerpVectors(startPos, targetPos, ease);
-        controls.target.lerpVectors(startTarget, lookAt, ease);
-        controls.update();
-
-        if (t < 1) {
-          requestAnimationFrame(animate);
-        }
-      }
-      requestAnimationFrame(animate);
+      flyCameraTo(camera as PerspectiveCamera, controls, targetPos, lookAt);
     }
 
     window.addEventListener("cosmos-navigate", onCosmosNavigate);
     return () => window.removeEventListener("cosmos-navigate", onCosmosNavigate);
   }, [camera]);
+
+  /*
+   * Planet navigation — dispatched by the planet explorer HUD.
+   * Flies to Atlantis or back to space.
+   */
+  useEffect(() => {
+    function onPlanetNavigate(e: Event) {
+      const detail = (e as CustomEvent).detail;
+      const controls = controlsRef.current;
+      if (!controls) return;
+
+      if (detail?.resetToSpace) {
+        flyCameraTo(camera as PerspectiveCamera, controls, new Vector3(0, 0, 6.8), ORIGIN.clone());
+        return;
+      }
+
+      if (detail?.pos && detail?.lookAt) {
+        const pos = new Vector3(detail.pos.x, detail.pos.y, detail.pos.z);
+        const lookAt = new Vector3(detail.lookAt.x, detail.lookAt.y, detail.lookAt.z);
+        flyCameraTo(camera as PerspectiveCamera, controls, pos, lookAt);
+      }
+    }
+
+    window.addEventListener("planet-navigate", onPlanetNavigate);
+    return () => window.removeEventListener("planet-navigate", onPlanetNavigate);
+  }, [camera]);
+
+  /*
+   * Keyboard traversal — WASD / arrow keys walk the streets at close
+   * range. Keys move BOTH the camera and the controls target along the
+   * view plane so it reads as walking, not zooming.
+   */
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      const key = e.key.toLowerCase();
+      if (key === "arrowup" || key === "arrowdown" || key === "arrowleft" || key === "arrowright") {
+        e.preventDefault();
+      }
+      keysRef.current[key] = true;
+    }
+    function onKeyUp(e: KeyboardEvent) {
+      keysRef.current[e.key.toLowerCase()] = false;
+    }
+    function onBlur() {
+      keysRef.current = {};
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", onBlur);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onBlur);
+    };
+  }, []);
+
+  /*
+   * Per-frame: near the planet, retarget the OrbitControls to the
+   * surface point under the camera (continuous descent); walk with
+   * WASD at close range.
+   */
+  useFrame((_, delta) => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+
+    const toCam = camera.position.clone().sub(PLANET_CENTER);
+    const dist = toCam.length();
+
+    if (dist < PLANET_RADIUS + 2.5 && dist > 0.001) {
+      // Entering the planet: focus the controls on the surface under us.
+      const dir = toCam.clone().normalize();
+      const surface = PLANET_CENTER.clone().addScaledVector(dir, PLANET_RADIUS);
+      controls.target.lerp(surface, 0.06);
+    } else if (controls.target.distanceTo(PLANET_CENTER) < 4) {
+      // Leaving the planet: gently drift the target back to the origin.
+      controls.target.lerp(ORIGIN, 0.04);
+    }
+
+    // WASD / arrow-key walking at close range.
+    const k = keysRef.current;
+    const walking =
+      k["w"] || k["a"] || k["s"] || k["d"] ||
+      k["arrowup"] || k["arrowdown"] || k["arrowleft"] || k["arrowright"];
+
+    if (walking && dist < PLANET_RADIUS + 5) {
+      const forward = camera.position.clone().sub(controls.target);
+      if (forward.lengthSq() > 1e-8) {
+        forward.normalize();
+        const right = new Vector3().crossVectors(forward, UP_AXIS).normalize();
+        const speed = Math.max(0.02, camera.position.distanceTo(controls.target)) * 1.4 * delta;
+
+        if (k["w"] || k["arrowup"]) {
+          camera.position.addScaledVector(forward, speed);
+          controls.target.addScaledVector(forward, speed);
+        }
+        if (k["s"] || k["arrowdown"]) {
+          camera.position.addScaledVector(forward, -speed);
+          controls.target.addScaledVector(forward, -speed);
+        }
+        if (k["a"] || k["arrowleft"]) {
+          camera.position.addScaledVector(right, -speed);
+          controls.target.addScaledVector(right, -speed);
+        }
+        if (k["d"] || k["arrowright"]) {
+          camera.position.addScaledVector(right, speed);
+          controls.target.addScaledVector(right, speed);
+        }
+      }
+    }
+
+    controls.update();
+  });
 
   /*
    * Spatial controls (zoom + / − / reset from the workspace preview)
@@ -166,7 +297,7 @@ export default function GenesisCameraController({
         return;
       }
       const factor = intent.type === "zoom-in" ? 0.76 : 1.3;
-      const next = Math.min(1500, Math.max(1, distance * factor));
+      const next = Math.min(1500, Math.max(0.06, distance * factor));
       camera.position
         .copy(controls.target)
         .add(direction.normalize().multiplyScalar(next));
@@ -185,7 +316,7 @@ export default function GenesisCameraController({
       panSpeed={1.5}
       zoomSpeed={1.2}
       rotateSpeed={0.5}
-      minDistance={1}
+      minDistance={0.06}
       maxDistance={1500}
       maxPolarAngle={Math.PI * 0.98}
       target={[0, 0, 0]}

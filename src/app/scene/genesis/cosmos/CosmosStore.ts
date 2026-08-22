@@ -44,6 +44,7 @@ const EXECUTIVE_POSITIONS: Record<ExecutiveType, SpatialPosition> = {
   engineer: { x: 16, y: -10, z: -3 },
   warden: { x: -10, y: 14, z: -8 },
   sage: { x: 12, y: 10, z: 6 },
+  forge: { x: 4, y: -14, z: 8 },
 };
 
 const SHAMAN_POSITION: SpatialPosition = { x: 0, y: 6, z: 0 };

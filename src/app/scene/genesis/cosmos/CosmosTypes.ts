@@ -207,7 +207,7 @@ export interface CosmosState {
 }
 
 /** Executive type enum */
-export type ExecutiveType = "governor" | "caretaker" | "engineer" | "warden" | "sage";
+export type ExecutiveType = "governor" | "caretaker" | "engineer" | "warden" | "sage" | "forge";
 
 /** Map agent template ids to executive types */
 export const AGENT_TO_EXECUTIVE: Record<string, ExecutiveType> = {
@@ -231,8 +231,8 @@ export const EXECUTIVE_DEFS: Record<ExecutiveType, {
   morphology: GalaxyMorphology;
 }> = {
   governor: {
-    name: "Governor",
-    domain: "Governance · Strategy · Priorities · Resources · Direction",
+    name: "Lélu",
+    domain: "Central Intelligence · Direction · Cognition · Synthesis",
     visualDNA: {
       hue: 260,
       saturation: 0.7,
@@ -254,7 +254,7 @@ export const EXECUTIVE_DEFS: Record<ExecutiveType, {
   },
   caretaker: {
     name: "Caretaker",
-    domain: "Continuity · Maintenance · Preservation · Health · Memory · Recovery",
+    domain: "Life Operations · Health · Wellness · Environment · Continuity · Memory · Recovery",
     visualDNA: {
       hue: 160,
       saturation: 0.6,
@@ -275,8 +275,8 @@ export const EXECUTIVE_DEFS: Record<ExecutiveType, {
     },
   },
   engineer: {
-    name: "Engineer",
-    domain: "Coding · Architecture · Debugging · APIs · Infrastructure · Testing · Repair",
+    name: "Engineering & Systems",
+    domain: "Construction · Implementation · Integration · Testing · Deployment · Optimization",
     visualDNA: {
       hue: 200,
       saturation: 0.8,
@@ -297,8 +297,8 @@ export const EXECUTIVE_DEFS: Record<ExecutiveType, {
     },
   },
   warden: {
-    name: "Warden",
-    domain: "Protection · Defense · Law/Order · Permissions · Security · Resilience",
+    name: "M.S. Ma'at Sentinel",
+    domain: "Defense · Security · Protection · Privacy · Resilience",
     visualDNA: {
       hue: 30,
       saturation: 0.7,
@@ -319,8 +319,8 @@ export const EXECUTIVE_DEFS: Record<ExecutiveType, {
     },
   },
   sage: {
-    name: "Sage",
-    domain: "Self-Discovery · Life · Reflection · Learning · Knowledge · Pattern Recognition · Second-Brain",
+    name: "Architect Executive",
+    domain: "Architecture · System Coherence · Knowledge · Long-Term Evolution",
     visualDNA: {
       hue: 280,
       saturation: 0.5,
@@ -338,6 +338,28 @@ export const EXECUTIVE_DEFS: Record<ExecutiveType, {
       branches: 12,
       shields: 0,
       depth: 5,
+    },
+  },
+  forge: {
+    name: "Agent Forge Executive",
+    domain: "Agent Creation · Multiplicity · Specialization · Delegation · Agent Evolution",
+    visualDNA: {
+      hue: 340,
+      saturation: 0.7,
+      brightness: 0.8,
+      geometry: "geometric",
+      mutationSeed: 23,
+      particleDensity: 0.8,
+      glowIntensity: 0.85,
+    },
+    morphology: {
+      type: "constructive",
+      mutationProgress: 0.55,
+      structures: 7,
+      rings: 3,
+      branches: 8,
+      shields: 0,
+      depth: 0,
     },
   },
 };

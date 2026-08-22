@@ -21,6 +21,85 @@ import ProjectStore from "../../../core/projects/ProjectStore";
 import SketchStore from "../../../core/creative/SketchDocument";
 import RenderStore from "../../../core/creative/RenderStore";
 import VideoStore from "../../../core/creative/VideoProject";
+import ProactiveCore, {
+  PROACTIVE_CATEGORIES,
+  type NotificationLevel,
+  type ProactiveSettings,
+} from "../../../core/proactive/ProactiveCore";
+import type { LocalRuntimeStatus } from "../../../core/runtime/local/LocalRuntimeTypes";
+
+const LEVELS: { value: NotificationLevel; label: string }[] = [
+  { value: "quiet", label: "Quiet" },
+  { value: "normal", label: "Normal" },
+  { value: "proactive", label: "Proactive" },
+  { value: "highly-proactive", label: "Highly proactive" },
+];
+
+interface ProactiveToggleProps {
+  label: string;
+  description: string;
+  value: boolean;
+  disabled?: boolean;
+  onChange: (value: boolean) => void;
+}
+
+function ProactiveToggle({ label, description, value, disabled, onChange }: ProactiveToggleProps) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => onChange(!value)}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        width: "100%",
+        border: "1px solid rgba(255,255,255,0.1)",
+        borderRadius: 10,
+        padding: "9px 12px",
+        background: value ? "rgba(34, 211, 238, 0.1)" : "rgba(255,255,255,0.03)",
+        color: "white",
+        cursor: disabled ? "default" : "pointer",
+        opacity: disabled ? 0.5 : 1,
+        textAlign: "left",
+        fontFamily: "inherit",
+      }}
+    >
+      <span style={{ minWidth: 0 }}>
+        <span style={{ fontSize: 12.5, fontWeight: 600, display: "block", color: value ? "#9be8ff" : "inherit" }}>
+          {label}
+        </span>
+        <span style={{ fontSize: 11, opacity: 0.62, display: "block", marginTop: 2 }}>{description}</span>
+      </span>
+      <span
+        aria-hidden
+        style={{
+          width: 34,
+          height: 20,
+          borderRadius: 999,
+          flexShrink: 0,
+          background: value ? "rgba(34, 211, 238, 0.7)" : "rgba(148, 163, 184, 0.3)",
+          position: "relative",
+          transition: "background 0.2s",
+        }}
+      >
+        <span
+          style={{
+            position: "absolute",
+            top: 2,
+            left: value ? 16 : 2,
+            width: 16,
+            height: 16,
+            borderRadius: 999,
+            background: "white",
+            transition: "left 0.2s",
+          }}
+        />
+      </span>
+    </button>
+  );
+}
 
 interface GenesisSettingsPanelProps {
   onClose: () => void;
@@ -41,6 +120,27 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
   const [memoryCount, setMemoryCount] = useState<number | null>(null);
   const [avatarName, setAvatarName] = useState<string>("Lélu");
   const [exported, setExported] = useState(false);
+  const [proactiveSettings, setProactiveSettings] = useState<ProactiveSettings>(() =>
+    ProactiveCore.getInstance().getSettings(),
+  );
+  const [offlineMode, setOfflineMode] = useState<boolean>(() => AIService.getInstance().isOfflineMode());
+  const [modelStatus, setModelStatus] = useState(() => AIService.getInstance().modelSystemStatus());
+  const [localStatus, setLocalStatus] = useState<LocalRuntimeStatus | null>(null);
+
+  function updateProactive(patch: Partial<ProactiveSettings>) {
+    setProactiveSettings(ProactiveCore.getInstance().updateSettings(patch));
+  }
+
+  function toggleOfflineMode(value: boolean) {
+    AIService.getInstance().setOfflineMode(value);
+    setOfflineMode(value);
+    setModelStatus(AIService.getInstance().modelSystemStatus());
+    void AIService.getInstance().localRuntimeStatus().then(setLocalStatus).catch(() => {});
+  }
+
+  useEffect(() => {
+    void AIService.getInstance().localRuntimeStatus().then(setLocalStatus).catch(() => {});
+  }, []);
 
   const stores = useMemo(
     () => ({
@@ -141,6 +241,188 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
           ))}
         </div>
 
+        {/* Live local runtime status — honest probed state of every companion backend */}
+        <div style={{ border: "1px solid rgba(34, 211, 238, 0.25)", borderRadius: 14, padding: 12 }}>
+          <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, marginBottom: 10 }}>
+            Local runtime · live
+          </div>
+          {localStatus ? (
+            <div
+              style={{
+                padding: "10px 12px",
+                borderRadius: 10,
+                background: "rgba(0,0,0,0.22)",
+                fontSize: 11.5,
+                lineHeight: 1.65,
+                opacity: 0.9,
+              }}
+            >
+              <div style={{ marginBottom: 6 }}>
+                {localStatus.backends.length > 0 ? (
+                  localStatus.backends.map((b) => (
+                    <div key={b.name} style={{ marginBottom: 2 }}>
+                      {b.name} · {b.baseUrl} ·{" "}
+                      <strong style={{ color: b.reachable ? "#86efac" : "#fca5a5" }}>
+                        {b.reachable ? `✓ reachable (${b.models.length} models)` : b.error ?? "✗ unreachable"}
+                      </strong>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ opacity: 0.7 }}>No local backends detected — probing Ollama, llama.cpp, LM Studio, vLLM…</div>
+                )}
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
+                {Object.entries(localStatus.capabilities).map(([key, cap]) => {
+                  const color =
+                    cap.state === "available" ? "#86efac" :
+                    cap.state === "partial" ? "#fde047" :
+                    cap.state === "error" ? "#fca5a5" : "rgba(255,255,255,0.4)";
+                  return (
+                    <span
+                      key={key}
+                      title={cap.description}
+                      style={{
+                        fontSize: 10,
+                        padding: "3px 7px",
+                        borderRadius: 6,
+                        background: "rgba(255,255,255,0.06)",
+                        color,
+                        border: `1px solid ${color}33`,
+                      }}
+                    >
+                      {cap.label.split(" ")[0]}: {cap.state}
+                    </span>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: 6, opacity: 0.6, fontSize: 10.5 }}>
+                {localStatus.activeJobCount} active jobs · {localStatus.totalJobsRun} total run
+              </div>
+            </div>
+          ) : (
+            <div style={{ fontSize: 11, opacity: 0.5, padding: "6px 12px" }}>Probing local backends…</div>
+          )}
+        </div>
+
+        <div style={{ border: "1px solid rgba(125, 211, 252, 0.25)", borderRadius: 14, padding: 12 }}>
+          <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, marginBottom: 10 }}>
+            Proactive intelligence
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <ProactiveToggle
+              label="Proactive mode"
+              description="Let Lélu prepare context, routines and suggestions instead of only waiting."
+              value={proactiveSettings.enabled}
+              onChange={(value) => updateProactive({ enabled: value })}
+            />
+            <ProactiveToggle
+              label="Session briefing"
+              description="On open, present the most relevant updates without being asked."
+              value={proactiveSettings.sessionBriefing}
+              disabled={!proactiveSettings.enabled}
+              onChange={(value) => updateProactive({ sessionBriefing: value })}
+            />
+            <ProactiveToggle
+              label="Routine learning"
+              description="Recognize repeated topics and times — never treated as permanent fact."
+              value={proactiveSettings.routineLearning}
+              disabled={!proactiveSettings.enabled}
+              onChange={(value) => updateProactive({ routineLearning: value })}
+            />
+            <ProactiveToggle
+              label="Suggestions"
+              description="Suggest useful next steps for active projects."
+              value={proactiveSettings.suggestions}
+              disabled={!proactiveSettings.enabled}
+              onChange={(value) => updateProactive({ suggestions: value })}
+            />
+            <ProactiveToggle
+              label="Project updates"
+              description="Surface your active projects when you return."
+              value={proactiveSettings.projectUpdates}
+              disabled={!proactiveSettings.enabled}
+              onChange={(value) => updateProactive({ projectUpdates: value })}
+            />
+            <ProactiveToggle
+              label="Location context"
+              description="Use your last known location when relevant (permission-controlled)."
+              value={proactiveSettings.locationContext}
+              disabled={!proactiveSettings.enabled}
+              onChange={(value) => updateProactive({ locationContext: value })}
+            />
+            <ProactiveToggle
+              label="Media discovery"
+              description="Reserved — no external media source is connected yet."
+              value={proactiveSettings.mediaDiscovery}
+              disabled={!proactiveSettings.enabled}
+              onChange={(value) => updateProactive({ mediaDiscovery: value })}
+            />
+            <ProactiveToggle
+              label="Video autoplay"
+              description="Only applies once media discovery is wired. Never autoplays by default."
+              value={proactiveSettings.videoAutoplay}
+              disabled={!proactiveSettings.enabled || !proactiveSettings.mediaDiscovery}
+              onChange={(value) => updateProactive({ videoAutoplay: value })}
+            />
+          </div>
+
+          <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, margin: "12px 0 8px" }}>
+            Initiation level
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {LEVELS.map((level) => {
+              const active = proactiveSettings.notificationLevel === level.value;
+              return (
+                <button
+                  key={level.value}
+                  type="button"
+                  onClick={() => updateProactive({ notificationLevel: level.value })}
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.14)",
+                    borderRadius: 8,
+                    padding: "6px 10px",
+                    fontSize: 11.5,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    color: active ? "#062033" : "white",
+                    background: active ? "#7dd3fc" : "rgba(255,255,255,0.04)",
+                  }}
+                >
+                  {level.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, margin: "12px 0 8px" }}>
+            Allowed topics
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {PROACTIVE_CATEGORIES.map((category) => {
+              const active = proactiveSettings.categories.includes(category);
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() => setProactiveSettings(ProactiveCore.getInstance().toggleCategory(category))}
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.14)",
+                    borderRadius: 8,
+                    padding: "6px 10px",
+                    fontSize: 11.5,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    color: active ? "#062033" : "white",
+                    background: active ? "#7dd3fc" : "rgba(255,255,255,0.04)",
+                  }}
+                >
+                  {category}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 12 }}>
           <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, marginBottom: 8 }}>
             Data
@@ -197,6 +479,57 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
             >
               Reset creative data
             </button>
+          </div>
+        </div>
+
+        <div style={{ border: "1px solid rgba(34, 211, 238, 0.25)", borderRadius: 14, padding: 12 }}>
+          <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, marginBottom: 10 }}>
+            Local-first model engine
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <ProactiveToggle
+              label="Local / Offline mode"
+              description="Skip every remote AI provider and run on local capabilities only."
+              value={offlineMode}
+              onChange={toggleOfflineMode}
+            />
+          </div>
+          <div
+            style={{
+              marginTop: 10,
+              padding: "10px 12px",
+              borderRadius: 10,
+              background: "rgba(0,0,0,0.22)",
+              fontSize: 11.5,
+              lineHeight: 1.7,
+              opacity: 0.9,
+            }}
+          >
+            <div>
+              Hardware tier: <strong style={{ color: "#9be8ff" }}>{modelStatus.hardware.tier.toUpperCase()}</strong>{" "}
+              · acceleration: {modelStatus.hardware.acceleration.toUpperCase()}
+            </div>
+            <div>
+              {modelStatus.hardware.cpuCores ?? "?"} cores ·{" "}
+              {modelStatus.hardware.memoryGB != null ? `${modelStatus.hardware.memoryGB} GB RAM` : "RAM unknown"} ·{" "}
+              {modelStatus.hardware.vramGB != null ? `~${modelStatus.hardware.vramGB} GB VRAM` : "VRAM unknown"}
+            </div>
+            <div style={{ opacity: 0.75 }}>{modelStatus.hardware.recommendation}</div>
+            <div style={{ marginTop: 6 }}>
+              Models: <strong>{modelStatus.remoteModelCount}</strong> remote ·{" "}
+              <strong>{modelStatus.localModelCount}</strong> local slots ·{" "}
+              local runtime:{" "}
+              <strong style={{ color: modelStatus.localInstalled ? "#86efac" : "#fca5a5" }}>
+                {modelStatus.localInstalled ? "INSTALLED" : "NOT INSTALLED"}
+              </strong>
+            </div>
+            <div style={{ opacity: 0.72 }}>
+              {offlineMode
+                ? modelStatus.localInstalled
+                  ? "Offline mode is on — routing to local models."
+                  : "Offline mode is on, but no local runtime is installed yet — generation degrades to local memory/identity only."
+                : "External providers are optional fallbacks. If every one fails, LÉLU keeps working locally."}
+            </div>
           </div>
         </div>
 

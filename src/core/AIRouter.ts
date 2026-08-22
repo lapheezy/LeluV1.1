@@ -36,6 +36,9 @@ import ProviderResolver
 import EngineeringResolver
   from "./router/EngineeringResolver";
 
+import CreativeResolver
+  from "./router/CreativeResolver";
+
 import ToolResolver
   from "./router/ToolResolver";
 
@@ -69,6 +72,9 @@ export default class AIRouter {
 
     private readonly engineering =
       new EngineeringResolver(),
+
+    private readonly creative =
+      new CreativeResolver(),
 
     private readonly tools =
       new ToolResolver(),
@@ -157,6 +163,29 @@ export default class AIRouter {
         context,
 
         engineering.response,
+
+      );
+
+    }
+
+    const creative =
+      await this.creative.execute(
+        context,
+      );
+
+    if (
+
+      creative.handled &&
+
+      creative.response
+
+    ) {
+
+      return this.attachThinking(
+
+        context,
+
+        creative.response,
 
       );
 

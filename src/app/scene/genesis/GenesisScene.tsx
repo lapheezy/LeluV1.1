@@ -26,6 +26,11 @@
  */
 
 import {
+  lazy,
+  Suspense,
+} from "react";
+
+import {
   Canvas,
 } from "@react-three/fiber";
 
@@ -48,11 +53,6 @@ import GenesisErrorBoundary
 import GenesisInterface
   from "./GenesisInterface";
 
-import GenesisLab
-  from "./GenesisLab";
-
-import LivingSystemUI
-  from "./LivingSystemUI";
 
 import { useSceneMountLog }
   from "./useSceneMountLog";
@@ -75,16 +75,43 @@ import EngineTick
 import GenesisNotificationCenter
   from "./GenesisNotificationCenter";
 
-import VoiceControl
-  from "./VoiceControl";
-
-import CosmosCloudNav
-  from "./cosmos/CosmosCloudNav";
-import CosmosOverview
-  from "./cosmos/CosmosOverview";
-
 import { useLeluRuntime }
   from "../../../core/runtime/useLeluRuntime";
+
+import { PlanetExplorerHUD }
+  from "./render/PlanetExplorer";
+
+/**
+ * Heavy workspace scenes are code-split so the initial GEN V1 core
+ * (chat + cognition + memory + the v1 canvas) loads without pulling in
+ * the entire v2 lab, the living-system environment, or the cosmos map
+ * until the user actually switches into them.
+ */
+const GenesisLab = lazy(() => import("./GenesisLab"));
+const LivingSystemUI = lazy(() => import("./LivingSystemUI"));
+const CosmosOverview = lazy(() => import("./cosmos/CosmosOverview"));
+
+/** Minimal full-screen fallback shown while a code-split scene loads. */
+function SceneLoadingFallback() {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "#020617",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "rgba(148, 163, 184, 0.6)",
+        fontFamily: "monospace",
+        fontSize: 12,
+        letterSpacing: "0.1em",
+      }}
+    >
+      LÉLU · INITIALIZING
+    </div>
+  );
+}
 
 
 /**
@@ -138,6 +165,7 @@ function GenesisV1Workspace() {
       </Canvas>
 
       <GenesisInterface />
+      <PlanetExplorerHUD />
     </div>
   );
 }
@@ -153,7 +181,11 @@ function GenesisV2Workspace({ onClose }: { onClose: () => void }) {
   // TEMP DEBUG — scene-isolation lifecycle log (see useSceneMountLog).
   useSceneMountLog("GenesisV2Workspace");
 
-  return <GenesisLab onClose={onClose} />;
+  return (
+    <Suspense fallback={<SceneLoadingFallback />}>
+      <GenesisLab onClose={onClose} />
+    </Suspense>
+  );
 }
 
 /**
@@ -183,7 +215,9 @@ function GenesisWorkspaceRouter() {
         <GenesisV2Workspace key="genesis-v2" onClose={() => openPanel("none")} />
       ) : systemActive ? (
         /* PAGE 2 — the internal living-system environment. */
-        <LivingSystemUI key="lelu-system" />
+        <Suspense fallback={<SceneLoadingFallback />}>
+          <LivingSystemUI key="lelu-system" />
+        </Suspense>
       ) : (
         /* PAGE 1 — the Genesis v1 cosmic world. */
         <GenesisV1Workspace key="genesis-v1" />
@@ -209,24 +243,18 @@ function GenesisWorkspaceRouter() {
         * in the v1 workspace (not v2 or system).
         */}
       {!v2Active && !systemActive && (
-        <>
-          <CosmosCloudNav />
+        <Suspense fallback={null}>
           <CosmosOverview />
-        </>
+        </Suspense>
       )}
 
       {/*
-        * The voice mic and notification toasts belong to the v1 world
-        * and the LÉLU system — they must NEVER float over the immersive
-        * Genesis v2 scene. While v2 owns the viewport they unmount
-        * entirely (the voice engine keeps running in the background;
-        * only its overlay leaves the screen), so nothing covers v2.
+        * Notification toasts belong to the v1 world and the LÉLU system.
+        * They must never float over the immersive Genesis v2 scene, so
+        * while v2 owns the viewport they unmount entirely.
         */}
       {v2Active ? null : (
-        <>
-          <GenesisNotificationCenter />
-          <VoiceControl />
-        </>
+        <GenesisNotificationCenter />
       )}
     </>
   );

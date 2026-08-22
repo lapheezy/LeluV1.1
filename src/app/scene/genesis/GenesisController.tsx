@@ -18,6 +18,8 @@
 
 
 import {
+  lazy,
+  Suspense,
   useMemo,
 } from "react";
 
@@ -30,6 +32,10 @@ import VoiceBridge
   from "./VoiceBridge";
 
 
+import ProactiveBridge
+  from "./ProactiveBridge";
+
+
 import GenesisRenderer
   from "./render/GenesisRenderer";
 
@@ -37,8 +43,10 @@ import GenesisRenderer
 import GenesisCameraController
   from "./GenesisCameraController";
 
-import CosmosLayer
-  from "./cosmos/CosmosLayer";
+// The cosmos background (stars, nebulae, galaxies, clouds, lightning,
+// vehicles, entities) is code-split so the v1 core canvas paints first
+// and the universe streams in as its own chunk.
+const CosmosLayer = lazy(() => import("./cosmos/CosmosLayer"));
 
 import GenesisPlayground
   from "./GenesisPlayground";
@@ -72,6 +80,8 @@ export default function GenesisController() {
 
       <GenesisBridge />
 
+      <ProactiveBridge />
+
       <VoiceBridge />
 
       {/* ==========================================
@@ -91,7 +101,9 @@ export default function GenesisController() {
       {/* ==========================================
           COSMOS LAYER — living universe background
       ========================================== */}
-      <CosmosLayer />
+      <Suspense fallback={null}>
+        <CosmosLayer />
+      </Suspense>
     </>
   );
 

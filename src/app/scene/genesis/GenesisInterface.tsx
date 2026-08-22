@@ -29,6 +29,7 @@ import GenesisDock from "./GenesisDock";
 import GenesisCommandPalette from "./GenesisCommandPalette";
 import { genesisTheme } from "./GenesisTheme";
 import GenesisChat from "./GenesisChat";
+import MultiChatTabs from "./MultiChatTabs";
 import GenesisReasoningPanel from "./GenesisReasoningPanel";
 import GenesisDiagnosticsPanel from "./GenesisDiagnosticsPanel";
 import GenesisMemoryPanel from "./GenesisMemoryPanel";
@@ -373,6 +374,11 @@ export default function GenesisInterface() {
             </div>
           </div>
         </div>
+
+      {/* Multi-Chat tab bar — visible while the dialogue surface is open so
+          the user can switch between isolated conversations without losing
+          state. It floats above the dialogue overlay (higher z-index). */}
+      {state.minimized ? null : state.activePanel === "chat" ? <MultiChatTabs /> : null}
 
       <AnimatePresence mode="wait">
         {/* Chat is INVISIBLE — the dialogue overlay floats in the scene and

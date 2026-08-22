@@ -45,6 +45,12 @@ import type {
 import type RouterContext
   from "./router/RouterContext";
 
+import ModelRouter
+  from "./model/ModelRouter";
+
+import LocalRuntime
+  from "./runtime/local/LocalRuntime";
+
 
 
 
@@ -384,6 +390,32 @@ export default class AIRuntime {
       activeProvider: this.providers.getActiveProvider(),
       providers: this.providers.statusSnapshot(),
     };
+  }
+
+  /**
+   * The local-first model/hardware routing snapshot — hardware tier,
+   * offline mode, model catalog and degraded state. Read by the
+   * Settings panel; it never reaches into the provider instances.
+   */
+  public modelSystemStatus() {
+    return ModelRouter.getInstance().status();
+  }
+
+  public setOfflineMode(enabled: boolean): void {
+    ModelRouter.getInstance().setOfflineMode(enabled);
+  }
+
+  public isOfflineMode(): boolean {
+    return ModelRouter.getInstance().isOfflineMode();
+  }
+
+  /**
+   * Full local runtime status — hardware, backends, capabilities,
+   * jobs, and offline mode — all probed live. The settings panel
+   * renders this to show exactly what is available right now.
+   */
+  public async localRuntimeStatus() {
+    return await LocalRuntime.getInstance().status();
   }
 
   public knowledgeProviderList(): {
