@@ -116,13 +116,6 @@ function classifyProvider(opts: {
     return { kind: "not-configured", detail: "Provider disabled" };
   }
 
-  if (!opts.online) {
-    return {
-      kind: "offline",
-      detail: "Device offline — external providers unreachable. Local identity & memory keep working.",
-    };
-  }
-
   // A failure recorded by the real runtime (ProviderResolver) while
   // it is inside its failure cooldown is the authoritative state.
   if (opts.failure && opts.inCooldown) {
@@ -152,6 +145,17 @@ function classifyProvider(opts: {
       return { kind: "auth-error", detail: err };
     }
     return { kind: "provider-error", detail: err || "Unavailable" };
+  }
+
+  // Only show offline when navigator.onLine is false AND we have no
+  // health data at all. navigator.onLine is unreliable in sandboxed
+  // preview iframes and should never force providers offline when
+  // the runtime health says they are available.
+  if (!opts.online) {
+    return {
+      kind: "offline",
+      detail: "Device offline — external providers unreachable. Local identity & memory keep working.",
+    };
   }
 
   return { kind: "not-configured", detail: "Not checked yet" };
@@ -335,6 +339,157 @@ function ProviderCard({ provider }: { provider: MergedProvider }) {
   );
 }
 
+interface Quad9Snapshot {
+  ok: boolean;
+  dohEndpoint: string;
+  system: {
+    resolvers: string[];
+    quad9Active: boolean;
+    dnssecValidating: boolean;
+    dnssecTest: string;
+  };
+  doh: {
+    reachable: boolean;
+    quad9Net?: { ok: boolean; rcode?: number; addresses?: string[]; tookMs: number; error?: string };
+    dnssecBrokenDomain?: { ok: boolean; rcode?: number; tookMs: number; validating?: boolean; error?: string };
+  };
+  dot: { endpoint: string; configured: boolean };
+  ecs: { configured: boolean; prefix?: string; mask?: string };
+}
+
+/** Live, measured Quad9 secure-DNS posture — real checks, not settings. */
+function Quad9Card() {
+  const [snapshot, setSnapshot] = useState<Quad9Snapshot | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  const run = useCallback(async () => {
+    setChecking(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/network/quad9", { signal: AbortSignal.timeout(15000) });
+      const payload = (await response.json().catch(() => ({}))) as Quad9Snapshot & { error?: string };
+      if (!response.ok || payload.error) {
+        setError(payload.error ?? `HTTP ${response.status}`);
+        setSnapshot(null);
+        return;
+      }
+      setSnapshot(payload);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setChecking(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void run();
+  }, [run]);
+
+  const row = (label: string, value: string, color: string) => (
+    <div style={{ display: "flex", justifyContent: "space-between", gap: 10, fontSize: 11, padding: "3px 0" }}>
+      <span style={{ opacity: 0.65 }}>{label}</span>
+      <span style={{ color, fontWeight: 600, textAlign: "right" }}>{value}</span>
+    </div>
+  );
+
+  return (
+    <div
+      style={{
+        borderRadius: genesisTheme.radius.md,
+        border: `1px solid ${snapshot?.system.quad9Active ? genesisTheme.status.ok : genesisTheme.glass.borderSoft}`,
+        background: "rgba(255,255,255,0.03)",
+        padding: 12,
+        margin: "8px 0 14px",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+        <span style={{ fontWeight: 700, fontSize: 13 }}>Network · Quad9 secure DNS</span>
+        <span style={{ marginLeft: "auto" }}>
+          <button
+            type="button"
+            onClick={() => void run()}
+            disabled={checking}
+            style={{
+              ...genesisTheme.closeButton,
+              minHeight: 28,
+              padding: "4px 12px",
+              fontSize: 10,
+              letterSpacing: "0.06em",
+              border: `1px solid ${genesisTheme.status.accent}`,
+              color: genesisTheme.status.accent,
+              cursor: checking ? "default" : "pointer",
+              opacity: checking ? 0.6 : 1,
+            }}
+          >
+            {checking ? "MEASURING…" : "VERIFY NOW"}
+          </button>
+        </span>
+      </div>
+
+      {error ? (
+        <div style={{ fontSize: 11, color: genesisTheme.status.error }}>⌁ {error}</div>
+      ) : !snapshot ? (
+        <div style={{ fontSize: 11, opacity: 0.6 }}>Measuring live DNS state…</div>
+      ) : (
+        <>
+          {row(
+            "System resolvers",
+            snapshot.system.resolvers.join(", ") || "none listed",
+            snapshot.system.quad9Active ? genesisTheme.status.ok : genesisTheme.status.idle,
+          )}
+          {row(
+            "Quad9 in effect",
+            snapshot.system.quad9Active ? "YES — 9.9.9.9 active" : "no (container resolver differs)",
+            snapshot.system.quad9Active ? genesisTheme.status.ok : genesisTheme.status.warn,
+          )}
+          {row(
+            "DNSSEC validation",
+            snapshot.system.dnssecValidating
+              ? `ON — ${snapshot.system.dnssecTest}`
+              : `OFF — ${snapshot.system.dnssecTest}`,
+            snapshot.system.dnssecValidating ? genesisTheme.status.ok : genesisTheme.status.warn,
+          )}
+          {row(
+            "Quad9 DoH endpoint",
+            snapshot.doh.reachable
+              ? `REACHABLE · ${(snapshot.doh.quad9Net?.tookMs ?? 0)}ms`
+              : `unreachable · ${snapshot.doh.quad9Net?.error ?? ""}`,
+            snapshot.doh.reachable ? genesisTheme.status.ok : genesisTheme.status.error,
+          )}
+          {row(
+            "DoH DNSSEC test (dnssec-failed.org)",
+            snapshot.doh.dnssecBrokenDomain?.validating
+              ? `validating · rcode ${snapshot.doh.dnssecBrokenDomain.rcode} (rejected)`
+              : `not validating · ${snapshot.doh.dnssecBrokenDomain?.rcode ?? "?"}`,
+            snapshot.doh.dnssecBrokenDomain?.validating
+              ? genesisTheme.status.ok
+              : genesisTheme.status.warn,
+          )}
+          {row(
+            "DoT",
+            snapshot.dot.configured ? snapshot.dot.endpoint : "not configured",
+            genesisTheme.status.ok,
+          )}
+          {row(
+            "ECS",
+            snapshot.ecs.configured
+              ? `${snapshot.ecs.prefix}/${snapshot.ecs.mask ?? "24"}`
+              : "not configured",
+            genesisTheme.status.idle,
+          )}
+          <div style={{ fontSize: 9.5, opacity: 0.5, marginTop: 6, lineHeight: 1.5 }}>
+            Measured at runtime — the container's actual resolvers, a live Quad9 DoH query, and a
+            DNSSEC validation test (a validating resolver must reject dnssec-failed.org). Enabling
+            Quad9 at the network layer is a deployment setting; this verifies what the runtime
+            actually resolves through and that the Quad9 path itself works.
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 interface GenesisProvidersPanelProps {
   onClose: () => void;
 }
@@ -445,6 +600,10 @@ export default function GenesisProvidersPanel({ onClose }: GenesisProvidersPanel
   const operationalCount = providers.filter((p) => p.kind === "operational").length;
   const configuredCount = providers.filter((p) => p.kind !== "not-configured").length;
 
+  // Effective online state: trust actual provider health over navigator.onLine
+  // (which is unreliable in sandboxed preview iframes).
+  const effectiveOnline = online || operationalCount > 0 || configuredCount > 0;
+
   return (
     <GenesisWindowFrame
       eyebrow="LÉLU · System"
@@ -485,7 +644,7 @@ export default function GenesisProvidersPanel({ onClose }: GenesisProvidersPanel
           flexWrap: "wrap",
           padding: 10,
           borderRadius: genesisTheme.radius.md,
-          border: online
+          border: effectiveOnline
             ? `1px solid ${genesisTheme.status.ok}`
             : `1px solid ${genesisTheme.status.idle}`,
           background: "rgba(255,255,255,0.03)",
@@ -497,14 +656,14 @@ export default function GenesisProvidersPanel({ onClose }: GenesisProvidersPanel
             width: 10,
             height: 10,
             borderRadius: 999,
-            background: online ? genesisTheme.status.ok : genesisTheme.status.idle,
-            boxShadow: online ? `0 0 10px ${genesisTheme.status.ok}` : "none",
+            background: effectiveOnline ? genesisTheme.status.ok : genesisTheme.status.idle,
+            boxShadow: effectiveOnline ? `0 0 10px ${genesisTheme.status.ok}` : "none",
             flexShrink: 0,
           }}
         />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: 13 }}>
-            {online ? "ONLINE" : "⌁ OFFLINE"}
+            {effectiveOnline ? "ONLINE" : "⌁ OFFLINE"}
           </div>
           <div style={{ fontSize: 11, opacity: 0.68 }}>
             Last status check: {lastCheck ? ago(lastCheck) : "pending…"} · auto-refresh every 5s
@@ -532,7 +691,7 @@ export default function GenesisProvidersPanel({ onClose }: GenesisProvidersPanel
         </button>
       </div>
 
-      {!online ? (
+      {!effectiveOnline ? (
         <div
           style={{
             fontSize: 12,
@@ -645,6 +804,10 @@ export default function GenesisProvidersPanel({ onClose }: GenesisProvidersPanel
           providers.map((provider) => <ProviderCard key={provider.name} provider={provider} />)
         )}
       </div>
+
+      {/* NETWORK / QUAD9 — live measured state */}
+      <div style={genesisTheme.text.label}>Network · Quad9 secure DNS</div>
+      <Quad9Card />
 
       {/* KNOWLEDGE / RESEARCH PROVIDERS */}
       {status && status.knowledge.length > 0 ? (

@@ -20,6 +20,7 @@ import { useMemo, useRef } from "react";
 import { AdditiveBlending, BackSide, Group, ShaderMaterial } from "three";
 
 import { useGenesis } from "../GenesisCore";
+import { sampleCosmosAtmosphere } from "../cosmos/CosmosAtmosphere";
 
 const vertexShader = `
   varying vec3 vDir;
@@ -34,6 +35,12 @@ const fragmentShader = `
   uniform float uTime;
   uniform float uActivity;
   uniform float uHue;
+  uniform float uCoreColors;
+  uniform float uSunset;
+  uniform float uStatic;
+  uniform float uStorm;
+  uniform float uHurricane;
+  uniform float uLightning;
 
   varying vec3 vDir;
 
@@ -101,6 +108,26 @@ const fragmentShader = `
 
     vec3 color = base + nebulaColor * cloud * (0.6 + uActivity * 0.65);
 
+    // Atmospheric phase grading over the same persistent sky. These values
+    // change how the universe is experienced; they never alter its objects.
+    vec3 coreAtmosphere = vec3(0.04, 0.36, 0.82) + hue(0.88) * 0.18;
+    vec3 sunsetAtmosphere = mix(vec3(0.95, 0.12, 0.08), vec3(0.86, 0.2, 0.58), height);
+    vec3 stormAtmosphere = mix(vec3(0.012, 0.035, 0.085), vec3(0.16, 0.035, 0.22), height);
+    color += coreAtmosphere * cloud * uCoreColors * 0.45;
+    color += sunsetAtmosphere * cloud * uSunset * 0.32;
+    color = mix(color, color * 0.42 + stormAtmosphere * 0.36, uStorm * 0.46);
+
+    // A rotating atmospheric spiral and temporary signal interference are
+    // layered over the sky shell, never substituted for the star field.
+    float radius = length(dir);
+    float angle = atan(dir.y, dir.x);
+    float spiral = smoothstep(0.18, 0.85, 0.5 + 0.5 * sin(angle * 5.0 - uTime * 0.18 + radius * 13.0));
+    color += vec3(0.1, 0.18, 0.38) * spiral * uHurricane * 0.32;
+    float scanline = 0.5 + 0.5 * sin(vDir.y * 180.0 + uTime * 2.4);
+    float signalNoise = hash(dir * 320.0 + uTime * 0.5);
+    color += vec3(0.18, 0.65, 0.9) * (scanline * 0.5 + signalNoise * 0.5) * uStatic * 0.07;
+    color += vec3(0.72, 0.84, 1.0) * pow(max(0.0, sin(uTime * 7.0 + angle * 3.0)), 14.0) * uLightning * 0.22;
+
     // Cosmic dust — fine motes scattered through the sky.
     float dust = fbm(dir * 7.0 + flow * 2.0);
     color += vec3(0.16, 0.20, 0.30) * smoothstep(0.62, 0.92, dust) * 0.14;
@@ -130,6 +157,12 @@ export default function CosmicBackdrop() {
           uTime: { value: 0 },
           uActivity: { value: 0.25 },
           uHue: { value: 0.58 },
+          uCoreColors: { value: 0 },
+          uSunset: { value: 0 },
+          uStatic: { value: 0 },
+          uStorm: { value: 0 },
+          uHurricane: { value: 0 },
+          uLightning: { value: 0 },
         },
         vertexShader,
         fragmentShader,
@@ -150,9 +183,16 @@ export default function CosmicBackdrop() {
         evolution.emergence * 0.25,
     );
 
+    const atmosphere = sampleCosmosAtmosphere(clock.elapsedTime);
     material.uniforms.uTime.value = clock.elapsedTime;
-    material.uniforms.uActivity.value = activity;
-    material.uniforms.uHue.value = 0.58 + evolution.colorShift * 0.9;
+    material.uniforms.uActivity.value = Math.min(1, activity * 0.6 + atmosphere.intensity * 0.7);
+    material.uniforms.uHue.value = 0.58 + evolution.colorShift * 0.9 + atmosphere.hueShift;
+    material.uniforms.uCoreColors.value = atmosphere.coreColors;
+    material.uniforms.uSunset.value = atmosphere.sunset;
+    material.uniforms.uStatic.value = atmosphere.static;
+    material.uniforms.uStorm.value = atmosphere.storm;
+    material.uniforms.uHurricane.value = atmosphere.hurricane;
+    material.uniforms.uLightning.value = atmosphere.lightning;
 
     group.current.rotation.y = clock.elapsedTime * 0.004;
   });

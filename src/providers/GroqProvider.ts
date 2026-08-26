@@ -7,6 +7,8 @@
 
 import type AIProvider from "./AIProvider";
 import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
+import { contextMessages } from "./contextMessages";
+import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 
 export default class GroqProvider implements AIProvider {
   readonly name = "Groq";
@@ -18,7 +20,8 @@ export default class GroqProvider implements AIProvider {
 
   private apiKey = "";
   private initialized = false;
-  private model = "llama-3.3-70b-versatile";
+  // Current production chat model on Groq (llama-3.3-70b was retired).
+  private model = "openai/gpt-oss-120b";
 
   async initialize(): Promise<void> {
     const runtimeEnv = globalThis as typeof globalThis & {
@@ -37,7 +40,7 @@ export default class GroqProvider implements AIProvider {
     this.model =
       import.meta.env.VITE_GROQ_MODEL?.trim() ||
       runtimeEnv.__LELU_GROQ_MODEL__?.trim() ||
-      "llama-3.3-70b-versatile";
+      "openai/gpt-oss-120b";
 
     this.apiKey =
       import.meta.env.VITE_GROQ_API_KEY?.trim() ||
@@ -67,7 +70,9 @@ export default class GroqProvider implements AIProvider {
       return requested;
     }
 
-    return "llama-3.2-11b-vision-preview";
+    // No dedicated vision model is guaranteed on every Groq account;
+    // send the requested model and let the API report honestly.
+    return requested;
   }
 
   private buildUserContent(
@@ -132,30 +137,9 @@ export default class GroqProvider implements AIProvider {
     const messages = [
       {
         role: "system" as const,
-        content: `You are Lélu.
-
-Identity:
-- Your name is Lélu.
-- You are the user's personal AI companion.
-- The model running you is only the engine powering you.
-- Never identify yourself as Llama, GPT, Groq, or any underlying model.
-- If asked your name, answer: "My name is Lélu."
-
-Memory behavior:
-- Information provided in Memory context is your memory system.
-- Treat it as known information about the user.
-- Use it naturally when relevant.
-- Do not invent memories that are not provided.
-
-Conversation behavior:
-- Maintain continuity with the user.
-- Personalize responses using known information.
-- Be helpful, calm, creative, and engineering-focused.
-- You are not a generic assistant. You are Lélu.`,
+        content: LELU_SYSTEM_PROMPT,
       },
-      ...(request.context
-        ? [{ role: "system" as const, content: `Memory context:\n\n${request.context}` }]
-        : []),
+      ...contextMessages(request),
       ...(request.messages ?? []),
       {
         role: "user" as const,
@@ -169,6 +153,9 @@ Conversation behavior:
       temperature: request.temperature ?? 0.7,
       ...(request.maxTokens ? { max_tokens: request.maxTokens } : {}),
       ...(request.stop?.length ? { stop: request.stop } : {}),
+      // True token streaming whenever the caller wants progressive
+      // output — no artificial pacing, raw provider chunks.
+      ...(request.onDelta ? { stream: true } : {}),
     };
 
     let response: Response;
@@ -187,6 +174,10 @@ Conversation behavior:
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`Groq network error: ${message}`);
+    }
+
+    if (payload.stream) {
+      return await this.generateStreamed(response, started, payload.model, request.onDelta!);
     }
 
     const raw = await response.text();
@@ -226,6 +217,95 @@ Conversation behavior:
       metadata: {
         usage: data?.usage,
         finishReason: choices?.[0]?.finish_reason,
+      },
+    };
+  }
+
+  /**
+   * Consume an OpenAI-compatible SSE stream, invoking onDelta with the
+   * ACCUMULATED text after every chunk. Throws on transport/API errors so
+   * the provider fallback chain still engages normally.
+   */
+  private async generateStreamed(
+    response: Response,
+    started: number,
+    model: string,
+    onDelta: (accumulated: string) => void,
+  ): Promise<AIResponse> {
+    if (!response.ok || !response.body) {
+      // Surface the API error through the normal error path so the next
+      // provider in the fallback chain takes over.
+      const raw = response.body ? await response.text() : "";
+      let apiMessage = `HTTP ${response.status}`;
+      try {
+        const data = JSON.parse(raw) as Record<string, unknown>;
+        apiMessage =
+          ((data?.error as Record<string, unknown>)?.message as string) ||
+          (data?.message as string) || raw || apiMessage;
+      } catch {
+        /* keep default message */
+      }
+      throw new Error(`Groq failed ${response.status}: ${apiMessage}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let content = "";
+    let usage: unknown;
+    let finishReason: string | undefined;
+
+    const processLine = (line: string): void => {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith("data:")) return;
+      const dataStr = trimmed.slice(5).trim();
+      if (!dataStr || dataStr === "[DONE]") return;
+      try {
+        const chunk = JSON.parse(dataStr) as {
+          choices?: Array<{ delta?: { content?: string }; finish_reason?: string }>;
+          usage?: unknown;
+        };
+        if (chunk.usage) usage = chunk.usage;
+        const choice = chunk.choices?.[0];
+        if (choice?.finish_reason) finishReason = choice.finish_reason;
+        const delta = choice?.delta?.content;
+        if (typeof delta === "string" && delta.length > 0) {
+          content += delta;
+          onDelta(content);
+        }
+      } catch {
+        // Ignore malformed keep-alive fragments.
+      }
+    };
+
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) processLine(line);
+      }
+      if (buffer.trim()) processLine(buffer);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Groq stream interrupted: ${message}`);
+    }
+
+    if (!content.trim()) {
+      throw new Error("Groq returned no usable content.");
+    }
+
+    return {
+      text: content.trim(),
+      provider: this.name,
+      model,
+      processingTime: Date.now() - started,
+      metadata: {
+        usage,
+        finishReason,
+        streamed: true,
       },
     };
   }

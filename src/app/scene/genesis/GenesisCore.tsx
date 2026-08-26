@@ -82,6 +82,8 @@ import CrossChatResolver from "../../../core/multichat/CrossChatResolver";
 
 import NotificationProvider from "../../../core/notifications/NotificationProvider";
 
+import VisualEngine from "../../../core/visual/VisualEngine";
+
 
 
 
@@ -93,6 +95,15 @@ const multiChat =
 const crossChat =
 
   CrossChatResolver.getInstance();
+
+
+/* Singleton guard — there must be exactly ONE GenesisCore (one LÉLU
+   runtime, one chat, one cognition). Development-only: if a second
+   instance ever mounts, it is a duplicate-runtime bug and gets flagged
+   immediately instead of silently racing the first. StrictMode's
+   mount→unmount→mount dev cycle keeps the count at 1, so only genuine
+   simultaneous duplicates trigger the warning. */
+let genesisCoreMountCount = 0;
 
 
 
@@ -128,6 +139,8 @@ export type GenesisPanel =
 
   | "diagnostics"
 
+  | "executive"
+
   | "memory"
 
   | "providers"
@@ -135,8 +148,6 @@ export type GenesisPanel =
   | "device"
 
   | "browser"
-
-  | "workspace"
 
   | "visual"
 
@@ -151,6 +162,15 @@ export type GenesisPanel =
   | "video"
 
   | "avatar"
+
+  // Self-improvement proposals + notifications
+
+  | "notifications"  // Unified Visual Studio — sketch + render + avatar in one environment
+  | "visualstudio"
+
+  // Earth Core — LÉLU's native spatial intelligence surface (capability,
+  // not a separate app: reachable from chat/voice/palette, no dock tab)
+  | "earth"
 
   | "projects"
 
@@ -169,8 +189,39 @@ export type GenesisPanel =
   // Self-development engine — architecture map, capability registry,
   // improvement queue, sandbox-first UI evolution.
   | "evolution"
+  // Self Evolution — visible research/proposals/experiments dashboard
+  | "self-evolution"
   // Cosmos — infinite cosmos map + navigation
   | "cosmos";
+
+
+/**
+ * Unified-module presentation model: every environment (Earth, Browser,
+ * Render, …) is ONE instance that can be shown in different presentations.
+ * Changing presentation never duplicates the underlying singleton runtime.
+ */
+export type ModulePresentation =
+  | "closed"      // not rendered anywhere
+  | "inline"      // floating window alongside the persistent Chat
+  | "expanded"    // primary visual area; Chat remains accessible
+  | "minimized";   // compact persistent chip strip (module keeps running)
+
+export type ModuleStatus = "idle" | "active" | "loading" | "complete" | "attention" | "failed";
+
+export interface ModuleState {
+  presentation: ModulePresentation;
+  status: ModuleStatus;
+  updatedAt: number;
+  /** Floating-window geometry — persisted per module so move/resize
+      survives presentation changes (inline ↔ expanded ↔ minimized). */
+  position?: { x: number; y: number };
+  size?: { width: number; height: number };
+  /** Stacking order among floating windows (raise = top-most). */
+  zIndex?: number;
+}
+
+/** Who decides module presentation: LÉLU (auto), LÉLU+approval (assisted), or the user (manual). */
+export type UiControlMode = "auto" | "assisted" | "manual";
 
 
 
@@ -318,21 +369,29 @@ export interface GenesisUIState {
 
   activePanel:GenesisPanel;
 
+  /** The active workspace scene — independent of which panel is open inside it.
+      Scene changes are presentation only: the unified interface (chat, dock,
+      side panel, modules) stays mounted above the scene switch, so opening
+      chat or a module never tears down the current scene. */
+  activeScene:"genesis"|"genesisv2";
+
   minimized:boolean;
 
-  activeWorkspace:string | null;
-
-  activeDestination:string | null;
-
+  activeWorkspace:string | null;  activeDestination:string | null;
   cognition:GenesisCognitionState | null;
-
   actions:GenesisAction[];
-
   ecosystem:GenesisEcosystemState;
-
   engineStatuses:EngineStatus[];
-
   runtimeReady:boolean;
+  /** Whether Self Exploration (autonomous LÉLU attention) is enabled. */
+  selfExplorationEnabled:boolean;
+
+  /** Unified modules — the authoritative "what is open / minimized / detached" state LÉLU reads. */
+  modules:Record<string, ModuleState>;
+
+  /** AUTO / ASSISTED / MANUAL presentation control. */
+  uiControl:UiControlMode;
+
 
 }
 
@@ -399,6 +458,16 @@ export interface GenesisContextValue {
 
 
 
+  /** Replace-by-id or append — used for streaming assistant output. */
+
+  upsertMessage(
+
+    message:GenesisMessage,
+
+  ):void;
+
+
+
   clearConversation():void;
 
 
@@ -410,6 +479,10 @@ export interface GenesisContextValue {
   renameConversation(id:string,title:string):void;
 
   closeConversation(id:string):void;
+
+  archiveConversation(id:string):void;
+
+  unarchiveConversation(id:string):void;
 
   duplicateConversation(id:string):void;
 
@@ -458,23 +531,39 @@ export interface GenesisContextValue {
 
     phase:DialoguePhase,
 
-  ):void;
-
-
-
-  setVoice(
-
+  ):void;  setVoice(
     phase:VoicePhase,
-
   ):void;
 
+
+  setSelfExploration(
+    enabled:boolean,
+  ):void;
 
 
   openPanel(
-
     panel:GenesisPanel,
-
   ):void;
+
+  /** Unified module presentation control — one instance, many presentations. */
+  setModulePresentation(id:string, presentation:ModulePresentation):void;
+  openModule(id:string):void;
+  expandModule(id:string):void;
+  minimizeModule(id:string):void;
+  closeModule(id:string):void;
+  restoreModule(id:string):void;
+  setModuleStatus(id:string, status:ModuleStatus):void;
+  setUiControl(mode:UiControlMode):void;
+
+  /** Window geometry + z-order for floating module windows — the canonical
+      move/resize/stack operations LÉLU and the user share. */
+  moveModule(id:string, position:{x:number;y:number}):void;
+  resizeModule(id:string, size:{width:number;height:number}):void;
+  raiseModule(id:string):void;
+
+  /** Switch the workspace SCENE without touching open panels/chat — scene
+      changes are presentation only (v1 ↔ Gen V2), same LÉLU runtime. */
+  setActiveScene(scene:"genesis"|"genesisv2"):void;
 
 
 
@@ -673,6 +762,20 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
   }
 }
 
+  /* Duplicate-runtime assertion — see genesisCoreMountCount above. */
+  useEffect(() => {
+    genesisCoreMountCount += 1;
+    if (genesisCoreMountCount > 1) {
+      console.warn(
+        `[GenesisCore] DUPLICATE RUNTIME: ${genesisCoreMountCount} GenesisCore instances mounted. ` +
+        "There must be exactly ONE LÉLU runtime — this is a duplicate-system bug.",
+      );
+    }
+    return () => {
+      genesisCoreMountCount -= 1;
+    };
+  }, []);
+
   const initialWorkspace = multiChat.restoreWorkspace();
 
   const [
@@ -712,6 +815,12 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
     // tab minimize / page reload returns there instead of v1.
     activePanel:readStoredWorkspace() === "genesisv2" ? "genesisv2" : "none",
 
+    // The workspace scene is independent of the open panel: entering
+    // Gen V2 changes the scene, but opening chat/earth/modules keeps
+    // the current scene and floats the panel above it — one interface,
+    // many scenes.
+    activeScene:readStoredWorkspace() === "genesisv2" ? "genesisv2" : "genesis",
+
     // The Genesis tab starts COLLAPSED: LÉLU opens only when the user
     // clicks the Genesis chip. The scene is always alive, but the
     // interface does not auto-open on launch. A restored Genesis v2
@@ -720,11 +829,17 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
     activeWorkspace:null,
 
-    activeDestination:null,
-
-    engineStatuses:[],
-
+    activeDestination:null,    engineStatuses:[],
     runtimeReady:false,
+    selfExplorationEnabled:true,
+
+    modules:{},
+
+    // MANUAL by default: nothing opens or moves unless the user (or an
+    // explicit command) says so. AUTO lets LÉLU's orchestrator choose.
+    uiControl:"manual",
+
+
 
 
     cognition:{
@@ -1199,6 +1314,40 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
 
 
+        upsertMessage(message){
+
+
+          multiChat.upsertMessage(state.activeConversationId, message);
+
+
+          setState(current=>{
+
+
+            const active = multiChat.get(current.activeConversationId);
+
+
+            return {
+
+
+              ...current,
+
+
+              messages: active ? active.messages : current.messages,
+
+
+              conversations: multiChat.list(),
+
+
+            };
+
+
+          });
+
+
+        },
+
+
+
         clearConversation(){
 
 
@@ -1329,6 +1478,54 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
 
           });
+
+
+        },
+
+
+        archiveConversation(id){
+
+
+          const nextActiveId = multiChat.archive(id);
+
+
+          setState(current=>{
+
+
+            const active = multiChat.get(nextActiveId);
+
+
+            return {
+
+
+              ...current,
+
+
+              activeConversationId:nextActiveId,
+
+
+              messages:active ? active.messages : [],
+
+
+              conversations:multiChat.list(),
+
+
+            };
+
+
+          });
+
+
+        },
+
+
+        unarchiveConversation(id){
+
+
+          multiChat.unarchive(id);
+
+
+          setState(current=>({ ...current, conversations:multiChat.list() }));
 
 
         },
@@ -1540,28 +1737,259 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         },
 
 
+        setSelfExploration(enabled){
+
+          setState(current=>({
+
+            ...current,
+
+            selfExplorationEnabled:enabled,
+
+          }));
+
+        },
+
+
 
         openPanel(panel){
 
           dispatch("genesis:panel-open", { panel });
 
-          persistWorkspace(panel === "genesisv2" ? "genesisv2" : null);
+          // Closing everything ("none") clears the module set, returns to
+          // the Genesis (v1) scene, and forgets the restored v2 workspace.
+          if (panel === "none") {
+            persistWorkspace(null);
+            setState(current=>({
+              ...current,
+              activePanel:"none",
+              modules:{},
+              activeScene: current.activeScene === "genesisv2" ? "genesis" : current.activeScene,
+            }));
+            return;
+          }
 
+          // Entering Gen V2 changes the SCENE, not just a panel: the v2
+          // workspace owns the viewport while the unified interface (chat,
+          // dock, side panel, modules) stays mounted above it. The System
+          // environment focus is cleared so v2 wins and returning to the
+          // Genesis scene goes home, not into System.
+          if (panel === "genesisv2") {
+            persistWorkspace("genesisv2");
+            VisualEngine.getInstance().setInterfaceFocus("genesis");
+            setState(current=>{
+              const existing = current.modules[panel];
+              return {
+                ...current,
+                activeScene:"genesisv2",
+                activePanel:panel,
+                minimized:false,
+                modules:{
+                  ...current.modules,
+                  [panel]: {
+                    presentation:
+                      existing && existing.presentation !== "closed"
+                        ? existing.presentation
+                        : ("inline" as ModulePresentation),
+                    status: existing?.status ?? "idle",
+                    updatedAt: Date.now(),
+                  },
+                },
+              };
+            });
+            return;
+          }
+
+          setState(current=>{
+            const existing = current.modules[panel];
+            return {
+              ...current,
+              activePanel:panel,
+              minimized:false,
+              modules:{
+                ...current.modules,
+                [panel]: {
+                  // Preserve an existing presentation (a detached Earth
+                  // stays detached when a chat command drives it — the
+                  // same single instance just updates its state). On
+                  // phones a freshly opened tool becomes the primary
+                  // expanded surface so it can never overlap the chat
+                  // or the composer (see openModule for the same rule).
+                  presentation:
+                    existing && existing.presentation !== "closed"
+                      ? existing.presentation
+                      : typeof window !== "undefined" && window.innerWidth < 768
+                        ? ("expanded" as ModulePresentation)
+                        : ("inline" as ModulePresentation),
+                  status: existing?.status ?? "idle",
+                  updatedAt: Date.now(),
+                },
+              },
+            };
+          });
+
+        },
+
+        /* -------- unified module presentation (one instance per module) -------- */
+
+        setModulePresentation(id, presentation){
+          setState(current=>{
+            // Persisted/legacy callers may still send the retired detached
+            // mode. Collapse it into the canonical inline window instead of
+            // allowing a second tab presentation to reappear.
+            const normalizedPresentation = presentation === ("detached" as ModulePresentation) ? "inline" : presentation;
+            const modules = {
+              ...current.modules,
+              [id]: {
+                presentation: normalizedPresentation,
+                status: current.modules[id]?.status ?? "idle",
+                updatedAt: Date.now(),
+              },
+            };
+            const anyOpen = Object.values(modules).some(m=>m.presentation !== "closed");
+            return {
+              ...current,
+              modules,
+              minimized:false,
+              activePanel: normalizedPresentation === "closed"
+                ? (anyOpen ? current.activePanel : "none")
+                : (id as GenesisPanel),
+            };
+          });
+        },
+
+        openModule(id){
+          setState(current=>{
+            const currentPresentation = current.modules[id]?.presentation;
+            const presentation: ModulePresentation =
+              currentPresentation === "minimized"
+                ? "expanded"
+                : currentPresentation && currentPresentation !== "closed"
+                  ? currentPresentation
+                  : typeof window !== "undefined" && window.innerWidth < 768
+                    ? "expanded"
+                    : "inline";
+            const modules = {
+              ...current.modules,
+              [id]: { presentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+            };
+            return { ...current, modules, minimized:false, activePanel:id as GenesisPanel };
+          });
+        },
+
+        expandModule(id){
+          setState(current=>{
+            const modules = {
+              ...current.modules,
+              [id]: { presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+            };
+            return { ...current, modules, minimized:false, activePanel:id as GenesisPanel };
+          });
+        },
+
+        minimizeModule(id){
+          setState(current=>{
+            const modules = {
+              ...current.modules,
+              [id]: { presentation:"minimized" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+            };
+            return { ...current, modules, activePanel:id as GenesisPanel };
+          });
+        },
+
+        closeModule(id){
+          setState(current=>{
+            const modules = { ...current.modules };
+            delete modules[id];
+            const anyOpen = Object.values(modules).some(m=>m.presentation !== "closed");
+            return { ...current, modules, activePanel:anyOpen ? current.activePanel : "none" };
+          });
+        },
+
+        restoreModule(id){
+          setState(current=>{
+            const modules = {
+              ...current.modules,
+              [id]: { presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+            };
+            return { ...current, modules, minimized:false, activePanel:id as GenesisPanel };
+          });
+        },
+
+        setModuleStatus(id, status){
+          setState(current=>{
+            const existing = current.modules[id];
+            if (!existing) return current;
+            return {
+              ...current,
+              modules: {
+                ...current.modules,
+                [id]: { ...existing, status, updatedAt: Date.now() },
+              },
+            };
+          });
+        },
+
+        setUiControl(mode){
+          setState(current=>({ ...current, uiControl:mode }));
+        },
+
+        moveModule(id, position){
+          setState(current=>{
+            const existing = current.modules[id];
+            if (!existing) return current;
+            return {
+              ...current,
+              modules: {
+                ...current.modules,
+                [id]: { ...existing, position, updatedAt: Date.now() },
+              },
+            };
+          });
+        },
+
+        resizeModule(id, size){
+          setState(current=>{
+            const existing = current.modules[id];
+            if (!existing) return current;
+            return {
+              ...current,
+              modules: {
+                ...current.modules,
+                [id]: { ...existing, size, updatedAt: Date.now() },
+              },
+            };
+          });
+        },
+
+        raiseModule(id){
+          setState(current=>{
+            const existing = current.modules[id];
+            if (!existing) return current;
+            const top = Math.max(30, ...Object.values(current.modules)
+              .map(m => m.zIndex ?? 30)) + 1;
+            return {
+              ...current,
+              modules: {
+                ...current.modules,
+                [id]: { ...existing, zIndex: top, updatedAt: Date.now() },
+              },
+            };
+          });
+        },
+
+        setActiveScene(scene){
+          dispatch("genesis:scene-change", { scene });
+          persistWorkspace(scene === "genesisv2" ? "genesisv2" : null);
+          // Entering v2 also clears the System environment focus so v2
+          // owns the viewport cleanly.
+          if (scene === "genesisv2") {
+            VisualEngine.getInstance().setInterfaceFocus("genesis");
+          }
           setState(current=>({
-
-
             ...current,
-
-
-            activePanel:panel,
-
-
+            activeScene:scene,
             minimized:false,
-
-
           }));
-
-
         },
 
 
@@ -1582,6 +2010,9 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
 
             minimized:true,
+
+
+            modules:{},
 
 
           }));

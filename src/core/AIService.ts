@@ -35,6 +35,9 @@ import ProactiveCore from "./proactive/ProactiveCore";
 import PromptInjectionGuard from "./security/PromptInjectionGuard";
 import ExecutiveBoard, { type BoardConsultation } from "./executive/ExecutiveBoard";
 import HealthIntelligence from "./caretaker/HealthIntelligence";
+import { buildCognitiveContext, formatCognitiveContext } from "./cognition/CognitiveContext";
+import SupabasePersistence from "./persistence/SupabasePersistence";
+import { markPerf } from "./perf/StartupTelemetry";
 
 export interface AIActionEvent {
   id: string;
@@ -73,6 +76,8 @@ export default class AIService {
   private readonly actionListeners = new Set<(event: AIActionEvent) => void>();
   private readonly cognitionListeners = new Set<(state: CognitionEvent) => void>();
   private readonly messageListeners = new Set<(message: AIMessageEvent) => void>();
+  /** Progressive assistant output during generation — same id as the final message. */
+  private readonly streamListeners = new Set<(event: { id: string; text: string }) => void>();
   private readonly thinkingListeners = new Set<(value: boolean) => void>();
   private readonly speakingListeners = new Set<(value: boolean) => void>();
   private readonly listeningListeners = new Set<(value: boolean) => void>();
@@ -118,6 +123,14 @@ export default class AIService {
     };
   }
 
+  /** Live token-stream updates while LÉLU is generating. */
+  public subscribeStream(listener: (event: { id: string; text: string }) => void): () => void {
+    this.streamListeners.add(listener);
+    return () => {
+      this.streamListeners.delete(listener);
+    };
+  }
+
   public subscribeThinking(listener: (value: boolean) => void): () => void {
     this.thinkingListeners.add(listener);
     return () => {
@@ -156,7 +169,11 @@ export default class AIService {
     };
 
     for (const listener of this.actionListeners) {
-      listener(event);
+      try {
+        listener(event);
+      } catch (error) {
+        console.error("[AIService] action listener threw (contained)", error);
+      }
     }
 
     return event.id;
@@ -164,37 +181,71 @@ export default class AIService {
 
   private emitCognition(cognition: CognitionEvent): void {
     for (const listener of this.cognitionListeners) {
-      listener(cognition);
+      try {
+        listener(cognition);
+      } catch (error) {
+        console.error("[AIService] cognition listener threw (contained)", error);
+      }
     }
   }
 
   private emitMessage(message: AIMessageEvent): void {
     for (const listener of this.messageListeners) {
-      listener(message);
+      try {
+        listener(message);
+      } catch (error) {
+        console.error("[AIService] message listener threw (contained)", error);
+      }
+    }
+  }
+
+  private emitStream(id: string, text: string): void {
+    for (const listener of this.streamListeners) {
+      try {
+        listener({ id, text });
+      } catch (error) {
+        console.error("[AIService] stream listener threw (contained)", error);
+      }
     }
   }
 
   private emitThinking(value: boolean): void {
     for (const listener of this.thinkingListeners) {
-      listener(value);
+      try {
+        listener(value);
+      } catch (error) {
+        console.error("[AIService] thinking listener threw (contained)", error);
+      }
     }
   }
 
   private emitSpeaking(value: boolean): void {
     for (const listener of this.speakingListeners) {
-      listener(value);
+      try {
+        listener(value);
+      } catch (error) {
+        console.error("[AIService] speaking listener threw (contained)", error);
+      }
     }
   }
 
   private emitListening(value: boolean): void {
     for (const listener of this.listeningListeners) {
-      listener(value);
+      try {
+        listener(value);
+      } catch (error) {
+        console.error("[AIService] listening listener threw (contained)", error);
+      }
     }
   }
 
   private emitNotification(notification: { title: string; description?: string }): void {
     for (const listener of this.notificationListeners) {
-      listener(notification);
+      try {
+        listener(notification);
+      } catch (error) {
+        console.error("[AIService] notification listener threw (contained)", error);
+      }
     }
   }
 
@@ -204,39 +255,64 @@ export default class AIService {
     }
 
     // Provider or memory initialization must never take the whole
-    // application down (white-screen protection). Every subsystem is
-    // initialized independently and reports failure through the
-    // notification channel instead of throwing; chat then degrades
-    // gracefully per-request. LÉLU's identity and profile load from
-    // local persistent storage regardless of provider availability.
-    try {
-      await this.runtime.initialize();
-    } catch (error) {
+    // application down (white-screen protection). The three INDEPENDENT
+    // core subsystems now initialize in PARALLEL — none of them needs
+    // another's result — so first-message latency drops to the slowest,
+    // not the sum. Failures report through the notification channel
+    // instead of throwing; chat degrades gracefully per-request.
+    const [runtimeResult, userResult, brainResult] = await Promise.allSettled([
+      this.runtime.initialize(),
+      this.user.initialize(),
+      // Brain (memory + identity seed) guards its own init; re-run so a
+      // direct AIService.initialize always seeds.
+      this.runtime.brain.initialize(),
+    ]);
+
+    if (runtimeResult.status === "rejected") {
       this.emitNotification({
         title: "Lélu runtime warning",
-        description: error instanceof Error ? error.message : String(error),
+        description:
+          runtimeResult.reason instanceof Error
+            ? runtimeResult.reason.message
+            : String(runtimeResult.reason),
       });
     }
-
-    try {
-      await this.user.initialize();
-    } catch (error) {
+    if (userResult.status === "rejected") {
       this.emitNotification({
         title: "Lélu profile warning",
-        description: error instanceof Error ? error.message : String(error),
+        description:
+          userResult.reason instanceof Error
+            ? userResult.reason.message
+            : String(userResult.reason),
+      });
+    }
+    if (brainResult.status === "rejected") {
+      this.emitNotification({
+        title: "Lélu memory warning",
+        description:
+          brainResult.reason instanceof Error
+            ? brainResult.reason.message
+            : String(brainResult.reason),
       });
     }
 
-    // Brain (memory + identity seed) already guards its own init;
-    // re-run here so a direct AIService.initialize always seeds.
-    try {
-      await this.runtime.brain.initialize();
-    } catch (error) {
-      this.emitNotification({
-        title: "Lélu memory warning",
-        description: error instanceof Error ? error.message : String(error),
-      });
-    }
+    // Supabase is an OPTIONAL persistence/realtime layer beneath the
+    // existing local-first stores. It must never delay chat readiness:
+    // auth, hydration, and sync run in the BACKGROUND, failures are
+    // contained, and cognition remains fully usable offline.
+    void (async () => {
+      try {
+        const persistence = SupabasePersistence.getInstance();
+        await persistence.initialize(this.runtime.brain, this.user);
+        if (persistence.isConnected()) {
+          persistence.attachRuntime();
+          const health = await this.getProviderHealth();
+          void persistence.persistApiHealth(health as Array<Record<string, unknown>>);
+        }
+      } catch (error) {
+        console.warn("[AIService] Supabase persistence initialization degraded", error);
+      }
+    })();
 
     // Device capability registry: registers every web-real capability
     // (microphone, camera, share, clipboard, storage, …). Never throws —
@@ -251,6 +327,9 @@ export default class AIService {
     }
 
     this.initialized = true;
+
+    // Real measurement: chat's cognition/provider/memory stack is usable.
+    markPerf("PROVIDER_READY");
   }
 
   public async chat(
@@ -282,13 +361,39 @@ export default class AIService {
     this.emitSpeaking(true);
     this.emitListening(true);
 
+    const taskId = String(Date.now());
+
     // Feed the proactive layer on every genuine user message: session
     // continuity, pattern learning, and interruption detection. This is
     // the ONE interaction path — no second brain or memory is involved.
+    const proactive = ProactiveCore.getInstance();
     try {
-      ProactiveCore.getInstance().recordInteraction(message);
+      proactive.recordInteraction(message);
     } catch (error) {
       console.error("[AIService] Proactive record failed (contained)", error);
+    }
+
+    // Resolve one live proactive question before routing the turn. This is
+    // deliberately narrow: direct preference/decision language resolves a
+    // pending question, while a new question or command remains independent.
+    const pendingQuestion = proactive.getActiveQuestion();
+    if (pendingQuestion && this.looksLikeProactiveAnswer(message, pendingQuestion.question)) {
+      proactive.resolveQuestion(pendingQuestion.id, message);
+      if (pendingQuestion.category === "NEWS") {
+        proactive.learnNewsPreferences(message);
+        void SupabasePersistence.getInstance().persistNewsPreferences(proactive.getNewsPreferences());
+      }
+      if (pendingQuestion.rememberAnswer) {
+        try {
+          await this.memory.learn(
+            `Proactive question: ${pendingQuestion.question}`,
+            `User answer: ${message}`,
+            taskId,
+          );
+        } catch (error) {
+          console.error("[AIService] Proactive answer learning failed (contained)", error);
+        }
+      }
     }
 
     // Defensive boundary (M.S. Ma'at): the user's own text is treated as
@@ -302,7 +407,6 @@ export default class AIService {
 
     const actionId = this.emitAction("learn", `Processing ${message}`, "running");
     const agentEvents = AgentEventBus.getInstance();
-    const taskId = String(Date.now());
     agentEvents.emit({ type: "task_started", taskId, label: message });
 
     // LÉLU as orchestrator: when the message asks a configured agent to
@@ -353,9 +457,23 @@ export default class AIService {
       // fold that executive's real guidance into the request context.
       const boardContext = this.resolveExecutiveConsult(message);
       const caretakerContext = this.resolveCaretakerConsult(message);
-      const effectiveContext = [context?.trim(), boardContext, caretakerContext]
+
+      // Inject the live cognitive context so LÉLU's model actually
+      // "sees" her runtime state (self-model, projects, agents,
+      // capabilities, UI) as part of the conversation context.
+      let cognitiveContextText = "";
+      try {
+        const snapshot = buildCognitiveContext();
+        cognitiveContextText = formatCognitiveContext(snapshot);
+      } catch (error) {
+        console.error("[AIService] Cognitive context build failed (contained)", error);
+      }
+
+      const effectiveContext = [context?.trim(), cognitiveContextText, boardContext, caretakerContext]
         .filter((part): part is string => Boolean(part && part.length > 0))
         .join("\n\n");
+
+      const streamId = crypto.randomUUID();
 
       const request: AIRequest = {
         messages: [{ role: "user", content: message }],
@@ -363,6 +481,9 @@ export default class AIService {
         ...(effectiveContext ? { context: effectiveContext } : {}),
         ...(media && media.length > 0 ? { media } : {}),
         timestamp: Number(taskId),
+        // True streaming: the provider pushes accumulated text as it
+        // arrives and the UI renders it in place under `streamId`.
+        onDelta: (text) => this.emitStream(streamId, text),
       };
 
       // The request is about to run the existing planning + reasoning
@@ -378,7 +499,7 @@ export default class AIService {
       this.emitAction("learn", "Response generated", "complete");
       agentEvents.emit({ type: "task_completed", taskId, label: message });
       this.emitMessage({
-        id: crypto.randomUUID(),
+        id: streamId,
         role: "assistant",
         text: response.text,
         timestamp: Date.now(),
@@ -467,6 +588,30 @@ export default class AIService {
   }
 
   /**
+   * Keep proactive answers on the ordinary chat path without stealing new
+   * questions, commands, or unrelated requests from the user.
+   */
+  private looksLikeProactiveAnswer(message: string, questionText: string): boolean {
+    const normalized = message.trim().toLowerCase();
+    if (normalized.length < 2 || normalized.endsWith("?")) {
+      return false;
+    }
+    if (/^(what|why|how|when|where|who|can you|could you|would you|please|search|find|show|tell me|run|start|create|build|fix|pause|resume|stop)\b/.test(normalized)) {
+      return false;
+    }
+    if (/\b(i want|i prefer|i like|i love|focus on|prioritize|track|watch|work on|remember|do not|don't|yes|no|the priority|use)\b/.test(normalized)) {
+      return true;
+    }
+    // Short topic lists are common answers to the news-preference prompt.
+    if (/\b(news|technology|tech|ai|science|markets|politics|gaming|local|business|world)\b/.test(normalized) && normalized.length < 180) {
+      return true;
+    }
+    // A pending blocking decision accepts a concise directive even when it
+    // does not use a first-person phrase.
+    return questionText.length > 0 && normalized.length < 240 && !/[.!?]$/.test(normalized);
+  }
+
+  /**
    * Delegate a task to a configured agent through the ONE runtime,
    * provider chain, and memory path.
    *
@@ -514,7 +659,14 @@ export default class AIService {
       ],
       prompt: message,
       timestamp: Number(taskId),
-      ...(projectContext && projectContext.trim().length > 0 ? { context: projectContext.trim() } : {}),
+      ...(() => {
+        const parts: string[] = [];
+        if (projectContext?.trim()) parts.push(projectContext.trim());
+        try {
+          parts.push(formatCognitiveContext(buildCognitiveContext()));
+        } catch { /* contained */ }
+        return parts.length > 0 ? { context: parts.join("\n\n") } : {};
+      })(),
       ...(agent.provider
         ? {
             preferredProviders: [agent.provider, agent.fallbackProvider].filter(
@@ -711,6 +863,16 @@ export default class AIService {
 
   public async getProviderHealth() {
     return await this.runtime.aiProviderHealthList();
+  }
+
+  /**
+   * Expose the knowledge-provider registry so cognition and the
+   * cognitive loop can invoke providers directly (research, health
+   * checks, capability validation). The SAME registry the chat
+   * pipeline uses — no duplicate provider system.
+   */
+  public getKnowledgeProviderRegistry(): import("./ProviderRegistry").default {
+    return this.runtime.core.getKnowledgeProviders();
   }
 
   /**

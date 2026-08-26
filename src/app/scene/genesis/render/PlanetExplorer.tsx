@@ -12,7 +12,7 @@
  * ==========================================================
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Line } from "@react-three/drei";
 import {
@@ -53,6 +53,7 @@ import {
   nearestPlace,
 } from "./GeoData";
 import ProactiveCore from "../../../../core/proactive/ProactiveCore";
+import KvStore from "../../../../core/storage/KvStore";
 
 /* ------------------------------------------------------------------
  * Shared constants + navigation store (module-level so the DOM HUD
@@ -936,7 +937,38 @@ export function CountryBoundaryLayer() {
 
 /* ------------------------------------------------------------------
  * HUD — minimal breadcrumb + quick-nav (mounted in DOM, outside canvas).
+ *
+ * Positioned at top-right by default, away from the bottom-left dock
+ * and navigation. Draggable via the header pill; position persists
+ * through KvStore so the user's chosen spot survives reloads.
  * ------------------------------------------------------------------ */
+
+const GPS_POSITION_KEY = "lelu.gps-bubble.pos";
+
+interface GPSPosition {
+  x: number;
+  y: number;
+}
+
+function readGPSPosition(): GPSPosition | null {
+  try {
+    const stored = KvStore.getInstance().get<GPSPosition | null>(GPS_POSITION_KEY);
+    if (stored && typeof stored.x === "number" && typeof stored.y === "number") {
+      return stored;
+    }
+  } catch {
+    // persistence backend blocked — use default
+  }
+  return null;
+}
+
+function persistGPSPosition(pos: GPSPosition): void {
+  try {
+    KvStore.getInstance().set(GPS_POSITION_KEY, pos);
+  } catch {
+    // persistence must never break the HUD
+  }
+}
 
 export function PlanetExplorerHUD() {
   const [scale, setScale] = useState<PlanetScaleLabel>("COSMOS");
@@ -944,6 +976,98 @@ export function PlanetExplorerHUD() {
   const [place, setPlace] = useState("");
   const [open, setOpen] = useState(false);
   const [locating, setLocating] = useState(false);
+
+  // Draggable position — default to top-right (away from dock, chat, nav).
+  const [position, setPosition] = useState<GPSPosition>(() => {
+    return readGPSPosition() ?? { x: -1, y: -1 };
+  });
+  const dragRef = useRef<{
+    startX: number;
+    startY: number;
+    offsetX: number;
+    offsetY: number;
+    moved: boolean;
+  } | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // Compute actual position — use stored or default to top-right.
+  const effectiveX = position.x >= 0 ? position.x : (typeof window !== "undefined" ? window.innerWidth - 200 : 0);
+  const effectiveY = position.y >= 0 ? position.y : 76;
+
+  // Clamp to viewport on resize.
+  const clampToViewport = useCallback((x: number, y: number): GPSPosition => {
+    const w = typeof window !== "undefined" ? window.innerWidth : 1440;
+    const h = typeof window !== "undefined" ? window.innerHeight : 900;
+    // The pill is ~200px wide; the popover is ~200px wide.
+    const maxX = Math.max(0, w - 220);
+    const maxY = Math.max(0, h - 280);
+    return { x: Math.round(Math.min(maxX, Math.max(0, x))), y: Math.round(Math.min(maxY, Math.max(0, y))) };
+  }, []);
+
+  // Re-clamp on window resize.
+  useEffect(() => {
+    const handler = () => {
+      setPosition((prev) => {
+        if (prev.x < 0 && prev.y < 0) return prev; // default
+        return clampToViewport(prev.x, prev.y);
+      });
+    };
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, [clampToViewport]);
+
+  const onPointerDown = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (event.button !== 0 && event.pointerType !== "touch") return;
+    event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    dragRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+      moved: false,
+    };
+  }, []);
+
+  const onPointerMove = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
+    const drag = dragRef.current;
+    if (!drag) return;
+    const dx = Math.abs(event.clientX - drag.startX);
+    const dy = Math.abs(event.clientY - drag.startY);
+    if (dx + dy > 4) {
+      drag.moved = true;
+      const x = event.clientX - drag.offsetX;
+      const y = event.clientY - drag.offsetY;
+      const clamped = clampToViewport(x, y);
+      setPosition(clamped);
+    }
+  }, [clampToViewport]);
+
+  const onPointerUp = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
+    const drag = dragRef.current;
+    dragRef.current = null;
+    if (!drag) return;
+
+    // If it was a real drag, persist AND suppress the click.
+    if (drag.moved) {
+      const x = event.clientX - drag.offsetX;
+      const y = event.clientY - drag.offsetY;
+      const clamped = clampToViewport(x, y);
+      setPosition(clamped);
+      persistGPSPosition(clamped);
+      return;
+    }
+  }, [clampToViewport]);
+
+  const onPointerCancel = useCallback(() => {
+    dragRef.current = null;
+  }, []);
+
+  const handleToggle = useCallback(() => {
+    // If a drag just ended, don't toggle.
+    if (dragRef.current?.moved) return;
+    setOpen((v) => !v);
+  }, []);
 
   useEffect(() => {
     return planetNavStore.subscribe((label) => setScale(label));
@@ -1010,18 +1134,24 @@ export function PlanetExplorerHUD() {
 
   return (
     <div
+      ref={rootRef}
       style={{
         position: "fixed",
-        left: 12,
-        bottom: 12,
-        zIndex: 60,
+        left: effectiveX,
+        top: effectiveY,
+        zIndex: 18,
         fontFamily: "system-ui, sans-serif",
         pointerEvents: "auto",
       }}
     >
       <button
         type="button"
-        onClick={() => setOpen(!open)}
+        onClick={handleToggle}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerCancel}
+        title="Drag to reposition · Click to expand"
         style={{
           display: "inline-flex",
           alignItems: "center",
@@ -1031,11 +1161,13 @@ export function PlanetExplorerHUD() {
           border: "1px solid rgba(125,211,252,0.25)",
           borderRadius: 999,
           padding: "6px 12px",
-          cursor: "pointer",
+          cursor: "grab",
           fontSize: 11,
           letterSpacing: "0.08em",
           fontFamily: "inherit",
           backdropFilter: "blur(8px)",
+          touchAction: "none",
+          userSelect: "none",
         }}
       >
         <span style={{ opacity: 0.7 }}>◈</span>

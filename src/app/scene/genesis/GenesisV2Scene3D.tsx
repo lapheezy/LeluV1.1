@@ -81,6 +81,8 @@ import CoreEmission from "./render/CoreEmission";
 import CoreAtmosphere from "./systems/CoreAtmosphere";
 import StarField from "./environment/stars/StarField";
 import Cosmos from "./environment/Cosmos";
+import GenesisV2CameraRig from "./GenesisV2CameraRig";
+import LeluV2Presence from "./LeluV2Presence";
 
 export type V2NodeId = "core" | "studio" | "lab" | "vault";
 
@@ -1418,6 +1420,10 @@ export default function GenesisV2Scene3D({
       dpr={[1, 2]}
     >
       <ContextBridge>
+        {/* free exploration camera — orbit / free-fly / touch / focus.
+            The Gen V2 world is explorable: the camera is never locked. */}
+        <GenesisV2CameraRig />
+
         {/* deep-space environment — the same living cosmos family as v1 */}
         <StarField />
         <Cosmos />
@@ -1445,6 +1451,11 @@ export default function GenesisV2Scene3D({
             onSelect={() => onSelect(seed.id)}
           />
         ))}
+
+        {/* LÉLU — the exact saved avatar, present in the world and driven
+            by the real agent activity (listening/thinking/speaking/
+            working/rendering/searching), with her own warm light. */}
+        <LeluV2Presence />
       </ContextBridge>
     </Canvas>
   );

@@ -26,6 +26,8 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type DragEven
 import { motion } from "framer-motion";
 import useWorkspace from "../../../core/workspace/useWorkspace";
 import type { WorkspaceView, WorkspaceLayoutMode } from "../../../core/workspace/WorkspaceEngine";
+import ExecutiveRuntime, { type ExecutiveSelfState } from "../../../core/executive/ExecutiveRuntime";
+import AgentEventBus, { type AgentEvent } from "../../../core/agent/AgentEvents";
 import { computeLayout, isMobile } from "../../../core/workspace/AdaptiveLayout";
 import { activityTimeline } from "../../../core/workspace/visualizers";
 import type { VisualSpec } from "../../../core/workspace/VisualSpec";
@@ -117,6 +119,94 @@ function ActivityView() {
   return <WorkspaceVisual spec={spec} />;
 }
 
+/* -------------------- live executive validation view --------------------- */
+
+/**
+ * The LIVE VALIDATION MIRROR: what LÉLU is doing RIGHT NOW, streamed
+ * straight from the Executive Runtime and the agent event bus. Every
+ * value here is measured runtime state — never a simulated progress
+ * bar, never a static diagram.
+ */
+function ExecutiveLiveView() {
+  const [exec, setExec] = useState<ExecutiveSelfState>(() => ({
+    ...ExecutiveRuntime.getInstance().get(),
+  }));
+  const [events, setEvents] = useState<AgentEvent[]>(() => AgentEventBus.getInstance().recent(8));
+
+  useEffect(() => {
+    const rt = ExecutiveRuntime.getInstance();
+    const bus = AgentEventBus.getInstance();
+    const unsubExec = rt.subscribe((s) => setExec({ ...s, avatar: { ...s.avatar }, currentTask: s.currentTask ? { ...s.currentTask } : null }));
+    const unsubEvents = bus.subscribe(() => setEvents([...bus.recent(8)].reverse()));
+    return () => {
+      unsubExec();
+      unsubEvents();
+    };
+  }, []);
+
+  const avatarState = !exec.avatar.mounted
+    ? "not mounted"
+    : exec.avatar.moving
+      ? "moving"
+      : exec.avatar.lastMoveAt !== null && Date.now() - exec.avatar.lastMoveAt < 4_000
+        ? "just moved"
+        : exec.avatar.lastFrameAt !== null
+          ? "present · static"
+          : "no frames yet";
+
+  const metrics: Array<[string, string, string | undefined]> = [
+    ["Mode", exec.currentMode + (exec.ambientBehavior ? ` · ${exec.ambientBehavior}` : ""), "#67e8f9"],
+    ["Task", exec.currentTask ? `${exec.currentTask.label} [${exec.taskStatus}]` : `none [${exec.taskStatus}]`, exec.taskStatus === "failed" ? "#f87171" : exec.taskStatus === "unverified" ? "#fbbf24" : undefined],
+    ["Executing", exec.currentAction || "—", undefined],
+    [
+      "Last verified",
+      exec.lastAction ? `${exec.lastAction.execution} — ${exec.lastAction.verified ? "VERIFIED" : "UNVERIFIED"}` : "—",
+      exec.lastAction && !exec.lastAction.verified ? "#fbbf24" : undefined,
+    ],
+    ["Avatar (3D)", avatarState, exec.avatar.mounted && !exec.avatar.moving && exec.avatar.lastFrameAt !== null ? undefined : "#a78bfa"],
+    ["Renderer frames", exec.avatar.mounted ? String(exec.avatar.frames) : "0", undefined],
+    ["Open surfaces", exec.workspaceOpenSurfaces.length > 0 ? exec.workspaceOpenSurfaces.join(", ") : "—", undefined],
+    ["System health", exec.systemHealth, exec.systemHealth === "critical" ? "#f87171" : exec.systemHealth === "degraded" ? "#fbbf24" : "#34d399"],
+    ["Issues", `${exec.activeErrors.length} errors · ${exec.activeWarnings.length} warnings`, exec.activeErrors.length > 0 ? "#f87171" : undefined],
+  ];
+
+  return (
+    <div style={{ padding: 14, boxSizing: "border-box", overflowY: "auto", height: "100%" }}>
+      <div style={eyebrowStyle(surfaceAccent("executive"))}>Lélu · live execution (measured)</div>
+      {exec.lastAction && !exec.lastAction.verified ? (
+        <div style={{ background: "rgba(251, 191, 36, 0.08)", border: "1px solid rgba(251, 191, 36, 0.35)", borderRadius: genesisTheme.radius.md, padding: "7px 10px", fontSize: 11.5, color: "rgba(253, 230, 138, 0.95)", marginBottom: 8 }}>
+          Unverified: {exec.lastAction.intent} → {exec.lastAction.observation}
+        </div>
+      ) : null}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 8 }}>
+        {metrics.map(([label, value, color]) => (
+          <div key={label} style={{ background: "rgba(8, 16, 38, 0.55)", border: "1px solid rgba(148, 163, 184, 0.16)", borderRadius: genesisTheme.radius.md, padding: "8px 10px" }}>
+            <div style={{ fontSize: 9.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(148, 163, 184, 0.75)" }}>{label}</div>
+            <div style={{ fontSize: 12.5, color: color ?? "rgba(228, 244, 255, 0.95)", marginTop: 3, fontFamily: "ui-monospace, monospace", wordBreak: "break-word" }}>{value}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(148, 163, 184, 0.9)", margin: "16px 0 8px" }}>Execution stream (newest first)</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+        {events.length === 0 ? (
+          <div style={{ fontSize: 11.5, color: "rgba(148, 163, 184, 0.7)" }}>No execution yet — give Lélu a task.</div>
+        ) : (
+          events.map((event, index) => {
+            const detail = [("tool" in event && event.tool) || "", "result" in event && event.result ? String(event.result).slice(0, 90) : "", "error" in event && event.error ? String(event.error).slice(0, 90) : ""].filter(Boolean).join(" · ");
+            const failed = event.type === "tool_failed" || event.type === "task_failed";
+            return (
+              <div key={`${event.type}-${index}`} style={{ display: "flex", gap: 8, alignItems: "baseline", background: "rgba(8, 16, 38, 0.45)", border: `1px solid ${failed ? "rgba(248, 113, 113, 0.3)" : "rgba(103, 232, 249, 0.14)"}`, borderRadius: genesisTheme.radius.md, padding: "6px 9px" }}>
+                <span style={{ fontSize: 10, fontFamily: "ui-monospace, monospace", color: failed ? "#f87171" : "#67e8f9", whiteSpace: "nowrap" }}>{event.type}</span>
+                <span style={{ fontSize: 11.5, color: "rgba(228, 244, 255, 0.85)", wordBreak: "break-word" }}>{detail || ("label" in event && event.label ? String(event.label) : "")}</span>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
 function eyebrowStyle(accent: { color: string }): CSSProperties {
   return {
     fontSize: 9.5,
@@ -134,6 +224,9 @@ function renderView(view: WorkspaceView) {
   }
   if (view.kind === "activity") {
     return <ActivityView />;
+  }
+  if (view.kind === "executive") {
+    return <ExecutiveLiveView />;
   }
   const spec: VisualSpec = view.spec ?? {
     kind: "table",
@@ -337,6 +430,16 @@ export default function GenesisAgentWorkspace({ onDockToggle }: GenesisAgentWork
   const mobile = isMobile(viewport.width);
   const draggingRef = useRef<string | null>(null);
 
+  /*
+   * UNIFIED MODE — Chat + Workspace are one environment. While the
+   * conversation is open, the workspace IS the whole UI: it expands to
+   * the full surface (below the chrome, beside the dock) and the
+   * conversation floats over it. Tools, agents and execution all live
+   * in this one surface — no separate Workspace tab exists anymore.
+   */
+  const { state: genesisState } = useGenesis();
+  const unified = genesisState.activePanel === "chat" && !genesisState.minimized;
+
   const visibleViews = useMemo(() => state.views.filter((view) => !view.minimized), [state.views]);
   const layout = useMemo(
     () => computeLayout(visibleViews, state.focusId, state.layout, state.splitIds, viewport),
@@ -379,20 +482,37 @@ export default function GenesisAgentWorkspace({ onDockToggle }: GenesisAgentWork
       transition={{ duration: 0.35, ease: "easeOut" }}
       style={{
         position: "fixed",
-        left: mobile ? 8 : "50%",
-        right: mobile ? 8 : undefined,
-        bottom: "clamp(96px, 12vh, 128px)",
-        transform: mobile ? "none" : "translateX(-50%)",
-        width: mobile ? "auto" : "min(94vw, 1120px)",
-        height: mobile ? "min(62dvh, 480px)" : "min(56dvh, 520px)",
+        // Unified: the workspace fills the environment. Floating: the
+        // original bottom-centered execution box.
+        ...(unified
+          ? {
+              left: mobile ? 8 : 88,
+              right: 8,
+              top: mobile ? 8 : 60,
+              bottom: mobile
+                ? "calc(env(safe-area-inset-bottom, 0px) + 76px)"
+                : 16,
+              width: "auto",
+              height: "auto",
+              transform: "none",
+              borderRadius: mobile ? 18 : genesisTheme.radius.lg,
+            }
+          : {
+              left: mobile ? 8 : "50%",
+              right: mobile ? 8 : undefined,
+              bottom: "clamp(96px, 12vh, 128px)",
+              transform: mobile ? "none" : "translateX(-50%)",
+              width: mobile ? "auto" : "min(94vw, 1120px)",
+              height: mobile ? "min(62dvh, 480px)" : "min(56dvh, 520px)",
+              borderRadius: mobile ? 18 : genesisTheme.radius.lg,
+            }),
         zIndex: 19,
         pointerEvents: state.visible ? "auto" : "none",
         display: "flex",
         flexDirection: "column",
-        background: "rgba(6, 12, 30, 0.84)",
-        border: "1px solid rgba(103, 232, 249, 0.22)",
-        borderRadius: mobile ? 18 : genesisTheme.radius.lg,
-        boxShadow: "0 18px 60px rgba(2, 6, 23, 0.65)",
+        background: unified ? "rgba(4, 10, 26, 0.92)" : "rgba(6, 12, 30, 0.84)",
+        border: unified ? "1px solid rgba(103, 232, 249, 0.16)" : "1px solid rgba(103, 232, 249, 0.22)",
+        boxShadow: unified ? "0 24px 80px rgba(2, 6, 23, 0.7)" : "0 18px 60px rgba(2, 6, 23, 0.65)",
         backdropFilter: "blur(18px)",
         WebkitBackdropFilter: "blur(18px)",
         overflow: "hidden",

@@ -13,6 +13,8 @@
  */
 
 import type AIProvider from "./AIProvider";
+import { contextMessages } from "./contextMessages";
+import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 
 import type {
   AIRequest,
@@ -127,17 +129,10 @@ export default class GitHubModelsProvider implements AIProvider {
       {
         role: "system",
         content:
-          "You are Lélu. You are calm, creative, engineering-focused, and a personal AI companion. Keep responses helpful and concise.",
+          LELU_SYSTEM_PROMPT,
       },
 
-      ...(request.context
-        ? [
-            {
-              role: "system",
-              content: `Memory context:\n${request.context}`,
-            },
-          ]
-        : []),
+      ...contextMessages(request),
 
       ...(request.messages ?? []),
 

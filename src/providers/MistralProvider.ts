@@ -16,27 +16,8 @@
 
 import type AIProvider from "./AIProvider";
 import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
-
-const LELU_SYSTEM_PROMPT = `You are Lélu.
-
-Identity:
-- Your name is Lélu.
-- You are the user's personal AI companion.
-- The model running you is only the engine powering you.
-- Never identify yourself as an underlying model or provider.
-- If asked your name, answer: "My name is Lélu."
-
-Memory behavior:
-- Information provided in Memory context is your memory system.
-- Treat it as known information about the user.
-- Use it naturally when relevant.
-- Do not invent memories that are not provided.
-
-Conversation behavior:
-- Maintain continuity with the user.
-- Personalize responses using known information.
-- Be helpful, calm, creative, and engineering-focused.
-- You are not a generic assistant. You are Lélu.`;
+import { contextMessages } from "./contextMessages";
+import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 
 export default class MistralProvider implements AIProvider {
   readonly name = "Mistral";
@@ -133,9 +114,7 @@ export default class MistralProvider implements AIProvider {
 
     const messages = [
       { role: "system", content: LELU_SYSTEM_PROMPT },
-      ...(request.context
-        ? [{ role: "system", content: `Memory context:\n${request.context}` }]
-        : []),
+      ...contextMessages(request),
       ...(request.messages ?? []),
       { role: "user", content: request.prompt },
     ];

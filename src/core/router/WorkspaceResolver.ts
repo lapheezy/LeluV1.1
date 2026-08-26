@@ -50,7 +50,6 @@ const INTERFACE_PANELS: { id: string; label: string; group: string }[] = [
   { id: "diagnostics", label: "Engines", group: "system" },
   { id: "logs", label: "Logs", group: "system" },
   { id: "browser", label: "Browser", group: "system" },
-  { id: "workspace", label: "Workspace", group: "system" },
 ];
 
 export interface WorkspaceCommand {
@@ -403,6 +402,40 @@ export function parseWorkspaceCommand(input: string): WorkspaceCommand {
 }
 
 export default class WorkspaceResolver {
+  /**
+   * Open several REAL workspace views arranged side by side.
+   * Used by SurfaceResolver for multi-surface commands like
+   * "show me the browser and memory side by side" — every view
+   * is built by the same builders this resolver uses for its own
+   * commands, so nothing is simulated.
+   */
+  public async openSideBySide(
+    context: RouterContext,
+    kinds: WorkspaceViewKind[],
+  ): Promise<string[]> {
+    const engine = WorkspaceEngine.getInstance();
+    const events = AgentEventBus.getInstance();
+    const taskId = String(context.request.timestamp ?? Date.now());
+    const ids: string[] = [];
+    for (const kind of kinds.slice(0, 4)) {
+      const view = await this.buildView(context, kind);
+      if (view) {
+        engine.openView(view);
+        const focused = engine.getState().focusId;
+        if (focused && !ids.includes(focused)) {
+          ids.push(focused);
+        }
+      }
+    }
+    if (ids.length >= 2) {
+      engine.setLayout(ids.length === 2 ? "split" : "grid");
+    }
+    if (ids.length > 0) {
+      events.emit({ type: "workspace_focus", taskId, view: kinds.join(" + ") });
+    }
+    return ids;
+  }
+
   public async execute(context: RouterContext): Promise<BrainResult> {
     const prompt = context.request.prompt;
     const command = parseWorkspaceCommand(prompt);

@@ -2,18 +2,31 @@
  * ==========================================================
  * useLeluRuntime — React hook for the LÉLU Runtime
  *
- * Initializes all runtime subsystems and provides
- * reactive state to components.
+ * Delegates the complete startup sequence to the single
+ * self-bootstrapping Bootstrap pipeline, then exposes
+ * reactive runtime state to components.
+ *
+ *   useLeluRuntime()
+ *     → Bootstrap.start()
+ *        → load environment
+ *        → discover + health-check providers
+ *        → initialize AI runtime + memory + cognition
+ *        → start services (task / proactive / persistent / UI)
+ *        → start cognitive loop + world lifecycle
+ *     → subscribe to runtime snapshots
  * ==========================================================
  */
 
 import { useEffect, useState, useCallback } from "react";
 import LeluRuntime from "./LeluRuntime";
 import type { RuntimeSnapshot, RuntimeHealth } from "./LeluRuntime";
+import Bootstrap from "../Bootstrap";
 import Orchestrator from "../orchestrator/Orchestrator";
 import TaskEngine from "../tasks/TaskEngine";
 import BackgroundEngine from "../tasks/BackgroundEngine";
 import ProactiveEngine from "../cognition/ProactiveEngine";
+import PersistentRuntime from "../proactive/PersistentRuntime";
+import CognitiveLoop from "../cognition/CognitiveLoop";
 import SelfHealing from "../cognition/SelfHealing";
 import ToolRegistry from "../tools/ToolRegistry";
 import UIOrchestrator from "../ui/UIOrchestrator";
@@ -48,19 +61,10 @@ export function useLeluRuntime() {
 
   useEffect(() => {
     const runtime = LeluRuntime.getInstance();
-    const bgEngine = BackgroundEngine.getInstance();
-    const proactive = ProactiveEngine.getInstance();
-    const uiOrchestrator = UIOrchestrator.getInstance();
 
-    // Initialize all subsystems
-    void runtime.initialize();
-    bgEngine.start();
-    proactive.start();
-    uiOrchestrator.initialize();
-
-    // Start the world lifecycle
-    const worldLifecycle = WorldLifecycle.getInstance();
-    worldLifecycle.start();
+    // Single self-bootstrapping pipeline — the ONE startup path.
+    // Idempotent: safe under React StrictMode double-mount.
+    void Bootstrap.getInstance().start();
 
     // Subscribe to runtime changes
     const unsubRuntime = runtime.subscribe(async (snapshot) => {
@@ -84,9 +88,11 @@ export function useLeluRuntime() {
 
     return () => {
       unsubRuntime();
-      bgEngine.stop();
-      proactive.stop();
-      worldLifecycle.shutdown();
+      BackgroundEngine.getInstance().stop();
+      ProactiveEngine.getInstance().stop();
+      PersistentRuntime.getInstance().stop();
+      CognitiveLoop.getInstance().stop();
+      WorldLifecycle.getInstance().shutdown();
       runtime.shutdown();
     };
   }, []);

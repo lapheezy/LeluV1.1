@@ -23,6 +23,7 @@ import {
 } from "three";
 import FloatingCityEngine from "../engines/FloatingCityEngine";
 import { ZODIAC_SIGNS } from "../engines/ZodiacObservatory";
+import { sampleCosmosAtmosphere } from "./CosmosAtmosphere";
 
 /* ==================================================================
  * 1. AURORA — Fluorescent Living Light Ribbons
@@ -965,12 +966,26 @@ function ZodiacObservatoryVisual() {
 
 function CosmicStorm({ position, intensity, radius }: { position: { x: number; y: number; z: number }; intensity: number; radius: number }) {
   const groupRef = useRef<Group>(null);
+  const baseOpacity = useRef(new Map<string, number>());
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
     const t = clock.elapsedTime;
-    groupRef.current.rotation.y = t * intensity * 2;
-    groupRef.current.rotation.x = Math.sin(t * 0.5) * 0.3;
+    const atmosphere = sampleCosmosAtmosphere(t);
+    const stormEnergy = Math.min(1, atmosphere.storm * (0.72 + atmosphere.hurricane * 0.5));
+    groupRef.current.rotation.y = t * intensity * (1.2 + stormEnergy * 2.2);
+    groupRef.current.rotation.x = Math.sin(t * (0.35 + atmosphere.hurricane * 0.45)) * (0.16 + atmosphere.hurricane * 0.3);
+    groupRef.current.scale.setScalar(0.82 + stormEnergy * 0.38);
+
+    groupRef.current.traverse((object) => {
+      const material = (object as { material?: { uuid?: string; opacity?: number; transparent?: boolean } }).material;
+      if (!material || material.opacity === undefined) return;
+      const id = material.uuid ?? `${object.uuid}-material`;
+      const original = baseOpacity.current.get(id) ?? material.opacity;
+      baseOpacity.current.set(id, original);
+      material.opacity = original * (0.04 + stormEnergy * 0.96);
+      material.transparent = true;
+    });
   });
 
   const particleCount = Math.floor(40 * intensity);
@@ -1034,6 +1049,7 @@ function CosmicStorm({ position, intensity, radius }: { position: { x: number; y
 }
 
 function CosmicStorms() {
+  const root = useRef<Group>(null);
   const [storms] = useState(() =>
     Array.from({ length: 10 }, (_, i) => ({
       id: `storm-${i}`,
@@ -1047,8 +1063,17 @@ function CosmicStorms() {
     }))
   );
 
+  useFrame(({ clock }, delta) => {
+    if (!root.current) return;
+    const atmosphere = sampleCosmosAtmosphere(clock.elapsedTime);
+    root.current.visible = atmosphere.storm > 0.025;
+    root.current.rotation.y += delta * (0.006 + atmosphere.hurricane * 0.08);
+    root.current.rotation.z = Math.sin(clock.elapsedTime * 0.025) * atmosphere.hurricane * 0.06;
+    root.current.scale.setScalar(1 + atmosphere.hurricane * 0.12);
+  });
+
   return (
-    <group>
+    <group ref={root}>
       {storms.map((s) => (
         <CosmicStorm key={s.id} position={s.pos} intensity={s.intensity} radius={s.radius} />
       ))}
@@ -1348,6 +1373,7 @@ function CirrusCloud({ center, scale, ci }: {
 }
 
 function CottonCandyClouds() {
+  const root = useRef<Group>(null);
   const clouds = useMemo(() => {
     const arr: { id: string; type: 'cumulus' | 'stratus' | 'cirrus'; center: [number, number, number]; scale: number; ci: number }[] = [];
     const types: ('cumulus' | 'stratus' | 'cirrus')[] = ['cumulus', 'stratus', 'cirrus'];
@@ -1367,8 +1393,21 @@ function CottonCandyClouds() {
     return arr;
   }, []);
 
+  useFrame(({ clock }, delta) => {
+    if (!root.current) return;
+    const atmosphere = sampleCosmosAtmosphere(clock.elapsedTime);
+    const cloudPresence = Math.max(
+      0,
+      atmosphere.storm * 0.62 + atmosphere.hurricane * 0.48 - atmosphere.static * 0.08,
+    );
+    root.current.visible = cloudPresence > 0.015;
+    root.current.rotation.y += delta * (0.002 + atmosphere.hurricane * 0.035);
+    root.current.rotation.z = Math.sin(clock.elapsedTime * 0.018) * atmosphere.hurricane * 0.08;
+    root.current.scale.setScalar(1 + atmosphere.hurricane * 0.08);
+  });
+
   return (
-    <group>
+    <group ref={root}>
       {clouds.map((c) => {
         if (c.type === 'cumulus') return <CumulusCloud key={c.id} center={c.center} scale={c.scale} ci={c.ci} />;
         if (c.type === 'stratus') return <StratusCloud key={c.id} center={c.center} scale={c.scale} ci={c.ci} />;

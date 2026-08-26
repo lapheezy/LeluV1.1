@@ -78,6 +78,18 @@ export default class CreativeResolver {
       });
     }
 
+    // Real produced image (e.g. the 3D render snapshot) is broadcast to
+    // the chat/workspace so the UI can SHOW the artifact, not just report
+    // it in text. The image is the actual output saved to RenderStore.
+    if (result.artifact?.output) {
+      events.emit({
+        type: "creative_artifact",
+        taskId,
+        image: result.artifact.output,
+        label: `${result.capability} render`,
+      });
+    }
+
     let providersAvailable = 0;
     try {
       providersAvailable = (await context.aiProviders.available()).length;

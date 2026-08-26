@@ -11,7 +11,7 @@
  * ==========================================================
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import GenesisWindowFrame from "./GenesisWindowFrame";
 import { useGenesis, type GenesisPanel } from "./GenesisCore";
 import AIService from "../../../core/AIService";
@@ -27,6 +27,9 @@ import ProactiveCore, {
   type ProactiveSettings,
 } from "../../../core/proactive/ProactiveCore";
 import type { LocalRuntimeStatus } from "../../../core/runtime/local/LocalRuntimeTypes";
+import SupabasePersistence, { type SupabaseAuthState } from "../../../core/persistence/SupabasePersistence";
+import { getEnvironment } from "../../../core/Environment";
+import VoiceEngine from "../../../core/voice/VoiceEngine";
 
 const LEVELS: { value: NotificationLevel; label: string }[] = [
   { value: "quiet", label: "Quiet" },
@@ -34,6 +37,124 @@ const LEVELS: { value: NotificationLevel; label: string }[] = [
   { value: "proactive", label: "Proactive" },
   { value: "highly-proactive", label: "Highly proactive" },
 ];
+
+/* ==========================================================
+ * VOICE SECTION — real voice registry from the runtime.
+ *
+ * Lists the voices the browser/device ACTUALLY exposes, marks
+ * which are genuinely offline-capable (localService), lets the
+ * user pick (persisted by VoiceEngine) and preview. No fake
+ * voices, no silent external services.
+ * ========================================================== */
+
+function VoiceSection() {
+  const engine = useMemo(() => VoiceEngine.getInstance(), []);
+  const [voices, setVoices] = useState(engine.listVoices());
+  const [offline, setOffline] = useState(engine.offlineVoiceAvailability());
+
+  useEffect(() => {
+    // Voices load asynchronously in most browsers — refresh on change.
+    const refresh = () => {
+      setVoices(engine.listVoices());
+      setOffline(engine.offlineVoiceAvailability());
+    };
+    refresh();
+    if (typeof speechSynthesis !== "undefined") {
+      speechSynthesis.addEventListener?.("voiceschanged", refresh);
+      return () => speechSynthesis.removeEventListener?.("voiceschanged", refresh);
+    }
+  }, [engine]);
+
+  const selectAndPreview = (uri: string) => {
+    engine.setPreferredVoice(uri);
+    setVoices(engine.listVoices());
+    try {
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(
+        "Hi — I'm Lélu. This is how I sound now.",
+      );
+      const match = speechSynthesis.getVoices().find((v) => v.voiceURI === uri);
+      if (match) utterance.voice = match;
+      speechSynthesis.speak(utterance);
+    } catch {
+      /* preview is best-effort */
+    }
+  };
+
+  const offlineLabel =
+    offline === "available"
+      ? "OFFLINE VOICE — AVAILABLE"
+      : offline === "not-available"
+        ? "OFFLINE VOICE — NOT AVAILABLE"
+        : "OFFLINE VOICE — UNSUPPORTED IN THIS BROWSER";
+
+  return (
+    <div style={{ margin: "12px 0 4px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          gap: 8,
+          fontSize: 10.5,
+          textTransform: "uppercase",
+          letterSpacing: "0.14em",
+          opacity: 0.6,
+          margin: "12px 0 8px",
+        }}
+      >
+        <span>Lélu's voice</span>
+        <span style={{ color: offline === "available" ? "#34d399" : "rgba(248,113,113,0.85)", opacity: 1 }}>
+          {offlineLabel}
+        </span>
+      </div>
+      {voices.length === 0 ? (
+        <div style={{ fontSize: 11.5, opacity: 0.6 }}>
+          No system voices exposed yet — they appear once the browser loads them.
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 180, overflowY: "auto" }}>
+          {voices.map((voice) => (
+            <button
+              key={voice.uri}
+              type="button"
+              onClick={() => selectAndPreview(voice.uri)}
+              title={`Language ${voice.lang} · ${voice.localService ? "installed on device (works offline)" : "network/cloud voice"}`}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 8,
+                border: voice.selected
+                  ? "1px solid rgba(167, 139, 250, 0.55)"
+                  : "1px solid rgba(255, 255, 255, 0.08)",
+                borderRadius: 8,
+                padding: "6px 10px",
+                background: voice.selected ? "rgba(167, 139, 250, 0.14)" : "rgba(255,255,255,0.03)",
+                color: "white",
+                cursor: "pointer",
+                textAlign: "left",
+                fontFamily: "inherit",
+                fontSize: 11.5,
+              }}
+            >
+              <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {voice.name}
+                <span style={{ opacity: 0.55 }}> · {voice.lang}</span>
+              </span>
+              <span style={{ flexShrink: 0, fontSize: 10, opacity: 0.75 }}>
+                {voice.selected ? "✓ selected" : voice.localService ? "offline ✓" : "online"}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+      <div style={{ fontSize: 10.5, opacity: 0.5, marginTop: 6 }}>
+        Click a voice to select and preview it. Selection persists across restarts. Lélu speaks through the same chat runtime — no separate voice system.
+      </div>
+    </div>
+  );
+}
 
 interface ProactiveToggleProps {
   label: string;
@@ -126,6 +247,15 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
   const [offlineMode, setOfflineMode] = useState<boolean>(() => AIService.getInstance().isOfflineMode());
   const [modelStatus, setModelStatus] = useState(() => AIService.getInstance().modelSystemStatus());
   const [localStatus, setLocalStatus] = useState<LocalRuntimeStatus | null>(null);
+  const [authState, setAuthState] = useState<SupabaseAuthState>(() =>
+    SupabasePersistence.getInstance().getAuthState(),
+  );
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
+  const [authMode, setAuthMode] = useState<"sign-in" | "sign-up">("sign-in");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
 
   function updateProactive(patch: Partial<ProactiveSettings>) {
     setProactiveSettings(ProactiveCore.getInstance().updateSettings(patch));
@@ -140,7 +270,35 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
 
   useEffect(() => {
     void AIService.getInstance().localRuntimeStatus().then(setLocalStatus).catch(() => {});
+    return SupabasePersistence.getInstance().subscribeAuth(setAuthState);
   }, []);
+
+  async function authenticateWithEmail(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setAuthBusy(true);
+    setAuthError(null);
+    setAuthNotice(null);
+    const persistence = SupabasePersistence.getInstance();
+    if (authMode === "sign-in") {
+      const result = await persistence.signInWithEmail(authEmail, authPassword);
+      if (result.error) setAuthError(result.error);
+    } else {
+      const result = await persistence.signUpWithEmail(authEmail, authPassword);
+      if (result.error) setAuthError(result.error);
+      else if (result.requiresConfirmation) setAuthNotice("Account created. Check your email to confirm it, then sign in.");
+      else setAuthNotice("Account created and signed in.");
+    }
+    setAuthBusy(false);
+  }
+
+  async function signOut() {
+    setAuthBusy(true);
+    setAuthError(null);
+    setAuthNotice(null);
+    const result = await SupabasePersistence.getInstance().signOut();
+    if (result.error) setAuthError(result.error);
+    setAuthBusy(false);
+  }
 
   const stores = useMemo(
     () => ({
@@ -216,6 +374,83 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
             {stores.agents} agents · {stores.projects} projects · {stores.sketches} sketches · {stores.renders} renders ·{" "}
             {stores.videos} video projects
           </div>
+        </div>
+
+        <div style={{ border: "1px solid rgba(125, 211, 252, 0.25)", borderRadius: 14, padding: 12 }}>
+          <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, marginBottom: 8 }}>
+            Cloud identity · Supabase
+          </div>
+          <div style={{ fontSize: 12, lineHeight: 1.55, opacity: 0.78, marginBottom: 10 }}>
+            {authState.session
+              ? `Signed in${authState.displayName ? ` as ${authState.displayName}` : authState.email ? ` as ${authState.email}` : ""}. Cloud memory and runtime state follow this account.`
+              : authState.status === "disabled"
+                ? "Cloud identity is not configured. Local cognition remains available."
+                : "Use your email to persist LÉLU's memory, projects, questions, and runtime state across devices."}
+          </div>
+          {authState.session ? (
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              disabled={authBusy}
+              style={{
+                border: "1px solid rgba(125, 211, 252, 0.42)",
+                borderRadius: 8,
+                background: "rgba(255,255,255,0.06)",
+                color: "white",
+                padding: "8px 12px",
+                fontSize: 12,
+                cursor: authBusy ? "default" : "pointer",
+                opacity: authBusy ? 0.55 : 1,
+                fontFamily: "inherit",
+              }}
+            >
+              {authBusy ? "Signing out…" : "Sign out"}
+            </button>
+          ) : (
+            <form onSubmit={(event) => void authenticateWithEmail(event)} style={{ display: "flex", flexDirection: "column", gap: 8, maxWidth: 360 }}>
+              <input
+                type="email"
+                value={authEmail}
+                onChange={(event) => setAuthEmail(event.target.value)}
+                placeholder="Email address"
+                autoComplete="email"
+                required
+                disabled={authBusy || authState.status === "disabled"}
+                style={{ border: "1px solid rgba(255,255,255,0.14)", borderRadius: 8, background: "rgba(0,0,0,0.22)", color: "white", padding: "9px 10px", fontSize: 12, fontFamily: "inherit" }}
+              />
+              <input
+                type="password"
+                value={authPassword}
+                onChange={(event) => setAuthPassword(event.target.value)}
+                placeholder="Password"
+                autoComplete={authMode === "sign-in" ? "current-password" : "new-password"}
+                minLength={6}
+                required
+                disabled={authBusy || authState.status === "disabled"}
+                style={{ border: "1px solid rgba(255,255,255,0.14)", borderRadius: 8, background: "rgba(0,0,0,0.22)", color: "white", padding: "9px 10px", fontSize: 12, fontFamily: "inherit" }}
+              />
+              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                <button
+                  type="submit"
+                  disabled={authBusy || authState.status === "disabled"}
+                  style={{ border: "1px solid rgba(125, 211, 252, 0.42)", borderRadius: 8, background: "rgba(34, 211, 238, 0.14)", color: "white", padding: "8px 12px", fontSize: 12, cursor: authBusy || authState.status === "disabled" ? "default" : "pointer", opacity: authBusy || authState.status === "disabled" ? 0.55 : 1, fontFamily: "inherit" }}
+                >
+                  {authBusy ? "Checking…" : authMode === "sign-in" ? "Sign in" : "Create account"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setAuthMode(authMode === "sign-in" ? "sign-up" : "sign-in"); setAuthError(null); setAuthNotice(null); }}
+                  disabled={authBusy || authState.status === "disabled"}
+                  style={{ border: 0, background: "transparent", color: "#9be8ff", padding: "6px 0", fontSize: 11.5, cursor: authBusy || authState.status === "disabled" ? "default" : "pointer", fontFamily: "inherit" }}
+                >
+                  {authMode === "sign-in" ? "Need an account? Create one" : "Already have an account? Sign in"}
+                </button>
+              </div>
+            </form>
+          )}
+          {authNotice ? <div style={{ color: "#86efac", fontSize: 11, marginTop: 8 }}>{authNotice}</div> : null}
+          {authError ? <div style={{ color: "#fca5a5", fontSize: 11, marginTop: 8 }}>{authError}</div> : null}
+          {authState.status === "degraded" ? <div style={{ color: "#fde68a", fontSize: 11, marginTop: 8 }}>Cloud sync is degraded; local state is still active.</div> : null}
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -352,19 +587,25 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
             />
             <ProactiveToggle
               label="Media discovery"
-              description="Reserved — no external media source is connected yet."
+              description={
+                getEnvironment().youtube.hasKey
+                  ? "CONNECTED — YouTube source active (VITE_YOUTUBE_API_KEY)."
+                  : "NOT CONFIGURED — add VITE_YOUTUBE_API_KEY in Settings → Environment to enable video discovery. Everything else stays online."
+              }
               value={proactiveSettings.mediaDiscovery}
               disabled={!proactiveSettings.enabled}
               onChange={(value) => updateProactive({ mediaDiscovery: value })}
             />
             <ProactiveToggle
               label="Video autoplay"
-              description="Only applies once media discovery is wired. Never autoplays by default."
+              description="Applies only when a video plays inside chat or Workspace. Never autoplays by default."
               value={proactiveSettings.videoAutoplay}
               disabled={!proactiveSettings.enabled || !proactiveSettings.mediaDiscovery}
               onChange={(value) => updateProactive({ videoAutoplay: value })}
             />
           </div>
+
+          <VoiceSection />
 
           <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, margin: "12px 0 8px" }}>
             Initiation level

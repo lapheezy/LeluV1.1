@@ -32,7 +32,6 @@ import {
   CosmicStorms,
   FloatingCitiesVisual,
   CottonCandyClouds,
-  CosmicLightning,
   CosmicEntities,
 } from "./CosmosVisuals";
 import SolarSystem from "./SolarSystem";
@@ -695,7 +694,6 @@ export default function CosmosLayer() {
       <FlyingCars />
       <CosmicStorms />
       <CottonCandyClouds />
-      <CosmicLightning />
       <CosmicEntities />
       <FloatingCitiesVisual />
 

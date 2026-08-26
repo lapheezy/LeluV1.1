@@ -49,6 +49,24 @@ export interface SandboxRunResult {
 const DEFAULT_TIMEOUT_MS = 8_000;
 const MAX_TIMEOUT_MS = 30_000;
 
+/** Timers guarded so the sandbox never throws when `window` is missing
+ *  (non-browser hosts, tests, SSR). In the browser these are the same
+ *  APIs the worker isolation relies on. */
+function safeSetTimeout(handler: () => void, ms: number): unknown {
+  if (typeof window !== "undefined" && typeof window.setTimeout === "function") {
+    return window.setTimeout(handler, ms);
+  }
+  return globalThis.setTimeout(handler, ms);
+}
+
+function safeClearTimeout(handle: unknown): void {
+  if (typeof window !== "undefined" && typeof window.clearTimeout === "function") {
+    window.clearTimeout(handle as number);
+    return;
+  }
+  globalThis.clearTimeout(handle as ReturnType<typeof setTimeout>);
+}
+
 interface WorkerMessage {
   id: string;
   kind: string;
@@ -120,7 +138,7 @@ export default class SandboxRuntime {
 
       let settled = false;
       let worker: Worker | null = null;
-      const timer = window.setTimeout(() => {
+      const timer = safeSetTimeout(() => {
         if (settled) {
           return;
         }
@@ -142,7 +160,7 @@ export default class SandboxRuntime {
       try {
         worker = new Worker(new URL("./sandbox.worker.ts", import.meta.url), { type: "module" });
       } catch (error) {
-        window.clearTimeout(timer);
+        safeClearTimeout(timer);
         settled = true;
         resolve({
           ok: false,
@@ -163,7 +181,7 @@ export default class SandboxRuntime {
           return;
         }
         settled = true;
-        window.clearTimeout(timer);
+        safeClearTimeout(timer);
         worker?.terminate();
         const message = event.data as WorkerMessage;
         resolve({
@@ -184,7 +202,7 @@ export default class SandboxRuntime {
           return;
         }
         settled = true;
-        window.clearTimeout(timer);
+        safeClearTimeout(timer);
         worker?.terminate();
         resolve({
           ok: false,

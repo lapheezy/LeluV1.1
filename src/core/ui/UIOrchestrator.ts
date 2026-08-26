@@ -16,7 +16,6 @@
  */
 
 import LeluRuntime from "../runtime/LeluRuntime";
-import AgentEventBus from "../agent/AgentEvents";
 
 // ---------- TYPES ----------
 
@@ -85,7 +84,13 @@ export default class UIOrchestrator {
 
   // ---------- PANEL CONTROL ----------
 
-  /** Open a specific panel — tells GenesisCore via EventBus. */
+  /**
+   * Open a specific panel — dispatched through the REAL live surface
+   * channel (`genesis-show-surface`), which GenesisSurfaceController
+   * consumes to drive GenesisCore's actual openPanel state. This is
+   * the same verified path the ExplorationController uses, so a
+   * cognition-issued "open workspace" genuinely opens the surface.
+   */
   openPanel(panel: UIPanel): void {
     this.emitCommand({
       type: "openPanel",
@@ -276,8 +281,22 @@ export default class UIOrchestrator {
       this.commandHistory = this.commandHistory.slice(0, 100);
     }
 
-    // Emit on AgentEventBus so GenesisCore can react
-    AgentEventBus.getInstance().emit({ ...command, type: command.type } as any);
+    // Panel opens/closes go through the real live surface channel that
+    // GenesisSurfaceController actually listens to. NEVER cast untyped
+    // command objects onto AgentEventBus — fake-typed events polluted
+    // the cognition event history and no consumer ever read them.
+    if (command.type === "openPanel" && typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("genesis-show-surface", {
+          detail: { panel: command.target },
+        }),
+      );
+    }
+    if (command.type === "closePanel" && typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("genesis-show-surface", { detail: { panel: "none" } }),
+      );
+    }
 
     // Notify direct listeners
     for (const listener of this.listeners) {

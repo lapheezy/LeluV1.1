@@ -53,6 +53,15 @@ export default class BrowserResolver {
       taskId,
       url: page.url,
     });
+    events.emit({
+      type: "browser_result",
+      taskId,
+      url: page.url,
+      title: page.title,
+      excerpt: page.excerpt,
+      status: page.status,
+      error: page.error,
+    });
 
     if (page.status === "read") {
       context.logger.info("BrowserResolver", "Page read; attaching content to request context.", {

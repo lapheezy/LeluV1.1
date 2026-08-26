@@ -22,25 +22,26 @@
  * ==========================================================
  */
 
-import { useEffect, useState } from "react";
-import { AnimatePresence } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useGenesis, type GenesisPanel } from "./GenesisCore";
+import GenesisSidePanel from "./GenesisSidePanel";
+import GenesisModuleHost, { type ModuleRenderers } from "./GenesisModuleHost";
+import UIStateStore from "../../../core/cognition/UIStateStore";
 import GenesisDock from "./GenesisDock";
 import GenesisCommandPalette from "./GenesisCommandPalette";
 import { genesisTheme } from "./GenesisTheme";
 import GenesisChat from "./GenesisChat";
+import GenesisErrorBoundary from "./GenesisErrorBoundary";
 import MultiChatTabs from "./MultiChatTabs";
 import GenesisReasoningPanel from "./GenesisReasoningPanel";
 import GenesisDiagnosticsPanel from "./GenesisDiagnosticsPanel";
+import GenesisExecutivePanel from "./GenesisExecutivePanel";
 import GenesisMemoryPanel from "./GenesisMemoryPanel";
-import GenesisProvidersPanel from "./GenesisProvidersPanel";
 import GenesisDevicePanel from "./GenesisDevicePanel";
 import GenesisKnowledgePanel from "./GenesisKnowledgePanel";
 import GenesisHistoryPanel from "./GenesisHistoryPanel";
 import GenesisLogsPanel from "./GenesisLogsPanel";
 import GenesisBrowserPanel from "./GenesisBrowserPanel";
-import GenesisWorkspacePreview from "./GenesisWorkspacePreview";
-import GenesisAgentWorkspace from "./GenesisAgentWorkspace";
 import GenesisAgentsPanel from "./GenesisAgentsPanel";
 import GenesisSketchPanel from "./GenesisSketchPanel";
 import GenesisRenderPanel from "./GenesisRenderPanel";
@@ -51,14 +52,53 @@ import GenesisSettingsPanel from "./GenesisSettingsPanel";
 import GenesisCognitionPanel from "./GenesisCognitionPanel";
 import GenesisEngineeringPanel from "./GenesisEngineeringPanel";
 import GenesisSelfDevPanel from "./GenesisSelfDevPanel";
+import GenesisSelfEvolutionPanel from "./GenesisSelfEvolutionPanel";
+import GenesisNotificationsPanel from "./GenesisNotificationsPanel";
+import GenesisVisualStudio from "./GenesisVisualStudio";
+import GenesisEarthCore from "./GenesisEarthCore";
 import GenesisCosmosPanel from "./GenesisCosmosPanel";
-import { CycleIndicator } from "./render/WorldMorph";
+
+/**
+ * ONE module set — the same instances the dock, palette, chat commands
+ * and surface controller open. The host renders each per its canonical
+ * presentation (inline / expanded / minimized).
+ */
+const MODULE_RENDERERS: ModuleRenderers = {
+  reasoning: ({ onClose }) => <GenesisReasoningPanel onClose={onClose} />,
+  diagnostics: ({ onClose }) => <GenesisDiagnosticsPanel onClose={onClose} />,
+  executive: ({ onClose }) => <GenesisExecutivePanel onClose={onClose} />,
+  memory: ({ onClose }) => <GenesisMemoryPanel onClose={onClose} />,
+  device: ({ onClose }) => <GenesisDevicePanel onClose={onClose} />,
+  agents: ({ onClose }) => <GenesisAgentsPanel onClose={onClose} />,
+  knowledge: ({ onClose }) => <GenesisKnowledgePanel onClose={onClose} />,
+  history: ({ onClose }) => <GenesisHistoryPanel onClose={onClose} />,
+  logs: ({ onClose }) => <GenesisLogsPanel onClose={onClose} />,
+  browser: ({ onClose }) => <GenesisBrowserPanel onClose={onClose} />,
+  sketch: ({ onClose }) => <GenesisSketchPanel onClose={onClose} />,
+  render: ({ onClose }) => <GenesisRenderPanel onClose={onClose} />,
+  video: ({ onClose }) => <GenesisVideoPanel onClose={onClose} />,
+  avatar: ({ onClose }) => <GenesisAvatarPanel onClose={onClose} />,
+  projects: ({ onClose }) => <GenesisProjectsPanel onClose={onClose} />,
+  settings: ({ onClose }) => <GenesisSettingsPanel onClose={onClose} />,
+  cognition: ({ onClose }) => <GenesisCognitionPanel onClose={onClose} />,
+  engineering: ({ onClose }) => <GenesisEngineeringPanel onClose={onClose} />,
+  evolution: ({ onClose }) => <GenesisSelfDevPanel onClose={onClose} />,
+  notifications: ({ onClose }) => <GenesisNotificationsPanel onClose={onClose} />,
+  visualstudio: ({ onClose }) => <GenesisVisualStudio onClose={onClose} />,
+  earth: ({ onClose }) => <GenesisEarthCore onClose={onClose} />,
+};
 import CognitiveLoop from "../../../core/cognition/CognitiveLoop";
 import VisualInterface from "./VisualInterface";
 import useVisual from "../../../core/visual/useVisual";
 import VisualEngine from "../../../core/visual/VisualEngine";
-import WorkspaceEngine from "../../../core/workspace/WorkspaceEngine";
 import AgentEventBus from "../../../core/agent/AgentEvents";
+import ExplorationController from "./ExplorationController";
+import { useVoice } from "../../../core/voice/useVoice";
+import GenesisPresenceEngine from "./GenesisPresenceEngine";
+import WorldRegistry, { type DestinationKind } from "./WorldRegistry";
+import CosmosEntityRegistry from "../../../core/cosmos/CosmosEntityRegistry";
+import Sentinel from "../../../core/sentinel/Sentinel";
+import CapabilityManifest from "../../../core/capabilities/CapabilityManifest";
 
 /** Fullscreen toggle — real requestFullscreen / exitFullscreen. */
 function GenesisFullscreenButton() {
@@ -174,6 +214,11 @@ function GenesisMinimizeButton() {
   );
 }
 
+/* Singleton guard — exactly ONE canonical LÉLU interface (chat + dock +
+   modules) may be mounted. A second mount is a duplicate-system bug.
+   StrictMode's mount→unmount→mount dev cycle keeps the count at 1. */
+let genesisInterfaceMountCount = 0;
+
 export default function GenesisInterface() {
   const {
     state,
@@ -181,14 +226,195 @@ export default function GenesisInterface() {
     engineRuntime,
     openPanel,
     expand,
+    setSelfExploration,
+    setActiveScene,
   } = useGenesis();
+  const voice = useVoice();
+
+  useEffect(() => {
+    genesisInterfaceMountCount += 1;
+    if (genesisInterfaceMountCount > 1) {
+      console.warn(
+        `[GenesisInterface] DUPLICATE INTERFACE: ${genesisInterfaceMountCount} canonical chat interfaces mounted — this is a duplicate-system bug.`,
+      );
+    }
+    return () => {
+      genesisInterfaceMountCount -= 1;
+    };
+  }, []);
+
+  /* Scene awareness — the interface is mounted ABOVE the scene router, so
+     it knows which visual workspace is currently underneath and keeps the
+     canonical chat/dock/modules in every scene while hiding v1-only
+     ambient chrome (bottom nav, lifecycle badge, ambient visual layer)
+     when a cinematic scene (Gen V2 / System) owns the viewport. */
+  const sceneIsV2 = state.activeScene === "genesisv2";
+
+  // Sync UI state to cognition — panel changes are visible to the cognitive loop
+  const openModuleIds = Object.entries(state.modules)
+    .filter(([, m]) => m.presentation !== "closed")
+    .map(([id]) => id);
+
+  useEffect(() => {
+    UIStateStore.getInstance().update({
+      activeTab: state.activePanel !== "none" ? state.activePanel : null,
+      openPanels: openModuleIds.length > 0 ? openModuleIds : state.activePanel !== "none" ? [state.activePanel] : [],
+      modulePresentations: Object.fromEntries(
+        Object.entries(state.modules).map(([id, m]) => [id, m.presentation]),
+      ),
+      uiControl: state.uiControl,
+      isChatOpen: state.activePanel === "chat" || openModuleIds.length > 0,
+    });
+  }, [state.activePanel, openModuleIds.length, state.modules, state.uiControl]);
+
+  /* -------------------------------------------------------------
+   * World Registry — auto-register all known panels as exploration
+   * destinations so LÉLU can discover them without hardcoding.
+   * ------------------------------------------------------------- */
+  useEffect(() => {
+    const world = WorldRegistry.getInstance();
+    const panels: Array<{ key: string; label: string; kind: DestinationKind; scale: "short" | "medium" | "long" }> = [
+      { key: "panel-chat", label: "Chat", kind: "panel", scale: "short" },
+      { key: "cosmos-earth", label: "Earth", kind: "cosmos", scale: "long" },
+      { key: "cosmos-mars", label: "Mars", kind: "cosmos", scale: "long" },
+      { key: "cosmos-jupiter", label: "Jupiter", kind: "cosmos", scale: "long" },
+      { key: "cosmos-orion", label: "Orion", kind: "cosmos", scale: "long" },
+      { key: "cosmos-andromeda", label: "Andromeda", kind: "cosmos", scale: "long" },
+      { key: "cosmos-neptune", label: "Neptune", kind: "cosmos", scale: "long" },
+      { key: "cosmos-saturn", label: "Saturn", kind: "cosmos", scale: "long" },
+      { key: "panel-memory", label: "Memory", kind: "panel", scale: "short" },
+      { key: "panel-reasoning", label: "Reasoning", kind: "panel", scale: "medium" },
+      { key: "panel-agents", label: "Agents", kind: "panel", scale: "medium" },
+      { key: "panel-cognition", label: "Cognition", kind: "panel", scale: "medium" },
+      { key: "panel-engineering", label: "Engineering", kind: "panel", scale: "medium" },
+      { key: "panel-diagnostics", label: "Diagnostics", kind: "panel", scale: "short" },
+      { key: "panel-executive", label: "Executive", kind: "panel", scale: "medium" },
+      { key: "panel-projects", label: "Projects", kind: "panel", scale: "short" },
+      { key: "panel-cosmos", label: "Cosmos", kind: "panel", scale: "long" },
+      { key: "panel-visualstudio", label: "Genesis Studios", kind: "panel", scale: "medium" },
+      { key: "panel-earth", label: "Earth Core", kind: "panel", scale: "medium" },
+      // Sketch/Render/Avatar are capabilities inside Genesis Studios —
+      // still registered so LÉLU can visit them, no longer top-level.
+      { key: "panel-sketch", label: "Sketch", kind: "panel", scale: "medium" },
+      { key: "panel-render", label: "Render", kind: "panel", scale: "medium" },
+      { key: "panel-avatar", label: "Avatar", kind: "panel", scale: "short" },
+      { key: "panel-providers", label: "API Status", kind: "panel", scale: "short" },
+      { key: "panel-video", label: "Video", kind: "panel", scale: "medium" },
+      { key: "panel-evolution", label: "Evolution", kind: "panel", scale: "medium" },
+      { key: "panel-self-evolution", label: "Self Evolution", kind: "panel", scale: "medium" },
+      { key: "panel-knowledge", label: "Knowledge", kind: "panel", scale: "medium" },
+      { key: "panel-genesisv2", label: "Genesis v2", kind: "panel", scale: "medium" },
+      { key: "workspace-core", label: "Genesis Core", kind: "workspace", scale: "short" },
+      { key: "workspace-research", label: "Research Lab", kind: "workspace", scale: "medium" },
+      { key: "workspace-creation", label: "Creation Studio", kind: "workspace", scale: "medium" },
+      // Gen v2 and System UI as exploration-worthy environments
+      { key: "environment-genv2", label: "Genesis v2 Lab", kind: "environment", scale: "long" },
+      { key: "environment-system", label: "System UI", kind: "environment", scale: "long" },
+      { key: "cosmos-core", label: "Core", kind: "cosmos", scale: "short" },
+      { key: "cosmos-venus", label: "Venus", kind: "cosmos", scale: "long" },
+      { key: "cosmos-mercury", label: "Mercury", kind: "cosmos", scale: "long" },
+      { key: "cosmos-pluto", label: "Pluto", kind: "cosmos", scale: "long" },
+    ];
+
+    for (const p of panels) {
+      world.register({ key: p.key, label: p.label, kind: p.kind, scale: p.scale, weight: 0.6 + Math.random() * 0.4 });
+    }
+  }, []);
+
+  /* -------------------------------------------------------------
+   * Autonomous Presence Engine — LÉLU explores without being told.
+   * Connects to the existing Genesis context actions so she can
+   * navigate the cosmos, open panels, and use her UI autonomously.
+   * Panel discoveries render as small floating cards, not full-screen.
+   * ------------------------------------------------------------- */
+  const presenceRef = useRef(GenesisPresenceEngine.getInstance());
+
+  const handleDiscover = useCallback(
+    (panelId: string, label: string, icon: string, reasoning: string) => {
+      // Register as cosmos entity — NO pop-up cards
+      const cosmosRegistry = CosmosEntityRegistry.getInstance();
+      cosmosRegistry.register("search", panelId, `${label}: ${reasoning}`, icon);
+      // Also register the source panel so LELU can visit it
+      cosmosRegistry.register("panel", `discover-${panelId}`, label, icon);
+      // Notify Sentinel of autonomous discovery
+      Sentinel.getInstance().info(
+        "system_event",
+        `Autonomous discovery: ${label} — ${reasoning}`,
+        "GenesisInterface",
+      );
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const presence = presenceRef.current;
+    const sentinel = Sentinel.getInstance();
+    const cosmosRegistry = CosmosEntityRegistry.getInstance();
+    const caps = CapabilityManifest.getInstance();
+
+    // Report runtime start to Sentinel
+    sentinel.info("runtime_start", "LELU runtime initialized", "GenesisInterface");
+    caps.updateStatus("ai-chat", "available");
+
+    presence.connect({
+      openPanel: (panel) => {
+        if (state.activePanel !== panel) {
+          openPanel(panel as GenesisPanel);
+        }
+        // Register as cosmos entity so LELU can visit it
+        cosmosRegistry.register("panel", panel, panel, "◈");
+        sentinel.info("tab_opened", `Panel opened: ${panel}`, "GenesisInterface", { panel });
+      },
+      selectDestination: (_dest) => {
+        ExplorationController.getInstance().setMode("EXPLORATION");
+        cosmosRegistry.register("search", _dest, _dest, "◎");
+      },
+      focusWorkspace: (_ws) => {
+        cosmosRegistry.register("workspace", _ws, _ws, "◉");
+      },
+      onDiscover: (panelId, label, icon, reasoning) => {
+        handleDiscover(panelId, label, icon, reasoning);
+        cosmosRegistry.register("search", panelId, label, icon);
+      },
+      setMode: (mode: string) => {
+        ExplorationController.getInstance().setMode(mode as any);
+      },
+    });
+    presence.start();
+
+    // Clean stale cosmos entities periodically
+    const cleanupInterval = setInterval(() => cosmosRegistry.cleanStale(), 300_000);
+
+    return () => {
+      presence.stop();
+      clearInterval(cleanupInterval);
+    };
+  }, [openPanel, state.activePanel]);
+
+  // Sync self-exploration toggle to presence engine
+  useEffect(() => {
+    presenceRef.current.setSelfExploration(state.selfExplorationEnabled);
+  }, [state.selfExplorationEnabled]);
+
+  /* Earth Core hold → voice activation. Opens chat and starts listening. */
+  function handleCoreHoldVoice() {
+    // Ensure chat panel is open
+    if (state.activePanel !== "chat") {
+      openPanel("chat");
+    }
+    // Toggle voice engine — same pipeline as chat mic button
+    voice.engine.toggle();
+  }
 
   /* The continuous cognitive loop — starts with the primary environment
      and observes/proposes in the background (level 0-1 only, see the
      Cognition workspace for the cycle report). */
   useEffect(() => {
     CognitiveLoop.getInstance().start();
-    return () => CognitiveLoop.getInstance().stop();
+    return () => {
+      CognitiveLoop.getInstance().stop();
+      ExplorationController.getInstance().stopAll();
+    };
   }, []);
 
   /*
@@ -238,16 +464,18 @@ export default function GenesisInterface() {
   }
 
   /*
-   * The Workspace dock item toggles the workspace LAYER (which runs
-   * alongside the conversation) instead of swapping the exclusive
-   * active panel — chat stays mounted while the workspace is visible.
+   * Workspace activity is event-driven. Opening Chat or Avatar must not
+   * force the workspace surface open; only real agent/tool activity may
+   * reveal it through WorkspaceEngine.autoShow().
    */
   function handleDockSelect(panel: GenesisPanel) {
-    if (panel === "workspace") {
-      WorkspaceEngine.getInstance().toggle();
-      return;
-    }
     if (panel === "visual") {
+      // Leaving the Gen V2 workspace returns to the Genesis environment
+      // first — chat and open modules stay mounted (scene change is
+      // presentation only); the System scene is then toggled on top of it.
+      if (state.activeScene === "genesisv2") {
+        setActiveScene("genesis");
+      }
       const visualEngine = VisualEngine.getInstance();
       visualEngine.setInterfaceFocus(
         visualEngine.getState().interfaceFocus === "visual" ? "genesis" : "visual",
@@ -259,20 +487,23 @@ export default function GenesisInterface() {
 
   return (
     <div
-      data-workspace="genesis-v1"
+      data-workspace="genesis-unified"
       style={{
         position: "fixed",
         inset: 0,
         pointerEvents: "none",
-        /* Scene separation is pure mounting — no z-index. isolation
-           keeps the chrome's internal z-indexes inside this layer. */
+        /* The unified interface paints ABOVE whatever scene the router
+           mounted below it. Scene separation is pure mounting — no
+           z-index; isolation keeps the chrome's internal z-indexes
+           inside this layer. */
         isolation: "isolate",
       }}
     >
       {/*
-       * UI #1 — the Genesis environment. This component is mounted ONLY
-       * while the v1 workspace is the active scene (the workspace router
-       * in GenesisScene owns the v2 / system scenes).
+       * THE ONE GENESIS ENVIRONMENT — the canonical LÉLU surface. Mounted
+       * above the workspace router, so this exact component (and its chat,
+       * dock, side panel and module host) is the SAME interface inside
+       * Genesis v1, LÉLU System, Gen V2, Earth Core and Cosmos.
        */}
       <div
         style={{
@@ -291,27 +522,17 @@ export default function GenesisInterface() {
             reasoningActive={Boolean(state.cognition?.reasoning)}
             engineErrorCount={state.engineStatuses.filter((engine) => Boolean(engine.error)).length}
             visualActive={systemEnvironmentActive}
+            onCoreHoldVoice={handleCoreHoldVoice}
+            selfExplorationEnabled={state.selfExplorationEnabled}
+            onToggleSelfExploration={() => setSelfExploration(!state.selfExplorationEnabled)}
           />
 
-          {/* The reference workspace preview — status panel, node diamond,
-              beams, bottom nav, spatial controls. Only when expanded. */}
-          {state.minimized ? null : <GenesisWorkspacePreview />}
-
-          {/* World lifecycle indicator — phase, speed, developmental age */}
-          <CycleIndicator />
-
-          {/*
-            * The visual agent workspace: rendered as a layer below the
-            * dialogue overlay, driven by REAL agent events (WorkspaceBridge).
-            * Conversation + workspace run simultaneously.
-            */}
-          <GenesisAgentWorkspace
-            onDockToggle={() => WorkspaceEngine.getInstance().minimizeAll()}
-          />
+          {/* Live tool activity is rendered by GenesisChat's execution
+              timeline. There is no second workspace/activity surface. */}
 
           {/* The ambient visual layer behind the primary environment — fed
               by the same real agent events through VisualBridge. */}
-          <VisualInterface />
+          {sceneIsV2 || systemEnvironmentActive ? null : <VisualInterface />}
 
           {/* Top chrome: expand chip (when minimized) + command palette +
               fullscreen. The palette and fullscreen stay usable in both
@@ -321,7 +542,9 @@ export default function GenesisInterface() {
               position: "absolute",
               top: 16,
               left: 16,
-              right: 16,
+              /* In Gen V2 the scene rail sits on the right — keep the
+                 palette/fullscreen controls clear of it. */
+              right: sceneIsV2 ? 96 : 16,
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
@@ -367,11 +590,15 @@ export default function GenesisInterface() {
               </button>
             ) : null}
 
-            <div style={{ pointerEvents: "auto", display: "flex", gap: 8, alignItems: "center" }}>
-              {state.minimized ? null : <GenesisMinimizeButton />}
-              <GenesisCommandPalette />
-              <GenesisFullscreenButton />
-            </div>
+            {/* The System environment owns its top navigation bar, so the
+                global top-right controls stay in the v1/v2 scenes only. */}
+            {systemEnvironmentActive ? null : (
+              <div style={{ pointerEvents: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+                {state.minimized ? null : <GenesisMinimizeButton />}
+                <GenesisCommandPalette />
+                <GenesisFullscreenButton />
+              </div>
+            )}
           </div>
         </div>
 
@@ -380,104 +607,39 @@ export default function GenesisInterface() {
           state. It floats above the dialogue overlay (higher z-index). */}
       {state.minimized ? null : state.activePanel === "chat" ? <MultiChatTabs /> : null}
 
-      <AnimatePresence mode="wait">
-        {/* Chat is INVISIBLE — the dialogue overlay floats in the scene and
-            stays available in BOTH environments (click the SystemCore in UI #2). */}
-        {state.activePanel === "chat" ? (
+      {/* Explorer cards — autonomous LÉLU discoveries as small floating cards */}
+
+
+      {/* Unified side panel — the module launcher/control surface. Chat is
+          the persistent core; the panel opens environments inside Chat or
+          minimizes / detaches them (always the same single instance). */}
+      {state.minimized ? null : <GenesisSidePanel />}
+
+      {/* Chat is the PERSISTENT core of the unified UI: it stays mounted
+          and interactive while any environment module is open, so the main
+          UI never disappears when LÉLU is working. It unmounts only when
+          the whole interface is minimized or explicitly exited. Wrapped in
+          an error boundary so a failed message render never takes down the
+          app. */}
+      {state.minimized ? null : state.activePanel === "chat" || openModuleIds.length > 0 ? (
+        <GenesisErrorBoundary>
           <GenesisChat />
-        ) : null}
+        </GenesisErrorBoundary>
+      ) : null}
 
-        {/* Genesis chrome panels belong to UI #1 only. */}
-        {systemEnvironmentActive ? null : state.activePanel === "reasoning" ? (
-          <GenesisReasoningPanel onClose={handleExitChat} />
-        ) : null}
+      {/* Unified module host — inline / expanded / minimized windows for
+          the SAME module instances (one runtime each). Mounted in every
+          scene so tools remain part of the canonical chat surface. */}
+      <GenesisModuleHost renderers={MODULE_RENDERERS} />
 
-        {systemEnvironmentActive ? null : state.activePanel === "diagnostics" ? (
-          <GenesisDiagnosticsPanel onClose={handleExitChat} />
-        ) : null}
+      {/* Full-page / special surfaces keep their dedicated mounts. */}
+      {state.activePanel === "self-evolution" ? (
+        <GenesisSelfEvolutionPanel />
+      ) : null}
 
-        {systemEnvironmentActive ? null : state.activePanel === "memory" ? (
-          <GenesisMemoryPanel onClose={handleExitChat} />
-        ) : null}
-
-        {systemEnvironmentActive ? null : state.activePanel === "providers" ? (
-          <GenesisProvidersPanel onClose={handleExitChat} />
-        ) : null}
-
-        {systemEnvironmentActive ? null : state.activePanel === "device" ? (
-          <GenesisDevicePanel onClose={handleExitChat} />
-        ) : null}
-
-        {systemEnvironmentActive ? null : state.activePanel === "agents" ? (
-          <GenesisAgentsPanel onClose={handleExitChat} />
-        ) : null}
-
-        {systemEnvironmentActive ? null : state.activePanel === "knowledge" ? (
-          <GenesisKnowledgePanel onClose={handleExitChat} />
-        ) : null}
-
-        {systemEnvironmentActive ? null : state.activePanel === "history" ? (
-          <GenesisHistoryPanel onClose={handleExitChat} />
-        ) : null}
-
-        {/* UI #3 — GENESIS v2 is a full-page workspace, rendered at the
-            top of the environment conditional above (not as an overlay). */}
-
-        {systemEnvironmentActive ? null : state.activePanel === "workspaces" ? (
-          <GenesisProjectsPanel onClose={handleExitChat} />
-        ) : null}
-
-        {systemEnvironmentActive ? null : state.activePanel === "logs" ? (
-          <GenesisLogsPanel onClose={handleExitChat} />
-        ) : null}
-
-        {systemEnvironmentActive ? null : state.activePanel === "browser" ? (
-          <GenesisBrowserPanel onClose={handleExitChat} />
-        ) : null}
-
-        {/* LÉLU V1 creative expansion workspaces. */}
-        {systemEnvironmentActive ? null : state.activePanel === "sketch" ? (
-          <GenesisSketchPanel onClose={handleExitChat} />
-        ) : null}
-
-        {systemEnvironmentActive ? null : state.activePanel === "render" ? (
-          <GenesisRenderPanel onClose={handleExitChat} />
-        ) : null}
-
-        {systemEnvironmentActive ? null : state.activePanel === "video" ? (
-          <GenesisVideoPanel onClose={handleExitChat} />
-        ) : null}
-
-        {systemEnvironmentActive ? null : state.activePanel === "avatar" ? (
-          <GenesisAvatarPanel onClose={handleExitChat} />
-        ) : null}
-
-        {systemEnvironmentActive ? null : state.activePanel === "projects" ? (
-          <GenesisProjectsPanel onClose={handleExitChat} />
-        ) : null}
-
-        {systemEnvironmentActive ? null : state.activePanel === "settings" ? (
-          <GenesisSettingsPanel onClose={handleExitChat} />
-        ) : null}
-
-        {/* Autonomous cognition + engineering layer. */}
-        {systemEnvironmentActive ? null : state.activePanel === "cognition" ? (
-          <GenesisCognitionPanel onClose={handleExitChat} />
-        ) : null}
-
-        {systemEnvironmentActive ? null : state.activePanel === "engineering" ? (
-          <GenesisEngineeringPanel onClose={handleExitChat} />
-        ) : null}
-
-        {systemEnvironmentActive ? null : state.activePanel === "evolution" ? (
-          <GenesisSelfDevPanel onClose={handleExitChat} />
-        ) : null}
-
-        {/* Cosmos Map — resizable touch minimap */}
-        {systemEnvironmentActive ? null : state.activePanel === "cosmos" ? (
-          <GenesisCosmosPanel onClose={handleExitChat} />
-        ) : null}
-      </AnimatePresence>
+      {state.activePanel === "cosmos" ? (
+        <GenesisCosmosPanel onClose={handleExitChat} />
+      ) : null}
     </div>
   );
 }

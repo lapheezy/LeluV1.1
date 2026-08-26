@@ -28,6 +28,7 @@ import type RouterContext from "./RouterContext";
 import type { BrainResult } from "./RouterResults";
 import AgentEventBus from "../agent/AgentEvents";
 import { isIdentityOrProfileQuestion } from "../../brain/LeluIdentity";
+import ExecutiveRuntime from "../executive/ExecutiveRuntime";
 
 export default class BrainResolver {
   /**
@@ -50,6 +51,24 @@ export default class BrainResolver {
     //    never dependent on an external API.
     if (isIdentityOrProfileQuestion(prompt)) {
       return this.localAnswer(context);
+    }
+
+    // 1b. Operational status questions ("what are you doing?") —
+    //     answered deterministically from the Executive Runtime's
+    //     MEASURED state, online or offline. The model never gets to
+    //     guess what LÉLU is doing; telemetry decides.
+    if (ExecutiveRuntime.isOperationalStatusQuestion(prompt)) {
+      const response: AIResponse = {
+        text: ExecutiveRuntime.getInstance().composeStatusAnswer(prompt),
+        provider: "executive",
+        model: "self-state",
+        processingTime: Date.now() - context.started,
+        metadata: { source: "ExecutiveRuntime", category: "status", confidence: 1 },
+      };
+      context.logger.info("BrainResolver", "Resolved operational status from measured self-state", {
+        prompt,
+      });
+      return { handled: true, response };
     }
 
     const best = memories[0];

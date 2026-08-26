@@ -804,6 +804,116 @@ class VoiceEngine {
         // ignore
       }
     }
+    // Real state: interrupted speech returns the pipeline to listening.
+    if (this._state.phase === "speaking") {
+      this.updateState({ ...this._state, phase: this._state.active ? "listening" : "idle" });
+    }
+    this.streamFinalizing = false;
+    this.streamCursor = 0;
+  }
+
+  /* ---------------------------------------------------------
+   * Streaming speech — LÉLU speaks WHILE the response streams.
+   *
+   * begin → feed(accumulated text)… → finish. Only COMPLETE
+   * sentences are enqueued, so prosody stays natural without
+   * waiting for the whole response (no robotic full-file pauses).
+   * speechSynthesis plays its queue in order automatically.
+   * --------------------------------------------------------- */
+
+  private streamCursor = 0;
+  private streamFinalizing = false;
+
+  beginStreamingSpeech(): void {
+    this.cancelSpeech();
+    this.cancelFlag = false;
+    this.streamCursor = 0;
+    this.streamFinalizing = false;
+    this.updateState({ ...this._state, phase: "speaking" });
+  }
+
+  feedStreamingSpeech(fullText: string): void {
+    if (typeof speechSynthesis === "undefined" || this.cancelFlag || this.streamFinalizing) {
+      return;
+    }
+    const rest = fullText.slice(this.streamCursor);
+    // First complete sentence boundary in the not-yet-spoken tail.
+    const match = rest.match(/^[\s\S]*?[.!?](\s+|$)/);
+    if (!match) return;
+    const segment = match[0].trim();
+    this.streamCursor += match[0].length;
+    if (!segment) return;
+    try {
+      speechSynthesis.speak(this.createUtterance(segment));
+    } catch {
+      // Speech queue failures must never break chat.
+    }
+  }
+
+  finishStreamingSpeech(fullText: string): void {
+    this.streamFinalizing = true;
+    if (typeof speechSynthesis === "undefined" || this.cancelFlag) return;
+    const rest = fullText.slice(this.streamCursor).trim();
+    if (!rest) return;
+    for (const chunk of this.chunkText(rest)) {
+      try {
+        speechSynthesis.speak(this.createUtterance(chunk));
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  /* ---------------------------------------------------------
+   * Voice registry — real system voices, user selection that
+   * persists, honest offline availability. No fake voices.
+   * --------------------------------------------------------- */
+
+  private static readonly VOICE_PREF_KEY = "lelu.voice.uri";
+
+  private getPreferredVoiceUri(): string | null {
+    try {
+      return localStorage.getItem(VoiceEngine.VOICE_PREF_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  /** Every voice the runtime actually exposes, with offline truth. */
+  listVoices(): Array<{
+    name: string;
+    uri: string;
+    lang: string;
+    /** true = installed on device — genuinely works offline */
+    localService: boolean;
+    selected: boolean;
+  }> {
+    if (typeof speechSynthesis === "undefined") return [];
+    const preferred = this.getPreferredVoiceUri();
+    return speechSynthesis.getVoices().map((v) => ({
+      name: v.name,
+      uri: v.voiceURI,
+      lang: v.lang,
+      localService: v.localService,
+      selected: v.voiceURI === preferred,
+    }));
+  }
+
+  setPreferredVoice(uri: string | null): void {
+    try {
+      if (uri) localStorage.setItem(VoiceEngine.VOICE_PREF_KEY, uri);
+      else localStorage.removeItem(VoiceEngine.VOICE_PREF_KEY);
+    } catch {
+      // Persistence is best-effort; selection still applies this session.
+    }
+  }
+
+  /** OFFLINE VOICE — AVAILABLE / NOT AVAILABLE, from real inventory. */
+  offlineVoiceAvailability(): "available" | "not-available" | "unsupported" {
+    if (typeof speechSynthesis === "undefined") return "unsupported";
+    return speechSynthesis.getVoices().some((v) => v.localService)
+      ? "available"
+      : "not-available";
   }
 
   /* ---------------------------------------------------------
@@ -814,6 +924,13 @@ class VoiceEngine {
     if (typeof speechSynthesis === "undefined") return null;
     const voices = speechSynthesis.getVoices();
     if (voices.length === 0) return null;
+
+    // User's persisted selection always wins when actually available.
+    const preferred = this.getPreferredVoiceUri();
+    if (preferred) {
+      const match = voices.find((v) => v.voiceURI === preferred);
+      if (match) return match;
+    }
 
     const premium = voices.find(
       (v) =>

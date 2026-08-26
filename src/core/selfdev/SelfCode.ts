@@ -103,8 +103,19 @@ export default class SelfCode {
     return Object.keys(RAW_GLOB).sort();
   }
 
-  /** Read the REAL content of a core source file (lazy fetch). */
+  private liveReadCooldownUntil = 0;
+
+  /**
+   * Read the REAL content of a source file. Prefers the LIVE workspace
+   * file through the engineering runtime (POST /api/engineer/read) — the
+   * file on disk is the truth and may have changed since the bundle was
+   * built. Falls back to the lazy raw glob when the engineering runtime
+   * is unreachable (static-only deployment), with a short cooldown so a
+   * dead endpoint is not hammered on every read.
+   */
   public async readCoreSource(path: string): Promise<string | null> {
+    const live = await this.readLiveSource(path);
+    if (live !== null) return live;
     const loader = RAW_GLOB[path];
     if (!loader) {
       return null;
@@ -112,6 +123,34 @@ export default class SelfCode {
     try {
       return await loader();
     } catch {
+      return null;
+    }
+  }
+
+  private async readLiveSource(path: string): Promise<string | null> {
+    if (Date.now() < this.liveReadCooldownUntil) return null;
+    try {
+      const controller = new AbortController();
+      const timer = window.setTimeout(() => controller.abort(), 3_000);
+      const response = await fetch("/api/engineer/read", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ path: path.replace(/^\/+/, "") }),
+        signal: controller.signal,
+      });
+      window.clearTimeout(timer);
+      if (!response.ok) {
+        this.liveReadCooldownUntil = Date.now() + 15_000;
+        return null;
+      }
+      const payload = (await response.json()) as { ok?: boolean; content?: string };
+      if (payload.ok !== true || typeof payload.content !== "string") {
+        this.liveReadCooldownUntil = Date.now() + 15_000;
+        return null;
+      }
+      return payload.content;
+    } catch {
+      this.liveReadCooldownUntil = Date.now() + 15_000;
       return null;
     }
   }

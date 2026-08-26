@@ -23,16 +23,29 @@ export default class ResponseBuilder {
   public fromResearch(
     results: KnowledgeResult[],
     started: number,
+    attempted?: Array<{ provider: string; error?: string }>,
   ): AIResponse {
 
     if (results.length === 0) {
 
+      // Explicit live-retrieval failure — reached only after every
+      // applicable provider was genuinely attempted and produced
+      // nothing usable. Never fabricate; never a generic chat answer.
+      // The message names the actual providers + outcomes so the
+      // failure is auditable, not a blanket "no results" claim.
+      const attempts = attempted?.filter((item) => item && item.provider) ?? [];
+      const detail =
+        attempts.length > 0
+          ? attempts
+              .map((item) => `${item.provider}${item.error ? ` — ${item.error}` : " — 0 results"}`)
+              .join("; ")
+          : "no knowledge provider matched this request";
       return {
-        text: "I searched but couldn't find current information on that.",
+        text: `I tried every applicable knowledge source for that and none returned usable results. Here's what was actually attempted: ${detail}. I won't guess at current information — give me a moment and ask again, or try a more specific topic.`,
         provider: "research",
         model: "knowledge",
         processingTime: Date.now() - started,
-        metadata: { count: 0, offline: true },
+        metadata: { count: 0, offline: true, retrievalFailed: true, attempted: attempts },
       };
 
     }

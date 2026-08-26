@@ -41,6 +41,7 @@ export default class YouTubeProvider
   readonly capabilities = [
 
     "video",
+    "youtube",
     "tutorial",
     "education",
     "learning",

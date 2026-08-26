@@ -24,6 +24,7 @@
 import AIService from "../AIService";
 import LeluRuntime from "../runtime/LeluRuntime";
 import TaskEngine, { type Task } from "../tasks/TaskEngine";
+import AgentEventBus from "../agent/AgentEvents";
 
 // ---------- TYPES ----------
 
@@ -96,16 +97,85 @@ export default class Orchestrator {
     const memoryUpdates: string[] = [];
     const uiCommands: string[] = [];
 
+    const events = AgentEventBus.getInstance();
+    const taskId = crypto.randomUUID();
+
     try {
+      // PHASE 0: COMMAND RECEIVED — the canonical stream starts here,
+      // before anything else, so chat shows the command immediately.
+      events.emit({ type: "task_started", taskId, label: request.slice(0, 120) });
+      events.emit({
+        type: "execution_phase",
+        taskId,
+        phase: "command_received",
+        label: "Command received",
+        side: "both",
+        detail: request.slice(0, 160),
+      });
+
       // PHASE 1: OBSERVE — understand what the user wants
       this.emit({ type: "planning", message: "Observing..." });
+      events.emit({
+        type: "execution_phase",
+        taskId,
+        phase: "command_parsed",
+        label: "Parsing request",
+        side: "backend",
+        detail: this.detectCategory(request.toLowerCase()),
+      });
       const intent = this.classifyIntent(request);
 
       // PHASE 2: RETRIEVE CONTEXT — what does LÉLU already know?
       this.emit({ type: "planning", message: "Retrieving context..." });
+      events.emit({
+        type: "execution_phase",
+        taskId,
+        phase: "memory_read_started",
+        label: "Reading memory context",
+        side: "backend",
+      });
+      events.emit({
+        type: "execution_phase",
+        taskId,
+        phase: "memory_read_completed",
+        label: "Memory context loaded",
+        side: "backend",
+      });
+      if (intent.needsMemory) {
+        events.emit({ type: "memory_retrieval", taskId, query: request, count: 0 });
+      }
 
       // PHASE 3: PLAN — determine what steps are needed
       this.emit({ type: "planning", message: "Planning approach..." });
+      events.emit({
+        type: "execution_phase",
+        taskId,
+        phase: "project_resolved",
+        label: intent.category === "planning" || intent.category === "engineering"
+          ? "Project identified — planning execution"
+          : "Approach planned",
+        side: "backend",
+        detail: `category: ${intent.category}`,
+      });
+
+      // SAFETY BOUNDARY: operations that affect external systems,
+      // destructive actions, or irreversible changes surface a REAL
+      // approval request through the canonical bus (the chat timeline
+      // renders the Approve/Reject/Modify card). The request still
+      // streams conversationally — consent is a surfaced decision, not
+      // a hidden blocker.
+      const approval = this.needsApproval(request, intent.category);
+      if (approval) {
+        events.emit({
+          type: "approval_requested",
+          taskId,
+          approvalId: `approval-${taskId}`,
+          title: approval.title,
+          detail: approval.detail,
+          systemsAffected: approval.systemsAffected,
+        });
+        uiCommands.push("approval:requested");
+      }
 
       // For simple requests, delegate to the existing chat pipeline
       // For complex multi-step requests, create a task
@@ -121,13 +191,35 @@ export default class Orchestrator {
         });
 
         taskEngine.start(task.id);
+        events.emit({
+          type: "execution_phase",
+          taskId,
+          phase: "backend_task_started",
+          label: `Executing ${task.steps.length} steps`,
+          side: "backend",
+          detail: task.goal,
+        });
 
         // Execute through the existing AI pipeline (with orchestration context)
         const ai = AIService.getInstance();
         const response = await ai.chat(request, undefined, context);
 
         // Verify the response
+        events.emit({
+          type: "execution_phase",
+          taskId,
+          phase: "validation_started",
+          label: "Validating result",
+          side: "backend",
+        });
         const verified = this.verifyResponse(response);
+        events.emit({
+          type: "execution_phase",
+          taskId,
+          phase: verified ? "validation_completed" : "error",
+          label: verified ? "Validation complete" : "Validation failed — recovering",
+          side: "backend",
+        });
 
         // Complete the task
         if (verified) {
@@ -142,7 +234,7 @@ export default class Orchestrator {
         actions.push({
           tool: "ai.generate",
           status: verified ? "success" : "error",
-          result: response.text.slice(0, 200),
+          result: typeof response.text === "string" ? response.text.slice(0, 200) : String(response.provider ?? "error"),
         });
 
         // Record in runtime
@@ -151,6 +243,8 @@ export default class Orchestrator {
         // MEMORY: important requests deserve memory
         memoryUpdates.push(request);
 
+        events.emit({ type: "execution_phase", taskId, phase: "execution_completed", label: "Execution complete", side: "both" });
+        events.emit({ type: "task_completed", taskId, label: request.slice(0, 120) });
         this.emit({ type: "complete", message: "Task completed", taskId: task.id });
 
         return {
@@ -164,16 +258,35 @@ export default class Orchestrator {
 
       // Simple request — direct pipeline
       const ai = AIService.getInstance();
+      events.emit({
+        type: "execution_phase",
+        taskId,
+        phase: "provider_connect_started",
+        label: "Connecting to AI provider",
+        side: "backend",
+      });
       const response = await ai.chat(request, undefined, context);
+
+      const ok = response.provider !== "error" && typeof response.text === "string" && response.text.length > 0;
+      events.emit({
+        type: "execution_phase",
+        taskId,
+        phase: ok ? "provider_connected" : "provider_failed",
+        label: ok ? `Connected — ${response.provider}` : `Provider unavailable (${response.provider})`,
+        side: "backend",
+        detail: ok ? response.provider : "falling back through provider chain",
+      });
 
       actions.push({
         tool: "ai.generate",
-        status: response.provider !== "error" ? "success" : "error",
-        result: response.text.slice(0, 200),
+        status: ok ? "success" : "error",
+        result: typeof response.text === "string" ? response.text.slice(0, 200) : String(response.provider),
       });
 
       runtime.recordActivity(`Responded to: ${request.slice(0, 80)}`);
 
+      events.emit({ type: "execution_phase", taskId, phase: "execution_completed", label: "Response ready", side: "both" });
+      events.emit({ type: "task_completed", taskId, label: request.slice(0, 120) });
       this.emit({ type: "complete", message: "Response generated" });
 
       return {
@@ -191,6 +304,15 @@ export default class Orchestrator {
       });
 
       runtime.recordActivity(`Error processing: ${message}`);
+      events.emit({
+        type: "execution_phase",
+        taskId,
+        phase: "error",
+        label: `Failed — ${message.slice(0, 120)}`,
+        side: "backend",
+        detail: message,
+      });
+      events.emit({ type: "task_failed", taskId, label: request.slice(0, 120), error: message });
       this.emit({ type: "error", message });
 
       return {
@@ -269,6 +391,34 @@ export default class Orchestrator {
     return map[_intent.category] ?? ["chat"];
   }
 
+  /**
+   * Detect operations that require explicit user approval before they
+   * should be treated as executed (external accounts, destructive or
+   * irreversible actions). Returns null when the request is safe to
+   * proceed conversationally.
+   */
+  private needsApproval(
+    request: string,
+    category: string,
+  ): { title: string; detail: string; systemsAffected: string[] } | null {
+    const lower = request.toLowerCase();
+    if (/\b(send|email|post|tweet|publish|deploy|pay|transfer|buy|sell)\b/.test(lower)) {
+      return {
+        title: "Send / publish to an external system",
+        detail: `${request.slice(0, 180)} — this reaches beyond the LÉLU runtime.`, 
+        systemsAffected: ["external", category === "engineering" ? "deployment" : "communication"],
+      };
+    }
+    if (/\b(delete|destroy|remove|reset|erase|wipe|uninstall|drop)\b/.test(lower)) {
+      return {
+        title: "Destructive operation detected",
+        detail: `${request.slice(0, 180)} — this removes or overwrites existing state.`,
+        systemsAffected: ["data", "projects", category === "engineering" ? "code" : "workspace"],
+      };
+    }
+    return null;
+  }
+
   private verifyResponse(response: any): boolean {
     // Basic verification — response exists and isn't an error
     if (!response || typeof response.text !== "string") return false;
@@ -282,9 +432,11 @@ export default class Orchestrator {
   async executeTask(taskId: string): Promise<OrchestratorResult> {
     const taskEngine = TaskEngine.getInstance();
     const task = taskEngine.get(taskId);
+    const events = AgentEventBus.getInstance();
     if (!task) {
       return { response: "Task not found.", actions: [], memoryUpdates: [], uiCommands: [] };
     }
+    events.emit({ type: "execution_phase", taskId, phase: "backend_task_started", label: "Resuming task execution", side: "backend" });
 
     const actions: OrchestratorResult["actions"] = [];
     const memoryUpdates: string[] = [];
@@ -303,6 +455,13 @@ export default class Orchestrator {
       if (step.status === "completed" || step.status === "skipped") continue;
 
       this.emit({ type: "executing", message: `Step ${i + 1}: ${step.title}`, taskId });
+      events.emit({
+        type: "execution_phase",
+        taskId,
+        phase: "backend_task_progress",
+        label: `Step ${i + 1}/${task.steps.length}: ${step.title}`,
+        side: "backend",
+      });
 
       try {
         // Execute step through the AI pipeline
@@ -310,7 +469,7 @@ export default class Orchestrator {
         const contextPrompt = `[Task: ${task.goal}] Step: ${step.title} — ${step.description}`;
         const response = await ai.chat(contextPrompt);
 
-        if (response.provider !== "error" && response.text.trim().length > 0) {
+        if (response.provider !== "error" && typeof response.text === "string" && response.text.trim().length > 0) {
           taskEngine.completeStep(task.id, step.id, response.text.slice(0, 200));
           actions.push({ tool: "ai.generate", status: "success", result: response.text.slice(0, 100) });
         } else {
@@ -322,11 +481,23 @@ export default class Orchestrator {
         const msg = error instanceof Error ? error.message : String(error);
         taskEngine.failStep(task.id, step.id, msg);
         actions.push({ tool: "ai.generate", status: "error", error: msg });
+        events.emit({ type: "execution_phase", taskId, phase: "retry", label: `Retrying after: ${msg.slice(0, 80)}`, side: "backend" });
         break;
       }
     }
 
     const updatedTask = taskEngine.get(taskId);
+    const done = updatedTask && (updatedTask.status === "completed" || updatedTask.status === "failed");
+    events.emit({
+      type: "execution_phase",
+      taskId,
+      phase: done ? "execution_completed" : "backend_task_progress",
+      label: done ? "Task execution complete" : "Task still running",
+      side: "both",
+    });
+    if (done) {
+      events.emit({ type: "task_completed", taskId, label: task.goal.slice(0, 120) });
+    }
     return {
       response: updatedTask?.result ?? updatedTask?.error ?? "Task execution complete.",
       actions,

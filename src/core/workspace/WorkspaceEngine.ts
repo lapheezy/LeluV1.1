@@ -62,6 +62,7 @@ export type WorkspaceViewKind =
   | "providers"
   | "genesis"
   | "activity"
+  | "executive"
   | "design";
 
 export interface WorkspaceView {
@@ -202,8 +203,33 @@ export default class WorkspaceEngine {
     if (this.state.pinnedByUser || this.state.visible) {
       return;
     }
+
+    // Avatar presentation is a visual module, not workspace activity.
+    // Opening or speaking to the avatar must never reveal the engineering
+    // workspace underneath the chat.
+    const taskText =
+      event.type === "task_started"
+        ? event.label
+        : event.type === "task_planning"
+          ? event.plan ?? ""
+          : "";
+    if (
+      (event.type === "task_started" || event.type === "task_planning") &&
+      /\bavatar\b|\byourself\b|\blook like\b|\bface\b/i.test(taskText)
+    ) {
+      return;
+    }
+    if (
+      (event.type === "tool_selected" || event.type === "tool_started" || event.type === "tool_result" || event.type === "tool_failed") &&
+      /avatar/i.test(event.tool)
+    ) {
+      return;
+    }
+
     const visibleWork = new Set<AgentEvent["type"]>([
       "task_started",
+      "task_planning",
+      "execution_phase",
       "tool_selected",
       "tool_started",
       "tool_result",
@@ -217,6 +243,7 @@ export default class WorkspaceEngine {
       "diagram_created",
       "visual_created",
       "ui_prototype_created",
+      "spatial_event",
     ]);
     if (visibleWork.has(event.type)) {
       this.state = { ...this.state, visible: true };
@@ -750,5 +777,10 @@ export default class WorkspaceEngine {
 
   public showActivity(title: string, id?: string, temporary = false): WorkspaceView {
     return this.openView({ id, kind: "activity", title, temporary });
+  }
+
+  /** The live validation mirror: LÉLU's measured executive state. */
+  public showExecutive(title: string, id?: string, temporary = false): WorkspaceView {
+    return this.openView({ id, kind: "executive", title, temporary });
   }
 }

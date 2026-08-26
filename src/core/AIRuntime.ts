@@ -11,6 +11,9 @@ import AICore
 import AIRouter
   from "./AIRouter";
 
+import IntentDetector
+  from "./router/IntentDetector";
+
 import ExecutionLogger
   from "./ExecutionLogger";
 
@@ -27,10 +30,15 @@ import BrainResolver
   from "./router/BrainResolver";
 
 import ResearchResolver
-  from "./router/ResearchResolver";
+  from "./router/ResearchResolver";import ProviderResolver
 
-import ProviderResolver
-  from "./router/ProviderResolver";
+from "./router/ProviderResolver";
+
+import ProjectScheduler
+  from "./projects/ProjectScheduler";
+
+import { buildCognitiveContext }
+  from "./cognition/CognitiveContext";
 
 import AIProviderRegistry
   from "./AIProviderRegistry";
@@ -50,6 +58,9 @@ import ModelRouter
 
 import LocalRuntime
   from "./runtime/local/LocalRuntime";
+
+import ExecutiveRuntime
+  from "./executive/ExecutiveRuntime";
 
 
 
@@ -124,12 +135,12 @@ export default class AIRuntime {
 
         new ResearchResolver(),
 
-        new ProviderResolver(),
+        new ProviderResolver(),      );
 
-      );
+    // Start autonomous project scheduler (core-level, not React)
+    ProjectScheduler.getInstance().start(this.knowledge);
 
   }
-
 
 
 
@@ -193,15 +204,39 @@ export default class AIRuntime {
 
 
 
-    await this.brain.initialize();
-
-
-
-
-
-    this.initialized =
-
+    await this.brain.initialize();    this.initialized =
       true;
+
+    // Start the Executive Runtime — the observe → verify → diagnose →
+    // recover loop that gives LÉLU authoritative awareness of her own
+    // system. It consumes real AgentEvents + provider snapshots; it is
+    // not a second cognition system, just the observation layer over
+    // this one.
+    ExecutiveRuntime.getInstance().start({
+      providerSnapshot: () => {
+        try {
+          const status = this.aiProviderRuntimeStatus();
+          // Derive honest per-provider status from REAL registry state:
+          // cooldown/failure → failed · confirmed success → ready · else unknown.
+          const now = Date.now();
+          const providers = status.providers.map((p) => ({
+            name: p.name,
+            status:
+              p.inCooldown || p.failure
+                ? "failed"
+                : p.lastSuccess !== undefined && now - p.lastSuccess < 10 * 60_000
+                  ? "ready"
+                  : "unknown",
+          }));
+          return {
+            activeProvider: status.activeProvider,
+            providers,
+          };
+        } catch {
+          return null;
+        }
+      },
+    });
 
 
 
@@ -244,53 +279,34 @@ export default class AIRuntime {
 
       await this.initialize();
 
-    }
-
-
-
-
-
-    const context:
+    }    const context:
 
       RouterContext =
 
     {
 
-
       request,
 
-
-
       started:
-
         Date.now(),
 
-
-
       brain:
-
         this.brain,
 
-
-
       knowledgeProviders:
-
         this.knowledge,
 
-
-
       aiProviders:
-
         this.providers,
 
-
-
       logger:
-
         this.logger,
 
-    };
+      intent: new IntentDetector().detect(request.prompt ?? ""),
 
+      cognitiveContext: buildCognitiveContext(),
+
+    };
 
 
 
@@ -483,6 +499,8 @@ export default class AIRuntime {
 
 
     await this.core.shutdown();
+
+    ExecutiveRuntime.getInstance().stop();
 
 
 

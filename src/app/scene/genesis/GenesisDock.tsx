@@ -12,17 +12,18 @@
  *     (~80px, dark translucent glass, thin luminous line icons,
  *     active state with cyan glow + left indicator bar).
  *   Tablet (720–1024px) — compact floating icon rail.
- *   Narrow (<720px) — horizontal bar pinned to the bottom,
- *     scrollable, so nothing clips on mobile.
+ *   Narrow (<720px) — one floating LÉLU menu button; tools stay inside chat.
  * ==========================================================
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import type { GenesisPanel } from "./GenesisCore";
+import { useGenesis, type GenesisPanel } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 import GenesisNavIcon, { type GenesisNavIconName } from "./GenesisNavIcons";
 import GenesisTabEditor from "./GenesisTabEditor";
+import GenesisMobileMenu from "./GenesisMobileMenu";
 import KvStore from "../../../core/storage/KvStore";
+import ImprovementQueue from "../../../core/selfdev/ImprovementQueue";
 
 export interface DockItem {
   id: GenesisPanel;
@@ -32,37 +33,72 @@ export interface DockItem {
   group: "core" | "intelligence" | "system";
 }
 
+/*
+ * ONE NAVIGATION MODEL — major environments first, capabilities nested.
+ *
+ * The dock presents a small number of major environments:
+ *   Chat (the unified conversation and tool environment),
+ *   Visual (Genesis Studios — sketch/render/avatar live inside it),
+ *   Browser (browser + research), Code, Memory, Agents, Updates.
+ *
+ * Every deeper panel still exists and is reachable through the ⚙ tab
+ * editor and ⌘K palette — they are hidden from the default rail so the
+ * surface stays a set of environments, not an endless tab strip.
+ */
 export const DOCK_ITEMS: DockItem[] = [
-  { id: "chat", label: "Chat", glyph: "◎", icon: "orbit", group: "core" },
+  // ── Major environments ─────────────────────────────────────────
+  { id: "chat", label: "LÉLU", glyph: "◎", icon: "orbit", group: "core" },
+  // Genesis Studios — the unified visual environment. Sketch, Render,
+  // and Avatar are capabilities INSIDE it, not separate tabs.
+  { id: "visualstudio", label: "Visual", glyph: "◍", icon: "aperture", group: "core" },
+  { id: "browser", label: "Browser", glyph: "◫", icon: "globe", group: "core" },
+  { id: "engineering", label: "Code", glyph: "⌘", icon: "code", group: "intelligence" },
+  { id: "memory", label: "Memory", glyph: "◐", icon: "crescent", group: "intelligence" },
+  { id: "agents", label: "Agents", glyph: "◈", icon: "user", group: "intelligence" },
+  { id: "notifications", label: "Updates", glyph: "◷", icon: "crescent", group: "system" },
+  { id: "settings", label: "Settings", glyph: "⚙", icon: "sliders", group: "system" },
+
+  // ── Deeper capabilities (default-hidden, restorable via ⚙/⌘K) ──
   { id: "cosmos", label: "Cosmos", glyph: "✦", icon: "spark", group: "core" },
   { id: "history", label: "History", glyph: "≡", icon: "arrows", group: "core" },
-  { id: "workspaces", label: "Projects", glyph: "▦", icon: "folder", group: "core" },
   // GENESIS v2 — the Core Transformation Lab. A first-class workspace
   // destination, not a modal: it opens as a panel like every other dock
   // item and controls/observes the SAME ONE Genesis Core.
   { id: "genesisv2", label: "Genesis v2", glyph: "⬡", icon: "lab", group: "core" },
-  // LÉLU V1 creative expansion — dedicated workspaces.
-  { id: "sketch", label: "Sketch", glyph: "✎", icon: "pencil", group: "core" },
-  { id: "render", label: "Render", glyph: "◍", icon: "aperture", group: "core" },
   { id: "video", label: "Video", glyph: "▶", icon: "film", group: "core" },
-  { id: "avatar", label: "Avatar", glyph: "◉", icon: "mask", group: "core" },
   { id: "reasoning", label: "Reasoning", glyph: "✦", icon: "spark", group: "intelligence" },
   { id: "cognition", label: "Cognition", glyph: "◬", icon: "brain", group: "intelligence" },
-  { id: "engineering", label: "Engineering", glyph: "⌘", icon: "code", group: "intelligence" },
   { id: "evolution", label: "Evolution", glyph: "⬖", icon: "evolve", group: "intelligence" },
-  { id: "agents", label: "Agents", glyph: "◈", icon: "user", group: "intelligence" },
-  { id: "memory", label: "Memory", glyph: "◐", icon: "crescent", group: "intelligence" },
-  { id: "providers", label: "API Status", glyph: "⌁", icon: "gear", group: "system" },
-  { id: "settings", label: "Settings", glyph: "⚙", icon: "sliders", group: "system" },
   { id: "device", label: "Device", glyph: "◮", icon: "phone", group: "system" },
   { id: "diagnostics", label: "Engines", glyph: "●", icon: "wave", group: "system" },
+  { id: "executive", label: "Executive", glyph: "◉", icon: "brain", group: "system" },
   { id: "logs", label: "Logs", glyph: "▤", icon: "file", group: "system" },
-  { id: "browser", label: "Browser", glyph: "◫", icon: "globe", group: "system" },
-  { id: "workspace", label: "Workspace", glyph: "◱", icon: "layers", group: "system" },
   // The SYSTEM tab is the LÉLU UI ↔ SYSTEM UI environment switch. Its id
   // stays "visual" (VisualEngine.interfaceFocus drives it), but it reads
   // as the second operating environment, not a panel.
   { id: "visual", label: "System", glyph: "◉", icon: "system", group: "system" },
+];
+
+/**
+ * Environment modules for the unified side panel. These are NOT new
+ * systems — each id maps to an existing GenesisPanel whose component
+ * renders the SAME singleton runtime (EarthCore, BrowserTool, …). The
+ * side panel is a launcher/control surface over one shared module set.
+ */
+export const ENVIRONMENT_MODULES: DockItem[] = [
+  { id: "earth", label: "Earth", glyph: "🌍", icon: "globe", group: "core" },
+  { id: "browser", label: "Browser", glyph: "◫", icon: "globe", group: "core" },
+  { id: "render", label: "Render", glyph: "◍", icon: "aperture", group: "core" },
+  { id: "sketch", label: "Sketch", glyph: "✎", icon: "spark", group: "core" },
+  { id: "avatar", label: "Avatar", glyph: "◉", icon: "user", group: "core" },
+  { id: "evolution", label: "Self Development", glyph: "⬖", icon: "evolve", group: "core" },
+  { id: "settings", label: "Settings", glyph: "⚙", icon: "sliders", group: "core" },
+];
+
+/** Side-panel catalog — environment modules first, then dock capabilities, deduped by id. */
+export const MODULE_CATALOG: DockItem[] = [
+  ...ENVIRONMENT_MODULES,
+  ...DOCK_ITEMS.filter((item) => !ENVIRONMENT_MODULES.some((env) => env.id === item.id)),
 ];
 
 /**
@@ -89,7 +125,23 @@ export interface DockSettings {
 }
 
 const DOCK_CONFIG_KEY = "lelu.dock.v1";
-const DEFAULT_DOCK_SETTINGS: DockSettings = { order: [], hidden: [], size: "standard" };
+/* Consolidated default: the rail shows major environments only. Every
+   deeper capability stays registered and is restored from the ⚙ tab
+   editor or the ⌘K command palette. */
+const DEFAULT_HIDDEN: string[] = [
+  "cosmos",
+  "history",
+  "genesisv2",
+  "video",
+  "reasoning",
+  "cognition",
+  "evolution",
+  "device",
+  "diagnostics",
+  "executive",
+  "logs",
+];
+const DEFAULT_DOCK_SETTINGS: DockSettings = { order: [], hidden: DEFAULT_HIDDEN, size: "standard" };
 
 function readDockSettings(): DockSettings {
   try {
@@ -231,6 +283,8 @@ interface DockTabProps {
   glowClass?: string;
   onSelect: () => void;
   onReorder: (dragId: string, overId: string) => void;
+  /** Long press activates voice for chat tab instead of drag. */
+  onLongPress?: () => void;
   children: ReactNode;
   title?: string;
   ariaLabel?: string;
@@ -244,6 +298,7 @@ function DockTab({
   glowClass,
   onSelect,
   onReorder,
+  onLongPress,
   children,
   title,
   ariaLabel,
@@ -325,6 +380,12 @@ function DockTab({
         if (event.pointerType === "touch") {
           point.longPress = window.setTimeout(() => {
             if (dragRef.current === point) {
+              if (onLongPress) {
+                // Long press activates voice (Earth Core hold-to-voice)
+                dragRef.current = null;
+                onLongPress();
+                return;
+              }
               point.started = true;
               setDragging(true);
               setLifted(true);
@@ -334,7 +395,7 @@ function DockTab({
       }}
       onPointerMove={(event) => {
         const drag = dragRef.current;
-        if (!drag || drag.started) {
+        if (!drag || drag.started || onLongPress) {
           return;
         }
         if (event.pointerType === "mouse") {
@@ -411,6 +472,11 @@ interface GenesisDockProps {
    * Visual dock tab reflect the live VisualEngine state.
    */
   visualActive?: boolean;
+  /** Earth Core hold → voice activation callback. */
+  onCoreHoldVoice?: () => void;
+  /** Self Exploration toggle state + handler. */
+  selfExplorationEnabled?: boolean;
+  onToggleSelfExploration?: () => void;
 }
 
 export default function GenesisDock({
@@ -422,10 +488,30 @@ export default function GenesisDock({
   reasoningActive = false,
   engineErrorCount = 0,
   visualActive = false,
+  onCoreHoldVoice,
+  selfExplorationEnabled = true,
+  onToggleSelfExploration,
 }: GenesisDockProps) {
   const breakpoint = useBreakpoint();
   const dockSettings = useDockSettings();
   const [tabEditorOpen, setTabEditorOpen] = useState(false);
+  /* The chat-controlled mobile menu — open/closed state only. */
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  /* The LÉLU menu is a control OF THE CHAT, so the chat can ask for it
+     to open/close through a shared window event (one menu, one source of
+     truth, reachable from the chat title bar as well as the floating pill). */
+  useEffect(() => {
+    const handler = () => setMenuOpen((open) => !open);
+    window.addEventListener("genesis-lelu-menu-toggle", handler);
+    return () => window.removeEventListener("genesis-lelu-menu-toggle", handler);
+  }, []);
+
+  /* The canonical module/panel runtime — used by the mobile menu so each
+     item launches the SAME one runtime (openModule for environments like
+     Earth/Render/Sketch, onSelect for capability panels). No separate
+     navigation state exists; the menu is a presentation of the dock. */
+  const { openModule } = useGenesis();
   const tokens = sizeTokens(dockSettings.settings.size);
   const hasErrors = engineErrorCount > 0;
   const isLive = thinking || speaking;
@@ -456,6 +542,20 @@ export default function GenesisDock({
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [downloadDone, setDownloadDone] = useState(false);
+  const [notificationBadge, setNotificationBadge] = useState(0);
+
+  // Subscribe to the real ImprovementQueue for dock badge counts
+  useEffect(() => {
+    const queue = ImprovementQueue.getInstance();
+    const update = () => {
+      const open = queue.open().length;
+      const approved = queue.byStatus("Approved").length;
+      const ready = queue.byStatus("Ready").length;
+      setNotificationBadge(open + approved + ready);
+    };
+    update();
+    return queue.subscribe(() => update());
+  }, []);
 
   const base = typeof import.meta.env.BASE_URL === "string" ? import.meta.env.BASE_URL : "/";
   const zipHref = `${base}lelu-project.zip`;
@@ -500,6 +600,14 @@ export default function GenesisDock({
     if (id === "diagnostics" && hasErrors) {
       return {
         border: `1px solid ${genesisTheme.status.error}`,
+      };
+    }
+    if (id === "notifications" && notificationBadge > 0) {
+      const approvalCount = ImprovementQueue.getInstance().byStatus("Approved").length;
+      const urgent = approvalCount > 0;
+      return {
+        border: urgent ? "1px solid #fbbf24" : "1px solid rgba(167, 139, 250, 0.45)",
+        className: urgent ? "genesis-signal-active" : undefined,
       };
     }
     return {};
@@ -555,131 +663,148 @@ export default function GenesisDock({
     }
   }
 
-  /* ----------------------------------------------------------
-   * PINCH-TO-ZOOM on dock: two-finger pinch on the dock bar
-   * cycles through compact → standard → large.
-   * ---------------------------------------------------------- */
-  const pinchRef = useRef<{ dist: number; size: DockSize } | null>(null);
-
-  function handleDockTouchStart(e: React.TouchEvent) {
-    if (e.touches.length === 2) {
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      pinchRef.current = { dist: Math.hypot(dx, dy), size: dockSettings.settings.size };
-    }
-  }
-
-  function handleDockTouchMove(e: React.TouchEvent) {
-    const pinch = pinchRef.current;
-    if (!pinch || e.touches.length !== 2) return;
-    const dx = e.touches[0].clientX - e.touches[1].clientX;
-    const dy = e.touches[0].clientY - e.touches[1].clientY;
-    const newDist = Math.hypot(dx, dy);
-    const ratio = newDist / pinch.dist;
-    if (ratio > 1.4 && pinch.size === "compact") {
-      dockSettings.setSize("standard");
-      pinchRef.current = { dist: newDist, size: "standard" };
-    } else if (ratio > 1.4 && pinch.size === "standard") {
-      dockSettings.setSize("large");
-      pinchRef.current = { dist: newDist, size: "large" };
-    } else if (ratio < 0.6 && pinch.size === "large") {
-      dockSettings.setSize("standard");
-      pinchRef.current = { dist: newDist, size: "standard" };
-    } else if (ratio < 0.6 && pinch.size === "standard") {
-      dockSettings.setSize("compact");
-      pinchRef.current = { dist: newDist, size: "compact" };
-    }
-  }
-
-  function handleDockTouchEnd() {
-    pinchRef.current = null;
-  }
 
   /* ----------------------------------------------------------
-   * MOBILE (<720px): horizontal bottom bar — the compact
-   * navigation for phones. Every destination stays reachable.
+   * MOBILE (<720px): LÉLU chat + chat-controlled menu.
+   * There is NO permanent bottom navigation. The single floating
+   * LÉLU pill opens the menu — a sheet listing the SAME dock
+   * items, grouped — and every item is a TOOL inside LÉLU's
+   * interface, never a separate application section.
+   * When chat is the active panel, the floating pill is hidden
+   * because the fullscreen chat's own ☰ button in the title bar
+   * triggers the same menu.
    * ---------------------------------------------------------- */
   if (breakpoint === "mobile") {
+    const longPressRef = useRef<number | null>(null);
+    const longPressFiredRef = useRef(false);
+
+    // When chat is fullscreen on mobile, the ☰ button in the chat
+    // title bar provides menu access — hide the floating pill.
+    const chatIsFullscreen = activePanel === "chat";
+
     return (
       <>
-        <div
-          className="lelu-tab-bar"
-          onTouchStart={handleDockTouchStart}
-          onTouchMove={handleDockTouchMove}
-          onTouchEnd={handleDockTouchEnd}
+        {/* Backdrop while the LÉLU menu is open */}
+        {menuOpen ? (
+          <div
+            onClick={() => setMenuOpen(false)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 26,
+              background: "rgba(2,6,23,0.45)",
+              pointerEvents: "auto",
+            }}
+          />
+        ) : null}
+
+        {/* The LÉLU menu — a tool sheet for the chat, not app navigation */}
+        {menuOpen ? (
+          <GenesisMobileMenu
+              statusTitle={statusTitle}
+              statusColor={statusColor}
+              statusPulsing={statusPulsing}
+              online={online}
+              onClose={() => setMenuOpen(false)}
+              onActivate={(id) => {
+                setMenuOpen(false);
+                // Environment modules use the SAME canonical module host as
+                // the desktop rail — one movable/resizable window manager.
+                // Capability panels route through the dock's normal select
+                // path. No separate navigation state exists for the menu.
+                if (ENVIRONMENT_MODULES.some((env) => env.id === id)) {
+                  openModule(id);
+                } else {
+                  toggle(id as GenesisPanel);
+                }
+              }}
+            />
+        ) : null}
+
+        {/* The single floating LÉLU pill — opens the chat menu.
+            Long-press opens voice (same as the old chat tab).
+            Hidden when chat is fullscreen — the ☰ button in the
+            chat title bar triggers the same menu. */}
+        {!chatIsFullscreen ? (
+        <button
+          type="button"
+          onClick={() => {
+            if (longPressFiredRef.current) {
+              longPressFiredRef.current = false;
+              return;
+            }
+            setMenuOpen((open) => !open);
+          }}
+          onPointerDown={(event) => {
+            if (event.pointerType === "touch" && onCoreHoldVoice) {
+              longPressRef.current = window.setTimeout(() => {
+                longPressFiredRef.current = true;
+                onCoreHoldVoice();
+              }, 600);
+            }
+          }}
+          onPointerUp={() => {
+            if (longPressRef.current) {
+              window.clearTimeout(longPressRef.current);
+              longPressRef.current = null;
+            }
+          }}
+          onPointerCancel={() => {
+            if (longPressRef.current) {
+              window.clearTimeout(longPressRef.current);
+              longPressRef.current = null;
+            }
+          }}
+          onPointerMove={(event) => {
+            if (longPressRef.current && Math.abs(event.movementX) + Math.abs(event.movementY) > 8) {
+              window.clearTimeout(longPressRef.current);
+              longPressRef.current = null;
+            }
+          }}
+          className={`lelu-tab-cloud${menuOpen ? " lelu-tab-cloud-active" : ""}`}
+          title="LÉLU menu — tools, workspace, environments (long-press for voice)"
+          aria-label="Open LÉLU menu"
           style={{
             position: "fixed",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 25,
+            right: 12,
+            bottom: "calc(env(safe-area-inset-bottom, 0px) + 10px)",
+            zIndex: 28,
             pointerEvents: "auto",
-            display: "flex",
-            gap: 7,
-            overflowX: "auto",
-            overflowY: "hidden",
+            display: "inline-flex",
             alignItems: "center",
-            padding: "9px 10px",
-            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 9px)",
-            scrollbarWidth: "none",
-            WebkitOverflowScrolling: "touch",
+            gap: 8,
+            borderRadius: 999,
+            padding: "10px 16px",
+            fontSize: 12.5,
+            fontWeight: 500,
+            letterSpacing: "0.04em",
+            color: "#dbeafe",
+            background: menuOpen ? "rgba(103,232,249,0.2)" : "rgba(8,16,38,0.88)",
+            border: "1px solid rgba(103,232,249,0.35)",
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+            boxShadow: "0 8px 28px rgba(2,6,23,0.5)",
+            cursor: "pointer",
+            fontFamily: "inherit",
+            touchAction: "manipulation",
           }}
         >
-          {dockSettings.visibleItems.map((item) => {
-            const active = isItemActive(item.id);
-            const glow = itemGlow(item.id);
-            return (
-              <DockTab
-                key={item.id}
-                item={item}
-                active={active}
-                glowBorder={glow.border}
-                glowClass={glow.className}
-                onSelect={() => toggle(item.id)}
-                onReorder={handleReorder}
-                style={{
-                  flexShrink: 0,
-                  borderRadius: 999,
-                  padding: tokens.padding,
-                  fontSize: tokens.fontSize,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: tokens.gap,
-                }}
-              >
-                <span aria-hidden>{item.glyph}</span>
-                {item.label}
-              </DockTab>
-            );
-          })}
-          <TabEditButton onClick={() => setTabEditorOpen(true)} compact />
-          <a
-            href={zipHref}
-            download="lelu-project.zip"
-            onClick={handleZipDownload}
-            title={
-              downloadError
-                ? `Download blocked: ${downloadError} — right-click → "Save link as…"`
-                : "Download project ZIP (right-click → “Save link as…” if no download starts)"
-            }
-            className="lelu-tab-cloud"
+          <span
+            title={statusTitle}
             style={{
-              flexShrink: 0,
+              width: 7,
+              height: 7,
               borderRadius: 999,
-              padding: tokens.padding,
-              fontSize: tokens.fontSize,
-              display: "flex",
-              alignItems: "center",
-              gap: tokens.gap,
-              cursor: "pointer",
-              textDecoration: "none",
-              fontFamily: "inherit",
+              background: statusColor,
+              boxShadow: statusPulsing ? `0 0 8px ${statusColor}` : "none",
+              flexShrink: 0,
             }}
-          >
-            <span aria-hidden>{downloading ? "◌" : downloadDone ? "✓" : "⬇"}</span>
-            {downloading ? "Preparing…" : downloadDone ? "Saved" : "ZIP"}
-          </a>
-        </div>
+          />
+          <span aria-hidden style={{ fontSize: 13 }}>◎</span>
+          <span>LÉLU</span>
+          <span aria-hidden style={{ fontSize: 15, lineHeight: 1 }}>☰</span>
+        </button>
+        ) : null}
         {tabEditor}
       </>
     );
@@ -754,6 +879,30 @@ export default function GenesisDock({
             );
           })}
 
+          {onToggleSelfExploration ? (
+            <button
+              type="button"
+              onClick={onToggleSelfExploration}
+              className="lelu-tab-cloud"
+              title={`Self Exploration ${selfExplorationEnabled ? "ON" : "OFF"}`}
+              style={{
+                width: railSize,
+                height: railSize,
+                flexShrink: 0,
+                borderRadius: 14,
+                fontSize: 12,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontFamily: "inherit",
+                background: selfExplorationEnabled ? "rgba(130,200,255,0.22)" : "rgba(255,255,255,0.05)",
+                border: selfExplorationEnabled ? "1px solid rgba(130,200,255,0.45)" : "1px solid rgba(255,255,255,0.12)",
+              }}
+            >
+              <span aria-hidden>{selfExplorationEnabled ? "✦" : "◇"}</span>
+            </button>
+          ) : null}
           <TabEditButton onClick={() => setTabEditorOpen(true)} compact />
           <a
             href={zipHref}
@@ -805,7 +954,7 @@ export default function GenesisDock({
    * ~80px wide, dark translucent glass, thin luminous line
    * icons, active state glowing with a left indicator bar.
    * ---------------------------------------------------------- */
-  const primaryIds = new Set<GenesisPanel>(["chat", "genesisv2", "reasoning", "cognition", "engineering", "evolution", "workspaces", "sketch", "render", "video", "avatar", "diagnostics", "memory", "history", "providers", "agents"]);
+  const primaryIds = new Set<GenesisPanel>(["chat", "visualstudio", "browser", "engineering", "memory", "agents", "notifications", "settings", "history", "workspaces", "genesisv2", "video", "reasoning", "cognition", "evolution", "providers", "diagnostics", "executive"]);
   const railSize = dockSettings.settings.size === "large" ? 48 : dockSettings.settings.size === "compact" ? 38 : 44;
 
   return (
@@ -905,6 +1054,31 @@ export default function GenesisDock({
                   />
                 ) : null}
                 <GenesisNavIcon name={item.icon} size={primary ? tokens.iconSize : tokens.iconSize - 2} />
+                {item.id === "notifications" && notificationBadge > 0 ? (
+                  <span
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      top: -2,
+                      right: -2,
+                      minWidth: 16,
+                      height: 16,
+                      padding: "0 4px",
+                      borderRadius: 999,
+                      background: ImprovementQueue.getInstance().byStatus("Approved").length > 0 ? "#fbbf24" : "#a78bfa",
+                      color: "#020617",
+                      fontSize: 9,
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      lineHeight: 1,
+                      boxShadow: "0 0 8px rgba(251, 191, 36, 0.4)",
+                    }}
+                  >
+                    {notificationBadge > 99 ? "99+" : notificationBadge}
+                  </span>
+                ) : null}
               </DockTab>
             </div>
           );

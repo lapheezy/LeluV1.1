@@ -33,7 +33,7 @@
  * ==========================================================
  */
 
-import { useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { AgentEvent } from "../../../core/agent/AgentEvents";
 import { useVisual } from "../../../core/visual/useVisual";
 import { useWorkspace } from "../../../core/workspace/useWorkspace";
@@ -59,6 +59,20 @@ const FIELD_BG =
 export default function LivingSystemUI() {
   // TEMP DEBUG — scene-isolation lifecycle log (see useSceneMountLog).
   useSceneMountLog("LivingSystemUI");
+
+  // The unified interface (left dock on desktop / bottom bar on phones)
+  // stays mounted above this scene — the system nav clears it.
+  const [mobile, setMobile] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < 720,
+  );
+  useEffect(() => {
+    function update() {
+      setMobile(window.innerWidth < 720);
+    }
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
   const { state: visualState, engine: visualEngine } = useVisual();
   const { state: workspaceState, engine: workspaceEngine } = useWorkspace();
@@ -107,6 +121,7 @@ export default function LivingSystemUI() {
 
       {/* Navigation for THIS environment — not the Genesis dock. */}
       <SystemNav
+        mobile={mobile}
         mode={mode}
         onMode={(next) => visualEngine.setMode(next)}
         views={workspaceState.views.filter((view) => !view.minimized)}
@@ -248,6 +263,7 @@ const MODES: { id: string; label: string }[] = [
 ];
 
 function SystemNav({
+  mobile,
   mode,
   onMode,
   views,
@@ -256,6 +272,7 @@ function SystemNav({
   onExit,
   onOpenLab,
 }: {
+  mobile: boolean;
   mode: string;
   onMode: (mode: "heartbeat" | "matrix" | "nerve" | "neuron" | "core") => void;
   views: WorkspaceView[];
@@ -273,7 +290,8 @@ function SystemNav({
         top: 0,
         left: 0,
         right: 0,
-        padding: "12px 14px",
+        /* Desktop: clear the unified interface's 80px left dock rail. */
+        padding: mobile ? "12px 14px" : "12px 96px 12px 96px",
         paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)",
         display: "flex",
         alignItems: "center",

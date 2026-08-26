@@ -20,6 +20,7 @@ import AgentEventBus from "./agent/AgentEvents";
 import ProjectStore from "./projects/ProjectStore";
 import AgentStore from "./agents/AgentStore";
 import AvatarStore from "./avatar/AvatarProfile";
+import SupabasePersistence from "./persistence/SupabasePersistence";
 
 export default class MemoryBridge {
   constructor(
@@ -198,9 +199,13 @@ ${context}`,
    * MemoryEngine, which decides what is durable enough to persist).
    */
   public async learn(prompt: string, response: string, taskId?: string): Promise<void> {
-    await this.brain.learn(prompt, response, "conversation", [], {
+    const learned = await this.brain.learn(prompt, response, "conversation", [], {
       source: "lelu-chat",
     });
+
+    if (learned) {
+      void SupabasePersistence.getInstance().persistMemories([learned]);
+    }
 
     AgentEventBus.getInstance().emit({
       type: "memory_update",

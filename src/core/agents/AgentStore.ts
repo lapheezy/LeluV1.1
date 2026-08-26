@@ -48,6 +48,19 @@ export default class AgentStore {
     return agents.sort((a, b) => b.updatedAt - a.updatedAt);
   }
 
+  /** Merge remote records without discarding newer local work. */
+  public mergeRemote(agents: LeluAgent[]): void {
+    const local = this.list();
+    const byId = new Map(local.map((agent) => [agent.id, agent]));
+    for (const remote of agents) {
+      const current = byId.get(remote.id);
+      if (!current || remote.updatedAt > current.updatedAt) {
+        byId.set(remote.id, remote);
+      }
+    }
+    this.persist([...byId.values()]);
+  }
+
   private persist(agents: LeluAgent[]): void {
     this.kv.set(AgentStore.KEY, agents);
     this.notify();

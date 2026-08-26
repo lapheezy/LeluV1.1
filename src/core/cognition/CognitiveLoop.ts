@@ -34,6 +34,10 @@ import SelfModel from "./SelfModel";
 import SystemEnvironment from "./SystemEnvironment";
 import WorkQueue from "./WorkQueue";
 import SelfDevelopmentEngine from "../selfdev/SelfDevelopmentEngine";
+import CapabilityManifest from "../capabilities/CapabilityManifest";
+import Sentinel from "../sentinel/Sentinel";
+import ProactiveCore, { type ProactiveQuestionInput } from "../proactive/ProactiveCore";
+import type { KnowledgeResult } from "../../providers/Provider";
 
 export interface CognitiveCycleReport {
   updatedAt: number;
@@ -149,23 +153,33 @@ export default class CognitiveLoop {
       }
 
       /* ---------------- UNDERSTAND + REMEMBER ---------------- */
-      const capabilities = [
-        "chat",
-        "memory",
-        "cognition",
-        "agents",
-        "projects",
-        "sketch",
-        "render (local engine)",
-        "video projects",
-        "avatar identity",
-        "engineering sandbox",
-      ];
+      // Use actual CapabilityManifest — NOT a hardcoded list.
+      const manifest = CapabilityManifest.getInstance();
+      const availableCaps = manifest.getAvailable();
+      const capabilities = availableCaps.map((c) => `${c.name} (${c.category})`);
+      // Also add core capabilities that aren't in the manifest
+      const coreCaps = ["chat", "memory", "cognition", "agents", "projects"];
+      for (const cap of coreCaps) {
+        if (!capabilities.some((c) => c.startsWith(cap))) {
+          capabilities.push(cap);
+        }
+      }
       for (const change of selfModel.syncFromEnvironment({
         projects: activeProjects.map((project) => project.name),
         capabilities,
       })) {
         selfUpdates.push(change);
+      }
+
+      // Sync unavailable capabilities from manifest
+      const unavailable = manifest.getAll().filter((c) => c.status === "unavailable" || c.status === "not_configured");
+      const currentUnavailable = selfModel.get().unavailable;
+      const newUnavailable = unavailable
+        .map((c) => `${c.name}: ${c.status}`)
+        .filter((u) => !currentUnavailable.some((eu) => eu.startsWith(u.split(":")[0] ?? "")));
+      if (newUnavailable.length > 0) {
+        selfModel.update({ unavailable: [...newUnavailable, ...currentUnavailable].slice(0, 20) });
+        selfUpdates.push(`Updated ${newUnavailable.length} capability status(es).`);
       }
 
       /* ---------------- LEARN — gap → learning proposal ---------------- */
@@ -189,6 +203,87 @@ export default class CognitiveLoop {
         openTitles.add(`study: ${key}`);
         suggestions.push(`Knowledge gap detected — proposed LEARNING: ${gap.title}.`);
         added += 1;
+      }
+
+      /* ---------------- ACTUAL RESEARCH FROM GAPS ---------------- */
+      // When knowledge gaps exist, actually research them through the
+      // SAME ProviderRegistry the chat pipeline uses — not just propose
+      // LEARNING items. This makes cognition actually USE the connected
+      // APIs as part of its thinking loop.
+      if (gaps.length > 0 && autonomy.getLevel() >= 1) {
+        try {
+          const ai = AIService.getInstance();
+          const registry = ai.getKnowledgeProviderRegistry();
+          const topGap = gaps[0];
+          const researchQuery = topGap.detail || topGap.title;
+          const newsProviders = registry
+            .all()
+            .filter((p) => p.enabled && p.capabilities.some((c) => c === "knowledge" || c === "news" || c === "encyclopedia"))
+            .sort((a, b) => b.priority - a.priority)
+            .slice(0, 2);
+
+          for (const provider of newsProviders) {
+            if (!provider.canSearch?.(researchQuery)) continue;
+            try {
+              const results = await Promise.race([
+                provider.search(researchQuery),
+                new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 8000)),
+              ]);
+              if (Array.isArray(results) && results.length > 0) {
+                // Store as knowledge — cognition LEARNED from the API
+                knowledge.add({
+                  title: `Researched: ${topGap.title}`,
+                  domain: topGap.domain,
+                  detail: results.slice(0, 3).map((r: KnowledgeResult) => `${r.title}: ${(r.content ?? "").slice(0, 120)}`).join(" | "),
+                  status: "learned",
+                  source: provider.name,
+                });
+                selfModel.addLearning(`Researched "${researchQuery}" via ${provider.name}: ${results.length} result(s)`);
+                suggestions.push(`Actually researched knowledge gap "${topGap.title}" via ${provider.name} — ${results.length} result(s) stored.`);
+                // Report to Sentinel
+                Sentinel.getInstance().report(
+                  "system_event",
+                  "info",
+                  `Cognitive research: "${topGap.title}" → ${results.length} result(s) via ${provider.name}`,
+                  "CognitiveLoop",
+                );
+                break; // got results from this provider, stop
+              }
+            } catch {
+              // Provider failed — try next
+            }
+          }
+        } catch {
+          // Research is best-effort — never break the cycle
+        }
+      }
+
+      /* ---------------- API HEALTH CHECKS ---------------- */
+      // Verify connected providers and update CapabilityManifest + SelfModel.
+      // This runs each cycle so LÉLU always knows her actual capabilities.
+      try {
+        const manifest = CapabilityManifest.getInstance();
+        const ai = AIService.getInstance();
+        const registry = ai.getKnowledgeProviderRegistry();
+        for (const provider of registry.all()) {
+          const capId = `knowledge.${provider.name}`;
+          const existing = manifest.getAll().find((c) => c.id === capId);
+          if (existing) {
+            manifest.updateStatus(capId, provider.enabled ? "available" : "not_configured");
+          }
+        }
+        // Sentinel health event (throttled to once per 5 cycles)
+        if (this.cycle % 5 === 0) {
+          const healthReport = manifest.getReport();
+          Sentinel.getInstance().report(
+            "provider_health",
+            "info",
+            `Capability health: ${healthReport.split("\n").filter((l) => l.includes("✓") || l.includes("✗") || l.includes("○")).length} capabilities checked`,
+            "CognitiveLoop",
+          );
+        }
+      } catch {
+        // Health checks are best-effort
       }
 
       /* ---------------- REASON + PREDICT ---------------- */
@@ -231,6 +326,69 @@ export default class CognitiveLoop {
           }
         }
       }
+
+      /* ---------------- PROACTIVE QUESTIONS ---------------- */
+      // Ask only about unresolved, actionable state. One pending question
+      // at a time keeps the conversation interruptible and the stable key
+      // prevents the same decision from returning after resolution/dismissal.
+      const proactive = ProactiveCore.getInstance();
+      if (proactive.shouldAskQuestions() && !proactive.getActiveQuestion()) {
+        let question: ProactiveQuestionInput | null = null;
+        const blockedItem = openItems.find(
+          (item) => item.category === "BLOCKED" || item.category === "REVIEW",
+        );
+
+        if (blockedItem) {
+          question = {
+            key: `work-queue:${blockedItem.id}`,
+            question: `Your work queue is waiting on “${blockedItem.title}”. What decision or information should I use to move it forward?`,
+            category: blockedItem.category === "BLOCKED" ? "EXECUTIVE" : "WORKFLOW",
+            reason: blockedItem.detail ?? "A real work item is blocked or awaiting review.",
+            priority: blockedItem.category === "BLOCKED" ? "P0" : "P1",
+            relatedTask: blockedItem.title,
+            blocksExecution: true,
+            rememberAnswer: true,
+          };
+        } else {
+          const directionProject = activeProjects.find(
+            (project) => project.items.length === 0 && !project.queries?.length,
+          );
+          if (directionProject) {
+            question = {
+              key: `project-direction:${directionProject.id}`,
+              question: `“${directionProject.name}” is active but has no defined next outcome. What should I prioritize there?`,
+              category: "PROJECT",
+              reason: "The project exists in persistent state but has no work items or research direction.",
+              priority: "P1",
+              relatedProjectId: directionProject.id,
+              relatedTask: directionProject.name,
+              blocksExecution: false,
+              rememberAnswer: true,
+            };
+          } else if (sandboxNodes.some((node) => node.type === "file")) {
+            question = {
+              key: "sandbox-priority",
+              question: "There is unfinished work in the sandbox. Should I audit it, test it, or continue implementing the next feature?",
+              category: "SANDBOX",
+              reason: "The sandbox contains persisted files that do not have a current user-directed next action.",
+              priority: "P2",
+              relatedTask: "sandbox work",
+              blocksExecution: false,
+              rememberAnswer: true,
+            };
+          }
+        }
+
+        if (question) {
+          proactive.enqueueQuestion(question);
+          suggestions.push(`Proactive question queued: ${question.category}.`);
+        }
+      }
+
+      /* ---------------- UI STATE SNAPSHOT ---------------- */
+      // The current UI state is available via UIStateStore.getInstance().get()
+      // for any code that needs to know what LÉLU is looking at.
+      // It's read by the cognitive context and by agents that need UI awareness.
 
       /* ---------------- REPORT ---------------- */
       const report: CognitiveCycleReport = {

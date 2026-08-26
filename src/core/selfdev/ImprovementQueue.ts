@@ -198,6 +198,7 @@ function seedProposals(): ImprovementProposal[] {
 export default class ImprovementQueue {
   private static instance: ImprovementQueue | null = null;
   private proposals: ImprovementProposal[];
+  private readonly listeners = new Set<(proposals: ImprovementProposal[]) => void>();
 
   private constructor() {
     const stored = KvStore.getInstance().get<ImprovementProposal[]>(KEY);
@@ -220,6 +221,15 @@ export default class ImprovementQueue {
     } catch {
       // best-effort
     }
+    for (const listener of this.listeners) {
+      try { listener(this.list()); } catch { /* contained */ }
+    }
+  }
+
+  public subscribe(listener: (proposals: ImprovementProposal[]) => void): () => void {
+    this.listeners.add(listener);
+    listener(this.list());
+    return () => this.listeners.delete(listener);
   }
 
   public list(): ImprovementProposal[] {
@@ -241,6 +251,23 @@ export default class ImprovementQueue {
     this.proposals = [created, ...this.proposals];
     this.persist();
     return created;
+  }
+
+  /** Merge remote proposals without overwriting newer local state. */
+  public mergeRemote(proposals: ImprovementProposal[]): void {
+    let changed = false;
+    const byId = new Map(this.proposals.map((proposal) => [proposal.id, proposal]));
+    for (const remote of proposals) {
+      const local = byId.get(remote.id);
+      if (!local || remote.updated > local.updated) {
+        byId.set(remote.id, remote);
+        changed = true;
+      }
+    }
+    if (changed) {
+      this.proposals = [...byId.values()];
+      this.persist();
+    }
   }
 
   public update(id: string, patch: Partial<ImprovementProposal>): void {

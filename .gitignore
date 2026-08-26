@@ -12,6 +12,18 @@ dist
 dist-ssr
 *.local
 
+# Secrets — never commit real environment files
+.env
+.env.local
+.env.*.local
+
+# Local analysis checkout for the external Neko service
+.neko-source/
+
+# Keep the config template tracked
+!.env.example
+!env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

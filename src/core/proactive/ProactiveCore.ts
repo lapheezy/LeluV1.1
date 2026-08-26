@@ -46,6 +46,60 @@ export const PROACTIVE_CATEGORIES = [
 
 export type ProactiveCategory = (typeof PROACTIVE_CATEGORIES)[number];
 
+export const PROACTIVE_QUESTION_CATEGORIES = [
+  "PROJECT",
+  "SANDBOX",
+  "NEWS",
+  "PERSONAL_CONTEXT",
+  "PREFERENCES",
+  "PERSONALITY",
+  "GOALS",
+  "WORKFLOW",
+  "UI",
+  "SELF_IMPROVEMENT",
+  "API/TOOLING",
+  "EXECUTIVE",
+  "AGENT",
+] as const;
+
+export type ProactiveQuestionCategory = (typeof PROACTIVE_QUESTION_CATEGORIES)[number];
+export type ProactiveQuestionPriority = "P0" | "P1" | "P2" | "P3" | "P4";
+export type ProactiveQuestionStatus = "pending" | "resolved" | "dismissed";
+
+export interface ProactiveQuestion {
+  id: string;
+  key: string;
+  question: string;
+  category: ProactiveQuestionCategory;
+  reason: string;
+  priority: ProactiveQuestionPriority;
+  relatedProjectId?: string;
+  relatedTask?: string;
+  blocksExecution: boolean;
+  rememberAnswer: boolean;
+  askedAt: number;
+  userResponse?: string;
+  resolvedAt?: number;
+  status: ProactiveQuestionStatus;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface ProactiveQuestionInput {
+  key: string;
+  question: string;
+  category: ProactiveQuestionCategory;
+  reason: string;
+  priority: ProactiveQuestionPriority;
+  relatedProjectId?: string;
+  relatedTask?: string;
+  blocksExecution?: boolean;
+  rememberAnswer?: boolean;
+}
+
+type QuestionListener = (question: ProactiveQuestion | null) => void;
+type QuestionChangeListener = (question: ProactiveQuestion) => void;
+
 export interface ProactiveSettings {
   enabled: boolean;
   sessionBriefing: boolean;
@@ -60,7 +114,12 @@ export interface ProactiveSettings {
 }
 
 const DEFAULT_SETTINGS: ProactiveSettings = {
-  enabled: false,
+  // Curiosity is a core behaviour (NOTICE → CURIOUS → INVESTIGATE →
+  // CONNECT → DECIDE → BRING INTO CONVERSATION), so it is on by default.
+  // Individual questions are still surfaced at most once per session (the
+  // chat's present-once guard) and LÉLU stays quiet when there is nothing
+  // genuinely relevant, so this never becomes a repetitive prompt.
+  enabled: true,
   sessionBriefing: true,
   routineLearning: true,
   suggestions: true,
@@ -178,6 +237,7 @@ const KEY_EVENTS = "proactive.events.v1";
 const KEY_WEIGHTS = "proactive.weights.v1";
 const KEY_WATCHES = "proactive.watches.v1";
 const KEY_MUTES = "proactive.mutes.v1";
+const KEY_QUESTIONS = "proactive.questions.v1";
 
 const MAX_RECENT_MESSAGES = 12;
 const MAX_EVENTS = 120;
@@ -199,6 +259,9 @@ export default class ProactiveCore {
   private weights: Record<string, CategoryWeight> = {};
   private watches: string[] = [];
   private mutes: string[] = [];
+  private questions: ProactiveQuestion[] = [];
+  private questionListeners = new Set<QuestionListener>();
+  private questionChangeListeners = new Set<QuestionChangeListener>();
 
   private loaded = false;
 
@@ -254,6 +317,7 @@ export default class ProactiveCore {
     this.weights = this.kv.get<Record<string, CategoryWeight>>(KEY_WEIGHTS) ?? {};
     this.watches = this.kv.get<string[]>(KEY_WATCHES) ?? [];
     this.mutes = this.kv.get<string[]>(KEY_MUTES) ?? [];
+    this.questions = this.kv.get<ProactiveQuestion[]>(KEY_QUESTIONS) ?? [];
     this.loaded = true;
   }
 
@@ -300,6 +364,200 @@ export default class ProactiveCore {
 
   private persistMutes(): void {
     this.kv.set(KEY_MUTES, this.mutes);
+  }
+
+  private persistQuestions(): void {
+    this.kv.set(KEY_QUESTIONS, this.questions.slice(-80));
+  }
+
+  private notifyQuestion(): void {
+    const question = this.getActiveQuestion();
+    for (const listener of this.questionListeners) {
+      try {
+        listener(question);
+      } catch {
+        // A UI listener must never interrupt cognition.
+      }
+    }
+  }
+
+  /* ------------------------- proactive questions -------------------- */
+
+  public subscribeQuestions(listener: QuestionListener): () => void {
+    this.ensureLoaded();
+    this.questionListeners.add(listener);
+    listener(this.getActiveQuestion());
+    return () => this.questionListeners.delete(listener);
+  }
+
+  /** Subscribe to every durable question mutation, including answers and dismissals. */
+  public subscribeQuestionChanges(listener: QuestionChangeListener): () => void {
+    this.ensureLoaded();
+    this.questionChangeListeners.add(listener);
+    return () => this.questionChangeListeners.delete(listener);
+  }
+
+  private notifyQuestionChange(question: ProactiveQuestion): void {
+    for (const listener of this.questionChangeListeners) {
+      try { listener(question); } catch { /* contained */ }
+    }
+  }
+
+  public listQuestions(): ProactiveQuestion[] {
+    this.ensureLoaded();
+    return [...this.questions].sort((a, b) => this.priorityValue(a.priority) - this.priorityValue(b.priority) || b.updatedAt - a.updatedAt);
+  }
+
+  public getActiveQuestion(): ProactiveQuestion | null {
+    this.ensureLoaded();
+    return this.listQuestions().find((question) => question.status === "pending") ?? null;
+  }
+
+  public getQuestion(id: string): ProactiveQuestion | undefined {
+    this.ensureLoaded();
+    return this.questions.find((question) => question.id === id);
+  }
+
+  public enqueueQuestion(input: ProactiveQuestionInput): ProactiveQuestion {
+    this.ensureLoaded();
+    const existing = this.questions.find((question) => question.key === input.key);
+    if (existing) {
+      return existing;
+    }
+
+    const now = Date.now();
+    const question: ProactiveQuestion = {
+      ...input,
+      id: crypto.randomUUID(),
+      blocksExecution: input.blocksExecution ?? false,
+      rememberAnswer: input.rememberAnswer ?? true,
+      askedAt: now,
+      status: "pending",
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.questions = [...this.questions, question].slice(-80);
+    this.persistQuestions();
+    this.notifyQuestionChange(question);
+    this.notifyQuestion();
+    return question;
+  }
+
+  public resolveQuestion(id: string, response: string): ProactiveQuestion | undefined {
+    this.ensureLoaded();
+    const question = this.getQuestion(id);
+    if (!question || question.status !== "pending") {
+      return question;
+    }
+    const updated: ProactiveQuestion = {
+      ...question,
+      userResponse: response.trim().slice(0, 2000),
+      resolvedAt: Date.now(),
+      status: "resolved",
+      updatedAt: Date.now(),
+    };
+    this.questions = this.questions.map((item) => item.id === id ? updated : item);
+    this.persistQuestions();
+    this.notifyQuestionChange(updated);
+    this.notifyQuestion();
+    return updated;
+  }
+
+  public dismissQuestion(id: string): void {
+    this.ensureLoaded();
+    const question = this.getQuestion(id);
+    if (!question || question.status !== "pending") {
+      return;
+    }
+    this.questions = this.questions.map((item) => item.id === id
+      ? { ...item, status: "dismissed", updatedAt: Date.now() }
+      : item,
+    );
+    const updated = this.getQuestion(id);
+    this.persistQuestions();
+    if (updated) this.notifyQuestionChange(updated);
+    this.notifyQuestion();
+  }
+
+  /** Merge cloud questions while preserving newer local decisions. */
+  public mergeRemote(questions: ProactiveQuestion[]): void {
+    this.ensureLoaded();
+    let changed = false;
+    const byId = new Map(this.questions.map((question) => [question.id, question]));
+    for (const remote of questions) {
+      const current = byId.get(remote.id);
+      if (!current || remote.updatedAt > current.updatedAt) {
+        byId.set(remote.id, remote);
+        changed = true;
+      }
+    }
+    if (changed) {
+      this.questions = [...byId.values()].slice(-80);
+      this.persistQuestions();
+      for (const question of questions) this.notifyQuestionChange(question);
+      this.notifyQuestion();
+    }
+  }
+
+  public hasResolvedQuestion(key: string): boolean {
+    this.ensureLoaded();
+    return this.questions.some((question) => question.key === key && question.status !== "pending");
+  }
+
+  public hasResolvedCategory(category: ProactiveQuestionCategory): boolean {
+    this.ensureLoaded();
+    return this.questions.some((question) => question.category === category && question.status !== "pending");
+  }
+
+  public shouldAskQuestions(): boolean {
+    // Questions are proactive behaviour — they must respect the LÉLU
+    // proactive switch, not fire regardless. Requiring `enabled` stops the
+    // cognitive loop from re-surfacing first-run onboarding on a user who
+    // never turned proactive mode on, which is what caused the repeated
+    // "what should I track / what's the next step" prompts on every Chat
+    // open.
+    return this.settings.enabled && this.settings.notificationLevel !== "quiet";
+  }
+
+  public hasNewsPreferences(): boolean {
+    this.ensureLoaded();
+    return this.watches.length > 0;
+  }
+
+  public getNewsPreferences(): string[] {
+    this.ensureLoaded();
+    return [...this.watches];
+  }
+
+  /** Merge cloud preferences into the existing proactive preference layer. */
+  public mergeNewsPreferences(topics: string[]): void {
+    this.ensureLoaded();
+    for (const topic of topics) {
+      const normalized = String(topic).trim().toLowerCase();
+      if (normalized && !this.watches.includes(normalized)) this.watches.push(normalized);
+    }
+    this.watches = this.watches.slice(-40);
+    this.persistWatches();
+  }
+
+  /** Store explicit news interests in the existing proactive preference layer. */
+  public learnNewsPreferences(response: string): void {
+    this.ensureLoaded();
+    const topics = response
+      .split(/,|\\band\\b|\\bor\\b/i)
+      .map((topic) => this.normalizeTopic(topic))
+      .filter((topic) => topic.length > 1);
+    for (const topic of topics) {
+      if (!this.watches.includes(topic)) {
+        this.watches.push(topic);
+      }
+    }
+    this.watches = this.watches.slice(-40);
+    this.persistWatches();
+  }
+
+  private priorityValue(priority: ProactiveQuestionPriority): number {
+    return Number(priority.slice(1));
   }
 
   /* ------------------------- session lifecycle ---------------------- */

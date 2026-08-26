@@ -45,8 +45,8 @@ const WORLD_COLORS = ["#a78bfa", "#38bdf8", "#f9a8d4", "#7dd3fc", "#c4b5fd"];
  * workspace is skipped — it IS the Genesis Core itself.
  */
 const WORLD_POSITIONS: Record<string, [number, number, number]> = {
-  creation: [-2.3, 0.1, 0.35],
-  research: [2.3, 0.1, 0.35],
+  creation: [-5.8, 0.4, 1.2],
+  research: [5.8, 0.4, 1.2],
 };
 
 function positionForWorkspace(
@@ -89,7 +89,11 @@ function WorkspaceNode({ id, name, index, count, navigator }: WorkspaceNodeProps
   const coreMesh = useRef<Mesh>(null);
   const time = useRef(0);
 
-  const color = WORLD_COLORS[index % WORLD_COLORS.length];
+  // creation/studio → Sun (warm golden); research/lab → Moon (cool silver)
+  const isSun = id === "creation" || name.toLowerCase() === "creation" || name.toLowerCase() === "studio";
+  const isMoon = id === "research" || name.toLowerCase() === "research" || name.toLowerCase() === "lab";
+  const isCelestial = isSun || isMoon;
+  const color = isSun ? "#fbbf24" : isMoon ? "#94a3b8" : WORLD_COLORS[index % WORLD_COLORS.length];
   const active = state.activeWorkspace === id;
 
   /*
@@ -211,7 +215,7 @@ function WorkspaceNode({ id, name, index, count, navigator }: WorkspaceNodeProps
 
   return (
     <group ref={node} position={position} name={`WorkspaceNode-${name}`}>
-      {/* World core */}
+      {/* World core — Sun is larger and warmer, Moon is cooler */}
       <mesh
         ref={coreMesh}
         material={coreMaterial}
@@ -224,23 +228,25 @@ function WorkspaceNode({ id, name, index, count, navigator }: WorkspaceNodeProps
           document.body.style.cursor = "default";
         }}
       >
-        <sphereGeometry args={[0.46, 48, 48]} />
+        <sphereGeometry args={[isCelestial ? 0.72 : 0.46, 48, 48]} />
       </mesh>
 
-      {/* Atmospheric glow shell */}
-      <mesh material={glowMaterial} scale={1.6}>
-        <sphereGeometry args={[0.46, 32, 32]} />
+      {/* Atmospheric glow shell — Sun gets a warm expanded halo, Moon a soft silver one */}
+      <mesh material={glowMaterial} scale={isCelestial ? 2.2 : 1.6}>
+        <sphereGeometry args={[isCelestial ? 0.72 : 0.46, 32, 32]} />
       </mesh>
 
-      {/* Orbit ring + spark */}
-      <group ref={ring} rotation={[Math.PI / 2.55, 0.35, index * 0.9]}>
-        <mesh material={ringMaterial}>
-          <torusGeometry args={[0.8, 0.012, 12, 80]} />
-        </mesh>
-        <mesh ref={spark} material={sparkMaterial}>
-          <sphereGeometry args={[0.05, 12, 12]} />
-        </mesh>
-      </group>
+      {/* Orbit ring + spark — thinner for celestial bodies, no ring for Moon */}
+      {!isMoon && (
+        <group ref={ring} rotation={[Math.PI / 2.55, 0.35, index * 0.9]}>
+          <mesh material={ringMaterial}>
+            <torusGeometry args={[isSun ? 1.2 : 0.8, isSun ? 0.008 : 0.012, 12, 80]} />
+          </mesh>
+          <mesh ref={spark} material={sparkMaterial}>
+            <sphereGeometry args={[0.05, 12, 12]} />
+          </mesh>
+        </group>
+      )}
     </group>
   );
 }

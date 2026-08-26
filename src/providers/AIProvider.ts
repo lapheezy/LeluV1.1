@@ -97,6 +97,18 @@ export interface AIRequest {
 
 
   /**
+   * Optional progressive-output callback. When provided, providers that
+   * support streaming deliver the ACCUMULATED text after each chunk so
+   * the UI can render the response live instead of waiting for the
+   * full completion. Providers without streaming support simply ignore
+   * it — fallback behavior is unchanged.
+   */
+  onDelta?:
+    (accumulatedText: string) => void;
+
+
+
+  /**
    * Optional model override.
    */
   model?:

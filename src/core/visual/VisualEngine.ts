@@ -337,6 +337,39 @@ export default class VisualEngine {
         this.notify();
         break;
 
+      case "execution_phase": {
+        // The canonical phase stream drives the ambient layer: fallback
+        // and provider phases light the matrix path, render phases the
+        // nerve path, failures the error state — always from REAL events.
+        if (event.phase === "provider_fallback") {
+          this.setMode("matrix");
+          this.emitSignal(["provider", "result"], "Fallback active", "matrix");
+          this.notify();
+        } else if (event.phase === "render_started" || event.phase === "render_completed") {
+          this.setMode("nerve");
+          this.emitSignal(["tool", "result"], `Render · ${event.label}`, "nerve");
+          this.notify();
+        } else if (event.phase === "error" || event.phase === "provider_failed") {
+          this.setRuntime({ error: true });
+          this.emitSignal(["result"], event.label.slice(0, 72), "heartbeat");
+          this.notify();
+        } else if (event.phase === "memory_read_started" || event.phase === "memory_read_completed") {
+          this.setMode("neuron");
+          this.activateConnection(["memory", "cognition"]);
+        }
+        break;
+      }
+
+      case "approval_requested":
+        this.emitSignal(["result", "response"], `Approval needed · ${event.title.slice(0, 48)}`, "matrix");
+        this.notify();
+        break;
+
+      case "approval_resolved":
+        this.emitSignal(["result", "response"], `Approval · ${event.decision}`, "matrix");
+        this.notify();
+        break;
+
       default:
         break;
     }

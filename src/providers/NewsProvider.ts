@@ -6,6 +6,7 @@
  */
 
 import config from "../core/ProviderConfig";
+import { corsFetch } from "./corsFetch";
 
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
@@ -75,11 +76,15 @@ export default class NewsProvider
     }
 
     const response =
-      await fetch(
+      await corsFetch(
 
         `${this.endpoint}?q=${encodeURIComponent(
           query,
         )}&language=en&sortBy=publishedAt&pageSize=10&apiKey=${apiKey}`,
+
+        undefined,
+
+        this.timeout,
 
       );
 

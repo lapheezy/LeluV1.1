@@ -73,6 +73,10 @@ export interface MemoryMetadata {
   confidence?:
     number;
 
+
+  memoryType?:
+    string;
+
 }
 
 

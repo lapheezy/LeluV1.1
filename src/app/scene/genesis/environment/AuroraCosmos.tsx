@@ -16,6 +16,7 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useGenesis } from "../GenesisCore";
+import { sampleCosmosAtmosphere } from "../cosmos/CosmosAtmosphere";
 import { useMemo, useRef } from "react";
 import {
   AdditiveBlending,
@@ -222,19 +223,28 @@ export default function AuroraCosmos() {
         liveUniverse.celestial.planets +
         liveUniverse.astrology.transit +
         liveUniverse.ocean.stormSurge) / 5;
+    const atmosphere = sampleCosmosAtmosphere(clock.elapsedTime);
     const activity = Math.min(
-      0.15,
-      0.05 + cosmicEnergy * 0.08 + celestialActivity * 0.1,
+      0.42,
+      0.04 +
+        cosmicEnergy * 0.08 +
+        celestialActivity * 0.1 +
+        atmosphere.coreColors * 0.14 +
+        atmosphere.storm * 0.18 +
+        atmosphere.hurricane * 0.22,
     );
 
-    root.current.rotation.y += delta * (0.004 + activity * 0.012);
+    root.current.rotation.y += delta * (0.004 + activity * 0.012 + atmosphere.hurricane * 0.018);
     root.current.rotation.x = Math.sin(clock.elapsedTime * 0.08) * 0.025;
 
     ribbons.forEach(({ material, seed }, index) => {
       material.uniforms.uTime.value = clock.elapsedTime * seed.speed;
       material.uniforms.uActivity.value = activity;
       material.uniforms.uHue.value =
-        seed.hue + liveUniverse.evolutionSystem.colorShift * 0.22;
+        seed.hue +
+        liveUniverse.evolutionSystem.colorShift * 0.22 +
+        atmosphere.hueShift * 0.5 +
+        atmosphere.sunset * 0.04;
 
       const child = root.current?.children[index];
       if (child) {

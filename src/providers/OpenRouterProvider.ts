@@ -10,6 +10,8 @@
  */
 
 import type AIProvider from "./AIProvider";
+import { contextMessages } from "./contextMessages";
+import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 
 import type {
   AIRequest,
@@ -159,16 +161,9 @@ export default class OpenRouterProvider implements AIProvider {
       {
         role: "system",
         content:
-          "You are Lélu. You are the user's personal AI companion. Be helpful, calm, creative, and engineering-focused. Never identify yourself as the underlying model or provider.",
+          LELU_SYSTEM_PROMPT,
       },
-      ...(request.context
-        ? [
-            {
-              role: "system",
-              content: `Memory context:\n${request.context}`,
-            },
-          ]
-        : []),
+      ...contextMessages(request),
       ...(request.messages ?? []),
       {
         role: "user",

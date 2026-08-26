@@ -84,7 +84,14 @@ interface Star {
   color: number[];
 }
 
+function seededUnit(index: number, salt: number): number {
+  const value = Math.sin((index + 1) * 12.9898 + (salt + 1) * 78.233) * 43758.5453;
+  return value - Math.floor(value);
+}
+
 function randomStar(index: number): Star {
+  // The field is deterministic by star index. The mounted universe can
+  // change presentation without changing which star occupies each point.
   // Layered spherical shell so the cosmos truly surrounds the scene: left,
   // right, above, below, in front, and behind the Core/workspaces. Each band
   // is a shell at a different radius; within a band, stars are spread
@@ -97,21 +104,22 @@ function randomStar(index: number): Star {
 
   const minRadius = band === 0 ? 12 : band === 1 ? 22 : 46;
   const maxRadius = band === 0 ? 20 : band === 1 ? 42 : 74;
-  const radius = minRadius + Math.random() * (maxRadius - minRadius);
+  const radius = minRadius + seededUnit(index, 1) * (maxRadius - minRadius);
 
   // Uniform direction on the unit sphere: y uniform in [-1, 1] with the
   // horizontal radius derived from it gives an even density everywhere.
-  const theta = Math.random() * Math.PI * 2;
-  const y = 1 - 2 * Math.random();
+  const theta = seededUnit(index, 2) * Math.PI * 2;
+  const y = 1 - 2 * seededUnit(index, 3);
   const horizontal = Math.sqrt(Math.max(0, 1 - y * y));
   const x = horizontal * Math.cos(theta);
   const z = horizontal * Math.sin(theta);
 
+  const sizeRoll = seededUnit(index, 4);
   const size = band === 0
-    ? 0.055 + Math.random() * 0.09
+    ? 0.055 + sizeRoll * 0.09
     : band === 1
-      ? 0.03 + Math.random() * 0.07
-      : 0.035 + Math.random() * 0.045;
+      ? 0.03 + sizeRoll * 0.07
+      : 0.035 + sizeRoll * 0.045;
 
   const palette =
     band === 0
@@ -134,14 +142,14 @@ function randomStar(index: number): Star {
           [0.6, 0.85, 1.0],
         ];
 
-  const color = palette[Math.floor(Math.random() * palette.length)];
-  const brightness = 0.55 + Math.random() * 0.45;
+  const color = palette[Math.floor(seededUnit(index, 5) * palette.length)];
+  const brightness = 0.55 + seededUnit(index, 6) * 0.45;
 
   return {
     position: new Vector3(x * radius, y * radius, z * radius),
     size,
-    phase: Math.random() * Math.PI * 2,
-    speed: 0.4 + Math.random() * 1.4,
+    phase: seededUnit(index, 7) * Math.PI * 2,
+    speed: 0.4 + seededUnit(index, 8) * 1.4,
     color: color.map((channel) => channel * brightness),
   };
 }

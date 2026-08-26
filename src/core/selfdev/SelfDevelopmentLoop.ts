@@ -89,6 +89,23 @@ export default class SelfDevelopmentLoop {
     return this.lastRun;
   }
 
+  /**
+   * User-approved a proposal: mark it approved and fire
+   * sandbox development. The actual develop() call runs
+   * asynchronously through the existing sandbox pipeline.
+   */
+  public approve(proposalId: string): void {
+    const proposal = this.queue.get(proposalId);
+    if (!proposal) return;
+    this.queue.setStatus(proposalId, "Approved");
+    // Start sandbox development asynchronously
+    this.develop(proposalId).catch((err) => {
+      console.error("[SelfDevelopmentLoop] Auto-develop failed for", proposalId, err);
+      // Don't lose the proposal — reset so user can retry
+      this.queue.setStatus(proposalId, "Proposed");
+    });
+  }
+
   private addStep(steps: LoopStep[], step: string, status: LoopStep["status"], detail: string): void {
     steps.push({ step, status, detail, timestamp: Date.now() });
   }

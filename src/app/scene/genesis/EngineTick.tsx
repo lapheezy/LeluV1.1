@@ -26,6 +26,7 @@ import {
   idleGenesisSignals,
   type GenesisSignals,
 } from "./engines/GenesisSignals";
+import Sentinel from "../../../core/sentinel/Sentinel";
 
 export default function EngineTick() {
   const { state: uiState, engineRuntime, updateUniverse } = useGenesis();
@@ -73,8 +74,14 @@ export default function EngineTick() {
       return;
     }
 
+    // Sentinel: report engine errors every 10 seconds
+    const sentinel = Sentinel.getInstance();
+    let sentinelTick = 0;
+    const SENTINEL_INTERVAL = 10_000; // 10s between health reports
+
     let raf = 0;
     let last = performance.now();
+    let lastSentinel = performance.now();
 
     const tick = (now: number) => {
       const delta = Math.min(0.1, Math.max(0.001, (now - last) / 1000));
@@ -83,6 +90,28 @@ export default function EngineTick() {
       updateUniverse((universeState) => {
         engineRuntime.update(universeState, delta, signalsRef.current);
       });
+
+      // Periodic Sentinel health report
+      if (now - lastSentinel >= SENTINEL_INTERVAL) {
+        lastSentinel = now;
+        sentinelTick++;
+        const sig = signalsRef.current;
+        if (sig.engineErrorCount > 0) {
+          sentinel.warn(
+            "system_event",
+            `${sig.engineErrorCount} engine(s) in error state`,
+            "EngineTick",
+            { errorCount: sig.engineErrorCount },
+          );
+        }
+        if (sig.providerSwitched) {
+          sentinel.info(
+            "provider_health",
+            "AI provider switched",
+            "EngineTick",
+          );
+        }
+      }
 
       raf = requestAnimationFrame(tick);
     };

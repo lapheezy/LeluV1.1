@@ -24,7 +24,6 @@
  */
 
 import { useEffect, useState } from "react";
-import GenesisBottomNav from "./GenesisBottomNav";
 import GenesisSpatialControls from "./GenesisSpatialControls";
 
 function useViewport() {
@@ -48,9 +47,7 @@ function useViewport() {
 }
 
 export default function GenesisWorkspacePreview() {
-  const { width } = useViewport();
-
-  const tablet = width < 1024;
+  useViewport();
 
   return (
     <div
@@ -61,9 +58,10 @@ export default function GenesisWorkspacePreview() {
         pointerEvents: "none",
       }}
     >
-      {/* Right-edge spatial controls + bottom navigation (desktop/tablet) */}
+      {/* Right-edge spatial controls only — desktop navigation lives in the
+          unified left rail; the bottom-nav pills were removed (the chat IS
+          the navigation surface, the rail is its desktop menu). */}
       <GenesisSpatialControls />
-      {tablet ? null : <GenesisBottomNav />}
     </div>
   );
 }

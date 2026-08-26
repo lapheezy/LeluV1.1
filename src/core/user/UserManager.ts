@@ -13,6 +13,8 @@ import type UserProfile
 
 
 
+type UserProfileListener = (profile: UserProfile) => void;
+
 type UserProfileUpdate =
 
   Partial<UserProfile>
@@ -41,6 +43,8 @@ class UserManager {
   private profile:
     UserProfile | null =
       null;
+
+  private readonly listeners = new Set<UserProfileListener>();
 
 
 
@@ -220,6 +224,22 @@ class UserManager {
   }
 
 
+  public subscribe(listener: UserProfileListener): () => void {
+    this.listeners.add(listener);
+    if (this.profile) listener(this.profile);
+    return () => this.listeners.delete(listener);
+  }
+
+
+  public async mergeRemote(profile: UserProfile): Promise<void> {
+    if (!this.profile || profile.updatedAt > this.profile.updatedAt) {
+      this.profile = profile;
+      await this.store.save(profile);
+      for (const listener of this.listeners) listener(profile);
+    }
+  }
+
+
 
 
 
@@ -306,6 +326,8 @@ class UserManager {
       this.profile,
 
     );
+
+    for (const listener of this.listeners) listener(this.profile);
 
   }
 

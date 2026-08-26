@@ -67,6 +67,7 @@ import {
 } from "./render/CoreMorphology";
 import GenesisNavIcon, { type GenesisNavIconName } from "./GenesisNavIcons";
 import GenesisV2Scene3D, { type V2NodeId } from "./GenesisV2Scene3D";
+import GenesisV2CameraHUD from "./GenesisV2CameraHUD";
 
 /* ------------------------------- palette ------------------------------- */
 
@@ -935,7 +936,7 @@ function V2Rail({
       style={{
         position: "absolute",
         top: 0,
-        left: 0,
+        right: 0,
         bottom: 0,
         width,
         zIndex: 5,
@@ -945,12 +946,14 @@ function V2Rail({
         gap: 4,
         padding: "16px 0 12px",
         boxSizing: "border-box",
+        /* Right-mounted: the left edge belongs to the unified interface
+           dock, which stays mounted above this scene. */
         background:
           "linear-gradient(180deg, rgba(4, 9, 28, 0.78), rgba(4, 9, 28, 0.6) 55%, rgba(12, 6, 34, 0.66))",
-        borderRight: "1px solid rgba(148, 163, 184, 0.14)",
+        borderLeft: "1px solid rgba(148, 163, 184, 0.14)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        boxShadow: "0 0 34px rgba(2, 6, 23, 0.55), inset -1px 0 0 rgba(125, 211, 252, 0.06)",
+        boxShadow: "0 0 34px rgba(2, 6, 23, 0.55), inset 1px 0 0 rgba(125, 211, 252, 0.06)",
       }}
     >
       {RAIL_ITEMS.map((item) => {
@@ -988,7 +991,7 @@ function V2Rail({
                 aria-hidden
                 style={{
                   position: "absolute",
-                  left: -18,
+                  right: -18,
                   top: "50%",
                   transform: "translateY(-50%)",
                   width: 2,
@@ -1016,7 +1019,7 @@ function V2Rail({
  * workspace — Genesis v2 stays mounted no matter how much the user
  * collapses the UI.
  */
-function V2ScenePill({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+function V2ScenePill({ open, onToggle, mobile }: { open: boolean; onToggle: () => void; mobile: boolean }) {
   return (
     <button
       type="button"
@@ -1026,7 +1029,9 @@ function V2ScenePill({ open, onToggle }: { open: boolean; onToggle: () => void }
       style={{
         position: "absolute",
         right: 14,
-        bottom: 14,
+        /* On phones the unified interface is a bottom dock bar — sit
+           above it so the pill stays reachable. */
+        bottom: mobile ? "calc(env(safe-area-inset-bottom, 0px) + 78px)" : 14,
         zIndex: 7,
         display: "inline-flex",
         alignItems: "center",
@@ -1254,10 +1259,11 @@ export default function GenesisLab({ onClose }: { onClose: () => void }) {
         animation: "lelu-environment-enter 0.38s ease",
       }}
     >
-      {/* left navigation rail (desktop/tablet) - only while the controls
+      {/* right navigation rail (desktop/tablet) - only while the controls
           are open; the immersive scene owns the viewport by default. It
           holds exactly two actions: the ONE Core Evolution tab and the
-          explicit Genesis v1 exit. */}
+          explicit Genesis v1 exit. Right-mounted so it never covers the
+          unified interface dock on the left. */}
       {chromeOpen && !mobile ? <V2Rail dest={dest} onSelect={selectDest} onLeave={onClose} compact={tablet} /> : null}
 
       {/* the cinematic Genesis v2 scene — the COMPLETE immersive 3D
@@ -1327,7 +1333,8 @@ export default function GenesisLab({ onClose }: { onClose: () => void }) {
           style={{
             position: "absolute",
             left: "50%",
-            bottom: "clamp(14px, 3vh, 26px)",
+            /* Above the unified interface's bottom dock bar. */
+            bottom: "calc(env(safe-area-inset-bottom, 0px) + 78px)",
             transform: "translateX(-50%)",
             zIndex: 7,
             display: "flex",
@@ -1397,7 +1404,12 @@ export default function GenesisLab({ onClose }: { onClose: () => void }) {
       {/* the single always-available affordance - a compact Genesis v2
           pill. Click it to open the controls; click again to minimize
           them. It never exits the workspace. */}
-      <V2ScenePill open={chromeOpen} onToggle={() => setChromeOpen((open) => !open)} />
+      <V2ScenePill open={chromeOpen} onToggle={() => setChromeOpen((open) => !open)} mobile={mobile} />
+
+      {/* explorable-world camera controls — collapsible HUD with reset,
+          focus LÉLU/Core, orbit/free-fly toggle, zoom and fullscreen.
+          It drives the REAL camera through the intent bus. */}
+      <GenesisV2CameraHUD mobile={mobile} />
     </motion.div>
   );
 }

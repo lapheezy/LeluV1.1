@@ -190,9 +190,16 @@ export default function GenesisProjectsPanel({ onClose }: GenesisProjectsPanelPr
               }}
             >
               <div style={{ fontSize: 13, fontWeight: 600 }}>{item.name}</div>
+              {item.objective ? (
+                <div style={{ fontSize: 10.5, opacity: 0.65, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {item.objective}
+                </div>
+              ) : null}
               <div style={{ fontSize: 10.5, opacity: 0.6, marginTop: 2 }}>
                 {item.items.length} item(s) · {item.agentIds.length} agent(s) ·{" "}
                 <span style={{ color: "#9be8ff" }}>{item.status}</span>
+                {item.priority ? ` · ${item.priority}` : ""}
+                {item.location ? ` · ${item.location}` : ""}
               </div>
             </button>
           ))}
@@ -218,6 +225,11 @@ export default function GenesisProjectsPanel({ onClose }: GenesisProjectsPanelPr
                 />
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {project.status !== "archived" && (
+                  <button type="button" onClick={() => store.update(project.id, { status: project.status === "paused" ? "active" : "paused" })} style={chipButton}>
+                    {project.status === "paused" ? "Resume" : "Pause"}
+                  </button>
+                )}
                 <button type="button" onClick={() => store.update(project.id, { status: project.status === "archived" ? "active" : "archived" })} style={chipButton}>
                   {project.status === "archived" ? "Restore" : "Archive"}
                 </button>
@@ -225,6 +237,11 @@ export default function GenesisProjectsPanel({ onClose }: GenesisProjectsPanelPr
                   Delete
                 </button>
               </div>
+              {project.schedule && (
+                <div style={{ fontSize: 10.5, opacity: 0.6, marginTop: 6 }}>
+                  Schedule: {project.schedule.frequency}{project.schedule.nextRun ? ` · next: ${new Date(project.schedule.nextRun).toLocaleString()}` : ""}{project.schedule.lastRun ? ` · last: ${new Date(project.schedule.lastRun).toLocaleString()}` : ""}
+                </div>
+              )}
             </div>
 
             {/* agents */}
@@ -253,6 +270,28 @@ export default function GenesisProjectsPanel({ onClose }: GenesisProjectsPanelPr
                 })}
               </div>
             </div>
+
+            {/* objective + tasks */}
+            {(project.objective || project.actionableTasks?.length) ? (
+              <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 12 }}>
+                <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, marginBottom: 8 }}>
+                  Objective · {project.priority ?? ""} {project.location ? `· targets ${project.location}` : ""}
+                </div>
+                {project.objective ? (
+                  <div style={{ fontSize: 12.5, opacity: 0.85, marginBottom: 8, overflowWrap: "anywhere" }}>{project.objective}</div>
+                ) : null}
+                {project.actionableTasks && project.actionableTasks.length > 0 ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                    {project.actionableTasks.map((task, index) => (
+                      <div key={`${task}-${index}`} style={{ display: "flex", gap: 8, fontSize: 11.5, opacity: 0.75, alignItems: "flex-start" }}>
+                        <span style={{ color: "#9be8ff", flexShrink: 0 }}>▸</span>
+                        <span>{task}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
 
             {/* add items */}
             <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 12 }}>

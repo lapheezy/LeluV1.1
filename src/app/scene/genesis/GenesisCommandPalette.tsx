@@ -25,6 +25,7 @@ import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useGenesis } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
+import { openStudioMode } from "./GenesisVisualStudio";
 
 interface Command {
   id: string;
@@ -78,22 +79,30 @@ export default function GenesisCommandPalette({
       { id: "open-chat", label: "Open chat", hint: "Genesis Core", run: () => openPanel("chat") },
       { id: "open-genesis-v2", label: "Open Genesis v2 · Transformation Lab", hint: "Genesis Core", run: () => openPanel("genesisv2") },
       { id: "open-history", label: "Open conversation history", hint: "Genesis Core", run: () => openPanel("history") },
-      { id: "open-workspaces", label: "Open Projects workspace", hint: "Genesis Core", run: () => openPanel("workspaces") },
+      { id: "open-projects", label: "Open Projects", hint: "Projects", run: () => openPanel("projects") },
       { id: "open-reasoning", label: "Open reasoning & planning", hint: "Genesis Core", run: () => openPanel("reasoning") },
       { id: "open-cognition", label: "Open Cognition — self, knowledge, queue", hint: "Cognition", run: () => openPanel("cognition") },
       { id: "open-engineering", label: "Open Engineering sandbox", hint: "Engineering", run: () => openPanel("engineering") },
       { id: "open-evolution", label: "Open Evolution — self-development engine", hint: "Evolution", run: () => openPanel("evolution") },
+      { id: "open-visualstudio", label: "Open Genesis Studios", hint: "Visual environment", run: () => openPanel("visualstudio") },
+      // Earth Core — a capability of the unified environment, not a tab.
+      { id: "open-earth", label: "Open Earth Core — live spatial intelligence", hint: "Earth", run: () => openPanel("earth") },
+      { id: "earth-aircraft", label: "Show aircraft on Earth", hint: "Earth", run: () => { openPanel("earth"); void import("../../../core/earth/EarthCore").then((m) => m.default.getInstance().execute({ op: "show", layer: "aircraft" })); } },
+      { id: "earth-quakes", label: "Show earthquakes on Earth", hint: "Earth", run: () => { openPanel("earth"); void import("../../../core/earth/EarthCore").then((m) => m.default.getInstance().execute({ op: "show", layer: "earthquakes" })); } },
+      { id: "earth-satellites", label: "Show satellites on Earth", hint: "Earth", run: () => { openPanel("earth"); void import("../../../core/earth/EarthCore").then((m) => m.default.getInstance().execute({ op: "show", layer: "satellites" })); } },
       { id: "open-agents", label: "Open knowledge & agents", hint: "Genesis Core", run: () => openPanel("agents") },
       { id: "open-memory", label: "Open memory", hint: "Genesis Core", run: () => openPanel("memory") },
       { id: "open-providers", label: "Open API status", hint: "Genesis Core", run: () => openPanel("providers") },
       { id: "open-device", label: "Open device capabilities", hint: "Genesis Core", run: () => openPanel("device") },
       { id: "open-diagnostics", label: "Open engine diagnostics", hint: "Genesis Core", run: () => openPanel("diagnostics") },
       { id: "open-logs", label: "Open execution logs", hint: "Genesis Core", run: () => openPanel("logs") },
-      { id: "open-sketch", label: "Open Sketch workspace", hint: "Creation Studio", run: () => openPanel("sketch") },
-      { id: "open-render", label: "Open Render workspace", hint: "Render Lab", run: () => openPanel("render") },
+      // Sketch, Render and Avatar are modes inside Genesis Studios —
+      // these commands open the ONE studio in the requested mode.
+      { id: "open-sketch", label: "Open Genesis Studios — Sketch", hint: "Visual environment", run: () => { openStudioMode("sketch"); openPanel("visualstudio"); } },
+      { id: "open-render", label: "Open Genesis Studios — Render", hint: "Visual environment", run: () => { openStudioMode("render"); openPanel("visualstudio"); } },
+      { id: "open-avatar", label: "Open Genesis Studios — Avatar", hint: "Visual environment", run: () => { openStudioMode("avatar"); openPanel("visualstudio"); } },
       { id: "open-video", label: "Open Video workspace", hint: "Motion Studio", run: () => openPanel("video") },
-      { id: "open-avatar", label: "Open Avatar workspace", hint: "Embodiment", run: () => openPanel("avatar") },
-      { id: "open-projects", label: "Open Projects workspace", hint: "Workspace", run: () => openPanel("projects") },
+      { id: "open-projects-panel", label: "Open Projects", hint: "Projects", run: () => openPanel("projects") },
       { id: "open-settings", label: "Open Settings", hint: "System", run: () => openPanel("settings") },
       { id: "open-knowledge", label: "Open Knowledge providers", hint: "System", run: () => openPanel("knowledge") },
       { id: "close-panel", label: "Close active panel", hint: "Genesis Core", run: () => openPanel("none") },

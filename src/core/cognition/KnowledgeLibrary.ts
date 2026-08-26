@@ -117,6 +117,7 @@ function seedEntries(): KnowledgeEntry[] {
 export default class KnowledgeLibrary {
   private static instance: KnowledgeLibrary | null = null;
   private entries: KnowledgeEntry[];
+  private readonly listeners = new Set<(entries: KnowledgeEntry[]) => void>();
 
   private constructor() {
     const stored = KvStore.getInstance().get<KnowledgeEntry[]>(KEY);
@@ -139,6 +140,15 @@ export default class KnowledgeLibrary {
     } catch {
       // best-effort
     }
+    for (const listener of this.listeners) {
+      try { listener(this.list()); } catch { /* contained */ }
+    }
+  }
+
+  public subscribe(listener: (entries: KnowledgeEntry[]) => void): () => void {
+    this.listeners.add(listener);
+    listener(this.list());
+    return () => this.listeners.delete(listener);
   }
 
   public list(): KnowledgeEntry[] {
@@ -151,6 +161,23 @@ export default class KnowledgeLibrary {
 
   public get(id: string): KnowledgeEntry | undefined {
     return this.entries.find((entry) => entry.id === id);
+  }
+
+  /** Merge cloud knowledge without replacing newer local entries. */
+  public mergeRemote(entries: KnowledgeEntry[]): void {
+    let changed = false;
+    const byId = new Map(this.entries.map((entry) => [entry.id, entry]));
+    for (const remote of entries) {
+      const current = byId.get(remote.id);
+      if (!current || remote.updatedAt > current.updatedAt) {
+        byId.set(remote.id, remote);
+        changed = true;
+      }
+    }
+    if (changed) {
+      this.entries = [...byId.values()];
+      this.persist();
+    }
   }
 
   public add(entry: Omit<KnowledgeEntry, "id" | "updatedAt">): KnowledgeEntry {

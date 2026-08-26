@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "strict": true
+  },
+  "nodeModulesDir": "auto",
+  "imports": {
+    "hono": "npm:hono@^4.6.0",
+    "hono/deno": "npm:hono@^4.6.0/deno"
+  },
+  "tasks": {
+    "serve": "deno run --allow-all main.ts",
+    "check": "deno check main.ts plugins/engineerApi.ts plugins/envApi.ts plugins/aisBridgePlugin.ts plugins/denoAdapters.ts plugins/loadEnvFiles.ts"
+  },
+  "lint": {
+    "include": ["main.ts", "plugins/"]
+  },
+  "fmt": {
+    "include": ["main.ts", "plugins/"]
+  }
+}

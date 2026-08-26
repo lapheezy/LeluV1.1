@@ -41,6 +41,9 @@ import type {
   CapabilityResult,
 } from "../native/NativeCapability";
 
+import type { AIIntent } from "./AIIntent";
+import type { CognitiveContextSnapshot } from "../cognition/CognitiveContext";
+
 export default interface RouterContext {
 
   /**
@@ -144,6 +147,34 @@ export default interface RouterContext {
       capability: string;
       result: CapabilityResult;
     };
+  };
+
+  /**
+   * Detected user intent (time, news, search, etc.)
+   * Set by IntentDetector before routing.
+   */
+  intent?:
+    AIIntent;
+
+  /**
+   * Live cognitive context snapshot — the full runtime state
+   * (self-model, projects, agents, capabilities, UI state).
+   * Built fresh by AIRuntime on every request.
+   */
+  cognitiveContext?:
+    CognitiveContextSnapshot;
+
+  /**
+   * Deflock/FoggedLens ALPR analysis result, set by DeflockResolver
+   * when the request is an ALPR camera-infrastructure action. Always
+   * REAL data from the public OpenStreetMap/Overpass source — never
+   * a claim, never fabricated plate-level data.
+   */
+  deflock?:
+  {
+    ok: boolean;
+    message: string;
+    data?: unknown;
   };
 
 }

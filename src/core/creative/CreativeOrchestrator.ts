@@ -14,17 +14,20 @@
  *   game   → SandboxFS   (real canvas-game skeleton)
  *   audio  → VoiceEngine (TTS status; music generation is provider-dependent)
  *   sketch → Sketch workspace (CreativeToolInterface)
- *   3d/film/universe/simulation → honest "not implemented" pointers
+ *   3d     → RenderEngine (Procedural 3D Authoring — real offline
+ *             Three.js pipeline: saved avatar / scene → PNG snapshot)
+ *   film/universe/simulation → honest "not implemented" pointers
  *
  * Every result carries an explicit capability status so LÉLU never
  * claims to have produced something she did not. Photoreal image
- * generation, actual video encoding, 3D generation, and full universe
- * simulation remain clearly provider-dependent / not-implemented until
- * a real backend is wired — nothing here fabricates output.
+ * generation, actual video encoding, and full universe simulation
+ * remain clearly provider-dependent / not-implemented until a real
+ * backend is wired — nothing here fabricates output.
  * ==========================================================
  */
 
 import RenderEngineRegistry from "./RenderEngine";
+import RenderStore from "./RenderStore";
 import VideoStore from "./VideoProject";
 import SandboxFS from "../engineering/SandboxFS";
 import VoiceEngine from "../voice/VoiceEngine";
@@ -90,7 +93,10 @@ export default class CreativeOrchestrator {
   /** Classify a prompt into a creative capability (text = not creative). */
   public classify(prompt: string): CreativeCapability {
     const p = prompt.toLowerCase();
-    if (/\b(3d|three\.?js|blender|mesh|voxel|gaussian splat|obj model)\b/.test(p)) return "3d";
+    // "render …" (any inflected form), the saved avatar, or explicit 3D
+    // language all route to the real procedural 3D pipeline. The engine
+    // itself decides avatar vs orb vs planet from the prompt.
+    if (/\b(3d|three\.?js|blender|mesh|voxel|gaussian splat|obj model|avatar|render\w*)\b/.test(p)) return "3d";
     if (/\b(film|movie|cinematic|short film|documentary|feature)\b/.test(p)) return "film";
     if (/\b(video|animation|animat|clip|storyboard|shot list|frame-by-frame)\b/.test(p)) return "video";
     if (/\b(game|gameplay|level design|playable|quest|inventory system)\b/.test(p)) return "game";
@@ -219,14 +225,51 @@ export default class CreativeOrchestrator {
         };
       }
 
-      case "3d":
-        return {
-          capability,
-          status: "not-implemented",
-          handled: false,
-          message:
-            "Local 3D generation is not implemented yet. The architecture has a ModelRouter slot and the existing Three.js LÉLUVERSE renderer, but no procedural 3D authoring pipeline (Blender adapter) is wired.",
-        };
+      case "3d": {
+        // REAL procedural 3D authoring: the saved avatar (or a scene
+        // derived from the prompt) is built from Three.js primitives and
+        // rendered to a PNG snapshot through the offline 3D engine. The
+        // snapshot is saved to the persistent RenderStore gallery and
+        // returned as a real artifact.
+        const title = titleFrom(prompt);
+        try {
+          const result = await RenderEngineRegistry.getInstance().run({
+            engine: "3d-authoring",
+            kind: "generate",
+            prompt,
+            params: {},
+          });
+          if (result.ok && result.output) {
+            const saved = RenderStore.getInstance().save({
+              name: title,
+              engine: "3d-authoring",
+              kind: "generate",
+              prompt,
+              output: result.output,
+            });
+            return {
+              capability,
+              status: "available",
+              handled: true,
+              message: `${result.message} Saved to the Render gallery as "${title}".`,
+              artifact: { kind: "3d-model", id: saved.id, output: saved.output },
+            };
+          }
+          return {
+            capability,
+            status: "available",
+            handled: false,
+            message: `Procedural 3D authoring failed: ${result.message}`,
+          };
+        } catch (error) {
+          return {
+            capability,
+            status: "available",
+            handled: false,
+            message: `Procedural 3D authoring threw: ${error instanceof Error ? error.message : String(error)}`,
+          };
+        }
+      }
 
       case "film":
         return {
@@ -275,7 +318,7 @@ export default class CreativeOrchestrator {
       code: "available",
       game: "partial",
       sketch: "available",
-      "3d": "not-implemented",
+      "3d": "available",
       film: "not-implemented",
       universe: "not-implemented",
       simulation: "not-implemented",

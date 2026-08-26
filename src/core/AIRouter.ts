@@ -5,354 +5,199 @@
  * ==========================================================
  */
 
-import type {
-  AIResponse,
-} from "../providers/AIProvider";
-
-import type RouterContext
-  from "./router/RouterContext";
-
-import BrainResolver
-  from "./router/BrainResolver";
-
-import PlanningResolver
-  from "./router/PlanningResolver";
-
-import ReasoningResolver
-  from "./router/ReasoningResolver";
-
-import ResearchResolver
-  from "./router/ResearchResolver";
-
-import BrowserResolver
-  from "./router/BrowserResolver";
-
-import WorkspaceResolver
-  from "./router/WorkspaceResolver";
-
-import ProviderResolver
-  from "./router/ProviderResolver";
-
-import EngineeringResolver
-  from "./router/EngineeringResolver";
-
-import CreativeResolver
-  from "./router/CreativeResolver";
-
-import ToolResolver
-  from "./router/ToolResolver";
-
-import ResponseBuilder
-  from "./router/ResponseBuilder";
+import type { AIResponse } from "../providers/AIProvider";
+import type RouterContext from "./router/RouterContext";
+import BrainResolver from "./router/BrainResolver";
+import PlanningResolver from "./router/PlanningResolver";
+import ReasoningResolver from "./router/ReasoningResolver";
+import ResearchResolver from "./router/ResearchResolver";
+import BrowserResolver from "./router/BrowserResolver";
+import WorkspaceResolver from "./router/WorkspaceResolver";
+import ProviderResolver from "./router/ProviderResolver";
+import EngineeringResolver from "./router/EngineeringResolver";
+import CreativeResolver from "./router/CreativeResolver";
+import ToolResolver from "./router/ToolResolver";
+import DeflockResolver from "./router/DeflockResolver";
+import TimeResolver from "./router/TimeResolver";
+import ProjectResolver from "./router/ProjectResolver";
+import ToolCallInterceptor from "./router/ToolCallInterceptor";
+import ResponseBuilder from "./router/ResponseBuilder";
+import AvatarResolver from "./router/AvatarResolver";
+import SurfaceResolver from "./router/SurfaceResolver";
+import CapabilityManifest from "./capabilities/CapabilityManifest";
+import { cleanAssistantText } from "./router/ToolMarkup";
 
 export default class AIRouter {
+  private readonly time = new TimeResolver();
+  private readonly interceptor = new ToolCallInterceptor();
 
   constructor(
-
-    private readonly brain:
-      BrainResolver,
-
-    private readonly research:
-      ResearchResolver,
-
-    private readonly providers:
-      ProviderResolver,
-
-    private readonly browser =
-      new BrowserResolver(),
-
-    private readonly workspace =
-      new WorkspaceResolver(),
-
-    private readonly planning =
-      new PlanningResolver(),
-
-    private readonly reasoning =
-      new ReasoningResolver(),
-
-    private readonly engineering =
-      new EngineeringResolver(),
-
-    private readonly creative =
-      new CreativeResolver(),
-
-    private readonly tools =
-      new ToolResolver(),
-
-    private readonly responses =
-      new ResponseBuilder(),
-
+    private readonly brain: BrainResolver,
+    private readonly research: ResearchResolver,
+    private readonly providers: ProviderResolver,
+    private readonly browser = new BrowserResolver(),
+    private readonly workspace = new WorkspaceResolver(),
+    private readonly planning = new PlanningResolver(),
+    private readonly reasoning = new ReasoningResolver(),
+    private readonly engineering = new EngineeringResolver(),
+    private readonly creative = new CreativeResolver(),
+    private readonly tools = new ToolResolver(),
+    private readonly deflock = new DeflockResolver(),
+    private readonly projects = new ProjectResolver(),
+    private readonly avatar = new AvatarResolver(),
+    private readonly surfaces: SurfaceResolver = new SurfaceResolver(workspace),
+    private readonly responses = new ResponseBuilder(),
   ) {}
 
-  /**
-   * Route an AI request.
-   */
-  public async route(
-    context:
-      RouterContext,
-  ): Promise<AIResponse> {
+  /** Route an AI request. */
+  public async route(context: RouterContext): Promise<AIResponse> {
+    // 0. TIME — deterministic local capability, no external API needed
+    const timeResult = await this.time.execute(context);
+    if (timeResult.handled && timeResult.response) return timeResult.response;
 
-    const brain =
-      await this.brain.execute(
-        context,
-      );
+    // 1. Brain / identity — always local
+    const brain = await this.brain.execute(context);
+    if (brain.handled && brain.response) return brain.response;
 
-    if (
+    // 1.5 Explicit surface commands — "open the browser", "show me the
+    // 3d", "take me into gen v2". Chat is the primary control surface:
+    // these EXECUTE the real UI state transition deterministically,
+    // before any research/creative stage could misroute them.
+    const surface = await this.surfaces.execute(context);
+    if (surface.handled && surface.response) return surface.response;
 
-      brain.handled &&
+    await this.planning.execute(context);
+    await this.reasoning.execute(context);
 
-      brain.response
+    // Tool / device calls
+    const tools = await this.tools.execute(context);
+    if (tools.handled && tools.response) return this.attachThinking(context, tools.response);
 
-    ) {
+    const engineering = await this.engineering.execute(context);
+    if (engineering.handled && engineering.response) return this.attachThinking(context, engineering.response);
 
-      return brain.response;
+    const creative = await this.creative.execute(context);
+    if (creative.handled && creative.response) return this.attachThinking(context, creative.response);
 
+    // Avatar / embodiment commands — LÉLU's own visual identity executes
+    // against the saved avatar runtime. MUST run before any research so
+    // "update your avatar to 3d render and simulations" never becomes a
+    // knowledge-search request.
+    const avatarResult = await this.avatar.execute(context);
+    if (avatarResult.handled && avatarResult.response) {
+      return this.attachThinking(context, avatarResult.response);
+    }
+    // handled:false ⇒ facts attached to context; the provider answers
+    // over the real avatar state below.
+
+    // Project commands — create, run, pause, resume, results.
+    if (context.intent === "project") {
+      const projectResult = await this.projects.execute(context);
+      if (projectResult.handled && projectResult.response) {
+        return this.attachThinking(context, projectResult.response);
+      }
+      // handled:false ⇒ not a recognized project command;
+      // fall through so the model can respond conversationally.
     }
 
-    await this.planning.execute(
-      context,
-    );
-
-    await this.reasoning.execute(
-      context,
-    );
-
-    // Device/native capability actions run through the REAL
-    // capability registry (ToolResolver) — the controlled bridge
-    // between cognition and the device. Unhandled results still
-    // flow to the provider chain so the response stays
-    // conversational.
-    const tools =
-      await this.tools.execute(
-        context,
-      );
-
-    if (
-
-      tools.handled &&
-
-      tools.response
-
-    ) {
-
-      return this.attachThinking(
-
-        context,
-
-        tools.response,
-
-      );
-
+    // News / current events → live retrieval MUST happen before any
+    // generation. The user's original prompt is preserved (topic kept,
+    // filler stripped inside ResearchResolver). ResearchResolver injects
+    // the retrieved digest into cognition context; handled:true here
+    // means either an offline digest response OR the complete retrieval
+    // chain genuinely failed — never a silent fallthrough to generic chat.
+    //
+    // CRITICAL: retrieval runs ONLY for intents that genuinely ask for
+    // external information — explicit search/news intents, or ordinary
+    // conversation that clearly requests current info. Action intents
+    // (project, avatar, engineering, creative, voice, memory, genesis,
+    // …) NEVER enter knowledge retrieval: an execution command like
+    // "Start the project through Sandbox and use the current saved
+    // avatar…" must never be hijacked by GDELT/RSS/News/HackerNews
+    // simply because it contains a word like "current" or "update".
+    // ResearchResolver applies its own narrower current-info gate for
+    // chat intents on top of this.
+    if (context.intent === "news" || context.intent === "search") {
+      const research = await this.research.execute(context);
+      if (research.handled) {
+        return this.attachThinking(
+          context,
+          this.responses.fromResearch(research.results, context.started, research.attempted),
+        );
+      }
+      // handled:false ⇒ results retrieved and attached to context;
+      // continue so the AI provider synthesizes the answer from them.
+    } else if (context.intent === "chat") {
+      const research = await this.research.execute(context);
+      if (research.handled) {
+        return this.attachThinking(
+          context,
+          this.responses.fromResearch(research.results, context.started, research.attempted),
+        );
+      }
     }
 
-    const engineering =
-      await this.engineering.execute(
-        context,
-      );
+    // Deflock/FoggedLens — ALPR camera infrastructure analysis. Runs on
+    // camera/surveillance intents, executes REAL Overpass queries, drives
+    // the Earth Core (fly-to + ALPR layer), attaches real data to the
+    // context, and returns unhandled so the provider answers over facts.
+    await this.deflock.execute(context);
 
-    if (
+    const browser = await this.browser.execute(context);
+    if (browser.handled && browser.response) return this.attachThinking(context, browser.response);
 
-      engineering.handled &&
+    const workspace = await this.workspace.execute(context);
+    if (workspace.handled && workspace.response) return this.attachThinking(context, workspace.response);
 
-      engineering.response
-
-    ) {
-
-      return this.attachThinking(
-
-        context,
-
-        engineering.response,
-
-      );
-
+    const provider = await this.providers.execute(context);
+    if (provider.handled && provider.response) {
+      // Intercept raw tool-call markup before it reaches chat
+      const intercepted = await this.interceptor.intercept(provider.response, context);
+      if (intercepted.intercepted && intercepted.response) {
+        return this.attachThinking(context, intercepted.response);
+      }
+      return this.attachThinking(context, provider.response);
     }
 
-    const creative =
-      await this.creative.execute(
-        context,
-      );
-
-    if (
-
-      creative.handled &&
-
-      creative.response
-
-    ) {
-
-      return this.attachThinking(
-
-        context,
-
-        creative.response,
-
-      );
-
-    }
-
-    const research =
-      await this.research.execute(
-        context,
-      );
-
-    if (
-
-      research.handled
-
-    ) {
-
-      return this.attachThinking(
-
-        context,
-
-        this.responses.fromResearch(
-
-          research.results,
-
-          context.started,
-
-        ),
-
-      );
-
-    }
-
-    const browser =
-      await this.browser.execute(
-        context,
-      );
-
-    if (
-
-      browser.handled &&
-
-      browser.response
-
-    ) {
-
-      return this.attachThinking(
-
-        context,
-
-        browser.response,
-
-      );
-
-    }
-
-    const workspace =
-      await this.workspace.execute(
-        context,
-      );
-
-    if (
-
-      workspace.handled &&
-
-      workspace.response
-
-    ) {
-
-      return this.attachThinking(
-
-        context,
-
-        workspace.response,
-
-      );
-
-    }
-
-    const provider =
-      await this.providers.execute(
-        context,
-      );
-
-    if (
-
-      provider.handled &&
-
-      provider.response
-
-    ) {
-
-      return this.attachThinking(
-
-        context,
-
-        provider.response,
-
-      );
-
-    }
-
-    return this.attachThinking(
-
-      context,
-
-      this.responses.offline(
-
-        context.started,
-
-      ),
-
-    );
-
+    return this.attachThinking(context, this.responses.offline(context.started));
   }
 
-  /**
-   * Surface the Planning/Reasoning
-   * stage output on the outgoing
-   * response, so the UI and the
-   * Reflection stage can see *why*
-   * Lélu answered the way it did —
-   * without changing any provider's
-   * own response contract.
-   */
-  private attachThinking(
+  private attachThinking(context: RouterContext, response: AIResponse): AIResponse {
+    // The provider transport may contain XML/JSON tool syntax. It is
+    // consumed by the router and never allowed into the normal chat view.
+    const cleanText = cleanAssistantText(response.text);
+    const sanitized = cleanText === response.text ? response : { ...response, text: cleanText };
 
-    context:
-      RouterContext,
+    // Mark the intent-based capability as used so CapabilityManifest
+    // reflects real invocation, not just configuration.
+    this.trackCapabilityUse(context.intent);
 
-    response:
-      AIResponse,
-
-  ):
-    AIResponse {
-
-
-    if (
-
-      !context.reasoning &&
-
-      !context.plan
-
-    ) {
-
-      return response;
-
-    }
-
-
+    if (!context.reasoning && !context.plan) return sanitized;
     return {
-
-      ...response,
-
+      ...sanitized,
       metadata: {
-
         ...response.metadata,
-
-        reasoning:
-          context.reasoning,
-
-        plan:
-          context.plan,
-
+        reasoning: context.reasoning,
+        plan: context.plan,
       },
-
     };
-
   }
 
+  private trackCapabilityUse(intent?: string): void {
+    if (!intent || intent === "chat") return;
+    const manifest = CapabilityManifest.getInstance();
+    const capabilityMap: Record<string, string> = {
+      news: "live-news",
+      search: "web-search",
+      time: "current-time",
+      project: "project-execution",
+      engineering: "engineering",
+      memory: "memory",
+      avatar: "avatar",
+    };
+    const capId = capabilityMap[intent];
+    if (capId) {
+      manifest.markUsed(capId);
+    }
+  }
 }

@@ -8,6 +8,9 @@
 import type ResponsePattern
   from "./ResponsePattern";
 
+import type { MemoryType }
+  from "./ResponsePattern";
+
 import IndexedDBStore
   from "../core/memory/IndexedDBStore";
 
@@ -125,6 +128,13 @@ export default class PatternMemory {
           metadata.confidence ??
 
           0.5,
+
+
+        memoryType:
+
+          (metadata.memoryType ??
+
+          "user") as MemoryType,
 
 
         successfulUses:
@@ -249,6 +259,9 @@ export default class PatternMemory {
         confidence:
           pattern.confidence,
 
+        memoryType:
+          pattern.memoryType,
+
       },
 
     };
@@ -370,6 +383,18 @@ export default class PatternMemory {
 
     ];
 
+  }
+
+
+  /** Merge cloud records into the existing memory engine. */
+  public async mergeRemote(patterns: ResponsePattern[]): Promise<void> {
+    await this.initialize();
+    for (const pattern of patterns) {
+      const current = this.patterns.get(pattern.id);
+      if (!current || pattern.updatedAt > current.updatedAt) {
+        await this.add(pattern);
+      }
+    }
   }
 
 

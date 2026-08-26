@@ -1,32 +1,23 @@
 /**
  * ==========================================================
  * LÉLUVERSE
- * GENESIS CHAT — INVISIBLE ENVIRONMENTAL DIALOGUE
+ * GENESIS CHAT — PERSISTENT CONVERSATION INTERFACE
  *
- * The Genesis Core IS the chat. There is no panel, no input
- * box, no message bubbles, no window. Clicking the Core enters
- * dialogue mode: an invisible input is focused, the user's words
- * appear as text floating in the scene, and LÉLU's response is
- * typed progressively into the environment itself — the same
- * visual language as environmental dialogue appearing directly
- * in a scene rather than inside a conventional chat application.
+ * The primary chat surface of the unified LÉLU UI.
+ * On mobile it fills the viewport as the main interaction
+ * surface. On desktop it is a movable/resizable floating window.
  *
- * This is presentation only. The conversation flows through the
- * EXACT existing pipeline:
- *
+ * Conversation flows through the EXISTING pipeline:
  *   User (Enter)
  *     ↓
  *   AIService.chat()            ← the existing runtime
  *     ↓
  *   AIRuntime / providers / cognition / memory
  *     ↓
- *   response text                ← typed into the scene
+ *   response text                ← streamed into the UI
  *     ↓
  *   addMessage (user) + bridge-emitted assistant message
  *                                 ← history/memory unchanged
- *
- * No second chatbot, no second memory, no second cognition
- * engine, no separate response handler.
  * ==========================================================
  */
 
@@ -35,14 +26,16 @@ import {
   useEffect,
   useRef,
   useState,
-  type KeyboardEvent as ReactKeyboardEvent,
   type CSSProperties,
-  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import AIService from "../../../core/AIService";
 import Orchestrator from "../../../core/orchestrator/Orchestrator";
+import AgentEventBus from "../../../core/agent/AgentEvents";
+import GenesisExecutionTimeline from "./GenesisExecutionTimeline";
+import GenesisChatSurface, { type ChatSurface } from "./GenesisChatSurface";
 import { useVoice } from "../../../core/voice/useVoice";
 import {
   defaultMediaPrompt,
@@ -52,8 +45,13 @@ import {
   type ProcessedMedia,
 } from "../../../core/media/mediaProcessor";
 import { useGenesis, type GenesisMessage } from "./GenesisCore";
+import ExplorationController from "./ExplorationController";
+import ProactiveCore, { type ProactiveQuestion } from "../../../core/proactive/ProactiveCore";
+import { markPerf } from "../../../core/perf/StartupTelemetry";
+import { cleanAssistantText } from "../../../core/router/ToolMarkup";
 
 const ai = AIService.getInstance();
+const proactive = ProactiveCore.getInstance();
 
 /** One visible exchange: the user's line plus LÉLU's (possibly still being typed). */
 interface Exchange {
@@ -61,6 +59,10 @@ interface Exchange {
   user: string;
   assistant: string;
   fast: boolean;
+  /** Real images LÉLU produced for this exchange (render artifacts). */
+  images?: string[];
+  /** Real visual environments LÉLU opened in this exchange (search/browser). */
+  surfaces?: ChatSurface[];
 }
 
 function prefersReducedMotion(): boolean {
@@ -101,26 +103,8 @@ const assistantTextStyle: CSSProperties = {
     "0 0 22px rgba(103, 232, 249, 0.42), 0 0 46px rgba(56, 189, 248, 0.24), 0 1px 3px rgba(2, 6, 23, 0.95)",
 };
 
-/* Chip layout shared by the Media tab and its popover options. The
-   cotton-candy galaxy look (background, border, aura, stars) comes from
-   the lelu-tab-cloud CSS class — inline styles only carry layout. */
-const cloudChipStyle: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 6,
-  padding: "7px 14px",
-  color: "rgba(242, 230, 255, 0.95)",
-  fontSize: 12,
-  letterSpacing: "0.02em",
-  cursor: "pointer",
-  whiteSpace: "nowrap",
-};
-
 /* ------------------------------------------------------------------
- * Generic file attachments — anything that isn't an image/video rides
- * the SAME chat request as typed instructions: the file name/type/size
- * and (for small text files) a content preview are folded into the
- * prompt text, so LÉLU reads the attachment alongside what you typed.
+ * Generic file attachments
  * ------------------------------------------------------------------ */
 interface PendingFile {
   id: string;
@@ -135,6 +119,19 @@ function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
+
+const titleBtn: CSSProperties = {
+  width: 28, height: 28, borderRadius: 999,
+  border: "1px solid rgba(148,163,184,0.18)",
+  background: "rgba(255,255,255,0.05)",
+  color: "rgba(212,169,78,0.8)",
+  display: "inline-flex", alignItems: "center", justifyContent: "center",
+  cursor: "pointer", fontSize: 13, lineHeight: 1, flexShrink: 0,
+};
+
+/* Height reserved for the fixed mobile LÉLU pill so the chat
+ * composer is never covered by it. */
+const MOBILE_PILL_RESERVE = 64;
 
 function fileListLabel(files: PendingFile[]): string {
   if (files.length === 0) return "";
@@ -152,37 +149,25 @@ function fileContextPrompt(files: PendingFile[]): string {
 }
 
 /* ----------------------------------------------------------
- * Typewriter — reveals LÉLU's response progressively.
+ * Fast streaming — reveals the full text instantly.
  * ---------------------------------------------------------- */
 
-function useTypewriter(text: string, fast: boolean): number {
-  const reduceMotion = prefersReducedMotion();
+function useTypewriter(text: string, _fast: boolean): number {
   const total = text.length;
-  const [count, setCount] = useState(reduceMotion ? total : 0);
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
-    if (reduceMotion) {
-      setCount(total);
-      return;
+    if (text.length <= 80) {
+      setCount(text.length);
+    } else {
+      const batch = Math.min(text.length, Math.ceil(text.length * 0.7));
+      setCount(batch);
+      const id = setTimeout(() => {
+        setCount(text.length);
+      }, 16);
+      return () => clearTimeout(id);
     }
-
-    setCount(0);
-    const tick = Math.max(1, Math.ceil(total / (fast ? 140 : 520)));
-    const delay = fast ? 8 : total > 600 ? 14 : 22;
-
-    const id = window.setInterval(() => {
-      setCount((current) => {
-        const next = current + tick;
-        if (next >= total) {
-          window.clearInterval(id);
-          return total;
-        }
-        return next;
-      });
-    }, delay);
-
-    return () => window.clearInterval(id);
-  }, [text, total, fast, reduceMotion]);
+  }, [text, total]);
 
   return count;
 }
@@ -207,16 +192,22 @@ interface AssistantLineProps {
 }
 
 function AssistantLine({ text, fast, onDone }: AssistantLineProps) {
-  const count = useTypewriter(text, fast);
-  const total = text.length;
+  const visibleText = cleanAssistantText(text);
+  const count = useTypewriter(visibleText, fast);
+  const total = visibleText.length;
   const doneRef = useRef(false);
+  const seenTextRef = useRef(visibleText);
 
   useEffect(() => {
+    if (visibleText !== seenTextRef.current) {
+      seenTextRef.current = visibleText;
+      doneRef.current = false;
+    }
     if (count >= total && total > 0 && !doneRef.current) {
       doneRef.current = true;
       onDone();
     }
-  }, [count, total, onDone]);
+  }, [count, total, onDone, visibleText]);
 
   return (
     <motion.div
@@ -225,7 +216,7 @@ function AssistantLine({ text, fast, onDone }: AssistantLineProps) {
       transition={{ duration: 0.3 }}
       style={assistantTextStyle}
     >
-      {text.slice(0, count)}
+      {visibleText.slice(0, count)}
       {count < total ? <Caret /> : null}
     </motion.div>
   );
@@ -260,11 +251,80 @@ function ThinkingDots() {
 
 export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   const { state, openPanel, addMessage, setDialogue, notify, crossChatContext } = useGenesis();
-  const voice = useVoice();
+  const voiceView = useVoice();
 
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [activeQuestion, setActiveQuestion] = useState<ProactiveQuestion | null>(null);
   const [exchange, setExchange] = useState<Exchange | null>(null);
+  const artifactImagesRef = useRef<string[]>([]);
+
+  // Stable ref for voice engine — avoids stale closure in send callback
+  const voiceEngineRef = useRef(voiceView.engine);
+  voiceEngineRef.current = voiceView.engine;
+
+  // Real measurement: the chat surface is mounted and usable.
+  useEffect(() => {
+    markPerf("CHAT_READY");
+  }, []);
+
+  // Live artifact stream: when LÉLU's execution produces a real image
+  useEffect(() => {
+    return AgentEventBus.getInstance().subscribe((event) => {
+      if (event.type !== "creative_artifact") return;
+      const image = event.image;
+      artifactImagesRef.current = [...artifactImagesRef.current, image];
+      setExchange((current) =>
+        current
+          ? { ...current, images: [...new Set([...(current.images ?? []), image])] }
+          : current,
+      );
+    });
+  }, []);
+
+  // Live visual environments: when LÉLU's execution really produces a
+  // search result set or opens the browser, the ACTUAL result attaches
+  // to this exchange as an inline surface
+  useEffect(() => {
+    const seen = new Set<string>();
+    return AgentEventBus.getInstance().subscribe((event) => {
+      let surface: ChatSurface | null = null;
+      let key = "";
+      if (event.type === "tool_result" && event.tool === "research" && (event.results?.length ?? 0) > 0) {
+        key = `research:${event.taskId}`;
+        surface = {
+          kind: "search",
+          label: event.result ?? `web search`,
+          items: event.results ?? [],
+        };
+      } else if (event.type === "tool_result" && event.tool === "browser") {
+        key = `browser-read:${event.taskId}`;
+        surface = {
+          kind: "browser",
+          url: event.results?.[0]?.url ?? "",
+          title: event.results?.[0]?.title,
+          excerpt: event.result,
+          status: "read",
+        };
+      } else if (event.type === "browser_opened") {
+        key = `browser:${event.url}`;
+        surface = {
+          kind: "browser",
+          url: event.url,
+          status: "opened",
+        };
+      }
+      if (!surface || seen.has(key)) return;
+      seen.add(key);
+      surfacesRef.current = [...surfacesRef.current, surface];
+      setExchange((current) =>
+        current
+          ? { ...current, surfaces: [...surfacesRef.current] }
+          : current,
+      );
+    });
+  }, []);
+
   const [fading, setFading] = useState(false);
   const [pendingMedia, setPendingMedia] = useState<ProcessedMedia[]>([]);
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
@@ -275,14 +335,38 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   const videoInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const exchangeRef = useRef<Exchange | null>(null);
+  const surfacesRef = useRef<ChatSurface[]>([]);
   const mountedAtRef = useRef(Date.now());
   const timersRef = useRef<number[]>([]);
+
+  // Composer auto-grows with typed content
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }, [input]);
 
   useEffect(() => {
     exchangeRef.current = exchange;
   }, [exchange]);
+
+  // Proactive question guard
+  const presentedQuestionIdsRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const presented = (presentedQuestionIdsRef.current ??= new Set<string>());
+    return proactive.subscribeQuestions((question) => {
+      if (!question || presented.has(question.id)) {
+        return;
+      }
+      if (question.status === "pending") {
+        presented.add(question.id);
+      }
+      setActiveQuestion(question);
+    });
+  }, []);
 
   const clearTimers = useCallback(() => {
     for (const id of timersRef.current) {
@@ -294,8 +378,6 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   const exit = useCallback(() => {
     clearTimers();
     setDialogue("idle");
-    /* Inside Genesis v2 the caller supplies onExit so leaving chat stays in
-       the v2 workspace; in v1 the original openPanel path is unchanged. */
     if (onExit) {
       onExit();
     } else {
@@ -303,23 +385,14 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     }
   }, [clearTimers, onExit, openPanel, setDialogue]);
 
-  /*
-   * On entering dialogue mode (Core click / dock Chat): focus the invisible
-   * input, restore the last exchange into the scene so the conversation
-   * context is visible, and mark the Core as listening.
-   */
+  // On entering dialogue mode
   useEffect(() => {
     mountedAtRef.current = Date.now();
     setDialogue("listening");
     inputRef.current?.focus();
 
-    // This tap activates the dialogue: unlock iOS's speechSynthesis audio
-    // session inside the gesture so LÉLU's typed responses are spoken too.
-    voice.engine.unlockAudio();
+    voiceEngineRef.current.unlockAudio();
 
-    // Safety net: while dialogue mode is live, Escape always exits, and any
-    // keystroke re-focuses the invisible input if autofocus was blocked (so
-    // typing never silently goes nowhere).
     function handleDocumentKey(event: KeyboardEvent) {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -331,7 +404,6 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       }
     }
     window.addEventListener("keydown", handleDocumentKey, true);
-
 
     const messages = state.messages;
     let lastAssistant: GenesisMessage | undefined;
@@ -354,7 +426,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       setExchange({
         id: `replay-${lastAssistant.id}`,
         user: userText,
-        assistant: lastAssistant.text,
+        assistant: cleanAssistantText(lastAssistant.text),
         fast: true,
       });
     }
@@ -364,20 +436,17 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       clearTimers();
       setDialogue("idle");
     };
-    // Replay only the messages that exist when dialogue mode opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exit]);
 
-  /*
-   * LÉLU finished typing: the Core returns to its resting "complete" pulse,
-   * holds the words in the environment, then lets them fade naturally.
-   */
+  // LÉLU finished typing: hold, then fade
   const handleTyped = useCallback(() => {
     const current = exchangeRef.current;
     if (!current) {
       return;
     }
     const exchangeId = current.id;
+    clearTimers();
     setDialogue("complete");
 
     const hold = Math.min(16000, 4200 + current.assistant.length * 26);
@@ -385,8 +454,6 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       setFading(true);
       const fadeId = window.setTimeout(() => {
         setFading(false);
-        // Only reset the phase if this exchange is still the one on screen
-        // (a new typed or voice turn may have replaced it meanwhile).
         if (exchangeRef.current?.id === exchangeId) {
           setDialogue("listening");
         }
@@ -395,16 +462,11 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       timersRef.current.push(fadeId);
     }, hold);
     timersRef.current.push(holdId);
-  }, [setDialogue]);
+  }, [clearTimers, setDialogue]);
 
-  /*
-   * Voice conversation flows through the SAME scene text: a committed
-   * utterance becomes the user line, and LÉLU's spoken reply types out
-   * into the environment while she speaks it. Driven by the one
-   * VoiceEngine — voice keeps working even when this dialogue is closed.
-   */
+  // Voice conversation flows through the SAME scene text
   useEffect(() => {
-    const turn = voice.turn;
+    const turn = voiceView.turn;
     if (!turn) {
       return;
     }
@@ -421,11 +483,11 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       return {
         id,
         user: turn.user,
-        assistant: turn.response ?? "",
+        assistant: turn.response ? cleanAssistantText(turn.response) : "",
         fast,
       };
     });
-  }, [setDialogue, voice.turn]);
+  }, [setDialogue, voiceView.turn]);
 
   const attachMedia = useCallback(
     async (file: File | undefined, kind: "image" | "video") => {
@@ -457,7 +519,6 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     [mediaBusy, notify, setDialogue],
   );
 
-  /** Generic file attachments — folded into the prompt text (see send). */
   const attachFiles = useCallback(
     async (list: FileList | null) => {
       if (!list || list.length === 0 || mediaBusy) {
@@ -481,7 +542,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
               preview = (await file.text()).slice(0, 800);
             }
           } catch {
-            // binary or unreadable — no preview, name/type/size still go
+            // binary or unreadable
           }
           attached.push({
             id: crypto.randomUUID(),
@@ -511,18 +572,12 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       return;
     }
 
-    // What appears in the scene / history: the typed words plus short
-    // labels for anything attached, so the exchange reads as one line.
     const displayParts: string[] = [];
     if (typed) displayParts.push(typed);
     if (media.length > 0) displayParts.push(mediaDisplayLabel(media));
     if (files.length > 0) displayParts.push(fileListLabel(files));
     const display = displayParts.join(" ");
 
-    // What the model receives: the typed instructions are ALWAYS the
-    // primary prompt (that's the point — you type instructions for the
-    // attachments); media rides the same request, and file contents are
-    // folded into the prompt as reference context.
     const promptParts: string[] = [];
     if (typed) promptParts.push(typed);
     else if (media.length > 0) promptParts.push(defaultMediaPrompt(media));
@@ -538,13 +593,14 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     setFading(false);
     setIsSending(true);
 
-    // User's line appears in the scene immediately; the same exchange then
-    // receives LÉLU's typed response, so the words read as one conversation.
-    setExchange({ id: exchangeId, user: display, assistant: "", fast: false });
+    // INTERRUPT: stop any current speech immediately
+    try { voiceEngineRef.current.cancelSpeech(); } catch { /* best-effort */ }
+
+    artifactImagesRef.current = [];
+    surfacesRef.current = [];
+    setExchange({ id: exchangeId, user: display, assistant: "", fast: false, surfaces: [] });
     setDialogue("processing");
 
-    // The EXISTING chat pipeline — one path, unchanged. Media rides along
-    // on the same request; providers without vision ignore it.
     addMessage({
       id: crypto.randomUUID(),
       role: "user",
@@ -554,128 +610,575 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     });
 
     try {
-      // Route through the Orchestrator for multi-step awareness,
-      // verification, and runtime state updates. For requests with
-      // media attachments, fall through to AIService directly since
-      // the Orchestrator does not yet forward media.
-      // Intentional cross-chat retrieval: fold in only the related
-      // conversations LÉLU actually needs for THIS request (never a
-      // dump of every chat). Empty string when nothing is relevant.
-      const context = crossChatContext(prompt || "");
+      ExplorationController.getInstance().parseCommand(display);
+    } catch {
+      // contained
+    }
+
+    try {
+      let context = "";
+      try {
+        context = crossChatContext(prompt || "");
+      } catch {
+        context = "";
+      }
+
+      // STREAMING VOICE: LÉLU begins speaking WHILE the response streams.
+      const unsubscribeStream = ai.subscribeStream((event) => {
+        try {
+          voiceEngineRef.current.feedStreamingSpeech(event.text);
+        } catch {
+          // contained
+        }
+        const streamed = event.text;
+        if (!streamed) return;
+        setExchange((current) =>
+          current && streamed !== current.assistant
+            ? { ...current, assistant: cleanAssistantText(streamed), fast: true }
+            : current,
+        );
+      });
+      try {
+        voiceEngineRef.current.beginStreamingSpeech();
+      } catch {
+        // contained
+      }
 
       let assistantText: string;
-      if (media.length > 0) {
-        const response = await ai.chat(prompt, media, context);
-        assistantText = response.text;
-      } else {
-        const result = await Orchestrator.getInstance().process(prompt, undefined, context);
-        assistantText = result.response;
+      try {
+        if (media.length > 0) {
+          const response = await ai.chat(prompt, media, context);
+          assistantText = typeof response.text === "string" ? response.text : "";
+        } else {
+          const result = await Orchestrator.getInstance().process(prompt, undefined, context);
+          assistantText = typeof result?.response === "string" ? result.response : "";
+        }
+      } finally {
+        unsubscribeStream();
       }
 
       if (!assistantText) {
+        const note = "⚠️ I couldn't generate a response — please try again.";
         notify("Lélu Error", "The assistant returned an empty response.");
+        setExchange((current) =>
+          current
+            ? { ...current, assistant: note, fast: true, images: artifactImagesRef.current, surfaces: surfacesRef.current }
+            : current,
+        );
         setDialogue("listening");
         return;
       }
 
-      // LÉLU's reply is emitted through the existing AIService → bridge
-      // message channel too, so history/memory persist exactly as before.
       setExchange({
         id: exchangeId,
         user: display,
-        assistant: assistantText,
+        assistant: cleanAssistantText(assistantText),
         fast: prefersReducedMotion(),
+        images: artifactImagesRef.current,
+        surfaces: surfacesRef.current,
       });
       setDialogue("responding");
 
-      // LÉLU SPEAKS her response aloud — automatically, through the one
-      // existing TTS system, whether the message came by voice or by text.
-      voice.engine.speakResponse(assistantText);
+      try {
+        voiceEngineRef.current.finishStreamingSpeech(assistantText);
+      } catch {
+        // contained
+      }
     } catch (error) {
+      try { voiceEngineRef.current.cancelSpeech(); } catch { /* best-effort */ }
       const messageText = error instanceof Error ? error.message : String(error);
       notify("Lélu Error", messageText);
+      setExchange((current) =>
+        current
+          ? { ...current, assistant: `⚠️ ${messageText.slice(0, 200)}`, fast: true, images: artifactImagesRef.current, surfaces: surfacesRef.current }
+          : current,
+      );
       setDialogue("listening");
     } finally {
       setIsSending(false);
     }
-  }, [addMessage, clearTimers, input, isSending, notify, pendingMedia, pendingFiles, setDialogue, voice.engine]);
+  }, [addMessage, clearTimers, input, isSending, notify, pendingMedia, pendingFiles, setDialogue, crossChatContext]);
 
-  function handleKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
-    // Escape is handled globally (see handleDocumentKey) so it also works
-    // when the invisible input is not the focused element.
-    if (event.key === "Enter") {
-      event.preventDefault();
-      void send();
-    }
-  }
-
-  function handleOverlayClick(event: ReactMouseEvent<HTMLDivElement>) {
-    // Clicks inside the conversation column keep focus (and allow scrolling
-    // long responses); clicks on the composer or the media popover act on
-    // the message itself. Any other click is "clicking away" → exit.
-    const clicked = event.target as HTMLElement;
-    if (
-      clicked.closest("[data-lelu-dialogue-scroll]") ||
-      clicked.closest("[data-lelu-composer]") ||
-      clicked.closest("[data-lelu-media-popover]")
-    ) {
-      return;
-    }
-    // Grace period so the click that activated the Core never exits instantly.
-    if (Date.now() - mountedAtRef.current < 400) {
-      return;
-    }
-    exit();
-  }
 
   const liveEcho =
     !isSending && input.length > 0
       ? input
       : "";
 
-  // The user's spoken words echo into the scene live while she listens.
-  // Gated to the listening phase: during LÉLU's own speech the recognition
-  // hears her voice too, and that must never be shown as a user line.
   const voiceEcho =
-    voice.state.active && voice.state.phase === "listening" && voice.interim
-      ? voice.interim
+    voiceView.state.active && voiceView.state.phase === "listening" && voiceView.interim
+      ? voiceView.interim
       : "";
+
+  /* ----- Chat window state (movable, resizable, minimizable) ----- */
+  const [chatPos, setChatPos] = useState({ x: -1, y: -1 }); // -1 = centered
+  const [chatSize, setChatSize] = useState<"compact" | "medium" | "large">("medium");
+  const [chatCorner, setChatCorner] = useState(false);
+  const [chatMinimized, setChatMinimized] = useState(false);
+  const dragging = useRef(false);
+  const dragStart = useRef({ x: 0, y: 0, posX: 0, posY: 0, height: 480 });
+  const [isMobileViewport, setIsMobileViewport] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(max-width: 720px)").matches,
+  );
+  const [mobileHeight, setMobileHeight] = useState<number | null>(null);
+  const mobileResizeRef = useRef<{ startY: number; startHeight: number } | null>(null);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 720px)");
+    const handleViewportChange = (event: MediaQueryListEvent) => {
+      setIsMobileViewport(event.matches);
+      if (!event.matches) {
+        setMobileHeight(null);
+      }
+    };
+    setIsMobileViewport(mediaQuery.matches);
+    mediaQuery.addEventListener("change", handleViewportChange);
+    return () => mediaQuery.removeEventListener("change", handleViewportChange);
+  }, []);
+
+  /* ----- Auto-scroll: follow LELU's response, allow manual scroll-up ----- */
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const userScrolledRef = useRef(false);
+  const lastExchangeIdRef = useRef("");
+
+  useEffect(() => {
+    if (exchange && exchange.id !== lastExchangeIdRef.current) {
+      lastExchangeIdRef.current = exchange.id;
+      userScrolledRef.current = false;
+    }
+  }, [exchange]);
+
+  useEffect(() => {
+    if (!userScrolledRef.current && scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [exchange?.assistant]);
+
+  function handleScroll() {
+    const el = scrollRef.current;
+    if (!el) return;
+    const fromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    userScrolledRef.current = fromBottom > 60;
+  }
+
+  function jumpToLatest() {
+    userScrolledRef.current = false;
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }
+
+  function handlePointerDown(e: ReactPointerEvent) {
+    if ((e.target as HTMLElement).closest("button,input,textarea")) return;
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    dragging.current = true;
+    const frame = e.currentTarget.parentElement?.getBoundingClientRect();
+    dragStart.current = {
+      x: e.clientX,
+      y: e.clientY,
+      posX: chatPos.x < 0 ? frame?.left ?? 8 : chatPos.x,
+      posY: chatPos.y < 0 ? frame?.top ?? 8 : chatPos.y,
+      height: frame?.height ?? 480,
+    };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }
+
+  function handlePointerMove(e: ReactPointerEvent) {
+    if (!dragging.current) return;
+    const dx = e.clientX - dragStart.current.x;
+    const dy = e.clientY - dragStart.current.y;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    if (isMobileViewport) {
+      // On mobile: freely repositionable but stays fully on screen
+      const floatW = Math.min(width - 16, 400);
+      const maxX = Math.max(8, width - floatW - 8);
+      const maxY = Math.max(8, height - MOBILE_PILL_RESERVE - 400);
+      setChatPos({
+        x: Math.max(8, Math.min(maxX, dragStart.current.posX + dx)),
+        y: Math.max(8, Math.min(maxY, dragStart.current.posY + dy)),
+      });
+      return;
+    }
+
+    const maxY = Math.max(8, height - dragStart.current.height - 8);
+    setChatPos({
+      x: Math.max(8, Math.min(width - 120, dragStart.current.posX + dx)),
+      y: Math.max(8, Math.min(maxY, dragStart.current.posY + dy)),
+    });
+  }
+
+  function handlePointerUp() { dragging.current = false; }
+
+  function handleMobileResizeDown(e: ReactPointerEvent<HTMLDivElement>) {
+    if (!isMobileViewport) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const currentHeight = mobileHeight ?? Math.min(window.innerHeight * 0.72, 620);
+    mobileResizeRef.current = { startY: e.clientY, startHeight: currentHeight };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function handleMobileResizeMove(e: ReactPointerEvent<HTMLDivElement>) {
+    const resize = mobileResizeRef.current;
+    if (!resize || !isMobileViewport) return;
+    e.preventDefault();
+    const nextHeight = resize.startHeight + resize.startY - e.clientY;
+    setMobileHeight(Math.max(240, Math.min(window.innerHeight - 16, nextHeight)));
+  }
+
+  function handleMobileResizeUp(e: ReactPointerEvent<HTMLDivElement>) {
+    mobileResizeRef.current = null;
+    e.currentTarget.releasePointerCapture?.(e.pointerId);
+  }
+
+  const sizeStyles: Record<string, CSSProperties> = {
+    compact: { width: "min(88vw, 380px)", maxHeight: "min(50vh, 360px)" },
+    medium:  { width: "min(92vw, 560px)", maxHeight: "min(62vh, 480px)" },
+    large:   { width: "min(96vw, 720px)", maxHeight: "min(78vh, 620px)" },
+  };
+
+  // Minimized bubble
+  if (chatMinimized) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.85 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0 }}
+        style={{
+          position: "fixed", zIndex: 25, bottom: 32, right: 24,
+          pointerEvents: "auto",
+          background: "rgba(8,16,38,0.82)", backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)", borderRadius: 999,
+          padding: "10px 18px", display: "flex", gap: 10, alignItems: "center",
+          border: "1px solid rgba(103,232,249,0.25)", cursor: "pointer",
+          boxShadow: "0 8px 32px rgba(2,6,23,0.5)",
+        }}
+        onClick={() => setChatMinimized(false)}
+      >
+        <span style={{ fontSize: 16 }}>◎</span>
+        <span style={{ color: "#e2e8f0", fontSize: 13, fontWeight: 500 }}>
+          LÉLU{state.speaking ? " ●" : state.thinking ? " ···" : ""}
+        </span>
+      </motion.div>
+    );
+  }
+
+  const isCentered = chatPos.x === -1;
+  const isFloatingMobile = isMobileViewport && chatPos.x >= 0;
+  const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 800;
+  const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 800;
+  const mobileSheetHeight = mobileHeight ?? Math.min(viewportHeight * 0.82, 720);
+  const mobileFloatWidth = Math.min(viewportWidth - 16, 400);
+
+  const windowStyle: CSSProperties = {
+    position: "fixed",
+    zIndex: 21,
+    pointerEvents: "auto",
+    ...(isMobileViewport
+      ? isFloatingMobile
+        ? {
+            left: chatPos.x,
+            top: chatPos.y,
+            right: "auto",
+            bottom: "auto",
+            width: mobileFloatWidth,
+            height: mobileSheetHeight,
+            maxHeight: "calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px)",
+          }
+        : {
+            // MOBILE: fullscreen by default — the chat IS the app on mobile
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: "100%",
+            height: "100dvh",
+            maxHeight: "100dvh",
+            borderRadius: 0,
+          }
+      : chatCorner
+        ? { right: 16, bottom: 16, top: "auto", left: "auto", transform: "none" }
+        : isCentered
+          ? { left: "50%", top: "50%", transform: "translate(-50%,-45%)" }
+          : { left: chatPos.x, top: chatPos.y }),
+    ...(isMobileViewport ? {} : sizeStyles[chatSize]),
+    display: "flex", flexDirection: "column",
+    background: "rgba(6,14,32,0.94)",
+    backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+    borderRadius: isMobileViewport && !isFloatingMobile ? 0 : "18px",
+    border: isMobileViewport && !isFloatingMobile ? "none" : "1px solid rgba(103,232,249,0.2)",
+    boxShadow: isMobileViewport && !isFloatingMobile ? "none" : "0 12px 48px rgba(2,6,23,0.55), inset 0 1px 0 rgba(255,255,255,0.04)",
+    overflow: "hidden",
+    overscrollBehavior: "contain",
+  };
 
   return (
     <motion.div
-      className="genesis-dialogue-layer"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      onClick={handleOverlayClick}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 21,
-        pointerEvents: "auto",
-        cursor: "default",
-        background: "transparent",
-      }}
+      transition={{ duration: 0.25 }}
+      style={windowStyle}
     >
-      {/*
-       * VISIBLE COMPOSER — the dialogue's input bar. Media and file
-       * attachments sit directly ABOVE the input, so you type the
-       * instructions for them in the same bar; the Send button fires
-       * the SAME chat pipeline (see send).
-       */}
+      {/* Phone-only resize handle — only when floating (not fullscreen) */}
+      {isMobileViewport && isFloatingMobile ? (
+        <div
+          onPointerDown={handleMobileResizeDown}
+          onPointerMove={handleMobileResizeMove}
+          onPointerUp={handleMobileResizeUp}
+          onPointerCancel={handleMobileResizeUp}
+          role="separator"
+          aria-label="Resize chat"
+          style={{
+            height: 24,
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            touchAction: "none",
+            cursor: "ns-resize",
+          }}
+        >
+          <span style={{ width: 42, height: 4, borderRadius: 99, background: "rgba(148,163,184,0.42)" }} />
+        </div>
+      ) : null}
+
+      {/* Title bar */}
       <div
-        data-lelu-composer
+        onPointerDown={isMobileViewport && !isFloatingMobile ? undefined : handlePointerDown}
+        onPointerMove={isMobileViewport && !isFloatingMobile ? undefined : handlePointerMove}
+        onPointerUp={isMobileViewport && !isFloatingMobile ? undefined : handlePointerUp}
+        onPointerCancel={isMobileViewport && !isFloatingMobile ? undefined : handlePointerUp}
         style={{
-          position: "fixed",
-          left: "50%",
-          bottom: "calc(clamp(148px, 19vh, 192px) + env(safe-area-inset-bottom, 0px))",
-          transform: "translateX(-50%)",
-          zIndex: 27,
-          width: "min(94vw, 640px)",
-          pointerEvents: "auto",
+          display: "flex", alignItems: "center", gap: 8,
+          padding: "10px 14px", borderBottom: "1px solid rgba(103,232,249,0.12)",
+          cursor: isMobileViewport && !isFloatingMobile ? "default" : "grab",
+          flexShrink: 0,
+          background: "rgba(103,232,249,0.04)",
+          touchAction: isMobileViewport && !isFloatingMobile ? "auto" : "none",
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          paddingTop: isMobileViewport && !isFloatingMobile
+            ? `calc(env(safe-area-inset-top, 0px) + 10px)`
+            : "10px",
         }}
       >
+        {isMobileViewport ? (
+          <button
+            onClick={() => setChatPos({ x: -1, y: -1 })}
+            disabled={!isFloatingMobile}
+            title="Dock to bottom"
+            aria-label="Dock chat to bottom"
+            style={{ ...titleBtn, opacity: isFloatingMobile ? 1 : 0.35, cursor: isFloatingMobile ? "pointer" : "default" }}
+          >
+            ⇩
+          </button>
+        ) : (
+          <>
+            <button onClick={() => setChatSize(s => s === "compact" ? "medium" : s === "medium" ? "large" : "compact")}
+              title="Resize" style={titleBtn}>⤢</button>
+            <button onClick={() => setChatCorner(!chatCorner)}
+              title={chatCorner ? "Float" : "Snap to corner"} style={titleBtn}>{chatCorner ? "⊡" : "⊟"}</button>
+          </>
+        )}
+        <span style={{ flex: 1, textAlign: "center", fontSize: 11, color: "rgba(148,163,184,0.7)", letterSpacing: "0.12em" }}>
+          LÉLU · {state.speaking ? "speaking" : state.thinking ? "thinking" : "chat"}
+        </span>
+        <button
+          onClick={() => window.dispatchEvent(new Event("genesis-lelu-menu-toggle"))}
+          title="LÉLU menu — tools and live surfaces"
+          aria-label="Open LÉLU menu"
+          style={{ ...titleBtn, fontSize: 13 }}
+        >
+          ☰
+        </button>
+        <button onClick={() => { if (onExit) onExit(); else openPanel("none"); }} title="Close" style={{...titleBtn, color: "rgba(248,113,113,0.7)" }}>✕</button>
+      </div>
+
+      {/* Messages scroll area */}
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: "auto", overflowX: "hidden",
+          padding: isMobileViewport && !isFloatingMobile
+            ? `16px 18px calc(env(safe-area-inset-bottom, 0px) + 16px)`
+            : "16px 18px",
+          position: "relative",
+          overscrollBehavior: "contain",
+          WebkitOverflowScrolling: "touch",
+          touchAction: "pan-y",
+          scrollbarWidth: "thin",
+          scrollbarColor: "rgba(148, 163, 184, 0.35) transparent",
+        }}
+        data-lelu-dialogue-scroll
+      >
+        <div style={{
+          display: "flex", flexDirection: "column", gap: 10,
+          minHeight: "100%", justifyContent: exchange ? "flex-start" : "center",
+        }}>
+          <AnimatePresence>
+            {liveEcho || voiceEcho ? (
+              <motion.div
+                key={liveEcho ? "echo" : "voice-echo"}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.22 }}
+                style={userTextStyle}
+              >
+                {liveEcho || voiceEcho}
+                <Caret />
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+
+          <AnimatePresence mode="wait">
+            {exchange ? (
+              <motion.div
+                key={exchange.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: fading ? 0 : 1, y: fading ? -10 : 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: fading ? 0.8 : 0.35 }}
+              >
+                {exchange.user ? (
+                  <div style={userTextStyle}>{exchange.user}</div>
+                ) : null}
+
+                <div style={{ height: 8 }} />
+
+                {exchange.assistant ? (
+                  <AssistantLine
+                    text={exchange.assistant}
+                    fast={exchange.fast}
+                    onDone={handleTyped}
+                  />
+                ) : (
+                  <ThinkingDots />
+                )}
+
+                {exchange.images && exchange.images.length > 0 ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 10,
+                      marginTop: 12,
+                      maxWidth: "min(300px, 100%)",
+                    }}
+                  >
+                    {exchange.images.map((src, index) => (
+                      <img
+                        key={`${exchange.id}-${index}`}
+                        src={src}
+                        alt="Lélu render"
+                        style={{
+                          width: "100%",
+                          borderRadius: 12,
+                          border: "1px solid rgba(212,169,78,0.35)",
+                          boxShadow: "0 10px 28px rgba(0,0,0,0.5)",
+                          display: "block",
+                        }}
+                      />
+                    ))}
+                    <div style={{ fontSize: 11, opacity: 0.55, color: "#d4a94e" }}>
+                      rendered by Lélu — saved to the Render gallery
+                    </div>
+                  </div>
+                ) : null}
+
+                {exchange.surfaces && exchange.surfaces.length > 0 ? (
+                  <GenesisChatSurface surfaces={exchange.surfaces} />
+                ) : null}
+              </motion.div>
+            ) : !liveEcho && !voiceEcho ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.5 }}
+                style={{ ...userTextStyle, fontSize: "clamp(13px, 1.4vw + 8px, 15px)", color: "rgba(148,163,184,0.55)" }}
+              >
+                Type a message or speak to Lélu…
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
+
+        {/* Jump-to-latest button */}
+        {userScrolledRef.current && exchange ? (
+          <div style={{
+            position: "sticky", bottom: 0, textAlign: "center", paddingBottom: 4,
+          }}>
+            <button
+              onClick={jumpToLatest}
+              style={{
+                ...titleBtn, width: "auto", padding: "4px 12px", fontSize: 11,
+                color: "rgba(103,232,249,0.8)", borderRadius: 999,
+              }}
+            >
+              ↓ latest
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Proactive question */}
+      {activeQuestion ? (
+        <div
+          data-lelu-proactive-question
+          style={{
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 8,
+            padding: "8px 12px",
+            borderTop: "1px solid rgba(251, 191, 36, 0.18)",
+            background: "rgba(251, 191, 36, 0.06)",
+            color: "rgba(254, 243, 199, 0.92)",
+            fontSize: 12,
+            lineHeight: 1.4,
+          }}
+        >
+          <span aria-hidden style={{ color: "rgba(251, 191, 36, 0.9)", flexShrink: 0 }}>?</span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <strong style={{ display: "block", fontWeight: 600 }}>{activeQuestion.question}</strong>
+            <span style={{ display: "block", marginTop: 2, color: "rgba(226, 232, 240, 0.62)" }}>
+              {activeQuestion.reason}
+            </span>
+          </span>
+          <button
+            type="button"
+            onClick={() => proactive.dismissQuestion(activeQuestion.id)}
+            aria-label="Dismiss proactive question"
+            title="Dismiss"
+            style={{
+              ...titleBtn,
+              width: 24,
+              height: 24,
+              fontSize: 11,
+              color: "rgba(226, 232, 240, 0.65)",
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      ) : null}
+
+      {/* Live execution timeline */}
+      <GenesisExecutionTimeline />
+
+      {/* Composer */}
+      <div data-lelu-composer style={{
+        flexShrink: 0,
+        padding: isMobileViewport && !isFloatingMobile
+          ? `10px 14px calc(env(safe-area-inset-bottom, 0px) + 10px)`
+          : "10px 14px",
+        borderTop: "1px solid rgba(103,232,249,0.12)",
+      }}>
         {pendingMedia.length > 0 || pendingFiles.length > 0 ? (
           <div
             style={{
@@ -794,11 +1297,18 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
             aria-label="Attach media or files"
             aria-expanded={mediaOpen}
             className={mediaOpen ? "lelu-tab-cloud lelu-tab-cloud-active" : "lelu-tab-cloud"}
-            style={{ ...cloudChipStyle, borderRadius: 999, padding: "8px 12px", flexShrink: 0 }}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              padding: "7px 14px",
+              color: "rgba(242, 230, 255, 0.95)",
+              fontSize: 12, letterSpacing: "0.02em",
+              cursor: "pointer", whiteSpace: "nowrap",
+              borderRadius: 999, flexShrink: 0,
+            }}
           >
             📷 Media
           </button>
-          <input
+          <textarea
             ref={inputRef}
             value={input}
             onChange={(event) => {
@@ -806,15 +1316,20 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
               setInput(value);
               setDialogue(value.trim().length > 0 ? "typing" : "listening");
             }}
-            onKeyDown={handleKeyDown}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                void send();
+              }
+            }}
             autoFocus
             autoComplete="off"
             autoCorrect="on"
             autoCapitalize="sentences"
             spellCheck={false}
-            enterKeyHint="send"
             placeholder="Type instructions for Lélu…"
             aria-label="Message Lélu — type instructions for any attachments"
+            rows={1}
             style={{
               flex: 1,
               minWidth: 0,
@@ -826,8 +1341,48 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
               outline: "none",
               boxShadow: "none",
               fontFamily: "inherit",
+              resize: "none",
+              maxHeight: 120,
             }}
           />
+          {/* INTERRUPT button */}
+          {voiceView.state.phase === "speaking" && (
+            <button
+              type="button"
+              onClick={() => voiceEngineRef.current.cancelSpeech()}
+              title="Stop Lélu speaking"
+              aria-label="Interrupt Lélu's speech"
+              className="lelu-tab-cloud lelu-tab-cloud-active"
+              style={{
+                width: 34, height: 34, borderRadius: 999, flexShrink: 0,
+                cursor: "pointer", display: "inline-flex", alignItems: "center",
+                justifyContent: "center", fontSize: 13, fontFamily: "inherit",
+                padding: 0, border: "none",
+                background: "rgba(248, 113, 113, 0.22)", color: "#f87171",
+              }}
+            >
+              ■
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => void voiceView.engine.toggle()}
+            disabled={isSending}
+            title={voiceView.state.active ? "Stop listening" : "Voice input"}
+            aria-label={voiceView.state.active ? "Stop listening" : "Voice input"}
+            className={voiceView.state.active ? "lelu-tab-cloud lelu-tab-cloud-active" : "lelu-tab-cloud"}
+            style={{
+              width: 34, height: 34, borderRadius: 999, flexShrink: 0,
+              cursor: isSending ? "default" : "pointer",
+              opacity: isSending ? 0.45 : 1,
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              fontSize: 14, fontFamily: "inherit", padding: 0, border: "none",
+              background: voiceView.state.active ? "rgba(167, 139, 250, 0.25)" : "transparent",
+              color: voiceView.state.active ? "#a78bfa" : "rgba(203, 228, 255, 0.65)",
+            }}
+          >
+            {voiceView.state.active ? (voiceView.state.phase === "listening" ? "🎙" : "◌") : "🎤"}
+          </button>
           <button
             type="button"
             onClick={() => void send()}
@@ -836,23 +1391,15 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
             aria-label="Send message"
             className="lelu-tab-cloud lelu-tab-cloud-active"
             style={{
-              width: 38,
-              height: 38,
-              borderRadius: 999,
-              flexShrink: 0,
+              width: 38, height: 38, borderRadius: 999, flexShrink: 0,
               cursor:
                 isSending || (!input.trim() && pendingMedia.length === 0 && pendingFiles.length === 0)
-                  ? "default"
-                  : "pointer",
+                  ? "default" : "pointer",
               opacity:
                 isSending || (!input.trim() && pendingMedia.length === 0 && pendingFiles.length === 0)
-                  ? 0.45
-                  : 1,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 15,
-              fontFamily: "inherit",
+                  ? 0.45 : 1,
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              fontSize: 15, fontFamily: "inherit",
             }}
           >
             {isSending ? "◌" : "➤"}
@@ -860,12 +1407,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         </div>
       </div>
 
-      {/*
-       * Attachment sources — camera / gallery / video / files, all
-       * hidden inputs driven from the Media popover. Selected media
-       * rides the SAME chat request (see send), so providers with
-       * vision analyze it and providers without simply ignore it.
-       */}
+      {/* Hidden file inputs */}
       <input
         ref={imageInputRef}
         type="file"
@@ -908,7 +1450,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         tabIndex={-1}
       />
 
-      {/* One Media tab — camera, gallery, video and files live behind it. */}
+      {/* Media popover */}
       {mediaOpen ? (
         <div
           data-lelu-media-popover
@@ -916,7 +1458,9 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
           style={{
             position: "fixed",
             left: "50%",
-            bottom: "calc(clamp(268px, 33vh, 336px) + env(safe-area-inset-bottom, 0px))",
+            bottom: isMobileViewport && !isFloatingMobile
+              ? `calc(clamp(120px, 20vh, 200px) + env(safe-area-inset-bottom, 0px))`
+              : `calc(clamp(268px, 33vh, 336px) + ${MOBILE_PILL_RESERVE}px + env(safe-area-inset-bottom, 0px))`,
             transform: "translateX(-50%)",
             zIndex: 28,
             display: "flex",
@@ -932,126 +1476,65 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
           <button
             type="button"
             disabled={mediaBusy || isSending}
-            onClick={() => {
-              cameraInputRef.current?.click();
-              setMediaOpen(false);
-            }}
-            title="Take a photo with the camera"
+            onClick={() => { cameraInputRef.current?.click(); setMediaOpen(false); }}
+            title="Take a photo"
             aria-label="Take a photo"
             className="lelu-tab-cloud"
-            style={{ ...cloudChipStyle, borderRadius: 12 }}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              padding: "7px 14px", color: "rgba(242, 230, 255, 0.95)",
+              fontSize: 12, cursor: "pointer", whiteSpace: "nowrap", borderRadius: 12,
+            }}
           >
             📷 Camera
           </button>
           <button
             type="button"
             disabled={mediaBusy || isSending}
-            onClick={() => {
-              imageInputRef.current?.click();
-              setMediaOpen(false);
-            }}
-            title="Choose an image from your library"
+            onClick={() => { imageInputRef.current?.click(); setMediaOpen(false); }}
+            title="Choose an image"
             aria-label="Choose an image"
             className="lelu-tab-cloud"
-            style={{ ...cloudChipStyle, borderRadius: 12 }}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              padding: "7px 14px", color: "rgba(242, 230, 255, 0.95)",
+              fontSize: 12, cursor: "pointer", whiteSpace: "nowrap", borderRadius: 12,
+            }}
           >
             🖼 Gallery
           </button>
           <button
             type="button"
             disabled={mediaBusy || isSending}
-            onClick={() => {
-              videoInputRef.current?.click();
-              setMediaOpen(false);
-            }}
+            onClick={() => { videoInputRef.current?.click(); setMediaOpen(false); }}
             title="Record or choose a video"
             aria-label="Record or choose a video"
             className="lelu-tab-cloud"
-            style={{ ...cloudChipStyle, borderRadius: 12 }}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              padding: "7px 14px", color: "rgba(242, 230, 255, 0.95)",
+              fontSize: 12, cursor: "pointer", whiteSpace: "nowrap", borderRadius: 12,
+            }}
           >
             🎬 Video
           </button>
           <button
             type="button"
             disabled={mediaBusy || isSending}
-            onClick={() => {
-              fileInputRef.current?.click();
-              setMediaOpen(false);
-            }}
-            title="Attach files (documents, code, text) — LÉLU reads the contents"
+            onClick={() => { fileInputRef.current?.click(); setMediaOpen(false); }}
+            title="Attach files"
             aria-label="Attach files"
             className="lelu-tab-cloud"
-            style={{ ...cloudChipStyle, borderRadius: 12 }}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              padding: "7px 14px", color: "rgba(242, 230, 255, 0.95)",
+              fontSize: 12, cursor: "pointer", whiteSpace: "nowrap", borderRadius: 12,
+            }}
           >
             📄 Files
           </button>
         </div>
       ) : null}
-
-      {/* Floating environmental dialogue — no frame, no bubble. */}
-      <div
-        data-lelu-dialogue-scroll
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: "clamp(76px, 23vh, 200px)",
-          transform: "translateX(-50%)",
-          width: "min(90vw, 620px)",
-          maxHeight: "40vh",
-          overflowY: "auto",
-          overscrollBehavior: "contain",
-          scrollbarWidth: "thin",
-          scrollbarColor: "rgba(148, 163, 184, 0.35) transparent",
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-          padding: "4px 8px",
-        }}
-      >
-        <AnimatePresence>
-          {liveEcho || voiceEcho ? (
-            <motion.div
-              key={liveEcho ? "echo" : "voice-echo"}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.22 }}
-              style={userTextStyle}
-            >
-              {liveEcho || voiceEcho}
-              <Caret />
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-
-        <AnimatePresence mode="wait">
-          {exchange ? (
-            <motion.div
-              key={exchange.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: fading ? 0 : 1, y: fading ? -10 : 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: fading ? 0.8 : 0.35 }}
-            >
-              {exchange.user ? (
-                <div style={userTextStyle}>{exchange.user}</div>
-              ) : null}
-
-              <div style={{ height: 8 }} />
-
-              {exchange.assistant ? (
-                <AssistantLine
-                  text={exchange.assistant}
-                  fast={exchange.fast}
-                  onDone={handleTyped}
-                />
-              ) : (
-                <ThinkingDots />
-              )}
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-      </div>
     </motion.div>
   );
 }

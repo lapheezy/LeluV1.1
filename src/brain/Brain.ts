@@ -312,6 +312,16 @@ export default class Brain {
    * Recall
    * ==========================================================
    */
+  /** Merge persisted cloud memories into the existing PatternMemory engine. */
+  public async mergeMemories(patterns: ResponsePattern[]): Promise<void> {
+    if (patterns.length === 0) {
+      return;
+    }
+    await this.memory.mergeRemote(patterns);
+  }
+
+
+
   public async recall(
 
     prompt:

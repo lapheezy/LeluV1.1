@@ -38,6 +38,7 @@ export interface ChatConversation {
   createdAt: number;
   updatedAt: number;
   pinned: boolean;
+  archived: boolean;
   linkedIds: string[];
   projectId: string | null;
   tags: string[];
@@ -66,7 +67,8 @@ type Listener = (conversations: ChatConversation[]) => void;
 
 const KEY = "multichat.workspace.v1";
 const MAX_MESSAGES = 600;
-const MAX_CONVERSATIONS = 40;
+/** Practically unlimited — archived conversations don't count against active slots. */
+const MAX_ACTIVE = 200;
 const DEFAULT_TITLE = "New chat";
 
 const STOP_WORDS = new Set([
@@ -177,14 +179,14 @@ export default class MultiChatStore {
   }
 
   private makeConversation(title: string): ChatConversation {
-    const now = Date.now();
     return {
       id: crypto.randomUUID(),
       title,
       messages: [],
-      createdAt: now,
-      updatedAt: now,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
       pinned: false,
+      archived: false,
       linkedIds: [],
       projectId: null,
       tags: [],
@@ -196,8 +198,33 @@ export default class MultiChatStore {
 
   /* --------------------------------- read ---------------------------------- */
 
+  /** Active conversations only — archived ones are excluded. */
   public list(): ChatConversation[] {
+    return this.ensureSeeded().filter((conv) => !conv.archived);
+  }
+
+  /** All conversations including archived. */
+  public listAll(): ChatConversation[] {
     return this.ensureSeeded();
+  }
+
+  /** Archived conversations for restoration. */
+  public listArchived(): ChatConversation[] {
+    return this.ensureSeeded().filter((conv) => conv.archived);
+  }
+
+
+  /** Merge remote conversations and retain the local active chat. */
+  public mergeRemote(conversations: ChatConversation[]): void {
+    const local = this.list();
+    const byId = new Map(local.map((conversation) => [conversation.id, conversation]));
+    for (const remote of conversations) {
+      const current = byId.get(remote.id);
+      if (!current || remote.updatedAt > current.updatedAt) {
+        byId.set(remote.id, remote);
+      }
+    }
+    this.persist([...byId.values()]);
   }
 
   public get(id: string): ChatConversation | undefined {
@@ -229,10 +256,40 @@ export default class MultiChatStore {
   public create(title = DEFAULT_TITLE): ChatConversation {
     const conversations = this.ensureSeeded();
     const conversation = this.makeConversation(title);
-    const next = [conversation, ...conversations].slice(0, MAX_CONVERSATIONS);
+    const next = [conversation, ...conversations].slice(0, MAX_ACTIVE);
     this.activeId = conversation.id;
     this.persist(next, conversation.id);
     return conversation;
+  }
+
+  /** Archive a conversation — hides from active list, preserves state. */
+  public archive(id: string): string {
+    const conversations = this.ensureSeeded();
+    const conversation = conversations.find((conv) => conv.id === id);
+    if (!conversation || conversations.length <= 1) {
+      return this.activeId;
+    }
+    conversation.archived = true;
+    conversation.updatedAt = Date.now();
+    if (this.activeId === id) {
+      const active = conversations.find((conv) => !conv.archived) ?? conversations[0];
+      active.unread = 0;
+      this.activeId = active.id;
+      this.persist(conversations, active.id);
+      return active.id;
+    }
+    this.persist(conversations);
+    return this.activeId;
+  }
+
+  /** Restore an archived conversation. */
+  public unarchive(id: string): void {
+    const conversations = this.ensureSeeded();
+    const conversation = conversations.find((conv) => conv.id === id);
+    if (!conversation) return;
+    conversation.archived = false;
+    conversation.updatedAt = Date.now();
+    this.persist(conversations);
   }
 
   public switchActive(id: string): ChatConversation | undefined {
@@ -265,6 +322,36 @@ export default class MultiChatStore {
     this.persist(conversations);
   }
 
+  /**
+   * Replace an existing message by id, or append when new. Streaming
+   * updates and final completions share one id, so progressive text
+   * renders in place instead of duplicating bubbles.
+   */
+  public upsertMessage(id: string, message: ChatMessage): void {
+    const conversations = this.ensureSeeded();
+    const conversation = conversations.find((item) => item.id === id);
+    if (!conversation) {
+      return;
+    }
+    const index = conversation.messages.findIndex((m) => m.id === message.id);
+    if (index >= 0) {
+      const next = [...conversation.messages];
+      next[index] = { ...next[index], ...message };
+      conversation.messages = next;
+    } else {
+      conversation.messages = [...conversation.messages, message].slice(-MAX_MESSAGES);
+      if (id !== this.activeId) {
+        conversation.unread += 1;
+      }
+    }
+    conversation.updatedAt = message.timestamp || Date.now();
+    if (message.role === "user" && message.text.trim()) {
+      conversation.topic = this.detectTopic(message.text);
+      conversation.title = this.deriveTitle(conversation, message.text);
+    }
+    this.persist(conversations);
+  }
+
   public clear(id: string): void {
     const conversations = this.ensureSeeded();
     const conversation = conversations.find((item) => item.id === id);
@@ -288,7 +375,6 @@ export default class MultiChatStore {
     this.persist(conversations);
   }
 
-  /** Remove a conversation; returns the new active id (never zero chats). */
   public remove(id: string): string {
     const conversations = this.ensureSeeded();
     if (conversations.length <= 1) {
@@ -324,7 +410,7 @@ export default class MultiChatStore {
     };
     const conversations = this.ensureSeeded();
     this.activeId = copy.id;
-    this.persist([copy, ...conversations].slice(0, MAX_CONVERSATIONS), copy.id);
+    this.persist([copy, ...conversations].slice(0, MAX_ACTIVE), copy.id);
     return copy;
   }
 

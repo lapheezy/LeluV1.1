@@ -41,14 +41,41 @@ export interface ProjectItem {
   updatedAt: number;
 }
 
+/** Recurring schedule for autonomous project runs. */
+export interface ProjectSchedule {
+  frequency: "hourly" | "daily" | "weekly";
+  /** Interval in ms derived from frequency. */
+  intervalMs: number;
+  lastRun?: number;
+  nextRun?: number;
+}
+
 export interface LeluProject {
   id: string;
   name: string;
   description: string;
-  status: "active" | "archived" | "completed";
+  status: "active" | "paused" | "archived" | "completed";
   /** Agent ids assigned to this project. */
   agentIds: string[];
   items: ProjectItem[];
+  /** Research topics this project tracks (used by ProjectRunner). */
+  queries?: string[];
+  /** Recurring schedule; present when the project runs autonomously. */
+  schedule?: ProjectSchedule;
+  /** The user's FULL instruction, verbatim — never truncated. */
+  originalRequest?: string;
+  /** One-line statement of what the project should achieve. */
+  objective?: string;
+  /** Surrounding context captured at creation (user/self state). */
+  context?: string;
+  /** Concrete, actionable tasks derived from the request. */
+  actionableTasks?: string[];
+  /** Priority (P0/P1/P2). */
+  priority?: string;
+  /** Subsystem this project targets (ui, avatar, memory, news, ...). */
+  location?: string;
+  /** Ordered execution plan steps. */
+  executionPlan?: string[];
   createdAt: number;
   updatedAt: number;
 }
@@ -94,6 +121,19 @@ export default class ProjectStore {
   public list(): LeluProject[] {
     const projects = this.kv.get<LeluProject[]>(ProjectStore.KEY) ?? [];
     return projects.sort((a, b) => b.updatedAt - a.updatedAt);
+  }
+
+  /** Merge remote records without discarding newer local work. */
+  public mergeRemote(projects: LeluProject[]): void {
+    const local = this.list();
+    const byId = new Map(local.map((project) => [project.id, project]));
+    for (const remote of projects) {
+      const current = byId.get(remote.id);
+      if (!current || remote.updatedAt > current.updatedAt) {
+        byId.set(remote.id, remote);
+      }
+    }
+    this.persist([...byId.values()]);
   }
 
   public subscribe(listener: ProjectListener): () => void {
@@ -205,6 +245,85 @@ export default class ProjectStore {
     this.update(id, { status: "archived" });
   }
 
+  public pause(id: string): void {
+    this.update(id, { status: "paused" });
+  }
+
+  public resume(id: string): void {
+    this.update(id, { status: "active" });
+  }
+
+  /** Case-insensitive lookup by (partial) name — "tampa news" → project. */
+  public findByName(name: string): LeluProject | undefined {
+    const needle = name.trim().toLowerCase();
+    if (!needle) {
+      return undefined;
+    }
+    return (
+      this.list().find((project) => project.name.toLowerCase() === needle) ??
+      this.list().find(
+        (project) =>
+          project.name.toLowerCase().includes(needle) ||
+          needle.includes(project.name.toLowerCase()),
+      )
+    );
+  }
+
+  /** Attach or replace a recurring schedule. Next run = now + interval. */
+  public setSchedule(id: string, frequency: ProjectSchedule["frequency"]): ProjectSchedule | undefined {
+    const intervals: Record<ProjectSchedule["frequency"], number> = {
+      hourly: 60 * 60 * 1000,
+      daily: 24 * 60 * 60 * 1000,
+      weekly: 7 * 24 * 60 * 60 * 1000,
+    };
+    const schedule: ProjectSchedule = {
+      frequency,
+      intervalMs: intervals[frequency],
+      nextRun: Date.now() + intervals[frequency],
+    };
+    this.update(id, { schedule });
+    return schedule;
+  }
+
+  /** Persist a completed run: output item + schedule bookkeeping. */
+  public recordRun(id: string, summary: string, resultCount: number): ProjectItem | undefined {
+    const project = this.get(id);
+    if (!project) {
+      return undefined;
+    }
+    const item = this.addItem(id, {
+      kind: "output",
+      title: `Run — ${new Date().toLocaleString()}`,
+      text: summary.slice(0, 2000),
+      ref: resultCount > 0 ? `${resultCount} result(s)` : undefined,
+    });
+    if (project.schedule) {
+      this.update(id, {
+        schedule: {
+          ...project.schedule,
+          lastRun: Date.now(),
+          nextRun: Date.now() + project.schedule.intervalMs,
+        },
+      });
+    }
+    return item;
+  }
+
+  /** Projects whose schedule is due (active + nextRun <= now). */
+  public dueProjects(now = Date.now()): LeluProject[] {
+    return this.list().filter(
+      (project) =>
+        project.status === "active" &&
+        project.schedule !== undefined &&
+        (project.schedule.nextRun ?? 0) <= now,
+    );
+  }
+
+  /** Latest persisted run output for a project, if any. */
+  public latestRun(id: string): ProjectItem | undefined {
+    return this.get(id)?.items.find((item) => item.kind === "output");
+  }
+
   public remove(id: string): void {
     this.mutate((projects) => projects.filter((project) => project.id !== id));
   }
@@ -270,8 +389,23 @@ export default class ProjectStore {
       return "";
     }
     const sections: string[] = [`## Project: ${project.name}`];
+    if (project.objective) {
+      sections.push(`Objective: ${project.objective}`);
+    }
     if (project.description) {
       sections.push(project.description);
+    }
+    if (project.priority) {
+      sections.push(`Priority: ${project.priority}`);
+    }
+    if (project.location) {
+      sections.push(`Targets: ${project.location}`);
+    }
+    if (project.actionableTasks && project.actionableTasks.length > 0) {
+      sections.push(`Tasks:\n${project.actionableTasks.map((task) => `- ${task}`).join("\n")}`);
+    }
+    if (project.executionPlan && project.executionPlan.length > 0) {
+      sections.push(`Plan:\n${project.executionPlan.map((step, index) => `${index + 1}. ${step}`).join("\n")}`);
     }
     if (project.items.length > 0) {
       const lines = project.items.slice(0, 24).map((item) => {

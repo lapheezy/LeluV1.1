@@ -25,6 +25,7 @@ import ProactiveCore from "../../../core/proactive/ProactiveCore";
 import PersistentRuntime from "../../../core/proactive/PersistentRuntime";
 import ProjectStore from "../../../core/projects/ProjectStore";
 import AvatarStore from "../../../core/avatar/AvatarProfile";
+import UIStateStore from "../../../core/cognition/UIStateStore";
 
 const ai = AIService.getInstance();
 const proactive = ProactiveCore.getInstance();
@@ -45,6 +46,12 @@ function formatBriefing(briefing: ReturnType<ProactiveCore["buildBriefing"]>): s
 export default function ProactiveBridge() {
   const { addMessage, notify } = useGenesis();
   const presentedRef = useRef(false);
+
+  useEffect(() => {
+    return proactive.subscribeQuestions((question) => {
+      UIStateStore.getInstance().update({ activeQuestion: question });
+    });
+  }, []);
 
   useEffect(() => {
     let cancelled = false;

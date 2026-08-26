@@ -47,6 +47,11 @@ import {
   PLANET_RADIUS,
 } from "./render/PlanetExplorer";
 
+import {
+  cosmosScaleStore,
+  scaleFromDistance,
+} from "./cosmos/CosmosScales";
+
 interface GenesisCameraControllerProps {
   navigator: GenesisNavigator;
 }
@@ -177,7 +182,10 @@ export default function GenesisCameraController({
       if (detail?.pos && detail?.lookAt) {
         const pos = new Vector3(detail.pos.x, detail.pos.y, detail.pos.z);
         const lookAt = new Vector3(detail.lookAt.x, detail.lookAt.y, detail.lookAt.z);
-        flyCameraTo(camera as PerspectiveCamera, controls, pos, lookAt);
+        // Scale jumps (solar/stellar/galactic) fly longer so the camera
+        // arrives smoothly instead of snapping across the cosmos.
+        const duration = typeof detail.duration === "number" ? detail.duration : 1.5;
+        flyCameraTo(camera as PerspectiveCamera, controls, pos, lookAt, duration);
       }
     }
 
@@ -223,6 +231,12 @@ export default function GenesisCameraController({
   useFrame((_, delta) => {
     const controls = controlsRef.current;
     if (!controls) return;
+
+    // Cosmic scale tracking — derives the current spatial scale from
+    // the REAL camera distance every frame (store only notifies on
+    // change), so the HUD and LÉLU's spatial context always reflect
+    // where the camera actually is.
+    cosmosScaleStore.set(scaleFromDistance(camera.position.length()));
 
     const toCam = camera.position.clone().sub(PLANET_CENTER);
     const dist = toCam.length();
@@ -306,6 +320,15 @@ export default function GenesisCameraController({
     return unsubscribe;
   }, [camera]);
 
+  /*
+   * Detect user camera interaction so autonomous camera systems
+   * (ExplorationController, GenesisPresenceEngine) can pause
+   * while the user is manually exploring — preventing unwanted
+   * recentering. OrbitControls fires onStart when the user drags/
+   * zooms/pans and onEnd when they release.
+   */
+  const userCameraActive = useRef(false);
+
   return (
     <OrbitControls
       ref={controlsRef}
@@ -320,6 +343,20 @@ export default function GenesisCameraController({
       maxDistance={1500}
       maxPolarAngle={Math.PI * 0.98}
       target={[0, 0, 0]}
+      onStart={() => {
+        if (userCameraActive.current) return;
+        userCameraActive.current = true;
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("genesis-user-camera-start"));
+        }
+      }}
+      onEnd={() => {
+        if (!userCameraActive.current) return;
+        userCameraActive.current = false;
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("genesis-user-camera-end"));
+        }
+      }}
     />
   );
 }

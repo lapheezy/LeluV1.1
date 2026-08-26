@@ -19,6 +19,7 @@
  */
 
 import { renderDocumentToCanvas, type SketchDocument } from "./SketchDocument";
+import { Procedural3DEngine } from "./Procedural3DEngine";
 
 export type RenderKind =
   | "generate"
@@ -372,6 +373,9 @@ export default class RenderEngineRegistry {
 
   private constructor() {
     this.register(new LocalCanvasEngine());
+    // REAL offline procedural 3D authoring — builds the saved avatar / a
+    // scene from primitives and renders a PNG snapshot (no API key).
+    this.register(new Procedural3DEngine());
     // PROVIDER-DEPENDENT slots — same contract, no fake renders.
     this.register(
       new CloudEngineSlot(

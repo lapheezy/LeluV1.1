@@ -11,4 +11,8 @@ export type AIIntent =
   | "memory"
   | "genesis"
   | "voice"
-  | "search";
+  | "search"
+  | "time"
+  | "news"
+  | "project"
+  | "avatar";

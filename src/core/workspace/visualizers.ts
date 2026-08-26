@@ -376,10 +376,12 @@ const EVENT_STATUS: Record<AgentEvent["type"], TimelineEvent["status"]> = {
   tool_started: "running",
   tool_progress: "running",
   tool_result: "ok",
+  tool_failed: "error",
   file_opened: "ok",
   file_changed: "ok",
   browser_opened: "ok",
   browser_navigation: "running",
+  browser_result: "ok",
   memory_retrieval: "ok",
   memory_update: "ok",
   provider_selected: "running",
@@ -387,12 +389,18 @@ const EVENT_STATUS: Record<AgentEvent["type"], TimelineEvent["status"]> = {
   diagram_created: "ok",
   visual_created: "ok",
   ui_prototype_created: "ok",
+  creative_artifact: "ok",
   workspace_open: "idle",
   workspace_focus: "idle",
   workspace_minimize: "idle",
+  spatial_event: "running",
   core_transform: "running",
   task_completed: "ok",
   task_failed: "error",
+  cognitive_sync: "idle",
+  execution_phase: "running",
+  approval_requested: "idle",
+  approval_resolved: "ok",
 };
 
 function eventLabel(event: AgentEvent): string {
@@ -409,6 +417,8 @@ function eventLabel(event: AgentEvent): string {
       return `${event.tool} · ${event.progress}%${event.note ? ` · ${event.note}` : ""}`;
     case "tool_result":
       return `Tool result · ${event.tool}`;
+    case "tool_failed":
+      return `Tool failed · ${event.tool}${event.error ? ` (${event.error})` : ""}`;
     case "file_opened":
       return `File opened · ${event.path}`;
     case "file_changed":
@@ -417,6 +427,8 @@ function eventLabel(event: AgentEvent): string {
       return `Browser opened · ${event.url}`;
     case "browser_navigation":
       return `Navigating · ${event.url}`;
+    case "browser_result":
+      return `Browser result · ${event.title ?? event.url} (${event.status})`;
     case "memory_retrieval":
       return `Memory retrieval · ${event.count} pattern(s) for “${event.query}”`;
     case "memory_update":
@@ -431,12 +443,16 @@ function eventLabel(event: AgentEvent): string {
       return `Visual created · ${event.label}`;
     case "ui_prototype_created":
       return `UI prototype · ${event.label}`;
+    case "creative_artifact":
+      return `Artifact produced · ${event.label}`;
     case "workspace_open":
       return "Workspace opened";
     case "workspace_focus":
       return `Workspace focus · ${event.view}`;
     case "workspace_minimize":
       return "Workspace minimized";
+    case "spatial_event":
+      return `${event.label}${event.side ? ` · ${event.side}` : ""}${event.layer ? ` · ${event.layer}` : ""}`;
     case "core_transform":
       return event.morphology
         ? `Core transform · → ${event.morphology}${event.system ? ` · ${event.system}` : ""}`
@@ -445,6 +461,16 @@ function eventLabel(event: AgentEvent): string {
       return `Task completed · ${event.label}`;
     case "task_failed":
       return `Task failed · ${event.label}${event.error ? ` (${event.error})` : ""}`;
+    case "cognitive_sync":
+      return `Cognitive state synchronized · ${event.source}${event.detail ? ` (${event.detail})` : ""}`;
+    case "execution_phase":
+      return `${event.label}${event.side ? ` · ${event.side}` : ""}`;
+    case "approval_requested":
+      return `Approval needed · ${event.title}`;
+    case "approval_resolved":
+      return `Approval resolved · ${event.decision}`;
+    default:
+      return "Agent activity";
   }
 }
 

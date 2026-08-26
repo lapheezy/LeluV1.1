@@ -7,6 +7,7 @@
 
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
+import { corsFetch } from "./corsFetch";
 
 export default class GDELTProvider implements Provider {
 
@@ -66,8 +67,10 @@ export default class GDELTProvider implements Provider {
     );
 
     const response =
-      await fetch(
+      await corsFetch(
         url.toString(),
+        undefined,
+        this.timeout,
       );
 
     if (!response.ok) {

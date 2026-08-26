@@ -42,6 +42,7 @@ import ImprovementPrioritizer from "../../../core/selfdev/ImprovementPrioritizer
 import SelfDevelopmentLoop, { type LoopRunResult } from "../../../core/selfdev/SelfDevelopmentLoop";
 import EngineeringMemory, { type EngineeringMemoryEntry } from "../../../core/selfdev/EngineeringMemory";
 import SandboxFS from "../../../core/engineering/SandboxFS";
+import WorkspaceRuntime, { type EngineeringRuntimeState } from "../../../core/engineering/WorkspaceRuntime";
 import AutonomyGate from "../../../core/cognition/AutonomyGate";
 
 const labelStyle: CSSProperties = {
@@ -171,12 +172,23 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
     }
   }
 
-  const autonomy = AutonomyGate.getInstance().getLevel();
+  const [autonomyLevel, setAutonomyLevel] = useState(AutonomyGate.getInstance().getLevel());
+  const autonomy = autonomyLevel;
+  const [runtimeState, setRuntimeState] = useState<EngineeringRuntimeState>(() =>
+    WorkspaceRuntime.getInstance().getRuntimeState(),
+  );
+
+  useEffect(() => {
+    void WorkspaceRuntime.getInstance().probe().then(setRuntimeState);
+  }, []);
 
   async function developProposal(proposalId: string) {
     setRunning(true);
     try {
-      setLastLoopRun(await loop.develop(proposalId));
+      // REAL workspace verification when the configured autonomy level
+      // permits it (L3+); otherwise the loop honestly skips it.
+      const runTypecheck = WorkspaceRuntime.getInstance().allowed("typecheck");
+      setLastLoopRun(await loop.develop(proposalId, { runWorkspaceTypecheck: runTypecheck }));
     } finally {
       setRunning(false);
       refresh();
@@ -186,6 +198,20 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
   function integrateProposal(proposalId: string) {
     setLastLoopRun(loop.integrate(proposalId));
     refresh();
+  }
+
+  // The REAL write-to-production path: applies the candidate working
+  // copy to the actual workspace source via /api/engineer/write, runs
+  // the real typecheck, and rolls back automatically on failure. Gated
+  // at autonomy L5 — the user raises the level explicitly below.
+  async function applyProposal(proposalId: string) {
+    setRunning(true);
+    try {
+      setLastLoopRun(await loop.applyCandidate(proposalId, { approved: true }));
+    } finally {
+      setRunning(false);
+      refresh();
+    }
   }
 
   return (
@@ -226,6 +252,79 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
               </button>
             </div>
 
+            {/* Engineering runtime — which runtime is actually serving the app */}
+            <div style={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: 12 }}>
+              <div style={labelStyle}>Engineering runtime — where real writes + verification execute</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", fontSize: 12.5 }}>
+                <span
+                  style={{
+                    borderRadius: 999,
+                    padding: "3px 10px",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    background:
+                      runtimeState.available
+                        ? "rgba(74, 222, 128, 0.16)"
+                        : "rgba(250, 204, 21, 0.14)",
+                    color: runtimeState.available ? "#86efac" : "#fde68a",
+                    border: `1px solid ${runtimeState.available ? "rgba(74,222,128,0.4)" : "rgba(250,204,21,0.35)"}`,
+                  }}
+                >
+                  {runtimeState.available
+                    ? runtimeState.runtime === "server"
+                      ? "SERVER-BACKED · /api/engineer live"
+                      : "DEV SERVER · /api/engineer live"
+                    : "STATIC-ONLY · /api/engineer not reachable"}
+                </span>
+                <span style={{ opacity: 0.7 }}>
+                  {runtimeState.available
+                    ? `Operations: ${runtimeState.operations.length > 0 ? runtimeState.operations.join(", ") : "…"}`
+                    : runtimeState.error ?? ""}
+                </span>
+                {runtimeState.tokenRequired ? (
+                  <span style={{ color: "#fde68a", fontSize: 11 }}>Token required (LELU_ENGINEER_TOKEN)</span>
+                ) : null}
+              </div>
+              <div style={{ fontSize: 11, opacity: 0.6, marginTop: 6 }}>
+                The engineering runtime is served by the same process that serves the app — Vite dev/preview, the
+                standalone runtime server (bun run serve), or the Deno production entry. When it is live, Develop can
+                run the real workspace typecheck and Apply can write verified candidates to source with automatic
+                rollback. When it is unreachable (static-only hosting), those steps honestly report unavailable and
+                the in-browser sandbox remains the offline development surface.
+              </div>
+            </div>
+
+            {/* Autonomy — explicit authorization for real execution */}
+            <div style={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: 12 }}>
+              <div style={labelStyle}>Autonomy level — what LÉLU is allowed to actually do</div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {[0, 1, 2, 3, 4, 5].map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    onClick={() => {
+                      AutonomyGate.getInstance().setLevel(level);
+                      setAutonomyLevel(level);
+                    }}
+                    style={{
+                      ...chipButton,
+                      padding: "6px 12px",
+                      fontSize: 11,
+                      background: autonomyLevel === level ? "rgba(34,211,238,0.25)" : "rgba(255,255,255,0.04)",
+                      border: autonomyLevel === level ? "1px solid rgba(125,211,252,0.6)" : "1px solid rgba(255,255,255,0.12)",
+                    }}
+                  >
+                    L{level} <span style={{ opacity: 0.6 }}>· {AutonomyGate.getInstance().levelInfo(level).label}</span>
+                  </button>
+                ))}
+              </div>
+              <div style={{ fontSize: 11, opacity: 0.65, marginTop: 6 }}>
+                {AutonomyGate.getInstance().levelInfo(autonomyLevel).description} — sandbox development runs at L2;
+                workspace typecheck (L3) and applying candidates to real source with verify + rollback (L5) require
+                raising the level here. Every Apply action also asks the loop for explicit approval.
+              </div>
+            </div>
+
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
               {(
                 [
@@ -253,9 +352,12 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
             <div style={{ fontSize: 11.5, opacity: 0.75, lineHeight: 1.6, border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: 12 }}>
               <strong>How self-development works here:</strong> the engine observes real state (diagnostics, architecture map,
               capability registry) and proposes improvements into the queue. Approved proposals are implemented in the sandbox
-              working copies, tested with the self-test suite, snapshotted for rollback, and exported as candidate patches —
-              production code is never modified by this system. The route to production runs through the explicit approval
-              boundary: you review the candidate and integrate it.
+              working copies, run through the real workspace typecheck (L3+), snapshotted for rollback, and exported as
+              candidate patches.              The route to production runs through an explicit approval boundary: raise autonomy to L5 and
+              press <strong>Apply to workspace</strong> — that writes the candidate to real source through the engineering
+              runtime (/api/engineer/write, available in dev and in the server-backed runtime), re-runs the real workspace
+              typecheck, and rolls back automatically if verification fails. The status you see comes
+              from that execution result, never from the button press.
             </div>
 
             {cycle ? (
@@ -312,6 +414,7 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
             memoryEntries={memoryEntries}
             onDevelop={(id) => void developProposal(id)}
             onIntegrate={integrateProposal}
+            onApply={(id) => void applyProposal(id)}
           />
         ) : null}
 
@@ -619,6 +722,7 @@ function ImprovementsTab({
   memoryEntries,
   onDevelop,
   onIntegrate,
+  onApply,
 }: {
   proposals: ImprovementProposal[];
   queue: ImprovementQueue;
@@ -633,6 +737,7 @@ function ImprovementsTab({
   memoryEntries: EngineeringMemoryEntry[];
   onDevelop: (id: string) => void;
   onIntegrate: (id: string) => void;
+  onApply: (id: string) => void;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [newProposal, setNewProposal] = useState({ title: "", problem: "", kind: "Opportunity" as ImprovementProposal["kind"], complexity: "medium" as ImprovementProposal["complexity"] });
@@ -738,9 +843,19 @@ function ImprovementsTab({
                 </button>
               ) : null}
               {proposal.status === "Ready" ? (
-                <button type="button" onClick={() => onIntegrate(proposal.id)} style={{ ...chipButton, padding: "5px 12px", fontSize: 11, background: "rgba(74, 222, 128, 0.2)", border: "1px solid rgba(74, 222, 128, 0.5)" }}>
-                  Integrate (record result)
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => onApply(proposal.id)}
+                    title="Writes the candidate to real source via /api/engineer/write, re-runs the workspace typecheck, and rolls back automatically on failure. Requires autonomy L5."
+                    style={{ ...chipButton, padding: "5px 12px", fontSize: 11, background: "rgba(34, 211, 238, 0.22)", border: "1px solid rgba(125, 211, 252, 0.55)" }}
+                  >
+                    Apply to workspace — write + verify + rollback
+                  </button>
+                  <button type="button" onClick={() => onIntegrate(proposal.id)} style={{ ...chipButton, padding: "5px 12px", fontSize: 11, background: "rgba(74, 222, 128, 0.2)", border: "1px solid rgba(74, 222, 128, 0.5)" }}>
+                    Integrate (record result)
+                  </button>
+                </>
               ) : null}
               <button type="button" onClick={() => setExpandedId(open ? null : proposal.id)} style={{ ...chipButton, padding: "5px 12px", fontSize: 11 }}>
                 {open ? "Hide details" : "Details"}

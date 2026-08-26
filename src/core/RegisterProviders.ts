@@ -29,6 +29,9 @@ import NASAProvider
 import NewsProvider
   from "../providers/NewsProvider";
 
+import InstagramProvider
+  from "../providers/InstagramProvider";
+
 import NominatimProvider
   from "../providers/NominatimProvider";
 
@@ -89,6 +92,10 @@ export default function registerProviders():
 
   registry.register(
     new NewsProvider(),
+  );
+
+  registry.register(
+    new InstagramProvider(),
   );
 
   registry.register(

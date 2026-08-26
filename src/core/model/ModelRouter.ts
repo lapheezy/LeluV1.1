@@ -146,7 +146,7 @@ export type ModelModality =
   | "code";
 
 export interface ModelDescriptor {
-  /** Stable id, e.g. "groq.llama-3.3-70b". */
+  /** Stable id, e.g. "groq.gpt-oss-120b". */
   id: string;
   /** Human display name. */
   name: string;
@@ -217,8 +217,9 @@ const LOCAL_MODEL_SLOTS: ModelDescriptor[] = [
 
 const REMOTE_MODEL_CATALOG: ModelDescriptor[] = [
   {
-    id: "groq.llama-3.3-70b",
-    name: "Llama 3.3 70B (Groq)",
+    // Current production chat model on Groq (llama-3.3-70b was retired)
+    id: "groq.gpt-oss-120b",
+    name: "GPT-OSS 120B (Groq)",
     provider: "Groq",
     modalities: ["text", "code"],
     local: false,
@@ -228,8 +229,10 @@ const REMOTE_MODEL_CATALOG: ModelDescriptor[] = [
     capabilities: ["chat", "reasoning", "fast", "code"],
   },
   {
+    // Retired on Groq — kept only as a descriptor for accounts that
+    // still expose legacy vision models through VITE_GROQ_MODEL.
     id: "groq.llama-3.2-11b-vision",
-    name: "Llama 3.2 11B Vision (Groq)",
+    name: "Llama 3.2 11B Vision (Groq, legacy)",
     provider: "Groq",
     modalities: ["text", "vision", "code"],
     local: false,

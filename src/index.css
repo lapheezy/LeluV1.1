@@ -586,6 +586,17 @@ body {
   }
 }
 
+@keyframes genesis-status-glow-pulse {
+  0%, 100% {
+    opacity: 0.7;
+    filter: blur(0px);
+  }
+  50% {
+    opacity: 1;
+    filter: blur(2px);
+  }
+}
+
 @keyframes genesis-lab-aurora {
   0%, 100% {
     border-radius: 50% 50% 46% 54% / 56% 44% 56% 44%;
@@ -1001,5 +1012,80 @@ body {
   }
   to {
     opacity: 1;
+  }
+}
+
+/* ==========================================================
+ * ANDROID + CROSS-BROWSER MOBILE COMPATIBILITY
+ * ========================================================== */
+
+/* Use dynamic viewport units where supported (Android Chrome 108+) */
+@supports (height: 100dvh) {
+  #root {
+    min-height: 100dvh;
+  }
+}
+
+/* Android Chrome: position fixed elements shift with keyboard.
+   Use the visual viewport API to compensate (handled in JS),
+   but provide CSS fallback for browsers that support env(). */
+@media (max-width: 1024px) {
+  /* Prevent body scroll when mobile keyboard opens (Android) */
+  html.keyboard-open,
+  html.keyboard-open body {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+
+  /* Ensure fixed-position elements stay within viewport */
+  .lelu-floating-panel {
+    max-height: calc(var(--visual-vh, 100vh) - env(safe-area-inset-bottom, 0px) - 20px);
+  }
+
+  /* Safe-area-aware padding for bottom dock/menu bars */
+  .lelu-dock-bar {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Touch-friendly tap targets */
+  .lelu-touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Android: backdrop-filter blur can be slow — reduce on low-end */
+@media (max-width: 1024px) and (pointer: coarse) {
+  .lelu-blur-heavy {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Prevent iOS/Android overscroll bounce on the app container */
+html, body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure scrolling works inside panels on Android */
+.lelu-scroll-container {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Prevent text scaling on orientation change (Android) */
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Handle Android keyboard resizing — smooth transitions */
+@media (max-width: 1024px) {
+  .genesis-interface,
+  .genesis-scene {
+    transition: height 0.1s ease-out;
   }
 }
