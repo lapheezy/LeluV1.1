@@ -1,0 +1,62 @@
+--- orig/LeluV1.1-main/src/app/scene/genesis/render/PlanetExplorer.tsx	2026-08-26 22:37:57.000000000 +0000
++++ lelu/LeluV1.1-main/src/app/scene/genesis/render/PlanetExplorer.tsx	2026-08-27 02:36:23.398533472 +0000
+@@ -54,6 +54,7 @@
+ } from "./GeoData";
+ import ProactiveCore from "../../../../core/proactive/ProactiveCore";
+ import KvStore from "../../../../core/storage/KvStore";
++import EarthCore from "../../../../core/earth/EarthCore";
+ 
+ /* ------------------------------------------------------------------
+  * Shared constants + navigation store (module-level so the DOM HUD
+@@ -1088,6 +1089,33 @@
+     });
+   }, []);
+ 
++  // Follow Earth Core's canonical camera. When chat, DeflockResolver, or
++  // any other Earth Core consumer navigates (e.g. "show me Tokyo"), the
++  // 3D planet flies to the same lat/lon — one combined location instead
++  // of two disconnected cameras. Only the camera target is synced; the
++  // planet's own rendering/life-cycle (day-night, biomes, Atlantis) is
++  // untouched. A small dedupe avoids re-flying to the spot this HUD's
++  // own flyToGps() just reported.
++  const lastFollowedRef = useRef<{ lat: number; lon: number } | null>(null);
++  useEffect(() => {
++    const earth = EarthCore.getInstance();
++    return earth.subscribe(() => {
++      const camera = earth.getState().camera;
++      if (!camera) return;
++      const last = lastFollowedRef.current;
++      if (last && Math.abs(last.lat - camera.lat) < 0.01 && Math.abs(last.lon - camera.lon) < 0.01) {
++        return;
++      }
++      lastFollowedRef.current = { lat: camera.lat, lon: camera.lon };
++      flyToLatLon(camera.lat, camera.lon);
++      const resolved = nearestPlace(camera.lat, camera.lon);
++      const locationName = resolved.city
++        ? resolved.city.name
++        : resolved.country?.name ?? `${camera.lat.toFixed(2)}°, ${camera.lon.toFixed(2)}°`;
++      planetNavStore.setPlace(locationName);
++    });
++  }, []);
++
+   // Enrich the country table from the free REST Countries API once.
+   useEffect(() => {
+     void loadCountries();
+@@ -1106,6 +1134,17 @@
+         resolved.city?.country ?? resolved.country?.name,
+       );
+       flyToLatLon(pos.lat, pos.lon);
++      lastFollowedRef.current = { lat: pos.lat, lon: pos.lon };
++      // Report the real device location into the canonical Earth Core
++      // state — the same singleton Eagle Eye, chat, and DeflockResolver
++      // read/write — so "show my GPS location" and "show me on Eagle
++      // Eye" are the same place instead of two disconnected cameras.
++      void EarthCore.getInstance().execute({
++        op: "navigate_to_location",
++        lat: pos.lat,
++        lon: pos.lon,
++        zoom: 6,
++      });
+     } catch (error) {
+       window.alert(error instanceof Error ? error.message : "Could not read GPS position.");
+     } finally {
