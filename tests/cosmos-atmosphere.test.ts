@@ -20,6 +20,7 @@ test("Cosmos atmosphere follows one ordered continuous cycle", () => {
     "storm",
     "hurricane",
     "dissipation",
+    "rainbow",
   ]);
 });
 

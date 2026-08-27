@@ -37,6 +37,7 @@ import SelfDevelopmentEngine from "../selfdev/SelfDevelopmentEngine";
 import CapabilityManifest from "../capabilities/CapabilityManifest";
 import Sentinel from "../sentinel/Sentinel";
 import ProactiveCore, { type ProactiveQuestionInput } from "../proactive/ProactiveCore";
+import AgentEventBus from "../agent/AgentEvents";
 import type { KnowledgeResult } from "../../providers/Provider";
 
 export interface CognitiveCycleReport {
@@ -385,10 +386,24 @@ export default class CognitiveLoop {
         }
       }
 
-      /* ---------------- UI STATE SNAPSHOT ---------------- */
-      // The current UI state is available via UIStateStore.getInstance().get()
-      // for any code that needs to know what LÉLU is looking at.
-      // It's read by the cognitive context and by agents that need UI awareness.
+      /* ---------------- VISUAL STATE TRANSITION ---------------- */
+      // Cognition determines the current visual state based on what it
+      // observed, then emits it so the unified UI can transform.
+      // The visual state is driven by real runtime state, not animation.
+      const visualState = this.determineVisualState({
+        activeProjects,
+        activeAgents,
+        gaps,
+        sandboxNodes,
+        suggestions,
+        researchPerformed: suggestions.some((s) => s.includes("researched")),
+      });
+      AgentEventBus.getInstance().emit({
+        type: "visual_state_changed",
+        taskId: `cognitive-${this.cycle}`,
+        state: visualState.state,
+        reason: visualState.reason,
+      });
 
       /* ---------------- REPORT ---------------- */
       const report: CognitiveCycleReport = {
@@ -426,6 +441,45 @@ export default class CognitiveLoop {
     } finally {
       this.running = false;
     }
+  }
+
+  /**
+   * Determine the current visual state based on what cognition
+   * actually observed. Returns the state label and a human-readable
+   * reason that explains WHY the visual state changed.
+   *
+   * This is driven by real runtime state, not animation timers.
+   */
+  private determineVisualState(observed: {
+    activeProjects: ReturnType<ProjectStore["list"]>;
+    activeAgents: ReturnType<AgentStore["list"]>;
+    gaps: ReturnType<KnowledgeLibrary["gaps"]>;
+    sandboxNodes: ReturnType<SandboxFS["list"]>;
+    suggestions: string[];
+    researchPerformed: boolean;
+  }): { state: "conversation" | "research" | "browser" | "analysis" | "engineering" | "testing" | "earth"; reason: string } {
+    // Research performed this cycle → research visual state
+    if (observed.researchPerformed) {
+      return { state: "research", reason: "Cognition actively researching knowledge gaps via connected APIs" };
+    }
+
+    // Knowledge gaps detected → analysis visual state
+    if (observed.gaps.length > 0) {
+      return { state: "analysis", reason: `${observed.gaps.length} knowledge gap(s) detected — analyzing available sources` };
+    }
+
+    // Sandbox has files and projects are active → engineering visual state
+    if (observed.sandboxNodes.length > 0 && observed.activeProjects.length > 0) {
+      return { state: "engineering", reason: "Active project work in sandbox — engineering context active" };
+    }
+
+    // Active agents with tasks → analysis (multi-agent collaboration)
+    if (observed.activeAgents.length > 1) {
+      return { state: "analysis", reason: `${observed.activeAgents.length} agents active — monitoring collaboration` };
+    }
+
+    // Default: conversation
+    return { state: "conversation", reason: "Cognitive cycle complete — returning to conversation" };
   }
 
   private emptyReport(): CognitiveCycleReport {

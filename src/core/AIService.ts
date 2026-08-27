@@ -260,12 +260,11 @@ export default class AIService {
     // another's result — so first-message latency drops to the slowest,
     // not the sum. Failures report through the notification channel
     // instead of throwing; chat degrades gracefully per-request.
-    const [runtimeResult, userResult, brainResult] = await Promise.allSettled([
+    const [runtimeResult, userResult] = await Promise.allSettled([
+      // AIRuntime owns Brain initialization. Keeping that ownership here
+      // prevents the service and runtime from racing the same lifecycle.
       this.runtime.initialize(),
       this.user.initialize(),
-      // Brain (memory + identity seed) guards its own init; re-run so a
-      // direct AIService.initialize always seeds.
-      this.runtime.brain.initialize(),
     ]);
 
     if (runtimeResult.status === "rejected") {
@@ -286,16 +285,6 @@ export default class AIService {
             : String(userResult.reason),
       });
     }
-    if (brainResult.status === "rejected") {
-      this.emitNotification({
-        title: "Lélu memory warning",
-        description:
-          brainResult.reason instanceof Error
-            ? brainResult.reason.message
-            : String(brainResult.reason),
-      });
-    }
-
     // Supabase is an OPTIONAL persistence/realtime layer beneath the
     // existing local-first stores. It must never delay chat readiness:
     // auth, hydration, and sync run in the BACKGROUND, failures are
@@ -526,6 +515,12 @@ export default class AIService {
         await this.user.learn(memory.category, memory.response);
       }
 
+      if (responseSucceeded) {
+        // Commit reasoning before publishing cognition so observers never
+        // receive a stale plan/hypothesis snapshot.
+        this.runtime.brain.recordThinking(reasoning, plan);
+      }
+
       const cognition = this.runtime.brain.cognitiveState();
       this.emitCognition({
         agents: cognition.agents,
@@ -534,13 +529,6 @@ export default class AIService {
         reasoning: cognition.reasoning,
         plan: cognition.plan,
       });
-
-      if (responseSucceeded) {
-        // Fold this request's Reasoning/Planning output into the live
-        // cognitive state, so it's visible beyond the single response
-        // object (Genesis's Reasoning/Planning panel reads it from here).
-        this.runtime.brain.recordThinking(reasoning, plan);
-      }
 
       return {
         ...response,

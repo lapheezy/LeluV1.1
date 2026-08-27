@@ -24,7 +24,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useGenesis, type GenesisPanel } from "./GenesisCore";
-import GenesisSidePanel from "./GenesisSidePanel";
 import GenesisModuleHost, { type ModuleRenderers } from "./GenesisModuleHost";
 import UIStateStore from "../../../core/cognition/UIStateStore";
 import GenesisDock from "./GenesisDock";
@@ -85,7 +84,10 @@ const MODULE_RENDERERS: ModuleRenderers = {
   evolution: ({ onClose }) => <GenesisSelfDevPanel onClose={onClose} />,
   notifications: ({ onClose }) => <GenesisNotificationsPanel onClose={onClose} />,
   visualstudio: ({ onClose }) => <GenesisVisualStudio onClose={onClose} />,
-  earth: ({ onClose }) => <GenesisEarthCore onClose={onClose} />,
+  // Earth Core is the canonical Eagle Eye Earth visual state. It remains
+  // one module instance, but is rendered inline with chat rather than as a
+  // separate navigation destination.
+  earth: ({ onClose }) => <GenesisEarthCore onClose={onClose} />, 
 };
 import CognitiveLoop from "../../../core/cognition/CognitiveLoop";
 import VisualInterface from "./VisualInterface";
@@ -410,12 +412,16 @@ export default function GenesisInterface() {
      and observes/proposes in the background (level 0-1 only, see the
      Cognition workspace for the cycle report). */
   useEffect(() => {
+    if (state.minimized) {
+      CognitiveLoop.getInstance().stop();
+      return;
+    }
     CognitiveLoop.getInstance().start();
     return () => {
       CognitiveLoop.getInstance().stop();
       ExplorationController.getInstance().stopAll();
     };
-  }, []);
+  }, [state.minimized]);
 
   /*
    * LÉLU can transform the ONE Core herself. The workspace orchestration
@@ -428,6 +434,20 @@ export default function GenesisInterface() {
   useEffect(() => {
     const bus = AgentEventBus.getInstance();
     return bus.subscribe((event) => {
+      // Cognitive-state-driven visual transitions: when the cognitive loop
+      // emits a visual_state_changed event, update the UI state so the
+      // visual environment can transform to match the current cognitive phase.
+      if (event.type === "visual_state_changed") {
+        const uiStore = UIStateStore.getInstance();
+        const current = uiStore.get();
+        if (current.uiControl === "auto") {
+          // In auto mode, cognitive transitions drive the visual state
+          uiStore.update({
+            activeTab: event.state === "conversation" ? "chat" : event.state,
+          });
+        }
+        return;
+      }
       if (event.type !== "core_transform") {
         return;
       }
@@ -609,11 +629,6 @@ export default function GenesisInterface() {
 
       {/* Explorer cards — autonomous LÉLU discoveries as small floating cards */}
 
-
-      {/* Unified side panel — the module launcher/control surface. Chat is
-          the persistent core; the panel opens environments inside Chat or
-          minimizes / detaches them (always the same single instance). */}
-      {state.minimized ? null : <GenesisSidePanel />}
 
       {/* Chat is the PERSISTENT core of the unified UI: it stays mounted
           and interactive while any environment module is open, so the main

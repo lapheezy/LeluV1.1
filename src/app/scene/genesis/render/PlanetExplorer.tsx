@@ -54,6 +54,7 @@ import {
 } from "./GeoData";
 import ProactiveCore from "../../../../core/proactive/ProactiveCore";
 import KvStore from "../../../../core/storage/KvStore";
+import EarthCore from "../../../../core/earth/EarthCore";
 
 /* ------------------------------------------------------------------
  * Shared constants + navigation store (module-level so the DOM HUD
@@ -1088,6 +1089,28 @@ export function PlanetExplorerHUD() {
     });
   }, []);
 
+  // Follow Earth Core's canonical camera so chat, Deflock, and the planet
+  // explorer always navigate the same location.
+  const lastFollowedRef = useRef<{ lat: number; lon: number } | null>(null);
+  useEffect(() => {
+    const earth = EarthCore.getInstance();
+    return earth.subscribe(() => {
+      const camera = earth.getState().camera;
+      if (!camera) return;
+      const last = lastFollowedRef.current;
+      if (last && Math.abs(last.lat - camera.lat) < 0.01 && Math.abs(last.lon - camera.lon) < 0.01) {
+        return;
+      }
+      lastFollowedRef.current = { lat: camera.lat, lon: camera.lon };
+      flyToLatLon(camera.lat, camera.lon);
+      const resolved = nearestPlace(camera.lat, camera.lon);
+      const locationName = resolved.city
+        ? resolved.city.name
+        : resolved.country?.name ?? `${camera.lat.toFixed(2)}°, ${camera.lon.toFixed(2)}°`;
+      planetNavStore.setPlace(locationName);
+    });
+  }, []);
+
   // Enrich the country table from the free REST Countries API once.
   useEffect(() => {
     void loadCountries();
@@ -1106,6 +1129,13 @@ export function PlanetExplorerHUD() {
         resolved.city?.country ?? resolved.country?.name,
       );
       flyToLatLon(pos.lat, pos.lon);
+      lastFollowedRef.current = { lat: pos.lat, lon: pos.lon };
+      void EarthCore.getInstance().execute({
+        op: "navigate_to_location",
+        lat: pos.lat,
+        lon: pos.lon,
+        zoom: 6,
+      });
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "Could not read GPS position.");
     } finally {

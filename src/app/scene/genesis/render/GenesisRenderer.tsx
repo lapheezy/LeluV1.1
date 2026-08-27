@@ -18,6 +18,7 @@ import CoreOrbitalRings from "./CoreOrbitalRings";
 import LifeEvolutionVisualizer from "./LifeEvolutionVisualizer";
 import CoreMemoryVeins from "./CoreMemoryVeins";
 import CoreAtmosphere from "../systems/CoreAtmosphere";
+import CosmosPhaseLight from "../systems/CosmosPhaseLight";
 import GenesisCore from "../materials/GenesisCore";
 import CosmicField from "./CosmicField";
 import CoreToPlanet from "./CoreToPlanet";
@@ -66,6 +67,7 @@ export default function GenesisRenderer() {
         <CoreOrbitalRings />
         <CoreEmission />
         <CoreAtmosphere />
+        <CosmosPhaseLight />
       </group>
 
       {/* ═══ TEST PLANET — lifecycle-connected, surrounds Core (r=2.0 vs Core r=0.9) ═══ */}

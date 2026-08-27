@@ -20,48 +20,32 @@
  * is mounted/unmounted as a whole; the shared interface above them
  * never unmounts.
  * ==========================================================
- */
-
-import {
+ */import {
   lazy,
   Suspense,
+  Suspense as ReactSuspense,
 } from "react";
-
-import * as THREE from "three";
-
-import {
-  Canvas,
-} from "@react-three/fiber";
-
-import {
-  useContextBridge,
-} from "@react-three/drei";
-
-
-import GenesisController
-  from "./GenesisController";
+import { Canvas } from "@react-three/fiber";
 
 import GenesisCore, {
-  GenesisContext,
   useGenesis,
 } from "./GenesisCore";
 
 import GenesisErrorBoundary
   from "./GenesisErrorBoundary";
-
 import GenesisInterface
   from "./GenesisInterface";
-import LeluV2Presence from "./LeluV2Presence";
 
-/**
- * Where LÉLU stands in the default (V1) environment — beside the
- * living core, within the default camera frustum, facing the user.
- */
-const V1_LELU_POS = new THREE.Vector3(1.95, -0.55, 1.15);
+import GenesisController from "./GenesisController";
 
+import GenesisBridge from "./GenesisBridge";
+import ProactiveBridge from "./ProactiveBridge";
+import VoiceBridge from "./VoiceBridge";
 
+import { useEffect, useState } from "react";
 import { useSceneMountLog }
   from "./useSceneMountLog";
+import { sampleCosmosAtmosphere } from "./cosmos/CosmosAtmosphere";
 
 import useVisual
   from "../../../core/visual/useVisual";
@@ -84,14 +68,13 @@ import EngineTick
 import GenesisNotificationCenter
   from "./GenesisNotificationCenter";
 
+import CosmosSkyBackdrop
+  from "./CosmosSkyBackdrop";
+
 import { useLeluRuntime }
   from "../../../core/runtime/useLeluRuntime";
 
-import { PlanetExplorerHUD }
-  from "./render/PlanetExplorer";
 
-import { CosmosScaleHUD }
-  from "./CosmosScaleHUD";
 
 /**
  * Heavy workspace scenes are code-split so the initial GEN V1 core
@@ -127,67 +110,198 @@ function SceneLoadingFallback() {
 
 
 /**
- * PAGE 1 — the Genesis v1 cosmic world: its own 3D canvas plus the
- * v1 scene HUDs. The unified interface (chat/dock/modules) is NOT
- * mounted here — it lives above the router in GenesisWorkspaceRouter
- * so the same chat is available in every scene. Mounted ONLY while
- * the v1 workspace is the active scene; fully unmounted the moment
- * v2 or the system environment takes over.
+ * PAGE 1 — Gen V1 workspace: the 3D cosmic cosmos is the visual
+ * environment. Eagle Eye Earth is available as a module panel that
+ * opens on demand via dock, chat commands, or the command palette.
+ * It does NOT fill the viewport by default.
  */
-function GenesisV1Workspace() {
-  // TEMP DEBUG — scene-isolation lifecycle log (see useSceneMountLog).
-  useSceneMountLog("GenesisV1Workspace");
+/**
+ * Compact HUD that shows the current cosmos atmosphere phase so the user
+ * can SEE the lifecycle transitions happening in real time.
+ */
+function CosmosPhaseHUD() {
+  const [phase, setPhase] = useState(() => sampleCosmosAtmosphere(0));
 
-  // Consume the provider directly so this component re-renders when the
-  // runtime finishes booting. That refreshes the R3F context bridge with the
-  // live EngineRuntime instead of leaving the canvas on its initial null value.
-  const ContextBridge = useContextBridge(GenesisContext);
+  useEffect(() => {
+    let raf = 0;
+    const tick = () => {
+      setPhase(sampleCosmosAtmosphere(performance.now() / 1000));
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const phaseLabel = phase.phase
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+
+  const phaseColors: Record<string, string> = {
+    "deep-black-space": "#4a5568",
+    "core-colors": "#38bdf8",
+    sunset: "#f97316",
+    static: "#cbd5e1",
+    storm: "#a855f7",
+    hurricane: "#f472b6",
+    dissipation: "#64748b",
+    rainbow: "#f43f5e",
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 12,
+        left: 12,
+        zIndex: 50,
+        pointerEvents: "none",
+        display: "flex",
+        flexDirection: "column",
+        gap: 4,
+        fontFamily: "monospace",
+      }}
+    >
+      <div
+        style={{
+          fontSize: 9,
+          letterSpacing: "0.15em",
+          color: "rgba(148, 163, 184, 0.5)",
+          textTransform: "uppercase",
+        }}
+      >
+        Atmosphere
+      </div>
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          color: phaseColors[phase.phase] ?? "#e2e8f0",
+          textShadow: `0 0 8px ${phaseColors[phase.phase] ?? "#94a3b8"}40`,
+          letterSpacing: "0.08em",
+        }}
+      >
+        {phaseLabel}
+      </div>
+      {/* Progress bar through the current phase */}
+      <div
+        style={{
+          width: 120,
+          height: 2,
+          background: "rgba(30, 41, 59, 0.8)",
+          borderRadius: 1,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${Math.round(phase.progress * 100)}%`,
+            height: "100%",
+            background: phaseColors[phase.phase] ?? "#94a3b8",
+            borderRadius: 1,
+            transition: "width 0.1s linear",
+          }}
+        />
+      </div>
+      {/* Key atmospheric values */}
+      <div
+        style={{
+          fontSize: 8,
+          color: "rgba(100, 116, 139, 0.6)",
+          display: "flex",
+          gap: 8,
+          marginTop: 2,
+        }}
+      >
+        {phase.sunset > 0.05 && (
+          <span style={{ color: "#f97316" }}>
+            sunset {phase.sunset.toFixed(2)}
+          </span>
+        )}
+        {phase.static > 0.05 && (
+          <span style={{ color: "#94a3b8" }}>
+            static {phase.static.toFixed(2)}
+          </span>
+        )}
+        {phase.storm > 0.05 && (
+          <span style={{ color: "#a855f7" }}>
+            storm {phase.storm.toFixed(2)}
+          </span>
+        )}
+        {phase.hurricane > 0.05 && (
+          <span style={{ color: "#f472b6" }}>
+            hurricane {phase.hurricane.toFixed(2)}
+          </span>
+        )}
+        {phase.rainbow > 0.05 && (
+          <span style={{ color: "#f43f5e" }}>
+            rainbow {phase.rainbow.toFixed(2)}
+          </span>
+        )}
+        {phase.lightning > 0.05 && (
+          <span style={{ color: "#bfdbfe" }}>
+            ⚡ {phase.lightning.toFixed(2)}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function GenesisV1Workspace() {
+  useSceneMountLog("GenesisV1Workspace");
 
   return (
     <div
       data-workspace="genesis-v1"
-      style={{ position: "relative", width: "100vw", height: "100vh" }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        width: "100vw",
+        height: "100vh",
+        background: "#020617",
+      }}
     >
-      <Canvas
+      {/*
+        * AI → GENESIS bridges — the real AIService / proactive / voice
+        * event wiring that feeds chat, actions, cognition and voice into
+        * the shared Genesis state. Mounted as DOM siblings of the Canvas
+        * (NOT inside the R3F scene) so no bridge lifecycle code can ever
+        * touch the 3D render loop.
+        */}
+      <GenesisBridge />
+      <ProactiveBridge />
+      <VoiceBridge />
+
+      {/*
+        * THE PHASE SKY — a plain DOM layer behind the transparent 3D
+        * canvas, driven by the SAME sampleCosmosAtmosphere() as the HUD.
+        * It guarantees the atmosphere lifecycle (sunset / static / storm /
+        * hurricane …) is visibly transitioning even if WebGL fails to
+        * paint the shader dome — the 3D scene renders on top of it.
+        */}
+      <CosmosSkyBackdrop />
+
+      {/* The 3D cosmic core: orb, cosmos, atmosphere, evolution */}
+      <div
         style={{
-          width: "100vw",
-          height: "100vh",
-          position: "fixed",
-          top: 0,
-          left: 0,
-        }}
-        camera={{
-          position: [0, 0, 6.8],
-          fov: 48,
-        }}
-        shadows
-        gl={{
-          antialias: true,
+          position: "absolute",
+          inset: 0,
+          zIndex: 1,
         }}
       >
-        <color attach="background" args={["#020617"]} />
-
-        <ambientLight intensity={0.45} />
-        <directionalLight position={[4, 6, 4]} intensity={1.5} />
-        <pointLight position={[-4, 2, 3]} intensity={1.2} color="#38bdf8" />
-
-        <ContextBridge>
-          <GenesisErrorBoundary>
+        <ReactSuspense fallback={null}>
+          <Canvas
+            camera={{ position: [0, 0, 5], fov: 50 }}
+            gl={{ alpha: true, antialias: true }}
+            style={{ width: "100%", height: "100%" }}
+          >
             <GenesisController />
-          </GenesisErrorBoundary>
-          {/* The ONE live LÉLU presence — the same component the Gen V2
-              world mounts, reading the same AvatarStore and reporting
-              telemetry to the same Executive Runtime. The default
-              environment is her home, not a separate demo. */}
-          <LeluV2Presence position={V1_LELU_POS} />
-        </ContextBridge>
-      </Canvas>
+          </Canvas>
+        </ReactSuspense>
+      </div>
 
-      {/* v1 scene HUDs — the unified interface (chat/dock/modules) is
-          mounted above the router in GenesisWorkspaceRouter, so it stays
-          alive in every scene. */}
-      <PlanetExplorerHUD />
-      <CosmosScaleHUD />
+      {/* Phase indicator so the user can see lifecycle transitions */}
+      <CosmosPhaseHUD />
     </div>
   );
 }

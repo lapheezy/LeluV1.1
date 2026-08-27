@@ -398,6 +398,7 @@ const EVENT_STATUS: Record<AgentEvent["type"], TimelineEvent["status"]> = {
   task_completed: "ok",
   task_failed: "error",
   cognitive_sync: "idle",
+  visual_state_changed: "running",
   execution_phase: "running",
   approval_requested: "idle",
   approval_resolved: "ok",
@@ -463,6 +464,8 @@ function eventLabel(event: AgentEvent): string {
       return `Task failed · ${event.label}${event.error ? ` (${event.error})` : ""}`;
     case "cognitive_sync":
       return `Cognitive state synchronized · ${event.source}${event.detail ? ` (${event.detail})` : ""}`;
+    case "visual_state_changed":
+      return `Visual state · ${event.state} (${event.reason})`;
     case "execution_phase":
       return `${event.label}${event.side ? ` · ${event.side}` : ""}`;
     case "approval_requested":

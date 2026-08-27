@@ -46,26 +46,19 @@ export interface DockItem {
  * surface stays a set of environments, not an endless tab strip.
  */
 export const DOCK_ITEMS: DockItem[] = [
-  // ── Major environments ─────────────────────────────────────────
+  // ── Primary destination — LÉLU's unified chat + visual environment ──
   { id: "chat", label: "LÉLU", glyph: "◎", icon: "orbit", group: "core" },
-  // Genesis Studios — the unified visual environment. Sketch, Render,
-  // and Avatar are capabilities INSIDE it, not separate tabs.
-  { id: "visualstudio", label: "Visual", glyph: "◍", icon: "aperture", group: "core" },
-  { id: "browser", label: "Browser", glyph: "◫", icon: "globe", group: "core" },
-  { id: "engineering", label: "Code", glyph: "⌘", icon: "code", group: "intelligence" },
+  // ── Capabilities accessible through the side panel / ⌘K palette ──
   { id: "memory", label: "Memory", glyph: "◐", icon: "crescent", group: "intelligence" },
-  { id: "agents", label: "Agents", glyph: "◈", icon: "user", group: "intelligence" },
   { id: "notifications", label: "Updates", glyph: "◷", icon: "crescent", group: "system" },
   { id: "settings", label: "Settings", glyph: "⚙", icon: "sliders", group: "system" },
 
   // ── Deeper capabilities (default-hidden, restorable via ⚙/⌘K) ──
   { id: "cosmos", label: "Cosmos", glyph: "✦", icon: "spark", group: "core" },
   { id: "history", label: "History", glyph: "≡", icon: "arrows", group: "core" },
-  // GENESIS v2 — the Core Transformation Lab. A first-class workspace
-  // destination, not a modal: it opens as a panel like every other dock
-  // item and controls/observes the SAME ONE Genesis Core.
   { id: "genesisv2", label: "Genesis v2", glyph: "⬡", icon: "lab", group: "core" },
   { id: "video", label: "Video", glyph: "▶", icon: "film", group: "core" },
+  { id: "visualstudio", label: "Visual Studio", glyph: "◍", icon: "aperture", group: "core" },
   { id: "reasoning", label: "Reasoning", glyph: "✦", icon: "spark", group: "intelligence" },
   { id: "cognition", label: "Cognition", glyph: "◬", icon: "brain", group: "intelligence" },
   { id: "evolution", label: "Evolution", glyph: "⬖", icon: "evolve", group: "intelligence" },
@@ -73,10 +66,6 @@ export const DOCK_ITEMS: DockItem[] = [
   { id: "diagnostics", label: "Engines", glyph: "●", icon: "wave", group: "system" },
   { id: "executive", label: "Executive", glyph: "◉", icon: "brain", group: "system" },
   { id: "logs", label: "Logs", glyph: "▤", icon: "file", group: "system" },
-  // The SYSTEM tab is the LÉLU UI ↔ SYSTEM UI environment switch. Its id
-  // stays "visual" (VisualEngine.interfaceFocus drives it), but it reads
-  // as the second operating environment, not a panel.
-  { id: "visual", label: "System", glyph: "◉", icon: "system", group: "system" },
 ];
 
 /**
@@ -129,10 +118,14 @@ const DOCK_CONFIG_KEY = "lelu.dock.v1";
    deeper capability stays registered and is restored from the ⚙ tab
    editor or the ⌘K command palette. */
 const DEFAULT_HIDDEN: string[] = [
+  "browser",
+  "engineering",
+  "agents",
   "cosmos",
   "history",
   "genesisv2",
   "video",
+  "visualstudio",
   "reasoning",
   "cognition",
   "evolution",

@@ -50,6 +50,16 @@ export interface ProjectSchedule {
   nextRun?: number;
 }
 
+export interface ProjectCheckpoint {
+  status: "active" | "paused" | "waiting_approval" | "waiting_user" | "blocked" | "completed" | "failed";
+  summary: string;
+  completed: string[];
+  pending: string[];
+  blockers: string[];
+  nextAction: string | null;
+  updatedAt: number;
+}
+
 export interface LeluProject {
   id: string;
   name: string;
@@ -76,6 +86,8 @@ export interface LeluProject {
   location?: string;
   /** Ordered execution plan steps. */
   executionPlan?: string[];
+  /** Durable task checkpoint; survives reload and project pause/resume. */
+  checkpoint?: ProjectCheckpoint;
   createdAt: number;
   updatedAt: number;
 }
@@ -251,6 +263,11 @@ export default class ProjectStore {
 
   public resume(id: string): void {
     this.update(id, { status: "active" });
+  }
+
+  /** Persist the current cognitive/task position without duplicating chat history. */
+  public checkpoint(id: string, checkpoint: Omit<ProjectCheckpoint, "updatedAt">): LeluProject | undefined {
+    return this.update(id, { checkpoint: { ...checkpoint, updatedAt: Date.now() } });
   }
 
   /** Case-insensitive lookup by (partial) name — "tampa news" → project. */

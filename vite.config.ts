@@ -12,6 +12,7 @@ import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
+import { githubApiPlugin } from "./plugins/githubApi.ts";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -110,6 +111,8 @@ export default defineConfig(({ mode }) => {
           nekoApi.attach(server.middlewares);
         },
       },
+
+      githubApiPlugin(),
 
       glslIncludes(),
 

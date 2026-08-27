@@ -1,206 +1,198 @@
 /**
  * ==========================================================
- * LÉLUVERSE
- * COSMIC BACKDROP
+ * LÉLUVERSE — COSMIC BACKDROP
  *
- * Procedural deep-space environment that fills the entire
- * viewport. One inverted sphere with a layered noise shader:
- * - deep-space gradient (no flat black band)
- * - drifting nebula bands
- * - cosmic dust motes
- * - violet horizon glow near the bottom
+ * Full-viewport procedural sky dome rendered in the 3D scene.
  *
- * Color responds to the live Genesis evolution state so the
- * background breathes with the core instead of staying flat.
+ * Deliberately implemented WITHOUT any custom GLSL: a plain
+ * MeshBasicMaterial with a procedural CanvasTexture nebula,
+ * tinted every frame on the CPU from sampleCosmosAtmosphere().
+ * A custom-shader failure is what made the sky render pure
+ * black before; a basic material cannot fail to compile, so
+ * the atmosphere phases (deep-black-space → core-colors →
+ * sunset → static → storm → hurricane → dissipation) are
+ * always visible in the 3D scene, with the DOM CosmosSkyBackdrop
+ * behind the transparent canvas as the guaranteed fallback.
  * ==========================================================
  */
 
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import { AdditiveBlending, BackSide, Group, ShaderMaterial } from "three";
+import {
+  AdditiveBlending,
+  BackSide,
+  CanvasTexture,
+  Color,
+  Group,
+  MeshBasicMaterial,
+  RepeatWrapping,
+  SRGBColorSpace,
+} from "three";
 
-import { useGenesis } from "../GenesisCore";
 import { sampleCosmosAtmosphere } from "../cosmos/CosmosAtmosphere";
 
-const vertexShader = `
-  varying vec3 vDir;
+/* Bright linear-space tints — the sky is NEVER allowed to go black. */
+const BASE_TINT = new Color(0.55, 0.6, 1.0);
+const CORE_TINT = new Color(0.75, 1.05, 1.7);
+const SUNSET_TINT = new Color(1.6, 0.9, 0.45);
+const STATIC_TINT = new Color(1.1, 1.2, 1.45);
+const STORM_TINT = new Color(1.15, 0.7, 1.75);
+const HURRICANE_TINT = new Color(0.65, 1.25, 1.85);
+const RAINBOW_TINT = new Color(1.0, 0.78, 0.98);
+const FLASH_COLOR = new Color(1.0, 1.05, 1.25);
 
-  void main() {
-    vDir = normalize(position);
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
+/** Deterministic PRNG so the sky is identical on every load. */
+function mulberry32(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
-const fragmentShader = `
-  uniform float uTime;
-  uniform float uActivity;
-  uniform float uHue;
-  uniform float uCoreColors;
-  uniform float uSunset;
-  uniform float uStatic;
-  uniform float uStorm;
-  uniform float uHurricane;
-  uniform float uLightning;
+/** Procedural nebula + starfield texture — bright, never pure black. */
+function createSkyTexture(): CanvasTexture {
+  const size = 1024;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
 
-  varying vec3 vDir;
+  if (ctx) {
+    // Base: visible deep blue, not black.
+    const base = ctx.createLinearGradient(0, 0, 0, size);
+    base.addColorStop(0, "#101736");
+    base.addColorStop(0.55, "#0b1026");
+    base.addColorStop(1, "#141b40");
+    ctx.fillStyle = base;
+    ctx.fillRect(0, 0, size, size);
 
-  float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-  }
+    const rng = mulberry32(0x51e1);
 
-  float noise(vec2 p) {
-    vec2 i = floor(p);
-    vec2 f = fract(p);
-    f = f * f * (3.0 - 2.0 * f);
-    float a = hash(i);
-    float b = hash(i + vec2(1.0, 0.0));
-    float c = hash(i + vec2(0.0, 1.0));
-    float d = hash(i + vec2(1.0, 1.0));
-    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
-  }
-
-  float fbm(vec2 p) {
-    float value = 0.0;
-    float amplitude = 0.5;
-    for (int octave = 0; octave < 4; octave += 1) {
-      value += noise(p) * amplitude;
-      p = p * 2.03 + vec2(11.7, 5.3);
-      amplitude *= 0.5;
+    // Nebula clouds — bright enough to read through the phase tint.
+    const hues = [210, 225, 245, 265, 285, 195];
+    for (let i = 0; i < 70; i += 1) {
+      const x = rng() * size;
+      const y = rng() * size;
+      const r = 60 + rng() * 220;
+      const hue = hues[Math.floor(rng() * hues.length)];
+      const glow = ctx.createRadialGradient(x, y, 0, x, y, r);
+      glow.addColorStop(
+        0,
+        `hsla(${hue}, 90%, ${55 + rng() * 25}%, ${0.16 + rng() * 0.22})`,
+      );
+      glow.addColorStop(1, "hsla(0, 0%, 0%, 0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(x - r, y - r, r * 2, r * 2);
     }
-    return value;
+
+    // Fine dust bands
+    for (let i = 0; i < 26; i += 1) {
+      const y = rng() * size;
+      const h = 6 + rng() * 26;
+      const band = ctx.createLinearGradient(0, y - h, 0, y + h);
+      band.addColorStop(0, "hsla(230, 70%, 60%, 0)");
+      band.addColorStop(
+        0.5,
+        `hsla(230, 80%, ${60 + rng() * 25}%, ${0.06 + rng() * 0.08})`,
+      );
+      band.addColorStop(1, "hsla(230, 70%, 60%, 0)");
+      ctx.fillStyle = band;
+      ctx.fillRect(0, y - h, size, h * 2);
+    }
+
+    // Stars
+    for (let i = 0; i < 700; i += 1) {
+      const brightness = 0.25 + rng() * 0.75;
+      ctx.fillStyle = `rgba(255,255,255,${brightness * 0.8})`;
+      ctx.beginPath();
+      ctx.arc(rng() * size, rng() * size, 0.35 + rng() * 1.15, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
-  vec3 hue(float h) {
-    vec3 k = vec3(1.0, 2.0 / 3.0, 1.0 / 3.0);
-    vec3 p = abs(fract(vec3(h) + k) * 6.0 - 3.0);
-    return clamp(p - 1.0, 0.0, 1.0);
-  }
-
-  void main() {
-    vec2 dir = vDir.xz;
-    // Slow, huge drift so the background always moves.
-    vec2 flow = vec2(uTime * 0.012, -uTime * 0.008);
-
-    // Deep-space vertical gradient — bottom slightly violet, top deep indigo.
-    float height = vDir.y * 0.5 + 0.5;
-    vec3 base = mix(vec3(0.008, 0.012, 0.045), vec3(0.02, 0.008, 0.06), height);
-    base += vec3(0.012, 0.006, 0.02) * pow(1.0 - height, 2.0);
-
-    // Layered nebula bands wrapping around the sky — separate octave flows
-    // per band so cyan, violet and emerald formations drift independently.
-    float bands = fbm(dir * 1.15 + flow);
-    float bands2 = fbm(dir * 2.6 - flow * 1.4 + vec2(31.0, 7.0));
-    float bands3 = fbm(dir * 1.8 + flow * 0.7 + vec2(57.0, 19.0));
-    float cloud = smoothstep(0.4, 0.96, bands * 0.55 + bands2 * 0.3 + bands3 * 0.15);
-
-    vec3 nebulaColor = mix(
-      vec3(0.10, 0.18, 0.42),
-      hue(uHue) * vec3(0.55, 0.85, 1.0),
-      uActivity,
-    );
-    // Violet/magenta veils.
-    nebulaColor = mix(nebulaColor, vec3(0.48, 0.16, 0.72), bands2 * 0.5);
-    // Emerald accents.
-    nebulaColor = mix(nebulaColor, vec3(0.05, 0.42, 0.42), bands3 * 0.35 * (0.4 + uActivity * 0.6));
-    // Warm pink horizon wisps near the bottom.
-    float low = smoothstep(0.55, 0.95, 1.0 - height);
-    nebulaColor = mix(nebulaColor, vec3(0.55, 0.20, 0.42), low * bands2 * 0.45);
-
-    vec3 color = base + nebulaColor * cloud * (0.6 + uActivity * 0.65);
-
-    // Atmospheric phase grading over the same persistent sky. These values
-    // change how the universe is experienced; they never alter its objects.
-    vec3 coreAtmosphere = vec3(0.04, 0.36, 0.82) + hue(0.88) * 0.18;
-    vec3 sunsetAtmosphere = mix(vec3(0.95, 0.12, 0.08), vec3(0.86, 0.2, 0.58), height);
-    vec3 stormAtmosphere = mix(vec3(0.012, 0.035, 0.085), vec3(0.16, 0.035, 0.22), height);
-    color += coreAtmosphere * cloud * uCoreColors * 0.45;
-    color += sunsetAtmosphere * cloud * uSunset * 0.32;
-    color = mix(color, color * 0.42 + stormAtmosphere * 0.36, uStorm * 0.46);
-
-    // A rotating atmospheric spiral and temporary signal interference are
-    // layered over the sky shell, never substituted for the star field.
-    float radius = length(dir);
-    float angle = atan(dir.y, dir.x);
-    float spiral = smoothstep(0.18, 0.85, 0.5 + 0.5 * sin(angle * 5.0 - uTime * 0.18 + radius * 13.0));
-    color += vec3(0.1, 0.18, 0.38) * spiral * uHurricane * 0.32;
-    float scanline = 0.5 + 0.5 * sin(vDir.y * 180.0 + uTime * 2.4);
-    float signalNoise = hash(dir * 320.0 + uTime * 0.5);
-    color += vec3(0.18, 0.65, 0.9) * (scanline * 0.5 + signalNoise * 0.5) * uStatic * 0.07;
-    color += vec3(0.72, 0.84, 1.0) * pow(max(0.0, sin(uTime * 7.0 + angle * 3.0)), 14.0) * uLightning * 0.22;
-
-    // Cosmic dust — fine motes scattered through the sky.
-    float dust = fbm(dir * 7.0 + flow * 2.0);
-    color += vec3(0.16, 0.20, 0.30) * smoothstep(0.62, 0.92, dust) * 0.14;
-
-    // Faint horizon wash so the bottom edge of the view never reads dead.
-    float horizon = smoothstep(0.15, 0.55, 1.0 - abs(vDir.y));
-    color += vec3(0.05, 0.10, 0.22) * horizon * (0.3 + uActivity * 0.5);
-
-    gl_FragColor = vec4(color, 1.0);
-  }
-`;
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  return texture;
+}
 
 export default function CosmicBackdrop() {
-  const { getLiveUniverse } = useGenesis();
-  const group = useRef<Group>(null);
+  const groupRef = useRef<Group>(null);
 
-  const material = useMemo(
-    () =>
-      new ShaderMaterial({
-        side: BackSide,
-        transparent: true,
-        depthWrite: false,
-        depthTest: true,
-        blending: AdditiveBlending,
-        toneMapped: false,
-        uniforms: {
-          uTime: { value: 0 },
-          uActivity: { value: 0.25 },
-          uHue: { value: 0.58 },
-          uCoreColors: { value: 0 },
-          uSunset: { value: 0 },
-          uStatic: { value: 0 },
-          uStorm: { value: 0 },
-          uHurricane: { value: 0 },
-          uLightning: { value: 0 },
-        },
-        vertexShader,
-        fragmentShader,
-      }),
-    [],
-  );
+  const { material, flashMaterial } = useMemo(() => {
+    const texture = typeof document === "undefined" ? null : createSkyTexture();
+    const material = new MeshBasicMaterial({
+      map: texture ?? undefined,
+      color: BASE_TINT.clone(),
+      transparent: true,
+      opacity: 0.95,
+      side: BackSide,
+      depthWrite: false,
+      depthTest: true,
+      blending: AdditiveBlending,
+      toneMapped: false,
+    });
+    const flashMaterial = new MeshBasicMaterial({
+      color: FLASH_COLOR.clone(),
+      transparent: true,
+      opacity: 0,
+      side: BackSide,
+      depthWrite: false,
+      depthTest: true,
+      blending: AdditiveBlending,
+      toneMapped: false,
+    });
+    return { material, flashMaterial };
+  }, []);
 
-  useFrame(({ clock }) => {
-    if (!group.current) return;
+  const scratch = useMemo(() => new Color(), []);
 
-    const liveUniverse = getLiveUniverse();
-    const celestial = liveUniverse.celestial;
-    const evolution = liveUniverse.evolutionSystem;
-    const activity = Math.min(
-      1,
-      0.2 +
-        (celestial.cosmicEnergy + celestial.stars + celestial.planets) * 0.3 +
-        evolution.emergence * 0.25,
-    );
+  useFrame(({ clock }, delta) => {
+    const root = groupRef.current;
+    if (!root) return;
 
-    const atmosphere = sampleCosmosAtmosphere(clock.elapsedTime);
-    material.uniforms.uTime.value = clock.elapsedTime;
-    material.uniforms.uActivity.value = Math.min(1, activity * 0.6 + atmosphere.intensity * 0.7);
-    material.uniforms.uHue.value = 0.58 + evolution.colorShift * 0.9 + atmosphere.hueShift;
-    material.uniforms.uCoreColors.value = atmosphere.coreColors;
-    material.uniforms.uSunset.value = atmosphere.sunset;
-    material.uniforms.uStatic.value = atmosphere.static;
-    material.uniforms.uStorm.value = atmosphere.storm;
-    material.uniforms.uHurricane.value = atmosphere.hurricane;
-    material.uniforms.uLightning.value = atmosphere.lightning;
+    const t = clock.elapsedTime;
+    const atmosphere = sampleCosmosAtmosphere(t);
 
-    group.current.rotation.y = clock.elapsedTime * 0.004;
+    // Phase mix computed on the CPU — no shader to fail.
+    scratch.copy(BASE_TINT);
+    scratch.lerp(CORE_TINT, atmosphere.coreColors * 0.85);
+    scratch.lerp(SUNSET_TINT, atmosphere.sunset * 0.9);
+    scratch.lerp(STATIC_TINT, atmosphere.static * 0.5);
+    scratch.lerp(STORM_TINT, atmosphere.storm * 0.8);
+    scratch.lerp(HURRICANE_TINT, atmosphere.hurricane * 0.9);
+    scratch.lerp(RAINBOW_TINT, atmosphere.rainbow * 0.4);
+    material.color.copy(scratch);
+
+    // During static (TV snow) and rainbow (test pattern) the DOM layers
+    // carry the look — pull this sphere's additive opacity down so the
+    // snow/bars behind the transparent canvas show through crisply.
+    const revealDom = Math.max(atmosphere.static * 0.7, atmosphere.rainbow * 0.6);
+    material.opacity = 0.95 - revealDom * 0.55;
+
+    // Lightning: sharp white-blue pulses during storm/hurricane.
+    const flashPulse =
+      Math.pow(Math.max(0, Math.sin(t * 11.0)), 6) +
+      Math.pow(Math.max(0, Math.sin(t * 17.0 + 2.1)), 10) * 0.6;
+    flashMaterial.opacity = Math.min(1, atmosphere.lightning * flashPulse * 1.25);
+
+    // Hurricane visibly spins the whole sky; storm adds turbulence.
+    root.rotation.y += delta * (0.002 + atmosphere.hurricane * 0.05 + atmosphere.storm * 0.02);
+    root.rotation.x = Math.sin(t * 0.03) * 0.02;
   });
 
   return (
-    <group ref={group} name="CosmicBackdrop" renderOrder={0}>
-      <mesh material={material} renderOrder={0} raycast={() => null} frustumCulled={false}>
-        <sphereGeometry args={[600, 48, 32]} />
+    <group ref={groupRef} name="CosmicBackdrop" renderOrder={0}>
+      <mesh material={material} raycast={() => null} frustumCulled={false}>
+        <sphereGeometry args={[500, 32, 24]} />
+      </mesh>
+      <mesh material={flashMaterial} raycast={() => null} frustumCulled={false}>
+        <sphereGeometry args={[505, 32, 24]} />
       </mesh>
     </group>
   );

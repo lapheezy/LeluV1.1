@@ -11,7 +11,8 @@ export type CosmosAtmospherePhase =
   | "static"
   | "storm"
   | "hurricane"
-  | "dissipation";
+  | "dissipation"
+  | "rainbow";
 
 export interface CosmosAtmosphereState {
   phase: CosmosAtmospherePhase;
@@ -31,6 +32,8 @@ export interface CosmosAtmosphereState {
   hurricane: number;
   /** 0..1 temporary lightning influence. */
   lightning: number;
+  /** 0..1 sign-off test pattern (rainbow color bars) influence. */
+  rainbow: number;
   /** Normalized hue offset for the existing atmospheric shader. */
   hueShift: number;
   /** Stable time value used by atmospheric shaders only. */
@@ -45,6 +48,7 @@ interface AtmosphereAnchor {
   storm: number;
   hurricane: number;
   lightning: number;
+  rainbow: number;
   hueShift: number;
 }
 
@@ -63,6 +67,7 @@ const DEEP: AtmosphereAnchor = {
   storm: 0,
   hurricane: 0,
   lightning: 0,
+  rainbow: 0,
   hueShift: 0,
 };
 
@@ -74,6 +79,7 @@ const CORE: AtmosphereAnchor = {
   storm: 0,
   hurricane: 0,
   lightning: 0,
+  rainbow: 0,
   hueShift: 0.08,
 };
 
@@ -85,6 +91,7 @@ const SUNSET: AtmosphereAnchor = {
   storm: 0,
   hurricane: 0,
   lightning: 0,
+  rainbow: 0,
   hueShift: 0.16,
 };
 
@@ -96,6 +103,7 @@ const SIGNAL: AtmosphereAnchor = {
   storm: 0.08,
   hurricane: 0,
   lightning: 0,
+  rainbow: 0,
   hueShift: 0.1,
 };
 
@@ -107,6 +115,7 @@ const STORM: AtmosphereAnchor = {
   storm: 1,
   hurricane: 0.2,
   lightning: 0.58,
+  rainbow: 0,
   hueShift: -0.03,
 };
 
@@ -118,6 +127,7 @@ const HURRICANE: AtmosphereAnchor = {
   storm: 1,
   hurricane: 1,
   lightning: 1,
+  rainbow: 0,
   hueShift: -0.08,
 };
 
@@ -129,19 +139,42 @@ const DISSIPATION: AtmosphereAnchor = {
   storm: 0.04,
   hurricane: 0,
   lightning: 0,
+  rainbow: 0,
   hueShift: 0,
 };
 
+/**
+ * The sign-off test pattern — the rainbow color bars a station put up
+ * when it ended its broadcast. The bars reach full strength at the END
+ * of the rainbow phase, then dissolve into deep space as the next
+ * cycle's colors return (deep-black-space ramps from this anchor).
+ */
+const RAINBOW_OUT: AtmosphereAnchor = {
+  intensity: 0.24,
+  coreColors: 0.15,
+  sunset: 0.05,
+  static: 0.18,
+  storm: 0,
+  hurricane: 0,
+  lightning: 0.15,
+  rainbow: 1,
+  hueShift: 0.4,
+};
+
 /* Durations are long enough to read as one evolving condition, not a scene
-   carousel. The final segment returns to the exact deep-space baseline. */
+   carousel. Every segment chains into the next (each `to` is the following
+   segment's `from`), so the cycle loops without any discontinuity. The
+   rainbow test pattern is the final segment — it comes right before the
+   atmosphere changes colors again. */
 const SEGMENTS: AtmosphereSegment[] = [
-  { phase: "deep-black-space", duration: 16, from: DEEP, to: CORE },
+  { phase: "deep-black-space", duration: 14, from: RAINBOW_OUT, to: CORE },
   { phase: "core-colors", duration: 12, from: CORE, to: SUNSET },
   { phase: "sunset", duration: 12, from: SUNSET, to: SIGNAL },
   { phase: "static", duration: 9, from: SIGNAL, to: STORM },
   { phase: "storm", duration: 12, from: STORM, to: HURRICANE },
   { phase: "hurricane", duration: 12, from: HURRICANE, to: DISSIPATION },
-  { phase: "dissipation", duration: 14, from: DISSIPATION, to: DEEP },
+  { phase: "dissipation", duration: 8, from: DISSIPATION, to: DEEP },
+  { phase: "rainbow", duration: 12, from: DEEP, to: RAINBOW_OUT },
 ];
 
 export const COSMOS_ATMOSPHERE_CYCLE_SECONDS = SEGMENTS.reduce(
@@ -164,6 +197,7 @@ function interpolate(from: AtmosphereAnchor, to: AtmosphereAnchor, progress: num
     storm: from.storm + (to.storm - from.storm) * t,
     hurricane: from.hurricane + (to.hurricane - from.hurricane) * t,
     lightning: from.lightning + (to.lightning - from.lightning) * t,
+    rainbow: from.rainbow + (to.rainbow - from.rainbow) * t,
     hueShift: from.hueShift + (to.hueShift - from.hueShift) * t,
   };
 }

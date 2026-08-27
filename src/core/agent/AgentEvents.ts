@@ -133,6 +133,12 @@ export type AgentEvent =
   | { type: "task_failed"; taskId: string; label: string; error?: string }
   | { type: "cognitive_sync"; taskId: string; source: string; detail?: string }
   | {
+      type: "visual_state_changed";
+      taskId: string;
+      state: "conversation" | "research" | "browser" | "analysis" | "engineering" | "testing" | "earth";
+      reason: string;
+    }
+  | {
       type: "approval_requested";
       taskId: string;
       approvalId: string;

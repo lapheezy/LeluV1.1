@@ -31,6 +31,8 @@ import AgentStore from "../agents/AgentStore";
 import ProjectStore from "../projects/ProjectStore";
 import KvStore from "../storage/KvStore";
 import WorldLifecycle from "../../app/scene/genesis/engines/WorldLifecycle";
+import AgentEventBus, { type AgentEvent } from "../agent/AgentEvents";
+import CapabilityManifest from "../capabilities/CapabilityManifest";
 
 // ---------- TYPES ----------
 
@@ -109,6 +111,8 @@ export default class LeluRuntime {
   private listeners = new Set<RuntimeListener>();
   private healthCheckTimer: number | null = null;
   private initialized = false;
+  private cognitiveLoopStarted = false;
+  private eventUnsubscribe: (() => void) | null = null;
 
   private constructor() {
     this.health = this.loadHealth();
@@ -138,6 +142,16 @@ export default class LeluRuntime {
       30_000,
     );
 
+    // This runtime owns the background cognitive loop. Starting it here
+    // keeps lifecycle ownership out of React and makes startup idempotent.
+    if (!this.cognitiveLoopStarted) {
+      CognitiveLoop.getInstance().start();
+      this.cognitiveLoopStarted = true;
+    }
+    if (!this.eventUnsubscribe) {
+      this.eventUnsubscribe = AgentEventBus.getInstance().subscribe((event) => this.observeEvent(event));
+    }
+
     this.initialized = true;
     this.recordActivity("Runtime initialized");
     this.notify();
@@ -148,6 +162,10 @@ export default class LeluRuntime {
       window.clearInterval(this.healthCheckTimer);
       this.healthCheckTimer = null;
     }
+    CognitiveLoop.getInstance().stop();
+    this.cognitiveLoopStarted = false;
+    this.eventUnsubscribe?.();
+    this.eventUnsubscribe = null;
     this.initialized = false;
   }
 
@@ -192,6 +210,22 @@ export default class LeluRuntime {
     this.persistHealth();
     this.notify();
     return this.health;
+  }
+
+  private observeEvent(event: AgentEvent): void {
+    if (event.type === "tool_result" && event.status !== "error") {
+      const capability = event.tool === "projects" ? "task-engine" : event.tool;
+      if (capability && CapabilityManifest.getInstance().get(capability)) {
+        CapabilityManifest.getInstance().markUsed(capability);
+      }
+    }
+    if (event.type === "execution_phase") {
+      this.recordActivity(event.label);
+    } else if (event.type === "tool_started") {
+      this.recordActivity(`Using ${event.tool}`);
+    } else if (event.type === "tool_failed") {
+      this.recordActivity(`${event.tool} failed: ${event.error ?? "unknown error"}`);
+    }
   }
 
   // ---------- LOCATION ----------

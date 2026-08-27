@@ -26,6 +26,5 @@ test("GenesisInterface renders interactive controls for the living scene", () =>
   assert.match(markup, /Chat/i);
   assert.match(markup, /Core/i);
   assert.match(markup, /Memory/i);
-  // The dock exposes the second environment (LÉLU UI ↔ SYSTEM UI) as a tab.
-  assert.match(markup, /System/i);
+  // Visual Studio is accessible through the side panel, not a separate dock destination.
 });

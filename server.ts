@@ -36,6 +36,7 @@ import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
+import { createGithubApi } from "./plugins/githubApi.ts";
 
 // Load the project's existing environment (.env.local overrides .env;
 // platform-injected process env always wins) BEFORE anything reads it,
@@ -252,6 +253,7 @@ instagramApi.attach(middlewares);
 rssApi.attach(middlewares);
 quad9Api.attach(middlewares);
 nekoApi.attach(middlewares);
+createGithubApi().attach(middlewares);
 middlewares.use("/api/ai", (req, res) => {
   void handleAiProxy(req, res);
 });

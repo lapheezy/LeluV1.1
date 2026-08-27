@@ -23,8 +23,12 @@
 
 import AIService from "../AIService";
 import LeluRuntime from "../runtime/LeluRuntime";
+import WorkspaceRuntime, { type WorkspaceOperation } from "../engineering/WorkspaceRuntime";
 import TaskEngine, { type Task } from "../tasks/TaskEngine";
 import AgentEventBus from "../agent/AgentEvents";
+import AgentStore from "../agents/AgentStore";
+import ProjectStore from "../projects/ProjectStore";
+import GitHubIntegration from "../engineering/GitHubIntegration";
 
 // ---------- TYPES ----------
 
@@ -177,6 +181,30 @@ export default class Orchestrator {
         uiCommands.push("approval:requested");
       }
 
+      // GITHUB INTEGRATION: when GitHub-related intent is detected,
+      // probe capabilities and include results in the response context.
+      if (intent.category === "github") {
+        const gh = GitHubIntegration.getInstance();
+        try {
+          const ghStatus = await gh.getStatus();
+          if (ghStatus.configured) {
+            actions.push({
+              tool: "github.auth",
+              status: "success",
+              result: `Authenticated as ${ghStatus.user?.login ?? "unknown"}`,
+            });
+          } else {
+            actions.push({
+              tool: "github.auth",
+              status: "error",
+              error: ghStatus.error ?? "GitHub not configured",
+            });
+          }
+        } catch {
+          actions.push({ tool: "github.auth", status: "error", error: "GitHub probe failed" });
+        }
+      }
+
       // For simple requests, delegate to the existing chat pipeline
       // For complex multi-step requests, create a task
       const needsMultiStep = this.isMultiStepRequest(request);
@@ -244,19 +272,38 @@ export default class Orchestrator {
         memoryUpdates.push(request);
 
         events.emit({ type: "execution_phase", taskId, phase: "execution_completed", label: "Execution complete", side: "both" });
-        events.emit({ type: "task_completed", taskId, label: request.slice(0, 120) });
-        this.emit({ type: "complete", message: "Task completed", taskId: task.id });
+      events.emit({ type: "task_completed", taskId, label: request.slice(0, 120) });
+      this.emit({ type: "complete", message: "Task completed", taskId: task.id });
 
-        return {
-          response: response.text,
-          actions,
-          task,
-          memoryUpdates,
-          uiCommands,
-        };
+      // CHECKPOINT: persist task state so LÉLU can resume after close/reopen
+      this.persistCheckpointFromRequest(request, response.text, intent.category, []);
+
+      return {
+        response: response.text,
+        actions,
+        task,
+        memoryUpdates,
+        uiCommands,
+      };
       }
 
       // Simple request — direct pipeline
+      // Engineering verification uses the existing guarded workspace
+      // runtime; it never pretends that an AI response executed code.
+      const engineeringOperation = this.engineeringOperation(request, intent.category);
+      if (engineeringOperation) {
+        const workspace = WorkspaceRuntime.getInstance();
+        events.emit({ type: "tool_selected", taskId, tool: "engineering", label: engineeringOperation });
+        events.emit({ type: "tool_started", taskId, tool: "engineering", label: engineeringOperation });
+        const result = await workspace.run(engineeringOperation);
+        events.emit({
+          type: "tool_result",
+          taskId,
+          tool: "engineering",
+          result: result.ok ? `${engineeringOperation} completed` : `${engineeringOperation} failed: ${result.stderr.slice(0, 180)}`,
+        });
+      }
+
       const ai = AIService.getInstance();
       events.emit({
         type: "execution_phase",
@@ -285,9 +332,27 @@ export default class Orchestrator {
 
       runtime.recordActivity(`Responded to: ${request.slice(0, 80)}`);
 
+      // AGENT DELEGATION: when research or engineering is detected,
+      // record the task on the best-fit agent so the cognitive loop
+      // can observe agent activity and the agent keeps history.
+      const delegatedAgent = this.delegateToAgent(request, intent.category, taskId);
+      if (delegatedAgent) {
+        actions.push({
+          tool: "agent-delegate",
+          status: "success",
+          result: `Delegated to agent "${delegatedAgent.name}" (${delegatedAgent.role})`,
+        });
+      }
+
+      // MEMORY: important requests deserve memory
+      memoryUpdates.push(request);
+
       events.emit({ type: "execution_phase", taskId, phase: "execution_completed", label: "Response ready", side: "both" });
       events.emit({ type: "task_completed", taskId, label: request.slice(0, 120) });
       this.emit({ type: "complete", message: "Response generated" });
+
+      // CHECKPOINT: persist task state so LÉLU can resume after close/reopen
+      this.persistCheckpointFromRequest(request, response.text, intent.category, delegatedAgent ? [delegatedAgent.name] : []);
 
       return {
         response: response.text,
@@ -347,7 +412,8 @@ export default class Orchestrator {
   }
 
   private detectCategory(lower: string): string {
-    if (/\b(code|debug|fix|build|deploy|engineering|bug|error)\b/.test(lower)) return "engineering";
+    if (/\b(github|repository|repo|branch|commit|pull request|merge|clone)\b/.test(lower)) return "github";
+    if (/\b(code|debug|fix|build|deploy|engineering|bug|error|inspect|audit|test)\b/.test(lower)) return "engineering";
     if (/\b(remember|memory|recall|forgot)\b/.test(lower)) return "memory";
     if (/\b(search|find|look up|research|who is|what is)\b/.test(lower)) return "research";
     if (/\b(plan|organize|schedule|task|project)\b/.test(lower)) return "planning";
@@ -355,6 +421,7 @@ export default class Orchestrator {
     if (/\b(navigate|go to|open|show|cosmos|galaxy)\b/.test(lower)) return "navigation";
     if (/\b(photo|camera|record|speak|voice)\b/.test(lower)) return "device";
     if (/\b(create|draw|sketch|design|make)\b/.test(lower)) return "creative";
+    if (/\b(your|yourself|own|capabilities|tools|what can)\b/.test(lower) && /\b(codebase|project|architecture|system)\b/.test(lower)) return "self-inspection";
     return "chat";
   }
 
@@ -379,7 +446,9 @@ export default class Orchestrator {
 
   private requiredTools(_intent: { category: string }): string[] {
     const map: Record<string, string[]> = {
-      engineering: ["ai.generate", "project.manage"],
+      github: ["github.auth", "github.repos", "github.files"],
+      engineering: ["ai.generate", "project.manage", "workspace.typecheck", "workspace.test"],
+      "self-inspection": ["sandbox.read", "workspace.typecheck"],
       memory: ["memory.recall", "memory.store"],
       research: ["research.web"],
       planning: ["plan.create"],
@@ -417,6 +486,109 @@ export default class Orchestrator {
       };
     }
     return null;
+  }
+
+  private engineeringOperation(request: string, category: string): WorkspaceOperation | null {
+    if (category !== "engineering") return null;
+    const lower = request.toLowerCase();
+    if (/\b(test|tests|testing)\b/.test(lower)) return "test";
+    if (/\b(build|compile)\b/.test(lower)) return "build";
+    if (/\b(inspect|audit|review|analy[sz]e)\b/.test(lower)) return "inspect";
+    if (/\b(typecheck|type-check|types)\b/.test(lower)) return "typecheck";
+    return null;
+  }
+
+  // ---------- AGENT DELEGATION ----------
+
+  /**
+   * Find the best-fit agent for the given intent and record the task.
+   * Returns the agent if delegation occurred, null otherwise.
+   */
+  private delegateToAgent(
+    request: string,
+    category: string,
+    taskId: string,
+  ): { name: string; role: string } | null {
+    const agentStore = AgentStore.getInstance();
+    const runnable = agentStore.runnable();
+    if (runnable.length === 0) return null;
+
+    // Match agent capabilities to intent category
+    const capabilityMap: Record<string, string[]> = {
+      research: ["web research", "source evaluation", "research"],
+      engineering: ["engineering", "coding", "testing"],
+      creative: ["creative", "design", "sketch"],
+      planning: ["planning", "organization"],
+    };
+
+    const targetCapabilities = capabilityMap[category] ?? ["chat"];
+    const bestFit = runnable.find((agent) =>
+      agent.capabilities.some((cap) =>
+        targetCapabilities.some((target) => cap.toLowerCase().includes(target.toLowerCase())),
+      ),
+    ) ?? runnable[0];
+
+    if (!bestFit) return null;
+
+    // Record the task on the agent
+    agentStore.recordTask(bestFit.id, {
+      label: request.slice(0, 120),
+      status: "running",
+    });
+
+    // Emit delegation event
+    AgentEventBus.getInstance().emit({
+      type: "tool_selected",
+      taskId,
+      tool: `agent:${bestFit.name}`,
+      label: `Delegated to ${bestFit.name} (${bestFit.role})`,
+    });
+
+    return { name: bestFit.name, role: bestFit.role };
+  }
+
+  // ---------- CHECKPOINT PERSISTENCE ----------
+
+  /**
+   * Persist a project checkpoint so LÉLU can resume work after close/reopen.
+   * Looks for or creates a project related to the request category.
+   */
+  private persistCheckpointFromRequest(
+    request: string,
+    responseText: string,
+    category: string,
+    _agentNames: string[],
+  ): void {
+    try {
+      const projectStore = ProjectStore.getInstance();
+      const projects = projectStore.list().filter((p) => p.status !== "archived");
+
+      // Find or create a project for this category
+      const categoryProjectMap: Record<string, string> = {
+        research: "Research",
+        engineering: "Engineering",
+        creative: "Creative Work",
+        planning: "Planning",
+      };
+      const projectName = categoryProjectMap[category] ?? "General";
+
+      let project = projects.find((p) => p.name === projectName);
+      if (!project) {
+        project = projectStore.create({ name: projectName, description: `Auto-created for ${category} tasks` });
+      }
+
+      // Persist the checkpoint
+      projectStore.checkpoint(project.id, {
+        status: "active",
+        summary: request.slice(0, 200),
+        completed: [responseText.slice(0, 100)],
+        pending: [],
+        blockers: [],
+        nextAction: null,
+      });
+    } catch {
+      // Checkpoint persistence is best-effort — never break the orchestrator
+    }
   }
 
   private verifyResponse(response: any): boolean {

@@ -70,6 +70,16 @@ export interface CognitiveContextSnapshot {
   /** Canonical Earth Core spatial context (compact; null when dormant). */
   earthContext: string | null;
 
+  /** Current persistent project checkpoints available to cognition. */
+  checkpoints: Array<{
+    projectId: string;
+    projectName: string;
+    status: string;
+    summary: string;
+    nextAction: string | null;
+    pending: string[];
+  }>;
+
   /** Timestamp of this snapshot. */
   builtAt: number;
 }
@@ -104,6 +114,16 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
   const projects = projectStore
     .list()
     .filter((p) => p.status === "active" || p.status === "paused");
+  const checkpoints = projects
+    .filter((project) => project.checkpoint)
+    .map((project) => ({
+      projectId: project.id,
+      projectName: project.name,
+      status: project.checkpoint?.status ?? project.status,
+      summary: project.checkpoint?.summary ?? "",
+      nextAction: project.checkpoint?.nextAction ?? null,
+      pending: project.checkpoint?.pending ?? [],
+    }));
 
   const agents = agentStore
     .list()
@@ -133,6 +153,7 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
     executiveSelfStateText: ExecutiveRuntime.getInstance().getSelfStateText(),
     // Earth Core spatial context — canonical state from the one Earth runtime.
     earthContext: EarthCore.getInstance().buildSpatialContext(),
+    checkpoints,
     builtAt: Date.now(),
   };
 }
@@ -163,6 +184,14 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
       .map((p) => `- ${p.name} (${p.status})${p.queries?.length ? ` — tracks: ${p.queries.join(", ")}` : ""}`)
       .join("\n");
     sections.push(`## ACTIVE PROJECTS\n${projLines}`);
+  }
+
+  // Durable project checkpoints — work state, not just transcript.
+  if (ctx.checkpoints.length > 0) {
+    sections.push(`## PROJECT CHECKPOINTS\n${ctx.checkpoints.map((checkpoint) => {
+      const pending = checkpoint.pending.slice(0, 4).join("; ") || "none recorded";
+      return `- ${checkpoint.projectName} [${checkpoint.status}]: ${checkpoint.summary || "No summary"}. Next: ${checkpoint.nextAction || "reassess"}. Pending: ${pending}`;
+    }).join("\\n")}`);
   }
 
   // Active agents

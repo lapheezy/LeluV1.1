@@ -813,7 +813,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
     // Restore the last immersive workspace (Genesis v2) so a mobile
     // tab minimize / page reload returns there instead of v1.
-    activePanel:readStoredWorkspace() === "genesisv2" ? "genesisv2" : "none",
+    activePanel:"none",
 
     // The workspace scene is independent of the open panel: entering
     // Gen V2 changes the scene, but opening chat/earth/modules keeps
@@ -821,11 +821,10 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
     // many scenes.
     activeScene:readStoredWorkspace() === "genesisv2" ? "genesisv2" : "genesis",
 
-    // The Genesis tab starts COLLAPSED: LÉLU opens only when the user
-    // clicks the Genesis chip. The scene is always alive, but the
-    // interface does not auto-open on launch. A restored Genesis v2
-    // workspace boots expanded instead.
-    minimized:readStoredWorkspace() === "genesisv2" ? false : true,
+    // The interface is tap-gated: the scene/runtime may initialize, but
+    // chat must remain closed until the user taps the Core/Genesis control.
+    // A restored Genesis v2 workspace still respects that gate.
+    minimized:true,
 
     activeWorkspace:null,
 
@@ -2018,23 +2017,27 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           }));
 
 
-        },
+        },        expand(){
 
-
-
-        expand(){
 
 
           setState(current=>({
 
 
+
             ...current,
+
 
 
             minimized:false,
 
+            // Tapping the Core/Genesis chip opens the interface AND
+            // shows the chat — the user expects the chat to appear
+            // when they open the interface, not just the bare scene.
+            activePanel:"chat",
 
           }));
+
 
 
         },
