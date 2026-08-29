@@ -71,14 +71,14 @@ async function main() {
   const priorities = registry.all().map((p) => p.priority);
 
   check(
-    "registry registers all six chat providers",
+    "registry registers the local-first provider plus all six remote chat providers",
     names.join(",") ===
-      "Groq,OpenRouter,Cerebras,Mistral,Fireworks,GitHub Models",
+      "Local (on-device),Groq,OpenRouter,Cerebras,Mistral,Fireworks,GitHub Models",
     names.join(" → "),
   );
   check(
-    "fallback order is strict by priority (1,2,3,4,5,10)",
-    JSON.stringify(priorities) === JSON.stringify([1, 2, 3, 4, 5, 10]),
+    "fallback order is strict by priority (0,1,2,3,4,5,10)",
+    JSON.stringify(priorities) === JSON.stringify([0, 1, 2, 3, 4, 5, 10]),
     priorities.join(","),
   );
   check(
@@ -116,9 +116,12 @@ async function main() {
       health.every((h) => h.initialized),
     );
     check(
-      "health reports every injected key as available",
-      withKey === health.length,
-      `${withKey}/${health.length} available`,
+      // Local (on-device) takes no API key and is correctly unavailable
+      // here (no local runtime in this sandbox) — only the six keyed
+      // remote providers should report available.
+      "health reports every injected key as available (Local correctly excluded, no fake success)",
+      withKey === health.length - 1,
+      `${withKey}/${health.length - 1} keyed providers available`,
     );
 
     // ---- 3. generate() end-to-end with stubbed fetch --------------------
@@ -141,7 +144,18 @@ async function main() {
 
     globalThis.fetch = stubFetch;
 
-    const providers = registry.all();
+    // Local (on-device) doesn't speak HTTP at all — it talks to an
+    // in-process/local runtime adapter, so the fetch-stub contract this
+    // section exercises (request shape, Bearer auth, JSON error body)
+    // doesn't apply to it. It's verified on its own terms just below,
+    // then excluded from the remote-HTTP-provider checks.
+    const localProvider = registry.get("Local (on-device)");
+    check(
+      "Local (on-device): reports unavailable without a local runtime (no fake success)",
+      localProvider !== undefined && (await localProvider.isAvailable()) === false,
+    );
+
+    const providers = registry.all().filter((p) => p.name !== "Local (on-device)");
     for (const provider of providers) {
       const response = await provider.generate({
         prompt: "Say hello",

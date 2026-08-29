@@ -54,17 +54,19 @@ export default class GitHubModelsProvider implements AIProvider {
           })
         : undefined;
 
-    const processEnv =
-      typeof process !== "undefined"
-        ? process.env
-        : undefined;
-
+    // Deliberately NOT falling back to bare process.env.GITHUB_TOKEN /
+    // GITHUB_CODESPACE_TOKEN: those are ambient credentials that dev
+    // containers, Codespaces and CI runners set for git/gh tooling —
+    // not a user-supplied GitHub Models API key. Silently adopting them
+    // here made this provider falsely report "available" (and would
+    // spend a repo-scoped token against an unrelated inference API)
+    // whenever LÉLU happened to run inside such an environment, with
+    // no key ever actually configured for it. Only the two explicit,
+    // documented configuration channels count (see ENV_VARS.md).
     this.apiKey =
       import.meta.env.VITE_GITHUB_TOKEN?.trim() ||
       runtimeEnv.__LELU_GITHUB_TOKEN__?.trim() ||
       windowEnv?.__LELU_GITHUB_TOKEN__?.trim() ||
-      processEnv?.GITHUB_TOKEN?.trim() ||
-      processEnv?.GITHUB_CODESPACE_TOKEN?.trim() ||
       "";
 
     this.model =
