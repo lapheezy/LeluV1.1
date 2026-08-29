@@ -5,6 +5,7 @@
  * ==========================================================
  */
 
+import type { AIIntent } from "../core/router/AIIntent";
 
 export interface AIMessage {
 
@@ -149,6 +150,18 @@ export interface AIRequest {
    */
   stop?:
     string[];
+
+
+
+  /**
+   * Explicit intent override for internal/programmatic callers that
+   * already KNOW the correct routing intent (e.g. the Engineering
+   * Chat, which must never depend on keyword-guessing to route into
+   * EngineeringResolver). When absent, AIRuntime falls back to the
+   * normal IntentDetector heuristic — ordinary chat is unaffected.
+   */
+  forceIntent?:
+    AIIntent;
 
 }
 

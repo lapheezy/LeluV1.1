@@ -25,6 +25,7 @@ import {
   type CapabilityResult,
 } from "./native";
 import type { AIRequest, AIResponse, MediaAttachment } from "../providers/AIProvider";
+import type { AIIntent } from "./router/AIIntent";
 import type { ReasoningResult } from "./reasoning/ReasoningEngine";
 import type { Plan } from "./planning/PlanningEngine";
 import type { LeluAgent } from "./agents/AgentTypes";
@@ -325,6 +326,7 @@ export default class AIService {
     prompt: string,
     media?: MediaAttachment[],
     context?: string,
+    options?: { forceIntent?: AIIntent },
   ): Promise<AIResponse> {
     const message = prompt.trim();
 
@@ -469,6 +471,7 @@ export default class AIService {
         prompt: message,
         ...(effectiveContext ? { context: effectiveContext } : {}),
         ...(media && media.length > 0 ? { media } : {}),
+        ...(options?.forceIntent ? { forceIntent: options.forceIntent } : {}),
         timestamp: Number(taskId),
         // True streaming: the provider pushes accumulated text as it
         // arrives and the UI renders it in place under `streamId`.

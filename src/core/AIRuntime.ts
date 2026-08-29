@@ -302,7 +302,7 @@ export default class AIRuntime {
       logger:
         this.logger,
 
-      intent: new IntentDetector().detect(request.prompt ?? ""),
+      intent: request.forceIntent ?? new IntentDetector().detect(request.prompt ?? ""),
 
       cognitiveContext: buildCognitiveContext(),
 
