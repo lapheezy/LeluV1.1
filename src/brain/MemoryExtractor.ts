@@ -72,21 +72,12 @@ export default class MemoryExtractor {
     // topic must not mint a project memory from the user's message).
     const source =
 
-      prompt.trim();    const identity =
+      prompt.trim();
 
-      prompt.match(
+    const name =
+      this.extractName(prompt);
 
-        /(?:my name is|call me)\s+([A-Za-z][A-Za-z' -]{1,40}?)(?=\s+(?:and|i|but|who|that|because|,|\.|$)|$)/i,
-
-      );
-
-
-
-    if (identity) {
-
-
-      const name =
-        identity[1].trim();
+    if (name) {
 
 
       memories.push(
@@ -537,6 +528,51 @@ export default class MemoryExtractor {
 
 
 
+
+  /**
+   * Pull a stated name out of "my name is X" / "call me X" — as a
+   * token walk rather than a single regex lookahead, because the
+   * lookahead this replaced (`(?=\s+(?:and|i|...)|,|\.|$)|$)`)
+   * required WHITESPACE before hitting a comma/period, so it silently
+   * failed to extract anything from the single most common phrasing:
+   * a name followed immediately by a period ("My name is Alex.") or
+   * comma ("Call me Alex, please."). Walks words after the trigger
+   * phrase, stopping at the first non-name-shaped word, a known
+   * continuation word (and/but/so/...), clause-ending punctuation, or
+   * three words (a generous cap for real names).
+   */
+  private extractName(prompt: string): string | null {
+    const phrase = prompt.match(/(?:my name is|call me)\s+(.+)/i);
+    if (!phrase) {
+      return null;
+    }
+
+    const CONTINUATION_WORDS = new Set([
+      "and", "i", "but", "who", "that", "because",
+      "instead", "too", "also", "now", "here", "actually", "so", "then",
+    ]);
+
+    const nameWords: string[] = [];
+    for (const raw of phrase[1].split(/\s+/)) {
+      const endsClause = /[,.!?;:]$/.test(raw);
+      const stripped = raw.replace(/[,.!?;:]+$/, "");
+
+      if (!/^[A-Za-z'-]+$/.test(stripped)) {
+        break;
+      }
+      if (CONTINUATION_WORDS.has(stripped.toLowerCase())) {
+        break;
+      }
+
+      nameWords.push(stripped);
+
+      if (endsClause || nameWords.length >= 3) {
+        break;
+      }
+    }
+
+    return nameWords.length > 0 ? nameWords.join(" ") : null;
+  }
 
   private keywords(
 

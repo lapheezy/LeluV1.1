@@ -18,6 +18,22 @@ import type {
   MemoryRecord,
 } from "../core/memory/MemoryStore";
 
+/**
+ * Word-boundary containment — NOT the same as `haystack.includes(needle)`.
+ * A plain substring check lets a short common word falsely match inside
+ * an unrelated compound word (e.g. the query word "track" substring-
+ * matches inside a stored "garden-tracking", which after punctuation
+ * stripping becomes "gardentracking" — a completely unrelated request
+ * like a bug report would then get "matched" against a stale identity/
+ * project memory and answered from it instead of ever reaching the
+ * resolver that should actually handle it). `\b` treats the hyphen (and
+ * any other non-word character) as a real boundary, so "track" no
+ * longer matches inside "gardentracking" or "tracking".
+ */
+function wordBoundaryIncludes(haystack: string, needle: string): boolean {
+  if (needle.length === 0) return false;
+  return new RegExp(`\\b${needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(haystack);
+}
 
 export default class PatternMemory {
 
@@ -563,7 +579,7 @@ export default class PatternMemory {
 
             if (
 
-              searchable.includes(word)
+              wordBoundaryIncludes(searchable, word)
 
             ) {
 
@@ -591,7 +607,7 @@ export default class PatternMemory {
 
                 stemmed !== word &&
 
-                searchable.includes(stemmed)
+                wordBoundaryIncludes(searchable, stemmed)
 
               ) {
 
@@ -631,7 +647,7 @@ export default class PatternMemory {
 
             if (
 
-              searchable.includes(phrase)
+              wordBoundaryIncludes(searchable, phrase)
 
             ) {
 
