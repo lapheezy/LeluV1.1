@@ -17,6 +17,9 @@
 
 
 
+import WorkspaceRuntime from "../engineering/WorkspaceRuntime";
+import GitHubIntegration from "../engineering/GitHubIntegration";
+
 export type RiskLevel = 0 | 1 | 2 | 3 | 4;
 
 export type PermissionClass =
@@ -149,6 +152,54 @@ export default class ToolRegistry {
     }
 
     return sections.join("\n\n");
+  }
+
+  // ---------- AVAILABILITY (real, not hardcoded) ----------
+
+  /**
+   * Recompute `available` from real runtime state instead of the
+   * hardcoded booleans set at registration. This was the actual gap:
+   * the catalog claimed availability nobody ever checked. Safe to call
+   * repeatedly (Bootstrap calls it once at startup; anything can call
+   * it again after a state change, e.g. the autonomy level changing).
+   */
+  async refreshAvailability(): Promise<void> {
+    // Engineering workspace ops: real autonomy-gate check, the exact
+    // same one WorkspaceRuntime itself enforces before running anything —
+    // this can never say "available" when the real run would be blocked.
+    const workspace = WorkspaceRuntime.getInstance();
+    for (const op of ["typecheck", "test", "build"] as const) {
+      this.updateAvailability(`workspace.${op}`, workspace.allowed(op));
+    }
+
+    // GitHub: one real probe (network/config), shared by every github.*
+    // entry — they all depend on the same configured connection today,
+    // so claiming per-entry granularity nothing actually differentiates
+    // would just be a more specific-looking guess.
+    try {
+      const status = await GitHubIntegration.getInstance().getStatus();
+      for (const id of ["github.auth", "github.repos", "github.files", "github.branches", "github.commits", "github.prs"]) {
+        this.updateAvailability(id, status.configured);
+      }
+    } catch {
+      for (const id of ["github.auth", "github.repos", "github.files", "github.branches", "github.commits", "github.prs"]) {
+        this.updateAvailability(id, false);
+      }
+    }
+
+    // Device capabilities: real browser feature detection, not a guess.
+    // Guarded for non-browser (Node/test) environments, where none of
+    // these globals exist — they correctly stay at their current value
+    // rather than throwing.
+    if (typeof navigator !== "undefined") {
+      this.updateAvailability("device.camera", Boolean(navigator.mediaDevices?.getUserMedia));
+      this.updateAvailability("device.microphone", Boolean(navigator.mediaDevices?.getUserMedia));
+      this.updateAvailability("device.share", typeof navigator.share === "function");
+      this.updateAvailability("device.haptics", typeof navigator.vibrate === "function");
+    }
+    if (typeof window !== "undefined") {
+      this.updateAvailability("device.notifications", "Notification" in window);
+    }
   }
 
   // ---------- SUBSCRIPTION ----------

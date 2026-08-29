@@ -29,6 +29,7 @@ import ExecutiveRuntime from "../executive/ExecutiveRuntime";
 import EarthCore from "../earth/EarthCore";
 import Sentinel from "../sentinel/Sentinel";
 import ImprovementQueue from "../selfdev/ImprovementQueue";
+import ToolRegistry from "../tools/ToolRegistry";
 
 export interface CognitiveContextSnapshot {
   /** Current self-model state. */
@@ -108,6 +109,17 @@ export interface CognitiveContextSnapshot {
     kind: string;
     status: string;
   }>;
+
+  /**
+   * Real, currently-available actions gated behind explicit user
+   * confirmation (risk level 2+ — device actions, external calls,
+   * anything destructive), from the ToolRegistry risk/permission
+   * schema. `available` is computed from actual runtime state
+   * (ToolRegistry.refreshAvailability, called at startup) — never the
+   * hardcoded claim it used to be — so a tool listed here is genuinely
+   * reachable right now, not merely defined.
+   */
+  toolsRequiringConfirmation: Array<{ id: string; name: string; riskLevel: number }>;
 
   /** Timestamp of this snapshot. */
   builtAt: number;
@@ -192,6 +204,10 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
       status: proposal.status,
     }));
 
+  const toolsRequiringConfirmation = ToolRegistry.getInstance()
+    .needsConfirmation()
+    .map((tool) => ({ id: tool.id, name: tool.name, riskLevel: tool.riskLevel }));
+
   return {
     self,
     projects,
@@ -200,6 +216,7 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
     autonomyLevel: autonomyGate.getLevel(),
     ui: uiStateStore.get() as UIStateSnapshot,
     recentEvents,
+    toolsRequiringConfirmation,
     // Measured operational state — never assumed, never fabricated.
     executiveSelfStateText: ExecutiveRuntime.getInstance().getSelfStateText(),
     // Earth Core spatial context — canonical state from the one Earth runtime.
@@ -298,6 +315,16 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
       (e) => `- [${e.source}] ${e.message}`,
     );
     sections.push(`## RECENT RUNTIME ERRORS (unacknowledged)\n${errorLines.join("\n")}`);
+  }
+
+  // Real, currently-reachable actions that need the user's explicit OK
+  // before she can actually run them — so she never has to guess (or
+  // claim) whether something needs confirmation.
+  if (ctx.toolsRequiringConfirmation.length > 0) {
+    const toolLines = ctx.toolsRequiringConfirmation.map(
+      (t) => `- ${t.name} (risk ${t.riskLevel}) — ask before using`,
+    );
+    sections.push(`## ACTIONS REQUIRING CONFIRMATION\n${toolLines.join("\n")}`);
   }
 
   // Her own pending engineering work — visible without being told.

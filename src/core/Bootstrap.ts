@@ -34,6 +34,7 @@ import WorldLifecycle from "../app/scene/genesis/engines/WorldLifecycle";
 import PersistentRuntime from "./proactive/PersistentRuntime";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { registerEarthTools } from "./earth/EarthTools";
+import ToolRegistry from "./tools/ToolRegistry";
 import { markPerf } from "./perf/StartupTelemetry";
 import StartupDiagnostic from "./selfdev/StartupDiagnostic";
 
@@ -170,6 +171,10 @@ export default class Bootstrap {
       const tasks = TaskEngine.getInstance();
       // Earth Core tool registry (spatial capabilities for cognition)
       registerEarthTools();
+      // Recompute ToolRegistry availability from real runtime state
+      // (autonomy gate, GitHub connection, device features) — it was
+      // previously a catalog of hardcoded booleans nobody ever checked.
+      void ToolRegistry.getInstance().refreshAvailability();
       steps.push(step("services", "DONE",
         `OK — ${tasks.list().length} tasks, proactive + background engines started`));
     } catch (error) {
