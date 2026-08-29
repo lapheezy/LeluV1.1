@@ -10,8 +10,8 @@
 import KnowledgeGraph
   from "./KnowledgeGraph";
 
-import AgentManager
-  from "./AgentManager";
+import AgentStore
+  from "../agents/AgentStore";
 
 import WorkspaceManager
   from "./WorkspaceManager";
@@ -36,8 +36,15 @@ export default class CognitiveCore {
 
 
 
-  public readonly agents:
-    AgentManager;
+  /**
+   * The agent registry. This reads through to the SAME AgentStore
+   * the Agents panel and agent runner use — there is exactly one
+   * canonical agent runtime. CognitiveCore never keeps its own
+   * separate/decorative agent list, so "N agents" shown anywhere
+   * derived from this class always reflects real, live agents.
+   */
+  private readonly agentStore:
+    AgentStore;
 
 
 
@@ -78,9 +85,9 @@ export default class CognitiveCore {
 
 
 
-    this.agents =
+    this.agentStore =
 
-      new AgentManager();
+      AgentStore.getInstance();
 
 
 
@@ -181,7 +188,8 @@ export default class CognitiveCore {
    * ==========================================================
    * Default agents
    *
-   * AgentManager creates these already
+   * Agents are owned by AgentStore (the Agents panel's store) —
+   * CognitiveCore reads them, it does not create or own any.
    * ==========================================================
    */
 
@@ -337,9 +345,21 @@ export default class CognitiveCore {
 
 
 
+      // Real, live agents from the canonical AgentStore — not a
+      // static decorative list. "0 agents" is an honest answer
+      // when none have been created yet.
       agents:
 
-        this.agents.all(),
+        this.agentStore.list()
+          .filter((agent) => agent.status !== "archived")
+          .map((agent) => ({
+            id: agent.id,
+            name: agent.name,
+            role: agent.role,
+            memories: agent.tasks
+              .slice(-4)
+              .map((task) => task.label),
+          })),
 
 
 

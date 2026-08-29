@@ -124,8 +124,9 @@ export class MediaRecorderCapture {
 export function wavCaptureSupported(): boolean {
   return (
     typeof AudioContext !== "undefined" ||
-    typeof (window as unknown as { webkitAudioContext?: unknown })
-      .webkitAudioContext !== "undefined"
+    (typeof window !== "undefined" &&
+      typeof (window as unknown as { webkitAudioContext?: unknown })
+        .webkitAudioContext !== "undefined")
   );
 }
 
@@ -172,18 +173,25 @@ export async function captureWav(
     offset += s.length;
   }
 
-  return float32ToWav(merged, ctx.sampleRate, channels);
+  return encodeWav([merged], ctx.sampleRate);
 }
 
-function float32ToWav(
-  samples: Float32Array,
-  sampleRate: number,
-  numChannels: number,
-): Blob {
+/**
+ * Encode raw per-channel float samples (-1..1) as a mono/multi-channel
+ * 16-bit PCM WAV Blob. A pure function so real-mic capture's actual
+ * output format is verifiable without an AudioContext.
+ */
+export function encodeWav(channels: Float32Array[], sampleRate: number): Blob {
+  const numChannels = channels.length;
+  if (numChannels === 0) {
+    return new Blob([], { type: "audio/wav" });
+  }
+
+  const frameCount = channels[0].length;
   const bitsPerSample = 16;
   const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
   const blockAlign = numChannels * (bitsPerSample / 8);
-  const dataLength = samples.length * (bitsPerSample / 8);
+  const dataLength = frameCount * numChannels * (bitsPerSample / 8);
   const bufferLength = 44 + dataLength;
 
   const buffer = new ArrayBuffer(bufferLength);
@@ -203,11 +211,15 @@ function float32ToWav(
   writeString(view, 36, "data");
   view.setUint32(40, dataLength, true);
 
+  // Interleave channels frame-by-frame (L,R,L,R,... for stereo; just the
+  // one channel repeated for mono), matching the standard PCM WAV layout.
   let pos = 44;
-  for (let i = 0; i < samples.length; i += 1) {
-    const s = Math.max(-1, Math.min(1, samples[i]));
-    view.setInt16(pos, s < 0 ? s * 0x8000 : s * 0x7fff, true);
-    pos += 2;
+  for (let frame = 0; frame < frameCount; frame += 1) {
+    for (let channel = 0; channel < numChannels; channel += 1) {
+      const s = Math.max(-1, Math.min(1, channels[channel][frame] ?? 0));
+      view.setInt16(pos, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+      pos += 2;
+    }
   }
 
   return new Blob([buffer], { type: "audio/wav" });

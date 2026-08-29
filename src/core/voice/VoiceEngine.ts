@@ -13,6 +13,8 @@
  * ==========================================================
  */
 
+import { mapMediaError } from "./speechToText";
+
 /* ---------------------------------------------------------
  * Types
  * --------------------------------------------------------- */
@@ -35,7 +37,128 @@ export type VoiceErrorKind =
   | "unsupported"
   | "network"
   | "recognition"
+  | "error"
   | "tts";
+
+const SPEECH_CHUNK_SIZE = 200;
+
+/**
+ * Split text into chunks speechSynthesis can speak smoothly — long
+ * single utterances get cut off or stall on some engines. Splits on
+ * sentence boundaries first; a single "sentence" longer than the
+ * target size (no spaces to break on) is hard-split so no chunk ever
+ * exceeds the limit. A pure function so TTS chunking is testable
+ * without a SpeechSynthesis implementation.
+ */
+export function chunkForSpeech(text: string): string[] {
+  if (!text) return [];
+  if (text.length <= SPEECH_CHUNK_SIZE) return [text];
+
+  const chunks: string[] = [];
+  const sentences = text.split(/(?<=[.!?])\s+/);
+  let current = "";
+
+  const flush = () => {
+    if (current) {
+      chunks.push(current);
+      current = "";
+    }
+  };
+
+  for (const sentence of sentences) {
+    if (sentence.length > SPEECH_CHUNK_SIZE) {
+      // No spaces to break on (or one very long token) — hard-split.
+      flush();
+      for (let i = 0; i < sentence.length; i += SPEECH_CHUNK_SIZE) {
+        chunks.push(sentence.slice(i, i + SPEECH_CHUNK_SIZE));
+      }
+      continue;
+    }
+    if (current.length + sentence.length + 1 > SPEECH_CHUNK_SIZE) {
+      flush();
+      current = sentence;
+    } else {
+      current = current ? `${current} ${sentence}` : sentence;
+    }
+  }
+  flush();
+  return chunks.length > 0 ? chunks : [text];
+}
+
+const ECHO_MIN_TOKEN_OVERLAP = 0.7;
+
+/**
+ * Is `candidate` (a freshly recognized "user" utterance) actually an
+ * echo of LÉLU's own `spoken` TTS output picked back up by the still-
+ * open microphone? Without this check, an open-mic voice loop reliably
+ * talks to itself: it speaks a reply, the mic hears it, and that gets
+ * fed back in as if the user said it. A pure string heuristic — exact
+ * match, substring in either direction, or high word-token overlap —
+ * so it's testable without a live audio pipeline.
+ */
+export function isEchoUtterance(candidate: string, spoken: string): boolean {
+  const a = candidate.trim().toLowerCase();
+  const b = spoken.trim().toLowerCase();
+  if (!a || !b) return false;
+  if (a === b) return true;
+
+  // Tiny fragments ("the", "um") are near-useless as genuine barge-in
+  // and very commonly a recognizer's mis-hearing of trailing TTS audio.
+  if (a.length <= 3) return true;
+
+  if (b.includes(a) || a.includes(b)) return true;
+
+  const tokenize = (s: string) => s.split(/\W+/).filter((t) => t.length > 0);
+  const aTokens = tokenize(a);
+  const bTokens = new Set(tokenize(b));
+  if (aTokens.length === 0) return false;
+
+  const overlap = aTokens.filter((t) => bTokens.has(t)).length / aTokens.length;
+  return overlap >= ECHO_MIN_TOKEN_OVERLAP;
+}
+
+/**
+ * Classify a browser SpeechRecognition `error` code into a diagnosis
+ * LÉLU can act on and explain honestly. Pulled out of the onerror
+ * handler as a pure function so the mapping is unit-testable and has
+ * exactly one implementation.
+ *
+ * The critical distinction this exists to preserve: "permission" must
+ * mean the user actually denied the mic — never a stand-in for "the
+ * platform's speech service is off" (service-not-allowed) or "the
+ * mic hardware is busy/unavailable" (audio-capture, busy). Blaming
+ * permission for those sends the user to re-grant a permission they
+ * already have, which never fixes anything.
+ */
+export function mapRecognitionError(
+  code: string,
+): { kind: VoiceErrorKind; message: string } | null {
+  switch (code) {
+    case "no-speech":
+    case "aborted":
+      // Not failures — no speech detected, or recognition was
+      // intentionally stopped. The caller just continues.
+      return null;
+    case "not-allowed":
+    case "permission-denied":
+      return { kind: "permission", message: "Microphone permission denied." };
+    case "service-not-allowed":
+      return {
+        kind: "service",
+        message: "Speech recognition service is unavailable — check your system's dictation/speech settings.",
+      };
+    case "audio-capture":
+    case "busy":
+      return {
+        kind: "audio",
+        message: "Microphone is unavailable — it may be in use by another app.",
+      };
+    case "network":
+      return { kind: "offline", message: "Speech recognition network error." };
+    default:
+      return { kind: "error", message: `Recognition error: ${code}` };
+  }
+}
 
 export interface VoiceState {
   active: boolean;
@@ -161,6 +284,8 @@ class VoiceEngine {
   };
 
   private _turn: VoiceTurn | null = null;
+  /** LÉLU's most recent spoken TTS text, used to catch the mic hearing itself. */
+  private lastSpokenText = "";
   private _diagnostics: VoiceDiagnostics = this.computeDiagnostics();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -177,8 +302,6 @@ class VoiceEngine {
   private readonly diagnosticsListeners = new Set<DiagnosticsListener>();
   private readonly utteranceListeners = new Set<UtteranceListener>();
   private readonly errorListeners = new Set<ErrorListener>();
-
-  private static readonly CHUNK_SIZE = 200;
 
   /** How long each recording chunk is (ms) before sending to Whisper. */
   private static readonly WHISPER_CHUNK_MS = 5000;
@@ -212,6 +335,29 @@ class VoiceEngine {
 
   getDiagnostics(): VoiceDiagnostics {
     return this._diagnostics;
+  }
+
+  /**
+   * Static capability snapshot — what this browser/runtime can do,
+   * independent of whether voice is currently active. Distinct from
+   * getState().permission, which only reflects the mic's actual grant
+   * once requested.
+   */
+  getCapabilities(): {
+    recognition: "available" | "unsupported";
+    tts: boolean;
+    micPermission: VoiceState["permission"];
+  } {
+    return {
+      recognition: VoiceEngine.hasSpeechRecognitionAPI() ? "available" : "unsupported",
+      tts: this._diagnostics.ttsSupported,
+      micPermission: this._state.permission,
+    };
+  }
+
+  /** True if voice (recognition or Whisper fallback, plus TTS) can run at all here. */
+  isSupported(): boolean {
+    return (this._diagnostics.sttSupported || this._diagnostics.micAvailable) && this._diagnostics.ttsSupported;
   }
 
   async toggle(): Promise<void> {
@@ -305,9 +451,9 @@ class VoiceEngine {
         errorKind: null,
       });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      console.warn("[VoiceEngine] Microphone denied:", msg);
-      this.setError("Microphone permission denied. Please allow mic access.", "permission");
+      const diagnosis = mapMediaError(error instanceof DOMException || error instanceof Error ? error : { name: String(error) });
+      console.warn("[VoiceEngine] Microphone error:", error, "→", diagnosis.kind);
+      this.setError(diagnosis.message, diagnosis.kind);
       return;
     }
 
@@ -459,16 +605,15 @@ class VoiceEngine {
       };
 
       recognition.onerror = (event: { error: string }) => {
-        if (event.error === "not-allowed" || event.error === "service-not-allowed") {
-          this.setError("Microphone permission denied.", "permission");
-        } else if (event.error === "network") {
-          this.setError("Speech recognition network error.", "network");
-        } else if (event.error === "no-speech") {
-          // No speech detected — not an error, just continue
-        } else {
-          console.warn("[VoiceEngine] Recognition error:", event.error);
-          this.setError(`Recognition error: ${event.error}`, "recognition");
+        const diagnosis = mapRecognitionError(event.error);
+        if (!diagnosis) {
+          // No speech detected, or intentionally aborted — not an error.
+          return;
         }
+        if (diagnosis.kind !== "permission") {
+          console.warn("[VoiceEngine] Recognition error:", event.error);
+        }
+        this.setError(diagnosis.message, diagnosis.kind);
       };
 
       recognition.onend = () => {
@@ -712,6 +857,15 @@ class VoiceEngine {
    * --------------------------------------------------------- */
 
   private async handleUserSpeech(text: string): Promise<void> {
+    // The mic stays open while LÉLU is speaking (real barge-in support),
+    // which means it can hear her own TTS output and misreport it as new
+    // user speech. Catch that here, once, before it becomes a fake turn
+    // that gets sent back to the AI as if the user said it.
+    if (this.lastSpokenText && isEchoUtterance(text, this.lastSpokenText)) {
+      this.lastSpokenText = "";
+      return;
+    }
+
     // Emit the utterance so VoiceBridge can persist it
     this.emitUtterance(text);
 
@@ -759,10 +913,11 @@ class VoiceEngine {
       return;
     }
 
+    this.lastSpokenText = text.trim();
     this.cancelFlag = false;
     // speaking flag is managed by cancelFlag and phase state
 
-    const chunks = this.chunkText(text.trim());
+    const chunks = chunkForSpeech(text.trim());
     let index = 0;
 
     const speakNext = () => {
@@ -855,7 +1010,7 @@ class VoiceEngine {
     if (typeof speechSynthesis === "undefined" || this.cancelFlag) return;
     const rest = fullText.slice(this.streamCursor).trim();
     if (!rest) return;
-    for (const chunk of this.chunkText(rest)) {
+    for (const chunk of chunkForSpeech(rest)) {
       try {
         speechSynthesis.speak(this.createUtterance(chunk));
       } catch {
@@ -955,24 +1110,6 @@ class VoiceEngine {
     return utterance;
   }
 
-  private chunkText(text: string): string[] {
-    if (text.length <= VoiceEngine.CHUNK_SIZE) return [text];
-
-    const chunks: string[] = [];
-    const sentences = text.split(/(?<=[.!?])\s+/);
-    let current = "";
-
-    for (const sentence of sentences) {
-      if (current.length + sentence.length + 1 > VoiceEngine.CHUNK_SIZE) {
-        if (current) chunks.push(current);
-        current = sentence;
-      } else {
-        current = current ? `${current} ${sentence}` : sentence;
-      }
-    }
-    if (current) chunks.push(current);
-    return chunks.length > 0 ? chunks : [text];
-  }
 
   /* ---------------------------------------------------------
    * Diagnostics

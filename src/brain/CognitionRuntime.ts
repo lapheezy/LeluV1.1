@@ -252,7 +252,10 @@ export default class CognitionRuntime {
     unknown[] {
 
 
-    return this.core.agents.all();
+    // Real, live agents from the canonical AgentStore (via
+    // CognitiveCore.state()) — CognitiveCore keeps no separate
+    // agent list of its own.
+    return this.core.state().agents;
 
   }
 

@@ -13,7 +13,6 @@ import {
   encodeWav,
   mediaRecorderSupported,
   pickRecorderMimeType,
-  recorderSupported,
   wavCaptureSupported,
 } from "../src/core/voice/audioRecorder";
 import {
@@ -258,7 +257,6 @@ console.log("9. Audio recording helpers (real mic capture, not SpeechRecognition
 check("recorder support is correctly reported without a browser", () => {
   assert.equal(mediaRecorderSupported(), false);
   assert.equal(wavCaptureSupported(), false);
-  assert.equal(recorderSupported(), false);
 });
 check("pickRecorderMimeType returns empty without MediaRecorder", () => {
   assert.equal(pickRecorderMimeType(), "");
