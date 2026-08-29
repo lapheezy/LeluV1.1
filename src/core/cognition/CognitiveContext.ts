@@ -277,6 +277,12 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   if (ctx.ui.cosmosExploring) uiParts.push("Cosmos: actively exploring");
   if (ctx.ui.avatarState !== "idle") uiParts.push(`Avatar: ${ctx.ui.avatarState}`);
   if (ctx.ui.isTyping) uiParts.push("User: typing");
+  if (ctx.ui.lastAction) {
+    const a = ctx.ui.lastAction;
+    uiParts.push(
+      `Last UI action: ${a.type}${a.target ? ` → ${a.target}` : ""} (${a.initiatedBy}, ${a.ok ? "succeeded" : "FAILED"}): ${a.detail}`,
+    );
+  }
 
   if (uiParts.length > 0) {
     sections.push(`## UI STATE\n${uiParts.join("\n")}`);

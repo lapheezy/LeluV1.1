@@ -26,6 +26,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useGenesis, type GenesisPanel } from "./GenesisCore";
 import GenesisModuleHost, { type ModuleRenderers } from "./GenesisModuleHost";
 import UIStateStore from "../../../core/cognition/UIStateStore";
+import UIActionBus from "../../../core/cognition/UIActionBus";
 import GenesisDock from "./GenesisDock";
 import GenesisCommandPalette from "./GenesisCommandPalette";
 import { genesisTheme } from "./GenesisTheme";
@@ -227,6 +228,9 @@ export default function GenesisInterface() {
     universe,
     engineRuntime,
     openPanel,
+    openModule,
+    minimizeModule,
+    closeModule,
     expand,
     setSelfExploration,
     setActiveScene,
@@ -268,6 +272,38 @@ export default function GenesisInterface() {
       isChatOpen: state.activePanel === "chat" || openModuleIds.length > 0,
     });
   }, [state.activePanel, openModuleIds.length, state.modules, state.uiControl]);
+
+  /* -------------------------------------------------------------
+   * UI Action Bus — the one canonical mounted interface registers its
+   * REAL action functions here (the same openPanel/openModule/etc. a
+   * user's click calls). This is what lets cognition (EngineeringResolver
+   * today) actually move the UI instead of only reading it. Kept behind
+   * a ref to the latest state/handlers so the registration itself never
+   * needs to re-run on every panel change.
+   * ------------------------------------------------------------- */
+  const activePanelRef = useRef(state.activePanel);
+  activePanelRef.current = state.activePanel;
+  useEffect(() => {
+    // The real, currently-rendered panel set — module-hosted panels plus
+    // the special-cased full-page surfaces below (chat/self-evolution/
+    // cosmos aren't in MODULE_RENDERERS but do have a real mount). This
+    // is intentionally NOT the full GenesisPanel type union — "providers"
+    // and "workspaces" are type values with no renderer at all, so they
+    // correctly stay unsupported rather than silently accepted.
+    const supportedPanels = [...Object.keys(MODULE_RENDERERS), "chat", "self-evolution", "cosmos", "none"];
+    const unregister = UIActionBus.getInstance().registerHandlers({
+      supportedPanels,
+      openPanel: (panel) => openPanel(panel as GenesisPanel),
+      openModule: (id) => openModule(id),
+      minimizeModule: (id) => minimizeModule(id),
+      closeModule: (id) => closeModule(id),
+      getActivePanel: () => activePanelRef.current,
+    });
+    return unregister;
+    // Registered once per mount — handlers close over stable useGenesis
+    // callbacks, and activePanelRef always reads the live value.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* -------------------------------------------------------------
    * World Registry — auto-register all known panels as exploration
