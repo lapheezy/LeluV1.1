@@ -162,6 +162,7 @@ import ImprovementQueue from "../src/core/selfdev/ImprovementQueue";
 import SelfDevelopmentLoop from "../src/core/selfdev/SelfDevelopmentLoop";
 import SandboxFS from "../src/core/engineering/SandboxFS";
 import AutonomyGate from "../src/core/cognition/AutonomyGate";
+import AgentEventBus from "../src/core/agent/AgentEvents";
 
 let failures = 0;
 function assert(condition: boolean, label: string): void {
@@ -221,9 +222,41 @@ async function main(): Promise<void> {
   assert((fixRun.testResult?.tests.filter((t) => t.passed).length ?? 0) >= 1, "a real test actually ran and passed");
   assert(Boolean(fixRun.candidateSnapshotId), "a real candidate snapshot was created");
 
+  console.log("\n== live visibility — the SAME event bus GenesisExecutionTimeline renders from ==");
+  // GenesisExecutionTimeline (mounted persistently in the chat surface,
+  // per GenesisInterface.tsx) subscribes to AgentEventBus and renders
+  // "LÉLU is doing X" live as events arrive. develop() must emit through
+  // that same bus — otherwise the sandbox loop runs correctly but
+  // invisibly, which is indistinguishable from "nothing is happening".
+  const bus = AgentEventBus.getInstance();
+  const events = bus.recent(60).filter((e) => e.taskId === proposal.id);
+  assert(events.some((e) => e.type === "task_started"), "a task_started event was emitted for this proposal");
+  assert(
+    events.some((e) => e.type === "file_changed" && e.path === "math.js"),
+    "a file_changed event fired for the real edit (math.js) — this is what 'she's editing a file' visibility is",
+  );
+  assert(
+    events.some((e) => e.type === "tool_started" && e.tool === "dev.test") &&
+      events.some((e) => e.type === "tool_result" && e.tool === "dev.test"),
+    "tool_started + tool_result fired for the real test run",
+  );
+  assert(
+    events.some((e) => e.type === "tool_failed" && e.tool === "dev.test"),
+    "the FIRST (failing) develop() attempt left a real tool_failed for the test step — visible failure, not silence",
+  );
+  assert(
+    events.some((e) => e.type === "task_completed" && e.label.includes("Ready")),
+    "a task_completed event marked the candidate Ready",
+  );
+
   const integrateRun = loop.integrate(proposal.id);
   assert(integrateRun.success === true, "integrate() accepts a Ready candidate");
   assert(queue.get(proposal.id)?.status === "Integrated", "queue reflects the real Integrated status");
+  const eventsAfterIntegrate = bus.recent(60).filter((e) => e.taskId === proposal.id);
+  assert(
+    eventsAfterIntegrate.some((e) => e.type === "task_completed" && e.label.includes("Integrated")),
+    "integrate() also emitted a live task_completed event",
+  );
 
   const doubleIntegrate = loop.integrate(proposal.id);
   assert(doubleIntegrate.success === false, "integrate() refuses a second integration of the same proposal");

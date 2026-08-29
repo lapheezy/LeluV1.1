@@ -102,6 +102,8 @@ export function executionEventLabel(event: AgentEvent): string {
       return `You ${event.decision} this request`;
     case "spatial_event":
       return event.label;
+    case "visual_state_changed":
+      return event.reason;
     default:
       return event.type;
   }
@@ -138,6 +140,7 @@ function eventSide(event: AgentEvent): ExecutionSide | "both" | "unknown" {
     case "task_completed":
     case "task_failed":
     case "cognitive_sync":
+    case "visual_state_changed":
       return "backend";
     case "diagram_created":
     case "visual_created":
