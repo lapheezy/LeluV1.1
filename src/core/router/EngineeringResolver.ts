@@ -29,6 +29,9 @@ import type { AIResponse } from "../../providers/AIProvider";
 import IntentDetector from "./IntentDetector";
 import AgentEventBus from "../agent/AgentEvents";
 import { isIdentityOrProfileQuestion } from "../../brain/LeluIdentity";
+import ImprovementQueue from "../selfdev/ImprovementQueue";
+import SelfDevelopmentLoop from "../selfdev/SelfDevelopmentLoop";
+import SelfTestRunner from "../selfdev/SelfTestRunner";
 
 export default class EngineeringResolver {
   private readonly detector = new IntentDetector();
@@ -44,6 +47,20 @@ export default class EngineeringResolver {
     // Identity/profile questions are answered locally first.
     if (isIdentityOrProfileQuestion(prompt)) {
       return { handled: false };
+    }
+
+    // A real, safe action: log an actual, tracked improvement proposal.
+    // This is the one engineering action a conversational request is
+    // allowed to actually PERFORM (not just narrate) — it's additive
+    // and reversible (Rejected/removed from the panel), unlike editing
+    // sandbox files or running the development loop, which stay behind
+    // the Improvement Queue → Approve → Develop boundary. Returning a
+    // real proposal id here (handled:true) means no LLM text can claim
+    // "I've logged this" without it actually existing in the queue.
+    const proposeMatch = this.detectProposeIntent(prompt);
+    if (proposeMatch) {
+      const proposal = this.logProposal(proposeMatch, prompt);
+      return { handled: true, response: this.proposalLogged(context, proposal.id, proposal.title) };
     }
 
     context.logger.info("EngineeringResolver", "Engineering task detected; observing runtime state.", {
@@ -113,6 +130,59 @@ export default class EngineeringResolver {
       findingCount: findings.length,
     });
     return { handled: true, response: this.diagnosticReport(context, snapshot, findings) };
+  }
+
+  /**
+   * Recognizes an explicit ask to track/log/queue something as a real
+   * improvement — deliberately conservative (a verb like "log"/"track"/
+   * "queue"/"add to your improvement list" combined with a target like
+   * "bug"/"issue"/"fix"/"improvement") so ordinary diagnostic questions
+   * ("why did X fail?") never silently create a proposal.
+   */
+  private detectProposeIntent(prompt: string): string | null {
+    const text = prompt.trim();
+    const lower = text.toLowerCase();
+    const hasVerb = /(log|track|queue|add|remember|note)\b.{0,40}\b(this|it|that)?\b.{0,10}(as|to|for|into)?\s*(a\s+|an\s+|your\s+)?(bug|issue|problem|improvement|fix|feature)/.test(lower)
+      || /add (this|it|that) to (your|the) (improvement|self-?dev|engineering) (queue|list|backlog)/.test(lower);
+    if (!hasVerb) return null;
+    return text;
+  }
+
+  /** Actually create the proposal — a real ImprovementQueue entry, not a claim. */
+  private logProposal(prompt: string, fullPrompt: string): { id: string; title: string } {
+    const queue = ImprovementQueue.getInstance();
+    const title = `From chat: ${prompt.replace(/\s+/g, " ").slice(0, 70)}`;
+    if (queue.hasOpenSimilar(title)) {
+      const existing = queue.list().find((item) => item.title === title);
+      if (existing) return { id: existing.id, title: existing.title };
+    }
+    const proposal = queue.add({
+      title,
+      kind: "Opportunity",
+      problem: fullPrompt,
+      observation: "User requested this be tracked, via chat.",
+      evidence: "Conversation request (EngineeringResolver)",
+      proposedSolution: "Not yet investigated — needs triage in the Engineering panel.",
+      expectedBenefit: "Addresses what the user reported.",
+      dependencies: [],
+      risk: "Unassessed — needs investigation before approval.",
+      requiredTools: ["sandbox"],
+      requiredAgents: ["Engineering Agent"],
+      complexity: "medium",
+      version: "1.0",
+      testPlan: "Define once triaged.",
+    });
+    return { id: proposal.id, title: proposal.title };
+  }
+
+  private proposalLogged(context: RouterContext, id: string, title: string): AIResponse {
+    return {
+      text: `Logged it as a real improvement proposal: "${title}" (id ${id.slice(0, 8)}). It's now sitting in the Engineering panel's queue as Detected — I haven't touched any code. To actually work on it: approve it there, which runs the real sandbox loop (edit → syntax check → tests, all in an isolated worker) and only reaches "Ready" once those checks genuinely pass.`,
+      provider: "brain",
+      model: "engineering-proposal",
+      processingTime: Date.now() - context.started,
+      metadata: { source: "EngineeringResolver", engineering: true, proposalId: id },
+    };
   }
 
   /**
@@ -198,6 +268,42 @@ export default class EngineeringResolver {
         lines.push(`- [${failure.stage}] ${failure.message}${failure.metadata?.reason ? ` (${String(failure.metadata.reason)})` : ""}`);
       }
     }
+
+    // Real self-development state — so a question like "what are you
+    // working on?" or "did that fix land?" is answered from the ACTUAL
+    // queue/loop state, never guessed.
+    try {
+      const queue = ImprovementQueue.getInstance();
+      const open = queue.open();
+      lines.push(
+        open.length > 0
+          ? `Improvement queue: ${open.length} open proposal(s) — ${open.slice(0, 3).map((item) => `"${item.title}" (${item.status})`).join(", ")}`
+          : "Improvement queue: empty.",
+      );
+      const lastRun = SelfDevelopmentLoop.getInstance().getLastRun();
+      lines.push(
+        lastRun
+          ? `Last sandbox development run: "${lastRun.title}" → ${lastRun.finalStatus} (${lastRun.summary})`
+          : "Last sandbox development run: none yet this session.",
+      );
+      const lastSuite = SelfTestRunner.getInstance().getLastResult();
+      lines.push(
+        lastSuite
+          ? `Last self-test suite: ${lastSuite.summary.passed}/${lastSuite.summary.total} passed, healthy=${lastSuite.healthy}`
+          : "Last self-test suite: not run yet this session.",
+      );
+    } catch {
+      lines.push("Self-development state: unavailable.");
+    }
+
+    // The load-bearing honesty boundary: this stage can OBSERVE real
+    // state and PROPOSE (queue) a real, tracked item, but conversational
+    // delegation cannot edit sandbox files, run tests, or produce a
+    // candidate — that only happens through the approval-gated sandbox
+    // loop. The model must never claim otherwise.
+    lines.push(
+      "\nCapability boundary: from this conversation, engineering work can only OBSERVE real state above and PROPOSE a tracked improvement (if the user explicitly asks to log/track/queue one) — it cannot edit files, run tests, or produce a verified fix here. Never say something was fixed, implemented, or verified unless the sandbox development-loop state above actually shows it.",
+    );
 
     return lines.join("\n");
   }
