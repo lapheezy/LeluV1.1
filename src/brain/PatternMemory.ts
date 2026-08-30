@@ -11,6 +11,9 @@ import type ResponsePattern
 import type { MemoryType }
   from "./ResponsePattern";
 
+import { CATEGORY_RECALL_SYNONYMS }
+  from "./ResponsePattern";
+
 import IndexedDBStore
   from "../core/memory/IndexedDBStore";
 
@@ -660,6 +663,31 @@ export default class PatternMemory {
 
           }
 
+
+
+          // Category-synonym bridge: "what are my hobbies" should find
+          // a stored "I love hiking" preference even though "hobbies"
+          // never appears in it — without this, that memory never even
+          // reaches ranking, let alone the response. See
+          // ResponsePattern.CATEGORY_RECALL_SYNONYMS for why this is
+          // shared with MemorySynthesizer rather than a second guess.
+          if (!matched) {
+
+            const synonyms =
+              CATEGORY_RECALL_SYNONYMS[pattern.category];
+
+            if (
+              synonyms?.some(synonym => words.includes(synonym))
+            ) {
+
+              score += 4;
+
+              matched =
+                true;
+
+            }
+
+          }
 
 
 

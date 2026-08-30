@@ -27,6 +27,8 @@
 
 import type ResponsePattern from "./ResponsePattern";
 import type { MemoryType } from "./ResponsePattern";
+import { CATEGORY_RECALL_SYNONYMS } from "./ResponsePattern";
+import { isLeluIdentityQuestion, isUserProfileQuestion } from "./LeluIdentity";
 
 export interface SynthesisInput {
   /** The user's actual request. */
@@ -74,6 +76,20 @@ const STOPWORDS = new Set([
 const DEEP_PHRASES =
   /(everything|all you (?:remember|know)|more detail|more details|tell me more|elaborate|expand|go deeper|tell me everything|full detail)/i;
 
+/**
+ * Genuinely all-encompassing personal-recall questions ("tell me about
+ * myself", "what do you know about me") should surface the best of
+ * EVERY stored category, the same way OfflineComposer's identical
+ * phrase family already does offline — not just whichever category
+ * happens to share a literal word with the question (which, for
+ * "myself", is none of them). Reuses the SAME phrase detection as the
+ * offline path so the two never silently disagree about which
+ * questions count as "broad".
+ */
+function isBroadPersonalQuery(prompt: string): boolean {
+  return isLeluIdentityQuestion(prompt) || isUserProfileQuestion(prompt);
+}
+
 export default class MemorySynthesizer {
   /**
    * Build the compact cognitive context for a request.
@@ -82,7 +98,8 @@ export default class MemorySynthesizer {
     const prompt = input.prompt.trim();
     const memories = input.memories ?? [];
     const deep = input.deep ?? DEEP_PHRASES.test(prompt);
-    const max = input.maxMemories ?? (deep ? 14 : 6);
+    const broad = isBroadPersonalQuery(prompt);
+    const max = input.maxMemories ?? (deep ? 14 : broad ? 10 : 6);
 
     if (memories.length === 0) {
       return { context: "", used: [], rejected: 0, contradictions: [], notes: [] };
@@ -94,7 +111,7 @@ export default class MemorySynthesizer {
     const scored = memories
       .map((memory) => ({
         memory,
-        score: this.relevance(memory, concepts, prompt),
+        score: this.relevance(memory, concepts, prompt, broad),
       }))
       .filter((item) => item.score > 0)
       .sort((a, b) => b.score - a.score);
@@ -223,6 +240,7 @@ export default class MemorySynthesizer {
     memory: ResponsePattern,
     concepts: string[],
     prompt: string,
+    broad = false,
   ): number {
     const haystack = `${memory.prompt} ${memory.response} ${memory.keywords.join(" ")}`.toLowerCase();
     let score = 0;
@@ -235,6 +253,20 @@ export default class MemorySynthesizer {
       }
     }
 
+    // Category-synonym bridge: a concept naming the CATEGORY of fact
+    // being asked about ("hobbies", "job", "goals") counts as a match
+    // even when it doesn't literally appear in how the fact was
+    // originally phrased ("I love hiking" never contains "hobbies").
+    // Weighted lower than a literal match — it's real evidence of
+    // relevance, but a genuine keyword hit is stronger.
+    if (matched === 0) {
+      const synonyms = CATEGORY_RECALL_SYNONYMS[memory.category];
+      if (synonyms?.some((synonym) => concepts.includes(synonym) || prompt.toLowerCase().includes(synonym))) {
+        score += 3;
+        matched += 1;
+      }
+    }
+
     // Full-phrase match (e.g. the topic appears verbatim).
     if (haystack.includes(prompt.toLowerCase().slice(0, 40))) {
       score += 10;
@@ -242,9 +274,15 @@ export default class MemorySynthesizer {
     }
 
     // When the request names specific concepts, a memory with NO
-    // overlap is irrelevant — importance/recency alone must not
-    // surface it (that is how unrelated facts pollute answers).
-    if (concepts.length > 0 && matched === 0) {
+    // overlap (literal or category-bridged) is irrelevant —
+    // importance/recency alone must not surface it (that is how
+    // unrelated facts pollute answers). Waived for a genuinely
+    // all-encompassing personal-recall question ("tell me about
+    // myself"), which by definition has no single concept to overlap
+    // with and should draw from every stored category instead — the
+    // same broadening OfflineComposer's isUserProfileQuestion branch
+    // already does offline.
+    if (concepts.length > 0 && matched === 0 && !broad) {
       return -1;
     }
 
