@@ -21,6 +21,7 @@ import ProjectStore from "./projects/ProjectStore";
 import AgentStore from "./agents/AgentStore";
 import AvatarStore from "./avatar/AvatarProfile";
 import SupabasePersistence from "./persistence/SupabasePersistence";
+import CognitiveTrace from "./cognition/CognitiveTrace";
 
 export default class MemoryBridge {
   constructor(
@@ -33,11 +34,40 @@ export default class MemoryBridge {
    * to the request before any provider generates a response.
    */
   public async enrich(request: AIRequest): Promise<AIRequest> {
+    const trace = CognitiveTrace.getInstance();
+
     const memories = await this.brain.recall(request.prompt);
+    trace.record(
+      "MEMORY_RETRIEVAL",
+      memories.length > 0
+        ? `recalled ${memories.length} memory(ies): ${memories.slice(0, 3).map((m) => m.category).join(", ")}`
+        : "no long-term memories matched this prompt",
+      {
+        count: memories.length,
+        categories: memories.map((m) => m.category),
+        topResponses: memories.slice(0, 3).map((m) => m.response.slice(0, 80)),
+      },
+    );
+
     const reflection = await this.brain.reflect();
     const conversation = this.brain.getConversation().context();
     const cognition = this.brain.cognitiveState();
     const profile = this.user.context();
+
+    trace.record(
+      "USER_CONTEXT",
+      profile ? `user profile present (${profile.length} chars)` : "no user profile yet",
+      { profileLength: profile?.length ?? 0 },
+    );
+    trace.record(
+      "TASK_CONTEXT",
+      `conversation: ${conversation?.messageCount ?? 0} message(s), topic "${conversation?.lastTopic || "general"}"`,
+      {
+        shortTermMessageCount: conversation?.messageCount ?? 0,
+        lastTopic: conversation?.lastTopic ?? null,
+        recentMessages: conversation?.recentMessages?.length ?? 0,
+      },
+    );
 
     const synthesized = this.brain.synthesizeContext(request.prompt, memories, {
       deep: /(everything|all you (?:remember|know)|more detail|more details|tell me more|elaborate|expand|tell me everything)/i.test(request.prompt),
@@ -56,8 +86,29 @@ export default class MemoryBridge {
     );
 
     if (context.trim().length === 0) {
+      trace.record("CONTEXT_INJECTION", "nothing relevant to inject — request left unchanged", {
+        injected: false,
+        synthesizedMemoriesUsed: synthesized.used.length,
+      });
       return request;
     }
+
+    // The load-bearing evidence: this is the exact moment retrieved
+    // memory becomes part of what the model will actually see. A test
+    // asserting only "memories were recalled" proves nothing without
+    // this — retrieval that never reaches the request is a silent
+    // no-op, which is precisely the failure mode being audited.
+    trace.record(
+      "CONTEXT_INJECTION",
+      `injected ${context.length} chars of memory/cognition context into the model request`,
+      {
+        injected: true,
+        contextLength: context.length,
+        synthesizedMemoriesUsed: synthesized.used.length,
+        synthesizedMemoriesRejected: synthesized.rejected,
+        contradictions: synthesized.contradictions.length,
+      },
+    );
 
     return {
       ...request,
@@ -202,6 +253,19 @@ ${context}`,
     const learned = await this.brain.learn(prompt, response, "conversation", [], {
       source: "lelu-chat",
     });
+
+    CognitiveTrace.getInstance().record(
+      "MEMORY_WRITE",
+      learned
+        ? `persisted a durable "${learned.category}" memory: ${learned.response.slice(0, 80)}`
+        : "nothing durable enough to persist from this turn (stays session-scoped)",
+      {
+        persisted: Boolean(learned),
+        category: learned?.category ?? null,
+        memoryType: learned?.memoryType ?? null,
+        id: learned?.id ?? null,
+      },
+    );
 
     if (learned) {
       void SupabasePersistence.getInstance().persistMemories([learned]);

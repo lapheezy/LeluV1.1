@@ -190,10 +190,18 @@ export default class OpenRouterProvider implements AIProvider {
             "Content-Type": "application/json",
             Accept: "application/json",
             Authorization: `Bearer ${this.apiKey}`,
+            // `typeof window !== "undefined"` alone was not enough: any
+            // runtime with a PARTIAL window (web worker, SSR/server
+            // entry, embedded webview, test harness) has `window` but
+            // no `window.location`, so reading `.origin` threw a
+            // TypeError on every request. ProviderResolver caught it as
+            // a provider failure, which silently and permanently took
+            // the #2 priority provider out of the fallback chain in
+            // those runtimes. Optional chaining keeps the real origin
+            // in a real browser and falls back everywhere else.
             "HTTP-Referer":
-              typeof window !== "undefined"
-                ? window.location.origin
-                : "https://freebuff.com",
+              (typeof window !== "undefined" ? window.location?.origin : undefined) ??
+              "https://freebuff.com",
             "X-Title": "Lélu",
           },
           body: JSON.stringify(payload),

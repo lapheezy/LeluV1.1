@@ -37,6 +37,7 @@ import PromptInjectionGuard from "./security/PromptInjectionGuard";
 import ExecutiveBoard, { type BoardConsultation } from "./executive/ExecutiveBoard";
 import HealthIntelligence from "./caretaker/HealthIntelligence";
 import { buildCognitiveContext, formatCognitiveContext } from "./cognition/CognitiveContext";
+import CognitiveTrace from "./cognition/CognitiveTrace";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { markPerf } from "./perf/StartupTelemetry";
 
@@ -372,6 +373,13 @@ export default class AIService {
 
     const taskId = String(Date.now());
 
+    // Open the per-turn cognitive trace. Dev-only (no-op in production)
+    // — this is the evidence chain that proves cognition/memory actually
+    // participated in THIS turn rather than the message going straight
+    // to a provider. Closed in the `finally` at the end of the pipeline.
+    const trace = CognitiveTrace.getInstance();
+    trace.begin(taskId, message);
+
     // Feed the proactive layer on every genuine user message: session
     // continuity, pattern learning, and interruption detection. This is
     // the ONE interaction path — no second brain or memory is involved.
@@ -474,8 +482,25 @@ export default class AIService {
       try {
         const snapshot = buildCognitiveContext();
         cognitiveContextText = formatCognitiveContext(snapshot);
+        trace.record(
+          "SELF_CONTEXT",
+          `self-model + runtime state assembled (${cognitiveContextText.length} chars)`,
+          {
+            length: cognitiveContextText.length,
+            identity: snapshot.self.identity.name,
+            capabilities: snapshot.self.capabilities.length,
+            activeProjects: snapshot.projects.length,
+            activeAgents: snapshot.agents.length,
+            autonomyLevel: snapshot.autonomyLevel,
+            openImprovements: snapshot.pendingImprovements.length,
+            recentErrors: snapshot.recentErrors.length,
+          },
+        );
       } catch (error) {
         console.error("[AIService] Cognitive context build failed (contained)", error);
+        trace.record("SELF_CONTEXT", "FAILED to build cognitive context", {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
 
       const effectiveContext = [context?.trim(), cognitiveContextText, boardContext, caretakerContext]
@@ -502,6 +527,19 @@ export default class AIService {
 
       const enriched = await this.memory.enrich(request);
       const response = await this.runtime.process(enriched);
+
+      trace.record(
+        "RESPONSE",
+        `answered by "${response.provider}" (${response.model}) in ${response.processingTime}ms`,
+        {
+          provider: response.provider,
+          model: response.model,
+          processingTime: response.processingTime,
+          textLength: response.text.length,
+          offline: Boolean(response.metadata?.offline),
+          source: response.metadata?.source ?? null,
+        },
+      );
 
       const reasoning = (response.metadata?.reasoning as ReasoningResult | undefined) ?? null;
       const plan = (response.metadata?.plan as Plan | undefined) ?? null;
@@ -593,6 +631,9 @@ export default class AIService {
       this.emitThinking(false);
       this.emitSpeaking(false);
       this.emitListening(false);
+      // Close the turn even when the pipeline threw — a half-open trace
+      // would silently swallow the next turn's evidence.
+      trace.end();
     }
   }
 
@@ -686,7 +727,19 @@ export default class AIService {
     };
 
     try {
-      const response = await this.runtime.process(request);
+      // Honor the agent's DECLARED memory access on the read side too.
+      // `memoryAccess` ("none" | "read" | "read-write") was only ever
+      // consulted for WRITES below, so an agent configured with "read"
+      // (e.g. the Research Agent template) never actually received any
+      // recalled memory — its declared capability was disconnected.
+      // This reuses the ONE existing memory path (MemoryBridge.enrich,
+      // the same call the main chat route makes); it does not introduce
+      // a second retrieval route, and the agent's own system prompt is
+      // preserved because enrich() appends rather than replaces.
+      const canReadMemory = agent.memoryAccess === "read" || agent.memoryAccess === "read-write";
+      const routedRequest = canReadMemory ? await this.memory.enrich(request) : request;
+
+      const response = await this.runtime.process(routedRequest);
 
       // Memory consolidation honors the agent's memory permission.
       // A read-only agent never writes; a read-write agent learns the

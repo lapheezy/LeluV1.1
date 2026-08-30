@@ -40,6 +40,9 @@ import ProjectScheduler
 import { buildCognitiveContext }
   from "./cognition/CognitiveContext";
 
+import CognitiveTrace
+  from "./cognition/CognitiveTrace";
+
 import AIProviderRegistry
   from "./AIProviderRegistry";
 
@@ -317,6 +320,20 @@ export default class AIRuntime {
       cognitiveContext: buildCognitiveContext(),
 
     };
+
+    CognitiveTrace.getInstance().record(
+      "MODEL_ROUTE",
+      `intent "${context.intent}"${request.forceIntent ? " (forced by caller)" : " (detected)"} — entering the resolver chain`,
+      {
+        intent: context.intent,
+        forced: Boolean(request.forceIntent),
+        // Proof the enriched context survived into the routed request:
+        // if this is 0 while memory was recalled, injection was lost
+        // between MemoryBridge.enrich() and the router.
+        contextLength: request.context?.length ?? 0,
+        messageCount: request.messages?.length ?? 0,
+      },
+    );
 
 
 
