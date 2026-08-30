@@ -175,12 +175,51 @@ export interface VoiceTurn {
   timestamp: number;
 }
 
+/** How far the text-to-speech pipeline actually got for the last
+ *  response. Distinct from `ttsSupported`, which is only a capability
+ *  claim about the runtime. */
+export type VoiceTtsStage =
+  | "idle"
+  | "requested"
+  | "generated"
+  | "playing"
+  | "ended"
+  | "failed";
+
 export interface VoiceDiagnostics {
+  /* ---- static capability (what this runtime CAN do) ---- */
   sttSupported: boolean;
   ttsSupported: boolean;
   micAvailable: boolean;
   groqKeyAvailable: boolean;
   secureContext: boolean;
+
+  /* ---- live pipeline state (what actually HAPPENED) ----
+   * These mirror the real voice pipeline stage by stage, so a failure
+   * can be located precisely instead of being reported as a single
+   * opaque "voice didn't work". Reset per session by stop(). */
+  /** Real mic permission as last observed. */
+  micPermission: VoiceState["permission"];
+  /** A recognition API (not just the Whisper fallback) is present. */
+  recognitionSupported: boolean;
+  /** TTS is genuinely usable right now, not merely "supported". */
+  ttsAvailable: boolean;
+  /** A live mic MediaStream is currently held. */
+  micStreamActive: boolean;
+  /** The recognizer is currently running. */
+  recognitionActive: boolean;
+  /** At least one transcript arrived this session. */
+  transcriptReceived: boolean;
+  /** A response was handed to the speech layer this session. */
+  responseReceived: boolean;
+  /** Speech was actually requested of the TTS engine. */
+  ttsRequested: boolean;
+  /** The TTS engine produced an utterance. */
+  audioGenerated: boolean;
+  /** Audio is currently playing. */
+  audioPlaying: boolean;
+  /** Furthest stage the TTS pipeline reached for the last response. */
+  ttsStage: VoiceTtsStage;
 }
 
 type StateListener = (state: VoiceState) => void;
@@ -442,6 +481,7 @@ class VoiceEngine {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       this.mediaStream = stream;
+      this.patchDiagnostics({ micStreamActive: true, micPermission: "granted" });
       this.updateState({
         ...this._state,
         active: true,
@@ -902,13 +942,27 @@ class VoiceEngine {
    * --------------------------------------------------------- */
 
   speakResponse(text: string): void {
+    // A response reached the speech layer — true regardless of whether
+    // TTS then works, which is exactly what makes this diagnosable.
+    this.patchDiagnostics({ responseReceived: true });
+
     if (typeof speechSynthesis === "undefined") {
+      // No TTS engine in this runtime: nothing was ever requested of a
+      // provider that does not exist, and the stage is honestly failed.
+      this.patchDiagnostics({
+        ttsAvailable: false,
+        ttsRequested: false,
+        audioGenerated: false,
+        audioPlaying: false,
+        ttsStage: "failed",
+      });
       this.updateState({ ...this._state, phase: "listening" });
       return;
     }
 
     this.cancelSpeech();
     if (!text || !text.trim()) {
+      this.patchDiagnostics({ ttsRequested: false, ttsStage: "idle" });
       this.updateState({ ...this._state, phase: "listening" });
       return;
     }
@@ -936,11 +990,22 @@ class VoiceEngine {
       index += 1;
 
       const utterance = this.createUtterance(chunk);
-      utterance.onend = () => speakNext();
+      this.patchDiagnostics({
+        ttsRequested: true,
+        audioGenerated: true,
+        audioPlaying: true,
+        ttsStage: "playing",
+      });
+      utterance.onend = () => {
+        this.patchDiagnostics({ audioPlaying: false, ttsStage: "ended" });
+        speakNext();
+      };
       utterance.onerror = (e) => {
         if (e.error === "canceled" || this.cancelFlag) {
+          this.patchDiagnostics({ audioPlaying: false });
           return;
         }
+        this.patchDiagnostics({ audioPlaying: false, ttsStage: "failed" });
         speakNext();
       };
 
@@ -1145,7 +1210,32 @@ class VoiceEngine {
       micAvailable: hasMic,
       groqKeyAvailable: groqKey,
       secureContext: secure,
+
+      micPermission: this._state?.permission ?? "unknown",
+      recognitionSupported: hasSpeechRecognition,
+      ttsAvailable: hasTTS,
+      micStreamActive: Boolean(this.mediaStream),
+      recognitionActive: false,
+      transcriptReceived: false,
+      responseReceived: false,
+      ttsRequested: false,
+      audioGenerated: false,
+      audioPlaying: false,
+      ttsStage: "idle",
     };
+  }
+
+  /** Patch live diagnostics and notify listeners — the ONE place the
+   *  pipeline reports what it actually did. */
+  private patchDiagnostics(patch: Partial<VoiceDiagnostics>): void {
+    this._diagnostics = { ...this._diagnostics, ...patch };
+    for (const listener of this.diagnosticsListeners) {
+      try {
+        listener(this._diagnostics);
+      } catch {
+        // a broken diagnostics listener must never break voice
+      }
+    }
   }
 
   /* ---------------------------------------------------------

@@ -525,8 +525,11 @@ export default class AIService {
       // stages — announce it so the workspace can show the task forming.
       agentEvents.emit({ type: "task_planning", taskId, plan: message.slice(0, 120) });
 
-      const enriched = await this.memory.enrich(request);
-      const response = await this.runtime.process(enriched);
+      // ONE canonical recall per turn: enrich() owns it, and the
+      // memories it produced are handed forward so BrainResolver and
+      // composeFromMemory consume them instead of re-querying.
+      const { request: enriched, memories: recalledForTurn } = await this.memory.enrich(request);
+      const response = await this.runtime.process(enriched, { recalledMemories: recalledForTurn });
 
       trace.record(
         "RESPONSE",
@@ -569,7 +572,12 @@ export default class AIService {
       await this.memory.learn(message, response.text, taskId);
       await this.runtime.brain.getConversation().update(message);
 
-      const memories = await this.runtime.brain.recall(message);
+      // A SECOND, deliberate recall — not a duplicate of the cognition
+      // recall above. It runs AFTER this turn's memory write so the user
+      // profile picks up the fact just learned, which the pre-response
+      // recall could not have seen. Labelled distinctly in the trace so
+      // "one cognition recall per turn" stays verifiable.
+      const memories = await this.runtime.brain.recall(message, "post-write-profile-sync");
       for (const memory of memories) {
         await this.user.learn(memory.category, memory.response);
       }
@@ -737,9 +745,12 @@ export default class AIService {
       // a second retrieval route, and the agent's own system prompt is
       // preserved because enrich() appends rather than replaces.
       const canReadMemory = agent.memoryAccess === "read" || agent.memoryAccess === "read-write";
-      const routedRequest = canReadMemory ? await this.memory.enrich(request) : request;
+      const enrichedForAgent = canReadMemory ? await this.memory.enrich(request) : null;
 
-      const response = await this.runtime.process(routedRequest);
+      const response = await this.runtime.process(
+        enrichedForAgent?.request ?? request,
+        enrichedForAgent ? { recalledMemories: enrichedForAgent.memories } : undefined,
+      );
 
       // Memory consolidation honors the agent's memory permission.
       // A read-only agent never writes; a read-write agent learns the
@@ -973,6 +984,16 @@ export default class AIService {
    */
   public getExecutionLogs() {
     return this.runtime.executionLogs();
+  }
+
+  /**
+   * Provider fallback-chain health. `inspect()` never touches the
+   * network; `verifyLive()` makes REAL requests and is what production
+   * should call when credentials exist. Neither ever reports a
+   * missing API key as a healthy provider.
+   */
+  public providerHealth() {
+    return this.runtime.providerHealth();
   }
 
   /**

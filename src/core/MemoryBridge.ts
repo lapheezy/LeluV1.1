@@ -16,6 +16,7 @@
 import type Brain from "../brain/Brain";
 import type UserManager from "./user/UserManager";
 import type { AIRequest } from "../providers/AIProvider";
+import type ResponsePattern from "../brain/ResponsePattern";
 import AgentEventBus from "./agent/AgentEvents";
 import ProjectStore from "./projects/ProjectStore";
 import AgentStore from "./agents/AgentStore";
@@ -30,24 +31,24 @@ export default class MemoryBridge {
   ) {}
 
   /**
-   * Retrieve + evaluate + synthesize memory context and attach it
-   * to the request before any provider generates a response.
+   * THE authoritative memory recall for a user turn.
+   *
+   * This is the canonical owner: it runs first (before the router),
+   * and its result is what actually reaches the model. Everything
+   * downstream — BrainResolver, ReasoningResolver, composeFromMemory
+   * — now CONSUMES the memories returned here (threaded through
+   * AIRuntime.process → RouterContext.recalledMemories) instead of
+   * re-querying the brain for the same prompt. Hence the return type:
+   * both the enriched request AND the memories that produced it, so
+   * the caller can hand them forward rather than the pipeline
+   * rediscovering them three more times.
    */
-  public async enrich(request: AIRequest): Promise<AIRequest> {
+  public async enrich(request: AIRequest): Promise<{ request: AIRequest; memories: ResponsePattern[] }> {
     const trace = CognitiveTrace.getInstance();
 
+    // Instrumented inside Brain.recall() itself, so the trace counts
+    // every real recall regardless of caller.
     const memories = await this.brain.recall(request.prompt);
-    trace.record(
-      "MEMORY_RETRIEVAL",
-      memories.length > 0
-        ? `recalled ${memories.length} memory(ies): ${memories.slice(0, 3).map((m) => m.category).join(", ")}`
-        : "no long-term memories matched this prompt",
-      {
-        count: memories.length,
-        categories: memories.map((m) => m.category),
-        topResponses: memories.slice(0, 3).map((m) => m.response.slice(0, 80)),
-      },
-    );
 
     const reflection = await this.brain.reflect();
     const conversation = this.brain.getConversation().context();
@@ -90,7 +91,7 @@ export default class MemoryBridge {
         injected: false,
         synthesizedMemoriesUsed: synthesized.used.length,
       });
-      return request;
+      return { request, memories };
     }
 
     // The load-bearing evidence: this is the exact moment retrieved
@@ -110,7 +111,7 @@ export default class MemoryBridge {
       },
     );
 
-    return {
+    const enrichedRequest: AIRequest = {
       ...request,
       context,
       messages: [
@@ -134,6 +135,8 @@ ${context}`,
         },
       ],
     };
+
+    return { request: enrichedRequest, memories };
   }
 
   private buildContext(

@@ -181,6 +181,34 @@ async function main(): Promise<void> {
     CognitiveTrace.format(firstTurn),
   );
 
+  console.log("\n== GAP 1 — exactly ONE canonical recall per turn (measured inside Brain.recall itself) ==");
+  {
+    const retrievals = CognitiveTrace.entriesFor(firstTurn, "MEMORY_RETRIEVAL");
+    const responseAt = (firstTurn?.entries ?? []).findIndex((e) => e.stage === "RESPONSE");
+    // Recalls that happened BEFORE the response — i.e. the cognition
+    // path that produces the answer. Previously this was 2-3 (
+    // MemoryBridge.enrich + BrainResolver + composeFromMemory).
+    const cognitionRecalls = (firstTurn?.entries ?? []).filter(
+      (e, i) => e.stage === "MEMORY_RETRIEVAL" && (responseAt < 0 || i < responseAt),
+    );
+    assert(
+      cognitionRecalls.length === 1,
+      `exactly ONE brain.recall() before the response (was 2-3 via enrich + BrainResolver + composeFromMemory) — got ${cognitionRecalls.length}`,
+      JSON.stringify(retrievals.map((e) => e.data?.purpose)),
+    );
+    assert(
+      cognitionRecalls[0]?.data?.purpose === "cognition",
+      "the single pre-response recall is the canonical cognition recall",
+      JSON.stringify(cognitionRecalls[0]?.data),
+    );
+    const postWrite = retrievals.filter((e) => e.data?.purpose === "post-write-profile-sync");
+    assert(
+      postWrite.length <= 1,
+      "the post-write profile sync is a single, distinctly-labelled recall — visible, not hidden",
+      JSON.stringify(retrievals.map((e) => e.data?.purpose)),
+    );
+  }
+
   console.log("\n== PART A/1 — the unique fact is WRITTEN through the real chat path ==");
   await ai.chat(UNIQUE_FACT);
   const writeTurn = trace.lastTurn();
@@ -222,7 +250,7 @@ async function main(): Promise<void> {
   );
 
   console.log("\n== PART A/4 — the retrieved memory is actually INJECTED into the model request ==");
-  const enriched = await restartedBridge.enrich({
+  const { request: enriched } = await restartedBridge.enrich({
     messages: [{ role: "user", content: "what is my test identifier" }],
     prompt: "what is my test identifier",
     timestamp: Date.now(),

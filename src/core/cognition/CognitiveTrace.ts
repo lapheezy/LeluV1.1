@@ -79,6 +79,11 @@ export default class CognitiveTrace {
   private turns: CognitiveTurn[] = [];
   private active: CognitiveTurn | null = null;
   private _enabled: boolean;
+  /** Change notification for a live UI. Same store-with-subscribers
+   *  pattern UIStateStore/ImprovementQueue/MultiChatStore already use —
+   *  NOT a second event bus: it carries no event types of its own and
+   *  only signals "this trace changed, re-read it". */
+  private listeners = new Set<() => void>();
 
   private constructor() {
     // Dev builds trace by default; production does not. Guarded because
@@ -107,6 +112,25 @@ export default class CognitiveTrace {
   /** Verification scripts and the dev UI turn this on explicitly. */
   public setEnabled(enabled: boolean): void {
     this._enabled = enabled;
+    this.notify();
+  }
+
+  /** Subscribe to trace changes (returns an unsubscribe function). */
+  public subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  private notify(): void {
+    for (const listener of this.listeners) {
+      try {
+        listener();
+      } catch {
+        // a broken listener must never break cognition
+      }
+    }
   }
 
   /**
@@ -126,12 +150,14 @@ export default class CognitiveTrace {
     this.record("INPUT", prompt.length > 120 ? `${prompt.slice(0, 119)}…` : prompt, {
       promptLength: prompt.length,
     });
+    this.notify();
   }
 
   /** Record one real stage of the current turn. */
   public record(stage: CognitiveStage, detail: string, data?: Record<string, unknown>): void {
     if (!this._enabled || !this.active) return;
     this.active.entries.push({ stage, detail, data, timestamp: Date.now() });
+    this.notify();
   }
 
   public end(): void {
@@ -142,6 +168,7 @@ export default class CognitiveTrace {
       this.turns.splice(0, this.turns.length - MAX_TURNS);
     }
     this.active = null;
+    this.notify();
   }
 
   /** The turn currently being traced (null between turns). */
@@ -162,6 +189,7 @@ export default class CognitiveTrace {
   public clear(): void {
     this.turns = [];
     this.active = null;
+    this.notify();
   }
 
   /** True when the given turn actually reached this stage. */

@@ -37,7 +37,12 @@ export default class BrainResolver {
   public async execute(context: RouterContext): Promise<BrainResult> {
     const prompt = context.request.prompt;
 
-    const memories = await context.brain.recall(prompt);
+    // CONSUME the canonical recall performed by MemoryBridge.enrich()
+    // for this turn. Only fall back to our own recall when there was no
+    // upstream enrich (a direct runtime.process() caller, e.g. a
+    // "none"-memoryAccess agent) — so the brain is queried once per
+    // turn, not once per interested stage.
+    const memories = context.recalledMemories ?? await context.brain.recall(prompt);
     context.recalledMemories = memories;
 
     AgentEventBus.getInstance().emit({
@@ -121,7 +126,12 @@ export default class BrainResolver {
    * stored sentence.
    */
   private async memoryAnswer(context: RouterContext, best: any): Promise<BrainResult> {
-    const text = await context.brain.composeFromMemory(context.request.prompt);
+    // Pass the memories already recalled for this turn — synthesis
+    // only, no third query for the same prompt.
+    const text = await context.brain.composeFromMemory(
+      context.request.prompt,
+      context.recalledMemories,
+    );
 
     const response: AIResponse = {
       text,

@@ -48,22 +48,15 @@ jobs:
       - name: Unit tests
         run: bun test
 
-      # scripts/verify-voice.ts is run separately (below), not here:
-      # it has one pre-existing, previously-diagnosed singleton-
-      # ordering flake ("error state is still set after a throwing
-      # listener" — passes in isolation, fails only after an earlier
-      # test in the same file exercises speakResponse() on the same
-      # shared VoiceEngine singleton; root cause not yet found despite
-      # a focused attempt). Quarantining ONE known-flaky script keeps
-      # this gate meaningful for everything else rather than either
-      # blocking merges on an already-documented non-regression or
-      # silently dropping the whole script's signal.
-      - name: Run every scripts/verify-*.ts script (except verify-voice.ts)
+      # verify-voice.ts is no longer quarantined: its failures were
+      # deterministic test interleaving (unawaited async checks racing
+      # on the shared VoiceEngine singleton), now fixed. It runs in the
+      # blocking loop below like every other verification script.
+      - name: Run every scripts/verify-*.ts script
         run: |
           set -e
           status=0
           for f in scripts/verify-*.ts; do
-            [ "$f" = "scripts/verify-voice.ts" ] && continue
             echo "::group::$f"
             if ! bun run "$f"; then
               echo "::error file=$f::verify script failed"
@@ -72,7 +65,3 @@ jobs:
             echo "::endgroup::"
           done
           exit $status
-
-      - name: scripts/verify-voice.ts (known-flaky, non-blocking)
-        continue-on-error: true
-        run: bun run scripts/verify-voice.ts
