@@ -85,6 +85,12 @@ export default class AIService {
   private readonly notificationListeners = new Set<(notification: { title: string; description?: string }) => void>();
 
   private initialized = false;
+  /** In-flight initialize() promise — see AIProviderRegistry for why
+   * this guard exists: without it, two concurrent callers would each
+   * pass the synchronous `if (this.initialized)` check before either
+   * finished, and each independently re-run the whole Promise.allSettled
+   * bundle (runtime/user init, Supabase attach, capability registration). */
+  private initializingPromise: Promise<void> | null = null;
 
   /** Device/native capability registry — same singleton the ToolResolver uses. */
   private readonly native = NativeCapabilityRegistry.getInstance();
@@ -254,7 +260,19 @@ export default class AIService {
     if (this.initialized) {
       return;
     }
+    if (this.initializingPromise) {
+      return this.initializingPromise;
+    }
 
+    this.initializingPromise = this.doInitialize();
+    try {
+      await this.initializingPromise;
+    } finally {
+      this.initializingPromise = null;
+    }
+  }
+
+  private async doInitialize(): Promise<void> {
     // Provider or memory initialization must never take the whole
     // application down (white-screen protection). The three INDEPENDENT
     // core subsystems now initialize in PARALLEL — none of them needs

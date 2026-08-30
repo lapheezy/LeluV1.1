@@ -102,6 +102,13 @@ export default class AIRuntime {
   private initialized =
     false;
 
+  /** In-flight initialize() promise — see AIProviderRegistry for why
+   * this guard exists: without it, two concurrent callers would each
+   * pass the synchronous `if (this.initialized)` check before either
+   * finished, and each independently re-run core.initialize()/
+   * brain.initialize() and re-start ExecutiveRuntime. */
+  private initializingPromise: Promise<void> | null = null;
+
 
 
 
@@ -172,19 +179,22 @@ export default class AIRuntime {
 
     Promise<void> {
 
-
-    if (
-
-      this.initialized
-
-    ) {
-
-
+    if (this.initialized) {
       return;
-
+    }
+    if (this.initializingPromise) {
+      return this.initializingPromise;
     }
 
+    this.initializingPromise = this.doInitialize();
+    try {
+      await this.initializingPromise;
+    } finally {
+      this.initializingPromise = null;
+    }
+  }
 
+  private async doInitialize(): Promise<void> {
 
 
 
