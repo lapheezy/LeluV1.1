@@ -384,15 +384,26 @@ export default function GenesisInterface() {
     [],
   );
 
+  // Runtime-start reporting belongs in its own once-per-mount effect —
+  // it was previously inside the presence-reconnection effect below,
+  // which legitimately re-runs whenever state.activePanel changes (its
+  // closures need the fresh value). That meant every panel navigation
+  // re-logged "LELU runtime initialized" to Sentinel and re-ran
+  // caps.updateStatus, several times within the first second of a real
+  // load (found via a live Playwright audit: 3 near-simultaneous
+  // "runtime_start" events on one page load). Harmless in isolation,
+  // but misleading telemetry that made a normal startup look like
+  // repeated re-initialization — exactly the kind of noise that makes
+  // a real instability harder to distinguish from a false alarm.
+  useEffect(() => {
+    Sentinel.getInstance().info("runtime_start", "LELU runtime initialized", "GenesisInterface");
+    CapabilityManifest.getInstance().updateStatus("ai-chat", "available");
+  }, []);
+
   useEffect(() => {
     const presence = presenceRef.current;
     const sentinel = Sentinel.getInstance();
     const cosmosRegistry = CosmosEntityRegistry.getInstance();
-    const caps = CapabilityManifest.getInstance();
-
-    // Report runtime start to Sentinel
-    sentinel.info("runtime_start", "LELU runtime initialized", "GenesisInterface");
-    caps.updateStatus("ai-chat", "available");
 
     presence.connect({
       openPanel: (panel) => {
