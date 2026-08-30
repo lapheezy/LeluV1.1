@@ -19,6 +19,8 @@
 
 import WorkspaceRuntime from "../engineering/WorkspaceRuntime";
 import GitHubIntegration from "../engineering/GitHubIntegration";
+import SandboxFS from "../engineering/SandboxFS";
+import UIActionBus from "../cognition/UIActionBus";
 
 export type RiskLevel = 0 | 1 | 2 | 3 | 4;
 
@@ -81,6 +83,90 @@ export default class ToolRegistry {
     if (tool) {
       tool.available = available;
       this.notify();
+    }
+  }
+
+  // ---------- EXECUTE (real dispatch, not a catalog lookup) ----------
+
+  /**
+   * Every entry here is a REAL call into the existing implementation
+   * the tool's `executionRoute` already documents — never a second,
+   * competing implementation. A tool with no entry here is honestly
+   * reported as such by execute(): still a real catalog entry
+   * cognition can reason about, just not (yet) reachable through
+   * ToolRegistry itself. See the capability audit for the full
+   * REGISTERED/IMPLEMENTED/DISPATCHABLE/EXECUTABLE breakdown — this
+   * table is intentionally a starting subset (the actions PRIORITY 6
+   * named explicitly: panels/navigation, sandbox read/write, memory,
+   * self-analysis), not a claim that every registered tool dispatches.
+   */
+  private static readonly DISPATCH: Record<string, (params: Record<string, unknown>) => Promise<unknown>> = {
+    "cosmos.openInterface": async (params) => {
+      const panel = String(params.panel ?? "");
+      const result = UIActionBus.getInstance().dispatch({
+        type: "open_panel",
+        target: panel,
+        reason: typeof params.reason === "string" ? params.reason : "Tool dispatch",
+        initiatedBy: "lelu",
+      });
+      if (!result.ok) throw new Error(result.detail);
+      return result.detail;
+    },
+    "sandbox.read": async (params) => {
+      const path = String(params.path ?? "");
+      const content = SandboxFS.getInstance().read(path);
+      if (content === null) throw new Error(`No sandbox file at "${path}".`);
+      return content;
+    },
+    "sandbox.write": async (params) => {
+      const path = String(params.path ?? "");
+      const content = String(params.content ?? "");
+      const result = SandboxFS.getInstance().write(path, content);
+      if (!result.ok) throw new Error(result.error ?? "Sandbox write failed.");
+      return result;
+    },
+    "memory.recall": async (params) => {
+      // Dynamic import: AIService is a large, central module — kept
+      // out of ToolRegistry's static import graph so this catalog
+      // (constructed very early, before most of the app exists) can
+      // never become part of a load-order cycle with it.
+      const { default: AIService } = await import("../AIService");
+      const limit = typeof params.count === "number" ? params.count : 10;
+      return AIService.getInstance().getMemories(limit);
+    },
+    "selfdev.analyze": async () => {
+      const { default: SelfDevelopmentEngine } = await import("../selfdev/SelfDevelopmentEngine");
+      return SelfDevelopmentEngine.getInstance().proactiveScan();
+    },
+  };
+
+  /**
+   * Actually invoke a tool — never a claim of success without this
+   * having run the real underlying implementation. Returns ok:false
+   * (never throws) both when the tool is unknown/unavailable AND when
+   * it is registered but has no real dispatch wired yet, so a caller
+   * can never mistake "nothing happened" for "it worked".
+   */
+  async execute(toolId: string, params: Record<string, unknown> = {}): Promise<{ ok: boolean; output?: unknown; detail: string }> {
+    const tool = this.tools.get(toolId);
+    if (!tool) {
+      return { ok: false, detail: `No such tool "${toolId}".` };
+    }
+    if (!tool.available) {
+      return { ok: false, detail: `"${tool.name}" is registered but not currently available.` };
+    }
+    const handler = ToolRegistry.DISPATCH[toolId];
+    if (!handler) {
+      return {
+        ok: false,
+        detail: `"${tool.name}" is registered but has no real dispatch wired through ToolRegistry.execute() yet — its actual implementation is ${tool.executionRoute ?? "undocumented"}.`,
+      };
+    }
+    try {
+      const output = await handler(params);
+      return { ok: true, output, detail: `Executed "${tool.name}".` };
+    } catch (error) {
+      return { ok: false, detail: error instanceof Error ? error.message : String(error) };
     }
   }
 
