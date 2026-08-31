@@ -77,6 +77,19 @@ page.on("console", (msg) => consoleMessages.push(`${msg.type()}: ${msg.text()}`)
 page.on("pageerror", (error) => pageErrors.push(error.message));
 // Capture every script the page actually loads, so the secret scan below
 // covers what was really served rather than what is on disk.
+// Every relay call the PAGE makes — direct proof of which provider the
+// running app actually reaches through AIService → registry → provider.
+const relayCalls = [];
+page.on("request", (request) => {
+  if (!request.url().includes("/api/ai/relay")) return;
+  try {
+    const body = JSON.parse(request.postData() ?? "{}");
+    if (body.provider) relayCalls.push(body.provider);
+  } catch {
+    /* not the JSON relay */
+  }
+});
+
 page.on("response", async (response) => {
   const type = response.headers()["content-type"] ?? "";
   if (!type.includes("javascript")) return;
@@ -158,6 +171,22 @@ try {
   }
   assert(replied, "the message went through the runtime and a response was rendered (TEST 1)");
   assert(pageErrors.length === 0, "the turn produced no uncaught page error", pageErrors.join(" | "));
+
+  console.log("\n== The RUNNING app actually reaches a provider through its own chain ==");
+  assert(
+    relayCalls.length > 0,
+    `the chat turn made real provider calls through the runtime (${relayCalls.length})`,
+    "no /api/ai/relay call was made — the turn never reached a provider",
+  );
+  if (relayCalls.length > 0) {
+    const order = [...new Set(relayCalls)];
+    console.log(`  providers attempted, in order: ${order.join(" → ")}`);
+    assert(
+      order.length >= 1,
+      "and the attempt order is the registry's real fallback chain",
+      order.join(" → "),
+    );
+  }
 
   console.log("\n== TEST 10 — nothing credential-shaped is reachable from the page ==");
   assert(scriptBodies.length > 0, `scripts served to the browser were captured (${scriptBodies.length})`);

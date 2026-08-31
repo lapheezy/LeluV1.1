@@ -37,7 +37,11 @@ export default class CerebrasProvider implements AIProvider {
   private apiKey = "";
   /** True when the SERVER holds the credential (see providers/aiRelay.ts). */
   private relay = false;
-  private model = "llama-3.3-70b";
+  // Verified against this account's own /v1/models listing: llama-3.3-70b
+  // is NOT available to it, which made every Cerebras call fail with
+  // model_not_found even though the credential authenticated fine.
+  // Override per deployment with VITE_CEREBRAS_MODEL.
+  private model = "gpt-oss-120b";
   private initialized = false;
 
   async initialize(): Promise<void> {

@@ -258,7 +258,7 @@ function build(): LeluEnvironment {
     // Model overrides
     groqModel:        opt("VITE_GROQ_MODEL", "openai/gpt-oss-120b"),
     openrouterModel:  opt("VITE_OPENROUTER_MODEL", "openrouter/auto"),
-    cerebrasModel:    opt("VITE_CEREBRAS_MODEL", "llama3.1-8b"),
+    cerebrasModel:    opt("VITE_CEREBRAS_MODEL", "gpt-oss-120b"),
     mistralModel:     opt("VITE_MISTRAL_MODEL", "mistral-small-latest"),
     fireworksModel:   opt("VITE_FIREWORKS_MODEL", "accounts/fireworks/models/llama-v3p1-8b-instruct"),
     githubModel:      opt("VITE_GITHUB_MODEL", "gpt-4o-mini"),

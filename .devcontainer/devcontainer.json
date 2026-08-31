@@ -21,16 +21,25 @@
   },
   "postCreateCommand": "bun install || npm install",
   "forwardPorts": [5173],
-  "remoteEnv": {
-    "VITE_GROQ_API_KEY": "${localEnv:VITE_GROQ_API_KEY}",
-    "VITE_OPENROUTER_API_KEY": "${localEnv:VITE_OPENROUTER_API_KEY}",
-    "VITE_CEREBRAS_API_KEY": "${localEnv:VITE_CEREBRAS_API_KEY}",
-    "VITE_MISTRAL_API_KEY": "${localEnv:VITE_MISTRAL_API_KEY}",
-    "VITE_FIREWORKS_API_KEY": "${localEnv:VITE_FIREWORKS_API_KEY}",
-    "VITE_GITHUB_TOKEN": "${localEnv:VITE_GITHUB_TOKEN}",
-    "VITE_NEWS_API_KEY": "${localEnv:VITE_NEWS_API_KEY}",
-    "VITE_YOUTUBE_API_KEY": "${localEnv:VITE_YOUTUBE_API_KEY}"
-  },
+  // NO remoteEnv BLOCK ON PURPOSE.
+  //
+  // This used to map each provider key as "${localEnv:VITE_X}". That is
+  // correct for a devcontainer on your own machine, where localEnv is
+  // your shell. In a GITHUB CODESPACE there is no local machine, so
+  // every one of those expands to an EMPTY STRING — and because
+  // remoteEnv is applied to the container, it OVERWRITES the real
+  // Codespaces secret with "". Adding the secret in GitHub then appears
+  // to do nothing, which is exactly the symptom this repo has had.
+  //
+  // Codespaces injects repository/user secrets into the container
+  // environment directly, and Vite's loadEnv + plugins/loadEnvFiles.ts
+  // already read a local .env. Both paths work with no mapping here, so
+  // the correct fix is to not have one.
+  //
+  // Set secrets at: https://github.com/settings/codespaces
+  //   (or Repository → Settings → Secrets and variables → Codespaces)
+  // using the SAME names ENV_VARS.md documents.
+
   "mounts": [
     "source=${localWorkspaceFolder},target=/workspace,type=bind"
   ]
