@@ -10,6 +10,7 @@ import { createNodeEngineerAdapter } from "./plugins/nodeAdapters.ts";
 import { createEnvApi } from "./plugins/envApi.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
+import { createBrowseApi } from "./plugins/browseApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { githubApiPlugin } from "./plugins/githubApi.ts";
@@ -29,6 +30,9 @@ export default defineConfig(({ mode }) => {
   );
   const instagramApi = createInstagramApi(envReader);
   const rssApi = createRssApi(envReader);
+  // Server-side page reader: gives BrowserTool a CORS-free path so a
+  // browsed page's TEXT can actually reach cognition (see browseApi.ts).
+  const browseApi = createBrowseApi();
   const quad9Api = createQuad9Api(envReader);
   const nekoApi = createNekoApi(envReader);
   function envApiPlugin() {
@@ -89,6 +93,16 @@ export default defineConfig(({ mode }) => {
         },
         configurePreviewServer(server: any) {
           rssApi.attach(server.middlewares);
+        },
+      },
+
+      {
+        name: "browse-api",
+        configureServer(server: any) {
+          browseApi.attach(server.middlewares);
+        },
+        configurePreviewServer(server: any) {
+          browseApi.attach(server.middlewares);
         },
       },
 

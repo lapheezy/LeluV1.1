@@ -8,6 +8,7 @@ import { createAisBridge } from "./plugins/aisBridgePlugin.ts";
 import { loadEnvFiles } from "./plugins/loadEnvFiles.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
+import { createBrowseApi } from "./plugins/browseApi.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 
 /**
@@ -85,6 +86,7 @@ createEnvApi((key) => envGet(key), "deno", { aisStatus: () => aisBridge.getStatu
 aisBridge.attach({ use });
 instagramApi.attach({ use });
 rssApi.attach({ use });
+createBrowseApi().attach({ use });
 nekoApi.attach({ use });
 
 /** Adapt a connect-style (req, res, next) handler to a Hono fetch handler. */
