@@ -12,6 +12,7 @@
 import type AIProvider from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
+import { providerFetch, relayAvailable } from "./aiRelay";
 
 import type {
   AIRequest,
@@ -34,6 +35,8 @@ export default class OpenRouterProvider implements AIProvider {
   ] as const;
 
   private apiKey = "";
+  /** True when the SERVER holds the credential (see providers/aiRelay.ts). */
+  private relay = false;
   private model = "openrouter/free";
   private initialized = false;
 
@@ -97,8 +100,12 @@ export default class OpenRouterProvider implements AIProvider {
         ? process.env
         : undefined;
 
+    // NOT read from import.meta.env: Vite inlines VITE_* values into the
+    // client bundle, which is how provider keys ended up shipped to the
+    // browser. A key held HERE only comes from a runtime that injected
+    // one deliberately (verification scripts, a native shell); otherwise
+    // the request is relayed and the SERVER attaches the credential.
     this.apiKey =
-      import.meta.env.VITE_OPENROUTER_API_KEY?.trim() ||
       runtimeEnv.__LELU_OPENROUTER_API_KEY__?.trim() ||
       windowEnv?.__LELU_OPENROUTER_API_KEY__?.trim() ||
       processEnv?.OPENROUTER_API_KEY?.trim() ||
@@ -110,10 +117,15 @@ export default class OpenRouterProvider implements AIProvider {
       windowEnv?.__LELU_OPENROUTER_MODEL__?.trim() ||
       "openrouter/free";
 
+    // No local key is the NORMAL production case now: the credential
+    // belongs on the server so it never enters the client bundle.
+    this.relay = this.apiKey ? false : await relayAvailable("openrouter");
+
     this.initialized = true;
 
     console.info("[OpenRouterProvider] Initialized", {
-      hasKey: this.apiKey.length > 0,
+      // Never the key or its length — only whether one is reachable.
+      credential: this.apiKey ? "local" : this.relay ? "server-relay" : "none",
       model: this.model,
     });
   }
@@ -122,8 +134,7 @@ export default class OpenRouterProvider implements AIProvider {
     return (
       this.initialized &&
       this.enabled &&
-      this.requiresApiKey &&
-      this.apiKey.length > 0
+      (this.apiKey.length > 0 || this.relay)
     );
   }
 
@@ -136,7 +147,7 @@ export default class OpenRouterProvider implements AIProvider {
       lastChecked: Date.now(),
       lastError: !this.initialized
         ? "OpenRouter provider not initialized."
-        : !this.apiKey
+        : !this.apiKey && !this.relay
           ? "OpenRouter API key missing."
           : undefined,
     };
@@ -153,7 +164,7 @@ export default class OpenRouterProvider implements AIProvider {
       throw new Error("OpenRouter provider is not initialized.");
     }
 
-    if (!this.apiKey) {
+    if (!this.apiKey && !this.relay) {
       throw new Error("OpenRouter API key is missing.");
     }
 
@@ -182,14 +193,18 @@ export default class OpenRouterProvider implements AIProvider {
     let response: Response;
 
     try {
-      response = await fetch(
+      // Same upstream call as before. When no key is held locally the
+      // request goes same-origin to /api/ai/relay and the SERVER attaches
+      // the credential — status and body come back verbatim, so the
+      // parsing and fallback behaviour below is unchanged. HTTP-Referer
+      // and X-Title are not secrets, so they ride along and the relay
+      // forwards them (they are on its header allowlist).
+      response = await providerFetch(
+        "openrouter",
         "https://openrouter.ai/api/v1/chat/completions",
         {
-          method: "POST",
+          apiKey: this.apiKey,
           headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: `Bearer ${this.apiKey}`,
             // `typeof window !== "undefined"` alone was not enough: any
             // runtime with a PARTIAL window (web worker, SSR/server
             // entry, embedded webview, test harness) has `window` but
@@ -204,7 +219,7 @@ export default class OpenRouterProvider implements AIProvider {
               "https://freebuff.com",
             "X-Title": "Lélu",
           },
-          body: JSON.stringify(payload),
+          body: payload,
           signal: AbortSignal.timeout(this.timeout),
         },
       );

@@ -10,12 +10,12 @@
  */
 
 import { getEnvironment, validateProviderConfig as validateAll } from "./Environment";
+import { publicEnv } from "./env/publicEnv";
 
 export interface ProviderConfig {
   githubToken: string;
   youtubeApiKey: string;
   newsApiKey: string;
-  groqApiKey: string;
   elpheruRssUrl: string;
   sapiolingoRssUrl: string;
   googleNewsRssUrl: string;
@@ -23,14 +23,14 @@ export interface ProviderConfig {
   rssFeeds: string[];
 }
 
-const rawEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env ?? {};
+// Browser-safe allowlist, not the whole env record — see env/publicEnv.ts.
+const rawEnv = publicEnv();
 const env = getEnvironment();
 
 const config: ProviderConfig = {
   githubToken:   env.githubModels.hasKey ? (rawEnv["VITE_GITHUB_TOKEN"] ?? "") : "",
   youtubeApiKey: env.youtube.hasKey      ? (rawEnv["VITE_YOUTUBE_API_KEY"] ?? "") : "",
   newsApiKey:    env.news.hasKey         ? (rawEnv["VITE_NEWS_API_KEY"] ?? "") : "",
-  groqApiKey:    env.groq.hasKey         ? (rawEnv["VITE_GROQ_API_KEY"] ?? "") : "",
   elpheruRssUrl: env.elpheruRssUrl,
   sapiolingoRssUrl: env.sapiolingoRssUrl,
   googleNewsRssUrl: env.googleNewsRssUrl,

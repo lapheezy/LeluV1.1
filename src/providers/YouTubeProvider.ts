@@ -5,8 +5,7 @@
  * ==========================================================
  */
 
-import config
-  from "../core/ProviderConfig";
+import { knowledgeFetch } from "./aiRelay";
 
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
@@ -68,17 +67,9 @@ export default class YouTubeProvider
     query: string,
   ): Promise<KnowledgeResult[]> {
 
-    const apiKey =
-      config.youtubeApiKey;
-
-    if (!apiKey) {
-
-      throw new Error(
-        "YouTube API key missing.",
-      );
-
-    }
-
+    // The key is NOT read here any more — see NewsProvider for why. The
+    // URL is built exactly as before, minus the credential; the SERVER
+    // appends it (plugins/aiProxyApi.ts → /api/knowledge/relay).
     const url =
       new URL(
         this.endpoint,
@@ -104,13 +95,9 @@ export default class YouTubeProvider
       "10",
     );
 
-    url.searchParams.set(
-      "key",
-      apiKey,
-    );
-
     const response =
-      await fetch(
+      await knowledgeFetch(
+        "youtube",
         url.toString(),
       );
 

@@ -16,14 +16,24 @@
  * ==========================================================
  */
 
-// -- raw env access (Vite-injected, available in browser bundle) ----------
+import { publicEnv } from "./env/publicEnv";
+import { relayStatus } from "../providers/aiRelay";
 
+// -- raw env access (browser-safe allowlist only) ----------
+
+/**
+ * Browser-safe variables only.
+ *
+ * This used to return `import.meta.env` itself, which made Vite inline
+ * the ENTIRE env record here — every VITE_* value in `.env`, including
+ * the provider API keys, compiled straight into the shipped bundle.
+ * `publicEnv()` reads an explicit allowlist of names instead, so a
+ * credential cannot reach the client through this module. Chat-provider
+ * keys are read server-side (plugins/aiProxyApi.ts) and are absent here
+ * by design.
+ */
 function rawEnv(): Record<string, string | undefined> {
-  try {
-    return (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env ?? {};
-  } catch {
-    return {};
-  }
+  return publicEnv();
 }
 
 // -- typed configuration -------------------------------------------------
@@ -116,6 +126,34 @@ function opt(key: string, fallback: string): string {
   return fallback;
 }
 
+/**
+ * Which chat providers the SERVER holds a credential for.
+ *
+ * Chat-provider keys are no longer readable from the browser at all —
+ * that was the leak. So this module can no longer answer "is Groq
+ * configured?" from `import.meta.env`; asking anyway would report every
+ * provider MISSING even while the relay was happily serving them, which
+ * is precisely the kind of false diagnostic this codebase is trying to
+ * remove. `refreshProviderCredentials()` fills this in from the relay's
+ * capability report; until it does, the entries below say `unknown`
+ * rather than claiming either answer.
+ */
+let serverCredentials: Record<string, boolean> | null = null;
+
+/**
+ * Ask the runtime which chat-provider credentials it holds, then rebuild
+ * the cached config so warnings and diagnostics reflect reality.
+ * Called by Bootstrap before it reports environment status.
+ */
+export async function refreshProviderCredentials(): Promise<void> {
+  try {
+    serverCredentials = await relayStatus();
+  } catch {
+    serverCredentials = {};
+  }
+  cached = build();
+}
+
 // -- build the config ----------------------------------------------------
 
 function build(): LeluEnvironment {
@@ -133,6 +171,25 @@ function build(): LeluEnvironment {
     return { configured, keyVar, hasKey: configured, priority, required };
   }
 
+  /**
+   * A chat provider, whose credential lives on the SERVER.
+   *
+   * `keyVar` names the server-side variable to set (the VITE_ form is
+   * still accepted by the relay, but is no longer the documented place
+   * for it). `hasKey` is honestly false: this runtime holds no key. Only
+   * `configured` — the relay's answer — says whether the provider can
+   * actually be used, and it warns only once that answer is known, so a
+   * still-loading state never prints a false "unavailable".
+   */
+  function chatProviderEnv(relayId: string, keyVar: string, priority: number): ProviderEnv {
+    const known = serverCredentials;
+    const configured = known ? known[relayId] === true : false;
+    if (known && !configured) {
+      warnings.push(`${keyVar} is not set on the server — provider will be unavailable.`);
+    }
+    return { configured, keyVar, hasKey: false, priority, required: true };
+  }
+
   const supabaseConfigured = has("VITE_SUPABASE_URL") || has("NEXT_PUBLIC_SUPABASE_URL");
 
   const config: LeluEnvironment = {
@@ -140,12 +197,12 @@ function build(): LeluEnvironment {
     warnings,
 
     // AI providers — priority 1-7 in fallback order
-    groq:            providerEnv("VITE_GROQ_API_KEY", 1, true),
-    openrouter:      providerEnv("VITE_OPENROUTER_API_KEY", 2, true),
-    cerebras:        providerEnv("VITE_CEREBRAS_API_KEY", 3, true),
-    mistral:         providerEnv("VITE_MISTRAL_API_KEY", 4, true),
-    fireworks:       providerEnv("VITE_FIREWORKS_API_KEY", 5, true),
-    githubModels:    providerEnv("VITE_GITHUB_TOKEN", 6, true),
+    groq:            chatProviderEnv("groq", "GROQ_API_KEY", 1),
+    openrouter:      chatProviderEnv("openrouter", "OPENROUTER_API_KEY", 2),
+    cerebras:        chatProviderEnv("cerebras", "CEREBRAS_API_KEY", 3),
+    mistral:         chatProviderEnv("mistral", "MISTRAL_API_KEY", 4),
+    fireworks:       chatProviderEnv("fireworks", "FIREWORKS_API_KEY", 5),
+    githubModels:    chatProviderEnv("githubmodels", "GITHUB_MODELS_TOKEN", 6),
     localInference:  { configured: true, keyVar: "", hasKey: true, priority: 0, required: false },
 
     // Knowledge providers
@@ -271,12 +328,14 @@ export function environmentDiagnostics(): Record<string, string> {
   return out;
 }
 
-// Backward compat: exports expected by existing ProviderConfig consumers
+// Backward compat: exports expected by existing ProviderConfig consumers.
+// `groqApiKey` is gone — nothing consumed it, and it existed only to hand
+// a chat-provider credential to browser code. That credential now lives
+// on the server (plugins/aiProxyApi.ts).
 export default {
   get githubToken(): string { return rawEnv()["VITE_GITHUB_TOKEN"] ?? ""; },
   get youtubeApiKey(): string { return rawEnv()["VITE_YOUTUBE_API_KEY"] ?? ""; },
   get newsApiKey(): string { return rawEnv()["VITE_NEWS_API_KEY"] ?? ""; },
-  get groqApiKey(): string { return rawEnv()["VITE_GROQ_API_KEY"] ?? ""; },
   get meshyApiKey(): string { return rawEnv()["VITE_MESHY_API_KEY"] ?? ""; },
 };
 

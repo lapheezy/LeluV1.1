@@ -11,6 +11,7 @@ import { createEnvApi } from "./plugins/envApi.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
+import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { githubApiPlugin } from "./plugins/githubApi.ts";
@@ -33,6 +34,9 @@ export default defineConfig(({ mode }) => {
   // Server-side page reader: gives BrowserTool a CORS-free path so a
   // browsed page's TEXT can actually reach cognition (see browseApi.ts).
   const browseApi = createBrowseApi();
+  // Server-side AI credential relay: the provider keys stay in the
+  // server process and never reach the client bundle (aiProxyApi.ts).
+  const aiProxyApi = createAiProxyApi(envReader);
   const quad9Api = createQuad9Api(envReader);
   const nekoApi = createNekoApi(envReader);
   function envApiPlugin() {
@@ -103,6 +107,16 @@ export default defineConfig(({ mode }) => {
         },
         configurePreviewServer(server: any) {
           browseApi.attach(server.middlewares);
+        },
+      },
+
+      {
+        name: "ai-proxy-api",
+        configureServer(server: any) {
+          aiProxyApi.attach(server.middlewares);
+        },
+        configurePreviewServer(server: any) {
+          aiProxyApi.attach(server.middlewares);
         },
       },
 

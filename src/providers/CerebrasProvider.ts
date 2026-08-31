@@ -18,6 +18,7 @@ import type AIProvider from "./AIProvider";
 import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
+import { providerFetch, relayAvailable } from "./aiRelay";
 
 export default class CerebrasProvider implements AIProvider {
   readonly name = "Cerebras";
@@ -34,6 +35,8 @@ export default class CerebrasProvider implements AIProvider {
   ] as const;
 
   private apiKey = "";
+  /** True when the SERVER holds the credential (see providers/aiRelay.ts). */
+  private relay = false;
   private model = "llama-3.3-70b";
   private initialized = false;
 
@@ -54,8 +57,12 @@ export default class CerebrasProvider implements AIProvider {
         ? process.env
         : undefined;
 
+    // NOT read from import.meta.env: Vite inlines VITE_* values into the
+    // client bundle, which is how provider keys ended up shipped to the
+    // browser. A key held HERE only comes from a runtime that injected
+    // one deliberately (verification scripts, a native shell); otherwise
+    // the request is relayed and the SERVER attaches the credential.
     this.apiKey =
-      import.meta.env.VITE_CEREBRAS_API_KEY?.trim() ||
       runtimeEnv.__LELU_CEREBRAS_API_KEY__?.trim() ||
       windowEnv?.__LELU_CEREBRAS_API_KEY__?.trim() ||
       processEnv?.CEREBRAS_API_KEY?.trim() ||
@@ -66,10 +73,15 @@ export default class CerebrasProvider implements AIProvider {
       runtimeEnv.__LELU_CEREBRAS_MODEL__?.trim() ||
       "llama-3.3-70b";
 
+    // No local key is the NORMAL production case now: the credential
+    // belongs on the server so it never enters the client bundle.
+    this.relay = this.apiKey ? false : await relayAvailable("cerebras");
+
     this.initialized = true;
 
     console.info("[CerebrasProvider] Initialized", {
-      hasKey: this.apiKey.length > 0,
+      // Never the key or its length — only whether one is reachable.
+      credential: this.apiKey ? "local" : this.relay ? "server-relay" : "none",
       model: this.model,
     });
   }
@@ -78,8 +90,7 @@ export default class CerebrasProvider implements AIProvider {
     return (
       this.initialized &&
       this.enabled &&
-      this.requiresApiKey &&
-      this.apiKey.length > 0
+      (this.apiKey.length > 0 || this.relay)
     );
   }
 
@@ -92,7 +103,7 @@ export default class CerebrasProvider implements AIProvider {
       lastChecked: Date.now(),
       lastError: !this.initialized
         ? "Cerebras provider not initialized."
-        : !this.apiKey
+        : !this.apiKey && !this.relay
           ? "Cerebras API key missing."
           : undefined,
     };
@@ -109,7 +120,7 @@ export default class CerebrasProvider implements AIProvider {
       throw new Error("Cerebras provider is not initialized.");
     }
 
-    if (!this.apiKey) {
+    if (!this.apiKey && !this.relay) {
       throw new Error("Cerebras API key is missing.");
     }
 
@@ -131,16 +142,16 @@ export default class CerebrasProvider implements AIProvider {
     let response: Response;
 
     try {
-      response = await fetch(
+      // Same upstream call as before. When no key is held locally the
+      // request goes same-origin to /api/ai/relay and the SERVER attaches
+      // the credential — status and body come back verbatim, so the
+      // parsing and fallback behaviour below is unchanged.
+      response = await providerFetch(
+        "cerebras",
         "https://api.cerebras.ai/v1/chat/completions",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: `Bearer ${this.apiKey}`,
-          },
-          body: JSON.stringify(payload),
+          apiKey: this.apiKey,
+          body: payload,
           signal: AbortSignal.timeout(this.timeout),
         },
       );

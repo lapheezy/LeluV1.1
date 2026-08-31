@@ -38,6 +38,8 @@
  * ==========================================================
  */
 
+import AgentEventBus, { type AgentEvent } from "../agent/AgentEvents";
+
 export type CognitiveStage =
   | "INPUT"
   | "MEMORY_RETRIEVAL"
@@ -84,6 +86,8 @@ export default class CognitiveTrace {
    *  NOT a second event bus: it carries no event types of its own and
    *  only signals "this trace changed, re-read it". */
   private listeners = new Set<() => void>();
+  /** Set once the AgentEventBus bridge is attached (see attachAgentEvents). */
+  private agentBridgeAttached = false;
 
   private constructor() {
     // Dev builds trace by default; production does not. Guarded because
@@ -139,6 +143,7 @@ export default class CognitiveTrace {
    */
   public begin(taskId: string, prompt: string): void {
     if (!this._enabled) return;
+    this.attachAgentEvents();
     if (this.active) this.end();
     this.active = {
       taskId,
@@ -151,6 +156,84 @@ export default class CognitiveTrace {
       promptLength: prompt.length,
     });
     this.notify();
+  }
+
+  /**
+   * Fold the EXISTING AgentEventBus tool/agent lifecycle into the turn.
+   *
+   * TOOL_CALL was a declared stage that nothing ever recorded: every
+   * real tool site (ToolResolver, BrowserResolver, ResearchResolver,
+   * Orchestrator, SelfDevelopmentLoop, ToolCallInterceptor…) already
+   * emits `tool_*` / `browser_*` / `file_*` on the ONE event bus, so
+   * hand-instrumenting each of them would have duplicated an existing
+   * signal — and would have missed every tool added later.
+   *
+   * This subscribes once instead. It is not a second event system: it
+   * reads the existing bus and writes into the existing trace.
+   *
+   * Attached lazily from begin(), so a production build (tracing off)
+   * never subscribes at all.
+   */
+  private attachAgentEvents(): void {
+    if (this.agentBridgeAttached) return;
+    this.agentBridgeAttached = true;
+    AgentEventBus.getInstance().subscribe((event) => {
+      // Only THIS turn's activity is evidence for this turn. Background
+      // work (a self-development loop, a scheduled task) carries its own
+      // taskId and is deliberately not folded in.
+      if (!this.active || event.taskId !== this.active.taskId) return;
+      const mapped = CognitiveTrace.describeToolEvent(event);
+      if (mapped) {
+        this.record("TOOL_CALL", mapped.detail, mapped.data);
+      }
+    });
+  }
+
+  /**
+   * Map one bus event to a TOOL_CALL line, or null when the event is
+   * not tool/agent execution. memory_retrieval / memory_update are
+   * deliberately excluded: MEMORY_RETRIEVAL and MEMORY_WRITE are already
+   * recorded at their true source (Brain.recall, MemoryBridge.learn),
+   * and folding the bus copies in would double-count them.
+   */
+  private static describeToolEvent(
+    event: AgentEvent,
+  ): { detail: string; data: Record<string, unknown> } | null {
+    switch (event.type) {
+      case "tool_selected":
+        return { detail: `selected ${event.tool}${event.label ? ` — ${event.label}` : ""}`, data: { tool: event.tool, phase: "selected" } };
+      case "tool_started":
+        return { detail: `started ${event.tool}${event.label ? ` — ${event.label}` : ""}`, data: { tool: event.tool, phase: "started" } };
+      case "tool_result":
+        return {
+          detail: `${event.tool} → ${event.result ?? `${event.results?.length ?? 0} result(s)`}`,
+          data: {
+            tool: event.tool,
+            phase: "result",
+            status: event.status ?? "complete",
+            resultCount: event.results?.length ?? 0,
+          },
+        };
+      case "tool_failed":
+        return { detail: `${event.tool} FAILED — ${event.error ?? "unknown error"}`, data: { tool: event.tool, phase: "failed", error: event.error ?? null } };
+      case "browser_opened":
+        return { detail: `browser opened ${event.url}`, data: { tool: "browser", phase: "started", url: event.url } };
+      case "browser_result":
+        return {
+          detail: `browser ${event.status} ${event.url}${event.error ? ` — ${event.error}` : ""}`,
+          data: {
+            tool: "browser",
+            phase: event.status === "read" ? "result" : "failed",
+            status: event.status,
+            url: event.url,
+            excerptLength: event.excerpt?.length ?? 0,
+          },
+        };
+      case "file_changed":
+        return { detail: `file written ${event.path}`, data: { tool: "files", phase: "result", path: event.path } };
+      default:
+        return null;
+    }
   }
 
   /** Record one real stage of the current turn. */

@@ -11,30 +11,83 @@ repo even if `.env` itself is ever recreated.
 > For platform-managed secrets, paste values into the **Keys / API keys**
 > tab instead of `.env`.
 
-## AI chat providers (fallback priority order)
+## AI chat providers (fallback priority order) — **server-side only**
+
+> **These moved.** They used to be `VITE_`-prefixed and were therefore
+> compiled into the client bundle: a build with canary values put two
+> provider keys into 11 separate chunks of `dist/assets/`, readable by
+> anyone who loaded the page. They are now read by the server and reach
+> their upstream through the same-origin relay
+> (`plugins/aiProxyApi.ts` → `src/providers/aiRelay.ts`), so no chat
+> credential ever enters the browser.
+>
+> Set them **without** the `VITE_` prefix. The `VITE_` spelling is still
+> accepted by the relay so an existing `.env` keeps working, but it is no
+> longer the documented place for them and it is not read by client code.
+>
+> `scripts/verify-bundle-secrets.ts` builds with canaries and fails if any
+> of these reappear in `dist/`; `scripts/verify-live-runtime.mjs` proves
+> the same thing from inside a real browser.
 
 | Variable | Role | Required |
 |---|---|---|
-| `VITE_GROQ_API_KEY` | Groq — **primary** provider | yes |
+| `GROQ_API_KEY` | Groq — **primary** provider | yes |
+| `OPENROUTER_API_KEY` | OpenRouter — fallback #1 | yes |
+| `CEREBRAS_API_KEY` | Cerebras — fallback #2 | yes |
+| `MISTRAL_API_KEY` | Mistral — fallback #3 | yes |
+| `FIREWORKS_API_KEY` | Fireworks AI — fallback #4 | yes |
+| `GITHUB_MODELS_TOKEN` | GitHub Models — fallback #5 | yes |
+
+`GROQ_API_KEY` also serves voice transcription (Groq Whisper), which
+relays through the same endpoint — see `POST /api/ai/relay-raw`.
+
+**Deliberately NOT read:** a bare `GITHUB_TOKEN` / `GITHUB_CODESPACE_TOKEN`.
+Dev containers, Codespaces and CI runners set those for git tooling, and
+adopting one makes GitHub Models falsely report itself configured (and
+would spend a repo-scoped token against an unrelated inference API).
+Only `GITHUB_MODELS_TOKEN` counts.
+
+### Model overrides (browser-safe — names, not credentials)
+
+| Variable | Role | Required |
+|---|---|---|
 | `VITE_GROQ_MODEL` | Groq model override | no |
-| `VITE_OPENROUTER_API_KEY` | OpenRouter — fallback #1 | yes |
 | `VITE_OPENROUTER_MODEL` | OpenRouter model override | no |
-| `VITE_CEREBRAS_API_KEY` | Cerebras — fallback #2 | yes |
 | `VITE_CEREBRAS_MODEL` | Cerebras model override | no |
-| `VITE_MISTRAL_API_KEY` | Mistral — fallback #3 | yes |
 | `VITE_MISTRAL_MODEL` | Mistral model override | no |
-| `VITE_FIREWORKS_API_KEY` | Fireworks AI — fallback #4 | yes |
 | `VITE_FIREWORKS_MODEL` | Fireworks model override | no |
-| `VITE_GITHUB_TOKEN` | GitHub Models — fallback #5 + GitHub repo tool | yes |
 | `VITE_GITHUB_MODEL` | GitHub Models model override | no |
-| `VITE_AI_PROXY_BASE_URL` | Custom AI proxy for GitHub Models | no |
+| `VITE_AI_PROXY_BASE_URL` | Custom AI proxy for GitHub Models (bypasses the relay) | no |
+
+### The relay endpoints
+
+Mounted by every runtime that serves the app (Vite dev/preview,
+`server.ts`, `main.ts`) — the same way `/api/engineer/*` is:
+
+- `GET  /api/ai/providers` — which providers the server holds a credential
+  for. **Booleans only** — never a value, a prefix, or a length.
+- `POST /api/ai/relay` — JSON chat completions, forwarded to an
+  allowlisted upstream with the server's `Authorization`.
+- `POST /api/ai/relay-raw` — the same for a multipart body (voice
+  transcription), forwarded byte-for-byte.
+
+All three refuse an unknown provider id, a path outside that provider's
+own prefix, and a cross-origin POST; a client-supplied `Authorization`
+is dropped, never forwarded.
 
 ## Knowledge / research providers
+
+> **Still browser-side.** These services are called directly from the
+> browser today, so their keys are still compiled into the bundle. That
+> is a real, narrower exposure than the chat keys were — stated here
+> rather than glossed over. Routing them through the relay the way the
+> chat providers now are is the follow-up that closes it.
 
 | Variable | Role | Required |
 |---|---|---|
 | `VITE_NEWS_API_KEY` | NewsAPI.org — current news lookups | yes |
 | `VITE_YOUTUBE_API_KEY` | YouTube Data API v3 — video lookups | yes |
+| `VITE_GITHUB_TOKEN` | GitHub repo access tool (not GitHub Models) | no |
 
 ## Earth Core providers (optional — the layer reports its real status without them)
 

@@ -65,3 +65,26 @@ jobs:
             echo "::endgroup::"
           done
           exit $status
+
+      # The live check: a REAL browser against a REAL server. It is the
+      # only place three claims can actually be proven — that the app
+      # renders (no white screen), that a message typed into the existing
+      # chat input travels through the runtime, and that no credential is
+      # reachable from the page. GROQ_API_KEY is a canary: it is set
+      # server-side ONLY, and the test fails if the browser can see it
+      # anywhere (served scripts, console, globals).
+      - name: Live runtime + client secret scan (real browser)
+        env:
+          GROQ_API_KEY: gsk_CI_CANARY_MUSTNOTREACHTHEBROWSER
+          LELU_LIVE_CANARY: gsk_CI_CANARY_MUSTNOTREACHTHEBROWSER
+        run: |
+          set -e
+          bunx playwright install --with-deps chromium
+          bun run preview &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:4173/ > /dev/null && break
+            sleep 1
+          done
+          node scripts/verify-live-runtime.mjs http://127.0.0.1:4173

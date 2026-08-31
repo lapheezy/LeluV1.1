@@ -22,7 +22,7 @@
  * ==========================================================
  */
 
-import { getEnvironment, environmentDiagnostics } from "./Environment";
+import { getEnvironment, environmentDiagnostics, refreshProviderCredentials } from "./Environment";
 import AIService from "./AIService";
 import CognitiveLoop from "./cognition/CognitiveLoop";
 import TaskEngine from "./tasks/TaskEngine";
@@ -122,6 +122,11 @@ export default class Bootstrap {
     // ---------- Step 1: LOAD & VALIDATE ENVIRONMENT ----------
     steps.push(step("environment", "RUNNING", "Loading environment…"));
     try {
+      // Chat-provider credentials live on the server now, so ask the
+      // runtime which ones it holds BEFORE reporting status. Without
+      // this the report would list every provider MISSING while the
+      // relay was serving them perfectly well.
+      await refreshProviderCredentials();
       const env = getEnvironment();
       steps.push(step("environment", "DONE",
         `${env.warnings.length > 0 ? `${env.warnings.length} warning(s) — see diagnostics` : "OK"}`));

@@ -37,6 +37,8 @@ import { createRssApi } from "./plugins/rssApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { createGithubApi } from "./plugins/githubApi.ts";
+import { createBrowseApi } from "./plugins/browseApi.ts";
+import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
 
 // Load the project's existing environment (.env.local overrides .env;
 // platform-injected process env always wins) BEFORE anything reads it,
@@ -253,6 +255,13 @@ instagramApi.attach(middlewares);
 rssApi.attach(middlewares);
 quad9Api.attach(middlewares);
 nekoApi.attach(middlewares);
+// Mounted BEFORE the legacy /api/ai passthrough below: connect matches
+// by prefix, so the catch-all would otherwise swallow these two routes.
+createAiProxyApi((key) => process.env[key]).attach(middlewares);
+// The server-side page reader BrowserTool falls back to when CORS blocks
+// a direct read. It was mounted in Vite and Deno but not here, so a
+// `bun run serve` deployment could open a page and never read one.
+createBrowseApi().attach(middlewares);
 createGithubApi().attach(middlewares);
 middlewares.use("/api/ai", (req, res) => {
   void handleAiProxy(req, res);

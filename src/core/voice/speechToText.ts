@@ -12,6 +12,8 @@
  * ==========================================================
  */
 
+import { providerFetchRaw } from "../../providers/aiRelay";
+
 import type { VoiceErrorKind } from "./VoiceEngine";
 
 /**
@@ -41,19 +43,23 @@ export function mapMediaError(error: { name?: string }): { kind: VoiceErrorKind;
   }
 }
 
+/**
+ * A Groq key held by THIS runtime, if any.
+ *
+ * `import.meta.env.VITE_GROQ_API_KEY` is deliberately not read: Vite
+ * inlines it into the client bundle, which is how transcription keys
+ * ended up in the shipped VoiceEngine chunk. When nothing is held here
+ * the request is relayed instead and the SERVER attaches the credential
+ * (see providers/aiRelay.ts). The injected global remains for runtimes
+ * that legitimately supply a key at runtime — verification scripts, and
+ * native shells that hold their own credential.
+ */
 function getGroqApiKey(): string {
   const runtimeEnv = globalThis as typeof globalThis & {
     __LELU_GROQ_API_KEY__?: string;
   };
 
-  return (
-    (
-      (import.meta as unknown as { env?: Record<string, string | undefined> })
-        .env ?? {}
-    )["VITE_GROQ_API_KEY"]?.trim() ||
-    runtimeEnv.__LELU_GROQ_API_KEY__?.trim() ||
-    ""
-  );
+  return runtimeEnv.__LELU_GROQ_API_KEY__?.trim() || "";
 }
 
 /** A speech-to-text failure classified into an actionable kind. */
@@ -121,7 +127,7 @@ export function parseTranscriptionResponse(data: unknown): string {
  */
 export function mapSttHttpError(status: number): SttErrorDiagnosis {
   if (status === 401 || status === 403) {
-    return { kind: "permission", message: "Groq API key was rejected — check VITE_GROQ_API_KEY." };
+    return { kind: "permission", message: "The Groq credential was rejected — check GROQ_API_KEY on the server." };
   }
   if (status === 402) {
     return { kind: "service", message: "Groq account has insufficient credits for transcription." };
@@ -141,25 +147,15 @@ export async function transcribeAudio(
   language?: string,
 ): Promise<string> {
   const apiKey = getGroqApiKey();
-
-  if (!apiKey) {
-    throw new Error(
-      "No Groq API key configured. Set VITE_GROQ_API_KEY to enable speech-to-text.",
-    );
-  }
-
   const formData = buildTranscriptionForm(audioBlob, "whisper-large-v3-turbo", language);
 
-  const response = await fetch(
+  // No local key is the normal case: the request is relayed same-origin
+  // and the server attaches the credential. A 503 comes back when the
+  // server has none either, and the caller reports that honestly.
+  const response = await providerFetchRaw(
+    "groq",
     "https://api.groq.com/openai/v1/audio/transcriptions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: formData,
-      signal: AbortSignal.timeout(30_000),
-    },
+    { apiKey, body: formData, signal: AbortSignal.timeout(30_000) },
   );
 
   if (!response.ok) {

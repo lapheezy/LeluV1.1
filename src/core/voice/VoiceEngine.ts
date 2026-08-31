@@ -13,6 +13,8 @@
  * ==========================================================
  */
 
+import { providerFetchRaw, relayAvailable } from "../../providers/aiRelay";
+
 import { mapMediaError } from "./speechToText";
 
 /* ---------------------------------------------------------
@@ -233,19 +235,23 @@ type ErrorListener = (message: string) => void;
  * Groq Whisper helpers (imported lazily to avoid circular deps)
  * --------------------------------------------------------- */
 
+/**
+ * A Groq key held by THIS runtime, if any.
+ *
+ * `import.meta.env.VITE_GROQ_API_KEY` is deliberately not read: Vite
+ * inlines it into the client bundle, which is how transcription keys
+ * ended up in the shipped VoiceEngine chunk. When nothing is held here
+ * the request is relayed instead and the SERVER attaches the credential
+ * (see providers/aiRelay.ts). The injected global remains for runtimes
+ * that legitimately supply a key at runtime — verification scripts, and
+ * native shells that hold their own credential.
+ */
 function getGroqApiKey(): string {
   const runtimeEnv = globalThis as typeof globalThis & {
     __LELU_GROQ_API_KEY__?: string;
   };
 
-  return (
-    (
-      (import.meta as unknown as { env?: Record<string, string | undefined> })
-        .env ?? {}
-    )["VITE_GROQ_API_KEY"]?.trim() ||
-    runtimeEnv.__LELU_GROQ_API_KEY__?.trim() ||
-    ""
-  );
+  return runtimeEnv.__LELU_GROQ_API_KEY__?.trim() || "";
 }
 
 /**
@@ -254,12 +260,6 @@ function getGroqApiKey(): string {
  */
 async function transcribeViaWhisper(audioBlob: Blob): Promise<string> {
   const apiKey = getGroqApiKey();
-
-  if (!apiKey) {
-    throw new Error(
-      "No Groq API key configured. Set VITE_GROQ_API_KEY to enable voice.",
-    );
-  }
 
   const mime = audioBlob.type || "audio/webm";
   const ext = mime.includes("wav")
@@ -275,16 +275,12 @@ async function transcribeViaWhisper(audioBlob: Blob): Promise<string> {
   formData.append("model", "whisper-large-v3-turbo");
   formData.append("response_format", "verbose_json");
 
-  const response = await fetch(
+  // No local key is the normal case: the request is relayed same-origin
+  // and the server attaches the credential (see providers/aiRelay.ts).
+  const response = await providerFetchRaw(
+    "groq",
     "https://api.groq.com/openai/v1/audio/transcriptions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: formData,
-      signal: AbortSignal.timeout(30_000),
-    },
+    { apiKey, body: formData, signal: AbortSignal.timeout(30_000) },
   );
 
   if (!response.ok) {
@@ -325,6 +321,12 @@ class VoiceEngine {
   private _turn: VoiceTurn | null = null;
   /** LÉLU's most recent spoken TTS text, used to catch the mic hearing itself. */
   private lastSpokenText = "";
+  /**
+   * Whether the SERVER can supply the Groq credential for transcription.
+   * Resolved asynchronously (one same-origin request) and cached here so
+   * computeDiagnostics() stays synchronous for its existing callers.
+   */
+  private relayGroqAvailable = false;
   private _diagnostics: VoiceDiagnostics = this.computeDiagnostics();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -358,9 +360,31 @@ class VoiceEngine {
 
   private constructor() {
     if (typeof window !== "undefined") {
+      void this.refreshRelayDiagnostics();
       setInterval(() => {
         this._diagnostics = this.computeDiagnostics();
       }, 5000);
+    }
+  }
+
+  /**
+   * Ask the server once whether it holds a Groq credential, then
+   * recompute diagnostics so `groqKeyAvailable` / `sttSupported` report
+   * the real capability instead of assuming a browser-side key.
+   */
+  private async refreshRelayDiagnostics(): Promise<void> {
+    try {
+      this.relayGroqAvailable = await relayAvailable("groq");
+    } catch {
+      this.relayGroqAvailable = false;
+    }
+    this._diagnostics = this.computeDiagnostics();
+    for (const listener of this.diagnosticsListeners) {
+      try {
+        listener(this._diagnostics);
+      } catch {
+        // a broken listener must never break the voice engine
+      }
     }
   }
 
@@ -1194,12 +1218,12 @@ class VoiceEngine {
       typeof navigator !== "undefined" &&
       Boolean(navigator.mediaDevices?.getUserMedia);
 
-    const groqKey = Boolean(
-      (
-        (import.meta as unknown as { env?: Record<string, string | undefined> })
-          .env ?? {}
-      )["VITE_GROQ_API_KEY"]?.trim(),
-    );
+    // A locally-held key, or one the SERVER holds on our behalf. Reading
+    // import.meta.env here would inline the key into the client bundle,
+    // which is exactly the leak the relay removes; `relayGroqAvailable`
+    // is refreshed asynchronously by refreshRelayDiagnostics() so this
+    // stays synchronous for every existing caller.
+    const groqKey = Boolean(getGroqApiKey()) || this.relayGroqAvailable;
 
     const secure =
       typeof window !== "undefined" && window.isSecureContext === true;

@@ -1,4 +1,5 @@
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
+import { publicEnv } from "../env/publicEnv";
 import AgentEventBus, { type AgentEvent } from "../agent/AgentEvents";
 import AgentStore from "../agents/AgentStore";
 import type { LeluAgent } from "../agents/AgentTypes";
@@ -113,7 +114,9 @@ export default class SupabasePersistence {
       return this.status;
     }
 
-    const env = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env ?? {};
+    // Browser-safe allowlist, not the whole env record (see env/publicEnv.ts):
+    // reading import.meta.env as an object inlined every VITE_* value here.
+    const env = publicEnv();
     const firstConfigured = (...values: Array<string | undefined>): string =>
       values.find((value) => typeof value === "string" && value.trim().length > 0)?.trim() ?? "";
     const url = firstConfigured(env.VITE_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_URL);

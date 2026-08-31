@@ -19,13 +19,13 @@
  * ==========================================================
  */
 
+import { publicEnv } from "../../env/publicEnv";
 import type { NativeCapability, PermissionState } from "../NativeCapability";
 import { isSecureContext } from "./helpers";
 
 function vapidPublicKey(): string {
-  const env =
-    (import.meta as unknown as { env?: Record<string, string | undefined> })
-      .env ?? {};
+  // Browser-safe allowlist, not the whole env record (see env/publicEnv.ts).
+  const env = publicEnv();
   const runtimeEnv = globalThis as typeof globalThis & {
     __LELU_VAPID_PUBLIC_KEY__?: string;
   };

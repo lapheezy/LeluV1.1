@@ -293,6 +293,66 @@ async function main(): Promise<void> {
     recallResponse.text.slice(0, 200),
   );
 
+  console.log("\n== PART C — a TOOL actually executes inside the turn, and the trace proves it ==");
+  // TOOL_CALL was a declared trace stage that nothing recorded, so tool
+  // and agent execution was invisible in the per-turn evidence chain.
+  // CognitiveTrace now folds the EXISTING AgentEventBus tool lifecycle
+  // into the active turn. This drives the REAL path — chat() → router →
+  // BrowserResolver → BrowserTool → AgentEventBus → CognitiveTrace —
+  // with only the network stubbed, so the bridge is proven end to end.
+  let toolTurnForReport: CognitiveTurn | null = null;
+  {
+    const originalFetch = globalThis.fetch;
+    const PAGE_TOKEN = "LELU-PAGE-MARKER-55813";
+    let pageFetches = 0;
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("example.org")) {
+        pageFetches += 1;
+        return {
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: { get: () => "text/html" },
+          text: async () =>
+            `<html><head><title>Example Domain</title></head><body><p>${PAGE_TOKEN} is the marker on this page.</p></body></html>`,
+          json: async () => ({}),
+        } as unknown as Response;
+      }
+      return { ok: false, status: 503, statusText: "unavailable", headers: { get: () => "" }, text: async () => "", json: async () => ({}) } as unknown as Response;
+    }) as typeof fetch;
+
+    try {
+      const browseResponse = await ai.chat("Open https://example.org and read it.");
+      const toolTurn = trace.lastTurn();
+      toolTurnForReport = toolTurn;
+      const toolCalls = CognitiveTrace.entriesFor(toolTurn, "TOOL_CALL");
+
+      assert(pageFetches > 0, "the browser tool genuinely fetched the page", `fetches=${pageFetches}`);
+      assert(
+        CognitiveTrace.reached(toolTurn, "TOOL_CALL"),
+        "the turn reached TOOL_CALL — tool execution is now part of the evidence chain (it was a dead stage before)",
+        CognitiveTrace.format(toolTurn),
+      );
+      assert(
+        toolCalls.some((entry) => entry.data?.tool === "browser" && entry.data?.phase === "result"),
+        "the TOOL_CALL entries name the real tool that ran and its real outcome",
+        JSON.stringify(toolCalls.map((entry) => entry.data)),
+      );
+      assert(
+        toolCalls.every((entry) => entry.timestamp >= (toolTurn?.startedAt ?? 0)),
+        "tool activity is attributed to THIS turn (bridge filters by taskId, so background work is not folded in)",
+      );
+      assert(
+        browseResponse.text.length > 0,
+        "the browsed page still produced a real response through the normal pipeline",
+        browseResponse.text.slice(0, 160),
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  }
+
   console.log("\n== PART B — provider #1 fails → provider #2 takes over, cognition intact ==");
   // Give the two highest-priority remote providers real-looking keys so
   // they become genuinely available, then make ONLY the first one fail.
@@ -407,6 +467,8 @@ async function main(): Promise<void> {
 
   console.log("\n----- evidence chain for the memory-recall turn -----");
   console.log(CognitiveTrace.format(recallTurn));
+  console.log("\n----- evidence chain for the tool-execution turn -----");
+  console.log(CognitiveTrace.format(toolTurnForReport));
   console.log("\n----- evidence chain for the provider-fallback turn -----");
   console.log(CognitiveTrace.format(fallbackTurnForReport));
 
