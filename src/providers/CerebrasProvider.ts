@@ -22,7 +22,7 @@ import { providerFetch, relayAvailable } from "./aiRelay";
 
 export default class CerebrasProvider implements AIProvider {
   readonly name = "Cerebras";
-  readonly priority = 3;
+  readonly priority = 4;
   readonly enabled = true;
   readonly timeout = 30000;
   readonly requiresApiKey = true;

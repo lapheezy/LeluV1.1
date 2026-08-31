@@ -22,7 +22,7 @@ import { providerFetch, relayAvailable } from "./aiRelay";
 
 export default class MistralProvider implements AIProvider {
   readonly name = "Mistral";
-  readonly priority = 4;
+  readonly priority = 5;
   readonly enabled = true;
   readonly timeout = 30000;
   readonly requiresApiKey = true;

@@ -8,6 +8,9 @@
 import AIProviderRegistry
   from "./AIProviderRegistry";
 
+import AnthropicProvider
+  from "../providers/AnthropicProvider";
+
 import OpenRouterProvider
   from "../providers/OpenRouterProvider";
 
@@ -40,6 +43,15 @@ export default function registerAIProviders() {
   // the fallback chain tries local capability before any remote API.
   registry.register(
     new LocalInferenceProvider(),
+  );
+
+
+  // Claude is the primary remote provider (priority 1). Every provider
+  // below shifted down one slot to make room; their RELATIVE order — the
+  // documented Groq → OpenRouter → Cerebras → Mistral → Fireworks →
+  // GitHub Models chain — is unchanged.
+  registry.register(
+    new AnthropicProvider(),
   );
 
 

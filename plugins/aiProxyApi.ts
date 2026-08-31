@@ -96,6 +96,19 @@ interface UpstreamProvider {
 }
 
 const PROVIDERS: Record<string, UpstreamProvider> = {
+  anthropic: {
+    origin: "https://api.anthropic.com",
+    pathPrefix: "/v1/",
+    // Deliberately NOT a bare `API_KEY`: that name is generic, and in a
+    // Claude Code environment it holds the AGENT's own Anthropic
+    // credential. Adopting it would spend someone else's quota and make
+    // this provider report itself configured when nothing was ever set
+    // for LÉLU — the same trap githubmodels documents below.
+    keyVars: ["ANTHROPIC_API_KEY", "CLAUDE_API_KEY", "VITE_ANTHROPIC_API_KEY"],
+    // The Messages API authenticates with x-api-key, not a bearer token,
+    // and requires a pinned version header on every request.
+    auth: (key) => ({ "x-api-key": key, "anthropic-version": "2023-06-01" }),
+  },
   groq: {
     origin: "https://api.groq.com",
     pathPrefix: "/openai/v1/",
@@ -174,7 +187,16 @@ const KNOWLEDGE_PROVIDERS: Record<string, UpstreamKnowledgeProvider> = {
 };
 
 /** Non-secret headers a provider may ask the relay to pass upstream. */
-const FORWARDABLE_HEADERS = new Set(["content-type", "accept", "http-referer", "x-title"]);
+const FORWARDABLE_HEADERS = new Set([
+  "content-type",
+  "accept",
+  "http-referer",
+  "x-title",
+  // Anthropic pins its wire format per request; the header is a version
+  // string, not a credential. The server sets it too, so a caller can
+  // only ever restate the same value.
+  "anthropic-version",
+]);
 
 const MAX_BODY_BYTES = 1_000_000;
 const TIMEOUT_MS = 60_000;

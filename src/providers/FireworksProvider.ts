@@ -22,7 +22,7 @@ import { providerFetch, relayAvailable } from "./aiRelay";
 
 export default class FireworksProvider implements AIProvider {
   readonly name = "Fireworks";
-  readonly priority = 5;
+  readonly priority = 6;
   readonly enabled = true;
   readonly timeout = 30000;
   readonly requiresApiKey = true;

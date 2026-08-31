@@ -34,6 +34,8 @@ function assert(condition: boolean, label: string, detail?: string): void {
 
 /** The server's key. It must never appear in anything the client sees. */
 const SERVER_KEY = "gsk_SERVER_ONLY_SECRET_a1b2c3d4";
+/** The Anthropic credential, held only by the "server" below. */
+const ANTHROPIC_KEY = "sk-ant-SERVER_ONLY_SECRET_e5f6";
 
 /* ---------------------------------------------------------------- */
 /* An in-process stand-in for the runtime that mounts the middleware. */
@@ -43,7 +45,9 @@ const SERVER_KEY = "gsk_SERVER_ONLY_SECRET_a1b2c3d4";
 type Handler = (req: any, res: any, next: () => void) => void;
 const routes: Array<{ path: string; handler: Handler }> = [];
 
-createAiProxyApi((key) => (key === "GROQ_API_KEY" ? SERVER_KEY : undefined)).attach({
+createAiProxyApi((key) =>
+  key === "GROQ_API_KEY" ? SERVER_KEY : key === "ANTHROPIC_API_KEY" ? ANTHROPIC_KEY : undefined,
+).attach({
   use(path: string, handler: Handler) {
     routes.push({ path, handler });
   },
@@ -114,6 +118,8 @@ function serve(url: string, init?: RequestInit): Promise<ServedResponse | null> 
 interface UpstreamCall {
   url: string;
   authorization: string;
+  /** Anthropic authenticates with x-api-key, not a bearer token. */
+  apiKeyHeader: string;
   headers: Record<string, string>;
   body: unknown;
 }
@@ -139,9 +145,40 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
   upstreamCalls.push({
     url,
     authorization: headers.authorization ?? "",
+    apiKeyHeader: headers["x-api-key"] ?? "",
     headers,
     body: init?.body ? JSON.parse(String(init.body)) : null,
   });
+
+  // Anthropic's Messages API has its own request and response shape —
+  // a top-level `system`, and a typed `content` block array back.
+  if (url.includes("api.anthropic.com")) {
+    if (upstreamMode === "error") {
+      return new Response(
+        JSON.stringify({ type: "error", error: { type: "overloaded_error", message: "simulated outage" } }),
+        { status: 529, headers: { "content-type": "application/json" } },
+      );
+    }
+    if (upstreamMode === "stream") {
+      const sse =
+        'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hel"}}\n\n' +
+        'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"lo."}}\n\n' +
+        'event: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":3}}\n\n';
+      return new Response(sse, { status: 200, headers: { "content-type": "text/event-stream" } });
+    }
+    return new Response(
+      JSON.stringify({
+        id: "msg_01",
+        type: "message",
+        role: "assistant",
+        model: "claude-opus-5",
+        content: [{ type: "text", text: "Relayed answer." }],
+        stop_reason: "end_turn",
+        usage: { input_tokens: 10, output_tokens: 3 },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } },
+    );
+  }
 
   if (upstreamMode === "error") {
     return new Response(JSON.stringify({ error: { message: "simulated upstream outage" } }), {
@@ -359,6 +396,103 @@ async function main(): Promise<void> {
     assert(deltas.length >= 2, `the stream arrived progressively (${deltas.length} deltas)`, JSON.stringify(deltas));
     assert(response.text === "Hello.", "and reassembled into the right answer", response.text);
     assert(response.metadata?.streamed === true, "flagged as genuinely streamed");
+  }
+
+  console.log("\n== Claude speaks a DIFFERENT wire format, and the relay handles it ==");
+  {
+    const { default: AnthropicProvider } = await import("../src/providers/AnthropicProvider");
+    refreshRelayStatus();
+    upstreamMode = "ok";
+    upstreamCalls.length = 0;
+
+    const provider = new AnthropicProvider();
+    await provider.initialize();
+    assert(await provider.isAvailable(), "AnthropicProvider is available on the server credential alone");
+
+    const response = await provider.generate({
+      messages: [
+        { role: "system", content: "A system instruction from LÉLU's history." },
+        { role: "assistant", content: "A leading assistant turn." },
+      ],
+      prompt: "hello",
+      context: "Some recalled memory.",
+      timestamp: Date.now(),
+    });
+
+    const call = upstreamCalls[0];
+    const body = call?.body as {
+      system?: string;
+      messages?: Array<{ role: string; content: unknown }>;
+      max_tokens?: number;
+    };
+
+    assert(call?.url === "https://api.anthropic.com/v1/messages", "it posts to /v1/messages", call?.url);
+    assert(
+      call?.apiKeyHeader === ANTHROPIC_KEY,
+      "authenticated with x-api-key (NOT a bearer token — that would be a 401)",
+    );
+    assert(call?.authorization === "", "and no Authorization header was sent at all", call?.authorization);
+    assert(
+      call?.headers["anthropic-version"] === "2023-06-01",
+      "carrying the required anthropic-version header",
+      JSON.stringify(call?.headers),
+    );
+    assert(
+      typeof body?.system === "string" && body.system.includes("A system instruction"),
+      "the system role was lifted OUT of messages into the top-level `system` field",
+      JSON.stringify(body?.system ?? "").slice(0, 120),
+    );
+    assert(
+      Boolean(body?.system?.includes("Some recalled memory.")),
+      "and LÉLU's recalled memory/context reached the model with it",
+    );
+    assert(
+      (body?.messages ?? []).every((message) => message.role !== "system"),
+      "no system role survives in the messages array (the API rejects one)",
+      JSON.stringify(body?.messages?.map((m) => m.role)),
+    );
+    assert(
+      body?.messages?.[0]?.role === "user",
+      "the leading assistant turn was dropped so the conversation starts with `user`",
+      JSON.stringify(body?.messages?.map((m) => m.role)),
+    );
+    assert(typeof body?.max_tokens === "number", "max_tokens is always set (the API requires it)");
+    assert(response.text === "Relayed answer.", "the typed content-block array was parsed back to text", response.text);
+    assert(response.provider === "Anthropic", "attributed to Anthropic, so the router is unchanged");
+  }
+
+  console.log("\n== A Claude failure still drives the fallback chain ==");
+  {
+    upstreamMode = "error";
+    const { default: AnthropicProvider } = await import("../src/providers/AnthropicProvider");
+    const provider = new AnthropicProvider();
+    await provider.initialize();
+    let thrown: Error | null = null;
+    try {
+      await provider.generate({ messages: [], prompt: "hello", timestamp: Date.now() });
+    } catch (error) {
+      thrown = error as Error;
+    }
+    assert(thrown !== null, "an upstream 529 throws rather than returning an empty answer");
+    assert(Boolean(thrown?.message.includes("529")), "carrying the real status", thrown?.message);
+    assert(!String(thrown?.message).includes(ANTHROPIC_KEY), "and leaks nothing");
+  }
+
+  console.log("\n== Claude's SSE shape streams correctly (content_block_delta) ==");
+  {
+    upstreamMode = "stream";
+    const { default: AnthropicProvider } = await import("../src/providers/AnthropicProvider");
+    const provider = new AnthropicProvider();
+    await provider.initialize();
+    const deltas: string[] = [];
+    const response = await provider.generate({
+      messages: [],
+      prompt: "hello",
+      timestamp: Date.now(),
+      onDelta: (accumulated) => deltas.push(accumulated),
+    });
+    assert(deltas.length >= 2, `the stream arrived progressively (${deltas.length} deltas)`, JSON.stringify(deltas));
+    assert(response.text === "Hello.", "and reassembled into the right answer", response.text);
   }
 
   globalThis.fetch = realFetch;

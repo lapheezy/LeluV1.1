@@ -63,8 +63,8 @@ async function main(): Promise<void> {
   );
   const remote = report.chain.filter((c) => c.requiresApiKey);
   assert(
-    remote[0]?.name === "Groq" && remote[1]?.name === "OpenRouter",
-    "the two highest-priority REMOTE providers are Groq then OpenRouter",
+    remote[0]?.name === "Anthropic" && remote[1]?.name === "Groq",
+    "the two highest-priority REMOTE providers are Anthropic then Groq",
     remote.slice(0, 2).map((r) => r.name).join(" → "),
   );
 

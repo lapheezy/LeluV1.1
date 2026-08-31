@@ -22,7 +22,7 @@ import type {
 
 export default class OpenRouterProvider implements AIProvider {
   readonly name = "OpenRouter";
-  readonly priority = 2;
+  readonly priority = 3;
   readonly enabled = true;
   readonly timeout = 30000;
   readonly requiresApiKey = true;

@@ -31,15 +31,28 @@ repo even if `.env` itself is ever recreated.
 
 | Variable | Role | Required |
 |---|---|---|
-| `GROQ_API_KEY` | Groq — **primary** provider | yes |
-| `OPENROUTER_API_KEY` | OpenRouter — fallback #1 | yes |
-| `CEREBRAS_API_KEY` | Cerebras — fallback #2 | yes |
-| `MISTRAL_API_KEY` | Mistral — fallback #3 | yes |
-| `FIREWORKS_API_KEY` | Fireworks AI — fallback #4 | yes |
-| `GITHUB_MODELS_TOKEN` | GitHub Models — fallback #5 | yes |
+| `ANTHROPIC_API_KEY` | Claude (Anthropic) — **primary** provider | yes |
+| `GROQ_API_KEY` | Groq — fallback #1 | yes |
+| `OPENROUTER_API_KEY` | OpenRouter — fallback #2 | yes |
+| `CEREBRAS_API_KEY` | Cerebras — fallback #3 | yes |
+| `MISTRAL_API_KEY` | Mistral — fallback #4 | yes |
+| `FIREWORKS_API_KEY` | Fireworks AI — fallback #5 | yes |
+| `GITHUB_MODELS_TOKEN` | GitHub Models — fallback #6 | yes |
 
 `GROQ_API_KEY` also serves voice transcription (Groq Whisper), which
 relays through the same endpoint — see `POST /api/ai/relay-raw`.
+
+Claude uses the Messages API (`POST /v1/messages`), which authenticates
+with `x-api-key` rather than a bearer token and takes its system prompt
+as a top-level field — `src/providers/AnthropicProvider.ts` translates
+LÉLU's OpenAI-shaped request into that format. `VITE_ANTHROPIC_MODEL`
+overrides the model (default `claude-opus-5`).
+
+**Deliberately NOT read:** a bare `API_KEY`. That name is generic, and in
+a Claude Code environment it holds the *agent's own* Anthropic
+credential — adopting it would spend someone else's quota and make the
+provider report itself configured when nothing was set for LÉLU. Use
+`ANTHROPIC_API_KEY` (or `CLAUDE_API_KEY`).
 
 **Deliberately NOT read:** a bare `GITHUB_TOKEN` / `GITHUB_CODESPACE_TOKEN`.
 Dev containers, Codespaces and CI runners set those for git tooling, and
@@ -51,6 +64,7 @@ Only `GITHUB_MODELS_TOKEN` counts.
 
 | Variable | Role | Required |
 |---|---|---|
+| `VITE_ANTHROPIC_MODEL` | Claude model override (default `claude-opus-5`) | no |
 | `VITE_GROQ_MODEL` | Groq model override | no |
 | `VITE_OPENROUTER_MODEL` | OpenRouter model override | no |
 | `VITE_CEREBRAS_MODEL` | Cerebras model override | no |

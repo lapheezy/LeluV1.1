@@ -45,6 +45,7 @@ export interface LeluEnvironment {
   warnings: string[];
 
   /* ---- AI chat providers (fallback priority order) ---- */
+  anthropic: ProviderEnv;
   groq: ProviderEnv;
   openrouter: ProviderEnv;
   cerebras: ProviderEnv;
@@ -197,12 +198,13 @@ function build(): LeluEnvironment {
     warnings,
 
     // AI providers — priority 1-7 in fallback order
-    groq:            chatProviderEnv("groq", "GROQ_API_KEY", 1),
-    openrouter:      chatProviderEnv("openrouter", "OPENROUTER_API_KEY", 2),
-    cerebras:        chatProviderEnv("cerebras", "CEREBRAS_API_KEY", 3),
-    mistral:         chatProviderEnv("mistral", "MISTRAL_API_KEY", 4),
-    fireworks:       chatProviderEnv("fireworks", "FIREWORKS_API_KEY", 5),
-    githubModels:    chatProviderEnv("githubmodels", "GITHUB_MODELS_TOKEN", 6),
+    anthropic:       chatProviderEnv("anthropic", "ANTHROPIC_API_KEY", 1),
+    groq:            chatProviderEnv("groq", "GROQ_API_KEY", 2),
+    openrouter:      chatProviderEnv("openrouter", "OPENROUTER_API_KEY", 3),
+    cerebras:        chatProviderEnv("cerebras", "CEREBRAS_API_KEY", 4),
+    mistral:         chatProviderEnv("mistral", "MISTRAL_API_KEY", 5),
+    fireworks:       chatProviderEnv("fireworks", "FIREWORKS_API_KEY", 6),
+    githubModels:    chatProviderEnv("githubmodels", "GITHUB_MODELS_TOKEN", 7),
     localInference:  { configured: true, keyVar: "", hasKey: true, priority: 0, required: false },
 
     // Knowledge providers
@@ -266,6 +268,7 @@ function build(): LeluEnvironment {
 
   // Overall valid if at least one AI provider has a key (or local is available)
   const anyAiConfigured =
+    config.anthropic.configured ||
     config.groq.configured ||
     config.openrouter.configured ||
     config.cerebras.configured ||
@@ -306,6 +309,7 @@ export function environmentDiagnostics(): Record<string, string> {
   const out: Record<string, string> = {};
 
   const aiProviders: [string, ProviderEnv][] = [
+    ["Anthropic", config.anthropic],
     ["Groq", config.groq],
     ["OpenRouter", config.openrouter],
     ["Cerebras", config.cerebras],

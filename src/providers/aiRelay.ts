@@ -29,12 +29,30 @@
 
 /** Provider ids understood by the relay — must match plugins/aiProxyApi.ts. */
 export type RelayProviderId =
+  | "anthropic"
   | "groq"
   | "openrouter"
   | "cerebras"
   | "mistral"
   | "fireworks"
   | "githubmodels";
+
+/**
+ * How a provider presents a LOCALLY-held key on the direct path.
+ *
+ * Only relevant when a runtime injected a key deliberately (a
+ * verification script, a native shell) — the relay handles the normal
+ * case server-side. Nearly every provider takes a bearer token, but
+ * Anthropic's Messages API uses `x-api-key`; sending Bearer there is a
+ * 401, which would silently drop Claude out of the fallback chain in
+ * exactly the runtimes that bothered to supply a key.
+ */
+function directAuthHeaders(provider: RelayProviderId, apiKey: string): Record<string, string> {
+  if (provider === "anthropic") {
+    return { "x-api-key": apiKey };
+  }
+  return { Authorization: `Bearer ${apiKey}` };
+}
 
 let statusPromise: Promise<Record<string, boolean>> | null = null;
 
@@ -111,7 +129,7 @@ export async function providerFetch(
         "Content-Type": "application/json",
         Accept: "application/json",
         ...(options.headers ?? {}),
-        Authorization: `Bearer ${options.apiKey}`,
+        ...directAuthHeaders(provider, options.apiKey),
       },
       body: JSON.stringify(options.body),
       ...(options.signal ? { signal: options.signal } : {}),
