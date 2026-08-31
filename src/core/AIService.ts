@@ -434,7 +434,13 @@ export default class AIService {
     const delegation = this.resolveDelegation(message);
     if (delegation) {
       try {
-        const result = await AgentRunner.getInstance().run(delegation.agent.id, delegation.task);
+        const result = await AgentRunner.getInstance().run(
+          delegation.agent.id,
+          delegation.task,
+          undefined,
+          // Attribute the agent's work to THIS cognitive turn.
+          taskId,
+        );
         const response: AIResponse =
           result.ok && result.response
             ? result.response

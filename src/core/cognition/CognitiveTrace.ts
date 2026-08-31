@@ -216,6 +216,27 @@ export default class CognitiveTrace {
         };
       case "tool_failed":
         return { detail: `${event.tool} FAILED — ${event.error ?? "unknown error"}`, data: { tool: event.tool, phase: "failed", error: event.error ?? null } };
+      case "agent_started":
+        return {
+          detail: `agent ${event.agent} started — ${event.objective}`,
+          data: { tool: `agent:${event.agent}`, phase: "started", objective: event.objective },
+        };
+      case "agent_completed":
+        return {
+          detail: `agent ${event.agent} → ${event.resultPreview ?? "completed"}`,
+          data: {
+            tool: `agent:${event.agent}`,
+            phase: "result",
+            status: "complete",
+            provider: event.provider ?? null,
+            durationMs: event.durationMs ?? null,
+          },
+        };
+      case "agent_failed":
+        return {
+          detail: `agent ${event.agent} FAILED — ${event.error ?? "unknown error"}`,
+          data: { tool: `agent:${event.agent}`, phase: "failed", error: event.error ?? null },
+        };
       case "browser_opened":
         return { detail: `browser opened ${event.url}`, data: { tool: "browser", phase: "started", url: event.url } };
       case "browser_result":

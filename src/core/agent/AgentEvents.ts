@@ -83,6 +83,24 @@ export type AgentEvent =
       status?: "complete" | "blocked" | "error";
     }
   | { type: "tool_failed"; taskId: string; tool: string; error?: string }
+  /**
+   * Agent lifecycle. Emitted by AgentRunner — the ONE entry point every
+   * agent run passes through — so an agent started from the Agents panel
+   * is as visible as one delegated from chat. `taskId` is the parent
+   * cognitive turn when the run happens inside one, so the trace can
+   * attribute the work to that turn; a standalone run carries its own.
+   */
+  | { type: "agent_started"; taskId: string; agent: string; objective: string }
+  | {
+      type: "agent_completed";
+      taskId: string;
+      agent: string;
+      objective: string;
+      provider?: string;
+      durationMs?: number;
+      resultPreview?: string;
+    }
+  | { type: "agent_failed"; taskId: string; agent: string; objective: string; error?: string }
   | { type: "file_opened"; taskId: string; path: string }
   | { type: "file_changed"; taskId: string; path: string }
   | { type: "browser_opened"; taskId: string; url: string }

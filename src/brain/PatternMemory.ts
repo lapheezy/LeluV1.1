@@ -38,6 +38,13 @@ function wordBoundaryIncludes(haystack: string, needle: string): boolean {
   return new RegExp(`\\b${needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(haystack);
 }
 
+/**
+ * How many scored matches one recall may return. Comfortably larger than
+ * anything the model is shown (MemorySynthesizer caps at 6-14), so
+ * ranking and de-duplication downstream still have room to work.
+ */
+const RECALL_WORKING_SET = 50;
+
 export default class PatternMemory {
 
 
@@ -803,6 +810,23 @@ export default class PatternMemory {
           b.score -
 
           a.score,
+
+      )
+
+      // Attention: keep the most relevant working set, not every match.
+      // Scoring and sorting happen FIRST, so this keeps the best results
+      // rather than an arbitrary slice. Without it a store with hundreds
+      // of memories on one topic returned all of them from a single
+      // recall — measured at 220/220 in verify-attention-bounds.ts — and
+      // AIService.chat() then awaited user.learn() once per result,
+      // sequentially, on every turn. The synthesizer narrows this to
+      // 6-14 for the model; this bounds the retrieval itself.
+
+      .slice(
+
+        0,
+
+        RECALL_WORKING_SET,
 
       )
 

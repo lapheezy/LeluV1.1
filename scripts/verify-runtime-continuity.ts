@@ -349,7 +349,85 @@ async function main(): Promise<void> {
     live.shutdown();
   }
 
-  console.log("\n== 7. Recent activity survives a restart too ==");
+  console.log("\n== 7. AN AGENT'S RESULT RETURNS TO THE RUNTIME ==");
+  {
+    // AgentRunner is the ONE entry point every agent run passes through
+    // — chat delegation and the Agents panel both call it — and it used
+    // to emit nothing at all. An agent started from the panel wrote to
+    // AgentStore and no other subsystem ever knew it had happened.
+    const { default: AgentRunner } = await import("../src/core/agents/AgentRunner");
+    const { default: AgentStore } = await import("../src/core/agents/AgentStore");
+    const { default: CognitiveTrace } = await import("../src/core/cognition/CognitiveTrace");
+
+    const live = LeluRuntime.getInstance();
+    await live.initialize();
+    const store = AgentStore.getInstance();
+
+    const agent = store.runnable()[0];
+    assert(agent !== undefined, "there is a runnable agent to exercise", `${store.list().length} agents`);
+    if (!agent) {
+      live.shutdown();
+    } else {
+      const before = (await live.getSnapshot()).recentActivity.length;
+
+      const trace = CognitiveTrace.getInstance();
+      trace.setEnabled(true);
+      const parentTaskId = String(Date.now());
+      trace.begin(parentTaskId, "Delegate something to an agent.");
+
+      // The real orchestration entry point, with a parent turn — exactly
+      // what AIService.chat()'s delegation branch does.
+      const result = await AgentRunner.getInstance().run(
+        agent.id,
+        "Summarise the current project state.",
+        undefined,
+        parentTaskId,
+      );
+      trace.end();
+
+      const after = await live.getSnapshot();
+      assert(
+        after.recentActivity.length > before,
+        "the agent run reached runtime state (AgentRunner emitted nothing before)",
+        `${before} → ${after.recentActivity.length}`,
+      );
+      assert(
+        after.recentActivity.some((entry) => entry.includes(agent.name)),
+        "and the runtime knows WHICH agent ran",
+        after.recentActivity.slice(0, 3).join(" | "),
+      );
+      assert(
+        after.recentActivity.some(
+          (entry) => entry.includes("finished") || entry.includes("FAILED"),
+        ),
+        "including whether it succeeded or failed — never silence",
+        after.recentActivity.slice(0, 3).join(" | "),
+      );
+
+      // And the same run is attributable to the cognitive turn it belongs to.
+      const turn = trace.lastTurn();
+      const agentEntries = CognitiveTrace.entriesFor(turn, "TOOL_CALL").filter((entry) =>
+        String(entry.data?.tool ?? "").startsWith("agent:"),
+      );
+      assert(
+        agentEntries.length >= 2,
+        "the agent's work appears in THAT TURN's evidence chain (start + outcome)",
+        CognitiveTrace.format(turn),
+      );
+      assert(
+        agentEntries.some((entry) => entry.data?.phase === "result" || entry.data?.phase === "failed"),
+        "with a real outcome recorded, not just a start",
+        JSON.stringify(agentEntries.map((entry) => entry.data?.phase)),
+      );
+      assert(
+        typeof result.ok === "boolean",
+        "and the caller still receives the result it always did (no contract change)",
+      );
+      live.shutdown();
+    }
+  }
+
+  console.log("\n== 8. Recent activity survives a restart too ==");
   {
     const revivedAgain = restart();
     const snapshot = await revivedAgain.getSnapshot();

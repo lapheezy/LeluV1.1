@@ -287,6 +287,18 @@ export default class LeluRuntime {
       this.recordActivity(
         `Failed: ${LeluRuntime.short(event.label)} — ${event.error ?? "unknown error"}`,
       );
+    } else if (event.type === "agent_started") {
+      this.recordActivity(`${event.agent} started: ${LeluRuntime.short(event.objective)}`);
+    } else if (event.type === "agent_completed") {
+      // The agent's RESULT reaching the runtime — §10's requirement that
+      // agent work returns to the orchestrator rather than ending at
+      // whichever caller happened to invoke it.
+      this.recordActivity(
+        `${event.agent} finished${event.provider ? ` via ${event.provider}` : ""}: ` +
+          LeluRuntime.short(event.resultPreview ?? event.objective),
+      );
+    } else if (event.type === "agent_failed") {
+      this.recordActivity(`${event.agent} FAILED: ${event.error ?? "unknown error"}`);
     } else if (event.type === "memory_update") {
       this.recordActivity(`Remembered something (${event.category})`);
     } else if (event.type === "provider_selected") {
