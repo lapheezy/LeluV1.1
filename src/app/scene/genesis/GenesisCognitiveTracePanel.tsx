@@ -26,6 +26,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import LeluRuntime, { type RuntimeSnapshot } from "../../../core/runtime/LeluRuntime";
 import GenesisWindowFrame from "./GenesisWindowFrame";
 import CognitiveTrace, {
   type CognitiveStage,
@@ -150,6 +151,15 @@ export default function GenesisCognitiveTracePanel({ onClose }: { onClose: () =>
     [],
   );
 
+  // The runtime's authoritative state. Subscribed, not recomputed here:
+  // the panel must SHOW LÉLU's state, never invent a second version of it.
+  const [runtime, setRuntime] = useState<RuntimeSnapshot | null>(null);
+  useEffect(() => {
+    const instance = LeluRuntime.getInstance();
+    void instance.getSnapshot().then(setRuntime);
+    return instance.subscribe(setRuntime);
+  }, []);
+
   const [health, setHealth] = useState<ProviderHealthReport | null>(null);
   const refreshHealth = useCallback(() => {
     // inspect() is deterministic and makes NO network calls.
@@ -219,6 +229,55 @@ export default function GenesisCognitiveTracePanel({ onClose }: { onClose: () =>
           builds; production turns carry no tracing overhead.
         </div>
       ) : null}
+
+      {/* ============ RUNTIME STATE (authoritative) ============ */}
+      <div style={SECTION}>
+        <div style={LABEL}>Runtime</div>
+        {runtime ? (
+          <>
+            <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+              <strong>Goal:</strong>{" "}
+              {runtime.activeGoal ? runtime.activeGoal.description : "none active"}
+            </div>
+            {runtime.activeGoal ? (
+              <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+                <strong>Next action:</strong> {runtime.nextAction ?? "plan complete"}
+                <span style={{ opacity: 0.55 }}>
+                  {" "}
+                  (step {runtime.activeGoal.currentStep + 1} of {runtime.activeGoal.steps.length})
+                </span>
+              </div>
+            ) : null}
+            <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+              <strong>Health:</strong> {runtime.health.overall} · cognition{" "}
+              {runtime.health.cognition} · memory {runtime.health.memory} · providers{" "}
+              {runtime.health.providers}
+            </div>
+            <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+              <strong>Memories:</strong>{" "}
+              {/* 0 with no measurement is "unknown", not "none" — the runtime
+                  reports when it last really counted. */}
+              {runtime.statsMeasuredAt === 0 ? "not measured yet" : runtime.memoryCount}
+              {runtime.activeProvider ? ` · answering via ${runtime.activeProvider}` : ""}
+            </div>
+            {runtime.recentActivity.length > 0 ? (
+              <div style={{ marginTop: 8 }}>
+                <div style={{ ...LABEL, marginBottom: 4 }}>Recent activity</div>
+                {runtime.recentActivity.slice(0, 5).map((entry, index) => (
+                  <div
+                    key={`${entry}-${index}`}
+                    style={{ fontSize: 11, opacity: 0.7, lineHeight: 1.5 }}
+                  >
+                    {entry}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <div style={EMPTY}>Runtime state loading…</div>
+        )}
+      </div>
 
       {/* ============ CURRENT TURN ============ */}
       <div style={SECTION}>

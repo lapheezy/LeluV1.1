@@ -74,6 +74,8 @@ export interface RuntimeSnapshot {
   health: RuntimeHealth;
   location: RuntimeLocation;
   activeGoal: RuntimeGoal | null;
+  /** The concrete next step of the active goal, or null. */
+  nextAction: string | null;
   taskCount: number;
   openTaskCount: number;
   agentCount: number;
@@ -81,6 +83,12 @@ export interface RuntimeSnapshot {
   memoryCount: number;
   providerNames: string[];
   activeProvider: string | null;
+  /**
+   * When memoryCount/providerNames/activeProvider were last really
+   * measured. 0 means never — the caller can tell "no memories" apart
+   * from "not measured yet" instead of trusting a zero.
+   */
+  statsMeasuredAt: number;
   conversationTopic: string | null;
   recentActivity: string[];
   worldPhase: string;
@@ -107,6 +115,8 @@ export default class LeluRuntime {
   private location: RuntimeLocation;
   private activeGoal: RuntimeGoal | null = null;
   private goals: RuntimeGoal[] = [];
+  /** Current conversation subject, fed by the runtime's own observers. */
+  private conversationTopic: string | null = null;
   private recentActivity: string[] = [];
   private listeners = new Set<RuntimeListener>();
   private healthCheckTimer: number | null = null;
@@ -114,11 +124,51 @@ export default class LeluRuntime {
   private cognitiveLoopStarted = false;
   private eventUnsubscribe: (() => void) | null = null;
 
+  /**
+   * The fields a snapshot can only learn by asking another subsystem
+   * (memory count, provider list). They are refreshed whenever anything
+   * awaits — getSnapshot() and checkHealth() — and reused by the
+   * synchronous push in notify().
+   *
+   * This exists because notify() used to hardcode `memoryCount: 0`,
+   * `providerNames: []`, `activeProvider: null`. Every UI subscriber was
+   * therefore shown invented state on every change, while getSnapshot()
+   * returned the truth — two different answers from one runtime that is
+   * supposed to be the single source of truth. A last-known-real value
+   * is honest; a hardcoded zero is not.
+   */
+  private liveStats = {
+    memoryCount: 0,
+    providerNames: [] as string[],
+    activeProvider: null as string | null,
+    /** 0 until the first real refresh, so "never measured" is visible. */
+    measuredAt: 0,
+  };
+
   private constructor() {
     this.health = this.loadHealth();
     this.location = this.loadLocation();
     this.goals = this.loadGoals();
     this.recentActivity = this.loadActivity();
+    // Restoring the goal LIST without restoring which one is active left
+    // LÉLU with no current goal after every reload: the plan was still on
+    // disk, but nothing pointed at it, so "what am I working on?" and
+    // "what is my next action?" both came back empty. Goal continuity
+    // across a restart depends on this line.
+    this.activeGoal = this.restoreActiveGoal();
+  }
+
+  /**
+   * The goal LÉLU should resume on boot: the highest-priority active one,
+   * most recently updated. A completed, paused or failed goal is never
+   * resurrected.
+   */
+  private restoreActiveGoal(): RuntimeGoal | null {
+    const active = this.goals.filter((goal) => goal.status === "active");
+    if (active.length === 0) return null;
+    return active.sort(
+      (a, b) => a.priority - b.priority || b.updatedAt - a.updatedAt,
+    )[0];
   }
 
   static getInstance(): LeluRuntime {
@@ -225,7 +275,37 @@ export default class LeluRuntime {
       this.recordActivity(`Using ${event.tool}`);
     } else if (event.type === "tool_failed") {
       this.recordActivity(`${event.tool} failed: ${event.error ?? "unknown error"}`);
+    } else if (event.type === "task_started") {
+      // A user turn. This was the largest hole in the runtime: chat
+      // emitted task_started/task_completed on the ONE event bus, but
+      // only tool events were observed here — so the thing LÉLU spends
+      // most of her existence doing never registered in her own state.
+      this.recordActivity(`Asked: ${LeluRuntime.short(event.label)}`);
+    } else if (event.type === "task_completed") {
+      this.recordActivity(`Answered: ${LeluRuntime.short(event.label)}`);
+    } else if (event.type === "task_failed") {
+      this.recordActivity(
+        `Failed: ${LeluRuntime.short(event.label)} — ${event.error ?? "unknown error"}`,
+      );
+    } else if (event.type === "memory_update") {
+      this.recordActivity(`Remembered something (${event.category})`);
+    } else if (event.type === "provider_selected") {
+      // Keeps activeProvider true between the async refreshes, so the UI
+      // shows who actually answered rather than a stale name.
+      this.liveStats.activeProvider = event.provider;
+    } else if (event.type === "browser_result") {
+      this.recordActivity(
+        event.status === "read"
+          ? `Read ${event.url}`
+          : `Could not read ${event.url} (${event.status})`,
+      );
     }
+  }
+
+  /** Keep one activity line readable. */
+  private static short(text: string, limit = 80): string {
+    const clean = text.replace(/\s+/g, " ").trim();
+    return clean.length > limit ? `${clean.slice(0, limit - 1)}…` : clean;
   }
 
   // ---------- LOCATION ----------
@@ -303,22 +383,81 @@ export default class LeluRuntime {
   // ---------- SNAPSHOT ----------
 
   async getSnapshot(): Promise<RuntimeSnapshot> {
+    await this.refreshLiveStats();
+    return this.buildSnapshot();
+  }
+
+  /**
+   * The next concrete action of the active goal — what LÉLU should do
+   * now. Null when there is no active goal or its plan is exhausted.
+   */
+  nextAction(): string | null {
+    const goal = this.activeGoal;
+    if (!goal || goal.status !== "active") return null;
+    return goal.steps[goal.currentStep] ?? null;
+  }
+
+  /** The goal LÉLU is currently working toward, if any. */
+  getActiveGoal(): RuntimeGoal | null {
+    return this.activeGoal ? { ...this.activeGoal } : null;
+  }
+
+  /** Every persisted goal, newest first. */
+  getGoals(): RuntimeGoal[] {
+    return this.goals.map((goal) => ({ ...goal }));
+  }
+
+  /** Re-measure the fields that require asking another subsystem. */
+  private async refreshLiveStats(): Promise<void> {
+    const ai = AIService.getInstance();
+    const providers = ai.getProviders().ai;
+    // The provider that LAST SUCCEEDED, from the registry that records it
+    // (AIProviderRegistry.markSuccess → getActiveProvider). The previous
+    // code searched the provider LIST for a `.active` field, behind an
+    // `any` cast — that list has no such field, so activeProvider was
+    // permanently null in the pulled snapshot as well as the pushed one.
+    let activeProvider: string | null = this.liveStats.activeProvider;
+    try {
+      activeProvider = (await ai.getApiStatus()).activeProvider;
+    } catch {
+      // Keep the last value the provider_selected event gave us rather
+      // than replacing a real name with a guess.
+    }
+    this.liveStats = {
+      memoryCount: (await ai.getMemories(2000).catch(() => [])).length,
+      providerNames: providers.map((provider) => provider.name),
+      activeProvider,
+      measuredAt: Date.now(),
+    };
+  }
+
+  /**
+   * ONE snapshot builder. getSnapshot() and notify() both use it, so the
+   * pushed state and the pulled state cannot diverge — which is exactly
+   * what happened when notify() built its own object literal with
+   * hardcoded zeros in it.
+   */
+  private buildSnapshot(): RuntimeSnapshot {
+    const queue = WorkQueue.getInstance().list();
+    const world = WorldLifecycle.getInstance();
     return {
       self: SelfModel.getInstance().get(),
       health: this.health,
       location: this.location,
       activeGoal: this.activeGoal,
-      taskCount: WorkQueue.getInstance().list().length,
-      openTaskCount: WorkQueue.getInstance().list().filter((i) => i.status === "open").length,
+      nextAction: this.nextAction(),
+      taskCount: queue.length,
+      openTaskCount: queue.filter((item) => item.status === "open").length,
       agentCount: AgentStore.getInstance().list().length,
       projectCount: ProjectStore.getInstance().list().length,
-      memoryCount: (await AIService.getInstance().getMemories(1).catch(() => [])).length,
-      providerNames: AIService.getInstance().getProviders().ai.map((p) => p.name),
-      activeProvider: AIService.getInstance().getProviders().ai.find((p: any) => p.active)?.name ?? null,
-      conversationTopic: null,
-      worldPhase: WorldLifecycle.getInstance().getPhase(),
-      worldCycleCount: WorldLifecycle.getInstance().getCycleCount(),
-      activeEngines: WorldLifecycle.getInstance().getActiveEngines().length,
+      memoryCount: this.liveStats.memoryCount,
+      providerNames: [...this.liveStats.providerNames],
+      activeProvider: this.liveStats.activeProvider,
+      statsMeasuredAt: this.liveStats.measuredAt,
+      conversationTopic: this.conversationTopic,
+      worldPhase: world.getPhase(),
+      worldCycleCount: world.getCycleCount(),
+      activeEngines: world.getActiveEngines().length,
       recentActivity: [...this.recentActivity],
       timestamp: Date.now(),
     };
@@ -334,25 +473,7 @@ export default class LeluRuntime {
   }
 
   private notify(): void {
-    const snapshot = {
-      self: SelfModel.getInstance().get(),
-      health: this.health,
-      location: this.location,
-      activeGoal: this.activeGoal,
-      taskCount: WorkQueue.getInstance().list().length,
-      openTaskCount: WorkQueue.getInstance().list().filter((i) => i.status === "open").length,
-      agentCount: AgentStore.getInstance().list().length,
-      projectCount: ProjectStore.getInstance().list().length,
-      memoryCount: 0,
-      providerNames: [],
-      activeProvider: null,
-      conversationTopic: null,
-      worldPhase: WorldLifecycle.getInstance().getPhase(),
-      worldCycleCount: WorldLifecycle.getInstance().getCycleCount(),
-      activeEngines: WorldLifecycle.getInstance().getActiveEngines().length,
-      recentActivity: [...this.recentActivity],
-      timestamp: Date.now(),
-    } satisfies RuntimeSnapshot;
+    const snapshot = this.buildSnapshot();
 
     for (const listener of this.listeners) {
       try {
