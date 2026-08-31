@@ -160,6 +160,7 @@ globalThis.window = {
 import AIService from "../src/core/AIService";
 import ImprovementQueue from "../src/core/selfdev/ImprovementQueue";
 import SelfDevelopmentLoop from "../src/core/selfdev/SelfDevelopmentLoop";
+import LeluRuntime from "../src/core/runtime/LeluRuntime";
 import SandboxFS from "../src/core/engineering/SandboxFS";
 import AutonomyGate from "../src/core/cognition/AutonomyGate";
 import AgentEventBus from "../src/core/agent/AgentEvents";
@@ -208,7 +209,11 @@ async function main(): Promise<void> {
   );
   queue.setStatus(proposal.id, "Approved");
 
+  const runtime = LeluRuntime.getInstance();
   const failRun = await loop.develop(proposal.id, { runWorkspaceTypecheck: false });
+  const goalAfterFailure = runtime.getGoals().find((goal) =>
+    goal.description.includes(proposal.title),
+  );
   assert(failRun.success === false, "develop() reports failure while the real bug is still present");
   assert(failRun.finalStatus === "Testing", 'proposal stays in "Testing" — never marked Ready on a failing test');
   assert(queue.get(proposal.id)?.status === "Testing", "queue status matches the real outcome");
@@ -221,6 +226,72 @@ async function main(): Promise<void> {
   assert(fixRun.finalStatus === "Ready", 'proposal reaches "Ready" only after the real sandboxed test passes');
   assert((fixRun.testResult?.tests.filter((t) => t.passed).length ?? 0) >= 1, "a real test actually ran and passed");
   assert(Boolean(fixRun.candidateSnapshotId), "a real candidate snapshot was created");
+
+  console.log("\n== self-development IS a goal pipeline, with REAL verification evidence ==");
+  // Before this, develop() ran entirely outside the goal system: no goal
+  // recorded what it was trying to achieve, and its verification results
+  // — which come from actually running the compiler and the test suite —
+  // went nowhere the rest of LÉLU could see.
+  assert(
+    goalAfterFailure !== undefined,
+    "the development run opened a real runtime goal",
+    runtime.getGoals().map((goal) => goal.description).join(" | "),
+  );
+  assert(
+    (goalAfterFailure?.steps.length ?? 0) >= 5,
+    "with the real pipeline as its plan (snapshot → edit → syntax → test → typecheck → …)",
+    JSON.stringify(goalAfterFailure?.steps),
+  );
+
+  const failedOutcomes = goalAfterFailure?.outcomes.filter((o) => o.status === "failed") ?? [];
+  assert(
+    failedOutcomes.length > 0,
+    "the FAILING run recorded a failed outcome against the goal",
+    JSON.stringify(goalAfterFailure?.outcomes.map((o) => `${o.action}:${o.status}`)),
+  );
+  assert(
+    failedOutcomes.some((outcome) => outcome.action === "test"),
+    "and it was the TEST step that failed — the real one, not a placeholder",
+    JSON.stringify(failedOutcomes.map((o) => o.action)),
+  );
+  assert(
+    Boolean(goalAfterFailure?.blockedReason),
+    "the goal is BLOCKED with the real reason, rather than advancing past work that did not hold",
+    String(goalAfterFailure?.blockedReason),
+  );
+
+  const verified = goalAfterFailure?.outcomes.filter((o) => o.status === "verified") ?? [];
+  assert(
+    verified.some((outcome) => outcome.action === "snapshot" || outcome.action === "edit"),
+    "steps that genuinely succeeded are recorded as verified",
+    JSON.stringify(verified.map((o) => o.action)),
+  );
+
+  // The successful run: a second goal, completed, with the passing test
+  // as evidence.
+  const goals = runtime.getGoals().filter((goal) => goal.description.includes(proposal.title));
+  const completed = goals.find((goal) => goal.status === "completed");
+  assert(
+    completed !== undefined,
+    "the SUCCESSFUL run completed its goal",
+    goals.map((goal) => `${goal.status}`).join(", "),
+  );
+  assert(
+    (completed?.outcomes.filter((o) => o.status === "verified").length ?? 0) >= 3,
+    "with several genuinely verified steps behind it",
+    JSON.stringify(completed?.outcomes.map((o) => `${o.action}:${o.status}`)),
+  );
+  assert(
+    completed?.outcomes.some(
+      (outcome) => outcome.action === "test" && outcome.status === "verified",
+    ) === true,
+    "including the test step — verified because a real test suite actually ran and passed",
+    JSON.stringify(completed?.outcomes.filter((o) => o.action === "test")),
+  );
+  assert(
+    completed?.outcomes.every((outcome) => outcome.detail.trim().length > 0) === true,
+    "every outcome carries real evidence text, never an empty claim",
+  );
 
   console.log("\n== live visibility — the SAME event bus GenesisExecutionTimeline renders from ==");
   // GenesisExecutionTimeline (mounted persistently in the chat surface,

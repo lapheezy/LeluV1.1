@@ -248,6 +248,25 @@ export default function GenesisCognitiveTracePanel({ onClose }: { onClose: () =>
                 </span>
               </div>
             ) : null}
+            {runtime.activeGoal?.blockedReason ? (
+              <div style={{ fontSize: 12, lineHeight: 1.5, color: "#ffb4a2" }}>
+                <strong>Blocked:</strong> {runtime.activeGoal.blockedReason}
+              </div>
+            ) : null}
+            {runtime.activeGoal && runtime.activeGoal.outcomes.length > 0 ? (
+              <div style={{ marginTop: 6 }}>
+                <div style={{ ...LABEL, marginBottom: 4 }}>Verified outcomes</div>
+                {runtime.activeGoal.outcomes.slice(-4).map((outcome, index) => (
+                  <div
+                    key={`${outcome.action}-${outcome.at}-${index}`}
+                    style={{ fontSize: 11, opacity: 0.75, lineHeight: 1.5 }}
+                  >
+                    {outcome.status === "verified" ? "✓" : outcome.status === "failed" ? "✗" : "–"}{" "}
+                    {outcome.action}: {outcome.detail.slice(0, 90)}
+                  </div>
+                ))}
+              </div>
+            ) : null}
             <div style={{ fontSize: 12, lineHeight: 1.5 }}>
               <strong>Health:</strong> {runtime.health.overall} · cognition{" "}
               {runtime.health.cognition} · memory {runtime.health.memory} · providers{" "}

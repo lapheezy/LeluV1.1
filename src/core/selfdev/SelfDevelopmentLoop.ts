@@ -33,6 +33,7 @@ import KnowledgeLibrary from "../cognition/KnowledgeLibrary";
 import SelfModel from "../cognition/SelfModel";
 import AutonomyGate from "../cognition/AutonomyGate";
 import AgentEventBus from "../agent/AgentEvents";
+import LeluRuntime from "../runtime/LeluRuntime";
 import type { SandboxRunResult } from "../engineering/SandboxRuntime";
 import type { WorkspaceCommandResult } from "../engineering/WorkspaceRuntime";
 
@@ -107,8 +108,37 @@ export default class SelfDevelopmentLoop {
     });
   }
 
+  /**
+   * The runtime goal this development run is driving, if any.
+   *
+   * Self-development used to run entirely outside the goal system: it
+   * had no goal, so nothing recorded what it was trying to achieve, and
+   * its verification results went nowhere the rest of LÉLU could see.
+   */
+  private goalId: string | null = null;
+
+  /**
+   * Record one pipeline phase — and mirror it into the runtime goal as a
+   * verified/failed OUTCOME.
+   *
+   * Every phase of the pipeline already funnels through here, so this is
+   * the one place the bridge belongs. The evidence is genuinely
+   * measured: `typecheck` runs the real TypeScript build, `test` runs
+   * the real test suite, `syntax` compiles the sandbox files. A step
+   * marked verified here passed an actual check, not a model's opinion.
+   */
   private addStep(steps: LoopStep[], step: string, status: LoopStep["status"], detail: string): void {
     steps.push({ step, status, detail, timestamp: Date.now() });
+    if (!this.goalId) return;
+    try {
+      LeluRuntime.getInstance().recordGoalOutcome(this.goalId, {
+        action: step,
+        status: status === "done" ? "verified" : status === "failed" ? "failed" : "skipped",
+        detail,
+      });
+    } catch {
+      // Reporting progress must never break the development loop itself.
+    }
   }
 
   /**
@@ -144,6 +174,20 @@ export default class SelfDevelopmentLoop {
         summary: "Proposal not found.",
       };
       return this.lastRun;
+    }
+
+    // Self-development IS a goal pipeline: observe → plan → implement →
+    // test → verify. Opening a real runtime goal here is what makes the
+    // work continuous and inspectable, rather than a detached routine
+    // that finishes and leaves no trace in LÉLU's state.
+    try {
+      this.goalId = LeluRuntime.getInstance().setGoal(
+        `Self-development: ${proposal.title}`,
+        1,
+        ["snapshot", "edit", "syntax", "test", "typecheck", "evaluate", "candidate"],
+      ).id;
+    } catch {
+      this.goalId = null;
     }
 
     events.emit({ type: "task_started", taskId, label: `Coding: ${proposal.title}` });
@@ -493,6 +537,21 @@ export default class SelfDevelopmentLoop {
     candidateSnapshotId?: string,
     patch?: string,
   ): LoopRunResult {
+    // The run is over: close the goal it was driving. A successful run
+    // completes it; a failed one stays ACTIVE and blocked, so the reason
+    // it stopped survives for the next cycle to pick up rather than
+    // vanishing when this function returns.
+    if (this.goalId) {
+      try {
+        if (success) {
+          LeluRuntime.getInstance().completeGoal(this.goalId);
+        }
+      } catch {
+        // never let goal bookkeeping break the loop's own result
+      }
+      this.goalId = null;
+    }
+
     return {
       proposalId: proposal?.id ?? "",
       title: proposal?.title ?? "(unknown)",

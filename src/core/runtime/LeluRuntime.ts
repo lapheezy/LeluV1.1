@@ -58,6 +58,27 @@ export interface RuntimeLocation {
   interface: string;
 }
 
+/**
+ * What actually happened when LÉLU acted on one step of a goal.
+ *
+ * "verified" means a real check passed — a compiler, a test run, an
+ * agent completing — NOT a model asserting success. That distinction is
+ * the whole point: an outcome this system calls verified is one it
+ * measured. Semantic goal satisfaction ("did this truly achieve the
+ * intent?") is a different and harder question that nothing here claims
+ * to answer.
+ */
+export interface GoalOutcome {
+  /** Which step of the plan this outcome belongs to. */
+  step: number;
+  /** The action taken, e.g. "typecheck", "test", "edit". */
+  action: string;
+  status: "verified" | "failed" | "skipped";
+  /** The real evidence — compiler output, test summary, error text. */
+  detail: string;
+  at: number;
+}
+
 export interface RuntimeGoal {
   id: string;
   description: string;
@@ -67,6 +88,10 @@ export interface RuntimeGoal {
   updatedAt: number;
   steps: string[];
   currentStep: number;
+  /** Per-step evidence of what was actually done and whether it held. */
+  outcomes: GoalOutcome[];
+  /** Why the goal cannot currently advance, or null. */
+  blockedReason: string | null;
 }
 
 export interface RuntimeSnapshot {
@@ -345,6 +370,8 @@ export default class LeluRuntime {
       updatedAt: Date.now(),
       steps,
       currentStep: 0,
+      outcomes: [],
+      blockedReason: null,
     };
     this.activeGoal = goal;
     this.goals.unshift(goal);
@@ -366,6 +393,73 @@ export default class LeluRuntime {
       this.recordActivity(`Goal completed: ${goal.description}`);
       this.notify();
     }
+  }
+
+  /**
+   * Record what actually happened when LÉLU acted on the current step,
+   * and let the outcome decide whether the goal moves.
+   *
+   * This is the verification step the loop was missing: work used to
+   * complete with nothing checking whether it held, so a goal advanced
+   * on nothing more than time passing. Now:
+   *
+   *   verified → the step's evidence held; advance to the next action
+   *   failed   → record why and BLOCK; the goal does not advance past a
+   *              step that did not work
+   *   skipped  → recorded for the history, but the step does not move
+   *
+   * Outcomes are always reported EXPLICITLY by the code that did the
+   * work. They are deliberately not inferred from passing tool events:
+   * advancing a goal because some unrelated tool happened to succeed
+   * would be exactly the fake progress this is meant to prevent.
+   */
+  recordGoalOutcome(
+    goalId: string,
+    outcome: { action: string; status: GoalOutcome["status"]; detail: string },
+  ): RuntimeGoal | null {
+    const goal = this.goals.find((item) => item.id === goalId);
+    if (!goal) return null;
+
+    goal.outcomes.push({
+      step: goal.currentStep,
+      action: outcome.action,
+      status: outcome.status,
+      detail: outcome.detail,
+      at: Date.now(),
+    });
+    goal.updatedAt = Date.now();
+
+    if (outcome.status === "verified") {
+      goal.blockedReason = null;
+      if (goal.currentStep < goal.steps.length - 1) {
+        goal.currentStep += 1;
+      }
+      this.recordActivity(
+        `Verified "${LeluRuntime.short(outcome.action, 40)}" — ${LeluRuntime.short(outcome.detail, 60)}`,
+      );
+    } else if (outcome.status === "failed") {
+      goal.blockedReason = `${outcome.action}: ${outcome.detail}`;
+      this.recordActivity(
+        `BLOCKED on "${LeluRuntime.short(outcome.action, 40)}" — ${LeluRuntime.short(outcome.detail, 60)}`,
+      );
+    }
+
+    if (this.activeGoal?.id === goalId) {
+      this.activeGoal = goal;
+    }
+    this.persistGoals();
+    this.notify();
+    return goal;
+  }
+
+  /** Clear a block so the goal can be retried. */
+  unblockGoal(goalId: string): void {
+    const goal = this.goals.find((item) => item.id === goalId);
+    if (!goal) return;
+    goal.blockedReason = null;
+    goal.updatedAt = Date.now();
+    this.persistGoals();
+    this.notify();
   }
 
   advanceGoal(goalId: string): void {
