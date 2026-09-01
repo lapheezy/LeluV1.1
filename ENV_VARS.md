@@ -73,6 +73,28 @@ Only `GITHUB_MODELS_TOKEN` counts.
 | `VITE_GITHUB_MODEL` | GitHub Models model override | no |
 | `VITE_AI_PROXY_BASE_URL` | Custom AI proxy for GitHub Models (bypasses the relay) | no |
 
+#### Reaching Claude without an Anthropic key
+
+`ANTHROPIC_API_KEY` is the direct path, but it is not the only one.
+OpenRouter resells the Anthropic models, so a working
+`OPENROUTER_API_KEY` already reaches Claude — set the model and the
+existing fallback chain does the rest:
+
+```
+VITE_OPENROUTER_MODEL=anthropic/claude-haiku-4.5
+```
+
+This is a model NAME, not a credential: it is safe in `.env`, in the
+client bundle, and in version control. Verified live —
+`scripts/verify-live-runtime.mjs` records the model on every relay call,
+and a real browser turn produced
+`groq (openai/gpt-oss-120b) → openrouter (anthropic/claude-haiku-4.5)`.
+
+Two caveats. `openrouter/free` is the default precisely because it is
+free; the Anthropic models bill against the OpenRouter account. And this
+routes Claude through a reseller, so it is a fallback for when the direct
+credential cannot be delivered, not a replacement for one.
+
 ### The relay endpoints
 
 Mounted by every runtime that serves the app (Vite dev/preview,

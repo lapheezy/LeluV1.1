@@ -79,12 +79,19 @@ page.on("pageerror", (error) => pageErrors.push(error.message));
 // covers what was really served rather than what is on disk.
 // Every relay call the PAGE makes — direct proof of which provider the
 // running app actually reaches through AIService → registry → provider.
+// The MODEL is recorded alongside the provider: "OpenRouter answered" and
+// "OpenRouter answered as Claude" are different facts, and only the
+// payload the page actually sent can tell them apart.
 const relayCalls = [];
 page.on("request", (request) => {
   if (!request.url().includes("/api/ai/relay")) return;
   try {
     const body = JSON.parse(request.postData() ?? "{}");
-    if (body.provider) relayCalls.push(body.provider);
+    if (!body.provider) return;
+    // relayFetchJson sends { provider, path, headers, body } — the
+    // provider's own upstream payload, and its model, is `body.body`.
+    const model = body.body?.model ?? null;
+    relayCalls.push(model ? `${body.provider} (${model})` : body.provider);
   } catch {
     /* not the JSON relay */
   }
