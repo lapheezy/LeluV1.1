@@ -48,6 +48,46 @@ export default class IntentDetector {
       return "project";
     }
 
+    // -- Project work stated WITHOUT the word "project".
+    //
+    // "I have an idea for a pendant collection", "use platinum", "make
+    // the collection larger and add three designs", "start working on
+    // it" — this is how people actually hand over work, and none of it
+    // contains the literal token "project". Requiring that token is why
+    // work stated conversationally was never organised into anything.
+    //
+    // This is only a CHEAP GATE, never a decision: it routes the turn to
+    // ProjectResolver, where ProjectInterpreter reads the real
+    // conversation and decides create / update / clarify / none. A
+    // "none" verdict falls straight back to ordinary conversation, so a
+    // false positive here costs a routing hop, not a wrong answer.
+    const projectNoun =
+      /\b(?:idea|concept|collection|campaign|series|line|brief|plan|build|design|prototype|feature|deliverable)s?\b/i;
+    const projectVerb =
+      /\b(?:start|begin|kick\s*off|work\s+on|working\s+on|make|build|create|design|develop|organi[sz]e|plan|add|extend|expand|continue|resume|scope|want|need|would\s+like|thinking\s+about)\b/i;
+    const continuationReference =
+      /\b(?:it|that|this|them|those|these|the\s+(?:collection|idea|design|plan|brief|series|line|campaign))\b/i;
+
+    if (
+      // "I have an idea for a pendant collection."
+      (projectNoun.test(text) && projectVerb.test(text)) ||
+      (/\bi\s+(?:have|had|got)\s+an?\s+idea\b/i.test(text)) ||
+      // "Start working on it." / "continue the pendant collection"
+      (/\b(?:start|continue|resume|carry\s+on)\b/i.test(text) && continuationReference.test(text)) ||
+      // "make it larger", "add three more designs" — a modification of
+      // something already under discussion.
+      (/\b(?:make|add|change|update|expand|extend|increase|reduce)\b/i.test(text) &&
+        continuationReference.test(text)) ||
+      // A bare directive that sets an attribute on whatever is being
+      // worked on: "use platinum", "switch to silver", "go with the
+      // larger size". Meaningless on its own — the interpreter checks
+      // whether a project is actually under discussion and answers
+      // "none" when there is not.
+      /^(?:use|switch\s+to|change\s+to|go\s+with|let'?s\s+use)\b/i.test(text)
+    ) {
+      return "project";
+    }
+
     // -- Live time / date --
     if (
       this.matches(text, [

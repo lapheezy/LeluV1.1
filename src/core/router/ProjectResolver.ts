@@ -23,6 +23,10 @@ import type { ProviderResult } from "./RouterResults";
 import ProjectStore, { type LeluProject } from "../projects/ProjectStore";
 import ProjectExecutor, { type ProjectExecutionOutcome } from "../projects/ProjectExecutor";
 import ProjectRequestParser from "../projects/ProjectRequestParser";
+import ProjectInterpreter, {
+  containsUnresolvedReference,
+  type ProjectDecision,
+} from "../projects/ProjectInterpreter";
 import type { KnowledgeResult } from "../../providers/Provider";
 
 export default class ProjectResolver {
@@ -95,11 +99,238 @@ export default class ProjectResolver {
       return this.handleDelete(text, startedAt);
     }
 
-    return { handled: false };
+    // Everything else the detector routed here is project WORK stated
+    // conversationally. It has no magic keyword to match on, so there is
+    // nothing to parse — hand it to cognition, which reads the real
+    // conversation and decides (including "none", which falls straight
+    // back to ordinary chat).
+    return this.handleCreate(context, text, prompt);
   }
 
-  /* ---- CREATE ---- */
+  /* ---- CREATE / MODIFY ----
+     Cognition interprets first. The regex parser is a FALLBACK, used
+     only when no provider can be reached — never as the authority. */
   private async handleCreate(
+    context: RouterContext,
+    text: string,
+    prompt: string,
+  ): Promise<ProviderResult> {
+    const decision = await new ProjectInterpreter().interpret(
+      prompt,
+      context.brain.getConversation().modelMessages(),
+      this.store.list().filter((project) => project.status !== "archived"),
+    );
+
+    if (decision) {
+      context.logger.info("ProjectResolver", "Cognitive interpretation of project request", {
+        action: decision.action,
+        projectId: decision.projectId,
+        resolvedReferences: decision.resolvedReferences,
+        reasoning: decision.reasoning,
+      });
+
+      // A reference she cannot ground is a question, not a guess. This
+      // is what stops "that metal" becoming a project named
+      // "...Collection in".
+      if (decision.action === "clarify" && decision.question) {
+        return this.respond(decision.question, context.started, {
+          projectClarification: true,
+          resolvedReferences: decision.resolvedReferences,
+        });
+      }
+
+      // SYSTEM-SIDE GUARD. Never persist a reference that was not
+      // actually resolved, whatever the model returned. "Use that metal"
+      // with nothing to bind to must produce a question, not a project
+      // whose material is the literal string "that metal".
+      const ungrounded = this.findUnresolved(decision);
+      if (ungrounded) {
+        context.logger.info("ProjectResolver", "Refused to persist an unresolved reference", {
+          ungrounded,
+          action: decision.action,
+        });
+        return this.respond(
+          `You said "${ungrounded}" — I don't have anything in our conversation that tells me what that refers to. What should it be?`,
+          context.started,
+          { projectClarification: true, unresolvedReference: ungrounded },
+        );
+      }
+
+      if (decision.action === "update" && decision.projectId) {
+        return this.applyUpdate(context, decision);
+      }
+
+      if (decision.action === "create") {
+        return this.applyCreate(context, text, prompt, decision);
+      }
+
+      // "none" — this was not really a project instruction. Let the
+      // ordinary conversational path answer it.
+      return { handled: false };
+    }
+
+    // No provider reachable: fall back to the parser, and say so rather
+    // than presenting a keyword fragment as understanding.
+    return this.createFromParser(context, text, prompt);
+  }
+
+  /**
+   * The first still-ungrounded reference in a decision, or null.
+   * Checked across every field that would be written to project state.
+   */
+  private findUnresolved(decision: ProjectDecision): string | null {
+    if (containsUnresolvedReference(decision.name)) return decision.name ?? null;
+    for (const value of Object.values(decision.attributes ?? {})) {
+      if (containsUnresolvedReference(value)) return value;
+    }
+    for (const [key, value] of Object.entries(decision.resolvedReferences ?? {})) {
+      // A "resolution" that just echoes the reference resolved nothing.
+      if (value.trim().toLowerCase() === key.trim().toLowerCase()) return key;
+      if (containsUnresolvedReference(value)) return value;
+    }
+    return null;
+  }
+
+  /** Apply a model-resolved change to an EXISTING project. */
+  private async applyUpdate(
+    context: RouterContext,
+    decision: ProjectDecision,
+  ): Promise<ProviderResult> {
+    const existing = this.store.get(decision.projectId as string);
+    if (!existing) {
+      return { handled: false };
+    }
+
+    const mergedTasks = [
+      ...(existing.actionableTasks ?? []),
+      ...(decision.tasks ?? []),
+    ].filter((task, index, all) => all.indexOf(task) === index).slice(0, 20);
+
+    const attributeText = decision.attributes
+      ? Object.entries(decision.attributes).map(([key, value]) => `${key}: ${value}`).join("; ")
+      : "";
+
+    this.store.update(existing.id, {
+      ...(decision.name ? { name: decision.name } : {}),
+      ...(decision.objective ? { objective: decision.objective, description: decision.objective } : {}),
+      actionableTasks: mergedTasks,
+      // Resolved attributes are the project's known facts, so the next
+      // turn's context carries "material: platinum" rather than "that metal".
+      context: [existing.context, attributeText].filter(Boolean).join("; ").slice(0, 600),
+    });
+
+    const updated = this.store.get(existing.id) as LeluProject;
+    const changes = [
+      decision.name && decision.name !== existing.name ? `renamed to **${decision.name}**` : "",
+      decision.objective ? "objective updated" : "",
+      decision.tasks?.length ? `${decision.tasks.length} task(s) added` : "",
+      attributeText ? `noted ${attributeText}` : "",
+    ].filter(Boolean);
+
+    const resolved = decision.resolvedReferences
+      ? Object.entries(decision.resolvedReferences).map(([k, v]) => `"${k}" → ${v}`).join(", ")
+      : "";
+
+    // "Start working on it" must actually start work, not just record a
+    // task saying so. Execution runs through the SAME ProjectExecutor
+    // the explicit "run my X project" command uses, and its result is
+    // persisted onto the project.
+    const execution = decision.execute ? await this.runProject(context, updated) : "";
+
+    return this.respond(
+      `Updated **${updated.name}**${changes.length ? `: ${changes.join(", ")}` : ""}.` +
+        (resolved ? `\n\n(Resolved ${resolved}.)` : "") +
+        (mergedTasks.length ? `\n\nTasks:\n${mergedTasks.map((t) => `• ${t}`).join("\n")}` : "") +
+        (execution ? `\n\nExecution:\n${execution}` : ""),
+      context.started,
+      {
+        projectUpdate: true,
+        projectId: updated.id,
+        resolvedReferences: decision.resolvedReferences,
+        tasks: mergedTasks,
+        executed: Boolean(decision.execute),
+      },
+    );
+  }
+
+  /** Run a project through the existing executor and persist the result. */
+  private async runProject(context: RouterContext, project: LeluProject): Promise<string> {
+    try {
+      const outcome = await new ProjectExecutor().execute(
+        project,
+        context.knowledgeProviders,
+        context.brain,
+      );
+      this.attachRunToCognition(context, outcome, project.queries ?? [project.objective || project.name]);
+      this.persistExecution(project.id, outcome);
+      return outcome.summary;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      context.logger.error("ProjectResolver", "Project execution failed.", {
+        project: project.name,
+        reason: message,
+      });
+      return `Execution failed: ${message}`;
+    }
+  }
+
+  /** Create a project from the model's resolved interpretation. */
+  private async applyCreate(
+    context: RouterContext,
+    text: string,
+    prompt: string,
+    decision: ProjectDecision,
+  ): Promise<ProviderResult> {
+    const name = decision.name ?? "New project";
+    const objective = decision.objective ?? prompt.trim();
+    const frequency = this.extractFrequency(text);
+
+    const project = this.store.create({ name, description: objective });
+    const attributeText = decision.attributes
+      ? Object.entries(decision.attributes).map(([key, value]) => `${key}: ${value}`).join("; ")
+      : "";
+
+    this.store.update(project.id, {
+      queries: [objective],
+      originalRequest: prompt.trim(),
+      objective,
+      context: attributeText,
+      actionableTasks: decision.tasks ?? [],
+      priority: "P1",
+      location: new ProjectRequestParser().parse(prompt).location,
+      executionPlan: [],
+    });
+
+    if (frequency) {
+      this.store.setSchedule(project.id, frequency);
+    }
+
+    const resolved = decision.resolvedReferences
+      ? Object.entries(decision.resolvedReferences).map(([k, v]) => `"${k}" → ${v}`).join(", ")
+      : "";
+
+    const created = this.store.get(project.id) as LeluProject;
+    const execution = decision.execute ? await this.runProject(context, created) : "";
+
+    return this.respond(
+      `Project created: **${name}**\nObjective: ${objective}` +
+        (attributeText ? `\nKnown: ${attributeText}` : "") +
+        (decision.tasks?.length ? `\n\nTasks:\n${decision.tasks.map((t) => `• ${t}`).join("\n")}` : "") +
+        (resolved ? `\n\n(Resolved ${resolved}.)` : "") +
+        (execution ? `\n\nExecution:\n${execution}` : ""),
+      context.started,
+      {
+        projectCreated: true,
+        executed: Boolean(decision.execute),
+        projectId: project.id,
+        resolvedReferences: decision.resolvedReferences,
+        tasks: decision.tasks ?? [],
+      },
+    );
+  }
+
+  /* ---- PARSER FALLBACK (no provider reachable) ---- */
+  private async createFromParser(
     context: RouterContext,
     text: string,
     prompt: string,
@@ -154,7 +385,9 @@ export default class ProjectResolver {
     const scheduleText = frequency
       ? `\nSchedule: ${frequency} (next run scheduled automatically)`
       : "";
-    const responseText = `Project created: **${parsed.name}**\nObjective: ${parsed.objective}${scheduleText}\n\nExecution:\n${runDigest}`;
+    // Explicitly marked: this title came from text parsing, not from
+    // understanding, because no provider was reachable to interpret it.
+    const responseText = `Project created: **${parsed.name}**\nObjective: ${parsed.objective}${scheduleText}\n\nExecution:\n${runDigest}\n\n_(No AI provider was reachable, so this was organised by text parsing. Tell me the real title or what it refers to and I'll correct it.)_`;
 
     return this.respond(responseText, context.started, {
       projectExecution: true,

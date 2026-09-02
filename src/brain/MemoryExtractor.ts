@@ -185,6 +185,72 @@ export default class MemoryExtractor {
 
 
 
+    // A DECISION the user makes about the work is a durable fact:
+    // "use platinum", "switch to silver", "platinum supersedes rose
+    // gold". These carry no first-person pronoun and match none of the
+    // patterns below, so they scored 0.3 and were dropped — which is why
+    // asking "what metal are we using?" a turn later found nothing.
+    const decision =
+
+      prompt.match(
+
+        /^(?:use|switch\s+to|change\s+to|go\s+with|let'?s\s+use)\s+(.+?)[.!]?$/i,
+
+      )
+
+      ||
+
+      prompt.match(
+
+        /(.+?)\s+supersedes\s+(.+?)[.!]?$/i,
+
+      );
+
+
+
+    if (decision) {
+
+
+      memories.push(
+
+      {
+
+        category:
+
+          "preference",
+
+
+        content:
+
+          prompt.trim(),
+
+
+        keywords:
+
+          this.keywords(
+
+            prompt,
+
+          ),
+
+
+        importance:
+
+          0.75,
+
+
+        memoryType:
+
+          "user",
+
+      });
+
+    }
+
+
+
+
+
     const goal =
 
       prompt.match(
