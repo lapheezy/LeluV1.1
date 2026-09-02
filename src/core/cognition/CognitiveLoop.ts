@@ -38,7 +38,7 @@ import CapabilityManifest from "../capabilities/CapabilityManifest";
 import Sentinel from "../sentinel/Sentinel";
 import ProactiveCore, { type ProactiveQuestionInput } from "../proactive/ProactiveCore";
 import AgentEventBus from "../agent/AgentEvents";
-import type { KnowledgeResult } from "../../providers/Provider";
+import SelfStudyEngine from "./SelfStudyEngine";
 
 export interface CognitiveCycleReport {
   updatedAt: number;
@@ -56,6 +56,24 @@ export interface CognitiveCycleReport {
   suggestions: string[];
   selfUpdates: string[];
   cycle: number;
+  /**
+   * The continuous self-study process. `carried` is the size of the
+   * WORK BUFFER — it reaching zero is a refill trigger, never the end
+   * of cognition, so this is reported separately from the loop's own
+   * observation counts.
+   */
+  selfStudy: {
+    running: boolean;
+    cycle: number;
+    question: string | null;
+    agent: string | null;
+    tool: string | null;
+    /** development-runtime | static-snapshot | none */
+    evidenceOrigin: string | null;
+    provider: string | null;
+    derived: number;
+    carried: number;
+  };
 }
 
 type Listener = (report: CognitiveCycleReport) => void;
@@ -206,57 +224,38 @@ export default class CognitiveLoop {
         added += 1;
       }
 
-      /* ---------------- ACTUAL RESEARCH FROM GAPS ---------------- */
-      // When knowledge gaps exist, actually research them through the
-      // SAME ProviderRegistry the chat pipeline uses — not just propose
-      // LEARNING items. This makes cognition actually USE the connected
-      // APIs as part of its thinking loop.
-      if (gaps.length > 0 && autonomy.getLevel() >= 1) {
-        try {
-          const ai = AIService.getInstance();
-          const registry = ai.getKnowledgeProviderRegistry();
-          const topGap = gaps[0];
-          const researchQuery = topGap.detail || topGap.title;
-          const newsProviders = registry
-            .all()
-            .filter((p) => p.enabled && p.capabilities.some((c) => c === "knowledge" || c === "news" || c === "encyclopedia"))
-            .sort((a, b) => b.priority - a.priority)
-            .slice(0, 2);
-
-          for (const provider of newsProviders) {
-            if (!provider.canSearch?.(researchQuery)) continue;
-            try {
-              const results = await Promise.race([
-                provider.search(researchQuery),
-                new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 8000)),
-              ]);
-              if (Array.isArray(results) && results.length > 0) {
-                // Store as knowledge — cognition LEARNED from the API
-                knowledge.add({
-                  title: `Researched: ${topGap.title}`,
-                  domain: topGap.domain,
-                  detail: results.slice(0, 3).map((r: KnowledgeResult) => `${r.title}: ${(r.content ?? "").slice(0, 120)}`).join(" | "),
-                  status: "learned",
-                  source: provider.name,
-                });
-                selfModel.addLearning(`Researched "${researchQuery}" via ${provider.name}: ${results.length} result(s)`);
-                suggestions.push(`Actually researched knowledge gap "${topGap.title}" via ${provider.name} — ${results.length} result(s) stored.`);
-                // Report to Sentinel
-                Sentinel.getInstance().report(
-                  "system_event",
-                  "info",
-                  `Cognitive research: "${topGap.title}" → ${results.length} result(s) via ${provider.name}`,
-                  "CognitiveLoop",
-                );
-                break; // got results from this provider, stop
-              }
-            } catch {
-              // Provider failed — try next
-            }
-          }
-        } catch {
-          // Research is best-effort — never break the cycle
-        }
+      /* ---------------- SELF-STUDY (continuous cognition) ---------------- */
+      // Investigating a gap is NOT this loop's job any more. It used to
+      // fire a single knowledge-provider search at gaps[0] every cycle
+      // and never update that gap's status, so the same top gap was
+      // re-researched forever while the queue itself just drained.
+      //
+      // SelfStudyEngine owns that work now: it selects or GENERATES the
+      // objective, routes it to the agent/tool that can actually answer
+      // it, evaluates the evidence through the full provider chain,
+      // consolidates the learning into memory, and derives the next
+      // question. This loop only reports what that process is doing.
+      //
+      // Studying is thinking, so it is not gated by the autonomy level —
+      // the gate constrains ACTIONS (workspace commands, file writes,
+      // applying candidates), which live elsewhere.
+      const study = SelfStudyEngine.getInstance();
+      const studyReport = study.getLastReport();
+      if (studyReport?.objective) {
+        suggestions.push(
+          `Self-study cycle ${studyReport.cycle}: “${studyReport.objective.question}” via ${studyReport.agent}/${studyReport.tool} (${studyReport.evidenceOrigin}) — ${studyReport.derived.length} new question(s) generated.`,
+        );
+        Sentinel.getInstance().report(
+          "system_event",
+          "info",
+          `Self-study cycle ${studyReport.cycle} — ${studyReport.objective.question} → ${studyReport.derived.length} derived question(s), ${studyReport.bufferRemaining} carried.`,
+          "SelfStudyEngine",
+        );
+      }
+      if (!study.isRunning()) {
+        // Cognition must not depend on anything having started it from
+        // the UI. If the continuous loop is not running, start it.
+        study.start();
       }
 
       /* ---------------- API HEALTH CHECKS ---------------- */
@@ -422,6 +421,7 @@ export default class CognitiveLoop {
         suggestions,
         selfUpdates,
         cycle: this.cycle,
+        selfStudy: this.selfStudySnapshot(),
       };
       this.lastReport = report;
       for (const listener of this.listeners) {
@@ -499,6 +499,24 @@ export default class CognitiveLoop {
       suggestions: [],
       selfUpdates: [],
       cycle: this.cycle,
+      selfStudy: this.selfStudySnapshot(),
+    };
+  }
+
+  /** Read-only view of the continuous self-study process. */
+  private selfStudySnapshot(): CognitiveCycleReport["selfStudy"] {
+    const study = SelfStudyEngine.getInstance();
+    const report = study.getLastReport();
+    return {
+      running: study.isRunning(),
+      cycle: study.getCycle(),
+      question: report?.objective?.question ?? null,
+      agent: report?.agent ?? null,
+      tool: report?.tool ?? null,
+      evidenceOrigin: report?.evidenceOrigin ?? null,
+      provider: report?.provider ?? null,
+      derived: report?.derived.length ?? 0,
+      carried: report?.bufferRemaining ?? 0,
     };
   }
 }

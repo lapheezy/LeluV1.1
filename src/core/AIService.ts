@@ -836,6 +836,105 @@ export default class AIService {
   }
 
   /**
+   * COGNITION → PROVIDER CHAIN.
+   *
+   * Reason over a prompt that did not come from the user. Runs the
+   * SAME priority-ordered provider fallback the chat pipeline uses
+   * (one ProviderResolver, one AIProviderRegistry) but skips the
+   * conversational resolvers, so a self-study objective is answered
+   * as reasoning rather than re-routed as a search or a command.
+   *
+   * A provider failure is not a cognition failure: the chain moves to
+   * the next authorized provider by itself, and if every one fails the
+   * result comes back with `metadata.success === false` instead of
+   * throwing — the caller keeps its state and continues.
+   */
+  public async reason(
+    prompt: string,
+    options: { system?: string; model?: string; temperature?: number; maxTokens?: number } = {},
+  ): Promise<AIResponse> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+
+    const messages = [
+      ...(options.system ? [{ role: "system" as const, content: options.system }] : []),
+      { role: "user" as const, content: prompt },
+    ];
+
+    try {
+      return await this.runtime.reason({
+        messages,
+        prompt,
+        model: options.model,
+        temperature: options.temperature,
+        maxTokens: options.maxTokens,
+        timestamp: Date.now(),
+      });
+    } catch (error) {
+      // The resolver already contains provider failures; anything that
+      // escapes here is a runtime fault, and cognition still continues.
+      return {
+        text: "",
+        provider: "offline",
+        model: "offline",
+        processingTime: 0,
+        metadata: {
+          success: false,
+          reason: error instanceof Error ? error.message : String(error),
+        },
+      };
+    }
+  }
+
+  /**
+   * Recall from the ONE memory implementation (Brain → MemoryEngine).
+   * Used by cognition to retrieve relevant memory before reasoning.
+   * Never throws — an empty recall is a valid answer.
+   */
+  public async recall(query: string): Promise<{ prompt: string; response: string; confidence: number }[]> {
+    if (!this.initialized) {
+      return [];
+    }
+    try {
+      const patterns = await this.runtime.brain.recall(query);
+      return patterns.map((pattern) => ({
+        prompt: pattern.prompt ?? "",
+        response: pattern.response ?? "",
+        confidence: pattern.confidence ?? 0,
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Consolidate a durable learning into long-term memory through the
+   * existing Brain — no second memory system. `kind` picks the layer
+   * the Brain already maintains: "knowledge" for what she learned about
+   * the world, "system" for what she learned about herself.
+   */
+  public async consolidate(
+    kind: "knowledge" | "system",
+    summary: string,
+    keywords: string[],
+  ): Promise<boolean> {
+    if (!this.initialized) {
+      return false;
+    }
+    try {
+      if (kind === "system") {
+        await this.runtime.brain.rememberSystem(summary, keywords);
+      } else {
+        await this.runtime.brain.rememberKnowledge(summary, keywords);
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Read-only snapshot of every registered AI provider and
    * knowledge/research provider, for the Providers panel.
    */
@@ -861,6 +960,17 @@ export default class AIService {
    */
   public getKnowledgeProviderRegistry(): import("./ProviderRegistry").default {
     return this.runtime.core.getKnowledgeProviders();
+  }
+
+  /**
+   * The ONE AI provider registry — the same instance the chat pipeline
+   * and cognition both resolve through. Exposed so the Providers panel
+   * and the integration verification can inspect real registry state
+   * (priority order, failures, cooldowns, which provider actually
+   * answered) instead of inferring it. There is no second registry.
+   */
+  public getAIProviderRegistry(): import("./AIProviderRegistry").default {
+    return this.runtime.core.getAIProviders();
   }
 
   /**

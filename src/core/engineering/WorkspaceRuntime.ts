@@ -24,6 +24,7 @@
  */
 
 import AutonomyGate from "../cognition/AutonomyGate";
+import SourceAccess from "../selfdev/SourceAccess";
 
 export type WorkspaceOperation = "typecheck" | "test" | "build" | "inspect";
 
@@ -59,16 +60,6 @@ const REQUIRED_LEVEL: Record<WorkspaceOperation, number> = {
   build: 3,
   inspect: 2,
 };
-
-const DEFAULT_TIMEOUT_MS = 120_000;
-
-interface EngineerResponse {
-  ok: boolean;
-  status?: number;
-  stdout?: string;
-  stderr?: string;
-  error?: string;
-}
 
 export default class WorkspaceRuntime {
   private static instance: WorkspaceRuntime | null = null;
@@ -114,40 +105,28 @@ export default class WorkspaceRuntime {
   public async probe(): Promise<EngineeringRuntimeState> {
     if (this.probing) return this.probing;
     this.probing = (async () => {
-      try {
-        const controller = new AbortController();
-        const timer = window.setTimeout(() => controller.abort(), 8_000);
-        const response = await fetch("/api/engineer/status", {
-          signal: controller.signal,
-          cache: "no-store",
-        });
-        window.clearTimeout(timer);
-        if (!response.ok) throw new Error(`status ${response.status}`);
-        const payload = (await response.json()) as {
-          runtime?: string;
-          available?: boolean;
-          operations?: string[];
-          tokenRequired?: boolean;
-          workspace?: string;
-        };
-        this.runtimeState = {
-          runtime: payload.runtime === "node-server" || payload.runtime === "deno" ? "server" : "dev",
-          available: payload.available !== false,
-          operations: payload.operations ?? [],
-          tokenRequired: payload.tokenRequired === true,
-          workspace: payload.workspace,
-          checkedAt: Date.now(),
-        };
-      } catch (error) {
-        this.runtimeState = {
-          runtime: "unavailable",
-          available: false,
-          operations: [],
-          tokenRequired: false,
-          checkedAt: Date.now(),
-          error: error instanceof Error ? error.message : String(error),
-        };
-      }
+      // One probe implementation, shared with self-inspection: SourceAccess
+      // carries the configured runtime base URL and access token, so a
+      // deployed front-end pointed at a real development runtime reports
+      // that runtime here too instead of always saying "static-only".
+      const status = await SourceAccess.getInstance().status(true);
+      this.runtimeState = status.reachable
+        ? {
+            runtime: status.runtime === "node-server" || status.runtime === "deno" ? "server" : "dev",
+            available: true,
+            operations: status.operations,
+            tokenRequired: status.tokenRequired,
+            workspace: status.workspace,
+            checkedAt: status.checkedAt,
+          }
+        : {
+            runtime: "unavailable",
+            available: false,
+            operations: [],
+            tokenRequired: false,
+            checkedAt: status.checkedAt,
+            error: status.error ?? "Engineering runtime not reachable.",
+          };
       return this.runtimeState;
     })();
     try {
@@ -164,50 +143,34 @@ export default class WorkspaceRuntime {
 
   /** Run a whitelisted workspace command through the engineering runtime. */
   public async run(operation: WorkspaceOperation): Promise<WorkspaceCommandResult> {
-    const started = performance.now();
+    const started = Date.now();
     const gate = AutonomyGate.getInstance();
 
+    // Autonomy constrains EXECUTION. Running a real toolchain command
+    // against the workspace is an action, so it stays gated here.
     if (!gate.can(REQUIRED_LEVEL[operation])) {
       return {
         ok: false,
         exitCode: 1,
         stdout: "",
         stderr: `Blocked by the autonomy gate: this operation needs level ${REQUIRED_LEVEL[operation]} (${gate.describe(REQUIRED_LEVEL[operation])}).`,
-        durationMs: Math.round(performance.now() - started),
+        durationMs: Date.now() - started,
         available: true,
       };
     }
 
-    try {
-      const controller = new AbortController();
-      const timer = window.setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
-      const response = await fetch("/api/engineer/command", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ operation, timeoutMs: DEFAULT_TIMEOUT_MS }),
-        signal: controller.signal,
-      });
-      window.clearTimeout(timer);
-
-      if (!response.ok) {
-        return this.failed(operation, started, `Endpoint responded ${response.status}.`);
-      }
-      const payload = (await response.json()) as EngineerResponse;
-      return {
-        ok: payload.ok,
-        exitCode: payload.ok ? 0 : (payload.status ?? 1),
-        stdout: payload.stdout ?? "",
-        stderr: payload.stderr ?? payload.error ?? "",
-        durationMs: Math.round(performance.now() - started),
-        available: true,
-      };
-    } catch (error) {
-      return this.failed(
-        operation,
-        started,
-        error instanceof Error ? error.message : String(error),
-      );
+    const outcome = await SourceAccess.getInstance().command(operation);
+    if (outcome.origin !== "development-runtime" || outcome.error) {
+      return this.failed(operation, started, outcome.error ?? "no development runtime");
     }
+    return {
+      ok: outcome.ok,
+      exitCode: outcome.ok ? 0 : 1,
+      stdout: outcome.stdout,
+      stderr: outcome.stderr,
+      durationMs: outcome.durationMs || Date.now() - started,
+      available: true,
+    };
   }
 
   private failed(operation: WorkspaceOperation, started: number, reason: string): WorkspaceCommandResult {
@@ -216,9 +179,9 @@ export default class WorkspaceRuntime {
       exitCode: 1,
       stdout: "",
       stderr: `Workspace runtime unavailable (${operation}): ${reason}.`,
-      durationMs: Math.round(performance.now() - started),
+      durationMs: Date.now() - started,
       available: false,
-      note: `Engineering runtime not reachable from this deployment (static-only serving has no /api/engineer). The in-browser sandbox runtime remains available offline.`,
+      note: `Engineering runtime not reachable from this deployment (static-only serving has no /api/engineer). Point VITE_LELU_ENGINEER_URL at a real development runtime (and allowlist this origin with LELU_ENGINEER_ALLOWED_ORIGINS) to enable it. The in-browser sandbox runtime remains available offline.`,
     };
   }
 }

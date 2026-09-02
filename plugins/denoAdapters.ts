@@ -11,11 +11,20 @@
 
 // Deno ships a node:path compatibility shim; resolve/sep give us the
 // same boundary semantics as the Node adapter.
-import { resolve, sep } from "node:path";
-import { WorkspaceBoundaryError, type EngineerAdapter, type EngineerCommandResult } from "./engineerApi.ts";
+import { relative, resolve, sep } from "node:path";
+import {
+  WorkspaceBoundaryError,
+  type EngineerAdapter,
+  type EngineerCommandResult,
+  type EngineerDirEntry,
+} from "./engineerApi.ts";
+
+/** Directories never worth listing back to the client. */
+const SKIPPED_DIRS = new Set([".git", "node_modules", "dist", ".cache", ".vite"]);
 
 export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
   const workspaceRoot = Deno.cwd();
+  const startedAt = Date.now();
 
   function resolveWithinWorkspace(targetPath: string): string {
     const absoluteTarget = resolve(workspaceRoot, targetPath);
@@ -63,6 +72,30 @@ export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
     }
   }
 
+  async function listDir(absolutePath: string): Promise<EngineerDirEntry[]> {
+    const entries: EngineerDirEntry[] = [];
+    for await (const entry of Deno.readDir(absolutePath)) {
+      if (entry.isDirectory && SKIPPED_DIRS.has(entry.name)) continue;
+      const absolute = resolve(absolutePath, entry.name);
+      const rel = relative(workspaceRoot, absolute).split(sep).join("/");
+      if (entry.isDirectory) {
+        entries.push({ name: entry.name, path: rel, type: "dir" });
+        continue;
+      }
+      if (!entry.isFile) continue;
+      let size: number | undefined;
+      try {
+        size = (await Deno.stat(absolute)).size;
+      } catch {
+        size = undefined;
+      }
+      entries.push({ name: entry.name, path: rel, type: "file", size });
+    }
+    return entries.sort((a, b) =>
+      a.type === b.type ? a.name.localeCompare(b.name) : a.type === "dir" ? -1 : 1,
+    );
+  }
+
   return {
     runtime,
     workspaceRoot,
@@ -73,6 +106,14 @@ export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
       await Deno.mkdir(dir, { recursive: true });
       await Deno.writeTextFile(absolutePath, content);
     },
+    listDir,
+    runtimeInfo: () => ({
+      engine: "deno",
+      version: Deno.version?.deno ?? "unknown",
+      platform: Deno.build?.os ?? "unknown",
+      cwd: workspaceRoot,
+      startedAt,
+    }),
     runCommand,
   };
 }

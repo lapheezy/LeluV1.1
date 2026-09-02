@@ -11,7 +11,7 @@
  *   3. REGISTER PROVIDERS (AI + knowledge)
  *   4. INITIALIZE AI RUNTIME (health check, memory, cognition)
  *   5. INITIALIZE SERVICES (task engine, proactive, UI, etc.)
- *   6. START COGNITIVE LOOP
+ *   6. START COGNITION (observation loop + continuous self-study)
  *   7. VERIFY CONNECTIONS
  *
  * The bootstrap is idempotent — calling it twice is safe
@@ -25,6 +25,7 @@
 import { getEnvironment, environmentDiagnostics } from "./Environment";
 import AIService from "./AIService";
 import CognitiveLoop from "./cognition/CognitiveLoop";
+import SelfStudyEngine from "./cognition/SelfStudyEngine";
 import TaskEngine from "./tasks/TaskEngine";
 import BackgroundEngine from "./tasks/BackgroundEngine";
 import ProactiveEngine from "./cognition/ProactiveEngine";
@@ -175,13 +176,23 @@ export default class Bootstrap {
       steps.push(step("services", "FAILED", String(error)));
     }
 
-    // ---------- Step 5: START COGNITIVE LOOP ----------
-    steps.push(step("cognition", "RUNNING", "Starting cognitive loop…"));
+    // ---------- Step 5: START COGNITION ----------
+    // Two distinct processes, both independent of chat:
+    //   CognitiveLoop   — observes the environment and proposes work.
+    //   SelfStudyEngine — the continuous mission → gaps → investigation
+    //                     → learning → new gaps process. It does not wait
+    //                     for a user message and does not stop when its
+    //                     work buffer empties; an empty buffer only means
+    //                     the next objectives are generated from the
+    //                     mission and from what the last cycle learned.
+    steps.push(step("cognition", "RUNNING", "Starting cognition…"));
     try {
       const loop = CognitiveLoop.getInstance();
       loop.start();
+      const study = SelfStudyEngine.getInstance();
+      study.start();
       steps.push(step("cognition", "DONE",
-        `OK — cycle ${loop.getLastReport()?.cycle ?? 0}`));
+        `OK — observation cycle ${loop.getLastReport()?.cycle ?? 0}, self-study ${study.isRunning() ? "running" : "idle"} at cycle ${study.getCycle()}`));
     } catch (error) {
       steps.push(step("cognition", "FAILED", String(error)));
     }

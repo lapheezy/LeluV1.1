@@ -24,6 +24,7 @@ import ToolCallInterceptor from "./router/ToolCallInterceptor";
 import ResponseBuilder from "./router/ResponseBuilder";
 import AvatarResolver from "./router/AvatarResolver";
 import SurfaceResolver from "./router/SurfaceResolver";
+import CognitiveStateResolver from "./router/CognitiveStateResolver";
 import CapabilityManifest from "./capabilities/CapabilityManifest";
 import { cleanAssistantText } from "./router/ToolMarkup";
 
@@ -46,6 +47,7 @@ export default class AIRouter {
     private readonly projects = new ProjectResolver(),
     private readonly avatar = new AvatarResolver(),
     private readonly surfaces: SurfaceResolver = new SurfaceResolver(workspace),
+    private readonly cognitiveState = new CognitiveStateResolver(),
     private readonly responses = new ResponseBuilder(),
   ) {}
 
@@ -54,6 +56,16 @@ export default class AIRouter {
     // 0. TIME — deterministic local capability, no external API needed
     const timeResult = await this.time.execute(context);
     if (timeResult.handled && timeResult.response) return timeResult.response;
+
+    // 0.5 COGNITIVE STATE — "what are you thinking about?" REPORTS the
+    // autonomous self-study state that already exists. It is a pure read:
+    // it runs no cycle, starts no loop and calls no provider, so a chat
+    // request can never be the thing that created the state it reports.
+    // Must precede the brain stage, whose identity matcher would
+    // otherwise claim "what are you …" and answer with the identity
+    // statement instead.
+    const cognitiveState = await this.cognitiveState.execute(context);
+    if (cognitiveState.handled && cognitiveState.response) return cognitiveState.response;
 
     // 1. Brain / identity — always local
     const brain = await this.brain.execute(context);

@@ -27,6 +27,7 @@ import AutonomyGate from "./AutonomyGate";
 import UIStateStore, { type UIStateSnapshot } from "./UIStateStore";
 import ExecutiveRuntime from "../executive/ExecutiveRuntime";
 import EarthCore from "../earth/EarthCore";
+import SelfStudyEngine, { type CognitiveStateView } from "./SelfStudyEngine";
 
 export interface CognitiveContextSnapshot {
   /** Current self-model state. */
@@ -69,6 +70,14 @@ export interface CognitiveContextSnapshot {
 
   /** Canonical Earth Core spatial context (compact; null when dormant). */
   earthContext: string | null;
+
+  /**
+   * LÉLU's autonomous self-study state, READ as it already is.
+   *
+   * Building this context never starts a cycle and never calls a
+   * provider — a chat request reports cognition, it does not cause it.
+   */
+  selfStudy: CognitiveStateView;
 
   /** Current persistent project checkpoints available to cognition. */
   checkpoints: Array<{
@@ -153,6 +162,10 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
     executiveSelfStateText: ExecutiveRuntime.getInstance().getSelfStateText(),
     // Earth Core spatial context — canonical state from the one Earth runtime.
     earthContext: EarthCore.getInstance().buildSpatialContext(),
+    // Autonomous self-study state, READ ONLY. getCognitiveState() runs no
+    // cycle and mutates nothing, so assembling context for a chat request
+    // can never be what produced the state it reports.
+    selfStudy: SelfStudyEngine.getInstance().getCognitiveState(),
     checkpoints,
     builtAt: Date.now(),
   };
@@ -241,8 +254,108 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
     sections.push(`## RECENT EXECUTION EVENTS\n${eventLines.join("\n")}`);
   }
 
+  // Autonomous self-study — the cognition that has been running on its
+  // own. Injected so a provider answers about her actual state instead
+  // of inventing one.
+  sections.push(formatSelfStudyState(ctx.selfStudy));
+
   // Autonomy
   sections.push(`## AUTONOMY LEVEL: ${ctx.autonomyLevel}`);
 
   return sections.join("\n\n");
+}
+
+/**
+ * Render the autonomous cognitive state as structured facts:
+ * focus, active investigation, why it was selected, discoveries,
+ * unresolved questions, current understanding, next intended step.
+ *
+ * Conclusions and observations only — no hidden reasoning trace.
+ */
+export function formatSelfStudyState(study: CognitiveStateView): string {
+  const lines: string[] = ["## LÉLU AUTONOMOUS COGNITION (self-study, already running)"];
+
+  if (study.source === "none") {
+    lines.push(
+      "No self-study cycle has completed yet in this session, and no durable trace was found.",
+      `Loop scheduling itself: ${study.running ? "yes" : "no"}.`,
+    );
+    return lines.join("\n");
+  }
+
+  lines.push(
+    `Loop scheduling itself: ${study.running ? "yes" : "no"} · cycles this session: ${study.cycle} · durable cycle: ${study.persistedCycle} · state read from: ${study.source}`,
+  );
+  if (study.lastCycleAt) {
+    lines.push(`Last cycle finished: ${new Date(study.lastCycleAt).toISOString()}`);
+  }
+
+  if (study.focus) {
+    lines.push(
+      "",
+      "### CURRENT FOCUS",
+      `Question: ${study.focus.question}`,
+      `Kind: ${study.focus.domain} · raised as: ${study.focus.origin}`,
+      study.focus.target ? `Target: ${study.focus.target}` : "",
+      `Why this one: ${study.focus.whySelected}`,
+    );
+  }
+
+  if (study.investigation) {
+    lines.push(
+      "",
+      "### ACTIVE INVESTIGATION",
+      `Agent/tool: ${study.investigation.agent} / ${study.investigation.tool}`,
+      `Evidence: ${study.investigation.evidenceCount} observation(s) from ${
+        study.investigation.evidenceOrigin === "development-runtime"
+          ? "REAL_DEVELOPMENT_RUNTIME"
+          : study.investigation.evidenceOrigin === "static-snapshot"
+            ? "STATIC_SNAPSHOT (build-time, may be behind the working tree)"
+            : "internal runtime state"
+      }`,
+      `Evaluated by: ${
+        study.investigation.provider
+          ? `provider ${study.investigation.provider}`
+          : "no provider was reachable — evidence evaluated deterministically, cognition continued"
+      }`,
+      `Outcome: ${study.investigation.learned ? "learned" : "nothing conclusive"}; long-term memory ${
+        study.investigation.memoryConsolidated ? "written" : "not written"
+      }`,
+      study.investigation.conclusion ? `Conclusion: ${study.investigation.conclusion}` : "",
+    );
+  }
+
+  if (study.discoveries.length > 0) {
+    lines.push("", "### RECENT DISCOVERIES", ...study.discoveries.map((item) => `- ${item}`));
+  }
+
+  if (study.unresolved.length > 0) {
+    lines.push("", "### UNRESOLVED", ...study.unresolved.map((item) => `- ${item}`));
+  }
+
+  lines.push(
+    "",
+    "### CURRENT UNDERSTANDING",
+    `Knowledge: ${study.understanding.knowledgeEntries} entries, ${study.understanding.verified} verified/tested, ${study.understanding.openGaps} still untrusted.`,
+    `Source access: ${study.understanding.sourceAccess === "development-runtime" ? "REAL_DEVELOPMENT_RUNTIME" : "STATIC_SNAPSHOT"} (runtime reachable: ${study.understanding.runtimeReachable}).`,
+    study.understanding.agents.length > 0
+      ? `Agents/tools in play: ${study.understanding.agents.join(", ")}.`
+      : "No agent has run a cycle yet.",
+    study.understanding.mission.length > 0
+      ? `Mission I work from: ${study.understanding.mission.join(" | ")}`
+      : "Mission: understand and improve this system.",
+  );
+
+  if (study.nextIntended) {
+    lines.push(
+      "",
+      "### NEXT INTENDED INVESTIGATION",
+      `Question: ${study.nextIntended.question}`,
+      `Kind: ${study.nextIntended.domain} · raised as: ${study.nextIntended.origin}`,
+      `Why next: ${study.nextIntended.whySelected}`,
+    );
+  }
+  lines.push(`Questions carried in the buffer: ${study.carried}.`);
+
+  return lines.filter((line) => line !== "").join("\n");
 }

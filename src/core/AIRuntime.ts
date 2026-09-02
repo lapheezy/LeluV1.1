@@ -99,6 +99,17 @@ export default class AIRuntime {
 
 
 
+  /**
+   * The ONE provider fallback implementation. The chat router and
+   * cognition share this exact instance: same priority ordering, same
+   * failure cooldowns, same registry — a second copy would be a second
+   * truth about which provider is live.
+   */
+  private readonly providerResolver =
+    new ProviderResolver();
+
+
+
   private initialized =
     false;
 
@@ -135,7 +146,7 @@ export default class AIRuntime {
 
         new ResearchResolver(),
 
-        new ProviderResolver(),      );
+        this.providerResolver,      );
 
     // Start autonomous project scheduler (core-level, not React)
     ProjectScheduler.getInstance().start(this.knowledge);
@@ -314,6 +325,105 @@ export default class AIRuntime {
     return await this.router.route(
 
       context,
+
+    );
+
+  }
+
+
+
+
+
+  /**
+   * ==========================================================
+   * Reason
+   *
+   * A cognition-only entry point into the SAME provider chain
+   * `process()` uses. It skips the conversational resolvers
+   * (research / creative / surfaces / …) — a self-study
+   * objective is not a user utterance and must never be
+   * re-routed as one — and goes straight to ProviderResolver,
+   * which walks every enabled provider in priority order,
+   * records failures in the shared registry, and falls through
+   * to the next one. There is no second provider implementation
+   * and no separate credential path.
+   *
+   * It never throws: when every provider fails the resolver's
+   * offline response comes back with metadata.success === false,
+   * so the caller can carry its cognitive state forward and
+   * decide what to do rather than having the loop die.
+   * ==========================================================
+   */
+  public async reason(
+
+    request:
+      AIRequest,
+
+  ):
+    Promise<AIResponse> {
+
+
+    if (
+
+      !this.initialized
+
+    ) {
+
+      await this.initialize();
+
+    }
+
+
+    const context:
+
+      RouterContext =
+
+    {
+
+      request,
+
+      started:
+        Date.now(),
+
+      brain:
+        this.brain,
+
+      knowledgeProviders:
+        this.knowledge,
+
+      aiProviders:
+        this.providers,
+
+      logger:
+        this.logger,
+
+      intent: "chat",
+
+      cognitiveContext: buildCognitiveContext(),
+
+    };
+
+
+    const result =
+
+      await this.providerResolver.execute(
+
+        context,
+
+      );
+
+
+    return (
+
+      result.response ??
+
+      {
+        text: "",
+        provider: "offline",
+        model: "offline",
+        processingTime: Date.now() - context.started,
+        metadata: { success: false, reason: "provider-resolver-returned-nothing" },
+      }
 
     );
 

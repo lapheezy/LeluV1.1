@@ -20,25 +20,7 @@
 
 import KvStore from "../storage/KvStore";
 import SandboxFS from "../engineering/SandboxFS";
-
-/** Lazy raw importers for the real core sources (fetched on demand). */
-type RawModule = Record<string, () => Promise<string>>;
-
-/**
- * Vite provides import.meta.glob at build/dev time. Outside Vite (Bun
- * tests, SSR, headless runners) it does not exist — degrade to an empty
- * glob so the engine can still be imported and reasoned about instead of
- * crashing at module load. The Evolution workspace relies on the Vite
- * runtime, where the glob is real.
- */
-const RAW_GLOB: RawModule =
-  typeof import.meta.glob === "function"
-    ? (import.meta.glob("/src/core/**/*.ts", {
-        query: "?raw",
-        import: "default",
-        eager: false,
-      }) as RawModule)
-    : {};
+import SourceAccess, { type SourceOrigin } from "./SourceAccess";
 
 const WORKING_COPIES_KEY = "lelu.selfdev.workingcopies.v1";
 
@@ -98,61 +80,53 @@ export default class SelfCode {
     return SelfCode.instance;
   }
 
-  /** All real core source paths (keys of the raw glob). */
-  public listCoreSources(): string[] {
-    return Object.keys(RAW_GLOB).sort();
-  }
-
-  private liveReadCooldownUntil = 0;
+  private readonly source = SourceAccess.getInstance();
 
   /**
-   * Read the REAL content of a source file. Prefers the LIVE workspace
-   * file through the engineering runtime (POST /api/engineer/read) — the
-   * file on disk is the truth and may have changed since the bundle was
-   * built. Falls back to the lazy raw glob when the engineering runtime
-   * is unreachable (static-only deployment), with a short cooldown so a
-   * dead endpoint is not hammered on every read.
+   * All core source paths this build knows about. On a live development
+   * runtime the real `src/core` tree is authoritative; otherwise the
+   * build-time snapshot's paths are used.
    */
-  public async readCoreSource(path: string): Promise<string | null> {
-    const live = await this.readLiveSource(path);
-    if (live !== null) return live;
-    const loader = RAW_GLOB[path];
-    if (!loader) {
-      return null;
+  public async listCoreSources(): Promise<string[]> {
+    const status = await this.source.status();
+    if (status.reachable) {
+      const live = await this.walkCore("src/core");
+      if (live.length > 0) return live.sort();
     }
-    try {
-      return await loader();
-    } catch {
-      return null;
-    }
+    return this.source.snapshotPaths("/src/core/").sort();
   }
 
-  private async readLiveSource(path: string): Promise<string | null> {
-    if (Date.now() < this.liveReadCooldownUntil) return null;
-    try {
-      const controller = new AbortController();
-      const timer = window.setTimeout(() => controller.abort(), 3_000);
-      const response = await fetch("/api/engineer/read", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ path: path.replace(/^\/+/, "") }),
-        signal: controller.signal,
-      });
-      window.clearTimeout(timer);
-      if (!response.ok) {
-        this.liveReadCooldownUntil = Date.now() + 15_000;
-        return null;
+  private async walkCore(dir: string, depth = 0): Promise<string[]> {
+    if (depth > 6) return [];
+    const listing = await this.source.list(dir);
+    if (listing.origin !== "development-runtime") return [];
+    const paths: string[] = [];
+    for (const entry of listing.entries) {
+      if (entry.type === "dir") {
+        paths.push(...(await this.walkCore(entry.path, depth + 1)));
+      } else if (entry.name.endsWith(".ts")) {
+        paths.push(`/${entry.path}`);
       }
-      const payload = (await response.json()) as { ok?: boolean; content?: string };
-      if (payload.ok !== true || typeof payload.content !== "string") {
-        this.liveReadCooldownUntil = Date.now() + 15_000;
-        return null;
-      }
-      return payload.content;
-    } catch {
-      this.liveReadCooldownUntil = Date.now() + 15_000;
-      return null;
     }
+    return paths;
+  }
+
+  /**
+   * Read the REAL content of a source file through the single source
+   * access layer: the live development runtime when it is reachable,
+   * the build-time snapshot otherwise. Use `readCoreSourceDetailed` when
+   * the caller needs to know WHICH of the two answered.
+   */
+  public async readCoreSource(path: string): Promise<string | null> {
+    return (await this.source.read(path)).content;
+  }
+
+  /** The same read, with the origin (development runtime vs snapshot). */
+  public async readCoreSourceDetailed(
+    path: string,
+  ): Promise<{ content: string | null; origin: SourceOrigin; runtime: string | null }> {
+    const read = await this.source.read(path);
+    return { content: read.content, origin: read.origin, runtime: read.runtime };
   }
 
   /** Real sources that have an open working copy in the sandbox. */

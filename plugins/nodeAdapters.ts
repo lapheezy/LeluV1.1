@@ -9,13 +9,22 @@
  */
 
 import { spawn } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { WorkspaceBoundaryError, type EngineerAdapter, type EngineerCommandResult } from "./engineerApi.ts";
+import {
+  WorkspaceBoundaryError,
+  type EngineerAdapter,
+  type EngineerCommandResult,
+  type EngineerDirEntry,
+} from "./engineerApi.ts";
+
+/** Directories never worth listing back to the client. */
+const SKIPPED_DIRS = new Set([".git", "node_modules", "dist", ".cache", ".vite"]);
 
 /** Build the adapter bound to the current working directory. */
 export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
   const workspaceRoot = process.cwd();
+  const startedAt = Date.now();
 
   function resolveWithinWorkspace(targetPath: string): string {
     const absoluteTarget = path.resolve(workspaceRoot, targetPath);
@@ -83,6 +92,30 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
     });
   }
 
+  function listDir(absolutePath: string): EngineerDirEntry[] {
+    const entries: EngineerDirEntry[] = [];
+    for (const entry of readdirSync(absolutePath, { withFileTypes: true })) {
+      if (entry.isDirectory() && SKIPPED_DIRS.has(entry.name)) continue;
+      const absolute = path.join(absolutePath, entry.name);
+      const relative = path.relative(workspaceRoot, absolute).split(path.sep).join("/");
+      if (entry.isDirectory()) {
+        entries.push({ name: entry.name, path: relative, type: "dir" });
+        continue;
+      }
+      if (!entry.isFile()) continue;
+      let size: number | undefined;
+      try {
+        size = statSync(absolute).size;
+      } catch {
+        size = undefined;
+      }
+      entries.push({ name: entry.name, path: relative, type: "file", size });
+    }
+    return entries.sort((a, b) =>
+      a.type === b.type ? a.name.localeCompare(b.name) : a.type === "dir" ? -1 : 1,
+    );
+  }
+
   return {
     runtime,
     workspaceRoot,
@@ -92,6 +125,17 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
       mkdirSync(path.dirname(absolutePath), { recursive: true });
       writeFileSync(absolutePath, content, "utf8");
     },
+    listDir,
+    runtimeInfo: () => ({
+      engine: typeof Bun !== "undefined" ? "bun" : "node",
+      version:
+        typeof Bun !== "undefined" ? Bun.version : (process.versions?.node ?? "unknown"),
+      platform: process.platform,
+      cwd: workspaceRoot,
+      startedAt,
+    }),
     runCommand,
   };
 }
+
+declare const Bun: { version: string } | undefined;
