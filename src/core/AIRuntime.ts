@@ -40,10 +40,15 @@ import ProjectScheduler
 import { buildCognitiveContext }
   from "./cognition/CognitiveContext";
 
+import CognitiveTrace
+  from "./cognition/CognitiveTrace";
+
 import AIProviderRegistry
   from "./AIProviderRegistry";
 
 import type AIProvider from "../providers/AIProvider";
+
+import type ResponsePattern from "../brain/ResponsePattern";
 
 import type {
   AIRequest,
@@ -55,6 +60,9 @@ import type RouterContext
 
 import ModelRouter
   from "./model/ModelRouter";
+
+import ProviderHealth
+  from "./model/ProviderHealth";
 
 import LocalRuntime
   from "./runtime/local/LocalRuntime";
@@ -101,6 +109,13 @@ export default class AIRuntime {
 
   private initialized =
     false;
+
+  /** In-flight initialize() promise — see AIProviderRegistry for why
+   * this guard exists: without it, two concurrent callers would each
+   * pass the synchronous `if (this.initialized)` check before either
+   * finished, and each independently re-run core.initialize()/
+   * brain.initialize() and re-start ExecutiveRuntime. */
+  private initializingPromise: Promise<void> | null = null;
 
 
 
@@ -172,19 +187,22 @@ export default class AIRuntime {
 
     Promise<void> {
 
-
-    if (
-
-      this.initialized
-
-    ) {
-
-
+    if (this.initialized) {
       return;
-
+    }
+    if (this.initializingPromise) {
+      return this.initializingPromise;
     }
 
+    this.initializingPromise = this.doInitialize();
+    try {
+      await this.initializingPromise;
+    } finally {
+      this.initializingPromise = null;
+    }
+  }
 
+  private async doInitialize(): Promise<void> {
 
 
 
@@ -266,6 +284,15 @@ export default class AIRuntime {
     request:
       AIRequest,
 
+    /** Memories already recalled for this turn by the canonical owner
+     *  (MemoryBridge.enrich). Seeding RouterContext with them is what
+     *  stops BrainResolver from re-querying the brain for the same
+     *  prompt — one recall per turn, not one per interested stage.
+     *  Absent for callers that legitimately did not enrich (e.g. a
+     *  "none"-memoryAccess agent), which then recall on demand. */
+    options?:
+      { recalledMemories?: ResponsePattern[] },
+
   ):
     Promise<AIResponse> {
 
@@ -302,11 +329,27 @@ export default class AIRuntime {
       logger:
         this.logger,
 
-      intent: new IntentDetector().detect(request.prompt ?? ""),
+      intent: request.forceIntent ?? new IntentDetector().detect(request.prompt ?? ""),
 
       cognitiveContext: buildCognitiveContext(),
 
+      recalledMemories: options?.recalledMemories,
+
     };
+
+    CognitiveTrace.getInstance().record(
+      "MODEL_ROUTE",
+      `intent "${context.intent}"${request.forceIntent ? " (forced by caller)" : " (detected)"} — entering the resolver chain`,
+      {
+        intent: context.intent,
+        forced: Boolean(request.forceIntent),
+        // Proof the enriched context survived into the routed request:
+        // if this is 0 while memory was recalled, injection was lost
+        // between MemoryBridge.enrich() and the router.
+        contextLength: request.context?.length ?? 0,
+        messageCount: request.messages?.length ?? 0,
+      },
+    );
 
 
 
@@ -467,6 +510,16 @@ export default class AIRuntime {
    */
   public executionLogs() {
     return this.logger.all();
+  }
+
+  /**
+   * Deterministic health view over THE one provider registry this
+   * runtime already owns — no second registry, no duplicated chain.
+   * `inspect()` is offline-safe; `verifyLive()` performs real requests
+   * and is the production verification path.
+   */
+  public providerHealth(): ProviderHealth {
+    return new ProviderHealth(this.providers);
   }
 
 

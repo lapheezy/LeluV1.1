@@ -5,8 +5,7 @@
  * ==========================================================
  */
 
-import config from "../core/ProviderConfig";
-import { corsFetch } from "./corsFetch";
+import { knowledgeFetch } from "./aiRelay";
 
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
@@ -64,29 +63,18 @@ export default class NewsProvider
     query: string,
   ): Promise<KnowledgeResult[]> {
 
-    const apiKey =
-      config.newsApiKey;
-
-    if (!apiKey) {
-
-      throw new Error(
-        "News API key missing.",
-      );
-
-    }
-
-    const response =
-      await corsFetch(
-
-        `${this.endpoint}?q=${encodeURIComponent(
-          query,
-        )}&language=en&sortBy=publishedAt&pageSize=10&apiKey=${apiKey}`,
-
-        undefined,
-
-        this.timeout,
-
-      );
+    // The key is NOT read here any more. NewsAPI takes its credential as
+    // a query parameter and this ran in the browser, so a VITE_-prefixed
+    // key was compiled into the bundle and served to every visitor. The
+    // request now goes same-origin and the SERVER appends the key
+    // (plugins/aiProxyApi.ts → /api/knowledge/relay).
+    const response = await knowledgeFetch(
+      "news",
+      `${this.endpoint}?q=${encodeURIComponent(
+        query,
+      )}&language=en&sortBy=publishedAt&pageSize=10`,
+      { signal: AbortSignal.timeout(this.timeout) },
+    );
 
     if (!response.ok) {
 

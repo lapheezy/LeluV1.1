@@ -38,6 +38,9 @@ import {
 import CognitiveCore
   from "../core/cognition/CognitiveCore";
 
+import CognitiveTrace
+  from "../core/cognition/CognitiveTrace";
+
 import type ResponsePattern
   from "./ResponsePattern";
 
@@ -322,20 +325,49 @@ export default class Brain {
 
 
 
+  /**
+   * THE canonical long-term memory recall operation.
+   *
+   * Instrumented HERE rather than at any single call site so the
+   * cognitive trace counts every real recall regardless of who asked
+   * — which is what makes "exactly one recall per turn" provable
+   * instead of merely asserted. `purpose` distinguishes the one
+   * cognition recall that feeds the response from the deliberate
+   * post-write profile sync that necessarily runs after new memory
+   * has been written (see AIService.chat).
+   */
   public async recall(
 
     prompt:
       string,
 
+    purpose:
+      string = "cognition",
+
   ):
     Promise<ResponsePattern[]> {
 
 
-    return await this.memoryEngine.recall(
+    const memories = await this.memoryEngine.recall(
 
       prompt,
 
     );
+
+    CognitiveTrace.getInstance().record(
+      "MEMORY_RETRIEVAL",
+      memories.length > 0
+        ? `recalled ${memories.length} memory(ies) [${purpose}]: ${memories.slice(0, 3).map((m) => m.category).join(", ")}`
+        : `no long-term memories matched this prompt [${purpose}]`,
+      {
+        purpose,
+        count: memories.length,
+        categories: memories.map((m) => m.category),
+        topResponses: memories.slice(0, 3).map((m) => m.response.slice(0, 80)),
+      },
+    );
+
+    return memories;
 
   }
 
@@ -405,11 +437,18 @@ export default class Brain {
     prompt:
       string,
 
+    /** Memories already recalled for THIS turn. Passing them makes this
+     *  a pure synthesis step instead of a third redundant recall of the
+     *  same prompt (BrainResolver always has them by this point). */
+    preRecalled?:
+      ResponsePattern[],
+
   ):
     Promise<string> {
 
 
     const memories =
+      preRecalled ??
       await this.recall(
         prompt,
       );

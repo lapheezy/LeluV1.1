@@ -98,6 +98,11 @@ const ALLOWED_PREFIXES = [
   "/contents",
   "/compare",
   "/rate_limit",
+  // Read-only repository search. GitHubProvider.search() called this
+  // endpoint directly from the browser with a VITE_GITHUB_TOKEN, which
+  // Vite compiled into the bundle; routing it through this existing
+  // proxy is what lets that browser-side token go away.
+  "/search/",
 ];
 
 function isAllowedEndpoint(endpoint: string): boolean {

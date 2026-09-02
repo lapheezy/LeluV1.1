@@ -27,6 +27,9 @@ import AutonomyGate from "./AutonomyGate";
 import UIStateStore, { type UIStateSnapshot } from "./UIStateStore";
 import ExecutiveRuntime from "../executive/ExecutiveRuntime";
 import EarthCore from "../earth/EarthCore";
+import Sentinel from "../sentinel/Sentinel";
+import ImprovementQueue from "../selfdev/ImprovementQueue";
+import ToolRegistry from "../tools/ToolRegistry";
 
 export interface CognitiveContextSnapshot {
   /** Current self-model state. */
@@ -79,6 +82,44 @@ export interface CognitiveContextSnapshot {
     nextAction: string | null;
     pending: string[];
   }>;
+
+  /**
+   * Recent unacknowledged runtime errors/warnings from Sentinel — real
+   * uncaught exceptions, rejected promises, and subsystem-reported
+   * failures. Universal (every request), not only when an
+   * "engineering" intent happens to be detected — so cognition already
+   * knows what's currently broken without being told.
+   */
+  recentErrors: Array<{
+    type: string;
+    severity: string;
+    message: string;
+    source: string;
+    timestamp: number;
+  }>;
+
+  /**
+   * Open self-development proposals (the real ImprovementQueue, not a
+   * count nobody explains) — her own pending engineering work, visible
+   * to every request the same way an open project or active agent is.
+   */
+  pendingImprovements: Array<{
+    id: string;
+    title: string;
+    kind: string;
+    status: string;
+  }>;
+
+  /**
+   * Real, currently-available actions gated behind explicit user
+   * confirmation (risk level 2+ — device actions, external calls,
+   * anything destructive), from the ToolRegistry risk/permission
+   * schema. `available` is computed from actual runtime state
+   * (ToolRegistry.refreshAvailability, called at startup) — never the
+   * hardcoded claim it used to be — so a tool listed here is genuinely
+   * reachable right now, not merely defined.
+   */
+  toolsRequiringConfirmation: Array<{ id: string; name: string; riskLevel: number }>;
 
   /** Timestamp of this snapshot. */
   builtAt: number;
@@ -141,6 +182,32 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
     status: c.status,
   }));
 
+  const recentErrors = Sentinel.getInstance()
+    .getUnacknowledged()
+    .filter((event) => event.severity === "error" || event.severity === "critical")
+    .slice(0, 5)
+    .map((event) => ({
+      type: event.type,
+      severity: event.severity,
+      message: event.message,
+      source: event.source,
+      timestamp: event.timestamp,
+    }));
+
+  const pendingImprovements = ImprovementQueue.getInstance()
+    .open()
+    .slice(0, 5)
+    .map((proposal) => ({
+      id: proposal.id,
+      title: proposal.title,
+      kind: proposal.kind,
+      status: proposal.status,
+    }));
+
+  const toolsRequiringConfirmation = ToolRegistry.getInstance()
+    .needsConfirmation()
+    .map((tool) => ({ id: tool.id, name: tool.name, riskLevel: tool.riskLevel }));
+
   return {
     self,
     projects,
@@ -149,11 +216,14 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
     autonomyLevel: autonomyGate.getLevel(),
     ui: uiStateStore.get() as UIStateSnapshot,
     recentEvents,
+    toolsRequiringConfirmation,
     // Measured operational state — never assumed, never fabricated.
     executiveSelfStateText: ExecutiveRuntime.getInstance().getSelfStateText(),
     // Earth Core spatial context — canonical state from the one Earth runtime.
     earthContext: EarthCore.getInstance().buildSpatialContext(),
     checkpoints,
+    recentErrors,
+    pendingImprovements,
     builtAt: Date.now(),
   };
 }
@@ -224,6 +294,12 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   if (ctx.ui.cosmosExploring) uiParts.push("Cosmos: actively exploring");
   if (ctx.ui.avatarState !== "idle") uiParts.push(`Avatar: ${ctx.ui.avatarState}`);
   if (ctx.ui.isTyping) uiParts.push("User: typing");
+  if (ctx.ui.lastAction) {
+    const a = ctx.ui.lastAction;
+    uiParts.push(
+      `Last UI action: ${a.type}${a.target ? ` → ${a.target}` : ""} (${a.initiatedBy}, ${a.ok ? "succeeded" : "FAILED"}): ${a.detail}`,
+    );
+  }
 
   if (uiParts.length > 0) {
     sections.push(`## UI STATE\n${uiParts.join("\n")}`);
@@ -231,6 +307,33 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
 
   // Earth Core spatial context — LÉLU understands the globe she is showing.
   if (ctx.earthContext) sections.push(ctx.earthContext);
+
+  // Real, unacknowledged runtime errors — never require the user to
+  // report a problem cognition could already see.
+  if (ctx.recentErrors.length > 0) {
+    const errorLines = ctx.recentErrors.map(
+      (e) => `- [${e.source}] ${e.message}`,
+    );
+    sections.push(`## RECENT RUNTIME ERRORS (unacknowledged)\n${errorLines.join("\n")}`);
+  }
+
+  // Real, currently-reachable actions that need the user's explicit OK
+  // before she can actually run them — so she never has to guess (or
+  // claim) whether something needs confirmation.
+  if (ctx.toolsRequiringConfirmation.length > 0) {
+    const toolLines = ctx.toolsRequiringConfirmation.map(
+      (t) => `- ${t.name} (risk ${t.riskLevel}) — ask before using`,
+    );
+    sections.push(`## ACTIONS REQUIRING CONFIRMATION\n${toolLines.join("\n")}`);
+  }
+
+  // Her own pending engineering work — visible without being told.
+  if (ctx.pendingImprovements.length > 0) {
+    const improvementLines = ctx.pendingImprovements.map(
+      (p) => `- [${p.status}] ${p.title} (${p.kind})`,
+    );
+    sections.push(`## PENDING SELF-IMPROVEMENTS\n${improvementLines.join("\n")}`);
+  }
 
   // Recent real activity — what the runtime ACTUALLY did, newest last.
   if (ctx.recentEvents.length > 0) {

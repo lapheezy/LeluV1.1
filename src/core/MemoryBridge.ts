@@ -16,11 +16,13 @@
 import type Brain from "../brain/Brain";
 import type UserManager from "./user/UserManager";
 import type { AIRequest } from "../providers/AIProvider";
+import type ResponsePattern from "../brain/ResponsePattern";
 import AgentEventBus from "./agent/AgentEvents";
 import ProjectStore from "./projects/ProjectStore";
 import AgentStore from "./agents/AgentStore";
 import AvatarStore from "./avatar/AvatarProfile";
 import SupabasePersistence from "./persistence/SupabasePersistence";
+import CognitiveTrace from "./cognition/CognitiveTrace";
 
 export default class MemoryBridge {
   constructor(
@@ -29,15 +31,44 @@ export default class MemoryBridge {
   ) {}
 
   /**
-   * Retrieve + evaluate + synthesize memory context and attach it
-   * to the request before any provider generates a response.
+   * THE authoritative memory recall for a user turn.
+   *
+   * This is the canonical owner: it runs first (before the router),
+   * and its result is what actually reaches the model. Everything
+   * downstream — BrainResolver, ReasoningResolver, composeFromMemory
+   * — now CONSUMES the memories returned here (threaded through
+   * AIRuntime.process → RouterContext.recalledMemories) instead of
+   * re-querying the brain for the same prompt. Hence the return type:
+   * both the enriched request AND the memories that produced it, so
+   * the caller can hand them forward rather than the pipeline
+   * rediscovering them three more times.
    */
-  public async enrich(request: AIRequest): Promise<AIRequest> {
+  public async enrich(request: AIRequest): Promise<{ request: AIRequest; memories: ResponsePattern[] }> {
+    const trace = CognitiveTrace.getInstance();
+
+    // Instrumented inside Brain.recall() itself, so the trace counts
+    // every real recall regardless of caller.
     const memories = await this.brain.recall(request.prompt);
+
     const reflection = await this.brain.reflect();
     const conversation = this.brain.getConversation().context();
     const cognition = this.brain.cognitiveState();
     const profile = this.user.context();
+
+    trace.record(
+      "USER_CONTEXT",
+      profile ? `user profile present (${profile.length} chars)` : "no user profile yet",
+      { profileLength: profile?.length ?? 0 },
+    );
+    trace.record(
+      "TASK_CONTEXT",
+      `conversation: ${conversation?.messageCount ?? 0} message(s), topic "${conversation?.lastTopic || "general"}"`,
+      {
+        shortTermMessageCount: conversation?.messageCount ?? 0,
+        lastTopic: conversation?.lastTopic ?? null,
+        recentMessages: conversation?.recentMessages?.length ?? 0,
+      },
+    );
 
     const synthesized = this.brain.synthesizeContext(request.prompt, memories, {
       deep: /(everything|all you (?:remember|know)|more detail|more details|tell me more|elaborate|expand|tell me everything)/i.test(request.prompt),
@@ -56,10 +87,31 @@ export default class MemoryBridge {
     );
 
     if (context.trim().length === 0) {
-      return request;
+      trace.record("CONTEXT_INJECTION", "nothing relevant to inject — request left unchanged", {
+        injected: false,
+        synthesizedMemoriesUsed: synthesized.used.length,
+      });
+      return { request, memories };
     }
 
-    return {
+    // The load-bearing evidence: this is the exact moment retrieved
+    // memory becomes part of what the model will actually see. A test
+    // asserting only "memories were recalled" proves nothing without
+    // this — retrieval that never reaches the request is a silent
+    // no-op, which is precisely the failure mode being audited.
+    trace.record(
+      "CONTEXT_INJECTION",
+      `injected ${context.length} chars of memory/cognition context into the model request`,
+      {
+        injected: true,
+        contextLength: context.length,
+        synthesizedMemoriesUsed: synthesized.used.length,
+        synthesizedMemoriesRejected: synthesized.rejected,
+        contradictions: synthesized.contradictions.length,
+      },
+    );
+
+    const enrichedRequest: AIRequest = {
       ...request,
       context,
       messages: [
@@ -83,6 +135,8 @@ ${context}`,
         },
       ],
     };
+
+    return { request: enrichedRequest, memories };
   }
 
   private buildContext(
@@ -202,6 +256,19 @@ ${context}`,
     const learned = await this.brain.learn(prompt, response, "conversation", [], {
       source: "lelu-chat",
     });
+
+    CognitiveTrace.getInstance().record(
+      "MEMORY_WRITE",
+      learned
+        ? `persisted a durable "${learned.category}" memory: ${learned.response.slice(0, 80)}`
+        : "nothing durable enough to persist from this turn (stays session-scoped)",
+      {
+        persisted: Boolean(learned),
+        category: learned?.category ?? null,
+        memoryType: learned?.memoryType ?? null,
+        id: learned?.id ?? null,
+      },
+    );
 
     if (learned) {
       void SupabasePersistence.getInstance().persistMemories([learned]);

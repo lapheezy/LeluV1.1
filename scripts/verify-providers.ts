@@ -71,14 +71,14 @@ async function main() {
   const priorities = registry.all().map((p) => p.priority);
 
   check(
-    "registry registers the local-first provider plus all six remote chat providers",
+    "registry registers the local-first provider plus all seven remote chat providers",
     names.join(",") ===
-      "Local (on-device),Groq,OpenRouter,Cerebras,Mistral,Fireworks,GitHub Models",
+      "Local (on-device),Anthropic,Groq,OpenRouter,Cerebras,Mistral,Fireworks,GitHub Models",
     names.join(" → "),
   );
   check(
-    "fallback order is strict by priority (0,1,2,3,4,5,10)",
-    JSON.stringify(priorities) === JSON.stringify([0, 1, 2, 3, 4, 5, 10]),
+    "fallback order is strict by priority (0,1,2,3,4,5,6,10)",
+    JSON.stringify(priorities) === JSON.stringify([0, 1, 2, 3, 4, 5, 6, 10]),
     priorities.join(","),
   );
   check(
@@ -95,6 +95,7 @@ async function main() {
     // read, cleared in finally. Never a real credential.
     const g = globalThis as Record<string, unknown>;
     const keyNames = [
+      "__LELU_ANTHROPIC_API_KEY__",
       "__LELU_GROQ_API_KEY__",
       "__LELU_OPENROUTER_API_KEY__",
       "__LELU_CEREBRAS_API_KEY__",
@@ -136,9 +137,27 @@ async function main() {
       const body = JSON.parse(String(init?.body ?? "{}"));
       requested.push({
         url,
-        authHeader: headers.Authorization ?? null,
+        // Claude authenticates with x-api-key, every other provider with a
+        // bearer token — record whichever this provider actually sent so
+        // the auth assertion below stays meaningful for both.
+        authHeader: headers.Authorization ?? headers["x-api-key"] ?? null,
         model: body.model,
       });
+      // Anthropic's Messages API answers with a typed content-block array,
+      // not `choices[0].message.content`.
+      if (url.includes("api.anthropic.com")) {
+        return fakeResponse(
+          JSON.stringify({
+            id: "msg_stub",
+            type: "message",
+            role: "assistant",
+            model: body.model,
+            content: [{ type: "text", text: "Hello from the stub." }],
+            stop_reason: "end_turn",
+            usage: { input_tokens: 5, output_tokens: 4 },
+          }),
+        );
+      }
       return fakeResponse(FAKE_SUCCESS_BODY);
     }) as unknown as typeof fetch;
 
@@ -172,9 +191,18 @@ async function main() {
         `${provider.name}: response identifies the provider`,
         response.provider === provider.name,
       );
+      // Anthropic reports usage as input_tokens/output_tokens; the
+      // OpenAI-compatible providers report a single total_tokens. Assert
+      // the field each one actually returns rather than relaxing the check.
+      const usage = response.metadata?.usage as
+        | { total_tokens?: number; input_tokens?: number; output_tokens?: number }
+        | undefined;
       check(
         `${provider.name}: usage metadata parsed`,
-        (response.metadata?.usage as { total_tokens?: number })?.total_tokens === 30,
+        provider.name === "Anthropic"
+          ? usage?.input_tokens === 5 && usage?.output_tokens === 4
+          : usage?.total_tokens === 30,
+        JSON.stringify(usage),
       );
     }
 

@@ -25,6 +25,12 @@ export default class AICore {
   private initialized =
     false;
 
+  /** In-flight initialize() promise — see AIProviderRegistry for why
+   * this guard exists: without it, two concurrent callers would each
+   * pass the synchronous `if (this.initialized)` check before either
+   * finished, and each independently await aiProviders.initialize(). */
+  private initializingPromise: Promise<void> | null = null;
+
 
 
   constructor(
@@ -48,15 +54,22 @@ export default class AICore {
   public async initialize():
     Promise<void> {
 
-
-    if (
-      this.initialized
-    ) {
-
+    if (this.initialized) {
       return;
-
+    }
+    if (this.initializingPromise) {
+      return this.initializingPromise;
     }
 
+    this.initializingPromise = this.doInitialize();
+    try {
+      await this.initializingPromise;
+    } finally {
+      this.initializingPromise = null;
+    }
+  }
+
+  private async doInitialize(): Promise<void> {
 
     this.logger.info(
       "AICore",

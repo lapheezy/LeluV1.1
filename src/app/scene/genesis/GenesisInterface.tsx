@@ -26,6 +26,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useGenesis, type GenesisPanel } from "./GenesisCore";
 import GenesisModuleHost, { type ModuleRenderers } from "./GenesisModuleHost";
 import UIStateStore from "../../../core/cognition/UIStateStore";
+import UIActionBus from "../../../core/cognition/UIActionBus";
 import GenesisDock from "./GenesisDock";
 import GenesisCommandPalette from "./GenesisCommandPalette";
 import { genesisTheme } from "./GenesisTheme";
@@ -49,6 +50,7 @@ import GenesisAvatarPanel from "./GenesisAvatarPanel";
 import GenesisProjectsPanel from "./GenesisProjectsPanel";
 import GenesisSettingsPanel from "./GenesisSettingsPanel";
 import GenesisCognitionPanel from "./GenesisCognitionPanel";
+import GenesisCognitiveTracePanel from "./GenesisCognitiveTracePanel";
 import GenesisEngineeringPanel from "./GenesisEngineeringPanel";
 import GenesisSelfDevPanel from "./GenesisSelfDevPanel";
 import GenesisSelfEvolutionPanel from "./GenesisSelfEvolutionPanel";
@@ -80,6 +82,7 @@ const MODULE_RENDERERS: ModuleRenderers = {
   projects: ({ onClose }) => <GenesisProjectsPanel onClose={onClose} />,
   settings: ({ onClose }) => <GenesisSettingsPanel onClose={onClose} />,
   cognition: ({ onClose }) => <GenesisCognitionPanel onClose={onClose} />,
+  "cognitive-trace": ({ onClose }) => <GenesisCognitiveTracePanel onClose={onClose} />,
   engineering: ({ onClose }) => <GenesisEngineeringPanel onClose={onClose} />,
   evolution: ({ onClose }) => <GenesisSelfDevPanel onClose={onClose} />,
   notifications: ({ onClose }) => <GenesisNotificationsPanel onClose={onClose} />,
@@ -227,6 +230,9 @@ export default function GenesisInterface() {
     universe,
     engineRuntime,
     openPanel,
+    openModule,
+    minimizeModule,
+    closeModule,
     expand,
     setSelfExploration,
     setActiveScene,
@@ -268,6 +274,38 @@ export default function GenesisInterface() {
       isChatOpen: state.activePanel === "chat" || openModuleIds.length > 0,
     });
   }, [state.activePanel, openModuleIds.length, state.modules, state.uiControl]);
+
+  /* -------------------------------------------------------------
+   * UI Action Bus — the one canonical mounted interface registers its
+   * REAL action functions here (the same openPanel/openModule/etc. a
+   * user's click calls). This is what lets cognition (EngineeringResolver
+   * today) actually move the UI instead of only reading it. Kept behind
+   * a ref to the latest state/handlers so the registration itself never
+   * needs to re-run on every panel change.
+   * ------------------------------------------------------------- */
+  const activePanelRef = useRef(state.activePanel);
+  activePanelRef.current = state.activePanel;
+  useEffect(() => {
+    // The real, currently-rendered panel set — module-hosted panels plus
+    // the special-cased full-page surfaces below (chat/self-evolution/
+    // cosmos aren't in MODULE_RENDERERS but do have a real mount). This
+    // is intentionally NOT the full GenesisPanel type union — "providers"
+    // and "workspaces" are type values with no renderer at all, so they
+    // correctly stay unsupported rather than silently accepted.
+    const supportedPanels = [...Object.keys(MODULE_RENDERERS), "chat", "self-evolution", "cosmos", "none"];
+    const unregister = UIActionBus.getInstance().registerHandlers({
+      supportedPanels,
+      openPanel: (panel) => openPanel(panel as GenesisPanel),
+      openModule: (id) => openModule(id),
+      minimizeModule: (id) => minimizeModule(id),
+      closeModule: (id) => closeModule(id),
+      getActivePanel: () => activePanelRef.current,
+    });
+    return unregister;
+    // Registered once per mount — handlers close over stable useGenesis
+    // callbacks, and activePanelRef always reads the live value.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* -------------------------------------------------------------
    * World Registry — auto-register all known panels as exploration
@@ -348,15 +386,26 @@ export default function GenesisInterface() {
     [],
   );
 
+  // Runtime-start reporting belongs in its own once-per-mount effect —
+  // it was previously inside the presence-reconnection effect below,
+  // which legitimately re-runs whenever state.activePanel changes (its
+  // closures need the fresh value). That meant every panel navigation
+  // re-logged "LELU runtime initialized" to Sentinel and re-ran
+  // caps.updateStatus, several times within the first second of a real
+  // load (found via a live Playwright audit: 3 near-simultaneous
+  // "runtime_start" events on one page load). Harmless in isolation,
+  // but misleading telemetry that made a normal startup look like
+  // repeated re-initialization — exactly the kind of noise that makes
+  // a real instability harder to distinguish from a false alarm.
+  useEffect(() => {
+    Sentinel.getInstance().info("runtime_start", "LELU runtime initialized", "GenesisInterface");
+    CapabilityManifest.getInstance().updateStatus("ai-chat", "available");
+  }, []);
+
   useEffect(() => {
     const presence = presenceRef.current;
     const sentinel = Sentinel.getInstance();
     const cosmosRegistry = CosmosEntityRegistry.getInstance();
-    const caps = CapabilityManifest.getInstance();
-
-    // Report runtime start to Sentinel
-    sentinel.info("runtime_start", "LELU runtime initialized", "GenesisInterface");
-    caps.updateStatus("ai-chat", "available");
 
     presence.connect({
       openPanel: (panel) => {

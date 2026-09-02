@@ -9,10 +9,11 @@ import type AIProvider from "./AIProvider";
 import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
+import { providerFetch, relayAvailable } from "./aiRelay";
 
 export default class GroqProvider implements AIProvider {
   readonly name = "Groq";
-  readonly priority = 1;
+  readonly priority = 2;
   readonly enabled = true;
   readonly timeout = 30000;
   readonly requiresApiKey = true;
@@ -20,6 +21,8 @@ export default class GroqProvider implements AIProvider {
 
   private apiKey = "";
   private initialized = false;
+  /** True when the SERVER holds the credential (see providers/aiRelay.ts). */
+  private relay = false;
   // Current production chat model on Groq (llama-3.3-70b was retired).
   private model = "openai/gpt-oss-120b";
 
@@ -42,18 +45,26 @@ export default class GroqProvider implements AIProvider {
       runtimeEnv.__LELU_GROQ_MODEL__?.trim() ||
       "openai/gpt-oss-120b";
 
+    // NOT read from import.meta.env: Vite inlines VITE_* values into the
+    // client bundle, which is how provider keys ended up shipped to the
+    // browser. A key held HERE only comes from a runtime that injected
+    // one deliberately (verification scripts, a native shell); otherwise
+    // the request is relayed and the SERVER attaches the credential.
     this.apiKey =
-      import.meta.env.VITE_GROQ_API_KEY?.trim() ||
       runtimeEnv.__LELU_GROQ_API_KEY__?.trim() ||
       windowEnv?.__LELU_GROQ_API_KEY__?.trim() ||
       processEnv?.GROQ_API_KEY?.trim() ||
       "";
 
+    // No local key is the NORMAL production case now: the credential
+    // belongs on the server so it never enters the client bundle.
+    this.relay = this.apiKey ? false : await relayAvailable("groq");
+
     this.initialized = true;
 
     console.info("[GroqProvider] Initialized", {
-      hasKey: this.apiKey.length > 0,
-      keyLength: this.apiKey.length,
+      // Never the key or its length — only whether one is reachable.
+      credential: this.apiKey ? "local" : this.relay ? "server-relay" : "none",
       model: this.model,
     });
   }
@@ -97,7 +108,7 @@ export default class GroqProvider implements AIProvider {
 
   async isAvailable(): Promise<boolean> {
     return (
-      this.initialized && this.enabled && this.requiresApiKey && this.apiKey.length > 0
+      this.initialized && this.enabled && (this.apiKey.length > 0 || this.relay)
     );
   }
 
@@ -107,8 +118,8 @@ export default class GroqProvider implements AIProvider {
 
     if (!this.initialized) {
       lastError = "Groq provider not initialized.";
-    } else if (!this.apiKey) {
-      lastError = "Groq API key missing.";
+    } else if (!this.apiKey && !this.relay) {
+      lastError = "No Groq credential — set GROQ_API_KEY on the server.";
     }
 
     return {
@@ -130,8 +141,8 @@ export default class GroqProvider implements AIProvider {
       throw new Error("Groq provider is not initialized.");
     }
 
-    if (!this.apiKey) {
-      throw new Error("Groq API key is missing.");
+    if (!this.apiKey && !this.relay) {
+      throw new Error("Groq has no credential — set GROQ_API_KEY on the server.");
     }
 
     const messages = [
@@ -161,14 +172,13 @@ export default class GroqProvider implements AIProvider {
     let response: Response;
 
     try {
-      response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-        body: JSON.stringify(payload),
+      // Same upstream call as before. When no key is held locally the
+      // request goes same-origin to /api/ai/relay and the SERVER
+      // attaches the credential — status and body come back verbatim,
+      // so the parsing and fallback behaviour below is unchanged.
+      response = await providerFetch("groq", "https://api.groq.com/openai/v1/chat/completions", {
+        apiKey: this.apiKey,
+        body: payload,
         signal: AbortSignal.timeout(this.timeout),
       });
     } catch (error) {

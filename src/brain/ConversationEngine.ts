@@ -125,11 +125,18 @@ export default class ConversationEngine {
     Promise<void> {
 
 
+    // Labelled distinctly: this is the conversation engine refreshing
+    // its own short-term topic/context state AFTER the response, not
+    // the cognition recall that produced the answer. Mislabelling it
+    // "cognition" would make the one-recall-per-turn guarantee look
+    // violated in the trace when it is not.
     const memories =
 
       await this.brain.recall(
 
         message,
+
+        "short-term-conversation-update",
 
       );
 

@@ -35,6 +35,7 @@ import {
   type SpatialSearchResult,
 } from "./EarthTypes";
 import { corsFetch } from "../../providers/corsFetch";
+import { publicEnvVar } from "../env/publicEnv";
 
 /* ------------------------------------------------------------------
  * Helpers
@@ -46,20 +47,21 @@ async function fetchJson(url: string, timeoutMs = 10000): Promise<unknown> {
   return res.json();
 }
 
+/**
+ * Browser-safe variables only.
+ *
+ * This used to hand back the whole `import.meta.env` object, which made
+ * Vite inline every VITE_* value — including the chat-provider API keys,
+ * which this module has no business seeing — into the EarthProviders
+ * chunk. `publicEnvVar` reads an explicit allowlist of names instead
+ * (see core/env/publicEnv.ts), so only the two variables Earth actually
+ * uses can reach the bundle through here. The original note about
+ * needing a contiguous `import.meta.env` expression still holds, and
+ * publicEnv.ts satisfies it: each name is read as its own literal
+ * `import.meta.env.VITE_X` reference.
+ */
 function key(name: string): string | undefined {
-  try {
-    // NOTE: `import.meta.env` must appear as a CONTIGUOUS expression —
-    // Vite statically replaces exactly this text with the env object in
-    // dev AND build. A cast between (`(import.meta as X).env`) breaks the
-    // match and silently yields NOT_CONFIGURED in the browser.
-    const env: Record<string, string | undefined> | undefined = import.meta.env as Record<
-      string,
-      string | undefined
-    > | undefined;
-    return env?.[name] || undefined;
-  } catch {
-    return undefined;
-  }
+  return publicEnvVar(name) || undefined;
 }
 
 /**

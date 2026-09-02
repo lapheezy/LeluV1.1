@@ -44,6 +44,8 @@ import EngineeringMemory, { type EngineeringMemoryEntry } from "../../../core/se
 import SandboxFS from "../../../core/engineering/SandboxFS";
 import WorkspaceRuntime, { type EngineeringRuntimeState } from "../../../core/engineering/WorkspaceRuntime";
 import AutonomyGate from "../../../core/cognition/AutonomyGate";
+import EngineeringChat from "../../../core/selfdev/EngineeringChat";
+import type { ChatMessage } from "../../../core/multichat/MultiChatStore";
 
 const labelStyle: CSSProperties = {
   fontSize: 10.5,
@@ -92,7 +94,7 @@ const STATUS_COLORS: Record<string, string> = {
   "Rolled Back": "#f87171",
 };
 
-type Tab = "overview" | "architecture" | "capabilities" | "diagnostics" | "improvements" | "uilab" | "code";
+type Tab = "overview" | "architecture" | "capabilities" | "diagnostics" | "improvements" | "chat" | "uilab" | "code";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -100,6 +102,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "capabilities", label: "Capabilities" },
   { id: "diagnostics", label: "Diagnostics" },
   { id: "improvements", label: "Improvements" },
+  { id: "chat", label: "Engineering Chat" },
   { id: "uilab", label: "UI Lab" },
   { id: "code", label: "Code" },
 ];
@@ -135,6 +138,35 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
   const [running, setRunning] = useState(false);
   const [lastLoopRun, setLastLoopRun] = useState<LoopRunResult | null>(() => loop.getLastRun());
   const [memoryEntries, setMemoryEntries] = useState<EngineeringMemoryEntry[]>(() => memory.list());
+
+  // Engineering Chat — the SAME AIService.chat() pipeline as primary
+  // chat, routed through EngineeringResolver via forceIntent, backed
+  // by the real persistent MultiChatStore conversation (not a second
+  // chat engine). LÉLU can also post into this thread on her own —
+  // see SelfDevelopmentEngine.announce() — so it live-updates even
+  // when the user isn't the one typing.
+  const engineeringChat = useMemo(() => EngineeringChat.getInstance(), []);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => engineeringChat.getMessages());
+  const [chatDraft, setChatDraft] = useState("");
+  const [chatSending, setChatSending] = useState(false);
+
+  useEffect(() => {
+    return engineeringChat.subscribe(() => {
+      setChatMessages(engineeringChat.getMessages());
+    });
+  }, [engineeringChat]);
+
+  async function sendEngineeringChat() {
+    const text = chatDraft.trim();
+    if (!text || chatSending) return;
+    setChatDraft("");
+    setChatSending(true);
+    try {
+      await engineeringChat.send(text);
+    } finally {
+      setChatSending(false);
+    }
+  }
 
   const refresh = useCallback(() => {
     setCapabilities(registry.list());
@@ -235,6 +267,7 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
             {item.label}
             {item.id === "improvements" ? ` · ${queue.open().length}` : ""}
             {item.id === "diagnostics" && report ? ` · ${report.summary.error + report.summary.warn}` : ""}
+            {item.id === "chat" && chatMessages.length > 0 ? ` · ${chatMessages.length}` : ""}
           </button>
         ))}
       </div>
@@ -416,6 +449,95 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
             onIntegrate={integrateProposal}
             onApply={(id) => void applyProposal(id)}
           />
+        ) : null}
+
+        {/* ============================ ENGINEERING CHAT
+            A real conversation, not a form: types into the SAME
+            AIService.chat() pipeline (forceIntent: "engineering"),
+            backed by the persistent MultiChatStore thread. LÉLU's own
+            proactive observations (SelfDevelopmentEngine.announce())
+            land in the same thread live via the subscription above. */}
+        {tab === "chat" ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "min(64vh, 640px)" }}>
+            <div style={{ fontSize: 11.5, opacity: 0.65 }}>
+              A second conversation with LÉLU, dedicated to engineering, cognition and self-improvement. She can open it
+              herself when her own cognitive loop finds something real; you can ask her to investigate, and approve
+              changes through the Improvements tab once she proposes them.
+            </div>
+            <div
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                border: "1px solid rgba(255,255,255,0.09)",
+                borderRadius: 12,
+                padding: 12,
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+              }}
+            >
+              {chatMessages.length === 0 ? (
+                <div style={{ fontSize: 12, opacity: 0.55 }}>
+                  No messages yet. Ask LÉLU to investigate something, or wait for her cognitive loop to find a real
+                  issue on its own.
+                </div>
+              ) : (
+                chatMessages.map((message) => (
+                  <div
+                    key={message.id}
+                    style={{
+                      alignSelf: message.role === "user" ? "flex-end" : "flex-start",
+                      maxWidth: "82%",
+                      borderRadius: 12,
+                      padding: "8px 12px",
+                      fontSize: 12.5,
+                      lineHeight: 1.5,
+                      whiteSpace: "pre-wrap",
+                      background: message.role === "user" ? "rgba(34, 211, 238, 0.14)" : "rgba(255,255,255,0.05)",
+                      border: message.role === "user" ? "1px solid rgba(125,211,252,0.35)" : "1px solid rgba(255,255,255,0.10)",
+                    }}
+                  >
+                    {message.text}
+                    {message.provider ? (
+                      <div style={{ fontSize: 10, opacity: 0.5, marginTop: 4 }}>{message.provider}</div>
+                    ) : null}
+                  </div>
+                ))
+              )}
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                type="text"
+                value={chatDraft}
+                onChange={(event) => setChatDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    void sendEngineeringChat();
+                  }
+                }}
+                placeholder="Ask LÉLU to investigate, diagnose, or explain something…"
+                style={{
+                  flex: 1,
+                  borderRadius: 999,
+                  padding: "9px 14px",
+                  fontSize: 12.5,
+                  fontFamily: "inherit",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  color: "inherit",
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => void sendEngineeringChat()}
+                disabled={chatSending || !chatDraft.trim()}
+                style={{ ...chipButton, background: "rgba(34, 211, 238, 0.22)", border: "1px solid rgba(125, 211, 252, 0.5)" }}
+              >
+                {chatSending ? "…" : "Send"}
+              </button>
+            </div>
+          </div>
         ) : null}
 
         {/* ============================ UI LAB */}

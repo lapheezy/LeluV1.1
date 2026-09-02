@@ -17,16 +17,33 @@ import type { NativeCapability, PermissionState } from "../NativeCapability";
 import { transcribeAudio } from "../../voice/speechToText";
 import { microphoneCapability } from "./mic";
 import { isSecureContext } from "./helpers";
+import { relayAvailable } from "../../../providers/aiRelay";
+
+/**
+ * Whether the SERVER holds the Groq credential for transcription.
+ * Resolved once, asynchronously, and cached so `hasSttKey()` stays
+ * synchronous for the capability's existing availability checks. It
+ * starts false, so this capability under-reports rather than
+ * over-reports until the answer arrives.
+ */
+let relayGroqReady = false;
+void relayAvailable("groq")
+  .then((ready) => {
+    relayGroqReady = ready;
+  })
+  .catch(() => {
+    relayGroqReady = false;
+  });
 
 function hasSttKey(): boolean {
   const runtimeEnv = globalThis as typeof globalThis & {
     __LELU_GROQ_API_KEY__?: string;
   };
-  return Boolean(
-    ((import.meta as unknown as { env?: Record<string, string | undefined> })
-      .env ?? {})["VITE_GROQ_API_KEY"]?.trim() ||
-      runtimeEnv.__LELU_GROQ_API_KEY__?.trim(),
-  );
+  // import.meta.env is deliberately NOT consulted: it would inline the
+  // Groq key into the bundle. A key here comes only from a runtime that
+  // injected one; otherwise transcription is relayed and the SERVER
+  // holds the credential (see providers/aiRelay.ts).
+  return Boolean(runtimeEnv.__LELU_GROQ_API_KEY__?.trim()) || relayGroqReady;
 }
 
 function dataUrlToBlob(dataUrl: string): Blob {

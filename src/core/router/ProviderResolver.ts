@@ -15,6 +15,7 @@ import type RouterContext from "./RouterContext";
 import type { ProviderResult } from "./RouterResults";
 import AgentEventBus from "../agent/AgentEvents";
 import ModelRouter from "../model/ModelRouter";
+import CognitiveTrace from "../cognition/CognitiveTrace";
 
 export default class ProviderResolver {
   public async execute(context: RouterContext): Promise<ProviderResult> {
@@ -83,6 +84,19 @@ export default class ProviderResolver {
     // breaking the agent.
     const ordered = this.orderByPreference(eligible, decision.preferredProviders);
 
+    // The deterministic chain this turn will walk, in order — recorded
+    // BEFORE any attempt so a fallback can be checked against the plan
+    // rather than reconstructed from what happened to succeed.
+    CognitiveTrace.getInstance().record(
+      "PROVIDER_ATTEMPT",
+      `fallback chain (in order): ${ordered.map((p) => p.name).join(" → ")}`,
+      {
+        chain: ordered.map((p) => ({ name: p.name, priority: p.priority })),
+        preferred: decision.preferredProviders ?? [],
+        offlineMode: decision.offlineEnabled,
+      },
+    );
+
     for (const provider of ordered) {
       if (!provider.canHandle(context.request.prompt)) {
         context.logger.info(
@@ -121,6 +135,20 @@ export default class ProviderResolver {
           provider: provider.name,
           status: "operational",
         });
+        CognitiveTrace.getInstance().record(
+          "RESULT",
+          `${provider.name} answered successfully`,
+          {
+            provider: provider.name,
+            priority: provider.priority,
+            model: response.model,
+            latencyMs: response.processingTime,
+            // Proof cognition survived the provider hop: the context the
+            // memory layer injected is still attached to the request the
+            // provider was actually given.
+            requestContextLength: context.request.context?.length ?? 0,
+          },
+        );
         context.aiProviders.markSuccess(
           provider.name,
           response.metadata?.usage,
@@ -147,6 +175,18 @@ export default class ProviderResolver {
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         context.aiProviders.markFailure(provider.name, message);
+        CognitiveTrace.getInstance().record(
+          "PROVIDER_FALLBACK",
+          `${provider.name} FAILED (${message}) — falling through to the next provider in the chain`,
+          {
+            failedProvider: provider.name,
+            priority: provider.priority,
+            reason: message,
+            // Cognition/memory must be untouched by a provider failure:
+            // the same enriched context carries into the next attempt.
+            requestContextLength: context.request.context?.length ?? 0,
+          },
+        );
         AgentEventBus.getInstance().emit({
           type: "provider_status",
           taskId: String(context.request.timestamp ?? Date.now()),

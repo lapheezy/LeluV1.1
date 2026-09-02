@@ -25,6 +25,7 @@
  * ==========================================================
  */
 
+import { publicEnvVar } from "../env/publicEnv";
 import env from "../Environment";
 import AgentEventBus from "../agent/AgentEvents";
 
@@ -333,10 +334,8 @@ class Avatar3DReconstructorImpl {
 
   private baseUrl(): string {
     try {
-      const raw =
-        (
-          (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env ?? {}
-        )["VITE_MESHY_API_BASE_URL"];
+      // Browser-safe allowlist, not the whole env record (see env/publicEnv.ts).
+      const raw = publicEnvVar("VITE_MESHY_API_BASE_URL");
       return typeof raw === "string" && raw.trim() ? raw.trim().replace(/\/$/, "") : MESHY_BASE_DEFAULT;
     } catch {
       return MESHY_BASE_DEFAULT;

@@ -23,6 +23,8 @@ import WorkQueue from "../cognition/WorkQueue";
 import AgentStore from "../agents/AgentStore";
 import ImprovementPrioritizer, { type PriorityScore } from "./ImprovementPrioritizer";
 import EngineeringMemory from "./EngineeringMemory";
+import EngineeringChat from "./EngineeringChat";
+import type { ImprovementProposal } from "./ImprovementQueue";
 
 export interface PrioritizedProposal {
   id: string;
@@ -110,6 +112,23 @@ export default class SelfDevelopmentEngine {
    * when there is no open proposal covering the same ground, and the
    * cycle caps additions so the queue can't be flooded.
    */
+  /**
+   * "LÉLU should be able to initiate an engineering conversation from a
+   * cognitive observation." Posts a message into the real Engineering
+   * Chat thread built ONLY from the proposal's own real fields — never
+   * invented text — so the observation the user sees there is the exact
+   * evidence that produced the queued item.
+   */
+  private announce(proposal: ImprovementProposal): void {
+    try {
+      EngineeringChat.getInstance().recordObservation(
+        `I found something: ${proposal.problem}\n\nLogged as a ${proposal.kind.toLowerCase()}: “${proposal.title}”. Ask me to investigate if you'd like me to look deeper.`,
+      );
+    } catch {
+      // Engineering Chat is best-effort — never break opportunity detection.
+    }
+  }
+
   private detectOpportunities(diagnostics: DiagnosticReport): string[] {
     const queue = ImprovementQueue.getInstance();
     const registry = CapabilityRegistry.getInstance();
@@ -123,7 +142,7 @@ export default class SelfDevelopmentEngine {
       if (queue.hasOpenSimilar(title)) {
         continue;
       }
-      queue.add({
+      this.announce(queue.add({
         title,
         kind: "Bug",
         problem: finding.message,
@@ -138,7 +157,7 @@ export default class SelfDevelopmentEngine {
         complexity: "medium",
         version: "1.0",
         testPlan: "Re-run diagnostics and confirm the finding clears.",
-      });
+      }));
       created.push(finding.message.slice(0, 70));
     }
 
@@ -149,7 +168,7 @@ export default class SelfDevelopmentEngine {
       if (queue.hasOpenSimilar(title)) {
         continue;
       }
-      queue.add({
+      this.announce(queue.add({
         title,
         kind: "New Capability",
         problem: `Capability “${capability.name}” is ${capability.status} (${capability.description}).`,
@@ -165,7 +184,7 @@ export default class SelfDevelopmentEngine {
         capabilityId: capability.id,
         version: "1.0",
         testPlan: "Extend the self-test suite with tests for the new capability.",
-      });
+      }));
       created.push(`planned: ${capability.name}`);
     }
 
@@ -176,7 +195,7 @@ export default class SelfDevelopmentEngine {
       if (queue.hasOpenSimilar(title)) {
         continue;
       }
-      queue.add({
+      this.announce(queue.add({
         title,
         kind: "Limitation",
         problem: `Capability “${capability.name}” is partial: ${capability.limitations.join("; ") || "incomplete"}.`,
@@ -192,7 +211,7 @@ export default class SelfDevelopmentEngine {
         capabilityId: capability.id,
         version: "1.0",
         testPlan: "Run the self-test suite + a before/after evaluation.",
-      });
+      }));
       created.push(`partial: ${capability.name}`);
     }
 
@@ -204,7 +223,7 @@ export default class SelfDevelopmentEngine {
       if (agents.length >= 2 && executions >= 3) {
         const title = "Add reusable agent workflows";
         if (!queue.hasOpenSimilar(title)) {
-          queue.add({
+          this.announce(queue.add({
             title,
             kind: "Opportunity",
             problem: `${agents.length} agent(s) with ${executions} recorded executions — repeated sequences are not reusable.`,
@@ -220,7 +239,7 @@ export default class SelfDevelopmentEngine {
             capabilityId: "workflows",
             version: "1.0",
             testPlan: "Define a 3-step workflow, run it, verify order and captured results.",
-          });
+          }));
           created.push("workflow opportunity");
         }
       }
@@ -236,7 +255,7 @@ export default class SelfDevelopmentEngine {
       if (blocked >= 2) {
         const title = `Resolve ${blocked} blocked work items`;
         if (!queue.hasOpenSimilar(title)) {
-          queue.add({
+          this.announce(queue.add({
             title,
             kind: "Opportunity",
             problem: `${blocked} work items are blocked and waiting.`,
@@ -251,7 +270,7 @@ export default class SelfDevelopmentEngine {
             complexity: "low",
             version: "1.0",
             testPlan: "Verify the blocked count drops after review.",
-          });
+          }));
           created.push("blocked-item review");
         }
       }
@@ -268,7 +287,7 @@ export default class SelfDevelopmentEngine {
       if (filesOverlap) {
         const title = "Unify sketch/render asset handling";
         if (!queue.hasOpenSimilar(title)) {
-          queue.add({
+          this.announce(queue.add({
             title,
             kind: "Optimization",
             problem: "Sketch and Render manage assets separately; agents cannot reuse one asset pipeline.",
@@ -284,7 +303,7 @@ export default class SelfDevelopmentEngine {
             capabilityId: "creative-tools",
             version: "1.0",
             testPlan: "Create a sketch + render, attach both through the shared pipeline, verify project context.",
-          });
+          }));
           created.push("shared asset pipeline");
         }
       }

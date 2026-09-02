@@ -25,6 +25,7 @@ import {
   type CapabilityResult,
 } from "./native";
 import type { AIRequest, AIResponse, MediaAttachment } from "../providers/AIProvider";
+import type { AIIntent } from "./router/AIIntent";
 import type { ReasoningResult } from "./reasoning/ReasoningEngine";
 import type { Plan } from "./planning/PlanningEngine";
 import type { LeluAgent } from "./agents/AgentTypes";
@@ -36,6 +37,7 @@ import PromptInjectionGuard from "./security/PromptInjectionGuard";
 import ExecutiveBoard, { type BoardConsultation } from "./executive/ExecutiveBoard";
 import HealthIntelligence from "./caretaker/HealthIntelligence";
 import { buildCognitiveContext, formatCognitiveContext } from "./cognition/CognitiveContext";
+import CognitiveTrace from "./cognition/CognitiveTrace";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { markPerf } from "./perf/StartupTelemetry";
 
@@ -84,6 +86,12 @@ export default class AIService {
   private readonly notificationListeners = new Set<(notification: { title: string; description?: string }) => void>();
 
   private initialized = false;
+  /** In-flight initialize() promise — see AIProviderRegistry for why
+   * this guard exists: without it, two concurrent callers would each
+   * pass the synchronous `if (this.initialized)` check before either
+   * finished, and each independently re-run the whole Promise.allSettled
+   * bundle (runtime/user init, Supabase attach, capability registration). */
+  private initializingPromise: Promise<void> | null = null;
 
   /** Device/native capability registry — same singleton the ToolResolver uses. */
   private readonly native = NativeCapabilityRegistry.getInstance();
@@ -253,7 +261,19 @@ export default class AIService {
     if (this.initialized) {
       return;
     }
+    if (this.initializingPromise) {
+      return this.initializingPromise;
+    }
 
+    this.initializingPromise = this.doInitialize();
+    try {
+      await this.initializingPromise;
+    } finally {
+      this.initializingPromise = null;
+    }
+  }
+
+  private async doInitialize(): Promise<void> {
     // Provider or memory initialization must never take the whole
     // application down (white-screen protection). The three INDEPENDENT
     // core subsystems now initialize in PARALLEL — none of them needs
@@ -325,6 +345,7 @@ export default class AIService {
     prompt: string,
     media?: MediaAttachment[],
     context?: string,
+    options?: { forceIntent?: AIIntent },
   ): Promise<AIResponse> {
     const message = prompt.trim();
 
@@ -351,6 +372,13 @@ export default class AIService {
     this.emitListening(true);
 
     const taskId = String(Date.now());
+
+    // Open the per-turn cognitive trace. Dev-only (no-op in production)
+    // — this is the evidence chain that proves cognition/memory actually
+    // participated in THIS turn rather than the message going straight
+    // to a provider. Closed in the `finally` at the end of the pipeline.
+    const trace = CognitiveTrace.getInstance();
+    trace.begin(taskId, message);
 
     // Feed the proactive layer on every genuine user message: session
     // continuity, pattern learning, and interruption detection. This is
@@ -406,7 +434,13 @@ export default class AIService {
     const delegation = this.resolveDelegation(message);
     if (delegation) {
       try {
-        const result = await AgentRunner.getInstance().run(delegation.agent.id, delegation.task);
+        const result = await AgentRunner.getInstance().run(
+          delegation.agent.id,
+          delegation.task,
+          undefined,
+          // Attribute the agent's work to THIS cognitive turn.
+          taskId,
+        );
         const response: AIResponse =
           result.ok && result.response
             ? result.response
@@ -454,8 +488,25 @@ export default class AIService {
       try {
         const snapshot = buildCognitiveContext();
         cognitiveContextText = formatCognitiveContext(snapshot);
+        trace.record(
+          "SELF_CONTEXT",
+          `self-model + runtime state assembled (${cognitiveContextText.length} chars)`,
+          {
+            length: cognitiveContextText.length,
+            identity: snapshot.self.identity.name,
+            capabilities: snapshot.self.capabilities.length,
+            activeProjects: snapshot.projects.length,
+            activeAgents: snapshot.agents.length,
+            autonomyLevel: snapshot.autonomyLevel,
+            openImprovements: snapshot.pendingImprovements.length,
+            recentErrors: snapshot.recentErrors.length,
+          },
+        );
       } catch (error) {
         console.error("[AIService] Cognitive context build failed (contained)", error);
+        trace.record("SELF_CONTEXT", "FAILED to build cognitive context", {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
 
       const effectiveContext = [context?.trim(), cognitiveContextText, boardContext, caretakerContext]
@@ -469,6 +520,7 @@ export default class AIService {
         prompt: message,
         ...(effectiveContext ? { context: effectiveContext } : {}),
         ...(media && media.length > 0 ? { media } : {}),
+        ...(options?.forceIntent ? { forceIntent: options.forceIntent } : {}),
         timestamp: Number(taskId),
         // True streaming: the provider pushes accumulated text as it
         // arrives and the UI renders it in place under `streamId`.
@@ -479,8 +531,24 @@ export default class AIService {
       // stages — announce it so the workspace can show the task forming.
       agentEvents.emit({ type: "task_planning", taskId, plan: message.slice(0, 120) });
 
-      const enriched = await this.memory.enrich(request);
-      const response = await this.runtime.process(enriched);
+      // ONE canonical recall per turn: enrich() owns it, and the
+      // memories it produced are handed forward so BrainResolver and
+      // composeFromMemory consume them instead of re-querying.
+      const { request: enriched, memories: recalledForTurn } = await this.memory.enrich(request);
+      const response = await this.runtime.process(enriched, { recalledMemories: recalledForTurn });
+
+      trace.record(
+        "RESPONSE",
+        `answered by "${response.provider}" (${response.model}) in ${response.processingTime}ms`,
+        {
+          provider: response.provider,
+          model: response.model,
+          processingTime: response.processingTime,
+          textLength: response.text.length,
+          offline: Boolean(response.metadata?.offline),
+          source: response.metadata?.source ?? null,
+        },
+      );
 
       const reasoning = (response.metadata?.reasoning as ReasoningResult | undefined) ?? null;
       const plan = (response.metadata?.plan as Plan | undefined) ?? null;
@@ -510,7 +578,12 @@ export default class AIService {
       await this.memory.learn(message, response.text, taskId);
       await this.runtime.brain.getConversation().update(message);
 
-      const memories = await this.runtime.brain.recall(message);
+      // A SECOND, deliberate recall — not a duplicate of the cognition
+      // recall above. It runs AFTER this turn's memory write so the user
+      // profile picks up the fact just learned, which the pre-response
+      // recall could not have seen. Labelled distinctly in the trace so
+      // "one cognition recall per turn" stays verifiable.
+      const memories = await this.runtime.brain.recall(message, "post-write-profile-sync");
       for (const memory of memories) {
         await this.user.learn(memory.category, memory.response);
       }
@@ -572,6 +645,9 @@ export default class AIService {
       this.emitThinking(false);
       this.emitSpeaking(false);
       this.emitListening(false);
+      // Close the turn even when the pipeline threw — a half-open trace
+      // would silently swallow the next turn's evidence.
+      trace.end();
     }
   }
 
@@ -665,7 +741,22 @@ export default class AIService {
     };
 
     try {
-      const response = await this.runtime.process(request);
+      // Honor the agent's DECLARED memory access on the read side too.
+      // `memoryAccess` ("none" | "read" | "read-write") was only ever
+      // consulted for WRITES below, so an agent configured with "read"
+      // (e.g. the Research Agent template) never actually received any
+      // recalled memory — its declared capability was disconnected.
+      // This reuses the ONE existing memory path (MemoryBridge.enrich,
+      // the same call the main chat route makes); it does not introduce
+      // a second retrieval route, and the agent's own system prompt is
+      // preserved because enrich() appends rather than replaces.
+      const canReadMemory = agent.memoryAccess === "read" || agent.memoryAccess === "read-write";
+      const enrichedForAgent = canReadMemory ? await this.memory.enrich(request) : null;
+
+      const response = await this.runtime.process(
+        enrichedForAgent?.request ?? request,
+        enrichedForAgent ? { recalledMemories: enrichedForAgent.memories } : undefined,
+      );
 
       // Memory consolidation honors the agent's memory permission.
       // A read-only agent never writes; a read-write agent learns the
@@ -899,6 +990,16 @@ export default class AIService {
    */
   public getExecutionLogs() {
     return this.runtime.executionLogs();
+  }
+
+  /**
+   * Provider fallback-chain health. `inspect()` never touches the
+   * network; `verifyLive()` makes REAL requests and is what production
+   * should call when credentials exist. Neither ever reports a
+   * missing API key as a healthy provider.
+   */
+  public providerHealth() {
+    return this.runtime.providerHealth();
   }
 
   /**

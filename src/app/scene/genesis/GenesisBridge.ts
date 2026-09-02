@@ -10,7 +10,7 @@
  * ==========================================================
  */
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useGenesis } from "./GenesisCore";
 import AIService, {
   type AIActionEvent,
@@ -24,7 +24,23 @@ import { cleanAssistantText } from "../../../core/router/ToolMarkup";
 const ai = AIService.getInstance();
 
 export default function GenesisBridge() {
-  const { addAction, updateCognition, addMessage, upsertMessage, setThinking, setSpeaking, setListening, notify } = useGenesis();
+  const { addAction, updateCognition, upsertMessage, setThinking, setSpeaking, setListening, notify } = useGenesis();
+
+  // Keep the LATEST context callbacks in a ref so the subscription
+  // effect below can run exactly once (ai is a module-level singleton;
+  // its subscriptions never need to change) while every callback still
+  // calls the current function. Found via a live Playwright audit:
+  // with these functions in the effect's dependency array, ordinary
+  // ambient activity (the exploration/discovery loop updating cognition
+  // state) gave several of them a new identity every few seconds,
+  // re-running this effect — which meant every AIService subscription
+  // (messages, streaming text, thinking/speaking state, notifications)
+  // was torn down and re-established that often. Between the teardown
+  // and the new subscribe call, any event AIService emitted in that
+  // gap was silently dropped — a real, intermittent "message never
+  // appeared" / "seems frozen" class of bug, not just log noise.
+  const latest = useRef({ addAction, updateCognition, upsertMessage, setThinking, setSpeaking, setListening, notify });
+  latest.current = { addAction, updateCognition, upsertMessage, setThinking, setSpeaking, setListening, notify };
 
   useEffect(() => {
     const sentinel = Sentinel.getInstance();
@@ -41,7 +57,7 @@ export default function GenesisBridge() {
       });
 
     const removeActions = ai.subscribeActions((event: AIActionEvent) => {
-      addAction({
+      latest.current.addAction({
         id: event.id,
         type: event.type,
         label: event.label,
@@ -56,7 +72,7 @@ export default function GenesisBridge() {
     });
 
     const removeCognition = ai.subscribeCognition((state: CognitionEvent) => {
-      updateCognition({
+      latest.current.updateCognition({
         agents: state.agents,
         workspaces: state.workspaces,
         nodes: state.nodes,
@@ -69,7 +85,7 @@ export default function GenesisBridge() {
     // completed message, so live text renders in place instead of
     // duplicating bubbles.
     const removeMessages = ai.subscribeMessages((message: AIMessageEvent) => {
-      upsertMessage({
+      latest.current.upsertMessage({
         id: message.id,
         role: message.role,
         text: cleanAssistantText(message.text),
@@ -83,7 +99,7 @@ export default function GenesisBridge() {
     });
 
     const removeStream = ai.subscribeStream((event) => {
-      upsertMessage({
+      latest.current.upsertMessage({
         id: event.id,
         role: "assistant",
         text: cleanAssistantText(event.text),
@@ -93,19 +109,19 @@ export default function GenesisBridge() {
     });
 
     const removeThinking = ai.subscribeThinking((value: boolean) => {
-      setThinking(value);
+      latest.current.setThinking(value);
     });
 
     const removeSpeaking = ai.subscribeSpeaking((value: boolean) => {
-      setSpeaking(value);
+      latest.current.setSpeaking(value);
     });
 
     const removeListening = ai.subscribeListening((value: boolean) => {
-      setListening(value);
+      latest.current.setListening(value);
     });
 
     const removeNotifications = ai.subscribeNotifications((notification: { title: string; description?: string }) => {
-      notify(notification.title, notification.description);
+      latest.current.notify(notification.title, notification.description);
     });
 
     return () => {
@@ -118,7 +134,7 @@ export default function GenesisBridge() {
       removeListening();
       removeNotifications();
     };
-  }, [addAction, updateCognition, addMessage, upsertMessage, setThinking, setSpeaking, setListening, notify]);
+  }, []);
 
   return null;
 }

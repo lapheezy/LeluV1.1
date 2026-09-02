@@ -34,6 +34,13 @@ import WorkQueue, {
 import SystemEnvironment, { type SystemEnvironmentState } from "../../../core/cognition/SystemEnvironment";
 import AutonomyGate, { AUTONOMY_LEVELS } from "../../../core/cognition/AutonomyGate";
 import CognitiveLoop, { type CognitiveCycleReport } from "../../../core/cognition/CognitiveLoop";
+import SelfStudy, {
+  type SelfStudyCycleRecord,
+  type SelfKnowledgeGap,
+  type SelfStudyProposal,
+  type SelfStudyWorkingState,
+} from "../../../core/cognition/SelfStudy";
+import ProjectMission, { type MissionState } from "../../../core/cognition/ProjectMission";
 
 const labelStyle: CSSProperties = {
   fontSize: 10.5,
@@ -68,10 +75,11 @@ const chipButton: CSSProperties = {
   fontFamily: "inherit",
 };
 
-type Tab = "self" | "knowledge" | "queue" | "system" | "autonomy";
+type Tab = "self" | "study" | "knowledge" | "queue" | "system" | "autonomy";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "self", label: "Self" },
+  { id: "study", label: "Self-study" },
   { id: "knowledge", label: "Knowledge" },
   { id: "queue", label: "Queue" },
   { id: "system", label: "System" },
@@ -89,6 +97,8 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
   const environment = useMemo(() => SystemEnvironment.getInstance(), []);
   const gate = useMemo(() => AutonomyGate.getInstance(), []);
   const loop = useMemo(() => CognitiveLoop.getInstance(), []);
+  const study = useMemo(() => SelfStudy.getInstance(), []);
+  const mission = useMemo(() => ProjectMission.getInstance(), []);
 
   const [tab, setTab] = useState<Tab>("self");
   const [selfState, setSelfState] = useState<SelfModelState>(() => selfModel.get());
@@ -97,6 +107,12 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
   const [envState, setEnvState] = useState<SystemEnvironmentState>(() => environment.get());
   const [autonomyLevel, setAutonomyLevel] = useState<number>(() => gate.getLevel());
   const [report, setReport] = useState<CognitiveCycleReport | null>(() => loop.getLastReport());
+  const [studyRecord, setStudyRecord] = useState<SelfStudyCycleRecord | null>(() => study.getLastCycle());
+  const [studyWorking, setStudyWorking] = useState<SelfStudyWorkingState>(() => study.getWorkingState());
+  const [studyGaps, setStudyGaps] = useState<SelfKnowledgeGap[]>(() => study.getGaps());
+  const [studyProposals, setStudyProposals] = useState<SelfStudyProposal[]>(() => study.pendingAuthorization());
+  const [missionState, setMissionState] = useState<MissionState>(() => mission.get());
+  const [studyBusy, setStudyBusy] = useState(false);
   const [loopRunning, setLoopRunning] = useState(true);
   const [search, setSearch] = useState("");
   const [addField, setAddField] = useState("");
@@ -115,17 +131,26 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
     setQueueItems(queue.list());
     setEnvState(environment.get());
     setAutonomyLevel(gate.getLevel());
-  }, [environment, gate, knowledge, queue, selfModel]);
+    // Short-term cognitive state changes mid-cycle, so it is polled with
+    // everything else rather than only on cycle completion — otherwise
+    // the panel would show "idle" during the phase it is watching.
+    setStudyWorking(study.getWorkingState());
+    setStudyGaps(study.getGaps());
+    setStudyProposals(study.pendingAuthorization());
+    setMissionState(mission.get());
+  }, [environment, gate, knowledge, mission, queue, selfModel, study]);
 
   useEffect(() => {
     refresh();
     const interval = window.setInterval(refresh, 2000);
     const unsubscribe = loop.subscribe(setReport);
+    const unsubscribeStudy = study.subscribe(setStudyRecord);
     return () => {
       window.clearInterval(interval);
       unsubscribe();
+      unsubscribeStudy();
     };
-  }, [loop, refresh]);
+  }, [loop, refresh, study]);
 
   const SELF_FIELDS: { key: keyof SelfModelState; label: string; color?: string }[] = [
     { key: "goals", label: "Goals" },
@@ -614,6 +639,191 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
                   <div style={{ fontSize: 12.5, overflowWrap: "anywhere" }}>{value}</div>
                 </div>
               ))}
+            </div>
+          </div>
+        ) : null}
+
+        {/* ------------------------------------------------ SELF-STUDY */}
+        {tab === "study" ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {/* MISSION — the anchor every priority below is derived from */}
+            <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 14 }}>
+              <div style={labelStyle}>Project mission · north star</div>
+              <div style={{ fontSize: 12, lineHeight: 1.6, opacity: 0.85, marginTop: 6 }}>
+                {missionState.northStar}
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                {missionState.programs.map((program) => (
+                  <span
+                    key={program.id}
+                    style={{
+                      fontSize: 10,
+                      padding: "3px 8px",
+                      borderRadius: 999,
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      opacity: program.status === "active" ? 1 : 0.6,
+                    }}
+                  >
+                    {program.name} · {program.status}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* CURRENT COGNITIVE FOCUS — live, mid-cycle */}
+            <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 14 }}>
+              <div style={labelStyle}>
+                Current focus · {studyWorking.phase === "idle" ? "between cycles" : `phase: ${studyWorking.phase}`}
+              </div>
+              <div style={{ fontSize: 12, marginTop: 6, opacity: 0.9 }}>
+                {studyWorking.objective ?? studyRecord?.objective ?? "No objective formed yet."}
+              </div>
+              {studyWorking.agent || studyRecord?.agent ? (
+                <div style={{ fontSize: 11, marginTop: 6, opacity: 0.7 }}>
+                  Agent: {studyWorking.agent ?? studyRecord?.agent}
+                </div>
+              ) : null}
+              <button
+                type="button"
+                disabled={studyBusy}
+                onClick={() => {
+                  setStudyBusy(true);
+                  void study
+                    .runCycle()
+                    .then(setStudyRecord)
+                    .finally(() => {
+                      setStudyBusy(false);
+                      refresh();
+                    });
+                }}
+                style={{ ...chipButton, marginTop: 10, opacity: studyBusy ? 0.5 : 1 }}
+              >
+                {studyBusy ? "Studying…" : "Run a study cycle now"}
+              </button>
+            </div>
+
+            {/* LAST CYCLE — the evidence chain */}
+            {studyRecord ? (
+              <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 14 }}>
+                <div style={labelStyle}>
+                  Cycle {studyRecord.cycle} · {studyRecord.ok ? "complete" : `failed at ${studyRecord.reachedPhase}`}
+                </div>
+                {studyRecord.subsystem ? (
+                  <div style={{ fontSize: 12, marginTop: 6 }}>Studied: {studyRecord.subsystem}</div>
+                ) : null}
+
+                {studyRecord.missionReasons.length > 0 ? (
+                  <div style={{ fontSize: 11, marginTop: 8, opacity: 0.7 }}>
+                    Chosen because: {studyRecord.missionReasons.join(" · ")}
+                  </div>
+                ) : null}
+
+                {studyRecord.evidence.length > 0 ? (
+                  <div style={{ marginTop: 10 }}>
+                    <div style={labelStyle}>Evidence</div>
+                    {studyRecord.evidence.map((item, index) => (
+                      <div key={`${item.label}-${index}`} style={{ fontSize: 11, marginTop: 4, opacity: 0.8 }}>
+                        <span style={{ opacity: 0.55 }}>[{item.kind}]</span> {item.label}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                {studyRecord.conclusion ? (
+                  <div style={{ marginTop: 10 }}>
+                    <div style={labelStyle}>Conclusion</div>
+                    <div style={{ fontSize: 11, lineHeight: 1.6, opacity: 0.85, whiteSpace: "pre-wrap" }}>
+                      {studyRecord.conclusion.slice(0, 900)}
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* A contradiction is the most important thing on this
+                    panel when it exists — old belief vs new evidence. */}
+                {studyRecord.contradiction ? (
+                  <div
+                    style={{
+                      marginTop: 10,
+                      padding: 10,
+                      borderRadius: 10,
+                      border: "1px solid rgba(255,180,80,0.4)",
+                      background: "rgba(255,180,80,0.08)",
+                    }}
+                  >
+                    <div style={labelStyle}>Contradiction detected</div>
+                    <div style={{ fontSize: 11, marginTop: 4, opacity: 0.9 }}>{studyRecord.contradiction}</div>
+                  </div>
+                ) : null}
+
+                {studyRecord.memoryWrites.length > 0 ? (
+                  <div style={{ fontSize: 11, marginTop: 10, opacity: 0.7 }}>
+                    Memory written: {studyRecord.memoryWrites.join(" · ")}
+                  </div>
+                ) : null}
+                {studyRecord.agentSkippedReason ? (
+                  <div style={{ fontSize: 11, marginTop: 6, opacity: 0.6 }}>
+                    Agent note: {studyRecord.agentSkippedReason}
+                  </div>
+                ) : null}
+                {studyRecord.nextObjective ? (
+                  <div style={{ fontSize: 11, marginTop: 6, opacity: 0.8 }}>
+                    Next objective: {studyRecord.nextObjective}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {/* WAITING ON THE USER — the authorization boundary */}
+            {studyProposals.length > 0 ? (
+              <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 14 }}>
+                <div style={labelStyle}>Awaiting your authorization ({studyProposals.length})</div>
+                {studyProposals.slice(0, 6).map((proposal) => (
+                  <div key={proposal.id} style={{ fontSize: 11, marginTop: 8, opacity: 0.85 }}>
+                    <span style={{ opacity: 0.6 }}>[requires L{proposal.requiresLevel}]</span> {proposal.proposal}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        study.clearProposal(proposal.id);
+                        refresh();
+                      }}
+                      style={{ ...chipButton, marginLeft: 8, fontSize: 10 }}
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {/* OPEN QUESTIONS — what she still does not know */}
+            <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 14 }}>
+              <div style={labelStyle}>
+                Knowledge gaps · {studyGaps.filter((gap) => gap.status === "open").length} open of {studyGaps.length}
+              </div>
+              {studyGaps.slice(0, 12).map((gap) => (
+                <div
+                  key={gap.id}
+                  style={{
+                    fontSize: 11,
+                    marginTop: 6,
+                    opacity: gap.status === "open" ? 0.9 : 0.45,
+                    display: "flex",
+                    gap: 8,
+                  }}
+                >
+                  <span style={{ opacity: 0.6, minWidth: 28 }}>[{gap.priority}]</span>
+                  <span>
+                    {gap.question}
+                    {gap.status !== "open" ? ` · ${gap.status}` : ""}
+                    {gap.attempts > 0 ? ` · ${gap.attempts} attempt(s)` : ""}
+                  </span>
+                </div>
+              ))}
+              {studyGaps.length === 0 ? (
+                <div style={{ fontSize: 11, marginTop: 6, opacity: 0.6 }}>
+                  No gaps computed yet — run a study cycle.
+                </div>
+              ) : null}
             </div>
           </div>
         ) : null}

@@ -22,7 +22,7 @@
  * ==========================================================
  */
 
-import { getEnvironment, environmentDiagnostics } from "./Environment";
+import { getEnvironment, environmentDiagnostics, refreshProviderCredentials } from "./Environment";
 import AIService from "./AIService";
 import CognitiveLoop from "./cognition/CognitiveLoop";
 import TaskEngine from "./tasks/TaskEngine";
@@ -34,7 +34,9 @@ import WorldLifecycle from "../app/scene/genesis/engines/WorldLifecycle";
 import PersistentRuntime from "./proactive/PersistentRuntime";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { registerEarthTools } from "./earth/EarthTools";
+import ToolRegistry from "./tools/ToolRegistry";
 import { markPerf } from "./perf/StartupTelemetry";
+import StartupDiagnostic from "./selfdev/StartupDiagnostic";
 
 // -- types ---------------------------------------------------------------
 
@@ -120,6 +122,11 @@ export default class Bootstrap {
     // ---------- Step 1: LOAD & VALIDATE ENVIRONMENT ----------
     steps.push(step("environment", "RUNNING", "Loading environment…"));
     try {
+      // Chat-provider credentials live on the server now, so ask the
+      // runtime which ones it holds BEFORE reporting status. Without
+      // this the report would list every provider MISSING while the
+      // relay was serving them perfectly well.
+      await refreshProviderCredentials();
       const env = getEnvironment();
       steps.push(step("environment", "DONE",
         `${env.warnings.length > 0 ? `${env.warnings.length} warning(s) — see diagnostics` : "OK"}`));
@@ -169,6 +176,10 @@ export default class Bootstrap {
       const tasks = TaskEngine.getInstance();
       // Earth Core tool registry (spatial capabilities for cognition)
       registerEarthTools();
+      // Recompute ToolRegistry availability from real runtime state
+      // (autonomy gate, GitHub connection, device features) — it was
+      // previously a catalog of hardcoded booleans nobody ever checked.
+      void ToolRegistry.getInstance().refreshAvailability();
       steps.push(step("services", "DONE",
         `OK — ${tasks.list().length} tasks, proactive + background engines started`));
     } catch (error) {
@@ -198,14 +209,25 @@ export default class Bootstrap {
     }
 
     // ---------- Step 7: VERIFICATION ----------
+    // Real checks against the 15 subsystems LÉLU depends on — not a
+    // summary of the steps above, which only prove their OWN init
+    // calls didn't throw. This calls a real method on each real
+    // singleton (AI provider health, memory read, sandbox listing,
+    // the actual engineering chat thread, …) so a subsystem that
+    // initialized but is now unreachable is caught here, not assumed
+    // healthy forever.
     steps.push(step("verification", "RUNNING", "Running diagnostics…"));
     try {
       const failed = steps.filter((s) => s.status === "FAILED");
-      if (failed.length > 0) {
+      const startupDiagnostic = await StartupDiagnostic.run();
+      const failedChecks = startupDiagnostic.checks.filter((c) => !c.ok);
+      const allFailed = [...failed, ...failedChecks.map((c) => ({ detail: `${c.name}: ${c.detail}` }))];
+      if (allFailed.length > 0) {
         steps.push(step("verification", "DONE",
-          `${failed.length} step(s) reported failures — see step details`));
+          `${failed.length} bootstrap step(s) + ${failedChecks.length} runtime check(s) reported failures — see step details / StartupDiagnostic.getLastReport()`));
       } else {
-        steps.push(step("verification", "DONE", "All systems OK"));
+        steps.push(step("verification", "DONE",
+          `All systems OK — ${startupDiagnostic.checks.length}/${startupDiagnostic.checks.length} runtime checks passed`));
       }
     } catch (error) {
       steps.push(step("verification", "FAILED", String(error)));

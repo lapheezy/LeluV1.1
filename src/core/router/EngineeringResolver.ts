@@ -26,7 +26,6 @@
 import type RouterContext from "./RouterContext";
 import type { BrainResult } from "./RouterResults";
 import type { AIResponse } from "../../providers/AIProvider";
-import IntentDetector from "./IntentDetector";
 import AgentEventBus from "../agent/AgentEvents";
 import { isIdentityOrProfileQuestion } from "../../brain/LeluIdentity";
 import ImprovementQueue from "../selfdev/ImprovementQueue";
@@ -34,11 +33,17 @@ import SelfDevelopmentLoop from "../selfdev/SelfDevelopmentLoop";
 import SelfTestRunner from "../selfdev/SelfTestRunner";
 
 export default class EngineeringResolver {
-  private readonly detector = new IntentDetector();
-
   public async execute(context: RouterContext): Promise<BrainResult> {
     const prompt = context.request.prompt;
-    const intent = this.detector.detect(prompt);
+    // Trust the ONE intent already computed for this request
+    // (AIRuntime.process() — honors an explicit forceIntent from
+    // callers like EngineeringChat that already know the right route).
+    // Re-detecting from the prompt text here, independently, meant a
+    // forced "engineering" intent was silently ignored and this
+    // resolver fell back to its own keyword guess — exactly the kind
+    // of duplicated detection logic that can quietly disagree with
+    // the rest of the router.
+    const intent = context.intent;
 
     if (intent !== "engineering" && !this.isEngineeringPrompt(prompt)) {
       return { handled: false };

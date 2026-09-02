@@ -437,6 +437,49 @@ export default class MemoryExtractor {
 
 
 
+    /*
+     * GENERAL DURABLE FACT — the fix for the "she only remembers my
+     * name" class of failure.
+     *
+     * Before this, the extractor recognized exactly six fact shapes
+     * (identity / preference / goal / skill / project / relationship).
+     * ANY other durable statement the user made about themselves —
+     * "My test identifier is LELU-ARCH-72941", "My daughter is called
+     * Mira", "My office is in Lisbon" — matched none of them, fell to
+     * the `conversation` fallback below at importance 0.3, and was then
+     * silently discarded by MemoryEngine's 0.5 durability gate. The
+     * name survived only because "my name is" happens to be one of the
+     * six. Nothing was broken in storage, retrieval, or injection: the
+     * fact was never written in the first place.
+     *
+     * This recognizes the general SHAPE of a first-person durable
+     * assertion rather than any specific fact, so no particular piece
+     * of user information is hardcoded. It runs only when no more
+     * specific category matched, so it can never duplicate one of the
+     * six above, and never fires on questions.
+     */
+    if (memories.length === 0 && !this.isQuestion(prompt)) {
+      const generalFact =
+        // "my <thing> is/are <value>" — possessive assertion
+        /\bmy\s+[\w'-]+(?:\s+[\w'-]+){0,3}\s+(?:is|are|was|were)\s+\S+/i.test(source) ||
+        // "I have / own / live in / work at / was born ..." — first-person state
+        /\bi\s+(?:have|own|live\s+in|work\s+at|was\s+born|grew\s+up)\b\s+\S+/i.test(source);
+
+      if (generalFact) {
+        memories.push({
+          category: "general",
+          content: source,
+          keywords: this.keywords(source),
+          // Above MemoryEngine's 0.5 durability gate so it actually
+          // persists, but below identity (1.0) / goal & project (0.9) /
+          // skill (0.8) so an explicitly-categorized fact still ranks
+          // ahead of a generically-recognized one.
+          importance: 0.7,
+          memoryType: "user",
+        });
+      }
+    }
+
     if (
 
       memories.length === 0 &&
