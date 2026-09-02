@@ -175,6 +175,35 @@ test("a continuous loop is not an echo chamber: questions do not quote themselve
   }
 });
 
+test("malformed model follow-ups are never adopted as objectives", async () => {
+  const engine = SelfStudyEngine.getInstance();
+  const ledger = StudyObjectives.getInstance();
+  ledger.clear();
+
+  for (let index = 0; index < 10; index += 1) {
+    await engine.runCycle();
+  }
+
+  for (const objective of ledger.list()) {
+    const q = objective.question;
+    // Internal scaffolding must never leak into a carried question.
+    assert.ok(
+      !/(ANSWER|CONFIDENCE|NEXT|QUESTION I AM INVESTIGATING)\s*:/i.test(q),
+      `evaluation scaffolding leaked into an objective: ${q.slice(0, 140)}`,
+    );
+    assert.ok(
+      !/self-study cycle|recall \(|recent \[/i.test(q),
+      `a recalled memory was spliced into an objective: ${q.slice(0, 140)}`,
+    );
+    // A whole sentence spliced mid-question ("What role does Your name
+    // is Lélu. play here?") is noise, not a discovery.
+    assert.ok(
+      !/[.!]\s+\S/.test(q.slice(0, -1)),
+      `a sentence was spliced into an objective: ${q.slice(0, 140)}`,
+    );
+  }
+});
+
 test("attention rotates across domains instead of grinding one forever", async () => {
   const engine = SelfStudyEngine.getInstance();
   StudyObjectives.getInstance().clear();

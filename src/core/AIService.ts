@@ -963,6 +963,17 @@ export default class AIService {
   }
 
   /**
+   * The ONE AI provider registry — the same instance the chat pipeline
+   * and cognition both resolve through. Exposed so the Providers panel
+   * and the integration verification can inspect real registry state
+   * (priority order, failures, cooldowns, which provider actually
+   * answered) instead of inferring it. There is no second registry.
+   */
+  public getAIProviderRegistry(): import("./AIProviderRegistry").default {
+    return this.runtime.core.getAIProviders();
+  }
+
+  /**
    * Combined, read-only API Status snapshot for the API Status
    * tab: live registry runtime state (active provider, per-provider
    * last success/failure/cooldown/usage) plus each provider's own

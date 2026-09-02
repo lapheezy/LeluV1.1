@@ -114,9 +114,23 @@ export interface StudyCycleReport {
   evaluation: string;
   /** True when the cycle produced knowledge it did not have before. */
   learned: boolean;
+  /**
+   * Authoritative memories RETRIEVED before reasoning (step 1 of the
+   * memory path). Non-zero here on a later cycle is what shows a
+   * durable write from an earlier cycle coming back into use.
+   */
+  memoryRetrieved: number;
   memoryConsolidated: boolean;
   /** New questions this cycle's learning revealed. */
   derived: string[];
+  /**
+   * Where each derived question actually came from, so a causal chain
+   * can be audited rather than assumed: "lead" (a concrete file or
+   * subsystem the tool surfaced), "provider-next" (the evaluating
+   * model's own follow-up), "failure" (an observed failure signature),
+   * or "snapshot-revalidation".
+   */
+  derivedFrom: { question: string; cause: string; evidence?: string }[];
   /** Provider actually used to evaluate, or null when none was reachable. */
   provider: string | null;
   providerFallback: boolean;
@@ -317,6 +331,16 @@ export default class SelfStudyEngine {
     return this.continuous;
   }
 
+  /**
+   * True while a cycle is actually in flight. `isRunning()` says the
+   * loop is scheduling itself; this says one is executing right now.
+   * Cycles never overlap, so a caller that wants to drive a cycle has
+   * to wait for this to clear or it will get the previous report back.
+   */
+  public isBusy(): boolean {
+    return this.running;
+  }
+
   /* ------------------------- continuous operation ------------------------- */
 
   /**
@@ -514,12 +538,13 @@ export default class SelfStudyEngine {
       );
 
       /* 10 — DERIVE THE NEW QUESTIONS THIS LEARNING CREATED ---------------- */
-      const derived = this.derive(
+      const derivation = this.derive(
         objective,
         investigation,
         evaluation.text,
         evaluation.provider !== null,
       );
+      const derived = derivation.questions;
 
       // Close out this objective honestly.
       if (investigation.ok && investigation.evidence.length > 0) {
@@ -576,8 +601,10 @@ export default class SelfStudyEngine {
         evidence: investigation.evidence,
         evaluation: evaluation.text,
         learned,
+        memoryRetrieved: memory.length,
         memoryConsolidated,
         derived,
+        derivedFrom: derivation.causes,
         provider: evaluation.provider,
         providerFallback: evaluation.fallback,
         state: { ...state, openObjectives: this.objectives.open().length },
@@ -1302,14 +1329,18 @@ export default class SelfStudyEngine {
     investigation: Investigation,
     evaluation: string,
     providerEvaluated: boolean,
-  ): string[] {
+  ): { questions: string[]; causes: { question: string; cause: string; evidence?: string }[] } {
     const derived: string[] = [];
-    const push = (input: StudyObjectiveInput): void => {
+    const causes: { question: string; cause: string; evidence?: string }[] = [];
+    const push = (input: StudyObjectiveInput, cause: string, evidence?: string): void => {
       // A question that quotes the question that produced it is not a
       // new question — it is the loop talking to itself. Reject it.
       if (this.isSelfReferential(input.question, objective.question)) return;
       const created = this.enqueue(input);
-      if (created) derived.push(created.question);
+      if (created) {
+        derived.push(created.question);
+        causes.push({ question: created.question, cause, evidence });
+      }
     };
 
     /* The model's own NEXT line — but only when a PROVIDER actually
@@ -1319,7 +1350,12 @@ export default class SelfStudyEngine {
     if (providerEvaluated) {
       const nextLine = evaluation.split("\n").find((line) => /^NEXT\s*:/i.test(line.trim()));
       const question = nextLine?.replace(/^NEXT\s*:/i, "").trim() ?? "";
-      if (question.length > 12 && question.length < 220) {
+      // A model's follow-up is only adopted when it is a WELL-FORMED
+      // question. Models splice recalled memories, evaluation fragments
+      // and whole sentences into their NEXT line; adopting that verbatim
+      // produces objectives like "What role does Your name is Lélu. play
+      // here?" — noise that then consumes real cycles.
+      if (this.isAdoptableQuestion(question)) {
         push({
           question: question.endsWith("?") ? question : `${question}?`,
           detail: `Raised by the evaluation of “${objective.question}” in cycle ${this.cycle}.`,
@@ -1328,7 +1364,7 @@ export default class SelfStudyEngine {
           priority: 75,
           createdInCycle: this.cycle,
           parentId: objective.id,
-        });
+        }, "provider-next", nextLine?.trim());
       }
     }
 
@@ -1348,7 +1384,7 @@ export default class SelfStudyEngine {
         createdInCycle: this.cycle,
         parentId: objective.id,
         target: lead,
-      });
+      }, "lead", `${investigation.tool} surfaced ${lead}`);
     }
 
     /* Evidence of a failure. Keyed by the FAILURE ITSELF, not by the
@@ -1370,12 +1406,14 @@ export default class SelfStudyEngine {
         // The signature is the identity of this failure — the same
         // failure never becomes a second objective.
         target: signature,
-      });
+      }, "failure", failureLine.slice(0, 200));
     }
 
     /* A snapshot-only answer is genuinely weaker — say so and plan to
        redo it, keyed to the thing read rather than to the question. */
-    if (investigation.origin === "static-snapshot" && objective.target) {
+    // Only when the target is a real handle: "the snapshot for
+    // <a failure sentence>" is not a question anything can answer.
+    if (investigation.origin === "static-snapshot" && this.isReferenceableTarget(objective.target)) {
       push({
         question: `Does the live workspace still match the build-time snapshot for ${objective.target}?`,
         detail:
@@ -1386,10 +1424,10 @@ export default class SelfStudyEngine {
         createdInCycle: this.cycle,
         parentId: objective.id,
         target: objective.target,
-      });
+      }, "snapshot-revalidation", `read of ${objective.target} came from the build-time snapshot`);
     }
 
-    return derived;
+    return { questions: derived, causes };
   }
 
   /**
@@ -1397,6 +1435,36 @@ export default class SelfStudyEngine {
    * it? Nested self-quotation is the failure mode that turns a
    * continuous loop into an echo chamber, so it is rejected outright.
    */
+  /**
+   * Is a model-proposed follow-up worth carrying as an objective?
+   *
+   * Guards against the ways a NEXT line goes wrong in practice: a
+   * spliced sentence or recalled memory ("What role does Your name is
+   * Lélu. play here?"), internal scaffolding leaking through, a bare
+   * statement, or something too long to be a question at all. A
+   * malformed follow-up is not a discovery — it is noise that would
+   * consume real cycles.
+   */
+  private isAdoptableQuestion(candidate: string): boolean {
+    const text = candidate.trim();
+    if (text.length < 12 || text.length > 160) return false;
+
+    // Internal scaffolding must never become a question.
+    if (/(ANSWER|CONFIDENCE|NEXT|EVIDENCE|QUESTION I AM INVESTIGATING)\s*:/i.test(text)) return false;
+    if (/(self-study cycle|recall \(|recent \[|\bcycle \d+:)/i.test(text)) return false;
+
+    // A whole sentence spliced into the middle: ". " or ": " followed by
+    // more prose, or an embedded assertion like "X is Y."
+    if (/[.!]\s+\S/.test(text.slice(0, -1))) return false;
+    if (/:\s/.test(text)) return false;
+
+    // It has to actually be a question.
+    if (!/^(what|which|why|how|where|who|when|does|do|is|are|can|could|should|would|will|has|have)\b/i.test(text)) {
+      return false;
+    }
+    return true;
+  }
+
   private isSelfReferential(candidate: string, parent: string): boolean {
     const normalize = (text: string): string =>
       text.toLowerCase().replace(/[“”"']/g, "").replace(/\s+/g, " ").trim();
@@ -1408,14 +1476,36 @@ export default class SelfStudyEngine {
     return (candidate.match(/\?/g) ?? []).length > 1;
   }
 
-  /** A stable identity for an observed failure, independent of wording. */
+  /**
+   * A stable identity for an observed failure, independent of wording.
+   *
+   * Reduced to a SINGLE clause: evidence lines are often several
+   * sentences, and splicing all of them into "What is causing this
+   * failure: …?" produces a question with whole sentences buried in the
+   * middle. The first clause identifies the failure; the rest is
+   * preserved as the objective's detail, not its title.
+   */
   private failureSignature(line: string): string {
-    return line
+    const normalized = line
       .replace(/\d{4}-\d{2}-\d{2}T[\d:.]+Z?/g, "")
       .replace(/\b\d+\b/g, "")
       .replace(/\s+/g, " ")
-      .trim()
-      .slice(0, 110);
+      .trim();
+    // First sentence/clause only, and never trailing punctuation that
+    // would read as a spliced statement.
+    const firstClause = normalized.split(/[.!?](?:\s|$)/)[0] ?? normalized;
+    return firstClause.replace(/[\s.:;,—-]+$/, "").slice(0, 100).trim();
+  }
+
+  /**
+   * Can this target be named inside a follow-up question? Only a real
+   * handle — a path or an identifier — reads correctly and can actually
+   * be re-investigated. A failure signature or a prose title cannot.
+   */
+  private isReferenceableTarget(target: string | undefined): target is string {
+    if (!target) return false;
+    const t = target.trim();
+    return t.length > 2 && t.length < 80 && !/[.!?]\s/.test(t) && !/:\s/.test(t) && /^[\w@./~-]+$/.test(t);
   }
 
   private domainForLead(lead: string): StudyDomain {
@@ -1502,8 +1592,10 @@ export default class SelfStudyEngine {
       evidence: [],
       evaluation: "",
       learned: false,
+      memoryRetrieved: 0,
       memoryConsolidated: false,
       derived: [],
+      derivedFrom: [],
       provider: null,
       providerFallback: false,
       state,
