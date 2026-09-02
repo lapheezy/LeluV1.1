@@ -115,28 +115,40 @@ type RawModule = Record<string, () => Promise<string>>;
  * at module load.
  */
 function buildSnapshot(): RawModule {
-  if (typeof import.meta.glob !== "function") return {};
-  // Vite parses these calls statically: the pattern and the options MUST
-  // be literals written in place. A shared options constant makes the
-  // build fail with "Expected the second argument to be an object
-  // literal", so do not factor these out.
-  return {
-    ...(import.meta.glob("/src/**/*.ts", {
-      query: "?raw",
-      import: "default",
-      eager: false,
-    }) as RawModule),
-    ...(import.meta.glob("/tests/**/*.ts", {
-      query: "?raw",
-      import: "default",
-      eager: false,
-    }) as RawModule),
-    ...(import.meta.glob("/plugins/**/*.ts", {
-      query: "?raw",
-      import: "default",
-      eager: false,
-    }) as RawModule),
-  };
+  // The call sites below MUST be reached. Do NOT guard them with
+  // `typeof import.meta.glob === "function"`: Vite rewrites the CALL
+  // expression at transform time but leaves a bare `import.meta.glob`
+  // reference alone, so at runtime that check is always false and the
+  // snapshot silently comes back empty — the bundle still pays for the
+  // emitted chunks while the fallback never works.
+  //
+  // Outside Vite (Bun tests, SSR, headless runners) the call throws
+  // because the property does not exist; that is what the catch is for.
+  try {
+    // Vite parses these calls statically: the pattern and the options
+    // MUST be literals written in place. A shared options constant makes
+    // the build fail with "Expected the second argument to be an object
+    // literal", so do not factor these out.
+    return {
+      ...(import.meta.glob("/src/**/*.ts", {
+        query: "?raw",
+        import: "default",
+        eager: false,
+      }) as RawModule),
+      ...(import.meta.glob("/tests/**/*.ts", {
+        query: "?raw",
+        import: "default",
+        eager: false,
+      }) as RawModule),
+      ...(import.meta.glob("/plugins/**/*.ts", {
+        query: "?raw",
+        import: "default",
+        eager: false,
+      }) as RawModule),
+    };
+  } catch {
+    return {};
+  }
 }
 
 const SNAPSHOT: RawModule = buildSnapshot();

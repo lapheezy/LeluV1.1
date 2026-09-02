@@ -51,6 +51,7 @@
 
 import AIService from "../AIService";
 import AgentEventBus from "../agent/AgentEvents";
+import KvStore from "../storage/KvStore";
 import ProjectStore from "../projects/ProjectStore";
 import ArchitectureMap from "../selfdev/ArchitectureMap";
 import CapabilityRegistry from "../selfdev/CapabilityRegistry";
@@ -124,7 +125,102 @@ export interface StudyCycleReport {
   note?: string;
 }
 
+/**
+ * The durable trace of the last completed cycle. Persisted so LÉLU's
+ * cognitive state can be READ — by the chat route, by the UI, by
+ * anything — without running a cycle to produce it, and so it survives
+ * a reload. The in-memory report is richer; this is the part that has
+ * to outlive the process.
+ */
+interface PersistedCognitiveTrace {
+  cycle: number;
+  finishedAt: number;
+  objectiveId: string | null;
+  question: string | null;
+  origin: string | null;
+  domain: string | null;
+  target?: string;
+  createdInCycle: number | null;
+  objectiveSource: string;
+  agent: string;
+  tool: string;
+  evidenceOrigin: string;
+  evidenceCount: number;
+  evaluation: string;
+  provider: string | null;
+  providerFallback: boolean;
+  learned: boolean;
+  memoryConsolidated: boolean;
+  derived: string[];
+  state: CognitiveState;
+  note?: string;
+}
+
+/**
+ * LÉLU's cognitive state, assembled for reading. Every field comes from
+ * state her autonomous cycles already produced — nothing here starts a
+ * cycle, and nothing here is generated on demand for the reader.
+ */
+export interface CognitiveStateView {
+  /** True when the continuous loop is scheduling its own cycles. */
+  running: boolean;
+  /** Cycles completed in this process. */
+  cycle: number;
+  /** Cycle recorded in durable storage (survives reload). */
+  persistedCycle: number;
+  /** When the last cycle finished, or null if none has yet. */
+  lastCycleAt: number | null;
+  /** Whether this view came from live memory or durable storage. */
+  source: "live" | "persisted" | "none";
+
+  /** What she is currently focused on. */
+  focus: {
+    question: string;
+    origin: string;
+    domain: string;
+    target?: string;
+    /** Which cycle first raised this question. */
+    createdInCycle: number | null;
+    /** Why this question was selected over the others. */
+    whySelected: string;
+  } | null;
+
+  /** The investigation that ran (or is running) for that focus. */
+  investigation: {
+    agent: string;
+    tool: string;
+    evidenceOrigin: string;
+    evidenceCount: number;
+    provider: string | null;
+    providerFallback: boolean;
+    learned: boolean;
+    memoryConsolidated: boolean;
+    conclusion: string;
+  } | null;
+
+  /** What recent cycles actually established. */
+  discoveries: string[];
+  /** Questions she carries that are not settled. */
+  unresolved: string[];
+  /** Her current understanding of the project and of herself. */
+  understanding: {
+    mission: string[];
+    knowledgeEntries: number;
+    verified: number;
+    openGaps: number;
+    sourceAccess: string;
+    runtimeReachable: boolean;
+    agents: string[];
+  };
+  /** The next question she intends to investigate. */
+  nextIntended: { question: string; origin: string; domain: string; whySelected: string } | null;
+  /** How many questions are carried in the buffer. */
+  carried: number;
+}
+
 type Listener = (report: StudyCycleReport) => void;
+
+const TRACE_KEY = "lelu.selfstudy.trace.v1";
 
 /**
  * Pace between cycles. This is NOT "call the model every N ms": each
@@ -509,6 +605,7 @@ export default class SelfStudyEngine {
     report.finishedAt = Date.now();
     this.lastReport = report;
     this.history = [...this.history, report].slice(-120);
+    this.persistTrace(report);
     for (const listener of this.listeners) {
       try {
         listener(report);
@@ -517,6 +614,208 @@ export default class SelfStudyEngine {
       }
     }
     return report;
+  }
+
+  /** Write the durable trace so the state can be READ without a cycle. */
+  private persistTrace(report: StudyCycleReport): void {
+    const trace: PersistedCognitiveTrace = {
+      cycle: report.cycle,
+      finishedAt: report.finishedAt,
+      objectiveId: report.objective?.id ?? null,
+      question: report.objective?.question ?? null,
+      origin: report.objective?.origin ?? null,
+      domain: report.objective?.domain ?? null,
+      target: report.objective?.target,
+      createdInCycle: report.objective?.createdInCycle ?? null,
+      objectiveSource: report.objectiveSource,
+      agent: report.agent,
+      tool: report.tool,
+      evidenceOrigin: report.evidenceOrigin,
+      evidenceCount: report.evidence.length,
+      evaluation: report.evaluation,
+      provider: report.provider,
+      providerFallback: report.providerFallback,
+      learned: report.learned,
+      memoryConsolidated: report.memoryConsolidated,
+      derived: report.derived,
+      state: report.state,
+      note: report.note,
+    };
+    try {
+      KvStore.getInstance().set(TRACE_KEY, trace);
+    } catch {
+      // Durability is best-effort; the live report is still available.
+    }
+  }
+
+  private readTrace(): PersistedCognitiveTrace | null {
+    try {
+      return KvStore.getInstance().get<PersistedCognitiveTrace>(TRACE_KEY) ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  /* --------------------------- READING THE STATE --------------------------- */
+
+  /**
+   * Read LÉLU's current cognitive state.
+   *
+   * THIS IS A PURE READ. It never runs a cycle, never starts the loop,
+   * never calls a provider and never mutates anything. The chat route
+   * and the UI both use it, so asking her what she is thinking about
+   * REPORTS cognition rather than causing it — and the answer is the
+   * same whether or not a user has recently sent a message.
+   *
+   * It prefers the live in-process report and falls back to the durable
+   * trace, so the state is still readable immediately after a reload,
+   * before the reloaded loop has completed its first cycle.
+   */
+  public getCognitiveState(): CognitiveStateView {
+    const live = this.lastReport;
+    const trace = this.readTrace();
+    const open = this.objectives.open();
+    const mission = this.mission();
+
+    const source: CognitiveStateView["source"] = live ? "live" : trace ? "persisted" : "none";
+
+    const question = live?.objective?.question ?? trace?.question ?? null;
+    const origin = live?.objective?.origin ?? trace?.origin ?? null;
+    const domain = live?.objective?.domain ?? trace?.domain ?? null;
+    const target = live?.objective?.target ?? trace?.target;
+    const createdInCycle = live?.objective?.createdInCycle ?? trace?.createdInCycle ?? null;
+
+    const focus =
+      question && origin && domain
+        ? {
+            question,
+            origin,
+            domain,
+            target,
+            createdInCycle,
+            whySelected: this.explainSelection(origin, domain, createdInCycle, live?.objectiveSource ?? trace?.objectiveSource),
+          }
+        : null;
+
+    const investigation =
+      live || trace
+        ? {
+            agent: live?.agent ?? trace?.agent ?? "—",
+            tool: live?.tool ?? trace?.tool ?? "—",
+            evidenceOrigin: live?.evidenceOrigin ?? trace?.evidenceOrigin ?? "none",
+            evidenceCount: live?.evidence.length ?? trace?.evidenceCount ?? 0,
+            provider: live?.provider ?? trace?.provider ?? null,
+            providerFallback: live?.providerFallback ?? trace?.providerFallback ?? false,
+            learned: live?.learned ?? trace?.learned ?? false,
+            memoryConsolidated: live?.memoryConsolidated ?? trace?.memoryConsolidated ?? false,
+            conclusion: this.answerLine(live?.evaluation ?? trace?.evaluation ?? ""),
+          }
+        : null;
+
+    // Discoveries: what recent cycles actually established, from the
+    // knowledge library entries self-study itself wrote.
+    const discoveries = this.knowledge
+      .list()
+      .filter((entry) => (entry.source ?? "").startsWith("self-study:") || (entry.source ?? "").startsWith("source:"))
+      .sort((a, b) => b.updatedAt - a.updatedAt)
+      .slice(0, 6)
+      .map((entry) => `${entry.title} [${entry.status}] — ${this.answerLine(entry.detail)}`);
+
+    // Unresolved: questions she is carrying that are not settled.
+    const unresolved = [
+      ...this.objectives
+        .list()
+        .filter((item) => item.status === "unresolved")
+        .map((item) => `${item.question} (unresolved: ${item.lastEvidence ?? "no usable evidence"})`),
+      ...open
+        .filter((item) => item.attempts > 0)
+        .map((item) => `${item.question} (attempted ${item.attempts}×, still open)`),
+      ...this.knowledge.gaps().map((gap) => `${gap.title} (knowledge status: ${gap.status})`),
+    ].slice(0, 8);
+
+    const next = open.find((item) => item.id !== (live?.objective?.id ?? trace?.objectiveId));
+    const state = live?.state ?? trace?.state ?? this.blankState();
+
+    return {
+      running: this.continuous,
+      cycle: this.cycle,
+      persistedCycle: trace?.cycle ?? 0,
+      lastCycleAt: live?.finishedAt ?? trace?.finishedAt ?? null,
+      source,
+      focus,
+      investigation,
+      discoveries,
+      unresolved,
+      understanding: {
+        mission: [
+          ...mission.longTerm,
+          ...mission.goals,
+          ...mission.projects.map((project) => `${project.name}: ${project.objective}`),
+        ].filter((item) => item.trim().length > 0),
+        knowledgeEntries: state.knowledgeEntries,
+        verified: state.verified,
+        openGaps: state.knowledgeGaps,
+        sourceAccess: state.sourceAccess,
+        runtimeReachable: state.runtimeReachable,
+        agents: this.agentsInPlay(),
+      },
+      nextIntended: next
+        ? {
+            question: next.question,
+            origin: next.origin,
+            domain: next.domain,
+            whySelected: this.explainSelection(next.origin, next.domain, next.createdInCycle, "buffer"),
+          }
+        : null,
+      carried: open.length,
+    };
+  }
+
+  /** Plain-language reason a question was chosen — from its provenance. */
+  private explainSelection(
+    origin: string,
+    domain: string,
+    createdInCycle: number | null,
+    objectiveSource?: string,
+  ): string {
+    const provenance: Record<string, string> = {
+      "knowledge-gap": "an entry in my knowledge library is still untrusted, so I cannot rely on it",
+      mission: "it is something my standing mission depends on that I do not yet understand",
+      "self-model": "my own model of myself records this as unfinished or hypothetical",
+      architecture: "a subsystem or capability is incomplete and I cannot describe it from evidence",
+      discovery: "a previous investigation surfaced it",
+      contradiction: "evidence contradicted what I believed, and a failure outranks curiosity",
+      unresolved: "an earlier attempt produced no usable evidence",
+      revalidation: "it is the belief that has gone longest without being re-checked",
+    };
+    const why = provenance[origin] ?? "it was the highest-priority open question";
+    const from =
+      createdInCycle && createdInCycle > 0 ? ` It was raised in cycle ${createdInCycle}.` : "";
+    const how =
+      objectiveSource === "generated"
+        ? " The buffer was empty, so it was generated from my mission and current state rather than taken from a queue."
+        : "";
+    return `Selected because ${why} (${domain} question).${from}${how}`;
+  }
+
+  /** The ANSWER line of an evaluation, without exposing raw reasoning. */
+  private answerLine(evaluation: string): string {
+    const line = evaluation.split("\n").find((item) => /^ANSWER\s*:/i.test(item.trim()));
+    const text = (line ? line.replace(/^ANSWER\s*:/i, "") : evaluation.split("\n")[0] ?? "").trim();
+    return text.length > 400 ? `${text.slice(0, 399)}…` : text;
+  }
+
+  /** Agents that actually took part in recent cycles. */
+  private agentsInPlay(): string[] {
+    const names = new Set<string>();
+    for (const report of this.history.slice(-12)) {
+      if (report.agent && report.agent !== "—") names.add(`${report.agent} (${report.tool})`);
+    }
+    if (names.size === 0) {
+      const trace = this.readTrace();
+      if (trace?.agent && trace.agent !== "—") names.add(`${trace.agent} (${trace.tool})`);
+    }
+    return [...names];
   }
 
   /* ------------------------------ reconcile ------------------------------- */

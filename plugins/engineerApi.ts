@@ -209,6 +209,14 @@ function tokenRequired(): boolean {
   return typeof process !== "undefined" && Boolean(process.env.LELU_ENGINEER_TOKEN);
 }
 
+/** Does this request carry the configured access token? */
+function hasValidToken(req: ConnectLikeReq): boolean {
+  if (typeof process === "undefined") return false;
+  const header = req.headers?.["x-lelu-token"];
+  const provided = Array.isArray(header) ? header[0] : header;
+  return typeof provided === "string" && provided === process.env.LELU_ENGINEER_TOKEN;
+}
+
 /* ------------------------------------------------------------------ */
 /* the API                                                             */
 /* ------------------------------------------------------------------ */
@@ -228,20 +236,34 @@ export function createEngineerApi(adapter: EngineerAdapter): {
         return;
       }
 
-      /* ---- GET /api/engineer/status — runtime capability report ---- */
+      /* ---- GET /api/engineer/status — runtime capability report ----
+         Deliberately reachable without a token: the client has to be
+         able to discover whether a runtime exists at all (and whether
+         a token is even required) before it can present one.
+
+         But an unauthenticated probe gets only the capability facts.
+         Absolute filesystem paths and engine/version details are
+         disclosed ONLY to a caller that already holds the token, so
+         enabling LELU_ENGINEER_TOKEN does not leave server internals
+         readable by anyone who can reach the port. */
       if (route === "/api/engineer/status") {
         if (method === "GET") {
+          const trusted = !tokenRequired() || hasValidToken(req);
           sendJson(res, {
             ok: true,
             runtime: adapter.runtime,
             available: true,
             operations: Object.keys(ENGINEER_OPERATIONS),
             workspace: adapter.workspaceRoot.split(/[\\/]/).pop() ?? "",
-            workspaceRoot: adapter.workspaceRoot,
             tokenRequired: tokenRequired(),
-            // Live runtime facts, so the client can report REAL
-            // DEVELOPMENT RUNTIME rather than assuming one exists.
-            runtimeInfo: adapter.runtimeInfo(),
+            ...(trusted
+              ? {
+                  workspaceRoot: adapter.workspaceRoot,
+                  // Live runtime facts, so the client can report REAL
+                  // DEVELOPMENT RUNTIME rather than assuming one exists.
+                  runtimeInfo: adapter.runtimeInfo(),
+                }
+              : {}),
           });
           return;
         }
@@ -265,17 +287,13 @@ export function createEngineerApi(adapter: EngineerAdapter): {
       }
 
       /* ---- optional token gate ---- */
-      if (tokenRequired()) {
-        const header = req.headers?.["x-lelu-token"];
-        const provided = Array.isArray(header) ? header[0] : header;
-        if (provided !== process.env.LELU_ENGINEER_TOKEN) {
-          sendJson(
-            res,
-            { ok: false, error: "Engineering runtime requires an access token (LELU_ENGINEER_TOKEN)." },
-            401,
-          );
-          return;
-        }
+      if (tokenRequired() && !hasValidToken(req)) {
+        sendJson(
+          res,
+          { ok: false, error: "Engineering runtime requires an access token (LELU_ENGINEER_TOKEN)." },
+          401,
+        );
+        return;
       }
 
       void (async () => {

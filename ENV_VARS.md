@@ -115,6 +115,34 @@ different host, which is the correct default. Set it deliberately, to
 the specific origin, and pair it with `LELU_ENGINEER_TOKEN` — this
 endpoint reads and writes real workspace files and runs real commands.
 
+#### The two real frontend/runtime relationships
+
+| Deployment | Frontend origin | Runtime origin | Correct configuration |
+| --- | --- | --- | --- |
+| Vite dev (`bun run dev`), standalone runtime (`bun run serve` → `server.ts`), Deno entry (`main.ts`) | same as runtime | same | **Leave `LELU_ENGINEER_ALLOWED_ORIGINS` unset.** The frontend and `/api/engineer/*` are served by one origin, so the origin guard already permits it. Widening the allowlist here would only weaken the boundary. |
+| Capacitor Android shell (`capacitor.config.ts`, `androidScheme: "https"`) pointed at a hosted runtime | `https://localhost` (the WebView) | the runtime host | `LELU_ENGINEER_ALLOWED_ORIGINS=https://localhost` **and** `LELU_ENGINEER_TOKEN=<secret>`, with the shell built carrying `VITE_LELU_ENGINEER_URL` and `VITE_LELU_ENGINEER_TOKEN`. |
+
+Set the allowlist to the exact origin. Never `*` on a reachable host:
+that endpoint reads and writes workspace files and runs commands.
+
+The two checks are independent and both are enforced — verified against
+the standalone runtime:
+
+- same-origin + token → `200`
+- non-allowlisted origin **with a valid token** → `403` (the token does
+  not buy you past the origin guard)
+- allowlisted origin **without a token** → `401` (the allowlist does not
+  buy you past the token gate)
+- allowlisted origin + token → `200`
+- CORS headers are echoed only for an allowlisted origin
+
+`GET /api/engineer/status` stays reachable without a token, because a
+client has to be able to discover whether a runtime exists and whether a
+token is required before it can present one. When a token IS configured,
+an unauthenticated probe gets only the capability fields — the absolute
+`workspaceRoot` and the `runtimeInfo` engine/version/cwd details are
+returned only to a caller that already holds the token.
+
 Fires are real NASA VIIRS NRT hotspots via the FIRMS area CSV API
 (bbox-bounded around the camera focus, with acquisition timestamps,
 confidence, brightness and fire radiative power preserved).
