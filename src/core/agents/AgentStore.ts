@@ -14,7 +14,13 @@
 
 import KvStore from "../storage/KvStore";
 import AgentEventBus from "../agent/AgentEvents";
-import { AGENT_TEMPLATES, SCIENTIFIC_AGENT_TEMPLATES, agentFromTemplate, type AgentTemplate } from "./AgentTemplates";
+import {
+  AGENT_TEMPLATES,
+  SCIENTIFIC_AGENT_TEMPLATES,
+  EXECUTIVE_AGENT_TEMPLATES,
+  agentFromTemplate,
+  type AgentTemplate,
+} from "./AgentTemplates";
 import type { AgentTask, AgentExecution, LeluAgent, AgentStatus } from "./AgentTypes";
 
 type AgentListener = (agents: LeluAgent[]) => void;
@@ -153,6 +159,46 @@ export default class AgentStore {
     const agent = agentFromTemplate(template ?? AGENT_TEMPLATES[0]);
     this.mutate((agents) => [...agents, agent]);
     return agent;
+  }
+
+  /**
+   * Make sure the five executive agents from the mission's vision log
+   * exist, and return them.
+   *
+   * Idempotent by NAME rather than by id, because agent ids are
+   * generated per-install: matching on id would create a duplicate set
+   * on every call. Agents the user has since renamed are deliberately
+   * not resurrected — this creates what is missing, it does not enforce
+   * a roster.
+   *
+   * Called by SelfStudy before it delegates, so cognition never fails
+   * merely because an agent had not been created yet.
+   */
+  public ensureExecutiveAgents(): LeluAgent[] {
+    const existing = this.list();
+    const byName = new Map(existing.map((agent) => [agent.name.toLowerCase(), agent]));
+    const created: LeluAgent[] = [];
+
+    for (const template of EXECUTIVE_AGENT_TEMPLATES) {
+      if (byName.has(template.name.toLowerCase())) continue;
+      created.push(agentFromTemplate(template));
+    }
+
+    if (created.length > 0) {
+      this.mutate((agents) => [...agents, ...created]);
+    }
+
+    const all = this.list();
+    return EXECUTIVE_AGENT_TEMPLATES.map((template) =>
+      all.find((agent) => agent.name.toLowerCase() === template.name.toLowerCase()),
+    ).filter((agent): agent is LeluAgent => agent !== undefined);
+  }
+
+  /** The executive agent for a template id, if it has been created. */
+  public executiveAgentByTemplate(templateId: string): LeluAgent | undefined {
+    const template = EXECUTIVE_AGENT_TEMPLATES.find((item) => item.id === templateId);
+    if (!template) return undefined;
+    return this.list().find((agent) => agent.name.toLowerCase() === template.name.toLowerCase());
   }
 
   /** On-demand scientific specialists (Caretaker health/bioengineering).

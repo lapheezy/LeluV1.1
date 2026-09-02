@@ -33,6 +33,7 @@ import KnowledgeLibrary from "./KnowledgeLibrary";
 import SelfModel from "./SelfModel";
 import SystemEnvironment from "./SystemEnvironment";
 import WorkQueue from "./WorkQueue";
+import SelfStudy, { type SelfStudyCycleRecord } from "./SelfStudy";
 import SelfDevelopmentEngine from "../selfdev/SelfDevelopmentEngine";
 import CapabilityManifest from "../capabilities/CapabilityManifest";
 import Sentinel from "../sentinel/Sentinel";
@@ -56,12 +57,26 @@ export interface CognitiveCycleReport {
   suggestions: string[];
   selfUpdates: string[];
   cycle: number;
+  /**
+   * The self-study cycle this cognitive cycle ran, when it ran one.
+   * Null between self-study cycles — see SELF_STUDY_EVERY.
+   */
+  selfStudy: SelfStudyCycleRecord | null;
 }
 
 type Listener = (report: CognitiveCycleReport) => void;
 
 const CYCLE_INTERVAL_MS = 60_000;
 const MAX_SUGGESTIONS_PER_CYCLE = 3;
+/**
+ * Run a self-study cycle every Nth cognitive cycle.
+ *
+ * Not every cycle: a self-study pass reads real source and may spend a
+ * provider call on an agent. At a 60s cadence this is one self-study
+ * every 3 minutes — continuous without being a busy-loop against the
+ * provider chain.
+ */
+const SELF_STUDY_EVERY = 3;
 
 export default class CognitiveLoop {
   private static instance: CognitiveLoop | null = null;
@@ -386,6 +401,34 @@ export default class CognitiveLoop {
         }
       }
 
+      /* ---------------- SELF STUDY ---------------- */
+      // The stage that studies HER OWN system rather than the outside
+      // world: architecture map → knowledge gap → real source → an
+      // executive agent → conclusion → memory. It is awaited (unlike
+      // the fire-and-forget scan below) because its result is part of
+      // this cycle's report, and it never throws — a failed self-study
+      // returns a record saying so.
+      let selfStudy: SelfStudyCycleRecord | null = null;
+      // Cycles are 1-based, so shift before the modulo: this fires on
+      // cycle 1, 4, 7 … and still fires every cycle if SELF_STUDY_EVERY
+      // is ever set to 1.
+      if ((this.cycle - 1) % SELF_STUDY_EVERY === 0) {
+        selfStudy = await SelfStudy.getInstance().runCycle();
+        if (selfStudy.objective) {
+          suggestions.push(
+            selfStudy.ok
+              ? `Studied ${selfStudy.subsystem} — ${selfStudy.memoryWrites.length} memory write(s).`
+              : `Self-study of ${selfStudy.subsystem} failed at ${selfStudy.reachedPhase}.`,
+          );
+        }
+        if (selfStudy.contradiction) {
+          suggestions.push(`Contradiction detected: ${selfStudy.contradiction.slice(0, 120)}`);
+        }
+        for (const write of selfStudy.memoryWrites) {
+          selfUpdates.push(`Self-study wrote ${write}.`);
+        }
+      }
+
       /* ---------------- VISUAL STATE TRANSITION ---------------- */
       // Cognition determines the current visual state based on what it
       // observed, then emits it so the unified UI can transform.
@@ -422,6 +465,7 @@ export default class CognitiveLoop {
         suggestions,
         selfUpdates,
         cycle: this.cycle,
+        selfStudy,
       };
       this.lastReport = report;
       for (const listener of this.listeners) {
@@ -499,6 +543,7 @@ export default class CognitiveLoop {
       suggestions: [],
       selfUpdates: [],
       cycle: this.cycle,
+      selfStudy: null,
     };
   }
 }
