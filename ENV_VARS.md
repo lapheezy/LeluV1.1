@@ -69,9 +69,11 @@ runtime that serves the app:
 | Deno production entry | `deno run --allow-net --allow-read --allow-write --allow-run main.ts` | ✅ (`deno`) |
 | Static-only hosting (e.g. GitHub Pages) | — | ❌ the app honestly reports `STATIC-ONLY` |
 
-Endpoints (all same-origin, no credentials):
+Endpoints (same-origin by default, no credentials):
 
-- `GET /api/engineer/status` — runtime report (`runtime`, `operations`, `tokenRequired`)
+- `GET /api/engineer/status` — runtime report (`runtime`, `operations`,
+  `tokenRequired`, `workspaceRoot`, and `runtimeInfo`: engine, version,
+  platform, cwd, start time)
 - `POST /api/engineer/command` — `{ operation }`; **whitelisted** to
   `typecheck` (`bun tsc -b --noEmit`), `test` (`bun test`),
   `build` (`bun run build`), `inspect` (`node --version && bun --version && pwd`).
@@ -79,11 +81,39 @@ Endpoints (all same-origin, no credentials):
   entry exactly. The server never runs arbitrary shell input.
 - `POST /api/engineer/read` — `{ path }`, workspace-root-bounded
 - `POST /api/engineer/write` — `{ path, content }`, workspace-root-bounded
+- `POST /api/engineer/list` — `{ path }`, workspace-root-bounded directory
+  listing (`.git`, `node_modules`, `dist`, caches excluded), so
+  self-inspection can discover real files instead of only the files that
+  happened to be bundled at build time.
 
 Safety model: command whitelist + workspace path boundary + origin
-guard (cross-origin POSTs rejected) + optional `LELU_ENGINEER_TOKEN`
-(when set, POSTs must carry `x-lelu-token`; the app reports
-`token required` honestly if it is missing).
+guard + optional `LELU_ENGINEER_TOKEN` (when set, POSTs must carry
+`x-lelu-token`; the app reports `token required` honestly if it is
+missing).
+
+### Connecting a deployed front-end to a real development runtime
+
+Self-inspection reads the live workspace when the engineering runtime is
+reachable, and falls back to the build-time snapshot when it is not. The
+two are never conflated — `SourceAccess.describe()` reports either
+`REAL DEVELOPMENT RUNTIME` or `STATIC SNAPSHOT`, and every read carries
+its origin. A static-only deployment therefore degrades honestly rather
+than silently.
+
+To point a deployed front-end at a real runtime instead:
+
+| Variable | Side | Purpose |
+| --- | --- | --- |
+| `VITE_LELU_ENGINEER_URL` | client | Base URL of the engineering runtime. Empty (default) means same origin. |
+| `VITE_LELU_ENGINEER_TOKEN` | client | Sent as `x-lelu-token`. Required only when the runtime sets `LELU_ENGINEER_TOKEN`. |
+| `LELU_ENGINEER_TOKEN` | server | When set, every POST must carry the matching token. |
+| `LELU_ENGINEER_ALLOWED_ORIGINS` | server | Comma-separated exact origins (or `*`) permitted to call cross-origin. **Empty by default — same-origin only.** |
+
+`LELU_ENGINEER_ALLOWED_ORIGINS` is what makes the cross-origin case work
+at all: without it the origin guard rejects a front-end served from a
+different host, which is the correct default. Set it deliberately, to
+the specific origin, and pair it with `LELU_ENGINEER_TOKEN` — this
+endpoint reads and writes real workspace files and runs real commands.
 
 Fires are real NASA VIIRS NRT hotspots via the FIRMS area CSV API
 (bbox-bounded around the camera focus, with acquisition timestamps,

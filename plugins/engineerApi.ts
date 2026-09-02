@@ -14,6 +14,7 @@
  *   POST /api/engineer/command  → { operation } (whitelisted)
  *   POST /api/engineer/read     → { path }       (workspace-bounded)
  *   POST /api/engineer/write    → { path, content } (workspace-bounded)
+ *   POST /api/engineer/list     → { path }       (workspace-bounded)
  *
  * IMPORTANT: connect-style servers (Vite's middleware stack) rewrite
  * `req.url` to the mount-point remainder before invoking a handler,
@@ -64,7 +65,29 @@ export interface EngineerAdapter {
   resolve: (targetPath: string) => string;
   readFile: (absolutePath: string) => Promise<string> | string;
   writeFile: (absolutePath: string, content: string) => Promise<void> | void;
+  /** Directory listing, workspace-bounded — how LÉLU discovers real files. */
+  listDir: (absolutePath: string) => Promise<EngineerDirEntry[]> | EngineerDirEntry[];
+  /** Live runtime facts (engine + versions + cwd) reported by /status. */
+  runtimeInfo: () => EngineerRuntimeInfo;
   runCommand: (command: string, timeoutMs: number) => Promise<EngineerCommandResult>;
+}
+
+/** One entry of a workspace-bounded directory listing. */
+export interface EngineerDirEntry {
+  name: string;
+  /** Workspace-relative path, always forward-slashed. */
+  path: string;
+  type: "file" | "dir";
+  size?: number;
+}
+
+/** Live facts about the runtime actually serving this API. */
+export interface EngineerRuntimeInfo {
+  engine: string;
+  version: string;
+  platform: string;
+  cwd: string;
+  startedAt: number;
 }
 
 /** Whitelisted operations — the only commands the server will ever run. */
@@ -82,6 +105,7 @@ const ROUTES = [
   "/api/engineer/command",
   "/api/engineer/read",
   "/api/engineer/write",
+  "/api/engineer/list",
 ] as const;
 
 /* ------------------------------------------------------------------ */
@@ -131,17 +155,54 @@ function readJsonBody(req: ConnectLikeReq): Promise<Record<string, unknown>> {
   });
 }
 
-/** Reject state-changing requests whose Origin does not match the Host. */
+/**
+ * Origins explicitly allowed to reach this runtime from a different
+ * host, read from LELU_ENGINEER_ALLOWED_ORIGINS (comma-separated exact
+ * origins, or "*"). Empty by default — same-origin only, exactly as
+ * before. This is the switch that lets a deployed LÉLU front-end reach
+ * a REAL development runtime instead of silently degrading to the
+ * build-time snapshot.
+ */
+function allowedOrigins(): string[] {
+  if (typeof process === "undefined") return [];
+  return (process.env.LELU_ENGINEER_ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+}
+
+function requestOrigin(req: ConnectLikeReq): string {
+  const headers = req.headers ?? {};
+  return typeof headers.origin === "string" ? headers.origin : "";
+}
+
+/** Reject state-changing requests whose Origin is neither the Host nor allowlisted. */
 function isCrossOrigin(req: ConnectLikeReq): boolean {
   const headers = req.headers ?? {};
-  const origin = typeof headers.origin === "string" ? headers.origin : "";
+  const origin = requestOrigin(req);
   const host = typeof headers.host === "string" ? headers.host : "";
   if (!origin || !host) return false; // curl / non-browser clients — allowed
   try {
-    return new URL(origin).host !== host;
+    if (new URL(origin).host === host) return false;
   } catch {
     return true;
   }
+  // A different host is permitted only when explicitly allowlisted.
+  const allowed = allowedOrigins();
+  return !(allowed.includes("*") || allowed.includes(origin));
+}
+
+/** Echo CORS headers for an allowlisted cross-origin caller. */
+function applyCors(req: ConnectLikeReq, res: ConnectLikeRes): void {
+  const origin = requestOrigin(req);
+  if (!origin) return;
+  const allowed = allowedOrigins();
+  if (!allowed.includes("*") && !allowed.includes(origin)) return;
+  res.setHeader("Access-Control-Allow-Origin", origin);
+  res.setHeader("Vary", "Origin");
+  res.setHeader("Access-Control-Allow-Headers", "content-type, x-lelu-token");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Max-Age", "600");
 }
 
 function tokenRequired(): boolean {
@@ -158,6 +219,14 @@ export function createEngineerApi(adapter: EngineerAdapter): {
   function handleRoute(route: (typeof ROUTES)[number]) {
     return (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): void => {
       const method = req.method ?? "GET";
+      applyCors(req, res);
+
+      /* ---- CORS preflight for an allowlisted cross-origin caller ---- */
+      if (method === "OPTIONS") {
+        res.statusCode = 204;
+        res.end("");
+        return;
+      }
 
       /* ---- GET /api/engineer/status — runtime capability report ---- */
       if (route === "/api/engineer/status") {
@@ -168,7 +237,11 @@ export function createEngineerApi(adapter: EngineerAdapter): {
             available: true,
             operations: Object.keys(ENGINEER_OPERATIONS),
             workspace: adapter.workspaceRoot.split(/[\\/]/).pop() ?? "",
+            workspaceRoot: adapter.workspaceRoot,
             tokenRequired: tokenRequired(),
+            // Live runtime facts, so the client can report REAL
+            // DEVELOPMENT RUNTIME rather than assuming one exists.
+            runtimeInfo: adapter.runtimeInfo(),
           });
           return;
         }
@@ -243,6 +316,15 @@ export function createEngineerApi(adapter: EngineerAdapter): {
             const absolutePath = adapter.resolve(filePath);
             const content = await adapter.readFile(absolutePath);
             sendJson(res, { ok: true, path: filePath, content });
+            return;
+          }
+
+          /* ---- POST /api/engineer/list (workspace-bounded) ---- */
+          if (route === "/api/engineer/list") {
+            const dirPath = String(payload.path ?? "");
+            const absolutePath = adapter.resolve(dirPath);
+            const entries = await adapter.listDir(absolutePath);
+            sendJson(res, { ok: true, path: dirPath, entries });
             return;
           }
 

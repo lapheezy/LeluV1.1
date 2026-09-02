@@ -26,6 +26,7 @@
 import ImprovementQueue, { type ImprovementProposal, type ImprovementStatus } from "./ImprovementQueue";
 import VersionHistory from "./VersionHistory";
 import SelfCode from "./SelfCode";
+import SourceAccess from "./SourceAccess";
 import EngineeringToolset from "./EngineeringToolset";
 import EngineeringMemory from "./EngineeringMemory";
 import CapabilityRegistry from "./CapabilityRegistry";
@@ -381,30 +382,17 @@ export default class SelfDevelopmentLoop {
   }
 
   private async writeWorkspace(path: string, content: string): Promise<boolean> {
-    try {
-      const response = await fetch("/api/engineer/write", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ path, content }),
-      });
-      const payload = (await response.json()) as { ok?: boolean };
-      return payload.ok === true;
-    } catch {
-      return false;
-    }
+    // One door onto the development runtime — SourceAccess carries the
+    // configured base URL and token, and refuses honestly when only the
+    // build-time snapshot is available.
+    return (await SourceAccess.getInstance().write(path, content)).ok;
   }
 
   private async rollbackOriginals(originals: { path: string; content: string }[]): Promise<void> {
+    const source = SourceAccess.getInstance();
     for (const { path, content } of originals) {
-      try {
-        await fetch("/api/engineer/write", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ path, content }),
-        });
-      } catch {
-        // best-effort rollback
-      }
+      // best-effort rollback — SourceAccess never throws
+      await source.write(path, content);
     }
   }
 
