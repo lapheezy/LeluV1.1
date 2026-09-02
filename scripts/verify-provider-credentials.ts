@@ -315,13 +315,23 @@ async function main(): Promise<void> {
   console.log("  configuration → runtime env → relay → provider registry → AIRuntime → cognition\n");
 
   let serverStatus: Record<string, { configured?: boolean }> = {};
+  let serverReachable = false;
   try {
     const response = await fetch(`${BASE}/api/ai/providers`, { signal: AbortSignal.timeout(8000) });
     const payload = (await response.json()) as { providers?: Record<string, { configured?: boolean }> };
     serverStatus = payload.providers ?? {};
+    serverReachable = true;
   } catch {
-    // No server reachable: every provider is DISCONNECTED, which is
-    // exactly what the block below should then report.
+    // "No server running" and "this provider is not routed" are different
+    // findings. Reporting the first as the second would call every
+    // provider DISCONNECTED on a machine where nothing is serving yet —
+    // a lie dressed as a diagnosis. Say which one it is.
+  }
+
+  if (!serverReachable) {
+    console.log(`  ROUTING IS UNKNOWN — no server answered at ${BASE}.`);
+    console.log("  Start one first (`bun run dev` or `bun run serve`) and re-run; routing is a");
+    console.log("  property of the running server, not of the environment.\n");
   }
 
   for (const provider of CHAT_PROVIDERS) {
@@ -337,7 +347,9 @@ async function main(): Promise<void> {
     console.log(`  CREDENTIAL: ${varName ? "PRESENT" : "ABSENT"}${varName ? ` (via ${varName})` : ""}`);
     console.log(`  AUTH TEST:  ${authed?.verdict === "AUTHENTICATED" ? "PASS" : "FAIL"}${authed && authed.verdict !== "AUTHENTICATED" ? ` (${authed.verdict})` : ""}`);
     console.log(`  RUNTIME:    ${runtime}`);
-    console.log(`  ROUTING:    ${routed ? "CONNECTED" : "DISCONNECTED"}`);
+    console.log(
+      `  ROUTING:    ${serverReachable ? (routed ? "CONNECTED" : "DISCONNECTED") : "UNKNOWN (no server)"}`,
+    );
     console.log();
   }
 
