@@ -89,9 +89,21 @@ export default class AnthropicProvider implements AIProvider {
     // else's quota and make this provider report itself configured when
     // nothing was ever set for LÉLU — the same trap GitHubModelsProvider
     // documents avoiding with an ambient GITHUB_TOKEN.
+    // `process.env.ANTHROPIC_API_KEY` IS read, by its explicit name, the
+    // same way every sibling provider reads its own (GroqProvider reads
+    // GROQ_API_KEY, OpenRouterProvider OPENROUTER_API_KEY, and so on).
+    // Anthropic was the only chat provider without this branch, so a
+    // server runtime that had the credential in its environment could
+    // not hand it to this provider directly — it worked only through the
+    // relay. There is no `process` in the browser, so this reads as
+    // undefined there and the relay still owns the browser path.
+    const processEnv =
+      typeof process !== "undefined" && typeof process.env === "object" ? process.env : undefined;
+
     this.apiKey =
       runtimeEnv.__LELU_ANTHROPIC_API_KEY__?.trim() ||
       windowEnv?.__LELU_ANTHROPIC_API_KEY__?.trim() ||
+      processEnv?.ANTHROPIC_API_KEY?.trim() ||
       "";
 
     this.relay = this.apiKey ? false : await relayAvailable("anthropic");

@@ -342,6 +342,32 @@ async function main(): Promise<void> {
   );
 
   /* ---------------------------------------------------------------- */
+  // The credential chain ends HERE: a provider failing must reroute
+  // inside the registry, not surface as a cognitive failure. Anthropic
+  // is priority 1 and unconfigured in this runtime, so any agent result
+  // at all proves the fallback chain carried cognition past it.
+  console.log("\n== A provider failure falls back without stopping cognition ==");
+  const answered = [first, second]
+    .map((record) => record.evidence.find((item) => item.kind === "agent"))
+    .filter((item): item is NonNullable<typeof item> => item !== undefined);
+  if (answered.length > 0) {
+    console.log(`  provider that actually answered: ${answered[0].label}`);
+    assert(
+      !answered[0].label.includes("(Anthropic)"),
+      "cognition was served by a fallback provider, not the priority-1 provider",
+      "priority 1 answered — this run cannot demonstrate fallback",
+    );
+  }
+  assert(
+    first.reachedPhase === "reassess" && second.reachedPhase === "reassess",
+    "both cycles still ran to completion despite provider failures upstream",
+  );
+  assert(
+    first.memoryWrites.length > 0 && second.memoryWrites.length > 0,
+    "and both still wrote memory — cognitive state survived the fallback",
+  );
+
+  /* ---------------------------------------------------------------- */
   console.log("\n== Unresolved questions remain open for revisiting ==");
   const gaps = selfStudy.getGaps();
   const open = gaps.filter((gap) => gap.status === "open");

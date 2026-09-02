@@ -293,6 +293,66 @@ async function main(): Promise<void> {
   if (rejected.length > 0) {
     console.log(`  credentials REJECTED by the upstream: ${rejected.map((entry) => entry.label).join(", ")}`);
   }
+  console.log();
+
+  // ---- 6. Injection-path summary ------------------------------------------
+  //
+  // Sections 1-5 answer "does the credential work". This one answers the
+  // separate question: WHERE does it stop being available. The two are
+  // routinely confused — a provider can hold a perfectly good key and
+  // still be unreachable because nothing routes to it.
+  //
+  // RUNTIME  — which side actually holds the credential for this
+  //            provider. SERVER means the relay attaches it and it never
+  //            enters the bundle; CLIENT would mean a key is reachable
+  //            from the browser, which is a finding, not a success.
+  // ROUTING  — whether the relay will actually carry a call for this
+  //            provider, i.e. whether /api/ai/providers reports it
+  //            configured. DISCONNECTED means the provider client has
+  //            nowhere to send a request even if a key exists elsewhere.
+  console.log("6. INJECTION PATH — where the credential stops");
+  console.log("-----------------------------------------------");
+  console.log("  configuration → runtime env → relay → provider registry → AIRuntime → cognition\n");
+
+  let serverStatus: Record<string, { configured?: boolean }> = {};
+  try {
+    const response = await fetch(`${BASE}/api/ai/providers`, { signal: AbortSignal.timeout(8000) });
+    const payload = (await response.json()) as { providers?: Record<string, { configured?: boolean }> };
+    serverStatus = payload.providers ?? {};
+  } catch {
+    // No server reachable: every provider is DISCONNECTED, which is
+    // exactly what the block below should then report.
+  }
+
+  for (const provider of CHAT_PROVIDERS) {
+    const varName = presentVar(provider.vars);
+    const authed = results.find((entry) => entry.label === provider.label);
+    const routed = serverStatus[provider.id]?.configured === true;
+    // A VITE_-prefixed name is readable by the browser in a dev server,
+    // so the credential is not purely server-held. Naming it CLIENT is
+    // the honest reading even though the relay also works.
+    const runtime = varName === null ? "—" : varName.startsWith("VITE_") ? "CLIENT-READABLE" : "SERVER";
+
+    console.log(`  PROVIDER:   ${provider.label}`);
+    console.log(`  CREDENTIAL: ${varName ? "PRESENT" : "ABSENT"}${varName ? ` (via ${varName})` : ""}`);
+    console.log(`  AUTH TEST:  ${authed?.verdict === "AUTHENTICATED" ? "PASS" : "FAIL"}${authed && authed.verdict !== "AUTHENTICATED" ? ` (${authed.verdict})` : ""}`);
+    console.log(`  RUNTIME:    ${runtime}`);
+    console.log(`  ROUTING:    ${routed ? "CONNECTED" : "DISCONNECTED"}`);
+    console.log();
+  }
+
+  const clientReadable = CHAT_PROVIDERS.filter((provider) => {
+    const name = presentVar(provider.vars);
+    return name !== null && name.startsWith("VITE_");
+  });
+  if (clientReadable.length > 0) {
+    console.log(
+      `  NOTE: ${clientReadable.length} credential(s) are stored under a VITE_ name. The relay reads them\n` +
+        "        server-side, so routing works — but Vite's DEV server also exposes every VITE_ variable\n" +
+        "        to the browser. Renaming them to the unprefixed server-side name (see ENV_VARS.md)\n" +
+        "        closes that without changing any provider code.",
+    );
+  }
 
   process.exit(0);
 }
