@@ -82,14 +82,23 @@ export default class Orchestrator {
     _conversationHistory: string[] = [],
     context?: string,
   ): Promise<OrchestratorResult> {
+    // Re-entry is SERIALIZED, not discarded. Returning a canned "I'm
+    // busy" here dropped the user's message on the floor: it was never
+    // answered and never entered the conversation, which is precisely
+    // how a reply goes missing. Wait for the in-flight request instead,
+    // then process this one.
     if (this.executing) {
-      console.warn("[Orchestrator] Already executing — skipping re-entry to prevent lock deadlock.");
-      return {
-        response: "I'm currently processing another request. I'll respond as soon as I'm free.",
-        actions: [],
-        memoryUpdates: [],
-        uiCommands: [],
-      };
+      const deadline = Date.now() + 30_000;
+      while (this.executing && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 120));
+      }
+      if (this.executing) {
+        // The previous request is wedged. Rather than lose this message,
+        // release the lock and take it — a stuck flag must never cost
+        // the user a turn.
+        console.warn("[Orchestrator] Previous request exceeded its window — taking over so the message is not lost.");
+        this.executing = false;
+      }
     }
 
     this.executing = true;

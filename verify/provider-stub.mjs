@@ -50,6 +50,18 @@ createServer((req, res) => {
       // Proof that real evidence from the investigation reached the model.
       mentionsEvidence: /INVESTIGATION|evidence/i.test(prompt),
       mentionsDevelopmentRuntime: /REAL DEVELOPMENT RUNTIME/i.test(prompt),
+      // The FULL conversation the provider actually received, by role.
+      // This is what proves whether short-term conversation context and
+      // the assembled cognitive context genuinely reach the model, or
+      // whether it only ever sees the latest raw user message.
+      roles: (parsed?.messages ?? []).map((m) => m.role),
+      messages: (parsed?.messages ?? []).map((m) => ({
+        role: m.role,
+        chars: (m.content ?? "").length,
+        head: (m.content ?? "").slice(0, 220),
+      })),
+      sawCognitiveContext: /LÉLU AUTONOMOUS COGNITION|LÉLU SELF STATE/.test(prompt),
+      sawConversationHistory: /## (Conversation|Recent conversation)/i.test(prompt),
       questionLine: (prompt.match(/QUESTION I AM INVESTIGATING: (.+)/) ?? [])[1] ?? null,
     });
     try { writeFileSync(LOG, JSON.stringify(calls, null, 2)); } catch { /* best effort */ }

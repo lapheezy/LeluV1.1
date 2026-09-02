@@ -532,6 +532,21 @@ export default function GenesisDock({
     />
   ) : null;
 
+  /**
+   * Long-press tracking for the mobile LÉLU pill.
+   *
+   * These MUST be declared here, unconditionally, not inside the
+   * `if (breakpoint === "mobile")` branch below. Hooks declared inside a
+   * branch change the hook COUNT when the branch changes: rotating a
+   * phone crosses the mobile/tablet breakpoint, React then renders a
+   * different number of hooks than the previous render, throws
+   * "Rendered fewer hooks than expected", and the whole dock subtree
+   * unmounts — which is exactly how the menu tabs and the chat
+   * "disappeared" on rotation.
+   */
+  const longPressRef = useRef<number | null>(null);
+  const longPressFiredRef = useRef(false);
+
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [downloadDone, setDownloadDone] = useState(false);
@@ -668,9 +683,6 @@ export default function GenesisDock({
    * triggers the same menu.
    * ---------------------------------------------------------- */
   if (breakpoint === "mobile") {
-    const longPressRef = useRef<number | null>(null);
-    const longPressFiredRef = useRef(false);
-
     // When chat is fullscreen on mobile, the ☰ button in the chat
     // title bar provides menu access — hide the floating pill.
     const chatIsFullscreen = activePanel === "chat";

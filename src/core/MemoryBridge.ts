@@ -55,15 +55,28 @@ export default class MemoryBridge {
       cognition,
     );
 
-    if (context.trim().length === 0) {
+    // MERGE, never replace. `request.context` already carries the live
+    // cognitive context (self-model, projects, agents, capabilities,
+    // autonomous self-study state) that AIService assembled for this
+    // turn. Overwriting it here silently threw all of that away, so the
+    // model only ever saw memory — never LÉLU's actual runtime state.
+    const merged = [request.context?.trim(), context.trim()]
+      .filter((part): part is string => Boolean(part && part.length > 0))
+      .join("\n\n");
+
+    if (merged.length === 0) {
       return request;
     }
 
     return {
       ...request,
-      context,
+      context: merged,
+      // The conversation turns in `request.messages` are the dialogue so
+      // far and are left exactly as they are. Only the behavioural rules
+      // are prepended as a system turn — the context itself already
+      // reaches the provider through `context`, so repeating it here
+      // would send the same text twice.
       messages: [
-        ...(request.messages ?? []),
         {
           role: "system",
           content:
@@ -73,14 +86,15 @@ You have an evolving memory and cognition model.
 
 Rules:
 
-- Context below is your memory: known facts about the user, yourself, and our history.
-- Use it to understand and personalize — do NOT dump it back or announce "I remember that..." unless it is genuinely useful.
+- The context you are given is your memory and your live runtime state: known facts about the user, about yourself, and our history.
+- The messages before this one are the actual conversation. Read them: do not ask for something the user has already told you, and do not repeat a question you have already asked.
+- If the user corrects a fact, the correction wins — treat the older version as stale.
+- Use context to understand and personalize — do NOT dump it back or announce "I remember that..." unless it is genuinely useful.
 - Never invent personal information that is not in the context.
 - Answer the user's actual question with the minimum sufficient relevant information first; go deeper only when asked.
-- Keep answers concise and natural.
-
-${context}`,
+- Keep answers concise and natural.`,
         },
+        ...(request.messages ?? []),
       ],
     };
   }

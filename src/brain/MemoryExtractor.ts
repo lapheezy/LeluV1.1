@@ -446,13 +446,36 @@ export default class MemoryExtractor {
     ) {
 
 
+      // A first-person statement of fact IS a durable fact about the
+      // user, even when it matches none of the specific patterns above.
+      //
+      // This fallback used to score EVERY unmatched statement at 0.3,
+      // below the 0.5 durability gate, so anything the user said about
+      // themselves in their own words — "My studio is called Aurelia and
+      // I work in 18k rose gold" — was extracted and then silently
+      // dropped. LÉLU then had to ask again. Only conversational filler
+      // stays below the gate now.
+
+      const statesSomething =
+
+        this.isFirstPersonStatement(
+
+          prompt,
+
+        );
+
+
       memories.push(
 
       {
 
         category:
 
-          "conversation",
+          statesSomething
+
+            ? "experience"
+
+            : "conversation",
 
 
         content:
@@ -471,12 +494,20 @@ export default class MemoryExtractor {
 
         importance:
 
-          0.3,
+          statesSomething
+
+            ? 0.62
+
+            : 0.3,
 
 
         memoryType:
 
-          "conversation",
+          statesSomething
+
+            ? "user"
+
+            : "conversation",
 
       });
 
@@ -487,6 +518,85 @@ export default class MemoryExtractor {
 
 
     return memories;
+
+  }
+
+
+
+
+
+  /**
+   * Does this read as the user telling LÉLU something about themselves,
+   * their work or their world — as opposed to filler, an acknowledgement
+   * or an instruction?
+   */
+  private isFirstPersonStatement(
+
+    text:
+      string,
+
+  ):
+    boolean {
+
+
+    const clean =
+
+      text.trim();
+
+
+
+
+
+    // Too short to carry a fact, or pure acknowledgement/greeting.
+    if (
+
+      clean.length < 12
+
+      ||
+
+      /^(ok|okay|yes|no|sure|thanks|thank you|cool|nice|great|hi|hello|hey|yep|nope|got it|understood)\b/i
+
+      .test(clean)
+
+    ) {
+
+
+      return false;
+
+    }
+
+
+
+
+
+    // An imperative ("create a brief", "open the panel") is a direction
+    // to act on, not a fact to remember about the user.
+    if (
+
+      /^(create|make|build|open|show|run|start|stop|delete|remove|add|set|change|update|fix|write|generate|find|search|go|close|send)\b/i
+
+      .test(clean)
+
+    ) {
+
+
+      return false;
+
+    }
+
+
+
+
+
+    // "I ...", "my ...", "we ...", "our ..." — the user describing
+    // themselves, their work, their preferences or their situation.
+    return (
+
+      /\b(i|i'm|im|i've|ive|i'll|my|mine|we|we're|our|ours)\b/i
+
+      .test(clean)
+
+    );
 
   }
 

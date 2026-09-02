@@ -85,6 +85,19 @@ export default class AIService {
 
   private initialized = false;
 
+  /**
+   * How many user turns are being processed right now.
+   *
+   * USER COMMUNICATION HAS PRIORITY. Autonomous cognition consults this
+   * and defers while it is non-zero, so a self-study cycle can never
+   * consume the provider slot, the runtime, or the conversation state
+   * that a pending user message needs. It is a counter rather than a
+   * flag so overlapping turns cannot clear it early.
+   */
+  private activeUserTurns = 0;
+  /** When the last user turn finished — used to hold autonomy briefly after a reply. */
+  private lastUserTurnAt = 0;
+
   /** Device/native capability registry — same singleton the ToolResolver uses. */
   private readonly native = NativeCapabilityRegistry.getInstance();
 
@@ -346,6 +359,12 @@ export default class AIService {
       await this.initialize();
     }
 
+    // Claim the conversation for the user BEFORE anything else runs.
+    // Autonomous cognition checks this and stands down, so a self-study
+    // cycle cannot start midway through the user's turn and answer over
+    // the top of it.
+    this.activeUserTurns += 1;
+
     this.emitThinking(true);
     this.emitSpeaking(true);
     this.emitListening(true);
@@ -418,7 +437,10 @@ export default class AIService {
                 metadata: { intent: "delegation", success: false },
               };
         await this.memory.learn(message, response.text, taskId);
+        // Delegated turns are still turns: both sides join the
+        // conversation, or the next message loses the thread.
         await this.runtime.brain.getConversation().update(message);
+        this.runtime.brain.getConversation().record("assistant", response.text);
         this.emitAction("learn", `${delegation.agent.name} completed`, "complete");
         agentEvents.emit({ type: "task_completed", taskId, label: `${delegation.agent.name} delegated` });
         this.emitMessage({
@@ -429,6 +451,7 @@ export default class AIService {
           provider: response.provider,
           confidence: response.metadata?.confidence as number | undefined,
         });
+        this.releaseUserTurn();
         return {
           ...response,
           metadata: { ...(response.metadata ?? {}), delegated: delegation.agent.name },
@@ -464,8 +487,24 @@ export default class AIService {
 
       const streamId = crypto.randomUUID();
 
+      // SHORT-TERM CONVERSATION CONTEXT.
+      //
+      // Read the dialogue BEFORE this turn, then record this turn, so the
+      // user's message is part of the active conversation state before
+      // anything generates a response to it.
+      //
+      // Providers assemble `[...context, ...request.messages, {user, prompt}]`,
+      // so `messages` carries the PRIOR turns and the current message
+      // travels as `prompt`. Previously `messages` held only a copy of
+      // the current message, which meant the model saw the same text
+      // twice and no history at all — it could not know what it had
+      // already asked or been told.
+      const conversation = this.runtime.brain.getConversation();
+      const priorTurns = conversation.modelMessages();
+      conversation.record("user", message);
+
       const request: AIRequest = {
-        messages: [{ role: "user", content: message }],
+        messages: priorTurns,
         prompt: message,
         ...(effectiveContext ? { context: effectiveContext } : {}),
         ...(media && media.length > 0 ? { media } : {}),
@@ -508,7 +547,12 @@ export default class AIService {
       // and persisted locally even when every provider is down, and
       // the user profile updates from the same consolidation path.
       await this.memory.learn(message, response.text, taskId);
-      await this.runtime.brain.getConversation().update(message);
+      // LÉLU's own turn joins the conversation too. Without this she
+      // cannot see what she just said, so she re-asks questions she has
+      // already asked and loses the thread of her own follow-ups.
+      conversation.record("assistant", response.text);
+      // Refresh the active memories for the turn we just recorded.
+      await conversation.refresh(message);
 
       const memories = await this.runtime.brain.recall(message);
       for (const memory of memories) {
@@ -569,10 +613,30 @@ export default class AIService {
         },
       };
     } finally {
+      this.releaseUserTurn();
       this.emitThinking(false);
       this.emitSpeaking(false);
       this.emitListening(false);
     }
+  }
+
+  /** Release this turn's claim on the conversation. */
+  private releaseUserTurn(): void {
+    this.activeUserTurns = Math.max(0, this.activeUserTurns - 1);
+    this.lastUserTurnAt = Date.now();
+  }
+
+  /**
+   * Is a user turn in flight, or was one just handled?
+   *
+   * Autonomous cognition calls this and defers, so a self-study cycle
+   * never runs on top of an active conversation. The short grace period
+   * after a reply keeps LÉLU from cutting straight back into an
+   * autonomous update while the user is reading and replying.
+   */
+  public isUserTurnActive(graceMs = 8_000): boolean {
+    if (this.activeUserTurns > 0) return true;
+    return this.lastUserTurnAt > 0 && Date.now() - this.lastUserTurnAt < graceMs;
   }
 
   /**

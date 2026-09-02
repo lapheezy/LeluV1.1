@@ -366,6 +366,13 @@ export default class SelfStudyEngine {
     if (!this.continuous) return;
     if (this.timer !== null) clearTimeout(this.timer);
     this.timer = setTimeout(() => {
+      // Do not even attempt a cycle while the user is mid-exchange:
+      // come back shortly instead, so the conversation is never
+      // competing with autonomous work for the same runtime.
+      if (AIService.getInstance().isUserTurnActive()) {
+        this.schedule(FAST_INTERVAL_MS, intervalMs);
+        return;
+      }
       void this.runCycle()
         .then((report) => {
           // A cycle that used no provider and no network can follow
@@ -458,6 +465,20 @@ export default class SelfStudyEngine {
    * the only way this stops producing cycles is `stop()`.
    */
   public async runCycle(): Promise<StudyCycleReport> {
+    // USER COMMUNICATION HAS PRIORITY. A user turn in flight owns the
+    // conversation, the runtime and the provider slot; an autonomous
+    // cycle starting now would compete for all three and its report
+    // would surface as a self-update on top of the user's reply. The
+    // cycle is deferred, never cancelled — cognition resumes as soon as
+    // the exchange settles.
+    if (AIService.getInstance().isUserTurnActive()) {
+      const deferred = this.lastReport ?? this.emptyReport(this.blankState());
+      return {
+        ...deferred,
+        note: "Deferred: a user turn is active. User communication takes priority; this cycle will run once the exchange settles.",
+      };
+    }
+
     if (this.running) {
       // Cycles never overlap. Every step inside a cycle is bounded by
       // `withDeadline`, so `running` cannot latch on a call that never

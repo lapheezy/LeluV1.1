@@ -128,6 +128,13 @@ export default class CognitiveLoop {
 
   /** Run one full observe → understand → propose cycle. */
   public async runOnce(): Promise<CognitiveCycleReport> {
+    // USER COMMUNICATION HAS PRIORITY. This loop proposes work and can
+    // queue a proactive question; doing that while the user is mid-turn
+    // is exactly how an autonomous update lands on top of a reply.
+    // Observation resumes on the next tick.
+    if (AIService.getInstance().isUserTurnActive()) {
+      return this.lastReport ?? this.emptyReport();
+    }
     if (this.running) {
       return this.lastReport ?? this.emptyReport();
     }
