@@ -146,7 +146,18 @@ export default class ToolCallInterceptor {
 
       const result = await resolver.execute(toolContext);
 
-      if (result.handled && result.results.length > 0) {
+      // Gate on RESULTS, never on `handled`.
+      //
+      // `handled` answers "who replies next", not "did research work".
+      // ResearchResolver returns handled:false WITH results on its main
+      // success path (it hands off so a provider can synthesise them),
+      // and handled:true WITHOUT results when retrieval failed. The old
+      // `handled && length > 0` therefore matched neither state: a real
+      // search that returned real sources fell through to the "didn't
+      // find current results" branch below, so LÉLU told the user she
+      // found nothing while holding the results. That is the exact
+      // "search executes but returns nothing" defect.
+      if (result.results.length > 0) {
         // Build a clean synthesized response from real results
         const sources = result.results.slice(0, 6).map((r, i) => {
           const content = (r.content ?? "").replace(/\s+/g, " ").trim();
@@ -184,7 +195,10 @@ export default class ToolCallInterceptor {
         intercepted: true,
         query,
         response: {
-          text: `I searched for "${query}" but didn't find current results. The knowledge providers may be unavailable right now. Try a more specific query or check your API configuration.`,
+          text:
+            `I searched for "${query}" and the knowledge providers returned no usable results. ` +
+            `This is a real retrieval attempt that came back empty — not a guess, and not a ` +
+            `search I skipped. Try a more specific query, or check provider availability.`,
           provider: "research",
           model: "tool-interceptor",
           processingTime: Date.now() - context.started,
@@ -199,6 +213,22 @@ export default class ToolCallInterceptor {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       context.logger.error("ToolCallInterceptor", "Tool execution failed", { error: message });
+
+      // ResearchResolver emits its own tool_result for the success and
+      // empty-result paths, so this is the ONLY branch that would
+      // otherwise have no terminal event: the resolver threw before
+      // reaching either emission. Duplicating the other two here put two
+      // rows in the activity timeline for one execution.
+      events.emit({
+        type: "tool_result",
+        taskId,
+        tool: "research",
+        query,
+        provider: "research",
+        result: `Tool execution failed: ${message}`,
+        results: [],
+        status: "error",
+      });
 
       return {
         intercepted: true,

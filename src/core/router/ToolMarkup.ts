@@ -53,8 +53,18 @@ export function cleanAssistantText(text: string): string {
 
   if (withoutBlocks && !isRawToolMarkup(withoutBlocks)) return withoutBlocks;
 
+  // NEVER promise a result here.
+  //
+  // This function only sanitises text for display — it dispatches
+  // nothing. The previous return said "I'm researching X and will show
+  // the live result here", which the UI rendered as a claim that a
+  // search was under way when no tool had been invoked at all. Real
+  // execution happens in ToolCallInterceptor (wired at AIRouter:167),
+  // and when that runs the user sees its actual results or its actual
+  // failure. Text reaching this fallback means the transport markup was
+  // NOT executed, so the honest report is that nothing ran.
   const query = extractToolQuery(text);
   return query
-    ? `I’m researching “${query}” and will show the live result here.`
-    : "I’m working on that request and will show the live result here.";
+    ? `I produced a tool request for “${query}” but it was not executed, so I have no result to show. Ask again and I will run it.`
+    : "I produced a tool request that was not executed, so I have no result to show.";
 }

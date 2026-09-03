@@ -270,3 +270,219 @@ test("research stops at its budget when every knowledge provider hangs", async (
     "every abandoned provider must be recorded honestly, not silently skipped",
   );
 });
+
+/* ------------------------------------------------------------------ *
+ * 6. A real search result must never be reported as "found nothing"
+ *
+ * ToolCallInterceptor gated success on `result.handled && length > 0`.
+ * ResearchResolver returns handled:FALSE with results on its success
+ * path (it hands off so a provider can synthesise them) and
+ * handled:TRUE without results when retrieval failed — so that gate
+ * matched neither state. A real search returning real sources fell
+ * through to the "didn't find current results" branch: LÉLU told the
+ * user she found nothing while holding the results.
+ * ------------------------------------------------------------------ */
+
+test("interceptor reports real results even though the resolver returns handled:false", async () => {
+  const { default: ToolCallInterceptor } = await import("../src/core/router/ToolCallInterceptor");
+  const AgentEventBus = (await import("../src/core/agent/AgentEvents")).default;
+
+  const events: Array<{ type: string; status?: string; result?: string }> = [];
+  const off = AgentEventBus.getInstance().subscribe((e: any) =>
+    events.push({ type: e.type, status: e.status, result: e.result }),
+  );
+
+  const resolverModule = await import("../src/core/router/ResearchResolver");
+  const RealResolver = resolverModule.default;
+  const originalExecute = RealResolver.prototype.execute;
+
+  // Reproduce the resolver's REAL success shape: handled:false + results.
+  RealResolver.prototype.execute = async function () {
+    return {
+      handled: false,
+      results: [
+        {
+          id: "r1",
+          title: "Reactor achieves net energy gain",
+          content: "A fusion experiment reported more energy out than in.",
+          url: "https://example.org/fusion",
+          source: "ExampleWire",
+          confidence: 0.9,
+        },
+      ],
+    };
+  } as typeof originalExecute;
+
+  try {
+    const context = {
+      request: { prompt: "latest fusion news", timestamp: Date.now(), messages: [] },
+      started: Date.now(),
+      logger: { info() {}, error() {}, warn() {} },
+    } as never;
+
+    const outcome = await new ToolCallInterceptor().intercept(
+      { text: '<tool_call_start>{"name":"search","query":"fusion"}<tool_call_end>' } as never,
+      context,
+    );
+
+    assert.equal(outcome.intercepted, true);
+    assert.match(
+      outcome.response!.text,
+      /net energy gain/,
+      "the real retrieved result must reach the user",
+    );
+    assert.doesNotMatch(
+      outcome.response!.text,
+      /didn't find|no usable results/i,
+      "a successful search must never be reported as finding nothing",
+    );
+    assert.equal(outcome.response!.metadata?.success, true);
+
+    // ResearchResolver owns the tool_result for success/empty, so the
+    // interceptor must NOT add a second one — two rows for one
+    // execution is the duplication this asserts against.
+    const results = events.filter((e) => e.type === "tool_result");
+    assert.equal(results.length, 0, "the interceptor must not duplicate the resolver's tool_result");
+  } finally {
+    RealResolver.prototype.execute = originalExecute;
+    off?.();
+  }
+});
+
+test("an executed-but-empty search is reported as empty, and never as skipped", async () => {
+  const { default: ToolCallInterceptor } = await import("../src/core/router/ToolCallInterceptor");
+  const AgentEventBus = (await import("../src/core/agent/AgentEvents")).default;
+
+  const events: Array<{ type: string; status?: string }> = [];
+  const off = AgentEventBus.getInstance().subscribe((e: any) =>
+    events.push({ type: e.type, status: e.status }),
+  );
+
+  const resolverModule = await import("../src/core/router/ResearchResolver");
+  const RealResolver = resolverModule.default;
+  const originalExecute = RealResolver.prototype.execute;
+  RealResolver.prototype.execute = async function () {
+    return { handled: true, results: [] };
+  } as typeof originalExecute;
+
+  try {
+    const outcome = await new ToolCallInterceptor().intercept(
+      { text: '<tool_call_start>{"name":"search","query":"nothing"}<tool_call_end>' } as never,
+      {
+        request: { prompt: "nothing", timestamp: Date.now(), messages: [] },
+        started: Date.now(),
+        logger: { info() {}, error() {}, warn() {} },
+      } as never,
+    );
+
+    assert.equal(outcome.response!.metadata?.success, false);
+    assert.match(outcome.response!.text, /real retrieval attempt/i);
+    assert.equal(
+      events.filter((e) => e.type === "tool_result").length,
+      0,
+      "the resolver owns this terminal event; the interceptor must not duplicate it",
+    );
+  } finally {
+    RealResolver.prototype.execute = originalExecute;
+    off?.();
+  }
+});
+
+/* ------------------------------------------------------------------ *
+ * 7. Display sanitisation must never promise work it did not dispatch
+ * ------------------------------------------------------------------ */
+
+test("cleanAssistantText never claims a search is under way", async () => {
+  const { cleanAssistantText } = await import("../src/core/router/ToolMarkup");
+
+  const out = cleanAssistantText(
+    '<tool_call_start><parameter name="query">mars rover</parameter><tool_call_end>',
+  );
+
+  // It sanitises text for display and dispatches nothing, so it must not
+  // announce research that no tool call backs.
+  assert.doesNotMatch(out, /I['’]m researching/i);
+  assert.doesNotMatch(out, /will show the live result/i);
+  assert.match(out, /not executed/i, "it must say plainly that nothing ran");
+  assert.doesNotMatch(out, /<parameter|tool_call_start/, "raw markup must never reach the user");
+});
+
+test("cleanAssistantText leaves ordinary prose untouched", async () => {
+  const { cleanAssistantText } = await import("../src/core/router/ToolMarkup");
+  const prose = "The capital of France is Paris.";
+  assert.equal(cleanAssistantText(prose), prose);
+});
+
+/* ------------------------------------------------------------------ *
+ * 8. A tool that THROWS still produces a terminal telemetry event
+ *
+ * ResearchResolver emits its own tool_result for the success and empty
+ * paths. When it throws it emits neither, so without this the activity
+ * row showed "searching" with no outcome, forever — the "no evidence in
+ * telemetry that the search executed" symptom.
+ * ------------------------------------------------------------------ */
+
+test("a throwing tool still emits a terminal tool_result", async () => {
+  const { default: ToolCallInterceptor } = await import("../src/core/router/ToolCallInterceptor");
+  const AgentEventBus = (await import("../src/core/agent/AgentEvents")).default;
+
+  const events: Array<{ type: string; status?: string }> = [];
+  const off = AgentEventBus.getInstance().subscribe((e: any) =>
+    events.push({ type: e.type, status: e.status }),
+  );
+
+  const resolverModule = await import("../src/core/router/ResearchResolver");
+  const RealResolver = resolverModule.default;
+  const originalExecute = RealResolver.prototype.execute;
+  RealResolver.prototype.execute = async function () {
+    throw new Error("provider registry unavailable");
+  } as typeof originalExecute;
+
+  try {
+    const outcome = await new ToolCallInterceptor().intercept(
+      { text: '<tool_call_start>{"name":"search","query":"x"}<tool_call_end>' } as never,
+      {
+        request: { prompt: "x", timestamp: Date.now(), messages: [] },
+        started: Date.now(),
+        logger: { info() {}, error() {}, warn() {} },
+      } as never,
+    );
+
+    assert.equal(outcome.response!.metadata?.success, false);
+    const terminal = events.filter((e) => e.type === "tool_result");
+    assert.equal(terminal.length, 1, "a throw must still close the activity");
+    assert.equal(terminal[0].status, "error");
+  } finally {
+    RealResolver.prototype.execute = originalExecute;
+    off?.();
+  }
+});
+
+/* ------------------------------------------------------------------ *
+ * 9. The activity label must reflect the event's real status
+ * ------------------------------------------------------------------ */
+
+test("a failed or empty tool_result is never labelled as a returned result", async () => {
+  const { executionEventLabel } = await import(
+    "../src/app/scene/genesis/GenesisExecutionTimeline"
+  );
+
+  const failed = executionEventLabel({
+    type: "tool_result", taskId: "t", tool: "research",
+    result: "", results: [], status: "error",
+  } as never);
+  assert.doesNotMatch(failed, /returned a result/, "a failure must not read as success");
+  assert.match(failed, /failed/i);
+
+  const empty = executionEventLabel({
+    type: "tool_result", taskId: "t", tool: "research",
+    result: "", results: [], status: "complete",
+  } as never);
+  assert.match(empty, /no results/i);
+
+  const real = executionEventLabel({
+    type: "tool_result", taskId: "t", tool: "research",
+    result: "", results: [{ title: "a" }, { title: "b" }], status: "complete",
+  } as never);
+  assert.match(real, /returned 2 results/);
+});

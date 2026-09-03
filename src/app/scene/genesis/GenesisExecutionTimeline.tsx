@@ -59,8 +59,17 @@ export function executionEventLabel(event: AgentEvent): string {
       return `${humanTool(event.tool)}`;
     case "tool_progress":
       return `${humanTool(event.tool)} — ${Math.round(event.progress * 100)}%`;
-    case "tool_result":
-      return `${humanTool(event.tool)} returned a result`;
+    case "tool_result": {
+      // The event already carries `status` and the actual `results`.
+      // Ignoring both and always saying "returned a result" rendered a
+      // failed, empty retrieval as a success in the activity row — the
+      // UI asserting an outcome the event did not contain.
+      const count = Array.isArray(event.results) ? event.results.length : 0;
+      if (event.status === "error") return `${humanTool(event.tool)} failed to return a result`;
+      if (event.status === "blocked") return `${humanTool(event.tool)} was blocked`;
+      if (count === 0) return `${humanTool(event.tool)} returned no results`;
+      return `${humanTool(event.tool)} returned ${count} result${count === 1 ? "" : "s"}`;
+    }
     case "tool_failed":
       return `${humanTool(event.tool)} failed — recovering`;
     case "file_opened":
@@ -75,7 +84,9 @@ export function executionEventLabel(event: AgentEvent): string {
     case "memory_update":
       return `Saved to ${event.category} memory`;
     case "provider_selected":
-      return `Connected to ${event.provider}`;
+      // Selection is not proof the provider completed the work — say
+      // what actually happened at this point in the sequence.
+      return `Routing to ${event.provider}`;
     case "provider_status":
       return `${event.provider}: ${event.status}`;
     case "diagram_created":
