@@ -81,6 +81,21 @@ const DOMAIN_CAPS: Array<[RegExp, string[]]> = [
 ];
 
 const MAX_PROVIDERS = 4;
+
+/**
+ * Total wall-clock budget for the WHOLE research phase of one turn,
+ * including the simplified-query retries.
+ *
+ * Per-provider timeouts alone do not bound a turn: runProviders() is
+ * re-entered once per fallback query, so the real worst case is
+ * fallbacks x MAX_PROVIDERS x per-provider-timeout. With providers that
+ * hang rather than refuse (a blocked host, a slow mirror) that reached
+ * ~150s in practice and the turn never fell through to the model at all
+ * — the user asked a question and simply never got an answer. Research
+ * is an enrichment step; when it cannot finish promptly the right
+ * behaviour is to answer without it, not to keep the user waiting.
+ */
+const RESEARCH_BUDGET_MS = 20000;
 const MAX_RESULTS = 6;
 
 export default class ResearchResolver {
@@ -164,13 +179,20 @@ export default class ResearchResolver {
     });
 
     const attempted: Array<{ provider: string; error?: string }> = [];
-    let results = await this.runProviders(context, selected, query, attempted);
+    // One deadline for the whole phase, shared with every retry below.
+    const researchDeadline = Date.now() + RESEARCH_BUDGET_MS;
+    let results = await this.runProviders(context, selected, query, attempted, researchDeadline);
 
-    // Bounded retry: if no results, try simplified fallback queries
+    // Bounded retry: if no results, try simplified fallback queries —
+    // but only while the shared budget still has room.
     if (results.length === 0 && (intent === "news" || intent === "search")) {
       const fallbacks = this.fallbackQueries(query);
       for (const fq of fallbacks) {
-        results = await this.runProviders(context, selected, fq, attempted);
+        if (Date.now() >= researchDeadline) {
+          attempted.push({ provider: "(retries)", error: "research-budget-exhausted" });
+          break;
+        }
+        results = await this.runProviders(context, selected, fq, attempted, researchDeadline);
         if (results.length > 0) break;
       }
     }
@@ -187,6 +209,33 @@ export default class ResearchResolver {
         query,
         attempted: selected.map((provider) => provider.name),
       });
+
+      // EXCEPTION: LÉLU already recalled her own stored memory for this
+      // turn. Claiming the turn here would answer "no knowledge source
+      // returned results" to a question her long-term memory had already
+      // answered — measured: asked her own axolotl's name, BrainResolver
+      // logged memoryCount:1, and the user still got a retrieval-failure
+      // message. A recalled memory is stored fact, not a guess, so the
+      // anti-fabrication guarantee below is not weakened by standing
+      // aside: research was only ever enrichment for this turn.
+      if ((context.recalledMemories?.length ?? 0) > 0) {
+        context.logger.info(
+          "ResearchResolver",
+          "No research results, but recalled memory answers this turn — standing aside.",
+          { query, recalledMemories: context.recalledMemories?.length ?? 0 },
+        );
+        events.emit({
+          type: "tool_result",
+          taskId,
+          tool: "research",
+          query,
+          provider: selected.map((provider) => provider.name).join(" + "),
+          result: "No research results; answering from recalled memory",
+          results: [],
+          status: "complete",
+        });
+        return { handled: false, results: [], attempted };
+      }
 
       // The complete retrieval chain executed and produced nothing.
       // Return handled so this request NEVER falls through to generic
@@ -313,6 +362,7 @@ export default class ResearchResolver {
     providers: any[],
     query: string,
     attempted: Array<{ provider: string; error?: string }> = [],
+    deadline = Date.now() + RESEARCH_BUDGET_MS,
   ): Promise<KnowledgeResult[]> {
     const collected: KnowledgeResult[] = [];
     const started = Date.now();
@@ -322,12 +372,22 @@ export default class ResearchResolver {
         break;
       }
 
+      // Stop the moment the phase is out of time. Without this the loop
+      // spends a full per-provider timeout on every remaining provider
+      // even when the turn has already waited too long.
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) {
+        attempted.push({ provider: provider.name, error: "research-budget-exhausted" });
+        continue;
+      }
+
       if (!provider.canSearch?.(query)) {
         attempted.push({ provider: provider.name, error: "provider-cannot-handle-query" });
         continue;
       }
 
-      const timeoutMs = provider.timeout ?? 10000;
+      // Never wait longer than the phase has left.
+      const timeoutMs = Math.min(provider.timeout ?? 10000, remaining);
       const providerStarted = Date.now();
 
       try {

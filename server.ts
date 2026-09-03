@@ -30,7 +30,6 @@ import path from "node:path";
 import { loadEnvFilesIntoProcess } from "./plugins/loadEnvFiles.ts";
 import {
   applyBridgeToGlobals,
-  bridgeReport,
   bridgeScriptBody,
 } from "./plugins/runtimeKeyBridge.ts";
 import { createNodeEngineerAdapter } from "./plugins/nodeAdapters.ts";
