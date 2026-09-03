@@ -19,6 +19,7 @@ import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
+import { resolveFirst } from "../core/resolveEnv";
 
 export default class FireworksProvider implements AIProvider {
   readonly name = "Fireworks";
@@ -39,33 +40,10 @@ export default class FireworksProvider implements AIProvider {
   private initialized = false;
 
   async initialize(): Promise<void> {
-    const runtimeEnv =
-      globalThis as typeof globalThis & {
-        __LELU_FIREWORKS_API_KEY__?: string;
-        __LELU_FIREWORKS_MODEL__?: string;
-      };
-
-    const windowEnv =
-      typeof window !== "undefined"
-        ? (window as Window & { __LELU_FIREWORKS_API_KEY__?: string })
-        : undefined;
-
-    const processEnv =
-      typeof process !== "undefined"
-        ? process.env
-        : undefined;
-
     this.apiKey =
-      import.meta.env.VITE_FIREWORKS_API_KEY?.trim() ||
-      runtimeEnv.__LELU_FIREWORKS_API_KEY__?.trim() ||
-      windowEnv?.__LELU_FIREWORKS_API_KEY__?.trim() ||
-      processEnv?.FIREWORKS_API_KEY?.trim() ||
-      "";
-
+      resolveFirst("FIREWORKS_API_KEY") ?? "";
     this.model =
-      import.meta.env.VITE_FIREWORKS_MODEL?.trim() ||
-      runtimeEnv.__LELU_FIREWORKS_MODEL__?.trim() ||
-      "accounts/fireworks/models/llama-v3p1-70b-instruct";
+      resolveFirst("FIREWORKS_MODEL") ?? "accounts/fireworks/models/llama-v3p1-70b-instruct";
 
     this.initialized = true;
 

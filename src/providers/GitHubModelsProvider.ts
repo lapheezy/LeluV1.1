@@ -22,6 +22,7 @@ import type {
   AIProviderHealth,
 } from "./AIProvider";
 import { endpointUrl } from "../core/Endpoints";
+import { resolveFirst, resolveViteOnly } from "../core/resolveEnv";
 
 export default class GitHubModelsProvider implements AIProvider {
   readonly name = "GitHub Models";
@@ -42,19 +43,6 @@ export default class GitHubModelsProvider implements AIProvider {
   private initialized = false;
 
   async initialize(): Promise<void> {
-    const runtimeEnv =
-      globalThis as typeof globalThis & {
-        __LELU_GITHUB_TOKEN__?: string;
-        __LELU_GITHUB_MODEL__?: string;
-      };
-
-    const windowEnv =
-      typeof window !== "undefined"
-        ? (window as Window & {
-            __LELU_GITHUB_TOKEN__?: string;
-          })
-        : undefined;
-
     // Deliberately NOT falling back to bare process.env.GITHUB_TOKEN /
     // GITHUB_CODESPACE_TOKEN: those are ambient credentials that dev
     // containers, Codespaces and CI runners set for git/gh tooling —
@@ -64,16 +52,12 @@ export default class GitHubModelsProvider implements AIProvider {
     // whenever LÉLU happened to run inside such an environment, with
     // no key ever actually configured for it. Only the two explicit,
     // documented configuration channels count (see ENV_VARS.md).
-    this.apiKey =
-      import.meta.env.VITE_GITHUB_TOKEN?.trim() ||
-      runtimeEnv.__LELU_GITHUB_TOKEN__?.trim() ||
-      windowEnv?.__LELU_GITHUB_TOKEN__?.trim() ||
-      "";
-
+    // resolveViteOnly walks the same two documented channels and, unlike
+    // the chain it replaces, does not throw when import.meta.env is
+    // undefined — which it is in every non-Vite runtime.
+    this.apiKey = resolveViteOnly("GITHUB_TOKEN") ?? "";
     this.model =
-      import.meta.env.VITE_GITHUB_MODEL?.trim() ||
-      runtimeEnv.__LELU_GITHUB_MODEL__?.trim() ||
-      "openai/gpt-4o";
+      resolveFirst("GITHUB_MODEL") ?? "openai/gpt-4o";
 
     this.initialized = true;
 
@@ -158,7 +142,7 @@ export default class GitHubModelsProvider implements AIProvider {
     };
 
     const proxyEndpoint =
-      import.meta.env.VITE_AI_PROXY_BASE_URL?.trim();
+      resolveFirst("AI_PROXY_BASE_URL");
 
     const endpoint =
       proxyEndpoint ||

@@ -19,6 +19,7 @@ import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
+import { resolveFirst } from "../core/resolveEnv";
 
 export default class CerebrasProvider implements AIProvider {
   readonly name = "Cerebras";
@@ -39,33 +40,10 @@ export default class CerebrasProvider implements AIProvider {
   private initialized = false;
 
   async initialize(): Promise<void> {
-    const runtimeEnv =
-      globalThis as typeof globalThis & {
-        __LELU_CEREBRAS_API_KEY__?: string;
-        __LELU_CEREBRAS_MODEL__?: string;
-      };
-
-    const windowEnv =
-      typeof window !== "undefined"
-        ? (window as Window & { __LELU_CEREBRAS_API_KEY__?: string })
-        : undefined;
-
-    const processEnv =
-      typeof process !== "undefined"
-        ? process.env
-        : undefined;
-
     this.apiKey =
-      import.meta.env.VITE_CEREBRAS_API_KEY?.trim() ||
-      runtimeEnv.__LELU_CEREBRAS_API_KEY__?.trim() ||
-      windowEnv?.__LELU_CEREBRAS_API_KEY__?.trim() ||
-      processEnv?.CEREBRAS_API_KEY?.trim() ||
-      "";
-
+      resolveFirst("CEREBRAS_API_KEY") ?? "";
     this.model =
-      import.meta.env.VITE_CEREBRAS_MODEL?.trim() ||
-      runtimeEnv.__LELU_CEREBRAS_MODEL__?.trim() ||
-      "llama-3.3-70b";
+      resolveFirst("CEREBRAS_MODEL") ?? "llama-3.3-70b";
 
     this.initialized = true;
 

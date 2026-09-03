@@ -10,6 +10,7 @@ import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
+import { resolveFirst } from "../core/resolveEnv";
 
 export default class GroqProvider implements AIProvider {
   readonly name = "Groq";
@@ -25,30 +26,10 @@ export default class GroqProvider implements AIProvider {
   private model = "openai/gpt-oss-120b";
 
   async initialize(): Promise<void> {
-    const runtimeEnv = globalThis as typeof globalThis & {
-      __LELU_GROQ_API_KEY__?: string;
-      __LELU_GROQ_MODEL__?: string;
-    };
-
-    const windowEnv =
-      typeof window !== "undefined"
-        ? (window as Window & { __LELU_GROQ_API_KEY__?: string })
-        : undefined;
-
-    const processEnv =
-      typeof process !== "undefined" ? process.env : undefined;
-
     this.model =
-      import.meta.env.VITE_GROQ_MODEL?.trim() ||
-      runtimeEnv.__LELU_GROQ_MODEL__?.trim() ||
-      "openai/gpt-oss-120b";
-
+      resolveFirst("GROQ_MODEL") ?? "openai/gpt-oss-120b";
     this.apiKey =
-      import.meta.env.VITE_GROQ_API_KEY?.trim() ||
-      runtimeEnv.__LELU_GROQ_API_KEY__?.trim() ||
-      windowEnv?.__LELU_GROQ_API_KEY__?.trim() ||
-      processEnv?.GROQ_API_KEY?.trim() ||
-      "";
+      resolveFirst("GROQ_API_KEY") ?? "";
 
     this.initialized = true;
 

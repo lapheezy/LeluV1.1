@@ -154,6 +154,26 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     aliases: ["ANTHROPIC_MODEL"],
   },
 
+  // These three are read by BROWSER code (NewsProvider, YouTubeProvider,
+  // Avatar3DReconstructor) but had no bridge entry, so the unprefixed
+  // name resolved on the server — where Environment.ts can reach
+  // process.env — and silently never reached the bundle. Setting
+  // NEWS_API_KEY produced a working server and a dead browser provider.
+  {
+    viteName: "VITE_NEWS_API_KEY",
+    globalName: "__LELU_NEWS_API_KEY__",
+    aliases: ["NEWS_API_KEY", "NEWSAPI_KEY"],
+  },
+  {
+    viteName: "VITE_YOUTUBE_API_KEY",
+    globalName: "__LELU_YOUTUBE_API_KEY__",
+    aliases: ["YOUTUBE_API_KEY"],
+  },
+  {
+    viteName: "VITE_MESHY_API_KEY",
+    globalName: "__LELU_MESHY_API_KEY__",
+    aliases: ["MESHY_API_KEY"],
+  },
   // ---- Keys for the providers added alongside the endpoint registry ----
   {
     viteName: "VITE_GEMINI_API_KEY",

@@ -68,3 +68,37 @@ export function resolveFirst(...names: string[]): string | undefined {
 export function nasaApiKey(): string {
   return resolveFirst("NASA_API_KEY", "VITE_NASA_API_KEY") ?? "DEMO_KEY";
 }
+
+/**
+ * Resolve ONLY the documented VITE_ form of a name, never the bare one.
+ *
+ * GitHubModelsProvider needs this: dev containers, Codespaces and CI
+ * runners set an ambient GITHUB_TOKEN for git tooling that is not a
+ * GitHub Models inference key, and adopting it would make the provider
+ * report itself available and then spend a repo-scoped token against an
+ * unrelated API. The token must be supplied explicitly.
+ */
+export function resolveViteOnly(bareName: string): string | undefined {
+  const viteName = `VITE_${bareName}`;
+
+  try {
+    const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
+    const fromVite = viteEnv?.[viteName];
+    if (typeof fromVite === "string" && fromVite.trim()) return fromVite.trim();
+  } catch {
+    /* import.meta.env does not exist outside Vite */
+  }
+
+  const runtime = globalThis as unknown as Record<string, string | undefined>;
+  const fromGlobal = runtime[`__LELU_${bareName}__`];
+  if (typeof fromGlobal === "string" && fromGlobal.trim()) return fromGlobal.trim();
+
+  const processEnv =
+    typeof process !== "undefined"
+      ? (process.env as Record<string, string | undefined> | undefined)
+      : undefined;
+  const fromProcess = processEnv?.[viteName];
+  if (typeof fromProcess === "string" && fromProcess.trim()) return fromProcess.trim();
+
+  return undefined;
+}

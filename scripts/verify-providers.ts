@@ -283,14 +283,27 @@ async function main() {
       role: string;
       content: unknown;
     }>;
+    // `system` is the ARRAY form so it can carry cache_control; a plain
+    // string cannot, and Anthropic rejects the field outright if the
+    // shape is wrong, so the shape itself is worth asserting.
+    const anthropicSystem = (anthropicRow?.body.system ?? []) as Array<{
+      type?: string;
+      text?: string;
+      cache_control?: { type?: string };
+    }>;
     check(
       "Anthropic: system prompt is hoisted to the top-level `system` field",
-      typeof anthropicRow?.body.system === "string" &&
-        (anthropicRow.body.system as string).length > 0,
+      Array.isArray(anthropicSystem) &&
+        anthropicSystem[0]?.type === "text" &&
+        (anthropicSystem[0]?.text?.length ?? 0) > 0,
     );
     check(
       "Anthropic: memory context survives the hoist (not silently dropped)",
-      String(anthropicRow?.body.system ?? "").includes("retro space games"),
+      (anthropicSystem[0]?.text ?? "").includes("retro space games"),
+    );
+    check(
+      "Anthropic: the system block is marked cacheable (input cost is not re-billed each turn)",
+      anthropicSystem[0]?.cache_control?.type === "ephemeral",
     );
     check(
       "Anthropic: no system role left inside messages[] (would be a 400)",

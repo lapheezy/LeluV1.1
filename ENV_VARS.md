@@ -312,3 +312,26 @@ answers instead. That is a real answer, not a failure.
 **NASA InSight is archival.** The lander's mission ended in December 2022,
 so this feed is a fixed historical record. The provider says so in every
 result rather than presenting it as current Mars weather.
+
+
+## Verifying the wiring
+
+| Script | Answers |
+|---|---|
+| `bun run scripts/verify-secrets.ts` | Which credentials are declared, which are read by real code, and which are set here — never prints a value |
+| `bun run scripts/verify-endpoints.ts` | Every base URL's default, that each variable really redirects, and that nothing is declared without a consumer |
+| `bun run scripts/verify-providers.ts` | Provider contracts: fallback order, request shape, auth headers, response parsing, error-throws-so-fallback-advances |
+
+`verify-secrets` is the one to run **where your keys actually live**.
+Codespaces secrets do not propagate to other machines or containers, so
+running it elsewhere proves the code path, not any particular key.
+
+### Anthropic prompt caching
+
+The Anthropic system block is sent as the array form carrying
+`cache_control: {type: "ephemeral"}`. The identity prompt is ~430 tokens
+and `contextMessages()` hoists memory and live-retrieval results into the
+same block, so it is both the largest and the most repeated content LÉLU
+sends. Below Anthropic's minimum cacheable length the marker is ignored;
+above it, measured on a 3163-token context, a follow-up turn billed 13
+fresh input tokens instead of 3163.

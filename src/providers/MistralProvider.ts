@@ -19,6 +19,7 @@ import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
+import { resolveFirst } from "../core/resolveEnv";
 
 export default class MistralProvider implements AIProvider {
   readonly name = "Mistral";
@@ -38,33 +39,10 @@ export default class MistralProvider implements AIProvider {
   private initialized = false;
 
   async initialize(): Promise<void> {
-    const runtimeEnv =
-      globalThis as typeof globalThis & {
-        __LELU_MISTRAL_API_KEY__?: string;
-        __LELU_MISTRAL_MODEL__?: string;
-      };
-
-    const windowEnv =
-      typeof window !== "undefined"
-        ? (window as Window & { __LELU_MISTRAL_API_KEY__?: string })
-        : undefined;
-
-    const processEnv =
-      typeof process !== "undefined"
-        ? process.env
-        : undefined;
-
     this.apiKey =
-      import.meta.env.VITE_MISTRAL_API_KEY?.trim() ||
-      runtimeEnv.__LELU_MISTRAL_API_KEY__?.trim() ||
-      windowEnv?.__LELU_MISTRAL_API_KEY__?.trim() ||
-      processEnv?.MISTRAL_API_KEY?.trim() ||
-      "";
-
+      resolveFirst("MISTRAL_API_KEY") ?? "";
     this.model =
-      import.meta.env.VITE_MISTRAL_MODEL?.trim() ||
-      runtimeEnv.__LELU_MISTRAL_MODEL__?.trim() ||
-      "mistral-large-latest";
+      resolveFirst("MISTRAL_MODEL") ?? "mistral-large-latest";
 
     this.initialized = true;
 

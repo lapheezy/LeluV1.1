@@ -10,6 +10,7 @@ import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
+import { resolveFirst } from "../core/resolveEnv";
 
 type MessageContent = string | Array<Record<string, unknown>>;
 
@@ -41,31 +42,10 @@ export default class AnthropicProvider implements AIProvider {
   private model = "claude-sonnet-4-5";
 
   async initialize(): Promise<void> {
-    const runtimeEnv = globalThis as typeof globalThis & {
-      __LELU_ANTHROPIC_API_KEY__?: string;
-      __LELU_ANTHROPIC_MODEL__?: string;
-    };
-
-    const windowEnv =
-      typeof window !== "undefined"
-        ? (window as Window & { __LELU_ANTHROPIC_API_KEY__?: string })
-        : undefined;
-
-    const processEnv =
-      typeof process !== "undefined" ? process.env : undefined;
-
     this.model =
-      import.meta.env.VITE_ANTHROPIC_MODEL?.trim() ||
-      runtimeEnv.__LELU_ANTHROPIC_MODEL__?.trim() ||
-      "claude-sonnet-4-5";
-
+      resolveFirst("ANTHROPIC_MODEL") ?? "claude-sonnet-4-5";
     this.apiKey =
-      import.meta.env.VITE_ANTHROPIC_API_KEY?.trim() ||
-      runtimeEnv.__LELU_ANTHROPIC_API_KEY__?.trim() ||
-      windowEnv?.__LELU_ANTHROPIC_API_KEY__?.trim() ||
-      processEnv?.ANTHROPIC_API_KEY?.trim() ||
-      processEnv?.CLAUDE_API_KEY?.trim() ||
-      "";
+      resolveFirst("ANTHROPIC_API_KEY", "CLAUDE_API_KEY") ?? "";
 
     this.initialized = true;
 
@@ -206,7 +186,18 @@ export default class AnthropicProvider implements AIProvider {
       // Required by the Messages API — unlike the OpenAI-compatible
       // providers, omitting it is a 400 rather than an unbounded reply.
       max_tokens: request.maxTokens ?? 2048,
-      system,
+      // The system block is marked cacheable rather than re-billed on
+      // every turn. It is the most repeated content LÉLU sends: the
+      // identity prompt alone is ~430 tokens, and contextMessages()
+      // hoists memory and live-retrieval results into the same block,
+      // which is exactly when it gets large. Below Anthropic's minimum
+      // cacheable length this is simply ignored, so it costs nothing
+      // when the block is short and saves most of the input cost when
+      // it is not. The block must be the array form to carry
+      // cache_control at all.
+      system: [
+        { type: "text", text: system, cache_control: { type: "ephemeral" } },
+      ],
       messages,
       ...(request.temperature !== undefined ? { temperature: request.temperature } : {}),
       ...(request.stop?.length ? { stop_sequences: request.stop } : {}),

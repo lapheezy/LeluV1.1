@@ -19,6 +19,7 @@ import type {
   AIProviderHealth,
 } from "./AIProvider";
 import { endpointUrl } from "../core/Endpoints";
+import { resolveFirst } from "../core/resolveEnv";
 
 export default class OpenRouterProvider implements AIProvider {
   readonly name = "OpenRouter";
@@ -80,36 +81,10 @@ export default class OpenRouterProvider implements AIProvider {
   }
 
   async initialize(): Promise<void> {
-    const runtimeEnv = globalThis as typeof globalThis & {
-      __LELU_OPENROUTER_API_KEY__?: string;
-      __LELU_OPENROUTER_MODEL__?: string;
-    };
-
-    const windowEnv =
-      typeof window !== "undefined"
-        ? (window as Window & {
-            __LELU_OPENROUTER_API_KEY__?: string;
-            __LELU_OPENROUTER_MODEL__?: string;
-          })
-        : undefined;
-
-    const processEnv =
-      typeof process !== "undefined"
-        ? process.env
-        : undefined;
-
     this.apiKey =
-      import.meta.env.VITE_OPENROUTER_API_KEY?.trim() ||
-      runtimeEnv.__LELU_OPENROUTER_API_KEY__?.trim() ||
-      windowEnv?.__LELU_OPENROUTER_API_KEY__?.trim() ||
-      processEnv?.OPENROUTER_API_KEY?.trim() ||
-      "";
-
+      resolveFirst("OPENROUTER_API_KEY", "OPEN_ROUTER_API_KEY") ?? "";
     this.model =
-      import.meta.env.VITE_OPENROUTER_MODEL?.trim() ||
-      runtimeEnv.__LELU_OPENROUTER_MODEL__?.trim() ||
-      windowEnv?.__LELU_OPENROUTER_MODEL__?.trim() ||
-      "openrouter/free";
+      resolveFirst("OPENROUTER_MODEL") ?? "openrouter/free";
 
     this.initialized = true;
 
