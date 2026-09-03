@@ -8,6 +8,12 @@
 import type AIProvider from "./AIProvider";
 import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
+import {
+  extractOpenAIToolCalls,
+  openAIToolPayload,
+  toOpenAIMessages,
+  trailingUserTurn,
+} from "./openaiTools";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
@@ -19,6 +25,7 @@ export default class GroqProvider implements AIProvider {
   readonly timeout = 30000;
   readonly requiresApiKey = true;
   readonly capabilities = ["chat", "reasoning", "fast", "memory"] as const;
+  readonly supportsTools = true;
 
   private apiKey = "";
   private initialized = false;
@@ -122,16 +129,14 @@ export default class GroqProvider implements AIProvider {
         content: LELU_SYSTEM_PROMPT,
       },
       ...contextMessages(request),
-      ...(request.messages ?? []),
-      {
-        role: "user" as const,
-        content: this.buildUserContent(request),
-      },
+      ...toOpenAIMessages(request.messages),
+      ...trailingUserTurn(request, this.buildUserContent(request)),
     ];
 
     const payload = {
       model: this.selectModel(request),
       messages,
+      ...openAIToolPayload(request),
       temperature: request.temperature ?? 0.7,
       ...(request.maxTokens ? { max_tokens: request.maxTokens } : {}),
       ...(request.stop?.length ? { stop: request.stop } : {}),
@@ -184,8 +189,12 @@ export default class GroqProvider implements AIProvider {
 
     const choices = data?.choices as Array<{ message?: { content?: string }; finish_reason?: string }> | undefined;
     const content = choices?.[0]?.message?.content ?? "";
+    const toolCalls = extractOpenAIToolCalls(choices?.[0]);
 
-    if (typeof content !== "string" || !content.trim()) {
+    // A tool-call turn legitimately carries no text. Rejecting it as
+    // "no usable content" would turn a valid tool request into a
+    // provider failure and drop to the next provider for no reason.
+    if ((typeof content !== "string" || !content.trim()) && toolCalls.length === 0) {
       throw new Error("Groq returned no usable content.");
     }
 
@@ -196,6 +205,8 @@ export default class GroqProvider implements AIProvider {
       provider: this.name,
       model: payload.model,
       processingTime,
+      ...(toolCalls.length ? { toolCalls } : {}),
+      stopReason: choices?.[0]?.finish_reason,
       metadata: {
         usage: data?.usage,
         finishReason: choices?.[0]?.finish_reason,

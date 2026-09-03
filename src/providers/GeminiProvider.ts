@@ -6,7 +6,7 @@
  */
 
 import type AIProvider from "./AIProvider";
-import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
+import type { AIRequest, AIResponse, AIProviderHealth, ToolCall } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpoint } from "../core/Endpoints";
@@ -15,6 +15,10 @@ import { resolveFirst } from "../core/resolveEnv";
 interface GeminiPart {
   text?: string;
   inline_data?: { mime_type: string; data: string };
+  /** A tool the model asked to run. */
+  functionCall?: { name: string; args?: Record<string, unknown> };
+  /** The real outcome of running one, handed back to the model. */
+  functionResponse?: { name: string; response: Record<string, unknown> };
 }
 
 interface GeminiContent {
@@ -28,7 +32,8 @@ export default class GeminiProvider implements AIProvider {
   readonly enabled = true;
   readonly timeout = 30000;
   readonly requiresApiKey = true;
-  readonly capabilities = ["chat", "reasoning", "vision", "memory"] as const;
+  readonly capabilities = ["chat", "reasoning", "vision", "memory", "tools"] as const;
+  readonly supportsTools = true;
 
   private apiKey = "";
   private initialized = false;
@@ -88,6 +93,38 @@ export default class GeminiProvider implements AIProvider {
         if (message.content.trim()) systemParts.push(message.content);
         continue;
       }
+      // A tool RESULT is a user turn carrying functionResponse — Gemini
+      // has no "tool" role. It correlates by tool NAME rather than by
+      // an id, which is why the name is carried on the message.
+      if (message.role === "tool") {
+        contents.push({
+          role: "user",
+          parts: [
+            {
+              functionResponse: {
+                name: message.toolName ?? "",
+                response: message.toolError
+                  ? { error: message.content }
+                  : { result: message.content },
+              },
+            },
+          ],
+        });
+        continue;
+      }
+
+      // Replay the model turn that asked for tools with its
+      // functionCall parts intact, or the exchange loses its pairing.
+      if (message.role === "assistant" && message.toolCalls?.length) {
+        const callParts: GeminiPart[] = [];
+        if (message.content.trim()) callParts.push({ text: message.content });
+        for (const call of message.toolCalls) {
+          callParts.push({ functionCall: { name: call.name, args: call.arguments ?? {} } });
+        }
+        contents.push({ role: "model", parts: callParts });
+        continue;
+      }
+
       contents.push({
         role: message.role === "assistant" ? "model" : "user",
         parts: [{ text: message.content }],
@@ -106,8 +143,12 @@ export default class GeminiProvider implements AIProvider {
         },
       });
     }
-    parts.push({ text: request.prompt });
-    contents.push({ role: "user", parts });
+    // Mid-tool-loop the tail is a functionResponse turn; re-appending
+    // the original prompt there would ask the question a second time.
+    if (history[history.length - 1]?.role !== "tool") {
+      parts.push({ text: request.prompt });
+      contents.push({ role: "user", parts });
+    }
 
     // Same alternation rule as Anthropic: a leading model turn is dropped
     // and consecutive same-role turns are merged.
@@ -136,6 +177,21 @@ export default class GeminiProvider implements AIProvider {
     const model = request.model?.trim() || this.model;
     const payload = {
       ...this.buildRequest(request),
+      // Gemini nests declarations one level deeper than the others:
+      // tools[].functionDeclarations[], not tools[] directly.
+      ...(request.tools?.length
+        ? {
+            tools: [
+              {
+                functionDeclarations: request.tools.map((tool) => ({
+                  name: tool.name,
+                  description: tool.description,
+                  parameters: tool.parameters,
+                })),
+              },
+            ],
+          }
+        : {}),
       generationConfig: {
         ...(request.temperature !== undefined ? { temperature: request.temperature } : {}),
         ...(request.maxTokens ? { maxOutputTokens: request.maxTokens } : {}),
@@ -181,20 +237,37 @@ export default class GeminiProvider implements AIProvider {
     }
 
     const candidates = data?.candidates as
-      | Array<{ content?: { parts?: Array<{ text?: string }> }; finishReason?: string }>
+      | Array<{ content?: { parts?: GeminiPart[] }; finishReason?: string }>
       | undefined;
-    const text = (candidates?.[0]?.content?.parts ?? [])
+    const responseParts = candidates?.[0]?.content?.parts ?? [];
+    const text = responseParts
       .map((part) => part.text ?? "")
       .join("")
       .trim();
 
-    if (!text) throw new Error("Gemini returned no usable content.");
+    // Gemini issues no call id, so one is synthesised. It only has to
+    // survive the round trip within this exchange; the functionResponse
+    // that answers it correlates by name.
+    const toolCalls: ToolCall[] = responseParts
+      .filter((part) => part.functionCall?.name)
+      .map((part, index) => ({
+        id: `gemini-${Date.now()}-${index}`,
+        name: part.functionCall!.name,
+        arguments: part.functionCall!.args ?? {},
+      }));
+
+    // A tool-call turn legitimately carries no text.
+    if (!text && toolCalls.length === 0) {
+      throw new Error("Gemini returned no usable content.");
+    }
 
     return {
       text,
       provider: this.name,
       model,
       processingTime: Date.now() - started,
+      ...(toolCalls.length ? { toolCalls } : {}),
+      stopReason: toolCalls.length ? "tool_use" : candidates?.[0]?.finishReason,
       metadata: {
         usage: data?.usageMetadata,
         finishReason: candidates?.[0]?.finishReason,

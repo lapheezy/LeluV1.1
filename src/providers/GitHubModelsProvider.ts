@@ -14,6 +14,12 @@
 
 import type AIProvider from "./AIProvider";
 import { contextMessages } from "./contextMessages";
+import {
+  extractOpenAIToolCalls,
+  openAIToolPayload,
+  toOpenAIMessages,
+  trailingUserTurn,
+} from "./openaiTools";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 
 import type {
@@ -37,6 +43,8 @@ export default class GitHubModelsProvider implements AIProvider {
     "fast",
     "memory",
   ] as const;
+
+  readonly supportsTools = true;
 
   private apiKey = "";
   private model = "openai/gpt-4o";
@@ -121,17 +129,18 @@ export default class GitHubModelsProvider implements AIProvider {
 
       ...contextMessages(request),
 
-      ...(request.messages ?? []),
+      ...toOpenAIMessages(request.messages),
 
-      {
-        role: "user",
-        content: request.prompt,
-      },
+      ...trailingUserTurn(
+        request,
+        request.prompt,
+      ),
     ];
 
     const payload = {
       model: request.model?.trim() || this.model,
       messages,
+      ...openAIToolPayload(request),
       temperature: request.temperature ?? 0.7,
       ...(request.maxTokens
         ? { max_tokens: request.maxTokens }
@@ -237,9 +246,17 @@ export default class GitHubModelsProvider implements AIProvider {
       data?.choices?.[0]?.text ??
       "";
 
+    const toolCalls = extractOpenAIToolCalls(
+      data?.choices?.[0],
+    );
+
+    // A tool-call turn legitimately carries no text. Rejecting it as
+    // "no usable content" would turn a valid tool request into a
+    // provider failure and drop to the next provider for no reason.
     if (
-      typeof content !== "string" ||
-      !content.trim()
+      (typeof content !== "string" ||
+        !content.trim()) &&
+      toolCalls.length === 0
     ) {
       console.error(
         "[GitHubModelsProvider] Empty model response",
@@ -260,6 +277,11 @@ export default class GitHubModelsProvider implements AIProvider {
       model: payload.model,
       processingTime:
         Date.now() - started,
+      ...(toolCalls.length
+        ? { toolCalls }
+        : {}),
+      stopReason:
+        data?.choices?.[0]?.finish_reason,
       metadata: {
         usage: data?.usage,
         finishReason:

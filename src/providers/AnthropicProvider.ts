@@ -6,13 +6,21 @@
  */
 
 import type AIProvider from "./AIProvider";
-import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
+import type { AIRequest, AIResponse, AIProviderHealth, ToolCall } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
 
 type MessageContent = string | Array<Record<string, unknown>>;
+
+/** Does this content carry a tool_result block? */
+function hasToolResult(content: MessageContent): boolean {
+  return (
+    Array.isArray(content) &&
+    content.some((block) => (block as Record<string, unknown>)?.type === "tool_result")
+  );
+}
 
 /** Normalize a content value to the block-array form. */
 function toBlocks(content: MessageContent): Array<Record<string, unknown>> {
@@ -35,7 +43,8 @@ export default class AnthropicProvider implements AIProvider {
   readonly enabled = true;
   readonly timeout = 30000;
   readonly requiresApiKey = true;
-  readonly capabilities = ["chat", "reasoning", "vision", "memory"] as const;
+  readonly capabilities = ["chat", "reasoning", "vision", "memory", "tools"] as const;
+  readonly supportsTools = true;
 
   private apiKey = "";
   private initialized = false;
@@ -118,14 +127,69 @@ export default class AnthropicProvider implements AIProvider {
         if (message.content.trim()) systemParts.push(message.content);
         continue;
       }
+
+      // A tool RESULT is a user turn carrying a tool_result block —
+      // that is the Messages API's shape, not a role of its own.
+      if (message.role === "tool") {
+        turns.push({
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: message.toolCallId ?? "",
+              content: message.content,
+              // A failure is flagged, never silently passed as output.
+              ...(message.toolError ? { is_error: true } : {}),
+            },
+          ],
+        });
+        continue;
+      }
+
+      // An assistant turn that ASKED for tools must be replayed with its
+      // tool_use blocks intact. Replaying only its text breaks the
+      // tool_use/tool_result pairing the API requires, and the next call
+      // is rejected rather than continuing the exchange.
+      if (message.role === "assistant" && message.toolCalls?.length) {
+        const blocks: Array<Record<string, unknown>> = [];
+        if (message.content.trim()) {
+          blocks.push({ type: "text", text: message.content });
+        }
+        for (const call of message.toolCalls) {
+          blocks.push({
+            type: "tool_use",
+            id: call.id,
+            name: call.name,
+            input: call.arguments ?? {},
+          });
+        }
+        turns.push({ role: "assistant", content: blocks });
+        continue;
+      }
+
       turns.push({ role: message.role, content: message.content });
     }
 
-    turns.push({ role: "user", content: this.buildUserContent(request) });
+    // The live prompt is appended only when it is not already the tail
+    // of the conversation. Mid-tool-loop the last turn is a tool_result
+    // and re-appending the original prompt would ask the question twice.
+    const tail = history[history.length - 1];
+    if (!(tail?.role === "tool")) {
+      turns.push({ role: "user", content: this.buildUserContent(request) });
+    }
 
     // Drop any leading assistant turn, then collapse consecutive
     // same-role turns so the alternation the API requires holds.
+    //
+    // Dropping a leading assistant turn can ORPHAN tool results: if that
+    // turn carried the tool_use blocks, the tool_result turns after it
+    // no longer have anything to correspond to, and the API rejects the
+    // whole request ("each tool_result block must have a corresponding
+    // tool_use block in the previous message"). So any tool_result turn
+    // left leading is dropped with it — an unpaired result is invalid,
+    // and sending it fails the call rather than degrading it.
     while (turns.length > 0 && turns[0].role === "assistant") turns.shift();
+    while (turns.length > 0 && hasToolResult(turns[0].content)) turns.shift();
 
     const merged: typeof turns = [];
     for (const turn of turns) {
@@ -199,9 +263,26 @@ export default class AnthropicProvider implements AIProvider {
         { type: "text", text: system, cache_control: { type: "ephemeral" } },
       ],
       messages,
+      // Native tool calling. The router supplies only tools that are
+      // registered, executable and permitted right now, so anything the
+      // model calls from this list can actually run.
+      ...(request.tools?.length
+        ? {
+            tools: request.tools.map((tool) => ({
+              name: tool.name,
+              description: tool.description,
+              input_schema: tool.parameters,
+            })),
+          }
+        : {}),
       ...(request.temperature !== undefined ? { temperature: request.temperature } : {}),
       ...(request.stop?.length ? { stop_sequences: request.stop } : {}),
-      ...(request.onDelta ? { stream: true } : {}),
+      // Streaming is suppressed while tools are on the table: a
+      // tool_use block arrives as fragmented input_json_delta chunks,
+      // and a half-parsed argument object is worse than a slightly
+      // later answer. The final generation of the loop, which carries
+      // no tools, streams normally.
+      ...(request.onDelta && !request.tools?.length ? { stream: true } : {}),
     };
 
     let response: Response;
@@ -253,8 +334,13 @@ export default class AnthropicProvider implements AIProvider {
     }
 
     const content = this.extractContent(data);
+    const toolCalls = this.extractToolCalls(data);
 
-    if (typeof content !== "string" || !content.trim()) {
+    // A tool-call turn legitimately carries little or no text, so the
+    // empty-content guard must not reject it — that would turn a valid
+    // tool request into a provider failure and drop LÉLU to the next
+    // provider in the chain for no reason.
+    if ((typeof content !== "string" || !content.trim()) && toolCalls.length === 0) {
       throw new Error("Anthropic returned no usable content.");
     }
 
@@ -265,11 +351,29 @@ export default class AnthropicProvider implements AIProvider {
       provider: this.name,
       model: payload.model,
       processingTime,
+      ...(toolCalls.length ? { toolCalls } : {}),
+      stopReason: (data?.stop_reason as string) || undefined,
       metadata: {
         usage: data?.usage,
         finishReason: (data?.stop_reason as string) || undefined,
       },
     };
+  }
+
+  /** Lift tool_use content blocks into the provider-neutral shape. */
+  private extractToolCalls(data: Record<string, unknown> | null): ToolCall[] {
+    const content = data?.content;
+    if (!Array.isArray(content)) return [];
+    const calls: ToolCall[] = [];
+    for (const block of content as Array<Record<string, unknown>>) {
+      if (block?.type !== "tool_use") continue;
+      calls.push({
+        id: String(block.id ?? ""),
+        name: String(block.name ?? ""),
+        arguments: (block.input as Record<string, unknown>) ?? {},
+      });
+    }
+    return calls;
   }
 
   private extractContent(data: Record<string, unknown> | null): string {
