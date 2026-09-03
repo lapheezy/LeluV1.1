@@ -487,6 +487,27 @@ export default class ToolRegistry {
         executionRoute: "SandboxRuntime.run",
       },
       {
+        id: "engineering.remote",
+        name: "Remote Engineering Agent",
+        description:
+          "Run a bounded engineering task in an Anthropic-hosted sandbox against a " +
+          "disposable clone of the repository pinned to an exact commit. Returns a " +
+          "reviewable diff; never pushes and never touches the local working tree.",
+        category: "Engineering",
+        // EXTERNAL_ACTION because the session runs on Anthropic's infrastructure;
+        // EXECUTE because real commands run in the container. Risk 3 rather
+        // than 4: the sandbox is disposable and the local tree is unreachable.
+        permissions: ["EXECUTE", "EXTERNAL_ACTION"],
+        riskLevel: 3,
+        // Detected at runtime — this is false until BOTH an Anthropic key
+        // and a repository token are configured, so the catalogue never
+        // advertises a capability that cannot actually run.
+        available: false,
+        provider: "anthropic-managed-agents",
+        executionRoute: "AnthropicEngineeringAgent.execute",
+        verificationMethod: "session event stream + returned diff",
+      },
+      {
         id: "workspace.typecheck",
         name: "Type Check",
         description: "Run TypeScript type checking on the project",
