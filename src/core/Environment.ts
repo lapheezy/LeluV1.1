@@ -113,6 +113,7 @@ export interface LeluEnvironment {
   mistral: ProviderEnv;
   fireworks: ProviderEnv;
   githubModels: ProviderEnv;
+  anthropic: ProviderEnv;
   localInference: ProviderEnv;
 
   /* ---- Knowledge / research providers ---- */
@@ -153,6 +154,7 @@ export interface LeluEnvironment {
   mistralModel: string;
   fireworksModel: string;
   githubModel: string;
+  anthropicModel: string;
   defaultProvider: string;
   aiProxyBaseUrl: string;
 }
@@ -215,6 +217,11 @@ function build(): LeluEnvironment {
     mistral:         providerEnv("VITE_MISTRAL_API_KEY", 4, true),
     fireworks:       providerEnv("VITE_FIREWORKS_API_KEY", 5, true),
     githubModels:    providerEnv("VITE_GITHUB_TOKEN", 6, true),
+    // Anthropic is appended at the END of the chain on purpose: the
+    // existing fallback order is unchanged, so every provider that
+    // resolved a key before resolves the same key in the same position.
+    // Promote it with VITE_DEFAULT_PROVIDER=anthropic when wanted.
+    anthropic:       providerEnv("VITE_ANTHROPIC_API_KEY", 7, true),
     localInference:  { configured: true, keyVar: "", hasKey: true, priority: 0, required: false },
 
     // Knowledge providers
@@ -272,6 +279,7 @@ function build(): LeluEnvironment {
     mistralModel:     opt("VITE_MISTRAL_MODEL", "mistral-small-latest"),
     fireworksModel:   opt("VITE_FIREWORKS_MODEL", "accounts/fireworks/models/llama-v3p1-8b-instruct"),
     githubModel:      opt("VITE_GITHUB_MODEL", "gpt-4o-mini"),
+    anthropicModel:   opt("VITE_ANTHROPIC_MODEL", "claude-sonnet-4-5"),
     defaultProvider:  opt("VITE_DEFAULT_PROVIDER", "groq"),
     aiProxyBaseUrl:   opt("VITE_AI_PROXY_BASE_URL", ""),
   };
@@ -284,6 +292,7 @@ function build(): LeluEnvironment {
     config.mistral.configured ||
     config.fireworks.configured ||
     config.githubModels.configured ||
+    config.anthropic.configured ||
     config.localInference.configured;
 
   if (!anyAiConfigured) {
@@ -324,6 +333,7 @@ export function environmentDiagnostics(): Record<string, string> {
     ["Mistral", config.mistral],
     ["Fireworks", config.fireworks],
     ["GitHub Models", config.githubModels],
+    ["Anthropic", config.anthropic],
     ["Local Inference", config.localInference],
   ];
 
@@ -346,6 +356,7 @@ export default {
   get youtubeApiKey(): string { return resolve("VITE_YOUTUBE_API_KEY") ?? ""; },
   get newsApiKey(): string { return resolve("VITE_NEWS_API_KEY") ?? ""; },
   get groqApiKey(): string { return resolve("VITE_GROQ_API_KEY") ?? ""; },
+  get anthropicApiKey(): string { return resolve("VITE_ANTHROPIC_API_KEY") ?? ""; },
   get meshyApiKey(): string { return resolve("VITE_MESHY_API_KEY") ?? ""; },
 };
 

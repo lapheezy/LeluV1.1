@@ -53,23 +53,39 @@ function has(key: string): boolean {
 
 console.log("\nLÉLU RUNTIME DIAGNOSTIC\n========================");
 
-const aiProviders: { name: string; key: string }[] = [
-  { name: "Groq (primary)", key: "VITE_GROQ_API_KEY" },
-  { name: "OpenRouter", key: "VITE_OPENROUTER_API_KEY" },
-  { name: "Cerebras", key: "VITE_CEREBRAS_API_KEY" },
-  { name: "Mistral", key: "VITE_MISTRAL_API_KEY" },
-  { name: "Fireworks", key: "VITE_FIREWORKS_API_KEY" },
+// `aliases` are the unprefixed names the runtime key bridge accepts
+// (plugins/runtimeKeyBridge.ts). Checking only the VITE_ name reported
+// NOT CONFIGURED for a key the providers resolve perfectly well — the
+// doctor has to answer the same question the runtime answers.
+const aiProviders: { name: string; key: string; aliases?: string[] }[] = [
+  { name: "Groq (primary)", key: "VITE_GROQ_API_KEY", aliases: ["GROQ_API_KEY"] },
+  {
+    name: "OpenRouter",
+    key: "VITE_OPENROUTER_API_KEY",
+    aliases: ["OPENROUTER_API_KEY", "OPEN_ROUTER_API_KEY"],
+  },
+  { name: "Cerebras", key: "VITE_CEREBRAS_API_KEY", aliases: ["CEREBRAS_API_KEY"] },
+  { name: "Mistral", key: "VITE_MISTRAL_API_KEY", aliases: ["MISTRAL_API_KEY"] },
+  { name: "Fireworks", key: "VITE_FIREWORKS_API_KEY", aliases: ["FIREWORKS_API_KEY"] },
+  {
+    name: "Anthropic",
+    key: "VITE_ANTHROPIC_API_KEY",
+    aliases: ["ANTHROPIC_API_KEY", "CLAUDE_API_KEY"],
+  },
+  // GITHUB_TOKEN is deliberately NOT an alias here: dev containers and CI
+  // set an ambient one for git tooling that is not a Models inference key.
   { name: "GitHub Models", key: "VITE_GITHUB_TOKEN" },
 ];
 
 let aiConfigured = 0;
 for (const p of aiProviders) {
-  const ok = has(p.key);
-  if (ok) aiConfigured += 1;
+  const names = [p.key, ...(p.aliases ?? [])];
+  const found = names.find((name) => has(name));
+  if (found) aiConfigured += 1;
   report(
     `AI · ${p.name}`,
-    ok ? "PASS" : "NOT CONFIGURED",
-    ok ? "key present" : `${p.key} is not set`,
+    found ? "PASS" : "NOT CONFIGURED",
+    found ? `key present (${found})` : `${names.join(" / ")} is not set`,
   );
 }
 

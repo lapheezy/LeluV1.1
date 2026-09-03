@@ -47,6 +47,8 @@ import { createGithubApi } from "./plugins/githubApi.ts";
 // platform-injected process env always wins) BEFORE anything reads it,
 // so this runtime reports the same provider state as Vite dev.
 const envSummary = loadEnvFilesIntoProcess([
+  "VITE_ANTHROPIC_API_KEY",
+  "ANTHROPIC_API_KEY",
   "VITE_FIRMS_API_KEY",
   "AISSTREAM_API_KEY",
   "INSTAGRAM_ACCESS_TOKEN",

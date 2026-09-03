@@ -93,6 +93,10 @@ const PROVIDER_LINKS: Record<string, { manage: string; credits: string }> = {
     manage: "https://fireworks.ai/api-keys",
     credits: "https://fireworks.ai/account",
   },
+  Anthropic: {
+    manage: "https://console.anthropic.com/settings/keys",
+    credits: "https://console.anthropic.com/settings/billing",
+  },
 };
 
 const STATUS_META: Record<StatusKind, { label: string; color: string }> = {

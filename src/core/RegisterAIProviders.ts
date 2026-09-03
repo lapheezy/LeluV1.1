@@ -26,6 +26,9 @@ import MistralProvider
 import FireworksProvider
   from "../providers/FireworksProvider";
 
+import AnthropicProvider
+  from "../providers/AnthropicProvider";
+
 import LocalInferenceProvider
   from "../providers/LocalInferenceProvider";
 
@@ -66,6 +69,12 @@ export default function registerAIProviders() {
 
   registry.register(
     new GitHubModelsProvider(),
+  );
+
+  // Appended last (priority 7) so the established fallback order is
+  // untouched — nothing that resolved before resolves differently now.
+  registry.register(
+    new AnthropicProvider(),
   );
 
 

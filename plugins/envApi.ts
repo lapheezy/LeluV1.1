@@ -113,6 +113,9 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
           VITE_OPENROUTER_API_KEY: presence(
             env("VITE_OPENROUTER_API_KEY") || env("OPENROUTER_API_KEY"),
           ),
+          VITE_ANTHROPIC_API_KEY: presence(
+            env("VITE_ANTHROPIC_API_KEY") || env("ANTHROPIC_API_KEY") || env("CLAUDE_API_KEY"),
+          ),
           VITE_FIRMS_API_KEY: presence(env("VITE_FIRMS_API_KEY")),
           AISSTREAM_API_KEY: presence(env("AISSTREAM_API_KEY")),
           INSTAGRAM_ACCESS_TOKEN: presence(env("INSTAGRAM_ACCESS_TOKEN") || env("VITE_INSTAGRAM_ACCESS_TOKEN")),
@@ -123,6 +126,7 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
           RSS_GOOGLE_NEWS_2: presence(env("VITE_GOOGLE_NEWS_RSS_URL_2") || env("GOOGLE_NEWS_RSS_URL_2")),
           NEKO_URL: env("VITE_NEKO_URL") || env("NEKO_URL") || "MISSING",
           VITE_GROQ_MODEL: env("VITE_GROQ_MODEL") ?? "MISSING",
+          VITE_ANTHROPIC_MODEL: env("VITE_ANTHROPIC_MODEL") || env("ANTHROPIC_MODEL") || "MISSING",
           VITE_DEFAULT_PROVIDER: env("VITE_DEFAULT_PROVIDER") ?? "MISSING",
         });
         return;
@@ -132,6 +136,8 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
         const results: Record<string, unknown> = {};
         const groqKey = env("VITE_GROQ_API_KEY") || env("GROQ_API_KEY") || "";
         const openrouterKey = env("VITE_OPENROUTER_API_KEY") || env("OPENROUTER_API_KEY") || "";
+        const anthropicKey =
+          env("VITE_ANTHROPIC_API_KEY") || env("ANTHROPIC_API_KEY") || env("CLAUDE_API_KEY") || "";
 
         if (groqKey) {
           try {
@@ -189,6 +195,38 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
           }
         } else {
           results.openrouter = { status: "missing-key" };
+        }
+
+        if (anthropicKey) {
+          try {
+            const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-api-key": anthropicKey,
+                "anthropic-version": "2023-06-01",
+              },
+              body: JSON.stringify({
+                model: env("VITE_ANTHROPIC_MODEL") || env("ANTHROPIC_MODEL") || "claude-sonnet-4-5",
+                max_tokens: 5,
+                messages: [{ role: "user", content: "Say OK" }],
+              }),
+              signal: AbortSignal.timeout(15000),
+            });
+            const body = await anthropicRes.text();
+            results.anthropic = {
+              status: anthropicRes.status,
+              ok: anthropicRes.ok,
+              response: anthropicRes.ok ? "OK" : body.slice(0, 200),
+            };
+          } catch (error) {
+            results.anthropic = {
+              status: "error",
+              error: error instanceof Error ? error.message : String(error),
+            };
+          }
+        } else {
+          results.anthropic = { status: "missing-key" };
         }
 
         // FIRMS — live probe with the configured key (count only, never the key).

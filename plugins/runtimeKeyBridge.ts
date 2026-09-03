@@ -112,6 +112,15 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     globalName: "__LELU_FIREWORKS_API_KEY__",
     aliases: ["FIREWORKS_API_KEY"],
   },
+  {
+    // ANTHROPIC_API_KEY is the name the Anthropic SDK, the Codespaces
+    // secret UI and every shell export use; it is the ONLY name most
+    // environments will ever carry, so the alias is what actually
+    // resolves in practice and VITE_ANTHROPIC_API_KEY is the override.
+    viteName: "VITE_ANTHROPIC_API_KEY",
+    globalName: "__LELU_ANTHROPIC_API_KEY__",
+    aliases: ["ANTHROPIC_API_KEY", "CLAUDE_API_KEY"],
+  },
 
   // ---- Model overrides (not secrets, same resolution shape) ----
   {
@@ -138,6 +147,11 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     viteName: "VITE_FIREWORKS_MODEL",
     globalName: "__LELU_FIREWORKS_MODEL__",
     aliases: ["FIREWORKS_MODEL"],
+  },
+  {
+    viteName: "VITE_ANTHROPIC_MODEL",
+    globalName: "__LELU_ANTHROPIC_MODEL__",
+    aliases: ["ANTHROPIC_MODEL"],
   },
 ];
 

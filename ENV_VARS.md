@@ -27,7 +27,24 @@ repo even if `.env` itself is ever recreated.
 | `VITE_FIREWORKS_MODEL` | Fireworks model override | no |
 | `VITE_GITHUB_TOKEN` | GitHub Models — fallback #5 + GitHub repo tool | yes |
 | `VITE_GITHUB_MODEL` | GitHub Models model override | no |
+| `VITE_ANTHROPIC_API_KEY` | Anthropic (Claude) — fallback #6 | yes |
+| `VITE_ANTHROPIC_MODEL` | Anthropic model override | no |
 | `VITE_AI_PROXY_BASE_URL` | Custom AI proxy for GitHub Models | no |
+
+### Unprefixed names
+
+Provider keys are also accepted under their ordinary, unprefixed names —
+`ANTHROPIC_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`,
+`CEREBRAS_API_KEY`, `MISTRAL_API_KEY`, `FIREWORKS_API_KEY` — which is the
+shape GitHub Codespaces secrets, Vercel, Fly, Render and a plain shell
+export all produce. The runtime key bridge (`plugins/runtimeKeyBridge.ts`)
+publishes them onto the `__LELU_*__` channel the providers already read,
+so no renaming is needed. The `VITE_` name always wins when both are set.
+
+`GITHUB_TOKEN` is the one exception and is deliberately **not** accepted:
+dev containers, Codespaces and CI runners set an ambient one for git
+tooling that is not a GitHub Models inference key. Supply
+`VITE_GITHUB_TOKEN` explicitly for that provider.
 
 ## Knowledge / research providers
 
