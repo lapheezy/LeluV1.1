@@ -262,7 +262,7 @@ const STEP_DEADLINE_MS = 60_000;
  * Resolve `work` or, if it overruns, `fallback`. Never rejects: a step
  * that fails or hangs must degrade into evidence, not into a dead loop.
  */
-async function withDeadline<T>(work: Promise<T>, fallback: T, ms = STEP_DEADLINE_MS): Promise<T> {
+export async function withDeadline<T>(work: Promise<T>, fallback: T, ms = STEP_DEADLINE_MS): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
