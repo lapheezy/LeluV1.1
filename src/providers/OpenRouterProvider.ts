@@ -18,6 +18,7 @@ import type {
   AIResponse,
   AIProviderHealth,
 } from "./AIProvider";
+import { endpointUrl } from "../core/Endpoints";
 
 export default class OpenRouterProvider implements AIProvider {
   readonly name = "OpenRouter";
@@ -183,7 +184,7 @@ export default class OpenRouterProvider implements AIProvider {
 
     try {
       response = await fetch(
-        "https://openrouter.ai/api/v1/chat/completions",
+        endpointUrl("openrouter", "chat/completions"),
         {
           method: "POST",
           headers: {

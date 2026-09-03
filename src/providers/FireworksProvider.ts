@@ -18,6 +18,7 @@ import type AIProvider from "./AIProvider";
 import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
+import { endpointUrl } from "../core/Endpoints";
 
 export default class FireworksProvider implements AIProvider {
   readonly name = "Fireworks";
@@ -132,7 +133,7 @@ export default class FireworksProvider implements AIProvider {
 
     try {
       response = await fetch(
-        "https://api.fireworks.ai/inference/v1/chat/completions",
+        endpointUrl("fireworks", "chat/completions"),
         {
           method: "POST",
           headers: {

@@ -212,3 +212,75 @@ Groq/OpenRouter chat completions, a real NASA FIRMS hotspot fetch
   out of frontend code.
 - Never hardcode keys, log secret values, or return credentials through
   API responses.
+
+
+## External service endpoints
+
+Every outbound base URL is a named setting resolved by
+`src/core/Endpoints.ts`, through the same four rungs as credentials
+(`VITE_` name → `__LELU_*__` global → `process.env`). Each defaults to
+the URL the code used before it was configurable, so leaving one unset is
+never a behaviour change. Set one to point at a mirror, a self-hosted
+instance, a gateway, or a proxy.
+
+### Wired to live code
+
+| Variable | Default |
+|---|---|
+| `ANTHROPIC_BASE_URL` | `https://api.anthropic.com/v1` |
+| `GROQ_BASE_URL` | `https://api.groq.com/openai/v1` |
+| `CEREBRAS_BASE_URL` | `https://api.cerebras.ai/v1` |
+| `OPENROUTER_BASE_URL` | `https://openrouter.ai/api/v1` |
+| `MISTRAL_BASE_URL` | `https://api.mistral.ai/v1` |
+| `FIREWORKS_BASE_URL` | `https://api.fireworks.ai/inference/v1` |
+| `GITHUB_MODELS_BASE_URL` | `https://models.github.ai/inference` |
+| `NOMINATIM_API_URL` | `https://nominatim.openstreetmap.org` |
+| `OPENSTREETMAP_API_URL` | `https://www.openstreetmap.org` |
+| `OSRM_API_URL` | `https://router.project-osrm.org` |
+| `OPEN_METEO_API_URL` | `https://api.open-meteo.com` |
+| `OPEN_METEO_GEOCODING_API_URL` | `https://geocoding-api.open-meteo.com` |
+| `FIRMS_API_URL` | `https://firms.modaps.eosdis.nasa.gov` |
+| `USGS_EARTHQUAKE_API_URL` | `https://earthquake.usgs.gov` |
+| `CELESTRAK_API_URL` | `https://celestrak.org` |
+| `NASA_IMAGES_API_URL` | `https://images-api.nasa.gov` |
+| `NEWSAPI_URL` | `https://newsapi.org/v2` |
+| `YOUTUBE_API_URL` | `https://www.googleapis.com/youtube/v3` |
+| `INSTAGRAM_API_URL` | `https://graph.instagram.com` |
+| `META_GRAPH_API_URL` | `https://graph.facebook.com` |
+| `GITHUB_API_URL` | `https://api.github.com` |
+| `ARXIV_API_URL` | `https://export.arxiv.org` |
+| `CROSSREF_API_URL` | `https://api.crossref.org` |
+| `OPENALEX_API_URL` | `https://api.openalex.org` |
+| `GDELT_API_URL` | `https://api.gdeltproject.org` |
+| `HACKERNEWS_API_URL` | `https://hn.algolia.com/api/v1` |
+| `MESHY_API_URL` | `https://api.meshy.ai` |
+
+### Declared, awaiting a consumer
+
+These resolve correctly and are ready for a caller, but **no code path
+fetches them yet** — setting one changes nothing until the corresponding
+provider is built. They are listed here rather than quietly implied to
+work: `GEMINI_BASE_URL`, `GEOCODING_BASE_URL`, `GEOAPIFY_API_URL`,
+`NOAA_API_URL`, `NASA_API_URL`, `NASA_APOD_API_URL`, `NASA_NEO_API_URL`,
+`NASA_DONKI_API_URL`, `NASA_EONET_API_URL`, `NASA_EPIC_API_URL`,
+`NASA_EXOPLANET_API_URL`, `NASA_OSDR_API_URL`, `NASA_INSIGHT_API_URL`,
+`SPACEX_API_URL`, `NEWSDATA_API_URL`, `NEWSDATA_WEBSOCKET_URL`,
+`GNEWS_URL`, `GUARDIAN_API_URL`, `GOOGLE_NEWS_RSS_BASE_URL`.
+
+`bun run scripts/verify-endpoints.ts` prints the current split.
+
+### A note on version segments
+
+`ANTHROPIC_BASE_URL` and the other inference bases are ambiguous in the
+wild: the Anthropic SDK documents the host alone (`https://api.anthropic.com`,
+appending `/v1` itself) while the API reference shows `.../v1`. The two
+differ by one path segment and guessing wrong is a silent 404 on every
+request, so the registry appends the version segment when a configured
+base omits it. Both spellings work.
+
+### RSS feed names
+
+Both orderings resolve — `SAPIOLINGO_RSS_URL` and `RSS_SAPIOLINGO_URL`,
+and likewise for `ELPHERU`, `GOOGLE_NEWS` (`RSS_GOOGLE_NEWS_URL`) and the
+alternate feed (`GOOGLE_NEWS_RSS_URL_2` / `RSS_GOOGLE_NEWS_ALT_URL`). The
+two are easy to transpose and a wrong one is silent, so both are accepted.

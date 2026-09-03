@@ -13,6 +13,7 @@
  */
 
 import type { VoiceErrorKind } from "./VoiceEngine";
+import { endpointUrl } from "../Endpoints";
 
 /**
  * Classify a getUserMedia() rejection into a diagnosis LÉLU can act
@@ -151,7 +152,7 @@ export async function transcribeAudio(
   const formData = buildTranscriptionForm(audioBlob, "whisper-large-v3-turbo", language);
 
   const response = await fetch(
-    "https://api.groq.com/openai/v1/audio/transcriptions",
+    endpointUrl("groq", "audio/transcriptions"),
     {
       method: "POST",
       headers: {

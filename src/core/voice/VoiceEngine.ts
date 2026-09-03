@@ -14,6 +14,7 @@
  */
 
 import { mapMediaError } from "./speechToText";
+import { endpointUrl } from "../Endpoints";
 
 /* ---------------------------------------------------------
  * Types
@@ -237,7 +238,7 @@ async function transcribeViaWhisper(audioBlob: Blob): Promise<string> {
   formData.append("response_format", "verbose_json");
 
   const response = await fetch(
-    "https://api.groq.com/openai/v1/audio/transcriptions",
+    endpointUrl("groq", "audio/transcriptions"),
     {
       method: "POST",
       headers: {

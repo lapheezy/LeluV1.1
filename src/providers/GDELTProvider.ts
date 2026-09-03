@@ -8,6 +8,7 @@
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
 import { corsFetch } from "./corsFetch";
+import { endpointUrl } from "../core/Endpoints";
 
 export default class GDELTProvider implements Provider {
 
@@ -31,7 +32,7 @@ export default class GDELTProvider implements Provider {
   readonly capabilities = ["news", "current-events", "global", "media"] as const;
 
   private readonly endpoint =
-    "https://api.gdeltproject.org/api/v2/doc/doc";
+    endpointUrl("gdelt", "api/v2/doc/doc");
 
   canSearch(query: string): boolean {
     return query.trim().length > 0;

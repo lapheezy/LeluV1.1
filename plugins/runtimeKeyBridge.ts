@@ -153,6 +153,243 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     globalName: "__LELU_ANTHROPIC_MODEL__",
     aliases: ["ANTHROPIC_MODEL"],
   },
+
+  // ---- External service base URLs (see src/core/Endpoints.ts) ----
+  // Not secrets: these are the hosts requests already go to, so bridging
+  // them to the browser reveals nothing a network tab would not. They are
+  // here so a redirected endpoint (a mirror, a self-hosted Nominatim or
+  // OSRM, a gateway in front of a provider) reaches the browser bundle the
+  // same way a key does, instead of applying only to the server runtimes.
+  {
+    viteName: "VITE_ANTHROPIC_BASE_URL",
+    globalName: "__LELU_ANTHROPIC_BASE_URL__",
+    aliases: ["ANTHROPIC_BASE_URL"],
+  },
+  {
+    viteName: "VITE_GROQ_BASE_URL",
+    globalName: "__LELU_GROQ_BASE_URL__",
+    aliases: ["GROQ_BASE_URL"],
+  },
+  {
+    viteName: "VITE_CEREBRAS_BASE_URL",
+    globalName: "__LELU_CEREBRAS_BASE_URL__",
+    aliases: ["CEREBRAS_BASE_URL"],
+  },
+  {
+    viteName: "VITE_OPENROUTER_BASE_URL",
+    globalName: "__LELU_OPENROUTER_BASE_URL__",
+    aliases: ["OPENROUTER_BASE_URL"],
+  },
+  {
+    viteName: "VITE_GEMINI_BASE_URL",
+    globalName: "__LELU_GEMINI_BASE_URL__",
+    aliases: ["GEMINI_BASE_URL"],
+  },
+  {
+    viteName: "VITE_MISTRAL_BASE_URL",
+    globalName: "__LELU_MISTRAL_BASE_URL__",
+    aliases: ["MISTRAL_BASE_URL"],
+  },
+  {
+    viteName: "VITE_FIREWORKS_BASE_URL",
+    globalName: "__LELU_FIREWORKS_BASE_URL__",
+    aliases: ["FIREWORKS_BASE_URL"],
+  },
+  {
+    viteName: "VITE_GITHUB_MODELS_BASE_URL",
+    globalName: "__LELU_GITHUB_MODELS_BASE_URL__",
+    aliases: ["GITHUB_MODELS_BASE_URL"],
+  },
+  {
+    viteName: "VITE_GEOCODING_BASE_URL",
+    globalName: "__LELU_GEOCODING_BASE_URL__",
+    aliases: ["GEOCODING_BASE_URL"],
+  },
+  {
+    viteName: "VITE_NOMINATIM_API_URL",
+    globalName: "__LELU_NOMINATIM_API_URL__",
+    aliases: ["NOMINATIM_API_URL"],
+  },
+  {
+    viteName: "VITE_OPENSTREETMAP_API_URL",
+    globalName: "__LELU_OPENSTREETMAP_API_URL__",
+    aliases: ["OPENSTREETMAP_API_URL"],
+  },
+  {
+    viteName: "VITE_OSRM_API_URL",
+    globalName: "__LELU_OSRM_API_URL__",
+    aliases: ["OSRM_API_URL"],
+  },
+  {
+    viteName: "VITE_GEOAPIFY_API_URL",
+    globalName: "__LELU_GEOAPIFY_API_URL__",
+    aliases: ["GEOAPIFY_API_URL"],
+  },
+  {
+    viteName: "VITE_OPEN_METEO_API_URL",
+    globalName: "__LELU_OPEN_METEO_API_URL__",
+    aliases: ["OPEN_METEO_API_URL"],
+  },
+  {
+    viteName: "VITE_OPEN_METEO_GEOCODING_API_URL",
+    globalName: "__LELU_OPEN_METEO_GEOCODING_API_URL__",
+    aliases: ["OPEN_METEO_GEOCODING_API_URL"],
+  },
+  {
+    viteName: "VITE_NOAA_API_URL",
+    globalName: "__LELU_NOAA_API_URL__",
+    aliases: ["NOAA_API_URL"],
+  },
+  {
+    viteName: "VITE_FIRMS_API_URL",
+    globalName: "__LELU_FIRMS_API_URL__",
+    aliases: ["FIRMS_API_URL"],
+  },
+  {
+    viteName: "VITE_USGS_EARTHQUAKE_API_URL",
+    globalName: "__LELU_USGS_EARTHQUAKE_API_URL__",
+    aliases: ["USGS_EARTHQUAKE_API_URL"],
+  },
+  {
+    viteName: "VITE_NASA_API_URL",
+    globalName: "__LELU_NASA_API_URL__",
+    aliases: ["NASA_API_URL"],
+  },
+  {
+    viteName: "VITE_NASA_IMAGES_API_URL",
+    globalName: "__LELU_NASA_IMAGES_API_URL__",
+    aliases: ["NASA_IMAGES_API_URL"],
+  },
+  {
+    viteName: "VITE_NASA_APOD_API_URL",
+    globalName: "__LELU_NASA_APOD_API_URL__",
+    aliases: ["NASA_APOD_API_URL"],
+  },
+  {
+    viteName: "VITE_NASA_NEO_API_URL",
+    globalName: "__LELU_NASA_NEO_API_URL__",
+    aliases: ["NASA_NEO_API_URL"],
+  },
+  {
+    viteName: "VITE_NASA_DONKI_API_URL",
+    globalName: "__LELU_NASA_DONKI_API_URL__",
+    aliases: ["NASA_DONKI_API_URL"],
+  },
+  {
+    viteName: "VITE_NASA_EONET_API_URL",
+    globalName: "__LELU_NASA_EONET_API_URL__",
+    aliases: ["NASA_EONET_API_URL"],
+  },
+  {
+    viteName: "VITE_NASA_EPIC_API_URL",
+    globalName: "__LELU_NASA_EPIC_API_URL__",
+    aliases: ["NASA_EPIC_API_URL"],
+  },
+  {
+    viteName: "VITE_NASA_EXOPLANET_API_URL",
+    globalName: "__LELU_NASA_EXOPLANET_API_URL__",
+    aliases: ["NASA_EXOPLANET_API_URL"],
+  },
+  {
+    viteName: "VITE_NASA_OSDR_API_URL",
+    globalName: "__LELU_NASA_OSDR_API_URL__",
+    aliases: ["NASA_OSDR_API_URL"],
+  },
+  {
+    viteName: "VITE_NASA_INSIGHT_API_URL",
+    globalName: "__LELU_NASA_INSIGHT_API_URL__",
+    aliases: ["NASA_INSIGHT_API_URL"],
+  },
+  {
+    viteName: "VITE_SPACEX_API_URL",
+    globalName: "__LELU_SPACEX_API_URL__",
+    aliases: ["SPACEX_API_URL"],
+  },
+  {
+    viteName: "VITE_CELESTRAK_API_URL",
+    globalName: "__LELU_CELESTRAK_API_URL__",
+    aliases: ["CELESTRAK_API_URL"],
+  },
+  {
+    viteName: "VITE_NEWSAPI_URL",
+    globalName: "__LELU_NEWSAPI_URL__",
+    aliases: ["NEWSAPI_URL"],
+  },
+  {
+    viteName: "VITE_NEWSDATA_API_URL",
+    globalName: "__LELU_NEWSDATA_API_URL__",
+    aliases: ["NEWSDATA_API_URL"],
+  },
+  {
+    viteName: "VITE_NEWSDATA_WEBSOCKET_URL",
+    globalName: "__LELU_NEWSDATA_WEBSOCKET_URL__",
+    aliases: ["NEWSDATA_WEBSOCKET_URL"],
+  },
+  {
+    viteName: "VITE_GNEWS_URL",
+    globalName: "__LELU_GNEWS_URL__",
+    aliases: ["GNEWS_URL"],
+  },
+  {
+    viteName: "VITE_GUARDIAN_API_URL",
+    globalName: "__LELU_GUARDIAN_API_URL__",
+    aliases: ["GUARDIAN_API_URL"],
+  },
+  {
+    viteName: "VITE_GOOGLE_NEWS_RSS_BASE_URL",
+    globalName: "__LELU_GOOGLE_NEWS_RSS_BASE_URL__",
+    aliases: ["GOOGLE_NEWS_RSS_BASE_URL"],
+  },
+  {
+    viteName: "VITE_YOUTUBE_API_URL",
+    globalName: "__LELU_YOUTUBE_API_URL__",
+    aliases: ["YOUTUBE_API_URL"],
+  },
+  {
+    viteName: "VITE_INSTAGRAM_API_URL",
+    globalName: "__LELU_INSTAGRAM_API_URL__",
+    aliases: ["INSTAGRAM_API_URL"],
+  },
+  {
+    viteName: "VITE_META_GRAPH_API_URL",
+    globalName: "__LELU_META_GRAPH_API_URL__",
+    aliases: ["META_GRAPH_API_URL"],
+  },
+  {
+    viteName: "VITE_GITHUB_API_URL",
+    globalName: "__LELU_GITHUB_API_URL__",
+    aliases: ["GITHUB_API_URL"],
+  },
+  {
+    viteName: "VITE_ARXIV_API_URL",
+    globalName: "__LELU_ARXIV_API_URL__",
+    aliases: ["ARXIV_API_URL"],
+  },
+  {
+    viteName: "VITE_CROSSREF_API_URL",
+    globalName: "__LELU_CROSSREF_API_URL__",
+    aliases: ["CROSSREF_API_URL"],
+  },
+  {
+    viteName: "VITE_OPENALEX_API_URL",
+    globalName: "__LELU_OPENALEX_API_URL__",
+    aliases: ["OPENALEX_API_URL"],
+  },
+  {
+    viteName: "VITE_GDELT_API_URL",
+    globalName: "__LELU_GDELT_API_URL__",
+    aliases: ["GDELT_API_URL"],
+  },
+  {
+    viteName: "VITE_HACKERNEWS_API_URL",
+    globalName: "__LELU_HACKERNEWS_API_URL__",
+    aliases: ["HACKERNEWS_API_URL"],
+  },
+  {
+    viteName: "VITE_MESHY_API_URL",
+    globalName: "__LELU_MESHY_API_URL__",
+    aliases: ["MESHY_API_URL"],
+  },
 ];
 
 function value(read: EnvReader, key: string): string {

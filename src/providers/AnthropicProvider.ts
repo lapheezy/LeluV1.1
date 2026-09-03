@@ -9,6 +9,7 @@ import type AIProvider from "./AIProvider";
 import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
+import { endpointUrl } from "../core/Endpoints";
 
 type MessageContent = string | Array<Record<string, unknown>>;
 
@@ -215,7 +216,7 @@ export default class AnthropicProvider implements AIProvider {
     let response: Response;
 
     try {
-      response = await fetch("https://api.anthropic.com/v1/messages", {
+      response = await fetch(endpointUrl("anthropic", "messages"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

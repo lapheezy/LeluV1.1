@@ -21,6 +21,7 @@ import type {
   AIResponse,
   AIProviderHealth,
 } from "./AIProvider";
+import { endpointUrl } from "../core/Endpoints";
 
 export default class GitHubModelsProvider implements AIProvider {
   readonly name = "GitHub Models";
@@ -161,7 +162,7 @@ export default class GitHubModelsProvider implements AIProvider {
 
     const endpoint =
       proxyEndpoint ||
-      "https://models.github.ai/inference/chat/completions";
+      endpointUrl("githubModels", "chat/completions");
 
     console.info(
       "[GitHubModelsProvider] Sending request",

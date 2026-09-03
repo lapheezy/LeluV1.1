@@ -18,6 +18,7 @@ import type AIProvider from "./AIProvider";
 import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
+import { endpointUrl } from "../core/Endpoints";
 
 export default class CerebrasProvider implements AIProvider {
   readonly name = "Cerebras";
@@ -132,7 +133,7 @@ export default class CerebrasProvider implements AIProvider {
 
     try {
       response = await fetch(
-        "https://api.cerebras.ai/v1/chat/completions",
+        endpointUrl("cerebras", "chat/completions"),
         {
           method: "POST",
           headers: {

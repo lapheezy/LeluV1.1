@@ -7,6 +7,7 @@
 
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
+import { endpointUrl } from "../core/Endpoints";
 
 export default class CrossrefProvider implements Provider {
 
@@ -29,7 +30,7 @@ export default class CrossrefProvider implements Provider {
   readonly capabilities = ["research", "citation", "paper", "science"] as const;
 
   private readonly endpoint =
-    "https://api.crossref.org/works";
+    endpointUrl("crossref", "works");
 
   canSearch(query: string): boolean {
     return query.trim().length > 0;

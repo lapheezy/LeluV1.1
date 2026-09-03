@@ -7,6 +7,7 @@
 
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
+import { endpointUrl } from "../core/Endpoints";
 
 export default class ArxivProvider implements Provider {
 
@@ -29,7 +30,7 @@ export default class ArxivProvider implements Provider {
   readonly capabilities = ["research", "paper", "science", "academia"] as const;
 
   private readonly endpoint =
-    "https://export.arxiv.org/api/query";
+    endpointUrl("arxiv", "api/query");
 
   canSearch(query: string): boolean {
     return query.trim().length > 0;

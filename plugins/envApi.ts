@@ -16,6 +16,7 @@
  */
 
 import { bridgeReport } from "./runtimeKeyBridge.ts";
+import { endpoint, endpointUrl, endpointDiagnostics } from "../src/core/Endpoints.ts";
 
 type EnvReader = (key: string) => string | undefined;
 
@@ -64,7 +65,7 @@ async function probeFirms(key: string | undefined): Promise<Record<string, unkno
   // Same URL shape the live FIRMS provider uses (src/core/earth/EarthProviders.ts):
   // /api/area/csv/{MAP_KEY}/{SOURCE}/{west,south,east,north}/{DAY_RANGE} with
   // DAY_RANGE=2 → today + yesterday. Wide bbox for the health probe.
-  const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${encodeURIComponent(key)}/VIIRS_SNPP_NRT/-180,-90,180,90/2`;
+  const url = `${endpoint("firms")}/api/area/csv/${encodeURIComponent(key)}/VIIRS_SNPP_NRT/-180,-90,180,90/2`;
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(20000) });
     const text = await res.text();
@@ -109,6 +110,13 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
           // showed up here as MISSING even though it was present in
           // the environment and is what the provider actually uses.
           bridgedFromUnprefixedNames: bridgeReport(env),
+          // Where requests actually go. Base URLs are not credentials, so
+          // the resolved value is shown — an operator debugging a blocked
+          // or mis-pointed host needs to see the URL, and `overridden`
+          // flags anything redirected away from its built-in default.
+          endpoints: endpointDiagnostics()
+            .filter((e) => e.overridden)
+            .map((e) => ({ id: e.id, url: e.url })),
           VITE_GROQ_API_KEY: presence(env("VITE_GROQ_API_KEY") || env("GROQ_API_KEY")),
           VITE_OPENROUTER_API_KEY: presence(
             env("VITE_OPENROUTER_API_KEY") || env("OPENROUTER_API_KEY"),
@@ -120,10 +128,10 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
           AISSTREAM_API_KEY: presence(env("AISSTREAM_API_KEY")),
           INSTAGRAM_ACCESS_TOKEN: presence(env("INSTAGRAM_ACCESS_TOKEN") || env("VITE_INSTAGRAM_ACCESS_TOKEN")),
           INSTAGRAM_USERNAME: env("INSTAGRAM_USERNAME") || env("VITE_INSTAGRAM_USERNAME") || "MISSING",
-          RSS_SAPIOLINGO: presence(env("VITE_SAPIOLINGO_RSS_URL") || env("SAPIOLINGO_RSS_URL")),
-          RSS_ELPHERU: presence(env("VITE_ELPHERU_RSS_URL") || env("ELPHERU_RSS_URL")),
-          RSS_GOOGLE_NEWS_1: presence(env("VITE_GOOGLE_NEWS_RSS_URL") || env("GOOGLE_NEWS_RSS_URL")),
-          RSS_GOOGLE_NEWS_2: presence(env("VITE_GOOGLE_NEWS_RSS_URL_2") || env("GOOGLE_NEWS_RSS_URL_2")),
+          RSS_SAPIOLINGO: presence(env("VITE_SAPIOLINGO_RSS_URL") || env("SAPIOLINGO_RSS_URL") || env("RSS_SAPIOLINGO_URL")),
+          RSS_ELPHERU: presence(env("VITE_ELPHERU_RSS_URL") || env("ELPHERU_RSS_URL") || env("RSS_ELPHERU_URL")),
+          RSS_GOOGLE_NEWS_1: presence(env("VITE_GOOGLE_NEWS_RSS_URL") || env("GOOGLE_NEWS_RSS_URL") || env("RSS_GOOGLE_NEWS_URL")),
+          RSS_GOOGLE_NEWS_2: presence(env("VITE_GOOGLE_NEWS_RSS_URL_2") || env("GOOGLE_NEWS_RSS_URL_2") || env("RSS_GOOGLE_NEWS_ALT_URL")),
           NEKO_URL: env("VITE_NEKO_URL") || env("NEKO_URL") || "MISSING",
           VITE_GROQ_MODEL: env("VITE_GROQ_MODEL") ?? "MISSING",
           VITE_ANTHROPIC_MODEL: env("VITE_ANTHROPIC_MODEL") || env("ANTHROPIC_MODEL") || "MISSING",
@@ -141,7 +149,7 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
 
         if (groqKey) {
           try {
-            const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            const groqRes = await fetch(endpointUrl("groq", "chat/completions"), {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -169,7 +177,7 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
 
         if (openrouterKey) {
           try {
-            const orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            const orRes = await fetch(endpointUrl("openrouter", "chat/completions"), {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -199,7 +207,7 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
 
         if (anthropicKey) {
           try {
-            const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
+            const anthropicRes = await fetch(endpointUrl("anthropic", "messages"), {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

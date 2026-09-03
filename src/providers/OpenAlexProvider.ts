@@ -7,6 +7,7 @@
 
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
+import { endpointUrl } from "../core/Endpoints";
 
 export default class OpenAlexProvider implements Provider {
 
@@ -29,7 +30,7 @@ export default class OpenAlexProvider implements Provider {
   readonly capabilities = ["research", "citation", "paper", "academia"] as const;
 
   private readonly endpoint =
-    "https://api.openalex.org/works";
+    endpointUrl("openalex", "works");
 
   canSearch(query: string): boolean {
     return query.trim().length > 0;

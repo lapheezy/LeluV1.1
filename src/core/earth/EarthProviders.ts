@@ -35,6 +35,7 @@ import {
   type SpatialSearchResult,
 } from "./EarthTypes";
 import { corsFetch } from "../../providers/corsFetch";
+import { endpoint, endpointUrl } from "../Endpoints";
 
 /* ------------------------------------------------------------------
  * Helpers
@@ -200,7 +201,7 @@ export async function searchPlaces(query: string): Promise<SpatialSearchResult[]
   if (!q) return [];
   try {
     const data = (await fetchJson(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=en&format=json`,
+      `${endpoint("openMeteoGeocoding")}/v1/search?name=${encodeURIComponent(q)}&count=8&language=en&format=json`,
     )) as { results?: OpenMeteoPlace[] };
     const results = (data.results ?? [])
       .filter((r) => typeof r.latitude === "number" && typeof r.longitude === "number" && r.name)
@@ -241,7 +242,7 @@ export async function reverseGeocodePlace(
 ): Promise<{ name: string; country?: string; admin1?: string } | null> {
   try {
     const data = (await fetchJson(
-      `https://geocoding-api.open-meteo.com/v1/search?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&count=1&language=en&format=json`,
+      `${endpoint("openMeteoGeocoding")}/v1/search?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&count=1&language=en&format=json`,
     )) as { results?: OpenMeteoPlace[] };
     const hit = data.results?.[0];
     if (hit?.name) {
@@ -371,7 +372,7 @@ function propagateSubPoint(sat: CelestrakSatellite, now: number): GeoLocation | 
 async function fetchSatellites(_ctx: ProviderFetchContext): Promise<SpatialEntity[]> {
   const now = Date.now();
   const data = (await fetchJson(
-    "https://celestrak.org/NORAD/elements/gp.php?GROUP=stations&FORMAT=json",
+    endpointUrl("celestrak", "NORAD/elements/gp.php?GROUP=stations&FORMAT=json"),
   )) as CelestrakSatellite[];
   const out: SpatialEntity[] = [];
   for (const sat of data ?? []) {
@@ -414,7 +415,7 @@ interface UsgsFeature {
 
 async function fetchEarthquakes(_ctx: ProviderFetchContext): Promise<SpatialEntity[]> {
   const data = (await fetchJson(
-    "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson",
+    endpointUrl("usgsEarthquake", "earthquakes/feed/v1.0/summary/all_day.geojson"),
   )) as { features?: UsgsFeature[] };
   return (data.features ?? [])
     .filter((f) => Array.isArray(f.geometry?.coordinates) && f.geometry!.coordinates!.length >= 2)
@@ -467,7 +468,7 @@ async function fetchWeather(ctx: ProviderFetchContext): Promise<SpatialEntity[]>
   const focus = ctx.focus;
   if (!focus) return [];
   const data = (await fetchJson(
-    `https://api.open-meteo.com/v1/forecast?latitude=${focus.lat.toFixed(4)}&longitude=${focus.lon.toFixed(4)}&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto`,
+    `${endpoint("openMeteo")}/v1/forecast?latitude=${focus.lat.toFixed(4)}&longitude=${focus.lon.toFixed(4)}&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto`,
   )) as {
     current?: { temperature_2m?: number; weather_code?: number; wind_speed_10m?: number; time?: string };
   };
@@ -578,7 +579,7 @@ async function fetchFires(ctx: ProviderFetchContext): Promise<SpatialEntity[]> {
       // DAY_RANGE=2 → most recent data (today + yesterday); NRT detections
       // carry their own acq_date/acq_time so freshness stays truthful.
       const text = await fetchText(
-        `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${apiKey}/${source}/${bbox}/2`,
+        `${endpoint("firms")}/api/area/csv/${apiKey}/${source}/${bbox}/2`,
       );
       const lines = text.split(/\r?\n/);
       for (let i = 1; i < lines.length; i++) {
@@ -848,7 +849,7 @@ export async function alprRouteAnalysis(
   let durationMin = 0;
   try {
     const data = (await fetchJson(
-      `https://router.project-osrm.org/route/v1/driving/${from.lon},${from.lat};${to.lon},${to.lat}?overview=full&geometries=geojson&steps=false`,
+      `${endpoint("osrm")}/route/v1/driving/${from.lon},${from.lat};${to.lon},${to.lat}?overview=full&geometries=geojson&steps=false`,
     )) as {
       routes?: Array<{
         geometry?: { coordinates?: Array<[number, number]> };

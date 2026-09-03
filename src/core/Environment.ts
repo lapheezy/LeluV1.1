@@ -236,14 +236,17 @@ function build(): LeluEnvironment {
     // news source fails or is unconfigured.
     guardian:     providerEnv("VITE_GUARDIAN_API_KEY", 2, false),
     // Accept both the documented VITE_ names and unprefixed variants.
-    elpheruRssUrl: opt("VITE_ELPHERU_RSS_URL", "") || opt("ELPHERU_RSS_URL", ""),
-    sapiolingoRssUrl: opt("VITE_SAPIOLINGO_RSS_URL", "") || opt("SAPIOLINGO_RSS_URL", ""),
-    googleNewsRssUrl: opt("VITE_GOOGLE_NEWS_RSS_URL", "") || opt("GOOGLE_NEWS_RSS_URL", "") || "https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en",
-    googleNewsRssUrl2: opt("VITE_GOOGLE_NEWS_RSS_URL_2", "") || opt("GOOGLE_NEWS_RSS_URL_2", ""),
+    // The RSS_<SOURCE>_URL spelling is also accepted. The two orderings
+    // (SAPIOLINGO_RSS_URL vs RSS_SAPIOLINGO_URL) are easy to transpose and
+    // a wrong one is silent — the feed just never loads — so both resolve.
+    elpheruRssUrl: opt("VITE_ELPHERU_RSS_URL", "") || opt("ELPHERU_RSS_URL", "") || opt("RSS_ELPHERU_URL", ""),
+    sapiolingoRssUrl: opt("VITE_SAPIOLINGO_RSS_URL", "") || opt("SAPIOLINGO_RSS_URL", "") || opt("RSS_SAPIOLINGO_URL", ""),
+    googleNewsRssUrl: opt("VITE_GOOGLE_NEWS_RSS_URL", "") || opt("GOOGLE_NEWS_RSS_URL", "") || opt("RSS_GOOGLE_NEWS_URL", "") || "https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en",
+    googleNewsRssUrl2: opt("VITE_GOOGLE_NEWS_RSS_URL_2", "") || opt("GOOGLE_NEWS_RSS_URL_2", "") || opt("RSS_GOOGLE_NEWS_ALT_URL", ""),
     rssFeeds: [
-      opt("VITE_SAPIOLINGO_RSS_URL", "") || opt("SAPIOLINGO_RSS_URL", ""),
-      opt("VITE_ELPHERU_RSS_URL", "") || opt("ELPHERU_RSS_URL", ""),
-      opt("VITE_GOOGLE_NEWS_RSS_URL_2", "") || opt("GOOGLE_NEWS_RSS_URL_2", ""),
+      opt("VITE_SAPIOLINGO_RSS_URL", "") || opt("SAPIOLINGO_RSS_URL", "") || opt("RSS_SAPIOLINGO_URL", ""),
+      opt("VITE_ELPHERU_RSS_URL", "") || opt("ELPHERU_RSS_URL", "") || opt("RSS_ELPHERU_URL", ""),
+      opt("VITE_GOOGLE_NEWS_RSS_URL_2", "") || opt("GOOGLE_NEWS_RSS_URL_2", "") || opt("RSS_GOOGLE_NEWS_ALT_URL", ""),
     ].filter(Boolean),
     gnews:        providerEnv("VITE_GNEWS_API_KEY", 3, false),
     newsdata:     providerEnv("VITE_NEWSDATA_API_KEY", 4, false),
