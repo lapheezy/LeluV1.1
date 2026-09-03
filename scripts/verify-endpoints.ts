@@ -148,6 +148,30 @@ check(
   joined,
 );
 
+/* ---- 4b. a root endpoint moves the family derived from it ------------- */
+
+const savedNasa = process.env.NASA_API_URL;
+process.env.NASA_API_URL = "https://nasa-mirror.internal";
+const movedTogether = ["nasaApod", "nasaNeo", "nasaDonki", "nasaEpic", "nasaInsight"]
+  .map((id) => endpoint(id as EndpointId));
+// A specific name still beats the root for its own endpoint.
+process.env.NASA_APOD_API_URL = "https://apod-only.internal";
+const specificWins = endpoint("nasaApod");
+delete process.env.NASA_APOD_API_URL;
+if (savedNasa === undefined) delete process.env.NASA_API_URL;
+else process.env.NASA_API_URL = savedNasa;
+
+check(
+  "NASA_API_URL moves every endpoint derived from it",
+  movedTogether.every((url) => url.startsWith("https://nasa-mirror.internal/")),
+  movedTogether.join(", "),
+);
+check(
+  "a specific endpoint name still overrides the root it derives from",
+  specificWins === "https://apod-only.internal",
+  specificWins,
+);
+
 /* ---- 5. consumers ------------------------------------------------------ */
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -169,8 +193,18 @@ const consumed: string[] = [];
 const orphaned: string[] = [];
 for (const id of ids) {
   // `endpoint("groq")` / `endpointUrl("groq", …)` at any call site.
-  if (new RegExp(`endpoint(?:Url)?\\(\\s*["']${id}["']`).test(sources)) consumed.push(id);
-  else orphaned.push(id);
+  // `endpoint("x")`, `endpointUrl("x", …)`, or `isOverridden("x")` in a
+  // selection expression all count as a real read of the setting.
+  // A root that other endpoints derive from (NASA_API_URL) is read by the
+  // registry itself rather than at a call site — verified above by moving
+  // the family, so a regex miss here would be a false orphan report.
+  const isDerivationRoot = id === "nasa";
+  if (
+    isDerivationRoot ||
+    new RegExp(`(?:endpoint(?:Url)?|isOverridden)\\(\\s*["']${id}["']`).test(sources)
+  ) {
+    consumed.push(id);
+  } else orphaned.push(id);
 }
 
 check(

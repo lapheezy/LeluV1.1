@@ -60,6 +60,33 @@ import {
 import YouTubeProvider
   from "../providers/YouTubeProvider";
 
+import {
+  NASAApodProvider,
+  NASANeoProvider,
+  NASADonkiProvider,
+  NASAEonetProvider,
+  NASAEpicProvider,
+  NASAExoplanetProvider,
+  NASAOsdrProvider,
+  NASAInsightProvider,
+} from "../providers/NASAScienceProviders";
+
+import SpaceXProvider
+  from "../providers/SpaceXProvider";
+
+import NOAAProvider
+  from "../providers/NOAAProvider";
+
+import GeoapifyProvider
+  from "../providers/GeoapifyProvider";
+
+import {
+  GNewsProvider,
+  GuardianProvider,
+  NewsDataProvider,
+} from "../providers/NewsFallbackProviders";
+
+
 export default function registerProviders():
   ProviderRegistry {
 
@@ -133,6 +160,30 @@ export default function registerProviders():
   registry.register(
     new YouTubeProvider(),
   );
+
+
+  // NASA science family — key-less against DEMO_KEY, faster with NASA_API_KEY.
+  registry.register(new NASAApodProvider());
+  registry.register(new NASANeoProvider());
+  registry.register(new NASADonkiProvider());
+  registry.register(new NASAEonetProvider());
+  registry.register(new NASAEpicProvider());
+  registry.register(new NASAExoplanetProvider());
+  registry.register(new NASAOsdrProvider());
+  registry.register(new NASAInsightProvider());
+
+  registry.register(new SpaceXProvider());
+
+  // NOAA covers the US only and returns nothing elsewhere, so Open-Meteo
+  // stays the global answer rather than being displaced by it.
+  registry.register(new NOAAProvider());
+
+  // Keyed sources: each declines itself when its key is absent, so an
+  // unconfigured one costs nothing and never blocks the chain.
+  registry.register(new GeoapifyProvider());
+  registry.register(new GNewsProvider());
+  registry.register(new GuardianProvider());
+  registry.register(new NewsDataProvider());
 
   return registry;
 

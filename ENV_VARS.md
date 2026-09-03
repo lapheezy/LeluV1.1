@@ -255,17 +255,20 @@ instance, a gateway, or a proxy.
 | `HACKERNEWS_API_URL` | `https://hn.algolia.com/api/v1` |
 | `MESHY_API_URL` | `https://api.meshy.ai` |
 
-### Declared, awaiting a consumer
+### All endpoints have consumers
 
-These resolve correctly and are ready for a caller, but **no code path
-fetches them yet** — setting one changes nothing until the corresponding
-provider is built. They are listed here rather than quietly implied to
-work: `GEMINI_BASE_URL`, `GEOCODING_BASE_URL`, `GEOAPIFY_API_URL`,
-`NOAA_API_URL`, `NASA_API_URL`, `NASA_APOD_API_URL`, `NASA_NEO_API_URL`,
-`NASA_DONKI_API_URL`, `NASA_EONET_API_URL`, `NASA_EPIC_API_URL`,
-`NASA_EXOPLANET_API_URL`, `NASA_OSDR_API_URL`, `NASA_INSIGHT_API_URL`,
-`SPACEX_API_URL`, `NEWSDATA_API_URL`, `NEWSDATA_WEBSOCKET_URL`,
-`GNEWS_URL`, `GUARDIAN_API_URL`, `GOOGLE_NEWS_RSS_BASE_URL`.
+Every endpoint in the registry is read by real calling code. The providers
+added for the previously-unconsumed ones are: Gemini (AI chat, priority 8),
+NASA APOD / NeoWs / DONKI / EONET / EPIC / Exoplanet Archive / OSDR /
+InSight, SpaceX, NOAA, Geoapify, GNews, Guardian and NewsData.
+
+`NASA_API_URL` is a ROOT: setting it moves APOD, NeoWs, DONKI, EPIC and
+InSight together, while a specific name (`NASA_APOD_API_URL`) still wins
+for its own endpoint.
+
+`NEWSDATA_WEBSOCKET_URL` configures `newsDataWebsocketUrl()` rather than a
+Provider — a socket is a subscription, not a search, and nothing in LÉLU
+consumes a push stream today.
 
 `bun run scripts/verify-endpoints.ts` prints the current split.
 
@@ -284,3 +287,28 @@ Both orderings resolve — `SAPIOLINGO_RSS_URL` and `RSS_SAPIOLINGO_URL`,
 and likewise for `ELPHERU`, `GOOGLE_NEWS` (`RSS_GOOGLE_NEWS_URL`) and the
 alternate feed (`GOOGLE_NEWS_RSS_URL_2` / `RSS_GOOGLE_NEWS_ALT_URL`). The
 two are easy to transpose and a wrong one is silent, so both are accepted.
+
+
+## Provider API keys added alongside the endpoint registry
+
+| Variable | Provider | Behaviour without it |
+|---|---|---|
+| `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) | Gemini chat | Reports unavailable; chain skips it |
+| `NASA_API_KEY` | NASA science family | Works on shared `DEMO_KEY`, heavily rate-limited |
+| `GEOAPIFY_API_KEY` | Geoapify geocoding | Declines; Nominatim serves geocoding |
+| `GNEWS_API_KEY` | GNews | Declines; other news sources serve |
+| `GUARDIAN_API_KEY` | The Guardian | Declines; other news sources serve |
+| `NEWSDATA_API_KEY` | NewsData.io | Declines; other news sources serve |
+
+Keyed providers return no results rather than throwing when unconfigured,
+so an unset key never blocks the fallback chain.
+
+### Coverage limits worth knowing
+
+**NOAA is United States only.** `api.weather.gov` has no data elsewhere,
+so the provider returns nothing for a non-US location and Open-Meteo
+answers instead. That is a real answer, not a failure.
+
+**NASA InSight is archival.** The lander's mission ended in December 2022,
+so this feed is a fixed historical record. The provider says so in every
+result rather than presenting it as current Mars weather.

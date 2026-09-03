@@ -72,6 +72,11 @@ const aiProviders: { name: string; key: string; aliases?: string[] }[] = [
     key: "VITE_ANTHROPIC_API_KEY",
     aliases: ["ANTHROPIC_API_KEY", "CLAUDE_API_KEY"],
   },
+  {
+    name: "Gemini",
+    key: "VITE_GEMINI_API_KEY",
+    aliases: ["GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_GENERATIVE_AI_API_KEY"],
+  },
   // GITHUB_TOKEN is deliberately NOT an alias here: dev containers and CI
   // set an ambient one for git tooling that is not a Models inference key.
   { name: "GitHub Models", key: "VITE_GITHUB_TOKEN" },

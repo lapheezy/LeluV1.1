@@ -373,12 +373,36 @@ export type EndpointId = keyof typeof ENDPOINTS;
  * Falls back to the value the code used before it was configurable,
  * so an unset variable is never an outage.
  */
+/**
+ * Endpoints that are PATHS UNDER a configurable root rather than hosts of
+ * their own. `NASA_API_URL` moves the whole api.nasa.gov family at once
+ * (a mirror, a cache, a rate-limit-friendly proxy); setting one of the
+ * specific names still wins for that one. Without this the root would be
+ * a setting that looks like it governs the family and governs nothing.
+ */
+const DERIVED_FROM_ROOT: Partial<Record<EndpointId, { root: EndpointId; path: string }>> = {
+  nasaApod: { root: "nasa", path: "planetary/apod" },
+  nasaNeo: { root: "nasa", path: "neo/rest/v1" },
+  nasaDonki: { root: "nasa", path: "DONKI" },
+  nasaEpic: { root: "nasa", path: "EPIC" },
+  nasaInsight: { root: "nasa", path: "insight_weather" },
+};
+
 export function endpoint(id: EndpointId): string {
   const definition: EndpointDefinition = ENDPOINTS[id];
   for (const name of definition.names) {
     const configured = readRungs(name);
     if (configured) return withApiSuffix(normalize(configured), definition.apiSuffix);
   }
+
+  const derived = DERIVED_FROM_ROOT[id];
+  if (derived) {
+    for (const rootName of ENDPOINTS[derived.root].names) {
+      const configuredRoot = readRungs(rootName);
+      if (configuredRoot) return `${normalize(configuredRoot)}/${derived.path}`;
+    }
+  }
+
   return withApiSuffix(normalize(definition.fallback), definition.apiSuffix);
 }
 

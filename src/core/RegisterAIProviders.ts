@@ -29,6 +29,9 @@ import FireworksProvider
 import AnthropicProvider
   from "../providers/AnthropicProvider";
 
+import GeminiProvider
+  from "../providers/GeminiProvider";
+
 import LocalInferenceProvider
   from "../providers/LocalInferenceProvider";
 
@@ -75,6 +78,12 @@ export default function registerAIProviders() {
   // untouched — nothing that resolved before resolves differently now.
   registry.register(
     new AnthropicProvider(),
+  );
+
+  // Priority 8 — appended after Anthropic, so the chain ahead of it
+  // is untouched.
+  registry.register(
+    new GeminiProvider(),
   );
 
 

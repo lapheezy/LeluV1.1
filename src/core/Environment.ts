@@ -16,6 +16,8 @@
  * ==========================================================
  */
 
+import { endpoint } from "./Endpoints";
+
 // -- raw env access (Vite-injected, available in browser bundle) ----------
 
 function rawEnv(): Record<string, string | undefined> {
@@ -114,6 +116,7 @@ export interface LeluEnvironment {
   fireworks: ProviderEnv;
   githubModels: ProviderEnv;
   anthropic: ProviderEnv;
+  gemini: ProviderEnv;
   localInference: ProviderEnv;
 
   /* ---- Knowledge / research providers ---- */
@@ -155,6 +158,7 @@ export interface LeluEnvironment {
   fireworksModel: string;
   githubModel: string;
   anthropicModel: string;
+  geminiModel: string;
   defaultProvider: string;
   aiProxyBaseUrl: string;
 }
@@ -222,6 +226,7 @@ function build(): LeluEnvironment {
     // resolved a key before resolves the same key in the same position.
     // Promote it with VITE_DEFAULT_PROVIDER=anthropic when wanted.
     anthropic:       providerEnv("VITE_ANTHROPIC_API_KEY", 7, true),
+    gemini:          providerEnv("VITE_GEMINI_API_KEY", 8, true),
     localInference:  { configured: true, keyVar: "", hasKey: true, priority: 0, required: false },
 
     // Knowledge providers
@@ -241,7 +246,7 @@ function build(): LeluEnvironment {
     // a wrong one is silent — the feed just never loads — so both resolve.
     elpheruRssUrl: opt("VITE_ELPHERU_RSS_URL", "") || opt("ELPHERU_RSS_URL", "") || opt("RSS_ELPHERU_URL", ""),
     sapiolingoRssUrl: opt("VITE_SAPIOLINGO_RSS_URL", "") || opt("SAPIOLINGO_RSS_URL", "") || opt("RSS_SAPIOLINGO_URL", ""),
-    googleNewsRssUrl: opt("VITE_GOOGLE_NEWS_RSS_URL", "") || opt("GOOGLE_NEWS_RSS_URL", "") || opt("RSS_GOOGLE_NEWS_URL", "") || "https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en",
+    googleNewsRssUrl: opt("VITE_GOOGLE_NEWS_RSS_URL", "") || opt("GOOGLE_NEWS_RSS_URL", "") || opt("RSS_GOOGLE_NEWS_URL", "") || `${endpoint("googleNewsRss")}/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en`,
     googleNewsRssUrl2: opt("VITE_GOOGLE_NEWS_RSS_URL_2", "") || opt("GOOGLE_NEWS_RSS_URL_2", "") || opt("RSS_GOOGLE_NEWS_ALT_URL", ""),
     rssFeeds: [
       opt("VITE_SAPIOLINGO_RSS_URL", "") || opt("SAPIOLINGO_RSS_URL", "") || opt("RSS_SAPIOLINGO_URL", ""),
@@ -283,6 +288,7 @@ function build(): LeluEnvironment {
     fireworksModel:   opt("VITE_FIREWORKS_MODEL", "accounts/fireworks/models/llama-v3p1-8b-instruct"),
     githubModel:      opt("VITE_GITHUB_MODEL", "gpt-4o-mini"),
     anthropicModel:   opt("VITE_ANTHROPIC_MODEL", "claude-sonnet-4-5"),
+    geminiModel:      opt("VITE_GEMINI_MODEL", "gemini-2.0-flash"),
     defaultProvider:  opt("VITE_DEFAULT_PROVIDER", "groq"),
     aiProxyBaseUrl:   opt("VITE_AI_PROXY_BASE_URL", ""),
   };
@@ -296,6 +302,7 @@ function build(): LeluEnvironment {
     config.fireworks.configured ||
     config.githubModels.configured ||
     config.anthropic.configured ||
+    config.gemini.configured ||
     config.localInference.configured;
 
   if (!anyAiConfigured) {
@@ -337,6 +344,7 @@ export function environmentDiagnostics(): Record<string, string> {
     ["Fireworks", config.fireworks],
     ["GitHub Models", config.githubModels],
     ["Anthropic", config.anthropic],
+    ["Gemini", config.gemini],
     ["Local Inference", config.localInference],
   ];
 
@@ -360,6 +368,7 @@ export default {
   get newsApiKey(): string { return resolve("VITE_NEWS_API_KEY") ?? ""; },
   get groqApiKey(): string { return resolve("VITE_GROQ_API_KEY") ?? ""; },
   get anthropicApiKey(): string { return resolve("VITE_ANTHROPIC_API_KEY") ?? ""; },
+  get supabaseUrl(): string { return endpoint("supabase"); },
   get meshyApiKey(): string { return resolve("VITE_MESHY_API_KEY") ?? ""; },
 };
 

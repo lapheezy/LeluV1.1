@@ -68,6 +68,19 @@ const FAKE_ANTHROPIC_BODY = JSON.stringify({
   usage: { input_tokens: 24, output_tokens: 6 },
 });
 
+/**
+ * Gemini is a third wire shape: `candidates[].content.parts[].text` rather
+ * than choices[] or content blocks, usage under `usageMetadata`, and auth
+ * via x-goog-api-key. Same reasoning as the Anthropic stub — testing it
+ * against an OpenAI body would prove nothing.
+ */
+const FAKE_GEMINI_BODY = JSON.stringify({
+  candidates: [
+    { content: { role: "model", parts: [{ text: "Hello! I'm Lélu." }] }, finishReason: "STOP" },
+  ],
+  usageMetadata: { promptTokenCount: 24, candidatesTokenCount: 6, totalTokenCount: 30 },
+});
+
 function fakeResponse(body: string, status = 200): FakeResponse {
   return {
     ok: status >= 200 && status < 300,
@@ -93,14 +106,14 @@ async function main() {
   const priorities = registry.all().map((p) => p.priority);
 
   check(
-    "registry registers the local-first provider plus all seven remote chat providers",
+    "registry registers the local-first provider plus all eight remote chat providers",
     names.join(",") ===
-      "Local (on-device),Groq,OpenRouter,Cerebras,Mistral,Fireworks,Anthropic,GitHub Models",
+      "Local (on-device),Groq,OpenRouter,Cerebras,Mistral,Fireworks,Anthropic,Gemini,GitHub Models",
     names.join(" → "),
   );
   check(
-    "fallback order is strict by priority (0,1,2,3,4,5,7,10)",
-    JSON.stringify(priorities) === JSON.stringify([0, 1, 2, 3, 4, 5, 7, 10]),
+    "fallback order is strict by priority (0,1,2,3,4,5,7,8,10)",
+    JSON.stringify(priorities) === JSON.stringify([0, 1, 2, 3, 4, 5, 7, 8, 10]),
     priorities.join(","),
   );
   check(
@@ -123,6 +136,7 @@ async function main() {
       "__LELU_MISTRAL_API_KEY__",
       "__LELU_FIREWORKS_API_KEY__",
       "__LELU_ANTHROPIC_API_KEY__",
+      "__LELU_GEMINI_API_KEY__",
       "__LELU_GITHUB_TOKEN__",
     ];
     for (const name of keyNames) {
@@ -160,12 +174,16 @@ async function main() {
       requested.push({
         url,
         authHeader: headers.Authorization ?? null,
-        apiKeyHeader: headers["x-api-key"] ?? null,
+        apiKeyHeader: headers["x-api-key"] ?? headers["x-goog-api-key"] ?? null,
         model: body.model,
         body,
       });
       return fakeResponse(
-        url.includes("api.anthropic.com") ? FAKE_ANTHROPIC_BODY : FAKE_SUCCESS_BODY,
+        url.includes("api.anthropic.com")
+          ? FAKE_ANTHROPIC_BODY
+          : url.includes("generativelanguage.googleapis.com")
+            ? FAKE_GEMINI_BODY
+            : FAKE_SUCCESS_BODY,
       );
     }) as unknown as typeof fetch;
 
@@ -206,7 +224,9 @@ async function main() {
         `${provider.name}: usage metadata parsed`,
         provider.name === "Anthropic"
           ? (usage?.input_tokens ?? 0) + (usage?.output_tokens ?? 0) === 30
-          : usage?.total_tokens === 30,
+          : provider.name === "Gemini"
+            ? (usage as { totalTokenCount?: number } | undefined)?.totalTokenCount === 30
+            : usage?.total_tokens === 30,
       );
     }
 
@@ -226,7 +246,9 @@ async function main() {
                       ? "api.mistral.ai"
                       : provider.name === "Anthropic"
                         ? "api.anthropic.com"
-                        : "api.fireworks.ai",
+                        : provider.name === "Gemini"
+                          ? "generativelanguage.googleapis.com"
+                          : "api.fireworks.ai",
             ),
       );
       check(
@@ -237,17 +259,18 @@ async function main() {
       check(
         // Anthropic authenticates with x-api-key, not Bearer — asserting
         // Bearer for it would be asserting a bug.
-        provider.name === "Anthropic"
-          ? `${provider.name}: x-api-key auth header present`
+        provider.name === "Anthropic" || provider.name === "Gemini"
+          ? `${provider.name}: key-header auth present (not Bearer)`
           : `${provider.name}: Bearer auth header present`,
-        provider.name === "Anthropic"
+        provider.name === "Anthropic" || provider.name === "Gemini"
           ? Boolean(row?.apiKeyHeader)
           : Boolean(row?.authHeader?.startsWith("Bearer ")),
       );
       check(
         `${provider.name}: request carries the LÉLU identity prompt`,
-        Boolean(row?.model),
-        `model: ${row?.model}`,
+        // Gemini names the model in the URL path, not the JSON body.
+        provider.name === "Gemini" ? Boolean(row?.url.includes(":generateContent")) : Boolean(row?.model),
+        `model: ${row?.model ?? row?.url.split("/models/")[1]}`,
       );
     }
 
@@ -286,6 +309,27 @@ async function main() {
       "Anthropic: max_tokens is set (required by the Messages API)",
       typeof anthropicRow?.body.max_tokens === "number" &&
         (anthropicRow.body.max_tokens as number) > 0,
+    );
+
+    // ---- Gemini schema contract -----------------------------------------
+    const geminiRow = requested.find((r) => r.url.includes("generativelanguage.googleapis.com"));
+    const geminiContents = (geminiRow?.body.contents ?? []) as Array<{ role: string }>;
+    check(
+      "Gemini: system prompt is hoisted to system_instruction",
+      Boolean((geminiRow?.body.system_instruction as { parts?: Array<{ text?: string }> })?.parts?.[0]?.text),
+    );
+    check(
+      "Gemini: memory context survives the hoist",
+      JSON.stringify(geminiRow?.body.system_instruction ?? {}).includes("retro space games"),
+    );
+    check(
+      "Gemini: turns use the model/user roles, never assistant or system",
+      geminiContents.length > 0 && geminiContents.every((c) => c.role === "user" || c.role === "model"),
+      geminiContents.map((c) => c.role).join(" \u2192 "),
+    );
+    check(
+      "Gemini: conversation opens with a user turn",
+      geminiContents[0]?.role === "user",
     );
 
     // ---- 4. failure throws (what drives the fallback chain) --------------

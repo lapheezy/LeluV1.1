@@ -154,6 +154,42 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     aliases: ["ANTHROPIC_MODEL"],
   },
 
+  // ---- Keys for the providers added alongside the endpoint registry ----
+  {
+    viteName: "VITE_GEMINI_API_KEY",
+    globalName: "__LELU_GEMINI_API_KEY__",
+    aliases: ["GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_GENERATIVE_AI_API_KEY"],
+  },
+  {
+    viteName: "VITE_GEMINI_MODEL",
+    globalName: "__LELU_GEMINI_MODEL__",
+    aliases: ["GEMINI_MODEL"],
+  },
+  {
+    viteName: "VITE_NASA_API_KEY",
+    globalName: "__LELU_NASA_API_KEY__",
+    aliases: ["NASA_API_KEY"],
+  },
+  {
+    viteName: "VITE_GEOAPIFY_API_KEY",
+    globalName: "__LELU_GEOAPIFY_API_KEY__",
+    aliases: ["GEOAPIFY_API_KEY"],
+  },
+  {
+    viteName: "VITE_GNEWS_API_KEY",
+    globalName: "__LELU_GNEWS_API_KEY__",
+    aliases: ["GNEWS_API_KEY"],
+  },
+  {
+    viteName: "VITE_GUARDIAN_API_KEY",
+    globalName: "__LELU_GUARDIAN_API_KEY__",
+    aliases: ["GUARDIAN_API_KEY"],
+  },
+  {
+    viteName: "VITE_NEWSDATA_API_KEY",
+    globalName: "__LELU_NEWSDATA_API_KEY__",
+    aliases: ["NEWSDATA_API_KEY"],
+  },
   // ---- External service base URLs (see src/core/Endpoints.ts) ----
   // Not secrets: these are the hosts requests already go to, so bridging
   // them to the browser reveals nothing a network tab would not. They are
