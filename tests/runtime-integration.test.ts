@@ -486,3 +486,136 @@ test("a failed or empty tool_result is never labelled as a returned result", asy
   } as never);
   assert.match(real, /returned 2 results/);
 });
+
+/* ------------------------------------------------------------------ *
+ * 10. The configured default provider actually leads the chain
+ *
+ * VITE_DEFAULT_PROVIDER was read by Environment.ts and the diagnostics
+ * endpoint and by nothing else, so setting it changed which provider
+ * LÉLU *reported* as default, never which one she used.
+ * ------------------------------------------------------------------ */
+
+async function stubProvider(name: string, priority: number, mode: "ok" | "fail") {
+  return {
+    name, priority, enabled: true, timeout: 5000, requiresApiKey: true,
+    capabilities: ["chat"] as const,
+    initialize: async () => {},
+    isAvailable: async () => true,
+    health: async () => ({ available: true, initialized: true, lastChecked: Date.now() }),
+    canHandle: () => true,
+    generate: async () => {
+      if (mode === "fail") throw new Error(`${name}: 529 overloaded`);
+      return { text: `answer from ${name}`, provider: name, model: `${name}-m`, processingTime: 1, metadata: {} };
+    },
+  };
+}
+
+test("VITE_DEFAULT_PROVIDER leads, and the priority fallback still works when it fails", async () => {
+  const saved = process.env.VITE_DEFAULT_PROVIDER;
+  process.env.VITE_DEFAULT_PROVIDER = "anthropic";
+  // getEnvironment() caches on first build. Production sets this before
+  // boot so the cache is correct there; a test changing it mid-process
+  // must rebuild, which is what reloadEnvironment() exists for.
+  const { reloadEnvironment } = await import("../src/core/Environment");
+  reloadEnvironment();
+  try {
+    const { default: AIProviderRegistry } = await import("../src/core/AIProviderRegistry");
+    const { default: ProviderResolver } = await import("../src/core/router/ProviderResolver");
+    const { default: ExecutionLogger } = await import("../src/core/ExecutionLogger");
+
+    const base = {
+      request: { prompt: "hi", messages: [{ role: "user", content: "hi" }], timestamp: Date.now() },
+      started: Date.now(),
+    };
+
+    // Anthropic sits at priority 7 — last — yet is the configured default.
+    const reg = new AIProviderRegistry();
+    reg.register((await stubProvider("Groq", 1, "ok")) as never);
+    reg.register((await stubProvider("Anthropic", 7, "ok")) as never);
+    await reg.initialize();
+
+    const led = await new ProviderResolver().execute({
+      ...base, aiProviders: reg, logger: new ExecutionLogger(),
+    } as never);
+    assert.equal(led.response?.provider, "Anthropic", "the configured default must lead");
+
+    // ...and the existing chain must still catch it when it fails.
+    const reg2 = new AIProviderRegistry();
+    reg2.register((await stubProvider("Groq", 1, "ok")) as never);
+    reg2.register((await stubProvider("Anthropic", 7, "fail")) as never);
+    await reg2.initialize();
+
+    const fell = await new ProviderResolver().execute({
+      ...base, aiProviders: reg2, logger: new ExecutionLogger(),
+    } as never);
+    assert.equal(fell.response?.provider, "Groq", "fallback must survive the default failing");
+  } finally {
+    if (saved === undefined) delete process.env.VITE_DEFAULT_PROVIDER;
+    else process.env.VITE_DEFAULT_PROVIDER = saved;
+    reloadEnvironment();
+  }
+});
+
+/* ------------------------------------------------------------------ *
+ * 11. Memory provenance — a claimed action is not a performed action
+ * ------------------------------------------------------------------ */
+
+test("an unverified action claim is not stored, but real facts in the same turn are", async () => {
+  const { default: MemoryBridge } = await import("../src/core/MemoryBridge");
+
+  const stored: Array<{ response: string; context: Record<string, unknown> }> = [];
+  const brain = {
+    learn: async (_p: string, response: string, _c: string, _k: string[], context: Record<string, unknown>) => {
+      stored.push({ response, context });
+      return null; // nothing to persist downstream
+    },
+    recall: async () => [],
+  };
+  const bridge = new MemoryBridge(brain as never);
+
+  // No tool_result was emitted for this taskId, so the claim is unbacked.
+  await bridge.learn(
+    "what's the news?",
+    "I searched the Elpheru RSS feed. Also, your favourite colour is teal.",
+    "task-with-no-execution",
+  );
+
+  assert.equal(stored.length, 1);
+  assert.doesNotMatch(
+    stored[0].response,
+    /I searched the Elpheru/i,
+    "an action claim with no tool_result must not be remembered as fact",
+  );
+  assert.match(
+    stored[0].response,
+    /favourite colour is teal/i,
+    "genuine facts in the same reply must still be learned",
+  );
+  assert.equal(stored[0].context.executionVerified, false);
+  assert.equal(stored[0].context.redactedActionClaims, 1);
+});
+
+test("an action claim IS stored when a real tool_result backs the turn", async () => {
+  const { default: MemoryBridge } = await import("../src/core/MemoryBridge");
+  const AgentEventBus = (await import("../src/core/agent/AgentEvents")).default;
+
+  const taskId = `task-${Date.now()}`;
+  AgentEventBus.getInstance().emit({
+    type: "tool_result", taskId, tool: "research",
+    result: "1 result", results: [{ title: "real source" }], status: "complete",
+  } as never);
+
+  const stored: Array<{ response: string; context: Record<string, unknown> }> = [];
+  const brain = {
+    learn: async (_p: string, response: string, _c: string, _k: string[], context: Record<string, unknown>) => {
+      stored.push({ response, context });
+      return null;
+    },
+    recall: async () => [],
+  };
+
+  await new MemoryBridge(brain as never).learn("news?", "I searched and found one source.", taskId);
+
+  assert.match(stored[0].response, /I searched/i, "a backed claim must survive intact");
+  assert.equal(stored[0].context.executionVerified, true);
+});

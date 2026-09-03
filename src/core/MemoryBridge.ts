@@ -212,9 +212,71 @@ Rules:
    * Learn conversation (consolidation happens inside the Brain's
    * MemoryEngine, which decides what is durable enough to persist).
    */
+  /**
+   * Sentences in which the assistant asserts it COMPLETED a retrieval
+   * action. Present tense ("I'm searching") is an intention and is not
+   * matched; only claims of a finished action are, because only those
+   * would be stored as though the action had happened.
+   */
+  private static readonly ACTION_CLAIM =
+    /\b(?:I|I've|I have)\s+(?:just\s+)?(?:searched|looked\s+up|checked|fetched|retrieved|pulled\s+up|queried|browsed|read)\b[^.!?]*[.!?]/gi;
+
+  /**
+   * Did a tool actually produce a result for this turn?
+   *
+   * AgentEventBus keeps a bounded history precisely so cognition can
+   * read what really happened; a completed tool_result for this taskId
+   * is the evidence that an action claim is true.
+   */
+  private executionBackedBy(taskId: string | undefined): boolean {
+    if (!taskId) return false;
+    return AgentEventBus.getInstance()
+      .recent(80)
+      .some(
+        (event) =>
+          event.type === "tool_result" &&
+          event.taskId === taskId &&
+          event.status !== "error" &&
+          Array.isArray((event as { results?: unknown[] }).results) &&
+          ((event as { results: unknown[] }).results.length > 0),
+      );
+  }
+
   public async learn(prompt: string, response: string, taskId?: string): Promise<void> {
-    const learned = await this.brain.learn(prompt, response, "conversation", [], {
+    // PROVENANCE. The model can write "I searched the Elpheru RSS feed"
+    // whether or not anything ran, and persisting that verbatim turns a
+    // sentence into a remembered fact — LÉLU would later recall having
+    // done work she never did. An action claim is only durable when a
+    // real tool_result for this turn backs it.
+    const verified = this.executionBackedBy(taskId);
+    let learnable = response;
+    let redactedClaims = 0;
+
+    if (!verified) {
+      learnable = response.replace(MemoryBridge.ACTION_CLAIM, () => {
+        redactedClaims += 1;
+        return "";
+      }).replace(/\s{2,}/g, " ").trim();
+
+      if (redactedClaims > 0) {
+        console.warn(
+          "[MemoryBridge] Dropped %d unverified action claim(s) before storing — " +
+            "no tool_result backed this turn.",
+          redactedClaims,
+        );
+      }
+    }
+
+    // Nothing durable survived the redaction: the reply was ONLY an
+    // unbacked claim, so there is no fact worth remembering.
+    if (learnable.length === 0 && redactedClaims > 0) return;
+
+    const learned = await this.brain.learn(prompt, learnable, "conversation", [], {
       source: "lelu-chat",
+      // Provenance travels with the memory so a later reader can tell a
+      // recorded action from a reported one.
+      executionVerified: verified,
+      ...(redactedClaims > 0 ? { redactedActionClaims: redactedClaims } : {}),
     });
 
     if (learned) {
