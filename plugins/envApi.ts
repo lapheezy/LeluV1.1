@@ -15,6 +15,8 @@
  * ==========================================================
  */
 
+import { bridgeReport } from "./runtimeKeyBridge.ts";
+
 type EnvReader = (key: string) => string | undefined;
 
 interface ConnectLikeRes {
@@ -100,8 +102,17 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
       if (route === "/api/env-check") {
         sendJson(res, {
           runtime,
-          VITE_GROQ_API_KEY: presence(env("VITE_GROQ_API_KEY")),
-          VITE_OPENROUTER_API_KEY: presence(env("VITE_OPENROUTER_API_KEY")),
+          // Which provider keys arrived under an UNPREFIXED platform
+          // name and are therefore being bridged onto the __LELU_*__
+          // channel. Names only — never values. Without this, a key
+          // supplied as GROQ_API_KEY rather than VITE_GROQ_API_KEY
+          // showed up here as MISSING even though it was present in
+          // the environment and is what the provider actually uses.
+          bridgedFromUnprefixedNames: bridgeReport(env),
+          VITE_GROQ_API_KEY: presence(env("VITE_GROQ_API_KEY") || env("GROQ_API_KEY")),
+          VITE_OPENROUTER_API_KEY: presence(
+            env("VITE_OPENROUTER_API_KEY") || env("OPENROUTER_API_KEY"),
+          ),
           VITE_FIRMS_API_KEY: presence(env("VITE_FIRMS_API_KEY")),
           AISSTREAM_API_KEY: presence(env("AISSTREAM_API_KEY")),
           INSTAGRAM_ACCESS_TOKEN: presence(env("INSTAGRAM_ACCESS_TOKEN") || env("VITE_INSTAGRAM_ACCESS_TOKEN")),
@@ -119,8 +130,8 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
 
       void (async () => {
         const results: Record<string, unknown> = {};
-        const groqKey = env("VITE_GROQ_API_KEY") ?? "";
-        const openrouterKey = env("VITE_OPENROUTER_API_KEY") ?? "";
+        const groqKey = env("VITE_GROQ_API_KEY") || env("GROQ_API_KEY") || "";
+        const openrouterKey = env("VITE_OPENROUTER_API_KEY") || env("OPENROUTER_API_KEY") || "";
 
         if (groqKey) {
           try {

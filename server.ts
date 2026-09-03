@@ -28,6 +28,11 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { loadEnvFilesIntoProcess } from "./plugins/loadEnvFiles.ts";
+import {
+  applyBridgeToGlobals,
+  bridgeReport,
+  bridgeScriptBody,
+} from "./plugins/runtimeKeyBridge.ts";
 import { createNodeEngineerAdapter } from "./plugins/nodeAdapters.ts";
 import { createEngineerApi } from "./plugins/engineerApi.ts";
 import { createEnvApi } from "./plugins/envApi.ts";
@@ -68,6 +73,18 @@ if (envSummary.filesLoaded.length > 0) {
       Object.entries(envSummary.keys)
         .map(([k, v]) => `${k}=${v ? "SET" : "absent"}`)
         .join(" | "),
+  );
+}
+
+// Publish any provider key supplied under an unprefixed platform name
+// onto the __LELU_*__ channel the providers already read, so a provider
+// initialised inside THIS runtime resolves the same credential the
+// browser bundle does. VITE_-named keys are never overridden.
+const bridgedHere = applyBridgeToGlobals((key) => process.env[key]);
+if (bridgedHere.length > 0) {
+  console.log(
+    "[LÉLU runtime] runtime key bridge: " +
+      bridgedHere.map((b) => `${b.sourceName} → ${b.globalName}`).join(", "),
   );
 }
 
@@ -187,7 +204,29 @@ function sendFile(res: ServerResponse, filePath: string): void {
     "Cache-Control",
     ext === ".html" ? "no-cache" : "public, max-age=31536000, immutable",
   );
+
+  // The app shell is rewritten on the way out so a provider key present
+  // in THIS process reaches the browser without a rebuild. `dist/` was
+  // produced by an earlier `vite build`, which could only bake in the
+  // keys that existed at BUILD time; a key provisioned afterwards would
+  // otherwise be invisible until the app was rebuilt. Appending at the
+  // end of <head> means the serve-time value wins over any build-time
+  // one, which is the precedence you want.
+  if (ext === ".html") {
+    res.end(injectRuntimeKeyBridge(readFileSync(filePath, "utf8")));
+    return;
+  }
+
   res.end(readFileSync(filePath));
+}
+
+function injectRuntimeKeyBridge(html: string): string {
+  const body = bridgeScriptBody((key) => process.env[key]);
+  if (!body) return html;
+  const script = `<script>\n${body}\n</script>\n`;
+  return html.includes("</head>")
+    ? html.replace("</head>", `${script}</head>`)
+    : script + html;
 }
 
 /* ------------------------------------------------------------------ */
