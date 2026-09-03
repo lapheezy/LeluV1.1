@@ -357,8 +357,23 @@ export default class CognitiveLoop {
             rememberAnswer: true,
           };
         } else {
+          // Never ask the user to give direction to a project LÉLU
+          // invented for her own bookkeeping.
+          //
+          // Orchestrator.persistCheckpoint() auto-creates a category
+          // project ("General", "Engineering") on ordinary chat turns and
+          // checkpoints it with pending:[] / nextAction:null hardcoded —
+          // so an auto-created project is STRUCTURALLY guaranteed to have
+          // zero items, which structurally guarantees this question. The
+          // user then sees "Engineering is active but has no defined next
+          // outcome" about a project they never created, generated one
+          // turn after LÉLU created it empty. A project the USER made and
+          // left empty is worth asking about; this is not.
           const directionProject = activeProjects.find(
-            (project) => project.items.length === 0 && !project.queries?.length,
+            (project) =>
+              project.items.length === 0 &&
+              !project.queries?.length &&
+              !(project.description ?? "").startsWith("Auto-created for"),
           );
           if (directionProject) {
             question = {

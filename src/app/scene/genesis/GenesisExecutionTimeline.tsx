@@ -113,8 +113,43 @@ export function executionEventLabel(event: AgentEvent): string {
       return `You ${event.decision} this request`;
     case "spatial_event":
       return event.label;
+    case "visual_state_changed":
+      // A VIEW change, not work performed. Named plainly so it can never
+      // read as cognition.
+      return `View switched to ${event.state}`;
+    case "core_transform":
+      return "Core appearance changed";
     default:
-      return event.type;
+      // Never fall back to `event.type`. That printed the raw internal
+      // identifier as if it were LÉLU's activity — the collapsed summary
+      // rendered literally "LÉLU is visual_state_changed · 8 operations",
+      // which asserts a cognitive act that never happened. An unlabelled
+      // event is an unlabelled event.
+      return "Internal event";
+  }
+}
+
+/**
+ * Does this event represent WORK LÉLU ACTUALLY DID?
+ *
+ * The activity line and the operation count must be built from these
+ * only. Rendering state (`visual_state_changed`, `core_transform`,
+ * `workspace_*`) is the UI describing itself; counting it as an
+ * "operation" inflates the number and lets a view switch present itself
+ * as cognition. A user reading "8 operations" should be able to point at
+ * eight things LÉLU did.
+ */
+export function isExecutionEvent(event: AgentEvent): boolean {
+  switch (event.type) {
+    case "visual_state_changed":
+    case "core_transform":
+    case "workspace_open":
+    case "workspace_focus":
+    case "workspace_minimize":
+    case "spatial_event":
+      return false;
+    default:
+      return true;
   }
 }
 
@@ -349,17 +384,32 @@ export default function GenesisExecutionTimeline() {
 
   const collapsedSummary = useMemo(() => {
     if (tasks.length === 0) return "";
-    const latest = tasks[0].latest;
-    const opCount = tasks.reduce((sum, task) => sum + task.events.length, 0);
+
+    // Count only real work. Previously this summed EVERY event, so a
+    // handful of view changes inflated the count and the line claimed
+    // operations LÉLU had not performed.
+    const opCount = tasks.reduce(
+      (sum, task) => sum + task.events.filter(isExecutionEvent).length,
+      0,
+    );
     const suffix = `${opCount} ${opCount === 1 ? "operation" : "operations"}`;
-    if (latest.type === "task_completed") {
-      return `LÉLU finished · ${suffix}`;
+
+    const latest = tasks[0].latest;
+    if (latest.type === "task_completed") return `LÉLU finished · ${suffix}`;
+    if (latest.type === "task_failed") return `LÉLU hit a problem · ${suffix}`;
+
+    // Take the verb from the most recent REAL action. A view switch is
+    // not something LÉLU is doing, and letting it supply the verb is how
+    // "LÉLU is visual_state_changed" reached the screen.
+    const lastRealAction = tasks[0].events.filter(isExecutionEvent).at(-1);
+    if (!lastRealAction) {
+      // Nothing but rendering state so far — say so rather than inventing
+      // an activity for her.
+      return opCount === 0 ? "LÉLU is idle" : `LÉLU is working · ${suffix}`;
     }
-    if (latest.type === "task_failed") {
-      return `LÉLU hit a problem · ${suffix}`;
-    }
-    const verb = executionEventLabel(latest);
-    // "Connecting to OpenRouter" → "LÉLU is connecting to OpenRouter".
+
+    const verb = executionEventLabel(lastRealAction);
+    // "Routing to OpenRouter" → "LÉLU is routing to OpenRouter".
     const lowered = verb.charAt(0).toLowerCase() + verb.slice(1);
     return `LÉLU is ${lowered} · ${suffix}`;
   }, [tasks]);
