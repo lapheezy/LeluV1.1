@@ -112,6 +112,25 @@ export default class ToolCallInterceptor {
   ): Promise<ToolCallResult> {
     const text = providerResponse.text;
 
+    // COMPATIBILITY FALLBACK ONLY.
+    //
+    // This interceptor exists for providers that emit tool-call markup
+    // as TEXT because they cannot call tools natively. A provider that
+    // can — marked by ProviderResolver once it has been offered the real
+    // tool schemas — has already had its chance to invoke them, and its
+    // reply is a finished answer. Tool-shaped text in that answer is
+    // prose about tools (an explanation, or a quoted search result), not
+    // an unexecuted request.
+    //
+    // Without this gate such a reply is scraped, a SECOND research call
+    // is executed, and the grounded answer the model produced from the
+    // real tool result is discarded and replaced with the scraper's own
+    // summary. That is both a duplicate execution and a duplicate set of
+    // timeline events for one turn.
+    if (providerResponse.metadata?.nativeTools === true) {
+      return { intercepted: false };
+    }
+
     if (!isToolCallResponse(text) && !isRawToolMarkup(text)) {
       return { intercepted: false };
     }
@@ -142,6 +161,16 @@ export default class ToolCallInterceptor {
           prompt: query,
           messages: [{ role: "user" as const, content: query }],
         },
+        // Declare the intent rather than letting it be re-detected.
+        //
+        // The extracted query is a bare search term, and ResearchResolver
+        // only retrieves for a search/news intent or a time-sensitive
+        // phrasing. Re-detecting on "tardigrade cryptobiosis" classifies
+        // as neither, so the resolver declined instantly and the user was
+        // told the search came back empty. The model asking for the tool
+        // IS the decision to search — the same reason ToolDispatcher
+        // declares it on the native path.
+        intent: "search" as const,
       };
 
       const result = await resolver.execute(toolContext);

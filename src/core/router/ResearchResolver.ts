@@ -347,7 +347,37 @@ export default class ResearchResolver {
       .filter((item) => item.matches > 0)
       .sort((a, b) => b.matches - a.matches || a.provider.priority - b.provider.priority);
 
-    return scored.slice(0, MAX_PROVIDERS).map((item) => item.provider);
+    if (scored.length > 0) {
+      return scored.slice(0, MAX_PROVIDERS).map((item) => item.provider);
+    }
+
+    // NO DOMAIN KEYWORD MATCHED — ask the providers themselves.
+    //
+    // DOMAIN_CAPS maps words in a SENTENCE ("what is…", "latest news…",
+    // "paper on…") onto capabilities, which works for a user's phrasing
+    // but not for a bare search term. "tardigrade cryptobiosis" is an
+    // excellent query and matches nothing here, so zero providers were
+    // selected and the request was declined in three milliseconds —
+    // reported downstream as a search that found nothing.
+    //
+    // That shape is exactly what a model's research tool call looks
+    // like: it has already distilled the question into search terms.
+    // Rather than extend the keyword table (which would keep failing on
+    // the next unlisted topic), fall back to each provider's OWN
+    // canHandle() — the mechanism they already implement for deciding
+    // whether a query is theirs (canSearch, which BaseProvider defines
+    // in terms of each provider's own canHandle).
+    return context.knowledgeProviders
+      .all()
+      .filter((provider) => {
+        try {
+          return provider.canSearch(prompt);
+        } catch {
+          return false;
+        }
+      })
+      .sort((a, b) => a.priority - b.priority)
+      .slice(0, MAX_PROVIDERS);
   }
 
   /**

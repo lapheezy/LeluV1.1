@@ -229,10 +229,17 @@ export default class ProviderResolver {
     provider: AIProvider,
     context: RouterContext,
   ): Promise<AIResponse> {
-    const tools = provider.supportsTools === true ? toolSchemasForModel() : [];
+    // Tools are offered only on a conversational turn. Internal
+    // structured-output calls (see AIRequest.allowTools) must reach the
+    // provider exactly as they did before, or their parsers break.
+    const tools =
+      provider.supportsTools === true && context.request.allowTools === true
+        ? toolSchemasForModel()
+        : [];
 
     // No native tool support, or nothing currently executable to offer:
-    // the original single call, untouched.
+    // the original single call, untouched. This is the fallback path —
+    // ToolCallInterceptor still salvages tool markup from these.
     if (tools.length === 0) {
       return provider.generate(context.request);
     }
@@ -296,19 +303,25 @@ export default class ProviderResolver {
       });
     }
 
-    if (executed.length === 0) {
-      return response;
-    }
-
     // Provenance: what actually ran, on the response itself. MemoryBridge
     // reads execution events for the same purpose, and the timeline reads
     // the events the dispatcher emitted — this is the record on the reply.
+    //
+    // `nativeTools` is set even when the model chose to call nothing. It
+    // marks the response as having come from a provider that HAD its
+    // chance to invoke tools for real, which is what tells
+    // ToolCallInterceptor to stand down: tool-shaped text from such a
+    // provider is prose about tools, not an unexecuted request, and
+    // re-running it would execute a second time and throw away the
+    // grounded answer.
     return {
       ...response,
       metadata: {
         ...response.metadata,
-        toolsExecuted: executed,
-        toolRounds: executed.length,
+        nativeTools: true,
+        ...(executed.length
+          ? { toolsExecuted: executed, toolRounds: executed.length }
+          : {}),
       },
     };
   }

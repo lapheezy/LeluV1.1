@@ -42,6 +42,7 @@ import { toolSchemasForModel, toolSchemaDiagnostics } from "../src/core/tools/To
 import {
   dispatchToolCall,
   executableToolIds,
+  missingResearchDependencies,
   registryIdForToolName,
   toolNameForModel,
 } from "../src/core/tools/ToolDispatcher";
@@ -124,7 +125,30 @@ test("research without the router context refuses instead of reporting an empty 
     "test-task",
   );
   assert.equal(result.ok, false);
-  assert.match(result.content, /without it, so no search was performed/);
+  assert.match(result.content, /No search was performed/);
+  assert.match(result.content, /NOT a search that returned no results/);
+});
+
+test("a context missing knowledgeProviders or brain is caught by name", () => {
+  assert.deepEqual(missingResearchDependencies(undefined), [
+    "provider registry",
+    "memory brain",
+  ]);
+  // A context object that merely EXISTS is not enough: the resolver
+  // reads these two by name, and a context without them throws in a way
+  // that reads downstream as "searched and found nothing".
+  assert.deepEqual(missingResearchDependencies({ request: {} } as never), [
+    "provider registry",
+    "memory brain",
+  ]);
+  assert.deepEqual(
+    missingResearchDependencies({ request: {}, knowledgeProviders: {} } as never),
+    ["memory brain"],
+  );
+  assert.deepEqual(
+    missingResearchDependencies({ request: {}, knowledgeProviders: {}, brain: {} } as never),
+    [],
+  );
 });
 
 test("execution emits the events the timeline and memory provenance read", async () => {
@@ -218,4 +242,124 @@ test("no tools means no tools key — a non-tool request is unchanged", () => {
   const tools = withTools.tools as Array<Record<string, unknown>>;
   assert.equal(tools[0].type, "function");
   assert.equal((tools[0].function as Record<string, unknown>).name, "research_web");
+});
+
+/* ------------------------------------------------------------------ *
+ * INTEGRATION — locks the defects found by running the whole stack
+ * ------------------------------------------------------------------ */
+
+import ProviderResolver from "../src/core/router/ProviderResolver";
+import ToolCallInterceptor from "../src/core/router/ToolCallInterceptor";
+import ExecutionLogger from "../src/core/ExecutionLogger";
+
+/** A provider that records what it was handed. */
+function spyProvider(supportsTools: boolean, text = "answer") {
+  const calls: Array<Record<string, unknown>> = [];
+  const provider = {
+    name: supportsTools ? "SpyNative" : "SpyLegacy",
+    priority: 1, enabled: true, timeout: 10000,
+    requiresApiKey: false, capabilities: ["chat"] as const,
+    ...(supportsTools ? { supportsTools: true } : {}),
+    initialize: async () => {},
+    isAvailable: async () => true,
+    health: async () => ({ available: true, initialized: true, lastChecked: Date.now() }),
+    canHandle: () => true,
+    generate: async (request: Record<string, unknown>) => {
+      calls.push(request);
+      return { text, provider: "spy", model: "spy-1", processingTime: 1 };
+    },
+  };
+  return { provider, calls };
+}
+
+function harness(provider: unknown, requestExtras: Record<string, unknown> = {}) {
+  return {
+    request: { prompt: "hello", messages: [], timestamp: Date.now(), ...requestExtras },
+    started: Date.now(),
+    logger: new ExecutionLogger(),
+    aiProviders: {
+      available: async () => [provider],
+      names: () => ["spy"],
+      markFailure: () => {},
+      markSuccess: () => {},
+      all: () => [provider],
+      get: () => provider,
+    },
+  } as never;
+}
+
+test("an internal structured-output call is never offered tools", async () => {
+  // ProjectInterpreter asks for a JSON decision through reason(), which
+  // does not set allowTools. When tools leaked into that call the model
+  // answered with a tool_use, the JSON parse failed, and LÉLU reported
+  // "No AI provider was reachable" about a provider that had just
+  // answered three times.
+  const { provider, calls } = spyProvider(true);
+  await new ProviderResolver().execute(harness(provider));
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].tools, undefined, "tools were offered to an internal call");
+});
+
+test("a conversational turn IS offered tools", async () => {
+  const { provider, calls } = spyProvider(true);
+  await new ProviderResolver().execute(harness(provider, { allowTools: true }));
+  const tools = calls[0].tools as Array<{ name: string }> | undefined;
+  assert.ok(tools && tools.length > 0, "the chat turn was not offered any tools");
+});
+
+test("a provider without native support is never offered tools, on any turn", async () => {
+  const { provider, calls } = spyProvider(false);
+  await new ProviderResolver().execute(harness(provider, { allowTools: true }));
+  assert.equal(calls[0].tools, undefined);
+});
+
+test("the interceptor stands down for a provider that already had real tools", async () => {
+  const context = harness(spyProvider(true).provider);
+  const intercepted = await new ToolCallInterceptor().intercept(
+    {
+      text: 'I ran [Researcher(query="x")] and here is what it said.',
+      provider: "Anthropic", model: "m", processingTime: 1,
+      metadata: { nativeTools: true },
+    },
+    context,
+  );
+  // Without this gate the finished, grounded answer is scraped, research
+  // runs a SECOND time, and the model's answer is thrown away.
+  assert.equal(intercepted.intercepted, false);
+});
+
+test("the interceptor still engages for a provider that cannot call tools", async () => {
+  const context = harness(spyProvider(false).provider);
+  const intercepted = await new ToolCallInterceptor().intercept(
+    {
+      text: '[Researcher(query="tardigrade cryptobiosis")]',
+      provider: "SpyLegacy", model: "m", processingTime: 1,
+    },
+    context,
+  );
+  assert.equal(intercepted.intercepted, true, "the compatibility fallback stopped working");
+  assert.equal(intercepted.query, "tardigrade cryptobiosis");
+});
+
+test("a bare search term still selects knowledge providers", async () => {
+  // DOMAIN_CAPS maps words in a SENTENCE onto capabilities. A model's
+  // tool call supplies distilled search terms instead, so "tardigrade
+  // cryptobiosis" matched no pattern, zero providers were selected, and
+  // the request was declined in ~3ms — then reported to the model as a
+  // search that returned nothing. Providers are asked directly now.
+  const { default: registerProviders } = await import("../src/core/RegisterProviders");
+  const { default: ResearchResolver } = await import("../src/core/router/ResearchResolver");
+
+  const registry = registerProviders();
+  const resolver = new ResearchResolver() as unknown as {
+    selectProviders(context: unknown, prompt: string): Array<{ name: string }>;
+  };
+  const context = { knowledgeProviders: registry } as unknown;
+
+  const selected = resolver.selectProviders(context, "tardigrade cryptobiosis");
+  assert.ok(selected.length > 0, "a bare search term selected no providers at all");
+
+  // A sentence that DOES match a domain keyword must be unaffected.
+  const bySentence = resolver.selectProviders(context, "find me a research paper on tardigrades");
+  assert.ok(bySentence.length > 0);
 });

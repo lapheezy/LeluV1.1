@@ -58,6 +58,30 @@ interface ToolExecutor {
   emitsOwnEvents?: boolean;
 }
 
+/**
+ * Which dependencies ResearchResolver needs but this context lacks.
+ *
+ * Returns the missing NAMES rather than a boolean so the refusal can
+ * say precisely what was absent — a silent or vague failure here is
+ * indistinguishable from an empty search result, and those are
+ * different claims about the world.
+ */
+export function missingResearchDependencies(
+  context: RouterContext | undefined,
+): string[] {
+  if (!context) return ["provider registry", "memory brain"];
+  const missing: string[] = [];
+  const candidate = context as unknown as Record<string, unknown>;
+  const knowledge = candidate.knowledgeProviders as { search?: unknown } | undefined;
+  if (!knowledge || typeof knowledge !== "object") {
+    missing.push("provider registry");
+  }
+  if (!candidate.brain || typeof candidate.brain !== "object") {
+    missing.push("memory brain");
+  }
+  return missing;
+}
+
 /** Read a string argument without trusting the model's typing. */
 function str(args: Record<string, unknown>, key: string): string {
   const value = args[key];
@@ -118,16 +142,20 @@ const EXECUTORS: ToolExecutor[] = [
       // The REAL router context is required, not a synthetic one.
       //
       // ResearchResolver reads context.knowledgeProviders and
-      // context.brain, which are owned by AIRuntime. A hand-built
-      // context missing them makes every search throw and report "no
-      // results" — retrieval that looks like it ran and found nothing,
-      // which is the exact failure mode this work exists to remove.
-      if (!context) {
+      // context.brain, both owned by AIRuntime. A hand-built context
+      // missing either makes every search throw, and the throw reads
+      // downstream as "searched, found nothing" — retrieval that looks
+      // like it ran, which is the exact failure this work exists to
+      // remove. The dependencies are therefore checked BY NAME rather
+      // than trusting that a context object was passed at all.
+      const missing = missingResearchDependencies(context);
+      if (missing.length > 0) {
         return {
           ok: false,
           content:
-            "research.web needs the router's provider registry and was called without it, " +
-            "so no search was performed.",
+            `No search was performed: research.web requires the router's ` +
+            `${missing.join(" and ")} and was called without ${missing.length > 1 ? "them" : "it"}. ` +
+            `This is a failure to search, NOT a search that returned no results.`,
         };
       }
 
@@ -137,11 +165,13 @@ const EXECUTORS: ToolExecutor[] = [
       // by a model calling the tool directly.
       const { default: ResearchResolver } = await import("../router/ResearchResolver");
 
+      // Narrowed by the dependency check above.
+      const routerContext = context as RouterContext;
       const resolver = new ResearchResolver();
       const result = await resolver.execute({
-        ...context,
+        ...routerContext,
         request: {
-          ...context.request,
+          ...routerContext.request,
           prompt: query,
           messages: [{ role: "user", content: query }],
         },
@@ -149,15 +179,54 @@ const EXECUTORS: ToolExecutor[] = [
         // retrieval, so the resolver's memory stand-aside must not
         // short-circuit it.
         recalledMemories: [],
-        intent: undefined,
+        // Declare the intent instead of letting it be re-detected.
+        //
+        // ResearchResolver only retrieves when the intent is search/news
+        // or the prompt looks time-sensitive; anything else returns
+        // instantly with no results. Those guards exist to stop ORDINARY
+        // CONVERSATION triggering retrieval — but a model that issued a
+        // research.web tool call has already made that decision, and it
+        // should not be second-guessed by re-running intent detection on
+        // the bare query. A search term like "tardigrade cryptobiosis"
+        // classifies as neither, so every such call came back in three
+        // milliseconds having searched nothing, and was then reported to
+        // the model as a search that found nothing.
+        //
+        // `intent` is the resolver's own supported input for this; the
+        // router sets it the same way.
+        intent: "search",
       } as unknown as RouterContext);
 
+
       if (result.results.length === 0) {
+        // "Declined to search" and "searched, found nothing" are
+        // different claims about the world and must never collapse into
+        // one message. The resolver reports `attempted` only once it has
+        // actually called providers, so its absence on an empty result
+        // means nothing was ever contacted.
+        //
+        // The order matters: `attempted` is also absent on the SUCCESS
+        // path, so this can only be read after results are known empty.
+        if (!result.attempted) {
+          return {
+            ok: false,
+            content:
+              `No search ran for "${query}": the research resolver declined the request ` +
+              `before contacting any provider. This is NOT a search that returned no results.`,
+          };
+        }
+
+        // Name the providers and their failures, so the model reports a
+        // real empty search rather than a vague one.
+        const detail = result.attempted
+          .map((entry) => `${entry.provider}${entry.error ? ` (${entry.error})` : ""}`)
+          .join(", ");
         return {
           ok: false,
           content:
             `Searched for "${query}" and the knowledge providers returned no usable ` +
-            `results. This was a real retrieval attempt that came back empty.`,
+            `results. This was a real retrieval attempt that came back empty. ` +
+            `Providers tried: ${detail || "(none reported)"}.`,
         };
       }
 

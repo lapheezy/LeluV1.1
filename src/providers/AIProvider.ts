@@ -235,6 +235,24 @@ export interface AIRequest {
 
 
   /**
+   * Whether this request is a CONVERSATIONAL turn that may use tools.
+   *
+   * Only the chat path sets it. LÉLU also calls providers internally for
+   * structured output — ProjectInterpreter asks for a JSON decision,
+   * SelfStudyEngine asks for an evaluation — and those callers parse the
+   * reply against a fixed shape. Offering tools on such a call makes the
+   * model answer with a tool_use instead of the JSON, the parse fails,
+   * and the caller falls back to its regex path while reporting "no
+   * provider was reachable" about a provider that answered perfectly.
+   *
+   * Absent or false means the request behaves exactly as it did before
+   * native tool calling existed.
+   */
+  allowTools?:
+    boolean;
+
+
+  /**
    * Maximum tokens.
    */
   maxTokens?:

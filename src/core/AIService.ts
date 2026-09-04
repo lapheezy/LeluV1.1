@@ -506,6 +506,10 @@ export default class AIService {
       const request: AIRequest = {
         messages: priorTurns,
         prompt: message,
+        // This is the conversational turn, so LÉLU may invoke her real
+        // tools here. Internal structured-output calls (reason()) leave
+        // this unset and keep their pre-tool behaviour.
+        allowTools: true,
         ...(effectiveContext ? { context: effectiveContext } : {}),
         ...(media && media.length > 0 ? { media } : {}),
         timestamp: Number(taskId),
