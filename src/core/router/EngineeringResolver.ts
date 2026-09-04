@@ -191,7 +191,7 @@ export default class EngineeringResolver {
    * same — the request gets live diagnostics attached, and the
    * provider reasons over them; nothing is rewritten or guessed.
    */
-  private isEngineeringPrompt(prompt: string): boolean {
+  public isEngineeringPrompt(prompt: string): boolean {
     const text = prompt.toLowerCase();
 
     return (

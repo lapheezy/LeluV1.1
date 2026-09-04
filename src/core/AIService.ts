@@ -278,6 +278,13 @@ export default class AIService {
       // prevents the service and runtime from racing the same lifecycle.
       this.runtime.initialize(),
       this.user.initialize(),
+      // Measure whether a real development runtime is serving
+      // /api/engineer, and mark the project.* tools available only if it
+      // is. Contained and parallel: an unreachable runtime simply means
+      // those tools are not offered this session.
+      import("./engineering/EngineeringWorkspace")
+        .then((module) => module.default.getInstance().syncToolAvailability())
+        .catch(() => false),
     ]);
 
     if (runtimeResult.status === "rejected") {

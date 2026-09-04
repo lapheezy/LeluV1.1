@@ -31,6 +31,8 @@
  * ==========================================================
  */
 
+import { resolveEnvValue } from "../resolveEnv";
+
 export type SourceOrigin = "development-runtime" | "static-snapshot" | "unavailable";
 
 export interface SourceRead {
@@ -159,13 +161,19 @@ const STATUS_TTL_FAIL_MS = 60_000;
 const REQUEST_TIMEOUT_MS = 5_000;
 const COMMAND_TIMEOUT_MS = 180_000;
 
+/**
+ * Resolve engineering-runtime configuration.
+ *
+ * This read `import.meta.env` directly, which exists only under Vite —
+ * so the runtime URL and token were invisible to the standalone Node
+ * server, the Deno entry, and any non-browser caller, all of which then
+ * fell back to same-origin and could not reach the runtime at all. The
+ * canonical resolver already handles every rung (Vite, runtime global,
+ * process env), so it is used here rather than kept as a second,
+ * weaker implementation.
+ */
 function env(key: string): string {
-  try {
-    const value = (import.meta as { env?: Record<string, string | undefined> }).env?.[key];
-    return typeof value === "string" ? value.trim() : "";
-  } catch {
-    return "";
-  }
+  return resolveEnvValue(key) ?? "";
 }
 
 /** Normalize to a workspace-relative, forward-slashed path. */
@@ -199,11 +207,16 @@ export default class SourceAccess {
     return env("VITE_LELU_ENGINEER_TOKEN");
   }
 
-  private url(route: string): string {
+  /**
+   * Public so the engineering workspace client reuses the SAME base URL
+   * and token handling rather than reading the credential a second time.
+   */
+  public url(route: string): string {
     return `${this.baseUrl()}${route}`;
   }
 
-  private headers(): Record<string, string> {
+  /** Public for the same reason as url(): one credential path, not two. */
+  public headers(): Record<string, string> {
     const headers: Record<string, string> = { "content-type": "application/json" };
     const token = this.token();
     if (token) {

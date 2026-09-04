@@ -20,10 +20,18 @@ import { toolSchemasForModel } from "../tools/ToolSchemas";
 
 /**
  * How many generate -> execute -> generate rounds one request may take.
- * Enough for a model to search, read the result and follow up once;
- * short enough that a looping model cannot burn the request.
+ *
+ * Four was enough for "search, read the result, answer", but real
+ * engineering work is a longer chain: copy, list, read, write,
+ * validate, read the failure, fix, validate again, diff. At four the
+ * model ran out mid-task and its reply stopped in the middle of its own
+ * plan, having done real work it could not finish or report.
+ *
+ * Still bounded, and still ends deliberately: the final round withholds
+ * tools, so a looping model is forced to answer from what it has rather
+ * than burning the request.
  */
-const MAX_TOOL_ROUNDS = 4;
+const MAX_TOOL_ROUNDS = 16;
 
 export default class ProviderResolver {
   public async execute(context: RouterContext): Promise<ProviderResult> {

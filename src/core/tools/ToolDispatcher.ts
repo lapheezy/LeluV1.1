@@ -31,6 +31,7 @@ import type RouterContext from "../router/RouterContext";
 import AgentEventBus from "../agent/AgentEvents";
 import AutonomyGate from "../cognition/AutonomyGate";
 import ToolRegistry, { type RiskLevel } from "./ToolRegistry";
+import EngineeringAuthorization from "../engineering/EngineeringAuthorization";
 
 export interface ToolExecutionResult {
   ok: boolean;
@@ -179,6 +180,10 @@ const EXECUTORS: ToolExecutor[] = [
         // retrieval, so the resolver's memory stand-aside must not
         // short-circuit it.
         recalledMemories: [],
+        // This search IS a model tool call, so its events say so. A
+        // router prefetch is labelled separately and must never be
+        // reported as the model having invoked a tool.
+        toolInvoked: true,
         // Declare the intent instead of letting it be re-detected.
         //
         // ResearchResolver only retrieves when the intent is search/news
@@ -434,6 +439,216 @@ const EXECUTORS: ToolExecutor[] = [
     parameters: { type: "object", properties: {} },
     run: async () => runWorkspace("build"),
   },
+
+  /* ---------------- isolated project copies ---------------- */
+
+  {
+    id: "project.copy",
+    parameters: {
+      type: "object",
+      properties: {
+        workspace: {
+          type: "string",
+          description: "Optional id for the copy. One is generated when omitted.",
+        },
+      },
+    },
+    run: async (args) => {
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const requested = str(args, "workspace");
+      const result = await EngineeringWorkspace.getInstance().createCopy(requested || undefined);
+      if (!result.ok) return { ok: false, content: `No copy was created: ${result.error}` };
+      return {
+        ok: true,
+        content:
+          `Copied the project into sandbox workspace "${result.workspace.id}" — ` +
+          `${result.workspace.fileCount} real file(s) on disk. Edits here never touch the real project.`,
+        data: result.workspace,
+      };
+    },
+  },
+
+  {
+    id: "project.list",
+    parameters: {
+      type: "object",
+      properties: {
+        workspace: { type: "string", description: "The sandbox workspace id." },
+        path: { type: "string", description: "Directory to list, relative to the copy. Use '.' for the root." },
+      },
+      required: ["workspace"],
+    },
+    run: async (args) => {
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const workspace = str(args, "workspace");
+      if (!workspace) return { ok: false, content: "project.list requires a workspace id." };
+      const result = await EngineeringWorkspace.getInstance().listDir(workspace, str(args, "path") || ".");
+      if (!result.ok) return { ok: false, content: result.error };
+      if (result.entries.length === 0) return { ok: true, content: "(empty directory)" };
+      const lines = result.entries.map(
+        (entry) => `${entry.type === "dir" ? "[dir] " : "      "}${entry.path}${entry.size !== undefined ? ` (${entry.size}b)` : ""}`,
+      );
+      return { ok: true, content: lines.join("\n"), data: { count: result.entries.length } };
+    },
+  },
+
+  {
+    id: "project.read",
+    parameters: {
+      type: "object",
+      properties: {
+        workspace: { type: "string", description: "The sandbox workspace id." },
+        path: { type: "string", description: "File path relative to the copy." },
+      },
+      required: ["workspace", "path"],
+    },
+    run: async (args) => {
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const workspace = str(args, "workspace");
+      const path = str(args, "path");
+      if (!workspace || !path) return { ok: false, content: "project.read requires workspace and path." };
+      const result = await EngineeringWorkspace.getInstance().readFile(workspace, path);
+      if (!result.ok) return { ok: false, content: result.error };
+      const content = result.content;
+      // Large files are truncated rather than silently dropped, and the
+      // truncation is stated so nothing is mistaken for the whole file.
+      const MAX = 60_000;
+      return {
+        ok: true,
+        content:
+          content.length > MAX
+            ? `${content.slice(0, MAX)}\n…[truncated at ${MAX} characters of ${content.length}]`
+            : content,
+      };
+    },
+  },
+
+  {
+    id: "project.write",
+    parameters: {
+      type: "object",
+      properties: {
+        workspace: { type: "string", description: "The sandbox workspace id." },
+        path: { type: "string", description: "File path relative to the copy." },
+        content: { type: "string", description: "The COMPLETE new contents of the file." },
+      },
+      required: ["workspace", "path", "content"],
+    },
+    run: async (args) => {
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const workspace = str(args, "workspace");
+      const path = str(args, "path");
+      const content = typeof args.content === "string" ? args.content : "";
+      if (!workspace || !path) return { ok: false, content: "project.write requires workspace and path." };
+      const result = await EngineeringWorkspace.getInstance().writeFile(workspace, path, content);
+      if (!result.ok) return { ok: false, content: result.error };
+      return { ok: true, content: `Wrote ${content.length} character(s) to "${path}" in workspace "${workspace}".` };
+    },
+  },
+
+  {
+    id: "project.delete",
+    parameters: {
+      type: "object",
+      properties: {
+        workspace: { type: "string", description: "The sandbox workspace id." },
+        path: { type: "string", description: "File path relative to the copy." },
+      },
+      required: ["workspace", "path"],
+    },
+    run: async (args) => {
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const workspace = str(args, "workspace");
+      const path = str(args, "path");
+      if (!workspace || !path) return { ok: false, content: "project.delete requires workspace and path." };
+      const result = await EngineeringWorkspace.getInstance().deleteFile(workspace, path);
+      return result.ok
+        ? { ok: true, content: `Deleted "${path}" from workspace "${workspace}".` }
+        : { ok: false, content: result.error };
+    },
+  },
+
+  {
+    id: "project.validate",
+    parameters: {
+      type: "object",
+      properties: {
+        workspace: { type: "string", description: "The sandbox workspace id." },
+        operation: {
+          type: "string",
+          enum: ["typecheck", "test", "build", "inspect"],
+          description: "Which validation to run inside the copy.",
+        },
+      },
+      required: ["workspace", "operation"],
+    },
+    run: async (args) => {
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const workspace = str(args, "workspace");
+      const operation = str(args, "operation");
+      if (!workspace) return { ok: false, content: "project.validate requires a workspace id." };
+      if (!["typecheck", "test", "build", "inspect"].includes(operation)) {
+        return { ok: false, content: `Unknown validation "${operation}". Use typecheck, test, build or inspect.` };
+      }
+      const result = await EngineeringWorkspace.getInstance().validate(
+        workspace,
+        operation as "typecheck" | "test" | "build" | "inspect",
+      );
+      if (!("exitCode" in result)) return { ok: false, content: result.error };
+      return {
+        ok: result.ok,
+        content:
+          `${operation} exited ${result.exitCode} after ${result.durationMs}ms ` +
+          `(${result.ok ? "PASSED" : "FAILED"}).\n\n${result.output || "(no output)"}`,
+        data: { exitCode: result.exitCode, ok: result.ok },
+      };
+    },
+  },
+
+  {
+    id: "project.diff",
+    parameters: {
+      type: "object",
+      properties: { workspace: { type: "string", description: "The sandbox workspace id." } },
+      required: ["workspace"],
+    },
+    run: async (args) => {
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const workspace = str(args, "workspace");
+      if (!workspace) return { ok: false, content: "project.diff requires a workspace id." };
+      const changes = await EngineeringWorkspace.getInstance().diff(workspace);
+      if (changes.length === 0) {
+        return { ok: true, content: "The copy is identical to the real project — nothing has changed." };
+      }
+      const lines = changes.map(
+        (change) => `${change.status.toUpperCase()} ${change.path} (+${change.addedLines}/-${change.removedLines} lines)`,
+      );
+      return { ok: true, content: lines.join("\n"), data: { count: changes.length } };
+    },
+  },
+
+  {
+    id: "project.apply",
+    parameters: {
+      type: "object",
+      properties: { workspace: { type: "string", description: "The sandbox workspace id." } },
+      required: ["workspace"],
+    },
+    run: async (args) => {
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const workspace = str(args, "workspace");
+      if (!workspace) return { ok: false, content: "project.apply requires a workspace id." };
+      const result = await EngineeringWorkspace.getInstance().apply(workspace);
+      if (!result.ok) return { ok: false, content: result.error };
+      return {
+        ok: true,
+        content:
+          `Applied ${result.applied.length} file(s) to the real project, authorized by ` +
+          `${result.authorizedBy}: ${result.applied.join(", ")}`,
+        data: { applied: result.applied },
+      };
+    },
+  },
 ];
 
 async function runWorkspace(
@@ -488,7 +703,61 @@ export function executorParameters(id: string): Record<string, unknown> | undefi
 export function toolPermitted(id: string): boolean {
   const definition = ToolRegistry.getInstance().get(id);
   if (!definition || !definition.available) return false;
-  return AutonomyGate.getInstance().can(riskToAutonomy(definition.riskLevel));
+  if (!AutonomyGate.getInstance().can(riskToAutonomy(definition.riskLevel))) return false;
+
+  // Changing the REAL project needs a human authorization, not a
+  // permission level.
+  //
+  // Because the offered tool set is derived from this predicate, a model
+  // without an authorization is never even shown project.apply — it
+  // cannot request what it cannot see. The dispatcher and the workspace
+  // service both re-check before writing, so a grant that lapses between
+  // being offered and being used still stops the write.
+  if (id === "project.apply") {
+    return authorizedWorkspaceExists();
+  }
+
+  return true;
+}
+
+/** The accurate reason a tool was refused. */
+function refusalReason(id: string): string {
+  const definition = ToolRegistry.getInstance().get(id);
+  if (!definition) return `There is no tool named "${id}", so nothing was executed.`;
+  if (!definition.available) {
+    return `"${id}" is not available in this runtime, so it was not run.`;
+  }
+  // project.apply is checked first: its preflight already reports the
+  // autonomy shortfall AND the missing session, so the generic autonomy
+  // message would hide the more specific, more actionable one.
+  if (id === "project.apply" && !authorizedWorkspaceExists()) {
+    let detail = "";
+    try {
+      detail = ` ${EngineeringAuthorization.getInstance().preflight().reason}`;
+    } catch {
+      detail = "";
+    }
+    return (
+      `"${id}" was NOT run: applying changes to the real project requires an explicit ` +
+      `authorization from the signed-in user, and none is currently held.${detail} ` +
+      `The sandbox copy is unchanged and nothing was written to the real project.`
+    );
+  }
+  if (!AutonomyGate.getInstance().can(riskToAutonomy(definition.riskLevel))) {
+    return `"${id}" is not permitted at the current autonomy level, so it was not run.`;
+  }
+  return `"${id}" is not permitted right now, so it was not run.`;
+}
+
+/** Does any workspace currently carry a live human authorization? */
+function authorizedWorkspaceExists(): boolean {
+  try {
+    return EngineeringAuthorization.getInstance().authorizedWorkspaces().length > 0;
+  } catch {
+    // No session, no Supabase, no grant — all of which mean "not
+    // authorized", never "assume yes".
+    return false;
+  }
 }
 
 /** Map registry risk (0-4) onto the autonomy levels the gate uses. */
@@ -520,10 +789,13 @@ export async function dispatchToolCall(
   }
 
   if (!toolPermitted(id)) {
-    const result = {
-      ok: false,
-      content: `"${id}" is not permitted at the current autonomy level, so it was not run.`,
-    };
+    // Say WHY, accurately.
+    //
+    // A single "not permitted at the current autonomy level" message
+    // blamed the autonomy level even when the real obstacle was a
+    // missing session or a missing authorization — a true refusal with
+    // a false reason, which sends the user to fix the wrong thing.
+    const result = { ok: false, content: refusalReason(id) };
     events.emit({
       type: "tool_result",
       taskId,

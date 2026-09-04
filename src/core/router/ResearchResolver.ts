@@ -155,6 +155,19 @@ export default class ResearchResolver {
     const query = this.buildQuery(prompt, intent);
     const selected = this.selectProviders(context, prompt);
 
+    // WHO ASKED FOR THIS SEARCH?
+    //
+    // The router prefetches for a research-shaped question before the
+    // model ever runs; the model can also invoke research_web itself
+    // through the native tool loop. Both execute the same real
+    // retrieval, but they are different claims: only the second is the
+    // model deciding to use a tool. ToolDispatcher marks its calls, and
+    // the label travels on every event so the activity timeline can
+    // show a prefetch as a prefetch instead of as a tool the model
+    // called.
+    const invokedByModel = (context as { toolInvoked?: boolean }).toolInvoked === true;
+    const toolLabel = invokedByModel ? "research" : "research (prefetch)";
+
     if (selected.length === 0) {
       context.logger.info("ResearchResolver", "No knowledge provider matches this request.", {
         prompt,
@@ -168,13 +181,13 @@ export default class ResearchResolver {
     events.emit({
       type: "tool_selected",
       taskId,
-      tool: "research",
+      tool: toolLabel,
       label: selected.map((provider) => provider.name).join(" + "),
     });
     events.emit({
       type: "tool_started",
       taskId,
-      tool: "research",
+      tool: toolLabel,
       label: `Searching ${query}`,
     });
 
@@ -227,7 +240,7 @@ export default class ResearchResolver {
         events.emit({
           type: "tool_result",
           taskId,
-          tool: "research",
+          tool: toolLabel,
           query,
           provider: selected.map((provider) => provider.name).join(" + "),
           result: "No research results; answering from recalled memory",
@@ -245,7 +258,7 @@ export default class ResearchResolver {
       events.emit({
         type: "tool_result",
         taskId,
-        tool: "research",
+        tool: toolLabel,
         query,
         provider: selected.map((provider) => provider.name).join(" + "),
         result: "No usable results returned",
@@ -260,7 +273,7 @@ export default class ResearchResolver {
     events.emit({
       type: "tool_result",
       taskId,
-      tool: "research",
+      tool: toolLabel,
       result: `${results.length} result(s) from ${selected.map((provider) => provider.name).join(" + ")}`,
       query,
       provider: selected.map((provider) => provider.name).join(" + "),
