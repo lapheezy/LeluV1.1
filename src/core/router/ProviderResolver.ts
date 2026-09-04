@@ -19,19 +19,30 @@ import { dispatchToolCall } from "../tools/ToolDispatcher";
 import { toolSchemasForModel } from "../tools/ToolSchemas";
 
 /**
- * How many generate -> execute -> generate rounds one request may take.
+ * TERMINATION, not a round quota.
  *
- * Four was enough for "search, read the result, answer", but real
- * engineering work is a longer chain: copy, list, read, write,
- * validate, read the failure, fix, validate again, diff. At four the
- * model ran out mid-task and its reply stopped in the middle of its own
- * plan, having done real work it could not finish or report.
+ * A fixed count is the wrong shape for this. Four was too few for a
+ * real engineering chain (copy, list, read, write, validate, read the
+ * failure, repair, validate, diff) and the model stopped mid-task
+ * having done work it could not report; but raising the number just
+ * moves the cliff, and a model stuck in a loop still burns every round
+ * it is given.
  *
- * Still bounded, and still ends deliberately: the final round withholds
- * tools, so a looping model is forced to answer from what it has rather
- * than burning the request.
+ * So the loop ends for a REASON, and says which:
+ *   • the wall-clock budget is spent — the honest bound on a turn,
+ *     independent of how many small steps it took;
+ *   • a hard backstop count, high enough that legitimate work never
+ *     reaches it, low enough that nothing runs away;
+ *   • no progress — the same tool called with the same arguments
+ *     several times running is a stuck model, not a working one, and
+ *     is stopped immediately rather than left to exhaust the budget.
+ *
+ * Whichever fires, the final generation withholds tools so the model
+ * must answer from what it actually has.
  */
-const MAX_TOOL_ROUNDS = 16;
+const TOOL_LOOP_BUDGET_MS = 8 * 60 * 1000;
+const TOOL_LOOP_MAX_ROUNDS = 40;
+const NO_PROGRESS_REPEATS = 3;
 
 export default class ProviderResolver {
   public async execute(context: RouterContext): Promise<ProviderResult> {
@@ -259,9 +270,32 @@ export default class ProviderResolver {
     let response = await provider.generate({ ...context.request, messages, tools });
     let promptMaterialized = false;
 
-    for (let round = 1; round <= MAX_TOOL_ROUNDS; round += 1) {
+    const deadline = Date.now() + TOOL_LOOP_BUDGET_MS;
+    const recentSignatures: string[] = [];
+    let stopReason = "";
+
+    for (let round = 1; round <= TOOL_LOOP_MAX_ROUNDS; round += 1) {
       const calls = response.toolCalls ?? [];
       if (calls.length === 0) break;
+
+      // A stuck model repeats itself exactly. Detect that on the calls
+      // it is ASKING for, before running them again.
+      const signature = calls
+        .map((call) => `${call.name}:${JSON.stringify(call.arguments ?? {})}`)
+        .join("|");
+      recentSignatures.push(signature);
+      if (
+        recentSignatures.length >= NO_PROGRESS_REPEATS &&
+        recentSignatures.slice(-NO_PROGRESS_REPEATS).every((entry) => entry === signature)
+      ) {
+        stopReason = `the same tool call repeated ${NO_PROGRESS_REPEATS} times without progress`;
+      }
+      if (!stopReason && Date.now() > deadline) {
+        stopReason = `the ${Math.round(TOOL_LOOP_BUDGET_MS / 60000)}-minute tool budget was spent`;
+      }
+      if (!stopReason && round === TOOL_LOOP_MAX_ROUNDS) {
+        stopReason = `the ${TOOL_LOOP_MAX_ROUNDS}-round limit was reached`;
+      }
 
       // Put the user's actual question INTO the conversation before any
       // tool turns follow it.
@@ -303,12 +337,25 @@ export default class ProviderResolver {
         });
       }
 
-      const lastRound = round === MAX_TOOL_ROUNDS;
+      // Tell the model WHY it is being cut off, so its final answer
+      // reports where the work actually stopped instead of trailing off
+      // mid-plan as though it had finished.
+      if (stopReason) {
+        messages.push({
+          role: "user",
+          content:
+            `[system] The tool loop is ending because ${stopReason}. Do not request more ` +
+            `tools. Report exactly what you completed, what you verified, and what remains.`,
+        });
+      }
+
       response = await provider.generate({
         ...context.request,
         messages,
-        ...(lastRound ? {} : { tools }),
+        ...(stopReason ? {} : { tools }),
       });
+
+      if (stopReason) break;
     }
 
     // Provenance: what actually ran, on the response itself. MemoryBridge
@@ -330,6 +377,7 @@ export default class ProviderResolver {
         ...(executed.length
           ? { toolsExecuted: executed, toolRounds: executed.length }
           : {}),
+        ...(stopReason ? { toolLoopStopped: stopReason } : {}),
       },
     };
   }

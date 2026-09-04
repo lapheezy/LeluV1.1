@@ -140,3 +140,62 @@ test("workspace tools are unavailable until a real runtime is measured", () => {
   const offered = toolSchemasForModel().map((schema) => schema.name);
   assert.ok(!offered.includes("project_copy"));
 });
+
+/* ------------------------------------------------------------------ *
+ * SERVER-SIDE IDENTITY
+ *
+ * The client-side authorization check is advice; this is enforcement.
+ * Before it existed, an unauthenticated `curl` could request an apply
+ * grant and write to the real project — verified by running it.
+ * ------------------------------------------------------------------ */
+
+import { identityConfigured, verifyRequestIdentity } from "../plugins/engineerIdentity";
+
+test("with no Supabase configured, apply identity fails closed", async () => {
+  const saved = { url: process.env.SUPABASE_URL, key: process.env.SUPABASE_ANON_KEY };
+  delete process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_ANON_KEY;
+  try {
+    assert.equal(identityConfigured(), false);
+    const check = await verifyRequestIdentity({ headers: { authorization: "Bearer anything" } });
+    // Refused, not allowed-by-default: a runtime that cannot establish
+    // identity must not be able to change the real project.
+    assert.equal(check.ok, false);
+    assert.equal(check.status, 503);
+    assert.match(check.reason, /cannot verify who is asking/);
+  } finally {
+    if (saved.url) process.env.SUPABASE_URL = saved.url;
+    if (saved.key) process.env.SUPABASE_ANON_KEY = saved.key;
+  }
+});
+
+test("a missing bearer token is refused before any network call", async () => {
+  process.env.SUPABASE_URL = "http://127.0.0.1:1";
+  process.env.SUPABASE_ANON_KEY = "anon";
+  try {
+    const check = await verifyRequestIdentity({ headers: {} });
+    assert.equal(check.ok, false);
+    assert.equal(check.status, 401);
+    assert.match(check.reason, /No Supabase access token/);
+  } finally {
+    delete process.env.SUPABASE_URL;
+    delete process.env.SUPABASE_ANON_KEY;
+  }
+});
+
+test("the identity check never echoes the token it was given", async () => {
+  process.env.SUPABASE_URL = "http://127.0.0.1:1";
+  process.env.SUPABASE_ANON_KEY = "anon-secret-value";
+  try {
+    const secret = "super-secret-access-token";
+    const check = await verifyRequestIdentity({ headers: { authorization: `Bearer ${secret}` } });
+    assert.equal(check.ok, false);
+    // A refusal reason is shown to callers and written to logs, so it
+    // must never carry the credential that produced it.
+    assert.ok(!check.reason.includes(secret), "the refusal reason leaked the access token");
+    assert.ok(!check.reason.includes("anon-secret-value"), "the refusal reason leaked the api key");
+  } finally {
+    delete process.env.SUPABASE_URL;
+    delete process.env.SUPABASE_ANON_KEY;
+  }
+});

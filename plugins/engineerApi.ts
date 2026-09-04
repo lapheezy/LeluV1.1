@@ -55,6 +55,8 @@
  * ==========================================================
  */
 
+import { identityConfigured, verifyRequestIdentity } from "./engineerIdentity.ts";
+
 export interface EngineerCommandResult {
   ok: boolean;
   status: number;
@@ -106,7 +108,7 @@ export interface EngineerAdapter {
   removeWorkspace: (workspaceId: string) => void;
   deleteFile: (absolutePath: string) => void;
   /** Compare a workspace against the source project, file by file. */
-  diffWorkspace: (workspaceId: string) => Promise<EngineerDiffEntry[]>;
+  diffWorkspace: (workspaceId: string, includePatch?: boolean) => Promise<EngineerDiffEntry[]>;
   /** Copy the named changed files from the workspace back to the source. */
   applyWorkspace: (workspaceId: string, paths: string[]) => Promise<string[]>;
 }
@@ -143,9 +145,19 @@ export interface EngineerWorkspace {
 export interface EngineerDiffEntry {
   path: string;
   status: "added" | "modified" | "deleted";
-  /** Unified-ish line counts, computed from the real contents. */
+  /** Line counts, computed from the real contents. */
   addedLines: number;
   removedLines: number;
+  /**
+   * The actual changed lines, unified-diff style.
+   *
+   * Counts alone are not a diff: "+13/-0" tells a reviewer nothing
+   * about what the change DOES, and a model asked to show its work
+   * could only restate what it believed it had written rather than
+   * what is on disk. Present when the diff was requested with
+   * `includePatch`, and bounded so a large file cannot flood a reply.
+   */
+  patch?: string;
 }
 
 /** Whitelisted operations — the only commands the server will ever run. */
@@ -172,26 +184,32 @@ const ROUTES = [
  * Apply grants issued by this server, keyed by workspace id.
  *
  * A grant is a single-use nonce handed out by `workspace:request-apply`
- * and consumed by `workspace:apply`. It does NOT decide whether the
- * user authorized anything — that judgement belongs to the client,
- * which holds the authenticated identity. Its job is narrower and
- * still worth having: it makes applying a change a distinct, explicit
- * second call that cannot happen as a side effect of an edit.
+ * and consumed by `workspace:apply`. It is BOUND TO THE VERIFIED USER
+ * who requested it: a nonce alone proves nothing, because the server
+ * used to hand one to anybody who asked and a plain unauthenticated
+ * request could then write to the real project.
+ *
+ * The nonce still does the job it was added for — making apply a
+ * distinct second call that cannot happen as a side effect of an edit,
+ * against a change set the caller has already been shown. Identity is
+ * what makes it an authorization.
  */
-const applyGrants = new Map<string, { nonce: string; issuedAt: number }>();
+const applyGrants = new Map<string, { nonce: string; issuedAt: number; userId: string }>();
 const GRANT_TTL_MS = 10 * 60 * 1000;
 
-function issueGrant(workspaceId: string): string {
+function issueGrant(workspaceId: string, userId: string): string {
   const nonce = `grant_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
-  applyGrants.set(workspaceId, { nonce, issuedAt: Date.now() });
+  applyGrants.set(workspaceId, { nonce, issuedAt: Date.now(), userId });
   return nonce;
 }
 
-function consumeGrant(workspaceId: string, nonce: string): boolean {
+function consumeGrant(workspaceId: string, nonce: string, userId: string): boolean {
   const held = applyGrants.get(workspaceId);
   if (!held) return false;
   applyGrants.delete(workspaceId);
   if (Date.now() - held.issuedAt > GRANT_TTL_MS) return false;
+  // A grant issued to one identity can never be redeemed by another.
+  if (held.userId !== userId) return false;
   return held.nonce === nonce;
 }
 
@@ -352,6 +370,10 @@ export function createEngineerApi(adapter: EngineerAdapter): {
             operations: Object.keys(ENGINEER_OPERATIONS),
             workspace: adapter.workspaceRoot.split(/[\\/]/).pop() ?? "",
             tokenRequired: tokenRequired(),
+            // Whether this runtime can establish WHO is asking. When
+            // false, apply is refused outright — the client shows that
+            // as a real limitation rather than discovering it on use.
+            identityVerification: identityConfigured(),
             ...(trusted
               ? {
                   workspaceRoot: adapter.workspaceRoot,
@@ -533,33 +555,51 @@ export function createEngineerApi(adapter: EngineerAdapter): {
 
             if (action === "diff") {
               const id = safeWorkspaceId(payload.workspace);
-              const changes = await adapter.diffWorkspace(id);
+              const changes = await adapter.diffWorkspace(id, payload.includePatch === true);
               sendJson(res, { ok: true, workspace: id, changes });
               return;
             }
 
             if (action === "request-apply") {
               const id = safeWorkspaceId(payload.workspace);
+              // Identity FIRST: a grant is only meaningful once we know
+              // who it belongs to.
+              const who = await verifyRequestIdentity(req);
+              if (!who.ok || !who.identity) {
+                sendJson(res, { ok: false, error: who.reason }, who.status);
+                return;
+              }
               const changes = await adapter.diffWorkspace(id);
               if (changes.length === 0) {
                 sendJson(res, { ok: false, error: "Nothing to apply: the workspace matches the source project." }, 400);
                 return;
               }
-              sendJson(res, { ok: true, workspace: id, changes, grant: issueGrant(id) });
+              sendJson(res, {
+                ok: true,
+                workspace: id,
+                changes,
+                grant: issueGrant(id, who.identity.userId),
+                identity: who.identity.email ?? who.identity.userId,
+              });
               return;
             }
 
             if (action === "apply") {
               const id = safeWorkspaceId(payload.workspace);
-              // Two independent conditions, both required. `confirm`
-              // makes the intent explicit; the grant proves this is the
-              // second half of a request-apply that already reported
-              // exactly which files would change.
+
+              // THREE independent conditions, all required, all checked
+              // here on the server. A client-side "authorized: true" is
+              // not one of them and never reaches this code.
+              const who = await verifyRequestIdentity(req);
+              if (!who.ok || !who.identity) {
+                sendJson(res, { ok: false, error: who.reason }, who.status);
+                return;
+              }
               if (payload.confirm !== true) {
                 sendJson(res, { ok: false, error: "Apply requires confirm:true." }, 403);
                 return;
               }
-              if (!consumeGrant(id, String(payload.grant ?? ""))) {
+              if (!consumeGrant(id, String(payload.grant ?? ""), who.identity.userId)) {
                 sendJson(
                   res,
                   {
@@ -576,7 +616,12 @@ export function createEngineerApi(adapter: EngineerAdapter): {
                 ? (payload.paths as unknown[]).map((entry) => String(entry))
                 : [];
               const applied = await adapter.applyWorkspace(id, requested);
-              sendJson(res, { ok: true, workspace: id, applied });
+              sendJson(res, {
+                ok: true,
+                workspace: id,
+                applied,
+                appliedBy: who.identity.email ?? who.identity.userId,
+              });
               return;
             }
 

@@ -91,6 +91,36 @@ export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
     return text.length === 0 ? 0 : text.split("\n").length;
   }
 
+  /** Same unified-style patch the Node adapter produces. */
+  function buildPatch(relative: string, before: string, after: string): string {
+    const a = before.length ? before.split("\n") : [];
+    const b = after.length ? after.split("\n") : [];
+    let start = 0;
+    while (start < a.length && start < b.length && a[start] === b[start]) start += 1;
+    let endA = a.length - 1;
+    let endB = b.length - 1;
+    while (endA >= start && endB >= start && a[endA] === b[endB]) {
+      endA -= 1;
+      endB -= 1;
+    }
+    const removed = a.slice(start, endA + 1);
+    const added = b.slice(start, endB + 1);
+    const CONTEXT = 3;
+    const patch = [
+      `--- a/${relative}`,
+      `+++ b/${relative}`,
+      `@@ -${start + 1},${removed.length} +${start + 1},${added.length} @@`,
+      ...a.slice(Math.max(0, start - CONTEXT), start).map((line) => ` ${line}`),
+      ...removed.map((line) => `-${line}`),
+      ...added.map((line) => `+${line}`),
+      ...a.slice(endA + 1, endA + 1 + CONTEXT).map((line) => ` ${line}`),
+    ].join("\n");
+    const MAX_PATCH_CHARS = 8000;
+    return patch.length > MAX_PATCH_CHARS
+      ? `${patch.slice(0, MAX_PATCH_CHARS)}\n…[patch truncated]`
+      : patch;
+  }
+
   function resolveWithinWorkspace(targetPath: string): string {
     const absoluteTarget = resolve(workspaceRoot, targetPath);
     if (absoluteTarget !== workspaceRoot && !absoluteTarget.startsWith(workspaceRoot + sep)) {
@@ -253,7 +283,7 @@ export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
       }
     },
 
-    async diffWorkspace(workspaceId) {
+    async diffWorkspace(workspaceId, includePatch = false) {
       const root = workspaceDir(workspaceId);
       if (!exists(root)) {
         throw new WorkspaceBoundaryError(`Workspace "${workspaceId}" does not exist.`);
@@ -265,7 +295,13 @@ export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
       for (const rel of copyFiles) {
         const copyText = Deno.readTextFileSync(join(root, rel));
         if (!sourceFiles.has(rel)) {
-          changes.push({ path: rel, status: "added", addedLines: countLines(copyText), removedLines: 0 });
+          changes.push({
+            path: rel,
+            status: "added",
+            addedLines: countLines(copyText),
+            removedLines: 0,
+            ...(includePatch ? { patch: buildPatch(rel, "", copyText) } : {}),
+          });
           continue;
         }
         const sourceText = Deno.readTextFileSync(join(workspaceRoot, rel));
@@ -275,15 +311,18 @@ export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
           status: "modified",
           addedLines: countLines(copyText),
           removedLines: countLines(sourceText),
+          ...(includePatch ? { patch: buildPatch(rel, sourceText, copyText) } : {}),
         });
       }
       for (const rel of sourceFiles) {
         if (copyFiles.has(rel)) continue;
+        const sourceText = Deno.readTextFileSync(join(workspaceRoot, rel));
         changes.push({
           path: rel,
           status: "deleted",
           addedLines: 0,
-          removedLines: countLines(Deno.readTextFileSync(join(workspaceRoot, rel))),
+          removedLines: countLines(sourceText),
+          ...(includePatch ? { patch: buildPatch(rel, sourceText, "") } : {}),
         });
       }
       return changes.sort((a, b) => a.path.localeCompare(b.path));

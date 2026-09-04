@@ -609,21 +609,32 @@ const EXECUTORS: ToolExecutor[] = [
     id: "project.diff",
     parameters: {
       type: "object",
-      properties: { workspace: { type: "string", description: "The sandbox workspace id." } },
+      properties: {
+        workspace: { type: "string", description: "The sandbox workspace id." },
+        includePatch: {
+          type: "boolean",
+          description: "Include the actual changed lines, not just a summary. Defaults to true.",
+        },
+      },
       required: ["workspace"],
     },
     run: async (args) => {
       const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
       const workspace = str(args, "workspace");
       if (!workspace) return { ok: false, content: "project.diff requires a workspace id." };
-      const changes = await EngineeringWorkspace.getInstance().diff(workspace);
+      // Default ON: a summary of counts is not a diff, and a model asked
+      // to show its work would otherwise have to restate what it BELIEVED
+      // it wrote instead of what is actually on disk.
+      const includePatch = args.includePatch !== false;
+      const changes = await EngineeringWorkspace.getInstance().diff(workspace, includePatch);
       if (changes.length === 0) {
         return { ok: true, content: "The copy is identical to the real project — nothing has changed." };
       }
-      const lines = changes.map(
-        (change) => `${change.status.toUpperCase()} ${change.path} (+${change.addedLines}/-${change.removedLines} lines)`,
-      );
-      return { ok: true, content: lines.join("\n"), data: { count: changes.length } };
+      const lines = changes.map((change) => {
+        const header = `${change.status.toUpperCase()} ${change.path} (+${change.addedLines}/-${change.removedLines} lines)`;
+        return change.patch ? `${header}\n${change.patch}` : header;
+      });
+      return { ok: true, content: lines.join("\n\n"), data: { count: changes.length } };
     },
   },
 

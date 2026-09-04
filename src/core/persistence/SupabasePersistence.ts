@@ -334,6 +334,65 @@ export default class SupabasePersistence {
     })), "api_health");
   }
 
+  /**
+   * Record one engineering milestone against the authenticated user.
+   *
+   * Reuses the EXISTING cognitive_events table rather than adding an
+   * engineering-specific one: it already carries user_id, an event type,
+   * a task id and a jsonb payload, and its RLS policy already restricts
+   * every row to auth.uid(). A second table would duplicate the schema
+   * and the isolation rules for no gain.
+   *
+   * Contained and user-scoped: with no authenticated session there is no
+   * user_id to attribute the row to, so nothing is written. The
+   * filesystem workspace remains the source of truth for the code
+   * itself — this persists identity, ownership, state and history.
+   */
+  public async persistEngineeringEvent(
+    eventType: string,
+    taskId: string,
+    payload: Record<string, unknown>,
+  ): Promise<boolean> {
+    if (!this.isConnected() || !this.userId) return false;
+    try {
+      const { error } = await this.client!.from("cognitive_events").insert({
+        user_id: this.userId,
+        event_type: `engineering.${eventType}`,
+        task_id: taskId,
+        payload,
+      });
+      if (error) {
+        this.status = "degraded";
+        console.warn("[Lélu] Supabase engineering event sync degraded", error.message);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.warn(
+        "[Lélu] Supabase engineering event failed (contained)",
+        error instanceof Error ? error.message : String(error),
+      );
+      return false;
+    }
+  }
+
+  /** Engineering history for the authenticated user, newest first. */
+  public async readEngineeringEvents(limit = 50): Promise<RemoteRow[]> {
+    if (!this.isConnected()) return [];
+    try {
+      const { data, error } = await this.client!
+        .from("cognitive_events")
+        .select("*")
+        .like("event_type", "engineering.%")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) return [];
+      return Array.isArray(data) ? (data as RemoteRow[]) : [];
+    } catch {
+      return [];
+    }
+  }
+
   private async persistProjects(projects: LeluProject[]): Promise<void> {
     if (!this.isConnected()) return;
     await this.write("projects", projects.map((project) => ({

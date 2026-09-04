@@ -21,6 +21,7 @@
 import SourceAccess from "../selfdev/SourceAccess";
 import AgentEventBus from "../agent/AgentEvents";
 import EngineeringAuthorization from "./EngineeringAuthorization";
+import SupabasePersistence from "../persistence/SupabasePersistence";
 
 export type WorkspacePhase =
   | "no-runtime"
@@ -41,6 +42,8 @@ export interface WorkspaceChange {
   status: "added" | "modified" | "deleted";
   addedLines: number;
   removedLines: number;
+  /** The actual changed lines, when the diff was asked for with a patch. */
+  patch?: string;
 }
 
 export interface WorkspaceRecord {
@@ -126,10 +129,51 @@ export default class EngineeringWorkspace {
 
   /* ---------------------------- transport ---------------------------- */
 
-  private async post(route: string, body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  /**
+   * The current Supabase access token, or "".
+   *
+   * Sent as a bearer credential ONLY on the two routes that reach the
+   * real project, so the server can establish identity itself. It is
+   * never logged, never put in a prompt, and never included in a tool
+   * result — the model sees the outcome of an apply, not the token that
+   * authorized it.
+   */
+  private accessToken(): string {
+    try {
+      const auth = SupabasePersistence.getInstance().getAuthState();
+      return auth.session?.access_token ?? "";
+    } catch {
+      return "";
+    }
+  }
+
+  /**
+   * Record a milestone against the authenticated user.
+   *
+   * Fire-and-forget and contained: engineering must never stall or fail
+   * because cloud persistence is unavailable. With no session there is
+   * no identity to attribute the row to and nothing is written — the
+   * work still happens, it is just not durable.
+   */
+  private record(eventType: string, payload: Record<string, unknown>): void {
+    void SupabasePersistence.getInstance()
+      .persistEngineeringEvent(eventType, this.state.workspaceId ?? "unassigned", payload)
+      .catch(() => false);
+  }
+
+  private async post(
+    route: string,
+    body: Record<string, unknown>,
+    options: { withIdentity?: boolean } = {},
+  ): Promise<Record<string, unknown>> {
+    const headers = { ...this.source.headers() } as Record<string, string>;
+    if (options.withIdentity) {
+      const token = this.accessToken();
+      if (token) headers["authorization"] = `Bearer ${token}`;
+    }
     const response = await fetch(this.source.url(route), {
       method: "POST",
-      headers: this.source.headers(),
+      headers,
       body: JSON.stringify(body),
     });
     const text = await response.text();
@@ -160,6 +204,7 @@ export default class EngineeringWorkspace {
       return { ok: false, error };
     }
     const workspace = data.workspace as WorkspaceRecord;
+    this.record("workspace_created", { workspaceId: workspace.id, fileCount: workspace.fileCount });
     this.update({
       phase: "copied",
       workspaceId: workspace.id,
@@ -259,6 +304,13 @@ export default class EngineeringWorkspace {
       : combined;
     const ok = data.ok === true;
 
+    this.record("validated", {
+      workspaceId,
+      operation,
+      ok,
+      exitCode: Number(data.status),
+      durationMs: Number(data.durationMs ?? 0),
+    });
     this.update({
       phase: ok ? "validation-passed" : "validation-failed",
       lastValidation: {
@@ -275,12 +327,19 @@ export default class EngineeringWorkspace {
   }
 
   /** The REAL difference between the copy and the source project. */
-  public async diff(workspaceId: string): Promise<WorkspaceChange[]> {
-    return this.refreshChanges(workspaceId);
+  public async diff(workspaceId: string, includePatch = false): Promise<WorkspaceChange[]> {
+    return this.refreshChanges(workspaceId, includePatch);
   }
 
-  private async refreshChanges(workspaceId: string): Promise<WorkspaceChange[]> {
-    const data = await this.post("/api/engineer/workspace", { action: "diff", workspace: workspaceId });
+  private async refreshChanges(
+    workspaceId: string,
+    includePatch = false,
+  ): Promise<WorkspaceChange[]> {
+    const data = await this.post("/api/engineer/workspace", {
+      action: "diff",
+      workspace: workspaceId,
+      includePatch,
+    });
     const changes = Array.isArray(data.changes) ? (data.changes as WorkspaceChange[]) : [];
     this.update({ changes, filesChanged: changes.length });
     return changes;
@@ -294,10 +353,11 @@ export default class EngineeringWorkspace {
   public async requestApply(workspaceId: string): Promise<
     { ok: true; changes: WorkspaceChange[]; grant: string } | { ok: false; error: string }
   > {
-    const data = await this.post("/api/engineer/workspace", {
-      action: "request-apply",
-      workspace: workspaceId,
-    });
+    const data = await this.post(
+      "/api/engineer/workspace",
+      { action: "request-apply", workspace: workspaceId },
+      { withIdentity: true },
+    );
     if (data.ok !== true) return { ok: false, error: String(data.error ?? "request-apply failed") };
     const changes = (data.changes ?? []) as WorkspaceChange[];
     this.update({ phase: "awaiting-authorization", changes, filesChanged: changes.length });
@@ -328,13 +388,17 @@ export default class EngineeringWorkspace {
     const prepared = await this.requestApply(workspaceId);
     if (!prepared.ok) return prepared;
 
-    const data = await this.post("/api/engineer/workspace", {
-      action: "apply",
-      workspace: workspaceId,
-      confirm: true,
-      grant: prepared.grant,
-      paths: grantHeld.paths,
-    });
+    const data = await this.post(
+      "/api/engineer/workspace",
+      {
+        action: "apply",
+        workspace: workspaceId,
+        confirm: true,
+        grant: prepared.grant,
+        paths: grantHeld.paths,
+      },
+      { withIdentity: true },
+    );
 
     if (data.ok !== true) {
       const error = String(data.error ?? "apply failed");
@@ -343,6 +407,14 @@ export default class EngineeringWorkspace {
     }
 
     const applied = (data.applied ?? []) as string[];
+    // The audit record of a change reaching the real project: who
+    // authorized it, and exactly which files were written.
+    this.record("applied", {
+      workspaceId,
+      applied,
+      authorizedBy: grantHeld.grantedBy,
+      appliedBy: String(data.appliedBy ?? grantHeld.grantedBy),
+    });
     authorization.consume(workspaceId);
     this.update({ phase: "applied", appliedPaths: applied, lastError: null });
 
