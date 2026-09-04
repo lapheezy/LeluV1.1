@@ -455,7 +455,7 @@ export default class EngineeringWorkspace {
     }
 
     // An audit record on the existing event bus: who authorized it, and
-    // exactly which files reached the real project.
+    // exactly which files reach the real project.
     this.events.emit({
       type: "tool_result",
       taskId: `engineering-apply-${Date.now()}`,
@@ -595,6 +595,9 @@ export default class EngineeringWorkspace {
   /** A short, factual description of the real state, for cognition. */
   public describe(): string {
     const state = this.state;
+    if (state.phase === "no-runtime") {
+      return "No engineering runtime is reachable — the project.* tools are unavailable.";
+    }
     if (!state.workspaceId) return "No project copy exists in the engineering sandbox.";
     const parts = [
       `Workspace "${state.workspaceId}" holds a copy of ${state.fileCount} file(s).`,
