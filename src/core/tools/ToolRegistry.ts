@@ -635,6 +635,32 @@ export default class ToolRegistry {
         executionRoute: "EngineeringWorkspace.apply",
         verificationMethod: "server returns the list of files actually written",
       },
+      {
+        id: "project.git",
+        name: "Inspect Project Git State",
+        description:
+          "Read the real repository state: 'status', 'diff' (add full:true for the patch), or " +
+          "'log'. Read-only — this never commits or pushes.",
+        category: "Engineering",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: false,
+        executionRoute: "EngineeringWorkspace.gitStatus",
+        verificationMethod: "raw git output",
+      },
+      {
+        id: "project.commit",
+        name: "Commit Applied Changes",
+        description:
+          "Commit the files that were actually applied to the real project. Stages only those " +
+          "paths. Requires the same explicit authorization as applying.",
+        category: "Engineering",
+        permissions: ["WRITE", "EXTERNAL_ACTION"],
+        riskLevel: 4,
+        available: false,
+        executionRoute: "EngineeringWorkspace.gitCommit",
+        verificationMethod: "git returns the commit sha and stat",
+      },
     ];
 
     for (const tool of builtins) {

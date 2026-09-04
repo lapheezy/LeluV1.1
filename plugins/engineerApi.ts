@@ -17,6 +17,7 @@
  *   POST /api/engineer/list     → { path, workspace? }      (bounded)
  *   POST /api/engineer/delete   → { path, workspace }  (COPY ONLY)
  *   POST /api/engineer/workspace→ { action, ... }      (isolated copies)
+ *   POST /api/engineer/git      → { action, ... }      (authorized VCS)
  *
  * WORKSPACE COPIES — the isolation boundary.
  *
@@ -111,6 +112,11 @@ export interface EngineerAdapter {
   diffWorkspace: (workspaceId: string, includePatch?: boolean) => Promise<EngineerDiffEntry[]>;
   /** Copy the named changed files from the workspace back to the source. */
   applyWorkspace: (workspaceId: string, paths: string[]) => Promise<string[]>;
+
+  /* ---- version control on the REAL project ---- */
+
+  /** Run a git subcommand with fixed, non-interpolated arguments. */
+  git: (args: string[], timeoutMs?: number) => Promise<EngineerCommandResult>;
 }
 
 /** One entry of a workspace-bounded directory listing. */
@@ -178,6 +184,7 @@ const ROUTES = [
   "/api/engineer/list",
   "/api/engineer/delete",
   "/api/engineer/workspace",
+  "/api/engineer/git",
 ] as const;
 
 /**
@@ -626,6 +633,145 @@ export function createEngineerApi(adapter: EngineerAdapter): {
             }
 
             sendJson(res, { ok: false, error: `Unknown workspace action: ${action}` }, 400);
+            return;
+          }
+
+          /* ---- POST /api/engineer/git ----
+             Read actions describe the real repository. Write actions
+             (commit, push) reach the outside world and therefore carry
+             the same identity requirement as apply. */
+          if (route === "/api/engineer/git") {
+            const action = String(payload.action ?? "");
+
+            if (action === "status") {
+              const porcelain = await adapter.git(["status", "--porcelain=v1", "--branch"]);
+              const head = await adapter.git(["rev-parse", "--abbrev-ref", "HEAD"]);
+              sendJson(res, {
+                ok: porcelain.ok,
+                branch: head.stdout.trim(),
+                status: porcelain.stdout,
+                error: porcelain.ok ? undefined : porcelain.stderr,
+              });
+              return;
+            }
+
+            if (action === "diff") {
+              // --stat by default; the full patch on request. Staged and
+              // unstaged both, so nothing already added is invisible.
+              const staged = payload.staged === true;
+              const args = ["diff", ...(staged ? ["--cached"] : []), ...(payload.full === true ? [] : ["--stat"])];
+              const result = await adapter.git(args);
+              sendJson(res, { ok: result.ok, diff: result.stdout, error: result.ok ? undefined : result.stderr });
+              return;
+            }
+
+            if (action === "log") {
+              const count = Math.min(Math.max(Number(payload.count ?? 5) || 5, 1), 50);
+              const result = await adapter.git(["log", `-${count}`, "--oneline", "--no-decorate"]);
+              sendJson(res, { ok: result.ok, log: result.stdout, error: result.ok ? undefined : result.stderr });
+              return;
+            }
+
+            if (action === "commit") {
+              const who = await verifyRequestIdentity(req);
+              if (!who.ok || !who.identity) {
+                sendJson(res, { ok: false, error: who.reason }, who.status);
+                return;
+              }
+              if (payload.confirm !== true) {
+                sendJson(res, { ok: false, error: "Commit requires confirm:true." }, 403);
+                return;
+              }
+              const message = String(payload.message ?? "").trim();
+              if (!message) {
+                sendJson(res, { ok: false, error: "Commit requires a message." }, 400);
+                return;
+              }
+              const paths = Array.isArray(payload.paths)
+                ? (payload.paths as unknown[]).map((entry) => String(entry)).filter(Boolean)
+                : [];
+              if (paths.length === 0) {
+                // NEVER `git add -A`. A commit stages exactly the files
+                // the apply reported, so unrelated working-tree changes
+                // are never swept into LÉLU's commit.
+                sendJson(
+                  res,
+                  { ok: false, error: "Commit requires an explicit list of paths; staging everything is not permitted." },
+                  400,
+                );
+                return;
+              }
+
+              // Reject anything that escapes the project before staging.
+              for (const candidate of paths) {
+                adapter.resolve(candidate);
+              }
+
+              const added = await adapter.git(["add", "--", ...paths]);
+              if (!added.ok) {
+                sendJson(res, { ok: false, error: `git add failed: ${added.stderr || added.stdout}` }, 500);
+                return;
+              }
+
+              // Attribute the authorization in the commit itself.
+              const body = `${message}\n\nAuthorized-By: ${who.identity.email ?? who.identity.userId}`;
+              const committed = await adapter.git(["commit", "-m", body, "--", ...paths]);
+              const head = await adapter.git(["rev-parse", "HEAD"]);
+              const show = await adapter.git(["show", "--stat", "--oneline", "HEAD"]);
+
+              sendJson(res, {
+                ok: committed.ok,
+                commit: committed.ok ? head.stdout.trim() : null,
+                // The REAL git output, so a caller can never report a
+                // commit that did not happen.
+                output: `${committed.stdout}\n${committed.stderr}`.trim(),
+                show: committed.ok ? show.stdout : "",
+                authorizedBy: who.identity.email ?? who.identity.userId,
+                error: committed.ok ? undefined : committed.stderr || committed.stdout,
+              });
+              return;
+            }
+
+            if (action === "push") {
+              const who = await verifyRequestIdentity(req);
+              if (!who.ok || !who.identity) {
+                sendJson(res, { ok: false, error: who.reason }, who.status);
+                return;
+              }
+              // Pushing publishes work outside this machine, so it needs
+              // deliberate configuration as well as authorization —
+              // being signed in is not on its own a reason to publish.
+              if (typeof process === "undefined" || process.env.LELU_ALLOW_PUSH !== "1") {
+                sendJson(
+                  res,
+                  {
+                    ok: false,
+                    error:
+                      "Pushing is not enabled on this runtime (LELU_ALLOW_PUSH is not set). " +
+                      "The commit is local; nothing was published.",
+                  },
+                  403,
+                );
+                return;
+              }
+              if (payload.confirm !== true) {
+                sendJson(res, { ok: false, error: "Push requires confirm:true." }, 403);
+                return;
+              }
+              const branchResult = await adapter.git(["rev-parse", "--abbrev-ref", "HEAD"]);
+              const branch = branchResult.stdout.trim();
+              const pushed = await adapter.git(["push", "origin", branch], 120_000);
+              sendJson(res, {
+                ok: pushed.ok,
+                branch,
+                output: `${pushed.stdout}\n${pushed.stderr}`.trim(),
+                pushedBy: who.identity.email ?? who.identity.userId,
+                error: pushed.ok ? undefined : pushed.stderr || pushed.stdout,
+              });
+              return;
+            }
+
+            sendJson(res, { ok: false, error: `Unknown git action: ${action}` }, 400);
             return;
           }
 

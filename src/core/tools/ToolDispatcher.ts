@@ -651,12 +651,77 @@ const EXECUTORS: ToolExecutor[] = [
       if (!workspace) return { ok: false, content: "project.apply requires a workspace id." };
       const result = await EngineeringWorkspace.getInstance().apply(workspace);
       if (!result.ok) return { ok: false, content: result.error };
+      const state = EngineeringWorkspace.getInstance().getState();
+      const post = state.postApply
+        ? `\n\nPost-apply validation of the REAL project: exit ${state.postApply.exitCode} ` +
+          `(${state.postApply.ok ? "PASSED" : "FAILED"}).` +
+          (state.postApply.ok ? "" : `\n${state.postApply.output.slice(0, 2000)}`)
+        : "";
+      return {
+        // A failed post-apply check is a failed operation, even though
+        // the files were written: reporting it as success is how a
+        // broken project gets called done.
+        ok: state.postApply ? state.postApply.ok : true,
+        content:
+          `Applied ${result.applied.length} file(s) to the real project, authorized by ` +
+          `${result.authorizedBy}: ${result.applied.join(", ")}${post}`,
+        data: { applied: result.applied, postApply: state.postApply },
+      };
+    },
+  },
+
+  {
+    id: "project.git",
+    parameters: {
+      type: "object",
+      properties: {
+        action: { type: "string", enum: ["status", "diff", "log"], description: "What to read." },
+        full: { type: "boolean", description: "For 'diff', return the full patch instead of a summary." },
+        count: { type: "number", description: "For 'log', how many commits." },
+      },
+      required: ["action"],
+    },
+    run: async (args) => {
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const workspace = EngineeringWorkspace.getInstance();
+      const action = str(args, "action") || "status";
+      if (action === "diff") {
+        const diff = await workspace.gitDiff(args.full === true);
+        return { ok: true, content: diff.trim() || "(no uncommitted changes)" };
+      }
+      if (action === "log") {
+        const log = await workspace.gitLog(Number(args.count) || 5);
+        return { ok: true, content: log.trim() || "(no commits)" };
+      }
+      const status = await workspace.gitStatus();
+      if (!status.ok) return { ok: false, content: status.error ?? "git status failed" };
+      return {
+        ok: true,
+        content: `branch: ${status.branch}\n${status.status.trim() || "(clean working tree)"}`,
+      };
+    },
+  },
+
+  {
+    id: "project.commit",
+    parameters: {
+      type: "object",
+      properties: {
+        message: { type: "string", description: "The commit message. Describe what changed and why." },
+      },
+      required: ["message"],
+    },
+    run: async (args) => {
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const message = str(args, "message");
+      if (!message) return { ok: false, content: "project.commit requires a message." };
+      const result = await EngineeringWorkspace.getInstance().gitCommit(message);
+      if (!result.ok) return { ok: false, content: result.error };
       return {
         ok: true,
         content:
-          `Applied ${result.applied.length} file(s) to the real project, authorized by ` +
-          `${result.authorizedBy}: ${result.applied.join(", ")}`,
-        data: { applied: result.applied },
+          `Committed ${result.sha.slice(0, 8)}, authorized by ${result.authorizedBy}.\n\n${result.show.trim()}`,
+        data: { sha: result.sha },
       };
     },
   },
@@ -724,7 +789,9 @@ export function toolPermitted(id: string): boolean {
   // cannot request what it cannot see. The dispatcher and the workspace
   // service both re-check before writing, so a grant that lapses between
   // being offered and being used still stops the write.
-  if (id === "project.apply") {
+  // Applying and committing both reach the real project, so both need
+  // a human authorization rather than merely a permission level.
+  if (id === "project.apply" || id === "project.commit") {
     return authorizedWorkspaceExists();
   }
 
@@ -741,7 +808,7 @@ function refusalReason(id: string): string {
   // project.apply is checked first: its preflight already reports the
   // autonomy shortfall AND the missing session, so the generic autonomy
   // message would hide the more specific, more actionable one.
-  if (id === "project.apply" && !authorizedWorkspaceExists()) {
+  if ((id === "project.apply" || id === "project.commit") && !authorizedWorkspaceExists()) {
     let detail = "";
     try {
       detail = ` ${EngineeringAuthorization.getInstance().preflight().reason}`;
@@ -749,7 +816,7 @@ function refusalReason(id: string): string {
       detail = "";
     }
     return (
-      `"${id}" was NOT run: applying changes to the real project requires an explicit ` +
+      `"${id}" was NOT run: changing the real project requires an explicit ` +
       `authorization from the signed-in user, and none is currently held.${detail} ` +
       `The sandbox copy is unchanged and nothing was written to the real project.`
     );

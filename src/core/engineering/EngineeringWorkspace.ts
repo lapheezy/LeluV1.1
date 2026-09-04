@@ -35,6 +35,8 @@ export type WorkspacePhase =
   | "awaiting-authorization"
   | "authorized"
   | "applied"
+  | "post-apply-failed"
+  | "committed"
   | "failed";
 
 export interface WorkspaceChange {
@@ -69,6 +71,10 @@ export interface WorkspaceState {
     output: string;
   } | null;
   appliedPaths: string[];
+  /** Validation of the REAL project after an apply, never assumed. */
+  postApply: { ok: boolean; exitCode: number; output: string } | null;
+  /** Real git result, read from git itself. */
+  lastCommit: { sha: string; authorizedBy: string } | null;
   lastError: string | null;
   updatedAt: number;
 }
@@ -93,6 +99,8 @@ export default class EngineeringWorkspace {
     changes: [],
     lastValidation: null,
     appliedPaths: [],
+    postApply: null,
+    lastCommit: null,
     lastError: null,
     updatedAt: 0,
   };
@@ -214,6 +222,8 @@ export default class EngineeringWorkspace {
       changes: [],
       lastValidation: null,
       appliedPaths: [],
+      postApply: null,
+      lastCommit: null,
       lastError: null,
     });
     return { ok: true, workspace };
@@ -416,7 +426,33 @@ export default class EngineeringWorkspace {
       appliedBy: String(data.appliedBy ?? grantHeld.grantedBy),
     });
     authorization.consume(workspaceId);
-    this.update({ phase: "applied", appliedPaths: applied, lastError: null });
+    this.update({ phase: "applied", appliedPaths: applied, postApply: null, lastError: null });
+
+    // VERIFY THE REAL PROJECT, do not assume it.
+    //
+    // A change validated in the copy is not the same claim as a project
+    // that is still sound after the change landed: the copy could have
+    // drifted from the source, or the apply could have written a subset.
+    // So the real project is typechecked here, and the measured result
+    // is what the phase reflects.
+    const verified = await this.post("/api/engineer/command", {
+      operation: "typecheck",
+      timeoutMs: 180_000,
+    });
+    if (typeof verified.status === "number") {
+      const output = `${String(verified.stdout ?? "")}\n${String(verified.stderr ?? "")}`.trim();
+      const postApply = {
+        ok: verified.ok === true,
+        exitCode: Number(verified.status),
+        output: output.length > MAX_OUTPUT_CHARS ? `${output.slice(0, MAX_OUTPUT_CHARS)}…[truncated]` : output,
+      };
+      this.record("post_apply_validated", { workspaceId, ...postApply, output: undefined });
+      this.update({
+        postApply,
+        phase: postApply.ok ? "applied" : "post-apply-failed",
+        lastError: postApply.ok ? null : `Post-apply typecheck exited ${postApply.exitCode}`,
+      });
+    }
 
     // An audit record on the existing event bus: who authorized it, and
     // exactly which files reached the real project.
@@ -463,6 +499,8 @@ export default class EngineeringWorkspace {
       "project.validate",
       "project.diff",
       "project.apply",
+      "project.git",
+      "project.commit",
     ]) {
       registry.updateAvailability(id, reachable);
     }
@@ -472,6 +510,86 @@ export default class EngineeringWorkspace {
       this.update({ phase: "not-copied" });
     }
     return reachable;
+  }
+
+  /* ------------------------------ git ------------------------------ */
+
+  /** Real `git status` of the actual project. */
+  public async gitStatus(): Promise<{ ok: boolean; branch: string; status: string; error?: string }> {
+    const data = await this.post("/api/engineer/git", { action: "status" });
+    return {
+      ok: data.ok === true,
+      branch: String(data.branch ?? ""),
+      status: String(data.status ?? ""),
+      error: data.error ? String(data.error) : undefined,
+    };
+  }
+
+  public async gitDiff(full = false): Promise<string> {
+    const data = await this.post("/api/engineer/git", { action: "diff", full });
+    return String(data.diff ?? "");
+  }
+
+  public async gitLog(count = 5): Promise<string> {
+    const data = await this.post("/api/engineer/git", { action: "log", count });
+    return String(data.log ?? "");
+  }
+
+  /**
+   * Commit the applied files.
+   *
+   * Only the paths an apply actually wrote are staged, and the server
+   * refuses to stage anything else — so an unrelated working-tree
+   * change can never be swept into LÉLU's commit. Identity is verified
+   * server-side, exactly as for apply.
+   */
+  public async gitCommit(message: string): Promise<
+    { ok: true; sha: string; show: string; authorizedBy: string } | { ok: false; error: string }
+  > {
+    const paths = this.state.appliedPaths;
+    if (paths.length === 0) {
+      return { ok: false, error: "Nothing to commit: no files have been applied to the real project." };
+    }
+    if (this.state.postApply && !this.state.postApply.ok) {
+      // Committing a change whose own post-apply validation failed is
+      // how a broken commit reaches a branch.
+      return {
+        ok: false,
+        error:
+          `Not committing: post-apply validation failed (exit ${this.state.postApply.exitCode}). ` +
+          `Fix the project first.`,
+      };
+    }
+
+    const data = await this.post(
+      "/api/engineer/git",
+      { action: "commit", confirm: true, message, paths },
+      { withIdentity: true },
+    );
+
+    if (data.ok !== true || !data.commit) {
+      const error = String(data.error ?? data.output ?? "git commit failed");
+      this.update({ lastError: error });
+      return { ok: false, error };
+    }
+
+    const sha = String(data.commit);
+    const authorizedBy = String(data.authorizedBy ?? "");
+    this.record("committed", { sha, paths, authorizedBy });
+    this.update({ phase: "committed", lastCommit: { sha, authorizedBy }, lastError: null });
+    return { ok: true, sha, show: String(data.show ?? ""), authorizedBy };
+  }
+
+  /** Push, only where the runtime is configured to allow publishing. */
+  public async gitPush(): Promise<{ ok: boolean; output: string; error?: string }> {
+    const data = await this.post(
+      "/api/engineer/git",
+      { action: "push", confirm: true },
+      { withIdentity: true },
+    );
+    const ok = data.ok === true;
+    this.record("pushed", { ok, branch: String(data.branch ?? "") });
+    return { ok, output: String(data.output ?? ""), error: data.error ? String(data.error) : undefined };
   }
 
   /** A short, factual description of the real state, for cognition. */
@@ -491,6 +609,17 @@ export default class EngineeringWorkspace {
     }
     if (state.appliedPaths.length > 0) {
       parts.push(`Applied to the real project: ${state.appliedPaths.join(", ")}.`);
+    }
+    if (state.postApply) {
+      parts.push(
+        `Post-apply validation of the real project: exit ${state.postApply.exitCode} ` +
+          `(${state.postApply.ok ? "passed" : "FAILED"}).`,
+      );
+    }
+    if (state.lastCommit) {
+      parts.push(
+        `Committed ${state.lastCommit.sha.slice(0, 8)}, authorized by ${state.lastCommit.authorizedBy}.`,
+      );
     }
     if (state.lastError) parts.push(`Last error: ${state.lastError}`);
     return parts.join(" ");

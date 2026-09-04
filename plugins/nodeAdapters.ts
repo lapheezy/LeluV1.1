@@ -423,6 +423,49 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
       }
       return applied;
     },
+
+    /**
+     * Run git against the real project.
+     *
+     * Arguments are passed as an ARRAY and spawned without a shell, so
+     * a branch name, a path or a commit message can never be
+     * interpolated into a command line. The caller chooses the
+     * subcommand from a fixed set; nothing here builds a string.
+     */
+    async git(args, timeoutMs = 60_000) {
+      const started = Date.now();
+      return new Promise((resolve) => {
+        const child = spawn("git", args, {
+          cwd: workspaceRoot,
+          shell: false,
+          env: { ...process.env, GIT_TERMINAL_PROMPT: "0", FORCE_COLOR: "0" },
+          stdio: ["ignore", "pipe", "pipe"],
+        });
+        let stdout = "";
+        let stderr = "";
+        let settled = false;
+        const timer = setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          child.kill("SIGKILL");
+          resolve({ ok: false, status: 124, stdout, stderr: `${stderr}\n[git timed out]`, durationMs: Date.now() - started });
+        }, timeoutMs);
+        child.stdout?.on("data", (chunk: Buffer) => { stdout += chunk.toString("utf8"); });
+        child.stderr?.on("data", (chunk: Buffer) => { stderr += chunk.toString("utf8"); });
+        child.on("error", (error) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          resolve({ ok: false, status: 1, stdout, stderr: `${stderr}\n${error.message}`, durationMs: Date.now() - started });
+        });
+        child.on("close", (code) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          resolve({ ok: code === 0, status: code ?? 1, stdout, stderr, durationMs: Date.now() - started });
+        });
+      });
+    },
   };
 }
 
