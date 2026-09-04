@@ -42,6 +42,23 @@ export default class AnthropicProvider implements AIProvider {
   readonly priority = 7;
   readonly enabled = true;
   readonly timeout = 30000;
+
+  /**
+   * How long THIS request may take.
+   *
+   * 30s is right for a chat turn but wrong for an engineering one: a
+   * tool-carrying conversation replays file contents and command output
+   * on every round, so the payload grows and the model has more to read.
+   * A real run reading two source files aborted at 37.9s mid-loop — the
+   * turn was lost and the fallback chain answered without tools, having
+   * done no work.
+   *
+   * The tool-carrying case gets a longer budget; ordinary chat is
+   * unchanged, so a hung request still fails fast on the common path.
+   */
+  private timeoutFor(request: AIRequest): number {
+    return request.tools?.length ? 180_000 : this.timeout;
+  }
   readonly requiresApiKey = true;
   readonly capabilities = ["chat", "reasoning", "vision", "memory", "tools"] as const;
   readonly supportsTools = true;
@@ -249,7 +266,15 @@ export default class AnthropicProvider implements AIProvider {
       model: this.selectModel(request),
       // Required by the Messages API — unlike the OpenAI-compatible
       // providers, omitting it is a 400 rather than an unbounded reply.
-      max_tokens: request.maxTokens ?? 2048,
+      // A tool call must be able to CARRY A WHOLE FILE.
+      //
+      // 2048 is ample for a chat reply but far too small for an
+      // engineering turn: a project.write whose argument is a 200-line
+      // source file exceeds it, the tool_use JSON is truncated mid-
+      // block, and the arguments arrive incomplete. Measured: the write
+      // then landed as an empty file. Tool-carrying requests get room;
+      // ordinary chat keeps the smaller, cheaper ceiling.
+      max_tokens: request.maxTokens ?? (request.tools?.length ? 16_384 : 2048),
       // The system block is marked cacheable rather than re-billed on
       // every turn. It is the most repeated content LÉLU sends: the
       // identity prompt alone is ~430 tokens, and contextMessages()
@@ -302,7 +327,7 @@ export default class AnthropicProvider implements AIProvider {
           "anthropic-dangerous-direct-browser-access": "true",
         },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(this.timeout),
+        signal: AbortSignal.timeout(this.timeoutFor(request)),
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

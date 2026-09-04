@@ -207,3 +207,46 @@ test("the identity check never echoes the token it was given", async () => {
     delete process.env.SUPABASE_ANON_KEY;
   }
 });
+
+/* ------------------------------------------------------------------ *
+ * DESTRUCTIVE WRITES
+ *
+ * Both cases below were found by watching a live run destroy a file
+ * and every downstream check stay green.
+ * ------------------------------------------------------------------ */
+
+test("git tools are registered at the right risk levels", () => {
+  const registry = ToolRegistry.getInstance();
+  // Reading version control is free; changing it is not. project.commit
+  // carries the same weight as applying, because both reach the real
+  // project and neither is undone by deleting a sandbox.
+  assert.equal(registry.get("project.git")?.riskLevel, 0);
+  assert.equal(registry.get("project.commit")?.riskLevel, 4);
+});
+
+test("a truncated tool call never empties a file", async () => {
+  ToolRegistry.getInstance().updateAvailability("project.write", true);
+  // The model's tool_use block is JSON; when the response hits its
+  // output limit the block is cut off and `content` arrives absent.
+  // Coercing that to "" wrote a zero-byte file over a 202-line one and
+  // reported success — observed live.
+  const result = await dispatchToolCall(
+    { id: "w1", name: "project_write", arguments: { workspace: "any", path: "src/x.ts" } },
+    "test-task",
+  );
+  assert.equal(result.ok, false);
+  assert.match(result.content, /No content was supplied/);
+  assert.match(result.content, /nothing was written/);
+});
+
+test("project.write advertises that it replaces the whole file", () => {
+  // A model told only "the new contents" will send just the part it is
+  // adding. It replaced a 192-line test file with 57 lines, deleting
+  // nine tests, and typecheck did not care — so the warning belongs in
+  // the schema the model actually reads.
+  const schema = toolSchemasForModel().find((entry) => entry.name === "project_write");
+  if (!schema) return; // not offered without a runtime; covered elsewhere
+  const properties = schema.parameters.properties as Record<string, { description?: string }>;
+  assert.match(String(properties.content?.description), /REPLACES|anything omitted is deleted/i);
+  assert.ok(properties.allowShrink, "there is no way to confirm an intended deletion");
+});

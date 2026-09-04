@@ -112,6 +112,29 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
   }
 
   /**
+   * How many lines a change actually ADDS and REMOVES.
+   *
+   * These were previously the two files' TOTAL line counts, rendered as
+   * "+58/-0". That is not a diff summary, it just looks like one — and
+   * it actively hid destruction: a write that cut a 192-line test file
+   * down to 57 displayed as "+58/-0" while git recorded 168 deletions.
+   * A reviewer reading the tool output had no way to see the loss.
+   */
+  function changeCounts(before: string, after: string): { added: number; removed: number } {
+    const a = before.length ? before.split("\n") : [];
+    const b = after.length ? after.split("\n") : [];
+    let start = 0;
+    while (start < a.length && start < b.length && a[start] === b[start]) start += 1;
+    let endA = a.length - 1;
+    let endB = b.length - 1;
+    while (endA >= start && endB >= start && a[endA] === b[endB]) {
+      endA -= 1;
+      endB -= 1;
+    }
+    return { added: Math.max(0, endB - start + 1), removed: Math.max(0, endA - start + 1) };
+  }
+
+  /**
    * A real unified-style patch between two file contents.
    *
    * Deliberately a simple longest-common-prefix/suffix diff rather than
@@ -373,11 +396,12 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
         }
         const sourceText = readFileSync(path.join(workspaceRoot, relative), "utf8");
         if (sourceText === copyText) continue;
+        const counts = changeCounts(sourceText, copyText);
         changes.push({
           path: relative,
           status: "modified",
-          addedLines: countLines(copyText),
-          removedLines: countLines(sourceText),
+          addedLines: counts.added,
+          removedLines: counts.removed,
           ...(includePatch ? { patch: buildPatch(relative, sourceText, copyText) } : {}),
         });
       }

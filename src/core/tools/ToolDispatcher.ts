@@ -530,7 +530,18 @@ const EXECUTORS: ToolExecutor[] = [
       properties: {
         workspace: { type: "string", description: "The sandbox workspace id." },
         path: { type: "string", description: "File path relative to the copy." },
-        content: { type: "string", description: "The COMPLETE new contents of the file." },
+        content: {
+          type: "string",
+          description:
+            "The COMPLETE new contents of the file. This REPLACES the file, so include every " +
+            "line you want to keep — anything omitted is deleted.",
+        },
+        allowShrink: {
+          type: "boolean",
+          description:
+            "Confirm that removing a large part of an existing file is intended. Required when " +
+            "the new content is substantially shorter than the current file.",
+        },
       },
       required: ["workspace", "path", "content"],
     },
@@ -538,9 +549,61 @@ const EXECUTORS: ToolExecutor[] = [
       const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
       const workspace = str(args, "workspace");
       const path = str(args, "path");
-      const content = typeof args.content === "string" ? args.content : "";
       if (!workspace || !path) return { ok: false, content: "project.write requires workspace and path." };
-      const result = await EngineeringWorkspace.getInstance().writeFile(workspace, path, content);
+
+      // A MISSING content argument is a truncated tool call, not an
+      // instruction to empty the file.
+      //
+      // The model's tool_use block is JSON; when the response hits its
+      // output limit the block is cut off and `content` arrives absent
+      // or partial. Coercing that to "" wrote a zero-byte file over a
+      // 202-line one and reported success — observed live, after which
+      // the model retried the same call three times because the result
+      // it was told about did not match what it had asked for. Refusing
+      // is the only safe reading: deleting a file is project.delete.
+      if (typeof args.content !== "string") {
+        return {
+          ok: false,
+          content:
+            `No content was supplied for "${path}", so nothing was written and the file is ` +
+            `unchanged. This usually means the tool call was truncated because the file is large. ` +
+            `Write it in smaller pieces, or use project.delete if removal was intended.`,
+        };
+      }
+      const content = args.content;
+      const service = EngineeringWorkspace.getInstance();
+
+      // A WHOLE-FILE WRITE CAN DESTROY WHAT IT DOES NOT REPEAT.
+      //
+      // This tool replaces a file entirely, so a model asked to "append
+      // a test" that emits only the new test silently deletes the rest.
+      // Measured: a 192-line test file came back as 57 lines with nine
+      // tests gone, and every downstream check passed — typecheck does
+      // not care about deleted tests, so post-apply validation was green
+      // on a destructive change.
+      //
+      // So a large shrink must be INTENDED, not incidental: the write is
+      // refused unless the caller says so, and the refusal reports the
+      // real sizes. This is a confirmation step, not a veto.
+      const existing = await service.readFile(workspace, path);
+      if (existing.ok) {
+        const beforeLines = existing.content.split("\n").length;
+        const afterLines = content.split("\n").length;
+        const shrank = beforeLines - afterLines;
+        if (beforeLines >= 20 && shrank > 0 && afterLines < beforeLines * 0.7 && args.allowShrink !== true) {
+          return {
+            ok: false,
+            content:
+              `Nothing was written: this would replace "${path}" (${beforeLines} lines) with ` +
+              `${afterLines} lines, removing ${shrank}. project.write replaces the WHOLE file, so ` +
+              `content you do not repeat is deleted. If you meant to edit part of it, re-send the ` +
+              `complete file including the parts you are keeping. If the removal is intended, ` +
+              `set allowShrink: true.`,
+          };
+        }
+      }
+
+      const result = await service.writeFile(workspace, path, content);
       if (!result.ok) return { ok: false, content: result.error };
       return { ok: true, content: `Wrote ${content.length} character(s) to "${path}" in workspace "${workspace}".` };
     },
