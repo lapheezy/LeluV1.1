@@ -141,6 +141,14 @@ test("workspace tools are unavailable until a real runtime is measured", () => {
   assert.ok(!offered.includes("project_copy"));
 });
 
+test("git tools are registered at the right risk levels", () => {
+  // project.git reads state without modifying it; project.commit writes
+  // to the real repository and requires the same authorization as apply.
+  const registry = ToolRegistry.getInstance();
+  assert.equal(registry.get("project.git")?.riskLevel, 0);
+  assert.equal(registry.get("project.commit")?.riskLevel, 4);
+});
+
 /* ------------------------------------------------------------------ *
  * SERVER-SIDE IDENTITY
  *
