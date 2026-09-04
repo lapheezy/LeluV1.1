@@ -27,6 +27,7 @@
 
 import env from "../Environment";
 import AgentEventBus from "../agent/AgentEvents";
+import { endpoint } from "../Endpoints";
 
 /* ----------------------------- types ---------------------------------- */
 
@@ -126,7 +127,7 @@ export function fingerprintOf(dataUrl: string): string {
 
 /* ------------------------------ service ------------------------------- */
 
-const MESHY_BASE_DEFAULT = "https://api.meshy.ai";
+const MESHY_BASE_DEFAULT = endpoint("meshy");
 const POLL_INTERVAL_MS = 5_000;
 const MAX_WAIT_MS = 12 * 60 * 1000;
 

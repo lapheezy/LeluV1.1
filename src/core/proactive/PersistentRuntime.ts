@@ -137,6 +137,25 @@ export default class PersistentRuntime {
       if (project.updatedAt <= checkpoint) {
         continue;
       }
+
+      // A touched timestamp is not news.
+      //
+      // Orchestrator.persistCheckpoint() writes a checkpoint to the
+      // auto-created category project on EVERY ordinary chat turn, which
+      // bumps updatedAt every turn. That produced a "Project update:
+      // General — Auto-created for chat tasks was updated" card after
+      // each message: LÉLU announcing her own bookkeeping back to the
+      // user as though something had happened, with the raw internal
+      // description string as the body. Only report a project that
+      // actually carries work.
+      const hasRealContent =
+        project.items.length > 0 ||
+        (project.queries?.length ?? 0) > 0 ||
+        Boolean(project.objective);
+      if (!hasRealContent && (project.description ?? "").startsWith("Auto-created for")) {
+        continue;
+      }
+
       const proactive = ProactiveCore.getInstance();
       const provider = NotificationProvider.getInstance();
       const conversationId = this.conversationForProject(project.id);

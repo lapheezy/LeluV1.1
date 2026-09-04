@@ -112,6 +112,25 @@ export default class ToolCallInterceptor {
   ): Promise<ToolCallResult> {
     const text = providerResponse.text;
 
+    // COMPATIBILITY FALLBACK ONLY.
+    //
+    // This interceptor exists for providers that emit tool-call markup
+    // as TEXT because they cannot call tools natively. A provider that
+    // can — marked by ProviderResolver once it has been offered the real
+    // tool schemas — has already had its chance to invoke them, and its
+    // reply is a finished answer. Tool-shaped text in that answer is
+    // prose about tools (an explanation, or a quoted search result), not
+    // an unexecuted request.
+    //
+    // Without this gate such a reply is scraped, a SECOND research call
+    // is executed, and the grounded answer the model produced from the
+    // real tool result is discarded and replaced with the scraper's own
+    // summary. That is both a duplicate execution and a duplicate set of
+    // timeline events for one turn.
+    if (providerResponse.metadata?.nativeTools === true) {
+      return { intercepted: false };
+    }
+
     if (!isToolCallResponse(text) && !isRawToolMarkup(text)) {
       return { intercepted: false };
     }
@@ -142,11 +161,32 @@ export default class ToolCallInterceptor {
           prompt: query,
           messages: [{ role: "user" as const, content: query }],
         },
+        // Declare the intent rather than letting it be re-detected.
+        //
+        // The extracted query is a bare search term, and ResearchResolver
+        // only retrieves for a search/news intent or a time-sensitive
+        // phrasing. Re-detecting on "tardigrade cryptobiosis" classifies
+        // as neither, so the resolver declined instantly and the user was
+        // told the search came back empty. The model asking for the tool
+        // IS the decision to search — the same reason ToolDispatcher
+        // declares it on the native path.
+        intent: "search" as const,
       };
 
       const result = await resolver.execute(toolContext);
 
-      if (result.handled && result.results.length > 0) {
+      // Gate on RESULTS, never on `handled`.
+      //
+      // `handled` answers "who replies next", not "did research work".
+      // ResearchResolver returns handled:false WITH results on its main
+      // success path (it hands off so a provider can synthesise them),
+      // and handled:true WITHOUT results when retrieval failed. The old
+      // `handled && length > 0` therefore matched neither state: a real
+      // search that returned real sources fell through to the "didn't
+      // find current results" branch below, so LÉLU told the user she
+      // found nothing while holding the results. That is the exact
+      // "search executes but returns nothing" defect.
+      if (result.results.length > 0) {
         // Build a clean synthesized response from real results
         const sources = result.results.slice(0, 6).map((r, i) => {
           const content = (r.content ?? "").replace(/\s+/g, " ").trim();
@@ -184,7 +224,10 @@ export default class ToolCallInterceptor {
         intercepted: true,
         query,
         response: {
-          text: `I searched for "${query}" but didn't find current results. The knowledge providers may be unavailable right now. Try a more specific query or check your API configuration.`,
+          text:
+            `I searched for "${query}" and the knowledge providers returned no usable results. ` +
+            `This is a real retrieval attempt that came back empty — not a guess, and not a ` +
+            `search I skipped. Try a more specific query, or check provider availability.`,
           provider: "research",
           model: "tool-interceptor",
           processingTime: Date.now() - context.started,
@@ -199,6 +242,22 @@ export default class ToolCallInterceptor {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       context.logger.error("ToolCallInterceptor", "Tool execution failed", { error: message });
+
+      // ResearchResolver emits its own tool_result for the success and
+      // empty-result paths, so this is the ONLY branch that would
+      // otherwise have no terminal event: the resolver threw before
+      // reaching either emission. Duplicating the other two here put two
+      // rows in the activity timeline for one execution.
+      events.emit({
+        type: "tool_result",
+        taskId,
+        tool: "research",
+        query,
+        provider: "research",
+        result: `Tool execution failed: ${message}`,
+        results: [],
+        status: "error",
+      });
 
       return {
         intercepted: true,

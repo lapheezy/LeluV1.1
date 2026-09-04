@@ -27,7 +27,24 @@ repo even if `.env` itself is ever recreated.
 | `VITE_FIREWORKS_MODEL` | Fireworks model override | no |
 | `VITE_GITHUB_TOKEN` | GitHub Models — fallback #5 + GitHub repo tool | yes |
 | `VITE_GITHUB_MODEL` | GitHub Models model override | no |
+| `VITE_ANTHROPIC_API_KEY` | Anthropic (Claude) — fallback #6 | yes |
+| `VITE_ANTHROPIC_MODEL` | Anthropic model override | no |
 | `VITE_AI_PROXY_BASE_URL` | Custom AI proxy for GitHub Models | no |
+
+### Unprefixed names
+
+Provider keys are also accepted under their ordinary, unprefixed names —
+`ANTHROPIC_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`,
+`CEREBRAS_API_KEY`, `MISTRAL_API_KEY`, `FIREWORKS_API_KEY` — which is the
+shape GitHub Codespaces secrets, Vercel, Fly, Render and a plain shell
+export all produce. The runtime key bridge (`plugins/runtimeKeyBridge.ts`)
+publishes them onto the `__LELU_*__` channel the providers already read,
+so no renaming is needed. The `VITE_` name always wins when both are set.
+
+`GITHUB_TOKEN` is the one exception and is deliberately **not** accepted:
+dev containers, Codespaces and CI runners set an ambient one for git
+tooling that is not a GitHub Models inference key. Supply
+`VITE_GITHUB_TOKEN` explicitly for that provider.
 
 ## Knowledge / research providers
 
@@ -195,3 +212,126 @@ Groq/OpenRouter chat completions, a real NASA FIRMS hotspot fetch
   out of frontend code.
 - Never hardcode keys, log secret values, or return credentials through
   API responses.
+
+
+## External service endpoints
+
+Every outbound base URL is a named setting resolved by
+`src/core/Endpoints.ts`, through the same four rungs as credentials
+(`VITE_` name → `__LELU_*__` global → `process.env`). Each defaults to
+the URL the code used before it was configurable, so leaving one unset is
+never a behaviour change. Set one to point at a mirror, a self-hosted
+instance, a gateway, or a proxy.
+
+### Wired to live code
+
+| Variable | Default |
+|---|---|
+| `ANTHROPIC_BASE_URL` | `https://api.anthropic.com/v1` |
+| `GROQ_BASE_URL` | `https://api.groq.com/openai/v1` |
+| `CEREBRAS_BASE_URL` | `https://api.cerebras.ai/v1` |
+| `OPENROUTER_BASE_URL` | `https://openrouter.ai/api/v1` |
+| `MISTRAL_BASE_URL` | `https://api.mistral.ai/v1` |
+| `FIREWORKS_BASE_URL` | `https://api.fireworks.ai/inference/v1` |
+| `GITHUB_MODELS_BASE_URL` | `https://models.github.ai/inference` |
+| `NOMINATIM_API_URL` | `https://nominatim.openstreetmap.org` |
+| `OPENSTREETMAP_API_URL` | `https://www.openstreetmap.org` |
+| `OSRM_API_URL` | `https://router.project-osrm.org` |
+| `OPEN_METEO_API_URL` | `https://api.open-meteo.com` |
+| `OPEN_METEO_GEOCODING_API_URL` | `https://geocoding-api.open-meteo.com` |
+| `FIRMS_API_URL` | `https://firms.modaps.eosdis.nasa.gov` |
+| `USGS_EARTHQUAKE_API_URL` | `https://earthquake.usgs.gov` |
+| `CELESTRAK_API_URL` | `https://celestrak.org` |
+| `NASA_IMAGES_API_URL` | `https://images-api.nasa.gov` |
+| `NEWSAPI_URL` | `https://newsapi.org/v2` |
+| `YOUTUBE_API_URL` | `https://www.googleapis.com/youtube/v3` |
+| `INSTAGRAM_API_URL` | `https://graph.instagram.com` |
+| `META_GRAPH_API_URL` | `https://graph.facebook.com` |
+| `GITHUB_API_URL` | `https://api.github.com` |
+| `ARXIV_API_URL` | `https://export.arxiv.org` |
+| `CROSSREF_API_URL` | `https://api.crossref.org` |
+| `OPENALEX_API_URL` | `https://api.openalex.org` |
+| `GDELT_API_URL` | `https://api.gdeltproject.org` |
+| `HACKERNEWS_API_URL` | `https://hn.algolia.com/api/v1` |
+| `MESHY_API_URL` | `https://api.meshy.ai` |
+
+### All endpoints have consumers
+
+Every endpoint in the registry is read by real calling code. The providers
+added for the previously-unconsumed ones are: Gemini (AI chat, priority 8),
+NASA APOD / NeoWs / DONKI / EONET / EPIC / Exoplanet Archive / OSDR /
+InSight, SpaceX, NOAA, Geoapify, GNews, Guardian and NewsData.
+
+`NASA_API_URL` is a ROOT: setting it moves APOD, NeoWs, DONKI, EPIC and
+InSight together, while a specific name (`NASA_APOD_API_URL`) still wins
+for its own endpoint.
+
+`NEWSDATA_WEBSOCKET_URL` configures `newsDataWebsocketUrl()` rather than a
+Provider — a socket is a subscription, not a search, and nothing in LÉLU
+consumes a push stream today.
+
+`bun run scripts/verify-endpoints.ts` prints the current split.
+
+### A note on version segments
+
+`ANTHROPIC_BASE_URL` and the other inference bases are ambiguous in the
+wild: the Anthropic SDK documents the host alone (`https://api.anthropic.com`,
+appending `/v1` itself) while the API reference shows `.../v1`. The two
+differ by one path segment and guessing wrong is a silent 404 on every
+request, so the registry appends the version segment when a configured
+base omits it. Both spellings work.
+
+### RSS feed names
+
+Both orderings resolve — `SAPIOLINGO_RSS_URL` and `RSS_SAPIOLINGO_URL`,
+and likewise for `ELPHERU`, `GOOGLE_NEWS` (`RSS_GOOGLE_NEWS_URL`) and the
+alternate feed (`GOOGLE_NEWS_RSS_URL_2` / `RSS_GOOGLE_NEWS_ALT_URL`). The
+two are easy to transpose and a wrong one is silent, so both are accepted.
+
+
+## Provider API keys added alongside the endpoint registry
+
+| Variable | Provider | Behaviour without it |
+|---|---|---|
+| `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) | Gemini chat | Reports unavailable; chain skips it |
+| `NASA_API_KEY` | NASA science family | Works on shared `DEMO_KEY`, heavily rate-limited |
+| `GEOAPIFY_API_KEY` | Geoapify geocoding | Declines; Nominatim serves geocoding |
+| `GNEWS_API_KEY` | GNews | Declines; other news sources serve |
+| `GUARDIAN_API_KEY` | The Guardian | Declines; other news sources serve |
+| `NEWSDATA_API_KEY` | NewsData.io | Declines; other news sources serve |
+
+Keyed providers return no results rather than throwing when unconfigured,
+so an unset key never blocks the fallback chain.
+
+### Coverage limits worth knowing
+
+**NOAA is United States only.** `api.weather.gov` has no data elsewhere,
+so the provider returns nothing for a non-US location and Open-Meteo
+answers instead. That is a real answer, not a failure.
+
+**NASA InSight is archival.** The lander's mission ended in December 2022,
+so this feed is a fixed historical record. The provider says so in every
+result rather than presenting it as current Mars weather.
+
+
+## Verifying the wiring
+
+| Script | Answers |
+|---|---|
+| `bun run scripts/verify-secrets.ts` | Which credentials are declared, which are read by real code, and which are set here — never prints a value |
+| `bun run scripts/verify-endpoints.ts` | Every base URL's default, that each variable really redirects, and that nothing is declared without a consumer |
+| `bun run scripts/verify-providers.ts` | Provider contracts: fallback order, request shape, auth headers, response parsing, error-throws-so-fallback-advances |
+
+`verify-secrets` is the one to run **where your keys actually live**.
+Codespaces secrets do not propagate to other machines or containers, so
+running it elsewhere proves the code path, not any particular key.
+
+### Anthropic prompt caching
+
+The Anthropic system block is sent as the array form carrying
+`cache_control: {type: "ephemeral"}`. The identity prompt is ~430 tokens
+and `contextMessages()` hoists memory and live-retrieval results into the
+same block, so it is both the largest and the most repeated content LÉLU
+sends. Below Anthropic's minimum cacheable length the marker is ignored;
+above it, measured on a 3163-token context, a follow-up turn billed 13
+fresh input tokens instead of 3163.

@@ -14,6 +14,7 @@ import type Provider
 import type {
   KnowledgeResult,
 } from "./Provider";
+import { endpointUrl } from "../core/Endpoints";
 
 export default class GitHubProvider
   implements Provider {
@@ -59,7 +60,7 @@ export default class GitHubProvider
   ] as const;
 
   private readonly endpoint =
-    "https://api.github.com/search/repositories";
+    endpointUrl("github", "search/repositories");
 
   canSearch(
     query: string,

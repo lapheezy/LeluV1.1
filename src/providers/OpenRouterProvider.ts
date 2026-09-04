@@ -11,6 +11,12 @@
 
 import type AIProvider from "./AIProvider";
 import { contextMessages } from "./contextMessages";
+import {
+  extractOpenAIToolCalls,
+  openAIToolPayload,
+  toOpenAIMessages,
+  trailingUserTurn,
+} from "./openaiTools";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 
 import type {
@@ -18,6 +24,8 @@ import type {
   AIResponse,
   AIProviderHealth,
 } from "./AIProvider";
+import { endpointUrl } from "../core/Endpoints";
+import { resolveFirst } from "../core/resolveEnv";
 
 export default class OpenRouterProvider implements AIProvider {
   readonly name = "OpenRouter";
@@ -32,6 +40,8 @@ export default class OpenRouterProvider implements AIProvider {
     "multi-model",
     "memory",
   ] as const;
+
+  readonly supportsTools = true;
 
   private apiKey = "";
   private model = "openrouter/free";
@@ -79,36 +89,10 @@ export default class OpenRouterProvider implements AIProvider {
   }
 
   async initialize(): Promise<void> {
-    const runtimeEnv = globalThis as typeof globalThis & {
-      __LELU_OPENROUTER_API_KEY__?: string;
-      __LELU_OPENROUTER_MODEL__?: string;
-    };
-
-    const windowEnv =
-      typeof window !== "undefined"
-        ? (window as Window & {
-            __LELU_OPENROUTER_API_KEY__?: string;
-            __LELU_OPENROUTER_MODEL__?: string;
-          })
-        : undefined;
-
-    const processEnv =
-      typeof process !== "undefined"
-        ? process.env
-        : undefined;
-
     this.apiKey =
-      import.meta.env.VITE_OPENROUTER_API_KEY?.trim() ||
-      runtimeEnv.__LELU_OPENROUTER_API_KEY__?.trim() ||
-      windowEnv?.__LELU_OPENROUTER_API_KEY__?.trim() ||
-      processEnv?.OPENROUTER_API_KEY?.trim() ||
-      "";
-
+      resolveFirst("OPENROUTER_API_KEY", "OPEN_ROUTER_API_KEY") ?? "";
     this.model =
-      import.meta.env.VITE_OPENROUTER_MODEL?.trim() ||
-      runtimeEnv.__LELU_OPENROUTER_MODEL__?.trim() ||
-      windowEnv?.__LELU_OPENROUTER_MODEL__?.trim() ||
-      "openrouter/free";
+      resolveFirst("OPENROUTER_MODEL") ?? "openrouter/free";
 
     this.initialized = true;
 
@@ -164,16 +148,14 @@ export default class OpenRouterProvider implements AIProvider {
           LELU_SYSTEM_PROMPT,
       },
       ...contextMessages(request),
-      ...(request.messages ?? []),
-      {
-        role: "user",
-        content: this.buildUserContent(request),
-      },
+      ...toOpenAIMessages(request.messages),
+      ...trailingUserTurn(request, this.buildUserContent(request)),
     ];
 
     const payload = {
       model: this.selectModel(request),
       messages,
+      ...openAIToolPayload(request),
       temperature: request.temperature ?? 0.7,
       ...(request.maxTokens ? { max_tokens: request.maxTokens } : {}),
       ...(request.stop?.length ? { stop: request.stop } : {}),
@@ -183,7 +165,7 @@ export default class OpenRouterProvider implements AIProvider {
 
     try {
       response = await fetch(
-        "https://openrouter.ai/api/v1/chat/completions",
+        endpointUrl("openrouter", "chat/completions"),
         {
           method: "POST",
           headers: {
@@ -226,8 +208,11 @@ export default class OpenRouterProvider implements AIProvider {
     }
 
     const content = data?.choices?.[0]?.message?.content ?? "";
-
-    if (typeof content !== "string" || !content.trim()) {
+    const toolCalls = extractOpenAIToolCalls(data?.choices?.[0]);
+    // A tool-call turn legitimately carries no text. Rejecting it as
+    // "no usable content" would turn a valid tool request into a
+    // provider failure and drop to the next provider for no reason.
+    if ((typeof content !== "string" || !content.trim()) && toolCalls.length === 0) {
       throw new Error("OpenRouter returned no usable content.");
     }
 
@@ -236,6 +221,8 @@ export default class OpenRouterProvider implements AIProvider {
       provider: this.name,
       model: payload.model,
       processingTime: Date.now() - started,
+      ...(toolCalls.length ? { toolCalls } : {}),
+      stopReason: data?.choices?.[0]?.finish_reason as string | undefined,
       metadata: {
         usage: data?.usage,
         finishReason: data?.choices?.[0]?.finish_reason,

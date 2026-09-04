@@ -13,6 +13,7 @@ import { createRssApi } from "./plugins/rssApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { githubApiPlugin } from "./plugins/githubApi.ts";
+import { runtimeKeyBridgePlugin, bridgeReport } from "./plugins/runtimeKeyBridge.ts";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -22,6 +23,20 @@ export default defineConfig(({ mode }) => {
   const aisBridge = createAisBridge({ apiKey: aisKey });
 
   const envReader = (key: string) => env[key] ?? process.env[key] ?? "";
+
+  // Report — by NAME only, never by value — which provider keys were
+  // supplied under an unprefixed platform name and are therefore being
+  // bridged onto the __LELU_*__ channel the providers already read.
+  // Without this the key is present in the process yet invisible to the
+  // browser bundle, and the provider reports itself unconfigured.
+  const bridged = bridgeReport(envReader);
+  if (bridged.length > 0) {
+    console.info(
+      "[runtime-key-bridge] publishing provider keys from unprefixed names:",
+      bridged.map((b) => `${b.sourceName} → ${b.globalName}`).join(", "),
+    );
+  }
+
   const envApi = createEnvApi(
     envReader,
     "vite-dev",
@@ -50,6 +65,10 @@ export default defineConfig(({ mode }) => {
     base: "/",
 
     plugins: [
+      // FIRST: publish bridged provider keys into <head> before any
+      // module evaluates, so every provider's initialize() sees them.
+      runtimeKeyBridgePlugin(envReader),
+
       vlyPlugin(),
 
       {

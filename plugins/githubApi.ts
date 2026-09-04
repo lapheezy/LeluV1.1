@@ -18,7 +18,9 @@
  * ==========================================================
  */
 
-const GITHUB_API_BASE = "https://api.github.com";
+import { endpoint } from "../src/core/Endpoints.ts";
+
+const GITHUB_API_BASE = endpoint("github");
 const RATE_LIMIT_MS = 500;
 let lastRequestTime = 0;
 

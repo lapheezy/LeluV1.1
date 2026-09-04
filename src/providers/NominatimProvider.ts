@@ -7,6 +7,12 @@
 
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
+import { endpoint, endpointUrl, isOverridden } from "../core/Endpoints";
+
+// GEOCODING_BASE_URL is the generic "point geocoding somewhere else" knob;
+// NOMINATIM_API_URL names this specific service. When the generic one has
+// been set it wins, so an operator who redirects geocoding once does not
+// have to know which of the two providers is serving the request.
 
 export default class NominatimProvider implements Provider {
 
@@ -30,7 +36,7 @@ export default class NominatimProvider implements Provider {
   readonly capabilities = ["geography", "location", "map", "places"] as const;
 
   private readonly endpoint =
-    "https://nominatim.openstreetmap.org/search";
+    endpointUrl(isOverridden("geocoding") ? "geocoding" : "nominatim", "search");
 
   canSearch(query: string): boolean {
     return query.trim().length > 0;
@@ -101,7 +107,7 @@ export default class NominatimProvider implements Provider {
         id: String(place.place_id ?? crypto.randomUUID()),
         title: place.display_name,
         content: `${place.lat}, ${place.lon}`,
-        url: `https://www.openstreetmap.org/?mlat=${place.lat}&mlon=${place.lon}`,
+        url: `${endpoint("openstreetmap")}/?mlat=${place.lat}&mlon=${place.lon}`,
         source: "Nominatim",
         confidence: 0.96,
         timestamp: new Date().toISOString(),

@@ -15,6 +15,9 @@
  * ==========================================================
  */
 
+import { bridgeReport } from "./runtimeKeyBridge.ts";
+import { endpoint, endpointUrl, endpointDiagnostics } from "../src/core/Endpoints.ts";
+
 type EnvReader = (key: string) => string | undefined;
 
 interface ConnectLikeRes {
@@ -62,7 +65,7 @@ async function probeFirms(key: string | undefined): Promise<Record<string, unkno
   // Same URL shape the live FIRMS provider uses (src/core/earth/EarthProviders.ts):
   // /api/area/csv/{MAP_KEY}/{SOURCE}/{west,south,east,north}/{DAY_RANGE} with
   // DAY_RANGE=2 → today + yesterday. Wide bbox for the health probe.
-  const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${encodeURIComponent(key)}/VIIRS_SNPP_NRT/-180,-90,180,90/2`;
+  const url = `${endpoint("firms")}/api/area/csv/${encodeURIComponent(key)}/VIIRS_SNPP_NRT/-180,-90,180,90/2`;
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(20000) });
     const text = await res.text();
@@ -100,18 +103,38 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
       if (route === "/api/env-check") {
         sendJson(res, {
           runtime,
-          VITE_GROQ_API_KEY: presence(env("VITE_GROQ_API_KEY")),
-          VITE_OPENROUTER_API_KEY: presence(env("VITE_OPENROUTER_API_KEY")),
+          // Which provider keys arrived under an UNPREFIXED platform
+          // name and are therefore being bridged onto the __LELU_*__
+          // channel. Names only — never values. Without this, a key
+          // supplied as GROQ_API_KEY rather than VITE_GROQ_API_KEY
+          // showed up here as MISSING even though it was present in
+          // the environment and is what the provider actually uses.
+          bridgedFromUnprefixedNames: bridgeReport(env),
+          // Where requests actually go. Base URLs are not credentials, so
+          // the resolved value is shown — an operator debugging a blocked
+          // or mis-pointed host needs to see the URL, and `overridden`
+          // flags anything redirected away from its built-in default.
+          endpoints: endpointDiagnostics()
+            .filter((e) => e.overridden)
+            .map((e) => ({ id: e.id, url: e.url })),
+          VITE_GROQ_API_KEY: presence(env("VITE_GROQ_API_KEY") || env("GROQ_API_KEY")),
+          VITE_OPENROUTER_API_KEY: presence(
+            env("VITE_OPENROUTER_API_KEY") || env("OPENROUTER_API_KEY"),
+          ),
+          VITE_ANTHROPIC_API_KEY: presence(
+            env("VITE_ANTHROPIC_API_KEY") || env("ANTHROPIC_API_KEY") || env("CLAUDE_API_KEY"),
+          ),
           VITE_FIRMS_API_KEY: presence(env("VITE_FIRMS_API_KEY")),
           AISSTREAM_API_KEY: presence(env("AISSTREAM_API_KEY")),
           INSTAGRAM_ACCESS_TOKEN: presence(env("INSTAGRAM_ACCESS_TOKEN") || env("VITE_INSTAGRAM_ACCESS_TOKEN")),
           INSTAGRAM_USERNAME: env("INSTAGRAM_USERNAME") || env("VITE_INSTAGRAM_USERNAME") || "MISSING",
-          RSS_SAPIOLINGO: presence(env("VITE_SAPIOLINGO_RSS_URL") || env("SAPIOLINGO_RSS_URL")),
-          RSS_ELPHERU: presence(env("VITE_ELPHERU_RSS_URL") || env("ELPHERU_RSS_URL")),
-          RSS_GOOGLE_NEWS_1: presence(env("VITE_GOOGLE_NEWS_RSS_URL") || env("GOOGLE_NEWS_RSS_URL")),
-          RSS_GOOGLE_NEWS_2: presence(env("VITE_GOOGLE_NEWS_RSS_URL_2") || env("GOOGLE_NEWS_RSS_URL_2")),
+          RSS_SAPIOLINGO: presence(env("VITE_SAPIOLINGO_RSS_URL") || env("SAPIOLINGO_RSS_URL") || env("RSS_SAPIOLINGO_URL")),
+          RSS_ELPHERU: presence(env("VITE_ELPHERU_RSS_URL") || env("ELPHERU_RSS_URL") || env("RSS_ELPHERU_URL")),
+          RSS_GOOGLE_NEWS_1: presence(env("VITE_GOOGLE_NEWS_RSS_URL") || env("GOOGLE_NEWS_RSS_URL") || env("RSS_GOOGLE_NEWS_URL")),
+          RSS_GOOGLE_NEWS_2: presence(env("VITE_GOOGLE_NEWS_RSS_URL_2") || env("GOOGLE_NEWS_RSS_URL_2") || env("RSS_GOOGLE_NEWS_ALT_URL")),
           NEKO_URL: env("VITE_NEKO_URL") || env("NEKO_URL") || "MISSING",
           VITE_GROQ_MODEL: env("VITE_GROQ_MODEL") ?? "MISSING",
+          VITE_ANTHROPIC_MODEL: env("VITE_ANTHROPIC_MODEL") || env("ANTHROPIC_MODEL") || "MISSING",
           VITE_DEFAULT_PROVIDER: env("VITE_DEFAULT_PROVIDER") ?? "MISSING",
         });
         return;
@@ -119,12 +142,14 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
 
       void (async () => {
         const results: Record<string, unknown> = {};
-        const groqKey = env("VITE_GROQ_API_KEY") ?? "";
-        const openrouterKey = env("VITE_OPENROUTER_API_KEY") ?? "";
+        const groqKey = env("VITE_GROQ_API_KEY") || env("GROQ_API_KEY") || "";
+        const openrouterKey = env("VITE_OPENROUTER_API_KEY") || env("OPENROUTER_API_KEY") || "";
+        const anthropicKey =
+          env("VITE_ANTHROPIC_API_KEY") || env("ANTHROPIC_API_KEY") || env("CLAUDE_API_KEY") || "";
 
         if (groqKey) {
           try {
-            const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            const groqRes = await fetch(endpointUrl("groq", "chat/completions"), {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -152,7 +177,7 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
 
         if (openrouterKey) {
           try {
-            const orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            const orRes = await fetch(endpointUrl("openrouter", "chat/completions"), {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -178,6 +203,38 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
           }
         } else {
           results.openrouter = { status: "missing-key" };
+        }
+
+        if (anthropicKey) {
+          try {
+            const anthropicRes = await fetch(endpointUrl("anthropic", "messages"), {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-api-key": anthropicKey,
+                "anthropic-version": "2023-06-01",
+              },
+              body: JSON.stringify({
+                model: env("VITE_ANTHROPIC_MODEL") || env("ANTHROPIC_MODEL") || "claude-sonnet-4-5",
+                max_tokens: 5,
+                messages: [{ role: "user", content: "Say OK" }],
+              }),
+              signal: AbortSignal.timeout(15000),
+            });
+            const body = await anthropicRes.text();
+            results.anthropic = {
+              status: anthropicRes.status,
+              ok: anthropicRes.ok,
+              response: anthropicRes.ok ? "OK" : body.slice(0, 200),
+            };
+          } catch (error) {
+            results.anthropic = {
+              status: "error",
+              error: error instanceof Error ? error.message : String(error),
+            };
+          }
+        } else {
+          results.anthropic = { status: "missing-key" };
         }
 
         // FIRMS — live probe with the configured key (count only, never the key).

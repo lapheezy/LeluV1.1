@@ -28,6 +28,38 @@ import UIStateStore, { type UIStateSnapshot } from "./UIStateStore";
 import ExecutiveRuntime from "../executive/ExecutiveRuntime";
 import EarthCore from "../earth/EarthCore";
 import SelfStudyEngine, { type CognitiveStateView } from "./SelfStudyEngine";
+import {
+  buildReport,
+  inspectDocument,
+  type VisualReport,
+} from "../selfdev/VisualInspection";
+
+/**
+ * Run the existing visual inspection against LÉLU's OWN live document.
+ *
+ * This is the whole of "visual awareness": a real measurement of the
+ * interface she is actually rendering, taken at the moment cognition
+ * assembles its context. It reuses inspectDocument() rather than adding
+ * a second observer, and it deliberately returns null — not an empty
+ * healthy report — when there is no document, because "I cannot see"
+ * and "I looked and everything is fine" are different claims.
+ */
+function observeOwnInterface(): VisualReport | null {
+  if (typeof document === "undefined" || typeof window === "undefined") {
+    return null;
+  }
+  try {
+    const findings = inspectDocument(document, {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+    return buildReport(findings);
+  } catch (error) {
+    // An observation that failed is not an observation that passed.
+    console.warn("[CognitiveContext] Visual observation failed (contained)", error);
+    return null;
+  }
+}
 
 export interface CognitiveContextSnapshot {
   /** Current self-model state. */
@@ -56,6 +88,20 @@ export interface CognitiveContextSnapshot {
 
   /** Current UI state (read live from UIStateStore singleton). */
   ui: UIStateSnapshot;
+
+  /**
+   * MEASURED observation of LÉLU's own rendered interface.
+   *
+   * Not the same thing as `ui` above: that is the view state LÉLU
+   * intended, this is what the DOM actually turned out to be —
+   * overflow, emptiness, element counts, measured in real pixels by
+   * inspectDocument(). The difference between the two is the only way
+   * she can notice that what rendered is not what she asked for.
+   *
+   * `null` outside a browser (server runtimes have no document), which
+   * is an honest "I cannot see" rather than a fabricated clean report.
+   */
+  visual: VisualReport | null;
 
   /** Recent cognitive events (last N from AgentEventBus). */
   recentEvents: Array<{
@@ -157,6 +203,11 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
     capabilities,
     autonomyLevel: autonomyGate.getLevel(),
     ui: uiStateStore.get() as UIStateSnapshot,
+    // Observe the LIVE interface, not a preview iframe. inspectDocument()
+    // already existed and already measured real geometry; it was only
+    // ever called from the Engineering panel when a human opened it, so
+    // nothing LÉLU could reason over ever received it.
+    visual: observeOwnInterface(),
     recentEvents,
     // Measured operational state — never assumed, never fabricated.
     executiveSelfStateText: ExecutiveRuntime.getInstance().getSelfStateText(),
@@ -240,6 +291,31 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
 
   if (uiParts.length > 0) {
     sections.push(`## UI STATE\n${uiParts.join("\n")}`);
+  }
+
+  // MEASURED observation of the interface as rendered. This is the only
+  // section LÉLU can use to notice that what appeared differs from what
+  // she intended, so it states plainly when she cannot see at all — a
+  // missing report must never read as a clean one.
+  if (ctx.visual === null) {
+    sections.push(
+      "## VISUAL OBSERVATION\nUnavailable — no rendered document to measure from this runtime. " +
+        "You cannot currently see your own interface; do not claim otherwise.",
+    );
+  } else {
+    const { findings, summary, healthy } = ctx.visual;
+    const notable = findings.filter((f) => f.severity !== "ok");
+    const lines = notable.length
+      ? notable.map((f) => `- [${f.severity}] ${f.category}: ${f.message}`)
+      : ["- No defects measured in the rendered interface."];
+    sections.push(
+      `## VISUAL OBSERVATION (measured just now)\n` +
+        `${healthy ? "Interface renders correctly" : "Interface has rendering problems"} — ` +
+        `${summary.error} error(s), ${summary.warn} warning(s), ${summary.info} note(s).\n` +
+        `${lines.join("\n")}\n` +
+        `This is a real measurement of your own DOM, not a description of it. ` +
+        `You may reason about and act on these findings.`,
+    );
   }
 
   // Earth Core spatial context — LÉLU understands the globe she is showing.

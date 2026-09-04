@@ -36,6 +36,7 @@ import type { AIRequest } from "../../providers/AIProvider";
 import SystemEnvironment from "../cognition/SystemEnvironment";
 import KvStore from "../storage/KvStore";
 import LocalLLMAdapter from "../runtime/local/LocalLLMAdapter";
+import { getEnvironment } from "../Environment";
 
 /* ------------------------------------------------------------
  * HARDWARE
@@ -307,6 +308,17 @@ const REMOTE_MODEL_CATALOG: ModelDescriptor[] = [
     latency: "medium",
     capabilities: ["chat", "vision", "reasoning", "code"],
   },
+  {
+    id: "anthropic.claude-sonnet-4-5",
+    name: "Claude Sonnet 4.5 (Anthropic)",
+    provider: "Anthropic",
+    modalities: ["text", "vision", "code"],
+    local: false,
+    requiresApiKey: true,
+    quality: 0.95,
+    latency: "medium",
+    capabilities: ["chat", "vision", "reasoning", "code"],
+  },
 ];
 
 /* ------------------------------------------------------------
@@ -473,6 +485,21 @@ export default class ModelRouter {
       }
     }
 
+    // The CONFIGURED default provider, appended last so it only decides
+    // ties. VITE_DEFAULT_PROVIDER was read by Environment.ts and by the
+    // diagnostics endpoint and by nothing else — setting it changed
+    // which provider LÉLU reported as default and not which one she
+    // actually used, so "Anthropic is my default" could be true in the
+    // config and false at runtime. It feeds the existing
+    // ProviderResolver.orderByPreference() path rather than a new one;
+    // an explicit per-request preference and the modality/hardware
+    // signals above still outrank it, and the priority chain still
+    // applies after it, so no fallback behaviour changes.
+    const configuredDefault = this.configuredDefaultProviderName();
+    if (configuredDefault && !ordered.includes(configuredDefault)) {
+      ordered.push(configuredDefault);
+    }
+
     let model: string | null = null;
     if (request.model?.trim()) {
       model = request.model.trim();
@@ -567,4 +594,34 @@ export default class ModelRouter {
         : {}),
     } as ModelSystemStatus & { reachableBackends?: { name: string; models: string[] }[] };
   }
+
+  /**
+   * Resolve VITE_DEFAULT_PROVIDER to the name the registry registers.
+   * The config token is lowercase and punctuation-free ("github-models",
+   * "openrouter"); the registry uses display names ("GitHub Models",
+   * "OpenRouter"). Returns null when unset or unrecognised, so a typo
+   * degrades to "no preference" rather than silently pinning nothing.
+   */
+  private configuredDefaultProviderName(): string | null {
+    const token = getEnvironment().defaultProvider?.trim().toLowerCase();
+    if (!token) return null;
+    const byToken: Record<string, string> = {
+      anthropic: "Anthropic",
+      claude: "Anthropic",
+      groq: "Groq",
+      openrouter: "OpenRouter",
+      "open-router": "OpenRouter",
+      cerebras: "Cerebras",
+      mistral: "Mistral",
+      fireworks: "Fireworks",
+      gemini: "Gemini",
+      google: "Gemini",
+      "github-models": "GitHub Models",
+      githubmodels: "GitHub Models",
+      github: "GitHub Models",
+      local: "Local (on-device)",
+    };
+    return byToken[token] ?? null;
+  }
+
 }

@@ -17,7 +17,15 @@
 import type AIProvider from "./AIProvider";
 import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
+import {
+  extractOpenAIToolCalls,
+  openAIToolPayload,
+  toOpenAIMessages,
+  trailingUserTurn,
+} from "./openaiTools";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
+import { endpointUrl } from "../core/Endpoints";
+import { resolveFirst } from "../core/resolveEnv";
 
 export default class MistralProvider implements AIProvider {
   readonly name = "Mistral";
@@ -32,38 +40,17 @@ export default class MistralProvider implements AIProvider {
     "memory",
   ] as const;
 
+  readonly supportsTools = true;
+
   private apiKey = "";
   private model = "mistral-large-latest";
   private initialized = false;
 
   async initialize(): Promise<void> {
-    const runtimeEnv =
-      globalThis as typeof globalThis & {
-        __LELU_MISTRAL_API_KEY__?: string;
-        __LELU_MISTRAL_MODEL__?: string;
-      };
-
-    const windowEnv =
-      typeof window !== "undefined"
-        ? (window as Window & { __LELU_MISTRAL_API_KEY__?: string })
-        : undefined;
-
-    const processEnv =
-      typeof process !== "undefined"
-        ? process.env
-        : undefined;
-
     this.apiKey =
-      import.meta.env.VITE_MISTRAL_API_KEY?.trim() ||
-      runtimeEnv.__LELU_MISTRAL_API_KEY__?.trim() ||
-      windowEnv?.__LELU_MISTRAL_API_KEY__?.trim() ||
-      processEnv?.MISTRAL_API_KEY?.trim() ||
-      "";
-
+      resolveFirst("MISTRAL_API_KEY") ?? "";
     this.model =
-      import.meta.env.VITE_MISTRAL_MODEL?.trim() ||
-      runtimeEnv.__LELU_MISTRAL_MODEL__?.trim() ||
-      "mistral-large-latest";
+      resolveFirst("MISTRAL_MODEL") ?? "mistral-large-latest";
 
     this.initialized = true;
 
@@ -115,13 +102,14 @@ export default class MistralProvider implements AIProvider {
     const messages = [
       { role: "system", content: LELU_SYSTEM_PROMPT },
       ...contextMessages(request),
-      ...(request.messages ?? []),
-      { role: "user", content: request.prompt },
+      ...toOpenAIMessages(request.messages),
+      ...trailingUserTurn(request, request.prompt),
     ];
 
     const payload = {
       model: request.model?.trim() || this.model,
       messages,
+      ...openAIToolPayload(request),
       temperature: request.temperature ?? 0.7,
       ...(request.maxTokens ? { max_tokens: request.maxTokens } : {}),
       ...(request.stop?.length ? { stop: request.stop } : {}),
@@ -131,7 +119,7 @@ export default class MistralProvider implements AIProvider {
 
     try {
       response = await fetch(
-        "https://api.mistral.ai/v1/chat/completions",
+        endpointUrl("mistral", "chat/completions"),
         {
           method: "POST",
           headers: {
@@ -180,8 +168,11 @@ export default class MistralProvider implements AIProvider {
     }
 
     const content = data?.choices?.[0]?.message?.content ?? "";
-
-    if (typeof content !== "string" || !content.trim()) {
+    const toolCalls = extractOpenAIToolCalls(data?.choices?.[0]);
+    // A tool-call turn legitimately carries no text. Rejecting it as
+    // "no usable content" would turn a valid tool request into a
+    // provider failure and drop to the next provider for no reason.
+    if ((typeof content !== "string" || !content.trim()) && toolCalls.length === 0) {
       throw new Error("Mistral returned no usable content.");
     }
 
@@ -190,6 +181,8 @@ export default class MistralProvider implements AIProvider {
       provider: this.name,
       model: payload.model,
       processingTime: Date.now() - started,
+      ...(toolCalls.length ? { toolCalls } : {}),
+      stopReason: data?.choices?.[0]?.finish_reason as string | undefined,
       metadata: {
         usage: data?.usage,
         finishReason: data?.choices?.[0]?.finish_reason,

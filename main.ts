@@ -6,6 +6,7 @@ import { createDenoEngineerAdapter } from "./plugins/denoAdapters.ts";
 import { createEnvApi } from "./plugins/envApi.ts";
 import { createAisBridge } from "./plugins/aisBridgePlugin.ts";
 import { loadEnvFiles } from "./plugins/loadEnvFiles.ts";
+import { applyBridgeToGlobals } from "./plugins/runtimeKeyBridge.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
@@ -74,6 +75,18 @@ loadEnvFiles(
   ],
 );
 const envGet = (key: string): string => mergedEnv.get(key) ?? Deno.env.get(key) ?? "";
+
+// Publish any provider key supplied under an unprefixed platform name
+// onto the __LELU_*__ channel the providers already read, so a provider
+// initialised in this runtime resolves the same credential the browser
+// does. VITE_-named keys are never overridden.
+const bridgedHere = applyBridgeToGlobals(envGet);
+if (bridgedHere.length > 0) {
+  console.log(
+    "[LÉLU deno] runtime key bridge: " +
+      bridgedHere.map((b) => `${b.sourceName} → ${b.globalName}`).join(", "),
+  );
+}
 
 const aisBridge = createAisBridge({ apiKey: envGet("AISSTREAM_API_KEY") });
 const instagramApi = createInstagramApi(envGet);

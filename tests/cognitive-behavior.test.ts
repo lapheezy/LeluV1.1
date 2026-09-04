@@ -44,6 +44,7 @@ import SandboxFS from "../src/core/engineering/SandboxFS";
 import GitHubIntegration from "../src/core/engineering/GitHubIntegration";
 import WorkspaceRuntime from "../src/core/engineering/WorkspaceRuntime";
 import CognitiveLoop from "../src/core/cognition/CognitiveLoop";
+import WorkQueue from "../src/core/cognition/WorkQueue";
 
 // ============================================================
 // TOOL REGISTRY
@@ -436,4 +437,51 @@ test("AgentEventBus handles visual_state_changed events", () => {
   unsub();
   assert.equal(receivedState, "engineering");
   assert.equal(receivedReason, "Testing visual state transitions");
+});
+
+// ============================================================
+// COGNITION OBSERVES STATE, NOT JUST THE CLOCK
+//
+// Both cases below lock failures found by running the app in a
+// real browser against the real singletons.
+// ============================================================
+
+test("a project stating its own intent becomes queued work, without the user restating it", async () => {
+  const projects = ProjectStore.getInstance();
+  const queue = WorkQueue.getInstance();
+
+  const project = projects.create({ name: "Derivation Regression", description: "regression" });
+  projects.update(project.id, { objective: "Ship the visual awareness report" });
+
+  await CognitiveLoop.getInstance().runOnce();
+
+  const derived = queue
+    .list()
+    .filter((item) => item.category === "NEXT")
+    .find((item) => item.detail?.includes(`project:${project.id}`));
+
+  assert.ok(derived, "cognition derived a next objective from the project's own stated intent");
+  assert.match(derived.title, /Ship the visual awareness report/);
+
+  // Running again must not queue the same objective a second time.
+  await CognitiveLoop.getInstance().runOnce();
+  const again = queue
+    .list()
+    .filter((item) => item.category === "NEXT" && item.detail?.includes(`project:${project.id}`));
+  assert.equal(again.length, 1, "the derived objective is not re-queued every cycle");
+});
+
+test("stop() cancels the pending first cycle instead of leaving it to run", async () => {
+  const loop = CognitiveLoop.getInstance();
+  loop.stop();
+
+  // start() schedules the first cycle 3s out. An untracked timeout
+  // survives stop(), so a torn-down loop still ran a cycle — and
+  // StrictMode's mount/unmount/mount left an orphan behind.
+  loop.start();
+  loop.stop();
+
+  const before = loop.getLastReport()?.cycle ?? null;
+  await new Promise((resolve) => setTimeout(resolve, 4000));
+  assert.equal(loop.getLastReport()?.cycle ?? null, before, "no cycle ran after stop()");
 });

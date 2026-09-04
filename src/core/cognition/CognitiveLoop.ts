@@ -34,6 +34,7 @@ import SelfModel from "./SelfModel";
 import SystemEnvironment from "./SystemEnvironment";
 import WorkQueue from "./WorkQueue";
 import SelfDevelopmentEngine from "../selfdev/SelfDevelopmentEngine";
+import { withDeadline } from "./SelfStudyEngine";
 import CapabilityManifest from "../capabilities/CapabilityManifest";
 import Sentinel from "../sentinel/Sentinel";
 import ProactiveCore, { type ProactiveQuestionInput } from "../proactive/ProactiveCore";
@@ -79,14 +80,22 @@ export interface CognitiveCycleReport {
 type Listener = (report: CognitiveCycleReport) => void;
 
 const CYCLE_INTERVAL_MS = 60_000;
+/** Coalesce a burst of project writes into one cycle. */
+const NUDGE_DEBOUNCE_MS = 2_000;
+/** Floor between cycles, so a nudge can never become a spin. */
+const MIN_CYCLE_GAP_MS = 15_000;
 const MAX_SUGGESTIONS_PER_CYCLE = 3;
 
 export default class CognitiveLoop {
   private static instance: CognitiveLoop | null = null;
   private listeners: Listener[] = [];
   private timer: number | null = null;
+  private bootTimer: number | null = null;
+  private nudgeTimer: number | null = null;
+  private unsubscribeProjects: (() => void) | null = null;
   private running = false;
   private cycle = 0;
+  private lastCycleAt = 0;
   private lastReport: CognitiveCycleReport | null = null;
 
   private constructor() {}
@@ -114,9 +123,26 @@ export default class CognitiveLoop {
     if (this.timer !== null) {
       return;
     }
-    // First cycle shortly after boot, then on the interval.
-    window.setTimeout(() => void this.runOnce(), 3000);
+    // First cycle shortly after boot, then on the interval. The boot
+    // timeout is TRACKED: an untracked one survives stop(), so a loop
+    // the interface has torn down still runs a cycle three seconds
+    // later — and StrictMode's mount/unmount/mount leaves an orphan.
+    this.bootTimer = window.setTimeout(() => {
+      this.bootTimer = null;
+      void this.runOnce();
+    }, 3000);
     this.timer = window.setInterval(() => void this.runOnce(), intervalMs);
+
+    // Observe state changes, not just the clock.
+    //
+    // The loop was purely timer-driven, so a project created by the user
+    // — or by Orchestrator.persistCheckpoint() mid-conversation — sat
+    // unobserved for up to a full CYCLE_INTERVAL_MS. Cognition looked
+    // broken because it was late: the derivation below runs correctly,
+    // but only on the next tick, which is why a project seeded just
+    // after a cycle produced nothing for the following minute.
+    // ProjectStore already publishes changes; subscribe to what exists.
+    this.unsubscribeProjects = ProjectStore.getInstance().subscribe(() => this.nudge());
   }
 
   public stop(): void {
@@ -124,15 +150,54 @@ export default class CognitiveLoop {
       window.clearInterval(this.timer);
       this.timer = null;
     }
+    if (this.bootTimer !== null) {
+      window.clearTimeout(this.bootTimer);
+      this.bootTimer = null;
+    }
+    if (this.nudgeTimer !== null) {
+      window.clearTimeout(this.nudgeTimer);
+      this.nudgeTimer = null;
+    }
+    this.unsubscribeProjects?.();
+    this.unsubscribeProjects = null;
+  }
+
+  /**
+   * Bring the next cycle forward because observable state changed.
+   *
+   * Rate-limited rather than immediate: a cycle itself can touch project
+   * state, so an unguarded nudge is a feedback loop. At most one is
+   * pending, and none runs within MIN_CYCLE_GAP_MS of the last cycle —
+   * a change during that window waits out the remainder instead of
+   * being dropped.
+   */
+  private nudge(): void {
+    if (this.timer === null || this.nudgeTimer !== null) {
+      return;
+    }
+    const since = Date.now() - this.lastCycleAt;
+    const delay = Math.max(NUDGE_DEBOUNCE_MS, MIN_CYCLE_GAP_MS - since);
+    this.nudgeTimer = window.setTimeout(() => {
+      this.nudgeTimer = null;
+      void this.runOnce();
+    }, delay);
   }
 
   /** Run one full observe → understand → propose cycle. */
   public async runOnce(): Promise<CognitiveCycleReport> {
+    // USER COMMUNICATION HAS PRIORITY. This loop proposes work and can
+    // queue a proactive question; doing that while the user is mid-turn
+    // is exactly how an autonomous update lands on top of a reply.
+    // Observation resumes on the next tick.
+    if (AIService.getInstance().isUserTurnActive()) {
+      return this.lastReport ?? this.emptyReport();
+    }
     if (this.running) {
       return this.lastReport ?? this.emptyReport();
     }
     this.running = true;
     this.cycle += 1;
+    this.lastCycleAt = Date.now();
 
     const ai = AIService.getInstance();
     const agents = AgentStore.getInstance();
@@ -149,9 +214,17 @@ export default class CognitiveLoop {
 
     try {
       /* ---------------- OBSERVE ---------------- */
+      // Every await in this cycle is deadline-bounded.
+      //
+      // `this.running` is cleared in a `finally`, which handles a THROW
+      // but not a HANG: a promise that never settles never reaches the
+      // finally, so the flag latches true and every later tick returns
+      // early. The loop then dies silently — no error, no cycle, and
+      // nothing downstream of the hang ever runs again. SelfStudyEngine
+      // already guards its steps this way; this loop did not.
       let memories = 0;
       try {
-        memories = (await ai.getMemories(2000)).length;
+        memories = (await withDeadline(ai.getMemories(2000), [])).length;
       } catch {
         // memory may be empty or unavailable — observe as 0
       }
@@ -166,7 +239,7 @@ export default class CognitiveLoop {
 
       // System environment facts refresh (storage estimate is async).
       try {
-        await system.refresh();
+        await withDeadline(system.refresh(), undefined);
       } catch {
         // environment refresh is best-effort
       }
@@ -327,6 +400,47 @@ export default class CognitiveLoop {
         }
       }
 
+      /* ------------- DERIVE THE NEXT OBJECTIVE FIRST ------------- */
+      // A project that already states what it is for does not need the
+      // user to restate it. Where the project carries real intent — the
+      // user's original request, a stated objective, or research queries
+      // — cognition derives the next objective from THAT and queues it
+      // through the existing WorkQueue, instead of interrupting to ask
+      // "what should I prioritize there?". Asking is only correct when
+      // there is genuinely nothing to derive from.
+      for (const project of activeProjects) {
+        const intent =
+          project.objective?.trim() ||
+          project.originalRequest?.trim() ||
+          (project.queries?.length ? `Research: ${project.queries.join(", ")}` : "");
+
+        // No stated intent, or work already queued for it — nothing to do.
+        if (!intent) continue;
+        if (project.items.length > 0) continue;
+        const alreadyQueued = openItems.some(
+          (item) => item.detail?.includes(`project:${project.id}`),
+        );
+        if (alreadyQueued) continue;
+
+        const nextObjective =
+          project.checkpoint?.nextAction?.trim() ||
+          `Advance “${project.name}”: ${intent.slice(0, 160)}`;
+
+        queue.add({
+          category: "NEXT",
+          title: nextObjective,
+          // The project id is recorded so the same objective is not
+          // queued again on the next tick, and so anything acting on the
+          // item can trace it back to the state it came from.
+          detail:
+            `Derived from persistent project state (project:${project.id}). ` +
+            `The project states its intent but has no open work item.`,
+          autonomy: 2,
+        });
+
+        suggestions.push(`Derived a next objective for “${project.name}” from its own stated intent.`);
+      }
+
       /* ---------------- PROACTIVE QUESTIONS ---------------- */
       // Ask only about unresolved, actionable state. One pending question
       // at a time keeps the conversation interruptible and the stable key
@@ -350,8 +464,29 @@ export default class CognitiveLoop {
             rememberAnswer: true,
           };
         } else {
+          // Never ask the user to give direction to a project LÉLU
+          // invented for her own bookkeeping.
+          //
+          // Orchestrator.persistCheckpoint() auto-creates a category
+          // project ("General", "Engineering") on ordinary chat turns and
+          // checkpoints it with pending:[] / nextAction:null hardcoded —
+          // so an auto-created project is STRUCTURALLY guaranteed to have
+          // zero items, which structurally guarantees this question. The
+          // user then sees "Engineering is active but has no defined next
+          // outcome" about a project they never created, generated one
+          // turn after LÉLU created it empty. A project the USER made and
+          // left empty is worth asking about; this is not.
           const directionProject = activeProjects.find(
-            (project) => project.items.length === 0 && !project.queries?.length,
+            (project) =>
+              project.items.length === 0 &&
+              !project.queries?.length &&
+              !(project.description ?? "").startsWith("Auto-created for") &&
+              // ...and nothing to derive an objective from. If the project
+              // states an objective or carries the user's original
+              // request, the loop above already turned that into queued
+              // work, so asking would be asking for what she was given.
+              !project.objective?.trim() &&
+              !project.originalRequest?.trim(),
           );
           if (directionProject) {
             question = {

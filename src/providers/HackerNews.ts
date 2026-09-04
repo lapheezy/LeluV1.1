@@ -7,6 +7,7 @@
 
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
+import { endpointUrl } from "../core/Endpoints";
 
 export default class HackerNewsProvider implements Provider {
 
@@ -29,7 +30,7 @@ export default class HackerNewsProvider implements Provider {
   readonly capabilities = ["news", "technology", "developer", "startups"] as const;
 
   private readonly endpoint =
-    "https://hn.algolia.com/api/v1/search";
+    endpointUrl("hackernews", "search");
 
   canSearch(query: string): boolean {
     return query.trim().length > 0;

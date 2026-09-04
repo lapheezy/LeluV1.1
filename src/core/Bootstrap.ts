@@ -36,6 +36,8 @@ import PersistentRuntime from "./proactive/PersistentRuntime";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { registerEarthTools } from "./earth/EarthTools";
 import { markPerf } from "./perf/StartupTelemetry";
+import ToolRegistry from "./tools/ToolRegistry";
+import AnthropicEngineeringAgent from "./engineering/AnthropicEngineeringAgent";
 
 // -- types ---------------------------------------------------------------
 
@@ -170,6 +172,22 @@ export default class Bootstrap {
       const tasks = TaskEngine.getInstance();
       // Earth Core tool registry (spatial capabilities for cognition)
       registerEarthTools();
+
+      // The remote engineering capability advertises itself ONLY when it
+      // can actually run. Both credentials must be present: the Anthropic
+      // key that starts the session, and a repository token for the clone.
+      // Declaring it available without them would put a capability in the
+      // catalogue that fails the moment cognition tries to use it.
+      try {
+        const engineering = AnthropicEngineeringAgent.getInstance().availability();
+        ToolRegistry.getInstance().updateAvailability("engineering.remote", engineering.available);
+        if (!engineering.available) {
+          console.info("[Bootstrap] Remote engineering agent unavailable —", engineering.reason);
+        }
+      } catch (error) {
+        ToolRegistry.getInstance().updateAvailability("engineering.remote", false);
+        console.warn("[Bootstrap] Remote engineering availability check failed (contained)", error);
+      }
       steps.push(step("services", "DONE",
         `OK — ${tasks.list().length} tasks, proactive + background engines started`));
     } catch (error) {
