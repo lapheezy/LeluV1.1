@@ -28,6 +28,7 @@ import UIStateStore, { type UIStateSnapshot } from "./UIStateStore";
 import ExecutiveRuntime from "../executive/ExecutiveRuntime";
 import EarthCore from "../earth/EarthCore";
 import SelfStudyEngine, { type CognitiveStateView } from "./SelfStudyEngine";
+import EngineeringWorkspace from "../engineering/EngineeringWorkspace";
 import {
   buildReport,
   inspectDocument,
@@ -85,6 +86,14 @@ export interface CognitiveContextSnapshot {
 
   /** Current autonomy level. */
   autonomyLevel: number;
+
+  /**
+   * Real state of the engineering sandbox, described by the workspace
+   * service from what the backend actually returned — whether a copy
+   * exists, how many files it holds, what changed, and how the last
+   * validation exited.
+   */
+  engineeringWorkspace: string;
 
   /** Current UI state (read live from UIStateStore singleton). */
   ui: UIStateSnapshot;
@@ -217,6 +226,9 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
     // cycle and mutates nothing, so assembling context for a chat request
     // can never be what produced the state it reports.
     selfStudy: SelfStudyEngine.getInstance().getCognitiveState(),
+    // describe() reads the workspace service's own state, which only
+    // ever moves in response to a real backend result.
+    engineeringWorkspace: EngineeringWorkspace.getInstance().describe(),
     checkpoints,
     builtAt: Date.now(),
   };
@@ -319,6 +331,16 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   }
 
   // Earth Core spatial context — LÉLU understands the globe she is showing.
+  // ENGINEERING WORKSPACE — real backend state, never a phrase.
+  //
+  // Every value here comes from what the engineering runtime actually
+  // returned: a copy exists because the server created one and reported
+  // its file count; validation passed because a process exited zero.
+  // Cognition can therefore tell "not copied" from "copied", and
+  // "validation failed" from "awaiting authorization", without being
+  // told in prose.
+  sections.push(`## ENGINEERING WORKSPACE\n${ctx.engineeringWorkspace}`);
+
   if (ctx.earthContext) sections.push(ctx.earthContext);
 
   // Recent real activity — what the runtime ACTUALLY did, newest last.

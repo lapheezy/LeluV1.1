@@ -11,20 +11,85 @@
 
 // Deno ships a node:path compatibility shim; resolve/sep give us the
 // same boundary semantics as the Node adapter.
-import { relative, resolve, sep } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import {
   WorkspaceBoundaryError,
   type EngineerAdapter,
   type EngineerCommandResult,
+  type EngineerDiffEntry,
   type EngineerDirEntry,
+  type EngineerWorkspace,
 } from "./engineerApi.ts";
 
 /** Directories never worth listing back to the client. */
-const SKIPPED_DIRS = new Set([".git", "node_modules", "dist", ".cache", ".vite"]);
+const SKIPPED_DIRS = new Set([".git", "node_modules", "dist", ".cache", ".vite", ".lelu-sandbox"]);
+
+/** Never copied into a workspace — mirrors the Node adapter exactly. */
+const NEVER_COPIED = new Set([
+  "node_modules",
+  ".git",
+  "dist",
+  ".cache",
+  ".vite",
+  ".lelu-sandbox",
+]);
 
 export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
   const workspaceRoot = Deno.cwd();
+  const sandboxRoot = join(workspaceRoot, ".lelu-sandbox");
   const startedAt = Date.now();
+
+  function workspaceDir(workspaceId: string): string {
+    const dir = resolve(sandboxRoot, workspaceId);
+    if (dir !== sandboxRoot && !dir.startsWith(sandboxRoot + sep)) {
+      throw new WorkspaceBoundaryError("Workspace id escapes the sandbox root.");
+    }
+    return dir;
+  }
+
+  function exists(target: string): boolean {
+    try {
+      Deno.statSync(target);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function resolveInWorkspace(workspaceId: string, targetPath: string): string {
+    const root = workspaceDir(workspaceId);
+    if (!exists(root)) {
+      throw new WorkspaceBoundaryError(
+        `Workspace "${workspaceId}" does not exist. Create it before reading or writing in it.`,
+      );
+    }
+    const absolute = resolve(root, targetPath);
+    if (absolute !== root && !absolute.startsWith(root + sep)) {
+      throw new WorkspaceBoundaryError("Path escapes the workspace copy.");
+    }
+    return absolute;
+  }
+
+  function walkProject(base: string, rel = ""): string[] {
+    const out: string[] = [];
+    let entries: Array<{ name: string; isDirectory: boolean; isFile: boolean }>;
+    try {
+      entries = [...Deno.readDirSync(join(base, rel))];
+    } catch {
+      return out;
+    }
+    for (const entry of entries) {
+      if (NEVER_COPIED.has(entry.name)) continue;
+      const next = rel ? `${rel}/${entry.name}` : entry.name;
+      if (entry.isDirectory) out.push(...walkProject(base, next));
+      else if (entry.isFile) out.push(next);
+    }
+    return out;
+  }
+
+  function countLines(text: string): number {
+    return text.length === 0 ? 0 : text.split("\n").length;
+  }
 
   function resolveWithinWorkspace(targetPath: string): string {
     const absoluteTarget = resolve(workspaceRoot, targetPath);
@@ -34,7 +99,11 @@ export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
     return absoluteTarget;
   }
 
-  async function runCommand(command: string, timeoutMs: number): Promise<EngineerCommandResult> {
+  async function runCommand(
+    command: string,
+    timeoutMs: number,
+    cwd?: string,
+  ): Promise<EngineerCommandResult> {
     const started = Date.now();
     try {
       const cmd = new Deno.Command("bash", {
@@ -115,5 +184,134 @@ export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
       startedAt,
     }),
     runCommand,
+
+    /* ---------------- isolated project copies ---------------- */
+
+    sandboxRoot,
+    resolveInWorkspace,
+
+    async createWorkspace(workspaceId) {
+      const root = workspaceDir(workspaceId);
+      try {
+        Deno.removeSync(root, { recursive: true });
+      } catch {
+        /* nothing to remove */
+      }
+      Deno.mkdirSync(root, { recursive: true });
+
+      const files = walkProject(workspaceRoot);
+      for (const rel of files) {
+        const to = join(root, rel);
+        Deno.mkdirSync(dirname(to), { recursive: true });
+        Deno.copyFileSync(join(workspaceRoot, rel), to);
+      }
+
+      // Share dependencies by symlink rather than copying them.
+      const modules = join(workspaceRoot, "node_modules");
+      if (exists(modules)) {
+        try {
+          Deno.symlinkSync(modules, join(root, "node_modules"), { type: "dir" });
+        } catch {
+          /* absent on purpose; failures surface honestly */
+        }
+      }
+
+      return { id: workspaceId, root, createdAt: Date.now(), fileCount: files.length };
+    },
+
+    listWorkspaces() {
+      if (!exists(sandboxRoot)) return [];
+      const out: EngineerWorkspace[] = [];
+      for (const entry of Deno.readDirSync(sandboxRoot)) {
+        if (!entry.isDirectory) continue;
+        const root = join(sandboxRoot, entry.name);
+        let createdAt = 0;
+        try {
+          const info = Deno.statSync(root);
+          createdAt = info.birthtime?.getTime() ?? info.mtime?.getTime() ?? 0;
+        } catch {
+          createdAt = 0;
+        }
+        out.push({ id: entry.name, root, createdAt, fileCount: walkProject(root).length });
+      }
+      return out;
+    },
+
+    removeWorkspace(workspaceId) {
+      try {
+        Deno.removeSync(workspaceDir(workspaceId), { recursive: true });
+      } catch {
+        /* already gone */
+      }
+    },
+
+    deleteFile(absolutePath) {
+      try {
+        Deno.removeSync(absolutePath);
+      } catch {
+        /* already gone */
+      }
+    },
+
+    async diffWorkspace(workspaceId) {
+      const root = workspaceDir(workspaceId);
+      if (!exists(root)) {
+        throw new WorkspaceBoundaryError(`Workspace "${workspaceId}" does not exist.`);
+      }
+      const copyFiles = new Set(walkProject(root));
+      const sourceFiles = new Set(walkProject(workspaceRoot));
+      const changes: EngineerDiffEntry[] = [];
+
+      for (const rel of copyFiles) {
+        const copyText = Deno.readTextFileSync(join(root, rel));
+        if (!sourceFiles.has(rel)) {
+          changes.push({ path: rel, status: "added", addedLines: countLines(copyText), removedLines: 0 });
+          continue;
+        }
+        const sourceText = Deno.readTextFileSync(join(workspaceRoot, rel));
+        if (sourceText === copyText) continue;
+        changes.push({
+          path: rel,
+          status: "modified",
+          addedLines: countLines(copyText),
+          removedLines: countLines(sourceText),
+        });
+      }
+      for (const rel of sourceFiles) {
+        if (copyFiles.has(rel)) continue;
+        changes.push({
+          path: rel,
+          status: "deleted",
+          addedLines: 0,
+          removedLines: countLines(Deno.readTextFileSync(join(workspaceRoot, rel))),
+        });
+      }
+      return changes.sort((a, b) => a.path.localeCompare(b.path));
+    },
+
+    async applyWorkspace(workspaceId, paths) {
+      const root = workspaceDir(workspaceId);
+      const changes = await this.diffWorkspace(workspaceId);
+      const wanted = new Set(paths);
+      const selected = changes.filter((change) => wanted.size === 0 || wanted.has(change.path));
+
+      const applied: string[] = [];
+      for (const change of selected) {
+        const target = join(workspaceRoot, change.path);
+        if (change.status === "deleted") {
+          try {
+            Deno.removeSync(target);
+          } catch {
+            /* already gone */
+          }
+          applied.push(change.path);
+          continue;
+        }
+        Deno.mkdirSync(dirname(target), { recursive: true });
+        Deno.copyFileSync(join(root, change.path), target);
+        applied.push(change.path);
+      }
+      return applied;
+    },
   };
 }

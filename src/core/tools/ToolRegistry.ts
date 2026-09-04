@@ -537,6 +537,104 @@ export default class ToolRegistry {
         available: false,
         executionRoute: "WorkspaceRuntime.run",
       },
+
+      /* ---- isolated project copies (real files, real commands) ----
+         Availability is decided at runtime by the engineering runtime
+         probe, not declared here: these can only work where a real
+         development runtime is serving /api/engineer. */
+      {
+        id: "project.copy",
+        name: "Copy Project To Sandbox",
+        description:
+          "Create an isolated copy of the real project in the engineering sandbox. " +
+          "All edits happen in the copy; the real project is never modified by an edit.",
+        category: "Engineering",
+        permissions: ["WRITE", "EXECUTE"],
+        riskLevel: 1,
+        available: false,
+        executionRoute: "EngineeringWorkspace.createCopy",
+        verificationMethod: "server returns the on-disk file count of the copy",
+      },
+      {
+        id: "project.list",
+        name: "List Project Files",
+        description:
+          "List files and directories inside the sandbox copy. Use '.' for the project root.",
+        category: "Engineering",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: false,
+        executionRoute: "EngineeringWorkspace.listDir",
+      },
+      {
+        id: "project.read",
+        name: "Read Project File",
+        description: "Read the real contents of a file inside the sandbox copy.",
+        category: "Engineering",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: false,
+        executionRoute: "EngineeringWorkspace.readFile",
+      },
+      {
+        id: "project.write",
+        name: "Write Project File",
+        description:
+          "Write a file inside the sandbox copy. Supply the COMPLETE new file contents. " +
+          "This never touches the real project.",
+        category: "Engineering",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: false,
+        executionRoute: "EngineeringWorkspace.writeFile",
+      },
+      {
+        id: "project.delete",
+        name: "Delete Project File",
+        description: "Delete a file inside the sandbox copy. This never touches the real project.",
+        category: "Engineering",
+        permissions: ["WRITE", "DESTRUCTIVE"],
+        riskLevel: 2,
+        available: false,
+        executionRoute: "EngineeringWorkspace.deleteFile",
+      },
+      {
+        id: "project.validate",
+        name: "Validate Project Copy",
+        description:
+          "Run a real typecheck, test, build or inspect command INSIDE the sandbox copy and " +
+          "return its actual exit code and output.",
+        category: "Engineering",
+        permissions: ["EXECUTE"],
+        riskLevel: 2,
+        available: false,
+        executionRoute: "EngineeringWorkspace.validate",
+        verificationMethod: "process exit code and captured stdout/stderr",
+      },
+      {
+        id: "project.diff",
+        name: "Diff Project Copy",
+        description:
+          "Compare the sandbox copy against the real project and list every file that differs.",
+        category: "Engineering",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: false,
+        executionRoute: "EngineeringWorkspace.diff",
+      },
+      {
+        id: "project.apply",
+        name: "Apply Changes To Real Project",
+        description:
+          "Apply the validated change set from the sandbox copy to the REAL project. " +
+          "Only available while the signed-in user has explicitly authorized this workspace.",
+        category: "Engineering",
+        permissions: ["WRITE", "EXTERNAL_ACTION"],
+        riskLevel: 4,
+        available: false,
+        executionRoute: "EngineeringWorkspace.apply",
+        verificationMethod: "server returns the list of files actually written",
+      },
     ];
 
     for (const tool of builtins) {

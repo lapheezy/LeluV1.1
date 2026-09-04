@@ -11,10 +11,28 @@
  *
  * Endpoints:
  *   GET  /api/engineer/status   → runtime capability report
- *   POST /api/engineer/command  → { operation } (whitelisted)
- *   POST /api/engineer/read     → { path }       (workspace-bounded)
- *   POST /api/engineer/write    → { path, content } (workspace-bounded)
- *   POST /api/engineer/list     → { path }       (workspace-bounded)
+ *   POST /api/engineer/command  → { operation, workspace? } (whitelisted)
+ *   POST /api/engineer/read     → { path, workspace? }      (bounded)
+ *   POST /api/engineer/write    → { path, content, workspace? } (bounded)
+ *   POST /api/engineer/list     → { path, workspace? }      (bounded)
+ *   POST /api/engineer/delete   → { path, workspace }  (COPY ONLY)
+ *   POST /api/engineer/workspace→ { action, ... }      (isolated copies)
+ *
+ * WORKSPACE COPIES — the isolation boundary.
+ *
+ * Without a `workspace` field every operation targets the live project,
+ * which is the right behaviour for inspection but means an edit would
+ * change the running source. A workspace is a REAL directory holding a
+ * REAL copy of the project, created by `workspace:create`; when a
+ * request names one, every path resolves inside that copy and commands
+ * run with it as their working directory.
+ *
+ * Two rules keep the source project safe:
+ *   • write and delete REQUIRE a workspace. The live project is never
+ *     modified by an ordinary edit — only by an explicit apply.
+ *   • apply requires `confirm: true` AND a grant nonce this server
+ *     issued for that exact workspace, so a change reaches the real
+ *     project only through a deliberate, separately authorized step.
  *
  * IMPORTANT: connect-style servers (Vite's middleware stack) rewrite
  * `req.url` to the mount-point remainder before invoking a handler,
@@ -69,7 +87,28 @@ export interface EngineerAdapter {
   listDir: (absolutePath: string) => Promise<EngineerDirEntry[]> | EngineerDirEntry[];
   /** Live runtime facts (engine + versions + cwd) reported by /status. */
   runtimeInfo: () => EngineerRuntimeInfo;
-  runCommand: (command: string, timeoutMs: number) => Promise<EngineerCommandResult>;
+  runCommand: (
+    command: string,
+    timeoutMs: number,
+    /** Working directory; defaults to the workspace root. */
+    cwd?: string,
+  ) => Promise<EngineerCommandResult>;
+
+  /* ---- isolated project copies ---- */
+
+  /** Absolute path of the directory holding all workspace copies. */
+  sandboxRoot: string;
+  /** Resolve a path INSIDE a named workspace copy; throw on escape. */
+  resolveInWorkspace: (workspaceId: string, targetPath: string) => string;
+  /** Real recursive copy of the project into a new workspace. */
+  createWorkspace: (workspaceId: string) => Promise<EngineerWorkspace>;
+  listWorkspaces: () => EngineerWorkspace[];
+  removeWorkspace: (workspaceId: string) => void;
+  deleteFile: (absolutePath: string) => void;
+  /** Compare a workspace against the source project, file by file. */
+  diffWorkspace: (workspaceId: string) => Promise<EngineerDiffEntry[]>;
+  /** Copy the named changed files from the workspace back to the source. */
+  applyWorkspace: (workspaceId: string, paths: string[]) => Promise<string[]>;
 }
 
 /** One entry of a workspace-bounded directory listing. */
@@ -90,6 +129,25 @@ export interface EngineerRuntimeInfo {
   startedAt: number;
 }
 
+/** One isolated copy of the project that LÉLU may modify. */
+export interface EngineerWorkspace {
+  id: string;
+  /** Absolute path of the copy. */
+  root: string;
+  createdAt: number;
+  /** Files copied when it was created. */
+  fileCount: number;
+}
+
+/** One changed file, as a real comparison against the source project. */
+export interface EngineerDiffEntry {
+  path: string;
+  status: "added" | "modified" | "deleted";
+  /** Unified-ish line counts, computed from the real contents. */
+  addedLines: number;
+  removedLines: number;
+}
+
 /** Whitelisted operations — the only commands the server will ever run. */
 export const ENGINEER_OPERATIONS: Record<string, string> = {
   typecheck: "bun tsc -b --noEmit",
@@ -106,7 +164,45 @@ const ROUTES = [
   "/api/engineer/read",
   "/api/engineer/write",
   "/api/engineer/list",
+  "/api/engineer/delete",
+  "/api/engineer/workspace",
 ] as const;
+
+/**
+ * Apply grants issued by this server, keyed by workspace id.
+ *
+ * A grant is a single-use nonce handed out by `workspace:request-apply`
+ * and consumed by `workspace:apply`. It does NOT decide whether the
+ * user authorized anything — that judgement belongs to the client,
+ * which holds the authenticated identity. Its job is narrower and
+ * still worth having: it makes applying a change a distinct, explicit
+ * second call that cannot happen as a side effect of an edit.
+ */
+const applyGrants = new Map<string, { nonce: string; issuedAt: number }>();
+const GRANT_TTL_MS = 10 * 60 * 1000;
+
+function issueGrant(workspaceId: string): string {
+  const nonce = `grant_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  applyGrants.set(workspaceId, { nonce, issuedAt: Date.now() });
+  return nonce;
+}
+
+function consumeGrant(workspaceId: string, nonce: string): boolean {
+  const held = applyGrants.get(workspaceId);
+  if (!held) return false;
+  applyGrants.delete(workspaceId);
+  if (Date.now() - held.issuedAt > GRANT_TTL_MS) return false;
+  return held.nonce === nonce;
+}
+
+/** Workspace ids are ours to choose — keep them boring and safe. */
+function safeWorkspaceId(raw: unknown): string {
+  const value = String(raw ?? "").trim();
+  if (!/^[A-Za-z0-9_-]{1,64}$/.test(value)) {
+    throw new WorkspaceBoundaryError(`Invalid workspace id: ${JSON.stringify(value)}`);
+  }
+  return value;
+}
 
 /* ------------------------------------------------------------------ */
 /* request helpers                                                     */
@@ -323,7 +419,13 @@ export function createEngineerApi(adapter: EngineerAdapter): {
             const timeoutMs = Number.isFinite(Number(payload.timeoutMs))
               ? Number(payload.timeoutMs)
               : DEFAULT_TIMEOUT_MS;
-            const result = await adapter.runCommand(command, timeoutMs);
+            // Validation runs INSIDE the copy when one is named, so a
+            // typecheck/test/build reports on the changed code rather
+            // than on the untouched source project.
+            const cwd = payload.workspace
+              ? adapter.resolveInWorkspace(safeWorkspaceId(payload.workspace), ".")
+              : undefined;
+            const result = await adapter.runCommand(command, timeoutMs, cwd);
             sendJson(res, { ok: result.ok, status: result.status, stdout: result.stdout, stderr: result.stderr, durationMs: result.durationMs });
             return;
           }
@@ -331,7 +433,9 @@ export function createEngineerApi(adapter: EngineerAdapter): {
           /* ---- POST /api/engineer/read (workspace-bounded) ---- */
           if (route === "/api/engineer/read") {
             const filePath = String(payload.path ?? "");
-            const absolutePath = adapter.resolve(filePath);
+            const absolutePath = payload.workspace
+              ? adapter.resolveInWorkspace(safeWorkspaceId(payload.workspace), filePath)
+              : adapter.resolve(filePath);
             const content = await adapter.readFile(absolutePath);
             sendJson(res, { ok: true, path: filePath, content });
             return;
@@ -340,19 +444,143 @@ export function createEngineerApi(adapter: EngineerAdapter): {
           /* ---- POST /api/engineer/list (workspace-bounded) ---- */
           if (route === "/api/engineer/list") {
             const dirPath = String(payload.path ?? "");
-            const absolutePath = adapter.resolve(dirPath);
+            const absolutePath = payload.workspace
+              ? adapter.resolveInWorkspace(safeWorkspaceId(payload.workspace), dirPath)
+              : adapter.resolve(dirPath);
             const entries = await adapter.listDir(absolutePath);
             sendJson(res, { ok: true, path: dirPath, entries });
             return;
           }
 
-          /* ---- POST /api/engineer/write (workspace-bounded) ---- */
+          /* ---- POST /api/engineer/write (COPY ONLY) ---- */
           if (route === "/api/engineer/write") {
             const filePath = String(payload.path ?? "");
             const content = String(payload.content ?? "");
-            const absolutePath = adapter.resolve(filePath);
+
+            // An edit NEVER touches the live project.
+            //
+            // Before workspaces existed this wrote straight into
+            // process.cwd(), so any edit changed the running source with
+            // no copy, no diff and no authorization step. Reaching the
+            // real project is now exclusively the job of workspace:apply.
+            if (!payload.workspace) {
+              sendJson(
+                res,
+                {
+                  ok: false,
+                  error:
+                    "Writes require a workspace copy. Create one with " +
+                    "POST /api/engineer/workspace {action:'create'} and pass its id. " +
+                    "The source project is only changed by workspace:apply.",
+                },
+                403,
+              );
+              return;
+            }
+
+            const absolutePath = adapter.resolveInWorkspace(
+              safeWorkspaceId(payload.workspace),
+              filePath,
+            );
             await adapter.writeFile(absolutePath, content);
-            sendJson(res, { ok: true, path: filePath });
+            sendJson(res, { ok: true, path: filePath, workspace: payload.workspace });
+            return;
+          }
+
+          /* ---- POST /api/engineer/delete (COPY ONLY) ---- */
+          if (route === "/api/engineer/delete") {
+            if (!payload.workspace) {
+              sendJson(
+                res,
+                { ok: false, error: "Deletes require a workspace copy; the source project is never deleted from." },
+                403,
+              );
+              return;
+            }
+            const filePath = String(payload.path ?? "");
+            const absolutePath = adapter.resolveInWorkspace(
+              safeWorkspaceId(payload.workspace),
+              filePath,
+            );
+            adapter.deleteFile(absolutePath);
+            sendJson(res, { ok: true, path: filePath, workspace: payload.workspace });
+            return;
+          }
+
+          /* ---- POST /api/engineer/workspace ---- */
+          if (route === "/api/engineer/workspace") {
+            const action = String(payload.action ?? "");
+
+            if (action === "list") {
+              sendJson(res, { ok: true, workspaces: adapter.listWorkspaces() });
+              return;
+            }
+
+            if (action === "create") {
+              const id = safeWorkspaceId(payload.workspace ?? `ws-${Date.now().toString(36)}`);
+              const workspace = await adapter.createWorkspace(id);
+              sendJson(res, { ok: true, workspace });
+              return;
+            }
+
+            if (action === "remove") {
+              const id = safeWorkspaceId(payload.workspace);
+              adapter.removeWorkspace(id);
+              applyGrants.delete(id);
+              sendJson(res, { ok: true, workspace: id, removed: true });
+              return;
+            }
+
+            if (action === "diff") {
+              const id = safeWorkspaceId(payload.workspace);
+              const changes = await adapter.diffWorkspace(id);
+              sendJson(res, { ok: true, workspace: id, changes });
+              return;
+            }
+
+            if (action === "request-apply") {
+              const id = safeWorkspaceId(payload.workspace);
+              const changes = await adapter.diffWorkspace(id);
+              if (changes.length === 0) {
+                sendJson(res, { ok: false, error: "Nothing to apply: the workspace matches the source project." }, 400);
+                return;
+              }
+              sendJson(res, { ok: true, workspace: id, changes, grant: issueGrant(id) });
+              return;
+            }
+
+            if (action === "apply") {
+              const id = safeWorkspaceId(payload.workspace);
+              // Two independent conditions, both required. `confirm`
+              // makes the intent explicit; the grant proves this is the
+              // second half of a request-apply that already reported
+              // exactly which files would change.
+              if (payload.confirm !== true) {
+                sendJson(res, { ok: false, error: "Apply requires confirm:true." }, 403);
+                return;
+              }
+              if (!consumeGrant(id, String(payload.grant ?? ""))) {
+                sendJson(
+                  res,
+                  {
+                    ok: false,
+                    error:
+                      "Apply requires a valid, unused grant from workspace:request-apply. " +
+                      "Nothing was written to the source project.",
+                  },
+                  403,
+                );
+                return;
+              }
+              const requested = Array.isArray(payload.paths)
+                ? (payload.paths as unknown[]).map((entry) => String(entry))
+                : [];
+              const applied = await adapter.applyWorkspace(id, requested);
+              sendJson(res, { ok: true, workspace: id, applied });
+              return;
+            }
+
+            sendJson(res, { ok: false, error: `Unknown workspace action: ${action}` }, 400);
             return;
           }
 
