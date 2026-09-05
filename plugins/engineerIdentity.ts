@@ -45,15 +45,36 @@ export interface IdentityCheck {
   status: number;
 }
 
+/**
+ * The project's OWN Supabase configuration.
+ *
+ * The repository already names these — env.example declares
+ * VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY, and
+ * SupabasePersistence reads exactly those. This module previously asked
+ * for SUPABASE_URL / SUPABASE_ANON_KEY first, which is a DIFFERENT pair
+ * of names: configuring the app would not have configured identity
+ * verification, and the refusal message sent anyone reading it to set
+ * variables the app itself ignores.
+ *
+ * Canonical names first, then the unprefixed server-side equivalents
+ * for a runtime that has no Vite build to inject VITE_*.
+ */
 function config(): { url: string; anonKey: string } | null {
   if (typeof process === "undefined") return null;
-  const url = (process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "").trim();
-  const anonKey = (
-    process.env.SUPABASE_ANON_KEY ??
-    process.env.VITE_SUPABASE_ANON_KEY ??
-    process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
-    ""
-  ).trim();
+  const pick = (...names: string[]): string => {
+    for (const name of names) {
+      const value = process.env[name];
+      if (typeof value === "string" && value.trim()) return value.trim();
+    }
+    return "";
+  };
+  const url = pick("VITE_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_URL");
+  const anonKey = pick(
+    "VITE_SUPABASE_PUBLISHABLE_KEY",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    "SUPABASE_PUBLISHABLE_KEY",
+    "SUPABASE_ANON_KEY",
+  );
   if (!url || !anonKey) return null;
   return { url: url.replace(/\/+$/, ""), anonKey };
 }
@@ -88,8 +109,9 @@ export async function verifyRequestIdentity(req: {
       status: 503,
       reason:
         "This runtime cannot verify who is asking: no Supabase project is configured " +
-        "(SUPABASE_URL and SUPABASE_ANON_KEY). Applying changes to the real project is " +
-        "refused. Sandbox work does not require identity.",
+        "(VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY — the same names the app " +
+        "itself uses, see env.example). Applying changes to the real project is refused. " +
+        "Sandbox work does not require identity.",
     };
   }
 

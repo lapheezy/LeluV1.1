@@ -1,4 +1,5 @@
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
+import { resolveFirst } from "../resolveEnv";
 import AgentEventBus, { type AgentEvent } from "../agent/AgentEvents";
 import AgentStore from "../agents/AgentStore";
 import type { LeluAgent } from "../agents/AgentTypes";
@@ -113,11 +114,18 @@ export default class SupabasePersistence {
       return this.status;
     }
 
-    const env = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env ?? {};
-    const firstConfigured = (...values: Array<string | undefined>): string =>
-      values.find((value) => typeof value === "string" && value.trim().length > 0)?.trim() ?? "";
-    const url = firstConfigured(env.VITE_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_URL);
-    const publishableKey = firstConfigured(env.VITE_SUPABASE_PUBLISHABLE_KEY, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+    // Resolve through the canonical resolver, not import.meta.env alone.
+    //
+    // import.meta.env exists only under Vite, so a runtime without a
+    // Vite build — the standalone server, a Node integration test, the
+    // Deno entry — could never see the configuration and always fell
+    // through to "disabled". The variable NAMES are unchanged
+    // (env.example declares VITE_SUPABASE_URL and
+    // VITE_SUPABASE_PUBLISHABLE_KEY); only the lookup is widened, so an
+    // existing Vite deployment behaves exactly as before.
+    const url = resolveFirst("VITE_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL") ?? "";
+    const publishableKey =
+      resolveFirst("VITE_SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") ?? "";
     if (!url || !publishableKey) {
       this.status = "disabled";
       this.emitAuthState();
