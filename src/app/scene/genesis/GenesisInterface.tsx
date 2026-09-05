@@ -90,6 +90,7 @@ const MODULE_RENDERERS: ModuleRenderers = {
   earth: ({ onClose }) => <GenesisEarthCore onClose={onClose} />, 
 };
 import CognitiveLoop from "../../../core/cognition/CognitiveLoop";
+import AvatarPresenceBridge from "../../../core/avatar/AvatarPresenceBridge";
 import VisualInterface from "./VisualInterface";
 import useVisual from "../../../core/visual/useVisual";
 import VisualEngine from "../../../core/visual/VisualEngine";
@@ -384,11 +385,18 @@ export default function GenesisInterface() {
     });
     presence.start();
 
+    // The avatar follows LIVE cognition from here on: the bridge
+    // subscribes to the thinking/speaking/listening signals AIService
+    // already emits during a real turn. Nothing else drives it, so the
+    // avatar cannot display a state that did not occur.
+    AvatarPresenceBridge.getInstance().start();
+
     // Clean stale cosmos entities periodically
     const cleanupInterval = setInterval(() => cosmosRegistry.cleanStale(), 300_000);
 
     return () => {
       presence.stop();
+      AvatarPresenceBridge.getInstance().stop();
       clearInterval(cleanupInterval);
     };
   }, [openPanel, state.activePanel]);

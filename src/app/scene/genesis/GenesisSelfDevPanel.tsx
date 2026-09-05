@@ -196,7 +196,7 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
   }
 
   function integrateProposal(proposalId: string) {
-    setLastLoopRun(loop.integrate(proposalId));
+    void loop.integrate(proposalId).then(setLastLoopRun);
     refresh();
   }
 

@@ -35,6 +35,7 @@ import SelfModel from "../cognition/SelfModel";
 import AutonomyGate from "../cognition/AutonomyGate";
 import type { SandboxRunResult } from "../engineering/SandboxRuntime";
 import type { WorkspaceCommandResult } from "../engineering/WorkspaceRuntime";
+import SelfTestRunner from "./SelfTestRunner";
 
 export interface LoopEdit {
   path: string;
@@ -242,7 +243,7 @@ export default class SelfDevelopmentLoop {
    * self-model + engineering memory. Does NOT write production source —
    * that is `applyCandidate()`, gated at autonomy L5.
    */
-  public integrate(proposalId: string): LoopRunResult {
+  public async integrate(proposalId: string): Promise<LoopRunResult> {
     const proposal = this.queue.get(proposalId);
     const steps: LoopStep[] = [];
     const started = Date.now();
@@ -261,25 +262,73 @@ export default class SelfDevelopmentLoop {
       return this.lastRun;
     }
 
+    /* RUN THE REAL SELF-TEST SUITE — do not describe one.
+       These two fields were the hardcoded strings "Self-test suite +
+       sandbox tests" and "Green at development time": a version record
+       that CLAIMED tests had run and passed, written without running
+       anything. The suite exists (SelfTestRunner) and was simply never
+       called from here. */
+    const suite = await SelfTestRunner.getInstance().run();
+    const failed = suite.results.filter((result) => !result.passed);
+    const testSummary =
+      `SelfTestRunner: ${suite.summary.passed}/${suite.summary.total} passed` +
+      (failed.length ? ` — failing: ${failed.map((f) => f.name).join(", ")}` : "");
+    this.addStep(
+      steps,
+      "self-test",
+      suite.healthy ? "done" : "failed",
+      testSummary,
+    );
+
     const version = this.versions.recordVersion({
       version: `1.${(this.versions.listVersions().length + 1).toFixed(1)}`,
       changeDescription: proposal.title,
       filesChanged: Object.keys(this.selfCode.workingCopies()),
-      tests: "Self-test suite + sandbox tests",
-      results: "Green at development time",
-      knownIssues: "None recorded",
+      // Measured, not asserted.
+      tests: `SelfTestRunner (${suite.summary.total} checks) + sandbox tests`,
+      results: testSummary,
+      knownIssues: failed.length
+        ? failed.map((f) => `${f.name}: ${f.detail}`).join("; ")
+        : "None recorded",
       rollbackSnapshotId: proposal.rollbackSnapshotId,
       improvementId: proposalId,
     });
     this.addStep(steps, "version", "done", `Recorded v${version.version}.`);
 
+    /* A CAPABILITY BECOMES AVAILABLE BY PASSING, NOT BY INTEGRATING.
+       This previously set status:"available" unconditionally the moment
+       a proposal integrated — so a capability was marked operational
+       because a proposal existed and some code changed, which is
+       exactly the claim the registry is supposed to be able to deny.
+       The suite result now decides, and the evidence is recorded with
+       it so the status can be justified later. */
     if (proposal.capabilityId) {
       const capability = this.registry.get(proposal.capabilityId);
-      if (capability && capability.status !== "available") {
-        this.registry.update(proposal.capabilityId, { status: "available" });
-        this.addStep(steps, "capability", "done", `Capability “${capability.name}” → available.`);
+      if (!capability) {
+        this.addStep(steps, "capability", "skipped", `Unknown capability “${proposal.capabilityId}”.`);
+      } else if (suite.healthy) {
+        this.registry.update(proposal.capabilityId, {
+          status: "available",
+          limitations: [`Verified by SelfTestRunner at v${version.version}: ${testSummary}`],
+        });
+        this.addStep(
+          steps,
+          "capability",
+          "done",
+          `Capability “${capability.name}” → available (verified: ${testSummary}).`,
+        );
       } else {
-        this.addStep(steps, "capability", "skipped", `Capability “${proposal.capabilityId}” unchanged.`);
+        // Integrated but not verified is "partial", with the real reason.
+        this.registry.update(proposal.capabilityId, {
+          status: "partial",
+          limitations: [`Integrated at v${version.version} but NOT verified — ${testSummary}`],
+        });
+        this.addStep(
+          steps,
+          "capability",
+          "failed",
+          `Capability “${capability.name}” → partial: the self-test suite did not pass (${testSummary}).`,
+        );
       }
     } else {
       this.addStep(steps, "capability", "skipped", "No targeted capability.");
@@ -289,8 +338,10 @@ export default class SelfDevelopmentLoop {
     this.memory.record({
       kind: "upgrade",
       topic: proposal.title,
-      summary: `Integrated “${proposal.title}” (v${version.version}).`,
-      outcome: "success",
+      summary:
+        `Integrated “${proposal.title}” (v${version.version}). ${testSummary}` +
+        (suite.healthy ? "" : " Capability left PARTIAL — self-tests did not pass."),
+      outcome: suite.healthy ? "success" : "failure",
       improvementId: proposalId,
       version: version.version,
     });
