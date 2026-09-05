@@ -31,18 +31,90 @@ import {
   toolPermitted,
 } from "../tools/ToolDispatcher";
 import WorkflowStore, {
+  type StepCondition,
   type StepExecution,
   type WorkflowDefinition,
+  type WorkflowEscalation,
   type WorkflowExecution,
   type WorkflowInputValues,
   type WorkflowOrigin,
 } from "./WorkflowStore";
+
+/* ---- hard ceilings: control flow must be bounded by construction ---- */
+
+/** Attempts for one step, including the first. */
+export const MAX_ATTEMPTS = 5;
+/** Iterations of one looping step. */
+export const MAX_ITERATIONS = 10;
+/** Total tool invocations in one run, across every step and iteration. */
+export const MAX_STEP_EXECUTIONS = 100;
+
+const clamp = (value: number, low: number, high: number): number =>
+  Math.max(low, Math.min(high, Math.floor(Number.isFinite(value) ? value : low)));
+
+/**
+ * Evaluate a branch/loop/termination condition against REAL results.
+ *
+ * There is no expression language here and nothing is evaluated as
+ * code: a condition names a step and compares its recorded status or
+ * output to a literal. That is what makes a workflow LÉLU wrote
+ * herself safe to execute — the control flow is data the engine
+ * interprets, never logic the engine runs.
+ *
+ * Returns the reason as well as the verdict, so a skipped step can say
+ * why it was skipped instead of just that it was.
+ */
+export function evaluateCondition(
+  condition: StepCondition,
+  completed: Map<string, StepExecution>,
+): { met: boolean; detail: string } {
+  const target = completed.get(condition.step);
+  if (!target) {
+    return { met: false, detail: `step "${condition.step}" has not run` };
+  }
+  const output = target.output ?? "";
+  const value = condition.value ?? "";
+  const has = output.toLowerCase().includes(value.toLowerCase());
+
+  switch (condition.operator) {
+    case "succeeded":
+      return { met: target.status === "succeeded", detail: `"${condition.step}" is ${target.status}` };
+    case "failed":
+      return {
+        met: target.status === "failed" || target.status === "escalated",
+        detail: `"${condition.step}" is ${target.status}`,
+      };
+    case "contains":
+      return { met: has, detail: `"${condition.step}" output ${has ? "contains" : "does not contain"} “${value}”` };
+    case "not-contains":
+      return { met: !has, detail: `"${condition.step}" output ${has ? "contains" : "does not contain"} “${value}”` };
+    case "equals":
+      return {
+        met: output.trim() === value.trim(),
+        detail: `"${condition.step}" output ${output.trim() === value.trim() ? "equals" : "differs from"} “${value}”`,
+      };
+    case "empty":
+      return { met: output.trim() === "", detail: `"${condition.step}" output is ${output.trim() ? "not empty" : "empty"}` };
+    case "not-empty":
+      return { met: output.trim() !== "", detail: `"${condition.step}" output is ${output.trim() ? "not empty" : "empty"}` };
+    default:
+      // An unknown operator is never silently treated as true.
+      return { met: false, detail: `unsupported operator "${String(condition.operator)}"` };
+  }
+}
 
 /** Interpolate `{{steps.<id>.output}}` against completed steps. */
 export function resolveArguments(
   args: Record<string, unknown>,
   completed: Map<string, StepExecution>,
   inputs: WorkflowInputValues = {},
+  /**
+   * The step being resolved, when it is a LOOP step. A loop step may
+   * reference its own previous iteration to revise its work; on the
+   * first iteration there is nothing there yet, and that is an empty
+   * start rather than a missing dependency.
+   */
+  selfStepId?: string,
 ): { resolved: Record<string, unknown>; missing: string[] } {
   const missing: string[] = [];
 
@@ -57,6 +129,7 @@ export function resolveArguments(
     );
     return withInputs.replace(/\{\{\s*steps\.([A-Za-z0-9_-]+)\.output\s*\}\}/g, (_match, stepId: string) => {
       const step = completed.get(stepId);
+      if (!step && stepId === selfStepId) return "";
       if (!step || step.status !== "succeeded") {
         // A reference to a step that did not succeed is recorded, not
         // silently replaced with an empty string — that would send the
@@ -219,18 +292,43 @@ export default class WorkflowEngine {
     const completed = new Map<string, StepExecution>();
     const taskId = `workflow-${execution.id}`;
 
+    /* ---- run-level control flow, all bounded, all recorded ---- */
+    let terminated: { stepId: string; reason: string } | null = null;
+    let escalation: WorkflowEscalation | null = null;
+    let totalExecutions = 0;
+
     for (const stepId of order) {
       const step = byId.get(stepId)!;
-      const record: StepExecution = {
+      execution.pendingStepIds = execution.pendingStepIds.filter((id) => id !== stepId);
+
+      const record = (): StepExecution => ({
         stepId,
         name: step.name,
         tool: step.tool,
         status: "pending",
         input: {},
         output: "",
+      });
+      const park = (status: StepExecution["status"], reason: string): void => {
+        const entry = record();
+        entry.status = status;
+        entry.reason = reason;
+        execution.steps.push(entry);
+        completed.set(stepId, entry);
+        this.store.saveExecution({ ...execution });
       };
-      execution.pendingStepIds = execution.pendingStepIds.filter((id) => id !== stepId);
-      execution.currentStepId = stepId;
+
+      // The run already ended — deliberately, or handed to a person.
+      // The remaining steps are recorded as not run, with the real
+      // reason, never as if they had executed.
+      if (terminated) {
+        park("skipped", terminated.reason);
+        continue;
+      }
+      if (escalation) {
+        park("skipped", `Not run: the workflow was escalated at "${escalation.stepId}".`);
+        continue;
+      }
 
       // A dependency that did not succeed means this step's inputs do not
       // exist. Running it anyway would produce a confident wrong answer.
@@ -238,56 +336,168 @@ export default class WorkflowEngine {
         (id) => completed.get(id)?.status !== "succeeded",
       );
       if (failedDependency) {
-        record.status = "skipped";
-        record.reason = `Depends on "${failedDependency}", which did not succeed.`;
-        execution.steps.push(record);
-        completed.set(stepId, record);
-        this.store.saveExecution({ ...execution });
+        park("skipped", `Depends on "${failedDependency}", which did not succeed.`);
         continue;
+      }
+
+      // BRANCH. A step whose condition does not hold is skipped with
+      // the reason it did not hold — and everything depending on it is
+      // skipped in turn, which is how a branch is not taken.
+      if (step.condition) {
+        const verdict = evaluateCondition(step.condition, completed);
+        if (!verdict.met) {
+          park("skipped", `Condition not met: ${verdict.detail}.`);
+          continue;
+        }
       }
 
       const gate = this.preflight({ ...workflow, steps: [step] })[0];
       if (!gate.runnable) {
-        record.status = "blocked";
-        record.reason = gate.reason;
-        execution.steps.push(record);
-        completed.set(stepId, record);
-        this.store.saveExecution({ ...execution });
+        park("blocked", gate.reason);
         continue;
       }
 
-      const { resolved, missing } = resolveArguments(step.arguments, completed, inputs);
-      // Record what the tool was ACTUALLY given, resolved.
-      record.input = resolved;
-      if (missing.length > 0) {
-        record.status = "skipped";
-        record.reason = `Referenced output of ${missing.join(", ")}, which is not available.`;
-        execution.steps.push(record);
-        completed.set(stepId, record);
+      // LOOP. One pass for an ordinary step; up to maxIterations for a
+      // looping one, which may revise its own previous output.
+      const maxIterations = step.loop ? clamp(step.loop.maxIterations, 1, MAX_ITERATIONS) : 1;
+      const maxAttempts = clamp(step.retry?.maxAttempts ?? 1, 1, MAX_ATTEMPTS);
+      let last: StepExecution | null = null;
+
+      for (let iteration = 1; iteration <= maxIterations; iteration += 1) {
+        if (totalExecutions >= MAX_STEP_EXECUTIONS) {
+          terminated = {
+            stepId,
+            reason: `Run stopped at the ceiling of ${MAX_STEP_EXECUTIONS} tool invocation(s).`,
+          };
+          break;
+        }
+
+        const { resolved, missing } = resolveArguments(
+          step.arguments,
+          completed,
+          inputs,
+          step.loop ? stepId : undefined,
+        );
+        const entry = record();
+        entry.input = resolved;
+        if (step.loop) entry.iteration = iteration;
+
+        if (missing.length > 0) {
+          entry.status = "skipped";
+          entry.reason = `Referenced output of ${missing.join(", ")}, which is not available.`;
+          execution.steps.push(entry);
+          completed.set(stepId, entry);
+          last = entry;
+          this.store.saveExecution({ ...execution });
+          break;
+        }
+
+        entry.status = "running";
+        entry.startedAt = Date.now();
+        execution.currentStepId = stepId;
+        execution.steps.push(entry);
         this.store.saveExecution({ ...execution });
-        continue;
+
+        // RETRY. The same arguments, re-sent, for a transient failure.
+        let result: Awaited<ReturnType<typeof dispatchToolCall>> | null = null;
+        let attempts = 0;
+        for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+          attempts = attempt;
+          totalExecutions += 1;
+          // THE REAL EXECUTION — the same dispatcher a native tool call uses.
+          result = await dispatchToolCall(
+            {
+              id: `${execution.id}:${stepId}:${iteration}:${attempt}`,
+              name: toolNameForModel(step.tool),
+              arguments: resolved,
+            },
+            taskId,
+          );
+          if (result.ok) break;
+          // A retry filter that does not match means this failure is not
+          // the transient kind the workflow said to retry.
+          if (
+            step.retry?.when &&
+            !result.content.toLowerCase().includes(step.retry.when.toLowerCase())
+          ) {
+            break;
+          }
+        }
+
+        entry.attempts = attempts;
+        entry.status = result?.ok ? "succeeded" : "failed";
+        entry.output = result?.content ?? "";
+        entry.finishedAt = Date.now();
+        if (!result?.ok) {
+          entry.reason =
+            attempts > 1
+              ? `Failed after ${attempts} attempt(s): ${result?.content ?? "no result"}`
+              : (result?.content ?? "no result");
+        }
+        completed.set(stepId, entry);
+        last = entry;
+        this.store.saveExecution({ ...execution });
+
+        if (entry.status !== "succeeded") break;
+
+        if (step.loop) {
+          const verdict = evaluateCondition(step.loop.until, completed);
+          if (verdict.met) {
+            entry.reason = `Loop condition satisfied after ${iteration} iteration(s): ${verdict.detail}.`;
+            this.store.saveExecution({ ...execution });
+            break;
+          }
+          if (iteration === maxIterations) {
+            // Reaching the ceiling is not success at looping, and the
+            // record says so rather than implying the goal was met.
+            entry.reason =
+              `Loop ended at its maximum of ${maxIterations} iteration(s) ` +
+              `without satisfying its condition (${verdict.detail}).`;
+            this.store.saveExecution({ ...execution });
+          }
+        }
       }
 
-      record.status = "running";
-      record.startedAt = Date.now();
-      execution.steps.push(record);
-      this.store.saveExecution({ ...execution });
+      // FAILURE PATH. What a real failure means for the rest of the run.
+      if (last && last.status === "failed") {
+        const action = step.onFailure?.action ?? (step.optional ? "continue" : "fail");
+        if (action === "stop") {
+          terminated = {
+            stepId,
+            reason: `Stopped by "${step.name}" failure policy: ${last.reason ?? "the step failed"}`,
+          };
+        } else if (action === "escalate") {
+          last.status = "escalated";
+          escalation = {
+            stepId,
+            request:
+              step.onFailure?.escalate ??
+              `"${step.name}" failed and the workflow cannot decide what to do next.`,
+            failure: last.reason ?? last.output,
+            raisedAt: Date.now(),
+          };
+          this.store.saveExecution({ ...execution });
+        }
+        // "fail" and "continue" need nothing here: the final status is
+        // computed from the real step records and each step's policy.
+      }
 
-      // THE REAL EXECUTION — the same dispatcher a native tool call uses.
-      const result = await dispatchToolCall(
-        {
-          id: `${execution.id}:${stepId}`,
-          name: toolNameForModel(step.tool),
-          arguments: resolved,
-        },
-        taskId,
-      );
+      // TERMINATION. Ending early because the goal is already met is a
+      // legitimate outcome, distinct from failing.
+      if (!terminated && !escalation && step.terminateWhen && last) {
+        const condition: StepCondition = {
+          ...step.terminateWhen,
+          step: step.terminateWhen.step || stepId,
+        };
+        const verdict = evaluateCondition(condition, completed);
+        if (verdict.met) {
+          terminated = {
+            stepId,
+            reason: `Terminated after "${step.name}": ${verdict.detail}.`,
+          };
+        }
+      }
 
-      record.status = result.ok ? "succeeded" : "failed";
-      record.output = result.content;
-      record.finishedAt = Date.now();
-      if (!result.ok) record.reason = result.content;
-      completed.set(stepId, record);
       this.store.saveExecution({ ...execution });
     }
 
@@ -309,14 +519,24 @@ export default class WorkflowEngine {
       completed.set(stepId, record);
     }
 
-    const hardFailure = execution.steps.some(
-      (record) =>
-        (record.status === "failed" || record.status === "blocked") &&
-        !byId.get(record.stepId)?.optional,
-    );
-    const anySucceeded = execution.steps.some((record) => record.status === "succeeded");
+    const hardFailure = execution.steps.some((entry) => {
+      if (entry.status !== "failed" && entry.status !== "blocked") return false;
+      const step = byId.get(entry.stepId);
+      // A step the workflow declared optional, or whose failure policy
+      // says to carry on, is a recorded failure but not a failed run.
+      return !step?.optional && step?.onFailure?.action !== "continue";
+    });
+    const anySucceeded = execution.steps.some((entry) => entry.status === "succeeded");
 
-    execution.status = hardFailure ? (anySucceeded ? "partial" : "failed") : "succeeded";
+    execution.status = escalation
+      ? "escalated"
+      : hardFailure
+        ? anySucceeded
+          ? "partial"
+          : "failed"
+        : "succeeded";
+    if (terminated) execution.terminatedBy = terminated;
+    if (escalation) execution.escalation = escalation;
     // The result is the last SUCCEEDING step's real output. Null when
     // nothing succeeded — an empty string would read as a result.
     const lastSuccess = [...execution.steps].reverse().find((record) => record.status === "succeeded");
@@ -336,8 +556,12 @@ export default class WorkflowEngine {
     const parts = Object.entries(counts).map(([status, count]) => `${count} ${status}`);
     const blocked = execution.steps.filter((record) => record.status === "blocked");
     return (
-      `${execution.steps.length} step(s): ${parts.join(", ")}.` +
-      (blocked.length ? ` Blocked: ${blocked.map((r) => r.reason).join(" ")}` : "")
+      `${execution.steps.length} step record(s): ${parts.join(", ")}.` +
+      (blocked.length ? ` Blocked: ${blocked.map((r) => r.reason).join(" ")}` : "") +
+      (execution.terminatedBy ? ` ${execution.terminatedBy.reason}` : "") +
+      (execution.escalation
+        ? ` ESCALATED at "${execution.escalation.stepId}": ${execution.escalation.request}`
+        : "")
     );
   }
 }

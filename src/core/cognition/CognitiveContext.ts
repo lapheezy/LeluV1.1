@@ -31,6 +31,7 @@ import SelfStudyEngine, { type CognitiveStateView } from "./SelfStudyEngine";
 import EngineeringWorkspace from "../engineering/EngineeringWorkspace";
 import WorkflowStore from "../workflows/WorkflowStore";
 import AgentWorkflowBridge from "../workflows/AgentWorkflowBridge";
+import AgentObjectives from "./AgentObjectives";
 import {
   buildReport,
   inspectDocument,
@@ -103,6 +104,17 @@ export interface CognitiveContextSnapshot {
    * produced, not just that something happened.
    */
   workflowActivity: string;
+
+  /**
+   * What LÉLU is working on autonomously right now: live objectives,
+   * what has been deferred, what is waiting on a person, and what the
+   * last cycles actually did.
+   *
+   * Without this, a chat turn could not answer "what are you doing?"
+   * from fact — it would have to guess, and a guess about your own
+   * activity reads exactly like a claim.
+   */
+  autonomousWork: string;
 
   /**
    * The workflow capability surface — what exists, what it needs, what
@@ -246,6 +258,9 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
     // ever moves in response to a real backend result.
     engineeringWorkspace: EngineeringWorkspace.getInstance().describe(),
     workflowActivity: describeWorkflowActivity(),
+    // Read-only: describes the objective store as it stands. Assembling
+    // context never starts, advances or ends a cycle.
+    autonomousWork: describeAutonomousWork(),
     workflowCapabilities: describeWorkflowCapabilities(),
     checkpoints,
     builtAt: Date.now(),
@@ -294,6 +309,67 @@ function describeWorkflowActivity(): string {
     return `${defined.length} workflow(s) defined.\n${lines.join("\n")}`;
   } catch {
     return "Workflow state is unavailable in this runtime.";
+  }
+}
+
+/**
+ * LÉLU's own autonomous work, from the real objective store.
+ *
+ * Everything here is recorded state: an objective that yielded says so
+ * and says why, and a completed one carries its own conclusion. Nothing
+ * is inferred from intent.
+ */
+function describeAutonomousWork(): string {
+  try {
+    const objectives = AgentObjectives.getInstance();
+    const all = objectives.list();
+    if (all.length === 0) {
+      return "No autonomous objectives exist. Nothing is running in the background.";
+    }
+
+    const live = all.filter((objective) =>
+      ["active", "waiting", "scheduled", "awaiting-approval"].includes(objective.state),
+    );
+    const recentlyEnded = all
+      .filter((objective) => ["completed", "yielded", "cancelled"].includes(objective.state))
+      .sort((a, b) => b.updatedAt - a.updatedAt)
+      .slice(0, 3);
+
+    const lines: string[] = [];
+
+    if (live.length === 0) {
+      lines.push("Nothing is running right now.");
+    } else {
+      for (const objective of live) {
+        const detail =
+          objective.state === "scheduled" && objective.resumeAt
+            ? ` — resumes ${new Date(objective.resumeAt).toLocaleTimeString()}`
+            : objective.state === "awaiting-approval"
+              ? ` — WAITING ON A PERSON: ${objective.approval?.request ?? "a decision"}`
+              : objective.state === "waiting"
+                ? ` — waiting for ${objective.waitingFor ?? "something"}`
+                : "";
+        const last = objectives.cycles(objective.id)[0];
+        lines.push(
+          `- [${objective.state}] ${objective.objective}` +
+            ` (cycle ${objective.cyclesRun}/${objective.maxCycles}, ${objective.actionsTaken} action(s))${detail}` +
+            (last ? `\n    last cycle: ${last.decision.replace(/\s+/g, " ").slice(0, 200)}` : ""),
+        );
+      }
+    }
+
+    for (const objective of recentlyEnded) {
+      // A yielded objective is never described as finished work.
+      lines.push(
+        `- [${objective.state}${objective.yieldReason ? `: ${objective.yieldReason}` : ""}] ` +
+          `${objective.objective}` +
+          (objective.conclusion ? ` — ${objective.conclusion.replace(/\s+/g, " ").slice(0, 200)}` : ""),
+      );
+    }
+
+    return lines.join("\n");
+  } catch {
+    return "Autonomous objective state is unavailable in this runtime.";
   }
 }
 
@@ -414,6 +490,12 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   sections.push(`## AVAILABLE WORKFLOWS\n${ctx.workflowCapabilities}`);
 
   sections.push(`## WORKFLOW ACTIVITY\n${ctx.workflowActivity}`);
+
+  sections.push(
+    `## YOUR OWN AUTONOMOUS WORK\n${ctx.autonomousWork}\n` +
+      `This is recorded state, not a plan. Describe it as it is: an objective that yielded did ` +
+      `NOT succeed, and one awaiting approval is waiting on the person you are talking to.`,
+  );
 
   if (ctx.earthContext) sections.push(ctx.earthContext);
 

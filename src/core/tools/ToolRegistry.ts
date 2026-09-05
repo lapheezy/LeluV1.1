@@ -676,6 +676,21 @@ export default class ToolRegistry {
         verificationMethod: "per-step tool results and the persisted execution record",
       },
       {
+        id: "workflow.author",
+        name: "Author Workflow",
+        description:
+          "Create or replace a reusable workflow by describing its steps as data. Every step " +
+          "names an EXISTING tool; branching, retries, loops and failure handling are declared, " +
+          "not written as code. The definition is validated and only stored if it could really " +
+          "run, and it is then available to every future objective.",
+        category: "Workflows",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "WorkflowAuthoring.authorWorkflow",
+        verificationMethod: "validated against the tool registry and persisted definitions",
+      },
+      {
         id: "workflow.status",
         name: "Workflow Execution Status",
         description:

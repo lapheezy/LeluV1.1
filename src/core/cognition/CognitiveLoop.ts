@@ -160,6 +160,12 @@ export default class CognitiveLoop {
     }
     this.unsubscribeProjects?.();
     this.unsubscribeProjects = null;
+
+    // A cycle STARTS the self-study engine (see runOnce), so stopping
+    // this loop has to stop that one too. Without this, shutting the
+    // runtime down left a cognitive engine running on its own timer:
+    // nothing on screen, nothing observable, and still thinking.
+    SelfStudyEngine.getInstance().stop();
   }
 
   /**

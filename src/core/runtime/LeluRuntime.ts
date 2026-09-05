@@ -25,6 +25,7 @@
 
 import AIService from "../AIService";
 import CognitiveLoop from "../cognition/CognitiveLoop";
+import AgentCognitionRuntime from "../cognition/AgentCognitionRuntime";
 import SelfModel from "../cognition/SelfModel";
 import WorkQueue from "../cognition/WorkQueue";
 import AgentStore from "../agents/AgentStore";
@@ -146,6 +147,11 @@ export default class LeluRuntime {
     // keeps lifecycle ownership out of React and makes startup idempotent.
     if (!this.cognitiveLoopStarted) {
       CognitiveLoop.getInstance().start();
+      // Autonomous objective work starts with the runtime, not with a
+      // developer calling start() by hand. Idempotent by the same flag,
+      // and it costs nothing while no objective is active: the runtime
+      // only wakes on real events and only for actionable objectives.
+      AgentCognitionRuntime.getInstance().start();
       this.cognitiveLoopStarted = true;
     }
     if (!this.eventUnsubscribe) {
@@ -163,6 +169,7 @@ export default class LeluRuntime {
       this.healthCheckTimer = null;
     }
     CognitiveLoop.getInstance().stop();
+    AgentCognitionRuntime.getInstance().stop();
     this.cognitiveLoopStarted = false;
     this.eventUnsubscribe?.();
     this.eventUnsubscribe = null;

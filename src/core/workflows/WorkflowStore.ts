@@ -17,6 +17,75 @@
 
 import KvStore from "../storage/KvStore";
 
+/**
+ * How a condition compares a step's real outcome.
+ *
+ * Deliberately a closed set of DATA operators. There is no expression
+ * to evaluate and no code to run: branching is decided by comparing a
+ * recorded step result against a literal, so a workflow LÉLU authors
+ * herself can never smuggle executable logic into the engine.
+ */
+export type ConditionOperator =
+  | "succeeded"
+  | "failed"
+  | "contains"
+  | "not-contains"
+  | "equals"
+  | "empty"
+  | "not-empty";
+
+/** A test over one already-executed step. */
+export interface StepCondition {
+  /** The step whose result is examined. */
+  step: string;
+  operator: ConditionOperator;
+  /** The literal compared against, for contains / not-contains / equals. */
+  value?: string;
+}
+
+/**
+ * Re-attempt a failing step.
+ *
+ * This is retry, not revision: the same arguments are sent again, for
+ * transient failures. Revision — changing the input based on what came
+ * back — is what `loop` expresses.
+ */
+export interface RetryPolicy {
+  /** Total attempts including the first. Clamped by the engine. */
+  maxAttempts: number;
+  /** Only retry when the failure text contains this. */
+  when?: string;
+}
+
+/**
+ * Repeat a step until its own result satisfies a condition.
+ *
+ * Each iteration is recorded separately and may reference the previous
+ * iteration's output via `{{steps.<this step>.output}}`, which is how a
+ * step revises its own work. Always bounded — a loop that never
+ * satisfies its condition ends at maxIterations, and says so.
+ */
+export interface LoopPolicy {
+  until: StepCondition;
+  maxIterations: number;
+}
+
+/**
+ * What a real failure means for the rest of the run.
+ *
+ *  fail      — the default: the workflow reports failure (dependents skip)
+ *  continue  — recorded, the run carries on (equivalent to optional)
+ *  stop      — end the run here, deliberately, with the reason recorded
+ *  escalate  — end the run and record a real request for a person
+ */
+export type FailureAction = "fail" | "continue" | "stop" | "escalate";
+
+export interface FailurePolicy {
+  action: FailureAction;
+  /** For escalate: exactly what a person is being asked to decide. */
+  escalate?: string;
+}
+
 export interface WorkflowStep {
   id: string;
   name: string;
@@ -35,6 +104,24 @@ export interface WorkflowStep {
    * Anything depending on it is still skipped.
    */
   optional?: boolean;
+  /**
+   * BRANCH: run this step only when the condition holds. Otherwise it
+   * is skipped with the real reason, and so is anything depending on
+   * it — which is how two mutually exclusive conditions form a branch.
+   */
+  condition?: StepCondition;
+  /** RETRY: re-attempt on failure. */
+  retry?: RetryPolicy;
+  /** LOOP: repeat until the condition over its own output holds. */
+  loop?: LoopPolicy;
+  /** FAILURE PATH: what a real failure means for the run. */
+  onFailure?: FailurePolicy;
+  /**
+   * TERMINATION: after this step, end the run early when the condition
+   * holds. The remaining steps are recorded as skipped for that reason,
+   * never as if they had run.
+   */
+  terminateWhen?: StepCondition;
 }
 
 /**
@@ -71,7 +158,9 @@ export type StepStatus =
   | "succeeded"
   | "failed"
   | "skipped"
-  | "blocked";
+  | "blocked"
+  /** Failed, and the failure policy handed the decision to a person. */
+  | "escalated";
 
 export interface StepExecution {
   stepId: string;
@@ -91,6 +180,10 @@ export interface StepExecution {
   output: string;
   /** Why a step is blocked or skipped — the actual reason. */
   reason?: string;
+  /** How many times the tool was really invoked for this record. */
+  attempts?: number;
+  /** 1-based loop iteration; absent for a step that runs once. */
+  iteration?: number;
   startedAt?: number;
   finishedAt?: number;
 }
@@ -112,7 +205,23 @@ export interface WorkflowOrigin {
   reason?: string;
 }
 
-export type ExecutionStatus = "running" | "succeeded" | "failed" | "partial";
+export type ExecutionStatus =
+  | "running"
+  | "succeeded"
+  | "failed"
+  | "partial"
+  /** Stopped and handed to a person by a step's failure policy. */
+  | "escalated";
+
+/** A real request for a human decision, raised by a failure policy. */
+export interface WorkflowEscalation {
+  stepId: string;
+  /** What the person is being asked to decide. */
+  request: string;
+  /** The failure that caused it, verbatim. */
+  failure: string;
+  raisedAt: number;
+}
 
 /** Values supplied for one run, keyed by input name. */
 export type WorkflowInputValues = Record<string, string>;
@@ -140,6 +249,10 @@ export interface WorkflowExecution {
    * Null when nothing succeeded — an empty result is not a result.
    */
   finalResult: string | null;
+  /** Set when the run ended early on purpose, with the reason. */
+  terminatedBy?: { stepId: string; reason: string };
+  /** Set when a failure policy escalated to a person. */
+  escalation?: WorkflowEscalation;
 }
 
 const DEFS_KEY = "lelu.workflows.definitions.v1";

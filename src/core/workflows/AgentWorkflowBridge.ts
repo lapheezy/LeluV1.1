@@ -157,8 +157,18 @@ export default class AgentWorkflowBridge {
    */
   public describeCapabilities(): string {
     const offers = this.discover();
+    // Authoring is part of the capability surface, not a hidden feature:
+    // a repeatable procedure discovered while working is worth saving,
+    // and cognition can only choose to save one if it knows it can.
+    const authoring =
+      "You can also CREATE a workflow with workflow_author when you have found a sequence " +
+      "worth repeating: describe its steps as data (existing tools only, with conditions, " +
+      "retries, loops and failure handling declared), and it becomes available to every " +
+      "later objective. It is validated before it is stored, and rejected drafts are not saved.";
     if (offers.length === 0) {
-      return "No reusable workflows are defined. Use ordinary tools, or answer directly.";
+      return (
+        "No reusable workflows are defined. Use ordinary tools, or answer directly.\n" + authoring
+      );
     }
     const lines = offers.map((offer) => {
       const inputs = offer.inputs.length
@@ -182,7 +192,8 @@ export default class AgentWorkflowBridge {
     return (
       `${offers.length} reusable workflow(s) available. Run one with workflow_run when it fits ` +
       `the request; a single tool call or a direct answer is often enough, so do not force one.\n` +
-      lines.join("\n")
+      lines.join("\n") +
+      `\n${authoring}`
     );
   }
 
@@ -210,7 +221,21 @@ export function describeExecution(execution: WorkflowExecution): string {
       step.status === "succeeded"
         ? step.output.replace(/\s+/g, " ").slice(0, 240)
         : (step.reason ?? "no reason recorded");
-    lines.push(`  • ${step.name} [${step.tool}] → ${step.status}: ${detail}`);
+    // Iterations and attempts are stated, because "it worked" after four
+    // tries is a different fact from "it worked".
+    const control =
+      (step.iteration ? ` iteration ${step.iteration}` : "") +
+      (step.attempts && step.attempts > 1 ? ` after ${step.attempts} attempts` : "");
+    lines.push(`  • ${step.name} [${step.tool}]${control} → ${step.status}: ${detail}`);
+  }
+  if (execution.terminatedBy) {
+    lines.push(`  terminated early: ${execution.terminatedBy.reason}`);
+  }
+  if (execution.escalation) {
+    lines.push(
+      `  ESCALATED to a person at "${execution.escalation.stepId}": ` +
+        `${execution.escalation.request} (failure: ${execution.escalation.failure.slice(0, 200)})`,
+    );
   }
   if (execution.pendingStepIds.length > 0) {
     lines.push(`  pending: ${execution.pendingStepIds.join(", ")}`);

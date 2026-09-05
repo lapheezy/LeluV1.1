@@ -53,6 +53,7 @@ if (typeof localStorage === "undefined") {
 
 import SelfStudyEngine from "../src/core/cognition/SelfStudyEngine";
 import StudyObjectives from "../src/core/cognition/StudyObjectives";
+import WorkQueue from "../src/core/cognition/WorkQueue";
 import StudyAgentRouter from "../src/core/cognition/StudyAgentRouter";
 import KnowledgeLibrary from "../src/core/cognition/KnowledgeLibrary";
 import SelfModel from "../src/core/cognition/SelfModel";
@@ -71,6 +72,12 @@ import type ProviderRegistry from "../src/core/ProviderRegistry";
 // 1 — SHE STARTS FROM HER MISSION, WITH NO USER MESSAGE
 // ============================================================
 
+/** Empty the shared work buffer, so "with an empty buffer" is true. */
+function emptyWorkBuffer(): void {
+  const queue = WorkQueue.getInstance();
+  for (const item of queue.list()) queue.remove(item.id);
+}
+
 test("mission is a persistent source that does not depend on chat", () => {
   const engine = SelfStudyEngine.getInstance();
   const mission = engine.mission();
@@ -84,6 +91,10 @@ test("mission is a persistent source that does not depend on chat", () => {
 test("cycle 1 runs with no user message and produces a real investigation", async () => {
   const engine = SelfStudyEngine.getInstance();
   StudyObjectives.getInstance().clear();
+  // The assertion below is ABOUT an empty buffer, so establish one.
+  // Anything another file left in the work queue would be dequeued
+  // instead, and the test would report a generation that never happened.
+  emptyWorkBuffer();
 
   const report = await engine.runCycle();
 

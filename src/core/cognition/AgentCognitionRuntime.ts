@@ -29,6 +29,7 @@
 import AIService from "../AIService";
 import AgentStore from "../agents/AgentStore";
 import AgentEventBus from "../agent/AgentEvents";
+import ObjectiveLearning from "./ObjectiveLearning";
 import AgentObjectives, {
   type AgentObjective,
   type CognitionCycleRecord,
@@ -47,6 +48,10 @@ export interface CycleOutcome {
 
 /** Minimum gap between cycles for one objective — never a hot loop. */
 const CYCLE_COOLDOWN_MS = 1_500;
+/** How soon a brand-new objective gets its first cycle. */
+const FIRST_CYCLE_DELAY_MS = 50;
+/** setTimeout saturates past this; a longer deferral is re-armed on restart. */
+const MAX_TIMER_MS = 2_147_483_000;
 
 export default class AgentCognitionRuntime {
   private static instance: AgentCognitionRuntime | null = null;
@@ -57,7 +62,10 @@ export default class AgentCognitionRuntime {
   /** Objectives with a cycle in flight, so a wake cannot double-run one. */
   private inFlight = new Set<string>();
   private lastCycleAt = new Map<string, number>();
+  /** Pending self-continuation timers, one per objective at most. */
+  private continuations = new Map<string, ReturnType<typeof setTimeout>>();
   private unsubscribe: (() => void) | null = null;
+  private objectivesUnsubscribe: (() => void) | null = null;
   private running = false;
 
   private constructor() {}
@@ -87,12 +95,72 @@ export default class AgentCognitionRuntime {
         void this.wake(`event:${event.type}`);
       }
     });
+
+    // A NEW OBJECTIVE IS ITSELF A WAKE CONDITION.
+    //
+    // Without this, an objective created while nothing else was
+    // happening would sit there until some unrelated event arrived —
+    // autonomy that depends on someone else's activity is not
+    // autonomy. This is the existing objective store's own
+    // subscription; no new bus and no polling.
+    this.objectivesUnsubscribe = this.objectives.subscribe(() => this.considerPending());
+
+    // RESUME WHAT WAS ALREADY IN FLIGHT.
+    //
+    // Objectives persist, so a restart finds work mid-stream. An
+    // unfinished objective is picked up again, and a scheduled one is
+    // re-armed for the time it was deferred to.
+    this.considerPending();
   }
 
   public stop(): void {
     this.unsubscribe?.();
     this.unsubscribe = null;
+    this.objectivesUnsubscribe?.();
+    this.objectivesUnsubscribe = null;
+    for (const handle of this.continuations.values()) clearTimeout(handle);
+    this.continuations.clear();
     this.running = false;
+  }
+
+  /**
+   * Give every objective that is owed a cycle a real timer.
+   *
+   * Called when the runtime starts and whenever the objective store
+   * changes. It only ever ARMS work — an objective already running, or
+   * already holding a timer, is left alone — so a store notification
+   * during a cycle cannot multiply cycles.
+   */
+  private considerPending(): void {
+    if (!this.running) return;
+    const now = Date.now();
+
+    for (const objective of this.objectives.list()) {
+      if (this.inFlight.has(objective.id)) continue;
+      if (this.continuations.has(objective.id)) continue;
+
+      if (objective.state === "active") {
+        // A never-started objective gets its first cycle promptly; one
+        // that has already run is between cycles and is handled by its
+        // own continuation.
+        if (objective.cyclesRun === 0) {
+          this.scheduleContinuation(objective.id, FIRST_CYCLE_DELAY_MS, "runtime:objective-created");
+        } else {
+          this.scheduleContinuation(objective.id, CYCLE_COOLDOWN_MS + 100, "runtime:resumed");
+        }
+        continue;
+      }
+
+      if (objective.state === "scheduled" && objective.resumeAt !== undefined) {
+        // Wall-clock deferral is real state with a real timer, not a
+        // promise in a sentence. A time already past resumes at once.
+        this.scheduleContinuation(
+          objective.id,
+          Math.min(Math.max(objective.resumeAt - now, 0), MAX_TIMER_MS),
+          "runtime:scheduled-resume",
+        );
+      }
+    }
   }
 
   public isRunning(): boolean {
@@ -167,6 +235,14 @@ export default class AgentCognitionRuntime {
 
       const agent = AgentStore.getInstance().get(objective.agentId);
 
+      // RETRIEVE PRIOR LEARNING BEFORE PLANNING.
+      //
+      // This is what separates learning from logging: lessons from
+      // earlier, unrelated objectives are matched by topic and injected
+      // before the model reasons, so a strategy that failed before is
+      // not tried again by default.
+      const guidance = ObjectiveLearning.getInstance().guidanceFor(objective.objective);
+
       /* ---- DECIDE: the EXISTING loop makes the choice ---- */
       const response = await AIService.getInstance().deliberate(
         [
@@ -175,6 +251,7 @@ export default class AgentCognitionRuntime {
           `WORK SO FAR (cycle ${objective.cyclesRun + 1} of at most ${objective.maxCycles}):`,
           priorWork,
           "",
+          ...(guidance ? [guidance, ""] : []),
           "Decide the single next action and take it now, using your tools if that is what is needed.",
           "When the objective is already satisfied by the work above, say DONE: followed by the conclusion and take no action.",
           "When you cannot proceed because a capability is unavailable or you need information from the user,",
@@ -219,6 +296,21 @@ export default class AgentCognitionRuntime {
           ? "awaiting-information"
           : "capability-unavailable";
         conclusion = decision.replace(/^\s*BLOCKED:\s*/i, "").trim();
+      } else if (/^\s*SCHEDULE:/i.test(decision)) {
+        // A deliberate deferral is runtime state, not a promise in text.
+        const minutes = Number(decision.match(/in\s+(\d+)\s*min/i)?.[1] ?? 5);
+        this.objectives.schedule(
+          objectiveId,
+          Date.now() + Math.max(1, minutes) * 60_000,
+          decision.replace(/^\s*SCHEDULE:\s*/i, "").trim(),
+        );
+        nextState = "scheduled";
+      } else if (/^\s*APPROVAL:/i.test(decision)) {
+        this.objectives.requestApproval(
+          objectiveId,
+          decision.replace(/^\s*APPROVAL:\s*/i, "").trim(),
+        );
+        nextState = "awaiting-approval";
       } else if (repeated) {
         nextState = "yielded";
         yieldReason = "no-progress";
@@ -245,6 +337,8 @@ export default class AgentCognitionRuntime {
 
       if (nextState === "completed") {
         this.objectives.complete(objectiveId, conclusion);
+      } else if (nextState === "scheduled" || nextState === "awaiting-approval") {
+        // Already set above; the objective is parked in real state.
       } else if (nextState === "yielded" && yieldReason) {
         this.objectives.yieldObjective(objectiveId, yieldReason, conclusion);
       } else {
@@ -263,14 +357,73 @@ export default class AgentCognitionRuntime {
         }
       }
 
-      return this.record(
-        this.objectives.get(objectiveId) ?? objective,
-        trigger,
-        { decision: decision || "(no decision text)", executed, nextState, yieldReason },
-      );
+      const finalObjective = this.objectives.get(objectiveId) ?? objective;
+
+      // EXTRACT LEARNING when the objective ends, from the real cycle
+      // records. Contained: a memory failure must not corrupt the run,
+      // and it is reported rather than assumed successful.
+      if (finalObjective.state === "completed" || finalObjective.state === "yielded") {
+        try {
+          await ObjectiveLearning.getInstance().extract(
+            finalObjective,
+            this.objectives.cycles(objectiveId),
+          );
+        } catch (error) {
+          console.warn(
+            "[AgentCognitionRuntime] learning extraction failed (contained)",
+            error instanceof Error ? error.message : String(error),
+          );
+        }
+      }
+
+      const outcome = this.record(finalObjective, trigger, {
+        decision: decision || "(no decision text)",
+        executed,
+        nextState,
+        yieldReason,
+      });
+
+      // SELF-CONTINUATION: the runtime starts cycle N+1 itself.
+      //
+      // Nothing outside advances the loop. The objective is still
+      // active, so the runtime schedules its own next cycle after the
+      // cooldown — bounded by the same budgets, which are re-checked at
+      // the top of every cycle, so this cannot run away.
+      if (finalObjective.state === "active") {
+        this.scheduleContinuation(objectiveId);
+      }
+
+      return outcome;
     } finally {
       this.inFlight.delete(objectiveId);
     }
+  }
+
+  /**
+   * Queue this objective's next cycle, driven by the runtime.
+   *
+   * A single pending timer per objective, cleared on stop and replaced
+   * rather than stacked, so continuation can never multiply.
+   */
+  private scheduleContinuation(
+    objectiveId: string,
+    delayMs: number = CYCLE_COOLDOWN_MS + 100,
+    trigger = "runtime:self-continuation",
+  ): void {
+    if (!this.running) return;
+    const existing = this.continuations.get(objectiveId);
+    if (existing !== undefined) clearTimeout(existing);
+
+    const handle = setTimeout(() => {
+      this.continuations.delete(objectiveId);
+      // Promote anything whose deferral has come due, then run this one.
+      this.objectives.actionable();
+      void this.runCycle(objectiveId, trigger);
+    }, delayMs);
+
+    // Never hold the process open for a background cycle.
+    (handle as unknown as { unref?: () => void }).unref?.();
+    this.continuations.set(objectiveId, handle);
   }
 
   /** Persist and emit the cycle so it is inspectable, never inferred. */

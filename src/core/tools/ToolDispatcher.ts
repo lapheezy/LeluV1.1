@@ -827,6 +827,179 @@ const EXECUTORS: ToolExecutor[] = [
   },
 
   {
+    id: "workflow.author",
+    parameters: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "A short, distinctive name for the workflow." },
+        description: {
+          type: "string",
+          description: "What the workflow is for, so a future cycle can decide whether it fits.",
+        },
+        outputs: { type: "string", description: "What a successful run produces." },
+        id: {
+          type: "string",
+          description:
+            "Only when deliberately REPLACING an existing workflow: its id. Omit to create a new one.",
+        },
+        inputs: {
+          type: "array",
+          description: "Values a caller must supply, referenced in step arguments as {{input.<name>}}.",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              description: { type: "string" },
+              required: { type: "boolean" },
+            },
+            required: ["name", "description"],
+          },
+        },
+        steps: {
+          type: "array",
+          description:
+            "The steps, in any order — dependencies decide execution order. Each step calls an " +
+            "EXISTING tool; there is no field for code and none will be accepted.",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string", description: "Short id, letters/digits/_/- only." },
+              name: { type: "string", description: "What this step does, in plain words." },
+              tool: { type: "string", description: "An existing tool id, e.g. research.web." },
+              arguments: {
+                type: "object",
+                description:
+                  "Arguments for the tool. A string may embed {{input.<name>}} or " +
+                  "{{steps.<stepId>.output}}, where that step is one this step dependsOn.",
+              },
+              dependsOn: {
+                type: "array",
+                items: { type: "string" },
+                description: "Step ids that must succeed first.",
+              },
+              optional: { type: "boolean", description: "A failure here does not fail the run." },
+              condition: {
+                type: "object",
+                description:
+                  "BRANCH: run this step only if the condition holds over an earlier step it " +
+                  "depends on. Otherwise it is skipped, and so is anything depending on it.",
+                properties: {
+                  step: { type: "string" },
+                  operator: {
+                    type: "string",
+                    enum: ["succeeded", "failed", "contains", "not-contains", "equals", "empty", "not-empty"],
+                  },
+                  value: { type: "string" },
+                },
+                required: ["step", "operator"],
+              },
+              retry: {
+                type: "object",
+                description: "RETRY a transient failure with the same arguments.",
+                properties: {
+                  maxAttempts: { type: "number", description: "1 to 5, including the first attempt." },
+                  when: { type: "string", description: "Only retry when the error text contains this." },
+                },
+                required: ["maxAttempts"],
+              },
+              loop: {
+                type: "object",
+                description:
+                  "LOOP: repeat this step until the condition holds, up to maxIterations (1-10). " +
+                  "Reference {{steps.<this step>.output}} in its own arguments to revise its work.",
+                properties: {
+                  until: {
+                    type: "object",
+                    properties: {
+                      step: { type: "string" },
+                      operator: {
+                        type: "string",
+                        enum: ["succeeded", "failed", "contains", "not-contains", "equals", "empty", "not-empty"],
+                      },
+                      value: { type: "string" },
+                    },
+                    required: ["operator"],
+                  },
+                  maxIterations: { type: "number" },
+                },
+                required: ["until", "maxIterations"],
+              },
+              onFailure: {
+                type: "object",
+                description:
+                  "FAILURE PATH: fail (default), continue, stop the run, or escalate to a person.",
+                properties: {
+                  action: { type: "string", enum: ["fail", "continue", "stop", "escalate"] },
+                  escalate: {
+                    type: "string",
+                    description: "For escalate: exactly what the person must decide.",
+                  },
+                },
+                required: ["action"],
+              },
+              terminateWhen: {
+                type: "object",
+                description:
+                  "TERMINATION: end the run early, successfully, when this holds after the step.",
+                properties: {
+                  step: { type: "string" },
+                  operator: {
+                    type: "string",
+                    enum: ["succeeded", "failed", "contains", "not-contains", "equals", "empty", "not-empty"],
+                  },
+                  value: { type: "string" },
+                },
+                required: ["operator"],
+              },
+            },
+            required: ["id", "name", "tool"],
+          },
+        },
+      },
+      required: ["name", "description", "outputs", "steps"],
+    },
+    run: async (args) => {
+      const { authorWorkflow } = await import("../workflows/WorkflowAuthoring");
+      const result = authorWorkflow(args as Record<string, unknown>);
+
+      if (!result.ok || !result.workflow) {
+        // A rejected draft returns every problem at once, so the next
+        // attempt can fix all of them — and NOTHING was stored.
+        return {
+          ok: false,
+          content:
+            `The workflow was NOT created. ${result.errors.length} problem(s):\n` +
+            result.errors.map((error) => `  • ${error}`).join("\n") +
+            (result.warnings.length
+              ? `\nAlso note:\n${result.warnings.map((warning) => `  • ${warning}`).join("\n")}`
+              : ""),
+          data: { errors: result.errors, warnings: result.warnings },
+        };
+      }
+
+      const blocked = (result.preflight ?? []).filter((entry) => !entry.runnable);
+      return {
+        ok: true,
+        content:
+          `Workflow “${result.workflow.name}” saved (id ${result.workflow.id}) with ` +
+          `${result.workflow.steps.length} step(s): ` +
+          `${result.workflow.steps.map((step) => step.tool).join(" → ")}. ` +
+          (blocked.length
+            ? `NOT runnable right now — ${blocked.map((entry) => `${entry.stepId}: ${entry.reason}`).join("; ")}`
+            : "Runnable now.") +
+          (result.warnings.length
+            ? `\nWarnings:\n${result.warnings.map((warning) => `  • ${warning}`).join("\n")}`
+            : ""),
+        data: {
+          workflowId: result.workflow.id,
+          runnable: blocked.length === 0,
+          warnings: result.warnings,
+        },
+      };
+    },
+  },
+
+  {
     id: "workflow.status",
     parameters: {
       type: "object",

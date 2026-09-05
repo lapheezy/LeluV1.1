@@ -24,6 +24,17 @@ export type ObjectiveState =
   | "active"
   /** Waiting on something specific; a matching event revives it. */
   | "waiting"
+  /**
+   * Deliberately deferred until a wall-clock time. Persisted, so a
+   * restart resumes it rather than losing it — this is runtime state,
+   * not a chat message saying "I'll come back to this".
+   */
+  | "scheduled"
+  /**
+   * Blocked on a person. The runtime will not act until approval is
+   * granted or refused, and the decision is recorded.
+   */
+  | "awaiting-approval"
   /** The agent judged the objective satisfied. */
   | "completed"
   /** Stopped without completing, for a recorded reason. */
@@ -91,6 +102,17 @@ export interface AgentObjective {
   conclusion?: string;
   /** What it is waiting for, when waiting. */
   waitingFor?: string;
+
+  /** When a scheduled objective becomes actionable again. */
+  resumeAt?: number;
+  /** What approval is being requested, and the recorded decision. */
+  approval?: {
+    request: string;
+    requestedAt: number;
+    decidedAt?: number;
+    granted?: boolean;
+    decidedBy?: string;
+  };
 }
 
 const KEY = "lelu.agent.objectives.v1";
@@ -147,9 +169,54 @@ export default class AgentObjectives {
     return this.list().find((objective) => objective.id === id);
   }
 
-  /** Objectives an agent may legitimately run a cycle for right now. */
+  /**
+   * Objectives an agent may legitimately run a cycle for right now.
+   *
+   * A scheduled objective whose time has come is promoted here, so a
+   * deferral genuinely resumes on its own rather than needing someone
+   * to notice. Awaiting-approval never becomes actionable by time.
+   */
   public actionable(agentId?: string): AgentObjective[] {
+    const now = Date.now();
+    for (const objective of this.list(agentId)) {
+      if (objective.state === "scheduled" && (objective.resumeAt ?? 0) <= now) {
+        this.update(objective.id, { state: "active", resumeAt: undefined });
+      }
+    }
     return this.list(agentId).filter((objective) => objective.state === "active");
+  }
+
+  /** Defer an objective to a wall-clock time. Survives a restart. */
+  public schedule(id: string, resumeAt: number, note = ""): AgentObjective | undefined {
+    return this.update(id, { state: "scheduled", resumeAt, conclusion: note });
+  }
+
+  /** Park an objective on a person's decision. */
+  public requestApproval(id: string, request: string): AgentObjective | undefined {
+    return this.update(id, {
+      state: "awaiting-approval",
+      approval: { request, requestedAt: Date.now() },
+    });
+  }
+
+  /**
+   * Record a person's decision.
+   *
+   * Granting resumes the objective; refusing ends it as yielded, never
+   * as completed — a refused objective did not achieve anything.
+   */
+  public decideApproval(id: string, granted: boolean, decidedBy: string): AgentObjective | undefined {
+    const objective = this.get(id);
+    if (!objective?.approval) return objective;
+    const approval = { ...objective.approval, granted, decidedAt: Date.now(), decidedBy };
+    return granted
+      ? this.update(id, { state: "active", approval })
+      : this.update(id, {
+          state: "yielded",
+          yieldReason: "cancelled",
+          approval,
+          conclusion: `Approval refused by ${decidedBy}. The objective was NOT completed.`,
+        });
   }
 
   public create(input: {

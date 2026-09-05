@@ -529,8 +529,17 @@ test("VITE_DEFAULT_PROVIDER leads, and the priority fallback still works when it
     };
 
     // Anthropic sits at priority 7 — last — yet is the configured default.
+    //
+    // The competing stub is Mistral rather than Groq ON PURPOSE. The
+    // router legitimately puts Groq/Cerebras/Fireworks ahead of the
+    // configured default on a low-memory device, so a Groq stub makes
+    // this test assert the hardware tier as much as the default
+    // provider — and the tier depends on whether anything has aliased
+    // `window` yet, which is an accident of test ordering. Mistral is
+    // never hardware-preferred, so what is measured here is only what
+    // this test is about: the configured default leads the chain.
     const reg = new AIProviderRegistry();
-    reg.register((await stubProvider("Groq", 1, "ok")) as never);
+    reg.register((await stubProvider("Mistral", 1, "ok")) as never);
     reg.register((await stubProvider("Anthropic", 7, "ok")) as never);
     await reg.initialize();
 
@@ -541,14 +550,14 @@ test("VITE_DEFAULT_PROVIDER leads, and the priority fallback still works when it
 
     // ...and the existing chain must still catch it when it fails.
     const reg2 = new AIProviderRegistry();
-    reg2.register((await stubProvider("Groq", 1, "ok")) as never);
+    reg2.register((await stubProvider("Mistral", 1, "ok")) as never);
     reg2.register((await stubProvider("Anthropic", 7, "fail")) as never);
     await reg2.initialize();
 
     const fell = await new ProviderResolver().execute({
       ...base, aiProviders: reg2, logger: new ExecutionLogger(),
     } as never);
-    assert.equal(fell.response?.provider, "Groq", "fallback must survive the default failing");
+    assert.equal(fell.response?.provider, "Mistral", "fallback must survive the default failing");
   } finally {
     if (saved === undefined) delete process.env.VITE_DEFAULT_PROVIDER;
     else process.env.VITE_DEFAULT_PROVIDER = saved;
