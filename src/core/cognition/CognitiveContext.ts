@@ -30,6 +30,7 @@ import EarthCore from "../earth/EarthCore";
 import SelfStudyEngine, { type CognitiveStateView } from "./SelfStudyEngine";
 import EngineeringWorkspace from "../engineering/EngineeringWorkspace";
 import WorkflowStore from "../workflows/WorkflowStore";
+import AgentWorkflowBridge from "../workflows/AgentWorkflowBridge";
 import {
   buildReport,
   inspectDocument,
@@ -102,6 +103,13 @@ export interface CognitiveContextSnapshot {
    * produced, not just that something happened.
    */
   workflowActivity: string;
+
+  /**
+   * The workflow capability surface — what exists, what it needs, what
+   * it produces, and whether it can run. This is what lets cognition
+   * DECIDE to use a workflow rather than only be able to call one.
+   */
+  workflowCapabilities: string;
 
   /** Current UI state (read live from UIStateStore singleton). */
   ui: UIStateSnapshot;
@@ -238,6 +246,7 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
     // ever moves in response to a real backend result.
     engineeringWorkspace: EngineeringWorkspace.getInstance().describe(),
     workflowActivity: describeWorkflowActivity(),
+    workflowCapabilities: describeWorkflowCapabilities(),
     checkpoints,
     builtAt: Date.now(),
   };
@@ -248,6 +257,15 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
  * injection into the AI model's system prompt. This is how
  * LÉLU's cognition actually "sees" her own runtime state.
  */
+/** The decidable workflow surface, from real definitions. */
+function describeWorkflowCapabilities(): string {
+  try {
+    return AgentWorkflowBridge.getInstance().describeCapabilities();
+  } catch {
+    return "Workflow capabilities are unavailable in this runtime.";
+  }
+}
+
 /** Recent workflow runs, from their persisted records. */
 function describeWorkflowActivity(): string {
   try {
@@ -387,6 +405,14 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   // real outputs and their real failures. A workflow that was never
   // invoked contributes nothing, so this section cannot describe work
   // that did not happen.
+  // AVAILABLE WORKFLOWS — the discovery surface cognition decides from.
+  //
+  // Read from real definitions and a live preflight. A workflow that
+  // cannot run is listed as NOT EXECUTABLE with its actual blocker, so
+  // the model can report an unavailable capability instead of
+  // attempting one and reporting a failure it could have predicted.
+  sections.push(`## AVAILABLE WORKFLOWS\n${ctx.workflowCapabilities}`);
+
   sections.push(`## WORKFLOW ACTIVITY\n${ctx.workflowActivity}`);
 
   if (ctx.earthContext) sections.push(ctx.earthContext);

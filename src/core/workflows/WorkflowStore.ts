@@ -37,10 +37,27 @@ export interface WorkflowStep {
   optional?: boolean;
 }
 
+/**
+ * A value the caller must supply for the workflow to run.
+ *
+ * Declared rather than inferred, so cognition can tell the difference
+ * between "this workflow cannot run here" and "I need to ask the user
+ * for something first" — two different next actions.
+ */
+export interface WorkflowInput {
+  name: string;
+  description: string;
+  required: boolean;
+}
+
 export interface WorkflowDefinition {
   id: string;
   name: string;
   description: string;
+  /** Inputs referenced by steps as {{input.<name>}}. */
+  inputs?: WorkflowInput[];
+  /** What a successful run produces, in plain terms. */
+  outputs?: string;
   steps: WorkflowStep[];
   /** Optional project this workflow belongs to. */
   projectId?: string;
@@ -97,6 +114,9 @@ export interface WorkflowOrigin {
 
 export type ExecutionStatus = "running" | "succeeded" | "failed" | "partial";
 
+/** Values supplied for one run, keyed by input name. */
+export type WorkflowInputValues = Record<string, string>;
+
 export interface WorkflowExecution {
   /** The invocation id — unique per run, stable across updates. */
   id: string;
@@ -110,6 +130,8 @@ export interface WorkflowExecution {
   /** Steps not yet reached, in the order they will be attempted. */
   pendingStepIds: string[];
   origin: WorkflowOrigin;
+  /** The inputs this run was given. */
+  inputs: WorkflowInputValues;
   startedAt: number;
   finishedAt?: number;
   summary: string;

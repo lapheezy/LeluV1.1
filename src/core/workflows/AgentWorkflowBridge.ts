@@ -33,6 +33,12 @@ export interface WorkflowOffer {
   name: string;
   description: string;
   stepCount: number;
+  /** The tools this workflow's steps invoke, in order. */
+  tools: string[];
+  /** Values the caller must supply, and what each is for. */
+  inputs: Array<{ name: string; description: string; required: boolean }>;
+  /** What a successful run produces. */
+  outputs: string;
   /** Which steps could run right now, and why the others could not. */
   runnable: boolean;
   blockers: string[];
@@ -71,6 +77,9 @@ export default class AgentWorkflowBridge {
         name: workflow.name,
         description: workflow.description,
         stepCount: workflow.steps.length,
+        tools: workflow.steps.map((step) => step.tool),
+        inputs: (workflow.inputs ?? []).map((input) => ({ ...input })),
+        outputs: workflow.outputs ?? "",
         runnable: blockers.length === 0,
         blockers,
       };
@@ -101,6 +110,7 @@ export default class AgentWorkflowBridge {
     agentId: string,
     workflowIdentifier: string,
     reason = "",
+    inputs: Record<string, string> = {},
   ): Promise<{ ok: boolean; execution?: WorkflowExecution; error?: string }> {
     const agents = AgentStore.getInstance();
     const agent = agents.get(agentId);
@@ -113,11 +123,11 @@ export default class AgentWorkflowBridge {
       return { ok: false, error: `No workflow matches "${workflowIdentifier}".` };
     }
 
-    const execution = await this.engine.run(workflow.id, {
-      kind: "agent",
-      agentId,
-      reason,
-    });
+    const execution = await this.engine.run(
+      workflow.id,
+      { kind: "agent", agentId, reason },
+      inputs,
+    );
 
     // Recorded through the EXISTING agent execution history, so a
     // workflow run appears alongside the agent's other work.
@@ -132,6 +142,48 @@ export default class AgentWorkflowBridge {
     });
 
     return { ok: execution.status !== "failed", execution };
+  }
+
+  /**
+   * The workflow capability surface, as cognition needs to see it.
+   *
+   * This is what makes a workflow DECIDABLE rather than merely callable.
+   * Cognition cannot choose a workflow it does not know exists, and
+   * previously the only way to find out was to speculatively call
+   * workflow_list — so the model would only consider a workflow when
+   * the user had already said the word. Everything here is read from
+   * real definitions and a live preflight, so a workflow that cannot
+   * run says so, with its actual blocker.
+   */
+  public describeCapabilities(): string {
+    const offers = this.discover();
+    if (offers.length === 0) {
+      return "No reusable workflows are defined. Use ordinary tools, or answer directly.";
+    }
+    const lines = offers.map((offer) => {
+      const inputs = offer.inputs.length
+        ? offer.inputs
+            .map((input) => `${input.name}${input.required ? " (required)" : " (optional)"}: ${input.description}`)
+            .join("; ")
+        : "none";
+      return [
+        `- "${offer.name}" (id ${offer.id})`,
+        `    purpose: ${offer.description}`,
+        `    steps: ${offer.stepCount} — tools: ${offer.tools.join(" → ")}`,
+        `    inputs: ${inputs}`,
+        offer.outputs ? `    produces: ${offer.outputs}` : "",
+        offer.runnable
+          ? "    status: EXECUTABLE now"
+          : `    status: NOT EXECUTABLE — ${offer.blockers.join("; ")}`,
+      ]
+        .filter(Boolean)
+        .join("\n");
+    });
+    return (
+      `${offers.length} reusable workflow(s) available. Run one with workflow_run when it fits ` +
+      `the request; a single tool call or a direct answer is often enough, so do not force one.\n` +
+      lines.join("\n")
+    );
   }
 
   /** Every run an agent has performed, newest first. */

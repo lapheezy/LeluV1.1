@@ -34,6 +34,7 @@ import WorkflowStore, {
   type StepExecution,
   type WorkflowDefinition,
   type WorkflowExecution,
+  type WorkflowInputValues,
   type WorkflowOrigin,
 } from "./WorkflowStore";
 
@@ -41,12 +42,20 @@ import WorkflowStore, {
 export function resolveArguments(
   args: Record<string, unknown>,
   completed: Map<string, StepExecution>,
+  inputs: WorkflowInputValues = {},
 ): { resolved: Record<string, unknown>; missing: string[] } {
   const missing: string[] = [];
 
   const substitute = (value: unknown): unknown => {
     if (typeof value !== "string") return value;
-    return value.replace(/\{\{\s*steps\.([A-Za-z0-9_-]+)\.output\s*\}\}/g, (_match, stepId: string) => {
+    // {{input.<name>}} comes from what the caller supplied; a required
+    // input that is absent is caught before the run starts, so anything
+    // missing here is an optional the workflow declared.
+    const withInputs = value.replace(
+      /\{\{\s*input\.([A-Za-z0-9_-]+)\s*\}\}/g,
+      (_match, name: string) => inputs[name] ?? "",
+    );
+    return withInputs.replace(/\{\{\s*steps\.([A-Za-z0-9_-]+)\.output\s*\}\}/g, (_match, stepId: string) => {
       const step = completed.get(stepId);
       if (!step || step.status !== "succeeded") {
         // A reference to a step that did not succeed is recorded, not
@@ -159,6 +168,7 @@ export default class WorkflowEngine {
   public async run(
     workflowId: string,
     origin: WorkflowOrigin = { kind: "manual" },
+    inputs: WorkflowInputValues = {},
   ): Promise<WorkflowExecution> {
     const workflow = this.store.get(workflowId);
     const execution: WorkflowExecution = {
@@ -170,6 +180,7 @@ export default class WorkflowEngine {
       steps: [],
       pendingStepIds: [],
       origin,
+      inputs,
       startedAt: Date.now(),
       summary: "",
       finalResult: null,
@@ -179,6 +190,25 @@ export default class WorkflowEngine {
       execution.status = "failed";
       execution.finishedAt = Date.now();
       execution.summary = `No workflow with id ${workflowId}.`;
+      this.store.saveExecution(execution);
+      return execution;
+    }
+
+    // A REQUIRED INPUT THAT IS MISSING IS NOT A FAILURE TO EXECUTE.
+    //
+    // It is a request for information, and cognition needs to tell the
+    // two apart: one means "ask the user", the other means "this cannot
+    // work here". Nothing runs, so no partial state is created.
+    const missingInputs = (workflow.inputs ?? [])
+      .filter((input) => input.required && !String(inputs[input.name] ?? "").trim())
+      .map((input) => input.name);
+    if (missingInputs.length > 0) {
+      execution.status = "failed";
+      execution.finishedAt = Date.now();
+      execution.summary =
+        `Not started: required input(s) missing — ${missingInputs.join(", ")}. ` +
+        `Nothing was executed.`;
+      execution.pendingStepIds = workflow.steps.map((step) => step.id);
       this.store.saveExecution(execution);
       return execution;
     }
@@ -226,7 +256,7 @@ export default class WorkflowEngine {
         continue;
       }
 
-      const { resolved, missing } = resolveArguments(step.arguments, completed);
+      const { resolved, missing } = resolveArguments(step.arguments, completed, inputs);
       // Record what the tool was ACTUALLY given, resolved.
       record.input = resolved;
       if (missing.length > 0) {

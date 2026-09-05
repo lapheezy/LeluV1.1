@@ -21,6 +21,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+// SelfStudyEngine.runCycle() performs REAL knowledge retrieval over the
+// network. node:test applies a 5-SECOND default timeout regardless of
+// the runner's own --timeout, so these were failing on the clock rather
+// than on behaviour. The assertions are unchanged; only the budget is
+// appropriate to work that does real I/O.
+
 if (typeof globalThis.window === "undefined") {
   (globalThis as Record<string, unknown>).window = globalThis;
 }
@@ -142,7 +148,7 @@ test("answering a cognitive-state question runs no cycle", async () => {
   assert.equal(result.response!.provider, "cognition");
 });
 
-test("building the shared cognitive context runs no cycle", async () => {
+test("building the shared cognitive context runs no cycle", { timeout: 120_000 }, async () => {
   const engine = SelfStudyEngine.getInstance();
   await engine.runCycle();
   const cycleBefore = engine.getCycle();
@@ -157,7 +163,7 @@ test("building the shared cognitive context runs no cycle", async () => {
 // THE ANSWER IS GROUNDED IN THAT STATE
 // ============================================================
 
-test("the answer reports the actual state, covering all seven required elements", async () => {
+test("the answer reports the actual state, covering all seven required elements", { timeout: 120_000 }, async () => {
   const engine = SelfStudyEngine.getInstance();
   StudyObjectives.getInstance().clear();
   for (let i = 0; i < 3; i += 1) await engine.runCycle();

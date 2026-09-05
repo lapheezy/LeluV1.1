@@ -761,6 +761,12 @@ const EXECUTORS: ToolExecutor[] = [
       properties: {
         workflow: { type: "string", description: "The workflow's name or id." },
         reason: { type: "string", description: "Why you are running it, for the execution record." },
+        inputs: {
+          type: "object",
+          description:
+            "Values for the workflow's declared inputs, keyed by input name. Required inputs must " +
+            "be supplied; if you do not have one, ask the user rather than guessing.",
+        },
       },
       required: ["workflow"],
     },
@@ -784,11 +790,22 @@ const EXECUTORS: ToolExecutor[] = [
         };
       }
 
-      const execution = await WorkflowEngine.getInstance().run(workflow.id, {
-        kind: "chat",
-        taskId: String((context?.request as { timestamp?: number } | undefined)?.timestamp ?? ""),
-        reason: str(args, "reason"),
-      });
+      const supplied: Record<string, string> = {};
+      if (args.inputs && typeof args.inputs === "object" && !Array.isArray(args.inputs)) {
+        for (const [key, value] of Object.entries(args.inputs as Record<string, unknown>)) {
+          supplied[key] = typeof value === "string" ? value : JSON.stringify(value);
+        }
+      }
+
+      const execution = await WorkflowEngine.getInstance().run(
+        workflow.id,
+        {
+          kind: "chat",
+          taskId: String((context?.request as { timestamp?: number } | undefined)?.timestamp ?? ""),
+          reason: str(args, "reason"),
+        },
+        supplied,
+      );
 
       // The model receives the REAL step-by-step account, not a verdict.
       // A partial or failed run is reported as such, so it can decide

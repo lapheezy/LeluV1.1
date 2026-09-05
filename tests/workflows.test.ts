@@ -373,3 +373,150 @@ test("cognition sees what actually ran", async () => {
   assert.match(section, /“state capture”|“will fail”|“optional”/);
   assert.match(section, /succeeded|failed|partial/);
 });
+
+/* ------------------------------------------------------------------ *
+ * COGNITIVE DECISION LAYER
+ *
+ * The decision itself is the model's own tool-calling choice, made from
+ * the capability surface below — there is no matcher. These lock the
+ * surface it decides from and the outcomes it must be able to tell
+ * apart. The live decision is verified separately against Anthropic.
+ * ------------------------------------------------------------------ */
+
+test("the capability surface gives cognition what it needs to choose", async () => {
+  ToolRegistry.getInstance().updateAvailability("project.manage", true);
+  const store = WorkflowStore.getInstance();
+  store.define({
+    name: "Decidable workflow",
+    description: "Files a topic under a project.",
+    inputs: [{ name: "topic", description: "The subject.", required: true }],
+    outputs: "A project containing the findings.",
+    steps: [{ id: "f", name: "file", tool: "project.manage", arguments: { action: "create", name: "D: {{input.topic}}" }, dependsOn: [] }],
+  });
+
+  const surface = AgentWorkflowBridge.getInstance().describeCapabilities();
+  // Everything the requirement list names.
+  assert.match(surface, /Decidable workflow/);
+  assert.match(surface, /id [0-9a-f-]{8}/, "no workflow id offered");
+  assert.match(surface, /purpose: Files a topic/);
+  assert.match(surface, /tools: project\.manage/);
+  assert.match(surface, /topic \(required\)/);
+  assert.match(surface, /produces: A project/);
+  assert.match(surface, /EXECUTABLE now/);
+  // And it must not push the model toward a workflow when one is not needed.
+  assert.match(surface, /do not force one/);
+});
+
+test("cognition is told when a workflow is NOT executable, with the real blocker", async () => {
+  ToolRegistry.getInstance().updateAvailability("project.copy", false);
+  WorkflowStore.getInstance().define({
+    name: "Needs a runtime",
+    description: "Requires the engineering runtime.",
+    steps: [{ id: "c", name: "copy", tool: "project.copy", arguments: {}, dependsOn: [] }],
+  });
+  const surface = AgentWorkflowBridge.getInstance().describeCapabilities();
+  // So the model can report an unavailable capability instead of
+  // attempting a run whose failure it could have predicted.
+  assert.match(surface, /Needs a runtime[\s\S]*NOT EXECUTABLE/);
+  assert.match(surface, /not available in this runtime/);
+});
+
+test("a missing required input asks for information rather than failing to execute", async () => {
+  const store = WorkflowStore.getInstance();
+  const workflow = store.define({
+    name: "Needs input",
+    description: "Cannot run without a topic.",
+    inputs: [{ name: "topic", description: "The subject.", required: true }],
+    steps: [{ id: "s", name: "file", tool: "project.manage", arguments: { action: "create", name: "{{input.topic}}" }, dependsOn: [] }],
+  });
+
+  const run = await WorkflowEngine.getInstance().run(workflow.id, { kind: "manual" }, {});
+  // These are different next actions: "ask the user" vs "this cannot
+  // work here". Nothing ran, so no partial state was created.
+  assert.match(run.summary, /required input\(s\) missing — topic/);
+  assert.match(run.summary, /Nothing was executed/);
+  assert.equal(run.steps.length, 0, "a step executed despite a missing required input");
+  assert.deepEqual(run.pendingStepIds, ["s"]);
+  assert.equal(run.finalResult, null);
+});
+
+test("a supplied input reaches the real tool call", async () => {
+  ToolRegistry.getInstance().updateAvailability("project.manage", true);
+  const store = WorkflowStore.getInstance();
+  const marker = `in-${Date.now().toString(36)}`;
+  const workflow = store.define({
+    name: "Input passthrough",
+    description: "Uses its input.",
+    inputs: [{ name: "topic", description: "The subject.", required: true }],
+    steps: [{ id: "s", name: "file", tool: "project.manage", arguments: { action: "create", name: `D: {{input.topic}}` }, dependsOn: [] }],
+  });
+
+  const run = await WorkflowEngine.getInstance().run(workflow.id, { kind: "manual" }, { topic: marker });
+  assert.equal(run.status, "succeeded");
+  assert.deepEqual(run.inputs, { topic: marker });
+  // The resolved input is what the tool actually received.
+  assert.equal((run.steps[0].input as { name: string }).name, `D: ${marker}`);
+  assert.match(run.steps[0].output, new RegExp(marker));
+});
+
+test("an agent reaches a workflow through cognition's own surface, not a hardcoded call", async () => {
+  ToolRegistry.getInstance().updateAvailability("project.manage", true);
+  const agents = AgentStore.getInstance();
+  const agent = agents.create({ name: "Deciding Agent" });
+  const bridge = AgentWorkflowBridge.getInstance();
+
+  // The agent reads the same capability surface cognition reads, picks
+  // an executable workflow from it, and runs that — nothing names a
+  // workflow in code.
+  const surface = bridge.describeCapabilities();
+  assert.match(surface, /EXECUTABLE now/);
+  // Chosen FROM the surface, by its declared properties — not by name.
+  // Preflight reports a tool as available and permitted, which is not a
+  // promise it will succeed (the memory tools preflight fine here and
+  // then genuinely fail for want of IndexedDB), so the filter also
+  // requires tools that actually work in this runtime.
+  const chosen = bridge
+    .discover()
+    .find(
+      (offer) =>
+        offer.runnable &&
+        offer.inputs.every((input) => !input.required) &&
+        offer.tools.length > 0 &&
+        offer.tools.every((tool) => tool === "project.manage"),
+    );
+  assert.ok(chosen, "no executable, input-free workflow to choose from the surface");
+
+  const outcome = await bridge.runForAgent(agent.id, chosen.id, "chosen from the capability surface");
+  assert.equal(outcome.ok, true, outcome.error);
+  assert.equal(outcome.execution?.origin.kind, "agent");
+  assert.equal(outcome.execution?.origin.agentId, agent.id);
+});
+
+test("cognition's context carries both the surface and what actually ran", async () => {
+  const { buildCognitiveContext, formatCognitiveContext } = await import(
+    "../src/core/cognition/CognitiveContext"
+  );
+  const text = formatCognitiveContext(buildCognitiveContext());
+  // Discovery: what could be chosen.
+  const available = text.split("## AVAILABLE WORKFLOWS")[1]?.split("\n## ")[0] ?? "";
+  assert.match(available, /reusable workflow\(s\) available/);
+  assert.match(available, /EXECUTABLE now|NOT EXECUTABLE/);
+  // History: what really happened. Two different questions.
+  const activity = text.split("## WORKFLOW ACTIVITY")[1]?.split("\n## ")[0] ?? "";
+  assert.match(activity, /workflow\(s\) defined/);
+});
+
+test("no duplicate systems: workflows execute through the one tool dispatcher", async () => {
+  // The engine holds no tool table of its own; a step's tool must exist
+  // in the single ToolRegistry, and a step that names an unknown tool is
+  // blocked rather than handled by some private fallback.
+  const store = WorkflowStore.getInstance();
+  const workflow = store.define({
+    name: "unknown tool",
+    description: "Names a tool that does not exist anywhere.",
+    steps: [{ id: "u", name: "ghost", tool: "definitely.not.a.tool", arguments: {}, dependsOn: [] }],
+  });
+  const run = await WorkflowEngine.getInstance().run(workflow.id);
+  assert.equal(run.steps[0].status, "blocked");
+  assert.match(String(run.steps[0].reason), /No tool "definitely\.not\.a\.tool" is registered/);
+});

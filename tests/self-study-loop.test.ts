@@ -28,6 +28,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+// SelfStudyEngine.runCycle() performs REAL knowledge retrieval over the
+// network. node:test applies a 5-SECOND default timeout regardless of
+// the runner's own --timeout, so these were failing on the clock rather
+// than on behaviour. The assertions are unchanged; only the budget is
+// appropriate to work that does real I/O.
+
 // Shim window/localStorage for KvStore in the Node test env, same as
 // the existing behavioral suite does.
 if (typeof globalThis.window === "undefined") {
@@ -101,7 +107,7 @@ test("cycle 1 runs with no user message and produces a real investigation", asyn
 // 2 + 3 — CONTINUITY: CYCLES PAST THE SEEDED SET
 // ============================================================
 
-test("cognition continues past the seeded objectives and generates later cycles from new knowledge", async () => {
+test("cognition continues past the seeded objectives and generates later cycles from new knowledge", { timeout: 120_000 }, async () => {
   const engine = SelfStudyEngine.getInstance();
   const ledger = StudyObjectives.getInstance();
   ledger.clear();
@@ -204,7 +210,7 @@ test("malformed model follow-ups are never adopted as objectives", async () => {
   }
 });
 
-test("attention rotates across domains instead of grinding one forever", async () => {
+test("attention rotates across domains instead of grinding one forever", { timeout: 120_000 }, async () => {
   const engine = SelfStudyEngine.getInstance();
   StudyObjectives.getInstance().clear();
 
