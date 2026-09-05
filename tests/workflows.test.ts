@@ -206,3 +206,170 @@ test("workflows are reusable — a definition survives and runs again", async ()
   // Each run is its own record, so history is preserved.
   assert.ok(store.executions(reusable.id).length >= 2);
 });
+
+/* ------------------------------------------------------------------ *
+ * EXECUTION BRIDGE — agent invocation, native tools, cognition
+ * ------------------------------------------------------------------ */
+
+import AgentWorkflowBridge, { describeExecution } from "../src/core/workflows/AgentWorkflowBridge";
+import AgentStore from "../src/core/agents/AgentStore";
+import { dispatchToolCall } from "../src/core/tools/ToolDispatcher";
+import { toolSchemasForModel } from "../src/core/tools/ToolSchemas";
+
+test("execution state records everything needed to explain a run", async () => {
+  ToolRegistry.getInstance().updateAvailability("project.manage", true);
+  const store = WorkflowStore.getInstance();
+  const workflow = store.define({
+    name: "state capture",
+    description: "One real step.",
+    steps: [{ id: "only", name: "list projects", tool: "project.manage", arguments: { action: "list" }, dependsOn: [] }],
+  });
+
+  const run = await WorkflowEngine.getInstance().run(workflow.id, {
+    kind: "agent", agentId: "agent-x", reason: "checking state",
+  });
+
+  // Everything finding 5 requires, from the real record.
+  assert.ok(run.id, "no invocation id");
+  assert.equal(run.workflowId, workflow.id);
+  assert.equal(run.workflowName, "state capture");
+  assert.equal(run.currentStepId, null, "a finished run still claims a current step");
+  assert.deepEqual(run.pendingStepIds, [], "pending steps were not drained");
+  assert.equal(run.origin.kind, "agent");
+  assert.equal(run.origin.agentId, "agent-x");
+  assert.ok(run.startedAt && run.finishedAt);
+
+  const step = run.steps[0];
+  assert.deepEqual(step.input, { action: "list" }, "the resolved tool input was not recorded");
+  assert.equal(step.tool, "project.manage");
+  assert.equal(step.name, "list projects");
+  assert.ok(step.output.length > 0);
+  // The final result is the last succeeding step's real output.
+  assert.equal(run.finalResult, step.output);
+});
+
+test("a run where nothing succeeded has NO result, rather than an empty one", async () => {
+  const store = WorkflowStore.getInstance();
+  const workflow = store.define({
+    name: "all blocked",
+    description: "Its only step calls a tool that does not exist.",
+    steps: [{ id: "x", name: "missing", tool: "nope.absent", arguments: {}, dependsOn: [] }],
+  });
+  const run = await WorkflowEngine.getInstance().run(workflow.id);
+  assert.equal(run.status, "failed");
+  // "" would read as a result the workflow produced.
+  assert.equal(run.finalResult, null);
+});
+
+test("an AgentStore agent can discover, invoke and receive a workflow result", async () => {
+  ToolRegistry.getInstance().updateAvailability("project.manage", true);
+  const agents = AgentStore.getInstance();
+  const agent = agents.create({ name: "Workflow Runner" });
+
+  const bridge = AgentWorkflowBridge.getInstance();
+  const offers = bridge.discover();
+  assert.ok(offers.length > 0, "the agent discovered no workflows");
+  // Discovery reports real blockers, so a chosen workflow can actually run.
+  const runnable = offers.find((offer) => offer.runnable);
+  assert.ok(runnable, `no runnable workflow offered: ${JSON.stringify(offers.map((o) => o.blockers))}`);
+
+  // Preflight reports whether a tool is AVAILABLE and permitted, which
+  // is not a promise that it will succeed — the memory tools preflight
+  // fine here and then genuinely fail for want of IndexedDB. Target a
+  // workflow known to execute in this runtime so the assertion is about
+  // the bridge rather than about that distinction.
+  const outcome = await bridge.runForAgent(agent.id, "state capture", "unit test invocation");
+  assert.equal(outcome.ok, true, outcome.error);
+  assert.ok(outcome.execution, "the agent received no execution");
+  assert.equal(outcome.execution.origin.agentId, agent.id);
+
+  // Recorded in the agent's OWN history through the existing API.
+  const stored = agents.get(agent.id);
+  assert.ok(stored);
+  const record = stored.executions.find((entry) => entry.taskId === outcome.execution!.id);
+  assert.ok(record, "the run is missing from the agent's execution history");
+  assert.equal(record.provider, "workflow");
+  // The record explains the run rather than merely asserting it happened.
+  assert.match(record.result, /Workflow “/);
+  assert.match(record.result, /→ succeeded/);
+
+  // And the agent can find its own runs afterwards.
+  assert.ok(bridge.executionsForAgent(agent.id).length > 0);
+});
+
+test("workflows are offered through the same native tool surface as everything else", () => {
+  const offered = toolSchemasForModel().map((schema) => schema.name);
+  // Not a chat-only path: they go through ToolSchemas like every tool.
+  assert.ok(offered.includes("workflow_list"), `workflow_list not offered: ${offered.join(",")}`);
+  assert.ok(offered.includes("workflow_run"));
+  assert.ok(offered.includes("workflow_status"));
+});
+
+test("the native workflow tools list, run and report real state", async () => {
+  ToolRegistry.getInstance().updateAvailability("project.manage", true);
+
+  const listed = await dispatchToolCall({ id: "t1", name: "workflow_list", arguments: {} }, "test");
+  assert.equal(listed.ok, true);
+  assert.match(listed.content, /step\(s\)/);
+
+  const ran = await dispatchToolCall(
+    { id: "t2", name: "workflow_run", arguments: { workflow: "state capture", reason: "native tool test" } },
+    "test",
+  );
+  assert.equal(ran.ok, true, ran.content);
+  // The model receives the step-by-step account, not a verdict.
+  assert.match(ran.content, /Workflow “state capture” — SUCCEEDED/);
+  assert.match(ran.content, /\[project\.manage\] → succeeded/);
+  const invocationId = (ran.data as { invocationId: string }).invocationId;
+  assert.ok(invocationId);
+
+  // State is readable back by invocation id.
+  const status = await dispatchToolCall(
+    { id: "t3", name: "workflow_status", arguments: { invocationId } },
+    "test",
+  );
+  assert.equal(status.ok, true);
+  assert.match(status.content, /state capture/);
+});
+
+test("a failing workflow is reported to the model AS a failure, with the reason", async () => {
+  ToolRegistry.getInstance().updateAvailability("project.copy", false);
+  const store = WorkflowStore.getInstance();
+  store.define({
+    name: "will fail",
+    description: "Needs an engineering runtime that is absent.",
+    steps: [{ id: "c", name: "copy", tool: "project.copy", arguments: {}, dependsOn: [] }],
+  });
+
+  const ran = await dispatchToolCall(
+    { id: "t4", name: "workflow_run", arguments: { workflow: "will fail" } },
+    "test",
+  );
+  // Never silently swallowed: ok:false, and the real blocker in the text
+  // so cognition can decide to retry, fall back, or stop.
+  assert.equal(ran.ok, false);
+  assert.match(ran.content, /FAILED/);
+  assert.match(ran.content, /not available in this runtime/);
+});
+
+test("asking for a workflow that does not exist names the ones that do", async () => {
+  const ran = await dispatchToolCall(
+    { id: "t5", name: "workflow_run", arguments: { workflow: "no such workflow" } },
+    "test",
+  );
+  assert.equal(ran.ok, false);
+  assert.match(ran.content, /No workflow matches/);
+  assert.match(ran.content, /Known workflows:/);
+});
+
+test("cognition sees what actually ran", async () => {
+  const { buildCognitiveContext, formatCognitiveContext } = await import(
+    "../src/core/cognition/CognitiveContext"
+  );
+  const text = formatCognitiveContext(buildCognitiveContext());
+  const section = text.split("## WORKFLOW ACTIVITY")[1]?.split("##")[0] ?? "";
+  assert.ok(section.includes("workflow(s) defined"), "cognition has no workflow section");
+  // Real runs, named, with their outcome — not a count of intentions.
+  assert.match(section, /“state capture”|“will fail”|“optional”/);
+  assert.match(section, /succeeded|failed|partial/);
+});

@@ -733,6 +733,113 @@ const EXECUTORS: ToolExecutor[] = [
     },
   },
 
+  /* ---------------- workflows ---------------- */
+
+  {
+    id: "workflow.list",
+    parameters: { type: "object", properties: {} },
+    run: async () => {
+      const { default: AgentWorkflowBridge } = await import("../workflows/AgentWorkflowBridge");
+      const offers = AgentWorkflowBridge.getInstance().discover();
+      if (offers.length === 0) {
+        return { ok: true, content: "No workflows are defined yet." };
+      }
+      const lines = offers.map((offer) => {
+        const state = offer.runnable
+          ? "runnable"
+          : `BLOCKED — ${offer.blockers.join("; ")}`;
+        return `- ${offer.name} (id ${offer.id}) — ${offer.stepCount} step(s), ${state}\n    ${offer.description}`;
+      });
+      return { ok: true, content: lines.join("\n"), data: { count: offers.length } };
+    },
+  },
+
+  {
+    id: "workflow.run",
+    parameters: {
+      type: "object",
+      properties: {
+        workflow: { type: "string", description: "The workflow's name or id." },
+        reason: { type: "string", description: "Why you are running it, for the execution record." },
+      },
+      required: ["workflow"],
+    },
+    run: async (args, context) => {
+      const [{ default: AgentWorkflowBridge, describeExecution }, { default: WorkflowEngine }] =
+        await Promise.all([
+          import("../workflows/AgentWorkflowBridge"),
+          import("../workflows/WorkflowEngine"),
+        ]);
+
+      const identifier = str(args, "workflow");
+      if (!identifier) return { ok: false, content: "workflow.run requires a workflow name or id." };
+
+      const bridge = AgentWorkflowBridge.getInstance();
+      const workflow = bridge.resolve(identifier);
+      if (!workflow) {
+        const known = bridge.discover().map((offer) => offer.name).join(", ") || "(none defined)";
+        return {
+          ok: false,
+          content: `No workflow matches "${identifier}". Known workflows: ${known}.`,
+        };
+      }
+
+      const execution = await WorkflowEngine.getInstance().run(workflow.id, {
+        kind: "chat",
+        taskId: String((context?.request as { timestamp?: number } | undefined)?.timestamp ?? ""),
+        reason: str(args, "reason"),
+      });
+
+      // The model receives the REAL step-by-step account, not a verdict.
+      // A partial or failed run is reported as such, so it can decide
+      // whether to retry, fall back, or stop.
+      return {
+        ok: execution.status === "succeeded",
+        content: describeExecution(execution),
+        data: {
+          invocationId: execution.id,
+          status: execution.status,
+          steps: execution.steps.map((step) => ({
+            id: step.stepId,
+            status: step.status,
+            tool: step.tool,
+          })),
+        },
+      };
+    },
+  },
+
+  {
+    id: "workflow.status",
+    parameters: {
+      type: "object",
+      properties: {
+        invocationId: {
+          type: "string",
+          description: "The invocation id from a previous run. Omit for the most recent execution.",
+        },
+      },
+    },
+    run: async (args) => {
+      const [{ default: WorkflowStore }, { describeExecution }] = await Promise.all([
+        import("../workflows/WorkflowStore"),
+        import("../workflows/AgentWorkflowBridge"),
+      ]);
+      const store = WorkflowStore.getInstance();
+      const wanted = str(args, "invocationId");
+      const execution = wanted ? store.execution(wanted) : store.executions()[0];
+      if (!execution) {
+        return {
+          ok: false,
+          content: wanted
+            ? `No execution with invocation id ${wanted}.`
+            : "No workflow has been executed yet.",
+        };
+      }
+      return { ok: true, content: describeExecution(execution), data: { status: execution.status } };
+    },
+  },
+
   {
     id: "project.git",
     parameters: {

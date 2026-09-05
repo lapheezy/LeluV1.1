@@ -34,6 +34,7 @@ import WorkflowStore, {
   type StepExecution,
   type WorkflowDefinition,
   type WorkflowExecution,
+  type WorkflowOrigin,
 } from "./WorkflowStore";
 
 /** Interpolate `{{steps.<id>.output}}` against completed steps. */
@@ -148,16 +149,30 @@ export default class WorkflowEngine {
     });
   }
 
-  /** Execute a workflow. Never throws; every outcome is recorded. */
-  public async run(workflowId: string): Promise<WorkflowExecution> {
+  /**
+   * Execute a workflow. Never throws; every outcome is recorded.
+   *
+   * `origin` says who asked. It is carried on the execution so an agent
+   * can find its own runs, and so cognition can tell a workflow it
+   * chose apart from one the user asked for directly.
+   */
+  public async run(
+    workflowId: string,
+    origin: WorkflowOrigin = { kind: "manual" },
+  ): Promise<WorkflowExecution> {
     const workflow = this.store.get(workflowId);
     const execution: WorkflowExecution = {
       id: crypto.randomUUID(),
       workflowId,
+      workflowName: workflow?.name ?? "(unknown)",
       status: "running",
+      currentStepId: null,
       steps: [],
+      pendingStepIds: [],
+      origin,
       startedAt: Date.now(),
       summary: "",
+      finalResult: null,
     };
 
     if (!workflow) {
@@ -169,13 +184,23 @@ export default class WorkflowEngine {
     }
 
     const { order, unresolvable } = orderSteps(workflow);
+    execution.pendingStepIds = [...order];
     const byId = new Map(workflow.steps.map((step) => [step.id, step]));
     const completed = new Map<string, StepExecution>();
     const taskId = `workflow-${execution.id}`;
 
     for (const stepId of order) {
       const step = byId.get(stepId)!;
-      const record: StepExecution = { stepId, status: "pending", output: "" };
+      const record: StepExecution = {
+        stepId,
+        name: step.name,
+        tool: step.tool,
+        status: "pending",
+        input: {},
+        output: "",
+      };
+      execution.pendingStepIds = execution.pendingStepIds.filter((id) => id !== stepId);
+      execution.currentStepId = stepId;
 
       // A dependency that did not succeed means this step's inputs do not
       // exist. Running it anyway would produce a confident wrong answer.
@@ -202,6 +227,8 @@ export default class WorkflowEngine {
       }
 
       const { resolved, missing } = resolveArguments(step.arguments, completed);
+      // Record what the tool was ACTUALLY given, resolved.
+      record.input = resolved;
       if (missing.length > 0) {
         record.status = "skipped";
         record.reason = `Referenced output of ${missing.join(", ")}, which is not available.`;
@@ -234,13 +261,20 @@ export default class WorkflowEngine {
       this.store.saveExecution({ ...execution });
     }
 
+    execution.currentStepId = null;
+
     for (const stepId of unresolvable) {
+      const cyclic = byId.get(stepId);
       const record: StepExecution = {
         stepId,
+        name: cyclic?.name ?? stepId,
+        tool: cyclic?.tool ?? "(unknown)",
         status: "blocked",
+        input: {},
         output: "",
         reason: "Part of a dependency cycle; it can never become ready.",
       };
+      execution.pendingStepIds = execution.pendingStepIds.filter((id) => id !== stepId);
       execution.steps.push(record);
       completed.set(stepId, record);
     }
@@ -253,6 +287,10 @@ export default class WorkflowEngine {
     const anySucceeded = execution.steps.some((record) => record.status === "succeeded");
 
     execution.status = hardFailure ? (anySucceeded ? "partial" : "failed") : "succeeded";
+    // The result is the last SUCCEEDING step's real output. Null when
+    // nothing succeeded — an empty string would read as a result.
+    const lastSuccess = [...execution.steps].reverse().find((record) => record.status === "succeeded");
+    execution.finalResult = lastSuccess ? lastSuccess.output : null;
     execution.finishedAt = Date.now();
     execution.summary = this.describe(execution);
     this.store.saveExecution(execution);

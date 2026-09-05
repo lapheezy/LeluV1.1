@@ -29,6 +29,7 @@ import ExecutiveRuntime from "../executive/ExecutiveRuntime";
 import EarthCore from "../earth/EarthCore";
 import SelfStudyEngine, { type CognitiveStateView } from "./SelfStudyEngine";
 import EngineeringWorkspace from "../engineering/EngineeringWorkspace";
+import WorkflowStore from "../workflows/WorkflowStore";
 import {
   buildReport,
   inspectDocument,
@@ -94,6 +95,13 @@ export interface CognitiveContextSnapshot {
    * validation exited.
    */
   engineeringWorkspace: string;
+
+  /**
+   * Recent workflow executions, described from their real recorded
+   * state. Cognition must be able to see WHAT ran and what each step
+   * produced, not just that something happened.
+   */
+  workflowActivity: string;
 
   /** Current UI state (read live from UIStateStore singleton). */
   ui: UIStateSnapshot;
@@ -229,6 +237,7 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
     // describe() reads the workspace service's own state, which only
     // ever moves in response to a real backend result.
     engineeringWorkspace: EngineeringWorkspace.getInstance().describe(),
+    workflowActivity: describeWorkflowActivity(),
     checkpoints,
     builtAt: Date.now(),
   };
@@ -239,6 +248,37 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
  * injection into the AI model's system prompt. This is how
  * LÉLU's cognition actually "sees" her own runtime state.
  */
+/** Recent workflow runs, from their persisted records. */
+function describeWorkflowActivity(): string {
+  try {
+    const store = WorkflowStore.getInstance();
+    const defined = store.list();
+    const runs = store.executions().slice(0, 3);
+
+    if (defined.length === 0) return "No workflows are defined.";
+    if (runs.length === 0) {
+      return `${defined.length} workflow(s) defined; none has been executed yet.`;
+    }
+
+    const lines = runs.map((run) => {
+      const steps = run.steps
+        .map((step) => `${step.name}=${step.status}`)
+        .join(", ");
+      const failures = run.steps
+        .filter((step) => step.status === "failed" || step.status === "blocked")
+        .map((step) => `${step.name}: ${step.reason ?? "no reason"}`);
+      return (
+        `- “${run.workflowName}” (${run.origin.kind}) ${run.status}: ${steps || "no steps"}` +
+        (failures.length ? `\n    problems: ${failures.join("; ")}` : "") +
+        (run.finalResult ? `\n    result: ${run.finalResult.replace(/\s+/g, " ").slice(0, 200)}` : "")
+      );
+    });
+    return `${defined.length} workflow(s) defined.\n${lines.join("\n")}`;
+  } catch {
+    return "Workflow state is unavailable in this runtime.";
+  }
+}
+
 export function formatCognitiveContext(ctx: CognitiveContextSnapshot): string {
   const sections: string[] = [];
 
@@ -340,6 +380,14 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   // "validation failed" from "awaiting authorization", without being
   // told in prose.
   sections.push(`## ENGINEERING WORKSPACE\n${ctx.engineeringWorkspace}`);
+
+  // WORKFLOW ACTIVITY — read from persisted execution records.
+  //
+  // Every line comes from a run that actually occurred: its steps, their
+  // real outputs and their real failures. A workflow that was never
+  // invoked contributes nothing, so this section cannot describe work
+  // that did not happen.
+  sections.push(`## WORKFLOW ACTIVITY\n${ctx.workflowActivity}`);
 
   if (ctx.earthContext) sections.push(ctx.earthContext);
 

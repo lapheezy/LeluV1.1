@@ -58,7 +58,18 @@ export type StepStatus =
 
 export interface StepExecution {
   stepId: string;
+  /** The step's human name, so a reader need not re-join the definition. */
+  name: string;
+  /** The tool this step invoked. */
+  tool: string;
   status: StepStatus;
+  /**
+   * The arguments actually sent to the tool, AFTER context substitution.
+   * Recorded because "what was this step given" is a different question
+   * from "what did the workflow declare", and only the first explains a
+   * result.
+   */
+  input: Record<string, unknown>;
   /** The REAL tool result content, never a summary of an intention. */
   output: string;
   /** Why a step is blocked or skipped — the actual reason. */
@@ -67,16 +78,46 @@ export interface StepExecution {
   finishedAt?: number;
 }
 
+/**
+ * Who asked for this run.
+ *
+ * A workflow reached from chat, from an agent, or from cognition is the
+ * same execution, but the answer to "why did this happen" differs — and
+ * an agent needs to find its own runs among everything else.
+ */
+export interface WorkflowOrigin {
+  kind: "chat" | "agent" | "cognition" | "manual";
+  /** AgentStore id when an agent invoked it. */
+  agentId?: string;
+  /** The chat task id / conversation turn that led here. */
+  taskId?: string;
+  /** The request in the invoker's own words. */
+  reason?: string;
+}
+
 export type ExecutionStatus = "running" | "succeeded" | "failed" | "partial";
 
 export interface WorkflowExecution {
+  /** The invocation id — unique per run, stable across updates. */
   id: string;
   workflowId: string;
+  /** Denormalised so a run is readable without its definition. */
+  workflowName: string;
   status: ExecutionStatus;
+  /** The step running right now, or null between/after steps. */
+  currentStepId: string | null;
   steps: StepExecution[];
+  /** Steps not yet reached, in the order they will be attempted. */
+  pendingStepIds: string[];
+  origin: WorkflowOrigin;
   startedAt: number;
   finishedAt?: number;
   summary: string;
+  /**
+   * The workflow's result: the output of the last step that succeeded.
+   * Null when nothing succeeded — an empty result is not a result.
+   */
+  finalResult: string | null;
 }
 
 const DEFS_KEY = "lelu.workflows.definitions.v1";

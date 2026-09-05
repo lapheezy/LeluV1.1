@@ -648,6 +648,46 @@ export default class ToolRegistry {
         executionRoute: "EngineeringWorkspace.gitStatus",
         verificationMethod: "raw git output",
       },
+      /* ---- workflows: the same tool path as everything else ---- */
+      {
+        id: "workflow.list",
+        name: "List Workflows",
+        description:
+          "List the reusable workflows that exist, with how many steps each has and whether " +
+          "it can run right now. Use this before running one.",
+        category: "Workflows",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "AgentWorkflowBridge.discover",
+        verificationMethod: "reads the persisted workflow definitions",
+      },
+      {
+        id: "workflow.run",
+        name: "Run Workflow",
+        description:
+          "Execute a reusable workflow by name or id. Every step runs as a real tool call and " +
+          "the result reports what each step actually did.",
+        category: "Workflows",
+        permissions: ["EXECUTE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "WorkflowEngine.run",
+        verificationMethod: "per-step tool results and the persisted execution record",
+      },
+      {
+        id: "workflow.status",
+        name: "Workflow Execution Status",
+        description:
+          "Read the recorded state of a workflow execution — its steps, their inputs, outputs " +
+          "and failures — by invocation id, or the most recent run.",
+        category: "Workflows",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "WorkflowStore.execution",
+      },
+
       {
         id: "project.commit",
         name: "Commit Applied Changes",

@@ -27,6 +27,7 @@ import SurfaceResolver from "./router/SurfaceResolver";
 import CognitiveStateResolver from "./router/CognitiveStateResolver";
 import CapabilityManifest from "./capabilities/CapabilityManifest";
 import ToolRegistry from "./tools/ToolRegistry";
+import WorkflowStore from "./workflows/WorkflowStore";
 import { cleanAssistantText } from "./router/ToolMarkup";
 
 export default class AIRouter {
@@ -65,6 +66,38 @@ export default class AIRouter {
     const copyTool = ToolRegistry.getInstance().get("project.copy");
     if (!copyTool?.available) return false;
     return this.engineering.isEngineeringPrompt(context.request.prompt ?? "");
+  }
+
+  /**
+   * Is this a request to use a WORKFLOW that actually exists?
+   *
+   * The intent detector reads "run the workflow that fits and tell me
+   * what each step produced" as a project request, so ProjectResolver
+   * claimed the turn and answered by creating a project from text
+   * parsing — the model never saw workflow_list or workflow_run, and no
+   * workflow ran. Measured: executions recorded 0 while the reply
+   * described an audit it had not performed.
+   *
+   * Narrow on purpose, and grounded in real state rather than wording
+   * alone: the tools must be available AND at least one workflow must
+   * actually be defined. With nothing to run, the previous behaviour is
+   * exactly as before.
+   */
+  private modelCanRunWorkflow(context: RouterContext): boolean {
+    const runTool = ToolRegistry.getInstance().get("workflow.run");
+    if (!runTool?.available) return false;
+
+    let defined = 0;
+    try {
+      defined = WorkflowStore.getInstance().list().length;
+    } catch {
+      return false;
+    }
+    if (defined === 0) return false;
+
+    return /\bworkflows?\b|\bautomation\b|\bre-?usable (?:steps|process)\b/i.test(
+      context.request.prompt ?? "",
+    );
   }
 
   /** Route an AI request. */
@@ -134,7 +167,11 @@ export default class AIRouter {
     // runtime to be genuinely reachable (project.copy is marked
     // available only by a successful probe), so where no runtime exists
     // the old project-creation behaviour is exactly as before.
-    if (context.intent === "project" && !this.modelCanDoEngineeringWork(context)) {
+    if (
+      context.intent === "project" &&
+      !this.modelCanDoEngineeringWork(context) &&
+      !this.modelCanRunWorkflow(context)
+    ) {
       const projectResult = await this.projects.execute(context);
       if (projectResult.handled && projectResult.response) {
         return this.attachThinking(context, projectResult.response);
