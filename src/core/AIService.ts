@@ -924,6 +924,54 @@ export default class AIService {
    * result comes back with `metadata.success === false` instead of
    * throwing — the caller keeps its state and continues.
    */
+  /**
+   * Autonomous deliberation — the SAME decision path as a chat turn,
+   * entered without a user message.
+   *
+   * This is deliberately reason()'s route (straight to ProviderResolver,
+   * so the intent resolvers do not claim the turn) with tools ENABLED,
+   * which means the decision is made by the existing native tool loop:
+   * the model reasons over the capability surface cognition already
+   * assembles and chooses to answer, call a tool, run a workflow, ask
+   * for something, or do nothing. There is no second cognition here and
+   * no rule engine — only the existing loop, reached from a trigger
+   * that is not a user typing.
+   */
+  public async deliberate(
+    prompt: string,
+    options: { system?: string; maxTokens?: number } = {},
+  ): Promise<AIResponse> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    const messages = [
+      ...(options.system ? [{ role: "system" as const, content: options.system }] : []),
+      { role: "user" as const, content: prompt },
+    ];
+    try {
+      return await this.runtime.reason({
+        messages,
+        prompt,
+        // The one thing that differs from reason(): autonomous work is
+        // allowed to act, not only to conclude.
+        allowTools: true,
+        maxTokens: options.maxTokens ?? 2048,
+        timestamp: Date.now(),
+      });
+    } catch (error) {
+      return {
+        text: "",
+        provider: "error",
+        model: "deliberate",
+        processingTime: 0,
+        metadata: {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      };
+    }
+  }
+
   public async reason(
     prompt: string,
     options: { system?: string; model?: string; temperature?: number; maxTokens?: number } = {},
