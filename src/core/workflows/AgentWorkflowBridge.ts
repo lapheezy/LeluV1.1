@@ -23,6 +23,7 @@
 
 import AgentStore from "../agents/AgentStore";
 import WorkflowEngine from "./WorkflowEngine";
+import WorkflowPatterns from "./WorkflowPatterns";
 import WorkflowStore, {
   type WorkflowDefinition,
   type WorkflowExecution,
@@ -165,9 +166,16 @@ export default class AgentWorkflowBridge {
       "worth repeating: describe its steps as data (existing tools only, with conditions, " +
       "retries, loops and failure handling declared), and it becomes available to every " +
       "later objective. It is validated before it is stored, and rejected drafts are not saved.";
+    // Evidence from her OWN history: procedures she has repeated and
+    // not saved, and saved workflows her runs say are failing. Empty
+    // when there is no such evidence — a suggestion is never invented.
+    const evidence = WorkflowPatterns.getInstance().describe();
+
     if (offers.length === 0) {
       return (
-        "No reusable workflows are defined. Use ordinary tools, or answer directly.\n" + authoring
+        "No reusable workflows are defined. Use ordinary tools, or answer directly.\n" +
+        authoring +
+        (evidence ? `\n${evidence}` : "")
       );
     }
     const lines = offers.map((offer) => {
@@ -193,7 +201,8 @@ export default class AgentWorkflowBridge {
       `${offers.length} reusable workflow(s) available. Run one with workflow_run when it fits ` +
       `the request; a single tool call or a direct answer is often enough, so do not force one.\n` +
       lines.join("\n") +
-      `\n${authoring}`
+      `\n${authoring}` +
+      (evidence ? `\n${evidence}` : "")
     );
   }
 

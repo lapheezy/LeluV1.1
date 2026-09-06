@@ -42,6 +42,12 @@ import AgentEventBus from "../src/core/agent/AgentEvents";
 const objectives = AgentObjectives.getInstance();
 const runtime = AgentCognitionRuntime.getInstance();
 
+// These tests drive cycles BY HAND, one at a time, and assert on what a
+// single cycle did. If another file booted the runtime, its own
+// continuations would run cycles in between and change those counts —
+// so this file takes the runtime out of the loop it is measuring.
+runtime.stop();
+
 /** Replace ONLY the model's reply, so the loop around it stays real. */
 function stubDeliberation(
   reply: string,
@@ -248,14 +254,42 @@ test("an agent that needs information yields for information, not for a capabili
 
 /* ---- duplicate-action protection ---- */
 
-test("the same action twice running is treated as no progress", async () => {
+test("a repeated action is corrected once, and stopped if it comes back", async () => {
   const agentId = newAgentId();
   const objective = objectives.create({ agentId, objective: "Repeats itself." });
   objectives.update(objective.id, { actionHistory: ["project_manage"] });
-  const restore = stubDeliberation("Doing it again.", [{ tool: "project_manage", ok: true }]);
-  const outcome = await runtime.runCycle(objective.id, "t");
-  restore();
-  assert.equal(outcome?.yieldReason, "no-progress");
+
+  // FIRST repeat: the runtime corrects rather than stops. Giving up on a
+  // single repeat throws away work that is often one sentence from done.
+  const restoreOnce = stubDeliberation("Doing it again.", [{ tool: "project_manage", ok: true }]);
+  const first = await runtime.runCycle(objective.id, "t");
+  restoreOnce();
+  assert.equal(first?.nextState, "active");
+  assert.equal(first?.yieldReason, undefined);
+  // The correction is real runtime state, carried to the next cycle.
+  assert.match(String(objectives.get(objective.id)?.nudge), /produced nothing new/);
+
+  // And it really reaches the next decision.
+  let promptSeen = "";
+  const ai = AIService.getInstance() as unknown as { deliberate: unknown };
+  const original = ai.deliberate;
+  ai.deliberate = async (prompt: string) => {
+    promptSeen = prompt;
+    return {
+      text: "Doing it again.",
+      provider: "stub",
+      model: "stub",
+      processingTime: 1,
+      metadata: { toolsExecuted: [{ tool: "project_manage", ok: true }] },
+    };
+  };
+  await new Promise((resolve) => setTimeout(resolve, 1_600));
+  const second = await runtime.runCycle(objective.id, "t");
+  ai.deliberate = original;
+
+  assert.match(promptSeen, /RUNTIME CORRECTION/);
+  // SECOND repeat, after being told: that is a loop, and it stops.
+  assert.equal(second?.yieldReason, "no-progress");
 });
 
 /* ---- TEST 12: agents do not touch each other's work ---- */

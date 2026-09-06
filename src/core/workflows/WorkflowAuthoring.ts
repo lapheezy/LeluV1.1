@@ -31,6 +31,7 @@
  */
 
 import ToolRegistry from "../tools/ToolRegistry";
+import { registryIdForToolName } from "../tools/ToolDispatcher";
 import WorkflowStore, {
   type ConditionOperator,
   type FailureAction,
@@ -77,6 +78,7 @@ const STEP_KEYS = new Set([
   "tool",
   "arguments",
   "dependsOn",
+  "after",
   "optional",
   "condition",
   "retry",
@@ -300,6 +302,8 @@ export function validateWorkflow(draft: WorkflowDraft): ValidationResult {
   const registry = ToolRegistry.getInstance();
   const stepIds = new Set<string>();
   const dependencies = new Map<string, string[]>();
+  /** dependsOn + after: everything guaranteed to have run before a step. */
+  const ordering = new Map<string, string[]>();
 
   // First pass: identity, so later passes can resolve references.
   for (const [index, raw] of rawSteps.entries()) {
@@ -318,7 +322,10 @@ export function validateWorkflow(draft: WorkflowDraft): ValidationResult {
     }
     stepIds.add(id);
     const dependsOn = Array.isArray(raw.dependsOn) ? raw.dependsOn.map(text).filter(Boolean) : [];
+    const afterIds = Array.isArray(raw.after) ? raw.after.map(text).filter(Boolean) : [];
     dependencies.set(id, dependsOn);
+    // Ordering edges decide what a step may READ, alongside dependencies.
+    ordering.set(id, [...dependsOn, ...afterIds]);
   }
   if (errors.length > 0) return { ok: false, errors, warnings };
 
@@ -336,15 +343,34 @@ export function validateWorkflow(draft: WorkflowDraft): ValidationResult {
     }
 
     const stepName = text(step.name) || id;
-    const tool = text(step.tool);
+    const declared = text(step.tool);
+    // A MODEL SEES TOOLS AS "project_manage" AND THE REGISTRY CALLS THEM
+    // "project.manage". Both forms mean the same tool, so both are
+    // accepted and normalised — a model that used the only name it was
+    // ever shown should not be told its tool does not exist.
+    const tool = declared && !registry.get(declared) ? registryIdForToolName(declared) : declared;
     const definition = tool ? registry.get(tool) : undefined;
-    if (!tool) {
+    if (!declared) {
       errors.push(`${label}: "tool" is required.`);
     } else if (!definition) {
       // THE CENTRAL SAFETY PROPERTY: a step can only ever name a tool
       // that already exists. There is no path from an authored
-      // workflow to new behaviour.
-      errors.push(`${label}: no tool "${tool}" is registered. A step can only call an existing tool.`);
+      // workflow to new behaviour. The error names real alternatives so
+      // a caller can correct itself instead of guessing.
+      const available = registry
+        .all()
+        .filter((entry) => entry.available)
+        .map((entry) => entry.id);
+      const near = available.filter((id) => {
+        const head = declared.split(/[._]/)[0]?.toLowerCase() ?? "";
+        return head.length > 2 && id.toLowerCase().startsWith(head);
+      });
+      errors.push(
+        `${label}: no tool "${declared}" is registered. A step can only call an existing tool. ` +
+          (near.length > 0
+            ? `Did you mean: ${near.join(", ")}?`
+            : `Available tools: ${available.slice(0, 25).join(", ")}`),
+      );
     } else if (!definition.available) {
       warnings.push(
         `${label}: "${definition.name}" is not available in this runtime right now` +
@@ -361,6 +387,13 @@ export function validateWorkflow(draft: WorkflowDraft): ValidationResult {
     for (const parent of dependsOn) {
       if (parent === id) errors.push(`${label}: depends on itself.`);
       else if (!stepIds.has(parent)) errors.push(`${label}: depends on "${parent}", which does not exist.`);
+    }
+    const after = (ordering.get(id) ?? []).filter((parent) => !dependsOn.includes(parent));
+    for (const parent of after) {
+      if (parent === id) errors.push(`${label}: is ordered after itself.`);
+      else if (!stepIds.has(parent)) {
+        errors.push(`${label}: is ordered after "${parent}", which does not exist.`);
+      }
     }
 
     const args = step.arguments;
@@ -382,7 +415,14 @@ export function validateWorkflow(draft: WorkflowDraft): ValidationResult {
     }
 
     // References must resolve at RUN time, not just look plausible.
-    const readable = ancestorsOf(id, dependencies);
+    // What this step may READ: everything ordered before it, whether by
+    // dependency (which must succeed) or by ordering (which must merely
+    // have run). A failure branch reads a step it deliberately does not
+    // depend on, and that is exactly what makes it a failure branch.
+    const readable = ancestorsOf(id, ordering);
+    // What this step may take a VALUE from: only steps that must have
+    // succeeded, because a failed step has no output to substitute.
+    const valueSources = ancestorsOf(id, dependencies);
     const referencedSteps: string[] = [];
     const referencedInputs: string[] = [];
     collectReferences(argumentsObject, referencedSteps, referencedInputs);
@@ -397,7 +437,7 @@ export function validateWorkflow(draft: WorkflowDraft): ValidationResult {
       }
       if (!stepIds.has(reference)) {
         errors.push(`${label}: references step "${reference}", which does not exist.`);
-      } else if (!readable.has(reference)) {
+      } else if (!valueSources.has(reference)) {
         errors.push(
           `${label}: references step "${reference}" without depending on it, so that output ` +
             `may not exist yet. Add it to dependsOn.`,
@@ -506,6 +546,7 @@ export function validateWorkflow(draft: WorkflowDraft): ValidationResult {
       tool,
       arguments: argumentsObject,
       dependsOn,
+      ...(after.length > 0 ? { after } : {}),
       ...(step.optional === true ? { optional: true } : {}),
       ...(condition ? { condition } : {}),
       ...(retry ? { retry } : {}),
@@ -532,7 +573,7 @@ export function validateWorkflow(draft: WorkflowDraft): ValidationResult {
   const { unresolvable } = orderSteps(draftDefinition);
   if (unresolvable.length > 0) {
     errors.push(
-      `steps: ${unresolvable.join(", ")} form a dependency cycle, so they could never run.`,
+      `steps: ${unresolvable.join(", ")} form a cycle in their ordering, so they could never run.`,
     );
     return { ok: false, errors, warnings };
   }

@@ -32,6 +32,7 @@ import EngineeringWorkspace from "../engineering/EngineeringWorkspace";
 import WorkflowStore from "../workflows/WorkflowStore";
 import AgentWorkflowBridge from "../workflows/AgentWorkflowBridge";
 import AgentObjectives from "./AgentObjectives";
+import ObjectiveLearning from "./ObjectiveLearning";
 import {
   buildReport,
   inspectDocument,
@@ -367,6 +368,59 @@ function describeAutonomousWork(): string {
       );
     }
 
+    /* ---- THE MOST RECENT COGNITIVE PASS, from its real trace ----
+     *
+     * This is what makes "what did you just do, and why?" answerable
+     * from runtime state instead of from the chat transcript: the
+     * decision text she actually produced, the learning that was
+     * actually put in front of her before it, the actions that
+     * actually ran, and the branch actually taken.
+     */
+    const newest = [...all].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+    const lastCycle = newest ? objectives.cycles(newest.id)[0] : undefined;
+    if (lastCycle) {
+      const trace = AgentEventBus.getInstance().cognitionTrace(newest!.id);
+      const stageDetail = (stage: string): string | undefined =>
+        [...trace].reverse().find((event) => event.stage === stage)?.detail;
+
+      lines.push(
+        "",
+        "YOUR MOST RECENT COGNITIVE PASS:",
+        `- objective: ${newest!.objective}`,
+        `- what started it: ${lastCycle.trigger}`,
+        `- what you decided: ${lastCycle.decision.replace(/\s+/g, " ").slice(0, 400)}`,
+        `- what actually ran: ${
+          lastCycle.executed.length
+            ? lastCycle.executed.map((entry) => `${entry.tool}${entry.ok ? " (ok)" : " (FAILED)"}`).join(", ")
+            : "nothing — no action was taken"
+        }`,
+        `- where it left the objective: ${lastCycle.nextState}${lastCycle.yieldReason ? ` (${lastCycle.yieldReason})` : ""}`,
+      );
+      const retrieved = stageDetail("lesson-retrieved");
+      lines.push(
+        `- prior learning you were given first: ${retrieved ? retrieved.slice(0, 300) : "none was relevant"}`,
+      );
+      const branch = stageDetail("branch-selected");
+      if (branch) lines.push(`- branch taken: ${branch.slice(0, 200)}`);
+      const authored = stageDetail("workflow-authored");
+      if (authored) lines.push(`- workflow you wrote: ${authored.slice(0, 200)}`);
+      const executed = stageDetail("workflow-executed");
+      if (executed) lines.push(`- workflow you ran: ${executed.slice(0, 200)}`);
+    }
+
+    /* ---- WHAT YOU HAVE LEARNED, with honest durability ---- */
+    const lessons = ObjectiveLearning.getInstance().lessons().slice(0, 5);
+    if (lessons.length > 0) {
+      lines.push("", "WHAT YOU HAVE LEARNED FROM YOUR OWN WORK:");
+      for (const lesson of lessons) {
+        lines.push(
+          `- [${lesson.kind}, confidence ${lesson.confidence.toFixed(2)}, seen ${lesson.observations}x, ` +
+            `${lesson.persistedDurably ? "in long-term memory" : "LOCAL INDEX ONLY — the long-term write was refused"}] ` +
+            lesson.lesson.replace(/\s+/g, " ").slice(0, 220),
+        );
+      }
+    }
+
     return lines.join("\n");
   } catch {
     return "Autonomous objective state is unavailable in this runtime.";
@@ -494,7 +548,11 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   sections.push(
     `## YOUR OWN AUTONOMOUS WORK\n${ctx.autonomousWork}\n` +
       `This is recorded state, not a plan. Describe it as it is: an objective that yielded did ` +
-      `NOT succeed, and one awaiting approval is waiting on the person you are talking to.`,
+      `NOT succeed, and one awaiting approval is waiting on the person you are talking to. ` +
+      `Answer "what did you just do", "why did you choose that", "what did you learn" and ` +
+      `"what should you do next" FROM THIS SECTION — it is your own runtime record. Never ` +
+      `reconstruct those answers from the conversation, and never state a lesson as durably ` +
+      `remembered when this section says the long-term write was refused.`,
   );
 
   if (ctx.earthContext) sections.push(ctx.earthContext);

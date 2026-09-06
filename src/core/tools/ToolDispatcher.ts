@@ -865,7 +865,13 @@ const EXECUTORS: ToolExecutor[] = [
             properties: {
               id: { type: "string", description: "Short id, letters/digits/_/- only." },
               name: { type: "string", description: "What this step does, in plain words." },
-              tool: { type: "string", description: "An existing tool id, e.g. research.web." },
+              tool: {
+                type: "string",
+                description:
+                  "An existing tool, named exactly as you would call it (e.g. project_manage) or " +
+                  "by its registry id (project.manage). Both forms are accepted; a tool that does " +
+                  "not exist is rejected and the error lists the ones that do.",
+              },
               arguments: {
                 type: "object",
                 description:
@@ -875,7 +881,15 @@ const EXECUTORS: ToolExecutor[] = [
               dependsOn: {
                 type: "array",
                 items: { type: "string" },
-                description: "Step ids that must succeed first.",
+                description: "Step ids that must SUCCEED first. If one fails, this step is skipped.",
+              },
+              after: {
+                type: "array",
+                items: { type: "string" },
+                description:
+                  "Step ids that must merely have RUN first, whatever the outcome. Use this for a " +
+                  "fallback: order it after the step it compensates for, and gate it with a " +
+                  "condition on that step having failed.",
               },
               optional: { type: "boolean", description: "A failure here does not fail the run." },
               condition: {
@@ -978,6 +992,19 @@ const EXECUTORS: ToolExecutor[] = [
       }
 
       const blocked = (result.preflight ?? []).filter((entry) => !entry.runnable);
+      const { emitCognition } = await import("../agent/AgentEvents");
+      emitCognition(
+        "workflow-authored",
+        `“${result.workflow.name}” (${result.workflow.steps.length} steps): ` +
+          result.workflow.steps.map((step) => step.tool).join(" → "),
+        {
+          data: {
+            workflowId: result.workflow.id,
+            tools: result.workflow.steps.map((step) => step.tool),
+            runnable: blocked.length === 0,
+          },
+        },
+      );
       return {
         ok: true,
         content:

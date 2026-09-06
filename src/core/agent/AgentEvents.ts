@@ -57,6 +57,42 @@ export type ExecutionPhase =
   | "error"
   | "execution_completed";
 
+/**
+ * A traceable transition inside autonomous cognition.
+ *
+ * Tool execution already has its own events (tool_selected /
+ * tool_started / tool_result / tool_failed) emitted by the dispatcher,
+ * and those stay the source of truth for what ran. These are the
+ * cognitive transitions AROUND them, which previously left no trace at
+ * all: an observer could see that a tool ran but not what decided to
+ * run it, what was retrieved beforehand, or what was concluded after.
+ *
+ * Every stage is emitted by the code that performs it, AFTER it has
+ * really happened. A stage that is not emitted did not occur.
+ */
+export type CognitionStage =
+  | "objective-created"
+  | "objective-resumed"
+  | "cycle-started"
+  | "context-retrieved"
+  | "lesson-retrieved"
+  | "decision-made"
+  | "branch-selected"
+  | "result-observed"
+  | "lesson-extracted"
+  | "lesson-persisted"
+  /** The durable write was refused; the lesson exists only locally. */
+  | "lesson-persist-refused"
+  | "workflow-authored"
+  | "workflow-executed"
+  | "continuation-scheduled"
+  | "approval-required"
+  | "approval-decided"
+  | "objective-scheduled"
+  | "cycle-completed"
+  | "objective-completed"
+  | "objective-yielded";
+
 export type AgentEvent =
   | { type: "task_started"; taskId: string; label: string }
   | { type: "task_planning"; taskId: string; plan?: string }
@@ -151,6 +187,17 @@ export type AgentEvent =
       taskId: string;
       approvalId: string;
       decision: "approved" | "rejected" | "modified";
+    }
+  | {
+      type: "cognition";
+      taskId: string;
+      stage: CognitionStage;
+      /** The objective this transition belongs to, when there is one. */
+      objectiveId?: string;
+      /** What actually happened, in plain words. */
+      detail: string;
+      /** Real, structured facts about the transition — never a summary. */
+      data?: Record<string, unknown>;
     };
 
 export interface AgentResultItem {
@@ -217,6 +264,37 @@ class AgentEventBus {
   public recent(count: number): AgentEvent[] {
     return this.history.slice(-Math.max(0, count));
   }
+
+  /** Every cognition transition recorded so far, oldest first. */
+  public cognitionTrace(objectiveId?: string): Array<Extract<AgentEvent, { type: "cognition" }>> {
+    return this.history.filter(
+      (event): event is Extract<AgentEvent, { type: "cognition" }> =>
+        event.type === "cognition" &&
+        (objectiveId === undefined || event.objectiveId === objectiveId),
+    );
+  }
+}
+
+/**
+ * Record a cognitive transition on the SHARED bus.
+ *
+ * One route, so every stage reaches the timeline, the trace and any
+ * subscriber the same way. Call it only after the transition has
+ * actually occurred — this is a record, not an announcement.
+ */
+export function emitCognition(
+  stage: CognitionStage,
+  detail: string,
+  options: { objectiveId?: string; taskId?: string; data?: Record<string, unknown> } = {},
+): void {
+  AgentEventBus.getInstance().emit({
+    type: "cognition",
+    taskId: options.taskId ?? options.objectiveId ?? "cognition",
+    stage,
+    objectiveId: options.objectiveId,
+    detail,
+    data: options.data,
+  });
 }
 
 export default AgentEventBus;

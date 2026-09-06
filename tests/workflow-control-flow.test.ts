@@ -414,7 +414,7 @@ test("a dependency cycle is caught at authoring, not discovered as a dead run", 
     ],
   });
   assert.equal(result.ok, false);
-  assert.match(result.errors.join(" "), /dependency cycle/);
+  assert.match(result.errors.join(" "), /cycle in their ordering/);
 });
 
 test("an invalid draft is never persisted", () => {
@@ -545,4 +545,31 @@ test("authoring limits are real limits", () => {
   });
   assert.equal(tooMany.ok, false);
   assert.match(tooMany.errors.join(" "), new RegExp(`more than ${MAX_STEPS}`));
+});
+
+test("a tool named the way a model sees it is accepted and normalised", () => {
+  const result = validateWorkflow({
+    name: unique("model-named"),
+    description: "Names its tools the way the native tool schema shows them.",
+    outputs: "A project listing.",
+    steps: [{ id: "a", name: "list", tool: "project_manage", arguments: { action: "list" } }],
+  });
+  assert.equal(result.ok, true, result.errors.join(" "));
+  // Stored as the registry id, so the engine's preflight and the
+  // dispatcher see the tool they expect.
+  assert.equal(result.normalized?.steps[0].tool, "project.manage");
+});
+
+test("an unknown tool is refused with the real alternatives, not just a refusal", () => {
+  const result = validateWorkflow({
+    name: unique("unknown-tool"),
+    description: "Names a project tool that does not exist.",
+    outputs: "nothing",
+    steps: [{ id: "a", name: "a", tool: "project_teleport", arguments: {} }],
+  });
+  assert.equal(result.ok, false);
+  const joined = result.errors.join(" ");
+  assert.match(joined, /no tool "project_teleport" is registered/);
+  // A caller that guessed wrong can correct itself from the error.
+  assert.match(joined, /project\.manage/);
 });

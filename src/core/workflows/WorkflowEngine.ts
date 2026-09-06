@@ -162,7 +162,9 @@ export function orderSteps(workflow: WorkflowDefinition): {
     progressed = false;
     for (const step of workflow.steps) {
       if (done.has(step.id)) continue;
-      const ready = step.dependsOn.every((id) => done.has(id) || !byId.has(id));
+      const ready = [...step.dependsOn, ...(step.after ?? [])].every(
+        (id) => done.has(id) || !byId.has(id),
+      );
       if (!ready) continue;
       order.push(step.id);
       done.add(step.id);
@@ -337,6 +339,15 @@ export default class WorkflowEngine {
       );
       if (failedDependency) {
         park("skipped", `Depends on "${failedDependency}", which did not succeed.`);
+        continue;
+      }
+
+      // An ordering edge only requires that the step RAN. One that never
+      // ran leaves nothing to test, so anything ordered after it is
+      // skipped with that reason rather than judged against nothing.
+      const neverRan = (step.after ?? []).find((id) => !completed.has(id));
+      if (neverRan) {
+        park("skipped", `Ordered after "${neverRan}", which never ran.`);
         continue;
       }
 
@@ -544,6 +555,20 @@ export default class WorkflowEngine {
     execution.finishedAt = Date.now();
     execution.summary = this.describe(execution);
     this.store.saveExecution(execution);
+
+    // Recorded on the shared bus AFTER the run finished, from the run's
+    // own state — so the trace can never claim an execution the store
+    // does not hold.
+    const { emitCognition } = await import("../agent/AgentEvents");
+    emitCognition("workflow-executed", `“${execution.workflowName}” — ${execution.status}. ${execution.summary}`, {
+      taskId,
+      data: {
+        invocationId: execution.id,
+        workflowId: execution.workflowId,
+        status: execution.status,
+        steps: execution.steps.map((step) => ({ id: step.stepId, status: step.status })),
+      },
+    });
     return execution;
   }
 

@@ -18,6 +18,7 @@
  */
 
 import KvStore from "../storage/KvStore";
+import { emitCognition } from "../agent/AgentEvents";
 
 export type ObjectiveState =
   /** Live work: the agent may run cognition cycles for it. */
@@ -95,6 +96,16 @@ export interface AgentObjective {
   consecutiveFailures: number;
   /** Signatures of actions already taken, for duplicate protection. */
   actionHistory: string[];
+  /**
+   * A correction the runtime owes the next cycle.
+   *
+   * When a cycle repeats an action that produced nothing new, stopping
+   * immediately throws away work that may be one sentence from done.
+   * The runtime says so instead, once, and only stops if the same
+   * action comes back again. It is runtime state rather than a message
+   * in a transcript, so it survives a restart with everything else.
+   */
+  nudge?: string;
 
   /** Why it stopped, when it has. */
   yieldReason?: YieldReason;
@@ -188,15 +199,26 @@ export default class AgentObjectives {
 
   /** Defer an objective to a wall-clock time. Survives a restart. */
   public schedule(id: string, resumeAt: number, note = ""): AgentObjective | undefined {
-    return this.update(id, { state: "scheduled", resumeAt, conclusion: note });
+    const updated = this.update(id, { state: "scheduled", resumeAt, conclusion: note });
+    if (updated) {
+      emitCognition("objective-scheduled", `Deferred until ${new Date(resumeAt).toISOString()}${note ? `: ${note}` : ""}`, {
+        objectiveId: id,
+        data: { resumeAt },
+      });
+    }
+    return updated;
   }
 
   /** Park an objective on a person's decision. */
   public requestApproval(id: string, request: string): AgentObjective | undefined {
-    return this.update(id, {
+    const updated = this.update(id, {
       state: "awaiting-approval",
       approval: { request, requestedAt: Date.now() },
     });
+    if (updated) {
+      emitCognition("approval-required", request, { objectiveId: id });
+    }
+    return updated;
   }
 
   /**
@@ -209,6 +231,11 @@ export default class AgentObjectives {
     const objective = this.get(id);
     if (!objective?.approval) return objective;
     const approval = { ...objective.approval, granted, decidedAt: Date.now(), decidedBy };
+    emitCognition(
+      "approval-decided",
+      `${granted ? "Granted" : "Refused"} by ${decidedBy}: ${objective.approval.request}`,
+      { objectiveId: id, data: { granted, decidedBy } },
+    );
     return granted
       ? this.update(id, { state: "active", approval })
       : this.update(id, {
@@ -246,6 +273,11 @@ export default class AgentObjectives {
     };
     this.kv.set(KEY, [...this.list(), objective]);
     this.notify();
+    // Emitted after the objective really exists in the store.
+    emitCognition("objective-created", objective.objective, {
+      objectiveId: objective.id,
+      data: { agentId: objective.agentId, source: objective.source, maxCycles: objective.maxCycles },
+    });
     return objective;
   }
 

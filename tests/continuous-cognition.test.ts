@@ -592,6 +592,158 @@ test("restarting the runtime resumes an objective that was left unfinished", { t
 });
 
 /* ====================================================================
+ * §9 — THE EVENT STREAM IS THE RECORD, AND ONLY THE RECORD
+ * ==================================================================== */
+
+test("every cognitive transition reaches the shared event stream, in the order it happened", { timeout: 120_000 }, async () => {
+  cancelEverything();
+  const agentId = AgentStore.getInstance().create({ name: "Trace" }).id;
+  const marker = `TRACE-${Math.random().toString(36).slice(2, 8)}`;
+  const workflowName = `${marker} routine`;
+
+  const { restore } = mockModelDecisions(marker, async (cycle) => {
+    if (cycle === 1) {
+      return reallyExecute(
+        "workflow_author",
+        {
+          name: workflowName,
+          description: "Authored inside a traced cycle, to check what the stream records.",
+          outputs: "A project listing.",
+          steps: [{ id: "a", name: "list", tool: "project.manage", arguments: { action: "list" } }],
+        },
+        "Writing the procedure.",
+      );
+    }
+    if (cycle === 2) {
+      return reallyExecute("workflow_run", { workflow: workflowName }, "Running it.");
+    }
+    return {
+      text: `DONE: ${workflowName} exists and ran.`,
+      provider: "MOCKED-MODEL",
+      model: "stub",
+      processingTime: 1,
+      metadata: { toolsExecuted: [] },
+    };
+  });
+
+  // Collected as emitted: the bus history is bounded, so reading it
+  // after a long run can miss the beginning.
+  const collected: Array<{ stage: string; objectiveId?: string; detail: string; data?: Record<string, unknown> }> = [];
+  const unsubscribe = AgentEventBus.getInstance().subscribe((event) => {
+    if (event.type === "cognition") {
+      collected.push({
+        stage: event.stage,
+        objectiveId: event.objectiveId,
+        detail: event.detail,
+        data: event.data,
+      });
+    }
+  });
+
+  const objective = objectives.create({ agentId, objective: `${marker}: write and run a procedure` });
+  await waitUntil(
+    () => objectives.get(objective.id)?.state !== "active",
+    90_000,
+    "the traced objective to finish",
+  );
+  restore();
+  unsubscribe();
+
+  const trace = collected.filter((entry) => entry.objectiveId === objective.id);
+  const stages = trace.map((entry) => entry.stage);
+  const at = (stage: string) => stages.indexOf(stage);
+
+  for (const stage of [
+    "objective-created",
+    "cycle-started",
+    "context-retrieved",
+    "decision-made",
+    "result-observed",
+    "branch-selected",
+    "continuation-scheduled",
+    "cycle-completed",
+    "objective-completed",
+    "lesson-extracted",
+  ]) {
+    assert.ok(stages.includes(stage as never), `"${stage}" is missing: ${stages.join(", ")}`);
+  }
+
+  // Order is the order things really happened in: context before the
+  // decision, the decision before its result, the result before the branch.
+  assert.ok(at("objective-created") < at("cycle-started"));
+  assert.ok(at("context-retrieved") < at("decision-made"));
+  assert.ok(at("decision-made") < at("result-observed"));
+  assert.ok(at("result-observed") < at("branch-selected"));
+  assert.ok(at("cycle-completed") < at("objective-completed"));
+
+  // Workflow events carry the REAL ids, so a claim can be checked.
+  const all = collected;
+  const authored = all.find(
+    (entry) => entry.stage === "workflow-authored" && entry.detail.includes(workflowName),
+  );
+  assert.ok(authored, "authoring left no trace");
+  const stored = WorkflowStore.getInstance().list().find((entry) => entry.name === workflowName);
+  assert.equal((authored.data as { workflowId?: string }).workflowId, stored?.id);
+
+  const executed = all.find(
+    (entry) =>
+      entry.stage === "workflow-executed" &&
+      (entry.data as { workflowId?: string })?.workflowId === stored?.id,
+  );
+  assert.ok(executed, "execution left no trace");
+  const invocationId = (executed.data as { invocationId?: string }).invocationId;
+  assert.ok(
+    WorkflowStore.getInstance().execution(String(invocationId)),
+    "the trace names an execution the store does not hold",
+  );
+});
+
+test("a durable write that was refused is never reported as one that happened", { timeout: 120_000 }, async () => {
+  cancelEverything();
+  const agentId = AgentStore.getInstance().create({ name: "Durability" }).id;
+  const marker = `DURABLE-${Math.random().toString(36).slice(2, 8)}`;
+
+  const durabilityEvents: Array<{ stage: string; objectiveId?: string }> = [];
+  const unsubscribeDurability = AgentEventBus.getInstance().subscribe((event) => {
+    if (event.type === "cognition") {
+      durabilityEvents.push({ stage: event.stage, objectiveId: event.objectiveId });
+    }
+  });
+  const { restore } = mockModelDecisions(marker, async () => ({
+    text: "DONE: nothing more to do.",
+    provider: "MOCKED-MODEL",
+    model: "stub",
+    processingTime: 0,
+    metadata: { toolsExecuted: [{ tool: "project_manage", ok: true }] },
+  }));
+  const objective = objectives.create({ agentId, objective: `${marker}: produce a lesson` });
+  await waitUntil(() => objectives.get(objective.id)?.state !== "active", 60_000, "the objective to finish");
+  restore();
+  unsubscribeDurability();
+
+  const stages = durabilityEvents
+    .filter((entry) => entry.objectiveId === objective.id)
+    .map((entry) => entry.stage);
+  assert.ok(stages.includes("lesson-extracted"), "no lesson was extracted");
+
+  // This runtime has no IndexedDB, so the long-term write really is
+  // refused. The trace and the lesson must both say so — a green test
+  // here would otherwise mean "we claim durability we do not have".
+  const lessons = ObjectiveLearning.getInstance().relevantTo(`${marker}: produce a lesson`, 3);
+  assert.ok(lessons.length > 0);
+  if (stages.includes("lesson-persist-refused")) {
+    assert.equal(
+      lessons.every((lesson) => lesson.persistedDurably === false),
+      true,
+      "a lesson claims durable storage after the write was refused",
+    );
+    assert.equal(stages.includes("lesson-persisted"), false, "a refused write was also reported as persisted");
+  } else {
+    assert.ok(stages.includes("lesson-persisted"), "a lesson was neither persisted nor reported as refused");
+  }
+});
+
+/* ====================================================================
  * §7 — LÉLU KNOWS WHAT SHE IS DOING, AND SAYS IT TRUTHFULLY
  * ==================================================================== */
 

@@ -24,6 +24,7 @@
 
 import AIService from "../AIService";
 import KvStore from "../storage/KvStore";
+import { emitCognition } from "../agent/AgentEvents";
 import type { AgentObjective, CognitionCycleRecord } from "./AgentObjectives";
 
 /** A durable lesson, indexed for retrieval and confidence tracking. */
@@ -44,6 +45,14 @@ export interface Lesson {
   lastSeenAt: number;
   /** Objectives that contributed, for provenance. */
   objectiveIds: string[];
+  /**
+   * Whether the long-term write really succeeded.
+   *
+   * Recorded rather than assumed: without IndexedDB (or with Supabase
+   * absent) the durable write is refused, and a lesson that lives only
+   * in the local index must not be reported as durably stored.
+   */
+  persistedDurably: boolean;
 }
 
 const INDEX_KEY = "lelu.objective.lessons.v1";
@@ -116,11 +125,18 @@ export default class ObjectiveLearning {
     }
 
     if (failed.length > 0) {
+      // Lead with the concrete tool and the concrete instruction. An
+      // earlier version buried the tool name at the end of a sentence
+      // about the objective, and a lesson that has to be decoded before
+      // it can be used is not much of a lesson.
       drafted.push({
         kind: "failed",
         lesson:
-          `For work like "${objective.objective.slice(0, 120)}", these did NOT work: ` +
-          `${failed.join(", ")}. Prefer an alternative or check the dependency first.`,
+          `DO NOT USE ${failed.join(", ")} for work like "${objective.objective.slice(0, 100)}" — ` +
+          `${failed.length === 1 ? "it" : "they"} failed here every time ` +
+          `(${objective.state === "completed" ? "the objective still finished by another route" : objective.yieldReason ?? "no result"}). ` +
+          `Use a different tool, or say BLOCKED and explain, instead of trying ` +
+          `${failed.length === 1 ? "it" : "them"} again.`,
       });
     }
 
@@ -168,6 +184,7 @@ export default class ObjectiveLearning {
           firstSeenAt: Date.now(),
           lastSeenAt: Date.now(),
           objectiveIds: [objective.id],
+          persistedDurably: false,
         };
         existing.push(lesson);
         updated.push(lesson);
@@ -184,15 +201,40 @@ export default class ObjectiveLearning {
     // process — and is reachable by ordinary recall, not only by this
     // module. A rejected write is reported, never assumed.
     for (const lesson of updated) {
+      emitCognition("lesson-extracted", `[${lesson.kind}] ${lesson.lesson}`, {
+        objectiveId: objective.id,
+        data: { lessonId: lesson.id, topic: lesson.topic, confidence: lesson.confidence },
+      });
+
       const stored = await AIService.getInstance().consolidate(
         "system",
         `LESSON (${lesson.kind}, confidence ${lesson.confidence.toFixed(2)}): ${lesson.lesson}`,
         ["lesson", lesson.kind, ...lesson.topic.split(" ").slice(0, 4)],
       );
-      if (!stored) {
+      lesson.persistedDurably = stored === true;
+
+      if (stored) {
+        // Only emitted for a write that really landed in long-term
+        // memory. A refusal below is a different fact and says so.
+        emitCognition("lesson-persisted", `Written to long-term memory: ${lesson.lesson.slice(0, 200)}`, {
+          objectiveId: objective.id,
+          data: { lessonId: lesson.id, store: "long-term" },
+        });
+      } else {
         console.warn("[ObjectiveLearning] long-term write refused; lesson kept in the local index only");
+        emitCognition(
+          "lesson-persist-refused",
+          `NOT durably stored (long-term memory refused the write); kept in the local index only: ${lesson.lesson.slice(0, 160)}`,
+          { objectiveId: objective.id, data: { lessonId: lesson.id, store: "local-index-only" } },
+        );
       }
     }
+
+    // Re-save so the durability flag reflects what really happened.
+    this.kv.set(
+      INDEX_KEY,
+      existing.sort((a, b) => b.lastSeenAt - a.lastSeenAt).slice(0, MAX_LESSONS),
+    );
 
     return updated;
   }

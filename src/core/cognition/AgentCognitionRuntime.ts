@@ -28,7 +28,7 @@
 
 import AIService from "../AIService";
 import AgentStore from "../agents/AgentStore";
-import AgentEventBus from "../agent/AgentEvents";
+import AgentEventBus, { emitCognition } from "../agent/AgentEvents";
 import ObjectiveLearning from "./ObjectiveLearning";
 import AgentObjectives, {
   type AgentObjective,
@@ -146,6 +146,11 @@ export default class AgentCognitionRuntime {
         if (objective.cyclesRun === 0) {
           this.scheduleContinuation(objective.id, FIRST_CYCLE_DELAY_MS, "runtime:objective-created");
         } else {
+          emitCognition(
+            "objective-resumed",
+            `Picked up again at cycle ${objective.cyclesRun} of ${objective.maxCycles}.`,
+            { objectiveId: objective.id, data: { cyclesRun: objective.cyclesRun } },
+          );
           this.scheduleContinuation(objective.id, CYCLE_COOLDOWN_MS + 100, "runtime:resumed");
         }
         continue;
@@ -217,6 +222,10 @@ export default class AgentCognitionRuntime {
 
     this.inFlight.add(objectiveId);
     this.lastCycleAt.set(objectiveId, Date.now());
+    emitCognition("cycle-started", `Cycle ${objective.cyclesRun + 1} — ${trigger}`, {
+      objectiveId,
+      data: { trigger, cycle: objective.cyclesRun + 1 },
+    });
 
     try {
       /* ---- OBSERVE: the objective's own history so far ---- */
@@ -241,7 +250,30 @@ export default class AgentCognitionRuntime {
       // earlier, unrelated objectives are matched by topic and injected
       // before the model reasons, so a strategy that failed before is
       // not tried again by default.
+      const priorLessons = ObjectiveLearning.getInstance().relevantTo(objective.objective);
       const guidance = ObjectiveLearning.getInstance().guidanceFor(objective.objective);
+
+      emitCognition(
+        "context-retrieved",
+        `${history.length} prior cycle(s) and ${priorLessons.length} prior lesson(s) assembled for this decision.`,
+        { objectiveId, data: { priorCycles: history.length, lessons: priorLessons.length } },
+      );
+      if (priorLessons.length > 0) {
+        // Emitted only when learning was really found and really put in
+        // front of the model — the trace must never imply retrieval
+        // that did not reach the prompt.
+        emitCognition(
+          "lesson-retrieved",
+          priorLessons.map((lesson) => `[${lesson.kind}] ${lesson.lesson}`).join(" | ").slice(0, 400),
+          {
+            objectiveId,
+            data: {
+              lessonIds: priorLessons.map((lesson) => lesson.id),
+              topics: priorLessons.map((lesson) => lesson.topic),
+            },
+          },
+        );
+      }
 
       /* ---- DECIDE: the EXISTING loop makes the choice ---- */
       const response = await AIService.getInstance().deliberate(
@@ -252,6 +284,7 @@ export default class AgentCognitionRuntime {
           priorWork,
           "",
           ...(guidance ? [guidance, ""] : []),
+          ...(objective.nudge ? [`RUNTIME CORRECTION: ${objective.nudge}`, ""] : []),
           "Decide the single next action and take it now, using your tools if that is what is needed.",
           "When the objective is already satisfied by the work above, say DONE: followed by the conclusion and take no action.",
           "When you cannot proceed because a capability is unavailable or you need information from the user,",
@@ -272,6 +305,18 @@ export default class AgentCognitionRuntime {
       const executed =
         (response.metadata?.toolsExecuted as Array<{ tool: string; ok: boolean }> | undefined) ?? [];
 
+      emitCognition("decision-made", decision.slice(0, 400) || "(no decision text)", {
+        objectiveId,
+        data: { provider: response.provider, model: response.model },
+      });
+      if (executed.length > 0) {
+        emitCognition(
+          "result-observed",
+          executed.map((entry) => `${entry.tool}${entry.ok ? "" : " FAILED"}`).join(", "),
+          { objectiveId, data: { executed } },
+        );
+      }
+
       /* ---- EVALUATE from the real result, not from the text alone ---- */
       const anyFailed = executed.some((entry) => !entry.ok);
       const didSomething = executed.length > 0;
@@ -279,7 +324,13 @@ export default class AgentCognitionRuntime {
       // Duplicate protection: the same action twice in a row is not
       // progress, whatever the model says about it.
       const signature = executed.map((entry) => entry.tool).sort().join("|");
-      const repeated = Boolean(signature) && objective.actionHistory.includes(signature);
+      const repeats = signature
+        ? objective.actionHistory.filter((entry) => entry === signature).length
+        : 0;
+      // ONE correction before stopping. A single repeat is often a
+      // verification step away from a conclusion; a second is a loop.
+      const repeated = repeats >= 2;
+      const shouldNudge = repeats === 1;
 
       let nextState: ObjectiveState = "active";
       let yieldReason: CognitionCycleRecord["yieldReason"] | undefined;
@@ -314,12 +365,19 @@ export default class AgentCognitionRuntime {
       } else if (repeated) {
         nextState = "yielded";
         yieldReason = "no-progress";
-        conclusion = `Repeated the same action (${signature}) without progress.`;
+        conclusion = `Repeated the same action (${signature}) after being told it produced nothing new.`;
       } else if (!didSomething && !decision) {
         nextState = "yielded";
         yieldReason = "no-progress";
         conclusion = "The cycle produced neither a decision nor an action.";
       }
+
+      // The branch the runtime actually took, with the reason it took it.
+      emitCognition(
+        "branch-selected",
+        `${nextState}${yieldReason ? ` (${yieldReason})` : ""}${conclusion ? `: ${conclusion.slice(0, 200)}` : ""}`,
+        { objectiveId, data: { nextState, yieldReason, repeated, executed: executed.length } },
+      );
 
       /* ---- RECORD: real counters, from what really happened ---- */
       const failures = anyFailed || !didSomething
@@ -327,6 +385,11 @@ export default class AgentCognitionRuntime {
         : 0;
 
       this.objectives.update(objectiveId, {
+        nudge:
+          shouldNudge && nextState === "active"
+            ? `You already ran ${signature} in an earlier cycle and it produced nothing new. ` +
+              `Either conclude with DONE: and the answer, or take a genuinely different action.`
+            : undefined,
         cyclesRun: objective.cyclesRun + 1,
         actionsTaken: objective.actionsTaken + executed.length,
         consecutiveFailures: failures,
@@ -359,6 +422,20 @@ export default class AgentCognitionRuntime {
 
       const finalObjective = this.objectives.get(objectiveId) ?? objective;
 
+      // RECORD FIRST, THEN LEARN.
+      //
+      // Learning reads the objective's cycle records, so the cycle that
+      // just ran has to be in them. It was not: extraction ran before
+      // the record was written, which meant an objective finished in a
+      // single cycle taught nothing at all — the most informative cycle,
+      // the one that ended the work, was the one being ignored.
+      const outcome = this.record(finalObjective, trigger, {
+        decision: decision || "(no decision text)",
+        executed,
+        nextState,
+        yieldReason,
+      });
+
       // EXTRACT LEARNING when the objective ends, from the real cycle
       // records. Contained: a memory failure must not corrupt the run,
       // and it is reported rather than assumed successful.
@@ -376,12 +453,20 @@ export default class AgentCognitionRuntime {
         }
       }
 
-      const outcome = this.record(finalObjective, trigger, {
-        decision: decision || "(no decision text)",
-        executed,
-        nextState,
-        yieldReason,
-      });
+      emitCognition(
+        "cycle-completed",
+        `Cycle ${finalObjective.cyclesRun} ended with the objective ${finalObjective.state}.`,
+        { objectiveId, data: { state: finalObjective.state, actions: executed.length } },
+      );
+      if (finalObjective.state === "completed") {
+        emitCognition("objective-completed", finalObjective.conclusion ?? "", { objectiveId });
+      } else if (finalObjective.state === "yielded") {
+        emitCognition(
+          "objective-yielded",
+          `${finalObjective.yieldReason ?? "unknown"}: ${finalObjective.conclusion ?? ""}`,
+          { objectiveId, data: { yieldReason: finalObjective.yieldReason } },
+        );
+      }
 
       // SELF-CONTINUATION: the runtime starts cycle N+1 itself.
       //
@@ -413,6 +498,11 @@ export default class AgentCognitionRuntime {
     if (!this.running) return;
     const existing = this.continuations.get(objectiveId);
     if (existing !== undefined) clearTimeout(existing);
+
+    emitCognition("continuation-scheduled", `Next cycle in ${delayMs}ms (${trigger}).`, {
+      objectiveId,
+      data: { delayMs, trigger },
+    });
 
     const handle = setTimeout(() => {
       this.continuations.delete(objectiveId);

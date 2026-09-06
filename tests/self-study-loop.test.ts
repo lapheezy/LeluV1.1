@@ -54,6 +54,7 @@ if (typeof localStorage === "undefined") {
 import SelfStudyEngine from "../src/core/cognition/SelfStudyEngine";
 import StudyObjectives from "../src/core/cognition/StudyObjectives";
 import WorkQueue from "../src/core/cognition/WorkQueue";
+import CognitiveLoop from "../src/core/cognition/CognitiveLoop";
 import StudyAgentRouter from "../src/core/cognition/StudyAgentRouter";
 import KnowledgeLibrary from "../src/core/cognition/KnowledgeLibrary";
 import SelfModel from "../src/core/cognition/SelfModel";
@@ -77,6 +78,27 @@ function emptyWorkBuffer(): void {
   const queue = WorkQueue.getInstance();
   for (const item of queue.list()) queue.remove(item.id);
 }
+
+/**
+ * These tests drive the study engine by hand, one cycle at a time, and
+ * count the cycles. Another file that booted the runtime can leave the
+ * continuous loop running underneath them — with a provider configured
+ * its cycles are slow and land in the middle of this file — so the
+ * loop is stopped here and this file's starting state is its own.
+ */
+test("the continuous loop is not running underneath these cycle-counting tests", async () => {
+  CognitiveLoop.getInstance().stop();
+  const engine = SelfStudyEngine.getInstance();
+  engine.stop();
+  const deadline = Date.now() + 120_000;
+  while (engine.isBusy() && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  emptyWorkBuffer();
+  StudyObjectives.getInstance().clear();
+  assert.equal(engine.isBusy(), false, "a self-study cycle was still running");
+  assert.equal(engine.isRunning(), false, "the continuous study loop was still scheduled");
+});
 
 test("mission is a persistent source that does not depend on chat", () => {
   const engine = SelfStudyEngine.getInstance();

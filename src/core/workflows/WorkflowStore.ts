@@ -97,8 +97,17 @@ export interface WorkflowStep {
    * flows from one step to the next.
    */
   arguments: Record<string, unknown>;
-  /** Steps that must succeed first. */
+  /** Steps that must SUCCEED first. A failure here skips this step. */
   dependsOn: string[];
+  /**
+   * Steps that must merely have RUN first, whatever they did.
+   *
+   * This is what makes a failure branch expressible. A fallback cannot
+   * depend on the step it is compensating for — depending on it would
+   * skip the fallback exactly when it is needed — but it still must not
+   * run before that step has produced a result to test.
+   */
+  after?: string[];
   /**
    * When true, a failure is recorded but does not fail the workflow.
    * Anything depending on it is still skipped.
