@@ -54,7 +54,8 @@ if (typeof localStorage === "undefined") {
 import SelfStudyEngine from "../src/core/cognition/SelfStudyEngine";
 import StudyObjectives from "../src/core/cognition/StudyObjectives";
 import WorkQueue from "../src/core/cognition/WorkQueue";
-import CognitiveLoop from "../src/core/cognition/CognitiveLoop";
+import AIService from "../src/core/AIService";
+import { stopBackgroundCognition, backgroundCognitionIsQuiet } from "./support/isolation";
 import StudyAgentRouter from "../src/core/cognition/StudyAgentRouter";
 import KnowledgeLibrary from "../src/core/cognition/KnowledgeLibrary";
 import SelfModel from "../src/core/cognition/SelfModel";
@@ -73,6 +74,8 @@ import type ProviderRegistry from "../src/core/ProviderRegistry";
 // 1 — SHE STARTS FROM HER MISSION, WITH NO USER MESSAGE
 // ============================================================
 
+await stopBackgroundCognition();
+
 /** Empty the shared work buffer, so "with an empty buffer" is true. */
 function emptyWorkBuffer(): void {
   const queue = WorkQueue.getInstance();
@@ -87,17 +90,11 @@ function emptyWorkBuffer(): void {
  * loop is stopped here and this file's starting state is its own.
  */
 test("the continuous loop is not running underneath these cycle-counting tests", async () => {
-  CognitiveLoop.getInstance().stop();
-  const engine = SelfStudyEngine.getInstance();
-  engine.stop();
-  const deadline = Date.now() + 120_000;
-  while (engine.isBusy() && Date.now() < deadline) {
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
+  const settled = await stopBackgroundCognition();
   emptyWorkBuffer();
   StudyObjectives.getInstance().clear();
-  assert.equal(engine.isBusy(), false, "a self-study cycle was still running");
-  assert.equal(engine.isRunning(), false, "the continuous study loop was still scheduled");
+  assert.equal(settled, true, "a self-study cycle was still running");
+  assert.equal(backgroundCognitionIsQuiet(), true, "something was still scheduling cognition");
 });
 
 test("mission is a persistent source that does not depend on chat", () => {
@@ -407,20 +404,34 @@ test("a cycle with no reachable provider still learns and still schedules the ne
   const engine = SelfStudyEngine.getInstance();
   StudyObjectives.getInstance().clear();
 
-  // In this environment no AI provider is configured, so every provider
-  // call falls through the whole chain and returns the offline result.
-  const report = await engine.runCycle();
+  // ESTABLISH the condition instead of assuming it.
+  //
+  // This used to rely on the environment happening to have no provider
+  // configured, which made it a test of the machine rather than of the
+  // behaviour: give the same checkout a working API key and it failed,
+  // because a provider answered. Every registered provider is disabled
+  // here for the duration, so the chain really is exhausted — the real
+  // registry, the real resolver, no stubs — and restored afterwards.
+  const registry = AIService.getInstance().getAIProviderRegistry();
+  const wasEnabled = registry.all().map((provider) => [provider, provider.enabled] as const);
+  for (const [provider] of wasEnabled) provider.enabled = false;
 
-  assert.equal(report.provider, null, "No provider answered — the chain was exhausted.");
-  assert.ok(report.objective, "Cognition still had an objective.");
-  assert.ok(report.evaluation.length > 0, "The evidence was still evaluated.");
-  assert.ok(
-    report.evidence.length > 0 || report.note,
-    "The investigation still produced evidence or an honest note.",
-  );
+  try {
+    const report = await engine.runCycle();
 
-  const next = await engine.runCycle();
-  assert.equal(next.cycle, report.cycle + 1, "The loop continued to the next cycle regardless.");
+    assert.equal(report.provider, null, "No provider answered — the chain was exhausted.");
+    assert.ok(report.objective, "Cognition still had an objective.");
+    assert.ok(report.evaluation.length > 0, "The evidence was still evaluated.");
+    assert.ok(
+      report.evidence.length > 0 || report.note,
+      "The investigation still produced evidence or an honest note.",
+    );
+
+    const next = await engine.runCycle();
+    assert.equal(next.cycle, report.cycle + 1, "The loop continued to the next cycle regardless.");
+  } finally {
+    for (const [provider, enabled] of wasEnabled) provider.enabled = enabled;
+  }
 });
 
 // ============================================================

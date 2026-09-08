@@ -43,6 +43,7 @@ if (typeof localStorage === "undefined") {
 }
 
 import SelfStudyEngine from "../src/core/cognition/SelfStudyEngine";
+import { stopBackgroundCognition } from "./support/isolation";
 import StudyObjectives from "../src/core/cognition/StudyObjectives";
 import KvStore from "../src/core/storage/KvStore";
 import CognitiveStateResolver, { isCognitiveStateQuestion } from "../src/core/router/CognitiveStateResolver";
@@ -54,6 +55,13 @@ import Brain from "../src/brain/Brain";
 import type RouterContext from "../src/core/router/RouterContext";
 import type ProviderRegistry from "../src/core/ProviderRegistry";
 import type AIProviderRegistry from "../src/core/AIProviderRegistry";
+
+// These tests drive cognition one cycle at a time and assert on what
+// that cycle produced. A continuous loop left running by another file
+// would swallow those cycles — runCycle() returns the previous report
+// rather than overlapping — so the state read afterwards would be blank
+// and the assertion would fail on a null instead of on behaviour.
+await stopBackgroundCognition();
 
 function contextFor(prompt: string): RouterContext {
   return {

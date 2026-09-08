@@ -38,6 +38,7 @@ import AgentCognitionRuntime from "../src/core/cognition/AgentCognitionRuntime";
 import AgentStore from "../src/core/agents/AgentStore";
 import AIService from "../src/core/AIService";
 import AgentEventBus from "../src/core/agent/AgentEvents";
+import { stopBackgroundCognition } from "./support/isolation";
 
 const objectives = AgentObjectives.getInstance();
 const runtime = AgentCognitionRuntime.getInstance();
@@ -46,7 +47,7 @@ const runtime = AgentCognitionRuntime.getInstance();
 // single cycle did. If another file booted the runtime, its own
 // continuations would run cycles in between and change those counts —
 // so this file takes the runtime out of the loop it is measuring.
-runtime.stop();
+await stopBackgroundCognition();
 
 /** Replace ONLY the model's reply, so the loop around it stays real. */
 function stubDeliberation(
