@@ -26,6 +26,7 @@ import {
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { resolveModel } from "../core/ProviderModels";
 
 export default class FireworksProvider implements AIProvider {
   readonly name = "Fireworks";
@@ -44,14 +45,14 @@ export default class FireworksProvider implements AIProvider {
   readonly supportsTools = true;
 
   private apiKey = "";
-  private model = "accounts/fireworks/models/llama-v3p1-70b-instruct";
+  private model = resolveModel("fireworks");
   private initialized = false;
 
   async initialize(): Promise<void> {
     this.apiKey =
       resolveFirst("FIREWORKS_API_KEY") ?? "";
     this.model =
-      resolveFirst("FIREWORKS_MODEL") ?? "accounts/fireworks/models/llama-v3p1-70b-instruct";
+      resolveModel("fireworks");
 
     this.initialized = true;
 

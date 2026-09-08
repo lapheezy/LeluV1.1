@@ -26,6 +26,7 @@ import {
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { resolveModel } from "../core/ProviderModels";
 
 export default class MistralProvider implements AIProvider {
   readonly name = "Mistral";
@@ -43,14 +44,14 @@ export default class MistralProvider implements AIProvider {
   readonly supportsTools = true;
 
   private apiKey = "";
-  private model = "mistral-large-latest";
+  private model = resolveModel("mistral");
   private initialized = false;
 
   async initialize(): Promise<void> {
     this.apiKey =
       resolveFirst("MISTRAL_API_KEY") ?? "";
     this.model =
-      resolveFirst("MISTRAL_MODEL") ?? "mistral-large-latest";
+      resolveModel("mistral");
 
     this.initialized = true;
 

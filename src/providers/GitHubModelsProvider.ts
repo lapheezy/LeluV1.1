@@ -29,6 +29,7 @@ import type {
 } from "./AIProvider";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst, resolveViteOnly } from "../core/resolveEnv";
+import { resolveModel } from "../core/ProviderModels";
 
 export default class GitHubModelsProvider implements AIProvider {
   readonly name = "GitHub Models";
@@ -47,7 +48,7 @@ export default class GitHubModelsProvider implements AIProvider {
   readonly supportsTools = true;
 
   private apiKey = "";
-  private model = "openai/gpt-4o";
+  private model = resolveModel("githubModels");
   private initialized = false;
 
   async initialize(): Promise<void> {
@@ -65,7 +66,7 @@ export default class GitHubModelsProvider implements AIProvider {
     // undefined — which it is in every non-Vite runtime.
     this.apiKey = resolveViteOnly("GITHUB_TOKEN") ?? "";
     this.model =
-      resolveFirst("GITHUB_MODEL") ?? "openai/gpt-4o";
+      resolveModel("githubModels");
 
     this.initialized = true;
 

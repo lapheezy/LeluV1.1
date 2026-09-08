@@ -17,6 +17,7 @@ import {
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { resolveModel } from "../core/ProviderModels";
 
 export default class GroqProvider implements AIProvider {
   readonly name = "Groq";
@@ -29,12 +30,12 @@ export default class GroqProvider implements AIProvider {
 
   private apiKey = "";
   private initialized = false;
-  // Current production chat model on Groq (llama-3.3-70b was retired).
-  private model = "openai/gpt-oss-120b";
+  // Default and any override live in core/ProviderModels.ts.
+  private model = resolveModel("groq");
 
   async initialize(): Promise<void> {
     this.model =
-      resolveFirst("GROQ_MODEL") ?? "openai/gpt-oss-120b";
+      resolveModel("groq");
     this.apiKey =
       resolveFirst("GROQ_API_KEY") ?? "";
 

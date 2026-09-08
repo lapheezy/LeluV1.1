@@ -218,7 +218,7 @@ const LOCAL_MODEL_SLOTS: ModelDescriptor[] = [
 
 const REMOTE_MODEL_CATALOG: ModelDescriptor[] = [
   {
-    // Current production chat model on Groq (llama-3.3-70b was retired)
+    // Default and any override live in core/ProviderModels.ts.
     id: "groq.gpt-oss-120b",
     name: "GPT-OSS 120B (Groq)",
     provider: "Groq",
@@ -265,8 +265,9 @@ const REMOTE_MODEL_CATALOG: ModelDescriptor[] = [
     capabilities: ["chat", "vision"],
   },
   {
-    id: "cerebras.llama-3.3-70b",
-    name: "Llama 3.3 70B (Cerebras)",
+    // Cerebras retired its llama models; gpt-oss-120b is what it serves.
+    id: "cerebras.gpt-oss-120b",
+    name: "GPT-OSS 120B (Cerebras)",
     provider: "Cerebras",
     modalities: ["text", "code"],
     local: false,
@@ -287,8 +288,9 @@ const REMOTE_MODEL_CATALOG: ModelDescriptor[] = [
     capabilities: ["chat", "reasoning", "code"],
   },
   {
-    id: "fireworks.llama-v3p1-70b",
-    name: "Llama 3.1 70B (Fireworks)",
+    // llama-v3p1-70b-instruct is no longer deployed on Fireworks.
+    id: "fireworks.gpt-oss-120b",
+    name: "GPT-OSS 120B (Fireworks)",
     provider: "Fireworks",
     modalities: ["text", "code"],
     local: false,

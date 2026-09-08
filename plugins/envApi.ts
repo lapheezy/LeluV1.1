@@ -17,6 +17,7 @@
 
 import { bridgeReport } from "./runtimeKeyBridge.ts";
 import { endpoint, endpointUrl, endpointDiagnostics } from "../src/core/Endpoints.ts";
+import { defaultModel, type ProviderModelId } from "../src/core/ProviderModels.ts";
 
 type EnvReader = (key: string) => string | undefined;
 
@@ -90,6 +91,25 @@ async function probeFirms(key: string | undefined): Promise<Record<string, unkno
   }
 }
 
+/**
+ * The model a probe should send.
+ *
+ * The probe MUST ask for the same model the provider would, or it
+ * reports on something the app never calls. That is exactly how
+ * /api/provider-health came to report Groq down: it probed a retired
+ * `llama-3.3-70b-versatile` while GroqProvider was happily answering
+ * on `openai/gpt-oss-120b`. The default now comes from the one
+ * registry both sides read; only the override lookup differs, because
+ * this runtime has its own env reader rather than resolveFirst().
+ */
+function probeModel(env: EnvReader, id: ProviderModelId, ...names: string[]): string {
+  for (const name of names) {
+    const value = env(`VITE_${name}`) || env(name);
+    if (value && value.trim()) return value.trim();
+  }
+  return defaultModel(id);
+}
+
 export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtras = {}): {
   attach: (middlewares: { use: (path: string, handler: Handler) => void }) => void;
 } {
@@ -156,7 +176,7 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
                 Authorization: `Bearer ${groqKey}`,
               },
               body: JSON.stringify({
-                model: env("VITE_GROQ_MODEL") || "llama-3.3-70b-versatile",
+                model: probeModel(env, "groq", "GROQ_MODEL"),
                 messages: [{ role: "user", content: "Say OK" }],
                 max_tokens: 5,
               }),
@@ -186,7 +206,7 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
                 "X-Title": "Lélu",
               },
               body: JSON.stringify({
-                model: "openrouter/free",
+                model: probeModel(env, "openrouter", "OPENROUTER_MODEL"),
                 messages: [{ role: "user", content: "Say OK" }],
                 max_tokens: 5,
               }),
@@ -215,7 +235,7 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
                 "anthropic-version": "2023-06-01",
               },
               body: JSON.stringify({
-                model: env("VITE_ANTHROPIC_MODEL") || env("ANTHROPIC_MODEL") || "claude-sonnet-4-5",
+                model: probeModel(env, "anthropic", "ANTHROPIC_MODEL"),
                 max_tokens: 5,
                 messages: [{ role: "user", content: "Say OK" }],
               }),

@@ -26,6 +26,7 @@ import type {
 } from "./AIProvider";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { resolveModel } from "../core/ProviderModels";
 
 export default class OpenRouterProvider implements AIProvider {
   readonly name = "OpenRouter";
@@ -44,7 +45,7 @@ export default class OpenRouterProvider implements AIProvider {
   readonly supportsTools = true;
 
   private apiKey = "";
-  private model = "openrouter/free";
+  private model = resolveModel("openrouter");
   private initialized = false;
 
   /**
@@ -92,7 +93,7 @@ export default class OpenRouterProvider implements AIProvider {
     this.apiKey =
       resolveFirst("OPENROUTER_API_KEY", "OPEN_ROUTER_API_KEY") ?? "";
     this.model =
-      resolveFirst("OPENROUTER_MODEL") ?? "openrouter/free";
+      resolveModel("openrouter");
 
     this.initialized = true;
 

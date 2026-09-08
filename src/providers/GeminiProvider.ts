@@ -11,6 +11,7 @@ import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpoint } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { resolveModel } from "../core/ProviderModels";
 
 interface GeminiPart {
   text?: string;
@@ -37,10 +38,10 @@ export default class GeminiProvider implements AIProvider {
 
   private apiKey = "";
   private initialized = false;
-  private model = "gemini-2.0-flash";
+  private model = resolveModel("gemini");
 
   async initialize(): Promise<void> {
-    this.model = resolveFirst("GEMINI_MODEL") ?? "gemini-2.0-flash";
+    this.model = resolveModel("gemini");
     this.apiKey =
       resolveFirst("GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_GENERATIVE_AI_API_KEY") ?? "";
     this.initialized = true;

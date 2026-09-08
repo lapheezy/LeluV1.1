@@ -11,6 +11,7 @@ import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { resolveModel } from "../core/ProviderModels";
 
 type MessageContent = string | Array<Record<string, unknown>>;
 
@@ -65,11 +66,11 @@ export default class AnthropicProvider implements AIProvider {
 
   private apiKey = "";
   private initialized = false;
-  private model = "claude-sonnet-4-5";
+  private model = resolveModel("anthropic");
 
   async initialize(): Promise<void> {
     this.model =
-      resolveFirst("ANTHROPIC_MODEL") ?? "claude-sonnet-4-5";
+      resolveModel("anthropic");
     this.apiKey =
       resolveFirst("ANTHROPIC_API_KEY", "CLAUDE_API_KEY") ?? "";
 

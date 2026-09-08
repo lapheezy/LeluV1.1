@@ -26,6 +26,7 @@ import {
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { resolveModel } from "../core/ProviderModels";
 
 export default class CerebrasProvider implements AIProvider {
   readonly name = "Cerebras";
@@ -44,14 +45,14 @@ export default class CerebrasProvider implements AIProvider {
   readonly supportsTools = true;
 
   private apiKey = "";
-  private model = "llama-3.3-70b";
+  private model = resolveModel("cerebras");
   private initialized = false;
 
   async initialize(): Promise<void> {
     this.apiKey =
       resolveFirst("CEREBRAS_API_KEY") ?? "";
     this.model =
-      resolveFirst("CEREBRAS_MODEL") ?? "llama-3.3-70b";
+      resolveModel("cerebras");
 
     this.initialized = true;
 
