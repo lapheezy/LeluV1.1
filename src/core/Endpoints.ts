@@ -406,8 +406,48 @@ export function endpoint(id: EndpointId): string {
   return withApiSuffix(normalize(definition.fallback), definition.apiSuffix);
 }
 
+/**
+ * Chat providers a BROWSER reaches through the same-origin broker
+ * instead of calling directly.
+ *
+ * Not a policy invented here — it is the rule this codebase already
+ * followed for GitHub Models (/api/ai), applied to the rest. A page
+ * calling a provider directly needs the provider to serve CORS to its
+ * origin and needs outbound egress of its own, and it needs the API key
+ * in the bundle. None of those is true of a browser we control.
+ *
+ * The provider classes are untouched: they build the same request and
+ * sit in the same fallback chain. Only where the request is posted
+ * changes, and only when there is a document to post it from.
+ */
+const BROKERED_IN_BROWSER = new Set<EndpointId>([
+  "anthropic",
+  "groq",
+  "openrouter",
+  "cerebras",
+  "mistral",
+  "fireworks",
+]);
+
+/**
+ * True only in a real browser.
+ *
+ * Deliberately `document`, not `window`: the test suites shim `window`
+ * onto globalThis so KvStore works under Node, and routing those runs
+ * through a broker that is not there would break every provider test.
+ * A document is the thing a page has and a server never does.
+ */
+function inBrowser(): boolean {
+  const host = globalThis as { document?: unknown; fetch?: unknown };
+  return host.document !== undefined && typeof host.fetch === "function";
+}
+
 /** Join an endpoint base with a path, tolerating a leading slash or not. */
 export function endpointUrl(id: EndpointId, path = ""): string {
+  if (BROKERED_IN_BROWSER.has(id) && inBrowser()) {
+    const tail = path.replace(/^\/+/, "");
+    return tail ? `/api/model/${id}/${tail}` : `/api/model/${id}`;
+  }
   const base = endpoint(id);
   if (!path) return base;
   return `${base}/${path.replace(/^\/+/, "")}`;

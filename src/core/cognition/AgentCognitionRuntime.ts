@@ -67,6 +67,22 @@ export default class AgentCognitionRuntime {
   private unsubscribe: (() => void) | null = null;
   private objectivesUnsubscribe: (() => void) | null = null;
   private running = false;
+  private paused = false;
+
+  /**
+   * EPOCH — what makes stopping actually stop.
+   *
+   * Clearing a timer does not un-start the cycle already inside it, and
+   * a cycle takes seconds: without this, a run that began before
+   * shutdown would come back afterwards, write its result into a
+   * runtime that no longer owns it, and schedule the next one. Every
+   * cycle and every timer carries the epoch it was created in; a bump
+   * makes all of them no-ops at their next checkpoint.
+   */
+  private epoch = 0;
+
+  /** Objectives explicitly cancelled: their in-flight work is abandoned. */
+  private cancelled = new Set<string>();
 
   private constructor() {}
 
@@ -121,6 +137,87 @@ export default class AgentCognitionRuntime {
     for (const handle of this.continuations.values()) clearTimeout(handle);
     this.continuations.clear();
     this.running = false;
+    this.paused = false;
+    // Anything already in flight belongs to the runtime that is ending.
+    this.epoch += 1;
+  }
+
+  /**
+   * PAUSE — keep everything, do nothing.
+   *
+   * The objectives, their budgets and their history are untouched; only
+   * the scheduling stops. This is what a person asking LÉLU to hold on
+   * needs, and it is different from stopping: resume() picks the same
+   * work up rather than starting new work.
+   */
+  public pause(): void {
+    if (!this.running || this.paused) return;
+    this.paused = true;
+    for (const handle of this.continuations.values()) clearTimeout(handle);
+    this.continuations.clear();
+    // A cycle already running finishes its call but will not record or
+    // continue: it belongs to the epoch before the pause.
+    this.epoch += 1;
+    emitCognition("continuation-scheduled", "Paused: no further cycles until resumed.", {
+      data: { paused: true },
+    });
+  }
+
+  public resume(): void {
+    if (!this.running || !this.paused) return;
+    this.paused = false;
+    this.considerPending();
+  }
+
+  public isPaused(): boolean {
+    return this.paused;
+  }
+
+  /**
+   * CANCEL one objective's work.
+   *
+   * Its timer goes, its in-flight cycle is abandoned rather than
+   * recorded, and the objective itself is ended with the real reason —
+   * cancelled work is never reported as completed.
+   */
+  public cancel(objectiveId: string, reason = "Cancelled."): void {
+    this.cancelled.add(objectiveId);
+    const handle = this.continuations.get(objectiveId);
+    if (handle !== undefined) {
+      clearTimeout(handle);
+      this.continuations.delete(objectiveId);
+    }
+    const objective = this.objectives.get(objectiveId);
+    if (objective && !["completed", "yielded", "cancelled"].includes(objective.state)) {
+      this.objectives.yieldObjective(objectiveId, "cancelled", reason);
+    }
+  }
+
+  /**
+   * CLEANUP — drop every piece of transient runtime state.
+   *
+   * Persisted objectives, cycles and lessons are deliberately left
+   * alone: this clears what belongs to a running process (timers,
+   * in-flight marks, cooldowns, cancellations), which is exactly the
+   * state that must not survive into whatever runs next.
+   */
+  public cleanup(): void {
+    this.stop();
+    this.inFlight.clear();
+    this.lastCycleAt.clear();
+    this.cancelled.clear();
+  }
+
+  /** Objectives this runtime currently holds a timer or a cycle for. */
+  public activeObjectiveIds(): string[] {
+    return [...new Set([...this.continuations.keys(), ...this.inFlight])];
+  }
+
+  /** Objectives it is currently working for one agent — ownership, observable. */
+  public activeObjectiveIdsFor(agentId: string): string[] {
+    return this.activeObjectiveIds().filter(
+      (id) => this.objectives.get(id)?.agentId === agentId,
+    );
   }
 
   /**
@@ -132,7 +229,7 @@ export default class AgentCognitionRuntime {
    * during a cycle cannot multiply cycles.
    */
   private considerPending(): void {
-    if (!this.running) return;
+    if (!this.running || this.paused) return;
     const now = Date.now();
 
     for (const objective of this.objectives.list()) {
@@ -220,8 +317,13 @@ export default class AgentCognitionRuntime {
       return record;
     }
 
+    if (this.cancelled.has(objectiveId)) return null;
     this.inFlight.add(objectiveId);
     this.lastCycleAt.set(objectiveId, Date.now());
+    // The epoch this cycle belongs to. If the runtime is stopped,
+    // paused or this objective is cancelled while the model call is in
+    // flight, the result is no longer ours to record.
+    const startedIn = this.epoch;
     emitCognition("cycle-started", `Cycle ${objective.cyclesRun + 1} — ${trigger}`, {
       objectiveId,
       data: { trigger, cycle: objective.cyclesRun + 1 },
@@ -300,6 +402,18 @@ export default class AgentCognitionRuntime {
             "Never claim work you did not actually perform — your tool results are the record.",
         },
       );
+
+      // ABANDON RATHER THAN WRITE. A cycle takes seconds; teardown takes
+      // none. Recording here would put a dead runtime's conclusion into
+      // live state and schedule a continuation nobody owns.
+      if (startedIn !== this.epoch || this.cancelled.has(objectiveId)) {
+        emitCognition(
+          "cycle-completed",
+          "Abandoned: the runtime was stopped, paused or the objective cancelled while this cycle was in flight. Nothing was recorded.",
+          { objectiveId, data: { abandoned: true } },
+        );
+        return null;
+      }
 
       const decision = (response.text ?? "").trim();
       const executed =
@@ -495,9 +609,11 @@ export default class AgentCognitionRuntime {
     delayMs: number = CYCLE_COOLDOWN_MS + 100,
     trigger = "runtime:self-continuation",
   ): void {
-    if (!this.running) return;
+    if (!this.running || this.paused) return;
+    if (this.cancelled.has(objectiveId)) return;
     const existing = this.continuations.get(objectiveId);
     if (existing !== undefined) clearTimeout(existing);
+    const scheduledIn = this.epoch;
 
     emitCognition("continuation-scheduled", `Next cycle in ${delayMs}ms (${trigger}).`, {
       objectiveId,
@@ -506,6 +622,10 @@ export default class AgentCognitionRuntime {
 
     const handle = setTimeout(() => {
       this.continuations.delete(objectiveId);
+      // A timer that survived a stop, a pause or a cancel does nothing.
+      // Clearing a handle is best-effort; this is the guarantee.
+      if (scheduledIn !== this.epoch || !this.running || this.paused) return;
+      if (this.cancelled.has(objectiveId)) return;
       // Promote anything whose deferral has come due, then run this one.
       this.objectives.actionable();
       void this.runCycle(objectiveId, trigger);

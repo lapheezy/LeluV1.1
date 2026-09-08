@@ -41,6 +41,7 @@ import { createRssApi } from "./plugins/rssApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { createGithubApi } from "./plugins/githubApi.ts";
+import { createModelApi } from "./plugins/modelApi.ts";
 
 // Load the project's existing environment (.env.local overrides .env;
 // platform-injected process env always wins) BEFORE anything reads it,
@@ -294,6 +295,9 @@ rssApi.attach(middlewares);
 quad9Api.attach(middlewares);
 nekoApi.attach(middlewares);
 createGithubApi().attach(middlewares);
+// Same-origin model broker: the browser posts here, the server holds
+// the credential and talks to the provider.
+createModelApi((key) => process.env[key]).attach(middlewares);
 middlewares.use("/api/ai", (req, res) => {
   void handleAiProxy(req, res);
 });

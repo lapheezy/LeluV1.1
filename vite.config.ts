@@ -8,6 +8,7 @@ import { createAisBridge } from "./plugins/aisBridgePlugin.ts";
 import { engineerApiPlugin } from "./plugins/engineerApi.ts";
 import { createNodeEngineerAdapter } from "./plugins/nodeAdapters.ts";
 import { createEnvApi } from "./plugins/envApi.ts";
+import { createModelApi } from "./plugins/modelApi.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
@@ -46,6 +47,21 @@ export default defineConfig(({ mode }) => {
   const rssApi = createRssApi(envReader);
   const quad9Api = createQuad9Api(envReader);
   const nekoApi = createNekoApi(envReader);
+  // The same-origin model broker. Without it the page has to call a
+  // provider directly, which needs the provider's CORS and the page's
+  // own egress — and puts the API key in the bundle.
+  const modelApi = createModelApi(envReader);
+  function modelApiPlugin() {
+    return {
+      name: "model-api",
+      configureServer(server: any) {
+        modelApi.attach(server.middlewares);
+      },
+      configurePreviewServer(server: any) {
+        modelApi.attach(server.middlewares);
+      },
+    };
+  }
   function envApiPlugin() {
     return {
       name: "env-api",
@@ -68,6 +84,7 @@ export default defineConfig(({ mode }) => {
       // FIRST: publish bridged provider keys into <head> before any
       // module evaluates, so every provider's initialize() sees them.
       runtimeKeyBridgePlugin(envReader),
+      modelApiPlugin(),
 
       vlyPlugin(),
 
