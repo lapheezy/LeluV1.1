@@ -46,6 +46,17 @@ const NO_PROGRESS_REPEATS = 3;
 
 export default class ProviderResolver {
   public async execute(context: RouterContext): Promise<ProviderResult> {
+    /**
+     * Tools that really executed, across every provider attempt.
+     *
+     * The per-attempt list lives inside generateWithTools and dies with
+     * it when that provider throws — so a provider that ran a tool and
+     * then failed left no trace, and the cognition cycle recorded "no
+     * action taken" about a workflow it had genuinely created. This
+     * outlives the attempt and is attached to whatever answer is
+     * finally returned, including the offline one.
+     */
+    const toolsReallyRun: Array<{ tool: string; ok: boolean }> = [];
     const providers = await context.aiProviders.available();
 
     if (providers.length === 0) {
@@ -60,7 +71,7 @@ export default class ProviderResolver {
 
       return {
         handled: true,
-        response: this.offline(context),
+        response: this.withRealTools(this.offline(context), toolsReallyRun),
       };
     }
 
@@ -99,7 +110,7 @@ export default class ProviderResolver {
 
       return {
         handled: true,
-        response: this.offline(context, true),
+        response: this.withRealTools(this.offline(context, true), toolsReallyRun),
       };
     }
 
@@ -142,7 +153,7 @@ export default class ProviderResolver {
           priority: provider.priority,
         });
 
-        const response = await this.executeProvider(provider, context);
+        const response = await this.executeProvider(provider, context, toolsReallyRun);
         events.emit({
           type: "provider_status",
           taskId,
@@ -206,7 +217,7 @@ export default class ProviderResolver {
 
     return {
       handled: true,
-      response: this.offline(context),
+      response: this.withRealTools(this.offline(context), toolsReallyRun),
     };
   }
 
@@ -247,6 +258,7 @@ export default class ProviderResolver {
   private async generateWithTools(
     provider: AIProvider,
     context: RouterContext,
+    toolsReallyRun?: Array<{ tool: string; ok: boolean }>,
   ): Promise<AIResponse> {
     // Tools are offered only on a conversational turn. Internal
     // structured-output calls (see AIRequest.allowTools) must reach the
@@ -323,6 +335,12 @@ export default class ProviderResolver {
       for (const call of calls) {
         const result = await dispatchToolCall(call, taskId, context);
         executed.push({ tool: call.name, ok: result.ok });
+        // ALSO record it where a later provider failure cannot erase it.
+        // A tool that ran, ran: if this provider throws on the next
+        // round the chain falls through, and without this the cycle
+        // would report "no action taken" about a workflow it really
+        // created.
+        toolsReallyRun?.push({ tool: call.name, ok: result.ok });
         context.logger.info("ProviderResolver", `Tool ${call.name} -> ${result.ok ? "ok" : "failed"}`, {
           tool: call.name,
           ok: result.ok,
@@ -385,9 +403,10 @@ export default class ProviderResolver {
   private async executeProvider(
     provider: AIProvider,
     context: RouterContext,
+    toolsReallyRun?: Array<{ tool: string; ok: boolean }>,
   ): Promise<AIResponse> {
     const started = Date.now();
-    const response = await this.generateWithTools(provider, context);
+    const response = await this.generateWithTools(provider, context, toolsReallyRun);
 
     if (!response || typeof response.text !== "string") {
       throw new Error(`${provider.name} returned an invalid response.`);
@@ -411,6 +430,28 @@ export default class ProviderResolver {
       metadata: {
         ...response.metadata,
         providerPriority: provider.priority,
+      },
+    };
+  }
+
+  /**
+   * Carry the actions that really happened onto an answer that did not
+   * come from the provider that performed them.
+   *
+   * Silence here is the dangerous direction: an unrecorded action is one
+   * the runtime believes never occurred.
+   */
+  private withRealTools(
+    response: AIResponse,
+    toolsReallyRun: Array<{ tool: string; ok: boolean }>,
+  ): AIResponse {
+    if (toolsReallyRun.length === 0) return response;
+    return {
+      ...response,
+      metadata: {
+        ...response.metadata,
+        toolsExecuted: toolsReallyRun,
+        toolsRanBeforeFallback: true,
       },
     };
   }

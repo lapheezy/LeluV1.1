@@ -10,6 +10,8 @@ import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import {
   extractOpenAIToolCalls,
+  extractOpenAIText,
+  describeEmptyChoice,
   openAIToolPayload,
   toOpenAIMessages,
   trailingUserTurn,
@@ -187,15 +189,17 @@ export default class GroqProvider implements AIProvider {
       throw new Error(`Groq failed ${response.status}: ${String(apiMessage)}`);
     }
 
-    const choices = data?.choices as Array<{ message?: { content?: string }; finish_reason?: string }> | undefined;
-    const content = choices?.[0]?.message?.content ?? "";
+    const choices = data?.choices as
+      | Array<{ message?: Record<string, unknown>; finish_reason?: string }>
+      | undefined;
+    const content = extractOpenAIText(choices?.[0]);
     const toolCalls = extractOpenAIToolCalls(choices?.[0]);
 
     // A tool-call turn legitimately carries no text. Rejecting it as
     // "no usable content" would turn a valid tool request into a
     // provider failure and drop to the next provider for no reason.
     if ((typeof content !== "string" || !content.trim()) && toolCalls.length === 0) {
-      throw new Error("Groq returned no usable content.");
+      throw new Error(describeEmptyChoice("Groq", choices?.[0]));
     }
 
     const processingTime = Date.now() - started;

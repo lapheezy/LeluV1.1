@@ -91,10 +91,25 @@ const surface = await page.evaluate(async () => {
 
 const model = await page.evaluate(async () => {
   const { endpointUrl } = await import("/src/core/Endpoints.ts");
-  const routedTo = endpointUrl("anthropic", "messages");
 
-  // What the page could do BEFORE the broker existed: call the provider
-  // directly. Kept as the control, because it is the thing that failed.
+  // Which providers the SERVER can reach. The page is told yes/no, never
+  // the credential.
+  let configured = [];
+  let brokerStatus = null;
+  try {
+    brokerStatus = await (await fetch("/api/model/status")).json();
+    configured = Object.entries(brokerStatus.providers ?? {})
+      .filter(([, ok]) => ok)
+      .map(([id]) => id);
+  } catch (error) {
+    brokerStatus = { error: String(error).slice(0, 120) };
+  }
+
+  const probeId = configured[0] ?? "anthropic";
+  const routedTo = endpointUrl(probeId, "messages");
+
+  // THE CONTROL: what the page could do before the broker existed —
+  // call a provider directly. Kept because it is the thing that failed.
   let direct = "not-attempted";
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -115,35 +130,27 @@ const model = await page.evaluate(async () => {
     direct = `NETWORK ERROR: ${String(error).slice(0, 80)}`;
   }
 
-  let brokerStatus = null;
-  try {
-    brokerStatus = await (await fetch("/api/model/status")).json();
-  } catch (error) {
-    brokerStatus = { error: String(error).slice(0, 120) };
-  }
-
-  // THE REAL PROVIDER OBJECT, from the real registry, making a real call.
+  // THE REAL PATH: AIService → the resolver → the provider chain →
+  // the broker → the provider. Whatever answers, answers for real.
   const ai = (await import("/src/core/AIService.ts")).default.getInstance();
-  const anthropic = ai.getAIProviderRegistry().get("Anthropic");
-  let providerCall = { reached: false, detail: "no Anthropic provider registered" };
-  if (anthropic) {
-    try {
-      const result = await anthropic.generate({
-        prompt: "Reply with the single word: ready.",
-        messages: [{ role: "user", content: "Reply with the single word: ready." }],
-        timestamp: Date.now(),
-      });
-      providerCall = { reached: true, answered: true, detail: String(result.text).slice(0, 120) };
-    } catch (error) {
-      const detail = String(error).slice(0, 200);
-      // An HTTP status from the provider means the request ARRIVED. A
-      // network error means it never left. Only the second is a broken
-      // path, and the difference is the whole point of this check.
-      providerCall = { reached: /\b\d{3}\b/.test(detail), answered: false, detail };
-    }
+  let deliberation = { answered: false, provider: "", detail: "" };
+  try {
+    const result = await ai.deliberate("Reply with the single word: ready.", {
+      system: "Answer in one word.",
+      maxTokens: 16,
+    });
+    const text = String(result.text ?? "");
+    const offline = /offline mode|unreachable or unconfigured|no local model runtime/i.test(text);
+    deliberation = {
+      answered: Boolean(result.provider) && !offline,
+      provider: String(result.provider ?? ""),
+      detail: text.slice(0, 140),
+    };
+  } catch (error) {
+    deliberation = { answered: false, provider: "", detail: String(error).slice(0, 200) };
   }
 
-  return { routedTo, direct, brokerStatus, providerCall };
+  return { configured, brokerStatus, probeId, routedTo, direct, deliberation };
 });
 
 /* ---- 3: an objective, then nothing but waiting ---- */
@@ -194,6 +201,13 @@ const observed = await page.evaluate(async (id) => {
     })),
     // WHAT THE RUNTIME RECORDED as it happened.
     stages: trace.map((entry) => entry.stage),
+    // WHICH PROVIDER MADE EACH DECISION. This is the authoritative
+    // answer to "did a real model drive this cycle": it is recorded by
+    // the runtime at the moment it received the decision, not probed
+    // afterwards from the side.
+    decisionProviders: trace
+      .filter((entry) => entry.stage === "decision-made")
+      .map((entry) => String(entry.data?.provider ?? "")),
     // WHETHER SHE CAN SEE HER OWN WORK.
     contextNamesTheObjective: objective ? context.includes(objective.objective.slice(0, 40)) : false,
     contextHasRecentPass: context.includes("YOUR MOST RECENT COGNITIVE PASS"),
@@ -211,15 +225,21 @@ await browser.close();
 const selfDriven = observed.cycles.filter((cycle) => cycle.trigger === "runtime:self-continuation").length;
 console.log(JSON.stringify({ surface, model, observed, pageErrors: pageErrors.slice(0, 5) }, null, 2));
 
-const modelAnswered = model.providerCall.answered === true;
+const realProviders = observed.decisionProviders.filter(
+  (name) => name && !/^(stub|MOCKED-MODEL|offline|local)$/i.test(name),
+);
+// Real-model cognition in the browser means a cycle whose DECISION came
+// from a real provider — not that a side probe happened to succeed.
+const modelAnswered = realProviders.length > 0;
 console.log(
   `\nAutonomy running at boot: ${surface.autonomyRunningBeforeAnythingElse}` +
     `\nAgent: ${observed.agentName} (${observed.agentId})` +
     `\nObjective: ${observed.objectiveText}` +
-    `\nModel route: ${model.routedTo}` +
+    `\nBrokered providers with a server credential: ${model.configured.join(", ") || "none"}` +
+    `\nModel route for ${model.probeId}: ${model.routedTo}` +
     `\n  direct from the page: ${model.direct}` +
-    `\n  through the broker:   ${model.providerCall.detail}` +
-    `\n  request reached the provider: ${model.providerCall.reached}; provider answered: ${modelAnswered}` +
+    `\n  through the app's own chain: provider=${model.deliberation.provider || "none"} — ${model.deliberation.detail}` +
+    `\n  providers that made a cognition decision: ${observed.decisionProviders.join(", ") || "none"}` +
     `\nCycles recorded: ${observed.cycles.length} (self-continued: ${selfDriven})` +
     `\nTransitions: ${[...new Set(observed.stages)].join(", ")}` +
     `\nObjective ended: ${observed.state}${observed.yieldReason ? ` (${observed.yieldReason})` : ""}` +
@@ -231,7 +251,18 @@ const failures = [];
 if (!surface.autonomyRunningBeforeAnythingElse) {
   failures.push("booting the application did not start autonomous cognition");
 }
-if (selfDriven < 1) failures.push("no cycle was started by the runtime itself");
+// Every cycle must be runtime-initiated. How MANY cycles a real model
+// needs is the model's business — a capable one can satisfy this
+// objective in a single cycle, so self-continuation is required only
+// when the work actually took more than one.
+if (!observed.cycles.every((cycle) => cycle.trigger.startsWith("runtime:"))) {
+  failures.push(
+    `a cycle was started by something outside the runtime: ${observed.cycles.map((c) => c.trigger).join(", ")}`,
+  );
+}
+if ((observed.cyclesRun ?? 0) > 1 && selfDriven < 1) {
+  failures.push("a multi-cycle objective ran without a runtime self-continuation");
+}
 if (!observed.agentId) failures.push("the objective has no owning agent");
 if ((observed.cyclesRun ?? 0) < 1) failures.push("no cognition cycle ran");
 if (!observed.cycles.every((cycle) => cycle.agentId === observed.agentId)) {
@@ -242,13 +273,21 @@ for (const stage of ["objective-created", "cycle-started", "context-retrieved", 
 }
 if (observed.state === "active") failures.push("the objective never reached a terminal state");
 if (!observed.contextHasRecentPass) failures.push("her own last cognitive pass is not in her context");
-// THE BROKER: the page's request has to reach the provider. Whether the
-// provider then accepts the credential is a separate fact.
+// THE BROKER: a brokered provider must be routed through it.
 if (!model.routedTo.startsWith("/api/model/")) {
   failures.push(`the browser is not routing through the broker (${model.routedTo})`);
 }
-if (!model.providerCall.reached) {
-  failures.push(`the browser could not reach the provider at all: ${model.providerCall.detail}`);
+// With a credential on the server, the page must actually get an answer
+// — and cognition must actually be driven by it.
+if (model.configured.length > 0) {
+  if (!model.deliberation.answered) {
+    failures.push(
+      `a provider is configured server-side but the page got no answer: ${model.deliberation.detail}`,
+    );
+  }
+  if (!modelAnswered) {
+    failures.push("no cognition decision came from a real provider");
+  }
 }
 
 if (failures.length > 0) {

@@ -19,6 +19,8 @@ import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import {
   extractOpenAIToolCalls,
+  extractOpenAIText,
+  describeEmptyChoice,
   openAIToolPayload,
   toOpenAIMessages,
   trailingUserTurn,
@@ -168,13 +170,13 @@ export default class FireworksProvider implements AIProvider {
       throw new Error(`Fireworks HTTP ${response.status}: ${apiMessage}`);
     }
 
-    const content = data?.choices?.[0]?.message?.content ?? "";
+    const content = extractOpenAIText(data?.choices?.[0]);
     const toolCalls = extractOpenAIToolCalls(data?.choices?.[0]);
     // A tool-call turn legitimately carries no text. Rejecting it as
     // "no usable content" would turn a valid tool request into a
     // provider failure and drop to the next provider for no reason.
     if ((typeof content !== "string" || !content.trim()) && toolCalls.length === 0) {
-      throw new Error("Fireworks returned no usable content.");
+      throw new Error(describeEmptyChoice("Fireworks", data?.choices?.[0]));
     }
 
     return {

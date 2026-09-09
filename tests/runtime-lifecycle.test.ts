@@ -97,7 +97,10 @@ test("start is idempotent and stop leaves nothing scheduled", async () => {
 
   runtime.stop();
   assert.equal(runtime.isRunning(), false);
-  assert.deepEqual(runtime.activeObjectiveIds(), [], "a timer survived stop()");
+  // Timers go immediately. A cycle already inside a model call cannot be
+  // interrupted mid-flight — it runs out and abandons its result, which
+  // the next test pins — so the assertion is about what stop() owns.
+  assert.deepEqual(runtime.scheduledObjectiveIds(), [], "a timer survived stop()");
 
   // And nothing fires afterwards.
   const before = objectives.cycles(objective.id).length;
@@ -166,7 +169,7 @@ test("pause holds the work and resume picks up the same objective", async () => 
   runtime.pause();
   assert.equal(runtime.isPaused(), true);
   assert.equal(runtime.isRunning(), true, "pausing must not stop the runtime");
-  assert.deepEqual(runtime.activeObjectiveIds(), [], "a timer survived pause()");
+  assert.deepEqual(runtime.scheduledObjectiveIds(), [], "a timer survived pause()");
 
   const whilePaused = objectives.cycles(objective.id).length;
   await rest(2_500);
@@ -206,7 +209,7 @@ test("cancelling one objective ends that one and leaves the others alone", async
   assert.equal(cancelled.state, "cancelled");
   assert.equal(cancelled.yieldReason, "cancelled");
   assert.match(String(cancelled.conclusion), /changed their mind/);
-  assert.equal(runtime.activeObjectiveIds().includes(doomed.id), false, "a cancelled objective kept its timer");
+  assert.equal(runtime.scheduledObjectiveIds().includes(doomed.id), false, "a cancelled objective kept its timer");
 
   const doomedCycles = objectives.cycles(doomed.id).length;
   await rest(2_500);
@@ -235,7 +238,7 @@ test("cleanup clears runtime state without destroying persisted work", async () 
   runtime.cleanup();
   assert.equal(runtime.isRunning(), false);
   assert.equal(runtime.isPaused(), false);
-  assert.deepEqual(runtime.activeObjectiveIds(), []);
+  assert.deepEqual(runtime.scheduledObjectiveIds(), []);
   // What was recorded is history, and history is not transient state.
   assert.equal(objectives.cycles(objective.id).length, cyclesBefore);
   assert.ok(objectives.get(objective.id), "cleanup destroyed the objective itself");
@@ -308,5 +311,5 @@ test("one agent's cognition never becomes another agent's", async () => {
 test("teardown leaves nothing running", async () => {
   cleanSlate();
   assert.equal(runtime.isRunning(), false);
-  assert.deepEqual(runtime.activeObjectiveIds(), []);
+  assert.deepEqual(runtime.scheduledObjectiveIds(), []);
 });

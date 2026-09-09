@@ -213,6 +213,24 @@ export default class AgentCognitionRuntime {
     return [...new Set([...this.continuations.keys(), ...this.inFlight])];
   }
 
+  /**
+   * Objectives with a pending TIMER, as distinct from one mid-cycle.
+   *
+   * The two are different facts and stopping treats them differently: a
+   * timer is dropped outright, while a cycle already inside a model call
+   * runs to its end and then abandons its result. Reporting them
+   * together made "stop left nothing scheduled" impossible to assert
+   * without also asserting the network was idle.
+   */
+  public scheduledObjectiveIds(): string[] {
+    return [...this.continuations.keys()];
+  }
+
+  /** Objectives with a cycle executing right now. */
+  public inFlightObjectiveIds(): string[] {
+    return [...this.inFlight];
+  }
+
   /** Objectives it is currently working for one agent — ownership, observable. */
   public activeObjectiveIdsFor(agentId: string): string[] {
     return this.activeObjectiveIds().filter(

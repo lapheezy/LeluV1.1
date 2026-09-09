@@ -200,3 +200,61 @@ test("cognition receives a real provider failure, records it, and yields safely"
     runtime.cleanup();
   }
 });
+
+/* ====================================================================
+ * AN ACTION THAT HAPPENED IS NEVER UNREPORTED
+ * ==================================================================== */
+
+test("tools a provider ran before it failed are still reported to cognition", async () => {
+  // Found by running the real thing: a provider executed workflow_author
+  // for real, threw on the next round, and the chain fell through to the
+  // offline answer — which carried no toolsExecuted. The cycle recorded
+  // "no action taken" about a workflow that existed on disk. Silence in
+  // this direction is worse than noise: the runtime believed an action
+  // it had performed had never happened.
+  const registry = new AIProviderRegistry();
+
+  let round = 0;
+  registry.register({
+    ...provider("Tooler", 1, "ok"),
+    supportsTools: true,
+    generate: async () => {
+      round += 1;
+      if (round === 1) {
+        // Round one asks for a tool, which really executes.
+        return {
+          text: "",
+          provider: "Tooler",
+          model: "tooler-1",
+          processingTime: 1,
+          toolCalls: [{ id: "call-1", name: "workflow_list", arguments: {} }],
+          metadata: {},
+        };
+      }
+      // Round two — after the tool ran — the provider dies.
+      throw new Error("Tooler: 529 overloaded");
+    },
+  } as never);
+  registry.register(provider("Backstop", 2, "fail") as never);
+  await registry.initialize();
+
+  const result = await new ProviderResolver().execute({
+    ...baseContext(),
+    request: {
+      prompt: "List the workflows.",
+      messages: [{ role: "user", content: "List the workflows." }],
+      timestamp: Date.now(),
+      allowTools: true,
+    },
+    aiProviders: registry,
+  } as never);
+
+  const executed = (result.response?.metadata?.toolsExecuted ?? []) as Array<{ tool: string }>;
+  assert.ok(
+    executed.some((entry) => entry.tool === "workflow_list"),
+    `an action that really ran was not reported: ${JSON.stringify(result.response?.metadata)}`,
+  );
+  // And it is marked as having happened before the fallback, so nobody
+  // reads it as the answering provider's work.
+  assert.equal(result.response?.metadata?.toolsRanBeforeFallback, true);
+});

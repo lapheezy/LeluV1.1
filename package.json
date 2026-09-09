@@ -13,6 +13,7 @@
     "test:live": "bun test tests/autonomy-end-to-end.test.ts --timeout 900000",
     "verify:autonomy": "node scripts/verify-continuous-cognition.mjs",
     "verify:persistence": "node scripts/verify-persistence-restart.mjs",
+    "verify:acceptance": "node scripts/verify-acceptance.mjs",
     "serve": "bun run server.ts",
     "start": "bun run server.ts",
     "preview": "vite preview --host 0.0.0.0 --strictPort --port 4173",
