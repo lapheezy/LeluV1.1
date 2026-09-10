@@ -141,7 +141,10 @@ export function ChatPanel({ threadId }: { threadId: string }) {
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
-        api: "/api/chat",
+        // Inert. The compat layer serves turns through AIService rather than
+        // POSTing anywhere, so there is no endpoint behind this — kept only
+        // so the OG construction site stays diffable against the original.
+        api: undefined,
         prepareSendMessagesRequest: async ({ messages, body }) => {
           const { data } = (await getSupabase()?.auth.getSession()) ?? { data: { session: null } };
           const token = data.session?.access_token;

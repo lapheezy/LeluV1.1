@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { getSupabase } from "@og/integrations/supabase/client";
+import AIService from "../../core/AIService";
 
 export type VoiceState =
   | "idle"
@@ -48,9 +48,22 @@ export const useVoice = create<State>((set) => ({
 }));
 
 /**
- * POST a transcript to /api/chat, parse the AI-SDK data stream, and return
- * the assistant's concatenated text. Falls back to a friendly error if the
- * network drops.
+ * Speak to LÉLU and get her answer back.
+ *
+ * The OG original POSTed to /api/chat — that deployment's server route, which
+ * owned the model call and streamed AI-SDK events back. Two things are wrong
+ * with keeping it: the route no longer exists, and it was a SECOND path to a
+ * model. Brief §14 is explicit that voice and typed chat must not maintain
+ * separate cognition, and §4 forbids parallel chat engines.
+ *
+ * So voice now goes exactly where typing goes: AIService.chat(). Streaming is
+ * preserved through subscribeStream(), so the caller's onDelta still fires as
+ * text arrives and the panel behaves as it did. The only difference between
+ * speaking and typing is the modality, which is what §14 asks for.
+ *
+ * It also no longer requires a Supabase session. The session was needed to
+ * authorize the old server route; cognition runs in-process, so voice works
+ * signed out and without Supabase like the rest of LÉLU.
  */
 export async function voiceRoundTrip(opts: {
   threadId: string;
@@ -58,67 +71,28 @@ export async function voiceRoundTrip(opts: {
   onDelta?: (chunk: string) => void;
   signal?: AbortSignal;
 }): Promise<string> {
-  const { data } = (await getSupabase()?.auth.getSession()) ?? { data: { session: null } };
-  const token = data.session?.access_token;
-  if (!token) throw new Error("Not signed in.");
+  const ai = AIService.getInstance();
 
-  const clientId = `voice-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const messages = [
-    {
-      id: clientId,
-      role: "user",
-      parts: [{ type: "text", text: opts.text }],
-    },
-  ];
-
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      messages,
-      conversationId: opts.threadId,
-      clientId,
-    }),
-    signal: opts.signal,
-  });
-  if (!res.ok || !res.body) {
-    throw new Error(`chat ${res.status}`);
-  }
-
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let full = "";
-  let buffer = "";
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    // AI-SDK stream is newline-delimited JSON events (data-stream v2)
-    let idx: number;
-    while ((idx = buffer.indexOf("\n")) !== -1) {
-      const line = buffer.slice(0, idx).trim();
-      buffer = buffer.slice(idx + 1);
-      if (!line) continue;
-      const payload = line.startsWith("data:") ? line.slice(5).trim() : line;
-      if (!payload || payload === "[DONE]") continue;
-      try {
-        const ev = JSON.parse(payload) as { type?: string; delta?: string; text?: string };
-        if (ev.type === "text-delta" && typeof ev.delta === "string") {
-          full += ev.delta;
-          opts.onDelta?.(ev.delta);
-        } else if (ev.type === "text" && typeof ev.text === "string") {
-          full += ev.text;
-          opts.onDelta?.(ev.text);
-        }
-      } catch {
-        // ignore non-JSON keepalives
-      }
+  let streamed = "";
+  const unsubscribe = ai.subscribeStream(({ text }) => {
+    if (opts.signal?.aborted) return;
+    // AIService streams the whole text so far; onDelta wants the new part.
+    if (typeof text === "string" && text.length > streamed.length) {
+      const delta = text.slice(streamed.length);
+      streamed = text;
+      opts.onDelta?.(delta);
     }
+  });
+
+  try {
+    const response = await ai.chat(opts.text);
+    const full = (response?.text ?? "").trim();
+    // A turn that never streamed still has to reach the caller intact.
+    if (full && !streamed) opts.onDelta?.(full);
+    return full;
+  } finally {
+    unsubscribe();
   }
-  return full.trim();
 }
 
 export function speak(text: string): Promise<void> {
