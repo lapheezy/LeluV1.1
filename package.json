@@ -11,6 +11,7 @@
     "lint": "oxlint",
     "test": "tsx --test --test-concurrency=1 tests/*.test.ts",
     "test:live": "tsx --test tests/autonomy-end-to-end.test.ts",
+    "verify:hybrid": "node scripts/verify-og-hybrid.mjs",
     "verify:autonomy": "node scripts/verify-continuous-cognition.mjs",
     "verify:persistence": "node scripts/verify-persistence-restart.mjs",
     "serve": "bun run server.ts",
