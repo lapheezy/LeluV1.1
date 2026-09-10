@@ -20,6 +20,7 @@ import AgentEventBus from "./agent/AgentEvents";
 import ProjectStore from "./projects/ProjectStore";
 import AgentStore from "./agents/AgentStore";
 import AvatarStore from "./avatar/AvatarProfile";
+import { fitContext } from "./memory/CognitiveBudget";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 
 export default class MemoryBridge {
@@ -68,9 +69,27 @@ export default class MemoryBridge {
       return request;
     }
 
+    // BOUNDED CONTEXT (integration brief §9). Recall grows with LÉLU's
+    // history, and nothing here used to cap it — every remembered turn made
+    // the next prompt larger, which is the slow version of the crash the OG
+    // build hit. fitContext() is a no-op while the context is reasonable and
+    // otherwise walks the required ladder: deduplicate, then compress, then
+    // drop oldest. It never throws, because failing a turn to protect a
+    // budget would trade one crash for another.
+    const fitted = fitContext(merged);
+    if (fitted.applied.length > 0) {
+      console.info(
+        "[MemoryBridge] Context %d → %d chars (%s) — %d removed.",
+        merged.length,
+        fitted.context.length,
+        fitted.applied.join(" → "),
+        fitted.removed,
+      );
+    }
+
     return {
       ...request,
-      context: merged,
+      context: fitted.context,
       // The conversation turns in `request.messages` are the dialogue so
       // far and are left exactly as they are. Only the behavioural rules
       // are prepended as a system turn — the context itself already
