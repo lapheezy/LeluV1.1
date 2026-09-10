@@ -1,24 +1,28 @@
 # Deferred OG modules
 
-Kept verbatim (as `.txt` so the bundler ignores them) because they are the
-reference for later phases, not because they are dead:
-
-| File | Why it is here | Lands in |
-| --- | --- | --- |
-| `chat.server.ts.txt` | The 33KB OG chat engine. Its tool definitions, prompt shape, step budget and streaming contract are the thing the brief wants preserved — but its model calls go through Lovable's hosted gateway, which brief §15 replaces with v1.1's own provider registry. | Phase 3 |
-| `ai-gateway.server.ts.txt` | `createLovableGateway` — the gateway being replaced. | superseded |
-| `research.server.ts.txt` | `webSearch`, `scrapeUrl` (Firecrawl), `youtubeSearch`, `youtubeTranscript`. The ingestion tools §7/§8 need; v1.1 has no equivalent yet. | Phase 5 |
-| `lovable/` | Lovable Cloud auth binding. v1.1 authenticates through Supabase directly. | superseded |
-
-Nothing here is imported by the running app. Deleting them would throw away the
-only record of how the OG chat actually behaved.
-
-Added in Phase 2 — OG surfaces not mounted by `src/og/OgRoutes.tsx`:
+Two OG surfaces that the hybrid does not mount, kept as `.txt` so the bundler
+ignores them:
 
 | File | Why |
 | --- | --- |
-| `__root.tsx.txt` | TanStack's SSR root (`createRootRouteWithContext`, `HeadContent`, `Scripts`). react-router supplies the shell instead. |
 | `universe-index.tsx.txt` | The OG landing scene. It overlaps v1.1's own Genesis cosmos, and the brief names Core and Inner Sky as the two UIs to preserve. |
-| `AuthPanel.tsx.txt`, `auth.callback.tsx.txt`, `lovable-index.ts.txt` | Lovable Cloud auth. v1.1 authenticates against Supabase directly. |
-| `research.functions.ts.txt` | Wraps `research.server.ts`; moves with it in Phase 5. |
-| `sitemap.xml.ts.txt` | Server route; no SSR tier in v1.1. |
+| `sitemap.xml.ts.txt` | A server route. v1.1 has no SSR tier. |
+
+## What used to be here, and where it went
+
+Everything tied to the OG deployment's host platform has been **deleted, not
+deferred** — the project must not depend on that platform in any form, and
+keeping its source around as reference was still keeping it around.
+
+| Removed | Replaced by |
+| --- | --- |
+| The hosted AI gateway | v1.1's `AIProviderRegistry` and its fallback chain |
+| The 33KB server chat route | `src/og/compat/chat.ts` → `AIService.chat()` |
+| Cloud auth binding, auth panel and callback | Supabase auth directly |
+| Service-role admin Supabase client | RLS-scoped browser client (`compat/server-fn.ts`) |
+| Third-party search and page scraping | v1.1's knowledge provider registry, and `BrowserTool.visit()` |
+| `youtube-transcript` package | YouTube's `timedtext` endpoint, called directly |
+
+The replacements live in `src/og/lib/research.functions.ts` and are a smaller
+dependency surface than the originals: one fewer paid third party, one fewer
+gateway, and search results from the providers the rest of LÉLU already uses.

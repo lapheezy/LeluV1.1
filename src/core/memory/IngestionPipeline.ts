@@ -41,6 +41,7 @@
  */
 
 import BrowserTool from "../browser/BrowserTool";
+import { youtubeTranscript } from "../../og/lib/research.functions";
 import { BUDGET_LIMITS } from "./CognitiveBudget";
 import type { MemoryCandidate } from "./MemoryProvider";
 
@@ -237,7 +238,17 @@ export async function ingest(
 
   // RETRIEVE
   let body = source.text ?? "";
-  if (source.url) {
+
+  // A video is not a page. Fetching a YouTube watch URL returns the player
+  // shell, whose readable text is navigation chrome — LÉLU would "read" the
+  // video and learn nothing from it. The captions are the content.
+  if (source.kind === "youtube" && source.url) {
+    const transcript = await youtubeTranscript(source.url);
+    if (!transcript.ok) {
+      return { source, candidates: [], stats: { ...empty, retrieved: false }, error: transcript.error };
+    }
+    body = transcript.text;
+  } else if (source.url) {
     const page = await BrowserTool.visit(source.url);
     if (page.status !== "read" || !page.text) {
       return {
