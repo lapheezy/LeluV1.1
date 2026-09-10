@@ -150,12 +150,55 @@ migrations) and is the historical data §19 refers to.
 ## 6. PHASE STATUS
 
 - [x] **Phase 1 — Inspect.** Both architectures mapped from source.
-- [ ] Phase 2 — Routing / UI  ← **blocked on the C1 + C3 decisions**
-- [ ] Phase 3 — Unify runtime
-- [ ] Phase 4 — Memory / context bridge
-- [ ] Phase 5 — Ingestion
-- [ ] Phase 6 — Agents
-- [ ] Phase 7 — Mobile
-- [ ] Phase 8 — Memory safety
-- [ ] Phase 9 — Validate
-- [ ] Phase 10 — Final audit
+- [x] **Phase 2 — Routing / UI.** react-router at `App.tsx`; OG Core and Inner
+      Sky mounted lazily under `/og/*` with three compat layers.
+- [x] **Phase 3 — Unify runtime.** OG chat serves turns through
+      `AIService.chat()`. Verified with a live reply.
+- [x] **Phase 4 — Memory / context bridge.** `MemoryOrchestrator` +
+      `MemoryProvider`; Supabase demoted to one provider, failures isolated.
+- [x] **Phase 5 — Ingestion.** `IngestionPipeline` + `ingestSource`, bounded
+      at both ends.
+- [x] **Phase 6 — Agents.** `AgentDepthGuard` in `AgentRunner`, plus
+      insight-level consolidation into memory.
+- [x] **Phase 7 — Mobile.** OG tabs in all three dock breakpoints, 44x44
+      targets, no horizontal scroll at any size.
+- [x] **Phase 8 — Memory safety.** `CognitiveBudget`; context bounded in
+      `MemoryBridge.enrich()`.
+- [x] **Phase 9 — Validate.** `bun run verify:hybrid` — 27/27 in a browser.
+- [x] **Phase 10 — Final audit.** Below.
+
+---
+
+## 7. FINAL AUDIT — is there ONE LÉLU?
+
+Checked against the source, not against intent:
+
+| Question | Finding |
+| --- | --- |
+| Does OG call a model provider directly? | **No.** No reference to `AIProviderRegistry`, `ProviderResolver` or `.generate()` anywhere in `src/og`. Its only route to a model is `compat/chat.ts` → `AIService`. |
+| Does OG run cognition of its own? | **No.** No `CognitiveLoop`, `CognitionRuntime`, `SelfStudyEngine` or `new Brain(...)` in `src/og`. |
+| How many chat runtimes? | **One.** `AIService.chat()`. The OG `/api/chat` engine is deferred, not wired. |
+| How many memory writers? | **One path.** `MemoryBridge` → brain, plus the provider layer and `SupabasePersistence` behind it. No OG writer. |
+| How many routers? | **One.** `BrowserRouter` in `src/App.tsx`. |
+| Did anything deferred reach the bundle? | **No.** The only mentions of `_deferred` outside that directory are documentation strings. |
+
+`src/core` contains several classes named `*Orchestrator` — creative,
+executive, UI. Those are pre-existing v1.1 domain orchestrators and predate
+this work; they are not competing agent orchestrators. `AgentRunner` remains
+the single path that runs an agent.
+
+### Known remaining work
+
+Honest about what is not done:
+
+- **Supabase persistence is untested against a live project.** The provider
+  layer, the OG archive reader and the degraded paths are all exercised, but
+  no run has had `SUPABASE_URL` set. The URL is in §5 above.
+- **§13 (authenticated external sources)** is not implemented. Ingestion
+  handles public URLs; a login-gated source is detected as unreadable rather
+  than triggering an auth flow.
+- **YouTube and Firecrawl retrieval** are deferred with the OG originals.
+  `runWebSearch` reports that honestly rather than returning empty results.
+- **The OG landing scene** (`universe-index`) stays deferred — it overlaps
+  v1.1's own Genesis cosmos, and the brief named Core and Inner Sky as the two
+  UIs to preserve.
