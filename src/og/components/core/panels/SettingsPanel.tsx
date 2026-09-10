@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "@og/integrations/supabase/client";
+import { getSupabase } from "@og/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "@og/compat/router";
 import { useSession } from "@og/hooks/use-session";
@@ -44,7 +44,7 @@ export function SettingsPanel() {
             <Row k="User ID" v={session?.user.id ?? "—"} />
             <button
               onClick={async () => {
-                await supabase.auth.signOut();
+                await getSupabase()?.auth.signOut();
                 toast.success("Signed out");
                 navigate({ to: "/" });
               }}

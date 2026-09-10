@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { UniverseScene } from "@og/components/universe/UniverseScene";
 import { ChatPanel } from "@og/components/universe/ChatPanel";
 import { useSession } from "@og/hooks/use-session";
-import { supabase } from "@og/integrations/supabase/client";
+import { getSupabase } from "@og/integrations/supabase/client";
 import { listHorizons, type HorizonItem } from "@og/lib/horizons.functions";
 
 export const Route = createFileRoute("/chat/$threadId")({
@@ -42,7 +42,7 @@ function ChatRoute() {
     <UniverseScene horizons={horizons}>
       <button
         onClick={async () => {
-          await supabase.auth.signOut();
+          await getSupabase()?.auth.signOut();
           navigate({ to: "/" });
         }}
         className="absolute right-5 top-5 z-10 text-[10px] uppercase tracking-[0.3em] text-foreground/40 hover:text-foreground/80"
@@ -63,7 +63,14 @@ function ChatRoute() {
       />
 
       <div className="absolute inset-0 flex items-end justify-center pt-32">
-        {session ? <ChatPanel key={threadId} threadId={threadId} /> : null}
+        {/* The chat itself needs no Supabase — only its persistence does.
+            Gating on `session` alone meant no Supabase, no conversation at
+            all, which contradicts §5: LÉLU must still chat without it.
+            ChatPanel already degrades to local snapshots when the stored
+            history cannot be read. */}
+        {session || unconfigured ? (
+          <ChatPanel key={threadId} threadId={threadId} />
+        ) : null}
       </div>
     </UniverseScene>
   );

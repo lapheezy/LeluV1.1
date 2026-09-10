@@ -5,7 +5,7 @@ import { DefaultChatTransport, type UIMessage } from "@og/compat/chat";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 
-import { supabase } from "@og/integrations/supabase/client";
+import { getSupabase } from "@og/integrations/supabase/client";
 import {
   listConversations,
   getMessages,
@@ -132,7 +132,7 @@ export function ChatPanel({ threadId }: { threadId: string }) {
       new DefaultChatTransport({
         api: "/api/chat",
         prepareSendMessagesRequest: async ({ messages, body }) => {
-          const { data } = await supabase.auth.getSession();
+          const { data } = (await getSupabase()?.auth.getSession()) ?? { data: { session: null } };
           const token = data.session?.access_token;
           const headers: Record<string, string> = {};
           if (token) headers.Authorization = `Bearer ${token}`;

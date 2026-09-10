@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useProcessing } from "./ProcessingProvider";
-import { supabase } from "@og/integrations/supabase/client";
+import { getSupabase } from "@og/integrations/supabase/client";
 import { cn } from "@og/lib/utils";
 
 type Ind = "idle" | "working" | "complete" | "error";
@@ -42,7 +42,7 @@ export function StatusBar() {
     let cancel = false;
     (async () => {
       setDb("working");
-      const { error } = await supabase.auth.getSession();
+      const { error } = (await getSupabase()?.auth.getSession()) ?? { error: null };
       if (cancel) return;
       setDb(error ? "error" : "complete");
     })();

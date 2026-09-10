@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@og/compat/router";
-import { supabase } from "@og/integrations/supabase/client";
+import { getSupabase } from "@og/integrations/supabase/client";
 import { useSession } from "@og/hooks/use-session";
 
 export const Route = createFileRoute("/app/settings")({ component: SettingsPage });
@@ -18,7 +18,7 @@ function SettingsPage() {
         <div className="text-sm">{session?.user?.email ?? "—"}</div>
         <button
           onClick={async () => {
-            await supabase.auth.signOut();
+            await getSupabase()?.auth.signOut();
             navigate({ to: "/" });
           }}
           className="px-4 py-2 rounded-md border border-border/60 text-sm hover:bg-foreground/5"

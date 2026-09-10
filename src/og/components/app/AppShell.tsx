@@ -1,7 +1,7 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@og/compat/router";
 import { useEffect } from "react";
 import { useSession } from "@og/hooks/use-session";
-import { supabase } from "@og/integrations/supabase/client";
+import { getSupabase } from "@og/integrations/supabase/client";
 import {
   Sparkles,
   Sun,
@@ -162,7 +162,7 @@ function CompanionSidebar() {
             <SidebarMenuButton
               tooltip="Sign out"
               onClick={async () => {
-                await supabase.auth.signOut();
+                await getSupabase()?.auth.signOut();
                 navigate({ to: "/" });
               }}
             >

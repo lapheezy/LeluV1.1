@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { supabase } from "@og/integrations/supabase/client";
+import { getSupabase } from "@og/integrations/supabase/client";
 
 export type VoiceState =
   | "idle"
@@ -58,7 +58,7 @@ export async function voiceRoundTrip(opts: {
   onDelta?: (chunk: string) => void;
   signal?: AbortSignal;
 }): Promise<string> {
-  const { data } = await supabase.auth.getSession();
+  const { data } = (await getSupabase()?.auth.getSession()) ?? { data: { session: null } };
   const token = data.session?.access_token;
   if (!token) throw new Error("Not signed in.");
 
