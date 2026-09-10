@@ -1,0 +1,88 @@
+import Firecrawl from "@mendable/firecrawl-js";
+import { YoutubeTranscript } from "youtube-transcript";
+
+function fc() {
+  const apiKey = process.env.FIRECRAWL_API_KEY;
+  if (!apiKey) throw new Error("FIRECRAWL_API_KEY is not configured");
+  return new Firecrawl({ apiKey });
+}
+
+export type WebResult = {
+  url: string;
+  title?: string;
+  description?: string;
+  markdown?: string;
+};
+
+export async function webSearch(query: string, limit = 6, withContent = false): Promise<WebResult[]> {
+  const r = await fc().search(query, {
+    limit,
+    scrapeOptions: withContent ? { formats: ["markdown"] } : undefined,
+  });
+  // SDK exposes results under `web`
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const web = (r as any).web ?? (r as any).data ?? [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (web as any[]).map((w) => ({
+    url: w.url,
+    title: w.title,
+    description: w.description,
+    markdown: w.markdown,
+  }));
+}
+
+export async function scrapeUrl(url: string): Promise<{ url: string; title?: string; markdown?: string; summary?: string }> {
+  const r = await fc().scrape(url, { formats: ["markdown", "summary"], onlyMainContent: true });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const any = r as any;
+  return {
+    url,
+    title: any.metadata?.title,
+    markdown: any.markdown ?? any.data?.markdown,
+    summary: any.summary ?? any.data?.summary,
+  };
+}
+
+export type YouTubeHit = {
+  videoId: string;
+  title: string;
+  channel: string;
+  description: string;
+  publishedAt: string;
+  url: string;
+};
+
+export async function youtubeSearch(query: string, max = 6): Promise<YouTubeHit[]> {
+  const key = process.env.YOUTUBE_API_KEY;
+  if (!key) throw new Error("YOUTUBE_API_KEY is not configured");
+  const u = new URL("https://www.googleapis.com/youtube/v3/search");
+  u.searchParams.set("part", "snippet");
+  u.searchParams.set("type", "video");
+  u.searchParams.set("maxResults", String(max));
+  u.searchParams.set("q", query);
+  u.searchParams.set("key", key);
+  const res = await fetch(u);
+  if (!res.ok) throw new Error(`YouTube search failed: ${res.status} ${await res.text()}`);
+  const j = (await res.json()) as {
+    items?: Array<{
+      id: { videoId: string };
+      snippet: { title: string; channelTitle: string; description: string; publishedAt: string };
+    }>;
+  };
+  return (j.items ?? []).map((it) => ({
+    videoId: it.id.videoId,
+    title: it.snippet.title,
+    channel: it.snippet.channelTitle,
+    description: it.snippet.description,
+    publishedAt: it.snippet.publishedAt,
+    url: `https://www.youtube.com/watch?v=${it.id.videoId}`,
+  }));
+}
+
+export async function youtubeTranscript(videoIdOrUrl: string): Promise<{ videoId: string; text: string }> {
+  const idMatch = videoIdOrUrl.match(/(?:v=|youtu\.be\/|shorts\/)([A-Za-z0-9_-]{11})/);
+  const videoId = idMatch ? idMatch[1] : videoIdOrUrl;
+  const segments = await YoutubeTranscript.fetchTranscript(videoId);
+  const text = segments.map((s) => s.text).join(" ");
+  return { videoId, text };
+}

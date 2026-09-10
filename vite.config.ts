@@ -1,6 +1,8 @@
 import { vlyPlugin } from "@vly-ai/integrations";
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import { fileURLToPath } from "node:url";
 import glsl from "vite-plugin-glsl";
 
 import glslIncludes from "./plugins/glslIncludes.js";
@@ -85,6 +87,10 @@ export default defineConfig(({ mode }) => {
       // module evaluates, so every provider's initialize() sees them.
       runtimeKeyBridgePlugin(envReader),
       modelApiPlugin(),
+
+      // Tailwind v4 — utilities for the OG interfaces only; see src/og/og.css
+      // for why preflight is deliberately not part of that build.
+      tailwindcss(),
 
       vlyPlugin(),
 
@@ -201,6 +207,11 @@ export default defineConfig(({ mode }) => {
     },
 
     resolve: {
+      alias: {
+        // The OG interfaces keep their own import root so their sources stay
+        // close to the originals; "@og/x" resolves to src/og/x.
+        "@og": fileURLToPath(new URL("./src/og", import.meta.url)),
+      },
       extensions: [
         ".ts",
         ".tsx",

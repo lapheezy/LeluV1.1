@@ -1,0 +1,718 @@
+import { createFileRoute } from "@og/compat/router";
+import {
+  convertToModelMessages,
+  streamText,
+  tool,
+  stepCountIs,
+  type UIMessage,
+} from "ai";
+import { z } from "zod";
+import * as chrono from "chrono-node";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@og/integrations/supabase/types";
+import { createLovableGateway } from "@og/lib/ai-gateway.server";
+import { webSearch, scrapeUrl, youtubeSearch, youtubeTranscript } from "@og/lib/research.server";
+
+/**
+ * Map raw upstream / gateway error messages to something the user can act on.
+ * The AI SDK propagates the HTTP status text ("Payment Required", "Too Many
+ * Requests", "Unauthorized") verbatim — those leak into chat as scary strings
+ * that sound like Stripe/billing failures. Rewrite them here.
+ */
+function humanizeGatewayError(raw: string): string {
+  const s = raw.toLowerCase();
+  if (s.includes("payment required") || s.includes("402") || s.includes("insufficient") || s.includes("credit")) {
+    return "Lélu's AI credits are exhausted for this workspace. Add credits in Lovable → Settings → Plans, then try again.";
+  }
+  if (s.includes("rate limit") || s.includes("429") || s.includes("too many requests")) {
+    return "Too many requests right now. Give it a few seconds and try again.";
+  }
+  if (s.includes("unauthorized") || s.includes("401")) {
+    return "Lélu's connection to the AI gateway isn't authorized. Rotate LOVABLE_API_KEY and retry.";
+  }
+  if (s.includes("timeout") || s.includes("timed out") || s.includes("network")) {
+    return "The AI gateway timed out. Your message is saved — try sending again.";
+  }
+  return `Lélu couldn't reply: ${raw}`;
+}
+
+const SYSTEM_PROMPT = `You are Lélu — a persistent AI companion. Not a chatbot. Not a customer service assistant. An adaptive companion with long-term memory and continuity who supports, guides, organizes, protects, teaches, and grows alongside the user.
+
+## Your Roles
+
+1. **Caregiver** — Notice stress, burnout, frustration, isolation, lack of progress, overwhelm in conversation patterns. Encourage balance across work, creativity, rest, relationships, finances, self-care. Support without controlling or repeating yourself.
+
+2. **Companion** — Build a genuine long-term relationship. Reference past projects, goals, and conversations naturally. Maintain continuity across days, weeks, months, years.
+
+3. **Memory Keeper** — Continuously organize what matters: identity, goals, preferences, relationships, skills, projects, important events, creative ideas, personal growth. Save things worth remembering as notes; track goals as goals.
+
+   You have a real long-term memory store. Before every reply, relevant memories are retrieved and shown to you under "Memories about this user". When you learn something worth keeping, call save_memory. When the user asks you to forget something, call forget_memory. Never claim to remember anything that isn't in the retrieved memories or this conversation. If retrieval failed, say so plainly.
+
+4. **Project Partner** — Track active projects. Break large visions into achievable steps. Revisit unfinished ideas. Connect related concepts across conversations.
+
+5. **Teacher** — Explain clearly. Adapt to the user's experience level. Encourage learning through curiosity.
+
+6. **Guardian** — Surface risks, blind spots, contradictions, unhealthy patterns. Protect privacy. Never manipulate, guilt, pressure, or emotionally control the user.
+
+## Voice
+
+Simple, elegant, calm. Plain language. Short sentences. Warm but not poetic. No filler openings ("Ah,", "Of course,", "Beloved,", "Dear one."), no stacked metaphors, no astrology, no roleplay.
+
+## Function First — Always
+
+When the user asks you to DO something — remind, schedule, save, note, plan, track a goal, log an event — you MUST call the matching tool. Never describe an action you didn't actually perform. Never simulate a reminder in chat.
+
+Tools:
+- create_reminder — time-based reminder
+- create_task — todo item
+- create_note — save text the user wants kept (ideas, reflections, important info)
+- create_goal — ongoing intention
+- create_event — calendar event with a start time
+- create_file — save a generated document (note, research report, brief, roadmap, checklist, timeline)
+- web_search / scrape_url — live web research via Firecrawl, with sources
+- youtube_search / youtube_transcript — read YouTube videos as text
+- list_universes / create_universe / attach_to_universe — organize anything inside a Project Universe
+- find_conversation — when the user says "go back to the conversation about X" or "remember when we talked about Y", call this. Return the conversation title and, if it still exists, its id so the user can re-open it. If only a preserved summary remains, share that summary plainly.
+
+Use tools proactively when the user shares something worth keeping. If they mention an idea for a project, offer to save it as a note. If they describe an intention, offer to track it as a goal. Ask once, briefly — don't nag.
+
+## Research Workflow
+
+When the user asks you to research something:
+1. web_search (and youtube_search when video is useful) to gather sources.
+2. scrape_url or youtube_transcript on the most promising ones.
+3. Compare and synthesize.
+4. Reply with a short answer in chat + call create_file (kind="research_report") to save a fuller report with source URLs in the sources field.
+5. If the topic belongs to a known Project Universe, attach the file via attach_to_universe.
+
+## Project Universes
+
+The user organizes life into Project Universes (e.g. Sapiolingo Fashion, Lélu Development, Electrical Career). When you create a task/note/goal/file that clearly belongs to one, call list_universes, then attach_to_universe. If none fits and the work looks ongoing, propose creating one.
+
+After a tool returns, confirm the concrete outcome in one short sentence ("Reminder set for 4:00 AM tomorrow."). One short warm line may follow, only if it fits.
+
+## Decision Framework
+
+Before responding: understand intent → recall relevant context from this conversation → determine if a tool call is needed → respond simply → save anything worth remembering.
+
+## Initiative
+
+You may gently surface follow-ups on unfinished goals, revisit active projects, or check on wellbeing when it fits the moment. Thoughtful, not intrusive. Never twice in a row.
+
+## Core Principle
+
+Your purpose is not merely answering questions. It is helping the user build a meaningful, organized, healthy, creative, fulfilling life through long-term companionship, memory, and guidance.`;
+
+export const Route = createFileRoute("/api/chat")({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        try {
+        const authHeader = request.headers.get("authorization") ?? "";
+        const token = authHeader.startsWith("Bearer ")
+          ? authHeader.slice(7)
+          : null;
+        if (!token) return new Response("Unauthorized", { status: 401 });
+
+        const supabase = createClient<Database>(
+          process.env.SUPABASE_URL!,
+          process.env.SUPABASE_PUBLISHABLE_KEY!,
+          {
+            global: { headers: { Authorization: `Bearer ${token}` } },
+            auth: {
+              storage: undefined,
+              persistSession: false,
+              autoRefreshToken: false,
+            },
+          },
+        );
+
+        const { data: claimsData, error: claimsErr } =
+          await supabase.auth.getClaims(token);
+        if (claimsErr || !claimsData?.claims?.sub) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+        const userId = claimsData.claims.sub as string;
+
+        const body = (await request.json()) as {
+          messages: UIMessage[];
+          conversationId: string;
+          clientId?: string;
+        };
+        const { messages, conversationId, clientId } = body;
+        if (!conversationId || !Array.isArray(messages)) {
+          return new Response("Bad request", { status: 400 });
+        }
+
+        // Verify the conversation belongs to the user (RLS would block, but we want a clean 403).
+        const { data: convo } = await supabase
+          .from("conversations")
+          .select("id")
+          .eq("id", conversationId)
+          .maybeSingle();
+        if (!convo) return new Response("Forbidden", { status: 403 });
+
+        // Persist the latest user message (last entry).
+        const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
+        if (lastUserMsg) {
+          // Idempotent: (conversation_id, client_id) has a unique index so a
+          // retried send from the client won't duplicate the user turn.
+          const cid = clientId ?? lastUserMsg.id ?? null;
+          const { error: insErr } = await supabase.from("messages").insert({
+            conversation_id: conversationId,
+            user_id: userId,
+            role: "user",
+            parts: lastUserMsg.parts as never,
+            client_id: cid as never,
+          });
+          if (insErr && !/duplicate|unique/i.test(insErr.message)) {
+            // Fall back to no-client-id insert if the column check fails, but
+            // never crash the request on a duplicate.
+            await supabase.from("messages").insert({
+              conversation_id: conversationId,
+              user_id: userId,
+              role: "user",
+              parts: lastUserMsg.parts as never,
+            }).then(() => undefined, () => undefined);
+          }
+        }
+
+        // Retrieve relevant memories before generating. Fetch is naive
+        // (top-importance + recency); the model decides what to use. If
+        // retrieval fails, surface that fact to the model so it can warn
+        // the user instead of silently pretending to remember.
+        let memoryBlock = "";
+        let memoryError: string | null = null;
+        try {
+          const { data: mems, error: memErr } = await supabase
+            .from("memories")
+            .select("category, key, value, importance, updated_at")
+            .order("importance", { ascending: false })
+            .order("updated_at", { ascending: false })
+            .limit(50);
+          if (memErr) {
+            memoryError = memErr.message;
+          } else if (mems && mems.length > 0) {
+            const lines = mems.map(
+              (m) => `- [${m.category}] ${m.key}: ${m.value}`,
+            );
+            memoryBlock = `\n\n## Memories about this user (retrieved from your memory store)\n${lines.join("\n")}\n\nUse these naturally. Only claim to remember something if it appears above or in this conversation.`;
+          } else {
+            memoryBlock = `\n\n## Memories about this user\n(none stored yet — save important details with the save_memory tool as you learn them)`;
+          }
+        } catch (e) {
+          memoryError = e instanceof Error ? e.message : String(e);
+        }
+
+        const retrievalNotice = memoryError
+          ? `\n\n## ⚠ Memory retrieval failed\nYour memory store could not be read this turn (error: ${memoryError}). Tell the user plainly that you couldn't access your memories this turn before answering. Do NOT claim to remember anything beyond this conversation.`
+          : "";
+
+        const gateway = createLovableGateway();
+        // Default Lovable AI Gateway chat model.
+        const model = gateway("google/gemini-3-flash-preview");
+
+        // Operational log: model chosen + memory recall stats. Never chain-of-thought.
+        void supabase.from("system_events").insert({
+          user_id: userId,
+          conversation_id: conversationId,
+          kind: "chat.turn_started",
+          severity: "info",
+          source: "chat",
+          message: `model=google/gemini-3-flash-preview memory_recall=${memoryBlock ? "ok" : "empty"}`,
+          detail: { memory_error: memoryError } as never,
+        }).then(() => undefined, () => undefined);
+
+        const parseWhen = (s: string): Date | null => {
+          const d = chrono.parseDate(s, new Date(), { forwardDate: true });
+          return d ?? null;
+        };
+
+        const tools = {
+          create_reminder: tool({
+            description:
+              "Create a real scheduled reminder. Use this whenever the user asks to be reminded of anything at a specific time.",
+            inputSchema: z.object({
+              title: z.string().describe("Short summary, e.g. 'study'"),
+              when: z
+                .string()
+                .describe(
+                  "Natural-language time, e.g. 'tomorrow at 4am', 'in 2 hours', '2025-06-23T04:00:00'",
+                ),
+              body: z.string().optional(),
+            }),
+            execute: async ({ title, when, body }) => {
+              const at = parseWhen(when);
+              if (!at) return { ok: false, error: `Could not understand the time "${when}".` };
+              const { data, error } = await supabase
+                .from("reminders")
+                .insert({
+                  user_id: userId,
+                  conversation_id: conversationId,
+                  title,
+                  body: body ?? null,
+                  remind_at: at.toISOString(),
+                })
+                .select("id, remind_at")
+                .single();
+              if (error) return { ok: false, error: error.message };
+              return { ok: true, id: data.id, remind_at: data.remind_at };
+            },
+          }),
+          create_task: tool({
+            description: "Create a task (todo).",
+            inputSchema: z.object({
+              title: z.string(),
+              notes: z.string().optional(),
+              due: z.string().optional().describe("Natural-language due date, optional"),
+            }),
+            execute: async ({ title, notes, due }) => {
+              const due_at = due ? parseWhen(due)?.toISOString() ?? null : null;
+              const { data, error } = await supabase
+                .from("tasks")
+                .insert({ user_id: userId, conversation_id: conversationId, title, notes: notes ?? null, due_at })
+                .select("id")
+                .single();
+              if (error) return { ok: false, error: error.message };
+              return { ok: true, id: data.id, due_at };
+            },
+          }),
+          create_note: tool({
+            description: "Save a note.",
+            inputSchema: z.object({
+              title: z.string(),
+              body: z.string().default(""),
+              tags: z.array(z.string()).optional(),
+            }),
+            execute: async ({ title, body, tags }) => {
+              const { data, error } = await supabase
+                .from("notes")
+                .insert({ user_id: userId, conversation_id: conversationId, title, body, tags: tags ?? [] })
+                .select("id")
+                .single();
+              if (error) return { ok: false, error: error.message };
+              return { ok: true, id: data.id };
+            },
+          }),
+          create_goal: tool({
+            description: "Create an ongoing goal.",
+            inputSchema: z.object({
+              title: z.string(),
+              description: z.string().optional(),
+              target_date: z.string().optional().describe("Natural-language target date, optional"),
+            }),
+            execute: async ({ title, description, target_date }) => {
+              const td = target_date ? parseWhen(target_date) : null;
+              const { data, error } = await supabase
+                .from("goals")
+                .insert({
+                  user_id: userId,
+                  conversation_id: conversationId,
+                  title,
+                  description: description ?? null,
+                  target_date: td ? td.toISOString().slice(0, 10) : null,
+                })
+                .select("id")
+                .single();
+              if (error) return { ok: false, error: error.message };
+              return { ok: true, id: data.id };
+            },
+          }),
+          create_event: tool({
+            description: "Create a calendar event with a start time.",
+            inputSchema: z.object({
+              title: z.string(),
+              starts: z.string().describe("Natural-language start time"),
+              ends: z.string().optional(),
+              location: z.string().optional(),
+              notes: z.string().optional(),
+            }),
+            execute: async ({ title, starts, ends, location, notes }) => {
+              const s = parseWhen(starts);
+              if (!s) return { ok: false, error: `Could not understand "${starts}"` };
+              const e = ends ? parseWhen(ends) : null;
+              const { data, error } = await supabase
+                .from("events")
+                .insert({
+                  user_id: userId,
+                  conversation_id: conversationId,
+                  title,
+                  starts_at: s.toISOString(),
+                  ends_at: e?.toISOString() ?? null,
+                  location: location ?? null,
+                  notes: notes ?? null,
+                })
+                .select("id, starts_at")
+                .single();
+              if (error) return { ok: false, error: error.message };
+              return { ok: true, id: data.id, starts_at: data.starts_at };
+            },
+          }),
+          save_memory: tool({
+            description:
+              "Persist a fact about the user to long-term memory so you can recall it in future conversations. Use whenever you learn something worth remembering: identity, goals, preferences, relationships, skills, projects, important events, creative ideas, growth. Upserts on (category, key).",
+            inputSchema: z.object({
+              category: z
+                .enum([
+                  "identity",
+                  "goals",
+                  "preferences",
+                  "relationships",
+                  "skills",
+                  "projects",
+                  "events",
+                  "ideas",
+                  "growth",
+                  "general",
+                ])
+                .describe("Which area of life this memory belongs to."),
+              key: z
+                .string()
+                .describe(
+                  "Short stable identifier, e.g. 'name', 'partner', 'current_focus', 'sleep_pattern'.",
+                ),
+              value: z.string().describe("The fact itself, in plain language."),
+              importance: z
+                .number()
+                .int()
+                .min(1)
+                .max(5)
+                .default(3)
+                .describe("1 = trivial, 5 = core to who they are."),
+            }),
+            execute: async ({ category, key, value, importance }) => {
+              const { data, error } = await supabase
+                .from("memories")
+                .upsert(
+                  {
+                    user_id: userId,
+                    category,
+                    key,
+                    value,
+                    importance,
+                    source_conversation_id: conversationId,
+                    updated_at: new Date().toISOString(),
+                  },
+                  { onConflict: "user_id,category,key" },
+                )
+                .select("id")
+                .single();
+              if (error) return { ok: false, error: error.message };
+              return { ok: true, id: data.id };
+            },
+          }),
+          forget_memory: tool({
+            description:
+              "Delete a stored memory when the user asks you to forget something.",
+            inputSchema: z.object({
+              category: z.string(),
+              key: z.string(),
+            }),
+            execute: async ({ category, key }) => {
+              const { error } = await supabase
+                .from("memories")
+                .delete()
+                .eq("user_id", userId)
+                .eq("category", category)
+                .eq("key", key);
+              if (error) return { ok: false, error: error.message };
+              return { ok: true };
+            },
+          }),
+          list_universes: tool({
+            description: "List the user's Project Universes (name + id) so you can attach work to one.",
+            inputSchema: z.object({}),
+            execute: async () => {
+              const { data, error } = await supabase
+                .from("universes")
+                .select("id, name, description")
+                .eq("archived", false)
+                .order("updated_at", { ascending: false });
+              if (error) return { ok: false, error: error.message };
+              return { ok: true, universes: data ?? [] };
+            },
+          }),
+          create_universe: tool({
+            description: "Create a new Project Universe (e.g. 'Sapiolingo Fashion', 'Lélu Development').",
+            inputSchema: z.object({
+              name: z.string(),
+              description: z.string().optional(),
+              color: z.string().optional(),
+            }),
+            execute: async ({ name, description, color }) => {
+              const { data, error } = await supabase
+                .from("universes")
+                .insert({ user_id: userId, name, description: description ?? null, color: color ?? null })
+                .select("id, name")
+                .single();
+              if (error) return { ok: false, error: error.message };
+              return { ok: true, id: data.id, name: data.name };
+            },
+          }),
+          attach_to_universe: tool({
+            description:
+              "Attach an existing item (task/note/goal/event/reminder/file/memory/conversation) to a Project Universe.",
+            inputSchema: z.object({
+              universe_id: z.string().uuid(),
+              kind: z.enum(["task", "note", "goal", "event", "reminder", "file", "memory", "conversation"]),
+              id: z.string().uuid(),
+            }),
+            execute: async ({ universe_id, kind, id }) => {
+              if (kind === "memory") {
+                const { error } = await supabase
+                  .from("memory_universes")
+                  .upsert({ memory_id: id, universe_id, user_id: userId });
+                if (error) return { ok: false, error: error.message };
+                return { ok: true };
+              }
+              const table = kind === "task" ? "tasks"
+                : kind === "note" ? "notes"
+                : kind === "goal" ? "goals"
+                : kind === "event" ? "events"
+                : kind === "reminder" ? "reminders"
+                : kind === "file" ? "files"
+                : "conversations";
+              const { error } = await supabase.from(table).update({ universe_id }).eq("id", id);
+              if (error) return { ok: false, error: error.message };
+              return { ok: true };
+            },
+          }),
+          create_file: tool({
+            description:
+              "Save a generated document (note, research report, project brief, roadmap, checklist, timeline, documentation, idea collection). The body is markdown.",
+            inputSchema: z.object({
+              kind: z
+                .enum(["note", "research_report", "brief", "roadmap", "checklist", "timeline", "doc", "ideas"]) 
+                .default("note"),
+              title: z.string(),
+              body: z.string(),
+              universe_id: z.string().uuid().optional(),
+              sources: z
+                .array(z.object({ title: z.string().optional(), url: z.string() }))
+                .optional(),
+              tags: z.array(z.string()).optional(),
+            }),
+            execute: async ({ kind, title, body, universe_id, sources, tags }) => {
+              const { data, error } = await supabase
+                .from("files")
+                .insert({
+                  user_id: userId,
+                  conversation_id: conversationId,
+                  universe_id: universe_id ?? null,
+                  kind,
+                  title,
+                  body,
+                  sources: (sources ?? []) as never,
+                  tags: tags ?? [],
+                })
+                .select("id")
+                .single();
+              if (error) return { ok: false, error: error.message };
+              return { ok: true, id: data.id };
+            },
+          }),
+          web_search: tool({
+            description:
+              "Search the live web (Firecrawl). Returns titles, URLs, and snippets. Set with_content=true to also fetch page markdown for the top results (more credits).",
+            inputSchema: z.object({
+              query: z.string(),
+              limit: z.number().int().min(1).max(10).default(6),
+              with_content: z.boolean().default(false),
+            }),
+            execute: async ({ query, limit, with_content }) => {
+              try {
+                const results = await webSearch(query, limit, with_content);
+                return { ok: true, results };
+              } catch (e) {
+                return { ok: false, error: e instanceof Error ? e.message : String(e) };
+              }
+            },
+          }),
+          scrape_url: tool({
+            description: "Fetch a single URL as clean markdown plus an AI summary.",
+            inputSchema: z.object({ url: z.string().url() }),
+            execute: async ({ url }) => {
+              try {
+                const r = await scrapeUrl(url);
+                return { ok: true, ...r };
+              } catch (e) {
+                return { ok: false, error: e instanceof Error ? e.message : String(e) };
+              }
+            },
+          }),
+          youtube_search: tool({
+            description: "Search YouTube. Returns videoId, title, channel, description, publishedAt, url.",
+            inputSchema: z.object({
+              query: z.string(),
+              max: z.number().int().min(1).max(10).default(6),
+            }),
+            execute: async ({ query, max }) => {
+              try {
+                const hits = await youtubeSearch(query, max);
+                return { ok: true, hits };
+              } catch (e) {
+                return { ok: false, error: e instanceof Error ? e.message : String(e) };
+              }
+            },
+          }),
+          youtube_transcript: tool({
+            description:
+              "Fetch the transcript of a YouTube video (accepts a videoId or a full URL). Use after youtube_search to read the actual content.",
+            inputSchema: z.object({ video: z.string() }),
+            execute: async ({ video }) => {
+              try {
+                const r = await youtubeTranscript(video);
+                // Truncate to keep the model context reasonable
+                const text = r.text.length > 20000 ? r.text.slice(0, 20000) + "…" : r.text;
+                return { ok: true, videoId: r.videoId, transcript: text };
+              } catch (e) {
+                return { ok: false, error: e instanceof Error ? e.message : String(e) };
+              }
+            },
+          }),
+          find_conversation: tool({
+            description:
+              "Find a past conversation the user is referring to (e.g. 'go back to the conversation about X'). Searches titles, message contents, and preserved summaries. Returns conversation ids the user can jump to, plus any preserved summaries if the original conversation no longer exists.",
+            inputSchema: z.object({ query: z.string() }),
+            execute: async ({ query }) => {
+              const like = `%${query}%`;
+              const { data: byTitle } = await supabase
+                .from("conversations")
+                .select("id, title, updated_at, archived")
+                .ilike("title", like)
+                .order("updated_at", { ascending: false })
+                .limit(8);
+              const { data: bySummary } = await supabase
+                .from("conversation_summaries")
+                .select("id, conversation_id, original_title, summary, topics")
+                .or(`summary.ilike.${like},original_title.ilike.${like}`)
+                .limit(5);
+              const { data: recent } = await supabase
+                .from("messages")
+                .select("conversation_id, parts")
+                .order("created_at", { ascending: false })
+                .limit(400);
+              const lower = query.toLowerCase();
+              const ids = new Set<string>();
+              for (const m of recent ?? []) {
+                const parts = m.parts as unknown;
+                const text = Array.isArray(parts)
+                  ? (parts as Array<{ type?: string; text?: string }>)
+                      .map((p) => (p?.type === "text" ? p.text ?? "" : ""))
+                      .join(" ")
+                  : "";
+                if (text.toLowerCase().includes(lower)) ids.add(m.conversation_id);
+              }
+              let messageMatches: { id: string; title: string }[] = [];
+              if (ids.size) {
+                const { data: conv } = await supabase
+                  .from("conversations")
+                  .select("id, title")
+                  .in("id", [...ids].slice(0, 8));
+                messageMatches = conv ?? [];
+              }
+              return {
+                ok: true,
+                title_matches: byTitle ?? [],
+                message_matches: messageMatches,
+                preserved_summaries: bySummary ?? [],
+              };
+            },
+          }),
+        };
+
+        // Executive layer: log every tool call into the action queue and
+        // capture stream errors into system_events so nothing is silently lost.
+        const logEvent = (
+          kind: string,
+          severity: "info" | "warn" | "error",
+          message: string,
+          detail: Record<string, unknown> = {},
+        ) =>
+          supabase
+            .from("system_events")
+            .insert({
+              user_id: userId,
+              conversation_id: conversationId,
+              kind,
+              severity,
+              source: "chat",
+              message,
+              detail: detail as never,
+            })
+            .then(() => undefined, () => undefined);
+
+        const result = streamText({
+          model,
+          system: SYSTEM_PROMPT + memoryBlock + retrievalNotice,
+          tools,
+          stopWhen: stepCountIs(12),
+          messages: await convertToModelMessages(messages),
+          onStepFinish: async ({ toolCalls, toolResults }) => {
+            if (!toolCalls?.length) return;
+            const rows = toolCalls.map((call, i) => {
+              const res = toolResults?.[i] as { output?: unknown } | undefined;
+              const output = res?.output as { ok?: boolean; error?: string } | undefined;
+              const ok = output?.ok !== false;
+              return {
+                user_id: userId,
+                conversation_id: conversationId,
+                title: call.toolName,
+                kind: `tool:${call.toolName}`,
+                agent: "executive",
+                status: ok ? "completed" : "failed",
+                priority: 5,
+                payload: (call.input ?? {}) as never,
+                result: (res?.output ?? null) as never,
+                error: ok ? null : output?.error ?? "tool failed",
+                started_at: new Date().toISOString(),
+                completed_at: new Date().toISOString(),
+              };
+            });
+            await supabase
+              .from("tasks_queue")
+              .insert(rows)
+              .then(() => undefined, () => undefined);
+          },
+          onError: ({ error }) => {
+            const msg = error instanceof Error ? error.message : String(error);
+            void logEvent("chat.stream_error", "error", msg);
+          },
+        });
+
+        return result.toUIMessageStreamResponse({
+          originalMessages: messages,
+          // Forward the real error text to the browser so the UI can show it
+          // (default behavior masks errors as a generic string).
+          onError: (error) => {
+            const msg = error instanceof Error ? error.message : String(error);
+            void logEvent("chat.stream_error", "error", msg);
+            return humanizeGatewayError(msg);
+          },
+          onFinish: async ({ messages: finalMessages }) => {
+            const assistant = [...finalMessages]
+              .reverse()
+              .find((m) => m.role === "assistant");
+            if (!assistant) return;
+            await supabase.from("messages").insert({
+              conversation_id: conversationId,
+              user_id: userId,
+              role: "assistant",
+              parts: assistant.parts as never,
+            });
+          },
+        });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          const stack = err instanceof Error ? err.stack : undefined;
+          // eslint-disable-next-line no-console
+          console.error("[api/chat] handler crashed:", msg, stack);
+          return new Response(
+            JSON.stringify({ error: "chat_handler_failed", message: msg }),
+            { status: 500, headers: { "content-type": "application/json" } },
+          );
+        }
+      },
+    },
+  },
+});

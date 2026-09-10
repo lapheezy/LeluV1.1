@@ -1,0 +1,138 @@
+import { useState } from "react";
+import { supabase } from "@og/integrations/supabase/client";
+import { lovable } from "@og/integrations/lovable";
+import { Button } from "@og/components/ui/button";
+import { Input } from "@og/components/ui/input";
+import { toast } from "sonner";
+
+export function AuthPanel({ onAuthed }: { onAuthed?: () => void }) {
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  function enterCore() {
+    sessionStorage.removeItem("lelu:pending-auth");
+    onAuthed?.();
+    // Reload the application boundary after auth so every protected surface
+    // initializes from the newly persisted session instead of a stale snapshot.
+    window.location.assign("/core");
+  }
+
+  async function handleEmail(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      if (mode === "signin") {
+        sessionStorage.setItem("lelu:pending-auth", "1");
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        if (!data.session) throw new Error("Sign-in completed without a session. Please try again.");
+        enterCore();
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin },
+        });
+        if (error) throw error;
+        toast.success("Check your email to confirm, then sign in.");
+      }
+    } catch (err) {
+      sessionStorage.removeItem("lelu:pending-auth");
+      toast.error(err instanceof Error ? err.message : "Something drifted off course");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleGoogle() {
+    setBusy(true);
+    try {
+      sessionStorage.setItem("lelu:pending-auth", "1");
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+        extraParams: { prompt: "select_account" },
+      });
+      if (result.error) {
+        sessionStorage.removeItem("lelu:pending-auth");
+        toast.error("Could not sign in with Google");
+        return;
+      }
+      if (result.redirected) return;
+      // The managed auth helper has already persisted the returned tokens.
+      // Calling getSession() again here can stall the OAuth handoff in preview.
+      enterCore();
+    } catch (err) {
+      sessionStorage.removeItem("lelu:pending-auth");
+      toast.error(err instanceof Error ? err.message : "Could not sign in with Google");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+
+  return (
+    <div className="emerge w-[min(420px,92vw)] rounded-3xl border border-white/10 bg-background/60 px-7 py-9 backdrop-blur-xl shadow-[0_20px_80px_-20px_oklch(0.85_0.18_60/0.4)]">
+      <h2 className="font-display text-3xl text-center text-foreground/95">
+        Step into the light
+      </h2>
+      <p className="mt-2 text-center text-sm text-muted-foreground">
+        Lélu is waiting on the other side of the horizon.
+      </p>
+
+      <Button
+        type="button"
+        onClick={handleGoogle}
+        disabled={busy}
+        variant="secondary"
+        className="mt-7 w-full border border-white/15 bg-white/5 text-foreground hover:bg-white/10"
+      >
+        Continue with Google
+      </Button>
+
+      <div className="my-6 flex items-center gap-3 text-[11px] uppercase tracking-[0.3em] text-muted-foreground/70">
+        <span className="h-px flex-1 bg-white/10" />
+        or
+        <span className="h-px flex-1 bg-white/10" />
+      </div>
+
+      <form onSubmit={handleEmail} className="space-y-3">
+        <Input
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@horizon.com"
+          className="border-white/10 bg-white/5 text-foreground placeholder:text-muted-foreground/60"
+        />
+        <Input
+          type="password"
+          required
+          minLength={6}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="A secret only the stars know"
+          className="border-white/10 bg-white/5 text-foreground placeholder:text-muted-foreground/60"
+        />
+        <Button
+          type="submit"
+          disabled={busy}
+          className="w-full bg-sun text-primary-foreground hover:bg-sun-core"
+        >
+          {mode === "signin" ? "Enter" : "Begin"}
+        </Button>
+      </form>
+
+      <button
+        type="button"
+        onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+        className="mt-5 block w-full text-center text-xs text-muted-foreground hover:text-foreground"
+      >
+        {mode === "signin"
+          ? "First time here? Create a horizon."
+          : "Already drifting? Sign back in."}
+      </button>
+    </div>
+  );
+}

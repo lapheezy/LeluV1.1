@@ -11,6 +11,7 @@
     /* Bundler */
 
     "moduleResolution": "bundler",
+    "paths": { "@og/*": ["./src/og/*"] },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
@@ -25,5 +26,6 @@
     "noFallthroughCasesInSwitch": true
   },
 
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/og/_deferred"]
 }

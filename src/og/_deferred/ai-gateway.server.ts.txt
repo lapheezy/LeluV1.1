@@ -1,0 +1,14 @@
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+
+// Lovable AI Gateway is OpenAI-compatible.
+// Use server-side only.
+export function createLovableGateway() {
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
+
+  return createOpenAICompatible({
+    name: "lovable",
+    apiKey,
+    baseURL: "https://ai.gateway.lovable.dev/v1",
+  });
+}
