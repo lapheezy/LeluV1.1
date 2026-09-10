@@ -41,6 +41,7 @@
  */
 
 import BrowserTool from "../browser/BrowserTool";
+import AuthorizationQueue, { assessAccess, type PendingAccess } from "../browser/AuthGate";
 import { youtubeTranscript } from "../../og/lib/research.functions";
 import { BUDGET_LIMITS } from "./CognitiveBudget";
 import type { MemoryCandidate } from "./MemoryProvider";
@@ -66,6 +67,12 @@ export interface DetectedSource {
 
 export interface IngestionResult {
   source: DetectedSource;
+  /**
+   * Set when the source needs the user signed in (§13). The read is parked
+   * rather than failed, so it can be resumed once they have authenticated —
+   * LÉLU never handles the credential herself.
+   */
+  needsAuthorization?: PendingAccess;
   candidates: MemoryCandidate[];
   /** What happened, for UI that must report real work only (§12). */
   stats: {
@@ -250,16 +257,28 @@ export async function ingest(
     body = transcript.text;
   } else if (source.url) {
     const page = await BrowserTool.visit(source.url);
-    if (page.status !== "read" || !page.text) {
+    const access = assessAccess(page);
+
+    // A gated source is not a failed source. Telling the user "that page
+    // refuses to be read" when the real answer is "sign in and I'll read it"
+    // is the worse failure, so the read is parked and the remedy returned.
+    if (access.verdict === "auth-required") {
+      const pending = AuthorizationQueue.getInstance().request(access);
       return {
         source,
         candidates: [],
         stats: { ...empty, retrieved: false },
-        error:
-          page.error ??
-          (page.status === "blocked"
-            ? "That page refuses to be read directly."
-            : "That source could not be retrieved."),
+        needsAuthorization: pending,
+        error: access.reason,
+      };
+    }
+
+    if (access.verdict !== "readable" || !page.text) {
+      return {
+        source,
+        candidates: [],
+        stats: { ...empty, retrieved: false },
+        error: access.reason,
       };
     }
     body = page.text;

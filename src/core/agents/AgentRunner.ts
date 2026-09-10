@@ -18,6 +18,7 @@ import type { AIResponse } from "../../providers/AIProvider";
 
 import { AgentDepthGuard, BUDGET_LIMITS } from "../memory/CognitiveBudget";
 import MemoryOrchestrator from "../memory/MemoryProvider";
+import { announce } from "../proactive/InitiationTriggers";
 
 /**
  * How much of an agent's answer becomes a durable memory.
@@ -119,6 +120,17 @@ export default class AgentRunner {
       // or supersedes it. Offering is best-effort: an agent that did useful
       // work has not failed because memory was busy.
       void this.consolidate(agent.name, task, response.text);
+
+      // LÉLU speaks first only because an agent actually finished (§12). The
+      // taskId is the evidence; announce() will not deliver without a real
+      // summary, and checks the user's proactive setting before it does.
+      announce({
+        kind: "agent-finished",
+        agentName: agent.name,
+        task,
+        taskId: taskRecord.id,
+        summary: (response.text ?? "").trim(),
+      });
 
       return { ok: true, response, taskId: taskRecord.id, executionId: execution.id };
     } catch (error) {

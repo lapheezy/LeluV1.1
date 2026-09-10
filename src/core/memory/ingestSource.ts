@@ -18,6 +18,7 @@
 import AIService from "../AIService";
 import { ingest, type IngestionResult } from "./IngestionPipeline";
 import MemoryOrchestrator from "./MemoryProvider";
+import { announce } from "../proactive/InitiationTriggers";
 
 export interface IngestOutcome extends IngestionResult {
   /** Providers that accepted the candidates, for honest UI reporting (§12). */
@@ -42,6 +43,19 @@ export async function ingestSource(input: string): Promise<IngestOutcome> {
     return response?.text ?? "";
   });
 
+  // A source that needs the user signed in is a question, not a failure, and
+  // it is a direct reply to what they just asked — so it is delivered even
+  // when proactive notifications are off (§12, §13).
+  if (result.needsAuthorization) {
+    announce({
+      kind: "authorization-needed",
+      url: result.needsAuthorization.url,
+      reason: result.needsAuthorization.reason,
+      requestId: result.needsAuthorization.id,
+    });
+    return { ...result, persistedTo: [] };
+  }
+
   if (result.candidates.length === 0) {
     return { ...result, persistedTo: [] };
   }
@@ -53,6 +67,14 @@ export async function ingestSource(input: string): Promise<IngestOutcome> {
     const { accepted: took } = await orchestrator.persist(candidate);
     took.forEach((id) => accepted.add(id));
   }
+
+  // Announced with the real count. "I read that" with nothing kept would be
+  // exactly the fake status §12 forbids, and announce() drops it for us.
+  announce({
+    kind: "ingestion-finished",
+    attribution: result.source.attribution,
+    memoriesKept: result.candidates.length,
+  });
 
   return { ...result, persistedTo: [...accepted] };
 }
