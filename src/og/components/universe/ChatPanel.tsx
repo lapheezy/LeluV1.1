@@ -20,15 +20,26 @@ function partsToText(parts: UIMessage["parts"]): string {
     .join("");
 }
 
+/**
+ * Turn an upstream failure into something the user can act on.
+ *
+ * These messages were written for the OG deployment, where every model call
+ * went through a hosted gateway and a 402 really did mean "top up that
+ * platform's plan". LÉLU calls providers directly through her own registry, so
+ * that instruction now sends people to an account they do not have — the
+ * advice has to name the thing that is actually wrong.
+ */
 function humanizeError(raw: string): string {
   const s = raw.toLowerCase();
   if (s.includes("payment required") || s.includes("402") || s.includes("credit")) {
-    return "Lélu's AI credits are exhausted — add credits in Lovable → Settings → Plans.";
+    return "That provider is out of credit. LÉLU will fall back to the next one — check the provider keys in Settings if this keeps happening.";
   }
   if (s.includes("rate limit") || s.includes("429")) {
     return "Slow down — too many requests. Try again in a few seconds.";
   }
-  if (s.includes("unauthorized") || s.includes("401")) return "Sign in expired — refresh and sign in again.";
+  if (s.includes("unauthorized") || s.includes("401")) {
+    return "A provider key was rejected. Check the API keys in Settings.";
+  }
   if (s.includes("failed to fetch") || s.includes("network")) return "Network hiccup — check your connection and retry.";
   return raw;
 }
