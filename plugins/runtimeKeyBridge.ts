@@ -154,6 +154,39 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     aliases: ["ANTHROPIC_MODEL"],
   },
 
+  // ---- Supabase (persistence + the OG archive) ----
+  //
+  // Same class of bug as the three below, and it is why Supabase has never
+  // worked from environment configuration. SupabasePersistence and the OG
+  // client both resolve VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY
+  // through the standard chain, which in the BROWSER can only see
+  // import.meta.env or a __LELU_*__ global — there is no process.env out
+  // there. With no bridge entry, setting SUPABASE_URL and
+  // SUPABASE_PUBLISHABLE_KEY in the environment configured the server and
+  // left the browser permanently unconfigured, reporting "disabled" with
+  // perfectly good credentials sitting in the environment.
+  //
+  // Publishable/anon keys are meant to be public — RLS is what protects the
+  // data, not the key's secrecy — so bridging them is correct and matches how
+  // every other browser-read credential here is handled. A project URL is not
+  // a secret at all. The SERVICE ROLE key is deliberately absent and must
+  // stay absent: that one does bypass RLS and must never reach a bundle.
+  {
+    viteName: "VITE_SUPABASE_URL",
+    globalName: "__LELU_SUPABASE_URL__",
+    aliases: ["SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL"],
+  },
+  {
+    viteName: "VITE_SUPABASE_PUBLISHABLE_KEY",
+    globalName: "__LELU_SUPABASE_PUBLISHABLE_KEY__",
+    aliases: [
+      "SUPABASE_PUBLISHABLE_KEY",
+      "SUPABASE_ANON_KEY",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    ],
+  },
+
   // These three are read by BROWSER code (NewsProvider, YouTubeProvider,
   // Avatar3DReconstructor) but had no bridge entry, so the unprefixed
   // name resolved on the server — where Environment.ts can reach

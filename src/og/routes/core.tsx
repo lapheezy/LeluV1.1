@@ -21,7 +21,7 @@ export const Route = createFileRoute("/core")({
 });
 
 function CoreRoute() {
-  const { session, loading, error, unconfigured } = useSession();
+  const { loading, error } = useSession();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [center, setCenter] = useState({ x: 0, y: 0 });
@@ -29,12 +29,15 @@ function CoreRoute() {
   const openWin = useWindows((s) => s.open);
   const panels = useWindows((s) => s.panels);
 
-  useEffect(() => {
-    // Redirect only when there is a Supabase to sign in to. With none
-    // configured the OG surface renders disconnected instead of bouncing the
-    // user out of it — LÉLU has to work without Supabase (brief §5, §21).
-    if (!loading && !session && !unconfigured) navigate({ to: "/" });
-  }, [loading, session, unconfigured, navigate]);
+  // No redirect. The OG surfaces render whatever they can and show their own
+  // signed-out affordances, because §21 requires each of them to work without
+  // Supabase — and "work" cannot mean "bounce the user to a different screen".
+  //
+  // The case that exposed this: Supabase CONFIGURED but rejecting. Not
+  // unconfigured, no session, and getSession() reports no error because it
+  // reads local storage rather than validating — so every flag said fine and
+  // the surface quietly navigated away. Signing in is still offered inside
+  // the interface; it is simply no longer a toll gate on reaching it.
 
   useEffect(() => {
     const measure = () => {
@@ -49,7 +52,7 @@ function CoreRoute() {
     return () => { window.removeEventListener("resize", measure); window.clearTimeout(id); };
   }, [panels.length]);
 
-  if (loading || (!session && !unconfigured)) {
+  if (loading) {
     return (
       <div className="grid min-h-screen place-items-center gap-4 px-6 text-center">
         <div>

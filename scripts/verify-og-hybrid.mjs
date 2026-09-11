@@ -21,6 +21,11 @@ for (const [vpName, viewport, isMobile] of viewports) {
     const kids = await page.$eval("#root", el => el.children.length).catch(() => 0);
     const hOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 2);
     check(`${label} renders @ ${vpName}`, kids > 0, kids === 0 ? "blank" : "");
+    // Strict: an OG surface that bounced to Genesis would still have rendered
+    // #root children, so "renders" alone was passing on the wrong page.
+    if (path !== "/") {
+      check(`${label} stays on its route @ ${vpName}`, page.url().includes(path), page.url());
+    }
     check(`${label} no h-scroll @ ${vpName}`, !hOverflow);
     if (fatal.length) check(`${label} no fatal error @ ${vpName}`, false, fatal[0]);
     await page.close();

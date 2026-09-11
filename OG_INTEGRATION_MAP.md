@@ -187,18 +187,37 @@ executive, UI. Those are pre-existing v1.1 domain orchestrators and predate
 this work; they are not competing agent orchestrators. `AgentRunner` remains
 the single path that runs an agent.
 
+### Supabase — what a live run found
+
+Running with `SUPABASE_URL` actually set surfaced two bugs that no amount of
+unconfigured testing could have:
+
+1. **The runtime key bridge never carried Supabase.** `SUPABASE_URL` and
+   `SUPABASE_PUBLISHABLE_KEY` had no entry in `plugins/runtimeKeyBridge.ts`,
+   and the browser has no `process.env` — so setting them configured the
+   server and left the browser permanently "disabled" with perfectly good
+   credentials in the environment. Supabase had therefore never worked from
+   environment configuration at all. Fixed; the service-role key is
+   deliberately still absent and must stay so.
+2. **A configured-but-rejecting Supabase took the interfaces down.** Not
+   "unconfigured", no session, and `getSession()` reports no error because it
+   reads local storage rather than validating — so every flag said fine and
+   the OG surfaces silently redirected to Genesis. The auth redirects are
+   gone: the OG surfaces render disconnected and offer sign-in inside
+   themselves, and the conversation is not gated on a database at all.
+
+Verified against a live project rejecting every call: 9/9, including LÉLU
+answering normally while the database returns 401.
+
 ### Known remaining work
 
-Honest about what is not done:
-
-- **Supabase persistence is untested against a live project.** The provider
-  layer, the OG archive reader and the degraded paths are all exercised, but
-  no run has had `SUPABASE_URL` set. The URL is in §5 above.
-- **§13 (authenticated external sources)** is not implemented. Ingestion
-  handles public URLs; a login-gated source is detected as unreadable rather
-  than triggering an auth flow.
-- **YouTube and Firecrawl retrieval** are deferred with the OG originals.
-  `runWebSearch` reports that honestly rather than returning empty results.
+- **A matching Supabase URL + key pair.** The key in the environment is for a
+  different project than the OG one — Supabase's own reply is "This API key
+  might also be owned by another Supabase project." So the *success* path
+  (reading OG history, persisting OG conversations) is still unverified; the
+  failure and degraded paths now are.
 - **The OG landing scene** (`universe-index`) stays deferred — it overlaps
   v1.1's own Genesis cosmos, and the brief named Core and Inner Sky as the two
   UIs to preserve.
+- **12 long-running cognition suites** are unmeasured. Confirmed pre-existing:
+  they time out identically at commit `11a3527`, before any of this work.

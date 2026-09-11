@@ -19,6 +19,17 @@ type AuthSnapshot = {
    * "render disconnected", because LÉLU must run without Supabase (§5).
    */
   unconfigured: boolean;
+  /**
+   * Supabase IS configured, but a session could not be established — bad
+   * credentials, the project unreachable, auth timing out.
+   *
+   * Distinct from `unconfigured` for reporting, but the surfaces treat them
+   * the same way, because from LÉLU's point of view they are the same
+   * situation: there is no session and the user cannot simply go and sign in
+   * to fix it. Conflating them at the gate is what keeps a broken database
+   * from taking the conversation down with it (§5, §21).
+   */
+  degraded: boolean;
 };
 
 const INIT_TIMEOUT_MS = 8000;
@@ -29,6 +40,7 @@ let snapshot: AuthSnapshot = {
   error: null,
   ready: false,
   unconfigured: false,
+  degraded: false,
 };
 const listeners = new Set<(s: AuthSnapshot) => void>();
 let started = false;
@@ -54,7 +66,14 @@ function start() {
   const client = getSupabase();
   if (!client || !isSupabaseConfigured()) {
     log("supabase not configured — continuing without auth");
-    set({ session: null, loading: false, ready: true, error: null, unconfigured: true });
+    set({
+      session: null,
+      loading: false,
+      ready: true,
+      error: null,
+      unconfigured: true,
+      degraded: false,
+    });
     return;
   }
 
@@ -63,7 +82,10 @@ function start() {
     if (settled) return;
     settled = true;
     window.clearTimeout(timer);
-    set({ session, loading: false, ready: true, error });
+    // An error here means configured-but-unusable: mark it degraded so the
+    // surfaces keep working instead of waiting for a sign-in that cannot
+    // happen.
+    set({ session, loading: false, ready: true, error, degraded: !session && Boolean(error) });
     log(session ? `session detected · user ${session.user.id}` : "no session", error ? `error: ${error}` : "");
     log("app ready");
   };
@@ -87,7 +109,7 @@ function start() {
       settled = true;
       window.clearTimeout(timer);
     }
-    set({ session: s ?? null, loading: false, ready: true, error: null });
+    set({ session: s ?? null, loading: false, ready: true, error: null, degraded: false });
   });
 }
 

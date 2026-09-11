@@ -22,16 +22,19 @@ export const Route = createFileRoute("/chat/$threadId")({
 
 function ChatRoute() {
   const { threadId } = useParams({ from: "/chat/$threadId" });
-  const { session, loading, unconfigured } = useSession();
+  const { session } = useSession();
   const navigate = useNavigate();
   const [horizons, setHorizons] = useState<HorizonItem[]>([]);
 
-  useEffect(() => {
-    // Redirect only when there is a Supabase to sign in to. With none
-    // configured the OG surface renders disconnected instead of bouncing the
-    // user out of it — LÉLU has to work without Supabase (brief §5, §21).
-    if (!loading && !session && !unconfigured) navigate({ to: "/" });
-  }, [loading, session, unconfigured, navigate]);
+  // No redirect. The OG surfaces render whatever they can and show their own
+  // signed-out affordances, because §21 requires each of them to work without
+  // Supabase — and "work" cannot mean "bounce the user to a different screen".
+  //
+  // The case that exposed this: Supabase CONFIGURED but rejecting. Not
+  // unconfigured, no session, and getSession() reports no error because it
+  // reads local storage rather than validating — so every flag said fine and
+  // the surface quietly navigated away. Signing in is still offered inside
+  // the interface; it is simply no longer a toll gate on reaching it.
 
   useEffect(() => {
     if (!session) return;
@@ -63,14 +66,21 @@ function ChatRoute() {
       />
 
       <div className="absolute inset-0 flex items-end justify-center pt-32">
-        {/* The chat itself needs no Supabase — only its persistence does.
-            Gating on `session` alone meant no Supabase, no conversation at
-            all, which contradicts §5: LÉLU must still chat without it.
-            ChatPanel already degrades to local snapshots when the stored
-            history cannot be read. */}
-        {session || unconfigured ? (
-          <ChatPanel key={threadId} threadId={threadId} />
-        ) : null}
+        {/* The conversation is never gated.
+            Earlier this was `session ? … : null`, then `session ||
+            unconfigured`, and both were wrong for the same reason: they tie
+            whether LÉLU will talk to you to the state of a database. She
+            answers through AIService, which needs no account; Supabase only
+            ever stored the transcript, and ChatPanel already falls back to
+            local snapshots when it cannot be read.
+
+            The case that exposed this was Supabase configured but rejecting —
+            not "unconfigured", no session, and getSession() reports no error
+            because it reads local storage rather than validating. So every
+            flag said "fine" and the chat silently disappeared. §21 requires
+            that a Supabase failure stay isolated; the way to guarantee that
+            is for the conversation not to consult it. */}
+        <ChatPanel key={threadId} threadId={threadId} />
       </div>
     </UniverseScene>
   );
