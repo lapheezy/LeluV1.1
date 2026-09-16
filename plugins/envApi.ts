@@ -124,6 +124,18 @@ export function createEnvApi(env: EnvReader, runtime: string, extras: EnvApiExtr
           VITE_ANTHROPIC_API_KEY: presence(
             env("VITE_ANTHROPIC_API_KEY") || env("ANTHROPIC_API_KEY") || env("CLAUDE_API_KEY"),
           ),
+          // Supabase needs BOTH halves, and neither was reported here at
+          // all — so a project with a key and no URL looked fine from
+          // this endpoint while being unable to connect.
+          VITE_SUPABASE_URL: presence(
+            env("VITE_SUPABASE_URL") || env("NEXT_PUBLIC_SUPABASE_URL") || env("SUPABASE_URL"),
+          ),
+          VITE_SUPABASE_PUBLISHABLE_KEY: presence(
+            env("VITE_SUPABASE_PUBLISHABLE_KEY") ||
+              env("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") ||
+              env("SUPABASE_PUBLISHABLE_KEY") ||
+              env("SUPABASE_ANON_KEY"),
+          ),
           VITE_FIRMS_API_KEY: presence(env("VITE_FIRMS_API_KEY")),
           AISSTREAM_API_KEY: presence(env("AISSTREAM_API_KEY")),
           INSTAGRAM_ACCESS_TOKEN: presence(env("INSTAGRAM_ACCESS_TOKEN") || env("VITE_INSTAGRAM_ACCESS_TOKEN")),

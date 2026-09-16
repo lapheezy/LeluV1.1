@@ -733,6 +733,30 @@ const EXECUTORS: ToolExecutor[] = [
     },
   },
 
+  {
+    id: "system.config",
+    parameters: { type: "object", properties: {} },
+    run: async () => {
+      const { configCapabilities, describeConfiguration } = await import(
+        "../config/ConfigStatus"
+      );
+      const capabilities = configCapabilities();
+      return {
+        ok: true,
+        content: describeConfiguration(),
+        // Structured, and still nothing but names and booleans.
+        data: {
+          configured: capabilities.filter((entry) => entry.configured).map((entry) => entry.id),
+          missing: Object.fromEntries(
+            capabilities
+              .filter((entry) => !entry.configured)
+              .map((entry) => [entry.id, entry.missing]),
+          ),
+        },
+      };
+    },
+  },
+
   /* ---------------- workflows ---------------- */
 
   {
