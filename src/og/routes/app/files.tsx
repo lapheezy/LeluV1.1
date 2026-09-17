@@ -1,5 +1,6 @@
 import { createFileRoute } from "@og/compat/router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePersistedQuery } from "@og/compat/usePersistedQuery";
 import { useServerFn } from "@og/compat/server-fn";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -15,9 +16,9 @@ function FilesPage() {
   const updateFn = useServerFn(updateFile);
   const deleteFn = useServerFn(deleteFile);
 
-  const files = useQuery({ queryKey: ["files"], queryFn: () => listFn() });
+  const files = usePersistedQuery({ queryKey: ["files"], queryFn: () => listFn() });
   const [activeId, setActiveId] = useState<string | null>(null);
-  const active = useQuery({
+  const active = usePersistedQuery({
     queryKey: ["file", activeId],
     queryFn: () => (activeId ? getFn({ data: { id: activeId } }) : Promise.resolve(null)),
     enabled: !!activeId,
@@ -121,3 +122,6 @@ function FilesPage() {
     </div>
   );
 }
+
+/** Default export so v1.1's router can lazy-load this OG page. */
+export default FilesPage;

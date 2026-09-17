@@ -1,5 +1,6 @@
 import { createFileRoute } from "@og/compat/router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePersistedQuery } from "@og/compat/usePersistedQuery";
 import { useServerFn } from "@og/compat/server-fn";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -23,7 +24,7 @@ function MemoryGarden() {
   const [category, setCategory] = useState<string>("all");
   const [showArchived, setShowArchived] = useState(false);
 
-  const memQuery = useQuery({
+  const memQuery = usePersistedQuery({
     queryKey: ["memories", { search, category, showArchived }],
     queryFn: () =>
       listFn({
@@ -144,3 +145,6 @@ function MemoryGarden() {
     </div>
   );
 }
+
+/** Default export so v1.1's router can lazy-load this OG page. */
+export default MemoryGarden;

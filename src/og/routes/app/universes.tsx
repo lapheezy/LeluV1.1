@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@og/compat/router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePersistedQuery } from "@og/compat/usePersistedQuery";
 import { useServerFn } from "@og/compat/server-fn";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -13,7 +14,7 @@ function UniversesPage() {
   const listFn = useServerFn(listUniverses);
   const createFn = useServerFn(createUniverse);
   const deleteFn = useServerFn(deleteUniverse);
-  const universes = useQuery({ queryKey: ["universes"], queryFn: () => listFn() });
+  const universes = usePersistedQuery({ queryKey: ["universes"], queryFn: () => listFn() });
 
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
@@ -96,3 +97,6 @@ function UniversesPage() {
     </div>
   );
 }
+
+/** Default export so v1.1's router can lazy-load this OG page. */
+export default UniversesPage;

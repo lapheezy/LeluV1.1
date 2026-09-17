@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { usePersistedQuery } from "@og/compat/usePersistedQuery";
 import { useServerFn } from "@og/compat/server-fn";
 import { useMemo, useState } from "react";
 import { listMemoryEvents } from "@og/lib/memory-events.functions";
@@ -19,7 +19,7 @@ export function MemoryLogPanel() {
   const [kind, setKind] = useState<(typeof KINDS)[number]>("all");
   const [search, setSearch] = useState("");
 
-  const q = useQuery({
+  const q = usePersistedQuery({
     queryKey: ["memory-events", kind],
     queryFn: () =>
       listFn({ data: kind === "all" ? undefined : { kind } }),

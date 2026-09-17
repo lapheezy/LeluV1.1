@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { usePersistedQuery } from "@og/compat/usePersistedQuery";
 import { useServerFn } from "@og/compat/server-fn";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -13,9 +14,9 @@ export function ProjectsPanel() {
   const updateFn = useServerFn(updateUniverse);
   const detailFn = useServerFn(getUniverseDetail);
 
-  const q = useQuery({ queryKey: ["universes"], queryFn: () => listFn() });
+  const q = usePersistedQuery({ queryKey: ["universes"], queryFn: () => listFn() });
   const [selected, setSelected] = useState<string | null>(null);
-  const detail = useQuery({
+  const detail = usePersistedQuery({
     queryKey: ["universe", selected],
     queryFn: () => detailFn({ data: { id: selected! } }),
     enabled: !!selected,

@@ -1,4 +1,5 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePersistedQuery } from "@og/compat/usePersistedQuery";
 import { useServerFn } from "@og/compat/server-fn";
 import { toast } from "sonner";
 import { listFiles, updateFile, deleteFile } from "@og/lib/files.functions";
@@ -10,7 +11,7 @@ export function FilesPanel() {
   const updateFn = useServerFn(updateFile);
   const deleteFn = useServerFn(deleteFile);
 
-  const q = useQuery({ queryKey: ["files"], queryFn: () => listFn() });
+  const q = usePersistedQuery({ queryKey: ["files"], queryFn: () => listFn() });
 
   async function patch(id: string, p: Record<string, unknown>) {
     try { await updateFn({ data: { id, ...p } }); qc.invalidateQueries({ queryKey: ["files"] }); }

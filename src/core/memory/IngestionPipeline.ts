@@ -226,7 +226,17 @@ export type Analyst = (prompt: string) => Promise<string>;
 export async function ingest(
   input: string,
   analyse: Analyst,
-  options: { maxCandidates?: number } = {},
+  options: {
+    maxCandidates?: number;
+    /**
+     * Content the caller has ALREADY retrieved.
+     *
+     * BrowserResolver fetches the page to answer the turn, then asks for it to
+     * be ingested. Without this the pipeline would fetch the same URL a second
+     * time — one visible request per link, for nothing.
+     */
+    prefetched?: { url: string; title?: string; text: string };
+  } = {},
 ): Promise<IngestionResult> {
   const source = detectSource(input);
   const limit = Math.min(options.maxCandidates ?? MAX_CANDIDATES, BUDGET_LIMITS.memoryWrites);
@@ -245,6 +255,10 @@ export async function ingest(
 
   // RETRIEVE
   let body = source.text ?? "";
+
+  if (options.prefetched?.text) {
+    body = options.prefetched.text;
+  } else
 
   // A video is not a page. Fetching a YouTube watch URL returns the player
   // shell, whose readable text is navigation chrome — LÉLU would "read" the

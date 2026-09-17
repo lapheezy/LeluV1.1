@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@og/compat/router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePersistedQuery } from "@og/compat/usePersistedQuery";
 import { useServerFn } from "@og/compat/server-fn";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -37,8 +38,8 @@ function ChatsPage() {
   const searchFn = useServerFn(searchConversations);
   const universesFn = useServerFn(listUniverses);
 
-  const chats = useQuery({ queryKey: ["chats"], queryFn: () => listFn() });
-  const universes = useQuery({ queryKey: ["universes"], queryFn: () => universesFn() });
+  const chats = usePersistedQuery({ queryKey: ["chats"], queryFn: () => listFn() });
+  const universes = usePersistedQuery({ queryKey: ["universes"], queryFn: () => universesFn() });
 
   const [showArchived, setShowArchived] = useState(false);
   const [search, setSearch] = useState("");
@@ -256,3 +257,7 @@ function ChatsPage() {
     </div>
   );
 }
+
+
+/** Default export so v1.1's router can lazy-load this OG page. */
+export default ChatsPage;

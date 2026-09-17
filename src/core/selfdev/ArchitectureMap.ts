@@ -177,7 +177,6 @@ export function defaultSubsystems(): ArchitectureSubsystem[] {
         "src/core/workspace/WorkspaceEngine.ts",
         "src/core/cognition/WorkspaceManager.ts",
         "src/app/scene/genesis/GenesisWorkspace.tsx",
-        "src/app/scene/genesis/GenesisAgentWorkspace.tsx",
       ],
       dependsOn: ["storage", "agents", "creative"],
       provides: ["projects", "workspace"],
@@ -278,6 +277,30 @@ export function defaultSubsystems(): ArchitectureSubsystem[] {
       status: "working",
     },
   ];
+}
+
+/**
+ * Which declared paths no longer exist.
+ *
+ * The subsystem table above names 70-odd files by hand, and ten modules trust
+ * it — including SelfStudyEngine and StudyAgentRouter, which pick files for
+ * LÉLU to study. A path that is renamed or deleted does not fail loudly here;
+ * it quietly sends her to read something that is not there, and the map
+ * becomes a second, wrong account of her own architecture.
+ *
+ * SourceAccess already carries the real file list (every source is bundled as
+ * raw text for self-development), so the map can be checked against reality
+ * rather than believed. Callers that select files to work on should filter
+ * through this.
+ */
+export function staleDeclaredPaths(knownPaths: readonly string[]): string[] {
+  const known = new Set(knownPaths.map((path) => path.replace(/^\/+/, "")));
+  if (known.size === 0) return []; // no snapshot to check against — assume fine
+  const declared = new Set<string>();
+  for (const subsystem of defaultSubsystems()) {
+    for (const file of subsystem.files) declared.add(file.replace(/^\/+/, ""));
+  }
+  return [...declared].filter((path) => !known.has(path)).sort();
 }
 
 export default class ArchitectureMap {

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@og/compat/router";
-import { useQuery } from "@tanstack/react-query";
+import { usePersistedQuery } from "@og/compat/usePersistedQuery";
 import { useServerFn } from "@og/compat/server-fn";
 import { getUniverseDetail } from "@og/lib/universes.functions";
 
@@ -8,7 +8,7 @@ export const Route = createFileRoute("/app/universes/$id")({ component: Universe
 function UniverseDetail() {
   const { id } = Route.useParams();
   const fn = useServerFn(getUniverseDetail);
-  const q = useQuery({ queryKey: ["universe", id], queryFn: () => fn({ data: { id } }) });
+  const q = usePersistedQuery({ queryKey: ["universe", id], queryFn: () => fn({ data: { id } }) });
 
   if (q.isLoading) return <div className="text-foreground/60">Loading…</div>;
   if (!q.data?.universe) return <div className="text-foreground/60">Not found.</div>;
@@ -93,3 +93,6 @@ function UniverseDetail() {
     </div>
   );
 }
+
+/** Default export so v1.1's router can lazy-load this OG page. */
+export default UniverseDetail;

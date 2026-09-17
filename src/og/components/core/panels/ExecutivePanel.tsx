@@ -1,4 +1,5 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePersistedQuery } from "@og/compat/usePersistedQuery";
 import { useServerFn } from "@og/compat/server-fn";
 import { listQueue, updateQueueStatus, retryQueueTask, deleteQueueTask } from "@og/lib/queue.functions";
 import { RotateCw, Check, Pause, Trash2 } from "lucide-react";
@@ -25,7 +26,7 @@ export function ExecutivePanel() {
   const retryFn = useServerFn(retryQueueTask);
   const delFn = useServerFn(deleteQueueTask);
 
-  const q = useQuery({ queryKey: ["queue"], queryFn: () => listFn({ data: undefined }), refetchInterval: 3000 });
+  const q = usePersistedQuery({ queryKey: ["queue"], queryFn: () => listFn({ data: undefined }), refetchInterval: 3000 });
   const rows = q.data ?? [];
 
   const active = rows.filter((r) => ["pending", "queued", "running", "waiting", "retrying", "needs_user"].includes(r.status));

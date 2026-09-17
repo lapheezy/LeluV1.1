@@ -1,4 +1,5 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePersistedQuery } from "@og/compat/usePersistedQuery";
 import { useServerFn } from "@og/compat/server-fn";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -37,7 +38,7 @@ export function MemoryPanel() {
 
   const archived = tab === "archived";
 
-  const memQuery = useQuery({
+  const memQuery = usePersistedQuery({
     queryKey: ["memories", { search, category, archived }],
     queryFn: async () => {
       const taskId = proc.start({ kind: "reading_memory", label: "loading memories" });

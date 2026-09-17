@@ -32,6 +32,38 @@ for (const [vpName, viewport, isMobile] of viewports) {
   }
 }
 
+console.log("\n=== INNER SKY: the OG page set, not just its shell ===");
+{
+  // The error boundary's own message must never count as "rendered": before
+  // the QueryClientProvider was added, every OG page threw and the boundary's
+  // text passed a naive length check.
+  const BOUNDARY = "this interface did not open";
+  for (const [label, path] of [
+    ["Home", "/og/app"], ["Chats", "/og/app/chats"], ["Agents", "/og/app/agents"],
+    ["Memories", "/og/app/memories"], ["Files", "/og/app/files"],
+    ["Projects", "/og/app/universes"], ["Queue", "/og/app/queue"],
+    ["Settings", "/og/app/settings"],
+  ]) {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    const fatal = [];
+    page.on("pageerror", (e) => fatal.push(String(e.message).slice(0, 70)));
+    await page.goto(BASE + path, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(4500);
+    const text = ((await page.textContent("body")) || "").replace(/\s+/g, " ").trim();
+    check(`${label} renders real content`,
+      text.length > 40 && !text.includes(BOUNDARY) && page.url().includes(path),
+      text.includes(BOUNDARY) ? "ERROR BOUNDARY" : `${text.length} chars`);
+    check(`${label} no unhandled error`, fatal.length === 0, fatal[0] || "");
+    await page.close();
+  }
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await page.goto(BASE + "/og/app", { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(5000);
+  const hrefs = await page.$$eval("a", (as) => as.map((a) => a.getAttribute("href")));
+  check("shell nav is /og-scoped", hrefs.some((h) => h && h.startsWith("/og/app/")), hrefs.slice(0, 5).join(" "));
+  await page.close();
+}
+
 console.log("\n=== NAVIGATION: OG reachable from v1.1's own dock ===");
 {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });

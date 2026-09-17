@@ -1,11 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { usePersistedQuery } from "@og/compat/usePersistedQuery";
 import { useServerFn } from "@og/compat/server-fn";
 import { listQueue } from "@og/lib/queue.functions";
 import { Bot } from "lucide-react";
 
 export function AgentsPanel() {
   const listFn = useServerFn(listQueue);
-  const q = useQuery({ queryKey: ["queue", "agents"], queryFn: () => listFn({ data: undefined }), refetchInterval: 4000 });
+  const q = usePersistedQuery({ queryKey: ["queue", "agents"], queryFn: () => listFn({ data: undefined }), refetchInterval: 4000 });
   const rows = q.data ?? [];
   const byAgent = new Map<string, typeof rows>();
   for (const r of rows) {

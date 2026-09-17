@@ -32,16 +32,38 @@ export interface IngestOutcome extends IngestionResult {
  * reached is an answer ("I couldn't read that"), not an exception for a chat
  * surface to catch.
  */
-export async function ingestSource(input: string): Promise<IngestOutcome> {
+export async function ingestSource(
+  input: string,
+  /** Content already retrieved by the caller, so it is not fetched twice. */
+  prefetched?: { url: string; title?: string; text: string },
+): Promise<IngestOutcome> {
   const ai = AIService.getInstance();
 
   const result = await ingest(input, async (prompt) => {
-    // The extraction pass goes through the ordinary chat runtime, so it
-    // inherits the provider fallback chain: if Groq is down the extraction
-    // still happens on the next provider rather than the ingestion failing.
-    const response = await ai.chat(prompt);
-    return response?.text ?? "";
-  });
+    // RE-ENTRANCY. Extraction must NOT go through AIService.chat(): ingestion
+    // is triggered from inside a chat turn (BrowserResolver sees a URL), and
+    // chat() runs the router, which runs BrowserResolver again. That is a
+    // loop, and it is the kind that ends in a stack of turns rather than an
+    // error.
+    //
+    // So extraction resolves a provider from the SAME registry chat uses and
+    // calls it directly. Not a second brain — the same providers, the same
+    // priority order, the same fallback — just entered below the router
+    // instead of above it.
+    const registry = ai.getAIProviderRegistry();
+    const available = await registry.available();
+    for (const provider of available) {
+      if (provider.name.startsWith("Local")) continue; // no browser runtime here
+      try {
+        const response = await provider.generate({ prompt, messages: [] });
+        const text = response?.text?.trim();
+        if (text) return text;
+      } catch {
+        // Fall through to the next provider, exactly as the chain would.
+      }
+    }
+    throw new Error("No provider could read that source.");
+  }, { prefetched });
 
   // A source that needs the user signed in is a question, not a failure, and
   // it is a direct reply to what they just asked — so it is delivered even

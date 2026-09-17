@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { usePersistedQuery } from "@og/compat/usePersistedQuery";
 import { useServerFn } from "@og/compat/server-fn";
 import { useMemo, useState } from "react";
 import { listSystemEvents } from "@og/lib/system.functions";
@@ -28,7 +28,7 @@ export function LogsPanel() {
   const listFn = useServerFn(listSystemEvents);
   const [tab, setTab] = useState<"processing" | "system">("processing");
   const [sev, setSev] = useState<(typeof SEVERITIES)[number]>("all");
-  const q = useQuery({
+  const q = usePersistedQuery({
     queryKey: ["logs", sev],
     queryFn: () => listFn({ data: sev === "all" ? undefined : { severity: sev } }),
     refetchInterval: 4000,

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@og/compat/router";
-import { useQuery } from "@tanstack/react-query";
+import { usePersistedQuery } from "@og/compat/usePersistedQuery";
 import { useServerFn } from "@og/compat/server-fn";
 import { listConversationSummaries } from "@og/lib/conversation-admin.functions";
 
@@ -7,7 +7,7 @@ export const Route = createFileRoute("/app/chats/archive")({ component: ArchiveP
 
 function ArchivePage() {
   const fn = useServerFn(listConversationSummaries);
-  const q = useQuery({ queryKey: ["chat-summaries"], queryFn: () => fn() });
+  const q = usePersistedQuery({ queryKey: ["chat-summaries"], queryFn: () => fn() });
 
   return (
     <div className="space-y-6">
@@ -50,3 +50,7 @@ function ArchivePage() {
     </div>
   );
 }
+
+
+/** Default export so v1.1's router can lazy-load this OG page. */
+export default ArchivePage;

@@ -31,6 +31,24 @@ import {
 
 export const Outlet = RROutlet;
 
+/**
+ * OG sources address each other by their ORIGINAL paths — "/app/chats",
+ * "/core", "/chat/$threadId" — because keeping them untouched is what makes
+ * them diffable against the originals. Under v1.1 they live beneath /og, so
+ * the translation happens here rather than in twenty components.
+ *
+ * "/" is deliberately NOT prefixed: in OG it meant the landing scene, and here
+ * it means leaving the OG interfaces for Genesis, which is what the "drift
+ * away" and title affordances are for.
+ */
+const OG_ROOTS = ["/app", "/core", "/chat"];
+
+function scope(to: string): string {
+  if (!to.startsWith("/")) return to;
+  if (to.startsWith("/og")) return to;
+  return OG_ROOTS.some((root) => to === root || to.startsWith(`${root}/`)) ? `/og${to}` : to;
+}
+
 /** Substitute `$id`-style segments with the params TanStack would have. */
 function buildPath(to: string, params?: Record<string, string | number>): string {
   if (!params) return to;
@@ -62,7 +80,7 @@ export interface OgLinkProps {
 }
 
 export function Link({ to, params, search, ...rest }: OgLinkProps) {
-  return <RRLink to={`${buildPath(to, params)}${toSearch(search)}`} {...rest} />;
+  return <RRLink to={`${scope(buildPath(to, params))}${toSearch(search)}`} {...rest} />;
 }
 
 export interface OgNavigateOptions {
@@ -76,9 +94,9 @@ export interface OgNavigateOptions {
 export function useNavigate() {
   const navigate = useRRNavigate();
   return (options: OgNavigateOptions | string) => {
-    if (typeof options === "string") return navigate(options);
+    if (typeof options === "string") return navigate(scope(options));
     const { to, params, search, replace } = options;
-    return navigate(`${buildPath(to, params)}${toSearch(search)}`, { replace });
+    return navigate(`${scope(buildPath(to, params))}${toSearch(search)}`, { replace });
   };
 }
 
@@ -96,8 +114,16 @@ export function useRouterState<T = OgRouterState>(opts?: {
   select?: (state: OgRouterState) => T;
 }): T {
   const location = useLocation();
+  // Reported UNSCOPED, so an OG component comparing against "/app/chats"
+  // matches — AppShell highlights its active tab this way, and handing it the
+  // /og-prefixed path would leave every tab looking inactive.
   const state: OgRouterState = {
-    location: { pathname: location.pathname, search: location.search },
+    location: {
+      pathname: location.pathname.startsWith("/og/")
+        ? location.pathname.slice(3)
+        : location.pathname,
+      search: location.search,
+    },
   };
   return (opts?.select ? opts.select(state) : state) as T;
 }

@@ -22,15 +22,29 @@ function QueuePage() {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [error, setError] = useState<string | null>(null);
+
+  // Hand-rolled rather than react-query, and unguarded: with no Supabase these
+  // rejected straight past `void refresh()` into an unhandled rejection, which
+  // took the page down. The queue simply has nothing to show when persistence
+  // is unavailable — that is a state, not a crash.
   const refresh = async () => {
     setLoading(true);
-    const [q, e] = await Promise.all([
-      listQueue({ data: filter === "all" ? undefined : { status: filter } }),
-      listSystemEvents({ data: { limit: 50 } }),
-    ]);
-    setRows(q);
-    setEvents(e);
-    setLoading(false);
+    setError(null);
+    try {
+      const [q, e] = await Promise.all([
+        listQueue({ data: filter === "all" ? undefined : { status: filter } }),
+        listSystemEvents({ data: { limit: 50 } }),
+      ]);
+      setRows(q);
+      setEvents(e);
+    } catch (caught) {
+      setRows([]);
+      setEvents([]);
+      setError(caught instanceof Error ? caught.message : String(caught));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -40,6 +54,11 @@ function QueuePage() {
 
   return (
     <div className="space-y-6">
+      {error ? (
+        <p className="rounded-lg border border-border/40 bg-foreground/5 px-3 py-2 text-xs text-foreground/60">
+          {error}
+        </p>
+      ) : null}
       <header className="flex items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl">Action queue</h1>
@@ -234,3 +253,6 @@ function SeverityDot({ severity }: { severity: string }) {
           : "bg-foreground/40";
   return <span className={`size-1.5 rounded-full shrink-0 ${color}`} />;
 }
+
+/** Default export so v1.1's router can lazy-load this OG page. */
+export default QueuePage;

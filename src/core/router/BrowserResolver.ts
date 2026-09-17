@@ -27,6 +27,8 @@ import type { BrainResult } from "./RouterResults";
 import type { AIResponse } from "../../providers/AIProvider";
 import BrowserTool from "../browser/BrowserTool";
 import AgentEventBus from "../agent/AgentEvents";
+import AuthorizationQueue, { assessAccess } from "../browser/AuthGate";
+import { ingestSource } from "../memory/ingestSource";
 
 export default class BrowserResolver {
   public async execute(context: RouterContext): Promise<BrainResult> {
@@ -63,7 +65,45 @@ export default class BrowserResolver {
       error: page.error,
     });
 
+    // A source that needs the user signed in is a question, not a failed read
+    // (§13). Parking it here rather than in a second entry point keeps one
+    // path for "LÉLU was given a link" — there is no separate ingest command
+    // that could drift from this one.
+    const access = assessAccess(page);
+    if (access.verdict === "auth-required") {
+      const pending = AuthorizationQueue.getInstance().request(access);
+      context.logger.info("BrowserResolver", "Source needs authorization.", {
+        url: page.url,
+        requestId: pending.id,
+      });
+      return {
+        handled: true,
+        response: {
+          text: `${access.reason}${pending.signInUrl ? ` Sign in at ${pending.signInUrl} and ask me again.` : ""}`,
+          provider: "browser",
+          model: "auth-gate",
+          processingTime: 0,
+          metadata: { intent: "authorization_required", success: true },
+        },
+      };
+    }
+
     if (page.status === "read") {
+      // Keep what is durable, in the background. The turn answers from the
+      // page content attached below; consolidation is a separate concern and
+      // must not delay the reply. ingestSource resolves a provider directly
+      // rather than calling chat(), so this cannot re-enter the router.
+      void ingestSource(page.url, {
+        url: page.url,
+        title: page.title,
+        text: page.text,
+      }).catch((error) => {
+        context.logger.info("BrowserResolver", "Background ingestion skipped.", {
+          url: page.url,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
+
       context.logger.info("BrowserResolver", "Page read; attaching content to request context.", {
         url: page.url,
         title: page.title,

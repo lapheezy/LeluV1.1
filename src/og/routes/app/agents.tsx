@@ -21,3 +21,6 @@ function AgentsPage() {
     </div>
   );
 }
+
+/** Default export so v1.1's router can lazy-load this OG page. */
+export default AgentsPage;

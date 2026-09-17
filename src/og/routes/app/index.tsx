@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@og/compat/router";
-import { useQuery } from "@tanstack/react-query";
+import { usePersistedQuery } from "@og/compat/usePersistedQuery";
 import { useServerFn } from "@og/compat/server-fn";
 import { listUniverses } from "@og/lib/universes.functions";
 import { listAllConversations, createConversation } from "@og/lib/conversations.functions";
@@ -15,9 +15,9 @@ function AppHome() {
   const memsFn = useServerFn(listMemories);
   const newChat = useServerFn(createConversation);
 
-  const universes = useQuery({ queryKey: ["universes"], queryFn: () => universesFn() });
-  const chats = useQuery({ queryKey: ["chats"], queryFn: () => chatsFn() });
-  const mems = useQuery({ queryKey: ["memories", "recent"], queryFn: () => memsFn({ data: { archived: false } }) });
+  const universes = usePersistedQuery({ queryKey: ["universes"], queryFn: () => universesFn() });
+  const chats = usePersistedQuery({ queryKey: ["chats"], queryFn: () => chatsFn() });
+  const mems = usePersistedQuery({ queryKey: ["memories", "recent"], queryFn: () => memsFn({ data: { archived: false } }) });
 
   const recentChats = (chats.data ?? []).slice(0, 5);
   const pinnedMems = (mems.data ?? []).filter((m) => m.pinned).slice(0, 5);
@@ -134,3 +134,6 @@ function Panel({ title, link, children }: { title: string; link?: string; childr
 function Empty({ children }: { children: React.ReactNode }) {
   return <div className="text-sm text-foreground/50 py-4">{children}</div>;
 }
+
+/** Default export so v1.1's router can lazy-load this OG page. */
+export default AppHome;
