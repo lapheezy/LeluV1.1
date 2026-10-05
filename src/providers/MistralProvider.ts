@@ -28,6 +28,7 @@ import {
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
 
 export default class MistralProvider implements AIProvider {
@@ -68,7 +69,7 @@ export default class MistralProvider implements AIProvider {
       this.initialized &&
       this.enabled &&
       this.requiresApiKey &&
-      this.apiKey.length > 0
+      providerConfigured("mistral", this.apiKey)
     );
   }
 
@@ -81,7 +82,7 @@ export default class MistralProvider implements AIProvider {
       lastChecked: Date.now(),
       lastError: !this.initialized
         ? "Mistral provider not initialized."
-        : !this.apiKey
+        : !isBrokered("mistral") && !this.apiKey
           ? "Mistral API key missing."
           : undefined,
     };
@@ -98,7 +99,10 @@ export default class MistralProvider implements AIProvider {
       throw new Error("Mistral provider is not initialized.");
     }
 
-    if (!this.apiKey) {
+    if (!isBrokered("mistral") && !this.apiKey) {
+      // Only a DIRECT send needs a key here; brokered requests carry
+      // none by design, and refusing them would disable the provider
+      // the broker can actually serve.
       throw new Error("Mistral API key is missing.");
     }
 
@@ -128,7 +132,9 @@ export default class MistralProvider implements AIProvider {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
-            Authorization: `Bearer ${this.apiKey}`,
+            // Brokered: no credential leaves the browser — the server attaches
+            // its own. Direct (server/tests): the real header.
+            ...authHeaders("mistral", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
           },
           body: JSON.stringify(payload),
           signal: AbortSignal.timeout(this.timeout),

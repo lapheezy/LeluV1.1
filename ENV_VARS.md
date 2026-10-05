@@ -335,3 +335,65 @@ same block, so it is both the largest and the most repeated content LÉLU
 sends. Below Anthropic's minimum cacheable length the marker is ignored;
 above it, measured on a 3163-token context, a follow-up turn billed 13
 fresh input tokens instead of 3163.
+
+---
+
+## Model credentials are server-owned
+
+Remote AI provider credentials are read by the SERVER ONLY. The browser never
+holds one, never sends one, and no longer decides whether a provider is
+configured.
+
+```
+Browser/UI → AIService → cognition/router → ProviderResolver
+          → AIProviderRegistry → provider → BrokerTransport
+          → /api/model/<provider>/<path> → server broker → provider API
+```
+
+### Where the server reads them
+
+`plugins/modelApi.ts` resolves each provider's credential from the server
+process environment, first match wins:
+
+| Provider | Environment names (in order) |
+| --- | --- |
+| `anthropic` | `VITE_ANTHROPIC_API_KEY`, `ANTHROPIC_API_KEY`, `CLAUDE_API_KEY` |
+| `groq` | `VITE_GROQ_API_KEY`, `GROQ_API_KEY` |
+| `openrouter` | `VITE_OPENROUTER_API_KEY`, `OPENROUTER_API_KEY`, `OPEN_ROUTER_API_KEY` |
+| `cerebras` | `VITE_CEREBRAS_API_KEY`, `CEREBRAS_API_KEY` |
+| `mistral` | `VITE_MISTRAL_API_KEY`, `MISTRAL_API_KEY` |
+| `fireworks` | `VITE_FIREWORKS_API_KEY`, `FIREWORKS_API_KEY` |
+| `gemini` | `VITE_GEMINI_API_KEY`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY` |
+| `githubModels` | `VITE_GITHUB_TOKEN`, `GITHUB_MODELS_TOKEN` |
+
+The `VITE_` names are accepted for continuity with the previous
+configuration — but they are no longer injected into the bundle, so a
+`VITE_`-named model key is now just a server-side variable like any other.
+Setting the unprefixed name is preferable and does the same thing.
+
+Note `ANTHROPIC_API_KEY` is reserved by some hosting runtimes (a managed
+Claude Code container strips it, since it is what the session itself
+authenticates with). Where that applies, use `VITE_ANTHROPIC_API_KEY`.
+
+### Verifying without exposing anything
+
+```
+GET /api/model/status
+→ {"ok":true,"providers":{"anthropic":false,"groq":true,"fireworks":true, ...}}
+```
+
+Booleans only. No keys, no prefixes, no lengths, no headers. This is also what
+the browser uses to decide provider availability — `providerConfigured()` in
+`src/core/model/BrokerTransport.ts` asks the server rather than inspecting a
+key it no longer has.
+
+### What the browser still receives
+
+Non-secret runtime configuration only, via `plugins/runtimeKeyBridge.ts`:
+model names, endpoint base URLs, and `SUPABASE_PUBLISHABLE_KEY` — which is
+designed to be public, because RLS and not key secrecy protects that data. The
+Supabase SERVICE ROLE key is never bridged.
+
+Knowledge/data providers (news, YouTube, Geoapify, Guardian, NewsData, NASA)
+still read their keys in the browser. They call those APIs directly from the
+page and have no broker; moving them behind one is a separate change.

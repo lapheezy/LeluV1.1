@@ -19,6 +19,7 @@ import {
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
 
 export default class GroqProvider implements AIProvider {
@@ -45,7 +46,6 @@ export default class GroqProvider implements AIProvider {
 
     console.info("[GroqProvider] Initialized", {
       hasKey: this.apiKey.length > 0,
-      keyLength: this.apiKey.length,
       model: this.model,
     });
   }
@@ -89,7 +89,7 @@ export default class GroqProvider implements AIProvider {
 
   async isAvailable(): Promise<boolean> {
     return (
-      this.initialized && this.enabled && this.requiresApiKey && this.apiKey.length > 0
+      this.initialized && this.enabled && providerConfigured("groq", this.apiKey)
     );
   }
 
@@ -99,7 +99,7 @@ export default class GroqProvider implements AIProvider {
 
     if (!this.initialized) {
       lastError = "Groq provider not initialized.";
-    } else if (!this.apiKey) {
+    } else if (!isBrokered("groq") && !this.apiKey) {
       lastError = "Groq API key missing.";
     }
 
@@ -122,7 +122,10 @@ export default class GroqProvider implements AIProvider {
       throw new Error("Groq provider is not initialized.");
     }
 
-    if (!this.apiKey) {
+    if (!isBrokered("groq") && !this.apiKey) {
+      // Only a DIRECT send needs a key here; brokered requests carry
+      // none by design, and refusing them would disable the provider
+      // the broker can actually serve.
       throw new Error("Groq API key is missing.");
     }
 
@@ -156,7 +159,9 @@ export default class GroqProvider implements AIProvider {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${this.apiKey}`,
+          // Brokered: no credential leaves the browser — the server attaches
+          // its own. Direct (server/tests): the real header.
+          ...authHeaders("groq", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
         },
         body: JSON.stringify(payload),
         signal: AbortSignal.timeout(this.timeout),

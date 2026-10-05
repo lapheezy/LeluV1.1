@@ -29,6 +29,7 @@ import type {
 } from "./AIProvider";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst, resolveViteOnly } from "../core/resolveEnv";
+import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
 
 export default class GitHubModelsProvider implements AIProvider {
@@ -81,7 +82,7 @@ export default class GitHubModelsProvider implements AIProvider {
       this.initialized &&
       this.enabled &&
       this.requiresApiKey &&
-      this.apiKey.length > 0
+      providerConfigured("githubModels", this.apiKey)
     );
   }
 
@@ -94,7 +95,7 @@ export default class GitHubModelsProvider implements AIProvider {
       lastChecked: Date.now(),
       lastError: !this.initialized
         ? "GitHub Models provider not initialized."
-        : !this.apiKey
+        : !isBrokered("githubModels") && !this.apiKey
           ? "GitHub Models token missing."
           : undefined,
     };
@@ -179,7 +180,7 @@ export default class GitHubModelsProvider implements AIProvider {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
-            Authorization: `Bearer ${this.apiKey}`,
+            ...authHeaders("githubModels", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
           },
 
           body: JSON.stringify(payload),

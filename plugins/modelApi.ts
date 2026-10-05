@@ -90,6 +90,26 @@ export const BROKERED: Record<string, BrokeredProvider> = {
     keyNames: ["VITE_FIREWORKS_API_KEY", "FIREWORKS_API_KEY"],
     authHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
+  // Gemini and GitHub Models are remote providers in the same registry and
+  // fallback chain as the six above. Leaving them out meant two providers
+  // still needed a real key in the browser, which is the whole exposure this
+  // broker exists to remove — so they are brokered here rather than through
+  // anything new.
+  gemini: {
+    endpointId: "gemini",
+    keyNames: [
+      "VITE_GEMINI_API_KEY",
+      "GEMINI_API_KEY",
+      "GOOGLE_API_KEY",
+      "GOOGLE_GENERATIVE_AI_API_KEY",
+    ],
+    authHeaders: (key) => ({ "x-goog-api-key": key }),
+  },
+  githubModels: {
+    endpointId: "githubModels",
+    keyNames: ["VITE_GITHUB_TOKEN", "GITHUB_MODELS_TOKEN"],
+    authHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
+  },
 };
 
 export type BrokeredProviderId = keyof typeof BROKERED;
@@ -104,6 +124,9 @@ interface ConnectLikeRes {
   statusCode?: number;
   setHeader: (name: string, value: string) => void;
   end: (body?: string) => void;
+  /** Present on a real Node response; used to forward a stream chunk by chunk. */
+  write?: (chunk: string | Uint8Array) => boolean;
+  flushHeaders?: () => void;
 }
 
 interface ConnectLikeReq {
@@ -206,12 +229,38 @@ export function createModelApi(readEnv: EnvReader) {
         body: req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req),
       });
 
+      const contentType = upstream.headers.get("content-type") ?? "application/json";
       res.statusCode = upstream.status;
-      res.setHeader("Content-Type", upstream.headers.get("content-type") ?? "application/json");
+      res.setHeader("Content-Type", contentType);
       res.setHeader("Cache-Control", "no-store");
-      // The upstream's own answer, verbatim — including its errors. A
-      // broker that rewrote a 401 into something friendlier would hide
-      // the one fact the caller needs.
+
+      // STREAMING. Groq and Anthropic ask for `stream: true` whenever a turn
+      // carries an onDelta handler, and read the reply with getReader(). If
+      // the broker buffered that with upstream.text() the whole answer would
+      // land in one piece at the end: the text would be correct and the
+      // progressive reveal — the thing streaming is for — would be gone.
+      //
+      // So an event-stream is forwarded chunk by chunk, unaltered. Anything
+      // else is still returned whole, including the upstream's own errors: a
+      // broker that rewrote a 401 into something friendlier would hide the
+      // one fact the caller needs.
+      const isEventStream = contentType.includes("text/event-stream");
+      if (isEventStream && upstream.body && typeof res.write === "function") {
+        res.flushHeaders?.();
+        const reader = upstream.body.getReader();
+        try {
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            if (value) res.write(value);
+          }
+        } finally {
+          reader.releaseLock();
+          res.end();
+        }
+        return;
+      }
+
       res.end(await upstream.text());
     } catch (error) {
       sendJson(

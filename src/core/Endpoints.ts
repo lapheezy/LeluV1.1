@@ -427,6 +427,8 @@ const BROKERED_IN_BROWSER = new Set<EndpointId>([
   "cerebras",
   "mistral",
   "fireworks",
+  "gemini",
+  "githubModels",
 ]);
 
 /**
@@ -440,6 +442,18 @@ const BROKERED_IN_BROWSER = new Set<EndpointId>([
 function inBrowser(): boolean {
   const host = globalThis as { document?: unknown; fetch?: unknown };
   return host.document !== undefined && typeof host.fetch === "function";
+}
+
+/**
+ * Is this provider's traffic going through the server broker right now?
+ *
+ * Exported so providers can ask ONE question — "is my credential the
+ * server's problem?" — instead of each keeping its own copy of the brokered
+ * list and its own browser check. Two copies of that answer is two chances
+ * for a provider to attach a key the browser should never have held.
+ */
+export function isBrokeredInBrowser(id: EndpointId): boolean {
+  return BROKERED_IN_BROWSER.has(id) && inBrowser();
 }
 
 /** Join an endpoint base with a path, tolerating a leading slash or not. */

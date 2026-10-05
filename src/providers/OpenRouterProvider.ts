@@ -28,6 +28,7 @@ import type {
 } from "./AIProvider";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
 
 export default class OpenRouterProvider implements AIProvider {
@@ -110,7 +111,7 @@ export default class OpenRouterProvider implements AIProvider {
       this.initialized &&
       this.enabled &&
       this.requiresApiKey &&
-      this.apiKey.length > 0
+      providerConfigured("openrouter", this.apiKey)
     );
   }
 
@@ -123,7 +124,7 @@ export default class OpenRouterProvider implements AIProvider {
       lastChecked: Date.now(),
       lastError: !this.initialized
         ? "OpenRouter provider not initialized."
-        : !this.apiKey
+        : !isBrokered("openrouter") && !this.apiKey
           ? "OpenRouter API key missing."
           : undefined,
     };
@@ -140,7 +141,10 @@ export default class OpenRouterProvider implements AIProvider {
       throw new Error("OpenRouter provider is not initialized.");
     }
 
-    if (!this.apiKey) {
+    if (!isBrokered("openrouter") && !this.apiKey) {
+      // Only a DIRECT send needs a key here; brokered requests carry
+      // none by design, and refusing them would disable the provider
+      // the broker can actually serve.
       throw new Error("OpenRouter API key is missing.");
     }
 
@@ -174,7 +178,9 @@ export default class OpenRouterProvider implements AIProvider {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
-            Authorization: `Bearer ${this.apiKey}`,
+            // Brokered: no credential leaves the browser — the server attaches
+            // its own. Direct (server/tests): the real header.
+            ...authHeaders("openrouter", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
             "HTTP-Referer":
               typeof window !== "undefined"
                 ? window.location.origin
