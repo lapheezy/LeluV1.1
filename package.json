@@ -14,6 +14,7 @@
     "verify:hybrid": "node scripts/verify-og-hybrid.mjs",
     "verify:autonomy": "node scripts/verify-continuous-cognition.mjs",
     "verify:persistence": "node scripts/verify-persistence-restart.mjs",
+    "verify:acceptance": "node scripts/verify-acceptance.mjs",
     "serve": "bun run server.ts",
     "start": "bun run server.ts",
     "preview": "vite preview --host 0.0.0.0 --strictPort --port 4173",

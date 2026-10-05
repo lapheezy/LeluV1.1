@@ -146,3 +146,47 @@ export function trailingUserTurn(
   if (history[history.length - 1]?.role === "tool") return [];
   return [{ role: "user", content }];
 }
+
+
+/**
+ * The visible answer from an OpenAI-shaped choice.
+ *
+ * `message.content` is the obvious place and usually the right one. It
+ * is not the only one: a REASONING model streams its thinking into
+ * `reasoning` (Groq) or `reasoning_content` (several OpenAI-compatible
+ * APIs) and only then writes the answer. Ask such a model for one word
+ * with a small token budget and it spends the whole budget thinking —
+ * `content` comes back empty with finish_reason "length", and a client
+ * that reads only `content` concludes the provider is broken.
+ *
+ * That was not hypothetical: it took a working Groq key, marked the
+ * provider failed on its first call, cooled it down, and dropped
+ * cognition to the offline path with every provider gone. Reading the
+ * reasoning field is what makes a reasoning model usable at all.
+ */
+export function extractOpenAIText(choice: unknown): string {
+  const message = (choice as { message?: Record<string, unknown> } | undefined)?.message;
+  if (!message) return "";
+  for (const field of ["content", "reasoning_content", "reasoning"]) {
+    const value = message[field];
+    if (typeof value === "string" && value.trim()) return value;
+  }
+  return "";
+}
+
+/**
+ * Why a choice carried no text — in terms a caller can act on.
+ *
+ * A truncated answer and an empty one are different failures: the first
+ * says "raise max_tokens", the second says "this provider is not
+ * answering". Collapsing them into one message sends whoever is
+ * debugging to the wrong place.
+ */
+export function describeEmptyChoice(provider: string, choice: unknown): string {
+  const reason = (choice as { finish_reason?: string } | undefined)?.finish_reason;
+  if (reason === "length") {
+    return `${provider} hit the token limit before producing an answer (finish_reason=length). ` +
+      `Raise max_tokens — a reasoning model can spend the whole budget thinking.`;
+  }
+  return `${provider} returned no usable content${reason ? ` (finish_reason=${reason})` : ""}.`;
+}
