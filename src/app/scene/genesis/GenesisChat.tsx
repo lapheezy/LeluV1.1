@@ -47,6 +47,7 @@ import {
 import { useGenesis, type GenesisMessage } from "./GenesisCore";
 import ExplorationController from "./ExplorationController";
 import ProactiveCore, { type ProactiveQuestion } from "../../../core/proactive/ProactiveCore";
+import { openWorkstream } from "../../../core/proactive/Workstream";
 import { markPerf } from "../../../core/perf/StartupTelemetry";
 import { cleanAssistantText } from "../../../core/router/ToolMarkup";
 
@@ -353,20 +354,44 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     exchangeRef.current = exchange;
   }, [exchange]);
 
-  // Proactive question guard
-  const presentedQuestionIdsRef = useRef<Set<string> | null>(null);
+  // Proactive question surface.
+  //
+  // This used to return early whenever the store reported no active
+  // question — including the moment one was dismissed, which is exactly
+  // when the card needed to disappear. The card therefore stayed on
+  // screen for the rest of the session and dismissing looked broken.
+  // Now the store is the single source of truth in both directions: a
+  // question shows the card, no question hides it.
   useEffect(() => {
-    const presented = (presentedQuestionIdsRef.current ??= new Set<string>());
     return proactive.subscribeQuestions((question) => {
-      if (!question || presented.has(question.id)) {
-        return;
-      }
-      if (question.status === "pending") {
-        presented.add(question.id);
-      }
       setActiveQuestion(question);
+      // Count the surface once, so "shown and ignored" is a real signal
+      // the lifecycle can act on rather than something inferred later.
+      if (question && question.status === "pending") {
+        proactive.markQuestionSurfaced(question.id);
+      }
     });
   }, []);
+
+  /** Open the question's project as a workstream and continue there. */
+  const exploreQuestion = useCallback((question: ProactiveQuestion) => {
+    const projectId = question.relatedProjectId;
+    if (!projectId) {
+      // Nothing to open — treat engaging as answering it in place.
+      proactive.resolveQuestion(question.id, "Explored in the global conversation.");
+      return;
+    }
+    const context = openWorkstream(projectId, { question });
+    if (!context) {
+      proactive.dismissQuestion(question.id);
+      return;
+    }
+    proactive.engageQuestion(question.id, context.conversation.id);
+    notify(
+      context.created ? `Opened ${context.conversation.title}` : `Back in ${context.conversation.title}`,
+      "This topic continues here now.",
+    );
+  }, [notify]);
 
   const clearTimers = useCallback(() => {
     for (const id of timersRef.current) {
@@ -1199,21 +1224,57 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
               {activeQuestion.reason}
             </span>
           </span>
-          <button
-            type="button"
-            onClick={() => proactive.dismissQuestion(activeQuestion.id)}
-            aria-label="Dismiss proactive question"
-            title="Dismiss"
-            style={{
-              ...titleBtn,
-              width: 24,
-              height: 24,
-              fontSize: 11,
-              color: "rgba(226, 232, 240, 0.65)",
-            }}
-          >
-            ✕
-          </button>
+          <span style={{ display: "flex", gap: 4, flexShrink: 0, flexWrap: "wrap" }}>
+            {activeQuestion.relatedProjectId ? (
+              <button
+                type="button"
+                onClick={() => exploreQuestion(activeQuestion)}
+                aria-label="Explore this in its own workstream"
+                title="Open this topic as its own conversation"
+                style={{
+                  ...titleBtn,
+                  width: "auto",
+                  height: 24,
+                  padding: "0 8px",
+                  fontSize: 11,
+                  color: "rgba(251, 191, 36, 0.95)",
+                }}
+              >
+                Explore
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => proactive.deferQuestion(activeQuestion.id)}
+              aria-label="Defer proactive question"
+              title="Not now — ask again only if something changes"
+              style={{
+                ...titleBtn,
+                width: "auto",
+                height: 24,
+                padding: "0 8px",
+                fontSize: 11,
+                color: "rgba(226, 232, 240, 0.7)",
+              }}
+            >
+              Later
+            </button>
+            <button
+              type="button"
+              onClick={() => proactive.dismissQuestion(activeQuestion.id)}
+              aria-label="Dismiss proactive question"
+              title="Dismiss"
+              style={{
+                ...titleBtn,
+                width: 24,
+                height: 24,
+                fontSize: 11,
+                color: "rgba(226, 232, 240, 0.65)",
+              }}
+            >
+              ✕
+            </button>
+          </span>
         </div>
       ) : null}
 

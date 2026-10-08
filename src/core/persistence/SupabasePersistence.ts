@@ -8,6 +8,7 @@ import KnowledgeLibrary, { type KnowledgeEntry } from "../cognition/KnowledgeLib
 import MultiChatStore, { type ChatConversation, type ChatMessage } from "../multichat/MultiChatStore";
 import ProjectStore, { type LeluProject } from "../projects/ProjectStore";
 import ProactiveCore, { type ProactiveQuestion } from "../proactive/ProactiveCore";
+import { parseLifecycle } from "../proactive/QuestionLifecycle";
 import ImprovementQueue, { type ImprovementProposal } from "../selfdev/ImprovementQueue";
 import type Brain from "../../brain/Brain";
 import type ResponsePattern from "../../brain/ResponsePattern";
@@ -383,6 +384,11 @@ export default class SupabasePersistence {
       related_project_id: question.relatedProjectId ?? null, related_task: question.relatedTask ?? null,
       blocks_execution: question.blocksExecution, remember_answer: question.rememberAnswer, status: question.status,
       user_response: question.userResponse ?? null, asked_at: new Date(question.askedAt).toISOString(),
+      // The lifecycle is what makes a dismissal survive a sync. Without it
+      // a reconnect would hydrate a question whose coarse status still read
+      // "pending" and surface it again — the resurfacing bug, restored by
+      // the database.
+      lifecycle: question.lifecycle ?? {},
       resolved_at: question.resolvedAt ? new Date(question.resolvedAt).toISOString() : null,
       created_at: new Date(question.createdAt).toISOString(), updated_at: new Date(question.updatedAt).toISOString(),
     }], "proactive_questions");
@@ -528,7 +534,15 @@ export default class SupabasePersistence {
 
   private toQuestion(row: RemoteRow): ProactiveQuestion | null {
     if (!row.id || !row.question) return null;
-    return { id: String(row.id), key: row.question_key, question: row.question, category: row.category, reason: row.reason ?? "", priority: row.priority, relatedProjectId: row.related_project_id ?? undefined, relatedTask: row.related_task ?? undefined, blocksExecution: Boolean(row.blocks_execution), rememberAnswer: row.remember_answer !== false, askedAt: Date.parse(row.asked_at) || Date.now(), userResponse: row.user_response ?? undefined, resolvedAt: row.resolved_at ? Date.parse(row.resolved_at) : undefined, status: row.status, createdAt: Date.parse(row.created_at) || Date.now(), updatedAt: Date.parse(row.updated_at) || Date.now() };
+    // Validated, not cast: this comes from a jsonb column and from other
+    // devices, so a malformed value must read as "none recorded".
+    const lifecycle = parseLifecycle(row.lifecycle);
+    return { id: String(row.id), key: row.question_key, question: row.question, category: row.category, reason: row.reason ?? "", priority: row.priority, relatedProjectId: row.related_project_id ?? undefined, relatedTask: row.related_task ?? undefined, blocksExecution: Boolean(row.blocks_execution), rememberAnswer: row.remember_answer !== false, askedAt: Date.parse(row.asked_at) || Date.now(), userResponse: row.user_response ?? undefined, resolvedAt: row.resolved_at ? Date.parse(row.resolved_at) : undefined, status: row.status, createdAt: Date.parse(row.created_at) || Date.now(), updatedAt: Date.parse(row.updated_at) || Date.now(),
+      // An empty jsonb is a row written before the lifecycle existed.
+      // Leaving it undefined lets ProactiveCore derive one from `status`,
+      // rather than inventing a "never shown" history for a question the
+      // user already closed.
+      ...(lifecycle ? { lifecycle } : {}) };
   }
 
   private toConversations(rows: RemoteRow[], messageRows: RemoteRow[]): ChatConversation[] {

@@ -40,6 +40,14 @@ import Sentinel from "../sentinel/Sentinel";
 import ProactiveCore, { type ProactiveQuestionInput } from "../proactive/ProactiveCore";
 import AgentEventBus from "../agent/AgentEvents";
 import SelfStudyEngine from "./SelfStudyEngine";
+import MultiChatStore from "../multichat/MultiChatStore";
+import { hasActiveWorkstream } from "../proactive/Workstream";
+import {
+  canAct,
+  intentEvidence,
+  resolveIntent,
+  type IntentInputs,
+} from "./ProjectIntent";
 
 export interface CognitiveCycleReport {
   updatedAt: number;
@@ -229,8 +237,15 @@ export default class CognitiveLoop {
       // nothing downstream of the hang ever runs again. SelfStudyEngine
       // already guards its steps this way; this loop did not.
       let memories = 0;
+      let memoryTexts: string[] = [];
       try {
-        memories = (await withDeadline(ai.getMemories(2000), [])).length;
+        const recalled = await withDeadline(ai.getMemories(2000), []);
+        memories = recalled.length;
+        // Kept as text, not just counted: intent resolution reads these to
+        // work out a project's next step instead of asking the user for it.
+        memoryTexts = recalled
+          .map((memory) => `${memory.prompt ?? ""} ${memory.response ?? ""}`.trim())
+          .filter((text) => text.length > 0);
       } catch {
         // memory may be empty or unavailable — observe as 0
       }
@@ -241,6 +256,7 @@ export default class CognitiveLoop {
       const openItems = allQueue.filter((item) => item.status === "open");
       const doneItems = allQueue.filter((item) => item.status === "done");
       const gaps = knowledge.gaps();
+      const proactiveCore = ProactiveCore.getInstance();
       const sandboxNodes = sandbox.list();
 
       // System environment facts refresh (storage estimate is async).
@@ -406,52 +422,83 @@ export default class CognitiveLoop {
         }
       }
 
-      /* ------------- DERIVE THE NEXT OBJECTIVE FIRST ------------- */
-      // A project that already states what it is for does not need the
-      // user to restate it. Where the project carries real intent — the
-      // user's original request, a stated objective, or research queries
-      // — cognition derives the next objective from THAT and queues it
-      // through the existing WorkQueue, instead of interrupting to ask
-      // "what should I prioritize there?". Asking is only correct when
-      // there is genuinely nothing to derive from.
-      for (const project of activeProjects) {
-        const intent =
-          project.objective?.trim() ||
-          project.originalRequest?.trim() ||
-          (project.queries?.length ? `Research: ${project.queries.join(", ")}` : "");
+      /* ------------- DERIVE BEFORE ASKING ------------- */
+      // A project that carries any real signal about what it is for does
+      // not need the user to restate it. Intent is resolved from
+      // everything that actually holds it — a checkpoint, a stated
+      // objective, the original request, research already started, an
+      // answer the user gave earlier, the project's own conversation,
+      // completed work, memories — and where that is strong enough,
+      // cognition queues the next step through the existing WorkQueue.
+      //
+      // Asking is the fallback for when every one of those is empty,
+      // which is the only case where the user genuinely knows something
+      // LÉLU cannot work out.
+      const chats = MultiChatStore.getInstance().listAll();
+      const resolvedQuestions = proactiveCore.listQuestions().filter(
+        (question) => question.status === "resolved" && question.userResponse,
+      );
 
-        // No stated intent, or work already queued for it — nothing to do.
-        if (!intent) continue;
+      /** Everything intent resolution needs about one project. */
+      const intentInputsFor = (project: (typeof activeProjects)[number]): IntentInputs => ({
+        project,
+        conversations: chats.filter((conversation) => conversation.projectId === project.id),
+        memories: memoryTexts.filter((text) =>
+          text.toLowerCase().includes(project.name.toLowerCase()),
+        ),
+        items: allQueue.filter((item) => item.detail?.includes(`project:${project.id}`)),
+        priorAnswers: resolvedQuestions
+          .filter((question) => question.relatedProjectId === project.id)
+          .map((question) => question.userResponse ?? ""),
+      });
+
+      /** Projects that still have no derivable direction after all of that. */
+      const undirected: typeof activeProjects = [];
+
+      for (const project of activeProjects) {
         if (project.items.length > 0) continue;
         const alreadyQueued = openItems.some(
           (item) => item.detail?.includes(`project:${project.id}`),
         );
         if (alreadyQueued) continue;
 
+        const inputs = intentInputsFor(project);
+        const intent = resolveIntent(inputs);
+
+        if (!canAct(intent)) {
+          undirected.push(project);
+          continue;
+        }
+
         const nextObjective =
           project.checkpoint?.nextAction?.trim() ||
-          `Advance “${project.name}”: ${intent.slice(0, 160)}`;
+          `Advance “${project.name}”: ${intent!.intent.slice(0, 160)}`;
 
         queue.add({
           category: "NEXT",
           title: nextObjective,
           // The project id is recorded so the same objective is not
           // queued again on the next tick, and so anything acting on the
-          // item can trace it back to the state it came from.
+          // item can trace it back to the state it came from. The source
+          // is recorded because "derived from your original request" and
+          // "inferred from conversation" deserve different trust.
           detail:
-            `Derived from persistent project state (project:${project.id}). ` +
+            `Derived from persistent project state (project:${project.id}, via ${intent!.source}). ` +
             `The project states its intent but has no open work item.`,
           autonomy: 2,
         });
 
-        suggestions.push(`Derived a next objective for “${project.name}” from its own stated intent.`);
+        suggestions.push(
+          `Derived a next objective for “${project.name}” from ${intent!.source} instead of asking.`,
+        );
       }
 
       /* ---------------- PROACTIVE QUESTIONS ---------------- */
       // Ask only about unresolved, actionable state. One pending question
-      // at a time keeps the conversation interruptible and the stable key
-      // prevents the same decision from returning after resolution/dismissal.
-      const proactive = ProactiveCore.getInstance();
+      // at a time keeps the conversation interruptible, and the stable
+      // key plus an evidence fingerprint make a repeated cycle a no-op
+      // rather than a repeated question.
+      const proactive = proactiveCore;
       if (proactive.shouldAskQuestions() && !proactive.getActiveQuestion()) {
         let question: ProactiveQuestionInput | null = null;
         const blockedItem = openItems.find(
@@ -468,6 +515,7 @@ export default class CognitiveLoop {
             relatedTask: blockedItem.title,
             blocksExecution: true,
             rememberAnswer: true,
+            evidence: `work-queue:${blockedItem.id}:${blockedItem.status}:${blockedItem.category}`,
           };
         } else {
           // Never ask the user to give direction to a project LÉLU
@@ -482,17 +530,15 @@ export default class CognitiveLoop {
           // outcome" about a project they never created, generated one
           // turn after LÉLU created it empty. A project the USER made and
           // left empty is worth asking about; this is not.
-          const directionProject = activeProjects.find(
+          //
+          // A project with a live workstream is also excluded: its topic
+          // is already being handled in its own conversation, and raising
+          // it globally is what turned every project into a global card.
+          const directionProject = undirected.find(
             (project) =>
-              project.items.length === 0 &&
               !project.queries?.length &&
               !(project.description ?? "").startsWith("Auto-created for") &&
-              // ...and nothing to derive an objective from. If the project
-              // states an objective or carries the user's original
-              // request, the loop above already turned that into queued
-              // work, so asking would be asking for what she was given.
-              !project.objective?.trim() &&
-              !project.originalRequest?.trim(),
+              !hasActiveWorkstream(project.id),
           );
           if (directionProject) {
             question = {
@@ -505,6 +551,10 @@ export default class CognitiveLoop {
               relatedTask: directionProject.name,
               blocksExecution: false,
               rememberAnswer: true,
+              // The situation, not the clock. While this fingerprint is
+              // unchanged the question is already asked; when the project
+              // genuinely moves, it is allowed to evolve.
+              evidence: intentEvidence(intentInputsFor(directionProject)),
             };
           } else if (sandboxNodes.some((node) => node.type === "file")) {
             question = {
@@ -516,6 +566,7 @@ export default class CognitiveLoop {
               relatedTask: "sandbox work",
               blocksExecution: false,
               rememberAnswer: true,
+              evidence: `sandbox:${sandboxNodes.filter((node) => node.type === "file").length}`,
             };
           }
         }
