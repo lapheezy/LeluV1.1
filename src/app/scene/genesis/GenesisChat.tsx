@@ -50,6 +50,8 @@ import ProactiveCore, { type ProactiveQuestion } from "../../../core/proactive/P
 import { openWorkstream } from "../../../core/proactive/Workstream";
 import { markPerf } from "../../../core/perf/StartupTelemetry";
 import { cleanAssistantText } from "../../../core/router/ToolMarkup";
+import { useWorkspace } from "./useWorkspace";
+import { layer } from "../../../core/ui/Layers";
 
 const ai = AIService.getInstance();
 const proactive = ProactiveCore.getInstance();
@@ -742,24 +744,47 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   const [chatMinimized, setChatMinimized] = useState(false);
   const dragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0, posX: 0, posY: 0, height: 480 });
-  const [isMobileViewport, setIsMobileViewport] = useState(() =>
-    typeof window !== "undefined" && window.matchMedia("(max-width: 720px)").matches,
-  );
+  // Measured from the workspace container, not the window — inside the
+  // Freebuff workspace those differ, which is what clipped panels.
+  const workspace = useWorkspace();
+  /**
+   * One source of truth for "is there room for the desktop layout".
+   *
+   * This was a `matchMedia("(max-width: 720px)")` on the WINDOW, while
+   * the dock used its own threshold on the same window and the module
+   * host used a third. Inside the Freebuff workspace the window is wider
+   * than the space available, so the chat laid itself out for desktop in
+   * a container that could not fit it — and because each component chose
+   * independently, the dock could disagree and put its controls in the
+   * same place.
+   *
+   * Now it is the measured container, shared by everything.
+   */
+  const isMobileViewport = workspace.width <= 720;
   const [mobileHeight, setMobileHeight] = useState<number | null>(null);
   const mobileResizeRef = useRef<{ startY: number; startHeight: number } | null>(null);
 
+  /**
+   * The chat's real rendered width at the current size and workspace.
+   *
+   * The clamps below assumed a flat 400px. The desktop/tablet chat is
+   * 380/560/720 depending on `chatSize`, so a 560px chat was being
+   * allowed to sit at an x that put 151px of it — including the send
+   * control — past the right edge, unreachable. Measured at tablet:
+   * left=411 right=971 in an 820px workspace.
+   */
+  const floatWidth = (() => {
+    const cap = chatSize === "compact" ? 380 : chatSize === "large" ? 720 : 560;
+    const available = Math.max(0, workspace.width - 16);
+    return Math.min(available, isMobileViewport ? Math.min(available, 400) : cap);
+  })();
+
+
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 720px)");
-    const handleViewportChange = (event: MediaQueryListEvent) => {
-      setIsMobileViewport(event.matches);
-      if (!event.matches) {
-        setMobileHeight(null);
-      }
-    };
-    setIsMobileViewport(mediaQuery.matches);
-    mediaQuery.addEventListener("change", handleViewportChange);
-    return () => mediaQuery.removeEventListener("change", handleViewportChange);
-  }, []);
+    // Leaving the compact layout releases the hand-set sheet height, so
+    // the desktop layout is not stuck at a phone-sized height.
+    if (!isMobileViewport) setMobileHeight(null);
+  }, [isMobileViewport]);
 
   /**
    * ORIENTATION SURVIVAL.
@@ -777,12 +802,16 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
    */
   useEffect(() => {
     const clampToViewport = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
+      // Clamp into the WORKSPACE, not the window: a chat clamped to a
+      // window wider than its container stays parked outside the
+      // container, which looks identical to the disappearance this
+      // guard exists to prevent.
+      const width = workspace.width;
+      const height = workspace.visibleHeight;
 
       setChatPos((current) => {
         if (current.x < 0 && current.y < 0) return current; // centered
-        const floatW = Math.min(width - 16, 400);
+        const floatW = floatWidth;
         const maxX = Math.max(8, width - floatW - 8);
         const maxY = Math.max(8, height - 160);
         const x = Math.max(8, Math.min(maxX, current.x));
@@ -797,18 +826,12 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       });
     };
 
+    // Workspace already watches the container, the visual viewport and
+    // orientation, so re-running on its metrics covers every case these
+    // three listeners did — including a container resize that leaves the
+    // window unchanged, which none of them fired for.
     clampToViewport();
-    window.addEventListener("resize", clampToViewport);
-    window.addEventListener("orientationchange", clampToViewport);
-    // iOS reports the real usable area here when the URL bar/keyboard move.
-    const visual = window.visualViewport;
-    visual?.addEventListener("resize", clampToViewport);
-    return () => {
-      window.removeEventListener("resize", clampToViewport);
-      window.removeEventListener("orientationchange", clampToViewport);
-      visual?.removeEventListener("resize", clampToViewport);
-    };
-  }, []);
+  }, [workspace.width, workspace.visibleHeight]);
 
   /* ----- Auto-scroll: follow LELU's response, allow manual scroll-up ----- */
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -861,12 +884,12 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     if (!dragging.current) return;
     const dx = e.clientX - dragStart.current.x;
     const dy = e.clientY - dragStart.current.y;
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    const width = workspace.width;
+    const height = workspace.visibleHeight;
 
     if (isMobileViewport) {
       // On mobile: freely repositionable but stays fully on screen
-      const floatW = Math.min(width - 16, 400);
+      const floatW = floatWidth;
       const maxX = Math.max(8, width - floatW - 8);
       const maxY = Math.max(8, height - MOBILE_PILL_RESERVE - 400);
       setChatPos({
@@ -877,8 +900,12 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     }
 
     const maxY = Math.max(8, height - dragStart.current.height - 8);
+    // Keep the WHOLE chat on screen, not just 120px of it: the old bound
+    // let a 560px panel hang 440px past the right edge, where the send
+    // control is unreachable.
+    const maxX = Math.max(8, width - floatWidth - 8);
     setChatPos({
-      x: Math.max(8, Math.min(width - 120, dragStart.current.posX + dx)),
+      x: Math.max(8, Math.min(maxX, dragStart.current.posX + dx)),
       y: Math.max(8, Math.min(maxY, dragStart.current.posY + dy)),
     });
   }
@@ -921,7 +948,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0 }}
         style={{
-          position: "fixed", zIndex: 25, bottom: 32, right: 24,
+          position: "fixed", zIndex: layer("navigation"), bottom: 32, right: 24,
           pointerEvents: "auto",
           background: "rgba(8,16,38,0.82)", backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)", borderRadius: 999,
@@ -929,6 +956,8 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
           border: "1px solid rgba(103,232,249,0.25)", cursor: "pointer",
           boxShadow: "0 8px 32px rgba(2,6,23,0.5)",
         }}
+        data-lelu-chat-bubble
+        aria-label="Open chat"
         onClick={() => setChatMinimized(false)}
       >
         <span style={{ fontSize: 16 }}>◎</span>
@@ -948,7 +977,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
 
   const windowStyle: CSSProperties = {
     position: "fixed",
-    zIndex: 21,
+    zIndex: layer("panel"),
     pointerEvents: "auto",
     ...(isMobileViewport
       ? isFloatingMobile
@@ -975,7 +1004,19 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       : chatCorner
         ? { right: 16, bottom: 16, top: "auto", left: "auto", transform: "none" }
         : isCentered
-          ? { left: "50%", top: "50%", transform: "translate(-50%,-45%)" }
+          ? {
+              // Centred by MEASUREMENT, not by a transform.
+              //
+              // This was `left: 50%` with `transform: translate(-50%,-45%)`,
+              // but this element is a motion.div and framer-motion owns
+              // `transform` for its enter animation — so the correction was
+              // clobbered and the chat's LEFT EDGE sat at the centre. At
+              // 1440px a 560px chat still fitted, so it looked fine; at
+              // 820px it hung 150px off the right edge, taking the send
+              // control with it. Measured: left=411 right=971 in 820px.
+              left: Math.max(8, Math.round((workspace.width - floatWidth) / 2)),
+              top: Math.max(8, Math.round(workspace.visibleHeight * 0.1)),
+            }
           : { left: chatPos.x, top: chatPos.y }),
     ...(isMobileViewport ? {} : sizeStyles[chatSize]),
     display: "flex", flexDirection: "column",
@@ -1205,11 +1246,23 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         <div
           data-lelu-proactive-question
           style={{
+            // A transient cognition surface, on the notification layer and
+            // explicitly BELOW the composer: the brief is that a suggestion
+            // must never cover the controls the user is typing into. It also
+            // stays in the chat's own flow (flexShrink/minWidth rather than
+            // absolute positioning) so it cannot overlap anything — it
+            // yields space instead of taking it.
+            zIndex: layer("notification"),
             flexShrink: 0,
             display: "flex",
             alignItems: "flex-start",
             gap: 8,
             padding: "8px 12px",
+            // Long questions wrap rather than forcing the row wider than
+            // the workspace, which clipped the dismiss control off-screen
+            // on compact widths.
+            flexWrap: workspace.compact ? "wrap" : "nowrap",
+            maxWidth: "100%",
             borderTop: "1px solid rgba(251, 191, 36, 0.18)",
             background: "rgba(251, 191, 36, 0.06)",
             color: "rgba(254, 243, 199, 0.92)",
@@ -1572,7 +1625,9 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
               ? `calc(clamp(120px, 20vh, 200px) + env(safe-area-inset-bottom, 0px))`
               : `calc(clamp(268px, 33vh, 336px) + ${MOBILE_PILL_RESERVE}px + env(safe-area-inset-bottom, 0px))`,
             transform: "translateX(-50%)",
-            zIndex: 28,
+            // Quick actions belong with the composer, above navigation:
+            // they were landing under the dock.
+            zIndex: layer("composer"),
             display: "flex",
             flexWrap: "wrap",
             justifyContent: "center",

@@ -18,13 +18,14 @@
 
 import { useMemo, useState, type CSSProperties, type MouseEvent } from "react";
 import { useGenesis } from "./GenesisCore";
+import { layer } from "../../../core/ui/Layers";
 
 const barStyle: CSSProperties = {
   position: "fixed",
   left: "50%",
   top: "56px",
   transform: "translateX(-50%)",
-  zIndex: 26,
+  zIndex: layer("tabs"),
   display: "flex",
   alignItems: "center",
   gap: 6,
@@ -304,7 +305,7 @@ export default function MultiChatTabs() {
             left: "50%",
             top: "96px",
             transform: "translateX(-50%)",
-            zIndex: 27,
+            zIndex: layer("tabs") + 1,
             width: "min(92vw, 560px)",
             padding: 8,
             borderRadius: 16,

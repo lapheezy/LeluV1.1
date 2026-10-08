@@ -25,6 +25,7 @@ import GenesisMobileMenu from "./GenesisMobileMenu";
 import KvStore from "../../../core/storage/KvStore";
 import OgDockTabs from "./OgDockTabs";
 import ImprovementQueue from "../../../core/selfdev/ImprovementQueue";
+import { layer, within } from "../../../core/ui/Layers";
 
 export interface DockItem {
   id: GenesisPanel;
@@ -708,7 +709,7 @@ export default function GenesisDock({
             style={{
               position: "fixed",
               inset: 0,
-              zIndex: 26,
+              zIndex: within("navigation", 1),
               background: "rgba(2,6,23,0.45)",
               pointerEvents: "auto",
             }}
@@ -781,11 +782,16 @@ export default function GenesisDock({
           className={`lelu-tab-cloud${menuOpen ? " lelu-tab-cloud-active" : ""}`}
           title="LÉLU menu — tools, workspace, environments (long-press for voice)"
           aria-label="Open LÉLU menu"
+          // On phones this pill IS the primary navigation, so it carries the
+          // dock marker: layout verification asks "where is the dock" and
+          // must get an answer at every breakpoint, not just the two that
+          // render a rail.
+          data-lelu-dock
           style={{
             position: "fixed",
             right: 12,
             bottom: "calc(env(safe-area-inset-bottom, 0px) + 10px)",
-            zIndex: 28,
+            zIndex: within("navigation", 3),
             pointerEvents: "auto",
             display: "inline-flex",
             alignItems: "center",
@@ -842,13 +848,14 @@ export default function GenesisDock({
     return (
       <>
         <div
+          data-lelu-dock
           className="lelu-tab-bar"
           style={{
             position: "fixed",
             top: "50%",
             left: 12,
             transform: "translateY(-50%)",
-            zIndex: 25,
+            zIndex: layer("navigation"),
             pointerEvents: "auto",
             display: "flex",
             flexDirection: "column",
@@ -991,6 +998,7 @@ export default function GenesisDock({
   return (
     <>
       <div
+        data-lelu-dock
         className="lelu-tab-bar"
         style={{
           position: "fixed",
@@ -998,7 +1006,7 @@ export default function GenesisDock({
           left: 0,
           bottom: 0,
           width: 80,
-          zIndex: 25,
+          zIndex: layer("navigation"),
           pointerEvents: "auto",
           display: "flex",
           flexDirection: "column",

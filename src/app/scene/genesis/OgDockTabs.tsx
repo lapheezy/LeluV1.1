@@ -21,6 +21,8 @@
  */
 
 import { useNavigate } from "react-router-dom";
+import { layer } from "../../../core/ui/Layers";
+import { useWorkspace } from "./useWorkspace";
 
 export interface OgDockTabsProps {
   /** The dock's tab size, so OG tabs match the rail exactly. */
@@ -33,7 +35,11 @@ const OG_SURFACES = [
   { to: "/og/chat", glyph: "◗", label: "OG Chat", title: "OG Chat — the Inner Sky conversation" },
 ] as const;
 
+/** Height of the mobile LÉLU pill plus its own bottom gap and a margin. */
+const MOBILE_PILL_CLEARANCE = 56;
+
 export default function OgDockTabs({ railSize, iconSize }: OgDockTabsProps) {
+  const workspace = useWorkspace();
   const navigate = useNavigate();
 
   // Self-positioning, because the dock has three different shapes at three
@@ -45,8 +51,18 @@ export default function OgDockTabs({ railSize, iconSize }: OgDockTabsProps) {
       style={{
         position: "fixed",
         right: 12,
-        bottom: "calc(12px + env(safe-area-inset-bottom, 0px))",
-        zIndex: 30,
+        // On compact widths the primary LÉLU pill occupies this exact corner
+        // (right: 12, bottom: safe-area + 10). Both clusters claimed it, and
+        // because these tabs paint higher they intercepted every tap meant
+        // for the pill — measured with elementFromPoint, which returned "OG
+        // Core" at the pill's own centre. On a phone that pill is the only
+        // way to open the chat, so this moves ABOVE it rather than onto it.
+        // Raising a z-index would not have helped: the problem is two
+        // persistent surfaces sharing one piece of screen.
+        bottom: workspace.compact
+          ? `calc(${MOBILE_PILL_CLEARANCE}px + env(safe-area-inset-bottom, 0px))`
+          : "calc(12px + env(safe-area-inset-bottom, 0px))",
+        zIndex: layer("tabs"),
         display: "flex",
         gap: 8,
         pointerEvents: "auto",

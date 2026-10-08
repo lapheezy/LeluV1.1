@@ -21,6 +21,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { layer } from "../../../core/ui/Layers";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useGenesis } from "./GenesisCore";
@@ -220,7 +221,7 @@ export default function GenesisCommandPalette({
               inset: 0,
               background: "rgba(2, 6, 23, 0.55)",
               backdropFilter: "blur(4px)",
-              zIndex: 60,
+              zIndex: layer("overlay"),
               pointerEvents: "auto",
               display: "flex",
               justifyContent: "center",

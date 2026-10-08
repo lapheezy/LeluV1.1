@@ -17,6 +17,8 @@
  * ==========================================================
  */
 
+import { layer } from "../../../core/ui/Layers";
+
 /** A thematic group maps real dock/module ids to a LÉLU label. */
 interface MobileMenuEntry {
   id: string;
@@ -163,7 +165,7 @@ export default function GenesisMobileMenu({
         left: 8,
         right: 8,
         bottom: "calc(env(safe-area-inset-bottom, 0px) + 64px)",
-        zIndex: 27,
+        zIndex: layer("navigation"),
         pointerEvents: "auto",
         borderRadius: 24,
         background: "linear-gradient(150deg, rgba(15,23,46,0.98) 0%, rgba(30,41,59,0.94) 55%, rgba(2,8,23,0.98) 100%)",

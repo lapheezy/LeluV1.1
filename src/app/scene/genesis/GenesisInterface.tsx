@@ -23,6 +23,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useWorkspaceRoot } from "./useWorkspace";
 import { useGenesis, type GenesisPanel } from "./GenesisCore";
 import GenesisModuleHost, { type ModuleRenderers } from "./GenesisModuleHost";
 import UIStateStore from "../../../core/cognition/UIStateStore";
@@ -226,6 +227,7 @@ function GenesisMinimizeButton() {
 let genesisInterfaceMountCount = 0;
 
 export default function GenesisInterface() {
+  const attachWorkspaceRoot = useWorkspaceRoot();
   const {
     state,
     universe,
@@ -565,6 +567,12 @@ export default function GenesisInterface() {
   return (
     <div
       data-workspace="genesis-unified"
+      // The measurement root. Every panel, the dock, the composer and the
+      // notification layer size themselves from THIS element rather than
+      // from window.innerWidth, so the interface fits the space it is
+      // actually given — inside the Freebuff workspace that is smaller
+      // than the window, which is why panels were being clipped.
+      ref={attachWorkspaceRoot}
       style={{
         position: "fixed",
         inset: 0,

@@ -26,6 +26,7 @@ import PersistentRuntime from "../../../core/proactive/PersistentRuntime";
 import ProjectStore from "../../../core/projects/ProjectStore";
 import AvatarStore from "../../../core/avatar/AvatarProfile";
 import UIStateStore from "../../../core/cognition/UIStateStore";
+import PersistenceStateStore from "../../../core/persistence/PersistenceState";
 
 const ai = AIService.getInstance();
 const proactive = ProactiveCore.getInstance();
@@ -150,6 +151,15 @@ export default function ProactiveBridge() {
     const runtime = PersistentRuntime.getInstance();
     runtime.start();
     return () => runtime.stop();
+  }, []);
+
+  /* Persistence state is INFRASTRUCTURE, so it is followed from the
+     runtime rather than from the settings panel that used to be its only
+     home. Nothing here opens a connection or holds a client —
+     SupabasePersistence stays the single Supabase client; this republishes
+     what it already knows so any surface can show it. */
+  useEffect(() => {
+    PersistenceStateStore.getInstance().attach();
   }, []);
 
   return null;
