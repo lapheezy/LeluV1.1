@@ -648,6 +648,20 @@ export default class ToolRegistry {
         executionRoute: "EngineeringWorkspace.gitStatus",
         verificationMethod: "raw git output",
       },
+      {
+        id: "system.config",
+        name: "Read Configuration Status",
+        description:
+          "Report which capabilities are configured and, for the ones that are not, which " +
+          "environment variable is missing. Names and presence only — this cannot read a " +
+          "secret's value. Use it when something is unavailable and you need to say why.",
+        category: "System",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "ConfigStatus.describeConfiguration",
+        verificationMethod: "resolves through the same env resolver the providers use",
+      },
       /* ---- workflows: the same tool path as everything else ---- */
       {
         id: "workflow.list",

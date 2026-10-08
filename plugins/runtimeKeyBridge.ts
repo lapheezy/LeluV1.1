@@ -85,43 +85,29 @@ export interface BridgedKey {
   readonly aliases: readonly string[];
 }
 
+/**
+ * WHAT MUST NEVER COME BACK HERE
+ * ------------------------------
+ * Model-provider credentials. This list is inlined into the served HTML as
+ * window.__LELU_*__, so anything in it is readable by anyone who opens the
+ * page — and it ships inside the Android bundle.
+ *
+ * The eight remote AI providers (Groq, OpenRouter, Cerebras, Mistral,
+ * Fireworks, Anthropic, Gemini, GitHub Models) are brokered: their requests
+ * go to /api/model/<id>, where the SERVER resolves the credential and
+ * attaches it. The browser no longer needs one to send a request, and
+ * no longer decides whether a provider is configured — /api/model/status
+ * answers that with booleans. See src/core/model/BrokerTransport.ts.
+ *
+ * So adding a VITE_<PROVIDER>_API_KEY entry below would not enable anything.
+ * It would only put a secret back on the page.
+ *
+ * What belongs here: non-secret runtime configuration — model names, base
+ * URLs, and the Supabase publishable key, which is designed to be public
+ * because RLS and not key secrecy is what protects that data. The Supabase
+ * SERVICE ROLE key does bypass RLS and must never appear.
+ */
 export const BRIDGED_KEYS: readonly BridgedKey[] = [
-  // ---- AI chat provider credentials (fallback priority order) ----
-  {
-    viteName: "VITE_GROQ_API_KEY",
-    globalName: "__LELU_GROQ_API_KEY__",
-    aliases: ["GROQ_API_KEY"],
-  },
-  {
-    viteName: "VITE_OPENROUTER_API_KEY",
-    globalName: "__LELU_OPENROUTER_API_KEY__",
-    aliases: ["OPENROUTER_API_KEY", "OPEN_ROUTER_API_KEY"],
-  },
-  {
-    viteName: "VITE_CEREBRAS_API_KEY",
-    globalName: "__LELU_CEREBRAS_API_KEY__",
-    aliases: ["CEREBRAS_API_KEY"],
-  },
-  {
-    viteName: "VITE_MISTRAL_API_KEY",
-    globalName: "__LELU_MISTRAL_API_KEY__",
-    aliases: ["MISTRAL_API_KEY"],
-  },
-  {
-    viteName: "VITE_FIREWORKS_API_KEY",
-    globalName: "__LELU_FIREWORKS_API_KEY__",
-    aliases: ["FIREWORKS_API_KEY"],
-  },
-  {
-    // ANTHROPIC_API_KEY is the name the Anthropic SDK, the Codespaces
-    // secret UI and every shell export use; it is the ONLY name most
-    // environments will ever carry, so the alias is what actually
-    // resolves in practice and VITE_ANTHROPIC_API_KEY is the override.
-    viteName: "VITE_ANTHROPIC_API_KEY",
-    globalName: "__LELU_ANTHROPIC_API_KEY__",
-    aliases: ["ANTHROPIC_API_KEY", "CLAUDE_API_KEY"],
-  },
-
   // ---- Model overrides (not secrets, same resolution shape) ----
   {
     viteName: "VITE_GROQ_MODEL",
@@ -154,6 +140,39 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     aliases: ["ANTHROPIC_MODEL"],
   },
 
+  // ---- Supabase (persistence + the OG archive) ----
+  //
+  // Same class of bug as the three below, and it is why Supabase has never
+  // worked from environment configuration. SupabasePersistence and the OG
+  // client both resolve VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY
+  // through the standard chain, which in the BROWSER can only see
+  // import.meta.env or a __LELU_*__ global — there is no process.env out
+  // there. With no bridge entry, setting SUPABASE_URL and
+  // SUPABASE_PUBLISHABLE_KEY in the environment configured the server and
+  // left the browser permanently unconfigured, reporting "disabled" with
+  // perfectly good credentials sitting in the environment.
+  //
+  // Publishable/anon keys are meant to be public — RLS is what protects the
+  // data, not the key's secrecy — so bridging them is correct and matches how
+  // every other browser-read credential here is handled. A project URL is not
+  // a secret at all. The SERVICE ROLE key is deliberately absent and must
+  // stay absent: that one does bypass RLS and must never reach a bundle.
+  {
+    viteName: "VITE_SUPABASE_URL",
+    globalName: "__LELU_SUPABASE_URL__",
+    aliases: ["SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL"],
+  },
+  {
+    viteName: "VITE_SUPABASE_PUBLISHABLE_KEY",
+    globalName: "__LELU_SUPABASE_PUBLISHABLE_KEY__",
+    aliases: [
+      "SUPABASE_PUBLISHABLE_KEY",
+      "SUPABASE_ANON_KEY",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    ],
+  },
+
   // These three are read by BROWSER code (NewsProvider, YouTubeProvider,
   // Avatar3DReconstructor) but had no bridge entry, so the unprefixed
   // name resolved on the server — where Environment.ts can reach
@@ -173,12 +192,6 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     viteName: "VITE_MESHY_API_KEY",
     globalName: "__LELU_MESHY_API_KEY__",
     aliases: ["MESHY_API_KEY"],
-  },
-  // ---- Keys for the providers added alongside the endpoint registry ----
-  {
-    viteName: "VITE_GEMINI_API_KEY",
-    globalName: "__LELU_GEMINI_API_KEY__",
-    aliases: ["GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_GENERATIVE_AI_API_KEY"],
   },
   {
     viteName: "VITE_GEMINI_MODEL",

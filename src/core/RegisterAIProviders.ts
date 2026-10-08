@@ -8,6 +8,9 @@
 import AIProviderRegistry
   from "./AIProviderRegistry";
 
+import { primeBrokerStatus }
+  from "./model/BrokerTransport";
+
 import OpenRouterProvider
   from "../providers/OpenRouterProvider";
 
@@ -37,6 +40,15 @@ import LocalInferenceProvider
 
 
 export default function registerAIProviders() {
+
+  // Ask the server once, up front, which providers it can reach. Provider
+  // availability is the SERVER's answer now (the browser holds no key to form
+  // its own), and warming the cache here keeps the first turn from paying for
+  // the lookup. Fire-and-forget: until it lands providerConfigured() lets
+  // providers into the chain and a real attempt decides, so a cold start never
+  // silently drops a working provider.
+  void primeBrokerStatus();
+
 
   const registry =
     new AIProviderRegistry();

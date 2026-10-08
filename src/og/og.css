@@ -1,0 +1,388 @@
+/*
+ * OG interface stylesheet — Tailwind v4, scoped to the OG subtree.
+ *
+ * Two deliberate departures from the OG original:
+ *
+ * 1. Preflight is NOT imported. v1.1 styles every element with inline
+ *    style objects and has no reset of its own; Tailwind's preflight is
+ *    global and un-scopable, so importing it would restyle the whole
+ *    Genesis UI the moment an OG route was visited. The parts OG
+ *    actually relies on (border-box, zeroed margins, inherited font)
+ *    are reproduced below under .og-root instead, where they reach OG
+ *    components and nothing else.
+ *
+ * 2. @source scans this directory rather than "../src", so utility
+ *    generation covers the OG tree only and v1.1's 131k lines are not
+ *    walked on every rebuild.
+ */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@source ".";
+@import "tw-animate-css";
+
+/* Scoped stand-in for Tailwind preflight. */
+@layer base {
+  .og-root,
+  .og-root *,
+  .og-root *::before,
+  .og-root *::after {
+    box-sizing: border-box;
+    border: 0 solid;
+  }
+  .og-root {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    font-family: inherit;
+    line-height: 1.5;
+  }
+  .og-root h1, .og-root h2, .og-root h3,
+  .og-root h4, .og-root h5, .og-root h6,
+  .og-root p, .og-root figure, .og-root blockquote,
+  .og-root dl, .og-root dd { margin: 0; font-size: inherit; font-weight: inherit; }
+  .og-root ol, .og-root ul, .og-root menu { list-style: none; margin: 0; padding: 0; }
+  .og-root button, .og-root input, .og-root textarea, .og-root select {
+    font: inherit; color: inherit; margin: 0;
+  }
+  .og-root button { background: none; cursor: pointer; }
+  .og-root img, .og-root svg, .og-root video, .og-root canvas {
+    display: block; max-width: 100%;
+  }
+  .og-root a { color: inherit; text-decoration: inherit; }
+}
+
+
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system definition.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * The :root and .dark blocks define the actual color values using oklch.
+ * All colors MUST use oklch format.
+ *
+ * To add a new semantic color:
+ * 1. Add the variable to :root (light value) and .dark (dark value)
+ * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-sun: var(--sun);
+  --color-sun-core: var(--sun-core);
+  --color-firmament: var(--firmament);
+  --color-water: var(--water);
+  --color-sky-low: var(--sky-low);
+  --color-sky-mid: var(--sky-mid);
+  --color-sky-high: var(--sky-high);
+  --color-cosmos: var(--cosmos);
+}
+
+.og-root {
+  --radius: 0.875rem;
+  /* Living cosmos palette — sunset above water dissolving into the cosmos */
+  --cosmos: oklch(0.18 0.06 285);
+  --sky-high: oklch(0.28 0.09 295);
+  --sky-mid: oklch(0.42 0.14 25);
+  --sky-low: oklch(0.62 0.18 45);
+  --firmament: oklch(0.85 0.12 75);
+  --water: oklch(0.22 0.05 250);
+  --sun-core: oklch(0.96 0.13 90);
+  --sun: oklch(0.82 0.18 70);
+
+  --background: var(--cosmos);
+  --foreground: oklch(0.97 0.01 80);
+  --card: oklch(0.22 0.05 280 / 0.55);
+  --card-foreground: oklch(0.97 0.01 80);
+  --popover: oklch(0.18 0.05 280 / 0.92);
+  --popover-foreground: oklch(0.97 0.01 80);
+  --primary: var(--sun-core);
+  --primary-foreground: oklch(0.18 0.05 280);
+  --secondary: oklch(1 0 0 / 0.06);
+  --secondary-foreground: oklch(0.97 0.01 80);
+  --muted: oklch(1 0 0 / 0.04);
+  --muted-foreground: oklch(0.78 0.03 80 / 0.75);
+  --accent: oklch(1 0 0 / 0.08);
+  --accent-foreground: oklch(0.97 0.01 80);
+  --destructive: oklch(0.67 0.22 25);
+  --destructive-foreground: oklch(0.98 0.01 80);
+  --border: oklch(1 0 0 / 0.1);
+  --input: oklch(1 0 0 / 0.08);
+  --ring: var(--sun);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.18 0.05 280);
+  --sidebar-foreground: oklch(0.97 0.01 80);
+  --sidebar-primary: var(--sun);
+  --sidebar-primary-foreground: oklch(0.18 0.05 280);
+  --sidebar-accent: oklch(1 0 0 / 0.06);
+  --sidebar-accent-foreground: oklch(0.97 0.01 80);
+  --sidebar-border: oklch(1 0 0 / 0.08);
+  --sidebar-ring: var(--sun);
+}
+
+.og-root.dark, .dark .og-root {
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.279 0.041 260.031);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.551 0.027 264.364);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-cosmos);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  html, body, #root {
+    height: 100%;
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: 0.01em;
+  }
+}
+
+/* ---------------- Living universe ---------------- */
+
+/* Sunset → cosmos gradient (water at bottom, firmament line, cosmos above) */
+.universe-sky {
+  background:
+    radial-gradient(120% 80% at 50% 90%, oklch(0.78 0.18 60 / 0.65) 0%, transparent 55%),
+    linear-gradient(
+      to bottom,
+      var(--cosmos) 0%,
+      oklch(0.22 0.08 290) 18%,
+      var(--sky-high) 34%,
+      var(--sky-mid) 52%,
+      var(--sky-low) 66%,
+      oklch(0.78 0.17 60) 72%
+    );
+}
+
+/* The reflective river — sits below the firmament line at ~72% viewport height */
+.universe-water {
+  background:
+    linear-gradient(
+      to bottom,
+      oklch(0.42 0.12 50) 0%,
+      oklch(0.26 0.08 280) 18%,
+      oklch(0.18 0.06 275) 55%,
+      oklch(0.12 0.04 275) 100%
+    );
+}
+
+.universe-water::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 6px,
+      oklch(1 0 0 / 0.04) 6px 7px
+    );
+  mix-blend-mode: overlay;
+  animation: ripple 14s ease-in-out infinite;
+}
+
+@keyframes ripple {
+  0%, 100% { transform: translateY(0); opacity: 0.6; }
+  50%      { transform: translateY(2px); opacity: 0.9; }
+}
+
+/* Firmament — a luminous horizon line */
+.universe-firmament {
+  background:
+    linear-gradient(to bottom,
+      transparent 0%,
+      oklch(0.97 0.1 80 / 0.0) 30%,
+      oklch(0.97 0.14 80 / 0.85) 50%,
+      oklch(0.97 0.1 80 / 0.0) 70%,
+      transparent 100%);
+  filter: blur(0.5px);
+  box-shadow:
+    0 0 24px oklch(0.95 0.14 80 / 0.55),
+    0 0 60px oklch(0.85 0.18 60 / 0.35);
+}
+
+/* ---------------- The sun (Lélu) ---------------- */
+
+.sun-orb {
+  --sun-hue: 70;
+  background:
+    radial-gradient(circle at 50% 45%,
+      oklch(1 0.05 calc(var(--sun-hue) + 15)) 0%,
+      oklch(0.96 0.13 calc(var(--sun-hue) + 20)) 18%,
+      oklch(0.82 0.18 var(--sun-hue)) 45%,
+      oklch(0.7 0.2 calc(var(--sun-hue) - 20) / 0.6) 75%,
+      transparent 100%);
+  box-shadow:
+    0 0 60px 10px oklch(0.92 0.16 var(--sun-hue) / 0.55),
+    0 0 160px 40px oklch(0.85 0.18 calc(var(--sun-hue) - 15) / 0.4),
+    0 0 300px 80px oklch(0.7 0.18 calc(var(--sun-hue) - 30) / 0.25);
+  transition: background 1.2s ease, box-shadow 1.2s ease;
+}
+
+.sun-aura {
+  background: radial-gradient(circle,
+    oklch(0.95 0.14 75 / 0.35) 0%,
+    oklch(0.85 0.18 60 / 0.15) 35%,
+    transparent 55%);
+  animation: sun-breathe 6s ease-in-out infinite;
+}
+
+@keyframes sun-breathe {
+  0%, 100% { transform: scale(1);    opacity: 0.85; }
+  50%      { transform: scale(1.08); opacity: 1; }
+}
+
+/* ---------------- Drifting stars ---------------- */
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 9999px;
+  background: oklch(1 0 0);
+  box-shadow: 0 0 4px oklch(1 0 0 / 0.8);
+  animation: star-drift linear infinite, star-twinkle ease-in-out infinite;
+}
+
+@keyframes star-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(40px, 0, 0); }
+}
+
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 1; }
+}
+
+/* Chat emerges from the sun */
+@keyframes emerge-from-sun {
+  0%   { opacity: 0; transform: scale(0.4); filter: blur(12px); }
+  60%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+.emerge {
+  animation: emerge-from-sun 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up { animation: fade-up 600ms ease-out both; }
+
+/* Sun bloom — the moment Lélu opens, the sun expands and floods the screen */
+@keyframes sun-bloom {
+  0%   { transform: scale(1);   filter: brightness(1)   blur(0);   opacity: 1; }
+  60%  { transform: scale(6);   filter: brightness(1.6) blur(2px); opacity: 1; }
+  100% { transform: scale(14);  filter: brightness(2)   blur(8px); opacity: 0; }
+}
+
+.sun-bloom { animation: sun-bloom 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+@keyframes light-flash {
+  0%   { opacity: 0; }
+  40%  { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+
+.light-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 42%,
+    oklch(1 0.08 85 / 0.9) 0%,
+    oklch(0.95 0.16 75 / 0.6) 20%,
+    transparent 60%);
+  animation: light-flash 900ms ease-out forwards;
+  z-index: 5;
+}

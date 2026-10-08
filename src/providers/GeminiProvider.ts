@@ -9,8 +9,10 @@ import type AIProvider from "./AIProvider";
 import type { AIRequest, AIResponse, AIProviderHealth, ToolCall } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
-import { endpoint } from "../core/Endpoints";
+import { endpointUrl } from "../core/Endpoints";
+import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveFirst } from "../core/resolveEnv";
+import { resolveModel } from "../core/ProviderModels";
 
 interface GeminiPart {
   text?: string;
@@ -37,30 +39,29 @@ export default class GeminiProvider implements AIProvider {
 
   private apiKey = "";
   private initialized = false;
-  private model = "gemini-2.0-flash";
+  private model = resolveModel("gemini");
 
   async initialize(): Promise<void> {
-    this.model = resolveFirst("GEMINI_MODEL") ?? "gemini-2.0-flash";
+    this.model = resolveModel("gemini");
     this.apiKey =
       resolveFirst("GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_GENERATIVE_AI_API_KEY") ?? "";
     this.initialized = true;
 
     console.info("[GeminiProvider] Initialized", {
       hasKey: this.apiKey.length > 0,
-      keyLength: this.apiKey.length,
       model: this.model,
     });
   }
 
   async isAvailable(): Promise<boolean> {
-    return this.initialized && this.enabled && this.apiKey.length > 0;
+    return this.initialized && this.enabled && providerConfigured("gemini", this.apiKey);
   }
 
   async health(): Promise<AIProviderHealth> {
     const available = await this.isAvailable();
     let lastError: string | undefined;
     if (!this.initialized) lastError = "Gemini provider not initialized.";
-    else if (!this.apiKey) lastError = "Gemini API key missing.";
+    else if (!isBrokered("gemini") && !this.apiKey) lastError = "Gemini API key missing.";
     return { available, initialized: this.initialized, lastChecked: Date.now(), lastError };
   }
 
@@ -201,7 +202,13 @@ export default class GeminiProvider implements AIProvider {
 
     // The key travels as a header rather than a query parameter so it does
     // not end up in proxy logs or a Referer.
-    const url = `${endpoint("gemini")}/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+    // endpointUrl(), not endpoint(): the former rewrites to /api/model/gemini
+    // in a browser so the credential stays server-side. endpoint() returns
+    // the raw upstream base and would have bypassed the broker entirely.
+    const url = endpointUrl(
+      "gemini",
+      `v1beta/models/${encodeURIComponent(model)}:generateContent`,
+    );
 
     let response: Response;
     try {
@@ -209,7 +216,8 @@ export default class GeminiProvider implements AIProvider {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-goog-api-key": this.apiKey,
+          // Brokered: nothing leaves the browser; the server attaches its key.
+          ...authHeaders("gemini", this.apiKey, (key) => ({ "x-goog-api-key": key })),
         },
         body: JSON.stringify(payload),
         signal: AbortSignal.timeout(this.timeout),

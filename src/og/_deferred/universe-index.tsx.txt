@@ -1,0 +1,144 @@
+import { createFileRoute, useNavigate, Link } from "@og/compat/router";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { UniverseScene } from "@og/components/universe/UniverseScene";
+import { SunHub } from "@og/components/universe/SunHub";
+import type { SunState } from "@og/components/universe/Sun";
+import { AuthPanel } from "@og/components/universe/AuthPanel";
+import { useSession } from "@og/hooks/use-session";
+import { archiveStaleConversations } from "@og/lib/conversations.functions";
+import { listHorizons, type HorizonItem } from "@og/lib/horizons.functions";
+
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Lélu — a small sun on the horizon" },
+      {
+        name: "description",
+        content:
+          "Step into Lélu's universe — a Florida sunset that drifts into the cosmos. Tap the sun to speak.",
+      },
+      { property: "og:title", content: "Lélu — a small sun on the horizon" },
+      {
+        property: "og:description",
+        content:
+          "An infinite sunset over reflective water. Tap the sun to begin a conversation.",
+      },
+    ],
+  }),
+  component: Index,
+});
+
+function Index() {
+  const { session, loading } = useSession();
+  const navigate = useNavigate();
+  const [showAuth, setShowAuth] = useState(false);
+  const [justAuthed, setJustAuthed] = useState(false);
+
+  const [opening, setOpening] = useState(false);
+  const [horizons, setHorizons] = useState<HorizonItem[]>([]);
+  const [sunState, setSunState] = useState<SunState>("idle");
+
+  // Once a session arrives (email sign-in or OAuth redirect), bloom straight into the Core.
+  const enteredRef = useRef(false);
+  useEffect(() => {
+    if (!session) return;
+    const hasPendingAuth =
+      typeof window !== "undefined" &&
+      sessionStorage.getItem("lelu:pending-auth") === "1";
+    if (!justAuthed && !hasPendingAuth) return;
+    if (enteredRef.current) return;
+    enteredRef.current = true;
+    console.info("[auth] entering the core");
+    sessionStorage.removeItem("lelu:pending-auth");
+    setShowAuth(false);
+    setOpening(true);
+    setSunState("focus");
+    window.setTimeout(() => navigate({ to: "/core" }), 600);
+  }, [session, showAuth, justAuthed, navigate]);
+
+  // Fetch the user's lights (conversations + items) once signed in,
+  // and quietly sweep abandoned conversations into the archive.
+  useEffect(() => {
+    if (!session) {
+      setHorizons([]);
+      setSunState("idle");
+      return;
+    }
+    archiveStaleConversations()
+      .catch(() => {})
+      .finally(() => {
+        listHorizons()
+          .then((items) => {
+            setHorizons(items);
+            // Pick a resting hue from recent activity.
+            const recent = items[0];
+            if (!recent) setSunState("calm");
+            else if (Date.now() - +new Date(recent.when) < 60 * 60 * 1000) setSunState("active");
+            else setSunState("idle");
+          })
+          .catch(() => {});
+      });
+  }, [session]);
+
+  async function handleSunTap() {
+    if (loading || opening) return;
+    if (!session) {
+      setShowAuth(true);
+      return;
+    }
+    setOpening(true);
+    setSunState("focus");
+    try {
+      // The Sun now blooms into the living Core.
+      await new Promise((r) => setTimeout(r, 750));
+      navigate({ to: "/core" });
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "The horizon flickered. Try once more.",
+      );
+      setOpening(false);
+      setSunState("idle");
+    }
+  }
+
+  return (
+    <UniverseScene horizons={horizons}>
+      {/* Lélu wordmark, softly */}
+      <div className="absolute left-1/2 top-8 -translate-x-1/2 font-display text-2xl tracking-[0.4em] uppercase text-foreground/70 fade-up">
+        Lélu
+      </div>
+
+      {!showAuth ? (
+        <>
+          <div
+            className={`absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 ${
+              opening ? "sun-bloom" : ""
+            }`}
+          >
+            <SunHub onSpeak={handleSunTap} state={sunState} />
+          </div>
+          {opening && <div className="light-flash" />}
+          {session && (
+            <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-6 text-[10px] uppercase tracking-[0.3em]">
+              <Link to="/core" className="text-foreground/70 hover:text-foreground">enter the core →</Link>
+              <Link to="/app" className="text-foreground/50 hover:text-foreground">classic sky →</Link>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="absolute inset-0 grid place-items-center">
+          <AuthPanel onAuthed={() => setJustAuthed(true)} />
+          <button
+            onClick={() => setShowAuth(false)}
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-foreground/50 hover:text-foreground"
+          >
+            back to the horizon
+          </button>
+        </div>
+      )}
+    </UniverseScene>
+  );
+}

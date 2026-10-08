@@ -19,6 +19,8 @@ import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import {
   extractOpenAIToolCalls,
+  extractOpenAIText,
+  describeEmptyChoice,
   openAIToolPayload,
   toOpenAIMessages,
   trailingUserTurn,
@@ -26,6 +28,8 @@ import {
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
+import { resolveModel } from "../core/ProviderModels";
 
 export default class FireworksProvider implements AIProvider {
   readonly name = "Fireworks";
@@ -44,14 +48,14 @@ export default class FireworksProvider implements AIProvider {
   readonly supportsTools = true;
 
   private apiKey = "";
-  private model = "accounts/fireworks/models/llama-v3p1-70b-instruct";
+  private model = resolveModel("fireworks");
   private initialized = false;
 
   async initialize(): Promise<void> {
     this.apiKey =
       resolveFirst("FIREWORKS_API_KEY") ?? "";
     this.model =
-      resolveFirst("FIREWORKS_MODEL") ?? "accounts/fireworks/models/llama-v3p1-70b-instruct";
+      resolveModel("fireworks");
 
     this.initialized = true;
 
@@ -66,7 +70,7 @@ export default class FireworksProvider implements AIProvider {
       this.initialized &&
       this.enabled &&
       this.requiresApiKey &&
-      this.apiKey.length > 0
+      providerConfigured("fireworks", this.apiKey)
     );
   }
 
@@ -79,7 +83,7 @@ export default class FireworksProvider implements AIProvider {
       lastChecked: Date.now(),
       lastError: !this.initialized
         ? "Fireworks provider not initialized."
-        : !this.apiKey
+        : !isBrokered("fireworks") && !this.apiKey
           ? "Fireworks API key missing."
           : undefined,
     };
@@ -96,7 +100,10 @@ export default class FireworksProvider implements AIProvider {
       throw new Error("Fireworks provider is not initialized.");
     }
 
-    if (!this.apiKey) {
+    if (!isBrokered("fireworks") && !this.apiKey) {
+      // Only a DIRECT send needs a key here; brokered requests carry
+      // none by design, and refusing them would disable the provider
+      // the broker can actually serve.
       throw new Error("Fireworks API key is missing.");
     }
 
@@ -126,7 +133,9 @@ export default class FireworksProvider implements AIProvider {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
-            Authorization: `Bearer ${this.apiKey}`,
+            // Brokered: no credential leaves the browser — the server attaches
+            // its own. Direct (server/tests): the real header.
+            ...authHeaders("fireworks", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
           },
           body: JSON.stringify(payload),
           signal: AbortSignal.timeout(this.timeout),
@@ -168,13 +177,13 @@ export default class FireworksProvider implements AIProvider {
       throw new Error(`Fireworks HTTP ${response.status}: ${apiMessage}`);
     }
 
-    const content = data?.choices?.[0]?.message?.content ?? "";
+    const content = extractOpenAIText(data?.choices?.[0]);
     const toolCalls = extractOpenAIToolCalls(data?.choices?.[0]);
     // A tool-call turn legitimately carries no text. Rejecting it as
     // "no usable content" would turn a valid tool request into a
     // provider failure and drop to the next provider for no reason.
     if ((typeof content !== "string" || !content.trim()) && toolCalls.length === 0) {
-      throw new Error("Fireworks returned no usable content.");
+      throw new Error(describeEmptyChoice("Fireworks", data?.choices?.[0]));
     }
 
     return {
