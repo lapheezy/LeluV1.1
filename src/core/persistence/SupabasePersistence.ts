@@ -1,5 +1,5 @@
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
-import { resolveFirst } from "../resolveEnv";
+import { publicEnv } from "../env/publicEnv";
 import AgentEventBus, { type AgentEvent } from "../agent/AgentEvents";
 import AgentStore from "../agents/AgentStore";
 import type { LeluAgent } from "../agents/AgentTypes";
@@ -30,6 +30,13 @@ type RemoteRow = Record<string, any>;
  * Local stores remain authoritative for immediate UI/cognition work. Supabase
  * is a durable mirror and recovery source; all failures are contained.
  */
+/**
+ * Upper bound on a persisted message body. Chosen above the longest message in
+ * the existing store so hydrate → persist is lossless; exceeding it is flagged
+ * in the row metadata rather than dropped quietly.
+ */
+const MESSAGE_TEXT_LIMIT = 48_000;
+
 export default class SupabasePersistence {
   private static instance: SupabasePersistence | null = null;
   private client: SupabaseClient | null = null;
@@ -114,18 +121,13 @@ export default class SupabasePersistence {
       return this.status;
     }
 
-    // Resolve through the canonical resolver, not import.meta.env alone.
-    //
-    // import.meta.env exists only under Vite, so a runtime without a
-    // Vite build — the standalone server, a Node integration test, the
-    // Deno entry — could never see the configuration and always fell
-    // through to "disabled". The variable NAMES are unchanged
-    // (env.example declares VITE_SUPABASE_URL and
-    // VITE_SUPABASE_PUBLISHABLE_KEY); only the lookup is widened, so an
-    // existing Vite deployment behaves exactly as before.
-    const url = resolveFirst("VITE_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL") ?? "";
-    const publishableKey =
-      resolveFirst("VITE_SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") ?? "";
+    // Browser-safe allowlist, not the whole env record (see env/publicEnv.ts):
+    // reading import.meta.env as an object inlined every VITE_* value here.
+    const env = publicEnv();
+    const firstConfigured = (...values: Array<string | undefined>): string =>
+      values.find((value) => typeof value === "string" && value.trim().length > 0)?.trim() ?? "";
+    const url = firstConfigured(env.VITE_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_URL);
+    const publishableKey = firstConfigured(env.VITE_SUPABASE_PUBLISHABLE_KEY, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
     if (!url || !publishableKey) {
       this.status = "disabled";
       this.emitAuthState();
@@ -342,65 +344,6 @@ export default class SupabasePersistence {
     })), "api_health");
   }
 
-  /**
-   * Record one engineering milestone against the authenticated user.
-   *
-   * Reuses the EXISTING cognitive_events table rather than adding an
-   * engineering-specific one: it already carries user_id, an event type,
-   * a task id and a jsonb payload, and its RLS policy already restricts
-   * every row to auth.uid(). A second table would duplicate the schema
-   * and the isolation rules for no gain.
-   *
-   * Contained and user-scoped: with no authenticated session there is no
-   * user_id to attribute the row to, so nothing is written. The
-   * filesystem workspace remains the source of truth for the code
-   * itself — this persists identity, ownership, state and history.
-   */
-  public async persistEngineeringEvent(
-    eventType: string,
-    taskId: string,
-    payload: Record<string, unknown>,
-  ): Promise<boolean> {
-    if (!this.isConnected() || !this.userId) return false;
-    try {
-      const { error } = await this.client!.from("cognitive_events").insert({
-        user_id: this.userId,
-        event_type: `engineering.${eventType}`,
-        task_id: taskId,
-        payload,
-      });
-      if (error) {
-        this.status = "degraded";
-        console.warn("[Lélu] Supabase engineering event sync degraded", error.message);
-        return false;
-      }
-      return true;
-    } catch (error) {
-      console.warn(
-        "[Lélu] Supabase engineering event failed (contained)",
-        error instanceof Error ? error.message : String(error),
-      );
-      return false;
-    }
-  }
-
-  /** Engineering history for the authenticated user, newest first. */
-  public async readEngineeringEvents(limit = 50): Promise<RemoteRow[]> {
-    if (!this.isConnected()) return [];
-    try {
-      const { data, error } = await this.client!
-        .from("cognitive_events")
-        .select("*")
-        .like("event_type", "engineering.%")
-        .order("created_at", { ascending: false })
-        .limit(limit);
-      if (error) return [];
-      return Array.isArray(data) ? (data as RemoteRow[]) : [];
-    } catch {
-      return [];
-    }
-  }
-
   private async persistProjects(projects: LeluProject[]): Promise<void> {
     if (!this.isConnected()) return;
     await this.write("projects", projects.map((project) => ({
@@ -452,11 +395,23 @@ export default class SupabasePersistence {
       metadata: { pinned: conversation.pinned, linkedIds: conversation.linkedIds, tags: conversation.tags, topic: conversation.topic, unread: conversation.unread, processing: conversation.processing },
       created_at: new Date(conversation.createdAt).toISOString(), updated_at: new Date(conversation.updatedAt).toISOString(),
     })), "conversations");
-    const messages = conversations.flatMap((conversation) => conversation.messages.map((message) => ({
-      id: message.id, user_id: this.userId, conversation_id: conversation.id, role: message.role,
-      text: message.text.slice(0, 12000), provider: message.provider ?? null, confidence: message.confidence ?? null,
-      metadata: { source: message.source, reasoning: message.reasoning, plan: message.plan }, created_at: new Date(message.timestamp).toISOString(),
-    })));
+    const messages = conversations.flatMap((conversation) => conversation.messages.map((message) => {
+      // Hydrate reads whatever is stored, so a cap below the longest existing
+      // message would silently shorten real history on every round trip.
+      // The cap stays well above observed content, and when it does bite the
+      // loss is recorded instead of being invisible.
+      const truncated = message.text.length > MESSAGE_TEXT_LIMIT;
+      return {
+        id: message.id, user_id: this.userId, conversation_id: conversation.id, role: message.role,
+        text: truncated ? message.text.slice(0, MESSAGE_TEXT_LIMIT) : message.text,
+        provider: message.provider ?? null, confidence: message.confidence ?? null,
+        metadata: {
+          source: message.source, reasoning: message.reasoning, plan: message.plan,
+          ...(truncated ? { truncated: true, originalLength: message.text.length } : {}),
+        },
+        created_at: new Date(message.timestamp).toISOString(),
+      };
+    }));
     await this.write("messages", messages, "messages");
   }
 
@@ -474,7 +429,7 @@ export default class SupabasePersistence {
 
   private async persistCognitiveEvent(event: AgentEvent): Promise<void> {
     if (!this.isConnected()) return;
-    await this.write("cognitive_events", [{ user_id: this.userId, event_type: event.type, task_id: event.taskId, payload: event, created_at: new Date().toISOString() }], "cognitive_events");
+    await this.append("cognitive_events", [{ user_id: this.userId, event_type: event.type, task_id: event.taskId, payload: event, created_at: new Date().toISOString() }], "cognitive_events");
   }
 
   public async reconnect(brain?: Brain, user?: UserManager): Promise<SupabasePersistenceStatus> {
@@ -501,6 +456,19 @@ export default class SupabasePersistence {
     return rows[0] ?? null;
   }
 
+  // Append-only tables (event logs) carry a server-generated id and no
+  // (id,user_id) unique index, so they must be inserted, never upserted.
+  private async append(table: string, rows: RemoteRow[], label: string): Promise<boolean> {
+    if (!this.client || !this.userId || rows.length === 0) return false;
+    const { error } = await this.client.from(table).insert(rows);
+    if (error) {
+      this.status = "degraded";
+      console.warn(`[Lélu] Supabase ${label} sync degraded`, error.message);
+      return false;
+    }
+    return true;
+  }
+
   private async write(table: string, rows: RemoteRow[], label: string): Promise<void> {
     if (!this.client || !this.userId || rows.length === 0) return;
     const { error } = await this.client.from(table).upsert(rows, { onConflict: this.conflictKey(table) });
@@ -510,8 +478,15 @@ export default class SupabasePersistence {
     }
   }
 
+  // Upsert conflict targets must name an actual unique index on the table or
+  // Postgres rejects the statement outright (42P10 / 42703). Verified against
+  // the live schema: ui_state(user_id), news_preferences(user_id),
+  // api_health(user_id,provider), user_preferences(user_id,preference_key),
+  // proactive_questions(user_id,question_key); everything else is (id,user_id).
   private conflictKey(table: string): string {
-    if (["ui_state", "api_health", "news_preferences"].includes(table)) return table === "api_health" ? "user_id,provider" : "user_id";
+    if (table === "api_health") return "user_id,provider";
+    if (table === "ui_state" || table === "news_preferences") return "user_id";
+    if (table === "user_preferences") return "user_id,preference_key";
     if (table === "proactive_questions") return "user_id,question_key";
     return "id,user_id";
   }
@@ -620,4 +595,27 @@ export default class SupabasePersistence {
       this.realtimeRefreshInFlight.delete(table);
     }
   }
+
+  public async persistEngineeringEvent(
+    eventType: string,
+    taskId: string,
+    payload: Record<string, unknown>,
+  ): Promise<boolean> {
+    if (!this.isConnected() || !this.userId) return false;
+    try {
+      return await this.append("cognitive_events", [{
+        user_id: this.userId,
+        event_type: `engineering.${eventType}`,
+        task_id: taskId,
+        payload,
+      }], "engineering event");
+    } catch (error) {
+      console.warn(
+        "[Lélu] Supabase engineering event failed (contained)",
+        error instanceof Error ? error.message : String(error),
+      );
+      return false;
+    }
+  }
+
 }

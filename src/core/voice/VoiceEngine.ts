@@ -13,8 +13,9 @@
  * ==========================================================
  */
 
+import { postTranscription, transcriptionAvailable } from "./transcriptionTransport";
+
 import { mapMediaError } from "./speechToText";
-import { endpointUrl } from "../Endpoints";
 
 /* ---------------------------------------------------------
  * Types
@@ -176,12 +177,51 @@ export interface VoiceTurn {
   timestamp: number;
 }
 
+/** How far the text-to-speech pipeline actually got for the last
+ *  response. Distinct from `ttsSupported`, which is only a capability
+ *  claim about the runtime. */
+export type VoiceTtsStage =
+  | "idle"
+  | "requested"
+  | "generated"
+  | "playing"
+  | "ended"
+  | "failed";
+
 export interface VoiceDiagnostics {
+  /* ---- static capability (what this runtime CAN do) ---- */
   sttSupported: boolean;
   ttsSupported: boolean;
   micAvailable: boolean;
   groqKeyAvailable: boolean;
   secureContext: boolean;
+
+  /* ---- live pipeline state (what actually HAPPENED) ----
+   * These mirror the real voice pipeline stage by stage, so a failure
+   * can be located precisely instead of being reported as a single
+   * opaque "voice didn't work". Reset per session by stop(). */
+  /** Real mic permission as last observed. */
+  micPermission: VoiceState["permission"];
+  /** A recognition API (not just the Whisper fallback) is present. */
+  recognitionSupported: boolean;
+  /** TTS is genuinely usable right now, not merely "supported". */
+  ttsAvailable: boolean;
+  /** A live mic MediaStream is currently held. */
+  micStreamActive: boolean;
+  /** The recognizer is currently running. */
+  recognitionActive: boolean;
+  /** At least one transcript arrived this session. */
+  transcriptReceived: boolean;
+  /** A response was handed to the speech layer this session. */
+  responseReceived: boolean;
+  /** Speech was actually requested of the TTS engine. */
+  ttsRequested: boolean;
+  /** The TTS engine produced an utterance. */
+  audioGenerated: boolean;
+  /** Audio is currently playing. */
+  audioPlaying: boolean;
+  /** Furthest stage the TTS pipeline reached for the last response. */
+  ttsStage: VoiceTtsStage;
 }
 
 type StateListener = (state: VoiceState) => void;
@@ -195,19 +235,23 @@ type ErrorListener = (message: string) => void;
  * Groq Whisper helpers (imported lazily to avoid circular deps)
  * --------------------------------------------------------- */
 
+/**
+ * A Groq key held by THIS runtime, if any.
+ *
+ * `import.meta.env.VITE_GROQ_API_KEY` is deliberately not read: Vite
+ * inlines it into the client bundle, which is how transcription keys
+ * ended up in the shipped VoiceEngine chunk. When nothing is held here
+ * the request is relayed instead and the SERVER attaches the credential
+ * (see voice/transcriptionTransport.ts). The injected global remains for runtimes
+ * that legitimately supply a key at runtime — verification scripts, and
+ * native shells that hold their own credential.
+ */
 function getGroqApiKey(): string {
   const runtimeEnv = globalThis as typeof globalThis & {
     __LELU_GROQ_API_KEY__?: string;
   };
 
-  return (
-    (
-      (import.meta as unknown as { env?: Record<string, string | undefined> })
-        .env ?? {}
-    )["VITE_GROQ_API_KEY"]?.trim() ||
-    runtimeEnv.__LELU_GROQ_API_KEY__?.trim() ||
-    ""
-  );
+  return runtimeEnv.__LELU_GROQ_API_KEY__?.trim() || "";
 }
 
 /**
@@ -216,12 +260,6 @@ function getGroqApiKey(): string {
  */
 async function transcribeViaWhisper(audioBlob: Blob): Promise<string> {
   const apiKey = getGroqApiKey();
-
-  if (!apiKey) {
-    throw new Error(
-      "No Groq API key configured. Set VITE_GROQ_API_KEY to enable voice.",
-    );
-  }
 
   const mime = audioBlob.type || "audio/webm";
   const ext = mime.includes("wav")
@@ -237,17 +275,12 @@ async function transcribeViaWhisper(audioBlob: Blob): Promise<string> {
   formData.append("model", "whisper-large-v3-turbo");
   formData.append("response_format", "verbose_json");
 
-  const response = await fetch(
-    endpointUrl("groq", "audio/transcriptions"),
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: formData,
-      signal: AbortSignal.timeout(30_000),
-    },
-  );
+  // No local key is the normal case: the request is relayed same-origin
+  // and the server attaches the credential (see voice/transcriptionTransport.ts).
+  const response = await postTranscription(formData, {
+    apiKey,
+    signal: AbortSignal.timeout(30_000),
+  });
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -287,6 +320,12 @@ class VoiceEngine {
   private _turn: VoiceTurn | null = null;
   /** LÉLU's most recent spoken TTS text, used to catch the mic hearing itself. */
   private lastSpokenText = "";
+  /**
+   * Whether the SERVER can supply the Groq credential for transcription.
+   * Resolved asynchronously (one same-origin request) and cached here so
+   * computeDiagnostics() stays synchronous for its existing callers.
+   */
+  private relayGroqAvailable = false;
   private _diagnostics: VoiceDiagnostics = this.computeDiagnostics();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -320,9 +359,31 @@ class VoiceEngine {
 
   private constructor() {
     if (typeof window !== "undefined") {
+      void this.refreshRelayDiagnostics();
       setInterval(() => {
         this._diagnostics = this.computeDiagnostics();
       }, 5000);
+    }
+  }
+
+  /**
+   * Ask the server once whether it holds a Groq credential, then
+   * recompute diagnostics so `groqKeyAvailable` / `sttSupported` report
+   * the real capability instead of assuming a browser-side key.
+   */
+  private async refreshRelayDiagnostics(): Promise<void> {
+    try {
+      this.relayGroqAvailable = await transcriptionAvailable();
+    } catch {
+      this.relayGroqAvailable = false;
+    }
+    this._diagnostics = this.computeDiagnostics();
+    for (const listener of this.diagnosticsListeners) {
+      try {
+        listener(this._diagnostics);
+      } catch {
+        // a broken listener must never break the voice engine
+      }
     }
   }
 
@@ -443,6 +504,7 @@ class VoiceEngine {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       this.mediaStream = stream;
+      this.patchDiagnostics({ micStreamActive: true, micPermission: "granted" });
       this.updateState({
         ...this._state,
         active: true,
@@ -903,13 +965,27 @@ class VoiceEngine {
    * --------------------------------------------------------- */
 
   speakResponse(text: string): void {
+    // A response reached the speech layer — true regardless of whether
+    // TTS then works, which is exactly what makes this diagnosable.
+    this.patchDiagnostics({ responseReceived: true });
+
     if (typeof speechSynthesis === "undefined") {
+      // No TTS engine in this runtime: nothing was ever requested of a
+      // provider that does not exist, and the stage is honestly failed.
+      this.patchDiagnostics({
+        ttsAvailable: false,
+        ttsRequested: false,
+        audioGenerated: false,
+        audioPlaying: false,
+        ttsStage: "failed",
+      });
       this.updateState({ ...this._state, phase: "listening" });
       return;
     }
 
     this.cancelSpeech();
     if (!text || !text.trim()) {
+      this.patchDiagnostics({ ttsRequested: false, ttsStage: "idle" });
       this.updateState({ ...this._state, phase: "listening" });
       return;
     }
@@ -937,11 +1013,22 @@ class VoiceEngine {
       index += 1;
 
       const utterance = this.createUtterance(chunk);
-      utterance.onend = () => speakNext();
+      this.patchDiagnostics({
+        ttsRequested: true,
+        audioGenerated: true,
+        audioPlaying: true,
+        ttsStage: "playing",
+      });
+      utterance.onend = () => {
+        this.patchDiagnostics({ audioPlaying: false, ttsStage: "ended" });
+        speakNext();
+      };
       utterance.onerror = (e) => {
         if (e.error === "canceled" || this.cancelFlag) {
+          this.patchDiagnostics({ audioPlaying: false });
           return;
         }
+        this.patchDiagnostics({ audioPlaying: false, ttsStage: "failed" });
         speakNext();
       };
 
@@ -1130,12 +1217,12 @@ class VoiceEngine {
       typeof navigator !== "undefined" &&
       Boolean(navigator.mediaDevices?.getUserMedia);
 
-    const groqKey = Boolean(
-      (
-        (import.meta as unknown as { env?: Record<string, string | undefined> })
-          .env ?? {}
-      )["VITE_GROQ_API_KEY"]?.trim(),
-    );
+    // A locally-held key, or one the SERVER holds on our behalf. Reading
+    // import.meta.env here would inline the key into the client bundle,
+    // which is exactly the leak the relay removes; `relayGroqAvailable`
+    // is refreshed asynchronously by refreshRelayDiagnostics() so this
+    // stays synchronous for every existing caller.
+    const groqKey = Boolean(getGroqApiKey()) || this.relayGroqAvailable;
 
     const secure =
       typeof window !== "undefined" && window.isSecureContext === true;
@@ -1146,7 +1233,32 @@ class VoiceEngine {
       micAvailable: hasMic,
       groqKeyAvailable: groqKey,
       secureContext: secure,
+
+      micPermission: this._state?.permission ?? "unknown",
+      recognitionSupported: hasSpeechRecognition,
+      ttsAvailable: hasTTS,
+      micStreamActive: Boolean(this.mediaStream),
+      recognitionActive: false,
+      transcriptReceived: false,
+      responseReceived: false,
+      ttsRequested: false,
+      audioGenerated: false,
+      audioPlaying: false,
+      ttsStage: "idle",
     };
+  }
+
+  /** Patch live diagnostics and notify listeners — the ONE place the
+   *  pipeline reports what it actually did. */
+  private patchDiagnostics(patch: Partial<VoiceDiagnostics>): void {
+    this._diagnostics = { ...this._diagnostics, ...patch };
+    for (const listener of this.diagnosticsListeners) {
+      try {
+        listener(this._diagnostics);
+      } catch {
+        // a broken diagnostics listener must never break voice
+      }
+    }
   }
 
   /* ---------------------------------------------------------

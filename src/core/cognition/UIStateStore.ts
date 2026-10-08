@@ -14,6 +14,17 @@
 
 import type { ProactiveQuestion } from "../proactive/ProactiveCore";
 
+/** One entry in the real UI action log — see UIActionBus. Never a claim;
+ * only ever written by UIActionBus after a real dispatch attempt. */
+export interface UIActionLogEntry {
+  type: string;
+  target: string | null;
+  detail: string;
+  initiatedBy: "lelu" | "user";
+  ok: boolean;
+  timestamp: number;
+}
+
 export interface UIStateSnapshot {
   activeQuestion: ProactiveQuestion | null;
   activeTab: string | null;
@@ -29,6 +40,12 @@ export interface UIStateSnapshot {
   isTyping: boolean;
   cosmosExploring: boolean;
   lastInteraction: number;
+
+  /** The most recent real UI action LÉLU (or the user) took, via
+   * UIActionBus — null until any action has ever been dispatched. */
+  lastAction: UIActionLogEntry | null;
+  /** Bounded history of recent real UI actions (newest last). */
+  actionHistory: UIActionLogEntry[];
 }
 
 type UIStateListener = (state: UIStateSnapshot) => void;
@@ -46,6 +63,8 @@ const DEFAULT_STATE: UIStateSnapshot = {
   isTyping: false,
   cosmosExploring: false,
   lastInteraction: 0,
+  lastAction: null,
+  actionHistory: [],
 };
 
 export default class UIStateStore {

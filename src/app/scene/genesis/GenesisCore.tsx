@@ -184,6 +184,10 @@ export type GenesisPanel =
 
   | "cognition"
 
+  // Per-turn cognitive evidence chain (recall → inject → route →
+  // provider → memory write), read live from CognitiveTrace.
+  | "cognitive-trace"
+
   | "engineering"
 
   // Self-development engine — architecture map, capability registry,

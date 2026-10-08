@@ -62,6 +62,7 @@ export const DOCK_ITEMS: DockItem[] = [
   { id: "visualstudio", label: "Visual Studio", glyph: "◍", icon: "aperture", group: "core" },
   { id: "reasoning", label: "Reasoning", glyph: "✦", icon: "spark", group: "intelligence" },
   { id: "cognition", label: "Cognition", glyph: "◬", icon: "brain", group: "intelligence" },
+  { id: "cognitive-trace", label: "Trace", glyph: "⌁", icon: "wave", group: "intelligence" },
   { id: "evolution", label: "Evolution", glyph: "⬖", icon: "evolve", group: "intelligence" },
   { id: "device", label: "Device", glyph: "◮", icon: "phone", group: "system" },
   { id: "diagnostics", label: "Engines", glyph: "●", icon: "wave", group: "system" },
@@ -129,6 +130,7 @@ const DEFAULT_HIDDEN: string[] = [
   "visualstudio",
   "reasoning",
   "cognition",
+  "cognitive-trace",
   "evolution",
   "device",
   "diagnostics",
@@ -488,6 +490,15 @@ export default function GenesisDock({
 }: GenesisDockProps) {
   const breakpoint = useBreakpoint();
   const dockSettings = useDockSettings();
+  // Mobile-only long-press state, but declared unconditionally: these
+  // were previously created inside `if (breakpoint === "mobile")`
+  // below, which calls a different NUMBER of hooks depending on
+  // breakpoint. useBreakpoint() reacts live to window resize, so
+  // resizing (or rotating a tablet) across the mobile threshold while
+  // this component stays mounted violates React's Rules of Hooks —
+  // "rendered fewer/more hooks than during the previous render", an
+  // uncaught error that crashes this component tree (found via a
+  // full-project `bun run lint` pass, not previously run this audit).
   const [tabEditorOpen, setTabEditorOpen] = useState(false);
   /* The chat-controlled mobile menu — open/closed state only. */
   const [menuOpen, setMenuOpen] = useState(false);

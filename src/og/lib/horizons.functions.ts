@@ -1,5 +1,6 @@
 import { createServerFn } from "@og/compat/server-fn";
 import { requireSupabaseAuth } from "@og/integrations/supabase/auth-middleware";
+import { CONVERSATION_COLUMNS, toOgConversation } from "@og/lib/conversation-mapping";
 
 export type HorizonItem = {
   kind: "conversation" | "reminder" | "task" | "note" | "goal" | "event";
@@ -19,7 +20,9 @@ export const listHorizons = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const sb = context.supabase;
     const [convos, reminders, tasks, notes, goals, events] = await Promise.all([
-      sb.from("conversations").select("id,title,updated_at,archived").eq("archived", false).order("updated_at", { ascending: false }).limit(40),
+      // `archived` lives inside conversations.metadata, so it cannot be a
+      // PostgREST filter; the flag is applied after mapping below.
+      sb.from("conversations").select(CONVERSATION_COLUMNS).order("updated_at", { ascending: false }).limit(60),
       sb.from("reminders").select("id,title,remind_at,delivered_at").order("remind_at", { ascending: false }).limit(40),
       sb.from("tasks").select("id,title,done,updated_at").order("updated_at", { ascending: false }).limit(40),
       sb.from("notes").select("id,title,updated_at").order("updated_at", { ascending: false }).limit(40),
@@ -28,7 +31,11 @@ export const listHorizons = createServerFn({ method: "GET" })
     ]);
 
     const items: HorizonItem[] = [];
-    for (const r of convos.data ?? []) items.push({ kind: "conversation", id: r.id, title: r.title, when: r.updated_at });
+    for (const row of convos.data ?? []) {
+      const r = toOgConversation(row as Record<string, unknown>);
+      if (r.archived) continue;
+      items.push({ kind: "conversation", id: r.id, title: r.title, when: r.updated_at });
+    }
     for (const r of reminders.data ?? []) items.push({ kind: "reminder", id: r.id, title: r.title, when: r.remind_at, meta: r.delivered_at ? "delivered" : "scheduled" });
     for (const r of tasks.data ?? []) items.push({ kind: "task", id: r.id, title: r.title, when: r.updated_at, meta: r.done ? "done" : null });
     for (const r of notes.data ?? []) items.push({ kind: "note", id: r.id, title: r.title, when: r.updated_at });

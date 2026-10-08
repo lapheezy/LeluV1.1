@@ -138,7 +138,7 @@ async function run(): Promise<void> {
   // provider reports unavailable → the runtime must land in
   // offline mode while memory still works.
   const providers = ai.getProviders();
-  assert(providers.ai.length === 7, `7 AI providers registered (${providers.ai.map((p) => p.name).join(", ")})`);
+  assert(providers.ai.length === 8, `8 AI providers registered (${providers.ai.map((p) => p.name).join(", ")})`);
   const health = await ai.getProviderHealth();
   assert(health.every((h) => h.health.available === false), "no provider available without keys (honest status)");
 

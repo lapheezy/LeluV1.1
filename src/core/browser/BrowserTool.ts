@@ -91,10 +91,51 @@ export default class BrowserTool {
   }
 
   /**
+   * Read the page through LÉLU's own server-side reader
+   * (GET /api/browse — see plugins/browseApi.ts).
+   *
+   * A direct browser fetch of a third-party page is blocked by CORS
+   * for essentially every real site, which is why LÉLU could open a
+   * page but never read one. The server has no such restriction, so
+   * this is the path that actually lets browsed content reach
+   * cognition. Returns null when the endpoint is unavailable (e.g. a
+   * static deployment with no runtime), so the caller can report the
+   * honest "blocked" result rather than inventing content.
+   */
+  private static async readViaServer(
+    url: string,
+    timeoutMs: number,
+  ): Promise<{ title: string; text: string; url: string } | null> {
+    try {
+      const response = await fetch(`/api/browse?url=${encodeURIComponent(url)}`, {
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (!response.ok) return null;
+      const payload = (await response.json()) as {
+        ok?: boolean;
+        url?: string;
+        title?: string;
+        text?: string;
+      };
+      if (!payload.ok || typeof payload.text !== "string" || payload.text.trim().length === 0) {
+        return null;
+      }
+      return {
+        url: payload.url ?? url,
+        title: payload.title ?? "",
+        text: payload.text,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Read a page: fetch it (with timeout + redirects), extract the
-   * readable text, and return it for cognition. Failures are
-   * classified honestly — "blocked" when the origin refuses direct
-   * reading (CORS / JS-only), "error" for real failures.
+   * readable text, and return it for cognition. Tries the direct
+   * browser fetch first, then falls back to LÉLU's server-side reader
+   * when CORS blocks it. Failures are classified honestly — "blocked"
+   * when neither path can read the page, "error" for real failures.
    */
   static async visit(
     rawUrl: string,
@@ -141,6 +182,17 @@ export default class BrowserTool {
       const { title, text } = BrowserTool.extract(html);
 
       if (!text.trim()) {
+        const viaServer = await BrowserTool.readViaServer(url, timeoutMs);
+        if (viaServer) {
+          const serverExcerpt = viaServer.text.trim().slice(0, 2400);
+          return {
+            url: viaServer.url,
+            title: viaServer.title || url,
+            text: viaServer.text.trim(),
+            excerpt: serverExcerpt,
+            status: "read",
+          };
+        }
         return {
           url,
           title: title || url,
@@ -162,6 +214,24 @@ export default class BrowserTool {
         status: "read",
       };
     } catch (error) {
+      // This is the COMMON path in a browser: a cross-origin fetch of a
+      // third-party page throws on CORS ("Failed to fetch") rather than
+      // returning a response. Falling back to the server-side reader
+      // here is what actually makes browsing usable — verified live:
+      // before this, example.com and en.wikipedia.org both ended up
+      // `blocked` and no page text ever reached cognition.
+      const viaServer = await BrowserTool.readViaServer(url, timeoutMs);
+      if (viaServer) {
+        const serverExcerpt = viaServer.text.trim().slice(0, 2400);
+        return {
+          url: viaServer.url,
+          title: viaServer.title || url,
+          text: viaServer.text.trim(),
+          excerpt: serverExcerpt,
+          status: "read",
+        };
+      }
+
       const reason =
         error instanceof Error
           ? error.name === "AbortError"
@@ -174,7 +244,7 @@ export default class BrowserTool {
         text: "",
         excerpt: "",
         status: "blocked",
-        error: `Could not read the page directly (${reason}). The in-app browser can still open it for you.`,
+        error: `Could not read the page directly (${reason}), and my server-side reader is unavailable. The in-app browser can still open it for you.`,
       };
     }
   }
