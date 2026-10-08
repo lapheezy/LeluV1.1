@@ -28,6 +28,10 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { loadEnvFilesIntoProcess } from "./plugins/loadEnvFiles.ts";
+import {
+  applyBridgeToGlobals,
+  bridgeScriptBody,
+} from "./plugins/runtimeKeyBridge.ts";
 import { createNodeEngineerAdapter } from "./plugins/nodeAdapters.ts";
 import { createEngineerApi } from "./plugins/engineerApi.ts";
 import { createEnvApi } from "./plugins/envApi.ts";
@@ -37,13 +41,14 @@ import { createRssApi } from "./plugins/rssApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { createGithubApi } from "./plugins/githubApi.ts";
-import { createBrowseApi } from "./plugins/browseApi.ts";
-import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
+import { createModelApi } from "./plugins/modelApi.ts";
 
 // Load the project's existing environment (.env.local overrides .env;
 // platform-injected process env always wins) BEFORE anything reads it,
 // so this runtime reports the same provider state as Vite dev.
 const envSummary = loadEnvFilesIntoProcess([
+  "VITE_ANTHROPIC_API_KEY",
+  "ANTHROPIC_API_KEY",
   "VITE_FIRMS_API_KEY",
   "AISSTREAM_API_KEY",
   "INSTAGRAM_ACCESS_TOKEN",
@@ -70,6 +75,18 @@ if (envSummary.filesLoaded.length > 0) {
       Object.entries(envSummary.keys)
         .map(([k, v]) => `${k}=${v ? "SET" : "absent"}`)
         .join(" | "),
+  );
+}
+
+// Publish any provider key supplied under an unprefixed platform name
+// onto the __LELU_*__ channel the providers already read, so a provider
+// initialised inside THIS runtime resolves the same credential the
+// browser bundle does. VITE_-named keys are never overridden.
+const bridgedHere = applyBridgeToGlobals((key) => process.env[key]);
+if (bridgedHere.length > 0) {
+  console.log(
+    "[LÉLU runtime] runtime key bridge: " +
+      bridgedHere.map((b) => `${b.sourceName} → ${b.globalName}`).join(", "),
   );
 }
 
@@ -189,7 +206,29 @@ function sendFile(res: ServerResponse, filePath: string): void {
     "Cache-Control",
     ext === ".html" ? "no-cache" : "public, max-age=31536000, immutable",
   );
+
+  // The app shell is rewritten on the way out so a provider key present
+  // in THIS process reaches the browser without a rebuild. `dist/` was
+  // produced by an earlier `vite build`, which could only bake in the
+  // keys that existed at BUILD time; a key provisioned afterwards would
+  // otherwise be invisible until the app was rebuilt. Appending at the
+  // end of <head> means the serve-time value wins over any build-time
+  // one, which is the precedence you want.
+  if (ext === ".html") {
+    res.end(injectRuntimeKeyBridge(readFileSync(filePath, "utf8")));
+    return;
+  }
+
   res.end(readFileSync(filePath));
+}
+
+function injectRuntimeKeyBridge(html: string): string {
+  const body = bridgeScriptBody((key) => process.env[key]);
+  if (!body) return html;
+  const script = `<script>\n${body}\n</script>\n`;
+  return html.includes("</head>")
+    ? html.replace("</head>", `${script}</head>`)
+    : script + html;
 }
 
 /* ------------------------------------------------------------------ */
@@ -255,14 +294,10 @@ instagramApi.attach(middlewares);
 rssApi.attach(middlewares);
 quad9Api.attach(middlewares);
 nekoApi.attach(middlewares);
-// Mounted BEFORE the legacy /api/ai passthrough below: connect matches
-// by prefix, so the catch-all would otherwise swallow these two routes.
-createAiProxyApi((key) => process.env[key]).attach(middlewares);
-// The server-side page reader BrowserTool falls back to when CORS blocks
-// a direct read. It was mounted in Vite and Deno but not here, so a
-// `bun run serve` deployment could open a page and never read one.
-createBrowseApi().attach(middlewares);
 createGithubApi().attach(middlewares);
+// Same-origin model broker: the browser posts here, the server holds
+// the credential and talks to the provider.
+createModelApi((key) => process.env[key]).attach(middlewares);
 middlewares.use("/api/ai", (req, res) => {
   void handleAiProxy(req, res);
 });

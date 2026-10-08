@@ -11,119 +11,47 @@ repo even if `.env` itself is ever recreated.
 > For platform-managed secrets, paste values into the **Keys / API keys**
 > tab instead of `.env`.
 
-## AI chat providers (fallback priority order) — **server-side only**
-
-> **These moved.** They used to be `VITE_`-prefixed and were therefore
-> compiled into the client bundle: a build with canary values put two
-> provider keys into 11 separate chunks of `dist/assets/`, readable by
-> anyone who loaded the page. They are now read by the server and reach
-> their upstream through the same-origin relay
-> (`plugins/aiProxyApi.ts` → `src/providers/aiRelay.ts`), so no chat
-> credential ever enters the browser.
->
-> Set them **without** the `VITE_` prefix. The `VITE_` spelling is still
-> accepted by the relay so an existing `.env` keeps working, but it is no
-> longer the documented place for them and it is not read by client code.
->
-> `scripts/verify-bundle-secrets.ts` builds with canaries and fails if any
-> of these reappear in `dist/`; `scripts/verify-live-runtime.mjs` proves
-> the same thing from inside a real browser.
+## AI chat providers (fallback priority order)
 
 | Variable | Role | Required |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Claude (Anthropic) — **primary** provider | yes |
-| `GROQ_API_KEY` | Groq — fallback #1 | yes |
-| `OPENROUTER_API_KEY` | OpenRouter — fallback #2 | yes |
-| `CEREBRAS_API_KEY` | Cerebras — fallback #3 | yes |
-| `MISTRAL_API_KEY` | Mistral — fallback #4 | yes |
-| `FIREWORKS_API_KEY` | Fireworks AI — fallback #5 | yes |
-| `GITHUB_MODELS_TOKEN` | GitHub Models — fallback #6 | yes |
-
-`GROQ_API_KEY` also serves voice transcription (Groq Whisper), which
-relays through the same endpoint — see `POST /api/ai/relay-raw`.
-
-Claude uses the Messages API (`POST /v1/messages`), which authenticates
-with `x-api-key` rather than a bearer token and takes its system prompt
-as a top-level field — `src/providers/AnthropicProvider.ts` translates
-LÉLU's OpenAI-shaped request into that format. `VITE_ANTHROPIC_MODEL`
-overrides the model (default `claude-opus-5`).
-
-**Deliberately NOT read:** a bare `API_KEY`. That name is generic, and in
-a Claude Code environment it holds the *agent's own* Anthropic
-credential — adopting it would spend someone else's quota and make the
-provider report itself configured when nothing was set for LÉLU. Use
-`ANTHROPIC_API_KEY` (or `CLAUDE_API_KEY`).
-
-**Deliberately NOT read:** a bare `GITHUB_TOKEN` / `GITHUB_CODESPACE_TOKEN`.
-Dev containers, Codespaces and CI runners set those for git tooling, and
-adopting one makes GitHub Models falsely report itself configured (and
-would spend a repo-scoped token against an unrelated inference API).
-Only `GITHUB_MODELS_TOKEN` counts.
-
-### Model overrides (browser-safe — names, not credentials)
-
-| Variable | Role | Required |
-|---|---|---|
-| `VITE_ANTHROPIC_MODEL` | Claude model override (default `claude-opus-5`) | no |
+| `VITE_GROQ_API_KEY` | Groq — **primary** provider | yes |
 | `VITE_GROQ_MODEL` | Groq model override | no |
+| `VITE_OPENROUTER_API_KEY` | OpenRouter — fallback #1 | yes |
 | `VITE_OPENROUTER_MODEL` | OpenRouter model override | no |
+| `VITE_CEREBRAS_API_KEY` | Cerebras — fallback #2 | yes |
 | `VITE_CEREBRAS_MODEL` | Cerebras model override | no |
+| `VITE_MISTRAL_API_KEY` | Mistral — fallback #3 | yes |
 | `VITE_MISTRAL_MODEL` | Mistral model override | no |
+| `VITE_FIREWORKS_API_KEY` | Fireworks AI — fallback #4 | yes |
 | `VITE_FIREWORKS_MODEL` | Fireworks model override | no |
+| `VITE_GITHUB_TOKEN` | GitHub Models — fallback #5 + GitHub repo tool | yes |
 | `VITE_GITHUB_MODEL` | GitHub Models model override | no |
-| `VITE_AI_PROXY_BASE_URL` | Custom AI proxy for GitHub Models (bypasses the relay) | no |
+| `VITE_ANTHROPIC_API_KEY` | Anthropic (Claude) — fallback #6 | yes |
+| `VITE_ANTHROPIC_MODEL` | Anthropic model override | no |
+| `VITE_AI_PROXY_BASE_URL` | Custom AI proxy for GitHub Models | no |
 
-#### Reaching Claude without an Anthropic key
+### Unprefixed names
 
-`ANTHROPIC_API_KEY` is the direct path, but it is not the only one.
-OpenRouter resells the Anthropic models, so a working
-`OPENROUTER_API_KEY` already reaches Claude — set the model and the
-existing fallback chain does the rest:
+Provider keys are also accepted under their ordinary, unprefixed names —
+`ANTHROPIC_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`,
+`CEREBRAS_API_KEY`, `MISTRAL_API_KEY`, `FIREWORKS_API_KEY` — which is the
+shape GitHub Codespaces secrets, Vercel, Fly, Render and a plain shell
+export all produce. The runtime key bridge (`plugins/runtimeKeyBridge.ts`)
+publishes them onto the `__LELU_*__` channel the providers already read,
+so no renaming is needed. The `VITE_` name always wins when both are set.
 
-```
-VITE_OPENROUTER_MODEL=anthropic/claude-haiku-4.5
-```
-
-This is a model NAME, not a credential: it is safe in `.env`, in the
-client bundle, and in version control. Verified live —
-`scripts/verify-live-runtime.mjs` records the model on every relay call,
-and a real browser turn produced
-`groq (openai/gpt-oss-120b) → openrouter (anthropic/claude-haiku-4.5)`.
-
-Two caveats. `openrouter/free` is the default precisely because it is
-free; the Anthropic models bill against the OpenRouter account. And this
-routes Claude through a reseller, so it is a fallback for when the direct
-credential cannot be delivered, not a replacement for one.
-
-### The relay endpoints
-
-Mounted by every runtime that serves the app (Vite dev/preview,
-`server.ts`, `main.ts`) — the same way `/api/engineer/*` is:
-
-- `GET  /api/ai/providers` — which providers the server holds a credential
-  for. **Booleans only** — never a value, a prefix, or a length.
-- `POST /api/ai/relay` — JSON chat completions, forwarded to an
-  allowlisted upstream with the server's `Authorization`.
-- `POST /api/ai/relay-raw` — the same for a multipart body (voice
-  transcription), forwarded byte-for-byte.
-
-All three refuse an unknown provider id, a path outside that provider's
-own prefix, and a cross-origin POST; a client-supplied `Authorization`
-is dropped, never forwarded.
+`GITHUB_TOKEN` is the one exception and is deliberately **not** accepted:
+dev containers, Codespaces and CI runners set an ambient one for git
+tooling that is not a GitHub Models inference key. Supply
+`VITE_GITHUB_TOKEN` explicitly for that provider.
 
 ## Knowledge / research providers
-
-> **Still browser-side.** These services are called directly from the
-> browser today, so their keys are still compiled into the bundle. That
-> is a real, narrower exposure than the chat keys were — stated here
-> rather than glossed over. Routing them through the relay the way the
-> chat providers now are is the follow-up that closes it.
 
 | Variable | Role | Required |
 |---|---|---|
 | `VITE_NEWS_API_KEY` | NewsAPI.org — current news lookups | yes |
 | `VITE_YOUTUBE_API_KEY` | YouTube Data API v3 — video lookups | yes |
-| `VITE_GITHUB_TOKEN` | GitHub repo access tool (not GitHub Models) | no |
 
 ## Earth Core providers (optional — the layer reports its real status without them)
 
@@ -158,9 +86,11 @@ runtime that serves the app:
 | Deno production entry | `deno run --allow-net --allow-read --allow-write --allow-run main.ts` | ✅ (`deno`) |
 | Static-only hosting (e.g. GitHub Pages) | — | ❌ the app honestly reports `STATIC-ONLY` |
 
-Endpoints (all same-origin, no credentials):
+Endpoints (same-origin by default, no credentials):
 
-- `GET /api/engineer/status` — runtime report (`runtime`, `operations`, `tokenRequired`)
+- `GET /api/engineer/status` — runtime report (`runtime`, `operations`,
+  `tokenRequired`, `workspaceRoot`, and `runtimeInfo`: engine, version,
+  platform, cwd, start time)
 - `POST /api/engineer/command` — `{ operation }`; **whitelisted** to
   `typecheck` (`bun tsc -b --noEmit`), `test` (`bun test`),
   `build` (`bun run build`), `inspect` (`node --version && bun --version && pwd`).
@@ -168,11 +98,67 @@ Endpoints (all same-origin, no credentials):
   entry exactly. The server never runs arbitrary shell input.
 - `POST /api/engineer/read` — `{ path }`, workspace-root-bounded
 - `POST /api/engineer/write` — `{ path, content }`, workspace-root-bounded
+- `POST /api/engineer/list` — `{ path }`, workspace-root-bounded directory
+  listing (`.git`, `node_modules`, `dist`, caches excluded), so
+  self-inspection can discover real files instead of only the files that
+  happened to be bundled at build time.
 
 Safety model: command whitelist + workspace path boundary + origin
-guard (cross-origin POSTs rejected) + optional `LELU_ENGINEER_TOKEN`
-(when set, POSTs must carry `x-lelu-token`; the app reports
-`token required` honestly if it is missing).
+guard + optional `LELU_ENGINEER_TOKEN` (when set, POSTs must carry
+`x-lelu-token`; the app reports `token required` honestly if it is
+missing).
+
+### Connecting a deployed front-end to a real development runtime
+
+Self-inspection reads the live workspace when the engineering runtime is
+reachable, and falls back to the build-time snapshot when it is not. The
+two are never conflated — `SourceAccess.describe()` reports either
+`REAL DEVELOPMENT RUNTIME` or `STATIC SNAPSHOT`, and every read carries
+its origin. A static-only deployment therefore degrades honestly rather
+than silently.
+
+To point a deployed front-end at a real runtime instead:
+
+| Variable | Side | Purpose |
+| --- | --- | --- |
+| `VITE_LELU_ENGINEER_URL` | client | Base URL of the engineering runtime. Empty (default) means same origin. |
+| `VITE_LELU_ENGINEER_TOKEN` | client | Sent as `x-lelu-token`. Required only when the runtime sets `LELU_ENGINEER_TOKEN`. |
+| `LELU_ENGINEER_TOKEN` | server | When set, every POST must carry the matching token. |
+| `LELU_ENGINEER_ALLOWED_ORIGINS` | server | Comma-separated exact origins (or `*`) permitted to call cross-origin. **Empty by default — same-origin only.** |
+
+`LELU_ENGINEER_ALLOWED_ORIGINS` is what makes the cross-origin case work
+at all: without it the origin guard rejects a front-end served from a
+different host, which is the correct default. Set it deliberately, to
+the specific origin, and pair it with `LELU_ENGINEER_TOKEN` — this
+endpoint reads and writes real workspace files and runs real commands.
+
+#### The two real frontend/runtime relationships
+
+| Deployment | Frontend origin | Runtime origin | Correct configuration |
+| --- | --- | --- | --- |
+| Vite dev (`bun run dev`), standalone runtime (`bun run serve` → `server.ts`), Deno entry (`main.ts`) | same as runtime | same | **Leave `LELU_ENGINEER_ALLOWED_ORIGINS` unset.** The frontend and `/api/engineer/*` are served by one origin, so the origin guard already permits it. Widening the allowlist here would only weaken the boundary. |
+| Capacitor Android shell (`capacitor.config.ts`, `androidScheme: "https"`) pointed at a hosted runtime | `https://localhost` (the WebView) | the runtime host | `LELU_ENGINEER_ALLOWED_ORIGINS=https://localhost` **and** `LELU_ENGINEER_TOKEN=<secret>`, with the shell built carrying `VITE_LELU_ENGINEER_URL` and `VITE_LELU_ENGINEER_TOKEN`. |
+
+Set the allowlist to the exact origin. Never `*` on a reachable host:
+that endpoint reads and writes workspace files and runs commands.
+
+The two checks are independent and both are enforced — verified against
+the standalone runtime:
+
+- same-origin + token → `200`
+- non-allowlisted origin **with a valid token** → `403` (the token does
+  not buy you past the origin guard)
+- allowlisted origin **without a token** → `401` (the allowlist does not
+  buy you past the token gate)
+- allowlisted origin + token → `200`
+- CORS headers are echoed only for an allowlisted origin
+
+`GET /api/engineer/status` stays reachable without a token, because a
+client has to be able to discover whether a runtime exists and whether a
+token is required before it can present one. When a token IS configured,
+an unauthenticated probe gets only the capability fields — the absolute
+`workspaceRoot` and the `runtimeInfo` engine/version/cwd details are
+returned only to a caller that already holds the token.
 
 Fires are real NASA VIIRS NRT hotspots via the FIRMS area CSV API
 (bbox-bounded around the camera focus, with acquisition timestamps,
@@ -226,3 +212,188 @@ Groq/OpenRouter chat completions, a real NASA FIRMS hotspot fetch
   out of frontend code.
 - Never hardcode keys, log secret values, or return credentials through
   API responses.
+
+
+## External service endpoints
+
+Every outbound base URL is a named setting resolved by
+`src/core/Endpoints.ts`, through the same four rungs as credentials
+(`VITE_` name → `__LELU_*__` global → `process.env`). Each defaults to
+the URL the code used before it was configurable, so leaving one unset is
+never a behaviour change. Set one to point at a mirror, a self-hosted
+instance, a gateway, or a proxy.
+
+### Wired to live code
+
+| Variable | Default |
+|---|---|
+| `ANTHROPIC_BASE_URL` | `https://api.anthropic.com/v1` |
+| `GROQ_BASE_URL` | `https://api.groq.com/openai/v1` |
+| `CEREBRAS_BASE_URL` | `https://api.cerebras.ai/v1` |
+| `OPENROUTER_BASE_URL` | `https://openrouter.ai/api/v1` |
+| `MISTRAL_BASE_URL` | `https://api.mistral.ai/v1` |
+| `FIREWORKS_BASE_URL` | `https://api.fireworks.ai/inference/v1` |
+| `GITHUB_MODELS_BASE_URL` | `https://models.github.ai/inference` |
+| `NOMINATIM_API_URL` | `https://nominatim.openstreetmap.org` |
+| `OPENSTREETMAP_API_URL` | `https://www.openstreetmap.org` |
+| `OSRM_API_URL` | `https://router.project-osrm.org` |
+| `OPEN_METEO_API_URL` | `https://api.open-meteo.com` |
+| `OPEN_METEO_GEOCODING_API_URL` | `https://geocoding-api.open-meteo.com` |
+| `FIRMS_API_URL` | `https://firms.modaps.eosdis.nasa.gov` |
+| `USGS_EARTHQUAKE_API_URL` | `https://earthquake.usgs.gov` |
+| `CELESTRAK_API_URL` | `https://celestrak.org` |
+| `NASA_IMAGES_API_URL` | `https://images-api.nasa.gov` |
+| `NEWSAPI_URL` | `https://newsapi.org/v2` |
+| `YOUTUBE_API_URL` | `https://www.googleapis.com/youtube/v3` |
+| `INSTAGRAM_API_URL` | `https://graph.instagram.com` |
+| `META_GRAPH_API_URL` | `https://graph.facebook.com` |
+| `GITHUB_API_URL` | `https://api.github.com` |
+| `ARXIV_API_URL` | `https://export.arxiv.org` |
+| `CROSSREF_API_URL` | `https://api.crossref.org` |
+| `OPENALEX_API_URL` | `https://api.openalex.org` |
+| `GDELT_API_URL` | `https://api.gdeltproject.org` |
+| `HACKERNEWS_API_URL` | `https://hn.algolia.com/api/v1` |
+| `MESHY_API_URL` | `https://api.meshy.ai` |
+
+### All endpoints have consumers
+
+Every endpoint in the registry is read by real calling code. The providers
+added for the previously-unconsumed ones are: Gemini (AI chat, priority 8),
+NASA APOD / NeoWs / DONKI / EONET / EPIC / Exoplanet Archive / OSDR /
+InSight, SpaceX, NOAA, Geoapify, GNews, Guardian and NewsData.
+
+`NASA_API_URL` is a ROOT: setting it moves APOD, NeoWs, DONKI, EPIC and
+InSight together, while a specific name (`NASA_APOD_API_URL`) still wins
+for its own endpoint.
+
+`NEWSDATA_WEBSOCKET_URL` configures `newsDataWebsocketUrl()` rather than a
+Provider — a socket is a subscription, not a search, and nothing in LÉLU
+consumes a push stream today.
+
+`bun run scripts/verify-endpoints.ts` prints the current split.
+
+### A note on version segments
+
+`ANTHROPIC_BASE_URL` and the other inference bases are ambiguous in the
+wild: the Anthropic SDK documents the host alone (`https://api.anthropic.com`,
+appending `/v1` itself) while the API reference shows `.../v1`. The two
+differ by one path segment and guessing wrong is a silent 404 on every
+request, so the registry appends the version segment when a configured
+base omits it. Both spellings work.
+
+### RSS feed names
+
+Both orderings resolve — `SAPIOLINGO_RSS_URL` and `RSS_SAPIOLINGO_URL`,
+and likewise for `ELPHERU`, `GOOGLE_NEWS` (`RSS_GOOGLE_NEWS_URL`) and the
+alternate feed (`GOOGLE_NEWS_RSS_URL_2` / `RSS_GOOGLE_NEWS_ALT_URL`). The
+two are easy to transpose and a wrong one is silent, so both are accepted.
+
+
+## Provider API keys added alongside the endpoint registry
+
+| Variable | Provider | Behaviour without it |
+|---|---|---|
+| `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) | Gemini chat | Reports unavailable; chain skips it |
+| `NASA_API_KEY` | NASA science family | Works on shared `DEMO_KEY`, heavily rate-limited |
+| `GEOAPIFY_API_KEY` | Geoapify geocoding | Declines; Nominatim serves geocoding |
+| `GNEWS_API_KEY` | GNews | Declines; other news sources serve |
+| `GUARDIAN_API_KEY` | The Guardian | Declines; other news sources serve |
+| `NEWSDATA_API_KEY` | NewsData.io | Declines; other news sources serve |
+
+Keyed providers return no results rather than throwing when unconfigured,
+so an unset key never blocks the fallback chain.
+
+### Coverage limits worth knowing
+
+**NOAA is United States only.** `api.weather.gov` has no data elsewhere,
+so the provider returns nothing for a non-US location and Open-Meteo
+answers instead. That is a real answer, not a failure.
+
+**NASA InSight is archival.** The lander's mission ended in December 2022,
+so this feed is a fixed historical record. The provider says so in every
+result rather than presenting it as current Mars weather.
+
+
+## Verifying the wiring
+
+| Script | Answers |
+|---|---|
+| `bun run scripts/verify-secrets.ts` | Which credentials are declared, which are read by real code, and which are set here — never prints a value |
+| `bun run scripts/verify-endpoints.ts` | Every base URL's default, that each variable really redirects, and that nothing is declared without a consumer |
+| `bun run scripts/verify-providers.ts` | Provider contracts: fallback order, request shape, auth headers, response parsing, error-throws-so-fallback-advances |
+
+`verify-secrets` is the one to run **where your keys actually live**.
+Codespaces secrets do not propagate to other machines or containers, so
+running it elsewhere proves the code path, not any particular key.
+
+### Anthropic prompt caching
+
+The Anthropic system block is sent as the array form carrying
+`cache_control: {type: "ephemeral"}`. The identity prompt is ~430 tokens
+and `contextMessages()` hoists memory and live-retrieval results into the
+same block, so it is both the largest and the most repeated content LÉLU
+sends. Below Anthropic's minimum cacheable length the marker is ignored;
+above it, measured on a 3163-token context, a follow-up turn billed 13
+fresh input tokens instead of 3163.
+
+---
+
+## Model credentials are server-owned
+
+Remote AI provider credentials are read by the SERVER ONLY. The browser never
+holds one, never sends one, and no longer decides whether a provider is
+configured.
+
+```
+Browser/UI → AIService → cognition/router → ProviderResolver
+          → AIProviderRegistry → provider → BrokerTransport
+          → /api/model/<provider>/<path> → server broker → provider API
+```
+
+### Where the server reads them
+
+`plugins/modelApi.ts` resolves each provider's credential from the server
+process environment, first match wins:
+
+| Provider | Environment names (in order) |
+| --- | --- |
+| `anthropic` | `VITE_ANTHROPIC_API_KEY`, `ANTHROPIC_API_KEY`, `CLAUDE_API_KEY` |
+| `groq` | `VITE_GROQ_API_KEY`, `GROQ_API_KEY` |
+| `openrouter` | `VITE_OPENROUTER_API_KEY`, `OPENROUTER_API_KEY`, `OPEN_ROUTER_API_KEY` |
+| `cerebras` | `VITE_CEREBRAS_API_KEY`, `CEREBRAS_API_KEY` |
+| `mistral` | `VITE_MISTRAL_API_KEY`, `MISTRAL_API_KEY` |
+| `fireworks` | `VITE_FIREWORKS_API_KEY`, `FIREWORKS_API_KEY` |
+| `gemini` | `VITE_GEMINI_API_KEY`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY` |
+| `githubModels` | `VITE_GITHUB_TOKEN`, `GITHUB_MODELS_TOKEN` |
+
+The `VITE_` names are accepted for continuity with the previous
+configuration — but they are no longer injected into the bundle, so a
+`VITE_`-named model key is now just a server-side variable like any other.
+Setting the unprefixed name is preferable and does the same thing.
+
+Note `ANTHROPIC_API_KEY` is reserved by some hosting runtimes (a managed
+Claude Code container strips it, since it is what the session itself
+authenticates with). Where that applies, use `VITE_ANTHROPIC_API_KEY`.
+
+### Verifying without exposing anything
+
+```
+GET /api/model/status
+→ {"ok":true,"providers":{"anthropic":false,"groq":true,"fireworks":true, ...}}
+```
+
+Booleans only. No keys, no prefixes, no lengths, no headers. This is also what
+the browser uses to decide provider availability — `providerConfigured()` in
+`src/core/model/BrokerTransport.ts` asks the server rather than inspecting a
+key it no longer has.
+
+### What the browser still receives
+
+Non-secret runtime configuration only, via `plugins/runtimeKeyBridge.ts`:
+model names, endpoint base URLs, and `SUPABASE_PUBLISHABLE_KEY` — which is
+designed to be public, because RLS and not key secrecy protects that data. The
+Supabase SERVICE ROLE key is never bridged.
+
+Knowledge/data providers (news, YouTube, Geoapify, Guardian, NewsData, NASA)
+still read their keys in the browser. They call those APIs directly from the
+page and have no broker; moving them behind one is a separate change.

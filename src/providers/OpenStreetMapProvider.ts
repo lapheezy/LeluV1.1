@@ -7,6 +7,7 @@
 
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
+import { endpoint, endpointUrl } from "../core/Endpoints";
 
 export default class OpenStreetMapProvider implements Provider {
 
@@ -30,7 +31,7 @@ export default class OpenStreetMapProvider implements Provider {
   readonly capabilities = ["geography", "map", "places", "location"] as const;
 
   private readonly endpoint =
-    "https://nominatim.openstreetmap.org/search";
+    endpointUrl("nominatim", "search");
 
   canSearch(query: string): boolean {
     return query.trim().length > 0;
@@ -94,7 +95,7 @@ export default class OpenStreetMapProvider implements Provider {
         id: String(place.osm_id ?? crypto.randomUUID()),
         title: place.display_name,
         content: `${place.lat}, ${place.lon}`,
-        url: `https://www.openstreetmap.org/?mlat=${place.lat}&mlon=${place.lon}`,
+        url: `${endpoint("openstreetmap")}/?mlat=${place.lat}&mlon=${place.lon}`,
         source: "OpenStreetMap",
         confidence: 0.95,
         timestamp: new Date().toISOString(),

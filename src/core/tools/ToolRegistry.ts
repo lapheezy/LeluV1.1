@@ -624,6 +624,27 @@ export default class ToolRegistry {
         executionRoute: "SandboxRuntime.run",
       },
       {
+        id: "engineering.remote",
+        name: "Remote Engineering Agent",
+        description:
+          "Run a bounded engineering task in an Anthropic-hosted sandbox against a " +
+          "disposable clone of the repository pinned to an exact commit. Returns a " +
+          "reviewable diff; never pushes and never touches the local working tree.",
+        category: "Engineering",
+        // EXTERNAL_ACTION because the session runs on Anthropic's infrastructure;
+        // EXECUTE because real commands run in the container. Risk 3 rather
+        // than 4: the sandbox is disposable and the local tree is unreachable.
+        permissions: ["EXECUTE", "EXTERNAL_ACTION"],
+        riskLevel: 3,
+        // Detected at runtime — this is false until BOTH an Anthropic key
+        // and a repository token are configured, so the catalogue never
+        // advertises a capability that cannot actually run.
+        available: false,
+        provider: "anthropic-managed-agents",
+        executionRoute: "AnthropicEngineeringAgent.execute",
+        verificationMethod: "session event stream + returned diff",
+      },
+      {
         id: "workspace.typecheck",
         name: "Type Check",
         description: "Run TypeScript type checking on the project",
@@ -652,6 +673,199 @@ export default class ToolRegistry {
         riskLevel: 3,
         available: false,
         executionRoute: "WorkspaceRuntime.run",
+      },
+
+      /* ---- isolated project copies (real files, real commands) ----
+         Availability is decided at runtime by the engineering runtime
+         probe, not declared here: these can only work where a real
+         development runtime is serving /api/engineer. */
+      {
+        id: "project.copy",
+        name: "Copy Project To Sandbox",
+        description:
+          "Create an isolated copy of the real project in the engineering sandbox. " +
+          "All edits happen in the copy; the real project is never modified by an edit.",
+        category: "Engineering",
+        permissions: ["WRITE", "EXECUTE"],
+        riskLevel: 1,
+        available: false,
+        executionRoute: "EngineeringWorkspace.createCopy",
+        verificationMethod: "server returns the on-disk file count of the copy",
+      },
+      {
+        id: "project.list",
+        name: "List Project Files",
+        description:
+          "List files and directories inside the sandbox copy. Use '.' for the project root.",
+        category: "Engineering",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: false,
+        executionRoute: "EngineeringWorkspace.listDir",
+      },
+      {
+        id: "project.read",
+        name: "Read Project File",
+        description: "Read the real contents of a file inside the sandbox copy.",
+        category: "Engineering",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: false,
+        executionRoute: "EngineeringWorkspace.readFile",
+      },
+      {
+        id: "project.write",
+        name: "Write Project File",
+        description:
+          "Write a file inside the sandbox copy. Supply the COMPLETE new file contents. " +
+          "This never touches the real project.",
+        category: "Engineering",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: false,
+        executionRoute: "EngineeringWorkspace.writeFile",
+      },
+      {
+        id: "project.delete",
+        name: "Delete Project File",
+        description: "Delete a file inside the sandbox copy. This never touches the real project.",
+        category: "Engineering",
+        permissions: ["WRITE", "DESTRUCTIVE"],
+        riskLevel: 2,
+        available: false,
+        executionRoute: "EngineeringWorkspace.deleteFile",
+      },
+      {
+        id: "project.validate",
+        name: "Validate Project Copy",
+        description:
+          "Run a real typecheck, test, build or inspect command INSIDE the sandbox copy and " +
+          "return its actual exit code and output.",
+        category: "Engineering",
+        permissions: ["EXECUTE"],
+        riskLevel: 2,
+        available: false,
+        executionRoute: "EngineeringWorkspace.validate",
+        verificationMethod: "process exit code and captured stdout/stderr",
+      },
+      {
+        id: "project.diff",
+        name: "Diff Project Copy",
+        description:
+          "Compare the sandbox copy against the real project and list every file that differs.",
+        category: "Engineering",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: false,
+        executionRoute: "EngineeringWorkspace.diff",
+      },
+      {
+        id: "project.apply",
+        name: "Apply Changes To Real Project",
+        description:
+          "Apply the validated change set from the sandbox copy to the REAL project. " +
+          "Only available while the signed-in user has explicitly authorized this workspace.",
+        category: "Engineering",
+        permissions: ["WRITE", "EXTERNAL_ACTION"],
+        riskLevel: 4,
+        available: false,
+        executionRoute: "EngineeringWorkspace.apply",
+        verificationMethod: "server returns the list of files actually written",
+      },
+      {
+        id: "project.git",
+        name: "Inspect Project Git State",
+        description:
+          "Read the real repository state: 'status', 'diff' (add full:true for the patch), or " +
+          "'log'. Read-only — this never commits or pushes.",
+        category: "Engineering",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: false,
+        executionRoute: "EngineeringWorkspace.gitStatus",
+        verificationMethod: "raw git output",
+      },
+      {
+        id: "system.config",
+        name: "Read Configuration Status",
+        description:
+          "Report which capabilities are configured and, for the ones that are not, which " +
+          "environment variable is missing. Names and presence only — this cannot read a " +
+          "secret's value. Use it when something is unavailable and you need to say why.",
+        category: "System",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "ConfigStatus.describeConfiguration",
+        verificationMethod: "resolves through the same env resolver the providers use",
+      },
+      /* ---- workflows: the same tool path as everything else ---- */
+      {
+        id: "workflow.list",
+        name: "List Workflows",
+        description:
+          "List the reusable workflows that exist, with how many steps each has and whether " +
+          "it can run right now. Use this before running one.",
+        category: "Workflows",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "AgentWorkflowBridge.discover",
+        verificationMethod: "reads the persisted workflow definitions",
+      },
+      {
+        id: "workflow.run",
+        name: "Run Workflow",
+        description:
+          "Execute a reusable workflow by name or id. Every step runs as a real tool call and " +
+          "the result reports what each step actually did.",
+        category: "Workflows",
+        permissions: ["EXECUTE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "WorkflowEngine.run",
+        verificationMethod: "per-step tool results and the persisted execution record",
+      },
+      {
+        id: "workflow.author",
+        name: "Author Workflow",
+        description:
+          "Create or replace a reusable workflow by describing its steps as data. Every step " +
+          "names an EXISTING tool; branching, retries, loops and failure handling are declared, " +
+          "not written as code. The definition is validated and only stored if it could really " +
+          "run, and it is then available to every future objective.",
+        category: "Workflows",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "WorkflowAuthoring.authorWorkflow",
+        verificationMethod: "validated against the tool registry and persisted definitions",
+      },
+      {
+        id: "workflow.status",
+        name: "Workflow Execution Status",
+        description:
+          "Read the recorded state of a workflow execution — its steps, their inputs, outputs " +
+          "and failures — by invocation id, or the most recent run.",
+        category: "Workflows",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "WorkflowStore.execution",
+      },
+
+      {
+        id: "project.commit",
+        name: "Commit Applied Changes",
+        description:
+          "Commit the files that were actually applied to the real project. Stages only those " +
+          "paths. Requires the same explicit authorization as applying.",
+        category: "Engineering",
+        permissions: ["WRITE", "EXTERNAL_ACTION"],
+        riskLevel: 4,
+        available: false,
+        executionRoute: "EngineeringWorkspace.gitCommit",
+        verificationMethod: "git returns the commit sha and stat",
       },
     ];
 

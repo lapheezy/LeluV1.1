@@ -736,6 +736,55 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     return () => mediaQuery.removeEventListener("change", handleViewportChange);
   }, []);
 
+  /**
+   * ORIENTATION SURVIVAL.
+   *
+   * `chatPos` is an absolute pixel position and `mobileHeight` an
+   * absolute pixel height. Rotating the device swaps the viewport
+   * dimensions but left both untouched, so a chat parked at x=600 in
+   * landscape sat entirely outside a 400px-wide portrait viewport — it
+   * "disappeared". Nothing was unmounted and no state was lost; it was
+   * simply positioned off-screen with no way back.
+   *
+   * Re-clamp into the new viewport on every resize/orientation change.
+   * Conversation, input and cognition state are untouched: this only
+   * moves the window back into view.
+   */
+  useEffect(() => {
+    const clampToViewport = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      setChatPos((current) => {
+        if (current.x < 0 && current.y < 0) return current; // centered
+        const floatW = Math.min(width - 16, 400);
+        const maxX = Math.max(8, width - floatW - 8);
+        const maxY = Math.max(8, height - 160);
+        const x = Math.max(8, Math.min(maxX, current.x));
+        const y = Math.max(8, Math.min(maxY, current.y));
+        return x === current.x && y === current.y ? current : { x, y };
+      });
+
+      setMobileHeight((current) => {
+        if (current === null) return current;
+        const capped = Math.max(200, Math.min(height - 16, current));
+        return capped === current ? current : capped;
+      });
+    };
+
+    clampToViewport();
+    window.addEventListener("resize", clampToViewport);
+    window.addEventListener("orientationchange", clampToViewport);
+    // iOS reports the real usable area here when the URL bar/keyboard move.
+    const visual = window.visualViewport;
+    visual?.addEventListener("resize", clampToViewport);
+    return () => {
+      window.removeEventListener("resize", clampToViewport);
+      window.removeEventListener("orientationchange", clampToViewport);
+      visual?.removeEventListener("resize", clampToViewport);
+    };
+  }, []);
+
   /* ----- Auto-scroll: follow LELU's response, allow manual scroll-up ----- */
   const scrollRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef(false);

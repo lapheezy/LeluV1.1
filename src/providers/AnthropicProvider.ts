@@ -1,207 +1,253 @@
 /**
  * ==========================================================
  * LÉLU
- * ANTHROPIC (CLAUDE) PROVIDER
- *
- * Claude speaks a different shape from every other provider in
- * this chain. The rest are OpenAI-compatible: one `messages`
- * array carrying `system`, `user` and `assistant` roles, posted
- * to `/chat/completions`. The Messages API instead takes:
- *
- *   - `system` as a TOP-LEVEL field (there is no system role in
- *     the messages array — sending one is a 400),
- *   - `x-api-key` + `anthropic-version` headers rather than a
- *     bearer token,
- *   - `max_tokens` as a REQUIRED field,
- *   - a `content` array of typed blocks in the response, not
- *     `choices[0].message.content`.
- *
- * So this file is a translation layer, not a copy of GroqProvider
- * with a different URL. Everything else — priority, failover,
- * memory/context injection, streaming into the UI — is the
- * existing machinery, unchanged.
- *
- * WHY RAW HTTP AND NOT @anthropic-ai/sdk
- * --------------------------------------
- * The official SDK opens its own connection to api.anthropic.com
- * with a key it holds. In a browser that means either shipping the
- * key in the bundle (the exact leak `plugins/aiProxyApi.ts` exists
- * to close) or `dangerouslyAllowBrowser` — both unacceptable here.
- * Every other provider already reaches its upstream through
- * `providerFetch`, so the credential stays on the server and the
- * request goes same-origin. This provider does the same, which is
- * why it speaks the wire format directly.
+ * ANTHROPIC PROVIDER
  * ==========================================================
  */
 
 import type AIProvider from "./AIProvider";
-import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
+import type { AIRequest, AIResponse, AIProviderHealth, ToolCall } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
-import { providerFetch, relayAvailable } from "./aiRelay";
+import { endpointUrl } from "../core/Endpoints";
+import { resolveFirst } from "../core/resolveEnv";
+import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
+import { resolveModel } from "../core/ProviderModels";
 
-/** Pinned per Anthropic's versioning contract — required on every request. */
-const ANTHROPIC_VERSION = "2023-06-01";
+type MessageContent = string | Array<Record<string, unknown>>;
 
-interface AnthropicContentBlock {
-  type: string;
-  text?: string;
+/** Does this content carry a tool_result block? */
+function hasToolResult(content: MessageContent): boolean {
+  return (
+    Array.isArray(content) &&
+    content.some((block) => (block as Record<string, unknown>)?.type === "tool_result")
+  );
+}
+
+/** Normalize a content value to the block-array form. */
+function toBlocks(content: MessageContent): Array<Record<string, unknown>> {
+  return typeof content === "string" ? [{ type: "text", text: content }] : content;
+}
+
+/**
+ * Join two same-role turns. Plain text stays plain text so the common
+ * path never inflates into blocks; anything carrying an image becomes a
+ * block array, which is the only form that can hold both.
+ */
+function mergeContent(a: MessageContent, b: MessageContent): MessageContent {
+  if (typeof a === "string" && typeof b === "string") return `${a}\n\n${b}`;
+  return [...toBlocks(a), ...toBlocks(b)];
 }
 
 export default class AnthropicProvider implements AIProvider {
   readonly name = "Anthropic";
-  readonly priority = 1;
+  readonly priority = 7;
   readonly enabled = true;
-  readonly timeout = 120000;
+  readonly timeout = 30000;
+
+  /**
+   * How long THIS request may take.
+   *
+   * 30s is right for a chat turn but wrong for an engineering one: a
+   * tool-carrying conversation replays file contents and command output
+   * on every round, so the payload grows and the model has more to read.
+   * A real run reading two source files aborted at 37.9s mid-loop — the
+   * turn was lost and the fallback chain answered without tools, having
+   * done no work.
+   *
+   * The tool-carrying case gets a longer budget; ordinary chat is
+   * unchanged, so a hung request still fails fast on the common path.
+   */
+  private timeoutFor(request: AIRequest): number {
+    return request.tools?.length ? 180_000 : this.timeout;
+  }
   readonly requiresApiKey = true;
-  readonly capabilities = ["chat", "reasoning", "memory", "vision", "code"] as const;
+  readonly capabilities = ["chat", "reasoning", "vision", "memory", "tools"] as const;
+  readonly supportsTools = true;
 
   private apiKey = "";
-  /** True when the SERVER holds the credential (see providers/aiRelay.ts). */
-  private relay = false;
   private initialized = false;
-  private model = "claude-opus-5";
+  private model = resolveModel("anthropic");
 
   async initialize(): Promise<void> {
-    const runtimeEnv = globalThis as typeof globalThis & {
-      __LELU_ANTHROPIC_API_KEY__?: string;
-      __LELU_ANTHROPIC_MODEL__?: string;
-    };
-
-    const windowEnv =
-      typeof window !== "undefined"
-        ? (window as Window & { __LELU_ANTHROPIC_API_KEY__?: string })
-        : undefined;
-
     this.model =
-      import.meta.env.VITE_ANTHROPIC_MODEL?.trim() ||
-      runtimeEnv.__LELU_ANTHROPIC_MODEL__?.trim() ||
-      "claude-opus-5";
-
-    // NOT read from import.meta.env: Vite inlines VITE_* values into the
-    // client bundle. A key held HERE only comes from a runtime that
-    // injected one deliberately (verification scripts, a native shell);
-    // otherwise the request is relayed and the SERVER attaches it.
-    //
-    // Deliberately NOT falling back to a bare `API_KEY`: that name is
-    // generic, and in a Claude Code environment it holds the AGENT's own
-    // Anthropic credential. Silently adopting it would spend someone
-    // else's quota and make this provider report itself configured when
-    // nothing was ever set for LÉLU — the same trap GitHubModelsProvider
-    // documents avoiding with an ambient GITHUB_TOKEN.
-    // `process.env.ANTHROPIC_API_KEY` IS read, by its explicit name, the
-    // same way every sibling provider reads its own (GroqProvider reads
-    // GROQ_API_KEY, OpenRouterProvider OPENROUTER_API_KEY, and so on).
-    // Anthropic was the only chat provider without this branch, so a
-    // server runtime that had the credential in its environment could
-    // not hand it to this provider directly — it worked only through the
-    // relay. There is no `process` in the browser, so this reads as
-    // undefined there and the relay still owns the browser path.
-    const processEnv =
-      typeof process !== "undefined" && typeof process.env === "object" ? process.env : undefined;
-
+      resolveModel("anthropic");
     this.apiKey =
-      runtimeEnv.__LELU_ANTHROPIC_API_KEY__?.trim() ||
-      windowEnv?.__LELU_ANTHROPIC_API_KEY__?.trim() ||
-      processEnv?.ANTHROPIC_API_KEY?.trim() ||
-      "";
-
-    this.relay = this.apiKey ? false : await relayAvailable("anthropic");
+      resolveFirst("ANTHROPIC_API_KEY", "CLAUDE_API_KEY") ?? "";
 
     this.initialized = true;
 
     console.info("[AnthropicProvider] Initialized", {
-      // Never the key or its length — only whether one is reachable.
-      credential: this.apiKey ? "local" : this.relay ? "server-relay" : "none",
+      hasKey: this.apiKey.length > 0,
       model: this.model,
     });
   }
 
+  private selectModel(request: AIRequest): string {
+    const requested = request.model?.trim() || this.model;
+    return requested;
+  }
+
+  private buildUserContent(
+    request: AIRequest,
+  ): string | Array<Record<string, unknown>> {
+    if (!request.media?.length) {
+      return request.prompt;
+    }
+
+    const parts: Array<Record<string, unknown>> = [];
+    for (const media of request.media) {
+      if (media.kind === "image" && media.dataUrl.startsWith("data:")) {
+        const base64Match = media.dataUrl.match(/;base64,(.+)$/);
+        if (base64Match) {
+          const mediaType = media.dataUrl.match(/data:([^;]+)/)?.[1] || "image/jpeg";
+          parts.push({
+            type: "image",
+            source: {
+              type: "base64",
+              media_type: mediaType,
+              data: base64Match[1],
+            },
+          });
+        }
+      }
+    }
+    parts.push({ type: "text", text: request.prompt });
+    return parts;
+  }
+
+  /**
+   * Translate LÉLU's OpenAI-shaped conversation into the Messages API
+   * shape. Three differences are load-bearing, and getting any of them
+   * wrong is a 400 rather than a degraded answer:
+   *
+   *   • `system` is a TOP-LEVEL parameter. A system entry left inside
+   *     `messages` is rejected outright — so the shared LÉLU prompt and
+   *     every system message contextMessages() produces (memory context,
+   *     live-retrieval results) are hoisted and joined here. Dropping
+   *     them instead would silently strip Lélu's identity and her fresh
+   *     retrieval results from the request.
+   *   • Roles must ALTERNATE, so consecutive same-role turns are merged.
+   *   • The conversation must OPEN with a user turn; a leading assistant
+   *     turn (a greeting replayed from history) is dropped.
+   */
+  private buildConversation(request: AIRequest): {
+    system: string;
+    messages: Array<{ role: "user" | "assistant"; content: string | Array<Record<string, unknown>> }>;
+  } {
+    const history = [...contextMessages(request), ...(request.messages ?? [])];
+
+    const systemParts = [LELU_SYSTEM_PROMPT];
+    const turns: Array<{ role: "user" | "assistant"; content: string | Array<Record<string, unknown>> }> = [];
+
+    for (const message of history) {
+      if (message.role === "system") {
+        if (message.content.trim()) systemParts.push(message.content);
+        continue;
+      }
+
+      // A tool RESULT is a user turn carrying a tool_result block —
+      // that is the Messages API's shape, not a role of its own.
+      if (message.role === "tool") {
+        turns.push({
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: message.toolCallId ?? "",
+              content: message.content,
+              // A failure is flagged, never silently passed as output.
+              ...(message.toolError ? { is_error: true } : {}),
+            },
+          ],
+        });
+        continue;
+      }
+
+      // An assistant turn that ASKED for tools must be replayed with its
+      // tool_use blocks intact. Replaying only its text breaks the
+      // tool_use/tool_result pairing the API requires, and the next call
+      // is rejected rather than continuing the exchange.
+      if (message.role === "assistant" && message.toolCalls?.length) {
+        const blocks: Array<Record<string, unknown>> = [];
+        if (message.content.trim()) {
+          blocks.push({ type: "text", text: message.content });
+        }
+        for (const call of message.toolCalls) {
+          blocks.push({
+            type: "tool_use",
+            id: call.id,
+            name: call.name,
+            input: call.arguments ?? {},
+          });
+        }
+        turns.push({ role: "assistant", content: blocks });
+        continue;
+      }
+
+      turns.push({ role: message.role, content: message.content });
+    }
+
+    // The live prompt is appended only when it is not already the tail
+    // of the conversation. Mid-tool-loop the last turn is a tool_result
+    // and re-appending the original prompt would ask the question twice.
+    const tail = history[history.length - 1];
+    if (!(tail?.role === "tool")) {
+      turns.push({ role: "user", content: this.buildUserContent(request) });
+    }
+
+    // Drop any leading assistant turn, then collapse consecutive
+    // same-role turns so the alternation the API requires holds.
+    //
+    // Dropping a leading assistant turn can ORPHAN tool results: if that
+    // turn carried the tool_use blocks, the tool_result turns after it
+    // no longer have anything to correspond to, and the API rejects the
+    // whole request ("each tool_result block must have a corresponding
+    // tool_use block in the previous message"). So any tool_result turn
+    // left leading is dropped with it — an unpaired result is invalid,
+    // and sending it fails the call rather than degrading it.
+    while (turns.length > 0 && turns[0].role === "assistant") turns.shift();
+    while (turns.length > 0 && hasToolResult(turns[0].content)) turns.shift();
+
+    const merged: typeof turns = [];
+    for (const turn of turns) {
+      const previous = merged[merged.length - 1];
+      if (previous && previous.role === turn.role) {
+        previous.content = mergeContent(previous.content, turn.content);
+        continue;
+      }
+      merged.push({ ...turn });
+    }
+
+    return { system: systemParts.join("\n\n"), messages: merged };
+  }
+
   async isAvailable(): Promise<boolean> {
-    return this.initialized && this.enabled && (this.apiKey.length > 0 || this.relay);
+    return (
+      this.initialized && this.enabled && providerConfigured("anthropic", this.apiKey)
+    );
   }
 
   async health(): Promise<AIProviderHealth> {
     const available = await this.isAvailable();
+    let lastError: string | undefined;
+
+    if (!this.initialized) {
+      lastError = "Anthropic provider not initialized.";
+    } else if (!isBrokered("anthropic") && !this.apiKey) {
+      lastError = "Anthropic API key missing.";
+    }
 
     return {
       available,
       initialized: this.initialized,
       lastChecked: Date.now(),
-      lastError: !this.initialized
-        ? "Anthropic provider not initialized."
-        : !this.apiKey && !this.relay
-          ? "No Anthropic credential — set ANTHROPIC_API_KEY on the server."
-          : undefined,
+      lastError,
     };
   }
 
   canHandle(_input: string): boolean {
     return true;
-  }
-
-  /**
-   * Split LÉLU's single OpenAI-style message array into the two things
-   * the Messages API wants: one top-level system string, and a
-   * user/assistant-only conversation.
-   *
-   * Anthropic requires the first message to be `user`. LÉLU's history can
-   * legitimately begin with an assistant turn (a proactive greeting), so
-   * a leading assistant message is dropped rather than sent — sending it
-   * is a 400 and would take the provider out of the chain entirely.
-   */
-  private buildPayload(request: AIRequest): Record<string, unknown> {
-    const systemParts: string[] = [LELU_SYSTEM_PROMPT];
-    const conversation: Array<{ role: "user" | "assistant"; content: unknown }> = [];
-
-    for (const message of contextMessages(request)) {
-      systemParts.push(message.content);
-    }
-
-    for (const message of request.messages ?? []) {
-      if (message.role === "system") {
-        systemParts.push(message.content);
-        continue;
-      }
-      conversation.push({ role: message.role, content: message.content });
-    }
-
-    // The latest prompt, with any attached images as typed blocks.
-    const images = (request.media ?? []).filter(
-      (media) => media.kind === "image" && media.dataUrl.startsWith("data:"),
-    );
-    if (images.length > 0) {
-      const blocks: Array<Record<string, unknown>> = [];
-      for (const image of images) {
-        // "data:image/png;base64,AAAA" → media_type + raw base64
-        const match = image.dataUrl.match(/^data:([^;]+);base64,(.*)$/);
-        if (!match) continue;
-        blocks.push({
-          type: "image",
-          source: { type: "base64", media_type: match[1], data: match[2] },
-        });
-      }
-      blocks.push({ type: "text", text: request.prompt });
-      conversation.push({ role: "user", content: blocks });
-    } else {
-      conversation.push({ role: "user", content: request.prompt });
-    }
-
-    while (conversation.length > 0 && conversation[0].role !== "user") {
-      conversation.shift();
-    }
-
-    return {
-      model: request.model?.trim() || this.model,
-      system: systemParts.filter((part) => part.trim().length > 0).join("\n\n"),
-      messages: conversation,
-      // Required by the Messages API. Streaming turns lift the cap because
-      // the HTTP-timeout concern that motivates a lower non-streaming
-      // default does not apply once bytes are flowing.
-      max_tokens: request.maxTokens ?? (request.onDelta ? 64000 : 16000),
-      ...(request.stop?.length ? { stop_sequences: request.stop } : {}),
-      ...(request.onDelta ? { stream: true } : {}),
-    };
   }
 
   async generate(request: AIRequest): Promise<AIResponse> {
@@ -211,24 +257,83 @@ export default class AnthropicProvider implements AIProvider {
       throw new Error("Anthropic provider is not initialized.");
     }
 
-    if (!this.apiKey && !this.relay) {
-      throw new Error("Anthropic has no credential — set ANTHROPIC_API_KEY on the server.");
+    if (!isBrokered("anthropic") && !this.apiKey) {
+      // Only a DIRECT send needs a key here; brokered requests carry
+      // none by design, and refusing them would disable the provider
+      // the broker can actually serve.
+      throw new Error("Anthropic API key is missing.");
     }
 
-    const payload = this.buildPayload(request);
+    const { system, messages } = this.buildConversation(request);
+
+    const payload = {
+      model: this.selectModel(request),
+      // Required by the Messages API — unlike the OpenAI-compatible
+      // providers, omitting it is a 400 rather than an unbounded reply.
+      // A tool call must be able to CARRY A WHOLE FILE.
+      //
+      // 2048 is ample for a chat reply but far too small for an
+      // engineering turn: a project.write whose argument is a 200-line
+      // source file exceeds it, the tool_use JSON is truncated mid-
+      // block, and the arguments arrive incomplete. Measured: the write
+      // then landed as an empty file. Tool-carrying requests get room;
+      // ordinary chat keeps the smaller, cheaper ceiling.
+      max_tokens: request.maxTokens ?? (request.tools?.length ? 16_384 : 2048),
+      // The system block is marked cacheable rather than re-billed on
+      // every turn. It is the most repeated content LÉLU sends: the
+      // identity prompt alone is ~430 tokens, and contextMessages()
+      // hoists memory and live-retrieval results into the same block,
+      // which is exactly when it gets large. Below Anthropic's minimum
+      // cacheable length this is simply ignored, so it costs nothing
+      // when the block is short and saves most of the input cost when
+      // it is not. The block must be the array form to carry
+      // cache_control at all.
+      system: [
+        { type: "text", text: system, cache_control: { type: "ephemeral" } },
+      ],
+      messages,
+      // Native tool calling. The router supplies only tools that are
+      // registered, executable and permitted right now, so anything the
+      // model calls from this list can actually run.
+      ...(request.tools?.length
+        ? {
+            tools: request.tools.map((tool) => ({
+              name: tool.name,
+              description: tool.description,
+              input_schema: tool.parameters,
+            })),
+          }
+        : {}),
+      ...(request.temperature !== undefined ? { temperature: request.temperature } : {}),
+      ...(request.stop?.length ? { stop_sequences: request.stop } : {}),
+      // Streaming is suppressed while tools are on the table: a
+      // tool_use block arrives as fragmented input_json_delta chunks,
+      // and a half-parsed argument object is worse than a slightly
+      // later answer. The final generation of the loop, which carries
+      // no tools, streams normally.
+      ...(request.onDelta && !request.tools?.length ? { stream: true } : {}),
+    };
 
     let response: Response;
 
     try {
-      // Same upstream call as every other provider: with no local key the
-      // request goes same-origin to /api/ai/relay and the SERVER attaches
-      // the credential. Anthropic authenticates with `x-api-key`, not a
-      // bearer token, which the relay's per-provider auth builder handles.
-      response = await providerFetch("anthropic", "https://api.anthropic.com/v1/messages", {
-        apiKey: this.apiKey,
-        headers: { "anthropic-version": ANTHROPIC_VERSION },
-        body: payload,
-        signal: AbortSignal.timeout(this.timeout),
+      response = await fetch(endpointUrl("anthropic", "messages"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Brokered: no credential leaves the browser — the server attaches
+          // its own. Direct (server/tests): the real header.
+          ...authHeaders("anthropic", this.apiKey, (key) => ({ "x-api-key": key })),
+          "anthropic-version": "2023-06-01",
+          // Without this the Messages API refuses the CORS preflight and
+          // the call never leaves the browser. LÉLU is a client-side SPA
+          // that already calls Groq/OpenRouter directly with the key in
+          // the bundle, so this provider is exactly as exposed as those —
+          // no more, no less. Route through /api/ai if that changes.
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(this.timeoutFor(request)),
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -236,12 +341,7 @@ export default class AnthropicProvider implements AIProvider {
     }
 
     if (payload.stream) {
-      return await this.generateStreamed(
-        response,
-        started,
-        String(payload.model),
-        request.onDelta!,
-      );
+      return await this.generateStreamed(response, started, payload.model, request.onDelta!);
     }
 
     const raw = await response.text();
@@ -264,45 +364,61 @@ export default class AnthropicProvider implements AIProvider {
       throw new Error(`Anthropic failed ${response.status}: ${String(apiMessage)}`);
     }
 
-    // A refusal is HTTP 200 with no usable text. Throwing keeps it honest
-    // and lets the next provider in the chain answer, rather than handing
-    // the user an empty bubble.
-    if (data?.stop_reason === "refusal") {
-      const details = data?.stop_details as { category?: string } | undefined;
-      throw new Error(
-        `Anthropic declined this request${details?.category ? ` (${details.category})` : ""}.`,
-      );
-    }
+    const content = this.extractContent(data);
+    const toolCalls = this.extractToolCalls(data);
 
-    const blocks = (data?.content as AnthropicContentBlock[] | undefined) ?? [];
-    const content = blocks
-      .filter((block) => block.type === "text")
-      .map((block) => block.text ?? "")
-      .join("")
-      .trim();
-
-    if (!content) {
+    // A tool-call turn legitimately carries little or no text, so the
+    // empty-content guard must not reject it — that would turn a valid
+    // tool request into a provider failure and drop LÉLU to the next
+    // provider in the chain for no reason.
+    if ((typeof content !== "string" || !content.trim()) && toolCalls.length === 0) {
       throw new Error("Anthropic returned no usable content.");
     }
 
+    const processingTime = Date.now() - started;
+
     return {
-      text: content,
+      text: content.trim(),
       provider: this.name,
-      model: String(data?.model ?? payload.model),
-      processingTime: Date.now() - started,
+      model: payload.model,
+      processingTime,
+      ...(toolCalls.length ? { toolCalls } : {}),
+      stopReason: (data?.stop_reason as string) || undefined,
       metadata: {
         usage: data?.usage,
-        finishReason: data?.stop_reason,
+        finishReason: (data?.stop_reason as string) || undefined,
       },
     };
   }
 
+  /** Lift tool_use content blocks into the provider-neutral shape. */
+  private extractToolCalls(data: Record<string, unknown> | null): ToolCall[] {
+    const content = data?.content;
+    if (!Array.isArray(content)) return [];
+    const calls: ToolCall[] = [];
+    for (const block of content as Array<Record<string, unknown>>) {
+      if (block?.type !== "tool_use") continue;
+      calls.push({
+        id: String(block.id ?? ""),
+        name: String(block.name ?? ""),
+        arguments: (block.input as Record<string, unknown>) ?? {},
+      });
+    }
+    return calls;
+  }
+
+  private extractContent(data: Record<string, unknown> | null): string {
+    if (!data?.content) return "";
+    const content = data.content as Array<{ type: string; text?: string }>;
+    if (!Array.isArray(content)) return "";
+    const textBlock = content.find((block) => block.type === "text");
+    return textBlock?.text ?? "";
+  }
+
   /**
-   * Consume Anthropic's SSE stream. The event shape differs from the
-   * OpenAI-compatible providers: text arrives as `content_block_delta`
-   * events carrying `delta.text`, and an error can appear mid-stream as
-   * an `error` event after a 200, so that case is surfaced as a real
-   * failure rather than a truncated answer.
+   * Consume an Anthropic SSE stream, invoking onDelta with the
+   * ACCUMULATED text after every chunk. Throws on transport/API errors so
+   * the provider fallback chain still engages normally.
    */
   private async generateStreamed(
     response: Response,
@@ -317,9 +433,7 @@ export default class AnthropicProvider implements AIProvider {
         const data = JSON.parse(raw) as Record<string, unknown>;
         apiMessage =
           ((data?.error as Record<string, unknown>)?.message as string) ||
-          (data?.message as string) ||
-          raw ||
-          apiMessage;
+          (data?.message as string) || raw || apiMessage;
       } catch {
         /* keep default message */
       }
@@ -331,8 +445,7 @@ export default class AnthropicProvider implements AIProvider {
     let buffer = "";
     let content = "";
     let usage: unknown;
-    let stopReason: string | undefined;
-    let streamError: string | null = null;
+    let finishReason: string | undefined;
 
     const processLine = (line: string): void => {
       const trimmed = line.trim();
@@ -340,32 +453,26 @@ export default class AnthropicProvider implements AIProvider {
       const dataStr = trimmed.slice(5).trim();
       if (!dataStr) return;
       try {
-        const event = JSON.parse(dataStr) as {
-          type?: string;
-          delta?: { type?: string; text?: string; stop_reason?: string };
-          usage?: unknown;
-          message?: { usage?: unknown };
-          error?: { message?: string };
+        const chunk = JSON.parse(dataStr) as {
+          type: string;
+          delta?: { type: string; text?: string };
+          message?: { stop_reason?: string; usage?: unknown };
         };
-        if (event.type === "error") {
-          streamError = event.error?.message ?? "Anthropic stream error.";
-          return;
+
+        if (chunk.type === "message_start" && chunk.message?.usage) {
+          usage = chunk.message.usage;
         }
-        if (event.type === "content_block_delta" && event.delta?.type === "text_delta") {
-          const text = event.delta.text;
-          if (typeof text === "string" && text.length > 0) {
-            content += text;
+
+        if (chunk.type === "message_delta" && chunk.message?.stop_reason) {
+          finishReason = chunk.message.stop_reason;
+        }
+
+        if (chunk.type === "content_block_delta" && chunk.delta?.type === "text_delta") {
+          const delta = chunk.delta.text;
+          if (typeof delta === "string" && delta.length > 0) {
+            content += delta;
             onDelta(content);
           }
-          return;
-        }
-        if (event.type === "message_delta") {
-          if (event.delta?.stop_reason) stopReason = event.delta.stop_reason;
-          if (event.usage) usage = event.usage;
-          return;
-        }
-        if (event.type === "message_start" && event.message?.usage) {
-          usage = event.message.usage;
         }
       } catch {
         // Ignore malformed keep-alive fragments.
@@ -387,14 +494,6 @@ export default class AnthropicProvider implements AIProvider {
       throw new Error(`Anthropic stream interrupted: ${message}`);
     }
 
-    if (streamError) {
-      throw new Error(`Anthropic stream failed: ${streamError}`);
-    }
-
-    if (stopReason === "refusal") {
-      throw new Error("Anthropic declined this request.");
-    }
-
     if (!content.trim()) {
       throw new Error("Anthropic returned no usable content.");
     }
@@ -406,7 +505,7 @@ export default class AnthropicProvider implements AIProvider {
       processingTime: Date.now() - started,
       metadata: {
         usage,
-        finishReason: stopReason,
+        finishReason,
         streamed: true,
       },
     };

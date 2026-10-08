@@ -10,15 +10,53 @@
  */
 
 import type AIProvider from "../../providers/AIProvider";
-import type { AIResponse } from "../../providers/AIProvider";
+import type { AIMessage, AIResponse } from "../../providers/AIProvider";
 import type RouterContext from "./RouterContext";
 import type { ProviderResult } from "./RouterResults";
 import AgentEventBus from "../agent/AgentEvents";
 import ModelRouter from "../model/ModelRouter";
-import CognitiveTrace from "../cognition/CognitiveTrace";
+import { dispatchToolCall } from "../tools/ToolDispatcher";
+import { toolSchemasForModel } from "../tools/ToolSchemas";
+
+/**
+ * TERMINATION, not a round quota.
+ *
+ * A fixed count is the wrong shape for this. Four was too few for a
+ * real engineering chain (copy, list, read, write, validate, read the
+ * failure, repair, validate, diff) and the model stopped mid-task
+ * having done work it could not report; but raising the number just
+ * moves the cliff, and a model stuck in a loop still burns every round
+ * it is given.
+ *
+ * So the loop ends for a REASON, and says which:
+ *   • the wall-clock budget is spent — the honest bound on a turn,
+ *     independent of how many small steps it took;
+ *   • a hard backstop count, high enough that legitimate work never
+ *     reaches it, low enough that nothing runs away;
+ *   • no progress — the same tool called with the same arguments
+ *     several times running is a stuck model, not a working one, and
+ *     is stopped immediately rather than left to exhaust the budget.
+ *
+ * Whichever fires, the final generation withholds tools so the model
+ * must answer from what it actually has.
+ */
+const TOOL_LOOP_BUDGET_MS = 8 * 60 * 1000;
+const TOOL_LOOP_MAX_ROUNDS = 40;
+const NO_PROGRESS_REPEATS = 3;
 
 export default class ProviderResolver {
   public async execute(context: RouterContext): Promise<ProviderResult> {
+    /**
+     * Tools that really executed, across every provider attempt.
+     *
+     * The per-attempt list lives inside generateWithTools and dies with
+     * it when that provider throws — so a provider that ran a tool and
+     * then failed left no trace, and the cognition cycle recorded "no
+     * action taken" about a workflow it had genuinely created. This
+     * outlives the attempt and is attached to whatever answer is
+     * finally returned, including the offline one.
+     */
+    const toolsReallyRun: Array<{ tool: string; ok: boolean }> = [];
     const providers = await context.aiProviders.available();
 
     if (providers.length === 0) {
@@ -33,7 +71,7 @@ export default class ProviderResolver {
 
       return {
         handled: true,
-        response: this.offline(context),
+        response: this.withRealTools(this.offline(context), toolsReallyRun),
       };
     }
 
@@ -72,7 +110,7 @@ export default class ProviderResolver {
 
       return {
         handled: true,
-        response: this.offline(context, true),
+        response: this.withRealTools(this.offline(context, true), toolsReallyRun),
       };
     }
 
@@ -83,19 +121,6 @@ export default class ProviderResolver {
     // still falls through to every other configured provider instead of
     // breaking the agent.
     const ordered = this.orderByPreference(eligible, decision.preferredProviders);
-
-    // The deterministic chain this turn will walk, in order — recorded
-    // BEFORE any attempt so a fallback can be checked against the plan
-    // rather than reconstructed from what happened to succeed.
-    CognitiveTrace.getInstance().record(
-      "PROVIDER_ATTEMPT",
-      `fallback chain (in order): ${ordered.map((p) => p.name).join(" → ")}`,
-      {
-        chain: ordered.map((p) => ({ name: p.name, priority: p.priority })),
-        preferred: decision.preferredProviders ?? [],
-        offlineMode: decision.offlineEnabled,
-      },
-    );
 
     for (const provider of ordered) {
       if (!provider.canHandle(context.request.prompt)) {
@@ -128,27 +153,13 @@ export default class ProviderResolver {
           priority: provider.priority,
         });
 
-        const response = await this.executeProvider(provider, context);
+        const response = await this.executeProvider(provider, context, toolsReallyRun);
         events.emit({
           type: "provider_status",
           taskId,
           provider: provider.name,
           status: "operational",
         });
-        CognitiveTrace.getInstance().record(
-          "RESULT",
-          `${provider.name} answered successfully`,
-          {
-            provider: provider.name,
-            priority: provider.priority,
-            model: response.model,
-            latencyMs: response.processingTime,
-            // Proof cognition survived the provider hop: the context the
-            // memory layer injected is still attached to the request the
-            // provider was actually given.
-            requestContextLength: context.request.context?.length ?? 0,
-          },
-        );
         context.aiProviders.markSuccess(
           provider.name,
           response.metadata?.usage,
@@ -175,18 +186,6 @@ export default class ProviderResolver {
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         context.aiProviders.markFailure(provider.name, message);
-        CognitiveTrace.getInstance().record(
-          "PROVIDER_FALLBACK",
-          `${provider.name} FAILED (${message}) — falling through to the next provider in the chain`,
-          {
-            failedProvider: provider.name,
-            priority: provider.priority,
-            reason: message,
-            // Cognition/memory must be untouched by a provider failure:
-            // the same enriched context carries into the next attempt.
-            requestContextLength: context.request.context?.length ?? 0,
-          },
-        );
         AgentEventBus.getInstance().emit({
           type: "provider_status",
           taskId: String(context.request.timestamp ?? Date.now()),
@@ -218,7 +217,7 @@ export default class ProviderResolver {
 
     return {
       handled: true,
-      response: this.offline(context),
+      response: this.withRealTools(this.offline(context), toolsReallyRun),
     };
   }
 
@@ -241,12 +240,173 @@ export default class ProviderResolver {
     return [...preferredFirst, ...remaining];
   }
 
+  /**
+   * Generate, running any tools the model actually asks for.
+   *
+   * This is the ONE place a provider is invoked, so the tool loop lives
+   * here rather than in a second agent loop beside it: fallback,
+   * streaming, model routing and event emission all keep working
+   * unchanged, and a provider without tool support takes exactly the
+   * path it took before.
+   *
+   * The loop is bounded. On the final round tools are WITHHELD, which
+   * forces the model to answer from what it has instead of asking for
+   * another call it will not get — an unbounded version stalls on a
+   * model that keeps requesting tools, and a bounded one that keeps
+   * offering tools ends on a tool request with no text.
+   */
+  private async generateWithTools(
+    provider: AIProvider,
+    context: RouterContext,
+    toolsReallyRun?: Array<{ tool: string; ok: boolean }>,
+  ): Promise<AIResponse> {
+    // Tools are offered only on a conversational turn. Internal
+    // structured-output calls (see AIRequest.allowTools) must reach the
+    // provider exactly as they did before, or their parsers break.
+    const tools =
+      provider.supportsTools === true && context.request.allowTools === true
+        ? toolSchemasForModel()
+        : [];
+
+    // No native tool support, or nothing currently executable to offer:
+    // the original single call, untouched. This is the fallback path —
+    // ToolCallInterceptor still salvages tool markup from these.
+    if (tools.length === 0) {
+      return provider.generate(context.request);
+    }
+
+    const taskId = String(context.request.timestamp ?? Date.now());
+    const messages: AIMessage[] = [...(context.request.messages ?? [])];
+    const executed: Array<{ tool: string; ok: boolean }> = [];
+
+    let response = await provider.generate({ ...context.request, messages, tools });
+    let promptMaterialized = false;
+
+    const deadline = Date.now() + TOOL_LOOP_BUDGET_MS;
+    const recentSignatures: string[] = [];
+    let stopReason = "";
+
+    for (let round = 1; round <= TOOL_LOOP_MAX_ROUNDS; round += 1) {
+      const calls = response.toolCalls ?? [];
+      if (calls.length === 0) break;
+
+      // A stuck model repeats itself exactly. Detect that on the calls
+      // it is ASKING for, before running them again.
+      const signature = calls
+        .map((call) => `${call.name}:${JSON.stringify(call.arguments ?? {})}`)
+        .join("|");
+      recentSignatures.push(signature);
+      if (
+        recentSignatures.length >= NO_PROGRESS_REPEATS &&
+        recentSignatures.slice(-NO_PROGRESS_REPEATS).every((entry) => entry === signature)
+      ) {
+        stopReason = `the same tool call repeated ${NO_PROGRESS_REPEATS} times without progress`;
+      }
+      if (!stopReason && Date.now() > deadline) {
+        stopReason = `the ${Math.round(TOOL_LOOP_BUDGET_MS / 60000)}-minute tool budget was spent`;
+      }
+      if (!stopReason && round === TOOL_LOOP_MAX_ROUNDS) {
+        stopReason = `the ${TOOL_LOOP_MAX_ROUNDS}-round limit was reached`;
+      }
+
+      // Put the user's actual question INTO the conversation before any
+      // tool turns follow it.
+      //
+      // Providers append request.prompt themselves as the trailing turn,
+      // and they stop doing so once the tail is a tool result — otherwise
+      // the question is asked again after it has been answered. That
+      // leaves the prompt nowhere at all on round two unless it is
+      // materialized here, so the model was being handed a tool result
+      // with no question attached, and the exchange also opened on an
+      // assistant turn, which the Messages API rejects outright.
+      if (!promptMaterialized) {
+        messages.push({ role: "user", content: context.request.prompt });
+        promptMaterialized = true;
+      }
+
+      // Record the request turn before its results, so the pairing the
+      // providers replay stays intact.
+      messages.push({
+        role: "assistant",
+        content: response.text ?? "",
+        toolCalls: calls,
+      });
+
+      for (const call of calls) {
+        const result = await dispatchToolCall(call, taskId, context);
+        executed.push({ tool: call.name, ok: result.ok });
+        // ALSO record it where a later provider failure cannot erase it.
+        // A tool that ran, ran: if this provider throws on the next
+        // round the chain falls through, and without this the cycle
+        // would report "no action taken" about a workflow it really
+        // created.
+        toolsReallyRun?.push({ tool: call.name, ok: result.ok });
+        context.logger.info("ProviderResolver", `Tool ${call.name} -> ${result.ok ? "ok" : "failed"}`, {
+          tool: call.name,
+          ok: result.ok,
+          round,
+        });
+        messages.push({
+          role: "tool",
+          content: result.content,
+          toolCallId: call.id,
+          toolName: call.name,
+          toolError: !result.ok,
+        });
+      }
+
+      // Tell the model WHY it is being cut off, so its final answer
+      // reports where the work actually stopped instead of trailing off
+      // mid-plan as though it had finished.
+      if (stopReason) {
+        messages.push({
+          role: "user",
+          content:
+            `[system] The tool loop is ending because ${stopReason}. Do not request more ` +
+            `tools. Report exactly what you completed, what you verified, and what remains.`,
+        });
+      }
+
+      response = await provider.generate({
+        ...context.request,
+        messages,
+        ...(stopReason ? {} : { tools }),
+      });
+
+      if (stopReason) break;
+    }
+
+    // Provenance: what actually ran, on the response itself. MemoryBridge
+    // reads execution events for the same purpose, and the timeline reads
+    // the events the dispatcher emitted — this is the record on the reply.
+    //
+    // `nativeTools` is set even when the model chose to call nothing. It
+    // marks the response as having come from a provider that HAD its
+    // chance to invoke tools for real, which is what tells
+    // ToolCallInterceptor to stand down: tool-shaped text from such a
+    // provider is prose about tools, not an unexecuted request, and
+    // re-running it would execute a second time and throw away the
+    // grounded answer.
+    return {
+      ...response,
+      metadata: {
+        ...response.metadata,
+        nativeTools: true,
+        ...(executed.length
+          ? { toolsExecuted: executed, toolRounds: executed.length }
+          : {}),
+        ...(stopReason ? { toolLoopStopped: stopReason } : {}),
+      },
+    };
+  }
+
   private async executeProvider(
     provider: AIProvider,
     context: RouterContext,
+    toolsReallyRun?: Array<{ tool: string; ok: boolean }>,
   ): Promise<AIResponse> {
     const started = Date.now();
-    const response = await provider.generate(context.request);
+    const response = await this.generateWithTools(provider, context, toolsReallyRun);
 
     if (!response || typeof response.text !== "string") {
       throw new Error(`${provider.name} returned an invalid response.`);
@@ -270,6 +430,28 @@ export default class ProviderResolver {
       metadata: {
         ...response.metadata,
         providerPriority: provider.priority,
+      },
+    };
+  }
+
+  /**
+   * Carry the actions that really happened onto an answer that did not
+   * come from the provider that performed them.
+   *
+   * Silence here is the dangerous direction: an unrecorded action is one
+   * the runtime believes never occurred.
+   */
+  private withRealTools(
+    response: AIResponse,
+    toolsReallyRun: Array<{ tool: string; ok: boolean }>,
+  ): AIResponse {
+    if (toolsReallyRun.length === 0) return response;
+    return {
+      ...response,
+      metadata: {
+        ...response.metadata,
+        toolsExecuted: toolsReallyRun,
+        toolsRanBeforeFallback: true,
       },
     };
   }

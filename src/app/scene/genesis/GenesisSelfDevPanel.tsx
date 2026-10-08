@@ -228,7 +228,7 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
   }
 
   function integrateProposal(proposalId: string) {
-    setLastLoopRun(loop.integrate(proposalId));
+    void loop.integrate(proposalId).then(setLastLoopRun);
     refresh();
   }
 
@@ -1257,8 +1257,14 @@ function CodeTab({ selfCode, refresh }: { selfCode: SelfCode; refresh: () => voi
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    setSources(selfCode.listCoreSources());
+    let cancelled = false;
+    void selfCode.listCoreSources().then((paths) => {
+      if (!cancelled) setSources(paths);
+    });
     setWorkingCopies(selfCode.workingCopies());
+    return () => {
+      cancelled = true;
+    };
   }, [selfCode]);
 
   async function readSource(path: string) {

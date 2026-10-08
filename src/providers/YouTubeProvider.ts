@@ -9,6 +9,7 @@ import { knowledgeFetch } from "./aiRelay";
 
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
+import { endpointUrl } from "../core/Endpoints";
 
 export default class YouTubeProvider
   implements Provider {
@@ -53,7 +54,7 @@ export default class YouTubeProvider
   ] as const;
 
   private readonly endpoint =
-    "https://www.googleapis.com/youtube/v3/search";
+    endpointUrl("youtube", "search");
 
   canSearch(
     query: string,

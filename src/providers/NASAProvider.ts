@@ -7,6 +7,7 @@
 
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
+import { endpointUrl } from "../core/Endpoints";
 
 export default class NASAProvider implements Provider {
 
@@ -30,7 +31,7 @@ export default class NASAProvider implements Provider {
   readonly capabilities = ["science", "space", "astronomy", "media"] as const;
 
   private readonly endpoint =
-    "https://images-api.nasa.gov/search";
+    endpointUrl("nasaImages", "search");
 
   canSearch(query: string): boolean {
     return query.trim().length > 0;

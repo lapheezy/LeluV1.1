@@ -34,3 +34,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# LÉLU's isolated engineering workspace copies
+.lelu-sandbox/
+

@@ -9,6 +9,7 @@ import { knowledgeFetch } from "./aiRelay";
 
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
+import { endpointUrl } from "../core/Endpoints";
 
 export default class NewsProvider
   implements Provider {
@@ -49,7 +50,7 @@ export default class NewsProvider
   ] as const;
 
   private readonly endpoint =
-    "https://newsapi.org/v2/everything";
+    endpointUrl("newsapi", "everything");
 
   canSearch(
     query: string,

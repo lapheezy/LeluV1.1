@@ -7,6 +7,7 @@
 
 import type Provider from "./Provider";
 import type { KnowledgeResult } from "./Provider";
+import { endpoint } from "../core/Endpoints";
 
 export default class OpenMeteoProvider implements Provider {
 
@@ -40,7 +41,7 @@ export default class OpenMeteoProvider implements Provider {
     const geo =
       await fetch(
 
-        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
+        `${endpoint("openMeteoGeocoding")}/v1/search?name=${encodeURIComponent(
           query,
         )}&count=1&language=en&format=json`,
 
@@ -69,7 +70,7 @@ export default class OpenMeteoProvider implements Provider {
     const weather =
       await fetch(
 
-        `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m`,
+        `${endpoint("openMeteo")}/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m`,
 
       );
 

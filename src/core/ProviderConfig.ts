@@ -9,13 +9,16 @@
  * ==========================================================
  */
 
-import { getEnvironment, validateProviderConfig as validateAll } from "./Environment";
-import { publicEnv } from "./env/publicEnv";
+import environment, {
+  getEnvironment,
+  validateProviderConfig as validateAll,
+} from "./Environment";
 
 export interface ProviderConfig {
   githubToken: string;
   youtubeApiKey: string;
   newsApiKey: string;
+  groqApiKey: string;
   elpheruRssUrl: string;
   sapiolingoRssUrl: string;
   googleNewsRssUrl: string;
@@ -23,14 +26,19 @@ export interface ProviderConfig {
   rssFeeds: string[];
 }
 
-// Browser-safe allowlist, not the whole env record — see env/publicEnv.ts.
-const rawEnv = publicEnv();
+// Values come from Environment's resolver, NOT straight off
+// import.meta.env. Reading import.meta.env here meant a key supplied
+// under an unprefixed platform name (GROQ_API_KEY rather than
+// VITE_GROQ_API_KEY) produced `hasKey: true` from getEnvironment() and
+// an EMPTY STRING here — so callers of this config saw no credential
+// for a provider the runtime considered configured.
 const env = getEnvironment();
 
 const config: ProviderConfig = {
-  githubToken:   env.githubModels.hasKey ? (rawEnv["VITE_GITHUB_TOKEN"] ?? "") : "",
-  youtubeApiKey: env.youtube.hasKey      ? (rawEnv["VITE_YOUTUBE_API_KEY"] ?? "") : "",
-  newsApiKey:    env.news.hasKey         ? (rawEnv["VITE_NEWS_API_KEY"] ?? "") : "",
+  githubToken:   env.githubModels.hasKey ? environment.githubToken : "",
+  youtubeApiKey: env.youtube.hasKey      ? environment.youtubeApiKey : "",
+  newsApiKey:    env.news.hasKey         ? environment.newsApiKey : "",
+  groqApiKey:    env.groq.hasKey         ? environment.groqApiKey : "",
   elpheruRssUrl: env.elpheruRssUrl,
   sapiolingoRssUrl: env.sapiolingoRssUrl,
   googleNewsRssUrl: env.googleNewsRssUrl,

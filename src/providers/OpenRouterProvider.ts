@@ -11,18 +11,29 @@
 
 import type AIProvider from "./AIProvider";
 import { contextMessages } from "./contextMessages";
+import {
+  extractOpenAIToolCalls,
+  extractOpenAIText,
+  describeEmptyChoice,
+  openAIToolPayload,
+  toOpenAIMessages,
+  trailingUserTurn,
+} from "./openaiTools";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
-import { providerFetch, relayAvailable } from "./aiRelay";
 
 import type {
   AIRequest,
   AIResponse,
   AIProviderHealth,
 } from "./AIProvider";
+import { endpointUrl } from "../core/Endpoints";
+import { resolveFirst } from "../core/resolveEnv";
+import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
+import { resolveModel } from "../core/ProviderModels";
 
 export default class OpenRouterProvider implements AIProvider {
   readonly name = "OpenRouter";
-  readonly priority = 3;
+  readonly priority = 2;
   readonly enabled = true;
   readonly timeout = 30000;
   readonly requiresApiKey = true;
@@ -34,10 +45,10 @@ export default class OpenRouterProvider implements AIProvider {
     "memory",
   ] as const;
 
+  readonly supportsTools = true;
+
   private apiKey = "";
-  /** True when the SERVER holds the credential (see providers/aiRelay.ts). */
-  private relay = false;
-  private model = "openrouter/free";
+  private model = resolveModel("openrouter");
   private initialized = false;
 
   /**
@@ -82,50 +93,15 @@ export default class OpenRouterProvider implements AIProvider {
   }
 
   async initialize(): Promise<void> {
-    const runtimeEnv = globalThis as typeof globalThis & {
-      __LELU_OPENROUTER_API_KEY__?: string;
-      __LELU_OPENROUTER_MODEL__?: string;
-    };
-
-    const windowEnv =
-      typeof window !== "undefined"
-        ? (window as Window & {
-            __LELU_OPENROUTER_API_KEY__?: string;
-            __LELU_OPENROUTER_MODEL__?: string;
-          })
-        : undefined;
-
-    const processEnv =
-      typeof process !== "undefined"
-        ? process.env
-        : undefined;
-
-    // NOT read from import.meta.env: Vite inlines VITE_* values into the
-    // client bundle, which is how provider keys ended up shipped to the
-    // browser. A key held HERE only comes from a runtime that injected
-    // one deliberately (verification scripts, a native shell); otherwise
-    // the request is relayed and the SERVER attaches the credential.
     this.apiKey =
-      runtimeEnv.__LELU_OPENROUTER_API_KEY__?.trim() ||
-      windowEnv?.__LELU_OPENROUTER_API_KEY__?.trim() ||
-      processEnv?.OPENROUTER_API_KEY?.trim() ||
-      "";
-
+      resolveFirst("OPENROUTER_API_KEY", "OPEN_ROUTER_API_KEY") ?? "";
     this.model =
-      import.meta.env.VITE_OPENROUTER_MODEL?.trim() ||
-      runtimeEnv.__LELU_OPENROUTER_MODEL__?.trim() ||
-      windowEnv?.__LELU_OPENROUTER_MODEL__?.trim() ||
-      "openrouter/free";
-
-    // No local key is the NORMAL production case now: the credential
-    // belongs on the server so it never enters the client bundle.
-    this.relay = this.apiKey ? false : await relayAvailable("openrouter");
+      resolveModel("openrouter");
 
     this.initialized = true;
 
     console.info("[OpenRouterProvider] Initialized", {
-      // Never the key or its length — only whether one is reachable.
-      credential: this.apiKey ? "local" : this.relay ? "server-relay" : "none",
+      hasKey: this.apiKey.length > 0,
       model: this.model,
     });
   }
@@ -134,7 +110,8 @@ export default class OpenRouterProvider implements AIProvider {
     return (
       this.initialized &&
       this.enabled &&
-      (this.apiKey.length > 0 || this.relay)
+      this.requiresApiKey &&
+      providerConfigured("openrouter", this.apiKey)
     );
   }
 
@@ -147,7 +124,7 @@ export default class OpenRouterProvider implements AIProvider {
       lastChecked: Date.now(),
       lastError: !this.initialized
         ? "OpenRouter provider not initialized."
-        : !this.apiKey && !this.relay
+        : !isBrokered("openrouter") && !this.apiKey
           ? "OpenRouter API key missing."
           : undefined,
     };
@@ -164,7 +141,10 @@ export default class OpenRouterProvider implements AIProvider {
       throw new Error("OpenRouter provider is not initialized.");
     }
 
-    if (!this.apiKey && !this.relay) {
+    if (!isBrokered("openrouter") && !this.apiKey) {
+      // Only a DIRECT send needs a key here; brokered requests carry
+      // none by design, and refusing them would disable the provider
+      // the broker can actually serve.
       throw new Error("OpenRouter API key is missing.");
     }
 
@@ -175,16 +155,14 @@ export default class OpenRouterProvider implements AIProvider {
           LELU_SYSTEM_PROMPT,
       },
       ...contextMessages(request),
-      ...(request.messages ?? []),
-      {
-        role: "user",
-        content: this.buildUserContent(request),
-      },
+      ...toOpenAIMessages(request.messages),
+      ...trailingUserTurn(request, this.buildUserContent(request)),
     ];
 
     const payload = {
       model: this.selectModel(request),
       messages,
+      ...openAIToolPayload(request),
       temperature: request.temperature ?? 0.7,
       ...(request.maxTokens ? { max_tokens: request.maxTokens } : {}),
       ...(request.stop?.length ? { stop: request.stop } : {}),
@@ -193,33 +171,23 @@ export default class OpenRouterProvider implements AIProvider {
     let response: Response;
 
     try {
-      // Same upstream call as before. When no key is held locally the
-      // request goes same-origin to /api/ai/relay and the SERVER attaches
-      // the credential — status and body come back verbatim, so the
-      // parsing and fallback behaviour below is unchanged. HTTP-Referer
-      // and X-Title are not secrets, so they ride along and the relay
-      // forwards them (they are on its header allowlist).
-      response = await providerFetch(
-        "openrouter",
-        "https://openrouter.ai/api/v1/chat/completions",
+      response = await fetch(
+        endpointUrl("openrouter", "chat/completions"),
         {
-          apiKey: this.apiKey,
+          method: "POST",
           headers: {
-            // `typeof window !== "undefined"` alone was not enough: any
-            // runtime with a PARTIAL window (web worker, SSR/server
-            // entry, embedded webview, test harness) has `window` but
-            // no `window.location`, so reading `.origin` threw a
-            // TypeError on every request. ProviderResolver caught it as
-            // a provider failure, which silently and permanently took
-            // the #2 priority provider out of the fallback chain in
-            // those runtimes. Optional chaining keeps the real origin
-            // in a real browser and falls back everywhere else.
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            // Brokered: no credential leaves the browser — the server attaches
+            // its own. Direct (server/tests): the real header.
+            ...authHeaders("openrouter", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
             "HTTP-Referer":
-              (typeof window !== "undefined" ? window.location?.origin : undefined) ??
-              "https://freebuff.com",
+              typeof window !== "undefined"
+                ? window.location.origin
+                : "https://freebuff.com",
             "X-Title": "Lélu",
           },
-          body: payload,
+          body: JSON.stringify(payload),
           signal: AbortSignal.timeout(this.timeout),
         },
       );
@@ -248,10 +216,13 @@ export default class OpenRouterProvider implements AIProvider {
       throw new Error(`OpenRouter HTTP ${response.status}: ${apiMessage}`);
     }
 
-    const content = data?.choices?.[0]?.message?.content ?? "";
-
-    if (typeof content !== "string" || !content.trim()) {
-      throw new Error("OpenRouter returned no usable content.");
+    const content = extractOpenAIText(data?.choices?.[0]);
+    const toolCalls = extractOpenAIToolCalls(data?.choices?.[0]);
+    // A tool-call turn legitimately carries no text. Rejecting it as
+    // "no usable content" would turn a valid tool request into a
+    // provider failure and drop to the next provider for no reason.
+    if ((typeof content !== "string" || !content.trim()) && toolCalls.length === 0) {
+      throw new Error(describeEmptyChoice("OpenRouter", data?.choices?.[0]));
     }
 
     return {
@@ -259,6 +230,8 @@ export default class OpenRouterProvider implements AIProvider {
       provider: this.name,
       model: payload.model,
       processingTime: Date.now() - started,
+      ...(toolCalls.length ? { toolCalls } : {}),
+      stopReason: data?.choices?.[0]?.finish_reason as string | undefined,
       metadata: {
         usage: data?.usage,
         finishReason: data?.choices?.[0]?.finish_reason,

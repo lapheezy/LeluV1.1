@@ -52,6 +52,35 @@ const FAKE_SUCCESS_BODY = JSON.stringify({
   usage: { prompt_tokens: 24, completion_tokens: 6, total_tokens: 30 },
 });
 
+/**
+ * Anthropic does not speak the OpenAI shape: the reply is a list of
+ * content blocks rather than `choices[].message`, usage is reported as
+ * input/output rather than a total, and auth is `x-api-key` rather than
+ * `Authorization: Bearer`. Verifying it against the OpenAI stub would
+ * prove nothing, so it gets its own realistic body.
+ */
+const FAKE_ANTHROPIC_BODY = JSON.stringify({
+  id: "msg_fake",
+  type: "message",
+  role: "assistant",
+  content: [{ type: "text", text: "Hello! I'm Lélu." }],
+  stop_reason: "end_turn",
+  usage: { input_tokens: 24, output_tokens: 6 },
+});
+
+/**
+ * Gemini is a third wire shape: `candidates[].content.parts[].text` rather
+ * than choices[] or content blocks, usage under `usageMetadata`, and auth
+ * via x-goog-api-key. Same reasoning as the Anthropic stub — testing it
+ * against an OpenAI body would prove nothing.
+ */
+const FAKE_GEMINI_BODY = JSON.stringify({
+  candidates: [
+    { content: { role: "model", parts: [{ text: "Hello! I'm Lélu." }] }, finishReason: "STOP" },
+  ],
+  usageMetadata: { promptTokenCount: 24, candidatesTokenCount: 6, totalTokenCount: 30 },
+});
+
 function fakeResponse(body: string, status = 200): FakeResponse {
   return {
     ok: status >= 200 && status < 300,
@@ -61,7 +90,13 @@ function fakeResponse(body: string, status = 200): FakeResponse {
   };
 }
 
-const requested: { url: string; authHeader: string | null; model: string }[] = [];
+const requested: {
+  url: string;
+  authHeader: string | null;
+  apiKeyHeader: string | null;
+  model: string;
+  body: Record<string, unknown>;
+}[] = [];
 
 async function main() {
   const registry = registerAIProviders();
@@ -71,14 +106,14 @@ async function main() {
   const priorities = registry.all().map((p) => p.priority);
 
   check(
-    "registry registers the local-first provider plus all seven remote chat providers",
+    "registry registers the local-first provider plus all eight remote chat providers",
     names.join(",") ===
-      "Local (on-device),Anthropic,Groq,OpenRouter,Cerebras,Mistral,Fireworks,GitHub Models",
+      "Local (on-device),Groq,OpenRouter,Cerebras,Mistral,Fireworks,Anthropic,Gemini,GitHub Models",
     names.join(" → "),
   );
   check(
-    "fallback order is strict by priority (0,1,2,3,4,5,6,10)",
-    JSON.stringify(priorities) === JSON.stringify([0, 1, 2, 3, 4, 5, 6, 10]),
+    "fallback order is strict by priority (0,1,2,3,4,5,7,8,10)",
+    JSON.stringify(priorities) === JSON.stringify([0, 1, 2, 3, 4, 5, 7, 8, 10]),
     priorities.join(","),
   );
   check(
@@ -95,12 +130,13 @@ async function main() {
     // read, cleared in finally. Never a real credential.
     const g = globalThis as Record<string, unknown>;
     const keyNames = [
-      "__LELU_ANTHROPIC_API_KEY__",
       "__LELU_GROQ_API_KEY__",
       "__LELU_OPENROUTER_API_KEY__",
       "__LELU_CEREBRAS_API_KEY__",
       "__LELU_MISTRAL_API_KEY__",
       "__LELU_FIREWORKS_API_KEY__",
+      "__LELU_ANTHROPIC_API_KEY__",
+      "__LELU_GEMINI_API_KEY__",
       "__LELU_GITHUB_TOKEN__",
     ];
     for (const name of keyNames) {
@@ -137,28 +173,18 @@ async function main() {
       const body = JSON.parse(String(init?.body ?? "{}"));
       requested.push({
         url,
-        // Claude authenticates with x-api-key, every other provider with a
-        // bearer token — record whichever this provider actually sent so
-        // the auth assertion below stays meaningful for both.
-        authHeader: headers.Authorization ?? headers["x-api-key"] ?? null,
+        authHeader: headers.Authorization ?? null,
+        apiKeyHeader: headers["x-api-key"] ?? headers["x-goog-api-key"] ?? null,
         model: body.model,
+        body,
       });
-      // Anthropic's Messages API answers with a typed content-block array,
-      // not `choices[0].message.content`.
-      if (url.includes("api.anthropic.com")) {
-        return fakeResponse(
-          JSON.stringify({
-            id: "msg_stub",
-            type: "message",
-            role: "assistant",
-            model: body.model,
-            content: [{ type: "text", text: "Hello from the stub." }],
-            stop_reason: "end_turn",
-            usage: { input_tokens: 5, output_tokens: 4 },
-          }),
-        );
-      }
-      return fakeResponse(FAKE_SUCCESS_BODY);
+      return fakeResponse(
+        url.includes("api.anthropic.com")
+          ? FAKE_ANTHROPIC_BODY
+          : url.includes("generativelanguage.googleapis.com")
+            ? FAKE_GEMINI_BODY
+            : FAKE_SUCCESS_BODY,
+      );
     }) as unknown as typeof fetch;
 
     globalThis.fetch = stubFetch;
@@ -191,18 +217,16 @@ async function main() {
         `${provider.name}: response identifies the provider`,
         response.provider === provider.name,
       );
-      // Anthropic reports usage as input_tokens/output_tokens; the
-      // OpenAI-compatible providers report a single total_tokens. Assert
-      // the field each one actually returns rather than relaxing the check.
       const usage = response.metadata?.usage as
         | { total_tokens?: number; input_tokens?: number; output_tokens?: number }
         | undefined;
       check(
         `${provider.name}: usage metadata parsed`,
         provider.name === "Anthropic"
-          ? usage?.input_tokens === 5 && usage?.output_tokens === 4
-          : usage?.total_tokens === 30,
-        JSON.stringify(usage),
+          ? (usage?.input_tokens ?? 0) + (usage?.output_tokens ?? 0) === 30
+          : provider.name === "Gemini"
+            ? (usage as { totalTokenCount?: number } | undefined)?.totalTokenCount === 30
+            : usage?.total_tokens === 30,
       );
     }
 
@@ -220,7 +244,11 @@ async function main() {
                     ? "api.cerebras.ai"
                     : provider.name === "Mistral"
                       ? "api.mistral.ai"
-                      : "api.fireworks.ai",
+                      : provider.name === "Anthropic"
+                        ? "api.anthropic.com"
+                        : provider.name === "Gemini"
+                          ? "generativelanguage.googleapis.com"
+                          : "api.fireworks.ai",
             ),
       );
       check(
@@ -229,15 +257,93 @@ async function main() {
         row?.url ?? "no request",
       );
       check(
-        `${provider.name}: Bearer auth header present`,
-        Boolean(row?.authHeader?.startsWith("Bearer ")),
+        // Anthropic authenticates with x-api-key, not Bearer — asserting
+        // Bearer for it would be asserting a bug.
+        provider.name === "Anthropic" || provider.name === "Gemini"
+          ? `${provider.name}: key-header auth present (not Bearer)`
+          : `${provider.name}: Bearer auth header present`,
+        provider.name === "Anthropic" || provider.name === "Gemini"
+          ? Boolean(row?.apiKeyHeader)
+          : Boolean(row?.authHeader?.startsWith("Bearer ")),
       );
       check(
         `${provider.name}: request carries the LÉLU identity prompt`,
-        Boolean(row?.model),
-        `model: ${row?.model}`,
+        // Gemini names the model in the URL path, not the JSON body.
+        provider.name === "Gemini" ? Boolean(row?.url.includes(":generateContent")) : Boolean(row?.model),
+        `model: ${row?.model ?? row?.url.split("/models/")[1]}`,
       );
     }
+
+    // ---- Anthropic Messages-API contract ---------------------------------
+    // The other providers all take the OpenAI shape, so the translation
+    // done for this one is the only place these invariants can break —
+    // and each of them is a 400 from the API, not a degraded answer.
+    const anthropicRow = requested.find((r) => r.url.includes("api.anthropic.com"));
+    const anthropicMessages = (anthropicRow?.body.messages ?? []) as Array<{
+      role: string;
+      content: unknown;
+    }>;
+    // `system` is the ARRAY form so it can carry cache_control; a plain
+    // string cannot, and Anthropic rejects the field outright if the
+    // shape is wrong, so the shape itself is worth asserting.
+    const anthropicSystem = (anthropicRow?.body.system ?? []) as Array<{
+      type?: string;
+      text?: string;
+      cache_control?: { type?: string };
+    }>;
+    check(
+      "Anthropic: system prompt is hoisted to the top-level `system` field",
+      Array.isArray(anthropicSystem) &&
+        anthropicSystem[0]?.type === "text" &&
+        (anthropicSystem[0]?.text?.length ?? 0) > 0,
+    );
+    check(
+      "Anthropic: memory context survives the hoist (not silently dropped)",
+      (anthropicSystem[0]?.text ?? "").includes("retro space games"),
+    );
+    check(
+      "Anthropic: the system block is marked cacheable (input cost is not re-billed each turn)",
+      anthropicSystem[0]?.cache_control?.type === "ephemeral",
+    );
+    check(
+      "Anthropic: no system role left inside messages[] (would be a 400)",
+      anthropicMessages.every((m) => m.role === "user" || m.role === "assistant"),
+    );
+    check(
+      "Anthropic: conversation opens with a user turn",
+      anthropicMessages[0]?.role === "user",
+    );
+    check(
+      "Anthropic: roles strictly alternate (consecutive turns merged)",
+      anthropicMessages.every((m, i) => i === 0 || m.role !== anthropicMessages[i - 1].role),
+      anthropicMessages.map((m) => m.role).join(" → "),
+    );
+    check(
+      "Anthropic: max_tokens is set (required by the Messages API)",
+      typeof anthropicRow?.body.max_tokens === "number" &&
+        (anthropicRow.body.max_tokens as number) > 0,
+    );
+
+    // ---- Gemini schema contract -----------------------------------------
+    const geminiRow = requested.find((r) => r.url.includes("generativelanguage.googleapis.com"));
+    const geminiContents = (geminiRow?.body.contents ?? []) as Array<{ role: string }>;
+    check(
+      "Gemini: system prompt is hoisted to system_instruction",
+      Boolean((geminiRow?.body.system_instruction as { parts?: Array<{ text?: string }> })?.parts?.[0]?.text),
+    );
+    check(
+      "Gemini: memory context survives the hoist",
+      JSON.stringify(geminiRow?.body.system_instruction ?? {}).includes("retro space games"),
+    );
+    check(
+      "Gemini: turns use the model/user roles, never assistant or system",
+      geminiContents.length > 0 && geminiContents.every((c) => c.role === "user" || c.role === "model"),
+      geminiContents.map((c) => c.role).join(" \u2192 "),
+    );
+    check(
+      "Gemini: conversation opens with a user turn",
+      geminiContents[0]?.role === "user",
+    );
 
     // ---- 4. failure throws (what drives the fallback chain) --------------
     let threw = 0;

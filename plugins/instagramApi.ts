@@ -6,6 +6,8 @@
  * runtime, matching the existing AIS and engineering API boundaries.
  */
 
+import { endpoint } from "../src/core/Endpoints.ts";
+
 interface ConnectLikeReq {
   method?: string;
   url?: string;
@@ -64,7 +66,7 @@ export function createInstagramApi(env: EnvReader): {
       return {
         id: configuredId,
         username: requestedUsername || undefined,
-        graphBase: "https://graph.instagram.com",
+        graphBase: endpoint("instagram"),
       };
     }
     if (identityPromise) return identityPromise;
@@ -76,12 +78,12 @@ export function createInstagramApi(env: EnvReader): {
       // the token or forcing the user to supply a numeric id.
       const attempts = [
         {
-          graphBase: "https://graph.instagram.com",
+          graphBase: endpoint("instagram"),
           fields: "user_id,username",
           idField: "user_id" as const,
         },
         {
-          graphBase: "https://graph.facebook.com",
+          graphBase: endpoint("metaGraph"),
           fields: "id,username",
           idField: "id" as const,
         },

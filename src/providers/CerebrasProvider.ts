@@ -17,12 +17,23 @@
 import type AIProvider from "./AIProvider";
 import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
+import {
+  extractOpenAIToolCalls,
+  extractOpenAIText,
+  describeEmptyChoice,
+  openAIToolPayload,
+  toOpenAIMessages,
+  trailingUserTurn,
+} from "./openaiTools";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
-import { providerFetch, relayAvailable } from "./aiRelay";
+import { endpointUrl } from "../core/Endpoints";
+import { resolveFirst } from "../core/resolveEnv";
+import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
+import { resolveModel } from "../core/ProviderModels";
 
 export default class CerebrasProvider implements AIProvider {
   readonly name = "Cerebras";
-  readonly priority = 4;
+  readonly priority = 3;
   readonly enabled = true;
   readonly timeout = 30000;
   readonly requiresApiKey = true;
@@ -34,58 +45,22 @@ export default class CerebrasProvider implements AIProvider {
     "memory",
   ] as const;
 
+  readonly supportsTools = true;
+
   private apiKey = "";
-  /** True when the SERVER holds the credential (see providers/aiRelay.ts). */
-  private relay = false;
-  // Verified against this account's own /v1/models listing: llama-3.3-70b
-  // is NOT available to it, which made every Cerebras call fail with
-  // model_not_found even though the credential authenticated fine.
-  // Override per deployment with VITE_CEREBRAS_MODEL.
-  private model = "gpt-oss-120b";
+  private model = resolveModel("cerebras");
   private initialized = false;
 
   async initialize(): Promise<void> {
-    const runtimeEnv =
-      globalThis as typeof globalThis & {
-        __LELU_CEREBRAS_API_KEY__?: string;
-        __LELU_CEREBRAS_MODEL__?: string;
-      };
-
-    const windowEnv =
-      typeof window !== "undefined"
-        ? (window as Window & { __LELU_CEREBRAS_API_KEY__?: string })
-        : undefined;
-
-    const processEnv =
-      typeof process !== "undefined"
-        ? process.env
-        : undefined;
-
-    // NOT read from import.meta.env: Vite inlines VITE_* values into the
-    // client bundle, which is how provider keys ended up shipped to the
-    // browser. A key held HERE only comes from a runtime that injected
-    // one deliberately (verification scripts, a native shell); otherwise
-    // the request is relayed and the SERVER attaches the credential.
     this.apiKey =
-      runtimeEnv.__LELU_CEREBRAS_API_KEY__?.trim() ||
-      windowEnv?.__LELU_CEREBRAS_API_KEY__?.trim() ||
-      processEnv?.CEREBRAS_API_KEY?.trim() ||
-      "";
-
+      resolveFirst("CEREBRAS_API_KEY") ?? "";
     this.model =
-      import.meta.env.VITE_CEREBRAS_MODEL?.trim() ||
-      runtimeEnv.__LELU_CEREBRAS_MODEL__?.trim() ||
-      "llama-3.3-70b";
-
-    // No local key is the NORMAL production case now: the credential
-    // belongs on the server so it never enters the client bundle.
-    this.relay = this.apiKey ? false : await relayAvailable("cerebras");
+      resolveModel("cerebras");
 
     this.initialized = true;
 
     console.info("[CerebrasProvider] Initialized", {
-      // Never the key or its length — only whether one is reachable.
-      credential: this.apiKey ? "local" : this.relay ? "server-relay" : "none",
+      hasKey: this.apiKey.length > 0,
       model: this.model,
     });
   }
@@ -94,7 +69,8 @@ export default class CerebrasProvider implements AIProvider {
     return (
       this.initialized &&
       this.enabled &&
-      (this.apiKey.length > 0 || this.relay)
+      this.requiresApiKey &&
+      providerConfigured("cerebras", this.apiKey)
     );
   }
 
@@ -107,7 +83,7 @@ export default class CerebrasProvider implements AIProvider {
       lastChecked: Date.now(),
       lastError: !this.initialized
         ? "Cerebras provider not initialized."
-        : !this.apiKey && !this.relay
+        : !isBrokered("cerebras") && !this.apiKey
           ? "Cerebras API key missing."
           : undefined,
     };
@@ -124,20 +100,24 @@ export default class CerebrasProvider implements AIProvider {
       throw new Error("Cerebras provider is not initialized.");
     }
 
-    if (!this.apiKey && !this.relay) {
+    if (!isBrokered("cerebras") && !this.apiKey) {
+      // Only a DIRECT send needs a key here; brokered requests carry
+      // none by design, and refusing them would disable the provider
+      // the broker can actually serve.
       throw new Error("Cerebras API key is missing.");
     }
 
     const messages = [
       { role: "system", content: LELU_SYSTEM_PROMPT },
       ...contextMessages(request),
-      ...(request.messages ?? []),
-      { role: "user", content: request.prompt },
+      ...toOpenAIMessages(request.messages),
+      ...trailingUserTurn(request, request.prompt),
     ];
 
     const payload = {
       model: request.model?.trim() || this.model,
       messages,
+      ...openAIToolPayload(request),
       temperature: request.temperature ?? 0.7,
       ...(request.maxTokens ? { max_tokens: request.maxTokens } : {}),
       ...(request.stop?.length ? { stop: request.stop } : {}),
@@ -146,16 +126,18 @@ export default class CerebrasProvider implements AIProvider {
     let response: Response;
 
     try {
-      // Same upstream call as before. When no key is held locally the
-      // request goes same-origin to /api/ai/relay and the SERVER attaches
-      // the credential — status and body come back verbatim, so the
-      // parsing and fallback behaviour below is unchanged.
-      response = await providerFetch(
-        "cerebras",
-        "https://api.cerebras.ai/v1/chat/completions",
+      response = await fetch(
+        endpointUrl("cerebras", "chat/completions"),
         {
-          apiKey: this.apiKey,
-          body: payload,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            // Brokered: no credential leaves the browser — the server attaches
+            // its own. Direct (server/tests): the real header.
+            ...authHeaders("cerebras", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
+          },
+          body: JSON.stringify(payload),
           signal: AbortSignal.timeout(this.timeout),
         },
       );
@@ -195,10 +177,13 @@ export default class CerebrasProvider implements AIProvider {
       throw new Error(`Cerebras HTTP ${response.status}: ${apiMessage}`);
     }
 
-    const content = data?.choices?.[0]?.message?.content ?? "";
-
-    if (typeof content !== "string" || !content.trim()) {
-      throw new Error("Cerebras returned no usable content.");
+    const content = extractOpenAIText(data?.choices?.[0]);
+    const toolCalls = extractOpenAIToolCalls(data?.choices?.[0]);
+    // A tool-call turn legitimately carries no text. Rejecting it as
+    // "no usable content" would turn a valid tool request into a
+    // provider failure and drop to the next provider for no reason.
+    if ((typeof content !== "string" || !content.trim()) && toolCalls.length === 0) {
+      throw new Error(describeEmptyChoice("Cerebras", data?.choices?.[0]));
     }
 
     return {
@@ -206,6 +191,8 @@ export default class CerebrasProvider implements AIProvider {
       provider: this.name,
       model: payload.model,
       processingTime: Date.now() - started,
+      ...(toolCalls.length ? { toolCalls } : {}),
+      stopReason: data?.choices?.[0]?.finish_reason as string | undefined,
       metadata: {
         usage: data?.usage,
         finishReason: data?.choices?.[0]?.finish_reason,

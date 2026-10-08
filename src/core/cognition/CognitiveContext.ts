@@ -30,6 +30,45 @@ import EarthCore from "../earth/EarthCore";
 import Sentinel from "../sentinel/Sentinel";
 import ImprovementQueue from "../selfdev/ImprovementQueue";
 import ToolRegistry from "../tools/ToolRegistry";
+import SelfStudyEngine, { type CognitiveStateView } from "./SelfStudyEngine";
+import EngineeringWorkspace from "../engineering/EngineeringWorkspace";
+import WorkflowStore from "../workflows/WorkflowStore";
+import AgentWorkflowBridge from "../workflows/AgentWorkflowBridge";
+import AgentObjectives from "./AgentObjectives";
+import ObjectiveLearning from "./ObjectiveLearning";
+import { describeConfiguration, partiallyConfigured } from "../config/ConfigStatus";
+import {
+  buildReport,
+  inspectDocument,
+  type VisualReport,
+} from "../selfdev/VisualInspection";
+
+/**
+ * Run the existing visual inspection against LÉLU's OWN live document.
+ *
+ * This is the whole of "visual awareness": a real measurement of the
+ * interface she is actually rendering, taken at the moment cognition
+ * assembles its context. It reuses inspectDocument() rather than adding
+ * a second observer, and it deliberately returns null — not an empty
+ * healthy report — when there is no document, because "I cannot see"
+ * and "I looked and everything is fine" are different claims.
+ */
+function observeOwnInterface(): VisualReport | null {
+  if (typeof document === "undefined" || typeof window === "undefined") {
+    return null;
+  }
+  try {
+    const findings = inspectDocument(document, {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+    return buildReport(findings);
+  } catch (error) {
+    // An observation that failed is not an observation that passed.
+    console.warn("[CognitiveContext] Visual observation failed (contained)", error);
+    return null;
+  }
+}
 
 export interface CognitiveContextSnapshot {
   /** Current self-model state. */
@@ -56,8 +95,61 @@ export interface CognitiveContextSnapshot {
   /** Current autonomy level. */
   autonomyLevel: number;
 
+  /**
+   * Real state of the engineering sandbox, described by the workspace
+   * service from what the backend actually returned — whether a copy
+   * exists, how many files it holds, what changed, and how the last
+   * validation exited.
+   */
+  engineeringWorkspace: string;
+
+  /**
+   * Recent workflow executions, described from their real recorded
+   * state. Cognition must be able to see WHAT ran and what each step
+   * produced, not just that something happened.
+   */
+  workflowActivity: string;
+
+  /**
+   * Which capabilities are configured, and which environment variable
+   * is missing for the ones that are not. Names and presence only.
+   */
+  configuration: string;
+
+  /**
+   * What LÉLU is working on autonomously right now: live objectives,
+   * what has been deferred, what is waiting on a person, and what the
+   * last cycles actually did.
+   *
+   * Without this, a chat turn could not answer "what are you doing?"
+   * from fact — it would have to guess, and a guess about your own
+   * activity reads exactly like a claim.
+   */
+  autonomousWork: string;
+
+  /**
+   * The workflow capability surface — what exists, what it needs, what
+   * it produces, and whether it can run. This is what lets cognition
+   * DECIDE to use a workflow rather than only be able to call one.
+   */
+  workflowCapabilities: string;
+
   /** Current UI state (read live from UIStateStore singleton). */
   ui: UIStateSnapshot;
+
+  /**
+   * MEASURED observation of LÉLU's own rendered interface.
+   *
+   * Not the same thing as `ui` above: that is the view state LÉLU
+   * intended, this is what the DOM actually turned out to be —
+   * overflow, emptiness, element counts, measured in real pixels by
+   * inspectDocument(). The difference between the two is the only way
+   * she can notice that what rendered is not what she asked for.
+   *
+   * `null` outside a browser (server runtimes have no document), which
+   * is an honest "I cannot see" rather than a fabricated clean report.
+   */
+  visual: VisualReport | null;
 
   /** Recent cognitive events (last N from AgentEventBus). */
   recentEvents: Array<{
@@ -72,6 +164,14 @@ export interface CognitiveContextSnapshot {
 
   /** Canonical Earth Core spatial context (compact; null when dormant). */
   earthContext: string | null;
+
+  /**
+   * LÉLU's autonomous self-study state, READ as it already is.
+   *
+   * Building this context never starts a cycle and never calls a
+   * provider — a chat request reports cognition, it does not cause it.
+   */
+  selfStudy: CognitiveStateView;
 
   /** Current persistent project checkpoints available to cognition. */
   checkpoints: Array<{
@@ -215,12 +315,30 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
     capabilities,
     autonomyLevel: autonomyGate.getLevel(),
     ui: uiStateStore.get() as UIStateSnapshot,
+    // Observe the LIVE interface, not a preview iframe. inspectDocument()
+    // already existed and already measured real geometry; it was only
+    // ever called from the Engineering panel when a human opened it, so
+    // nothing LÉLU could reason over ever received it.
+    visual: observeOwnInterface(),
     recentEvents,
     toolsRequiringConfirmation,
     // Measured operational state — never assumed, never fabricated.
     executiveSelfStateText: ExecutiveRuntime.getInstance().getSelfStateText(),
     // Earth Core spatial context — canonical state from the one Earth runtime.
     earthContext: EarthCore.getInstance().buildSpatialContext(),
+    // Autonomous self-study state, READ ONLY. getCognitiveState() runs no
+    // cycle and mutates nothing, so assembling context for a chat request
+    // can never be what produced the state it reports.
+    selfStudy: SelfStudyEngine.getInstance().getCognitiveState(),
+    // describe() reads the workspace service's own state, which only
+    // ever moves in response to a real backend result.
+    engineeringWorkspace: EngineeringWorkspace.getInstance().describe(),
+    workflowActivity: describeWorkflowActivity(),
+    configuration: describeConfigurationSafely(),
+    // Read-only: describes the objective store as it stands. Assembling
+    // context never starts, advances or ends a cycle.
+    autonomousWork: describeAutonomousWork(),
+    workflowCapabilities: describeWorkflowCapabilities(),
     checkpoints,
     recentErrors,
     pendingImprovements,
@@ -233,6 +351,173 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
  * injection into the AI model's system prompt. This is how
  * LÉLU's cognition actually "sees" her own runtime state.
  */
+/** The decidable workflow surface, from real definitions. */
+function describeWorkflowCapabilities(): string {
+  try {
+    return AgentWorkflowBridge.getInstance().describeCapabilities();
+  } catch {
+    return "Workflow capabilities are unavailable in this runtime.";
+  }
+}
+
+/** Recent workflow runs, from their persisted records. */
+function describeWorkflowActivity(): string {
+  try {
+    const store = WorkflowStore.getInstance();
+    const defined = store.list();
+    const runs = store.executions().slice(0, 3);
+
+    if (defined.length === 0) return "No workflows are defined.";
+    if (runs.length === 0) {
+      return `${defined.length} workflow(s) defined; none has been executed yet.`;
+    }
+
+    const lines = runs.map((run) => {
+      const steps = run.steps
+        .map((step) => `${step.name}=${step.status}`)
+        .join(", ");
+      const failures = run.steps
+        .filter((step) => step.status === "failed" || step.status === "blocked")
+        .map((step) => `${step.name}: ${step.reason ?? "no reason"}`);
+      return (
+        `- “${run.workflowName}” (${run.origin.kind}) ${run.status}: ${steps || "no steps"}` +
+        (failures.length ? `\n    problems: ${failures.join("; ")}` : "") +
+        (run.finalResult ? `\n    result: ${run.finalResult.replace(/\s+/g, " ").slice(0, 200)}` : "")
+      );
+    });
+    return `${defined.length} workflow(s) defined.\n${lines.join("\n")}`;
+  } catch {
+    return "Workflow state is unavailable in this runtime.";
+  }
+}
+
+/**
+ * LÉLU's own autonomous work, from the real objective store.
+ *
+ * Everything here is recorded state: an objective that yielded says so
+ * and says why, and a completed one carries its own conclusion. Nothing
+ * is inferred from intent.
+ */
+function describeAutonomousWork(): string {
+  try {
+    const objectives = AgentObjectives.getInstance();
+    const all = objectives.list();
+    if (all.length === 0) {
+      return "No autonomous objectives exist. Nothing is running in the background.";
+    }
+
+    const live = all.filter((objective) =>
+      ["active", "waiting", "scheduled", "awaiting-approval"].includes(objective.state),
+    );
+    const recentlyEnded = all
+      .filter((objective) => ["completed", "yielded", "cancelled"].includes(objective.state))
+      .sort((a, b) => b.updatedAt - a.updatedAt)
+      .slice(0, 3);
+
+    const lines: string[] = [];
+
+    if (live.length === 0) {
+      lines.push("Nothing is running right now.");
+    } else {
+      for (const objective of live) {
+        const detail =
+          objective.state === "scheduled" && objective.resumeAt
+            ? ` — resumes ${new Date(objective.resumeAt).toLocaleTimeString()}`
+            : objective.state === "awaiting-approval"
+              ? ` — WAITING ON A PERSON: ${objective.approval?.request ?? "a decision"}`
+              : objective.state === "waiting"
+                ? ` — waiting for ${objective.waitingFor ?? "something"}`
+                : "";
+        const last = objectives.cycles(objective.id)[0];
+        lines.push(
+          `- [${objective.state}] ${objective.objective}` +
+            ` (cycle ${objective.cyclesRun}/${objective.maxCycles}, ${objective.actionsTaken} action(s))${detail}` +
+            (last ? `\n    last cycle: ${last.decision.replace(/\s+/g, " ").slice(0, 200)}` : ""),
+        );
+      }
+    }
+
+    for (const objective of recentlyEnded) {
+      // A yielded objective is never described as finished work.
+      lines.push(
+        `- [${objective.state}${objective.yieldReason ? `: ${objective.yieldReason}` : ""}] ` +
+          `${objective.objective}` +
+          (objective.conclusion ? ` — ${objective.conclusion.replace(/\s+/g, " ").slice(0, 200)}` : ""),
+      );
+    }
+
+    /* ---- THE MOST RECENT COGNITIVE PASS, from its real trace ----
+     *
+     * This is what makes "what did you just do, and why?" answerable
+     * from runtime state instead of from the chat transcript: the
+     * decision text she actually produced, the learning that was
+     * actually put in front of her before it, the actions that
+     * actually ran, and the branch actually taken.
+     */
+    const newest = [...all].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+    const lastCycle = newest ? objectives.cycles(newest.id)[0] : undefined;
+    if (lastCycle) {
+      const trace = AgentEventBus.getInstance().cognitionTrace(newest!.id);
+      const stageDetail = (stage: string): string | undefined =>
+        [...trace].reverse().find((event) => event.stage === stage)?.detail;
+
+      lines.push(
+        "",
+        "YOUR MOST RECENT COGNITIVE PASS:",
+        `- objective: ${newest!.objective}`,
+        `- what started it: ${lastCycle.trigger}`,
+        `- what you decided: ${lastCycle.decision.replace(/\s+/g, " ").slice(0, 400)}`,
+        `- what actually ran: ${
+          lastCycle.executed.length
+            ? lastCycle.executed.map((entry) => `${entry.tool}${entry.ok ? " (ok)" : " (FAILED)"}`).join(", ")
+            : "nothing — no action was taken"
+        }`,
+        `- where it left the objective: ${lastCycle.nextState}${lastCycle.yieldReason ? ` (${lastCycle.yieldReason})` : ""}`,
+      );
+      const retrieved = stageDetail("lesson-retrieved");
+      lines.push(
+        `- prior learning you were given first: ${retrieved ? retrieved.slice(0, 300) : "none was relevant"}`,
+      );
+      const branch = stageDetail("branch-selected");
+      if (branch) lines.push(`- branch taken: ${branch.slice(0, 200)}`);
+      const authored = stageDetail("workflow-authored");
+      if (authored) lines.push(`- workflow you wrote: ${authored.slice(0, 200)}`);
+      const executed = stageDetail("workflow-executed");
+      if (executed) lines.push(`- workflow you ran: ${executed.slice(0, 200)}`);
+    }
+
+    /* ---- WHAT YOU HAVE LEARNED, with honest durability ---- */
+    const lessons = ObjectiveLearning.getInstance().lessons().slice(0, 5);
+    if (lessons.length > 0) {
+      lines.push("", "WHAT YOU HAVE LEARNED FROM YOUR OWN WORK:");
+      for (const lesson of lessons) {
+        lines.push(
+          `- [${lesson.kind}, confidence ${lesson.confidence.toFixed(2)}, seen ${lesson.observations}x, ` +
+            `${lesson.persistedDurably ? "in long-term memory" : "LOCAL INDEX ONLY — the long-term write was refused"}] ` +
+            lesson.lesson.replace(/\s+/g, " ").slice(0, 220),
+        );
+      }
+    }
+
+    return lines.join("\n");
+  } catch {
+    return "Autonomous objective state is unavailable in this runtime.";
+  }
+}
+
+/** Never let a configuration read break assembling context. */
+function describeConfigurationSafely(): string {
+  try {
+    const half = partiallyConfigured();
+    const summary = describeConfiguration();
+    return half.length > 0
+      ? `${summary}\nSay so plainly when one of these explains a failure.`
+      : summary;
+  } catch {
+    return "Configuration status is unavailable in this runtime.";
+  }
+}
+
 export function formatCognitiveContext(ctx: CognitiveContextSnapshot): string {
   const sections: string[] = [];
 
@@ -305,7 +590,74 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
     sections.push(`## UI STATE\n${uiParts.join("\n")}`);
   }
 
+  // MEASURED observation of the interface as rendered. This is the only
+  // section LÉLU can use to notice that what appeared differs from what
+  // she intended, so it states plainly when she cannot see at all — a
+  // missing report must never read as a clean one.
+  if (ctx.visual === null) {
+    sections.push(
+      "## VISUAL OBSERVATION\nUnavailable — no rendered document to measure from this runtime. " +
+        "You cannot currently see your own interface; do not claim otherwise.",
+    );
+  } else {
+    const { findings, summary, healthy } = ctx.visual;
+    const notable = findings.filter((f) => f.severity !== "ok");
+    const lines = notable.length
+      ? notable.map((f) => `- [${f.severity}] ${f.category}: ${f.message}`)
+      : ["- No defects measured in the rendered interface."];
+    sections.push(
+      `## VISUAL OBSERVATION (measured just now)\n` +
+        `${healthy ? "Interface renders correctly" : "Interface has rendering problems"} — ` +
+        `${summary.error} error(s), ${summary.warn} warning(s), ${summary.info} note(s).\n` +
+        `${lines.join("\n")}\n` +
+        `This is a real measurement of your own DOM, not a description of it. ` +
+        `You may reason about and act on these findings.`,
+    );
+  }
+
   // Earth Core spatial context — LÉLU understands the globe she is showing.
+  // ENGINEERING WORKSPACE — real backend state, never a phrase.
+  //
+  // Every value here comes from what the engineering runtime actually
+  // returned: a copy exists because the server created one and reported
+  // its file count; validation passed because a process exited zero.
+  // Cognition can therefore tell "not copied" from "copied", and
+  // "validation failed" from "awaiting authorization", without being
+  // told in prose.
+  sections.push(`## ENGINEERING WORKSPACE\n${ctx.engineeringWorkspace}`);
+
+  // WORKFLOW ACTIVITY — read from persisted execution records.
+  //
+  // Every line comes from a run that actually occurred: its steps, their
+  // real outputs and their real failures. A workflow that was never
+  // invoked contributes nothing, so this section cannot describe work
+  // that did not happen.
+  // AVAILABLE WORKFLOWS — the discovery surface cognition decides from.
+  //
+  // Read from real definitions and a live preflight. A workflow that
+  // cannot run is listed as NOT EXECUTABLE with its actual blocker, so
+  // the model can report an unavailable capability instead of
+  // attempting one and reporting a failure it could have predicted.
+  // WHAT SHE IS CONFIGURED WITH. Included unprompted, and kept short
+  // unless something is half-configured — a capability with a key and
+  // no URL is the kind of thing that otherwise fails silently and gets
+  // explained as "unavailable" with no reason attached.
+  sections.push(`## YOUR CONFIGURATION\n${ctx.configuration}`);
+
+  sections.push(`## AVAILABLE WORKFLOWS\n${ctx.workflowCapabilities}`);
+
+  sections.push(`## WORKFLOW ACTIVITY\n${ctx.workflowActivity}`);
+
+  sections.push(
+    `## YOUR OWN AUTONOMOUS WORK\n${ctx.autonomousWork}\n` +
+      `This is recorded state, not a plan. Describe it as it is: an objective that yielded did ` +
+      `NOT succeed, and one awaiting approval is waiting on the person you are talking to. ` +
+      `Answer "what did you just do", "why did you choose that", "what did you learn" and ` +
+      `"what should you do next" FROM THIS SECTION — it is your own runtime record. Never ` +
+      `reconstruct those answers from the conversation, and never state a lesson as durably ` +
+      `remembered when this section says the long-term write was refused.`,
+  );
+
   if (ctx.earthContext) sections.push(ctx.earthContext);
 
   // Real, unacknowledged runtime errors — never require the user to
@@ -344,8 +696,108 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
     sections.push(`## RECENT EXECUTION EVENTS\n${eventLines.join("\n")}`);
   }
 
+  // Autonomous self-study — the cognition that has been running on its
+  // own. Injected so a provider answers about her actual state instead
+  // of inventing one.
+  sections.push(formatSelfStudyState(ctx.selfStudy));
+
   // Autonomy
   sections.push(`## AUTONOMY LEVEL: ${ctx.autonomyLevel}`);
 
   return sections.join("\n\n");
+}
+
+/**
+ * Render the autonomous cognitive state as structured facts:
+ * focus, active investigation, why it was selected, discoveries,
+ * unresolved questions, current understanding, next intended step.
+ *
+ * Conclusions and observations only — no hidden reasoning trace.
+ */
+export function formatSelfStudyState(study: CognitiveStateView): string {
+  const lines: string[] = ["## LÉLU AUTONOMOUS COGNITION (self-study, already running)"];
+
+  if (study.source === "none") {
+    lines.push(
+      "No self-study cycle has completed yet in this session, and no durable trace was found.",
+      `Loop scheduling itself: ${study.running ? "yes" : "no"}.`,
+    );
+    return lines.join("\n");
+  }
+
+  lines.push(
+    `Loop scheduling itself: ${study.running ? "yes" : "no"} · cycles this session: ${study.cycle} · durable cycle: ${study.persistedCycle} · state read from: ${study.source}`,
+  );
+  if (study.lastCycleAt) {
+    lines.push(`Last cycle finished: ${new Date(study.lastCycleAt).toISOString()}`);
+  }
+
+  if (study.focus) {
+    lines.push(
+      "",
+      "### CURRENT FOCUS",
+      `Question: ${study.focus.question}`,
+      `Kind: ${study.focus.domain} · raised as: ${study.focus.origin}`,
+      study.focus.target ? `Target: ${study.focus.target}` : "",
+      `Why this one: ${study.focus.whySelected}`,
+    );
+  }
+
+  if (study.investigation) {
+    lines.push(
+      "",
+      "### ACTIVE INVESTIGATION",
+      `Agent/tool: ${study.investigation.agent} / ${study.investigation.tool}`,
+      `Evidence: ${study.investigation.evidenceCount} observation(s) from ${
+        study.investigation.evidenceOrigin === "development-runtime"
+          ? "REAL_DEVELOPMENT_RUNTIME"
+          : study.investigation.evidenceOrigin === "static-snapshot"
+            ? "STATIC_SNAPSHOT (build-time, may be behind the working tree)"
+            : "internal runtime state"
+      }`,
+      `Evaluated by: ${
+        study.investigation.provider
+          ? `provider ${study.investigation.provider}`
+          : "no provider was reachable — evidence evaluated deterministically, cognition continued"
+      }`,
+      `Outcome: ${study.investigation.learned ? "learned" : "nothing conclusive"}; long-term memory ${
+        study.investigation.memoryConsolidated ? "written" : "not written"
+      }`,
+      study.investigation.conclusion ? `Conclusion: ${study.investigation.conclusion}` : "",
+    );
+  }
+
+  if (study.discoveries.length > 0) {
+    lines.push("", "### RECENT DISCOVERIES", ...study.discoveries.map((item) => `- ${item}`));
+  }
+
+  if (study.unresolved.length > 0) {
+    lines.push("", "### UNRESOLVED", ...study.unresolved.map((item) => `- ${item}`));
+  }
+
+  lines.push(
+    "",
+    "### CURRENT UNDERSTANDING",
+    `Knowledge: ${study.understanding.knowledgeEntries} entries, ${study.understanding.verified} verified/tested, ${study.understanding.openGaps} still untrusted.`,
+    `Source access: ${study.understanding.sourceAccess === "development-runtime" ? "REAL_DEVELOPMENT_RUNTIME" : "STATIC_SNAPSHOT"} (runtime reachable: ${study.understanding.runtimeReachable}).`,
+    study.understanding.agents.length > 0
+      ? `Agents/tools in play: ${study.understanding.agents.join(", ")}.`
+      : "No agent has run a cycle yet.",
+    study.understanding.mission.length > 0
+      ? `Mission I work from: ${study.understanding.mission.join(" | ")}`
+      : "Mission: understand and improve this system.",
+  );
+
+  if (study.nextIntended) {
+    lines.push(
+      "",
+      "### NEXT INTENDED INVESTIGATION",
+      `Question: ${study.nextIntended.question}`,
+      `Kind: ${study.nextIntended.domain} · raised as: ${study.nextIntended.origin}`,
+      `Why next: ${study.nextIntended.whySelected}`,
+    );
+  }
+  lines.push(`Questions carried in the buffer: ${study.carried}.`);
+
+  return lines.filter((line) => line !== "").join("\n");
 }

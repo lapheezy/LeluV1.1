@@ -292,10 +292,26 @@ function seedCapabilities(): Capability[] {
     cap({
       id: "workflows",
       name: "Reusable workflows",
-      description: "Reusable multi-step workflows that agents could run (proposed — not yet built).",
-      status: "planned",
+      description:
+        "Reusable multi-step workflows executed through the existing tool dispatcher — " +
+        "the same path a model's native tool call takes.",
+      // Measured, not asserted: a run of two dependent steps executed
+      // through the real dispatcher, its execution persisted, and the
+      // definition was retrievable and re-runnable afterwards.
+      status: "available",
       requiredAgents: ["specialist agents"],
-      limitations: ["not implemented; tracked in the improvement queue"],
+      tests: [
+        "workflow ordering",
+        "context passing",
+        "real dispatcher execution",
+        "blocked dependency",
+        "reuse",
+      ],
+      limitations: [
+        "Steps calling provider- or runtime-dependent tools are BLOCKED with the real dependency, never simulated.",
+        "No scheduling or human-approval steps yet; a workflow runs to completion when invoked.",
+        "Steps are tool calls; there is no branching or looping yet.",
+      ],
     }),
     cap({
       id: "visual",

@@ -196,11 +196,11 @@ export default class EngineeringResolver {
    * same — the request gets live diagnostics attached, and the
    * provider reasons over them; nothing is rewritten or guessed.
    */
-  private isEngineeringPrompt(prompt: string): boolean {
+  public isEngineeringPrompt(prompt: string): boolean {
     const text = prompt.toLowerCase();
 
     return (
-      /(engineer|engineering|diagnos|debug|bug|compile|compiler|typescript|javascript|react|vite|implement|refactor|crash|sandbox|api key|configured|configuration|runtime|provider|groq|openrouter|cerebras|mistral|fireworks|github models|not working|failed|verify|inspect|diagnostic|system state|status of|build check)/.test(text) &&
+      /(engineer|engineering|diagnos|debug|bug|compile|compiler|typescript|javascript|react|vite|implement|refactor|crash|sandbox|api key|configured|configuration|runtime|provider|groq|openrouter|cerebras|mistral|fireworks|anthropic|claude|github models|not working|failed|verify|inspect|diagnostic|system state|status of|build check)/.test(text) &&
       !/(who are you|who am i|tell me about yourself)/.test(text)
     );
   }

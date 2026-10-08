@@ -14,14 +14,23 @@
 
 import type AIProvider from "./AIProvider";
 import { contextMessages } from "./contextMessages";
+import {
+  extractOpenAIToolCalls,
+  openAIToolPayload,
+  toOpenAIMessages,
+  trailingUserTurn,
+} from "./openaiTools";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
-import { providerFetch, relayAvailable } from "./aiRelay";
 
 import type {
   AIRequest,
   AIResponse,
   AIProviderHealth,
 } from "./AIProvider";
+import { endpointUrl } from "../core/Endpoints";
+import { resolveFirst, resolveViteOnly } from "../core/resolveEnv";
+import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
+import { resolveModel } from "../core/ProviderModels";
 
 export default class GitHubModelsProvider implements AIProvider {
   readonly name = "GitHub Models";
@@ -37,26 +46,13 @@ export default class GitHubModelsProvider implements AIProvider {
     "memory",
   ] as const;
 
+  readonly supportsTools = true;
+
   private apiKey = "";
-  /** True when the SERVER holds the credential (see providers/aiRelay.ts). */
-  private relay = false;
-  private model = "openai/gpt-4o";
+  private model = resolveModel("githubModels");
   private initialized = false;
 
   async initialize(): Promise<void> {
-    const runtimeEnv =
-      globalThis as typeof globalThis & {
-        __LELU_GITHUB_TOKEN__?: string;
-        __LELU_GITHUB_MODEL__?: string;
-      };
-
-    const windowEnv =
-      typeof window !== "undefined"
-        ? (window as Window & {
-            __LELU_GITHUB_TOKEN__?: string;
-          })
-        : undefined;
-
     // Deliberately NOT falling back to bare process.env.GITHUB_TOKEN /
     // GITHUB_CODESPACE_TOKEN: those are ambient credentials that dev
     // containers, Codespaces and CI runners set for git/gh tooling —
@@ -66,30 +62,17 @@ export default class GitHubModelsProvider implements AIProvider {
     // whenever LÉLU happened to run inside such an environment, with
     // no key ever actually configured for it. Only the two explicit,
     // documented configuration channels count (see ENV_VARS.md).
-    // NOT read from import.meta.env: Vite inlines VITE_* values into the
-    // client bundle, which is how provider keys ended up shipped to the
-    // browser. A key held HERE only comes from a runtime that injected
-    // one deliberately (verification scripts, a native shell); otherwise
-    // the request is relayed and the SERVER attaches the credential.
-    this.apiKey =
-      runtimeEnv.__LELU_GITHUB_TOKEN__?.trim() ||
-      windowEnv?.__LELU_GITHUB_TOKEN__?.trim() ||
-      "";
-
+    // resolveViteOnly walks the same two documented channels and, unlike
+    // the chain it replaces, does not throw when import.meta.env is
+    // undefined — which it is in every non-Vite runtime.
+    this.apiKey = resolveViteOnly("GITHUB_TOKEN") ?? "";
     this.model =
-      import.meta.env.VITE_GITHUB_MODEL?.trim() ||
-      runtimeEnv.__LELU_GITHUB_MODEL__?.trim() ||
-      "openai/gpt-4o";
-
-    // No local key is the NORMAL production case now: the credential
-    // belongs on the server so it never enters the client bundle.
-    this.relay = this.apiKey ? false : await relayAvailable("githubmodels");
+      resolveModel("githubModels");
 
     this.initialized = true;
 
     console.info("[GitHubModelsProvider] Initialized", {
-      // Never the key or its length — only whether one is reachable.
-      credential: this.apiKey ? "local" : this.relay ? "server-relay" : "none",
+      hasKey: this.apiKey.length > 0,
       model: this.model,
     });
   }
@@ -98,7 +81,8 @@ export default class GitHubModelsProvider implements AIProvider {
     return (
       this.initialized &&
       this.enabled &&
-      (this.apiKey.length > 0 || this.relay)
+      this.requiresApiKey &&
+      providerConfigured("githubModels", this.apiKey)
     );
   }
 
@@ -111,7 +95,7 @@ export default class GitHubModelsProvider implements AIProvider {
       lastChecked: Date.now(),
       lastError: !this.initialized
         ? "GitHub Models provider not initialized."
-        : !this.apiKey && !this.relay
+        : !isBrokered("githubModels") && !this.apiKey
           ? "GitHub Models token missing."
           : undefined,
     };
@@ -132,7 +116,7 @@ export default class GitHubModelsProvider implements AIProvider {
       );
     }
 
-    if (!this.apiKey && !this.relay) {
+    if (!this.apiKey) {
       throw new Error(
         "GitHub Models token missing.",
       );
@@ -147,17 +131,18 @@ export default class GitHubModelsProvider implements AIProvider {
 
       ...contextMessages(request),
 
-      ...(request.messages ?? []),
+      ...toOpenAIMessages(request.messages),
 
-      {
-        role: "user",
-        content: request.prompt,
-      },
+      ...trailingUserTurn(
+        request,
+        request.prompt,
+      ),
     ];
 
     const payload = {
       model: request.model?.trim() || this.model,
       messages,
+      ...openAIToolPayload(request),
       temperature: request.temperature ?? 0.7,
       ...(request.maxTokens
         ? { max_tokens: request.maxTokens }
@@ -168,11 +153,11 @@ export default class GitHubModelsProvider implements AIProvider {
     };
 
     const proxyEndpoint =
-      import.meta.env.VITE_AI_PROXY_BASE_URL?.trim();
+      resolveFirst("AI_PROXY_BASE_URL");
 
     const endpoint =
       proxyEndpoint ||
-      "https://models.github.ai/inference/chat/completions";
+      endpointUrl("githubModels", "chat/completions");
 
     console.info(
       "[GitHubModelsProvider] Sending request",
@@ -187,31 +172,24 @@ export default class GitHubModelsProvider implements AIProvider {
     let response: Response;
 
     try {
-      // Same upstream call as before. When no key is held locally the
-      // request goes same-origin to /api/ai/relay and the SERVER attaches
-      // the credential — status and body come back verbatim, so the
-      // parsing and fallback behaviour below is unchanged.
-      //
-      // An explicit VITE_AI_PROXY_BASE_URL is honoured as-is: that
-      // deployment already has its own credential-bearing proxy in
-      // front, so relaying it again would be wrong. Passing the key
-      // through keeps that path byte-for-byte what it was.
-      response = proxyEndpoint
-        ? await fetch(endpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              ...(this.apiKey ? { Authorization: `Bearer ${this.apiKey}` } : {}),
-            },
-            body: JSON.stringify(payload),
-            signal: AbortSignal.timeout(this.timeout),
-          })
-        : await providerFetch("githubmodels", endpoint, {
-            apiKey: this.apiKey,
-            body: payload,
-            signal: AbortSignal.timeout(this.timeout),
-          });
+      response = await fetch(
+        endpoint,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            ...authHeaders("githubModels", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
+          },
+
+          body: JSON.stringify(payload),
+
+          signal: AbortSignal.timeout(
+            this.timeout,
+          ),
+        },
+      );
     } catch (error) {
       const message =
         error instanceof Error
@@ -270,9 +248,17 @@ export default class GitHubModelsProvider implements AIProvider {
       data?.choices?.[0]?.text ??
       "";
 
+    const toolCalls = extractOpenAIToolCalls(
+      data?.choices?.[0],
+    );
+
+    // A tool-call turn legitimately carries no text. Rejecting it as
+    // "no usable content" would turn a valid tool request into a
+    // provider failure and drop to the next provider for no reason.
     if (
-      typeof content !== "string" ||
-      !content.trim()
+      (typeof content !== "string" ||
+        !content.trim()) &&
+      toolCalls.length === 0
     ) {
       console.error(
         "[GitHubModelsProvider] Empty model response",
@@ -293,6 +279,11 @@ export default class GitHubModelsProvider implements AIProvider {
       model: payload.model,
       processingTime:
         Date.now() - started,
+      ...(toolCalls.length
+        ? { toolCalls }
+        : {}),
+      stopReason:
+        data?.choices?.[0]?.finish_reason,
       metadata: {
         usage: data?.usage,
         finishReason:

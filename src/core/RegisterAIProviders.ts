@@ -8,8 +8,8 @@
 import AIProviderRegistry
   from "./AIProviderRegistry";
 
-import AnthropicProvider
-  from "../providers/AnthropicProvider";
+import { primeBrokerStatus }
+  from "./model/BrokerTransport";
 
 import OpenRouterProvider
   from "../providers/OpenRouterProvider";
@@ -29,11 +29,26 @@ import MistralProvider
 import FireworksProvider
   from "../providers/FireworksProvider";
 
+import AnthropicProvider
+  from "../providers/AnthropicProvider";
+
+import GeminiProvider
+  from "../providers/GeminiProvider";
+
 import LocalInferenceProvider
   from "../providers/LocalInferenceProvider";
 
 
 export default function registerAIProviders() {
+
+  // Ask the server once, up front, which providers it can reach. Provider
+  // availability is the SERVER's answer now (the browser holds no key to form
+  // its own), and warming the cache here keeps the first turn from paying for
+  // the lookup. Fire-and-forget: until it lands providerConfigured() lets
+  // providers into the chain and a real attempt decides, so a cold start never
+  // silently drops a working provider.
+  void primeBrokerStatus();
+
 
   const registry =
     new AIProviderRegistry();
@@ -43,15 +58,6 @@ export default function registerAIProviders() {
   // the fallback chain tries local capability before any remote API.
   registry.register(
     new LocalInferenceProvider(),
-  );
-
-
-  // Claude is the primary remote provider (priority 1). Every provider
-  // below shifted down one slot to make room; their RELATIVE order — the
-  // documented Groq → OpenRouter → Cerebras → Mistral → Fireworks →
-  // GitHub Models chain — is unchanged.
-  registry.register(
-    new AnthropicProvider(),
   );
 
 
@@ -78,6 +84,18 @@ export default function registerAIProviders() {
 
   registry.register(
     new GitHubModelsProvider(),
+  );
+
+  // Appended last (priority 7) so the established fallback order is
+  // untouched — nothing that resolved before resolves differently now.
+  registry.register(
+    new AnthropicProvider(),
+  );
+
+  // Priority 8 — appended after Anthropic, so the chain ahead of it
+  // is untouched.
+  registry.register(
+    new GeminiProvider(),
   );
 
 

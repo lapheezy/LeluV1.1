@@ -93,6 +93,19 @@ export default class AIService {
    * bundle (runtime/user init, Supabase attach, capability registration). */
   private initializingPromise: Promise<void> | null = null;
 
+  /**
+   * How many user turns are being processed right now.
+   *
+   * USER COMMUNICATION HAS PRIORITY. Autonomous cognition consults this
+   * and defers while it is non-zero, so a self-study cycle can never
+   * consume the provider slot, the runtime, or the conversation state
+   * that a pending user message needs. It is a counter rather than a
+   * flag so overlapping turns cannot clear it early.
+   */
+  private activeUserTurns = 0;
+  /** When the last user turn finished — used to hold autonomy briefly after a reply. */
+  private lastUserTurnAt = 0;
+
   /** Device/native capability registry — same singleton the ToolResolver uses. */
   private readonly native = NativeCapabilityRegistry.getInstance();
 
@@ -285,6 +298,13 @@ export default class AIService {
       // prevents the service and runtime from racing the same lifecycle.
       this.runtime.initialize(),
       this.user.initialize(),
+      // Measure whether a real development runtime is serving
+      // /api/engineer, and mark the project.* tools available only if it
+      // is. Contained and parallel: an unreachable runtime simply means
+      // those tools are not offered this session.
+      import("./engineering/EngineeringWorkspace")
+        .then((module) => module.default.getInstance().syncToolAvailability())
+        .catch(() => false),
     ]);
 
     if (runtimeResult.status === "rejected") {
@@ -366,6 +386,12 @@ export default class AIService {
     if (!this.initialized) {
       await this.initialize();
     }
+
+    // Claim the conversation for the user BEFORE anything else runs.
+    // Autonomous cognition checks this and stands down, so a self-study
+    // cycle cannot start midway through the user's turn and answer over
+    // the top of it.
+    this.activeUserTurns += 1;
 
     this.emitThinking(true);
     this.emitSpeaking(true);
@@ -452,7 +478,10 @@ export default class AIService {
                 metadata: { intent: "delegation", success: false },
               };
         await this.memory.learn(message, response.text, taskId);
+        // Delegated turns are still turns: both sides join the
+        // conversation, or the next message loses the thread.
         await this.runtime.brain.getConversation().update(message);
+        this.runtime.brain.getConversation().record("assistant", response.text);
         this.emitAction("learn", `${delegation.agent.name} completed`, "complete");
         agentEvents.emit({ type: "task_completed", taskId, label: `${delegation.agent.name} delegated` });
         this.emitMessage({
@@ -463,6 +492,7 @@ export default class AIService {
           provider: response.provider,
           confidence: response.metadata?.confidence as number | undefined,
         });
+        this.releaseUserTurn();
         return {
           ...response,
           metadata: { ...(response.metadata ?? {}), delegated: delegation.agent.name },
@@ -515,9 +545,29 @@ export default class AIService {
 
       const streamId = crypto.randomUUID();
 
+      // SHORT-TERM CONVERSATION CONTEXT.
+      //
+      // Read the dialogue BEFORE this turn, then record this turn, so the
+      // user's message is part of the active conversation state before
+      // anything generates a response to it.
+      //
+      // Providers assemble `[...context, ...request.messages, {user, prompt}]`,
+      // so `messages` carries the PRIOR turns and the current message
+      // travels as `prompt`. Previously `messages` held only a copy of
+      // the current message, which meant the model saw the same text
+      // twice and no history at all — it could not know what it had
+      // already asked or been told.
+      const conversation = this.runtime.brain.getConversation();
+      const priorTurns = conversation.modelMessages();
+      conversation.record("user", message);
+
       const request: AIRequest = {
-        messages: [{ role: "user", content: message }],
+        messages: priorTurns,
         prompt: message,
+        // This is the conversational turn, so LÉLU may invoke her real
+        // tools here. Internal structured-output calls (reason()) leave
+        // this unset and keep their pre-tool behaviour.
+        allowTools: true,
         ...(effectiveContext ? { context: effectiveContext } : {}),
         ...(media && media.length > 0 ? { media } : {}),
         ...(options?.forceIntent ? { forceIntent: options.forceIntent } : {}),
@@ -576,7 +626,12 @@ export default class AIService {
       // and persisted locally even when every provider is down, and
       // the user profile updates from the same consolidation path.
       await this.memory.learn(message, response.text, taskId);
-      await this.runtime.brain.getConversation().update(message);
+      // LÉLU's own turn joins the conversation too. Without this she
+      // cannot see what she just said, so she re-asks questions she has
+      // already asked and loses the thread of her own follow-ups.
+      conversation.record("assistant", response.text);
+      // Refresh the active memories for the turn we just recorded.
+      await conversation.refresh(message);
 
       // A SECOND, deliberate recall — not a duplicate of the cognition
       // recall above. It runs AFTER this turn's memory write so the user
@@ -642,6 +697,7 @@ export default class AIService {
         },
       };
     } finally {
+      this.releaseUserTurn();
       this.emitThinking(false);
       this.emitSpeaking(false);
       this.emitListening(false);
@@ -649,6 +705,25 @@ export default class AIService {
       // would silently swallow the next turn's evidence.
       trace.end();
     }
+  }
+
+  /** Release this turn's claim on the conversation. */
+  private releaseUserTurn(): void {
+    this.activeUserTurns = Math.max(0, this.activeUserTurns - 1);
+    this.lastUserTurnAt = Date.now();
+  }
+
+  /**
+   * Is a user turn in flight, or was one just handled?
+   *
+   * Autonomous cognition calls this and defers, so a self-study cycle
+   * never runs on top of an active conversation. The short grace period
+   * after a reply keeps LÉLU from cutting straight back into an
+   * autonomous update while the user is reading and replying.
+   */
+  public isUserTurnActive(graceMs = 8_000): boolean {
+    if (this.activeUserTurns > 0) return true;
+    return this.lastUserTurnAt > 0 && Date.now() - this.lastUserTurnAt < graceMs;
   }
 
   /**
@@ -927,6 +1002,153 @@ export default class AIService {
   }
 
   /**
+   * COGNITION → PROVIDER CHAIN.
+   *
+   * Reason over a prompt that did not come from the user. Runs the
+   * SAME priority-ordered provider fallback the chat pipeline uses
+   * (one ProviderResolver, one AIProviderRegistry) but skips the
+   * conversational resolvers, so a self-study objective is answered
+   * as reasoning rather than re-routed as a search or a command.
+   *
+   * A provider failure is not a cognition failure: the chain moves to
+   * the next authorized provider by itself, and if every one fails the
+   * result comes back with `metadata.success === false` instead of
+   * throwing — the caller keeps its state and continues.
+   */
+  /**
+   * Autonomous deliberation — the SAME decision path as a chat turn,
+   * entered without a user message.
+   *
+   * This is deliberately reason()'s route (straight to ProviderResolver,
+   * so the intent resolvers do not claim the turn) with tools ENABLED,
+   * which means the decision is made by the existing native tool loop:
+   * the model reasons over the capability surface cognition already
+   * assembles and chooses to answer, call a tool, run a workflow, ask
+   * for something, or do nothing. There is no second cognition here and
+   * no rule engine — only the existing loop, reached from a trigger
+   * that is not a user typing.
+   */
+  public async deliberate(
+    prompt: string,
+    options: { system?: string; maxTokens?: number } = {},
+  ): Promise<AIResponse> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    const messages = [
+      ...(options.system ? [{ role: "system" as const, content: options.system }] : []),
+      { role: "user" as const, content: prompt },
+    ];
+    try {
+      return await this.runtime.reason({
+        messages,
+        prompt,
+        // The one thing that differs from reason(): autonomous work is
+        // allowed to act, not only to conclude.
+        allowTools: true,
+        maxTokens: options.maxTokens ?? 2048,
+        timestamp: Date.now(),
+      });
+    } catch (error) {
+      return {
+        text: "",
+        provider: "error",
+        model: "deliberate",
+        processingTime: 0,
+        metadata: {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      };
+    }
+  }
+
+  public async reason(
+    prompt: string,
+    options: { system?: string; model?: string; temperature?: number; maxTokens?: number } = {},
+  ): Promise<AIResponse> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+
+    const messages = [
+      ...(options.system ? [{ role: "system" as const, content: options.system }] : []),
+      { role: "user" as const, content: prompt },
+    ];
+
+    try {
+      return await this.runtime.reason({
+        messages,
+        prompt,
+        model: options.model,
+        temperature: options.temperature,
+        maxTokens: options.maxTokens,
+        timestamp: Date.now(),
+      });
+    } catch (error) {
+      // The resolver already contains provider failures; anything that
+      // escapes here is a runtime fault, and cognition still continues.
+      return {
+        text: "",
+        provider: "offline",
+        model: "offline",
+        processingTime: 0,
+        metadata: {
+          success: false,
+          reason: error instanceof Error ? error.message : String(error),
+        },
+      };
+    }
+  }
+
+  /**
+   * Recall from the ONE memory implementation (Brain → MemoryEngine).
+   * Used by cognition to retrieve relevant memory before reasoning.
+   * Never throws — an empty recall is a valid answer.
+   */
+  public async recall(query: string): Promise<{ prompt: string; response: string; confidence: number }[]> {
+    if (!this.initialized) {
+      return [];
+    }
+    try {
+      const patterns = await this.runtime.brain.recall(query);
+      return patterns.map((pattern) => ({
+        prompt: pattern.prompt ?? "",
+        response: pattern.response ?? "",
+        confidence: pattern.confidence ?? 0,
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Consolidate a durable learning into long-term memory through the
+   * existing Brain — no second memory system. `kind` picks the layer
+   * the Brain already maintains: "knowledge" for what she learned about
+   * the world, "system" for what she learned about herself.
+   */
+  public async consolidate(
+    kind: "knowledge" | "system",
+    summary: string,
+    keywords: string[],
+  ): Promise<boolean> {
+    if (!this.initialized) {
+      return false;
+    }
+    try {
+      if (kind === "system") {
+        await this.runtime.brain.rememberSystem(summary, keywords);
+      } else {
+        await this.runtime.brain.rememberKnowledge(summary, keywords);
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Read-only snapshot of every registered AI provider and
    * knowledge/research provider, for the Providers panel.
    */
@@ -952,6 +1174,17 @@ export default class AIService {
    */
   public getKnowledgeProviderRegistry(): import("./ProviderRegistry").default {
     return this.runtime.core.getKnowledgeProviders();
+  }
+
+  /**
+   * The ONE AI provider registry — the same instance the chat pipeline
+   * and cognition both resolve through. Exposed so the Providers panel
+   * and the integration verification can inspect real registry state
+   * (priority order, failures, cooldowns, which provider actually
+   * answered) instead of inferring it. There is no second registry.
+   */
+  public getAIProviderRegistry(): import("./AIProviderRegistry").default {
+    return this.runtime.core.getAIProviders();
   }
 
   /**

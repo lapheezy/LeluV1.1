@@ -55,7 +55,7 @@ export default function VisualBridge() {
         });
       } catch {
         engine.setStructure({
-          providers: ["Groq", "OpenRouter", "Cerebras", "Mistral", "Fireworks"],
+          providers: ["Groq", "OpenRouter", "Cerebras", "Mistral", "Fireworks", "Anthropic"],
           memory: ["identity", "preference", "goal", "relationship", "conversation"],
           tools: ["engineering", "research", "browser"],
         });

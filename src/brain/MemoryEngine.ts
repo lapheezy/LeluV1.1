@@ -162,9 +162,19 @@ export default class MemoryEngine {
     now: number,
   ): Promise<void> {
     const history = Array.isArray(existing.context?.history) ? (existing.context.history as string[]) : [];
-    history.push(existing.response);
+    const previous = existing.response;
+    history.push(previous);
 
-    existing.response = incoming.content;
+    // The correction is authoritative, but the statement it corrects
+    // usually carries facts the correction says nothing about: "my
+    // studio is Aurelia and I work in rose gold", corrected to
+    // "platinum, not rose gold", must not take the studio name with it.
+    // Replacing `response` outright deleted those. The superseded text
+    // is kept alongside, explicitly labelled, so the unrelated facts
+    // stay retrievable while the correction clearly wins.
+    existing.response = previous && previous !== incoming.content
+      ? `${incoming.content}\n(Superseded earlier statement, kept for the details it still carries: ${previous})`
+      : incoming.content;
     existing.keywords = [...new Set([...existing.keywords, ...incoming.keywords])];
     existing.importance = Math.max(existing.importance, incoming.importance);
     existing.context = {

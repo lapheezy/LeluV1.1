@@ -556,4 +556,33 @@ export default class SupabasePersistence {
       this.realtimeRefreshInFlight.delete(table);
     }
   }
+
+  public async persistEngineeringEvent(
+    eventType: string,
+    taskId: string,
+    payload: Record<string, unknown>,
+  ): Promise<boolean> {
+    if (!this.isConnected() || !this.userId) return false;
+    try {
+      const { error } = await this.client!.from("cognitive_events").insert({
+        user_id: this.userId,
+        event_type: `engineering.${eventType}`,
+        task_id: taskId,
+        payload,
+      });
+      if (error) {
+        this.status = "degraded";
+        console.warn("[Lélu] Supabase engineering event sync degraded", error.message);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.warn(
+        "[Lélu] Supabase engineering event failed (contained)",
+        error instanceof Error ? error.message : String(error),
+      );
+      return false;
+    }
+  }
+
 }

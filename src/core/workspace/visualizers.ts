@@ -372,6 +372,8 @@ export function timeline(
 const EVENT_STATUS: Record<AgentEvent["type"], TimelineEvent["status"]> = {
   task_started: "running",
   task_planning: "running",
+  // A cognitive transition is a recorded fact, not work in progress.
+  cognition: "ok",
   tool_selected: "running",
   tool_started: "running",
   tool_progress: "running",

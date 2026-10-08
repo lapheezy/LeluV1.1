@@ -164,7 +164,7 @@ export default class CapabilityManifest {
       category: "ai",
       description: "Generate conversational responses via configured AI providers",
       status: "available",
-      providers: ["groq", "openrouter", "cerebras", "fireworks", "github-models"],
+      providers: ["groq", "openrouter", "cerebras", "fireworks", "anthropic", "github-models"],
       lastSuccessful: null,
       lastChecked: now,
     });

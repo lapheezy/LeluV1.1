@@ -11,9 +11,29 @@
  *
  * Endpoints:
  *   GET  /api/engineer/status   → runtime capability report
- *   POST /api/engineer/command  → { operation } (whitelisted)
- *   POST /api/engineer/read     → { path }       (workspace-bounded)
- *   POST /api/engineer/write    → { path, content } (workspace-bounded)
+ *   POST /api/engineer/command  → { operation, workspace? } (whitelisted)
+ *   POST /api/engineer/read     → { path, workspace? }      (bounded)
+ *   POST /api/engineer/write    → { path, content, workspace? } (bounded)
+ *   POST /api/engineer/list     → { path, workspace? }      (bounded)
+ *   POST /api/engineer/delete   → { path, workspace }  (COPY ONLY)
+ *   POST /api/engineer/workspace→ { action, ... }      (isolated copies)
+ *   POST /api/engineer/git      → { action, ... }      (authorized VCS)
+ *
+ * WORKSPACE COPIES — the isolation boundary.
+ *
+ * Without a `workspace` field every operation targets the live project,
+ * which is the right behaviour for inspection but means an edit would
+ * change the running source. A workspace is a REAL directory holding a
+ * REAL copy of the project, created by `workspace:create`; when a
+ * request names one, every path resolves inside that copy and commands
+ * run with it as their working directory.
+ *
+ * Two rules keep the source project safe:
+ *   • write and delete REQUIRE a workspace. The live project is never
+ *     modified by an ordinary edit — only by an explicit apply.
+ *   • apply requires `confirm: true` AND a grant nonce this server
+ *     issued for that exact workspace, so a change reaches the real
+ *     project only through a deliberate, separately authorized step.
  *
  * IMPORTANT: connect-style servers (Vite's middleware stack) rewrite
  * `req.url` to the mount-point remainder before invoking a handler,
@@ -35,6 +55,8 @@
  *     silently.
  * ==========================================================
  */
+
+import { identityConfigured, verifyRequestIdentity } from "./engineerIdentity.ts";
 
 export interface EngineerCommandResult {
   ok: boolean;
@@ -64,7 +86,84 @@ export interface EngineerAdapter {
   resolve: (targetPath: string) => string;
   readFile: (absolutePath: string) => Promise<string> | string;
   writeFile: (absolutePath: string, content: string) => Promise<void> | void;
-  runCommand: (command: string, timeoutMs: number) => Promise<EngineerCommandResult>;
+  /** Directory listing, workspace-bounded — how LÉLU discovers real files. */
+  listDir: (absolutePath: string) => Promise<EngineerDirEntry[]> | EngineerDirEntry[];
+  /** Live runtime facts (engine + versions + cwd) reported by /status. */
+  runtimeInfo: () => EngineerRuntimeInfo;
+  runCommand: (
+    command: string,
+    timeoutMs: number,
+    /** Working directory; defaults to the workspace root. */
+    cwd?: string,
+  ) => Promise<EngineerCommandResult>;
+
+  /* ---- isolated project copies ---- */
+
+  /** Absolute path of the directory holding all workspace copies. */
+  sandboxRoot: string;
+  /** Resolve a path INSIDE a named workspace copy; throw on escape. */
+  resolveInWorkspace: (workspaceId: string, targetPath: string) => string;
+  /** Real recursive copy of the project into a new workspace. */
+  createWorkspace: (workspaceId: string) => Promise<EngineerWorkspace>;
+  listWorkspaces: () => EngineerWorkspace[];
+  removeWorkspace: (workspaceId: string) => void;
+  deleteFile: (absolutePath: string) => void;
+  /** Compare a workspace against the source project, file by file. */
+  diffWorkspace: (workspaceId: string, includePatch?: boolean) => Promise<EngineerDiffEntry[]>;
+  /** Copy the named changed files from the workspace back to the source. */
+  applyWorkspace: (workspaceId: string, paths: string[]) => Promise<string[]>;
+
+  /* ---- version control on the REAL project ---- */
+
+  /** Run a git subcommand with fixed, non-interpolated arguments. */
+  git: (args: string[], timeoutMs?: number) => Promise<EngineerCommandResult>;
+}
+
+/** One entry of a workspace-bounded directory listing. */
+export interface EngineerDirEntry {
+  name: string;
+  /** Workspace-relative path, always forward-slashed. */
+  path: string;
+  type: "file" | "dir";
+  size?: number;
+}
+
+/** Live facts about the runtime actually serving this API. */
+export interface EngineerRuntimeInfo {
+  engine: string;
+  version: string;
+  platform: string;
+  cwd: string;
+  startedAt: number;
+}
+
+/** One isolated copy of the project that LÉLU may modify. */
+export interface EngineerWorkspace {
+  id: string;
+  /** Absolute path of the copy. */
+  root: string;
+  createdAt: number;
+  /** Files copied when it was created. */
+  fileCount: number;
+}
+
+/** One changed file, as a real comparison against the source project. */
+export interface EngineerDiffEntry {
+  path: string;
+  status: "added" | "modified" | "deleted";
+  /** Line counts, computed from the real contents. */
+  addedLines: number;
+  removedLines: number;
+  /**
+   * The actual changed lines, unified-diff style.
+   *
+   * Counts alone are not a diff: "+13/-0" tells a reviewer nothing
+   * about what the change DOES, and a model asked to show its work
+   * could only restate what it believed it had written rather than
+   * what is on disk. Present when the diff was requested with
+   * `includePatch`, and bounded so a large file cannot flood a reply.
+   */
+  patch?: string;
 }
 
 /** Whitelisted operations — the only commands the server will ever run. */
@@ -82,7 +181,53 @@ const ROUTES = [
   "/api/engineer/command",
   "/api/engineer/read",
   "/api/engineer/write",
+  "/api/engineer/list",
+  "/api/engineer/delete",
+  "/api/engineer/workspace",
+  "/api/engineer/git",
 ] as const;
+
+/**
+ * Apply grants issued by this server, keyed by workspace id.
+ *
+ * A grant is a single-use nonce handed out by `workspace:request-apply`
+ * and consumed by `workspace:apply`. It is BOUND TO THE VERIFIED USER
+ * who requested it: a nonce alone proves nothing, because the server
+ * used to hand one to anybody who asked and a plain unauthenticated
+ * request could then write to the real project.
+ *
+ * The nonce still does the job it was added for — making apply a
+ * distinct second call that cannot happen as a side effect of an edit,
+ * against a change set the caller has already been shown. Identity is
+ * what makes it an authorization.
+ */
+const applyGrants = new Map<string, { nonce: string; issuedAt: number; userId: string }>();
+const GRANT_TTL_MS = 10 * 60 * 1000;
+
+function issueGrant(workspaceId: string, userId: string): string {
+  const nonce = `grant_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  applyGrants.set(workspaceId, { nonce, issuedAt: Date.now(), userId });
+  return nonce;
+}
+
+function consumeGrant(workspaceId: string, nonce: string, userId: string): boolean {
+  const held = applyGrants.get(workspaceId);
+  if (!held) return false;
+  applyGrants.delete(workspaceId);
+  if (Date.now() - held.issuedAt > GRANT_TTL_MS) return false;
+  // A grant issued to one identity can never be redeemed by another.
+  if (held.userId !== userId) return false;
+  return held.nonce === nonce;
+}
+
+/** Workspace ids are ours to choose — keep them boring and safe. */
+function safeWorkspaceId(raw: unknown): string {
+  const value = String(raw ?? "").trim();
+  if (!/^[A-Za-z0-9_-]{1,64}$/.test(value)) {
+    throw new WorkspaceBoundaryError(`Invalid workspace id: ${JSON.stringify(value)}`);
+  }
+  return value;
+}
 
 /* ------------------------------------------------------------------ */
 /* request helpers                                                     */
@@ -131,21 +276,66 @@ function readJsonBody(req: ConnectLikeReq): Promise<Record<string, unknown>> {
   });
 }
 
-/** Reject state-changing requests whose Origin does not match the Host. */
+/**
+ * Origins explicitly allowed to reach this runtime from a different
+ * host, read from LELU_ENGINEER_ALLOWED_ORIGINS (comma-separated exact
+ * origins, or "*"). Empty by default — same-origin only, exactly as
+ * before. This is the switch that lets a deployed LÉLU front-end reach
+ * a REAL development runtime instead of silently degrading to the
+ * build-time snapshot.
+ */
+function allowedOrigins(): string[] {
+  if (typeof process === "undefined") return [];
+  return (process.env.LELU_ENGINEER_ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+}
+
+function requestOrigin(req: ConnectLikeReq): string {
+  const headers = req.headers ?? {};
+  return typeof headers.origin === "string" ? headers.origin : "";
+}
+
+/** Reject state-changing requests whose Origin is neither the Host nor allowlisted. */
 function isCrossOrigin(req: ConnectLikeReq): boolean {
   const headers = req.headers ?? {};
-  const origin = typeof headers.origin === "string" ? headers.origin : "";
+  const origin = requestOrigin(req);
   const host = typeof headers.host === "string" ? headers.host : "";
   if (!origin || !host) return false; // curl / non-browser clients — allowed
   try {
-    return new URL(origin).host !== host;
+    if (new URL(origin).host === host) return false;
   } catch {
     return true;
   }
+  // A different host is permitted only when explicitly allowlisted.
+  const allowed = allowedOrigins();
+  return !(allowed.includes("*") || allowed.includes(origin));
+}
+
+/** Echo CORS headers for an allowlisted cross-origin caller. */
+function applyCors(req: ConnectLikeReq, res: ConnectLikeRes): void {
+  const origin = requestOrigin(req);
+  if (!origin) return;
+  const allowed = allowedOrigins();
+  if (!allowed.includes("*") && !allowed.includes(origin)) return;
+  res.setHeader("Access-Control-Allow-Origin", origin);
+  res.setHeader("Vary", "Origin");
+  res.setHeader("Access-Control-Allow-Headers", "content-type, x-lelu-token");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Max-Age", "600");
 }
 
 function tokenRequired(): boolean {
   return typeof process !== "undefined" && Boolean(process.env.LELU_ENGINEER_TOKEN);
+}
+
+/** Does this request carry the configured access token? */
+function hasValidToken(req: ConnectLikeReq): boolean {
+  if (typeof process === "undefined") return false;
+  const header = req.headers?.["x-lelu-token"];
+  const provided = Array.isArray(header) ? header[0] : header;
+  return typeof provided === "string" && provided === process.env.LELU_ENGINEER_TOKEN;
 }
 
 /* ------------------------------------------------------------------ */
@@ -158,10 +348,28 @@ export function createEngineerApi(adapter: EngineerAdapter): {
   function handleRoute(route: (typeof ROUTES)[number]) {
     return (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): void => {
       const method = req.method ?? "GET";
+      applyCors(req, res);
 
-      /* ---- GET /api/engineer/status — runtime capability report ---- */
+      /* ---- CORS preflight for an allowlisted cross-origin caller ---- */
+      if (method === "OPTIONS") {
+        res.statusCode = 204;
+        res.end("");
+        return;
+      }
+
+      /* ---- GET /api/engineer/status — runtime capability report ----
+         Deliberately reachable without a token: the client has to be
+         able to discover whether a runtime exists at all (and whether
+         a token is even required) before it can present one.
+
+         But an unauthenticated probe gets only the capability facts.
+         Absolute filesystem paths and engine/version details are
+         disclosed ONLY to a caller that already holds the token, so
+         enabling LELU_ENGINEER_TOKEN does not leave server internals
+         readable by anyone who can reach the port. */
       if (route === "/api/engineer/status") {
         if (method === "GET") {
+          const trusted = !tokenRequired() || hasValidToken(req);
           sendJson(res, {
             ok: true,
             runtime: adapter.runtime,
@@ -169,6 +377,18 @@ export function createEngineerApi(adapter: EngineerAdapter): {
             operations: Object.keys(ENGINEER_OPERATIONS),
             workspace: adapter.workspaceRoot.split(/[\\/]/).pop() ?? "",
             tokenRequired: tokenRequired(),
+            // Whether this runtime can establish WHO is asking. When
+            // false, apply is refused outright — the client shows that
+            // as a real limitation rather than discovering it on use.
+            identityVerification: identityConfigured(),
+            ...(trusted
+              ? {
+                  workspaceRoot: adapter.workspaceRoot,
+                  // Live runtime facts, so the client can report REAL
+                  // DEVELOPMENT RUNTIME rather than assuming one exists.
+                  runtimeInfo: adapter.runtimeInfo(),
+                }
+              : {}),
           });
           return;
         }
@@ -192,17 +412,13 @@ export function createEngineerApi(adapter: EngineerAdapter): {
       }
 
       /* ---- optional token gate ---- */
-      if (tokenRequired()) {
-        const header = req.headers?.["x-lelu-token"];
-        const provided = Array.isArray(header) ? header[0] : header;
-        if (provided !== process.env.LELU_ENGINEER_TOKEN) {
-          sendJson(
-            res,
-            { ok: false, error: "Engineering runtime requires an access token (LELU_ENGINEER_TOKEN)." },
-            401,
-          );
-          return;
-        }
+      if (tokenRequired() && !hasValidToken(req)) {
+        sendJson(
+          res,
+          { ok: false, error: "Engineering runtime requires an access token (LELU_ENGINEER_TOKEN)." },
+          401,
+        );
+        return;
       }
 
       void (async () => {
@@ -232,7 +448,13 @@ export function createEngineerApi(adapter: EngineerAdapter): {
             const timeoutMs = Number.isFinite(Number(payload.timeoutMs))
               ? Number(payload.timeoutMs)
               : DEFAULT_TIMEOUT_MS;
-            const result = await adapter.runCommand(command, timeoutMs);
+            // Validation runs INSIDE the copy when one is named, so a
+            // typecheck/test/build reports on the changed code rather
+            // than on the untouched source project.
+            const cwd = payload.workspace
+              ? adapter.resolveInWorkspace(safeWorkspaceId(payload.workspace), ".")
+              : undefined;
+            const result = await adapter.runCommand(command, timeoutMs, cwd);
             sendJson(res, { ok: result.ok, status: result.status, stdout: result.stdout, stderr: result.stderr, durationMs: result.durationMs });
             return;
           }
@@ -240,19 +462,316 @@ export function createEngineerApi(adapter: EngineerAdapter): {
           /* ---- POST /api/engineer/read (workspace-bounded) ---- */
           if (route === "/api/engineer/read") {
             const filePath = String(payload.path ?? "");
-            const absolutePath = adapter.resolve(filePath);
+            const absolutePath = payload.workspace
+              ? adapter.resolveInWorkspace(safeWorkspaceId(payload.workspace), filePath)
+              : adapter.resolve(filePath);
             const content = await adapter.readFile(absolutePath);
             sendJson(res, { ok: true, path: filePath, content });
             return;
           }
 
-          /* ---- POST /api/engineer/write (workspace-bounded) ---- */
+          /* ---- POST /api/engineer/list (workspace-bounded) ---- */
+          if (route === "/api/engineer/list") {
+            const dirPath = String(payload.path ?? "");
+            const absolutePath = payload.workspace
+              ? adapter.resolveInWorkspace(safeWorkspaceId(payload.workspace), dirPath)
+              : adapter.resolve(dirPath);
+            const entries = await adapter.listDir(absolutePath);
+            sendJson(res, { ok: true, path: dirPath, entries });
+            return;
+          }
+
+          /* ---- POST /api/engineer/write (COPY ONLY) ---- */
           if (route === "/api/engineer/write") {
             const filePath = String(payload.path ?? "");
             const content = String(payload.content ?? "");
-            const absolutePath = adapter.resolve(filePath);
+
+            // An edit NEVER touches the live project.
+            //
+            // Before workspaces existed this wrote straight into
+            // process.cwd(), so any edit changed the running source with
+            // no copy, no diff and no authorization step. Reaching the
+            // real project is now exclusively the job of workspace:apply.
+            if (!payload.workspace) {
+              sendJson(
+                res,
+                {
+                  ok: false,
+                  error:
+                    "Writes require a workspace copy. Create one with " +
+                    "POST /api/engineer/workspace {action:'create'} and pass its id. " +
+                    "The source project is only changed by workspace:apply.",
+                },
+                403,
+              );
+              return;
+            }
+
+            const absolutePath = adapter.resolveInWorkspace(
+              safeWorkspaceId(payload.workspace),
+              filePath,
+            );
             await adapter.writeFile(absolutePath, content);
-            sendJson(res, { ok: true, path: filePath });
+            sendJson(res, { ok: true, path: filePath, workspace: payload.workspace });
+            return;
+          }
+
+          /* ---- POST /api/engineer/delete (COPY ONLY) ---- */
+          if (route === "/api/engineer/delete") {
+            if (!payload.workspace) {
+              sendJson(
+                res,
+                { ok: false, error: "Deletes require a workspace copy; the source project is never deleted from." },
+                403,
+              );
+              return;
+            }
+            const filePath = String(payload.path ?? "");
+            const absolutePath = adapter.resolveInWorkspace(
+              safeWorkspaceId(payload.workspace),
+              filePath,
+            );
+            adapter.deleteFile(absolutePath);
+            sendJson(res, { ok: true, path: filePath, workspace: payload.workspace });
+            return;
+          }
+
+          /* ---- POST /api/engineer/workspace ---- */
+          if (route === "/api/engineer/workspace") {
+            const action = String(payload.action ?? "");
+
+            if (action === "list") {
+              sendJson(res, { ok: true, workspaces: adapter.listWorkspaces() });
+              return;
+            }
+
+            if (action === "create") {
+              const id = safeWorkspaceId(payload.workspace ?? `ws-${Date.now().toString(36)}`);
+              const workspace = await adapter.createWorkspace(id);
+              sendJson(res, { ok: true, workspace });
+              return;
+            }
+
+            if (action === "remove") {
+              const id = safeWorkspaceId(payload.workspace);
+              adapter.removeWorkspace(id);
+              applyGrants.delete(id);
+              sendJson(res, { ok: true, workspace: id, removed: true });
+              return;
+            }
+
+            if (action === "diff") {
+              const id = safeWorkspaceId(payload.workspace);
+              const changes = await adapter.diffWorkspace(id, payload.includePatch === true);
+              sendJson(res, { ok: true, workspace: id, changes });
+              return;
+            }
+
+            if (action === "request-apply") {
+              const id = safeWorkspaceId(payload.workspace);
+              // Identity FIRST: a grant is only meaningful once we know
+              // who it belongs to.
+              const who = await verifyRequestIdentity(req);
+              if (!who.ok || !who.identity) {
+                sendJson(res, { ok: false, error: who.reason }, who.status);
+                return;
+              }
+              const changes = await adapter.diffWorkspace(id);
+              if (changes.length === 0) {
+                sendJson(res, { ok: false, error: "Nothing to apply: the workspace matches the source project." }, 400);
+                return;
+              }
+              sendJson(res, {
+                ok: true,
+                workspace: id,
+                changes,
+                grant: issueGrant(id, who.identity.userId),
+                identity: who.identity.email ?? who.identity.userId,
+              });
+              return;
+            }
+
+            if (action === "apply") {
+              const id = safeWorkspaceId(payload.workspace);
+
+              // THREE independent conditions, all required, all checked
+              // here on the server. A client-side "authorized: true" is
+              // not one of them and never reaches this code.
+              const who = await verifyRequestIdentity(req);
+              if (!who.ok || !who.identity) {
+                sendJson(res, { ok: false, error: who.reason }, who.status);
+                return;
+              }
+              if (payload.confirm !== true) {
+                sendJson(res, { ok: false, error: "Apply requires confirm:true." }, 403);
+                return;
+              }
+              if (!consumeGrant(id, String(payload.grant ?? ""), who.identity.userId)) {
+                sendJson(
+                  res,
+                  {
+                    ok: false,
+                    error:
+                      "Apply requires a valid, unused grant from workspace:request-apply. " +
+                      "Nothing was written to the source project.",
+                  },
+                  403,
+                );
+                return;
+              }
+              const requested = Array.isArray(payload.paths)
+                ? (payload.paths as unknown[]).map((entry) => String(entry))
+                : [];
+              const applied = await adapter.applyWorkspace(id, requested);
+              sendJson(res, {
+                ok: true,
+                workspace: id,
+                applied,
+                appliedBy: who.identity.email ?? who.identity.userId,
+              });
+              return;
+            }
+
+            sendJson(res, { ok: false, error: `Unknown workspace action: ${action}` }, 400);
+            return;
+          }
+
+          /* ---- POST /api/engineer/git ----
+             Read actions describe the real repository. Write actions
+             (commit, push) reach the outside world and therefore carry
+             the same identity requirement as apply. */
+          if (route === "/api/engineer/git") {
+            const action = String(payload.action ?? "");
+
+            if (action === "status") {
+              const porcelain = await adapter.git(["status", "--porcelain=v1", "--branch"]);
+              const head = await adapter.git(["rev-parse", "--abbrev-ref", "HEAD"]);
+              sendJson(res, {
+                ok: porcelain.ok,
+                branch: head.stdout.trim(),
+                status: porcelain.stdout,
+                error: porcelain.ok ? undefined : porcelain.stderr,
+              });
+              return;
+            }
+
+            if (action === "diff") {
+              // --stat by default; the full patch on request. Staged and
+              // unstaged both, so nothing already added is invisible.
+              const staged = payload.staged === true;
+              const args = ["diff", ...(staged ? ["--cached"] : []), ...(payload.full === true ? [] : ["--stat"])];
+              const result = await adapter.git(args);
+              sendJson(res, { ok: result.ok, diff: result.stdout, error: result.ok ? undefined : result.stderr });
+              return;
+            }
+
+            if (action === "log") {
+              const count = Math.min(Math.max(Number(payload.count ?? 5) || 5, 1), 50);
+              const result = await adapter.git(["log", `-${count}`, "--oneline", "--no-decorate"]);
+              sendJson(res, { ok: result.ok, log: result.stdout, error: result.ok ? undefined : result.stderr });
+              return;
+            }
+
+            if (action === "commit") {
+              const who = await verifyRequestIdentity(req);
+              if (!who.ok || !who.identity) {
+                sendJson(res, { ok: false, error: who.reason }, who.status);
+                return;
+              }
+              if (payload.confirm !== true) {
+                sendJson(res, { ok: false, error: "Commit requires confirm:true." }, 403);
+                return;
+              }
+              const message = String(payload.message ?? "").trim();
+              if (!message) {
+                sendJson(res, { ok: false, error: "Commit requires a message." }, 400);
+                return;
+              }
+              const paths = Array.isArray(payload.paths)
+                ? (payload.paths as unknown[]).map((entry) => String(entry)).filter(Boolean)
+                : [];
+              if (paths.length === 0) {
+                // NEVER `git add -A`. A commit stages exactly the files
+                // the apply reported, so unrelated working-tree changes
+                // are never swept into LÉLU's commit.
+                sendJson(
+                  res,
+                  { ok: false, error: "Commit requires an explicit list of paths; staging everything is not permitted." },
+                  400,
+                );
+                return;
+              }
+
+              // Reject anything that escapes the project before staging.
+              for (const candidate of paths) {
+                adapter.resolve(candidate);
+              }
+
+              const added = await adapter.git(["add", "--", ...paths]);
+              if (!added.ok) {
+                sendJson(res, { ok: false, error: `git add failed: ${added.stderr || added.stdout}` }, 500);
+                return;
+              }
+
+              // Attribute the authorization in the commit itself.
+              const body = `${message}\n\nAuthorized-By: ${who.identity.email ?? who.identity.userId}`;
+              const committed = await adapter.git(["commit", "-m", body, "--", ...paths]);
+              const head = await adapter.git(["rev-parse", "HEAD"]);
+              const show = await adapter.git(["show", "--stat", "--oneline", "HEAD"]);
+
+              sendJson(res, {
+                ok: committed.ok,
+                commit: committed.ok ? head.stdout.trim() : null,
+                // The REAL git output, so a caller can never report a
+                // commit that did not happen.
+                output: `${committed.stdout}\n${committed.stderr}`.trim(),
+                show: committed.ok ? show.stdout : "",
+                authorizedBy: who.identity.email ?? who.identity.userId,
+                error: committed.ok ? undefined : committed.stderr || committed.stdout,
+              });
+              return;
+            }
+
+            if (action === "push") {
+              const who = await verifyRequestIdentity(req);
+              if (!who.ok || !who.identity) {
+                sendJson(res, { ok: false, error: who.reason }, who.status);
+                return;
+              }
+              // Pushing publishes work outside this machine, so it needs
+              // deliberate configuration as well as authorization —
+              // being signed in is not on its own a reason to publish.
+              if (typeof process === "undefined" || process.env.LELU_ALLOW_PUSH !== "1") {
+                sendJson(
+                  res,
+                  {
+                    ok: false,
+                    error:
+                      "Pushing is not enabled on this runtime (LELU_ALLOW_PUSH is not set). " +
+                      "The commit is local; nothing was published.",
+                  },
+                  403,
+                );
+                return;
+              }
+              if (payload.confirm !== true) {
+                sendJson(res, { ok: false, error: "Push requires confirm:true." }, 403);
+                return;
+              }
+              const branchResult = await adapter.git(["rev-parse", "--abbrev-ref", "HEAD"]);
+              const branch = branchResult.stdout.trim();
+              const pushed = await adapter.git(["push", "origin", branch], 120_000);
+              sendJson(res, {
+                ok: pushed.ok,
+                branch,
+                output: `${pushed.stdout}\n${pushed.stderr}`.trim(),
+                pushedBy: who.identity.email ?? who.identity.userId,
+                error: pushed.ok ? undefined : pushed.stderr || pushed.stdout,
+              });
+              return;
+            }
+
+            sendJson(res, { ok: false, error: `Unknown git action: ${action}` }, 400);
             return;
           }
 

@@ -1,6 +1,8 @@
 import { vlyPlugin } from "@vly-ai/integrations";
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import { fileURLToPath } from "node:url";
 import glsl from "vite-plugin-glsl";
 
 import glslIncludes from "./plugins/glslIncludes.js";
@@ -8,6 +10,7 @@ import { createAisBridge } from "./plugins/aisBridgePlugin.ts";
 import { engineerApiPlugin } from "./plugins/engineerApi.ts";
 import { createNodeEngineerAdapter } from "./plugins/nodeAdapters.ts";
 import { createEnvApi } from "./plugins/envApi.ts";
+import { createModelApi } from "./plugins/modelApi.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
@@ -15,6 +18,7 @@ import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { githubApiPlugin } from "./plugins/githubApi.ts";
+import { runtimeKeyBridgePlugin, bridgeReport } from "./plugins/runtimeKeyBridge.ts";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -24,6 +28,20 @@ export default defineConfig(({ mode }) => {
   const aisBridge = createAisBridge({ apiKey: aisKey });
 
   const envReader = (key: string) => env[key] ?? process.env[key] ?? "";
+
+  // Report — by NAME only, never by value — which provider keys were
+  // supplied under an unprefixed platform name and are therefore being
+  // bridged onto the __LELU_*__ channel the providers already read.
+  // Without this the key is present in the process yet invisible to the
+  // browser bundle, and the provider reports itself unconfigured.
+  const bridged = bridgeReport(envReader);
+  if (bridged.length > 0) {
+    console.info(
+      "[runtime-key-bridge] publishing provider keys from unprefixed names:",
+      bridged.map((b) => `${b.sourceName} → ${b.globalName}`).join(", "),
+    );
+  }
+
   const envApi = createEnvApi(
     envReader,
     "vite-dev",
@@ -39,6 +57,21 @@ export default defineConfig(({ mode }) => {
   const aiProxyApi = createAiProxyApi(envReader);
   const quad9Api = createQuad9Api(envReader);
   const nekoApi = createNekoApi(envReader);
+  // The same-origin model broker. Without it the page has to call a
+  // provider directly, which needs the provider's CORS and the page's
+  // own egress — and puts the API key in the bundle.
+  const modelApi = createModelApi(envReader);
+  function modelApiPlugin() {
+    return {
+      name: "model-api",
+      configureServer(server: any) {
+        modelApi.attach(server.middlewares);
+      },
+      configurePreviewServer(server: any) {
+        modelApi.attach(server.middlewares);
+      },
+    };
+  }
   function envApiPlugin() {
     return {
       name: "env-api",
@@ -58,6 +91,15 @@ export default defineConfig(({ mode }) => {
     base: "/",
 
     plugins: [
+      // FIRST: publish bridged provider keys into <head> before any
+      // module evaluates, so every provider's initialize() sees them.
+      runtimeKeyBridgePlugin(envReader),
+      modelApiPlugin(),
+
+      // Tailwind v4 — utilities for the OG interfaces only; see src/og/og.css
+      // for why preflight is deliberately not part of that build.
+      tailwindcss(),
+
       vlyPlugin(),
 
       {
@@ -193,6 +235,11 @@ export default defineConfig(({ mode }) => {
     },
 
     resolve: {
+      alias: {
+        // The OG interfaces keep their own import root so their sources stay
+        // close to the originals; "@og/x" resolves to src/og/x.
+        "@og": fileURLToPath(new URL("./src/og", import.meta.url)),
+      },
       extensions: [
         ".ts",
         ".tsx",

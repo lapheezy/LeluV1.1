@@ -33,13 +33,13 @@ import KnowledgeLibrary from "./KnowledgeLibrary";
 import SelfModel from "./SelfModel";
 import SystemEnvironment from "./SystemEnvironment";
 import WorkQueue from "./WorkQueue";
-import SelfStudy, { type SelfStudyCycleRecord } from "./SelfStudy";
 import SelfDevelopmentEngine from "../selfdev/SelfDevelopmentEngine";
+import { withDeadline } from "./SelfStudyEngine";
 import CapabilityManifest from "../capabilities/CapabilityManifest";
 import Sentinel from "../sentinel/Sentinel";
 import ProactiveCore, { type ProactiveQuestionInput } from "../proactive/ProactiveCore";
 import AgentEventBus from "../agent/AgentEvents";
-import type { KnowledgeResult } from "../../providers/Provider";
+import SelfStudyEngine from "./SelfStudyEngine";
 
 export interface CognitiveCycleReport {
   updatedAt: number;
@@ -58,32 +58,44 @@ export interface CognitiveCycleReport {
   selfUpdates: string[];
   cycle: number;
   /**
-   * The self-study cycle this cognitive cycle ran, when it ran one.
-   * Null between self-study cycles — see SELF_STUDY_EVERY.
+   * The continuous self-study process. `carried` is the size of the
+   * WORK BUFFER — it reaching zero is a refill trigger, never the end
+   * of cognition, so this is reported separately from the loop's own
+   * observation counts.
    */
-  selfStudy: SelfStudyCycleRecord | null;
+  selfStudy: {
+    running: boolean;
+    cycle: number;
+    question: string | null;
+    agent: string | null;
+    tool: string | null;
+    /** development-runtime | static-snapshot | none */
+    evidenceOrigin: string | null;
+    provider: string | null;
+    derived: number;
+    carried: number;
+  };
 }
 
 type Listener = (report: CognitiveCycleReport) => void;
 
 const CYCLE_INTERVAL_MS = 60_000;
+/** Coalesce a burst of project writes into one cycle. */
+const NUDGE_DEBOUNCE_MS = 2_000;
+/** Floor between cycles, so a nudge can never become a spin. */
+const MIN_CYCLE_GAP_MS = 15_000;
 const MAX_SUGGESTIONS_PER_CYCLE = 3;
-/**
- * Run a self-study cycle every Nth cognitive cycle.
- *
- * Not every cycle: a self-study pass reads real source and may spend a
- * provider call on an agent. At a 60s cadence this is one self-study
- * every 3 minutes — continuous without being a busy-loop against the
- * provider chain.
- */
-const SELF_STUDY_EVERY = 3;
 
 export default class CognitiveLoop {
   private static instance: CognitiveLoop | null = null;
   private listeners: Listener[] = [];
   private timer: number | null = null;
+  private bootTimer: number | null = null;
+  private nudgeTimer: number | null = null;
+  private unsubscribeProjects: (() => void) | null = null;
   private running = false;
   private cycle = 0;
+  private lastCycleAt = 0;
   private lastReport: CognitiveCycleReport | null = null;
 
   private constructor() {}
@@ -111,9 +123,26 @@ export default class CognitiveLoop {
     if (this.timer !== null) {
       return;
     }
-    // First cycle shortly after boot, then on the interval.
-    window.setTimeout(() => void this.runOnce(), 3000);
+    // First cycle shortly after boot, then on the interval. The boot
+    // timeout is TRACKED: an untracked one survives stop(), so a loop
+    // the interface has torn down still runs a cycle three seconds
+    // later — and StrictMode's mount/unmount/mount leaves an orphan.
+    this.bootTimer = window.setTimeout(() => {
+      this.bootTimer = null;
+      void this.runOnce();
+    }, 3000);
     this.timer = window.setInterval(() => void this.runOnce(), intervalMs);
+
+    // Observe state changes, not just the clock.
+    //
+    // The loop was purely timer-driven, so a project created by the user
+    // — or by Orchestrator.persistCheckpoint() mid-conversation — sat
+    // unobserved for up to a full CYCLE_INTERVAL_MS. Cognition looked
+    // broken because it was late: the derivation below runs correctly,
+    // but only on the next tick, which is why a project seeded just
+    // after a cycle produced nothing for the following minute.
+    // ProjectStore already publishes changes; subscribe to what exists.
+    this.unsubscribeProjects = ProjectStore.getInstance().subscribe(() => this.nudge());
   }
 
   public stop(): void {
@@ -121,15 +150,60 @@ export default class CognitiveLoop {
       window.clearInterval(this.timer);
       this.timer = null;
     }
+    if (this.bootTimer !== null) {
+      window.clearTimeout(this.bootTimer);
+      this.bootTimer = null;
+    }
+    if (this.nudgeTimer !== null) {
+      window.clearTimeout(this.nudgeTimer);
+      this.nudgeTimer = null;
+    }
+    this.unsubscribeProjects?.();
+    this.unsubscribeProjects = null;
+
+    // A cycle STARTS the self-study engine (see runOnce), so stopping
+    // this loop has to stop that one too. Without this, shutting the
+    // runtime down left a cognitive engine running on its own timer:
+    // nothing on screen, nothing observable, and still thinking.
+    SelfStudyEngine.getInstance().stop();
+  }
+
+  /**
+   * Bring the next cycle forward because observable state changed.
+   *
+   * Rate-limited rather than immediate: a cycle itself can touch project
+   * state, so an unguarded nudge is a feedback loop. At most one is
+   * pending, and none runs within MIN_CYCLE_GAP_MS of the last cycle —
+   * a change during that window waits out the remainder instead of
+   * being dropped.
+   */
+  private nudge(): void {
+    if (this.timer === null || this.nudgeTimer !== null) {
+      return;
+    }
+    const since = Date.now() - this.lastCycleAt;
+    const delay = Math.max(NUDGE_DEBOUNCE_MS, MIN_CYCLE_GAP_MS - since);
+    this.nudgeTimer = window.setTimeout(() => {
+      this.nudgeTimer = null;
+      void this.runOnce();
+    }, delay);
   }
 
   /** Run one full observe → understand → propose cycle. */
   public async runOnce(): Promise<CognitiveCycleReport> {
+    // USER COMMUNICATION HAS PRIORITY. This loop proposes work and can
+    // queue a proactive question; doing that while the user is mid-turn
+    // is exactly how an autonomous update lands on top of a reply.
+    // Observation resumes on the next tick.
+    if (AIService.getInstance().isUserTurnActive()) {
+      return this.lastReport ?? this.emptyReport();
+    }
     if (this.running) {
       return this.lastReport ?? this.emptyReport();
     }
     this.running = true;
     this.cycle += 1;
+    this.lastCycleAt = Date.now();
 
     const ai = AIService.getInstance();
     const agents = AgentStore.getInstance();
@@ -146,9 +220,17 @@ export default class CognitiveLoop {
 
     try {
       /* ---------------- OBSERVE ---------------- */
+      // Every await in this cycle is deadline-bounded.
+      //
+      // `this.running` is cleared in a `finally`, which handles a THROW
+      // but not a HANG: a promise that never settles never reaches the
+      // finally, so the flag latches true and every later tick returns
+      // early. The loop then dies silently — no error, no cycle, and
+      // nothing downstream of the hang ever runs again. SelfStudyEngine
+      // already guards its steps this way; this loop did not.
       let memories = 0;
       try {
-        memories = (await ai.getMemories(2000)).length;
+        memories = (await withDeadline(ai.getMemories(2000), [])).length;
       } catch {
         // memory may be empty or unavailable — observe as 0
       }
@@ -163,7 +245,7 @@ export default class CognitiveLoop {
 
       // System environment facts refresh (storage estimate is async).
       try {
-        await system.refresh();
+        await withDeadline(system.refresh(), undefined);
       } catch {
         // environment refresh is best-effort
       }
@@ -221,57 +303,38 @@ export default class CognitiveLoop {
         added += 1;
       }
 
-      /* ---------------- ACTUAL RESEARCH FROM GAPS ---------------- */
-      // When knowledge gaps exist, actually research them through the
-      // SAME ProviderRegistry the chat pipeline uses — not just propose
-      // LEARNING items. This makes cognition actually USE the connected
-      // APIs as part of its thinking loop.
-      if (gaps.length > 0 && autonomy.getLevel() >= 1) {
-        try {
-          const ai = AIService.getInstance();
-          const registry = ai.getKnowledgeProviderRegistry();
-          const topGap = gaps[0];
-          const researchQuery = topGap.detail || topGap.title;
-          const newsProviders = registry
-            .all()
-            .filter((p) => p.enabled && p.capabilities.some((c) => c === "knowledge" || c === "news" || c === "encyclopedia"))
-            .sort((a, b) => b.priority - a.priority)
-            .slice(0, 2);
-
-          for (const provider of newsProviders) {
-            if (!provider.canSearch?.(researchQuery)) continue;
-            try {
-              const results = await Promise.race([
-                provider.search(researchQuery),
-                new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 8000)),
-              ]);
-              if (Array.isArray(results) && results.length > 0) {
-                // Store as knowledge — cognition LEARNED from the API
-                knowledge.add({
-                  title: `Researched: ${topGap.title}`,
-                  domain: topGap.domain,
-                  detail: results.slice(0, 3).map((r: KnowledgeResult) => `${r.title}: ${(r.content ?? "").slice(0, 120)}`).join(" | "),
-                  status: "learned",
-                  source: provider.name,
-                });
-                selfModel.addLearning(`Researched "${researchQuery}" via ${provider.name}: ${results.length} result(s)`);
-                suggestions.push(`Actually researched knowledge gap "${topGap.title}" via ${provider.name} — ${results.length} result(s) stored.`);
-                // Report to Sentinel
-                Sentinel.getInstance().report(
-                  "system_event",
-                  "info",
-                  `Cognitive research: "${topGap.title}" → ${results.length} result(s) via ${provider.name}`,
-                  "CognitiveLoop",
-                );
-                break; // got results from this provider, stop
-              }
-            } catch {
-              // Provider failed — try next
-            }
-          }
-        } catch {
-          // Research is best-effort — never break the cycle
-        }
+      /* ---------------- SELF-STUDY (continuous cognition) ---------------- */
+      // Investigating a gap is NOT this loop's job any more. It used to
+      // fire a single knowledge-provider search at gaps[0] every cycle
+      // and never update that gap's status, so the same top gap was
+      // re-researched forever while the queue itself just drained.
+      //
+      // SelfStudyEngine owns that work now: it selects or GENERATES the
+      // objective, routes it to the agent/tool that can actually answer
+      // it, evaluates the evidence through the full provider chain,
+      // consolidates the learning into memory, and derives the next
+      // question. This loop only reports what that process is doing.
+      //
+      // Studying is thinking, so it is not gated by the autonomy level —
+      // the gate constrains ACTIONS (workspace commands, file writes,
+      // applying candidates), which live elsewhere.
+      const study = SelfStudyEngine.getInstance();
+      const studyReport = study.getLastReport();
+      if (studyReport?.objective) {
+        suggestions.push(
+          `Self-study cycle ${studyReport.cycle}: “${studyReport.objective.question}” via ${studyReport.agent}/${studyReport.tool} (${studyReport.evidenceOrigin}) — ${studyReport.derived.length} new question(s) generated.`,
+        );
+        Sentinel.getInstance().report(
+          "system_event",
+          "info",
+          `Self-study cycle ${studyReport.cycle} — ${studyReport.objective.question} → ${studyReport.derived.length} derived question(s), ${studyReport.bufferRemaining} carried.`,
+          "SelfStudyEngine",
+        );
+      }
+      if (!study.isRunning()) {
+        // Cognition must not depend on anything having started it from
+        // the UI. If the continuous loop is not running, start it.
+        study.start();
       }
 
       /* ---------------- API HEALTH CHECKS ---------------- */
@@ -343,6 +406,47 @@ export default class CognitiveLoop {
         }
       }
 
+      /* ------------- DERIVE THE NEXT OBJECTIVE FIRST ------------- */
+      // A project that already states what it is for does not need the
+      // user to restate it. Where the project carries real intent — the
+      // user's original request, a stated objective, or research queries
+      // — cognition derives the next objective from THAT and queues it
+      // through the existing WorkQueue, instead of interrupting to ask
+      // "what should I prioritize there?". Asking is only correct when
+      // there is genuinely nothing to derive from.
+      for (const project of activeProjects) {
+        const intent =
+          project.objective?.trim() ||
+          project.originalRequest?.trim() ||
+          (project.queries?.length ? `Research: ${project.queries.join(", ")}` : "");
+
+        // No stated intent, or work already queued for it — nothing to do.
+        if (!intent) continue;
+        if (project.items.length > 0) continue;
+        const alreadyQueued = openItems.some(
+          (item) => item.detail?.includes(`project:${project.id}`),
+        );
+        if (alreadyQueued) continue;
+
+        const nextObjective =
+          project.checkpoint?.nextAction?.trim() ||
+          `Advance “${project.name}”: ${intent.slice(0, 160)}`;
+
+        queue.add({
+          category: "NEXT",
+          title: nextObjective,
+          // The project id is recorded so the same objective is not
+          // queued again on the next tick, and so anything acting on the
+          // item can trace it back to the state it came from.
+          detail:
+            `Derived from persistent project state (project:${project.id}). ` +
+            `The project states its intent but has no open work item.`,
+          autonomy: 2,
+        });
+
+        suggestions.push(`Derived a next objective for “${project.name}” from its own stated intent.`);
+      }
+
       /* ---------------- PROACTIVE QUESTIONS ---------------- */
       // Ask only about unresolved, actionable state. One pending question
       // at a time keeps the conversation interruptible and the stable key
@@ -366,8 +470,29 @@ export default class CognitiveLoop {
             rememberAnswer: true,
           };
         } else {
+          // Never ask the user to give direction to a project LÉLU
+          // invented for her own bookkeeping.
+          //
+          // Orchestrator.persistCheckpoint() auto-creates a category
+          // project ("General", "Engineering") on ordinary chat turns and
+          // checkpoints it with pending:[] / nextAction:null hardcoded —
+          // so an auto-created project is STRUCTURALLY guaranteed to have
+          // zero items, which structurally guarantees this question. The
+          // user then sees "Engineering is active but has no defined next
+          // outcome" about a project they never created, generated one
+          // turn after LÉLU created it empty. A project the USER made and
+          // left empty is worth asking about; this is not.
           const directionProject = activeProjects.find(
-            (project) => project.items.length === 0 && !project.queries?.length,
+            (project) =>
+              project.items.length === 0 &&
+              !project.queries?.length &&
+              !(project.description ?? "").startsWith("Auto-created for") &&
+              // ...and nothing to derive an objective from. If the project
+              // states an objective or carries the user's original
+              // request, the loop above already turned that into queued
+              // work, so asking would be asking for what she was given.
+              !project.objective?.trim() &&
+              !project.originalRequest?.trim(),
           );
           if (directionProject) {
             question = {
@@ -398,34 +523,6 @@ export default class CognitiveLoop {
         if (question) {
           proactive.enqueueQuestion(question);
           suggestions.push(`Proactive question queued: ${question.category}.`);
-        }
-      }
-
-      /* ---------------- SELF STUDY ---------------- */
-      // The stage that studies HER OWN system rather than the outside
-      // world: architecture map → knowledge gap → real source → an
-      // executive agent → conclusion → memory. It is awaited (unlike
-      // the fire-and-forget scan below) because its result is part of
-      // this cycle's report, and it never throws — a failed self-study
-      // returns a record saying so.
-      let selfStudy: SelfStudyCycleRecord | null = null;
-      // Cycles are 1-based, so shift before the modulo: this fires on
-      // cycle 1, 4, 7 … and still fires every cycle if SELF_STUDY_EVERY
-      // is ever set to 1.
-      if ((this.cycle - 1) % SELF_STUDY_EVERY === 0) {
-        selfStudy = await SelfStudy.getInstance().runCycle();
-        if (selfStudy.objective) {
-          suggestions.push(
-            selfStudy.ok
-              ? `Studied ${selfStudy.subsystem} — ${selfStudy.memoryWrites.length} memory write(s).`
-              : `Self-study of ${selfStudy.subsystem} failed at ${selfStudy.reachedPhase}.`,
-          );
-        }
-        if (selfStudy.contradiction) {
-          suggestions.push(`Contradiction detected: ${selfStudy.contradiction.slice(0, 120)}`);
-        }
-        for (const write of selfStudy.memoryWrites) {
-          selfUpdates.push(`Self-study wrote ${write}.`);
         }
       }
 
@@ -465,7 +562,7 @@ export default class CognitiveLoop {
         suggestions,
         selfUpdates,
         cycle: this.cycle,
-        selfStudy,
+        selfStudy: this.selfStudySnapshot(),
       };
       this.lastReport = report;
       for (const listener of this.listeners) {
@@ -543,7 +640,24 @@ export default class CognitiveLoop {
       suggestions: [],
       selfUpdates: [],
       cycle: this.cycle,
-      selfStudy: null,
+      selfStudy: this.selfStudySnapshot(),
+    };
+  }
+
+  /** Read-only view of the continuous self-study process. */
+  private selfStudySnapshot(): CognitiveCycleReport["selfStudy"] {
+    const study = SelfStudyEngine.getInstance();
+    const report = study.getLastReport();
+    return {
+      running: study.isRunning(),
+      cycle: study.getCycle(),
+      question: report?.objective?.question ?? null,
+      agent: report?.agent ?? null,
+      tool: report?.tool ?? null,
+      evidenceOrigin: report?.evidenceOrigin ?? null,
+      provider: report?.provider ?? null,
+      derived: report?.derived.length ?? 0,
+      carried: report?.bufferRemaining ?? 0,
     };
   }
 }

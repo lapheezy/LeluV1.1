@@ -58,6 +58,19 @@ export interface PresenceConfig {
   voice: string;
 }
 
+/**
+ * What LÉLU is actually doing right now, as the runtime reports it.
+ *
+ * These are not UI moods. Each value is set from a signal AIService
+ * already emits during a real turn, so the avatar reflects cognition
+ * rather than a separately maintained display state.
+ */
+export type AvatarDialogueState =
+  | "idle"
+  | "listening"
+  | "thinking"
+  | "speaking";
+
 export interface AvatarRuntimeConfig {
   /** Whether the avatar portrait animates (breathing / floating motion). */
   animationActive: boolean;
@@ -67,6 +80,25 @@ export interface AvatarRuntimeConfig {
   lastAction: string;
   /** When the runtime state last changed. */
   updatedAt: number;
+
+  /**
+   * LIVE dialogue state, driven by AIService's own signals.
+   *
+   * The avatar previously had no connection to what LÉLU was doing: its
+   * presence config held static prose ("Direct, warm gaze…") and its
+   * runtime flags were set by hand from the UI. Nothing carried the
+   * thinking/speaking/listening signals that a real turn already emits,
+   * so a "thinking" avatar was a UI decision rather than an observation.
+   */
+  dialogueState: AvatarDialogueState;
+  /** When that state last changed, from the live signal. */
+  dialogueStateAt: number;
+  /**
+   * Whether a live source is currently driving the state. False means
+   * the value below is the last known one, not a current observation —
+   * the UI must not present stale state as live.
+   */
+  dialogueLive: boolean;
 }
 
 export interface AvatarProfile {
@@ -131,6 +163,9 @@ export function defaultAvatarProfile(): AvatarProfile {
       simulationActive: false,
       lastAction: "Initialized",
       updatedAt: Date.now(),
+      dialogueState: "idle",
+      dialogueStateAt: 0,
+      dialogueLive: false,
     },
     updatedAt: Date.now(),
   };
@@ -192,6 +227,9 @@ export default class AvatarStore {
 
   private static readonly KEY = "avatar.v1";
 
+  /** Set only while something is actually driving the dialogue state. */
+  private liveDialogue = false;
+
   /** Returns the current profile — text fields from KvStore merged
    *  with the referenceImage loaded from IndexedDB. */
   public get(): AvatarProfile {
@@ -208,6 +246,16 @@ export default class AvatarStore {
         simulationActive: runtimeBase.simulationActive ?? false,
         lastAction: runtimeBase.lastAction ?? "Initialized",
         updatedAt: runtimeBase.updatedAt ?? base.updatedAt ?? Date.now(),
+        dialogueState: runtimeBase.dialogueState ?? "idle",
+        dialogueStateAt: runtimeBase.dialogueStateAt ?? 0,
+        // Liveness is a RUNTIME fact, not a stored one.
+        //
+        // It is deliberately not read back from storage: a persisted
+        // "true" would survive a reload and make a remembered state look
+        // like a current observation. It is held in memory instead, so a
+        // fresh process starts not-live and only a running bridge can
+        // set it — which is the whole point of the flag.
+        dialogueLive: this.liveDialogue,
       },
       // KvStore may have an old referenceImage key from before the
       // IndexedDB migration — always use IndexedDB as the source of truth.
@@ -299,6 +347,11 @@ export default class AvatarStore {
    * is the same AvatarStore the portrait and panels already subscribe to.
    */
   public async updateRuntime(patch: Partial<Omit<AvatarRuntimeConfig, "updatedAt">>): Promise<AvatarProfile> {
+    // Liveness is applied to the in-memory flag before the read below,
+    // so the returned profile reports the state the caller just set.
+    if (typeof patch.dialogueLive === "boolean") {
+      this.liveDialogue = patch.dialogueLive;
+    }
     const previous = this.get().runtime;
     return this.update({
       runtime: {

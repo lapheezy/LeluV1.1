@@ -17,6 +17,8 @@
  * ==========================================================
  */
 
+import { endpoint } from "../../../../core/Endpoints";
+
 export interface GeoPlace {
   name: string;
   country: string;
@@ -267,7 +269,7 @@ export function getGpsPosition(): Promise<GpsPosition> {
 
 export async function reverseGeocode(lat: number, lon: number): Promise<{ name: string; country: string } | null> {
   try {
-    const url = `https://geocoding-api.open-meteo.com/v1/search?latitude=${lat.toFixed(5)}&longitude=${lon.toFixed(5)}&count=1&language=en&format=json`;
+    const url = `${endpoint("openMeteoGeocoding")}/v1/search?latitude=${lat.toFixed(5)}&longitude=${lon.toFixed(5)}&count=1&language=en&format=json`;
     const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
     if (!res.ok) return null;
     const data = (await res.json()) as { results?: Array<{ name?: string; country?: string }> };

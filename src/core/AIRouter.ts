@@ -24,7 +24,10 @@ import ToolCallInterceptor from "./router/ToolCallInterceptor";
 import ResponseBuilder from "./router/ResponseBuilder";
 import AvatarResolver from "./router/AvatarResolver";
 import SurfaceResolver from "./router/SurfaceResolver";
+import CognitiveStateResolver from "./router/CognitiveStateResolver";
 import CapabilityManifest from "./capabilities/CapabilityManifest";
+import ToolRegistry from "./tools/ToolRegistry";
+import WorkflowStore from "./workflows/WorkflowStore";
 import { cleanAssistantText } from "./router/ToolMarkup";
 
 export default class AIRouter {
@@ -46,14 +49,72 @@ export default class AIRouter {
     private readonly projects = new ProjectResolver(),
     private readonly avatar = new AvatarResolver(),
     private readonly surfaces: SurfaceResolver = new SurfaceResolver(workspace),
+    private readonly cognitiveState = new CognitiveStateResolver(),
     private readonly responses = new ResponseBuilder(),
   ) {}
+
+  /**
+   * Can the MODEL do this piece of engineering work itself, for real?
+   *
+   * True only when both halves hold: the request is engineering-shaped
+   * (reusing EngineeringResolver's own classifier rather than adding a
+   * second one), and the workspace tools are actually available — which
+   * ToolRegistry marks only after a successful runtime probe. Anything
+   * less and the existing resolvers keep the turn.
+   */
+  private modelCanDoEngineeringWork(context: RouterContext): boolean {
+    const copyTool = ToolRegistry.getInstance().get("project.copy");
+    if (!copyTool?.available) return false;
+    return this.engineering.isEngineeringPrompt(context.request.prompt ?? "");
+  }
+
+  /**
+   * Is this a request to use a WORKFLOW that actually exists?
+   *
+   * The intent detector reads "run the workflow that fits and tell me
+   * what each step produced" as a project request, so ProjectResolver
+   * claimed the turn and answered by creating a project from text
+   * parsing — the model never saw workflow_list or workflow_run, and no
+   * workflow ran. Measured: executions recorded 0 while the reply
+   * described an audit it had not performed.
+   *
+   * Narrow on purpose, and grounded in real state rather than wording
+   * alone: the tools must be available AND at least one workflow must
+   * actually be defined. With nothing to run, the previous behaviour is
+   * exactly as before.
+   */
+  private modelCanRunWorkflow(context: RouterContext): boolean {
+    const runTool = ToolRegistry.getInstance().get("workflow.run");
+    if (!runTool?.available) return false;
+
+    let defined = 0;
+    try {
+      defined = WorkflowStore.getInstance().list().length;
+    } catch {
+      return false;
+    }
+    if (defined === 0) return false;
+
+    return /\bworkflows?\b|\bautomation\b|\bre-?usable (?:steps|process)\b/i.test(
+      context.request.prompt ?? "",
+    );
+  }
 
   /** Route an AI request. */
   public async route(context: RouterContext): Promise<AIResponse> {
     // 0. TIME — deterministic local capability, no external API needed
     const timeResult = await this.time.execute(context);
     if (timeResult.handled && timeResult.response) return timeResult.response;
+
+    // 0.5 COGNITIVE STATE — "what are you thinking about?" REPORTS the
+    // autonomous self-study state that already exists. It is a pure read:
+    // it runs no cycle, starts no loop and calls no provider, so a chat
+    // request can never be the thing that created the state it reports.
+    // Must precede the brain stage, whose identity matcher would
+    // otherwise claim "what are you …" and answer with the identity
+    // statement instead.
+    const cognitiveState = await this.cognitiveState.execute(context);
+    if (cognitiveState.handled && cognitiveState.response) return cognitiveState.response;
 
     // 1. Brain / identity — always local
     const brain = await this.brain.execute(context);
@@ -91,7 +152,26 @@ export default class AIRouter {
     // over the real avatar state below.
 
     // Project commands — create, run, pause, resume, results.
-    if (context.intent === "project") {
+    //
+    // STAND ASIDE FOR REAL ENGINEERING WORK.
+    //
+    // The intent detector classifies "copy the project, change this file,
+    // run typecheck" as `project`, so ProjectResolver used to claim the
+    // turn and answer by CREATING A PROJECT from text parsing — the
+    // model never saw the request, and no file was ever touched. Now
+    // that LÉLU has real workspace tools, a request to operate on the
+    // codebase belongs to the model: it can copy, read, edit, validate
+    // and iterate for real, and it decides which of those are needed.
+    //
+    // The condition is deliberately narrow. It requires the engineering
+    // runtime to be genuinely reachable (project.copy is marked
+    // available only by a successful probe), so where no runtime exists
+    // the old project-creation behaviour is exactly as before.
+    if (
+      context.intent === "project" &&
+      !this.modelCanDoEngineeringWork(context) &&
+      !this.modelCanRunWorkflow(context)
+    ) {
       const projectResult = await this.projects.execute(context);
       if (projectResult.handled && projectResult.response) {
         return this.attachThinking(context, projectResult.response);

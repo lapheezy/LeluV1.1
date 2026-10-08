@@ -5,12 +5,16 @@
  * ==========================================================
  */
 
+import config
+  from "../core/ProviderConfig";
+
 import type Provider
   from "./Provider";
 
 import type {
   KnowledgeResult,
 } from "./Provider";
+import { endpointUrl } from "../core/Endpoints";
 
 export default class GitHubProvider
   implements Provider {
@@ -55,6 +59,9 @@ export default class GitHubProvider
 
   ] as const;
 
+  private readonly endpoint =
+    endpointUrl("github", "search/repositories");
+
   canSearch(
     query: string,
   ): boolean {
@@ -67,29 +74,35 @@ export default class GitHubProvider
     query: string,
   ): Promise<KnowledgeResult[]> {
 
-    // The token is NOT read here any more. This ran in the browser with
-    // a VITE_GITHUB_TOKEN, which Vite compiled into the bundle. It now
-    // goes through the SAME server-side proxy GitHubIntegration already
-    // uses (plugins/githubApi.ts), so the token stays on the server —
-    // no new route, no second GitHub client.
+    const token =
+      config.githubToken;
+
+    if (!token) {
+
+      throw new Error(
+        "GitHub token missing.",
+      );
+
+    }
+
     const response =
       await fetch(
 
-        "/api/github/proxy",
+        `${this.endpoint}?q=${encodeURIComponent(
+          query,
+        )}&sort=stars&per_page=10`,
 
         {
 
-          method: "POST",
-
           headers: {
-            "Content-Type": "application/json",
-          },
 
-          body: JSON.stringify({
-            endpoint: `/search/repositories?q=${encodeURIComponent(
-              query,
-            )}&sort=stars&per_page=10`,
-          }),
+            Accept:
+              "application/vnd.github+json",
+
+            Authorization:
+              `Bearer ${token}`,
+
+          },
 
         },
 
@@ -105,25 +118,8 @@ export default class GitHubProvider
 
     }
 
-    // The proxy wraps the upstream reply as { ok, status, data } so a
-    // GitHub-side failure is still reported honestly rather than being
-    // flattened into a 200 with no results.
-    const envelope =
+    const json =
       await response.json();
-
-    if (!envelope.ok) {
-
-      throw new Error(
-
-        `GitHub ${envelope.status ?? ""}: ${
-          envelope.error ?? "request failed"
-        }`.trim(),
-
-      );
-
-    }
-
-    const json = envelope.data ?? {};
 
     return (json.items ?? []).map(
 
