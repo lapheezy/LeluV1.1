@@ -36,7 +36,7 @@ function assert(condition: boolean, label: string, detail?: string): void {
 /**
  * The six chat-provider credentials. These MUST NOT reach the browser:
  * they are read server-side by plugins/aiProxyApi.ts and reach their
- * upstream through /api/ai/relay (see src/providers/aiRelay.ts).
+ * upstream through the broker (see plugins/modelApi.ts).
  */
 const FORBIDDEN: Record<string, string> = {
   VITE_GROQ_API_KEY: "gsk_CANARYaaa1_MUSTNOTSHIP",

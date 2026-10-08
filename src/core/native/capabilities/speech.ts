@@ -17,7 +17,7 @@ import type { NativeCapability, PermissionState } from "../NativeCapability";
 import { transcribeAudio } from "../../voice/speechToText";
 import { microphoneCapability } from "./mic";
 import { isSecureContext } from "./helpers";
-import { relayAvailable } from "../../../providers/aiRelay";
+import { transcriptionAvailable } from "../../voice/transcriptionTransport";
 
 /**
  * Whether the SERVER holds the Groq credential for transcription.
@@ -27,7 +27,7 @@ import { relayAvailable } from "../../../providers/aiRelay";
  * over-reports until the answer arrives.
  */
 let relayGroqReady = false;
-void relayAvailable("groq")
+void transcriptionAvailable()
   .then((ready) => {
     relayGroqReady = ready;
   })
@@ -42,7 +42,7 @@ function hasSttKey(): boolean {
   // import.meta.env is deliberately NOT consulted: it would inline the
   // Groq key into the bundle. A key here comes only from a runtime that
   // injected one; otherwise transcription is relayed and the SERVER
-  // holds the credential (see providers/aiRelay.ts).
+  // holds the credential (see voice/transcriptionTransport.ts).
   return Boolean(runtimeEnv.__LELU_GROQ_API_KEY__?.trim()) || relayGroqReady;
 }
 

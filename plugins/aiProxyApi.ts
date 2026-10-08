@@ -1,48 +1,45 @@
 /**
  * ==========================================================
- * LÉLU — AI CREDENTIAL RELAY (shared middleware)
+ * LÉLU — KNOWLEDGE CREDENTIAL RELAY (shared middleware)
  *
  * WHY THIS EXISTS
  * ---------------
- * Every chat provider read its key from `import.meta.env.VITE_*`.
- * Vite inlines those at build time, so the keys were compiled
- * verbatim into the client bundle. Measured, not assumed: building
- * with canary values put both keys in 11 separate chunks of
- * `dist/assets/` (GroqProvider, OpenRouterProvider, ProviderConfig
- * and, through shared imports, VoiceEngine, Environment, speech,
- * push, …). Anyone loading the page could read them.
+ * NewsAPI and the YouTube Data API read their key from
+ * `import.meta.env.VITE_*`. Vite inlines those at build time, so the
+ * keys were compiled verbatim into the client bundle and anyone
+ * loading the page could read them. That violates the project's own
+ * rule — no secrets in frontend bundles — so the credential moves to
+ * the server.
  *
- * That violates the project's own rule — no secrets in frontend
- * bundles — so the credential moves to the server.
+ * These two take the key as a QUERY PARAMETER rather than a header,
+ * which is why they have a relay of their own shape.
  *
- * WHAT THIS IS NOT
- * ----------------
- * It is NOT a second provider system, router, or fallback chain.
- * Provider selection, priority, retry, streaming and response
- * parsing all stay exactly where they already live, in
- * `src/providers/*` behind AIProviderRegistry/ProviderResolver.
- * Only two things move server-side: the API key, and the decision
- * of which upstream origin a provider id may talk to.
+ * WHAT THIS USED TO BE
+ * --------------------
+ * This middleware also fronted every AI MODEL provider, via
+ * `POST /api/ai/relay`, `POST /api/ai/relay-raw` and
+ * `GET /api/ai/providers` — a second server-owned credential
+ * mechanism beside the model broker in `plugins/modelApi.ts`, with
+ * its own provider allowlist, its own status endpoint and its own
+ * provider-id spelling. Two mechanisms for one responsibility meant
+ * two places to register the next provider and one of them to
+ * forget; the id vocabularies had already drifted.
  *
- * It is also not a new pattern. `server.ts` already proxied GitHub
- * Models this way (`/api/ai` → models.inference.ai.azure.com with a
- * server-side Authorization header), and `aisBridgePlugin` does the
- * same for AISStream. This generalizes that one-provider proxy to
- * the whole chat fallback chain and mounts it in every runtime, the
- * way `engineerApi` is mounted.
+ * Model traffic — chat, tools, streaming AND audio — now goes
+ * through the broker only, which carries the guards this relay had
+ * (origin, path, body size, timeout). Do not add a model provider
+ * back to this file.
  *
  * ENDPOINTS
  * ---------
- *   GET  /api/ai/providers  → { groq: { configured: true }, … }
- *                             BOOLEANS ONLY — never a key value,
- *                             never a prefix, never a length.
- *   POST /api/ai/relay      → { provider, path, body } forwarded to
- *                             the allowlisted upstream with the
- *                             server's Authorization header. The
- *                             upstream status and body (including an
- *                             SSE stream) are returned verbatim so
- *                             the existing provider code parses them
- *                             completely unchanged.
+ *   GET /api/knowledge/providers → { news: { configured: true }, … }
+ *                                  BOOLEANS ONLY — never a key value,
+ *                                  never a prefix, never a length.
+ *   GET /api/knowledge/relay     → ?provider=&path= forwarded to the
+ *                                  allowlisted upstream with the
+ *                                  server's key appended. The upstream
+ *                                  status and body are returned
+ *                                  verbatim.
  *
  * SAFETY
  * ------
@@ -51,11 +48,6 @@
  *   • path allowlist — the path must sit under the provider's own
  *     prefix, so the relay cannot be walked onto another API on the
  *     same host.
- *   • header allowlist — only non-secret headers are forwarded
- *     upstream; a client-supplied Authorization is DROPPED, never
- *     honoured and never echoed.
- *   • origin guard — cross-origin POSTs are rejected (CSRF), the
- *     same stance engineerApi takes.
  *   • the key is never logged, never returned, and never included in
  *     an error message.
  * ==========================================================
@@ -80,89 +72,6 @@ type Handler = (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void) => v
 /** Reads one env var by name; supplied by each runtime. */
 export type EnvReader = (key: string) => string | undefined;
 
-interface UpstreamProvider {
-  /** Exact origin this provider id may reach — nothing else. */
-  origin: string;
-  /** Every relayed path must start with this. */
-  pathPrefix: string;
-  /**
-   * Env vars holding the key, in order. The unprefixed name is the
-   * correct one (server-only); the VITE_ name is accepted so an
-   * existing local .env keeps working during the transition.
-   */
-  keyVars: string[];
-  /** How the key is presented upstream. */
-  auth: (key: string) => Record<string, string>;
-}
-
-const PROVIDERS: Record<string, UpstreamProvider> = {
-  anthropic: {
-    origin: "https://api.anthropic.com",
-    pathPrefix: "/v1/",
-    // Deliberately NOT a bare `API_KEY`: that name is generic, and in a
-    // Claude Code environment it holds the AGENT's own Anthropic
-    // credential. Adopting it would spend someone else's quota and make
-    // this provider report itself configured when nothing was ever set
-    // for LÉLU — the same trap githubmodels documents below.
-    keyVars: ["ANTHROPIC_API_KEY", "CLAUDE_API_KEY", "VITE_ANTHROPIC_API_KEY"],
-    // The Messages API authenticates with x-api-key, not a bearer token,
-    // and requires a pinned version header on every request.
-    auth: (key) => ({ "x-api-key": key, "anthropic-version": "2023-06-01" }),
-  },
-  groq: {
-    origin: "https://api.groq.com",
-    pathPrefix: "/openai/v1/",
-    keyVars: ["GROQ_API_KEY", "VITE_GROQ_API_KEY"],
-    auth: (key) => ({ Authorization: `Bearer ${key}` }),
-  },
-  openrouter: {
-    origin: "https://openrouter.ai",
-    pathPrefix: "/api/v1/",
-    keyVars: ["OPENROUTER_API_KEY", "VITE_OPENROUTER_API_KEY"],
-    auth: (key) => ({ Authorization: `Bearer ${key}` }),
-  },
-  cerebras: {
-    origin: "https://api.cerebras.ai",
-    pathPrefix: "/v1/",
-    keyVars: ["CEREBRAS_API_KEY", "VITE_CEREBRAS_API_KEY"],
-    auth: (key) => ({ Authorization: `Bearer ${key}` }),
-  },
-  mistral: {
-    origin: "https://api.mistral.ai",
-    pathPrefix: "/v1/",
-    keyVars: ["MISTRAL_API_KEY", "VITE_MISTRAL_API_KEY"],
-    auth: (key) => ({ Authorization: `Bearer ${key}` }),
-  },
-  fireworks: {
-    origin: "https://api.fireworks.ai",
-    pathPrefix: "/inference/v1/",
-    keyVars: ["FIREWORKS_API_KEY", "VITE_FIREWORKS_API_KEY"],
-    auth: (key) => ({ Authorization: `Bearer ${key}` }),
-  },
-  githubmodels: {
-    origin: "https://models.github.ai",
-    pathPrefix: "/inference/",
-    // Deliberately NOT `GITHUB_TOKEN` / `GITHUB_CODESPACE_TOKEN`: dev
-    // containers, Codespaces and CI runners set those for git tooling,
-    // and adopting one makes this provider falsely report "configured"
-    // (and would spend a repo-scoped token against an unrelated
-    // inference API) wherever LÉLU happens to run. Verified live: with
-    // only the harness's ambient GITHUB_TOKEN present, /api/ai/providers
-    // reported githubmodels configured:true with nothing ever set for
-    // it. GitHubModelsProvider already refuses those names for exactly
-    // this reason; the server side must match. Only the two explicit,
-    // documented channels count (see ENV_VARS.md).
-    keyVars: ["GITHUB_MODELS_TOKEN", "VITE_GITHUB_TOKEN"],
-    auth: (key) => ({ Authorization: `Bearer ${key}` }),
-  },
-};
-
-/**
- * Knowledge/research providers the browser used to call directly with a
- * `VITE_`-prefixed key — so those keys shipped in the bundle too. Same
- * mechanism as the chat relay, but these are GET APIs that take their
- * credential as a query parameter rather than a bearer header.
- */
 interface UpstreamKnowledgeProvider {
   origin: string;
   pathPrefix: string;
@@ -187,30 +96,7 @@ const KNOWLEDGE_PROVIDERS: Record<string, UpstreamKnowledgeProvider> = {
 };
 
 /** Non-secret headers a provider may ask the relay to pass upstream. */
-const FORWARDABLE_HEADERS = new Set([
-  "content-type",
-  "accept",
-  "http-referer",
-  "x-title",
-  // Anthropic pins its wire format per request; the header is a version
-  // string, not a credential. The server sets it too, so a caller can
-  // only ever restate the same value.
-  "anthropic-version",
-]);
-
-const MAX_BODY_BYTES = 1_000_000;
 const TIMEOUT_MS = 60_000;
-
-export function providerIds(): string[] {
-  return Object.keys(PROVIDERS);
-}
-
-/** The key for a provider id, or "" — never logged, never returned. */
-function resolveKey(env: EnvReader, id: string): string {
-  const entry = PROVIDERS[id];
-  if (!entry) return "";
-  return firstSetVar(env, entry.keyVars);
-}
 
 function firstSetVar(env: EnvReader, keyVars: string[]): string {
   for (const name of keyVars) {
@@ -229,81 +115,6 @@ function sendJson(res: ConnectLikeRes, payload: unknown, status = 200): void {
   res.end(JSON.stringify(payload));
 }
 
-function header(req: ConnectLikeReq, name: string): string {
-  const value = req.headers?.[name];
-  return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
-}
-
-/**
- * Reject a state-changing request that did not come from this app.
- * Same CSRF stance as engineerApi: a missing Origin (curl, a native
- * shell, a verification script) is allowed; a DIFFERENT origin is not.
- */
-function crossOrigin(req: ConnectLikeReq): boolean {
-  const origin = header(req, "origin");
-  if (!origin) return false;
-  const host = header(req, "host");
-  if (!host) return false;
-  try {
-    return new URL(origin).host !== host;
-  } catch {
-    return true;
-  }
-}
-
-function readBodyBytes(req: ConnectLikeReq): Promise<Uint8Array> {
-  return new Promise((resolve, reject) => {
-    let size = 0;
-    const chunks: Uint8Array[] = [];
-    req.on("data", (chunk) => {
-      const part = chunk as Uint8Array;
-      size += part.length;
-      if (size > MAX_BODY_BYTES) {
-        reject(new Error("Request body too large."));
-        return;
-      }
-      chunks.push(part);
-    });
-    req.on("end", () => {
-      const total = new Uint8Array(size);
-      let offset = 0;
-      for (const chunk of chunks) {
-        total.set(chunk, offset);
-        offset += chunk.length;
-      }
-      resolve(total);
-    });
-    req.on("error", (error) => reject(error as Error));
-  });
-}
-
-async function readBody(req: ConnectLikeReq): Promise<string> {
-  return new TextDecoder().decode(await readBodyBytes(req));
-}
-
-/** Shared guard for both relay routes. Returns an error tuple, or the key. */
-function authorizeRelay(
-  env: EnvReader,
-  id: string,
-  path: string,
-): { ok: true; entry: UpstreamProvider; key: string } | { ok: false; status: number; error: string } {
-  const entry = PROVIDERS[id];
-  if (!entry) {
-    return { ok: false, status: 400, error: `Unknown provider "${id}".` };
-  }
-  if (!path.startsWith(entry.pathPrefix) || path.includes("..")) {
-    return { ok: false, status: 400, error: `Path is not permitted for provider "${id}".` };
-  }
-  const key = resolveKey(env, id);
-  if (!key) {
-    // Honest, specific, and secret-free: the caller learns the provider
-    // is unconfigured, never anything about the key.
-    return { ok: false, status: 503, error: `No server-side credential configured for "${id}".` };
-  }
-  return { ok: true, entry, key };
-}
-
-/** Pass an upstream response back verbatim, streaming when it streams. */
 async function pipeUpstream(res: ConnectLikeRes, upstream: Response): Promise<void> {
   // Status and body pass through untouched so the existing provider code
   // sees exactly what a direct call would return — including an error
@@ -346,10 +157,9 @@ async function pipeUpstream(res: ConnectLikeRes, upstream: Response): Promise<vo
  */
 function warnAboutPrefixedCredentials(env: EnvReader): void {
   const exposed: string[] = [];
-  const entries = [
-    ...Object.values(PROVIDERS).map((entry) => entry.keyVars),
-    ...Object.values(KNOWLEDGE_PROVIDERS).map((entry) => entry.keyVars),
-  ];
+  // Knowledge providers only. The model broker warns about its own
+  // credential names, which it owns (plugins/modelApi.ts).
+  const entries = Object.values(KNOWLEDGE_PROVIDERS).map((entry) => entry.keyVars);
   for (const keyVars of entries) {
     for (const name of keyVars) {
       if (!name.startsWith("VITE_")) continue;
@@ -377,22 +187,22 @@ export function createAiProxyApi(env: EnvReader): {
   return {
     attach(middlewares) {
       // ---- capability report: booleans only -------------------------
-      middlewares.use("/api/ai/providers", (req, res, next) => {
+      // Knowledge providers only. Model-provider status is served by the
+      // broker at GET /api/model/status, which is the single authority for
+      // what the server can reach; reporting it from here as well gave two
+      // answers to one question and they had already drifted.
+      middlewares.use("/api/knowledge/providers", (req, res, next) => {
         if ((req.method ?? "GET") !== "GET") {
           next();
           return;
         }
-        const providers: Record<string, { configured: boolean }> = {};
-        for (const id of Object.keys(PROVIDERS)) {
-          // Deliberately a boolean. Not the value, not a prefix, not a
-          // length — nothing an attacker could use to narrow a key.
-          providers[id] = { configured: resolveKey(env, id).length > 0 };
-        }
         const knowledge: Record<string, { configured: boolean }> = {};
         for (const [id, entry] of Object.entries(KNOWLEDGE_PROVIDERS)) {
+          // Deliberately a boolean. Not the value, not a prefix, not a
+          // length — nothing an attacker could use to narrow a key.
           knowledge[id] = { configured: firstSetVar(env, entry.keyVars).length > 0 };
         }
-        sendJson(res, { ok: true, providers, knowledge });
+        sendJson(res, { ok: true, knowledge });
       });
 
       // ---- knowledge relay (GET, key as a query parameter) ----------
@@ -452,121 +262,6 @@ export function createAiProxyApi(env: EnvReader): {
       });
 
       // ---- raw/binary relay -----------------------------------------
-      // Speech-to-text posts multipart audio, which cannot survive a JSON
-      // envelope. This forwards the request body byte-for-byte with its
-      // own content-type and the server's credential. It is the SAME
-      // allowlist and the same guards — only the body encoding differs,
-      // so voice stops needing a browser-side Groq key.
-      middlewares.use("/api/ai/relay-raw", (req, res, next) => {
-        if ((req.method ?? "GET") !== "POST") {
-          next();
-          return;
-        }
-        if (crossOrigin(req)) {
-          sendJson(res, { ok: false, error: "Cross-origin relay requests are refused." }, 403);
-          return;
-        }
-
-        void (async () => {
-          const query = new URL(req.url ?? "", "http://localhost").searchParams;
-          const id = (query.get("provider") ?? "").toLowerCase();
-          const path = query.get("path") ?? "";
-          const authorized = authorizeRelay(env, id, path);
-          if (!authorized.ok) {
-            sendJson(res, { ok: false, error: authorized.error }, authorized.status);
-            return;
-          }
-          const { entry, key } = authorized;
-
-          try {
-            const body = await readBodyBytes(req);
-            const contentType = header(req, "content-type");
-            const upstream = await fetch(`${entry.origin}${path}`, {
-              method: "POST",
-              headers: {
-                // The multipart boundary lives in the content-type, so it
-                // must be forwarded exactly as the browser wrote it.
-                ...(contentType ? { "Content-Type": contentType } : {}),
-                ...entry.auth(key),
-              },
-              body,
-              signal: AbortSignal.timeout(TIMEOUT_MS),
-            });
-            await pipeUpstream(res, upstream);
-          } catch (error) {
-            sendJson(
-              res,
-              { ok: false, error: error instanceof Error ? error.message : String(error) },
-              502,
-            );
-          }
-        })();
-      });
-
-      // ---- the relay itself -----------------------------------------
-      middlewares.use("/api/ai/relay", (req, res, next) => {
-        if ((req.method ?? "GET") !== "POST") {
-          next();
-          return;
-        }
-        if (crossOrigin(req)) {
-          sendJson(res, { ok: false, error: "Cross-origin relay requests are refused." }, 403);
-          return;
-        }
-
-        void (async () => {
-          let payload: { provider?: string; path?: string; headers?: Record<string, string>; body?: unknown };
-          try {
-            payload = JSON.parse(await readBody(req)) as typeof payload;
-          } catch (error) {
-            sendJson(res, { ok: false, error: error instanceof Error ? error.message : "Invalid JSON body." }, 400);
-            return;
-          }
-
-          const id = String(payload.provider ?? "").toLowerCase();
-          const path = String(payload.path ?? "");
-          const authorized = authorizeRelay(env, id, path);
-          if (!authorized.ok) {
-            sendJson(res, { ok: false, error: authorized.error }, authorized.status);
-            return;
-          }
-          const { entry, key } = authorized;
-
-          // Only allowlisted, non-secret headers survive. A caller-supplied
-          // Authorization is dropped here — the server's own key is the
-          // only credential that ever reaches the upstream.
-          const forwarded: Record<string, string> = {};
-          for (const [name, value] of Object.entries(payload.headers ?? {})) {
-            if (FORWARDABLE_HEADERS.has(name.toLowerCase()) && typeof value === "string") {
-              forwarded[name] = value;
-            }
-          }
-
-          try {
-            const upstream = await fetch(`${entry.origin}${path}`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                ...forwarded,
-                ...entry.auth(key),
-              },
-              body: JSON.stringify(payload.body ?? {}),
-              signal: AbortSignal.timeout(TIMEOUT_MS),
-            });
-
-            await pipeUpstream(res, upstream);
-          } catch (error) {
-            sendJson(
-              res,
-              {
-                ok: false,
-                error: error instanceof Error ? error.message : String(error),
-              },
-              502,
-            );
-          }
-        })();
-      });
     },
   };
 }

@@ -102,7 +102,7 @@ const CHAT_PROVIDERS: Array<{
     body: (model) => ({ model, max_tokens: 16, messages: [{ role: "user", content: "ping" }] }),
   },
   {
-    id: "githubmodels",
+    id: "githubModels",
     label: "GitHub Models",
     priority: 7,
     vars: ["GITHUB_MODELS_TOKEN", "VITE_GITHUB_TOKEN"],
@@ -211,19 +211,31 @@ async function main(): Promise<void> {
   console.log();
 
   // ---- 3. What the SERVER-side runtime can actually see ----------------
-  console.log("3. WHAT LÉLU'S SERVER RUNTIME SEES (GET /api/ai/providers)");
+  console.log("3. WHAT LÉLU'S SERVER RUNTIME SEES (GET /api/model/status)");
   console.log("---------------------------------------------------------");
-  let serverSees: Record<string, boolean> = {};
+  const serverSees: Record<string, boolean> = {};
   let serverUp = false;
   try {
-    const response = await fetch(`${BASE}/api/ai/providers`, { signal: AbortSignal.timeout(8000) });
-    const payload = (await response.json()) as {
-      providers?: Record<string, { configured?: boolean }>;
-      knowledge?: Record<string, { configured?: boolean }>;
-    };
+    // Model availability has ONE authority: the broker's status endpoint.
+    const response = await fetch(`${BASE}/api/model/status`, { signal: AbortSignal.timeout(8000) });
+    const payload = (await response.json()) as { providers?: Record<string, boolean> };
     serverUp = true;
-    for (const [id, entry] of Object.entries({ ...(payload.providers ?? {}), ...(payload.knowledge ?? {}) })) {
-      serverSees[id] = entry?.configured === true;
+    for (const [id, configured] of Object.entries(payload.providers ?? {})) {
+      serverSees[id] = configured === true;
+    }
+    // Knowledge providers are a different registry with its own report.
+    try {
+      const knowledgeResponse = await fetch(`${BASE}/api/knowledge/providers`, {
+        signal: AbortSignal.timeout(8000),
+      });
+      const knowledgePayload = (await knowledgeResponse.json()) as {
+        knowledge?: Record<string, { configured?: boolean }>;
+      };
+      for (const [id, entry] of Object.entries(knowledgePayload.knowledge ?? {})) {
+        serverSees[id] = entry?.configured === true;
+      }
+    } catch {
+      // Knowledge availability is not needed to judge the chat chain.
     }
     for (const provider of CHAT_PROVIDERS) {
       row(`p${provider.priority} ${provider.label}`, serverSees[provider.id] ? "VISIBLE" : "NOT VISIBLE");
@@ -255,14 +267,11 @@ async function main(): Promise<void> {
       continue;
     }
     try {
-      const response = await fetch(`${BASE}/api/ai/relay`, {
+      const path = provider.path.replace(/^\/+/, "");
+      const response = await fetch(`${BASE}/api/model/${provider.id}/${path}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider: provider.id,
-          path: provider.path,
-          body: provider.body(provider.model),
-        }),
+        body: JSON.stringify(provider.body(provider.model)),
         signal: AbortSignal.timeout(45000),
       });
       const text = await response.text();
@@ -303,22 +312,22 @@ async function main(): Promise<void> {
   // still be unreachable because nothing routes to it.
   //
   // RUNTIME  — which side actually holds the credential for this
-  //            provider. SERVER means the relay attaches it and it never
+  //            provider. SERVER means the broker attaches it and it never
   //            enters the bundle; CLIENT would mean a key is reachable
   //            from the browser, which is a finding, not a success.
-  // ROUTING  — whether the relay will actually carry a call for this
-  //            provider, i.e. whether /api/ai/providers reports it
+  // ROUTING  — whether the broker will actually carry a call for this
+  //            provider, i.e. whether /api/model/status reports it
   //            configured. DISCONNECTED means the provider client has
   //            nowhere to send a request even if a key exists elsewhere.
   console.log("6. INJECTION PATH — where the credential stops");
   console.log("-----------------------------------------------");
-  console.log("  configuration → runtime env → relay → provider registry → AIRuntime → cognition\n");
+  console.log("  configuration → runtime env → broker → provider registry → AIRuntime → cognition\n");
 
-  let serverStatus: Record<string, { configured?: boolean }> = {};
+  let serverStatus: Record<string, boolean> = {};
   let serverReachable = false;
   try {
-    const response = await fetch(`${BASE}/api/ai/providers`, { signal: AbortSignal.timeout(8000) });
-    const payload = (await response.json()) as { providers?: Record<string, { configured?: boolean }> };
+    const response = await fetch(`${BASE}/api/model/status`, { signal: AbortSignal.timeout(8000) });
+    const payload = (await response.json()) as { providers?: Record<string, boolean> };
     serverStatus = payload.providers ?? {};
     serverReachable = true;
   } catch {
@@ -337,7 +346,7 @@ async function main(): Promise<void> {
   for (const provider of CHAT_PROVIDERS) {
     const varName = presentVar(provider.vars);
     const authed = results.find((entry) => entry.label === provider.label);
-    const routed = serverStatus[provider.id]?.configured === true;
+    const routed = serverStatus[provider.id] === true;
     // A VITE_-prefixed name is readable by the browser in a dev server,
     // so the credential is not purely server-held. Naming it CLIENT is
     // the honest reading even though the relay also works.

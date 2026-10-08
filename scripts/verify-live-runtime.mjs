@@ -77,24 +77,28 @@ page.on("console", (msg) => consoleMessages.push(`${msg.type()}: ${msg.text()}`)
 page.on("pageerror", (error) => pageErrors.push(error.message));
 // Capture every script the page actually loads, so the secret scan below
 // covers what was really served rather than what is on disk.
-// Every relay call the PAGE makes — direct proof of which provider the
+// Every broker call the PAGE makes — direct proof of which provider the
 // running app actually reaches through AIService → registry → provider.
 // The MODEL is recorded alongside the provider: "OpenRouter answered" and
 // "OpenRouter answered as Claude" are different facts, and only the
 // payload the page actually sent can tell them apart.
 const relayCalls = [];
 page.on("request", (request) => {
-  if (!request.url().includes("/api/ai/relay")) return;
+  // The broker is the single server-owned credential path: the provider id
+  // is in the URL (/api/model/<provider>/<upstream path>) rather than in a
+  // JSON envelope, and the body is the provider's own upstream payload.
+  const match = /\/api\/model\/([A-Za-z0-9_-]+)\//.exec(request.url());
+  if (!match) return;
+  const provider = match[1];
+  if (provider === "status") return;
+  let model = null;
   try {
-    const body = JSON.parse(request.postData() ?? "{}");
-    if (!body.provider) return;
-    // relayFetchJson sends { provider, path, headers, body } — the
-    // provider's own upstream payload, and its model, is `body.body`.
-    const model = body.body?.model ?? null;
-    relayCalls.push(model ? `${body.provider} (${model})` : body.provider);
+    model = JSON.parse(request.postData() ?? "{}").model ?? null;
   } catch {
-    /* not the JSON relay */
+    // A multipart body (audio) does not parse as JSON, but it is still a
+    // real provider call and must be counted as one.
   }
+  relayCalls.push(model ? `${provider} (${model})` : provider);
 });
 
 page.on("response", async (response) => {
@@ -130,10 +134,10 @@ try {
 
   console.log("\n== The runtime asked the SERVER which credentials it holds ==");
   const relayReport = await page.evaluate(async () => {
-    const response = await fetch("/api/ai/providers");
+    const response = await fetch("/api/model/status");
     return { status: response.status, body: await response.text() };
   });
-  assert(relayReport.status === 200, "GET /api/ai/providers is reachable from the page", `status=${relayReport.status}`);
+  assert(relayReport.status === 200, "GET /api/model/status is reachable from the page", `status=${relayReport.status}`);
   assert(
     !/[A-Za-z0-9_-]{20,}/.test(relayReport.body.replace(/[{}",:]/g, " ")),
     "and the report carries no key-shaped value at all",
@@ -183,7 +187,7 @@ try {
   assert(
     relayCalls.length > 0,
     `the chat turn made real provider calls through the runtime (${relayCalls.length})`,
-    "no /api/ai/relay call was made — the turn never reached a provider",
+    "no /api/model call was made — the turn never reached a provider",
   );
   if (relayCalls.length > 0) {
     const order = [...new Set(relayCalls)];

@@ -12,7 +12,7 @@
  * ==========================================================
  */
 
-import { providerFetchRaw } from "../../providers/aiRelay";
+import { postTranscription } from "./transcriptionTransport";
 
 import type { VoiceErrorKind } from "./VoiceEngine";
 
@@ -50,7 +50,7 @@ export function mapMediaError(error: { name?: string }): { kind: VoiceErrorKind;
  * inlines it into the client bundle, which is how transcription keys
  * ended up in the shipped VoiceEngine chunk. When nothing is held here
  * the request is relayed instead and the SERVER attaches the credential
- * (see providers/aiRelay.ts). The injected global remains for runtimes
+ * (see voice/transcriptionTransport.ts). The injected global remains for runtimes
  * that legitimately supply a key at runtime — verification scripts, and
  * native shells that hold their own credential.
  */
@@ -152,11 +152,10 @@ export async function transcribeAudio(
   // No local key is the normal case: the request is relayed same-origin
   // and the server attaches the credential. A 503 comes back when the
   // server has none either, and the caller reports that honestly.
-  const response = await providerFetchRaw(
-    "groq",
-    "https://api.groq.com/openai/v1/audio/transcriptions",
-    { apiKey, body: formData, signal: AbortSignal.timeout(30_000) },
-  );
+  const response = await postTranscription(formData, {
+    apiKey,
+    signal: AbortSignal.timeout(30_000),
+  });
 
   if (!response.ok) {
     const diagnosis = mapSttHttpError(response.status);

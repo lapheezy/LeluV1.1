@@ -22,7 +22,7 @@
  * Identical to the credential chain in Environment.ts, so an
  * endpoint and a key configured the same way behave the same way:
  *
- *   1. import.meta.env.VITE_<NAME>   (browser bundle)
+ *   1. globalThis.__LELU_<NAME>__     (browser, via runtimeKeyBridge)
  *   2. globalThis.__LELU_<NAME>__    (runtime key bridge)
  *   3. window.__LELU_<NAME>__        (same object in a browser)
  *   4. process.env.<NAME>            (server runtimes, unprefixed)
@@ -39,13 +39,19 @@
 
 /** Resolve one name across every rung a provider would use. */
 function readRungs(name: string): string | undefined {
-  try {
-    const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
-    const fromVite = viteEnv?.[`VITE_${name}`] ?? viteEnv?.[name];
-    if (typeof fromVite === "string" && fromVite.trim()) return fromVite.trim();
-  } catch {
-    /* import.meta.env does not exist outside Vite — fall through */
-  }
+  // DELIBERATELY NO `import.meta.env` RUNG.
+  //
+  // Vite can only substitute a STATIC member access such as
+  // `import.meta.env.VITE_FOO`. Reading it dynamically — `env[name]`, or
+  // capturing the object — makes Vite emit the WHOLE env record, so every
+  // VITE_-prefixed value present at build time is inlined into the chunk
+  // whether anything reads it or not. Measured: that put eight canary
+  // credentials into Endpoints, Environment and resolveEnv, which is the
+  // exposure the server broker exists to remove.
+  //
+  // The browser gets its public configuration from rung 2 instead: the
+  // `__LELU_*__` globals that plugins/runtimeKeyBridge.ts publishes. Model
+  // credentials are never among them — they stay on the server.
 
   const runtime = globalThis as unknown as Record<string, string | undefined>;
   const fromGlobal = runtime[`__LELU_${name}__`];

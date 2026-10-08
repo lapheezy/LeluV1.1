@@ -30,6 +30,13 @@ type RemoteRow = Record<string, any>;
  * Local stores remain authoritative for immediate UI/cognition work. Supabase
  * is a durable mirror and recovery source; all failures are contained.
  */
+/**
+ * Upper bound on a persisted message body. Chosen above the longest message in
+ * the existing store so hydrate → persist is lossless; exceeding it is flagged
+ * in the row metadata rather than dropped quietly.
+ */
+const MESSAGE_TEXT_LIMIT = 48_000;
+
 export default class SupabasePersistence {
   private static instance: SupabasePersistence | null = null;
   private client: SupabaseClient | null = null;
@@ -388,11 +395,23 @@ export default class SupabasePersistence {
       metadata: { pinned: conversation.pinned, linkedIds: conversation.linkedIds, tags: conversation.tags, topic: conversation.topic, unread: conversation.unread, processing: conversation.processing },
       created_at: new Date(conversation.createdAt).toISOString(), updated_at: new Date(conversation.updatedAt).toISOString(),
     })), "conversations");
-    const messages = conversations.flatMap((conversation) => conversation.messages.map((message) => ({
-      id: message.id, user_id: this.userId, conversation_id: conversation.id, role: message.role,
-      text: message.text.slice(0, 12000), provider: message.provider ?? null, confidence: message.confidence ?? null,
-      metadata: { source: message.source, reasoning: message.reasoning, plan: message.plan }, created_at: new Date(message.timestamp).toISOString(),
-    })));
+    const messages = conversations.flatMap((conversation) => conversation.messages.map((message) => {
+      // Hydrate reads whatever is stored, so a cap below the longest existing
+      // message would silently shorten real history on every round trip.
+      // The cap stays well above observed content, and when it does bite the
+      // loss is recorded instead of being invisible.
+      const truncated = message.text.length > MESSAGE_TEXT_LIMIT;
+      return {
+        id: message.id, user_id: this.userId, conversation_id: conversation.id, role: message.role,
+        text: truncated ? message.text.slice(0, MESSAGE_TEXT_LIMIT) : message.text,
+        provider: message.provider ?? null, confidence: message.confidence ?? null,
+        metadata: {
+          source: message.source, reasoning: message.reasoning, plan: message.plan,
+          ...(truncated ? { truncated: true, originalLength: message.text.length } : {}),
+        },
+        created_at: new Date(message.timestamp).toISOString(),
+      };
+    }));
     await this.write("messages", messages, "messages");
   }
 
@@ -410,7 +429,7 @@ export default class SupabasePersistence {
 
   private async persistCognitiveEvent(event: AgentEvent): Promise<void> {
     if (!this.isConnected()) return;
-    await this.write("cognitive_events", [{ user_id: this.userId, event_type: event.type, task_id: event.taskId, payload: event, created_at: new Date().toISOString() }], "cognitive_events");
+    await this.append("cognitive_events", [{ user_id: this.userId, event_type: event.type, task_id: event.taskId, payload: event, created_at: new Date().toISOString() }], "cognitive_events");
   }
 
   public async reconnect(brain?: Brain, user?: UserManager): Promise<SupabasePersistenceStatus> {
@@ -437,6 +456,19 @@ export default class SupabasePersistence {
     return rows[0] ?? null;
   }
 
+  // Append-only tables (event logs) carry a server-generated id and no
+  // (id,user_id) unique index, so they must be inserted, never upserted.
+  private async append(table: string, rows: RemoteRow[], label: string): Promise<boolean> {
+    if (!this.client || !this.userId || rows.length === 0) return false;
+    const { error } = await this.client.from(table).insert(rows);
+    if (error) {
+      this.status = "degraded";
+      console.warn(`[Lélu] Supabase ${label} sync degraded`, error.message);
+      return false;
+    }
+    return true;
+  }
+
   private async write(table: string, rows: RemoteRow[], label: string): Promise<void> {
     if (!this.client || !this.userId || rows.length === 0) return;
     const { error } = await this.client.from(table).upsert(rows, { onConflict: this.conflictKey(table) });
@@ -446,8 +478,15 @@ export default class SupabasePersistence {
     }
   }
 
+  // Upsert conflict targets must name an actual unique index on the table or
+  // Postgres rejects the statement outright (42P10 / 42703). Verified against
+  // the live schema: ui_state(user_id), news_preferences(user_id),
+  // api_health(user_id,provider), user_preferences(user_id,preference_key),
+  // proactive_questions(user_id,question_key); everything else is (id,user_id).
   private conflictKey(table: string): string {
-    if (["ui_state", "api_health", "news_preferences"].includes(table)) return table === "api_health" ? "user_id,provider" : "user_id";
+    if (table === "api_health") return "user_id,provider";
+    if (table === "ui_state" || table === "news_preferences") return "user_id";
+    if (table === "user_preferences") return "user_id,preference_key";
     if (table === "proactive_questions") return "user_id,question_key";
     return "id,user_id";
   }
@@ -564,18 +603,12 @@ export default class SupabasePersistence {
   ): Promise<boolean> {
     if (!this.isConnected() || !this.userId) return false;
     try {
-      const { error } = await this.client!.from("cognitive_events").insert({
+      return await this.append("cognitive_events", [{
         user_id: this.userId,
         event_type: `engineering.${eventType}`,
         task_id: taskId,
         payload,
-      });
-      if (error) {
-        this.status = "degraded";
-        console.warn("[Lélu] Supabase engineering event sync degraded", error.message);
-        return false;
-      }
-      return true;
+      }], "engineering event");
     } catch (error) {
       console.warn(
         "[Lélu] Supabase engineering event failed (contained)",
