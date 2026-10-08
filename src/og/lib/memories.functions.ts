@@ -1,6 +1,18 @@
 import { createServerFn } from "@og/compat/server-fn";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@og/integrations/supabase/auth-middleware";
+import {
+  MEMORY_ITEM_COLUMNS,
+  matchesSearch,
+  toMemoryItemPatch,
+  toOgMemory,
+  type OgMemoryRow,
+} from "@og/lib/memory-mapping";
+
+// memory_items ids are LÉLU-generated strings; the migrated legacy rows happen
+// to be uuids, but native memories are not, so ids are validated as non-empty
+// text rather than uuid.
+const MemoryId = z.string().min(1);
 
 export const listMemories = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -14,24 +26,25 @@ export const listMemories = createServerFn({ method: "GET" })
       .optional()
       .parse(input),
   )
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data, context }): Promise<OgMemoryRow[]> => {
     let q = context.supabase
-      .from("memories")
-      .select("id, category, key, title, summary, value, importance, tags, pinned, archived, last_referenced_at, created_at, updated_at, source_conversation_id")
-      .order("pinned", { ascending: false })
+      .from("memory_items")
+      .select(MEMORY_ITEM_COLUMNS)
       .order("importance", { ascending: false })
       .order("updated_at", { ascending: false })
       .limit(500);
-    if (data?.archived === false) q = q.eq("archived", false);
-    else if (data?.archived === true) q = q.eq("archived", true);
     if (data?.category) q = q.eq("category", data.category);
-    if (data?.search && data.search.trim()) {
-      const s = `%${data.search.trim()}%`;
-      q = q.or(`key.ilike.${s},value.ilike.${s},title.ilike.${s},summary.ilike.${s}`);
-    }
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    return rows ?? [];
+
+    // pinned/archived/search live in the context jsonb and across several
+    // columns, so they are applied after mapping rather than as PostgREST
+    // filters — bounded by the limit above.
+    let mapped = (rows ?? []).map((row) => toOgMemory(row as Record<string, unknown>));
+    if (data?.archived === true) mapped = mapped.filter((row) => row.archived);
+    else if (data?.archived === false) mapped = mapped.filter((row) => !row.archived);
+    if (data?.search) mapped = mapped.filter((row) => matchesSearch(row, data.search as string));
+    return mapped.sort((a, b) => Number(b.pinned) - Number(a.pinned));
   });
 
 export const updateMemory = createServerFn({ method: "POST" })
@@ -39,7 +52,7 @@ export const updateMemory = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z
       .object({
-        id: z.string().uuid(),
+        id: MemoryId,
         title: z.string().nullable().optional(),
         summary: z.string().nullable().optional(),
         value: z.string().optional(),
@@ -54,16 +67,28 @@ export const updateMemory = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { id, ...patch } = data;
-    const { error } = await context.supabase.from("memories").update(patch).eq("id", id);
+    // Read the current context so a pin does not discard the brain's own keys.
+    const { data: current, error: readError } = await context.supabase
+      .from("memory_items")
+      .select("context")
+      .eq("id", id)
+      .maybeSingle();
+    if (readError) throw new Error(readError.message);
+    if (!current) throw new Error("Memory not found");
+
+    const { error } = await context.supabase
+      .from("memory_items")
+      .update(toMemoryItemPatch(patch, (current as { context?: unknown }).context))
+      .eq("id", id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
 
 export const deleteMemory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .inputValidator((input) => z.object({ id: MemoryId }).parse(input))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("memories").delete().eq("id", data.id);
+    const { error } = await context.supabase.from("memory_items").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -71,7 +96,7 @@ export const deleteMemory = createServerFn({ method: "POST" })
 export const attachMemoryToUniverse = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({ memory_id: z.string().uuid(), universe_id: z.string().uuid() }).parse(input),
+    z.object({ memory_id: MemoryId, universe_id: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
@@ -84,7 +109,7 @@ export const attachMemoryToUniverse = createServerFn({ method: "POST" })
 export const detachMemoryFromUniverse = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({ memory_id: z.string().uuid(), universe_id: z.string().uuid() }).parse(input),
+    z.object({ memory_id: MemoryId, universe_id: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase

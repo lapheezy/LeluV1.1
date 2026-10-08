@@ -35,6 +35,32 @@ if (typeof localStorage === "undefined") {
   };
 }
 
+/**
+ * Hermetic network boundary.
+ *
+ * These tests drive REAL singletons, and CognitiveLoop.runOnce() walks
+ * the real provider chain. With no credentials in the environment that
+ * chain short-circuits and the suite passes; the moment real keys ARE
+ * present (a configured dev container, CI with secrets) the same tests
+ * start making live API calls, and `runOnce` blew past the 5s test
+ * timeout waiting on the network — taking an unrelated test file down
+ * with it through the late rejection.
+ *
+ * A unit suite must not depend on ambient credentials or on the
+ * internet being reachable, so every outbound request fails fast here.
+ * This does not weaken anything: the assertions are about the loop
+ * producing a valid report and emitting its visual state, which it must
+ * do whether or not a provider answers. Real provider behaviour is
+ * covered where it belongs — scripts/verify-providers.ts and
+ * scripts/verify-cognitive-trace.ts drive the actual fallback chain.
+ */
+const realFetch = globalThis.fetch;
+globalThis.fetch = (async (input: RequestInfo | URL) => {
+  const url = String(input instanceof Request ? input.url : input);
+  throw new Error(`[test] outbound network call blocked: ${url}`);
+}) as typeof fetch;
+void realFetch;
+
 import ToolRegistry from "../src/core/tools/ToolRegistry";
 import CapabilityManifest from "../src/core/capabilities/CapabilityManifest";
 import AgentStore from "../src/core/agents/AgentStore";

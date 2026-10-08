@@ -129,10 +129,14 @@ export class OgArchiveProvider implements MemoryProvider {
         .slice(0, 4);
       if (terms.length === 0) return [];
 
+      // The archive table is `legacy_memories`: the OG `memories` table as the
+      // migration left it. Querying "memories" with a "content" column — which
+      // this did, and which exists in neither schema — returned nothing and
+      // swallowed the error below, so this context band was always empty.
       const { data, error } = await client
-        .from("memories")
-        .select("id, content, created_at")
-        .or(terms.map((term) => `content.ilike.%${term}%`).join(","))
+        .from("legacy_memories")
+        .select("id, key, value, created_at")
+        .or(terms.map((term) => `value.ilike.%${term}%,key.ilike.%${term}%`).join(","))
         .order("created_at", { ascending: false })
         .limit(limit);
 
@@ -142,11 +146,18 @@ export class OgArchiveProvider implements MemoryProvider {
       }
 
       return (data ?? [])
-        .map((row) => ({
-          source: this.id,
-          band: 6 as const,
-          content: String((row as { content?: unknown }).content ?? "").trim(),
-        }))
+        .map((row) => {
+          const entry = row as { key?: unknown; value?: unknown };
+          const key = String(entry.key ?? "").trim();
+          const value = String(entry.value ?? "").trim();
+          return {
+            source: this.id,
+            band: 6 as const,
+            // The key is the OG label for the fact; carrying it keeps the
+            // archived line self-describing once it is out of its table.
+            content: key && value ? `${key}: ${value}` : value || key,
+          };
+        })
         .filter((item) => item.content.length > 0);
     } catch (error) {
       console.warn("[OgArchiveProvider] unavailable:", error);

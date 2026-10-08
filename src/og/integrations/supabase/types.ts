@@ -1,3 +1,13 @@
+/**
+ * Generated from the live schema of Supabase project nrehsldbfxthspikaxvr.
+ *
+ * Regenerate rather than hand-edit. This file was previously generated from
+ * the pre-migration schema, so it still declared `memories` and
+ * `memory_events` — one renamed to `legacy_memories`, the other never
+ * present in this project — and declared none of the v1.1 runtime tables.
+ * The OG panels typechecked against that stale shape while failing at
+ * runtime, which is the failure a generated type file exists to prevent.
+ */
 export type Json =
   | string
   | number
@@ -15,824 +25,165 @@ export type Database = {
   public: {
     Tables: {
       agents: {
-        Row: {
-          created_at: string
-          enabled: boolean
-          id: string
-          kind: string
-          last_run_at: string | null
-          name: string
-          system_prompt: string
-          universe_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          enabled?: boolean
-          id?: string
-          kind?: string
-          last_run_at?: string | null
-          name: string
-          system_prompt?: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          enabled?: boolean
-          id?: string
-          kind?: string
-          last_run_at?: string | null
-          name?: string
-          system_prompt?: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agents_universe_id_fkey"
-            columns: ["universe_id"]
-            isOneToOne: false
-            referencedRelation: "universes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      conversation_summaries: {
-        Row: {
-          conversation_id: string | null
-          created_at: string
-          id: string
-          message_count: number
-          original_title: string | null
-          preserved_reason: string | null
-          summary: string
-          topics: string[]
-          universe_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          conversation_id?: string | null
-          created_at?: string
-          id?: string
-          message_count?: number
-          original_title?: string | null
-          preserved_reason?: string | null
-          summary: string
-          topics?: string[]
-          universe_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          conversation_id?: string | null
-          created_at?: string
-          id?: string
-          message_count?: number
-          original_title?: string | null
-          preserved_reason?: string | null
-          summary?: string
-          topics?: string[]
-          universe_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conversation_summaries_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversation_summaries_universe_id_fkey"
-            columns: ["universe_id"]
-            isOneToOne: false
-            referencedRelation: "universes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      conversations: {
-        Row: {
-          archived: boolean
-          continued_from_id: string | null
-          crash_count: number
-          created_at: string
-          id: string
-          last_crash_at: string | null
-          pinned: boolean
-          recovery_state: string
-          title: string
-          universe_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          archived?: boolean
-          continued_from_id?: string | null
-          crash_count?: number
-          created_at?: string
-          id?: string
-          last_crash_at?: string | null
-          pinned?: boolean
-          recovery_state?: string
-          title?: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          archived?: boolean
-          continued_from_id?: string | null
-          crash_count?: number
-          created_at?: string
-          id?: string
-          last_crash_at?: string | null
-          pinned?: boolean
-          recovery_state?: string
-          title?: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conversations_continued_from_id_fkey"
-            columns: ["continued_from_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversations_universe_id_fkey"
-            columns: ["universe_id"]
-            isOneToOne: false
-            referencedRelation: "universes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      events: {
-        Row: {
-          conversation_id: string | null
-          created_at: string
-          ends_at: string | null
-          id: string
-          location: string | null
-          notes: string | null
-          starts_at: string
-          title: string
-          universe_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          conversation_id?: string | null
-          created_at?: string
-          ends_at?: string | null
-          id?: string
-          location?: string | null
-          notes?: string | null
-          starts_at: string
-          title: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          conversation_id?: string | null
-          created_at?: string
-          ends_at?: string | null
-          id?: string
-          location?: string | null
-          notes?: string | null
-          starts_at?: string
-          title?: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "events_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_universe_id_fkey"
-            columns: ["universe_id"]
-            isOneToOne: false
-            referencedRelation: "universes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      files: {
-        Row: {
-          archived: boolean
-          body: string
-          conversation_id: string | null
-          created_at: string
-          id: string
-          kind: string
-          pinned: boolean
-          sources: Json
-          tags: string[]
-          title: string
-          universe_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          archived?: boolean
-          body?: string
-          conversation_id?: string | null
-          created_at?: string
-          id?: string
-          kind?: string
-          pinned?: boolean
-          sources?: Json
-          tags?: string[]
-          title: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          archived?: boolean
-          body?: string
-          conversation_id?: string | null
-          created_at?: string
-          id?: string
-          kind?: string
-          pinned?: boolean
-          sources?: Json
-          tags?: string[]
-          title?: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "files_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "files_universe_id_fkey"
-            columns: ["universe_id"]
-            isOneToOne: false
-            referencedRelation: "universes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      goals: {
-        Row: {
-          conversation_id: string | null
-          created_at: string
-          description: string | null
-          id: string
-          progress: number
-          status: string
-          target_date: string | null
-          title: string
-          universe_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          conversation_id?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          progress?: number
-          status?: string
-          target_date?: string | null
-          title: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          conversation_id?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          progress?: number
-          status?: string
-          target_date?: string | null
-          title?: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "goals_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "goals_universe_id_fkey"
-            columns: ["universe_id"]
-            isOneToOne: false
-            referencedRelation: "universes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      memories: {
-        Row: {
-          archived: boolean
-          category: string
-          confidence: number
-          created_at: string
-          id: string
-          importance: number
-          key: string
-          last_accessed_at: string | null
-          last_referenced_at: string | null
-          pinned: boolean
-          related_ids: string[]
-          source_conversation_id: string | null
-          summary: string | null
-          tags: string[]
-          title: string | null
-          updated_at: string
-          user_id: string
-          value: string
-        }
-        Insert: {
-          archived?: boolean
-          category?: string
-          confidence?: number
-          created_at?: string
-          id?: string
-          importance?: number
-          key: string
-          last_accessed_at?: string | null
-          last_referenced_at?: string | null
-          pinned?: boolean
-          related_ids?: string[]
-          source_conversation_id?: string | null
-          summary?: string | null
-          tags?: string[]
-          title?: string | null
-          updated_at?: string
-          user_id: string
-          value: string
-        }
-        Update: {
-          archived?: boolean
-          category?: string
-          confidence?: number
-          created_at?: string
-          id?: string
-          importance?: number
-          key?: string
-          last_accessed_at?: string | null
-          last_referenced_at?: string | null
-          pinned?: boolean
-          related_ids?: string[]
-          source_conversation_id?: string | null
-          summary?: string | null
-          tags?: string[]
-          title?: string | null
-          updated_at?: string
-          user_id?: string
-          value?: string
-        }
+        Row: { enabled: boolean; id: string; name: string; project_id: string | null; role: string; state: Json; status: string; updated_at: string; user_id: string }
+        Insert: { enabled?: boolean; id: string; name: string; project_id?: string | null; role?: string; state?: Json; status: string; updated_at?: string; user_id: string }
+        Update: { enabled?: boolean; id?: string; name?: string; project_id?: string | null; role?: string; state?: Json; status?: string; updated_at?: string; user_id?: string }
         Relationships: []
       }
-      memory_events: {
-        Row: {
-          conversation_id: string | null
-          created_at: string
-          detail: Json
-          id: string
-          kind: string
-          memory_id: string | null
-          reason: string | null
-          user_id: string
-        }
-        Insert: {
-          conversation_id?: string | null
-          created_at?: string
-          detail?: Json
-          id?: string
-          kind: string
-          memory_id?: string | null
-          reason?: string | null
-          user_id: string
-        }
-        Update: {
-          conversation_id?: string | null
-          created_at?: string
-          detail?: Json
-          id?: string
-          kind?: string
-          memory_id?: string | null
-          reason?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "memory_events_memory_id_fkey"
-            columns: ["memory_id"]
-            isOneToOne: false
-            referencedRelation: "memories"
-            referencedColumns: ["id"]
-          },
-        ]
+      api_health: {
+        Row: { checked_at: string; details: Json; latency_ms: number | null; provider: string; status: string; user_id: string }
+        Insert: { checked_at?: string; details?: Json; latency_ms?: number | null; provider: string; status: string; user_id: string }
+        Update: { checked_at?: string; details?: Json; latency_ms?: number | null; provider?: string; status?: string; user_id?: string }
+        Relationships: []
+      }
+      cognitive_events: {
+        Row: { created_at: string; event_type: string; id: string; payload: Json; task_id: string | null; user_id: string }
+        Insert: { created_at?: string; event_type: string; id?: string; payload?: Json; task_id?: string | null; user_id: string }
+        Update: { created_at?: string; event_type?: string; id?: string; payload?: Json; task_id?: string | null; user_id?: string }
+        Relationships: []
+      }
+      conversation_summaries: {
+        Row: { conversation_id: string | null; created_at: string; id: string; message_count: number; original_title: string | null; preserved_reason: string | null; summary: string; topics: string[]; universe_id: string | null; updated_at: string; user_id: string }
+        Insert: { conversation_id?: string | null; created_at?: string; id?: string; message_count?: number; original_title?: string | null; preserved_reason?: string | null; summary: string; topics?: string[]; universe_id?: string | null; updated_at?: string; user_id: string }
+        Update: { conversation_id?: string | null; created_at?: string; id?: string; message_count?: number; original_title?: string | null; preserved_reason?: string | null; summary?: string; topics?: string[]; universe_id?: string | null; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
+      conversations: {
+        Row: { created_at: string; id: string; metadata: Json; project_id: string | null; title: string; updated_at: string; user_id: string }
+        Insert: { created_at?: string; id: string; metadata?: Json; project_id?: string | null; title: string; updated_at?: string; user_id: string }
+        Update: { created_at?: string; id?: string; metadata?: Json; project_id?: string | null; title?: string; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
+      events: {
+        Row: { conversation_id: string | null; created_at: string; ends_at: string | null; id: string; location: string | null; notes: string | null; starts_at: string; title: string; universe_id: string | null; updated_at: string; user_id: string }
+        Insert: { conversation_id?: string | null; created_at?: string; ends_at?: string | null; id?: string; location?: string | null; notes?: string | null; starts_at: string; title: string; universe_id?: string | null; updated_at?: string; user_id: string }
+        Update: { conversation_id?: string | null; created_at?: string; ends_at?: string | null; id?: string; location?: string | null; notes?: string | null; starts_at?: string; title?: string; universe_id?: string | null; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
+      files: {
+        Row: { archived: boolean; body: string; conversation_id: string | null; created_at: string; id: string; kind: string; pinned: boolean; sources: Json; tags: string[]; title: string; universe_id: string | null; updated_at: string; user_id: string }
+        Insert: { archived?: boolean; body?: string; conversation_id?: string | null; created_at?: string; id?: string; kind?: string; pinned?: boolean; sources?: Json; tags?: string[]; title: string; universe_id?: string | null; updated_at?: string; user_id: string }
+        Update: { archived?: boolean; body?: string; conversation_id?: string | null; created_at?: string; id?: string; kind?: string; pinned?: boolean; sources?: Json; tags?: string[]; title?: string; universe_id?: string | null; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
+      goals: {
+        Row: { conversation_id: string | null; created_at: string; description: string | null; id: string; progress: number; status: string; target_date: string | null; title: string; universe_id: string | null; updated_at: string; user_id: string }
+        Insert: { conversation_id?: string | null; created_at?: string; description?: string | null; id?: string; progress?: number; status?: string; target_date?: string | null; title: string; universe_id?: string | null; updated_at?: string; user_id: string }
+        Update: { conversation_id?: string | null; created_at?: string; description?: string | null; id?: string; progress?: number; status?: string; target_date?: string | null; title?: string; universe_id?: string | null; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
+      improvement_items: {
+        Row: { id: string; state: Json; updated_at: string; user_id: string }
+        Insert: { id: string; state?: Json; updated_at?: string; user_id: string }
+        Update: { id?: string; state?: Json; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
+      knowledge_items: {
+        Row: { created_at: string; detail: string; domain: string; id: string; metadata: Json; source: string | null; title: string; updated_at: string; user_id: string }
+        Insert: { created_at?: string; detail: string; domain: string; id: string; metadata?: Json; source?: string | null; title: string; updated_at?: string; user_id: string }
+        Update: { created_at?: string; detail?: string; domain?: string; id?: string; metadata?: Json; source?: string | null; title?: string; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
+      legacy_conversations: {
+        Row: { archived: boolean; continued_from_id: string | null; crash_count: number; created_at: string; id: string; last_crash_at: string | null; pinned: boolean; recovery_state: string; title: string; universe_id: string | null; updated_at: string; user_id: string }
+        Insert: { archived?: boolean; continued_from_id?: string | null; crash_count?: number; created_at?: string; id?: string; last_crash_at?: string | null; pinned?: boolean; recovery_state?: string; title?: string; universe_id?: string | null; updated_at?: string; user_id: string }
+        Update: { archived?: boolean; continued_from_id?: string | null; crash_count?: number; created_at?: string; id?: string; last_crash_at?: string | null; pinned?: boolean; recovery_state?: string; title?: string; universe_id?: string | null; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
+      legacy_memories: {
+        Row: { archived: boolean; category: string; created_at: string; id: string; importance: number; key: string; last_referenced_at: string | null; pinned: boolean; source_conversation_id: string | null; summary: string | null; tags: string[]; title: string | null; updated_at: string; user_id: string; value: string }
+        Insert: { archived?: boolean; category?: string; created_at?: string; id?: string; importance?: number; key: string; last_referenced_at?: string | null; pinned?: boolean; source_conversation_id?: string | null; summary?: string | null; tags?: string[]; title?: string | null; updated_at?: string; user_id: string; value: string }
+        Update: { archived?: boolean; category?: string; created_at?: string; id?: string; importance?: number; key?: string; last_referenced_at?: string | null; pinned?: boolean; source_conversation_id?: string | null; summary?: string | null; tags?: string[]; title?: string | null; updated_at?: string; user_id?: string; value?: string }
+        Relationships: []
+      }
+      legacy_messages: {
+        Row: { conversation_id: string; created_at: string; id: string; parts: Json; role: string; user_id: string }
+        Insert: { conversation_id: string; created_at?: string; id?: string; parts: Json; role: string; user_id: string }
+        Update: { conversation_id?: string; created_at?: string; id?: string; parts?: Json; role?: string; user_id?: string }
+        Relationships: []
+      }
+      memory_items: {
+        Row: { category: string; confidence: number; context: Json; created_at: string; failed_uses: number; id: string; importance: number; keywords: string[]; memory_type: string; prompt: string; response: string; successful_uses: number; updated_at: string; user_id: string }
+        Insert: { category: string; confidence?: number; context?: Json; created_at?: string; failed_uses?: number; id: string; importance?: number; keywords?: string[]; memory_type?: string; prompt: string; response: string; successful_uses?: number; updated_at?: string; user_id: string }
+        Update: { category?: string; confidence?: number; context?: Json; created_at?: string; failed_uses?: number; id?: string; importance?: number; keywords?: string[]; memory_type?: string; prompt?: string; response?: string; successful_uses?: number; updated_at?: string; user_id?: string }
+        Relationships: []
       }
       memory_universes: {
-        Row: {
-          memory_id: string
-          universe_id: string
-          user_id: string
-        }
-        Insert: {
-          memory_id: string
-          universe_id: string
-          user_id: string
-        }
-        Update: {
-          memory_id?: string
-          universe_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "memory_universes_memory_id_fkey"
-            columns: ["memory_id"]
-            isOneToOne: false
-            referencedRelation: "memories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "memory_universes_universe_id_fkey"
-            columns: ["universe_id"]
-            isOneToOne: false
-            referencedRelation: "universes"
-            referencedColumns: ["id"]
-          },
-        ]
+        Row: { memory_id: string; universe_id: string; user_id: string }
+        Insert: { memory_id: string; universe_id: string; user_id: string }
+        Update: { memory_id?: string; universe_id?: string; user_id?: string }
+        Relationships: []
       }
       messages: {
-        Row: {
-          client_id: string | null
-          conversation_id: string
-          created_at: string
-          id: string
-          parts: Json
-          role: string
-          user_id: string
-        }
-        Insert: {
-          client_id?: string | null
-          conversation_id: string
-          created_at?: string
-          id?: string
-          parts: Json
-          role: string
-          user_id: string
-        }
-        Update: {
-          client_id?: string | null
-          conversation_id?: string
-          created_at?: string
-          id?: string
-          parts?: Json
-          role?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "messages_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Row: { confidence: number | null; conversation_id: string; created_at: string; id: string; metadata: Json; provider: string | null; role: string; text: string; user_id: string }
+        Insert: { confidence?: number | null; conversation_id: string; created_at?: string; id: string; metadata?: Json; provider?: string | null; role: string; text: string; user_id: string }
+        Update: { confidence?: number | null; conversation_id?: string; created_at?: string; id?: string; metadata?: Json; provider?: string | null; role?: string; text?: string; user_id?: string }
+        Relationships: []
+      }
+      news_preferences: {
+        Row: { metadata: Json; topics: string[]; updated_at: string; user_id: string }
+        Insert: { metadata?: Json; topics?: string[]; updated_at?: string; user_id: string }
+        Update: { metadata?: Json; topics?: string[]; updated_at?: string; user_id?: string }
+        Relationships: []
       }
       notes: {
-        Row: {
-          body: string
-          conversation_id: string | null
-          created_at: string
-          id: string
-          tags: string[]
-          title: string
-          universe_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          body?: string
-          conversation_id?: string | null
-          created_at?: string
-          id?: string
-          tags?: string[]
-          title: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          body?: string
-          conversation_id?: string | null
-          created_at?: string
-          id?: string
-          tags?: string[]
-          title?: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notes_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notes_universe_id_fkey"
-            columns: ["universe_id"]
-            isOneToOne: false
-            referencedRelation: "universes"
-            referencedColumns: ["id"]
-          },
-        ]
+        Row: { body: string; conversation_id: string | null; created_at: string; id: string; tags: string[]; title: string; universe_id: string | null; updated_at: string; user_id: string }
+        Insert: { body?: string; conversation_id?: string | null; created_at?: string; id?: string; tags?: string[]; title: string; universe_id?: string | null; updated_at?: string; user_id: string }
+        Update: { body?: string; conversation_id?: string | null; created_at?: string; id?: string; tags?: string[]; title?: string; universe_id?: string | null; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
+      proactive_questions: {
+        Row: { asked_at: string; blocks_execution: boolean; category: string; created_at: string; id: string; priority: string; question: string; question_key: string; reason: string; related_project_id: string | null; related_task: string | null; remember_answer: boolean; resolved_at: string | null; status: string; updated_at: string; user_id: string; user_response: string | null }
+        Insert: { asked_at: string; blocks_execution?: boolean; category: string; created_at?: string; id: string; priority: string; question: string; question_key: string; reason: string; related_project_id?: string | null; related_task?: string | null; remember_answer?: boolean; resolved_at?: string | null; status: string; updated_at?: string; user_id: string; user_response?: string | null }
+        Update: { asked_at?: string; blocks_execution?: boolean; category?: string; created_at?: string; id?: string; priority?: string; question?: string; question_key?: string; reason?: string; related_project_id?: string | null; related_task?: string | null; remember_answer?: boolean; resolved_at?: string | null; status?: string; updated_at?: string; user_id?: string; user_response?: string | null }
+        Relationships: []
+      }
+      projects: {
+        Row: { agent_ids: string[]; created_at: string; description: string; id: string; items: Json; name: string; queries: string[]; schedule: Json | null; status: string; updated_at: string; user_id: string }
+        Insert: { agent_ids?: string[]; created_at?: string; description?: string; id: string; items?: Json; name: string; queries?: string[]; schedule?: Json | null; status: string; updated_at?: string; user_id: string }
+        Update: { agent_ids?: string[]; created_at?: string; description?: string; id?: string; items?: Json; name?: string; queries?: string[]; schedule?: Json | null; status?: string; updated_at?: string; user_id?: string }
+        Relationships: []
       }
       reminders: {
-        Row: {
-          body: string | null
-          conversation_id: string | null
-          created_at: string
-          delivered_at: string | null
-          email_sent_at: string | null
-          id: string
-          remind_at: string
-          title: string
-          universe_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          body?: string | null
-          conversation_id?: string | null
-          created_at?: string
-          delivered_at?: string | null
-          email_sent_at?: string | null
-          id?: string
-          remind_at: string
-          title: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          body?: string | null
-          conversation_id?: string | null
-          created_at?: string
-          delivered_at?: string | null
-          email_sent_at?: string | null
-          id?: string
-          remind_at?: string
-          title?: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reminders_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reminders_universe_id_fkey"
-            columns: ["universe_id"]
-            isOneToOne: false
-            referencedRelation: "universes"
-            referencedColumns: ["id"]
-          },
-        ]
+        Row: { body: string | null; conversation_id: string | null; created_at: string; delivered_at: string | null; email_sent_at: string | null; id: string; remind_at: string; title: string; universe_id: string | null; updated_at: string; user_id: string }
+        Insert: { body?: string | null; conversation_id?: string | null; created_at?: string; delivered_at?: string | null; email_sent_at?: string | null; id?: string; remind_at: string; title: string; universe_id?: string | null; updated_at?: string; user_id: string }
+        Update: { body?: string | null; conversation_id?: string | null; created_at?: string; delivered_at?: string | null; email_sent_at?: string | null; id?: string; remind_at?: string; title?: string; universe_id?: string | null; updated_at?: string; user_id?: string }
+        Relationships: []
       }
       system_events: {
-        Row: {
-          conversation_id: string | null
-          created_at: string
-          detail: Json | null
-          id: string
-          kind: string
-          message: string | null
-          severity: string
-          source: string | null
-          user_id: string
-        }
-        Insert: {
-          conversation_id?: string | null
-          created_at?: string
-          detail?: Json | null
-          id?: string
-          kind: string
-          message?: string | null
-          severity?: string
-          source?: string | null
-          user_id: string
-        }
-        Update: {
-          conversation_id?: string | null
-          created_at?: string
-          detail?: Json | null
-          id?: string
-          kind?: string
-          message?: string | null
-          severity?: string
-          source?: string | null
-          user_id?: string
-        }
+        Row: { conversation_id: string | null; created_at: string; detail: Json | null; id: string; kind: string; message: string | null; severity: string; source: string | null; user_id: string }
+        Insert: { conversation_id?: string | null; created_at?: string; detail?: Json | null; id?: string; kind: string; message?: string | null; severity?: string; source?: string | null; user_id: string }
+        Update: { conversation_id?: string | null; created_at?: string; detail?: Json | null; id?: string; kind?: string; message?: string | null; severity?: string; source?: string | null; user_id?: string }
         Relationships: []
       }
       tasks: {
-        Row: {
-          conversation_id: string | null
-          created_at: string
-          done: boolean
-          due_at: string | null
-          id: string
-          notes: string | null
-          title: string
-          universe_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          conversation_id?: string | null
-          created_at?: string
-          done?: boolean
-          due_at?: string | null
-          id?: string
-          notes?: string | null
-          title: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          conversation_id?: string | null
-          created_at?: string
-          done?: boolean
-          due_at?: string | null
-          id?: string
-          notes?: string | null
-          title?: string
-          universe_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tasks_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tasks_universe_id_fkey"
-            columns: ["universe_id"]
-            isOneToOne: false
-            referencedRelation: "universes"
-            referencedColumns: ["id"]
-          },
-        ]
+        Row: { conversation_id: string | null; created_at: string; done: boolean; due_at: string | null; id: string; notes: string | null; title: string; universe_id: string | null; updated_at: string; user_id: string }
+        Insert: { conversation_id?: string | null; created_at?: string; done?: boolean; due_at?: string | null; id?: string; notes?: string | null; title: string; universe_id?: string | null; updated_at?: string; user_id: string }
+        Update: { conversation_id?: string | null; created_at?: string; done?: boolean; due_at?: string | null; id?: string; notes?: string | null; title?: string; universe_id?: string | null; updated_at?: string; user_id?: string }
+        Relationships: []
       }
       tasks_queue: {
-        Row: {
-          agent: string
-          completed_at: string | null
-          conversation_id: string | null
-          created_at: string
-          error: string | null
-          id: string
-          kind: string
-          parent_id: string | null
-          payload: Json | null
-          priority: number
-          result: Json | null
-          retries: number
-          started_at: string | null
-          status: string
-          title: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          agent?: string
-          completed_at?: string | null
-          conversation_id?: string | null
-          created_at?: string
-          error?: string | null
-          id?: string
-          kind: string
-          parent_id?: string | null
-          payload?: Json | null
-          priority?: number
-          result?: Json | null
-          retries?: number
-          started_at?: string | null
-          status?: string
-          title: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          agent?: string
-          completed_at?: string | null
-          conversation_id?: string | null
-          created_at?: string
-          error?: string | null
-          id?: string
-          kind?: string
-          parent_id?: string | null
-          payload?: Json | null
-          priority?: number
-          result?: Json | null
-          retries?: number
-          started_at?: string | null
-          status?: string
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tasks_queue_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "tasks_queue"
-            referencedColumns: ["id"]
-          },
-        ]
+        Row: { agent: string; completed_at: string | null; conversation_id: string | null; created_at: string; error: string | null; id: string; kind: string; parent_id: string | null; payload: Json | null; priority: number; result: Json | null; retries: number; started_at: string | null; status: string; title: string; updated_at: string; user_id: string }
+        Insert: { agent?: string; completed_at?: string | null; conversation_id?: string | null; created_at?: string; error?: string | null; id?: string; kind: string; parent_id?: string | null; payload?: Json | null; priority?: number; result?: Json | null; retries?: number; started_at?: string | null; status?: string; title: string; updated_at?: string; user_id: string }
+        Update: { agent?: string; completed_at?: string | null; conversation_id?: string | null; created_at?: string; error?: string | null; id?: string; kind?: string; parent_id?: string | null; payload?: Json | null; priority?: number; result?: Json | null; retries?: number; started_at?: string | null; status?: string; title?: string; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
+      ui_state: {
+        Row: { state: Json; updated_at: string; user_id: string }
+        Insert: { state?: Json; updated_at?: string; user_id: string }
+        Update: { state?: Json; updated_at?: string; user_id?: string }
+        Relationships: []
       }
       universes: {
-        Row: {
-          archived: boolean
-          color: string | null
-          created_at: string
-          description: string | null
-          icon: string | null
-          id: string
-          name: string
-          position: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          archived?: boolean
-          color?: string | null
-          created_at?: string
-          description?: string | null
-          icon?: string | null
-          id?: string
-          name: string
-          position?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          archived?: boolean
-          color?: string | null
-          created_at?: string
-          description?: string | null
-          icon?: string | null
-          id?: string
-          name?: string
-          position?: number
-          updated_at?: string
-          user_id?: string
-        }
+        Row: { archived: boolean; color: string | null; created_at: string; description: string | null; icon: string | null; id: string; name: string; position: number; updated_at: string; user_id: string }
+        Insert: { archived?: boolean; color?: string | null; created_at?: string; description?: string | null; icon?: string | null; id?: string; name: string; position?: number; updated_at?: string; user_id: string }
+        Update: { archived?: boolean; color?: string | null; created_at?: string; description?: string | null; icon?: string | null; id?: string; name?: string; position?: number; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: { preference_key: string; updated_at: string; user_id: string; value: Json }
+        Insert: { preference_key: string; updated_at?: string; user_id: string; value: Json }
+        Update: { preference_key?: string; updated_at?: string; user_id?: string; value?: Json }
         Relationships: []
       }
     }

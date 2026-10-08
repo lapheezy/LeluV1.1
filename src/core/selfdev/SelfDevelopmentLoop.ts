@@ -24,6 +24,7 @@
  */
 
 import ImprovementQueue, { type ImprovementProposal, type ImprovementStatus } from "./ImprovementQueue";
+import AgentEventBus from "../agent/AgentEvents";
 import VersionHistory from "./VersionHistory";
 import SelfCode from "./SelfCode";
 import SourceAccess from "./SourceAccess";
@@ -244,6 +245,10 @@ export default class SelfDevelopmentLoop {
    * that is `applyCandidate()`, gated at autonomy L5.
    */
   public async integrate(proposalId: string): Promise<LoopRunResult> {
+    // The workspace timeline learns that integration is happening from this
+    // stream, the same one every other tool reports on.
+    const events = AgentEventBus.getInstance();
+    const taskId = proposalId;
     const proposal = this.queue.get(proposalId);
     const steps: LoopStep[] = [];
     const started = Date.now();
@@ -268,6 +273,19 @@ export default class SelfDevelopmentLoop {
        that CLAIMED tests had run and passed, written without running
        anything. The suite exists (SelfTestRunner) and was simply never
        called from here. */
+    events.emit({
+      type: "tool_selected",
+      taskId,
+      tool: "selfdev.integrate",
+      label: `Integrating: ${proposal.title}`,
+    });
+    events.emit({
+      type: "tool_started",
+      taskId,
+      tool: "selfdev.integrate",
+      label: "Recording version, capability, knowledge, self-model",
+    });
+
     const suite = await SelfTestRunner.getInstance().run();
     const failed = suite.results.filter((result) => !result.passed);
     const testSummary =

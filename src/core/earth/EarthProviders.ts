@@ -35,7 +35,7 @@ import {
   type SpatialSearchResult,
 } from "./EarthTypes";
 import { corsFetch } from "../../providers/corsFetch";
-import { endpoint, endpointUrl } from "../Endpoints";
+import { publicEnvVar } from "../env/publicEnv";
 
 /* ------------------------------------------------------------------
  * Helpers
@@ -47,20 +47,21 @@ async function fetchJson(url: string, timeoutMs = 10000): Promise<unknown> {
   return res.json();
 }
 
+/**
+ * Browser-safe variables only.
+ *
+ * This used to hand back the whole `import.meta.env` object, which made
+ * Vite inline every VITE_* value — including the chat-provider API keys,
+ * which this module has no business seeing — into the EarthProviders
+ * chunk. `publicEnvVar` reads an explicit allowlist of names instead
+ * (see core/env/publicEnv.ts), so only the two variables Earth actually
+ * uses can reach the bundle through here. The original note about
+ * needing a contiguous `import.meta.env` expression still holds, and
+ * publicEnv.ts satisfies it: each name is read as its own literal
+ * `import.meta.env.VITE_X` reference.
+ */
 function key(name: string): string | undefined {
-  try {
-    // NOTE: `import.meta.env` must appear as a CONTIGUOUS expression —
-    // Vite statically replaces exactly this text with the env object in
-    // dev AND build. A cast between (`(import.meta as X).env`) breaks the
-    // match and silently yields NOT_CONFIGURED in the browser.
-    const env: Record<string, string | undefined> | undefined = import.meta.env as Record<
-      string,
-      string | undefined
-    > | undefined;
-    return env?.[name] || undefined;
-  } catch {
-    return undefined;
-  }
+  return publicEnvVar(name) || undefined;
 }
 
 /**
@@ -201,7 +202,7 @@ export async function searchPlaces(query: string): Promise<SpatialSearchResult[]
   if (!q) return [];
   try {
     const data = (await fetchJson(
-      `${endpoint("openMeteoGeocoding")}/v1/search?name=${encodeURIComponent(q)}&count=8&language=en&format=json`,
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=en&format=json`,
     )) as { results?: OpenMeteoPlace[] };
     const results = (data.results ?? [])
       .filter((r) => typeof r.latitude === "number" && typeof r.longitude === "number" && r.name)
@@ -242,7 +243,7 @@ export async function reverseGeocodePlace(
 ): Promise<{ name: string; country?: string; admin1?: string } | null> {
   try {
     const data = (await fetchJson(
-      `${endpoint("openMeteoGeocoding")}/v1/search?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&count=1&language=en&format=json`,
+      `https://geocoding-api.open-meteo.com/v1/search?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&count=1&language=en&format=json`,
     )) as { results?: OpenMeteoPlace[] };
     const hit = data.results?.[0];
     if (hit?.name) {
@@ -372,7 +373,7 @@ function propagateSubPoint(sat: CelestrakSatellite, now: number): GeoLocation | 
 async function fetchSatellites(_ctx: ProviderFetchContext): Promise<SpatialEntity[]> {
   const now = Date.now();
   const data = (await fetchJson(
-    endpointUrl("celestrak", "NORAD/elements/gp.php?GROUP=stations&FORMAT=json"),
+    "https://celestrak.org/NORAD/elements/gp.php?GROUP=stations&FORMAT=json",
   )) as CelestrakSatellite[];
   const out: SpatialEntity[] = [];
   for (const sat of data ?? []) {
@@ -415,7 +416,7 @@ interface UsgsFeature {
 
 async function fetchEarthquakes(_ctx: ProviderFetchContext): Promise<SpatialEntity[]> {
   const data = (await fetchJson(
-    endpointUrl("usgsEarthquake", "earthquakes/feed/v1.0/summary/all_day.geojson"),
+    "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson",
   )) as { features?: UsgsFeature[] };
   return (data.features ?? [])
     .filter((f) => Array.isArray(f.geometry?.coordinates) && f.geometry!.coordinates!.length >= 2)
@@ -468,7 +469,7 @@ async function fetchWeather(ctx: ProviderFetchContext): Promise<SpatialEntity[]>
   const focus = ctx.focus;
   if (!focus) return [];
   const data = (await fetchJson(
-    `${endpoint("openMeteo")}/v1/forecast?latitude=${focus.lat.toFixed(4)}&longitude=${focus.lon.toFixed(4)}&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto`,
+    `https://api.open-meteo.com/v1/forecast?latitude=${focus.lat.toFixed(4)}&longitude=${focus.lon.toFixed(4)}&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto`,
   )) as {
     current?: { temperature_2m?: number; weather_code?: number; wind_speed_10m?: number; time?: string };
   };
@@ -579,7 +580,7 @@ async function fetchFires(ctx: ProviderFetchContext): Promise<SpatialEntity[]> {
       // DAY_RANGE=2 → most recent data (today + yesterday); NRT detections
       // carry their own acq_date/acq_time so freshness stays truthful.
       const text = await fetchText(
-        `${endpoint("firms")}/api/area/csv/${apiKey}/${source}/${bbox}/2`,
+        `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${apiKey}/${source}/${bbox}/2`,
       );
       const lines = text.split(/\r?\n/);
       for (let i = 1; i < lines.length; i++) {
@@ -849,7 +850,7 @@ export async function alprRouteAnalysis(
   let durationMin = 0;
   try {
     const data = (await fetchJson(
-      `${endpoint("osrm")}/route/v1/driving/${from.lon},${from.lat};${to.lon},${to.lat}?overview=full&geometries=geojson&steps=false`,
+      `https://router.project-osrm.org/route/v1/driving/${from.lon},${from.lat};${to.lon},${to.lat}?overview=full&geometries=geojson&steps=false`,
     )) as {
       routes?: Array<{
         geometry?: { coordinates?: Array<[number, number]> };

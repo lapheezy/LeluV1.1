@@ -1,3 +1,17 @@
+/**
+ * OG conversation ARCHIVE admin — crash recovery and summarisation.
+ *
+ * This surface works on `legacy_conversations` / `legacy_messages`: it reads
+ * and writes the OG-only columns (crash_count, last_crash_at, recovery_state,
+ * universe_id) and the `parts` message body, none of which exist on v1.1's
+ * canonical tables, and `conversation_summaries.conversation_id` carries a
+ * foreign key to `legacy_conversations`.
+ *
+ * The migration gave the names `conversations` and `messages` to v1.1's own
+ * tables, so this file querying them unqualified aimed every statement at the
+ * wrong shape. The live conversation list is canonical and lives in
+ * `conversations.functions.ts`; this is the archive beside it.
+ */
 import { createServerFn } from "@og/compat/server-fn";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@og/integrations/supabase/auth-middleware";
@@ -9,13 +23,13 @@ export const reportConversationCrash = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase;
     const { data: row } = await sb
-      .from("conversations")
+      .from("legacy_conversations")
       .select("crash_count")
       .eq("id", data.id)
       .maybeSingle();
     const next = (row?.crash_count ?? 0) + 1;
     await sb
-      .from("conversations")
+      .from("legacy_conversations")
       .update({
         crash_count: next,
         last_crash_at: new Date().toISOString(),
@@ -43,7 +57,7 @@ export const recoverConversation = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase;
     const { data: msgs, error } = await sb
-      .from("messages")
+      .from("legacy_messages")
       .select("id, role, parts, created_at")
       .eq("conversation_id", data.id)
       .order("created_at", { ascending: true });
@@ -61,10 +75,10 @@ export const recoverConversation = createServerFn({ method: "POST" })
       if (!ok) bad.push(m.id);
     }
     if (bad.length) {
-      await sb.from("messages").delete().in("id", bad);
+      await sb.from("legacy_messages").delete().in("id", bad);
     }
     await sb
-      .from("conversations")
+      .from("legacy_conversations")
       .update({ recovery_state: "healthy", crash_count: 0, last_crash_at: null })
       .eq("id", data.id);
     return { ok: true, removed: bad.length, kept: (msgs?.length ?? 0) - bad.length };
@@ -84,14 +98,14 @@ export const preserveConversation = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase;
     const { data: convo } = await sb
-      .from("conversations")
+      .from("legacy_conversations")
       .select("id, title, universe_id")
       .eq("id", data.id)
       .maybeSingle();
     if (!convo) throw new Error("Conversation not found");
 
     const { data: msgs } = await sb
-      .from("messages")
+      .from("legacy_messages")
       .select("role, parts, created_at")
       .eq("conversation_id", data.id)
       .order("created_at", { ascending: true });
@@ -152,13 +166,13 @@ export const safeDeleteConversation = createServerFn({ method: "POST" })
     // Inline preservation (don't recurse server fns).
     const sb = context.supabase;
     const { data: convo } = await sb
-      .from("conversations")
+      .from("legacy_conversations")
       .select("id, title, universe_id")
       .eq("id", data.id)
       .maybeSingle();
     if (!convo) return { ok: true, summary_id: null };
     const { data: msgs } = await sb
-      .from("messages")
+      .from("legacy_messages")
       .select("role, parts")
       .eq("conversation_id", data.id)
       .order("created_at", { ascending: true });
@@ -183,7 +197,7 @@ export const safeDeleteConversation = createServerFn({ method: "POST" })
       })
       .select("id")
       .single();
-    const { error: delErr } = await sb.from("conversations").delete().eq("id", data.id);
+    const { error: delErr } = await sb.from("legacy_conversations").delete().eq("id", data.id);
     if (delErr) throw new Error(delErr.message);
     return { ok: true, summary_id: sumRow?.id ?? null };
   });
@@ -199,7 +213,7 @@ export const searchConversations = createServerFn({ method: "POST" })
 
     // 1. Title matches.
     const { data: byTitle } = await sb
-      .from("conversations")
+      .from("legacy_conversations")
       .select("id, title, updated_at, archived, recovery_state")
       .ilike("title", like)
       .order("updated_at", { ascending: false })
@@ -215,7 +229,7 @@ export const searchConversations = createServerFn({ method: "POST" })
 
     // 3. Message body matches — scan recent messages and substring-match flattened text.
     const { data: recent } = await sb
-      .from("messages")
+      .from("legacy_messages")
       .select("conversation_id, parts")
       .order("created_at", { ascending: false })
       .limit(500);
@@ -233,7 +247,7 @@ export const searchConversations = createServerFn({ method: "POST" })
     let convosFromMsgs: { id: string; title: string; updated_at: string }[] = [];
     if (convoIdsFromMsgs.length) {
       const { data: conv } = await sb
-        .from("conversations")
+        .from("legacy_conversations")
         .select("id, title, updated_at")
         .in("id", convoIdsFromMsgs);
       convosFromMsgs = conv ?? [];

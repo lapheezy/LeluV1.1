@@ -5,7 +5,7 @@
  * The single implementation of the four-rung lookup every
  * other config module performs:
  *
- *   1. import.meta.env.VITE_<NAME>   (browser bundle)
+ *   1. globalThis.__LELU_<NAME>__     (browser, via runtimeKeyBridge)
  *   2. globalThis.__LELU_<NAME>__    (runtime key bridge)
  *   3. window.__LELU_<NAME>__        (same object in a browser)
  *   4. process.env.<NAME>            (server runtimes, unprefixed)
@@ -26,13 +26,19 @@
 export function resolveEnvValue(name: string): string | undefined {
   const viteName = name.startsWith("VITE_") ? name : `VITE_${name}`;
 
-  try {
-    const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
-    const fromVite = viteEnv?.[viteName] ?? viteEnv?.[name];
-    if (typeof fromVite === "string" && fromVite.trim()) return fromVite.trim();
-  } catch {
-    /* import.meta.env does not exist outside Vite — fall through */
-  }
+  // DELIBERATELY NO `import.meta.env` RUNG.
+  //
+  // Vite can only substitute a STATIC member access such as
+  // `import.meta.env.VITE_FOO`. Reading it dynamically — `env[name]`, or
+  // capturing the object — makes Vite emit the WHOLE env record, so every
+  // VITE_-prefixed value present at build time is inlined into the chunk
+  // whether anything reads it or not. Measured: that put eight canary
+  // credentials into Endpoints, Environment and resolveEnv, which is the
+  // exposure the server broker exists to remove.
+  //
+  // The browser gets its public configuration from rung 2 instead: the
+  // `__LELU_*__` globals that plugins/runtimeKeyBridge.ts publishes. Model
+  // credentials are never among them — they stay on the server.
 
   const runtime = globalThis as unknown as Record<string, string | undefined>;
   const bare = name.startsWith("VITE_") ? name.slice("VITE_".length) : name;
@@ -81,14 +87,10 @@ export function nasaApiKey(): string {
 export function resolveViteOnly(bareName: string): string | undefined {
   const viteName = `VITE_${bareName}`;
 
-  try {
-    const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
-    const fromVite = viteEnv?.[viteName];
-    if (typeof fromVite === "string" && fromVite.trim()) return fromVite.trim();
-  } catch {
-    /* import.meta.env does not exist outside Vite */
-  }
-
+  // No `import.meta.env` rung, for the reason given in resolveEnvValue: a
+  // dynamic read of it inlines the whole env record into the bundle. This
+  // function alone still put all eight canary credentials in the chunk after
+  // the other two rungs were removed.
   const runtime = globalThis as unknown as Record<string, string | undefined>;
   const fromGlobal = runtime[`__LELU_${bareName}__`];
   if (typeof fromGlobal === "string" && fromGlobal.trim()) return fromGlobal.trim();

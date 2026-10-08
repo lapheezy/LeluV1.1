@@ -1,0 +1,90 @@
+# LÉLU CI — verification gate for the cognitive/memory/provider/tool
+# architecture this repo's ongoing audit has been building and fixing.
+#
+# Runs on every push and PR so a change can never merge or deploy
+# claiming "fixed"/"verified" without this actually passing:
+#   - strict TypeScript across both project references (tsc -b)
+#   - lint (oxlint)
+#   - unit tests (bun test)
+#   - every scripts/verify-*.ts script — the real, evidence-based
+#     runtime checks this project's audits are built on (cognition,
+#     memory recall, provider fallback, init-race safety, UI action
+#     dispatch, tool registry dispatch, startup diagnostics, …)
+#   - a real production build (vite build), so a change can't merge
+#     while the app itself fails to build
+#
+# A failed step here means the change is NOT verified — it blocks
+# merge, it does not get silently reported as passing elsewhere.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Typecheck + build (tsc -b && vite build)
+        run: bun run build
+
+      - name: Unit tests
+        run: bun test
+
+      # verify-voice.ts is no longer quarantined: its failures were
+      # deterministic test interleaving (unawaited async checks racing
+      # on the shared VoiceEngine singleton), now fixed. It runs in the
+      # blocking loop below like every other verification script.
+      - name: Run every scripts/verify-*.ts script
+        run: |
+          set -e
+          status=0
+          for f in scripts/verify-*.ts; do
+            echo "::group::$f"
+            if ! bun run "$f"; then
+              echo "::error file=$f::verify script failed"
+              status=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $status
+
+      # The live check: a REAL browser against a REAL server. It is the
+      # only place three claims can actually be proven — that the app
+      # renders (no white screen), that a message typed into the existing
+      # chat input travels through the runtime, and that no credential is
+      # reachable from the page. GROQ_API_KEY is a canary: it is set
+      # server-side ONLY, and the test fails if the browser can see it
+      # anywhere (served scripts, console, globals).
+      - name: Live runtime + client secret scan (real browser)
+        env:
+          GROQ_API_KEY: gsk_CI_CANARY_MUSTNOTREACHTHEBROWSER
+          LELU_LIVE_CANARY: gsk_CI_CANARY_MUSTNOTREACHTHEBROWSER
+        run: |
+          set -e
+          bunx playwright install --with-deps chromium
+          bun run preview &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:4173/ > /dev/null && break
+            sleep 1
+          done
+          node scripts/verify-live-runtime.mjs http://127.0.0.1:4173

@@ -12,6 +12,7 @@
  */
 
 import AIService from "../AIService";
+import AgentEventBus from "../agent/AgentEvents";
 import AgentStore from "./AgentStore";
 import ProjectStore from "../projects/ProjectStore";
 import type { AIResponse } from "../../providers/AIProvider";
@@ -64,7 +65,16 @@ export default class AgentRunner {
     agentId: string,
     task: string,
     projectId?: string,
+    /**
+     * The cognitive turn this run belongs to, when it was started from
+     * one. Passing it attributes the agent's work to that turn in the
+     * cognitive trace; omitting it (a standalone run from the Agents
+     * panel) gives the run its own id so it is never folded into an
+     * unrelated turn's evidence chain.
+     */
+    parentTaskId?: string,
   ): Promise<AgentRunResult> {
+    const events = AgentEventBus.getInstance();
     const agent = this.store.get(agentId);
     if (!agent) {
       return { ok: false, error: "Agent not found.", taskId: String(Date.now()) };
@@ -97,6 +107,20 @@ export default class AgentRunner {
       projectId: resolvedProject,
     });
 
+    // Every agent run announces itself on the ONE bus from here, so the
+    // runtime, the cognitive trace and the UI activity feed all see the
+    // same thing. Previously this method emitted nothing at all: a run
+    // started from the Agents panel was invisible to the rest of LÉLU —
+    // it wrote to AgentStore and no other subsystem ever knew.
+    const eventTaskId = parentTaskId ?? taskRecord.id;
+    const startedAt = Date.now();
+    events.emit({
+      type: "agent_started",
+      taskId: eventTaskId,
+      agent: agent.name,
+      objective: task,
+    });
+
     try {
       const response = await this.ai.delegate(agent, task, projectContext);
       const execution = this.store.recordExecution(agentId, {
@@ -112,6 +136,18 @@ export default class AgentRunner {
         status: "complete",
         completedAt: Date.now(),
         executionId: execution.id,
+      });
+      // The agent's result RETURNS to the runtime here, rather than
+      // stopping at the caller — the orchestrator decides what happens
+      // next from the same event stream everything else uses.
+      events.emit({
+        type: "agent_completed",
+        taskId: eventTaskId,
+        agent: agent.name,
+        objective: task,
+        provider: response.provider,
+        durationMs: Date.now() - startedAt,
+        resultPreview: response.text.slice(0, 160),
       });
       // AGENT WORKING MEMORY → RESULT → MEMORY CANDIDATE → CONSOLIDATION (§11).
       // The full result stays in the execution record above. Only a bounded
@@ -138,6 +174,14 @@ export default class AgentRunner {
       this.store.updateTask(agentId, taskRecord.id, {
         status: "failed",
         completedAt: Date.now(),
+        error: message,
+      });
+      // A failure is an event too — never a silent death.
+      events.emit({
+        type: "agent_failed",
+        taskId: eventTaskId,
+        agent: agent.name,
+        objective: task,
         error: message,
       });
       return { ok: false, error: message, taskId: taskRecord.id };

@@ -20,18 +20,23 @@ import { endpoint } from "./Endpoints";
 
 // -- raw env access (Vite-injected, available in browser bundle) ----------
 
-function rawEnv(): Record<string, string | undefined> {
-  try {
-    return (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env ?? {};
-  } catch {
-    return {};
-  }
-}
+/**
+ * There is no `import.meta.env` rung here.
+ *
+ * Returning that object — or indexing it dynamically — defeats Vite's static
+ * substitution and emits the WHOLE env record into the chunk, inlining every
+ * VITE_-prefixed value present at build time. Measured: eight canary
+ * credentials shipped in Endpoints, Environment and resolveEnv.
+ *
+ * Every rung the browser may legitimately read is in `fallbackRungs`: the
+ * `__LELU_*__` globals published by plugins/runtimeKeyBridge.ts, then
+ * process.env for server and CLI runtimes.
+ */
 
 /**
  * The other three rungs a provider resolves a key through.
  *
- * `rawEnv()` alone only sees rung 1 (import.meta.env.VITE_*), so this
+ * The browser cannot read process.env at all, so this
  * module — which declares itself the single source of truth — used to
  * report a provider MISSING while that provider was resolving a key
  * perfectly well from a later rung, and report every provider MISSING
@@ -42,7 +47,7 @@ function rawEnv(): Record<string, string | undefined> {
  * Order here mirrors the providers exactly, so a diagnostic answer and
  * the provider's own answer can never differ:
  *
- *   1. import.meta.env.VITE_<NAME>   (rawEnv, checked first by callers)
+ *   1. globalThis.__LELU_<NAME>__     (browser, via runtimeKeyBridge)
  *   2. globalThis.__LELU_<NAME>__
  *   3. window.__LELU_<NAME>__        (same object as 2 in a browser)
  *   4. process.env.<NAME>            (unprefixed; server runtimes only)
@@ -93,10 +98,6 @@ function fallbackRungs(viteKey: string): string | undefined {
 
 /** Resolve a documented VITE_ name across every rung a provider uses. */
 function resolve(viteKey: string): string | undefined {
-  const primary = rawEnv()[viteKey];
-  if (typeof primary === "string" && primary.trim().length > 0) {
-    return primary.trim();
-  }
   return fallbackRungs(viteKey);
 }
 

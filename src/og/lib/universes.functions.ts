@@ -1,6 +1,8 @@
 import { createServerFn } from "@og/compat/server-fn";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@og/integrations/supabase/auth-middleware";
+import { MEMORY_ITEM_COLUMNS, toOgMemory, type OgMemoryRow } from "@og/lib/memory-mapping";
+import { CONVERSATION_COLUMNS, toOgConversation } from "@og/lib/conversation-mapping";
 
 export const listUniverses = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -81,7 +83,9 @@ export const getUniverseDetail = createServerFn({ method: "GET" })
     const id = data.id;
     const [u, convos, tasks, notes, goals, events, reminders, files, memLinks] = await Promise.all([
       sb.from("universes").select("*").eq("id", id).maybeSingle(),
-      sb.from("conversations").select("id,title,updated_at,archived,pinned").eq("universe_id", id).order("updated_at", { ascending: false }),
+      // A conversation's universe and flags live in conversations.metadata,
+      // so they cannot be PostgREST filters; both are applied after mapping.
+      sb.from("conversations").select(CONVERSATION_COLUMNS).order("updated_at", { ascending: false }).limit(500),
       sb.from("tasks").select("id,title,done,due_at,updated_at").eq("universe_id", id).order("updated_at", { ascending: false }),
       sb.from("notes").select("id,title,updated_at").eq("universe_id", id).order("updated_at", { ascending: false }),
       sb.from("goals").select("id,title,progress,status,target_date").eq("universe_id", id).order("updated_at", { ascending: false }),
@@ -90,20 +94,25 @@ export const getUniverseDetail = createServerFn({ method: "GET" })
       sb.from("files").select("id,kind,title,updated_at,pinned").eq("universe_id", id).order("updated_at", { ascending: false }),
       sb.from("memory_universes").select("memory_id").eq("universe_id", id),
     ]);
-    let memories: { id: string; category: string; key: string; title: string | null; value: string; importance: number; updated_at: string }[] = [];
-    const memIds = (memLinks.data ?? []).map((r) => r.memory_id);
+    // Canonical memory store is memory_items; mapped into the OG row shape.
+    let memories: OgMemoryRow[] = [];
+    const memIds = (memLinks.data ?? []).map((r) => String(r.memory_id));
     if (memIds.length > 0) {
       const { data: mems } = await sb
-        .from("memories")
-        .select("id,category,key,title,value,importance,updated_at")
+        .from("memory_items")
+        .select(MEMORY_ITEM_COLUMNS)
         .in("id", memIds)
         .order("importance", { ascending: false })
         .order("updated_at", { ascending: false });
-      memories = mems ?? [];
+      memories = (mems ?? []).map((row) => toOgMemory(row as Record<string, unknown>));
     }
     return {
       universe: u.data,
-      conversations: convos.data ?? [],
+      // Scoped to this universe here, since the flag lives in metadata.
+      conversations: (convos.data ?? [])
+        .map((row) => toOgConversation(row as Record<string, unknown>))
+        .filter((row) => row.universe_id === id)
+        .sort((a, b) => Number(b.pinned) - Number(a.pinned)),
       tasks: tasks.data ?? [],
       notes: notes.data ?? [],
       goals: goals.data ?? [],

@@ -32,6 +32,18 @@ export default class AIProviderRegistry {
   /** Usage metadata (tokens/credits) reported by the last successful response. */
   private readonly lastUsage = new Map<string, unknown>();
 
+  /**
+   * In-flight initialization promise. `initialize()` had no guard at
+   * all — two concurrent callers (plausible: multiple components each
+   * calling AIService.initialize() on mount, or React StrictMode's
+   * double-invoke) would each loop over every provider and call
+   * `provider.initialize()` twice, concurrently, per provider. Memoizing
+   * the actual work means concurrent callers await the SAME run instead
+   * of racing separate ones.
+   */
+  private initializingPromise: Promise<void> | null = null;
+  private initialized = false;
+
   public register(provider: AIProvider): void {
     if (this.providers.has(provider.name)) {
       console.warn(
@@ -49,7 +61,27 @@ export default class AIProviderRegistry {
     }
   }
 
+  /**
+   * Concurrent callers await the SAME run instead of each looping over
+   * every provider independently. Once complete, later calls are a
+   * true no-op (matching AICore/AIRuntime/AIService's own guard
+   * convention) — there is currently no path that registers a provider
+   * after startup, so re-running would only ever redundantly
+   * re-initialize already-successful providers.
+   */
   public async initialize(): Promise<void> {
+    if (this.initialized) return;
+    if (this.initializingPromise) return this.initializingPromise;
+
+    this.initializingPromise = this.doInitialize();
+    try {
+      await this.initializingPromise;
+    } finally {
+      this.initializingPromise = null;
+    }
+  }
+
+  private async doInitialize(): Promise<void> {
     for (const provider of this.providers.values()) {
       try {
         console.info(
@@ -68,6 +100,7 @@ export default class AIProviderRegistry {
         );
       }
     }
+    this.initialized = true;
   }
 
   public async shutdown(): Promise<void> {
