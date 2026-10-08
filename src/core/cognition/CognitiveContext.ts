@@ -33,6 +33,7 @@ import WorkflowStore from "../workflows/WorkflowStore";
 import AgentWorkflowBridge from "../workflows/AgentWorkflowBridge";
 import AgentObjectives from "./AgentObjectives";
 import ObjectiveLearning from "./ObjectiveLearning";
+import { describeConfiguration, partiallyConfigured } from "../config/ConfigStatus";
 import {
   buildReport,
   inspectDocument,
@@ -105,6 +106,12 @@ export interface CognitiveContextSnapshot {
    * produced, not just that something happened.
    */
   workflowActivity: string;
+
+  /**
+   * Which capabilities are configured, and which environment variable
+   * is missing for the ones that are not. Names and presence only.
+   */
+  configuration: string;
 
   /**
    * What LÉLU is working on autonomously right now: live objectives,
@@ -259,6 +266,7 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
     // ever moves in response to a real backend result.
     engineeringWorkspace: EngineeringWorkspace.getInstance().describe(),
     workflowActivity: describeWorkflowActivity(),
+    configuration: describeConfigurationSafely(),
     // Read-only: describes the objective store as it stands. Assembling
     // context never starts, advances or ends a cycle.
     autonomousWork: describeAutonomousWork(),
@@ -427,6 +435,19 @@ function describeAutonomousWork(): string {
   }
 }
 
+/** Never let a configuration read break assembling context. */
+function describeConfigurationSafely(): string {
+  try {
+    const half = partiallyConfigured();
+    const summary = describeConfiguration();
+    return half.length > 0
+      ? `${summary}\nSay so plainly when one of these explains a failure.`
+      : summary;
+  } catch {
+    return "Configuration status is unavailable in this runtime.";
+  }
+}
+
 export function formatCognitiveContext(ctx: CognitiveContextSnapshot): string {
   const sections: string[] = [];
 
@@ -541,6 +562,12 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   // cannot run is listed as NOT EXECUTABLE with its actual blocker, so
   // the model can report an unavailable capability instead of
   // attempting one and reporting a failure it could have predicted.
+  // WHAT SHE IS CONFIGURED WITH. Included unprompted, and kept short
+  // unless something is half-configured — a capability with a key and
+  // no URL is the kind of thing that otherwise fails silently and gets
+  // explained as "unavailable" with no reason attached.
+  sections.push(`## YOUR CONFIGURATION\n${ctx.configuration}`);
+
   sections.push(`## AVAILABLE WORKFLOWS\n${ctx.workflowCapabilities}`);
 
   sections.push(`## WORKFLOW ACTIVITY\n${ctx.workflowActivity}`);

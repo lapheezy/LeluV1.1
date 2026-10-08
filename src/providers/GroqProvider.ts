@@ -10,6 +10,8 @@ import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import {
   extractOpenAIToolCalls,
+  extractOpenAIText,
+  describeEmptyChoice,
   openAIToolPayload,
   toOpenAIMessages,
   trailingUserTurn,
@@ -17,6 +19,7 @@ import {
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
 
 export default class GroqProvider implements AIProvider {
@@ -43,7 +46,6 @@ export default class GroqProvider implements AIProvider {
 
     console.info("[GroqProvider] Initialized", {
       hasKey: this.apiKey.length > 0,
-      keyLength: this.apiKey.length,
       model: this.model,
     });
   }
@@ -87,7 +89,7 @@ export default class GroqProvider implements AIProvider {
 
   async isAvailable(): Promise<boolean> {
     return (
-      this.initialized && this.enabled && this.requiresApiKey && this.apiKey.length > 0
+      this.initialized && this.enabled && providerConfigured("groq", this.apiKey)
     );
   }
 
@@ -97,7 +99,7 @@ export default class GroqProvider implements AIProvider {
 
     if (!this.initialized) {
       lastError = "Groq provider not initialized.";
-    } else if (!this.apiKey) {
+    } else if (!isBrokered("groq") && !this.apiKey) {
       lastError = "Groq API key missing.";
     }
 
@@ -120,7 +122,10 @@ export default class GroqProvider implements AIProvider {
       throw new Error("Groq provider is not initialized.");
     }
 
-    if (!this.apiKey) {
+    if (!isBrokered("groq") && !this.apiKey) {
+      // Only a DIRECT send needs a key here; brokered requests carry
+      // none by design, and refusing them would disable the provider
+      // the broker can actually serve.
       throw new Error("Groq API key is missing.");
     }
 
@@ -154,7 +159,9 @@ export default class GroqProvider implements AIProvider {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${this.apiKey}`,
+          // Brokered: no credential leaves the browser — the server attaches
+          // its own. Direct (server/tests): the real header.
+          ...authHeaders("groq", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
         },
         body: JSON.stringify(payload),
         signal: AbortSignal.timeout(this.timeout),
@@ -188,15 +195,17 @@ export default class GroqProvider implements AIProvider {
       throw new Error(`Groq failed ${response.status}: ${String(apiMessage)}`);
     }
 
-    const choices = data?.choices as Array<{ message?: { content?: string }; finish_reason?: string }> | undefined;
-    const content = choices?.[0]?.message?.content ?? "";
+    const choices = data?.choices as
+      | Array<{ message?: Record<string, unknown>; finish_reason?: string }>
+      | undefined;
+    const content = extractOpenAIText(choices?.[0]);
     const toolCalls = extractOpenAIToolCalls(choices?.[0]);
 
     // A tool-call turn legitimately carries no text. Rejecting it as
     // "no usable content" would turn a valid tool request into a
     // provider failure and drop to the next provider for no reason.
     if ((typeof content !== "string" || !content.trim()) && toolCalls.length === 0) {
-      throw new Error("Groq returned no usable content.");
+      throw new Error(describeEmptyChoice("Groq", choices?.[0]));
     }
 
     const processingTime = Date.now() - started;

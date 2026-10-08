@@ -23,6 +23,7 @@ import GenesisNavIcon, { type GenesisNavIconName } from "./GenesisNavIcons";
 import GenesisTabEditor from "./GenesisTabEditor";
 import GenesisMobileMenu from "./GenesisMobileMenu";
 import KvStore from "../../../core/storage/KvStore";
+import OgDockTabs from "./OgDockTabs";
 import ImprovementQueue from "../../../core/selfdev/ImprovementQueue";
 
 export interface DockItem {
@@ -810,6 +811,13 @@ export default function GenesisDock({
           <span aria-hidden style={{ fontSize: 15, lineHeight: 1 }}>☰</span>
         </button>
         ) : null}
+        {/* The OG interfaces sit in LÉLU's own dock rather than a menu of
+        their own, so reaching them is navigation and the runtime under
+        them is never rebuilt (§2, §18). Rendered at every breakpoint,
+        because the dock has three different shapes and an interface
+        that only exists on tablets is not "exposed". */}
+        <OgDockTabs railSize={44} iconSize={16} />
+
         {tabEditor}
       </>
     );
@@ -949,6 +957,13 @@ export default function GenesisDock({
             </div>
           ) : null}
         </div>
+        {/* The OG interfaces sit in LÉLU's own dock rather than a menu of
+        their own, so reaching them is navigation and the runtime under
+        them is never rebuilt (§2, §18). Rendered at every breakpoint,
+        because the dock has three different shapes and an interface
+        that only exists on tablets is not "exposed". */}
+        <OgDockTabs railSize={44} iconSize={16} />
+
         {tabEditor}
       </>
     );
@@ -1136,6 +1151,13 @@ export default function GenesisDock({
           </div>
         ) : null}
       </div>
+      {/* The OG interfaces sit in LÉLU's own dock rather than a menu of
+      their own, so reaching them is navigation and the runtime under
+      them is never rebuilt (§2, §18). Rendered at every breakpoint,
+      because the dock has three different shapes and an interface
+      that only exists on tablets is not "exposed". */}
+      <OgDockTabs railSize={44} iconSize={16} />
+
       {tabEditor}
     </>
   );

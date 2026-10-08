@@ -19,6 +19,8 @@ import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import {
   extractOpenAIToolCalls,
+  extractOpenAIText,
+  describeEmptyChoice,
   openAIToolPayload,
   toOpenAIMessages,
   trailingUserTurn,
@@ -26,6 +28,7 @@ import {
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
 
 export default class CerebrasProvider implements AIProvider {
@@ -67,7 +70,7 @@ export default class CerebrasProvider implements AIProvider {
       this.initialized &&
       this.enabled &&
       this.requiresApiKey &&
-      this.apiKey.length > 0
+      providerConfigured("cerebras", this.apiKey)
     );
   }
 
@@ -80,7 +83,7 @@ export default class CerebrasProvider implements AIProvider {
       lastChecked: Date.now(),
       lastError: !this.initialized
         ? "Cerebras provider not initialized."
-        : !this.apiKey
+        : !isBrokered("cerebras") && !this.apiKey
           ? "Cerebras API key missing."
           : undefined,
     };
@@ -97,7 +100,10 @@ export default class CerebrasProvider implements AIProvider {
       throw new Error("Cerebras provider is not initialized.");
     }
 
-    if (!this.apiKey) {
+    if (!isBrokered("cerebras") && !this.apiKey) {
+      // Only a DIRECT send needs a key here; brokered requests carry
+      // none by design, and refusing them would disable the provider
+      // the broker can actually serve.
       throw new Error("Cerebras API key is missing.");
     }
 
@@ -127,7 +133,9 @@ export default class CerebrasProvider implements AIProvider {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
-            Authorization: `Bearer ${this.apiKey}`,
+            // Brokered: no credential leaves the browser — the server attaches
+            // its own. Direct (server/tests): the real header.
+            ...authHeaders("cerebras", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
           },
           body: JSON.stringify(payload),
           signal: AbortSignal.timeout(this.timeout),
@@ -169,13 +177,13 @@ export default class CerebrasProvider implements AIProvider {
       throw new Error(`Cerebras HTTP ${response.status}: ${apiMessage}`);
     }
 
-    const content = data?.choices?.[0]?.message?.content ?? "";
+    const content = extractOpenAIText(data?.choices?.[0]);
     const toolCalls = extractOpenAIToolCalls(data?.choices?.[0]);
     // A tool-call turn legitimately carries no text. Rejecting it as
     // "no usable content" would turn a valid tool request into a
     // provider failure and drop to the next provider for no reason.
     if ((typeof content !== "string" || !content.trim()) && toolCalls.length === 0) {
-      throw new Error("Cerebras returned no usable content.");
+      throw new Error(describeEmptyChoice("Cerebras", data?.choices?.[0]));
     }
 
     return {

@@ -11,6 +11,7 @@ import { contextMessages } from "./contextMessages";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
 
 type MessageContent = string | Array<Record<string, unknown>>;
@@ -78,7 +79,6 @@ export default class AnthropicProvider implements AIProvider {
 
     console.info("[AnthropicProvider] Initialized", {
       hasKey: this.apiKey.length > 0,
-      keyLength: this.apiKey.length,
       model: this.model,
     });
   }
@@ -224,7 +224,7 @@ export default class AnthropicProvider implements AIProvider {
 
   async isAvailable(): Promise<boolean> {
     return (
-      this.initialized && this.enabled && this.requiresApiKey && this.apiKey.length > 0
+      this.initialized && this.enabled && providerConfigured("anthropic", this.apiKey)
     );
   }
 
@@ -234,7 +234,7 @@ export default class AnthropicProvider implements AIProvider {
 
     if (!this.initialized) {
       lastError = "Anthropic provider not initialized.";
-    } else if (!this.apiKey) {
+    } else if (!isBrokered("anthropic") && !this.apiKey) {
       lastError = "Anthropic API key missing.";
     }
 
@@ -257,7 +257,10 @@ export default class AnthropicProvider implements AIProvider {
       throw new Error("Anthropic provider is not initialized.");
     }
 
-    if (!this.apiKey) {
+    if (!isBrokered("anthropic") && !this.apiKey) {
+      // Only a DIRECT send needs a key here; brokered requests carry
+      // none by design, and refusing them would disable the provider
+      // the broker can actually serve.
       throw new Error("Anthropic API key is missing.");
     }
 
@@ -318,7 +321,9 @@ export default class AnthropicProvider implements AIProvider {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": this.apiKey,
+          // Brokered: no credential leaves the browser — the server attaches
+          // its own. Direct (server/tests): the real header.
+          ...authHeaders("anthropic", this.apiKey, (key) => ({ "x-api-key": key })),
           "anthropic-version": "2023-06-01",
           // Without this the Messages API refuses the CORS preflight and
           // the call never leaves the browser. LÉLU is a client-side SPA

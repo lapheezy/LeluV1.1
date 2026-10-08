@@ -20,13 +20,25 @@ import AgentEventBus from "./agent/AgentEvents";
 import ProjectStore from "./projects/ProjectStore";
 import AgentStore from "./agents/AgentStore";
 import AvatarStore from "./avatar/AvatarProfile";
+import { fitContext } from "./memory/CognitiveBudget";
+import MemoryOrchestrator from "./memory/MemoryProvider";
+import { LocalMemoryProvider, OgArchiveProvider, SupabaseMemoryProvider } from "./memory/providers";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 
 export default class MemoryBridge {
   constructor(
     private readonly brain: Brain,
     private readonly user: UserManager,
-  ) {}
+  ) {
+    // Register the sources LÉLU can draw context from. Cognition asks the
+    // orchestrator for context and never names a store, so Supabase — v1.1's
+    // and the OG archive alike — is one provider rather than a dependency
+    // (brief §5). Registration is idempotent: the registry is keyed by id.
+    const orchestrator = MemoryOrchestrator.getInstance();
+    orchestrator.register(new LocalMemoryProvider(brain));
+    orchestrator.register(new SupabaseMemoryProvider());
+    orchestrator.register(new OgArchiveProvider());
+  }
 
   /**
    * Retrieve + evaluate + synthesize memory context and attach it
@@ -68,9 +80,58 @@ export default class MemoryBridge {
       return request;
     }
 
+    // EXTERNAL / HISTORICAL CONTEXT (brief §6 bands 6-7, §19).
+    //
+    // Everything above is what LÉLU holds in process. This reaches the
+    // optional sources — v1.1's Supabase and the read-only OG archive — so
+    // conversations from the OG era are still reachable without v1.1 being
+    // built around the OG schema. It is appended AFTER local context because
+    // §6 ranks history below what is at hand, and the budget below trims from
+    // the oldest end, so history is what gets cut first when space runs short.
+    //
+    // gather() never throws and skips providers that are unavailable or slow,
+    // so an absent or broken Supabase costs exactly its own rows.
+    let withHistory = merged;
+    try {
+      const external = await MemoryOrchestrator.getInstance().gather(request.prompt, {
+        bands: [6, 7],
+        limit: 4,
+        timeoutMs: 3_000,
+      });
+      if (external.length > 0) {
+        withHistory = [
+          merged,
+          `Earlier, from ${external.map((item) => item.source).join(", ")}:`,
+          ...external.map((item) => item.content),
+        ].join("\n\n");
+      }
+    } catch (error) {
+      // Belt and braces: gather() is already guarded, but memory enrichment
+      // must never be the reason a turn fails.
+      console.warn("[MemoryBridge] external context unavailable:", error);
+    }
+
+    // BOUNDED CONTEXT (integration brief §9). Recall grows with LÉLU's
+    // history, and nothing here used to cap it — every remembered turn made
+    // the next prompt larger, which is the slow version of the crash the OG
+    // build hit. fitContext() is a no-op while the context is reasonable and
+    // otherwise walks the required ladder: deduplicate, then compress, then
+    // drop oldest. It never throws, because failing a turn to protect a
+    // budget would trade one crash for another.
+    const fitted = fitContext(withHistory);
+    if (fitted.applied.length > 0) {
+      console.info(
+        "[MemoryBridge] Context %d → %d chars (%s) — %d removed.",
+        withHistory.length,
+        fitted.context.length,
+        fitted.applied.join(" → "),
+        fitted.removed,
+      );
+    }
+
     return {
       ...request,
-      context: merged,
+      context: fitted.context,
       // The conversation turns in `request.messages` are the dialogue so
       // far and are left exactly as they are. Only the behavioural rules
       // are prepended as a system turn — the context itself already
