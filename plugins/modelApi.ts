@@ -286,6 +286,29 @@ function warnAboutPrefixedCredentials(readEnv: EnvReader): void {
   );
 }
 
+/**
+ * Providers whose credential the upstream has actually REJECTED.
+ *
+ * `/api/model/status` used to answer "is a key string present", which is a
+ * different question from "can this provider be reached". Three of the four
+ * configured keys in a real deployment were revoked, so status reported them
+ * usable, the fallback chain tried all three on every single turn, collected
+ * three 401s, and only then reached the one provider that worked. From the
+ * outside that reads as LÉLU not responding.
+ *
+ * So a 401/403 seen through the broker is remembered, and status reports that
+ * provider unusable until a later request succeeds. No extra upstream calls:
+ * this learns from the traffic already flowing. It self-heals the moment a
+ * rotated key authenticates, and it holds no key material — only an id and a
+ * boolean.
+ */
+const unauthorized = new Set<string>();
+
+/** HTTP statuses that mean "this credential is not accepted", not "try again". */
+function isAuthFailure(status: number): boolean {
+  return status === 401 || status === 403;
+}
+
 export function createModelApi(readEnv: EnvReader) {
   warnAboutPrefixedCredentials(readEnv);
   const credentialFor = (provider: BrokeredProvider): string => {
@@ -304,7 +327,9 @@ export function createModelApi(readEnv: EnvReader) {
     if (url === "/status" || url.startsWith("/status?")) {
       const status: Record<string, boolean> = {};
       for (const [id, provider] of Object.entries(BROKERED)) {
-        status[id] = credentialFor(provider).length > 0;
+        // Configured AND not known-rejected. A provider holding a revoked key
+        // is not available, and saying otherwise sends every turn through it.
+        status[id] = credentialFor(provider).length > 0 && !unauthorized.has(id);
       }
       sendJson(res, { ok: true, providers: status });
       return;
@@ -369,6 +394,14 @@ export function createModelApi(readEnv: EnvReader) {
         body: req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req),
         signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
       });
+
+      // Learn from the real answer: a rejected credential takes the provider
+      // out of the chain, a successful one puts it back.
+      if (isAuthFailure(upstream.status)) {
+        unauthorized.add(providerId);
+      } else if (upstream.ok) {
+        unauthorized.delete(providerId);
+      }
 
       const contentType = upstream.headers.get("content-type") ?? "application/json";
       res.statusCode = upstream.status;

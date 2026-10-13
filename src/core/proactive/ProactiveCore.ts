@@ -289,6 +289,20 @@ export default class ProactiveCore {
   private watches: string[] = [];
   private mutes: string[] = [];
   private questions: ProactiveQuestion[] = [];
+  /**
+   * Keys that THIS running cognition has raised.
+   *
+   * Questions are durable — they carry the user's decisions — but the
+   * SURFACE is not. A record persisted by an earlier build (or an earlier
+   * session) would otherwise be shown again on load purely because its
+   * status still read "pending": the user saw a card about a project that
+   * cognition was not currently thinking about at all, which is why it felt
+   * pre-made rather than live.
+   *
+   * Nothing surfaces unless cognition raised it in this process. Deliberately
+   * NOT persisted — that is the point.
+   */
+  private affirmed = new Set<string>();
   private questionListeners = new Set<QuestionListener>();
   private questionChangeListeners = new Set<QuestionChangeListener>();
 
@@ -479,7 +493,10 @@ export default class ProactiveCore {
         (question) =>
           question.status === "pending" &&
           question.lifecycle !== undefined &&
-          canSurface(question.lifecycle),
+          canSurface(question.lifecycle) &&
+          // Live cognition must still be raising it. A pending record that
+          // this process never re-derived is history, not a question.
+          this.affirmed.has(question.key),
       ) ?? null
     );
   }
@@ -513,6 +530,8 @@ export default class ProactiveCore {
   public enqueueQuestion(input: ProactiveQuestionInput): ProactiveQuestion {
     this.ensureLoaded();
     const evidence = input.evidence ?? `key:${input.key}`;
+    // Cognition is raising this right now, so it is allowed to be seen.
+    this.affirmed.add(input.key);
     const existing = this.getQuestionByKey(input.key);
 
     if (existing) {

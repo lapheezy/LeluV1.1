@@ -14,6 +14,7 @@ import type Brain from "../../brain/Brain";
 import type ResponsePattern from "../../brain/ResponsePattern";
 import type UserManager from "../user/UserManager";
 import type UserProfile from "../user/UserProfile";
+import { resolveFirst } from "../resolveEnv";
 
 export type SupabasePersistenceStatus = "disabled" | "connecting" | "connected" | "signed_out" | "degraded";
 
@@ -122,13 +123,35 @@ export default class SupabasePersistence {
       return this.status;
     }
 
-    // Browser-safe allowlist, not the whole env record (see env/publicEnv.ts):
-    // reading import.meta.env as an object inlined every VITE_* value here.
-    const env = publicEnv();
+    // Resolved through the FULL chain, not just the VITE_-prefixed names.
+    //
+    // publicEnv() only carries `import.meta.env.VITE_*`, so an operator who
+    // set the documented unprefixed names — SUPABASE_URL and
+    // SUPABASE_PUBLISHABLE_KEY, which is what ENV_VARS.md asks for and what
+    // the server itself reads — configured the server and left the browser
+    // blind. Supabase then reported "not configured" on a correctly
+    // configured deployment, which is why cloud identity never worked.
+    //
+    // resolveFirst also consults the `__LELU_*__` globals that
+    // plugins/runtimeKeyBridge.ts publishes, which is the browser's only
+    // route to an unprefixed value.
     const firstConfigured = (...values: Array<string | undefined>): string =>
       values.find((value) => typeof value === "string" && value.trim().length > 0)?.trim() ?? "";
-    const url = firstConfigured(env.VITE_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_URL);
-    const publishableKey = firstConfigured(env.VITE_SUPABASE_PUBLISHABLE_KEY, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+    const env = publicEnv();
+    const url = firstConfigured(
+      resolveFirst("SUPABASE_URL", "VITE_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL"),
+      env.VITE_SUPABASE_URL,
+      env.NEXT_PUBLIC_SUPABASE_URL,
+    );
+    const publishableKey = firstConfigured(
+      resolveFirst(
+        "SUPABASE_PUBLISHABLE_KEY",
+        "VITE_SUPABASE_PUBLISHABLE_KEY",
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      ),
+      env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    );
     if (!url || !publishableKey) {
       this.status = "disabled";
       this.emitAuthState();

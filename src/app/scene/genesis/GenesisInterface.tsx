@@ -106,6 +106,7 @@ import WorldRegistry, { type DestinationKind } from "./WorldRegistry";
 import CosmosEntityRegistry from "../../../core/cosmos/CosmosEntityRegistry";
 import Sentinel from "../../../core/sentinel/Sentinel";
 import CapabilityManifest from "../../../core/capabilities/CapabilityManifest";
+import LeluSignInGate from "./LeluSignInGate";
 
 /** Fullscreen toggle — real requestFullscreen / exitFullscreen. */
 function GenesisFullscreenButton() {
@@ -584,6 +585,11 @@ export default function GenesisInterface() {
         isolation: "isolate",
       }}
     >
+      {/* Asked once, BEFORE the conversation starts — not inside the chat
+          branch, which only renders after the user has already opened chat.
+          Renders nothing when already signed in or already answered. */}
+      <LeluSignInGate />
+
       {/*
        * THE ONE GENESIS ENVIRONMENT — the canonical LÉLU surface. Mounted
        * above the workspace router, so this exact component (and its chat,
