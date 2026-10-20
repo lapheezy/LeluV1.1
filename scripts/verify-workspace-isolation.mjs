@@ -172,6 +172,34 @@ check("a finished reply stayed in the workspace it was asked in",
   betaFinal.length === 1 && betaFinal[0] === secondId,
   `${betaFinal.join(",")} vs ${secondId}`);
 
+// THE REPLY FOLLOWS ITS QUESTION, NOT THE SELECTED TAB.
+//
+// ALPHA was asked in the first workspace and its reply came back seconds
+// later, by which time the second workspace was open. Measured before the
+// repair: that reply was written into the SECOND workspace, so the first
+// held a question with no answer and the second held an answer to a
+// question it never asked. The user's own message was always routed
+// correctly — only the reply, which arrives through a global subscription
+// with no conversation of its own, went astray.
+const replies = await page.evaluate(({ a, b }) => {
+  const raw = JSON.parse(window.localStorage.getItem("lelu.multichat.workspace.v1") ?? "{}");
+  const list = Array.isArray(raw) ? raw : raw?.conversations ?? [];
+  const of = (id) => (list.find((c) => c.id === id)?.messages ?? []);
+  const norm = (t) => (t ?? "").replace(/[\u2010-\u2015\u2212]/g, "-");
+  return {
+    firstHasReply: of(a).some((m) => m.role === "assistant" && norm(m.text).includes("ALPHA-marker-one")),
+    secondHasFirstsReply: of(b).some((m) => m.role === "assistant" && norm(m.text).includes("ALPHA-marker-one")),
+    firstHasSecondsReply: of(a).some((m) => m.role === "assistant" && norm(m.text).includes("BETA-marker-two")),
+  };
+}, { a: firstId, b: secondId });
+
+check("a reply that arrived after switching away is stored in the workspace it was asked in",
+  replies.firstHasReply, replies.firstHasReply ? "" : "the first workspace has no reply to its own question");
+check("the first workspace's reply did not leak into the second",
+  !replies.secondHasFirstsReply, "ALPHA's reply was written into the second workspace");
+check("the second workspace's reply did not leak into the first",
+  !replies.firstHasSecondsReply, "BETA's reply was written into the first workspace");
+
 check("no uncaught page error", pageErrors.length === 0, pageErrors[0] ?? "");
 
 await browser.close();

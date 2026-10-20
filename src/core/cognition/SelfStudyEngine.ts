@@ -59,6 +59,7 @@ import SourceAccess from "../selfdev/SourceAccess";
 import KnowledgeLibrary, { GAP_STATUSES, type KnowledgeEntry } from "./KnowledgeLibrary";
 import SelfModel from "./SelfModel";
 import StudyAgentRouter, { type Investigation } from "./StudyAgentRouter";
+import { backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
 import StudyObjectives, {
   type StudyDomain,
   type StudyObjective,
@@ -288,7 +289,7 @@ export default class SelfStudyEngine {
   private cycle = 0;
   private running = false;
   private continuous = false;
-  private timer: ReturnType<typeof setTimeout> | null = null;
+  private timer: BackgroundTimer | null = null;
   private lastReport: StudyCycleReport | null = null;
   private history: StudyCycleReport[] = [];
   /** Domains worked in recent cycles — feeds the attention-fatigue term. */
@@ -356,16 +357,21 @@ export default class SelfStudyEngine {
 
   public stop(): void {
     this.continuous = false;
-    if (this.timer !== null) {
-      clearTimeout(this.timer);
-      this.timer = null;
-    }
+    this.timer?.stop();
+    this.timer = null;
   }
 
   private schedule(delayMs: number, intervalMs: number): void {
     if (!this.continuous) return;
-    if (this.timer !== null) clearTimeout(this.timer);
-    this.timer = setTimeout(() => {
+    this.timer?.stop();
+    // backgroundTimeout, not setTimeout: continuous cognition is a
+    // heartbeat, and a heartbeat must not be the reason a process refuses
+    // to end. Measured: this one self-rescheduling timer kept
+    // tests/live-state-integration.test.ts running forever after its last
+    // assertion, which in turn stalled every file queued behind it. stop()
+    // below is still the real lifecycle — unref only removes that one
+    // consequence.
+    this.timer = backgroundTimeout(() => {
       // Do not even attempt a cycle while the user is mid-exchange:
       // come back shortly instead, so the conversation is never
       // competing with autonomous work for the same runtime.

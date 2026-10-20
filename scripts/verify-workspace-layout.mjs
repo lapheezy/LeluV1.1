@@ -118,6 +118,36 @@ async function openChat(page) {
   return Boolean(await page.$("[data-lelu-composer]"));
 }
 
+/**
+ * Put a REAL notification on screen and return how many are showing.
+ *
+ * The route interception kills the model broker for this page only, which
+ * makes a send fail the way an offline phone does — and GenesisChat's catch
+ * raises notify("Lélu Error", …). That is the product's own notification
+ * path, not a test-only hook: there is no way to inject a toast from
+ * outside, and adding one would mean the regression test measured something
+ * the user never sees.
+ */
+async function provokeToast(page) {
+  await page.route("**/api/model/**", (route) => route.abort());
+  const composer = await page.$("[data-lelu-composer] textarea, [data-lelu-composer] input");
+  if (composer) {
+    await composer.fill("layout check").catch(() => {});
+    await page.keyboard.press("Enter").catch(() => {});
+  }
+  // Wait for the toast rather than sleeping a fixed amount: a failing send
+  // resolves in milliseconds, but a cold dev server can take seconds.
+  await page
+    .waitForFunction(
+      () => (document.querySelector("[data-lelu-notifications]")?.querySelectorAll("button").length ?? 0) > 0,
+      { timeout: 20000 },
+    )
+    .catch(() => {});
+  return page.evaluate(
+    () => document.querySelector("[data-lelu-notifications]")?.querySelectorAll("button").length ?? 0,
+  );
+}
+
 /** Do two boxes overlap by more than a rounding error? */
 function intersects(a, b) {
   if (!a || !b) return false;
@@ -225,6 +255,65 @@ for (const [vpName, viewport, isMobile] of viewports) {
   ]) {
     if (!boxes[a] || !boxes[b]) continue;
     check(`${a} does not cover ${b} @ ${vpName}`, !intersects(boxes[a], boxes[b]));
+  }
+
+  // TOASTS. A notification must never cover or capture a primary control.
+  // Measured at 390px: the stack is 340px wide, and at top:16 it ran through
+  // the chat header — elementFromPoint returned the "Lélu briefing" toast at
+  // the LÉLU control's own centre, so taps meant for navigation hit a toast.
+  //
+  // A REAL toast has to be on screen for any of that to mean anything. The
+  // stack element is always in the DOM, so measuring it empty makes every
+  // overlap check below trivially true — a green run that proves nothing.
+  // So one is provoked first, through the product's own failure path: cut
+  // the model broker and send a message, and GenesisChat calls
+  // notify("Lélu Error", …) exactly as it does for any real send failure.
+  // Nothing about the toast layer itself is mocked; only the network it
+  // happens to be reporting on.
+  const toastsShown = await provokeToast(page);
+  check(`a real toast is on screen to be measured @ ${vpName}`, toastsShown > 0,
+    toastsShown > 0 ? `${toastsShown} toast(s)` : "no toast appeared — the overlap checks below would be vacuous");
+
+  const toastReport = await page.evaluate(() => {
+    const stack = document.querySelector("[data-lelu-notifications]");
+    if (!stack) return { present: false };
+    const stackBox = stack.getBoundingClientRect();
+    const stackEvents = getComputedStyle(stack).pointerEvents;
+
+    const controls = ['[aria-label="Open LÉLU menu"]', '[aria-label="LÉLU"]', "[data-lelu-composer] button"];
+    const captured = [];
+    const overlapped = [];
+    for (const selector of controls) {
+      const el = document.querySelector(selector);
+      if (!el) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) continue;
+      const overlapX = Math.min(stackBox.right, r.right) - Math.max(stackBox.left, r.left);
+      const overlapY = Math.min(stackBox.bottom, r.bottom) - Math.max(stackBox.top, r.top);
+      if (overlapX > 2 && overlapY > 2) overlapped.push(selector);
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      if (hit && stack.contains(hit)) captured.push(selector);
+    }
+    return {
+      present: true,
+      stackEvents,
+      captured,
+      overlapped,
+      toasts: stack.querySelectorAll("[role], button").length,
+      stackBox: { top: Math.round(stackBox.top), height: Math.round(stackBox.height) },
+    };
+  });
+
+  if (toastReport.present) {
+    check(`the toast layer does not capture pointer events @ ${vpName}`,
+      toastReport.stackEvents === "none",
+      `pointer-events: ${toastReport.stackEvents}`);
+    check(`no toast covers a primary control @ ${vpName}`,
+      toastReport.overlapped.length === 0, toastReport.overlapped.join("; "));
+    check(`no primary control is captured by a toast @ ${vpName}`,
+      toastReport.captured.length === 0, toastReport.captured.join("; "));
+  } else {
+    check(`the toast layer is identifiable @ ${vpName}`, false, "no [data-lelu-notifications]");
   }
 
   if (fatal.length) check(`no fatal error @ ${vpName}`, false, fatal[0]);

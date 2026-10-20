@@ -14,7 +14,7 @@ import type Brain from "../../brain/Brain";
 import type ResponsePattern from "../../brain/ResponsePattern";
 import type UserManager from "../user/UserManager";
 import type UserProfile from "../user/UserProfile";
-import { resolveFirst } from "../resolveEnv";
+import { resolveSupabaseConfig, checkSupabaseProject } from "../config/supabaseEnv";
 
 export type SupabasePersistenceStatus = "disabled" | "connecting" | "connected" | "signed_out" | "degraded";
 
@@ -23,6 +23,14 @@ export interface SupabaseAuthState {
   session: Session | null;
   email: string | null;
   displayName: string | null;
+  /**
+   * A problem with the DEPLOYMENT's configuration, not with the user — the
+   * URL and key naming different projects, for instance. It travels with
+   * the auth state because the sign-in form is where it becomes visible,
+   * and showing it there is the difference between "wrong password" and
+   * "this deployment cannot sign anyone in".
+   */
+  configError: string | null;
 }
 
 type RemoteRow = Record<string, any>;
@@ -98,6 +106,8 @@ export default class SupabasePersistence {
   private runtimeBrain: Brain | null = null;
   private runtimeUser: UserManager | null = null;
   private authSession: Session | null = null;
+  /** Set when the deployment's own configuration is wrong. See SupabaseAuthState. */
+  private configError: string | null = null;
   private authSubscription: { unsubscribe: () => void } | null = null;
   private readonly authListeners = new Set<(state: SupabaseAuthState) => void>();
   private readonly runtimeUnsubscribers: Array<() => void> = [];
@@ -120,6 +130,7 @@ export default class SupabasePersistence {
       session: this.authSession,
       email: user?.email ?? null,
       displayName: (user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? null) as string | null,
+      configError: this.configError,
     };
   }
 
@@ -133,6 +144,32 @@ export default class SupabasePersistence {
     return (this.status === "connected" || this.status === "degraded") && this.client !== null && this.userId !== null;
   }
 
+  /**
+   * Turn a Supabase auth error into something an operator can act on.
+   *
+   * "Invalid API key" is not a user's problem and must not be shown as one:
+   * it means the configured publishable key does not belong to the project
+   * the configured URL points at. That was true in a real deployment — the
+   * key in the environment was issued for a different project — and the user
+   * saw only a failed sign-in with no way to tell that from a wrong password.
+   *
+   * The key itself is never read, echoed, logged or measured here; only the
+   * upstream's verdict on it is.
+   */
+  private explainAuthError(message: string | undefined): string | null {
+    if (!message) return null;
+    if (/invalid api key/i.test(message)) {
+      return (
+        "This deployment's Supabase key is not valid for the configured project. " +
+        "Check that SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY come from the SAME project."
+      );
+    }
+    if (/failed to fetch|network/i.test(message)) {
+      return "Could not reach Supabase. Check the network and that SUPABASE_URL is correct.";
+    }
+    return message;
+  }
+
   public async signInWithEmail(email: string, password: string): Promise<{ error: string | null }> {
     if (!this.client) await this.initialize(this.runtimeBrain ?? undefined, this.runtimeUser ?? undefined);
     if (!this.client) return { error: "Supabase is not configured." };
@@ -140,7 +177,7 @@ export default class SupabasePersistence {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !password) return { error: "Enter your email and password." };
     const { error } = await this.client.auth.signInWithPassword({ email: normalizedEmail, password });
-    return { error: error?.message ?? null };
+    return { error: this.explainAuthError(error?.message) };
   }
 
   public async signUpWithEmail(email: string, password: string): Promise<{ error: string | null; requiresConfirmation: boolean }> {
@@ -151,8 +188,9 @@ export default class SupabasePersistence {
     if (!normalizedEmail || !password) return { error: "Enter your email and password.", requiresConfirmation: false };
     if (password.length < 6) return { error: "Use a password with at least 6 characters.", requiresConfirmation: false };
     const { data, error } = await this.client.auth.signUp({ email: normalizedEmail, password });
+    const explained = this.explainAuthError(error?.message);
     return {
-      error: error?.message ?? null,
+      error: explained,
       requiresConfirmation: !error && !data.session,
     };
   }
@@ -172,39 +210,37 @@ export default class SupabasePersistence {
       return this.status;
     }
 
-    // Resolved through the FULL chain, not just the VITE_-prefixed names.
+    // The names themselves live in core/config/supabaseEnv so that this
+    // path, the OG client and the server middleware cannot disagree about
+    // what "configured" means — they used to, and an operator setting one
+    // documented alias could configure one of them and leave the others
+    // blind, which is why cloud identity never worked.
     //
-    // publicEnv() only carries `import.meta.env.VITE_*`, so an operator who
-    // set the documented unprefixed names — SUPABASE_URL and
-    // SUPABASE_PUBLISHABLE_KEY, which is what ENV_VARS.md asks for and what
-    // the server itself reads — configured the server and left the browser
-    // blind. Supabase then reported "not configured" on a correctly
-    // configured deployment, which is why cloud identity never worked.
-    //
-    // resolveFirst also consults the `__LELU_*__` globals that
-    // plugins/runtimeKeyBridge.ts publishes, which is the browser's only
-    // route to an unprefixed value.
-    const firstConfigured = (...values: Array<string | undefined>): string =>
-      values.find((value) => typeof value === "string" && value.trim().length > 0)?.trim() ?? "";
+    // publicEnv() is passed in rather than read there: it carries
+    // `import.meta.env.VITE_*`, which only a module Vite compiles can read
+    // statically (see resolveEnv's note on why it must not be read
+    // dynamically).
     const env = publicEnv();
-    const url = firstConfigured(
-      resolveFirst("SUPABASE_URL", "VITE_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL"),
-      env.VITE_SUPABASE_URL,
-      env.NEXT_PUBLIC_SUPABASE_URL,
-    );
-    const publishableKey = firstConfigured(
-      resolveFirst(
-        "SUPABASE_PUBLISHABLE_KEY",
-        "VITE_SUPABASE_PUBLISHABLE_KEY",
-        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-      ),
-      env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    );
-    if (!url || !publishableKey) {
+    const config = resolveSupabaseConfig({
+      url: [env.VITE_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_URL],
+      key: [env.VITE_SUPABASE_PUBLISHABLE_KEY, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY],
+    });
+    if (!config) {
       this.status = "disabled";
       this.emitAuthState();
       return this.status;
+    }
+    const { url, publishableKey } = config;
+
+    // Say so BEFORE the first request when the two halves name different
+    // projects. Otherwise the only symptom is "Invalid API key" at sign-in,
+    // which reads as the user's bad password.
+    const pairing = checkSupabaseProject(config);
+    if (pairing.verdict === "mismatch") {
+      console.error(`[Lélu] ${pairing.message}`);
+      this.configError = pairing.message;
+    } else {
+      this.configError = null;
     }
 
     this.status = "connecting";

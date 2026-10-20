@@ -12,6 +12,7 @@
 import type ProviderRegistry from "../ProviderRegistry";
 import type { KnowledgeResult } from "../../providers/Provider";
 import AgentEventBus from "../agent/AgentEvents";
+import { withDeadline } from "../runtime/BackgroundTimer";
 
 export interface ProjectRunFailure {
   provider: string;
@@ -133,15 +134,14 @@ export default class ProjectRunner {
         });
 
         try {
-          const results = await Promise.race([
+          // withDeadline clears the losing timer; a bare Promise.race
+          // leaves it pending for the whole timeout after the provider has
+          // already answered.
+          const results = await withDeadline(
             provider.search(query),
-            new Promise<never>((_, reject) =>
-              setTimeout(
-                () => reject(new Error(`${provider.name} timed out`)),
-                TIMEOUT_MS,
-              ),
-            ),
-          ]);
+            TIMEOUT_MS,
+            `${provider.name} timed out`,
+          );
 
           const usable = Array.isArray(results)
             ? results.filter(

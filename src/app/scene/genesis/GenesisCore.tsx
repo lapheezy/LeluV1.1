@@ -83,6 +83,7 @@ import CrossChatResolver from "../../../core/multichat/CrossChatResolver";
 import NotificationProvider from "../../../core/notifications/NotificationProvider";
 
 import VisualEngine from "../../../core/visual/VisualEngine";
+import { ownerForMessage } from "../../../core/multichat/TurnOwnership";
 
 
 
@@ -1323,13 +1324,28 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         addMessage(message){
 
 
-          multiChat.addMessage(state.activeConversationId, message);
+          // The STORE decides which conversation is active, not this
+          // component's mirror of it. `state` here is captured from the
+          // render that created this callback, so after any switch that did
+          // not originate in React — Workstream.openWorkstream(), a deep
+          // link, a restored session — it names the previous conversation
+          // and the message lands in the wrong one.
+          //
+          // A reply still arriving from an earlier turn belongs to the
+          // conversation that turn was asked in, which is what
+          // ownerForMessage reports; with no turn in flight there is no
+          // owner and the active conversation is right.
+          const targetId = ownerForMessage(message.id) ?? multiChat.getActiveId();
+          multiChat.addMessage(targetId, message);
 
 
           setState(current=>{
 
 
-            const active = multiChat.get(current.activeConversationId);
+            const activeId = multiChat.getActiveId();
+
+
+            const active = multiChat.get(activeId);
 
 
             return {
@@ -1338,7 +1354,10 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
               ...current,
 
 
-              messages: active ? active.messages : current.messages,
+              // Only the VISIBLE conversation's messages mirror into state.
+              // A message routed to a conversation the user is not looking
+              // at must change that conversation and nothing on screen.
+              messages: targetId === activeId && active ? active.messages : current.messages,
 
 
               conversations: multiChat.list(),
@@ -1357,13 +1376,29 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         upsertMessage(message){
 
 
-          multiChat.upsertMessage(state.activeConversationId, message);
+          // The STORE decides which conversation is active, not this
+          // component's mirror of it. `state` here is captured from the
+          // render that created this callback, so after any switch that did
+          // not originate in React — Workstream.openWorkstream(), a deep
+          // link, a restored session — it names the previous conversation
+          // and the message lands in the wrong one.
+          //
+          // This is the path a streamed reply takes, and it is the one that
+          // was measurably wrong: a reply asked for in chat A and arriving
+          // after the user opened chat B was written into B. The turn's
+          // owner decides, not the selected tab. See core/multichat/
+          // TurnOwnership.
+          const targetId = ownerForMessage(message.id) ?? multiChat.getActiveId();
+          multiChat.upsertMessage(targetId, message);
 
 
           setState(current=>{
 
 
-            const active = multiChat.get(current.activeConversationId);
+            const activeId = multiChat.getActiveId();
+
+
+            const active = multiChat.get(activeId);
 
 
             return {
@@ -1372,7 +1407,8 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
               ...current,
 
 
-              messages: active ? active.messages : current.messages,
+              // Only the VISIBLE conversation's messages mirror into state.
+              messages: targetId === activeId && active ? active.messages : current.messages,
 
 
               conversations: multiChat.list(),
@@ -1391,7 +1427,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         clearConversation(){
 
 
-          multiChat.clear(state.activeConversationId);
+          multiChat.clear(multiChat.getActiveId());
 
 
           setState(current=>({
@@ -1676,7 +1712,8 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         crossChatContext(query){
 
 
-          return crossChat.buildContext(state.activeConversationId, query);
+          // Cognition reads the same authority the writes use.
+          return crossChat.buildContext(multiChat.getActiveId(), query);
 
 
         },

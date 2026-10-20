@@ -45,6 +45,7 @@ export default function GenesisNotificationCenter() {
 
   return (
     <div
+      data-lelu-notifications
       style={{
         position: "absolute",
         // On a phone this stack is 340px wide against a 390px viewport, so

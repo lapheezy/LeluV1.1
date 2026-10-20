@@ -30,6 +30,7 @@ import type { AIIntent } from "./AIIntent";
 import IntentDetector from "./IntentDetector";
 import AgentEventBus from "../agent/AgentEvents";
 import { isIdentityOrProfileQuestion } from "../../brain/LeluIdentity";
+import { withDeadline } from "../runtime/BackgroundTimer";
 
 /** Current-information phrases: these force a live tool call.
  *  Deliberately NARROW — a bare "update", "now", "today" or "current"
@@ -434,12 +435,14 @@ export default class ResearchResolver {
       const providerStarted = Date.now();
 
       try {
-        const results = await Promise.race([
+        // withDeadline clears the losing timer; a bare Promise.race
+        // leaves it pending for the whole timeout after the provider has
+        // already answered.
+        const results = await withDeadline(
           provider.search(query),
-          new Promise<never>((_resolve, reject) =>
-            setTimeout(() => reject(new Error(`${provider.name} timed out`)), timeoutMs),
-          ),
-        ]);
+          timeoutMs,
+          `${provider.name} timed out`,
+        );
 
         // Validate the response shape before accepting it — an HTTP
         // 200 with a malformed/empty payload is a failure, not success.

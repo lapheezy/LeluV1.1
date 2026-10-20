@@ -17,13 +17,14 @@ import type ProviderRegistry from "../ProviderRegistry";
 import ProjectStore from "./ProjectStore";
 import ProjectExecutor from "./ProjectExecutor";
 import AgentEventBus from "../agent/AgentEvents";
+import { backgroundInterval, type BackgroundTimer } from "../runtime/BackgroundTimer";
 
 const CHECK_INTERVAL_MS = 60_000; // every 60 seconds
 
 export default class ProjectScheduler {
   private static instance: ProjectScheduler | null = null;
 
-  private interval: ReturnType<typeof setInterval> | null = null;
+  private timer: BackgroundTimer | null = null;
   private providers: ProviderRegistry | null = null;
   private running = false;
 
@@ -41,19 +42,26 @@ export default class ProjectScheduler {
    * the runtime already uses — no duplicate provider system.
    */
   public start(providers: ProviderRegistry): void {
-    if (this.interval !== null) return; // already running
+    if (this.timer?.active) return; // already running
 
     this.providers = providers;
-    this.interval = setInterval(() => this.tick(), CHECK_INTERVAL_MS);
+    // A 60-second housekeeping tick must not be the reason a process stays
+    // alive. Measured: this single interval — started implicitly by the
+    // first AIService.getInstance() — kept twelve test files from ever
+    // exiting after their last assertion.
+    this.timer = backgroundInterval(() => this.tick(), CHECK_INTERVAL_MS);
 
     console.log("[Lélu ProjectScheduler] Started — checking every 60s");
   }
 
   public stop(): void {
-    if (this.interval !== null) {
-      clearInterval(this.interval);
-      this.interval = null;
-    }
+    this.timer?.stop();
+    this.timer = null;
+  }
+
+  /** Is the scheduler currently running? */
+  public isRunning(): boolean {
+    return this.timer?.active === true;
   }
 
   private async tick(): Promise<void> {

@@ -301,3 +301,56 @@ test("tables without an id column are paged on a key they actually have", () => 
   // And every caller must go through it rather than naming a key itself.
   assert.match(source, /options\.orderBy \?\? pageKeyFor\(table\)/);
 });
+
+test("a table with no id column is ordered by a column it has", async () => {
+  // Behavioural, not textual: this asserts the column actually REQUESTED.
+  // Ordering ui_state by `id` produced "column ui_state.id does not exist"
+  // on every realtime refresh against the live project, which has no such
+  // column — confirmed against the live schema.
+  const asked = [];
+  const client = {
+    from(table) {
+      return {
+        select() {
+          return {
+            order(column) {
+              asked.push([table, column]);
+              return { range: () => Promise.resolve({ data: [], error: null, count: 0 }) };
+            },
+          };
+        },
+      };
+    },
+  };
+  const persistence = SupabasePersistence.getInstance();
+  const internals = persistence as unknown as { client: unknown; read: (t: string) => Promise<unknown[]> };
+  const saved = internals.client;
+  internals.client = client;
+  try {
+    for (const table of ["ui_state", "news_preferences", "user_preferences", "api_health", "messages"]) {
+      await internals.read.call(persistence, table);
+    }
+  } finally {
+    internals.client = saved;
+  }
+  assert.deepEqual(asked, [
+    ["ui_state", "user_id"],
+    ["news_preferences", "user_id"],
+    ["user_preferences", "preference_key"],
+    ["api_health", "provider"],
+    ["messages", "id"],
+  ]);
+});
+
+test("ordering is decided in one place, not at the call sites", () => {
+  const source = readFileSync("src/core/persistence/SupabasePersistence.ts", "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+  // No caller may name a sort key: that is how two call sites kept the
+  // wrong default when the key was passed in as an argument.
+  assert.ok(
+    !/read\("[a-z_]+",\s*"[a-z_]+"\)/.test(source),
+    "a call site is still passing its own sort key",
+  );
+  assert.match(source, /function pageKeyFor\(table: string\): string/);
+});

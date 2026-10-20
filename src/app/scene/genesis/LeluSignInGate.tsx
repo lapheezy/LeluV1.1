@@ -210,6 +210,22 @@ export default function LeluSignInGate() {
                 disabled={busy}
                 style={inputStyle}
               />
+              {/*
+                A problem with the DEPLOYMENT shows before the form is even
+                used, and says so. Without this the only symptom of a key
+                issued for the wrong project was "Invalid API key" after a
+                submit, which a person reasonably reads as their own wrong
+                password — and no amount of retyping it would ever work.
+              */}
+              {authState.configError ? (
+                <div
+                  role="alert"
+                  data-lelu-config-error
+                  style={{ color: "rgba(252, 211, 77, 0.95)", fontSize: 12, lineHeight: 1.45 }}
+                >
+                  {authState.configError}
+                </div>
+              ) : null}
               {error ? (
                 <div role="alert" style={{ color: "rgba(252, 165, 165, 0.95)", fontSize: 12 }}>
                   {error}

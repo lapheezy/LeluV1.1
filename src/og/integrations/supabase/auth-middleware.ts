@@ -6,6 +6,7 @@ import { createMiddleware } from '@og/compat/server-fn'
 const getRequest = (): { headers: Headers } | null => null;
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './types'
+import { resolveSupabaseConfig, supabaseConfigGap } from '../../../core/config/supabaseEnv'
 
 
 
@@ -36,18 +37,27 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
   async ({ next }) => {
     
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+    // Through the shared resolver, not process.env directly: reading
+    // process.env here meant this path could not see a value delivered by
+    // the runtime key bridge or under a documented VITE_/NEXT_PUBLIC_ alias,
+    // so it reported "missing SUPABASE_URL" on deployments where
+    // persistence was working perfectly well. (This body is inert under the
+    // compat layer — see the note on getRequest above — but it must not be
+    // the one path left disagreeing about what "configured" means.)
+    const config = resolveSupabaseConfig();
 
-    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-      const missing = [
-        ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
-        ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
-      ];
-      const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Set them in the environment to enable OG persistence.`;
+    if (!config) {
+      const gap = supabaseConfigGap();
+      const message =
+        `Supabase is not configured for this deployment (missing: ${gap?.missing.join(', ') ?? 'url, key'}). ` +
+        `Set one of ${gap?.looked.join(', ') ?? 'SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY'} in the environment ` +
+        `to enable OG persistence.`;
       console.error(`[Supabase] ${message}`);
       throw new Error(message);
     }
+
+    const SUPABASE_URL = config.url;
+    const SUPABASE_PUBLISHABLE_KEY = config.publishableKey;
     
     const request = getRequest();
 

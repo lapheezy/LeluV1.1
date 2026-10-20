@@ -34,6 +34,7 @@ import KvStore from "../storage/KvStore";
 import WorldLifecycle from "../../app/scene/genesis/engines/WorldLifecycle";
 import AgentEventBus, { type AgentEvent } from "../agent/AgentEvents";
 import CapabilityManifest from "../capabilities/CapabilityManifest";
+import { backgroundInterval, type BackgroundTimer } from "./BackgroundTimer";
 
 // ---------- TYPES ----------
 
@@ -145,7 +146,11 @@ export default class LeluRuntime {
   private conversationTopic: string | null = null;
   private recentActivity: string[] = [];
   private listeners = new Set<RuntimeListener>();
-  private healthCheckTimer: number | null = null;
+  // backgroundInterval, not window.setInterval: a 30-second health poll
+  // must not be the reason a process refuses to end. Measured: this one
+  // kept `npm run test:live` running forever after its assertions had
+  // already reported. shutdown() below is still the real lifecycle.
+  private healthCheckTimer: BackgroundTimer | null = null;
   private initialized = false;
   private cognitiveLoopStarted = false;
   private eventUnsubscribe: (() => void) | null = null;
@@ -213,7 +218,7 @@ export default class LeluRuntime {
     await this.checkHealth();
 
     // Start periodic health monitoring (every 30s)
-    this.healthCheckTimer = window.setInterval(
+    this.healthCheckTimer = backgroundInterval(
       () => void this.checkHealth(),
       30_000,
     );
@@ -240,7 +245,7 @@ export default class LeluRuntime {
 
   shutdown(): void {
     if (this.healthCheckTimer !== null) {
-      window.clearInterval(this.healthCheckTimer);
+      this.healthCheckTimer.stop();
       this.healthCheckTimer = null;
     }
     CognitiveLoop.getInstance().stop();

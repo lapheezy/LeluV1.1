@@ -30,17 +30,48 @@ function code(path: string): string {
     .replace(/^\s*\/\/.*$/gm, "");
 }
 
+import {
+  SUPABASE_URL_NAMES,
+  SUPABASE_KEY_NAMES,
+  resolveSupabaseConfig,
+} from "../src/core/config/supabaseEnv";
+
 const persistence = code("src/core/persistence/SupabasePersistence.ts");
 
 test("the unprefixed names the operator is told to set are resolved", () => {
-  assert.match(persistence, /resolveFirst\(\s*"SUPABASE_URL"/);
-  assert.match(persistence, /"SUPABASE_PUBLISHABLE_KEY"/);
+  // The names moved out of this file into core/config/supabaseEnv, which is
+  // where all three Supabase client paths now read them — they used to read
+  // three different lists and disagree about whether a deployment was
+  // configured. The property is unchanged: the documented unprefixed names
+  // are the ones resolved, and they lead.
+  assert.match(persistence, /resolveSupabaseConfig\(/);
+  assert.equal(SUPABASE_URL_NAMES[0], "SUPABASE_URL");
+  assert.equal(SUPABASE_KEY_NAMES[0], "SUPABASE_PUBLISHABLE_KEY");
 });
 
 test("resolution goes through the chain that can see the runtime bridge", () => {
   // The browser cannot read process.env, so an unprefixed value reaches it
   // only as a __LELU_* global — which only resolveEnv consults.
-  assert.match(persistence, /import \{ resolveFirst \} from "\.\.\/resolveEnv"/);
+  assert.match(code("src/core/config/supabaseEnv.ts"), /import \{ resolveFirst \} from "\.\.\/resolveEnv"/);
+
+  // Behavioural, not textual: a value published the way the bridge
+  // publishes one is actually found.
+  const runtime = globalThis as Record<string, unknown>;
+  const savedUrl = runtime.__LELU_SUPABASE_URL__;
+  const savedKey = runtime.__LELU_SUPABASE_PUBLISHABLE_KEY__;
+  const savedEnvUrl = process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_URL;
+  runtime.__LELU_SUPABASE_URL__ = "https://bridged.supabase.co";
+  runtime.__LELU_SUPABASE_PUBLISHABLE_KEY__ = "sb_publishable_bridged";
+  try {
+    assert.equal(resolveSupabaseConfig()?.url, "https://bridged.supabase.co");
+  } finally {
+    if (savedUrl === undefined) delete runtime.__LELU_SUPABASE_URL__;
+    else runtime.__LELU_SUPABASE_URL__ = savedUrl;
+    if (savedKey === undefined) delete runtime.__LELU_SUPABASE_PUBLISHABLE_KEY__;
+    else runtime.__LELU_SUPABASE_PUBLISHABLE_KEY__ = savedKey;
+    if (savedEnvUrl !== undefined) process.env.SUPABASE_URL = savedEnvUrl;
+  }
 });
 
 test("the VITE_ names still work, so existing setups are not broken", () => {

@@ -52,6 +52,8 @@ import { markPerf } from "../../../core/perf/StartupTelemetry";
 import { cleanAssistantText } from "../../../core/router/ToolMarkup";
 import { useWorkspace } from "./useWorkspace";
 import { layer } from "../../../core/ui/Layers";
+import MultiChatStore from "../../../core/multichat/MultiChatStore";
+import { claimTurn, releaseTurn } from "../../../core/multichat/TurnOwnership";
 
 const ai = AIService.getInstance();
 const proactive = ProactiveCore.getInstance();
@@ -66,6 +68,54 @@ interface Exchange {
   images?: string[];
   /** Real visual environments LÉLU opened in this exchange (search/browser). */
   surfaces?: ChatSurface[];
+  /**
+   * This exchange was rebuilt from stored history, not asked just now.
+   *
+   * It matters for the empty-assistant case. A live exchange with no reply
+   * yet shows the thinking dots, which is true — one is on its way. The
+   * same shape replayed from a conversation whose last message was the
+   * user's would show the same dots and mean something false: nothing is
+   * being thought about, the reply simply never came.
+   */
+  settled?: boolean;
+}
+
+/**
+ * Rebuild the visible exchange from a conversation's stored history.
+ *
+ * The last reply and the question that prompted it — or, when the last
+ * thing said was the user's and no reply ever came, that line on its own,
+ * marked settled so it does not pretend to still be thinking.
+ *
+ * Returns null for a conversation with nothing in it, which is the real
+ * empty state and the one place the suggestion prompts belong.
+ */
+function replayExchange(messages: GenesisMessage[]): Exchange | null {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (message.role !== "assistant" || !message.text.trim()) continue;
+    let user = "";
+    for (let back = index - 1; back >= 0; back -= 1) {
+      if (messages[back].role === "user") {
+        user = messages[back].text;
+        break;
+      }
+    }
+    return {
+      id: `replay-${message.id}`,
+      user,
+      assistant: cleanAssistantText(message.text),
+      fast: true,
+      settled: true,
+    };
+  }
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (message.role === "user" && message.text.trim()) {
+      return { id: `replay-${message.id}`, user: message.text, assistant: "", fast: true, settled: true };
+    }
+  }
+  return null;
 }
 
 function prefersReducedMotion(): boolean {
@@ -260,6 +310,8 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   const [isSending, setIsSending] = useState(false);
   const [activeQuestion, setActiveQuestion] = useState<ProactiveQuestion | null>(null);
   const [exchange, setExchange] = useState<Exchange | null>(null);
+  /** Which conversation the visible exchange was built from. */
+  const replayedForRef = useRef<string | null>(null);
   const artifactImagesRef = useRef<string[]>([]);
 
   // Stable ref for voice engine — avoids stale closure in send callback
@@ -432,31 +484,9 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     }
     window.addEventListener("keydown", handleDocumentKey, true);
 
-    const messages = state.messages;
-    let lastAssistant: GenesisMessage | undefined;
-    for (let index = messages.length - 1; index >= 0; index -= 1) {
-      if (messages[index].role === "assistant" && messages[index].text.trim()) {
-        lastAssistant = messages[index];
-        break;
-      }
-    }
-
-    if (lastAssistant) {
-      let userText = "";
-      const assistantIndex = messages.indexOf(lastAssistant);
-      for (let index = assistantIndex - 1; index >= 0; index -= 1) {
-        if (messages[index].role === "user") {
-          userText = messages[index].text;
-          break;
-        }
-      }
-      setExchange({
-        id: `replay-${lastAssistant.id}`,
-        user: userText,
-        assistant: cleanAssistantText(lastAssistant.text),
-        fast: true,
-      });
-    }
+    const replayed = replayExchange(state.messages);
+    if (replayed) setExchange(replayed);
+    replayedForRef.current = state.activeConversationId;
 
     return () => {
       window.removeEventListener("keydown", handleDocumentKey, true);
@@ -465,6 +495,31 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exit]);
+
+  /**
+   * The view follows the ACTIVE WORKSPACE.
+   *
+   * Measured in a real browser: switch to a second chat, send a message,
+   * wait for the reply to settle, switch back — and the first chat rendered
+   * neither its own message nor the other's. Its messages were stored
+   * correctly the whole time; nothing ever asked the view to show them.
+   * The replay above runs on mount only, and the exchange it had been
+   * showing is cleared by the fade timer a few seconds after a reply
+   * settles, so by the time the user switched back there was nothing left
+   * on screen and nothing to put back.
+   *
+   * Keyed on the active id, so switching tabs rebuilds the view from that
+   * conversation's own history. A reply still streaming for the
+   * conversation being viewed is left alone — it has not changed.
+   */
+  useEffect(() => {
+    if (replayedForRef.current === state.activeConversationId) return;
+    replayedForRef.current = state.activeConversationId;
+    clearTimers();
+    setFading(false);
+    setExchange(replayExchange(state.messages));
+    setDialogue("listening");
+  }, [state.activeConversationId, state.messages, clearTimers, setDialogue]);
 
   // LÉLU finished typing: hold, then fade
   const handleTyped = useCallback(() => {
@@ -628,6 +683,20 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     setExchange({ id: exchangeId, user: display, assistant: "", fast: false, surfaces: [] });
     setDialogue("processing");
 
+    // Which conversation this turn belongs to, read from the STORE rather
+    // than from this component's mirror of it — a switch that did not come
+    // from React leaves the mirror naming the previous one.
+    //
+    // Claiming it is what keeps the reply here: the reply comes back
+    // through a global subscription seconds later, and without a claim it
+    // was written into whichever conversation was selected by then. See
+    // core/multichat/TurnOwnership.
+    const turnConversationId = MultiChatStore.getInstance().getActiveId();
+    claimTurn(turnConversationId);
+    /** Is the conversation this turn was asked in still the one on screen? */
+    const stillViewingTurn = () =>
+      MultiChatStore.getInstance().getActiveId() === turnConversationId;
+
     addMessage({
       id: crypto.randomUUID(),
       role: "user",
@@ -687,6 +756,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       if (!assistantText) {
         const note = "⚠️ I couldn't generate a response — please try again.";
         notify("Lélu Error", "The assistant returned an empty response.");
+        if (!stillViewingTurn()) return;
         setExchange((current) =>
           current
             ? { ...current, assistant: note, fast: true, images: artifactImagesRef.current, surfaces: surfacesRef.current }
@@ -696,15 +766,21 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         return;
       }
 
-      setExchange({
-        id: exchangeId,
-        user: display,
-        assistant: cleanAssistantText(assistantText),
-        fast: prefersReducedMotion(),
-        images: artifactImagesRef.current,
-        surfaces: surfacesRef.current,
-      });
-      setDialogue("responding");
+      // The reply is stored against its own conversation either way (the
+      // turn's claim sees to that). Painting it into the scene is only
+      // right while that conversation is the one being looked at —
+      // otherwise a reply to chat A appears under chat B.
+      if (stillViewingTurn()) {
+        setExchange({
+          id: exchangeId,
+          user: display,
+          assistant: cleanAssistantText(assistantText),
+          fast: prefersReducedMotion(),
+          images: artifactImagesRef.current,
+          surfaces: surfacesRef.current,
+        });
+        setDialogue("responding");
+      }
 
       try {
         voiceEngineRef.current.finishStreamingSpeech(assistantText);
@@ -715,13 +791,16 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       try { voiceEngineRef.current.cancelSpeech(); } catch { /* best-effort */ }
       const messageText = error instanceof Error ? error.message : String(error);
       notify("Lélu Error", messageText);
-      setExchange((current) =>
-        current
-          ? { ...current, assistant: `⚠️ ${messageText.slice(0, 200)}`, fast: true, images: artifactImagesRef.current, surfaces: surfacesRef.current }
-          : current,
-      );
-      setDialogue("listening");
+      if (stillViewingTurn()) {
+        setExchange((current) =>
+          current
+            ? { ...current, assistant: `⚠️ ${messageText.slice(0, 200)}`, fast: true, images: artifactImagesRef.current, surfaces: surfacesRef.current }
+            : current,
+        );
+        setDialogue("listening");
+      }
     } finally {
+      releaseTurn(turnConversationId);
       setIsSending(false);
     }
   }, [addMessage, clearTimers, input, isSending, notify, pendingMedia, pendingFiles, setDialogue, crossChatContext]);
@@ -1173,7 +1252,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
                     fast={exchange.fast}
                     onDone={handleTyped}
                   />
-                ) : (
+                ) : exchange.settled ? null : (
                   <ThinkingDots />
                 )}
 

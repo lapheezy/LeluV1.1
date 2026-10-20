@@ -42,6 +42,7 @@ import AgentEventBus from "../agent/AgentEvents";
 import SelfStudyEngine from "./SelfStudyEngine";
 import MultiChatStore from "../multichat/MultiChatStore";
 import { hasActiveWorkstream } from "../proactive/Workstream";
+import { backgroundInterval, backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
 import {
   canAct,
   intentEvidence,
@@ -97,9 +98,15 @@ const MAX_SUGGESTIONS_PER_CYCLE = 3;
 export default class CognitiveLoop {
   private static instance: CognitiveLoop | null = null;
   private listeners: Listener[] = [];
-  private timer: number | null = null;
-  private bootTimer: number | null = null;
-  private nudgeTimer: number | null = null;
+  // backgroundInterval/backgroundTimeout rather than window.setInterval and
+  // window.setTimeout. The cleanup in stop() below was already complete; what
+  // these change is the other half — that cognition's heartbeat is not, by
+  // itself, a reason for a process to refuse to end. In a browser that makes
+  // no difference (a page has no exit); outside one it is the difference
+  // between a test suite that finishes and one that stalls.
+  private timer: BackgroundTimer | null = null;
+  private bootTimer: BackgroundTimer | null = null;
+  private nudgeTimer: BackgroundTimer | null = null;
   private unsubscribeProjects: (() => void) | null = null;
   private running = false;
   private cycle = 0;
@@ -135,11 +142,11 @@ export default class CognitiveLoop {
     // timeout is TRACKED: an untracked one survives stop(), so a loop
     // the interface has torn down still runs a cycle three seconds
     // later — and StrictMode's mount/unmount/mount leaves an orphan.
-    this.bootTimer = window.setTimeout(() => {
+    this.bootTimer = backgroundTimeout(() => {
       this.bootTimer = null;
       void this.runOnce();
     }, 3000);
-    this.timer = window.setInterval(() => void this.runOnce(), intervalMs);
+    this.timer = backgroundInterval(() => void this.runOnce(), intervalMs);
 
     // Observe state changes, not just the clock.
     //
@@ -154,18 +161,12 @@ export default class CognitiveLoop {
   }
 
   public stop(): void {
-    if (this.timer !== null) {
-      window.clearInterval(this.timer);
-      this.timer = null;
-    }
-    if (this.bootTimer !== null) {
-      window.clearTimeout(this.bootTimer);
-      this.bootTimer = null;
-    }
-    if (this.nudgeTimer !== null) {
-      window.clearTimeout(this.nudgeTimer);
-      this.nudgeTimer = null;
-    }
+    this.timer?.stop();
+    this.timer = null;
+    this.bootTimer?.stop();
+    this.bootTimer = null;
+    this.nudgeTimer?.stop();
+    this.nudgeTimer = null;
     this.unsubscribeProjects?.();
     this.unsubscribeProjects = null;
 
@@ -191,7 +192,7 @@ export default class CognitiveLoop {
     }
     const since = Date.now() - this.lastCycleAt;
     const delay = Math.max(NUDGE_DEBOUNCE_MS, MIN_CYCLE_GAP_MS - since);
-    this.nudgeTimer = window.setTimeout(() => {
+    this.nudgeTimer = backgroundTimeout(() => {
       this.nudgeTimer = null;
       void this.runOnce();
     }, delay);
