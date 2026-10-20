@@ -178,6 +178,10 @@ export default function MultiChatTabs() {
               ) : (
                 <button
                   type="button"
+                  // Which conversation this tab selects. Tabs are reordered
+                  // by pinning and recency, so position is not a stable way
+                  // to identify one — for assistive tech or for a test.
+                  data-conversation-id={conversation.id}
                   onClick={(event) => handleTabClick(event, conversation.id)}
                   title={`${conversation.title}${conversation.unread > 0 ? ` (${conversation.unread} unread)` : ""}`}
                   style={{

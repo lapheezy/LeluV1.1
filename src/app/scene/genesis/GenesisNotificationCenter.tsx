@@ -23,12 +23,23 @@ import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useGenesis } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
+import { layer } from "../../../core/ui/Layers";
+import { useWorkspace } from "./useWorkspace";
 
 const AUTO_DISMISS_MS = 6000;
 const MAX_VISIBLE = 4;
 
+/**
+ * Height of the chat header band on a compact layout, plus a gap.
+ *
+ * Measured: the header occupies the top 49px and carries the LÉLU menu
+ * control at its right edge.
+ */
+const COMPACT_HEADER_CLEARANCE = 64;
+
 export default function GenesisNotificationCenter() {
   const { state, dismissNotification } = useGenesis();
+  const workspace = useWorkspace();
 
   const visible = state.notifications.slice(-MAX_VISIBLE);
 
@@ -36,14 +47,24 @@ export default function GenesisNotificationCenter() {
     <div
       style={{
         position: "absolute",
-        top: 16,
+        // On a phone this stack is 340px wide against a 390px viewport, so
+        // at top:16 it ran straight through the chat header and swallowed
+        // taps meant for the LÉLU menu control — measured with
+        // elementFromPoint, which returned the "Lélu briefing" toast at the
+        // control's own centre. A notification must never cover the
+        // navigation it is announcing, so on compact widths it starts below
+        // the header instead.
+        top: workspace.compact ? COMPACT_HEADER_CLEARANCE : 16,
         right: 16,
         display: "flex",
         flexDirection: "column",
         gap: 8,
         alignItems: "flex-end",
         pointerEvents: "none",
-        zIndex: 40,
+        // Was a bare 40, outside the hierarchy that decides what may cover
+        // what. Transient cognition surfaces belong on the notification
+        // layer, which sits above panels and below overlays and modals.
+        zIndex: layer("notification"),
         maxWidth: "min(90vw, 340px)",
       }}
     >

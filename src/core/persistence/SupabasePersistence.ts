@@ -52,6 +52,32 @@ const HYDRATE_PAGE_SIZE = 500;
 const MAX_HYDRATE_PAGES = 200;
 
 /**
+ * The column each table is paged on.
+ *
+ * Declared per table in ONE place rather than passed in by callers: the
+ * first version of this took the key as a call-site argument, and two call
+ * sites (readOne and the realtime refresh) were missed, which turned every
+ * realtime ui_state refresh into `column ui_state.id does not exist`.
+ *
+ * The key must be unique within a user's rows, or paging can repeat or skip
+ * a row. Tables not listed here are keyed on `id`.
+ */
+const PAGE_KEY: Record<string, string> = {
+  // One row per user — no `id` column at all.
+  ui_state: "user_id",
+  news_preferences: "user_id",
+  // Keyed (user_id, preference_key); RLS already scopes to one user.
+  user_preferences: "preference_key",
+  // Keyed (user_id, provider).
+  api_health: "provider",
+};
+
+/** The stable sort key for a table. */
+function pageKeyFor(table: string): string {
+  return PAGE_KEY[table] ?? "id";
+}
+
+/**
  * Per-table bound for the small stores.
  *
  * Per TABLE, not for the whole hydration: the old single bound let the
@@ -311,9 +337,9 @@ export default class SupabasePersistence {
    * "LÉLU lost her memory this session".
    */
   private async hydrateCoreStores(brain: Brain, user?: UserManager): Promise<void> {
-    const read = async (table: string, orderBy = "id"): Promise<RemoteRow[]> => {
+    const read = async (table: string): Promise<RemoteRow[]> => {
       try {
-        return await this.withTimeout(this.read(table, { orderBy }), CORE_HYDRATE_TIMEOUT_MS, `Supabase ${table} hydrate`);
+        return await this.withTimeout(this.read(table), CORE_HYDRATE_TIMEOUT_MS, `Supabase ${table} hydrate`);
       } catch (error) {
         this.status = "degraded";
         console.warn(`[Lélu] Supabase hydrate for ${table} degraded`, error);
@@ -331,11 +357,9 @@ export default class SupabasePersistence {
       read("proactive_questions"),
       read("knowledge_items"),
       read("improvement_items"),
-      // These three have no `id`: ui_state and news_preferences are one row
-      // per user, user_preferences is keyed (user_id, preference_key).
-      read("ui_state", "user_id"),
-      read("news_preferences", "user_id"),
-      read("user_preferences", "user_id"),
+      read("ui_state"),
+      read("news_preferences"),
+      read("user_preferences"),
     ]);
 
     try {
@@ -370,17 +394,25 @@ export default class SupabasePersistence {
   private async hydrateConversationHistory(): Promise<void> {
     try {
       const conversationRows = await this.read("conversations");
-      // The conversation LIST can be shown before any message has arrived.
-      this.mergeConversations(conversationRows, []);
 
-      const messageRows: RemoteRow[] = [];
-      await this.read("messages", {
-        onPage: (rows, loaded, total) => {
+      // Messages are collected across pages FIRST, then merged once.
+      //
+      // Merging per page looks appealing but cannot work through
+      // MultiChatStore.mergeRemote, which only accepts a conversation whose
+      // `updatedAt` is strictly newer than the stored one. A conversation's
+      // row does not change between message pages, so the first merge wins
+      // and every later page is silently rejected — measured in a real
+      // browser: conversations loaded, messages stayed at 0.
+      //
+      // Forcing it through by inflating `updatedAt` would reorder the user's
+      // chat list, which is sorted on exactly that field. Collecting first
+      // keeps both the ordering and the message set honest.
+      //
+      // The read itself is still paged and still incremental: progress is
+      // reported per page, and nothing blocks the UI while it runs.
+      const messageRows = await this.read("messages", {
+        onPage: (_rows, loaded, total) => {
           this.historyProgress = { loaded, total };
-          // Merge each page as it lands, so a long history fills in
-          // progressively instead of appearing all at once at the end.
-          messageRows.push(...rows);
-          this.mergeConversations(conversationRows, messageRows);
         },
       });
 
@@ -636,7 +668,7 @@ export default class SupabasePersistence {
     table: string,
     options: {
       onPage?: (rows: RemoteRow[], loaded: number, total: number) => void;
-      /** Stable sort key. See the ordering note below. */
+      /** Override the table's declared sort key. Rarely needed. */
       orderBy?: string;
     } = {},
   ): Promise<RemoteRow[]> {
@@ -661,7 +693,7 @@ export default class SupabasePersistence {
       const { data, error, count } = await this.client
         .from(table)
         .select("*", { count: "exact" })
-        .order(options.orderBy ?? "id", { ascending: true })
+        .order(options.orderBy ?? pageKeyFor(table), { ascending: true })
         .range(from, to);
       if (error) throw error;
 

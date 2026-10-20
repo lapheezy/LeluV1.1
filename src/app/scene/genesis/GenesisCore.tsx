@@ -766,6 +766,43 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
   }
 }
 
+  /**
+   * Follow MultiChatStore's own idea of which conversation is active.
+   *
+   * GenesisCore kept `state.activeConversationId` as React state and wrote
+   * every message to it, while MultiChatStore kept its own `activeId`.
+   * Nothing synchronised the two, so anything that switched conversation
+   * outside this component — Workstream.openWorkstream(), which cognition
+   * calls when a suggestion is explored — moved the store's pointer and
+   * left the UI's behind.
+   *
+   * Measured: the store reported one conversation active while the message
+   * just sent had been written into a different one. That is the reported
+   * "switching workspace does not switch workspace state": two sources of
+   * truth for one fact.
+   *
+   * The store is the source of truth; this makes the view follow it.
+   */
+  useEffect(() => {
+    const multiChat = MultiChatStore.getInstance();
+    return multiChat.subscribe((conversations) => {
+      const activeId = multiChat.getActiveId();
+      setState((current) => {
+        if (current.activeConversationId === activeId) {
+          // Same conversation — only the list changed.
+          return { ...current, conversations };
+        }
+        const active = multiChat.get(activeId);
+        return {
+          ...current,
+          conversations,
+          activeConversationId: activeId,
+          messages: active?.messages ?? current.messages,
+        };
+      });
+    });
+  }, []);
+
   /* Duplicate-runtime assertion — see genesisCoreMountCount above. */
   useEffect(() => {
     genesisCoreMountCount += 1;

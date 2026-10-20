@@ -284,15 +284,20 @@ test("every paged read is ordered, or the pages are not reproducible", () => {
 });
 
 test("tables without an id column are paged on a key they actually have", () => {
-  // ui_state, news_preferences and user_preferences have no `id`; ordering
-  // by a missing column is a request error, which would fail hydration for
-  // settings that were previously loading fine.
+  // Measured in a real browser: ordering ui_state by `id` produced
+  // "column ui_state.id does not exist" on every realtime refresh. The key
+  // belongs to the TABLE, not to the call site — passing it per call meant
+  // readOne and the realtime path silently kept the wrong default.
   const source = readFileSync("src/core/persistence/SupabasePersistence.ts", "utf8");
-  for (const table of ["ui_state", "news_preferences", "user_preferences"]) {
-    assert.match(
-      source,
-      new RegExp(`read\\("${table}", "user_id"\\)`),
-      `${table} must be ordered by a column it has`,
-    );
+  const map = source.slice(source.indexOf("const PAGE_KEY"), source.indexOf("function pageKeyFor"));
+  for (const [table, key] of [
+    ["ui_state", "user_id"],
+    ["news_preferences", "user_id"],
+    ["user_preferences", "preference_key"],
+    ["api_health", "provider"],
+  ]) {
+    assert.match(map, new RegExp(`${table}: "${key}"`), `${table} must page on ${key}`);
   }
+  // And every caller must go through it rather than naming a key itself.
+  assert.match(source, /options\.orderBy \?\? pageKeyFor\(table\)/);
 });

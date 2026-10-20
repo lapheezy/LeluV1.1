@@ -1,41 +1,58 @@
 # Test suite — what is actually measured
 
-`npm test` runs `tsx --test --test-concurrency=1 tests/*.test.ts`. It is
-the node:test runner, not `bun test`; running it under bun reports the
-suite as broken when it is not.
+`npm test` runs the deterministic suite. It is the node:test runner, not
+`bun test`; running it under bun reports the suite as broken when it is not.
 
-Measured per file with a 90s ceiling each, on the commit that added this
-file:
+As of this commit, one command, start to finish:
 
-- **203 assertions passing, 0 failing** across 23 files.
-- **13 of 36 files do not finish inside 90s** and are therefore unmeasured, not passing.
+- **459 tests, 458 passing, 1 failing, 0 hanging.**
 
-The unmeasured files are long-standing — they did not finish at `11a3527`
-either, so this is not a regression introduced by any recent change. They
-exercise live cognition and reach for real providers, so with provider
-credentials absent or revoked they sit waiting on the network rather than
-failing. That is why a plain `npm test` appears to hang partway through.
+## Why `--test-force-exit`
 
-Do not read "the suite passes" as covering these. They are:
+Twelve suites used to "hang" and the full run never finished. They were not
+hanging on the network and they were not slow: their assertions complete in
+milliseconds. Booting LÉLU starts background loops — the project scheduler
+(every 60s), the persistent runtime, continuous self-study — and those timers
+keep the Node event loop alive after the last assertion, so the process never
+exits.
 
-- `agent-cognition.test.ts`
-- `autonomy-end-to-end.test.ts`
-- `cognition-chat-integration.test.ts`
-- `cognitive-behavior.test.ts`
-- `continuous-cognition.test.ts`
-- `live-state-integration.test.ts`
-- `provider-fallback-cognition.test.ts`
-- `runtime-lifecycle.test.ts`
-- `self-study-loop.test.ts`
-- `test-isolation.test.ts`
-- `tool-calling.test.ts`
-- `workflow-control-flow.test.ts`
-- `workflow-learning.test.ts`
+`--test-force-exit` ends the process once the tests are done. Nothing is
+skipped, no assertion is weakened, and no cognition behaviour is changed:
+those twelve files now report their results, which is where ~145 of the
+passing assertions above come from.
 
-To get a measurement without the hang:
+## What is NOT in `npm test`
+
+`tests/autonomy-end-to-end.test.ts` — run it with `npm run test:live`.
+
+It is documented in its own header as the live end-to-end proof: nothing is
+mocked, not the model, and it needs both a real provider credential and a
+browser `indexedDB`. Under plain Node it fails on `indexedDB is not defined`,
+which says nothing about the code under test. It is kept out of the
+deterministic suite rather than being skipped, weakened, or counted as green.
+
+## Known failure
+
+`tests/provider-fallback-cognition.test.ts` — its 4 assertions all pass. The
+file then reports `Unable to deserialize cloned data due to invalid or
+unsupported version` as the test runner tears the file down.
+
+Pre-existing, with evidence: the identical result (4 passing assertions, same
+file-level error) reproduces at commit `44bdd93`, before the hydration,
+pagination and workspace work. It is not caused by this work, and it is not
+hidden — the suite reports 1 failure because there is 1 failure.
+
+## Browser verification
+
+Unit tests do not prove browser behaviour. These drive a real Chromium
+against a real dev server:
 
 ```sh
-for f in tests/*.test.ts; do timeout 90 npx tsx --test "$f"; done
+npm run verify:hydration   # signed-in Supabase hydration, 1043 rows
+npm run verify:layout      # geometry, overlap, overflow, clickability
+npm run verify:workspace   # tab/workspace state isolation
 ```
 
-The per-file counts above come from exactly that loop.
+`verify:hydration` needs a dev server started with `SUPABASE_URL` and
+`SUPABASE_PUBLISHABLE_KEY`, and an `e2e-session.json` for its dedicated test
+account (never the owner's). See the script header.
