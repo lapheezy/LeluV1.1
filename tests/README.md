@@ -90,11 +90,47 @@ against a real dev server:
 npm run verify:hydration   # signed-in Supabase hydration, 1043 rows
 npm run verify:layout      # geometry, overlap, overflow, clickability
 npm run verify:workspace   # tab/workspace state isolation
+npm run verify:auth        # the sign-in form against the real project
 ```
 
 `verify:hydration` needs a dev server started with `SUPABASE_URL` and
 `SUPABASE_PUBLISHABLE_KEY`, and an `e2e-session.json` for its dedicated test
 account (never the owner's). See the script header.
+
+`verify:auth` takes two dev servers: the first configured correctly, the
+second configured with a key whose `ref` claim names a different project (the
+script prints one to use). It submits one deliberately wrong password to
+prove the real endpoint answers, and asserts the answer reads as a wrong
+password rather than as a broken deployment — that confusion was the original
+bug. It creates no account and sends no email. Without the second server the
+mismatch half SKIPS and counts as a failure: a check that cannot run has not
+passed.
+
+### Why these scripts click with `page.mouse` rather than `page.click()`
+
+`locator.click()` times out on this page in a headless container. Its own
+log reads "element is visible, enabled and stable", then "performing click
+action", then nothing — and the element is genuinely uncovered, which
+`elementFromPoint` confirms.
+
+Measured cause: the main thread is blocked most of the time. 31 long tasks
+totalling 22.4s in a 30s window, worst single task 2.9s; a bare
+`evaluate(() => 1 + 1)` round trip measured 401–2938ms. `locator.click`'s
+internal re-checks round-trip through that thread, so the action retries
+until it gives up.
+
+A CPU profile attributes 20.6s of 26.6s to `(program)` — native, not
+JavaScript — with `getProgramInfoLog` the top named frame. That is WebGL
+shader compilation, and this container renders through SwiftShader
+("ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device …), SwiftShader driver)"),
+so shaders compile on the CPU. It is therefore evidence about a GPU-less
+headless environment, not about the product on a real device — it has not
+been reproduced on hardware either way.
+
+The scripts use `page.mouse` at a point they have just hit-tested. That is a
+real CDP input event, so a control covered by something else still fails —
+unlike a synthetic `element.click()` from `evaluate`, which bypasses hit
+testing and would prove nothing.
 
 ## When something hangs again
 
