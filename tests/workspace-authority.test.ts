@@ -311,3 +311,129 @@ test("a reply is only painted into the scene while its own conversation is on sc
     "a settled reply still paints into the scene without checking which conversation is open",
   );
 });
+
+/* ------------------------------------------------------------------ *
+ * BACKGROUND WORK DOES NOT MOVE THE USER
+ *
+ * Measured before this guard: cognition's 10-second tick reaches
+ * SelfDevelopmentEngine.announce() → EngineeringChat.getOrCreateThread()
+ * → MultiChatStore.create(), and create() sets activeId unconditionally.
+ * So the first self-development observation of a session moved the user
+ * into the engineering thread. A person who had just asked a question
+ * watched an unrelated observation appear in its place, while their own
+ * answer landed — correctly, by turn ownership — in a conversation they
+ * were no longer looking at. The reply was never lost; the user was.
+ * ------------------------------------------------------------------ */
+
+test("a background conversation is created without selecting it", () => {
+  const a = chats.create("User's own chat").id;
+  assert.equal(chats.getActiveId(), a);
+
+  // Not the "engineering" tag: EngineeringChat finds its one thread BY
+  // that tag, and a test fixture wearing it would be adopted as the real
+  // engineering thread by the test below.
+  const b = chats.createBackground("Background thread", ["background-fixture"]).id;
+
+  assert.notEqual(b, a);
+  assert.equal(chats.getActiveId(), a, "background creation moved the user");
+  assert.ok(chats.get(b), "the background conversation was not stored");
+  assert.deepEqual(chats.get(b)?.tags, ["background-fixture"], "tags must be applied at creation");
+});
+
+test("a background conversation still receives its own messages", () => {
+  const a = chats.create("Still here").id;
+  const b = chats.createBackground("Autonomous work").id;
+
+  chats.addMessage(b, message("bg-1", "BACKGROUND-marker"));
+
+  assert.equal(chats.getActiveId(), a, "writing to a background conversation moved the user");
+  assert.equal(chats.get(b)?.messages.length, 1);
+  assert.equal(chats.get(b)?.messages[0].text, "BACKGROUND-marker");
+  assert.equal(chats.get(a)?.messages.some((m) => m.text === "BACKGROUND-marker"), false);
+});
+
+test("a streamed reply stays attached to the background conversation that asked", () => {
+  // The same property turn ownership gives a foreground turn, for a turn
+  // the runtime started on its own: a reply arriving in pieces belongs to
+  // the conversation it was asked in, whatever the user selects meanwhile.
+  resetTurnOwnership();
+  const a = chats.create("User reading this").id;
+  const b = chats.createBackground("Autonomous work").id;
+
+  claimTurn(b);
+  const replyId = "stream-1";
+  assert.equal(ownerForMessage(replyId), b);
+
+  // Partial, then final — with the user elsewhere the whole time.
+  chats.upsertMessage(ownerForMessage(replyId) ?? a, {
+    id: replyId, role: "assistant", text: "partial", timestamp: Date.now(), source: "ai",
+  });
+  assert.equal(chats.getActiveId(), a);
+  chats.upsertMessage(ownerForMessage(replyId) ?? a, {
+    id: replyId, role: "assistant", text: "partial and then complete", timestamp: Date.now(), source: "ai",
+  });
+  releaseTurn(b);
+
+  assert.equal(chats.getActiveId(), a, "a background stream moved the user");
+  assert.equal(chats.get(b)?.messages.length, 1, "the stream duplicated instead of upserting");
+  assert.equal(chats.get(b)?.messages[0].text, "partial and then complete");
+  assert.equal(chats.get(a)?.messages.length, 0, "the background stream leaked into the user's chat");
+});
+
+test("a background conversation is discoverable by its tag", () => {
+  const b = chats.createBackground("Findable", ["background-fixture", "autonomous"]).id;
+  const found = chats.list().find((conversation) => conversation.tags.includes("autonomous"));
+  assert.equal(found?.id, b);
+});
+
+test("the engineering thread is created in the background and reused, never duplicated", async () => {
+  const { default: EngineeringChat } = await import("../src/core/selfdev/EngineeringChat");
+  const userChat = chats.create("User is here").id;
+
+  const first = EngineeringChat.getInstance().getOrCreateThread();
+  assert.equal(chats.getActiveId(), userChat, "the engineering thread stole the user's view");
+
+  EngineeringChat.getInstance().recordObservation("An observation from cognition.");
+  assert.equal(chats.getActiveId(), userChat, "recording an observation stole the user's view");
+
+  const second = EngineeringChat.getInstance().getOrCreateThread();
+  assert.equal(second.id, first.id, "a second engineering thread was created");
+  assert.equal(
+    chats.listAll().filter((conversation) => conversation.tags.includes("engineering")).length,
+    1,
+    "the engineering thread was duplicated",
+  );
+  assert.equal(chats.get(first.id)?.messages.at(-1)?.text, "An observation from cognition.");
+});
+
+test("cognition can open a project workstream without moving the user", () => {
+  const projects = ProjectStore.getInstance();
+  const project = projects.create({ name: "Background Project", description: "for cognition" });
+  const userChat = chats.create("User is reading this").id;
+
+  const opened = openWorkstream(project.id, { seed: false, activate: false });
+
+  assert.ok(opened?.created, "no workstream was created");
+  assert.equal(chats.getActiveId(), userChat, "cognition's workstream stole the user's view");
+  assert.equal(chats.get(opened!.conversation.id)?.projectId, project.id);
+  assert.ok(chats.get(opened!.conversation.id)?.tags.includes("workstream"));
+
+  // Reopening in the background must not move the user either, and must
+  // not make a second conversation about the same project.
+  const again = openWorkstream(project.id, { seed: false, activate: false });
+  assert.equal(again?.created, false);
+  assert.equal(again?.conversation.id, opened!.conversation.id);
+  assert.equal(chats.getActiveId(), userChat);
+});
+
+test("the user opening a workstream still selects it", () => {
+  // The default is unchanged: Explore on a question is a person's action.
+  const projects = ProjectStore.getInstance();
+  const project = projects.create({ name: "Foreground Project", description: "user explores" });
+  chats.create("Somewhere else");
+
+  const opened = openWorkstream(project.id, { seed: false });
+
+  assert.ok(opened);
+  assert.equal(chats.getActiveId(), opened!.conversation.id, "Explore no longer opens the workstream");
+});

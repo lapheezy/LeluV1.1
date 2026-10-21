@@ -262,6 +262,49 @@ export default class MultiChatStore {
     return conversation;
   }
 
+  /**
+   * Create a conversation WITHOUT selecting it.
+   *
+   * `create()` makes the new conversation active, which is right when a
+   * person asked for a new chat and wrong for every other caller. The
+   * difference was measured, not theorised: cognition's 10-second tick
+   * reaches SelfDevelopmentEngine.announce(), which calls
+   * EngineeringChat.getOrCreateThread(), which called create() — so the
+   * first self-development observation of the session silently moved the
+   * user into the engineering thread. A person who had just asked a
+   * question watched an unrelated observation appear in its place while
+   * their own answer landed, correctly, in a conversation they were no
+   * longer looking at.
+   *
+   * Tags are applied here rather than through addTag() afterwards so the
+   * conversation is persisted once, complete, instead of twice.
+   */
+  public createBackground(title = DEFAULT_TITLE, tags: string[] = []): ChatConversation {
+    const conversations = this.ensureSeeded();
+    const conversation = this.makeConversation(title);
+    if (tags.length > 0) {
+      conversation.tags = [...new Set(tags.map((tag) => tag.trim()).filter(Boolean))];
+    }
+    // Appended, not prepended: create() puts a user's new chat at the top
+    // of their list, and a conversation nobody asked for has not earned
+    // that place.
+    //
+    // At capacity, the oldest conversation is dropped rather than the new
+    // one — a plain slice() would silently discard the conversation this
+    // call just returned — and never the one the user is looking at.
+    let next = [...conversations, conversation];
+    while (next.length > MAX_ACTIVE) {
+      const victim = next.findIndex(
+        (item) => item.id !== this.activeId && item.id !== conversation.id,
+      );
+      if (victim < 0) break;
+      next = [...next.slice(0, victim), ...next.slice(victim + 1)];
+    }
+    // activeId is deliberately untouched.
+    this.persist(next);
+    return conversation;
+  }
+
   /** Archive a conversation — hides from active list, preserves state. */
   public archive(id: string): string {
     const conversations = this.ensureSeeded();

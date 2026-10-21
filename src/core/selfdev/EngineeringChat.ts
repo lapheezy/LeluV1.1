@@ -60,8 +60,12 @@ export default class EngineeringChat {
       return this.store.get(existing.id) ?? existing;
     }
 
-    const created = this.store.create(ENGINEERING_TITLE);
-    this.store.addTag(created.id, ENGINEERING_TAG);
+    // createBackground, not create(): this thread is made the first time
+    // ANYTHING asks for it, and the usual first caller is
+    // SelfDevelopmentEngine.announce() running off cognition's tick — not
+    // a person. create() would select it, moving the user out of the
+    // conversation they were in, mid-turn, for a thread they did not open.
+    const created = this.store.createBackground(ENGINEERING_TITLE, [ENGINEERING_TAG]);
     this.threadId = created.id;
     return this.store.get(created.id) ?? created;
   }

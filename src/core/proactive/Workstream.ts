@@ -104,23 +104,35 @@ export function buildWorkstreamBriefing(
  */
 export function openWorkstream(
   projectId: string,
-  options: { question?: ProactiveQuestion; seed?: boolean } = {},
+  options: { question?: ProactiveQuestion; seed?: boolean; activate?: boolean } = {},
 ): WorkstreamContext | null {
   const chats = MultiChatStore.getInstance();
   const project = ProjectStore.getInstance().get(projectId);
   if (!project) return null;
 
+  // Opening a workstream is normally something a PERSON did — they
+  // clicked Explore on a question — and selecting it is then exactly
+  // right. Cognition opening one for its own work is a different act,
+  // and must not move the user; such a caller passes activate: false.
+  // The default is unchanged so no existing caller changes behaviour.
+  const activate = options.activate !== false;
+
   const existing = findWorkstream(projectId);
   if (existing) {
-    chats.switchActive(existing.id);
+    if (activate) chats.switchActive(existing.id);
     return { conversation: existing, created: false };
   }
 
-  const conversation = chats.create(project.name);
+  const tags = [WORKSTREAM_TAG, ...(project.name ? [project.name.toLowerCase()] : [])];
+  const conversation = activate
+    ? chats.create(project.name)
+    : chats.createBackground(project.name, tags);
   chats.setProject(conversation.id, projectId);
-  chats.addTag(conversation.id, WORKSTREAM_TAG);
-  if (project.name) chats.addTag(conversation.id, project.name.toLowerCase());
-  chats.switchActive(conversation.id);
+  if (activate) {
+    chats.addTag(conversation.id, WORKSTREAM_TAG);
+    if (project.name) chats.addTag(conversation.id, project.name.toLowerCase());
+    chats.switchActive(conversation.id);
+  }
 
   const briefing = options.seed === false ? undefined : buildWorkstreamBriefing(projectId, options.question);
   if (briefing) {
