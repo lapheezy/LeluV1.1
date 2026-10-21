@@ -81,6 +81,15 @@ export interface AgentObjective {
   state: ObjectiveState;
   /** Who or what created it. */
   source: "user" | "cognition" | "agent";
+  /**
+   * The project this objective advances, when it advances one.
+   *
+   * Carried so cognition can tell whether a project already has work in
+   * flight before deriving more — without it, a 10-second loop would
+   * queue the same project's next step on every tick — and so a question
+   * raised mid-objective can name the project it belongs to.
+   */
+  projectId?: string;
   createdAt: number;
   updatedAt: number;
 
@@ -197,6 +206,29 @@ export default class AgentObjectives {
     return this.list(agentId).filter((objective) => objective.state === "active");
   }
 
+  /**
+   * Is this project already being worked on?
+   *
+   * "Already" means an objective that is going to run again by itself:
+   * active, scheduled, waiting for an approval, or waiting on an answer.
+   * A completed or yielded objective is finished and must not block the
+   * project forever.
+   *
+   * This is what stops a 10-second cognitive tick from deriving the same
+   * next step over and over.
+   */
+  public hasWorkInFlight(projectId: string): boolean {
+    if (!projectId) return false;
+    return this.list().some(
+      (objective) =>
+        objective.projectId === projectId &&
+        (objective.state === "active" ||
+          objective.state === "scheduled" ||
+          objective.state === "awaiting-approval" ||
+          objective.state === "waiting"),
+    );
+  }
+
   /** Defer an objective to a wall-clock time. Survives a restart. */
   public schedule(id: string, resumeAt: number, note = ""): AgentObjective | undefined {
     const updated = this.update(id, { state: "scheduled", resumeAt, conclusion: note });
@@ -250,6 +282,7 @@ export default class AgentObjectives {
     agentId: string;
     objective: string;
     source?: AgentObjective["source"];
+    projectId?: string;
     maxCycles?: number;
     maxActions?: number;
     deadlineMs?: number;
@@ -261,6 +294,7 @@ export default class AgentObjectives {
       objective: input.objective,
       state: "active",
       source: input.source ?? "user",
+      ...(input.projectId ? { projectId: input.projectId } : {}),
       createdAt: now,
       updatedAt: now,
       cyclesRun: 0,

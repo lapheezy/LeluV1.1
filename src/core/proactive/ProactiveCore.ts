@@ -138,6 +138,21 @@ export interface ProactiveSettings {
   locationContext: boolean;
   mediaDiscovery: boolean;
   videoAutoplay: boolean;
+  /**
+   * May cognition turn a derived next step into work it actually runs?
+   *
+   * This is the switch on autonomous EXECUTION, not on thinking.
+   * With it off, CognitiveLoop still observes, still derives a project's
+   * next objective and still records it in the WorkQueue for a person to
+   * act on — it simply does not hand it to AgentCognitionRuntime, so no
+   * tool runs unattended. With it on, the derived objective becomes real
+   * work: one objective per project at a time, inside that runtime's own
+   * cycle/action/deadline budgets, under the autonomy gate.
+   *
+   * It does not widen authority. Applying or committing to the real
+   * project still needs a human grant through EngineeringAuthorization.
+   */
+  autonomousExecution: boolean;
   notificationLevel: NotificationLevel;
   categories: ProactiveCategory[];
 }
@@ -156,6 +171,10 @@ const DEFAULT_SETTINGS: ProactiveSettings = {
   locationContext: false,
   mediaDiscovery: false,
   videoAutoplay: false,
+  // On: the loop is meant to close. It is a setting rather than a
+  // constant so it can be switched off from the Cognition panel without
+  // stopping cognition itself.
+  autonomousExecution: true,
   notificationLevel: "normal",
   categories: [...PROACTIVE_CATEGORIES],
 };

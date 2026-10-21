@@ -35,7 +35,22 @@ export const AUTONOMY_LEVELS: AutonomyLevel[] = [
 ];
 
 const KEY = "lelu.autonomy.v1";
-const DEFAULT_LEVEL = 2;
+/**
+ * L3, so the sandbox development loop can actually close.
+ *
+ * At L2 LÉLU could write to the sandbox and then not verify a line of
+ * it: WorkspaceRuntime requires L3 for typecheck, test and build (see
+ * REQUIRED_LEVEL there), so the loop ran
+ * read → reason → write → ✖. Writing code you cannot compile or test is
+ * not a safer autonomy level, it is a less honest one.
+ *
+ * L3 is NOT real-project authority, and raising this does not grant any.
+ * project.apply and project.commit are gated by EngineeringAuthorization
+ * — a human grant tied to a signed-in identity — which this level does
+ * not touch and cannot satisfy. ToolDispatcher.toolPermitted() checks
+ * both independently, and the dispatcher re-checks before writing.
+ */
+const DEFAULT_LEVEL = 3;
 
 export default class AutonomyGate {
   private static instance: AutonomyGate | null = null;

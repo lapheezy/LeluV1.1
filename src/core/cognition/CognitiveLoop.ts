@@ -43,6 +43,7 @@ import SelfStudyEngine from "./SelfStudyEngine";
 import MultiChatStore from "../multichat/MultiChatStore";
 import { hasActiveWorkstream } from "../proactive/Workstream";
 import { backgroundInterval, backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
+import AgentObjectives from "./AgentObjectives";
 import {
   canAct,
   intentEvidence,
@@ -492,6 +493,22 @@ export default class CognitiveLoop {
         suggestions.push(
           `Derived a next objective for “${project.name}” from ${intent!.source} instead of asking.`,
         );
+
+        // THE DECISION BECOMES WORK.
+        //
+        // The WorkQueue record above is the audit trail and the human
+        // view; it has never had an executor. The runtime that DOES
+        // execute — AgentCognitionRuntime, which calls
+        // AIService.deliberate() with tools and evaluates what really
+        // ran — reads AgentObjectives, and nothing in the product ever
+        // created one. That single missing call is why a complete
+        // autonomous loop never ran outside its own tests.
+        //
+        // No new scheduler and no new executor: creating the objective
+        // is itself the wake condition, because the runtime subscribes
+        // to this store (see AgentCognitionRuntime.start).
+        const derived = this.deriveAutonomousWork(project, nextObjective, intent!.source);
+        if (derived) suggestions.push(derived);
       }
 
       /* ---------------- PROACTIVE QUESTIONS ---------------- */
@@ -634,6 +651,78 @@ export default class CognitiveLoop {
     } finally {
       this.running = false;
     }
+  }
+
+  /**
+   * Hand a derived next step to the existing autonomous runtime.
+   *
+   * Returns a line for the cycle report when an objective was created,
+   * or null when one deliberately was not — the report says which, so a
+   * cycle that chose to stay out of the way is distinguishable from one
+   * that was switched off.
+   *
+   * Three things can stop it, and each is a real condition rather than
+   * a guess:
+   *
+   *  · the user has autonomous execution off — cognition still derives
+   *    and still records; it simply does not run anything;
+   *  · the project already has work in flight — a 10-second tick must
+   *    not queue the same step repeatedly, and the objective already
+   *    running is the one that should continue;
+   *  · there is no agent to own it.
+   */
+  private deriveAutonomousWork(
+    project: { id: string; name: string; agentIds?: string[] },
+    objective: string,
+    source: string,
+  ): string | null {
+    try {
+      if (!ProactiveCore.getInstance().getSettings().autonomousExecution) {
+        return null;
+      }
+
+      const objectives = AgentObjectives.getInstance();
+      if (objectives.hasWorkInFlight(project.id)) {
+        return null;
+      }
+
+      const agentId = this.agentForProject(project);
+      if (!agentId) {
+        return `Derived work for “${project.name}” but no enabled agent could own it, so nothing was started.`;
+      }
+
+      objectives.create({
+        agentId,
+        objective,
+        source: "cognition",
+        projectId: project.id,
+      });
+
+      return `Started autonomous work on “${project.name}” (derived via ${source}).`;
+    } catch (error) {
+      // Cognition observing must never die because execution could not
+      // be started. The queue record above still stands.
+      console.warn("[CognitiveLoop] could not start autonomous work", error);
+      return null;
+    }
+  }
+
+  /**
+   * Which existing agent owns this project's work.
+   *
+   * The project's own binding first, because that is the user's answer
+   * to the question. Otherwise the first enabled agent — this picks an
+   * owner from the existing roster rather than inventing one.
+   */
+  private agentForProject(project: { agentIds?: string[] }): string | null {
+    const agents = AgentStore.getInstance()
+      .list()
+      .filter((agent) => agent.status !== "archived" && agent.enabled);
+    if (agents.length === 0) return null;
+    for (const bound of project.agentIds ?? []) {
+      if (agents.some((agent) => agent.id === bound)) return bound;
+    }
+    return agents[0].id;
   }
 
   /**
