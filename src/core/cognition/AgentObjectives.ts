@@ -245,6 +245,7 @@ export default class AgentObjectives {
    * failures already taken, not a question's domain.
    */
   public prioritize(): void {
+    const rescored = new Map<string, number>();
     for (const objective of this.list()) {
       if (
         objective.state !== "active" &&
@@ -282,9 +283,36 @@ export default class AgentObjectives {
       });
 
       if (next !== objective.priority) {
-        this.update(objective.id, { priority: next });
+        rescored.set(objective.id, next);
       }
     }
+
+    if (rescored.size === 0) return;
+
+    // ONE write, and NO notification.
+    //
+    // Both matter, and the second one is load-bearing. The store's
+    // subscription is how AgentCognitionRuntime learns that work changed
+    // state, and it answers by calling considerPending() → actionable()
+    // → here. Writing through update() therefore notified from inside
+    // the very read path the notification had triggered: with several
+    // objectives in the store that cascade re-entered considerPending
+    // once per rescored objective, and because scheduleContinuation()
+    // clears and re-sets its timer each time, the next cycle was pushed
+    // out again on every pass and never fired. Measured: an objective
+    // revived by a user's answer sat active for 20 seconds without
+    // running.
+    //
+    // A re-score is idempotent bookkeeping, not a state change, so there
+    // is nothing for a subscriber to react to.
+    this.kv.set(
+      KEY,
+      this.list().map((objective) =>
+        rescored.has(objective.id)
+          ? { ...objective, priority: rescored.get(objective.id)! }
+          : objective,
+      ),
+    );
   }
 
   /**

@@ -30,6 +30,8 @@ import AIService from "../AIService";
 import AgentStore from "../agents/AgentStore";
 import AgentEventBus, { emitCognition } from "../agent/AgentEvents";
 import ObjectiveLearning from "./ObjectiveLearning";
+import ProactiveCore from "../proactive/ProactiveCore";
+import { openWorkstream } from "../proactive/Workstream";
 import AgentObjectives, {
   type AgentObjective,
   type CognitionCycleRecord,
@@ -302,6 +304,66 @@ export default class AgentCognitionRuntime {
     return outcomes;
   }
 
+  /**
+   * Turn a block on missing information into a real question.
+   *
+   * Everything about the question is taken from state that already
+   * exists: the objective's id so the answer can revive it, its
+   * project, and the project's own workstream conversation so the
+   * question is asked where the work is being discussed. The
+   * conversation is opened in the BACKGROUND — a question must not move
+   * the user into another chat to ask them something.
+   *
+   * The question text is the model's own account of what is missing. It
+   * is not rewritten here, because a prettier version would be a
+   * different question from the one the work is actually blocked on.
+   */
+  private askUser(objective: AgentObjective, missing: string): void {
+    try {
+      const reason = missing.trim();
+      if (!reason) return;
+
+      let conversationId: string | undefined;
+      if (objective.projectId) {
+        try {
+          const context = openWorkstream(objective.projectId, { seed: false, activate: false });
+          conversationId = context?.conversation.id;
+        } catch {
+          // No project conversation is survivable: the question is still
+          // asked, it simply has no thread of its own.
+        }
+      }
+
+      ProactiveCore.getInstance().enqueueQuestion({
+        // Keyed on the objective, so the same block asked twice is the
+        // same question rather than a second one.
+        key: `objective:${objective.id}`,
+        question: reason,
+        category: "EXECUTIVE",
+        reason: `Autonomous work on “${objective.objective.slice(0, 120)}” cannot continue without this.`,
+        priority: "P1",
+        objectiveId: objective.id,
+        ...(conversationId ? { conversationId } : {}),
+        ...(objective.projectId ? { relatedProjectId: objective.projectId } : {}),
+        relatedTask: objective.objective.slice(0, 120),
+        blocksExecution: true,
+        rememberAnswer: true,
+        // The situation, not the clock: while the objective is blocked on
+        // the same thing, re-raising is a no-op.
+        evidence: `objective:${objective.id}:blocked:${reason.slice(0, 120)}`,
+      });
+
+      emitCognition("question-asked", reason.slice(0, 300), {
+        objectiveId: objective.id,
+        data: { conversationId: conversationId ?? null, projectId: objective.projectId ?? null },
+      });
+    } catch (error) {
+      // A question that could not be raised must not also lose the
+      // objective. It stays waiting, and the block is in its record.
+      console.warn("[AgentCognitionRuntime] could not raise a question for a blocked objective", error);
+    }
+  }
+
   /* ------------------------------ the cycle ------------------------------ */
 
   /**
@@ -316,7 +378,28 @@ export default class AgentCognitionRuntime {
     if (this.inFlight.has(objectiveId)) return null;
 
     const since = Date.now() - (this.lastCycleAt.get(objectiveId) ?? 0);
-    if (since < CYCLE_COOLDOWN_MS) return null;
+    if (since < CYCLE_COOLDOWN_MS) {
+      // A WAKE INSIDE THE COOLDOWN IS DEFERRED, NOT DISCARDED.
+      //
+      // The cooldown exists so a burst of events cannot spin the model,
+      // and returning null honoured that — but it also threw the wake
+      // away, and nothing ever re-armed it. Measured: a user answered a
+      // question within a second and a half of the cycle that asked it,
+      // so revive() made the objective active, considerPending() saw a
+      // continuation already pending and stood down, wake() hit this
+      // cooldown, the pending continuation then hit it too, and the
+      // objective sat active and abandoned — the answer was recorded and
+      // the work never moved again.
+      //
+      // Scheduling the remainder keeps the rate limit and keeps the
+      // wake: the next cycle happens as soon as it is allowed to.
+      this.scheduleContinuation(
+        objectiveId,
+        CYCLE_COOLDOWN_MS - since + 50,
+        `${trigger}:deferred-by-cooldown`,
+      );
+      return null;
+    }
 
     /* ---- BUDGETS FIRST: never spend a model call to discover a limit ---- */
     const exhausted = this.objectives.exhausted(objective);
@@ -472,13 +555,30 @@ export default class AgentCognitionRuntime {
         nextState = "completed";
         conclusion = decision.replace(/^\s*DONE:\s*/i, "").trim();
       } else if (/^\s*BLOCKED:/i.test(decision)) {
-        nextState = "yielded";
         // The model reporting a capability gap is a legitimate outcome,
         // and a different one from failing to execute.
         yieldReason = /information|ask|clarif/i.test(decision)
           ? "awaiting-information"
           : "capability-unavailable";
         conclusion = decision.replace(/^\s*BLOCKED:\s*/i, "").trim();
+
+        if (yieldReason === "awaiting-information") {
+          // SOMETHING THE USER KNOWS AND LÉLU CANNOT WORK OUT.
+          //
+          // This used to yield, which ends an objective: the work
+          // stopped, nobody was asked, and the conclusion explaining
+          // what was missing sat in a cycle record. Waiting is the
+          // resumable state — the question carries this objective's id,
+          // and answering it revives exactly this objective rather than
+          // starting something new.
+          nextState = "waiting";
+          this.objectives.waitFor(objectiveId, conclusion || "information from the user");
+          this.askUser(objective, conclusion);
+        } else {
+          // A capability that is genuinely unavailable is not a question
+          // for the user; it is a fact about the runtime.
+          nextState = "yielded";
+        }
       } else if (/^\s*SCHEDULE:/i.test(decision)) {
         // A deliberate deferral is runtime state, not a promise in text.
         const minutes = Number(decision.match(/in\s+(\d+)\s*min/i)?.[1] ?? 5);
@@ -532,7 +632,11 @@ export default class AgentCognitionRuntime {
 
       if (nextState === "completed") {
         this.objectives.complete(objectiveId, conclusion);
-      } else if (nextState === "scheduled" || nextState === "awaiting-approval") {
+      } else if (
+        nextState === "scheduled" ||
+        nextState === "awaiting-approval" ||
+        nextState === "waiting"
+      ) {
         // Already set above; the objective is parked in real state.
       } else if (nextState === "yielded" && yieldReason) {
         this.objectives.yieldObjective(objectiveId, yieldReason, conclusion);

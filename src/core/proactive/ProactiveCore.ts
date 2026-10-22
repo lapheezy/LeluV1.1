@@ -92,6 +92,23 @@ export interface ProactiveQuestion {
   priority: ProactiveQuestionPriority;
   relatedProjectId?: string;
   relatedTask?: string;
+  /**
+   * The conversation this question belongs in.
+   *
+   * A question used to be global — it had a project and a task but no
+   * thread — so an answer had nowhere to be given and nowhere to be
+   * read back. With it, the question is asked where the work is being
+   * discussed rather than wherever the user happens to be looking.
+   */
+  conversationId?: string;
+  /**
+   * The unit of work that needs the answer.
+   *
+   * This is what makes a question resumable: on an answer, THAT
+   * objective is revived and continues. Without it the runtime could
+   * only start something new, which is not the same as being unblocked.
+   */
+  objectiveId?: string;
   blocksExecution: boolean;
   rememberAnswer: boolean;
   askedAt: number;
@@ -116,6 +133,8 @@ export interface ProactiveQuestionInput {
   priority: ProactiveQuestionPriority;
   relatedProjectId?: string;
   relatedTask?: string;
+  conversationId?: string;
+  objectiveId?: string;
   blocksExecution?: boolean;
   rememberAnswer?: boolean;
   /**
@@ -564,6 +583,11 @@ export default class ProactiveCore {
         question: input.question,
         reason: input.reason,
         priority: input.priority,
+        // And it may be a DIFFERENT objective asking this time. Rebinding
+        // matters: an answer revives whatever objectiveId is recorded
+        // here, so a stale one would unblock work nobody was waiting on.
+        ...(input.objectiveId ? { objectiveId: input.objectiveId } : {}),
+        ...(input.conversationId ? { conversationId: input.conversationId } : {}),
         status: "pending",
         lifecycle: evolve(lifecycle, evidence),
         updatedAt: Date.now(),
@@ -646,7 +670,50 @@ export default class ProactiveCore {
       updatedAt: Date.now(),
     };
     this.replaceQuestion(updated);
+
+    // THE ANSWER UNBLOCKS THE WORK THAT ASKED.
+    //
+    // Without this, answering was only a record: the objective stayed
+    // parked and the user's answer sat in storage being read, at best,
+    // by the next cognitive tick as context. The objective that asked is
+    // revived and the existing runtime is woken — not a new objective,
+    // the same one, continuing.
+    //
+    // Deliberately a dynamic import and deliberately contained: the
+    // proactive layer must not take a hard dependency on the cognition
+    // runtime, and an answer must be recorded even if nothing is there
+    // to be woken.
+    if (updated.objectiveId) {
+      void this.resumeObjective(updated.objectiveId);
+    }
+
     return updated;
+  }
+
+  /**
+   * Revive the objective that asked, and wake the runtime for it.
+   *
+   * Fire-and-forget on purpose: resolveQuestion() returns the recorded
+   * answer synchronously, and the user must never wait on a cognition
+   * cycle to see that their answer was taken.
+   */
+  private async resumeObjective(objectiveId: string): Promise<void> {
+    try {
+      const [{ default: AgentObjectives }, { default: AgentCognitionRuntime }] = await Promise.all([
+        import("../cognition/AgentObjectives"),
+        import("../cognition/AgentCognitionRuntime"),
+      ]);
+      const objectives = AgentObjectives.getInstance();
+      const objective = objectives.get(objectiveId);
+      if (!objective) return;
+      // revive() is a no-op unless the objective is actually waiting, so
+      // an answer to a question whose work has since finished changes
+      // nothing rather than restarting it.
+      objectives.revive(objectiveId);
+      await AgentCognitionRuntime.getInstance().wake("question-answered");
+    } catch (error) {
+      console.warn("[Lélu] an answer was recorded but its objective could not be resumed", error);
+    }
   }
 
   /**

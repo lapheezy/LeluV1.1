@@ -309,6 +309,10 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [activeQuestion, setActiveQuestion] = useState<ProactiveQuestion | null>(null);
+  /** What the user has typed in reply to the question on screen. */
+  const [answerDraft, setAnswerDraft] = useState("");
+  /** Which question the draft above was typed for. */
+  const activeQuestionIdRef = useRef<string | null>(null);
   const [exchange, setExchange] = useState<Exchange | null>(null);
   /** Which conversation the visible exchange was built from. */
   const replayedForRef = useRef<string | null>(null);
@@ -419,6 +423,10 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   useEffect(() => {
     return proactive.subscribeQuestions((question) => {
       setActiveQuestion(question);
+      // A draft belongs to the question it was typed for. Carrying it
+      // over would submit an answer to the wrong question.
+      setAnswerDraft((current) => (question?.id === activeQuestionIdRef.current ? current : ""));
+      activeQuestionIdRef.current = question?.id ?? null;
       // Count the surface once, so "shown and ignored" is a real signal
       // the lifecycle can act on rather than something inferred later.
       if (question && question.status === "pending") {
@@ -428,6 +436,22 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   }, []);
 
   /** Open the question's project as a workstream and continue there. */
+  /**
+   * Record the user's own answer and let the work continue.
+   *
+   * The answer goes in verbatim — ProactiveCore persists it, updates
+   * the question's lifecycle, and revives the objective that asked so
+   * the existing runtime continues THAT objective rather than starting
+   * something new. Nothing is composed on the user's behalf.
+   */
+  const answerQuestion = useCallback((question: ProactiveQuestion) => {
+    const answer = answerDraft.trim();
+    if (!answer) return;
+    proactive.resolveQuestion(question.id, answer);
+    setAnswerDraft("");
+    setActiveQuestion(null);
+  }, [answerDraft]);
+
   const exploreQuestion = useCallback((question: ProactiveQuestion) => {
     const projectId = question.relatedProjectId;
     if (!projectId) {
@@ -1355,6 +1379,59 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
             <span style={{ display: "block", marginTop: 2, color: "rgba(226, 232, 240, 0.62)" }}>
               {activeQuestion.reason}
             </span>
+            {/*
+              A REAL ANSWER.
+              resolveQuestion(id, response) has always taken the user's
+              actual words, and the only caller passed the fixed string
+              "Explored in the global conversation." — so a question
+              could be opened or dismissed but never answered, and an
+              objective blocked on something only the user knew had no
+              way to be unblocked.
+            */}
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                answerQuestion(activeQuestion);
+              }}
+              style={{ display: "flex", gap: 6, marginTop: 8, alignItems: "center" }}
+            >
+              <input
+                data-lelu-question-answer
+                value={answerDraft}
+                onChange={(event) => setAnswerDraft(event.target.value)}
+                placeholder="Answer…"
+                aria-label="Answer LÉLU's question"
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  border: "1px solid rgba(251, 191, 36, 0.28)",
+                  background: "rgba(2, 6, 23, 0.35)",
+                  color: "rgba(254, 243, 199, 0.95)",
+                  borderRadius: 8,
+                  padding: "6px 10px",
+                  fontSize: 12,
+                  outline: "none",
+                  fontFamily: "inherit",
+                }}
+              />
+              <button
+                type="submit"
+                data-lelu-question-submit
+                disabled={answerDraft.trim().length === 0}
+                aria-label="Send answer"
+                style={{
+                  ...titleBtn,
+                  width: "auto",
+                  height: 26,
+                  padding: "0 10px",
+                  fontSize: 11,
+                  opacity: answerDraft.trim().length === 0 ? 0.45 : 1,
+                  color: "rgba(251, 191, 36, 0.95)",
+                }}
+              >
+                Answer
+              </button>
+            </form>
           </span>
           <span style={{ display: "flex", gap: 4, flexShrink: 0, flexWrap: "wrap" }}>
             {activeQuestion.relatedProjectId ? (

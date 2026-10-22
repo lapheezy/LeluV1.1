@@ -88,6 +88,10 @@ export type CognitionStage =
   | "continuation-scheduled"
   | "approval-required"
   | "approval-decided"
+  /** Blocked on something only the user knows, so a question was raised. */
+  | "question-asked"
+  /** The user answered, and this objective was revived to continue. */
+  | "question-answered"
   | "objective-scheduled"
   | "cycle-completed"
   | "objective-completed"
