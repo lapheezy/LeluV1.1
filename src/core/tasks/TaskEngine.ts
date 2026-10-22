@@ -171,6 +171,46 @@ export default class TaskEngine {
     return task;
   }
 
+  /**
+   * Record a conversational answer against a task WITHOUT completing it.
+   *
+   * The distinction this exists to keep: a task record is not an
+   * execution. Orchestrator used to mark every pending step completed
+   * with the model's reply as the step's result, which made TaskEngine
+   * mark the task completed because all its steps were — about work
+   * nothing had run.
+   *
+   * So the answer is stored on the step the task is on, any tools that
+   * REALLY ran are named, and the task is left "waiting": answered, with
+   * its planned steps not yet executed. Executing them is the existing
+   * objective path (AgentObjectives → AgentCognitionRuntime →
+   * ToolDispatcher), which completes a step from a real tool result.
+   */
+  recordAnswer(taskId: string, answer: string, toolsExecuted: string[] = []): Task | undefined {
+    const task = this.get(taskId);
+    if (!task) return undefined;
+    const step = task.steps[task.currentStepIndex] ?? task.steps[0];
+    if (step) {
+      step.result = toolsExecuted.length > 0
+        ? `${answer}\n\n[executed: ${toolsExecuted.join(", ")}]`
+        : answer;
+      // Deliberately NOT "completed". Nothing ran it.
+      step.status = "pending";
+    }
+    task.status = "waiting";
+    task.updatedAt = Date.now();
+    this.persist();
+    this.notify();
+    return task;
+  }
+
+  /**
+   * Complete a step. Callers must have EVIDENCE that it ran.
+   *
+   * The evidence is a real result — a tool result, a command's output,
+   * a verified side effect — never the text of a model's reply. See
+   * recordAnswer() for the conversational case.
+   */
   completeStep(taskId: string, stepId: string, result?: string): Task | undefined {
     const task = this.get(taskId);
     if (!task) return undefined;

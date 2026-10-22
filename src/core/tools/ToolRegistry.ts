@@ -253,9 +253,50 @@ export default class ToolRegistry {
     // Engineering workspace ops: real autonomy-gate check, the exact
     // same one WorkspaceRuntime itself enforces before running anything —
     // this can never say "available" when the real run would be blocked.
+    // ONE PROBE OF THE DEVELOPMENT RUNTIME, used for everything below
+    // that depends on it.
+    //
+    // Those facts used to have two owners: this method set workspace.*
+    // from the autonomy gate alone, and EngineeringWorkspace separately
+    // set project.* from its own probe. So workspace.test could be
+    // offered at L3 with no runtime to run it on, and project.read's
+    // answer depended on which of the two had run last. This is the
+    // single writer now; EngineeringWorkspace answers and writes nothing.
+    let runtimeReachable = false;
+    try {
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      runtimeReachable = await EngineeringWorkspace.getInstance().runtimeReachable();
+    } catch {
+      // Unreachable means unavailable, never "assume yes".
+      runtimeReachable = false;
+    }
+
+    // Workspace commands need BOTH: the same autonomy-gate check
+    // WorkspaceRuntime itself enforces, AND a runtime to run on. Either
+    // missing means the command cannot execute, and a tool that cannot
+    // execute must not be offered.
     const workspace = WorkspaceRuntime.getInstance();
     for (const op of ["typecheck", "test", "build"] as const) {
-      this.updateAvailability(`workspace.${op}`, workspace.allowed(op));
+      this.updateAvailability(`workspace.${op}`, workspace.allowed(op) && runtimeReachable);
+    }
+
+    // The project.* tools only work where that runtime serves
+    // /api/engineer. Authorization is a separate, later question:
+    // toolPermitted() still requires a human grant for project.apply and
+    // project.commit, and the dispatcher re-checks before writing.
+    for (const id of [
+      "project.copy",
+      "project.list",
+      "project.read",
+      "project.write",
+      "project.delete",
+      "project.validate",
+      "project.diff",
+      "project.apply",
+      "project.git",
+      "project.commit",
+    ]) {
+      this.updateAvailability(id, runtimeReachable);
     }
 
     // GitHub: one real probe (network/config), shared by every github.*

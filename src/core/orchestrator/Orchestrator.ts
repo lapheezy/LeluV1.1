@@ -264,7 +264,9 @@ export default class Orchestrator {
           type: "execution_phase",
           taskId,
           phase: "backend_task_started",
-          label: `Executing ${task.steps.length} steps`,
+          // "Executing N steps" was not true: nothing here executes the
+          // steps. A plan was recorded, so that is what is reported.
+          label: `Planned ${task.steps.length} step(s)`,
           side: "backend",
           detail: task.goal,
         });
@@ -290,14 +292,34 @@ export default class Orchestrator {
           side: "backend",
         });
 
-        // Complete the task
+        // A RECORD IS NOT AN EXECUTION.
+        //
+        // Every pending step used to be marked completed here, with the
+        // model's reply text as each step's "result" — so a task whose
+        // steps nothing had run reported itself completed, and
+        // TaskEngine then marked the whole task completed because all
+        // its steps were. Nothing had executed. verifyResponse() only
+        // checks that the reply is a non-empty string from a provider
+        // that is not "error"; it says nothing about work being done.
+        //
+        // Steps are completed only by real execution. The reply is
+        // recorded against the step the task is on, and the task is left
+        // WAITING, which is what it is: answered conversationally, with
+        // its planned steps not yet run.
+        //
+        // Where work should actually be executed, the path is the one
+        // that already exists: an AgentObjective, picked up by
+        // AgentCognitionRuntime, dispatched through ToolDispatcher, and
+        // completed from metadata.toolsExecuted. This method does not
+        // execute, so it does not claim to.
+        const executedHere =
+          (response.metadata?.toolsExecuted as Array<{ tool: string; ok: boolean }> | undefined) ?? [];
         if (verified) {
-          // Mark all steps as completed for simple single-step tasks
-          for (const step of task.steps) {
-            if (step.status === "pending") {
-              taskEngine.completeStep(task.id, step.id, response.text.slice(0, 200));
-            }
-          }
+          taskEngine.recordAnswer(
+            task.id,
+            response.text.slice(0, 400),
+            executedHere.filter((entry) => entry.ok).map((entry) => entry.tool),
+          );
         }
 
         actions.push({
@@ -682,9 +704,42 @@ export default class Orchestrator {
         const contextPrompt = `[Task: ${task.goal}] Step: ${step.title} — ${step.description}`;
         const response = await ai.chat(contextPrompt);
 
-        if (response.provider !== "error" && typeof response.text === "string" && response.text.trim().length > 0) {
-          taskEngine.completeStep(task.id, step.id, response.text.slice(0, 200));
+        // THE SAME RULE AS THE PATH ABOVE: a reply is not an execution.
+        //
+        // This loop asked the model about each step and completed the
+        // step if the answer was a non-empty string from a provider that
+        // was not "error" — so every step of every multi-step task
+        // completed on text alone, and TaskEngine then completed the
+        // task because all its steps had. Nothing ran.
+        //
+        // A step is completed only by evidence: tools that really
+        // executed, which the provider reports in
+        // metadata.toolsExecuted after ToolDispatcher ran them. Without
+        // that, the answer is recorded and the step stays pending, which
+        // is the truth about it.
+        const executed =
+          (response.metadata?.toolsExecuted as Array<{ tool: string; ok: boolean }> | undefined) ?? [];
+        const ran = executed.filter((entry) => entry.ok).map((entry) => entry.tool);
+        const answered =
+          response.provider !== "error" &&
+          typeof response.text === "string" &&
+          response.text.trim().length > 0;
+
+        if (answered && ran.length > 0) {
+          taskEngine.completeStep(
+            task.id,
+            step.id,
+            `${response.text.slice(0, 200)}\n\n[executed: ${ran.join(", ")}]`,
+          );
+          actions.push({ tool: ran[0], status: "success", result: response.text.slice(0, 100) });
+        } else if (answered) {
+          taskEngine.recordAnswer(task.id, response.text.slice(0, 400));
           actions.push({ tool: "ai.generate", status: "success", result: response.text.slice(0, 100) });
+          // Not a failure, and not progress either: the step still needs
+          // doing. Stopping here rather than walking the rest of the
+          // plan, because asking the model about step 3 when step 2 was
+          // never carried out produces a plan about imaginary state.
+          break;
         } else {
           taskEngine.failStep(task.id, step.id, "No valid response");
           actions.push({ tool: "ai.generate", status: "error", error: "No valid response" });
