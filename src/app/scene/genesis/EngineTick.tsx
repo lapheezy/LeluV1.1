@@ -19,9 +19,9 @@
  * ==========================================================
  */
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
-import { useGenesis } from "./GenesisCore";
+import { useGenesisScene } from "./useGenesisScene";
 import {
   idleGenesisSignals,
   type GenesisSignals,
@@ -29,15 +29,24 @@ import {
 import Sentinel from "../../../core/sentinel/Sentinel";
 
 export default function EngineTick() {
-  const { state: uiState, engineRuntime, updateUniverse } = useGenesis();
+  // The SCENE context, which never changes identity.
+  //
+  // This component's own comment already said the signals are "sampled
+  // once per frame, not once per React render" — but it read them from
+  // useGenesis(), whose value is rebuilt whenever any part of the
+  // monolithic Genesis state changes, and its effect listed
+  // uiState.messages among its dependencies. So every streamed token
+  // re-rendered the component driving the engine loop and re-ran the
+  // sampling. Reading the live state on demand is what the comment
+  // described; this is it.
+  const { getLiveState, engineRuntime, updateUniverse } = useGenesisScene();
 
-  /* Mirrors the signals the v1 renderer used to feed the engine:
-     live UI state (thinking/speaking/listening/reasoning…) sampled
-     once per frame, not once per React render. */
   const signalsRef = useRef<GenesisSignals>(idleGenesisSignals);
   const lastProviderRef = useRef<string | undefined>(undefined);
 
-  useEffect(() => {
+  /** Sample the live UI state. Called from the frame loop, not from React. */
+  const sampleSignals = useCallback((): GenesisSignals => {
+    const uiState = getLiveState();
     const lastMessage = uiState.messages[uiState.messages.length - 1];
     const provider = lastMessage?.provider;
     const providerSwitched =
@@ -49,7 +58,7 @@ export default function EngineTick() {
       lastProviderRef.current = provider;
     }
 
-    signalsRef.current = {
+    return {
       thinking: uiState.thinking,
       speaking: uiState.speaking,
       listening: uiState.listening,
@@ -60,14 +69,7 @@ export default function EngineTick() {
         (status) => Boolean(status.error) || status.enabled === false,
       ).length,
     };
-  }, [
-    uiState.thinking,
-    uiState.speaking,
-    uiState.listening,
-    uiState.cognition,
-    uiState.engineStatuses,
-    uiState.messages,
-  ]);
+  }, [getLiveState]);
 
   useEffect(() => {
     if (!engineRuntime) {
@@ -86,6 +88,10 @@ export default function EngineTick() {
     const tick = (now: number) => {
       const delta = Math.min(0.1, Math.max(0.001, (now - last) / 1000));
       last = now;
+
+      // Once per frame, from the live state — which is what the engine
+      // needs and what the comment above always claimed.
+      signalsRef.current = sampleSignals();
 
       updateUniverse((universeState) => {
         engineRuntime.update(universeState, delta, signalsRef.current);
@@ -119,7 +125,7 @@ export default function EngineTick() {
     raf = requestAnimationFrame(tick);
 
     return () => cancelAnimationFrame(raf);
-  }, [engineRuntime, updateUniverse]);
+  }, [engineRuntime, updateUniverse, sampleSignals]);
 
   return null;
 }

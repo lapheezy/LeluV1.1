@@ -825,6 +825,11 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       }
     } finally {
       releaseTurn(turnConversationId);
+      // A finished turn is durable immediately. Streaming writes are
+      // coalesced (see MultiChatStore.flush), which is right while
+      // deltas are arriving and wrong the moment the reply is complete
+      // — including when it completed by failing.
+      MultiChatStore.getInstance().flush();
       setIsSending(false);
     }
   }, [addMessage, clearTimers, input, isSending, notify, pendingMedia, pendingFiles, setDialogue, crossChatContext]);

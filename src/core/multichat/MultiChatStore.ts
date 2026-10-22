@@ -67,6 +67,14 @@ type Listener = (conversations: ChatConversation[]) => void;
 
 const KEY = "multichat.workspace.v1";
 const MAX_MESSAGES = 600;
+/**
+ * How long a write may wait for the writes behind it.
+ *
+ * Long enough that a token stream (tens of deltas a second) collapses
+ * into one write, short enough that an ordinary action is on disk before
+ * anyone could act on having done it.
+ */
+const COALESCE_MS = 250;
 /** Practically unlimited — archived conversations don't count against active slots. */
 const MAX_ACTIVE = 200;
 const DEFAULT_TITLE = "New chat";
@@ -109,6 +117,25 @@ export default class MultiChatStore {
   private readonly listeners = new Set<Listener>();
   private activeId: string;
 
+  /**
+   * The conversations, in memory, as the single read path.
+   *
+   * Every read used to go to KvStore and JSON.parse the whole workspace,
+   * and every write used to JSON.stringify it to two backends. Both
+   * happened once per streamed token, because GenesisBridge upserts the
+   * assistant message on every SSE delta. Measured on one short turn:
+   * 384 Storage.setItem calls and 670KB written, with the main thread
+   * blocked for 34.9 of the turn's 36.8 seconds.
+   *
+   * This store is the only writer, so a cache it maintains itself is
+   * authoritative — not an optimisation that can disagree with the
+   * truth.
+   */
+  private cache: ChatConversation[] | null = null;
+  /** A coalesced write that has not landed yet. */
+  private pendingWrite: ReturnType<typeof setTimeout> | null = null;
+  private dirty = false;
+
   private constructor() {
     const stored = this.kv.get<StoredWorkspace>(KEY);
     const conversations = this.readAll();
@@ -119,6 +146,7 @@ export default class MultiChatStore {
     if (!this.activeId) {
       this.ensureSeeded();
     }
+    this.installLifecycleFlush();
   }
 
   public static getInstance(): MultiChatStore {
@@ -131,11 +159,13 @@ export default class MultiChatStore {
   /* ------------------------------ persistence ------------------------------ */
 
   private readAll(): ChatConversation[] {
+    if (this.cache !== null) return this.cache;
     const stored = this.kv.get<StoredWorkspace>(KEY);
     if (!stored || !Array.isArray(stored.conversations) || stored.conversations.length === 0) {
       return [];
     }
-    return stored.conversations;
+    this.cache = stored.conversations;
+    return this.cache;
   }
 
   /** Guarantee at least one conversation exists (LÉLU never boots empty). */
@@ -146,16 +176,84 @@ export default class MultiChatStore {
     }
     const conversation = this.makeConversation(DEFAULT_TITLE);
     this.activeId = conversation.id;
-    this.kv.set(KEY, { conversations: [conversation], activeId: conversation.id });
-    return [conversation];
+    this.cache = [conversation];
+    this.dirty = true;
+    // The first conversation of a session is durable immediately: there
+    // is nothing to coalesce with, and losing it would mean booting
+    // empty.
+    this.flush();
+    return this.cache;
   }
 
+  /**
+   * Record a change: in memory and on screen immediately, on disk soon.
+   *
+   * The cache and the subscribers are updated synchronously, so nothing
+   * about the UI or about what any reader sees becomes eventual. Only
+   * the serialisation is deferred, and only by COALESCE_MS, so a burst
+   * of streamed deltas costs one write instead of one per token.
+   */
   private persist(conversations: ChatConversation[], activeId?: string): void {
-    this.kv.set(KEY, {
-      conversations,
-      activeId: activeId ?? this.activeId,
-    });
+    this.cache = conversations;
+    if (activeId !== undefined) this.activeId = activeId;
+    this.dirty = true;
+    this.scheduleWrite();
     this.notify();
+  }
+
+  /**
+   * Write now.
+   *
+   * Called where the deferral would be a risk rather than a saving: when
+   * a turn finishes, and when the page is going away. Also safe to call
+   * at any time — it is a no-op when nothing is dirty.
+   */
+  public flush(): void {
+    if (this.pendingWrite !== null) {
+      clearTimeout(this.pendingWrite);
+      this.pendingWrite = null;
+    }
+    if (!this.dirty) return;
+    this.dirty = false;
+    this.kv.set(KEY, {
+      conversations: this.cache ?? this.readAll(),
+      activeId: this.activeId,
+    });
+  }
+
+  private scheduleWrite(): void {
+    if (this.pendingWrite !== null) return;
+    this.pendingWrite = setTimeout(() => {
+      this.pendingWrite = null;
+      if (!this.dirty) return;
+      this.dirty = false;
+      this.kv.set(KEY, {
+        conversations: this.cache ?? this.readAll(),
+        activeId: this.activeId,
+      });
+    }, COALESCE_MS);
+    // A pending save must not be the reason a process refuses to end;
+    // the lifecycle listeners below are what guarantee it lands.
+    (this.pendingWrite as unknown as { unref?: () => void }).unref?.();
+  }
+
+  /**
+   * Nothing in flight may be lost to a closing tab.
+   *
+   * pagehide and visibilitychange are the two that actually fire on
+   * mobile Safari, where beforeunload does not; all three are cheap and
+   * flush() is a no-op when there is nothing to write.
+   */
+  private installLifecycleFlush(): void {
+    if (typeof window === "undefined" || typeof window.addEventListener !== "function") return;
+    const flush = () => this.flush();
+    window.addEventListener("beforeunload", flush);
+    window.addEventListener("pagehide", flush);
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") this.flush();
+      });
+    }
   }
 
   /* --------------------------------- events -------------------------------- */

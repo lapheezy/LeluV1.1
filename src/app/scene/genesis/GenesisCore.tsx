@@ -84,6 +84,7 @@ import NotificationProvider from "../../../core/notifications/NotificationProvid
 
 import VisualEngine from "../../../core/visual/VisualEngine";
 import { ownerForMessage } from "../../../core/multichat/TurnOwnership";
+import { GenesisSceneContext, type GenesisSceneValue } from "./useGenesisScene";
 
 
 
@@ -992,6 +993,16 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
     );
 
   const eventBusRef = useRef(new EventBus());
+
+  /**
+   * The live UI state, for the scene.
+   *
+   * Frame-loop consumers need the current dialogue flags but must not
+   * re-render when they change — a streamed token is not a reason to
+   * rebuild a starfield. They read this through
+   * useGenesisScene().getLiveState() instead of subscribing to `state`.
+   */
+  const stateRef = useRef<GenesisUIState | null>(null);
 
   const runtimeRef = useRef<EngineRuntime | null>(null);  const [
 
@@ -2335,6 +2346,29 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
 
 
+  // Kept in step every render, read on demand rather than subscribed to.
+  stateRef.current = state;
+
+  /**
+   * STABLE, deliberately: no dependencies, so its identity never
+   * changes and no scene consumer re-renders because chat state moved.
+   * Every member reads the same refs and the same state the main
+   * context exposes — this is a second VIEW, not a second source.
+   */
+  const sceneValue = useMemo<GenesisSceneValue>(
+    () => ({
+      getLiveUniverse: () => universeRef.current,
+      getLiveState: () => stateRef.current ?? state,
+      get engineRuntime() {
+        return runtimeRef.current;
+      },
+      eventBus: eventBusRef.current,
+      updateUniverse,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   return (
 
     <GenesisContext.Provider
@@ -2343,7 +2377,11 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
     >
 
+      <GenesisSceneContext.Provider value={sceneValue}>
+
       {children}
+
+      </GenesisSceneContext.Provider>
 
     </GenesisContext.Provider>
 
