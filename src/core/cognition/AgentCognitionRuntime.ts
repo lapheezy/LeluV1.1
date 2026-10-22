@@ -39,6 +39,7 @@ import AgentObjectives, {
   type ObjectiveState,
 } from "./AgentObjectives";
 import { verifyCompletion, type CompletionResult } from "./CompletionVerifier";
+import { describeEvidence, objectiveEvidence } from "./ObjectiveEvidence";
 import { executableToolIds } from "../tools/ToolDispatcher";
 
 /** What the agent concluded this cycle, parsed from its own decision. */
@@ -354,12 +355,27 @@ export default class AgentCognitionRuntime {
       // stands, which is what a budget-exhausted objective has.
       const checked =
         verification ?? records.find((record) => record.verification)?.verification;
-      const evidence = checked?.observed.length
-        ? `Verified: ${checked.observed.join("; ")}.`
-        : "";
-      const shortfall = checked?.missing.length
-        ? `Not observed: ${checked.missing.join("; ")}.`
-        : "";
+      // WHAT WAS REQUIRED, AND WHAT WAS ACTUALLY SEEN.
+      //
+      // Built from the same state the verifier used, so the briefing and
+      // the verdict cannot tell different stories: the contract (declared,
+      // read from the objective's own wording, or absent because the
+      // deliverable is the answer), the requirements the record really
+      // shows, and — for work that stopped — the ones it does not. It also
+      // names a rejected completion, because "stopped after one action"
+      // reads very differently when the runtime had already turned the
+      // model back twice.
+      const report = objectiveEvidence({
+        objective,
+        cycles: records,
+        executedNow: executed,
+        ...(checked ? { verification: checked } : {}),
+        // The same set the verifier judges against, so a name in prose that
+        // no executor backs cannot become a requirement in the briefing.
+        knownTools: executableToolIds(),
+        completed: category === "work-completed",
+      });
+      const evidence = describeEvidence(report, { missing: category === "work-stopped" });
       const summary =
         reason.trim() ||
         (ran.length > 0
@@ -399,10 +415,6 @@ export default class AgentCognitionRuntime {
               ? `${succeeded.length} action(s) really ran: ${ran.join(", ")}.`
               : "No tool was executed in this objective — this is a conclusion, not completed work.",
             evidence,
-            // Only on work that STOPPED. A completed objective has
-            // nothing outstanding by definition, and printing a stale
-            // shortfall next to "Finished" would contradict it.
-            category === "work-stopped" ? shortfall : "",
           ]
             .filter(Boolean)
             .join(" "),
@@ -732,9 +744,23 @@ export default class AgentCognitionRuntime {
           // next decision is informed rather than a repeat.
           nextState = "active";
           conclusion = "";
+          // The SAME shortfall being rejected again is a different situation
+          // from the first rejection, and the model is told which one it is.
+          const shortfall = verification.missing.join("|");
+          const rejectedBefore = this.objectives
+            .cycles(objectiveId)
+            .filter(
+              (record) =>
+                record.verification?.verdict === "incomplete" &&
+                record.verification.missing.join("|") === shortfall,
+            ).length;
           verifierNudge =
             `You reported the objective complete, but ${verification.reason} ` +
             `Observed so far: ${verification.observed.join("; ") || "nothing"}. ` +
+            (rejectedBefore > 0
+              ? `The same shortfall has now been rejected ${rejectedBefore + 1} time(s); ` +
+                "repeating the claim will not change the check. "
+              : "") +
             "Take the next action that would satisfy what is missing, or say BLOCKED: " +
             "with exactly what prevents it.";
         }
@@ -841,13 +867,16 @@ export default class AgentCognitionRuntime {
         const after = this.objectives.get(objectiveId);
         const nowExhausted = after ? this.objectives.exhausted(after) : null;
         if (after && nowExhausted) {
-          this.objectives.yieldObjective(
-            objectiveId,
-            nowExhausted,
-            `Stopped after ${after.cyclesRun} cycle(s): ${nowExhausted}. The objective was NOT completed.`,
-          );
+          const stopped = `Stopped after ${after.cyclesRun} cycle(s): ${nowExhausted}. The objective was NOT completed.`;
+          this.objectives.yieldObjective(objectiveId, nowExhausted, stopped);
           nextState = "yielded";
           yieldReason = nowExhausted;
+          // Work that ended on its budget is work that ended: the same
+          // briefing the other stop path writes, for the same reason.
+          // Without this, the most common way an objective stops — the
+          // budget running out on the very cycle that was refused — was
+          // the one way it could stop silently.
+          this.brief(after, "work-stopped", stopped, executed, verification);
         }
       }
 

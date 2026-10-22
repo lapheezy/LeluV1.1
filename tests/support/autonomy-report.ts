@@ -234,8 +234,9 @@ export class AutonomyReport {
     return {
       classification: "model-under-completed",
       detail:
-        `${served.join(", ") || "the model"} stopped after ${succeeded.size} of ` +
-        `${expectedTools.length} required operations; the runtime did NOT accept it as complete.`,
+        `${served.join(", ") || "the model"} stopped after ` +
+        `${expectedTools.length - missing.length} of ${expectedTools.length} required operations ` +
+        `(missing: ${missing.join(", ") || "none"}); the runtime did NOT accept it as complete.`,
     };
   }
 

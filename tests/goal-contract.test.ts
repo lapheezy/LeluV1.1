@@ -174,6 +174,66 @@ test("a negation in one clause does not swallow the next clause's requirement", 
   );
 });
 
+/*
+ * The live failure of the real model test, in the words it failed on.
+ *
+ * LÉLU listed, authored and ran the workflow in its first cycle, and the
+ * verifier then told it — nine times — that project.manage had still not
+ * run. It never could: the objective names project.manage as what the
+ * workflow's STEPS should use, which is content of an artifact, not an
+ * operation LÉLU was asked to perform. The contract made the objective
+ * unsatisfiable, so the check that exists to keep her honest was the
+ * thing preventing completion.
+ */
+test("a tool named as what an artifact's steps use is content, not an operation", () => {
+  const live = namedToolIds(
+    "Check with workflow_list whether a reusable workflow named \"inventory-routine\" already exists. " +
+      "If it does not, create it with workflow_author: give it two steps that both use the " +
+      "project.manage tool with action \"list\", where the second depends on the first and only runs " +
+      "on the condition that the first succeeded. Then run it once with workflow_run and report " +
+      "what it produced.",
+    KNOWN_TOOLS,
+  );
+
+  assert.deepEqual(
+    live,
+    ["workflow.list", "workflow.author", "workflow.run"],
+    "the objective was judged against an operation it never asked LÉLU to perform",
+  );
+  assert.ok(!live.includes("project.manage"), "project.manage became a requirement");
+});
+
+test("a condition before a comma does not negate the instruction after it", () => {
+  // Found by the same live run: "If it does not already exist, create it
+  // with workflow_author" is an instruction, and treating it as a
+  // prohibition left the contract without the operation that mattered.
+  assert.deepEqual(
+    namedToolIds("If it does not already exist, create it with workflow_author.", KNOWN_TOOLS),
+    ["workflow.author"],
+    "a condition in the previous clause swallowed the instruction",
+  );
+  assert.deepEqual(
+    namedToolIds("Do not use memory_store, and create it with workflow_author.", KNOWN_TOOLS),
+    ["workflow.author"],
+    "a prohibition of one tool leaked onto another tool in a later clause",
+  );
+  // And the prohibition itself still holds.
+  assert.deepEqual(namedToolIds("Do not use memory_store, reason it out.", KNOWN_TOOLS), []);
+});
+
+test("a tool named in any other way is still a requirement", () => {
+  // The narrowness of the rule is the point: a false negative here would
+  // weaken the check that catches a premature DONE:.
+  assert.deepEqual(
+    namedToolIds("Save the note using the memory_store tool.", KNOWN_TOOLS),
+    ["memory.store"],
+    "an ordinary instruction was mistaken for a description of an artifact",
+  );
+  assert.deepEqual(namedToolIds("Create the routine with workflow_author.", KNOWN_TOOLS), [
+    "workflow.author",
+  ]);
+});
+
 /* ================================================================== *
  * 2. PRECEDENCE
  * ================================================================== */

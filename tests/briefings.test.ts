@@ -460,6 +460,118 @@ test("a conclusion reached without executing anything is not headlined as finish
     /No tool was executed/,
     "the briefing does not say that nothing ran",
   );
+  // And it does not invent a checklist for an objective whose deliverable
+  // was the answer: "nothing needed doing" is a complete answer.
+  assert.match(
+    briefing.reason ?? "",
+    /No outcome contract/,
+    "a reasoning-only objective was briefed as if it had a tool checklist",
+  );
+
+  restore();
+  runtime.stop();
+});
+
+/* ------------------------------------------------------------------ *
+ * A BRIEFING SAYS WHAT WAS REQUIRED AND WHAT WAS SEEN
+ *
+ * Phase 8 gave the objective a contract before the work started and
+ * taught the runtime to check a completion claim against it. Both
+ * facts were only in the log. This is the same run, read the way a
+ * person reads it: what had to be true, what was observed, what was
+ * not — and that the model's premature "DONE:" was already sent back
+ * once before the budget ran out.
+ * ------------------------------------------------------------------ */
+
+test("a stopped objective is briefed with its contract and the shortfall", async () => {
+  briefings.clear();
+
+  const restore = await withScriptedProvider("PrematureCompletionProvider", [
+    // The real failure the live test caught: a model deciding it is
+    // finished after looking, without doing the work.
+    { text: "DONE: it already exists, so there is nothing more to do." },
+  ]);
+
+  const runtime = AgentCognitionRuntime.getInstance();
+  runtime.start();
+  const objective = objectives.create({
+    agentId,
+    objective: "Check whether the routine exists, then run it.",
+    source: "cognition",
+    // One cycle, so the rejected claim ends the objective in this test
+    // rather than continuing — the briefing is written on the stop.
+    maxCycles: 1,
+    expectedOutcomes: [
+      { evidence: "tool-succeeded", tool: "workflow_run", what: "workflow_run ran successfully" },
+    ],
+  });
+
+  const outcome = await runtime.runCycle(objective.id, "test:premature-completion");
+  assert.ok(outcome);
+  assert.equal(outcome.verification?.verdict, "incomplete", "the claim should have been rejected");
+  assert.equal(
+    objectives.get(objective.id)?.state,
+    "yielded",
+    "the objective should have stopped on its budget, not completed",
+  );
+
+  const briefing = briefings.list().find((item) => item.relatedObjectiveId === objective.id);
+  assert.ok(briefing, "the work stopped and nobody was told");
+  assert.equal(briefing.category, "work-stopped");
+  assert.match(briefing.title, /^Stopped:/, "work that did not finish is headlined as finished");
+
+  const reason = briefing.reason ?? "";
+  assert.match(reason, /declared by whoever set the objective/, "the briefing does not say where the requirement came from");
+  assert.match(reason, /workflow_run ran successfully/, "the briefing does not name what was required");
+  assert.match(reason, /Not observed: workflow_run ran successfully/, "the briefing does not name the shortfall");
+  assert.match(
+    reason,
+    /rejected 1 premature completion claim/,
+    "the briefing hides that the runtime had already turned the claim back",
+  );
+
+  restore();
+  runtime.stop();
+});
+
+/* ------------------------------------------------------------------ *
+ * AND A FINISHED OBJECTIVE IS BRIEFED WITH THE EVIDENCE THAT SETTLED IT
+ * ------------------------------------------------------------------ */
+
+test("a finished objective is briefed with the outcome that was observed", async () => {
+  briefings.clear();
+
+  const path = `briefings/contract-${Date.now()}.txt`;
+  const restore = await withScriptedProvider("ContractCompletedProvider", [
+    { toolCalls: [{ id: "c1", name: "sandbox_write", arguments: { path, content: "done" } }] },
+    { text: "DONE: the note is written." },
+  ]);
+
+  const runtime = AgentCognitionRuntime.getInstance();
+  runtime.start();
+  const objective = objectives.create({
+    agentId,
+    objective: "Write the note.",
+    source: "cognition",
+    expectedOutcomes: [
+      { evidence: "tool-succeeded", tool: "sandbox_write", what: "sandbox_write ran successfully" },
+    ],
+  });
+
+  const outcome = await runtime.runCycle(objective.id, "test:contract-complete");
+  assert.ok(outcome);
+  assert.equal(outcome.verification?.verdict, "complete", outcome.verification?.reason);
+
+  const briefing = briefings.list().find((item) => item.relatedObjectiveId === objective.id);
+  assert.ok(briefing, "the work finished and nobody was told");
+  assert.equal(briefing.category, "work-completed");
+  const reason = briefing.reason ?? "";
+  assert.match(reason, /sandbox_write/);
+  assert.match(reason, /Observed: sandbox_write ran successfully/);
+  assert.ok(
+    !/Not observed/.test(reason),
+    "a finished objective was briefed with a shortfall, which contradicts its own headline",
+  );
 
   restore();
   runtime.stop();

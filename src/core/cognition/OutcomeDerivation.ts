@@ -68,12 +68,41 @@ export function toolOutcome(tool: string): ObjectiveOutcome {
  * prevent — so the clause immediately before the mention decides
  * whether it is a requirement at all.
  *
- * Bounded to the same clause (no sentence punctuation, at most 60
- * characters back) so "Do not touch the schema; use workflow_run"
- * still requires workflow_run.
+ * Bounded to the same clause (no sentence punctuation and no comma, at
+ * most 60 characters back) so "Do not touch the schema; use
+ * workflow_run" still requires workflow_run.
+ *
+ * The comma matters, and the live model test is how it was found: "If it
+ * does not already exist, create it with workflow_author" is a
+ * CONDITION followed by an instruction. Letting the negation window span
+ * that comma made the instruction disappear from the contract, so a real
+ * model that authored the workflow was judged as if authoring had never
+ * been required.
  */
 const NEGATION =
-  /\b(?:not|never|without|avoid|skip|omit|except|excluding|instead of|rather than|no need to|don'?t|doesn'?t|do not)\b[^.;:!?\n]{0,60}$/i;
+  /\b(?:not|never|without|avoid|skip|omit|except|excluding|instead of|rather than|no need to|don'?t|doesn'?t|do not)\b[^.;:!?,\n]{0,60}$/i;
+
+/**
+ * A tool named as the CONTENT of an artifact, not as an operation.
+ *
+ * "give it two steps that both use the project.manage tool" is the goal
+ * saying what the workflow it wants should contain. It is not telling LÉLU
+ * to call project.manage itself — the workflow does, when it is run.
+ *
+ * Reading that as a requirement is not a hypothetical: a real model on the
+ * live end-to-end test listed, authored and ran the workflow in its first
+ * cycle, and then spent nine more cycles being told that project.manage was
+ * still required and that it could not be reached. The objective could
+ * never have been completed, and the contract — the thing that exists to
+ * keep LÉLU honest — was the thing making honesty impossible.
+ *
+ * The pattern is deliberately narrow: a plan-ish noun, then a relative
+ * clause, then the mention, with no sentence boundary in between. A tool
+ * named in any other way is still a requirement, because a false negative
+ * here weakens the check that catches a premature DONE:.
+ */
+const ARTIFACT_CONTENT =
+  /\b(?:steps?|tasks?|workflows?|plan|actions?|stages?|sequences?)\b[^.;:!?\n]{0,40}\b(?:that|which|who|whose)\b[^.;:!?\n]{0,40}$/i;
 
 /**
  * Tool ids a piece of text names as requirements.
@@ -89,6 +118,8 @@ export function namedToolIds(text: string, knownTools: string[]): string[] {
     if (!named) continue;
     const start = match.index ?? 0;
     if (NEGATION.test(text.slice(Math.max(0, start - 60), start))) continue;
+    // Named only as what an authored artifact's steps should use.
+    if (ARTIFACT_CONTENT.test(text.slice(Math.max(0, start - 140), start))) continue;
     const known = knownTools.find((tool) => sameTool(tool, named));
     if (!known) continue;
     if (!found.some((entry) => sameTool(entry, known))) found.push(known);
