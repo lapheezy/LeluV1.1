@@ -140,20 +140,17 @@ export function verifyCompletion(input: CompletionInput, knownTools: string[] = 
   const succeeded = executed.filter((entry) => entry.ok).map((entry) => entry.tool);
   const failed = executed.filter((entry) => !entry.ok).map((entry) => entry.tool);
 
-  const requested = [
-    ...input.cycles.flatMap((cycle) => cycle.requested ?? []),
-    ...(input.requestedNow ?? []),
-  ];
-
-  // A TOOL THE MODEL ASKED FOR THAT NEVER RAN.
+  // A TOOL THE MODEL ASKED FOR THIS CYCLE THAT NEVER RAN.
   //
-  // On the native path every accepted call is dispatched, so this is
-  // normally empty. When it is not, the model's account of its work
-  // describes something that did not happen — and that is true whether
-  // or not the objective declared any outcomes, which is why it is
-  // checked before them.
-  const unexecuted = [...new Set(requested)].filter(
-    (tool) => !executed.some((entry) => sameTool(entry.tool, tool)),
+  // Scoped to the CURRENT cycle only. Aggregating historical cycles'
+  // requested lists against the combined execution pool creates a
+  // cross-cycle trap: a tool requested in cycle 1 and somehow not
+  // dispatched then (impossible on the native path, but possible in
+  // tests) would poison every later completion check, even after the
+  // objective had done real work for cycles. The unexecuted check is
+  // a claim-vs-evidence test for THIS decision, not an audit of history.
+  const unexecuted = [...new Set(input.requestedNow ?? [])].filter(
+    (tool) => !(input.executedNow ?? []).some((entry) => sameTool(entry.tool, tool)),
   );
   if (unexecuted.length > 0) {
     return {
@@ -202,6 +199,10 @@ export function verifyCompletion(input: CompletionInput, knownTools: string[] = 
   const observed: string[] = [];
   const missing: string[] = [];
   const blocking: string[] = [];
+  // A required tool that has failed more than once is not recovering:
+  // more cycles will not help. Separate from "missing" so the runtime
+  // can take its blocked path rather than burning the rest of the budget.
+  const toolBlocking: string[] = [];
 
   for (const outcome of outcomes) {
     if (outcome.evidence === "tool-succeeded") {
@@ -209,12 +210,23 @@ export function verifyCompletion(input: CompletionInput, knownTools: string[] = 
       if (ran) {
         observed.push(outcome.what);
       } else {
-        const refused =
-          outcome.tool !== undefined && failed.some((tool) => sameTool(tool, outcome.tool!));
-        // A tool that ran and failed is still an unmet requirement. It
-        // is named differently because what the runtime should do about
-        // it differs, and that decision is the runtime's.
-        missing.push(refused ? `${outcome.what} (it ran and failed)` : outcome.what);
+        const failCount =
+          outcome.tool !== undefined
+            ? failed.filter((tool) => sameTool(tool, outcome.tool!)).length
+            : 0;
+        if (failCount >= 2) {
+          // Repeated failure — escalate rather than cycling until the
+          // budget runs out. The distinction the runtime cares about:
+          // "incomplete" means try again; "blocked" means stop.
+          toolBlocking.push(
+            `${outcome.what} (${outcome.tool} has failed ${failCount} times with no recovery)`,
+          );
+        } else {
+          // A tool that ran and failed is still an unmet requirement. It
+          // is named differently because what the runtime should do about
+          // it differs, and that decision is the runtime's.
+          missing.push(failCount > 0 ? `${outcome.what} (it ran and failed)` : outcome.what);
+        }
       }
       continue;
     }
@@ -232,6 +244,15 @@ export function verifyCompletion(input: CompletionInput, knownTools: string[] = 
     // answer-given: the conclusion is the evidence.
     if (!isVacuous(conclusion)) observed.push(outcome.what);
     else missing.push(outcome.what);
+  }
+
+  if (toolBlocking.length > 0) {
+    return {
+      verdict: "blocked",
+      reason: `Required tool keeps failing: ${toolBlocking.join("; ")}.`,
+      observed,
+      missing: [...toolBlocking, ...blocking, ...missing],
+    };
   }
 
   if (blocking.length > 0) {

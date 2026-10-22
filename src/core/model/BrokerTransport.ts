@@ -75,8 +75,12 @@ export class ProviderError extends Error {
  *
  * The body is used to pick the code but never echoed wholesale: provider
  * errors can quote the request, and a quoted request can carry a header.
+ *
+ * Renamed from classifyProviderFailure to avoid a name collision with
+ * AIProviderRegistry.classifyProviderFailure, which operates on reason
+ * strings rather than raw HTTP responses.
  */
-export function classifyProviderFailure(
+export function classifyBrokerResponse(
   provider: string,
   status: number,
   body = "",

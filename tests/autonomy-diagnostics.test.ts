@@ -246,6 +246,63 @@ test("a fallback that answered is named in the detail, but not blamed", async ()
   registry.clearFailure(first);
 });
 
+/**
+ * THREE CODES THAT USED TO COLLAPSE TO "unknown"
+ *
+ * 402 / 404 / 400+422 all map to "unknown" before, because the
+ * registry's classifier only knew auth, timeout, network, and server.
+ * A billing failure, a missing model, or a bad request each needed its
+ * own actionable kind — and none of them required changes to the provider
+ * error channel; they were readable from the reason string all along.
+ */
+test("a billing failure (402) classifies as billing, not unknown", async () => {
+  await clearProviderFailures();
+  const registry = AIService.getInstance().getAIProviderRegistry();
+  const [first] = registry.names();
+  assert.ok(first, "there is no provider to mark");
+  registry.markFailure(first, `${first} failed 402: payment required`);
+
+  const failure = registry.failure(first);
+  assert.equal(
+    failure?.kind,
+    "billing",
+    `402 classified as "${failure?.kind}" instead of "billing"`,
+  );
+  registry.clearFailure(first);
+});
+
+test("a model-not-found failure (404) classifies as model-not-found, not unknown", async () => {
+  await clearProviderFailures();
+  const registry = AIService.getInstance().getAIProviderRegistry();
+  const [first] = registry.names();
+  assert.ok(first, "there is no provider to mark");
+  registry.markFailure(first, `${first} failed 404: model not found`);
+
+  const failure = registry.failure(first);
+  assert.equal(
+    failure?.kind,
+    "model-not-found",
+    `404 classified as "${failure?.kind}" instead of "model-not-found"`,
+  );
+  registry.clearFailure(first);
+});
+
+test("a bad-request failure (400) classifies as bad-request, not unknown", async () => {
+  await clearProviderFailures();
+  const registry = AIService.getInstance().getAIProviderRegistry();
+  const [first] = registry.names();
+  assert.ok(first, "there is no provider to mark");
+  registry.markFailure(first, `${first} failed 400: bad request`);
+
+  const failure = registry.failure(first);
+  assert.equal(
+    failure?.kind,
+    "bad-request",
+    `400 classified as "${failure?.kind}" instead of "bad-request"`,
+  );
+  registry.clearFailure(first);
+});
+
 test("the report prints the evidence and no credentials", async () => {
   await clearProviderFailures();
   const registry = AIService.getInstance().getAIProviderRegistry();

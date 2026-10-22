@@ -29,7 +29,7 @@ import { join } from "node:path";
 import { BROKERED, brokerPath, createModelApi } from "../plugins/modelApi";
 import {
   authHeaders,
-  classifyProviderFailure,
+  classifyBrokerResponse,
   isBrokered,
   providerConfigured,
   type BrokeredProviderId,
@@ -175,12 +175,12 @@ test("provider failures classify into actionable codes", () => {
     [500, "", "PROVIDER_REQUEST_FAILURE"],
   ];
   for (const [status, body, expected] of cases) {
-    assert.equal(classifyProviderFailure("groq", status, body).code, expected, `HTTP ${status}`);
+    assert.equal(classifyBrokerResponse("groq", status, body).code, expected, `HTTP ${status}`);
   }
 });
 
 test("a classified failure says what is wrong without naming a secret", () => {
-  const error = classifyProviderFailure("anthropic", 401, "invalid x-api-key sk-ant-abc123");
+  const error = classifyBrokerResponse("anthropic", 401, "invalid x-api-key sk-ant-abc123");
   assert.match(error.message, /configured but authentication failed/i);
   assert.ok(!error.message.includes("sk-ant"), "the upstream body must not be echoed through");
   assert.ok(!/x-api-key/i.test(error.message), "no header name in a user-facing message");

@@ -35,12 +35,21 @@ const AUTH_FAILURE_COOLDOWN_MS = 15 * 60_000;
  * the network, and a model that stopped short is fixed by nothing on
  * this list. Purely a reading of the reason text every provider already
  * reports — no new error channel, no keys, no secrets.
+ *
+ * New in the second pass: billing (out of credit — top up the account),
+ * model-not-found (wrong model id for this account's plan), and
+ * bad-request (malformed request body or parameter). All three collapsed
+ * to "unknown" before because the 402/404/400/422 codes were never
+ * in the classifier.
  */
 export type ProviderFailureKind =
   | "credential-refused"
   | "timeout"
   | "network"
   | "server"
+  | "billing"
+  | "model-not-found"
+  | "bad-request"
   | "unknown";
 
 interface ProviderFailure {
@@ -91,6 +100,21 @@ export function isAuthRejection(reason: string): boolean {
 export function classifyProviderFailure(reason: string): ProviderFailureKind {
   if (isAuthRejection(reason)) return "credential-refused";
   const text = reason.toLowerCase();
+  // 402 / credit-exhausted phrases — fix in the provider dashboard, not
+  // in code. Must come before the generic server check.
+  if (/\b402\b|out of credit|payment required|insufficient.{0,20}(credit|fund)/.test(text)) {
+    return "billing";
+  }
+  // 404 in an AI provider context almost always means the model id is
+  // wrong or not available on this account's plan.
+  if (/\b404\b|model.*not.*(?:available|found)|that model/.test(text)) {
+    return "model-not-found";
+  }
+  // 400 / 422 — the request body or parameters were rejected. Fix the
+  // request format, not the provider configuration.
+  if (/\b(400|422)\b|malformed|rejected as malformed|bad request|unprocessable/.test(text)) {
+    return "bad-request";
+  }
   if (/timed? ?out|etimedout|deadline exceeded|aborted|abort error/.test(text)) return "timeout";
   if (/econnreset|econnrefused|enotfound|eai_again|network|fetch failed|socket hang up|dns/.test(text)) {
     return "network";

@@ -276,6 +276,56 @@ test("a failed tool leaves its outcome unmet, and says so distinctly", () => {
 });
 
 /* ================================================================== *
+ * 6b. A REQUIRED TOOL THAT KEEPS FAILING
+ * ================================================================== */
+
+test("a required tool that fails once is still just incomplete — one failure can be transient", () => {
+  const result = verify({
+    objective: objectiveWith("List, author and run the workflow.", threeTools),
+    cycles: [
+      cycle([{ tool: "workflow_list", ok: true }, { tool: "workflow_author", ok: false }]),
+    ],
+    conclusion: "Authoring failed once.",
+  });
+
+  assert.equal(result.verdict, "incomplete", "a single tool failure triggered the blocked escalation too early");
+  assert.ok(
+    result.missing.some((entry) => /ran and failed/.test(entry)),
+    "a single failure is not flagged distinctly from a tool that never ran",
+  );
+});
+
+test("a required tool that fails repeatedly escalates to blocked rather than burning the cycle budget", () => {
+  // Two failures: the tool is not recovering. Spending more cycles would
+  // be wasted budget — the verifier has enough evidence to block now.
+  const result = verify({
+    objective: objectiveWith("List, author and run the workflow.", threeTools),
+    cycles: [
+      cycle([{ tool: "workflow_list", ok: true }, { tool: "workflow_author", ok: false }]),
+      cycle([{ tool: "workflow_author", ok: false }]),
+    ],
+    conclusion: "I cannot author the workflow.",
+  });
+
+  assert.equal(result.verdict, "blocked", "a repeatedly-failing tool kept the cycle budget burning");
+  assert.match(result.reason, /keeps failing/i);
+});
+
+test("a required tool that eventually succeeds after failures is satisfied, not blocked", () => {
+  const result = verify({
+    objective: objectiveWith("List, author and run the workflow.", threeTools),
+    cycles: [
+      cycle([{ tool: "workflow_list", ok: true }, { tool: "workflow_author", ok: false }]),
+      cycle([{ tool: "workflow_author", ok: false }]),
+      cycle([{ tool: "workflow_author", ok: true }, { tool: "workflow_run", ok: true }]),
+    ],
+    conclusion: "All three steps done.",
+  });
+
+  assert.equal(result.verdict, "complete", "a tool that eventually succeeded was still flagged as failing");
+});
+
+/* ================================================================== *
  * 7. BLOCKED ON THE USER
  * ================================================================== */
 
@@ -325,13 +375,37 @@ test("a tool the model asked for that never reached the dispatcher is not eviden
 });
 
 test("the claim check applies even when the objective declared no outcomes", () => {
+  // The request is in the CURRENT cycle (requestedNow), not in history.
+  // Fix B scopes this check to the current cycle only, so the right place
+  // to test the claim-vs-evidence logic is where it actually fires.
   const result = verify({
     objective: objectiveWith("Do something useful."),
-    cycles: [cycle([], { requested: ["workflow_run"] })],
+    requestedNow: ["workflow_run"],
+    executedNow: [],
     conclusion: "I ran the workflow and it succeeded.",
   });
 
   assert.equal(result.verdict, "incomplete");
+  assert.match(result.reason, /never reached the dispatcher/);
+});
+
+test("a stale request in a past cycle does not poison a later completion", () => {
+  // Cycle 1 had a requested tool that was never dispatched (historical
+  // anomaly; impossible on the native path). Cycle 2 executed real work
+  // and gave a substantive answer. The verifier judges the objective on
+  // its current state, not on a stale cycle-1 claim.
+  const result = verify({
+    objective: objectiveWith("Do something useful."),
+    cycles: [cycle([], { requested: ["workflow_run"] })],
+    executedNow: [{ tool: "workflow_list", ok: true }],
+    conclusion: "Listed all workflows and there were none defined yet.",
+  });
+
+  assert.notEqual(
+    result.verdict,
+    "incomplete",
+    "a stale historical request poisoned a completion where real work happened",
+  );
 });
 
 /* ================================================================== *

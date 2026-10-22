@@ -275,14 +275,20 @@ export class AutonomyReport {
     for (const entry of health) {
       const label =
         entry.kind === "credential-refused"
-          ? "AUTH REFUSED"
-          : entry.kind === "timeout"
-            ? "timed out   "
-            : entry.kind === "network"
-              ? "unreachable "
-              : entry.kind === "server"
-                ? "server error"
-                : "failed      ";
+          ? "AUTH REFUSED "
+          : entry.kind === "billing"
+            ? "OUT OF CREDIT"
+            : entry.kind === "model-not-found"
+              ? "MODEL MISSING"
+              : entry.kind === "bad-request"
+                ? "BAD REQUEST  "
+                : entry.kind === "timeout"
+                  ? "timed out    "
+                  : entry.kind === "network"
+                    ? "unreachable  "
+                    : entry.kind === "server"
+                      ? "server error "
+                      : "failed       ";
       lines.push(`  ${label}  ${entry.name}: ${entry.reason}`);
     }
     lines.push(`  served the decisions: ${this.servingProviders(cycles).join(", ") || "(none recorded)"}`);
