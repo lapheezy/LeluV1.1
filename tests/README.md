@@ -53,33 +53,65 @@ model decides how many actions to take, and the test asserts at least three
 (list, author, run). A single red run is evidence about one model response,
 not about the code.
 
-Quantified on this container, eight runs, four on each of two commits — one
-of which contains no cognition changes at all:
+### Four different faults, one symptom
+
+Every red run used to print the same sentence — `only 1 action(s) were
+taken: workflow_list` — and that symptom is shared by faults that are not
+remotely the same thing:
+
+| classification | what it means | whose fault |
+|---|---|---|
+| `provider-auth-failure` | the preferred provider refused the credential and a fallback served the turn | provider health |
+| `model-under-completed` | the model that served the turn stopped short | the model |
+| `tool-execution-failure` | a required tool ran and failed | the tool |
+| `runtime-failure` | the objective is marked completed with required work never executed | **LÉLU** |
+
+Only the last is a cognition defect, and it is the one the completion
+verifier exists to make impossible. `tests/support/autonomy-report.ts`
+classifies each run from the registry's own failure record and the cycle
+history, prints a one-line result for the matrix, and prints the whole
+trace — providers, cycles, requested vs executed tools, finish reasons,
+verifier verdicts — when anything went wrong. It asserts nothing; the
+test's own assertions are untouched.
+
+### Provider reliability on this container
+
+The two preferred providers answer 401 here (`Invalid API Key`, `Wrong API
+Key`), so every run below was served by the fallback. Measured before the
+completion verifier existed, eight runs across two commits — one of which
+contained no cognition changes at all:
 
 | | pass | fail |
 |---|---|---|
 | `516f133` | 1 | 3 |
-| `fdb8612` (baseline) | 2 | 2 |
+| `fdb8612` | 2 | 2 |
 
-Every failure was the same: `only 1 action(s) were taken: workflow_list`.
-The cause is visible in the log — the two preferred providers answer 401
-here (`Invalid API Key`, `Wrong API Key`), so the run falls through to a
-fallback model that about half the time stops after step one of a
-three-step instruction. One of its calls returned `finishReason: "length"`
+Every failure was the same premature `DONE:` after `workflow_list`, and
+the runtime believed it. One model call returned `finishReason: "length"`
 having spent all 16 completion tokens on reasoning.
 
-So: compare against the baseline before reading a red run as a regression,
-and fix the credentials before reading it as a product defect. The
-assertion has NOT been relaxed to match the observed behaviour — it names
-the serving provider in its failure message instead, which is what tells
-the two apart.
+The assertion has never been relaxed to accommodate that. What changed is
+what the runtime does with a premature claim: it is checked, rejected, and
+the work carries on. Measured after the verifier landed, same container,
+same refused credentials, **eight consecutive runs, eight passes**, every
+one reaching 3/3 required operations. The `completion:` column is the
+point:
 
-It earns its keep even when it is red. These runs are what found the two
-briefing defects fixed in `AgentCognitionRuntime.brief()` — a multi-cycle
-objective reporting that nothing had been executed, and a conclusion
-reached without acting being headlined exactly like work that ran. Neither
-was visible to any deterministic test, because only a real model decides
-when it is finished.
+```
+run 3  PASS  provider: Fireworks  cycles: 7  actions: 3/3
+              completion: complete,incomplete,incomplete,incomplete,
+                          incomplete,incomplete,incomplete
+```
+
+Six rejected claims and one accepted, for one objective. The model kept
+trying to stop after `workflow_list`; the runtime kept telling it what had
+not been observed; the work finished. Before, the first of those claims
+ended the objective and the test failed.
+
+It earns its keep even when it is red. These runs found the two briefing
+defects fixed in `AgentCognitionRuntime.brief()`, and then the completion
+gap itself. None of it was visible to any deterministic test, because only
+a real model decides when it is finished.
 
 ## The previous known failure, and what it actually was
 

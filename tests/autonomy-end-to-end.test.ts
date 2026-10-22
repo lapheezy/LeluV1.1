@@ -70,6 +70,7 @@ import {
   buildCognitiveContext,
   formatCognitiveContext,
 } from "../src/core/cognition/CognitiveContext";
+import { AutonomyReport } from "./support/autonomy-report";
 
 const objectives = AgentObjectives.getInstance();
 const runtime = AgentCognitionRuntime.getInstance();
@@ -182,6 +183,12 @@ test(
     // Every real tool result the dispatcher emits, so a claimed action
     // can be checked against one that really happened.
     const dispatched: string[] = [];
+    // Collects the evidence a failure needs to be diagnosed rather than
+    // guessed at: which provider served each decision, what the model
+    // asked for, what really ran, and what the completion check made of
+    // it. It asserts nothing — see tests/support/autonomy-report.
+    const report = new AutonomyReport();
+    report.start();
     // Cognition events are collected AS THEY ARE EMITTED. The bus keeps
     // a bounded history, so reading it afterwards can miss the start of
     // a long run — a subscriber sees everything.
@@ -273,6 +280,54 @@ test(
     const trace = cognitionEvents.filter((entry) => entry.objectiveId === objective.id);
     const stages = trace.map((entry) => entry.stage);
 
+    /* ---- DIAGNOSTICS BEFORE ASSERTIONS ----
+     *
+     * One line for the run matrix on every run, and the whole trace
+     * when something went wrong — printed before anything can throw,
+     * so a failure is never reported without the evidence that
+     * explains it. None of this asserts; the assertions below are
+     * unchanged.
+     */
+    const EXPECTED_TOOLS = ["workflow_list", "workflow_author", "workflow_run"];
+    console.log(`\n[autonomy] ${report.summary(objective.id, EXPECTED_TOOLS)}`);
+    const diagnosis = report.classify(objective.id, EXPECTED_TOOLS);
+    if (diagnosis.classification !== "pass") {
+      console.log(report.render(objective.id, EXPECTED_TOOLS));
+    }
+
+    /**
+     * The headline a failing assertion carries.
+     *
+     * It names which of the four faults this was, because "only 1
+     * action was taken" is a symptom shared by a refused credential, an
+     * under-performing fallback model, a failed tool and a runtime that
+     * accepted an invalid completion — and only the last is a LÉLU
+     * defect.
+     */
+    const autonomyFailure = (what: string): string => {
+      const succeeded = [
+        ...new Set(
+          cycles.flatMap((cycle) => cycle.executed.filter((entry) => entry.ok).map((entry) => entry.tool)),
+        ),
+      ];
+      const verdicts = cycles
+        .map((cycle) => cycle.verification?.verdict)
+        .filter((verdict): verdict is NonNullable<typeof verdict> => Boolean(verdict));
+      return [
+        "",
+        "AUTONOMY FAILURE",
+        `  what:      ${what}`,
+        `  class:     ${diagnosis.classification} — ${diagnosis.detail}`,
+        `  provider:  ${report.servingProviders(cycles).join(", ") || "(none recorded)"}`,
+        `  objective: ${objective.id}`,
+        `  expected:  ${EXPECTED_TOOLS.join(", ")}`,
+        `  observed:  ${succeeded.join(", ") || "(nothing)"}`,
+        `  model:     ${/^\s*DONE:/i.test(cycles[cycles.length - 1]?.decision ?? "") ? "DONE" : "no completion claimed"}`,
+        `  verifier:  ${verdicts.length ? verdicts.join(", ") : "never asked"}`,
+        "",
+      ].join("\n");
+    };
+
     /* ---- 3. A REAL MODEL MADE THE DECISION ---- */
     const decisionEvents = trace.filter((entry) => entry.stage === "decision-made");
     assert.ok(decisionEvents.length > 0, "no decision was recorded");
@@ -288,7 +343,9 @@ test(
     assert.equal(
       finished.state,
       "completed",
-      `ended as ${finished.state} (${finished.yieldReason ?? "no reason"}): ${finished.conclusion}`,
+      autonomyFailure(
+        `the objective ended as ${finished.state} (${finished.yieldReason ?? "no reason"}): ${finished.conclusion}`,
+      ),
     );
 
     /* ---- 5. REAL TOOLS RAN, AND ONLY REAL ONES ARE CLAIMED ---- */
@@ -302,11 +359,7 @@ test(
     // about half of runs stop after workflow_list, identically on a
     // commit with no cognition changes at all. A short run is evidence
     // about the model, and the provider list is how a reader tells.
-    assert.ok(
-      claimed.length >= 3,
-      `only ${claimed.length} action(s) were taken: ${claimed.join(", ")} ` +
-        `— served by ${[...providers].join(", ") || "an unnamed provider"}`,
-    );
+    assert.ok(claimed.length >= 3, autonomyFailure(`only ${claimed.length} action(s) were taken`));
     for (const tool of claimed) {
       assert.ok(
         dispatched.includes(tool.replace(/\./g, "_")),
@@ -579,6 +632,7 @@ test(
 
     /* ---- teardown: leave nothing running for the next file ---- */
     unsubscribe();
+    report.stop();
     cancelEverything();
     LeluRuntime.getInstance().shutdown();
     await quiesceSelfStudy();

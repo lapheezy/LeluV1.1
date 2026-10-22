@@ -278,6 +278,17 @@ export default class ProviderResolver {
     const taskId = String(context.request.timestamp ?? Date.now());
     const messages: AIMessage[] = [...(context.request.messages ?? [])];
     const executed: Array<{ tool: string; ok: boolean }> = [];
+    // What the model ASKED for, separately from what really ran.
+    //
+    // These are the same list on this path, by construction — every
+    // accepted call is dispatched below. Recording both anyway is what
+    // lets a reader downstream tell "the model wanted three tools and
+    // got three" from "the model wanted three and one never reached the
+    // dispatcher", without having to assume the loop is intact. A
+    // completion claim is checked against executions, and a request
+    // that produced no execution is exactly the gap that check exists
+    // to catch.
+    const requested: string[] = [];
 
     let response = await provider.generate({ ...context.request, messages, tools });
     let promptMaterialized = false;
@@ -333,6 +344,7 @@ export default class ProviderResolver {
       });
 
       for (const call of calls) {
+        requested.push(call.name);
         const result = await dispatchToolCall(call, taskId, context);
         executed.push({ tool: call.name, ok: result.ok });
         // ALSO record it where a later provider failure cannot erase it.
@@ -395,6 +407,7 @@ export default class ProviderResolver {
         ...(executed.length
           ? { toolsExecuted: executed, toolRounds: executed.length }
           : {}),
+        ...(requested.length ? { toolsRequested: requested } : {}),
         ...(stopReason ? { toolLoopStopped: stopReason } : {}),
       },
     };

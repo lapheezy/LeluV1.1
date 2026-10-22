@@ -78,6 +78,8 @@ export type CognitionStage =
   | "lesson-retrieved"
   | "decision-made"
   | "branch-selected"
+  /** A claimed completion was checked against what really happened. */
+  | "completion-verified"
   | "result-observed"
   | "lesson-extracted"
   | "lesson-persisted"

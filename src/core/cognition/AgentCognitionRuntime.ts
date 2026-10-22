@@ -38,6 +38,8 @@ import AgentObjectives, {
   type CognitionCycleRecord,
   type ObjectiveState,
 } from "./AgentObjectives";
+import { verifyCompletion, type CompletionResult } from "./CompletionVerifier";
+import { executableToolIds } from "../tools/ToolDispatcher";
 
 /** What the agent concluded this cycle, parsed from its own decision. */
 export interface CycleOutcome {
@@ -45,6 +47,12 @@ export interface CycleOutcome {
   objectiveId: string;
   decision: string;
   executed: Array<{ tool: string; ok: boolean }>;
+  /** What the model asked for, as against what ran. */
+  requested?: string[];
+  provider?: string;
+  model?: string;
+  finishReason?: string;
+  verification?: CognitionCycleRecord["verification"];
   nextState: ObjectiveState;
   yieldReason?: CognitionCycleRecord["yieldReason"];
 }
@@ -323,6 +331,7 @@ export default class AgentCognitionRuntime {
     category: "work-completed" | "work-stopped",
     reason: string,
     executed: Array<{ tool: string; ok: boolean }>,
+    verification?: CompletionResult,
   ): void {
     try {
       // What really ran across the WHOLE objective, not just the cycle
@@ -333,9 +342,24 @@ export default class AgentCognitionRuntime {
       // cycle happened to execute nothing reported that nothing had
       // been executed at all — a false account of work that really
       // happened, in the one place a person reads about it.
-      const earlier = this.objectives.cycles(objective.id).flatMap((record) => record.executed);
+      const records = this.objectives.cycles(objective.id);
+      const earlier = records.flatMap((record) => record.executed);
       const succeeded = [...earlier, ...executed].filter((entry) => entry.ok);
       const ran = [...new Set(succeeded.map((entry) => entry.tool))];
+
+      // What the completion check made of it, so the briefing reports
+      // the objective's own requirements rather than a tool list. The
+      // cycle that triggered this is not recorded yet, so a verdict
+      // from it is passed in; otherwise the most recent recorded one
+      // stands, which is what a budget-exhausted objective has.
+      const checked =
+        verification ?? records.find((record) => record.verification)?.verification;
+      const evidence = checked?.observed.length
+        ? `Verified: ${checked.observed.join("; ")}.`
+        : "";
+      const shortfall = checked?.missing.length
+        ? `Not observed: ${checked.missing.join("; ")}.`
+        : "";
       const summary =
         reason.trim() ||
         (ran.length > 0
@@ -370,9 +394,18 @@ export default class AgentCognitionRuntime {
         // Work that stopped needs a decision; work that finished is news.
         priority: category === "work-stopped" ? "P1" : "P2",
         reason:
-          ran.length > 0
-            ? `${succeeded.length} action(s) really ran: ${ran.join(", ")}.`
-            : "No tool was executed in this objective — this is a conclusion, not completed work.",
+          [
+            ran.length > 0
+              ? `${succeeded.length} action(s) really ran: ${ran.join(", ")}.`
+              : "No tool was executed in this objective — this is a conclusion, not completed work.",
+            evidence,
+            // Only on work that STOPPED. A completed objective has
+            // nothing outstanding by definition, and printing a stale
+            // shortfall next to "Finished" would contradict it.
+            category === "work-stopped" ? shortfall : "",
+          ]
+            .filter(Boolean)
+            .join(" "),
         ...(objective.projectId ? { relatedProjectId: objective.projectId } : {}),
         relatedObjectiveId: objective.id,
         ...(conversationId ? { conversationId } : {}),
@@ -499,7 +532,13 @@ export default class AgentCognitionRuntime {
 
     if (this.cancelled.has(objectiveId)) return null;
     this.inFlight.add(objectiveId);
-    this.lastCycleAt.set(objectiveId, Date.now());
+    // When this cycle really began. The record used to stamp startedAt
+    // and finishedAt with the same instant, taken when it was written,
+    // so every cycle appeared to take zero time — useless for telling a
+    // model that thought for forty seconds from one that returned at
+    // once.
+    const cycleStartedAt = Date.now();
+    this.lastCycleAt.set(objectiveId, cycleStartedAt);
     // The epoch this cycle belongs to. If the runtime is stopped,
     // paused or this objective is cancelled while the model call is in
     // flight, the result is no longer ours to record.
@@ -598,6 +637,11 @@ export default class AgentCognitionRuntime {
       const decision = (response.text ?? "").trim();
       const executed =
         (response.metadata?.toolsExecuted as Array<{ tool: string; ok: boolean }> | undefined) ?? [];
+      // What the model ASKED for this cycle, which is a different fact
+      // from what ran — see CompletionVerifier.
+      const requested = (response.metadata?.toolsRequested as string[] | undefined) ?? [];
+      const finishReason =
+        typeof response.metadata?.finishReason === "string" ? response.metadata.finishReason : undefined;
 
       emitCognition("decision-made", decision.slice(0, 400) || "(no decision text)", {
         objectiveId,
@@ -629,10 +673,71 @@ export default class AgentCognitionRuntime {
       let nextState: ObjectiveState = "active";
       let yieldReason: CognitionCycleRecord["yieldReason"] | undefined;
       let conclusion = "";
+      /** What the completion check decided, when there was one to make. */
+      let verification: CompletionResult | undefined;
+      /** A correction the verifier owes the next cycle, if it rejected. */
+      let verifierNudge: string | undefined;
 
       if (/^\s*DONE:/i.test(decision)) {
-        nextState = "completed";
-        conclusion = decision.replace(/^\s*DONE:\s*/i, "").trim();
+        // "DONE:" IS A CLAIM. IT IS CHECKED.
+        //
+        // This branch used to be the whole completion decision: the
+        // model said the word and the objective was finished. The live
+        // end-to-end test caught a real model ending a three-operation
+        // objective after one of them, and the runtime believed it.
+        //
+        // The verifier answers only "is this satisfied?". What to do
+        // about an unsatisfied objective is decided below, by the same
+        // mechanisms that already handle a cycle that did not conclude
+        // — there is no second executor here.
+        const claimed = decision.replace(/^\s*DONE:\s*/i, "").trim();
+        verification = verifyCompletion(
+          {
+            objective,
+            // EVERY cycle, not this one: the concluding cycle normally
+            // executes nothing, because the model is told to take no
+            // action when it concludes.
+            cycles: this.objectives.cycles(objectiveId),
+            executedNow: executed,
+            requestedNow: requested,
+            conclusion: claimed,
+          },
+          executableToolIds(),
+        );
+
+        emitCognition("completion-verified", `${verification.verdict}: ${verification.reason}`, {
+          objectiveId,
+          data: {
+            verdict: verification.verdict,
+            observed: verification.observed,
+            missing: verification.missing,
+          },
+        });
+
+        if (verification.verdict === "complete") {
+          nextState = "completed";
+          conclusion = claimed;
+        } else if (verification.verdict === "blocked") {
+          // Nothing further LÉLU can do will satisfy it, so this takes
+          // the EXISTING question path rather than spending more cycles.
+          nextState = "waiting";
+          conclusion = verification.reason;
+          this.objectives.waitFor(objectiveId, verification.missing.join("; ") || verification.reason);
+          this.askUser(objective, verification.reason);
+        } else {
+          // Incomplete: the work continues on the runtime's own terms.
+          // The objective stays active, the next cycle is scheduled by
+          // the same code that schedules every other continuation, and
+          // the model is told exactly what has not been observed so the
+          // next decision is informed rather than a repeat.
+          nextState = "active";
+          conclusion = "";
+          verifierNudge =
+            `You reported the objective complete, but ${verification.reason} ` +
+            `Observed so far: ${verification.observed.join("; ") || "nothing"}. ` +
+            "Take the next action that would satisfy what is missing, or say BLOCKED: " +
+            "with exactly what prevents it.";
+        }
       } else if (/^\s*BLOCKED:/i.test(decision)) {
         // The model reporting a capability gap is a legitimate outcome,
         // and a different one from failing to execute.
@@ -696,11 +801,17 @@ export default class AgentCognitionRuntime {
         : 0;
 
       this.objectives.update(objectiveId, {
+        // A rejected completion outranks the repetition nudge: it says
+        // precisely what is missing, which is more use to the next
+        // decision than "you repeated yourself".
         nudge:
-          shouldNudge && nextState === "active"
-            ? `You already ran ${signature} in an earlier cycle and it produced nothing new. ` +
-              `Either conclude with DONE: and the answer, or take a genuinely different action.`
-            : undefined,
+          nextState !== "active"
+            ? undefined
+            : verifierNudge ??
+              (shouldNudge
+                ? `You already ran ${signature} in an earlier cycle and it produced nothing new. ` +
+                  `Either conclude with DONE: and the answer, or take a genuinely different action.`
+                : undefined),
         cyclesRun: objective.cyclesRun + 1,
         actionsTaken: objective.actionsTaken + executed.length,
         consecutiveFailures: failures,
@@ -711,7 +822,7 @@ export default class AgentCognitionRuntime {
 
       if (nextState === "completed") {
         this.objectives.complete(objectiveId, conclusion);
-        this.brief(objective, "work-completed", conclusion, executed);
+        this.brief(objective, "work-completed", conclusion, executed, verification);
       } else if (
         nextState === "scheduled" ||
         nextState === "awaiting-approval" ||
@@ -723,7 +834,7 @@ export default class AgentCognitionRuntime {
         // Work that stopped and will not resume on its own is worth
         // saying. Work that is merely waiting or scheduled is not: it is
         // still going, and a briefing per pause would be noise.
-        this.brief(objective, "work-stopped", conclusion || yieldReason, executed);
+        this.brief(objective, "work-stopped", conclusion || yieldReason, executed, verification);
       } else {
         // Still active — but re-check the budget now that this cycle spent
         // some of it, so the NEXT wake does not need a model call to stop.
@@ -752,9 +863,19 @@ export default class AgentCognitionRuntime {
       const outcome = this.record(finalObjective, trigger, {
         decision: decision || "(no decision text)",
         executed,
+        // Diagnosis, not decoration: which model served the decision,
+        // what it asked for as against what ran, why it stopped
+        // generating, and what the completion check made of it. A short
+        // run is a different fault depending on these, and without them
+        // every red run looks the same.
+        requested,
+        provider: response.provider,
+        model: response.model,
+        finishReason,
+        verification,
         nextState,
         yieldReason,
-      });
+      }, cycleStartedAt);
 
       // EXTRACT LEARNING when the objective ends, from the real cycle
       // records. Contained: a memory failure must not corrupt the run,
@@ -847,6 +968,7 @@ export default class AgentCognitionRuntime {
     objective: AgentObjective,
     trigger: string,
     outcome: Omit<CycleOutcome, "cycleId" | "objectiveId">,
+    startedAt = Date.now(),
   ): CycleOutcome {
     const cycleId = crypto.randomUUID();
     const record: CognitionCycleRecord = {
@@ -854,10 +976,15 @@ export default class AgentCognitionRuntime {
       agentId: objective.agentId,
       objectiveId: objective.id,
       trigger,
-      startedAt: Date.now(),
+      startedAt,
       finishedAt: Date.now(),
       decision: outcome.decision,
       executed: outcome.executed,
+      ...(outcome.requested?.length ? { requested: outcome.requested } : {}),
+      ...(outcome.provider ? { provider: outcome.provider } : {}),
+      ...(outcome.model ? { model: outcome.model } : {}),
+      ...(outcome.finishReason ? { finishReason: outcome.finishReason } : {}),
+      ...(outcome.verification ? { verification: outcome.verification } : {}),
       nextState: outcome.nextState,
       yieldReason: outcome.yieldReason,
     };

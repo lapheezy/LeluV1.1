@@ -68,10 +68,56 @@ export interface CognitionCycleRecord {
   decision: string;
   /** Tools/workflows actually executed, from the real tool results. */
   executed: Array<{ tool: string; ok: boolean }>;
+  /**
+   * Tools the model ASKED for, which is a different fact from what ran.
+   *
+   * A request that never became an execution is the gap between a
+   * claim and the record, and it is invisible if only executions are
+   * kept.
+   */
+  requested?: string[];
+  /** Which provider and model served the decision, for diagnosis. */
+  provider?: string;
+  model?: string;
+  /** Why the model stopped generating, when the provider reports it. */
+  finishReason?: string;
+  /** What the completion check decided, when the model claimed DONE. */
+  verification?: {
+    verdict: "complete" | "incomplete" | "blocked";
+    reason: string;
+    observed: string[];
+    missing: string[];
+  };
   /** State the objective moved to after this cycle. */
   nextState: ObjectiveState;
   /** Set when the cycle ended the objective. */
   yieldReason?: YieldReason;
+}
+
+/**
+ * WHAT AN OBJECTIVE MUST BE OBSERVED TO HAVE ACCOMPLISHED.
+ *
+ * The runtime used to accept the model writing "DONE:" as the whole of
+ * the completion decision, so a three-operation objective could finish
+ * after one of them. Checking that needs something objective-level to
+ * check against — this is it, and it is deliberately the smallest
+ * thing that works rather than a second goal model: an objective
+ * carries a few outcomes, each naming the kind of evidence that
+ * settles it.
+ *
+ * `evidence` says what counts, never who says so:
+ *   tool-succeeded    a named tool really ran and really returned ok
+ *   answer-given      the objective is answerable by reasoning, and the
+ *                     conclusion itself is the evidence
+ *   user-information  only the user can supply this, so no amount of
+ *                     further work can satisfy it
+ */
+export interface ObjectiveOutcome {
+  evidence: "tool-succeeded" | "answer-given" | "user-information";
+  /** The tool that must have run and succeeded. Required for tool-succeeded. */
+  tool?: string;
+  /** What this outcome is, in words — used in briefings and questions. */
+  what: string;
 }
 
 export interface AgentObjective {
@@ -116,6 +162,15 @@ export interface AgentObjective {
   consecutiveFailures: number;
   /** Signatures of actions already taken, for duplicate protection. */
   actionHistory: string[];
+  /**
+   * What completion will be checked against, when it is known.
+   *
+   * Absent is normal and means "not declared": an objective nobody
+   * stated requirements for is still verified, just on weaker
+   * evidence — see CompletionVerifier. Declared outcomes always win
+   * over anything inferred from the objective's wording.
+   */
+  expectedOutcomes?: ObjectiveOutcome[];
   /**
    * A correction the runtime owes the next cycle.
    *
@@ -397,6 +452,8 @@ export default class AgentObjectives {
     maxCycles?: number;
     maxActions?: number;
     deadlineMs?: number;
+    /** What completion will be checked against. See ObjectiveOutcome. */
+    expectedOutcomes?: ObjectiveOutcome[];
   }): AgentObjective {
     const now = Date.now();
     const objective: AgentObjective = {
@@ -417,6 +474,7 @@ export default class AgentObjectives {
       deadline: now + (input.deadlineMs ?? DEFAULT_DEADLINE_MS),
       consecutiveFailures: 0,
       actionHistory: [],
+      ...(input.expectedOutcomes?.length ? { expectedOutcomes: input.expectedOutcomes } : {}),
     };
     this.kv.set(KEY, [...this.list(), objective]);
     this.notify();
