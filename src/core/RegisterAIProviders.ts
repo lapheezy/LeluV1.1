@@ -86,14 +86,15 @@ export default function registerAIProviders() {
     new GitHubModelsProvider(),
   );
 
-  // Appended last (priority 7) so the established fallback order is
-  // untouched — nothing that resolved before resolves differently now.
+  // Priority 1 — Anthropic is the primary remote provider. The registry
+  // sorts by priority, so Anthropic leads all remote providers (Groq is
+  // priority 2, others 3-10). LocalInference stays at priority 0 so
+  // on-device capability is still tried first when installed.
   registry.register(
     new AnthropicProvider(),
   );
 
-  // Priority 8 — appended after Anthropic, so the chain ahead of it
-  // is untouched.
+  // Priority 8 — after Anthropic in the fallback chain.
   registry.register(
     new GeminiProvider(),
   );

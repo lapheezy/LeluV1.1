@@ -24,7 +24,7 @@ import { resolveModel } from "../core/ProviderModels";
 
 export default class GroqProvider implements AIProvider {
   readonly name = "Groq";
-  readonly priority = 1;
+  readonly priority = 2;
   readonly enabled = true;
   readonly timeout = 30000;
   readonly requiresApiKey = true;

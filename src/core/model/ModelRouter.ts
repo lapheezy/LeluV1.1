@@ -481,25 +481,21 @@ export default class ModelRouter {
     // signal — the existing chain still applies afterward.
     const explicit = request.preferredProviders ?? [];
     const ordered = [...explicit];
+
+    // The CONFIGURED default provider is inserted immediately after any
+    // explicit per-request overrides, so it leads the chain on ordinary
+    // requests. Modality/hardware signals (low-memory fast providers,
+    // vision-capable providers) come after it — they refine the fallback
+    // order when the default fails or cannot handle the request type.
+    const configuredDefault = this.configuredDefaultProviderName();
+    if (configuredDefault && !ordered.includes(configuredDefault)) {
+      ordered.push(configuredDefault);
+    }
+
     for (const name of preferred) {
       if (!ordered.includes(name)) {
         ordered.push(name);
       }
-    }
-
-    // The CONFIGURED default provider, appended last so it only decides
-    // ties. VITE_DEFAULT_PROVIDER was read by Environment.ts and by the
-    // diagnostics endpoint and by nothing else — setting it changed
-    // which provider LÉLU reported as default and not which one she
-    // actually used, so "Anthropic is my default" could be true in the
-    // config and false at runtime. It feeds the existing
-    // ProviderResolver.orderByPreference() path rather than a new one;
-    // an explicit per-request preference and the modality/hardware
-    // signals above still outrank it, and the priority chain still
-    // applies after it, so no fallback behaviour changes.
-    const configuredDefault = this.configuredDefaultProviderName();
-    if (configuredDefault && !ordered.includes(configuredDefault)) {
-      ordered.push(configuredDefault);
     }
 
     let model: string | null = null;
@@ -606,7 +602,7 @@ export default class ModelRouter {
    */
   private configuredDefaultProviderName(): string | null {
     const token = getEnvironment().defaultProvider?.trim().toLowerCase();
-    if (!token) return null;
+    if (!token) return "Anthropic";
     const byToken: Record<string, string> = {
       anthropic: "Anthropic",
       claude: "Anthropic",

@@ -16,6 +16,7 @@
 
 import AIRuntime from "./AIRuntime";
 import MemoryBridge from "./MemoryBridge";
+import { bindMessage } from "./multichat/TurnOwnership";
 import UserManager from "./user/UserManager";
 import AgentEventBus from "./agent/AgentEvents";
 import {
@@ -66,6 +67,8 @@ export interface AIMessageEvent {
   confidence?: number;
   reasoning?: ReasoningResult | null;
   plan?: Plan | null;
+  /** The conversation this reply belongs to — present when sent via ai.chat({ conversationId }). */
+  conversationId?: string;
 }
 
 export default class AIService {
@@ -79,7 +82,7 @@ export default class AIService {
   private readonly cognitionListeners = new Set<(state: CognitionEvent) => void>();
   private readonly messageListeners = new Set<(message: AIMessageEvent) => void>();
   /** Progressive assistant output during generation — same id as the final message. */
-  private readonly streamListeners = new Set<(event: { id: string; text: string }) => void>();
+  private readonly streamListeners = new Set<(event: { id: string; text: string; conversationId?: string }) => void>();
   private readonly thinkingListeners = new Set<(value: boolean) => void>();
   private readonly speakingListeners = new Set<(value: boolean) => void>();
   private readonly listeningListeners = new Set<(value: boolean) => void>();
@@ -145,7 +148,7 @@ export default class AIService {
   }
 
   /** Live token-stream updates while LÉLU is generating. */
-  public subscribeStream(listener: (event: { id: string; text: string }) => void): () => void {
+  public subscribeStream(listener: (event: { id: string; text: string; conversationId?: string }) => void): () => void {
     this.streamListeners.add(listener);
     return () => {
       this.streamListeners.delete(listener);
@@ -220,10 +223,10 @@ export default class AIService {
     }
   }
 
-  private emitStream(id: string, text: string): void {
+  private emitStream(id: string, text: string, conversationId?: string): void {
     for (const listener of this.streamListeners) {
       try {
-        listener({ id, text });
+        listener({ id, text, conversationId });
       } catch (error) {
         console.error("[AIService] stream listener threw (contained)", error);
       }
@@ -365,7 +368,7 @@ export default class AIService {
     prompt: string,
     media?: MediaAttachment[],
     context?: string,
-    options?: { forceIntent?: AIIntent },
+    options?: { forceIntent?: AIIntent; conversationId?: string },
   ): Promise<AIResponse> {
     const message = prompt.trim();
 
@@ -545,6 +548,14 @@ export default class AIService {
 
       const streamId = crypto.randomUUID();
 
+      // Pre-bind the reply to its conversation before any await. Without
+      // this, a concurrent turn from a different conversation can call
+      // claimTurn() between now and the first stream token, and that token
+      // would bind to the wrong conversation. Pre-binding wins the race.
+      if (options?.conversationId) {
+        bindMessage(streamId, options.conversationId);
+      }
+
       // SHORT-TERM CONVERSATION CONTEXT.
       //
       // Read the dialogue BEFORE this turn, then record this turn, so the
@@ -574,7 +585,7 @@ export default class AIService {
         timestamp: Number(taskId),
         // True streaming: the provider pushes accumulated text as it
         // arrives and the UI renders it in place under `streamId`.
-        onDelta: (text) => this.emitStream(streamId, text),
+        onDelta: (text) => this.emitStream(streamId, text, options?.conversationId),
       };
 
       // The request is about to run the existing planning + reasoning
@@ -614,6 +625,7 @@ export default class AIService {
         confidence: response.metadata?.confidence as number | undefined,
         reasoning,
         plan,
+        conversationId: options?.conversationId,
       });
 
       const responseSucceeded =

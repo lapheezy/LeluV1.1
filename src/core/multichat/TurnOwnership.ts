@@ -84,6 +84,26 @@ export function ownerForMessage(messageId: string): string | null {
   return claim;
 }
 
+/**
+ * Pre-register a message id to a conversation BEFORE any async work
+ * starts. This eliminates the attribution race: without pre-binding,
+ * a second conversation's claimTurn() can overwrite the first's before
+ * the first stream token arrives, causing that token to bind to the
+ * wrong conversation.
+ *
+ * Called by AIService.chat() immediately after creating the streamId,
+ * while the conversationId is still unambiguous — before the network
+ * call or any await that could allow a concurrent turn to run.
+ */
+export function bindMessage(messageId: string, conversationId: string): void {
+  if (!messageId || !conversationId) return;
+  ownerByMessage.set(messageId, conversationId);
+  if (ownerByMessage.size > MAX_TRACKED_MESSAGES) {
+    const oldest = ownerByMessage.keys().next();
+    if (!oldest.done) ownerByMessage.delete(oldest.value);
+  }
+}
+
 /** Test seam: forget every claim and binding. */
 export function resetTurnOwnership(): void {
   claim = null;

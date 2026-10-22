@@ -64,7 +64,9 @@ type OrchestratorListener = (event: {
 export default class Orchestrator {
   private static instance: Orchestrator | null = null;
   private listeners = new Set<OrchestratorListener>();
-  private executing = false;
+  /** Per-conversation serialization. Different conversations can process concurrently;
+   * the same conversation serializes so its turns stay in order. */
+  private readonly executingByConv = new Map<string, boolean>();
 
   private constructor() {}
 
@@ -81,27 +83,25 @@ export default class Orchestrator {
     request: string,
     _conversationHistory: string[] = [],
     context?: string,
+    conversationId?: string,
   ): Promise<OrchestratorResult> {
-    // Re-entry is SERIALIZED, not discarded. Returning a canned "I'm
-    // busy" here dropped the user's message on the floor: it was never
-    // answered and never entered the conversation, which is precisely
-    // how a reply goes missing. Wait for the in-flight request instead,
-    // then process this one.
-    if (this.executing) {
+    // Serialized PER CONVERSATION, not globally. Different conversations
+    // can process concurrently; within one conversation turns stay in
+    // order. A canned "I'm busy" drops the message — wait instead.
+    const convKey = conversationId ?? "__global__";
+    if (this.executingByConv.get(convKey)) {
       const deadline = Date.now() + 30_000;
-      while (this.executing && Date.now() < deadline) {
+      while (this.executingByConv.get(convKey) && Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 120));
       }
-      if (this.executing) {
-        // The previous request is wedged. Rather than lose this message,
-        // release the lock and take it — a stuck flag must never cost
-        // the user a turn.
+      if (this.executingByConv.get(convKey)) {
+        // The previous request is wedged — release so this turn is not lost.
         console.warn("[Orchestrator] Previous request exceeded its window — taking over so the message is not lost.");
-        this.executing = false;
+        this.executingByConv.delete(convKey);
       }
     }
 
-    this.executing = true;
+    this.executingByConv.set(convKey, true);
     console.info("[Orchestrator] Processing request:", request.slice(0, 100));
     const runtime = LeluRuntime.getInstance();
     const taskEngine = TaskEngine.getInstance();
@@ -273,7 +273,7 @@ export default class Orchestrator {
 
         // Execute through the existing AI pipeline (with orchestration context)
         const ai = AIService.getInstance();
-        const response = await ai.chat(request, undefined, context);
+        const response = await ai.chat(request, undefined, context, { conversationId });
 
         // Verify the response
         events.emit({
@@ -375,7 +375,7 @@ export default class Orchestrator {
         label: "Connecting to AI provider",
         side: "backend",
       });
-      const response = await ai.chat(request, undefined, context);
+      const response = await ai.chat(request, undefined, context, { conversationId });
 
       const ok = response.provider !== "error" && typeof response.text === "string" && response.text.length > 0;
       events.emit({
@@ -450,7 +450,7 @@ export default class Orchestrator {
         uiCommands,
       };
     } finally {
-      this.executing = false;
+      this.executingByConv.delete(convKey);
     }
   }
 
@@ -702,7 +702,7 @@ export default class Orchestrator {
         // Execute step through the AI pipeline
         const ai = AIService.getInstance();
         const contextPrompt = `[Task: ${task.goal}] Step: ${step.title} — ${step.description}`;
-        const response = await ai.chat(contextPrompt);
+        const response = await ai.chat(contextPrompt, undefined, undefined, { conversationId });
 
         // THE SAME RULE AS THE PATH ABOVE: a reply is not an execution.
         //

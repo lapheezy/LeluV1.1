@@ -320,7 +320,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
    * "a stuck flag must never cost the user a turn". The UI was undoing
    * that above it.
    *
-   * So turns now form a queue. `turnTailRef` holds the last turn
+   * So turns now form a queue. `convTailsRef` holds the last turn per
    * promised; each new send awaits it and becomes the new tail. The
    * composer clears immediately, so the message is visibly accepted at
    * the moment it is sent, and is answered in order.
@@ -341,8 +341,9 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
    * show chat A's spinner.
    */
   const [sendingIn, setSendingIn] = useState<readonly string[]>([]);
-  /** The last turn queued, which the next one waits behind. */
-  const turnTailRef = useRef<Promise<void> | null>(null);
+  /** Per-conversation tail of the turn queue. Different conversations run
+   * concurrently; within one conversation turns stay in order. */
+  const convTailsRef = useRef<Map<string, Promise<void>>>(new Map());
   const isSending = sendingIn.includes(state.activeConversationId);
   const [activeQuestion, setActiveQuestion] = useState<ProactiveQuestion | null>(null);
   /** What the user has typed in reply to the question on screen. */
@@ -739,13 +740,14 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     // from React leaves the mirror naming the previous one.
     const turnConversationId = MultiChatStore.getInstance().getActiveId();
 
-    // Take a place in the queue. The composer was cleared above, so the
-    // message is visibly accepted now and simply waits its turn rather
-    // than being thrown away.
-    const previousTurn = turnTailRef.current;
+    // Take a place in this conversation's queue. Different conversations
+    // proceed concurrently; within one conversation turns stay in order.
+    // The composer was cleared above, so the message is visibly accepted
+    // now and simply waits its turn rather than being thrown away.
+    const previousTurn = convTailsRef.current.get(turnConversationId) ?? null;
     let finishTurn: () => void = () => {};
     const thisTurn = new Promise<void>((resolve) => { finishTurn = resolve; });
-    turnTailRef.current = thisTurn;
+    convTailsRef.current.set(turnConversationId, thisTurn);
     setSendingIn((current) => [...current, turnConversationId]);
     if (previousTurn) {
       // A failed turn must not strand the one queued behind it.
@@ -802,6 +804,9 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
 
       // STREAMING VOICE: LÉLU begins speaking WHILE the response streams.
       const unsubscribeStream = ai.subscribeStream((event) => {
+        // When conversationId is present, only process events for THIS
+        // conversation so concurrent chats don't mix voice/UI streams.
+        if (event.conversationId && event.conversationId !== turnConversationId) return;
         try {
           voiceEngineRef.current.feedStreamingSpeech(event.text);
         } catch {
@@ -827,10 +832,10 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       let assistantText: string;
       try {
         if (media.length > 0) {
-          const response = await ai.chat(prompt, media, context);
+          const response = await ai.chat(prompt, media, context, { conversationId: turnConversationId });
           assistantText = typeof response.text === "string" ? response.text : "";
         } else {
-          const result = await Orchestrator.getInstance().process(prompt, undefined, context);
+          const result = await Orchestrator.getInstance().process(prompt, undefined, context, turnConversationId);
           assistantText = typeof result?.response === "string" ? result.response : "";
         }
       } finally {
@@ -897,7 +902,9 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         const at = current.indexOf(turnConversationId);
         return at < 0 ? current : [...current.slice(0, at), ...current.slice(at + 1)];
       });
-      if (turnTailRef.current === thisTurn) turnTailRef.current = null;
+      if (convTailsRef.current.get(turnConversationId) === thisTurn) {
+        convTailsRef.current.delete(turnConversationId);
+      }
       finishTurn();
     }
   }, [addMessage, clearTimers, input, notify, pendingMedia, pendingFiles, setDialogue, crossChatContext]);
@@ -1787,7 +1794,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
             type="button"
             onClick={() => void send()}
             // Busy is no longer a reason to refuse. A send made during a
-            // reply queues behind it (see sendingIn/turnTailRef above);
+            // reply queues behind it (see sendingIn/convTailsRef above);
             // disabling the button here is what used to make the message
             // disappear. Empty is still a reason — there is nothing to send.
             disabled={!input.trim() && pendingMedia.length === 0 && pendingFiles.length === 0}

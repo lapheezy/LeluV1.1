@@ -41,7 +41,7 @@ function mergeContent(a: MessageContent, b: MessageContent): MessageContent {
 
 export default class AnthropicProvider implements AIProvider {
   readonly name = "Anthropic";
-  readonly priority = 7;
+  readonly priority = 1;
   readonly enabled = true;
   readonly timeout = 30000;
 
