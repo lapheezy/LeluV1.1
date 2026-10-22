@@ -52,7 +52,12 @@ export const DOCK_ITEMS: DockItem[] = [
   { id: "chat", label: "LÉLU", glyph: "◎", icon: "orbit", group: "core" },
   // ── Capabilities accessible through the side panel / ⌘K palette ──
   { id: "memory", label: "Memory", glyph: "◐", icon: "crescent", group: "intelligence" },
-  { id: "notifications", label: "Updates", glyph: "◷", icon: "crescent", group: "system" },
+  // The "Updates" slot now opens Briefings — LÉLU's own account of what
+  // her autonomous work did, with read and dismissed state of its own.
+  // The improvement proposals that used to live here are unchanged and
+  // still reachable through Self Development, which is where they are
+  // acted on.
+  { id: "briefings", label: "Briefings", glyph: "◷", icon: "crescent", group: "system" },
   { id: "settings", label: "Settings", glyph: "⚙", icon: "sliders", group: "system" },
 
   // ── Deeper capabilities (default-hidden, restorable via ⚙/⌘K) ──

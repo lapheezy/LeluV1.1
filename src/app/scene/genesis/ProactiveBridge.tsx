@@ -18,35 +18,21 @@
  * ==========================================================
  */
 
-import { useEffect, useRef } from "react";
-import { useGenesis } from "./GenesisCore";
+import { useEffect } from "react";
 import AIService from "../../../core/AIService";
 import ProactiveCore from "../../../core/proactive/ProactiveCore";
 import PersistentRuntime from "../../../core/proactive/PersistentRuntime";
-import ProjectStore from "../../../core/projects/ProjectStore";
-import AvatarStore from "../../../core/avatar/AvatarProfile";
 import UIStateStore from "../../../core/cognition/UIStateStore";
 import PersistenceStateStore from "../../../core/persistence/PersistenceState";
+import { useGenesis } from "./GenesisCore";
+import BriefingStore from "../../../core/proactive/BriefingStore";
 
 const ai = AIService.getInstance();
 const proactive = ProactiveCore.getInstance();
 
-/** Collapse a briefing into a compact, readable assistant message. */
-function formatBriefing(briefing: ReturnType<ProactiveCore["buildBriefing"]>): string {
-  const lines: string[] = [briefing.greeting];
-  for (const section of briefing.sections) {
-    lines.push("");
-    lines.push(`· ${section.title}`);
-    for (const item of section.items) {
-      lines.push(`  ${item.text}`);
-    }
-  }
-  return lines.join("\n");
-}
-
 export default function ProactiveBridge() {
-  const { addMessage, notify } = useGenesis();
-  const presentedRef = useRef(false);
+  const { notify } = useGenesis();
+
 
   useEffect(() => {
     return proactive.subscribeQuestions((question) => {
@@ -54,87 +40,65 @@ export default function ProactiveBridge() {
     });
   }, []);
 
+  /**
+   * SESSION LIFECYCLE ONLY.
+   *
+   * This effect used to build a briefing from a string template and
+   * write it into the active conversation as an assistant ChatMessage,
+   * on mount — so the trigger was "a React component rendered", not
+   * anything that had happened, and the result was indistinguishable
+   * from a reply: permanent in the transcript, undismissable, with no
+   * read state, landing on top of whatever the user had just asked.
+   *
+   * Briefings are now their own entity (core/proactive/BriefingStore)
+   * created from real transitions in the autonomous runtime — work
+   * finishing, work stopping — and shown in the Briefings panel and the
+   * notification centre. Nothing is generated because the app opened.
+   *
+   * The session bookkeeping below is kept: ProactiveCore uses it for
+   * routine detection and continuity, and it was never the problem.
+   */
   useEffect(() => {
-    let cancelled = false;
-
     (async () => {
       try {
         await ai.initialize();
       } catch {
         // AIService already guards its own init; nothing to do here.
       }
-
-      // Each boot begins a fresh, un-briefed session while preserving
-      // the previous session's continuity snapshot.
       proactive.beginSession();
-
-      const settings = proactive.getSettings();
-
-      // Proactive mode is opt-in and defaults OFF, per the "user
-      // controlled" rule — nothing is presented until enabled.
-      if (!settings.enabled || !settings.sessionBriefing || settings.notificationLevel === "quiet") {
-        return;
-      }
-
-      // Only one briefing per boot.
-      if (proactive.isBriefed() || presentedRef.current) {
-        return;
-      }
-
-      const memories = await ai.getMemories(400);
-      const projects = ProjectStore.getInstance().list();
-      const name = AvatarStore.getInstance().get().identity.name;
-
-      const briefing = proactive.buildBriefing({
-        memories,
-        projects: projects.map((project) => ({
-          name: project.name,
-          description: project.description,
-          status: project.status,
-          itemCount: project.items.length,
-          updatedAt: project.updatedAt,
-        })),
-        userName: name && name !== "Lélu" ? name : undefined,
-        locationName: proactive.getLocation() || undefined,
-        planetaryContext: proactive.getPlanetaryContext() || undefined,
-        lastTopic: proactive.getLastTopic() || undefined,
-      });
-
-      // Silence is preferable to filler: no content, no message.
-      if (briefing.isEmpty || cancelled) {
-        proactive.markBriefed();
-        return;
-      }
-
-      presentedRef.current = true;
-      proactive.markBriefed();
-
-      const text = formatBriefing(briefing);
-      addMessage({
-        id: crypto.randomUUID(),
-        role: "assistant",
-        text,
-        timestamp: Date.now(),
-        source: "local",
-      });
-
-      notify("Lélu briefing", briefing.sections[0]?.items[0]?.text ?? "You have a few updates.");
-
-      // Traceable record of why LÉLU initiated this.
-      proactive.logEvent({
-        trigger: "session_open",
-        source: "session_briefing",
-        priority: briefing.sections[0]?.items[0]?.priority ?? 5,
-        confidence: 0.9,
-        presented: briefing.sections[0]?.items[0]?.text ?? text.slice(0, 120),
-      });
     })();
 
     return () => {
-      cancelled = true;
       proactive.endSession();
     };
-  }, [addMessage, notify]);
+  }, []);
+
+  /**
+   * A new briefing shows transiently, then lives in the Briefings panel.
+   *
+   * This is the existing notification centre — the same `notify()` every
+   * other transient surface uses — rather than a second one. The toast
+   * is the "something happened" and the panel is the record; neither is
+   * a chat message, which is what a briefing used to be.
+   *
+   * Only briefings created AFTER this mounted are announced. Replaying
+   * history as toasts on every boot is how the old session briefing
+   * behaved, and it is the thing being removed.
+   */
+  useEffect(() => {
+    const store = BriefingStore.getInstance();
+    const seen = new Set(store.list().map((briefing) => briefing.id));
+    return store.subscribe((briefings) => {
+      for (const briefing of briefings) {
+        if (seen.has(briefing.id)) continue;
+        seen.add(briefing.id);
+        if (briefing.dismissedAt || briefing.readAt) continue;
+        notify(briefing.title, briefing.summary);
+      }
+    });
+    // `notify` is stable for the lifetime of the provider.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     function handleBeforeUnload() {

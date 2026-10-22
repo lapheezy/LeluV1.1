@@ -144,6 +144,8 @@ export type GenesisPanel =
 
   | "memory"
 
+  | "briefings"
+
   | "providers"
 
   | "device"

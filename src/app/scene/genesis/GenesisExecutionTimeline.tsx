@@ -283,6 +283,92 @@ function eventGlyph(event: AgentEvent): string {
   }
 }
 
+/* ----------------------------- grouping ----------------------------- */
+
+/**
+ * The four things the user actually wants to know happened.
+ *
+ * Derived from the event data that already exists — the phase on an
+ * execution_phase, the type of everything else — so this is a reading of
+ * real events, never a set of headings with nothing under them. A group
+ * with no events is not rendered, which is the whole point: the timeline
+ * must not imply work that did not occur.
+ */
+export type ActivityGroup = "Research" | "Analysis" | "Actions" | "Verification";
+
+const GROUP_ORDER: ActivityGroup[] = ["Research", "Analysis", "Actions", "Verification"];
+
+export function groupForEvent(event: AgentEvent): ActivityGroup | null {
+  switch (event.type) {
+    // Looking things up.
+    case "memory_retrieval":
+    case "browser_opened":
+    case "browser_navigation":
+    case "browser_result":
+    case "file_opened":
+      return "Research";
+
+    // Working out what to do.
+    case "task_planning":
+    case "provider_selected":
+    case "provider_status":
+      return "Analysis";
+
+    // Doing something, and what came back.
+    case "tool_selected":
+    case "tool_started":
+    case "tool_progress":
+    case "tool_result":
+    case "tool_failed":
+    case "file_changed":
+    case "memory_update":
+    case "creative_artifact":
+    case "visual_created":
+    case "diagram_created":
+    case "ui_prototype_created":
+      return "Actions";
+
+    case "execution_phase":
+      switch (event.phase) {
+        case "memory_read_started":
+        case "memory_read_completed":
+          return "Research";
+        case "command_parsed":
+        case "project_resolved":
+          return "Analysis";
+        case "validation_started":
+        case "validation_completed":
+        case "error":
+        case "provider_failed":
+        case "retry":
+          return "Verification";
+        default:
+          return null;
+      }
+
+    default:
+      return null;
+  }
+}
+
+/** Only groups that really contain events, in a stable reading order. */
+export function groupEvents(
+  events: AgentEvent[],
+): Array<{ group: ActivityGroup; events: AgentEvent[] }> {
+  const buckets = new Map<ActivityGroup, AgentEvent[]>();
+  for (const event of events) {
+    const group = groupForEvent(event);
+    if (!group) continue;
+    const bucket = buckets.get(group);
+    if (bucket) bucket.push(event);
+    else buckets.set(group, [event]);
+  }
+  return GROUP_ORDER.filter((group) => (buckets.get(group)?.length ?? 0) > 0).map((group) => ({
+    group,
+    events: buckets.get(group) ?? [],
+  }));
+}
+
 function eventFailed(event: AgentEvent): boolean {
   return (
     event.type === "tool_failed" ||
@@ -562,10 +648,29 @@ export default function GenesisExecutionTimeline() {
                   {task.label.slice(0, 60)}
                 </div>
               ) : null}
-              {task.events.slice(0, MAX_EVENTS_PER_TASK).map((event, index) => {
-                const side = eventSide(event);
-                const failed = eventFailed(event);
-                return (
+              {groupEvents(task.events.slice(0, MAX_EVENTS_PER_TASK)).map(({ group, events: grouped }) => (
+                <div key={group} style={{ marginBottom: 2 }}>
+                  {/*
+                    One line per group, with a real count. A group only
+                    appears when it has events, so this can never read
+                    "Verification · 0" about work that never ran.
+                  */}
+                  <div
+                    data-lelu-activity-group={group}
+                    style={{
+                      fontSize: 10,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      color: "rgba(148,163,184,0.75)",
+                      margin: "6px 2px 2px",
+                    }}
+                  >
+                    {group} · {grouped.length}
+                  </div>
+                  {grouped.map((event, index) => {
+                    const side = eventSide(event);
+                    const failed = eventFailed(event);
+                    return (
                   <div
                     key={`${event.type}-${index}`}
                     style={{
@@ -598,7 +703,6 @@ export default function GenesisExecutionTimeline() {
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
                       }}
-                      title={event.type}
                     >
                       {executionEventLabel(event)}
                     </span>
@@ -619,8 +723,10 @@ export default function GenesisExecutionTimeline() {
                       </span>
                     ) : null}
                   </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           ))}
         </div>

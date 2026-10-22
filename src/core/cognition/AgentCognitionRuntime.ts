@@ -31,7 +31,8 @@ import AgentStore from "../agents/AgentStore";
 import AgentEventBus, { emitCognition } from "../agent/AgentEvents";
 import ObjectiveLearning from "./ObjectiveLearning";
 import ProactiveCore from "../proactive/ProactiveCore";
-import { openWorkstream } from "../proactive/Workstream";
+import { openWorkstream, findWorkstream } from "../proactive/Workstream";
+import BriefingStore from "../proactive/BriefingStore";
 import AgentObjectives, {
   type AgentObjective,
   type CognitionCycleRecord,
@@ -302,6 +303,66 @@ export default class AgentCognitionRuntime {
       if (outcome) outcomes.push(outcome);
     }
     return outcomes;
+  }
+
+  /**
+   * Record a briefing about a real transition in the work.
+   *
+   * Called only where the objective actually ended — completed, or
+   * stopped in a way it will not come back from. Not on every cycle,
+   * not on a pause, and never on a timer: a briefing is something that
+   * happened, and the summary is the runtime's own conclusion plus what
+   * really ran, never a composed account of what might have.
+   *
+   * It is deliberately NOT a chat message. A briefing in the transcript
+   * is indistinguishable from a reply, cannot be dismissed, and has no
+   * read state — which is what it used to be.
+   */
+  private brief(
+    objective: AgentObjective,
+    category: "work-completed" | "work-stopped",
+    reason: string,
+    executed: Array<{ tool: string; ok: boolean }>,
+  ): void {
+    try {
+      const ran = executed.filter((entry) => entry.ok).map((entry) => entry.tool);
+      const summary =
+        reason.trim() ||
+        (ran.length > 0
+          ? `Ran ${ran.join(", ")}.`
+          : "No action was taken.");
+
+      let conversationId: string | undefined;
+      if (objective.projectId) {
+        try {
+          conversationId = findWorkstream(objective.projectId)?.id;
+        } catch {
+          // No conversation is survivable; the briefing simply has no
+          // destination to offer.
+        }
+      }
+
+      BriefingStore.getInstance().create({
+        title:
+          category === "work-completed"
+            ? `Finished: ${objective.objective.slice(0, 80)}`
+            : `Stopped: ${objective.objective.slice(0, 80)}`,
+        summary: summary.slice(0, 400),
+        category,
+        // Work that stopped needs a decision; work that finished is news.
+        priority: category === "work-stopped" ? "P1" : "P2",
+        reason:
+          ran.length > 0
+            ? `${ran.length} action(s) really ran: ${ran.join(", ")}.`
+            : "No tool was executed in this objective.",
+        ...(objective.projectId ? { relatedProjectId: objective.projectId } : {}),
+        relatedObjectiveId: objective.id,
+        ...(conversationId ? { conversationId } : {}),
+      });
+    } catch (error) {
+      // Failing to tell the user must never also lose the work.
+      console.warn("[AgentCognitionRuntime] could not record a briefing", error);
+    }
   }
 
   /**
@@ -632,6 +693,7 @@ export default class AgentCognitionRuntime {
 
       if (nextState === "completed") {
         this.objectives.complete(objectiveId, conclusion);
+        this.brief(objective, "work-completed", conclusion, executed);
       } else if (
         nextState === "scheduled" ||
         nextState === "awaiting-approval" ||
@@ -640,6 +702,10 @@ export default class AgentCognitionRuntime {
         // Already set above; the objective is parked in real state.
       } else if (nextState === "yielded" && yieldReason) {
         this.objectives.yieldObjective(objectiveId, yieldReason, conclusion);
+        // Work that stopped and will not resume on its own is worth
+        // saying. Work that is merely waiting or scheduled is not: it is
+        // still going, and a briefing per pause would be noise.
+        this.brief(objective, "work-stopped", conclusion || yieldReason, executed);
       } else {
         // Still active — but re-check the budget now that this cycle spent
         // some of it, so the NEXT wake does not need a model call to stop.

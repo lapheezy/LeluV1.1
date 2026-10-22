@@ -87,6 +87,7 @@ const MODULE_RENDERERS: ModuleRenderers = {
   engineering: ({ onClose }) => <GenesisEngineeringPanel onClose={onClose} />,
   evolution: ({ onClose }) => <GenesisSelfDevPanel onClose={onClose} />,
   notifications: ({ onClose }) => <GenesisNotificationsPanel onClose={onClose} />,
+  briefings: ({ onClose }) => <GenesisBriefingsPanel onClose={onClose} />,
   visualstudio: ({ onClose }) => <GenesisVisualStudio onClose={onClose} />,
   // Earth Core is the canonical Eagle Eye Earth visual state. It remains
   // one module instance, but is rendered inline with chat rather than as a
@@ -107,6 +108,7 @@ import CosmosEntityRegistry from "../../../core/cosmos/CosmosEntityRegistry";
 import Sentinel from "../../../core/sentinel/Sentinel";
 import CapabilityManifest from "../../../core/capabilities/CapabilityManifest";
 import LeluSignInGate from "./LeluSignInGate";
+import GenesisBriefingsPanel from "./GenesisBriefingsPanel";
 
 /** Fullscreen toggle — real requestFullscreen / exitFullscreen. */
 function GenesisFullscreenButton() {

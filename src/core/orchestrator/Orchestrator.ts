@@ -139,34 +139,66 @@ export default class Orchestrator {
       const intent = this.classifyIntent(request);
 
       // PHASE 2: RETRIEVE CONTEXT — what does LÉLU already know?
-      this.emit({ type: "planning", message: "Retrieving context..." });
-      events.emit({
-        type: "execution_phase",
-        taskId,
-        phase: "memory_read_started",
-        label: "Reading memory context",
-        side: "backend",
-      });
-      events.emit({
-        type: "execution_phase",
-        taskId,
-        phase: "memory_read_completed",
-        label: "Memory context loaded",
-        side: "backend",
-      });
+      //
+      // These two events used to be emitted back to back with nothing
+      // between them, and the retrieval count was the literal 0. So the
+      // timeline showed "Reading memory context / Memory context loaded"
+      // for a read that had not happened, and reported that nothing was
+      // recalled whatever had been. That is the exact failure this pass
+      // exists to remove: an execution event must describe an execution.
+      //
+      // A real recall happens here when the intent needs one, and the
+      // count comes from its result. When the intent does not need
+      // memory, nothing is claimed.
       if (intent.needsMemory) {
-        events.emit({ type: "memory_retrieval", taskId, query: request, count: 0 });
+        this.emit({ type: "planning", message: "Retrieving context..." });
+        events.emit({
+          type: "execution_phase",
+          taskId,
+          phase: "memory_read_started",
+          label: "Reading memory context",
+          side: "backend",
+        });
+        let recalled = 0;
+        try {
+          recalled = (await AIService.getInstance().recall(request)).length;
+        } catch {
+          // A failed recall is reported as a failed recall, not as a
+          // completed one with nothing in it.
+          events.emit({
+            type: "execution_phase",
+            taskId,
+            phase: "error",
+            label: "Memory could not be read",
+            side: "backend",
+          });
+        }
+        events.emit({
+          type: "execution_phase",
+          taskId,
+          phase: "memory_read_completed",
+          label:
+            recalled > 0
+              ? `Recalled ${recalled} related memor${recalled === 1 ? "y" : "ies"}`
+              : "Nothing related in memory",
+          side: "backend",
+          detail: `${recalled} result(s)`,
+        });
+        events.emit({ type: "memory_retrieval", taskId, query: request, count: recalled });
       }
 
       // PHASE 3: PLAN — determine what steps are needed
       this.emit({ type: "planning", message: "Planning approach..." });
+      // "Project identified" was claimed here for any planning or
+      // engineering request, and nothing in this method resolves a
+      // project — so the timeline announced a resolution that had not
+      // happened. What DID happen is that the request was classified, so
+      // that is what is reported.
       events.emit({
         type: "execution_phase",
         taskId,
         phase: "project_resolved",
-        label: intent.category === "planning" || intent.category === "engineering"
-          ? "Project identified — planning execution"
-          : "Approach planned",
+        label: `Approach planned — ${intent.category}`,
         side: "backend",
         detail: `category: ${intent.category}`,
       });
