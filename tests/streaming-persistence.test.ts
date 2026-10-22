@@ -253,17 +253,56 @@ test("scene consumers read the stable context, so a token cannot re-render them"
     "src/app/scene/genesis/environment/AuroraCosmos.tsx",
     "src/app/scene/genesis/systems/CoreAtmosphere.tsx",
     "src/app/scene/genesis/EngineTick.tsx",
+    // The compositor these four sit under. It read engineRuntime from
+    // useGenesis(), so it re-rendered on every state change and took
+    // all four with it — measured at 12 re-renders each per message,
+    // with everything else already at zero.
+    "src/app/scene/genesis/render/GenesisRenderer.tsx",
   ];
   for (const file of sceneFiles) {
     const source = readFileSync(file, "utf8")
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/^\s*\/\/.*$/gm, "");
-    assert.match(source, /useGenesisScene\(\)/, `${file} does not use the stable scene context`);
+    assert.match(source, /useGenesisScene\(/, `${file} does not use the stable scene context`);
     assert.ok(
       !/useGenesis\(\)/.test(source),
       `${file} still subscribes to the monolithic Genesis context, so chat state re-renders it`,
     );
   }
+});
+
+test("the scene subtree is memoised, so a parent re-render stops at it", () => {
+  // The stable context stops a token re-rendering these through
+  // CONTEXT. It does not stop their PARENT re-rendering them:
+  // GenesisWorkspaceRouter calls useGenesis(), so it rebuilds every
+  // child element beneath it on each state change. Both halves are
+  // needed, and the ledger measured 48 scene renders per message with
+  // only the context half in place.
+  const scene = readFileSync("src/app/scene/genesis/GenesisScene.tsx", "utf8");
+  assert.match(
+    scene,
+    /const GenesisV1Workspace = memo\(/,
+    "the v1 scene is not memoised, so the router re-renders the whole cosmos",
+  );
+
+  const tick = readFileSync("src/app/scene/genesis/EngineTick.tsx", "utf8");
+  assert.match(
+    tick,
+    /export default memo\(/,
+    "EngineTick is not memoised, so the router re-renders the simulation heartbeat",
+  );
+});
+
+test("the render ledger counts both contexts and costs nothing in production", () => {
+  // The instrument the claim rests on. If it only counted one side,
+  // "scene renders: 0" would be unfalsifiable — a broken counter and a
+  // fixed cascade look identical.
+  const source = readFileSync("src/app/scene/genesis/useGenesisScene.ts", "utf8");
+  assert.match(source, /if \(!import\.meta\.env\.DEV\) return;/, "the ledger would ship to production");
+  assert.match(source, /countRender\("scene", who\)/, "scene renders are not counted");
+
+  const core = readFileSync("src/app/scene/genesis/GenesisCore.tsx", "utf8");
+  assert.match(core, /countRender\("chat"\)/, "chat renders are not counted, so there is nothing to compare against");
 });
 
 test("the scene context value is memoised with no dependencies, so its identity never changes", () => {

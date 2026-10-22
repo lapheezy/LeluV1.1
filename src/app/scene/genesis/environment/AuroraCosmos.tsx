@@ -176,7 +176,7 @@ function createRibbon(seed: RibbonSeed): AuroraRibbon {
 }
 
 export default function AuroraCosmos() {
-  const { getLiveUniverse } = useGenesisScene();
+  const { getLiveUniverse } = useGenesisScene("AuroraCosmos");
   const root = useRef<Group>(null);
 
   const ribbons = useMemo<AuroraRibbon[]>(() => {

@@ -23,7 +23,7 @@ import { Group, PointLight } from "three";
 import { useGenesisScene } from "../useGenesisScene";
 
 export default function CoreAtmosphere() {
-  const { engineRuntime } = useGenesisScene();
+  const { engineRuntime } = useGenesisScene("CoreAtmosphere");
 
   const field = useRef<Group>(null);
 

@@ -22,7 +22,7 @@ import AuroraCosmos from "./AuroraCosmos";
 import CosmicBackdrop from "./CosmicBackdrop";
 
 export default function Cosmos() {
-  const { getLiveUniverse } = useGenesisScene();
+  const { getLiveUniverse } = useGenesisScene("Cosmos");
   const universe = useRef<Group>(null);
 
   useFrame(({ clock }, delta) => {

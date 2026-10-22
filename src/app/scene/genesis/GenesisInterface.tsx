@@ -437,6 +437,35 @@ export default function GenesisInterface() {
         ExplorationController.getInstance().setMode(mode as any);
       },
     });
+  }, [openPanel, state.activePanel, handleDiscover]);
+
+  /**
+   * The LIFECYCLES the effect above used to own, now started once.
+   *
+   * That effect re-runs on every render, not only on panel changes:
+   * `openPanel` comes from the Genesis context, whose memo depends on
+   * `state`, so its identity changes whenever any state does — which
+   * during a streamed reply is several times a second. Everything
+   * lifecycle-shaped in it was therefore being torn down and rebuilt at
+   * render rate. Measured in a real browser turn: 12 stop/start pairs,
+   * each persisting the whole avatar profile, 170 KB of writes for one
+   * message.
+   *
+   * It also starved the presence engine. start() arms a 2800 ms
+   * interval AND ticks immediately; restarting it per render meant the
+   * interval never got to fire and every render drove an autonomous
+   * camera decision instead. Its own `ticksSinceLastAction` counting
+   * was measuring renders, not time.
+   *
+   * Only connect() belongs in the effect above — it is a plain
+   * assignment, so refreshing the closures per render is free and keeps
+   * them reading current state. Starting things does not belong there,
+   * for the same reason the runtime_start effect above was split out.
+   */
+  useEffect(() => {
+    const presence = presenceRef.current;
+    const cosmosRegistry = CosmosEntityRegistry.getInstance();
+
     presence.start();
 
     // The avatar follows LIVE cognition from here on: the bridge
@@ -453,7 +482,7 @@ export default function GenesisInterface() {
       AvatarPresenceBridge.getInstance().stop();
       clearInterval(cleanupInterval);
     };
-  }, [openPanel, state.activePanel]);
+  }, []);
 
   // Sync self-exploration toggle to presence engine
   useEffect(() => {

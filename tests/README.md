@@ -89,9 +89,27 @@ against a real dev server:
 ```sh
 npm run verify:hydration   # signed-in Supabase hydration, 1043 rows
 npm run verify:layout      # geometry, overlap, overflow, clickability
-npm run verify:workspace   # tab/workspace state isolation
+npm run verify:workspace   # tab/workspace isolation, and the turn queue
 npm run verify:auth        # the sign-in form against the real project
+npm run measure:cost       # what one message costs in renders and writes
 ```
+
+`measure:cost` is an instrument, not a gate: it prints numbers and exits 0.
+It exists because the claim "a streamed token no longer re-renders the 3D
+scene" could not be measured from long-task counts (see the SwiftShader note
+below), so the context consumers count themselves instead — a dev-only
+ledger in `useGenesisScene`, read either side of a real turn. It reports
+scene-consumer renders, chat-consumer renders, and every `localStorage` save
+with its key and byte count.
+
+`verify:layout` provokes a real toast before measuring toast geometry, by
+attaching an undecodable image through the real file input: `processImageFile`
+rejects and GenesisChat raises `notify("Lélu Error", …)` from the same catch
+a user hits. It used to cut the model broker instead, which stopped raising
+anything once the provider chain gained a working offline fallback — leaving
+three geometry checks measuring an empty toast stack and passing on nothing.
+The check now waits for that toast *by its text*, so an unrelated
+notification cannot satisfy it.
 
 `verify:hydration` needs a dev server started with `SUPABASE_URL` and
 `SUPABASE_PUBLISHABLE_KEY`, and an `e2e-session.json` for its dedicated test
@@ -127,10 +145,76 @@ so shaders compile on the CPU. It is therefore evidence about a GPU-less
 headless environment, not about the product on a real device — it has not
 been reproduced on hardware either way.
 
+This is also why long-task counts cannot measure React work here, and why
+`measure:cost` exists: the render cascade was invisible underneath shader
+compilation, so the phase-6 scene-isolation claim was true but unproven.
+Counting consumer renders needs no GPU. It immediately showed the claim
+was only half delivered — 62 scene renders per message — and the fix is
+measured at 0. `measure:cost` still prints long tasks, with this caveat
+attached, rather than quietly leaving them out.
+
 The scripts use `page.mouse` at a point they have just hit-tested. That is a
 real CDP input event, so a control covered by something else still fails —
 unlike a synthetic `element.click()` from `evaluate`, which bypasses hit
 testing and would prove nothing.
+
+### A memo removed an accident the simulation was relying on
+
+Memoising `EngineTick` and `GenesisV1Workspace` is what took the scene
+from 48 re-renders per message to 0 — and it nearly stopped the
+simulation. `GenesisCore` creates the `EngineRuntime` in its own effect,
+and a child's effects run before its parent's, so at `EngineTick`'s first
+render and first effect `engineRuntime` is still null. It had been
+recovering by accident: its parent re-rendered at render rate, so a later
+render eventually read a non-null value. Remove the churn and the latch
+has nothing to open it.
+
+Both `EngineTick` and `GenesisRenderer` now read `engineRuntime` from the
+scene context's getter **per frame** rather than destructuring it at
+render time. `measure:cost` would not have caught this — the proof is
+`scripts` driving a real page and watching `lelu.lelu.world.lifecycle.v2`
+advance a phase, which only `engineRuntime.update()` can do.
+
+### Why `verify:workspace` stopped asserting on reply text
+
+Two of its checks used to look for the other conversation's marker in an
+assistant message, or in the rendered transcript. That proxy is unsound:
+`GenesisChat` passes `crossChatContext()` into every turn, so LÉLU can
+legitimately mention chat A while answering in chat B — and does. Observed
+in a real run: BETA's own reply opened "BETA-marker-two is already
+running", and a reply naming ALPHA was read as ALPHA's reply having leaked.
+
+They now assert what the property actually is. A misrouted reply is the
+*same message* in the wrong place, so replies are compared by **id**: no
+assistant id may appear in two conversations, and each conversation must
+have an assistant message after its own question. And the view check reads
+`[data-lelu-exchange-user]` — the **question** on screen — rather than the
+whole transcript, because the question is the part that must belong to the
+conversation being looked at.
+
+### One turn at a time, and why it is still one turn at a time
+
+`GenesisChat` used to drop a message typed while a reply was streaming:
+`send()` returned early on `isSending` and the Send button was disabled, so
+the message was never answered and never entered the conversation.
+`Orchestrator.process()` already refuses that trade one layer down — it
+waits for the in-flight request rather than returning a canned "I'm busy" —
+and the UI was undoing it above.
+
+Turns now queue: the composer clears immediately, the message is stored, and
+it is answered in order. `verify:workspace` asserts this against a composer
+it has first confirmed is busy, so the check cannot pass by quietly sending
+two messages into an idle one.
+
+The queue is deliberately GLOBAL rather than per conversation. A reply
+arrives through one subscription (`AIService.subscribeMessages` /
+`subscribeStream`) that carries no conversation of its own, and
+`TurnOwnership` attributes it to whichever conversation holds the claim. Two
+turns in flight at once cannot be told apart, and the second one's claim
+would collect the first one's reply — the exact "reply landed in the wrong
+chat" bug `TurnOwnership` exists to fix. Genuine concurrency needs the reply
+channel to name its conversation first; until then, serial turns are what
+keeps attribution sound.
 
 ## When something hangs again
 

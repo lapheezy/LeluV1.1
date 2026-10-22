@@ -121,47 +121,58 @@ async function openChat(page) {
 /**
  * Put a REAL notification on screen and return how many are showing.
  *
- * The route interception kills the model broker for this page only, which
- * makes a send fail the way an offline phone does — and GenesisChat's catch
- * raises notify("Lélu Error", …). That is the product's own notification
- * path, not a test-only hook: there is no way to inject a toast from
- * outside, and adding one would mean the regression test measured something
- * the user never sees.
+ * This used to cut the model broker and send a message, because
+ * GenesisChat's catch raised notify("Lélu Error", …) on a failed send.
+ * That stopped working, and for a good reason: the provider chain now
+ * falls through to the offline brain, which answers with real text, so
+ * nothing fails and no toast is raised. The three geometry checks below
+ * then measured an empty stack and passed while proving nothing.
+ *
+ * So this uses a different REAL failure instead: a corrupt image.
+ * attachMedia() → processImageFile() → loadImage() rejects with
+ * "Could not decode the image." and GenesisChat raises
+ * notify("Lélu Error", …) from the same catch a user sees when they
+ * attach a file that is not a decodable image. Nothing is mocked and
+ * nothing test-only is added: the bytes go through the product's own
+ * file input, its own handler and its own error path.
+ *
+ * It is also better suited to the measurement than the old route was:
+ * it fails in milliseconds with no network involved, which matters
+ * because a toast auto-dismisses after 6s and the geometry has to be
+ * read while it is still up.
  */
 async function provokeToast(page) {
-  await page.route("**/api/model/**", (route) => route.abort());
-  const composer = await page.$("[data-lelu-composer] textarea, [data-lelu-composer] input");
-  if (composer) {
-    await composer.fill("layout check").catch(() => {});
-    // GenesisChat allows one turn at a time: send() returns early while
-    // a reply is in flight and the Send button reads "Sending…". Pressing
-    // Enter then does nothing, no toast is raised, and the overlap checks
-    // below become vacuous — which is what the guard above now catches.
-    // So wait for the composer to be free before sending.
-    const deadline = Date.now() + 60_000;
-    while (Date.now() < deadline) {
-      const busy = await page.evaluate(() => {
-        const send = [...document.querySelectorAll("[data-lelu-composer] button")].find(
-          (button) => /send/i.test(button.getAttribute("aria-label") ?? ""),
-        );
-        return !send || /sending/i.test(send.getAttribute("title") ?? "");
-      });
-      if (!busy) break;
-      await page.waitForTimeout(500);
-    }
-    await page.keyboard.press("Enter").catch(() => {});
+  // The hidden image input GenesisChat renders for the attach button.
+  const input = await page.$('input[type="file"][accept="image/*"]');
+  if (input) {
+    await input
+      .setInputFiles({
+        name: "not-really-an-image.png",
+        mimeType: "image/png",
+        // Deliberately not a PNG. A real user hits this with a truncated
+        // download or a renamed file; the decoder's verdict is the same.
+        buffer: Buffer.from("this is not a png and will not decode"),
+      })
+      .catch(() => {});
   }
-  // Wait for the toast rather than sleeping a fixed amount: a failing send
-  // resolves in milliseconds, but a cold dev server can take seconds.
+
+  // Wait for THIS toast, by its text, rather than sleeping a fixed
+  // amount. The decode fails in milliseconds but a cold dev server can
+  // still be compiling the module, and counting the stack's children
+  // would also be satisfied by any unrelated notification that happened
+  // to be up — passing on a toast the script did not cause.
   await page
     .waitForFunction(
-      () => (document.querySelector("[data-lelu-notifications]")?.querySelectorAll("button").length ?? 0) > 0,
+      () => /could not decode/i.test(document.querySelector("[data-lelu-notifications]")?.innerText ?? ""),
       { timeout: 20000 },
     )
     .catch(() => {});
-  return page.evaluate(
-    () => document.querySelector("[data-lelu-notifications]")?.querySelectorAll("button").length ?? 0,
-  );
+  return page.evaluate(() => {
+    const stack = document.querySelector("[data-lelu-notifications]");
+    if (!stack) return 0;
+    if (!/could not decode/i.test(stack.innerText ?? "")) return 0;
+    return stack.querySelectorAll("button").length;
+  });
 }
 
 /** Do two boxes overlap by more than a rounding error? */
@@ -281,26 +292,21 @@ for (const [vpName, viewport, isMobile] of viewports) {
   // A REAL toast has to be on screen for any of that to mean anything. The
   // stack element is always in the DOM, so measuring it empty makes every
   // overlap check below trivially true — a green run that proves nothing.
-  // So one is provoked first, through the product's own failure path: cut
-  // the model broker and send a message, and GenesisChat calls
-  // notify("Lélu Error", …) exactly as it does for any real send failure.
-  // Nothing about the toast layer itself is mocked; only the network it
-  // happens to be reporting on.
+  // So one is provoked first, through the product's own failure path: an
+  // undecodable image goes through the real file input, and GenesisChat
+  // calls notify("Lélu Error", …) from the same catch a user sees. See
+  // provokeToast for why this replaced cutting the model broker.
   const toastsShown = await provokeToast(page);
   check(`a real toast is on screen to be measured @ ${vpName}`, toastsShown > 0,
     toastsShown > 0
       ? `${toastsShown} toast(s)`
-      : "NO TOAST COULD BE PROVOKED, so the three overlap checks below are " +
-        "VACUOUS rather than passing. Cutting the model broker no longer " +
-        "raises an error toast: the chain falls through to the offline " +
-        "brain, which answers with real text, so GenesisChat never calls " +
-        "notify(). That is the product behaving better, not worse — but it " +
-        "leaves this script without a way to put a toast on screen. The " +
-        "geometry these checks guard was last verified with a real toast at " +
-        "commit 58c05b7 (45/45 at 390px, tablet and desktop) and the layout " +
-        "has not changed since. A briefing now raises a toast through the " +
-        "notification centre, so driving one of those is the likely way to " +
-        "restore this check.");
+      : "NO TOAST COULD BE PROVOKED, so the three overlap checks below " +
+        "would be VACUOUS rather than passing — which is why this is a " +
+        "failure and not a skip. An undecodable image is supposed to raise " +
+        "notify(\"Lélu Error\", …) from GenesisChat's attachMedia catch; " +
+        "either the chat is not open (so its hidden file input does not " +
+        "exist), or that error path no longer reports to the notification " +
+        "centre. Check which before trusting the geometry below.");
 
   const toastReport = await page.evaluate(() => {
     const stack = document.querySelector("[data-lelu-notifications]");

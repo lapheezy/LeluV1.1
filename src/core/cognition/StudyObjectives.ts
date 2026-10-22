@@ -197,6 +197,36 @@ export default class StudyObjectives {
     this.persist();
   }
 
+  /**
+   * Apply a whole cycle's rescoring in ONE write.
+   *
+   * prioritize() rescores every open objective, and calling update()
+   * per objective persisted the entire array — and notified every
+   * subscriber — once per objective. Measured in a real browser turn:
+   * 22 full-array writes, 225 KB, for one cycle's rescoring of state
+   * that was already in memory.
+   *
+   * This is the same defect AgentObjectives.prioritize() had, in its
+   * other form: there the per-objective notify re-entered the read path
+   * that had triggered it, here it is simply N writes of one value. One
+   * batched write, one notification, same result.
+   *
+   * Ids not present in the store are ignored rather than created: a
+   * priority is derived from an objective, so it cannot outlive one.
+   */
+  public applyPriorities(priorities: Map<string, number>): void {
+    if (priorities.size === 0) return;
+    let changed = false;
+    const now = Date.now();
+    this.objectives = this.objectives.map((item) => {
+      const next = priorities.get(item.id);
+      if (next === undefined || next === item.priority) return item;
+      changed = true;
+      return { ...item, priority: next, updatedAt: now };
+    });
+    if (changed) this.persist();
+  }
+
   /** Re-open a previously resolved question — evidence went stale. */
   public reopen(id: string, reason: string): void {
     this.update(id, { status: "open", lastEvidence: reason });

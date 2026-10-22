@@ -48,16 +48,51 @@ export interface GenesisSceneValue {
 export const GenesisSceneContext = createContext<GenesisSceneValue | null>(null);
 
 /**
+ * A development-only render ledger.
+ *
+ * The claim this context exists to make — a streamed token no longer
+ * re-renders the 3D scene — could not be measured. The obvious metric,
+ * long tasks, is dominated in a GPU-less container by SwiftShader
+ * compiling shaders: a CPU profile put 20.6s of 26.6s in `(program)`,
+ * so the render cascade was invisible underneath it either way. The
+ * claim was therefore true but unproven, which is not good enough.
+ *
+ * So the consumers count themselves. One counter per context, read by
+ * scripts/measure-render-cost.mjs around a real turn, which gives the
+ * number the claim is actually about: how many consumer renders one
+ * message costs. It needs no GPU, no profiler and no React internals.
+ *
+ * Dev-only and branch-free in production: the whole block is behind
+ * import.meta.env.DEV, which Vite replaces with `false` and drops.
+ */
+export interface RenderLedger {
+  scene: number;
+  chat: number;
+  /** Per-consumer counts, so a remaining re-render can be attributed. */
+  by: Record<string, number>;
+}
+
+export function countRender(which: "scene" | "chat", who = "unnamed"): void {
+  if (!import.meta.env.DEV) return;
+  const host = globalThis as { __leluRenderLedger?: RenderLedger };
+  const ledger = (host.__leluRenderLedger ??= { scene: 0, chat: 0, by: {} });
+  ledger[which] += 1;
+  const key = `${which}:${who}`;
+  ledger.by[key] = (ledger.by[key] ?? 0) + 1;
+}
+
+/**
  * Scene-side access to Genesis.
  *
  * Throws rather than returning null: a scene component outside the
  * provider is a wiring mistake, and silently rendering an empty cosmos
  * would hide it.
  */
-export function useGenesisScene(): GenesisSceneValue {
+export function useGenesisScene(who?: string): GenesisSceneValue {
   const value = useContext(GenesisSceneContext);
   if (!value) {
     throw new Error("useGenesisScene must be used inside the Genesis provider.");
   }
+  countRender("scene", who);
   return value;
 }

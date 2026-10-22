@@ -155,7 +155,7 @@ function randomStar(index: number): Star {
 }
 
 export default function StarField() {
-  const { getLiveUniverse } = useGenesisScene();
+  const { getLiveUniverse } = useGenesisScene("StarField");
   const group = useRef<Group>(null);
 
   const { geometry, material } = useMemo(() => {

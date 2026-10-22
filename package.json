@@ -26,7 +26,8 @@
     "verify:hydration": "node scripts/verify-authenticated-hydration.mjs",
     "verify:layout": "node scripts/verify-workspace-layout.mjs",
     "verify:workspace": "node scripts/verify-workspace-isolation.mjs",
-    "verify:auth": "node scripts/verify-supabase-auth.mjs"
+    "verify:auth": "node scripts/verify-supabase-auth.mjs",
+    "measure:cost": "node scripts/measure-render-cost.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",

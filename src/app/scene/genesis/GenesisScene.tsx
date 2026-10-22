@@ -22,6 +22,7 @@
  * ==========================================================
  */import {
   lazy,
+  memo,
   Suspense,
   Suspense as ReactSuspense,
 } from "react";
@@ -247,7 +248,22 @@ function CosmosPhaseHUD() {
   );
 }
 
-function GenesisV1Workspace() {
+/**
+ * Memoised, like EngineTick, and for the same reason.
+ *
+ * The router above calls useGenesis(), so it re-renders on every state
+ * change — including every streamed token — and rebuilds each child
+ * element beneath it. The scene's own consumers read the stable scene
+ * context and so are not re-rendered BY context, but they were still
+ * being re-rendered by their parent. This takes no props, so once
+ * memoised a parent re-render stops here.
+ *
+ * It is not a correctness guard: everything inside that must follow
+ * live state reads it from the scene context's getters or subscribes
+ * for itself. Blocking a prop-less re-render therefore removes work,
+ * not updates.
+ */
+const GenesisV1Workspace = memo(function GenesisV1Workspace() {
   useSceneMountLog("GenesisV1Workspace");
 
   return (
@@ -304,7 +320,7 @@ function GenesisV1Workspace() {
       <CosmosPhaseHUD />
     </div>
   );
-}
+});
 
 /**
  * PAGE 3 — Genesis v2, wrapped in its own named scene component so the

@@ -352,6 +352,29 @@ export default class AvatarStore {
     if (typeof patch.dialogueLive === "boolean") {
       this.liveDialogue = patch.dialogueLive;
     }
+
+    // A liveness-only change has nothing to persist.
+    //
+    // get() deliberately does not read dialogueLive back from storage —
+    // a stored "true" would survive a reload and make a remembered
+    // state look like a current observation. So writing it was already
+    // writing a value no reader would ever use, and it cost the WHOLE
+    // profile: ~3 KB through every KvStore backend, per call.
+    //
+    // Measured in a real browser turn: the presence bridge's own
+    // start/stop pair was persisting the profile 24 times in one turn,
+    // 170 KB of writes, for a field read from memory. The bridge's
+    // lifecycle is fixed separately; this makes the write itself
+    // impossible rather than merely rarer.
+    //
+    // The notification still fires: subscribers DO read liveness, they
+    // just read it from the in-memory flag, which is already set above.
+    const keys = Object.keys(patch);
+    if (keys.length === 1 && keys[0] === "dialogueLive") {
+      this.notify();
+      return this.get();
+    }
+
     const previous = this.get().runtime;
     return this.update({
       runtime: {

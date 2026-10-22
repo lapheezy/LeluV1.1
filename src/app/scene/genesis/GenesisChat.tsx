@@ -307,7 +307,43 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   const voiceView = useVoice();
 
   const [input, setInput] = useState("");
-  const [isSending, setIsSending] = useState(false);
+
+  /**
+   * A SECOND SEND QUEUES. It is never dropped.
+   *
+   * This was a single `isSending` boolean that send() checked and
+   * returned early on, so a message typed while a reply was streaming
+   * was discarded: never answered, never in the conversation, with only
+   * a disabled Send button to explain it. Orchestrator.process() already
+   * refuses to make exactly that trade one layer down — it waits for the
+   * in-flight request rather than returning a canned "I'm busy", because
+   * "a stuck flag must never cost the user a turn". The UI was undoing
+   * that above it.
+   *
+   * So turns now form a queue. `turnTailRef` holds the last turn
+   * promised; each new send awaits it and becomes the new tail. The
+   * composer clears immediately, so the message is visibly accepted at
+   * the moment it is sent, and is answered in order.
+   *
+   * The queue is deliberately GLOBAL rather than per conversation, and
+   * that is not an oversight. A reply arrives through one global
+   * subscription (AIService.subscribeMessages/subscribeStream) that
+   * carries no conversation of its own; TurnOwnership attributes it to
+   * whichever conversation currently holds the claim. Two turns in
+   * flight at once therefore have no way to be told apart, and the
+   * second one's claim would collect the first one's reply — the exact
+   * "reply landed in the wrong chat" bug TurnOwnership exists to fix.
+   * Running turns one at a time keeps attribution sound. Real
+   * concurrency needs the reply channel to name its conversation first.
+   *
+   * What IS per conversation is the indicator: `sendingIn` records which
+   * conversations have a turn outstanding, so looking at chat B does not
+   * show chat A's spinner.
+   */
+  const [sendingIn, setSendingIn] = useState<readonly string[]>([]);
+  /** The last turn queued, which the next one waits behind. */
+  const turnTailRef = useRef<Promise<void> | null>(null);
+  const isSending = sendingIn.includes(state.activeConversationId);
   const [activeQuestion, setActiveQuestion] = useState<ProactiveQuestion | null>(null);
   /** What the user has typed in reply to the question on screen. */
   const [answerDraft, setAnswerDraft] = useState("");
@@ -674,7 +710,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     const typed = input.trim();
     const media = pendingMedia;
     const files = pendingFiles;
-    if ((!typed && media.length === 0 && files.length === 0) || isSending) {
+    if (!typed && media.length === 0 && files.length === 0) {
       return;
     }
 
@@ -697,29 +733,50 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     setPendingMedia([]);
     setPendingFiles([]);
     setFading(false);
-    setIsSending(true);
-
-    // INTERRUPT: stop any current speech immediately
-    try { voiceEngineRef.current.cancelSpeech(); } catch { /* best-effort */ }
-
-    artifactImagesRef.current = [];
-    surfacesRef.current = [];
-    setExchange({ id: exchangeId, user: display, assistant: "", fast: false, surfaces: [] });
-    setDialogue("processing");
 
     // Which conversation this turn belongs to, read from the STORE rather
     // than from this component's mirror of it — a switch that did not come
     // from React leaves the mirror naming the previous one.
-    //
-    // Claiming it is what keeps the reply here: the reply comes back
-    // through a global subscription seconds later, and without a claim it
-    // was written into whichever conversation was selected by then. See
-    // core/multichat/TurnOwnership.
     const turnConversationId = MultiChatStore.getInstance().getActiveId();
+
+    // Take a place in the queue. The composer was cleared above, so the
+    // message is visibly accepted now and simply waits its turn rather
+    // than being thrown away.
+    const previousTurn = turnTailRef.current;
+    let finishTurn: () => void = () => {};
+    const thisTurn = new Promise<void>((resolve) => { finishTurn = resolve; });
+    turnTailRef.current = thisTurn;
+    setSendingIn((current) => [...current, turnConversationId]);
+    if (previousTurn) {
+      // A failed turn must not strand the one queued behind it.
+      await previousTurn.catch(() => {});
+    }
+
+    // INTERRUPT: stop any current speech immediately
+    try { voiceEngineRef.current.cancelSpeech(); } catch { /* best-effort */ }
+
+    // Claiming the conversation is what keeps the reply here: the reply
+    // comes back through a global subscription seconds later, and without
+    // a claim it was written into whichever conversation was selected by
+    // then. See core/multichat/TurnOwnership. It also routes the user's
+    // own message, which since turns began queueing is no longer
+    // necessarily written while this conversation is still the active
+    // one — a queued turn can start after the user has moved on.
     claimTurn(turnConversationId);
     /** Is the conversation this turn was asked in still the one on screen? */
     const stillViewingTurn = () =>
       MultiChatStore.getInstance().getActiveId() === turnConversationId;
+
+    artifactImagesRef.current = [];
+    surfacesRef.current = [];
+    // Painting the exchange is only right while this conversation is the
+    // one being looked at. A queued turn may start after a switch, and
+    // showing its question under another conversation's heading is the
+    // same mistake as delivering its reply there.
+    if (stillViewingTurn()) {
+      setExchange({ id: exchangeId, user: display, assistant: "", fast: false, surfaces: [] });
+      setDialogue("processing");
+    }
 
     addMessage({
       id: crypto.randomUUID(),
@@ -752,6 +809,9 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         }
         const streamed = event.text;
         if (!streamed) return;
+        // Deltas belong to this turn's conversation, not to whatever is
+        // selected when they arrive.
+        if (!stillViewingTurn()) return;
         setExchange((current) =>
           current && streamed !== current.assistant
             ? { ...current, assistant: cleanAssistantText(streamed), fast: true }
@@ -830,9 +890,17 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       // deltas are arriving and wrong the moment the reply is complete
       // — including when it completed by failing.
       MultiChatStore.getInstance().flush();
-      setIsSending(false);
+
+      // One entry per outstanding turn, so a conversation with two
+      // queued turns keeps its indicator until both are done.
+      setSendingIn((current) => {
+        const at = current.indexOf(turnConversationId);
+        return at < 0 ? current : [...current.slice(0, at), ...current.slice(at + 1)];
+      });
+      if (turnTailRef.current === thisTurn) turnTailRef.current = null;
+      finishTurn();
     }
-  }, [addMessage, clearTimers, input, isSending, notify, pendingMedia, pendingFiles, setDialogue, crossChatContext]);
+  }, [addMessage, clearTimers, input, notify, pendingMedia, pendingFiles, setDialogue, crossChatContext]);
 
 
   const liveEcho =
@@ -1270,17 +1338,25 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
                 transition={{ duration: fading ? 0.8 : 0.35 }}
               >
                 {exchange.user ? (
-                  <div style={userTextStyle}>{exchange.user}</div>
+                  // Marked so a verification can tell the QUESTION on
+                  // screen from the reply to it. Cross-chat context lets
+                  // LÉLU legitimately quote another conversation in her
+                  // prose, so "does the transcript contain this text"
+                  // cannot distinguish a leak from a mention — the
+                  // question is the part that must belong here.
+                  <div data-lelu-exchange-user style={userTextStyle}>{exchange.user}</div>
                 ) : null}
 
                 <div style={{ height: 8 }} />
 
                 {exchange.assistant ? (
-                  <AssistantLine
-                    text={exchange.assistant}
-                    fast={exchange.fast}
-                    onDone={handleTyped}
-                  />
+                  <div data-lelu-exchange-assistant>
+                    <AssistantLine
+                      text={exchange.assistant}
+                      fast={exchange.fast}
+                      onDone={handleTyped}
+                    />
+                  </div>
                 ) : exchange.settled ? null : (
                   <ThinkingDots />
                 )}
@@ -1710,17 +1786,27 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
           <button
             type="button"
             onClick={() => void send()}
-            disabled={isSending || (!input.trim() && pendingMedia.length === 0 && pendingFiles.length === 0)}
-            title={isSending ? "Sending…" : "Send to Lélu"}
+            // Busy is no longer a reason to refuse. A send made during a
+            // reply queues behind it (see sendingIn/turnTailRef above);
+            // disabling the button here is what used to make the message
+            // disappear. Empty is still a reason — there is nothing to send.
+            disabled={!input.trim() && pendingMedia.length === 0 && pendingFiles.length === 0}
+            title={isSending ? "Lélu is still replying — this will be sent next" : "Send to Lélu"}
+            // A machine-readable turn state for the browser verifications,
+            // so they key on the state itself rather than on button prose.
+            data-lelu-sending={isSending ? "true" : "false"}
             aria-label="Send message"
             className="lelu-tab-cloud lelu-tab-cloud-active"
             style={{
               width: 38, height: 38, borderRadius: 999, flexShrink: 0,
               cursor:
-                isSending || (!input.trim() && pendingMedia.length === 0 && pendingFiles.length === 0)
+                !input.trim() && pendingMedia.length === 0 && pendingFiles.length === 0
                   ? "default" : "pointer",
+              // Dimmed means unavailable, so it must track `disabled` and
+              // nothing else. It used to dim while busy as well, which now
+              // would read as "you cannot send" above a button that can.
               opacity:
-                isSending || (!input.trim() && pendingMedia.length === 0 && pendingFiles.length === 0)
+                !input.trim() && pendingMedia.length === 0 && pendingFiles.length === 0
                   ? 0.45 : 1,
               display: "inline-flex", alignItems: "center", justifyContent: "center",
               fontSize: 15, fontFamily: "inherit",

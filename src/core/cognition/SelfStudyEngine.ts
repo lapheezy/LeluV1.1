@@ -1558,6 +1558,11 @@ export default class SelfStudyEngine {
     // every other question — thinking in a circle rather than moving.
     const recentDomains = this.recentDomains.slice(-4);
 
+    // Collected, then applied in one write. Writing per objective
+    // persisted the whole array once per objective — see
+    // StudyObjectives.applyPriorities.
+    const rescored = new Map<string, number>();
+
     for (const objective of this.objectives.open()) {
       // The attempts penalty, the age nudge, the fatigue penalty and the
       // clamp all live in computePriority now, with the numbers this
@@ -1594,9 +1599,11 @@ export default class SelfStudyEngine {
         recentSameKind: recentDomains.filter((domain) => domain === objective.domain).length,
       });
       if (clamped !== objective.priority) {
-        this.objectives.update(objective.id, { priority: clamped });
+        rescored.set(objective.id, clamped);
       }
     }
+
+    this.objectives.applyPriorities(rescored);
   }
 
   /* -------------------------------- helpers ------------------------------- */

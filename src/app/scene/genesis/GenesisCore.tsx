@@ -84,7 +84,7 @@ import NotificationProvider from "../../../core/notifications/NotificationProvid
 
 import VisualEngine from "../../../core/visual/VisualEngine";
 import { ownerForMessage } from "../../../core/multichat/TurnOwnership";
-import { GenesisSceneContext, type GenesisSceneValue } from "./useGenesisScene";
+import { GenesisSceneContext, countRender, type GenesisSceneValue } from "./useGenesisScene";
 
 
 
@@ -680,6 +680,12 @@ export function useGenesis(){
     );
 
   }
+
+
+  // Dev-only render ledger — see useGenesisScene.countRender. Counting
+  // both contexts is what makes the comparison meaningful: chat
+  // consumers SHOULD re-render on a token, scene consumers should not.
+  countRender("chat");
 
 
   return context;
