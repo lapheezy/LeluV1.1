@@ -60,6 +60,7 @@ import KnowledgeLibrary, { GAP_STATUSES, type KnowledgeEntry } from "./Knowledge
 import SelfModel from "./SelfModel";
 import StudyAgentRouter, { type Investigation } from "./StudyAgentRouter";
 import { backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
+import { computePriority, type PriorityAdjustment } from "./Prioritization";
 import StudyObjectives, {
   type StudyDomain,
   type StudyObjective,
@@ -1558,28 +1559,40 @@ export default class SelfStudyEngine {
     const recentDomains = this.recentDomains.slice(-4);
 
     for (const objective of this.objectives.open()) {
-      // Always from the intrinsic base, never from last cycle's result:
-      // adjustments must not compound, or a question that lost the
-      // contest once would sink forever and never be investigated.
-      let priority = objective.basePriority ?? objective.priority;
-
+      // The attempts penalty, the age nudge, the fatigue penalty and the
+      // clamp all live in computePriority now, with the numbers this
+      // method has always used. What stays here is the part that is
+      // genuinely about STUDY objectives: which conditions matter and
+      // by how much.
+      //
+      // Starting from basePriority is computePriority's contract, not a
+      // choice made here: adjustments must never compound, or a question
+      // that lost the contest once would sink forever.
+      const adjustments: PriorityAdjustment[] = [];
       // A blocked environment blocks everything downstream of it.
-      if (objective.domain === "runtime" && !state.runtimeReachable) priority += 20;
+      if (objective.domain === "runtime" && !state.runtimeReachable) {
+        adjustments.push({ reason: "runtime unreachable", delta: 20 });
+      }
       // Contradictions and failures outrank curiosity.
-      if (objective.origin === "contradiction") priority += 15;
+      if (objective.origin === "contradiction") {
+        adjustments.push({ reason: "contradiction", delta: 15 });
+      }
       // Questions created by real discoveries beat pre-seeded ones.
-      if (objective.origin === "discovery") priority += 8;
+      if (objective.origin === "discovery") {
+        adjustments.push({ reason: "from a real discovery", delta: 8 });
+      }
       // Snapshot-only re-verification waits until the runtime is back.
-      if (objective.origin === "revalidation" && !state.runtimeReachable) priority -= 15;
-      // Repeated failure to answer lowers, but never zeroes, a question.
-      priority -= objective.attempts * 10;
-      // Age nudges long-carried questions upward so nothing starves.
-      priority += Math.min(10, Math.floor((Date.now() - objective.createdAt) / (60 * 60 * 1000)));
-      // Recency fatigue: attention moves on instead of grinding the same
-      // kind of question cycle after cycle.
-      priority -= 18 * recentDomains.filter((domain) => domain === objective.domain).length;
+      if (objective.origin === "revalidation" && !state.runtimeReachable) {
+        adjustments.push({ reason: "revalidation needs the runtime", delta: -15 });
+      }
 
-      const clamped = Math.max(1, Math.min(100, Math.round(priority)));
+      const clamped = computePriority({
+        basePriority: objective.basePriority ?? objective.priority,
+        adjustments,
+        attempts: objective.attempts,
+        createdAt: objective.createdAt,
+        recentSameKind: recentDomains.filter((domain) => domain === objective.domain).length,
+      });
       if (clamped !== objective.priority) {
         this.objectives.update(objective.id, { priority: clamped });
       }

@@ -44,6 +44,7 @@ import MultiChatStore from "../multichat/MultiChatStore";
 import { hasActiveWorkstream } from "../proactive/Workstream";
 import { backgroundInterval, backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
 import AgentObjectives from "./AgentObjectives";
+import { basePriorityForWork } from "./Prioritization";
 import {
   canAct,
   intentEvidence,
@@ -507,7 +508,7 @@ export default class CognitiveLoop {
         // No new scheduler and no new executor: creating the objective
         // is itself the wake condition, because the runtime subscribes
         // to this store (see AgentCognitionRuntime.start).
-        const derived = this.deriveAutonomousWork(project, nextObjective, intent!.source);
+        const derived = this.deriveAutonomousWork(project, nextObjective, intent!.source, "NEXT");
         if (derived) suggestions.push(derived);
       }
 
@@ -672,9 +673,10 @@ export default class CognitiveLoop {
    *  · there is no agent to own it.
    */
   private deriveAutonomousWork(
-    project: { id: string; name: string; agentIds?: string[] },
+    project: { id: string; name: string; agentIds?: string[]; priority?: string },
     objective: string,
     source: string,
+    category: string,
   ): string | null {
     try {
       if (!ProactiveCore.getInstance().getSettings().autonomousExecution) {
@@ -696,6 +698,15 @@ export default class CognitiveLoop {
         objective,
         source: "cognition",
         projectId: project.id,
+        // The same WorkQueue category that files the audit record also
+        // says how important the work is, and the project's own stated
+        // priority moves it from there. Seeded in one place
+        // (Prioritization.basePriorityForWork) so cognition and
+        // self-study agree about what "important" means.
+        basePriority: basePriorityForWork({
+          category,
+          projectPriority: project.priority,
+        }),
       });
 
       return `Started autonomous work on “${project.name}” (derived via ${source}).`;

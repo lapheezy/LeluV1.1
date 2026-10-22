@@ -19,6 +19,7 @@
 
 import KvStore from "../storage/KvStore";
 import { emitCognition } from "../agent/AgentEvents";
+import { computePriority, clampPriority, type PriorityAdjustment } from "./Prioritization";
 
 export type ObjectiveState =
   /** Live work: the agent may run cognition cycles for it. */
@@ -90,6 +91,16 @@ export interface AgentObjective {
    * raised mid-objective can name the project it belongs to.
    */
   projectId?: string;
+  /**
+   * The intrinsic importance this objective was created with.
+   *
+   * Recomputation always starts here, never from the last computed
+   * value — see Prioritization.computePriority. Compounding would mean
+   * an objective that lost the contest once sank forever.
+   */
+  basePriority: number;
+  /** 1-100, recomputed from what is true now. Decides execution order. */
+  priority: number;
   createdAt: number;
   updatedAt: number;
 
@@ -138,6 +149,15 @@ export interface AgentObjective {
 const KEY = "lelu.agent.objectives.v1";
 const CYCLES_KEY = "lelu.agent.cognition.cycles.v1";
 const MAX_CYCLE_RECORDS = 200;
+
+/**
+ * Where an objective starts when nobody said how important it is.
+ *
+ * Mid-scale on purpose: a default of 100 would make every objective
+ * outrank anything deliberately scored, and a default of 1 would bury
+ * them all under the first thing that was.
+ */
+export const DEFAULT_BASE_PRIORITY = 50;
 
 /** Defaults chosen so a runaway loop is impossible by construction. */
 export const DEFAULT_MAX_CYCLES = 8;
@@ -203,7 +223,68 @@ export default class AgentObjectives {
         this.update(objective.id, { state: "active", resumeAt: undefined });
       }
     }
-    return this.list(agentId).filter((objective) => objective.state === "active");
+    // Priority follows from what is true NOW, so it is recomputed here
+    // rather than frozen at creation — the same reason self-study
+    // recomputes its own on every cycle.
+    this.prioritize();
+    return this.list(agentId)
+      .filter((objective) => objective.state === "active")
+      // Highest first, oldest first within a tie. Without the tiebreak
+      // equal-priority work would reorder between calls, and nothing
+      // would reliably be picked at all.
+      .sort((a, b) => b.priority - a.priority || a.createdAt - b.createdAt);
+  }
+
+  /**
+   * Recompute every live objective's priority from current state.
+   *
+   * Shares Prioritization.computePriority with self-study: the attempts
+   * penalty, the age nudge and the clamp are the same arithmetic, and
+   * deliberately the same numbers. What differs is what counts as an
+   * attempt — for executable work that is cycles already spent and
+   * failures already taken, not a question's domain.
+   */
+  public prioritize(): void {
+    for (const objective of this.list()) {
+      if (
+        objective.state !== "active" &&
+        objective.state !== "scheduled" &&
+        objective.state !== "waiting" &&
+        objective.state !== "awaiting-approval"
+      ) {
+        // Finished work keeps the number it ended on. Recomputing it
+        // would only move a value nothing reads, and completed work must
+        // never be able to outrank live work.
+        continue;
+      }
+
+      const adjustments: PriorityAdjustment[] = [];
+      // What the user asked for outranks what cognition inferred.
+      if (objective.source === "user") {
+        adjustments.push({ reason: "the user asked for this", delta: 12 });
+      }
+      // Something outstanding from someone else: an approval, an answer.
+      // Leaving these at full priority is exactly how a blocked
+      // objective keeps winning the contest it cannot act on.
+      if (objective.state === "awaiting-approval" || objective.state === "waiting") {
+        adjustments.push({ reason: "waiting on someone else", delta: -25 });
+      }
+      // Deliberately deferred to a time that has not arrived.
+      if (objective.state === "scheduled" && (objective.resumeAt ?? 0) > Date.now()) {
+        adjustments.push({ reason: "scheduled for later", delta: -20 });
+      }
+
+      const next = computePriority({
+        basePriority: objective.basePriority ?? DEFAULT_BASE_PRIORITY,
+        adjustments,
+        attempts: objective.cyclesRun + objective.consecutiveFailures,
+        createdAt: objective.createdAt,
+      });
+
+      if (next !== objective.priority) {
+        this.update(objective.id, { priority: next });
+      }
+    }
   }
 
   /**
@@ -283,6 +364,8 @@ export default class AgentObjectives {
     objective: string;
     source?: AgentObjective["source"];
     projectId?: string;
+    /** Intrinsic importance. Defaults to the mid-scale when unstated. */
+    basePriority?: number;
     maxCycles?: number;
     maxActions?: number;
     deadlineMs?: number;
@@ -295,6 +378,8 @@ export default class AgentObjectives {
       state: "active",
       source: input.source ?? "user",
       ...(input.projectId ? { projectId: input.projectId } : {}),
+      basePriority: clampPriority(input.basePriority ?? DEFAULT_BASE_PRIORITY),
+      priority: clampPriority(input.basePriority ?? DEFAULT_BASE_PRIORITY),
       createdAt: now,
       updatedAt: now,
       cyclesRun: 0,
