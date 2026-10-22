@@ -63,8 +63,50 @@ async function snapshot() {
   });
 }
 
+/**
+ * Wait until the composer will actually accept a message.
+ *
+ * GenesisChat allows one turn at a time per chat view: send() returns
+ * early while `isSending` is true and the Send button is disabled. That
+ * is existing, deliberate behaviour — the turn shares Brain's
+ * conversation state and Orchestrator's lock — but it makes this script
+ * timing-dependent, because it deliberately does not wait for LÉLU's
+ * reply before moving on. Measured: typing the second marker ~3s after
+ * the first landed found the Send button disabled, so the message was
+ * never sent and the check failed as "the second workspace received no
+ * message" — a true statement about a test that had not sent one.
+ *
+ * So this waits for the composer to be ready rather than assuming it.
+ * It does not weaken anything: a composer that never becomes ready is
+ * still a failure, reported as one.
+ */
+async function composerReady(timeoutMs = 120_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    // Send is disabled for TWO reasons: a turn in flight, and an empty
+    // composer. Only the first is what we are waiting out, so this
+    // checks the title the component sets rather than the disabled flag
+    // alone — "Sending…" while busy, "Send to Lélu" when free.
+    const busy = await page.evaluate(() => {
+      const send = [...document.querySelectorAll("[data-lelu-composer] button")].find(
+        (button) => /send/i.test(button.getAttribute("aria-label") ?? ""),
+      );
+      if (!send) return true;
+      return /sending/i.test(send.getAttribute("title") ?? "");
+    });
+    if (!busy) return true;
+    await page.waitForTimeout(500);
+  }
+  return false;
+}
+
 /** Send a message through the real composer. */
 async function send(text) {
+  if (!(await composerReady())) {
+    console.log("  FAIL  the composer never became ready to send");
+    failures += 1;
+    return false;
+  }
   await page.evaluate((value) => {
     const box = document.querySelector("[data-lelu-composer] textarea, [data-lelu-composer] input");
     if (!box) return;

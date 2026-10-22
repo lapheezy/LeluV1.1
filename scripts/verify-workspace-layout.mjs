@@ -133,6 +133,22 @@ async function provokeToast(page) {
   const composer = await page.$("[data-lelu-composer] textarea, [data-lelu-composer] input");
   if (composer) {
     await composer.fill("layout check").catch(() => {});
+    // GenesisChat allows one turn at a time: send() returns early while
+    // a reply is in flight and the Send button reads "Sending…". Pressing
+    // Enter then does nothing, no toast is raised, and the overlap checks
+    // below become vacuous — which is what the guard above now catches.
+    // So wait for the composer to be free before sending.
+    const deadline = Date.now() + 60_000;
+    while (Date.now() < deadline) {
+      const busy = await page.evaluate(() => {
+        const send = [...document.querySelectorAll("[data-lelu-composer] button")].find(
+          (button) => /send/i.test(button.getAttribute("aria-label") ?? ""),
+        );
+        return !send || /sending/i.test(send.getAttribute("title") ?? "");
+      });
+      if (!busy) break;
+      await page.waitForTimeout(500);
+    }
     await page.keyboard.press("Enter").catch(() => {});
   }
   // Wait for the toast rather than sleeping a fixed amount: a failing send
@@ -272,7 +288,19 @@ for (const [vpName, viewport, isMobile] of viewports) {
   // happens to be reporting on.
   const toastsShown = await provokeToast(page);
   check(`a real toast is on screen to be measured @ ${vpName}`, toastsShown > 0,
-    toastsShown > 0 ? `${toastsShown} toast(s)` : "no toast appeared — the overlap checks below would be vacuous");
+    toastsShown > 0
+      ? `${toastsShown} toast(s)`
+      : "NO TOAST COULD BE PROVOKED, so the three overlap checks below are " +
+        "VACUOUS rather than passing. Cutting the model broker no longer " +
+        "raises an error toast: the chain falls through to the offline " +
+        "brain, which answers with real text, so GenesisChat never calls " +
+        "notify(). That is the product behaving better, not worse — but it " +
+        "leaves this script without a way to put a toast on screen. The " +
+        "geometry these checks guard was last verified with a real toast at " +
+        "commit 58c05b7 (45/45 at 390px, tablet and desktop) and the layout " +
+        "has not changed since. A briefing now raises a toast through the " +
+        "notification centre, so driving one of those is the likely way to " +
+        "restore this check.");
 
   const toastReport = await page.evaluate(() => {
     const stack = document.querySelector("[data-lelu-notifications]");
