@@ -45,6 +45,8 @@ import { hasActiveWorkstream } from "../proactive/Workstream";
 import { backgroundInterval, backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
 import AgentObjectives from "./AgentObjectives";
 import { basePriorityForWork } from "./Prioritization";
+import { outcomesForTools, structuredPlanToolIds } from "./OutcomeDerivation";
+import { executableToolIds } from "../tools/ToolDispatcher";
 import {
   canAct,
   intentEvidence,
@@ -673,7 +675,16 @@ export default class CognitiveLoop {
    *  · there is no agent to own it.
    */
   private deriveAutonomousWork(
-    project: { id: string; name: string; agentIds?: string[]; priority?: string },
+    project: {
+      id: string;
+      name: string;
+      agentIds?: string[];
+      priority?: string;
+      /** Read only to derive the goal's outcome contract — see below. */
+      executionPlan?: string[];
+      actionableTasks?: string[];
+      checkpoint?: { pending?: string[] };
+    },
     objective: string,
     source: string,
     category: string,
@@ -693,6 +704,23 @@ export default class CognitiveLoop {
         return `Derived work for “${project.name}” but no enabled agent could own it, so nothing was started.`;
       }
 
+      // THE GOAL CARRIES ITS OUTCOME CONTRACT.
+      //
+      // The verifier judges completion against a contract. A derived
+      // objective used to carry none, so the only thing left to judge it
+      // by was its own wording — prose that may describe a plan nobody
+      // can check. Where the project's OWN plan states which operations
+      // this step needs, that contract is known before the first cycle
+      // and is recorded with the objective.
+      //
+      // Only structured plan fields are read (executionPlan /
+      // actionableTasks / checkpoint.pending), never the description or
+      // the conversation, and only ids the dispatcher can really run.
+      // No plan step, no contract — the verifier then falls back to the
+      // objective's own wording exactly as it did before.
+      const knownTools = executableToolIds();
+      const contract = outcomesForTools(structuredPlanToolIds(project, knownTools), knownTools);
+
       objectives.create({
         agentId,
         objective,
@@ -707,6 +735,7 @@ export default class CognitiveLoop {
           category,
           projectPriority: project.priority,
         }),
+        ...(contract.length > 0 ? { expectedOutcomes: contract } : {}),
       });
 
       return `Started autonomous work on “${project.name}” (derived via ${source}).`;

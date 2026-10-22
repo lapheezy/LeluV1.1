@@ -27,6 +27,22 @@ const FAILURE_COOLDOWN_MS = 30_000;
  */
 const AUTH_FAILURE_COOLDOWN_MS = 15 * 60_000;
 
+/**
+ * WHY a provider failed, in the terms someone would act on.
+ *
+ * "failed" is not a diagnosis. A refused key is fixed in a dashboard, a
+ * timeout is fixed by a longer budget, an unreachable host is fixed by
+ * the network, and a model that stopped short is fixed by nothing on
+ * this list. Purely a reading of the reason text every provider already
+ * reports — no new error channel, no keys, no secrets.
+ */
+export type ProviderFailureKind =
+  | "credential-refused"
+  | "timeout"
+  | "network"
+  | "server"
+  | "unknown";
+
 interface ProviderFailure {
   count: number;
   lastFailure: number;
@@ -37,6 +53,8 @@ interface ProviderFailure {
    * cooldown.
    */
   authRejected?: boolean;
+  /** The same distinction as a category, for diagnostics. */
+  kind?: ProviderFailureKind;
 }
 
 /**
@@ -59,6 +77,28 @@ export function isAuthRejection(reason: string): boolean {
     /unauthorized|authentication failed|invalid authentication|invalid credentials/.test(text) ||
     /api key not valid|no api key provided|missing api key/.test(text)
   );
+}
+
+/**
+ * What kind of provider failure this was.
+ *
+ * Auth is checked first, so a 401 that happens to arrive from an
+ * aborted request is still a credential problem. The rest are the
+ * categories a reader can act on: a timeout means the budget is too
+ * short, network means nothing left the machine, server means the
+ * provider is unwell, and unknown is honestly unknown.
+ */
+export function classifyProviderFailure(reason: string): ProviderFailureKind {
+  if (isAuthRejection(reason)) return "credential-refused";
+  const text = reason.toLowerCase();
+  if (/timed? ?out|etimedout|deadline exceeded|aborted|abort error/.test(text)) return "timeout";
+  if (/econnreset|econnrefused|enotfound|eai_again|network|fetch failed|socket hang up|dns/.test(text)) {
+    return "network";
+  }
+  if (/\b(429|500|502|503|504|529)\b|overloaded|rate limit|service unavailable/.test(text)) {
+    return "server";
+  }
+  return "unknown";
 }
 
 export default class AIProviderRegistry {
@@ -231,13 +271,18 @@ export default class AIProviderRegistry {
 
   public markFailure(name: string, reason: string): void {
     const previous = this.failures.get(name);
+    // Sticky: once a credential has been refused, a later ordinary
+    // failure must not quietly shorten the cooldown back to 30s.
+    const authRejected = previous?.authRejected === true || isAuthRejection(reason);
     this.failures.set(name, {
       count: (previous?.count ?? 0) + 1,
       lastFailure: Date.now(),
       reason,
-      // Sticky: once a credential has been refused, a later ordinary
-      // failure must not quietly shorten the cooldown back to 30s.
-      authRejected: previous?.authRejected === true || isAuthRejection(reason),
+      authRejected,
+      // Auth stays sticky for the same reason the cooldown does; every
+      // other kind describes the failure that just happened, so a
+      // recovered network does not keep reading as a timeout.
+      kind: authRejected ? "credential-refused" : classifyProviderFailure(reason),
     });
   }
 

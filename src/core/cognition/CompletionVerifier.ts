@@ -39,6 +39,9 @@
  */
 
 import type { AgentObjective, CognitionCycleRecord, ObjectiveOutcome } from "./AgentObjectives";
+// One definition of what "done" means, shared with whoever creates the
+// objective — see OutcomeDerivation.
+import { deriveOutcomes, sameTool } from "./OutcomeDerivation";
 
 export type CompletionVerdict = "complete" | "incomplete" | "blocked";
 
@@ -91,23 +94,18 @@ function isVacuous(conclusion: string): boolean {
   return bare.length === 0 || ACKNOWLEDGEMENT.test(bare);
 }
 
-/** Tool names as they appear in prose: workflow_run, project.manage. */
-const TOOL_NAME = /\b([a-z][a-z0-9]*(?:[._][a-z0-9]+)+)\b/g;
-
-/** Both spellings of a tool, since the registry and the models differ. */
-function sameTool(a: string, b: string): boolean {
-  const normalise = (name: string) => name.toLowerCase().replace(/[.]/g, "_");
-  return normalise(a) === normalise(b);
-}
-
 /**
  * The outcomes this objective will be judged against.
  *
- * Declared outcomes win. With none declared, tool names the objective
- * itself states are taken as required — an objective that says "check
- * with workflow_list, create it with workflow_author, then run it with
+ * The decision itself lives in OutcomeDerivation — one place that
+ * decides what "done" means, so an objective created by cognition and
+ * one checked here can never disagree about it. This is the verifier's
+ * entry point into that contract: declared outcomes win; otherwise tool
+ * ids the objective states are taken as required ("check with
+ * workflow_list, create it with workflow_author, then run it with
  * workflow_run" has stated its own requirements, and taking it at its
- * word needs no model and no guessing.
+ * word needs no model); and a mention the goal RULES OUT ("do not use
+ * memory_store") is not a requirement.
  *
  * `knownTools` keeps that honest: only names the runtime can actually
  * dispatch are treated as requirements, so prose that merely looks
@@ -117,22 +115,11 @@ export function expectedOutcomesFor(
   objective: AgentObjective,
   knownTools: string[],
 ): ObjectiveOutcome[] {
-  if (objective.expectedOutcomes?.length) return objective.expectedOutcomes;
-
-  const stated: ObjectiveOutcome[] = [];
-  const seen = new Set<string>();
-  for (const match of objective.objective.matchAll(TOOL_NAME)) {
-    const named = match[1];
-    const known = knownTools.find((tool) => sameTool(tool, named));
-    if (!known || seen.has(known)) continue;
-    seen.add(known);
-    stated.push({
-      evidence: "tool-succeeded",
-      tool: known,
-      what: `${known} ran successfully`,
-    });
-  }
-  return stated;
+  return deriveOutcomes({
+    objective: objective.objective,
+    declared: objective.expectedOutcomes,
+    knownTools,
+  });
 }
 
 /**

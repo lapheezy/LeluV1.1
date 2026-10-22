@@ -41,10 +41,18 @@
 import AgentEventBus from "../../src/core/agent/AgentEvents";
 import AgentObjectives, { type CognitionCycleRecord } from "../../src/core/cognition/AgentObjectives";
 import AIService from "../../src/core/AIService";
+import {
+  classifyProviderFailure,
+  type ProviderFailureKind,
+} from "../../src/core/AIProviderRegistry";
 
 export type RunClassification =
   | "pass"
   | "provider-auth-failure"
+  /** The provider never answered in time, so nothing downstream is the model's doing. */
+  | "provider-timeout"
+  /** Nothing left the machine: DNS, reset or unreachable host. */
+  | "provider-network-failure"
   | "model-under-completed"
   | "tool-execution-failure"
   | "runtime-failure";
@@ -53,6 +61,8 @@ export interface ProviderHealth {
   name: string;
   /** The server refused the credential itself, as the registry judged it. */
   credentialRefused: boolean;
+  /** Auth, timeout, network, server or unknown — see the registry. */
+  kind: ProviderFailureKind;
   reason: string;
 }
 
@@ -130,6 +140,7 @@ export class AutonomyReport {
       health.push({
         name,
         credentialRefused: failure.authRejected === true,
+        kind: failure.kind ?? classifyProviderFailure(failure.reason),
         reason: redact(failure.reason.replace(/\s+/g, " ")).slice(0, 120),
       });
     }
@@ -173,6 +184,30 @@ export class AutonomyReport {
         detail:
           `${refused.map((entry) => entry.name).join(", ")} refused the credential, so ` +
           `${served.join(", ") || "a fallback"} served the turn and did not complete the objective. ` +
+          "This is provider health, not a cognition defect.",
+      };
+    }
+
+    // A provider that timed out or could not be reached did not give the
+    // model a chance to under-complete anything, so blaming the model
+    // would point the reader at the wrong subsystem.
+    const timedOut = this.providerHealth().filter((entry) => entry.kind === "timeout");
+    if (timedOut.length > 0 && missing.length > 0) {
+      return {
+        classification: "provider-timeout",
+        detail:
+          `${timedOut.map((entry) => entry.name).join(", ")} timed out, so ` +
+          `${served.join(", ") || "a fallback"} served the turn with less time than the objective needed. ` +
+          "This is provider health, not a cognition defect.",
+      };
+    }
+    const unreachable = this.providerHealth().filter((entry) => entry.kind === "network");
+    if (unreachable.length > 0 && missing.length > 0) {
+      return {
+        classification: "provider-network-failure",
+        detail:
+          `${unreachable.map((entry) => entry.name).join(", ")} could not be reached, so ` +
+          `${served.join(", ") || "a fallback"} served the turn. ` +
           "This is provider health, not a cognition defect.",
       };
     }
@@ -227,7 +262,17 @@ export class AutonomyReport {
     const health = this.providerHealth();
     if (health.length === 0) lines.push("  (no provider recorded a failure)");
     for (const entry of health) {
-      lines.push(`  ${entry.credentialRefused ? "AUTH REFUSED" : "failed      "}  ${entry.name}: ${entry.reason}`);
+      const label =
+        entry.kind === "credential-refused"
+          ? "AUTH REFUSED"
+          : entry.kind === "timeout"
+            ? "timed out   "
+            : entry.kind === "network"
+              ? "unreachable "
+              : entry.kind === "server"
+                ? "server error"
+                : "failed      ";
+      lines.push(`  ${label}  ${entry.name}: ${entry.reason}`);
     }
     lines.push(`  served the decisions: ${this.servingProviders(cycles).join(", ") || "(none recorded)"}`);
 

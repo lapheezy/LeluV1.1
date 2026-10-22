@@ -171,6 +171,48 @@ test("a refused credential outranks everything downstream of it", async () => {
   registry.clearFailure(first);
 });
 
+test("a provider that timed out is not blamed on the model", async () => {
+  await clearProviderFailures();
+  const registry = AIService.getInstance().getAIProviderRegistry();
+  const [first] = registry.names();
+  assert.ok(first, "there is no provider to mark");
+  registry.markFailure(first, `${first} request timed out after 30000ms`);
+
+  const report = new AutonomyReport();
+  const id = seed(
+    "List, author and run it.",
+    [{ executed: [{ tool: "workflow_list", ok: true }], provider: "Fallback" }],
+    "yielded",
+  );
+
+  const { classification, detail } = report.classify(id, EXPECTED);
+  assert.equal(classification, "provider-timeout");
+  assert.match(detail, /timed out/);
+  assert.match(detail, /not a cognition defect/);
+  registry.clearFailure(first);
+});
+
+test("an unreachable provider is its own diagnosis, not a model failure", async () => {
+  await clearProviderFailures();
+  const registry = AIService.getInstance().getAIProviderRegistry();
+  const [first] = registry.names();
+  assert.ok(first, "there is no provider to mark");
+  registry.markFailure(first, `${first} failed: ECONNREFUSED`);
+
+  const report = new AutonomyReport();
+  const id = seed(
+    "List, author and run it.",
+    [{ executed: [{ tool: "workflow_list", ok: true }], provider: "Fallback" }],
+    "yielded",
+  );
+
+  assert.equal(report.classify(id, EXPECTED).classification, "provider-network-failure");
+  // And the rendered report says which kind of failure it was, rather
+  // than the single word "failed" for four different causes.
+  assert.match(report.render(id, EXPECTED), /unreachable/);
+  registry.clearFailure(first);
+});
+
 test("the report prints the evidence and no credentials", async () => {
   await clearProviderFailures();
   const registry = AIService.getInstance().getAIProviderRegistry();

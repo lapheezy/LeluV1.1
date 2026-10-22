@@ -120,6 +120,66 @@ test("cognition turns a derived next step into an objective the real runtime can
   );
 });
 
+test("a project whose own plan states an operation gives the objective that contract", async () => {
+  proactive.updateSettings({ autonomousExecution: true });
+  const project = projects.create({
+    name: "Contract Project",
+    description: "A project whose plan states which operation the next step needs.",
+  });
+  projects.update(project.id, {
+    checkpoint: {
+      summary: "Planned.",
+      nextAction: "Run the routine this project authored.",
+      pending: [],
+      updatedAt: Date.now(),
+    },
+    // Structured state, not a description: the plan says which operation
+    // this step performs, so the goal can state what completion means
+    // before the first cycle.
+    executionPlan: ["Run the authored routine with workflow_run."],
+  } as never);
+
+  await loop.runOnce();
+
+  const created = objectives.list().find((item) => item.projectId === project.id);
+  assert.ok(created, "cognition created no objective for a project with a derivable next step");
+  assert.ok(
+    created.expectedOutcomes?.length,
+    "the objective carried no contract even though its project's plan stated the operation",
+  );
+  assert.ok(
+    created.expectedOutcomes?.some((outcome) => outcome.tool === "workflow.run"),
+    `the plan's operation did not reach the contract: ${JSON.stringify(created.expectedOutcomes)}`,
+  );
+});
+
+test("a plan that names no dispatchable operation gives the objective no invented contract", async () => {
+  proactive.updateSettings({ autonomousExecution: true });
+  const project = projects.create({
+    name: "Prose Only Project",
+    description: "A project whose plan is written in prose and names no operation.",
+  });
+  projects.update(project.id, {
+    checkpoint: {
+      summary: "Planned.",
+      nextAction: "Improve the project.",
+      pending: [],
+      updatedAt: Date.now(),
+    },
+    executionPlan: ["Improve the project and make the workspace nicer."],
+  } as never);
+
+  await loop.runOnce();
+
+  const created = objectives.list().find((item) => item.projectId === project.id);
+  assert.ok(created, "cognition created no objective for a project with a derivable next step");
+  assert.equal(
+    created.expectedOutcomes,
+    undefined,
+    `a verb became a tool requirement: ${JSON.stringify(created.expectedOutcomes)}`,
+  );
+});
+
 test("one objective per project: a second cycle does not queue the same work again", async () => {
   proactive.updateSettings({ autonomousExecution: true });
   const project = projectWithIntent("Single Flight Project");

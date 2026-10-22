@@ -42,7 +42,10 @@ if (typeof sessionStorage === "undefined") {
 
 import TaskEngine from "../src/core/tasks/TaskEngine";
 import ToolRegistry from "../src/core/tools/ToolRegistry";
-import AIProviderRegistry, { isAuthRejection } from "../src/core/AIProviderRegistry";
+import AIProviderRegistry, {
+  classifyProviderFailure,
+  isAuthRejection,
+} from "../src/core/AIProviderRegistry";
 import AutonomyGate from "../src/core/cognition/AutonomyGate";
 import { toolPermitted } from "../src/core/tools/ToolDispatcher";
 import { toolSchemasForModel } from "../src/core/tools/ToolSchemas";
@@ -233,4 +236,31 @@ test("a transient failure still allows the chain to recover quickly", () => {
   const registry = new AIProviderRegistry();
   registry.markFailure("Transient", "529 overloaded");
   assert.equal(registry.cooldownFor("Transient"), 30_000, "the transient cooldown changed");
+});
+
+test("a provider failure is classified by what someone would actually do about it", () => {
+  // "failed" is not a diagnosis: these four need four different actions.
+  assert.equal(classifyProviderFailure("API request failed {status: 401, message: Wrong API Key}"), "credential-refused");
+  assert.equal(classifyProviderFailure("request timed out after 30000ms"), "timeout");
+  assert.equal(classifyProviderFailure("fetch failed: ECONNRESET"), "network");
+  assert.equal(classifyProviderFailure("503 Service Unavailable"), "server");
+  assert.equal(classifyProviderFailure("something nobody has seen before"), "unknown");
+
+  // Auth wins over the transport detail, so a refusal is never reported
+  // as a timeout just because the socket also closed.
+  assert.equal(classifyProviderFailure("401 Unauthorized: aborted"), "credential-refused");
+
+  const registry = new AIProviderRegistry();
+  registry.markFailure("Slow", "request timed out after 30000ms");
+  registry.markFailure("Offline", "ECONNREFUSED");
+  assert.equal(registry.failure("Slow")?.kind, "timeout");
+  assert.equal(registry.failure("Offline")?.kind, "network");
+
+  // The kind follows the latest failure, so a recovered network stops
+  // reading as a timeout; a refusal stays sticky like its cooldown.
+  registry.markFailure("Slow", "fetch failed");
+  assert.equal(registry.failure("Slow")?.kind, "network");
+  registry.markFailure("Offline", "401 Unauthorized");
+  registry.markFailure("Offline", "fetch failed");
+  assert.equal(registry.failure("Offline")?.kind, "credential-refused");
 });
