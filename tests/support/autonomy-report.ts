@@ -176,40 +176,43 @@ export class AutonomyReport {
       return { classification: "pass", detail: "every required operation ran and completion was verified" };
     }
 
-    const refused = this.providerHealth().filter((entry) => entry.credentialRefused);
+    const health = this.providerHealth();
     const served = this.servingProviders(cycles);
-    if (refused.length > 0) {
-      return {
-        classification: "provider-auth-failure",
-        detail:
-          `${refused.map((entry) => entry.name).join(", ")} refused the credential, so ` +
-          `${served.join(", ") || "a fallback"} served the turn and did not complete the objective. ` +
-          "This is provider health, not a cognition defect.",
-      };
-    }
 
-    // A provider that timed out or could not be reached did not give the
-    // model a chance to under-complete anything, so blaming the model
-    // would point the reader at the wrong subsystem.
-    const timedOut = this.providerHealth().filter((entry) => entry.kind === "timeout");
-    if (timedOut.length > 0 && missing.length > 0) {
-      return {
-        classification: "provider-timeout",
-        detail:
-          `${timedOut.map((entry) => entry.name).join(", ")} timed out, so ` +
-          `${served.join(", ") || "a fallback"} served the turn with less time than the objective needed. ` +
-          "This is provider health, not a cognition defect.",
-      };
-    }
-    const unreachable = this.providerHealth().filter((entry) => entry.kind === "network");
-    if (unreachable.length > 0 && missing.length > 0) {
-      return {
-        classification: "provider-network-failure",
-        detail:
-          `${unreachable.map((entry) => entry.name).join(", ")} could not be reached, so ` +
-          `${served.join(", ") || "a fallback"} served the turn. ` +
-          "This is provider health, not a cognition defect.",
-      };
+    // PROVIDER HEALTH, BUT ONLY WHEN IT ACTUALLY COST THIS RUN.
+    //
+    // Blaming any recorded provider failure for whatever happened
+    // afterwards collapses the distinction this classifier exists to
+    // make: on this container the two preferred providers answer 401
+    // on EVERY run, so every failure came out as
+    // provider-auth-failure. Caught by a real run — Fireworks served
+    // the turn, workflow_list executed and returned "No workflows are
+    // defined yet", and the model then declared BLOCKED claiming it
+    // had not retrieved the list. Nothing about that was the
+    // credential's fault.
+    //
+    // So health explains the run only when the run could not get a
+    // usable answer: nothing served it, or the provider that served it
+    // is itself the one that failed. Otherwise the failures are still
+    // REPORTED in the providers section, just not blamed.
+    const servedAndFailed = health.filter((entry) => served.includes(entry.name));
+    if (served.length === 0 || servedAndFailed.length > 0) {
+      const blame = servedAndFailed.length > 0 ? servedAndFailed : health;
+      for (const [kind, classification, what] of [
+        ["credential-refused", "provider-auth-failure", "refused the credential"],
+        ["timeout", "provider-timeout", "timed out"],
+        ["network", "provider-network-failure", "could not be reached"],
+      ] as Array<[string, RunClassification, string]>) {
+        const hit = blame.filter((entry) => entry.kind === kind);
+        if (hit.length === 0) continue;
+        return {
+          classification,
+          detail:
+            `${hit.map((entry) => entry.name).join(", ")} ${what}, and ` +
+            `${served.join(", ") || "nothing"} was left to serve the turn. ` +
+            "This is provider health, not a cognition defect.",
+        };
+      }
     }
 
     const failedTool = cycles.flatMap((cycle) => cycle.executed.filter((entry) => !entry.ok));
@@ -231,12 +234,19 @@ export class AutonomyReport {
       };
     }
 
+    // Still reported, because a reader deserves to know the run was on
+    // a fallback — just not blamed, because the fallback answered.
+    const refusedElsewhere = health.filter((entry) => entry.kind === "credential-refused");
     return {
       classification: "model-under-completed",
       detail:
-        `${served.join(", ") || "the model"} stopped after ` +
+        `${served.join(", ") || "the model"} served the turn and stopped after ` +
         `${expectedTools.length - missing.length} of ${expectedTools.length} required operations ` +
-        `(missing: ${missing.join(", ") || "none"}); the runtime did NOT accept it as complete.`,
+        `(missing: ${missing.join(", ") || "none"}); the runtime did NOT accept it as complete.` +
+        (refusedElsewhere.length > 0
+          ? ` (${refusedElsewhere.map((entry) => entry.name).join(", ")} had refused their credentials, ` +
+            "so this ran on a fallback; the fallback answered.)"
+          : ""),
     };
   }
 

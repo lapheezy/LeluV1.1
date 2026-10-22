@@ -147,11 +147,89 @@ test("the objective is marked complete with required work never executed: runtim
   assert.match(detail, /completion verifier should have rejected/i);
 });
 
-test("a refused credential outranks everything downstream of it", async () => {
+/**
+ * WHOSE FAULT, AND WHEN.
+ *
+ * These three used to assert that ANY recorded provider failure
+ * explained whatever happened next. That collapses the distinction
+ * this classifier exists to make: on this container the two preferred
+ * providers answer 401 on every single run, so every failure came out
+ * as provider-auth-failure.
+ *
+ * A real run caught it. Fireworks served the turn, workflow_list
+ * executed and returned "No workflows are defined yet", and the model
+ * then declared BLOCKED claiming it had not retrieved the list.
+ * Nothing about that was the credential's fault — and calling it one
+ * would have hidden a model that misreports its own tool results.
+ *
+ * So health explains a run only when the run could not get a usable
+ * answer. The failures are still reported either way.
+ */
+test("a refused credential is blamed when it left nothing able to serve the turn", async () => {
   await clearProviderFailures();
   const registry = AIService.getInstance().getAIProviderRegistry();
   const [first] = registry.names();
   assert.ok(first, "there is no provider to mark");
+  registry.markFailure(first, `${first} failed 401: Invalid API Key`);
+
+  const report = new AutonomyReport();
+  // No cycle at all: the credential was refused before anything could
+  // serve a decision, which is exactly what happens here when every
+  // configured provider answers 401.
+  const id = seed("List, author and run it.", [], "yielded");
+
+  const { classification, detail } = report.classify(id, EXPECTED);
+  assert.equal(classification, "provider-auth-failure");
+  assert.match(detail, /not a cognition defect/);
+  registry.clearFailure(first);
+});
+
+test("a provider that timed out is blamed only if it was the one serving", async () => {
+  await clearProviderFailures();
+  const registry = AIService.getInstance().getAIProviderRegistry();
+  const [first] = registry.names();
+  registry.markFailure(first, `${first} request timed out after 30000ms`);
+
+  const report = new AutonomyReport();
+  const servedByTheFailing = seed(
+    "List, author and run it.",
+    [{ executed: [{ tool: "workflow_list", ok: true }], provider: first }],
+    "yielded",
+  );
+  const { classification, detail } = report.classify(servedByTheFailing, EXPECTED);
+  assert.equal(classification, "provider-timeout");
+  assert.match(detail, /timed out/);
+  assert.match(detail, /not a cognition defect/);
+  registry.clearFailure(first);
+});
+
+test("an unreachable provider that did not serve does not excuse the one that did", async () => {
+  await clearProviderFailures();
+  const registry = AIService.getInstance().getAIProviderRegistry();
+  const [first] = registry.names();
+  registry.markFailure(first, `${first} failed: ECONNREFUSED`);
+
+  const report = new AutonomyReport();
+  const id = seed(
+    "List, author and run it.",
+    [{ executed: [{ tool: "workflow_list", ok: true }], provider: "Fallback" }],
+    "yielded",
+  );
+
+  assert.equal(
+    report.classify(id, EXPECTED).classification,
+    "model-under-completed",
+    "a fallback that answered perfectly well was excused by someone else's network failure",
+  );
+  // The failure is still REPORTED, by kind, even though it is not blamed.
+  assert.match(report.render(id, EXPECTED), /unreachable|NETWORK/i);
+  registry.clearFailure(first);
+});
+
+test("a fallback that answered is named in the detail, but not blamed", async () => {
+  await clearProviderFailures();
+  const registry = AIService.getInstance().getAIProviderRegistry();
+  const [first] = registry.names();
   registry.markFailure(first, `${first} failed 401: Invalid API Key`);
 
   const report = new AutonomyReport();
@@ -162,54 +240,9 @@ test("a refused credential outranks everything downstream of it", async () => {
   );
 
   const { classification, detail } = report.classify(id, EXPECTED);
-  assert.equal(
-    classification,
-    "provider-auth-failure",
-    "a run served by a fallback after a refused credential was blamed on the model",
-  );
-  assert.match(detail, /not a cognition defect/);
-  registry.clearFailure(first);
-});
-
-test("a provider that timed out is not blamed on the model", async () => {
-  await clearProviderFailures();
-  const registry = AIService.getInstance().getAIProviderRegistry();
-  const [first] = registry.names();
-  assert.ok(first, "there is no provider to mark");
-  registry.markFailure(first, `${first} request timed out after 30000ms`);
-
-  const report = new AutonomyReport();
-  const id = seed(
-    "List, author and run it.",
-    [{ executed: [{ tool: "workflow_list", ok: true }], provider: "Fallback" }],
-    "yielded",
-  );
-
-  const { classification, detail } = report.classify(id, EXPECTED);
-  assert.equal(classification, "provider-timeout");
-  assert.match(detail, /timed out/);
-  assert.match(detail, /not a cognition defect/);
-  registry.clearFailure(first);
-});
-
-test("an unreachable provider is its own diagnosis, not a model failure", async () => {
-  await clearProviderFailures();
-  const registry = AIService.getInstance().getAIProviderRegistry();
-  const [first] = registry.names();
-  assert.ok(first, "there is no provider to mark");
-  registry.markFailure(first, `${first} failed: ECONNREFUSED`);
-
-  const report = new AutonomyReport();
-  const id = seed(
-    "List, author and run it.",
-    [{ executed: [{ tool: "workflow_list", ok: true }], provider: "Fallback" }],
-    "yielded",
-  );
-
-  assert.equal(report.classify(id, EXPECTED).classification, "provider-network-failure");
-  // And the rendered report says which kind of failure it was, rather
-  // than the single word "failed" for four different causes.
-  assert.match(report.render(id, EXPECTED), /unreachable/);
+  assert.equal(classification, "model-under-completed");
+  assert.match(detail, new RegExp(first.split(" ")[0]), "the refused credential is not mentioned at all");
+  assert.match(detail, /the fallback answered/);
   registry.clearFailure(first);
 });
 

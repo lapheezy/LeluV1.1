@@ -60,27 +60,98 @@ export function toolOutcome(tool: string): ObjectiveOutcome {
 }
 
 /**
- * Wording that makes a mention a NON-requirement.
+ * Wording that makes a mention a NON-requirement — in TWO shapes,
+ * because one lookback window cannot do both jobs.
  *
  * "Do not use memory_store" and "without calling workflow_run" are the
  * goal saying a tool must NOT run. Reading the name alone turned both
  * into hard requirements — the exact inversion the contract exists to
- * prevent — so the clause immediately before the mention decides
- * whether it is a requirement at all.
+ * prevent — so the wording before the mention decides whether it is a
+ * requirement at all. But the two shapes want opposite windows:
  *
- * Bounded to the same clause (no sentence punctuation and no comma, at
- * most 60 characters back) so "Do not touch the schema; use
- * workflow_run" still requires workflow_run.
+ *   BINDING   "instead of memory_store, save it with sandbox_write"
+ *             rules out exactly ONE tool: the one bound to the phrase.
+ *             A window wide enough to see "instead of" from
+ *             sandbox_write would delete the replacement the same
+ *             sentence is asking for.
  *
- * The comma matters, and the live model test is how it was found: "If it
- * does not already exist, create it with workflow_author" is a
- * CONDITION followed by an instruction. Letting the negation window span
- * that comma made the instruction disappear from the contract, so a real
- * model that authored the workflow was judged as if authoring had never
- * been required.
+ *   CLAUSE    "Avoid memory_store, workflow_run and sandbox_write"
+ *             rules out EVERY tool in the list. A window that stops at
+ *             the first comma sees only " " before workflow_run, and
+ *             turns two forbidden tools into requirements.
+ *
+ * Both of those are real: the first was found by the live model test
+ * ("If it does not already exist, create it with workflow_author" is a
+ * condition followed by an instruction, and a comma-spanning window
+ * made the instruction disappear), the second by reading the derivation
+ * against the goal→outcome rule it is supposed to enforce — a
+ * prohibition list is the most natural way to write one, and it was
+ * producing the inverted contract on every item after the first comma.
+ *
+ * So: a binding phrase is consumed with the tool (or the bare list of
+ * tools — "without workflow_run and workflow_list" binds both) before
+ * anything else is read, and the clause scan then spans commas freely.
+ * The clause is bounded by sentence punctuation, and by a contrast
+ * marker, so "do not use X; instead use Y" still requires Y.
+ *
+ * The list stops at the first word that is not tool-shaped, which is
+ * what keeps "instead of memory_store, save it with sandbox_write"
+ * binding only memory_store.
  */
-const NEGATION =
-  /\b(?:not|never|without|avoid|skip|omit|except|excluding|instead of|rather than|no need to|don'?t|doesn'?t|do not)\b[^.;:!?,\n]{0,60}$/i;
+const BINDING_NEGATION =
+  /\b(?:instead of|rather than|other than|without(?:\s+(?:using|calling))?|except(?:\s+for)?)\s+[a-z][a-z0-9]*(?:[._][a-z0-9]+)+(?:[,\s]*(?:and|or|plus)?[,\s]*[a-z][a-z0-9]*(?:[._][a-z0-9]+)+)*/gi;
+
+/**
+ * Prohibition that governs the whole clause, including past a comma.
+ *
+ * Deliberately a closed list of phrases that negate an INSTRUCTION. A
+ * bare "not" is not here on purpose: "if it does not already exist" is
+ * a condition, and matching it would delete the instruction that
+ * follows the comma.
+ */
+const CLAUSE_NEGATION =
+  /\b(?:do not|don'?t|dont|never|avoid|avoiding|no need to|refrain from|must not|should not|cannot|can'?t|stop using|skip|omit|omitting|excluding)\b/i;
+
+/** Contrast markers: a new instruction starts, so the prohibition ends. */
+const CLAUSE_RESET = /\b(?:but|instead|rather)\b/gi;
+
+/**
+ * "and" / "or" either continue a list or start a new instruction, and
+ * the difference decides whether a prohibition still applies:
+ *
+ *   "Avoid memory_store, workflow_run and sandbox_write"
+ *        the list continues — all three are still forbidden
+ *   "Do not use memory_store, and create it with workflow_author"
+ *        a second instruction begins — workflow_author is required
+ *
+ * What tells them apart is what sits between the conjunction and the
+ * mention: nothing but separators means the list goes on; any words at
+ * all mean a new instruction. Both cases are pinned by tests.
+ */
+const LIST_CONJUNCTION = /\b(?:and|or|plus)\b/gi;
+const LIST_GLUE = /^[\s,]*$/;
+
+/** Sentence punctuation — a dot inside `project.manage` is not one. */
+const SENTENCE_END = /[.!?](?=\s|$)|[;:\n]/g;
+
+/**
+ * The clause a mention sits in: back to the last sentence boundary, then
+ * forward past any contrast marker inside it.
+ */
+function clauseBefore(text: string, index: number): string {
+  const before = text.slice(0, index);
+  let boundary = -1;
+  for (const match of before.matchAll(SENTENCE_END)) boundary = match.index ?? 0;
+  const clause = before.slice(boundary + 1);
+  let reset = -1;
+  for (const match of clause.matchAll(CLAUSE_RESET)) reset = (match.index ?? 0) + match[0].length;
+  for (const match of clause.matchAll(LIST_CONJUNCTION)) {
+    const after = (match.index ?? 0) + match[0].length;
+    if (LIST_GLUE.test(clause.slice(after))) continue; // the list continues
+    if (after > reset) reset = after;
+  }
+  return reset >= 0 ? clause.slice(reset) : clause;
+}
 
 /**
  * A tool named as the CONTENT of an artifact, not as an operation.
@@ -113,11 +184,23 @@ const ARTIFACT_CONTENT =
  */
 export function namedToolIds(text: string, knownTools: string[]): string[] {
   const found: string[] = [];
-  for (const match of text.matchAll(TOOL_NAME)) {
+
+  // Pass 1: consume the binding negations with the single tool each one
+  // rules out, blanking them in place. Blanking (rather than cutting)
+  // keeps every later index equal to the original text's, so the
+  // artifact-content window below still reads the real sentence.
+  let scanned = text;
+  for (const match of text.matchAll(BINDING_NEGATION)) {
+    const at = match.index ?? 0;
+    scanned = scanned.slice(0, at) + " ".repeat(match[0].length) + scanned.slice(at + match[0].length);
+  }
+
+  // Pass 2: everything still named, unless its clause forbids it.
+  for (const match of scanned.matchAll(TOOL_NAME)) {
     const named = match[1];
     if (!named) continue;
     const start = match.index ?? 0;
-    if (NEGATION.test(text.slice(Math.max(0, start - 60), start))) continue;
+    if (CLAUSE_NEGATION.test(clauseBefore(scanned, start))) continue;
     // Named only as what an authored artifact's steps should use.
     if (ARTIFACT_CONTENT.test(text.slice(Math.max(0, start - 140), start))) continue;
     const known = knownTools.find((tool) => sameTool(tool, named));

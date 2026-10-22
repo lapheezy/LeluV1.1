@@ -278,6 +278,34 @@ export async function withDeadline<T>(work: Promise<T>, fallback: T, ms = STEP_D
   }
 }
 
+/**
+ * A question made safe to quote inside another question.
+ *
+ * Drops its quote marks and EVERY question mark, and bounds its
+ * length, so the wrapper carries exactly one question mark — its own —
+ * and a chain of unresolved follow-ups cannot grow by accretion.
+ *
+ * Every one, not just the trailing one: a parent that asks two things
+ * would otherwise still nest, and the guarantee is worth more than the
+ * punctuation.
+ *
+ * Exported because it is pure and because the escalation line it feeds
+ * runs only after three failed attempts on one question — too deep
+ * inside a live cycle to pin from outside, and the nesting it prevents
+ * was structurally guaranteed every time that line ran.
+ */
+export function quotableQuestion(question: string): string {
+  return question
+    .replace(/[“”"']/g, "")
+    .replace(/\?/g, "")
+    .replace(/\s+([,.;:])/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/[\s,;:]+$/, "")
+    .slice(0, 120)
+    .trim();
+}
+
 export default class SelfStudyEngine {
   private static instance: SelfStudyEngine | null = null;
 
@@ -586,8 +614,24 @@ export default class SelfStudyEngine {
           lastEvidence: investigation.error ?? investigation.summary,
         });
         // An unresolved question is itself something to understand.
+        //
+        // The parent goes through quotableQuestion() first. Without it this
+        // line nested one question inside another EVERY time it ran —
+        // a parent question always ends in "?", so the nesting was
+        // guaranteed, not occasional. Observed in a real self-study
+        // run, and caught by self-study-loop.test.ts:
+        //
+        //   Why can I not answer “What do I actually know about
+        //   Procedural environment generation, and is it true?” with
+        //   the tools I have?
+        //
+        // That is how a continuous loop degenerates into quoting
+        // itself. The model-derived path has been guarded against it
+        // all along (see isSelfReferential, which rejects anything
+        // with more than one question mark); the line the engine
+        // writes itself was not.
         this.enqueue({
-          question: `Why can I not answer “${objective.question}” with the tools I have?`,
+          question: `Why can I not answer “${quotableQuestion(objective.question)}” with the tools I have?`,
           detail: `${objective.attempts + 1} attempt(s) through ${investigation.tool} produced no usable evidence: ${
             investigation.error ?? investigation.summary
           }`,

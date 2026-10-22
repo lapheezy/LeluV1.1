@@ -365,3 +365,115 @@ test("a prohibited tool does not block a reasoning-only objective", () => {
 
   assert.equal(result.verdict, "complete", "the prohibition was read as a requirement");
 });
+
+/**
+ * A PROHIBITION LIST IS STILL A PROHIBITION.
+ *
+ * The clause window used to stop at the first comma, which is the right
+ * call for "instead of X, use Y" and the wrong call for the most
+ * natural way to write a prohibition: a list. "Avoid memory.store,
+ * workflow.run and project.manage" saw only " " before the second and
+ * third names, and required two tools the goal had just ruled out —
+ * the exact inversion the contract exists to prevent, one comma in.
+ *
+ * Both shapes are now read separately, so these cases cannot be
+ * traded against each other again.
+ */
+test("every tool in a prohibition list is ruled out, not just the first", () => {
+  assert.deepEqual(
+    namedToolIds("Avoid memory.store, workflow.run and project.manage entirely.", KNOWN_TOOLS),
+    [],
+    "a prohibition stopped applying at the comma",
+  );
+  assert.deepEqual(
+    namedToolIds("Do not call workflow.run, workflow.list, or workflow.author.", KNOWN_TOOLS),
+    [],
+    "two of the three forbidden tools became requirements",
+  );
+  assert.deepEqual(
+    namedToolIds("Never use memory.store or workflow.run.", KNOWN_TOOLS),
+    [],
+    "the second tool of an 'or' pair survived the prohibition",
+  );
+});
+
+test("a binding negation rules out its own tool and not the replacement", () => {
+  assert.deepEqual(
+    namedToolIds("Instead of memory.store, save it with project.manage.", KNOWN_TOOLS),
+    ["project.manage"],
+    "the replacement the sentence asks for was deleted along with the tool it replaces",
+  );
+  assert.deepEqual(
+    namedToolIds("Without using workflow.run, author it with workflow.author.", KNOWN_TOOLS),
+    ["workflow.author"],
+  );
+  assert.deepEqual(
+    namedToolIds("Do not use memory.store; instead use workflow.author.", KNOWN_TOOLS),
+    ["workflow.author"],
+    "a contrast marker did not end the prohibition",
+  );
+});
+
+test("a prohibition ends at a new instruction but not at a continued list", () => {
+  // The two readings of "and", which decide opposite outcomes.
+  assert.deepEqual(
+    namedToolIds("Do not use memory.store, and run it with workflow.run.", KNOWN_TOOLS),
+    ["workflow.run"],
+    "a second instruction inherited the first clause's prohibition",
+  );
+  assert.deepEqual(
+    namedToolIds("Avoid memory.store and workflow.run.", KNOWN_TOOLS),
+    [],
+    "a continued list was read as a new instruction",
+  );
+});
+
+test("a binding negation binds the whole bare list, not only its first tool", () => {
+  // "without X and Y" forbids both. Consuming only the first left the
+  // second reading as a requirement — the inverted contract again, one
+  // conjunction in.
+  assert.deepEqual(
+    namedToolIds("Do it without workflow.run and workflow.list.", KNOWN_TOOLS),
+    [],
+    "the second tool of a bound list became a requirement",
+  );
+  assert.deepEqual(
+    namedToolIds("Do it without using memory.store, workflow.run or project.manage.", KNOWN_TOOLS),
+    [],
+  );
+  // And the list still stops at the first word that is not a tool id,
+  // which is what keeps the replacement in the sentence above.
+  assert.deepEqual(
+    namedToolIds("Other than workflow.list, use project.manage.", KNOWN_TOOLS),
+    ["project.manage"],
+  );
+});
+
+test("a dot inside a tool id is not a sentence boundary", () => {
+  // project.manage's own dot used to end the clause, which left the
+  // next name reading as if nothing had forbidden it.
+  assert.deepEqual(
+    namedToolIds("Do not use project.manage, workflow.run or memory.store.", KNOWN_TOOLS),
+    [],
+    "the prohibition ended at the dot inside the first tool id",
+  );
+});
+
+test("a prohibition LIST does not block a reasoning-only objective either", () => {
+  // The consequence of the clause fix, at the level a person feels it:
+  // the contract is what the verifier judges against, so a list that
+  // forbade three tools used to produce requirements the objective had
+  // ruled out — and an objective that can never be satisfied is one
+  // LÉLU can never honestly finish.
+  const objective = objectiveWith(
+    "Do not use memory.store, workflow.run or project.manage; just decide whether anything needs doing.",
+  );
+
+  assert.deepEqual(expectedOutcomesFor(objective, KNOWN_TOOLS), [], "a prohibition became the contract");
+
+  const result = verifyCompletion(
+    { objective, cycles: [], conclusion: "Nothing needed doing." },
+    KNOWN_TOOLS,
+  );
+  assert.equal(result.verdict, "complete", "the objective was unsatisfiable by its own prohibition");
+});
