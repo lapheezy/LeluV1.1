@@ -293,7 +293,20 @@ test(
 
     /* ---- 5. REAL TOOLS RAN, AND ONLY REAL ONES ARE CLAIMED ---- */
     const claimed = cycles.flatMap((cycle) => cycle.executed.map((entry) => entry.tool));
-    assert.ok(claimed.length >= 3, `only ${claimed.length} action(s) were taken: ${claimed.join(", ")}`);
+    // The threshold is the objective: list, author, run. It is NOT
+    // relaxed when a run falls short — but the message names the model
+    // that served the turn, because which provider answered decides
+    // whether a short run is a product defect or a model that stopped
+    // early. Measured on this container, where the two preferred
+    // providers are refused with 401 and the fallback serves instead:
+    // about half of runs stop after workflow_list, identically on a
+    // commit with no cognition changes at all. A short run is evidence
+    // about the model, and the provider list is how a reader tells.
+    assert.ok(
+      claimed.length >= 3,
+      `only ${claimed.length} action(s) were taken: ${claimed.join(", ")} ` +
+        `— served by ${[...providers].join(", ") || "an unnamed provider"}`,
+    );
     for (const tool of claimed) {
       assert.ok(
         dispatched.includes(tool.replace(/\./g, "_")),

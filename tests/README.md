@@ -49,12 +49,37 @@ which says nothing about the code under test. It is kept out of the
 deterministic suite rather than being skipped, weakened, or counted as green.
 
 It is also NOT deterministic, and should not be read as if it were. A real
-model decides how many actions to take, and the suite asserts at least
-three: observed here failing once with `only 1 action(s) were taken:
-workflow_list` and passing on the next run, same commit. A single red run of
-this file is evidence about one model response, not about the code — re-run
-it before concluding anything, and treat a repeatable failure very
-differently from a single one.
+model decides how many actions to take, and the test asserts at least three
+(list, author, run). A single red run is evidence about one model response,
+not about the code.
+
+Quantified on this container, eight runs, four on each of two commits — one
+of which contains no cognition changes at all:
+
+| | pass | fail |
+|---|---|---|
+| `516f133` | 1 | 3 |
+| `fdb8612` (baseline) | 2 | 2 |
+
+Every failure was the same: `only 1 action(s) were taken: workflow_list`.
+The cause is visible in the log — the two preferred providers answer 401
+here (`Invalid API Key`, `Wrong API Key`), so the run falls through to a
+fallback model that about half the time stops after step one of a
+three-step instruction. One of its calls returned `finishReason: "length"`
+having spent all 16 completion tokens on reasoning.
+
+So: compare against the baseline before reading a red run as a regression,
+and fix the credentials before reading it as a product defect. The
+assertion has NOT been relaxed to match the observed behaviour — it names
+the serving provider in its failure message instead, which is what tells
+the two apart.
+
+It earns its keep even when it is red. These runs are what found the two
+briefing defects fixed in `AgentCognitionRuntime.brief()` — a multi-cycle
+objective reporting that nothing had been executed, and a conclusion
+reached without acting being headlined exactly like work that ran. Neither
+was visible to any deterministic test, because only a real model decides
+when it is finished.
 
 ## The previous known failure, and what it actually was
 

@@ -325,7 +325,17 @@ export default class AgentCognitionRuntime {
     executed: Array<{ tool: string; ok: boolean }>,
   ): void {
     try {
-      const ran = executed.filter((entry) => entry.ok).map((entry) => entry.tool);
+      // What really ran across the WHOLE objective, not just the cycle
+      // that ended it.
+      //
+      // This was handed one cycle's results while its own reason line
+      // said "in this objective", so a multi-cycle objective whose last
+      // cycle happened to execute nothing reported that nothing had
+      // been executed at all — a false account of work that really
+      // happened, in the one place a person reads about it.
+      const earlier = this.objectives.cycles(objective.id).flatMap((record) => record.executed);
+      const succeeded = [...earlier, ...executed].filter((entry) => entry.ok);
+      const ran = [...new Set(succeeded.map((entry) => entry.tool))];
       const summary =
         reason.trim() ||
         (ran.length > 0
@@ -345,7 +355,15 @@ export default class AgentCognitionRuntime {
       BriefingStore.getInstance().create({
         title:
           category === "work-completed"
-            ? `Finished: ${objective.objective.slice(0, 80)}`
+            ? ran.length > 0
+              ? `Finished: ${objective.objective.slice(0, 80)}`
+              : // The runtime completes an objective when the model
+                // replies DONE:, and nothing requires a tool to have
+                // run first — a reasoned conclusion is a legitimate
+                // outcome for some work. What is NOT legitimate is a
+                // headline that reads like work was done when none
+                // was, so the two are named differently here.
+                `Concluded without acting: ${objective.objective.slice(0, 80)}`
             : `Stopped: ${objective.objective.slice(0, 80)}`,
         summary: summary.slice(0, 400),
         category,
@@ -353,8 +371,8 @@ export default class AgentCognitionRuntime {
         priority: category === "work-stopped" ? "P1" : "P2",
         reason:
           ran.length > 0
-            ? `${ran.length} action(s) really ran: ${ran.join(", ")}.`
-            : "No tool was executed in this objective.",
+            ? `${succeeded.length} action(s) really ran: ${ran.join(", ")}.`
+            : "No tool was executed in this objective — this is a conclusion, not completed work.",
         ...(objective.projectId ? { relatedProjectId: objective.projectId } : {}),
         relatedObjectiveId: objective.id,
         ...(conversationId ? { conversationId } : {}),

@@ -291,3 +291,176 @@ test("the Briefings panel is reachable and reads the store", () => {
   // It navigates to the work rather than describing it.
   assert.match(panel, /switchConversation\(/, "the panel cannot open the related conversation");
 });
+
+/* ------------------------------------------------------------------ *
+ * WHAT A BRIEFING IS ALLOWED TO CLAIM
+ *
+ * Found by running the live end-to-end test, which is the only place
+ * a real model decides when it is finished. Two defects, both in the
+ * one place a person actually reads about autonomous work.
+ * ------------------------------------------------------------------ */
+
+/**
+ * Install a provider that answers from a script, disabling the real
+ * ones for the duration. Returns a restore function.
+ *
+ * Each entry is one round of the tool loop: a round with toolCalls runs
+ * them and asks again, a round with text ends the deliberation.
+ */
+async function withScriptedProvider(
+  name: string,
+  rounds: Array<{ text?: string; toolCalls?: Array<{ id: string; name: string; arguments: unknown }> }>,
+): Promise<() => void> {
+  const service = AIService.getInstance();
+  await service.initialize();
+  const registry = service.getAIProviderRegistry();
+  const suspended = registry.all().filter((provider) => provider.enabled);
+  for (const provider of suspended) {
+    (provider as { enabled: boolean }).enabled = false;
+  }
+
+  let round = 0;
+  const fake = {
+    name,
+    priority: -1,
+    enabled: true,
+    timeout: 20_000,
+    requiresApiKey: false,
+    capabilities: ["chat"] as const,
+    supportsTools: true,
+    initialize: async () => {},
+    isAvailable: async () => true,
+    health: async () => ({ available: true, initialized: true, lastChecked: Date.now() }),
+    canHandle: () => true,
+    generate: async () => {
+      const step = rounds[Math.min(round, rounds.length - 1)];
+      round += 1;
+      return {
+        text: step.text ?? "",
+        provider: name,
+        model: "scripted",
+        processingTime: 1,
+        ...(step.toolCalls ? { toolCalls: step.toolCalls } : {}),
+        metadata: {},
+      };
+    },
+  };
+  registry.register(fake as never);
+  await registry.initialize();
+
+  return () => {
+    (fake as { enabled: boolean }).enabled = false;
+    for (const provider of suspended) {
+      (provider as { enabled: boolean }).enabled = true;
+    }
+  };
+}
+
+test("a briefing counts what ran across the WHOLE objective, not just its last cycle", async () => {
+  briefings.clear();
+
+  // THE BUG. brief() was handed one cycle's results while its own
+  // reason line said "in this objective". An objective that really did
+  // work in cycle 1 and then concluded in cycle 2 was therefore briefed
+  // as "No tool was executed in this objective" — a false account of
+  // work that had actually happened.
+  const path = `briefings/two-cycles-${Date.now()}.txt`;
+  const restore = await withScriptedProvider("TwoCycleProvider", [
+    // Cycle 1: really write something, then say something that is NOT
+    // a conclusion, so the objective stays active.
+    { toolCalls: [{ id: "c1", name: "sandbox_write", arguments: { path, content: "real work" } }] },
+    { text: "Wrote the file. Next I will check it back." },
+    // Cycle 2: conclude, taking no action this time.
+    { text: "DONE: the file is written." },
+  ]);
+
+  const runtime = AgentCognitionRuntime.getInstance();
+  runtime.start();
+  const objective = objectives.create({
+    agentId,
+    objective: "Write a file over two cycles.",
+    source: "cognition",
+  });
+
+  const first = await runtime.runCycle(objective.id, "test:cycle-one");
+  assert.ok(first, "the first cycle did not run");
+  assert.ok(
+    first.executed.some((entry) => entry.tool === "sandbox_write" && entry.ok),
+    "the first cycle was supposed to really execute something",
+  );
+  assert.equal(objectives.get(objective.id)?.state, "active", "the objective ended too early to test this");
+
+  // The runtime schedules its own next cycle after CYCLE_COOLDOWN_MS,
+  // so the second cycle is waited for rather than forced — which also
+  // exercises the continuation path instead of bypassing it.
+  const deadline = Date.now() + 20_000;
+  while (Date.now() < deadline && objectives.get(objective.id)?.state === "active") {
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  assert.equal(
+    objectives.get(objective.id)?.state,
+    "completed",
+    "the objective never reached its concluding cycle",
+  );
+
+  const concluding = objectives.cycles(objective.id).find((record) => record.nextState === "completed");
+  assert.ok(concluding, "no cycle recorded the completion");
+  assert.equal(
+    concluding.executed.length,
+    0,
+    "the concluding cycle was supposed to take no action — this test is about what the EARLIER cycle did",
+  );
+
+  const briefing = briefings.list().find((item) => item.relatedObjectiveId === objective.id);
+  assert.ok(briefing, "the work ended and nobody was told");
+  assert.match(
+    briefing.reason ?? "",
+    /sandbox_write/,
+    "the briefing forgot the work done in an earlier cycle and reported the objective as having executed nothing",
+  );
+  assert.match(briefing.title, /^Finished:/, "work that really ran should be briefed as finished");
+
+  restore();
+  runtime.stop();
+});
+
+test("a conclusion reached without executing anything is not headlined as finished work", async () => {
+  briefings.clear();
+
+  // The runtime completes an objective when the model replies DONE:,
+  // and nothing requires a tool to have run first. That is deliberate —
+  // some work is genuinely answerable by reasoning. What must not
+  // happen is the record reading like work was done when none was.
+  const restore = await withScriptedProvider("NoActionProvider", [
+    { text: "DONE: nothing needed doing." },
+  ]);
+
+  const runtime = AgentCognitionRuntime.getInstance();
+  runtime.start();
+  const objective = objectives.create({
+    agentId,
+    objective: "Decide whether anything needs doing.",
+    source: "cognition",
+  });
+
+  const outcome = await runtime.runCycle(objective.id, "test:no-action");
+  assert.ok(outcome);
+  assert.equal(outcome.executed.length, 0, "this case is about a cycle that executed nothing");
+  assert.equal(objectives.get(objective.id)?.state, "completed", "a reasoned conclusion should still end the work");
+
+  const briefing = briefings.list().find((item) => item.relatedObjectiveId === objective.id);
+  assert.ok(briefing, "the work ended and nobody was told");
+  assert.match(
+    briefing.title,
+    /^Concluded without acting:/,
+    "a completion with nothing executed is headlined as finished work",
+  );
+  assert.match(
+    briefing.reason ?? "",
+    /No tool was executed/,
+    "the briefing does not say that nothing ran",
+  );
+
+  restore();
+  runtime.stop();
+});
