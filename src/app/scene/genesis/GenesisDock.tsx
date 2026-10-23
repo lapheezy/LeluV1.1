@@ -759,11 +759,13 @@ export default function GenesisDock({
             setMenuOpen((open) => !open);
           }}
           onPointerDown={(event) => {
-            if (event.pointerType === "touch" && onCoreHoldVoice) {
+            if (onCoreHoldVoice) {
+              // Touch: 600ms deliberate hold; mouse: 500ms (no accidental drags).
+              const threshold = event.pointerType === "touch" ? 600 : 500;
               longPressRef.current = window.setTimeout(() => {
                 longPressFiredRef.current = true;
                 onCoreHoldVoice();
-              }, 600);
+              }, threshold);
             }
           }}
           onPointerUp={() => {

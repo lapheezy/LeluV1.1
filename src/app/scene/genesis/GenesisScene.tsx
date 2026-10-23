@@ -42,6 +42,7 @@ import GenesisController from "./GenesisController";
 import GenesisBridge from "./GenesisBridge";
 import ProactiveBridge from "./ProactiveBridge";
 import VoiceBridge from "./VoiceBridge";
+import CoreHoldGesture from "./CoreHoldGesture";
 
 import { useEffect, useState } from "react";
 import { useSceneMountLog }
@@ -297,7 +298,9 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
         */}
       <CosmosSkyBackdrop />
 
-      {/* The 3D cosmic core: orb, cosmos, atmosphere, evolution */}
+      {/* The 3D cosmic core: orb, cosmos, atmosphere, evolution.
+          CoreHoldGesture observes pointer events for hold-to-voice;
+          it does NOT intercept or prevent R3F / Three.js events. */}
       <div
         style={{
           position: "absolute",
@@ -305,15 +308,17 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
           zIndex: 1,
         }}
       >
-        <ReactSuspense fallback={null}>
-          <Canvas
-            camera={{ position: [0, 0, 5], fov: 50 }}
-            gl={{ alpha: true, antialias: true }}
-            style={{ width: "100%", height: "100%" }}
-          >
-            <GenesisController />
-          </Canvas>
-        </ReactSuspense>
+        <CoreHoldGesture>
+          <ReactSuspense fallback={null}>
+            <Canvas
+              camera={{ position: [0, 0, 5], fov: 50 }}
+              gl={{ alpha: true, antialias: true }}
+              style={{ width: "100%", height: "100%" }}
+            >
+              <GenesisController />
+            </Canvas>
+          </ReactSuspense>
+        </CoreHoldGesture>
       </div>
 
       {/* Phase indicator so the user can see lifecycle transitions */}
