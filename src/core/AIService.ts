@@ -34,6 +34,7 @@ import { agentSystemPrompt } from "./agents/AgentTypes";
 import AgentStore from "./agents/AgentStore";
 import AgentRunner from "./agents/AgentRunner";
 import ProactiveCore from "./proactive/ProactiveCore";
+import CuriosityEngine from "./curiosity/CuriosityEngine";
 import PromptInjectionGuard from "./security/PromptInjectionGuard";
 import ExecutiveBoard, { type BoardConsultation } from "./executive/ExecutiveBoard";
 import HealthIntelligence from "./caretaker/HealthIntelligence";
@@ -442,7 +443,19 @@ export default class AIService {
     // deliberately narrow: direct preference/decision language resolves a
     // pending question, while a new question or command remains independent.
     const pendingQuestion = proactive.getActiveQuestion();
-    if (pendingQuestion && this.looksLikeProactiveAnswer(message, pendingQuestion.question)) {
+    const answersPendingQuestion = Boolean(
+      pendingQuestion && this.looksLikeProactiveAnswer(message, pendingQuestion.question),
+    );
+    // Curiosity notices genuine ambiguity in what Heru asks for. An answer
+    // to a question is not a new request, so it is never observed as one.
+    if (!answersPendingQuestion) {
+      try {
+        CuriosityEngine.getInstance().observeConversation(message, options?.conversationId);
+      } catch (error) {
+        console.error("[AIService] Curiosity observation failed (contained)", error);
+      }
+    }
+    if (pendingQuestion && answersPendingQuestion) {
       proactive.resolveQuestion(pendingQuestion.id, message);
       if (pendingQuestion.category === "NEWS") {
         proactive.learnNewsPreferences(message);

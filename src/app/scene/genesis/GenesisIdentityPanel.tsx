@@ -15,17 +15,19 @@ import { useState, useEffect, type CSSProperties } from "react";
 import GenesisWindowFrame from "./GenesisWindowFrame";
 import LeluIdentity, { type LeluIdentityState, type LeluTrait } from "../../../core/identity/LeluIdentity";
 import DailyRecord, { type LeluDailyRecord } from "../../../core/identity/DailyRecord";
+import CuriosityEngine from "../../../core/curiosity/CuriosityEngine";
+import CuriosityLedger from "../../../core/curiosity/CuriosityLedger";
+import type { Curiosity, CuriosityStatus } from "../../../core/curiosity/Curiosity";
 
 type IdentityTab = "identity" | "journal" | "growth" | "relationship" | "questions" | "history";
 
 // ---- STYLES ----
 
+// The frame's own body scrolls (as in the Memory panel). A second scroller
+// with a percentage max-height stretched the frame past the viewport and
+// pushed its header and tabs off-screen.
 const panelStyle: CSSProperties = {
-  padding: "16px 20px",
-  overflowY: "auto",
-  maxHeight: "calc(100% - 30px)",
-  scrollbarWidth: "thin",
-  scrollbarColor: "rgba(148,163,184,0.3) transparent",
+  padding: "4px 2px",
 };
 
 const tabBarStyle: CSSProperties = {
@@ -245,10 +247,11 @@ function TraitCard({ trait }: { trait: LeluTrait }) {
   );
 }
 
-function GrowthView({ state, sandboxMode, onSandboxToggle }: {
+function GrowthView({ state, sandboxMode, onSandboxToggle, onChanged }: {
   state: LeluIdentityState;
   sandboxMode: boolean;
   onSandboxToggle: () => void;
+  onChanged: () => void;
 }) {
   const groups: Record<string, LeluTrait[]> = {
     established: [],
@@ -296,11 +299,11 @@ function GrowthView({ state, sandboxMode, onSandboxToggle }: {
               <span style={labelText}>{c.description.slice(0, 80)}</span>
               <div style={{ display: "flex", gap: 6 }}>
                 <button
-                  onClick={() => { LeluIdentity.getInstance().commitSandboxChange(c.id); window.location.reload(); }}
+                  onClick={() => { LeluIdentity.getInstance().commitSandboxChange(c.id); onChanged(); }}
                   style={{ padding: "2px 8px", fontSize: 10, borderRadius: 4, border: "1px solid #34d399", background: "transparent", color: "#34d399", cursor: "pointer" }}
                 >Apply</button>
                 <button
-                  onClick={() => { LeluIdentity.getInstance().dismissSandboxChange(c.id); window.location.reload(); }}
+                  onClick={() => { LeluIdentity.getInstance().dismissSandboxChange(c.id); onChanged(); }}
                   style={{ padding: "2px 8px", fontSize: 10, borderRadius: 4, border: "1px solid #f87171", background: "transparent", color: "#f87171", cursor: "pointer" }}
                 >Dismiss</button>
               </div>
@@ -359,19 +362,98 @@ function RelationshipView({ state }: { state: LeluIdentityState }) {
   );
 }
 
+const QUESTION_GROUPS: Array<{ label: string; statuses: CuriosityStatus[]; limit: number }> = [
+  { label: "Waiting for Heru", statuses: ["asking"], limit: 10 },
+  { label: "Investigating", statuses: ["retrieving", "investigating", "verifying", "learned", "applied"], limit: 10 },
+  { label: "Curious about", statuses: ["queued", "identified"], limit: 12 },
+  { label: "Recently learned", statuses: ["resolved"], limit: 8 },
+  { label: "Unresolved", statuses: ["blocked", "expired", "dismissed"], limit: 8 },
+];
+
+function CuriosityDetail({ id }: { id: string }) {
+  const explanation = CuriosityEngine.getInstance().explain(id);
+  if (!explanation) return null;
+  const rows: Array<[string, string | string[]]> = [
+    ["Detected", explanation.detected],
+    ["Why", explanation.why],
+    ["Potential action", explanation.potentialAction],
+    ["Tools", explanation.tools],
+    ["Permission", explanation.permissions],
+    ["Evidence", explanation.evidence],
+    ["Confidence", explanation.confidence],
+    ["Learning", explanation.learning],
+    ["Applied", explanation.applied],
+  ];
+  return (
+    <div style={{ marginTop: 8, borderTop: "1px solid rgba(148,163,184,0.12)", paddingTop: 6 }}>
+      {rows.map(([label, value]) => {
+        const items = Array.isArray(value) ? value : [value];
+        if (items.length === 0) return null;
+        return (
+          <div key={label} style={{ marginBottom: 4 }}>
+            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.55)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
+            {items.map((item, index) => (
+              <div key={index} style={{ fontSize: 11, color: "rgba(203,213,225,0.85)", lineHeight: 1.45, wordBreak: "break-word" }}>{item}</div>
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function QuestionsView({ state }: { state: LeluIdentityState }) {
-  if (state.curiosities.length === 0) {
-    return <div style={emptyText}>No curiosities recorded yet.</div>;
+  const [curiosities, setCuriosities] = useState<Curiosity[]>(() => CuriosityLedger.getInstance().list());
+  const [open, setOpen] = useState<string | null>(null);
+
+  useEffect(() => {
+    const ledger = CuriosityLedger.getInstance();
+    return ledger.subscribe(() => setCuriosities(ledger.list()));
+  }, []);
+
+  if (curiosities.length === 0 && state.curiosities.length === 0) {
+    return <div style={emptyText}>No curiosities yet. A quiet stretch is valid — nothing is invented to fill it.</div>;
   }
 
   return (
     <div>
-      <div style={sectionTitle}>Current Curiosities ({state.curiosities.length})</div>
-      {[...state.curiosities].reverse().map((q, i) => (
-        <div key={i} style={{ ...card, ...labelText }}>
-          {i + 1}. {q}
-        </div>
-      ))}
+      {QUESTION_GROUPS.map((group) => {
+        const items = curiosities.filter((item) => group.statuses.includes(item.status)).slice(0, group.limit);
+        if (items.length === 0) return null;
+        return (
+          <div key={group.label}>
+            <div style={sectionTitle}>{group.label} ({items.length})</div>
+            {items.map((item) => (
+              <div
+                key={item.id}
+                style={{ ...card, cursor: state.sandboxMode ? "pointer" : "default" }}
+                onClick={() => state.sandboxMode && setOpen(open === item.id ? null : item.id)}
+              >
+                <div style={labelText}>{item.hostQuestion?.text ?? item.question}</div>
+                <div style={{ fontSize: 10, color: "rgba(148,163,184,0.55)", marginTop: 3 }}>
+                  {item.category} · {item.status}
+                  {item.verification ? ` · ${item.verification.verdict} ${item.verification.confidence.toFixed(2)}` : ""}
+                  {item.learning?.retrievable ? " · remembered" : ""}
+                  {item.blockedReason ? ` · ${item.blockedReason}` : ""}
+                </div>
+                {item.learning && group.label === "Recently learned" && (
+                  <div style={{ ...labelText, fontSize: 11, marginTop: 4, color: "rgba(167,243,208,0.85)" }}>{item.learning.summary.slice(0, 220)}</div>
+                )}
+                {state.sandboxMode && open === item.id && <CuriosityDetail id={item.id} />}
+              </div>
+            ))}
+          </div>
+        );
+      })}
+      {state.curiosities.length > 0 && (
+        <>
+          <div style={sectionTitle}>From reflection ({state.curiosities.length})</div>
+          {[...state.curiosities].reverse().map((q, i) => (
+            <div key={i} style={{ ...card, ...labelText }}>{q}</div>
+          ))}
+        </>
+      )}
+      {state.sandboxMode && <div style={{ ...emptyText, fontSize: 11 }}>Sandbox Mode: click a question to see its full trace.</div>}
     </div>
   );
 }
@@ -425,8 +507,11 @@ export default function GenesisIdentityPanel({ onClose }: { onClose: () => void 
     if (!state) return;
     const identity = LeluIdentity.getInstance();
     identity.setSandboxMode(!state.sandboxMode);
-    setState(identity.getState());
+    setState({ ...identity.getState() });
   };
+
+  // getState() returns the same mutated object, so a copy is what makes React re-render.
+  const refresh = () => setState({ ...LeluIdentity.getInstance().getState() });
 
   const tabs: Array<{ id: IdentityTab; label: string }> = [
     { id: "identity", label: "Identity" },
@@ -438,7 +523,7 @@ export default function GenesisIdentityPanel({ onClose }: { onClose: () => void 
   ];
 
   return (
-    <GenesisWindowFrame label="LÉLU" title="Identity" onClose={onClose}>
+    <GenesisWindowFrame eyebrow="LÉLU" title="Identity" onClose={onClose} maxHeight="min(52vh, 480px)">
       <div style={panelStyle}>
         <div style={tabBarStyle}>
           {tabs.map((tab) => (
@@ -463,6 +548,7 @@ export default function GenesisIdentityPanel({ onClose }: { onClose: () => void 
                 state={state}
                 sandboxMode={state.sandboxMode}
                 onSandboxToggle={handleSandboxToggle}
+                onChanged={refresh}
               />
             )}
             {activeTab === "relationship" && <RelationshipView state={state} />}

@@ -40,6 +40,7 @@ import Sentinel from "../sentinel/Sentinel";
 import ProactiveCore, { type ProactiveQuestionInput } from "../proactive/ProactiveCore";
 import AgentEventBus from "../agent/AgentEvents";
 import SelfStudyEngine from "./SelfStudyEngine";
+import CuriosityEngine from "../curiosity/CuriosityEngine";
 import MultiChatStore from "../multichat/MultiChatStore";
 import { hasActiveWorkstream } from "../proactive/Workstream";
 import { backgroundInterval, backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
@@ -356,6 +357,16 @@ export default class CognitiveLoop {
         // Cognition must not depend on anything having started it from
         // the UI. If the continuous loop is not running, start it.
         study.start();
+      }
+
+      /* ---------------- CURIOSITY ---------------- */
+      // One bounded curiosity step per cycle: detect from what was
+      // observed, then pursue at most one question through memory, the
+      // permission-gated dispatcher, or Heru. Its own budgets bound it;
+      // the deadline here only guarantees this cycle cannot hang on it.
+      const curiosity = await withDeadline(CuriosityEngine.getInstance().tick(), null);
+      if (curiosity?.pursued) {
+        suggestions.push(`Curiosity: “${curiosity.pursued.question}” → ${curiosity.pursued.status}.`);
       }
 
       /* ---------------- API HEALTH CHECKS ---------------- */
