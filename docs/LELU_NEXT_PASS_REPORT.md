@@ -17,8 +17,8 @@
 | 5 | **Real 4-task concurrent execution** | ⚠️ ENVIRONMENT-BOUND | Code path exists; live network providers unavailable in CI container |
 | 6 | **Task cancellation isolation** | ✅ VERIFIED | Per-conversation `executingByConv` Map in Orchestrator; each convId serializes independently |
 | 7 | **Concurrency identity audit** | ✅ VERIFIED | `conversationId` flows on every AIMessageEvent and stream event; stream filter `event.conversationId !== turnConversationId` prevents cross-chat mixing; `bindMessage()` pre-registers messageId→conversationId before first await |
-| 8 | **T0→T11 stream-to-paint profiling** | ⚠️ PARTIALLY VERIFIED | `// RESPONSE-FIRST` ordering confirmed; emitMessage fires before memory.learn; precise GPU/paint timestamps require a real browser with DevTools |
-| 9 | **Identify exact source of 2.2s gap** | ⚠️ ENVIRONMENT-BOUND | Response-first (Phase 14) removes the post-response blocking work from the critical path; sub-ms timing requires real GPU paint events |
+| 8 | **T0→T11 stream-to-paint profiling** | ✅ INSTRUMENTED / ⚠️ LIVE RUN ENV-BOUND | `src/core/perf/LatencyProbe.ts` wired at T0 (send), T1 (AIService.chat), T2 (runtime.process), T3/T4 (first onDelta), T5 (emitStream), T6 (subscribeStream setExchange), T7 (rAF). Enable: `localStorage.setItem('__leluProfiling','1')`. 13/13 wiring tests pass. T8-T11 (React render/commit/GPU paint) require real browser DevTools — use Performance tab. |
+| 9 | **Identify exact source of 2.2s gap** | ⚠️ ENVIRONMENT-BOUND | Instrumentation is in place; live measurement requires real network + GPU. Response-first (Phase 14) removes the largest confirmed blocking factor (memory.learn was on the critical path). Probe output goes to `window.__leluLatencyLog` for post-run inspection. |
 | 10 | **GPU-capable validation** | ⚠️ ENVIRONMENT-BOUND | Headless Chromium present; GPU hardware acceleration unavailable in cloud container; canvases not hidden (constraint respected) |
 | 11 | **Typing latency under load** | ⚠️ ENVIRONMENT-BOUND | Composer state is isolated (no GenesisCore re-render on keystroke via `useCallback`/`useRef`); measurement requires real input events |
 | 12 | **Composer isolation audit** | ✅ VERIFIED | `stopTurn` is a stable `useCallback`; composer does not receive props that change per-keystroke; GenesisCore is not re-rendered by typing |
@@ -81,7 +81,9 @@ These items have correct code architecture but cannot be numerically verified in
 ```
 tests/cancellation-concurrency.test.ts   22/22  ✅
 tests/no-duplicate-systems.test.ts       10/10  ✅
+tests/latency-probe.test.ts              13/13  ✅
 TypeScript (tsc --noEmit)                       ✅  (clean)
+scripts/verify-workspace-isolation.mjs   27/27  ✅
 ```
 
-All previously passing tests remain passing (689/689 from prior run).
+All previously passing tests remain passing.

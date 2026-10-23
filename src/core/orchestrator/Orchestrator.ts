@@ -702,7 +702,10 @@ export default class Orchestrator {
         // Execute step through the AI pipeline
         const ai = AIService.getInstance();
         const contextPrompt = `[Task: ${task.goal}] Step: ${step.title} — ${step.description}`;
-        const response = await ai.chat(contextPrompt, undefined, undefined, { conversationId });
+        // Use taskId as the conversationId so each task gets its own
+        // AbortController and serialization queue — isolating tasks from
+        // user chats and from each other.
+        const response = await ai.chat(contextPrompt, undefined, undefined, { conversationId: taskId });
 
         // THE SAME RULE AS THE PATH ABOVE: a reply is not an execution.
         //

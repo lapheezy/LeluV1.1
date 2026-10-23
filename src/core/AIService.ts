@@ -41,6 +41,7 @@ import { buildCognitiveContext, formatCognitiveContext } from "./cognition/Cogni
 import CognitiveTrace from "./cognition/CognitiveTrace";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { markPerf } from "./perf/StartupTelemetry";
+import { mark as latencyMark } from "./perf/LatencyProbe";
 
 export interface AIActionEvent {
   id: string;
@@ -237,6 +238,8 @@ export default class AIService {
   }
 
   private emitStream(id: string, text: string, conversationId?: string): void {
+    // T5: stream event emitted to all listeners.
+    latencyMark("T5");
     for (const listener of this.streamListeners) {
       try {
         listener({ id, text, conversationId });
@@ -402,6 +405,9 @@ export default class AIService {
     if (!this.initialized) {
       await this.initialize();
     }
+
+    // T1: AIService has received the request.
+    latencyMark("T1");
 
     // Claim the conversation for the user BEFORE anything else runs.
     // Autonomous cognition checks this and stands down, so a self-study
@@ -605,7 +611,17 @@ export default class AIService {
         timestamp: Number(taskId),
         // True streaming: the provider pushes accumulated text as it
         // arrives and the UI renders it in place under `streamId`.
-        onDelta: (text) => this.emitStream(streamId, text, options?.conversationId),
+        onDelta: (() => {
+          let firstDelta = true;
+          return (text: string) => {
+            if (firstDelta) {
+              firstDelta = false;
+              latencyMark("T3"); // first SSE chunk from provider
+              latencyMark("T4"); // stream parser (same tick in this codebase)
+            }
+            this.emitStream(streamId, text, options?.conversationId);
+          };
+        })(),
         // Per-turn cancellation signal — combined with the provider's
         // own timeout inside each provider so whichever fires first wins.
         signal: controller.signal,
@@ -619,6 +635,8 @@ export default class AIService {
       // memories it produced are handed forward so BrainResolver and
       // composeFromMemory consume them instead of re-querying.
       const { request: enriched, memories: recalledForTurn } = await this.memory.enrich(request);
+      // T2: provider request is about to begin.
+      latencyMark("T2");
       const response = await this.runtime.process(enriched, { recalledMemories: recalledForTurn });
 
       trace.record(

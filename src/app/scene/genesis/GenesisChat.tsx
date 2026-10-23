@@ -49,6 +49,7 @@ import ExplorationController from "./ExplorationController";
 import ProactiveCore, { type ProactiveQuestion } from "../../../core/proactive/ProactiveCore";
 import { openWorkstream } from "../../../core/proactive/Workstream";
 import { markPerf } from "../../../core/perf/StartupTelemetry";
+import { startTrace as latencyStart, mark as latencyMark } from "../../../core/perf/LatencyProbe";
 import { cleanAssistantText } from "../../../core/router/ToolMarkup";
 import { useWorkspace } from "./useWorkspace";
 import { layer } from "../../../core/ui/Layers";
@@ -723,6 +724,8 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     if (!typed && media.length === 0 && files.length === 0) {
       return;
     }
+    // T0: send pressed.
+    latencyStart();
     cancelledRef.current = false;
 
     const displayParts: string[] = [];
@@ -827,6 +830,8 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         // Deltas belong to this turn's conversation, not to whatever is
         // selected when they arrive.
         if (!stillViewingTurn()) return;
+        // T5 was marked in AIService.emitStream; T6 is when GenesisChat acts.
+        latencyMark("T6");
         setExchange((current) =>
           current && streamed !== current.assistant
             ? { ...current, assistant: cleanAssistantText(streamed), fast: true }
