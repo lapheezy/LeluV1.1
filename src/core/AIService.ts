@@ -41,7 +41,7 @@ import { buildCognitiveContext, formatCognitiveContext } from "./cognition/Cogni
 import CognitiveTrace from "./cognition/CognitiveTrace";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { markPerf } from "./perf/StartupTelemetry";
-import { mark as latencyMark } from "./perf/LatencyProbe";
+import { mark as latencyMark, annotate as latencyAnnotate, traceError as latencyTraceError } from "./perf/LatencyProbe";
 
 export interface AIActionEvent {
   id: string;
@@ -566,6 +566,10 @@ export default class AIService {
         .join("\n\n");
 
       const streamId = crypto.randomUUID();
+      // Annotate the latency probe so this turn's streamId appears in the
+      // trace record alongside the exchangeId set by GenesisChat at T0.
+      // The two IDs are separate UUIDs — this is the link that correlates them.
+      latencyAnnotate("streamId", streamId);
 
       // Pre-bind the reply to its conversation before any await. Without
       // this, a concurrent turn from a different conversation can call
@@ -753,6 +757,11 @@ export default class AIService {
       const errorText = PromptInjectionGuard.getInstance().redactSecrets(
         error instanceof Error ? error.message : String(error),
       );
+      // Record the failure stage in the latency trace.
+      // PromptInjectionGuard.redactSecrets() already removed tokens/keys above.
+      // Use stage "D" (Provider) since this catch wraps the entire provider path;
+      // a more specific stage would require re-throwing at each sub-boundary.
+      latencyTraceError("D=Provider", errorText || "Unknown provider error");
 
       this.emitNotification({
         title: "Lélu Error",

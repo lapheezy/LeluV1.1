@@ -49,7 +49,7 @@ import ExplorationController from "./ExplorationController";
 import ProactiveCore, { type ProactiveQuestion } from "../../../core/proactive/ProactiveCore";
 import { openWorkstream } from "../../../core/proactive/Workstream";
 import { markPerf } from "../../../core/perf/StartupTelemetry";
-import { startTrace as latencyStart, mark as latencyMark } from "../../../core/perf/LatencyProbe";
+import { startTrace as latencyStart, mark as latencyMark, annotate as latencyAnnotate, traceError as latencyTraceError } from "../../../core/perf/LatencyProbe";
 import { cleanAssistantText } from "../../../core/router/ToolMarkup";
 import { useWorkspace } from "./useWorkspace";
 import { layer } from "../../../core/ui/Layers";
@@ -724,8 +724,10 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     if (!typed && media.length === 0 && files.length === 0) {
       return;
     }
-    // T0: send pressed.
-    latencyStart();
+    // T0: send pressed. Capture the traceId so downstream annotate() calls
+    // can be pinned to this exact trace (guards against a concurrent trace
+    // started by voice input in the same profiling window).
+    const _latencyTraceId = latencyStart();
     cancelledRef.current = false;
 
     const displayParts: string[] = [];
@@ -742,6 +744,11 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     const prompt = promptParts.join("\n\n");
 
     const exchangeId = crypto.randomUUID();
+    // Correlate this UI exchange with the latency trace so both the
+    // exchangeId (UI layer) and the streamId (AIService layer) appear in
+    // the same trace record — linking the full pipeline without a second
+    // request system.
+    latencyAnnotate("exchangeId", exchangeId, _latencyTraceId);
     clearTimers();
     setInput("");
     setPendingMedia([]);
@@ -914,6 +921,12 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         return;
       }
       const messageText = error instanceof Error ? error.message : String(error);
+      // Record in the latency trace — stage F (Subscription/exchange) because
+      // this catch wraps the outer try that contains the Orchestrator call and
+      // the stream subscription. AIService catches D-level errors before they
+      // propagate here, so what reaches this catch is typically an F-level
+      // failure (stream lifecycle, exchange state, subscription error).
+      latencyTraceError("F=Subscription", messageText.slice(0, 120));
       notify("Lélu Error", messageText);
       if (stillViewingTurn()) {
         setExchange((current) =>

@@ -53,7 +53,11 @@ export type CognitiveStage =
   | "TOOL_CALL"
   | "RESULT"
   | "RESPONSE"
-  | "MEMORY_WRITE";
+  | "MEMORY_WRITE"
+  // UI-layer streaming stages (recorded by GenesisChat, not AIService):
+  | "STREAM_EMIT"       // AIService.emitStream() fired the event
+  | "STREAM_SUBSCRIBER" // GenesisChat subscribeStream callback received the event
+  | "EXCHANGE_UPDATE";  // setExchange() was called to update the UI exchange
 
 export interface CognitiveTraceEntry {
   stage: CognitiveStage;
