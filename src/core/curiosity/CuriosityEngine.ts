@@ -36,8 +36,17 @@ import {
   curiosityPermission,
   DAY_MS,
   DEFAULT_BUDGET,
-  deriveFollowUp,
+  deriveFollowUps,
   describeCause,
+  discoverAlternatives,
+  capabilityStates,
+  failureKind,
+  REVISIT_MIN_INTERVAL_MS,
+  revalidationPolicyFor,
+  revalidationTrigger,
+  tendencyBoost,
+  toolFingerprint,
+  VERIFY_PROBES,
   detectConversationAmbiguity,
   detectOwnFailurePatterns,
   detectRepeatedFailures,
@@ -67,12 +76,15 @@ import {
   type CuriosityLearning,
   type CuriositySignal,
   type CuriosityStatus,
+  type CapabilityStateRow,
+  type LearnedStrategy,
   type ObservedFailure,
+  type ReevaluationTrigger,
   type ToolCandidate,
   type ToolIntent,
 } from "./Curiosity";
 import CuriosityLedger, { isTerminal } from "./CuriosityLedger";
-import { createDefaultPorts, type CuriosityPorts, type DispatchResult } from "./CuriosityPorts";
+import { createDefaultPorts, SELF_MODEL_PREFIX, type CuriosityPorts, type DispatchResult } from "./CuriosityPorts";
 
 const TASK_PREFIX = "curiosity-";
 const HOST_KEY_PREFIX = "curiosity:";
@@ -91,6 +103,7 @@ export interface CuriosityTickReport {
   noticed: string[];
   expired: number;
   pursued?: { id: string; question: string; status: CuriosityStatus; verdict?: string };
+  revisited?: { id: string; question: string; trigger: ReevaluationTrigger; outcome: string };
 }
 
 export interface CuriosityExplanation {
@@ -105,6 +118,9 @@ export interface CuriosityExplanation {
   learning: string;
   applied: string[];
   status: CuriosityStatus;
+  route: string;
+  personalityImpact: string;
+  reevaluations: string[];
 }
 
 async function deadline<T>(work: Promise<T>, fallback: T, ms: number): Promise<T> {
@@ -138,6 +154,14 @@ export default class CuriosityEngine {
   private enabled = true;
   private autoInvestigate = true;
   private capabilityScanIntervalMs = DAY_MS;
+  /** How often, at most, the environment is re-probed while a learned constraint is in force. */
+  private environmentCheckIntervalMs = 10 * 60 * 1000;
+  private lastEnvironmentCheck = 0;
+  private successes: Array<{ tool: string; taskId: string; at: number }> = [];
+  /** Tools a later investigation wanted but a constraint excluded — the finding is relevant again. */
+  private wanted = new Map<string, number>();
+  private revisitRequests = new Set<string>();
+  private discoveryNoted = new Set<string>();
 
   private constructor(ports?: CuriosityPorts) {
     this.ports = ports ?? createDefaultPorts();
@@ -156,7 +180,8 @@ export default class CuriosityEngine {
     return CuriosityEngine.instance;
   }
 
-  public configure(options: { enabled?: boolean; autoInvestigate?: boolean; budget?: Partial<CuriosityBudget>; capabilityScanIntervalMs?: number }): void {
+  public configure(options: { enabled?: boolean; autoInvestigate?: boolean; budget?: Partial<CuriosityBudget>; capabilityScanIntervalMs?: number; environmentCheckIntervalMs?: number }): void {
+    if (options.environmentCheckIntervalMs !== undefined) this.environmentCheckIntervalMs = options.environmentCheckIntervalMs;
     if (options.enabled !== undefined) this.enabled = options.enabled;
     if (options.autoInvestigate !== undefined) this.autoInvestigate = options.autoInvestigate;
     if (options.budget) this.budget = { ...this.budget, ...options.budget };
@@ -181,6 +206,14 @@ export default class CuriosityEngine {
           this.failures = [...this.failures, failure].slice(-MAX_FAILURE_WINDOW);
         }),
       );
+      if (this.ports.onToolSuccess) {
+        this.detachers.push(
+          this.ports.onToolSuccess((success) => {
+            if (success.taskId.startsWith(TASK_PREFIX)) return;
+            this.successes = [...this.successes, success].slice(-MAX_FAILURE_WINDOW);
+          }),
+        );
+      }
       this.detachers.push(
         this.ports.onHostChange((change) => {
           if (!change.key.startsWith(HOST_KEY_PREFIX)) return;
@@ -234,6 +267,18 @@ export default class CuriosityEngine {
     if (existing) {
       const sameSituation = existing.evidenceFingerprint === signal.evidenceFingerprint;
       if ((existing.status === "resolved" || existing.status === "dismissed") && sameSituation) {
+        // Meeting the same question again is a reason to ask whether the
+        // old answer still holds — when it is the kind that can go stale.
+        const learning = existing.learning;
+        if (
+          existing.status === "resolved" &&
+          learning?.revalidation &&
+          learning.revalidation !== "stable" &&
+          now - Math.max(learning.verifiedAt ?? 0, existing.lastReevaluationAt ?? 0) >= REVISIT_MIN_INTERVAL_MS
+        ) {
+          this.revisitRequests.add(existing.id);
+          return { curiosity: existing, merged: true, reason: "already known — revisit requested" };
+        }
         return { curiosity: existing, merged: true, reason: existing.status === "resolved" ? "already known" : "already dismissed" };
       }
       const reopen = isTerminal(existing.status) || (existing.status === "blocked" && !sameSituation);
@@ -365,11 +410,41 @@ export default class CuriosityEngine {
       }
 
       if (!this.autoInvestigate) return { ...report, ran: true, reason: "investigation is switched off; only noticing" };
-      const next = this.ledger.pursuable(now).find((item) => (item.nextAttemptAt ?? 0) <= now);
-      if (!next) return { ...report, ran: true, reason: "nothing worth pursuing right now" };
 
-      const pursued = await this.pursueUnlocked(next.id, budget);
+      // Bounded environment check: only while a learned constraint is in
+      // force, and at most once per interval.
+      if (this.ledger.constraints().length > 0 && this.ports.refreshCapabilities && now - this.lastEnvironmentCheck >= this.environmentCheckIntervalMs) {
+        this.lastEnvironmentCheck = now;
+        await deadline(this.ports.refreshCapabilities(), undefined, budget.stepTimeoutMs);
+      }
+
+      // ONE action per tick: rank pursuit and re-evaluation together.
+      const tendencies = this.ports.traitTendencies?.() ?? [];
+      type Action = { kind: "pursue" | "revisit"; c: Curiosity; tier: number; score: number; traits: string[]; trigger?: ReevaluationTrigger };
+      const actions: Action[] = [];
+      for (const c of this.ledger.pursuable(now)) {
+        if ((c.nextAttemptAt ?? 0) > now) continue;
+        const { boost, traits } = tendencyBoost(c, tendencies);
+        actions.push({ kind: "pursue", c, tier: c.tier, score: c.priority * boost, traits });
+      }
+      for (const { c, trigger } of this.revalidationCandidates(now)) {
+        const urgent = trigger === "environment-changed" || trigger === "new-evidence";
+        const { boost, traits } = tendencyBoost({ ...c, status: "revisiting" }, tendencies);
+        actions.push({ kind: "revisit", c, tier: urgent ? Math.min(c.tier, 2) : Math.max(c.tier, 6), score: c.priority * (urgent ? 1.2 : 1) * boost, traits, trigger });
+      }
+      actions.sort((a, b) => a.tier - b.tier || b.score - a.score || a.c.createdAt - b.c.createdAt);
+      const next = actions[0];
+      if (!next) return { ...report, ran: true, reason: "nothing worth pursuing right now" };
+      if (next.traits.length > 0) this.note(next.c.id, "tendency", `Ranked with developing tendency: ${next.traits.join(", ")}.`);
+
       report.ran = true;
+      if (next.kind === "revisit" && next.trigger) {
+        const revisited = await this.revisitUnlocked(next.c.id, next.trigger, budget);
+        const last = revisited?.reevaluations?.at(-1);
+        report.revisited = { id: next.c.id, question: next.c.question, trigger: next.trigger, outcome: last?.outcome ?? "inconclusive" };
+        return report;
+      }
+      const pursued = await this.pursueUnlocked(next.c.id, budget);
       if (pursued) {
         report.pursued = { id: pursued.id, question: pursued.question, status: pursued.status, verdict: pursued.verification?.verdict };
       }
@@ -553,7 +628,74 @@ export default class CuriosityEngine {
 
   private candidatesFor(c: Curiosity): Array<{ candidate: ToolCandidate; tool: CatalogTool; permission: ReturnType<typeof curiosityPermission>; permitted: boolean }> {
     const catalog = this.catalogMap();
-    return selectTools(c, [...catalog.values()], this.ledger.constraints(), true)
+    const constraints = this.ledger.constraints();
+    const base = selectTools(c, [...catalog.values()], constraints, true);
+    const sig = (candidate: { tool: string; args: Record<string, unknown> }) => `${candidate.tool}:${JSON.stringify(candidate.args)}`;
+    const kept = new Set(base.map(sig));
+
+    // The capabilities this curiosity cannot use as it stands. Permission
+    // refusals are deliberately NOT here: an alternative must never be a
+    // way around a "no" — that goes to Heru as a proposal instead.
+    const blocked: Array<{ tool: string; args: Record<string, unknown>; why: string }> = [];
+    for (const candidate of selectTools(c, [...catalog.values()], [], true)) {
+      if (candidate.tool.startsWith("internal:")) continue;
+      const rule = constraints.find((item) => item.tool === candidate.tool);
+      if (!kept.has(sig(candidate)) && rule && failureKind(rule.cause) !== "permission") {
+        this.wanted.set(candidate.tool, this.ports.now());
+        blocked.push({ tool: candidate.tool, args: candidate.args, why: `known not to work here: ${rule.reason}` });
+      } else if (kept.has(sig(candidate)) && catalog.get(candidate.tool) && !catalog.get(candidate.tool)!.available) {
+        blocked.push({ tool: candidate.tool, args: candidate.args, why: "not available in this runtime" });
+      }
+    }
+    for (const intent of c.proposedActions) {
+      const kind = failureKind(intent.cause);
+      if (intent.outcome === "failed" && !intent.alternativeFor && (kind === "availability" || kind === "environment") && !blocked.some((item) => item.tool === intent.tool)) {
+        blocked.push({ tool: intent.tool, args: intent.args, why: `it just failed (${intent.cause})` });
+      }
+    }
+    if (c.subject?.alternativeFor) blocked.push({ tool: c.subject.alternativeFor, args: {}, why: "this question asks what can stand in for it" });
+
+    const alternatives: ToolCandidate[] = [];
+    for (const need of blocked) {
+      const preferred = catalog.get(need.tool);
+      if (!preferred) continue;
+      const found = discoverAlternatives({
+        preferred,
+        args: need.args,
+        catalog: [...catalog.values()],
+        permitted: (id) => this.ports.permitted(id),
+        constraints,
+        background: true,
+        strategies: this.ledger.strategies(),
+        parameters: (id) => this.ports.toolParameters?.(id),
+        reliability: (id) => this.reliability(id),
+      });
+      const noteKey = `${c.id}:${need.tool}`;
+      if (!this.discoveryNoted.has(noteKey)) {
+        this.discoveryNoted.add(noteKey);
+        const rejected = found.rejected.map((item) => `${item.tool} (${item.reason})`).join("; ");
+        this.note(
+          c.id,
+          "discovery",
+          found.options.length > 0
+            ? `${need.tool} cannot be used (${need.why}). Compared ${found.options.length + found.rejected.length} existing capabilities; chose ${found.options[0].tool} — ${found.options[0].why}.${rejected ? ` Rejected: ${rejected}.` : ""}`
+            : `${need.tool} cannot be used (${need.why}), and no existing authorized capability provides the same thing.${rejected ? ` Considered: ${rejected}.` : ""}`,
+        );
+      }
+      const best = found.options[0];
+      if (!best) continue;
+      alternatives.push({
+        tool: best.tool,
+        args: best.args,
+        objective: c.question,
+        reason: `Capability discovery: ${need.tool} cannot be used (${need.why}); ${best.tool} can stand in — ${best.why}.`,
+        expectedEvidence: `what ${need.tool} would have provided`,
+        alternativeFor: need.tool,
+      });
+    }
+    const all = [...base];
+    for (const alternative of alternatives) if (!all.some((item) => sig(item) === sig(alternative))) all.push(alternative);
+    return all
       .map((candidate) => {
         const tool = catalog.get(candidate.tool);
         if (!tool) return null;
@@ -611,7 +753,22 @@ export default class CuriosityEngine {
       args: candidate.args,
       permission,
       permitted,
+      ...(candidate.alternativeFor ? { alternativeFor: candidate.alternativeFor } : {}),
     };
+  }
+
+  /** How her own use of a tool has gone, from her records. */
+  private reliability(tool: string): { ok: number; failed: number } {
+    let ok = 0;
+    let failed = 0;
+    for (const c of this.ledger.list()) {
+      for (const intent of c.proposedActions) {
+        if (intent.tool !== tool) continue;
+        if (intent.outcome === "ok") ok += 1;
+        else if (intent.outcome === "failed" || intent.outcome === "timeout") failed += 1;
+      }
+    }
+    return { ok, failed };
   }
 
   /* ------------------------------ RETRIEVE ----------------------------- */
@@ -647,9 +804,14 @@ export default class CuriosityEngine {
     // restating the request ("Heru wants her more autonomous") is the
     // question again, not its answer.
     const source = c.context.trim().slice(0, 40).toLowerCase();
+    // A diagnosis is answered only by a recorded diagnosis OF THAT TOOL — a
+    // memory that merely mentions the tool (e.g. in a list of related ones)
+    // says nothing about why it fails.
+    const diagnosedTool = c.subject?.tool && c.subject.cause ? c.subject.tool : null;
     const answering = hits.filter(
       (hit) =>
         memoryAnswers(c.keywords, hit) &&
+        (!diagnosedTool || hit.text.includes(`${diagnosedTool} fails because`) || hit.text.includes(`${diagnosedTool} is usable again`)) &&
         !(source.length >= 20 && hit.text.toLowerCase().includes(source)) &&
         (c.category !== "host" || isRecordedClarification(hit.text)),
     );
@@ -875,6 +1037,15 @@ export default class CuriosityEngine {
           };
     }
     const claim = supports.map((item) => item.claim).join(" ").slice(0, 400);
+    const stoodIn = c.proposedActions.find((intent) => intent.alternativeFor && intent.outcome === "ok");
+    if (stoodIn && c.subject?.alternativeFor) {
+      return {
+        type: "capability",
+        summary: `${stoodIn.tool} can stand in when ${stoodIn.alternativeFor} cannot be used — ${stoodIn.reason.split("can stand in — ")[1] ?? "same capability"} Verified by use: ${(stoodIn.resultSummary ?? "").slice(0, 160)}`,
+        keywords: [...new Set([...keywords, stoodIn.tool, c.subject.alternativeFor])].slice(0, 6),
+        layer: "system",
+      };
+    }
     if (c.category === "capability") {
       return { type: c.subject?.cause ? "technical-knowledge" : "capability", summary: `${c.question} — ${claim}`, keywords, layer };
     }
@@ -902,7 +1073,7 @@ export default class CuriosityEngine {
     const c = this.ledger.get(id);
     if (!c) return undefined;
     this.ledger.update(id, { verification });
-    const learning = await this.remember(c, this.learningFor(c), budget);
+    const learning = this.withRevalidation(c, await this.remember(c, this.learningFor(c), budget));
 
     if (!learning.retrievable) {
       return this.transition(
@@ -917,7 +1088,7 @@ export default class CuriosityEngine {
     this.transition(id, "learned", `${learning.type}: ${learning.summary}`, { learning, answer: learning.summary });
     this.journal("lessons", `Curiosity — ${learning.summary}`);
 
-    const applied = this.apply(this.ledger.get(id) ?? c);
+    const applied = await this.apply(this.ledger.get(id) ?? c, budget);
     if (applied.length > 0) {
       this.transition(id, "applied", applied.join(" "), { appliedResult: applied });
     } else {
@@ -930,27 +1101,231 @@ export default class CuriosityEngine {
     return this.ledger.get(id);
   }
 
+  /** Revalidation metadata: when it was verified, whether it can go stale, and what it depends on. */
+  private withRevalidation(c: Curiosity, learning: CuriosityLearning): CuriosityLearning {
+    const { policy, afterMs } = revalidationPolicyFor(c, learning);
+    const tool = c.subject?.tool ?? c.subject?.alternativeFor ?? c.subject?.preferred?.tool;
+    const catalog = this.catalogMap();
+    return {
+      ...learning,
+      verifiedAt: this.ports.now(),
+      revalidation: policy,
+      ...(afterMs !== undefined ? { revalidateAfterMs: afterMs } : {}),
+      ...(tool ? { dependency: { tool, fingerprint: toolFingerprint(catalog.get(tool), this.ports.permitted(tool)) } } : {}),
+    };
+  }
+
   /** Does this change what she does? If so, change it — through existing systems only. */
-  private apply(c: Curiosity): string[] {
+  private async apply(c: Curiosity, budget: CuriosityBudget): Promise<string[]> {
     const applied: string[] = [];
     if (c.subject?.tool && c.subject.cause && (c.category === "technical" || c.category === "self")) {
-      if (["unavailable", "missing-context", "not-permitted", "not-configured", "unknown-tool"].includes(c.subject.cause)) {
+      const kind = failureKind(c.subject.cause);
+      if (kind === "availability" || kind === "environment" || kind === "permission" || c.subject.cause === "unknown-tool") {
         const rule = constraintFromDiagnosis(c.subject.tool, c.subject.cause, c.id, this.ports.now());
         this.ledger.addConstraint(rule);
         applied.push(
-          `Future ${rule.scope === "background" ? "background " : ""}investigations will not select ${rule.tool} (${rule.cause}).`,
+          `Future ${rule.scope === "background" ? "background " : ""}investigations will not select ${rule.tool} (${rule.cause}) until its state changes.`,
         );
       }
-      if (c.category === "technical" && c.importance >= 0.7 && (c.subject.cause === "unavailable" || c.subject.cause === "not-configured")) {
+      const proposalTitle =
+        c.category === "technical" && c.importance >= 0.7 && (c.subject.cause === "unavailable" || c.subject.cause === "not-configured")
+          ? `Restore ${c.subject.tool}: ${describeCause(c.subject.cause)}`
+          : kind === "permission" && c.importance >= 0.6
+            ? `Approve ${c.subject.tool}? ${describeCause(c.subject.cause)}`
+            : null;
+      if (proposalTitle) {
+        // Never a way around the "no": a permission failure becomes a request, not a retry.
         const proposal = this.ports.proposeObjective(
-          `Restore ${c.subject.tool}: ${describeCause(c.subject.cause)}`,
+          proposalTitle,
           `Proposed by curiosity ${c.id}: ${c.learning?.summary ?? c.question} Approve to make it work; nothing has been changed.`,
         );
         applied.push(proposal.created ? `Proposed a REVIEW objective for Heru (${proposal.id}).` : `An open REVIEW proposal already covers this (${proposal.id}).`);
+        if (proposal.created) this.journal("tomorrowFocus", `Proposed: ${proposalTitle}`);
+      }
+    }
+    // A capability that stood in for another becomes a learned strategy.
+    if (c.verification?.verdict === "verified" || verifyEvidence(c.evidence).verdict === "verified") {
+      for (const intent of c.proposedActions) {
+        if (!intent.alternativeFor || intent.outcome !== "ok") continue;
+        const strategy: LearnedStrategy = {
+          id: crypto.randomUUID(),
+          forTool: intent.alternativeFor,
+          alternative: intent.tool,
+          need: intent.expectedEvidence,
+          carriedArgs: Object.keys(intent.args),
+          reason: `${intent.tool} answered when ${intent.alternativeFor} could not be used`,
+          verifiedAt: this.ports.now(),
+          learnedFrom: c.id,
+          status: "current",
+        };
+        this.ledger.addStrategy(strategy);
+        applied.push(`Learned strategy: when ${strategy.forTool} cannot be used, ${strategy.alternative} stands in.`);
+        this.journal("lessons", `Strategy: when ${strategy.forTool} cannot be used, ${strategy.alternative} can stand in (verified by use).`);
+        if (!c.subject?.alternativeFor) {
+          // The answer itself was stored above; the strategy is its own memory.
+          await deadline(
+            this.ports.consolidate("system", `Strategy: when ${strategy.forTool} cannot be used, ${strategy.alternative} can stand in (verified by use).`, [strategy.forTool, strategy.alternative, "strategy"]),
+            false,
+            budget.stepTimeoutMs,
+          );
+        }
       }
     }
     if (c.relatedObjectiveIds.length > 0) applied.push(`Attached to objective(s) ${c.relatedObjectiveIds.join(", ")}.`);
+    this.syncSelfModel();
     return applied;
+  }
+
+  /** What she knows about her own capabilities, from verified state only. */
+  public capabilityStates(): CapabilityStateRow[] {
+    return capabilityStates({
+      catalog: this.ports.catalog(),
+      permitted: (id) => this.ports.permitted(id),
+      constraints: this.ledger.constraints(),
+      curiosities: this.ledger.list(),
+      now: this.ports.now(),
+    });
+  }
+
+  public strategies(): LearnedStrategy[] {
+    return this.ledger.strategies();
+  }
+
+  private syncSelfModel(): void {
+    if (!this.ports.syncSelfModel) return;
+    try {
+      const limitations = this.ledger.constraints().map((rule) => `${SELF_MODEL_PREFIX}${rule.tool}: ${rule.reason}${rule.scope === "background" ? " (outside a live conversation)" : ""}`);
+      const discoveries = this.ledger
+        .strategies()
+        .filter((item) => item.status === "current")
+        .map((item) => `${SELF_MODEL_PREFIX}strategy: when ${item.forTool} cannot be used, ${item.alternative} stands in.`);
+      this.ports.syncSelfModel(limitations, discoveries);
+    } catch {
+      // The self-model is a view; failing to refresh it never undoes a finding.
+    }
+  }
+
+  /* ----------------------------- RE-EVALUATION ----------------------------- */
+
+  /** Resolved findings whose truth may have changed, with the reason. Pure checks; no tool runs here. */
+  private revalidationCandidates(now: number): Array<{ c: Curiosity; trigger: ReevaluationTrigger }> {
+    const catalog = this.catalogMap();
+    const out: Array<{ c: Curiosity; trigger: ReevaluationTrigger }> = [];
+    for (const c of this.ledger.list()) {
+      const trigger = revalidationTrigger(c, {
+        now,
+        currentFingerprint: (tool) => toolFingerprint(catalog.get(tool), this.ports.permitted(tool)),
+        succeededSince: (tool, since) => this.successes.some((item) => item.tool === tool && item.at > since),
+        wanted: (tool) => (this.wanted.get(tool) ?? 0) > Math.max(c.learning?.verifiedAt ?? 0, c.lastReevaluationAt ?? 0),
+        revisitRequested: this.revisitRequests.has(c.id),
+      });
+      if (trigger) out.push({ c, trigger });
+    }
+    return out;
+  }
+
+  public async revalidate(id: string, trigger: ReevaluationTrigger, budget: CuriosityBudget = this.budget): Promise<Curiosity | undefined> {
+    if (this.busy) return this.ledger.get(id);
+    this.busy = true;
+    try {
+      await this.ports.prepare();
+      return await this.revisitUnlocked(id, trigger, budget);
+    } finally {
+      this.busy = false;
+    }
+  }
+
+  /**
+   * "I learned X. Is X still true?" — ONE bounded check, never a retry
+   * loop. Recovered → the old finding is superseded (kept in history), the
+   * constraint lifted, the new state learned. Not recovered → confirmed,
+   * re-dated, and left alone until the next trigger.
+   */
+  private async revisitUnlocked(id: string, trigger: ReevaluationTrigger, budget: CuriosityBudget): Promise<Curiosity | undefined> {
+    const c = this.ledger.get(id);
+    const learning = c?.learning;
+    if (!c || !learning) return c;
+    this.revisitRequests.delete(id);
+    const tool = learning.dependency?.tool;
+    const before = learning.summary;
+    const reasons: Record<ReevaluationTrigger, string> = {
+      "environment-changed": "the state this finding depends on has changed",
+      "time-sensitive": "this kind of finding can drift with time",
+      "new-evidence": "the tool has since worked in a conversation",
+      "relevant-again": "a newer question needed the tool it rules out",
+      revisited: "I met the same question again",
+    };
+    this.transition(id, "revisiting", `Re-evaluating “${before.slice(0, 120)}” because ${reasons[trigger]}.`);
+    const now = this.ports.now();
+    const finish = (patch: Partial<Curiosity>, outcome: "confirmed" | "superseded" | "inconclusive", after: string, fingerprint?: string) => {
+      const current = this.ledger.get(id) ?? c;
+      return this.transition(id, "resolved", `Re-evaluation ${outcome}: ${after}`, {
+        ...patch,
+        lastReevaluationAt: now,
+        reevaluations: [...(current.reevaluations ?? []), { at: now, trigger, before, after, outcome, fingerprint }],
+      });
+    };
+
+    if (!tool) {
+      return finish({}, "inconclusive", "This finding names no capability I can re-check directly.");
+    }
+    if (trigger !== "environment-changed" && this.ports.refreshCapabilities) {
+      await deadline(this.ports.refreshCapabilities(), undefined, budget.stepTimeoutMs);
+    }
+    const catalog = this.catalogMap();
+    const row = catalog.get(tool);
+    const permitted = this.ports.permitted(tool);
+    const fingerprint = toolFingerprint(row, permitted);
+    const cause = c.subject?.cause;
+
+    let recovered = false;
+    let evidence = `registry: available=${row?.available ?? false}, permitted=${permitted}, executable=${row?.executable ?? false}`;
+    if (row && row.available && permitted && row.executable) {
+      const probe = VERIFY_PROBES[tool];
+      if (probe) {
+        const candidate: ToolCandidate = {
+          tool,
+          args: probe,
+          objective: `Is ${tool} usable again?`,
+          reason: `Re-evaluating “${before.slice(0, 80)}” (${trigger}): one read-only call proves it either way.`,
+          expectedEvidence: "a successful read-only call",
+        };
+        const { intent, result } = await this.runIntent(this.ledger.get(id) ?? c, candidate, row, curiosityPermission(row), permitted, budget);
+        recovered = result.ok;
+        evidence = recovered ? `a read-only ${tool} call succeeded: ${result.content.slice(0, 120)}` : `${tool} still fails (${intent.cause}): ${result.content.slice(0, 120)}`;
+      } else {
+        // No safe probe exists for this tool; the cause was availability or
+        // permission and the registry — recomputed from a live probe — now
+        // says both are satisfied.
+        recovered = cause === "unavailable" || cause === "not-permitted" || cause === "not-configured";
+        if (recovered) evidence = `the registry, refreshed from a live probe, now reports it available and permitted (${evidence})`;
+      }
+    }
+
+    if (!recovered) {
+      const after = `${tool} still cannot be used (${evidence}).`;
+      this.journal("experiences", `Re-checked: ${tool} — still not usable.`);
+      return finish({ learning: { ...learning, verifiedAt: now, dependency: { tool, fingerprint } } }, "confirmed", after, fingerprint);
+    }
+
+    // Self-correction: the old conclusion is superseded, not erased.
+    const superseded = { ...learning, supersededAt: now, supersededBy: `re-evaluation (${trigger})` };
+    this.ledger.removeConstraint(tool);
+    const draft: Omit<CuriosityLearning, "stored" | "retrievable"> = {
+      type: c.category === "self" ? "self-knowledge" : "technical-knowledge",
+      summary: `${tool} is usable again — ${evidence}. Earlier finding superseded: “${before.slice(0, 160)}”`,
+      keywords: learning.keywords,
+      layer: learning.layer,
+    };
+    const fresh = this.withRevalidation(c, await this.remember(c, draft, budget));
+    this.journal("lessons", `Assumption changed: ${tool} was not usable; it is verified usable again.`);
+    this.syncSelfModel();
+    return finish(
+      { learning: fresh, answer: fresh.summary, supersededLearnings: [...(c.supersededLearnings ?? []), superseded] },
+      "superseded",
+      `${tool} is eligible again (${evidence}).`,
+      fingerprint,
+    );
   }
 
   /**
@@ -980,9 +1355,9 @@ export default class CuriosityEngine {
         this.ledger.update(c.id, { personalityEvidence: { traitId, mode: "staged", observation, at: now } });
         this.note(c.id, "reflect", `Evidence for ${traitId} staged for review (${status === "established" ? "established trait" : "sandbox mode"}).`);
       } else {
-        this.ports.addTraitEvidence(traitId, observation);
+        this.ports.addTraitEvidence(traitId, observation, c.rootId);
         this.ledger.update(c.id, { personalityEvidence: { traitId, mode: "applied", observation, at: now } });
-        this.note(c.id, "reflect", `One evidence item recorded for ${traitId}; PersonalityGuard governs any status change.`);
+        this.note(c.id, "reflect", `One evidence unit for ${traitId} recorded for daily reflection; PersonalityGuard governs any status change.`);
       }
       this.journal("emergingTraits", `Curiosity evidence for ${traitId}: ${c.question}`);
     } catch {
@@ -992,12 +1367,35 @@ export default class CuriosityEngine {
 
   /** "Now that I know this, there is another useful question" — within the depth budget. */
   private followUp(c: Curiosity): void {
-    const signal = deriveFollowUp(c);
-    if (!signal) return;
-    const result = this.notice(signal);
-    if (result.curiosity && !result.merged) {
-      this.note(c.id, "follow-up", `Opened: ${result.curiosity.question}`);
+    for (const signal of deriveFollowUps(c)) {
+      // "What else can stand in?" is only worth asking if something might.
+      if (signal.subject?.alternativeFor && !this.hasPlausibleAlternative(signal.subject.alternativeFor)) {
+        this.note(c.id, "follow-up", `No existing authorized capability could stand in for ${signal.subject.alternativeFor}; not opening that question.`);
+        continue;
+      }
+      const result = this.notice(signal);
+      if (result.curiosity && !result.merged) {
+        this.note(c.id, "follow-up", `Opened: ${result.curiosity.question}`);
+      }
     }
+  }
+
+  private hasPlausibleAlternative(tool: string): boolean {
+    const catalog = this.catalogMap();
+    const preferred = catalog.get(tool);
+    if (!preferred) return false;
+    return (
+      discoverAlternatives({
+        preferred,
+        args: {},
+        catalog: [...catalog.values()],
+        permitted: (id) => this.ports.permitted(id),
+        constraints: this.ledger.constraints(),
+        background: true,
+        strategies: this.ledger.strategies(),
+        parameters: (id) => this.ports.toolParameters?.(id),
+      }).options.length > 0
+    );
   }
 
   /** Grant one record permission to continue past the chain's depth limit. */
@@ -1083,7 +1481,7 @@ export default class CuriosityEngine {
       });
     }
     this.transition(id, "learned", `${type}: ${learning.summary}`, { learning });
-    this.journal("relationshipObservations", `Heru clarified ${subject} (${type}).`);
+    this.journal("meaningfulInteractions", `Heru clarified ${subject} (${type}).`);
     const applied = [
       `Stored as retrievable context; future turns about ${learning.keywords.join(", ")} will recall it.`,
       ...(c.relatedObjectiveIds.length > 0 ? [`The asking objective (${c.relatedObjectiveIds[0]}) is revived by the question channel.`] : []),
@@ -1140,9 +1538,21 @@ export default class CuriosityEngine {
       permissions: c.proposedActions.map((intent) => `${intent.tool}: ${intent.permission}${intent.permitted ? "" : ", not permitted by dispatcher"}`),
       evidence: c.evidence.map((item) => `[${item.stance} ${item.weight.toFixed(2)}] ${item.source}${item.tool ? `/${item.tool}` : ""}: ${item.claim.slice(0, 160)}`),
       confidence: `${verification.verdict} (${verification.confidence.toFixed(2)}) — ${verification.note}`,
-      learning: c.learning ? `${c.learning.type}: ${c.learning.summary} [stored=${c.learning.stored}, retrievable=${c.learning.retrievable}]` : "nothing learned yet",
+      learning: c.learning ? `${c.learning.type}: ${c.learning.summary} [stored=${c.learning.stored}, retrievable=${c.learning.retrievable}${c.learning.revalidation ? `, ${c.learning.revalidation}` : ""}]` : "nothing learned yet",
       applied: c.appliedResult,
       status: c.status,
+      route: [...new Set(c.trail.map((step) => step.step).filter((step) => !["assess", "consolidated"].includes(step)))].join(" → "),
+      personalityImpact: c.personalityEvidence
+        ? `${c.personalityEvidence.mode === "staged" ? "Staged for approval" : "One unit for daily reflection"}: ${c.personalityEvidence.traitId}`
+        : c.category === "host"
+          ? "None — what Heru meant is knowledge, not identity."
+          : this.ledger.list().some((other) => other.id !== c.id && other.rootId === c.rootId && other.personalityEvidence)
+            ? "None — this line of inquiry already contributed its one unit."
+            : "None yet.",
+      reevaluations: [
+        ...(c.reevaluations ?? []).map((item) => `${item.outcome} (${item.trigger}): ${item.after}`),
+        ...(c.supersededLearnings ?? []).map((item) => `superseded: ${item.summary.slice(0, 140)}`),
+      ],
     };
   }
 }

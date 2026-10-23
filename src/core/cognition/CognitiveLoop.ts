@@ -41,6 +41,7 @@ import ProactiveCore, { type ProactiveQuestionInput } from "../proactive/Proacti
 import AgentEventBus from "../agent/AgentEvents";
 import SelfStudyEngine from "./SelfStudyEngine";
 import CuriosityEngine from "../curiosity/CuriosityEngine";
+import { runDueReflections } from "../identity/DailyReflection";
 import MultiChatStore from "../multichat/MultiChatStore";
 import { hasActiveWorkstream } from "../proactive/Workstream";
 import { backgroundInterval, backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
@@ -367,6 +368,18 @@ export default class CognitiveLoop {
       const curiosity = await withDeadline(CuriosityEngine.getInstance().tick(), null);
       if (curiosity?.pursued) {
         suggestions.push(`Curiosity: “${curiosity.pursued.question}” → ${curiosity.pursued.status}.`);
+      }
+
+      /* ---------------- DAILY DEVELOPMENT ---------------- */
+      // The daily boundary: each COMPLETED day is reflected exactly once
+      // (DailyRecord → DailyReflection → PersonalityGuard → LeluIdentity).
+      // Pure and cheap — it only does work the first cycle after midnight.
+      try {
+        for (const run of runDueReflections()) {
+          suggestions.push(`Daily reflection ${run.date}: ${run.meaningful ? `${run.traitChanges.length} trait(s) updated${run.staged ? `, ${run.staged} staged` : ""}` : "no meaningful development detected"}.`);
+        }
+      } catch (error) {
+        Sentinel.getInstance().report("system_event", "warning", `Daily reflection failed (contained): ${error instanceof Error ? error.message : String(error)}`, "DailyReflection");
       }
 
       /* ---------------- API HEALTH CHECKS ---------------- */

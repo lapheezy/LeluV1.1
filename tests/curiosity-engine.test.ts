@@ -799,7 +799,7 @@ test("integration: AIService observes conversation (never an answer to a pending
   const loop = src("src/core/cognition/CognitiveLoop.ts");
   assert.ok(loop.includes("await withDeadline(CuriosityEngine.getInstance().tick(), null)"));
   const panel = src("src/app/scene/genesis/GenesisIdentityPanel.tsx");
-  for (const label of ["Curious about", "Waiting for Heru", "Investigating", "Recently learned", "Unresolved"]) {
+  for (const label of ["Curious about", "Waiting for Heru", "Investigating", "Revisiting", "Resolved", "Unresolved"]) {
     assert.ok(panel.includes(`"${label}"`), `Questions view shows "${label}"`);
   }
   assert.ok(!panel.includes("window.location.reload"), "applying a staged change no longer reloads the app");

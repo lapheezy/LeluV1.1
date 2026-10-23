@@ -29,9 +29,52 @@ export interface LeluDailyRecord {
   creativeIdeas: string[];
   tomorrowFocus: string[];
   generatedAt: number;
+  /**
+   * Behaviour a LÉLU system actually observed, as structured evidence for
+   * DailyReflection. One entry per (trait, unit) — a unit is one line of
+   * inquiry — so a single investigation can never cast several votes.
+   * Optional so records written before it existed still load.
+   */
+  developmentalEvidence?: DevelopmentalEvidence[];
+  /** Set once DailyReflection has processed this day. Days are reflected once. */
+  reflection?: DailyReflectionOutcome;
 }
 
-export type DailyRecordField = Exclude<keyof LeluDailyRecord, "date" | "generatedAt" | "traitChanges">;
+export interface DevelopmentalEvidence {
+  traitId: string;
+  /** The line of inquiry (curiosity chain root) this came from. */
+  unitId: string;
+  source: "curiosity";
+  observation: string;
+  at: number;
+}
+
+export interface DailyReflectionOutcome {
+  at: number;
+  meaningful: boolean;
+  observations: string[];
+  traitChanges: TraitChange[];
+  staged: number;
+}
+
+export type DailyRecordField = Exclude<
+  keyof LeluDailyRecord,
+  "date" | "generatedAt" | "traitChanges" | "developmentalEvidence" | "reflection"
+>;
+
+/**
+ * Provenance of text lines, so reflection can tell behaviour from prose.
+ *  - ACCOUNTED: written by a system that ALSO records structured evidence
+ *    for the same event (curiosity); counting the text again would double it.
+ *  - INTAKE: text read from a document or migrated memory — not LÉLU's
+ *    experience at all, and never evidence about her.
+ */
+export const ACCOUNTED_PREFIXES = ["Curiosity —", "Curious:", "Asked Heru:", "Unresolved:", "Re-checked:", "Assumption changed:", "Strategy:", "Proposed:", "Heru clarified"];
+export const INTAKE_PREFIX = "Read in memory intake:";
+
+export function isAccountedOrIntake(line: string): boolean {
+  return line.startsWith(INTAKE_PREFIX) || ACCOUNTED_PREFIXES.some((prefix) => line.startsWith(prefix));
+}
 
 interface DailyStore {
   records: Record<string, LeluDailyRecord>;
@@ -60,7 +103,12 @@ function emptyRecord(date: string): LeluDailyRecord {
     creativeIdeas: [],
     tomorrowFocus: [],
     generatedAt: Date.now(),
+    developmentalEvidence: [],
   };
+}
+
+function dateOf(now: number): string {
+  return new Date(now).toISOString().slice(0, 10);
 }
 
 export default class DailyRecord {
@@ -126,6 +174,39 @@ export default class DailyRecord {
       store.records[today] = emptyRecord(today);
     }
     store.records[today].traitChanges.push(change);
+    this.save(store);
+  }
+
+  /**
+   * Record one unit of observed behaviour for tonight's reflection.
+   * Returns false when this (trait, unit) is already recorded — the same
+   * line of inquiry never counts twice.
+   */
+  public recordEvidence(entry: DevelopmentalEvidence, now = Date.now()): boolean {
+    const date = dateOf(now);
+    const store = this.load();
+    if (!store.records[date]) store.records[date] = emptyRecord(date);
+    const record = store.records[date];
+    const list = record.developmentalEvidence ?? (record.developmentalEvidence = []);
+    if (list.some((item) => item.unitId === entry.unitId && item.traitId === entry.traitId)) return false;
+    list.push(entry);
+    this.save(store);
+    return true;
+  }
+
+  /** Completed days that have content and have not been reflected yet, oldest first. */
+  public awaitingReflection(now = Date.now(), maxDays = 7): LeluDailyRecord[] {
+    const today = dateOf(now);
+    return this.getAll()
+      .filter((record) => record.date < today && !record.reflection)
+      .slice(-maxDays);
+  }
+
+  public markReflected(date: string, outcome: DailyReflectionOutcome): void {
+    const store = this.load();
+    const record = store.records[date];
+    if (!record) return;
+    record.reflection = outcome;
     this.save(store);
   }
 

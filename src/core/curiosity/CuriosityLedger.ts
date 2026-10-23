@@ -20,6 +20,7 @@ import {
   type Curiosity,
   type CuriosityCategory,
   type CuriosityStatus,
+  type LearnedStrategy,
   type ToolConstraint,
 } from "./Curiosity";
 
@@ -38,12 +39,15 @@ const OPEN: ReadonlySet<CuriosityStatus> = new Set<CuriosityStatus>([
   "learned",
   "applied",
   "blocked",
+  "revisiting",
 ]);
 
 interface LedgerState {
   curiosities: Curiosity[];
   constraints: ToolConstraint[];
   lastCapabilityScanAt: number;
+  /** Alternatives that were verified to work when a preferred capability could not be used. */
+  strategies: LearnedStrategy[];
 }
 
 export function isTerminal(status: CuriosityStatus): boolean {
@@ -61,6 +65,7 @@ export default class CuriosityLedger {
       curiosities: Array.isArray(stored?.curiosities) ? stored.curiosities : [],
       constraints: Array.isArray(stored?.constraints) ? stored.constraints : [],
       lastCapabilityScanAt: typeof stored?.lastCapabilityScanAt === "number" ? stored.lastCapabilityScanAt : 0,
+      strategies: Array.isArray(stored?.strategies) ? stored.strategies : [],
     };
   }
 
@@ -151,7 +156,7 @@ export default class CuriosityLedger {
   public expire(now: number): Curiosity[] {
     const expired: Curiosity[] = [];
     this.state.curiosities = this.state.curiosities.map((item) => {
-      if (TERMINAL.has(item.status) || item.status === "asking" || item.expiresAt > now) return item;
+      if (TERMINAL.has(item.status) || item.status === "asking" || item.status === "revisiting" || item.expiresAt > now) return item;
       const next: Curiosity = {
         ...item,
         status: "expired",
@@ -197,6 +202,19 @@ export default class CuriosityLedger {
 
   public removeConstraint(tool: string): void {
     this.state.constraints = this.state.constraints.filter((item) => item.tool !== tool);
+    this.persist();
+  }
+
+  public strategies(): LearnedStrategy[] {
+    return [...this.state.strategies];
+  }
+
+  /** One current strategy per (preferred, alternative); a re-learned one replaces it. */
+  public addStrategy(strategy: LearnedStrategy): void {
+    this.state.strategies = [
+      ...this.state.strategies.filter((item) => !(item.forTool === strategy.forTool && item.alternative === strategy.alternative)),
+      strategy,
+    ].slice(-40);
     this.persist();
   }
 

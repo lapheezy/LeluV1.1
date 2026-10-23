@@ -12,8 +12,12 @@
  *   memory       AIService.consolidate → Brain
  *   host         ProactiveCore.enqueueQuestion / question changes
  *   objectives   WorkQueue REVIEW (a proposal; Heru approves)
- *   personality  LeluIdentity (PersonalityGuard gates status)
+ *   personality  DailyRecord evidence → DailyReflection → LeluIdentity
+ *                (PersonalityGuard gates status); staged proposals
+ *                go to LeluIdentity's sandbox queue
  *   journal      DailyRecord
+ *   self-model   SelfModel (limitations / discoveries)
+ *   environment  SourceAccess + ToolRegistry.refreshAvailability
  *
  * The heavy modules (dispatcher, registry, AIService) are
  * loaded lazily in prepare() so this layer never joins a
@@ -29,7 +33,8 @@ import ProactiveCore, {
   type ProactiveQuestionCategory,
   type ProactiveQuestionPriority,
 } from "../proactive/ProactiveCore";
-import type { CatalogTool, CuriosityCategory, ObservedFailure } from "./Curiosity";
+import SelfModel from "../cognition/SelfModel";
+import type { CatalogTool, CuriosityCategory, ObservedFailure, TraitTendency } from "./Curiosity";
 
 export interface DispatchResult {
   ok: boolean;
@@ -74,9 +79,20 @@ export interface CuriosityPorts {
   proposeObjective(title: string, detail: string): { id: string; created: boolean };
   sandboxMode(): boolean;
   traitStatus(traitId: string): string | undefined;
-  addTraitEvidence(traitId: string, observation: string): void;
+  /**
+   * Record ONE unit of developmental evidence. By default it goes into the
+   * day's record for DailyReflection, which is what turns evidence into a
+   * trait change under PersonalityGuard — never straight into identity.
+   */
+  addTraitEvidence(traitId: string, observation: string, unitId?: string): void;
   stageTraitEvidence(traitId: string, observation: string, description: string): string;
   journal(field: DailyRecordField, text: string): void;
+  /** Re-probe the environment the registry's availability is computed from (one bounded probe). */
+  refreshCapabilities?(): Promise<void>;
+  toolParameters?(toolId: string): { required: string[]; properties: string[] } | undefined;
+  onToolSuccess?(listener: (success: { tool: string; taskId: string; at: number }) => void): () => void;
+  traitTendencies?(): TraitTendency[];
+  syncSelfModel?(limitations: string[], discoveries: string[]): void;
 }
 
 const CATEGORY_MAP: Record<CuriosityCategory, ProactiveQuestionCategory> = {
@@ -102,7 +118,11 @@ interface Loaded {
   registry: typeof import("../tools/ToolRegistry").default;
   dispatcher: typeof import("../tools/ToolDispatcher");
   ai: typeof import("../AIService").default;
+  source: typeof import("../selfdev/SourceAccess").default;
 }
+
+/** Curiosity-owned self-model lines carry this prefix so each sync replaces only its own. */
+export const SELF_MODEL_PREFIX = "Tool ";
 
 export function createDefaultPorts(): CuriosityPorts {
   let loaded: Loaded | null = null;
@@ -112,12 +132,13 @@ export function createDefaultPorts(): CuriosityPorts {
 
     async prepare() {
       if (loaded) return;
-      const [registry, dispatcher, ai] = await Promise.all([
+      const [registry, dispatcher, ai, source] = await Promise.all([
         import("../tools/ToolRegistry"),
         import("../tools/ToolDispatcher"),
         import("../AIService"),
+        import("../selfdev/SourceAccess"),
       ]);
-      loaded = { registry: registry.default, dispatcher, ai: ai.default };
+      loaded = { registry: registry.default, dispatcher, ai: ai.default, source: source.default };
     },
 
     userTurnActive: () => (loaded ? loaded.ai.getInstance().isUserTurnActive() : false),
@@ -133,6 +154,8 @@ export function createDefaultPorts(): CuriosityPorts {
         executable: executable.has(tool.id),
         dependency: tool.dependency,
         executionRoute: tool.executionRoute,
+        category: tool.category,
+        description: tool.description,
       }));
     },
 
@@ -208,7 +231,9 @@ export function createDefaultPorts(): CuriosityPorts {
 
     sandboxMode: () => LeluIdentity.getInstance().getState().sandboxMode,
     traitStatus: (traitId) => LeluIdentity.getInstance().getTrait(traitId)?.status,
-    addTraitEvidence: (traitId, observation) => LeluIdentity.getInstance().addTraitObservation(traitId, observation, false),
+    addTraitEvidence: (traitId, observation, unitId) => {
+      DailyRecord.getInstance().recordEvidence({ traitId, unitId: unitId ?? observation, source: "curiosity", observation, at: Date.now() });
+    },
     stageTraitEvidence(traitId, observation, description) {
       return LeluIdentity.getInstance().stageSandboxChange({
         kind: "trait-update",
@@ -220,5 +245,43 @@ export function createDefaultPorts(): CuriosityPorts {
     },
 
     journal: (field, text) => DailyRecord.getInstance().appendToday(field, text),
+
+    async refreshCapabilities() {
+      if (!loaded) return;
+      // Forced: a failed probe is cached for a minute, and the point of this
+      // call is to see whether the environment has changed since.
+      await loaded.source.getInstance().status(true).catch(() => undefined);
+      await loaded.registry.getInstance().refreshAvailability();
+    },
+
+    toolParameters(toolId) {
+      if (!loaded) return undefined;
+      const schema = loaded.dispatcher.executorParameters(toolId) as { required?: string[]; properties?: Record<string, unknown> } | undefined;
+      if (!schema) return undefined;
+      return { required: [...(schema.required ?? [])], properties: Object.keys(schema.properties ?? {}) };
+    },
+
+    onToolSuccess(listener) {
+      return AgentEventBus.getInstance().subscribe((event) => {
+        if (event.type === "tool_result" && (event.status === "complete" || event.status === undefined)) {
+          listener({ tool: event.tool, taskId: event.taskId, at: Date.now() });
+        }
+      });
+    },
+
+    traitTendencies: () =>
+      LeluIdentity.getInstance()
+        .getState()
+        .traits.filter((trait) => trait.status === "emerging" || trait.status === "established")
+        .map((trait) => ({ traitId: trait.id, status: trait.status, confidence: trait.confidence })),
+
+    syncSelfModel(limitations, discoveries) {
+      const model = SelfModel.getInstance();
+      const current = model.get();
+      model.update({
+        limitations: [...current.limitations.filter((line) => !line.startsWith(SELF_MODEL_PREFIX)), ...limitations].slice(0, 40),
+      });
+      for (const line of discoveries) model.recordDiscovery(line);
+    },
   };
 }

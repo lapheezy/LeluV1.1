@@ -8,6 +8,10 @@
  * (localStorage, IndexedDB) is shimmed, exactly as scripts/verify-tool-execute.ts
  * already does, so the engine runs in Node.
  *
+ * Personality evidence now flows curiosity → DailyRecord → DailyReflection
+ * → PersonalityGuard → LeluIdentity (see scripts/verify-development.ts for
+ * the reflection half); here it is checked at the DailyRecord.
+ *
  *   A  HOST   ambiguity in Heru's request → memory has nothing → one question
  *             → Heru answers through the real chat path → stored, recallable
  *   B  TOOL   a tool fails in two separate turns → investigated through the
@@ -19,104 +23,7 @@
  * Run: npx tsx scripts/verify-curiosity.ts
  */
 
-class FakeStorage {
-  private map = new Map<string, string>();
-  getItem(key: string) {
-    return this.map.has(key) ? this.map.get(key)! : null;
-  }
-  setItem(key: string, value: string) {
-    this.map.set(key, value);
-  }
-  removeItem(key: string) {
-    this.map.delete(key);
-  }
-  get length() {
-    return this.map.size;
-  }
-  key(i: number) {
-    return [...this.map.keys()][i] ?? null;
-  }
-}
-const databases = new Map<string, Map<string, Map<string, unknown>>>();
-class ShimRequest {
-  result: unknown = null;
-  onsuccess: (() => void) | null = null;
-  onerror: (() => void) | null = null;
-  onupgradeneeded: (() => void) | null = null;
-  settle(): void {
-    queueMicrotask(() => this.onsuccess?.());
-  }
-}
-class ShimObjectStore {
-  constructor(private readonly rows: Map<string, unknown>) {}
-  put(value: unknown): void {
-    const record = value as { id: string };
-    this.rows.set(record.id, structuredClone(value));
-  }
-  delete(id: string): void {
-    this.rows.delete(id);
-  }
-  clear(): void {
-    this.rows.clear();
-  }
-  get(id: string): ShimRequest {
-    const req = new ShimRequest();
-    req.result = this.rows.has(id) ? structuredClone(this.rows.get(id)) : null;
-    req.settle();
-    return req;
-  }
-  getAll(): ShimRequest {
-    const req = new ShimRequest();
-    req.result = [...this.rows.values()].map((v) => structuredClone(v));
-    req.settle();
-    return req;
-  }
-}
-class ShimTransaction {
-  oncomplete: (() => void) | null = null;
-  onerror: (() => void) | null = null;
-  private readonly stores: Map<string, ShimObjectStore>;
-  constructor(db: ShimDatabase, storeName: string) {
-    this.stores = new Map([[storeName, new ShimObjectStore(db.store(storeName))]]);
-    queueMicrotask(() => this.oncomplete?.());
-  }
-  objectStore(name: string): ShimObjectStore {
-    return this.stores.get(name)!;
-  }
-}
-class ShimDatabase {
-  onversionchange: (() => void) | null = null;
-  constructor(private readonly name: string) {}
-  store(storeName: string): Map<string, unknown> {
-    const db = databases.get(this.name)!;
-    if (!db.has(storeName)) db.set(storeName, new Map());
-    return db.get(storeName)!;
-  }
-  get objectStoreNames() {
-    return { contains: (name: string) => databases.get(this.name)!.has(name) };
-  }
-  createObjectStore(storeName: string): void {
-    databases.get(this.name)!.set(storeName, new Map());
-  }
-  transaction(storeName: string): ShimTransaction {
-    return new ShimTransaction(this, storeName);
-  }
-  close(): void {}
-}
-(globalThis as Record<string, unknown>).indexedDB = {
-  open(name: string): ShimRequest {
-    if (!databases.has(name)) databases.set(name, new Map());
-    const req = new ShimRequest();
-    const db = new ShimDatabase(name);
-    req.result = db;
-    queueMicrotask(() => {
-      if (!db.objectStoreNames.contains("memories")) req.onupgradeneeded?.();
-      req.onsuccess?.();
-    });
-    return req;
-  },
-};
-(globalThis as Record<string, unknown>).window = { localStorage: new FakeStorage(), sessionStorage: new FakeStorage(), name: "" };
+import "./support/node-browser-shims";
 
 let failures = 0;
 function check(condition: boolean, label: string, detail?: string): void {
@@ -263,14 +170,16 @@ async function main(): Promise<void> {
   check(c.verification?.verdict === "verified", "VERIFY: her records and the registry agree on the cause", c.verification?.note);
   check(c.learning?.type === "self-knowledge" && c.learning.retrievable, "LEARN: self-knowledge stored and recallable", JSON.stringify(c.learning));
   check(engine.getLedger().constraints().some((r) => r.tool === "research.web" && r.scope === "background"), "APPLY: background investigations no longer pick research.web");
-  const after = LeluIdentity.getInstance().getTrait("pattern-recognition")!;
   check(c.personalityEvidence?.traitId === "pattern-recognition", "PERSONALITY: the self-curiosity supplied evidence for pattern-recognition", JSON.stringify(c.personalityEvidence));
   const contributing = engine.getLedger().list().filter((item) => item.personalityEvidence?.mode === "applied" && item.personalityEvidence.traitId === "pattern-recognition");
   const roots = new Set(contributing.map((item) => item.rootId));
   check(roots.size === contributing.length, "at most one evidence item per inquiry chain (follow-ups add none)", `${contributing.length} items over ${roots.size} chains`);
-  check(after.evidenceCount - initialPatternEvidence === contributing.length, "every evidence item on the trait is attributable to a recorded curiosity", `${initialPatternEvidence} → ${after.evidenceCount}, ${contributing.length} recorded`);
-  check(after.supportingObservations.some((o) => o.includes(c.question)), "the observation names the curiosity it came from");
-  console.log(`    pattern-recognition: ${before.status} (evidence ${beforeEvidence}) → ${after.status} (evidence ${after.evidenceCount}, confidence ${after.confidence.toFixed(2)}) — status moves only via LeluIdentity's thresholds + PersonalityGuard`);
+  const pending = (DailyRecord.getInstance().getOrCreateToday().developmentalEvidence ?? []).filter((item) => item.traitId === "pattern-recognition");
+  check(pending.length === contributing.length, "every evidence unit is in the daily record, awaiting reflection", `${pending.length} recorded, ${contributing.length} curiosities`);
+  check(pending.some((item) => item.observation.includes(c.question)), "the observation names the curiosity it came from");
+  const after = LeluIdentity.getInstance().getTrait("pattern-recognition")!;
+  check(after.evidenceCount === initialPatternEvidence, "identity is unchanged until the daily reflection runs", `${initialPatternEvidence} → ${after.evidenceCount}`);
+  console.log(`    pattern-recognition: ${before.status} (evidence ${beforeEvidence}); ${pending.length} unit(s) awaiting reflection`);
   const today = DailyRecord.getInstance().getOrCreateToday();
   check(today.emergingTraits.some((line) => /pattern-recognition/.test(line)), "DEVELOP: the daily record carries the evidence");
   check(today.lessons.some((line) => /research\.web/.test(line)), "DEVELOP: the daily record carries the lesson");

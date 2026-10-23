@@ -40,7 +40,9 @@ export type CuriosityStatus =
   | "resolved"
   | "dismissed"
   | "expired"
-  | "blocked";
+  | "blocked"
+  /** A resolved finding being re-checked because its truth may have changed. */
+  | "revisiting";
 
 export type CuriositySource = "conversation" | "execution" | "memory" | "personality" | "project" | "self";
 
@@ -56,7 +58,26 @@ export type FailureCause =
   | "timeout"
   | "unknown-tool"
   | "empty"
+  | "input"
   | "error";
+
+/** What a failure means for what to do next. */
+export type FailureKind = "temporary" | "permission" | "availability" | "environment" | "input" | "tool" | "unknown" | "none";
+
+export function failureKind(cause: FailureCause | undefined): FailureKind {
+  switch (cause) {
+    case "timeout": return "temporary";
+    case "not-permitted": return "permission";
+    case "unavailable":
+    case "missing-context": return "availability";
+    case "not-configured": return "environment";
+    case "input": return "input";
+    case "unknown-tool": return "tool";
+    case "empty": return "none";
+    case "error": return "unknown";
+    default: return "unknown";
+  }
+}
 
 export type LearningType =
   | "fact"
@@ -84,6 +105,8 @@ export interface CatalogTool {
   executable: boolean;
   dependency?: string;
   executionRoute?: string;
+  category?: string;
+  description?: string;
 }
 
 /**
@@ -109,6 +132,8 @@ export interface ToolIntent {
   cause?: FailureCause;
   startedAt?: number;
   finishedAt?: number;
+  /** Set when this intent was chosen by capability discovery to stand in for another tool. */
+  alternativeFor?: string;
 }
 
 export interface CuriosityEvidence {
@@ -142,6 +167,49 @@ export interface CuriosityLearning {
   retrievable: boolean;
   /** Already present in memory before this curiosity: nothing new was written. */
   fromExistingMemory?: boolean;
+  verifiedAt?: number;
+  /** Whether — and how — this finding can go stale. */
+  revalidation?: RevalidationPolicy;
+  revalidateAfterMs?: number;
+  /** The state the finding depends on, fingerprinted when it was verified. */
+  dependency?: { tool?: string; fingerprint?: string };
+  supersededAt?: number;
+  supersededBy?: string;
+}
+
+/**
+ * stable     its truth does not depend on changing state (Heru's stated
+ *            intent, a constant of the design) — revisited only if raised again
+ * on-change  depends on capability/environment state; revisited when that
+ *            state's fingerprint changes
+ * periodic   can drift without a visible signal; revisited after an interval
+ */
+export type RevalidationPolicy = "stable" | "on-change" | "periodic";
+
+export type ReevaluationTrigger = "environment-changed" | "time-sensitive" | "new-evidence" | "relevant-again" | "revisited";
+
+export interface Reevaluation {
+  at: number;
+  trigger: ReevaluationTrigger;
+  before: string;
+  after: string;
+  outcome: "confirmed" | "superseded" | "inconclusive";
+  fingerprint?: string;
+}
+
+export interface LearnedStrategy {
+  id: string;
+  /** The capability that could not be used. */
+  forTool: string;
+  /** The existing capability that worked in its place. */
+  alternative: string;
+  need: string;
+  /** Argument names carried from the preferred call to the alternative. */
+  carriedArgs: string[];
+  reason: string;
+  verifiedAt: number;
+  learnedFrom: string;
+  status: "current" | "superseded";
 }
 
 export interface HostQuestionRecord {
@@ -165,6 +233,10 @@ export interface CuriositySubject {
   cause?: FailureCause;
   tools?: string[];
   phrase?: string;
+  /** The capability this curiosity WANTS to use to get its answer. */
+  preferred?: { tool: string; args: Record<string, unknown> };
+  /** "What else can provide what this tool provides?" */
+  alternativeFor?: string;
 }
 
 export interface Curiosity {
@@ -213,6 +285,10 @@ export interface Curiosity {
   /** Heru (or a test) explicitly allowed this record past the chain's depth limit. */
   continuationGranted?: boolean;
   resolvedAt?: number;
+  /** History of re-checks. Superseded learning is kept, never erased. */
+  reevaluations?: Reevaluation[];
+  supersededLearnings?: CuriosityLearning[];
+  lastReevaluationAt?: number;
 }
 
 /** What a detector produces. The engine turns it into a Curiosity. */
@@ -495,6 +571,7 @@ export interface ToolCandidate {
   objective: string;
   reason: string;
   expectedEvidence: string;
+  alternativeFor?: string;
 }
 
 const mentions = (c: Pick<Curiosity, "question" | "context">, pattern: RegExp): boolean =>
@@ -526,6 +603,10 @@ export function selectTools(
   const subjectTool = c.subject?.tool;
 
   if (c.category === "host") return [];
+
+  if (c.subject?.preferred) {
+    add(c.subject.preferred.tool, c.subject.preferred.args, "the information this question asks for, from the capability that normally provides it");
+  }
 
   if (subjectTool && c.category === "capability" && c.subject?.cause) {
     add("internal:tool-registry", { relatedTo: subjectTool }, `registered capabilities that share ${subjectTool}'s execution route or dependency, and their state`);
@@ -571,6 +652,7 @@ export function classifyFailure(text: string): FailureCause {
   if (/not permitted|autonomy level|requires an explicit authorization/.test(t)) return "not-permitted";
   if (/no tool named|no such tool/.test(t)) return "unknown-tool";
   if (/requires the router|called without|requires .* context/.test(t)) return "missing-context";
+  if (/requires (a |an )?(non-empty|path|workspace|query)|requires \w+ and \w+\.|is required|invalid argument/.test(t)) return "input";
   if (/not configured|api key|missing key|no key|credential/.test(t)) return "not-configured";
   if (/not available|unavailable|not currently available|unreachable/.test(t)) return "unavailable";
   if (/timed out|timeout|deadline/.test(t)) return "timeout";
@@ -772,7 +854,12 @@ export interface ObservedFailure {
  * failure is an event. Empty results are not failures of anything.
  */
 export function detectRepeatedFailures(failures: ObservedFailure[], windowMs = 30 * 60 * 1000, now = Date.now()): CuriositySignal[] {
-  const recent = failures.filter((item) => now - item.at <= windowMs && classifyFailure(item.message) !== "empty");
+  // Trivial failures are not curiosity: an empty result is not a failure of
+  // anything, and a malformed call ("requires a path") is the caller's slip.
+  const recent = failures.filter((item) => {
+    const kind = failureKind(classifyFailure(item.message));
+    return now - item.at <= windowMs && kind !== "none" && kind !== "input";
+  });
   const byTool = new Map<string, ObservedFailure[]>();
   for (const failure of recent) byTool.set(failure.tool, [...(byTool.get(failure.tool) ?? []), failure]);
   const signals: CuriositySignal[] = [];
@@ -815,7 +902,7 @@ export function detectOwnFailurePatterns(curiosities: Curiosity[], now = Date.no
   for (const curiosity of curiosities) {
     if (curiosity.category === "self") continue;
     for (const intent of curiosity.proposedActions) {
-      if (intent.outcome !== "failed" || !intent.cause || intent.cause === "empty") continue;
+      if (intent.outcome !== "failed" || !intent.cause || failureKind(intent.cause) === "none" || failureKind(intent.cause) === "input") continue;
       if (intent.tool.startsWith("internal:") || now - (intent.finishedAt ?? 0) > windowMs) continue;
       const entry = byTool.get(intent.tool) ?? { curiosityIds: new Set<string>(), causes: [], messages: [] };
       entry.curiosityIds.add(curiosity.id);
@@ -896,4 +983,273 @@ export function deriveFollowUp(c: Curiosity): CuriositySignal | null {
     rootId: c.rootId,
     depth: c.depth + 1,
   };
+}
+
+/* ------------------------------------------------------------------ */
+/* Re-evaluation                                                       */
+/* ------------------------------------------------------------------ */
+
+export const HOUR_MS = 60 * 60 * 1000;
+/** No finding is re-checked more often than this, except on a NEW environment fingerprint. */
+export const REVISIT_MIN_INTERVAL_MS = HOUR_MS;
+
+/** The registry state a tool finding depends on. Changes when the environment or its implementation route does. */
+export function toolFingerprint(tool: CatalogTool | undefined, permitted: boolean): string {
+  if (!tool) return "absent";
+  return `available=${tool.available}|permitted=${permitted}|executable=${tool.executable}|route=${tool.executionRoute ?? ""}`;
+}
+
+/** Only knowledge whose truth can reasonably change is marked for revalidation. */
+export function revalidationPolicyFor(
+  c: Pick<Curiosity, "category" | "subject">,
+  learning: Pick<CuriosityLearning, "type">,
+): { policy: RevalidationPolicy; afterMs?: number } {
+  if (c.category === "host" || learning.type === "preference" || learning.type === "goal" || learning.type === "decision") {
+    return { policy: "stable" };
+  }
+  if (c.subject?.cause === "missing-context") return { policy: "periodic", afterMs: 24 * HOUR_MS };
+  if (c.subject?.tool || c.subject?.tools || c.subject?.alternativeFor || c.subject?.preferred) return { policy: "on-change" };
+  if (c.category === "world" || c.category === "strategic") return { policy: "periodic", afterMs: 7 * 24 * HOUR_MS };
+  if (learning.type === "technical-knowledge") return { policy: "periodic", afterMs: 24 * HOUR_MS };
+  return { policy: "stable" };
+}
+
+export interface RevalidationContext {
+  now: number;
+  currentFingerprint: (tool: string) => string;
+  /** A non-curiosity call of this tool succeeded after this time. */
+  succeededSince: (tool: string, since: number) => boolean;
+  /** A later investigation wanted this tool but a constraint excluded it. */
+  wanted: (tool: string) => boolean;
+  revisitRequested: boolean;
+}
+
+/**
+ * Should this finding be re-checked now — and why? Bounded: a NEW
+ * environment fingerprint triggers at most one check per fingerprint;
+ * every other trigger respects REVISIT_MIN_INTERVAL_MS.
+ */
+export function revalidationTrigger(c: Curiosity, ctx: RevalidationContext): ReevaluationTrigger | null {
+  const learning = c.learning;
+  if (!learning || learning.supersededAt || c.status !== "resolved") return null;
+  if (!learning.revalidation || learning.revalidation === "stable") return null;
+  const tool = learning.dependency?.tool;
+  const checkedFingerprints = new Set((c.reevaluations ?? []).map((item) => item.fingerprint));
+  if (tool && learning.dependency?.fingerprint) {
+    const current = ctx.currentFingerprint(tool);
+    if (current !== learning.dependency.fingerprint && !checkedFingerprints.has(current)) return "environment-changed";
+  }
+  const last = Math.max(learning.verifiedAt ?? 0, c.lastReevaluationAt ?? 0);
+  if (ctx.now - last < REVISIT_MIN_INTERVAL_MS) return null;
+  if (tool && ctx.succeededSince(tool, last)) return "new-evidence";
+  if (tool && ctx.wanted(tool)) return "relevant-again";
+  if (ctx.revisitRequested) return "revisited";
+  if (learning.revalidation === "periodic" && learning.revalidateAfterMs !== undefined && ctx.now - last >= learning.revalidateAfterMs) {
+    return "time-sensitive";
+  }
+  return null;
+}
+
+/** One harmless, read-only call per tool that proves it works. Tools without one are judged by registry state. */
+export const VERIFY_PROBES: Record<string, Record<string, unknown>> = {
+  "project.git": { action: "status" },
+  "system.config": {},
+  "workflow.list": {},
+  "workflow.status": {},
+  "sandbox.read": {},
+  "research.web": { query: "capability check" },
+  "memory.recall": { query: "capability check" },
+};
+
+/* ------------------------------------------------------------------ */
+/* Capability discovery                                                */
+/* ------------------------------------------------------------------ */
+
+/** Words that say nothing about WHICH information a capability provides. */
+const GENERIC = new Set(["read", "real", "write", "run", "list", "get", "set", "create", "update", "manage", "open", "use", "data", "information", "file", "files", "contents", "inside", "copy", "from", "into", "with"]);
+
+function distinctiveWords(text: string): string[] {
+  return contentWords(text).filter((word) => !GENERIC.has(word));
+}
+
+export interface AlternativeOption {
+  tool: string;
+  args: Record<string, unknown>;
+  score: number;
+  why: string;
+  fromStrategy: boolean;
+}
+
+export interface DiscoveryInput {
+  preferred: CatalogTool;
+  args: Record<string, unknown>;
+  catalog: CatalogTool[];
+  permitted: (id: string) => boolean;
+  constraints: ToolConstraint[];
+  background: boolean;
+  strategies: LearnedStrategy[];
+  parameters: (id: string) => { required: string[]; properties: string[] } | undefined;
+  reliability?: (id: string) => { ok: number; failed: number };
+}
+
+/**
+ * "What else can I use?" — over the EXISTING registry only. A candidate
+ * must plausibly provide the same information (same category and a
+ * shared distinctive term, or two shared distinctive terms), exist,
+ * be executable, available, permitted by the dispatcher, read-only for
+ * curiosity, not known to fail here, and callable with inputs in hand.
+ * Smallest sufficient first: a learned strategy, then relatedness, then
+ * lower risk, then observed reliability.
+ */
+export function discoverAlternatives(input: DiscoveryInput): { options: AlternativeOption[]; rejected: Array<{ tool: string; reason: string }> } {
+  const need = new Set(distinctiveWords(`${input.preferred.description ?? ""} ${input.preferred.id.split(".")[0]}`));
+  const options: AlternativeOption[] = [];
+  const rejected: Array<{ tool: string; reason: string }> = [];
+  for (const tool of input.catalog) {
+    if (tool.id === input.preferred.id || tool.id.startsWith("internal:")) continue;
+    const strategy = input.strategies.find((item) => item.status === "current" && item.forTool === input.preferred.id && item.alternative === tool.id);
+    const sameCategory = Boolean(tool.category && tool.category === input.preferred.category);
+    const shared = distinctiveWords(`${tool.description ?? ""} ${tool.id.split(".")[0]}`).filter((word) => need.has(word));
+    const related = Boolean(strategy) || (sameCategory && shared.length >= 1) || shared.length >= 2;
+    if (!related) continue;
+
+    let reason: string | null = null;
+    const params = input.parameters(tool.id);
+    const args: Record<string, unknown> = {};
+    for (const name of params?.properties ?? []) if (name in input.args) args[name] = input.args[name];
+    const missing = (params?.required ?? []).filter((name) => !(name in args));
+    if (!tool.executable) reason = "no executor: catalogued but not callable as a tool";
+    else if (!tool.available) reason = "not available in this runtime";
+    else if (curiosityPermission(tool) !== "auto") reason = `${classifyAction(tool)} capability — needs a proposal, not something curiosity may use`;
+    else if (!input.permitted(tool.id)) reason = "not permitted by the dispatcher";
+    else if (input.constraints.some((rule) => rule.tool === tool.id && (rule.scope === "any" || input.background))) reason = "known not to work here (learned constraint)";
+    else if (missing.length > 0) reason = `needs inputs I don't have (${missing.join(", ")})`;
+    if (reason) {
+      rejected.push({ tool: tool.id, reason });
+      continue;
+    }
+    const reliability = input.reliability?.(tool.id) ?? { ok: 0, failed: 0 };
+    const score =
+      (strategy ? 5 : 0) + (sameCategory ? 3 : 0) + Math.min(3, shared.length) + (tool.riskLevel === 0 ? 1 : 0) - tool.riskLevel +
+      Math.max(-2, Math.min(2, reliability.ok - reliability.failed));
+    const why = [
+      strategy ? `learned strategy (${strategy.reason})` : null,
+      sameCategory ? `same ${tool.category} capability` : null,
+      shared.length > 0 ? `shares “${shared.join("”, “")}”` : null,
+      `${classifyAction(tool)}, risk ${tool.riskLevel}`,
+    ].filter(Boolean).join("; ");
+    options.push({ tool: tool.id, args, score, why, fromStrategy: Boolean(strategy) });
+  }
+  options.sort((a, b) => b.score - a.score || a.tool.localeCompare(b.tool));
+  return { options, rejected };
+}
+
+/* ------------------------------------------------------------------ */
+/* Capability state (self-model)                                       */
+/* ------------------------------------------------------------------ */
+
+export type CapabilityState = "available" | "unavailable" | "unknown" | "permission_required" | "temporarily_failed" | "revalidation_needed";
+
+export interface CapabilityStateRow {
+  tool: string;
+  state: CapabilityState;
+  /** Where the claim comes from: the registry, a learned finding, or her own use. */
+  basis: "registry" | "learned" | "verified-use" | "observed-failure" | "no-executor";
+  reason: string;
+}
+
+/** "Unavailable" and "I don't know" are different claims, and are kept apart. */
+export function capabilityStates(input: {
+  catalog: CatalogTool[];
+  permitted: (id: string) => boolean;
+  constraints: ToolConstraint[];
+  curiosities: Curiosity[];
+  now: number;
+}): CapabilityStateRow[] {
+  const intents = input.curiosities.flatMap((c) => c.proposedActions);
+  return input.catalog
+    .filter((tool) => !tool.id.startsWith("internal:"))
+    .map((tool): CapabilityStateRow => {
+      const permitted = input.permitted(tool.id);
+      const rule = input.constraints.find((item) => item.tool === tool.id);
+      const owner = rule ? input.curiosities.find((c) => c.id === rule.learnedFrom) : undefined;
+      const fingerprint = toolFingerprint(tool, permitted);
+      if (rule) {
+        if (owner?.learning?.dependency?.fingerprint && owner.learning.dependency.fingerprint !== fingerprint) {
+          return { tool: tool.id, state: "revalidation_needed", basis: "learned", reason: `${rule.reason} — but its state has changed since this was learned.` };
+        }
+        const state: CapabilityState = rule.cause === "not-permitted" ? "permission_required" : rule.cause === "timeout" ? "temporarily_failed" : "unavailable";
+        return { tool: tool.id, state, basis: "learned", reason: `${rule.reason}${rule.scope === "background" ? " (outside a live conversation)" : ""}` };
+      }
+      if (!tool.available) return { tool: tool.id, state: "unavailable", basis: "registry", reason: "The registry reports it unavailable in this runtime." };
+      if (!permitted) return { tool: tool.id, state: "permission_required", basis: "registry", reason: "Available, but not permitted at the current autonomy level or authorization." };
+      if (!tool.executable) return { tool: tool.id, state: "unknown", basis: "no-executor", reason: "Catalogued, but not callable as a tool — I cannot tell whether it would work." };
+      const recentTimeout = intents.some((intent) => intent.tool === tool.id && intent.outcome === "timeout" && input.now - (intent.finishedAt ?? 0) < 30 * 60 * 1000);
+      if (recentTimeout) return { tool: tool.id, state: "temporarily_failed", basis: "observed-failure", reason: "Timed out recently." };
+      const used = intents.some((intent) => intent.tool === tool.id && intent.outcome === "ok");
+      return { tool: tool.id, state: "available", basis: used ? "verified-use" : "registry", reason: used ? "I have used it successfully." : "The registry reports it available and permitted." };
+    });
+}
+
+/* ------------------------------------------------------------------ */
+/* Personality → curiosity                                             */
+/* ------------------------------------------------------------------ */
+
+export interface TraitTendency {
+  traitId: string;
+  status: string;
+  confidence: number;
+}
+
+/** Tendencies, not templates: which kinds of question a developing trait draws attention to. */
+const AFFINITY: Record<string, (c: Curiosity) => boolean> = {
+  "pattern-recognition": (c) => c.source === "execution" || c.source === "self",
+  synthesis: (c) => Boolean(c.parentId) || c.category === "capability",
+  curiosity: (c) => c.category === "world" || c.category === "creative" || c.category === "strategic",
+  "constructive-challenge": (c) => c.category === "host",
+  patience: (c) => c.status === "revisiting",
+  playfulness: (c) => c.category === "creative",
+};
+
+/** A bounded multiplier (≤ 1.5) used only to order curiosities within the same tier. */
+export function tendencyBoost(c: Curiosity, tendencies: TraitTendency[]): { boost: number; traits: string[] } {
+  let boost = 1;
+  const traits: string[] = [];
+  for (const tendency of tendencies) {
+    const weight = tendency.status === "established" ? 0.3 : tendency.status === "emerging" ? 0.15 : 0;
+    if (weight > 0 && AFFINITY[tendency.traitId]?.(c)) {
+      boost += weight;
+      traits.push(tendency.traitId);
+    }
+  }
+  return { boost: Math.min(1.5, boost), traits };
+}
+
+/** Every follow-up a verified finding opens. The caller applies the depth budget and drops ones with nothing to investigate. */
+export function deriveFollowUps(c: Curiosity): CuriositySignal[] {
+  const out: CuriositySignal[] = [];
+  const tool = c.subject?.tool;
+  if (c.learning && tool && c.subject?.cause && (c.category === "technical" || c.category === "self") && failureKind(c.subject.cause) === "availability") {
+    out.push({
+      question: `What else can provide what ${tool} provides?`,
+      unknown: `Whether an existing, authorized capability can stand in for ${tool}.`,
+      context: c.learning.summary,
+      category: "capability",
+      source: "self",
+      importance: 0.6,
+      uncertainty: 0.7,
+      relevance: 0.8,
+      expectedBenefit: 0.8,
+      informsDecision: true,
+      keywords: [tool, "alternative"],
+      subject: { alternativeFor: tool, cause: c.subject.cause },
+      evidenceFingerprint: `alternative:${c.id}`,
+      parentId: c.id,
+      rootId: c.rootId,
+      depth: c.depth + 1,
+    });
+  }
+  const share = deriveFollowUp(c);
+  if (share) out.push(share);
+  return out;
 }

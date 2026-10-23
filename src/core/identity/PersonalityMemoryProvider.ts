@@ -6,14 +6,20 @@
  * LÉLU memory). Compact — 2-4 sentences max — so it never
  * crowds out higher-priority context.
  *
- * Also extracts personality signals from persisted candidates
- * and records them in the DailyRecord.
+ * Also notes text from persisted candidates (document ingestion,
+ * memory migration) in the DailyRecord — labelled as intake, never
+ * as LÉLU's own observations. When Heru asks about her development,
+ * the day's summary (DevelopmentSummary) is added from real records.
  * ==========================================================
  */
 
 import type { MemoryProvider, ContextItem, MemoryCandidate } from "../memory/MemoryProvider";
 import LeluIdentity from "./LeluIdentity";
-import DailyRecord from "./DailyRecord";
+import DailyRecord, { INTAKE_PREFIX } from "./DailyRecord";
+import { describeDevelopment, summarizeDevelopment } from "./DevelopmentSummary";
+
+/** Only when Heru asks about her development is the day's summary worth its tokens. */
+const DEVELOPMENT_QUERY = /\b(what (did|have) you (learn|discover|find|pursue|figure)|get(ting)? better at|learn(ed|t)? today|your (development|progress|growth|day)|unresolved|changed your mind|assumptions? (changed|you))/i;
 
 const PERSONALITY_SIGNALS = [
   { field: "observations" as const, keywords: ["noticed", "observed", "realized", "recognized"] },
@@ -64,12 +70,20 @@ export default class PersonalityMemoryProvider implements MemoryProvider {
 
       const content = lines.join(" ");
 
-      return [{
+      const items: ContextItem[] = [{
         source: "personality",
         content,
         band: 4,
         relevance: relevant.length > 0 ? 0.7 : 0.4,
       }];
+      if (DEVELOPMENT_QUERY.test(query)) {
+        const daily = DailyRecord.getInstance();
+        const record = daily.getRecent(1)[0];
+        if (record) {
+          items.push({ source: "personality", content: describeDevelopment(summarizeDevelopment(record)), band: 4, relevance: 0.8 });
+        }
+      }
+      return items;
     } catch {
       return [];
     }
@@ -87,7 +101,11 @@ export default class PersonalityMemoryProvider implements MemoryProvider {
           const sentences = candidate.response.split(/[.!?]+/).filter((s) => s.trim().length > 10);
           const matching = sentences.find((s) => s.toLowerCase().includes(matchedKeyword));
           if (matching) {
-            daily.appendToday(field, matching.trim().slice(0, 200));
+            // Text taken in from a document or a migrated memory is not
+            // LÉLU's experience. It is labelled as intake so the journal
+            // stays truthful and DailyReflection never counts it as
+            // evidence about her.
+            daily.appendToday(field, `${INTAKE_PREFIX} ${matching.trim().slice(0, 180)}`);
           }
         }
       }

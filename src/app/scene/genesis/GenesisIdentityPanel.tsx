@@ -18,6 +18,7 @@ import DailyRecord, { type LeluDailyRecord } from "../../../core/identity/DailyR
 import CuriosityEngine from "../../../core/curiosity/CuriosityEngine";
 import CuriosityLedger from "../../../core/curiosity/CuriosityLedger";
 import type { Curiosity, CuriosityStatus } from "../../../core/curiosity/Curiosity";
+import { summarizeDevelopment } from "../../../core/identity/DevelopmentSummary";
 
 type IdentityTab = "identity" | "journal" | "growth" | "relationship" | "questions" | "history";
 
@@ -103,6 +104,45 @@ const directionSymbols: Record<string, string> = {
 
 // ---- SUB-VIEWS ----
 
+function CapabilitiesSection() {
+  const rows = CuriosityEngine.getInstance().capabilityStates();
+  const strategies = CuriosityEngine.getInstance().strategies().filter((item) => item.status === "current");
+  if (rows.length === 0 && strategies.length === 0) return null;
+  // "Unknown — no executor" is honest but uninformative one by one; it is
+  // summarised, so the states that carry real knowledge stay visible.
+  const notAvailable = rows.filter((row) => row.state !== "available" && row.basis !== "no-executor");
+  const unknownCount = rows.filter((row) => row.basis === "no-executor").length;
+  const available = rows.filter((row) => row.state === "available").length;
+  const verified = rows.filter((row) => row.basis === "verified-use").length;
+  const colour: Record<string, string> = {
+    unavailable: "#f87171",
+    permission_required: "#fbbf24",
+    revalidation_needed: "#67e8f9",
+    temporarily_failed: "#fbbf24",
+    unknown: "rgba(148,163,184,0.6)",
+  };
+  const shown = [...notAvailable].sort((a, b) => (a.basis === "learned" ? -1 : 0) - (b.basis === "learned" ? -1 : 0)).slice(0, 6);
+  return (
+    <>
+      <div style={sectionTitle}>What I can and cannot use ({available} available{verified ? `, ${verified} verified by use` : ""})</div>
+      {shown.map((row) => (
+        <div key={row.tool} style={{ ...card, ...labelText }}>
+          <span style={{ color: colour[row.state] ?? "inherit" }}>{row.tool} · {row.state.replace("_", " ")}</span>
+          <div style={{ fontSize: 11, color: "rgba(148,163,184,0.6)" }}>{row.reason}</div>
+        </div>
+      ))}
+      {unknownCount > 0 && (
+        <div style={{ ...card, ...labelText, color: "rgba(148,163,184,0.7)" }}>
+          {unknownCount} catalogued capabilities cannot be called as tools — whether they work is unknown.
+        </div>
+      )}
+      {strategies.map((item) => (
+        <div key={item.id} style={{ ...card, ...labelText }}>Strategy: when {item.forTool} cannot be used, {item.alternative} stands in.</div>
+      ))}
+    </>
+  );
+}
+
 function IdentityView({ state }: { state: LeluIdentityState }) {
   return (
     <div>
@@ -149,64 +189,58 @@ function IdentityView({ state }: { state: LeluIdentityState }) {
           ))}
         </>
       )}
+
+      <CapabilitiesSection />
+    </div>
+  );
+}
+
+function SummaryList({ label, items }: { label: string; items: string[] }) {
+  if (items.length === 0) return null;
+  return (
+    <div style={card}>
+      <div style={{ ...labelText, marginBottom: 4, color: "rgba(148,163,184,0.6)", fontSize: 10, letterSpacing: "0.08em" }}>{label.toUpperCase()}</div>
+      {items.slice(0, 6).map((item, i) => <div key={i} style={{ ...labelText, wordBreak: "break-word" }}>· {item}</div>)}
+    </div>
+  );
+}
+
+function DaySummary({ record }: { record: LeluDailyRecord }) {
+  const summary = summarizeDevelopment(record);
+  if (summary.empty) return <div style={emptyText}>No meaningful development recorded.</div>;
+  return (
+    <div>
+      <SummaryList label="Learned" items={summary.learned} />
+      <SummaryList label="Pursued" items={summary.pursued} />
+      <SummaryList label="Discovered capabilities" items={summary.capabilitiesDiscovered} />
+      <SummaryList label="Assumptions changed" items={summary.assumptionsChanged} />
+      <SummaryList label="Unresolved" items={summary.unresolved} />
+      <SummaryList label="Developing" items={[...summary.gotBetterAt, ...summary.emergingPatterns]} />
+      <SummaryList label="Proposed to Heru" items={summary.proposals} />
     </div>
   );
 }
 
 function JournalView() {
-  const [todayRecord, setTodayRecord] = useState<LeluDailyRecord | null>(null);
-  const [recentRecords, setRecentRecords] = useState<LeluDailyRecord[]>([]);
+  const [records, setRecords] = useState<LeluDailyRecord[]>([]);
 
   useEffect(() => {
-    const daily = DailyRecord.getInstance();
-    const today = daily.getOrCreateToday();
-    setTodayRecord(today);
-    setRecentRecords(daily.getRecent(7));
+    setRecords(DailyRecord.getInstance().getRecent(7));
   }, []);
 
-  const hasToday = todayRecord && (
-    todayRecord.observations.length > 0 ||
-    todayRecord.experiences.length > 0 ||
-    todayRecord.meaningfulInteractions.length > 0 ||
-    todayRecord.lessons.length > 0
-  );
+  if (records.length === 0) {
+    return <div style={emptyText}>No development recorded yet. A quiet stretch is valid — nothing is invented to fill it.</div>;
+  }
 
   return (
     <div>
-      <div style={sectionTitle}>Today</div>
-      {!hasToday ? (
-        <div style={emptyText}>No development recorded today.</div>
-      ) : (
-        <div>
-          {todayRecord.observations.length > 0 && (
-            <div style={card}>
-              <div style={{ ...labelText, marginBottom: 4, color: "rgba(148,163,184,0.6)", fontSize: 10 }}>OBSERVATIONS</div>
-              {todayRecord.observations.map((o, i) => <div key={i} style={labelText}>· {o}</div>)}
-            </div>
-          )}
-          {todayRecord.experiences.length > 0 && (
-            <div style={card}>
-              <div style={{ ...labelText, marginBottom: 4, color: "rgba(148,163,184,0.6)", fontSize: 10 }}>EXPERIENCES</div>
-              {todayRecord.experiences.map((e, i) => <div key={i} style={labelText}>· {e}</div>)}
-            </div>
-          )}
-          {todayRecord.lessons.length > 0 && (
-            <div style={card}>
-              <div style={{ ...labelText, marginBottom: 4, color: "rgba(148,163,184,0.6)", fontSize: 10 }}>LESSONS</div>
-              {todayRecord.lessons.map((l, i) => <div key={i} style={labelText}>· {l}</div>)}
-            </div>
-          )}
-        </div>
-      )}
-
-      {recentRecords.filter((r) => r.date !== todayRecord?.date && r.observations.length + r.experiences.length > 0).slice(0, 4).map((r) => (
-        <div key={r.date}>
-          <div style={sectionTitle}>{r.date}</div>
-          <div style={card}>
-            {[...r.observations, ...r.experiences].slice(0, 4).map((item, i) => (
-              <div key={i} style={labelText}>· {item}</div>
-            ))}
+      {records.map((record, index) => (
+        <div key={record.date}>
+          <div style={sectionTitle}>
+            {index === 0 ? `Latest · ${record.date}` : record.date}
+            {record.reflection ? ` · reflected${record.reflection.meaningful ? "" : " — no meaningful development"}` : ""}
           </div>
+          <DaySummary record={record} />
         </div>
       ))}
     </div>
@@ -312,6 +346,8 @@ function GrowthView({ state, sandboxMode, onSandboxToggle, onChanged }: {
         </>
       )}
 
+      <DevelopmentalEvidenceSection />
+
       {(["established", "emerging", "candidate", "evolving/declining"] as const).map((group) => {
         const traits = groups[group];
         if (traits.length === 0) return null;
@@ -323,6 +359,38 @@ function GrowthView({ state, sandboxMode, onSandboxToggle, onChanged }: {
         );
       })}
     </div>
+  );
+}
+
+function DevelopmentalEvidenceSection() {
+  const daily = DailyRecord.getInstance();
+  const today = daily.getRecent(1)[0];
+  const pending = today && !today.reflection ? today.developmentalEvidence ?? [] : [];
+  const lastReflected = daily.getAll().filter((record) => record.reflection).at(-1);
+  return (
+    <>
+      <div style={sectionTitle}>Developmental evidence</div>
+      {pending.length === 0 ? (
+        <div style={{ ...emptyText, padding: "4px 0 8px" }}>None awaiting reflection.</div>
+      ) : (
+        pending.map((item) => (
+          <div key={`${item.traitId}-${item.unitId}`} style={{ ...card, ...labelText }}>
+            {item.traitId} · awaiting tonight's reflection
+            <div style={{ fontSize: 11, color: "rgba(148,163,184,0.6)" }}>{item.observation}</div>
+          </div>
+        ))
+      )}
+      {lastReflected?.reflection && (
+        <div style={{ ...card, ...labelText }}>
+          Last reflection ({lastReflected.date}):{" "}
+          {lastReflected.reflection.meaningful
+            ? lastReflected.reflection.traitChanges
+                .map((change) => `${change.traitName} ${change.previousConfidence.toFixed(2)}→${change.newConfidence.toFixed(2)}${change.previousStatus !== change.newStatus ? ` (${change.previousStatus}→${change.newStatus})` : ""}`)
+                .join(", ") || `${lastReflected.reflection.staged} change(s) staged`
+            : "no meaningful development detected"}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -365,8 +433,9 @@ function RelationshipView({ state }: { state: LeluIdentityState }) {
 const QUESTION_GROUPS: Array<{ label: string; statuses: CuriosityStatus[]; limit: number }> = [
   { label: "Waiting for Heru", statuses: ["asking"], limit: 10 },
   { label: "Investigating", statuses: ["retrieving", "investigating", "verifying", "learned", "applied"], limit: 10 },
+  { label: "Revisiting", statuses: ["revisiting"], limit: 6 },
   { label: "Curious about", statuses: ["queued", "identified"], limit: 12 },
-  { label: "Recently learned", statuses: ["resolved"], limit: 8 },
+  { label: "Resolved", statuses: ["resolved"], limit: 8 },
   { label: "Unresolved", statuses: ["blocked", "expired", "dismissed"], limit: 8 },
 ];
 
@@ -375,14 +444,17 @@ function CuriosityDetail({ id }: { id: string }) {
   if (!explanation) return null;
   const rows: Array<[string, string | string[]]> = [
     ["Detected", explanation.detected],
-    ["Why", explanation.why],
+    ["Why it matters", explanation.why],
+    ["Route", explanation.route],
     ["Potential action", explanation.potentialAction],
     ["Tools", explanation.tools],
     ["Permission", explanation.permissions],
     ["Evidence", explanation.evidence],
-    ["Confidence", explanation.confidence],
+    ["Verification", explanation.confidence],
     ["Learning", explanation.learning],
     ["Applied", explanation.applied],
+    ["Personality impact", explanation.personalityImpact],
+    ["Re-evaluations", explanation.reevaluations],
   ];
   return (
     <div style={{ marginTop: 8, borderTop: "1px solid rgba(148,163,184,0.12)", paddingTop: 6 }}>
@@ -436,8 +508,11 @@ function QuestionsView({ state }: { state: LeluIdentityState }) {
                   {item.learning?.retrievable ? " · remembered" : ""}
                   {item.blockedReason ? ` · ${item.blockedReason}` : ""}
                 </div>
-                {item.learning && group.label === "Recently learned" && (
-                  <div style={{ ...labelText, fontSize: 11, marginTop: 4, color: "rgba(167,243,208,0.85)" }}>{item.learning.summary.slice(0, 220)}</div>
+                {item.learning && group.label === "Resolved" && (
+                  <div style={{ ...labelText, fontSize: 11, marginTop: 4, color: "rgba(167,243,208,0.85)" }}>
+                    {item.learning.summary.slice(0, 220)}
+                    {(item.reevaluations?.length ?? 0) > 0 ? ` · re-checked ${item.reevaluations!.length}×` : ""}
+                  </div>
                 )}
                 {state.sandboxMode && open === item.id && <CuriosityDetail id={item.id} />}
               </div>
@@ -458,15 +533,39 @@ function QuestionsView({ state }: { state: LeluIdentityState }) {
   );
 }
 
+function ReevaluationHistory() {
+  const items = CuriosityLedger.getInstance()
+    .list()
+    .flatMap((c) => [
+      ...(c.reevaluations ?? []).map((item) => ({ at: item.at, text: `${item.outcome === "superseded" ? "Superseded" : item.outcome === "confirmed" ? "Re-checked, still true" : "Re-checked, inconclusive"}: ${item.after}` })),
+    ])
+    .sort((a, b) => b.at - a.at)
+    .slice(0, 8);
+  if (items.length === 0) return null;
+  return (
+    <>
+      <div style={sectionTitle}>Re-evaluations</div>
+      {items.map((item, i) => (
+        <div key={i} style={{ ...card, ...labelText }}>
+          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.5)" }}>{new Date(item.at).toLocaleString()}</span>
+          <div>{item.text}</div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 function HistoryView({ state }: { state: LeluIdentityState }) {
   const history = [...state.developmentHistory].reverse();
+  const hasReevaluations = CuriosityLedger.getInstance().list().some((c) => (c.reevaluations ?? []).length > 0);
 
-  if (history.length === 0) {
+  if (history.length === 0 && !hasReevaluations) {
     return <div style={emptyText}>No development history recorded yet.</div>;
   }
 
   return (
     <div>
+      <ReevaluationHistory />
       {history.map((snapshot, i) => (
         <div key={i} style={{ ...card, marginBottom: 10 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
