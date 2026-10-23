@@ -44,7 +44,8 @@ export interface DevelopmentalEvidence {
   traitId: string;
   /** The line of inquiry (curiosity chain root) this came from. */
   unitId: string;
-  source: "curiosity";
+  /** Which LÉLU system observed the behaviour. */
+  source: "curiosity" | "objective";
   observation: string;
   at: number;
 }
@@ -76,7 +77,7 @@ export function isAccountedOrIntake(line: string): boolean {
   return line.startsWith(INTAKE_PREFIX) || ACCOUNTED_PREFIXES.some((prefix) => line.startsWith(prefix));
 }
 
-interface DailyStore {
+export interface DailyStore {
   records: Record<string, LeluDailyRecord>;
 }
 
@@ -116,6 +117,67 @@ export default class DailyRecord {
   private readonly kv = KvStore.getInstance();
   /** In-memory cache — ensures mutations survive in Node where KvStore is a no-op. */
   private cache: DailyStore | null = null;
+  private readonly listeners = new Set<() => void>();
+
+  public subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  /** The whole journal, for cross-device sync through the existing persistence layer. */
+  public snapshot(): DailyStore {
+    return JSON.parse(JSON.stringify(this.load())) as DailyStore;
+  }
+
+  /**
+   * Merge another device's journal day by day: lines are unioned, evidence
+   * is unioned by (trait, line of inquiry), and a day reflected anywhere
+   * stays reflected — so a day is never reflected twice across devices.
+   */
+  public mergeRemote(remote: Partial<DailyStore>): void {
+    const store = this.load();
+    const remoteRecords = remote.records && typeof remote.records === "object" ? remote.records : {};
+    let changed = false;
+    for (const [date, incoming] of Object.entries(remoteRecords)) {
+      const local = store.records[date];
+      if (!local) {
+        store.records[date] = incoming;
+        changed = true;
+        continue;
+      }
+      for (const key of Object.keys(local) as Array<keyof LeluDailyRecord>) {
+        const mine = local[key];
+        const theirs = incoming[key];
+        if (key === "developmentalEvidence") {
+          const merged = [...(local.developmentalEvidence ?? [])];
+          for (const item of incoming.developmentalEvidence ?? []) {
+            if (!merged.some((have) => have.traitId === item.traitId && have.unitId === item.unitId)) merged.push(item);
+          }
+          if (merged.length !== (local.developmentalEvidence ?? []).length) changed = true;
+          local.developmentalEvidence = merged;
+        } else if (key === "traitChanges" && Array.isArray(theirs)) {
+          for (const change of theirs as TraitChange[]) {
+            if (!local.traitChanges.some((have) => JSON.stringify(have) === JSON.stringify(change))) {
+              local.traitChanges.push(change);
+              changed = true;
+            }
+          }
+        } else if (Array.isArray(mine) && Array.isArray(theirs)) {
+          for (const line of theirs as string[]) {
+            if (!(mine as string[]).includes(line)) {
+              (mine as string[]).push(line);
+              changed = true;
+            }
+          }
+        }
+      }
+      if (!local.reflection && incoming.reflection) {
+        local.reflection = incoming.reflection;
+        changed = true;
+      }
+    }
+    if (changed) this.save(store);
+  }
 
   public static getInstance(): DailyRecord {
     if (!DailyRecord.instance) {
@@ -139,6 +201,13 @@ export default class DailyRecord {
     }
     this.cache = store;
     this.kv.set(KEY, store);
+    for (const listener of this.listeners) {
+      try {
+        listener();
+      } catch {
+        /* a listener never breaks the journal */
+      }
+    }
   }
 
   /** Returns today's record, creating an empty one if none exists. */

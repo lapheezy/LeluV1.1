@@ -48,7 +48,14 @@ interface LedgerState {
   lastCapabilityScanAt: number;
   /** Alternatives that were verified to work when a preferred capability could not be used. */
   strategies: LearnedStrategy[];
+  /** When each tool's constraint was lifted — so a merge from another device cannot resurrect it. */
+  liftedConstraints: Array<{ tool: string; at: number }>;
 }
+
+export type LedgerSnapshot = LedgerState;
+
+/** Each record keeps its most recent steps; the full history is not needed to act and would bloat sync. */
+const TRAIL_CAP = 40;
 
 export function isTerminal(status: CuriosityStatus): boolean {
   return TERMINAL.has(status);
@@ -66,6 +73,7 @@ export default class CuriosityLedger {
       constraints: Array.isArray(stored?.constraints) ? stored.constraints : [],
       lastCapabilityScanAt: typeof stored?.lastCapabilityScanAt === "number" ? stored.lastCapabilityScanAt : 0,
       strategies: Array.isArray(stored?.strategies) ? stored.strategies : [],
+      liftedConstraints: Array.isArray(stored?.liftedConstraints) ? stored.liftedConstraints : [],
     };
   }
 
@@ -146,6 +154,7 @@ export default class CuriosityLedger {
     this.state.curiosities = this.state.curiosities.map((item) => {
       if (item.id !== id) return item;
       updated = { ...item, ...patch, updatedAt: Math.max(Date.now(), item.updatedAt) };
+      if (updated.trail.length > TRAIL_CAP) updated = { ...updated, trail: updated.trail.slice(-TRAIL_CAP) };
       return updated;
     });
     if (updated) this.persist();
@@ -202,7 +211,58 @@ export default class CuriosityLedger {
 
   public removeConstraint(tool: string): void {
     this.state.constraints = this.state.constraints.filter((item) => item.tool !== tool);
+    this.state.liftedConstraints = [...this.state.liftedConstraints.filter((item) => item.tool !== tool), { tool, at: Date.now() }].slice(-100);
     this.persist();
+  }
+
+  /** The whole ledger, for cross-device sync through the existing persistence layer. */
+  public snapshot(): LedgerSnapshot {
+    return JSON.parse(JSON.stringify(this.state)) as LedgerSnapshot;
+  }
+
+  /**
+   * Merge another device's ledger. Records: newer update wins. Constraints:
+   * newer wins, and one lifted after it was learned stays lifted.
+   * Strategies: newer verification wins.
+   */
+  public mergeRemote(remote: Partial<LedgerSnapshot>): void {
+    const byId = new Map(this.state.curiosities.map((item) => [item.id, item]));
+    let changed = false;
+    for (const item of Array.isArray(remote.curiosities) ? remote.curiosities : []) {
+      const local = byId.get(item.id);
+      if (!local || item.updatedAt > local.updatedAt) {
+        byId.set(item.id, item);
+        changed = true;
+      }
+    }
+    const lifted = new Map<string, number>();
+    for (const item of [...this.state.liftedConstraints, ...(Array.isArray(remote.liftedConstraints) ? remote.liftedConstraints : [])]) {
+      lifted.set(item.tool, Math.max(lifted.get(item.tool) ?? 0, item.at));
+    }
+    const constraints = new Map<string, ToolConstraint>();
+    for (const rule of [...this.state.constraints, ...(Array.isArray(remote.constraints) ? remote.constraints : [])]) {
+      const key = `${rule.tool}::${rule.scope}`;
+      const existing = constraints.get(key);
+      if ((lifted.get(rule.tool) ?? 0) >= rule.at) continue;
+      if (!existing || rule.at > existing.at) constraints.set(key, rule);
+    }
+    const strategies = new Map<string, LearnedStrategy>();
+    for (const item of [...this.state.strategies, ...(Array.isArray(remote.strategies) ? remote.strategies : [])]) {
+      const key = `${item.forTool}::${item.alternative}`;
+      const existing = strategies.get(key);
+      if (!existing || item.verifiedAt > existing.verifiedAt) strategies.set(key, item);
+    }
+    const next: LedgerState = {
+      curiosities: [...byId.values()],
+      constraints: [...constraints.values()],
+      strategies: [...strategies.values()].slice(-40),
+      liftedConstraints: [...lifted.entries()].map(([tool, at]) => ({ tool, at })),
+      lastCapabilityScanAt: Math.max(this.state.lastCapabilityScanAt, typeof remote.lastCapabilityScanAt === "number" ? remote.lastCapabilityScanAt : 0),
+    };
+    if (changed || JSON.stringify(next.constraints) !== JSON.stringify(this.state.constraints) || JSON.stringify(next.strategies) !== JSON.stringify(this.state.strategies)) {
+      this.state = next;
+      this.persist();
+    }
   }
 
   public strategies(): LearnedStrategy[] {

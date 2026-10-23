@@ -41,6 +41,36 @@ import AgentObjectives, {
 import { verifyCompletion, type CompletionResult } from "./CompletionVerifier";
 import { describeEvidence, objectiveEvidence } from "./ObjectiveEvidence";
 import { executableToolIds } from "../tools/ToolDispatcher";
+import DailyRecord from "../identity/DailyRecord";
+
+/**
+ * A verified completion is behaviour LÉLU actually showed, so it is
+ * developmental evidence — one unit per objective, into the day's record
+ * for DailyReflection (never straight into identity). Sustained work over
+ * several cycles is patience; bringing several distinct outcomes together
+ * is synthesis. A one-step completion is neither.
+ */
+export function completionEvidenceTrait(cycles: number, observed: string[]): "patience" | "synthesis" | null {
+  if (cycles >= 3) return "patience";
+  if (new Set(observed).size >= 2) return "synthesis";
+  return null;
+}
+
+function recordCompletionEvidence(objectiveId: string, title: string, cycles: number, verification: CompletionResult): void {
+  const traitId = completionEvidenceTrait(cycles, verification.observed);
+  if (!traitId) return;
+  try {
+    DailyRecord.getInstance().recordEvidence({
+      traitId,
+      unitId: `objective:${objectiveId}`,
+      source: "objective",
+      observation: `Completed “${title.slice(0, 80)}” — verified (${verification.observed.slice(0, 3).join("; ")}) over ${cycles} cycle(s).`,
+      at: Date.now(),
+    });
+  } catch {
+    // Development records are a layer; they never affect the objective.
+  }
+}
 
 /** What the agent concluded this cycle, parsed from its own decision. */
 export interface CycleOutcome {
@@ -729,6 +759,7 @@ export default class AgentCognitionRuntime {
         if (verification.verdict === "complete") {
           nextState = "completed";
           conclusion = claimed;
+          recordCompletionEvidence(objective.id, objective.objective, this.objectives.cycles(objectiveId).length, verification);
         } else if (verification.verdict === "blocked") {
           // Nothing further LÉLU can do will satisfy it, so this takes
           // the EXISTING question path rather than spending more cycles.

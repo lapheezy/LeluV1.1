@@ -93,6 +93,33 @@ export interface CuriosityPorts {
   onToolSuccess?(listener: (success: { tool: string; taskId: string; at: number }) => void): () => void;
   traitTendencies?(): TraitTendency[];
   syncSelfModel?(limitations: string[], discoveries: string[]): void;
+  /**
+   * One bounded call through the EXISTING provider chain (AIService.reason).
+   * Null when no provider answered. The engine treats the reply as a
+   * proposal and validates it against the evidence before using it.
+   */
+  reason?(prompt: string, system: string): Promise<string | null>;
+  /** Hash of the tool's executor code and implementation file, from the live tree or the build snapshot. */
+  sourceFingerprint?(tool: string, executionRoute?: string): Promise<string | undefined>;
+}
+
+/** FNV-1a, 32-bit — a change detector, not a security hash. */
+export function fingerprintText(text: string): string {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, "0");
+}
+
+/** The block of ToolDispatcher.ts that implements one tool — so an edit to ANOTHER tool is not a change to this one. */
+export function executorBlock(dispatcherSource: string, tool: string): string | null {
+  const start = dispatcherSource.indexOf(`id: "${tool}"`);
+  if (start < 0) return null;
+  const next = dispatcherSource.indexOf('\n  {\n    id: "', start + 1);
+  const end = next > 0 ? next : dispatcherSource.indexOf("\n];", start);
+  return dispatcherSource.slice(start, end > 0 ? end : undefined);
 }
 
 const CATEGORY_MAP: Record<CuriosityCategory, ProactiveQuestionCategory> = {
@@ -123,6 +150,37 @@ interface Loaded {
 
 /** Curiosity-owned self-model lines carry this prefix so each sync replaces only its own. */
 export const SELF_MODEL_PREFIX = "Tool ";
+
+const sourcePathCache = new Map<string, string | null>();
+
+/** Find `<Class>.ts` in the snapshot, else in the live tree (one directory listing per folder, cached). */
+async function resolveSourcePath(access: import("../selfdev/SourceAccess").default, className: string): Promise<string | null> {
+  if (sourcePathCache.has(className)) return sourcePathCache.get(className) ?? null;
+  const file = `${className}.ts`;
+  let found = access.snapshotPaths().find((path) => path.endsWith(`/${file}`)) ?? null;
+  if (!found) {
+    for (const root of ["src/core", "src/brain", "src/providers"]) {
+      const top = await access.list(root).catch(() => null);
+      const entries = top?.entries ?? [];
+      const direct = entries.find((entry) => entry.type === "file" && entry.name === file);
+      if (direct) {
+        found = direct.path;
+        break;
+      }
+      for (const dir of entries.filter((entry) => entry.type === "dir")) {
+        const inner = await access.list(dir.path).catch(() => null);
+        const hit = inner?.entries?.find((entry) => entry.type === "file" && entry.name === file);
+        if (hit) {
+          found = hit.path;
+          break;
+        }
+      }
+      if (found) break;
+    }
+  }
+  sourcePathCache.set(className, found ? found.replace(/^\/+/, "") : null);
+  return sourcePathCache.get(className) ?? null;
+}
 
 export function createDefaultPorts(): CuriosityPorts {
   let loaded: Loaded | null = null;
@@ -167,7 +225,12 @@ export function createDefaultPorts(): CuriosityPorts {
       // No RouterContext: a curiosity investigation runs outside any
       // conversation turn, and the dispatcher reports honestly when a
       // tool needs one.
-      return dispatchToolCall({ id: taskId, name: toolNameForModel(toolId), arguments: args }, taskId);
+      // The runtime's OWN router context (real brain, providers, logger),
+      // so a tool that needs one — research — works outside a turn exactly
+      // as it does inside one.
+      const prompt = String(args.query ?? args.prompt ?? args.path ?? toolId);
+      const context = loaded.ai.getInstance().toolContext(prompt) ?? undefined;
+      return dispatchToolCall({ id: taskId, name: toolNameForModel(toolId), arguments: args }, taskId, context);
     },
 
     async consolidate(layer, summary, keywords) {
@@ -274,6 +337,29 @@ export function createDefaultPorts(): CuriosityPorts {
         .getState()
         .traits.filter((trait) => trait.status === "emerging" || trait.status === "established")
         .map((trait) => ({ traitId: trait.id, status: trait.status, confidence: trait.confidence })),
+
+    async reason(prompt, system) {
+      if (!loaded) return null;
+      const response = await loaded.ai.getInstance().reason(prompt, { system, temperature: 0.1, maxTokens: 400 });
+      const ok = response.metadata?.success !== false && response.provider !== "offline" && response.text.trim().length > 0;
+      return ok ? response.text : null;
+    },
+
+    async sourceFingerprint(tool, executionRoute) {
+      if (!loaded) return undefined;
+      const access = loaded.source.getInstance();
+      const dispatcher = await access.read("src/core/tools/ToolDispatcher.ts");
+      if (!dispatcher.content) return undefined;
+      const block = executorBlock(dispatcher.content, tool);
+      if (!block) return undefined;
+      const routeClass = (executionRoute ?? "").split(".")[0];
+      let implementation = "";
+      if (routeClass) {
+        const path = await resolveSourcePath(access, routeClass);
+        if (path) implementation = (await access.read(path)).content ?? "";
+      }
+      return `exec:${fingerprintText(block)}|impl:${implementation ? fingerprintText(implementation) : "-"}`;
+    },
 
     syncSelfModel(limitations, discoveries) {
       const model = SelfModel.getInstance();

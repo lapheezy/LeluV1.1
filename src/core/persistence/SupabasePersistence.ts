@@ -15,6 +15,23 @@ import type ResponsePattern from "../../brain/ResponsePattern";
 import type UserManager from "../user/UserManager";
 import type UserProfile from "../user/UserProfile";
 import { resolveSupabaseConfig, checkSupabaseProject } from "../config/supabaseEnv";
+import LeluIdentity, { type LeluIdentityState } from "../identity/LeluIdentity";
+import DailyRecord, { type DailyStore } from "../identity/DailyRecord";
+import CuriosityLedger, { type LedgerSnapshot } from "../curiosity/CuriosityLedger";
+import { backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
+
+/**
+ * LÉLU's development records, synced as per-user documents in the EXISTING
+ * user_preferences store (unique on user_id + preference_key) — the same
+ * table the user profile already uses. No new table, no second store.
+ */
+export const DEVELOPMENT_SYNC_KEYS = {
+  identity: "lelu_identity",
+  daily: "lelu_daily",
+  curiosity: "lelu_curiosity",
+} as const;
+/** Development records change in bursts during a cycle; one write per burst is enough. */
+const DEVELOPMENT_SYNC_THROTTLE_MS = 5_000;
 
 export type SupabasePersistenceStatus = "disabled" | "connecting" | "connected" | "signed_out" | "degraded";
 
@@ -99,6 +116,7 @@ export default class SupabasePersistence {
   private userId: string | null = null;
   private status: SupabasePersistenceStatus = "disabled";
   private attached = false;
+  private readonly developmentTimers = new Map<string, BackgroundTimer>();
   private hydrated = false;
   /** True only once conversations AND every message page have been collected. */
   private historyHydrated = false;
@@ -412,6 +430,7 @@ export default class SupabasePersistence {
       if (Array.isArray(newsRow?.topics)) ProactiveCore.getInstance().mergeNewsPreferences(newsRow.topics);
       const profileRow = preferenceRows.find((row) => row.preference_key === "profile");
       if (user && profileRow?.value && typeof profileRow.value === "object") await user.mergeRemote(profileRow.value as UserProfile);
+      this.mergeDevelopmentRecords(preferenceRows);
     } catch (error) {
       this.status = "degraded";
       console.warn("[Lélu] Supabase hydration degraded; local state remains active", error);
@@ -520,7 +539,11 @@ export default class SupabasePersistence {
       improvements.subscribe((value) => void this.persistImprovements(value)),
       KnowledgeLibrary.getInstance().subscribe((value) => void this.persistKnowledge(value)),
       events.subscribe((event) => void this.persistCognitiveEvent(event)),
+      LeluIdentity.getInstance().subscribe(() => this.scheduleDevelopmentSync(DEVELOPMENT_SYNC_KEYS.identity)),
+      DailyRecord.getInstance().subscribe(() => this.scheduleDevelopmentSync(DEVELOPMENT_SYNC_KEYS.daily)),
+      CuriosityLedger.getInstance().subscribe(() => this.scheduleDevelopmentSync(DEVELOPMENT_SYNC_KEYS.curiosity)),
     );
+    for (const key of Object.values(DEVELOPMENT_SYNC_KEYS)) this.scheduleDevelopmentSync(key, 0);
 
     void this.persistProjects(projects.list());
     void this.persistAgents(agents.list());
@@ -534,6 +557,53 @@ export default class SupabasePersistence {
     if (this.runtimeBrain) {
       void this.runtimeBrain.recallAll().then((memories) => this.persistMemories(memories));
     }
+  }
+
+  /** Merge another device's development records (identity, journal, curiosity ledger). */
+  public mergeDevelopmentRecords(preferenceRows: RemoteRow[]): void {
+    const value = (key: string) => {
+      const row = preferenceRows.find((item) => item.preference_key === key);
+      return row?.value && typeof row.value === "object" ? row.value : null;
+    };
+    const identity = value(DEVELOPMENT_SYNC_KEYS.identity);
+    if (identity) LeluIdentity.getInstance().mergeRemote(identity as LeluIdentityState);
+    const daily = value(DEVELOPMENT_SYNC_KEYS.daily);
+    if (daily) DailyRecord.getInstance().mergeRemote(daily as DailyStore);
+    const ledger = value(DEVELOPMENT_SYNC_KEYS.curiosity);
+    if (ledger) CuriosityLedger.getInstance().mergeRemote(ledger as Partial<LedgerSnapshot>);
+  }
+
+  private scheduleDevelopmentSync(key: string, delayMs = DEVELOPMENT_SYNC_THROTTLE_MS): void {
+    if (this.developmentTimers.get(key)?.active) return;
+    this.developmentTimers.set(key, backgroundTimeout(() => void this.persistDevelopmentRecord(key), delayMs));
+  }
+
+  public async persistDevelopmentRecord(key: string): Promise<void> {
+    if (!this.isConnected() || !this.client) return;
+    // Read-merge-write. The row is replaced whole, and another device may
+    // have written since this one hydrated — so its copy is merged in first.
+    // If it cannot be read, nothing is written: an upload made blind could
+    // replace real development with this device's partial view.
+    try {
+      const { data, error } = await this.withTimeout(
+        Promise.resolve(this.client.from("user_preferences").select("preference_key, value").eq("user_id", this.userId).eq("preference_key", key)),
+        CORE_HYDRATE_TIMEOUT_MS,
+        `Supabase ${key} read-before-write`,
+      );
+      if (error) throw error;
+      this.mergeDevelopmentRecords(Array.isArray(data) ? (data as RemoteRow[]) : []);
+    } catch (error) {
+      this.status = "degraded";
+      console.warn(`[Lélu] Supabase ${key} sync skipped; the remote copy could not be read`, error);
+      return;
+    }
+    const value =
+      key === DEVELOPMENT_SYNC_KEYS.identity
+        ? LeluIdentity.getInstance().getState()
+        : key === DEVELOPMENT_SYNC_KEYS.daily
+          ? DailyRecord.getInstance().snapshot()
+          : CuriosityLedger.getInstance().snapshot();
+    await this.write("user_preferences", [{ user_id: this.userId, preference_key: key, value, updated_at: new Date().toISOString() }], "user_preferences");
   }
 
   public async persistMemories(memories: ResponsePattern[]): Promise<void> {

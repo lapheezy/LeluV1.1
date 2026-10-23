@@ -106,7 +106,7 @@ const directionSymbols: Record<string, string> = {
 
 function CapabilitiesSection() {
   const rows = CuriosityEngine.getInstance().capabilityStates();
-  const strategies = CuriosityEngine.getInstance().strategies().filter((item) => item.status === "current");
+  const strategies = CuriosityEngine.getInstance().strategies().filter((item) => item.status !== "superseded");
   if (rows.length === 0 && strategies.length === 0) return null;
   // "Unknown — no executor" is honest but uninformative one by one; it is
   // summarised, so the states that carry real knowledge stay visible.
@@ -137,7 +137,13 @@ function CapabilitiesSection() {
         </div>
       )}
       {strategies.map((item) => (
-        <div key={item.id} style={{ ...card, ...labelText }}>Strategy: when {item.forTool} cannot be used, {item.alternative} stands in.</div>
+        <div key={item.id} style={{ ...card, ...labelText }}>
+          Strategy: when {item.forTool} cannot be used, {item.alternative} stands in.
+          <div style={{ fontSize: 11, color: "rgba(148,163,184,0.6)" }}>
+            {item.status === "current" ? "Verified on a real request" : "Works, but not yet verified on a real request"}
+            {item.coverage === "partial" ? ` · does not take ${item.missingInputs?.join(", ")}` : item.coverage === "full" ? " · takes every input" : ""}
+          </div>
+        </div>
       ))}
     </>
   );

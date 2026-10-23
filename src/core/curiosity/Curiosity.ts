@@ -134,6 +134,8 @@ export interface ToolIntent {
   finishedAt?: number;
   /** Set when this intent was chosen by capability discovery to stand in for another tool. */
   alternativeFor?: string;
+  coverage?: "full" | "partial";
+  missingInputs?: string[];
 }
 
 export interface CuriosityEvidence {
@@ -172,7 +174,7 @@ export interface CuriosityLearning {
   revalidation?: RevalidationPolicy;
   revalidateAfterMs?: number;
   /** The state the finding depends on, fingerprinted when it was verified. */
-  dependency?: { tool?: string; fingerprint?: string };
+  dependency?: { tool?: string; fingerprint?: string; code?: string };
   supersededAt?: number;
   supersededBy?: string;
 }
@@ -186,7 +188,7 @@ export interface CuriosityLearning {
  */
 export type RevalidationPolicy = "stable" | "on-change" | "periodic";
 
-export type ReevaluationTrigger = "environment-changed" | "time-sensitive" | "new-evidence" | "relevant-again" | "revisited";
+export type ReevaluationTrigger = "environment-changed" | "code-changed" | "time-sensitive" | "new-evidence" | "relevant-again" | "revisited";
 
 export interface Reevaluation {
   at: number;
@@ -209,7 +211,15 @@ export interface LearnedStrategy {
   reason: string;
   verifiedAt: number;
   learnedFrom: string;
-  status: "current" | "superseded";
+  /**
+   * candidate  the alternative works, but has not yet answered a real
+   *            request with real inputs — not trusted as a substitute yet
+   * current    verified on a real request's inputs
+   */
+  status: "candidate" | "current" | "superseded";
+  /** Which of the preferred capability's required inputs the alternative also takes. */
+  coverage?: "full" | "partial";
+  missingInputs?: string[];
 }
 
 export interface HostQuestionRecord {
@@ -572,6 +582,8 @@ export interface ToolCandidate {
   reason: string;
   expectedEvidence: string;
   alternativeFor?: string;
+  coverage?: "full" | "partial";
+  missingInputs?: string[];
 }
 
 const mentions = (c: Pick<Curiosity, "question" | "context">, pattern: RegExp): boolean =>
@@ -680,8 +692,15 @@ export function verifyEvidence(evidence: CuriosityEvidence[]): CuriosityVerifica
   const sources = [
     ...new Set(supporting.map((item) => (item.source === "observation" || item.source === "host" ? item.source : item.tool ?? item.source))),
   ];
+  // Repetition is not corroboration: the same claim from the same source
+  // (a retry returning the same result) counts once, at its strongest.
+  const distinct = new Map<string, number>();
+  for (const item of supporting) {
+    const key = `${item.tool ?? item.source}|${item.claim.trim().toLowerCase()}`;
+    distinct.set(key, Math.max(distinct.get(key) ?? 0, clamp(item.weight)));
+  }
   let doubt = 1;
-  for (const item of supporting) doubt *= 1 - clamp(item.weight);
+  for (const weight of distinct.values()) doubt *= 1 - weight;
   const confidence = Math.round((1 - doubt) * 1000) / 1000;
 
   if (supporting.length > 0 && contradicting.length > 0) {
@@ -797,7 +816,7 @@ export function constraintFromDiagnosis(tool: string, cause: FailureCause, curio
 /* ------------------------------------------------------------------ */
 
 const AMBIGUITY =
-  /\b(something like|or something|somehow|kind of|sort of|whatever (?:you think|works)|figure (?:it|that) out|you decide|not sure (?:what|how|if)|i don't know (?:what|how|if)|more (autonomous|independent|alive|human|intelligent|proactive|capable|creative|personal))\b/i;
+  /\b(something like|or something|somehow|kind of|sort of|kind of like|more like|whatever (?:you think|works)|figure (?:it|that) out|you decide|up to you|not sure (?:what|how|if)|i don't know (?:what|how|if)|and so on|and stuff|etc\.?|the right way|properly|make it (?:work|better|nicer|cleaner|feel right)|something (?:better|smarter|nicer|cooler|different|else)|more (autonomous|independent|alive|human|intelligent|proactive|capable|creative|personal|natural|useful|polished))(?=\W|$)/i;
 const DIRECTIVE = /\b(want|need|should|make|build|let|have her|i'd like|goal|turn|become)\b/i;
 
 /**
@@ -898,13 +917,18 @@ export function detectRepeatedFailures(failures: ObservedFailure[], windowMs = 3
  * across different curiosities. Read from her own records only.
  */
 export function detectOwnFailurePatterns(curiosities: Curiosity[], now = Date.now(), windowMs = 7 * DAY_MS): CuriositySignal[] {
-  const byTool = new Map<string, { curiosityIds: Set<string>; causes: FailureCause[]; messages: string[] }>();
+  const byTool = new Map<string, { curiosityIds: Set<string>; causes: FailureCause[]; messages: string[]; blockedOnly: boolean }>();
   for (const curiosity of curiosities) {
     if (curiosity.category === "self") continue;
     for (const intent of curiosity.proposedActions) {
-      if (intent.outcome !== "failed" || !intent.cause || failureKind(intent.cause) === "none" || failureKind(intent.cause) === "input") continue;
+      const kind = failureKind(intent.cause);
+      const failed = intent.outcome === "failed" && kind !== "none" && kind !== "input";
+      // Repeatedly NEEDING a tool that is not there is also a pattern in her behaviour.
+      const unusable = intent.outcome === "blocked" && (kind === "availability" || kind === "environment");
+      if (!intent.cause || !(failed || unusable)) continue;
       if (intent.tool.startsWith("internal:") || now - (intent.finishedAt ?? 0) > windowMs) continue;
-      const entry = byTool.get(intent.tool) ?? { curiosityIds: new Set<string>(), causes: [], messages: [] };
+      const entry = byTool.get(intent.tool) ?? { curiosityIds: new Set<string>(), causes: [], messages: [], blockedOnly: true };
+      if (failed) entry.blockedOnly = false;
       entry.curiosityIds.add(curiosity.id);
       entry.causes.push(intent.cause);
       entry.messages.push(intent.resultSummary ?? "");
@@ -917,7 +941,9 @@ export function detectOwnFailurePatterns(curiosities: Curiosity[], now = Date.no
     const dominant = dominantCause(entry.causes);
     if (!dominant) continue;
     signals.push({
-      question: `Why do my own investigations keep failing when I use ${tool}?`,
+      question: entry.blockedOnly
+        ? `Why do my own investigations keep needing ${tool} when it cannot be used?`
+        : `Why do my own investigations keep failing when I use ${tool}?`,
       unknown: `Whether my choice of ${tool} rests on a wrong assumption.`,
       context: `${entry.curiosityIds.size} separate investigations failed with ${tool}.`,
       category: "self",
@@ -1017,6 +1043,8 @@ export function revalidationPolicyFor(
 export interface RevalidationContext {
   now: number;
   currentFingerprint: (tool: string) => string;
+  /** Fingerprint of the tool's implementation source, when it can be read. */
+  currentCodeFingerprint?: (tool: string) => string | undefined;
   /** A non-curiosity call of this tool succeeded after this time. */
   succeededSince: (tool: string, since: number) => boolean;
   /** A later investigation wanted this tool but a constraint excluded it. */
@@ -1038,6 +1066,10 @@ export function revalidationTrigger(c: Curiosity, ctx: RevalidationContext): Ree
   if (tool && learning.dependency?.fingerprint) {
     const current = ctx.currentFingerprint(tool);
     if (current !== learning.dependency.fingerprint && !checkedFingerprints.has(current)) return "environment-changed";
+  }
+  if (tool && learning.dependency?.code) {
+    const code = ctx.currentCodeFingerprint?.(tool);
+    if (code && code !== learning.dependency.code && !checkedFingerprints.has(`code:${code}`)) return "code-changed";
   }
   const last = Math.max(learning.verifiedAt ?? 0, c.lastReevaluationAt ?? 0);
   if (ctx.now - last < REVISIT_MIN_INTERVAL_MS) return null;
@@ -1078,6 +1110,9 @@ export interface AlternativeOption {
   score: number;
   why: string;
   fromStrategy: boolean;
+  /** full: takes every input the preferred capability requires; partial: some are missing. */
+  coverage: "full" | "partial";
+  missingInputs: string[];
 }
 
 export interface DiscoveryInput {
@@ -1107,7 +1142,9 @@ export function discoverAlternatives(input: DiscoveryInput): { options: Alternat
   const rejected: Array<{ tool: string; reason: string }> = [];
   for (const tool of input.catalog) {
     if (tool.id === input.preferred.id || tool.id.startsWith("internal:")) continue;
-    const strategy = input.strategies.find((item) => item.status === "current" && item.forTool === input.preferred.id && item.alternative === tool.id);
+    const strategy = input.strategies.find(
+      (item) => (item.status === "current" || item.status === "candidate") && item.forTool === input.preferred.id && item.alternative === tool.id,
+    );
     const sameCategory = Boolean(tool.category && tool.category === input.preferred.category);
     const shared = distinctiveWords(`${tool.description ?? ""} ${tool.id.split(".")[0]}`).filter((word) => need.has(word));
     const related = Boolean(strategy) || (sameCategory && shared.length >= 1) || shared.length >= 2;
@@ -1129,16 +1166,20 @@ export function discoverAlternatives(input: DiscoveryInput): { options: Alternat
       continue;
     }
     const reliability = input.reliability?.(tool.id) ?? { ok: 0, failed: 0 };
+    const preferredRequired = input.parameters(input.preferred.id)?.required ?? [];
+    const missingInputs = preferredRequired.filter((name) => !(params?.properties ?? []).includes(name));
+    const coverage: "full" | "partial" = missingInputs.length === 0 ? "full" : "partial";
     const score =
-      (strategy ? 5 : 0) + (sameCategory ? 3 : 0) + Math.min(3, shared.length) + (tool.riskLevel === 0 ? 1 : 0) - tool.riskLevel +
-      Math.max(-2, Math.min(2, reliability.ok - reliability.failed));
+      (strategy ? (strategy.status === "current" ? 5 : 2) : 0) + (sameCategory ? 3 : 0) + Math.min(3, shared.length) + (tool.riskLevel === 0 ? 1 : 0) - tool.riskLevel +
+      (coverage === "full" ? 1 : 0) + Math.max(-2, Math.min(2, reliability.ok - reliability.failed));
     const why = [
-      strategy ? `learned strategy (${strategy.reason})` : null,
+      strategy ? `learned strategy, ${strategy.status === "current" ? "verified on real inputs" : "not yet verified on real inputs"} (${strategy.reason})` : null,
       sameCategory ? `same ${tool.category} capability` : null,
       shared.length > 0 ? `shares “${shared.join("”, “")}”` : null,
       `${classifyAction(tool)}, risk ${tool.riskLevel}`,
+      coverage === "full" ? "takes every input the preferred capability needs" : `does not take ${missingInputs.join(", ")}`,
     ].filter(Boolean).join("; ");
-    options.push({ tool: tool.id, args, score, why, fromStrategy: Boolean(strategy) });
+    options.push({ tool: tool.id, args, score, why, fromStrategy: Boolean(strategy), coverage, missingInputs });
   }
   options.sort((a, b) => b.score - a.score || a.tool.localeCompare(b.tool));
   return { options, rejected };
@@ -1252,4 +1293,72 @@ export function deriveFollowUps(c: Curiosity): CuriositySignal[] {
   const share = deriveFollowUp(c);
   if (share) out.push(share);
   return out;
+}
+
+/* ------------------------------------------------------------------ */
+/* Grounding model output                                              */
+/* ------------------------------------------------------------------ */
+
+const normalizeSpace = (text: string) => text.replace(/\s+/g, " ").trim().toLowerCase();
+
+/** Pull the first JSON object out of a model reply. Null if there is none. */
+export function parseModelJson(text: string): Record<string, unknown> | null {
+  const match = /\{[\s\S]*\}/.exec(text);
+  if (!match) return null;
+  try {
+    const value = JSON.parse(match[0]);
+    return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * A model's claim is accepted only if it QUOTES the evidence: the quote
+ * must appear verbatim (whitespace and case aside) in the source text.
+ * This is the rule layer that keeps model reasoning from inventing facts.
+ */
+export function isGroundedQuote(source: string, quote: unknown, min = 8, max = 400): quote is string {
+  if (typeof quote !== "string") return false;
+  const q = normalizeSpace(quote);
+  return q.length >= min && q.length <= max && normalizeSpace(source).includes(q);
+}
+
+/** Rule-based relevance when no model is available: does the output talk about what was asked? */
+export function relevantByRule(question: string, output: string): boolean {
+  const asked = contentWords(question).filter((word) => !GENERIC.has(word) && word.length >= 4);
+  if (asked.length === 0) return output.trim().length > 0;
+  const text = output.toLowerCase();
+  const covered = asked.filter((word) => text.includes(word)).length;
+  return covered / asked.length >= 0.5;
+}
+
+/** Distinct sources behind a research result — independent corroboration, not repetition. */
+export function distinctSources(data: unknown): number {
+  const results = (data as { results?: Array<{ source?: string; url?: string; title?: string }> } | undefined)?.results ?? [];
+  const keys = new Set(
+    results.map((item) => {
+      if (item.url) {
+        try {
+          return new URL(item.url).hostname;
+        } catch {
+          /* fall through */
+        }
+      }
+      return item.source ?? item.title ?? "";
+    }),
+  );
+  keys.delete("");
+  return keys.size;
+}
+
+/** Causes a model may propose for an unexplained failure, checked against registry state before use. */
+export const HYPOTHESIS_CAUSES: FailureCause[] = ["not-permitted", "unavailable", "missing-context", "not-configured", "timeout", "input"];
+
+/** Is a proposed cause consistent with what the registry says about the tool? */
+export function causeConsistentWithRegistry(cause: FailureCause, tool: CatalogTool | undefined, permitted: boolean): boolean {
+  if (!tool) return cause === "unknown-tool";
+  if (cause === "unavailable") return !tool.available;
+  if (cause === "not-permitted") return tool.available && !permitted;
+  return tool.available && permitted;
 }

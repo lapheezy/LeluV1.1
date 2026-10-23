@@ -1271,6 +1271,11 @@ export default class AIService {
    * checks, capability validation). The SAME registry the chat
    * pipeline uses — no duplicate provider system.
    */
+  /** The runtime's own router context, for a tool call outside a turn. Null until initialized. */
+  public toolContext(prompt: string): import("./router/RouterContext").default | null {
+    return this.initialized ? this.runtime.toolContext(prompt) : null;
+  }
+
   public getKnowledgeProviderRegistry(): import("./ProviderRegistry").default {
     return this.runtime.core.getKnowledgeProviders();
   }

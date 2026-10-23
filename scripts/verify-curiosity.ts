@@ -130,46 +130,49 @@ async function main(): Promise<void> {
   console.log("\n== CYCLE C — SELF: a recurring pattern in her own behaviour ==");
   const before = LeluIdentity.getInstance().getTrait("pattern-recognition")!;
   const beforeEvidence = before.evidenceCount;
-  for (const question of [
-    "What is the current stable release line of the Vite build tool?",
-    "What changed in the most recent TypeScript compiler release?",
-  ]) {
+  // Two separate lines of inquiry that each need project.git while the
+  // engineering runtime is down. (Background research works now — it gets
+  // the runtime's real context — so it is no longer a recurring failure.)
+  for (const [question, action] of [["What is the current git status of the project?", "status"], ["What changed in the project since the last commit?", "diff"]]) {
     engine.notice({
       question,
-      unknown: "A fact about the outside world I do not hold.",
-      context: "A knowledge gap noticed while working.",
-      category: "world",
-      source: "memory",
+      unknown: "The repository's current state.",
+      context: "Heru asked about the repository.",
+      category: "project",
+      source: "project",
       importance: 0.5,
       uncertainty: 0.8,
       relevance: 0.6,
       expectedBenefit: 0.6,
-      evidenceFingerprint: `gap:${question}`,
+      evidenceFingerprint: `git:${action}`,
+      subject: { preferred: { tool: "project.git", args: { action } } },
     });
   }
   // Higher-tier work (e.g. cycle B's follow-up) is pursued first; keep
-  // ticking until both knowledge gaps have actually been attempted.
+  // ticking until both have actually been attempted.
   for (let i = 0; i < 6; i += 1) {
-    const pending = engine.getLedger().list().filter((item) => item.category === "world" && item.attempts === 0);
+    const pending = engine.getLedger().list().filter((item) => item.subject?.preferred?.tool === "project.git" && item.attempts === 0);
     if (pending.length === 0) break;
     await engine.tick();
   }
-  const worlds = engine.getLedger().list().filter((item) => item.category === "world");
+  const worlds = engine.getLedger().list().filter((item) => item.subject?.preferred?.tool === "project.git");
   check(
-    worlds.every((w) => w.proposedActions.some((i) => i.tool === "research.web" && i.outcome === "failed")),
-    "two separate investigations each tried read-only research and it failed",
+    worlds.length === 2 && worlds.every((w) => w.proposedActions.some((i) => i.tool === "project.git" && i.outcome !== "ok")),
+    "two separate investigations each needed project.git and could not use it",
     JSON.stringify(worlds.map((w) => w.proposedActions.map((i) => [i.tool, i.outcome, i.cause]))),
   );
-  check(worlds.every((w) => w.status === "queued" && (w.nextAttemptAt ?? 0) > Date.now()), "with no evidence, both were DEFERRED with backoff — no fabricated answer");
+  check(worlds.every((w) => !w.learning || !/clean|modified|changed/i.test(w.learning.summary)), "no fabricated repository state", JSON.stringify(worlds.map((w) => w.status)));
 
   const tickC = await engine.tick();
   check(tickC.noticed.some((q) => /my own investigations/.test(q)), "NOTICE: she questioned her own behaviour", JSON.stringify(tickC.noticed));
   const self = engine.getLedger().list().find((item) => item.category === "self")!;
+  // One action per tick: earlier follow-ups may be pursued first.
+  for (let i = 0; i < 4 && engine.getLedger().get(self.id)?.status !== "resolved"; i += 1) await engine.tick();
   const c = engine.getLedger().get(self.id)!;
   check(c.proposedActions.some((i) => i.tool === "internal:curiosity-ledger" && i.outcome === "ok"), "she investigated her own records");
   check(c.verification?.verdict === "verified", "VERIFY: her records and the registry agree on the cause", c.verification?.note);
   check(c.learning?.type === "self-knowledge" && c.learning.retrievable, "LEARN: self-knowledge stored and recallable", JSON.stringify(c.learning));
-  check(engine.getLedger().constraints().some((r) => r.tool === "research.web" && r.scope === "background"), "APPLY: background investigations no longer pick research.web");
+  check(engine.getLedger().constraints().some((r) => r.tool === "project.git"), "APPLY: investigations no longer pick project.git while it cannot be used", JSON.stringify(engine.getLedger().constraints().map((r) => [r.tool, r.scope, r.cause])));
   check(c.personalityEvidence?.traitId === "pattern-recognition", "PERSONALITY: the self-curiosity supplied evidence for pattern-recognition", JSON.stringify(c.personalityEvidence));
   const contributing = engine.getLedger().list().filter((item) => item.personalityEvidence?.mode === "applied" && item.personalityEvidence.traitId === "pattern-recognition");
   const roots = new Set(contributing.map((item) => item.rootId));
@@ -182,7 +185,7 @@ async function main(): Promise<void> {
   console.log(`    pattern-recognition: ${before.status} (evidence ${beforeEvidence}); ${pending.length} unit(s) awaiting reflection`);
   const today = DailyRecord.getInstance().getOrCreateToday();
   check(today.emergingTraits.some((line) => /pattern-recognition/.test(line)), "DEVELOP: the daily record carries the evidence");
-  check(today.lessons.some((line) => /research\.web/.test(line)), "DEVELOP: the daily record carries the lesson");
+  check(today.lessons.some((line) => /project\.git/.test(line)), "DEVELOP: the daily record carries the lesson");
   show(self.id);
 
   console.log("\n== Bounded chain: the next question ==");

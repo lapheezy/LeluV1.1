@@ -225,13 +225,36 @@ PERSONALITY LeluIdentity.addTraitObservation ×3 → candidate 0.35 → emerging
 NEW         the emerging tendency ranks a recurring-pattern question ahead of an equal one
 ```
 
-## 18 · Remaining limitations
+## 18 · Limitations from this pass — closed
 
-1. **No web research outside a live conversation.** This is represented and re-checked daily, not faked. There is still no independent source for world facts in the background.
-2. **No model-assisted curiosity** (spec §30). Detection, relatedness, verification and reflection are deterministic rules. Relatedness depends on registry categories and descriptions, so a poorly described tool won't be found as an alternative.
-3. **"Relevant code changes" are detected only through the registry fingerprint** (availability, permission, executor, route), not by watching source diffs.
-4. **Alternatives are tested for availability and response, not deep semantic equivalence.** `sandbox.read` answering proves it works and can read files; it does not prove it covers everything `project.read` does.
-5. **Keyword reflection is coarse.** Structured evidence is the reliable path, and at present only curiosity produces it.
-6. **The ledger, strategies and daily record live in KvStore** (this device only). Learnings themselves sync through the Brain.
-7. **The new Identity, Journal, Growth, Questions and History views** were exercised in Chromium against the dev server with real activity (no page errors). This was not a full day of live use, and in the live app `project.read` is available — the engineering runtime is same-origin there — so no strategy was needed. Catalogued tools without an executor are summarised as one "unknown" count rather than listed individually.
-8. **Development is only as rich as real activity.** A quiet day stays quiet.
+Each limitation this report used to list was fixed in code, covered by a unit test, and, where real systems are involved, exercised on the real path. No new brain, runtime, memory, tool, chat, personality or curiosity system was added. Every change goes through the existing ones.
+
+| Was | Now | Proof |
+|---|---|---|
+| **1. No web research outside a conversation.** `research.web` needed a turn's RouterContext. | `AIRuntime.toolContext(prompt)` (exposed as `AIService.toolContext`) builds the runtime's **real** context: brain, knowledge providers, AI providers, logger, cognitive context. Curiosity passes it to the existing `ToolDispatcher.dispatchToolCall`. Research gets up to half the tick budget (15 s), because real providers are slow. Results are verified, not trusted. **Corroboration:** ≥ 2 distinct source hosts, or a verbatim quote of the answer. **Relevance:** judged first, and an irrelevant result is refused. **Repetition:** the same result returned twice counts once. | Acceptance F: background `research.web` ran against Wikipedia, OpenStreetMap, Nominatim and Wikidata. Nominatim returned *"CVC Capital Partners … Sydney … Australia"* for "What is the capital city of Australia?". The model judged that it **does not answer** the question, so it was not learned. Unit tests: real-context dispatch; multi-source verification; the repetition rule. |
+| **2. No model reasoning inside curiosity.** | Model assistance goes through the existing `AIService.reason` and provider chain: background only, never during Heru's turn, at most 2 calls per tick. Every reply is validated before use. **Relevance claims** must quote the tool output verbatim. **Ambiguity phrases** must appear verbatim in Heru's message. **Proposed failure causes** must agree with the registry. Anything else is rejected, and a tally is kept in `modelStats()` (calls / accepted / rejected / unavailable). With no model reachable, the rules still work alone. | Acceptance F: 2 model calls, both validated. A request the rules missed (*"get the demo ready the way we discussed last week"*) raised *"What does Heru mean by 'the way we discussed last week' here?"*, quoting Heru exactly. Unit tests: an ungrounded claim is discarded; a cause the registry contradicts is dropped. |
+| **3. Narrow conversation detection.** | The rules now catch much more everyday vagueness: *kind of like, more like, up to you, and so on, etc., the right way, properly, make it work/better/nicer/cleaner, something better, more natural/useful/polished…*. What the rules miss gets one bounded model look (row 2). | Unit test over the new phrases, plus non-triggering controls. Acceptance D and F. |
+| **4. Code changes seen only through the registry fingerprint.** | Each finding about a tool now also records a fingerprint of **that tool's own code**: an FNV-1a hash of its executor block in `ToolDispatcher.ts` plus its implementation route's source file. The fingerprint is re-read on a bounded schedule (at most 6 tools per environment check). A change triggers one `code-changed` re-check per finding per new fingerprint. Unchanged source triggers nothing. | Acceptance B: the recovered `project.git` finding is fingerprinted from live source; unchanged source → no re-check. Unit test: editing one tool's executor re-checks that finding once and leaves others alone. |
+| **5. Stand-ins checked only for "it responds".** | Each alternative carries explicit **coverage** (`full` / `partial`) and `missingInputs`, computed from the preferred tool's required parameters versus the alternative's. A learned strategy starts as **candidate**. It becomes **current** only after it actually answered a real request in the preferred tool's place, with that answer judged relevant. The UI shows which, and why. | Demonstration: `sandbox.read` is learned as a *candidate*, partial, "does not take workspace". Acceptance C: after it answers a real request, it is **current**. Unit test: coverage and promotion. |
+| **5b. Keyword reflection coarse — only curiosity produced structured evidence.** | Two more systems now record `DailyRecord` evidence, one unit per line of work. **Verified objective completion** (`AgentCognitionRuntime`, at the verifier's *complete* verdict): *patience* for ≥ 3 cycles, *synthesis* for ≥ 2 distinct observations. **Self-correction** (a superseded finding): *patience*. | Unit test: both evidence sources, each counted once. |
+| **6. Ledger, strategies and journal on this device only.** | They sync through the existing `SupabasePersistence` → `user_preferences` rows (`lelu_identity`, `lelu_daily`, `lelu_curiosity`), throttled to 5 s. They hydrate with the other core stores. **Merges:** ledger newer-wins, with **tombstones** so a lifted constraint is not resurrected. Journal unions lines and evidence, and a day reflected on any device stays reflected. Identity: newer document wins, history unioned. **Safety:** every write is **read-merge-write**, and if the remote copy can't be read, nothing is written. A fresh device's seed identity never beats real development, even though its timestamp is newer. | Acceptance "another device": state wiped, then hydrated from the exact rows written: identity, ledger, strategies and reflected day all intact. Unit tests: tombstones; journal and identity merges; a fresh device writing through a fake client never overwrites, and writes the merged state. |
+| **7. Cognition window opened partly off-screen.** | `GenesisWindowFrame` now fits the area that actually shows it. **Area:** its container ∩ every clipping ancestor ∩ the viewport. **Placement:** nudged sideways to keep both edges 12 px inside, with caps counted in content-box terms. **Re-measuring:** a `ResizeObserver` re-measures as the host animates open. The geometry is a pure, tested function (`frameFit.ts`). | Chromium at 1280×860 and 1024×600. **Cognition:** was y = −226 and x = −168; now (100, 87)–(698, 533) inside its 622×482 host. **Identity and Memory:** likewise. `verify:layout` passes. Unit test uses the measured host geometry. |
+| **8. Views not exercised in a browser with the fixes.** | The Cognition, Identity and Memory frames were opened through the real `UIActionBus` in Chromium against the dev server and measured in two viewport sizes. | See row 7. |
+
+Two things are not defects in LÉLU but facts of the world she now reports honestly:
+
+- **Real providers decide what research can find.** The Wikipedia provider resolves page titles, so a question-shaped query can return nothing, and a geocoder can return a lookalike. LÉLU refuses what doesn't answer the question and tries again later.
+- **Development is only as rich as real activity.** A quiet day stays quiet, by design.
+
+## 19 · Results after closing the limitations
+
+| Check | Result |
+|---|---|
+| `npx tsc -b --force` | exit 0 |
+| `npm test` | **879/879**, exit 0 (was 866; +13) |
+| `tests/development-loop.test.ts` | **45/45** |
+| `npm run build` | exit 0 |
+| `npm run lint` | no errors; no new warnings |
+| `npm run verify:layout` | all layout checks pass |
+| `npx tsx scripts/verify-development.ts` | **60/60** (adds F, second device, code watching, coverage) |
+| `npx tsx scripts/verify-curiosity.ts` | **34/34** (cycle C now uses a genuinely unavailable tool, since background research works) |

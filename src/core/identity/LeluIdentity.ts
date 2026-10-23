@@ -197,6 +197,52 @@ export default class LeluIdentity {
   private readonly guard = PersonalityGuard.getInstance();
   /** In-memory cache — ensures mutations survive in Node where KvStore is a no-op. */
   private cache: LeluIdentityState | null = null;
+  private readonly listeners = new Set<() => void>();
+  /** True once this instance has written (or merged) a real state. */
+  private persisted = false;
+
+  public subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  /**
+   * Merge another device's identity. The newer document wins as a whole —
+   * trait state is not averaged across devices — but no history is lost:
+   * snapshots and pending (staged) changes from both are kept.
+   */
+  public mergeRemote(remote: LeluIdentityState): void {
+    if (!remote || typeof remote !== "object" || !Array.isArray(remote.traits)) return;
+    const local = this.getState();
+    // A seed nobody has developed yet carries today's timestamp, so it would
+    // look "newer" than any real history; it never wins against one.
+    const pristine = !this.persisted && this.kv.get<LeluIdentityState>(KEY) === null;
+    const base = pristine || remote.updatedAt > local.updatedAt ? remote : local;
+    const history = new Map<number, IdentitySnapshot>();
+    for (const item of [...local.developmentHistory, ...(remote.developmentHistory ?? [])]) history.set(item.snapshotAt, item);
+    const pending = new Map<string, SandboxChange>();
+    for (const item of [...local.pendingSandboxChanges, ...(remote.pendingSandboxChanges ?? [])]) pending.set(item.id, item);
+    const merged: LeluIdentityState = {
+      ...base,
+      developmentHistory: [...history.values()].sort((a, b) => a.snapshotAt - b.snapshotAt).slice(-MAX_SNAPSHOTS),
+      pendingSandboxChanges: [...pending.values()],
+    };
+    if (JSON.stringify(merged) === JSON.stringify(local)) return;
+    this.cache = merged;
+    this.persisted = true;
+    this.kv.set(KEY, merged);
+    this.notify();
+  }
+
+  private notify(): void {
+    for (const listener of this.listeners) {
+      try {
+        listener();
+      } catch {
+        /* a listener never breaks identity */
+      }
+    }
+  }
 
   public static getInstance(): LeluIdentity {
     if (!LeluIdentity.instance) {
@@ -214,7 +260,9 @@ export default class LeluIdentity {
   private save(state: LeluIdentityState): void {
     state.updatedAt = Date.now();
     this.cache = state;
+    this.persisted = true;
     this.kv.set(KEY, state);
+    this.notify();
   }
 
   public getTrait(traitId: string): LeluTrait | undefined {

@@ -128,16 +128,16 @@ Cycle A (host): "I want to make LÉLU more autonomous — something like…" →
 
 Cycle C (self): two background investigations failed with `research.web` → *"Why do my own investigations keep failing when I use research.web?"* → her own records + registry → verified self-knowledge (it needs a turn's router context) → background investigations stop selecting it → one evidence item for pattern-recognition (stays `candidate`, 2 evidence) → daily record updated.
 
-## 12 · Remaining limitations — what LÉLU still cannot do
+## 12 · v1 limitations — all closed since
 
-1. **No web research in the background.** `research.web` requires a turn's RouterContext; curiosity has none, so world questions currently defer and then dismiss/block. She learned this herself (cycle C); fixing it is an engineering decision for Heru.
-2. **No LLM reasoning inside curiosity.** Detection, interpretation and verification are deterministic rules; she cannot read arbitrary tool output for meaning beyond those rules, nor phrase novel questions beyond templates.
-3. **Conversation detection is narrow**: a directive plus explicit vagueness markers. Most real ambiguity goes unnoticed.
-4. **Contradiction detection is structural** (registry/config/own-records vs. a hypothesised cause), not semantic.
-5. **Diagnoses stop at "why it fails"** for a small set of causes; she does not fix anything, and REVIEW proposals still need Heru and the normal development workflow.
-6. **Constraints are only lifted manually** (`removeConstraint`) or by a new diagnosis — not automatically when a tool recovers.
-7. **No persistence across devices** for the ledger (KvStore only, like StudyObjectives); learnings themselves do sync through the Brain's existing path.
-8. **`DailyReflection` is still disconnected.** If it is wired later, it must skip `Curiosity —` lines, or curiosity work would be counted twice (curiosity already supplies its own evidence).
-9. The Questions view was checked in Chromium but not with a real human answering through the card; the answer path itself is covered by the real-chat acceptance cycle A and the ProactiveCore integration test.
+Every item that was listed here has since been fixed. Evidence for each is in `docs/LELU_DEVELOPMENT_PASS_REPORT.md` (§18–19).
 
-This is Curiosity Engine **v1**: bounded, observable, reversible — not finished.
+1. **Background web research** works. It runs with the runtime's real context, and its results are verified for relevance and corroboration before anything is learned.
+2. **Model reasoning inside curiosity** goes through the existing AIService, is bounded, and is validated: verbatim quotes, registry-consistent causes.
+3. **Conversation detection** is much broader in the rules, and backed by one bounded model look for what they miss.
+4. **Contradiction detection** is now semantic where a model is reachable: a claimed answer must quote the output, and a proposed cause must agree with the registry. It stays structural when no model is reachable.
+5. **Diagnoses lead somewhere.** They now produce strategies (candidate → current once proven on a real request), recoveries, and code-change re-checks. Fixing code remains a REVIEW proposal for Heru, by design: curiosity never writes or commits.
+6. **Constraints lift automatically** when the environment or the tool's own code changes, after one bounded verification.
+7. **The ledger, journal and identity sync across devices** through `user_preferences`, with tombstones and read-merge-write.
+8. **`DailyReflection` is wired**, skips accounted lines, and takes structured evidence from curiosity, verified objectives and self-corrections.
+9. **The Questions, Identity and Cognition views** were exercised in Chromium. The answer path is covered by the real-chat acceptance cycle A.

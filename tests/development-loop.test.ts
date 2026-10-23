@@ -133,6 +133,8 @@ interface Env extends CuriosityPorts {
   tendencies: Array<{ traitId: string; status: string; confidence: number }>;
   selfModel: { limitations: string[]; discoveries: string[] };
   impl: Record<string, (args: Record<string, unknown>) => DispatchResult | Promise<DispatchResult>>;
+  reason?: (prompt: string, system: string) => Promise<string | null>;
+  sourceFingerprint?: (tool: string, route?: string) => Promise<string | undefined>;
   emitFailure(f: ObservedFailure): void;
   emitSuccess(tool: string, taskId: string): void;
 }
@@ -716,4 +718,342 @@ test("memory: a memory that merely mentions a tool does not answer why that tool
   const { c } = await learnUnavailable(e);
   assert.notEqual(c.learning?.fromExistingMemory, true, "a list that names the tool is not its diagnosis");
   assert.match(c.learning?.summary ?? "", /^project\.git fails because/);
+});
+
+/* ================================================================== */
+/* LIMITATIONS CLOSED                                                  */
+/* ================================================================== */
+
+import { detectConversationAmbiguity, isGroundedQuote, parseModelJson, relevantByRule, distinctSources, causeConsistentWithRegistry, verifyEvidence } from "../src/core/curiosity/Curiosity";
+import CuriosityLedger from "../src/core/curiosity/CuriosityLedger";
+import { executorBlock, fingerprintText } from "../src/core/curiosity/CuriosityPorts";
+import { completionEvidenceTrait } from "../src/core/cognition/AgentCognitionRuntime";
+
+const WORLD: CuriositySignal = {
+  question: "What is the current stable release line of the Vite build tool?",
+  unknown: "A fact about the world.",
+  context: "A knowledge gap.",
+  category: "world",
+  source: "memory",
+  importance: 0.6,
+  uncertainty: 0.8,
+  relevance: 0.7,
+  expectedBenefit: 0.7,
+  evidenceFingerprint: "vite",
+};
+
+test("background research: tools get the runtime's REAL router context outside a turn", () => {
+  const ports = src("src/core/curiosity/CuriosityPorts.ts");
+  assert.ok(ports.includes("loaded.ai.getInstance().toolContext(prompt)"));
+  assert.ok(ports.includes("dispatchToolCall({ id: taskId, name: toolNameForModel(toolId), arguments: args }, taskId, context)"));
+  const runtime = src("src/core/AIRuntime.ts");
+  const method = runtime.slice(runtime.indexOf("public toolContext("), runtime.indexOf("public toolContext(") + 700);
+  for (const field of ["brain: this.brain", "knowledgeProviders: this.knowledge", "aiProviders: this.providers", "logger: this.logger"]) {
+    assert.ok(method.includes(field), `toolContext uses the runtime's own ${field.split(":")[0]}`);
+  }
+});
+
+test("background research: an answer from several independent sources is verified and learned", async () => {
+  const e = env();
+  e.impl["research.web"] = () => ({
+    ok: true,
+    content: "1. Vite — Vite 7 is the current stable release line of the Vite build tool.\n2. Vite releases — The Vite 7 release line is stable.",
+    data: { count: 2, results: [{ url: "https://vite.dev/blog" }, { url: "https://github.com/vitejs/vite/releases" }] },
+  });
+  const engine = CuriosityEngine.reset(e);
+  const c = engine.notice(WORLD).curiosity!;
+  const done = (await engine.pursue(c.id))!;
+  assert.equal(done.verification?.verdict, "verified");
+  assert.equal(done.status, "resolved");
+  assert.match(done.learning!.summary, /Vite 7/);
+  assert.equal(distinctSources({ results: [{ url: "https://a.com/x" }, { url: "https://a.com/y" }] }), 1, "two pages of one site are one source");
+});
+
+test("model-assisted: a claimed answer must quote the output verbatim, or the model's view is not used", async () => {
+  assert.equal(isGroundedQuote("Vite 7 is the current stable release line.", "vite 7 is the current stable"), true);
+  assert.equal(isGroundedQuote("Vite 7 is the current stable release line.", "Vite 8 is stable"), false);
+  assert.deepEqual(parseModelJson('Sure! {"answers": true, "quote": "x"} done'), { answers: true, quote: "x" });
+  assert.equal(parseModelJson("no json here"), null);
+
+  const output = { ok: true, content: "1. Vite — Vite 7 is the current stable release line of the Vite build tool.", data: { count: 1, results: [{ url: "https://vite.dev" }] } };
+  const e = env();
+  e.impl["research.web"] = () => output;
+  e.reason = async () => '{"answers": true, "quote": "Vite 7 is the current stable release line", "reason": "it says so"}';
+  let engine = CuriosityEngine.reset(e);
+  let c = engine.notice(WORLD).curiosity!;
+  let done = (await engine.pursue(c.id))!;
+  assert.ok(done.evidence.some((item) => /grounded quote, judged by model/.test(item.claim) && item.stance === "supports"));
+
+  const e2 = env();
+  e2.impl["research.web"] = () => output;
+  e2.reason = async () => '{"answers": true, "quote": "Vite 9 ships next week", "reason": "invented"}';
+  engine = CuriosityEngine.reset(e2);
+  c = engine.notice(WORLD).curiosity!;
+  done = (await engine.pursue(c.id))!;
+  assert.ok(!done.evidence.some((item) => /Vite 9/.test(item.claim)), "an ungrounded model claim is never evidence");
+  assert.ok(done.evidence.some((item) => item.stance === "supports" && !/judged by model/.test(item.claim)), "the rule decided instead");
+
+  const e3 = env();
+  e3.impl["research.web"] = () => ({ ok: true, content: "1. Vite — a French word meaning quick.", data: { count: 1, results: [{ url: "https://dict.example" }] } });
+  e3.reason = async () => '{"answers": false, "quote": "", "reason": "it defines the word, not the release"}';
+  engine = CuriosityEngine.reset(e3);
+  c = engine.notice(WORLD).curiosity!;
+  done = (await engine.pursue(c.id))!;
+  assert.ok(done.evidence.some((item) => item.stance === "inconclusive" && /Does not answer the question \(model\)/.test(item.claim)));
+  assert.notEqual(done.status, "resolved");
+});
+
+test("model-assisted: background ambiguity detection — grounded, bounded, and never during Heru's turn", async () => {
+  const e = env();
+  const prompts: string[] = [];
+  e.reason = async (prompt) => {
+    prompts.push(prompt);
+    return '{"ambiguous": true, "phrase": "the usual setup", "question": "Which setup do you mean by the usual one?"}';
+  };
+  const engine = CuriosityEngine.reset(e);
+  engine.configure({ capabilityScanIntervalMs: Number.MAX_SAFE_INTEGER, autoInvestigate: false });
+  assert.equal(engine.observeConversation("Please deploy this the way we always do with the usual setup tonight."), null, "the rules found nothing — buffered, not answered on the chat path");
+  e.userTurn = true;
+  await engine.tick();
+  assert.equal(prompts.length, 0, "no model call during Heru's turn");
+  e.userTurn = false;
+  const report = await engine.tick();
+  assert.equal(prompts.length, 1);
+  assert.deepEqual(report.noticed, ["What does Heru mean by “the usual setup” here?"]);
+  assert.equal(engine.getLedger().list()[0].hostQuestionPreset, "Which setup do you mean by the usual one?");
+  await engine.tick();
+  assert.equal(prompts.length, 1, "each message is looked at once");
+
+  const e2 = env();
+  e2.reason = async () => '{"ambiguous": true, "phrase": "the blue migration", "question": "Which migration?"}';
+  const engine2 = CuriosityEngine.reset(e2);
+  engine2.configure({ capabilityScanIntervalMs: Number.MAX_SAFE_INTEGER, autoInvestigate: false });
+  engine2.observeConversation("Please deploy this the way we always do with the usual setup tonight.");
+  assert.deepEqual((await engine2.tick()).noticed, [], "a phrase Heru never said is rejected");
+});
+
+test("model-assisted: an unexplained failure gets a proposed cause — kept only if the registry agrees", async () => {
+  assert.equal(causeConsistentWithRegistry("unavailable", { available: false } as CatalogTool, false), true);
+  assert.equal(causeConsistentWithRegistry("unavailable", { available: true } as CatalogTool, true), false);
+  const odd = (tool: string) => failures(tool, "Exited with code 137 while reading the target", 0).map((f) => ({ ...f, at: env().clock.t }));
+
+  const e = env();
+  e.reason = async () => '{"cause": "unavailable", "because": "it never runs"}';
+  const engine = CuriosityEngine.reset(e);
+  engine.configure({ capabilityScanIntervalMs: Number.MAX_SAFE_INTEGER, environmentCheckIntervalMs: 0 });
+  engine.attachObservers();
+  for (const f of odd("project.git")) e.emitFailure(f);
+  await engine.tick();
+  const c = engine.getLedger().list().find((item) => item.subject?.tool === "project.git")!;
+  assert.equal(c.subject?.cause, "unavailable");
+  assert.ok(c.evidence.some((item) => item.tool === "model-hypothesis"));
+  assert.equal(c.verification?.verdict, "verified");
+
+  const e2 = env();
+  e2.reason = async () => '{"cause": "unavailable", "because": "guess"}';
+  const engine2 = CuriosityEngine.reset(e2);
+  engine2.configure({ capabilityScanIntervalMs: Number.MAX_SAFE_INTEGER, environmentCheckIntervalMs: 0 });
+  engine2.attachObservers();
+  for (const f of odd("system.config")) e2.emitFailure(f);
+  await engine2.tick();
+  const c2 = engine2.getLedger().list().find((item) => item.subject?.tool === "system.config")!;
+  assert.equal(c2.subject?.cause, "error", "system.config IS available, so 'unavailable' is rejected");
+  assert.ok(c2.trail.some((step) => step.step === "hypothesis" && /rejected/.test(step.detail)));
+});
+
+test("verification: a retry returning the same result is not a second source", () => {
+  const junk = "1. CVC Capital Partners, Barangaroo, Sydney, New South Wales, Australia (source: Nominatim)";
+  // Word overlap alone calls this relevant to the question — which is why it is weak evidence.
+  assert.equal(relevantByRule("What is the capital city of Australia?", junk), true);
+  const once = { source: "tool" as const, tool: "research.web", claim: junk, stance: "supports" as const, weight: 0.45, at: 1 };
+  assert.notEqual(verifyEvidence([once]).verdict, "verified", "one weak source is not enough");
+  assert.notEqual(verifyEvidence([once, { ...once, at: 2 }]).verdict, "verified", "the same result twice is still one source");
+  const other = { ...once, claim: "Canberra is the capital city of Australia (source: Wikipedia)" };
+  assert.equal(verifyEvidence([once, other]).verdict, "verified", "two different results corroborate");
+});
+
+test("detection: the rules now recognise much more everyday vagueness", () => {
+  for (const message of [
+    "I want the onboarding to work properly before the launch next week.",
+    "Make it feel right for new users, and keep the rest of the flow simple.",
+    "We need something better for the briefing screen, it feels flat.",
+    "Let LÉLU handle the reminders, the summaries, the follow-ups and so on.",
+  ]) {
+    assert.ok(detectConversationAmbiguity(message), message);
+  }
+  assert.equal(detectConversationAmbiguity("Please rename the file to notes.md."), null);
+});
+
+test("code watching: each tool is fingerprinted by ITS executor and implementation, so a change to it is noticed", async () => {
+  const source = `const EXECUTORS = [\n  {\n    id: "a.tool",\n    run: () => 1,\n  },\n\n  {\n    id: "b.tool",\n    run: () => 2,\n  },\n];`;
+  const edited = source.replace("() => 2", "() => 3");
+  assert.equal(fingerprintText(executorBlock(source, "a.tool")!), fingerprintText(executorBlock(edited, "a.tool")!), "editing b.tool does not change a.tool");
+  assert.notEqual(fingerprintText(executorBlock(source, "b.tool")!), fingerprintText(executorBlock(edited, "b.tool")!));
+
+  const e = env();
+  let code = "exec:aaaa|impl:1111";
+  e.sourceFingerprint = async () => code;
+  const { engine, c } = await learnUnavailable(e);
+  assert.equal(c.learning?.dependency?.code, "exec:aaaa|impl:1111");
+  e.impl["project.git"] = () => ({ ok: true, content: "clean" });
+  e.clock.t += 60_000;
+  assert.equal((await engine.tick()).revisited, undefined, "unchanged code → nothing to re-check");
+  code = "exec:bbbb|impl:1111";
+  e.clock.t += 60_000;
+  const report = await engine.tick();
+  assert.equal(report.revisited?.trigger, "code-changed");
+  assert.equal(report.revisited?.outcome, "confirmed", "the code changed but the tool is still unavailable — confirmed, not assumed fixed");
+  assert.equal(report.revisited?.id, c.id);
+  for (let i = 0; i < 3; i += 1) {
+    e.clock.t += 60_000;
+    await engine.tick();
+  }
+  assert.equal(engine.getLedger().get(c.id)?.reevaluations?.filter((item) => item.trigger === "code-changed").length, 1, "the same code change is checked once per finding");
+});
+
+test("stand-ins: coverage is explicit, and a strategy is only trusted after a real request", async () => {
+  const e = env();
+  const found = discover(e, "project.read", { workspace: "w1", path: "/a" });
+  assert.equal(found.options[0].coverage, "partial");
+  assert.deepEqual(found.options[0].missingInputs, ["workspace"]);
+  assert.match(found.options[0].why, /does not take workspace/);
+
+  const { engine } = await learnUnavailable(e, "project.read");
+  e.impl["sandbox.read"] = () => ({ ok: true, content: "/notes/plan.md" });
+  for (let i = 0; i < 3 && !engine.strategies().length; i += 1) await engine.tick();
+  const candidate = engine.strategies()[0];
+  assert.equal(candidate.status, "candidate", "proven to respond, not proven to stand in");
+  assert.equal(candidate.coverage, "partial");
+
+  e.impl["sandbox.read"] = (args) => ({ ok: true, content: `contents of ${args.path}: the plan names milestone 3` });
+  const goal = engine.notice({ ...WORLD, category: "project", source: "project", question: "What does the plan file name as the next milestone?", evidenceFingerprint: "g", subject: { preferred: { tool: "project.read", args: { workspace: "w1", path: "/notes/plan.md" } } } }).curiosity!;
+  await engine.pursue(goal.id);
+  assert.equal(engine.strategies().find((s) => s.forTool === "project.read")?.status, "current", "verified on a real request");
+});
+
+test("sync: ledger, journal and identity merge across devices without losing or resurrecting anything", () => {
+  const ledger = CuriosityLedger.getInstance();
+  CuriosityLedger.reset();
+  const fresh = CuriosityLedger.getInstance();
+  fresh.addConstraint({ tool: "x.tool", scope: "any", cause: "unavailable", reason: "r", learnedFrom: "c1", at: 100 });
+  fresh.removeConstraint("x.tool");
+  const remoteOld = { constraints: [{ tool: "x.tool", scope: "any" as const, cause: "unavailable" as const, reason: "r", learnedFrom: "c1", at: 100 }], curiosities: [], strategies: [], liftedConstraints: [] };
+  fresh.mergeRemote(remoteOld);
+  assert.equal(fresh.constraints().length, 0, "a constraint lifted here is not resurrected by an older copy");
+  fresh.mergeRemote({ ...remoteOld, constraints: [{ ...remoteOld.constraints[0], at: Date.now() + 10_000 }] });
+  assert.equal(fresh.constraints().length, 1, "but one learned again later elsewhere is kept");
+  assert.ok(ledger);
+
+  freshPersonality();
+  const daily = DailyRecord.getInstance();
+  daily.recordEvidence({ traitId: "curiosity", unitId: "here", source: "curiosity", observation: "o", at: Date.UTC(2026, 9, 1) }, Date.UTC(2026, 9, 1));
+  daily.mergeRemote({
+    records: {
+      "2026-10-01": { ...record({ date: "2026-10-01" }), lessons: ["Curiosity — learned elsewhere"], developmentalEvidence: [{ traitId: "curiosity", unitId: "there", source: "curiosity", observation: "o", at: 1 }], reflection: { at: 5, meaningful: true, observations: [], traitChanges: [], staged: 0 } },
+    },
+  });
+  const merged = daily.getByDate("2026-10-01")!;
+  assert.deepEqual(merged.developmentalEvidence!.map((item) => item.unitId).sort(), ["here", "there"]);
+  assert.ok(merged.lessons.includes("Curiosity — learned elsewhere"));
+  assert.ok(merged.reflection, "reflected on another device → never reflected again here");
+
+  const identity = LeluIdentity.getInstance();
+  const local = identity.getState();
+  identity.mergeRemote({ ...local, updatedAt: local.updatedAt + 1_000, communicationStyle: "remote", developmentHistory: [{ date: "2026-10-01", snapshotAt: 42, description: "remote snapshot", traitChanges: [] }] });
+  assert.equal(identity.getState().communicationStyle, "remote", "the newer document wins");
+  assert.ok(identity.getState().developmentHistory.some((item) => item.snapshotAt === 42), "history from both is kept");
+
+  const persistence = src("src/core/persistence/SupabasePersistence.ts");
+  assert.ok(persistence.includes('identity: "lelu_identity"') && persistence.includes("this.mergeDevelopmentRecords(preferenceRows)"));
+  for (const store of ["LeluIdentity", "DailyRecord", "CuriosityLedger"]) {
+    assert.ok(persistence.includes(`${store}.getInstance().subscribe(() => this.scheduleDevelopmentSync(`), `${store} syncs on change`);
+  }
+  assert.ok(persistence.includes('await this.write("user_preferences", [{ user_id: this.userId, preference_key: key, value'), "through the existing user_preferences store");
+});
+
+test("windows: a panel is fitted to the area that actually shows it — header and both edges on screen", async () => {
+  const { fitFrame } = await import("../src/app/scene/genesis/frameFit");
+  // Measured in the browser: the Genesis host is 622×482 at (88, 76) and
+  // clips its contents; Cognition asks for 1134px and 90vh.
+  const host = { left: 88, top: 76, right: 710, bottom: 558, width: 622 };
+  for (const viewport of [{ width: 1280, height: 860 }, { width: 1024, height: 600 }]) {
+    const fit = fitFrame(host, [host], viewport, 1134);
+    const outerWidth = fit.width + 34;
+    const outerHeight = fit.height + 34;
+    const left = host.left + host.width / 2 - outerWidth / 2 + fit.nudgeX;
+    const top = host.bottom - 24 - outerHeight;
+    assert.ok(left >= host.left + 12 && left + outerWidth <= host.right - 12, `both edges inside the host at ${viewport.width}px`);
+    assert.ok(top >= host.top + 12, `the header is inside the host at ${viewport.width}px (top ${top})`);
+  }
+  // An off-centre host near the screen edge: nudged back on screen, never past it.
+  const edge = { left: -200, top: 0, right: 600, bottom: 800, width: 800 };
+  const fit = fitFrame(edge, [], { width: 1280, height: 800 }, 500);
+  const left = edge.left + edge.width / 2 - 500 / 2 + fit.nudgeX;
+  assert.equal(left, 12, "pushed just far enough to show its left edge");
+  // A short viewport caps the height to what is above the anchor.
+  assert.equal(fitFrame({ left: 0, top: -300, right: 1000, bottom: 600, width: 1000 }, [], { width: 1000, height: 600 }, 500).height, 600 - 24 - 12 - 34);
+});
+
+test("evidence beyond curiosity: a verified objective and a self-correction are developmental evidence", async () => {
+  assert.equal(completionEvidenceTrait(4, ["a"]), "patience");
+  assert.equal(completionEvidenceTrait(1, ["listed workflows", "ran tests"]), "synthesis");
+  assert.equal(completionEvidenceTrait(1, ["listed workflows"]), null, "a one-step completion is neither");
+  assert.ok(src("src/core/cognition/AgentCognitionRuntime.ts").includes("recordCompletionEvidence(objective.id, objective.objective, "));
+  const objectiveDay = reflectOnDay(record({ developmentalEvidence: [{ traitId: "patience", unitId: "objective:o1", source: "objective", observation: "completed", at: 1 }] }));
+  assert.deepEqual(objectiveDay.candidateTraitChanges.map((item) => item.traitId), ["patience"]);
+
+  const e = env();
+  const { engine } = await learnUnavailable(e);
+  setAvailable(e, "project.git", true);
+  e.impl["project.git"] = () => ({ ok: true, content: "clean" });
+  e.clock.t += 60_000;
+  await engine.tick();
+  assert.ok(e.evidence.some((item) => item.traitId === "patience" && /:correction:/.test(item.unitId ?? "")));
+});
+
+test("sync: a fresh device never overwrites real development — it reads, merges, then writes", async () => {
+  const { default: SupabasePersistence, DEVELOPMENT_SYNC_KEYS } = await import("../src/core/persistence/SupabasePersistence");
+  freshPersonality();
+  const developed = { ...LeluIdentity.getInstance().getState(), communicationStyle: "developed elsewhere", updatedAt: Date.now() - 60_000 };
+  LeluIdentity.reset();
+  KvStore.getInstance().remove("identity.v1");
+  // This device has only the seed — stamped NOW, so newer than the real history.
+  assert.ok(LeluIdentity.getInstance().getState().updatedAt > developed.updatedAt);
+
+  const writes: Array<{ table: string; rows: Array<{ preference_key: string; value: { communicationStyle?: string } }> }> = [];
+  let readFails = true;
+  const client = {
+    from(table: string) {
+      const query = {
+        select() { return query; },
+        eq() { return query; },
+        then(resolve: (value: unknown) => void) {
+          resolve(readFails ? { data: null, error: { message: "network down" } } : { data: [{ preference_key: DEVELOPMENT_SYNC_KEYS.identity, value: developed }], error: null });
+        },
+        upsert(rows: never[]) { writes.push({ table, rows }); return Promise.resolve({ error: null }); },
+      };
+      return query;
+    },
+  };
+  const persistence = SupabasePersistence.getInstance();
+  const internals = persistence as unknown as { client: unknown; userId: string | null; status: string };
+  const saved = { client: internals.client, userId: internals.userId, status: internals.status };
+  Object.assign(internals, { client, userId: "u-test", status: "connected" });
+  const warn = console.warn;
+  console.warn = () => undefined;
+  try {
+    await persistence.persistDevelopmentRecord(DEVELOPMENT_SYNC_KEYS.identity);
+    assert.equal(writes.length, 0, "the remote copy could not be read → nothing is written blind");
+
+    readFails = false;
+    internals.status = "connected";
+    await persistence.persistDevelopmentRecord(DEVELOPMENT_SYNC_KEYS.identity);
+    assert.equal(LeluIdentity.getInstance().getState().communicationStyle, "developed elsewhere", "the seed never wins against real development, however new its timestamp");
+    const written = writes.at(-1)!;
+    assert.equal(written.table, "user_preferences");
+    assert.equal(written.rows[0].value.communicationStyle, "developed elsewhere", "what is written is the merged state, not this device's seed");
+  } finally {
+    console.warn = warn;
+    Object.assign(internals, saved);
+  }
 });
