@@ -24,6 +24,7 @@ import AvatarStore from "./avatar/AvatarProfile";
 import { fitContext } from "./memory/CognitiveBudget";
 import MemoryOrchestrator from "./memory/MemoryProvider";
 import { LocalMemoryProvider, OgArchiveProvider, SupabaseMemoryProvider } from "./memory/providers";
+import PersonalityMemoryProvider from "./identity/PersonalityMemoryProvider";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import CognitiveTrace from "./cognition/CognitiveTrace";
 
@@ -40,6 +41,7 @@ export default class MemoryBridge {
     orchestrator.register(new LocalMemoryProvider(brain));
     orchestrator.register(new SupabaseMemoryProvider());
     orchestrator.register(new OgArchiveProvider());
+    orchestrator.register(new PersonalityMemoryProvider());
   }
 
   /**

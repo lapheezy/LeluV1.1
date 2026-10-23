@@ -59,6 +59,7 @@ import GenesisNotificationsPanel from "./GenesisNotificationsPanel";
 import GenesisVisualStudio from "./GenesisVisualStudio";
 import GenesisEarthCore from "./GenesisEarthCore";
 import GenesisCosmosPanel from "./GenesisCosmosPanel";
+import GenesisIdentityPanel from "./GenesisIdentityPanel";
 
 /**
  * ONE module set — the same instances the dock, palette, chat commands
@@ -92,7 +93,8 @@ const MODULE_RENDERERS: ModuleRenderers = {
   // Earth Core is the canonical Eagle Eye Earth visual state. It remains
   // one module instance, but is rendered inline with chat rather than as a
   // separate navigation destination.
-  earth: ({ onClose }) => <GenesisEarthCore onClose={onClose} />, 
+  earth: ({ onClose }) => <GenesisEarthCore onClose={onClose} />,
+  identity: ({ onClose }) => <GenesisIdentityPanel onClose={onClose} />,
 };
 import CognitiveLoop from "../../../core/cognition/CognitiveLoop";
 import AvatarPresenceBridge from "../../../core/avatar/AvatarPresenceBridge";

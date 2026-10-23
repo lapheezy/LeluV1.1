@@ -200,7 +200,9 @@ export type GenesisPanel =
   // Self Evolution — visible research/proposals/experiments dashboard
   | "self-evolution"
   // Cosmos — infinite cosmos map + navigation
-  | "cosmos";
+  | "cosmos"
+  // LÉLU Personality Development — identity, traits, journal
+  | "identity";
 
 
 /**

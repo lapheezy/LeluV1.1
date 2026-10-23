@@ -42,6 +42,7 @@ import {
   inspectDocument,
   type VisualReport,
 } from "../selfdev/VisualInspection";
+import LeluIdentity from "../identity/LeluIdentity";
 
 /**
  * Run the existing visual inspection against LÉLU's OWN live document.
@@ -703,6 +704,30 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
 
   // Autonomy
   sections.push(`## AUTONOMY LEVEL: ${ctx.autonomyLevel}`);
+
+  // Personality context — relevant traits only, never a giant prepend.
+  // Guarded so a personality failure never breaks cognition.
+  try {
+    const identity = LeluIdentity.getInstance();
+    const istate = identity.getState();
+    const activeTraits = istate.traits.filter(
+      (t) => t.status === "established" || t.status === "emerging",
+    );
+    if (activeTraits.length > 0 || istate.curiosities.length > 0) {
+      const traitLine = activeTraits.length > 0
+        ? `Active traits: ${activeTraits.slice(0, 4).map((t) => `${t.name} (${t.status})`).join(", ")}.`
+        : "";
+      const curiosityLine = istate.curiosities.length > 0
+        ? `Current curiosity: ${istate.curiosities[istate.curiosities.length - 1]}.`
+        : "";
+      const lines = [traitLine, curiosityLine].filter(Boolean);
+      if (lines.length > 0) {
+        sections.push(`## LÉLU PERSONALITY\n${lines.join(" ")}`);
+      }
+    }
+  } catch {
+    // personality is optional — never let it break context assembly
+  }
 
   return sections.join("\n\n");
 }
