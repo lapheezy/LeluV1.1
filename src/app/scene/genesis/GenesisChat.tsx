@@ -344,6 +344,8 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   /** Per-conversation tail of the turn queue. Different conversations run
    * concurrently; within one conversation turns stay in order. */
   const convTailsRef = useRef<Map<string, Promise<void>>>(new Map());
+  /** Set when the user presses Stop — lets send() settle silently. */
+  const cancelledRef = useRef(false);
   const isSending = sendingIn.includes(state.activeConversationId);
   const [activeQuestion, setActiveQuestion] = useState<ProactiveQuestion | null>(null);
   /** What the user has typed in reply to the question on screen. */
@@ -707,6 +709,13 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     [mediaBusy, setDialogue],
   );
 
+  const stopTurn = useCallback(() => {
+    const conversationId = MultiChatStore.getInstance().getActiveId();
+    cancelledRef.current = true;
+    ai.cancelTurn(conversationId);
+    try { voiceEngineRef.current.cancelSpeech(); } catch { /* best-effort */ }
+  }, []);
+
   const send = useCallback(async (): Promise<void> => {
     const typed = input.trim();
     const media = pendingMedia;
@@ -714,6 +723,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     if (!typed && media.length === 0 && files.length === 0) {
       return;
     }
+    cancelledRef.current = false;
 
     const displayParts: string[] = [];
     if (typed) displayParts.push(typed);
@@ -843,6 +853,14 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       }
 
       if (!assistantText) {
+        // User pressed Stop — settle silently without an error message.
+        if (cancelledRef.current) {
+          if (stillViewingTurn()) {
+            setExchange(null);
+            setDialogue("listening");
+          }
+          return;
+        }
         const note = "⚠️ I couldn't generate a response — please try again.";
         notify("Lélu Error", "The assistant returned an empty response.");
         if (!stillViewingTurn()) return;
@@ -878,6 +896,18 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       }
     } catch (error) {
       try { voiceEngineRef.current.cancelSpeech(); } catch { /* best-effort */ }
+      // AbortError means the user pressed Stop — settle silently.
+      const isAbort =
+        cancelledRef.current ||
+        (error instanceof DOMException && error.name === "AbortError") ||
+        (error instanceof Error && error.name === "AbortError");
+      if (isAbort) {
+        if (stillViewingTurn()) {
+          setExchange(null);
+          setDialogue("listening");
+        }
+        return;
+      }
       const messageText = error instanceof Error ? error.message : String(error);
       notify("Lélu Error", messageText);
       if (stillViewingTurn()) {
@@ -1752,8 +1782,28 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
               maxHeight: 120,
             }}
           />
-          {/* INTERRUPT button */}
-          {voiceView.state.phase === "speaking" && (
+          {/* STOP (cancel generation) button — shown while a turn is in flight */}
+          {isSending && (
+            <button
+              type="button"
+              onClick={stopTurn}
+              title="Stop — cancel this response"
+              aria-label="Stop generation"
+              data-lelu-stop-button
+              className="lelu-tab-cloud lelu-tab-cloud-active"
+              style={{
+                width: 34, height: 34, borderRadius: 999, flexShrink: 0,
+                cursor: "pointer", display: "inline-flex", alignItems: "center",
+                justifyContent: "center", fontSize: 13, fontFamily: "inherit",
+                padding: 0, border: "none",
+                background: "rgba(248, 113, 113, 0.22)", color: "#f87171",
+              }}
+            >
+              ■
+            </button>
+          )}
+          {/* INTERRUPT button — stop Lélu speaking (voice only) */}
+          {!isSending && voiceView.state.phase === "speaking" && (
             <button
               type="button"
               onClick={() => voiceEngineRef.current.cancelSpeech()}

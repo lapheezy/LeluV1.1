@@ -188,7 +188,9 @@ export default class OpenRouterProvider implements AIProvider {
             "X-Title": "Lélu",
           },
           body: JSON.stringify(payload),
-          signal: AbortSignal.timeout(this.timeout),
+          signal: request.signal
+            ? AbortSignal.any([request.signal, AbortSignal.timeout(this.timeout)])
+            : AbortSignal.timeout(this.timeout),
         },
       );
     } catch (error) {

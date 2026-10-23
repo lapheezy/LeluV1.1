@@ -164,7 +164,9 @@ export default class GroqProvider implements AIProvider {
           ...authHeaders("groq", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
         },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(this.timeout),
+        signal: request.signal
+          ? AbortSignal.any([request.signal, AbortSignal.timeout(this.timeout)])
+          : AbortSignal.timeout(this.timeout),
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

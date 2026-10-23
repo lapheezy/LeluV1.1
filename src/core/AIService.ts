@@ -96,6 +96,9 @@ export default class AIService {
    * bundle (runtime/user init, Supabase attach, capability registration). */
   private initializingPromise: Promise<void> | null = null;
 
+  /** One AbortController per active conversationId. cancelTurn() aborts it. */
+  private readonly convControllers = new Map<string, AbortController>();
+
   /**
    * How many user turns are being processed right now.
    *
@@ -181,6 +184,16 @@ export default class AIService {
     return () => {
       this.notificationListeners.delete(listener);
     };
+  }
+
+  /**
+   * Cancel the in-flight turn for `conversationId`. The provider's
+   * fetch is aborted; the response arrives as `provider: "cancelled"`
+   * with no error notification. Other conversations are not affected.
+   */
+  public cancelTurn(conversationId: string): void {
+    const controller = this.convControllers.get(conversationId);
+    if (controller) controller.abort();
   }
 
   private emitAction(type: AIActionEvent["type"], label: string, status: AIActionEvent["status"]): string {
@@ -556,6 +569,13 @@ export default class AIService {
         bindMessage(streamId, options.conversationId);
       }
 
+      // One AbortController per turn. Stored by conversationId so
+      // cancelTurn() can reach it. Cleaned up in the finally block.
+      const controller = new AbortController();
+      if (options?.conversationId) {
+        this.convControllers.set(options.conversationId, controller);
+      }
+
       // SHORT-TERM CONVERSATION CONTEXT.
       //
       // Read the dialogue BEFORE this turn, then record this turn, so the
@@ -586,6 +606,9 @@ export default class AIService {
         // True streaming: the provider pushes accumulated text as it
         // arrives and the UI renders it in place under `streamId`.
         onDelta: (text) => this.emitStream(streamId, text, options?.conversationId),
+        // Per-turn cancellation signal — combined with the provider's
+        // own timeout inside each provider so whichever fires first wins.
+        signal: controller.signal,
       };
 
       // The request is about to run the existing planning + reasoning
@@ -616,6 +639,9 @@ export default class AIService {
 
       this.emitAction("learn", "Response generated", "complete");
       agentEvents.emit({ type: "task_completed", taskId, label: message });
+
+      // RESPONSE-FIRST: emit the message to the UI immediately so the user
+      // sees the reply before any memory/cognition work blocks the thread.
       this.emitMessage({
         id: streamId,
         role: "assistant",
@@ -632,43 +658,45 @@ export default class AIService {
         response.provider !== "offline" &&
         response.metadata?.success !== false;
 
-      // Memory consolidation ALWAYS runs — online or offline. An API
-      // failure must never equal a memory failure: meaningful user
-      // statements (name, preferences, projects, goals) are extracted
-      // and persisted locally even when every provider is down, and
-      // the user profile updates from the same consolidation path.
-      await this.memory.learn(message, response.text, taskId);
-      // LÉLU's own turn joins the conversation too. Without this she
-      // cannot see what she just said, so she re-asks questions she has
-      // already asked and loses the thread of her own follow-ups.
+      // LÉLU's own turn joins the conversation synchronously so the NEXT
+      // turn's context includes it — this must happen before return.
       conversation.record("assistant", response.text);
-      // Refresh the active memories for the turn we just recorded.
-      await conversation.refresh(message);
 
-      // A SECOND, deliberate recall — not a duplicate of the cognition
-      // recall above. It runs AFTER this turn's memory write so the user
-      // profile picks up the fact just learned, which the pre-response
-      // recall could not have seen. Labelled distinctly in the trace so
-      // "one cognition recall per turn" stays verifiable.
-      const memories = await this.runtime.brain.recall(message, "post-write-profile-sync");
-      for (const memory of memories) {
-        await this.user.learn(memory.category, memory.response);
-      }
+      // Memory consolidation, profile sync, and cognition update all run
+      // AFTER the response has been delivered. They do not block the
+      // caller; a failure here is contained and never surfaces as a chat
+      // error. All work uses the ONE existing memory/brain path.
+      void (async () => {
+        try {
+          // Memory consolidation ALWAYS runs — online or offline.
+          await this.memory.learn(message, response.text, taskId);
+          // Refresh active memories now that this turn is recorded.
+          await conversation.refresh(message);
 
-      if (responseSucceeded) {
-        // Commit reasoning before publishing cognition so observers never
-        // receive a stale plan/hypothesis snapshot.
-        this.runtime.brain.recordThinking(reasoning, plan);
-      }
+          // Post-write profile sync: second recall so the user profile
+          // picks up the fact just learned, which the pre-response recall
+          // could not have seen.
+          const memories = await this.runtime.brain.recall(message, "post-write-profile-sync");
+          for (const memory of memories) {
+            await this.user.learn(memory.category, memory.response);
+          }
 
-      const cognition = this.runtime.brain.cognitiveState();
-      this.emitCognition({
-        agents: cognition.agents,
-        workspaces: cognition.workspaces,
-        nodes: cognition.nodes,
-        reasoning: cognition.reasoning,
-        plan: cognition.plan,
-      });
+          if (responseSucceeded) {
+            this.runtime.brain.recordThinking(reasoning, plan);
+          }
+
+          const cognition = this.runtime.brain.cognitiveState();
+          this.emitCognition({
+            agents: cognition.agents,
+            workspaces: cognition.workspaces,
+            nodes: cognition.nodes,
+            reasoning: cognition.reasoning,
+            plan: cognition.plan,
+          });
+        } catch (postErr) {
+          console.error("[AIService] Post-response async work failed (contained)", postErr);
+        }
+      })();
 
       return {
         ...response,
@@ -681,6 +709,22 @@ export default class AIService {
         },
       };
     } catch (error) {
+      // User-initiated cancellation is not an error: the AbortController
+      // we created fires a DOMException with name "AbortError". Return a
+      // silent cancelled response so the UI can settle without a toast.
+      const isCancelled =
+        (error instanceof DOMException && error.name === "AbortError") ||
+        (error instanceof Error && error.name === "AbortError");
+      if (isCancelled) {
+        return {
+          text: "",
+          provider: "cancelled",
+          model: "cancelled",
+          processingTime: 0,
+          metadata: { intent: "cancelled", success: false },
+        };
+      }
+
       this.emitAction("learn", "Response failed", "error");
       agentEvents.emit({
         type: "task_failed",
@@ -709,6 +753,9 @@ export default class AIService {
         },
       };
     } finally {
+      if (options?.conversationId) {
+        this.convControllers.delete(options.conversationId);
+      }
       this.releaseUserTurn();
       this.emitThinking(false);
       this.emitSpeaking(false);

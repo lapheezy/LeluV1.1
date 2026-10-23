@@ -220,7 +220,9 @@ export default class GeminiProvider implements AIProvider {
           ...authHeaders("gemini", this.apiKey, (key) => ({ "x-goog-api-key": key })),
         },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(this.timeout),
+        signal: request.signal
+          ? AbortSignal.any([request.signal, AbortSignal.timeout(this.timeout)])
+          : AbortSignal.timeout(this.timeout),
       });
     } catch (error) {
       throw new Error(

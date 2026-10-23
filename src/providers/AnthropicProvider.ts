@@ -333,7 +333,9 @@ export default class AnthropicProvider implements AIProvider {
           "anthropic-dangerous-direct-browser-access": "true",
         },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(this.timeoutFor(request)),
+        signal: request.signal
+          ? AbortSignal.any([request.signal, AbortSignal.timeout(this.timeoutFor(request))])
+          : AbortSignal.timeout(this.timeoutFor(request)),
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

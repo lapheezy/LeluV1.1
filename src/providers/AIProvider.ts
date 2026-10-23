@@ -206,6 +206,17 @@ export interface AIRequest {
 
 
   /**
+   * Optional cancellation signal. When provided it is combined with the
+   * provider's own timeout signal so whichever fires first terminates the
+   * request — user-initiated cancellation wins without disabling the
+   * safety timeout.
+   */
+  signal?:
+    AbortSignal;
+
+
+
+  /**
    * Optional model override.
    */
   model?:
