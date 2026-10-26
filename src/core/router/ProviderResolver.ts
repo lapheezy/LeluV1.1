@@ -44,6 +44,18 @@ const TOOL_LOOP_BUDGET_MS = 8 * 60 * 1000;
 const TOOL_LOOP_MAX_ROUNDS = 40;
 const NO_PROGRESS_REPEATS = 3;
 
+/**
+ * A turn that is only LOOKING THINGS UP — searching, reading pages,
+ * recalling memory — is answering someone who is waiting in the chat.
+ * The engineering budget above let a research question run its full
+ * eight minutes (measured: a model kept re-searching because most news
+ * links cannot be read). Until the turn uses any other tool it gets
+ * this shorter bound, and is then told to answer from what it found.
+ */
+const RESEARCH_LOOP_BUDGET_MS = 3 * 60 * 1000;
+const RESEARCH_LOOP_MAX_ROUNDS = 16;
+const RESEARCH_TOOL = /^(research|browser|memory)[._]/;
+
 export default class ProviderResolver {
   public async execute(context: RouterContext): Promise<ProviderResult> {
     /**
@@ -301,7 +313,7 @@ export default class ProviderResolver {
     let response = await provider.generate({ ...context.request, messages, tools });
     let promptMaterialized = false;
 
-    const deadline = Date.now() + TOOL_LOOP_BUDGET_MS;
+    const loopStarted = Date.now();
     const recentSignatures: string[] = [];
     let stopReason = "";
 
@@ -321,11 +333,15 @@ export default class ProviderResolver {
       ) {
         stopReason = `the same tool call repeated ${NO_PROGRESS_REPEATS} times without progress`;
       }
-      if (!stopReason && Date.now() > deadline) {
-        stopReason = `the ${Math.round(TOOL_LOOP_BUDGET_MS / 60000)}-minute tool budget was spent`;
+      // Research-only so far, including the calls being asked for now?
+      const researchOnly = [...requested, ...calls.map((call) => call.name)].every((name) => RESEARCH_TOOL.test(name));
+      const budgetMs = researchOnly ? RESEARCH_LOOP_BUDGET_MS : TOOL_LOOP_BUDGET_MS;
+      const maxRounds = researchOnly ? RESEARCH_LOOP_MAX_ROUNDS : TOOL_LOOP_MAX_ROUNDS;
+      if (!stopReason && Date.now() - loopStarted > budgetMs) {
+        stopReason = `the ${Math.round(budgetMs / 60000)}-minute ${researchOnly ? "research" : "tool"} budget was spent`;
       }
-      if (!stopReason && round === TOOL_LOOP_MAX_ROUNDS) {
-        stopReason = `the ${TOOL_LOOP_MAX_ROUNDS}-round limit was reached`;
+      if (!stopReason && round >= maxRounds) {
+        stopReason = `the ${maxRounds}-round ${researchOnly ? "research " : ""}limit was reached`;
       }
 
       // Put the user's actual question INTO the conversation before any

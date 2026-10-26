@@ -150,6 +150,12 @@ export function reduceActivity(activity: ChatActivity, event: AgentEvent): ChatA
       const failed = event.status === "error" || event.status === "blocked";
       const detail = (event.result ?? "").replace(/\s+/g, " ").trim().slice(0, 200) || undefined;
       const index = lastRunning(activity.steps, event.tool);
+      // browser.read reports the page twice — browser_result, then its
+      // tool_result. The page step already says how it went; a second
+      // "finished" row counted every failed page as two issues.
+      if (index < 0 && kind === "browse" && event.query && activity.steps.some((step) => step.kind === "browse" && step.url === event.query)) {
+        return { ...activity, sources: addSources(activity.sources, event.results) };
+      }
       let next =
         index >= 0
           ? patchStep(activity, index, { status: failed ? "failed" : "done", count, detail, ...(event.query && kind === "search" ? { query: event.query } : {}) })

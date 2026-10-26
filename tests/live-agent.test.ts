@@ -568,3 +568,50 @@ test("a chat turn's tool work stays in the chat — it does not open a panel ove
   assert.match(source, /const ownedByChat = ownerForTask\(event\.taskId\) !== null;/);
   assert.match(source, /if \(surface && !ownedByChat &&/);
 });
+
+test("a page read is one step, however many events report it", () => {
+  const url = "https://news.google.com/rss/articles/x";
+  let activity = emptyActivity(0);
+  for (const event of [
+    { type: "tool_started", taskId: "t", tool: "browser", label: "Opening news.google.com" },
+    { type: "browser_opened", taskId: "t", url },
+    { type: "browser_result", taskId: "t", url, status: "error", error: "redirect" },
+    { type: "tool_result", taskId: "t", tool: "browser", query: url, result: "redirect", results: [], status: "error" },
+  ] as AgentEvent[]) activity = reduceActivity(activity, event);
+  assert.equal(activity.steps.length, 1);
+  assert.equal(summarizeActivity(activity).issues, 1);
+});
+
+test("a research-only tool loop stops at the research limit and is told to answer", async () => {
+  const { default: ProviderResolver } = await import("../src/core/router/ProviderResolver");
+  const calls: Array<{ tools?: unknown[]; messages?: Array<{ role: string; content: string }> }> = [];
+  const provider = {
+    name: "SpyNative", priority: 1, enabled: true, timeout: 10000,
+    requiresApiKey: false, capabilities: ["chat"] as const, supportsTools: true,
+    initialize: async () => {}, isAvailable: async () => true,
+    health: async () => ({ available: true, initialized: true, lastChecked: Date.now() }),
+    canHandle: () => true,
+    generate: async (request: { tools?: unknown[]; messages?: Array<{ role: string; content: string }> }) => {
+      calls.push({ tools: request.tools, messages: request.messages ? [...request.messages] : undefined });
+      if (!request.tools) return { text: "Here is what I found.", provider: "spy", model: "spy-1", processingTime: 1 };
+      // A different search every round, so it is not caught as "no progress".
+      return {
+        text: "", provider: "spy", model: "spy-1", processingTime: 1,
+        toolCalls: [{ id: `c${calls.length}`, name: "research_web", arguments: { query: `angle ${calls.length}` } }],
+      };
+    },
+  };
+  const result = await new ProviderResolver().execute({
+    request: { prompt: "research it", messages: [], timestamp: Date.now() + 313, allowTools: true },
+    started: Date.now(),
+    logger: new ExecutionLogger(),
+    aiProviders: {
+      available: async () => [provider], names: () => ["spy"], markFailure: () => {},
+      markSuccess: () => {}, all: () => [provider], get: () => provider,
+    },
+  } as never);
+  assert.equal(result.response?.text, "Here is what I found.");
+  assert.equal(calls.length, 17, "16 research rounds, then one answer without tools");
+  assert.equal(calls.at(-1)?.tools, undefined);
+  assert.ok(calls.at(-1)?.messages?.some((message) => /16-round research limit/.test(message.content)));
+});
