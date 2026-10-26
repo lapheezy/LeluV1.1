@@ -84,6 +84,47 @@ export function missingResearchDependencies(
 }
 
 /** Read a string argument without trusting the model's typing. */
+/** Research focus → the knowledge-provider capabilities it selects. */
+export const RESEARCH_FOCUS: Record<string, string[]> = {
+  news: ["news", "current-events"],
+  video: ["video", "youtube"],
+  academic: ["academic", "research", "paper", "scientific"],
+  encyclopedia: ["encyclopedia", "fact", "reference", "knowledge"],
+  code: ["code", "github"],
+  space: ["space", "astronomy"],
+  tech: ["technology", "developer", "startups"],
+  weather: ["weather"],
+  location: ["geography", "location", "map", "place"],
+};
+const RESEARCH_FOCUS_IDS = Object.keys(RESEARCH_FOCUS);
+
+function hostOf(url: string): string {
+  try {
+    return new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).hostname.replace(/^www\./, "");
+  } catch {
+    return url.slice(0, 60);
+  }
+}
+
+/** What a tool call is doing, in words — the activity line for it. */
+export function describeToolCall(id: string, args: Record<string, unknown>): string {
+  const pick = (key: string) => (typeof args[key] === "string" ? String(args[key]).trim() : "");
+  switch (id) {
+    case "research.web":
+      return `Searching the web for “${pick("query").slice(0, 80)}”`;
+    case "browser.read":
+      return `Opening ${hostOf(pick("url"))}`;
+    case "memory.recall":
+      return `Checking memory for “${pick("query").slice(0, 60)}”`;
+    case "memory.store":
+      return "Saving to memory";
+    default: {
+      const detail = pick("query") || pick("path") || pick("action") || pick("url");
+      return detail ? `Running ${id} (${detail.slice(0, 60)})` : `Running ${id}`;
+    }
+  }
+}
+
 function str(args: Record<string, unknown>, key: string): string {
   const value = args[key];
   return typeof value === "string" ? value.trim() : "";
@@ -131,11 +172,20 @@ const EXECUTORS: ToolExecutor[] = [
           description:
             "The search query. Be specific — this runs against real knowledge providers.",
         },
+        focus: {
+          type: "string",
+          enum: [...RESEARCH_FOCUS_IDS],
+          description:
+            "Which connected sources to use: news (NewsAPI, Guardian, GNews, NewsData, GDELT, RSS), " +
+            "video (YouTube), academic (arXiv, OpenAlex, CrossRef), encyclopedia (Wikipedia, Wikidata), " +
+            "code (GitHub), space (NASA), tech (Hacker News), weather, location. Omit to let LÉLU choose.",
+        },
       },
       required: ["query"],
     },
     run: async (args, context) => {
       const query = str(args, "query");
+      const focus = str(args, "focus");
       if (!query) {
         return { ok: false, content: "research.web requires a non-empty query." };
       }
@@ -200,6 +250,7 @@ const EXECUTORS: ToolExecutor[] = [
         // `intent` is the resolver's own supported input for this; the
         // router sets it the same way.
         intent: "search",
+        ...(RESEARCH_FOCUS[focus] ? { researchFocus: RESEARCH_FOCUS[focus] } : {}),
       } as unknown as RouterContext);
 
 
@@ -247,6 +298,78 @@ const EXECUTORS: ToolExecutor[] = [
         ok: true,
         content: lines.join("\n\n"),
         data: { count: result.results.length, results: result.results.slice(0, 8) },
+      };
+    },
+  },
+
+  {
+    id: "browser.read",
+    // Emits the browser_* trio itself, so the chat can show the page.
+    emitsOwnEvents: true,
+    parameters: {
+      type: "object",
+      properties: {
+        url: {
+          type: "string",
+          description:
+            "The full web address to open and read (e.g. a source from research.web). " +
+            "Returns the page title and its readable text.",
+        },
+      },
+      required: ["url"],
+    },
+    run: async (args, context) => {
+      const url = str(args, "url");
+      if (!url) {
+        return { ok: false, content: "browser.read needs a url; nothing was opened." };
+      }
+      const taskId = String(context?.request?.timestamp ?? Date.now());
+      const events = AgentEventBus.getInstance();
+      const { default: BrowserTool } = await import("../browser/BrowserTool");
+      events.emit({ type: "tool_selected", taskId, tool: "browser", label: `Opening ${hostOf(url)}` });
+      events.emit({ type: "tool_started", taskId, tool: "browser", label: `Opening ${hostOf(url)}` });
+      events.emit({ type: "browser_opened", taskId, url });
+
+      const page = await BrowserTool.visit(url);
+      events.emit({ type: "browser_navigation", taskId, url: page.url });
+      events.emit({
+        type: "browser_result",
+        taskId,
+        url: page.url,
+        title: page.title,
+        excerpt: page.excerpt.slice(0, 1200),
+        status: page.status,
+        error: page.error,
+      });
+      events.emit({
+        type: "tool_result",
+        taskId,
+        tool: "browser",
+        query: page.url,
+        result: page.status === "read" ? `Read “${page.title || hostOf(page.url)}”` : page.error ?? `Could not read ${page.url}`,
+        results:
+          page.status === "read"
+            ? [{ title: page.title || page.url, url: page.url, content: page.excerpt.slice(0, 600), source: hostOf(page.url) }]
+            : [],
+        status: page.status === "read" ? "complete" : page.status === "blocked" ? "blocked" : "error",
+      });
+
+      if (page.status !== "read") {
+        // A structured failure the model can act on: what happened, and
+        // what to do instead.
+        return {
+          ok: false,
+          content:
+            `Could not read ${page.url}: ${page.error ?? page.status}. ` +
+            `Nothing from this page is known. Try another source from research.web, or tell the user it could not be opened.`,
+          data: { url: page.url, status: page.status },
+        };
+      }
+      const text = page.text.length > 6000 ? `${page.text.slice(0, 6000)}…` : page.text;
+      return {
+        ok: true,
+        content: `Page: ${page.title || page.url}\nURL: ${page.url}\n\n${text}`,
+        data: { url: page.url, title: page.title, status: page.status, length: page.text.length },
       };
     },
   },
@@ -1297,8 +1420,9 @@ export async function dispatchToolCall(
   }
 
   if (!executor.emitsOwnEvents) {
-    events.emit({ type: "tool_selected", taskId, tool: id, label: `Using ${id}` });
-    events.emit({ type: "tool_started", taskId, tool: id, label: `Running ${id}` });
+    const label = describeToolCall(id, call.arguments ?? {});
+    events.emit({ type: "tool_selected", taskId, tool: id, label });
+    events.emit({ type: "tool_started", taskId, tool: id, label });
   }
 
   try {

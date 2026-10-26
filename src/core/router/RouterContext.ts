@@ -118,6 +118,14 @@ export default interface RouterContext {
   researchResults?:
     KnowledgeResult[];
 
+  /**
+   * Set by research.web when the model asked for a particular kind of
+   * source (news, video, academic…): the knowledge-provider capabilities
+   * to use instead of guessing them from the wording.
+   */
+  researchFocus?:
+    string[];
+
 
 
   /**

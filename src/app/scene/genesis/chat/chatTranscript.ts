@@ -13,11 +13,15 @@
  * ==========================================================
  */
 
+import type { ChatActivity } from "../../../../core/multichat/TurnActivity";
+
 export interface TranscriptMessage {
   id: string;
   role: "user" | "assistant";
   text: string;
   timestamp: number;
+  /** What LÉLU did for this reply, recorded from real events and stored with it. */
+  activity?: ChatActivity;
 }
 
 /** The live turn, as GenesisChat tracks it. */
@@ -30,6 +34,8 @@ export interface LiveTurn {
   /** Rebuilt from history — nothing is in flight. */
   settled?: boolean;
   error?: ChatFailure;
+  /** The live turn's activity, until it is stored on the reply. */
+  activity?: ChatActivity;
 }
 
 export interface ChatFailure {
@@ -72,6 +78,8 @@ export interface Transcript {
   tail: TailItem[];
   /** A stored reply that is still being streamed into (shown with a caret). */
   streamingId: string | null;
+  /** The live turn's stored reply, once it exists — where its activity shows. */
+  liveReplyId: string | null;
 }
 
 /**
@@ -102,6 +110,7 @@ export function buildTranscript(
 
   const tail: TailItem[] = [];
   let streamingId: string | null = null;
+  let liveReplyId: string | null = null;
   if (live && !live.settled) {
     // Where the live turn's question sits in the store. By id when the
     // turn wrote it; otherwise (voice) the latest matching user line.
@@ -115,6 +124,7 @@ export function buildTranscript(
       }
     }
     const replyStored = anchor >= 0 && displayable.slice(anchor + 1).some((message) => message.role === "assistant");
+    if (replyStored) liveReplyId = displayable.slice(anchor + 1).find((message) => message.role === "assistant")?.id ?? null;
     // Streamed partials are upserted into the store as they arrive, so the
     // growing reply is usually already a stored message.
     if (replyStored && inFlight && !live.error) {
@@ -129,7 +139,7 @@ export function buildTranscript(
     if (live.error) tail.push({ kind: "failure", failure: live.error });
   }
 
-  return { messages, hiddenBefore: start, latestUserId, tail, streamingId };
+  return { messages, hiddenBefore: start, latestUserId, tail, streamingId, liveReplyId };
 }
 
 /**

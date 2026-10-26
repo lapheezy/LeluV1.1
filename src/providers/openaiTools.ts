@@ -190,3 +190,126 @@ export function describeEmptyChoice(provider: string, choice: unknown): string {
   }
   return `${provider} returned no usable content${reason ? ` (finish_reason=${reason})` : ""}.`;
 }
+
+/* ------------------------------------------------------------------ *
+ * STREAMING, WITH TOOLS
+ *
+ * One reader for every OpenAI-compatible provider. Text deltas are
+ * passed on as they arrive (accumulated, the shape onDelta expects);
+ * tool-call deltas are assembled by index — the id and name arrive
+ * once, the arguments in fragments — and returned whole at the end.
+ *
+ * Groq's own reader kept only `delta.content`, so with tools offered a
+ * reply that called a tool streamed nothing, arrived "empty", and was
+ * treated as a provider failure.
+ * ------------------------------------------------------------------ */
+
+export interface StreamedReply {
+  text: string;
+  toolCalls: ToolCall[];
+  finishReason?: string;
+  usage?: unknown;
+}
+
+interface ToolCallDelta {
+  index?: number;
+  id?: string;
+  function?: { name?: string; arguments?: string };
+}
+
+/** Parse the argument JSON of a streamed tool call; malformed → {} (reported to the model). */
+function parseStreamedArgs(text: string): Record<string, unknown> {
+  if (!text.trim()) return {};
+  try {
+    const parsed = JSON.parse(text) as unknown;
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Read an OpenAI-compatible SSE reply. Throws, with the API's own
+ * message, on a non-2xx response or a broken stream — so the provider
+ * fallback chain still engages exactly as for a non-streamed call.
+ */
+export async function readOpenAIStream(
+  response: Response,
+  provider: string,
+  onDelta: (accumulated: string) => void,
+): Promise<StreamedReply> {
+  if (!response.ok || !response.body) {
+    const raw = response.body ? await response.text() : "";
+    let apiMessage = `HTTP ${response.status}`;
+    try {
+      const data = JSON.parse(raw) as { error?: { message?: string }; message?: string };
+      apiMessage = data?.error?.message || data?.message || raw || apiMessage;
+    } catch {
+      if (raw) apiMessage = raw.slice(0, 300);
+    }
+    throw new Error(`${provider} HTTP ${response.status}: ${apiMessage}`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let text = "";
+  let finishReason: string | undefined;
+  let usage: unknown;
+  const calls = new Map<number, { id: string; name: string; args: string }>();
+
+  const processLine = (line: string): void => {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("data:")) return;
+    const data = trimmed.slice(5).trim();
+    if (!data || data === "[DONE]") return;
+    let chunk: {
+      choices?: Array<{ delta?: { content?: string | null; tool_calls?: ToolCallDelta[] }; finish_reason?: string | null }>;
+      usage?: unknown;
+    };
+    try {
+      chunk = JSON.parse(data);
+    } catch {
+      return; // keep-alive fragments
+    }
+    if (chunk.usage) usage = chunk.usage;
+    const choice = chunk.choices?.[0];
+    if (choice?.finish_reason) finishReason = choice.finish_reason;
+    const delta = choice?.delta;
+    if (typeof delta?.content === "string" && delta.content.length > 0) {
+      text += delta.content;
+      onDelta(text);
+    }
+    for (const part of delta?.tool_calls ?? []) {
+      const index = typeof part.index === "number" ? part.index : calls.size;
+      const current = calls.get(index) ?? { id: "", name: "", args: "" };
+      if (part.id) current.id = part.id;
+      if (part.function?.name) current.name += part.function.name;
+      if (part.function?.arguments) current.args += part.function.arguments;
+      calls.set(index, current);
+    }
+  };
+
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) processLine(line);
+    }
+    if (buffer.trim()) processLine(buffer);
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`${provider} stream interrupted: ${message}`);
+  }
+
+  const toolCalls: ToolCall[] = [...calls.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .filter(([, call]) => call.name)
+    .map(([index, call]) => ({ id: call.id || `call_${index}`, name: call.name, arguments: parseStreamedArgs(call.args) }));
+
+  return { text, toolCalls, finishReason, usage };
+}

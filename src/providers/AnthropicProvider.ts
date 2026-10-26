@@ -306,12 +306,11 @@ export default class AnthropicProvider implements AIProvider {
         : {}),
       ...(request.temperature !== undefined ? { temperature: request.temperature } : {}),
       ...(request.stop?.length ? { stop_sequences: request.stop } : {}),
-      // Streaming is suppressed while tools are on the table: a
-      // tool_use block arrives as fragmented input_json_delta chunks,
-      // and a half-parsed argument object is worse than a slightly
-      // later answer. The final generation of the loop, which carries
-      // no tools, streams normally.
-      ...(request.onDelta && !request.tools?.length ? { stream: true } : {}),
+      // Streams whenever the turn wants progressive text — with tools too.
+      // A tool_use block arrives as input_json_delta fragments; the reader
+      // assembles them per block and parses the arguments only once the
+      // stream ends, so no half-parsed argument object is ever used.
+      ...(request.onDelta ? { stream: true } : {}),
     };
 
     let response: Response;
@@ -325,11 +324,10 @@ export default class AnthropicProvider implements AIProvider {
           // its own. Direct (server/tests): the real header.
           ...authHeaders("anthropic", this.apiKey, (key) => ({ "x-api-key": key })),
           "anthropic-version": "2023-06-01",
-          // Without this the Messages API refuses the CORS preflight and
-          // the call never leaves the browser. LÉLU is a client-side SPA
-          // that already calls Groq/OpenRouter directly with the key in
-          // the bundle, so this provider is exactly as exposed as those —
-          // no more, no less. Route through /api/ai if that changes.
+          // Only matters for a DIRECT send (server-side runs and tests).
+          // In the browser the request goes to the same-origin model
+          // broker, which holds the key server-side and attaches it there;
+          // no key is in the client bundle (scripts/verify-bundle-secrets).
           "anthropic-dangerous-direct-browser-access": "true",
         },
         body: JSON.stringify(payload),
@@ -448,36 +446,55 @@ export default class AnthropicProvider implements AIProvider {
     let content = "";
     let usage: unknown;
     let finishReason: string | undefined;
+    let streamError: string | null = null;
+    // tool_use blocks by content index: id and name arrive in
+    // content_block_start, the arguments as input_json_delta fragments.
+    const toolBlocks = new Map<number, { id: string; name: string; json: string }>();
 
     const processLine = (line: string): void => {
       const trimmed = line.trim();
       if (!trimmed.startsWith("data:")) return;
       const dataStr = trimmed.slice(5).trim();
       if (!dataStr) return;
+      let chunk: {
+        type: string;
+        index?: number;
+        content_block?: { type?: string; id?: string; name?: string };
+        delta?: { type?: string; text?: string; partial_json?: string; stop_reason?: string };
+        message?: { stop_reason?: string; usage?: unknown };
+        usage?: unknown;
+        error?: { message?: string };
+      };
       try {
-        const chunk = JSON.parse(dataStr) as {
-          type: string;
-          delta?: { type: string; text?: string };
-          message?: { stop_reason?: string; usage?: unknown };
-        };
-
-        if (chunk.type === "message_start" && chunk.message?.usage) {
-          usage = chunk.message.usage;
-        }
-
-        if (chunk.type === "message_delta" && chunk.message?.stop_reason) {
-          finishReason = chunk.message.stop_reason;
-        }
-
-        if (chunk.type === "content_block_delta" && chunk.delta?.type === "text_delta") {
-          const delta = chunk.delta.text;
-          if (typeof delta === "string" && delta.length > 0) {
-            content += delta;
-            onDelta(content);
-          }
-        }
+        chunk = JSON.parse(dataStr);
       } catch {
-        // Ignore malformed keep-alive fragments.
+        return; // keep-alive fragments
+      }
+
+      if (chunk.type === "message_start" && chunk.message?.usage) usage = chunk.message.usage;
+      if (chunk.type === "message_delta") {
+        // stop_reason travels on the DELTA of message_delta.
+        finishReason = chunk.delta?.stop_reason ?? chunk.message?.stop_reason ?? finishReason;
+        if (chunk.usage) usage = { ...(usage as object | undefined), ...(chunk.usage as object) };
+      }
+      if (chunk.type === "error") streamError = chunk.error?.message ?? "stream error";
+
+      if (chunk.type === "content_block_start" && chunk.content_block?.type === "tool_use") {
+        toolBlocks.set(chunk.index ?? toolBlocks.size, {
+          id: chunk.content_block.id ?? "",
+          name: chunk.content_block.name ?? "",
+          json: "",
+        });
+      }
+
+      if (chunk.type === "content_block_delta") {
+        if (chunk.delta?.type === "text_delta" && typeof chunk.delta.text === "string" && chunk.delta.text.length > 0) {
+          content += chunk.delta.text;
+          onDelta(content);
+        } else if (chunk.delta?.type === "input_json_delta" && typeof chunk.delta.partial_json === "string") {
+          const block = toolBlocks.get(chunk.index ?? -1);
+          if (block) block.json += chunk.delta.partial_json;
+        }
       }
     };
 
@@ -492,11 +509,30 @@ export default class AnthropicProvider implements AIProvider {
       }
       if (buffer.trim()) processLine(buffer);
     } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") throw error;
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`Anthropic stream interrupted: ${message}`);
     }
 
-    if (!content.trim()) {
+    if (streamError) {
+      throw new Error(`Anthropic stream error: ${streamError}`);
+    }
+
+    const toolCalls: ToolCall[] = [...toolBlocks.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .filter(([, block]) => block.name)
+      .map(([, block]) => {
+        let args: Record<string, unknown> = {};
+        try {
+          const parsed = block.json.trim() ? (JSON.parse(block.json) as unknown) : {};
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) args = parsed as Record<string, unknown>;
+        } catch {
+          // Malformed arguments: reported to the model by the dispatcher.
+        }
+        return { id: block.id, name: block.name, arguments: args };
+      });
+
+    if (!content.trim() && toolCalls.length === 0) {
       throw new Error("Anthropic returned no usable content.");
     }
 
@@ -505,6 +541,8 @@ export default class AnthropicProvider implements AIProvider {
       provider: this.name,
       model,
       processingTime: Date.now() - started,
+      ...(toolCalls.length ? { toolCalls } : {}),
+      stopReason: finishReason,
       metadata: {
         usage,
         finishReason,

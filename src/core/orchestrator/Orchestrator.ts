@@ -22,6 +22,7 @@
  */
 
 import AIService from "../AIService";
+import { bindTask } from "../multichat/TurnOwnership";
 import LeluRuntime from "../runtime/LeluRuntime";
 import WorkspaceRuntime, { type WorkspaceOperation } from "../engineering/WorkspaceRuntime";
 import TaskEngine, { type Task } from "../tasks/TaskEngine";
@@ -112,6 +113,8 @@ export default class Orchestrator {
 
     const events = AgentEventBus.getInstance();
     const taskId = crypto.randomUUID();
+    // This request's events belong to the conversation it came from.
+    if (conversationId) bindTask(taskId, conversationId);
 
     try {
       // PHASE 0: COMMAND RECEIVED — the canonical stream starts here,

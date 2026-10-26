@@ -104,8 +104,44 @@ export function bindMessage(messageId: string, conversationId: string): void {
   }
 }
 
+/* ------------------------------------------------------------------ *
+ * WHICH CONVERSATION OWNS A TASK
+ *
+ * Tool, browser and research events travel on the AgentEventBus with a
+ * taskId and nothing else. Without this map the chat could only show
+ * them to whoever was looking — a search run for chat A rendered inside
+ * chat B. AIService.chat() and the Orchestrator bind each turn's taskId
+ * to its conversation before any work starts, so every event of that
+ * turn can be routed to the conversation that asked for it.
+ * ------------------------------------------------------------------ */
+
+const MAX_TRACKED_TASKS = 500;
+const ownerByTask = new Map<string, string>();
+
+/** Every event carrying this taskId belongs to this conversation. */
+export function bindTask(taskId: string, conversationId: string): void {
+  if (!taskId || !conversationId) return;
+  ownerByTask.delete(taskId);
+  ownerByTask.set(taskId, conversationId);
+  if (ownerByTask.size > MAX_TRACKED_TASKS) {
+    const oldest = ownerByTask.keys().next();
+    if (!oldest.done) ownerByTask.delete(oldest.value);
+  }
+}
+
+/**
+ * The conversation a task belongs to, or null for work no conversation
+ * asked for (cognition's own cycles, background agents). Null is never
+ * "the active one": unowned work is not shown inside a chat.
+ */
+export function ownerForTask(taskId: string | undefined): string | null {
+  if (!taskId) return null;
+  return ownerByTask.get(taskId) ?? null;
+}
+
 /** Test seam: forget every claim and binding. */
 export function resetTurnOwnership(): void {
   claim = null;
   ownerByMessage.clear();
+  ownerByTask.clear();
 }

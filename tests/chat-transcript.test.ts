@@ -127,7 +127,7 @@ test("the transcript renders the existing conversation store, through the one ch
 });
 
 test("activity is part of the conversation, not a band pasted under it", () => {
-  assert.match(chat, /const activity = useMemo\(\(\) => <GenesisExecutionTimeline \/>/);
+  assert.match(chat, /const activity = useMemo\(\(\) => <GenesisExecutionTimeline conversationId=\{state\.activeConversationId\} approvalsOnly \/>/, "approvals for the open conversation only");
   assert.match(chat, /activity=\{activity\}/);
   const timeline = readFileSync("src/app/scene/genesis/GenesisExecutionTimeline.tsx", "utf8");
   assert.ok(!/maxHeight: "32vh"|overflowY: "auto"/.test(timeline), "the expanded steps flow inline — no second scroll area");

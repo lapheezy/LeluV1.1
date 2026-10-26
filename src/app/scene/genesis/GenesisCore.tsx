@@ -20,6 +20,7 @@
  */
 
 
+import type { ChatActivity } from "../../../core/multichat/TurnActivity";
 import {
 
   createContext,
@@ -81,6 +82,7 @@ import MultiChatStore, {
 import CrossChatResolver from "../../../core/multichat/CrossChatResolver";
 
 import NotificationProvider from "../../../core/notifications/NotificationProvider";
+import { startNotificationRouting } from "../../../core/notifications/NotificationRouting";
 
 import VisualEngine from "../../../core/visual/VisualEngine";
 import { ownerForMessage } from "../../../core/multichat/TurnOwnership";
@@ -287,6 +289,9 @@ export interface GenesisMessage {
   reasoning?:unknown;
 
   plan?:unknown;
+
+  /** What LÉLU did for this reply, recorded from real events. */
+  activity?:ChatActivity;
 
 }
 
@@ -508,8 +513,11 @@ export interface GenesisContextValue {
 
   searchConversations(query:string,scope?:ConversationSearchScope):ConversationSearchHit[];
 
-  /** Compact cross-chat context for the current conversation/query. */
-  crossChatContext(query:string):string;
+  /**
+   * Compact cross-chat context for a conversation/query. A turn passes its
+   * own conversation: it may have started after the user switched away.
+   */
+  crossChatContext(query:string, conversationId?:string):string;
 
 
 
@@ -1110,6 +1118,10 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
   useEffect(() => {
     const provider = NotificationProvider.getInstance();
 
+    // Side questions, other chats' replies and approvals go to the Chats
+    // panel's NOTIFICATIONS (silent records) rather than over the chat.
+    const stopRouting = startNotificationRouting();
+
     const removeNotifications = provider.subscribe((record) => {
       setState((current) => ({
         ...current,
@@ -1143,6 +1155,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
     });
 
     return () => {
+      stopRouting();
       removeNotifications();
       removeDeepLink();
     };
@@ -1730,11 +1743,11 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         },
 
 
-        crossChatContext(query){
+        crossChatContext(query, conversationId){
 
 
           // Cognition reads the same authority the writes use.
-          return crossChat.buildContext(multiChat.getActiveId(), query);
+          return crossChat.buildContext(conversationId ?? multiChat.getActiveId(), query);
 
 
         },

@@ -153,7 +153,15 @@ export default class ResearchResolver {
       return { handled: false, results: [] };
     }
 
-    const query = this.buildQuery(prompt, intent);
+    // A model's tool call is already distilled search terms: only a NEWS
+    // search gets "news" appended ("capital city Australia news" made
+    // encyclopedia sources come back empty).
+    const toolFocus = context.researchFocus;
+    const invokedAsTool = (context as { toolInvoked?: boolean }).toolInvoked === true;
+    const query =
+      invokedAsTool && !(toolFocus ?? []).includes("news")
+        ? this.buildQuery(prompt, "chat")
+        : this.buildQuery(prompt, intent);
     const selected = this.selectProviders(context, prompt);
 
     // WHO ASKED FOR THIS SEARCH?
@@ -266,6 +274,32 @@ export default class ResearchResolver {
         results: [],
         status: "error",
       });
+
+      // An empty prefetch is not the end of the turn when a model can
+      // still answer. Ending it here replied "I tried every applicable
+      // knowledge source…" to "what is a nebula?" without asking the
+      // model at all. The model is told plainly what came back empty, so
+      // it neither pretends to have current sources nor gives up — and
+      // with tools it can search again with better terms.
+      if (!invokedAsTool) {
+        let modelsAvailable = 0;
+        try {
+          modelsAvailable = (await context.aiProviders.available()).length;
+        } catch {
+          modelsAvailable = 0;
+        }
+        if (modelsAvailable > 0) {
+          context.request.context = [
+            context.request.context,
+            `## LIVE RETRIEVAL — came back empty\nA live search for "${query}" returned no usable results ` +
+              `(tried: ${selected.map((provider) => provider.name).join(", ")}). Answer from what you know, ` +
+              `say clearly which current facts you could not verify live, and if you have tools, search again with better terms.`,
+          ]
+            .filter((value) => Boolean(value && value.trim().length > 0))
+            .join("\n\n");
+          return { handled: false, results: [], attempted };
+        }
+      }
       return { handled: true, results: [], attempted };
     }
 
@@ -343,8 +377,9 @@ export default class ResearchResolver {
    * matching capabilities, then rank by relevance and priority.
    */
   private selectProviders(context: RouterContext, prompt: string) {
-    const wanted = new Set<string>();
-    for (const [pattern, caps] of DOMAIN_CAPS) {
+    // The model's stated focus decides; the wording is only a guess.
+    const wanted = new Set<string>(context.researchFocus ?? []);
+    for (const [pattern, caps] of wanted.size > 0 ? [] : DOMAIN_CAPS) {
       if (pattern.test(prompt)) {
         for (const cap of caps) {
           wanted.add(cap);

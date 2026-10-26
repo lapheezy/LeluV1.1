@@ -940,8 +940,12 @@ class VoiceEngine {
     try {
       // Dynamic import to avoid circular deps
       const { default: AIService } = await import("../../core/AIService");
+      const { default: MultiChatStore } = await import("../multichat/MultiChatStore");
       const ai = AIService.getInstance();
-      const response = await ai.chat(text);
+      // The conversation the user was in when they spoke owns the reply,
+      // even if they switch before it arrives.
+      const conversationId = MultiChatStore.getInstance().getActiveId();
+      const response = await ai.chat(text, undefined, undefined, conversationId ? { conversationId } : undefined);
 
       if (this._turn?.id === turnId) {
         this._turn = { ...this._turn, response: response.text };

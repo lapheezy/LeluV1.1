@@ -214,6 +214,15 @@ export interface AIRequest {
   signal?:
     AbortSignal;
 
+  /**
+   * Messages the user sent while this turn was working. The tool loop
+   * drains it between rounds and hands them to the model, so a new
+   * instruction ("focus on video models") reaches the work in progress
+   * instead of waiting for it to finish. Never sent to a provider.
+   */
+  drainSteering?:
+    () => string[];
+
 
 
   /**

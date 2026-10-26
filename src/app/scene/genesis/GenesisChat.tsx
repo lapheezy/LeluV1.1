@@ -62,7 +62,6 @@ import AIService from "../../../core/AIService";
 import Orchestrator from "../../../core/orchestrator/Orchestrator";
 import AgentEventBus from "../../../core/agent/AgentEvents";
 import GenesisExecutionTimeline from "./GenesisExecutionTimeline";
-import GenesisChatSurface, { type ChatSurface } from "./GenesisChatSurface";
 import { useVoice } from "../../../core/voice/useVoice";
 import {
   defaultMediaPrompt,
@@ -81,7 +80,10 @@ import { cleanAssistantText } from "../../../core/router/ToolMarkup";
 import { useWorkspace } from "./useWorkspace";
 import { layer } from "../../../core/ui/Layers";
 import MultiChatStore from "../../../core/multichat/MultiChatStore";
-import { claimTurn, releaseTurn } from "../../../core/multichat/TurnOwnership";
+import { bindMessage, claimTurn, ownerForTask, releaseTurn } from "../../../core/multichat/TurnOwnership";
+import { finishActivity, hasVisibleActivity, type ChatActivity } from "../../../core/multichat/TurnActivity";
+import { recordTurnActivity } from "./chat/activityRecorder";
+import { notifyTurnOutcome } from "../../../core/notifications/NotificationRouting";
 import ChatTranscript from "./chat/ChatTranscript";
 import { describeFailure, isNearBottom, type ChatFailure } from "./chat/chatTranscript";
 import { useDockInset } from "./chat/chatLayout";
@@ -98,8 +100,11 @@ interface Exchange {
   fast: boolean;
   /** Real images LÉLU produced for this exchange (render artifacts). */
   images?: string[];
-  /** Real visual environments LÉLU opened in this exchange (search/browser). */
-  surfaces?: ChatSurface[];
+  /**
+   * What LÉLU is doing for this turn — searches, pages read, tools — built
+   * from the turn's own events (chat/activityRecorder) while it runs.
+   */
+  activity?: ChatActivity;
   /**
    * This exchange was rebuilt from stored history, not asked just now.
    *
@@ -206,7 +211,7 @@ function fileContextPrompt(files: PendingFile[]): string {
  * ---------------------------------------------------------- */
 
 export default function GenesisChat({ onExit }: { onExit?: () => void }) {
-  const { state, openPanel, addMessage, setDialogue, notify, crossChatContext, createConversation, minimize } = useGenesis();
+  const { state, openPanel, addMessage, upsertMessage, setDialogue, notify, crossChatContext, createConversation, minimize } = useGenesis();
   const voiceView = useVoice();
   const navigate = useNavigate();
 
@@ -276,54 +281,14 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   useEffect(() => {
     return AgentEventBus.getInstance().subscribe((event) => {
       if (event.type !== "creative_artifact") return;
+      // An image made for another conversation's turn is not this one's.
+      const owner = ownerForTask(event.taskId);
+      if (owner && owner !== MultiChatStore.getInstance().getActiveId()) return;
       const image = event.image;
       artifactImagesRef.current = [...artifactImagesRef.current, image];
       setExchange((current) =>
         current
           ? { ...current, images: [...new Set([...(current.images ?? []), image])] }
-          : current,
-      );
-    });
-  }, []);
-
-  // Live visual environments: when LÉLU's execution really produces a
-  // search result set or opens the browser, the ACTUAL result attaches
-  // to this exchange as an inline surface
-  useEffect(() => {
-    const seen = new Set<string>();
-    return AgentEventBus.getInstance().subscribe((event) => {
-      let surface: ChatSurface | null = null;
-      let key = "";
-      if (event.type === "tool_result" && event.tool === "research" && (event.results?.length ?? 0) > 0) {
-        key = `research:${event.taskId}`;
-        surface = {
-          kind: "search",
-          label: event.result ?? `web search`,
-          items: event.results ?? [],
-        };
-      } else if (event.type === "tool_result" && event.tool === "browser") {
-        key = `browser-read:${event.taskId}`;
-        surface = {
-          kind: "browser",
-          url: event.results?.[0]?.url ?? "",
-          title: event.results?.[0]?.title,
-          excerpt: event.result,
-          status: "read",
-        };
-      } else if (event.type === "browser_opened") {
-        key = `browser:${event.url}`;
-        surface = {
-          kind: "browser",
-          url: event.url,
-          status: "opened",
-        };
-      }
-      if (!surface || seen.has(key)) return;
-      seen.add(key);
-      surfacesRef.current = [...surfacesRef.current, surface];
-      setExchange((current) =>
-        current
-          ? { ...current, surfaces: [...surfacesRef.current] }
           : current,
       );
     });
@@ -342,7 +307,19 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const exchangeRef = useRef<Exchange | null>(null);
-  const surfacesRef = useRef<ChatSurface[]>([]);
+  /**
+   * The turn in flight per conversation, so switching away and back shows
+   * it still working — with its activity — instead of a settled replay.
+   */
+  const liveTurnsRef = useRef<Map<string, Exchange>>(new Map());
+  /**
+   * Messages sent INTO a running turn (AIService.steerTurn), per
+   * conversation, oldest first. Any the turn never consumed are answered
+   * as follow-up turns when it ends.
+   */
+  const steeredRef = useRef<Map<string, Array<{ text: string; userMessageId: string }>>>(new Map());
+  /** A steered message being answered as its own turn, read once by send(). */
+  const followUpRef = useRef<{ text: string; userMessageId: string; conversationId: string } | null>(null);
   const mountedAtRef = useRef(Date.now());
   const timersRef = useRef<number[]>([]);
 
@@ -365,13 +342,36 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       // over would submit an answer to the wrong question.
       setAnswerDraft((current) => (question?.id === activeQuestionIdRef.current ? current : ""));
       activeQuestionIdRef.current = question?.id ?? null;
-      // Count the surface once, so "shown and ignored" is a real signal
-      // the lifecycle can act on rather than something inferred later.
-      if (question && question.status === "pending") {
-        proactive.markQuestionSurfaced(question.id);
-      }
     });
   }, []);
+
+  /**
+   * A question is asked IN its conversation. One that belongs to another
+   * chat — or to none, a side question — waits in the Chats panel's
+   * NOTIFICATIONS (core/notifications/NotificationRouting) and shows here
+   * only once the user opens it from there.
+   */
+  const [openedQuestionId, setOpenedQuestionId] = useState<string | null>(null);
+  useEffect(() => {
+    const open = (event: Event) => {
+      const id = (event as CustomEvent<{ questionId?: string }>).detail?.questionId;
+      if (id) setOpenedQuestionId(id);
+    };
+    window.addEventListener("lelu-open-question", open);
+    return () => window.removeEventListener("lelu-open-question", open);
+  }, []);
+  const shownQuestion =
+    activeQuestion &&
+    (openedQuestionId === activeQuestion.id ||
+      (activeQuestion.conversationId !== undefined && activeQuestion.conversationId === state.activeConversationId))
+      ? activeQuestion
+      : null;
+  // Count the surface once it is really on screen, so "shown and ignored"
+  // is a real signal the lifecycle can act on, not something inferred.
+  const surfacedQuestionId = shownQuestion?.status === "pending" ? shownQuestion.id : null;
+  useEffect(() => {
+    if (surfacedQuestionId) proactive.markQuestionSurfaced(surfacedQuestionId);
+  }, [surfacedQuestionId]);
 
   /** Open the question's project as a workstream and continue there. */
   /**
@@ -494,6 +494,12 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     if (replayedForRef.current === state.activeConversationId) return;
     replayedForRef.current = state.activeConversationId;
     clearTimers();
+    const liveTurn = liveTurnsRef.current.get(state.activeConversationId);
+    if (liveTurn) {
+      setExchange(liveTurn);
+      setDialogue("processing");
+      return;
+    }
     setExchange(replayExchange(state.messages));
     setDialogue("listening");
   }, [state.activeConversationId, state.messages, clearTimers, setDialogue]);
@@ -641,9 +647,14 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     // "Try again" resends the failed words without touching the draft.
     const retrying = retryRef.current;
     retryRef.current = null;
-    const typed = (retrying ?? input).trim();
-    const media = retrying !== null ? [] : pendingMedia;
-    const files = retrying !== null ? [] : pendingFiles;
+    // A message sent into a turn that finished before it could use it is
+    // answered now; it is already in the conversation.
+    const followUp = followUpRef.current;
+    followUpRef.current = null;
+    const reused = retrying !== null || followUp !== null;
+    const typed = (followUp?.text ?? retrying ?? input).trim();
+    const media = reused ? [] : pendingMedia;
+    const files = reused ? [] : pendingFiles;
     if (!typed && media.length === 0 && files.length === 0) {
       return;
     }
@@ -651,6 +662,9 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     // can be pinned to this exact trace (guards against a concurrent trace
     // started by voice input in the same profiling window).
     const _latencyTraceId = latencyStart();
+    // A message steered into a turn that is still settling a Stop must not
+    // clear that Stop; it is restored on the steering path below.
+    const stopPending = cancelledRef.current;
     cancelledRef.current = false;
 
     const displayParts: string[] = [];
@@ -673,18 +687,46 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     // request system.
     latencyAnnotate("exchangeId", exchangeId, _latencyTraceId);
     clearTimers();
-    if (retrying === null) {
+    if (!reused) {
       setInput("");
       setPendingMedia([]);
       setPendingFiles([]);
     }
-    const userMessageId = crypto.randomUUID();
+    const userMessageId = followUp?.userMessageId ?? crypto.randomUUID();
     const attachments = media.map((item) => item.dataUrl);
 
     // Which conversation this turn belongs to, read from the STORE rather
     // than from this component's mirror of it — a switch that did not come
     // from React leaves the mirror naming the previous one.
-    const turnConversationId = MultiChatStore.getInstance().getActiveId();
+    const turnConversationId = followUp?.conversationId ?? MultiChatStore.getInstance().getActiveId();
+    const userMessage: GenesisMessage = {
+      id: userMessageId,
+      role: "user",
+      text: display,
+      timestamp: Date.now(),
+      source: "local",
+    };
+
+    // LIVE STEERING. While LÉLU is working on a turn in this conversation,
+    // a plain message goes INTO that turn: the tool loop hands it to the
+    // model before its next round ("focus on video generation"), so the
+    // running work changes course instead of the message waiting behind
+    // it. It is in the conversation at once, bound to this chat.
+    if (
+      !reused &&
+      media.length === 0 &&
+      files.length === 0 &&
+      convTailsRef.current.has(turnConversationId) &&
+      ai.steerTurn(turnConversationId, prompt)
+    ) {
+      const steered = steeredRef.current.get(turnConversationId) ?? [];
+      steered.push({ text: prompt, userMessageId });
+      steeredRef.current.set(turnConversationId, steered);
+      cancelledRef.current = stopPending;
+      bindMessage(userMessageId, turnConversationId);
+      addMessage(userMessage);
+      return;
+    }
 
     // Take a place in this conversation's queue. Different conversations
     // proceed concurrently; within one conversation turns stay in order.
@@ -695,6 +737,13 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     const thisTurn = new Promise<void>((resolve) => { finishTurn = resolve; });
     convTailsRef.current.set(turnConversationId, thisTurn);
     setSendingIn((current) => [...current, turnConversationId]);
+    // The message is in the conversation the moment it is sent, even when
+    // it has to wait for the turn ahead of it — bound to its own chat, so
+    // a switch while it waits cannot move it.
+    if (!followUp) {
+      bindMessage(userMessageId, turnConversationId);
+      addMessage(userMessage);
+    }
     if (previousTurn) {
       // A failed turn must not strand the one queued behind it.
       await previousTurn.catch(() => {});
@@ -718,23 +767,26 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       MultiChatStore.getInstance().getActiveId() === turnConversationId;
 
     artifactImagesRef.current = [];
-    surfacesRef.current = [];
+    const liveTurn: Exchange = { id: exchangeId, user: display, assistant: "", fast: false, userMessageId, attachments };
+    liveTurnsRef.current.set(turnConversationId, liveTurn);
     // Painting the exchange is only right while this conversation is the
     // one being looked at. A queued turn may start after a switch, and
     // showing its question under another conversation's heading is the
     // same mistake as delivering its reply there.
     if (stillViewingTurn()) {
-      setExchange({ id: exchangeId, user: display, assistant: "", fast: false, surfaces: [], userMessageId, attachments });
+      setExchange(liveTurn);
       setDialogue("processing");
     }
 
-    addMessage({
-      id: userMessageId,
-      role: "user",
-      text: display,
-      timestamp: Date.now(),
-      source: "local",
+    // What LÉLU does for this turn, from its own events only — another
+    // conversation's search never shows up here.
+    const recording = recordTurnActivity(turnConversationId, (activity) => {
+      const tracked = liveTurnsRef.current.get(turnConversationId);
+      if (tracked?.id === exchangeId) liveTurnsRef.current.set(turnConversationId, { ...tracked, activity });
+      if (!stillViewingTurn()) return;
+      setExchange((current) => (current && current.id === exchangeId ? { ...current, activity } : current));
     });
+    let turnFailed = false;
 
     try {
       ExplorationController.getInstance().parseCommand(display);
@@ -745,7 +797,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     try {
       let context = "";
       try {
-        context = crossChatContext(prompt || "");
+        context = crossChatContext(prompt || "", turnConversationId);
       } catch {
         context = "";
       }
@@ -801,17 +853,22 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
           }
           return;
         }
+        turnFailed = true;
         const failure = describeFailure("The assistant returned an empty response.", display);
         notify("Lélu Error", failure.detail);
+        notifyTurnOutcome({ conversationId: turnConversationId, turnId: exchangeId, ok: false, text: failure.detail });
         if (!stillViewingTurn()) return;
         setExchange((current) =>
           current
-            ? { ...current, error: failure, fast: true, images: artifactImagesRef.current, surfaces: surfacesRef.current }
+            ? { ...current, error: failure, fast: true, images: artifactImagesRef.current, activity: finishActivity(recording.current(), true) }
             : current,
         );
         setDialogue("listening");
         return;
       }
+
+      // Finished in a chat the user has left: a pointer in NOTIFICATIONS.
+      notifyTurnOutcome({ conversationId: turnConversationId, turnId: exchangeId, ok: true, text: cleanAssistantText(assistantText) });
 
       // The reply is stored against its own conversation either way (the
       // turn's claim sees to that). Painting it into the scene is only
@@ -824,7 +881,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
           assistant: cleanAssistantText(assistantText),
           fast: prefersReducedMotion(),
           images: artifactImagesRef.current,
-          surfaces: surfacesRef.current,
+          activity: finishActivity(recording.current()),
           userMessageId,
           attachments,
         });
@@ -857,18 +914,39 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       // propagate here, so what reaches this catch is typically an F-level
       // failure (stream lifecycle, exchange state, subscription error).
       latencyTraceError("F=Subscription", messageText.slice(0, 120));
+      turnFailed = true;
       // Said in LÉLU's words, never as a raw "undefined" or stack text.
       const failure = describeFailure(error, display);
       notify("Lélu Error", failure.detail);
+      notifyTurnOutcome({ conversationId: turnConversationId, turnId: exchangeId, ok: false, text: failure.detail });
       if (stillViewingTurn()) {
         setExchange((current) =>
           current
-            ? { ...current, error: failure, fast: true, images: artifactImagesRef.current, surfaces: surfacesRef.current }
+            ? { ...current, error: failure, fast: true, images: artifactImagesRef.current, activity: finishActivity(recording.current(), true) }
             : current,
         );
         setDialogue("listening");
       }
     } finally {
+      // The activity is kept with the reply it produced, so coming back to
+      // this conversation later still shows what LÉLU did for it.
+      const activity = finishActivity(recording.stop(), turnFailed);
+      if (hasVisibleActivity(activity)) {
+        try {
+          const stored = MultiChatStore.getInstance().get(turnConversationId)?.messages ?? [];
+          const anchor = stored.findIndex((message) => message.id === userMessageId);
+          const reply = anchor >= 0 ? stored.slice(anchor + 1).find((message) => message.role === "assistant") : undefined;
+          if (reply) {
+            bindMessage(reply.id, turnConversationId);
+            upsertMessage({ ...reply, activity });
+          }
+        } catch {
+          // contained — the reply itself is already stored
+        }
+      }
+      if (liveTurnsRef.current.get(turnConversationId)?.id === exchangeId) {
+        liveTurnsRef.current.delete(turnConversationId);
+      }
       releaseTurn(turnConversationId);
       // A finished turn is durable immediately. Streaming writes are
       // coalesced (see MultiChatStore.flush), which is right while
@@ -886,8 +964,19 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         convTailsRef.current.delete(turnConversationId);
       }
       finishTurn();
+
+      // Messages sent into this turn after its last tool round were never
+      // seen by it. Each is answered now, as its own turn, in order.
+      const leftovers = ai.takeSteering(turnConversationId);
+      const steered = steeredRef.current.get(turnConversationId) ?? [];
+      steeredRef.current.delete(turnConversationId);
+      const unanswered = leftovers.length > 0 ? steered.slice(-leftovers.length) : [];
+      for (const message of unanswered) {
+        followUpRef.current = { ...message, conversationId: turnConversationId };
+        void sendRef.current();
+      }
     }
-  }, [addMessage, clearTimers, input, notify, pendingMedia, pendingFiles, setDialogue, crossChatContext]);
+  }, [addMessage, upsertMessage, clearTimers, input, notify, pendingMedia, pendingFiles, setDialogue, crossChatContext]);
 
 
   const voiceEcho =
@@ -935,7 +1024,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   const [questionOpen, setQuestionOpen] = useState(false);
   useEffect(() => {
     setQuestionOpen(false);
-  }, [activeQuestion?.id]);
+  }, [shownQuestion?.id]);
   const [mobileHeight, setMobileHeight] = useState<number | null>(null);
   const mobileResizeRef = useRef<{ startY: number; startHeight: number } | null>(null);
 
@@ -1197,26 +1286,24 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     void sendRef.current();
   }, []);
 
+  // Search results and pages read now show in the turn's activity card
+  // (chat/ChatActivity), attached to the reply they belong to.
   const liveExtras = useMemo(() => {
     const images = exchange?.images ?? [];
-    const surfaces = exchange?.surfaces ?? [];
-    if (images.length === 0 && surfaces.length === 0) return null;
+    if (images.length === 0) return null;
     return (
-      <>
-        {images.length > 0 ? (
-          <figure className="lelu-cc-renders" style={{ margin: "10px 0 0" }}>
-            {images.map((src, index) => (
-              <img key={`${exchange?.id}-${index}`} src={src} alt="Rendered by LÉLU" loading="lazy" decoding="async" />
-            ))}
-            <figcaption>Rendered by LÉLU — saved to the Render gallery</figcaption>
-          </figure>
-        ) : null}
-        {surfaces.length > 0 ? <GenesisChatSurface surfaces={surfaces} /> : null}
-      </>
+      <figure className="lelu-cc-renders" style={{ margin: "10px 0 0" }}>
+        {images.map((src, index) => (
+          <img key={`${exchange?.id}-${index}`} src={src} alt="Rendered by LÉLU" loading="lazy" decoding="async" />
+        ))}
+        <figcaption>Rendered by LÉLU — saved to the Render gallery</figcaption>
+      </figure>
     );
-  }, [exchange?.id, exchange?.images, exchange?.surfaces]);
+  }, [exchange?.id, exchange?.images]);
 
-  const activity = useMemo(() => <GenesisExecutionTimeline />, []);
+  // Approvals for THIS conversation (and any no conversation owns). Tool
+  // steps show per reply in the activity card instead of a global stream.
+  const activity = useMemo(() => <GenesisExecutionTimeline conversationId={state.activeConversationId} approvalsOnly />, [state.activeConversationId]);
 
   const statusText = state.speaking
     ? "speaking"
@@ -1518,7 +1605,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         </div>
 
         {/* Proactive question — one line on short screens until opened. */}
-        {activeQuestion && shortScreen && !questionOpen ? (
+        {shownQuestion && shortScreen && !questionOpen ? (
           <div
             data-lelu-proactive-question
             className="lelu-cc-question"
@@ -1535,14 +1622,14 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
           >
             <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               <span style={{ color: "rgba(255, 214, 150, 0.85)", marginRight: 6 }}>LÉLU asks:</span>
-              {activeQuestion.question}
+              {shownQuestion.question}
             </span>
             <button type="button" className="lelu-cc-chip lelu-cc-chip--primary" onClick={() => setQuestionOpen(true)} aria-label="Answer LÉLU's question">
               Answer
             </button>
             <button
               type="button"
-              onClick={() => proactive.deferQuestion(activeQuestion.id)}
+              onClick={() => proactive.deferQuestion(shownQuestion.id)}
               aria-label="Defer proactive question"
               title="Not now — ask again only if something changes"
               className="lelu-cc-chip"
@@ -1550,7 +1637,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
               Later
             </button>
           </div>
-        ) : activeQuestion ? (
+        ) : shownQuestion ? (
           <div
             data-lelu-proactive-question
             className="lelu-cc-question"
@@ -1573,10 +1660,10 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
               <span style={{ flex: 1, minWidth: 0, fontSize: 10.5, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255, 214, 150, 0.85)" }}>
                 LÉLU is asking
               </span>
-              {activeQuestion.relatedProjectId ? (
+              {shownQuestion.relatedProjectId ? (
                 <button
                   type="button"
-                  onClick={() => exploreQuestion(activeQuestion)}
+                  onClick={() => exploreQuestion(shownQuestion)}
                   aria-label="Explore this in its own workstream"
                   title="Open this topic as its own conversation"
                   className="lelu-cc-chip"
@@ -1586,7 +1673,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
               ) : null}
               <button
                 type="button"
-                onClick={() => proactive.deferQuestion(activeQuestion.id)}
+                onClick={() => proactive.deferQuestion(shownQuestion.id)}
                 aria-label="Defer proactive question"
                 title="Not now — ask again only if something changes"
                 className="lelu-cc-chip"
@@ -1595,7 +1682,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
               </button>
               <button
                 type="button"
-                onClick={() => proactive.dismissQuestion(activeQuestion.id)}
+                onClick={() => proactive.dismissQuestion(shownQuestion.id)}
                 aria-label="Dismiss proactive question"
                 title="Dismiss"
                 className="lelu-cc-icon"
@@ -1604,16 +1691,16 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
                 <X size={15} aria-hidden />
               </button>
             </div>
-            <strong style={{ display: "block", fontWeight: 600, overflowWrap: "anywhere" }}>{activeQuestion.question}</strong>
+            <strong style={{ display: "block", fontWeight: 600, overflowWrap: "anywhere" }}>{shownQuestion.question}</strong>
             <span className="lelu-cc-question-reason" style={{ color: "rgba(255, 240, 222, 0.66)", fontSize: 12.5 }}>
-              {activeQuestion.reason}
+              {shownQuestion.reason}
             </span>
             {/* A REAL ANSWER: resolveQuestion(id, response) takes the user's
                 own words, verbatim. */}
             <form
               onSubmit={(event) => {
                 event.preventDefault();
-                answerQuestion(activeQuestion);
+                answerQuestion(shownQuestion);
               }}
               style={{ display: "flex", gap: 6, marginTop: 6, alignItems: "center" }}
             >

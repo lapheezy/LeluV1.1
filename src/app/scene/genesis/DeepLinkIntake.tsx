@@ -17,6 +17,7 @@
  * ==========================================================
  */
 
+import MultiChatStore from "../../../core/multichat/MultiChatStore";
 import { useEffect, useRef } from "react";
 import { useGenesis } from "./GenesisCore";
 import AIService from "../../../core/AIService";
@@ -54,7 +55,8 @@ export default function DeepLinkIntake() {
       source: "local",
     });
     notify("Deep link received", prompt.slice(0, 80) + (prompt.length > 80 ? "…" : ""));
-    void ai.chat(prompt).catch((error) => {
+    // Bound to the conversation the link was received in.
+    void ai.chat(prompt, undefined, undefined, { conversationId: MultiChatStore.getInstance().getActiveId() }).catch((error) => {
       console.error("[DeepLinkIntake] chat failed", error);
       notify("Deep link failed", error instanceof Error ? error.message : String(error));
     });

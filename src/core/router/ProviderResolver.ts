@@ -343,6 +343,13 @@ export default class ProviderResolver {
         promptMaterialized = true;
       }
 
+      // What she said she was doing alongside the request ("I'm checking
+      // current sources") is a status line for the activity — the reply
+      // itself is the final answer, not this.
+      if (response.text?.trim()) {
+        AgentEventBus.getInstance().emit({ type: "tool_narration", taskId, text: response.text.trim().slice(0, 400) });
+      }
+
       // Record the request turn before its results, so the pairing the
       // providers replay stays intact.
       messages.push({
@@ -372,6 +379,19 @@ export default class ProviderResolver {
           toolCallId: call.id,
           toolName: call.name,
           toolError: !result.ok,
+        });
+      }
+
+      // The user spoke while the tools ran. Hand it to the model now, so
+      // a new instruction changes the work in progress rather than
+      // waiting behind it.
+      for (const text of context.request.drainSteering?.() ?? []) {
+        AgentEventBus.getInstance().emit({ type: "user_steering", taskId, text: text.slice(0, 400) });
+        messages.push({
+          role: "user",
+          content:
+            `[The user sent this while you were working. Take it into account from now on, ` +
+            `adjust what you are doing if it changes the task, and acknowledge it briefly in your reply.]\n${text}`,
         });
       }
 

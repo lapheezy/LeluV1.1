@@ -16,7 +16,7 @@
 
 import AIRuntime from "./AIRuntime";
 import MemoryBridge from "./MemoryBridge";
-import { bindMessage } from "./multichat/TurnOwnership";
+import { bindMessage, bindTask } from "./multichat/TurnOwnership";
 import UserManager from "./user/UserManager";
 import AgentEventBus from "./agent/AgentEvents";
 import {
@@ -107,6 +107,11 @@ export default class AIService {
    * honoured the moment the turn's chat() starts.
    */
   private readonly pendingCancels = new Set<string>();
+  /**
+   * Messages the user sent to a conversation while its turn was working,
+   * waiting for the turn's tool loop to pick them up (see steerTurn).
+   */
+  private readonly steering = new Map<string, string[]>();
 
   /**
    * How many user turns are being processed right now.
@@ -213,6 +218,35 @@ export default class AIService {
    */
   public beginTurn(conversationId: string): void {
     this.pendingCancels.delete(conversationId);
+  }
+
+  /**
+   * The user spoke while this conversation's turn is working.
+   *
+   * Accepted only while the turn is inside chat() — the only place that
+   * can still use it. The tool loop hands it to the model before its next
+   * round, so the instruction changes the work in progress. Returns false
+   * when no turn is running here; the caller then sends it as a turn of
+   * its own.
+   */
+  public steerTurn(conversationId: string, text: string): boolean {
+    const trimmed = text.trim();
+    if (!conversationId || !trimmed || !this.convControllers.has(conversationId)) return false;
+    const queue = this.steering.get(conversationId) ?? [];
+    queue.push(trimmed);
+    this.steering.set(conversationId, queue);
+    return true;
+  }
+
+  /**
+   * Steering the turn never consumed — it finished its last tool round
+   * before the message arrived. The caller answers these as turns of
+   * their own, so nothing the user said is lost.
+   */
+  public takeSteering(conversationId: string): string[] {
+    const queue = this.steering.get(conversationId) ?? [];
+    this.steering.delete(conversationId);
+    return queue;
   }
 
   private emitAction(type: AIActionEvent["type"], label: string, status: AIActionEvent["status"]): string {
@@ -438,6 +472,10 @@ export default class AIService {
     this.emitListening(true);
 
     const taskId = String(Date.now());
+    // Every tool/browser/research event of this turn carries taskId; bind
+    // it now so the chat can route those events to the conversation that
+    // asked, and to no other.
+    if (options?.conversationId) bindTask(taskId, options.conversationId);
 
     // Open the per-turn cognitive trace. Dev-only (no-op in production)
     // — this is the evidence chain that proves cognition/memory actually
@@ -536,18 +574,23 @@ export default class AIService {
         this.runtime.brain.getConversation().record("assistant", response.text);
         this.emitAction("learn", `${delegation.agent.name} completed`, "complete");
         agentEvents.emit({ type: "task_completed", taskId, label: `${delegation.agent.name} delegated` });
+        // Bound like every other reply: unbound, it would land in whichever
+        // conversation happened to be selected.
+        const delegatedId = crypto.randomUUID();
+        if (options?.conversationId) bindMessage(delegatedId, options.conversationId);
         this.emitMessage({
-          id: crypto.randomUUID(),
+          id: delegatedId,
           role: "assistant",
           text: response.text,
           timestamp: Date.now(),
           provider: response.provider,
           confidence: response.metadata?.confidence as number | undefined,
+          conversationId: options?.conversationId,
         });
         this.releaseUserTurn();
         return {
           ...response,
-          metadata: { ...(response.metadata ?? {}), delegated: delegation.agent.name },
+          metadata: { ...(response.metadata ?? {}), delegated: delegation.agent.name, messageId: delegatedId },
         };
       } catch (error) {
         // delegation failed at the orchestration level — fall through to
@@ -665,6 +708,15 @@ export default class AIService {
         // Per-turn cancellation signal — combined with the provider's
         // own timeout inside each provider so whichever fires first wins.
         signal: controller.signal,
+        ...(options?.conversationId
+          ? {
+              drainSteering: () => {
+                const queue = this.steering.get(options.conversationId!) ?? [];
+                this.steering.delete(options.conversationId!);
+                return queue;
+              },
+            }
+          : {}),
       };
 
       // The request is about to run the existing planning + reasoning
@@ -764,6 +816,9 @@ export default class AIService {
           cognition: true,
           memory: true,
           profile: true,
+          // The id the reply was emitted under, so a caller that also
+          // records it (EngineeringChat) writes the SAME message.
+          messageId: streamId,
         },
       };
     } catch (error) {

@@ -14,6 +14,12 @@
  * result to open that conversation). Unread and processing
  * indicators come from the persistent MultiChatStore.
  *
+ * Chats panel (the speech-bubble button): every conversation, New
+ * chat, and NOTIFICATIONS — side questions, replies that finished
+ * in another chat, approvals another chat is waiting on (see
+ * core/notifications/NotificationRouting). Opening one goes to its
+ * conversation and marks it read.
+ *
  * Layout: the tabs scroll sideways inside the bar while New and
  * Search stay fixed at its end, so no control is ever pushed past
  * the edge of the screen. Each tab carries ONE options button (a
@@ -22,11 +28,31 @@
  */
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from "react";
-import { Ellipsis, Link, Pencil, Pin, Plus, Search, X } from "lucide-react";
+import { Bell, Ellipsis, Link, MessagesSquare, Pencil, Pin, Plus, Search, X } from "lucide-react";
 import { useGenesis } from "./GenesisCore";
 import { layer } from "../../../core/ui/Layers";
 import { useWorkspace } from "./useWorkspace";
 import { chatFillsScreen, useDockInset } from "./chat/chatLayout";
+import NotificationProvider, { isUnread, type NotificationRecord } from "../../../core/notifications/NotificationProvider";
+
+const NOTIFICATION_ICON: Record<NonNullable<NotificationRecord["type"]>, string> = {
+  question: "❓",
+  reply: "💬",
+  failure: "⚠️",
+  approval: "✋",
+  proactive: "✨",
+  info: "•",
+};
+
+function timeAgo(timestamp: number): string {
+  const seconds = Math.max(0, Math.round((Date.now() - timestamp) / 1000));
+  if (seconds < 60) return "just now";
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.round(hours / 24)}d ago`;
+}
 
 /** Where the bar sits: under the chat's header on phones, over the scene otherwise. */
 function barStyleFor(compact: boolean, leftInset: number): CSSProperties {
@@ -93,6 +119,17 @@ const menuItemStyle: CSSProperties = {
   cursor: "pointer",
 };
 
+const sectionLabelStyle: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  fontSize: 10.5,
+  fontWeight: 700,
+  letterSpacing: "0.14em",
+  textTransform: "uppercase",
+  color: "rgba(244, 214, 238, 0.75)",
+};
+
 const tabStyle: CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
@@ -126,6 +163,9 @@ export default function MultiChatTabs() {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+  const [chatsOpen, setChatsOpen] = useState(false);
+  const [inbox, setInbox] = useState<NotificationRecord[]>([]);
+  const unread = inbox.filter(isUnread).length;
   const [query, setQuery] = useState("");
   /** Which tab's options are open, and where to draw them. */
   const [menu, setMenu] = useState<{ id: string; left: number; top: number } | null>(null);
@@ -133,6 +173,27 @@ export default function MultiChatTabs() {
   const workspace = useWorkspace();
   const fills = chatFillsScreen(workspace);
   const dockInset = useDockInset(fills);
+
+  useEffect(() => NotificationProvider.getInstance().subscribeHistory((history) => setInbox([...history].reverse())), []);
+
+  useEffect(() => {
+    if (!chatsOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setChatsOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [chatsOpen]);
+
+  function openNotification(record: NotificationRecord) {
+    // The provider's deep link switches to the conversation and opens chat.
+    NotificationProvider.getInstance().open(record.id);
+    if (record.questionId) {
+      window.dispatchEvent(new CustomEvent("lelu-open-question", { detail: { questionId: record.questionId } }));
+    }
+    if (!record.conversationId) openPanel("chat");
+    setChatsOpen(false);
+  }
 
   // The chat's own options menu can open search.
   useEffect(() => {
@@ -352,12 +413,168 @@ export default function MultiChatTabs() {
           aria-label="Search all chats"
           aria-expanded={searchOpen}
           className={searchOpen ? "lelu-tab-cloud lelu-tab-cloud-active" : "lelu-tab-cloud"}
-          onClick={() => setSearchOpen((current) => !current)}
+          onClick={() => {
+            setChatsOpen(false);
+            setSearchOpen((current) => !current);
+          }}
           style={barIconStyle}
         >
           <Search size={17} aria-hidden />
         </button>
+
+        <button
+          type="button"
+          title={unread > 0 ? `Chats and notifications (${unread} unread)` : "Chats and notifications"}
+          aria-label={unread > 0 ? `Chats and notifications, ${unread} unread` : "Chats and notifications"}
+          aria-expanded={chatsOpen}
+          data-lelu-chats-button
+          className={chatsOpen ? "lelu-tab-cloud lelu-tab-cloud-active" : "lelu-tab-cloud"}
+          onClick={() => {
+            setSearchOpen(false);
+            setChatsOpen((current) => !current);
+          }}
+          style={{ ...barIconStyle, position: "relative" }}
+        >
+          <MessagesSquare size={17} aria-hidden />
+          {unread > 0 ? (
+            <span
+              aria-hidden
+              data-lelu-unread-count={unread}
+              style={{
+                position: "absolute",
+                top: 2,
+                right: 1,
+                minWidth: 16,
+                height: 16,
+                padding: "0 4px",
+                borderRadius: 999,
+                background: "#f472b6",
+                color: "#1b1033",
+                fontSize: 10,
+                fontWeight: 700,
+                lineHeight: "16px",
+                textAlign: "center",
+              }}
+            >
+              {unread > 9 ? "9+" : unread}
+            </span>
+          ) : null}
+        </button>
       </div>
+
+      {chatsOpen ? (
+        <div
+          className="lelu-tab-bar"
+          role="dialog"
+          aria-label="Chats and notifications"
+          data-lelu-chats-panel
+          style={{
+            position: "fixed",
+            left: "50%",
+            top: fills ? "calc(env(safe-area-inset-top, 0px) + 112px)" : "100px",
+            transform: "translateX(-50%)",
+            zIndex: layer("tabs") + 1,
+            width: "min(calc(100vw - 20px), 420px)",
+            maxHeight: "min(70vh, 560px)",
+            overflowY: "auto",
+            padding: 10,
+            borderRadius: 18,
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+            pointerEvents: "auto",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 6px" }}>
+            <span style={sectionLabelStyle}>Chats</span>
+            <button
+              type="button"
+              onClick={() => {
+                createConversation();
+                openPanel("chat");
+                setChatsOpen(false);
+              }}
+              style={{ ...menuItemStyle, width: "auto", minHeight: 32, padding: "0 10px", fontSize: 12 }}
+            >
+              <Plus size={14} aria-hidden /> New chat
+            </button>
+          </div>
+          {conversations.map((conversation) => (
+            <button
+              key={conversation.id}
+              type="button"
+              data-lelu-chats-item={conversation.id}
+              aria-current={conversation.id === activeId ? "true" : undefined}
+              onClick={() => {
+                if (conversation.id !== activeId) switchConversation(conversation.id);
+                openPanel("chat");
+                setChatsOpen(false);
+              }}
+              style={{
+                ...menuItemStyle,
+                background: conversation.id === activeId ? "rgba(255, 236, 252, 0.1)" : "transparent",
+              }}
+            >
+              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {conversation.title}
+              </span>
+              {conversation.processing ? <span style={{ fontSize: 11, color: "rgba(103, 232, 249, 0.9)" }}>working…</span> : null}
+              {conversation.unread > 0 ? (
+                <span style={{ fontSize: 11, color: "#fbbf24" }}>{conversation.unread} new</span>
+              ) : null}
+            </button>
+          ))}
+
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 6px 2px" }}>
+            <span style={sectionLabelStyle}>
+              <Bell size={12} aria-hidden /> Notifications{unread > 0 ? ` · ${unread} unread` : ""}
+            </span>
+            {unread > 0 ? (
+              <button
+                type="button"
+                onClick={() => NotificationProvider.getInstance().markAllRead()}
+                style={{ ...menuItemStyle, width: "auto", minHeight: 32, padding: "0 10px", fontSize: 12 }}
+              >
+                Mark all read
+              </button>
+            ) : null}
+          </div>
+          {inbox.length === 0 ? (
+            <div style={{ padding: "6px 12px 8px", color: "rgba(214, 228, 244, 0.6)", fontSize: 12 }}>Nothing yet.</div>
+          ) : (
+            inbox.slice(0, 30).map((record) => {
+              const fresh = isUnread(record);
+              return (
+                <button
+                  key={record.id}
+                  type="button"
+                  data-lelu-notification={record.type ?? "info"}
+                  data-lelu-notification-read={fresh ? "false" : "true"}
+                  onClick={() => openNotification(record)}
+                  style={{
+                    ...menuItemStyle,
+                    alignItems: "flex-start",
+                    padding: "8px 12px",
+                    background: fresh ? "rgba(244, 114, 182, 0.1)" : "transparent",
+                  }}
+                >
+                  <span aria-hidden style={{ lineHeight: "18px" }}>{NOTIFICATION_ICON[record.type ?? "info"]}</span>
+                  <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+                    <span style={{ fontWeight: fresh ? 700 : 500, fontSize: 12.5 }}>{record.title}</span>
+                    {record.body ? (
+                      <span style={{ fontSize: 11.5, color: "rgba(226, 232, 248, 0.75)", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                        {record.body}
+                      </span>
+                    ) : null}
+                    <span style={{ fontSize: 10.5, color: "rgba(214, 228, 244, 0.55)" }}>{timeAgo(record.timestamp)}</span>
+                  </span>
+                  {fresh ? <span aria-label="unread" style={{ width: 8, height: 8, marginTop: 5, borderRadius: 999, background: "#f472b6", flexShrink: 0 }} /> : null}
+                </button>
+              );
+            })
+          )}
+        </div>
+      ) : null}
 
       {menu ? (() => {
         const conversation = conversations.find((item) => item.id === menu.id);

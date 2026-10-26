@@ -126,6 +126,14 @@ export type AgentEvent =
     }
   | { type: "tool_failed"; taskId: string; tool: string; error?: string }
   /**
+   * What LÉLU said she was doing while she called tools — the text a
+   * model returns alongside a tool request ("I'm checking current
+   * sources"). A status line in the activity, never part of the reply.
+   */
+  | { type: "tool_narration"; taskId: string; text: string }
+  /** A message the user sent while this turn was working, folded into it. */
+  | { type: "user_steering"; taskId: string; text: string }
+  /**
    * Agent lifecycle. Emitted by AgentRunner — the ONE entry point every
    * agent run passes through — so an agent started from the Agents panel
    * is as visible as one delegated from chat. `taskId` is the parent

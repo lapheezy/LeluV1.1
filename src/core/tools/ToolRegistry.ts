@@ -393,6 +393,17 @@ export default class ToolRegistry {
         provider: "research",
         executionRoute: "ResearchResolver",
       },
+      {
+        id: "browser.read",
+        name: "Read Web Page",
+        description: "Open a web page and read its title and text (through LÉLU's server-side reader)",
+        category: "Research",
+        permissions: ["READ", "EXTERNAL_ACTION"],
+        riskLevel: 1,
+        available: true,
+        provider: "browser",
+        executionRoute: "BrowserTool.visit",
+      },
 
       // Providers
       {

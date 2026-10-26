@@ -31,6 +31,7 @@ import AgentEventBus, {
   type ExecutionSide,
 } from "../../../core/agent/AgentEvents";
 import { genesisTheme } from "./GenesisTheme";
+import { ownerForTask } from "../../../core/multichat/TurnOwnership";
 
 /* --------------------------- bounded store --------------------------- */
 
@@ -73,6 +74,10 @@ export function executionEventLabel(event: AgentEvent): string {
     }
     case "tool_failed":
       return `${humanTool(event.tool)} failed — recovering`;
+    case "tool_narration":
+      return event.text.slice(0, 80);
+    case "user_steering":
+      return `New instruction: ${event.text.slice(0, 60)}`;
     case "file_opened":
       return `Opened ${event.path}`;
     case "file_changed":
@@ -392,7 +397,18 @@ interface PendingApproval {
 
 /* --------------------------- component --------------------------- */
 
-export default function GenesisExecutionTimeline() {
+export interface ExecutionTimelineProps {
+  /**
+   * Show only work whose task belongs to this conversation
+   * (TurnOwnership.ownerForTask). An approval no conversation owns is
+   * still shown, so a consent point is never lost.
+   */
+  conversationId?: string;
+  /** Approvals only — the chat shows its tool activity per reply instead. */
+  approvalsOnly?: boolean;
+}
+
+export default function GenesisExecutionTimeline({ conversationId, approvalsOnly = false }: ExecutionTimelineProps = {}) {
   const [tasks, setTasks] = useState<TimelineTask[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [approvals, setApprovals] = useState<PendingApproval[]>([]);
@@ -404,9 +420,17 @@ export default function GenesisExecutionTimeline() {
   // survives a chat re-render (no lost work when a panel remounts).
   useEffect(() => {
     const bus = AgentEventBus.getInstance();
-    const initial = bus.recent(40).filter((event) => event.type !== "creative_artifact");
+    const belongs = (event: AgentEvent): boolean => {
+      if (!conversationId) return true;
+      const owner = ownerForTask(event.taskId);
+      if (owner === conversationId) return true;
+      return owner === null && event.type === "approval_requested";
+    };
+    setTasks([]);
+    setApprovals([]);
+    const initial = bus.recent(40).filter((event) => event.type !== "creative_artifact" && belongs(event));
 
-    setTasks((current) => mergeTasks(current, initial));
+    if (!approvalsOnly) setTasks((current) => mergeTasks(current, initial));
     for (const event of initial) {
       if (event.type === "approval_requested") {
         setApprovals((current) => [
@@ -428,6 +452,7 @@ export default function GenesisExecutionTimeline() {
       if (event.type === "creative_artifact" || event.type === "core_transform") {
         return;
       }
+      if (event.type !== "approval_resolved" && !belongs(event)) return;
       if (event.type === "approval_requested") {
         setApprovals((current) => [
           ...current.filter((a) => a.approvalId !== event.approvalId),
@@ -446,9 +471,10 @@ export default function GenesisExecutionTimeline() {
         );
         return;
       }
+      if (approvalsOnly) return;
       setTasks((current) => mergeTasks(current, [event]));
     });
-  }, []);
+  }, [conversationId, approvalsOnly]);
 
   const resolveApproval = useCallback(
     (approval: PendingApproval, decision: "approved" | "rejected" | "modified") => {

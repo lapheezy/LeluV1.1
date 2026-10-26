@@ -106,17 +106,23 @@ export default class EngineeringChat {
     this.store.addMessage(thread.id, userMessage);
 
     const ai = AIService.getInstance();
-    const response = await ai.chat(trimmed, undefined, undefined, { forceIntent: "engineering" });
+    // Bound to THIS thread. Without a conversationId the streamed reply
+    // also landed in whichever chat was on screen — the engineering thread
+    // appearing inside the user's conversation.
+    const response = await ai.chat(trimmed, undefined, undefined, { forceIntent: "engineering", conversationId: thread.id });
 
+    // The id the reply was emitted under, so the bridge's copy and this
+    // record are one message, not two.
+    const emittedId = typeof response.metadata?.messageId === "string" ? response.metadata.messageId : "";
     const assistantMessage: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: emittedId || crypto.randomUUID(),
       role: "assistant",
       text: response.text,
       timestamp: Date.now(),
       source: "ai",
       provider: response.provider,
     };
-    this.store.addMessage(thread.id, assistantMessage);
+    this.store.upsertMessage(thread.id, assistantMessage);
     return assistantMessage;
   }
 

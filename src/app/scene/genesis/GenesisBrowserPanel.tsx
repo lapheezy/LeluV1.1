@@ -23,6 +23,8 @@ import { useCallback, useEffect, useState, type CSSProperties, type KeyboardEven
 import { useGenesis } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 import AIService from "../../../core/AIService";
+import MultiChatStore from "../../../core/multichat/MultiChatStore";
+import { bindMessage } from "../../../core/multichat/TurnOwnership";
 import BrowserTool from "../../../core/browser/BrowserTool";
 import { getEnvironment } from "../../../core/Environment";
 import AgentEventBus, { type AgentEvent, type AgentResultItem } from "../../../core/agent/AgentEvents";
@@ -225,24 +227,34 @@ export default function GenesisBrowserPanel({ onClose }: GenesisBrowserPanelProp
         results: [{ title: result.title, url: result.url, type: "page", content: result.excerpt }],
       });
 
-      const response = await ai.chat(request);
-      const reply = response.text.trim();
-
+      // The conversation this read was asked from owns its record and the
+      // reply, even if the user switches before it arrives.
+      const conversationId = MultiChatStore.getInstance().getActiveId();
+      const userId = crypto.randomUUID();
+      bindMessage(userId, conversationId);
       addMessage({
-        id: crypto.randomUUID(),
+        id: userId,
         role: "user",
         text: `[Browser] Read ${result.url}`,
         timestamp: Date.now(),
         source: "local",
       });
-      addMessage({
-        id: crypto.randomUUID(),
-        role: "assistant",
-        text: reply,
-        timestamp: Date.now(),
-        source: response.provider === "brain" || response.provider === "offline" ? "local" : "ai",
-        provider: response.provider,
-      });
+      const response = await ai.chat(request, undefined, undefined, { conversationId });
+      const reply = response.text.trim();
+      // The reply was already emitted (and stored) under its own id; writing
+      // a second copy under a new id showed it twice.
+      if (typeof response.metadata?.messageId !== "string") {
+        const replyId = crypto.randomUUID();
+        bindMessage(replyId, conversationId);
+        addMessage({
+          id: replyId,
+          role: "assistant",
+          text: reply,
+          timestamp: Date.now(),
+          source: response.provider === "brain" || response.provider === "offline" ? "local" : "ai",
+          provider: response.provider,
+        });
+      }
 
       setSummary(reply);
     } catch (error) {

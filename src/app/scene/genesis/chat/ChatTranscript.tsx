@@ -10,9 +10,11 @@
  * ==========================================================
  */
 
-import { memo, useMemo, useState, type ReactNode } from "react";
+import { Fragment, memo, useMemo, useState, type ReactNode } from "react";
 import { RotateCcw } from "lucide-react";
 import ChatMarkdown, { MessageCopy } from "./ChatMarkdown";
+import ChatActivityCard from "./ChatActivity";
+import { hasVisibleActivity } from "../../../../core/multichat/TurnActivity";
 import {
   buildTranscript,
   TRANSCRIPT_PAGE,
@@ -159,9 +161,17 @@ function ChatTranscriptImpl({ messages, live, inFlight, liveExtras, activity, sp
             attachments={live?.userMessageId === message.id ? live.attachments : undefined}
           />
         ) : (
-          <AssistantBubble key={message.id} text={message.text} latest={index === lastIndex} streaming={message.id === transcript.streamingId}>
-            {extrasOnLast && index === lastIndex ? liveExtras : null}
-          </AssistantBubble>
+          <Fragment key={message.id}>
+            {(() => {
+              // The live turn's activity shows above its reply as it happens;
+              // once stored on the reply it comes from the message itself.
+              const activity = message.id === transcript.liveReplyId && live?.activity ? live.activity : message.activity;
+              return hasVisibleActivity(activity) ? <ChatActivityCard activity={activity} /> : null;
+            })()}
+            <AssistantBubble text={message.text} latest={index === lastIndex} streaming={message.id === transcript.streamingId}>
+              {extrasOnLast && index === lastIndex ? liveExtras : null}
+            </AssistantBubble>
+          </Fragment>
         ),
       )}
 
@@ -173,6 +183,9 @@ function ChatTranscriptImpl({ messages, live, inFlight, liveExtras, activity, sp
           </div>
         </article>
       ) : null}
+
+      {/* Before the reply exists, the activity is the first thing she shows. */}
+      {!transcript.liveReplyId && live && !live.settled && hasVisibleActivity(live.activity) ? <ChatActivityCard activity={live.activity} /> : null}
 
       {transcript.tail.map((item, index) => {
         if (item.kind === "streaming") {

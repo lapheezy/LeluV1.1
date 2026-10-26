@@ -18,6 +18,7 @@
  */
 
 import KvStore from "../storage/KvStore";
+import type { ChatActivity } from "./TurnActivity";
 
 export interface ChatMessage {
   id: string;
@@ -29,6 +30,8 @@ export interface ChatMessage {
   confidence?: number;
   reasoning?: unknown;
   plan?: unknown;
+  /** What LÉLU did for this reply (tools, pages, sources), from real events. */
+  activity?: ChatActivity;
 }
 
 export interface ChatConversation {
