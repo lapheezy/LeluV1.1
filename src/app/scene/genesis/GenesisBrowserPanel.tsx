@@ -24,7 +24,7 @@ import { useGenesis } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 import AIService from "../../../core/AIService";
 import MultiChatStore from "../../../core/multichat/MultiChatStore";
-import { bindMessage } from "../../../core/multichat/TurnOwnership";
+import { bindMessage, ownerForTask } from "../../../core/multichat/TurnOwnership";
 import BrowserTool from "../../../core/browser/BrowserTool";
 import { getEnvironment } from "../../../core/Environment";
 import AgentEventBus, { type AgentEvent, type AgentResultItem } from "../../../core/agent/AgentEvents";
@@ -120,6 +120,11 @@ export default function GenesisBrowserPanel({ onClose }: GenesisBrowserPanelProp
       }
     }
     return bus.subscribe((event) => {
+      // Another conversation's page is not this view's to show: following
+      // it navigated this panel (and its iframe) to whatever any chat's
+      // turn was reading.
+      const owner = ownerForTask(event.taskId);
+      if (owner && owner !== MultiChatStore.getInstance().getActiveId()) return;
       const next = researchFromEvent(event);
       if (next) setResearch((current) => current?.taskId === next.taskId
         ? { ...current, ...next }

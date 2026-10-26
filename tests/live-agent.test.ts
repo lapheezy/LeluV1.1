@@ -566,7 +566,8 @@ test("a chat turn's tool work stays in the chat — it does not open a panel ove
   const { readFileSync } = await import("node:fs");
   const source = readFileSync("src/app/scene/genesis/GenesisSurfaceController.tsx", "utf8");
   assert.match(source, /const ownedByChat = ownerForTask\(event\.taskId\) !== null;/);
-  assert.match(source, /if \(surface && !ownedByChat &&/);
+  assert.match(source, /const userInChat = activePanelRef\.current === "chat";/);
+  assert.match(source, /if \(surface && !ownedByChat && !userInChat &&/, "an agent event must not replace the chat the user is in");
 });
 
 test("a page read is one step, however many events report it", () => {

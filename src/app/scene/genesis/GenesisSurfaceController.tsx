@@ -132,6 +132,8 @@ export default function GenesisSurfaceController() {
   const queuedCameraRef = useRef<GenesisV2CameraCommand[]>([]);
   const uiControlRef = useRef(state.uiControl);
   uiControlRef.current = state.uiControl;
+  const activePanelRef = useRef(state.activePanel);
+  activePanelRef.current = state.activePanel;
 
   const v2Active = state.activeScene === "genesisv2";
 
@@ -278,8 +280,16 @@ export default function GenesisSurfaceController() {
       // and the Chats panel vanished whenever LÉLU read a page, for
       // whichever conversation's task it was. Background work no chat
       // owns still opens its surface as before.
+      //
+      // And while the user is IN the chat, no agent event replaces it —
+      // whoever's task it is. Work no conversation owns (a sub-agent's own
+      // research, background cognition) opened the Browser panel over the
+      // conversation mid-reply in live testing, hiding the tabs and New
+      // chat. Buttons the user presses still open panels (genesis-show-
+      // surface above); this only stops events from doing it on their own.
       const ownedByChat = ownerForTask(event.taskId) !== null;
-      if (surface && !ownedByChat && (uiControlRef.current !== "manual" || isLiveResearchSurface)) {
+      const userInChat = activePanelRef.current === "chat";
+      if (surface && !ownedByChat && !userInChat && (uiControlRef.current !== "manual" || isLiveResearchSurface)) {
         const key = `${event.taskId}:${surface}`;
         if (!openedRef.current.has(key)) {
           openedRef.current.add(key);
