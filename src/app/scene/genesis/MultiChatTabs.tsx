@@ -9,30 +9,88 @@
  * cognition; switching tabs only changes which conversation is
  * active — it never creates a second brain.
  *
- * Features: new / switch / rename (double-click or ✎) / close /
- * pin / link-to-active / unified search (click a result to open
- * that conversation). Unread and processing indicators come from
- * the persistent MultiChatStore.
+ * Features: new / switch / rename (double-click or the tab's ⋯
+ * menu) / close / pin / link-to-active / unified search (click a
+ * result to open that conversation). Unread and processing
+ * indicators come from the persistent MultiChatStore.
+ *
+ * Layout: the tabs scroll sideways inside the bar while New and
+ * Search stay fixed at its end, so no control is ever pushed past
+ * the edge of the screen. Each tab carries ONE options button (a
+ * full-size target) instead of four 18px icons.
  * ==========================================================
  */
 
-import { useMemo, useState, type CSSProperties, type MouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { Ellipsis, Link, Pencil, Pin, Plus, Search, X } from "lucide-react";
 import { useGenesis } from "./GenesisCore";
 import { layer } from "../../../core/ui/Layers";
+import { useWorkspace } from "./useWorkspace";
+import { chatFillsScreen, useDockInset } from "./chat/chatLayout";
 
-const barStyle: CSSProperties = {
-  position: "fixed",
-  left: "50%",
-  top: "56px",
-  transform: "translateX(-50%)",
-  zIndex: layer("tabs"),
+/** Where the bar sits: under the chat's header on phones, over the scene otherwise. */
+function barStyleFor(compact: boolean, leftInset: number): CSSProperties {
+  return compact
+    ? {
+        position: "fixed",
+        left: leftInset + 10,
+        right: 10,
+        top: "calc(env(safe-area-inset-top, 0px) + 64px)",
+        zIndex: layer("tabs"),
+        display: "flex",
+        alignItems: "center",
+        gap: 4,
+        padding: 4,
+        borderRadius: 999,
+        pointerEvents: "auto",
+      }
+    : {
+        position: "fixed",
+        left: "50%",
+        top: "56px",
+        transform: "translateX(-50%)",
+        zIndex: layer("tabs"),
+        display: "flex",
+        alignItems: "center",
+        gap: 4,
+        padding: 4,
+        borderRadius: 999,
+        pointerEvents: "auto",
+        maxWidth: "min(96vw, 760px)",
+      };
+}
+
+const barIconStyle: CSSProperties = {
+  width: 36,
+  height: 36,
+  minWidth: 36,
+  borderRadius: 999,
+  border: "none",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  cursor: "pointer",
+  padding: 0,
+  background: "transparent",
+  color: "rgba(244, 232, 255, 0.85)",
+  flexShrink: 0,
+};
+
+const menuItemStyle: CSSProperties = {
   display: "flex",
   alignItems: "center",
-  gap: 6,
-  padding: "5px 6px",
-  borderRadius: 999,
-  pointerEvents: "auto",
-  maxWidth: "min(96vw, 760px)",
+  gap: 10,
+  width: "100%",
+  minHeight: 40,
+  padding: "0 12px",
+  border: "none",
+  borderRadius: 12,
+  background: "transparent",
+  color: "rgba(247, 241, 255, 0.95)",
+  font: "inherit",
+  fontSize: 13,
+  textAlign: "left",
+  cursor: "pointer",
 };
 
 const tabStyle: CSSProperties = {
@@ -50,22 +108,6 @@ const tabStyle: CSSProperties = {
   flexShrink: 0,
 };
 
-const iconButtonStyle: CSSProperties = {
-  border: "none",
-  background: "transparent",
-  cursor: "pointer",
-  padding: 0,
-  width: 18,
-  height: 18,
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontSize: 11,
-  borderRadius: 999,
-  color: "rgba(214, 228, 244, 0.72)",
-  fontFamily: "inherit",
-  flexShrink: 0,
-};
 
 export default function MultiChatTabs() {
   const {
@@ -85,6 +127,35 @@ export default function MultiChatTabs() {
   const [renameValue, setRenameValue] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  /** Which tab's options are open, and where to draw them. */
+  const [menu, setMenu] = useState<{ id: string; left: number; top: number } | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const workspace = useWorkspace();
+  const fills = chatFillsScreen(workspace);
+  const dockInset = useDockInset(fills);
+
+  // The chat's own options menu can open search.
+  useEffect(() => {
+    const open = () => setSearchOpen(true);
+    window.addEventListener("lelu-multichat-search", open);
+    return () => window.removeEventListener("lelu-multichat-search", open);
+  }, []);
+
+  useEffect(() => {
+    if (!menu) return;
+    const close = (event: PointerEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setMenu(null);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenu(null);
+    };
+    document.addEventListener("pointerdown", close, true);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", close, true);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [menu]);
 
   const conversations = state.conversations;
   const activeId = state.activeConversationId;
@@ -130,12 +201,24 @@ export default function MultiChatTabs() {
 
   return (
     <>
-      <div data-lelu-multichat className="lelu-tab-bar" style={barStyle}>
+      <div data-lelu-multichat className="lelu-tab-bar" style={barStyleFor(fills, dockInset)} role="tablist" aria-label="Conversations">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            flex: 1,
+            minWidth: 0,
+            overflowX: "auto",
+            scrollbarWidth: "none",
+            WebkitOverflowScrolling: "touch",
+            // A soft fade at the end says "more tabs this way".
+            maskImage: "linear-gradient(90deg, #000 0, #000 calc(100% - 18px), transparent)",
+            WebkitMaskImage: "linear-gradient(90deg, #000 0, #000 calc(100% - 18px), transparent)",
+          }}
+        >
         {conversations.map((conversation) => {
           const active = conversation.id === activeId;
-          const linked = conversation.linkedIds.includes(activeId);
-          const canClose = conversations.length > 1;
-
           return (
             <div
               key={conversation.id}
@@ -182,10 +265,13 @@ export default function MultiChatTabs() {
                   // by pinning and recency, so position is not a stable way
                   // to identify one — for assistive tech or for a test.
                   data-conversation-id={conversation.id}
+                  role="tab"
+                  aria-selected={active}
                   onClick={(event) => handleTabClick(event, conversation.id)}
                   title={`${conversation.title}${conversation.unread > 0 ? ` (${conversation.unread} unread)` : ""}`}
                   style={{
                     ...tabStyle,
+                    minHeight: 32,
                     background: "transparent",
                     color: active ? "rgba(255,255,255,0.98)" : "rgba(226, 238, 252, 0.78)",
                     maxWidth: 180,
@@ -225,54 +311,26 @@ export default function MultiChatTabs() {
 
               <button
                 type="button"
-                title={linked ? "Unlink from active chat" : "Link to active chat"}
-                aria-label={linked ? "Unlink conversation" : "Link conversation"}
-                onClick={() => (linked ? unlinkConversations(conversation.id, activeId) : linkConversations(conversation.id, activeId))}
-                style={{
-                  ...iconButtonStyle,
-                  color: linked ? "rgba(103, 232, 249, 0.95)" : "rgba(214, 228, 244, 0.55)",
+                title="Conversation options"
+                aria-label={`Options for ${conversation.title}`}
+                aria-haspopup="menu"
+                aria-expanded={menu?.id === conversation.id}
+                onClick={(event) => {
+                  const rect = event.currentTarget.getBoundingClientRect();
+                  setMenu((current) =>
+                    current?.id === conversation.id
+                      ? null
+                      : { id: conversation.id, left: Math.min(rect.left, window.innerWidth - 220), top: rect.bottom + 6 },
+                  );
                 }}
+                style={{ ...barIconStyle, width: 32, height: 32, minWidth: 32, color: "rgba(244, 232, 255, 0.7)" }}
               >
-                🔗
+                <Ellipsis size={16} aria-hidden />
               </button>
-
-              <button
-                type="button"
-                title={conversation.pinned ? "Unpin" : "Pin"}
-                aria-label={conversation.pinned ? "Unpin conversation" : "Pin conversation"}
-                onClick={() => pinConversation(conversation.id)}
-                style={{
-                  ...iconButtonStyle,
-                  color: conversation.pinned ? "rgba(251, 191, 36, 0.95)" : "rgba(214, 228, 244, 0.55)",
-                }}
-              >
-                📌
-              </button>
-
-              <button
-                type="button"
-                title="Rename"
-                aria-label="Rename conversation"
-                onClick={() => beginRename(conversation.id, conversation.title)}
-                style={iconButtonStyle}
-              >
-                ✎
-              </button>
-
-              {canClose ? (
-                <button
-                  type="button"
-                  title="Close chat"
-                  aria-label={`Close ${conversation.title}`}
-                  onClick={() => closeConversation(conversation.id)}
-                  style={{ ...iconButtonStyle, color: "rgba(248, 113, 113, 0.85)" }}
-                >
-                  ✕
-                </button>
-              ) : null}
             </div>
           );
         })}
+        </div>
 
         <button
           type="button"
@@ -283,9 +341,9 @@ export default function MultiChatTabs() {
             createConversation();
             openPanel("chat");
           }}
-          style={{ ...tabStyle, background: "transparent", color: "rgba(226, 238, 252, 0.85)" }}
+          style={barIconStyle}
         >
-          ＋
+          <Plus size={18} aria-hidden />
         </button>
 
         <button
@@ -295,11 +353,85 @@ export default function MultiChatTabs() {
           aria-expanded={searchOpen}
           className={searchOpen ? "lelu-tab-cloud lelu-tab-cloud-active" : "lelu-tab-cloud"}
           onClick={() => setSearchOpen((current) => !current)}
-          style={{ ...tabStyle, background: "transparent", color: "rgba(226, 238, 252, 0.85)" }}
+          style={barIconStyle}
         >
-          🔍
+          <Search size={17} aria-hidden />
         </button>
       </div>
+
+      {menu ? (() => {
+        const conversation = conversations.find((item) => item.id === menu.id);
+        if (!conversation) return null;
+        const linked = conversation.linkedIds.includes(activeId);
+        const canClose = conversations.length > 1;
+        const act = (fn: () => void) => () => {
+          setMenu(null);
+          fn();
+        };
+        return (
+          <div
+            ref={menuRef}
+            role="menu"
+            aria-label={`Options for ${conversation.title}`}
+            className="lelu-tab-bar"
+            style={{
+              position: "fixed",
+              left: Math.max(8, menu.left),
+              top: menu.top,
+              zIndex: layer("tabs") + 1,
+              width: 210,
+              padding: 6,
+              borderRadius: 18,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              pointerEvents: "auto",
+            }}
+          >
+            {conversation.id !== activeId ? (
+              <button
+                type="button"
+                role="menuitem"
+                title={linked ? "Unlink from active chat" : "Link to active chat"}
+                aria-label={linked ? "Unlink conversation" : "Link conversation"}
+                onClick={act(() => (linked ? unlinkConversations(conversation.id, activeId) : linkConversations(conversation.id, activeId)))}
+                style={menuItemStyle}
+              >
+                <Link size={15} aria-hidden /> {linked ? "Unlink from this chat" : "Link to this chat"}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              role="menuitem"
+              aria-label={conversation.pinned ? "Unpin conversation" : "Pin conversation"}
+              onClick={act(() => pinConversation(conversation.id))}
+              style={menuItemStyle}
+            >
+              <Pin size={15} aria-hidden /> {conversation.pinned ? "Unpin" : "Pin"}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              aria-label="Rename conversation"
+              onClick={act(() => beginRename(conversation.id, conversation.title))}
+              style={menuItemStyle}
+            >
+              <Pencil size={15} aria-hidden /> Rename
+            </button>
+            {canClose ? (
+              <button
+                type="button"
+                role="menuitem"
+                aria-label={`Close ${conversation.title}`}
+                onClick={act(() => closeConversation(conversation.id))}
+                style={{ ...menuItemStyle, color: "rgba(255, 190, 205, 0.95)" }}
+              >
+                <X size={15} aria-hidden /> Close
+              </button>
+            ) : null}
+          </div>
+        );
+      })() : null}
 
       {searchOpen ? (
         <div
@@ -307,10 +439,10 @@ export default function MultiChatTabs() {
           style={{
             position: "fixed",
             left: "50%",
-            top: "96px",
+            top: fills ? "calc(env(safe-area-inset-top, 0px) + 112px)" : "100px",
             transform: "translateX(-50%)",
             zIndex: layer("tabs") + 1,
-            width: "min(92vw, 560px)",
+            width: "min(calc(100vw - 20px), 560px)",
             padding: 8,
             borderRadius: 16,
             display: "flex",

@@ -717,7 +717,10 @@ export default function GenesisInterface() {
             {/* The System environment owns its top navigation bar, so the
                 global top-right controls stay in the v1/v2 scenes only. */}
             {systemEnvironmentActive ? null : (
-              <div style={{ pointerEvents: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+              // marginLeft:auto keeps these at the top RIGHT. As the row's only
+              // child (when not minimized) they otherwise sat top-left, under
+              // the desktop dock rail.
+              <div style={{ pointerEvents: "auto", display: "flex", gap: 8, alignItems: "center", marginLeft: "auto" }}>
                 {state.minimized ? null : <GenesisMinimizeButton />}
                 <GenesisCommandPalette />
                 <GenesisFullscreenButton />

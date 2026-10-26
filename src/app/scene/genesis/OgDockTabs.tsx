@@ -23,6 +23,8 @@
 import { useNavigate } from "react-router-dom";
 import { layer } from "../../../core/ui/Layers";
 import { useWorkspace } from "./useWorkspace";
+import { useGenesis } from "./GenesisCore";
+import { chatFillsScreen } from "./chat/chatLayout";
 
 export interface OgDockTabsProps {
   /** The dock's tab size, so OG tabs match the rail exactly. */
@@ -41,6 +43,11 @@ const MOBILE_PILL_CLEARANCE = 56;
 export default function OgDockTabs({ railSize, iconSize }: OgDockTabsProps) {
   const workspace = useWorkspace();
   const navigate = useNavigate();
+  const { state } = useGenesis();
+
+  // On a phone the open chat fills the screen and these two would sit on
+  // its composer. They are in the chat's own options menu instead.
+  if (chatFillsScreen(workspace) && state.activePanel === "chat") return null;
 
   // Self-positioning, because the dock has three different shapes at three
   // breakpoints and the mount point is outside the rail container in all of

@@ -11,9 +11,10 @@
  * update → render → validation → complete/error), rendered
  * as "LÉLU is doing this", never as a developer console.
  *
- * Progressive disclosure:
- *   Collapsed  — "LÉLU is researching · 8 operations"
- *   Expanded   — every operation with status + side badge
+ * Progressive disclosure, inside the conversation itself:
+ *   Collapsed  — one compact line: "LÉLU is researching · 8 operations"
+ *   Expanded   — every operation with status + side badge, inline in
+ *                the transcript (no second scroll area)
  *
  * Approvals: when LÉLU reaches an operation that needs user
  * consent, an inline card appears with Approve / Reject /
@@ -505,15 +506,17 @@ export default function GenesisExecutionTimeline() {
   }
 
   return (
-    <div
+    <section
       data-lelu-execution-timeline
+      aria-label="What LÉLU is doing"
       style={{
-        flexShrink: 0,
-        borderTop: "1px solid rgba(103,232,249,0.12)",
-        background: "rgba(6, 14, 32, 0.72)",
-        maxHeight: expanded[taskIdOrAny(tasks)] ? "42vh" : undefined,
         display: "flex",
         flexDirection: "column",
+        maxWidth: "100%",
+        width: expanded[taskIdOrAny(tasks)] ? "min(100%, 560px)" : undefined,
+        borderRadius: 20,
+        border: "1px solid rgba(255, 236, 252, 0.14)",
+        background: "rgba(28, 18, 58, 0.5)",
         overflow: "hidden",
       }}
     >
@@ -589,56 +592,65 @@ export default function GenesisExecutionTimeline() {
         </div>
       ))}
 
-      {/* Collapsed header — one human line, click to expand. */}
+      {/* Collapsed header — one human line, tap to expand. */}
+      {tasks.length > 0 ? (
       <button
         type="button"
-        onClick={() => {
-          if (tasks.length > 0) toggle(tasks[0].id);
-        }}
+        aria-expanded={Boolean(expanded[tasks[0].id])}
+        onClick={() => toggle(tasks[0].id)}
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 8,
+          gap: 10,
           width: "100%",
+          minHeight: 40,
           padding: "8px 14px",
           border: "none",
           background: "transparent",
-          color: "rgba(203, 228, 255, 0.85)",
+          color: "rgba(244, 232, 255, 0.88)",
           cursor: "pointer",
-          fontSize: 11.5,
+          fontSize: 12.5,
+          fontFamily: "inherit",
           textAlign: "left",
         }}
       >
         <span
+          aria-hidden
           style={{
-            width: 5,
-            height: 5,
+            width: 7,
+            height: 7,
             borderRadius: 999,
-            background: "#67e8f9",
-            boxShadow: "0 0 8px #67e8f9",
+            background: "radial-gradient(circle at 35% 35%, #fff, #f6b8dc 50%, #c6b4ff)",
+            boxShadow: "0 0 10px rgba(246, 184, 220, 0.8)",
             flexShrink: 0,
           }}
         />
         <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {collapsedSummary}
         </span>
-        <span style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", flexShrink: 0 }}>
-          {expanded[tasks[0].id] ? "▾ collapse" : "▸ expand"}
+        <span
+          aria-hidden
+          style={{
+            fontSize: 11,
+            color: "rgba(224, 212, 248, 0.6)",
+            flexShrink: 0,
+            transform: expanded[tasks[0].id] ? "rotate(180deg)" : "none",
+            transition: "transform 160ms ease",
+          }}
+        >
+          ⌄
         </span>
       </button>
+      ) : null}
 
       {/* Expanded detail — every operation for the top task. */}
-      {expanded[tasks[0].id] ? (
+      {tasks.length > 0 && expanded[tasks[0].id] ? (
         <div
           style={{
-            overflowY: "auto",
-            maxHeight: "32vh",
-            padding: "0 12px 10px",
+            padding: "0 12px 12px",
             display: "flex",
             flexDirection: "column",
             gap: 2,
-            scrollbarWidth: "thin",
-            scrollbarColor: "rgba(148,163,184,0.35) transparent",
           }}
         >
           {tasks.slice(0, MAX_TASKS).map((task) => (
@@ -679,7 +691,7 @@ export default function GenesisExecutionTimeline() {
                       gap: 8,
                       padding: "4px 6px",
                       borderRadius: 8,
-                      background: index % 2 === 0 ? "rgba(148,163,184,0.04)" : "transparent",
+                      background: index % 2 === 0 ? "rgba(255,236,252,0.04)" : "transparent",
                     }}
                   >
                     <span
@@ -687,7 +699,7 @@ export default function GenesisExecutionTimeline() {
                         width: 16,
                         textAlign: "center",
                         fontSize: 10.5,
-                        color: failed ? "#f87171" : "#67e8f9",
+                        color: failed ? "#ff9fb8" : "#f6b8dc",
                         flexShrink: 0,
                       }}
                     >
@@ -698,7 +710,7 @@ export default function GenesisExecutionTimeline() {
                         flex: 1,
                         minWidth: 0,
                         fontSize: 11.5,
-                        color: failed ? "rgba(248,113,113,0.95)" : "rgba(228,244,255,0.88)",
+                        color: failed ? "rgba(255,175,195,0.95)" : "rgba(244,236,255,0.88)",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
@@ -731,7 +743,7 @@ export default function GenesisExecutionTimeline() {
           ))}
         </div>
       ) : null}
-    </div>
+    </section>
   );
 }
 

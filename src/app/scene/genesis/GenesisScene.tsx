@@ -44,7 +44,7 @@ import ProactiveBridge from "./ProactiveBridge";
 import VoiceBridge from "./VoiceBridge";
 import CoreHoldGesture from "./CoreHoldGesture";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSceneMountLog }
   from "./useSceneMountLog";
 import { sampleCosmosAtmosphere } from "./cosmos/CosmosAtmosphere";
@@ -123,11 +123,32 @@ function SceneLoadingFallback() {
  */
 function CosmosPhaseHUD() {
   const [phase, setPhase] = useState(() => sampleCosmosAtmosphere(0));
+  const shownRef = useRef(phase);
 
   useEffect(() => {
     let raf = 0;
+    let sampledAt = 0;
     const tick = () => {
-      setPhase(sampleCosmosAtmosphere(performance.now() / 1000));
+      // A text HUD needs a few updates a second, not one per animation
+      // frame — and only when what it shows (phase name, whole percent of
+      // progress, the two values it prints to 2 places) has changed.
+      const now = performance.now();
+      if (now - sampledAt < 250) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      sampledAt = now;
+      const next = sampleCosmosAtmosphere(now / 1000);
+      const prev = shownRef.current;
+      const same =
+        prev.phase === next.phase &&
+        Math.round(prev.progress * 100) === Math.round(next.progress * 100) &&
+        prev.sunset.toFixed(2) === next.sunset.toFixed(2) &&
+        prev.static.toFixed(2) === next.static.toFixed(2);
+      if (!same) {
+        shownRef.current = next;
+        setPhase(next);
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);

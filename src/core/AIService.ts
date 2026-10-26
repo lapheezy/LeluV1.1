@@ -100,6 +100,13 @@ export default class AIService {
 
   /** One AbortController per active conversationId. cancelTurn() aborts it. */
   private readonly convControllers = new Map<string, AbortController>();
+  /**
+   * Stop pressed before the turn reached chat() — while the Orchestrator was
+   * still routing or researching. There was no controller to abort yet, so
+   * the request was lost and the reply arrived anyway. It is held here and
+   * honoured the moment the turn's chat() starts.
+   */
+  private readonly pendingCancels = new Set<string>();
 
   /**
    * How many user turns are being processed right now.
@@ -196,6 +203,16 @@ export default class AIService {
   public cancelTurn(conversationId: string): void {
     const controller = this.convControllers.get(conversationId);
     if (controller) controller.abort();
+    else this.pendingCancels.add(conversationId);
+  }
+
+  /**
+   * A new turn starts with no Stop pending. Called by the chat at the start
+   * of each turn, so a Stop that its own turn never consumed (an answer that
+   * did not go through chat()) can never cancel the next message.
+   */
+  public beginTurn(conversationId: string): void {
+    this.pendingCancels.delete(conversationId);
   }
 
   private emitAction(type: AIActionEvent["type"], label: string, status: AIActionEvent["status"]): string {
@@ -597,6 +614,12 @@ export default class AIService {
       const controller = new AbortController();
       if (options?.conversationId) {
         this.convControllers.set(options.conversationId, controller);
+        if (this.pendingCancels.delete(options.conversationId)) {
+          // Stopped before it started: settle as cancelled, without asking
+          // a provider (some answer paths never look at the signal).
+          controller.abort();
+          throw new DOMException("Turn stopped before it started.", "AbortError");
+        }
       }
 
       // SHORT-TERM CONVERSATION CONTEXT.

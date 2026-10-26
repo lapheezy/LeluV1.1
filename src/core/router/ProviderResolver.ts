@@ -123,6 +123,8 @@ export default class ProviderResolver {
     const ordered = this.orderByPreference(eligible, decision.preferredProviders);
 
     for (const provider of ordered) {
+      // The user pressed Stop: do not start another provider.
+      throwIfStopped(context);
       if (!provider.canHandle(context.request.prompt)) {
         context.logger.info(
           "ProviderResolver",
@@ -184,6 +186,11 @@ export default class ProviderResolver {
           response,
         };
       } catch (error) {
+        // A user Stop is not a provider failure. Marking it one put a
+        // healthy provider into failure cooldown, and falling through ran
+        // every other provider and then answered with the offline notice
+        // — "all providers are unreachable" — to a turn the user ended.
+        throwIfStopped(context, error);
         const message = error instanceof Error ? error.message : String(error);
         context.aiProviders.markFailure(provider.name, message);
         AgentEventBus.getInstance().emit({
@@ -206,6 +213,7 @@ export default class ProviderResolver {
       }
     }
 
+    throwIfStopped(context);
     context.logger.error(
       "ProviderResolver",
       "All available AI providers failed.",
@@ -514,4 +522,16 @@ export default class ProviderResolver {
       },
     };
   }
+}
+
+
+/**
+ * Rethrow as an AbortError when the turn's own signal has been aborted
+ * (the user pressed Stop), so AIService settles it as cancelled.
+ */
+function throwIfStopped(context: RouterContext, cause?: unknown): void {
+  const signal = (context.request as { signal?: AbortSignal }).signal;
+  if (!signal?.aborted) return;
+  if (cause instanceof Error && cause.name === "AbortError") throw cause;
+  throw new DOMException("Turn stopped by the user.", "AbortError");
 }
