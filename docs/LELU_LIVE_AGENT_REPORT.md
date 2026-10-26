@@ -50,6 +50,9 @@ Each was reproduced, live or in a test, before it was changed.
 | 12 | **A question in one chat was answered with another chat's research** (found in the final live run) | `AIService.chat` built the model's history from the brain's single `ConversationEngine`, which interleaves every chat's turns. Chat B's question arrived after chat A's still-unanswered one, and was answered as A's. It was in the right chat and under the right task, but it was about the wrong question. |
 | 13 | Unrelated chats were read into a reply | `CrossChatResolver` added any chat with overlapping words as "related" context, whether or not the user had connected the two chats. |
 | 14 | The Browser panel still covered the chat mid-reply | Work no conversation owns (a sub-agent's own research, background cognition) still opened it through `GenesisSurfaceController`. |
+| 15 | "Use what we found in my "…" chat" got a permission question instead of an answer (live check K) | The cross-chat context listed a chat the user had just named as "not authorized", because it only counted links and projects, not the user's own words. |
+| 16 | Other chats' tool results reached every turn | `buildCognitiveContext()` put the last 8 agent events from all conversations, with their result text, into every chat's context. `MemoryBridge` took the "current thread" topic from the shared window. |
+| 17 | "Link the video research chat" would have linked a merged chat | `findChat` returned the first title containing the words, and a merge's title contains its sources'. A default "New chat" title counted as named by any message containing "chat". |
 | 11 | Each failed page counted as two issues in the activity | `browser.read` reports a page with both `browser_result` and `tool_result`, and the second added another row. |
 
 ## What changed
@@ -112,6 +115,23 @@ Each was reproduced, live or in a test, before it was changed.
 - **What the model sees:** "[from the chat "…"]" on every earlier message, plus a note naming all the source chats, so it keeps them apart. Its source chats are not read in again as extra context.
 - **Linked research:** up to five linked chats can contribute to one turn, each labelled.
 
+**Asking for it in the conversation** (`chats.*` tools, `multichat/ChatConsent`)
+- You can say it in the chat: "use what we found in my video research chat", "merge this with the pitch chat", "link the budget chat here".
+- She has four tools in the existing tool loop:
+  - `chats.list`: titles only;
+  - `chats.read`: that chat's relevant messages, labelled by chat;
+  - `chats.link`;
+  - `chats.merge`: two or more chats; the merged chat is created *beside* the one you're in (you aren't moved), announced in Notifications, and she tells you where it is.
+- **Your words are the permission**, checked in code, not left to the model:
+  - reading needs a link or a shared project, or you naming the chat or "the other chat", or a yes to her asking;
+  - linking and merging need you to ask, or a yes to her proposing it;
+  - things you say while the turn is running count too.
+  - Otherwise the tool answers "ask them first" and nothing is read.
+- **Bringing a chat up brings it in.** A chat you name in your message, or agreed to, is included in that turn's context, labelled "the user brought it up", even before she uses a tool. "My other chat" brings in only the best match. A full title in your message wins over chats that only share some of its words. A default "New chat" title is never matched by the word "chat".
+- **When points connect:** related chats you haven't allowed are named to her (titles only). She decides whether the connection is worth raising. If you agree, she reads, links or merges, then says which chat each point came from.
+
+**This chat's context is this chat's** (`CognitiveContext`, `MemoryBridge`): the recent agent events in a turn's context are only this chat's, plus background work no chat owns. The "current thread" topic comes from this chat.
+
 **No agent event replaces the chat** (`GenesisSurfaceController`, `GenesisBrowserPanel`): while the chat panel is active, agent events only update module status. Buttons the user presses still open panels. The Browser panel no longer follows other conversations' pages.
 
 **A live turn is drawn only in its own conversation** (`GenesisChat`): each live turn records its conversation, and the transcript does not draw another conversation's live turn during the frame after a switch.
@@ -123,7 +143,7 @@ Each was reproduced, live or in a test, before it was changed.
 **Automated**
 - **Type check:** `npx tsc -b --force` exits 0.
 - **Lint:** `oxlint` shows no new warnings in the changed files.
-- **`npm test`:** **927/927** on the final code (was 895 before this pass). `tests/live-agent.test.ts` adds 33 tests, run against local fakes with no network:
+- **`npm test`:** **934/934** on the final code (was 895 before this pass). `tests/live-agent.test.ts` adds 39 tests, run against local fakes with no network:
   - activity built from real events only; finishing a turn settles running steps honestly; a page counts once;
   - task ownership, and a recorder that keeps only its own conversation's events;
   - steering accepted only during a turn; the tool loop hands the message to the model after the tool results it arrived during, and emits `user_steering` and `tool_narration`;
@@ -137,6 +157,9 @@ Each was reproduced, live or in a test, before it was changed.
   - no sampling parameters for Claude models that reject them;
   - the model gets only its own conversation's history, up to the current message (no other chat's turns, no later queued message);
   - other chats' research used only when linked, labelled by chat; unlinked chats offered, never read;
+  - consent from the user's words: naming the chat, "the other chat", or yes to her asking (a bare yes is not consent); merge only on request; words said mid-turn count;
+  - `chats_read` refuses an unmentioned chat without leaking it; `chats_merge` creates beside the current chat and notifies; `chats_link` links only on request;
+  - naming a chat brings it into the turn's context; a vague "other chat" brings only the best match; finding a chat picks the closest title, not a merge containing it;
   - merging two, three or more chats: time order, every message labelled by its first source, originals unchanged, sources named to the model;
   - a live turn drawn only in its own conversation; no agent event opens a panel over the chat.
 - **`npm run build`:** exit 0.
