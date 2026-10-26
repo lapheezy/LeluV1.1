@@ -625,3 +625,25 @@ test("temperature is never sent to a Claude model that rejects sampling", async 
     assert.equal(acceptsSampling(model), true, model);
   }
 });
+
+test("the model is given only this conversation's history, up to the current message", async () => {
+  const { default: MultiChatStore } = await import("../src/core/multichat/MultiChatStore");
+  const { priorTurnsFor } = await import("../src/core/AIService");
+  const store = MultiChatStore.getInstance();
+  const research = store.createBackground("Research").id;
+  const other = store.createBackground("Telescope").id;
+  const msg = (role: "user" | "assistant", text: string) => ({ id: crypto.randomUUID(), role, text, timestamp: Date.now(), source: "local" as const });
+  store.addMessage(research, msg("user", "Research the latest AI video generation developments."));
+  store.addMessage(research, msg("user", "Focus specifically on new video generation models."));
+  store.addMessage(other, msg("user", "What is a refracting telescope?"));
+  store.addMessage(other, msg("assistant", "One that bends light with lenses."));
+  store.addMessage(other, msg("user", "Write two short paragraphs about the history of the telescope."));
+  store.addMessage(other, msg("user", "Then a third about mirrors.")); // queued behind it
+
+  const turns = priorTurnsFor(other, "Write two short paragraphs about the history of the telescope.");
+  assert.deepEqual(turns, [
+    { role: "user", content: "What is a refracting telescope?" },
+    { role: "assistant", content: "One that bends light with lenses." },
+  ], "another chat's turns, the current message or a later queued one leaked into the history");
+  assert.equal(priorTurnsFor(undefined, "x"), null, "no conversation: the caller keeps its own history");
+});

@@ -17,6 +17,7 @@
 import AIRuntime from "./AIRuntime";
 import MemoryBridge from "./MemoryBridge";
 import { bindMessage, bindTask } from "./multichat/TurnOwnership";
+import MultiChatStore from "./multichat/MultiChatStore";
 import UserManager from "./user/UserManager";
 import AgentEventBus from "./agent/AgentEvents";
 import {
@@ -71,6 +72,53 @@ export interface AIMessageEvent {
   plan?: Plan | null;
   /** The conversation this reply belongs to — present when sent via ai.chat({ conversationId }). */
   conversationId?: string;
+}
+
+/** How many earlier turns of a conversation the model is given. */
+const CONVERSATION_TURN_WINDOW = 16;
+
+function sameTurn(stored: string, prompt: string): boolean {
+  const a = stored.replace(/\s+/g, " ").trim();
+  const b = prompt.replace(/\s+/g, " ").trim();
+  if (!a || !b) return false;
+  // The stored line is what was shown (it may carry an attachment label);
+  // the prompt is what is sent (it may carry file context). They share
+  // the words the user typed.
+  const n = Math.min(60, a.length, b.length);
+  return a.slice(0, n) === b.slice(0, n);
+}
+
+/**
+ * The turns of one conversation before the current message, from the
+ * conversation store — the same history the user sees in that chat.
+ * Null when there is no conversation to read (the caller falls back).
+ */
+export function priorTurnsFor(
+  conversationId: string | undefined,
+  message: string,
+): { role: "user" | "assistant"; content: string }[] | null {
+  if (!conversationId) return null;
+  try {
+    const stored = MultiChatStore.getInstance().get(conversationId);
+    if (!stored) return null;
+    const turns = stored.messages.filter((item) => typeof item.text === "string" && item.text.trim().length > 0);
+    let anchor = -1;
+    for (let index = turns.length - 1; index >= 0; index -= 1) {
+      if (turns[index].role === "user" && sameTurn(turns[index].text, message)) {
+        anchor = index;
+        break;
+      }
+    }
+    // The current message is already stored (the chat writes it before
+    // sending); everything before it is the history.
+    let before = anchor >= 0 ? turns.slice(0, anchor) : turns;
+    if (anchor < 0 && before.at(-1)?.role === "user") before = before.slice(0, -1);
+    return before
+      .slice(-CONVERSATION_TURN_WINDOW)
+      .map((item) => ({ role: item.role, content: item.text }));
+  } catch {
+    return null;
+  }
 }
 
 export default class AIService {
@@ -678,7 +726,12 @@ export default class AIService {
       // twice and no history at all — it could not know what it had
       // already asked or been told.
       const conversation = this.runtime.brain.getConversation();
-      const priorTurns = conversation.modelMessages();
+      // The model's history is THIS conversation's, not the brain's one
+      // shared window. That window holds every chat's turns interleaved,
+      // so a question asked in chat B arrived after chat A's unanswered
+      // question — and was answered as if it were A's (measured: "two
+      // paragraphs about the telescope" came back as AI-video research).
+      const priorTurns = priorTurnsFor(options?.conversationId, message) ?? conversation.modelMessages();
       conversation.record("user", message);
 
       const request: AIRequest = {
