@@ -615,3 +615,13 @@ test("a research-only tool loop stops at the research limit and is told to answe
   assert.equal(calls.at(-1)?.tools, undefined);
   assert.ok(calls.at(-1)?.messages?.some((message) => /16-round research limit/.test(message.content)));
 });
+
+test("temperature is never sent to a Claude model that rejects sampling", async () => {
+  const { acceptsSampling } = await import("../src/providers/AnthropicProvider");
+  for (const model of ["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5", "claude-fable-5-1", "claude-opus-4-8", "claude-opus-4-7"]) {
+    assert.equal(acceptsSampling(model), false, model);
+  }
+  for (const model of ["claude-sonnet-4-5", "claude-sonnet-4-6", "claude-opus-4-6", "claude-haiku-4-5"]) {
+    assert.equal(acceptsSampling(model), true, model);
+  }
+});

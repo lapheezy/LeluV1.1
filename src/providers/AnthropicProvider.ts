@@ -39,6 +39,18 @@ function mergeContent(a: MessageContent, b: MessageContent): MessageContent {
   return [...toBlocks(a), ...toBlocks(b)];
 }
 
+/**
+ * Does this model accept sampling parameters (temperature)?
+ *
+ * Claude Opus 4.7 and later — the Opus 4.7/4.8/5.x, Sonnet 5.x, Haiku 5.x,
+ * Fable and Mythos families — reject them with a 400. Sending one would
+ * fail every turn on such a model and drop Anthropic out of the chain
+ * without anyone choosing that, so it is left out there.
+ */
+export function acceptsSampling(model: string): boolean {
+  return !/claude-(?:opus-4-[78]|opus-5|sonnet-5|haiku-5|fable|mythos)/i.test(model);
+}
+
 export default class AnthropicProvider implements AIProvider {
   readonly name = "Anthropic";
   readonly priority = 1;
@@ -304,7 +316,9 @@ export default class AnthropicProvider implements AIProvider {
             })),
           }
         : {}),
-      ...(request.temperature !== undefined ? { temperature: request.temperature } : {}),
+      ...(request.temperature !== undefined && acceptsSampling(this.selectModel(request))
+        ? { temperature: request.temperature }
+        : {}),
       ...(request.stop?.length ? { stop_sequences: request.stop } : {}),
       // Streams whenever the turn wants progressive text — with tools too.
       // A tool_use block arrives as input_json_delta fragments; the reader
