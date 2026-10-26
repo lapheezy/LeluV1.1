@@ -53,6 +53,7 @@ Each was reproduced, live or in a test, before it was changed.
 | 15 | "Use what we found in my "…" chat" got a permission question instead of an answer (live check K) | The cross-chat context listed a chat the user had just named as "not authorized", because it only counted links and projects, not the user's own words. |
 | 16 | Other chats' tool results reached every turn | `buildCognitiveContext()` put the last 8 agent events from all conversations, with their result text, into every chat's context. `MemoryBridge` took the "current thread" topic from the shared window. |
 | 17 | "Link the video research chat" would have linked a merged chat | `findChat` returned the first title containing the words, and a merge's title contains its sources'. A default "New chat" title counted as named by any message containing "chat". |
+| 18 | **A fact told to one chat "for this chat" was answered in an unrelated chat, unattributed** (measured by capturing the provider request) | It reached the other chat through five unlabelled carriers, all part of her cognition: "About the user" (long-term memory), "Recent knowledge nodes", a project checkpoint, the executive state's "Last action", and a paraphrased knowledge memory the model wrote with its own `memory.store` tool (paraphrased, so wording could not tie it to its source). |
 | 11 | Each failed page counted as two issues in the activity | `browser.read` reports a page with both `browser_result` and `tool_result`, and the second added another row. |
 
 ## What changed
@@ -132,6 +133,17 @@ Each was reproduced, live or in a test, before it was changed.
 
 **This chat's context is this chat's** (`CognitiveContext`, `MemoryBridge`): the recent agent events in a turn's context are only this chat's, plus background work no chat owns. The "current thread" topic comes from this chat.
 
+**Her cognition, labelled by chat** (`multichat/ContextProvenance`, `MemoryBridge`, `memory.store`)
+- Her memory and awareness still reach every chat; nothing is withheld from her. What changes:
+  - **Labels:** at the last step before any provider, every context line that quotes another chat is marked "[from the chat "…"]".
+  - **A note at both ends:** it opens and closes the context, names those chats, and says a reply using such a line must say where it came from in the same sentence, or ask whether to bring that chat in.
+- **"Remember this for this chat", "only in this chat", "don't remember this"** stay in that chat. Neither conversation memory nor her `memory.store` tool makes them long-term.
+- **Source on stored memories:** whatever `memory.store` does save from a chat carries "(learned in the chat "…")". That covers paraphrased memories, which can't be matched by wording.
+- **Measured, live, with the provider request captured:**
+  - **Before:** a codename told to chat A "for this chat" was answered in chat C as "The product codename is ZORBLAX-PELICAN".
+  - **After:** chat C's request carried no trace of it, and she answered: "I see that there's a related chat titled "Remember for this chat: our product…" that might contain it, but I don't have permission to read it yet. Would you like me to access that chat (or merge its contents with this one)?" An unrelated question in chat B no longer mentioned the codename or Reykjavik.
+  - **An ordinary fact** (a CFO's name) asked about in 3 fresh chats was answered with its source each time: "From our "Our CFO's name is…" chat: our CFO is Marta Vilhjalmsdóttir." One earlier run, before the note moved to both ends, answered without the source.
+
 **No agent event replaces the chat** (`GenesisSurfaceController`, `GenesisBrowserPanel`): while the chat panel is active, agent events only update module status. Buttons the user presses still open panels. The Browser panel no longer follows other conversations' pages.
 
 **A live turn is drawn only in its own conversation** (`GenesisChat`): each live turn records its conversation, and the transcript does not draw another conversation's live turn during the frame after a switch.
@@ -191,6 +203,15 @@ Each was reproduced, live or in a test, before it was changed.
 
 Run 7 logged no app console errors.
 
+**Scenario K: asking for it in the conversation** (`k-repro.mjs`, after the `chats.*` tools)
+- **First run:**
+  - Naming the research chat got "May I access that conversation (or link/merge it)?", so she asked although the user had already named it. That is bug 15, fixed.
+  - "Merge this chat with the "…" chat" made a real `chats_merge` call and created the merged chat beside the current one. The card said "no tools used"; it now says "merged into a new chat".
+- **Second run, on the final code:**
+  - "Use what we found in my "Compare Veo 3 and Runway Gen-4…" chat to improve the pitch line" → "Improved pitch (based on the findings from the "Compare Veo 3 and Runway Gen-4…" chat): …", with "Using other chats · 1 other chat used" in the card.
+  - "Merge this chat with the "…" chat" → "The chats have been merged into a new conversation titled "Merged: Pitch + Veo vs Runway". You'll see it in your Chats panel…". You stayed in the chat you were in; the new chat has 7 messages labelled with both sources; a "Merged chat ready" notification appeared; the card says "1 other chat used · merged into a new chat".
+  - The third chat's answer used AI-video details the research chat also had. That is what led to measuring her cognition's carriers (bug 18, below).
+
 ## What remains
 
 - **Anthropic was not exercised live.** No `ANTHROPIC_API_KEY` is configured in this environment, so Anthropic (priority 1, first in the chain whenever a key is set) is disabled here. Every live turn above ran on Groq, Fireworks, OpenRouter or Cerebras. Its streaming, `tool_use` assembly and error handling are covered by unit tests against recorded event shapes, checked against the Claude API reference. Set the key server-side; the browser goes through the broker.
@@ -204,5 +225,9 @@ Run 7 logged no app console errors.
 - **Research can be slow here, because pages often cannot be read.** B took 221 s and ended on the research budget. A turn that also used non-research tools (G) gets the longer engineering budget and ran over two minutes, though the chat stayed usable and steerable the whole time.
 - **A multi-step request's background steps are not shown in the chat.** For requests like "search, open pages, compare", the Orchestrator also creates a TaskEngine task whose steps run `ai.chat` under the task's id, not the chat's. That work is real and owned, but it shows in no conversation's activity card, and it can keep running after the chat has replied.
 - **The last render guard** (live turns drawn only in their own chat) is verified by a unit test and a focused repro, not by another full live run.
+- **Attribution is an instruction to the model, not a guarantee.** The labels and the scoping are enforced in code. Whether a reply names its source chat depends on the model following the note: 3/3 in the final measurement, but one earlier run did not. Small samples, one provider mix (Groq/Fireworks/OpenRouter/Cerebras).
+- **The offline path (no provider reachable) was seen answering from another chat's text** in a run where the dev server had died. It answers straight from long-term memory, which now carries chat labels for `memory.store` writes. The other carriers are labelled only on the provider path, and the offline path was not re-measured.
+- **Background curiosity** analyses buffered messages from any chat in its own internal calls ("is there an ambiguity here?"). That is not part of a reply, and was left as is.
+- **Live re-check limits:** scenario K (asking in the chat) and the codename/CFO measurements were run after these changes. The full A–J run was not repeated after them; the dev server stopped at its two-hour limit near the end.
 - **Background work** that no conversation owns (cognition, curiosity research) still opens its surface panels, but no longer while you are in the chat.
 - **Not tested on a physical phone**, and voice dictation was not exercised (headless Chromium has no speech recognition).
