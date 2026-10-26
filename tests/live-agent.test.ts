@@ -907,3 +907,69 @@ test("merging and linking from the conversation are named in the activity", () =
   assert.equal(summary.title, "Using other chats");
   assert.deepEqual(summary.facts, ["merged into a new chat"]);
 });
+
+/* ------------------------------------------------------------------ *
+ * HER COGNITION, LABELLED BY CHAT
+ * ------------------------------------------------------------------ */
+
+test("context lines quoting another chat are labelled with that chat; this chat's are not", async () => {
+  const { labelOtherChats } = await import("../src/core/multichat/ContextProvenance");
+  const make = (id: string, title: string, texts: string[]) => ({
+    id, title, createdAt: 0, updatedAt: 0, pinned: false, archived: false, linkedIds: [], projectId: null, tags: [], topic: "", unread: 0, processing: false,
+    messages: texts.map((text, index) => ({ id: `${id}-${index}`, role: (index % 2 ? "assistant" : "user") as "user" | "assistant", text, timestamp: index, source: "local" as const })),
+  });
+  const chats = [
+    make("a", "Launch plans", ["Remember for this chat: our product codename is ZORBLAX-PELICAN and the launch city is Reykjavik.", "Got it — codename ZORBLAX-PELICAN, launching in Reykjavik."]),
+    make("c", "Codename question", ["What is our product codename? I forgot what we called it."]),
+  ];
+  const context = [
+    "## About the user",
+    "- Remember for this chat: our product codename is ZORBLAX-PELICAN and the launch city is Reykjavik. Just confi",
+    "## Cognitive State",
+    "Recent knowledge nodes: Remember for this chat: our product codename is ZORBLAX-PELICAN and the launch city",
+    "Last action: Complete “Remember for this chat: our product codename is ZORBLAX-PELICAN and the launch city”",
+    "Current: What is our product codename? I forgot what we called it.",
+    "## Projects",
+  ].join("\n");
+  const result = labelOtherChats(context, "c", chats);
+  const lines = result.context.split("\n");
+  assert.deepEqual(result.labelled, ["Launch plans"]);
+  assert.equal(lines.filter((line) => line.startsWith("[from the chat “Launch plans”]")).length, 3, "all three quotes of the other chat are labelled");
+  assert.ok(lines.includes("Current: What is our product codename? I forgot what we called it."), "this chat's own line was changed");
+  assert.match(result.context, /## FROM OTHER CHATS[\s\S]*Do not use them silently/);
+  assert.equal(labelOtherChats(result.context, "c", chats).context, result.context, "labelling twice changes nothing");
+  assert.equal(labelOtherChats("## Projects\n- General", "c", chats).context, "## Projects\n- General", "nothing to label: untouched");
+});
+
+test("'remember this for this chat' is kept to that chat, not long-term memory", async () => {
+  const { CHAT_SCOPED } = await import("../src/core/multichat/ContextProvenance");
+  for (const text of ["Remember for this chat: the codename is X", "Only in this chat, call me Captain", "Don't remember this, it's temporary", "Keep it in this conversation"]) {
+    assert.ok(CHAT_SCOPED.test(text), text);
+  }
+  for (const text of ["Remember that my name is Heru", "What did we say in the other chat?"]) {
+    assert.ok(!CHAT_SCOPED.test(text), text);
+  }
+});
+
+test("the provider sees other chats' content labelled, at the last step before the call", async () => {
+  const { default: ProviderResolver } = await import("../src/core/router/ProviderResolver");
+  const { default: MultiChatStore } = await import("../src/core/multichat/MultiChatStore");
+  const store = MultiChatStore.getInstance();
+  const other = store.createBackground("Secret launch plans").id;
+  store.addMessage(other, { id: crypto.randomUUID(), role: "user", text: "The secret launch venue is the Harpa concert hall in Reykjavik, keep it quiet.", timestamp: Date.now(), source: "local" });
+  const here = store.createBackground("Announcement draft").id;
+  let seen = "";
+  const provider = {
+    name: "Spy", priority: 1, enabled: true, timeout: 10000, requiresApiKey: false, capabilities: ["chat"] as const,
+    initialize: async () => {}, isAvailable: async () => true,
+    health: async () => ({ available: true, initialized: true, lastChecked: Date.now() }), canHandle: () => true,
+    generate: async (request: { context?: string }) => { seen = request.context ?? ""; return { text: "ok", provider: "spy", model: "spy", processingTime: 1 }; },
+  };
+  await new ProviderResolver().execute({
+    request: { prompt: "Draft the announcement", messages: [], timestamp: Date.now(), conversationId: here, context: "## About the user\n- The secret launch venue is the Harpa concert hall in Reykjavik, keep it quiet." },
+    started: Date.now(), logger: new ExecutionLogger(),
+    aiProviders: { available: async () => [provider], names: () => ["spy"], markFailure: () => {}, markSuccess: () => {}, all: () => [provider], get: () => provider },
+  } as never);
+  assert.match(seen, /\[from the chat “Secret launch plans”\] - The secret launch venue/);
+  assert.match(seen, /## FROM OTHER CHATS/);
+});

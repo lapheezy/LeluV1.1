@@ -14,6 +14,7 @@
  */
 
 import MultiChatStore from "./multichat/MultiChatStore";
+import { CHAT_SCOPED } from "./multichat/ContextProvenance";
 import type Brain from "../brain/Brain";
 import type UserManager from "./user/UserManager";
 import type { AIRequest } from "../providers/AIProvider";
@@ -391,6 +392,13 @@ Rules:
   }
 
   public async learn(prompt: string, response: string, taskId?: string): Promise<void> {
+    // "Remember this for this chat": the user scoped it to that chat. It
+    // stays in that conversation's own history and is not made a
+    // long-term fact every other chat would be handed.
+    if (CHAT_SCOPED.test(prompt)) {
+      CognitiveTrace.getInstance().record("MEMORY_WRITE", "kept to its chat at the user's request (not long-term memory)", { persisted: false, scoped: true });
+      return;
+    }
     // PROVENANCE. The model can write "I searched the Elpheru RSS feed"
     // whether or not anything ran, and persisting that verbatim turns a
     // sentence into a remembered fact — LÉLU would later recall having

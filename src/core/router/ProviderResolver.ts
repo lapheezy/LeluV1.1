@@ -17,6 +17,7 @@ import AgentEventBus from "../agent/AgentEvents";
 import ModelRouter from "../model/ModelRouter";
 import { dispatchToolCall } from "../tools/ToolDispatcher";
 import { toolSchemasForModel } from "../tools/ToolSchemas";
+import { labelOtherChats } from "../multichat/ContextProvenance";
 
 /**
  * TERMINATION, not a round quota.
@@ -69,6 +70,19 @@ export default class ProviderResolver {
      * finally returned, including the offline one.
      */
     const toolsReallyRun: Array<{ tool: string; ok: boolean }> = [];
+
+    // The last point before any provider sees the context: whatever her
+    // cognition put in it that quotes ANOTHER chat is labelled with that
+    // chat (multichat/ContextProvenance), so she can tell where it came
+    // from instead of presenting it as said here.
+    if (context.request.conversationId && context.request.context) {
+      try {
+        context.request.context = labelOtherChats(context.request.context, context.request.conversationId).context;
+      } catch {
+        // labelling must never cost the turn
+      }
+    }
+
     const providers = await context.aiProviders.available();
 
     if (providers.length === 0) {
