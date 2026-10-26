@@ -936,7 +936,9 @@ test("context lines quoting another chat are labelled with that chat; this chat'
   assert.deepEqual(result.labelled, ["Launch plans"]);
   assert.equal(lines.filter((line) => line.startsWith("[from the chat “Launch plans”]")).length, 3, "all three quotes of the other chat are labelled");
   assert.ok(lines.includes("Current: What is our product codename? I forgot what we called it."), "this chat's own line was changed");
-  assert.match(result.context, /## FROM OTHER CHATS[\s\S]*Do not use them silently/);
+  assert.match(result.context, /^## FROM OTHER CHATS[\s\S]*say where it came from/, "the note leads the context");
+  assert.equal(result.context.split("## FROM OTHER CHATS").length - 1, 2, "and closes it");
+  assert.match(result.context, /another of the user's chats \(“Launch plans”\)/);
   assert.equal(labelOtherChats(result.context, "c", chats).context, result.context, "labelling twice changes nothing");
   assert.equal(labelOtherChats("## Projects\n- General", "c", chats).context, "## Projects\n- General", "nothing to label: untouched");
 });

@@ -80,12 +80,15 @@ export function labelOtherChats(context: string, conversationId: string, convers
     return `[from the chat “${title}”] ${line}`;
   });
   if (labelled.size === 0) return { context, labelled: [] };
+  const sources = [...labelled].map((title) => `“${title}”`).join(", ");
   const note =
     "## FROM OTHER CHATS\n" +
-    "Lines marked [from the chat “…”] are things said in another of the user's chats, not this one. " +
-    "Do not use them silently: if one bears on this question, say which chat it came from — or ask whether to bring that chat in. " +
-    "Never present them as something said here.";
-  return { context: `${lines.join("\n")}\n\n${note}`, labelled: [...labelled] };
+    `Lines marked [from the chat “…”] were said in another of the user's chats (${sources}), not this one. ` +
+    "Never present them as something said or known here. If one bears on this question, EITHER answer and say where it came from " +
+    "in the same sentence — e.g. “From our “…” chat: …” — OR ask whether to bring that chat in. Using one without naming its chat is wrong.";
+  // At the top as well as the end: in a long context the end alone was
+  // measured to be missed (she answered from a labelled line unattributed).
+  return { context: `${note}\n\n${lines.join("\n")}\n\n${note}`, labelled: [...labelled] };
 }
 
 /** "Remember this for this chat", "only in this chat": kept to that chat, not long-term memory. */
