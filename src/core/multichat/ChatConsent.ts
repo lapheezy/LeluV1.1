@@ -43,7 +43,9 @@ export interface ConsentResult {
 }
 
 const GENERIC_CHAT_REFERENCE = /\b(?:other|another|previous|earlier|last|that|my|our|the)\s+(?:\w+\s+)?(?:chat|conversation|thread)s?\b/i;
-const AFFIRMATIVE = /^\s*(?:yes|yeah|yep|yup|sure|ok(?:ay)?|please(?: do)?|go ahead|do it|sounds good|absolutely|of course|definitely)\b/i;
+/** Words about chats themselves; they say nothing about which chat or what is in it. */
+export const CHAT_WORDS = new Set(["chat", "chats", "conversation", "conversations", "thread", "threads", "other", "another", "earlier", "previous", "merged"]);
+const AFFIRMATIVE =/^\s*(?:yes|yeah|yep|yup|sure|ok(?:ay)?|please(?: do)?|go ahead|do it|sounds good|absolutely|of course|definitely)\b/i;
 const MERGE_WORDS = /\b(?:merge|merging|combine|combining|join|consolidate|put (?:them|these|it) together)\b/i;
 const LINK_WORDS = /\b(?:link|connect|use|reference|pull (?:in|from)|bring in|look at|check)\b/i;
 
@@ -57,11 +59,14 @@ export function namesChat(text: string, target: ChatConversation): boolean {
   const lower = text.toLowerCase();
   const title = target.title.trim().toLowerCase();
   if (title.length >= 4 && lower.includes(title)) return true;
-  const titleTokens = [...new Set(tokenizeText(target.title))].filter((token) => token.length >= 4);
+  // "chat" names no chat in particular — every default title is "New chat".
+  const titleTokens = [...new Set(tokenizeText(target.title))].filter((token) => token.length >= 4 && !CHAT_WORDS.has(token));
   if (titleTokens.length === 0) return false;
   const textTokens = new Set(tokenizeText(text));
   const hits = titleTokens.filter((token) => textTokens.has(token)).length;
-  return hits >= Math.min(2, titleTokens.length);
+  // Most of the title, not a few of its words: "Merged: Pitch deck + Video
+  // research" shares words with "video research" but was not named.
+  return hits >= Math.min(2, titleTokens.length) && hits / titleTokens.length >= 0.6;
 }
 
 /** Find a chat by id or by (part of) its title, best match first. */
@@ -97,6 +102,24 @@ export function findChat(
     if (score > 0 && (!best || score > best.score || (score === best.score && extra < best.extra))) best = { conversation, score, extra };
   }
   return best?.conversation;
+}
+
+/**
+ * Why this turn may read the target chat, or null. "generic" is the user
+ * saying "my other chat" without naming one — enough to look, but the
+ * caller should take only the best match, not every chat.
+ */
+export function readAuthorization(
+  prompt: string,
+  current: ChatConversation,
+  target: ChatConversation,
+): "linked" | "project" | "named" | "agreed" | "generic" | null {
+  if (current.linkedIds.includes(target.id) || target.linkedIds.includes(current.id)) return "linked";
+  if (current.projectId != null && target.projectId === current.projectId) return "project";
+  if (namesChat(prompt, target)) return "named";
+  if (AFFIRMATIVE.test(prompt) && namesChat(lastAssistantText(current), target)) return "agreed";
+  if (GENERIC_CHAT_REFERENCE.test(prompt)) return "generic";
+  return null;
 }
 
 export function consentFor({ prompt, current, target, action }: ConsentInput): ConsentResult {

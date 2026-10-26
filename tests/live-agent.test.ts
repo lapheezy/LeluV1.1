@@ -881,3 +881,29 @@ test("what the user says while the turn is running counts as their words", async
   assert.equal(merged.ok, true, merged.content);
   assert.equal(store.getActiveId() === (merged.data as { mergedId: string }).mergedId, false);
 });
+
+test("naming another chat in the message brings its research in, labelled; 'my other chat' brings only the best match", async () => {
+  const { default: CrossChatResolver } = await import("../src/core/multichat/CrossChatResolver");
+  const { store, research, here } = await chatsForTools();
+  const resolver = CrossChatResolver.getInstance();
+  const named = resolver.reference(here, "Use what we found in my Video model research chat to improve the pitch line");
+  assert.deepEqual(named.used.map((source) => [source.title, source.authorization]).slice(0, 1), [["Video model research", "asked"]]);
+  assert.match(named.context, /From the chat “Video model research” \(the user brought it up\)/);
+  assert.match(named.context, /Veo 3 has native audio/);
+  assert.equal(store.get(here)!.linkedIds.includes(research), false, "bringing a chat up is not linking it");
+
+  const generic = resolver.reference(here, "Pull the native audio notes from my other chat");
+  assert.equal(generic.used.length, 1, "a vague 'other chat' pulled in more than the best match");
+  assert.match(generic.context, /Veo 3 has native audio/, "the best match is the chat holding that research");
+});
+
+test("merging and linking from the conversation are named in the activity", () => {
+  let activity = emptyActivity(0);
+  for (const event of [
+    { type: "tool_started", taskId: "t", tool: "chats.merge", label: "Merging chats into a new chat" },
+    { type: "tool_result", taskId: "t", tool: "chats.merge", result: "Created the merged chat", results: [], status: "complete" },
+  ] as AgentEvent[]) activity = reduceActivity(activity, event);
+  const summary = summarizeActivity(activity);
+  assert.equal(summary.title, "Using other chats");
+  assert.deepEqual(summary.facts, ["merged into a new chat"]);
+});

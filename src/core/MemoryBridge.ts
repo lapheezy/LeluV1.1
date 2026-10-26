@@ -13,6 +13,7 @@
  * ==========================================================
  */
 
+import MultiChatStore from "./multichat/MultiChatStore";
 import type Brain from "../brain/Brain";
 import type UserManager from "./user/UserManager";
 import type { AIRequest } from "../providers/AIProvider";
@@ -65,7 +66,7 @@ export default class MemoryBridge {
     const memories = await this.brain.recall(request.prompt);
 
     const reflection = await this.brain.reflect();
-    const conversation = this.brain.getConversation().context();
+    const conversation = this.threadContext(request);
     const cognition = this.brain.cognitiveState();
     const profile = this.user.context();
 
@@ -218,6 +219,32 @@ Rules:
     };
 
     return { request: enrichedRequest, memories };
+  }
+
+  /**
+   * The "current thread" for this turn: the chat it belongs to, not the
+   * brain's one shared window, whose last topic and recent messages are
+   * whichever chat spoke last.
+   */
+  private threadContext(request: AIRequest) {
+    const shared = this.brain.getConversation().context();
+    const id = request.conversationId;
+    if (!id) return shared;
+    try {
+      const chat = MultiChatStore.getInstance().get(id);
+      if (!chat) return shared;
+      const userLines = chat.messages.filter((message) => message.role === "user" && message.text.trim()).map((message) => message.text);
+      const lastUser = userLines.at(-1) ?? request.prompt;
+      const topicWord = lastUser.replace(/[^a-zA-Z0-9\s]/g, "").split(/\s+/).find((word) => word.length > 4);
+      return {
+        ...shared,
+        lastTopic: chat.topic || topicWord || "general",
+        recentMessages: userLines.slice(-20),
+        messageCount: chat.messages.length,
+      };
+    } catch {
+      return shared;
+    }
   }
 
   private buildContext(

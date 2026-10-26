@@ -29,7 +29,8 @@
  * ==========================================================
  */
 
-import MultiChatStore, { tokenizeText, type ConversationSearchHit } from "./MultiChatStore";
+import MultiChatStore, { tokenizeText, type ChatConversation, type ConversationSearchHit } from "./MultiChatStore";
+import { CHAT_WORDS, readAuthorization } from "./ChatConsent";
 
 export interface CrossChatHit extends ConversationSearchHit {
   score: number;
@@ -41,8 +42,8 @@ export interface CrossChatHit extends ConversationSearchHit {
 export interface CrossChatSource {
   conversationId: string;
   title: string;
-  /** Why it was allowed. */
-  authorization: "linked" | "project";
+  /** Why it was allowed: linked, same project, or the user brought it up / agreed in this chat. */
+  authorization: "linked" | "project" | "asked";
   messageIds: string[];
 }
 
@@ -160,7 +161,8 @@ export default class CrossChatResolver {
     const current = store.get(currentConversationId);
     if (!current) return empty;
     const effectiveQuery = query?.trim() || this.currentTopic(currentConversationId);
-    const qTokens = new Set(tokenizeText(effectiveQuery));
+    // Words about chats themselves say nothing about what is in them.
+    const qTokens = new Set(tokenizeText(effectiveQuery).filter((token) => !CHAT_WORDS.has(token)));
     // A merged chat already carries its sources' messages in its own
     // history; reading those chats again would show them twice.
     const carriedFrom = new Set(current.messages.map((message) => message.origin?.conversationId).filter(Boolean));
@@ -169,19 +171,45 @@ export default class CrossChatResolver {
     const blocks: string[] = [];
     const related: Array<{ conversationId: string; title: string; overlap: number }> = [];
 
-    for (const conversation of store.list()) {
-      if (conversation.id === current.id || carriedFrom.has(conversation.id)) continue;
-      const linked = current.linkedIds.includes(conversation.id) || conversation.linkedIds.includes(current.id);
-      const sameProject = current.projectId != null && conversation.projectId === current.projectId;
-      const scored = conversation.messages
+    // Who may be read this turn: linked / same project, or what the USER
+    // said here — they named the chat, or said yes to LÉLU asking about
+    // it (multichat/ChatConsent, the same rule as the chats.* tools).
+    // "My other chat" with no name allows only the best-matching one.
+    const scoreOf = (conversation: ChatConversation) =>
+      conversation.messages
         .filter((message) => message.text.trim().length > 0)
         .map((message) => ({
           message,
           overlap: tokenizeText(message.text).filter((token) => qTokens.has(token)).length,
         }));
+    const others = store.list().filter((conversation) => conversation.id !== current.id && !carriedFrom.has(conversation.id));
+    const generic = others
+      .filter((conversation) => readAuthorization(query ?? "", current, conversation) === "generic")
+      .map((conversation) => ({ conversation, best: Math.max(0, ...scoreOf(conversation).map((item) => item.overlap)) }))
+      .filter((item) => item.best > 0)
+      .sort((a, b) => b.best - a.best)[0]?.conversation.id;
+
+    // When the message contains one chat's FULL title, that is the chat
+    // meant; others that only share some of its words are not.
+    // The longest such title wins: "Research" is inside "Video research".
+    const contained = others.filter(
+      (conversation) => conversation.title.trim().length >= 4 && (query ?? "").toLowerCase().includes(conversation.title.trim().toLowerCase()),
+    );
+    const fullyNamed = new Set(
+      contained
+        .filter((conversation) => !contained.some((other) => other !== conversation && other.title.length > conversation.title.length && other.title.toLowerCase().includes(conversation.title.trim().toLowerCase())))
+        .map((conversation) => conversation.id),
+    );
+
+    for (const conversation of others) {
+      let why = readAuthorization(query ?? "", current, conversation);
+      if (why === "named" && fullyNamed.size > 0 && !fullyNamed.has(conversation.id)) why = null;
+      const linked = why === "linked";
+      const authorized = why === "linked" || why === "project" || why === "named" || why === "agreed" || (why === "generic" && conversation.id === generic);
+      const scored = scoreOf(conversation);
       const best = Math.max(0, ...scored.map((item) => item.overlap));
 
-      if (!linked && !sameProject) {
+      if (!authorized) {
         if (best >= 2) related.push({ conversationId: conversation.id, title: conversation.title, overlap: best });
         continue;
       }
@@ -209,9 +237,10 @@ export default class CrossChatResolver {
         budget -= text.length;
         lines.push(`  - ${message.role === "assistant" ? "LÉLU" : "User"}: ${text}`);
       }
-      const authorization = linked ? "linked" : "project";
+      const authorization = linked ? "linked" : why === "project" ? "project" : "asked";
       used.push({ conversationId: conversation.id, title: conversation.title, authorization, messageIds: picked.map((message) => message.id) });
-      blocks.push(`From the chat “${conversation.title}” (${linked ? "linked by the user" : "same project"}):\n${lines.join("\n")}`);
+      const because = linked ? "linked by the user" : why === "project" ? "same project" : "the user brought it up";
+      blocks.push(`From the chat “${conversation.title}” (${because}):\n${lines.join("\n")}`);
     }
 
     const suggested = related
@@ -231,7 +260,7 @@ export default class CrossChatResolver {
     if (blocks.length > 0) {
       parts.push(
         "## RESEARCH FROM OTHER CHATS (authorized)\n" +
-          "The user allowed this chat to use the research below. Use it where it helps answer THIS chat's question. " +
+          "The user allowed this chat to use the research below (linked, or they brought it up). Use it where it helps answer THIS chat's question. " +
           "It is not part of this conversation: keep it apart from what was said here, say which chat each point comes " +
           "from — e.g. (from “Title”) — and never attribute one chat's content to another or invent what a chat said.\n" +
           blocks.join("\n"),

@@ -303,15 +303,20 @@ export function summarizeActivity(activity: ChatActivity): ActivitySummary {
   const tools = activity.steps.filter((step) => step.kind === "tool" || step.kind === "agent").length;
   // A chat whose research was used — the reading step itself is not a second one.
   const chats = activity.steps.filter((step) => step.kind === "reference" && step.status === "done" && !step.tool).length;
+  const merges = activity.steps.filter((step) => step.tool === "chats.merge" && step.status === "done").length;
+  const links = activity.steps.filter((step) => step.tool === "chats.link" && step.status === "done").length;
+  const chatWork = chats + merges + links;
   const issues = activity.steps.filter((step) => step.status === "failed").length;
-  const icon = opened > 0 ? "🌐" : searches > 0 ? "🔎" : tools > 0 ? "⚙️" : chats > 0 ? "🔗" : "🧠";
-  const title = opened > 0 && searches > 0 ? "Web research" : opened > 0 ? "Reading sources" : searches > 0 ? "Web research" : tools > 0 ? "Working with tools" : chats > 0 ? "Using other chats" : "Thinking it through";
+  const icon = opened > 0 ? "🌐" : searches > 0 ? "🔎" : tools > 0 ? "⚙️" : chatWork > 0 ? "🔗" : "🧠";
+  const title = opened > 0 && searches > 0 ? "Web research" : opened > 0 ? "Reading sources" : searches > 0 ? "Web research" : tools > 0 ? "Working with tools" : chatWork > 0 ? "Using other chats" : "Thinking it through";
   const facts: string[] = [];
   if (searches) facts.push(`${searches} ${searches === 1 ? "search" : "searches"}`);
   if (activity.sources.length) facts.push(`${activity.sources.length} ${activity.sources.length === 1 ? "source" : "sources"} found`);
   if (opened) facts.push(`${reads} of ${opened} ${opened === 1 ? "page" : "pages"} read`);
   if (tools) facts.push(`${tools} ${tools === 1 ? "tool" : "tools"} used`);
   if (chats) facts.push(`${chats} other ${chats === 1 ? "chat" : "chats"} used`);
+  if (merges) facts.push(merges === 1 ? "merged into a new chat" : `${merges} merges`);
+  if (links) facts.push(links === 1 ? "linked a chat" : `${links} chats linked`);
   const running = [...activity.steps].reverse().find((step) => step.status === "running");
   return { icon, title, facts, current: running?.label, issues };
 }

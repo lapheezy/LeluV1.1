@@ -664,7 +664,7 @@ export default class AIService {
       // capabilities, UI) as part of the conversation context.
       let cognitiveContextText = "";
       try {
-        const snapshot = buildCognitiveContext();
+        const snapshot = buildCognitiveContext(options?.conversationId);
         cognitiveContextText = formatCognitiveContext(snapshot);
         trace.record(
           "SELF_CONTEXT",

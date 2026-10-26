@@ -16,6 +16,7 @@
  */
 
 import AgentEventBus from "../agent/AgentEvents";
+import { ownerForTask } from "../multichat/TurnOwnership";
 import SelfModel from "./SelfModel";
 import type { SelfModelState } from "./SelfModel";
 import ProjectStore from "../projects/ProjectStore";
@@ -232,7 +233,7 @@ export interface CognitiveContextSnapshot {
  * Build a fresh CognitiveContextSnapshot from live singleton state.
  * Called by AIRuntime on every process() invocation.
  */
-export function buildCognitiveContext(): CognitiveContextSnapshot {
+export function buildCognitiveContext(conversationId?: string): CognitiveContextSnapshot {
   const selfModel = SelfModel.getInstance();
   const projectStore = ProjectStore.getInstance();
   const agentStore = AgentStore.getInstance();
@@ -244,8 +245,18 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
 
   // REAL recent execution events — the last actions actually emitted
   // by executing code (never model claims), for situational awareness.
+  //
+  // For a chat turn, only that chat's events and background work no chat
+  // owns: another conversation's tool results here were a way for one
+  // chat's work to surface in another's reply, unlabelled.
   const recentEvents = AgentEventBus.getInstance()
-    .recent(8)
+    .recent(conversationId ? 40 : 8)
+    .filter((event) => {
+      if (!conversationId) return true;
+      const owner = ownerForTask(event.taskId);
+      return owner === null || owner === conversationId;
+    })
+    .slice(-8)
     .map((event) => ({
       type: event.type,
       tool: "tool" in event ? event.tool : undefined,
