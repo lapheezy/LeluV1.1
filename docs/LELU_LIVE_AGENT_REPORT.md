@@ -155,7 +155,7 @@ Each was reproduced, live or in a test, before it was changed.
 **Automated**
 - **Type check:** `npx tsc -b --force` exits 0.
 - **Lint:** `oxlint` shows no new warnings in the changed files.
-- **`npm test`:** **934/934** on the final code (was 895 before this pass). `tests/live-agent.test.ts` adds 39 tests, run against local fakes with no network:
+- **`npm test`:** **938/938** on the final code (was 895 before this pass). `tests/live-agent.test.ts` adds 43 tests, run against local fakes with no network:
   - activity built from real events only; finishing a turn settles running steps honestly; a page counts once;
   - task ownership, and a recorder that keeps only its own conversation's events;
   - steering accepted only during a turn; the tool loop hands the message to the model after the tool results it arrived during, and emits `user_steering` and `tool_narration`;
