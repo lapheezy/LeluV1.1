@@ -486,3 +486,85 @@ test("a reply in another chat goes to the inbox; in the open chat it does not", 
     if (store.getActiveId() !== open) store.switchActive(open);
   }
 });
+
+/* ------------------------------------------------------------------ *
+ * PAGES THAT ARE NOT REALLY READ
+ * ------------------------------------------------------------------ */
+
+async function withVisit(fake: (url: string) => Promise<unknown>, run: () => Promise<void>) {
+  const { default: BrowserTool } = await import("../src/core/browser/BrowserTool");
+  const real = BrowserTool.visit;
+  let calls = 0;
+  BrowserTool.visit = (async (url: string) => {
+    calls += 1;
+    return fake(url);
+  }) as typeof BrowserTool.visit;
+  try {
+    await run();
+  } finally {
+    BrowserTool.visit = real;
+  }
+  return calls;
+}
+
+test("a Google News redirect that 'reads' as two words is a failure, with what to do instead", async () => {
+  const url = "https://news.google.com/rss/articles/CBMiabc?oc=5";
+  const timestamp = Date.now() + 4242;
+  const seen: AgentEvent[] = [];
+  const off = AgentEventBus.getInstance().subscribe((event) => { if (event.taskId === String(timestamp)) seen.push(event); });
+  try {
+    await withVisit(async () => ({ url, title: "Google News", text: "Google News", excerpt: "Google News", status: "read" }), async () => {
+      const result = await dispatchToolCall({ id: "c", name: "browser_read", arguments: { url } }, String(timestamp), { request: { prompt: "x", timestamp } } as never);
+      assert.equal(result.ok, false, "an empty redirect page was reported as read");
+      assert.match(result.content, /Google News redirect/);
+      assert.match(result.content, /research_web/);
+    });
+  } finally {
+    off();
+  }
+  const page = seen.find((event) => event.type === "browser_result") as Extract<AgentEvent, { type: "browser_result" }>;
+  assert.equal(page.status, "error", "the activity must not count it as a page read");
+});
+
+test("the same page asked for twice in one turn is fetched once", async () => {
+  const url = "https://example.org/article";
+  const timestamp = Date.now() + 5151;
+  const text = "Real article text. ".repeat(30);
+  let second = "";
+  const calls = await withVisit(async () => ({ url, title: "Article", text, excerpt: text.slice(0, 200), status: "read" }), async () => {
+    const context = { request: { prompt: "x", timestamp } } as never;
+    const first = await dispatchToolCall({ id: "a", name: "browser_read", arguments: { url } }, String(timestamp), context);
+    assert.equal(first.ok, true);
+    second = (await dispatchToolCall({ id: "b", name: "browser_read", arguments: { url } }, String(timestamp), context)).content;
+  });
+  assert.equal(calls, 1);
+  assert.match(second, /already opened this page/);
+  assert.match(second, /Real article text/);
+});
+
+test("a site that refuses the server-side reader is reported as that, not as the reader being down", async () => {
+  const { default: BrowserTool } = await import("../src/core/browser/BrowserTool");
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: unknown) => {
+    const target = String(input);
+    if (target.startsWith("/api/browse")) {
+      return new Response(JSON.stringify({ ok: false, url: "https://www.bbc.com/news", error: "HTTP 403" }), { status: 200 });
+    }
+    throw new TypeError("Failed to fetch"); // the direct read is blocked (CORS)
+  }) as typeof fetch;
+  try {
+    const page = await BrowserTool.visit("https://www.bbc.com/news");
+    assert.equal(page.status, "blocked");
+    assert.match(page.error ?? "", /the site answered HTTP 403/);
+    assert.doesNotMatch(page.error ?? "", /reader is unavailable/);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test("a chat turn's tool work stays in the chat — it does not open a panel over it", async () => {
+  const { readFileSync } = await import("node:fs");
+  const source = readFileSync("src/app/scene/genesis/GenesisSurfaceController.tsx", "utf8");
+  assert.match(source, /const ownedByChat = ownerForTask\(event\.taskId\) !== null;/);
+  assert.match(source, /if \(surface && !ownedByChat &&/);
+});

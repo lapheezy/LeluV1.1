@@ -106,6 +106,31 @@ function hostOf(url: string): string {
   }
 }
 
+/**
+ * Pages already opened by browser.read, per task. A model that asks for
+ * the same page again in one turn gets what it already has instead of a
+ * second fetch and a second row of activity. Bounded.
+ */
+const pagesReadByTask = new Map<string, Map<string, ToolExecutionResult>>();
+
+function rememberPage(taskId: string, url: string, result: ToolExecutionResult): void {
+  let pages = pagesReadByTask.get(taskId);
+  if (!pages) {
+    pages = new Map();
+    pagesReadByTask.set(taskId, pages);
+    if (pagesReadByTask.size > 40) pagesReadByTask.delete(pagesReadByTask.keys().next().value as string);
+  }
+  pages.set(url, result);
+}
+
+/** A Google News article link is a script redirect: fetching it yields "Google News", never the article. */
+function isNewsRedirect(url: string): boolean {
+  return /^https?:\/\/news\.google\.com\/(rss\/)?articles\//i.test(url);
+}
+
+/** Below this much text a "read" page carried nothing to read (a redirect or script shell). */
+const MIN_READABLE_CHARS = 200;
+
 /** What a tool call is doing, in words — the activity line for it. */
 export function describeToolCall(id: string, args: Record<string, unknown>): string {
   const pick = (key: string) => (typeof args[key] === "string" ? String(args[key]).trim() : "");
@@ -313,7 +338,8 @@ const EXECUTORS: ToolExecutor[] = [
           type: "string",
           description:
             "The full web address to open and read (e.g. a source from research.web). " +
-            "Returns the page title and its readable text.",
+            "Returns the page title and its readable text. news.google.com article links are " +
+            "redirects that cannot be read — search the headline instead.",
         },
       },
       required: ["url"],
@@ -324,13 +350,33 @@ const EXECUTORS: ToolExecutor[] = [
         return { ok: false, content: "browser.read needs a url; nothing was opened." };
       }
       const taskId = String(context?.request?.timestamp ?? Date.now());
+      const already = pagesReadByTask.get(taskId)?.get(url);
+      if (already) {
+        return {
+          ...already,
+          content: `(You already opened this page in this turn — nothing new; do not open it again.)\n${already.content}`,
+        };
+      }
       const events = AgentEventBus.getInstance();
       const { default: BrowserTool } = await import("../browser/BrowserTool");
       events.emit({ type: "tool_selected", taskId, tool: "browser", label: `Opening ${hostOf(url)}` });
       events.emit({ type: "tool_started", taskId, tool: "browser", label: `Opening ${hostOf(url)}` });
       events.emit({ type: "browser_opened", taskId, url });
 
-      const page = await BrowserTool.visit(url);
+      const visited = await BrowserTool.visit(url);
+      // A "read" with nothing in it is not a read. Reporting it as one
+      // sent the model back to the same Google News redirect again and
+      // again, each time told it had succeeded.
+      const thin = visited.status === "read" && visited.text.trim().length < MIN_READABLE_CHARS;
+      const page = thin
+        ? {
+            ...visited,
+            status: "error" as const,
+            error: isNewsRedirect(url) || isNewsRedirect(visited.url)
+              ? "This is a Google News redirect link — it never contains the article. Search for the headline with research_web, or open the publisher's own URL"
+              : `The page had almost no readable text (“${visited.text.trim().slice(0, 60)}”) — likely a redirect or a page built by scripts`,
+          }
+        : visited;
       events.emit({ type: "browser_navigation", taskId, url: page.url });
       events.emit({
         type: "browser_result",
@@ -357,20 +403,24 @@ const EXECUTORS: ToolExecutor[] = [
       if (page.status !== "read") {
         // A structured failure the model can act on: what happened, and
         // what to do instead.
-        return {
+        const failed = {
           ok: false,
           content:
             `Could not read ${page.url}: ${page.error ?? page.status}. ` +
             `Nothing from this page is known. Try another source from research.web, or tell the user it could not be opened.`,
           data: { url: page.url, status: page.status },
         };
+        rememberPage(taskId, url, failed);
+        return failed;
       }
       const text = page.text.length > 6000 ? `${page.text.slice(0, 6000)}…` : page.text;
-      return {
+      const read = {
         ok: true,
         content: `Page: ${page.title || page.url}\nURL: ${page.url}\n\n${text}`,
         data: { url: page.url, title: page.title, status: page.status, length: page.text.length },
       };
+      rememberPage(taskId, url, read);
+      return read;
     },
   },
 

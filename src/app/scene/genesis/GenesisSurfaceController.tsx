@@ -32,6 +32,7 @@
  */
 
 import { useEffect, useRef } from "react";
+import { ownerForTask } from "../../../core/multichat/TurnOwnership";
 import AgentEventBus, { type AgentEvent } from "../../../core/agent/AgentEvents";
 import { useGenesis, type GenesisPanel } from "./GenesisCore";
 import VisualEngine from "../../../core/visual/VisualEngine";
@@ -271,7 +272,14 @@ export default function GenesisSurfaceController() {
         event.type === "browser_result" ||
         ((event.type === "tool_selected" || event.type === "tool_started" || event.type === "tool_result") &&
           (event.tool === "research" || event.tool === "browser"));
-      if (surface && (uiControlRef.current !== "manual" || isLiveResearchSurface)) {
+      // A chat turn's own tool work is shown IN the conversation (the
+      // activity card and its browser view). Opening a panel for it took
+      // the screen away from the chat — the conversation tabs, New chat
+      // and the Chats panel vanished whenever LÉLU read a page, for
+      // whichever conversation's task it was. Background work no chat
+      // owns still opens its surface as before.
+      const ownedByChat = ownerForTask(event.taskId) !== null;
+      if (surface && !ownedByChat && (uiControlRef.current !== "manual" || isLiveResearchSurface)) {
         const key = `${event.taskId}:${surface}`;
         if (!openedRef.current.has(key)) {
           openedRef.current.add(key);

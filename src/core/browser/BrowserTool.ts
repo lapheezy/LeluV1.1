@@ -105,7 +105,7 @@ export default class BrowserTool {
   private static async readViaServer(
     url: string,
     timeoutMs: number,
-  ): Promise<{ title: string; text: string; url: string } | null> {
+  ): Promise<{ title: string; text: string; url: string } | { error: string } | null> {
     try {
       const response = await fetch(`/api/browse?url=${encodeURIComponent(url)}`, {
         signal: AbortSignal.timeout(timeoutMs),
@@ -116,8 +116,14 @@ export default class BrowserTool {
         url?: string;
         title?: string;
         text?: string;
+        error?: string;
       };
-      if (!payload.ok || typeof payload.text !== "string" || payload.text.trim().length === 0) {
+      // The reader ran and the SITE refused it (403, 404, timeout): that
+      // is the reason to report — not "the reader is unavailable".
+      if (payload.ok === false) {
+        return { error: payload.error ? `the site answered ${payload.error}` : "the site could not be read" };
+      }
+      if (typeof payload.text !== "string" || payload.text.trim().length === 0) {
         return null;
       }
       return {
@@ -183,7 +189,7 @@ export default class BrowserTool {
 
       if (!text.trim()) {
         const viaServer = await BrowserTool.readViaServer(url, timeoutMs);
-        if (viaServer) {
+        if (viaServer && "text" in viaServer) {
           const serverExcerpt = viaServer.text.trim().slice(0, 2400);
           return {
             url: viaServer.url,
@@ -221,7 +227,7 @@ export default class BrowserTool {
       // before this, example.com and en.wikipedia.org both ended up
       // `blocked` and no page text ever reached cognition.
       const viaServer = await BrowserTool.readViaServer(url, timeoutMs);
-      if (viaServer) {
+      if (viaServer && "text" in viaServer) {
         const serverExcerpt = viaServer.text.trim().slice(0, 2400);
         return {
           url: viaServer.url,
@@ -244,7 +250,10 @@ export default class BrowserTool {
         text: "",
         excerpt: "",
         status: "blocked",
-        error: `Could not read the page directly (${reason}), and my server-side reader is unavailable. The in-app browser can still open it for you.`,
+        error:
+          viaServer && "error" in viaServer
+            ? `Could not read the page: ${viaServer.error}. The in-app browser can still open it for you.`
+            : `Could not read the page directly (${reason}), and my server-side reader is unavailable. The in-app browser can still open it for you.`,
       };
     }
   }
