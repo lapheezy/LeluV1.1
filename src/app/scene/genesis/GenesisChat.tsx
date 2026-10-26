@@ -115,6 +115,14 @@ interface Exchange {
    * being thought about, the reply simply never came.
    */
   settled?: boolean;
+  /**
+   * The conversation a live turn belongs to. A switch renders the new
+   * conversation's messages one frame before the effect that swaps the
+   * live turn — and under load that frame lasted long enough to show
+   * the previous chat's streaming reply under this chat's messages.
+   * The transcript draws a live turn only in its own conversation.
+   */
+  conversationId?: string;
   /** The stored user message this turn wrote — anchors the turn in the transcript. */
   userMessageId?: string;
   /** Images the user attached to this turn (data URLs), shown with their message. */
@@ -767,7 +775,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       MultiChatStore.getInstance().getActiveId() === turnConversationId;
 
     artifactImagesRef.current = [];
-    const liveTurn: Exchange = { id: exchangeId, user: display, assistant: "", fast: false, userMessageId, attachments };
+    const liveTurn: Exchange = { id: exchangeId, user: display, assistant: "", fast: false, userMessageId, attachments, conversationId: turnConversationId };
     liveTurnsRef.current.set(turnConversationId, liveTurn);
     // Painting the exchange is only right while this conversation is the
     // one being looked at. A queued turn may start after a switch, and
@@ -898,6 +906,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
           images: artifactImagesRef.current,
           activity: finishActivity(recording.current()),
           userMessageId,
+          conversationId: turnConversationId,
           attachments,
         });
         setDialogue("responding");
@@ -1301,6 +1310,9 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     void sendRef.current();
   }, []);
 
+  const visibleExchange =
+    exchange && exchange.conversationId && exchange.conversationId !== state.activeConversationId ? null : exchange;
+
   // Search results and pages read now show in the turn's activity card
   // (chat/ChatActivity), attached to the reply they belong to.
   const liveExtras = useMemo(() => {
@@ -1604,7 +1616,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         >
           <ChatTranscript
             messages={state.messages}
-            live={exchange}
+            live={visibleExchange}
             inFlight={isSending}
             liveExtras={liveExtras}
             activity={activity}

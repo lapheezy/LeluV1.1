@@ -765,3 +765,11 @@ test("three or more chats merge into one new chat, each message keeping the chat
   assert.deepEqual(again.messages.map((m) => m.origin?.title), ["Models", "Audience", "Budget", "Timeline"]);
   assert.equal(store.merge([a, b, c, d, merged.id, again.id])!.messages.length, 4 + 3 + 4, "every message from every chat");
 });
+
+test("a live turn is drawn only in the conversation it belongs to", async () => {
+  const { readFileSync } = await import("node:fs");
+  const chat = readFileSync("src/app/scene/genesis/GenesisChat.tsx", "utf8");
+  assert.match(chat, /conversationId: turnConversationId \};/, "the live turn records its conversation");
+  assert.match(chat, /exchange\.conversationId !== state\.activeConversationId \? null : exchange/);
+  assert.match(chat, /live=\{visibleExchange\}/, "the transcript must get the guarded exchange");
+});
