@@ -973,3 +973,30 @@ test("the provider sees other chats' content labelled, at the last step before t
   assert.match(seen, /\[from the chat “Secret launch plans”\] - The secret launch venue/);
   assert.match(seen, /## FROM OTHER CHATS/);
 });
+
+test("memory.store keeps 'for this chat' to the chat, and labels what it stores with its chat", async () => {
+  const { default: AIService } = await import("../src/core/AIService");
+  const { default: MultiChatStore } = await import("../src/core/multichat/MultiChatStore");
+  const ai = AIService.getInstance();
+  const stored: string[] = [];
+  const realConsolidate = ai.consolidate.bind(ai);
+  (ai as unknown as { consolidate: (kind: string, summary: string) => Promise<boolean> }).consolidate = async (_kind, summary) => { stored.push(summary); return true; };
+  try {
+    const chat = MultiChatStore.getInstance().createBackground("Launch plans").id;
+    const scoped = await dispatchToolCall(
+      { id: "m1", name: "memory_store", arguments: { summary: "Product codename ZORBLAX-PELICAN" } }, "t-m1",
+      { request: { prompt: "Remember for this chat: our codename is ZORBLAX-PELICAN", timestamp: Date.now(), conversationId: chat } } as never,
+    );
+    assert.equal(scoped.ok, true);
+    assert.match(scoped.content, /Not stored long-term/);
+    assert.deepEqual(stored, [], "a chat-scoped fact reached long-term memory");
+
+    await dispatchToolCall(
+      { id: "m2", name: "memory_store", arguments: { summary: "The CFO is Marta Vilhjalmsdottir" } }, "t-m2",
+      { request: { prompt: "Remember that our CFO is Marta Vilhjalmsdottir", timestamp: Date.now(), conversationId: chat } } as never,
+    );
+    assert.deepEqual(stored, ["The CFO is Marta Vilhjalmsdottir (learned in the chat “Launch plans”)"]);
+  } finally {
+    (ai as unknown as { consolidate: typeof realConsolidate }).consolidate = realConsolidate;
+  }
+});

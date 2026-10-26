@@ -34,6 +34,7 @@ import ToolRegistry, { type RiskLevel } from "./ToolRegistry";
 import EngineeringAuthorization from "../engineering/EngineeringAuthorization";
 import MultiChatStore, { tokenizeText, type ChatConversation } from "../multichat/MultiChatStore";
 import { consentFor, findChat } from "../multichat/ChatConsent";
+import { CHAT_SCOPED } from "../multichat/ContextProvenance";
 
 export interface ToolExecutionResult {
   ok: boolean;
@@ -677,11 +678,24 @@ const EXECUTORS: ToolExecutor[] = [
       },
       required: ["summary"],
     },
-    run: async (args) => {
-      const summary = str(args, "summary");
-      if (!summary) {
+    run: async (args, context) => {
+      const raw = str(args, "summary");
+      if (!raw) {
         return { ok: false, content: "memory.store requires a non-empty summary." };
       }
+      // "Remember this for this chat": the user scoped it. It is already in
+      // this chat's history; making it long-term memory would hand it to
+      // every other chat (measured: it did, unlabelled).
+      if (CHAT_SCOPED.test(userWords(context))) {
+        return {
+          ok: true,
+          content: "Not stored long-term: the user asked to keep this to this chat. It stays in this chat's history — no further action needed.",
+        };
+      }
+      // What she stores from a chat says which chat it came from, so a
+      // later recall in another chat can tell the user where it was learned.
+      const chat = currentChat(context);
+      const summary = chat && !/\(learned in the chat /.test(raw) ? `${raw} (learned in the chat “${chat.title}”)` : raw;
       const kind = str(args, "kind") === "system" ? "system" : "knowledge";
       const keywords = stringList(args, "keywords");
       const { default: AIService } = await import("../AIService");
