@@ -55,6 +55,12 @@ export interface CrossChatReference {
   suggested: Array<{ conversationId: string; title: string }>;
 }
 
+/** “A”, “B” and “C”. */
+function listTitles(titles: string[]): string {
+  const quoted = titles.map((title) => `“${title}”`);
+  return quoted.length <= 1 ? quoted.join("") : `${quoted.slice(0, -1).join(", ")} and ${quoted.at(-1)}`;
+}
+
 /** Per authorized chat, at most this many messages and characters. */
 const MAX_MESSAGES_PER_CHAT = 3;
 const MAX_CHARS_PER_CHAT = 1400;
@@ -140,7 +146,7 @@ export default class CrossChatResolver {
    * Build a compact context block for the current request. Returns an
    * empty string when nothing is relevant (silence over noise).
    */
-  public buildContext(currentConversationId: string, query: string, limit = 3): string {
+  public buildContext(currentConversationId: string, query: string, limit = 5): string {
     return this.reference(currentConversationId, query, limit).context;
   }
 
@@ -148,7 +154,7 @@ export default class CrossChatResolver {
    * What this turn may use from other chats, and what it may only offer.
    * See AUTHORIZATION above.
    */
-  public reference(currentConversationId: string, query: string, limit = 3): CrossChatReference {
+  public reference(currentConversationId: string, query: string, limit = 5): CrossChatReference {
     const empty: CrossChatReference = { context: "", used: [], suggested: [] };
     const store = MultiChatStore.getInstance();
     const current = store.get(currentConversationId);
@@ -218,7 +224,7 @@ export default class CrossChatResolver {
     if (mergedFrom.length > 0) {
       parts.push(
         "## THIS IS A MERGED CHAT\n" +
-          `It was made from ${mergedFrom.map((title) => `“${title}”`).join(" and ")}; each earlier message is labelled with the chat it came from. ` +
+          `It was made from ${listTitles(mergedFrom as string[])}; each earlier message is labelled with the chat it came from. ` +
           "Keep them apart, and when you use one, say which chat it came from. The original chats still exist unchanged.",
       );
     }

@@ -505,11 +505,11 @@ export interface GenesisContextValue {
   duplicateConversation(id:string):void;
 
   /**
-   * A new chat holding both conversations' histories, each message
-   * labelled by the chat it came from. The originals stay unchanged.
-   * Returns the merged chat's id ("" when it could not be made).
+   * A new chat holding the histories of two or more conversations, each
+   * message labelled by the chat it came from. The originals stay
+   * unchanged. Returns the merged chat's id ("" when it could not be made).
    */
-  mergeConversations(a:string,b:string,title?:string):string;
+  mergeConversations(ids:string[],title?:string):string;
 
   pinConversation(id:string):void;
 
@@ -1687,8 +1687,8 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         },
 
 
-        mergeConversations(a,b,title){
-          const merged = multiChat.merge(a,b,title);
+        mergeConversations(ids,title){
+          const merged = multiChat.merge(ids,title);
           if(!merged) return "";
           setState(current=>({
             ...current,

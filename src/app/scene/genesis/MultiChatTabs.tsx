@@ -165,6 +165,8 @@ export default function MultiChatTabs() {
   const [renameValue, setRenameValue] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [chatsOpen, setChatsOpen] = useState(false);
+  /** Choosing chats to merge (two or more) in the Chats panel. */
+  const [mergeSelection, setMergeSelection] = useState<string[] | null>(null);
   const [inbox, setInbox] = useState<NotificationRecord[]>([]);
   const unread = inbox.filter(isUnread).length;
   const [query, setQuery] = useState("");
@@ -185,6 +187,22 @@ export default function MultiChatTabs() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [chatsOpen]);
+
+  useEffect(() => {
+    if (!chatsOpen) setMergeSelection(null);
+  }, [chatsOpen]);
+
+  function toggleMergePick(id: string) {
+    setMergeSelection((current) => (current ? (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]) : [id]));
+  }
+
+  function createMerged() {
+    if (!mergeSelection || mergeSelection.length < 2) return;
+    if (mergeConversations(mergeSelection)) {
+      openPanel("chat");
+      setChatsOpen(false);
+    }
+  }
 
   function openNotification(record: NotificationRecord) {
     // The provider's deep link switches to the conversation and opens chat.
@@ -488,34 +506,85 @@ export default function MultiChatTabs() {
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 6px" }}>
             <span style={sectionLabelStyle}>Chats</span>
-            <button
-              type="button"
-              onClick={() => {
-                createConversation();
-                openPanel("chat");
-                setChatsOpen(false);
-              }}
-              style={{ ...menuItemStyle, width: "auto", minHeight: 32, padding: "0 10px", fontSize: 12 }}
-            >
-              <Plus size={14} aria-hidden /> New chat
-            </button>
+            <span style={{ display: "inline-flex", gap: 4 }}>
+              {conversations.length >= 2 ? (
+                <button
+                  type="button"
+                  data-lelu-merge-mode
+                  aria-pressed={mergeSelection !== null}
+                  title="Choose two or more chats to merge into a new chat; the originals stay as they are"
+                  onClick={() => setMergeSelection((current) => (current ? null : []))}
+                  style={{ ...menuItemStyle, width: "auto", minHeight: 32, padding: "0 10px", fontSize: 12 }}
+                >
+                  <GitMerge size={14} aria-hidden /> {mergeSelection ? "Cancel merge" : "Merge chats…"}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => {
+                  createConversation();
+                  openPanel("chat");
+                  setChatsOpen(false);
+                }}
+                style={{ ...menuItemStyle, width: "auto", minHeight: 32, padding: "0 10px", fontSize: 12 }}
+              >
+                <Plus size={14} aria-hidden /> New chat
+              </button>
+            </span>
           </div>
-          {conversations.map((conversation) => (
+          {mergeSelection ? (
+            <div style={{ padding: "0 12px 4px", fontSize: 11.5, color: "rgba(226, 232, 248, 0.75)" }}>
+              Pick two or more chats. A new chat gets all of their messages, each labelled with the chat it came from;
+              the originals are not changed.
+            </div>
+          ) : null}
+          {conversations.map((conversation) => {
+            const picked = mergeSelection?.includes(conversation.id) ?? false;
+            return (
             <button
               key={conversation.id}
               type="button"
               data-lelu-chats-item={conversation.id}
-              aria-current={conversation.id === activeId ? "true" : undefined}
+              {...(mergeSelection ? { role: "checkbox", "aria-checked": picked } : {})}
+              aria-current={!mergeSelection && conversation.id === activeId ? "true" : undefined}
               onClick={() => {
+                if (mergeSelection) {
+                  toggleMergePick(conversation.id);
+                  return;
+                }
                 if (conversation.id !== activeId) switchConversation(conversation.id);
                 openPanel("chat");
                 setChatsOpen(false);
               }}
               style={{
                 ...menuItemStyle,
-                background: conversation.id === activeId ? "rgba(255, 236, 252, 0.1)" : "transparent",
+                background: picked
+                  ? "rgba(244, 114, 182, 0.16)"
+                  : !mergeSelection && conversation.id === activeId
+                    ? "rgba(255, 236, 252, 0.1)"
+                    : "transparent",
               }}
             >
+              {mergeSelection ? (
+                <span
+                  aria-hidden
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: 5,
+                    border: "1.5px solid rgba(255, 236, 252, 0.6)",
+                    background: picked ? "#f472b6" : "transparent",
+                    flexShrink: 0,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 11,
+                    color: "#1b1033",
+                  }}
+                >
+                  {picked ? "✓" : ""}
+                </span>
+              ) : null}
               <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {conversation.title}
               </span>
@@ -524,7 +593,27 @@ export default function MultiChatTabs() {
                 <span style={{ fontSize: 11, color: "#fbbf24" }}>{conversation.unread} new</span>
               ) : null}
             </button>
-          ))}
+            );
+          })}
+          {mergeSelection ? (
+            <button
+              type="button"
+              data-lelu-merge-create
+              disabled={mergeSelection.length < 2}
+              onClick={createMerged}
+              style={{
+                ...menuItemStyle,
+                justifyContent: "center",
+                fontWeight: 600,
+                background: mergeSelection.length >= 2 ? "rgba(244, 114, 182, 0.28)" : "rgba(255, 236, 252, 0.05)",
+                cursor: mergeSelection.length >= 2 ? "pointer" : "not-allowed",
+                opacity: mergeSelection.length >= 2 ? 1 : 0.6,
+              }}
+            >
+              <GitMerge size={15} aria-hidden />
+              {mergeSelection.length >= 2 ? `Create merged chat from ${mergeSelection.length} chats` : "Pick at least two chats"}
+            </button>
+          ) : null}
 
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 6px 2px" }}>
             <span style={sectionLabelStyle}>
@@ -626,7 +715,7 @@ export default function MultiChatTabs() {
                 title="Make a new chat with both histories; both original chats stay as they are"
                 aria-label={`Merge ${conversation.title} with the current chat into a new chat`}
                 onClick={act(() => {
-                  if (mergeConversations(activeId, conversation.id)) openPanel("chat");
+                  if (mergeConversations([activeId, conversation.id])) openPanel("chat");
                 })}
                 style={menuItemStyle}
               >

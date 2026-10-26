@@ -565,16 +565,17 @@ export default class MultiChatStore {
   }
 
   /**
-   * A NEW conversation holding both histories, in time order, with every
-   * message labelled by the chat it came from. The originals are left
-   * exactly as they were (only linked to the merge), so nothing either
-   * of them said is lost or rewritten. The merge becomes active.
+   * A NEW conversation holding the histories of two or more chats, in
+   * time order, with every message labelled by the chat it came from.
+   * The originals are left exactly as they were (only linked to the
+   * merge), so nothing any of them said is lost or rewritten. The merge
+   * becomes active. Undefined when fewer than two distinct chats exist.
    */
-  public merge(a: string, b: string, title?: string): ChatConversation | undefined {
-    if (a === b) return undefined;
-    const first = this.get(a);
-    const second = this.get(b);
-    if (!first || !second) return undefined;
+  public merge(ids: string[], title?: string): ChatConversation | undefined {
+    const sources = [...new Set(ids)]
+      .map((id) => this.get(id))
+      .filter((conversation): conversation is ChatConversation => Boolean(conversation));
+    if (sources.length < 2) return undefined;
     const carry = (source: ChatConversation): ChatMessage[] =>
       source.messages.map((message) => ({
         ...structuredClone(message),
@@ -582,21 +583,26 @@ export default class MultiChatStore {
         // A message already carried from elsewhere keeps its first source.
         origin: message.origin ?? { conversationId: source.id, title: source.title },
       }));
+    const names = sources.map((source) => source.title);
+    const fallbackTitle =
+      names.length <= 3 ? `Merged: ${names.join(" + ")}` : `Merged: ${names.slice(0, 2).join(" + ")} + ${names.length - 2} more`;
     const now = Date.now();
     const merged: ChatConversation = {
-      ...this.makeConversation(title?.trim() || `Merged: ${first.title} + ${second.title}`),
-      messages: [...carry(first), ...carry(second)]
+      ...this.makeConversation(title?.trim() || fallbackTitle),
+      messages: sources
+        .flatMap(carry)
         .sort((x, y) => x.timestamp - y.timestamp)
         .slice(-MAX_MESSAGES),
-      linkedIds: [first.id, second.id],
-      projectId: first.projectId ?? second.projectId ?? null,
-      tags: [...new Set([...first.tags, ...second.tags])],
+      linkedIds: sources.map((source) => source.id),
+      projectId: sources.find((source) => source.projectId)?.projectId ?? null,
+      tags: [...new Set(sources.flatMap((source) => source.tags))],
       createdAt: now,
       updatedAt: now,
     };
+    const sourceIds = new Set(merged.linkedIds);
     const conversations = this.ensureSeeded();
     for (const conversation of conversations) {
-      if ((conversation.id === first.id || conversation.id === second.id) && !conversation.linkedIds.includes(merged.id)) {
+      if (sourceIds.has(conversation.id) && !conversation.linkedIds.includes(merged.id)) {
         conversation.linkedIds = [...conversation.linkedIds, merged.id];
       }
     }

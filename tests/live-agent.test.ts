@@ -697,7 +697,7 @@ test("a merged chat holds both histories labelled by source, and leaves the orig
   const researchBefore = structuredClone(store.get(research)!.messages);
   const questionBefore = structuredClone(store.get(question)!.messages);
 
-  const merged = store.merge(question, research)!;
+  const merged = store.merge([question, research])!;
   assert.ok(merged);
   assert.equal(store.getActiveId(), merged.id);
   assert.equal(merged.title, "Merged: Pitch deck + Video research");
@@ -733,4 +733,35 @@ test("the activity shows which chats' research a reply used, and which it did no
   assert.equal(summary.title, "Using other chats");
   assert.deepEqual(summary.facts, ["1 other chat used"]);
   assert.ok(hasVisibleActivity(activity));
+});
+
+test("three or more chats merge into one new chat, each message keeping the chat it came from", async () => {
+  const { default: MultiChatStore } = await import("../src/core/multichat/MultiChatStore");
+  const { default: CrossChatResolver } = await import("../src/core/multichat/CrossChatResolver");
+  const store = MultiChatStore.getInstance();
+  const t = Date.now();
+  const make = (title: string, text: string, at: number) => {
+    const id = store.createBackground(title).id;
+    store.addMessage(id, { id: crypto.randomUUID(), role: "user", text, timestamp: at, source: "local" });
+    return id;
+  };
+  const a = make("Budget", "Budget is 20k", t + 3);
+  const b = make("Models", "Veo 3 vs Runway", t + 1);
+  const c = make("Audience", "Investors in media", t + 2);
+  const snapshot = [a, b, c].map((id) => structuredClone(store.get(id)!.messages));
+
+  assert.equal(store.merge([a]), undefined, "one chat is not a merge");
+  const merged = store.merge([a, b, c, a])!;
+  assert.equal(merged.title, "Merged: Budget + Models + Audience");
+  assert.deepEqual(merged.messages.map((m) => m.origin?.title), ["Models", "Audience", "Budget"], "time order across all three");
+  assert.deepEqual([a, b, c].map((id) => store.get(id)!.messages), snapshot, "an original changed");
+  assert.deepEqual([...merged.linkedIds].sort(), [a, b, c].sort());
+  const note = CrossChatResolver.getInstance().reference(merged.id, "plan").context;
+  for (const title of ["Budget", "Models", "Audience"]) assert.ok(note.includes(`“${title}”`), `the merged note does not name ${title}`);
+
+  // Merging a merged chat keeps every message's FIRST source.
+  const d = make("Timeline", "Launch in May", t + 4);
+  const again = store.merge([merged.id, d])!;
+  assert.deepEqual(again.messages.map((m) => m.origin?.title), ["Models", "Audience", "Budget", "Timeline"]);
+  assert.equal(store.merge([a, b, c, d, merged.id, again.id])!.messages.length, 4 + 3 + 4, "every message from every chat");
 });
