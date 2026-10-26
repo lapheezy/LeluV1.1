@@ -22,6 +22,8 @@ export interface TranscriptMessage {
   timestamp: number;
   /** What LÉLU did for this reply, recorded from real events and stored with it. */
   activity?: ChatActivity;
+  /** The chat this message came from, when it was carried into a merged chat. */
+  origin?: { conversationId: string; title: string };
 }
 
 /** The live turn, as GenesisChat tracks it. */

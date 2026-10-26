@@ -133,6 +133,13 @@ export type AgentEvent =
   | { type: "tool_narration"; taskId: string; text: string }
   /** A message the user sent while this turn was working, folded into it. */
   | { type: "user_steering"; taskId: string; text: string }
+  /** Research from other chats this turn was authorized to use (and related chats it was not). */
+  | {
+      type: "cross_chat_reference";
+      taskId: string;
+      sources: Array<{ conversationId: string; title: string; authorization: "linked" | "project" }>;
+      suggested: string[];
+    }
   /**
    * Agent lifecycle. Emitted by AgentRunner — the ONE entry point every
    * agent run passes through — so an agent started from the Agents panel

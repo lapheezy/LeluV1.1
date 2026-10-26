@@ -80,7 +80,7 @@ import { cleanAssistantText } from "../../../core/router/ToolMarkup";
 import { useWorkspace } from "./useWorkspace";
 import { layer } from "../../../core/ui/Layers";
 import MultiChatStore from "../../../core/multichat/MultiChatStore";
-import { bindMessage, claimTurn, ownerForTask, releaseTurn } from "../../../core/multichat/TurnOwnership";
+import { bindMessage, bindTask, claimTurn, ownerForTask, releaseTurn } from "../../../core/multichat/TurnOwnership";
 import { finishActivity, hasVisibleActivity, type ChatActivity } from "../../../core/multichat/TurnActivity";
 import { recordTurnActivity } from "./chat/activityRecorder";
 import { notifyTurnOutcome } from "../../../core/notifications/NotificationRouting";
@@ -211,7 +211,7 @@ function fileContextPrompt(files: PendingFile[]): string {
  * ---------------------------------------------------------- */
 
 export default function GenesisChat({ onExit }: { onExit?: () => void }) {
-  const { state, openPanel, addMessage, upsertMessage, setDialogue, notify, crossChatContext, createConversation, minimize } = useGenesis();
+  const { state, openPanel, addMessage, upsertMessage, setDialogue, notify, crossChatReference, createConversation, minimize } = useGenesis();
   const voiceView = useVoice();
   const navigate = useNavigate();
 
@@ -797,7 +797,22 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     try {
       let context = "";
       try {
-        context = crossChatContext(prompt || "", turnConversationId);
+        // Research from other chats — only ones the user authorized
+        // (linked, or same project), labelled by the chat it came from.
+        // What was used is a real step of this turn, so it shows in the
+        // activity: "Used research from the chat “…”".
+        const reference = crossChatReference(prompt || "", turnConversationId);
+        context = reference.context;
+        if (reference.used.length > 0 || reference.suggested.length > 0) {
+          const referenceTask = `xchat-${exchangeId}`;
+          bindTask(referenceTask, turnConversationId);
+          AgentEventBus.getInstance().emit({
+            type: "cross_chat_reference",
+            taskId: referenceTask,
+            sources: reference.used.map(({ conversationId, title, authorization }) => ({ conversationId, title, authorization })),
+            suggested: reference.suggested.map((item) => item.title),
+          });
+        }
       } catch {
         context = "";
       }
@@ -976,7 +991,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         void sendRef.current();
       }
     }
-  }, [addMessage, upsertMessage, clearTimers, input, notify, pendingMedia, pendingFiles, setDialogue, crossChatContext]);
+  }, [addMessage, upsertMessage, clearTimers, input, notify, pendingMedia, pendingFiles, setDialogue, crossChatReference]);
 
 
   const voiceEcho =

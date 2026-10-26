@@ -379,6 +379,7 @@ const EVENT_STATUS: Record<AgentEvent["type"], TimelineEvent["status"]> = {
   tool_progress: "running",
   tool_narration: "running",
   user_steering: "ok",
+  cross_chat_reference: "ok",
   tool_result: "ok",
   tool_failed: "error",
   agent_started: "running",

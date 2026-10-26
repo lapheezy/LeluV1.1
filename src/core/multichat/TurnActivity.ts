@@ -16,7 +16,7 @@
 
 import type { AgentEvent, AgentResultItem } from "../agent/AgentEvents";
 
-export type ActivityKind = "search" | "browse" | "memory" | "tool" | "agent" | "narration" | "steer" | "provider";
+export type ActivityKind = "search" | "browse" | "memory" | "tool" | "agent" | "narration" | "steer" | "provider" | "reference";
 export type StepStatus = "running" | "done" | "failed" | "info";
 
 export interface ActivityStep {
@@ -234,6 +234,25 @@ export function reduceActivity(activity: ChatActivity, event: AgentEvent): ChatA
     }
     case "tool_narration":
       return push(activity, { kind: "narration", label: event.text.slice(0, 300), status: "info" });
+    case "cross_chat_reference": {
+      let next = activity;
+      for (const source of event.sources) {
+        next = push(next, {
+          kind: "reference",
+          label: `Used research from the chat “${source.title}”`,
+          detail: source.authorization === "linked" ? "linked by you" : "same project",
+          status: "done",
+        });
+      }
+      if (event.suggested.length > 0) {
+        next = push(next, {
+          kind: "reference",
+          label: `Related, not used (not linked): ${event.suggested.map((title) => `“${title}”`).join(", ")}`,
+          status: "info",
+        });
+      }
+      return next;
+    }
     case "user_steering":
       return push(activity, { kind: "steer", label: `Took in your new instruction: “${event.text.slice(0, 120)}”`, status: "info" });
     case "provider_status":
@@ -281,14 +300,16 @@ export function summarizeActivity(activity: ChatActivity): ActivitySummary {
   const reads = activity.pages.filter((page) => page.status === "read").length;
   const opened = activity.pages.length;
   const tools = activity.steps.filter((step) => step.kind === "tool" || step.kind === "agent").length;
+  const chats = activity.steps.filter((step) => step.kind === "reference" && step.status === "done").length;
   const issues = activity.steps.filter((step) => step.status === "failed").length;
-  const icon = opened > 0 ? "🌐" : searches > 0 ? "🔎" : tools > 0 ? "⚙️" : "🧠";
-  const title = opened > 0 && searches > 0 ? "Web research" : opened > 0 ? "Reading sources" : searches > 0 ? "Web research" : tools > 0 ? "Working with tools" : "Thinking it through";
+  const icon = opened > 0 ? "🌐" : searches > 0 ? "🔎" : tools > 0 ? "⚙️" : chats > 0 ? "🔗" : "🧠";
+  const title = opened > 0 && searches > 0 ? "Web research" : opened > 0 ? "Reading sources" : searches > 0 ? "Web research" : tools > 0 ? "Working with tools" : chats > 0 ? "Using other chats" : "Thinking it through";
   const facts: string[] = [];
   if (searches) facts.push(`${searches} ${searches === 1 ? "search" : "searches"}`);
   if (activity.sources.length) facts.push(`${activity.sources.length} ${activity.sources.length === 1 ? "source" : "sources"} found`);
   if (opened) facts.push(`${reads} of ${opened} ${opened === 1 ? "page" : "pages"} read`);
   if (tools) facts.push(`${tools} ${tools === 1 ? "tool" : "tools"} used`);
+  if (chats) facts.push(`${chats} other ${chats === 1 ? "chat" : "chats"} used`);
   const running = [...activity.steps].reverse().find((step) => step.status === "running");
   return { icon, title, facts, current: running?.label, issues };
 }

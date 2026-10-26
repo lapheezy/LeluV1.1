@@ -28,7 +28,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from "react";
-import { Bell, Ellipsis, Link, MessagesSquare, Pencil, Pin, Plus, Search, X } from "lucide-react";
+import { Bell, Ellipsis, GitMerge, Link, MessagesSquare, Pencil, Pin, Plus, Search, X } from "lucide-react";
 import { useGenesis } from "./GenesisCore";
 import { layer } from "../../../core/ui/Layers";
 import { useWorkspace } from "./useWorkspace";
@@ -156,6 +156,7 @@ export default function MultiChatTabs() {
     pinConversation,
     linkConversations,
     unlinkConversations,
+    mergeConversations,
     searchConversations,
     openPanel,
   } = useGenesis();
@@ -614,7 +615,22 @@ export default function MultiChatTabs() {
                 onClick={act(() => (linked ? unlinkConversations(conversation.id, activeId) : linkConversations(conversation.id, activeId)))}
                 style={menuItemStyle}
               >
-                <Link size={15} aria-hidden /> {linked ? "Unlink from this chat" : "Link to this chat"}
+                <Link size={15} aria-hidden /> {linked ? "Unlink — stop sharing research" : "Link — share research with this chat"}
+              </button>
+            ) : null}
+            {conversation.id !== activeId ? (
+              <button
+                type="button"
+                role="menuitem"
+                data-lelu-merge-chat={conversation.id}
+                title="Make a new chat with both histories; both original chats stay as they are"
+                aria-label={`Merge ${conversation.title} with the current chat into a new chat`}
+                onClick={act(() => {
+                  if (mergeConversations(activeId, conversation.id)) openPanel("chat");
+                })}
+                style={menuItemStyle}
+              >
+                <GitMerge size={15} aria-hidden /> Merge into a new chat
               </button>
             ) : null}
             <button

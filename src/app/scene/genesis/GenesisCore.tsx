@@ -79,7 +79,7 @@ import MultiChatStore, {
 
 } from "../../../core/multichat/MultiChatStore";
 
-import CrossChatResolver from "../../../core/multichat/CrossChatResolver";
+import CrossChatResolver, { type CrossChatReference } from "../../../core/multichat/CrossChatResolver";
 
 import NotificationProvider from "../../../core/notifications/NotificationProvider";
 import { startNotificationRouting } from "../../../core/notifications/NotificationRouting";
@@ -293,6 +293,9 @@ export interface GenesisMessage {
   /** What LÉLU did for this reply, recorded from real events. */
   activity?:ChatActivity;
 
+  /** The chat this message was first written in (a merged chat keeps its sources apart). */
+  origin?:{ conversationId:string; title:string };
+
 }
 
 
@@ -501,6 +504,13 @@ export interface GenesisContextValue {
 
   duplicateConversation(id:string):void;
 
+  /**
+   * A new chat holding both conversations' histories, each message
+   * labelled by the chat it came from. The originals stay unchanged.
+   * Returns the merged chat's id ("" when it could not be made).
+   */
+  mergeConversations(a:string,b:string,title?:string):string;
+
   pinConversation(id:string):void;
 
   linkConversations(a:string,b:string):void;
@@ -518,6 +528,9 @@ export interface GenesisContextValue {
    * own conversation: it may have started after the user switched away.
    */
   crossChatContext(query:string, conversationId?:string):string;
+
+  /** The same, with which chats were used (authorized) and which were only offered. */
+  crossChatReference(query:string, conversationId?:string):CrossChatReference;
 
 
 
@@ -1674,6 +1687,19 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         },
 
 
+        mergeConversations(a,b,title){
+          const merged = multiChat.merge(a,b,title);
+          if(!merged) return "";
+          setState(current=>({
+            ...current,
+            activeConversationId:merged.id,
+            messages:merged.messages,
+            conversations:multiChat.list(),
+          }));
+          return merged.id;
+        },
+
+
         pinConversation(id){
 
 
@@ -1750,6 +1776,11 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           return crossChat.buildContext(conversationId ?? multiChat.getActiveId(), query);
 
 
+        },
+
+
+        crossChatReference(query, conversationId){
+          return crossChat.reference(conversationId ?? multiChat.getActiveId(), query);
         },
 
 

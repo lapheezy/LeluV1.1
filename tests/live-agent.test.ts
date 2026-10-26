@@ -648,3 +648,89 @@ test("the model is given only this conversation's history, up to the current mes
   ], "another chat's turns, the current message or a later queued one leaked into the history");
   assert.equal(priorTurnsFor(undefined, "x"), null, "no conversation: the caller keeps its own history");
 });
+
+/* ------------------------------------------------------------------ *
+ * CROSS-CHAT — only what the user authorized, always labelled
+ * ------------------------------------------------------------------ */
+
+async function threeChats() {
+  const { default: MultiChatStore } = await import("../src/core/multichat/MultiChatStore");
+  const store = MultiChatStore.getInstance();
+  const msg = (role: "user" | "assistant", text: string, timestamp: number) => ({ id: crypto.randomUUID(), role, text, timestamp, source: "local" as const });
+  const t = Date.now();
+  const research = store.createBackground("Video research").id;
+  store.addMessage(research, msg("user", "Research AI video generation models", t + 1));
+  store.addMessage(research, msg("assistant", "Runway Gen-4 and Google Veo 3 lead AI video generation; Veo 3 adds native audio.", t + 3));
+  const notes = store.createBackground("Private video notes").id;
+  store.addMessage(notes, msg("user", "My private notes about AI video generation budgets and video models", t + 2));
+  const question = store.createBackground("Pitch deck").id;
+  store.addMessage(question, msg("user", "Which AI video generation model should the pitch mention?", t + 4));
+  return { store, research, notes, question };
+}
+
+test("another chat's research is used only when the user linked it, and is labelled by its chat", async () => {
+  const { default: CrossChatResolver } = await import("../src/core/multichat/CrossChatResolver");
+  const { store, research, notes, question } = await threeChats();
+  const resolver = CrossChatResolver.getInstance();
+
+  const before = resolver.reference(question, "Which AI video generation model should the pitch mention?");
+  assert.deepEqual(before.used, [], "nothing is authorized yet, so nothing may be read");
+  assert.doesNotMatch(before.context, /Veo 3/, "an unlinked chat's content leaked");
+  assert.ok(before.suggested.some((item) => item.title === "Video research"), "a related chat is offered, not used");
+  assert.match(before.context, /not authorized/);
+
+  store.link(question, research);
+  const after = resolver.reference(question, "Which AI video generation model should the pitch mention?");
+  assert.deepEqual(after.used.map((source) => [source.title, source.authorization]), [["Video research", "linked"]]);
+  assert.match(after.context, /From the chat “Video research” \(linked by the user\)/);
+  assert.match(after.context, /Veo 3 adds native audio/);
+  assert.match(after.context, /say which chat each point comes from/);
+  assert.doesNotMatch(after.context, /budgets/, "the still-unlinked chat's content leaked");
+  assert.ok(after.suggested.some((item) => item.title === "Private video notes"));
+  assert.ok(!after.suggested.some((item) => item.conversationId === notes && after.used.some((u) => u.conversationId === notes)));
+});
+
+test("a merged chat holds both histories labelled by source, and leaves the originals unchanged", async () => {
+  const { priorTurnsFor } = await import("../src/core/AIService");
+  const { default: CrossChatResolver } = await import("../src/core/multichat/CrossChatResolver");
+  const { store, research, question } = await threeChats();
+  const researchBefore = structuredClone(store.get(research)!.messages);
+  const questionBefore = structuredClone(store.get(question)!.messages);
+
+  const merged = store.merge(question, research)!;
+  assert.ok(merged);
+  assert.equal(store.getActiveId(), merged.id);
+  assert.equal(merged.title, "Merged: Pitch deck + Video research");
+  assert.deepEqual(merged.messages.map((message) => message.origin?.title), ["Video research", "Video research", "Pitch deck"], "time order, each labelled");
+  assert.deepEqual(store.get(research)!.messages, researchBefore, "the original was changed");
+  assert.deepEqual(store.get(question)!.messages, questionBefore, "the original was changed");
+  assert.ok(store.get(research)!.linkedIds.includes(merged.id) && merged.linkedIds.includes(research));
+
+  // The model sees which chat each earlier message came from.
+  store.addMessage(merged.id, { id: crypto.randomUUID(), role: "user", text: "Compare them for the pitch.", timestamp: Date.now() + 10, source: "local" });
+  const turns = priorTurnsFor(merged.id, "Compare them for the pitch.")!;
+  assert.match(turns[1].content, /^\[from the chat “Video research”\] Runway Gen-4/);
+  assert.match(turns[2].content, /^\[from the chat “Pitch deck”\]/);
+
+  // Its sources are already in its history: not read again, but named.
+  const reference = CrossChatResolver.getInstance().reference(merged.id, "Compare them for the pitch.");
+  assert.ok(!reference.used.some((source) => source.conversationId === research || source.conversationId === question));
+  assert.match(reference.context, /THIS IS A MERGED CHAT/);
+  assert.match(reference.context, /“Pitch deck” and “Video research”|“Video research” and “Pitch deck”/);
+});
+
+test("the activity shows which chats' research a reply used, and which it did not", () => {
+  const activity = reduceActivity(emptyActivity(0), {
+    type: "cross_chat_reference", taskId: "x",
+    sources: [{ conversationId: "a", title: "Video research", authorization: "linked" }],
+    suggested: ["Private video notes"],
+  } as AgentEvent);
+  assert.deepEqual(activity.steps.map((step) => step.label), [
+    "Used research from the chat “Video research”",
+    "Related, not used (not linked): “Private video notes”",
+  ]);
+  const summary = summarizeActivity(activity);
+  assert.equal(summary.title, "Using other chats");
+  assert.deepEqual(summary.facts, ["1 other chat used"]);
+  assert.ok(hasVisibleActivity(activity));
+});

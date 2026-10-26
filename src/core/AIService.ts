@@ -113,9 +113,14 @@ export function priorTurnsFor(
     // sending); everything before it is the history.
     let before = anchor >= 0 ? turns.slice(0, anchor) : turns;
     if (anchor < 0 && before.at(-1)?.role === "user") before = before.slice(0, -1);
+    // In a merged chat each earlier message says which chat it came from,
+    // so the model can keep the sources apart.
     return before
       .slice(-CONVERSATION_TURN_WINDOW)
-      .map((item) => ({ role: item.role, content: item.text }));
+      .map((item) => ({
+        role: item.role,
+        content: item.origin ? `[from the chat “${item.origin.title}”] ${item.text}` : item.text,
+      }));
   } catch {
     return null;
   }

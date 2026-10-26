@@ -76,6 +76,8 @@ export function executionEventLabel(event: AgentEvent): string {
       return `${humanTool(event.tool)} failed — recovering`;
     case "tool_narration":
       return event.text.slice(0, 80);
+    case "cross_chat_reference":
+      return `Used research from ${event.sources.map((source) => `“${source.title}”`).join(", ") || "no other chat"}`;
     case "user_steering":
       return `New instruction: ${event.text.slice(0, 60)}`;
     case "file_opened":

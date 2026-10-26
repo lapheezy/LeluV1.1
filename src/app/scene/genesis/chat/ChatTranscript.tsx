@@ -23,17 +23,29 @@ import {
   type TranscriptMessage,
 } from "./chatTranscript";
 
+/** "from “Research…”" — which chat a message in a merged chat came from. */
+function OriginLabel({ title }: { title?: string }) {
+  return title ? (
+    <span className="lelu-cc-origin" data-lelu-origin={title}>
+      from “{title}”
+    </span>
+  ) : null;
+}
+
 const UserBubble = memo(function UserBubble({
   text,
   latest,
   attachments,
+  origin,
 }: {
   text: string;
   latest: boolean;
   attachments?: string[];
+  origin?: string;
 }) {
   return (
     <article className="lelu-cc-msg lelu-cc-msg--user" aria-label="You said">
+      <OriginLabel title={origin} />
       {/* data-lelu-exchange-user marks "the question on screen" — the latest
           one only, which is what the isolation check reads. */}
       <div className="lelu-cc-bubble--user" {...(latest ? { "data-lelu-exchange-user": "" } : {})}>
@@ -54,11 +66,13 @@ const AssistantBubble = memo(function AssistantBubble({
   text,
   streaming,
   latest,
+  origin,
   children,
 }: {
   text: string;
   streaming?: boolean;
   latest?: boolean;
+  origin?: string;
   children?: ReactNode;
 }) {
   return (
@@ -72,6 +86,7 @@ const AssistantBubble = memo(function AssistantBubble({
         <span className="lelu-cc-orb" data-state={streaming ? "speaking" : "idle"} />
         LÉLU
       </div>
+      <OriginLabel title={origin} />
       <div className="lelu-cc-bubble--assistant">
         <ChatMarkdown text={text} />
         {streaming ? <span className="lelu-cc-caret" aria-hidden /> : null}
@@ -159,6 +174,7 @@ function ChatTranscriptImpl({ messages, live, inFlight, liveExtras, activity, sp
             text={message.text}
             latest={message.id === transcript.latestUserId}
             attachments={live?.userMessageId === message.id ? live.attachments : undefined}
+            origin={message.origin?.title}
           />
         ) : (
           <Fragment key={message.id}>
@@ -168,7 +184,7 @@ function ChatTranscriptImpl({ messages, live, inFlight, liveExtras, activity, sp
               const activity = message.id === transcript.liveReplyId && live?.activity ? live.activity : message.activity;
               return hasVisibleActivity(activity) ? <ChatActivityCard activity={activity} /> : null;
             })()}
-            <AssistantBubble text={message.text} latest={index === lastIndex} streaming={message.id === transcript.streamingId}>
+            <AssistantBubble text={message.text} latest={index === lastIndex} streaming={message.id === transcript.streamingId} origin={message.origin?.title}>
               {extrasOnLast && index === lastIndex ? liveExtras : null}
             </AssistantBubble>
           </Fragment>

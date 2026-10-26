@@ -25,6 +25,7 @@ const STEP_ICON: Record<ActivityStep["kind"], string> = {
   narration: "💬",
   steer: "↪️",
   provider: "🔁",
+  reference: "🔗",
 };
 
 function host(url: string): string {

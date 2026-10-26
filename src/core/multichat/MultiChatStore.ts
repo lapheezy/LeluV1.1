@@ -32,6 +32,12 @@ export interface ChatMessage {
   plan?: unknown;
   /** What LÉLU did for this reply (tools, pages, sources), from real events. */
   activity?: ChatActivity;
+  /**
+   * The conversation this message was first written in, when it was
+   * carried into a merged chat. LÉLU and the transcript use it to keep
+   * the merged sources apart.
+   */
+  origin?: { conversationId: string; title: string };
 }
 
 export interface ChatConversation {
@@ -556,6 +562,47 @@ export default class MultiChatStore {
     this.activeId = copy.id;
     this.persist([copy, ...conversations].slice(0, MAX_ACTIVE), copy.id);
     return copy;
+  }
+
+  /**
+   * A NEW conversation holding both histories, in time order, with every
+   * message labelled by the chat it came from. The originals are left
+   * exactly as they were (only linked to the merge), so nothing either
+   * of them said is lost or rewritten. The merge becomes active.
+   */
+  public merge(a: string, b: string, title?: string): ChatConversation | undefined {
+    if (a === b) return undefined;
+    const first = this.get(a);
+    const second = this.get(b);
+    if (!first || !second) return undefined;
+    const carry = (source: ChatConversation): ChatMessage[] =>
+      source.messages.map((message) => ({
+        ...structuredClone(message),
+        id: crypto.randomUUID(),
+        // A message already carried from elsewhere keeps its first source.
+        origin: message.origin ?? { conversationId: source.id, title: source.title },
+      }));
+    const now = Date.now();
+    const merged: ChatConversation = {
+      ...this.makeConversation(title?.trim() || `Merged: ${first.title} + ${second.title}`),
+      messages: [...carry(first), ...carry(second)]
+        .sort((x, y) => x.timestamp - y.timestamp)
+        .slice(-MAX_MESSAGES),
+      linkedIds: [first.id, second.id],
+      projectId: first.projectId ?? second.projectId ?? null,
+      tags: [...new Set([...first.tags, ...second.tags])],
+      createdAt: now,
+      updatedAt: now,
+    };
+    const conversations = this.ensureSeeded();
+    for (const conversation of conversations) {
+      if ((conversation.id === first.id || conversation.id === second.id) && !conversation.linkedIds.includes(merged.id)) {
+        conversation.linkedIds = [...conversation.linkedIds, merged.id];
+      }
+    }
+    this.activeId = merged.id;
+    this.persist([merged, ...conversations].slice(0, MAX_ACTIVE), merged.id);
+    return merged;
   }
 
   public pin(id: string): void {
