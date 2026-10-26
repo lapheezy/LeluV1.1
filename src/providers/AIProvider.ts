@@ -223,6 +223,22 @@ export interface AIRequest {
   drainSteering?:
     () => string[];
 
+  /**
+   * The conversation this turn belongs to. Tools that act on chats
+   * (chats.read / link / merge) need to know which one is "this chat".
+   * Never sent to a provider.
+   */
+  conversationId?:
+    string;
+
+  /**
+   * What the user said DURING this turn (drained steering), oldest first.
+   * Part of the user's words for this turn — consent checks read it.
+   * Never sent to a provider.
+   */
+  steered?:
+    string[];
+
 
 
   /**

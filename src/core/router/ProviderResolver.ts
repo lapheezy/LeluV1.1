@@ -402,6 +402,7 @@ export default class ProviderResolver {
       // a new instruction changes the work in progress rather than
       // waiting behind it.
       for (const text of context.request.drainSteering?.() ?? []) {
+        context.request.steered = [...(context.request.steered ?? []), text];
         AgentEventBus.getInstance().emit({ type: "user_steering", taskId, text: text.slice(0, 400) });
         messages.push({
           role: "user",

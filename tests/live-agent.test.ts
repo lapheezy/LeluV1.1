@@ -773,3 +773,111 @@ test("a live turn is drawn only in the conversation it belongs to", async () => 
   assert.match(chat, /exchange\.conversationId !== state\.activeConversationId \? null : exchange/);
   assert.match(chat, /live=\{visibleExchange\}/, "the transcript must get the guarded exchange");
 });
+
+/* ------------------------------------------------------------------ *
+ * OTHER CHATS FROM INSIDE THE CONVERSATION — the user's words decide
+ * ------------------------------------------------------------------ */
+
+async function chatsForTools() {
+  const { default: MultiChatStore } = await import("../src/core/multichat/MultiChatStore");
+  const store = MultiChatStore.getInstance();
+  const t = Date.now();
+  const add = (id: string, role: "user" | "assistant", text: string, at: number) =>
+    store.addMessage(id, { id: crypto.randomUUID(), role, text, timestamp: at, source: "local" });
+  const research = store.createBackground("Video model research").id;
+  add(research, "user", "Compare AI video models", t + 1);
+  add(research, "assistant", "Veo 3 has native audio; Runway Gen-4 has the best motion control.", t + 2);
+  const here = store.createBackground("Pitch deck").id;
+  add(here, "user", "Help me write the pitch deck intro", t + 3);
+  return { store, research, here, add, t };
+}
+
+test("consent comes from what the user said: naming the chat, 'the other chat', or yes to her asking", async () => {
+  const { consentFor } = await import("../src/core/multichat/ChatConsent");
+  const { store, research, here, add, t } = await chatsForTools();
+  const current = () => store.get(here)!;
+  const target = store.get(research)!;
+  const read = (prompt: string) => consentFor({ prompt, current: current(), target, action: "read" });
+
+  assert.equal(read("Write the intro").ok, false, "nothing the user said allows reading it");
+  assert.equal(read("Use what we found in the video model research for this").ok, true, "the user named it");
+  assert.equal(read("Pull in the numbers from my other chat").ok, true, "the user referred to another chat");
+  assert.equal(read("yes").ok, false, "a yes to nothing is not consent");
+  add(here, "assistant", "Your “Video model research” chat compared Veo 3 and Runway — want me to use it, or merge the two?", t + 4);
+  assert.equal(read("yes please").ok, true, "yes to her asking about this chat");
+  assert.equal(consentFor({ prompt: "yes, merge them", current: current(), target, action: "merge" }).ok, true, "yes to her proposing a merge");
+  assert.equal(consentFor({ prompt: "tell me about video model research", current: current(), target, action: "merge" }).ok, false, "naming a chat is not asking to merge it");
+  assert.equal(consentFor({ prompt: "Merge this chat with Video model research", current: current(), target, action: "merge" }).ok, true);
+  assert.equal(consentFor({ prompt: "Link the video model research chat here", current: current(), target, action: "link" }).ok, true);
+});
+
+test("chats_read refuses an unmentioned chat without reading it, and reads one the user brought up", async () => {
+  const { store, research, here } = await chatsForTools();
+  const timestamp = Date.now() + 777;
+  const seen: AgentEvent[] = [];
+  const off = AgentEventBus.getInstance().subscribe((event) => { if (event.taskId === String(timestamp)) seen.push(event); });
+  try {
+    const context = (prompt: string) => ({ request: { prompt, timestamp, conversationId: here } }) as never;
+    const refused = await dispatchToolCall({ id: "1", name: "chats_read", arguments: { chat: "Video model research" } }, String(timestamp), context("Write the intro"));
+    assert.equal(refused.ok, false);
+    assert.doesNotMatch(refused.content, /Veo 3/, "the refusal leaked the chat's content");
+    assert.match(refused.content, /Ask them first/);
+
+    const read = await dispatchToolCall({ id: "2", name: "chats_read", arguments: { chat: "video model" } }, String(timestamp), context("Use the video model research chat for the intro"));
+    assert.equal(read.ok, true);
+    assert.match(read.content, /From the chat “Video model research”/);
+    assert.match(read.content, /Veo 3 has native audio/);
+    assert.match(read.content, /say it came from “Video model research”/);
+    const reference = seen.find((event) => event.type === "cross_chat_reference") as Extract<AgentEvent, { type: "cross_chat_reference" }>;
+    assert.deepEqual(reference.sources.map((source) => [source.title, source.authorization]), [["Video model research", "asked"]]);
+    assert.equal(store.get(research)!.linkedIds.includes(here), false, "reading is not linking");
+  } finally {
+    off();
+  }
+});
+
+test("chats_merge and chats_link act only on the user's request, and a merge does not pull the user away", async () => {
+  const { default: NotificationProvider } = await import("../src/core/notifications/NotificationProvider");
+  const { store, research, here } = await chatsForTools();
+  store.switchActive(here);
+  const before = structuredClone(store.get(research)!.messages);
+  const context = (prompt: string) => ({ request: { prompt, timestamp: Date.now(), conversationId: here } }) as never;
+
+  const refused = await dispatchToolCall({ id: "m0", name: "chats_merge", arguments: { chats: ["Video model research"] } }, "t-m0", context("What should the intro say?"));
+  assert.equal(refused.ok, false, "merged without being asked");
+
+  NotificationProvider.getInstance().clearHistory();
+  const merged = await dispatchToolCall({ id: "m1", name: "chats_merge", arguments: { chats: ["Video model research"] } }, "t-m1", context("Merge this chat with the video model research chat"));
+  assert.equal(merged.ok, true, merged.content);
+  const mergedId = (merged.data as { mergedId: string }).mergedId;
+  assert.equal(store.getActiveId(), here, "the user was pulled out of the chat they are in");
+  assert.deepEqual(store.get(mergedId)!.messages.map((m) => m.origin?.title), ["Video model research", "Video model research", "Pitch deck"]);
+  assert.deepEqual(store.get(research)!.messages, before, "an original was changed");
+  assert.ok(NotificationProvider.getInstance().history().some((record) => record.conversationId === mergedId), "the merged chat is findable from Notifications");
+  assert.match(merged.content, /original chats are unchanged/);
+
+  assert.equal((await dispatchToolCall({ id: "l0", name: "chats_link", arguments: { chat: "Video model research" } }, "t-l0", context("ok"))).ok, false);
+  const linked = await dispatchToolCall({ id: "l1", name: "chats_link", arguments: { chat: "Video model research" } }, "t-l1", context("Link the video model research chat to this one"));
+  assert.equal(linked.ok, true);
+  assert.ok(store.get(here)!.linkedIds.includes(research));
+  NotificationProvider.getInstance().clearHistory();
+});
+
+test("finding a chat by name picks the closest title, not a merge that contains it", async () => {
+  const { findChat } = await import("../src/core/multichat/ChatConsent");
+  const make = (id: string, title: string) => ({ id, title, messages: [], createdAt: 0, updatedAt: 0, pinned: false, archived: false, linkedIds: [], projectId: null, tags: [], topic: "", unread: 0, processing: false });
+  const chats = [make("m", "Merged: Pitch deck + Video model research"), make("v", "Video model research"), make("p", "Pitch deck")];
+  assert.equal(findChat("Video model research", chats)?.id, "v");
+  assert.equal(findChat("video model", chats)?.id, "v");
+  assert.equal(findChat("the video research chat", chats)?.id, "v");
+  assert.equal(findChat("merged", chats)?.id, "m");
+  assert.equal(findChat("Pitch deck", chats, "p")?.id, "m", "the current chat is never a target");
+});
+
+test("what the user says while the turn is running counts as their words", async () => {
+  const { store, here } = await chatsForTools();
+  const context = { request: { prompt: "Draft the intro", timestamp: Date.now(), conversationId: here, steered: ["and merge it with the video model research chat"] } } as never;
+  const merged = await dispatchToolCall({ id: "s1", name: "chats_merge", arguments: { chats: ["Video model research"] } }, "t-s1", context);
+  assert.equal(merged.ok, true, merged.content);
+  assert.equal(store.getActiveId() === (merged.data as { mergedId: string }).mergedId, false);
+});

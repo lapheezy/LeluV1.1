@@ -81,6 +81,7 @@ function kindForTool(tool: string): ActivityKind {
   if (/^research/.test(tool)) return "search";
   if (/^browser/.test(tool)) return "browse";
   if (/^memory/.test(tool)) return "memory";
+  if (/^chats\./.test(tool)) return "reference";
   if (/^agent:/.test(tool)) return "agent";
   return "tool";
 }
@@ -240,7 +241,7 @@ export function reduceActivity(activity: ChatActivity, event: AgentEvent): ChatA
         next = push(next, {
           kind: "reference",
           label: `Used research from the chat “${source.title}”`,
-          detail: source.authorization === "linked" ? "linked by you" : "same project",
+          detail: source.authorization === "linked" ? "linked by you" : source.authorization === "project" ? "same project" : "you brought it up",
           status: "done",
         });
       }
@@ -300,7 +301,8 @@ export function summarizeActivity(activity: ChatActivity): ActivitySummary {
   const reads = activity.pages.filter((page) => page.status === "read").length;
   const opened = activity.pages.length;
   const tools = activity.steps.filter((step) => step.kind === "tool" || step.kind === "agent").length;
-  const chats = activity.steps.filter((step) => step.kind === "reference" && step.status === "done").length;
+  // A chat whose research was used — the reading step itself is not a second one.
+  const chats = activity.steps.filter((step) => step.kind === "reference" && step.status === "done" && !step.tool).length;
   const issues = activity.steps.filter((step) => step.status === "failed").length;
   const icon = opened > 0 ? "🌐" : searches > 0 ? "🔎" : tools > 0 ? "⚙️" : chats > 0 ? "🔗" : "🧠";
   const title = opened > 0 && searches > 0 ? "Web research" : opened > 0 ? "Reading sources" : searches > 0 ? "Web research" : tools > 0 ? "Working with tools" : chats > 0 ? "Using other chats" : "Thinking it through";

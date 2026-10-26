@@ -768,6 +768,7 @@ export default class AIService {
         signal: controller.signal,
         ...(options?.conversationId
           ? {
+              conversationId: options.conversationId,
               drainSteering: () => {
                 const queue = this.steering.get(options.conversationId!) ?? [];
                 this.steering.delete(options.conversationId!);

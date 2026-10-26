@@ -405,6 +405,49 @@ export default class ToolRegistry {
         executionRoute: "BrowserTool.visit",
       },
 
+      // Other chats — what LÉLU may do is decided by the user's words
+      // (multichat/ChatConsent), not by this permission alone.
+      {
+        id: "chats.list",
+        name: "List Other Chats",
+        description: "See the titles of the user's other chats (never their contents)",
+        category: "Memory",
+        permissions: ["READ"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "MultiChatStore.list",
+      },
+      {
+        id: "chats.read",
+        name: "Read Another Chat",
+        description: "Read another chat's relevant messages — only when linked, or the user brought it up or agreed",
+        category: "Memory",
+        permissions: ["READ"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "MultiChatStore.get",
+      },
+      {
+        id: "chats.link",
+        name: "Link Another Chat",
+        description: "Link another chat to this one so its research can be used — when the user asks or agrees",
+        category: "Memory",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "MultiChatStore.link",
+      },
+      {
+        id: "chats.merge",
+        name: "Merge Chats",
+        description: "Create a new chat merging two or more chats (originals unchanged) — when the user asks or agrees",
+        category: "Memory",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "MultiChatStore.merge",
+      },
+
       // Providers
       {
         id: "ai.generate",

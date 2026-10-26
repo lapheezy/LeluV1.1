@@ -241,7 +241,9 @@ export default class CrossChatResolver {
       parts.push(
         "## RELATED CHATS (not authorized)\n" +
           `These chats look related but the user has not allowed this chat to use them: ${suggested.map((item) => `“${item.title}”`).join(", ")}. ` +
-          "Do not use, quote or guess their contents. If they would help, offer to use them — the user can link that chat to this one, or merge the two into a new chat.",
+          "Do not use, quote or guess their contents. Decide whether the connection is worth raising; if it is, ASK the user " +
+          "whether to use that chat or merge it with this one. If they agree (or bring it up themselves), you can: read it with " +
+          "chats_read, link it with chats_link, or create a merged chat with chats_merge — then say which chat each point came from.",
       );
     }
     return { context: parts.join("\n\n"), used, suggested };

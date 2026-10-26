@@ -32,6 +32,8 @@ import AgentEventBus from "../agent/AgentEvents";
 import AutonomyGate from "../cognition/AutonomyGate";
 import ToolRegistry, { type RiskLevel } from "./ToolRegistry";
 import EngineeringAuthorization from "../engineering/EngineeringAuthorization";
+import MultiChatStore, { tokenizeText, type ChatConversation } from "../multichat/MultiChatStore";
+import { consentFor, findChat } from "../multichat/ChatConsent";
 
 export interface ToolExecutionResult {
   ok: boolean;
@@ -143,11 +145,30 @@ export function describeToolCall(id: string, args: Record<string, unknown>): str
       return `Checking memory for “${pick("query").slice(0, 60)}”`;
     case "memory.store":
       return "Saving to memory";
+    case "chats.list":
+      return "Looking through your other chats";
+    case "chats.read":
+      return `Reading the chat “${pick("chat").slice(0, 60)}”`;
+    case "chats.link":
+      return `Linking the chat “${pick("chat").slice(0, 60)}”`;
+    case "chats.merge":
+      return "Merging chats into a new chat";
     default: {
       const detail = pick("query") || pick("path") || pick("action") || pick("url");
       return detail ? `Running ${id} (${detail.slice(0, 60)})` : `Running ${id}`;
     }
   }
+}
+
+/** Everything the user said in this turn: the message, and what they added while it ran. */
+function userWords(context: RouterContext | undefined): string {
+  return [context?.request.prompt ?? "", ...(context?.request.steered ?? [])].join("\n");
+}
+
+/** The chat this turn belongs to (AIRequest.conversationId), if any. */
+function currentChat(context: RouterContext | undefined): ChatConversation | undefined {
+  const id = context?.request.conversationId;
+  return id ? MultiChatStore.getInstance().get(id) : undefined;
 }
 
 function str(args: Record<string, unknown>, key: string): string {
@@ -421,6 +442,185 @@ const EXECUTORS: ToolExecutor[] = [
       };
       rememberPage(taskId, url, read);
       return read;
+    },
+  },
+
+  /* ------------------------- other chats ------------------------- */
+  // LÉLU can find, read, link and merge the user's other chats from
+  // inside a conversation. WHETHER she may is decided by the user's own
+  // words (multichat/ChatConsent) — she can raise a connection, the
+  // user decides. Unauthorized chats are never read.
+
+  {
+    id: "chats.list",
+    parameters: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "Optional words to rank the user's other chats by (matched against their titles).",
+        },
+      },
+    },
+    run: async (args, context) => {
+      const current = currentChat(context);
+      const others = MultiChatStore.getInstance().list().filter((conversation) => conversation.id !== current?.id);
+      if (others.length === 0) return { ok: true, content: "The user has no other chats." };
+      const qTokens = new Set(tokenizeText(str(args, "query")));
+      const ranked = others
+        .map((conversation) => ({
+          conversation,
+          score: tokenizeText(conversation.title).filter((token) => qTokens.has(token)).length,
+        }))
+        .sort((a, b) => b.score - a.score || b.conversation.updatedAt - a.conversation.updatedAt)
+        .slice(0, 15);
+      const lines = ranked.map(({ conversation }) => {
+        const linked = current && (current.linkedIds.includes(conversation.id) || conversation.linkedIds.includes(current.id));
+        return `- “${conversation.title}” — ${conversation.messages.length} messages${linked ? ", linked to this chat" : ""}`;
+      });
+      return {
+        ok: true,
+        content:
+          `The user's other chats (titles only — their contents are not shown here):\n${lines.join("\n")}\n` +
+          "Read one with chats_read only if the user brought it up or agrees; otherwise ask them.",
+      };
+    },
+  },
+
+  {
+    id: "chats.read",
+    parameters: {
+      type: "object",
+      properties: {
+        chat: { type: "string", description: "The other chat's title (or part of it)." },
+        query: { type: "string", description: "What to look for in it (optional)." },
+      },
+      required: ["chat"],
+    },
+    run: async (args, context) => {
+      const current = currentChat(context);
+      if (!current) return { ok: false, content: "This turn is not in a chat, so no other chat can be read." };
+      const target = findChat(str(args, "chat"), MultiChatStore.getInstance().list(), current.id);
+      if (!target) return { ok: false, content: `No other chat matches “${str(args, "chat")}”. Use chats_list to see the titles.` };
+      const consent = consentFor({ prompt: userWords(context), current, target, action: "read" });
+      if (!consent.ok) return { ok: false, content: consent.reason, data: { needsConsent: true, chat: target.title } };
+
+      const qTokens = new Set(tokenizeText(str(args, "query") || (userWords(context))));
+      const messages = target.messages.filter((message) => message.text.trim());
+      const relevant = messages
+        .map((message, index) => ({ message, index, overlap: tokenizeText(message.text).filter((t) => qTokens.has(t)).length }))
+        .filter((item) => item.overlap > 0)
+        .sort((a, b) => b.overlap - a.overlap)
+        .slice(0, 6)
+        .sort((a, b) => a.index - b.index)
+        .map((item) => item.message);
+      const chosen = relevant.length > 0 ? relevant : messages.slice(-8);
+      let budget = 3500;
+      const lines: string[] = [];
+      for (const message of chosen) {
+        if (budget <= 0) break;
+        const text = message.text.replace(/\s+/g, " ").trim().slice(0, Math.min(budget, 900));
+        budget -= text.length;
+        lines.push(`- ${message.role === "assistant" ? "LÉLU" : "User"}: ${text}`);
+      }
+      const taskId = String(context?.request.timestamp ?? Date.now());
+      AgentEventBus.getInstance().emit({
+        type: "cross_chat_reference",
+        taskId,
+        sources: [{ conversationId: target.id, title: target.title, authorization: consent.authorization ?? "asked" }],
+        suggested: [],
+      });
+      return {
+        ok: true,
+        content:
+          `From the chat “${target.title}” (${consent.reason}) — this is that chat's content, not this one's. ` +
+          `When you use it, say it came from “${target.title}”.\n${lines.join("\n")}`,
+        data: { chat: target.title, messages: chosen.length },
+      };
+    },
+  },
+
+  {
+    id: "chats.link",
+    parameters: {
+      type: "object",
+      properties: { chat: { type: "string", description: "The other chat's title (or part of it)." } },
+      required: ["chat"],
+    },
+    run: async (args, context) => {
+      const current = currentChat(context);
+      if (!current) return { ok: false, content: "This turn is not in a chat, so nothing can be linked." };
+      const store = MultiChatStore.getInstance();
+      const target = findChat(str(args, "chat"), store.list(), current.id);
+      if (!target) return { ok: false, content: `No other chat matches “${str(args, "chat")}”.` };
+      const consent = consentFor({ prompt: userWords(context), current, target, action: "link" });
+      if (!consent.ok) return { ok: false, content: consent.reason, data: { needsConsent: true, chat: target.title } };
+      store.link(current.id, target.id);
+      return {
+        ok: true,
+        content: `Linked “${target.title}” to this chat. Its research is available to this chat from now on (the user can unlink it from the tab menu).`,
+      };
+    },
+  },
+
+  {
+    id: "chats.merge",
+    parameters: {
+      type: "object",
+      properties: {
+        chats: {
+          type: "array",
+          items: { type: "string" },
+          description: "The other chats to merge, by title (or part of it). One or more.",
+        },
+        includeThisChat: {
+          type: "boolean",
+          description: "Include the current chat in the merge (default true).",
+        },
+        title: { type: "string", description: "A title for the merged chat (optional)." },
+      },
+      required: ["chats"],
+    },
+    run: async (args, context) => {
+      const current = currentChat(context);
+      if (!current) return { ok: false, content: "This turn is not in a chat, so nothing can be merged." };
+      const store = MultiChatStore.getInstance();
+      const names = stringList(args, "chats");
+      const targets = names.map((name) => ({ name, chat: findChat(name, store.list(), current.id) }));
+      const missing = targets.filter((item) => !item.chat).map((item) => `“${item.name}”`);
+      if (missing.length > 0) return { ok: false, content: `No chat matches ${missing.join(", ")}. Use chats_list to see the titles.` };
+      const chats = [...new Map(targets.map((item) => [item.chat!.id, item.chat!])).values()];
+      const refused = chats
+        .map((chat) => consentFor({ prompt: userWords(context), current, target: chat, action: "merge" }))
+        .filter((result) => !result.ok);
+      if (refused.length > 0) return { ok: false, content: refused.map((result) => result.reason).join(" "), data: { needsConsent: true } };
+      const includeThis = args.includeThisChat !== false;
+      const ids = [...(includeThis ? [current.id] : []), ...chats.map((chat) => chat.id)];
+      if (ids.length < 2) return { ok: false, content: "A merge needs at least two chats." };
+      // Created beside the conversation the user is reading, not instead of it.
+      const merged = store.merge(ids, str(args, "title") || undefined, { activate: false });
+      if (!merged) return { ok: false, content: "The chats could not be merged." };
+      try {
+        const { default: NotificationProvider } = await import("../notifications/NotificationProvider");
+        NotificationProvider.getInstance().notify({
+          type: "info",
+          title: `Merged chat ready: “${merged.title}”`,
+          body: `${merged.messages.length} messages, each labelled with the chat it came from. The originals are unchanged.`,
+          conversationId: merged.id,
+          tag: `merge:${merged.id}`,
+          silent: true,
+        });
+      } catch {
+        // the merge itself succeeded
+      }
+      const sources = ids.map((id) => `“${store.get(id)?.title ?? id}”`).join(", ");
+      return {
+        ok: true,
+        content:
+          `Created the merged chat “${merged.title}” from ${sources}: ${merged.messages.length} messages, each labelled with the chat it came from. ` +
+          "The original chats are unchanged. It is in the user's Chats panel (and its notifications) — tell them where to find it.",
+        data: { mergedId: merged.id, title: merged.title },
+      };
     },
   },
 

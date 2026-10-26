@@ -571,7 +571,7 @@ export default class MultiChatStore {
    * merge), so nothing any of them said is lost or rewritten. The merge
    * becomes active. Undefined when fewer than two distinct chats exist.
    */
-  public merge(ids: string[], title?: string): ChatConversation | undefined {
+  public merge(ids: string[], title?: string, options: { activate?: boolean } = {}): ChatConversation | undefined {
     const sources = [...new Set(ids)]
       .map((id) => this.get(id))
       .filter((conversation): conversation is ChatConversation => Boolean(conversation));
@@ -606,8 +606,11 @@ export default class MultiChatStore {
         conversation.linkedIds = [...conversation.linkedIds, merged.id];
       }
     }
-    this.activeId = merged.id;
-    this.persist([merged, ...conversations].slice(0, MAX_ACTIVE), merged.id);
+    // LÉLU merging from inside a reply does not pull the user away from
+    // the conversation they are reading; a merge they start does.
+    const activate = options.activate ?? true;
+    if (activate) this.activeId = merged.id;
+    this.persist([merged, ...conversations].slice(0, MAX_ACTIVE), activate ? merged.id : undefined);
     return merged;
   }
 

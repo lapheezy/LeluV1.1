@@ -137,7 +137,8 @@ export type AgentEvent =
   | {
       type: "cross_chat_reference";
       taskId: string;
-      sources: Array<{ conversationId: string; title: string; authorization: "linked" | "project" }>;
+      /** linked / same project, or "asked": the user brought it up or agreed in this chat. */
+      sources: Array<{ conversationId: string; title: string; authorization: "linked" | "project" | "asked" }>;
       suggested: string[];
     }
   /**
