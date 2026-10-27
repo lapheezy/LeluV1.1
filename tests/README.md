@@ -281,3 +281,5 @@ npx tsx --import ./scripts/find-leaked-handles.mjs --test tests/<file>.test.ts
 
 It prints the creation stack of every timer still referenced when the work is
 done. Fix the owner it names; do not reach for the flag.
+
+<!-- LELU_VERIFICATION_MARKER mvqyldvo -->
