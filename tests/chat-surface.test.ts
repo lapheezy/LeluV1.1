@@ -35,7 +35,7 @@ import { readFileSync } from "node:fs";
 import { resolveSurface } from "../src/app/scene/genesis/surface/Surface";
 import { chatFillsScreen } from "../src/app/scene/genesis/chat/chatLayout";
 import { measure } from "../src/core/ui/Workspace";
-import { thrownMessage } from "../src/app/scene/genesis/GenesisErrorBoundary";
+import { thrownMessage } from "../src/app/scene/genesis/thrownMessage";
 
 const code = (path: string) => readFileSync(path, "utf8");
 

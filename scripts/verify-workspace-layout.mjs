@@ -296,6 +296,31 @@ for (const [vpName, viewport, isMobile] of viewports) {
   // undecodable image goes through the real file input, and GenesisChat
   // calls notify("Lélu Error", …) from the same catch a user sees. See
   // provokeToast for why this replaced cutting the model broker.
+  //
+  // Except where the chat owns a phone screen (surface/Surface): there
+  // nothing is thrown over the transcript at all. The same provoked
+  // failure must then be in the Chats panel's notifications, and no
+  // toast layer may exist — measured, not assumed.
+  const chatOwnsScreen = await page.evaluate(() => {
+    const shown = [...document.querySelectorAll("[data-lelu-chat-window]")].some((el) => getComputedStyle(el).display !== "none");
+    return shown && (innerWidth <= 720 || innerHeight <= 520);
+  });
+  if (chatOwnsScreen) {
+    await provokeToast(page);
+    const inbox = await page
+      .waitForFunction(async () => {
+        const { default: Provider } = await import("/src/core/notifications/NotificationProvider.ts");
+        return Provider.getInstance().history().some((record) => /could not decode/i.test(`${record.title} ${record.body ?? ""}`));
+      }, { timeout: 20000 })
+      .then(() => true)
+      .catch(() => false);
+    check(`the provoked failure is in the notifications inbox @ ${vpName}`, inbox);
+    check(`no toast layer over the phone chat @ ${vpName}`, !(await page.$("[data-lelu-notifications]")));
+    if (fatal.length) check(`no fatal error @ ${vpName}`, false, fatal[0]);
+    await page.close();
+    continue;
+  }
+
   const toastsShown = await provokeToast(page);
   check(`a real toast is on screen to be measured @ ${vpName}`, toastsShown > 0,
     toastsShown > 0

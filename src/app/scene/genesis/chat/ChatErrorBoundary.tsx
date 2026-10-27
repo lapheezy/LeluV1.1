@@ -12,7 +12,7 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import Sentinel from "../../../../core/sentinel/Sentinel";
 import { layer } from "../../../../core/ui/Layers";
-import { thrownMessage } from "../GenesisErrorBoundary";
+import { thrownMessage } from "../thrownMessage";
 
 interface Props {
   children: ReactNode;
