@@ -41,7 +41,7 @@ await page.evaluate(() => document.querySelector('[aria-label="LÉLU"]')?.click(
 await page.waitForTimeout(2500);
 
 console.log("\n=== WORKSPACE / TAB STATE ISOLATION ===");
-check("the chat opened", Boolean(await page.$("[data-lelu-composer]")));
+check("the chat opened", Boolean(await page.isVisible("[data-lelu-composer]").catch(() => false)));
 
 /** Which conversation the workspace considers active, and its transcript. */
 async function snapshot() {

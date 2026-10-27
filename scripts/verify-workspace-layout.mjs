@@ -92,7 +92,7 @@ async function dismissSignInGate(page) {
  * to run at all.
  */
 async function openChat(page) {
-  if (await page.$("[data-lelu-composer]")) return true;
+  if (await page.isVisible("[data-lelu-composer]").catch(() => false)) return true;
 
   // Wide layouts carry a LÉLU entry in the rail.
   await page.evaluate(() => {
@@ -100,7 +100,7 @@ async function openChat(page) {
     if (direct) direct.click?.();
   }).catch(() => {});
   await page.waitForTimeout(2000);
-  if (await page.$("[data-lelu-composer]")) return true;
+  if (await page.isVisible("[data-lelu-composer]").catch(() => false)) return true;
 
   // Compact layouts go through the pill, then the menu's Chat entry. The
   // entry's text is "◎\nChat\n›", so an exact-match selector finds nothing.
@@ -115,7 +115,7 @@ async function openChat(page) {
     chat?.click();
   });
   await page.waitForTimeout(2500);
-  return Boolean(await page.$("[data-lelu-composer]"));
+  return Boolean(await page.isVisible("[data-lelu-composer]").catch(() => false));
 }
 
 /**

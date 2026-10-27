@@ -474,6 +474,14 @@ interface GenesisDockProps {
    * Visual dock tab reflect the live VisualEngine state.
    */
   visualActive?: boolean;
+  /**
+   * The conversation is the whole (phone-sized) screen — surface/Surface.
+   * The dock then takes its phone shape whatever the width: no rail and
+   * no pill, only the LÉLU menu the chat header's ☰ opens. A landscape
+   * phone is 844px wide, which used to put a tablet rail down the left
+   * of the full-screen chat and push the conversation over.
+   */
+  chatOwnsScreen?: boolean;
   /** Earth Core hold → voice activation callback. */
   onCoreHoldVoice?: () => void;
   /** Self Exploration toggle state + handler. */
@@ -490,11 +498,13 @@ export default function GenesisDock({
   reasoningActive = false,
   engineErrorCount = 0,
   visualActive = false,
+  chatOwnsScreen = false,
   onCoreHoldVoice,
   selfExplorationEnabled = true,
   onToggleSelfExploration,
 }: GenesisDockProps) {
-  const breakpoint = useBreakpoint();
+  const measuredBreakpoint = useBreakpoint();
+  const breakpoint: Breakpoint = chatOwnsScreen ? "mobile" : measuredBreakpoint;
   const dockSettings = useDockSettings();
   // Mobile-only long-press state, but declared unconditionally: these
   // were previously created inside `if (breakpoint === "mobile")`

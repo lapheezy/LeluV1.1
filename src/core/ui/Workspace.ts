@@ -53,6 +53,13 @@ export interface WorkspaceMetrics {
    * difference between this and `height` is how much is being covered.
    */
   visibleHeight: number;
+  /**
+   * How far the visible area starts below the top of the layout (the
+   * visual viewport's offsetTop). iOS Safari scrolls the page up under an
+   * open keyboard, so a `top: 0` layer is partly off-screen unless it
+   * starts here. 0 when nothing is covering the view.
+   */
+  visibleTop: number;
   /** True when something (almost always a keyboard) is covering the view. */
   keyboardOpen: boolean;
   /** Device safe-area insets, already resolved to numbers. */
@@ -101,6 +108,7 @@ const FALLBACK: WorkspaceMetrics = {
   compact: false,
   portrait: false,
   visibleHeight: 800,
+  visibleTop: 0,
   keyboardOpen: false,
   safeTop: 0,
   safeBottom: 0,
@@ -113,6 +121,7 @@ export function measure(
   height: number,
   options: {
     visibleHeight?: number;
+    visibleTop?: number;
     safeTop?: number;
     safeBottom?: number;
     embedded?: boolean;
@@ -126,6 +135,7 @@ export function measure(
     compact: width < BREAKPOINTS.compact,
     portrait: height > width,
     visibleHeight,
+    visibleTop: Math.max(0, options.visibleTop ?? 0),
     // A small shortfall is browser chrome rounding; a large one is a
     // keyboard. 120px is comfortably above the former and below any
     // on-screen keyboard.
@@ -159,13 +169,14 @@ export default class Workspace {
     const win = globalThis as {
       innerWidth?: number;
       innerHeight?: number;
-      visualViewport?: { height?: number };
+      visualViewport?: { height?: number; offsetTop?: number };
     };
     if (typeof win.innerWidth !== "number" || typeof win.innerHeight !== "number") {
       return FALLBACK;
     }
     return measure(win.innerWidth, win.innerHeight, {
       visibleHeight: win.visualViewport?.height ?? win.innerHeight,
+      visibleTop: win.visualViewport?.offsetTop ?? 0,
       safeTop: safeArea("top"),
       safeBottom: safeArea("bottom"),
       embedded: isEmbedded(),
@@ -195,12 +206,13 @@ export default class Workspace {
     this.observer = new Observer((entries) => {
       const box = entries[0]?.contentRect;
       if (!box) return;
-      const win = globalThis as { visualViewport?: { height?: number } };
+      const win = globalThis as { visualViewport?: { height?: number; offsetTop?: number } };
       this.publish(
         measure(box.width, box.height, {
           // The visual viewport is a window-level fact even when the
           // container is smaller, so it is clamped to the container.
           visibleHeight: Math.min(box.height, win.visualViewport?.height ?? box.height),
+          visibleTop: win.visualViewport?.offsetTop ?? 0,
           safeTop: safeArea("top"),
           safeBottom: safeArea("bottom"),
           embedded: isEmbedded(),
@@ -227,11 +239,12 @@ export default class Workspace {
     this.viewportBound = true;
     const onChange = (): void => {
       const box = this.element?.getBoundingClientRect();
-      const win = globalThis as { visualViewport?: { height?: number } };
+      const win = globalThis as { visualViewport?: { height?: number; offsetTop?: number } };
       const height = box?.height ?? this.metrics.height;
       this.publish(
         measure(box?.width ?? this.metrics.width, height, {
           visibleHeight: Math.min(height, win.visualViewport?.height ?? height),
+          visibleTop: win.visualViewport?.offsetTop ?? 0,
           safeTop: this.metrics.safeTop,
           safeBottom: this.metrics.safeBottom,
           embedded: this.metrics.embedded,
@@ -265,6 +278,7 @@ export default class Workspace {
       Math.round(next.width) === Math.round(current.width) &&
       Math.round(next.height) === Math.round(current.height) &&
       Math.round(next.visibleHeight) === Math.round(current.visibleHeight) &&
+      Math.round(next.visibleTop) === Math.round(current.visibleTop) &&
       next.size === current.size;
     if (same) return;
     this.metrics = next;

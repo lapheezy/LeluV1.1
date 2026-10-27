@@ -86,7 +86,7 @@ import { recordTurnActivity } from "./chat/activityRecorder";
 import { notifyTurnOutcome } from "../../../core/notifications/NotificationRouting";
 import ChatTranscript from "./chat/ChatTranscript";
 import { describeFailure, isNearBottom, type ChatFailure } from "./chat/chatTranscript";
-import { useDockInset } from "./chat/chatLayout";
+import { chatFillsScreen } from "./chat/chatLayout";
 import "./chat/cloudChat.css";
 
 const ai = AIService.getInstance();
@@ -218,7 +218,7 @@ function fileContextPrompt(files: PendingFile[]): string {
  * The dialogue layer itself.
  * ---------------------------------------------------------- */
 
-export default function GenesisChat({ onExit }: { onExit?: () => void }) {
+export default function GenesisChat({ onExit, hidden = false }: { onExit?: () => void; hidden?: boolean }) {
   const { state, openPanel, addMessage, upsertMessage, setDialogue, notify, crossChatReference, createConversation, minimize } = useGenesis();
   const voiceView = useVoice();
   const navigate = useNavigate();
@@ -280,10 +280,22 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   const voiceEngineRef = useRef(voiceView.engine);
   voiceEngineRef.current = voiceView.engine;
 
-  // Real measurement: the chat surface is mounted and usable.
+  /**
+   * Closed is HIDDEN, not unmounted (see GenesisInterface): a turn still
+   * running keeps the component that owns its queue, its Stop control and
+   * its streamed text. Everything that acts on the page — document keys,
+   * focus, marking a question as seen — only does so while shown.
+   */
+  const hiddenRef = useRef(hidden);
+  hiddenRef.current = hidden;
+
+  // Real measurement: the chat surface is shown and usable.
+  const readyMarkedRef = useRef(false);
   useEffect(() => {
+    if (hidden || readyMarkedRef.current) return;
+    readyMarkedRef.current = true;
     markPerf("CHAT_READY");
-  }, []);
+  }, [hidden]);
 
   // Live artifact stream: when LÉLU's execution produces a real image
   useEffect(() => {
@@ -328,7 +340,6 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   const steeredRef = useRef<Map<string, Array<{ text: string; userMessageId: string }>>>(new Map());
   /** A steered message being answered as its own turn, read once by send(). */
   const followUpRef = useRef<{ text: string; userMessageId: string; conversationId: string } | null>(null);
-  const mountedAtRef = useRef(Date.now());
   const timersRef = useRef<number[]>([]);
 
   useEffect(() => {
@@ -376,7 +387,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       : null;
   // Count the surface once it is really on screen, so "shown and ignored"
   // is a real signal the lifecycle can act on, not something inferred.
-  const surfacedQuestionId = shownQuestion?.status === "pending" ? shownQuestion.id : null;
+  const surfacedQuestionId = !hidden && shownQuestion?.status === "pending" ? shownQuestion.id : null;
   useEffect(() => {
     if (surfacedQuestionId) proactive.markQuestionSurfaced(surfacedQuestionId);
   }, [surfacedQuestionId]);
@@ -446,13 +457,11 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   const setDialogueRef = useRef(setDialogue);
   setDialogueRef.current = setDialogue;
   useEffect(() => {
-    mountedAtRef.current = Date.now();
-    setDialogueRef.current("listening");
-    inputRef.current?.focus();
-
     voiceEngineRef.current.unlockAudio();
 
     function handleDocumentKey(event: KeyboardEvent) {
+      // A hidden chat must not take Escape from whatever is on screen.
+      if (hiddenRef.current) return;
       if (event.key === "Escape") {
         if (menusOpenRef.current) return;
         event.preventDefault();
@@ -481,6 +490,18 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Each time the chat is shown: ready to listen, composer focused. A
+  // turn still running in this conversation keeps its own phase — this
+  // used to reset it to "listening" on every open, so a reply in flight
+  // looked finished.
+  useEffect(() => {
+    if (hidden) return;
+    if (!liveTurnsRef.current.has(MultiChatStore.getInstance().getActiveId())) {
+      setDialogueRef.current("listening");
+    }
+    inputRef.current?.focus();
+  }, [hidden]);
 
   /**
    * The view follows the ACTIVE WORKSPACE.
@@ -581,7 +602,6 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
             ? await processImageFile(file)
             : await processVideoFile(file);
         setPendingMedia((current) => [...current, processed].slice(-4));
-        setDialogue("typing");
       } catch (error) {
         notify(
           "Lélu Error",
@@ -596,7 +616,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         }
       }
     },
-    [mediaBusy, notify, setDialogue],
+    [mediaBusy, notify],
   );
 
   const attachFiles = useCallback(
@@ -633,7 +653,6 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
           });
         }
         setPendingFiles((current) => [...current, ...attached].slice(-4));
-        setDialogue("typing");
       } finally {
         setMediaBusy(false);
         if (fileInputRef.current) {
@@ -641,7 +660,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         }
       }
     },
-    [mediaBusy, setDialogue],
+    [mediaBusy],
   );
 
   const stopTurn = useCallback(() => {
@@ -1040,9 +1059,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
    */
   // Same rule as chat/chatLayout chatFillsScreen(): narrow OR short (a
   // landscape phone) gets the full-screen sky.
-  const isMobileViewport = workspace.width <= 720 || workspace.height <= 520;
-  /** A left navigation rail (tablet/desktop dock) the full-screen sky must not sit under. */
-  const dockInset = useDockInset(isMobileViewport && chatPos.x < 0);
+  const isMobileViewport = chatFillsScreen(workspace);
   /** Short screens (a phone on its side) fold the question card to one line. */
   const shortScreen = workspace.visibleHeight < 560;
   const [questionOpen, setQuestionOpen] = useState(false);
@@ -1167,6 +1184,8 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     const content = scroller?.firstElementChild;
     if (!scroller || !content || typeof ResizeObserver !== "function") return;
     const observer = new ResizeObserver(() => {
+      // Hiding collapses the content to nothing; that is not a new reply.
+      if (hiddenRef.current) return;
       if (followRef.current) scroller.scrollTop = scroller.scrollHeight;
       else setUnseenReply(true);
     });
@@ -1185,7 +1204,8 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   useEffect(() => {
     const id = window.requestAnimationFrame(() => scrollToLatest());
     return () => window.cancelAnimationFrame(id);
-  }, [state.activeConversationId, chatMinimized, scrollToLatest]);
+    // `hidden` too: a display:none scroller loses its position.
+  }, [state.activeConversationId, chatMinimized, hidden, scrollToLatest]);
 
   /**
    * Only the user can stop the view following. Content growing under the
@@ -1377,6 +1397,9 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     </button>
   );
 
+  // Closed (Home): nothing is drawn, the turn bookkeeping stays alive.
+  if (hidden && chatMinimized) return null;
+
   // Minimized bubble
   if (chatMinimized) {
     return (
@@ -1429,13 +1452,16 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
             maxHeight: "calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px)",
           }
         : {
-            // MOBILE: the chat IS the app — the whole sky. While a keyboard
-            // covers part of the screen, the sky shrinks to what is visible
-            // so the composer rides above the keyboard instead of under it.
-            left: dockInset,
+            // MOBILE: the chat owns the whole screen (surface/Surface) —
+            // edge to edge, nothing beside it and no scene behind it; the
+            // safe areas are padding inside it, not gaps around it. While
+            // a keyboard covers part of the screen, the sky is exactly the
+            // visible part — starting where iOS has scrolled the visible
+            // area to — so the composer rides above the keyboard.
+            left: 0,
             right: 0,
-            top: 0,
-            width: dockInset > 0 ? `calc(100% - ${dockInset}px)` : "100%",
+            top: workspace.keyboardOpen ? workspace.visibleTop : 0,
+            width: "100vw",
             height: workspace.keyboardOpen ? workspace.visibleHeight : "100dvh",
             maxHeight: "100dvh",
           }
@@ -1453,7 +1479,9 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
               height: floatHeight,
             }
           : { left: chatPos.x, top: chatPos.y, width: floatWidth, height: floatHeight }),
-    display: "flex",
+    // Hidden keeps the transcript's DOM (and its scroll position), not
+    // its layout or paint.
+    display: hidden ? "none" : "flex",
     flexDirection: "column",
     borderRadius: isFullMobile ? 0 : 30,
     border: isFullMobile ? "none" : "1px solid rgba(255, 228, 248, 0.16)",
@@ -1464,7 +1492,9 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.97 }}
+      // Full screen opens in place: a scaled-down first frame showed a
+      // band of whatever was behind it around the edges.
+      initial={{ opacity: 0, scale: isFullMobile ? 1 : 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
@@ -1825,12 +1855,13 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
               ref={inputRef}
               value={input}
               onChange={(event) => {
-                const value = event.target.value;
-                setInput(value);
-                // Only on a real change of phase: every setDialogue re-renders
-                // the whole Genesis tree, which per keystroke is a lot of work.
-                const phase = value.trim().length > 0 ? "typing" : "listening";
-                if (state.dialogue !== phase) setDialogue(phase);
+                // The draft is the composer's own state. It used to set the
+                // global dialogue phase to "typing": that re-rendered the
+                // whole Genesis tree, energised the 3D Core (a Cosmos cycle
+                // reacting to keystrokes), and — typed while a reply was
+                // running — overwrote "processing", so the Core showed LÉLU
+                // idle mid-turn. Typing is not a cognition event.
+                setInput(event.target.value);
               }}
               onKeyDown={(event) => {
                 // Enter sends, as it always has; Shift+Enter is a new line.

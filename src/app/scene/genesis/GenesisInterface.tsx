@@ -32,7 +32,8 @@ import GenesisDock from "./GenesisDock";
 import GenesisCommandPalette from "./GenesisCommandPalette";
 import { genesisTheme } from "./GenesisTheme";
 import GenesisChat from "./GenesisChat";
-import GenesisErrorBoundary from "./GenesisErrorBoundary";
+import ChatErrorBoundary from "./chat/ChatErrorBoundary";
+import { useSurface } from "./surface/useSurface";
 import MultiChatTabs from "./MultiChatTabs";
 import GenesisReasoningPanel from "./GenesisReasoningPanel";
 import GenesisDiagnosticsPanel from "./GenesisDiagnosticsPanel";
@@ -246,6 +247,7 @@ export default function GenesisInterface() {
     setActiveScene,
   } = useGenesis();
   const voice = useVoice();
+  const surface = useSurface();
 
   useEffect(() => {
     genesisInterfaceMountCount += 1;
@@ -646,6 +648,7 @@ export default function GenesisInterface() {
             reasoningActive={Boolean(state.cognition?.reasoning)}
             engineErrorCount={state.engineStatuses.filter((engine) => Boolean(engine.error)).length}
             visualActive={systemEnvironmentActive}
+            chatOwnsScreen={surface.chatOwnsScreen}
             onCoreHoldVoice={handleCoreHoldVoice}
             selfExplorationEnabled={state.selfExplorationEnabled}
             onToggleSelfExploration={() => setSelfExploration(!state.selfExplorationEnabled)}
@@ -656,11 +659,12 @@ export default function GenesisInterface() {
 
           {/* The ambient visual layer behind the primary environment — fed
               by the same real agent events through VisualBridge. */}
-          {sceneIsV2 || systemEnvironmentActive ? null : <VisualInterface />}
+          {sceneIsV2 || systemEnvironmentActive || surface.chatOwnsScreen ? null : <VisualInterface />}
 
           {/* Top chrome: expand chip (when minimized) + command palette +
               fullscreen. The palette and fullscreen stay usable in both
               states. */}
+          {surface.chatOwnsScreen ? null : (
           <div
             style={{
               position: "absolute",
@@ -727,6 +731,7 @@ export default function GenesisInterface() {
               </div>
             )}
           </div>
+          )}
         </div>
 
       {/* Multi-Chat tab bar — visible while the dialogue surface is open so
@@ -737,17 +742,20 @@ export default function GenesisInterface() {
       {/* Explorer cards — autonomous LÉLU discoveries as small floating cards */}
 
 
-      {/* Chat is the PERSISTENT core of the unified UI: it stays mounted
-          and interactive while any environment module is open, so the main
-          UI never disappears when LÉLU is working. It unmounts only when
-          the whole interface is minimized or explicitly exited. Wrapped in
-          an error boundary so a failed message render never takes down the
-          app. */}
-      {state.minimized ? null : state.activePanel === "chat" || openModuleIds.length > 0 ? (
-        <GenesisErrorBoundary>
-          <GenesisChat />
-        </GenesisErrorBoundary>
-      ) : null}
+      {/* Chat is the PERSISTENT core of the unified UI: it is shown while
+          chat or any environment module is open, so the main UI never
+          disappears when LÉLU is working. Closing it (going Home) HIDES it
+          rather than unmounting it: a reply still streaming belongs to the
+          mounted chat that sent it, and unmounting mid-turn left the
+          reopened chat with no Stop control, no streamed text and a turn
+          queue that no longer knew the turn was running. It unmounts only
+          when the whole interface is minimized. Its own boundary logs a
+          render error and offers to reopen the conversation. */}
+      {state.minimized ? null : (
+        <ChatErrorBoundary onLeave={handleExitChat}>
+          <GenesisChat hidden={!(state.activePanel === "chat" || openModuleIds.length > 0)} />
+        </ChatErrorBoundary>
+      )}
 
       {/* Unified module host — inline / expanded / minimized windows for
           the SAME module instances (one runtime each). Mounted in every

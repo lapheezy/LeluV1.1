@@ -32,7 +32,7 @@ import { Bell, Ellipsis, GitMerge, Link, MessagesSquare, Pencil, Pin, Plus, Sear
 import { useGenesis } from "./GenesisCore";
 import { layer } from "../../../core/ui/Layers";
 import { useWorkspace } from "./useWorkspace";
-import { chatFillsScreen, useDockInset } from "./chat/chatLayout";
+import { chatFillsScreen } from "./chat/chatLayout";
 import NotificationProvider, { isUnread, type NotificationRecord } from "../../../core/notifications/NotificationProvider";
 
 const NOTIFICATION_ICON: Record<NonNullable<NotificationRecord["type"]>, string> = {
@@ -55,13 +55,15 @@ function timeAgo(timestamp: number): string {
 }
 
 /** Where the bar sits: under the chat's header on phones, over the scene otherwise. */
-function barStyleFor(compact: boolean, leftInset: number): CSSProperties {
+function barStyleFor(compact: boolean, visibleTop: number): CSSProperties {
   return compact
     ? {
+        // Part of the full-screen chat: under its header, moving with it
+        // when iOS scrolls the visible area up for the keyboard.
         position: "fixed",
-        left: leftInset + 10,
+        left: 10,
         right: 10,
-        top: "calc(env(safe-area-inset-top, 0px) + 64px)",
+        top: `calc(env(safe-area-inset-top, 0px) + ${64 + visibleTop}px)`,
         zIndex: layer("tabs"),
         display: "flex",
         alignItems: "center",
@@ -175,7 +177,6 @@ export default function MultiChatTabs() {
   const menuRef = useRef<HTMLDivElement>(null);
   const workspace = useWorkspace();
   const fills = chatFillsScreen(workspace);
-  const dockInset = useDockInset(fills);
 
   useEffect(() => NotificationProvider.getInstance().subscribeHistory((history) => setInbox([...history].reverse())), []);
 
@@ -281,7 +282,7 @@ export default function MultiChatTabs() {
 
   return (
     <>
-      <div data-lelu-multichat className="lelu-tab-bar" style={barStyleFor(fills, dockInset)} role="tablist" aria-label="Conversations">
+      <div data-lelu-multichat className="lelu-tab-bar" style={barStyleFor(fills, workspace.keyboardOpen ? workspace.visibleTop : 0)} role="tablist" aria-label="Conversations">
         <div
           style={{
             display: "flex",

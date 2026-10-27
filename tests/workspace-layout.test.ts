@@ -160,7 +160,9 @@ test("the chat decides compactness from the workspace, not the window", () => {
     !/matchMedia\([^)]*width/.test(source),
     "a window width query cannot see the container the chat is mounted in",
   );
-  assert.match(source, /workspace\.width <= 720/);
+  // The one rule (chat/chatLayout), applied to the measured workspace.
+  assert.match(source, /chatFillsScreen\(workspace\)/);
+  assert.match(code("src/app/scene/genesis/chat/chatLayout.ts"), /workspace\.width <= 720/);
 });
 
 test("core navigation and transient surfaces use the hierarchy, not literals", () => {

@@ -42,6 +42,7 @@ import GenesisController from "./GenesisController";
 import GenesisBridge from "./GenesisBridge";
 import ProactiveBridge from "./ProactiveBridge";
 import VoiceBridge from "./VoiceBridge";
+import { useSurface } from "./surface/useSurface";
 import CoreHoldGesture from "./CoreHoldGesture";
 
 import { useEffect, useRef, useState } from "react";
@@ -300,17 +301,6 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
       }}
     >
       {/*
-        * AI → GENESIS bridges — the real AIService / proactive / voice
-        * event wiring that feeds chat, actions, cognition and voice into
-        * the shared Genesis state. Mounted as DOM siblings of the Canvas
-        * (NOT inside the R3F scene) so no bridge lifecycle code can ever
-        * touch the 3D render loop.
-        */}
-      <GenesisBridge />
-      <ProactiveBridge />
-      <VoiceBridge />
-
-      {/*
         * THE PHASE SKY — a plain DOM layer behind the transparent 3D
         * canvas, driven by the SAME sampleCosmosAtmosphere() as the HUD.
         * It guarantees the atmosphere lifecycle (sunset / static / storm /
@@ -383,12 +373,32 @@ function GenesisWorkspaceRouter() {
   const { state, openPanel } = useGenesis();
   const { state: visualState } = useVisual();
 
+  const surface = useSurface();
+
   const v2Active = state.activeScene === "genesisv2";
   const systemActive = !v2Active && visualState.interfaceFocus === "visual";
 
   return (
     <>
-      {v2Active ? (
+      {/*
+        * AI → GENESIS bridges — the real AIService / proactive / voice
+        * event wiring that feeds chat, actions, cognition and voice into
+        * the shared Genesis state. They lived inside the v1 scene, so
+        * in Gen V2 or the System scene no reply was written back, and
+        * no scene could be left out while chat owns a phone screen.
+        * They belong to the app, not to a scene.
+        */}
+      <GenesisBridge />
+      <ProactiveBridge />
+      <VoiceBridge />
+
+      {!surface.cosmosRendered ? (
+        /* Chat owns the phone screen: no scene is rendered beneath it —
+           not hidden, not behind it. The Core, cognition and the engine
+           tick (below) carry on; only the picture of them stops, and it
+           comes back when the user goes Home. See surface/Surface. */
+        null
+      ) : v2Active ? (
         /* PAGE 3 — Genesis v2 is the complete viewport. Nothing from
            the v1 world is mounted; the shared GenesisCore state below
            stays alive (evolution never pauses). The unified interface
@@ -444,7 +454,7 @@ function GenesisWorkspaceRouter() {
         * These are HTML/CSS layers above the canvas, only visible
         * in the v1 workspace (not v2 or system).
         */}
-      {!v2Active && !systemActive && (
+      {surface.cosmosRendered && !v2Active && !systemActive && (
         <Suspense fallback={null}>
           <CosmosOverview />
         </Suspense>

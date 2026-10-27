@@ -25,6 +25,8 @@ import { useGenesis } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 import { layer } from "../../../core/ui/Layers";
 import { useWorkspace } from "./useWorkspace";
+import { useSurface } from "./surface/useSurface";
+import NotificationProvider from "../../../core/notifications/NotificationProvider";
 
 const AUTO_DISMISS_MS = 6000;
 const MAX_VISIBLE = 4;
@@ -40,6 +42,34 @@ const COMPACT_HEADER_CLEARANCE = 64;
 export default function GenesisNotificationCenter() {
   const { state, dismissNotification } = useGenesis();
   const workspace = useWorkspace();
+  const { chatOwnsScreen } = useSurface();
+
+  /*
+   * While the conversation is the whole phone screen, nothing is thrown
+   * over it: each notification goes to the Chats panel's NOTIFICATIONS
+   * (the NotificationProvider history) instead of a toast across the
+   * transcript. Ones that came from the provider are already there; the
+   * direct notify() calls (errors, voice) are recorded there now.
+   */
+  useEffect(() => {
+    if (!chatOwnsScreen || state.notifications.length === 0) return;
+    const provider = NotificationProvider.getInstance();
+    const recorded = new Set(provider.history().map((record) => record.id));
+    for (const notification of state.notifications) {
+      if (!recorded.has(notification.id)) {
+        provider.notify({
+          type: "info",
+          title: notification.title,
+          body: notification.description,
+          silent: true,
+          tag: `toast:${notification.id}`,
+        });
+      }
+      dismissNotification(notification.id);
+    }
+  }, [chatOwnsScreen, state.notifications, dismissNotification]);
+
+  if (chatOwnsScreen) return null;
 
   const visible = state.notifications.slice(-MAX_VISIBLE);
 

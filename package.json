@@ -26,6 +26,7 @@
     "verify:hydration": "node scripts/verify-authenticated-hydration.mjs",
     "verify:layout": "node scripts/verify-workspace-layout.mjs",
     "verify:workspace": "node scripts/verify-workspace-isolation.mjs",
+    "verify:mobile-chat": "node scripts/verify-mobile-chat.mjs",
     "verify:auth": "node scripts/verify-supabase-auth.mjs",
     "measure:cost": "node scripts/measure-render-cost.mjs"
   },

@@ -105,7 +105,7 @@ test("the sign-in gate waits for an answer before declaring it unconfigured", ()
 test("the gate is asked before chat, not inside it", () => {
   const ui = code("src/app/scene/genesis/GenesisInterface.tsx");
   const gateAt = ui.indexOf("<LeluSignInGate />");
-  const chatAt = ui.indexOf("<GenesisChat />");
+  const chatAt = ui.indexOf("<GenesisChat");
   assert.ok(gateAt > 0, "the gate must be mounted");
   assert.ok(
     gateAt < chatAt,
