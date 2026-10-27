@@ -39,3 +39,5 @@ for f in tests/*.test.ts; do timeout 90 npx tsx --test "$f"; done
 ```
 
 The per-file counts above come from exactly that loop.
+
+<!-- LELU_VERIFICATION_MARKER mvqyjv7l -->
