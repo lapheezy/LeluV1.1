@@ -799,13 +799,58 @@ const EXECUTORS: ToolExecutor[] = [
     },
     run: async (args) => {
       const path = str(args, "path");
-      const content = str(args, "content");
+      // The content exactly as given — str() trims, which silently dropped
+      // a file's trailing newline (measured: a read-back did not match).
+      if (typeof args.content !== "string") {
+        return { ok: false, content: `No content was supplied for "${path}", so nothing was written.` };
+      }
+      const content = args.content;
       if (!path) return { ok: false, content: "sandbox.write requires a path." };
       const { default: SandboxFS } = await import("../engineering/SandboxFS");
       const result = SandboxFS.getInstance().write(path, content);
       return result.ok
         ? { ok: true, content: `Wrote ${content.length} character(s) to "${path}".` }
         : { ok: false, content: result.error ?? `Could not write "${path}".` };
+    },
+  },
+
+  {
+    id: "sandbox.execute",
+    parameters: {
+      type: "object",
+      properties: {
+        path: { type: "string", description: "The sandbox file to run (for kind 'run')." },
+        kind: {
+          type: "string",
+          enum: ["run", "test", "syntax"],
+          description: "run an entry file, run the sandbox test files, or syntax-check every JS file. Defaults to run.",
+        },
+        timeoutMs: { type: "number", description: "Execution limit in ms (100–30000). Defaults to 8000." },
+      },
+    },
+    run: async (args) => {
+      const { default: SandboxRuntime } = await import("../engineering/SandboxRuntime");
+      const kind = (["run", "test", "syntax"].includes(str(args, "kind")) ? str(args, "kind") : "run") as "run" | "test" | "syntax";
+      const path = str(args, "path");
+      if (kind === "run" && !path) return { ok: false, content: "sandbox.execute (run) requires the path of the file to run." };
+      const timeoutMs = typeof args.timeoutMs === "number" ? args.timeoutMs : undefined;
+      const runtime = SandboxRuntime.getInstance();
+      // The worker's own verdict, reported as it came back: exit code,
+      // timeout and both streams. Nothing here decides it "worked".
+      const result =
+        kind === "test" ? await runtime.test(timeoutMs)
+        : kind === "syntax" ? await runtime.syntaxCheck(timeoutMs)
+        : await runtime.runFile(path, timeoutMs);
+      const verdict = result.timedOut
+        ? "TIMED OUT — the worker was terminated"
+        : result.ok ? "PASSED" : "FAILED";
+      const streams =
+        `stdout:\n${result.stdout.trim() || "(empty)"}\n\nstderr:\n${result.stderr.trim() || "(empty)"}`;
+      return {
+        ok: result.ok,
+        content: `${kind}${path ? ` ${path}` : ""} exited ${result.exitCode} after ${result.durationMs}ms (${verdict}).\n\n${streams.slice(0, 6000)}`,
+        data: { exitCode: result.exitCode, timedOut: result.timedOut, durationMs: result.durationMs, tests: result.tests },
+      };
     },
   },
 
@@ -1117,6 +1162,236 @@ const EXECUTORS: ToolExecutor[] = [
           `${result.authorizedBy}: ${result.applied.join(", ")}${post}`,
         data: { applied: result.applied, postApply: state.postApply },
       };
+    },
+  },
+
+  /* ---------------- GitHub (through the server proxy) ---------------- */
+
+  {
+    id: "github.auth",
+    parameters: { type: "object", properties: {} },
+    run: async () => {
+      const { default: GitHubIntegration } = await import("../engineering/GitHubIntegration");
+      const status = await GitHubIntegration.getInstance().getStatus();
+      return status.configured && status.user
+        ? { ok: true, content: `GitHub is connected as ${status.user.login}.`, data: { login: status.user.login } }
+        : { ok: false, content: `GitHub is not connected: ${status.error ?? "no token is configured on the server."}` };
+    },
+  },
+
+  {
+    id: "github.repos",
+    parameters: {
+      type: "object",
+      properties: {
+        owner: { type: "string", description: "Repository owner. Omit both owner and repo to list accessible repositories." },
+        repo: { type: "string", description: "Repository name." },
+      },
+    },
+    run: async (args) => {
+      const { default: GitHubIntegration } = await import("../engineering/GitHubIntegration");
+      const github = GitHubIntegration.getInstance();
+      const owner = str(args, "owner");
+      const repo = str(args, "repo");
+      if (owner && repo) {
+        const result = await github.call<{ full_name: string; default_branch: string; private: boolean; permissions?: Record<string, boolean>; pushed_at?: string }>(`/repos/${owner}/${repo}`);
+        if (!result.ok) return { ok: false, content: result.error ?? "GitHub request failed." };
+        const data = result.data;
+        return {
+          ok: true,
+          content:
+            `${data.full_name} — default branch ${data.default_branch}, ${data.private ? "private" : "public"}` +
+            `${data.permissions ? `, permissions: ${Object.entries(data.permissions).filter(([, v]) => v).map(([k]) => k).join(", ")}` : ""}` +
+            `${data.pushed_at ? `, last push ${data.pushed_at}` : ""}.`,
+          data,
+        };
+      }
+      const result = await github.call<Array<{ full_name: string }>>("/user/repos?per_page=50&sort=pushed");
+      if (!result.ok || !Array.isArray(result.data)) return { ok: false, content: result.error ?? "GitHub request failed." };
+      return { ok: true, content: result.data.map((entry) => entry.full_name).join("\n") || "(no repositories)", data: { count: result.data.length } };
+    },
+  },
+
+  {
+    id: "github.files",
+    parameters: {
+      type: "object",
+      properties: {
+        owner: { type: "string" },
+        repo: { type: "string" },
+        path: { type: "string", description: "File or directory path in the repository. '' for the root." },
+        ref: { type: "string", description: "Branch, tag or commit sha. Defaults to the default branch." },
+      },
+      required: ["owner", "repo"],
+    },
+    run: async (args) => {
+      const { default: GitHubIntegration } = await import("../engineering/GitHubIntegration");
+      const owner = str(args, "owner");
+      const repo = str(args, "repo");
+      const path = str(args, "path").replace(/^\/+/, "");
+      const ref = str(args, "ref");
+      const result = await GitHubIntegration.getInstance().call<unknown>(
+        `/repos/${owner}/${repo}/contents/${path}${ref ? `?ref=${encodeURIComponent(ref)}` : ""}`,
+      );
+      if (!result.ok) return { ok: false, content: result.error ?? "GitHub request failed." };
+      if (Array.isArray(result.data)) {
+        const entries = result.data as Array<{ path: string; type: string; size?: number }>;
+        return { ok: true, content: entries.map((entry) => `${entry.type === "dir" ? "[dir] " : "      "}${entry.path}`).join("\n"), data: { count: entries.length } };
+      }
+      const file = result.data as { path?: string; sha?: string; content?: string; encoding?: string; size?: number };
+      if (typeof file.content !== "string") return { ok: false, content: `"${path}" is not a readable file.` };
+      const bytes = Uint8Array.from(atob(file.content.replace(/\n/g, "")), (char) => char.charCodeAt(0));
+      const text = new TextDecoder().decode(bytes);
+      const MAX = 60_000;
+      return {
+        ok: true,
+        content: text.length > MAX ? `${text.slice(0, MAX)}\n…[truncated at ${MAX} characters of ${text.length}]` : text,
+        data: { path: file.path, sha: file.sha, size: file.size, ref: ref || "(default branch)" },
+      };
+    },
+  },
+
+  {
+    id: "github.branches",
+    parameters: {
+      type: "object",
+      properties: {
+        owner: { type: "string" },
+        repo: { type: "string" },
+        action: { type: "string", enum: ["list", "create"], description: "Defaults to list." },
+        name: { type: "string", description: "For create: the new branch name. Never the default branch." },
+        from: { type: "string", description: "For create: the branch to start from. Defaults to the default branch." },
+      },
+      required: ["owner", "repo"],
+    },
+    run: async (args) => {
+      const { default: GitHubIntegration } = await import("../engineering/GitHubIntegration");
+      const github = GitHubIntegration.getInstance();
+      const owner = str(args, "owner");
+      const repo = str(args, "repo");
+      if (str(args, "action") !== "create") {
+        const result = await github.call<Array<{ name: string; commit: { sha: string } }>>(`/repos/${owner}/${repo}/branches?per_page=100`);
+        if (!result.ok || !Array.isArray(result.data)) return { ok: false, content: result.error ?? "GitHub request failed." };
+        return { ok: true, content: result.data.map((branch) => `${branch.name} ${branch.commit.sha.slice(0, 8)}`).join("\n"), data: { count: result.data.length } };
+      }
+      const refused = githubWriteRefusal();
+      if (refused) return { ok: false, content: refused };
+      const name = str(args, "name");
+      if (!name) return { ok: false, content: "Creating a branch needs a name." };
+      const repoInfo = await github.call<{ default_branch: string }>(`/repos/${owner}/${repo}`);
+      if (!repoInfo.ok) return { ok: false, content: repoInfo.error ?? "GitHub request failed." };
+      if (name === repoInfo.data.default_branch) return { ok: false, content: `"${name}" is the default branch; work happens on a new branch.` };
+      const from = str(args, "from") || repoInfo.data.default_branch;
+      const base = await github.call<{ commit: { sha: string } }>(`/repos/${owner}/${repo}/branches/${encodeURIComponent(from)}`);
+      if (!base.ok) return { ok: false, content: base.error ?? `Could not read branch "${from}".` };
+      const created = await github.call<{ ref: string; object: { sha: string } }>(`/repos/${owner}/${repo}/git/refs`, "POST", {
+        ref: `refs/heads/${name}`,
+        sha: base.data.commit.sha,
+      });
+      if (!created.ok) return { ok: false, content: `Branch "${name}" was NOT created: ${created.error}` };
+      return { ok: true, content: `Created branch ${name} on GitHub at ${created.data.object.sha} (from ${from}).`, data: { branch: name, sha: created.data.object.sha } };
+    },
+  },
+
+  {
+    id: "github.commits",
+    parameters: {
+      type: "object",
+      properties: {
+        owner: { type: "string" },
+        repo: { type: "string" },
+        action: { type: "string", enum: ["list", "show", "commit"], description: "Defaults to list." },
+        branch: { type: "string", description: "list: the branch to list. commit: the branch to commit to (never the default branch)." },
+        sha: { type: "string", description: "show: the commit to read." },
+        path: { type: "string", description: "commit: the file to create or replace." },
+        content: { type: "string", description: "commit: the COMPLETE new file content." },
+        message: { type: "string", description: "commit: the commit message." },
+      },
+      required: ["owner", "repo"],
+    },
+    run: async (args) => {
+      const { default: GitHubIntegration } = await import("../engineering/GitHubIntegration");
+      const github = GitHubIntegration.getInstance();
+      const owner = str(args, "owner");
+      const repo = str(args, "repo");
+      const action = str(args, "action") || "list";
+      if (action === "show") {
+        const sha = str(args, "sha");
+        const result = await github.call<{ sha: string; commit: { message: string; author: { name: string; date: string } }; files?: Array<{ filename: string; status: string; additions: number; deletions: number }> }>(`/repos/${owner}/${repo}/commits/${encodeURIComponent(sha)}`);
+        if (!result.ok) return { ok: false, content: result.error ?? "GitHub request failed." };
+        const files = (result.data.files ?? []).map((file) => `${file.status} ${file.filename} (+${file.additions}/-${file.deletions})`).join("\n");
+        return { ok: true, content: `${result.data.sha}\n${result.data.commit.message}\n\n${files}`, data: { sha: result.data.sha } };
+      }
+      if (action === "list") {
+        const branch = str(args, "branch");
+        const result = await github.call<Array<{ sha: string; commit: { message: string } }>>(`/repos/${owner}/${repo}/commits?per_page=10${branch ? `&sha=${encodeURIComponent(branch)}` : ""}`);
+        if (!result.ok || !Array.isArray(result.data)) return { ok: false, content: result.error ?? "GitHub request failed." };
+        return { ok: true, content: result.data.map((entry) => `${entry.sha.slice(0, 8)} ${entry.commit.message.split("\n")[0]}`).join("\n"), data: { count: result.data.length } };
+      }
+      const refused = githubWriteRefusal();
+      if (refused) return { ok: false, content: refused };
+      const branch = str(args, "branch");
+      const path = str(args, "path").replace(/^\/+/, "");
+      const message = str(args, "message");
+      if (!branch || !path || !message || typeof args.content !== "string") {
+        return { ok: false, content: "A GitHub commit needs branch, path, content and message; nothing was committed." };
+      }
+      const repoInfo = await github.call<{ default_branch: string }>(`/repos/${owner}/${repo}`);
+      if (!repoInfo.ok) return { ok: false, content: repoInfo.error ?? "GitHub request failed." };
+      if (branch === repoInfo.data.default_branch) {
+        return { ok: false, content: `Nothing was committed: "${branch}" is the default branch. Commit to a working branch.` };
+      }
+      // Replacing a file needs its current blob sha on that branch.
+      const existing = await github.call<{ sha?: string }>(`/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(branch)}`);
+      const put = await github.putFile(owner, repo, path, args.content, message, branch, existing.ok ? existing.data.sha : undefined);
+      if (!put.ok || !put.data.commit?.sha) return { ok: false, content: `Nothing was committed: ${put.error ?? "GitHub returned no commit."}` };
+      // Confirmed by GitHub, not by the write's own reply: read the commit back.
+      const confirmed = await github.call<{ sha: string }>(`/repos/${owner}/${repo}/commits/${put.data.commit.sha}`);
+      if (!confirmed.ok) {
+        return { ok: false, content: `GitHub accepted the write but the commit ${put.data.commit.sha} could not be read back: ${confirmed.error}` };
+      }
+      return {
+        ok: true,
+        content: `Committed ${confirmed.data.sha} to ${owner}/${repo}@${branch}: ${path}. GitHub confirms the commit exists.`,
+        data: { sha: confirmed.data.sha, branch, path },
+      };
+    },
+  },
+
+  {
+    id: "github.prs",
+    parameters: {
+      type: "object",
+      properties: {
+        owner: { type: "string" },
+        repo: { type: "string" },
+        action: { type: "string", enum: ["list", "create"], description: "Defaults to list." },
+        title: { type: "string" },
+        head: { type: "string", description: "create: the branch with the changes." },
+        base: { type: "string", description: "create: the branch to merge into." },
+        body: { type: "string" },
+      },
+      required: ["owner", "repo"],
+    },
+    run: async (args) => {
+      const { default: GitHubIntegration } = await import("../engineering/GitHubIntegration");
+      const github = GitHubIntegration.getInstance();
+      const owner = str(args, "owner");
+      const repo = str(args, "repo");
+      if (str(args, "action") !== "create") {
+        const result = await github.call<Array<{ number: number; title: string; head: { ref: string } }>>(`/repos/${owner}/${repo}/pulls?state=open`);
+        if (!result.ok || !Array.isArray(result.data)) return { ok: false, content: result.error ?? "GitHub request failed." };
+        return { ok: true, content: result.data.map((pr) => `#${pr.number} ${pr.title} (${pr.head.ref})`).join("\n") || "(no open pull requests)", data: { count: result.data.length } };
+      }
+      const refused = githubWriteRefusal();
+      if (refused) return { ok: false, content: refused };
+      const title = str(args, "title");
+      const head = str(args, "head");
+      const base = str(args, "base");
+      if (!title || !head || !base) return { ok: false, content: "A pull request needs title, head and base; none was opened." };
+      const created = await github.call<{ number: number; html_url: string }>(`/repos/${owner}/${repo}/pulls`, "POST", { title, head, base, body: str(args, "body") });
+      if (!created.ok) return { ok: false, content: `No pull request was opened: ${created.error}` };
+      return { ok: true, content: `Opened pull request #${created.data.number}: ${created.data.html_url}`, data: created.data };
     },
   },
 
@@ -1625,6 +1900,23 @@ function refusalReason(id: string): string {
   return `"${id}" is not permitted right now, so it was not run.`;
 }
 
+/**
+ * Why a GitHub write may not happen now, or null when it may be attempted.
+ *
+ * The same identity requirement as changing the real project: a model
+ * cannot publish to GitHub on its own say-so. This is the early, accurate
+ * refusal; the server proxy enforces it again (verified identity,
+ * LELU_ALLOW_PUSH, never the default branch) before anything is sent.
+ */
+function githubWriteRefusal(): string | null {
+  try {
+    const preflight = EngineeringAuthorization.getInstance().preflight();
+    return preflight.ready ? null : `Nothing was written to GitHub: ${preflight.reason}`;
+  } catch {
+    return "Nothing was written to GitHub: no authenticated session could be established.";
+  }
+}
+
 /** Does any workspace currently carry a live human authorization? */
 function authorizedWorkspaceExists(): boolean {
   try {
@@ -1658,9 +1950,13 @@ export async function dispatchToolCall(
   const executor = BY_ID.get(id);
 
   if (!executor) {
+    // Registered is not the same as runnable: say which this is.
+    const registered = ToolRegistry.getInstance().get(id);
     return {
       ok: false,
-      content: `There is no tool named "${call.name}", so nothing was executed.`,
+      content: registered
+        ? `"${id}" is registered but has no executor — there is no real dispatch for it, so nothing was executed.`
+        : `There is no tool named "${call.name}", so nothing was executed.`,
     };
   }
 

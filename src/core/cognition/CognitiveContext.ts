@@ -688,7 +688,13 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
     const toolLines = ctx.toolsRequiringConfirmation.map(
       (t) => `- ${t.name} (risk ${t.riskLevel}) — ask before using`,
     );
-    sections.push(`## ACTIONS REQUIRING CONFIRMATION\n${toolLines.join("\n")}`);
+    // An explicit request for exactly that action IS the confirmation:
+    // measured, "use sandbox_execute to run hello.js" was answered with
+    // "may I run sandbox_execute on hello.js?" three turns running.
+    sections.push(
+      `## ACTIONS REQUIRING CONFIRMATION\n${toolLines.join("\n")}\n` +
+        "If the user's current message explicitly asks for that exact action, that request is the confirmation — do it, do not ask again.",
+    );
   }
 
   // Her own pending engineering work — visible without being told.

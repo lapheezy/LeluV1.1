@@ -155,6 +155,22 @@ export default class ToolRegistry {
     if (!tool.available) {
       return { ok: false, detail: `"${tool.name}" is registered but not currently available.` };
     }
+    // ONE AUTHORITY. ToolDispatcher's executors are what a model's tool
+    // call runs; this used to be a second, smaller table, so the same
+    // tool could execute through one path and be "not wired" through the
+    // other (sandbox.execute, every github.* and project.* tool). Any tool
+    // with an executor runs through it here too — with its permission and
+    // authorization checks — and the table below only covers tools the
+    // dispatcher has no executor for. Dynamic import: ToolDispatcher
+    // imports this module.
+    const dispatcher = await import("./ToolDispatcher");
+    if (dispatcher.executableToolIds().includes(toolId)) {
+      const result = await dispatcher.dispatchToolCall(
+        { id: `registry-${toolId}-${Date.now().toString(36)}`, name: dispatcher.toolNameForModel(toolId), arguments: params },
+        `registry-${toolId}`,
+      );
+      return { ok: result.ok, output: result.data ?? result.content, detail: result.content };
+    }
     const handler = ToolRegistry.DISPATCH[toolId];
     if (!handler) {
       return {
@@ -649,7 +665,7 @@ export default class ToolRegistry {
       {
         id: "github.files",
         name: "GitHub Files",
-        description: "Read and write files in GitHub repositories via server proxy",
+        description: "Read files and directories in a GitHub repository at any branch or commit, via the server proxy",
         category: "GitHub",
         permissions: ["READ", "WRITE"],
         riskLevel: 1,
@@ -669,7 +685,7 @@ export default class ToolRegistry {
       {
         id: "github.commits",
         name: "GitHub Commits",
-        description: "Create commits in GitHub repositories",
+        description: "List and read commits, and commit a file to a working (non-default) branch — confirmed by reading the commit back from GitHub",
         category: "GitHub",
         permissions: ["WRITE"],
         riskLevel: 2,
@@ -711,7 +727,7 @@ export default class ToolRegistry {
       {
         id: "sandbox.execute",
         name: "Sandbox Execute",
-        description: "Execute code in the sandbox runtime",
+        description: "Run a sandbox JavaScript file, the sandbox tests, or a syntax check in an isolated worker with a hard timeout; returns the real exit code and output",
         category: "Engineering",
         permissions: ["EXECUTE"],
         riskLevel: 2,

@@ -27,6 +27,8 @@ import SurfaceResolver from "./router/SurfaceResolver";
 import CognitiveStateResolver from "./router/CognitiveStateResolver";
 import CapabilityManifest from "./capabilities/CapabilityManifest";
 import ToolRegistry from "./tools/ToolRegistry";
+import { toolSchemasForModel } from "./tools/ToolSchemas";
+import { registryIdForToolName } from "./tools/ToolDispatcher";
 import WorkflowStore from "./workflows/WorkflowStore";
 import { cleanAssistantText } from "./router/ToolMarkup";
 
@@ -100,6 +102,19 @@ export default class AIRouter {
     );
   }
 
+  /** Does the user name a tool the model is actually offered (e.g. sandbox_execute)? */
+  private namesAnOfferedTool(context: RouterContext): boolean {
+    const prompt = context.request.prompt ?? "";
+    if (!/[a-z]+[._][a-z]+/i.test(prompt)) return false;
+    try {
+      return toolSchemasForModel().some(
+        (schema) => prompt.includes(schema.name) || prompt.includes(registryIdForToolName(schema.name)),
+      );
+    } catch {
+      return false;
+    }
+  }
+
   /** Route an AI request. */
   public async route(context: RouterContext): Promise<AIResponse> {
     // 0. TIME — deterministic local capability, no external API needed
@@ -137,8 +152,16 @@ export default class AIRouter {
     const engineering = await this.engineering.execute(context);
     if (engineering.handled && engineering.response) return this.attachThinking(context, engineering.response);
 
-    const creative = await this.creative.execute(context);
-    if (creative.handled && creative.response) return this.attachThinking(context, creative.response);
+    // The creative scaffold writes to the sandbox from keyword matching
+    // ("exit code" reads as "code"), BEFORE the model sees the turn.
+    // Measured: "run verification/hello.js and tell me the exit code"
+    // generated a 4-file app skeleton. Where the model can do the real
+    // engineering work, or the user names one of its tools, the turn is
+    // the model's — the same stand-aside ProjectResolver already makes.
+    if (!this.modelCanDoEngineeringWork(context) && !this.namesAnOfferedTool(context)) {
+      const creative = await this.creative.execute(context);
+      if (creative.handled && creative.response) return this.attachThinking(context, creative.response);
+    }
 
     // Avatar / embodiment commands — LÉLU's own visual identity executes
     // against the saved avatar runtime. MUST run before any research so

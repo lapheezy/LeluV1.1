@@ -93,6 +93,8 @@ export interface CommandOutcome {
   stdout: string;
   stderr: string;
   durationMs: number;
+  /** The command's real exit status, when the runtime reported one. */
+  exitCode?: number;
   error?: string;
 }
 
@@ -160,6 +162,8 @@ const STATUS_TTL_OK_MS = 20_000;
 const STATUS_TTL_FAIL_MS = 60_000;
 const REQUEST_TIMEOUT_MS = 5_000;
 const COMMAND_TIMEOUT_MS = 180_000;
+/** The project's test suite takes minutes; the runtime allows it 15 (see engineerApi). */
+const COMMAND_TIMEOUT_OVERRIDES_MS: Record<string, number> = { test: 930_000 };
 
 /**
  * Resolve engineering-runtime configuration.
@@ -480,11 +484,12 @@ export default class SourceAccess {
     try {
       const payload = await this.fetchJson<{
         ok?: boolean;
+        status?: number;
         stdout?: string;
         stderr?: string;
         durationMs?: number;
         error?: string;
-      }>("/api/engineer/command", { operation }, COMMAND_TIMEOUT_MS);
+      }>("/api/engineer/command", { operation }, COMMAND_TIMEOUT_OVERRIDES_MS[operation] ?? COMMAND_TIMEOUT_MS);
       return {
         ok: payload?.ok === true,
         origin: "development-runtime",
@@ -492,6 +497,7 @@ export default class SourceAccess {
         stdout: payload?.stdout ?? "",
         stderr: payload?.stderr ?? "",
         durationMs: payload?.durationMs ?? 0,
+        ...(typeof payload?.status === "number" ? { exitCode: payload.status } : {}),
         error: payload?.error,
       };
     } catch (error) {

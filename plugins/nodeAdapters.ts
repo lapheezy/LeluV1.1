@@ -197,16 +197,31 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
         // A workspace copy runs its own validation, in its own directory.
         cwd: cwd ?? workspaceRoot,
         shell: true,
+        // Its own process group, so a timeout can stop the whole tree.
+        detached: process.platform !== "win32",
         env: { ...process.env, FORCE_COLOR: "0" },
         stdio: ["ignore", "pipe", "pipe"],
       });
       let stdout = "";
       let stderr = "";
       let settled = false;
+      // Keep the END of a long output (where results and errors are), bounded.
+      const MAX_CAPTURE = 4_000_000;
+      const capture = (current: string, chunk: Buffer) => {
+        const next = current + chunk.toString("utf8");
+        return next.length > MAX_CAPTURE ? next.slice(next.length - MAX_CAPTURE) : next;
+      };
       const timer = setTimeout(() => {
         if (settled) return;
         settled = true;
-        child.kill("SIGKILL");
+        // Killing only the shell left `npm test`'s tsx and node children
+        // running after a timeout. The group goes, not just its leader.
+        try {
+          if (child.pid && process.platform !== "win32") process.kill(-child.pid, "SIGKILL");
+          else child.kill("SIGKILL");
+        } catch {
+          child.kill("SIGKILL");
+        }
         resolve({
           ok: false,
           status: 124,
@@ -217,10 +232,10 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
       }, timeoutMs);
 
       child.stdout?.on("data", (chunk: Buffer) => {
-        stdout += chunk.toString("utf8");
+        stdout = capture(stdout, chunk);
       });
       child.stderr?.on("data", (chunk: Buffer) => {
-        stderr += chunk.toString("utf8");
+        stderr = capture(stderr, chunk);
       });
       child.on("error", (error) => {
         if (settled) return;

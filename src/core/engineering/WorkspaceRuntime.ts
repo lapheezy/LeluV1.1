@@ -165,7 +165,8 @@ export default class WorkspaceRuntime {
     }
     return {
       ok: outcome.ok,
-      exitCode: outcome.ok ? 0 : 1,
+      // The command's real exit status; 0/1 only when none was reported.
+      exitCode: outcome.exitCode ?? (outcome.ok ? 0 : 1),
       stdout: outcome.stdout,
       stderr: outcome.stderr,
       durationMs: outcome.durationMs || Date.now() - started,

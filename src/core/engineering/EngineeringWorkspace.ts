@@ -294,10 +294,11 @@ export default class EngineeringWorkspace {
     { ok: boolean; exitCode: number; output: string; durationMs: number } | { ok: false; error: string }
   > {
     this.update({ phase: "validating" });
+    // No timeout from here: the runtime knows how long each operation
+    // needs (the test suite takes minutes; a fixed 3 minutes cut it off).
     const data = await this.post("/api/engineer/command", {
       workspace: workspaceId,
       operation,
-      timeoutMs: 180_000,
     });
 
     if (typeof data.status !== "number") {

@@ -18,6 +18,7 @@
 
 import CapabilityManifest from "../capabilities/CapabilityManifest";
 import AgentEventBus from "../agent/AgentEvents";
+import SupabasePersistence from "../persistence/SupabasePersistence";
 
 // ---------- TYPES ----------
 
@@ -89,6 +90,13 @@ export interface GitHubProxyResponse<T = unknown> {
   ok: boolean;
   status: number;
   data: T;
+  /**
+   * Why it failed, in words: the proxy's own refusal, GitHub's message,
+   * or the network error. Absent on success. Callers report THIS rather
+   * than a bare null, so "GitHub unavailable" and "not authorized" and
+   * "no such file" are never the same answer.
+   */
+  error?: string;
   headers?: {
     "x-ratelimit-remaining": string | null;
     "x-ratelimit-limit": string | null;
@@ -119,21 +127,67 @@ export default class GitHubIntegration {
     method = "GET",
     body?: unknown,
   ): Promise<GitHubProxyResponse<T>> {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    // A write reaches the outside world, so the server asks WHO is asking,
+    // exactly as it does for apply, commit and push. The signed-in
+    // Supabase session is that answer; reads need none.
+    if (method.toUpperCase() !== "GET") {
+      const token = this.accessToken();
+      if (token) headers.authorization = `Bearer ${token}`;
+    }
     try {
       const response = await fetch("/api/github/proxy", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ endpoint, method, body }),
       });
-      const result = (await response.json()) as GitHubProxyResponse<T>;
-      return result;
+      const text = await response.text();
+      let result: Partial<GitHubProxyResponse<T>> & { error?: unknown } = {};
+      try {
+        result = text ? (JSON.parse(text) as typeof result) : {};
+      } catch {
+        result = { ok: false, error: text.slice(0, 300) || `HTTP ${response.status}` };
+      }
+      const ok = result.ok === true;
+      const status = typeof result.status === "number" ? result.status : response.status;
+      const githubMessage =
+        result.data && typeof result.data === "object" && "message" in (result.data as object)
+          ? String((result.data as { message?: unknown }).message ?? "")
+          : "";
+      return {
+        ok,
+        status,
+        data: (result.data ?? null) as T,
+        headers: result.headers,
+        ...(ok
+          ? {}
+          : {
+              error:
+                (typeof result.error === "string" && result.error) ||
+                (githubMessage ? `GitHub ${status}: ${githubMessage}` : `GitHub request failed (HTTP ${status}).`),
+            }),
+      };
     } catch (error) {
       return {
         ok: false,
         status: 0,
         data: null as T,
         headers: undefined,
+        error: `Could not reach the GitHub proxy: ${error instanceof Error ? error.message : String(error)}`,
       };
+    }
+  }
+
+  /** Any proxied GitHub call, with the real outcome — status, data and error. */
+  call<T = unknown>(endpoint: string, method = "GET", body?: unknown): Promise<GitHubProxyResponse<T>> {
+    return this.proxy<T>(endpoint, method, body);
+  }
+
+  private accessToken(): string {
+    try {
+      return SupabasePersistence.getInstance().getAuthState().session?.access_token ?? "";
+    } catch {
+      return "";
     }
   }
 
@@ -326,6 +380,32 @@ export default class GitHubIntegration {
       behind_by: number;
     }>(`/repos/${owner}/${repo}/compare/${base}...${head}`);
     return result.ok ? result.data : null;
+  }
+
+  /**
+   * Commit one file to a branch (the contents API: one call, one commit).
+   *
+   * Returns GitHub's own answer, including the new commit's sha, so the
+   * caller can read the commit back rather than trust that it happened.
+   * `sha` is the current blob sha when replacing an existing file.
+   */
+  async putFile(
+    owner: string,
+    repo: string,
+    path: string,
+    content: string,
+    message: string,
+    branch: string,
+    sha?: string,
+  ): Promise<GitHubProxyResponse<{ content?: { sha: string; path: string }; commit?: { sha: string; html_url?: string } }>> {
+    const bytes = new TextEncoder().encode(content);
+    let binary = "";
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    return this.proxy(
+      `/repos/${owner}/${repo}/contents/${path}`,
+      "PUT",
+      { message, content: btoa(binary), branch, ...(sha ? { sha } : {}) },
+    );
   }
 
   // ---------- PULL REQUESTS ----------
