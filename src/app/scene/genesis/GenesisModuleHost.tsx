@@ -23,6 +23,7 @@
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { chatFillsScreen } from "./chat/chatLayout";
+import { InModuleWindow } from "./moduleWindowContext";
 import { useGenesis, type GenesisPanel, type ModuleState } from "./GenesisCore";
 import { MODULE_CATALOG } from "./GenesisDock";
 
@@ -301,7 +302,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
           {chrome}
           <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex" }}>
             <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              {render({ onClose: () => closeModule(id) })}
+              <InModuleWindow.Provider value={true}>{render({ onClose: () => closeModule(id) })}</InModuleWindow.Provider>
             </div>
           </div>
         </div>
@@ -336,7 +337,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
     >
       {chrome}
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden" }}>
-        {render({ onClose: () => closeModule(id) })}
+        <InModuleWindow.Provider value={true}>{render({ onClose: () => closeModule(id) })}</InModuleWindow.Provider>
       </div>
       {/* Resize handle — bottom-right corner */}
       <div

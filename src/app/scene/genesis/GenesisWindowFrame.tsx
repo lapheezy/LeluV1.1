@@ -31,7 +31,8 @@
  * ==========================================================
  */
 
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { InModuleWindow } from "./moduleWindowContext";
 import { motion } from "framer-motion";
 import { genesisTheme } from "./GenesisTheme";
 import PinchZoomContainer from "./PinchZoomContainer";
@@ -133,6 +134,7 @@ export default function GenesisWindowFrame({
   const depth = genesisTheme.elevation[elevation];
   const reduceMotion = prefersReducedMotion();
   const narrow = useIsNarrow();
+  const inModuleWindow = useContext(InModuleWindow);
   const frameRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
   const resizeRef = useRef<{ pointerId: number; startX: number; startY: number; originWidth: number; originHeight: number } | null>(null);
@@ -329,7 +331,27 @@ export default function GenesisWindowFrame({
   /* ---------------------------------------------------------
    * Style computation
    * --------------------------------------------------------- */
-  const frameStyle: CSSProperties = narrow
+  const frameStyle: CSSProperties = narrow && inModuleWindow
+    ? {
+        // Inside a module window on a phone: fill its body, under its
+        // title bar — never a second fixed sheet laid over it.
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        maxHeight: "100%",
+        flex: 1,
+        minHeight: 0,
+        overflowY: "hidden",
+        pointerEvents: "auto",
+        background: background ?? genesisTheme.glass.panel,
+        borderRadius: 0,
+        padding: 12,
+        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)",
+        color: "white",
+        display: "flex",
+        flexDirection: "column",
+      }
+    : narrow
     ? {
         // Mobile: a full-width bottom sheet with touch resize and move
         position: "fixed",
@@ -416,7 +438,7 @@ export default function GenesisWindowFrame({
       style={frameStyle}
     >
       {/* Mobile: drag handle at top for resizing the bottom sheet */}
-      {narrow && resizable ? (
+      {narrow && resizable && !inModuleWindow ? (
         <div
           onPointerDown={handleMobileResizePointerDown}
           style={{
