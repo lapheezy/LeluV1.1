@@ -133,7 +133,7 @@ test("the interface leaves out Cosmos chrome while chat owns the screen", () => 
   const ui = code("src/app/scene/genesis/GenesisInterface.tsx");
   assert.match(ui, /surface\.chatOwnsScreen \? null : <VisualInterface \/>/);
   assert.match(ui, /\{surface\.chatOwnsScreen \? null : \(\s*<div/, "the top chrome is not drawn over the chat header");
-  assert.match(ui, /chatOwnsScreen=\{surface\.chatOwnsScreen\}/, "the dock is told");
+  assert.match(ui, /chatOwnsScreen=\{surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen\}/, "the dock is told");
   const dock = code("src/app/scene/genesis/GenesisDock.tsx");
   assert.match(dock, /const breakpoint: Breakpoint = chatOwnsScreen \? "mobile" : measuredBreakpoint;/,
     "a landscape phone (844px wide) must not get a tablet rail beside the full-screen chat");
@@ -154,7 +154,7 @@ test("closing chat hides it; it is unmounted only with the whole interface", () 
   const ui = code("src/app/scene/genesis/GenesisInterface.tsx");
   assert.match(
     ui,
-    /\{state\.minimized \? null : \(\s*<ChatErrorBoundary onLeave=\{handleExitChat\}>\s*<GenesisChat hidden=\{!\(state\.activePanel === "chat" \|\| openModuleIds\.length > 0\)\} \/>/,
+    /\{state\.minimized \? null : \(\s*<ChatErrorBoundary onLeave=\{handleExitChat\}>\s*<GenesisChat\s+hidden=\{[\s\S]{0,200}surface\.workspaceOwnsScreen \|\| !\(state\.activePanel === "chat" \|\| openModuleIds\.length > 0\)\s*\}/,
   );
   const chat = code("src/app/scene/genesis/GenesisChat.tsx");
   assert.match(chat, /display: hidden \? "none" : "flex"/);
@@ -216,4 +216,37 @@ test("a boundary that caught `undefined` stays caught instead of re-rendering th
   assert.match(chat, /console\.error\("\[LÉLU chat\] render error", error, info\.componentStack\)/, "the real error is logged");
   assert.match(chat, /Reopen the conversation/);
   assert.match(chat, /generation: current\.generation \+ 1/, "reopen is a fresh mount");
+});
+
+/* ------------------------ phone: workspaces + menu ------------------------ */
+
+test("on a phone a visible workspace owns the screen; chat waits underneath", () => {
+  const withModule = resolveSurface({ activePanel: "chat", minimized: false, openModuleCount: 1, visibleModuleCount: 1, compact: true });
+  assert.equal(withModule.workspaceOwnsScreen, true);
+  assert.equal(withModule.chatOwnsScreen, false, "the chat must not cover the module");
+  assert.equal(withModule.cosmosRendered, false);
+  const minimized = resolveSurface({ activePanel: "chat", minimized: false, openModuleCount: 1, visibleModuleCount: 0, compact: true });
+  assert.equal(minimized.workspaceOwnsScreen, false);
+  assert.equal(minimized.chatOwnsScreen, true, "minimizing the module brings the chat back");
+  const desktop = resolveSurface({ activePanel: "chat", minimized: false, openModuleCount: 1, visibleModuleCount: 1, compact: false });
+  assert.equal(desktop.workspaceOwnsScreen, false, "on a desktop module windows float beside the chat");
+  assert.match(code("src/app/scene/genesis/GenesisInterface.tsx"), /state\.minimized \|\| surface\.workspaceOwnsScreen \? null : state\.activePanel === "chat" \? <MultiChatTabs \/>/);
+});
+
+test("the LÉLU menu sheet sits above its own backdrop", () => {
+  // Measured: backdrop within("navigation", 1) = 201 over the sheet at 200,
+  // so every tap on an item hit the backdrop and closed the menu.
+  const dock = code("src/app/scene/genesis/GenesisDock.tsx");
+  const backdrop = dock.match(/onClick=\{\(\) => setMenuOpen\(false\)\}[\s\S]{0,200}?zIndex: within\("navigation", (\d+)\)/);
+  const sheet = code("src/app/scene/genesis/GenesisMobileMenu.tsx").match(/zIndex: within\("navigation", (\d+)\)/);
+  assert.ok(backdrop && sheet, "both layers are on the navigation scale");
+  assert.ok(Number(sheet[1]) > Number(backdrop[1]), `sheet ${sheet[1]} must be above backdrop ${backdrop[1]}`);
+});
+
+test("framed panels scroll with one finger at 1×; pinch zoom still works", () => {
+  const pinch = code("src/app/scene/genesis/PinchZoomContainer.tsx");
+  assert.match(pinch, /\.\.\.\(zoomed \? \{ overflow: "hidden" \} : \{ overflowX: "hidden", overflowY: "auto" \}\)/);
+  assert.match(pinch, /touchAction: zoomed \? "none" : "pan-y"/);
+  assert.ok(!/overflow: zoomed \? "hidden" : undefined/.test(pinch), "no undefined shorthand next to its long-hands");
+  assert.match(code("src/app/scene/genesis/GenesisWindowFrame.tsx"), /\) : narrow \? \(\s*\/\/[\s\S]{0,200}overflowY: "auto"/);
 });

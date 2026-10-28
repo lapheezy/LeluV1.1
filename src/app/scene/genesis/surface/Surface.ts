@@ -34,6 +34,8 @@ export interface SurfaceInput {
   minimized: boolean;
   /** Module windows currently open (not closed). */
   openModuleCount: number;
+  /** Module windows actually on screen (inline or expanded — not minimized). */
+  visibleModuleCount?: number;
   /** chatLayout.chatFillsScreen() for the measured workspace. */
   compact: boolean;
 }
@@ -42,6 +44,15 @@ export interface Surface {
   mode: SurfaceMode;
   /** Phone-sized chat: the conversation is the only thing on screen. */
   chatOwnsScreen: boolean;
+  /**
+   * Phone-sized workspace: an open module window is the screen. The chat
+   * stays mounted underneath (a running reply is not lost) and comes back
+   * when the module is minimized or closed. Measured before this: the
+   * full-screen chat (z 100) was shown whenever a module was open and
+   * covered every module window (z 30+), so on a phone no workspace
+   * could be seen or used.
+   */
+  workspaceOwnsScreen: boolean;
   /** Whether the Cosmos scene (canvas, sky, HUD, overview) is rendered. */
   cosmosRendered: boolean;
 }
@@ -56,6 +67,7 @@ function modeFor(activePanel: string, openModuleCount: number): SurfaceMode {
 
 export function resolveSurface(input: SurfaceInput): Surface {
   const mode = input.minimized ? "home" : modeFor(input.activePanel, input.openModuleCount);
-  const chatOwnsScreen = input.compact && mode === "chat";
-  return { mode, chatOwnsScreen, cosmosRendered: !chatOwnsScreen };
+  const workspaceOwnsScreen = input.compact && !input.minimized && (input.visibleModuleCount ?? 0) > 0;
+  const chatOwnsScreen = input.compact && mode === "chat" && !workspaceOwnsScreen;
+  return { mode, chatOwnsScreen, workspaceOwnsScreen, cosmosRendered: !chatOwnsScreen && !workspaceOwnsScreen };
 }

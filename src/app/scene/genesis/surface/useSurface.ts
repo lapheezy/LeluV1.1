@@ -11,10 +11,12 @@ import { resolveSurface, type Surface } from "./Surface";
 export function useSurface(): Surface {
   const { state } = useGenesis();
   const workspace = useWorkspace();
-  const openModuleCount = Object.values(state.modules).filter((module) => module.presentation !== "closed").length;
+  const modules = Object.values(state.modules);
+  const openModuleCount = modules.filter((module) => module.presentation !== "closed").length;
+  const visibleModuleCount = modules.filter((module) => module.presentation === "inline" || module.presentation === "expanded").length;
   const compact = chatFillsScreen(workspace);
   return useMemo(
-    () => resolveSurface({ activePanel: state.activePanel, minimized: state.minimized, openModuleCount, compact }),
-    [state.activePanel, state.minimized, openModuleCount, compact],
+    () => resolveSurface({ activePanel: state.activePanel, minimized: state.minimized, openModuleCount, visibleModuleCount, compact }),
+    [state.activePanel, state.minimized, openModuleCount, visibleModuleCount, compact],
   );
 }

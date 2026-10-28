@@ -648,7 +648,7 @@ export default function GenesisInterface() {
             reasoningActive={Boolean(state.cognition?.reasoning)}
             engineErrorCount={state.engineStatuses.filter((engine) => Boolean(engine.error)).length}
             visualActive={systemEnvironmentActive}
-            chatOwnsScreen={surface.chatOwnsScreen}
+            chatOwnsScreen={surface.chatOwnsScreen || surface.workspaceOwnsScreen}
             onCoreHoldVoice={handleCoreHoldVoice}
             selfExplorationEnabled={state.selfExplorationEnabled}
             onToggleSelfExploration={() => setSelfExploration(!state.selfExplorationEnabled)}
@@ -737,7 +737,7 @@ export default function GenesisInterface() {
       {/* Multi-Chat tab bar — visible while the dialogue surface is open so
           the user can switch between isolated conversations without losing
           state. It floats above the dialogue overlay (higher z-index). */}
-      {state.minimized ? null : state.activePanel === "chat" ? <MultiChatTabs /> : null}
+      {state.minimized || surface.workspaceOwnsScreen ? null : state.activePanel === "chat" ? <MultiChatTabs /> : null}
 
       {/* Explorer cards — autonomous LÉLU discoveries as small floating cards */}
 
@@ -753,7 +753,13 @@ export default function GenesisInterface() {
           render error and offers to reopen the conversation. */}
       {state.minimized ? null : (
         <ChatErrorBoundary onLeave={handleExitChat}>
-          <GenesisChat hidden={!(state.activePanel === "chat" || openModuleIds.length > 0)} />
+          <GenesisChat
+            hidden={
+              // On a phone a visible workspace is the screen; the chat waits
+              // underneath, mounted, and returns when it is minimized/closed.
+              surface.workspaceOwnsScreen || !(state.activePanel === "chat" || openModuleIds.length > 0)
+            }
+          />
         </ChatErrorBoundary>
       )}
 
