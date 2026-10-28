@@ -19,6 +19,7 @@ import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { githubApiPlugin } from "./plugins/githubApi.ts";
 import { runtimeKeyBridgePlugin, bridgeReport } from "./plugins/runtimeKeyBridge.ts";
+import { readBuildInfo } from "./plugins/buildInfo.ts";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -84,7 +85,14 @@ export default defineConfig(({ mode }) => {
     };
   }
 
+  // What code this is — from git at start/build time, never typed by hand.
+  const buildInfo = readBuildInfo(mode);
+  console.info(`[build] LÉLU ${buildInfo.shortSha}${buildInfo.dirty ? "+dirty" : ""} on ${buildInfo.branch} (${mode}) at ${buildInfo.builtAt}`);
+
   return {
+    define: {
+      __LELU_BUILD__: JSON.stringify(buildInfo),
+    },
     // Support Supabase's documented NEXT_PUBLIC_* names alongside the
     // existing Vite convention without exposing any server-only secrets.
     envPrefix: ["VITE_", "NEXT_PUBLIC_"],
