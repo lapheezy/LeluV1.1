@@ -250,3 +250,27 @@ test("framed panels scroll with one finger at 1×; pinch zoom still works", () =
   assert.ok(!/overflow: zoomed \? "hidden" : undefined/.test(pinch), "no undefined shorthand next to its long-hands");
   assert.match(code("src/app/scene/genesis/GenesisWindowFrame.tsx"), /\) : narrow \? \(\s*\/\/[\s\S]{0,200}overflowY: "auto"/);
 });
+
+/* ------------------------- phone: the Browser ------------------------- */
+
+test("on a phone, LÉLU browsing for the chat on screen opens the Browser full screen", () => {
+  const controller = code("src/app/scene/genesis/GenesisSurfaceController.tsx");
+  assert.match(
+    controller,
+    /surface === "browser" &&\s*isLiveResearchSurface &&\s*ownedByChat &&\s*ownerForTask\(event\.taskId\) === MultiChatStore\.getInstance\(\)\.getActiveId\(\) &&\s*chatFillsScreen\(Workspace\.getInstance\(\)\.get\(\)\)/,
+    "only for the conversation being looked at, only on a phone",
+  );
+  assert.match(controller, /const key = `\$\{event\.taskId\}:browser-module`;[\s\S]{0,120}openModule\("browser"\)/, "once per task: minimizing it is not undone by the next page");
+});
+
+test("the chat is one tap away from a phone workspace", () => {
+  const host = code("src/app/scene/genesis/GenesisModuleHost.tsx");
+  assert.match(host, /aria-label="Back to chat"\s*onClick=\{\(\) => \{\s*minimizeModule\(id\);\s*openPanel\("chat"\);/);
+  assert.match(host, /const compactScreen = chatFillsScreen\(/);
+});
+
+test("the chat is never counted as a module window", () => {
+  // openPanel("chat") records "chat" in `modules`; counted, it made opening
+  // chat on a phone read as "a workspace owns the screen" and hid the chat.
+  assert.match(code("src/app/scene/genesis/surface/useSurface.ts"), /\.filter\(\(\[id\]\) => id !== "chat"\)/);
+});

@@ -36,6 +36,9 @@ import { ownerForTask } from "../../../core/multichat/TurnOwnership";
 import AgentEventBus, { type AgentEvent } from "../../../core/agent/AgentEvents";
 import { useGenesis, type GenesisPanel } from "./GenesisCore";
 import VisualEngine from "../../../core/visual/VisualEngine";
+import MultiChatStore from "../../../core/multichat/MultiChatStore";
+import Workspace from "../../../core/ui/Workspace";
+import { chatFillsScreen } from "./chat/chatLayout";
 import { genesisCameraIntentBus, type GenesisV2CameraCommand, type GenesisV2FocusTarget } from "./GenesisCameraIntent";
 
 /** Map a real agent tool to the existing surface that shows its work. */
@@ -289,6 +292,26 @@ export default function GenesisSurfaceController() {
       // surface above); this only stops events from doing it on their own.
       const ownedByChat = ownerForTask(event.taskId) !== null;
       const userInChat = activePanelRef.current === "chat";
+      // ON A PHONE, LÉLU BROWSING FOR THE CHAT YOU ARE IN OPENS THE BROWSER
+      // full screen — the Browser module, the same single instance the menu
+      // opens, following that chat's own browser events — and the chat is
+      // one tap away (the module's "Chat" control). Once per task, so
+      // minimizing it mid-task is not undone by the next page she reads.
+      // On a wider screen the chat shows the page inline, as before.
+      if (
+        surface === "browser" &&
+        isLiveResearchSurface &&
+        ownedByChat &&
+        ownerForTask(event.taskId) === MultiChatStore.getInstance().getActiveId() &&
+        chatFillsScreen(Workspace.getInstance().get())
+      ) {
+        const key = `${event.taskId}:browser-module`;
+        if (!openedRef.current.has(key)) {
+          openedRef.current.add(key);
+          openModule("browser");
+        }
+      }
+
       if (surface && !ownedByChat && !userInChat && (uiControlRef.current !== "manual" || isLiveResearchSurface)) {
         const key = `${event.taskId}:${surface}`;
         if (!openedRef.current.has(key)) {
@@ -321,7 +344,7 @@ export default function GenesisSurfaceController() {
       }
     });
     return unsubscribe;
-  }, [openPanel, v2Active, setModuleStatus]);
+  }, [openPanel, openModule, v2Active, setModuleStatus]);
 
   return null;
 }
