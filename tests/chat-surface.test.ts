@@ -274,3 +274,22 @@ test("the chat is never counted as a module window", () => {
   // chat on a phone read as "a workspace owns the screen" and hid the chat.
   assert.match(code("src/app/scene/genesis/surface/useSurface.ts"), /\.filter\(\(\[id\]\) => id !== "chat"\)/);
 });
+
+test("a panel inside a module window fills it on a phone, under the title bar", () => {
+  // Measured: the panel's own fixed 587px sheet rose over the 560px
+  // window's title bar, so ◎ Chat / — / ✕ could not be touched.
+  const host = code("src/app/scene/genesis/GenesisModuleHost.tsx");
+  assert.equal(host.split("<InModuleWindow.Provider value={true}>").length - 1, 2, "both window shapes mark their panel");
+  const frame = code("src/app/scene/genesis/GenesisWindowFrame.tsx");
+  assert.match(frame, /const frameStyle: CSSProperties = narrow && inModuleWindow\s*\?\s*\{[\s\S]{0,400}position: "relative",[\s\S]{0,200}boxSizing: "border-box",/);
+  assert.match(frame, /\{narrow && resizable && !inModuleWindow \? \(/, "the window has the resize handle, not the panel");
+});
+
+test("nothing is toasted over a full-screen phone workspace either", () => {
+  // Measured: an "I read that" toast lay over the Browser's title bar and
+  // swallowed the tap on "◎ Chat".
+  assert.match(
+    code("src/app/scene/genesis/GenesisNotificationCenter.tsx"),
+    /const chatOwnsScreen = surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen;/,
+  );
+});

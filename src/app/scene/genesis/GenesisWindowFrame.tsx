@@ -336,6 +336,9 @@ export default function GenesisWindowFrame({
         // Inside a module window on a phone: fill its body, under its
         // title bar — never a second fixed sheet laid over it.
         position: "relative",
+        // border-box: width 100% plus padding overran the window's right
+        // edge by 22px (measured: frame 380px in a 358px body).
+        boxSizing: "border-box",
         width: "100%",
         height: "100%",
         maxHeight: "100%",

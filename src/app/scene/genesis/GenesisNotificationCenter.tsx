@@ -42,7 +42,11 @@ const COMPACT_HEADER_CLEARANCE = 64;
 export default function GenesisNotificationCenter() {
   const { state, dismissNotification } = useGenesis();
   const workspace = useWorkspace();
-  const { chatOwnsScreen } = useSurface();
+  // A full-screen workspace on a phone is covered the same way: measured,
+  // an "I read that" toast at the top lay over the Browser's title bar and
+  // swallowed the tap on "◎ Chat".
+  const surface = useSurface();
+  const chatOwnsScreen = surface.chatOwnsScreen || surface.workspaceOwnsScreen;
 
   /*
    * While the conversation is the whole phone screen, nothing is thrown
