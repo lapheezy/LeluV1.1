@@ -534,6 +534,12 @@ export default function GenesisWindowFrame({
         >
           {children}
         </PinchZoomContainer>
+      ) : narrow ? (
+        // The mobile sheet clips (overflowY hidden), so its content needs
+        // a scroller of its own or everything below the fold is lost.
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", overscrollBehavior: "contain", touchAction: "pan-y" }}>
+          {children}
+        </div>
       ) : (
         children
       )}
