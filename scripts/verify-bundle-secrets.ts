@@ -22,6 +22,7 @@
 import { spawnSync } from "node:child_process";
 import { readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { bridgeScriptBody } from "../plugins/runtimeKeyBridge";
 
 let failures = 0;
 function assert(condition: boolean, label: string, detail?: string): void {
@@ -50,22 +51,54 @@ const FORBIDDEN: Record<string, string> = {
   // GitHub repo search through the existing /api/github/proxy.
   VITE_NEWS_API_KEY: "CANARYggg7_MUSTNOTSHIP",
   VITE_YOUTUBE_API_KEY: "CANARYhhh8_MUSTNOTSHIP",
+  // Meshy is PAID (image → 3-D avatar). It shipped browser-side until it
+  // was moved behind /api/knowledge/relay; it must stay off the page.
+  VITE_MESHY_API_KEY: "CANARYiii9_MUSTNOTSHIP",
+  // Brokered model providers the Android workflow used to pass to the
+  // build. Nothing in the client reads them; this proves it.
+  VITE_ANTHROPIC_API_KEY: "sk-ant-CANARYjjj10_MUSTNOTSHIP",
+  VITE_GEMINI_API_KEY: "CANARYkkk11_MUSTNOTSHIP",
+  VITE_NASA_API_KEY: "CANARYlll12_MUSTNOTSHIP",
+  VITE_GEOAPIFY_API_KEY: "CANARYmmm13_MUSTNOTSHIP",
 };
 
 /**
  * Keys that ARE still browser-side, by current design.
  *
- * Listed rather than hidden: each belongs to a browser-only feature
- * (the Earth fire layer, avatar 3-D reconstruction, two secondary news
- * fallbacks) that has not been given the relay treatment yet. The scan
+ * Listed rather than hidden: each is a free-tier key for a browser-only
+ * feature (the Earth fire layer, three secondary news fallbacks) that
+ * has not been given the relay treatment yet. The scan
  * reports whether each actually shipped, so the remaining exposure is
  * measured on every run instead of being assumed or forgotten.
  */
 const KNOWN_BROWSER_SIDE: Record<string, string> = {
   VITE_FIRMS_API_KEY: "CANARYbs1_BROWSERSIDE",
-  VITE_MESHY_API_KEY: "CANARYbs2_BROWSERSIDE",
   VITE_GUARDIAN_API_KEY: "CANARYbs3_BROWSERSIDE",
   VITE_GNEWS_API_KEY: "CANARYbs4_BROWSERSIDE",
+  VITE_NEWSDATA_API_KEY: "CANARYbs5_BROWSERSIDE",
+};
+
+/**
+ * Unprefixed server credentials, checked against the runtime key bridge
+ * (plugins/runtimeKeyBridge.ts). The bridge writes values into the served
+ * HTML — dev server AND `vite build` (dist/index.html) — and it only acts
+ * when the VITE_ name is unset, so the canary build above cannot see it.
+ */
+const BRIDGE_MUST_NOT_PUBLISH: Record<string, string> = {
+  NEWS_API_KEY: "CANARYbr1_NOTONPAGE",
+  NEWSAPI_KEY: "CANARYbr2_NOTONPAGE",
+  YOUTUBE_API_KEY: "CANARYbr3_NOTONPAGE",
+  MESHY_API_KEY: "CANARYbr4_NOTONPAGE",
+  GROQ_API_KEY: "CANARYbr5_NOTONPAGE",
+  OPENROUTER_API_KEY: "CANARYbr6_NOTONPAGE",
+  CEREBRAS_API_KEY: "CANARYbr7_NOTONPAGE",
+  MISTRAL_API_KEY: "CANARYbr8_NOTONPAGE",
+  FIREWORKS_API_KEY: "CANARYbr9_NOTONPAGE",
+  ANTHROPIC_API_KEY: "CANARYbr10_NOTONPAGE",
+  GEMINI_API_KEY: "CANARYbr11_NOTONPAGE",
+  GITHUB_TOKEN: "CANARYbr12_NOTONPAGE",
+  SUPABASE_SERVICE_ROLE_KEY: "CANARYbr13_NOTONPAGE",
+  LELU_ENGINEER_TOKEN: "CANARYbr14_NOTONPAGE",
 };
 
 /**
@@ -94,7 +127,13 @@ function everyFile(dir: string): string[] {
 }
 
 function main(): void {
-  console.log("== Building with canary credentials in the environment ==");
+  console.log("== The runtime key bridge publishes no server credential ==");
+  const bridged = bridgeScriptBody((name) => BRIDGE_MUST_NOT_PUBLISH[name]);
+  for (const [name, canary] of Object.entries(BRIDGE_MUST_NOT_PUBLISH)) {
+    assert(!bridged.includes(canary), `${name} is not written into the page by the key bridge`);
+  }
+
+  console.log("\n== Building with canary credentials in the environment ==");
 
   const result = spawnSync("bun", ["run", "vite", "build", "--outDir", OUT_DIR, "--emptyOutDir"], {
     env: { ...process.env, ...FORBIDDEN, ...SERVER_ONLY, ...KNOWN_BROWSER_SIDE },
@@ -129,7 +168,7 @@ function main(): void {
       }
     }
 
-    console.log("\n== No chat-provider credential reaches the client bundle ==");
+    console.log("\n== No relayed or brokered credential reaches the client bundle ==");
     for (const name of Object.keys(FORBIDDEN)) {
       assert(
         !hits[name],

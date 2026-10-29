@@ -29,7 +29,7 @@
  */
 
 /** Knowledge/research providers the relay can reach — see aiProxyApi.ts. */
-export type RelayKnowledgeId = "news" | "youtube";
+export type RelayKnowledgeId = "news" | "youtube" | "meshy";
 
 /**
  * A knowledge-provider GET, with the credential added server-side.
@@ -39,16 +39,34 @@ export type RelayKnowledgeId = "news" | "youtube";
 export async function knowledgeFetch(
   provider: RelayKnowledgeId,
   url: string,
-  options?: { signal?: AbortSignal },
+  options?: { signal?: AbortSignal; method?: "GET" | "POST"; body?: unknown },
 ): Promise<Response> {
   const target = new URL(url);
   const query = new URLSearchParams({
     provider,
     path: `${target.pathname}${target.search}`,
   });
+  const post = options?.method === "POST";
   return fetch(`/api/knowledge/relay?${query.toString()}`, {
-    method: "GET",
-    headers: { Accept: "application/json" },
+    method: post ? "POST" : "GET",
+    headers: post ? { Accept: "application/json", "Content-Type": "application/json" } : { Accept: "application/json" },
+    ...(post ? { body: JSON.stringify(options?.body ?? {}) } : {}),
     ...(options?.signal ? { signal: options.signal } : {}),
   });
+}
+
+/**
+ * Whether the server holds a key for this provider. Booleans only; false
+ * when there is no server (a static build) or it cannot be reached.
+ */
+export async function knowledgeConfigured(provider: RelayKnowledgeId): Promise<boolean> {
+  try {
+    const response = await fetch("/api/knowledge/providers", { headers: { Accept: "application/json" } });
+    if (!response.ok) return false;
+    const data = (await response.json()) as Record<string, unknown>;
+    const knowledge = (data.knowledge ?? data) as Record<string, { configured?: boolean } | undefined>;
+    return knowledge[provider]?.configured === true;
+  } catch {
+    return false;
+  }
 }

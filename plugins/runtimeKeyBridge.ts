@@ -102,6 +102,8 @@ export interface BridgedKey {
  * So adding a VITE_<PROVIDER>_API_KEY entry below would not enable anything.
  * It would only put a secret back on the page.
  *
+ * The same holds for a relayed knowledge key (News, YouTube, Meshy).
+ *
  * What belongs here: non-secret runtime configuration — model names, base
  * URLs, and the Supabase publishable key, which is designed to be public
  * because RLS and not key secrecy is what protects that data. The Supabase
@@ -173,26 +175,11 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     ],
   },
 
-  // These three are read by BROWSER code (NewsProvider, YouTubeProvider,
-  // Avatar3DReconstructor) but had no bridge entry, so the unprefixed
-  // name resolved on the server — where Environment.ts can reach
-  // process.env — and silently never reached the bundle. Setting
-  // NEWS_API_KEY produced a working server and a dead browser provider.
-  {
-    viteName: "VITE_NEWS_API_KEY",
-    globalName: "__LELU_NEWS_API_KEY__",
-    aliases: ["NEWS_API_KEY", "NEWSAPI_KEY"],
-  },
-  {
-    viteName: "VITE_YOUTUBE_API_KEY",
-    globalName: "__LELU_YOUTUBE_API_KEY__",
-    aliases: ["YOUTUBE_API_KEY"],
-  },
-  {
-    viteName: "VITE_MESHY_API_KEY",
-    globalName: "__LELU_MESHY_API_KEY__",
-    aliases: ["MESHY_API_KEY"],
-  },
+  // NO entry for NEWS_API_KEY, YOUTUBE_API_KEY or MESHY_API_KEY. Those
+  // three are relayed (/api/knowledge/relay reads them on the server),
+  // and this list is written into the served HTML — at build time too,
+  // so into dist/index.html. Bridging them published the very key the
+  // relay keeps off the page. tests/credential-exposure.test.ts holds it.
   {
     viteName: "VITE_GEMINI_MODEL",
     globalName: "__LELU_GEMINI_MODEL__",

@@ -258,7 +258,9 @@ function build(): LeluEnvironment {
     newsdata:     providerEnv("VITE_NEWSDATA_API_KEY", 4, false),
 
     // Image-to-3D reconstruction of the saved avatar (Meshy). Optional:
-    // without it the avatar falls back to the saved-image presence.
+    // without it the avatar falls back to the saved-image presence. The
+    // key is server-only (relayed); in a browser this reads false, and
+    // the reconstructor asks /api/knowledge/providers instead.
     meshy:        providerEnv("VITE_MESHY_API_KEY", 1, false),
 
     // Optional browser-safe Supabase configuration. The publishable key is
@@ -370,7 +372,6 @@ export default {
   get groqApiKey(): string { return resolve("VITE_GROQ_API_KEY") ?? ""; },
   get anthropicApiKey(): string { return resolve("VITE_ANTHROPIC_API_KEY") ?? ""; },
   get supabaseUrl(): string { return endpoint("supabase"); },
-  get meshyApiKey(): string { return resolve("VITE_MESHY_API_KEY") ?? ""; },
 };
 
 export function validateProviderConfig(): void {

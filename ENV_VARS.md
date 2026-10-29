@@ -48,10 +48,17 @@ tooling that is not a GitHub Models inference key. Supply
 
 ## Knowledge / research providers
 
+Server only. The browser reaches these through `/api/knowledge/relay`
+(`plugins/aiProxyApi.ts`), which adds the key. Use the unprefixed names:
+a `VITE_` value is handed to the browser by the dev server and inlined by
+any build that reads it. The relay still accepts the old `VITE_` names, and
+warns.
+
 | Variable | Role | Required |
 |---|---|---|
-| `VITE_NEWS_API_KEY` | NewsAPI.org — current news lookups | yes |
-| `VITE_YOUTUBE_API_KEY` | YouTube Data API v3 — video lookups | yes |
+| `NEWS_API_KEY` | NewsAPI.org — current news lookups | yes |
+| `YOUTUBE_API_KEY` | YouTube Data API v3 — video lookups | yes |
+| `MESHY_API_KEY` | Meshy image-to-3D (avatar reconstruction) — **paid** | no |
 
 ## Earth Core providers (optional — the layer reports its real status without them)
 

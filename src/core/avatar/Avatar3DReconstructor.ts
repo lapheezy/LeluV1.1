@@ -19,14 +19,14 @@
  * simulated bar. Success is only reported after the GLB bytes
  * are downloaded AND persisted; failure is reported honestly.
  *
- * API key: VITE_MESHY_API_KEY (optional provider). An optional
- * VITE_MESHY_API_BASE_URL can route calls through a proxy if a
- * deployment blocks direct browser access.
+ * API key: MESHY_API_KEY, on the SERVER only. Meshy is paid, so the
+ * browser never holds the key: every call goes through
+ * /api/knowledge/relay (plugins/aiProxyApi.ts), which adds it.
+ * MESHY_API_URL (server) can point the relay at another base URL.
  * ==========================================================
  */
 
-import { publicEnvVar } from "../env/publicEnv";
-import env from "../Environment";
+import { knowledgeConfigured, knowledgeFetch } from "../../providers/aiRelay";
 import AgentEventBus from "../agent/AgentEvents";
 import { endpoint } from "../Endpoints";
 
@@ -212,14 +212,15 @@ class Avatar3DReconstructorImpl {
     if (this.running) throw new Error("A 3D reconstruction is already running.");
     if (!referenceImage) throw new Error("No saved reference image to reconstruct.");
 
-    const apiKey = env.meshyApiKey;
-    if (!apiKey) {
+    // Meshy is paid; its key lives on the server (MESHY_API_KEY), which
+    // relays the call. The browser never holds it.
+    if (!(await knowledgeConfigured("meshy"))) {
       throw new Error(
-        "VITE_MESHY_API_KEY is not set — add a Meshy API key (Settings → Environment) to enable true 3D reconstruction.",
+        "MESHY_API_KEY is not set on the server — add a Meshy API key to the server environment to enable true 3D reconstruction.",
       );
     }
 
-    const base = this.baseUrl();
+    const base = MESHY_BASE_DEFAULT;
     const taskId = `avatar-3d-${Date.now()}`;
     const bus = AgentEventBus.getInstance();
     const fingerprint = fingerprintOf(referenceImage);
@@ -235,13 +236,9 @@ class Avatar3DReconstructorImpl {
 
     try {
       // 1 — create the task (data URI accepted directly).
-      const createRes = await fetch(`${base}/openapi/v1/image-to-3d`, {
+      const createRes = await knowledgeFetch("meshy", `${base}/openapi/v1/image-to-3d`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        body: {
           image_url: referenceImage,
           ai_model: "meshy-6",
           topology: "triangle",
@@ -250,7 +247,7 @@ class Avatar3DReconstructorImpl {
           pose_mode: "a-pose",
           target_formats: ["glb"],
           image_enhancement: false,
-        }),
+        },
       });
       if (!createRes.ok) {
         const body = await createRes.text().catch(() => "");
@@ -265,9 +262,7 @@ class Avatar3DReconstructorImpl {
       let glbUrl: string | null = null;
       while (Date.now() - startedAt < MAX_WAIT_MS) {
         await this.sleep(POLL_INTERVAL_MS);
-        const pollRes = await fetch(`${base}/openapi/v1/image-to-3d/${meshyTaskId}`, {
-          headers: { Authorization: `Bearer ${apiKey}` },
-        });
+        const pollRes = await knowledgeFetch("meshy", `${base}/openapi/v1/image-to-3d/${encodeURIComponent(meshyTaskId)}`);
         if (!pollRes.ok) continue; // transient — keep polling within budget
         const task = (await pollRes.json()) as {
           status?: string;
@@ -330,16 +325,6 @@ class Avatar3DReconstructorImpl {
       throw error;
     } finally {
       this.running = false;
-    }
-  }
-
-  private baseUrl(): string {
-    try {
-      // Browser-safe allowlist, not the whole env record (see env/publicEnv.ts).
-      const raw = publicEnvVar("VITE_MESHY_API_BASE_URL");
-      return typeof raw === "string" && raw.trim() ? raw.trim().replace(/\/$/, "") : MESHY_BASE_DEFAULT;
-    } catch {
-      return MESHY_BASE_DEFAULT;
     }
   }
 
