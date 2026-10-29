@@ -136,8 +136,28 @@ export interface BoardConsultation {
   timestamp: number;
 }
 
+/**
+ * Live status derived from real activity in this session — never a
+ * hardcoded "active". "idle" = not consulted since boot; "consulted" =
+ * consult() has produced guidance for it at least once.
+ */
+export type ExecutiveStatus = "idle" | "consulted";
+
+export interface ExecutiveStatusEntry {
+  id: ExecutiveId;
+  name: string;
+  status: ExecutiveStatus;
+  consultations: number;
+  lastConsultedAt: number | null;
+}
+
 export interface BoardSnapshot {
-  executives: { id: ExecutiveId; name: string; status: string }[];
+  executives: ExecutiveStatusEntry[];
+  /**
+   * What a consultation actually is today: deterministic guidance text
+   * grounded in the mapped systems — not an agent executing work.
+   */
+  consultationMode: "deterministic-guidance";
   agents: number;
   runnableAgents: number;
   autonomyLevel: number;
@@ -156,6 +176,14 @@ export default class ExecutiveBoard {
     return ExecutiveBoard.instance;
   }
 
+  /** Test-only: drop the singleton so each test starts from a fresh board. */
+  public static resetForTests(): void {
+    ExecutiveBoard.instance = null;
+  }
+
+  /** Real per-executive activity recorded by consult(). */
+  private readonly activity = new Map<ExecutiveId, { count: number; lastAt: number }>();
+
   public list(): ExecutiveDef[] {
     return EXECUTIVES;
   }
@@ -172,11 +200,17 @@ export default class ExecutiveBoard {
     const avatar = AvatarStore.getInstance().get();
 
     return {
-      executives: EXECUTIVES.map((executive) => ({
-        id: executive.id,
-        name: executive.name,
-        status: "active",
-      })),
+      executives: EXECUTIVES.map((executive) => {
+        const seen = this.activity.get(executive.id);
+        return {
+          id: executive.id,
+          name: executive.name,
+          status: seen ? "consulted" : "idle",
+          consultations: seen?.count ?? 0,
+          lastConsultedAt: seen?.lastAt ?? null,
+        };
+      }),
+      consultationMode: "deterministic-guidance",
       agents: agents.length,
       runnableAgents: runnable.length,
       autonomyLevel: AutonomyGate.getInstance().getLevel(),
@@ -206,6 +240,9 @@ export default class ExecutiveBoard {
 
     const guidance = this.guidanceFor(id, summary, securityLevel);
     const delegatedTo = this.delegationFor(id);
+
+    const prior = this.activity.get(executive.id);
+    this.activity.set(executive.id, { count: (prior?.count ?? 0) + 1, lastAt: now });
 
     return {
       executiveId: executive.id,
