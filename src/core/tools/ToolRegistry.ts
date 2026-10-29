@@ -335,6 +335,7 @@ export default class ToolRegistry {
       "project.list",
       "project.read",
       "project.write",
+      "project.edit",
       "project.delete",
       "project.validate",
       "project.diff",
@@ -913,6 +914,18 @@ export default class ToolRegistry {
         riskLevel: 0,
         available: false,
         executionRoute: "EngineeringWorkspace.readFile",
+      },
+      {
+        id: "project.edit",
+        name: "Edit Project File",
+        description:
+          "Change part of a file inside the sandbox copy: replace one exact snippet with new text. " +
+          "Cheaper and safer than rewriting the whole file. This never touches the real project.",
+        category: "Engineering",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: false,
+        executionRoute: "EngineeringWorkspace.readFile + writeFile",
       },
       {
         id: "project.write",

@@ -267,8 +267,14 @@ export default class AIRouter {
     // context, and returns unhandled so the provider answers over facts.
     await this.deflock.execute(context);
 
-    const browser = await this.browser.execute(context);
-    if (browser.handled && browser.response) return this.attachThinking(context, browser.response);
+    // Keyword browsing ("browser" in "browser_capture") opened the in-app
+    // Browser over the chat with the user's whole message as its address
+    // (measured in the self-improvement run). A turn naming the model's
+    // tools is the model's.
+    if (!namesTool) {
+      const browser = await this.browser.execute(context);
+      if (browser.handled && browser.response) return this.attachThinking(context, browser.response);
+    }
 
     const workspace = await this.workspace.execute(context);
     if (workspace.handled && workspace.response) return this.attachThinking(context, workspace.response);

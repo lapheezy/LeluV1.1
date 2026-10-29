@@ -473,7 +473,7 @@ const EXECUTORS: ToolExecutor[] = [
       },
       required: ["target"],
     },
-    run: async (args) => {
+    run: async (args, context) => {
       const target = str(args, "target") || "app";
       const viewport = str(args, "viewport") === "phone" ? "phone" : "desktop";
       const panel = str(args, "panel") || undefined;
@@ -489,16 +489,21 @@ const EXECUTORS: ToolExecutor[] = [
       } else {
         body.app = true;
       }
-      const taskId = `capture-${Date.now().toString(36)}`;
+      // The turn's own task id (as browser.read uses), so the capture's
+      // events belong to the conversation that asked for it.
+      const taskId = String(context?.request?.timestamp ?? Date.now());
       const label = target === "url" ? `Looking at ${hostOf(String(body.url))}` : `Looking at ${target === "preview" ? `workspace ${String(body.preview)}` : "my own interface"} (${viewport}${panel ? `, ${panel}` : ""})`;
+      // Reported as "capture", not "browser": a capture is a screenshot shown
+      // in the conversation. As "browser" it opened the in-app Browser window
+      // over the chat on phones (measured in the self-improvement run).
       const events = AgentEventBus.getInstance();
-      events.emit({ type: "tool_selected", taskId, tool: "browser", label });
-      events.emit({ type: "tool_started", taskId, tool: "browser", label });
+      events.emit({ type: "tool_selected", taskId, tool: "capture", label });
+      events.emit({ type: "tool_started", taskId, tool: "capture", label });
       const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
       const data = await EngineeringWorkspace.getInstance().callRuntime("/api/browser/capture", body);
       if (data.ok !== true) {
         const error = String(data.error ?? "The capture failed.");
-        events.emit({ type: "tool_failed", taskId, tool: "browser", error });
+        events.emit({ type: "tool_failed", taskId, tool: "capture", error });
         return { ok: false, content: `Nothing was captured: ${error}` };
       }
       const layout = (data.layout ?? {}) as { viewport?: number[]; controls?: number; findings?: Array<{ label: string; rect: number[]; problem: string; coveredBy?: string }>; text?: string };
@@ -508,7 +513,7 @@ const EXECUTORS: ToolExecutor[] = [
       if (typeof data.screenshot === "string") {
         events.emit({ type: "creative_artifact", taskId, image: data.screenshot, label });
       }
-      events.emit({ type: "tool_result", taskId, tool: "browser", result: `${findings.length} layout finding(s)` });
+      events.emit({ type: "tool_result", taskId, tool: "capture", result: `${findings.length} layout finding(s)` });
       const lines = findings.map((f) => `- ${f.problem}: ${f.label} at [x ${f.rect[0]}, y ${f.rect[1]}, w ${f.rect[2]}, h ${f.rect[3]}]${f.coveredBy ? ` covered by ${f.coveredBy}` : ""}`);
       const errors = Array.isArray(data.pageErrors) && data.pageErrors.length ? `\nPage errors: ${(data.pageErrors as string[]).join(" | ")}` : "";
       return {
@@ -1185,6 +1190,11 @@ const EXECUTORS: ToolExecutor[] = [
       properties: {
         workspace: { type: "string", description: "The sandbox workspace id." },
         path: { type: "string", description: "File path relative to the copy." },
+        startLine: { type: "number", description: "First line to read (1-based). Default 1." },
+        endLine: {
+          type: "number",
+          description: "Last line to read. Default startLine + 249. Use project_search line numbers to read just the part you need.",
+        },
       },
       required: ["workspace", "path"],
     },
@@ -1195,16 +1205,75 @@ const EXECUTORS: ToolExecutor[] = [
       if (!workspace || !path) return { ok: false, content: "project.read requires workspace and path." };
       const result = await EngineeringWorkspace.getInstance().readFile(workspace, path);
       if (!result.ok) return { ok: false, content: result.error };
-      const content = result.content;
-      // Large files are truncated rather than silently dropped, and the
-      // truncation is stated so nothing is mistaken for the whole file.
-      const MAX = 60_000;
+      // A window of lines, not the whole file. Whole-file reads (up to 60k
+      // characters each) were resent with every later round of the tool
+      // loop; four of them exhausted the model providers mid-task in the
+      // self-improvement run. Line numbers match project_search's.
+      const lines = result.content.split("\n");
+      const total = lines.length;
+      const startLine = Math.max(1, Math.floor(Number(args.startLine) || 1));
+      const endLine = Math.min(total, Math.max(startLine, Math.floor(Number(args.endLine) || startLine + 249)));
+      const width = String(endLine).length;
+      const body = lines
+        .slice(startLine - 1, endLine)
+        .map((line, index) => `${String(startLine + index).padStart(width, " ")}| ${line}`)
+        .join("\n");
+      const more = endLine < total ? `\n…lines ${endLine + 1}–${total} not shown (read them with startLine=${endLine + 1}).` : "";
       return {
         ok: true,
-        content:
-          content.length > MAX
-            ? `${content.slice(0, MAX)}\n…[truncated at ${MAX} characters of ${content.length}]`
-            : content,
+        content: `${path} — lines ${startLine}–${endLine} of ${total} (the "N| " prefixes are line numbers, not part of the file):\n${body}${more}`,
+        data: { totalLines: total, startLine, endLine },
+      };
+    },
+  },
+
+  {
+    id: "project.edit",
+    parameters: {
+      type: "object",
+      properties: {
+        workspace: { type: "string", description: "The sandbox workspace id." },
+        path: { type: "string", description: "File path relative to the copy." },
+        find: {
+          type: "string",
+          description: "The exact text to replace, copied from the file WITHOUT the line-number prefixes. Must occur exactly once.",
+        },
+        replace: { type: "string", description: "The new text that takes its place." },
+      },
+      required: ["workspace", "path", "find", "replace"],
+    },
+    run: async (args) => {
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const workspace = str(args, "workspace");
+      const path = str(args, "path");
+      if (!workspace || !path) return { ok: false, content: "project.edit requires workspace and path." };
+      if (typeof args.find !== "string" || !args.find || typeof args.replace !== "string") {
+        return { ok: false, content: "project.edit needs the exact text to find and the replacement; nothing was changed." };
+      }
+      const find = args.find;
+      const replace = args.replace;
+      const workspaceService = EngineeringWorkspace.getInstance();
+      const current = await workspaceService.readFile(workspace, path);
+      if (!current.ok) return { ok: false, content: current.error };
+      const count = current.content.split(find).length - 1;
+      if (count !== 1) {
+        return {
+          ok: false,
+          content:
+            count === 0
+              ? `The text to find does not occur in ${path}; nothing was changed. Copy it exactly from project_read (without the "N| " line-number prefixes).`
+              : `The text to find occurs ${count} times in ${path}; nothing was changed. Include more surrounding lines so it is unique.`,
+        };
+      }
+      const at = current.content.indexOf(find);
+      const next = current.content.slice(0, at) + replace + current.content.slice(at + find.length);
+      const written = await workspaceService.writeFile(workspace, path, next);
+      if (!written.ok) return { ok: false, content: written.error };
+      const line = current.content.slice(0, at).split("\n").length;
+      return {
+        ok: true,
+        content: `Edited ${path} at line ${line}: replaced ${find.split("\n").length} line(s) with ${replace.split("\n").length}. The real project is untouched.`,
+        data: { line },
       };
     },
   },

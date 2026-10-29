@@ -231,6 +231,7 @@ test("naming the model's tools keeps device and project keyword resolvers out of
   const router = code("src/core/AIRouter.ts");
   assert.match(router, /if \(!namesTool\) \{\s*const tools = await this\.tools\.execute\(context\);/);
   assert.match(router, /!this\.modelCanRunWorkflow\(context\) &&\s*!namesTool\s*\) \{\s*const projectResult = await this\.projects\.execute/);
+  assert.match(router, /if \(!namesTool\) \{\s*const browser = await this\.browser\.execute\(context\);/);
 });
 
 test("the dev server does not watch LÉLU's workspace copies", () => {

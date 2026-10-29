@@ -1,0 +1,56 @@
+LÉLU 6fe0a09+dirty · claude/open-session-rbwmdw · development · built 2026-10-29 22:11Z
+◎
+LÉLU
+☰
+▣
+◗
+HEARTBEAT · TOOLS
+MATRIX · ROUTING & PROCESSING CHAINS
+Input
+Cognition
+Memory
+Tool
+Provider
+Result
+Response
+Local (on-d…
+Anthropic
+OpenRouter
+Groq
+Cerebras
+Mistral
+Fireworks
+Gemini
+NERVE · INFORMATION PROPAGATION
+Input
+Cognition
+Memory
+Tool
+Provider
+Result
+Response
+NEURON · MEMORY ASSOCIATIONS
+Input
+Cognition
+Memory
+Tool
+Provider
+Result
+Response
+LÉLU · CORE
+⌘K
+Command Palette
+◫
+Browser
+◎
+Chat
+—
+⊡
+✕
+LÉLU BROWSER
+Browser · in-app layer
+Exit Core
+Go
+Read for Lélu
+
+In-app layer: some sites block embedding or direct reading — “Read for Lélu” reports exactly what happened and text chat always keeps working.

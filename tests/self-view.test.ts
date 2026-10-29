@@ -30,6 +30,7 @@ if (typeof localStorage === "undefined") {
 import { captureTargetAllowed, safeWorkspaceId, searchFiles } from "../plugins/selfViewApi";
 import { dispatchToolCall, executableToolIds } from "../src/core/tools/ToolDispatcher";
 import AgentEventBus, { type AgentEvent } from "../src/core/agent/AgentEvents";
+import ToolRegistry from "../src/core/tools/ToolRegistry";
 
 test("capture reaches public pages, this app and its previews — nothing else on the private network", () => {
   const own = "127.0.0.1:5173";
@@ -111,5 +112,69 @@ test("a failed capture says so and shows nothing", async () => {
   } finally {
     off();
     globalThis.fetch = realFetch;
+  }
+});
+
+/* ------------------- reading and editing without flooding ------------------- */
+
+function fakeRuntime(files: Record<string, string>) {
+  // No runtime probe in a test process: mark the two tools available, as a
+  // successful probe would.
+  for (const id of ["project.read", "project.edit"]) ToolRegistry.getInstance().updateAvailability(id, true);
+  const realFetch = globalThis.fetch;
+  const writes: Array<{ path: string; content: string }> = [];
+  globalThis.fetch = (async (url: unknown, init?: RequestInit) => {
+    const body = JSON.parse(String(init?.body ?? "{}")) as Record<string, string>;
+    const route = String(url);
+    if (route.endsWith("/api/engineer/read")) {
+      const content = files[body.path];
+      return new Response(JSON.stringify(content === undefined ? { ok: false, error: "no such file" } : { ok: true, content }), { status: 200 });
+    }
+    if (route.endsWith("/api/engineer/write")) {
+      files[body.path] = body.content;
+      writes.push({ path: body.path, content: body.content });
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    }
+    return new Response(JSON.stringify({ ok: false, error: `unexpected ${route}` }), { status: 404 });
+  }) as typeof fetch;
+  return { writes, restore: () => { globalThis.fetch = realFetch; } };
+}
+
+test("project_read returns a numbered window, not the whole file", async () => {
+  const file = Array.from({ length: 600 }, (_, i) => `line ${i + 1}`).join("\n");
+  const runtime = fakeRuntime({ "src/big.tsx": file });
+  try {
+    const first = await dispatchToolCall({ id: "r1", name: "project_read", arguments: { workspace: "ws", path: "src/big.tsx" } }, "t");
+    assert.equal(first.ok, true, first.content);
+    assert.match(first.content, /lines 1–250 of 600/);
+    assert.match(first.content, /\n  1\| line 1\n/);
+    assert.match(first.content, /lines 251–600 not shown \(read them with startLine=251\)/);
+    assert.ok(!first.content.includes("line 251\n"), "the rest is not sent");
+    const range = await dispatchToolCall({ id: "r2", name: "project_read", arguments: { workspace: "ws", path: "src/big.tsx", startLine: 590, endLine: 700 } }, "t");
+    assert.match(range.content, /lines 590–600 of 600/);
+    assert.ok(!/not shown/.test(range.content));
+  } finally {
+    runtime.restore();
+  }
+});
+
+test("project_edit replaces exactly one snippet, and refuses ambiguity or absence", async () => {
+  const runtime = fakeRuntime({ "src/panel.tsx": "a\nconst width = 780;\nb\nconst gap = 8;\nc\nconst gap = 8;\n" });
+  try {
+    const ok = await dispatchToolCall({ id: "e1", name: "project_edit", arguments: { workspace: "ws", path: "src/panel.tsx", find: "const width = 780;", replace: "const width = Math.min(780, innerWidth - 24);" } }, "t");
+    assert.equal(ok.ok, true, ok.content);
+    assert.match(ok.content, /Edited src\/panel\.tsx at line 2/);
+    assert.equal(runtime.writes.at(-1)?.content, "a\nconst width = Math.min(780, innerWidth - 24);\nb\nconst gap = 8;\nc\nconst gap = 8;\n");
+
+    const twice = await dispatchToolCall({ id: "e2", name: "project_edit", arguments: { workspace: "ws", path: "src/panel.tsx", find: "const gap = 8;", replace: "x" } }, "t");
+    assert.equal(twice.ok, false);
+    assert.match(twice.content, /occurs 2 times .* nothing was changed/);
+
+    const absent = await dispatchToolCall({ id: "e3", name: "project_edit", arguments: { workspace: "ws", path: "src/panel.tsx", find: "  2| const width", replace: "x" } }, "t");
+    assert.equal(absent.ok, false);
+    assert.match(absent.content, /does not occur .*\(without the "N\| " line-number prefixes\)/);
+    assert.equal(runtime.writes.length, 1, "refusals write nothing");
+  } finally {
+    runtime.restore();
   }
 });

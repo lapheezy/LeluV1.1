@@ -80,32 +80,71 @@ await page.keyboard.press("Enter");
 const started = Date.now();
 console.log(`[${new Date().toISOString()}] request sent; recording to ${OUT}`);
 
-// Wait for her turn to end: the task for this message completes or fails.
+/** Wait for the turn started by `message` to end; returns its end event or null. */
+async function waitForTurn(message, deadline) {
+  let lastCount = -1;
+  while (Date.now() < deadline) {
+    await page.waitForTimeout(5000);
+    const state = await page.evaluate((head) => {
+      const events = window.__selfImprove.events;
+      const end = events.find((e) => (e.type === "task_completed" || e.type === "task_failed") && (e.label ?? "").startsWith(head));
+      return { count: events.length, end: end ?? null, tools: events.filter((e) => e.type === "tool_started").map((e) => e.tool) };
+    }, message.slice(0, 40));
+    if (state.count !== lastCount) {
+      console.log(`  +${Math.round((Date.now() - started) / 1000)}s  ${state.count} events; tools so far: ${state.tools.join(", ")}`);
+      lastCount = state.count;
+    }
+    if (state.end) return state.end;
+  }
+  return null;
+}
+
+/** Her replies, from the conversation store (not from whatever covers the screen). */
+const replies = () =>
+  page.evaluate(async () => {
+    const { default: Store } = await import("/src/core/multichat/MultiChatStore.ts");
+    const store = Store.getInstance();
+    const conversation = store.get(store.getActiveId());
+    return (conversation?.messages ?? []).map((m) => ({ role: m.role, text: m.text }));
+  });
+
+// A neutral go-ahead when she pauses to report before acting — it names no
+// problem, file or fix. At most two.
+const GO_AHEAD = "Go ahead — carry out the rest of the loop yourself and report back with the evidence.";
+const deadline = started + LIMIT_MS;
 let finished = null;
-let lastCount = 0;
-while (Date.now() - started < LIMIT_MS) {
-  await page.waitForTimeout(5000);
-  const state = await page.evaluate((head) => {
-    const events = window.__selfImprove.events;
-    const end = events.find((e) => (e.type === "task_completed" || e.type === "task_failed") && (e.label ?? "").startsWith(head));
-    return { count: events.length, end: end ?? null, tools: events.filter((e) => e.type === "tool_started").map((e) => e.tool) };
-  }, REQUEST.slice(0, 40));
-  if (state.count !== lastCount) {
-    console.log(`  +${Math.round((Date.now() - started) / 1000)}s  ${state.count} events; tools so far: ${state.tools.join(", ")}`);
-    lastCount = state.count;
+try {
+finished = await waitForTurn(REQUEST, deadline);
+for (let nudge = 0; nudge < 2 && finished && Date.now() < deadline; nudge += 1) {
+  const diffed = await page.evaluate(() => window.__selfImprove.events.some((e) => e.type === "tool_started" && e.tool === "project.diff"));
+  if (diffed) break;
+  console.log(`  her turn ended without a diff; sending the go-ahead (${nudge + 1}/2)`);
+  await page.evaluate(async () => {
+    const { default: Bus } = await import("/src/core/cognition/UIActionBus.ts");
+    Bus.getInstance().dispatch({ type: "open_panel", target: "chat", reason: "self-improvement run", initiatedBy: "user" });
+  });
+  if (!(await page.isVisible("[data-lelu-composer] textarea").catch(() => false))) {
+    // Something owns the screen. Record what, then go back the way a user
+    // would: the module's own "Back to chat" control.
+    await page.screenshot({ path: path.join(OUT, `screen-before-go-ahead-${nudge + 1}.png`) });
+    const owner = await page.evaluate(() => [...document.querySelectorAll("[data-module-id], [data-lelu-module]")].map((el) => el.getAttribute("data-module-id") ?? el.getAttribute("data-lelu-module")).join(","));
+    console.log(`  composer hidden; on screen: ${owner || "(unknown)"} — using Back to chat`);
+    await page.getByRole("button", { name: /back to chat/i }).first().click({ timeout: 5000, force: true }).catch(() => {});
+    await page.waitForTimeout(1500);
   }
-  if (state.end) {
-    finished = state.end;
-    break;
-  }
+  await page.waitForSelector("[data-lelu-composer] textarea", { state: "visible", timeout: 20000 });
+  await page.fill("[data-lelu-composer] textarea", GO_AHEAD);
+  await page.keyboard.press("Enter");
+  finished = await waitForTurn(GO_AHEAD, deadline);
+}
+} catch (error) {
+  console.log(`  run interrupted: ${String(error).split("\n")[0]}`);
+  await page.screenshot({ path: path.join(OUT, "screen-at-interruption.png") }).catch(() => {});
 }
 
 await page.waitForTimeout(3000);
 const record = await page.evaluate(() => window.__selfImprove);
-const transcript = await page.evaluate(() => {
-  const chat = [...document.querySelectorAll("[data-lelu-chat-window]")].find((el) => getComputedStyle(el).display !== "none");
-  return chat ? chat.innerText : document.body.innerText;
-});
+const transcript = (await replies()).map((m) => `── ${m.role.toUpperCase()} ──\n${m.text}`).join("\n\n");
 writeFileSync(path.join(OUT, "request.txt"), REQUEST + "\n");
 writeFileSync(path.join(OUT, "transcript.txt"), transcript);
 writeFileSync(path.join(OUT, "events.json"), JSON.stringify(record.events, null, 2));
