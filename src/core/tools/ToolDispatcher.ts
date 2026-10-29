@@ -173,6 +173,36 @@ function currentChat(context: RouterContext | undefined): ChatConversation | und
 }
 
 /**
+ * Captures of her own app, by viewport+panel — the "before" a preview
+ * capture is compared with. A self-improvement run compared an app capture
+ * WITH the Memory panel open against a preview capture with NO panel, and
+ * concluded the fix worked; under the same conditions nothing had changed.
+ */
+const appCaptures = new Map<string, Array<{ label: string; problem: string }>>();
+
+export function compareCaptures(
+  before: ReadonlyArray<{ label: string; problem: string }> | undefined,
+  after: ReadonlyArray<{ label: string; problem: string }>,
+  conditions: string,
+): string {
+  if (!before) {
+    return `\nNo capture of your own app at ${conditions} exists to compare with — capture target "app" with the same viewport and panel, so before and after are comparable.`;
+  }
+  const key = (finding: { label: string; problem: string }) => `${finding.problem}: ${finding.label}`;
+  const was = new Set(before.map(key));
+  const now = new Set(after.map(key));
+  const resolved = [...was].filter((item) => !now.has(item));
+  const still = [...was].filter((item) => now.has(item));
+  const added = [...now].filter((item) => !was.has(item));
+  return (
+    `\nCompared with your app at the same conditions (${conditions}): ${before.length} finding(s) before → ${after.length} now.` +
+    `\n  resolved: ${resolved.length ? resolved.join("; ") : "none"}` +
+    `\n  still present: ${still.length ? still.join("; ") : "none"}` +
+    `\n  new: ${added.length ? added.join("; ") : "none"}`
+  );
+}
+
+/**
  * Where a project.edit snippet sits in a file: an exact unique match, or
  * — when the model's indentation is off, the commonest failure measured
  * (23 of 24 edits refused in one run) — a unique match of the same lines
@@ -565,6 +595,10 @@ const EXECUTORS: ToolExecutor[] = [
       }
       events.emit({ type: "tool_result", taskId, tool: "capture", result: `${findings.length} layout finding(s)` });
       const lines = findings.map((f) => `- ${f.problem}: ${f.label} at [x ${f.rect[0]}, y ${f.rect[1]}, w ${f.rect[2]}, h ${f.rect[3]}]${f.coveredBy ? ` covered by ${f.coveredBy}` : ""}`);
+      const conditions = `${viewport}${panel ? `, panel ${panel}` : ", no panel"}`;
+      let comparison = "";
+      if (target === "app") appCaptures.set(conditions, findings.map(({ label, problem }) => ({ label, problem })));
+      if (target === "preview") comparison = compareCaptures(appCaptures.get(conditions), findings, conditions);
       const errors = Array.isArray(data.pageErrors) && data.pageErrors.length ? `\nPage errors: ${(data.pageErrors as string[]).join(" | ")}` : "";
       return {
         ok: true,
@@ -572,7 +606,7 @@ const EXECUTORS: ToolExecutor[] = [
           `Captured ${String(data.url)} at ${viewport} (${(layout.viewport ?? []).join("×")}), title "${String(data.title ?? "")}"` +
           `${data.panelOpened ? `, panel: ${String(data.panelOpened)}` : ""}. The screenshot is shown to the user.\n` +
           `Layout report — ${layout.controls ?? 0} visible controls measured; ${findings.length} problem(s):\n` +
-          `${lines.length ? lines.join("\n") : "(none: every control is on screen and uncovered)"}${errors}\n\nVisible text (start):\n${String(layout.text ?? "").slice(0, 1200)}`,
+          `${lines.length ? lines.join("\n") : "(none: every control is on screen and uncovered)"}${comparison}${errors}\n\nVisible text (start):\n${String(layout.text ?? "").slice(0, 1200)}`,
         data: { findings, viewport, title: data.title, capturedAt: data.capturedAt },
       };
     },

@@ -195,3 +195,18 @@ test("project_edit tolerates the model's indentation, re-indents to the file's, 
   assert.deepEqual(locateSnippet("  x\n  y\n x\n y\n", "x\ny", "z"), { ok: false, count: 2 }, "two tolerant matches: refused");
   assert.deepEqual(locateSnippet(file, "depth: 3", "z"), { ok: false, count: 0 });
 });
+
+test("a preview capture is compared with her app under the SAME conditions — or told there is nothing comparable", async () => {
+  const { compareCaptures } = await import("../src/core/tools/ToolDispatcher");
+  const before = [
+    { label: "button[Minimize Genesis]", problem: "covered" },
+    { label: "button[Enter fullscreen]", problem: "covered" },
+  ];
+  const fixedOne = compareCaptures(before, [{ label: "button[Enter fullscreen]", problem: "covered" }], "phone, panel memory");
+  assert.match(fixedOne, /2 finding\(s\) before → 1 now/);
+  assert.match(fixedOne, /resolved: covered: button\[Minimize Genesis\]/);
+  assert.match(fixedOne, /still present: covered: button\[Enter fullscreen\]/);
+  // Measured mistake: app captured WITH the Memory panel, preview WITHOUT.
+  // Different conditions have no "before" at all — and are told so.
+  assert.match(compareCaptures(undefined, [], "phone, no panel"), /No capture of your own app at phone, no panel exists to compare with/);
+});
