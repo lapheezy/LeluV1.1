@@ -11,6 +11,9 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
+import { fileURLToPath as __toPath } from "node:url";
+/** Repo root, derived from this file — never a machine-specific absolute path. */
+const REPO_ROOT = __toPath(new URL("..", import.meta.url)).replace(/\/$/, "");
 import { readFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 
@@ -18,7 +21,7 @@ function grep(pattern: string, flags = ""): string[] {
   try {
     const result = execSync(
       `grep -rn ${flags} "${pattern}" src/ --include="*.ts" --include="*.tsx"`,
-      { cwd: "/home/user/LeluV1.1", encoding: "utf8" },
+      { cwd: REPO_ROOT, encoding: "utf8" },
     );
     return result.trim().split("\n").filter(Boolean);
   } catch {
@@ -109,7 +112,7 @@ test("provider fetch calls all use AbortSignal (no unguarded fetch in providers)
     "src/providers/GitHubModelsProvider.ts",
   ];
   for (const path of providers) {
-    const code = readFileSync(`/home/user/LeluV1.1/${path}`, "utf8");
+    const code = readFileSync(`${REPO_ROOT}/${path}`, "utf8");
     // Every provider file must reference AbortSignal somewhere
     assert.ok(
       /AbortSignal/.test(code),
