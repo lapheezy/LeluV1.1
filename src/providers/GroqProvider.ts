@@ -25,7 +25,12 @@ import { resolveModel } from "../core/ProviderModels";
 
 export default class GroqProvider implements AIProvider {
   readonly name = "Groq";
-  readonly priority = 2;
+  // After OpenRouter (2), before Cerebras (3). Anthropic took 1 when it
+  // became the default (d11dc20), which left Groq tied with OpenRouter at 2
+  // and their order decided by registration order. The owner chose
+  // OpenRouter first — the order that was already in effect — so the tie
+  // is broken here explicitly instead of by accident.
+  readonly priority = 2.5;
   readonly enabled = true;
   readonly timeout = 30000;
   readonly requiresApiKey = true;
