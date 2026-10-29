@@ -157,15 +157,8 @@ for (let nudge = 0; nudge < 4 && finished && Date.now() < deadline; nudge += 1) 
 await page.waitForTimeout(3000);
 const record = await page.evaluate(() => window.__selfImprove);
 const transcript = (await replies()).map((m) => `── ${m.role.toUpperCase()} ──\n${m.text}`).join("\n\n");
-writeFileSync(path.join(OUT, "request.txt"), REQUEST + "\n");
-writeFileSync(path.join(OUT, "transcript.txt"), transcript);
-writeFileSync(path.join(OUT, "events.json"), JSON.stringify(record.events, null, 2));
-record.images.forEach((img, i) => {
-  const match = /^data:image\/(\w+);base64,(.*)$/.exec(img.image);
-  if (match) writeFileSync(path.join(OUT, `capture-${String(i + 1).padStart(2, "0")}.${match[1] === "jpeg" ? "jpg" : match[1]}`), Buffer.from(match[2], "base64"));
-});
-
-// Whatever workspace SHE created: read its diff back from the runtime.
+// Whatever workspace SHE created: read its diff back from the runtime —
+// before this run writes any evidence file into the project.
 const workspaces = [...new Set(record.events.filter((e) => e.type === "tool_result" && e.tool === "project.copy").map((e) => /workspace\s+["“]?([A-Za-z0-9._-]+)/i.exec(e.result ?? "")?.[1]).filter(Boolean))];
 const diffs = {};
 for (const workspace of workspaces) {
@@ -177,6 +170,17 @@ for (const workspace of workspaces) {
   const patch = (response.changes ?? []).map((c) => `--- ${c.path} (${c.status}, +${c.addedLines}/-${c.removedLines})\n${c.patch ?? ""}`).join("\n");
   writeFileSync(path.join(OUT, `diff-${workspace}.patch.txt`), patch || "(no changes)\n");
 }
+
+// Written only now: the diff above compares her copy with the real
+// project, and evidence files written earlier would show up in it as
+// changes of hers (measured in run 8).
+writeFileSync(path.join(OUT, "request.txt"), REQUEST + "\n");
+writeFileSync(path.join(OUT, "transcript.txt"), transcript);
+writeFileSync(path.join(OUT, "events.json"), JSON.stringify(record.events, null, 2));
+record.images.forEach((img, i) => {
+  const match = /^data:image\/(\w+);base64,(.*)$/.exec(img.image);
+  if (match) writeFileSync(path.join(OUT, `capture-${String(i + 1).padStart(2, "0")}.${match[1] === "jpeg" ? "jpg" : match[1]}`), Buffer.from(match[2], "base64"));
+});
 
 const summary = {
   base: BASE,

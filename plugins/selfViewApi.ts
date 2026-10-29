@@ -279,8 +279,10 @@ export function searchFiles(root: string, query: string, options: { regex?: bool
 export interface LayoutFinding {
   label: string;
   rect: [number, number, number, number];
-  problem: "off-screen" | "partly-off-screen" | "covered";
+  problem: "off-screen" | "partly-off-screen" | "covered" | "sideways-overflow";
   coveredBy?: string;
+  /** For sideways-overflow: how much wider the content is than its box. */
+  detail?: string;
 }
 
 /**
@@ -317,9 +319,22 @@ function openPanelScript(panel: string): string {
 
 /**
  * Measured in the rendered page: every visible control that is off-screen,
- * partly off-screen, or covered at its centre by something else.
+ * partly off-screen, or covered at its centre by something else; and every
+ * box whose content is wider than the box itself (sideways overflow).
+ *
+ * Measured before (self-improvement run 8): two captures of the SAME page
+ * reported 12 and 9 problems — in one, the panel happened to be scrolled
+ * sideways — and controls simply below the fold of a scrolling panel were
+ * reported "off-screen", though a user scrolls to them. So:
+ *   - every scroll position is reset first: the page as a user first sees it;
+ *   - a control is judged against what is VISIBLE of it — the viewport cut
+ *     down by every ancestor that clips (overflow other than visible);
+ *   - out of view only vertically, inside something that scrolls
+ *     vertically, is reachable and not a finding;
+ *   - sideways is always a finding: on a phone nobody finds a hidden
+ *     sideways scroll.
  */
-const LAYOUT_SCRIPT = `(() => {
+export const LAYOUT_SCRIPT = `(() => {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const findings = [];
@@ -329,24 +344,64 @@ const LAYOUT_SCRIPT = `(() => {
     const testid = el.getAttribute("data-testid");
     return el.tagName.toLowerCase() + (aria ? "[" + aria + "]" : "") + (testid ? "#" + testid : "") + (text && !aria ? ' "' + text + '"' : "");
   };
+  let scrollsReset = 0;
+  window.scrollTo(0, 0);
+  for (const el of document.querySelectorAll("*")) {
+    if (el.scrollLeft !== 0 || el.scrollTop !== 0) { el.scrollLeft = 0; el.scrollTop = 0; scrollsReset += 1; }
+  }
+  const clips = (value) => value !== "visible";
+  const scrolls = (value) => value === "auto" || value === "scroll";
+  // What is visible of an element: the viewport, cut down by every clipping
+  // ancestor; and whether some ancestor scrolls vertically.
+  const visibleBox = (el) => {
+    let left = 0, top = 0, right = vw, bottom = vh, scrollsVertically = false;
+    for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
+      const s = getComputedStyle(a);
+      if (s.position === "fixed") {
+        // Nothing above a fixed box clips it.
+        if (clips(s.overflowX) || clips(s.overflowY)) {
+          const r = a.getBoundingClientRect();
+          if (clips(s.overflowX)) { left = Math.max(left, r.left); right = Math.min(right, r.right); }
+          if (clips(s.overflowY)) { top = Math.max(top, r.top); bottom = Math.min(bottom, r.bottom); }
+        }
+        if (scrolls(s.overflowY) && a.scrollHeight > a.clientHeight + 1) scrollsVertically = true;
+        break;
+      }
+      const r = a.getBoundingClientRect();
+      if (clips(s.overflowX)) { left = Math.max(left, r.left); right = Math.min(right, r.right); }
+      if (clips(s.overflowY)) { top = Math.max(top, r.top); bottom = Math.min(bottom, r.bottom); }
+      if (scrolls(s.overflowY) && a.scrollHeight > a.clientHeight + 1) scrollsVertically = true;
+    }
+    if (document.documentElement.scrollHeight > vh + 1 && getComputedStyle(document.body).overflowY !== "hidden") scrollsVertically = true;
+    return { left, top, right, bottom, scrollsVertically };
+  };
   const controls = [...document.querySelectorAll("button, a[href], input, textarea, select, [role='button'], [role='switch'], [role='tab']")];
+  let belowTheFold = 0;
   for (const el of controls) {
     const style = getComputedStyle(el);
     if (style.visibility === "hidden" || style.display === "none" || Number(style.opacity) === 0) continue;
     const r = el.getBoundingClientRect();
     if (r.width < 2 || r.height < 2) continue;
     const rect = [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)];
-    const outside = r.right <= 0 || r.bottom <= 0 || r.left >= vw || r.top >= vh;
-    const partly = !outside && (r.left < -1 || r.top < -1 || r.right > vw + 1 || r.bottom > vh + 1);
-    if (outside) {
+    const box = visibleBox(el);
+    const sidewaysOut = r.right <= box.left || r.left >= box.right;
+    const sidewaysPartly = !sidewaysOut && (r.left < box.left - 1 || r.right > box.right + 1);
+    const verticalOut = r.bottom <= box.top || r.top >= box.bottom;
+    const verticalPartly = !verticalOut && (r.top < box.top - 1 || r.bottom > box.bottom + 1);
+    if (sidewaysOut) {
       // Drawers parked off-screen on purpose are not findings; a control in
       // a container that is itself on screen is.
       const parent = el.parentElement && el.parentElement.getBoundingClientRect();
       if (parent && parent.right > 0 && parent.left < vw) findings.push({ label: describe(el), rect, problem: "off-screen" });
       continue;
     }
-    if (partly) {
+    if (sidewaysPartly) {
       findings.push({ label: describe(el), rect, problem: "partly-off-screen" });
+      continue;
+    }
+    if (verticalOut || verticalPartly) {
+      if (box.scrollsVertically) { belowTheFold += 1; continue; }
+      findings.push({ label: describe(el), rect, problem: verticalOut ? "off-screen" : "partly-off-screen" });
       continue;
     }
     const cx = Math.min(vw - 1, Math.max(0, r.left + r.width / 2));
@@ -356,13 +411,64 @@ const LAYOUT_SCRIPT = `(() => {
       findings.push({ label: describe(el), rect, problem: "covered", coveredBy: describe(top) });
     }
   }
+  // Boxes whose content is wider than they are: the cause behind most
+  // sideways findings. Outermost only; at most five.
+  const wide = [];
+  for (const el of document.querySelectorAll("body *")) {
+    // Clipped text (an ellipsis) is not a layout problem: only boxes that
+    // hide controls sideways count.
+    if (el.scrollWidth <= el.clientWidth + 8 || el.clientWidth < 40) continue;
+    if (!el.querySelector("button, a[href], input, textarea, select, [role='button'], [role='switch'], [role='tab']")) continue;
+    const s = getComputedStyle(el);
+    if (!clips(s.overflowX) || s.display === "none" || s.visibility === "hidden") continue;
+    const r = el.getBoundingClientRect();
+    if (r.right <= 0 || r.left >= vw || r.bottom <= 0 || r.top >= vh) continue;
+    if (wide.some((outer) => outer.contains(el))) continue;
+    wide.push(el);
+    findings.push({
+      label: describe(el).slice(0, 80),
+      rect: [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)],
+      problem: "sideways-overflow",
+      detail: "content " + el.scrollWidth + "px wide in a " + el.clientWidth + "px box",
+    });
+    if (wide.length >= 5) break;
+  }
+  if (document.documentElement.scrollWidth > vw + 1) {
+    findings.push({ label: "page", rect: [0, 0, document.documentElement.scrollWidth, vh], problem: "sideways-overflow", detail: "page " + document.documentElement.scrollWidth + "px wide in a " + vw + "px viewport" });
+  }
   return {
     viewport: [vw, vh],
     controls: controls.length,
+    belowTheFold,
+    scrollsReset,
     findings: findings.slice(0, 40),
     text: (document.body.innerText || "").slice(0, 2500),
   };
 })()`;
+
+/** Where every control is, rounded: equal twice in a row = the layout has settled. */
+const LAYOUT_SIGNATURE_SCRIPT = `(() => [...document.querySelectorAll("button, a[href], input, textarea, select, [role='button'], [role='switch'], [role='tab']")]
+  .map((el) => { const r = el.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)].join(","); })
+  .join(";"))()`;
+
+/**
+ * Measured in run 8: the same panel measured 12 and then 9 problems, its
+ * controls caught at different widths and offsets — the panel's opening
+ * transition was still running (a headless renderer here draws ~2 frames
+ * a second). Wait until every control's position is identical across two
+ * readings, bounded; the report says whether it settled.
+ */
+export async function waitForStableLayout(page: { evaluate: (script: string) => Promise<unknown>; waitForTimeout: (ms: number) => Promise<void> }, limitMs = 12_000): Promise<{ settled: boolean; waitedMs: number }> {
+  const started = Date.now();
+  let previous = String(await page.evaluate(LAYOUT_SIGNATURE_SCRIPT));
+  while (Date.now() - started < limitMs) {
+    await page.waitForTimeout(700);
+    const next = String(await page.evaluate(LAYOUT_SIGNATURE_SCRIPT));
+    if (next === previous) return { settled: true, waitedMs: Date.now() - started };
+    previous = next;
+  }
+  return { settled: false, waitedMs: Date.now() - started };
+}
 
 let captureBusy = false;
 
@@ -415,7 +521,8 @@ async function capture(options: {
       }
     }
 
-    const layout = (await page.evaluate(LAYOUT_SCRIPT)) as Record<string, unknown>;
+    const stability = await waitForStableLayout(page);
+    const layout = { ...((await page.evaluate(LAYOUT_SCRIPT)) as Record<string, unknown>), ...stability };
 
     let shot = await page.screenshot({ type: "jpeg", quality: 60, fullPage: false });
     if (shot.byteLength > MAX_SCREENSHOT_BYTES) shot = await page.screenshot({ type: "jpeg", quality: 30, fullPage: false });

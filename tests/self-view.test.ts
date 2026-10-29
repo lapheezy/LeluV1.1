@@ -210,3 +210,53 @@ test("a preview capture is compared with her app under the SAME conditions — o
   // Different conditions have no "before" at all — and are told so.
   assert.match(compareCaptures(undefined, [], "phone, no panel"), /No capture of your own app at phone, no panel exists to compare with/);
 });
+
+test("the layout report is the page as a user first sees it: stable, scroll-aware, and names sideways overflow", async (t) => {
+  let chromium: { launch: (options: Record<string, unknown>) => Promise<{ newPage: (o: Record<string, unknown>) => Promise<{ setContent: (html: string) => Promise<void>; evaluate: (script: string) => Promise<unknown> }>; close: () => Promise<void> }> };
+  try {
+    ({ chromium } = (await import("playwright")) as unknown as { chromium: typeof chromium });
+  } catch {
+    t.skip("no headless browser in this environment");
+    return;
+  }
+  const { LAYOUT_SCRIPT } = await import("../plugins/selfViewApi");
+  const { existsSync } = await import("node:fs");
+  const browser = await chromium.launch({ ...(existsSync("/opt/pw-browsers/chromium") ? { executablePath: "/opt/pw-browsers/chromium" } : {}), args: ["--no-sandbox"] });
+  try {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    // Modelled on run 8's Avatar panel: a fixed window that clips, a
+    // scrolling body, a row wider than the window, controls below the fold.
+    await page.setContent(`<body style="margin:0;overflow:hidden">
+      <div id="win" style="position:fixed;left:16px;top:100px;width:358px;height:600px;overflow:hidden">
+        <div id="body" style="height:600px;overflow:auto">
+          <div style="display:flex;gap:14px;width:520px">
+            <button style="width:200px;height:34px">Default</button>
+            <button style="width:200px;height:34px">Identity</button>
+          </div>
+          <span style="display:block;width:120px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">a long label that is clipped on purpose</span>
+          <div style="height:900px"></div>
+          <button style="height:34px">Reset profile</button>
+        </div>
+      </div>
+      <button style="position:fixed;left:20px;top:20px;width:80px;height:30px">Under</button>
+      <div style="position:fixed;left:0;top:0;width:200px;height:60px"></div>
+    </body>`);
+    await page.evaluate(`document.getElementById("body").scrollLeft = 150`);
+    const first = (await page.evaluate(LAYOUT_SCRIPT)) as { findings: Array<{ label: string; problem: string; detail?: string }>; belowTheFold: number; scrollsReset: number };
+    const second = (await page.evaluate(LAYOUT_SCRIPT)) as typeof first;
+    const seen = (r: typeof first) => r.findings.map((f) => `${f.problem}: ${f.label}`).sort();
+
+    assert.equal(first.scrollsReset, 1, "the sideways scroll left by the app is undone before measuring");
+    assert.deepEqual(seen(first), seen(second), "same page, same report");
+    assert.ok(seen(first).includes('partly-off-screen: button "Identity"'), "cut off by the WINDOW's edge (366px), not only the viewport's: " + seen(first).join(" | "));
+    assert.ok(!seen(first).some((f) => f.includes('button "Default"')), "fully inside the window: " + seen(first).join(" | "));
+    assert.ok(!seen(first).some((f) => f.includes("Reset profile")), "below the fold of a scrolling body: reachable, not a problem");
+    assert.equal(first.belowTheFold, 1);
+    assert.ok(seen(first).includes('covered: button "Under"'));
+    const overflow = first.findings.filter((f) => f.problem === "sideways-overflow");
+    assert.equal(overflow.length, 1, "the outermost box that hides controls sideways, not the ellipsis label: " + JSON.stringify(overflow));
+    assert.match(overflow[0].detail ?? "", /content 5\d\dpx wide in a 3\d\dpx box/);
+  } finally {
+    await browser.close();
+  }
+});
