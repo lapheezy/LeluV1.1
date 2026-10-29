@@ -224,6 +224,10 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       strictPort: true,
       hmr: false,
+      // LÉLU's workspace copies live in .lelu-sandbox. Watching them made
+      // every copy and every edit she made there force a full reload of the
+      // live app — ending the very chat turn doing the work.
+      watch: { ignored: ["**/.lelu-sandbox/**"] },
       proxy: {
         "/api/ai": {
           target: "https://models.inference.ai.azure.com",

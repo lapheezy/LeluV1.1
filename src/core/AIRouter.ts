@@ -117,6 +117,14 @@ export default class AIRouter {
 
   /** Route an AI request. */
   public async route(context: RouterContext): Promise<AIResponse> {
+    // Route on availability that has been determined, not on the startup
+    // default (engineering tools read "unavailable" until the runtime probe
+    // answers). Bounded so a slow probe can never hold a turn hostage.
+    await Promise.race([
+      ToolRegistry.getInstance().ensureAvailability().catch(() => undefined),
+      new Promise((resolve) => setTimeout(resolve, 8000)),
+    ]);
+
     // 0. TIME — deterministic local capability, no external API needed
     const timeResult = await this.time.execute(context);
     if (timeResult.handled && timeResult.response) return timeResult.response;
@@ -145,9 +153,15 @@ export default class AIRouter {
     await this.planning.execute(context);
     await this.reasoning.execute(context);
 
-    // Tool / device calls
-    const tools = await this.tools.execute(context);
-    if (tools.handled && tools.response) return this.attachThinking(context, tools.response);
+    // Tool / device calls — keyword-matched device actions. A user who
+    // names one of the model's own tools is directing that tool, not a
+    // device: measured, "look at your app with browser_capture" fired a
+    // CAMERA capture from the word "capture", before the model saw it.
+    const namesTool = this.namesAnOfferedTool(context);
+    if (!namesTool) {
+      const tools = await this.tools.execute(context);
+      if (tools.handled && tools.response) return this.attachThinking(context, tools.response);
+    }
 
     const engineering = await this.engineering.execute(context);
     if (engineering.handled && engineering.response) return this.attachThinking(context, engineering.response);
@@ -158,7 +172,7 @@ export default class AIRouter {
     // generated a 4-file app skeleton. Where the model can do the real
     // engineering work, or the user names one of its tools, the turn is
     // the model's — the same stand-aside ProjectResolver already makes.
-    if (!this.modelCanDoEngineeringWork(context) && !this.namesAnOfferedTool(context)) {
+    if (!this.modelCanDoEngineeringWork(context) && !namesTool) {
       const creative = await this.creative.execute(context);
       if (creative.handled && creative.response) return this.attachThinking(context, creative.response);
     }
@@ -190,10 +204,17 @@ export default class AIRouter {
     // runtime to be genuinely reachable (project.copy is marked
     // available only by a successful probe), so where no runtime exists
     // the old project-creation behaviour is exactly as before.
+    //
+    // The same holds when the user names the model's tools: measured, a
+    // self-improvement request naming project_copy / project_write was
+    // answered with "Project created" and a toy 5-file scaffold in the
+    // browser sandbox — the model never saw it and the repository was
+    // never touched.
     if (
       context.intent === "project" &&
       !this.modelCanDoEngineeringWork(context) &&
-      !this.modelCanRunWorkflow(context)
+      !this.modelCanRunWorkflow(context) &&
+      !namesTool
     ) {
       const projectResult = await this.projects.execute(context);
       if (projectResult.handled && projectResult.response) {

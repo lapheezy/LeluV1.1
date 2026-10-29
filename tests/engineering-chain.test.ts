@@ -219,6 +219,22 @@ test("the execution timeout starts when the job starts, not when the worker is c
 
 test("a request that names a tool reaches the model, not a keyword scaffold", () => {
   const router = code("src/core/AIRouter.ts");
-  assert.match(router, /if \(!this\.modelCanDoEngineeringWork\(context\) && !this\.namesAnOfferedTool\(context\)\) \{\s*const creative = await this\.creative\.execute\(context\);/);
+  assert.match(router, /const namesTool = this\.namesAnOfferedTool\(context\);/);
+  assert.match(router, /if \(!this\.modelCanDoEngineeringWork\(context\) && !namesTool\) \{\s*const creative = await this\.creative\.execute\(context\);/);
   assert.match(code("src/core/cognition/CognitiveContext.ts"), /that request is the confirmation — do it, do not ask again/);
+});
+
+test("naming the model's tools keeps device and project keyword resolvers out of the turn", () => {
+  // Measured: a self-improvement request naming browser_capture and
+  // project_copy fired a CAMERA capture ("capture") and was answered by
+  // ProjectResolver with a toy scaffold — the model never saw it.
+  const router = code("src/core/AIRouter.ts");
+  assert.match(router, /if \(!namesTool\) \{\s*const tools = await this\.tools\.execute\(context\);/);
+  assert.match(router, /!this\.modelCanRunWorkflow\(context\) &&\s*!namesTool\s*\) \{\s*const projectResult = await this\.projects\.execute/);
+});
+
+test("the dev server does not watch LÉLU's workspace copies", () => {
+  // Measured: creating a workspace copy made Vite force a full reload of
+  // the live app (tsconfig in .lelu-sandbox) — her own chat turn with it.
+  assert.match(code("vite.config.ts"), /watch:\s*\{\s*ignored:\s*\[[^\]]*\.lelu-sandbox/);
 });

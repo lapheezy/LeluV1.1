@@ -152,3 +152,70 @@ The other files that merge took wholesale from one side are the documented "serv
 2. **Delete the GitHub secrets** the APK workflow no longer reads: `VITE_*_API_KEY`, `VITE_GITHUB_TOKEN` and `ANTHROPIC_API_KEY`.
 3. **Delete stray branches:** `should-not-exist`, `lelu-verify/mvqyjv7l` and `lelu-verify/mvqyldvo`. This session is not permitted to delete them.
 4. **Decide what happens to PRs #6 and #7** on GitHub. Their content is in this branch.
+
+---
+
+# Pass 2 — companion, voice, SHAMAN in chat, eyes for her own UI
+
+## 7. Companion mode (the owner's request)
+
+The owner asked for the avatar as a pop-up human figure, in the look they chose, that floats anywhere over the app without stopping anything from working, and that can be turned on and off. It is not a browser or a window.
+
+- **Mounted once:** `src/app/scene/genesis/avatar/LeluCompanion.tsx`, at app level in `GenesisScene`. Moving between surfaces never recreates her.
+- **State:** `src/core/avatar/CompanionStore.ts`, persisted. It holds on/off, size, pinned/unpinned and position. The pure placement rule is `chooseSpot`.
+- **Look:** the image saved in the Avatar panel (`AvatarStore.referenceImage`), or the default portrait. A photo cannot lip-sync, so she speaks with her whole presence; true visemes need a rigged model.
+- **Touch:**
+  - only her figure takes touches; the overlay is `pointer-events: none`, and so is her caption;
+  - drag pins her where she is put;
+  - unpinned, she moves off any visible control, with the field being typed in weighted 12×. She only moves when she covers something.
+- **Motion from real state:**
+  - activity comes from `avatar/leluActivity.ts`, the one reading shared with the Gen V2 presence;
+  - her speech beat comes from `VoiceEngine.onSpeechActivity` (real utterance start, word boundary and end).
+- **Switches:**
+  - the Avatar panel and phone menu (`CompanionToggle`);
+  - LÉLU herself, through the `avatar.companion` tool;
+  - Hide in her own controls.
+
+  While she is on, avatar events no longer open the Avatar panel.
+- **Verified in the live app** (`node scripts/verify-companion.mjs`, phone 390×844 and desktop 1280×800, 18 checks each), across runs:
+  - she turns on from the real switch and stays fully on screen;
+  - a point beside her reaches the app beneath;
+  - with the composer focused she covers no control (phone and desktop) and typing works;
+  - real bus events become her caption, and her activity follows them;
+  - drag pins her, and the spot survives a reload;
+  - double-tap opens chat;
+  - her controls stay inside the screen, and Hide turns her off;
+  - no page errors.
+- **Honest caveat:** headless desktop renders the 3D scene at about 2 fps, and input is sometimes lost. The script re-delivers a gesture (up to 5 tries, reported) without changing any expectation. Across runs every check passed, but in individual runs a single gesture check sometimes failed after its retries. No real device was available.
+- **Found by measuring, not fixed** (left for LÉLU's acceptance test): at phone width the Avatar panel keeps its two-column layout. Its right column (Appearance, Identity, Save, the text fields) is partly or fully off-screen.
+
+## 8. Voice (`1f1eb47`)
+
+`tests/voice-continuity.test.ts` drives the real VoiceEngine against fake browser speech engines. All 5 tests fail on the previous engine.
+
+- **Streamed replies** (typed and spoken) set "speaking" and never cleared it. The phase now settles when the queue drains.
+- **The echo check** compared the mic against "" for streamed speech; it now compares against what was said.
+- **Barge-in:** two or more words from the user while she speaks, not her echo, cancel her speech.
+- **Recognizer:** it now restarts in every phase while the session is active. It used to restart only if it ended while "listening".
+- **Not verified on a real device:** live microphone and speakers. This container has none. Headless Chromium has `speechSynthesis` with 0 voices, so utterances end immediately and she is honestly not "speaking".
+
+## 9. SHAMAN from chat (`6fe0a09`)
+
+- `agent.delegate` was registered and marked available, but it had no executor, so a model could never call it.
+- `agent.delegate`, `agent.status` and `agent.resume` now run through `Shaman.dispatch`/`resume` and the persisted ledger. The result text, the route and the routeReason come back into the conversation.
+- **Tests:** `tests/shaman-routing.test.ts`, 14.
+
+## 10. Eyes for her own UI (`6fe0a09`, `plugins/selfViewApi.ts`)
+
+| Route / tool | What it does | Verified live here |
+|---|---|---|
+| `/api/browser/capture` · `browser.capture` | Headless Chromium screenshot plus a measured layout report (off-screen, partly off-screen and covered controls) of a public page, her own UI (phone/desktop, any panel) or a workspace preview. The screenshot goes to chat and the workspace as `creative_artifact`. | Own UI, phone, Avatar panel: 42 controls, 12 findings, 24 s |
+| `/api/engineer/preview` · `project.preview` | Runs a workspace copy's own `vite` on 127.0.0.1:5310–5329; stopped after 20 min | Started in 2 s, captured, stopped |
+| `/api/engineer/search` · `project.search` | Read-only bounded code search, no shell | Yes |
+
+- **Safety:**
+  - same-origin POST only, plus `LELU_ENGINEER_TOKEN` when it is set;
+  - capture refuses private-network targets, except this app and its previews (tested: 6379, 169.254.169.254, 192.168.x, file: are all refused);
+  - no headless browser installed means an honest 503.
+- **Not mounted in the Deno runtime** (`main.ts`); it uses Node child processes. Vite dev and `server.ts` have it.
+- **Tests:** `tests/self-view.test.ts` (5).

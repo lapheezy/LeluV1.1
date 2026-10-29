@@ -265,7 +265,37 @@ export default class ToolRegistry {
    * repeatedly (Bootstrap calls it once at startup; anything can call
    * it again after a state change, e.g. the autonomy level changing).
    */
+  private refreshing: Promise<void> | null = null;
+  private refreshedAt = 0;
+
+  /**
+   * Availability that has actually been determined — refreshed when it is
+   * older than `maxAgeMs` or was never computed, one refresh at a time.
+   *
+   * The catalog starts with the engineering tools marked unavailable until
+   * the runtime probe answers, and that answer arrived ~22 s after page
+   * load (measured). A turn in that window was routed as if LÉLU had no
+   * project tools: keyword resolvers took it and the model never saw it.
+   */
+  async ensureAvailability(maxAgeMs = 60_000): Promise<void> {
+    if (this.refreshedAt && Date.now() - this.refreshedAt < maxAgeMs) return;
+    if (!this.refreshing) {
+      this.refreshing = this.refreshAvailability().finally(() => {
+        this.refreshing = null;
+      });
+    }
+    return this.refreshing;
+  }
+
   async refreshAvailability(): Promise<void> {
+    try {
+      await this.computeAvailability();
+    } finally {
+      this.refreshedAt = Date.now();
+    }
+  }
+
+  private async computeAvailability(): Promise<void> {
     // Engineering workspace ops: real autonomy-gate check, the exact
     // same one WorkspaceRuntime itself enforces before running anything —
     // this can never say "available" when the real run would be blocked.
