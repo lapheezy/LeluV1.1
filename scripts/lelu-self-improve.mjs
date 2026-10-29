@@ -31,7 +31,7 @@ const REQUEST = [
   "3) Make a workspace copy (project_copy), find the code responsible (project_search, project_read), and fix it there with project_write. Do not change the real project.",
   "4) Validate the copy with project_validate (typecheck). If it fails, read the output and fix it.",
   "5) Start a preview of your copy (project_preview) and capture it under the same conditions (browser_capture target \"preview\", same viewport and panel), then compare it with the original capture.",
-  "6) If the comparison shows the problem is still there, find out why, change your fix, validate and compare again.",
+  "6) If the comparison shows the problem is still there, find out why, change your fix, validate and compare again — keep going until the comparison shows it resolved, or until you have genuinely tried three different approaches. Decide the approach yourself; don't stop to ask me.",
   "7) Show me the diff (project_diff) and tell me plainly whether your expected outcome is met, based on the evidence.",
 ].join("\n");
 
