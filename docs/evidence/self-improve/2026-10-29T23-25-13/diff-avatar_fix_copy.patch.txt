@@ -1,0 +1,12 @@
+--- src/app/scene/genesis/GenesisAvatarPanel.tsx (modified, +1/-1)
+--- a/src/app/scene/genesis/GenesisAvatarPanel.tsx
++++ b/src/app/scene/genesis/GenesisAvatarPanel.tsx
+@@ -218,1 +218,1 @@
+       eyebrow="LÉLU · Embodiment"
+       title="Avatar · persistent identity"
+       onClose={onClose}
+-      width="min(96vw, 980px)"
++      width="calc(100vw - 16px)"
+       maxHeight="min(92vh, 920px)"
+       elevation="focus"
+     >

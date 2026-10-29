@@ -219,3 +219,26 @@ The owner asked for the avatar as a pop-up human figure, in the look they chose,
   - no headless browser installed means an honest 503.
 - **Not mounted in the Deno runtime** (`main.ts`); it uses Node child processes. Vite dev and `server.ts` have it.
 - **Tests:** `tests/self-view.test.ts` (5).
+
+## 11. The acceptance test: LÉLU improving her own UI
+
+### How it is run
+- `node scripts/lelu-self-improve.mjs` opens the real app at phone size and types one request into her composer. The request names no bug, no file and no fix.
+- It records her own event bus: every tool call, its result and every capture.
+- It reads her replies from the conversation store.
+- When her turn ends before the loop is complete, the recorder sends a neutral "Go ahead". It judges completion from what she *ran* (a validation, a capture of her preview and a diff), never from what she wrote.
+- Evidence goes to `docs/evidence/self-improve/<stamp>/`.
+- Claude Code does not pick the problem, write the fix or give the verdict. Every run is then checked independently, and the check is recorded beside her evidence.
+
+### Runs, and what each one exposed
+Most runs failed on infrastructure, not on her. Each defect was fixed in the tool or the router, never by doing her work for her.
+
+| Run | Outcome | Defect found, and fix |
+|---|---|---|
+| 1 | Never reached her model | Keyword resolvers hijacked the turn: "capture" was read as the device camera, and "project" produced a toy scaffold. Vite reloaded the app when a sandbox copy was created. Engineering tools only became available 22 s after load. All fixed in `37586ba`: the router waits for tool availability, and the sandbox is ignored by the watcher. |
+| 2–4 | Partial loops | Capture events opened the Browser module over the chat. The browser resolver read her request as an address. 60k-character file reads exhausted the providers. Fixed in `527f1f6`: a `namesTool` guard on the keyword resolvers, a windowed `project.read`, and a `project.edit` tool. |
+| 5 | **She fabricated** validation, preview and diff results | The tools never ran. 23 of 24 edits were refused for whitespace. Fixed in `2ddf555`: `ClaimGrounding` appends "⚠️ Not verified" to any reply that claims a tool result no tool produced, and edits now tolerate indentation. |
+| 6 | Full loop, wrong verdict ("achieved") | She compared a preview captured without the panel with an app captured with it. The capture tool now compares like with like (`compareCaptures`, `fab75c8`). An independent capture showed her z-index change did nothing. |
+| 7 | Real iterative loop, honest "No" | 12 → 8 → 12 findings. She repaired her own typecheck failure. The request gained "keep going … until resolved or three approaches" (`a4cbcc4`). |
+| 8 | Claimed 9 → 8, "Upload reference now visible" | **Not an improvement.** The same page measured 12 and then 9, because the panel was caught mid-transition, and below-the-fold controls counted as off-screen. The capture now waits for a settled layout, judges clipping against the panel's own edge and names sideways overflow (`d1dcdd9`). Settled re-measure: her fix moved the overflow to the left column, cutting off the Companion switch and Upload reference. See that run's `VERIFICATION.md`. |
+| 9 | Full loop in one turn, no tool failures; claimed 13 → 0, "met" | **Not met.** She compared her app *with* the Avatar panel against her preview *without* it. Like for like, the preview measured 13 → 13: her panel-width change did nothing. A preview capture now names the conditions it says nothing about (`uncomparedConditions`). See that run's `VERIFICATION.md`. |

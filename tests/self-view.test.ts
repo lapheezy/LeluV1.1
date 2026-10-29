@@ -211,6 +211,20 @@ test("a preview capture is compared with her app under the SAME conditions — o
   assert.match(compareCaptures(undefined, [], "phone, no panel"), /No capture of your own app at phone, no panel exists to compare with/);
 });
 
+test("a preview captured under other conditions is told which problems it says nothing about", async () => {
+  const { uncomparedConditions } = await import("../src/core/tools/ToolDispatcher");
+  // Measured in run 9: 13 problems with the Avatar panel open, none without;
+  // the preview was captured without the panel and reported as the fix.
+  const captures = new Map([
+    ["phone, no panel", []],
+    ["phone, panel avatar", Array.from({ length: 13 }, (_, i) => ({ label: `textarea ${i}`, problem: "partly-off-screen" }))],
+  ]);
+  const note = uncomparedConditions(captures, "phone, no panel");
+  assert.match(note, /says NOTHING about .*phone, panel avatar: 13 finding\(s\) in your app/);
+  assert.match(note, /capture the preview with exactly those conditions/);
+  assert.equal(uncomparedConditions(captures, "phone, panel avatar"), "", "nothing else had problems: nothing to warn about");
+});
+
 test("the layout report is the page as a user first sees it: stable, scroll-aware, and names sideways overflow", async (t) => {
   let chromium: { launch: (options: Record<string, unknown>) => Promise<{ newPage: (o: Record<string, unknown>) => Promise<{ setContent: (html: string) => Promise<void>; evaluate: (script: string) => Promise<unknown> }>; close: () => Promise<void> }> };
   try {

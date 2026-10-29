@@ -203,6 +203,27 @@ export function compareCaptures(
 }
 
 /**
+ * App captures that found problems under OTHER conditions than this preview
+ * capture. Measured in run 9: she found 13 problems in her app with the
+ * Avatar panel open, captured her preview with no panel (0 problems, as
+ * her app with no panel also had), and reported "13 → 0, met". The
+ * conditions where she found the problem were never re-captured. Saying
+ * so in the result makes that impossible to miss.
+ */
+export function uncomparedConditions(
+  captures: ReadonlyMap<string, ReadonlyArray<{ label: string; problem: string }>>,
+  conditions: string,
+): string {
+  const others = [...captures].filter(([key, findings]) => key !== conditions && findings.length > 0);
+  if (others.length === 0) return "";
+  return (
+    "\nIMPORTANT: this preview capture says NOTHING about the problems your app had under other conditions — " +
+    others.map(([key, findings]) => `${key}: ${findings.length} finding(s) in your app`).join("; ") +
+    ". To know whether your fix resolved them, capture the preview with exactly those conditions (the same viewport and panel)."
+  );
+}
+
+/**
  * Where a project.edit snippet sits in a file: an exact unique match, or
  * — when the model's indentation is off, the commonest failure measured
  * (23 of 24 edits refused in one run) — a unique match of the same lines
@@ -598,7 +619,7 @@ const EXECUTORS: ToolExecutor[] = [
       const conditions = `${viewport}${panel ? `, panel ${panel}` : ", no panel"}`;
       let comparison = "";
       if (target === "app") appCaptures.set(conditions, findings.map(({ label, problem }) => ({ label, problem })));
-      if (target === "preview") comparison = compareCaptures(appCaptures.get(conditions), findings, conditions);
+      if (target === "preview") comparison = compareCaptures(appCaptures.get(conditions), findings, conditions) + uncomparedConditions(appCaptures, conditions);
       const errors = Array.isArray(data.pageErrors) && data.pageErrors.length ? `\nPage errors: ${(data.pageErrors as string[]).join(" | ")}` : "";
       return {
         ok: true,
