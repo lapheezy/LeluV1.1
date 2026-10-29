@@ -172,6 +172,56 @@ function currentChat(context: RouterContext | undefined): ChatConversation | und
   return id ? MultiChatStore.getInstance().get(id) : undefined;
 }
 
+/**
+ * Where a project.edit snippet sits in a file: an exact unique match, or
+ * — when the model's indentation is off, the commonest failure measured
+ * (23 of 24 edits refused in one run) — a unique match of the same lines
+ * ignoring each line's leading/trailing whitespace. A tolerant match
+ * re-indents the replacement by the same offset, so the file's own
+ * indentation is kept.
+ */
+export function locateSnippet(
+  content: string,
+  find: string,
+  replace: string,
+): { ok: true; start: number; end: number; replacement: string; tolerant: boolean } | { ok: false; count: number } {
+  const exact = content.split(find).length - 1;
+  if (exact === 1) {
+    const start = content.indexOf(find);
+    return { ok: true, start, end: start + find.length, replacement: replace, tolerant: false };
+  }
+  if (exact > 1) return { ok: false, count: exact };
+
+  const wanted = find.split("\n").map((line) => line.trim());
+  while (wanted.length && !wanted[0]) wanted.shift();
+  while (wanted.length && !wanted[wanted.length - 1]) wanted.pop();
+  if (wanted.length === 0) return { ok: false, count: 0 };
+  const lines = content.split("\n");
+  const matches: number[] = [];
+  for (let i = 0; i + wanted.length <= lines.length; i += 1) {
+    if (wanted.every((text, k) => lines[i + k].trim() === text)) matches.push(i);
+  }
+  if (matches.length !== 1) return { ok: false, count: matches.length };
+
+  const first = matches[0];
+  const offsets: number[] = [0];
+  for (const line of lines) offsets.push(offsets[offsets.length - 1] + line.length + 1);
+  const start = offsets[first];
+  const end = offsets[first + wanted.length] - 1;
+  const fileIndent = /^\s*/.exec(lines[first])?.[0] ?? "";
+  const findFirst = find.split("\n").find((line) => line.trim()) ?? "";
+  const findIndent = /^\s*/.exec(findFirst)?.[0] ?? "";
+  const replacement = replace
+    .split("\n")
+    .map((line) => {
+      if (!line.trim()) return line;
+      if (fileIndent.length >= findIndent.length) return fileIndent.slice(0, fileIndent.length - findIndent.length) + line;
+      return line.startsWith(findIndent.slice(fileIndent.length)) ? line.slice(findIndent.length - fileIndent.length) : line.trimStart();
+    })
+    .join("\n");
+  return { ok: true, start, end, replacement, tolerant: true };
+}
+
 function str(args: Record<string, unknown>, key: string): string {
   const value = args[key];
   return typeof value === "string" ? value.trim() : "";
@@ -1255,24 +1305,26 @@ const EXECUTORS: ToolExecutor[] = [
       const workspaceService = EngineeringWorkspace.getInstance();
       const current = await workspaceService.readFile(workspace, path);
       if (!current.ok) return { ok: false, content: current.error };
-      const count = current.content.split(find).length - 1;
-      if (count !== 1) {
+      const located = locateSnippet(current.content, find, replace);
+      if (!located.ok) {
         return {
           ok: false,
           content:
-            count === 0
+            located.count === 0
               ? `The text to find does not occur in ${path}; nothing was changed. Copy it exactly from project_read (without the "N| " line-number prefixes).`
-              : `The text to find occurs ${count} times in ${path}; nothing was changed. Include more surrounding lines so it is unique.`,
+              : `The text to find occurs ${located.count} times in ${path}; nothing was changed. Include more surrounding lines so it is unique.`,
         };
       }
-      const at = current.content.indexOf(find);
-      const next = current.content.slice(0, at) + replace + current.content.slice(at + find.length);
+      const at = located.start;
+      const next = current.content.slice(0, located.start) + located.replacement + current.content.slice(located.end);
       const written = await workspaceService.writeFile(workspace, path, next);
       if (!written.ok) return { ok: false, content: written.error };
       const line = current.content.slice(0, at).split("\n").length;
       return {
         ok: true,
-        content: `Edited ${path} at line ${line}: replaced ${find.split("\n").length} line(s) with ${replace.split("\n").length}. The real project is untouched.`,
+        content:
+          `Edited ${path} at line ${line}: replaced ${find.split("\n").length} line(s) with ${replace.split("\n").length}` +
+          `${located.tolerant ? " (matched ignoring indentation; the replacement was re-indented to the file's)" : ""}. The real project is untouched.`,
         data: { line },
       };
     },

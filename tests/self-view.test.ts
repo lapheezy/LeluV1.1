@@ -178,3 +178,20 @@ test("project_edit replaces exactly one snippet, and refuses ambiguity or absenc
     runtime.restore();
   }
 });
+
+test("project_edit tolerates the model's indentation, re-indents to the file's, and still refuses ambiguity", async () => {
+  const { locateSnippet } = await import("../src/core/tools/ToolDispatcher");
+  const file = "function a() {\n        style={{\n          width: 34,\n          height: 34,\n        }}\n}\n";
+  // The model dropped the indentation (measured: the commonest refusal).
+  const found = locateSnippet(file, "width: 34,\nheight: 34,", "width: 44,\nheight: 44,\nminWidth: 44,");
+  assert.equal(found.ok, true);
+  if (!found.ok) return;
+  assert.equal(found.tolerant, true);
+  const next = file.slice(0, found.start) + found.replacement + file.slice(found.end);
+  assert.equal(next, "function a() {\n        style={{\n          width: 44,\n          height: 44,\n          minWidth: 44,\n        }}\n}\n");
+
+  const exact = locateSnippet(file, "          width: 34,", "          width: 40,");
+  assert.ok(exact.ok && !exact.tolerant, "an exact match is used as-is");
+  assert.deepEqual(locateSnippet("  x\n  y\n x\n y\n", "x\ny", "z"), { ok: false, count: 2 }, "two tolerant matches: refused");
+  assert.deepEqual(locateSnippet(file, "depth: 3", "z"), { ok: false, count: 0 });
+});

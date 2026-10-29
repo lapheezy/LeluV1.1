@@ -9,6 +9,7 @@
  * configured provider is attempted immediately.
  */
 
+import { groundingNote, ungroundedClaims } from "../tools/ClaimGrounding";
 import type AIProvider from "../../providers/AIProvider";
 import type { AIMessage, AIResponse } from "../../providers/AIProvider";
 import type RouterContext from "./RouterContext";
@@ -458,10 +459,21 @@ export default class ProviderResolver {
     // provider is prose about tools, not an unexecuted request, and
     // re-running it would execute a second time and throw away the
     // grounded answer.
+    // A result she reports must have a tool behind it (ClaimGrounding):
+    // claims about tools that did not run successfully this turn are
+    // marked "not verified" in the reply itself.
+    const ungrounded = ungroundedClaims(response.text ?? "", executed);
+    if (ungrounded.length > 0) {
+      context.logger.info("ProviderResolver", "Reply claims tool results with no tool behind them", {
+        claims: ungrounded.map((claim) => claim.label),
+      });
+    }
     return {
       ...response,
+      text: `${response.text ?? ""}${groundingNote(ungrounded)}`,
       metadata: {
         ...response.metadata,
+        ...(ungrounded.length ? { ungroundedClaims: ungrounded.map((claim) => claim.label) } : {}),
         nativeTools: true,
         ...(executed.length
           ? { toolsExecuted: executed, toolRounds: executed.length }

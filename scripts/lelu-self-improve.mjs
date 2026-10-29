@@ -108,17 +108,28 @@ const replies = () =>
     return (conversation?.messages ?? []).map((m) => ({ role: m.role, text: m.text }));
   });
 
-// A neutral go-ahead when she pauses to report before acting — it names no
-// problem, file or fix. At most two.
+// A neutral go-ahead when she pauses or stops short — it names no problem,
+// file or fix. At most four.
 const GO_AHEAD = "Go ahead — carry out the rest of the loop yourself and report back with the evidence.";
 const deadline = started + LIMIT_MS;
 let finished = null;
 try {
 finished = await waitForTurn(REQUEST, deadline);
-for (let nudge = 0; nudge < 2 && finished && Date.now() < deadline; nudge += 1) {
-  const diffed = await page.evaluate(() => window.__selfImprove.events.some((e) => e.type === "tool_started" && e.tool === "project.diff"));
-  if (diffed) break;
-  console.log(`  her turn ended without a diff; sending the go-ahead (${nudge + 1}/2)`);
+// "Done" is what her own event bus shows she RAN — a validation, a capture
+// of her preview and a diff — never what a reply says she did.
+const loopDone = () =>
+  page.evaluate(() => {
+    const ran = (tool, pred = () => true) => window.__selfImprove.events.some((e) => e.type === "tool_result" && e.tool === tool && pred(e));
+    return {
+      validated: ran("project.validate"),
+      previewCaptured: ran("capture", (e) => /preview|5310|layout finding/i.test(e.result ?? "")) && window.__selfImprove.events.some((e) => e.type === "tool_started" && e.tool === "capture" && /workspace/.test(e.label ?? "")),
+      diffed: ran("project.diff"),
+    };
+  });
+for (let nudge = 0; nudge < 4 && finished && Date.now() < deadline; nudge += 1) {
+  const done = await loopDone();
+  if (done.validated && done.previewCaptured && done.diffed) break;
+  console.log(`  her turn ended; recorded so far ${JSON.stringify(done)} — sending the go-ahead (${nudge + 1}/4)`);
   await page.evaluate(async () => {
     const { default: Bus } = await import("/src/core/cognition/UIActionBus.ts");
     Bus.getInstance().dispatch({ type: "open_panel", target: "chat", reason: "self-improvement run", initiatedBy: "user" });
