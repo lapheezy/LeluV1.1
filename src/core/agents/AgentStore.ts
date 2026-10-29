@@ -21,7 +21,17 @@ import {
   agentFromTemplate,
   type AgentTemplate,
 } from "./AgentTemplates";
-import type { AgentTask, AgentExecution, LeluAgent, AgentStatus } from "./AgentTypes";
+import type { AgentTask, AgentTaskStatus, AgentExecution, LeluAgent, AgentStatus, DelegatorId } from "./AgentTypes";
+
+/** One row of the delegation ledger: a task, and the agent that owns it. */
+export interface DelegationEntry {
+  agentId: string;
+  agentName: string;
+  task: AgentTask;
+}
+
+export const INTERRUPTED_REASON =
+  "The app stopped before it finished (reload, crash or closed tab). Nothing is running it now; resume it to continue.";
 
 type AgentListener = (agents: LeluAgent[]) => void;
 
@@ -36,6 +46,40 @@ export default class AgentStore {
     if (this.list().length === 0) {
       this.seedTemplates();
     }
+    // A fresh store means a fresh process: no run from before it can still
+    // be in flight. Anything persisted as "running" is a claim nothing backs.
+    this.markInterruptedTasks();
+  }
+
+  /** Test-only: drop the singleton to simulate a restart over the same storage. */
+  public static resetForTests(): void {
+    AgentStore.instance = null;
+  }
+
+  /**
+   * Turn every persisted "running" task into "interrupted", with the reason.
+   * Called once per process (constructor). Returns how many were changed.
+   */
+  private markInterruptedTasks(): number {
+    const now = Date.now();
+    let changed = 0;
+    const agents = this.list();
+    const next = agents.map((agent) => {
+      if (!agent.tasks.some((task) => task.status === "running")) return agent;
+      return {
+        ...agent,
+        updatedAt: now,
+        tasks: agent.tasks.map((task) => {
+          if (task.status !== "running") return task;
+          changed += 1;
+          return { ...task, status: "interrupted" as const, completedAt: now, error: INTERRUPTED_REASON };
+        }),
+      };
+    });
+    if (changed > 0) {
+      this.kv.set(AgentStore.KEY, next);
+    }
+    return changed;
   }
 
   public static getInstance(): AgentStore {
@@ -327,6 +371,25 @@ export default class AgentStore {
   /** Agents available for delegation: enabled + not archived. */
   public runnable(): LeluAgent[] {
     return this.list().filter((agent) => agent.enabled && agent.status !== "archived");
+  }
+
+  /* ---------------------------- delegation ledger ---------------------------- */
+
+  /**
+   * Every delegated task across all agents, newest first — read from the
+   * same persisted task records, not a second store.
+   */
+  public delegations(filter: { status?: AgentTaskStatus; delegatedBy?: DelegatorId; agentId?: string } = {}): DelegationEntry[] {
+    const entries: DelegationEntry[] = [];
+    for (const agent of this.list()) {
+      if (filter.agentId && agent.id !== filter.agentId) continue;
+      for (const task of agent.tasks) {
+        if (filter.status && task.status !== filter.status) continue;
+        if (filter.delegatedBy && task.delegatedBy !== filter.delegatedBy) continue;
+        entries.push({ agentId: agent.id, agentName: agent.name, task });
+      }
+    }
+    return entries.sort((a, b) => b.task.createdAt - a.task.createdAt);
   }
 
   /** Agents assigned to a project. */

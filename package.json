@@ -29,7 +29,8 @@
     "verify:mobile-chat": "node scripts/verify-mobile-chat.mjs",
     "verify:github-bridge": "tsx scripts/verify-github-bridge.ts",
     "verify:auth": "node scripts/verify-supabase-auth.mjs",
-    "measure:cost": "node scripts/measure-render-cost.mjs"
+    "measure:cost": "node scripts/measure-render-cost.mjs",
+    "verify:bundle": "node scripts/verify-no-tests-in-bundle.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",

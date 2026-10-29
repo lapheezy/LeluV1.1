@@ -105,8 +105,8 @@ type RawModule = Record<string, () => Promise<string>>;
  * paths ships with the bundle but file contents are only fetched when
  * something actually reads one — the initial bundle is unaffected.
  *
- * Scope is a deliberate trade: `.ts` across src, plugins and tests
- * (the whole logic layer, previously only `src/core`) costs ~1.2 MB of
+ * Scope is a deliberate trade: `.ts` across src and plugins (the whole
+ * logic layer; tests/ is excluded from production) costs ~1.2 MB of
  * lazily-served deploy weight. Adding `.tsx` as well would take that to
  * ~2.9 MB for the React component layer, which is the least useful
  * thing to read when answering architecture, capability and runtime
@@ -139,11 +139,9 @@ function buildSnapshot(): RawModule {
         import: "default",
         eager: false,
       }) as RawModule),
-      ...(import.meta.glob("/tests/**/*.ts", {
-        query: "?raw",
-        import: "default",
-        eager: false,
-      }) as RawModule),
+      // tests/ is deliberately NOT bundled: it shipped ~74 test files as
+      // production chunks. Tests stay readable through the development
+      // runtime; a static host answers "not in the build-time snapshot".
       ...(import.meta.glob("/plugins/**/*.ts", {
         query: "?raw",
         import: "default",
