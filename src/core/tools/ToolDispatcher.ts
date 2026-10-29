@@ -203,6 +203,35 @@ export function compareCaptures(
 }
 
 /**
+ * Why `content` cannot be what a whole-file write means to save, or null.
+ * Two signatures no real source file carries: project_read's display
+ * (its window header, or "N| " line prefixes), and a comment standing in
+ * for code that was not written out ("... rest of the component",
+ * "(full original stylesheet – 1089 lines)").
+ */
+export function unsavableContent(content: string): string | null {
+  const lines = content.split("\n");
+  if (/ — lines \d+–\d+ of \d+/.test(lines.slice(0, 3).join("\n")) || lines.filter((line) => /^\s*\d+\| /.test(line)).length >= 3) {
+    return 'contains project_read\'s display (its "lines N–M of T" header or "N| " line prefixes), not source';
+  }
+  const comment = /^\s*(?:\/\/|\/\*|\{\/\*|<!--|#)\s*(.*)$/;
+  for (const line of lines) {
+    const body = comment.exec(line)?.[1];
+    if (!body) continue;
+    if (
+      /^(?:\.\.\.|…)\s*(?:\*\/\s*\}?|-->)?\s*$/.test(body) ||
+      /^(?:\.\.\.|…)\s*(?:existing|rest|remaining|unchanged|same|other|previous|more)\b/i.test(body) ||
+      /\(\s*(?:the\s+)?(?:full|entire|rest|remaining|original|existing|unchanged)\b/i.test(body) ||
+      /\b(?:rest|remainder) of (?:the )?(?:file|code|component|stylesheet|styles|module)\b/i.test(body) ||
+      /\b(?:full|entire|original|existing) (?:\w+ )?(?:file|code|component|stylesheet|styles|module)\b[^\n]*\b\d+ lines\b/i.test(body)
+    ) {
+      return `has a placeholder where code should be ("${line.trim().slice(0, 80)}") — the code it stands for would be deleted`;
+    }
+  }
+  return null;
+}
+
+/**
  * App captures that found problems under OTHER conditions than this preview
  * capture. Measured in run 9: she found 13 problems in her app with the
  * Avatar panel open, captured her preview with no panel (0 problems, as
@@ -1436,6 +1465,24 @@ const EXECUTORS: ToolExecutor[] = [
       }
       const content = args.content;
       const service = EngineeringWorkspace.getInstance();
+
+      // Content that cannot be what she means to save, refused whatever
+      // allowShrink says (measured in self-improvement run 10, both in one
+      // run): the first write carried project_read's display — its header
+      // and "N| " prefixes — into the source; a later one replaced a
+      // 1,089-line stylesheet with "/* (full original stylesheet – 1089
+      // lines) */" plus 11 new lines, the placeholder standing for code it
+      // never wrote out. Typecheck does not read CSS; it "passed".
+      const unsavable = unsavableContent(content);
+      if (unsavable) {
+        return {
+          ok: false,
+          content:
+            `Nothing was written to "${path}": the content ${unsavable}. project.write saves exactly ` +
+            `what it is given and replaces the whole file. For a targeted change use project_edit ` +
+            `(find → replace); to write the whole file, write every line out in full.`,
+        };
+      }
 
       // A WHOLE-FILE WRITE CAN DESTROY WHAT IT DOES NOT REPEAT.
       //

@@ -120,7 +120,7 @@ test("a failed capture says so and shows nothing", async () => {
 function fakeRuntime(files: Record<string, string>) {
   // No runtime probe in a test process: mark the two tools available, as a
   // successful probe would.
-  for (const id of ["project.read", "project.edit"]) ToolRegistry.getInstance().updateAvailability(id, true);
+  for (const id of ["project.read", "project.edit", "project.write"]) ToolRegistry.getInstance().updateAvailability(id, true);
   const realFetch = globalThis.fetch;
   const writes: Array<{ path: string; content: string }> = [];
   globalThis.fetch = (async (url: unknown, init?: RequestInit) => {
@@ -272,5 +272,36 @@ test("the layout report is the page as a user first sees it: stable, scroll-awar
     assert.match(overflow[0].detail ?? "", /content 5\d\dpx wide in a 3\d\dpx box/);
   } finally {
     await browser.close();
+  }
+});
+
+test("project_write refuses what cannot be meant: read-display text and placeholders for unwritten code", async () => {
+  const { unsavableContent } = await import("../src/core/tools/ToolDispatcher");
+  const css = Array.from({ length: 1089 }, (_, i) => `.rule-${i} { color: red; }`).join("\n");
+  const runtime = fakeRuntime({ "src/index.css": css, "src/a.tsx": "export const a = 1;\n" });
+  try {
+    // Measured in run 10, verbatim: the original stylesheet "kept" by a comment.
+    const gutted = "/* (full original stylesheet – 1089 lines) */\n\n@media (max-width: 420px) {\n  [data-testid=\"lelu-companion\"] { display: none !important; }\n}\n";
+    const refused = await dispatchToolCall({ id: "w1", name: "project_write", arguments: { workspace: "ws", path: "src/index.css", content: gutted, allowShrink: true } }, "t");
+    assert.equal(refused.ok, false);
+    assert.match(refused.content, /placeholder where code should be .*full original stylesheet/);
+    // Measured in run 10: project_read's own display written into the source.
+    const display = "src/a.tsx — lines 1–3 of 3 (the \"N| \" prefixes are not part of the file)\n  1| export const a = 1;\n  2| export const b = 2;\n  3| export const c = 3;\n";
+    const refusedDisplay = await dispatchToolCall({ id: "w2", name: "project_write", arguments: { workspace: "ws", path: "src/a.tsx", content: display } }, "t");
+    assert.equal(refusedDisplay.ok, false);
+    assert.match(refusedDisplay.content, /project_read's display/);
+    assert.equal(runtime.writes.length, 0, "nothing was written");
+
+    const real = await dispatchToolCall({ id: "w3", name: "project_write", arguments: { workspace: "ws", path: "src/a.tsx", content: "// Keep the existing export name: callers import it.\nexport const a = 2;\n" } }, "t");
+    assert.equal(real.ok, true, real.content);
+  } finally {
+    runtime.restore();
+  }
+  // Ordinary comments are not placeholders.
+  for (const fine of ["// the rest is handled by the router", "/* original design: 3 columns */", "# Section heading", "// ...and the caller retries"]) {
+    assert.equal(unsavableContent(`${fine}\nconst x = 1;\n`), null, fine);
+  }
+  for (const placeholder of ["// ... rest of the component unchanged", "{/* ...existing code... */}", "/* (rest unchanged) */", "  // remainder of the file as before", "// ...", "  /* … */"]) {
+    assert.ok(unsavableContent(`const x = 1;\n${placeholder}\n`), placeholder);
   }
 });

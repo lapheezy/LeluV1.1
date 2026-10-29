@@ -167,13 +167,15 @@ for (const workspace of workspaces) {
     return r.json();
   }, workspace);
   diffs[workspace] = response;
+}
+
+for (const [workspace, response] of Object.entries(diffs)) {
   const patch = (response.changes ?? []).map((c) => `--- ${c.path} (${c.status}, +${c.addedLines}/-${c.removedLines})\n${c.patch ?? ""}`).join("\n");
   writeFileSync(path.join(OUT, `diff-${workspace}.patch.txt`), patch || "(no changes)\n");
 }
-
 // Written only now: the diff above compares her copy with the real
 // project, and evidence files written earlier would show up in it as
-// changes of hers (measured in run 8).
+// changes of hers (measured in runs 8 and 10).
 writeFileSync(path.join(OUT, "request.txt"), REQUEST + "\n");
 writeFileSync(path.join(OUT, "transcript.txt"), transcript);
 writeFileSync(path.join(OUT, "events.json"), JSON.stringify(record.events, null, 2));

@@ -1,0 +1,506 @@
+--- docs/evidence/self-improve/2026-10-29T23-31-06/diff-copy1.patch.txt (deleted, +0/-176)
+--- a/docs/evidence/self-improve/2026-10-29T23-31-06/diff-copy1.patch.txt
++++ b/docs/evidence/self-improve/2026-10-29T23-31-06/diff-copy1.patch.txt
+@@ -1,176 +1,0 @@
+---- src/app/scene/genesis/avatar/LeluCompanion.tsx (modified, +29/-443)
+---- a/src/app/scene/genesis/avatar/LeluCompanion.tsx
+-+++ b/src/app/scene/genesis/avatar/LeluCompanion.tsx
+-@@ -1,443 +1,29 @@
+--/**
+-- * ==========================================================
+-- * LÉLU — THE COMPANION
+-- *
+-- * LÉLU's avatar in companion mode: the look you chose (Avatar panel →
+-- * AvatarStore), floating over the whole app — chat, browser, workspace,
+-- * Cosmos — while you work. Not a panel, not a window: a figure.
+-- *
+-- *   - Mounted ONCE at app level (GenesisScene), so navigating between
+-- *     surfaces never destroys and recreates her.
+-- *   - Only her figure takes touches. The overlay around her is
+-- *     pointer-events: none, so nothing beneath stops working.
+-- *   - Drag her anywhere: she stays there (pinned). Unpinned, she moves
+-- *     herself away from what you are using — the field you type in, the
+-- *     composer, keep-clear controls — and only when she is in the way.
+-- *   - She moves with what she is REALLY doing: the live activity
+-- *     (listening, thinking, browsing, working…) from the same reading the
+-- *     3D presence uses, and her speech as it actually plays — each word
+-- *     boundary from the speech engine is a beat of her body.
+-- *   - She says what she is doing in a small caption, taken from real
+-- *     events: the tool that started, the page she opened, the sentence
+-- *     she is speaking. Nothing invented.
+-- *
+-- * A photo cannot move its lips: with a saved image she speaks with her
+-- * whole presence, not a mouth. Real lip-sync needs a rigged model.
+-- * ==========================================================
+-- */
+--
+--import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+--import AvatarStore from "../../../../core/avatar/AvatarProfile";
+--import CompanionStore, {
+--  COMPANION_DIMENSIONS,
+--  chooseSpot,
+--  figureRect,
+--  type CompanionState,
+--  type Rect,
+--} from "../../../../core/avatar/CompanionStore";
+--import AgentEventBus from "../../../../core/agent/AgentEvents";
+--import VoiceEngine from "../../../../core/voice/VoiceEngine";
+--import { within } from "../../../../core/ui/Layers";
+--import AvatarPortrait from "../AvatarPortrait";
+--import { useGenesis } from "../GenesisCore";
+--import { ACTIVITY_ACCENT, useLeluActivity, type LeluActivity } from "./leluActivity";
+--import { captionForEvent } from "./companionCaption";
+--
+--function prefersReducedMotion(): boolean {
+--  return typeof window !== "undefined" && typeof window.matchMedia === "function"
+--    ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+--    : false;
+--}
+--
+--function viewportSize(): { width: number; height: number } {
+--  const vv = typeof window !== "undefined" ? window.visualViewport : null;
+--  return {
+--    width: vv?.width ?? (typeof window !== "undefined" ? window.innerWidth : 1024),
+--    height: vv?.height ?? (typeof window !== "undefined" ? window.innerHeight : 768),
+--  };
+--}
+--
+--/**
+-- * What she must not stand on: every control you could touch (buttons,
+-- * links, fields), dialogs, anything marked keep-clear — and, weighted
+-- * far above the rest, the field you are typing in right now.
+-- */
+--const INTERACTIVE = "button, a[href], input, textarea, select, [role='button'], [role='tab'], [contenteditable='true'], [data-lelu-keep-clear], [role='dialog']";
+--
+--function keepClearRects(own: HTMLElement | null): Rect[] {
+--  if (typeof document === "undefined") return [];
+--  const { width, height } = viewportSize();
+--  const rects: Rect[] = [];
+--  const add = (element: Element, weight: number) => {
+--    if (own && own.contains(element)) return;
+--    const box = element.getBoundingClientRect();
+--    if (box.width <= 0 || box.height <= 0) return;
+--    if (box.right < 0 || box.bottom < 0 || box.left > width || box.top > height) return;
+--    rects.push({ left: box.left, top: box.top, width: box.width, height: box.height, weight });
+--  };
+--  for (const element of document.querySelectorAll(INTERACTIVE)) add(element, 1);
+--  const active = document.activeElement;
+--  if (active && active !== document.body) add(active, 12);
+--  return rects;
+--}
+--
+--const MOTION_STYLE = `
+--@keyframes lelu-companion-in { from { opacity: 0; transform: translateY(18px) scale(0.86); } to { opacity: 1; transform: none; } }
+--`;
+--
+--export default function LeluCompanion() {
+--  const [companion, setCompanion] = useState<CompanionState>(() => CompanionStore.getInstance().get());
+--  useEffect(() => CompanionStore.getInstance().subscribe(setCompanion), []);
+--  if (!companion.enabled) return null;
+--  return <CompanionFigure companion={companion} />;
+--}
+--
+--function CompanionFigure({ companion }: { companion: CompanionState }) {
+--  const store = CompanionStore.getInstance();
+--  const { openPanel } = useGenesis();
+--  const activity = useLeluActivity();
+--  const accent = ACTIVITY_ACCENT[activity];
+--
+--  const [referenceImage, setReferenceImage] = useState<string | null>(() => AvatarStore.getInstance().get().referenceImage);
+--  const [name, setName] = useState(() => AvatarStore.getInstance().get().identity.name || "LÉLU");
+--  useEffect(
+--    () =>
+--      AvatarStore.getInstance().subscribe((profile) => {
+--        setReferenceImage(profile.referenceImage);
+--        setName(profile.identity.name || "LÉLU");
+--      }),
+--    [],
+--  );
+--
+--  const [viewport, setViewport] = useState(viewportSize);
+--  const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
+--  const [controlsOpen, setControlsOpen] = useState(false);
+--  const [caption, setCaption] = useState<{ text: string; at: number } | null>(null);
+--
+--  const rootRef = useRef<HTMLDivElement | null>(null);
+--  const bodyRef = useRef<HTMLDivElement | null>(null);
+--  const pulseRef = useRef(0); // speech beat, decays each frame
+--  const speakingRef = useRef(false);
+--  const activityRef = useRef<LeluActivity>(activity);
+--  activityRef.current = activity;
+--  const pointerRef = useRef<{ x: number; y: number } | null>(null);
+--  const controlsRef = useRef<HTMLDivElement | null>(null);
+--  // Measured once shown, so the controls can be kept inside the screen.
+--  const [, remeasure] = useState(0);
+--  useEffect(() => {
+--    if (controlsOpen) requestAnimationFrame(() => remeasure((n) => n + 1));
+--  }, [controlsOpen]);
+--
+--  /* ------------------------------ viewport ------------------------------ */
+--  useEffect(() => {
+--    const update = () => setViewport(viewportSize());
+--    window.addEventListener("resize", update);
+--    window.visualViewport?.addEventListener("resize", update);
+--    return () => {
+--      window.removeEventListener("resize", update);
+--      window.visualViewport?.removeEventListener("resize", update);
+--    };
+--  }, []);
+--
+--  /* ------------------- she moves herself out of the way ----------------- */
+--  const reconsider = useCallback(() => {
+--    const current = CompanionStore.getInstance().get();
+--    if (current.pinned || drag) return;
+--    const spot = chooseSpot({ x: current.x, y: current.y }, current.size, viewportSize(), keepClearRects(rootRef.current));
+--    if (spot.moved) CompanionStore.getInstance().placeByLelu(spot.x, spot.y);
+--  }, [drag]);
+--
+--  useEffect(() => {
+--    reconsider();
+--    const onFocus = () => setTimeout(reconsider, 50);
+--    document.addEventListener("focusin", onFocus);
+--    document.addEventListener("focusout", onFocus);
+--    // The app changes under her (panels open, the keyboard rises): a cheap
+--    // look every second and a half, moving only when she is in the way.
+--    const timer = setInterval(reconsider, 1500);
+--    return () => {
+--      document.removeEventListener("focusin", onFocus);
+--      document.removeEventListener("focusout", onFocus);
+--      clearInterval(t
+…[patch truncated]
+--- src/app/scene/genesis/avatar/LeluCompanion.tsx (modified, +8/-4)
+--- a/src/app/scene/genesis/avatar/LeluCompanion.tsx
++++ b/src/app/scene/genesis/avatar/LeluCompanion.tsx
+@@ -283,4 +283,8 @@
+       data-activity={activity}
+       data-pinned={companion.pinned ? "true" : "false"}
+       style={{
+-        position: "fixed",
+-        inset: 0,
+-        // Above toasts, below the command palette and modals.
+-        zIndex: within("notification", 50),
++        position: "absolute",
++        left: 0,
++        top: 0,
++        width: 0,
++        height: 0,
++        
++        // Above toasts, below the command palette and modals.
++        zIndex: within("notification", -1),
+         pointerEvents: "none", // the screen beneath keeps working
+       }}
+     >
+--- src/index.css (modified, +12/-1089)
+--- a/src/index.css
++++ b/src/index.css
+@@ -1,1089 +1,12 @@
+-:root {
+-  --text: #6b6375;
+-  --text-h: #08060d;
+-  --bg: #fff;
+-  --border: #e5e4e7;
+-  --code-bg: #f4f3ec;
+-  --accent: #aa3bff;
+-  --accent-bg: rgba(170, 59, 255, 0.1);
+-  --accent-border: rgba(170, 59, 255, 0.5);
+-  --social-bg: rgba(244, 243, 236, 0.5);
+-  --shadow:
+-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+-
+-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+-  --mono: ui-monospace, Consolas, monospace;
+-
+-  font: 18px/145% var(--sans);
+-  letter-spacing: 0.18px;
+-  color-scheme: light dark;
+-  color: var(--text);
+-  background: var(--bg);
+-  font-synthesis: none;
+-  text-rendering: optimizeLegibility;
+-  -webkit-font-smoothing: antialiased;
+-  -moz-osx-font-smoothing: grayscale;
+-
+-  @media (max-width: 1024px) {
+-    font-size: 16px;
+-  }
+-}
+-
+-@media (prefers-color-scheme: dark) {
+-  :root {
+-    --text: #9ca3af;
+-    --text-h: #f3f4f6;
+-    --bg: #16171d;
+-    --border: #2e303a;
+-    --code-bg: #1f2028;
+-    --accent: #c084fc;
+-    --accent-bg: rgba(192, 132, 252, 0.15);
+-    --accent-border: rgba(192, 132, 252, 0.5);
+-    --social-bg: rgba(47, 48, 58, 0.5);
+-    --shadow:
+-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+-  }
+-
+-  #social .button-icon {
+-    filter: invert(1) brightness(2);
+-  }
+-}
+-
+-#root {
+-  width: 1126px;
+-  max-width: 100%;
+-  margin: 0 auto;
+-  text-align: center;
+-  border-inline: 1px solid var(--border);
+-  min-height: 100svh;
+-  display: flex;
+-  flex-direction: column;
+-  box-sizing: border-box;
+-}
+-
+-body {
+-  margin: 0;
+-}
+-
+-h1,
+-h2 {
+-  font-family: var(--heading);
+-  font-weight: 500;
+-  color: var(--text-h);
+-}
+-
+-h1 {
+-  font-size: 56px;
+-  letter-spacing: -1.68px;
+-  margin: 32px 0;
+-  @media (max-width: 1024px) {
+-    font-size: 36px;
+-    margin: 20px 0;
+-  }
+-}
+-h2 {
+-  font-size: 24px;
+-  line-height: 118%;
+-  letter-spacing: -0.24px;
+-  margin: 0 0 8px;
+-  @media (max-width: 1024px) {
+-    font-size: 20px;
+-  }
+-}
+-p {
+-  margin: 0;
+-}
+-
+-code,
+-.counter {
+-  font-family: var(--mono);
+-  display: inline-flex;
+-  border-radius: 4px;
+-  color: var(--text-h);
+-}
+-
+-code {
+-  font-size: 15px;
+-  line-height: 135%;
+-  padding: 4px 8px;
+-  background: var(--code-bg);
+-}
+-
+-/*
+- * Genesis chrome — shared pulse for any dock/panel indicator that
+- * needs to reflect a live signal (thinking, speaking, reasoning...).
+- * Kept global + reusable rather than redefined per component, since
+- * Phase 10 wired live signals (GenesisSignals) that more than one
+- * chrome surface will want to reflect over time.
+- */
+-@keyframes genesis-signal-pulse {
+-  0%, 100% {
+-    opacity: 1;
+-    box-shadow: 0 0 6px currentColor;
+-  }
+-  50% {
+-    opacity: 0.55;
+-    box-shadow: 0 0 14px currentColor;
+-  }
+-}
+-
+-.genesis-signal-active {
+-  animation: genesis-signal-pulse 1.4s ease-in-out infinite;
+-}
+-
+-/*
+- * Phase 13 — respect the OS-level reduced-motion preference for the
+- * one thing here that's pure CSS (the dock/panel signal pulse).
+- * The floating-window hover lift and entry/exit spring are driven by
+- * framer-motion in GenesisWindowFrame.tsx, which checks the same
+- * media query itself before enabling `whileHover`.
+- */
+-@media (prefers-reduced-motion: reduce) {
+-  .genesis-signal-active {
+-    animation: none;
+-    box-shadow: 0 0 10px currentColor;
+-  }
+-}
+-
+-/*
+- * Floating-window scrollbars. The glass panels (GenesisWindowFrame)
+- * and panel-local scroll bodies (class .genesis-scroll) scroll
+- * internally over a full-screen canvas app whose html/body/#root are
+- * overflow:hidden, so the default fat light-mode scrollbar is both
+- * ugly and easy to miss. Give them a thin, translucent thumb that
+- * reads on dark glass and a contain overscroll so the wheel never
+- * silently falls through to the frozen page behind.
+- */
+-.genesis-window-frame,
+-.genesis-scroll {
+-  scrollbar-width: thin;
+-  scrollbar-color: rgba(148, 163, 184, 0.45) rgba(255, 255, 255, 0.06);
+-}
+-
+-.genesis-window-frame::-webkit-scrollbar,
+-.genesis-scroll::-webkit-scrollbar {
+-  width: 8px;
+-  height: 8px;
+-}
+-
+-.genesis-window-frame::-webkit-scrollbar-track,
+-.genesis-scroll::-webkit-scrollbar-track {
+-  background: rgba(255, 255, 255, 0.04);
+-  border-radius: 999px;
+-}
+-
+-.genesis-window-frame::-webkit-scrollbar-thumb,
+-.genesis-scroll::-webkit-scrollbar-thumb {
+-  background: rgba(148, 163, 184, 0.45);
+-  border-radius: 999px;
+-}
+-
+-.genesis-window-frame::-webkit-scrollbar-thumb:hover,
+-.genesis-scroll::-webkit-scrollbar-thumb:hover {
+-  background: rgba(148, 163, 184, 0.7);
+-}
+-
+-/*
+- * Mobile safety: the canvas app is fixed-position full-screen, so these
+- * guards are invisible on desktop but prevent horizontal overflow and
+- * viewport jumps on phones — iOS Safari's address bar and the on-screen
+- * keyboard resize the viewport, so dynamic viewport units (dvh/svh) are
+- * used instead of a hard 100vh.
+- */
+-html,
+-body {
+-  overflow-x: hidden;
+-}
+-
+-body {
+-  min-height: 100dvh;
+-}
+-
+-/* Keep one-handed reach: no tap targets under 40px on touch screens. */
+-@media (max-width: 720px) {
+-  .genesis-window-frame button,
+-  .genesis-agent-workspace-layer button,
+-  .genesis-dialogue-layer button {
+-    min-height: 34px;
+-  }
+-}
+-
+-/*
+- * Visual interface — heartbeat ring pulse. Inline in CSS so the
+- * four visual modes share one fast, consistent motion language
+- * without per-mode animation code.
+- */
+-@keyframes visual-ring {
+-  from {
+-    transform: scale(0.6);
+-    opacity: 0.8;
+-  }
+-  to {
+-    transform: scale(7);
+-    opacity: 0;
+-  }
+-}
+-
+-/*
+- * Living System UI — the second LÉLU environment. Mode layers crossfade
+- * in fast (short transition, per the brief: responsive, not cinematic),
+- * and the SystemCore beats at the real VisualEngine heartbeat rate.
+- */
+-@keyframes living-system-fade-in {
+-  from {
+-    opacity: 0;
+-  }
+-  to {
+-    opacity: 1;
+-  }
+-}
+-
+-/*
+- * Environment switch — used by BOTH LÉLU environments when they mount.
+- * Switching between the primary Genesis chrome and the Living System
+- * UI should read as LÉLU changing operating environments: a quick fade
+- * with a barely-there scale settle. Fast, not cinematic.
+- */
+-@keyframes lelu-environment-enter {
+-  from {
+-    opacity: 0;
+-    transform: scale(1.015);
+-  }
+-  to {
+-    opacity: 1;
+-    transform: scale(1);
+-  }
+-}
+-
+-@keyframes living-core-beat {
+-  0% {
+-    transform: translate(-50%, -50%) scale(1);
+-  }
+-  35% {
+-    transform: translate(-50%, -50%) scale(1.06);
+-  }
+-  100% {
+-    transform: translate(-50%, -50%) scale(1);
+-  }
+-}
+-
+-/*
+- * ==========================================================
+- * LIVING SYSTEM VISUALS — the second UI's real per-mode renderers
+- *
+- * Heartbeat, Matrix, Nerve, Neuron and Core each mount a genuinely
+- * distinct visualization. These keyframes animate that visualization:
+- * synchronized ECG rings and a traveling trace (heartbeat), floating
+- * microscopic particles and a breathing soma (neuron), and the shared
+- * Genesis Core breathing, ring rotation and conic shimmer (core).
+- * Longhand animation-* is used where inline duration/delay overrides
+- * are applied from React (rings, core surface), so the two never
+- * fight each other.
+- * ==========================================================
+- */
+-
+-/* Heartbeat — expanding synchronized rings around the pulsing core. */
+-.living-heartbeat-ring {
+-  animation-name: living-heartbeat-ring;
+-  animation-timing-function: ease-out;
+-  animation-iteration-count: infinite;
+-}
+-@keyframes living-heartbeat-ring {
+-  from {
+-    transform: scale(0.3);
+-    opacity: 0.9;
+-  }
+-  to {
+-    transform: scale(1.35);
+-    opacity: 0;
+-  }
+-}
+-
+-/* Heartbeat — the central structure's rhythmic expansion. */
+-.living-heartbeat-core {
+-  animation-name: living-heartbeat-core;
+-  animation-timing-function: ease-in-out;
+-  animation-iteration-count: infinite;
+-}
+-@keyframes living-heartbeat
+…[patch truncated]
