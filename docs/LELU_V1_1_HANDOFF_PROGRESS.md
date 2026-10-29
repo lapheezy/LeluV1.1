@@ -131,13 +131,24 @@ LÉLU CORE ──► SHAMAN.dispatch(objective, {agentId?, delegatedBy})
 | Environment: keys | `verify-provider-health` | Anthropic, Mistral, Gemini and GitHub Models keys are absent here |
 | Environment: assumes a keyless machine | `verify-cognition`, `verify-offline-brain`, `verify-startup-diagnostic` | Assert "no provider available", but this container has 4 provider keys (OpenRouter, Groq, Cerebras, Fireworks) |
 | Live model wording | `verify-cognitive-trace`, `verify-e2e-cognition`, `verify-engineering-chat` | Assertions on the text a real model returns |
-| Pre-existing: stale expectation or defect | `verify-providers` (expects 8 remote providers in priority order 0–10; the registry has 9, with a duplicate priority 2), `verify-tool-execute` (`memory.recall` called with an empty query), `verify-tool-registry` (workspace tools do not flip to available after raising autonomy), `verify-selfdev` (no runtime goal opened) | Present at `e68cce3`; **not investigated in this pass.** These are the next ones to fix. |
+| Pre-existing: stale expectation or defect | `verify-providers`, `verify-tool-execute`, `verify-tool-registry`, `verify-selfdev` | Present at `e68cce3`. **Three are now fixed; `verify-providers` is down to one check that needs an owner decision.** See §5a. |
 
-Passing: attention-bounds, bundle-secrets, curiosity, development, endpoints, engineering-agent, init-race, media-browser, memory-recall, offline-identity, runtime-continuity, secrets, transform-command, ui-action-bus, ui-cognition-e2e, visual, voice, workspace.
+Passing at the time of this table: attention-bounds, bundle-secrets, curiosity, development, endpoints, engineering-agent, init-race, media-browser, memory-recall, offline-identity, runtime-continuity, secrets, transform-command, ui-action-bus, ui-cognition-e2e, visual, voice, workspace.
+
+### 5a. Follow-up: the four pre-existing failures
+
+| Script | Root cause | Fix | Now |
+|---|---|---|---|
+| `verify-tool-execute` | **My own earlier regression** (`4315072`). `ToolRegistry.execute` now runs the real dispatcher, which requires `query` for `memory.recall`; the script still called it the old way (`{count: 20}`, expecting an array). | The script uses the real contract: a query in, matching text out. It also checks that an empty query is refused. | ALL PASS |
+| `verify-tool-registry` | Stale expectation. Since `b64dc0c`, a workspace command is offered only if the autonomy gate allows it AND an engineering runtime is reachable. The script expected the gate alone to flip availability. | The script checks the real conjunction, and that the gate allows the command at L5. It also checks that with no runtime, `workspace.test` is **not** offered to cognition. | ALL PASS |
+| `verify-selfdev` | **Work lost in merge `9492b78`.** `SelfDevelopmentLoop.develop()`'s goal pipeline (`LeluRuntime` goal and verified/failed outcomes per step) and its timeline events were dropped; the merge message says only `integrate()`'s events were ported. Also, `integrate()` became async (it runs the real SelfTestRunner) but the script did not `await` it. | Three-way merge of the lost side onto the current file. One conflict, resolved to the current version, which is a superset. Duplicate import and variables removed. The script now awaits `integrate()`. | ALL PASS (was 20 failing) |
+| `verify-providers` | Since `d11dc20`, Anthropic is the default (priority 1), so Groq dropped to 2, **tying with OpenRouter**. Which one is tried first after Anthropic is now decided by registration order (OpenRouter first), not by the priority number. | Script updated for Anthropic-first. **The tie is not resolved:** it is a routing decision for the owner, and `AIProviderRegistry.ts` is Freebuff's file. | 65/66: strict-priority check still fails |
+
+The other files that merge took wholesale from one side are the documented "server-owned transport wins" choice, plus the timeline label it deliberately replaced. No other lost work was found.
 
 ## 6. For the owner
 
-1. **Rotate the Meshy key**, and the NewsAPI and YouTube keys if they were ever set unprefixed on a server that served the app. Then set them as server-only `MESHY_API_KEY`, `NEWS_API_KEY` and `YOUTUBE_API_KEY`.
+1. **Key rotation.** No Meshy key exists: none is set and none was ever configured, so there is nothing to rotate. `NEWS_API_KEY` and `YOUTUBE_API_KEY` were set unprefixed in this environment, which the old bridge published. The owner reports having rotated them; this session cannot verify that. Keep them server-only, without `VITE_`.
 2. **Delete the GitHub secrets** the APK workflow no longer reads: `VITE_*_API_KEY`, `VITE_GITHUB_TOKEN` and `ANTHROPIC_API_KEY`.
 3. **Delete stray branches:** `should-not-exist`, `lelu-verify/mvqyjv7l` and `lelu-verify/mvqyldvo`. This session is not permitted to delete them.
 4. **Decide what happens to PRs #6 and #7** on GitHub. Their content is in this branch.

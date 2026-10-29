@@ -187,10 +187,13 @@ async function main(): Promise<void> {
   const ai = AIService.getInstance();
   await ai.initialize();
   await ai.chat("My favorite color is teal.");
-  const recallResult = await registry.execute("memory.recall", { count: 20 });
+  // Same contract a model's tool call has (ToolRegistry.execute delegates
+  // to ToolDispatcher): a query in, the matching memories as text out.
+  const recallResult = await registry.execute("memory.recall", { query: "favorite color" });
   assert(recallResult.ok, "memory.recall executed successfully", recallResult.detail);
-  const memories = recallResult.output as Array<{ response: string }>;
-  assert(Array.isArray(memories) && memories.some((m) => /teal/i.test(m.response)), "the recalled memories include the fact just stored through real chat()");
+  assert(/teal/i.test(recallResult.detail), "the recalled memories include the fact just stored through real chat()", recallResult.detail.slice(0, 200));
+  const missing = await registry.execute("memory.recall", {});
+  assert(!missing.ok && /non-empty query/.test(missing.detail), "a recall with no query is refused, not run on nothing", missing.detail);
 
   console.log(`\n${failures === 0 ? "ALL TOOL EXECUTE CHECKS PASSED" : `${failures} CHECK(S) FAILED`}`);
   process.exit(failures === 0 ? 0 : 1);

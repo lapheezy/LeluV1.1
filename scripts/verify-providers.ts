@@ -107,8 +107,10 @@ async function main() {
 
   check(
     "registry registers the local-first provider plus all eight remote chat providers",
-    names.join(",") ===
-      "Local (on-device),Groq,OpenRouter,Cerebras,Mistral,Fireworks,Anthropic,Gemini,GitHub Models",
+    // Anthropic is the default remote provider since d11dc20 (priority 1).
+    [...names].sort().join(",") ===
+      ["Local (on-device)", "Anthropic", "Groq", "OpenRouter", "Cerebras", "Mistral", "Fireworks", "Gemini", "GitHub Models"].sort().join(",") &&
+      names[0] === "Local (on-device)" && names[1] === "Anthropic",
     names.join(" → "),
   );
   check(
