@@ -35,137 +35,23 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import AvatarStore from "../../../core/avatar/AvatarProfile";
 import AvatarCommandBus, { type AvatarCommand } from "../../../core/avatar/AvatarCommandBus";
 import Avatar3DReconstructor, { fingerprintOf } from "../../../core/avatar/Avatar3DReconstructor";
-import AgentEventBus, { type AgentEvent } from "../../../core/agent/AgentEvents";
+import AgentEventBus from "../../../core/agent/AgentEvents";
 import ExecutiveRuntime from "../../../core/executive/ExecutiveRuntime";
-import { useGenesis } from "./GenesisCore";
 import {
   buildAvatarModel,
   tickAvatar,
-  type AvatarPresenceMode,
   type AvatarParts,
 } from "../../../core/creative/Procedural3DPipeline";
 import { V2_LELU_POS } from "./GenesisV2CameraRig";
 
-/* ------------------------ activity → presence ------------------------- */
+import {
+  ACTIVITY_ACCENT,
+  modeForActivity,
+  useLeluActivity,
+  type LeluActivity,
+} from "./avatar/leluActivity";
 
-export type LeluActivity =
-  | "IDLE"
-  | "LISTENING"
-  | "THINKING"
-  | "SPEAKING"
-  | "PRESENTING"
-  | "SEARCHING"
-  | "BROWSING"
-  | "WORKING"
-  | "BUILDING"
-  | "RENDERING"
-  | "EXPLORING"
-  | "COMPLETED"
-  | "ERROR";
-
-const ACTIVITY_ACCENT: Record<LeluActivity, string> = {
-  IDLE: "#4ade80",
-  LISTENING: "#38bdf8",
-  THINKING: "#a78bfa",
-  SPEAKING: "#f0abfc",
-  PRESENTING: "#c4b5fd",
-  SEARCHING: "#22d3ee",
-  BROWSING: "#7dd3fc",
-  WORKING: "#fbbf24",
-  BUILDING: "#fb923c",
-  RENDERING: "#e879f9",
-  EXPLORING: "#34d399",
-  COMPLETED: "#4ade80",
-  ERROR: "#f87171",
-};
-
-function modeForActivity(activity: LeluActivity): AvatarPresenceMode {
-  switch (activity) {
-    case "LISTENING":
-      return "listening";
-    case "PRESENTING":
-      return "speaking";
-    case "THINKING":
-    case "SEARCHING":
-    case "BROWSING":
-    case "WORKING":
-    case "BUILDING":
-    case "RENDERING":
-    case "EXPLORING":
-      return "thinking";
-    case "SPEAKING":
-      return "speaking";
-    default:
-      return "idle";
-  }
-}
-
-function activityFromAgentEvent(event: AgentEvent): LeluActivity | null {
-  switch (event.type) {
-    case "tool_started":
-      if (event.tool === "creative") {
-        const label = (event.label ?? "").toLowerCase();
-        if (label.includes("3d") || label.includes("render")) return "RENDERING";
-        if (label.includes("video")) return "EXPLORING";
-        return "BUILDING";
-      }
-      if (event.tool === "avatar") return "PRESENTING";
-      if (event.tool === "research") return "SEARCHING";
-      if (event.tool === "engineering" || event.tool === "sandbox") return "WORKING";
-      if (event.tool === "browser") return "BROWSING";
-      return "WORKING";
-    case "browser_opened":
-      return "BROWSING";
-    case "tool_progress":
-      return "WORKING";
-    case "task_completed":
-      return "COMPLETED";
-    case "task_failed":
-      return "ERROR";
-    default:
-      return null;
-  }
-}
-
-/** Reads the REAL agent event bus and derives LÉLU's current activity. */
-export function useLeluActivity(): LeluActivity {
-  const genesis = useGenesis();
-  const [activity, setActivity] = useState<LeluActivity>("IDLE");
-
-  useEffect(() => {
-    const unsub = AgentEventBus.getInstance().subscribe((event) => {
-      const next = activityFromAgentEvent(event);
-      if (next) setActivity(next);
-    });
-    return unsub;
-  }, []);
-
-  // Conversation state is the ground truth when no tool is running —
-  // the avatar listens, thinks and speaks with LÉLU's real dialogue.
-  useEffect(() => {
-    if (activity === "COMPLETED" || activity === "ERROR") return;
-    const g = genesis.state;
-    if (g.speaking || g.dialogue === "responding" || g.dialogue === "complete") {
-      setActivity("SPEAKING");
-    } else if (g.thinking || g.dialogue === "processing") {
-      setActivity("THINKING");
-    } else if (g.listening || g.dialogue === "listening") {
-      setActivity("LISTENING");
-    } else if (activity !== "SEARCHING" && activity !== "WORKING" && activity !== "BROWSING" && activity !== "RENDERING" && activity !== "PRESENTING") {
-      setActivity("IDLE");
-    }
-  }, [genesis.state.thinking, genesis.state.speaking, genesis.state.listening, genesis.state.dialogue, activity]);
-
-  // A completed/error state is a beat, not a stuck state — settle back
-  // to idle after a few seconds so the presence never freezes.
-  useEffect(() => {
-    if (activity !== "COMPLETED" && activity !== "ERROR") return;
-    const timer = setTimeout(() => setActivity("IDLE"), 4200);
-    return () => clearTimeout(timer);
-  }, [activity]);
-
-  return activity;
-}
+export { useLeluActivity, type LeluActivity };
 
 /* --------------------- executive avatar commands ---------------------- */
 

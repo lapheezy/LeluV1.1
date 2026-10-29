@@ -282,3 +282,49 @@ test("the Cosmos draws each agent in its owner's galaxy and lights only the work
     cosmos.destroy();
   }
 });
+
+/* ------------------- SHAMAN from chat: the model's tools ------------------- */
+
+test("a model tool call reaches SHAMAN: agent_delegate routes, runs, and returns the result to the conversation", async () => {
+  const { dispatchToolCall, executableToolIds } = await import("../src/core/tools/ToolDispatcher");
+  for (const id of ["agent.delegate", "agent.status", "agent.resume"]) {
+    assert.ok(executableToolIds().includes(id), `${id} is runnable, not just registered`);
+  }
+  const restore = stubDelegate(async (agentName, task) => ok(`${agentName} did: ${task}`));
+  try {
+    const result = await dispatchToolCall(
+      { id: "d1", name: "agent_delegate", arguments: { objective: "Render a photoreal product shot of the ring" } },
+      "turn-1",
+    );
+    assert.equal(result.ok, true, result.content);
+    assert.match(result.content, /SHAMAN routed it to .* \(engineering\): matched/);
+    assert.match(result.content, /did: Render a photoreal product shot/);
+
+    const status = await dispatchToolCall({ id: "d2", name: "agent_status", arguments: {} }, "turn-1");
+    assert.match(status.content, /\[complete\] .* \(engineering\): "Render a photoreal product shot of the ring".*assigned by lelu; routed: matched/);
+
+    const unknown = await dispatchToolCall({ id: "d3", name: "agent_delegate", arguments: { objective: "x", agent: "Nobody Atall" } }, "turn-1");
+    assert.equal(unknown.ok, false);
+    assert.match(unknown.content, /no agent called "Nobody Atall"\. Nothing was run/);
+  } finally {
+    restore();
+  }
+});
+
+test("agent_resume continues interrupted work through SHAMAN", async () => {
+  const { dispatchToolCall } = await import("../src/core/tools/ToolDispatcher");
+  const agent = store().runnable().find((item) => executiveOf(item) === "architect")!;
+  const task = store().recordTask(agent.id, { label: "map the voice subsystem", status: "running", delegatedBy: "user", executive: "architect" });
+  restart();
+  const restore = stubDelegate(async () => ok("Mapped."));
+  try {
+    const result = await dispatchToolCall({ id: "r1", name: "agent_resume", arguments: { taskId: task.id } }, "turn-2");
+    assert.equal(result.ok, true, result.content);
+    assert.match(result.content, /Resumed — .* \(architect\): resumed by its own agent/);
+    const old = store().get(agent.id)!.tasks.find((item) => item.id === task.id)!;
+    assert.equal(old.status, "interrupted");
+    assert.ok(old.resumedBy);
+  } finally {
+    restore();
+  }
+});

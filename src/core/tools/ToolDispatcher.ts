@@ -453,6 +453,260 @@ const EXECUTORS: ToolExecutor[] = [
   // user decides. Unauthorized chats are never read.
 
   {
+    id: "browser.capture",
+    emitsOwnEvents: true,
+    parameters: {
+      type: "object",
+      properties: {
+        target: {
+          type: "string",
+          enum: ["app", "preview", "url"],
+          description: "'app' = your own running interface; 'preview' = a workspace copy you started with project_preview; 'url' = a public page.",
+        },
+        url: { type: "string", description: "For target 'url': the page address." },
+        workspace: { type: "string", description: "For target 'preview': the workspace id." },
+        viewport: { type: "string", enum: ["phone", "desktop"], description: "Screen size to render at (default desktop)." },
+        panel: {
+          type: "string",
+          description: "For 'app'/'preview': a panel to open first, e.g. chat, avatar, browser, memory, projects, cosmos.",
+        },
+      },
+      required: ["target"],
+    },
+    run: async (args) => {
+      const target = str(args, "target") || "app";
+      const viewport = str(args, "viewport") === "phone" ? "phone" : "desktop";
+      const panel = str(args, "panel") || undefined;
+      const body: Record<string, unknown> = { viewport, ...(panel ? { panel } : {}) };
+      if (target === "url") {
+        const url = str(args, "url");
+        if (!url) return { ok: false, content: "browser.capture with target 'url' needs a url." };
+        body.url = url;
+      } else if (target === "preview") {
+        const workspace = str(args, "workspace");
+        if (!workspace) return { ok: false, content: "browser.capture with target 'preview' needs the workspace id." };
+        body.preview = workspace;
+      } else {
+        body.app = true;
+      }
+      const taskId = `capture-${Date.now().toString(36)}`;
+      const label = target === "url" ? `Looking at ${hostOf(String(body.url))}` : `Looking at ${target === "preview" ? `workspace ${String(body.preview)}` : "my own interface"} (${viewport}${panel ? `, ${panel}` : ""})`;
+      const events = AgentEventBus.getInstance();
+      events.emit({ type: "tool_selected", taskId, tool: "browser", label });
+      events.emit({ type: "tool_started", taskId, tool: "browser", label });
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const data = await EngineeringWorkspace.getInstance().callRuntime("/api/browser/capture", body);
+      if (data.ok !== true) {
+        const error = String(data.error ?? "The capture failed.");
+        events.emit({ type: "tool_failed", taskId, tool: "browser", error });
+        return { ok: false, content: `Nothing was captured: ${error}` };
+      }
+      const layout = (data.layout ?? {}) as { viewport?: number[]; controls?: number; findings?: Array<{ label: string; rect: number[]; problem: string; coveredBy?: string }>; text?: string };
+      const findings = layout.findings ?? [];
+      // The real screenshot goes where every produced image goes: into the
+      // conversation and the shared workspace.
+      if (typeof data.screenshot === "string") {
+        events.emit({ type: "creative_artifact", taskId, image: data.screenshot, label });
+      }
+      events.emit({ type: "tool_result", taskId, tool: "browser", result: `${findings.length} layout finding(s)` });
+      const lines = findings.map((f) => `- ${f.problem}: ${f.label} at [x ${f.rect[0]}, y ${f.rect[1]}, w ${f.rect[2]}, h ${f.rect[3]}]${f.coveredBy ? ` covered by ${f.coveredBy}` : ""}`);
+      const errors = Array.isArray(data.pageErrors) && data.pageErrors.length ? `\nPage errors: ${(data.pageErrors as string[]).join(" | ")}` : "";
+      return {
+        ok: true,
+        content:
+          `Captured ${String(data.url)} at ${viewport} (${(layout.viewport ?? []).join("×")}), title "${String(data.title ?? "")}"` +
+          `${data.panelOpened ? `, panel: ${String(data.panelOpened)}` : ""}. The screenshot is shown to the user.\n` +
+          `Layout report — ${layout.controls ?? 0} visible controls measured; ${findings.length} problem(s):\n` +
+          `${lines.length ? lines.join("\n") : "(none: every control is on screen and uncovered)"}${errors}\n\nVisible text (start):\n${String(layout.text ?? "").slice(0, 1200)}`,
+        data: { findings, viewport, title: data.title, capturedAt: data.capturedAt },
+      };
+    },
+  },
+
+  {
+    id: "project.search",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "Text to find (case-insensitive), e.g. a component name, a style value, an aria-label." },
+        workspace: { type: "string", description: "Search inside this workspace copy instead of the real project." },
+        path: { type: "string", description: "Only under this folder, e.g. src/app." },
+        regex: { type: "boolean", description: "Treat the query as a regular expression." },
+      },
+      required: ["query"],
+    },
+    run: async (args) => {
+      const query = str(args, "query");
+      if (!query) return { ok: false, content: "project.search needs a query." };
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const data = await EngineeringWorkspace.getInstance().callRuntime("/api/engineer/search", {
+        query,
+        ...(str(args, "workspace") ? { workspace: str(args, "workspace") } : {}),
+        ...(str(args, "path") ? { path: str(args, "path") } : {}),
+        ...(args.regex === true ? { regex: true } : {}),
+      });
+      if (data.ok !== true) return { ok: false, content: `Search failed: ${String(data.error ?? "unknown error")}` };
+      const matches = (data.matches ?? []) as Array<{ path: string; line: number; text: string }>;
+      if (matches.length === 0) return { ok: true, content: `No match for "${query}" (${String(data.filesScanned)} files scanned).` };
+      return {
+        ok: true,
+        content: `${matches.length}${data.truncated ? "+" : ""} match(es) for "${query}":\n` + matches.map((m) => `${m.path}:${m.line}: ${m.text}`).join("\n"),
+        data: { matches },
+      };
+    },
+  },
+
+  {
+    id: "project.preview",
+    parameters: {
+      type: "object",
+      properties: {
+        workspace: { type: "string", description: "The workspace copy to run." },
+        action: { type: "string", enum: ["start", "stop", "status"], description: "Default start." },
+      },
+      required: ["workspace"],
+    },
+    run: async (args) => {
+      const action = str(args, "action") || "start";
+      const workspace = str(args, "workspace");
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const data = await EngineeringWorkspace.getInstance().callRuntime("/api/engineer/preview", { action, workspace });
+      if (data.ok !== true) return { ok: false, content: `Preview ${action} failed: ${String(data.error ?? "unknown error")}${data.log ? `\n${String(data.log).slice(-800)}` : ""}` };
+      if (action === "start") return { ok: true, content: `Workspace ${workspace} is running at ${String(data.url)} (loopback). Capture it with browser_capture target "preview".` };
+      if (action === "stop") return { ok: true, content: data.stopped ? `Preview of ${workspace} stopped.` : `No preview of ${workspace} was running.` };
+      return { ok: true, content: JSON.stringify(data.previews ?? []) };
+    },
+  },
+
+  {
+    id: "agent.delegate",
+    parameters: {
+      type: "object",
+      properties: {
+        objective: { type: "string", description: "The work to hand off, stated fully enough for the agent to act on it." },
+        agent: {
+          type: "string",
+          description: "Optional: the agent's name, when the user asked for a specific one. Omit to let SHAMAN choose.",
+        },
+      },
+      required: ["objective"],
+    },
+    run: async (args) => {
+      const objective = str(args, "objective");
+      if (!objective) return { ok: false, content: "agent.delegate requires an objective." };
+      const { default: Shaman } = await import("../agents/Shaman");
+      const { default: AgentStore } = await import("../agents/AgentStore");
+      const named = str(args, "agent").toLowerCase();
+      let agentId: string | undefined;
+      if (named) {
+        const agent = AgentStore.getInstance()
+          .list()
+          .find((candidate) => candidate.name.toLowerCase() === named || candidate.name.toLowerCase().includes(named));
+        if (!agent) return { ok: false, content: `There is no agent called "${str(args, "agent")}". Nothing was run.` };
+        agentId = agent.id;
+      }
+      const result = await Shaman.getInstance().dispatch({ objective, agentId, delegatedBy: "lelu" });
+      const route = result.route.ok
+        ? `SHAMAN routed it to ${result.route.agentName} (${result.route.executive}): ${result.route.routeReason}.`
+        : `SHAMAN could not route it: ${result.route.reason}`;
+      if (!result.ok) {
+        return { ok: false, content: `${route}\nNot completed: ${result.error ?? "the agent run failed"}. Task ${result.taskId}.` };
+      }
+      const text = result.response?.text ?? "";
+      const failedProvider = result.response?.provider === "error" || result.response?.provider === "offline";
+      return {
+        ok: !failedProvider,
+        content: `${route}\n${failedProvider ? "The agent reached no model provider" : "Result"} (task ${result.taskId}):\n${text.slice(0, 4000)}`,
+        data: { taskId: result.taskId, route: result.route },
+      };
+    },
+  },
+
+  {
+    id: "agent.status",
+    parameters: {
+      type: "object",
+      properties: {
+        status: { type: "string", enum: ["running", "interrupted", "failed", "complete", "queued"], description: "Only tasks in this state." },
+      },
+    },
+    run: async (args) => {
+      const { default: AgentStore } = await import("../agents/AgentStore");
+      const status = str(args, "status");
+      const entries = AgentStore.getInstance()
+        .delegations(status ? { status: status as never } : {})
+        .slice(0, 15);
+      if (entries.length === 0) return { ok: true, content: status ? `No ${status} agent tasks.` : "No agent tasks recorded yet." };
+      const lines = entries.map(({ agentName, task }) => {
+        const when = new Date(task.createdAt).toISOString().slice(0, 16).replace("T", " ");
+        return (
+          `- [${task.status}] ${agentName}${task.executive ? ` (${task.executive})` : ""}: "${task.label.slice(0, 80)}" — ${when}` +
+          `${task.delegatedBy ? `, assigned by ${task.delegatedBy}` : ""}${task.routeReason ? `; routed: ${task.routeReason}` : ""}` +
+          `${task.error ? `; error: ${task.error.slice(0, 120)}` : ""} (id ${task.id})`
+        );
+      });
+      return { ok: true, content: lines.join("\n") };
+    },
+  },
+
+  {
+    id: "agent.resume",
+    parameters: {
+      type: "object",
+      properties: { taskId: { type: "string", description: "The id of the interrupted or failed task (from agent_status)." } },
+      required: ["taskId"],
+    },
+    run: async (args) => {
+      const taskId = str(args, "taskId");
+      const { default: AgentStore } = await import("../agents/AgentStore");
+      const owner = AgentStore.getInstance()
+        .list()
+        .find((agent) => agent.tasks.some((task) => task.id === taskId));
+      if (!owner) return { ok: false, content: `No agent task with id ${taskId}.` };
+      const { default: Shaman } = await import("../agents/Shaman");
+      const result = await Shaman.getInstance().resume(owner.id, taskId);
+      const route = result.route.ok ? `${result.route.agentName} (${result.route.executive}): ${result.route.routeReason}` : result.route.reason;
+      return result.ok
+        ? { ok: true, content: `Resumed — ${route}. New task ${result.taskId}:\n${(result.response?.text ?? "").slice(0, 3000)}` }
+        : { ok: false, content: `Not resumed: ${result.error}` };
+    },
+  },
+
+  {
+    id: "avatar.companion",
+    parameters: {
+      type: "object",
+      properties: {
+        enabled: {
+          type: "boolean",
+          description: "true to appear as the companion over the app, false to hide. Omit to only change size.",
+        },
+        size: { type: "string", enum: ["small", "medium", "large"], description: "Your size as the companion." },
+        chooseOwnSpot: {
+          type: "boolean",
+          description: "true to stop staying where the user dragged you and pick an out-of-the-way spot yourself.",
+        },
+      },
+    },
+    run: async (args) => {
+      const { default: CompanionStore } = await import("../avatar/CompanionStore");
+      const store = CompanionStore.getInstance();
+      if (typeof args.enabled === "boolean") store.setEnabled(args.enabled);
+      const size = str(args, "size");
+      if (size === "small" || size === "medium" || size === "large") store.setSize(size);
+      if (args.chooseOwnSpot === true) store.unpin();
+      const state = store.get();
+      return {
+        ok: true,
+        content: state.enabled
+          ? `Companion mode is ON (${state.size}${state.pinned ? ", staying where the user placed you" : ", choosing your own out-of-the-way spot"}).`
+          : "Companion mode is OFF.",
+        data: state,
+      };
+    },
+  },
+
+  {
     id: "chats.list",
     parameters: {
       type: "object",

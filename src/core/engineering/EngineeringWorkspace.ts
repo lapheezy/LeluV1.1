@@ -198,6 +198,14 @@ export default class EngineeringWorkspace {
     return data;
   }
 
+  /**
+   * One call to an engineering-runtime route — same runtime source and
+   * token as every operation below (search, preview, capture use it).
+   */
+  public async callRuntime(route: string, body: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return this.post(route, body);
+  }
+
   /* ---------------------------- operations ---------------------------- */
 
   /** Create a REAL copy of the project. Returns the server's own record. */

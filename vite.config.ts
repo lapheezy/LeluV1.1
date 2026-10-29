@@ -14,6 +14,7 @@ import { createModelApi } from "./plugins/modelApi.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
+import { createSelfViewApi } from "./plugins/selfViewApi.ts";
 import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
@@ -127,6 +128,15 @@ export default defineConfig(({ mode }) => {
       // middleware the standalone server (server.ts) mounts — the capability
       // is identical in dev and in the deployed runtime.
       engineerApiPlugin(createNodeEngineerAdapter("vite-dev")),
+
+      // Her eyes: headless capture of pages and her own UI, workspace
+      // previews, and code search (plugins/selfViewApi.ts).
+      {
+        name: "lelu-self-view",
+        configureServer(server: any) {
+          createSelfViewApi().attach(server.middlewares);
+        },
+      },
 
       envApiPlugin(),
 

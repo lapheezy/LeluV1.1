@@ -68,6 +68,9 @@ import DeepLinkIntake
 import EngineTick
   from "./EngineTick";
 
+import LeluCompanion
+  from "./avatar/LeluCompanion";
+
 import GenesisNotificationCenter
   from "./GenesisNotificationCenter";
 
@@ -441,6 +444,10 @@ function GenesisWorkspaceRouter() {
         */}
       <WorkspaceBridge />
       <GenesisSurfaceController />
+
+      {/* LÉLU in companion mode: her figure over every surface, mounted
+          once here so moving between surfaces never recreates her. */}
+      <LeluCompanion />
       <VisualBridge />
       <DeepLinkIntake />
 

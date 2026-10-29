@@ -39,6 +39,7 @@ import VisualEngine from "../../../core/visual/VisualEngine";
 import MultiChatStore from "../../../core/multichat/MultiChatStore";
 import Workspace from "../../../core/ui/Workspace";
 import { chatFillsScreen } from "./chat/chatLayout";
+import CompanionStore from "../../../core/avatar/CompanionStore";
 import { genesisCameraIntentBus, type GenesisV2CameraCommand, type GenesisV2FocusTarget } from "./GenesisCameraIntent";
 
 /** Map a real agent tool to the existing surface that shows its work. */
@@ -270,7 +271,10 @@ export default function GenesisSurfaceController() {
       // consequence of the user's request. Open the existing canonical
       // module even in MANUAL mode; MANUAL only suppresses unrelated
       // autonomous presentation changes.
-      const surface = surfaceForEvent(event);
+      const mapped = surfaceForEvent(event);
+      // In companion mode the avatar is the figure floating over the app.
+      // Her own work must not also open the Avatar panel as a window.
+      const surface = mapped === "avatar" && CompanionStore.getInstance().get().enabled ? null : mapped;
       const isLiveResearchSurface =
         event.type === "browser_opened" ||
         event.type === "browser_navigation" ||

@@ -17,6 +17,7 @@
  * ==========================================================
  */
 
+import CompanionToggle from "./avatar/CompanionToggle";
 import { within } from "../../../core/ui/Layers";
 
 /** A thematic group maps real dock/module ids to a LÉLU label. */
@@ -235,6 +236,10 @@ export default function GenesisMobileMenu({
 
       <div style={{ fontSize: 10.5, color: "rgba(148,163,184,0.9)", padding: "0 6px 4px", letterSpacing: "0.04em" }}>
         {online ? "live · one runtime" : "booting · one runtime"} — every item is a tool of the chat
+      </div>
+
+      <div style={{ padding: "2px 2px 6px" }}>
+        <CompanionToggle />
       </div>
 
       {/* grouped sections */}

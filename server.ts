@@ -24,6 +24,7 @@
  * ==========================================================
  */
 
+import { createSelfViewApi } from "./plugins/selfViewApi.ts";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
@@ -286,6 +287,7 @@ const quad9Api = createQuad9Api((key) => process.env[key]);
 const nekoApi = createNekoApi((key) => process.env[key]);
 
 createEngineerApi(createNodeEngineerAdapter("node-server")).attach(middlewares);
+createSelfViewApi().attach(middlewares);
 createEnvApi((key) => process.env[key], "node-server", {
   aisStatus: () => aisBridge.getStatus(),
 }).attach(middlewares);

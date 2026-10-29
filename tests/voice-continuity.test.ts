@@ -65,7 +65,7 @@ const fakeSynth = {
   getVoices: () => [],
 };
 
-let recognizer: FakeRecognition | null = null;
+const recognizers: FakeRecognition[] = [];
 let recognitionStarts = 0;
 class FakeRecognition {
   continuous = false;
@@ -76,7 +76,7 @@ class FakeRecognition {
   onend: (() => void) | null = null;
   onstart: (() => void) | null = null;
   constructor() {
-    recognizer = this;
+    recognizers.push(this);
   }
   start() {
     recognitionStarts += 1;
@@ -154,18 +154,18 @@ test("barge-in: the user talking over her stops her; her own echo does not", asy
 
   await engine.toggle(); // start a voice session (fake mic + recognizer)
   assert.equal(engine.getState().active, true);
-  assert.ok(recognizer, "recognizer started");
+  assert.ok(recognizers.length > 0, "recognizer started");
 
   engine.speakResponse("Here is the full weather report for today. It will be sunny with light wind.");
   await wait(2);
   assert.equal(engine.isSpeaking(), true);
 
   const cancelsBefore = cancels;
-  recognizer!.hear("weather report for today"); // her own voice through the mic
+  recognizers.at(-1)!.hear("weather report for today"); // her own voice through the mic
   assert.equal(cancels, cancelsBefore, "echo does not interrupt");
   assert.equal(engine.isSpeaking(), true);
 
-  recognizer!.hear("hold on a second");
+  recognizers.at(-1)!.hear("hold on a second");
   assert.equal(cancels, cancelsBefore + 1, "the user's words stop her speech");
   assert.equal(engine.isSpeaking(), false);
   assert.equal(engine.getBargeInCount(), 1);
@@ -175,13 +175,13 @@ test("barge-in: the user talking over her stops her; her own echo does not", asy
 test("a recognizer that ends mid-reply is restarted — the session keeps hearing", async () => {
   internals._state = { ...engine.getState(), phase: "processing" } as typeof internals._state;
   const before = recognitionStarts;
-  recognizer!.onend?.();
+  recognizers.at(-1)!.onend?.();
   await wait(300);
   assert.equal(recognitionStarts, before + 1, "restarted although the phase was not 'listening'");
 
   await engine.toggle(); // stop the session
   const afterStop = recognitionStarts;
-  recognizer?.onend?.();
+  recognizers.at(-1)?.onend?.();
   await wait(300);
   assert.equal(recognitionStarts, afterStop, "a stopped session is not restarted");
 });

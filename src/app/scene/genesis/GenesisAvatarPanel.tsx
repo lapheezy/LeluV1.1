@@ -29,6 +29,7 @@ import ProceduralAvatarPreview from "./ProceduralAvatarPreview";
 import type { AvatarPresenceMode } from "../../../core/creative/Procedural3DPipeline";
 import { renderAvatarToImage } from "../../../core/creative/Procedural3DPipeline";
 import RenderStore from "../../../core/creative/RenderStore";
+import CompanionToggle from "./avatar/CompanionToggle";
 import Avatar3DReconstructor, { type ReconstructionStatus } from "../../../core/avatar/Avatar3DReconstructor";
 
 const fieldStyle: CSSProperties = {
@@ -234,6 +235,9 @@ export default function GenesisAvatarPanel({ onClose }: GenesisAvatarPanelProps)
             alignSelf: "flex-start",
           }}
         >
+          {/* Companion mode: her figure over the whole app, in this look. */}
+          <CompanionToggle detailed />
+
           <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6 }}>
             Visual reference
           </div>
