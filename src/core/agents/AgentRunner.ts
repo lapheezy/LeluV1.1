@@ -17,6 +17,7 @@ import AgentStore from "./AgentStore";
 import ProjectStore from "../projects/ProjectStore";
 import type { AIResponse } from "../../providers/AIProvider";
 import type { DelegatorId } from "./AgentTypes";
+import { executiveOf } from "./ExecutiveOwnership";
 
 import { AgentDepthGuard, BUDGET_LIMITS } from "../memory/CognitiveBudget";
 import MemoryOrchestrator from "../memory/MemoryProvider";
@@ -46,6 +47,12 @@ export interface AgentRunOptions {
   delegatedBy?: DelegatorId;
   /** Internal: the interrupted/failed task this run continues (see resume()). */
   resumedFrom?: string;
+  /** Internal: the agent that owns `resumedFrom`, when another agent continues it. */
+  resumedFromAgent?: string;
+  /** The executive that owns the work. Default: the agent's own executive. */
+  executive?: string;
+  /** Why this agent was chosen (SHAMAN's routeReason). */
+  routeReason?: string;
 }
 
 export default class AgentRunner {
@@ -119,11 +126,15 @@ export default class AgentRunner {
       projectId: resolvedProject,
       ...(options.delegatedBy ? { delegatedBy: options.delegatedBy } : {}),
       ...(options.resumedFrom ? { resumedFrom: options.resumedFrom } : {}),
+      // Every task records its owning executive, so ownership survives a
+      // restart with the task and the Cosmos can draw it in its galaxy.
+      executive: options.executive ?? executiveOf(agent),
+      ...(options.routeReason ? { routeReason: options.routeReason } : {}),
     });
     if (options.resumedFrom) {
       // Link the original to its continuation; its own status and error are
       // history and stay exactly as they were.
-      this.store.updateTask(agentId, options.resumedFrom, { resumedBy: taskRecord.id });
+      this.store.updateTask(options.resumedFromAgent ?? agentId, options.resumedFrom, { resumedBy: taskRecord.id });
     }
 
     // Every agent run announces itself on the ONE bus from here, so the
@@ -218,7 +229,12 @@ export default class AgentRunner {
    * Completed, running and already-resumed tasks are refused, so one piece
    * of work can never be continued twice.
    */
-  public async resume(agentId: string, taskId: string): Promise<AgentRunResult> {
+  public async resume(
+    agentId: string,
+    taskId: string,
+    /** SHAMAN: hand the work to another agent (its own is unavailable), and why. */
+    handoff: { toAgentId?: string; routeReason?: string } = {},
+  ): Promise<AgentRunResult> {
     const agent = this.store.get(agentId);
     const original = agent?.tasks.find((task) => task.id === taskId);
     if (!agent || !original) {
@@ -230,9 +246,13 @@ export default class AgentRunner {
     if (original.status !== "interrupted" && original.status !== "failed") {
       return { ok: false, error: `Only interrupted or failed tasks can be resumed; this one is ${original.status}.`, taskId };
     }
-    return this.run(agentId, original.label, original.projectId, undefined, {
+    const target = handoff.toAgentId ?? agentId;
+    return this.run(target, original.label, original.projectId, undefined, {
       delegatedBy: original.delegatedBy,
       resumedFrom: original.id,
+      ...(target !== agentId ? { resumedFromAgent: agentId } : {}),
+      ...(original.executive ? { executive: original.executive } : {}),
+      ...(handoff.routeReason ? { routeReason: handoff.routeReason } : {}),
     });
   }
 

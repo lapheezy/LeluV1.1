@@ -118,7 +118,7 @@ export default function GenesisAgentsPanel({ onClose }: GenesisAgentsPanelProps)
     setRunning(true);
     setRunOutput(null);
     try {
-      const result = await runner.run(selected.id, runPrompt.trim(), runProject || undefined);
+      const result = await runner.run(selected.id, runPrompt.trim(), runProject || undefined, undefined, { delegatedBy: "user" });
       setRunOutput(
         result.ok
           ? `[${result.response?.provider ?? "unknown"} · ${result.response?.model ?? ""}]\n\n${result.response?.text ?? ""}`

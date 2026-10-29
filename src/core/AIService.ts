@@ -33,7 +33,7 @@ import type { Plan } from "./planning/PlanningEngine";
 import type { LeluAgent } from "./agents/AgentTypes";
 import { agentSystemPrompt } from "./agents/AgentTypes";
 import AgentStore from "./agents/AgentStore";
-import AgentRunner from "./agents/AgentRunner";
+import Shaman from "./agents/Shaman";
 import ProactiveCore from "./proactive/ProactiveCore";
 import CuriosityEngine from "./curiosity/CuriosityEngine";
 import PromptInjectionGuard from "./security/PromptInjectionGuard";
@@ -603,13 +603,15 @@ export default class AIService {
     const delegation = this.resolveDelegation(message);
     if (delegation) {
       try {
-        const result = await AgentRunner.getInstance().run(
-          delegation.agent.id,
-          delegation.task,
-          undefined,
+        // LÉLU CORE delegates through SHAMAN: the user named the agent, so
+        // the route is that assignment, recorded with its owning executive.
+        const result = await Shaman.getInstance().dispatch({
+          objective: delegation.task,
+          agentId: delegation.agent.id,
+          delegatedBy: "lelu",
           // Attribute the agent's work to THIS cognitive turn.
-          taskId,
-        );
+          parentTaskId: taskId,
+        });
         const response: AIResponse =
           result.ok && result.response
             ? result.response

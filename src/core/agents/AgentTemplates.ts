@@ -389,6 +389,7 @@ export function agentFromTemplate(template: AgentTemplate): LeluAgent {
   const now = Date.now();
   return {
     id: crypto.randomUUID(),
+    templateId: template.id,
     name: template.name,
     role: template.role,
     description: template.description,

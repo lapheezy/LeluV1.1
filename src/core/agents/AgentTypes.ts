@@ -64,6 +64,13 @@ export interface AgentTask {
   resumedFrom?: string;
   /** The task that continued this one (set on the original). */
   resumedBy?: string;
+  /**
+   * The executive whose galaxy owns this work (ExecutiveOwnership /
+   * SHAMAN). Absent on records written before routing existed.
+   */
+  executive?: string;
+  /** Why SHAMAN (or the caller) chose this agent, in words. */
+  routeReason?: string;
 }
 
 export interface AgentExecution {
@@ -82,7 +89,15 @@ export interface AgentExecution {
 }
 
 export interface LeluAgent {
+  /** Per-install UUID — never use it to look up a template or executive. */
   id: string;
+  /**
+   * The template this agent was created from — its stable identity across
+   * installs. Backfilled by name on load for agents created before it.
+   */
+  templateId?: string;
+  /** Explicit owning executive (AgentStore.assignExecutive); overrides the template's. */
+  executive?: string;
   name: string;
   role: string;
   description: string;
