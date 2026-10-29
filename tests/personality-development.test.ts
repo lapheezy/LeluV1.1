@@ -16,12 +16,15 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
+import { fileURLToPath as __toPath } from "node:url";
+/** Repo root, derived from this file — never a machine-specific absolute path. */
+const REPO_ROOT = __toPath(new URL("..", import.meta.url)).replace(/\/$/, "");
 import { readFileSync } from "node:fs";
 
 // ---- Source helpers ----
 
 function src(path: string): string {
-  return readFileSync(`/home/user/LeluV1.1/${path}`, "utf8");
+  return readFileSync(`${REPO_ROOT}/${path}`, "utf8");
 }
 
 // ---- IDENTITY INITIALIZATION ----
