@@ -299,6 +299,40 @@ async function transcribeViaWhisper(audioBlob: Blob): Promise<string> {
   return text;
 }
 
+/**
+ * What LÉLU's voice is doing right now, for anything that has to move
+ * WITH it (the companion avatar's mouth and body). Emitted from the real
+ * speech engine's own events — utterance start, word boundary, end — never
+ * from a timer that guesses.
+ */
+export interface SpeechActivity {
+  /** True from the first utterance's start until the queue has drained. */
+  speaking: boolean;
+  /** "start" | "word" | "end" — what just happened. */
+  kind: "start" | "word" | "end";
+  /** The text of the utterance this event belongs to. */
+  text: string;
+  /** For "word": the character index of the word within `text`. */
+  charIndex?: number;
+  at: number;
+}
+type SpeechActivityListener = (activity: SpeechActivity) => void;
+
+/** Recognition errors after which restarting would only repeat the error. */
+const FATAL_RECOGNITION_KINDS: ReadonlySet<VoiceErrorKind> = new Set(["permission", "insecure", "no-device", "unsupported", "blocked-embed"]);
+
+/**
+ * Should what the mic heard while LÉLU is speaking interrupt her?
+ * Two words or more that are not her own voice coming back through the
+ * mic. Pure, so the rule is testable without audio.
+ */
+export function isBargeIn(heard: string, spoken: string): boolean {
+  const text = heard.trim();
+  if (!text) return false;
+  if (text.split(/\s+/).filter(Boolean).length < 2) return false;
+  return !isEchoUtterance(text, spoken);
+}
+
 /* ---------------------------------------------------------
  * VoiceEngine
  * --------------------------------------------------------- */
@@ -342,6 +376,18 @@ class VoiceEngine {
   private readonly diagnosticsListeners = new Set<DiagnosticsListener>();
   private readonly utteranceListeners = new Set<UtteranceListener>();
   private readonly errorListeners = new Set<ErrorListener>();
+  private readonly speechActivityListeners = new Set<SpeechActivityListener>();
+
+  /** Utterances queued in speechSynthesis that have not ended yet. */
+  private pendingUtterances = 0;
+  /** A streamed reply is being spoken (begin → feed… → finish). */
+  private streaming = false;
+  /** speakResponse() is walking its chunk chain. */
+  private chainActive = false;
+  /** The recognizer is currently running (between onstart and onend). */
+  private recognitionRunning = false;
+  /** Barge-ins this session (diagnostics). */
+  private bargeIns = 0;
 
   /** How long each recording chunk is (ms) before sending to Whisper. */
   private static readonly WHISPER_CHUNK_MS = 5000;
@@ -360,9 +406,12 @@ class VoiceEngine {
   private constructor() {
     if (typeof window !== "undefined") {
       void this.refreshRelayDiagnostics();
-      setInterval(() => {
+      const poll = setInterval(() => {
         this._diagnostics = this.computeDiagnostics();
       }, 5000);
+      // A diagnostics poll must never be what keeps a process alive
+      // (Node runtimes, tests). No-op in browsers.
+      (poll as unknown as { unref?: () => void }).unref?.();
     }
   }
 
@@ -467,6 +516,24 @@ class VoiceEngine {
     return () => {
       this.utteranceListeners.delete(listener);
     };
+  }
+
+  /** LÉLU's speech as it actually plays: start, each word, end. */
+  onSpeechActivity(listener: SpeechActivityListener): () => void {
+    this.speechActivityListeners.add(listener);
+    return () => {
+      this.speechActivityListeners.delete(listener);
+    };
+  }
+
+  /** Whether her voice is audibly playing right now (queue not drained). */
+  isSpeaking(): boolean {
+    return this.pendingUtterances > 0;
+  }
+
+  /** How many times the user has interrupted her this session. */
+  getBargeInCount(): number {
+    return this.bargeIns;
   }
 
   onError(listener: ErrorListener): () => void {
@@ -656,6 +723,15 @@ class VoiceEngine {
           }
         }
 
+        // BARGE-IN. The mic stays open while she speaks; when what it hears
+        // is the user (not her own voice coming back), she stops talking
+        // and the user's words become the next turn.
+        const heard = (finalText || interimText).trim();
+        if (this.isSpeaking() && isBargeIn(heard, this.lastSpokenText)) {
+          this.bargeIns += 1;
+          this.cancelSpeech();
+        }
+
         if (interimText) {
           this.emitInterim(interimText);
         }
@@ -679,18 +755,34 @@ class VoiceEngine {
         this.setError(diagnosis.message, diagnosis.kind);
       };
 
+      recognition.onstart = () => {
+        this.recognitionRunning = true;
+      };
+
       recognition.onend = () => {
-        // Restart if still active
-        if (this._state.active && this._state.phase === "listening") {
+        this.recognitionRunning = false;
+        // Browsers end recognition on their own (silence, network blips).
+        // While the session is active the mic must come back — in EVERY
+        // phase, not only "listening": it used to restart only then, so a
+        // recognizer that ended while she was thinking or speaking stayed
+        // dead, and the "continuous" session silently stopped hearing.
+        // Listening during her speech is also what makes barge-in work.
+        // A fatal error (denied, no device) is not retried in a loop.
+        if (!this._state.active || this.recognition !== recognition) return;
+        if (this._state.errorKind && FATAL_RECOGNITION_KINDS.has(this._state.errorKind)) return;
+        setTimeout(() => {
+          if (!this._state.active || this.recognition !== recognition || this.recognitionRunning) return;
           try {
             recognition.start();
+            this.recognitionRunning = true;
           } catch {
             // already started
           }
-        }
+        }, 250);
       };
 
       recognition.start();
+      this.recognitionRunning = true;
       this.recognition = recognition;
     } catch (error) {
       console.warn("[VoiceEngine] Could not start recognition:", error);
@@ -699,6 +791,7 @@ class VoiceEngine {
   }
 
   private stopRecognition(): void {
+    this.recognitionRunning = false;
     if (this.recognition) {
       try {
         this.recognition.abort();
@@ -1000,9 +1093,12 @@ class VoiceEngine {
 
     const chunks = chunkForSpeech(text.trim());
     let index = 0;
+    this.chainActive = true;
 
     const speakNext = () => {
       if (this.cancelFlag || index >= chunks.length) {
+        this.chainActive = false;
+        this.settleSpeech();
         if (this._state.active) {
           this.updateState({ ...this._state, phase: "listening" });
           // If Whisper fallback is active, restart the loop after speaking
@@ -1044,12 +1140,20 @@ class VoiceEngine {
 
   cancelSpeech(): void {
     this.cancelFlag = true;
+    this.chainActive = false;
+    this.streaming = false;
     if (typeof speechSynthesis !== "undefined") {
       try {
         speechSynthesis.cancel();
       } catch {
         // ignore
       }
+    }
+    // Cancelled utterances do not always fire "end" (engine-dependent), so
+    // the queue is drained here, and the stop is announced exactly once.
+    if (this.pendingUtterances > 0) {
+      this.pendingUtterances = 0;
+      this.emitSpeechActivity({ speaking: false, kind: "end", text: "", at: Date.now() });
     }
     // Real state: interrupted speech returns the pipeline to listening.
     if (this._state.phase === "speaking") {
@@ -1076,6 +1180,8 @@ class VoiceEngine {
     this.cancelFlag = false;
     this.streamCursor = 0;
     this.streamFinalizing = false;
+    this.streaming = true;
+    this.lastSpokenText = "";
     this.updateState({ ...this._state, phase: "speaking" });
   }
 
@@ -1090,6 +1196,10 @@ class VoiceEngine {
     const segment = match[0].trim();
     this.streamCursor += match[0].length;
     if (!segment) return;
+    // What she says is what the echo check compares against; streamed
+    // replies used to leave it empty, so her own voice could come back
+    // through the open mic as a user turn.
+    this.lastSpokenText = fullText.slice(0, this.streamCursor).trim();
     try {
       speechSynthesis.speak(this.createUtterance(segment));
     } catch {
@@ -1099,9 +1209,19 @@ class VoiceEngine {
 
   finishStreamingSpeech(fullText: string): void {
     this.streamFinalizing = true;
-    if (typeof speechSynthesis === "undefined" || this.cancelFlag) return;
+    this.streaming = false;
+    if (typeof speechSynthesis === "undefined" || this.cancelFlag) {
+      this.settleSpeech();
+      return;
+    }
+    if (fullText.trim()) this.lastSpokenText = fullText.trim();
     const rest = fullText.slice(this.streamCursor).trim();
-    if (!rest) return;
+    if (!rest) {
+      // Everything was already queued — or nothing was said at all. Either
+      // way the phase must not stay "speaking" once the queue drains.
+      this.settleSpeech();
+      return;
+    }
     for (const chunk of chunkForSpeech(rest)) {
       try {
         speechSynthesis.speak(this.createUtterance(chunk));
@@ -1199,7 +1319,54 @@ class VoiceEngine {
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
+    // Every utterance is counted from queue to end, so "speaking" means
+    // audio is actually queued or playing — and the avatar can move with
+    // the real start, word boundaries and end of her speech. Listeners
+    // (not the on* properties) so speakResponse's own handlers still run.
+    this.pendingUtterances += 1;
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      this.pendingUtterances = Math.max(0, this.pendingUtterances - 1);
+      // Deferred one tick: speakResponse queues its next chunk in its own
+      // end handler, and the gap between two chunks is not "done".
+      setTimeout(() => this.settleSpeech(), 0);
+    };
+    utterance.addEventListener("start", () => {
+      this.emitSpeechActivity({ speaking: true, kind: "start", text, at: Date.now() });
+    });
+    utterance.addEventListener("boundary", (event: Event) => {
+      const boundary = event as SpeechSynthesisEvent;
+      if (boundary.name && boundary.name !== "word") return;
+      this.emitSpeechActivity({ speaking: true, kind: "word", text, charIndex: boundary.charIndex, at: Date.now() });
+    });
+    utterance.addEventListener("end", finish);
+    utterance.addEventListener("error", finish);
     return utterance;
+  }
+
+  /**
+   * Once nothing is queued and no more is coming, speech is over: say so,
+   * and leave "speaking". The phase used to stay "speaking" forever after
+   * a streamed reply — including every typed reply, which streams too.
+   */
+  private settleSpeech(): void {
+    if (this.pendingUtterances > 0 || this.chainActive || this.streaming) return;
+    this.emitSpeechActivity({ speaking: false, kind: "end", text: "", at: Date.now() });
+    if (this._state.phase === "speaking") {
+      this.updateState({ ...this._state, phase: this._state.active ? "listening" : "idle" });
+    }
+  }
+
+  private emitSpeechActivity(activity: SpeechActivity): void {
+    for (const listener of this.speechActivityListeners) {
+      try {
+        listener(activity);
+      } catch {
+        // a listener must never break speech
+      }
+    }
   }
 
 
