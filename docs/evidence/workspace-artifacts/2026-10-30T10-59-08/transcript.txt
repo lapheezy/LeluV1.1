@@ -1,0 +1,24 @@
+── USER ──
+Please look at https://example.com/ for me and put it in the workspace so we can work on it together.
+
+── ASSISTANT ──
+I’ve added a note with the content from **https://example.com/** to the workspace. You can see it titled “Example.com – Example Domain” and we can edit or expand on it together whenever you’d like. Let me know what you’d like to do next!
+
+── USER ──
+What is the main heading on this page?
+
+── ASSISTANT ──
+The main heading on the page is **“Example Domain.”**
+
+── USER ──
+Rename this to “Example Domain — reviewed” and add a note to it saying: Checked with LÉLU — one heading, one paragraph, one link.
+
+── ASSISTANT ──
+All set!  
+
+- The file is now titled **“Example Domain — reviewed.”**  
+- I’ve appended the note you requested:  
+
+*“Checked with LÉLU — one heading, one paragraph, one link.”*  
+
+You can open the updated artifact in the workspace and continue working on it. Let me know what you’d like to do next!

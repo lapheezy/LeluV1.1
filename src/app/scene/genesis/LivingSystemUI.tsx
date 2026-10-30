@@ -76,7 +76,32 @@ export default function LivingSystemUI() {
 
   const { state: visualState, engine: visualEngine } = useVisual();
   const { state: workspaceState, engine: workspaceEngine } = useWorkspace();
-  const { openPanel, setDialogue, engineRuntime } = useGenesis();
+  const { openPanel, setDialogue, engineRuntime, state: genesisState } = useGenesis();
+
+  // The chat window floats over this field on desktop. Measured in the
+  // workspace end-to-end run: the focused artifact sat under it, so a tap
+  // meant for the artifact landed on the chat. While the chat is open, the
+  // artifacts are laid out beside it instead.
+  const chatOpen = genesisState.activePanel === "chat";
+  const [chatBox, setChatBox] = useState<{ left: number; right: number } | null>(null);
+  useEffect(() => {
+    if (!chatOpen || mobile) {
+      setChatBox(null);
+      return;
+    }
+    const read = () => {
+      const rect = document.querySelector("[data-lelu-chat-window]")?.getBoundingClientRect();
+      const next = rect && rect.width > 0 ? { left: Math.round(rect.left), right: Math.round(rect.right) } : null;
+      setChatBox((current) => (current?.left === next?.left && current?.right === next?.right ? current : next));
+    };
+    read();
+    const timer = window.setInterval(read, 1000);
+    window.addEventListener("resize", read);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("resize", read);
+    };
+  }, [chatOpen, mobile]);
 
   const { mode, interfaceFocus, heartbeatRate, runtime, structure, signals, activeNodes, activeConnections } =
     visualState;
@@ -149,6 +174,7 @@ export default function LivingSystemUI() {
         views={workspaceState.views.filter((view) => !view.minimized)}
         focusId={workspaceState.focusId}
         selectedId={workspaceState.selectedId}
+        besideChat={chatBox}
         onSelectView={(id) => workspaceEngine.selectView(id)}
         onCloseView={(id) => workspaceEngine.closeView(id)}
         onOpenChat={() => {
@@ -550,6 +576,7 @@ function SystemWorkspace({
   views,
   focusId,
   selectedId,
+  besideChat,
   onSelectView,
   onCloseView,
   onOpenChat,
@@ -557,19 +584,20 @@ function SystemWorkspace({
   views: WorkspaceView[];
   focusId: string | null;
   selectedId: string | null;
+  /** The open chat window's horizontal extent: artifacts go beside it. */
+  besideChat: { left: number; right: number } | null;
   onSelectView: (id: string | null) => void;
   onCloseView: (id: string) => void;
   onOpenChat: () => void;
 }) {
   const ordered = useMemo(() => {
     const list = [...views];
-    list.sort((a, b) => {
-      const fa = a.id === focusId ? 0 : 1;
-      const fb = b.id === focusId ? 0 : 1;
-      return fa - fb || b.updatedAt - a.updatedAt;
-    });
+    // The user's selection first (status views refreshing must not push it
+    // out of sight), then what is in front, then the most recent.
+    const rank = (view: WorkspaceView) => (view.id === selectedId ? 0 : view.id === focusId ? 1 : 2);
+    list.sort((a, b) => rank(a) - rank(b) || b.updatedAt - a.updatedAt);
     return list;
-  }, [views, focusId]);
+  }, [views, focusId, selectedId]);
 
   if (ordered.length === 0) {
     // Empty field: keep a quiet affordance that the workspace lives here.
@@ -596,7 +624,8 @@ function SystemWorkspace({
       {ordered.map((view, index) => {
         const focused = view.id === focusId;
         const selected = view.id === selectedId;
-        const position = surfacePosition(index, focused);
+        const column = besideChat ? columnBesideChat(besideChat, index) : null;
+        const position = column ?? surfacePosition(index, focused);
         return (
           <div
             key={view.id}
@@ -608,9 +637,9 @@ function SystemWorkspace({
             style={{
               position: "absolute",
               ...position,
-              width: focused ? "min(46vw, 460px)" : "min(30vw, 300px)",
-              minWidth: focused ? 260 : 180,
-              maxHeight: focused ? "min(46dvh, 420px)" : "min(34dvh, 300px)",
+              width: column ? column.width : focused ? "min(46vw, 460px)" : "min(30vw, 300px)",
+              minWidth: column ? undefined : focused ? 260 : 180,
+              maxHeight: column ? 224 : focused ? "min(46dvh, 420px)" : "min(34dvh, 300px)",
               pointerEvents: "auto",
               overflow: "hidden",
               borderRadius: 14,
@@ -801,6 +830,23 @@ function ArtifactBody({ view }: { view: WorkspaceView }) {
     );
   }
   return notes;
+}
+
+/**
+ * With the chat window open: a column on whichever side of it has more
+ * room (the dock takes the left 88 px), focused artifact first.
+ */
+function columnBesideChat(chat: { left: number; right: number }, index: number): (CSSProperties & { width: number }) {
+  const leftRoom = chat.left - 88 - 24;
+  const rightRoom = window.innerWidth - chat.right - 24;
+  const onRight = rightRoom >= leftRoom;
+  const width = Math.max(180, Math.min(460, (onRight ? rightRoom : leftRoom) - 8));
+  return {
+    left: onRight ? chat.right + 16 : 88 + 8,
+    top: 96 + index * 236,
+    transform: "none",
+    width,
+  };
 }
 
 /** Deterministic spatial placement for surfaces around the core. */

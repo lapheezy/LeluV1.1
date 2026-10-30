@@ -393,3 +393,77 @@ Most runs failed on infrastructure, not on her. Each defect was fixed in the too
 - **Arm gestures.** Her arms move only with her body sway and breath. Independent arm gestures would need the limbs separated into their own layers.
 - **Real audio.** No real device, microphone or speaker exists in this container, so the voice path is verified with the stand-in above. The source images are about 1,000 px wide, so her face is about 130 px in the source; face-only mode is sharp at companion sizes and softens when enlarged.
 - **New looks.** Adding one means running `build_lelu_look.py` on a new reference. An uploaded image is not rigged automatically in the browser.
+
+---
+
+# Pass 4 — chat and workspace as one environment
+
+## 15. Artifacts: what the user selected is what LÉLU reads and changes
+
+**Requirement** (V1.1 spec, "One unified chat and visual workspace"):
+- Artifacts shown in the workspace are the actual artifacts the tools produced.
+- Selecting one gives LÉLU the right reference.
+- A request to change something visible changes the real underlying object and shows the result.
+- The user can bring browser content into the workspace.
+- End to end: browse, bring into the workspace, ask a follow-up, change it, inspect it, without losing the conversation.
+- Mobile is tested separately.
+
+### What was built (`34048a7`, layout fix in this pass)
+
+**`WorkspaceEngine`:**
+- Every view records its **source** (tool, url, turn) and a **revision**, which goes up on each content change.
+- `selectedId` is the **user's** pick. It is separate from focus, which follows whatever LÉLU opens last, and it is cleared when the view closes.
+
+**`WorkspaceArtifacts`** (pure):
+- **Describe:** an artifact for her context, without pasting image bytes.
+- **Resolve a reference:** "this", "it" or nothing means the selection, then focus; otherwise an id or a title.
+- **Plan an edit:** produces a patch of that same view (title, text or notes, diagram nodes and connections, table rows), or refuses with the exact reason.
+- **Draft new artifacts:** notes, diagrams and tables.
+
+**Tools** (registry and dispatcher, normal permission check):
+- `artifact_read`;
+- `artifact_edit`, which updates the view the user sees and bumps its revision;
+- `artifact_create`.
+
+**Her context:** a **VISUAL WORKSPACE** section lists what is open and which artifact the user selected.
+
+**Bridge:**
+- A capture becomes an image artifact titled by what it shows, carrying the page's title and visible text.
+- A page opened by `browser.read` becomes a browser artifact holding the page's text.
+
+**UI:**
+- The System workspace renders the artifact itself (image, page text, note) instead of an empty card.
+- The selection has a yellow border and an "ask LÉLU" button.
+- The chat composer shows **"About: <kind> "<title>" · rev N"**, which can be cleared.
+- **With the chat window open on desktop, artifacts are laid out in a column beside it**, the selection first.
+  - **Why:** the first end-to-end run found the focused artifact under the chat window, so a tap meant for it hit the chat. With nothing selected, her edit then went to another artifact.
+
+### Verified
+
+**Unit:** `tests/workspace-artifacts.test.ts`, 5 tests:
+- the selection survives her opening other views;
+- her context names it and never contains a data URL;
+- `artifact_edit` changes the real selected view, and only that one;
+- impossible edits are refused with nothing changed;
+- notes, diagrams and tables can be created and then edited by id.
+
+**Running app, with her real model:** `node scripts/verify-workspace-artifacts.mjs` passes **11/11**. Evidence is in `docs/evidence/workspace-artifacts/2026-10-30T11-04-00/`.
+
+| Step | Viewport | Result |
+|---|---|---|
+| Asked to look at https://example.com and put it in the workspace | desktop | A browser artifact holding the real page text |
+| Tap on its card | desktop | It is selected |
+| Back in chat | desktop | The composer shows it |
+| "What is the main heading on this page?" | desktop | `artifact_read`, answer "Example Domain" |
+| "Rename this … and add a note …" | desktop | `artifact_edit` on **the same artifact**: new title, note added, revision 3 → 4 |
+| Look again | desktop | Workspace card and chat chip both show revision 4 |
+| Conversation | desktop | One conversation throughout, all three requests in order |
+| Layout and input | phone | Selected artifact on screen. Chip and composer on screen and not covered. The input takes focus and typing. No sideways scroll. |
+
+The first run of the script passed 7/11 and exposed the chat-over-artifact layout defect, which is now fixed. That run's evidence is in `2026-10-30T10-59-08/`.
+
+### Not done
+- **No real on-screen keyboard:** headless Chromium has none, so "keyboard" means focus and typing in the composer, not a resized viewport.
+- **Images only described:** LÉLU sees a captured image only through the text that comes with it (the page title and visible text). The model here has no vision.
+- **Images can't be edited:** editing an image's pixels is not supported. Its title and notes can be edited.
+- **Focus churn:** the provider-status view still takes focus on every provider event, from `WorkspaceBridge.refreshProviders`. The selection is therefore ordered first so it is not pushed out of sight.

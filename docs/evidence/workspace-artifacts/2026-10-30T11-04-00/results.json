@@ -1,0 +1,149 @@
+[
+  {
+    "viewport": "desktop",
+    "check": "a tool she ran put the real page into the workspace",
+    "pass": true,
+    "detail": {
+      "tools": [
+        "memory.recall",
+        "artifact.create",
+        "artifact.read"
+      ],
+      "artifacts": [
+        {
+          "id": "view-browser-1793358273132",
+          "kind": "browser",
+          "title": "Example Domain",
+          "source": "browser"
+        }
+      ]
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "the workspace shows the artifact itself, and a tap selects it",
+    "pass": true,
+    "detail": {
+      "shown": true,
+      "selectedNow": true,
+      "rendered": {
+        "img": false,
+        "text": "browser · Example DomainSelected · ask LÉLU✕https://example.com/Example Domain This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and monitoring purposes."
+      }
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "the chat composer shows the selected artifact",
+    "pass": true,
+    "detail": "About: browser “Example Domain” · rev 3"
+  },
+  {
+    "viewport": "desktop",
+    "check": "a follow-up about “this” is answered from the selected artifact",
+    "pass": true,
+    "detail": {
+      "tools": [
+        "research (prefetch)",
+        "artifact.read"
+      ],
+      "reply": "The main heading on the page is **“Example Domain.”**"
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "she changed the SAME artifact through artifact_edit: new title, the note, a new revision",
+    "pass": true,
+    "detail": {
+      "tools": [
+        "artifact.edit"
+      ],
+      "before": {
+        "title": "Example Domain",
+        "revision": 3
+      },
+      "after": {
+        "title": "Example Domain — reviewed",
+        "revision": 4,
+        "noteAdded": true
+      },
+      "reply": "All set! The browser artifact is now titled **“Example Domain — reviewed,”** and I’ve added the note:\n\n*Checked with LÉLU — one heading, one paragraph, one link.*\n\nLet me know what you’d like to do next with this page."
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "the workspace and the chat both show the new revision",
+    "pass": true,
+    "detail": {
+      "card": {
+        "revision": "4",
+        "title": true,
+        "note": true
+      },
+      "chipRev": "4"
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "the conversation was never lost: same conversation, all three requests in order",
+    "pass": true,
+    "detail": {
+      "conversation": "6d1db19c-610a-4374-94a4-5ab4fbf03634",
+      "sameAsStart": true,
+      "messages": 6
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "no page errors",
+    "pass": true,
+    "detail": []
+  },
+  {
+    "viewport": "phone",
+    "check": "the selected artifact is on screen",
+    "pass": true,
+    "detail": {
+      "x": 13.816720008850098,
+      "y": 149.23094177246094,
+      "width": 185.82253170013428,
+      "height": 97.02978515625
+    }
+  },
+  {
+    "viewport": "phone",
+    "check": "chip and composer on screen, not covered; the input takes focus and typing; no sideways scroll",
+    "pass": true,
+    "detail": {
+      "chip": {
+        "rect": [
+          12,
+          746,
+          366,
+          30
+        ],
+        "inside": true,
+        "reachable": true
+      },
+      "textarea": {
+        "rect": [
+          66,
+          782,
+          210,
+          44
+        ],
+        "inside": true,
+        "reachable": true
+      },
+      "focused": true,
+      "scrollWidth": 390,
+      "typed": "hello"
+    }
+  },
+  {
+    "viewport": "phone",
+    "check": "no page errors",
+    "pass": true,
+    "detail": []
+  }
+]
