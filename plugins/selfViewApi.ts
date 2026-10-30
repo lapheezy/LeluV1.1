@@ -61,7 +61,10 @@ const SANDBOX_ROOT = path.join(PROJECT_ROOT, ".lelu-sandbox");
 const PREVIEW_PORT_BASE = 5310;
 const PREVIEW_PORTS = 20;
 const PREVIEW_LIFETIME_MS = 20 * 60 * 1000;
-const CAPTURE_TIMEOUT_MS = 45_000;
+// Her app and previews are loaded twice (see capture()); at the ~2 frames a
+// second a headless renderer manages here, each load with its settle wait
+// can take ~35 s.
+const CAPTURE_TIMEOUT_MS = 150_000;
 const MAX_SCREENSHOT_BYTES = 900_000;
 
 export const CAPTURE_VIEWPORTS = {
