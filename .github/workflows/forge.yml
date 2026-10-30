@@ -50,7 +50,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
-      MESHY_API_KEY: ${{ secrets.MESHY_API_KEY }}
+      # The key may be stored as MESHY_API_KEY or MESHY_API.
+      MESHY_API_KEY: ${{ secrets.MESHY_API_KEY || secrets.MESHY_API }}
       FORGE_COMMAND: ${{ inputs.command }}
       FORGE_JOB_ID: ${{ inputs.job_id }}
       FORGE_EXTRA: ${{ inputs.extra }}
@@ -79,7 +80,7 @@ jobs:
       - name: Check the secret is present (name only)
         run: |
           if [ -z "$MESHY_API_KEY" ]; then
-            echo "::error::Repository secret MESHY_API_KEY is not set (or has a different name)."
+            echo "::error::Neither secret MESHY_API_KEY nor MESHY_API is visible to this job (an environment-only secret needs environment: <name> on the job)."
             exit 1
           fi
 

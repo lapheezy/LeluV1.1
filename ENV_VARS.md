@@ -409,7 +409,7 @@ browser with `VITE_MESHY_API_KEY`, and the runtime key bridge published
 
 | Variable | Purpose | Without it |
 |---|---|---|
-| `MESHY_API_KEY` | Meshy API key (paid plan). Read server-side only. | Jobs can be planned and priced; approving one fails with "MESHY_API_KEY is not set on the server". |
+| `MESHY_API_KEY` (or `MESHY_API`) | Meshy API key (paid plan). Read server-side only. | Jobs can be planned and priced; approving one fails with "MESHY_API_KEY is not set on the server". |
 | `MESHY_API_URL` | API base, default `https://api.meshy.ai` | Default is used |
 | `FORGE_ASSET_ROOT` | Where references, outputs and the ledger live, default `leluverse/assets` | Default is used |
 | `FORGE_AUTO_APPROVE_CREDITS` | Jobs estimated at or under this many credits submit without approval. Default `0`: every spend is approved. | Every job waits for approval |
