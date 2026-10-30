@@ -1,0 +1,61 @@
+--- src/App.css (modified, +1/-1)
+--- a/src/App.css
++++ b/src/App.css
+@@ -27,7 +27,7 @@
+   top: 24px;
+   right: 24px;
+ 
+-  width: 420px;
++  width: 100%;
+   max-width: calc(100vw - 48px);
+   max-height: calc(100vh - 48px);
+ 
+--- src/app/scene/genesis/GenesisAvatarPanel.tsx (modified, +14/-12)
+--- a/src/app/scene/genesis/GenesisAvatarPanel.tsx
++++ b/src/app/scene/genesis/GenesisAvatarPanel.tsx
+@@ -215,15 +215,15 @@
+       eyebrow="LÉLU · Embodiment"
+       title="Avatar · persistent identity"
+       onClose={onClose}
+-      width="min(96vw, 980px)"
++      width="100%"
+       maxHeight="min(92vh, 920px)"
+       elevation="focus"
+     >
+-      <div style={{ display: "flex", gap: 14, minHeight: "min(70vh, 660px)" }}>
++      <div style={{ display: "flex", flexWrap: "wrap", gap: 14, minHeight: "min(70vh, 660px)" }}>
+         {/* ---------------------------------------------- reference */}
+         <div
+           style={{
+-            width: 230,
++            width: "100%",
+             flexShrink: 0,
+             display: "flex",
+             flexDirection: "column",
+@@ -429,15 +429,17 @@
+           )}
+ 
+           <div
+-            style={{
+-              fontSize: 11,
+-              lineHeight: 1.55,
+-              opacity: 0.75,
+-              border: "1px solid rgba(212, 169, 78, 0.25)",
+-              borderRadius: 10,
+-              padding: 10,
+-              background: "rgba(212, 169, 78, 0.06)",
+-            }}
++                       style={{
++                         fontSize: 11,
++                         lineHeight: 1.55,
++                         opacity: 0.75,
++                         border: "1px solid rgba(212, 169, 78, 0.25)",
++                         borderRadius: 10,
++                         padding: 10,
++                         background: "rgba(212, 169, 78, 0.06)",
++                         maxWidth: "100%",
++                         wordBreak: "break-word",
++                       }}
+           >
+             <strong style={{ color: "#e7c883" }}>Direction</strong> — realistic, elegant, dark-skinned, natural textured
+             hair, Egyptian/Nubian-inspired gold jewelry, black and antique-gold palette, candlelit cinematic atmosphere.

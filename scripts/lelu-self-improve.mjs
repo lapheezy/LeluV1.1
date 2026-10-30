@@ -22,7 +22,10 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const BASE = process.argv[2] ?? process.env.LELU_BASE ?? "http://127.0.0.1:5173/";
-const LIMIT_MS = Number(process.env.LELU_SELF_IMPROVE_LIMIT_MS ?? 35 * 60 * 1000);
+const LIMIT_MS = Number(process.env.LELU_SELF_IMPROVE_LIMIT_MS ?? 60 * 60 * 1000);
+// At most this many neutral go-aheads. Four cut run 19 off mid-iteration,
+// right after the edits that worked and before she could validate them.
+const MAX_GO_AHEADS = 8;
 
 const REQUEST = [
   "LÉLU, please improve your own interface using your self-development loop.",
@@ -118,7 +121,7 @@ const replies = () =>
   });
 
 // A neutral go-ahead when she pauses or stops short — it names no problem,
-// file or fix. At most four.
+// file or fix. At most MAX_GO_AHEADS.
 const GO_AHEAD = "Go ahead — carry out the rest of the loop yourself and report back with the evidence.";
 const deadline = started + LIMIT_MS;
 let finished = null;
@@ -145,10 +148,10 @@ const asksToContinue = async () => {
   const last = [...messages].reverse().find((m) => m.role !== "user");
   return /let me know|would you like|shall i|should i|want me to|i can (?:proceed|continue|try)/i.test((last?.text ?? "").slice(-600));
 };
-for (let nudge = 0; nudge < 4 && finished && Date.now() < deadline; nudge += 1) {
+for (let nudge = 0; nudge < MAX_GO_AHEADS && finished && Date.now() < deadline; nudge += 1) {
   const done = await loopDone();
   if (done.validated && done.previewCaptured && done.diffed && !(await asksToContinue())) break;
-  console.log(`  her turn ended; recorded so far ${JSON.stringify(done)} — sending the go-ahead (${nudge + 1}/4)`);
+  console.log(`  her turn ended; recorded so far ${JSON.stringify(done)} — sending the go-ahead (${nudge + 1}/${MAX_GO_AHEADS})`);
   await page.evaluate(async () => {
     const { default: Bus } = await import("/src/core/cognition/UIActionBus.ts");
     Bus.getInstance().dispatch({ type: "open_panel", target: "chat", reason: "self-improvement run", initiatedBy: "user" });
