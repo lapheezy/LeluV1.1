@@ -275,6 +275,22 @@ test("the layout report is the page as a user first sees it: stable, scroll-awar
     const overflow = first.findings.filter((f) => f.problem === "sideways-overflow");
     assert.equal(overflow.length, 1, "the outermost box that hides controls sideways — not the ellipsis label, nor a tab whose content is wider but cuts no control off: " + JSON.stringify(overflow));
     assert.match(overflow[0].detail ?? "", /content 5\d\dpx wide in a 3\d\dpx box/);
+
+    // An expanded panel: a see-through fixed backdrop over the whole screen,
+    // the way GenesisModuleHost renders one. What is behind it is covered on
+    // purpose; an opaque full-screen layer still counts as covering.
+    await page.evaluate(`(() => {
+      const backdrop = document.createElement("div");
+      backdrop.id = "backdrop";
+      backdrop.style.cssText = "position:fixed;inset:0;background:rgba(2,6,23,0.55);z-index:50";
+      document.body.appendChild(backdrop);
+    })()`);
+    const modal = (await page.evaluate(LAYOUT_SCRIPT)) as typeof first & { behindModal: number };
+    assert.ok(!seen(modal).some((f) => f.startsWith("covered:")), "nothing is reported covered behind a modal backdrop: " + seen(modal).join(" | "));
+    assert.ok(modal.behindModal >= 3, "but it is counted: " + modal.behindModal);
+    await page.evaluate(`document.getElementById("backdrop").style.background = "rgb(2,6,23)"`);
+    const opaque = (await page.evaluate(LAYOUT_SCRIPT)) as typeof first;
+    assert.ok(seen(opaque).includes('covered: button "Under"'), "an opaque layer over controls is still a problem");
   } finally {
     await browser.close();
   }

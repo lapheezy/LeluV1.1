@@ -1,0 +1,14 @@
+--- src/app/scene/genesis/GenesisWindowFrame.tsx (modified, +2/-2)
+--- a/src/app/scene/genesis/GenesisWindowFrame.tsx
++++ b/src/app/scene/genesis/GenesisWindowFrame.tsx
+@@ -363,8 +363,8 @@
+         bottom: 0,
+         width: "100%",
+         maxWidth: "100%",
+-        maxHeight: mobileHeight ? `${mobileHeight}px` : "min(86dvh, 92svh)",
+-        height: mobileHeight ? `${mobileHeight}px` : "min(86dvh, 92svh)",
++        maxHeight: mobileHeight ? `${mobileHeight}px` : "30vh",
++        height: mobileHeight ? `${mobileHeight}px` : "30vh",
+         overflowY: "hidden",
+         overscrollBehavior: "contain",
+         touchAction: "none",

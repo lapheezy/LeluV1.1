@@ -636,7 +636,7 @@ const EXECUTORS: ToolExecutor[] = [
         events.emit({ type: "tool_failed", taskId, tool: "capture", error });
         return { ok: false, content: `Nothing was captured: ${error}` };
       }
-      const layout = (data.layout ?? {}) as { viewport?: number[]; controls?: number; belowTheFold?: number; settled?: boolean; findings?: Array<{ label: string; rect: number[]; problem: string; coveredBy?: string; detail?: string }>; text?: string };
+      const layout = (data.layout ?? {}) as { viewport?: number[]; controls?: number; belowTheFold?: number; behindModal?: number; settled?: boolean; findings?: Array<{ label: string; rect: number[]; problem: string; coveredBy?: string; detail?: string }>; text?: string };
       const findings = layout.findings ?? [];
       // The real screenshot goes where every produced image goes: into the
       // conversation and the shared workspace.
@@ -657,7 +657,8 @@ const EXECUTORS: ToolExecutor[] = [
           `${data.panelOpened ? `, panel: ${String(data.panelOpened)}` : ""}. The screenshot is shown to the user.\n` +
           `Layout report — ${layout.controls ?? 0} visible controls measured, scroll positions reset to the start` +
           `${layout.settled === false ? " — WARNING: the layout was still moving when measured, so this report may not be repeatable" : ""}` +
-          `${layout.belowTheFold ? `; ${layout.belowTheFold} below the fold of a scrolling area (reachable by scrolling — not problems)` : ""}; ${findings.length} problem(s):\n` +
+          `${layout.belowTheFold ? `; ${layout.belowTheFold} below the fold of a scrolling area (reachable by scrolling — not problems)` : ""}` +
+          `${layout.behindModal ? `; ${layout.behindModal} behind an open panel's modal backdrop (covered on purpose while it is open — not problems)` : ""}; ${findings.length} problem(s):\n` +
           `${lines.length ? lines.join("\n") : "(none: every control is on screen and uncovered)"}${comparison}${errors}\n\nVisible text (start):\n${String(layout.text ?? "").slice(0, 1200)}`,
         data: { findings, viewport, title: data.title, capturedAt: data.capturedAt },
       };

@@ -375,8 +375,23 @@ export const LAYOUT_SCRIPT = `(() => {
     if (document.documentElement.scrollHeight > vh + 1 && getComputedStyle(document.body).overflowY !== "hidden") scrollsVertically = true;
     return { left, top, right, bottom, scrollsVertically };
   };
+  // A modal's backdrop: a fixed layer over the whole viewport, tinted but
+  // see-through. Controls behind it are covered ON PURPOSE while the modal
+  // is open (measured in runs 10 and 13: the header buttons behind an
+  // expanded panel's backdrop, reported as covered, were chased as a bug
+  // twice). They are counted, not reported as problems.
+  const isModalBackdrop = (el) => {
+    const s = getComputedStyle(el);
+    if (s.position !== "fixed") return false;
+    const r = el.getBoundingClientRect();
+    if (r.left > 1 || r.top > 1 || r.right < vw - 1 || r.bottom < vh - 1) return false;
+    const m = /rgba?\(([^)]+)\)/.exec(s.backgroundColor);
+    const alpha = m ? (m[1].split(",")[3] === undefined ? 1 : Number(m[1].split(",")[3])) : 0;
+    return (alpha > 0.05 && alpha < 0.95) || s.backdropFilter !== "none";
+  };
   const controls = [...document.querySelectorAll("button, a[href], input, textarea, select, [role='button'], [role='switch'], [role='tab']")];
   let belowTheFold = 0;
+  let behindModal = 0;
   for (const el of controls) {
     const style = getComputedStyle(el);
     if (style.visibility === "hidden" || style.display === "none" || Number(style.opacity) === 0) continue;
@@ -408,6 +423,7 @@ export const LAYOUT_SCRIPT = `(() => {
     const cy = Math.min(vh - 1, Math.max(0, r.top + r.height / 2));
     const top = document.elementFromPoint(cx, cy);
     if (top && top !== el && !el.contains(top) && !top.contains(el)) {
+      if (isModalBackdrop(top)) { behindModal += 1; continue; }
       findings.push({ label: describe(el), rect, problem: "covered", coveredBy: describe(top) });
     }
   }
@@ -447,6 +463,7 @@ export const LAYOUT_SCRIPT = `(() => {
     viewport: [vw, vh],
     controls: controls.length,
     belowTheFold,
+    behindModal,
     scrollsReset,
     findings: findings.slice(0, 40),
     text: (document.body.innerText || "").slice(0, 2500),
