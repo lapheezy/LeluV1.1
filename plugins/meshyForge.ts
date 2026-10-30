@@ -44,7 +44,7 @@ import { ForgeStore, isTerminal, type CharacterSlot, type ForgeJob, type ForgeOu
 
 export type EnvReader = (name: string) => string | undefined;
 
-const KEY_NAMES = ["MESHY_API_KEY", "MESHY_API", "VITE_MESHY_API_KEY"];
+const KEY_NAMES = ["MESHY_API_KEY", "MESHY_API", "MESSY_API", "VITE_MESHY_API_KEY"];
 const DEFAULT_BASE = "https://api.meshy.ai";
 const IDENTITY_BOUND: ReadonlySet<ForgeJobKind> = new Set(["image-to-3d", "multi-image-to-3d", "retexture"]);
 
