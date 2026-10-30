@@ -394,3 +394,15 @@ test("a control covered only while a panel opens is seen, timed, and reported ap
     await browser.close();
   }
 });
+
+test("a fresh session is told about the copies already in the sandbox, and that project_copy would replace one", async () => {
+  const { describeEarlierCopies } = await import("../src/core/engineering/EngineeringWorkspace");
+  assert.equal(describeEarlierCopies([]), "No project copy exists in the engineering sandbox.");
+  const text = describeEarlierCopies([
+    { id: "old", root: "/x/old", createdAt: 1, fileCount: 10 },
+    { id: "default", root: "/x/default", createdAt: 2, fileCount: 1274 },
+  ]);
+  assert.match(text, /already holds 2 from earlier: "default" \(1274 files\), "old" \(10 files\)/, "newest first");
+  assert.match(text, /use one by passing its id to the project tools/);
+  assert.match(text, /project_copy with an existing id replaces that copy's contents/);
+});

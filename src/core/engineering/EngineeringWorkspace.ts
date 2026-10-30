@@ -55,6 +55,21 @@ export interface WorkspaceRecord {
   fileCount: number;
 }
 
+/** What her context says when this session has not made a copy itself. */
+export function describeEarlierCopies(copies: readonly WorkspaceRecord[]): string {
+  if (copies.length === 0) return "No project copy exists in the engineering sandbox.";
+  const listed = [...copies]
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, 8)
+    .map((copy) => `"${copy.id}" (${copy.fileCount} files)`)
+    .join(", ");
+  return (
+    `No copy has been made in this session, but the sandbox already holds ${copies.length} from earlier: ${listed}. ` +
+    "They are still on disk with any edits made in them; use one by passing its id to the project tools. " +
+    "project_copy with an existing id replaces that copy's contents with the real project."
+  );
+}
+
 export interface WorkspaceState {
   phase: WorkspacePhase;
   workspaceId: string | null;
@@ -104,6 +119,15 @@ export default class EngineeringWorkspace {
     lastError: null,
     updatedAt: 0,
   };
+
+  /**
+   * Copies already in the sandbox on the server — from earlier sessions of
+   * the app, which this object (it starts empty on every page load) never
+   * made. Measured in self-improvement run 26: her copy with three edits was
+   * on disk, her context said "No project copy exists", and, told not to
+   * replace it, she could not continue. Refreshed with each runtime probe.
+   */
+  private knownCopies: WorkspaceRecord[] = [];
 
   private constructor() {}
 
@@ -517,6 +541,9 @@ export default class EngineeringWorkspace {
     } else if (reachable && this.state.phase === "no-runtime") {
       this.update({ phase: "not-copied" });
     }
+    if (reachable) {
+      this.knownCopies = await this.listWorkspaces().catch(() => this.knownCopies);
+    }
     return reachable;
   }
 
@@ -616,7 +643,7 @@ export default class EngineeringWorkspace {
     if (state.phase === "no-runtime") {
       return "No engineering runtime is reachable — the project.* tools are unavailable.";
     }
-    if (!state.workspaceId) return "No project copy exists in the engineering sandbox.";
+    if (!state.workspaceId) return describeEarlierCopies(this.knownCopies);
     const parts = [
       `Workspace "${state.workspaceId}" holds a copy of ${state.fileCount} file(s).`,
       `Phase: ${state.phase}.`,

@@ -1,0 +1,17 @@
+{
+  "base": "http://127.0.0.1:5173/",
+  "startedAt": "2026-10-30T09:40:52.575Z",
+  "durationSeconds": 54,
+  "finished": "task_completed",
+  "toolCalls": [
+    "memory.recall: Checking memory for “capability dispatch”",
+    "memory.recall: Checking memory for “capability dispatch available capabilities cannot actually”"
+  ],
+  "failures": [
+    "memory.recall: No stored memory matches \"capability dispatch\"."
+  ],
+  "captures": 0,
+  "workspaces": [],
+  "changedFiles": {},
+  "pageErrors": []
+}
