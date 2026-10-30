@@ -31,11 +31,19 @@ Do not read "the suite passes" as covering these. They are:
 - `tool-calling.test.ts`
 - `workflow-control-flow.test.ts`
 - `workflow-learning.test.ts`
+- `genesis-interface.test.tsx` — not in the original list because the loop
+  below only globbed `*.test.ts`. It is not a hang alone: both of its
+  assertions FAIL (`renderToStaticMarkup` of GenesisInterface), identically on
+  `44bdd93`, before the 3D Forge work.
+
+Re-measured after the 3D Forge work (Phase 1B), same loop extended to
+`tests/*.test.tsx`: **213 assertions passing, 0 failing across 25 files**
+(including the new `forge-pipeline` and `forge-tools`), 14 files unmeasured.
 
 To get a measurement without the hang:
 
 ```sh
-for f in tests/*.test.ts; do timeout 90 npx tsx --test "$f"; done
+for f in tests/*.test.ts tests/*.test.tsx; do timeout 90 npx tsx --test "$f"; done
 ```
 
 The per-file counts above come from exactly that loop.
