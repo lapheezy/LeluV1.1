@@ -454,9 +454,22 @@ export const LAYOUT_SCRIPT = `(() => {
     // need: LÉLU saw "518px in a 356px box", guessed the title text, and
     // spent three attempts on padding and the window width. This names no
     // fix; it says which element is too wide and how it is sized.
+    // The narrowest this element can be (its min-content width): a
+    // stretched child is as wide as its parent whatever it holds, so the
+    // current width alone cannot tell the element that FORCES the width
+    // from one merely stretched to it. Measured by setting width:
+    // min-content for an instant and restoring the inline style exactly.
+    const minContent = (node) => {
+      const before = node.style.getPropertyValue("width");
+      const priority = node.style.getPropertyPriority("width");
+      node.style.setProperty("width", "min-content", "important");
+      const w = Math.round(node.getBoundingClientRect().width);
+      if (before) node.style.setProperty("width", before, priority); else node.style.removeProperty("width");
+      return w;
+    };
     const sizing = (node) => {
       const cs = getComputedStyle(node);
-      const parts = ["width " + Math.round(node.getBoundingClientRect().width) + "px"];
+      const parts = ["width " + Math.round(node.getBoundingClientRect().width) + "px", "needs at least " + minContent(node) + "px"];
       const parentDisplay = node.parentElement ? getComputedStyle(node.parentElement).display : "";
       // For a flex or grid item, min-width auto vs 0 decides whether it can
       // shrink below its content: always shown.
@@ -480,17 +493,23 @@ export const LAYOUT_SCRIPT = `(() => {
         const chain = [describe(node).slice(0, 40) + " (" + sizing(node) + ")"];
         let at = node;
         for (let step = 0; step < 6; step += 1) {
+          // Follow the child that FORCES the width — the largest min-content
+          // — not the one reaching furthest right: in a column every child
+          // is stretched to the same width (measured on the Avatar panel:
+          // a header row needing 223px and a body needing 494px, both 494px
+          // wide; following the furthest-right one led to the header).
           let next = null;
+          let nextNeeds = -1;
           const out = [];
           for (const child of at.children) {
             const cr = child.getBoundingClientRect();
             if (cr.width < 2 || cr.right <= r.right + 1) continue;
-            out.push(child);
-            if (!next || cr.right > next.getBoundingClientRect().right) next = child;
+            const needs = minContent(child);
+            out.push({ child, needs });
+            if (needs > nextNeeds) { next = child; nextNeeds = needs; }
           }
           if (!next) break;
-          // More than one child sticking out here: more than one cause.
-          const also = out.filter((child) => child !== next).slice(0, 2).map((child) => describe(child).slice(0, 30) + " (" + sizing(child) + ")");
+          const also = out.filter((entry) => entry.child !== next).slice(0, 2).map((entry) => describe(entry.child).slice(0, 30) + " (" + sizing(entry.child) + (entry.needs <= r.width ? "; fits when not stretched" : "") + ")");
           chain.push(describe(next).slice(0, 40) + " (" + sizing(next) + ")" + (also.length ? " [also sticking out here: " + also.join("; ") + "]" : ""));
           at = next;
         }

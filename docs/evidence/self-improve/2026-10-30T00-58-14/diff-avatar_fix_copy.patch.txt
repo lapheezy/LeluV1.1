@@ -1,0 +1,40 @@
+--- src/app/scene/genesis/GenesisAvatarPanel.tsx (modified, +14/-9)
+--- a/src/app/scene/genesis/GenesisAvatarPanel.tsx
++++ b/src/app/scene/genesis/GenesisAvatarPanel.tsx
+@@ -430,14 +430,19 @@
+ 
+           <div
+             style={{
+-              fontSize: 11,
+-              lineHeight: 1.55,
+-              opacity: 0.75,
+-              border: "1px solid rgba(212, 169, 78, 0.25)",
+-              borderRadius: 10,
+-              padding: 10,
+-              background: "rgba(212, 169, 78, 0.06)",
+-            }}
++                           fontSize: 11,
++                           lineHeight: 1.55,
++                           opacity: 0.75,
++                           border: "1px solid rgba(212, 169, 78, 0.25)",
++                           borderRadius: 10,
++                           padding: 10,
++                           background: "rgba(212, 169, 78, 0.06)",
++                           wordBreak: "break-word", whiteSpace: "normal", overflow: "hidden",
++                           maxWidth: "100%",
++                           overflowWrap: "anywhere",
++                           flexShrink: 1,
++                           minWidth: 0,
++                         }}
+           >
+             <strong style={{ color: "#e7c883" }}>Direction</strong> — realistic, elegant, dark-skinned, natural textured
+             hair, Egyptian/Nubian-inspired gold jewelry, black and antique-gold palette, candlelit cinematic atmosphere.
+@@ -479,7 +484,7 @@
+         </div>
+ 
+         {/* ---------------------------------------------- config */}
+-        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 10 }}>
++        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 10, maxWidth: "100%" }}>
+           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+             {SECTIONS.map((item) => (
+               <button
