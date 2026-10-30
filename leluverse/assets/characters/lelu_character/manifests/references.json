@@ -1,0 +1,313 @@
+{
+  "asset": "lelu_character",
+  "references": [
+    {
+      "file": "body-front-apose-hood.png",
+      "category": "B. body — front full body, A-pose, hood up",
+      "intendedUse": "primary geometry view for multi-image reconstruction (pose_mode a-pose)",
+      "quality": "clean studio render, plain dark background, whole figure in frame",
+      "reconstructionSuitability": "high",
+      "uses": [
+        "geometry",
+        "texture"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "sha256": "26601d19f5b5967247f54ab4cf9b052b9594c3157ef4a3da13622461c78c146f",
+      "bytes": 2732117,
+      "sourceName": "945edce9-image.png",
+      "addedAt": "2026-10-30T16:14:35.570Z"
+    },
+    {
+      "file": "body-back-apose-hood.png",
+      "category": "B. body — back full body, A-pose, hood up",
+      "intendedUse": "back geometry view (hair volume, hood, harness, pants)",
+      "quality": "clean studio render, matches the front pose",
+      "reconstructionSuitability": "high",
+      "uses": [
+        "geometry"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "sha256": "a38d91a9cb8e125728392dd3ebaa00e246998da32e10f6d9fc11d967f4197364",
+      "bytes": 2676932,
+      "sourceName": "d3b9a690-image.png",
+      "addedAt": "2026-10-30T16:14:35.610Z"
+    },
+    {
+      "file": "body-left-profile-hood.png",
+      "category": "B. body — left profile (head turned to camera), hood up",
+      "intendedUse": "side geometry view",
+      "quality": "clean render; arms down, not A-pose",
+      "reconstructionSuitability": "medium",
+      "uses": [
+        "geometry"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "sha256": "b08bce3348256091ddcb203a5ca8522ace5b322958ab7db275971ee7e550dbb7",
+      "bytes": 1960092,
+      "sourceName": "ef41dba6-image.png",
+      "addedAt": "2026-10-30T16:14:35.631Z"
+    },
+    {
+      "file": "body-three-quarter-hood.png",
+      "category": "B. body — three-quarter view, hood up",
+      "intendedUse": "three-quarter geometry view",
+      "quality": "clean render; arms slightly out",
+      "reconstructionSuitability": "high",
+      "uses": [
+        "geometry"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "sha256": "2119badfe3373adb11b876f4e9076ff1efc1f98901038834e216908af62d32b6",
+      "bytes": 2013200,
+      "sourceName": "ca7ddcd8-image.png",
+      "addedAt": "2026-10-30T16:14:35.662Z"
+    },
+    {
+      "file": "body-front-neutral-nohood.png",
+      "category": "B. body — front full body, neutral stance, no hood",
+      "intendedUse": "alternative front view without the hood (hair down, roses visible); single-image fallback",
+      "quality": "clean render; pink-highlighted hair fully visible",
+      "reconstructionSuitability": "high",
+      "uses": [
+        "geometry",
+        "design"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "sha256": "1da6e4599cc034dd11ea64a247f554276bdda826deca81a0327c107c99234dca",
+      "bytes": 2178067,
+      "sourceName": "5040fa34-image.png",
+      "addedAt": "2026-10-30T16:14:35.688Z"
+    },
+    {
+      "file": "face-front-closeup.png",
+      "category": "A. identity — front face and upper body, no hood",
+      "intendedUse": "PRIMARY facial identity reference (proposed); texture reference for the face",
+      "quality": "sharp, frontal, even light: eyes, brows, nose, lips, jaw, freckles, star marks, septum and lip piercings, bindi chain all visible",
+      "reconstructionSuitability": "high",
+      "uses": [
+        "identity",
+        "texture"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "sha256": "c6b728fdab5a809c96d6750a30633ed76bc208b49144a35b595e05c22215526d",
+      "bytes": 3544570,
+      "sourceName": "ea4e68aa-image.png",
+      "addedAt": "2026-10-30T16:14:35.723Z"
+    },
+    {
+      "file": "face-front-closeup-alt.png",
+      "category": "A. identity — front face and upper body, second render",
+      "intendedUse": "secondary identity check (same features, slightly different expression and crop)",
+      "quality": "sharp, frontal",
+      "reconstructionSuitability": "medium",
+      "uses": [
+        "identity"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "sha256": "ca6d058f12b0195667a46978d5106367a8501e3101d3c37787a2e149cca86f22",
+      "bytes": 3720994,
+      "sourceName": "1f4410bd-image.png",
+      "addedAt": "2026-10-30T16:14:35.759Z"
+    },
+    {
+      "file": "hair-back.png",
+      "category": "C. hair — rear view",
+      "intendedUse": "rear hair design: curl density, pink and copper threading, roses, chains, crystal drops",
+      "quality": "sharp",
+      "reconstructionSuitability": "medium",
+      "uses": [
+        "design",
+        "texture"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "sha256": "bec0f68f49ed752e21597b251cc95909ca6265197e454288a8f93bff746f5355",
+      "bytes": 3102735,
+      "sourceName": "235cb81a-image.png",
+      "addedAt": "2026-10-30T16:14:35.788Z"
+    },
+    {
+      "file": "clothing-corset-top.png",
+      "category": "D. clothing — corset/top construction",
+      "intendedUse": "top design: camo print, straps, copper hardware, pendant placement",
+      "quality": "sharp close-up",
+      "reconstructionSuitability": "low",
+      "uses": [
+        "design",
+        "texture"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "sha256": "6640b21a6623b7cb9ce910a7aad6c7a8ea4792a7f17d366d52aa97bf60491bc1",
+      "bytes": 3695762,
+      "sourceName": "d32e1770-image.png",
+      "addedAt": "2026-10-30T16:14:35.821Z"
+    },
+    {
+      "file": "clothing-shoulder-armor.png",
+      "category": "D. clothing — shoulder armor and upper-arm wraps",
+      "intendedUse": "shoulder armor design: rose ornament, copper plates, crystal drops",
+      "quality": "sharp close-up",
+      "reconstructionSuitability": "low",
+      "uses": [
+        "design"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "sha256": "3fa8f3bf833b5e5950a8c69a40ac8ff52c58d124f9d2875e51b07bd091f471a3",
+      "bytes": 3762705,
+      "sourceName": "85d558a4-image.png",
+      "addedAt": "2026-10-30T16:14:35.855Z"
+    },
+    {
+      "file": "clothing-waist-harness.png",
+      "category": "D. clothing — waist and hip harness",
+      "intendedUse": "harness design: belts, rings, hanging straps, chains",
+      "quality": "sharp close-up",
+      "reconstructionSuitability": "low",
+      "uses": [
+        "design"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "sha256": "26894b792ef709687360da9dc70a4547351f1e2e7ca036ac341e3729e1c02a82",
+      "bytes": 2658988,
+      "sourceName": "0a3e6a8c-image.png",
+      "addedAt": "2026-10-30T16:14:35.878Z"
+    },
+    {
+      "file": "clothing-cargo-pants-boots.png",
+      "category": "D. clothing — cargo pants and boots, front",
+      "intendedUse": "pants and boots design (lower body front)",
+      "quality": "sharp",
+      "reconstructionSuitability": "medium",
+      "uses": [
+        "design",
+        "texture"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "sha256": "5b2a49ed0e628d7514018ff983ed648242930027282cb88d0a2eedf33cb7d2f0",
+      "bytes": 3279370,
+      "sourceName": "ab5161ab-image.png",
+      "addedAt": "2026-10-30T16:14:35.908Z"
+    },
+    {
+      "file": "clothing-platform-boots.png",
+      "category": "D. clothing — platform boots close-up",
+      "intendedUse": "boot design: camo leather, copper straps, crystal charms",
+      "quality": "sharp close-up",
+      "reconstructionSuitability": "low",
+      "uses": [
+        "design"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "sha256": "df3c6c36a1e8f96e054915415e51159a6a54d33c43329616aeb62511ebdef519",
+      "bytes": 3495913,
+      "sourceName": "003c6f3b-image.png",
+      "addedAt": "2026-10-30T16:14:35.930Z"
+    },
+    {
+      "file": "accessories-hands-forearm-armor.png",
+      "category": "E. accessories — hands, rings, nails, forearm armor",
+      "intendedUse": "hands and jewellery design: rings, hand chains, stiletto nails, tattoos, forearm cuffs",
+      "quality": "sharp close-up",
+      "reconstructionSuitability": "low",
+      "uses": [
+        "design"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "sha256": "7a028aac11f661a0562151c4a9b1524762622844b4495b5ca9dcf33938fba9ce",
+      "bytes": 3731158,
+      "sourceName": "98514b0d-image.png",
+      "addedAt": "2026-10-30T16:14:35.956Z"
+    },
+    {
+      "file": "accessories-signature-pendant.png",
+      "category": "E. accessories — LÉLU signature pendant",
+      "intendedUse": "the signature pendant: rose-quartz spheres, twisted copper, crystal drops",
+      "quality": "sharp product shot",
+      "reconstructionSuitability": "low",
+      "uses": [
+        "design"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "sha256": "3d48cb99275c6ae52817f9dc8dc825e92db2c9ef1952654ae6049074376e000d",
+      "bytes": 2833867,
+      "sourceName": "bf28c9f8-image.png",
+      "addedAt": "2026-10-30T16:14:35.973Z"
+    }
+  ],
+  "duplicatesSkipped": [
+    {
+      "sourceName": "945edce9-image.png",
+      "sameAs": "body-front-apose-hood.png"
+    },
+    {
+      "sourceName": "d3b9a690-image.png",
+      "sameAs": "body-back-apose-hood.png"
+    },
+    {
+      "sourceName": "ef41dba6-image.png",
+      "sameAs": "body-left-profile-hood.png"
+    },
+    {
+      "sourceName": "ca7ddcd8-image.png",
+      "sameAs": "body-three-quarter-hood.png"
+    },
+    {
+      "sourceName": "5040fa34-image.png",
+      "sameAs": "body-front-neutral-nohood.png"
+    },
+    {
+      "sourceName": "ea4e68aa-image.png",
+      "sameAs": "face-front-closeup.png"
+    },
+    {
+      "sourceName": "1f4410bd-image.png",
+      "sameAs": "face-front-closeup-alt.png"
+    },
+    {
+      "sourceName": "235cb81a-image.png",
+      "sameAs": "hair-back.png"
+    },
+    {
+      "sourceName": "d32e1770-image.png",
+      "sameAs": "clothing-corset-top.png"
+    },
+    {
+      "sourceName": "85d558a4-image.png",
+      "sameAs": "clothing-shoulder-armor.png"
+    },
+    {
+      "sourceName": "0a3e6a8c-image.png",
+      "sameAs": "clothing-waist-harness.png"
+    },
+    {
+      "sourceName": "ab5161ab-image.png",
+      "sameAs": "clothing-cargo-pants-boots.png"
+    },
+    {
+      "sourceName": "003c6f3b-image.png",
+      "sameAs": "clothing-platform-boots.png"
+    },
+    {
+      "sourceName": "98514b0d-image.png",
+      "sameAs": "accessories-hands-forearm-armor.png"
+    },
+    {
+      "sourceName": "bf28c9f8-image.png",
+      "sameAs": "accessories-signature-pendant.png"
+    }
+  ]
+}

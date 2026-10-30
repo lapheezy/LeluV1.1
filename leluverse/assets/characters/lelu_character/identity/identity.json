@@ -1,0 +1,33 @@
+{
+  "character": "LÉLU",
+  "status": "proposed — awaiting the owner's approval",
+  "primaryFaceReference": {
+    "file": "references/face-front-closeup.png",
+    "sha256": "c6b728fdab5a809c96d6750a30633ed76bc208b49144a35b595e05c22215526d"
+  },
+  "secondaryChecks": [
+    {
+      "file": "references/face-front-closeup-alt.png",
+      "sha256": "ca6d058f12b0195667a46978d5106367a8501e3101d3c37787a2e149cca86f22"
+    }
+  ],
+  "preserve": [
+    "eye shape and spacing (almond, slightly upturned outer corners, heavy lashes)",
+    "eyebrow structure (full, softly arched)",
+    "nose (straight bridge, rounded tip, septum ring)",
+    "lips (full, defined cupid's bow, glossy deep rose; vertical lip piercing below the lower lip)",
+    "cheekbones and jawline (high cheekbones, soft tapered jaw)",
+    "deep brown skin with warm undertone",
+    "facial markings: freckles across the cheeks, small star marks under the eyes, swirl markings at the temples",
+    "forehead bindi chain with a pink crystal",
+    "copper hoop earrings"
+  ],
+  "mayChange": [
+    "outfit",
+    "hairstyle",
+    "pose",
+    "expression",
+    "accessories"
+  ],
+  "rule": "Generated images are never promoted to identity references without the owner's approval."
+}
