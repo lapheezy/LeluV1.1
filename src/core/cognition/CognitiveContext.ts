@@ -33,6 +33,8 @@ import ImprovementQueue from "../selfdev/ImprovementQueue";
 import ToolRegistry from "../tools/ToolRegistry";
 import SelfStudyEngine, { type CognitiveStateView } from "./SelfStudyEngine";
 import EngineeringWorkspace from "../engineering/EngineeringWorkspace";
+import WorkspaceEngine from "../workspace/WorkspaceEngine";
+import { describeWorkspace } from "../workspace/WorkspaceArtifacts";
 import WorkflowStore from "../workflows/WorkflowStore";
 import AgentWorkflowBridge from "../workflows/AgentWorkflowBridge";
 import AgentObjectives from "./AgentObjectives";
@@ -104,6 +106,13 @@ export interface CognitiveContextSnapshot {
    * validation exited.
    */
   engineeringWorkspace: string;
+
+  /**
+   * The shared visual workspace: the artifacts open in it (captures,
+   * pages, notes, diagrams, tables) and the one the user selected — so
+   * "this" in their next message has a referent she can read and change.
+   */
+  workspaceArtifacts: string;
 
   /**
    * Recent workflow executions, described from their real recorded
@@ -345,6 +354,7 @@ export function buildCognitiveContext(conversationId?: string): CognitiveContext
     // describe() reads the workspace service's own state, which only
     // ever moves in response to a real backend result.
     engineeringWorkspace: EngineeringWorkspace.getInstance().describe(),
+    workspaceArtifacts: describeWorkspace(WorkspaceEngine.getInstance().getState()),
     workflowActivity: describeWorkflowActivity(),
     configuration: describeConfigurationSafely(),
     // Read-only: describes the objective store as it stands. Assembling
@@ -637,6 +647,10 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   // "validation failed" from "awaiting authorization", without being
   // told in prose.
   sections.push(`## ENGINEERING WORKSPACE\n${ctx.engineeringWorkspace}`);
+
+  // THE VISUAL WORKSPACE — the artifacts beside the conversation, and the
+  // one the user selected. Read from WorkspaceEngine as it stands.
+  sections.push(`## VISUAL WORKSPACE (artifacts beside this conversation)\n${ctx.workspaceArtifacts}`);
 
   // WORKFLOW ACTIVITY — read from persisted execution records.
   //

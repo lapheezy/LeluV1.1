@@ -78,6 +78,7 @@ import { markPerf } from "../../../core/perf/StartupTelemetry";
 import { startTrace as latencyStart, mark as latencyMark, annotate as latencyAnnotate, traceError as latencyTraceError } from "../../../core/perf/LatencyProbe";
 import { cleanAssistantText } from "../../../core/router/ToolMarkup";
 import { useWorkspace } from "./useWorkspace";
+import SelectedArtifactChip from "./SelectedArtifactChip";
 import { layer } from "../../../core/ui/Layers";
 import MultiChatStore from "../../../core/multichat/MultiChatStore";
 import { bindMessage, bindTask, claimTurn, ownerForTask, releaseTurn } from "../../../core/multichat/TurnOwnership";
@@ -1806,6 +1807,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
               : undefined,
           }}
         >
+          <SelectedArtifactChip />
           {pendingMedia.length > 0 || pendingFiles.length > 0 ? (
             <div className="lelu-cc-pending" aria-label="Attachments">
               {pendingMedia.map((media, index) => (

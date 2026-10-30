@@ -185,6 +185,10 @@ export type AgentEvent =
       /** Data URL of the real produced image (render snapshot). */
       image: string;
       label: string;
+      /** The page it shows, when it is a capture of one. */
+      source?: string;
+      /** What is known about it as text (a capture's title and visible text). */
+      text?: string;
     }
   | { type: "workspace_open"; taskId: string }
   | { type: "workspace_focus"; taskId: string; view: string }

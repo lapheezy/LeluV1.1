@@ -65,6 +65,16 @@ export type WorkspaceViewKind =
   | "executive"
   | "design";
 
+/** What produced a workspace artifact: the tool, and where it came from. */
+export interface WorkspaceViewSource {
+  /** The tool or pipeline that produced it (capture, browser, creative, lelu, user). */
+  tool: string;
+  /** The page or file it was taken from, when there is one. */
+  url?: string;
+  /** The turn that produced it. */
+  taskId?: string;
+}
+
 export interface WorkspaceView {
   id: string;
   kind: WorkspaceViewKind;
@@ -89,6 +99,10 @@ export interface WorkspaceView {
   stackOrder: number;
   /** Agent-controlled view state (focus/highlight/trace/zoom/pan/expand). */
   viewState: WorkspaceViewState;
+  /** What produced it. Absent for views the app opens on its own. */
+  source?: WorkspaceViewSource;
+  /** 1 when created; +1 on every change to its content or title. */
+  revision: number;
 }
 
 export type WorkspaceLayoutMode = "auto" | "grid" | "split" | "stack";
@@ -108,6 +122,12 @@ export interface WorkspaceState {
   visible: boolean;
   /** Two-up split mode: the two most recently focused views. */
   splitIds: string[];
+  /**
+   * The artifact the USER selected. Unlike focus — which follows whatever
+   * LÉLU last opened — this changes only when the user picks a view (or
+   * the view is closed), so "this" in their next message means it.
+   */
+  selectedId: string | null;
   /** Layout orchestration mode. */
   layout: WorkspaceLayoutMode;
   /** User locked the layout — the engine won't reorganize until unlocked. */
@@ -123,6 +143,20 @@ export interface WorkspaceState {
 
 type WorkspaceListener = (state: WorkspaceState) => void;
 
+/** Whether a patch changes what a view shows (its content or title). */
+function changesContent(
+  view: WorkspaceView,
+  patch: { spec?: VisualSpec; text?: string; url?: string; title?: string; kind?: WorkspaceViewKind },
+): boolean {
+  return (
+    (patch.spec !== undefined && patch.spec !== view.spec) ||
+    (patch.text !== undefined && patch.text !== view.text) ||
+    (patch.url !== undefined && patch.url !== view.url) ||
+    (Boolean(patch.title) && patch.title !== view.title) ||
+    (patch.kind !== undefined && patch.kind !== view.kind)
+  );
+}
+
 function makeId(prefix: string): string {
   return `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
 }
@@ -135,6 +169,7 @@ export default class WorkspaceEngine {
     focusId: null,
     visible: false,
     splitIds: [],
+    selectedId: null,
     layout: "auto",
     locked: false,
     pinnedByUser: false,
@@ -264,6 +299,7 @@ export default class WorkspaceEngine {
     pinned?: boolean;
     temporary?: boolean;
     group?: string;
+    source?: WorkspaceViewSource;
   }): WorkspaceView {
     const now = Date.now();
     const existing = input.id
@@ -280,6 +316,8 @@ export default class WorkspaceEngine {
         pinned: input.pinned ?? existing.pinned,
         temporary: input.temporary ?? existing.temporary,
         group: input.group ?? existing.group,
+        source: input.source ?? existing.source,
+        revision: changesContent(existing, input) ? existing.revision + 1 : existing.revision,
         updatedAt: now,
         minimized: false,
       };
@@ -307,6 +345,8 @@ export default class WorkspaceEngine {
       weight: 1,
       stackOrder: this.state.views.length,
       viewState: defaultViewState(),
+      source: input.source,
+      revision: 1,
     };
     this.state = {
       ...this.state,
@@ -328,6 +368,7 @@ export default class WorkspaceEngine {
     pinned?: boolean;
     temporary?: boolean;
     group?: string;
+    source?: WorkspaceViewSource;
   }): WorkspaceView {
     this.upsertView(input);
     if (input.show !== false) {
@@ -361,6 +402,27 @@ export default class WorkspaceEngine {
     this.notify();
   }
 
+  /**
+   * The user picks an artifact (or clears the pick with null). It is also
+   * focused; LÉLU opening something else later moves focus, not this.
+   */
+  public selectView(id: string | null): void {
+    if (id !== null && !this.state.views.some((view) => view.id === id)) {
+      return;
+    }
+    this.state = { ...this.state, selectedId: id };
+    if (id) {
+      this.focusView(id);
+      return;
+    }
+    this.notify();
+  }
+
+  /** The user's selected artifact, if it is still open. */
+  public getSelected(): WorkspaceView | null {
+    return this.state.views.find((view) => view.id === this.state.selectedId) ?? null;
+  }
+
   /** workspace.close — remove a view. */
   public closeView(id: string): void {
     this.state = {
@@ -368,6 +430,7 @@ export default class WorkspaceEngine {
       views: this.state.views.filter((view) => view.id !== id),
       splitIds: this.state.splitIds.filter((viewId) => viewId !== id),
       focusId: this.state.focusId === id ? null : this.state.focusId,
+      selectedId: this.state.selectedId === id ? null : this.state.selectedId,
     };
     if (this.state.focusId && !this.state.views.some((view) => view.id === this.state.focusId)) {
       this.state = { ...this.state, focusId: this.state.views[0]?.id ?? null };
@@ -523,6 +586,7 @@ export default class WorkspaceEngine {
               url: patch.url ?? view.url,
               title: patch.title ?? view.title,
               kind: patch.kind ?? view.kind,
+              revision: changesContent(view, patch) ? view.revision + 1 : view.revision,
               updatedAt: Date.now(),
             }
           : view,
@@ -592,6 +656,7 @@ export default class WorkspaceEngine {
         this.state.focusId && removableIds.has(this.state.focusId)
           ? (this.state.views.find((view) => !removableIds.has(view.id))?.id ?? null)
           : this.state.focusId,
+      selectedId: this.state.selectedId && removableIds.has(this.state.selectedId) ? null : this.state.selectedId,
     };
     this.notify();
     return removable.length;
@@ -727,6 +792,7 @@ export default class WorkspaceEngine {
       views: [],
       splitIds: [],
       focusId: null,
+      selectedId: null,
       layout: "auto",
       locked: false,
     };

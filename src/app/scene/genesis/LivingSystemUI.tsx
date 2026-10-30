@@ -148,7 +148,8 @@ export default function LivingSystemUI() {
       <SystemWorkspace
         views={workspaceState.views.filter((view) => !view.minimized)}
         focusId={workspaceState.focusId}
-        onFocusView={(id) => workspaceEngine.focusView(id)}
+        selectedId={workspaceState.selectedId}
+        onSelectView={(id) => workspaceEngine.selectView(id)}
         onCloseView={(id) => workspaceEngine.closeView(id)}
         onOpenChat={() => {
           openPanel("chat");
@@ -548,13 +549,15 @@ function SystemCore({
 function SystemWorkspace({
   views,
   focusId,
-  onFocusView,
+  selectedId,
+  onSelectView,
   onCloseView,
   onOpenChat,
 }: {
   views: WorkspaceView[];
   focusId: string | null;
-  onFocusView: (id: string) => void;
+  selectedId: string | null;
+  onSelectView: (id: string | null) => void;
   onCloseView: (id: string) => void;
   onOpenChat: () => void;
 }) {
@@ -592,11 +595,16 @@ function SystemWorkspace({
     <div style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }}>
       {ordered.map((view, index) => {
         const focused = view.id === focusId;
+        const selected = view.id === selectedId;
         const position = surfacePosition(index, focused);
         return (
           <div
             key={view.id}
-            onClick={() => onFocusView(view.id)}
+            data-workspace-view={view.id}
+            data-kind={view.kind}
+            data-selected={selected ? "true" : "false"}
+            data-revision={view.revision}
+            onClick={() => onSelectView(view.id)}
             style={{
               position: "absolute",
               ...position,
@@ -607,7 +615,11 @@ function SystemWorkspace({
               overflow: "hidden",
               borderRadius: 14,
               background: "rgba(6, 12, 24, 0.82)",
-              border: focused ? "1px solid rgba(103, 232, 249, 0.5)" : "1px solid rgba(148, 163, 184, 0.16)",
+              border: selected
+                ? "2px solid rgba(250, 204, 21, 0.75)"
+                : focused
+                  ? "1px solid rgba(103, 232, 249, 0.5)"
+                  : "1px solid rgba(148, 163, 184, 0.16)",
               boxShadow: focused
                 ? "0 20px 60px rgba(0, 0, 0, 0.55), 0 0 40px rgba(56, 189, 248, 0.12)"
                 : "0 10px 32px rgba(0, 0, 0, 0.4)",
@@ -654,6 +666,30 @@ function SystemWorkspace({
               >
                 {view.kind} · {view.title}
               </span>
+              {selected ? (
+                <button
+                  type="button"
+                  data-testid="workspace-ask-about"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onOpenChat();
+                  }}
+                  title="LÉLU uses the selected artifact when you say “this”"
+                  style={{
+                    border: "1px solid rgba(250, 204, 21, 0.5)",
+                    background: "rgba(250, 204, 21, 0.12)",
+                    color: "#fde68a",
+                    borderRadius: 999,
+                    padding: "2px 8px",
+                    fontSize: 10,
+                    cursor: "pointer",
+                    flexShrink: 0,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Selected · ask LÉLU
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={(event) => {
@@ -681,7 +717,7 @@ function SystemWorkspace({
               </button>
             </div>
             <div style={{ flex: 1, overflow: "auto", padding: "10px 12px", minHeight: 0 }}>
-              {view.spec ? <WorkspaceVisual spec={view.spec} viewState={view.viewState} /> : null}
+              <ArtifactBody view={view} />
             </div>
           </div>
         );
@@ -711,6 +747,60 @@ function SystemWorkspace({
       </button>
     </div>
   );
+}
+
+/** The artifact itself: what the tool produced, not a description of it. */
+function ArtifactBody({ view }: { view: WorkspaceView }) {
+  const notes = view.text ? (
+    <div
+      data-artifact-text
+      style={{
+        whiteSpace: "pre-wrap",
+        fontSize: 11,
+        lineHeight: 1.45,
+        color: "rgba(226, 232, 240, 0.82)",
+        marginTop: view.spec || view.url ? 8 : 0,
+        maxHeight: view.kind === "file" ? undefined : 120,
+        overflow: "auto",
+        fontFamily: view.kind === "file" ? "ui-monospace, SFMono-Regular, Menlo, monospace" : "inherit",
+      }}
+    >
+      {view.text}
+    </div>
+  ) : null;
+  if (view.spec) {
+    return (
+      <>
+        <WorkspaceVisual spec={view.spec} viewState={view.viewState} />
+        {notes}
+      </>
+    );
+  }
+  if (view.kind === "image" && view.url) {
+    return (
+      <>
+        <img src={view.url} alt={view.title} style={{ display: "block", width: "100%", height: "auto", borderRadius: 8 }} />
+        {notes}
+      </>
+    );
+  }
+  if ((view.kind === "browser" || view.kind === "video") && view.url) {
+    return (
+      <>
+        <a
+          href={view.url}
+          target="_blank"
+          rel="noreferrer"
+          onClick={(event) => event.stopPropagation()}
+          style={{ fontSize: 11, color: "#7dd3fc", wordBreak: "break-all" }}
+        >
+          {view.url}
+        </a>
+        {notes}
+      </>
+    );
+  }
+  return notes;
 }
 
 /** Deterministic spatial placement for surfaces around the core. */

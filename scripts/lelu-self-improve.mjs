@@ -19,6 +19,7 @@
 
 import { chromium } from "playwright";
 import { mkdirSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 
 const BASE = process.argv[2] ?? process.env.LELU_BASE ?? "http://127.0.0.1:5173/";
@@ -86,6 +87,17 @@ await page.keyboard.press("Enter");
 const started = Date.now();
 console.log(`[${new Date().toISOString()}] request sent; recording to ${OUT}`);
 
+/** Her record so far, kept outside the browser in case it dies. */
+let mirrored = { events: [], images: [] };
+async function mirror() {
+  const current = await page.evaluate(() => window.__selfImprove).catch(() => null);
+  if (!current) return;
+  mirrored = current;
+  // Outside the project: anything written into it during the run would
+  // show up in the diff of her copy as hers (runs 8 and 10).
+  writeFileSync(path.join(tmpdir(), `lelu-self-improve-${stamp}.partial.json`), JSON.stringify(current.events, null, 2));
+}
+
 /** Wait for the turn started by `message` to end; returns its end event or null. */
 async function waitForTurn(message, deadline, since) {
   // Only an end AFTER this message was sent: every go-ahead has the same
@@ -103,6 +115,7 @@ async function waitForTurn(message, deadline, since) {
       return { count: events.length, end: end ?? null, tools: events.filter((e) => e.type === "tool_started").map((e) => e.tool) };
     }, { head: message.slice(0, 40), since });
     if (state.count !== lastCount) {
+      await mirror();
       console.log(`  +${Math.round((Date.now() - started) / 1000)}s  ${state.count} events; tools so far: ${state.tools.join(", ")}`);
       lastCount = state.count;
     }
@@ -176,8 +189,10 @@ for (let nudge = 0; nudge < MAX_GO_AHEADS && finished && Date.now() < deadline; 
   await page.screenshot({ path: path.join(OUT, "screen-at-interruption.png") }).catch(() => {});
 }
 
-await page.waitForTimeout(3000);
-const record = await page.evaluate(() => window.__selfImprove).catch(() => ({ events: [], images: [] }));
+await page.waitForTimeout(3000).catch(() => {});
+// The in-page record is gone with the browser (run 23: the container
+// restarted mid-run); the copy mirrored to disk while she worked is not.
+const record = await page.evaluate(() => window.__selfImprove).catch(() => mirrored);
 // Evidence is written even when the server has gone away (measured in
 // run 12: the dev server exited mid-run and the recorder crashed before
 // saving anything). What could not be read is said so in the files.

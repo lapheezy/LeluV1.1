@@ -155,6 +155,12 @@ export function describeToolCall(id: string, args: Record<string, unknown>): str
       return `Linking the chat “${pick("chat").slice(0, 60)}”`;
     case "chats.merge":
       return "Merging chats into a new chat";
+    case "artifact.read":
+      return "Reading the workspace artifact";
+    case "artifact.edit":
+      return "Changing the workspace artifact";
+    case "artifact.create":
+      return `Making a ${pick("kind") || "new artifact"} in the workspace`;
     default: {
       const detail = pick("query") || pick("path") || pick("action") || pick("url");
       return detail ? `Running ${id} (${detail.slice(0, 60)})` : `Running ${id}`;
@@ -661,7 +667,14 @@ const EXECUTORS: ToolExecutor[] = [
       // The real screenshot goes where every produced image goes: into the
       // conversation and the shared workspace.
       if (typeof data.screenshot === "string") {
-        events.emit({ type: "creative_artifact", taskId, image: data.screenshot, label });
+        events.emit({
+          type: "creative_artifact",
+          taskId,
+          image: data.screenshot,
+          label,
+          source: String(data.url ?? ""),
+          text: `${data.title ? `Title: ${String(data.title)}\n` : ""}${String((data.layout as { text?: string } | undefined)?.text ?? "").slice(0, 3000)}`,
+        });
       }
       const isIntermittent = (f: { seenIn?: number }) => loads > 1 && (f.seenIn ?? loads) < loads;
       const lines = findings.map((f) => `- ${isIntermittent(f) ? `[in ${f.seenIn} of ${loads} loads — depends on the app's state when it loaded] ` : ""}${f.problem}: ${f.label} at [x ${f.rect[0]}, y ${f.rect[1]}, w ${f.rect[2]}, h ${f.rect[3]}]${f.coveredBy ? ` covered by ${f.coveredBy}` : ""}${f.detail ? ` (${f.detail})` : ""}`);
@@ -882,6 +895,122 @@ const EXECUTORS: ToolExecutor[] = [
           ? `Companion mode is ON (${state.size}${state.pinned ? ", staying where the user placed you" : ", choosing your own out-of-the-way spot"}).`
           : "Companion mode is OFF.",
         data: state,
+      };
+    },
+  },
+
+  /* ---------------------- workspace artifacts ---------------------- */
+  // The workspace's views are the artifacts tools produced. These read and
+  // change THOSE objects — the view the user sees gets the new revision.
+  // "this"/"it"/nothing = the artifact the user selected.
+
+  {
+    id: "artifact.read",
+    parameters: {
+      type: "object",
+      properties: {
+        artifact: {
+          type: "string",
+          description: "Which artifact: its [id] or part of its title. Omit (or 'this') for the one the user selected.",
+        },
+      },
+    },
+    run: async (args) => {
+      const { default: WorkspaceEngine } = await import("../workspace/WorkspaceEngine");
+      const { describeArtifact, describeWorkspace, resolveArtifact } = await import("../workspace/WorkspaceArtifacts");
+      const state = WorkspaceEngine.getInstance().getState();
+      const view = resolveArtifact(state, str(args, "artifact"));
+      if (!view) {
+        return { ok: false, content: `No artifact matches${str(args, "artifact") ? ` “${str(args, "artifact")}”` : " (nothing is selected)"}.
+${describeWorkspace(state)}` };
+      }
+      return { ok: true, content: describeArtifact(view, 6000), data: { id: view.id, revision: view.revision } };
+    },
+  },
+
+  {
+    id: "artifact.edit",
+    parameters: {
+      type: "object",
+      properties: {
+        artifact: { type: "string", description: "Which artifact: its [id] or part of its title. Omit for the one the user selected." },
+        title: { type: "string", description: "A new title." },
+        text: { type: "string", description: "Replace its whole text (a note's content, a page's text, an image's notes)." },
+        append: { type: "string", description: "Add this to the end of its text." },
+        find: { type: "string", description: "An exact passage of its text to replace (with 'replace')." },
+        replace: { type: "string", description: "What replaces 'find'." },
+        caption: { type: "string", description: "Diagram/table caption." },
+        addNodes: { type: "array", items: { type: "string" }, description: "Diagram: node labels to add." },
+        renameNode: {
+          type: "object",
+          properties: { node: { type: "string" }, label: { type: "string" } },
+          description: "Diagram: rename a node (by id or label).",
+        },
+        removeNode: { type: "string", description: "Diagram: remove a node (by id or label) and its connections." },
+        connect: {
+          type: "object",
+          properties: { from: { type: "string" }, to: { type: "string" }, label: { type: "string" } },
+          description: "Diagram: connect two nodes (by id or label).",
+        },
+        addRow: { type: "object", description: "Table: a row to add, column label → value." },
+        removeRow: { type: "number", description: "Table: the 1-based row to remove." },
+      },
+    },
+    run: async (args) => {
+      const { default: WorkspaceEngine } = await import("../workspace/WorkspaceEngine");
+      const { planArtifactEdit, resolveArtifact, describeArtifact, describeWorkspace } = await import("../workspace/WorkspaceArtifacts");
+      const engine = WorkspaceEngine.getInstance();
+      const view = resolveArtifact(engine.getState(), str(args, "artifact"));
+      if (!view) {
+        return { ok: false, content: `Nothing was changed: no artifact matches${str(args, "artifact") ? ` “${str(args, "artifact")}”` : " (nothing is selected)"}.
+${describeWorkspace(engine.getState())}` };
+      }
+      const planned = planArtifactEdit(view, args as Parameters<typeof planArtifactEdit>[1]);
+      if (!planned.ok) return { ok: false, content: planned.reason };
+      engine.updateView(view.id, planned.patch);
+      engine.focusView(view.id);
+      const updated = engine.getState().views.find((item) => item.id === view.id);
+      return {
+        ok: true,
+        content: `Changed [${view.id}] “${updated?.title ?? view.title}” — ${planned.changes.join("; ")}. The user now sees revision ${updated?.revision ?? "?"} in the workspace.
+${updated ? describeArtifact(updated, 1500) : ""}`,
+        data: { id: view.id, revision: updated?.revision, changes: planned.changes },
+      };
+    },
+  },
+
+  {
+    id: "artifact.create",
+    parameters: {
+      type: "object",
+      properties: {
+        kind: { type: "string", enum: ["note", "diagram", "table"], description: "What to make." },
+        title: { type: "string", description: "Its title." },
+        text: { type: "string", description: "A note's content (or notes under a diagram/table)." },
+        nodes: { type: "array", items: { type: "string" }, description: "Diagram: node labels." },
+        connections: {
+          type: "array",
+          items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, label: { type: "string" } } },
+          description: "Diagram: connections between node labels.",
+        },
+        columns: { type: "array", items: { type: "string" }, description: "Table: column labels." },
+        rows: { type: "array", items: { type: "object" }, description: "Table: rows, column label → value." },
+      },
+      required: ["kind", "title"],
+    },
+    run: async (args, context) => {
+      const { default: WorkspaceEngine } = await import("../workspace/WorkspaceEngine");
+      const { draftArtifact } = await import("../workspace/WorkspaceArtifacts");
+      const drafted = draftArtifact(args as unknown as Parameters<typeof draftArtifact>[0]);
+      if (!drafted.ok) return { ok: false, content: `Nothing was created: ${drafted.reason}` };
+      const view = WorkspaceEngine.getInstance().openView({
+        ...drafted.view,
+        source: { tool: "lelu", taskId: String(context?.request?.timestamp ?? "") || undefined },
+      });
+      return {
+        ok: true,
+        content: `Created [${view.id}] ${view.kind} “${view.title}” in the workspace; the user sees it now. Change it later with artifact_edit (artifact: "${view.id}").`,
+        data: { id: view.id, kind: view.kind },
       };
     },
   },
