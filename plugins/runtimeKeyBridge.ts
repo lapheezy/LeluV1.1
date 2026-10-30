@@ -139,6 +139,14 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     globalName: "__LELU_ANTHROPIC_MODEL__",
     aliases: ["ANTHROPIC_MODEL"],
   },
+  // Which provider leads the chain. Not a credential. Without it here the
+  // browser never saw VITE_DEFAULT_PROVIDER (resolveEnv reads no
+  // import.meta.env) and always routed as if it were "groq".
+  {
+    viteName: "VITE_DEFAULT_PROVIDER",
+    globalName: "__LELU_DEFAULT_PROVIDER__",
+    aliases: ["DEFAULT_PROVIDER"],
+  },
 
   // ---- Supabase (persistence + the OG archive) ----
   //

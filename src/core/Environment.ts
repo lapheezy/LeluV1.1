@@ -16,7 +16,7 @@
  * ==========================================================
  */
 
-import { endpoint } from "./Endpoints";
+import { endpoint, isBrokeredInBrowser, type EndpointId } from "./Endpoints";
 
 // -- raw env access (Vite-injected, available in browser bundle) ----------
 
@@ -198,9 +198,13 @@ function build(): LeluEnvironment {
     keyVar: string,
     priority: number,
     required: boolean,
+    brokered?: EndpointId,
   ): ProviderEnv {
     const configured = has(keyVar);
-    if (required && !configured) {
+    // A brokered provider's key lives on the server by design, so the page
+    // never sees it; /api/model/status reports whether it is configured.
+    // Warning here told every browser session that working keys were missing.
+    if (required && !configured && !(brokered && isBrokeredInBrowser(brokered))) {
       warnings.push(`${keyVar} is not set — provider will be unavailable.`);
     }
     return { configured, keyVar, hasKey: configured, priority, required };
@@ -213,18 +217,16 @@ function build(): LeluEnvironment {
     warnings,
 
     // AI providers — priority 1-7 in fallback order
-    groq:            providerEnv("VITE_GROQ_API_KEY", 1, true),
-    openrouter:      providerEnv("VITE_OPENROUTER_API_KEY", 2, true),
-    cerebras:        providerEnv("VITE_CEREBRAS_API_KEY", 3, true),
-    mistral:         providerEnv("VITE_MISTRAL_API_KEY", 4, true),
-    fireworks:       providerEnv("VITE_FIREWORKS_API_KEY", 5, true),
-    githubModels:    providerEnv("VITE_GITHUB_TOKEN", 6, true),
-    // Anthropic is appended at the END of the chain on purpose: the
-    // existing fallback order is unchanged, so every provider that
-    // resolved a key before resolves the same key in the same position.
-    // Promote it with VITE_DEFAULT_PROVIDER=anthropic when wanted.
-    anthropic:       providerEnv("VITE_ANTHROPIC_API_KEY", 7, true),
-    gemini:          providerEnv("VITE_GEMINI_API_KEY", 8, true),
+    groq:            providerEnv("VITE_GROQ_API_KEY", 1, true, "groq"),
+    openrouter:      providerEnv("VITE_OPENROUTER_API_KEY", 2, true, "openrouter"),
+    cerebras:        providerEnv("VITE_CEREBRAS_API_KEY", 3, true, "cerebras"),
+    mistral:         providerEnv("VITE_MISTRAL_API_KEY", 4, true, "mistral"),
+    fireworks:       providerEnv("VITE_FIREWORKS_API_KEY", 5, true, "fireworks"),
+    githubModels:    providerEnv("VITE_GITHUB_TOKEN", 6, true, "githubModels"),
+    // Anthropic keeps priority 7 in the fallback chain; it LEADS because
+    // defaultProvider below is "anthropic" (override with VITE_DEFAULT_PROVIDER).
+    anthropic:       providerEnv("VITE_ANTHROPIC_API_KEY", 7, true, "anthropic"),
+    gemini:          providerEnv("VITE_GEMINI_API_KEY", 8, true, "gemini"),
     localInference:  { configured: true, keyVar: "", hasKey: true, priority: 0, required: false },
 
     // Knowledge providers
@@ -283,7 +285,9 @@ function build(): LeluEnvironment {
     githubModel:      opt("VITE_GITHUB_MODEL", "gpt-4o-mini"),
     anthropicModel:   opt("VITE_ANTHROPIC_MODEL", "claude-sonnet-4-5"),
     geminiModel:      opt("VITE_GEMINI_MODEL", "gemini-2.0-flash"),
-    defaultProvider:  opt("VITE_DEFAULT_PROVIDER", "groq"),
+    // Anthropic is the intended primary. Unset → it leads the chain; an
+    // unavailable or failing Anthropic still falls through by priority.
+    defaultProvider:  opt("VITE_DEFAULT_PROVIDER", "anthropic"),
     aiProxyBaseUrl:   opt("VITE_AI_PROXY_BASE_URL", ""),
   };
 
