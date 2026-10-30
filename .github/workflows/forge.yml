@@ -1,0 +1,114 @@
+# LÉLU 3D Forge — run a Forge command with the MESHY_API_KEY repository secret.
+#
+# The key lives only in GitHub secrets, so generation runs here: the same
+# CLI (scripts/forge-character.ts), store and ledger as /api/forge. The
+# updated ledger, outputs and previews are committed back to the branch the
+# workflow was started on, so every session and the Cosmos see the result.
+#
+# Manual only (workflow_dispatch). Commands that spend credits say so.
+name: 3D Forge
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "Forge command"
+        required: true
+        type: choice
+        options:
+          - status              # free: key, balance, identity, ledger
+          - approve-and-watch   # SPENDS the job's estimated credits, then follows it
+          - watch               # free: follow a submitted job and download outputs
+          - rig-and-watch       # SPENDS 5 credits: rig a finished base job
+          - slot                # free: promote a validated job (extra = base | rig | animation:<name>)
+          - library             # free: search Meshy's animation catalogue (extra = search text)
+      job_id:
+        description: "Forge job id (fj_...)"
+        required: false
+        type: string
+      extra:
+        description: "slot name or library search"
+        required: false
+        type: string
+
+concurrency:
+  group: forge-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  forge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      MESHY_API_KEY: ${{ secrets.MESHY_API_KEY }}
+      FORGE_COMMAND: ${{ inputs.command }}
+      FORGE_JOB_ID: ${{ inputs.job_id }}
+      FORGE_EXTRA: ${{ inputs.extra }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile --ignore-scripts
+
+      - name: Check the secret is present (name only)
+        run: |
+          if [ -z "$MESHY_API_KEY" ]; then
+            echo "::error::Repository secret MESHY_API_KEY is not set (or has a different name)."
+            exit 1
+          fi
+
+      - name: Run Forge command
+        run: |
+          set -euo pipefail
+          forge() { npx tsx scripts/forge-character.ts "$@"; }
+          need_job() { [[ "$FORGE_JOB_ID" =~ ^fj_[a-z0-9_]+$ ]] || { echo "::error::job_id must look like fj_..."; exit 1; }; }
+          case "$FORGE_COMMAND" in
+            status) forge status ;;
+            approve-and-watch) need_job; forge approve "$FORGE_JOB_ID"; forge watch "$FORGE_JOB_ID" ;;
+            watch) need_job; forge watch "$FORGE_JOB_ID" ;;
+            rig-and-watch)
+              need_job
+              forge rig "$FORGE_JOB_ID" --approve | tee rig.out
+              rig_id=$(grep -oE 'fj_[a-z0-9_]+' rig.out | head -1)
+              forge watch "$rig_id" ;;
+            slot)
+              need_job
+              [[ "$FORGE_EXTRA" =~ ^(base|rig|animation:[a-z0-9_]+)$ ]] || { echo "::error::extra must be base, rig or animation:<name>"; exit 1; }
+              forge slot "$FORGE_EXTRA" "$FORGE_JOB_ID" ;;
+            library) forge library "$FORGE_EXTRA" ;;
+          esac
+          forge status
+
+      - name: Upload generated assets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: forge-${{ github.run_id }}
+          path: |
+            leluverse/assets/characters/*/meshes
+            leluverse/assets/characters/*/rig
+            leluverse/assets/characters/*/animations
+            leluverse/assets/characters/*/previews
+            leluverse/assets/characters/*/generation_logs
+          if-no-files-found: ignore
+
+      - name: Commit ledger and outputs back to the branch
+        if: always()
+        run: |
+          git config user.name "lelu-forge"
+          git config user.email "lelu-forge@users.noreply.github.com"
+          git add leluverse/
+          if git diff --cached --quiet; then echo "Nothing to commit."; exit 0; fi
+          git commit -m "Forge: $FORGE_COMMAND ${FORGE_JOB_ID:-} (run ${{ github.run_id }})"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
