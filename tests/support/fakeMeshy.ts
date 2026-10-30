@@ -65,7 +65,7 @@ export async function startFakeMeshy(): Promise<FakeMeshy> {
     }
     if (req.headers.authorization !== `Bearer ${KEY}`) return json(401, { message: "Missing API key" });
     if (url === "/openapi/v1/balance") return json(200, { balance: fake.balance, monthly_credits: 0, permanent_credits: fake.balance });
-    const create = /^\/openapi\/v1\/(image-to-3d|multi-image-to-3d|rigging|animations)$/.exec(url);
+    const create = /^\/openapi\/v1\/(image-to-3d|multi-image-to-3d|rigging|animations|image-to-image)$/.exec(url);
     if (create && req.method === "POST") {
       if (fake.dropNextCreate) {
         fake.dropNextCreate = false;
@@ -77,7 +77,7 @@ export async function startFakeMeshy(): Promise<FakeMeshy> {
       tasks++;
       return json(202, { result: `task-${tasks}` });
     }
-    const read = /^\/openapi\/v1\/(image-to-3d|multi-image-to-3d|rigging|animations)\/(task-\d+)$/.exec(url);
+    const read = /^\/openapi\/v1\/(image-to-3d|multi-image-to-3d|rigging|animations|image-to-image)\/(task-\d+)$/.exec(url);
     if (read) {
       const [, kind, id] = read;
       const n = (polls.get(id) ?? 0) + 1;
@@ -93,6 +93,9 @@ export async function startFakeMeshy(): Promise<FakeMeshy> {
             basic_animations: { walking_glb_url: asset("walking.glb"), walking_fbx_url: asset("walking.fbx") },
           },
         });
+      }
+      if (kind === "image-to-image") {
+        return json(200, { id, status: "SUCCEEDED", progress: 100, consumed_credits: 9, image_urls: [asset("view_0.png"), asset("view_1.png"), asset("view_2.png")] });
       }
       return json(200, {
         id, status: "SUCCEEDED", progress: 100, consumed_credits: 30,

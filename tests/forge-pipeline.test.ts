@@ -364,3 +364,96 @@ test("multi-image-to-3d requests are checked against the documented limits", () 
   assert.match(validateRequest("multi-image-to-3d", { ...good, image_urls: ["1", "2", "3", "4", "5"] }).join(), /1–4 image_urls/);
   assert.match(validateRequest("multi-image-to-3d", { ...good, should_texture: false }).join(), /enable_pbr needs should_texture/);
 });
+
+test("image-to-image views are generated, reviewed, adopted as marked references, and never become identity", async () => {
+  const fake = await startFakeMeshy();
+  const { forge, store, cleanup } = setup(fake);
+  try {
+    const body = {
+      ai_model: "nano-banana-pro",
+      prompt: "Same character, hood down, full-body views",
+      reference_image_urls: ["ref:front"],
+      generate_multi_view: true,
+    };
+    assert.deepEqual(validateRequest("image-to-image", body), []);
+    assert.equal(estimateCredits("image-to-image", body), 9);
+    assert.match(validateRequest("image-to-image", { ...body, aspect_ratio: "1:1" }).join(), /aspect_ratio/);
+    assert.match(validateRequest("image-to-image", { ...body, ai_model: "made-up" }).join(), /ai_model must be/);
+
+    const planned = await forge.request({ character: "hero", kind: "image-to-image", body });
+    assert.equal(planned.job.status, "awaiting_approval");
+    assert.equal(creates(fake).length, 0, "planning an image job spends nothing");
+    await forge.approve(planned.job.id);
+    const sent = JSON.parse(creates(fake)[0].body);
+    assert.match(sent.reference_image_urls[0], /^data:image\/png;base64,/, "references go up as data URIs");
+
+    await forge.refresh(planned.job.id);
+    const done = await forge.refresh(planned.job.id);
+    assert.equal(done.status, "SUCCEEDED");
+    assert.match(done.output?.dir ?? "", /^characters\/hero\/concepts\/v001_image-to-image_/);
+    assert.deepEqual(done.output!.files.map((f) => f.role).filter((r) => r.startsWith("image")).sort(), ["image", "image:1", "image:2"]);
+    assert.equal(done.validation, null, "images are not run through the GLB inspector");
+
+    const adopted = forge.adoptView(planned.job.id, 0, { id: "gen_side", view: "left side, full body, hood down" });
+    assert.deepEqual(adopted.generatedFrom, { jobId: planned.job.id, meshyTaskId: done.meshyTaskId, index: 0 });
+    assert.ok(store.references("hero").some((r) => r.id === "gen_side"));
+    assert.throws(() => forge.adoptView(planned.job.id, 7, { id: "nope", view: "x" }), /no image 7/);
+    assert.throws(
+      () => store.lockIdentity("hero", { primary: "gen_side", secondary: [], preserve: {}, mayChange: [], rule: "" }, true),
+      /generated image/,
+    );
+
+    // The adopted view feeds a 3D job by handle, beside the real front.
+    const multi = await forge.request({ character: "hero", kind: "multi-image-to-3d", body: { image_urls: ["ref:front", "ref:gen_side"], ai_model: "meshy-7.1" } });
+    assert.equal(multi.job.status, "awaiting_approval");
+  } finally {
+    cleanup();
+    await fake.close();
+  }
+});
+
+test("looks switch what the Cosmos shows; attachments follow a bone and can be moved or detached", async () => {
+  const fake = await startFakeMeshy();
+  const { forge, store, cleanup } = setup(fake);
+  try {
+    const finish = async (body: Record<string, unknown>) => {
+      const { job } = await forge.request({ character: "hero", kind: "image-to-3d", body, approve: true });
+      await forge.refresh(job.id);
+      return forge.refresh(job.id);
+    };
+    const hoodDown = await finish({ ...BASE_REQUEST.body });
+    const hoodUp = await finish({ ...BASE_REQUEST.body, texture_resolution: "4k" });
+
+    forge.approveSlot("hero", "look:hood_down", hoodDown.id);
+    forge.approveSlot("hero", "look:hood_up", hoodUp.id);
+    assert.throws(() => forge.approveSlot("hero", "look:Bad Name" as never, hoodUp.id), (e: { details?: string[] }) => Boolean(e.details?.some((d) => /Look names/.test(d))));
+    assert.throws(() => forge.setLook("hero", "missing"), /No approved look/);
+
+    forge.setLook("hero", "hood_up");
+    let active = forge.activeCharacter("hero");
+    assert.equal(active.currentLook, "hood_up");
+    assert.equal(active.model?.jobId, hoodUp.id);
+    assert.deepEqual(Object.keys(active.looks).sort(), ["hood_down", "hood_up"]);
+    forge.setLook("hero", "hood_down");
+    assert.equal(forge.activeCharacter("hero").model?.jobId, hoodDown.id);
+    forge.setLook("hero", null);
+    active = forge.activeCharacter("hero");
+    assert.equal(active.currentLook, null);
+
+    const worn = forge.place({ jobId: hoodDown.id, label: "pendant", attach: { bone: "Neck", offset: [0, -0.1, 0.08] } });
+    assert.equal(worn.attach?.bone, "Neck");
+    assert.equal(worn.attach?.character, "lelu_character");
+    assert.equal(worn.height, 0.3, "attached pieces default to accessory size");
+    assert.throws(() => forge.place({ jobId: hoodDown.id, attach: { bone: "../../etc" } }), /bone must be/);
+
+    const moved = forge.updatePlacement(worn.id, { attach: { bone: "LeftHand", rotation: [0, 0, 99] } });
+    assert.equal(moved.attach?.bone, "LeftHand");
+    assert.equal(moved.attach?.rotation[2], Math.PI * 2, "rotations are clamped");
+    const dropped = forge.updatePlacement(worn.id, { attach: null, position: [1, -2.55, 2] });
+    assert.equal(dropped.attach, null);
+    assert.deepEqual(store.placements()[0].position, [1, -2.55, 2]);
+  } finally {
+    cleanup();
+    await fake.close();
+  }
+});

@@ -5,6 +5,10 @@
  *   tsx scripts/forge-character.ts status
  *   tsx scripts/forge-character.ts plan-base            plan the Phase D base job (spends nothing)
  *   tsx scripts/forge-character.ts plan-multiview       plan the multi-view base job (spends nothing)
+ *   tsx scripts/forge-character.ts plan-unhooded-views  plan Meshy multi-view images of the hood-down look (spends nothing)
+ *   tsx scripts/forge-character.ts adopt <jobId> <index> <refId> <view…>   a reviewed generated view becomes a (marked) reference
+ *   tsx scripts/forge-character.ts plan-unhooded-base <refId>...   plan the hood-down 3D base: ref11 front + adopted views
+ *   tsx scripts/forge-character.ts look <name|none>     switch which approved look the Cosmos shows
  *   tsx scripts/forge-character.ts approve <jobId>      submit it (spends credits)
  *   tsx scripts/forge-character.ts reject <jobId> [reason]  decline a planned job; its record is kept
  *   tsx scripts/forge-character.ts watch <jobId>        follow to completion, download, inspect
@@ -72,6 +76,25 @@ const MULTIVIEW_REQUEST = {
   image_enhancement: false,
   target_formats: ["glb", "fbx"],
   multi_view_thumbnails: true,
+};
+
+/**
+ * Hood-down views. The only full-length hood-down image is ref11 (front);
+ * ref09 shows the hood-down back to the thigh and ref18 the hood-down head
+ * in profile, ref10 is the face. Meshy's image-to-image turns these into
+ * consistent full-body views (usually three) to review before any 3D
+ * spend; the 3D job then uses the REAL ref11 as its front.
+ */
+const UNHOODED_VIEWS_REQUEST = {
+  ai_model: "nano-banana-pro",
+  prompt:
+    "Character turnaround of exactly this woman for 3D modelling, full body from head to platform boots, hood DOWN, " +
+    "standing in a relaxed A-pose with arms angled away from the body, plain dark grey background, even studio light. " +
+    "Keep everything exactly as in the first image: face, long black corkscrew curls with pink highlights, hair chains, roses " +
+    "and crystals, rose-quartz pendant, copper wire cage on both arms, camo crop top, rose-camo cargo pants with straps and " +
+    "copper hardware, platform boots. The second image shows her back and the third her head in profile; the fourth is her face.",
+  reference_image_urls: ["ref:ref11_front_apose_B", "ref:ref09_back_upper_body", "ref:ref18_head_profile_a_unhooded", "ref:ref10_face_primary"],
+  generate_multi_view: true,
 };
 
 const store = new ForgeStore(process.env.FORGE_ASSET_ROOT ?? path.join(process.cwd(), "leluverse", "assets"));
@@ -154,6 +177,47 @@ async function main(): Promise<void> {
       console.log(reused ? "Existing job for this exact request (no new spend):" : "Planned:");
       show(job);
       if (job.status === "awaiting_approval") console.log(`\nApprove with: tsx scripts/forge-character.ts approve ${job.id}`);
+      return;
+    }
+    case "plan-unhooded-views": {
+      const { job, reused } = await forge.request({
+        character: CHARACTER,
+        kind: "image-to-image",
+        purpose: "Hood-down full-body views (multi-view) from ref11 + ref09 + ref18 + ref10, for review before 3D",
+        body: UNHOODED_VIEWS_REQUEST,
+        approve,
+      });
+      console.log(reused ? "Existing job for this exact request (no new spend):" : "Planned:");
+      show(job);
+      if (job.status === "awaiting_approval") console.log(`\nApprove with: tsx scripts/forge-character.ts approve ${job.id}`);
+      return;
+    }
+    case "adopt": {
+      const [jobId, index, id, ...view] = process.argv.slice(3);
+      if (!jobId || index === undefined || !id || !view.length) throw new ForgeError("usage: adopt <jobId> <index> <refId> <view description>");
+      const record = forge.adoptView(jobId, Number(index), { id, view: view.join(" "), outfitVariant: "B-wire-cage-hood" });
+      console.log(`adopted ${record.id} (generated from ${jobId} #${index}) sha256 ${record.metrics.sha256.slice(0, 16)}`);
+      return;
+    }
+    case "plan-unhooded-base": {
+      const views = process.argv.slice(3).filter((a) => !a.startsWith("--"));
+      if (views.length < 1 || views.length > 3) throw new ForgeError("Give 1–3 adopted view reference ids; ref11 is always the front.");
+      const { job, reused } = await forge.request({
+        character: CHARACTER,
+        kind: "multi-image-to-3d",
+        purpose: `Hood-down base character (ref11 front + ${views.join(" + ")})`,
+        body: { ...MULTIVIEW_REQUEST, image_urls: ["ref:ref11_front_apose_B", ...views.map((v) => `ref:${v}`)] },
+        approve,
+      });
+      console.log(reused ? "Existing job for this exact request (no new spend):" : "Planned:");
+      show(job);
+      return;
+    }
+    case "look": {
+      const name = process.argv[3];
+      if (!name) throw new ForgeError("usage: look <name|none>");
+      const manifest = forge.setLook(CHARACTER, name === "none" ? null : name);
+      console.log(`showing ${manifest.currentLook ?? "base rig"}; looks: ${Object.keys(manifest.active).filter((k) => k.startsWith("look:")).join(", ") || "none"}`);
       return;
     }
     case "approve":

@@ -78,5 +78,36 @@
     "finishedAt": null,
     "output": null,
     "validation": null
+  },
+  {
+    "id": "fj_mvvcraoh_e2479b",
+    "character": "lelu_character",
+    "kind": "image-to-image",
+    "purpose": "Hood-down full-body views (multi-view) from ref11 + ref09 + ref18 + ref10, for review before 3D",
+    "request": {
+      "ai_model": "nano-banana-pro",
+      "prompt": "Character turnaround of exactly this woman for 3D modelling, full body from head to platform boots, hood DOWN, standing in a relaxed A-pose with arms angled away from the body, plain dark grey background, even studio light. Keep everything exactly as in the first image: face, long black corkscrew curls with pink highlights, hair chains, roses and crystals, rose-quartz pendant, copper wire cage on both arms, camo crop top, rose-camo cargo pants with straps and copper hardware, platform boots. The second image shows her back and the third her head in profile; the fourth is her face.",
+      "reference_image_urls": [
+        "ref:ref11_front_apose_B",
+        "ref:ref09_back_upper_body",
+        "ref:ref18_head_profile_a_unhooded",
+        "ref:ref10_face_primary"
+      ],
+      "generate_multi_view": true
+    },
+    "requestKey": "442f7b7a122406f7a2f618d9995d61461e4d0b58793abcfd40e3de5dca07b004",
+    "estimatedCredits": 9,
+    "status": "awaiting_approval",
+    "meshyTaskId": null,
+    "progress": 0,
+    "consumedCredits": null,
+    "error": null,
+    "identityLock": "c90e0e46f7d2cb053aa6de43ba524c6eb13bf1a392b0b687ccce775a9e8336e9",
+    "createdAt": 1793387742929,
+    "updatedAt": 1793387742929,
+    "submittedAt": null,
+    "finishedAt": null,
+    "output": null,
+    "validation": null
   }
 ]

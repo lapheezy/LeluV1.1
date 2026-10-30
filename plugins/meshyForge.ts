@@ -29,7 +29,10 @@
  */
 
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import {
+  IMAGE_KINDS,
   MESHY_KINDS,
   canonicalRequest,
   estimateCredits,
@@ -40,14 +43,15 @@ import {
   type MeshyTaskStatus,
 } from "../src/core/forge/MeshyCatalog.ts";
 import { inspectGlb } from "../src/core/forge/GlbInspector.ts";
-import { ForgeStore, isTerminal, type CharacterSlot, type CosmosPlacement, type ForgeJob, type ForgeOutputFile } from "./forgeStore.ts";
+import { buildRecords } from "./forgeReferences.ts";
+import { ForgeStore, isTerminal, type CharacterSlot, type CosmosPlacement, type PlacementAttachment, type ForgeJob, type ForgeOutputFile } from "./forgeStore.ts";
 
 export type EnvReader = (name: string) => string | undefined;
 
 const KEY_NAMES = ["MESHY_API_KEY", "MESHY_API", "MESSY_API", "VITE_MESHY_API_KEY"];
 const LOOSE_KEY_NAME = /^(messy|meshy)[ _-]?api([ _-]?key)?$/i;
 const DEFAULT_BASE = "https://api.meshy.ai";
-const IDENTITY_BOUND: ReadonlySet<ForgeJobKind> = new Set(["image-to-3d", "multi-image-to-3d", "retexture"]);
+const IDENTITY_BOUND: ReadonlySet<ForgeJobKind> = new Set(["image-to-3d", "multi-image-to-3d", "retexture", "image-to-image"]);
 
 export interface ForgeOptions {
   store: ForgeStore;
@@ -88,6 +92,7 @@ interface MeshyTask {
   thumbnail_url?: string;
   thumbnail_urls?: Record<string, string | undefined>;
   alpha_thumbnail_url?: string;
+  image_urls?: string[];
   texture_urls?: Array<Record<string, string | undefined>>;
   result?: Record<string, unknown> | null;
 }
@@ -379,6 +384,8 @@ export class MeshyForge {
       for (const [key, url] of Object.entries(basic)) {
         if (key.endsWith("_glb_url")) add(key.includes("armature") ? "armature" : "animation", key.replace(/_url$/, ""), url, ".glb");
       }
+    } else if (IMAGE_KINDS.has(kind)) {
+      for (const [i, url] of (task.image_urls ?? []).entries()) add(i === 0 ? "image" : `image:${i}`, `image_${i}`, url, ".png");
     } else if (kind === "animation") {
       const r = task.result ?? {};
       add("model", "animation", r.animation_glb_url, ".glb");
@@ -400,11 +407,12 @@ export class MeshyForge {
 
   private async collect(job: ForgeJob, task: MeshyTask): Promise<ForgeJob> {
     const outputs = this.outputsOf(job.kind, task);
-    if (!outputs.some((o) => o.role === "model")) {
-      job.error = "Task succeeded but returned no GLB.";
+    const images = IMAGE_KINDS.has(job.kind);
+    if (!outputs.some((o) => o.role === (images ? "image" : "model"))) {
+      job.error = images ? "Task succeeded but returned no images." : "Task succeeded but returned no GLB.";
       return this.store.saveJob(job);
     }
-    const area = job.kind === "rigging" ? "rig" : job.kind === "animation" ? "animations" : "meshes";
+    const area = images ? "concepts" : job.kind === "rigging" ? "rig" : job.kind === "animation" ? "animations" : "meshes";
     const dir = this.store.newVersionDir(job.character, area, `${job.kind}_${(job.meshyTaskId ?? job.id).slice(0, 8)}`);
     const files: ForgeOutputFile[] = [];
     let primary: Uint8Array | null = null;
@@ -516,8 +524,57 @@ export class MeshyForge {
     if (slot === "base" && !v.meshValid) reasons.push("Mesh did not validate.");
     if (slot === "rig" && !v.rigValid) reasons.push("Rig did not validate (bones, weights or bind matrices).");
     if (slot.startsWith("animation:") && !v.animated) reasons.push("No clip that drives joints.");
+    if (slot.startsWith("look:") && !v.meshValid) reasons.push("Mesh did not validate.");
+    if (slot.startsWith("look:") && !/^look:[a-z0-9_-]{1,40}$/.test(slot)) reasons.push("Look names are lowercase letters, digits, _ or -.");
     if (reasons.length) throw new ForgeError(`Job ${jobId} is not fit for slot ${slot}.`, 422, reasons);
     return this.store.setActive(character, slot, jobId);
+  }
+
+  /* --------------------------- generated views -------------------------- */
+
+  /**
+   * Make one image from a finished image job a reference, so a reviewed,
+   * generated view can feed a later 3D job by `ref:<id>` beside the real
+   * originals. It is stored like any reference (hashed, never overwritten)
+   * but marked `generatedFrom`, and the identity lock refuses it.
+   */
+  adoptView(jobId: string, index: number, classification: { id: string; view: string; outfitVariant?: string; intendedUse?: string; notes?: string }) {
+    const job = this.store.job(jobId);
+    if (!job || !IMAGE_KINDS.has(job.kind) || job.status !== "SUCCEEDED" || !job.output) {
+      throw new ForgeError(`Job ${jobId} is not a finished image job.`, 409);
+    }
+    if (!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(classification.id)) throw new ForgeError("id must be lowercase letters, digits, _ or -.");
+    const role = index === 0 ? "image" : `image:${index}`;
+    const file = job.output.files.find((f) => f.role === role);
+    if (!file) throw new ForgeError(`Job ${jobId} has no image ${index}.`, 404);
+    const bytes = readFileSync(this.store.safeAssetPath(file.file)!);
+    const existing = this.store.references(job.character);
+    const [record] = buildRecords(
+      [
+        {
+          classification: {
+            id: classification.id,
+            sourceName: path.basename(file.file),
+            category: "body",
+            view: classification.view,
+            outfitVariant: classification.outfitVariant ?? "unspecified",
+            intendedUse: classification.intendedUse ?? "Generated view adopted after review.",
+            uses: ["geometry", "texture"],
+            notes: classification.notes,
+            generatedFrom: { jobId, meshyTaskId: job.meshyTaskId, index },
+          },
+          file: "",
+          bytes: new Uint8Array(bytes),
+        },
+      ],
+      existing,
+    );
+    if (record.duplicateOf) return existing.find((r) => r.id === record.duplicateOf)!;
+    if (existing.some((r) => r.id === record.id)) throw new ForgeError(`Reference id "${record.id}" is taken.`, 409);
+    record.file = this.store.relative(this.store.storeReferenceFile(job.character, record.id, path.extname(file.file) || ".png", bytes));
+    this.store.saveReferences(job.character, [...existing, record]);
+    this.store.logEvent(job.character, { type: "reference_adopted", id: record.id, fromJob: jobId, index, sha256: record.metrics.sha256 });
+    return record;
   }
 
   /* ------------------------------ cosmos ------------------------------ */
@@ -527,7 +584,44 @@ export class MeshyForge {
    * the inspector passed can be placed; the placement points at that
    * version's file, so later generations never change what is standing there.
    */
-  place(input: { jobId: string; label?: string; position?: unknown; rotationY?: unknown; height?: unknown }): CosmosPlacement {
+  private attachment(value: unknown): PlacementAttachment | null {
+    if (!value || typeof value !== "object") return null;
+    const a = value as Record<string, unknown>;
+    const character = String(a.character ?? "lelu_character");
+    const bone = String(a.bone ?? "").trim();
+    if (!/^[A-Za-z0-9_.:-]{1,64}$/.test(bone)) throw new ForgeError("attach.bone must be a bone name such as Head, Spine02 or LeftHand.");
+    const vec = (v: unknown, limit: number): [number, number, number] => {
+      const arr = Array.isArray(v) ? v : [];
+      return [0, 1, 2].map((i) => (typeof arr[i] === "number" && Number.isFinite(arr[i]) ? Math.max(-limit, Math.min(limit, arr[i] as number)) : 0)) as [number, number, number];
+    };
+    this.store.characterDir(character);
+    return { character, bone, offset: vec(a.offset, 5), rotation: vec(a.rotation, Math.PI * 2) };
+  }
+
+  /** Move, re-size, re-label, attach to a bone, or detach (attach: null) an existing placement. */
+  updatePlacement(placementId: string, patch: Record<string, unknown>): CosmosPlacement {
+    const placements = this.store.placements();
+    const index = placements.findIndex((p) => p.id === placementId);
+    if (index === -1) throw new ForgeError(`No placement ${placementId}.`, 404);
+    const current = placements[index];
+    const num = (v: unknown, fallback: number, min: number, max: number) =>
+      typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : fallback;
+    const p = Array.isArray(patch.position) ? patch.position : [];
+    const next: CosmosPlacement = {
+      ...current,
+      label: typeof patch.label === "string" && patch.label.trim() ? patch.label.trim().slice(0, 80) : current.label,
+      position: [num(p[0], current.position[0], -40, 40), num(p[1], current.position[1], -20, 20), num(p[2], current.position[2], -40, 40)],
+      rotationY: num(patch.rotationY, current.rotationY, -Math.PI * 2, Math.PI * 2),
+      height: num(patch.height, current.height, 0.01, 20),
+      attach: "attach" in patch ? this.attachment(patch.attach) : (current.attach ?? null),
+    };
+    placements[index] = next;
+    this.store.savePlacements(placements);
+    this.store.logEvent(current.character, { type: "cosmos_updated", placementId, attach: next.attach ?? null });
+    return next;
+  }
+
+  place(input: { jobId: string; label?: string; position?: unknown; rotationY?: unknown; height?: unknown; attach?: unknown }): CosmosPlacement {
     const job = this.store.job(input.jobId);
     if (!job) throw new ForgeError(`No job ${input.jobId}.`, 404);
     const model = job.output?.files.find((f) => f.role === "model");
@@ -549,7 +643,8 @@ export class MeshyForge {
       file: model.file,
       position: [num(p[0], side * (2.2 + 1.6 * Math.floor(n / 2)), -40, 40), num(p[1], -2.55, -20, 20), num(p[2], 2.6, -40, 40)],
       rotationY: num(input.rotationY, 0, -Math.PI * 2, Math.PI * 2),
-      height: num(input.height, 2, 0.05, 20),
+      height: num(input.height, input.attach ? 0.3 : 2, 0.01, 20),
+      attach: this.attachment(input.attach),
       createdAt: Date.now(),
     };
     this.store.savePlacements([...placements, placement]);
@@ -598,6 +693,21 @@ export class MeshyForge {
     for (const [slot, jobId] of Object.entries(manifest.active)) {
       if (slot.startsWith("animation:")) animations[slot.slice("animation:".length)] = fileFor(jobId);
     }
-    return { character, model: fileFor(manifest.active.rig) ?? fileFor(manifest.active.base), base: fileFor(manifest.active.base), rig: fileFor(manifest.active.rig), animations };
+    const looks: Record<string, ReturnType<typeof fileFor>> = {};
+    for (const [slot, jobId] of Object.entries(manifest.active)) {
+      if (slot.startsWith("look:")) looks[slot.slice("look:".length)] = fileFor(jobId);
+    }
+    const currentLook = manifest.currentLook && looks[manifest.currentLook] ? manifest.currentLook : null;
+    const model = (currentLook ? looks[currentLook] : null) ?? fileFor(manifest.active.rig) ?? fileFor(manifest.active.base);
+    return { character, model, base: fileFor(manifest.active.base), rig: fileFor(manifest.active.rig), animations, looks, currentLook };
+  }
+
+  /** Switch what the Cosmos shows (e.g. hood up / hood down). null returns to the rig/base. */
+  setLook(character: string, look: string | null) {
+    try {
+      return this.store.setCurrentLook(character, look);
+    } catch (error) {
+      throw new ForgeError(error instanceof Error ? error.message : String(error), 404);
+    }
   }
 }

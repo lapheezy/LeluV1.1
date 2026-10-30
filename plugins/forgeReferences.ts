@@ -44,6 +44,8 @@ export interface ReferenceClassification {
   intendedUse: string;
   uses: ReferenceUse[];
   notes?: string;
+  /** Set when the image was generated (e.g. a Meshy multi-view) rather than supplied. Never an identity reference. */
+  generatedFrom?: { jobId: string; meshyTaskId: string | null; index: number };
 }
 
 export interface ImageMetrics {

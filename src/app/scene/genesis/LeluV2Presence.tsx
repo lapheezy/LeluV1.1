@@ -766,6 +766,7 @@ export default function LeluV2Presence({ position }: { position?: THREE.Vector3 
   // without a Forge server (static hosting) the request fails and nothing changes.
   // Reloads when a slot is promoted, so a newly approved version appears without a refresh.
   const [forgeModel, setForgeModel] = useState<{ key: string; glb: ArrayBuffer; clips: ArrayBuffer[] } | null>(null);
+  const forgeKey = useRef<string | null>(null);
   useEffect(() => {
     let alive = true;
     const load = async () => {
@@ -774,9 +775,11 @@ export default function LeluV2Presence({ position }: { position?: THREE.Vector3 
         if (!active.model) return;
         const clipFiles = Object.values(active.animations).flatMap((a) => (a ? [a.file] : []));
         const key = [active.model.file, ...clipFiles].join("|");
+        if (forgeKey.current === key) return; // a placement changed, not her model
+        forgeKey.current = key;
         const glb = await ForgeClient.assetBytes(active.model.file);
         const clips = await Promise.all(clipFiles.map((file) => ForgeClient.assetBytes(file)));
-        if (alive) setForgeModel((current) => (current?.key === key ? current : { key, glb, clips }));
+        if (alive) setForgeModel({ key, glb, clips });
       } catch (error) {
         console.info("[Lélu Presence] no Forge character available", error instanceof Error ? error.message : error);
       }

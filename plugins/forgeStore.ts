@@ -89,14 +89,30 @@ export interface CosmosPlacement {
   rotationY: number;
   /** Height in world units the model is fitted to. */
   height: number;
+  /**
+   * Worn or held instead of standing in the world: follows this bone of
+   * the character's rendered rig every frame, so it moves with her.
+   * position/rotationY are ignored while attached.
+   */
+  attach?: PlacementAttachment | null;
   createdAt: number;
 }
 
-export type CharacterSlot = "base" | "rig" | `animation:${string}`;
+export interface PlacementAttachment {
+  character: string;
+  /** Bone name, matched case-insensitively and ignoring rig prefixes (e.g. "Head", "Spine02", "LeftHand"). */
+  bone: string;
+  offset: [number, number, number];
+  rotation: [number, number, number];
+}
+
+export type CharacterSlot = "base" | "rig" | `animation:${string}` | `look:${string}`;
 
 export interface CharacterManifest {
   character: string;
   active: Record<string, string>;
+  /** Which look:<name> slot the Cosmos shows; null shows the rig/base. */
+  currentLook?: string | null;
   history: Array<{ slot: string; jobId: string | null; replacedBy: string; at: number }>;
 }
 
@@ -138,6 +154,7 @@ const SUBDIRS = [
   "rig",
   "animations",
   "previews",
+  "concepts",
   "manifests",
   "generation_logs",
 ];
@@ -302,6 +319,7 @@ export class ForgeStore {
     const refs = [spec.primary, ...spec.secondary].map((id) => {
       const record = records.find((r) => r.id === id);
       if (!record) throw new Error(`Identity reference "${id}" has not been ingested.`);
+      if (record.generatedFrom) throw new Error(`"${id}" is a generated image; identity references must be supplied originals.`);
       return { id, file: record.file, sha256: record.metrics.sha256 };
     });
     const lockHash = sha256(JSON.stringify({ refs, preserve: spec.preserve }));
@@ -332,7 +350,7 @@ export class ForgeStore {
   /* ------------------------------ outputs ----------------------------- */
 
   /** A fresh, exclusively-created version folder: vNNN_<label>. */
-  newVersionDir(character: string, area: "meshes" | "rig" | "animations" | "textures", label: string): string {
+  newVersionDir(character: string, area: "meshes" | "rig" | "animations" | "textures" | "concepts", label: string): string {
     const dir = path.join(this.characterDir(character), area);
     const taken = readdirSync(dir).map((n) => /^v(\d{3})_/.exec(n)?.[1]).filter(Boolean).map(Number);
     let next = (taken.length ? Math.max(...taken) : 0) + 1;
@@ -382,6 +400,15 @@ export class ForgeStore {
 
   manifest(character: string): CharacterManifest {
     return readJson<CharacterManifest>(this.manifestFile(character), { character, active: {}, history: [] });
+  }
+
+  setCurrentLook(character: string, look: string | null): CharacterManifest {
+    const manifest = this.manifest(character);
+    if (look !== null && !manifest.active[`look:${look}`]) throw new Error(`No approved look "${look}" for ${character}.`);
+    manifest.currentLook = look;
+    writeJsonAtomic(this.manifestFile(character), manifest);
+    this.logEvent(character, { type: "look_changed", look });
+    return manifest;
   }
 
   /** Point a slot at a finished job. The previous holder is kept in history, never deleted. */

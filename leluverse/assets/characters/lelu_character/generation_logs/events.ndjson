@@ -16,3 +16,10 @@
 {"at":"2026-10-30T16:34:41.428Z","type":"job_planned","jobId":"fj_mvv707tg_17e118","kind":"image-to-3d","estimatedCredits":30,"parentJobId":null}
 {"at":"2026-10-30T18:59:00.525Z","type":"job_rejected","jobId":"fj_mvv707tg_17e118","reason":"superseded by the multi-view (multi-image-to-3d) base job; never submitted to Meshy, so no task to cancel"}
 {"at":"2026-10-30T18:59:01.019Z","type":"job_planned","jobId":"fj_mvvc5tlm_2b9ef0","kind":"multi-image-to-3d","estimatedCredits":30,"parentJobId":null}
+{"at":"2026-10-30T19:04:58.214Z","type":"reference_ingested","id":"ref15_head_turnaround_sheet","sha256":"a2d06edaa67c04c6985c43ef233fad8231aee34f889fdcd4a5a0f33df2966fe4","nearDuplicateOf":null}
+{"at":"2026-10-30T19:04:58.219Z","type":"reference_ingested","id":"ref16_shoulder_armor_detail","sha256":"3fa8f3bf833b5e5950a8c69a40ac8ff52c58d124f9d2875e51b07bd091f471a3","nearDuplicateOf":null}
+{"at":"2026-10-30T19:04:58.220Z","type":"reference_ingested","id":"ref17_head_front_unhooded","sha256":"553e2be37f15267a23e2a13ab1753c5a479e73b83a31f4bd68c6fa6da24183a2","nearDuplicateOf":null}
+{"at":"2026-10-30T19:04:58.221Z","type":"reference_ingested","id":"ref18_head_profile_a_unhooded","sha256":"2634a5214a92a3ef81130a134f120b8831798f9a055ca1afe9a623db8c49023a","nearDuplicateOf":null}
+{"at":"2026-10-30T19:04:58.222Z","type":"reference_ingested","id":"ref19_head_back_unhooded","sha256":"0505e3cf42e68a8aeff4be51b55bdc906dbbe4704d2c2261803c5af4722993b1","nearDuplicateOf":null}
+{"at":"2026-10-30T19:04:58.224Z","type":"reference_ingested","id":"ref20_head_profile_b_unhooded","sha256":"a29484f8ab1a57a7b1576b47e66c7974498814bbd0f31aac0c1048cdec08dc50","nearDuplicateOf":null}
+{"at":"2026-10-30T19:15:42.930Z","type":"job_planned","jobId":"fj_mvvcraoh_e2479b","kind":"image-to-image","estimatedCredits":9,"parentJobId":null}

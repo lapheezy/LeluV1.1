@@ -26,7 +26,7 @@
 
 import ToolRegistry, { type ToolDefinition } from "../tools/ToolRegistry";
 import type { ToolExecutionResult } from "../tools/ToolDispatcher";
-import ForgeClient, { type ForgeJobView } from "./ForgeClient";
+import ForgeClient, { type CosmosPlacement, type ForgeJobView } from "./ForgeClient";
 import { estimateCredits, isForgeJobKind, validateRequest } from "./MeshyCatalog";
 
 interface ForgeExecutor {
@@ -61,7 +61,7 @@ export const FORGE_TOOLS: ToolDefinition[] = [
     id: "forge.plan",
     name: "Plan 3D Generation",
     description:
-      "File a Meshy job (image-to-3d, multi-image-to-3d, text-to-3d, remesh, retexture, rigging, animation) with its credit estimate. Spends nothing; identical requests return the existing job",
+      "File a Meshy job (image-to-3d, multi-image-to-3d, text-to-3d, remesh, retexture, rigging, animation, image-to-image) with its credit estimate. Spends nothing; identical requests return the existing job",
     category: "3D Forge",
     permissions: ["WRITE"],
     riskLevel: 1,
@@ -105,13 +105,24 @@ export const FORGE_TOOLS: ToolDefinition[] = [
     id: "forge.place",
     name: "Place 3D Asset in Cosmos",
     description:
-      "Put a finished 3D asset into LÉLU's Cosmos at a position, rotation and height (it persists across sessions), or remove a placement. Never spends credits and never deletes the asset",
+      "Put a finished 3D asset into LÉLU's Cosmos at a position, rotation and height, or attach it to a bone of her rig (Head, Neck, Spine02, LeftHand…) so it moves with her; move, re-attach, detach or remove existing placements. Persists across sessions, never spends credits, never deletes the asset",
     category: "3D Forge",
     permissions: ["WRITE"],
     riskLevel: 1,
     available: true,
-    inputSchema: { jobId: "string", label: "string", position: "number[3]", rotationY: "number", height: "number", removePlacementId: "string" },
+    inputSchema: { jobId: "string", label: "string", position: "number[3]", rotationY: "number", height: "number", attach: "object", updatePlacementId: "string", removePlacementId: "string" },
     executionRoute: "POST /api/forge/placements",
+  },
+  {
+    id: "forge.look",
+    name: "Change LÉLU's Look",
+    description: "Switch which approved look of a character the Cosmos shows (e.g. hood_up / hood_down); empty look returns to the base rig",
+    category: "3D Forge",
+    permissions: ["WRITE"],
+    riskLevel: 1,
+    available: true,
+    inputSchema: { character: "string", look: "string" },
+    executionRoute: "POST /api/forge/characters/<c>/look",
   },
 ];
 
@@ -146,7 +157,8 @@ export const FORGE_EXECUTORS: ForgeExecutor[] = [
           `3D Forge ${status.configured ? `configured (credential ${status.credential})` : "NOT configured: MESHY_API_KEY is missing on the server"}. ` +
           `${status.usage.jobs} job(s), ${status.usage.consumedCredits} credit(s) consumed. ` +
           `${character}: model ${active.model ? `${active.model.kind} job ${active.model.jobId}` : "none approved yet"}; ` +
-          `animations ${Object.keys(active.animations).join(", ") || "none"}.`,
+          `animations ${Object.keys(active.animations).join(", ") || "none"}; ` +
+          `looks ${Object.keys(active.looks ?? {}).join(", ") || "none"}${active.currentLook ? ` (showing ${active.currentLook})` : ""}.`,
         data: { status, active },
       };
     },
@@ -167,7 +179,7 @@ export const FORGE_EXECUTORS: ForgeExecutor[] = [
           type: "string",
           description: "Collection id (lowercase): lelu_character for LÉLU herself, another id for a new character, or e.g. cosmos_props for objects and environments.",
         },
-        kind: { type: "string", enum: ["image-to-3d", "multi-image-to-3d", "text-to-3d", "remesh", "retexture", "rigging", "animation"] },
+        kind: { type: "string", enum: ["image-to-3d", "multi-image-to-3d", "text-to-3d", "remesh", "retexture", "rigging", "animation", "image-to-image"] },
         body: { type: "object", description: "Meshy request parameters. Stored references are named as \"ref:<id>\"." },
         purpose: { type: "string" },
       },
@@ -239,6 +251,11 @@ export const FORGE_EXECUTORS: ForgeExecutor[] = [
         position: { type: "array", items: { type: "number" }, description: "[x, y, z]; omit to use the next free spot near the core." },
         rotationY: { type: "number", description: "Radians." },
         height: { type: "number", description: "World units the model is fitted to; LÉLU stands 2.56 tall on the floor at y −2.55." },
+        attach: {
+          type: "object",
+          description: "Wear or hold it: { bone, offset?: [x,y,z], rotation?: [x,y,z], character? }. Follows that bone every frame. null detaches (with updatePlacementId).",
+        },
+        updatePlacementId: { type: "string", description: "Change this existing placement instead of creating one." },
         removePlacementId: { type: "string", description: "Instead of placing, remove this placement (the asset is kept)." },
       },
       [],
@@ -250,7 +267,26 @@ export const FORGE_EXECUTORS: ForgeExecutor[] = [
         return { ok: true, content: `Removed ${placement.label} from the Cosmos. The asset is still in the library (job ${placement.jobId}).` };
       }
       const position = Array.isArray(args.position) && args.position.length === 3 ? (args.position as [number, number, number]) : undefined;
+      const attach = args.attach && typeof args.attach === "object" ? (args.attach as CosmosPlacement["attach"]) : args.attach === null ? null : undefined;
+      const update = str(args, "updatePlacementId");
+      if (update) {
+        const patch: Parameters<typeof ForgeClient.updatePlacement>[1] = {};
+        if (position) patch.position = position;
+        if (typeof args.rotationY === "number") patch.rotationY = args.rotationY;
+        if (typeof args.height === "number") patch.height = args.height;
+        if (str(args, "label")) patch.label = str(args, "label");
+        if (attach !== undefined) patch.attach = attach;
+        const { placement } = await ForgeClient.updatePlacement(update, patch);
+        return {
+          ok: true,
+          content: placement.attach
+            ? `${placement.label} now follows ${placement.attach.character}'s ${placement.attach.bone} bone.`
+            : `${placement.label} now stands at [${placement.position.map((n) => n.toFixed(1)).join(", ")}].`,
+          data: placement,
+        };
+      }
       const { placement } = await ForgeClient.place({
+        attach: attach ?? undefined,
         jobId: str(args, "jobId"),
         label: str(args, "label") || undefined,
         position,
@@ -259,9 +295,27 @@ export const FORGE_EXECUTORS: ForgeExecutor[] = [
       });
       return {
         ok: true,
-        content: `Placed ${placement.label} in the Cosmos at [${placement.position.map((n) => n.toFixed(1)).join(", ")}] as ${placement.id}.`,
+        content: placement.attach
+          ? `${placement.label} is attached to ${placement.attach.character}'s ${placement.attach.bone} bone as ${placement.id}; it moves with her.`
+          : `Placed ${placement.label} in the Cosmos at [${placement.position.map((n) => n.toFixed(1)).join(", ")}] as ${placement.id}.`,
         data: placement,
       };
+    },
+  },
+  {
+    id: "forge.look",
+    parameters: OBJECT(
+      {
+        character: { type: "string", description: "Default lelu_character." },
+        look: { type: "string", description: "An approved look name such as hood_up or hood_down; empty for the base rig." },
+      },
+      [],
+    ),
+    run: async (args) => {
+      const character = str(args, "character") || "lelu_character";
+      const look = str(args, "look") || null;
+      await ForgeClient.setLook(character, look);
+      return { ok: true, content: look ? `${character} is now shown with the ${look} look.` : `${character} is back to the base look.` };
     },
   },
 ];

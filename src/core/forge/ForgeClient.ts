@@ -45,6 +45,9 @@ export interface ActiveCharacter {
   character: string;
   model: ActiveModel | null;
   animations: Record<string, ActiveModel | null>;
+  /** Approved looks (e.g. hood_up, hood_down) and the one being shown. */
+  looks: Record<string, ActiveModel | null>;
+  currentLook: string | null;
   assetBase: string;
 }
 
@@ -57,6 +60,7 @@ export interface CosmosPlacement {
   position: [number, number, number];
   rotationY: number;
   height: number;
+  attach?: { character: string; bone: string; offset: [number, number, number]; rotation: [number, number, number] } | null;
   createdAt: number;
 }
 
@@ -135,7 +139,19 @@ export const ForgeClient = {
 
   placements: () => call<{ placements: CosmosPlacement[] }>("/placements"),
 
-  async place(input: { jobId: string; label?: string; position?: [number, number, number]; rotationY?: number; height?: number }) {
+  async setLook(character: string, look: string | null) {
+    const result = await call<{ manifest: unknown }>(`/characters/${encodeURIComponent(character)}/look`, { method: "POST", body: { look } });
+    announce();
+    return result;
+  },
+
+  async updatePlacement(placementId: string, patch: Partial<Pick<CosmosPlacement, "label" | "position" | "rotationY" | "height" | "attach">>) {
+    const result = await call<{ placement: CosmosPlacement }>(`/placements/${encodeURIComponent(placementId)}/update`, { method: "POST", body: patch });
+    announce();
+    return result;
+  },
+
+  async place(input: { jobId: string; label?: string; position?: [number, number, number]; rotationY?: number; height?: number; attach?: CosmosPlacement["attach"] }) {
     const result = await call<{ placement: CosmosPlacement }>("/placements", { method: "POST", body: input });
     announce();
     return result;

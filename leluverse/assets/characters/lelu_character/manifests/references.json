@@ -396,5 +396,182 @@
     "reconstructionSuitability": "primary",
     "duplicateOf": null,
     "nearDuplicateOf": "ref11_front_apose_B"
+  },
+  {
+    "id": "ref15_head_turnaround_sheet",
+    "sourceName": "head_turnaround_sheet.png",
+    "category": "hair",
+    "view": "head turnaround sheet: front, profile, back, profile + 7 detail crops",
+    "outfitVariant": "B-wire-cage-hood",
+    "intendedUse": "Unhooded head and hair from four angles plus hair, chain, hoop and forehead-jewel details.",
+    "uses": [
+      "texture",
+      "design"
+    ],
+    "notes": "Supplied 2026-10-30. Panels cropped into ref17-ref20; the sheet is kept whole.",
+    "file": "characters/lelu_character/references/ref15_head_turnaround_sheet.png",
+    "metrics": {
+      "format": "png",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 3680573,
+      "sha256": "a2d06edaa67c04c6985c43ef233fad8231aee34f889fdcd4a5a0f33df2966fe4",
+      "dhash": "694a6a596bb8f9ec",
+      "meanLuminance": 42.1,
+      "contrast": 43.7,
+      "sharpness": 2245.8
+    },
+    "quality": "high",
+    "reconstructionSuitability": "not-for-geometry",
+    "duplicateOf": null,
+    "nearDuplicateOf": null
+  },
+  {
+    "id": "ref16_shoulder_armor_detail",
+    "sourceName": "shoulder_armor.png",
+    "category": "accessories",
+    "view": "left shoulder and arm close-up",
+    "outfitVariant": "B-wire-cage-hood",
+    "intendedUse": "Shoulder pauldron with rose, crystal drops, strap and buckle construction, arm tattoos.",
+    "uses": [
+      "texture",
+      "design"
+    ],
+    "notes": "Supplied 2026-10-30.",
+    "file": "characters/lelu_character/references/ref16_shoulder_armor_detail.png",
+    "metrics": {
+      "format": "png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 3762705,
+      "sha256": "3fa8f3bf833b5e5950a8c69a40ac8ff52c58d124f9d2875e51b07bd091f471a3",
+      "dhash": "511d5d5438531233",
+      "meanLuminance": 46.5,
+      "contrast": 45.1,
+      "sharpness": 880.3
+    },
+    "quality": "high",
+    "reconstructionSuitability": "not-for-geometry",
+    "duplicateOf": null,
+    "nearDuplicateOf": null
+  },
+  {
+    "id": "ref17_head_front_unhooded",
+    "sourceName": "head_front.png",
+    "category": "identity",
+    "view": "head and shoulders, front, unhooded",
+    "outfitVariant": "B-wire-cage-hood",
+    "intendedUse": "Unhooded head front; cropped from ref15.",
+    "uses": [
+      "geometry",
+      "texture",
+      "design"
+    ],
+    "notes": "Crop of ref15 panel 1 (x 1-477, y 0-600).",
+    "file": "characters/lelu_character/references/ref17_head_front_unhooded.png",
+    "metrics": {
+      "format": "png",
+      "width": 476,
+      "height": 600,
+      "bytes": 531975,
+      "sha256": "553e2be37f15267a23e2a13ab1753c5a479e73b83a31f4bd68c6fa6da24183a2",
+      "dhash": "236d4d454d6d8f0f",
+      "meanLuminance": 45,
+      "contrast": 42.2,
+      "sharpness": 1870
+    },
+    "quality": "usable",
+    "reconstructionSuitability": "supporting",
+    "duplicateOf": null,
+    "nearDuplicateOf": null
+  },
+  {
+    "id": "ref18_head_profile_a_unhooded",
+    "sourceName": "head_right_profile.png",
+    "category": "hair",
+    "view": "head and shoulders, profile facing image-right, unhooded",
+    "outfitVariant": "B-wire-cage-hood",
+    "intendedUse": "Unhooded side of head, hair volume and hoop earring; cropped from ref15.",
+    "uses": [
+      "geometry",
+      "texture",
+      "design"
+    ],
+    "notes": "Crop of ref15 panel 2 (x 480-862).",
+    "file": "characters/lelu_character/references/ref18_head_profile_a_unhooded.png",
+    "metrics": {
+      "format": "png",
+      "width": 382,
+      "height": 600,
+      "bytes": 433765,
+      "sha256": "2634a5214a92a3ef81130a134f120b8831798f9a055ca1afe9a623db8c49023a",
+      "dhash": "5999a1a3a51b9998",
+      "meanLuminance": 41,
+      "contrast": 39.8,
+      "sharpness": 2027.1
+    },
+    "quality": "poor",
+    "reconstructionSuitability": "not-for-geometry",
+    "duplicateOf": null,
+    "nearDuplicateOf": null
+  },
+  {
+    "id": "ref19_head_back_unhooded",
+    "sourceName": "head_back.png",
+    "category": "hair",
+    "view": "head and upper back, rear, unhooded",
+    "outfitVariant": "B-wire-cage-hood",
+    "intendedUse": "Unhooded rear of head: centre part, curl volume, chain strands with roses and crystals; cropped from ref15.",
+    "uses": [
+      "geometry",
+      "texture",
+      "design"
+    ],
+    "notes": "Crop of ref15 panel 3 (x 865-1181).",
+    "file": "characters/lelu_character/references/ref19_head_back_unhooded.png",
+    "metrics": {
+      "format": "png",
+      "width": 316,
+      "height": 600,
+      "bytes": 356773,
+      "sha256": "0505e3cf42e68a8aeff4be51b55bdc906dbbe4704d2c2261803c5af4722993b1",
+      "dhash": "333339aaa8aa3b69",
+      "meanLuminance": 33,
+      "contrast": 33.2,
+      "sharpness": 2019.5
+    },
+    "quality": "poor",
+    "reconstructionSuitability": "not-for-geometry",
+    "duplicateOf": null,
+    "nearDuplicateOf": null
+  },
+  {
+    "id": "ref20_head_profile_b_unhooded",
+    "sourceName": "head_left_profile.png",
+    "category": "hair",
+    "view": "head and shoulders, profile facing image-right (second take, shoulder pauldron visible), unhooded",
+    "outfitVariant": "B-wire-cage-hood",
+    "intendedUse": "Second unhooded profile; cropped from ref15.",
+    "uses": [
+      "texture",
+      "design"
+    ],
+    "notes": "Crop of ref15 panel 4 (x 1184-1535). Same facing as ref18, so not a separate view for geometry.",
+    "file": "characters/lelu_character/references/ref20_head_profile_b_unhooded.png",
+    "metrics": {
+      "format": "png",
+      "width": 351,
+      "height": 600,
+      "bytes": 396892,
+      "sha256": "a29484f8ab1a57a7b1576b47e66c7974498814bbd0f31aac0c1048cdec08dc50",
+      "dhash": "4b4983cbcd1b1918",
+      "meanLuminance": 39.6,
+      "contrast": 39.1,
+      "sharpness": 1958.3
+    },
+    "quality": "poor",
+    "reconstructionSuitability": "not-for-geometry",
+    "duplicateOf": null,
+    "nearDuplicateOf": null
   }
 ]

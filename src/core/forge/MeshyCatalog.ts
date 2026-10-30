@@ -15,6 +15,10 @@
  *   retexture          POST /openapi/v1/retexture         10–15
  *   rigging            POST /openapi/v1/rigging           5 (humanoid only)
  *   animation          POST /openapi/v1/animations        3 per action, ≤10
+ *   image-to-image     POST /openapi/v1/image-to-image    3–12 by image model; returns
+ *                                                         images, not a mesh (with
+ *                                                         generate_multi_view: usually
+ *                                                         three views of the subject)
  *
  * Every create returns { result: <task id> }; every task is
  * read back with GET <create path>/<id> and moves through
@@ -34,7 +38,23 @@ export type ForgeJobKind =
   | "remesh"
   | "retexture"
   | "rigging"
-  | "animation";
+  | "animation"
+  | "image-to-image";
+
+/** Kinds whose output is images rather than a GLB. */
+export const IMAGE_KINDS: ReadonlySet<ForgeJobKind> = new Set(["image-to-image"]);
+
+/** Image models image-to-image accepts, with their published per-request price. */
+export const IMAGE_MODEL_CREDITS: Record<string, number> = {
+  "nano-banana": 3,
+  "nano-banana-2-lite": 3,
+  "nano-banana-2-1": 4,
+  "nano-banana-2": 6,
+  "nano-banana-pro": 9,
+  "gpt-image-2": 12,
+  "gpt-image-2-5-flare": 12,
+  "gpt-image-2-5-sunburst": 12,
+};
 
 export type MeshyTaskStatus = "PENDING" | "IN_PROGRESS" | "SUCCEEDED" | "FAILED" | "CANCELED";
 
@@ -126,6 +146,10 @@ export const MESHY_KINDS: Record<ForgeJobKind, KindSpec> = {
     path: "/openapi/v1/animations",
     fields: new Set(["rig_task_id", "action_id", "action_ids", "motion_task_id", "post_process"]),
   },
+  "image-to-image": {
+    path: "/openapi/v1/image-to-image",
+    fields: new Set(["ai_model", "prompt", "reference_image_urls", "input_task_id", "generate_multi_view", "aspect_ratio", "remove_background"]),
+  },
 };
 
 export function isForgeJobKind(value: unknown): value is ForgeJobKind {
@@ -185,6 +209,13 @@ export function validateRequest(kind: ForgeJobKind, body: Record<string, unknown
     if (body.mode === "preview" && !has("prompt")) problems.push("text-to-3d preview needs prompt.");
     if (body.mode === "refine" && !has("preview_task_id")) problems.push("text-to-3d refine needs preview_task_id.");
   }
+  if (kind === "image-to-image") {
+    if (!(String(body.ai_model ?? "") in IMAGE_MODEL_CREDITS)) problems.push(`image-to-image ai_model must be one of ${Object.keys(IMAGE_MODEL_CREDITS).join(", ")}.`);
+    if (!has("prompt")) problems.push("image-to-image needs a prompt.");
+    const refs = body.reference_image_urls;
+    if (!has("input_task_id") && (!Array.isArray(refs) || refs.length < 1 || refs.length > 5)) problems.push("image-to-image needs 1–5 reference_image_urls.");
+    if (body.generate_multi_view === true && has("aspect_ratio")) problems.push("generate_multi_view cannot be combined with aspect_ratio.");
+  }
   if (body.enable_pbr === true && body.should_texture === false) problems.push("enable_pbr needs should_texture: true.");
   const polycount = body.target_polycount;
   if (polycount !== undefined && (typeof polycount !== "number" || polycount < 100 || polycount > 300_000)) {
@@ -234,6 +265,8 @@ export function estimateCredits(kind: ForgeJobKind, body: Record<string, unknown
       const ids = body.action_ids;
       return 3 * (Array.isArray(ids) ? ids.length : 1);
     }
+    case "image-to-image":
+      return IMAGE_MODEL_CREDITS[model] ?? 12;
   }
 }
 

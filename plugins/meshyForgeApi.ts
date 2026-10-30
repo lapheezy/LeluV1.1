@@ -20,7 +20,10 @@
  *   GET  /api/forge/library                 every finished, inspected asset
  *   GET  /api/forge/placements              assets placed in the Cosmos
  *   POST /api/forge/placements              { jobId, label?, position?, rotationY?, height? }
+ *   POST /api/forge/placements/<id>/update  move / resize / attach to a bone / detach
  *   POST /api/forge/placements/<id>/remove  take it out of the Cosmos (asset is kept)
+ *   POST /api/forge/characters/<c>/look     { look } — switch look (null = rig/base)
+ *   POST /api/forge/jobs/<id>/adopt         { index, id, view, … } — a reviewed generated view becomes a reference
  *   GET  /api/forge/assets/<path>           a stored output (GLB, texture, preview)
  *
  * Writes refuse cross-origin callers: these routes spend
@@ -185,6 +188,10 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
           sendJson(res, { ok: true, placement: forge.place({ ...body, jobId: String(body.jobId ?? "") }) }, 201);
           return;
         }
+        if (method === "POST" && parts[2] === "update") {
+          sendJson(res, { ok: true, placement: forge.updatePlacement(parts[1], await jsonBody(req)) });
+          return;
+        }
         if (method === "POST" && parts[2] === "remove") {
           sendJson(res, { ok: true, placement: forge.unplace(parts[1]) });
           return;
@@ -214,6 +221,12 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
         }
         if (method === "POST" && parts[2] === "references") {
           sendJson(res, { ok: true, reference: ingestUpload(forge.store, character, await jsonBody(req)) }, 201);
+          return;
+        }
+        if (method === "POST" && parts[2] === "look") {
+          const body = await jsonBody(req);
+          const manifest = forge.setLook(character, typeof body.look === "string" && body.look ? body.look : null);
+          sendJson(res, { ok: true, manifest });
           return;
         }
         if (method === "POST" && parts[2] === "slots") {
@@ -254,6 +267,18 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
         if (id && parts[2] === "approve" && method === "POST") {
           const body = await jsonBody(req);
           sendJson(res, { ok: true, job: publicJob(await forge.approve(id, { resubmitUncertain: body.resubmitUncertain === true })) });
+          return;
+        }
+        if (id && parts[2] === "adopt" && method === "POST") {
+          const body = await jsonBody(req);
+          const reference = forge.adoptView(id, Number(body.index ?? 0), {
+            id: String(body.id ?? ""),
+            view: String(body.view ?? "unspecified"),
+            outfitVariant: typeof body.outfitVariant === "string" ? body.outfitVariant : undefined,
+            intendedUse: typeof body.intendedUse === "string" ? body.intendedUse : undefined,
+            notes: typeof body.notes === "string" ? body.notes : undefined,
+          });
+          sendJson(res, { ok: true, reference }, 201);
           return;
         }
         if (id && parts[2] === "reject" && method === "POST") {
