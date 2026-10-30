@@ -76,17 +76,21 @@ await page.evaluate(async () => {
   Bus.getInstance().dispatch({ type: "open_panel", target: "chat", reason: "self-improvement run", initiatedBy: "user" });
 });
 await page.waitForSelector("[data-lelu-composer] textarea", { state: "visible", timeout: 20000 });
+const pageNow = () => page.evaluate(() => Date.now());
+let sentAt = await pageNow();
 await page.fill("[data-lelu-composer] textarea", REQUEST);
 await page.keyboard.press("Enter");
 const started = Date.now();
 console.log(`[${new Date().toISOString()}] request sent; recording to ${OUT}`);
 
 /** Wait for the turn started by `message` to end; returns its end event or null. */
-async function waitForTurn(message, deadline) {
+async function waitForTurn(message, deadline, since) {
   // Only an end AFTER this message was sent: every go-ahead has the same
   // text, and matching an earlier one's end fired the next go-ahead while
   // she was still working (measured in run 13: three go-aheads 5 s apart).
-  const since = await page.evaluate(() => Date.now());
+  // `since` is taken BEFORE sending: an offline reply can end the turn in
+  // under a second, before a timestamp taken afterwards (run 18 waited out
+  // its whole time limit for an end that had already happened).
   let lastCount = -1;
   while (Date.now() < deadline) {
     await page.waitForTimeout(5000);
@@ -119,7 +123,7 @@ const GO_AHEAD = "Go ahead — carry out the rest of the loop yourself and repor
 const deadline = started + LIMIT_MS;
 let finished = null;
 try {
-finished = await waitForTurn(REQUEST, deadline);
+finished = await waitForTurn(REQUEST, deadline, sentAt);
 // "Done" is what her own event bus shows she RAN — a validation, a capture
 // of her preview and a diff — never what a reply says she did.
 const loopDone = () =>
@@ -159,9 +163,10 @@ for (let nudge = 0; nudge < 4 && finished && Date.now() < deadline; nudge += 1) 
     await page.waitForTimeout(1500);
   }
   await page.waitForSelector("[data-lelu-composer] textarea", { state: "visible", timeout: 20000 });
+  sentAt = await pageNow();
   await page.fill("[data-lelu-composer] textarea", GO_AHEAD);
   await page.keyboard.press("Enter");
-  finished = await waitForTurn(GO_AHEAD, deadline);
+  finished = await waitForTurn(GO_AHEAD, deadline, sentAt);
 }
 } catch (error) {
   console.log(`  run interrupted: ${String(error).split("\n")[0]}`);
