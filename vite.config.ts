@@ -11,6 +11,7 @@ import { engineerApiPlugin } from "./plugins/engineerApi.ts";
 import { createNodeEngineerAdapter } from "./plugins/nodeAdapters.ts";
 import { createEnvApi } from "./plugins/envApi.ts";
 import { createModelApi } from "./plugins/modelApi.ts";
+import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
@@ -20,7 +21,7 @@ import { createNekoApi } from "./plugins/nekoApi.ts";
 import { githubApiPlugin } from "./plugins/githubApi.ts";
 import { runtimeKeyBridgePlugin, bridgeReport } from "./plugins/runtimeKeyBridge.ts";
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), "");
   // AISStream key: server-only (non-VITE) — read once here, passed into
   // the bridge instance, never exposed to the browser bundle.
@@ -61,14 +62,19 @@ export default defineConfig(({ mode }) => {
   // provider directly, which needs the provider's CORS and the page's
   // own egress — and puts the API key in the bundle.
   const modelApi = createModelApi(envReader);
+  // LÉLU 3D Forge: Meshy jobs, the credit ledger and the asset store. The
+  // Meshy key is read here, server-side, and nowhere else.
+  const forgeApi = createMeshyForgeApi(envReader, { poll: command === "serve" });
   function modelApiPlugin() {
     return {
       name: "model-api",
       configureServer(server: any) {
         modelApi.attach(server.middlewares);
+        forgeApi.attach(server.middlewares);
       },
       configurePreviewServer(server: any) {
         modelApi.attach(server.middlewares);
+        forgeApi.attach(server.middlewares);
       },
     };
   }

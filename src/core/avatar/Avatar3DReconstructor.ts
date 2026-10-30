@@ -7,9 +7,10 @@
  * external conversion pipeline the avatar system was missing:
  *
  *   SAVED REFERENCE (AvatarStore / IndexedDB)
- *     → Meshy Image-to-3D API  (data-URI in, task id out)
- *     → poll task until SUCCEEDED
- *     → download model_urls.glb
+ *     → 3D Forge (/api/forge): stored as a reference, then an
+ *       image-to-3d job — the server holds the Meshy key, polls
+ *       the task, downloads and inspects the GLB
+ *     → fetch the inspected GLB from the Forge asset store
  *     → persist ArrayBuffer in IndexedDB ("lelu-avatar-3d")
  *     → LeluV2Presence loads it as the LIVE 3D LÉLU
  *
@@ -19,16 +20,13 @@
  * simulated bar. Success is only reported after the GLB bytes
  * are downloaded AND persisted; failure is reported honestly.
  *
- * API key: VITE_MESHY_API_KEY (optional provider). An optional
- * VITE_MESHY_API_BASE_URL can route calls through a proxy if a
- * deployment blocks direct browser access.
+ * API key: MESHY_API_KEY, read by the server only. The page never
+ * sees it (it used to: this module called Meshy from the browser).
  * ==========================================================
  */
 
-import { publicEnvVar } from "../env/publicEnv";
-import env from "../Environment";
 import AgentEventBus from "../agent/AgentEvents";
-import { endpoint } from "../Endpoints";
+import ForgeClient from "../forge/ForgeClient";
 
 /* ----------------------------- types ---------------------------------- */
 
@@ -128,8 +126,8 @@ export function fingerprintOf(dataUrl: string): string {
 
 /* ------------------------------ service ------------------------------- */
 
-const MESHY_BASE_DEFAULT = endpoint("meshy");
-const POLL_INTERVAL_MS = 5_000;
+/** The Forge character the saved-avatar references and jobs are filed under. */
+const AVATAR_CHARACTER = "saved_avatar";
 const MAX_WAIT_MS = 12 * 60 * 1000;
 
 class Avatar3DReconstructorImpl {
@@ -212,20 +210,12 @@ class Avatar3DReconstructorImpl {
     if (this.running) throw new Error("A 3D reconstruction is already running.");
     if (!referenceImage) throw new Error("No saved reference image to reconstruct.");
 
-    const apiKey = env.meshyApiKey;
-    if (!apiKey) {
-      throw new Error(
-        "VITE_MESHY_API_KEY is not set — add a Meshy API key (Settings → Environment) to enable true 3D reconstruction.",
-      );
-    }
-
-    const base = this.baseUrl();
     const taskId = `avatar-3d-${Date.now()}`;
     const bus = AgentEventBus.getInstance();
     const fingerprint = fingerprintOf(referenceImage);
 
     this.running = true;
-    this.setStatus({ state: "running", progress: 1, note: "Submitting reference to Meshy…" });
+    this.setStatus({ state: "running", progress: 1, note: "Sending reference to the 3D Forge…" });
     bus.emit({
       type: "tool_started",
       taskId,
@@ -234,15 +224,27 @@ class Avatar3DReconstructorImpl {
     });
 
     try {
-      // 1 — create the task (data URI accepted directly).
-      const createRes = await fetch(`${base}/openapi/v1/image-to-3d`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          image_url: referenceImage,
+      const status = await ForgeClient.status();
+      if (!status.configured) {
+        throw new Error("MESHY_API_KEY is not set on the server — add it to the server environment to enable true 3D reconstruction.");
+      }
+
+      // 1 — store the image as a reference (de-duplicated by content), then
+      // ask for the job. The person pressed "reconstruct": that is the approval.
+      const refId = `avatar_${fingerprint.replace(/[^a-z0-9]/gi, "").slice(0, 40).toLowerCase()}`;
+      await ForgeClient.addReference(AVATAR_CHARACTER, refId, referenceImage, {
+        category: "body",
+        view: "front full-body",
+        intendedUse: "Saved avatar reference",
+        uses: ["geometry", "texture"],
+      });
+      const { job } = await ForgeClient.request({
+        character: AVATAR_CHARACTER,
+        kind: "image-to-3d",
+        purpose: "Saved avatar presence",
+        approve: true,
+        body: {
+          image_url: `ref:${refId}`,
           ai_model: "meshy-6",
           topology: "triangle",
           target_polycount: 30_000,
@@ -250,63 +252,35 @@ class Avatar3DReconstructorImpl {
           pose_mode: "a-pose",
           target_formats: ["glb"],
           image_enhancement: false,
-        }),
+        },
       });
-      if (!createRes.ok) {
-        const body = await createRes.text().catch(() => "");
-        throw new Error(`Meshy task creation failed (HTTP ${createRes.status}): ${body.slice(0, 240)}`);
+
+      // 2 — follow the server's job (it polls Meshy and downloads the outputs).
+      const finished = await ForgeClient.waitFor(
+        job.id,
+        (current) => {
+          const pct = Math.min(99, Math.max(5, Math.round(current.progress || 5)));
+          this.setStatus({ state: "running", progress: pct, note: `Forge job ${current.status} · ${pct}%` });
+          bus.emit({ type: "tool_progress", taskId, tool: "avatar-reconstruction", progress: pct / 100, note: current.status });
+        },
+        { timeoutMs: MAX_WAIT_MS },
+      );
+      if (finished.status !== "SUCCEEDED" || !finished.output) {
+        throw new Error(finished.error ?? `3D Forge job ended as ${finished.status}.`);
       }
-      const created = (await createRes.json()) as { result?: string };
-      const meshyTaskId = created.result;
-      if (!meshyTaskId) throw new Error("Meshy did not return a task id.");
-
-      // 2 — poll until SUCCEEDED (real progress from the provider).
-      const startedAt = Date.now();
-      let glbUrl: string | null = null;
-      while (Date.now() - startedAt < MAX_WAIT_MS) {
-        await this.sleep(POLL_INTERVAL_MS);
-        const pollRes = await fetch(`${base}/openapi/v1/image-to-3d/${meshyTaskId}`, {
-          headers: { Authorization: `Bearer ${apiKey}` },
-        });
-        if (!pollRes.ok) continue; // transient — keep polling within budget
-        const task = (await pollRes.json()) as {
-          status?: string;
-          progress?: number;
-          model_urls?: { glb?: string };
-        };
-        const pct = Math.min(99, Math.max(5, Math.round(task.progress ?? 10)));
-        this.setStatus({
-          state: "running",
-          progress: pct,
-          note: `Meshy task ${task.status ?? "…"} · ${pct}%`,
-        });
-        bus.emit({
-          type: "tool_progress",
-          taskId,
-          tool: "avatar-reconstruction",
-          progress: pct / 100,
-          note: task.status,
-        });
-
-        if (task.status === "SUCCEEDED" && task.model_urls?.glb) {
-          glbUrl = task.model_urls.glb;
-          break;
-        }
-        if (task.status === "FAILED" || task.status === "CANCELED") {
-          throw new Error(`Meshy reconstruction ${task.status.toLowerCase()} for task ${meshyTaskId}.`);
-        }
+      const model = finished.output.files.find((f) => f.role === "model");
+      if (!model) throw new Error("The finished job has no GLB.");
+      if (finished.validation && !finished.validation.verdict.meshValid) {
+        throw new Error(`The returned model failed inspection: ${finished.validation.problems.join("; ")}`);
       }
-      if (!glbUrl) throw new Error("Reconstruction timed out before the model was ready.");
 
-      // 3 — download the actual GLB bytes (success ≠ integration until
-      // the bytes are really here).
+      // 3 — fetch the inspected GLB from the server's asset store.
       this.setStatus({ state: "running", progress: 100, note: "Downloading GLB…" });
-      const glbRes = await fetch(glbUrl);
-      if (!glbRes.ok) throw new Error(`GLB download failed (HTTP ${glbRes.status}).`);
-      const glb = await glbRes.arrayBuffer();
+      const glb = await ForgeClient.assetBytes(model.file);
       if (glb.byteLength < 1024) throw new Error("Downloaded GLB is implausibly small — rejecting.");
 
       // 4 — persist locally so every future session boots with the SAME model.
+      const meshyTaskId = finished.meshyTaskId ?? finished.id;
       await writeStored({ glb, fingerprint, taskId: meshyTaskId, createdAt: Date.now() });
       this.stored = await readStored();
 
@@ -331,20 +305,6 @@ class Avatar3DReconstructorImpl {
     } finally {
       this.running = false;
     }
-  }
-
-  private baseUrl(): string {
-    try {
-      // Browser-safe allowlist, not the whole env record (see env/publicEnv.ts).
-      const raw = publicEnvVar("VITE_MESHY_API_BASE_URL");
-      return typeof raw === "string" && raw.trim() ? raw.trim().replace(/\/$/, "") : MESHY_BASE_DEFAULT;
-    } catch {
-      return MESHY_BASE_DEFAULT;
-    }
-  }
-
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 

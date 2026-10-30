@@ -31,6 +31,7 @@ import type RouterContext from "../router/RouterContext";
 import AgentEventBus from "../agent/AgentEvents";
 import AutonomyGate from "../cognition/AutonomyGate";
 import ToolRegistry, { type RiskLevel } from "./ToolRegistry";
+import { FORGE_EXECUTORS } from "../forge/ForgeTools";
 import EngineeringAuthorization from "../engineering/EngineeringAuthorization";
 
 export interface ToolExecutionResult {
@@ -1169,7 +1170,9 @@ async function runWorkspace(
  * DISPATCH
  * ------------------------------------------------------------------ */
 
-const BY_ID = new Map(EXECUTORS.map((executor) => [executor.id, executor]));
+// The 3D Forge's executors live with the Forge (forge/ForgeTools.ts) and run
+// through this same dispatcher, gate and event stream.
+const BY_ID = new Map<string, ToolExecutor>([...EXECUTORS, ...FORGE_EXECUTORS].map((executor) => [executor.id, executor]));
 
 /** Registry ids that have a real executor behind them. */
 export function executableToolIds(): string[] {

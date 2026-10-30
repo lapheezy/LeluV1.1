@@ -1,0 +1,41 @@
+{
+  "character": "lelu_character",
+  "primary": "ref10_face_primary",
+  "secondary": [
+    "ref08_face_upper_body"
+  ],
+  "preserve": {
+    "faceShape": "Oval face, high defined cheekbones, softly tapered jaw and rounded chin.",
+    "eyes": "Almond-shaped warm brown eyes, slightly upturned outer corners, winged liner, long dense lashes, moderate spacing.",
+    "brows": "Full, dark, softly arched brows with a clean tail.",
+    "nose": "Straight bridge, softly rounded tip, moderately full alae.",
+    "lips": "Full lips, defined cupid's bow, fuller lower lip, glossy deep berry-brown colour.",
+    "skin": "Deep warm brown complexion with a soft sheen; light freckles across cheeks and nose.",
+    "markings": "Small star marks high on the cheekbones; dark swirl/curl markings at the forehead and temples; rose-quartz jewel at the hairline centre with a small crystal drop between the brows.",
+    "piercings": "Septum ring; centred lower-lip (labret) stud with small drop; large rose-gold hoop earrings.",
+    "tattoos": "Ornamental filigree across collarbones and chest; rose and filigree tattoos on hands and forearms.",
+    "hairline": "Centre part; dense black corkscrew curls framing the face, pink/magenta highlights."
+  },
+  "mayChange": [
+    "outfit",
+    "hairstyle",
+    "pose",
+    "expression",
+    "accessories"
+  ],
+  "rule": "Identity references change only through an explicit, approved relock. Generated images are never promoted to identity references automatically.",
+  "references": [
+    {
+      "id": "ref10_face_primary",
+      "file": "characters/lelu_character/references/ref10_face_primary.png",
+      "sha256": "ca6d058f12b0195667a46978d5106367a8501e3101d3c37787a2e149cca86f22"
+    },
+    {
+      "id": "ref08_face_upper_body",
+      "file": "characters/lelu_character/references/ref08_face_upper_body.png",
+      "sha256": "c6b728fdab5a809c96d6750a30633ed76bc208b49144a35b595e05c22215526d"
+    }
+  ],
+  "lockedAt": 1793377687175,
+  "lockHash": "c90e0e46f7d2cb053aa6de43ba524c6eb13bf1a392b0b687ccce775a9e8336e9"
+}

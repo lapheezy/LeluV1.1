@@ -1,0 +1,39 @@
+[
+  {
+    "id": "fj_mvv707tg_17e118",
+    "character": "lelu_character",
+    "kind": "image-to-3d",
+    "purpose": "Phase D base character (outfit B, unhooded, A-pose)",
+    "request": {
+      "image_url": "ref:ref11_front_apose_B",
+      "ai_model": "meshy-7.1",
+      "should_texture": true,
+      "enable_pbr": true,
+      "texture_resolution": "2k",
+      "pose_mode": "a-pose",
+      "should_remesh": true,
+      "topology": "triangle",
+      "target_polycount": 60000,
+      "image_enhancement": false,
+      "target_formats": [
+        "glb",
+        "fbx"
+      ],
+      "multi_view_thumbnails": true
+    },
+    "requestKey": "f686a632273d1f8f7a51bac80344c36e4f21383e4c4f2f3ad56ca23d5e3178d5",
+    "estimatedCredits": 30,
+    "status": "awaiting_approval",
+    "meshyTaskId": null,
+    "progress": 0,
+    "consumedCredits": null,
+    "error": null,
+    "identityLock": "c90e0e46f7d2cb053aa6de43ba524c6eb13bf1a392b0b687ccce775a9e8336e9",
+    "createdAt": 1793378081428,
+    "updatedAt": 1793378081428,
+    "submittedAt": null,
+    "finishedAt": null,
+    "output": null,
+    "validation": null
+  }
+]

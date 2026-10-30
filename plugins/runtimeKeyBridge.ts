@@ -173,8 +173,8 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     ],
   },
 
-  // These three are read by BROWSER code (NewsProvider, YouTubeProvider,
-  // Avatar3DReconstructor) but had no bridge entry, so the unprefixed
+  // These two are read by BROWSER code (NewsProvider, YouTubeProvider)
+  // but had no bridge entry, so the unprefixed
   // name resolved on the server — where Environment.ts can reach
   // process.env — and silently never reached the bundle. Setting
   // NEWS_API_KEY produced a working server and a dead browser provider.
@@ -188,11 +188,9 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     globalName: "__LELU_YOUTUBE_API_KEY__",
     aliases: ["YOUTUBE_API_KEY"],
   },
-  {
-    viteName: "VITE_MESHY_API_KEY",
-    globalName: "__LELU_MESHY_API_KEY__",
-    aliases: ["MESHY_API_KEY"],
-  },
+  // MESHY_API_KEY is deliberately NOT bridged: Meshy is called only by the
+  // server-side 3D Forge (plugins/meshyForge.ts), so the key has no reason
+  // to exist in a page.
   {
     viteName: "VITE_GEMINI_MODEL",
     globalName: "__LELU_GEMINI_MODEL__",
@@ -453,11 +451,6 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     viteName: "VITE_HACKERNEWS_API_URL",
     globalName: "__LELU_HACKERNEWS_API_URL__",
     aliases: ["HACKERNEWS_API_URL"],
-  },
-  {
-    viteName: "VITE_MESHY_API_URL",
-    globalName: "__LELU_MESHY_API_URL__",
-    aliases: ["MESHY_API_URL"],
   },
 ];
 

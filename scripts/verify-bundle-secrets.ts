@@ -50,20 +50,21 @@ const FORBIDDEN: Record<string, string> = {
   // GitHub repo search through the existing /api/github/proxy.
   VITE_NEWS_API_KEY: "CANARYggg7_MUSTNOTSHIP",
   VITE_YOUTUBE_API_KEY: "CANARYhhh8_MUSTNOTSHIP",
+  // Meshy is called only by the server-side 3D Forge (/api/forge).
+  VITE_MESHY_API_KEY: "msy_CANARYiii9_MUSTNOTSHIP",
 };
 
 /**
  * Keys that ARE still browser-side, by current design.
  *
  * Listed rather than hidden: each belongs to a browser-only feature
- * (the Earth fire layer, avatar 3-D reconstruction, two secondary news
+ * (the Earth fire layer and two secondary news
  * fallbacks) that has not been given the relay treatment yet. The scan
  * reports whether each actually shipped, so the remaining exposure is
  * measured on every run instead of being assumed or forgotten.
  */
 const KNOWN_BROWSER_SIDE: Record<string, string> = {
   VITE_FIRMS_API_KEY: "CANARYbs1_BROWSERSIDE",
-  VITE_MESHY_API_KEY: "CANARYbs2_BROWSERSIDE",
   VITE_GUARDIAN_API_KEY: "CANARYbs3_BROWSERSIDE",
   VITE_GNEWS_API_KEY: "CANARYbs4_BROWSERSIDE",
 };
@@ -79,6 +80,8 @@ const SERVER_ONLY: Record<string, string> = {
   AISSTREAM_API_KEY: "CANARYsrv3_SERVERONLY",
   INSTAGRAM_ACCESS_TOKEN: "CANARYsrv4_SERVERONLY",
   LELU_ENGINEER_TOKEN: "CANARYsrv5_SERVERONLY",
+  // Read only by the server-side 3D Forge; never referenced by client code.
+  MESHY_API_KEY: "CANARYsrv6_SERVERONLY",
 };
 
 const OUT_DIR = "dist-secret-scan";

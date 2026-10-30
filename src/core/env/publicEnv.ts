@@ -55,7 +55,6 @@ function publicEnvRecord(): Record<string, string | undefined> {
       /* ---- public URLs ---- */
       VITE_NEKO_URL: import.meta.env.VITE_NEKO_URL,
       VITE_EARTH_VESSELS_ENDPOINT: import.meta.env.VITE_EARTH_VESSELS_ENDPOINT,
-      VITE_MESHY_API_BASE_URL: import.meta.env.VITE_MESHY_API_BASE_URL,
       VITE_ELPHERU_RSS_URL: import.meta.env.VITE_ELPHERU_RSS_URL,
       VITE_SAPIOLINGO_RSS_URL: import.meta.env.VITE_SAPIOLINGO_RSS_URL,
       VITE_GOOGLE_NEWS_RSS_URL: import.meta.env.VITE_GOOGLE_NEWS_RSS_URL,
@@ -79,13 +78,14 @@ function publicEnvRecord(): Record<string, string | undefined> {
        * The four below are still read in the browser, so they are still
        * shipped in the bundle. That is a real remaining exposure, stated
        * plainly rather than glossed over (see ENV_VARS.md). Each is used
-       * by a browser-only feature — the Earth fire layer, avatar 3-D
-       * reconstruction, and two secondary news fallbacks — and closing
-       * them means giving each the same relay treatment. */
+       * by a browser-only feature — the Earth fire layer and three news
+       * fallbacks — and closing them means giving each the same relay
+       * treatment. Meshy has had it: avatar 3-D reconstruction now goes
+       * through the server-side Forge (/api/forge), and its key is gone
+       * from this list. */
       VITE_GUARDIAN_API_KEY: import.meta.env.VITE_GUARDIAN_API_KEY,
       VITE_GNEWS_API_KEY: import.meta.env.VITE_GNEWS_API_KEY,
       VITE_NEWSDATA_API_KEY: import.meta.env.VITE_NEWSDATA_API_KEY,
-      VITE_MESHY_API_KEY: import.meta.env.VITE_MESHY_API_KEY,
       VITE_FIRMS_API_KEY: import.meta.env.VITE_FIRMS_API_KEY,
     };
   } catch {

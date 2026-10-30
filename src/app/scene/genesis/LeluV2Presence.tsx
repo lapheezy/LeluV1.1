@@ -35,6 +35,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import AvatarStore from "../../../core/avatar/AvatarProfile";
 import AvatarCommandBus, { type AvatarCommand } from "../../../core/avatar/AvatarCommandBus";
 import Avatar3DReconstructor, { fingerprintOf } from "../../../core/avatar/Avatar3DReconstructor";
+import ForgeClient from "../../../core/forge/ForgeClient";
 import AgentEventBus, { type AgentEvent } from "../../../core/agent/AgentEvents";
 import ExecutiveRuntime from "../../../core/executive/ExecutiveRuntime";
 import { useGenesis } from "./GenesisCore";
@@ -487,6 +488,7 @@ function ProceduralPresence({
 /* ----------------------- reconstructed true-3D avatar ------------------ */
 
 const RECON_TARGET_HEIGHT = 2.56; // matches the saved-image presence height
+const FORGE_CHARACTER = "lelu_character";
 
 /**
  * The TRUE 3D LÉLU — a real textured mesh produced by the external
@@ -501,10 +503,13 @@ const RECON_TARGET_HEIGHT = 2.56; // matches the saved-image presence height
  */
 function ReconstructedAvatarPresence({
   glb,
+  clips,
   activity,
   position,
 }: {
   glb: ArrayBuffer;
+  /** Extra animation GLBs for the same rig (Forge animation slots), bound by bone name. */
+  clips?: ArrayBuffer[];
   activity: LeluActivity;
   position?: THREE.Vector3;
 }) {
@@ -515,8 +520,9 @@ function ReconstructedAvatarPresence({
   const telemetry = useRef({ lastReport: 0, lastY: 0 });
   const cmdRun = useRef<CommandRunState | null>(null);
   const cmdDone = useRef<string | null>(null);
+  const mixer = useRef<THREE.AnimationMixer | null>(null);
 
-  // Parse once per stored GLB. The bytes come from IndexedDB — no network.
+  // Parse once per stored GLB. The bytes come from IndexedDB or the Forge asset store.
   useEffect(() => {
     let disposed = false;
     try {
@@ -553,6 +559,22 @@ function ReconstructedAvatarPresence({
           scene.position.z -= center.z;
           scene.position.y -= norm.min.y;
           setModel(holder);
+
+          // A rigged model plays its own clips and any slot clips made for the
+          // same rig. Idle is preferred; without one, the first clip loops.
+          void Promise.all(
+            (clips ?? []).map((bytes) =>
+              new GLTFLoader().parseAsync(bytes, "").then((g) => g.animations).catch(() => [] as THREE.AnimationClip[]),
+            ),
+          ).then((extra) => {
+            if (disposed) return;
+            const all = [...gltf.animations, ...extra.flat()];
+            if (all.length === 0) return;
+            const m = new THREE.AnimationMixer(scene);
+            const clip = all.find((c) => /idle|breath/i.test(c.name)) ?? all[0];
+            m.clipAction(clip).play();
+            mixer.current = m;
+          });
         },
         (err) => {
           if (disposed) return;
@@ -578,13 +600,16 @@ function ReconstructedAvatarPresence({
     }
     return () => {
       disposed = true;
+      mixer.current?.stopAllAction();
+      mixer.current = null;
     };
-  }, [glb]);
+  }, [glb, clips]);
 
   useFrame(({ clock }, delta) => {
     const g = group.current;
     if (!g || !model) return;
     const t = clock.getElapsedTime();
+    mixer.current?.update(delta);
 
     // Presence motion: float + breathe (same rhythm as the other variants).
     let posX = pos.x + Math.sin(t * 0.8) * 0.06;
@@ -736,6 +761,29 @@ export default function LeluV2Presence({ position }: { position?: THREE.Vector3 
     };
   }, [fingerprint, reconVersion]);
 
+  // The approved LÉLU character from the 3D Forge (validated base or rig plus
+  // its animation slots). Preferred over everything else when it exists;
+  // without a Forge server (static hosting) the request fails and nothing changes.
+  const [forgeModel, setForgeModel] = useState<{ glb: ArrayBuffer; clips: ArrayBuffer[] } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      try {
+        const active = await ForgeClient.active(FORGE_CHARACTER);
+        if (!active.model) return;
+        const glb = await ForgeClient.assetBytes(active.model.file);
+        const clipFiles = Object.values(active.animations).flatMap((a) => (a ? [a.file] : []));
+        const clips = await Promise.all(clipFiles.map((file) => ForgeClient.assetBytes(file)));
+        if (alive) setForgeModel({ glb, clips });
+      } catch (error) {
+        console.info("[Lélu Presence] no Forge character available", error instanceof Error ? error.message : error);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
     // Report mount/unmount so diagnostics can distinguish "renderer not
   // running" from "presence legitimately closed".
   useEffect(() => {
@@ -747,12 +795,15 @@ export default function LeluV2Presence({ position }: { position?: THREE.Vector3 
       {/* warm light that follows LÉLU wherever she stands */}
       <pointLight
         position={[pos.x, pos.y + 1.2, pos.z]}
-        intensity={reconGlb ? 1.6 : 1.1}
+        intensity={reconGlb || forgeModel ? 1.6 : 1.1}
         distance={6}
         color={accent}
       />
 
-      {referenceImage && reconGlb ? (
+      {forgeModel ? (
+        /* LÉLU as approved in the 3D Forge — validated mesh or rig, with clips */
+        <ReconstructedAvatarPresence glb={forgeModel.glb} clips={forgeModel.clips} activity={activity} position={position} />
+      ) : referenceImage && reconGlb ? (
         /* TRUE 3D LÉLU — real mesh generated from the exact saved reference */
         <ReconstructedAvatarPresence glb={reconGlb} activity={activity} position={position} />
       ) : referenceImage ? (

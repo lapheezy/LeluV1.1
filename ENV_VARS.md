@@ -397,3 +397,26 @@ Supabase SERVICE ROLE key is never bridged.
 Knowledge/data providers (news, YouTube, Geoapify, Guardian, NewsData, NASA)
 still read their keys in the browser. They call those APIs directly from the
 page and have no broker; moving them behind one is a separate change.
+
+## 3D Forge (Meshy) — server-owned
+
+Character and asset generation runs through `plugins/meshyForge.ts`, mounted at
+`/api/forge` by both `vite.config.ts` (dev/preview) and `server.ts`. It is the
+only code that holds the Meshy credential; the page talks to `/api/forge` and
+never sees it. (Before this, avatar reconstruction called Meshy from the
+browser with `VITE_MESHY_API_KEY`, and the runtime key bridge published
+`MESHY_API_KEY` into every page. Both paths are gone.)
+
+| Variable | Purpose | Without it |
+|---|---|---|
+| `MESHY_API_KEY` | Meshy API key (paid plan). Read server-side only. | Jobs can be planned and priced; approving one fails with "MESHY_API_KEY is not set on the server". |
+| `MESHY_API_URL` | API base, default `https://api.meshy.ai` | Default is used |
+| `FORGE_ASSET_ROOT` | Where references, outputs and the ledger live, default `leluverse/assets` | Default is used |
+| `FORGE_AUTO_APPROVE_CREDITS` | Jobs estimated at or under this many credits submit without approval. Default `0`: every spend is approved. | Every job waits for approval |
+
+`VITE_MESHY_API_KEY` is still read as a fallback name so an existing setup
+keeps working, but `/api/forge/status` reports it with a warning: Vite's dev
+server exposes every `VITE_` variable to the page. Rename it and rotate it.
+
+Deno (`main.ts`) does not mount the Forge: its ledger and asset store are
+files on disk, and a Deno Deploy filesystem is read-only.

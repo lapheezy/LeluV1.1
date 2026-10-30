@@ -120,7 +120,7 @@ export function brokerPath(provider: string, path = ""): string {
   return tail ? `/api/model/${provider}/${tail}` : `/api/model/${provider}`;
 }
 
-interface ConnectLikeRes {
+export interface ConnectLikeRes {
   statusCode?: number;
   setHeader: (name: string, value: string) => void;
   end: (body?: string) => void;
@@ -129,7 +129,7 @@ interface ConnectLikeRes {
   flushHeaders?: () => void;
 }
 
-interface ConnectLikeReq {
+export interface ConnectLikeReq {
   method?: string;
   url?: string;
   headers?: Record<string, string | string[] | undefined>;
@@ -157,7 +157,7 @@ function sendJson(res: ConnectLikeRes, payload: unknown, status = 200): void {
  * leaving the envelope readable — which fails upstream with a parse error that
  * looks like anything but an encoding bug.
  */
-function readBody(req: ConnectLikeReq): Promise<Buffer> {
+export function readBody(req: ConnectLikeReq): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     if (!req.on) return resolve(Buffer.alloc(0));
     const chunks: Buffer[] = [];
@@ -203,7 +203,7 @@ function headerValue(req: ConnectLikeReq, name: string): string {
  * same-process or CLI caller and is allowed through, matching the behaviour
  * the dedicated relay had before this became the single mechanism.
  */
-function crossOrigin(req: ConnectLikeReq): boolean {
+export function crossOrigin(req: ConnectLikeReq): boolean {
   const origin = headerValue(req, "origin");
   const referer = headerValue(req, "referer");
   const host = headerValue(req, "host");
@@ -297,7 +297,12 @@ export function createModelApi(readEnv: EnvReader) {
   };
 
   async function handle(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): Promise<void> {
-    const url = req.url ?? "";
+    // Connect (Vite) strips the mount path before calling a handler; the
+    // standalone server's router (server.ts) does not. Without this, every
+    // production request arrived as "/api/model/…" and was read as a call
+    // to a provider named "api".
+    const raw = req.url ?? "";
+    const url = raw.startsWith("/api/model/") || raw === "/api/model" ? raw.slice("/api/model".length) : raw;
 
     // WHICH PROVIDERS THE SERVER CAN REACH. Booleans only — a status
     // route that leaked the key would defeat the point of the broker.

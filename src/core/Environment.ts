@@ -138,9 +138,6 @@ export interface LeluEnvironment {
   gnews: ProviderEnv;
   newsdata: ProviderEnv;
 
-  /* ---- Avatar true-3D reconstruction (image → GLB) ---- */
-  meshy: ProviderEnv;
-
   /* ---- Optional persistence ---- */
   supabase: ProviderEnv;
 
@@ -257,10 +254,6 @@ function build(): LeluEnvironment {
     gnews:        providerEnv("VITE_GNEWS_API_KEY", 3, false),
     newsdata:     providerEnv("VITE_NEWSDATA_API_KEY", 4, false),
 
-    // Image-to-3D reconstruction of the saved avatar (Meshy). Optional:
-    // without it the avatar falls back to the saved-image presence.
-    meshy:        providerEnv("VITE_MESHY_API_KEY", 1, false),
-
     // Optional browser-safe Supabase configuration. The publishable key is
     // intentionally treated as public; service-role credentials are never read.
     supabase: {
@@ -370,7 +363,6 @@ export default {
   get groqApiKey(): string { return resolve("VITE_GROQ_API_KEY") ?? ""; },
   get anthropicApiKey(): string { return resolve("VITE_ANTHROPIC_API_KEY") ?? ""; },
   get supabaseUrl(): string { return endpoint("supabase"); },
-  get meshyApiKey(): string { return resolve("VITE_MESHY_API_KEY") ?? ""; },
 };
 
 export function validateProviderConfig(): void {
