@@ -56,6 +56,17 @@ export default function LeluCharacter({
   const [fallback, setFallback] = useState(false);
   const [loaded, setLoaded] = useState<LoadedLook | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // One renderer per canvas for as long as the canvas lives: a new look
+  // swaps its texture. Disposing loses the canvas's WebGL context, so a
+  // renderer re-created on the same canvas would find no context at all.
+  const rendererRef = useRef<{ canvas: HTMLCanvasElement; renderer: LeluRigRenderer } | null>(null);
+  useEffect(
+    () => () => {
+      rendererRef.current?.renderer.dispose();
+      rendererRef.current = null;
+    },
+    [],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -77,12 +88,19 @@ export default function LeluCharacter({
     const canvas = canvasRef.current;
     if (!canvas || !loaded) return;
     let renderer: LeluRigRenderer;
-    try {
-      renderer = new LeluRigRenderer(canvas);
-    } catch (reason) {
-      console.warn("[LeluCharacter] showing her still image:", reason);
-      setFallback(true);
-      return;
+    if (rendererRef.current?.canvas === canvas) {
+      renderer = rendererRef.current.renderer;
+    } else {
+      rendererRef.current?.renderer.dispose();
+      rendererRef.current = null;
+      try {
+        renderer = new LeluRigRenderer(canvas);
+      } catch (reason) {
+        console.warn("[LeluCharacter] showing her still image:", reason);
+        setFallback(true);
+        return;
+      }
+      rendererRef.current = { canvas, renderer };
     }
     renderer.setLook(loaded);
     const animation = LeluAnimation.getInstance();
@@ -137,7 +155,6 @@ export default function LeluCharacter({
     return () => {
       cancelAnimationFrame(frame);
       detach();
-      renderer.dispose();
     };
   }, [loaded]);
 

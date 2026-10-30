@@ -273,9 +273,16 @@ async function run(name, viewport) {
   await page.evaluate(() => [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Earthy")?.click());
   const switched = await waitFor(async () =>
     (await page.locator("[data-testid=avatar-panel-character]").evaluate((c) => c.dataset.look).catch(() => null)) === "earthy" && (await companion("look")) === "earthy", 15_000);
+  // Still LIVE after the switch: a rendering canvas, not the still-image fallback
+  // (the <img> fallback also carries data-look, so the look alone proves nothing).
+  const liveAfter = async (testId) => page.locator(`[data-testid=${testId}]`).evaluate((el) => ({ tag: el.tagName, fallback: el.dataset.fallback ?? null, frames: Number(el.dataset.frames ?? 0) })).catch(() => null);
+  const liveBefore = { panel: await liveAfter("avatar-panel-character"), companion: await liveAfter("lelu-companion-character") };
   await page.waitForTimeout(3000);
+  const liveNow = { panel: await liveAfter("avatar-panel-character"), companion: await liveAfter("lelu-companion-character") };
+  const stillLive = ["panel", "companion"].every((k) => liveNow[k]?.tag === "CANVAS" && !liveNow[k].fallback && liveNow[k].frames > (liveBefore[k]?.frames ?? 0));
   await shot("08-avatar-panel-earthy");
   record(name, "Avatar panel shows her live; a look chosen there changes every surface", panelReady && switched, { panelReady, switched });
+  record(name, "after a look switch she is still rendered live (canvas, not the still fallback)", stillLive, liveNow);
   await page.evaluate(() => [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Gothic lace")?.click());
   await page.waitForTimeout(2000);
 
