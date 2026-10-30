@@ -50,7 +50,7 @@
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Html, useContextBridge } from "@react-three/drei";
-import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AdditiveBlending,
   BufferAttribute,
@@ -83,7 +83,9 @@ import StarField from "./environment/stars/StarField";
 import Cosmos from "./environment/Cosmos";
 import GenesisV2CameraRig from "./GenesisV2CameraRig";
 import LeluV2Presence from "./LeluV2Presence";
-import ForgePlacements from "./ForgePlacements";
+import WorldScene from "./WorldScene";
+import AdaptiveQuality from "./AdaptiveQuality";
+import { DPR_START } from "./qualityLimits";
 
 export type V2NodeId = "core" | "studio" | "lab" | "vault";
 
@@ -1412,14 +1414,17 @@ export default function GenesisV2Scene3D({
      whole router). R3F renders this canvas in its own reconciler root, so
      the shared context must be bridged in — exactly like the v1 world does. */
   const ContextBridge = useContextBridge(GenesisContext);
+  const [dpr, setDpr] = useState(DPR_START);
 
   return (
     <Canvas
       style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
       camera={{ position: [0, 0.55, 8.6], fov: 46, near: 0.1, far: 220 }}
       gl={{ antialias: true, alpha: true }}
-      dpr={[1, 2]}
+      dpr={dpr}
     >
+      {/* pixel ratio follows measured frame rate (up to the display's own, e.g. 4K) */}
+      <AdaptiveQuality onChange={setDpr} />
       <ContextBridge>
         {/* free exploration camera — orbit / free-fly / touch / focus.
             The Gen V2 world is explorable: the camera is never locked. */}
@@ -1458,8 +1463,9 @@ export default function GenesisV2Scene3D({
             working/rendering/searching), with her own warm light. */}
         <LeluV2Presence />
 
-        {/* Finished 3D Forge assets placed in the Cosmos (persisted server-side). */}
-        <ForgePlacements />
+        {/* LÉLUVERSE: the environment she is in (her circular room by default),
+            its objects with live physics, and her wearables — persisted server-side. */}
+        <WorldScene />
       </ContextBridge>
     </Canvas>
   );

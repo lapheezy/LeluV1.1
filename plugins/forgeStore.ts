@@ -101,7 +101,30 @@ export interface CosmosPlacement {
   worn?: boolean;
   /** Which environment it belongs to; absent means the home room. */
   environmentId?: string;
+  /** A built-in shape instead of a Forge asset (jobId and file are then empty). */
+  primitive?: PrimitiveSpec | null;
+  /** Simulated by the rigid-body physics (src/core/world/Physics.ts) when dynamic. */
+  physics?: PhysicsSpec | null;
   createdAt: number;
+}
+
+export type PrimitiveShape = "box" | "sphere" | "cylinder" | "cone" | "torus" | "plane";
+
+export interface PrimitiveSpec {
+  shape: PrimitiveShape;
+  color: string;
+  metalness: number;
+  roughness: number;
+  emissive: string | null;
+  opacity: number;
+}
+
+export interface PhysicsSpec {
+  dynamic: boolean;
+  mass: number;
+  restitution: number;
+  friction: number;
+  velocity?: [number, number, number];
 }
 
 export interface PlacementAttachment {

@@ -27,6 +27,19 @@
  *   POST /api/forge/jobs/<id>/adopt         { index, id, view, … } — a reviewed generated view becomes a reference
  *   GET  /api/forge/assets/<path>           a stored output (GLB, texture, preview)
  *
+ *   World engine (plugins/worldEngine.ts) — environments and their objects:
+ *   GET  /api/forge/world                              current environment, its objects, all environments
+ *   POST /api/forge/world/enter                        { id }
+ *   POST /api/forge/world/environments                 { name, kind, description, settings, sandboxOf? }
+ *   POST /api/forge/world/environments/<id>/update     { name?, description?, settings? }
+ *   GET  /api/forge/world/environments/<id>/history    versions
+ *   POST /api/forge/world/environments/<id>/restore    { version }
+ *   POST /api/forge/world/environments/<id>/promote    { approve: true } — sandbox over its source
+ *   POST /api/forge/world/objects                      built-in shape { shape, color, …, physics? }
+ *   POST /api/forge/world/objects/<id>/modify          { primitive?, physics?, environmentId? }
+ *   POST /api/forge/world/settled                      { positions: {id: [x,y,z]} } — physics came to rest
+ *   GET|POST /api/forge/world/improvements             the improvement log
+ *
  * Writes refuse cross-origin callers: these routes spend
  * credits that belong to whoever runs the server.
  * ==========================================================
@@ -38,6 +51,7 @@ import { crossOrigin, readBody, type ConnectLikeReq, type ConnectLikeRes } from 
 import { ForgeStore, type CharacterSlot, type ForgeJob } from "./forgeStore.ts";
 import { buildRecords, type ReferenceClassification, type ReferenceRecord } from "./forgeReferences.ts";
 import { ForgeError, MeshyForge, type EnvReader } from "./meshyForge.ts";
+import { WorldEngine } from "./worldEngine.ts";
 
 type Handler = (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void) => void;
 
@@ -141,6 +155,7 @@ function ingestUpload(store: ForgeStore, character: string, body: Record<string,
 export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: string; poll?: boolean } = {}) {
   const root = options.assetRoot ?? readEnv("FORGE_ASSET_ROOT") ?? path.join(process.cwd(), "leluverse", "assets");
   const forge = new MeshyForge({ store: new ForgeStore(root), readEnv });
+  const world = new WorldEngine(forge.store);
   if (options.poll !== false) forge.startPolling();
 
   async function handle(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): Promise<void> {
@@ -186,16 +201,54 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
         }
         if (method === "POST" && parts.length === 1) {
           const body = await jsonBody(req);
-          sendJson(res, { ok: true, placement: forge.place({ ...body, jobId: String(body.jobId ?? "") }) }, 201);
+          const placement = forge.place({ ...body, jobId: String(body.jobId ?? ""), environmentId: body.environmentId ?? world.state().current });
+          if (!placement.attach) world.touched(placement.environmentId, `placed ${placement.label}`);
+          sendJson(res, { ok: true, placement }, 201);
           return;
         }
         if (method === "POST" && parts[2] === "update") {
-          sendJson(res, { ok: true, placement: forge.updatePlacement(parts[1], await jsonBody(req)) });
+          const placement = forge.updatePlacement(parts[1], await jsonBody(req));
+          if (!placement.attach) world.touched(placement.environmentId, `moved ${placement.label}`);
+          sendJson(res, { ok: true, placement });
           return;
         }
         if (method === "POST" && parts[2] === "remove") {
-          sendJson(res, { ok: true, placement: forge.unplace(parts[1]) });
+          const placement = forge.unplace(parts[1]);
+          if (!placement.attach) world.touched(placement.environmentId, `removed ${placement.label}`);
+          sendJson(res, { ok: true, placement });
           return;
+        }
+      }
+
+      if (parts[0] === "world") {
+        const [, a, b, c] = parts;
+        if (method === "GET" && !a) return sendJson(res, { ok: true, ...world.state() });
+        if (method === "POST" && a === "enter") return sendJson(res, { ok: true, ...world.enter(String((await jsonBody(req)).id ?? "")) });
+        if (a === "environments") {
+          if (method === "POST" && !b) return sendJson(res, { ok: true, environment: world.createEnvironment(await jsonBody(req)) }, 201);
+          if (method === "POST" && b && c === "update") return sendJson(res, { ok: true, environment: world.updateEnvironment(b, await jsonBody(req)) });
+          if (method === "GET" && b && c === "history") return sendJson(res, { ok: true, history: world.history(b) });
+          if (method === "POST" && b && c === "restore") return sendJson(res, { ok: true, environment: world.restore(b, Number((await jsonBody(req)).version)) });
+          if (method === "POST" && b && c === "promote") return sendJson(res, { ok: true, environment: world.promote(b, (await jsonBody(req)).approve === true) });
+        }
+        if (a === "objects") {
+          if (method === "POST" && !b) return sendJson(res, { ok: true, object: world.createObject(await jsonBody(req)) }, 201);
+          if (method === "POST" && b && c === "modify") return sendJson(res, { ok: true, object: world.modifyObject(b, await jsonBody(req)) });
+        }
+        if (method === "POST" && a === "settled") {
+          const positions = ((await jsonBody(req)).positions ?? {}) as Record<string, unknown>;
+          let envId: string | undefined;
+          for (const [id, pos] of Object.entries(positions)) {
+            if (Array.isArray(pos) && pos.length === 3 && pos.every((n) => typeof n === "number" && Number.isFinite(n))) {
+              envId = forge.updatePlacement(id, { position: pos }).environmentId;
+            }
+          }
+          if (Object.keys(positions).length) world.touched(envId, "physics settled");
+          return sendJson(res, { ok: true });
+        }
+        if (a === "improvements") {
+          if (method === "GET") return sendJson(res, { ok: true, improvements: world.improvements() });
+          if (method === "POST") return sendJson(res, { ok: true, improvement: world.recordImprovement((await jsonBody(req)) as never) }, 201);
         }
       }
 

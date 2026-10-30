@@ -225,7 +225,19 @@ function GenesisMinimizeButton() {
    StrictMode's mount→unmount→mount dev cycle keeps the count at 1. */
 let genesisInterfaceMountCount = 0;
 
+/** True while GenesisDock is a left rail (tablet and desktop, ≥ 720px). */
+function useDockRailLeft(): boolean {
+  const [wide, setWide] = useState(() => typeof window !== "undefined" && window.innerWidth >= 720);
+  useEffect(() => {
+    const onResize = () => setWide(window.innerWidth >= 720);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return wide;
+}
+
 export default function GenesisInterface() {
+  const dockRailLeft = useDockRailLeft();
   const {
     state,
     universe,
@@ -618,7 +630,9 @@ export default function GenesisInterface() {
             style={{
               position: "absolute",
               top: 16,
-              left: 16,
+              /* From tablet width up the dock is a left rail (GenesisDock's
+                 720px breakpoint); keep the expand chip clear of it. */
+              left: dockRailLeft ? 96 : 16,
               /* In Gen V2 the scene rail sits on the right — keep the
                  palette/fullscreen controls clear of it. */
               right: sceneIsV2 ? 96 : 16,

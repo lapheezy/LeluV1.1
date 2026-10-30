@@ -64,7 +64,42 @@ export interface CosmosPlacement {
   slot?: string | null;
   worn?: boolean;
   environmentId?: string;
+  primitive?: { shape: "box" | "sphere" | "cylinder" | "cone" | "torus" | "plane"; color: string; metalness: number; roughness: number; emissive: string | null; opacity: number } | null;
+  physics?: { dynamic: boolean; mass: number; restitution: number; friction: number; velocity?: [number, number, number] } | null;
   createdAt: number;
+}
+
+export interface EnvironmentSettings {
+  radius: number;
+  floorColor: string;
+  wallColor: string;
+  accent: string;
+  wallHeight: number;
+  ambient: number;
+  keyLight: number;
+  keyColor: string;
+  fogColor: string;
+  fogDensity: number;
+  gravity: number;
+}
+
+export interface WorldEnvironment {
+  id: string;
+  name: string;
+  kind: string;
+  description: string;
+  settings: EnvironmentSettings;
+  sandbox: boolean;
+  sandboxOf: string | null;
+  version: number;
+}
+
+export interface WorldState {
+  current: string;
+  environment: WorldEnvironment;
+  environments: Array<Pick<WorldEnvironment, "id" | "name" | "kind" | "sandbox" | "sandboxOf" | "version">>;
+  objects: CosmosPlacement[];
+  origin: { centre: [number, number]; floorY: number };
 }
 
 export interface LibraryAsset {
@@ -141,6 +176,60 @@ export const ForgeClient = {
   library: () => call<{ assets: LibraryAsset[] }>("/library"),
 
   placements: () => call<{ placements: CosmosPlacement[] }>("/placements"),
+
+  world: () => call<WorldState>("/world"),
+
+  async enterEnvironment(id: string) {
+    const result = await call<WorldState>("/world/enter", { method: "POST", body: { id } });
+    announce();
+    return result;
+  },
+
+  async createEnvironment(input: { name: string; kind?: string; description?: string; settings?: Partial<EnvironmentSettings>; sandboxOf?: string }) {
+    const result = await call<{ environment: WorldEnvironment }>("/world/environments", { method: "POST", body: input });
+    announce();
+    return result;
+  },
+
+  async updateEnvironment(id: string, patch: { name?: string; description?: string; settings?: Partial<EnvironmentSettings> }) {
+    const result = await call<{ environment: WorldEnvironment }>(`/world/environments/${encodeURIComponent(id)}/update`, { method: "POST", body: patch });
+    announce();
+    return result;
+  },
+
+  history: (id: string) => call<{ history: Array<{ version: number; at: string; reason: string; objects: number }> }>(`/world/environments/${encodeURIComponent(id)}/history`),
+
+  async restoreEnvironment(id: string, version: number) {
+    const result = await call<{ environment: WorldEnvironment }>(`/world/environments/${encodeURIComponent(id)}/restore`, { method: "POST", body: { version } });
+    announce();
+    return result;
+  },
+
+  async promoteSandbox(id: string, approve: boolean) {
+    const result = await call<{ environment: WorldEnvironment }>(`/world/environments/${encodeURIComponent(id)}/promote`, { method: "POST", body: { approve } });
+    announce();
+    return result;
+  },
+
+  async createObject(input: Record<string, unknown>) {
+    const result = await call<{ object: CosmosPlacement }>("/world/objects", { method: "POST", body: input });
+    announce();
+    return result;
+  },
+
+  async modifyObject(id: string, patch: { primitive?: Partial<NonNullable<CosmosPlacement["primitive"]>>; physics?: Partial<NonNullable<CosmosPlacement["physics"]>> | null; environmentId?: string }) {
+    const result = await call<{ object: CosmosPlacement }>(`/world/objects/${encodeURIComponent(id)}/modify`, { method: "POST", body: patch });
+    announce();
+    return result;
+  },
+
+  /** Physics came to rest: persist where things ended up (no change event — the scene already shows it). */
+  settled: (positions: Record<string, [number, number, number]>) => call<{ ok: true }>("/world/settled", { method: "POST", body: { positions } }),
+
+  improvements: () => call<{ improvements: Array<Record<string, unknown>> }>("/world/improvements"),
+
+  recordImprovement: (entry: { stage: string; subject: string; what: string; why: string; tests?: string; passed?: boolean | null; environmentId?: string | null }) =>
+    call<{ improvement: Record<string, unknown> }>("/world/improvements", { method: "POST", body: entry }),
 
   async wear(character: string, slot: string, worn: boolean) {
     const result = await call<{ placements: CosmosPlacement[] }>(`/characters/${encodeURIComponent(character)}/wear`, { method: "POST", body: { slot, worn } });

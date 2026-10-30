@@ -25,7 +25,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import ForgeClient, { FORGE_CHANGED_EVENT, type CosmosPlacement } from "../../../core/forge/ForgeClient";
+import ForgeClient, { type CosmosPlacement } from "../../../core/forge/ForgeClient";
 import { attachmentPose, findBone } from "../../../core/forge/Attachment";
 
 const tmpPos = new THREE.Vector3();
@@ -39,7 +39,7 @@ function inScene(object: THREE.Object3D, scene: THREE.Object3D): boolean {
   return o === scene;
 }
 
-function PlacedModel({ placement }: { placement: CosmosPlacement }) {
+export function PlacedModel({ placement }: { placement: CosmosPlacement }) {
   const scene = useThree((state) => state.scene);
   const root = useRef<THREE.Group>(null);
   const bone = useRef<THREE.Object3D | null>(null);
@@ -169,30 +169,3 @@ function PlacedModel({ placement }: { placement: CosmosPlacement }) {
   );
 }
 
-export default function ForgePlacements() {
-  const [placements, setPlacements] = useState<CosmosPlacement[]>([]);
-
-  useEffect(() => {
-    let alive = true;
-    const load = () =>
-      ForgeClient.placements()
-        .then(({ placements }) => {
-          if (alive) setPlacements(placements);
-        })
-        .catch((error) => console.info("[Forge placements] unavailable", error instanceof Error ? error.message : error));
-    void load();
-    window.addEventListener(FORGE_CHANGED_EVENT, load);
-    return () => {
-      alive = false;
-      window.removeEventListener(FORGE_CHANGED_EVENT, load);
-    };
-  }, []);
-
-  return (
-    <group name="ForgePlacements">
-      {placements.map((placement) => (
-        <PlacedModel key={placement.id} placement={placement} />
-      ))}
-    </group>
-  );
-}

@@ -36,6 +36,7 @@ import PersistentRuntime from "./proactive/PersistentRuntime";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { registerEarthTools } from "./earth/EarthTools";
 import { registerForgeTools } from "./forge/ForgeTools";
+import { registerWorldTools } from "./world/WorldTools";
 import ToolRegistry from "./tools/ToolRegistry";
 import { markPerf } from "./perf/StartupTelemetry";
 import StartupDiagnostic from "./selfdev/StartupDiagnostic";
@@ -182,6 +183,7 @@ export default class Bootstrap {
       registerEarthTools();
       // 3D Forge (character/asset generation through the server-side Meshy broker)
       registerForgeTools();
+      registerWorldTools();
       // Recompute ToolRegistry availability from real runtime state
       // (autonomy gate, GitHub connection, device features) — it was
       // previously a catalog of hardcoded booleans nobody ever checked.

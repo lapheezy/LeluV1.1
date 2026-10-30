@@ -645,7 +645,7 @@ export class MeshyForge {
     return next;
   }
 
-  place(input: { jobId: string; label?: string; position?: unknown; rotationY?: unknown; height?: unknown; attach?: unknown; slot?: unknown; worn?: unknown }): CosmosPlacement {
+  place(input: { jobId: string; label?: string; position?: unknown; rotationY?: unknown; height?: unknown; attach?: unknown; slot?: unknown; worn?: unknown; environmentId?: unknown }): CosmosPlacement {
     const job = this.store.job(input.jobId);
     if (!job) throw new ForgeError(`No job ${input.jobId}.`, 404);
     const model = job.output?.files.find((f) => f.role === "model");
@@ -671,6 +671,7 @@ export class MeshyForge {
       attach: this.attachment(input.attach),
       slot: this.slotName(input.slot),
       worn: input.attach ? input.worn !== false : undefined,
+      environmentId: !input.attach && typeof input.environmentId === "string" && input.environmentId ? input.environmentId : undefined,
       createdAt: Date.now(),
     };
     this.store.savePlacements([...placements, placement]);
