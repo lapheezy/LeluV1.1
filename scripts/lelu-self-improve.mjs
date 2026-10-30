@@ -155,23 +155,30 @@ for (let nudge = 0; nudge < 4 && finished && Date.now() < deadline; nudge += 1) 
 }
 
 await page.waitForTimeout(3000);
-const record = await page.evaluate(() => window.__selfImprove);
-const transcript = (await replies()).map((m) => `── ${m.role.toUpperCase()} ──\n${m.text}`).join("\n\n");
+const record = await page.evaluate(() => window.__selfImprove).catch(() => ({ events: [], images: [] }));
+// Evidence is written even when the server has gone away (measured in
+// run 12: the dev server exited mid-run and the recorder crashed before
+// saving anything). What could not be read is said so in the files.
+const transcript = await replies()
+  .then((messages) => messages.map((m) => `── ${m.role.toUpperCase()} ──\n${m.text}`).join("\n\n"))
+  .catch((error) => `(the conversation could not be read: ${String(error).split("\n")[0]})`);
 // Whatever workspace SHE created: read its diff back from the runtime —
 // before this run writes any evidence file into the project.
 const workspaces = [...new Set(record.events.filter((e) => e.type === "tool_result" && e.tool === "project.copy").map((e) => /workspace\s+["“]?([A-Za-z0-9._-]+)/i.exec(e.result ?? "")?.[1]).filter(Boolean))];
 const diffs = {};
 for (const workspace of workspaces) {
-  const response = await page.evaluate(async (ws) => {
-    const r = await fetch("/api/engineer/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "diff", workspace: ws, includePatch: true }) });
-    return r.json();
-  }, workspace);
+  const response = await page
+    .evaluate(async (ws) => {
+      const r = await fetch("/api/engineer/workspace", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "diff", workspace: ws, includePatch: true }) });
+      return r.json();
+    }, workspace)
+    .catch((error) => ({ ok: false, error: `the diff could not be read: ${String(error).split("\n")[0]}` }));
   diffs[workspace] = response;
 }
 
 for (const [workspace, response] of Object.entries(diffs)) {
   const patch = (response.changes ?? []).map((c) => `--- ${c.path} (${c.status}, +${c.addedLines}/-${c.removedLines})\n${c.patch ?? ""}`).join("\n");
-  writeFileSync(path.join(OUT, `diff-${workspace}.patch.txt`), patch || "(no changes)\n");
+  writeFileSync(path.join(OUT, `diff-${workspace}.patch.txt`), patch || (response.error ? `(${response.error})\n` : "(no changes)\n"));
 }
 // Written only now: the diff above compares her copy with the real
 // project, and evidence files written earlier would show up in it as

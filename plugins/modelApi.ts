@@ -127,6 +127,8 @@ interface ConnectLikeRes {
   /** Present on a real Node response; used to forward a stream chunk by chunk. */
   write?: (chunk: string | Uint8Array) => boolean;
   flushHeaders?: () => void;
+  /** Set once the status line and headers have gone out. */
+  headersSent?: boolean;
 }
 
 interface ConnectLikeReq {
@@ -437,6 +439,20 @@ export function createModelApi(readEnv: EnvReader) {
 
       res.end(await upstream.text());
     } catch (error) {
+      // Measured: an upstream stream that failed AFTER its headers were
+      // forwarded (cut off mid-reply, timed out, the page gone) landed
+      // here, sendJson's setHeader threw ERR_HTTP_HEADERS_SENT inside this
+      // catch, and the rejection — unhandled — stopped the whole dev
+      // server mid-session. Once headers are out, all that is left to do
+      // is end the response.
+      if (res.headersSent) {
+        try {
+          res.end();
+        } catch {
+          // already ended
+        }
+        return;
+      }
       sendJson(
         res,
         {
@@ -452,7 +468,10 @@ export function createModelApi(readEnv: EnvReader) {
   return {
     attach(host: MiddlewareHost): void {
       host.use("/api/model", (req, res, next) => {
-        void handle(req, res, next);
+        // A failed request must never take the server down with it.
+        handle(req, res, next).catch((error: unknown) => {
+          console.error("[model broker] request failed after responding:", error instanceof Error ? error.message : String(error));
+        });
       });
     },
   };
