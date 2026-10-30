@@ -62,7 +62,7 @@ interface BrokeredProvider {
 export const BROKERED: Record<string, BrokeredProvider> = {
   anthropic: {
     endpointId: "anthropic",
-    keyNames: ["VITE_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY", "CLAUDE_API_KEY"],
+    keyNames: ["VITE_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY", "LELU_ANTHROPIC_API_KEY", "CLAUDE_API_KEY"],
     authHeaders: (key) => ({ "x-api-key": key, "anthropic-version": "2023-06-01" }),
   },
   groq: {

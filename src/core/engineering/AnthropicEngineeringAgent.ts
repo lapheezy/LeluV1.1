@@ -144,7 +144,7 @@ export default class AnthropicEngineeringAgent {
 
   /** The same credential resolution every other LÉLU provider uses. */
   private apiKey(): string | undefined {
-    return resolveFirst("ANTHROPIC_API_KEY", "CLAUDE_API_KEY");
+    return resolveFirst("ANTHROPIC_API_KEY", "LELU_ANTHROPIC_API_KEY", "CLAUDE_API_KEY");
   }
 
   /**

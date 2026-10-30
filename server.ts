@@ -50,6 +50,7 @@ import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 const envSummary = loadEnvFilesIntoProcess([
   "VITE_ANTHROPIC_API_KEY",
   "ANTHROPIC_API_KEY",
+  "LELU_ANTHROPIC_API_KEY",
   "VITE_FIRMS_API_KEY",
   "AISSTREAM_API_KEY",
   "INSTAGRAM_ACCESS_TOKEN",

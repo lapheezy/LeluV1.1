@@ -73,7 +73,7 @@ export default class AnthropicProvider implements AIProvider {
     this.model =
       resolveModel("anthropic");
     this.apiKey =
-      resolveFirst("ANTHROPIC_API_KEY", "CLAUDE_API_KEY") ?? "";
+      resolveFirst("ANTHROPIC_API_KEY", "LELU_ANTHROPIC_API_KEY", "CLAUDE_API_KEY") ?? "";
 
     this.initialized = true;
 
