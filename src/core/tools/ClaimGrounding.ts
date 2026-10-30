@@ -118,7 +118,10 @@ export function groundingNote(claims: readonly UngroundedClaim[]): string {
 export interface MeasuredCapture {
   target: "app" | "preview" | "url";
   conditions: string;
+  /** Every problem seen in any load of the page. */
   problems: number;
+  /** Those seen in every load (the rest depend on the app's state at load). */
+  stableProblems?: number;
 }
 
 export interface ContradictedClaim {
@@ -169,7 +172,7 @@ export function contradictedCaptureClaims(reply: string, captures: readonly Meas
     }
     if (measured.length === 0) continue;
     for (const claimed of counts) {
-      if (!measured.some((capture) => capture.problems === claimed)) {
+      if (!measured.some((capture) => capture.problems === claimed || capture.stableProblems === claimed)) {
         found.push({ line: line.slice(0, 200), target, claimed, measured });
         break;
       }

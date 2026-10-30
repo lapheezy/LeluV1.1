@@ -328,3 +328,24 @@ test("project_write refuses what cannot be meant: read-display text and placehol
     assert.ok(unsavableContent(`const x = 1;\n${placeholder}\n`), placeholder);
   }
 });
+
+test("a finding seen in only some loads of the same page is marked, and is no evidence of a fix", async () => {
+  const { mergeLoads } = await import("../plugins/selfViewApi");
+  const { compareCaptures } = await import("../src/core/tools/ToolDispatcher");
+  // Measured in run 20: the chat panel, loaded twice — once a background
+  // message's unread dot widened a tab and cut off its options button.
+  const dot = { label: "button[Options for Engineering]", rect: [237, 71, 32, 32] as [number, number, number, number], problem: "partly-off-screen" as const };
+  const merged = mergeLoads([{ findings: [] }, { findings: [dot] }]);
+  assert.equal(merged.loads, 2);
+  assert.equal(merged.stable, false);
+  assert.equal(merged.findings?.[0].seenIn, 1);
+  assert.equal(mergeLoads([{ findings: [dot] }, { findings: [dot] }]).stable, true);
+
+  // Her app showed it in one load, her preview in none: "2 → 0" was two
+  // app states. The comparison does not call it resolved.
+  const report = compareCaptures([{ label: dot.label, problem: dot.problem, intermittent: true }], [], "phone, panel chat");
+  assert.match(report, /resolved: none/);
+  assert.match(report, /NOT EVIDENCE either way .*partly-off-screen: button\[Options for Engineering\]/);
+  // A stable finding that disappears IS resolved.
+  assert.match(compareCaptures([{ label: dot.label, problem: dot.problem }], [], "phone, panel chat"), /resolved: partly-off-screen: button\[Options for Engineering\]/);
+});

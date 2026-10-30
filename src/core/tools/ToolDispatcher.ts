@@ -179,7 +179,7 @@ function currentChat(context: RouterContext | undefined): ChatConversation | und
  * WITH the Memory panel open against a preview capture with NO panel, and
  * concluded the fix worked; under the same conditions nothing had changed.
  */
-const appCaptures = new Map<string, Array<{ label: string; problem: string }>>();
+const appCaptures = new Map<string, Array<{ label: string; problem: string; intermittent?: boolean }>>();
 
 /**
  * The latest problem count of every capture target under every set of
@@ -193,16 +193,20 @@ export function latestCaptureMeasurements(): MeasuredCapture[] {
 }
 
 export function compareCaptures(
-  before: ReadonlyArray<{ label: string; problem: string }> | undefined,
-  after: ReadonlyArray<{ label: string; problem: string }>,
+  before: ReadonlyArray<{ label: string; problem: string; intermittent?: boolean }> | undefined,
+  after: ReadonlyArray<{ label: string; problem: string; intermittent?: boolean }>,
   conditions: string,
 ): string {
   if (!before) {
     return `\nNo capture of your own app at ${conditions} exists to compare with — capture target "app" with the same viewport and panel, so before and after are comparable.`;
   }
   const key = (finding: { label: string; problem: string }) => `${finding.problem}: ${finding.label}`;
-  const was = new Set(before.map(key));
-  const now = new Set(after.map(key));
+  // A finding seen in only some loads of the same page depends on the app's
+  // state when it loaded (run 20: an unread dot that came and went), so its
+  // presence or absence on either side is evidence of nothing.
+  const intermittent = new Set([...before, ...after].filter((finding) => finding.intermittent).map(key));
+  const was = new Set(before.map(key).filter((item) => !intermittent.has(item)));
+  const now = new Set(after.map(key).filter((item) => !intermittent.has(item)));
   const resolved = [...was].filter((item) => !now.has(item));
   const still = [...was].filter((item) => now.has(item));
   const added = [...now].filter((item) => !was.has(item));
@@ -210,7 +214,10 @@ export function compareCaptures(
     `\nCompared with your app at the same conditions (${conditions}): ${before.length} finding(s) before → ${after.length} now.` +
     `\n  resolved: ${resolved.length ? resolved.join("; ") : "none"}` +
     `\n  still present: ${still.length ? still.join("; ") : "none"}` +
-    `\n  new: ${added.length ? added.join("; ") : "none"}`
+    `\n  new: ${added.length ? added.join("; ") : "none"}` +
+    (intermittent.size
+      ? `\n  NOT EVIDENCE either way — seen in only some loads of the same page, so they depend on the app's state when it loaded, not on your code: ${[...intermittent].join("; ")}`
+      : "")
   );
 }
 
@@ -648,7 +655,8 @@ const EXECUTORS: ToolExecutor[] = [
         events.emit({ type: "tool_failed", taskId, tool: "capture", error });
         return { ok: false, content: `Nothing was captured: ${error}` };
       }
-      const layout = (data.layout ?? {}) as { viewport?: number[]; controls?: number; belowTheFold?: number; behindModal?: number; settled?: boolean; findings?: Array<{ label: string; rect: number[]; problem: string; coveredBy?: string; detail?: string }>; text?: string };
+      const layout = (data.layout ?? {}) as { viewport?: number[]; controls?: number; belowTheFold?: number; behindModal?: number; settled?: boolean; loads?: number; findings?: Array<{ label: string; rect: number[]; problem: string; coveredBy?: string; detail?: string; seenIn?: number }>; text?: string };
+      const loads = layout.loads ?? 1;
       const findings = layout.findings ?? [];
       // The real screenshot goes where every produced image goes: into the
       // conversation and the shared workspace.
@@ -656,21 +664,27 @@ const EXECUTORS: ToolExecutor[] = [
         events.emit({ type: "creative_artifact", taskId, image: data.screenshot, label });
       }
       events.emit({ type: "tool_result", taskId, tool: "capture", result: `${findings.length} layout finding(s)` });
-      const lines = findings.map((f) => `- ${f.problem}: ${f.label} at [x ${f.rect[0]}, y ${f.rect[1]}, w ${f.rect[2]}, h ${f.rect[3]}]${f.coveredBy ? ` covered by ${f.coveredBy}` : ""}${f.detail ? ` (${f.detail})` : ""}`);
+      const isIntermittent = (f: { seenIn?: number }) => loads > 1 && (f.seenIn ?? loads) < loads;
+      const lines = findings.map((f) => `- ${isIntermittent(f) ? `[in ${f.seenIn} of ${loads} loads — depends on the app's state when it loaded] ` : ""}${f.problem}: ${f.label} at [x ${f.rect[0]}, y ${f.rect[1]}, w ${f.rect[2]}, h ${f.rect[3]}]${f.coveredBy ? ` covered by ${f.coveredBy}` : ""}${f.detail ? ` (${f.detail})` : ""}`);
       const conditions = `${viewport}${panel ? `, panel ${panel}` : ", no panel"}`;
       let comparison = "";
       // Anything but "url" or "preview" was captured as her app (above).
       const measuredTarget: MeasuredCapture["target"] = target === "url" || target === "preview" ? target : "app";
-      measuredCaptures.set(`${measuredTarget}|${conditions}`, { target: measuredTarget, conditions, problems: findings.length });
-      if (target === "app") appCaptures.set(conditions, findings.map(({ label, problem }) => ({ label, problem })));
-      if (target === "preview") comparison = compareCaptures(appCaptures.get(conditions), findings, conditions) + uncomparedConditions(appCaptures, conditions);
+      measuredCaptures.set(`${measuredTarget}|${conditions}`, {
+        target: measuredTarget,
+        conditions,
+        problems: findings.length,
+        stableProblems: findings.filter((f) => !isIntermittent(f)).length,
+      });
+      if (target === "app") appCaptures.set(conditions, findings.map((f) => ({ label: f.label, problem: f.problem, intermittent: isIntermittent(f) })));
+      if (target === "preview") comparison = compareCaptures(appCaptures.get(conditions), findings.map((f) => ({ label: f.label, problem: f.problem, intermittent: isIntermittent(f) })), conditions) + uncomparedConditions(appCaptures, conditions);
       const errors = Array.isArray(data.pageErrors) && data.pageErrors.length ? `\nPage errors: ${(data.pageErrors as string[]).join(" | ")}` : "";
       return {
         ok: true,
         content:
           `Captured ${String(data.url)} at ${viewport} (${(layout.viewport ?? []).join("×")}), title "${String(data.title ?? "")}"` +
           `${data.panelOpened ? `, panel: ${String(data.panelOpened)}` : ""}. The screenshot is shown to the user.\n` +
-          `Layout report — ${layout.controls ?? 0} visible controls measured, scroll positions reset to the start` +
+          `Layout report — ${layout.controls ?? 0} visible controls measured${loads > 1 ? ` in ${loads} independent loads of the page` : ""}, scroll positions reset to the start` +
           `${layout.settled === false ? " — WARNING: the layout was still moving when measured, so this report may not be repeatable" : ""}` +
           `${layout.belowTheFold ? `; ${layout.belowTheFold} below the fold of a scrolling area (reachable by scrolling — not problems)` : ""}` +
           `${layout.behindModal ? `; ${layout.behindModal} behind an open panel's modal backdrop (covered on purpose while it is open — not problems)` : ""}; ${findings.length} problem(s):\n` +

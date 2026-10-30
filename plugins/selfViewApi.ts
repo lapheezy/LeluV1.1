@@ -592,8 +592,9 @@ async function capture(options: {
     newContext: (options: Record<string, unknown>) => Promise<{ newPage: () => Promise<PageLike> }>;
     close: () => Promise<void>;
   };
-  try {
-    const size = CAPTURE_VIEWPORTS[options.viewport];
+  const size = CAPTURE_VIEWPORTS[options.viewport];
+  // One independent load: a fresh context (fresh storage), the same steps.
+  const loadOnce = async () => {
     const context = await browser.newContext({ viewport: { width: size.width, height: size.height }, isMobile: size.isMobile, hasTouch: size.hasTouch });
     const page = await context.newPage();
     const errors: string[] = [];
@@ -616,25 +617,74 @@ async function capture(options: {
     }
 
     const stability = await waitForStableLayout(page);
-    const layout = { ...((await page.evaluate(LAYOUT_SCRIPT)) as Record<string, unknown>), ...stability };
+    const layout = { ...((await page.evaluate(LAYOUT_SCRIPT)) as Record<string, unknown>), ...stability } as MeasuredLayout;
 
     let shot = await page.screenshot({ type: "jpeg", quality: 60, fullPage: false });
     if (shot.byteLength > MAX_SCREENSHOT_BYTES) shot = await page.screenshot({ type: "jpeg", quality: 30, fullPage: false });
+    return { layout, shot, panelOpened, errors, title: await page.title() };
+  };
+  try {
+    // Her app and her previews are loaded TWICE, independently. Measured in
+    // run 20: the same chat panel read 0 and then 2 problems — a background
+    // message had arrived in one load, its unread dot widening a tab — and
+    // her preview did the same, so "2 → 0" was two app states, not her
+    // fix. Findings seen in only some loads are marked as depending on the
+    // app's state at load time.
+    const loads = [];
+    for (let i = 0; i < (options.ownApp ? 2 : 1); i += 1) loads.push(await loadOnce());
+    const layout = mergeLoads(loads.map((load) => load.layout));
+    // Show the load that found the most: the problem, when it occurs.
+    const shown = loads.reduce((best, load) => ((load.layout.findings?.length ?? 0) > (best.layout.findings?.length ?? 0) ? load : best), loads[0]);
     return {
       ok: true,
       url: options.url,
       viewport: options.viewport,
       panel: options.panel ?? null,
-      panelOpened,
-      title: await page.title(),
+      panelOpened: shown.panelOpened,
+      title: shown.title,
       layout,
-      pageErrors: errors.slice(0, 10),
-      screenshot: `data:image/jpeg;base64,${shot.toString("base64")}`,
+      pageErrors: [...new Set(loads.flatMap((load) => load.errors))].slice(0, 10),
+      screenshot: `data:image/jpeg;base64,${shown.shot.toString("base64")}`,
       capturedAt: Date.now(),
     };
   } finally {
     await browser.close().catch(() => undefined);
   }
+}
+
+interface MeasuredLayout {
+  viewport?: number[];
+  controls?: number;
+  findings?: Array<LayoutFinding & { seenIn?: number }>;
+  settled?: boolean;
+  [key: string]: unknown;
+}
+
+/**
+ * Several independent loads of the same page, as one report: every finding
+ * seen in any load, with `seenIn` (how many loads showed it) and `loads`.
+ * A finding seen in fewer than all loads depends on the app's state when
+ * it was loaded — not on its code — and is evidence of nothing by itself.
+ */
+export function mergeLoads(layouts: readonly MeasuredLayout[]): MeasuredLayout & { loads: number; stable: boolean } {
+  const key = (finding: LayoutFinding) => `${finding.problem}: ${finding.label}`;
+  const merged = new Map<string, LayoutFinding & { seenIn: number }>();
+  for (const layout of layouts) {
+    for (const finding of layout.findings ?? []) {
+      const existing = merged.get(key(finding));
+      if (existing) existing.seenIn += 1;
+      else merged.set(key(finding), { ...finding, seenIn: 1 });
+    }
+  }
+  const findings = [...merged.values()];
+  const first = layouts[0] ?? {};
+  return {
+    ...first,
+    findings,
+    settled: layouts.every((layout) => layout.settled !== false),
+    loads: layouts.length,
+    stable: findings.every((finding) => finding.seenIn === layouts.length),
+  };
 }
 
 /* ------------------------------- routes ------------------------------- */
