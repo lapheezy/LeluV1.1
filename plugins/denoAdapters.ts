@@ -12,7 +12,9 @@
 // Deno ships a node:path compatibility shim; resolve/sep give us the
 // same boundary semantics as the Node adapter.
 import { dirname, join, relative, resolve, sep } from "node:path";
+import { createHash } from "node:crypto";
 import { lineChangeCounts, unifiedPatch } from "./lineDiff.ts";
+import { BASELINE_FILE, classifyChanges, isBinary, parseBaseline, serializeBaseline } from "./workspaceBaseline.ts";
 import {
   WorkspaceBoundaryError,
   type EngineerAdapter,
@@ -33,6 +35,7 @@ const NEVER_COPIED = new Set([
   ".cache",
   ".vite",
   ".lelu-sandbox",
+  BASELINE_FILE,
 ]);
 
 export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
@@ -88,8 +91,15 @@ export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
     return out;
   }
 
-  function countLines(text: string): number {
-    return text.length === 0 ? 0 : text.split("\n").length;
+  function hashTree(base: string): Map<string, string> {
+    return new Map(walkProject(base).map((rel) => [rel, createHash("sha1").update(Deno.readFileSync(join(base, rel))).digest("hex")]));
+  }
+
+  /** A file's text for a patch, or null when it is binary. */
+  function textOf(file: string): string | null {
+    if (!exists(file)) return "";
+    const bytes = Deno.readFileSync(file);
+    return isBinary(bytes) ? null : new TextDecoder().decode(bytes);
   }
 
   /** Same line diff the Node adapter uses (plugins/lineDiff.ts). */
@@ -220,7 +230,10 @@ export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
         }
       }
 
-      return { id: workspaceId, root, createdAt: Date.now(), fileCount: files.length };
+      // What this copy was made from (workspaceBaseline.ts).
+      const createdAt = Date.now();
+      Deno.writeTextFileSync(join(root, BASELINE_FILE), serializeBaseline(hashTree(root), createdAt));
+      return { id: workspaceId, root, createdAt, fileCount: files.length };
     },
 
     listWorkspaces() {
@@ -262,47 +275,26 @@ export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
       if (!exists(root)) {
         throw new WorkspaceBoundaryError(`Workspace "${workspaceId}" does not exist.`);
       }
-      const copyFiles = new Set(walkProject(root));
-      const sourceFiles = new Set(walkProject(workspaceRoot));
+      // Measured against what the copy was made from — mirrors the Node adapter.
+      const baselinePath = join(root, BASELINE_FILE);
+      const baseline = exists(baselinePath) ? parseBaseline(Deno.readTextFileSync(baselinePath)) : null;
       const changes: EngineerDiffEntry[] = [];
-
-      for (const rel of copyFiles) {
-        const copyText = Deno.readTextFileSync(join(root, rel));
-        if (!sourceFiles.has(rel)) {
-          changes.push({
-            path: rel,
-            status: "added",
-            addedLines: countLines(copyText),
-            removedLines: 0,
-            ...(includePatch ? { patch: buildPatch(rel, "", copyText) } : {}),
-          });
-          continue;
-        }
-        const sourceText = Deno.readTextFileSync(join(workspaceRoot, rel));
-        if (sourceText === copyText) continue;
-        // Real counts: whole-file totals here read as a diff summary but hid
-        // what was removed (the Node adapter was fixed for this earlier).
-        const counts = lineChangeCounts(sourceText, copyText);
+      for (const change of classifyChanges(hashTree(root), baseline, hashTree(workspaceRoot))) {
+        const before = change.status === "added" && !change.realChangedSince ? "" : textOf(join(workspaceRoot, change.path));
+        const after = change.status === "deleted" ? "" : textOf(join(root, change.path));
+        const binary = before === null || after === null;
+        const counts = binary ? { added: 0, removed: 0 } : lineChangeCounts(before, after);
         changes.push({
-          path: rel,
-          status: "modified",
+          path: change.path,
+          status: change.status,
           addedLines: counts.added,
           removedLines: counts.removed,
-          ...(includePatch ? { patch: buildPatch(rel, sourceText, copyText) } : {}),
+          ...(binary ? { binary: true } : {}),
+          ...(change.realChangedSince ? { realChangedSince: true } : {}),
+          ...(includePatch ? { patch: binary ? "(binary file — contents not shown)" : buildPatch(change.path, before, after) } : {}),
         });
       }
-      for (const rel of sourceFiles) {
-        if (copyFiles.has(rel)) continue;
-        const sourceText = Deno.readTextFileSync(join(workspaceRoot, rel));
-        changes.push({
-          path: rel,
-          status: "deleted",
-          addedLines: 0,
-          removedLines: countLines(sourceText),
-          ...(includePatch ? { patch: buildPatch(rel, sourceText, "") } : {}),
-        });
-      }
-      return changes.sort((a, b) => a.path.localeCompare(b.path));
+      return changes;
     },
 
     async applyWorkspace(workspaceId, paths) {
@@ -310,6 +302,13 @@ export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
       const changes = await this.diffWorkspace(workspaceId);
       const wanted = new Set(paths);
       const selected = changes.filter((change) => wanted.size === 0 || wanted.has(change.path));
+      const conflicts = selected.filter((change) => change.realChangedSince);
+      if (conflicts.length > 0) {
+        throw new Error(
+          `Nothing was applied: ${conflicts.map((change) => change.path).join(", ")} changed in the real project after this copy was made. ` +
+            "Make a fresh copy and redo the change there, or apply only the other paths.",
+        );
+      }
 
       const applied: string[] = [];
       for (const change of selected) {

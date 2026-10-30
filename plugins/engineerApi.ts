@@ -164,6 +164,10 @@ export interface EngineerDiffEntry {
    * `includePatch`, and bounded so a large file cannot flood a reply.
    */
   patch?: string;
+  /** Binary on either side: counted, never inlined as text. */
+  binary?: boolean;
+  /** Changed in the copy AND in the real project since the copy was made: apply refuses it. */
+  realChangedSince?: boolean;
 }
 
 /** Whitelisted operations — the only commands the server will ever run. */

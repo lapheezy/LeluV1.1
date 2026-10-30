@@ -1773,7 +1773,10 @@ ${updated ? describeArtifact(updated, 1500) : ""}`,
         return { ok: true, content: "The copy is identical to the real project — nothing has changed." };
       }
       const lines = changes.map((change) => {
-        const header = `${change.status.toUpperCase()} ${change.path} (+${change.addedLines}/-${change.removedLines} lines)`;
+        const header =
+          `${change.status.toUpperCase()} ${change.path} ` +
+          `${change.binary ? "(binary)" : `(+${change.addedLines}/-${change.removedLines} lines)`}` +
+          `${change.realChangedSince ? " — ALSO CHANGED in the real project since this copy was made: it cannot be applied as is" : ""}`;
         return change.patch ? `${header}\n${change.patch}` : header;
       });
       return { ok: true, content: lines.join("\n\n"), data: { count: changes.length } };

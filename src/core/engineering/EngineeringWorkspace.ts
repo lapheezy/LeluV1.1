@@ -46,6 +46,10 @@ export interface WorkspaceChange {
   removedLines: number;
   /** The actual changed lines, when the diff was asked for with a patch. */
   patch?: string;
+  /** Binary: counted, never shown as text. */
+  binary?: boolean;
+  /** Also changed in the real project since the copy was made: applying it is refused. */
+  realChangedSince?: boolean;
 }
 
 export interface WorkspaceRecord {

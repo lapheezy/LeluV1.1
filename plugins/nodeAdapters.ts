@@ -9,7 +9,9 @@
  */
 
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import { lineChangeCounts, unifiedPatch } from "./lineDiff.ts";
+import { BASELINE_FILE, classifyChanges, isBinary, parseBaseline, serializeBaseline } from "./workspaceBaseline.ts";
 import {
   cpSync,
   existsSync,
@@ -56,6 +58,8 @@ const NEVER_COPIED = new Set([
   ".cache",
   ".vite",
   ".lelu-sandbox",
+  // The copy's own record of what it was copied from (workspaceBaseline.ts).
+  BASELINE_FILE,
 ]);
 
 /** Build the adapter bound to the current working directory. */
@@ -108,8 +112,19 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
     return out;
   }
 
-  function countLines(text: string): number {
-    return text.length === 0 ? 0 : text.split("\n").length;
+  function hashFile(file: string): string {
+    return createHash("sha1").update(readFileSync(file)).digest("hex");
+  }
+
+  function hashTree(base: string): Map<string, string> {
+    return new Map(walkProject(base).map((relative) => [relative, hashFile(path.join(base, relative))]));
+  }
+
+  /** A file's text for a patch, or null when it is binary. */
+  function textOf(file: string): string | null {
+    if (!existsSync(file)) return "";
+    const bytes = readFileSync(file);
+    return isBinary(bytes) ? null : bytes.toString("utf8");
   }
 
   // Real line counts and a hunked patch (plugins/lineDiff.ts). Totals
@@ -292,7 +307,11 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
         }
       }
 
-      return { id: workspaceId, root, createdAt: Date.now(), fileCount: files.length };
+      // What this copy was made from, so its diff is HER changes and not
+      // whatever the real project gains afterwards (workspaceBaseline.ts).
+      const createdAt = Date.now();
+      writeFileSync(path.join(root, BASELINE_FILE), serializeBaseline(hashTree(root), createdAt));
+      return { id: workspaceId, root, createdAt, fileCount: files.length };
     },
 
     listWorkspaces() {
@@ -331,49 +350,30 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
         throw new WorkspaceBoundaryError(`Workspace "${workspaceId}" does not exist.`);
       }
 
-      // Compare real file contents on both sides — never a record of
-      // what was "supposed" to have changed.
-      const copyFiles = new Set(walkProject(root));
-      const sourceFiles = new Set(walkProject(workspaceRoot));
+      // Real file contents on both sides — never a record of what was
+      // "supposed" to have changed — measured against what the copy was
+      // made from when that is recorded (workspaceBaseline.ts).
+      const baselinePath = path.join(root, BASELINE_FILE);
+      const baseline = existsSync(baselinePath) ? parseBaseline(readFileSync(baselinePath, "utf8")) : null;
+      const classified = classifyChanges(hashTree(root), baseline, hashTree(workspaceRoot));
       const changes: EngineerDiffEntry[] = [];
-
-      for (const relative of copyFiles) {
-        const copyText = readFileSync(path.join(root, relative), "utf8");
-        if (!sourceFiles.has(relative)) {
-          changes.push({
-            path: relative,
-            status: "added",
-            addedLines: countLines(copyText),
-            removedLines: 0,
-            ...(includePatch ? { patch: buildPatch(relative, "", copyText) } : {}),
-          });
-          continue;
-        }
-        const sourceText = readFileSync(path.join(workspaceRoot, relative), "utf8");
-        if (sourceText === copyText) continue;
-        const counts = changeCounts(sourceText, copyText);
+      for (const change of classified) {
+        // The patch is what applying would do to the real file as it is now.
+        const before = change.status === "added" && !change.realChangedSince ? "" : textOf(path.join(workspaceRoot, change.path));
+        const after = change.status === "deleted" ? "" : textOf(path.join(root, change.path));
+        const binary = before === null || after === null;
+        const counts = binary ? { added: 0, removed: 0 } : changeCounts(before, after);
         changes.push({
-          path: relative,
-          status: "modified",
+          path: change.path,
+          status: change.status,
           addedLines: counts.added,
           removedLines: counts.removed,
-          ...(includePatch ? { patch: buildPatch(relative, sourceText, copyText) } : {}),
+          ...(binary ? { binary: true } : {}),
+          ...(change.realChangedSince ? { realChangedSince: true } : {}),
+          ...(includePatch ? { patch: binary ? "(binary file — contents not shown)" : buildPatch(change.path, before, after) } : {}),
         });
       }
-
-      for (const relative of sourceFiles) {
-        if (copyFiles.has(relative)) continue;
-        const sourceText = readFileSync(path.join(workspaceRoot, relative), "utf8");
-        changes.push({
-          path: relative,
-          status: "deleted",
-          addedLines: 0,
-          removedLines: countLines(sourceText),
-          ...(includePatch ? { patch: buildPatch(relative, sourceText, "") } : {}),
-        });
-      }
-
-      return changes.sort((a, b) => a.path.localeCompare(b.path));
+      return changes;
     },
 
     async applyWorkspace(workspaceId, paths) {
@@ -387,6 +387,17 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
       const selected = changes.filter(
         (change) => wanted.size === 0 || wanted.has(change.path),
       );
+
+      // Never overwrite work the real project gained after the copy was
+      // made: a file changed on both sides is refused, and nothing is
+      // written, until it is reconciled.
+      const conflicts = selected.filter((change) => change.realChangedSince);
+      if (conflicts.length > 0) {
+        throw new Error(
+          `Nothing was applied: ${conflicts.map((change) => change.path).join(", ")} changed in the real project after this copy was made. ` +
+            "Make a fresh copy and redo the change there, or apply only the other paths.",
+        );
+      }
 
       const applied: string[] = [];
       for (const change of selected) {
