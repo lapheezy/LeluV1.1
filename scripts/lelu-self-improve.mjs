@@ -18,7 +18,7 @@
  */
 
 import { chromium } from "playwright";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -28,7 +28,10 @@ const LIMIT_MS = Number(process.env.LELU_SELF_IMPROVE_LIMIT_MS ?? 60 * 60 * 1000
 // right after the edits that worked and before she could validate them.
 const MAX_GO_AHEADS = 8;
 
-const REQUEST = [
+// A follow-up run (e.g. a reviewer's verification of her last change) can
+// replace the opening request: LELU_SELF_IMPROVE_REQUEST_FILE=<path>.
+// It is saved as request.txt with the evidence, like the default.
+const REQUEST = process.env.LELU_SELF_IMPROVE_REQUEST_FILE ? readFileSync(process.env.LELU_SELF_IMPROVE_REQUEST_FILE, "utf8").trim() : [
   "LÉLU, please improve your own interface using your self-development loop.",
   "1) Look at your own running app at phone size with browser_capture (target \"app\") — check several panels, not just the home screen.",
   "2) From the screenshots and layout reports, choose ONE concrete, low-risk problem a user would actually hit. Tell me the problem and a testable expected outcome before you change anything.",

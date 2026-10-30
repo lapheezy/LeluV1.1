@@ -1,0 +1,59 @@
+{
+  "desktop-a/app": {
+    "beforeOpen": [],
+    "frames": 11,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-a/hers": {
+    "beforeOpen": [],
+    "frames": 11,
+    "coveredMs": 4537,
+    "firstCovered": 1261,
+    "lastCovered": 4548,
+    "worst": [
+      "Open LÉLU menu",
+      "Close chat"
+    ]
+  },
+  "desktop-b/app": {
+    "beforeOpen": [],
+    "frames": 9,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-b/hers": {
+    "beforeOpen": [],
+    "frames": 11,
+    "coveredMs": 4458,
+    "firstCovered": 974,
+    "lastCovered": 4473,
+    "worst": [
+      "Open LÉLU menu",
+      "Close chat"
+    ]
+  },
+  "desktop-c/app": {
+    "beforeOpen": [],
+    "frames": 12,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-c/hers": {
+    "beforeOpen": [],
+    "frames": 9,
+    "coveredMs": 6445,
+    "firstCovered": 2975,
+    "lastCovered": 8327,
+    "worst": [
+      "Open LÉLU menu",
+      "Close chat"
+    ]
+  }
+}
