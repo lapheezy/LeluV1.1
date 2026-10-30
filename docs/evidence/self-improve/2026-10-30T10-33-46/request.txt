@@ -1,0 +1,8 @@
+LÉLU, please finish your self-development loop on workspace "default" (your copy: EDGE_MARGIN 100, reconsider every 500 ms, default spot top-left).
+
+In your last session you validated it and captured the preview and the app at phone and at desktop, but right after project_diff the AI provider failed and you could not give your verdict. That diff was wrong: it listed files added to the real project after your copy was made as if you had deleted them. It now shows only what your copy changed.
+
+1) Do not run project_copy (it would replace your copy). Validate the copy as it is (project_validate) and start its preview (project_preview).
+2) Capture the app and the preview at phone AND at desktop (panel chat each), app first, so each preview capture is compared with the app under the same conditions.
+3) If the preview still shows a control covered (including covered-while-opening) that the app does not, fix your copy, validate and compare again.
+4) Show the diff (project_diff) and say plainly, for phone and for desktop, whether the outcome — no control covered by the companion, including while the panel opens — is met, based on the evidence.

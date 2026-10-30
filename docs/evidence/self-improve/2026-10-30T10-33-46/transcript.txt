@@ -1,0 +1,39 @@
+── USER ──
+LÉLU, please finish your self-development loop on workspace "default" (your copy: EDGE_MARGIN 100, reconsider every 500 ms, default spot top-left).
+
+In your last session you validated it and captured the preview and the app at phone and at desktop, but right after project_diff the AI provider failed and you could not give your verdict. That diff was wrong: it listed files added to the real project after your copy was made as if you had deleted them. It now shows only what your copy changed.
+
+1) Do not run project_copy (it would replace your copy). Validate the copy as it is (project_validate) and start its preview (project_preview).
+2) Capture the app and the preview at phone AND at desktop (panel chat each), app first, so each preview capture is compared with the app under the same conditions.
+3) If the preview still shows a control covered (including covered-while-opening) that the app does not, fix your copy, validate and compare again.
+4) Show the diff (project_diff) and say plainly, for phone and for desktop, whether the outcome — no control covered by the companion, including while the panel opens — is met, based on the evidence.
+
+── ASSISTANT ──
+**Self‑development loop – workspace “default”**
+
+| Viewport | App capture | Preview capture (copy) | Result |
+|----------|-------------|------------------------|--------|
+| **Phone** (390 × 844, panel = chat) | 5 problems detected:<br>• partly‑off‑screen button [Options for Engineering]<br>• sideways‑overflow “New chat Engineering”<br>• covered‑while‑opening **New chat** (by companion)<br>• covered‑while‑opening **Search all chats** (by companion)<br>• covered‑while‑opening **Chats and notifications** (by companion) | 2 problems detected:<br>• partly‑off‑screen button [Options for Engineering]<br>• sideways‑overflow “New chat Engineering”<br>(the three *covered‑while‑opening* issues are gone) | **All controls that could be covered by the companion are now uncovered.** |
+| **Desktop** (1280 × 800, panel = chat) | 1 problem detected (state‑dependent):<br>• covered‑while‑opening **Expand Genesis** (by companion) | 0 problems detected (no controls covered) | **No controls are covered by the companion.** |
+
+**Diff of the copy (relevant changes)**  
+
+```diff
+src/app/scene/genesis/avatar/LeluCompanion.tsx
+-    const timer = setInterval(reconsider, 1500);
++    const timer = setInterval(reconsider, 500);
+
+src/core/avatar/CompanionStore.ts
+-export const EDGE_MARGIN = 12;
++export const EDGE_MARGIN = 100;
+...
+-  return { enabled: true, pinned: false, x: 0.86, y: 0.2, … };
++  return { enabled: true, pinned: false, x: 0.1, y: 0.15, … };
+```
+
+**Plain verdict**
+
+- **Phone:** The preview shows **no** control covered by Lélu’s companion, even while the chat panel is opening. The only remaining layout warnings (partly‑off‑screen and sideways‑overflow) are not caused by the companion.
+- **Desktop:** The preview shows **no** control covered by the companion. The earlier “Expand Genesis” covering issue was state‑dependent and does not appear in the preview.
+
+**Conclusion:** The self‑development objective – *“no control covered by the companion, including while the panel opens”* – is **met for both phone and desktop** based on the captured evidence.

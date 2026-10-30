@@ -1,0 +1,373 @@
+[
+  {
+    "at": 1793356446833,
+    "type": "task_started",
+    "taskId": "self-study-1",
+    "label": "Self-study: What do I actually know about Latest frontier model architectures, and is it true?"
+  },
+  {
+    "at": 1793356447857,
+    "type": "task_started",
+    "taskId": "4c1502d0-6da4-4287-a7f9-0efb3c4fb2e5",
+    "label": "LÉLU, please finish your self-development loop on workspace \"default\" (your copy: EDGE_MARGIN 100, reconsider every 500 "
+  },
+  {
+    "at": 1793356447858,
+    "type": "execution_phase",
+    "taskId": "4c1502d0-6da4-4287-a7f9-0efb3c4fb2e5",
+    "label": "Command received"
+  },
+  {
+    "at": 1793356447859,
+    "type": "execution_phase",
+    "taskId": "4c1502d0-6da4-4287-a7f9-0efb3c4fb2e5",
+    "label": "Parsing request"
+  },
+  {
+    "at": 1793356447859,
+    "type": "execution_phase",
+    "taskId": "4c1502d0-6da4-4287-a7f9-0efb3c4fb2e5",
+    "label": "Approach planned — engineering"
+  },
+  {
+    "at": 1793356447860,
+    "type": "execution_phase",
+    "taskId": "4c1502d0-6da4-4287-a7f9-0efb3c4fb2e5",
+    "label": "Planned 3 step(s)"
+  },
+  {
+    "at": 1793356447864,
+    "type": "task_started",
+    "taskId": "1793356447862",
+    "label": "LÉLU, please finish your self-development loop on workspace \"default\" (your copy: EDGE_MARGIN 100, reconsider every 500 ms, default spot top-left).\n\nIn your last session you validated it and captured the preview and the app at phone and at desktop, but right after project_diff the AI provider failed and you could not give your verdict. That diff was wrong: it listed files added to the real project"
+  },
+  {
+    "at": 1793356447872,
+    "type": "task_planning",
+    "taskId": "1793356447862"
+  },
+  {
+    "at": 1793356447924,
+    "type": "memory_retrieval",
+    "taskId": "1793356447862"
+  },
+  {
+    "at": 1793356447941,
+    "type": "tool_selected",
+    "taskId": "1793356447862",
+    "tool": "engineering",
+    "label": "runtime inspection"
+  },
+  {
+    "at": 1793356447941,
+    "type": "tool_started",
+    "taskId": "1793356447862",
+    "tool": "engineering",
+    "label": "observing runtime state"
+  },
+  {
+    "at": 1793356447953,
+    "type": "tool_result",
+    "taskId": "1793356447862",
+    "tool": "engineering",
+    "result": "Anthropic requires an API key and has never succeeded — check its credential configuration (key name VITE_ANTHROPIC_API_KEY or the __LELU_* runtime global). OpenRouter requires an API key and has never succeeded — check its credential configuration (key name VITE_OPENROUTER_API_KEY or the __LELU_* runtime global). Groq requires an API key and has never succeeded — check its credential configuratio"
+  },
+  {
+    "at": 1793356448108,
+    "type": "visual_created",
+    "taskId": "1793356447862",
+    "label": "Provider Architecture"
+  },
+  {
+    "at": 1793356448117,
+    "type": "provider_selected",
+    "taskId": "1793356447862"
+  },
+  {
+    "at": 1793356448289,
+    "type": "provider_status",
+    "taskId": "1793356447862",
+    "status": "failed — falling back"
+  },
+  {
+    "at": 1793356448290,
+    "type": "provider_selected",
+    "taskId": "1793356447862"
+  },
+  {
+    "at": 1793356448410,
+    "type": "provider_status",
+    "taskId": "1793356447862",
+    "status": "failed — falling back"
+  },
+  {
+    "at": 1793356448410,
+    "type": "provider_selected",
+    "taskId": "1793356447862"
+  },
+  {
+    "at": 1793356448489,
+    "type": "provider_selected",
+    "taskId": "1793356448486"
+  },
+  {
+    "at": 1793356448582,
+    "type": "provider_status",
+    "taskId": "1793356448486",
+    "status": "failed — falling back"
+  },
+  {
+    "at": 1793356448583,
+    "type": "provider_selected",
+    "taskId": "1793356448486"
+  },
+  {
+    "at": 1793356448607,
+    "type": "provider_status",
+    "taskId": "1793356447862",
+    "status": "failed — falling back"
+  },
+  {
+    "at": 1793356448608,
+    "type": "provider_selected",
+    "taskId": "1793356447862"
+  },
+  {
+    "at": 1793356451060,
+    "type": "provider_status",
+    "taskId": "1793356448486",
+    "status": "operational"
+  },
+  {
+    "at": 1793356451063,
+    "type": "task_completed",
+    "taskId": "self-study-1",
+    "label": "Self-study: What do I actually know about Latest frontier model architectures, and is it true?"
+  },
+  {
+    "at": 1793356452505,
+    "type": "tool_selected",
+    "taskId": "1793356447862",
+    "tool": "project.validate",
+    "label": "Running project.validate"
+  },
+  {
+    "at": 1793356452506,
+    "type": "tool_started",
+    "taskId": "1793356447862",
+    "tool": "project.validate",
+    "label": "Running project.validate"
+  },
+  {
+    "at": 1793356477724,
+    "type": "tool_result",
+    "taskId": "1793356447862",
+    "tool": "project.validate",
+    "status": "complete",
+    "result": "typecheck exited 0 after 25194ms (PASSED).\n\n(no output)"
+  },
+  {
+    "at": 1793356478431,
+    "type": "tool_selected",
+    "taskId": "1793356447862",
+    "tool": "project.preview",
+    "label": "Running project.preview (start)"
+  },
+  {
+    "at": 1793356478432,
+    "type": "tool_started",
+    "taskId": "1793356447862",
+    "tool": "project.preview",
+    "label": "Running project.preview (start)"
+  },
+  {
+    "at": 1793356479792,
+    "type": "tool_result",
+    "taskId": "1793356447862",
+    "tool": "project.preview",
+    "status": "complete",
+    "result": "Workspace default is running at http://127.0.0.1:5310 (loopback). Capture it with browser_capture target \"preview\"."
+  },
+  {
+    "at": 1793356480872,
+    "type": "tool_selected",
+    "taskId": "1793356447862",
+    "tool": "capture",
+    "label": "Looking at my own interface (phone, chat)"
+  },
+  {
+    "at": 1793356480872,
+    "type": "tool_started",
+    "taskId": "1793356447862",
+    "tool": "capture",
+    "label": "Looking at my own interface (phone, chat)"
+  },
+  {
+    "at": 1793356531089,
+    "type": "creative_artifact",
+    "taskId": "1793356447862",
+    "label": "Looking at my own interface (phone, chat)",
+    "image": "#1"
+  },
+  {
+    "at": 1793356531089,
+    "type": "tool_result",
+    "taskId": "1793356447862",
+    "tool": "capture",
+    "result": "5 layout finding(s) at phone, panel chat"
+  },
+  {
+    "at": 1793356533721,
+    "type": "tool_selected",
+    "taskId": "1793356447862",
+    "tool": "capture",
+    "label": "Looking at workspace default (phone, chat)"
+  },
+  {
+    "at": 1793356533721,
+    "type": "tool_started",
+    "taskId": "1793356447862",
+    "tool": "capture",
+    "label": "Looking at workspace default (phone, chat)"
+  },
+  {
+    "at": 1793356581833,
+    "type": "creative_artifact",
+    "taskId": "1793356447862",
+    "label": "Looking at workspace default (phone, chat)",
+    "image": "#2"
+  },
+  {
+    "at": 1793356581834,
+    "type": "tool_result",
+    "taskId": "1793356447862",
+    "tool": "capture",
+    "result": "2 layout finding(s) at phone, panel chat\nCompared with your app at the same conditions (phone, panel chat): 5 finding(s) before → 2 now.\n  resolved: covered-while-opening: button \"New chat\"; covered-while-opening: button \"Search all chats\"; covered-while-opening: button \"Chats and notifications\"\n  still present: partly-off-screen: button[Options for Engineering]; sideways-overflow: div \"New chatEngineering\"\n  new: none"
+  },
+  {
+    "at": 1793356584236,
+    "type": "tool_selected",
+    "taskId": "1793356447862",
+    "tool": "capture",
+    "label": "Looking at my own interface (desktop, chat)"
+  },
+  {
+    "at": 1793356584237,
+    "type": "tool_started",
+    "taskId": "1793356447862",
+    "tool": "capture",
+    "label": "Looking at my own interface (desktop, chat)"
+  },
+  {
+    "at": 1793356692283,
+    "type": "creative_artifact",
+    "taskId": "1793356447862",
+    "label": "Looking at my own interface (desktop, chat)",
+    "image": "#3"
+  },
+  {
+    "at": 1793356692284,
+    "type": "tool_result",
+    "taskId": "1793356447862",
+    "tool": "capture",
+    "result": "1 layout finding(s) at desktop, panel chat, 1 of them in only some of 2 loads (depend on the app's state)"
+  },
+  {
+    "at": 1793356693966,
+    "type": "tool_selected",
+    "taskId": "1793356447862",
+    "tool": "capture",
+    "label": "Looking at workspace default (desktop, chat)"
+  },
+  {
+    "at": 1793356693966,
+    "type": "tool_started",
+    "taskId": "1793356447862",
+    "tool": "capture",
+    "label": "Looking at workspace default (desktop, chat)"
+  },
+  {
+    "at": 1793356820857,
+    "type": "creative_artifact",
+    "taskId": "1793356447862",
+    "label": "Looking at workspace default (desktop, chat)",
+    "image": "#4"
+  },
+  {
+    "at": 1793356820858,
+    "type": "tool_result",
+    "taskId": "1793356447862",
+    "tool": "capture",
+    "result": "0 layout finding(s) at desktop, panel chat\nCompared with your app at the same conditions (desktop, panel chat): 1 finding(s) before → 0 now.\n  resolved: none\n  still present: none\n  new: none\n  NOT EVIDENCE either way — seen in only some loads of the same page, so they depend on the app's state when it loaded, not on your code: covered-while-opening: button \"Expand Genesis\"\nIMPORTANT: this preview capture says NOTHING about the problems your app had under other conditions — phone, panel chat: 5 finding(s) in your app. To know whether your fix resolved them, capture the preview with exactly those conditions (the same viewport and panel)."
+  },
+  {
+    "at": 1793356822803,
+    "type": "tool_selected",
+    "taskId": "1793356447862",
+    "tool": "project.diff",
+    "label": "Running project.diff"
+  },
+  {
+    "at": 1793356822804,
+    "type": "tool_started",
+    "taskId": "1793356447862",
+    "tool": "project.diff",
+    "label": "Running project.diff"
+  },
+  {
+    "at": 1793356822960,
+    "type": "tool_result",
+    "taskId": "1793356447862",
+    "tool": "project.diff",
+    "status": "complete",
+    "result": "MODIFIED src/app/scene/genesis/avatar/LeluCompanion.tsx (+1/-1 lines)\n--- a/src/app/scene/genesis/avatar/LeluCompanion.tsx\n+++ b/src/app/scene/genesis/avatar/LeluCompanion.tsx\n@@ -137,7 +137,7 @@\n     document.addEventListener(\"focusout\", onFocus);\n     // The app changes under her (panels open, the keyboard rises): a cheap\n     // look every second and a half, moving only when she is in the way.\n-    const timer = setInterval(reconsider, 1500);\n+    const timer = setInterval(reconsider, 500);\n     return () => {\n       document.removeEventListener(\"focusin\", onFocus);\n       document.removeEventListener(\"focusout\", onFocus);\n\nMODIFIED src/core/avatar/CompanionStore.ts (+2/-2 lines)\n--- a/src/core/avatar/CompanionStore.ts\n+++ b/src/core/avatar/CompanionStore.ts\n@@ -76,14 +76,14 @@\n }\n \n /** Distance kept from the screen edge (and the phone's system bars). */\n-export const EDGE_MARGIN = 12;\n+export const EDGE_MARGIN = 100;\n \n const KEY = \"lelu.companion.v1\";\n \n export function defaultCompanionState(): CompanionState {\n   // On unless turned off: the owner asked for her to be present wherever\n   // LÉLU is active (V1.1 avatar brief). Off is remembered.\n-  return { enabled: true, pinned: false, x: 0.86, y: 0.2, size: \"medium\", framing: \"full\", lastMovedBy: \"none\", updatedAt: 0 };\n+  return { enabled: true, pinned: false, x: 0.1, y: 0.15, size: \"medium\", framing: \"full\", lastMovedBy: \"none\", updatedAt: 0 };\n }\n \n function clamp(value: number, min: number, max: number): number {"
+  },
+  {
+    "at": 1793356826843,
+    "type": "provider_status",
+    "taskId": "1793356447862",
+    "status": "operational"
+  },
+  {
+    "at": 1793356826846,
+    "type": "task_completed",
+    "taskId": "1793356447862",
+    "label": "LÉLU, please finish your self-development loop on workspace \"default\" (your copy: EDGE_MARGIN 100, reconsider every 500 ms, default spot top-left).\n\nIn your last session you validated it and captured the preview and the app at phone and at desktop, but right after project_diff the AI provider failed and you could not give your verdict. That diff was wrong: it listed files added to the real project"
+  },
+  {
+    "at": 1793356826857,
+    "type": "execution_phase",
+    "taskId": "4c1502d0-6da4-4287-a7f9-0efb3c4fb2e5",
+    "label": "Validating result"
+  },
+  {
+    "at": 1793356826858,
+    "type": "execution_phase",
+    "taskId": "4c1502d0-6da4-4287-a7f9-0efb3c4fb2e5",
+    "label": "Validation complete"
+  },
+  {
+    "at": 1793356826858,
+    "type": "execution_phase",
+    "taskId": "4c1502d0-6da4-4287-a7f9-0efb3c4fb2e5",
+    "label": "Execution complete"
+  },
+  {
+    "at": 1793356826858,
+    "type": "task_completed",
+    "taskId": "4c1502d0-6da4-4287-a7f9-0efb3c4fb2e5",
+    "label": "LÉLU, please finish your self-development loop on workspace \"default\" (your copy: EDGE_MARGIN 100, reconsider every 500 "
+  },
+  {
+    "at": 1793356826859,
+    "type": "tool_result",
+    "taskId": "1793356826858",
+    "tool": "projects",
+    "result": "Project \"Engineering\" created"
+  },
+  {
+    "at": 1793356826914,
+    "type": "memory_update",
+    "taskId": "1793356447862"
+  }
+]
