@@ -83,14 +83,18 @@ console.log(`[${new Date().toISOString()}] request sent; recording to ${OUT}`);
 
 /** Wait for the turn started by `message` to end; returns its end event or null. */
 async function waitForTurn(message, deadline) {
+  // Only an end AFTER this message was sent: every go-ahead has the same
+  // text, and matching an earlier one's end fired the next go-ahead while
+  // she was still working (measured in run 13: three go-aheads 5 s apart).
+  const since = await page.evaluate(() => Date.now());
   let lastCount = -1;
   while (Date.now() < deadline) {
     await page.waitForTimeout(5000);
-    const state = await page.evaluate((head) => {
+    const state = await page.evaluate(({ head, since }) => {
       const events = window.__selfImprove.events;
-      const end = events.find((e) => (e.type === "task_completed" || e.type === "task_failed") && (e.label ?? "").startsWith(head));
+      const end = events.find((e) => e.at >= since && (e.type === "task_completed" || e.type === "task_failed") && (e.label ?? "").startsWith(head));
       return { count: events.length, end: end ?? null, tools: events.filter((e) => e.type === "tool_started").map((e) => e.tool) };
-    }, message.slice(0, 40));
+    }, { head: message.slice(0, 40), since });
     if (state.count !== lastCount) {
       console.log(`  +${Math.round((Date.now() - started) / 1000)}s  ${state.count} events; tools so far: ${state.tools.join(", ")}`);
       lastCount = state.count;
