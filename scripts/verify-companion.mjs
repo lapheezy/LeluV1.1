@@ -121,11 +121,24 @@ for (const viewport of [{ name: "phone 390×844", width: 390, height: 844 }, { n
   await notice.waitFor({ state: "visible", timeout: 8000 }).then(() => notice.click()).catch(() => {});
   await page.waitForTimeout(400);
 
-  check("companion is off by default", (await figure(page)) === null);
+  // V1.1 brief: she is present wherever LÉLU is active, unless turned off.
+  await page.waitForSelector("[data-testid='lelu-companion-figure']", { timeout: 20000 }).catch(() => {});
+  check("companion is on by default", (await figure(page)) !== null);
 
-  // Turn her on with a real switch: the menu on a phone (the floating LÉLU
-  // pill), the Avatar panel on desktop.
+  // The real switch — the menu on a phone (the floating LÉLU pill), the
+  // Avatar panel on desktop — turns her off, then on again.
   await dismissSignInGate(page);
+  const pressSwitch = async () => {
+    if (!(await page.locator("[data-testid='companion-toggle'] >> visible=true").count())) {
+      if (viewport.width < 600) await page.getByRole("button", { name: "Open LÉLU menu" }).click({ timeout: 5000, force: true }).catch(() => {});
+      else await dispatchUi(page, { type: "open_panel", target: "avatar" });
+      await page.waitForSelector("[data-testid='companion-toggle'] >> visible=true", { timeout: 10000 }).catch(() => {});
+      await clearNotice(page);
+    }
+    await page.locator("[data-testid='companion-toggle'] >> visible=true").first().click({ timeout: 10000, force: true }).catch(() => {});
+  };
+  await attempt(page, "turn off", pressSwitch, async () => (await figure(page)) === null);
+  check("the switch turns her off", (await figure(page)) === null);
   const switchOn = () => page.evaluate(() => [...document.querySelectorAll("[data-testid='companion-toggle']")].some((t) => t.getAttribute("aria-checked") === "true") || Boolean(document.querySelector("[data-testid='lelu-companion-figure']")));
   await attempt(
     page,
@@ -206,10 +219,16 @@ for (const viewport of [{ name: "phone 390×844", width: 390, height: 844 }, { n
     const { default: Bus } = await import("/src/core/agent/AgentEvents.ts");
     Bus.getInstance().emit({ type: "tool_started", taskId: "verify-companion", tool: "research", label: "Searching the web for tide tables" });
   });
-  await page.waitForTimeout(300);
-  const caption = await page.textContent("[data-testid='lelu-companion-caption']").catch(() => null);
+  // At ~2 frames a second (her live canvas included) React may need a few
+  // seconds to show it: polled, not slept.
+  let caption = null;
+  let activity = null;
+  for (let i = 0; i < 20 && (caption !== "Searching the web for tide tables…" || activity !== "SEARCHING"); i += 1) {
+    await page.waitForTimeout(400);
+    caption = await page.textContent("[data-testid='lelu-companion-caption']").catch(() => null);
+    activity = await page.getAttribute("[data-testid='lelu-companion']", "data-activity").catch(() => null);
+  }
   check("an event on LÉLU's event bus becomes her caption", caption === "Searching the web for tide tables…", caption);
-  const activity = await page.getAttribute("[data-testid='lelu-companion']", "data-activity");
   check("and her body takes that activity (live state, not a mood)", activity === "SEARCHING", activity);
 
   // Her speech as the browser's speech engine plays it.

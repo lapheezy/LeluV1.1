@@ -29,7 +29,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AvatarStore from "../../../../core/avatar/AvatarProfile";
 import CompanionStore, {
-  COMPANION_DIMENSIONS,
+  companionDimensions,
   chooseSpot,
   figureRect,
   type CompanionState,
@@ -38,16 +38,12 @@ import CompanionStore, {
 import AgentEventBus from "../../../../core/agent/AgentEvents";
 import VoiceEngine from "../../../../core/voice/VoiceEngine";
 import { within } from "../../../../core/ui/Layers";
-import AvatarPortrait from "../AvatarPortrait";
 import { useGenesis } from "../GenesisCore";
-import { ACTIVITY_ACCENT, useLeluActivity, type LeluActivity } from "./leluActivity";
+import { ACTIVITY_ACCENT, useLeluActivity } from "./leluActivity";
+import LeluCharacterStore from "../../../../core/avatar/LeluCharacterStore";
+import LeluCharacter from "./LeluCharacter";
+import { useLeluCharacter } from "./useLeluCharacter";
 import { captionForEvent } from "./companionCaption";
-
-function prefersReducedMotion(): boolean {
-  return typeof window !== "undefined" && typeof window.matchMedia === "function"
-    ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    : false;
-}
 
 function viewportSize(): { width: number; height: number } {
   const vv = typeof window !== "undefined" ? window.visualViewport : null;
@@ -98,16 +94,9 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
   const activity = useLeluActivity();
   const accent = ACTIVITY_ACCENT[activity];
 
-  const [referenceImage, setReferenceImage] = useState<string | null>(() => AvatarStore.getInstance().get().referenceImage);
   const [name, setName] = useState(() => AvatarStore.getInstance().get().identity.name || "LÉLU");
-  useEffect(
-    () =>
-      AvatarStore.getInstance().subscribe((profile) => {
-        setReferenceImage(profile.referenceImage);
-        setName(profile.identity.name || "LÉLU");
-      }),
-    [],
-  );
+  useEffect(() => AvatarStore.getInstance().subscribe((profile) => setName(profile.identity.name || "LÉLU")), []);
+  const character = useLeluCharacter();
 
   const [viewport, setViewport] = useState(viewportSize);
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
@@ -115,12 +104,6 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
   const [caption, setCaption] = useState<{ text: string; at: number } | null>(null);
 
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const bodyRef = useRef<HTMLDivElement | null>(null);
-  const pulseRef = useRef(0); // speech beat, decays each frame
-  const speakingRef = useRef(false);
-  const activityRef = useRef<LeluActivity>(activity);
-  activityRef.current = activity;
-  const pointerRef = useRef<{ x: number; y: number } | null>(null);
   const controlsRef = useRef<HTMLDivElement | null>(null);
   // Measured once shown, so the controls can be kept inside the screen.
   const [, remeasure] = useState(0);
@@ -143,7 +126,7 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
   const reconsider = useCallback(() => {
     const current = CompanionStore.getInstance().get();
     if (current.pinned || drag) return;
-    const spot = chooseSpot({ x: current.x, y: current.y }, current.size, viewportSize(), keepClearRects(rootRef.current));
+    const spot = chooseSpot({ x: current.x, y: current.y }, companionDimensions(current.size, current.framing), viewportSize(), keepClearRects(rootRef.current));
     if (spot.moved) CompanionStore.getInstance().placeByLelu(spot.x, spot.y);
   }, [drag]);
 
@@ -160,7 +143,7 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
       document.removeEventListener("focusout", onFocus);
       clearInterval(timer);
     };
-  }, [reconsider, viewport, companion.size, companion.pinned]);
+  }, [reconsider, viewport, companion.size, companion.framing, companion.pinned]);
 
   /* ------------------- what she says (real events only) ------------------ */
   useEffect(() => {
@@ -169,8 +152,6 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
       if (text) setCaption({ text: text.slice(0, 120), at: Date.now() });
     });
     const unsubscribeSpeech = VoiceEngine.getInstance().onSpeechActivity((speech) => {
-      speakingRef.current = speech.speaking;
-      if (speech.kind === "word") pulseRef.current = 1;
       if (speech.kind === "start" && speech.text) setCaption({ text: speech.text.slice(0, 140), at: Date.now() });
     });
     return () => {
@@ -184,47 +165,6 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
     const timer = setTimeout(() => setCaption((current) => (current?.at === caption.at ? null : current)), 6000);
     return () => clearTimeout(timer);
   }, [caption]);
-
-  /* --------------- her body: breath, lean, gaze, speech beat ------------- */
-  useEffect(() => {
-    if (prefersReducedMotion()) return;
-    const onPointer = (event: PointerEvent) => {
-      pointerRef.current = { x: event.clientX, y: event.clientY };
-    };
-    window.addEventListener("pointermove", onPointer, { passive: true });
-    let frame = 0;
-    let last = 0;
-    const tick = (now: number) => {
-      frame = requestAnimationFrame(tick);
-      if (document.hidden || now - last < 33) return; // ~30 fps is plenty
-      last = now;
-      const body = bodyRef.current;
-      if (!body) return;
-      const t = now / 1000;
-      const state = activityRef.current;
-      const breathe = Math.sin(t * 1.15) * 0.012;
-      const thinking = state === "THINKING" || state === "SEARCHING" || state === "WORKING" || state === "BUILDING" || state === "BROWSING" || state === "RENDERING";
-      const sway = thinking ? Math.sin(t * 0.7) * 2.2 : Math.sin(t * 0.45) * 0.8;
-      const lean = state === "LISTENING" ? -3.5 : 0;
-      pulseRef.current *= 0.82;
-      const beat = speakingRef.current ? pulseRef.current : 0;
-      // Gaze: a slight turn toward where the user is working.
-      let turn = 0;
-      const pointer = pointerRef.current;
-      if (pointer) {
-        const box = body.getBoundingClientRect();
-        turn = Math.max(-1, Math.min(1, (pointer.x - (box.left + box.width / 2)) / 600)) * 6;
-      }
-      body.style.transform =
-        `perspective(600px) rotateY(${turn.toFixed(2)}deg) rotate(${(sway + lean).toFixed(2)}deg) ` +
-        `translateY(${(-beat * 4).toFixed(2)}px) scale(${(1 + breathe + beat * 0.025).toFixed(4)})`;
-    };
-    frame = requestAnimationFrame(tick);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("pointermove", onPointer);
-    };
-  }, []);
 
   /* ------------------------- drag: you place her ------------------------- */
   const pressRef = useRef<{ x: number; y: number; moved: boolean; at: number } | null>(null);
@@ -261,8 +201,9 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
   };
 
   const position = drag ?? { x: companion.x, y: companion.y };
-  const rect = figureRect(position.x, position.y, companion.size, viewport);
-  const { width, height } = COMPANION_DIMENSIONS[companion.size];
+  const dimensions = companionDimensions(companion.size, companion.framing);
+  const rect = figureRect(position.x, position.y, dimensions, viewport);
+  const { width, height } = dimensions;
   const captionLeftOfHer = rect.left > viewport.width / 2;
   // The caption sits beside her and the controls under her — both kept
   // inside the screen (measured on phones: centred controls ran off the
@@ -299,8 +240,9 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
           animation: "lelu-companion-in 420ms cubic-bezier(.2,.8,.2,1)",
         }}
       >
+        {/* Her, and nothing around her: no card, no frame, no background.
+            The shadow follows her outline, not a box. */}
         <div
-          ref={bodyRef}
           role="button"
           tabIndex={0}
           aria-label={`${name} — companion. Drag to move, tap for options, double-tap to chat.`}
@@ -327,44 +269,13 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
             height: "100%",
             cursor: drag ? "grabbing" : "grab",
             touchAction: "none",
-            transformOrigin: "50% 90%",
-            borderRadius: 18,
-            overflow: "hidden",
-            background: "radial-gradient(120% 90% at 50% 20%, #1a1020 0%, #06040a 80%)",
-            boxShadow: `0 10px 30px rgba(0,0,0,0.45), 0 0 0 2px ${accent}AA, 0 0 ${speakingRef.current ? 28 : 16}px ${accent}66`,
-            transition: "box-shadow 300ms ease",
             userSelect: "none",
+            filter: `drop-shadow(0 8px 12px rgba(0,0,0,0.45))${activity !== "IDLE" ? ` drop-shadow(0 0 7px ${accent}55)` : ""}`,
+            transition: "filter 300ms ease",
           }}
         >
-          {referenceImage ? (
-            <img
-              src={referenceImage}
-              alt={name}
-              draggable={false}
-              style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center bottom", display: "block", pointerEvents: "none" }}
-            />
-          ) : (
-            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", width: "100%", height: "100%", pointerEvents: "none" }}>
-              <AvatarPortrait size={width} ring={accent} pulse={activity !== "IDLE"} />
-            </div>
-          )}
+          <LeluCharacter framing={companion.framing} testId="lelu-companion-character" />
         </div>
-
-        {/* status dot: what she is doing, in her accent colour */}
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            right: 6,
-            top: 6,
-            width: 10,
-            height: 10,
-            borderRadius: 5,
-            background: accent,
-            boxShadow: `0 0 8px ${accent}`,
-            pointerEvents: "none",
-          }}
-        />
 
         {caption && !drag ? (
           <div
@@ -406,11 +317,21 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
               background: "rgba(14,10,22,0.94)",
               border: "1px solid rgba(255,255,255,0.12)",
               whiteSpace: "nowrap",
+              // Six controls are wider than a phone: they wrap, inside the screen.
+              flexWrap: "wrap",
+              justifyContent: "center",
+              width: "max-content",
+              maxWidth: Math.max(160, viewport.width - 16),
             }}
           >
             {[
               { label: "Chat", act: () => openPanel("chat") },
               { label: `Size: ${nextSize}`, act: () => store.setSize(nextSize) },
+              { label: companion.framing === "full" ? "Face" : "Full body", act: () => store.setFraming(companion.framing === "full" ? "face" : "full") },
+              {
+                label: character.form === "hologram" ? "Embodied" : "Hologram",
+                act: () => LeluCharacterStore.getInstance().setForm(character.form === "hologram" ? "embodied" : "hologram"),
+              },
               ...(companion.pinned ? [{ label: "Let her choose", act: () => store.unpin() }] : []),
               { label: "Hide", act: () => store.setEnabled(false) },
             ].map((control) => (

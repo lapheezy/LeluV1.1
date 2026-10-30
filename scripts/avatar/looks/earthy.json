@@ -1,0 +1,7 @@
+{
+  "_why": "Hand-checked against the reference: her left hoop is hidden behind her hand (no swing), her right hoop hangs beside her jaw, and her hand rests on her cheek, so it moves with her head and her head moves less than in a free pose.",
+  "earrings.left": [0, 0, 0],
+  "earrings.right": [540, 170, 22],
+  "hand": [416, 206, 44],
+  "headMotion": 0.45
+}

@@ -299,3 +299,73 @@ Most runs failed on infrastructure, not on her. Each defect was fixed in the too
 - **Workspace:** selecting and editing artifacts inside the unified workspace.
 - **Tests:** an end-to-end browse → workspace test.
 - **Not observed:** the Orchestrator auto-creates "General"/"Engineering" checkpoint projects on ordinary chat turns. This is pre-existing and documented in `CognitiveLoop`; it was left as is.
+
+---
+
+# Pass 3 — LÉLU's character (the owner's references, alive)
+
+## 14. Her appearance is the owner's reference
+
+**Requirement.** LÉLU must look like the woman in the owner's two reference images: deep skin, short defined black curls, gold hoops and jewellery, the gothic-lace and the earthy outfits. The generic 3D figure is not acceptable. She must be alive, with no box around her; she needs a face-only form, embodied and hologram forms, a mouth driven by her real speech, and the same character on every surface and on mobile.
+
+### What was built
+- **Assets.** `scripts/avatar/build_lelu_look.py` makes each look reproducibly:
+  1. BiRefNet (MIT, ONNX) removes the reference's background, writing `body.webp` with alpha.
+  2. MediaPipe face and pose landmarkers find her eyes, irises, brows, inner and outer lips, chin, head, neck, chest and feet. The face is detected on an upscaled head crop, because a full-length figure's face is small.
+  3. `rig.json` is written.
+
+  Hand-checked corrections are kept per look in `scripts/avatar/looks/<look>.json`:
+  - where each hoop hangs;
+  - the earthy look's hand resting on her cheek, which moves with her head;
+  - in the earthy look, the left hoop hidden behind that hand.
+
+  The outputs are `public/avatar/lelu/{gothic,earthy}/`.
+- **Rig.** `src/core/avatar/LeluRig.ts` is one GLSL fragment shader that warps her image in real time:
+  - upper eyelids close over her eyes (blinks);
+  - irises move (gaze);
+  - brows lift;
+  - lips part, the jaw dropping with the lower lip and chin, and inside is a mouth cavity and tongue. Her own upper teeth from the reference stay with her upper lip; drawn teeth appear only for a closed-lipped look;
+  - mouth corners smile, and the mouth widens or rounds per viseme;
+  - her head tilts, nods and turns on her neck, with her hair and hoops;
+  - the hoops swing like pendulums;
+  - her chest breathes, and her body sways from the feet.
+
+  The hologram form is the same rig with a projection material (cyan, scan lines, edge glow, flicker). Face framing dissolves at the bottom and sides, so there is no edge.
+- **Shared animation state.** `src/core/avatar/LeluAnimation.ts` is one state for every surface:
+  - the mouth comes from VoiceEngine's real utterance `start` (with its text), word `boundary` events (which re-sync to the word being spoken) and `end`. Letters become visemes. Without speech her mouth stays at rest;
+  - blinks come every 2–6 s, sometimes doubled;
+  - gaze wanders when she is idle and follows the pointer when you are near;
+  - expression follows her real activity (listening, thinking, working, speaking, completed, error);
+  - head and body drift is never-repeating.
+- **Surfaces:**
+  - **Companion overlay** (`LeluCompanion`): now **on by default**, full body, and can be turned off.
+    - The card, ring, dark background and status dot are gone. The shadow follows her outline.
+    - Her controls add Face/Full body and Embodied/Hologram, alongside the existing drag-to-place, keep-clear placement, captions and double-tap to chat.
+    - She floats over Cosmos, chat, browser, memory and the panels.
+  - **Avatar panel:** the generic "3D" tab is replaced by **Live LÉLU** (look, form, framing, and "Hear her", which speaks through VoiceEngine). The procedural snapshot and the image-to-3D (Meshy) section are removed: a reconstructed mesh would have no face rig.
+  - **Genesis v2 Lab** (`LeluV2Presence`): she stands in the 3D scene through the same shader as a three.js material. She faces the camera and stays upright. The halo square and platform ring are removed, and executive avatar commands still work.
+  - **Without WebGL:** her still cut-out is shown, never a substitute figure.
+
+### Verified
+- **Unit:** `tests/lelu-character.test.ts`, 8 tests:
+  - assets match their rigs, and both have alpha;
+  - the mouth curve passes through the corners, and her own teeth are used;
+  - both framings;
+  - every shader uniform is supplied;
+  - the letter→viseme mapping;
+  - speech start opens her mouth, a word re-syncs it, the end closes it, and silence never moves it;
+  - blink rate and duty;
+  - expressions;
+  - the shared look and form store.
+
+  `tests/companion-mode.test.ts` was updated for the new default and the framing.
+- **Running app:** `node scripts/verify-lelu-character.mjs`, phone 390×844 and desktop 1280×800. Evidence is in `docs/evidence/lelu-character/<stamp>/`.
+- **Voice in the running app:** headless Chromium has no voices, so the script installs a `speechSynthesis` stand-in that fires real start / word-boundary / end events. The path from VoiceEngine to her mouth is real; the audio is not.
+
+### Not done, and why
+- **A rigged photoreal 3D mesh.** It needs an image-to-3D reconstruction plus a facial rig (ARKit-style blendshapes) built from her reference. Neither service is configured here: there is no `MESHY_API_KEY`, and Meshy meshes carry no face rig.
+  - The 2.5D rig is the faithful option available. Seen from a steep angle in the Lab, she is a figure on a plane.
+  - A rigged GLB could replace the renderer later and read the same `AnimationParams`.
+- **Arm gestures.** Her arms move only with her body sway and breath. Independent arm gestures would need the limbs separated into their own layers.
+- **Real audio.** No real device, microphone or speaker exists in this container, so the voice path is verified with the stand-in above. The source images are about 1,000 px wide, so her face is about 130 px in the source; face-only mode is sharp at companion sizes and softens when enlarged.
+- **New looks.** Adding one means running `build_lelu_look.py` on a new reference. An uploaded image is not rigged automatically in the browser.

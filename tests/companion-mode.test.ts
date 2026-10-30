@@ -39,16 +39,21 @@ import ToolRegistry from "../src/core/tools/ToolRegistry";
 
 const phone = { width: 390, height: 844 };
 
-test("off by default; on/off, size and your chosen spot survive a reload", () => {
+test("on by default, full figure; on/off, size, framing and your chosen spot survive a reload", () => {
   const store = CompanionStore.getInstance();
-  assert.equal(store.get().enabled, false, "a mode the user turns on, not a default");
-  store.setEnabled(true);
+  // The owner's V1.1 brief: she is present wherever LÉLU is active, and the
+  // mode can still be turned off.
+  assert.equal(store.get().enabled, true, "she is with you unless you turn her off");
+  assert.equal(store.get().framing, "full");
+  store.setEnabled(false);
   store.setSize("large");
+  store.setFraming("face");
   store.placeByUser(0.2, 0.7);
   CompanionStore.resetForTests();
   const reloaded = CompanionStore.getInstance().get();
-  assert.equal(reloaded.enabled, true);
+  assert.equal(reloaded.enabled, false, "turned off stays off");
   assert.equal(reloaded.size, "large");
+  assert.equal(reloaded.framing, "face");
   assert.deepEqual([reloaded.x, reloaded.y, reloaded.pinned, reloaded.lastMovedBy], [0.2, 0.7, true, "user"]);
 });
 

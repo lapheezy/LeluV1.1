@@ -1,0 +1,240 @@
+[
+  {
+    "viewport": "phone",
+    "check": "she is present on load (companion on by default), her character loaded",
+    "pass": true,
+    "detail": {
+      "look": "gothic",
+      "framing": "full"
+    }
+  },
+  {
+    "viewport": "phone",
+    "check": "no box around her: outside her silhouette the page behind shows",
+    "pass": true,
+    "detail": {
+      "greenFraction": 0.5743520309477756,
+      "cornerGreen": true
+    }
+  },
+  {
+    "viewport": "phone",
+    "check": "she moves continuously (frames keep coming, her pixels change)",
+    "pass": true,
+    "detail": {
+      "framesReported": 23,
+      "changedFraction": 0.07114119922630562
+    }
+  },
+  {
+    "viewport": "phone",
+    "check": "face-only presentation (head and shoulders)",
+    "pass": true,
+    "detail": {
+      "framing": "face"
+    }
+  },
+  {
+    "viewport": "phone",
+    "check": "embodied → hologram (same character, projected)",
+    "pass": true,
+    "detail": {
+      "form": "hologram",
+      "holo": "1.00"
+    }
+  },
+  {
+    "viewport": "phone",
+    "check": "hologram → embodied",
+    "pass": true,
+    "detail": {
+      "holo": "0.00"
+    }
+  },
+  {
+    "viewport": "phone",
+    "check": "her voice drives her mouth (opens while speaking, closes after)",
+    "pass": true,
+    "detail": {
+      "sawSpeaking": true,
+      "maxMouth": 0.40043749268598633,
+      "sharedStateMax": 0.40043749268598633,
+      "mouthAfter": 0,
+      "speechEngine": "start,end"
+    }
+  },
+  {
+    "viewport": "phone",
+    "check": "present and alive over chat",
+    "pass": true,
+    "detail": {
+      "opened": true,
+      "ready": true,
+      "framesReported": 7
+    }
+  },
+  {
+    "viewport": "phone",
+    "check": "present and alive over browser",
+    "pass": true,
+    "detail": {
+      "opened": true,
+      "ready": true,
+      "framesReported": 7
+    }
+  },
+  {
+    "viewport": "phone",
+    "check": "present and alive over memory",
+    "pass": true,
+    "detail": {
+      "opened": true,
+      "ready": true,
+      "framesReported": 7
+    }
+  },
+  {
+    "viewport": "phone",
+    "check": "present and alive over cosmos",
+    "pass": true,
+    "detail": {
+      "opened": true,
+      "ready": true,
+      "framesReported": 7
+    }
+  },
+  {
+    "viewport": "phone",
+    "check": "Avatar panel shows her live; a look chosen there changes every surface",
+    "pass": true,
+    "detail": {
+      "panelReady": true,
+      "switched": true
+    }
+  },
+  {
+    "viewport": "phone",
+    "check": "no page errors",
+    "pass": true,
+    "detail": []
+  },
+  {
+    "viewport": "desktop",
+    "check": "she is present on load (companion on by default), her character loaded",
+    "pass": true,
+    "detail": {
+      "look": "gothic",
+      "framing": "full"
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "no box around her: outside her silhouette the page behind shows",
+    "pass": true,
+    "detail": {
+      "greenFraction": 0.5741199226305609,
+      "cornerGreen": true
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "she moves continuously (frames keep coming, her pixels change)",
+    "pass": true,
+    "detail": {
+      "framesReported": 21,
+      "changedFraction": 0.24220502901353966
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "face-only presentation (head and shoulders)",
+    "pass": true,
+    "detail": {
+      "framing": "face"
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "embodied → hologram (same character, projected)",
+    "pass": true,
+    "detail": {
+      "form": "hologram",
+      "holo": "1.00"
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "hologram → embodied",
+    "pass": true,
+    "detail": {
+      "holo": "0.00"
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "her voice drives her mouth (opens while speaking, closes after)",
+    "pass": true,
+    "detail": {
+      "sawSpeaking": true,
+      "maxMouth": 0.8,
+      "sharedStateMax": 0.6097216762077645,
+      "mouthAfter": 0,
+      "speechEngine": "start,end"
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "present and alive over chat",
+    "pass": true,
+    "detail": {
+      "opened": true,
+      "ready": true,
+      "framesReported": 7
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "present and alive over browser",
+    "pass": true,
+    "detail": {
+      "opened": true,
+      "ready": true,
+      "framesReported": 5
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "present and alive over memory",
+    "pass": true,
+    "detail": {
+      "opened": true,
+      "ready": true,
+      "framesReported": 6
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "present and alive over cosmos",
+    "pass": true,
+    "detail": {
+      "opened": true,
+      "ready": true,
+      "framesReported": 2
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "Avatar panel shows her live; a look chosen there changes every surface",
+    "pass": true,
+    "detail": {
+      "panelReady": true,
+      "switched": true
+    }
+  },
+  {
+    "viewport": "desktop",
+    "check": "no page errors",
+    "pass": true,
+    "detail": []
+  }
+]

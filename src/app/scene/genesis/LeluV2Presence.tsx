@@ -3,27 +3,21 @@
  * LÉLUVERSE
  * GENESIS V2 — LÉLU PRESENCE
  *
- * The ONE authoritative LÉLU avatar, present INSIDE the Gen V2
- * world. Reads the same AvatarStore every other surface reads:
+ * LÉLU herself, standing in the Cosmos: the same character rig
+ * (core/avatar/LeluRig) the companion and the Avatar panel draw — the
+ * owner's reference, cut out of its background, animated live: blinking,
+ * gaze, expressions, head and body motion, and a mouth driven by her
+ * actual speech (core/avatar/LeluAnimation, shared with every surface).
  *
- *   SAVED AVATAR → AvatarStore → this presence → WebGL scene
+ * In the scene she is a camera-facing figure whose transparent pixels are
+ * transparent: no card, no frame, no halo square, no platform — the
+ * Cosmos is behind her. Embodied and hologram are two materials of the
+ * same rig (LeluCharacterStore). Executive avatar commands (wave, nod,
+ * bow, move…) are performed as real transform work and confirmed by
+ * measured deltas, as before.
  *
- *  - If the user saved a reference image, the EXACT saved
- *    visual is rendered in 3D space as a living, camera-facing
- *    presence (floating above a candlelit platform ring), with
- *    real presence animation driven by actual state:
- *      listening → leans in, attention glow
- *      thinking  → shimmer ring, gold pulse
- *      speaking  → warm breath pulse + halo
- *      working / searching / rendering / completed / error →
- *      live label from the REAL agent event bus
- *  - If no image is saved yet, the procedural 3D figure from
- *    the SAME authoring pipeline stands in (fallback only —
- *    a saved image always wins and is never substituted).
- *
- * There is exactly ONE LÉLU: the portrait, the avatar panel,
- * the render pipeline and this 3D presence all read the same
- * profile.
+ * The generic procedural figure and the flat saved-image billboard that
+ * stood here are gone: the owner's reference is her identity.
  * ==========================================================
  */
 
@@ -31,22 +25,16 @@ import { useEffect, useMemo, useRef, useState, type MutableRefObject } from "rea
 import { useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import AvatarStore from "../../../core/avatar/AvatarProfile";
 import AvatarCommandBus, { type AvatarCommand } from "../../../core/avatar/AvatarCommandBus";
-import Avatar3DReconstructor, { fingerprintOf } from "../../../core/avatar/Avatar3DReconstructor";
 import AgentEventBus from "../../../core/agent/AgentEvents";
 import ExecutiveRuntime from "../../../core/executive/ExecutiveRuntime";
-import {
-  buildAvatarModel,
-  tickAvatar,
-  type AvatarParts,
-} from "../../../core/creative/Procedural3DPipeline";
+import LeluAnimation from "../../../core/avatar/LeluAnimation";
+import { loadLook, rigUniforms, viewFor, RIG_FRAGMENT_SHADER, type LoadedLook } from "../../../core/avatar/LeluRig";
 import { V2_LELU_POS } from "./GenesisV2CameraRig";
+import { useLeluCharacter } from "./avatar/useLeluCharacter";
 
 import {
   ACTIVITY_ACCENT,
-  modeForActivity,
   useLeluActivity,
   type LeluActivity,
 } from "./avatar/leluActivity";
@@ -119,61 +107,78 @@ function commandElapsed(command: AvatarCommand | null, run: CommandRunState | nu
   return performance.now() - run.startedAt;
 }
 
-/* ------------------------ reference-image avatar ---------------------- */
+/* ------------------------------ her, in 3D ---------------------------- */
 
-function SavedAvatarPresence({
-  image,
-  activity,
-  position,
-}: {
-  image: string;
-  activity: LeluActivity;
-  position?: THREE.Vector3;
-}) {
+/** Her height in scene units (feet to the top of her hair): whole in the LÉLU camera framing. */
+const LELU_HEIGHT = 1.9;
+
+const RIG_MESH_VERTEX = `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
+
+function toUniformValue(value: number | number[]): number | THREE.Vector2 | THREE.Vector3 | THREE.Vector4 {
+  if (typeof value === "number") return value;
+  if (value.length === 2) return new THREE.Vector2(value[0], value[1]);
+  if (value.length === 3) return new THREE.Vector3(value[0], value[1], value[2]);
+  return new THREE.Vector4(value[0], value[1], value[2], value[3]);
+}
+
+function RigAvatarPresence({ look, activity, form, position }: { look: LoadedLook; activity: LeluActivity; form: "embodied" | "hologram"; position?: THREE.Vector3 }) {
   const pos = position ?? V2_LELU_POS;
   const { camera } = useThree();
   const group = useRef<THREE.Group>(null);
-  const plane = useRef<THREE.Mesh>(null);
-  const [aspect, setAspect] = useState(0.8);
-  // Real render telemetry → Executive Runtime (throttled to ~1Hz so the
-  // frame loop never pays for it). Frames reported here PROVE the render
-  // loop is alive; transform deltas prove the presence actually moves.
   const telemetry = useRef({ lastReport: 0, lastY: 0 });
-  // Active executive command being performed (verified on completion).
   const cmdRun = useRef<CommandRunState | null>(null);
   const cmdDone = useRef<string | null>(null);
-
-  const texture = useMemo(() => {
-    const img = new Image();
-    const tex = new THREE.Texture(img);
-    img.onload = () => {
-      tex.needsUpdate = true;
-      setAspect(img.naturalWidth / Math.max(1, img.naturalHeight));
-    };
-    img.src = image;
-    return tex;
-  }, [image]);
-
+  const holo = useRef(form === "hologram" ? 1 : 0);
   const accent = ACTIVITY_ACCENT[activity];
 
-  useFrame(({ clock }) => {
+  // The whole figure, hair to feet, with room for her arms and hem.
+  const view = useMemo(() => viewFor(look.rig, "full", 0.55), [look]);
+  const aspect = (view[2] - view[0]) / (view[3] - view[1]);
+
+  const material = useMemo(() => {
+    const texture = new THREE.Texture(look.image);
+    texture.premultiplyAlpha = true;
+    // The shader reads her image top-down (row 0 = the top of her hair).
+    texture.flipY = false;
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.needsUpdate = true;
+    const uniforms: Record<string, THREE.IUniform> = { uTex: { value: texture } };
+    return new THREE.ShaderMaterial({
+      uniforms,
+      vertexShader: RIG_MESH_VERTEX,
+      fragmentShader: RIG_FRAGMENT_SHADER,
+      transparent: true,
+      premultipliedAlpha: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      toneMapped: false,
+    });
+  }, [look]);
+  useEffect(() => () => {
+    (material.uniforms.uTex.value as THREE.Texture).dispose();
+    material.dispose();
+  }, [material]);
+
+  useEffect(() => LeluAnimation.getInstance().attach(), []);
+
+  useFrame(({ clock }, delta) => {
     const t = clock.getElapsedTime();
-    if (!group.current || !plane.current) return;
+    if (!group.current) return;
+    // She faces you wherever you look from — never seen edge-on — and her
+    // "up" stays the world's up: the camera's roll never tips her over.
+    let posX = pos.x;
+    let posY = pos.y;
+    group.current.position.set(posX, posY, pos.z);
+    group.current.lookAt(camera.position);
 
-    // Always face the camera — LÉLU is present wherever you look.
-    group.current.quaternion.copy(camera.quaternion);
-
-    // Presence motion: slow float + breathing scale; leans subtly while
-    // listening, pulses warmly while speaking, shimmers while thinking.
-    const float = Math.sin(t * 1.1) * 0.09 + Math.sin(t * 2.7) * 0.02;
-    const lean = activity === "LISTENING" ? Math.sin(t * 1.6) * 0.05 : 0;
-    let posX = pos.x + Math.sin(t * 0.8) * 0.06;
-    let posY = pos.y + float;
-    group.current.position.y = posY;
-    group.current.position.x = posX;
-    group.current.rotation.z = lean;
-
-    // Executive avatar commands — performed as real transform work.
+    // Executive avatar commands — real transform work, verified by deltas.
     const bus = AvatarCommandBus.getInstance();
     const command = bus.current;
     if (command && cmdRun.current?.id !== command.id && cmdDone.current !== command.id) {
@@ -186,470 +191,69 @@ function SavedAvatarPresence({
       const envelope = Math.sin(p * Math.PI);
       switch (command.kind) {
         case "wave":
-          group.current.rotation.z = lean + Math.sin(elapsed / 90) * 0.28 * envelope;
+          group.current.rotateZ(Math.sin(elapsed / 90) * 0.12 * envelope);
+          posY += envelope * 0.05;
           break;
         case "move":
           posX += Math.sin(p * Math.PI * 2) * 0.7;
-          group.current.position.x = posX;
           break;
         case "look":
-          group.current.rotation.z = lean + Math.sin(elapsed / 260) * 0.12 * envelope;
+          group.current.rotateZ(Math.sin(elapsed / 260) * 0.06 * envelope);
+          posX += envelope * 0.04;
           break;
         case "dance":
-          posY += Math.abs(Math.sin(elapsed / 130)) * 0.22;
-          group.current.position.y = posY;
-          group.current.rotation.z = lean + Math.sin(elapsed / 110) * 0.18;
+          posY += Math.abs(Math.sin(elapsed / 130)) * 0.18;
+          group.current.rotateZ(Math.sin(elapsed / 110) * 0.1);
           break;
         case "nod":
-          posY -= envelope * 0.12 * (0.5 + 0.5 * Math.sin(elapsed / 140));
-          group.current.position.y = posY;
+          posY -= envelope * 0.08 * (0.5 + 0.5 * Math.sin(elapsed / 140));
           break;
         case "bow":
-          group.current.rotation.z = lean - envelope * 0.35;
-          posY -= envelope * 0.15;
-          group.current.position.y = posY;
+          group.current.rotateZ(-envelope * 0.18);
+          posY -= envelope * 0.12;
           break;
       }
+      group.current.position.set(posX, posY, pos.z);
       if (elapsed >= command.durationMs) {
         cmdDone.current = command.id;
         settleCommand(cmdRun, command, posX, posY);
       }
     }
 
-    const breathe =
-      1 +
-      (activity === "SPEAKING"
-        ? 0.025 + Math.abs(Math.sin(t * 3.4)) * 0.02
-        : activity === "THINKING" || activity === "RENDERING" || activity === "WORKING"
-          ? 0.012 + Math.abs(Math.sin(t * 2.2)) * 0.012
-          : Math.sin(t * 1.3) * 0.008);
-    plane.current.scale.set(Math.max(0.9, 1.4 * aspect) * breathe, 1.4 * breathe, 1);
-
-    const mat = plane.current.material as THREE.MeshBasicMaterial;
-    mat.color.setHex(activity === "SPEAKING" ? 0xfff2fb : 0xffffff);
-    mat.opacity =
-      activity === "THINKING" || activity === "SEARCHING" || activity === "WORKING" || activity === "RENDERING"
-        ? 0.86 + Math.abs(Math.sin(t * 3.1)) * 0.1
-        : 0.96;
+    // This moment of her — the same one every other surface draws.
+    const animation = LeluAnimation.getInstance();
+    animation.setActivity(activity);
+    const params = animation.frame(performance.now());
+    holo.current += ((form === "hologram" ? 1 : 0) - holo.current) * (1 - Math.exp(-6 * Math.min(0.1, delta)));
+    const uniforms = rigUniforms(look.rig, params, { view, framing: "full", holo: holo.current, time: t });
+    for (const [name, value] of Object.entries(uniforms)) {
+      const existing = material.uniforms[name];
+      const next = toUniformValue(value);
+      if (!existing) material.uniforms[name] = { value: next };
+      else if (typeof next === "number") existing.value = next;
+      else (existing.value as THREE.Vector2 | THREE.Vector3 | THREE.Vector4).copy(next as never);
+    }
 
     const now = performance.now();
     if (now - telemetry.current.lastReport > 1_000) {
       telemetry.current.lastReport = now;
+      // Her breathing and sway move her every frame; a transform that never
+      // changes means the render loop has stopped.
       ExecutiveRuntime.getInstance().reportAvatarFrame(
-        Math.abs(group.current.position.y - telemetry.current.lastY) > 0.001,
+        Math.abs(params.breath - telemetry.current.lastY) > 0.001 || Math.abs(group.current.position.y - pos.y) > 0.001,
       );
-      telemetry.current.lastY = group.current.position.y;
+      telemetry.current.lastY = params.breath;
     }
   });
 
   return (
     <group ref={group} position={[pos.x, pos.y, pos.z]} name="V2LeluPresence">
-      {/* the exact saved avatar — camera-facing, softly lit */}
-      <mesh ref={plane} scale={[1.12, 1.4, 1]} raycast={() => null}>
+      <mesh scale={[LELU_HEIGHT * aspect, LELU_HEIGHT, 1]} raycast={() => null} material={material}>
         <planeGeometry args={[1, 1]} />
-        <meshBasicMaterial
-          map={texture}
-          transparent
-          depthWrite={false}
-          toneMapped={false}
-          side={THREE.DoubleSide}
-          color="#ffffff"
-        />
       </mesh>
-
-      {/* candlelit glow halo behind the presence */}
-      <sprite position={[0, 0, -0.12]} scale={[3.4, 3.4, 1]} raycast={() => null}>
-        <spriteMaterial
-          color={accent}
-          transparent
-          opacity={0.16}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          toneMapped={false}
-        />
-      </sprite>
-
-      {/* platform ring under her feet */}
-      <mesh position={[0, -1.28, 0]} rotation={[Math.PI / 2, 0, 0]} raycast={() => null}>
-        <ringGeometry args={[0.72, 1.05, 48]} />
-        <meshBasicMaterial
-          color={accent}
-          transparent
-          opacity={0.28}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          toneMapped={false}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-    </group>
-  );
-}
-
-/* ------------------------- procedural fallback ------------------------- */
-
-function ProceduralPresence({
-  activity,
-  position,
-}: {
-  activity: LeluActivity;
-  position?: THREE.Vector3;
-}) {
-  const pos = position ?? V2_LELU_POS;
-  const store = AvatarStore.getInstance();
-  const profile = useMemo(() => store.get(), []);
-  const parts = useMemo<AvatarParts>(() => buildAvatarModel(profile), [profile]);
-  const groupRef = useRef<THREE.Group>(null);
-  const lastReport = useRef(0);
-  const cmdRun = useRef<CommandRunState | null>(null);
-  const cmdDone = useRef<string | null>(null);
-
-  useFrame(({ clock }) => {
-    const group = groupRef.current;
-    if (!group) return;
-    const t = clock.getElapsedTime();
-    let posX = pos.x + Math.sin(t * 0.8) * 0.06;
-    let posY = pos.y + Math.sin(t * 1.1) * 0.09;
-    group.position.y = posY;
-    group.position.x = posX;
-    group.position.z = pos.z;
-    tickAvatar(parts, modeForActivity(activity), t);
-
-    // Executive avatar commands — same verification contract as the
-    // saved-image presence above.
-    const bus = AvatarCommandBus.getInstance();
-    const command = bus.current;
-    if (command && cmdRun.current?.id !== command.id && cmdDone.current !== command.id) {
-      adoptCommand(cmdRun, command, posX, posY);
-      cmdDone.current = null;
-    }
-    const elapsed = commandElapsed(command, cmdRun.current);
-    if (command && elapsed >= 0) {
-      const p = Math.min(1, elapsed / command.durationMs);
-      const envelope = Math.sin(p * Math.PI);
-      switch (command.kind) {
-        case "wave":
-          group.rotation.z = Math.sin(elapsed / 90) * 0.28 * envelope;
-          break;
-        case "move":
-          posX += Math.sin(p * Math.PI * 2) * 0.7;
-          group.position.x = posX;
-          break;
-        case "look":
-          group.rotation.z = Math.sin(elapsed / 260) * 0.12 * envelope;
-          break;
-        case "dance":
-          posY += Math.abs(Math.sin(elapsed / 130)) * 0.22;
-          group.position.y = posY;
-          group.rotation.z = Math.sin(elapsed / 110) * 0.18;
-          break;
-        case "nod":
-          posY -= envelope * 0.12 * (0.5 + 0.5 * Math.sin(elapsed / 140));
-          group.position.y = posY;
-          break;
-        case "bow":
-          group.rotation.z = -envelope * 0.35;
-          posY -= envelope * 0.15;
-          group.position.y = posY;
-          break;
-      }
-      if (elapsed >= command.durationMs) {
-        cmdDone.current = command.id;
-        settleCommand(cmdRun, command, posX, posY);
-      }
-    }
-
-    // Throttled to ~1Hz — never pay per-frame for telemetry.
-    const now = performance.now();
-    if (now - lastReport.current > 1_000) {
-      lastReport.current = now;
-      ExecutiveRuntime.getInstance().reportAvatarFrame(true);
-    }
-  });
-
-  return <primitive object={parts.group} ref={groupRef} />;
-}
-
-/* ----------------------- reconstructed true-3D avatar ------------------ */
-
-const RECON_TARGET_HEIGHT = 2.56; // matches the saved-image presence height
-
-/**
- * The TRUE 3D LÉLU — a real textured mesh produced by the external
- * image-to-3D pipeline (Avatar3DReconstructor) from the EXACT saved
- * reference. Not a substitute character: this geometry was generated
- * FROM the saved visual itself.
- *
- * Same contract as every other presence variant:
- *   - performs AvatarCommandBus gestures as real transform work,
- *   - confirms only with measured deltas,
- *   - reports live render telemetry to the Executive Runtime.
- */
-function ReconstructedAvatarPresence({
-  glb,
-  activity,
-  position,
-}: {
-  glb: ArrayBuffer;
-  activity: LeluActivity;
-  position?: THREE.Vector3;
-}) {
-  const pos = position ?? V2_LELU_POS;
-  const { camera } = useThree();
-  const group = useRef<THREE.Group>(null);
-  const [model, setModel] = useState<THREE.Group | null>(null);
-  const telemetry = useRef({ lastReport: 0, lastY: 0 });
-  const cmdRun = useRef<CommandRunState | null>(null);
-  const cmdDone = useRef<string | null>(null);
-
-  // Parse once per stored GLB. The bytes come from IndexedDB — no network.
-  useEffect(() => {
-    let disposed = false;
-    try {
-      new GLTFLoader().parse(
-        glb,
-        "",
-        (gltf) => {
-          if (disposed) return;
-          // Holder keeps normalization offsets separate from the <primitive>
-          // position prop (which would otherwise clobber them).
-          const holder = new THREE.Group();
-          const scene = gltf.scene;
-          holder.add(scene);
-          // Normalize: uniform scale to presence height, feet at holder origin.
-          const box = new THREE.Box3().setFromObject(scene);
-          const size = new THREE.Vector3();
-          box.getSize(size);
-          if (!isFinite(size.y) || size.y <= 0) {
-            // Honest failure — surfaced on the agent stream; the presence
-            // falls back upstream instead of showing a broken model.
-            AgentEventBus.getInstance().emit({
-              type: "tool_failed",
-              taskId: `avatar-3d-load-${Date.now()}`,
-              tool: "avatar-reconstruction",
-              error: "Reconstructed model has an invalid bounding box.",
-            });
-            return;
-          }
-          scene.scale.setScalar(RECON_TARGET_HEIGHT / size.y);
-          const norm = new THREE.Box3().setFromObject(scene);
-          const center = new THREE.Vector3();
-          norm.getCenter(center);
-          scene.position.x -= center.x;
-          scene.position.z -= center.z;
-          scene.position.y -= norm.min.y;
-          setModel(holder);
-        },
-        (err) => {
-          if (disposed) return;
-          const message = err instanceof Error ? err.message : String(err);
-          console.error("[Lélu Presence] reconstructed GLB failed to load", err);
-          AgentEventBus.getInstance().emit({
-            type: "tool_failed",
-            taskId: `avatar-3d-load-${Date.now()}`,
-            tool: "avatar-reconstruction",
-            error: `Reconstructed model failed to load: ${message}`,
-          });
-        },
-      );
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error("[Lélu Presence] reconstructed GLB parse threw", error);
-      AgentEventBus.getInstance().emit({
-        type: "tool_failed",
-        taskId: `avatar-3d-load-${Date.now()}`,
-        tool: "avatar-reconstruction",
-        error: `Reconstructed model failed to load: ${message}`,
-      });
-    }
-    return () => {
-      disposed = true;
-    };
-  }, [glb]);
-
-  useFrame(({ clock }, delta) => {
-    const g = group.current;
-    if (!g || !model) return;
-    const t = clock.getElapsedTime();
-
-    // Presence motion: float + breathe (same rhythm as the other variants).
-    let posX = pos.x + Math.sin(t * 0.8) * 0.06;
-    let posY = pos.y + Math.sin(t * 1.1) * 0.09 + Math.sin(t * 2.7) * 0.02;
-    g.position.set(posX, posY, pos.z);
-    g.rotation.set(0, g.rotation.y, 0);
-
-    // Turn toward the user smoothly — she faces you without billboard tilt.
-    const dx = camera.position.x - pos.x;
-    const dz = camera.position.z - pos.z;
-    const targetYaw = Math.atan2(dx, dz);
-    let yawDelta = targetYaw - g.rotation.y;
-    while (yawDelta > Math.PI) yawDelta -= Math.PI * 2;
-    while (yawDelta < -Math.PI) yawDelta += Math.PI * 2;
-    g.rotation.y += yawDelta * Math.min(1, delta * 2.5);
-
-    // Idle sway when nothing else drives her.
-    g.rotation.z = Math.sin(t * 1.3) * 0.02;
-
-    // Executive avatar commands — identical verification contract.
-    const bus = AvatarCommandBus.getInstance();
-    const command = bus.current;
-    if (command && cmdRun.current?.id !== command.id && cmdDone.current !== command.id) {
-      adoptCommand(cmdRun, command, posX, posY);
-      cmdDone.current = null;
-    }
-    const elapsed = commandElapsed(command, cmdRun.current);
-    if (command && elapsed >= 0) {
-      const p = Math.min(1, elapsed / command.durationMs);
-      const envelope = Math.sin(p * Math.PI);
-      switch (command.kind) {
-        case "wave":
-          g.rotation.z = Math.sin(elapsed / 90) * 0.28 * envelope;
-          break;
-        case "move":
-          posX += Math.sin(p * Math.PI * 2) * 0.7;
-          g.position.x = posX;
-          break;
-        case "look":
-          g.rotation.y += Math.sin(elapsed / 260) * 0.5 * envelope * delta * 8;
-          break;
-        case "dance":
-          posY += Math.abs(Math.sin(elapsed / 130)) * 0.22;
-          g.position.y = posY;
-          g.rotation.y += delta * 6;
-          g.rotation.z = Math.sin(elapsed / 110) * 0.18;
-          break;
-        case "nod":
-          g.rotation.x = envelope * 0.18 * (0.5 + 0.5 * Math.sin(elapsed / 140));
-          posY -= envelope * 0.08;
-          g.position.y = posY;
-          break;
-        case "bow":
-          g.rotation.x = envelope * 0.45;
-          posY -= envelope * 0.15;
-          g.position.y = posY;
-          break;
-      }
-      if (elapsed >= command.durationMs) {
-        cmdDone.current = command.id;
-        settleCommand(cmdRun, command, posX, posY);
-      }
-    }
-
-    // Throttled ~1Hz render telemetry — proves the loop is live.
-    const now = performance.now();
-    if (now - telemetry.current.lastReport > 1_000) {
-      telemetry.current.lastReport = now;
-      ExecutiveRuntime.getInstance().reportAvatarFrame(
-        Math.abs(g.position.y - telemetry.current.lastY) > 0.001,
-      );
-      telemetry.current.lastY = g.position.y;
-    }
-  });
-
-  return (
-    <group ref={group} position={[pos.x, pos.y, pos.z]} name="V2LeluTrue3D">
-      {model ? (
-        <primitive object={model} position={[0, -RECON_TARGET_HEIGHT / 2 + 0.02, 0]} />
-      ) : null}
-      {/* candlelit glow halo + platform ring shared with the other variants */}
-      <sprite position={[0, 0, -0.12]} scale={[3.4, 3.4, 1]} raycast={() => null}>
-        <spriteMaterial
-          color={ACTIVITY_ACCENT[activity]}
-          transparent
-          opacity={0.16}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          toneMapped={false}
-        />
-      </sprite>
-      <mesh position={[0, -1.28, 0]} rotation={[Math.PI / 2, 0, 0]} raycast={() => null}>
-        <ringGeometry args={[0.72, 1.05, 48]} />
-        <meshBasicMaterial
-          color={ACTIVITY_ACCENT[activity]}
-          transparent
-          opacity={0.28}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          toneMapped={false}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-    </group>
-  );
-}
-
-/* ------------------------------ the presence --------------------------- */
-
-export default function LeluV2Presence({ position }: { position?: THREE.Vector3 }) {
-  const pos = position ?? V2_LELU_POS;
-  const [profile, setProfile] = useState(() => AvatarStore.getInstance().get());
-  const activity = useLeluActivity();
-  const accent = ACTIVITY_ACCENT[activity];
-
-  useEffect(() => {
-    const store = AvatarStore.getInstance();
-    const unsub = store.subscribe((next) => setProfile({ ...next }));
-    return unsub;
-  }, []);
-
-  // True-3D reconstruction of the saved reference — preferred over the
-  // billboard whenever a matching GLB exists. Reloads when the source
-  // image changes OR when a reconstruction finishes.
-  const referenceImage = profile.referenceImage;
-  const fingerprint = useMemo(
-    () => (referenceImage ? fingerprintOf(referenceImage) : null),
-    [referenceImage],
-  );
-  const [reconVersion, setReconVersion] = useState(0);
-  useEffect(() => {
-    const reconstructor = Avatar3DReconstructor.getInstance();
-    return reconstructor.subscribe(() => setReconVersion((v) => v + 1));
-  }, []);
-  const [reconGlb, setReconGlb] = useState<ArrayBuffer | null>(null);
-  useEffect(() => {
-    let alive = true;
-    if (!fingerprint) {
-      setReconGlb(null);
-      return;
-    }
-    void Avatar3DReconstructor.getInstance()
-      .getModelFor(fingerprint)
-      .then((glb) => {
-        if (alive) setReconGlb(glb);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [fingerprint, reconVersion]);
-
-    // Report mount/unmount so diagnostics can distinguish "renderer not
-  // running" from "presence legitimately closed".
-  useEffect(() => {
-    return () => ExecutiveRuntime.getInstance().reportAvatarUnmounted();
-  }, []);
-
-  return (
-    <group name="V2Lelu">
-      {/* warm light that follows LÉLU wherever she stands */}
-      <pointLight
-        position={[pos.x, pos.y + 1.2, pos.z]}
-        intensity={reconGlb ? 1.6 : 1.1}
-        distance={6}
-        color={accent}
-      />
-
-      {referenceImage && reconGlb ? (
-        /* TRUE 3D LÉLU — real mesh generated from the exact saved reference */
-        <ReconstructedAvatarPresence glb={reconGlb} activity={activity} position={position} />
-      ) : referenceImage ? (
-        <SavedAvatarPresence image={referenceImage} activity={activity} position={position} />
-      ) : (
-        <ProceduralPresence activity={activity} position={position} />
-      )}
-
       {/* live activity label — the real state, not an idle animation */}
       <Html
-        position={[pos.x, pos.y + 1.78, pos.z]}
+        position={[0, LELU_HEIGHT / 2 + 0.14, 0]}
         center
         zIndexRange={[4, 0]}
         style={{ pointerEvents: "none" }}
@@ -682,6 +286,39 @@ export default function LeluV2Presence({ position }: { position?: THREE.Vector3 
           {activity}
         </div>
       </Html>
+    </group>
+  );
+}
+
+/* --------------------------- the presence ----------------------------- */
+
+export default function LeluV2Presence({ position }: { position?: THREE.Vector3 }) {
+  const activity = useLeluActivity();
+  const character = useLeluCharacter();
+  const [look, setLook] = useState<LoadedLook | null>(null);
+  useEffect(() => {
+    let alive = true;
+    loadLook(character.look).then(
+      (loaded) => {
+        if (alive) setLook(loaded);
+      },
+      (error: unknown) => console.warn("[LeluV2Presence] her look did not load:", error),
+    );
+    return () => {
+      alive = false;
+    };
+  }, [character.look]);
+
+  // Report unmount so diagnostics can distinguish "renderer not running"
+  // from "presence legitimately closed".
+  useEffect(() => {
+    return () => ExecutiveRuntime.getInstance().reportAvatarUnmounted();
+  }, []);
+
+  return (
+    <group name="V2Lelu">
+      {look ? <RigAvatarPresence look={look} activity={activity} form={character.form} position={position} /> : null}
+
     </group>
   );
 }

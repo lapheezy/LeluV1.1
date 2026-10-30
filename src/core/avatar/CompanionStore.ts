@@ -27,6 +27,8 @@
 import KvStore from "../storage/KvStore";
 
 export type CompanionSize = "small" | "medium" | "large";
+/** All of her, or head and shoulders. */
+export type CompanionFraming = "full" | "face";
 
 export interface CompanionState {
   enabled: boolean;
@@ -36,6 +38,7 @@ export interface CompanionState {
   x: number;
   y: number;
   size: CompanionSize;
+  framing: CompanionFraming;
   /** Who moved her last — shown so a move is never mysterious. */
   lastMovedBy: "user" | "lelu" | "none";
   updatedAt: number;
@@ -50,12 +53,27 @@ export interface Rect {
   weight?: number;
 }
 
-/** Figure size in CSS px (width × height, portrait 3:4). */
+/** Head-and-shoulders size in CSS px (width × height, portrait 3:4). */
 export const COMPANION_DIMENSIONS: Record<CompanionSize, { width: number; height: number }> = {
   small: { width: 84, height: 112 },
   medium: { width: 120, height: 160 },
   large: { width: 168, height: 224 },
 };
+
+/** Full-figure size in CSS px: she is about 2.1× as tall as she is wide. */
+export const COMPANION_FULL_DIMENSIONS: Record<CompanionSize, { width: number; height: number }> = {
+  small: { width: 80, height: 170 },
+  medium: { width: 110, height: 235 },
+  large: { width: 150, height: 320 },
+};
+
+export type CompanionShape = CompanionSize | { width: number; height: number };
+
+/** Her figure's size for a size name (head-and-shoulders) or explicit dimensions. */
+export function companionDimensions(shape: CompanionShape, framing: CompanionFraming = "face"): { width: number; height: number } {
+  if (typeof shape !== "string") return shape;
+  return (framing === "full" ? COMPANION_FULL_DIMENSIONS : COMPANION_DIMENSIONS)[shape];
+}
 
 /** Distance kept from the screen edge (and the phone's system bars). */
 export const EDGE_MARGIN = 12;
@@ -63,7 +81,9 @@ export const EDGE_MARGIN = 12;
 const KEY = "lelu.companion.v1";
 
 export function defaultCompanionState(): CompanionState {
-  return { enabled: false, pinned: false, x: 0.86, y: 0.2, size: "medium", lastMovedBy: "none", updatedAt: 0 };
+  // On unless turned off: the owner asked for her to be present wherever
+  // LÉLU is active (V1.1 avatar brief). Off is remembered.
+  return { enabled: true, pinned: false, x: 0.86, y: 0.2, size: "medium", framing: "full", lastMovedBy: "none", updatedAt: 0 };
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -71,8 +91,8 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 /** The figure's rectangle for a centre given as viewport fractions. */
-export function figureRect(x: number, y: number, size: CompanionSize, viewport: { width: number; height: number }): Rect {
-  const { width, height } = COMPANION_DIMENSIONS[size];
+export function figureRect(x: number, y: number, size: CompanionShape, viewport: { width: number; height: number }): Rect {
+  const { width, height } = companionDimensions(size);
   const left = clamp(x * viewport.width - width / 2, EDGE_MARGIN, Math.max(EDGE_MARGIN, viewport.width - width - EDGE_MARGIN));
   const top = clamp(y * viewport.height - height / 2, EDGE_MARGIN, Math.max(EDGE_MARGIN, viewport.height - height - EDGE_MARGIN));
   return { left, top, width, height };
@@ -85,8 +105,8 @@ export function overlapArea(a: Rect, b: Rect): number {
 }
 
 /** Candidate resting spots, as figure-centre fractions: corners first, then edge middles. */
-export function candidateSpots(size: CompanionSize, viewport: { width: number; height: number }): Array<{ x: number; y: number }> {
-  const { width, height } = COMPANION_DIMENSIONS[size];
+export function candidateSpots(size: CompanionShape, viewport: { width: number; height: number }): Array<{ x: number; y: number }> {
+  const { width, height } = companionDimensions(size);
   const cx = (px: number) => px / viewport.width;
   const cy = (px: number) => px / viewport.height;
   const left = cx(EDGE_MARGIN + width / 2);
@@ -114,7 +134,7 @@ export function candidateSpots(size: CompanionSize, viewport: { width: number; h
  */
 export function chooseSpot(
   current: { x: number; y: number },
-  size: CompanionSize,
+  size: CompanionShape,
   viewport: { width: number; height: number },
   keepClear: readonly Rect[],
 ): { x: number; y: number; moved: boolean } {
@@ -147,6 +167,7 @@ export default class CompanionStore {
   private constructor() {
     const saved = KvStore.getInstance().get<Partial<CompanionState>>(KEY);
     this.state = { ...defaultCompanionState(), ...(saved ?? {}) };
+    if (this.state.framing !== "full" && this.state.framing !== "face") this.state.framing = "full";
   }
 
   public static getInstance(): CompanionStore {
@@ -180,6 +201,10 @@ export default class CompanionStore {
 
   public setSize(size: CompanionSize): CompanionState {
     return this.patch({ size });
+  }
+
+  public setFraming(framing: CompanionFraming): CompanionState {
+    return this.patch({ framing });
   }
 
   /** The user placed her: she stays there until they let her choose again. */

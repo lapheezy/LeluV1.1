@@ -24,13 +24,12 @@ import GenesisWindowFrame from "./GenesisWindowFrame";
 import AvatarStore, { type AvatarProfile } from "../../../core/avatar/AvatarProfile";
 import { LELU_IDENTITY_STATEMENT } from "../../../brain/LeluIdentity";
 import { useVoice } from "../../../core/voice/useVoice";
-import { useGenesis } from "./GenesisCore";
-import ProceduralAvatarPreview from "./ProceduralAvatarPreview";
-import type { AvatarPresenceMode } from "../../../core/creative/Procedural3DPipeline";
-import { renderAvatarToImage } from "../../../core/creative/Procedural3DPipeline";
-import RenderStore from "../../../core/creative/RenderStore";
 import CompanionToggle from "./avatar/CompanionToggle";
-import Avatar3DReconstructor, { type ReconstructionStatus } from "../../../core/avatar/Avatar3DReconstructor";
+import LeluCharacter from "./avatar/LeluCharacter";
+import { useLeluCharacter } from "./avatar/useLeluCharacter";
+import LeluCharacterStore from "../../../core/avatar/LeluCharacterStore";
+import { LELU_LOOKS, type LeluFraming } from "../../../core/avatar/LeluRig";
+import VoiceEngine from "../../../core/voice/VoiceEngine";
 
 const fieldStyle: CSSProperties = {
   width: "100%",
@@ -82,34 +81,12 @@ type SaveStatus = "saved" | "unsaved" | "saving" | "failed";
 export default function GenesisAvatarPanel({ onClose }: GenesisAvatarPanelProps) {
   const store = useMemo(() => AvatarStore.getInstance(), []);
   const voice = useVoice();
-  const { state } = useGenesis();
-  const renderStore = useMemo(() => RenderStore.getInstance(), []);
+  const character = useLeluCharacter();
   const [profile, setProfile] = useState<AvatarProfile>(() => store.get());
   const profileRef = useRef(profile);
   profileRef.current = profile;
-  const [previewTab, setPreviewTab] = useState<"avatar" | "3d">("avatar");
-  const [snapshot, setSnapshot] = useState<string | null>(null);
-  const [rendering3d, setRendering3d] = useState(false);
-  // True-3D reconstruction of the saved reference (external pipeline).
-  const reconstructor = useMemo(() => Avatar3DReconstructor.getInstance(), []);
-  const [reconStatus, setReconStatus] = useState<ReconstructionStatus>(() => reconstructor.getStatus());
-  const [reconStored, setReconStored] = useState(false);
-
-  useEffect(() => {
-    return reconstructor.subscribe((status, hasStored) => {
-      setReconStatus(status);
-      setReconStored(hasStored);
-    });
-  }, [reconstructor]);
-
-  async function handleReconstruct() {
-    if (!profile.referenceImage) return;
-    try {
-      await reconstructor.reconstruct(profile.referenceImage);
-    } catch {
-      // Status is already surfaced through the subscription + agent stream.
-    }
-  }
+  // Her, live, first: the reference image is what she was built from.
+  const [previewTab, setPreviewTab] = useState<"live" | "avatar">("live");
   // Working copy — diverges from persisted as the user edits.
   const [working, setWorking] = useState<AvatarProfile>(() => store.get());
   const [section, setSection] = useState<Section>("appearance");
@@ -130,40 +107,6 @@ export default function GenesisAvatarPanel({ onClose }: GenesisAvatarPanelProps)
   }, [store]);
 
   const isDirty = JSON.stringify(working) !== JSON.stringify(profile);
-
-  // The 3D preview animates from the REAL presence state — the same
-  // dialogue/voice phases the portrait and AvatarWindow use.
-  const previewMode: AvatarPresenceMode =
-    voice.state.phase === "listening"
-      ? "listening"
-      : voice.state.phase === "speaking" || state.dialogue === "responding" || state.dialogue === "complete"
-        ? "speaking"
-        : state.dialogue === "processing" || state.thinking
-          ? "thinking"
-          : "idle";
-
-  async function handleRender3D() {
-    if (rendering3d) return;
-    setRendering3d(true);
-    try {
-      const image = await renderAvatarToImage(working, { mode: previewMode, time: 1.2 });
-      if (image) {
-        setSnapshot(image.dataUrl);
-        renderStore.save({
-          name: `${working.identity.name} — procedural 3D`,
-          engine: "3d-authoring",
-          kind: "generate",
-          prompt: "Procedural avatar authored from the saved profile",
-          output: image.dataUrl,
-        });
-      }
-    } catch (error) {
-      setSaveStatus("failed");
-      setSaveError(error instanceof Error ? error.message : String(error));
-    } finally {
-      setRendering3d(false);
-    }
-  }
 
   function handleReference(file: File) {
     const reader = new FileReader();
@@ -244,8 +187,8 @@ export default function GenesisAvatarPanel({ onClose }: GenesisAvatarPanelProps)
           <div style={{ display: "flex", gap: 6 }}>
             {(
               [
-                ["avatar", working.referenceImage ? "Avatar" : "Default"],
-                ["3d", "3D"],
+                ["live", "Live LÉLU"],
+                ["avatar", "Reference"],
               ] as const
             ).map(([id, label]) => (
               <button
@@ -266,117 +209,8 @@ export default function GenesisAvatarPanel({ onClose }: GenesisAvatarPanelProps)
             ))}
           </div>
 
-          {previewTab === "3d" ? (
-            <>
-              {working.referenceImage ? (
-                /* When a reference image is saved, show it as the 3D presence
-                   (billboard in 3D space) — NOT a procedural humanoid. */
-                <div style={{ position: "relative", width: "100%" }}>
-                  <img
-                    src={working.referenceImage}
-                    alt="LÉLU — saved avatar in 3D space"
-                    style={{
-                      width: "100%",
-                      borderRadius: 12,
-                      border: "1px solid rgba(212, 169, 78, 0.4)",
-                      boxShadow: "0 8px 30px rgba(0,0,0,0.5), 0 0 40px rgba(212, 169, 78, 0.15)",
-                      animation: "avatar-live-breathe 5.5s ease-in-out infinite",
-                    }}
-                  />
-                  <div style={{
-                    position: "absolute",
-                    bottom: 8,
-                    left: 8,
-                    right: 8,
-                    padding: "6px 10px",
-                    borderRadius: 8,
-                    background: "rgba(4, 8, 24, 0.75)",
-                    backdropFilter: "blur(8px)",
-                    fontSize: 10,
-                    color: "rgba(228, 244, 255, 0.9)",
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    textAlign: "center",
-                  }}>
-                    Saved Avatar · Canonical Reference
-                  </div>
-                </div>
-              ) : (
-                /* No reference saved — show the procedural model as fallback */
-                <>
-                  <ProceduralAvatarPreview profile={working} mode={previewMode} height={300} />
-                  <div style={{ fontSize: 10.5, lineHeight: 1.5, opacity: 0.65 }}>
-                    Procedural fallback — upload a reference portrait to use the exact saved avatar.
-                  </div>
-                </>
-              )}
-              <button
-                type="button"
-                onClick={() => void handleRender3D()}
-                disabled={rendering3d}
-                style={{ ...chipButton, background: "rgba(34, 211, 238, 0.18)", border: "1px solid rgba(125, 211, 252, 0.45)", opacity: rendering3d ? 0.6 : 1 }}
-              >
-                {rendering3d ? "Rendering…" : "Render 3D snapshot"}
-              </button>
-              {snapshot ? (
-                <img
-                  src={snapshot}
-                  alt="Rendered avatar"
-                  style={{ width: "100%", borderRadius: 10, border: "1px solid rgba(34, 211, 238, 0.35)" }}
-                />
-              ) : null}
-
-              {/* ------------------ true 3D reconstruction ------------------ */}
-              <div style={{ height: 1, background: "rgba(255,255,255,0.12)" }} />
-              <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6 }}>
-                True 3D reconstruction
-              </div>
-              <div style={{ fontSize: 10.5, lineHeight: 1.5, opacity: 0.7 }}>
-                Sends the SAVED reference to an external image-to-3D service and replaces the billboard
-                with a real textured mesh in every live scene.
-              </div>
-              {reconStatus.state === "running" ? (
-                <div>
-                  <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
-                    <div
-                      style={{
-                        width: `${reconStatus.progress}%`,
-                        height: "100%",
-                        background: "linear-gradient(90deg, #22d3ee, #a78bfa)",
-                        transition: "width 0.6s ease",
-                      }}
-                    />
-                  </div>
-                  <div style={{ marginTop: 4, fontSize: 10.5, opacity: 0.75 }}>{reconStatus.note}</div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => void handleReconstruct()}
-                  disabled={!profile.referenceImage}
-                  style={{
-                    ...chipButton,
-                    background: "rgba(167, 139, 250, 0.16)",
-                    border: "1px solid rgba(167, 139, 250, 0.45)",
-                    opacity: profile.referenceImage ? 1 : 0.45,
-                  }}
-                >
-                  {reconStored ? "Re-reconstruct true 3D model" : "Reconstruct true 3D model"}
-                </button>
-              )}
-              {!profile.referenceImage ? (
-                <div style={{ fontSize: 10.5, opacity: 0.6 }}>Save a reference image first.</div>
-              ) : null}
-              {reconStatus.state === "succeeded" && reconStored ? (
-                <div style={{ fontSize: 10.5, color: "#4ade80" }}>● True-3D LÉLU is live in every scene</div>
-              ) : null}
-              {reconStatus.state === "failed" ? (
-                <div style={{ fontSize: 10.5, lineHeight: 1.5, color: "#fca5a5", wordBreak: "break-word" }}>
-                  ✕ {reconStatus.error}
-                </div>
-              ) : null}
-            </>
-          ) : (
+          {previewTab === "live" ? (
+            <LiveLeluPreview />          ) : (
             <>
               {working.referenceImage ? (
                 <img
@@ -456,9 +290,9 @@ export default function GenesisAvatarPanel({ onClose }: GenesisAvatarPanelProps)
             System status
           </div>
           {[
-            { label: "Avatar", status: working.referenceImage ? "● Saved Reference" : "● Default SVG", color: working.referenceImage ? "#4ade80" : "#fbbf24" },
+            { label: "Avatar", status: `● Live rig · ${LELU_LOOKS.find((l) => l.id === character.look)?.label ?? character.look}`, color: "#4ade80" },
             { label: "Core", status: "● READY", color: "#67e8f9" },
-            { label: "Renderer", status: "● 3D + SVG", color: "#4ade80" },
+            { label: "Renderer", status: character.form === "hologram" ? "● WebGL · hologram" : "● WebGL · embodied", color: "#4ade80" },
             { label: "Voice", status: voice.state.active ? (voice.state.phase === "listening" ? "● Listening" : "● Active") : "● Idle", color: voice.state.active ? "#a78bfa" : "#4ade80" },
             { label: "Config", status: saveStatus === "saved" ? "● Saved" : saveStatus === "unsaved" ? "◌ Unsaved" : saveStatus === "saving" ? "● Saving…" : "● Failed", color: saveStatus === "saved" ? "#4ade80" : saveStatus === "unsaved" ? "#a78bfa" : saveStatus === "saving" ? "#fbbf24" : "#f87171" },
           ].map((row) => (
@@ -622,5 +456,61 @@ export default function GenesisAvatarPanel({ onClose }: GenesisAvatarPanelProps)
         </div>
       </div>
     </GenesisWindowFrame>
+  );
+}
+
+/**
+ * LÉLU herself, live: the same rig and animation every surface shows.
+ * No frame and no backdrop of her own — the panel shows through around her.
+ */
+function LiveLeluPreview() {
+  const character = useLeluCharacter();
+  const [framing, setFraming] = useState<LeluFraming>("full");
+  const chip = (active: boolean): CSSProperties => ({
+    ...chipButton,
+    flex: 1,
+    padding: "6px 6px",
+    fontSize: 10.5,
+    background: active ? "rgba(34, 211, 238, 0.16)" : "rgba(255,255,255,0.04)",
+    border: active ? "1px solid rgba(125, 211, 252, 0.45)" : "1px solid rgba(255,255,255,0.1)",
+  });
+  return (
+    <>
+      <div data-testid="avatar-live-stage" style={{ width: "100%", height: framing === "full" ? 380 : 280 }}>
+        <LeluCharacter framing={framing} fps={60} testId="avatar-panel-character" />
+      </div>
+      <div style={{ display: "flex", gap: 6 }} role="group" aria-label="Her look">
+        {LELU_LOOKS.map((look) => (
+          <button key={look.id} type="button" aria-pressed={character.look === look.id} onClick={() => LeluCharacterStore.getInstance().setLook(look.id)} style={chip(character.look === look.id)}>
+            {look.label}
+          </button>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 6 }} role="group" aria-label="Her form">
+        {(["embodied", "hologram"] as const).map((form) => (
+          <button key={form} type="button" aria-pressed={character.form === form} onClick={() => LeluCharacterStore.getInstance().setForm(form)} style={chip(character.form === form)}>
+            {form === "embodied" ? "Embodied" : "Hologram"}
+          </button>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 6 }} role="group" aria-label="Framing">
+        {(["full", "face"] as const).map((value) => (
+          <button key={value} type="button" aria-pressed={framing === value} onClick={() => setFraming(value)} style={chip(framing === value)}>
+            {value === "full" ? "Full body" : "Face"}
+          </button>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={() => VoiceEngine.getInstance().speakResponse("Hi, I'm LÉLU. This is my voice, and this is how I move when I speak to you.")}
+        style={chipButton}
+      >
+        Hear her
+      </button>
+      <div style={{ fontSize: 10.5, lineHeight: 1.5, opacity: 0.65 }}>
+        Built from your reference images: blinking, gaze, expression, head and body motion are live, and her
+        mouth follows her actual speech.
+      </div>
+    </>
   );
 }
