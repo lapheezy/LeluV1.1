@@ -252,6 +252,11 @@ test("the layout report is the page as a user first sees it: stable, scroll-awar
           <button style="height:34px">Reset profile</button>
         </div>
       </div>
+      <div id="tab" style="position:fixed;left:20px;top:760px;width:110px;overflow:hidden;display:flex">
+        <button style="width:70px;height:30px">New chat</button>
+        <button style="width:30px;height:30px">…</button>
+        <span style="display:inline-block;min-width:60px"></span>
+      </div>
       <button style="position:fixed;left:20px;top:20px;width:80px;height:30px">Under</button>
       <div style="position:fixed;left:0;top:0;width:200px;height:60px"></div>
     </body>`);
@@ -268,7 +273,7 @@ test("the layout report is the page as a user first sees it: stable, scroll-awar
     assert.equal(first.belowTheFold, 1);
     assert.ok(seen(first).includes('covered: button "Under"'));
     const overflow = first.findings.filter((f) => f.problem === "sideways-overflow");
-    assert.equal(overflow.length, 1, "the outermost box that hides controls sideways, not the ellipsis label: " + JSON.stringify(overflow));
+    assert.equal(overflow.length, 1, "the outermost box that hides controls sideways — not the ellipsis label, nor a tab whose content is wider but cuts no control off: " + JSON.stringify(overflow));
     assert.match(overflow[0].detail ?? "", /content 5\d\dpx wide in a 3\d\dpx box/);
   } finally {
     await browser.close();

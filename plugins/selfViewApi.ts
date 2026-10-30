@@ -415,13 +415,20 @@ export const LAYOUT_SCRIPT = `(() => {
   // sideways findings. Outermost only; at most five.
   const wide = [];
   for (const el of document.querySelectorAll("body *")) {
-    // Clipped text (an ellipsis) is not a layout problem: only boxes that
-    // hide controls sideways count.
+    // Clipped text (an ellipsis), or content that is wider without hiding
+    // anything, is not a layout problem: only a box that actually cuts off
+    // one of its controls counts. (Measured in run 11: a chat tab whose
+    // content measured 159px in a 110px box, every part of it visible —
+    // reported as overflow, it sent LÉLU after a problem that did not exist.)
     if (el.scrollWidth <= el.clientWidth + 8 || el.clientWidth < 40) continue;
-    if (!el.querySelector("button, a[href], input, textarea, select, [role='button'], [role='switch'], [role='tab']")) continue;
     const s = getComputedStyle(el);
     if (!clips(s.overflowX) || s.display === "none" || s.visibility === "hidden") continue;
     const r = el.getBoundingClientRect();
+    const cutOff = [...el.querySelectorAll("button, a[href], input, textarea, select, [role='button'], [role='switch'], [role='tab']")].some((control) => {
+      const c = control.getBoundingClientRect();
+      return c.width >= 2 && (c.left < r.left - 1 || c.right > r.right + 1);
+    });
+    if (!cutOff) continue;
     if (r.right <= 0 || r.left >= vw || r.bottom <= 0 || r.top >= vh) continue;
     if (wide.some((outer) => outer.contains(el))) continue;
     wide.push(el);

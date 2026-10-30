@@ -12,6 +12,7 @@
 // Deno ships a node:path compatibility shim; resolve/sep give us the
 // same boundary semantics as the Node adapter.
 import { dirname, join, relative, resolve, sep } from "node:path";
+import { lineChangeCounts, unifiedPatch } from "./lineDiff.ts";
 import {
   WorkspaceBoundaryError,
   type EngineerAdapter,
@@ -91,35 +92,8 @@ export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
     return text.length === 0 ? 0 : text.split("\n").length;
   }
 
-  /** Same unified-style patch the Node adapter produces. */
-  function buildPatch(relative: string, before: string, after: string): string {
-    const a = before.length ? before.split("\n") : [];
-    const b = after.length ? after.split("\n") : [];
-    let start = 0;
-    while (start < a.length && start < b.length && a[start] === b[start]) start += 1;
-    let endA = a.length - 1;
-    let endB = b.length - 1;
-    while (endA >= start && endB >= start && a[endA] === b[endB]) {
-      endA -= 1;
-      endB -= 1;
-    }
-    const removed = a.slice(start, endA + 1);
-    const added = b.slice(start, endB + 1);
-    const CONTEXT = 3;
-    const patch = [
-      `--- a/${relative}`,
-      `+++ b/${relative}`,
-      `@@ -${start + 1},${removed.length} +${start + 1},${added.length} @@`,
-      ...a.slice(Math.max(0, start - CONTEXT), start).map((line) => ` ${line}`),
-      ...removed.map((line) => `-${line}`),
-      ...added.map((line) => `+${line}`),
-      ...a.slice(endA + 1, endA + 1 + CONTEXT).map((line) => ` ${line}`),
-    ].join("\n");
-    const MAX_PATCH_CHARS = 8000;
-    return patch.length > MAX_PATCH_CHARS
-      ? `${patch.slice(0, MAX_PATCH_CHARS)}\n…[patch truncated]`
-      : patch;
-  }
+  /** Same line diff the Node adapter uses (plugins/lineDiff.ts). */
+  const buildPatch = unifiedPatch;
 
   function resolveWithinWorkspace(targetPath: string): string {
     const absoluteTarget = resolve(workspaceRoot, targetPath);
@@ -306,11 +280,14 @@ export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
         }
         const sourceText = Deno.readTextFileSync(join(workspaceRoot, rel));
         if (sourceText === copyText) continue;
+        // Real counts: whole-file totals here read as a diff summary but hid
+        // what was removed (the Node adapter was fixed for this earlier).
+        const counts = lineChangeCounts(sourceText, copyText);
         changes.push({
           path: rel,
           status: "modified",
-          addedLines: countLines(copyText),
-          removedLines: countLines(sourceText),
+          addedLines: counts.added,
+          removedLines: counts.removed,
           ...(includePatch ? { patch: buildPatch(rel, sourceText, copyText) } : {}),
         });
       }

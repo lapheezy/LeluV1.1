@@ -9,6 +9,7 @@
  */
 
 import { spawn } from "node:child_process";
+import { lineChangeCounts, unifiedPatch } from "./lineDiff.ts";
 import {
   cpSync,
   existsSync,
@@ -111,72 +112,11 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
     return text.length === 0 ? 0 : text.split("\n").length;
   }
 
-  /**
-   * How many lines a change actually ADDS and REMOVES.
-   *
-   * These were previously the two files' TOTAL line counts, rendered as
-   * "+58/-0". That is not a diff summary, it just looks like one — and
-   * it actively hid destruction: a write that cut a 192-line test file
-   * down to 57 displayed as "+58/-0" while git recorded 168 deletions.
-   * A reviewer reading the tool output had no way to see the loss.
-   */
-  function changeCounts(before: string, after: string): { added: number; removed: number } {
-    const a = before.length ? before.split("\n") : [];
-    const b = after.length ? after.split("\n") : [];
-    let start = 0;
-    while (start < a.length && start < b.length && a[start] === b[start]) start += 1;
-    let endA = a.length - 1;
-    let endB = b.length - 1;
-    while (endA >= start && endB >= start && a[endA] === b[endB]) {
-      endA -= 1;
-      endB -= 1;
-    }
-    return { added: Math.max(0, endB - start + 1), removed: Math.max(0, endA - start + 1) };
-  }
-
-  /**
-   * A real unified-style patch between two file contents.
-   *
-   * Deliberately a simple longest-common-prefix/suffix diff rather than
-   * a full Myers implementation: it is exact about WHICH lines differ
-   * (both sides are read from disk), which is what a reviewer and a
-   * model need, without pulling in a diff dependency for it.
-   */
-  function buildPatch(relative: string, before: string, after: string): string {
-    const a = before.length ? before.split("\n") : [];
-    const b = after.length ? after.split("\n") : [];
-
-    let start = 0;
-    while (start < a.length && start < b.length && a[start] === b[start]) start += 1;
-    let endA = a.length - 1;
-    let endB = b.length - 1;
-    while (endA >= start && endB >= start && a[endA] === b[endB]) {
-      endA -= 1;
-      endB -= 1;
-    }
-
-    const removed = a.slice(start, endA + 1);
-    const added = b.slice(start, endB + 1);
-    const CONTEXT = 3;
-    const contextBefore = a.slice(Math.max(0, start - CONTEXT), start);
-    const contextAfter = a.slice(endA + 1, endA + 1 + CONTEXT);
-
-    const lines = [
-      `--- a/${relative}`,
-      `+++ b/${relative}`,
-      `@@ -${start + 1},${removed.length} +${start + 1},${added.length} @@`,
-      ...contextBefore.map((line) => ` ${line}`),
-      ...removed.map((line) => `-${line}`),
-      ...added.map((line) => `+${line}`),
-      ...contextAfter.map((line) => ` ${line}`),
-    ];
-
-    const MAX_PATCH_CHARS = 8000;
-    const patch = lines.join("\n");
-    return patch.length > MAX_PATCH_CHARS
-      ? `${patch.slice(0, MAX_PATCH_CHARS)}\n…[patch truncated]`
-      : patch;
-  }
+  // Real line counts and a hunked patch (plugins/lineDiff.ts). Totals
+  // once hid a 192-line file cut to 57 ("+58/-0"); a prefix/suffix trim
+  // later turned two small edits 500 lines apart into "+531/-523".
+  const changeCounts = lineChangeCounts;
+  const buildPatch = unifiedPatch;
 
   function resolveWithinWorkspace(targetPath: string): string {
     const absoluteTarget = path.resolve(workspaceRoot, targetPath);
