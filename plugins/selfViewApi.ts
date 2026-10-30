@@ -385,7 +385,7 @@ export const LAYOUT_SCRIPT = `(() => {
     if (s.position !== "fixed") return false;
     const r = el.getBoundingClientRect();
     if (r.left > 1 || r.top > 1 || r.right < vw - 1 || r.bottom < vh - 1) return false;
-    const m = /rgba?\(([^)]+)\)/.exec(s.backgroundColor);
+    const m = /rgba?\\(([^)]+)\\)/.exec(s.backgroundColor);
     const alpha = m ? (m[1].split(",")[3] === undefined ? 1 : Number(m[1].split(",")[3])) : 0;
     return (alpha > 0.05 && alpha < 0.95) || s.backdropFilter !== "none";
   };
