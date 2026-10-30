@@ -360,6 +360,11 @@ Most runs failed on infrastructure, not on her. Each defect was fixed in the too
 
   `tests/companion-mode.test.ts` was updated for the new default and the framing.
 - **Running app:** `node scripts/verify-lelu-character.mjs`, phone 390×844 and desktop 1280×800. Evidence is in `docs/evidence/lelu-character/<stamp>/`.
+- **Companion live checks:** `node scripts/verify-companion.mjs` passes **41/41** on phone and desktop.
+  - It now checks "on by default" and that the real switch turns her off, then on.
+  - Caption and activity are polled, not slept.
+  - It found a real bug: with Face and Hologram added, her control row ran 2 px past a 390 px screen. The row now wraps inside the screen.
+- **Build:** `vite build` passes, and both looks are shipped in `avatar/lelu/`.
 - **Voice in the running app:** headless Chromium has no voices, so the script installs a `speechSynthesis` stand-in that fires real start / word-boundary / end events. The path from VoiceEngine to her mouth is real; the audio is not.
 
 ### Not done, and why

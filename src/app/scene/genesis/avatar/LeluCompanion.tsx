@@ -322,6 +322,7 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
               justifyContent: "center",
               width: "max-content",
               maxWidth: Math.max(160, viewport.width - 16),
+              boxSizing: "border-box", // the cap includes padding and border
             }}
           >
             {[
