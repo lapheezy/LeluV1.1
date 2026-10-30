@@ -98,6 +98,7 @@ export async function startFakeMeshy(): Promise<FakeMeshy> {
         id, status: "SUCCEEDED", progress: 100, consumed_credits: 30,
         model_urls: { glb: asset("model.glb"), fbx: asset("model.fbx") },
         thumbnail_url: asset("preview.png"),
+        thumbnail_urls: { front: asset("front.png"), back: asset("back.png") },
         texture_urls: [{ base_color: asset("base_color.png") }],
       });
     }

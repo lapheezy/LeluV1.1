@@ -40,7 +40,7 @@ import {
   type MeshyTaskStatus,
 } from "../src/core/forge/MeshyCatalog.ts";
 import { inspectGlb } from "../src/core/forge/GlbInspector.ts";
-import { ForgeStore, isTerminal, type CharacterSlot, type ForgeJob, type ForgeOutputFile } from "./forgeStore.ts";
+import { ForgeStore, isTerminal, type CharacterSlot, type CosmosPlacement, type ForgeJob, type ForgeOutputFile } from "./forgeStore.ts";
 
 export type EnvReader = (name: string) => string | undefined;
 
@@ -86,6 +86,8 @@ interface MeshyTask {
   task_error?: { message?: string } | null;
   model_urls?: Record<string, string | undefined>;
   thumbnail_url?: string;
+  thumbnail_urls?: Record<string, string | undefined>;
+  alpha_thumbnail_url?: string;
   texture_urls?: Array<Record<string, string | undefined>>;
   result?: Record<string, unknown> | null;
 }
@@ -302,12 +304,13 @@ export class MeshyForge {
     }
   }
 
-  reject(jobId: string): ForgeJob {
+  reject(jobId: string, reason = ""): ForgeJob {
     const job = this.store.job(jobId);
     if (!job) throw new ForgeError(`No job ${jobId}.`, 404);
     if (job.status !== "awaiting_approval") throw new ForgeError(`Only a job awaiting approval can be rejected (this one is ${job.status}).`, 409);
     job.status = "rejected";
-    this.store.logEvent(job.character, { type: "job_rejected", jobId });
+    if (reason) job.error = `Rejected: ${reason}`;
+    this.store.logEvent(job.character, { type: "job_rejected", jobId, reason: reason || null });
     return this.store.saveJob(job);
   }
 
@@ -383,11 +386,15 @@ export class MeshyForge {
     } else {
       add("model", "model", task.model_urls?.glb, ".glb");
       add("pre-remesh", "pre_remeshed", task.model_urls?.pre_remeshed_glb, ".glb");
+      // Every other format the request asked for, kept beside the runtime GLB.
+      for (const format of ["fbx", "obj", "mtl", "usdz", "stl", "3mf"]) add(`model-${format}`, "model", task.model_urls?.[format], `.${format}`);
       for (const [i, set] of (task.texture_urls ?? []).entries()) {
         for (const [channel, url] of Object.entries(set)) add(`texture:${channel}`, `texture_${i}_${channel}`, url, ".png");
       }
     }
     add("preview", "preview", task.thumbnail_url, ".png");
+    add("preview-alpha", "preview_alpha", task.alpha_thumbnail_url, ".png");
+    for (const [view, url] of Object.entries(task.thumbnail_urls ?? {})) add(`view:${view}`, `view_${view}`, url, ".png");
     return out;
   }
 
@@ -418,8 +425,9 @@ export class MeshyForge {
       return this.store.saveJob(job);
     }
 
-    job.output = { dir: this.store.relative(dir), files };
     job.validation = primary ? inspectGlb(primary) : null;
+    files.push(this.store.writeOutput(dir, "provenance.json", "provenance", new TextEncoder().encode(`${JSON.stringify(this.provenance(job), null, 2)}\n`)));
+    job.output = { dir: this.store.relative(dir), files };
     job.error = null;
     this.store.logEvent(job.character, {
       type: "job_succeeded",
@@ -430,6 +438,39 @@ export class MeshyForge {
       problems: job.validation?.problems ?? [],
     });
     return this.store.saveJob(job);
+  }
+
+  /**
+   * What produced this asset: the exact request (reference handles, not
+   * inline bytes), each reference's recorded hash, the identity lock in
+   * force, and the Meshy task. Written once into the version folder.
+   */
+  private provenance(job: ForgeJob) {
+    const handles = new Set<string>();
+    const walk = (v: unknown): void => {
+      if (typeof v === "string" && v.startsWith("ref:")) handles.add(v.slice(4));
+      else if (Array.isArray(v)) v.forEach(walk);
+      else if (v && typeof v === "object") Object.values(v).forEach(walk);
+    };
+    walk(job.request);
+    const records = this.store.references(job.character);
+    return {
+      jobId: job.id,
+      character: job.character,
+      kind: job.kind,
+      purpose: job.purpose,
+      meshyTaskId: job.meshyTaskId,
+      request: job.request,
+      references: [...handles].map((id) => {
+        const r = records.find((x) => x.id === id);
+        return { id, sha256: r?.metrics.sha256 ?? null, view: r?.view ?? null, outfitVariant: r?.outfitVariant ?? null };
+      }),
+      identityLock: job.identityLock,
+      estimatedCredits: job.estimatedCredits,
+      consumedCredits: job.consumedCredits,
+      submittedAt: job.submittedAt,
+      finishedAt: job.finishedAt,
+    };
   }
 
   /** Refresh every submitted, unfinished job (and finished ones whose downloads failed). */
@@ -477,6 +518,72 @@ export class MeshyForge {
     if (slot.startsWith("animation:") && !v.animated) reasons.push("No clip that drives joints.");
     if (reasons.length) throw new ForgeError(`Job ${jobId} is not fit for slot ${slot}.`, 422, reasons);
     return this.store.setActive(character, slot, jobId);
+  }
+
+  /* ------------------------------ cosmos ------------------------------ */
+
+  /**
+   * Put a finished asset into the Cosmos. Only a downloaded job whose GLB
+   * the inspector passed can be placed; the placement points at that
+   * version's file, so later generations never change what is standing there.
+   */
+  place(input: { jobId: string; label?: string; position?: unknown; rotationY?: unknown; height?: unknown }): CosmosPlacement {
+    const job = this.store.job(input.jobId);
+    if (!job) throw new ForgeError(`No job ${input.jobId}.`, 404);
+    const model = job.output?.files.find((f) => f.role === "model");
+    if (job.status !== "SUCCEEDED" || !model) throw new ForgeError("Only a finished, downloaded job can be placed.", 409);
+    if (!job.validation?.verdict.meshValid) throw new ForgeError("Its GLB did not pass inspection, so it is not placed.", 422, job.validation?.problems ?? []);
+    const placements = this.store.placements();
+    const num = (v: unknown, fallback: number, min: number, max: number) =>
+      typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : fallback;
+    // Default spot: on LÉLU's floor (y −2.55, she stands at x 0, z 3.3),
+    // alternating left/right of her and stepping outward per placement.
+    const n = placements.length;
+    const side = n % 2 === 0 ? 1 : -1;
+    const p = Array.isArray(input.position) ? input.position : [];
+    const placement: CosmosPlacement = {
+      id: `pl_${Date.now().toString(36)}_${createHash("sha1").update(String(Math.random())).digest("hex").slice(0, 4)}`,
+      jobId: job.id,
+      character: job.character,
+      label: (input.label ?? job.purpose ?? job.kind).toString().slice(0, 80) || job.kind,
+      file: model.file,
+      position: [num(p[0], side * (2.2 + 1.6 * Math.floor(n / 2)), -40, 40), num(p[1], -2.55, -20, 20), num(p[2], 2.6, -40, 40)],
+      rotationY: num(input.rotationY, 0, -Math.PI * 2, Math.PI * 2),
+      height: num(input.height, 2, 0.05, 20),
+      createdAt: Date.now(),
+    };
+    this.store.savePlacements([...placements, placement]);
+    this.store.logEvent(job.character, { type: "cosmos_placed", placementId: placement.id, jobId: job.id });
+    return placement;
+  }
+
+  unplace(placementId: string): CosmosPlacement {
+    const placements = this.store.placements();
+    const found = placements.find((p) => p.id === placementId);
+    if (!found) throw new ForgeError(`No placement ${placementId}.`, 404);
+    this.store.savePlacements(placements.filter((p) => p.id !== placementId));
+    this.store.logEvent(found.character, { type: "cosmos_removed", placementId, jobId: found.jobId });
+    return found;
+  }
+
+  /** Every finished, inspected asset across characters and prop collections — what can be reused or placed. */
+  library() {
+    return this.store
+      .allJobs()
+      .filter((j) => j.status === "SUCCEEDED" && j.output)
+      .map((j) => ({
+        jobId: j.id,
+        character: j.character,
+        kind: j.kind,
+        purpose: j.purpose,
+        dir: j.output!.dir,
+        model: j.output!.files.find((f) => f.role === "model")?.file ?? null,
+        preview: j.output!.files.find((f) => f.role === "preview")?.file ?? null,
+        meshValid: j.validation?.verdict.meshValid ?? false,
+        rigValid: j.validation?.verdict.rigValid ?? false,
+        consumedCredits: j.consumedCredits,
+        finishedAt: j.finishedAt,
+      }));
   }
 
   /** Files the Cosmos needs to show the character: the best validated model plus clips. */

@@ -4,7 +4,9 @@
  *
  *   tsx scripts/forge-character.ts status
  *   tsx scripts/forge-character.ts plan-base            plan the Phase D base job (spends nothing)
+ *   tsx scripts/forge-character.ts plan-multiview       plan the multi-view base job (spends nothing)
  *   tsx scripts/forge-character.ts approve <jobId>      submit it (spends credits)
+ *   tsx scripts/forge-character.ts reject <jobId> [reason]  decline a planned job; its record is kept
  *   tsx scripts/forge-character.ts watch <jobId>        follow to completion, download, inspect
  *   tsx scripts/forge-character.ts rig <baseJobId> [--height=1.75] [--approve]
  *   tsx scripts/forge-character.ts animate <rigJobId> <name>=<actionId>... [--approve]
@@ -39,6 +41,34 @@ const BASE_REQUEST = {
   should_remesh: true,
   topology: "triangle",
   target_polycount: 60_000,
+  image_enhancement: false,
+  target_formats: ["glb", "fbx"],
+  multi_view_thumbnails: true,
+};
+
+/**
+ * Multi-view base request. The only references that show the SAME look
+ * from several angles at full length are the hooded outfit-B set:
+ * ref14 (front, A-pose — first, as meshy-7.1 reads image 1 as the front),
+ * ref13 (three-quarter front) and ref12 (left side). There is no back
+ * view of this look: ref09 is unhooded, braided and cropped at the thigh,
+ * so it would contradict the hood and the legs. Meshy infers the back.
+ * geometry_resolution stays "standard" (2K *Ultra geometry* is a separate,
+ * +5-credit setting); texture_resolution "2k" is the texture map size.
+ * image_enhancement is off so Meshy keeps the references' own look.
+ */
+const MULTIVIEW_REQUEST = {
+  image_urls: ["ref:ref14_front_apose_hooded_B", "ref:ref13_three_quarter_hooded_B", "ref:ref12_left_side_hooded_B"],
+  ai_model: "meshy-7.1",
+  geometry_resolution: "standard",
+  should_texture: true,
+  enable_pbr: true,
+  texture_resolution: "2k",
+  pose_mode: "a-pose",
+  should_remesh: true,
+  topology: "triangle",
+  target_polycount: 60_000,
+  save_pre_remeshed_model: true,
   image_enhancement: false,
   target_formats: ["glb", "fbx"],
   multi_view_thumbnails: true,
@@ -113,11 +143,24 @@ async function main(): Promise<void> {
       if (job.status === "awaiting_approval") console.log(`\nApprove with: tsx scripts/forge-character.ts approve ${job.id}`);
       return;
     }
+    case "plan-multiview": {
+      const { job, reused } = await forge.request({
+        character: CHARACTER,
+        kind: "multi-image-to-3d",
+        purpose: "Multi-view base character (outfit B, hooded; ref14 front + ref13 three-quarter + ref12 side)",
+        body: MULTIVIEW_REQUEST,
+        approve,
+      });
+      console.log(reused ? "Existing job for this exact request (no new spend):" : "Planned:");
+      show(job);
+      if (job.status === "awaiting_approval") console.log(`\nApprove with: tsx scripts/forge-character.ts approve ${job.id}`);
+      return;
+    }
     case "approve":
       show(await forge.approve(jobArg(3), { resubmitUncertain: process.argv.includes("--resubmit-uncertain") }));
       return;
     case "reject":
-      show(forge.reject(jobArg(3)));
+      show(forge.reject(jobArg(3), process.argv.slice(4).join(" ")));
       return;
     case "watch": {
       const id = jobArg(3);

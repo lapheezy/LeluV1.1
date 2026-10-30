@@ -35,7 +35,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import AvatarStore from "../../../core/avatar/AvatarProfile";
 import AvatarCommandBus, { type AvatarCommand } from "../../../core/avatar/AvatarCommandBus";
 import Avatar3DReconstructor, { fingerprintOf } from "../../../core/avatar/Avatar3DReconstructor";
-import ForgeClient from "../../../core/forge/ForgeClient";
+import ForgeClient, { FORGE_CHANGED_EVENT } from "../../../core/forge/ForgeClient";
 import AgentEventBus, { type AgentEvent } from "../../../core/agent/AgentEvents";
 import ExecutiveRuntime from "../../../core/executive/ExecutiveRuntime";
 import { useGenesis } from "./GenesisCore";
@@ -764,23 +764,29 @@ export default function LeluV2Presence({ position }: { position?: THREE.Vector3 
   // The approved LÉLU character from the 3D Forge (validated base or rig plus
   // its animation slots). Preferred over everything else when it exists;
   // without a Forge server (static hosting) the request fails and nothing changes.
-  const [forgeModel, setForgeModel] = useState<{ glb: ArrayBuffer; clips: ArrayBuffer[] } | null>(null);
+  // Reloads when a slot is promoted, so a newly approved version appears without a refresh.
+  const [forgeModel, setForgeModel] = useState<{ key: string; glb: ArrayBuffer; clips: ArrayBuffer[] } | null>(null);
   useEffect(() => {
     let alive = true;
-    void (async () => {
+    const load = async () => {
       try {
         const active = await ForgeClient.active(FORGE_CHARACTER);
         if (!active.model) return;
-        const glb = await ForgeClient.assetBytes(active.model.file);
         const clipFiles = Object.values(active.animations).flatMap((a) => (a ? [a.file] : []));
+        const key = [active.model.file, ...clipFiles].join("|");
+        const glb = await ForgeClient.assetBytes(active.model.file);
         const clips = await Promise.all(clipFiles.map((file) => ForgeClient.assetBytes(file)));
-        if (alive) setForgeModel({ glb, clips });
+        if (alive) setForgeModel((current) => (current?.key === key ? current : { key, glb, clips }));
       } catch (error) {
         console.info("[Lélu Presence] no Forge character available", error instanceof Error ? error.message : error);
       }
-    })();
+    };
+    void load();
+    const onChange = () => void load();
+    window.addEventListener(FORGE_CHANGED_EVENT, onChange);
     return () => {
       alive = false;
+      window.removeEventListener(FORGE_CHANGED_EVENT, onChange);
     };
   }, []);
 

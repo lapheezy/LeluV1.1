@@ -83,6 +83,7 @@ import StarField from "./environment/stars/StarField";
 import Cosmos from "./environment/Cosmos";
 import GenesisV2CameraRig from "./GenesisV2CameraRig";
 import LeluV2Presence from "./LeluV2Presence";
+import ForgePlacements from "./ForgePlacements";
 
 export type V2NodeId = "core" | "studio" | "lab" | "vault";
 
@@ -1456,6 +1457,9 @@ export default function GenesisV2Scene3D({
             by the real agent activity (listening/thinking/speaking/
             working/rendering/searching), with her own warm light. */}
         <LeluV2Presence />
+
+        {/* Finished 3D Forge assets placed in the Cosmos (persisted server-side). */}
+        <ForgePlacements />
       </ContextBridge>
     </Canvas>
   );

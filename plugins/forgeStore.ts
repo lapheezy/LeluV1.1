@@ -78,6 +78,20 @@ export interface IdentityLock {
   lockHash: string;
 }
 
+/** A finished Forge asset placed in the Cosmos. Survives restarts; removing one never deletes the asset. */
+export interface CosmosPlacement {
+  id: string;
+  jobId: string;
+  character: string;
+  label: string;
+  file: string;
+  position: [number, number, number];
+  rotationY: number;
+  /** Height in world units the model is fitted to. */
+  height: number;
+  createdAt: number;
+}
+
 export type CharacterSlot = "base" | "rig" | `animation:${string}`;
 
 export interface CharacterManifest {
@@ -343,6 +357,21 @@ export class ForgeStore {
   copyPreview(character: string, jobId: string, bytes: Uint8Array, ext: string): ForgeOutputFile {
     const dir = path.join(this.characterDir(character), "previews");
     return this.writeOutput(dir, `${jobId}${ext}`, "preview", bytes);
+  }
+
+  /* ------------------------------ cosmos ------------------------------ */
+
+  private placementsFile(): string {
+    mkdirSync(path.join(this.root, "cosmos"), { recursive: true });
+    return path.join(this.root, "cosmos", "placements.json");
+  }
+
+  placements(): CosmosPlacement[] {
+    return readJson<CosmosPlacement[]>(this.placementsFile(), []);
+  }
+
+  savePlacements(placements: CosmosPlacement[]): void {
+    writeJsonAtomic(this.placementsFile(), placements);
   }
 
   /* ----------------------------- character ---------------------------- */

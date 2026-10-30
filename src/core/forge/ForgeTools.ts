@@ -14,6 +14,9 @@
  *                          character's base / rig / animation
  *   forge.approve  risk 3  spend the credits (external action:
  *                          only offered at autonomy level 3+)
+ *   forge.library  risk 0  every finished asset she can reuse
+ *   forge.place    risk 1  put a finished asset into the Cosmos
+ *                          (or take one out); assets are kept
  *
  * Planning and spending are deliberately separate tools, so
  * "LÉLU decided what to make" and "credits were spent" are
@@ -88,6 +91,28 @@ export const FORGE_TOOLS: ToolDefinition[] = [
     inputSchema: { jobId: "string" },
     executionRoute: "POST /api/forge/jobs/<id>/approve",
   },
+  {
+    id: "forge.library",
+    name: "3D Asset Library",
+    description: "Every finished, inspected 3D asset (characters, outfits, props, environments) with its job id, and what is currently placed in the Cosmos",
+    category: "3D Forge",
+    permissions: ["READ"],
+    riskLevel: 0,
+    available: true,
+    executionRoute: "GET /api/forge/library + /api/forge/placements",
+  },
+  {
+    id: "forge.place",
+    name: "Place 3D Asset in Cosmos",
+    description:
+      "Put a finished 3D asset into LÉLU's Cosmos at a position, rotation and height (it persists across sessions), or remove a placement. Never spends credits and never deletes the asset",
+    category: "3D Forge",
+    permissions: ["WRITE"],
+    riskLevel: 1,
+    available: true,
+    inputSchema: { jobId: "string", label: "string", position: "number[3]", rotationY: "number", height: "number", removePlacementId: "string" },
+    executionRoute: "POST /api/forge/placements",
+  },
 ];
 
 function describe(job: ForgeJobView): string {
@@ -138,7 +163,10 @@ export const FORGE_EXECUTORS: ForgeExecutor[] = [
     id: "forge.plan",
     parameters: OBJECT(
       {
-        character: { type: "string", description: "Character id (lowercase), e.g. lelu_character." },
+        character: {
+          type: "string",
+          description: "Collection id (lowercase): lelu_character for LÉLU herself, another id for a new character, or e.g. cosmos_props for objects and environments.",
+        },
         kind: { type: "string", enum: ["image-to-3d", "multi-image-to-3d", "text-to-3d", "remesh", "retexture", "rigging", "animation"] },
         body: { type: "object", description: "Meshy request parameters. Stored references are named as \"ref:<id>\"." },
         purpose: { type: "string" },
@@ -182,6 +210,58 @@ export const FORGE_EXECUTORS: ForgeExecutor[] = [
     run: async (args) => {
       const { job } = await ForgeClient.approve(str(args, "jobId"));
       return { ok: job.status !== "FAILED" && !job.error, content: describe(job), data: job };
+    },
+  },
+  {
+    id: "forge.library",
+    parameters: OBJECT({}, []),
+    run: async () => {
+      const [{ assets }, { placements }] = await Promise.all([ForgeClient.library(), ForgeClient.placements()]);
+      const lines = assets.map(
+        (a) => `${a.jobId} — ${a.character}/${a.kind}${a.purpose ? ` (${a.purpose})` : ""}, mesh ${a.meshValid ? "valid" : "INVALID"}${a.rigValid ? ", rigged" : ""}`,
+      );
+      const placed = placements.map((p) => `${p.id}: ${p.label} (job ${p.jobId}) at [${p.position.map((n) => n.toFixed(1)).join(", ")}]`);
+      return {
+        ok: true,
+        content:
+          `${assets.length} finished asset(s)${lines.length ? `: ${lines.join("; ")}` : ""}. ` +
+          `${placements.length} placed in the Cosmos${placed.length ? `: ${placed.join("; ")}` : ""}.`,
+        data: { assets, placements },
+      };
+    },
+  },
+  {
+    id: "forge.place",
+    parameters: OBJECT(
+      {
+        jobId: { type: "string", description: "Finished job to place (from forge.library)." },
+        label: { type: "string" },
+        position: { type: "array", items: { type: "number" }, description: "[x, y, z]; omit to use the next free spot near the core." },
+        rotationY: { type: "number", description: "Radians." },
+        height: { type: "number", description: "World units the model is fitted to; LÉLU stands 2.56 tall on the floor at y −2.55." },
+        removePlacementId: { type: "string", description: "Instead of placing, remove this placement (the asset is kept)." },
+      },
+      [],
+    ),
+    run: async (args) => {
+      const remove = str(args, "removePlacementId");
+      if (remove) {
+        const { placement } = await ForgeClient.unplace(remove);
+        return { ok: true, content: `Removed ${placement.label} from the Cosmos. The asset is still in the library (job ${placement.jobId}).` };
+      }
+      const position = Array.isArray(args.position) && args.position.length === 3 ? (args.position as [number, number, number]) : undefined;
+      const { placement } = await ForgeClient.place({
+        jobId: str(args, "jobId"),
+        label: str(args, "label") || undefined,
+        position,
+        rotationY: typeof args.rotationY === "number" ? args.rotationY : undefined,
+        height: typeof args.height === "number" ? args.height : undefined,
+      });
+      return {
+        ok: true,
+        content: `Placed ${placement.label} in the Cosmos at [${placement.position.map((n) => n.toFixed(1)).join(", ")}] as ${placement.id}.`,
+        data: placement,
+      };
     },
   },
 ];

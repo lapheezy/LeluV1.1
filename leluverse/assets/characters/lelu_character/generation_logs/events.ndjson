@@ -14,3 +14,5 @@
 {"at":"2026-10-30T16:28:07.173Z","type":"reference_ingested","id":"ref14_front_apose_hooded_B","sha256":"26601d19f5b5967247f54ab4cf9b052b9594c3157ef4a3da13622461c78c146f","nearDuplicateOf":"ref11_front_apose_B"}
 {"at":"2026-10-30T16:28:07.175Z","type":"identity_locked","lockHash":"c90e0e46f7d2cb053aa6de43ba524c6eb13bf1a392b0b687ccce775a9e8336e9","previous":null}
 {"at":"2026-10-30T16:34:41.428Z","type":"job_planned","jobId":"fj_mvv707tg_17e118","kind":"image-to-3d","estimatedCredits":30,"parentJobId":null}
+{"at":"2026-10-30T18:59:00.525Z","type":"job_rejected","jobId":"fj_mvv707tg_17e118","reason":"superseded by the multi-view (multi-image-to-3d) base job; never submitted to Meshy, so no task to cancel"}
+{"at":"2026-10-30T18:59:01.019Z","type":"job_planned","jobId":"fj_mvvc5tlm_2b9ef0","kind":"multi-image-to-3d","estimatedCredits":30,"parentJobId":null}

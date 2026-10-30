@@ -170,7 +170,12 @@ test("progress, versioned downloads, inspection, and slot promotion gated by wha
     assert.equal(done.consumedCredits, 30);
     assert.match(done.output?.dir ?? "", /^characters\/hero\/meshes\/v001_image-to-3d_task-1$/);
     const roles = done.output?.files.map((f) => f.role).sort();
-    assert.deepEqual(roles, ["model", "preview", "preview", "texture:base_color"]);
+    assert.deepEqual(roles, ["model", "model-fbx", "preview", "preview", "provenance", "texture:base_color", "view:back", "view:front"]);
+    const provenance = JSON.parse(readFileSync(path.join(root, done.output!.files.find((f) => f.role === "provenance")!.file), "utf8"));
+    assert.equal(provenance.meshyTaskId, "task-1");
+    assert.deepEqual(provenance.references.map((r: { id: string }) => r.id), ["front"]);
+    assert.equal(provenance.references[0].sha256, store.references("hero")[0].metrics.sha256);
+    assert.equal(provenance.identityLock, store.identity("hero")!.lockHash);
     const model = done.output!.files.find((f) => f.role === "model")!;
     assert.deepEqual(new Uint8Array(readFileSync(path.join(root, model.file))), fake.glb);
     assert.equal(done.validation?.verdict.meshValid, true);
@@ -319,4 +324,43 @@ test("without a key the Forge says exactly what is missing", async () => {
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+test("finished assets are placed in the Cosmos, persist, and can be removed without deleting the asset", async () => {
+  const fake = await startFakeMeshy();
+  const { forge, store, root, cleanup } = setup(fake);
+  try {
+    const { job } = await forge.request({ ...BASE_REQUEST, approve: true });
+    assert.throws(() => forge.place({ jobId: job.id }), /Only a finished, downloaded job/);
+    await forge.refresh(job.id);
+    await forge.refresh(job.id);
+
+    const placed = forge.place({ jobId: job.id, label: "LÉLU v1", position: [1, -2.55, 2], height: 2.56 });
+    assert.deepEqual(placed.position, [1, -2.55, 2]);
+    assert.equal(placed.file, job.id && store.job(job.id)!.output!.files.find((f) => f.role === "model")!.file);
+    const auto = forge.place({ jobId: job.id, position: "nonsense" });
+    assert.equal(auto.position[1], -2.55, "default placements stand on LÉLU's floor");
+
+    // A new store over the same root is a restart: the placements are still there.
+    assert.equal(new ForgeStore(root).placements().length, 2);
+    assert.equal(forge.library().length, 1);
+
+    forge.unplace(placed.id);
+    assert.deepEqual(store.placements().map((p) => p.id), [auto.id]);
+    assert.ok(existsSync(path.join(root, placed.file)), "removing a placement never deletes the asset");
+    assert.throws(() => forge.unplace("pl_missing"), /No placement/);
+  } finally {
+    cleanup();
+    await fake.close();
+  }
+});
+
+test("multi-image-to-3d requests are checked against the documented limits", () => {
+  const good = { image_urls: ["ref:a", "ref:b", "ref:c"], ai_model: "meshy-7.1", geometry_resolution: "standard", enable_pbr: true, texture_resolution: "2k", pose_mode: "a-pose", should_remesh: true, target_polycount: 60000, save_pre_remeshed_model: true, image_enhancement: false, target_formats: ["glb", "fbx"], multi_view_thumbnails: true };
+  assert.deepEqual(validateRequest("multi-image-to-3d", good), []);
+  assert.equal(estimateCredits("multi-image-to-3d", good), 30);
+  assert.equal(estimateCredits("multi-image-to-3d", { ...good, geometry_resolution: "2k" }), 35, "2K Ultra geometry is a separate +5");
+  assert.match(validateRequest("multi-image-to-3d", { ...good, geometry_resolution: "4k" }).join(), /not "4k"/);
+  assert.match(validateRequest("multi-image-to-3d", { ...good, image_urls: ["1", "2", "3", "4", "5"] }).join(), /1–4 image_urls/);
+  assert.match(validateRequest("multi-image-to-3d", { ...good, should_texture: false }).join(), /enable_pbr needs should_texture/);
 });

@@ -17,6 +17,10 @@
  *   POST /api/forge/jobs/<id>/approve       spend the credits
  *   POST /api/forge/jobs/<id>/reject        decline a planned job
  *   GET  /api/forge/animations/library      Meshy's action catalogue (free)
+ *   GET  /api/forge/library                 every finished, inspected asset
+ *   GET  /api/forge/placements              assets placed in the Cosmos
+ *   POST /api/forge/placements              { jobId, label?, position?, rotationY?, height? }
+ *   POST /api/forge/placements/<id>/remove  take it out of the Cosmos (asset is kept)
  *   GET  /api/forge/assets/<path>           a stored output (GLB, texture, preview)
  *
  * Writes refuse cross-origin callers: these routes spend
@@ -167,6 +171,26 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
         return;
       }
 
+      if (method === "GET" && route === "/library") {
+        sendJson(res, { ok: true, assets: forge.library() });
+        return;
+      }
+      if (parts[0] === "placements") {
+        if (method === "GET" && parts.length === 1) {
+          sendJson(res, { ok: true, placements: forge.store.placements() });
+          return;
+        }
+        if (method === "POST" && parts.length === 1) {
+          const body = await jsonBody(req);
+          sendJson(res, { ok: true, placement: forge.place({ ...body, jobId: String(body.jobId ?? "") }) }, 201);
+          return;
+        }
+        if (method === "POST" && parts[2] === "remove") {
+          sendJson(res, { ok: true, placement: forge.unplace(parts[1]) });
+          return;
+        }
+      }
+
       if (parts[0] === "characters" && parts[1]) {
         const character = parts[1];
         if (method === "GET" && parts.length === 2) {
@@ -233,7 +257,8 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
           return;
         }
         if (id && parts[2] === "reject" && method === "POST") {
-          sendJson(res, { ok: true, job: publicJob(forge.reject(id)) });
+          const body = await jsonBody(req);
+          sendJson(res, { ok: true, job: publicJob(forge.reject(id, typeof body.reason === "string" ? body.reason : "")) });
           return;
         }
       }

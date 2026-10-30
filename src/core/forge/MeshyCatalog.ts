@@ -163,6 +163,7 @@ export function validateRequest(kind: ForgeJobKind, body: Record<string, unknown
         problems.push("multi-image-to-3d needs 1–4 image_urls.");
       }
     }
+    if (body.geometry_resolution === "4k") problems.push('multi-image-to-3d supports geometry_resolution "standard" or "2k", not "4k".');
     if (has("texture_image_urls") && (has("texture_image_url") || has("texture_prompt") || body.should_texture === false)) {
       problems.push("texture_image_urls cannot be combined with texture_image_url, texture_prompt or should_texture:false.");
     }
@@ -184,6 +185,7 @@ export function validateRequest(kind: ForgeJobKind, body: Record<string, unknown
     if (body.mode === "preview" && !has("prompt")) problems.push("text-to-3d preview needs prompt.");
     if (body.mode === "refine" && !has("preview_task_id")) problems.push("text-to-3d refine needs preview_task_id.");
   }
+  if (body.enable_pbr === true && body.should_texture === false) problems.push("enable_pbr needs should_texture: true.");
   const polycount = body.target_polycount;
   if (polycount !== undefined && (typeof polycount !== "number" || polycount < 100 || polycount > 300_000)) {
     problems.push("target_polycount must be 100–300000.");

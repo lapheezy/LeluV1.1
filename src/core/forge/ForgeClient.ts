@@ -48,6 +48,39 @@ export interface ActiveCharacter {
   assetBase: string;
 }
 
+export interface CosmosPlacement {
+  id: string;
+  jobId: string;
+  character: string;
+  label: string;
+  file: string;
+  position: [number, number, number];
+  rotationY: number;
+  height: number;
+  createdAt: number;
+}
+
+export interface LibraryAsset {
+  jobId: string;
+  character: string;
+  kind: string;
+  purpose: string;
+  dir: string;
+  model: string | null;
+  preview: string | null;
+  meshValid: boolean;
+  rigValid: boolean;
+  consumedCredits: number | null;
+  finishedAt: number | null;
+}
+
+/** Fired after anything the Cosmos renders changes (a slot promotion, a placement). */
+export const FORGE_CHANGED_EVENT = "lelu:forge-changed";
+
+function announce(): void {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(FORGE_CHANGED_EVENT));
+}
+
 const BASE = "/api/forge";
 const TERMINAL = new Set(["SUCCEEDED", "FAILED", "CANCELED", "rejected"]);
 
@@ -84,15 +117,35 @@ export const ForgeClient = {
 
   approve: (jobId: string) => call<{ job: ForgeJobView }>(`/jobs/${encodeURIComponent(jobId)}/approve`, { method: "POST", body: {} }),
 
-  reject: (jobId: string) => call<{ job: ForgeJobView }>(`/jobs/${encodeURIComponent(jobId)}/reject`, { method: "POST", body: {} }),
+  reject: (jobId: string, reason = "") =>
+    call<{ job: ForgeJobView }>(`/jobs/${encodeURIComponent(jobId)}/reject`, { method: "POST", body: { reason } }),
 
   job: (jobId: string) => call<{ job: ForgeJobView }>(`/jobs/${encodeURIComponent(jobId)}`),
 
   jobs: (character?: string) =>
     call<{ jobs: ForgeJobView[] }>(`/jobs${character ? `?character=${encodeURIComponent(character)}` : ""}`),
 
-  approveSlot: (character: string, slot: string, jobId: string) =>
-    call<{ manifest: unknown }>(`/characters/${encodeURIComponent(character)}/slots`, { method: "POST", body: { slot, jobId } }),
+  async approveSlot(character: string, slot: string, jobId: string) {
+    const result = await call<{ manifest: unknown }>(`/characters/${encodeURIComponent(character)}/slots`, { method: "POST", body: { slot, jobId } });
+    announce();
+    return result;
+  },
+
+  library: () => call<{ assets: LibraryAsset[] }>("/library"),
+
+  placements: () => call<{ placements: CosmosPlacement[] }>("/placements"),
+
+  async place(input: { jobId: string; label?: string; position?: [number, number, number]; rotationY?: number; height?: number }) {
+    const result = await call<{ placement: CosmosPlacement }>("/placements", { method: "POST", body: input });
+    announce();
+    return result;
+  },
+
+  async unplace(placementId: string) {
+    const result = await call<{ placement: CosmosPlacement }>(`/placements/${encodeURIComponent(placementId)}/remove`, { method: "POST", body: {} });
+    announce();
+    return result;
+  },
 
   assetUrl: (file: string) => `${BASE}/assets/${file.split("/").map(encodeURIComponent).join("/")}`,
 
