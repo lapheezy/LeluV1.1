@@ -275,6 +275,8 @@ test("the layout report is the page as a user first sees it: stable, scroll-awar
     const overflow = first.findings.filter((f) => f.problem === "sideways-overflow");
     assert.equal(overflow.length, 1, "the outermost box that hides controls sideways — not the ellipsis label, nor a tab whose content is wider but cuts no control off: " + JSON.stringify(overflow));
     assert.match(overflow[0].detail ?? "", /content 5\d\dpx wide in a 3\d\dpx box/);
+    // Where it begins: the row is wider than the window it sits in.
+    assert.match(overflow[0].detail ?? "", /the overflow begins at: div "Default Identity" \(width 520px, display flex\) → button "Identity" \(width 200px, min-width auto\)/);
 
     // An expanded panel: a see-through fixed backdrop over the whole screen,
     // the way GenesisModuleHost renders one. What is behind it is covered on

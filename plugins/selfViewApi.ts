@@ -448,11 +448,62 @@ export const LAYOUT_SCRIPT = `(() => {
     if (r.right <= 0 || r.left >= vw || r.bottom <= 0 || r.top >= vh) continue;
     if (wide.some((outer) => outer.contains(el))) continue;
     wide.push(el);
+    // Where the overflow BEGINS — what devtools would show: descendants
+    // that stick out past this box while their own parent still fits,
+    // with their size and the styles that size them. Run 14 measured the
+    // need: LÉLU saw "518px in a 356px box", guessed the title text, and
+    // spent three attempts on padding and the window width. This names no
+    // fix; it says which element is too wide and how it is sized.
+    const sizing = (node) => {
+      const cs = getComputedStyle(node);
+      const parts = ["width " + Math.round(node.getBoundingClientRect().width) + "px"];
+      const parentDisplay = node.parentElement ? getComputedStyle(node.parentElement).display : "";
+      // For a flex or grid item, min-width auto vs 0 decides whether it can
+      // shrink below its content: always shown.
+      if (/flex|grid/.test(parentDisplay) || (cs.minWidth !== "auto" && cs.minWidth !== "0px")) parts.push("min-width " + cs.minWidth);
+      if (cs.maxWidth !== "none") parts.push("max-width " + cs.maxWidth);
+      if (cs.flexGrow !== "0" || cs.flexShrink !== "1" || cs.flexBasis !== "auto") parts.push("flex " + cs.flexGrow + " " + cs.flexShrink + " " + cs.flexBasis);
+      if (cs.display === "flex" || cs.display === "inline-flex") parts.push("display flex" + (cs.flexWrap !== "nowrap" ? " wrap" : "") + (cs.flexDirection !== "row" ? " " + cs.flexDirection : ""));
+      if (cs.display === "grid") parts.push("grid columns " + cs.gridTemplateColumns);
+      return parts.join(", ");
+    };
+    const begins = [];
+    const queue = [...el.children].map((child) => ({ node: child, depth: 1 }));
+    while (queue.length && begins.length < 2) {
+      const { node, depth } = queue.shift();
+      const nr = node.getBoundingClientRect();
+      if (nr.width < 2) continue;
+      const parentRight = node.parentElement === el ? r.right : node.parentElement.getBoundingClientRect().right;
+      if (nr.right > r.right + 1 && nr.right > parentRight + 1) {
+        // Then down the widest path to what actually sets the width: the
+        // child reaching furthest right, while it still sticks out.
+        const chain = [describe(node).slice(0, 40) + " (" + sizing(node) + ")"];
+        let at = node;
+        for (let step = 0; step < 6; step += 1) {
+          let next = null;
+          const out = [];
+          for (const child of at.children) {
+            const cr = child.getBoundingClientRect();
+            if (cr.width < 2 || cr.right <= r.right + 1) continue;
+            out.push(child);
+            if (!next || cr.right > next.getBoundingClientRect().right) next = child;
+          }
+          if (!next) break;
+          // More than one child sticking out here: more than one cause.
+          const also = out.filter((child) => child !== next).slice(0, 2).map((child) => describe(child).slice(0, 30) + " (" + sizing(child) + ")");
+          chain.push(describe(next).slice(0, 40) + " (" + sizing(next) + ")" + (also.length ? " [also sticking out here: " + also.join("; ") + "]" : ""));
+          at = next;
+        }
+        begins.push(chain.join(" → ") + (node.parentElement === el ? "" : " — inside " + describe(node.parentElement).slice(0, 30) + " (" + sizing(node.parentElement) + ")"));
+        continue;
+      }
+      if (depth < 8) for (const child of node.children) queue.push({ node: child, depth: depth + 1 });
+    }
     findings.push({
       label: describe(el).slice(0, 80),
       rect: [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)],
       problem: "sideways-overflow",
-      detail: "content " + el.scrollWidth + "px wide in a " + el.clientWidth + "px box",
+      detail: "content " + el.scrollWidth + "px wide in a " + el.clientWidth + "px box" + (begins.length ? "; the overflow begins at: " + begins.join(" | ") : ""),
     });
     if (wide.length >= 5) break;
   }

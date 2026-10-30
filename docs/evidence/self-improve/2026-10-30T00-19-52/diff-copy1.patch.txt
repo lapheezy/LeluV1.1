@@ -1,0 +1,34 @@
+--- src/app/scene/genesis/GenesisAvatarPanel.tsx (modified, +6/-5)
+--- a/src/app/scene/genesis/GenesisAvatarPanel.tsx
++++ b/src/app/scene/genesis/GenesisAvatarPanel.tsx
+@@ -59,8 +59,8 @@
+   borderRadius: 8,
+   background: "rgba(255,255,255,0.06)",
+   color: "white",
+-  padding: "7px 12px",
+-  fontSize: 12,
++  padding: "4px 8px",
++      fontSize: 10.5,
+   cursor: "pointer",
+   fontFamily: "inherit",
+ };
+@@ -215,15 +215,16 @@
+       eyebrow="LÉLU · Embodiment"
+       title="Avatar · persistent identity"
+       onClose={onClose}
+-      width="min(96vw, 980px)"
++      width="100%"
+       maxHeight="min(92vh, 920px)"
+       elevation="focus"
+     >
+-      <div style={{ display: "flex", gap: 14, minHeight: "min(70vh, 660px)" }}>
++      <div style={{ display: "flex", gap: 14, minHeight: "min(70vh, 660px)", overflowX: "auto" }}>
+         {/* ---------------------------------------------- reference */}
+         <div
+           style={{
+-            width: 230,
++            width: "100%",
++              maxWidth: 230,
+             flexShrink: 0,
+             display: "flex",
+             flexDirection: "column",
