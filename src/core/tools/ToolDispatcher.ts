@@ -663,7 +663,6 @@ const EXECUTORS: ToolExecutor[] = [
       if (typeof data.screenshot === "string") {
         events.emit({ type: "creative_artifact", taskId, image: data.screenshot, label });
       }
-      events.emit({ type: "tool_result", taskId, tool: "capture", result: `${findings.length} layout finding(s)` });
       const isIntermittent = (f: { seenIn?: number }) => loads > 1 && (f.seenIn ?? loads) < loads;
       const lines = findings.map((f) => `- ${isIntermittent(f) ? `[in ${f.seenIn} of ${loads} loads — depends on the app's state when it loaded] ` : ""}${f.problem}: ${f.label} at [x ${f.rect[0]}, y ${f.rect[1]}, w ${f.rect[2]}, h ${f.rect[3]}]${f.coveredBy ? ` covered by ${f.coveredBy}` : ""}${f.detail ? ` (${f.detail})` : ""}`);
       const conditions = `${viewport}${panel ? `, panel ${panel}` : ", no panel"}`;
@@ -678,6 +677,16 @@ const EXECUTORS: ToolExecutor[] = [
       });
       if (target === "app") appCaptures.set(conditions, findings.map((f) => ({ label: f.label, problem: f.problem, intermittent: isIntermittent(f) })));
       if (target === "preview") comparison = compareCaptures(appCaptures.get(conditions), findings.map((f) => ({ label: f.label, problem: f.problem, intermittent: isIntermittent(f) })), conditions) + uncomparedConditions(appCaptures, conditions);
+      // What the user (and anyone checking her work) sees of this capture:
+      // the count, how many depend on the app's state at load, and — for a
+      // preview — the comparison she was given, verbatim.
+      const unstable = findings.filter(isIntermittent).length;
+      events.emit({
+        type: "tool_result",
+        taskId,
+        tool: "capture",
+        result: `${findings.length} layout finding(s) at ${conditions}${unstable ? `, ${unstable} of them in only some of ${loads} loads (depend on the app's state)` : ""}${comparison}`,
+      });
       const errors = Array.isArray(data.pageErrors) && data.pageErrors.length ? `\nPage errors: ${(data.pageErrors as string[]).join(" | ")}` : "";
       return {
         ok: true,
