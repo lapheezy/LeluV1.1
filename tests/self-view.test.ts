@@ -363,6 +363,9 @@ test("a control covered only while a panel opens is seen, timed, and reported ap
   const found = coveredWhileOpening(watched, settled);
   assert.deepEqual(found.map((f) => `${f.problem}: ${f.label}`), ['covered-while-opening: button "New chat"']);
   assert.match(found[0].detail ?? "", /covered for 1900 ms between 300 and 2200 ms after the panel was opened/);
+  // Named differently by the settled report, but the same control (same place): not counted twice.
+  const renamed = coveredWhileOpening(watched, [{ ...settled[0], label: "button[Under]" }]);
+  assert.deepEqual(renamed.map((f) => f.label), ['button "New chat"']);
 
   let chromium: { launch: (options: Record<string, unknown>) => Promise<{ newPage: (o: Record<string, unknown>) => Promise<{ setContent: (html: string) => Promise<void>; evaluate: (script: string) => Promise<unknown> }>; close: () => Promise<void> }> };
   try {

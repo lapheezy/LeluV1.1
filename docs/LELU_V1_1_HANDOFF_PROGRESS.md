@@ -255,6 +255,13 @@ Most runs failed on infrastructure, not on her. Each defect was fixed in the too
 | 20 | Claimed "met": chat tabs, 2 → 0 | **Two app states, not her fix.** The 2 findings appear only when a background message's unread dot widens a tab. App and preview each read 0 or 2 depending on the load, and her preview with the dot still cuts the button off. Captures now load the page twice, and a finding seen in only some loads is marked and is never "resolved" evidence. |
 | 21 | Claimed "resolved": the same chat-tab defect | Independently, her preview still cuts the button off whenever the unread dot is present. The findings were marked state-dependent, and she concluded "resolved" anyway. The capture's bus event now carries the comparison she was given. |
 | 22 | Honest "not met": the Projects panel, 21 → 21 | One change (ellipsis), a right diagnosis she did not act on, then the only provider failed and the app went offline. |
+| 23 | **She found a real defect and fixed it on phone**, whole loop in one turn | **The defect:** the companion, on by default since Pass 3, covers the chat header's three controls at phone size. **Her fix:** move its default spot. 3 → 0, confirmed independently. **But:** desktop measurement found her change covered the chat window's menu and close buttons for 4–6 s. Not counted. (An earlier attempt at run 23 was lost to a container restart; the recorder now mirrors her events outside the project.) |
+| 24 | Not met: the defect moved on phone | **Request:** run 23's verification, worded as a review naming the regression, not a fix. **Her change:** another default spot, which fixed desktop but now covered the left of the phone header. **She claimed "no overlap"**, but her captures could not see it: the covering lasts only 1–3 s, until the companion moves herself, and capture measured only the settled layout. Capture now also watches the first 6 s after a panel opens and reports **covered-while-opening** controls. |
+| 25 | Honest "not resolved", which described an earlier state | **She changed behaviour:** she now checks whether she is in the way every 0.5 s instead of 1.5 s, and `EDGE_MARGIN` went 12 → 48. Her last phone capture came before her last edit, and her desktop capture timed out. Independently, her final copy covered nothing on 8 viewports. |
+| 26 | Nothing ran | **Her context said "No project copy exists"** while her copy was on disk. That state started empty on every page load. Now the runtime probe lists the sandbox's copies and her context names them. |
+| 27 | Her own like-for-like capture: phone resolved; then the provider failed | **She raised `EDGE_MARGIN` to 100**, validated, and compared at phone: "5 → 2, resolved: the three covered-while-opening controls". The provider failed right after `project.diff`. My checking script now flags never-rendered loads, after one cold-compile load measured an empty page. |
+| 28 | Her evidence was complete; the provider failed again after `project.diff` | **`project.diff` compared her copy with the real project as it is now.** Evidence files and fixes added later were listed as her deletions and modifications, and JPEG bytes were inlined as patch text. `project.apply` would have deleted or reverted them. **Copies now record a baseline**, so their diff is her changes only. Apply refuses a file the real project also changed since. Binary files are never inlined. |
+| 29 | **The loop completed by her, with a confirmed verdict** | **Her steps:** validate, preview, app-first like-for-like captures at phone (5 → 2, the three header controls resolved) and desktop (1 → 0), then a diff of exactly her two files. **Her verdict:** "met for both phone and desktop". It matches the independent measurement on 8 viewports. **Acceptance test met.** Not applied (it needs the owner's authorization), and a review found her margin also limits where the user can drag her. Run 30 asks her to refine. |
 
 ### What the runs established
 - **The self-development loop is executable end to end by LÉLU herself**, using real tools on a real sandbox copy of her own code:
@@ -279,10 +286,18 @@ Most runs failed on infrastructure, not on her. Each defect was fixed in the too
 
   Each was found from a run's evidence, fixed, and covered by a test.
 - **Destructive writes are refused.** Placeholders standing in for code, and `project_read`'s display pasted into source, are both blocked (`unsavableContent`).
-- **The acceptance test has not been met (22 runs).** No run has yet produced a change that LÉLU validated, captured under the same conditions and measured as an improvement, and that independent verification confirmed.
+- **The acceptance test is met (run 29).** LÉLU completed the whole loop on her own change:
+  - found a real defect;
+  - edited an isolated copy;
+  - validated it;
+  - compared it like for like with the app at phone and desktop;
+  - diffed it and gave her verdict.
+
+  An independent measurement confirms that verdict (`docs/evidence/self-improve/2026-10-30T10-33-46/VERIFICATION.md`). Runs 23–28 led up to it; each is verified beside its evidence.
+- **Her change is not applied.** That needs the owner's authorization through `project.apply`, which Claude Code does not grant. A review found a side effect to address first: the margin also limits where the user can drag her.
   - The closest is run 19: her final copy measures 0 findings on the Avatar panel. But she never re-validated (her last edit broke typecheck) or captured it. Not counted.
   - In run 20 she claimed success, but two app states produced the result. Not counted.
-- **Nothing LÉLU wrote has been applied to the real project.** The genuine Avatar-panel overflow at phone width (the two-column body needs 494 px in a 356 px box) is still in the app, reserved for her.
+- **Nothing LÉLU wrote has been applied to the real project.**
 
 ## 12. Environment limits that bound this work
 - **Providers:**
@@ -296,8 +311,12 @@ Most runs failed on infrastructure, not on her. Each defect was fixed in the too
 
 ## 13. Not done from the V1.1 spec
 - **Avatar:** a true 3D, viseme-synced avatar. The companion uses the chosen portrait with whole-figure motion driven by real speech and activity events. A companion GLB model is not wired.
-- **Workspace:** selecting and editing artifacts inside the unified workspace.
-- **Tests:** an end-to-end browse → workspace test.
+- **Workspace:** done in `34048a7`:
+  - the user's selected artifact is LÉLU's referent;
+  - `artifact_read`, `artifact_edit` and `artifact_create` change the real view;
+  - captures and read pages become artifacts with their content.
+
+  The end-to-end browse → workspace script (`scripts/verify-workspace-artifacts.mjs`) runs in the app with her real model; see §15 for its result.
 - **Not observed:** the Orchestrator auto-creates "General"/"Engineering" checkpoint projects on ordinary chat turns. This is pre-existing and documented in `CognitiveLoop`; it was left as is.
 
 ---

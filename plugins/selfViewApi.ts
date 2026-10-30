@@ -388,9 +388,13 @@ export interface WatchedCover {
  * transition, not something a user can tap into.
  */
 export function coveredWhileOpening(watched: readonly WatchedCover[], settled: readonly LayoutFinding[], minMs = 150): LayoutFinding[] {
-  const settledCovered = new Set(settled.filter((finding) => finding.problem === "covered").map((finding) => finding.label));
+  // The same control, still covered once settled, is already a "covered"
+  // finding. Matched by where it is: the two scripts name controls
+  // differently (run 30 listed "Options for New chat" twice).
+  const settledCovered = settled.filter((finding) => finding.problem === "covered");
+  const sameControl = (a: readonly number[], b: readonly number[]) => a.every((value, i) => Math.abs(value - b[i]) <= 2);
   return watched
-    .filter((entry) => entry.ms >= minMs && !settledCovered.has(entry.label))
+    .filter((entry) => entry.ms >= minMs && !settledCovered.some((finding) => finding.label === entry.label || sameControl(finding.rect, entry.rect)))
     .map((entry) => ({
       label: entry.label,
       rect: entry.rect,

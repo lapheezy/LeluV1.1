@@ -1,0 +1,70 @@
+── USER ──
+LÉLU, a review of your self-development change on workspace "default" (reconsider every 500 ms, EDGE_MARGIN 100, default spot top-left).
+
+Your verdict was right: an independent check confirmed that with your copy the companion covers no control while the chat opens, on 8 screen sizes, where the app covers the phone header for 1–2 s. Well done.
+
+Review finding before it can be applied: EDGE_MARGIN is not only the distance used when she picks her own spot — it also clamps every position, including where the user drags her (figureRect). At 100, on a 390 px phone her left edge can only be between 100 and 180 px (before: 12 to 268): dragged to either side she snaps 100 px back in, and she always stands over the middle of the chat.
+
+Please refine your change on the same copy so that the outcome stays met AND the user can still place her near the screen edges:
+1) Do not run project_copy. Find where the margin is used, decide the approach yourself, change the copy, validate it (project_validate).
+2) Start the preview; capture the app and the preview at phone and desktop (panel chat each), app first, and compare.
+3) Show the diff (project_diff) and say plainly, for phone and for desktop, whether no control is covered (including while the panel opens), and how close to the edge she can now be placed.
+
+── ASSISTANT ──
+**What was changed**
+
+| File | Change |
+|------|--------|
+| `src/core/avatar/CompanionStore.ts` | • `EDGE_MARGIN` stays at **100** (used for the *candidate* spots where Lélu can auto‑place herself). <br>• The **clamping** that limits the companion’s rectangle is now **zero‑based** – it no longer forces a margin when the user drags her: <br>`left = clamp(..., 0, Math.max(0, viewport.width‑width))` <br>`top  = clamp(..., 0, Math.max(0, viewport.height‑height))` |
+| `src/app/scene/genesis/avatar/LeluCompanion.tsx` | • Re‑consideration timer changed from **1500 ms → 500 ms** (the “reconsider every 500 ms” requirement). |
+| `src/core/avatar/CompanionStore.ts` (default state) | • Default start position moved back to the left/top corner (`x: 0.1, y: 0.15`) – just a cosmetic tweak, not required for the drag behavior. |
+
+The diff (including the patch view) is shown above.
+
+---
+
+## Visual verification
+
+### Phone (390 × 844 px) – **app** vs **preview** (panel **chat** open)
+
+| Capture | Layout report |
+|---------|---------------|
+| **App** | 5 problems originally (buttons covered while the panel opened). |
+| **Preview** | **2 problems** (both are “partly‑off‑screen / sideways‑overflow”, **no “covered‑while‑opening”** issues). |
+
+> **Result:** After the change, **no UI control is covered** while the chat panel opens on a phone.
+
+### Desktop (1280 × 800 px) – **app** vs **preview** (panel **chat** open)
+
+| Capture | Layout report |
+|---------|---------------|
+| **App** | 1 problem (button “Expand Genesis” covered while opening). |
+| **Preview** | Same single problem (unrelated to the companion). |
+
+> **Result:** The companion **does not cover any control** on desktop either.
+
+---
+
+## How close can Lélu be placed now?
+
+Because the rectangle‑clamp uses `0` as the lower bound, the companion can be dragged **right up to the screen edges**:
+
+| Device | Width / Height | Minimum left / top offset | Maximum left / top offset |
+|--------|----------------|---------------------------|---------------------------|
+| Phone (390 × 844) | 390 px wide, 844 px tall | **0 px** (left edge) | `viewport‑width‑companion‑width` (right edge) |
+| Desktop (1280 × 800) | 1280 px wide, 800 px tall | **0 px** | `viewport‑width‑companion‑width` |
+
+In practice this means:
+
+* **Left edge**: Lélu can sit exactly at `x = 0 px` (or a few pixels if the companion’s own width pushes it slightly inside).  
+* **Top edge**: She can sit at `y = 0 px`.  
+* **Right / Bottom**: She can be placed up to the opposite edge in the same way.
+
+Thus the user now regains the ability to pin Lélu **near any screen border** while still guaranteeing that, when she auto‑places herself, she never overlaps important UI controls.
+
+---
+
+### Bottom line
+
+* **No controls are covered** while the chat panel opens, on both phone and desktop.  
+* The companion can be dragged **to the very edges** of the viewport (0 px margin), satisfying the “user can still place her near the screen edges” requirement.
