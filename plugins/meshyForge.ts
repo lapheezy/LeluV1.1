@@ -45,6 +45,7 @@ import { ForgeStore, isTerminal, type CharacterSlot, type ForgeJob, type ForgeOu
 export type EnvReader = (name: string) => string | undefined;
 
 const KEY_NAMES = ["MESHY_API_KEY", "MESHY_API", "MESSY_API", "VITE_MESHY_API_KEY"];
+const LOOSE_KEY_NAME = /^(messy|meshy)[ _-]?api([ _-]?key)?$/i;
 const DEFAULT_BASE = "https://api.meshy.ai";
 const IDENTITY_BOUND: ReadonlySet<ForgeJobKind> = new Set(["image-to-3d", "multi-image-to-3d", "retexture"]);
 
@@ -121,8 +122,18 @@ export class MeshyForge {
 
   /* ------------------------------ upstream ----------------------------- */
 
+  /**
+   * Candidate names: the documented ones, then any process variable that is
+   * "messy/meshy api (key)" in whatever case and separator it was saved with
+   * (e.g. `Messy_API`), since environment settings are typed by hand.
+   */
+  private keyNames(): string[] {
+    const loose = typeof process !== "undefined" ? Object.keys(process.env).filter((n) => LOOSE_KEY_NAME.test(n)) : [];
+    return [...KEY_NAMES, ...loose.filter((n) => !KEY_NAMES.includes(n))];
+  }
+
   private apiKey(): string {
-    for (const name of KEY_NAMES) {
+    for (const name of this.keyNames()) {
       const value = this.readEnv(name)?.trim();
       if (value) return value;
     }
@@ -135,7 +146,7 @@ export class MeshyForge {
 
   /** Which name the credential was found under — never its value. */
   credentialSource(): string | null {
-    return KEY_NAMES.find((n) => (this.readEnv(n) ?? "").trim().length > 0) ?? null;
+    return this.keyNames().find((n) => (this.readEnv(n) ?? "").trim().length > 0) ?? null;
   }
 
   private base(): string {
