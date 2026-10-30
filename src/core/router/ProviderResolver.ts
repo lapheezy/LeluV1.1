@@ -9,14 +9,14 @@
  * configured provider is attempted immediately.
  */
 
-import { groundingNote, ungroundedClaims } from "../tools/ClaimGrounding";
+import { contradictedCaptureClaims, contradictionNote, groundingNote, ungroundedClaims } from "../tools/ClaimGrounding";
 import type AIProvider from "../../providers/AIProvider";
 import type { AIMessage, AIResponse } from "../../providers/AIProvider";
 import type RouterContext from "./RouterContext";
 import type { ProviderResult } from "./RouterResults";
 import AgentEventBus from "../agent/AgentEvents";
 import ModelRouter from "../model/ModelRouter";
-import { dispatchToolCall } from "../tools/ToolDispatcher";
+import { dispatchToolCall, latestCaptureMeasurements } from "../tools/ToolDispatcher";
 import { toolSchemasForModel } from "../tools/ToolSchemas";
 import { labelOtherChats } from "../multichat/ContextProvenance";
 
@@ -468,12 +468,20 @@ export default class ProviderResolver {
         claims: ungrounded.map((claim) => claim.label),
       });
     }
+    // ...and the numbers she reports must be the ones measured.
+    const contradicted = contradictedCaptureClaims(response.text ?? "", latestCaptureMeasurements());
+    if (contradicted.length > 0) {
+      context.logger.info("ProviderResolver", "Reply contradicts measured capture results", {
+        claims: contradicted.map((claim) => `${claim.target}: ${claim.claimed}`),
+      });
+    }
     return {
       ...response,
-      text: `${response.text ?? ""}${groundingNote(ungrounded)}`,
+      text: `${response.text ?? ""}${groundingNote(ungrounded)}${contradictionNote(contradicted)}`,
       metadata: {
         ...response.metadata,
         ...(ungrounded.length ? { ungroundedClaims: ungrounded.map((claim) => claim.label) } : {}),
+        ...(contradicted.length ? { contradictedClaims: contradicted.map((claim) => `${claim.target}: ${claim.claimed}`) } : {}),
         nativeTools: true,
         ...(executed.length
           ? { toolsExecuted: executed, toolRounds: executed.length }

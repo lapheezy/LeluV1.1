@@ -1,0 +1,29 @@
+--- src/app/scene/genesis/GenesisAvatarPanel.tsx (modified, +5/-5)
+--- a/src/app/scene/genesis/GenesisAvatarPanel.tsx
++++ b/src/app/scene/genesis/GenesisAvatarPanel.tsx
+@@ -211,20 +211,20 @@
+   }
+ 
+   return (
+-    <GenesisWindowFrame
++    <GenesisWindowFrame width="100%"
+       eyebrow="LÉLU · Embodiment"
+       title="Avatar · persistent identity"
+       onClose={onClose}
+-      width="min(96vw, 980px)"
++      
+       maxHeight="min(92vh, 920px)"
+       elevation="focus"
+     >
+-      <div style={{ display: "flex", gap: 14, minHeight: "min(70vh, 660px)" }}>
++      <div style={{ display: "flex", gap: 14, minHeight: "min(70vh, 660px)", flexWrap: "wrap", overflowX: "hidden" }}>
+         {/* ---------------------------------------------- reference */}
+         <div
+           style={{
+-            width: 230,
+-            flexShrink: 0,
++            flex: "1 1 45%", /* responsive */
++            flexShrink: 1,
+             display: "flex",
+             flexDirection: "column",
+             gap: 10,

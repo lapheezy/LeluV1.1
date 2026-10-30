@@ -49,3 +49,32 @@ test("a claim backed by the tool that really ran is not flagged", () => {
   assert.equal(ungroundedClaims(reply, [{ tool: "project_validate", ok: false }]).length, 2, "a FAILED run does not back a 'passed' claim");
   assert.equal(groundingNote([]), "");
 });
+
+test("numbers that were not measured are contradicted: run 15's '0 problems' against captures of 10 and 9", async () => {
+  const { contradictedCaptureClaims, contradictionNote } = await import("../src/core/tools/ClaimGrounding");
+  const run15 = readFileSync("docs/evidence/self-improve/2026-10-30T00-34-29/transcript.txt", "utf8");
+  const verdict = run15.split("── ASSISTANT ──").at(-1) ?? "";
+  assert.match(verdict, /expected outcome is met/, "this is the reply with the verdict");
+  // What her captures measured in that run (events.json): the app 10, the preview 9.
+  const measured = [
+    { target: "app" as const, conditions: "phone, no panel", problems: 0 },
+    { target: "app" as const, conditions: "phone, panel avatar", problems: 10 },
+    { target: "preview" as const, conditions: "phone, panel avatar", problems: 9 },
+    { target: "preview" as const, conditions: "phone, no panel", problems: 0 },
+  ];
+  const flagged = contradictedCaptureClaims(verdict, measured);
+  // Her table names the Avatar panel, so a 0 measured with NO panel open
+  // does not bear it out.
+  assert.ok(flagged.some((c) => c.target === "preview" && c.claimed === 0), JSON.stringify(flagged.map((c) => c.line)));
+  assert.match(contradictionNote(flagged), /⚠️ Contradicted by measurement: this reply says the preview showed 0 problem\(s\), but the latest capture of it measured 9 at phone, panel avatar/);
+  // A number that really was measured under the named conditions is fine.
+  assert.deepEqual(contradictedCaptureClaims("| Preview of the copy | phone | Avatar | 9 problems |", measured), []);
+  assert.deepEqual(contradictedCaptureClaims("Preview with no panel: 0 problems.", measured), []);
+
+  // An honest report (run 14) is not flagged.
+  const run14 = readFileSync("docs/evidence/self-improve/2026-10-30T00-19-52/transcript.txt", "utf8").split("── ASSISTANT ──").at(-1) ?? "";
+  assert.deepEqual(contradictedCaptureClaims(run14, [
+    { target: "app", conditions: "phone, panel avatar", problems: 10 },
+    { target: "preview", conditions: "phone, panel avatar", problems: 10 },
+  ]), []);
+});

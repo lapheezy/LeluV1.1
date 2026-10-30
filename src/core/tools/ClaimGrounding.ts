@@ -111,3 +111,81 @@ export function groundingNote(claims: readonly UngroundedClaim[]): string {
     "Treat those statements as unconfirmed."
   );
 }
+
+/* ----------------- a claimed result must match what was measured ----------------- */
+
+/** The latest measurement of one capture target under one set of conditions. */
+export interface MeasuredCapture {
+  target: "app" | "preview" | "url";
+  conditions: string;
+  problems: number;
+}
+
+export interface ContradictedClaim {
+  line: string;
+  target: "app" | "preview";
+  claimed: number;
+  measured: MeasuredCapture[];
+}
+
+const COUNT_CLAIM = /\b(no|zero|\d+)\s+(?:layout\s+)?(?:problems?|warnings?|findings?|issues?)\b/gi;
+const PREVIEW_WORDS = /\b(preview|sandbox|workspace copy|after (?:the |my )?(?:edit|fix|change))\b/i;
+const APP_WORDS = /\b(live app|original|your app|my app|own app|before)\b/i;
+
+/**
+ * Lines where a reply states how many problems a capture of the preview
+ * or the app showed, and no capture of that target measured that number.
+ *
+ * Measured in self-improvement run 15: the captures LÉLU ran read 10 (app)
+ * and 9 (preview); her verdict table said the preview, and "the live app
+ * after edit", showed "0 problems" — "the expected outcome is met". Every
+ * tool had run, so a check on whether tools ran saw nothing wrong; the
+ * numbers were simply not the ones measured.
+ *
+ * Conservative: lines that are negated or hypothetical are skipped, and so
+ * is a line naming both targets with more than one count (ambiguous).
+ */
+export function contradictedCaptureClaims(reply: string, captures: readonly MeasuredCapture[]): ContradictedClaim[] {
+  const plain = reply.replace(/[‐-―−]/g, "-").replace(/[    ]/g, " ");
+  const found: ContradictedClaim[] = [];
+  for (const raw of plain.split(/\n+/)) {
+    const line = raw.trim();
+    if (!line || NOT_A_CLAIM.test(line)) continue;
+    const counts = [...line.matchAll(COUNT_CLAIM)].map((match) => (/^(no|zero)$/i.test(match[1]) ? 0 : Number(match[1])));
+    if (counts.length === 0) continue;
+    const mentionsPreview = PREVIEW_WORDS.test(line);
+    const mentionsApp = APP_WORDS.test(line);
+    if (mentionsPreview && mentionsApp && counts.length > 1) continue;
+    const target = mentionsPreview ? "preview" : mentionsApp ? "app" : null;
+    if (!target) continue;
+    let measured = captures.filter((capture) => capture.target === target);
+    // A line naming a panel or viewport is about captures under THOSE
+    // conditions: run 15's "Preview … | phone | Avatar | 0 problems" is not
+    // borne out by a 0 measured with no panel open.
+    for (const pattern of [/panel (\w+)/, /^(\w+)/]) {
+      const named = [...new Set(measured.map((capture) => pattern.exec(capture.conditions)?.[1]).filter((name): name is string => Boolean(name)))]
+        .filter((name) => new RegExp(`\\b${name}\\b`, "i").test(line));
+      if (named.length) measured = measured.filter((capture) => named.includes(pattern.exec(capture.conditions)?.[1] ?? ""));
+    }
+    if (measured.length === 0) continue;
+    for (const claimed of counts) {
+      if (!measured.some((capture) => capture.problems === claimed)) {
+        found.push({ line: line.slice(0, 200), target, claimed, measured });
+        break;
+      }
+    }
+  }
+  return found;
+}
+
+/** The note a reply carries when its numbers are not the measured ones. */
+export function contradictionNote(claims: readonly ContradictedClaim[]): string {
+  if (claims.length === 0) return "";
+  const first = claims[0];
+  const measured = first.measured.map((capture) => `${capture.problems} at ${capture.conditions}`).join("; ");
+  return (
+    `\n\n⚠️ Contradicted by measurement: this reply says the ${first.target === "preview" ? "preview" : "app"} showed ` +
+    `${first.claimed} problem(s), but the latest capture${first.measured.length > 1 ? "s" : ""} of it measured ${measured}.` +
+    `${claims.length > 1 ? ` (${claims.length} such statements.)` : ""} Treat those numbers, and any verdict resting on them, as wrong.`
+  );
+}

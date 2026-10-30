@@ -26,6 +26,7 @@
  * ==========================================================
  */
 
+import type { MeasuredCapture } from "./ClaimGrounding";
 import type { ToolCall } from "../../providers/AIProvider";
 import type RouterContext from "../router/RouterContext";
 import AgentEventBus from "../agent/AgentEvents";
@@ -179,6 +180,17 @@ function currentChat(context: RouterContext | undefined): ChatConversation | und
  * concluded the fix worked; under the same conditions nothing had changed.
  */
 const appCaptures = new Map<string, Array<{ label: string; problem: string }>>();
+
+/**
+ * The latest problem count of every capture target under every set of
+ * conditions — what a reply's numbers are checked against
+ * (ClaimGrounding.contradictedCaptureClaims).
+ */
+const measuredCaptures = new Map<string, MeasuredCapture>();
+
+export function latestCaptureMeasurements(): MeasuredCapture[] {
+  return [...measuredCaptures.values()];
+}
 
 export function compareCaptures(
   before: ReadonlyArray<{ label: string; problem: string }> | undefined,
@@ -647,6 +659,9 @@ const EXECUTORS: ToolExecutor[] = [
       const lines = findings.map((f) => `- ${f.problem}: ${f.label} at [x ${f.rect[0]}, y ${f.rect[1]}, w ${f.rect[2]}, h ${f.rect[3]}]${f.coveredBy ? ` covered by ${f.coveredBy}` : ""}${f.detail ? ` (${f.detail})` : ""}`);
       const conditions = `${viewport}${panel ? `, panel ${panel}` : ", no panel"}`;
       let comparison = "";
+      // Anything but "url" or "preview" was captured as her app (above).
+      const measuredTarget: MeasuredCapture["target"] = target === "url" || target === "preview" ? target : "app";
+      measuredCaptures.set(`${measuredTarget}|${conditions}`, { target: measuredTarget, conditions, problems: findings.length });
       if (target === "app") appCaptures.set(conditions, findings.map(({ label, problem }) => ({ label, problem })));
       if (target === "preview") comparison = compareCaptures(appCaptures.get(conditions), findings, conditions) + uncomparedConditions(appCaptures, conditions);
       const errors = Array.isArray(data.pageErrors) && data.pageErrors.length ? `\nPage errors: ${(data.pageErrors as string[]).join(" | ")}` : "";
