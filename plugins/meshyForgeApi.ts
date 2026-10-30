@@ -23,6 +23,7 @@
  *   POST /api/forge/placements/<id>/update  move / resize / attach to a bone / detach
  *   POST /api/forge/placements/<id>/remove  take it out of the Cosmos (asset is kept)
  *   POST /api/forge/characters/<c>/look     { look } — switch look (null = rig/base)
+ *   POST /api/forge/characters/<c>/wear     { slot, worn } — put a wearable on / take it off (hood up/down)
  *   POST /api/forge/jobs/<id>/adopt         { index, id, view, … } — a reviewed generated view becomes a reference
  *   GET  /api/forge/assets/<path>           a stored output (GLB, texture, preview)
  *
@@ -221,6 +222,11 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
         }
         if (method === "POST" && parts[2] === "references") {
           sendJson(res, { ok: true, reference: ingestUpload(forge.store, character, await jsonBody(req)) }, 201);
+          return;
+        }
+        if (method === "POST" && parts[2] === "wear") {
+          const body = await jsonBody(req);
+          sendJson(res, { ok: true, placements: forge.wear(character, String(body.slot ?? ""), body.worn !== false) });
           return;
         }
         if (method === "POST" && parts[2] === "look") {

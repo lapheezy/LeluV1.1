@@ -102,7 +102,8 @@ function PlacedModel({ placement }: { placement: CosmosPlacement }) {
       lastBonePos.current = null;
     }
     const b = bone.current;
-    group.visible = Boolean(b && object);
+    // A wearable that is taken off (hood down) stays loaded but is not shown.
+    group.visible = Boolean(b && object) && placement.worn !== false;
     if (!b) return;
 
     attachmentPose(b, attach, null, tmpPos, tmpQuat);

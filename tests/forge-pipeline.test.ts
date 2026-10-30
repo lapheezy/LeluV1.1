@@ -457,3 +457,28 @@ test("looks switch what the Cosmos shows; attachments follow a bone and can be m
     await fake.close();
   }
 });
+
+test("a hood is a wearable component: up/down changes only that component, never the character model", async () => {
+  const fake = await startFakeMeshy();
+  const { forge, store, cleanup } = setup(fake);
+  try {
+    const { job } = await forge.request({ ...BASE_REQUEST, approve: true });
+    await forge.refresh(job.id);
+    await forge.refresh(job.id);
+    forge.approveSlot("hero", "base", job.id);
+    const modelBefore = forge.activeCharacter("hero").model?.file;
+
+    const hood = forge.place({ jobId: job.id, label: "hood", slot: "hood", attach: { character: "hero", bone: "Head" } });
+    assert.equal(hood.worn, true, "a new wearable is worn");
+    forge.wear("hero", "hood", false);
+    assert.equal(store.placements()[0].worn, false, "hood down");
+    assert.equal(forge.activeCharacter("hero").model?.file, modelBefore, "the character model did not change");
+    forge.wear("hero", "hood", true);
+    assert.equal(store.placements()[0].worn, true, "hood up");
+    assert.throws(() => forge.wear("hero", "cape", true), /no wearable in slot "cape"/);
+    assert.throws(() => forge.place({ jobId: job.id, slot: "Bad Slot!" }), /slot must be/);
+  } finally {
+    cleanup();
+    await fake.close();
+  }
+});

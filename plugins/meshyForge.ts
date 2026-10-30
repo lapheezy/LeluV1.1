@@ -598,6 +598,28 @@ export class MeshyForge {
     return { character, bone, offset: vec(a.offset, 5), rotation: vec(a.rotation, Math.PI * 2) };
   }
 
+  private slotName(value: unknown): string | null {
+    if (value === undefined || value === null || value === "") return null;
+    const slot = String(value).toLowerCase();
+    if (!/^[a-z0-9_-]{1,32}$/.test(slot)) throw new ForgeError("slot must be lowercase letters, digits, _ or -.");
+    return slot;
+  }
+
+  /**
+   * Put a wearable slot on or take it off (hood up / hood down) — the
+   * character model is untouched; only that component's visibility changes.
+   */
+  wear(character: string, slot: string, worn: boolean): CosmosPlacement[] {
+    const name = this.slotName(slot);
+    const placements = this.store.placements();
+    const hits = placements.filter((p) => p.slot === name && p.attach?.character === character);
+    if (!hits.length) throw new ForgeError(`${character} has no wearable in slot "${name}".`, 404);
+    for (const p of hits) p.worn = worn;
+    this.store.savePlacements(placements);
+    this.store.logEvent(character, { type: "wearable_changed", slot: name, worn });
+    return hits;
+  }
+
   /** Move, re-size, re-label, attach to a bone, or detach (attach: null) an existing placement. */
   updatePlacement(placementId: string, patch: Record<string, unknown>): CosmosPlacement {
     const placements = this.store.placements();
@@ -614,6 +636,8 @@ export class MeshyForge {
       rotationY: num(patch.rotationY, current.rotationY, -Math.PI * 2, Math.PI * 2),
       height: num(patch.height, current.height, 0.01, 20),
       attach: "attach" in patch ? this.attachment(patch.attach) : (current.attach ?? null),
+      slot: "slot" in patch ? this.slotName(patch.slot) : (current.slot ?? null),
+      worn: typeof patch.worn === "boolean" ? patch.worn : current.worn,
     };
     placements[index] = next;
     this.store.savePlacements(placements);
@@ -621,7 +645,7 @@ export class MeshyForge {
     return next;
   }
 
-  place(input: { jobId: string; label?: string; position?: unknown; rotationY?: unknown; height?: unknown; attach?: unknown }): CosmosPlacement {
+  place(input: { jobId: string; label?: string; position?: unknown; rotationY?: unknown; height?: unknown; attach?: unknown; slot?: unknown; worn?: unknown }): CosmosPlacement {
     const job = this.store.job(input.jobId);
     if (!job) throw new ForgeError(`No job ${input.jobId}.`, 404);
     const model = job.output?.files.find((f) => f.role === "model");
@@ -645,6 +669,8 @@ export class MeshyForge {
       rotationY: num(input.rotationY, 0, -Math.PI * 2, Math.PI * 2),
       height: num(input.height, input.attach ? 0.3 : 2, 0.01, 20),
       attach: this.attachment(input.attach),
+      slot: this.slotName(input.slot),
+      worn: input.attach ? input.worn !== false : undefined,
       createdAt: Date.now(),
     };
     this.store.savePlacements([...placements, placement]);

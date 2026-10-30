@@ -46,6 +46,14 @@ import {
   type AvatarParts,
 } from "../../../core/creative/Procedural3DPipeline";
 import { V2_LELU_POS } from "./GenesisV2CameraRig";
+import {
+  createAvatarBehaviour,
+  SpeechEnvelope,
+  SPEECH_BOUNDARY_EVENT,
+  type AvatarBehaviour,
+  type BehaviourMode,
+  type Expression,
+} from "../../../core/avatar/AvatarBehaviour";
 
 /* ------------------------ activity → presence ------------------------- */
 
@@ -501,6 +509,46 @@ const FORGE_CHARACTER = "lelu_character";
  *   - confirms only with measured deltas,
  *   - reports live render telemetry to the Executive Runtime.
  */
+function behaviourModeFor(activity: LeluActivity): BehaviourMode {
+  switch (activity) {
+    case "SPEAKING":
+    case "PRESENTING":
+      return "speaking";
+    case "LISTENING":
+      return "listening";
+    case "THINKING":
+    case "SEARCHING":
+      return "thinking";
+    case "IDLE":
+    case "COMPLETED":
+    case "ERROR":
+      return "idle";
+    default:
+      return "acting";
+  }
+}
+
+function expressionFor(activity: LeluActivity): Expression {
+  switch (activity) {
+    case "COMPLETED":
+      return "happy";
+    case "ERROR":
+      return "concerned";
+    case "THINKING":
+    case "SEARCHING":
+    case "WORKING":
+    case "BUILDING":
+      return "focused";
+    case "LISTENING":
+      return "attentive";
+    case "SPEAKING":
+    case "PRESENTING":
+      return "happy";
+    default:
+      return "neutral";
+  }
+}
+
 function ReconstructedAvatarPresence({
   glb,
   clips,
@@ -521,6 +569,16 @@ function ReconstructedAvatarPresence({
   const cmdRun = useRef<CommandRunState | null>(null);
   const cmdDone = useRef<string | null>(null);
   const mixer = useRef<THREE.AnimationMixer | null>(null);
+  const behaviour = useRef<AvatarBehaviour | null>(null);
+  const envelope = useRef(new SpeechEnvelope());
+  const speechClock = useRef(0);
+
+  // Each word LÉLU speaks opens the mouth / drives a nod.
+  useEffect(() => {
+    const onWord = (e: Event) => envelope.current.word(speechClock.current, (e as CustomEvent<{ charLength?: number }>).detail?.charLength ?? 4);
+    window.addEventListener(SPEECH_BOUNDARY_EVENT, onWord);
+    return () => window.removeEventListener(SPEECH_BOUNDARY_EVENT, onWord);
+  }, []);
 
   // Parse once per stored GLB. The bytes come from IndexedDB or the Forge asset store.
   useEffect(() => {
@@ -558,6 +616,8 @@ function ReconstructedAvatarPresence({
           scene.position.x -= center.x;
           scene.position.z -= center.z;
           scene.position.y -= norm.min.y;
+          behaviour.current = createAvatarBehaviour(scene);
+          console.info("[Lélu Presence] avatar controls", behaviour.current.capabilities);
           setModel(holder);
 
           // A rigged model plays its own clips and any slot clips made for the
@@ -610,6 +670,15 @@ function ReconstructedAvatarPresence({
     if (!g || !model) return;
     const t = clock.getElapsedTime();
     mixer.current?.update(delta);
+
+    // Face, gaze and body language on top of the clip, from her real activity and speech.
+    speechClock.current = t;
+    const mode = behaviourModeFor(activity);
+    behaviour.current?.update(
+      { mode, expression: expressionFor(activity), mouth: envelope.current.value(t, mode === "speaking", delta), lookAt: camera.position },
+      delta,
+      t,
+    );
 
     // Presence motion: float + breathe (same rhythm as the other variants).
     let posX = pos.x + Math.sin(t * 0.8) * 0.06;

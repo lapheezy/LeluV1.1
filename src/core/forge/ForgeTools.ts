@@ -114,6 +114,17 @@ export const FORGE_TOOLS: ToolDefinition[] = [
     executionRoute: "POST /api/forge/placements",
   },
   {
+    id: "forge.wear",
+    name: "Wear / Remove Wearable",
+    description: "Put a wearable component on or take it off (e.g. slot hood: worn=true is hood up, false is hood down) without changing the character model",
+    category: "3D Forge",
+    permissions: ["WRITE"],
+    riskLevel: 1,
+    available: true,
+    inputSchema: { character: "string", slot: "string", worn: "boolean" },
+    executionRoute: "POST /api/forge/characters/<c>/wear",
+  },
+  {
     id: "forge.look",
     name: "Change LÉLU's Look",
     description: "Switch which approved look of a character the Cosmos shows (e.g. hood_up / hood_down); empty look returns to the base rig",
@@ -251,6 +262,7 @@ export const FORGE_EXECUTORS: ForgeExecutor[] = [
         position: { type: "array", items: { type: "number" }, description: "[x, y, z]; omit to use the next free spot near the core." },
         rotationY: { type: "number", description: "Radians." },
         height: { type: "number", description: "World units the model is fitted to; LÉLU stands 2.56 tall on the floor at y −2.55." },
+        slot: { type: "string", description: "Make it a wearable in this slot (e.g. hood) so forge.wear can put it on / take it off." },
         attach: {
           type: "object",
           description: "Wear or hold it: { bone, offset?: [x,y,z], rotation?: [x,y,z], character? }. Follows that bone every frame. null detaches (with updatePlacementId).",
@@ -287,6 +299,7 @@ export const FORGE_EXECUTORS: ForgeExecutor[] = [
       }
       const { placement } = await ForgeClient.place({
         attach: attach ?? undefined,
+        slot: str(args, "slot") || undefined,
         jobId: str(args, "jobId"),
         label: str(args, "label") || undefined,
         position,
@@ -300,6 +313,23 @@ export const FORGE_EXECUTORS: ForgeExecutor[] = [
           : `Placed ${placement.label} in the Cosmos at [${placement.position.map((n) => n.toFixed(1)).join(", ")}] as ${placement.id}.`,
         data: placement,
       };
+    },
+  },
+  {
+    id: "forge.wear",
+    parameters: OBJECT(
+      {
+        character: { type: "string", description: "Default lelu_character." },
+        slot: { type: "string", description: "Wearable slot, e.g. hood or pendant." },
+        worn: { type: "boolean", description: "true puts it on (hood up), false takes it off (hood down)." },
+      },
+      ["slot", "worn"],
+    ),
+    run: async (args) => {
+      const character = str(args, "character") || "lelu_character";
+      const worn = args.worn !== false;
+      const { placements } = await ForgeClient.wear(character, str(args, "slot"), worn);
+      return { ok: true, content: `${character}'s ${str(args, "slot")} is now ${worn ? "on" : "off"} (${placements.length} piece(s)); her model is unchanged.` };
     },
   },
   {

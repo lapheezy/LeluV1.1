@@ -9,6 +9,9 @@
  *   tsx scripts/forge-character.ts adopt <jobId> <index> <refId> <view…>   a reviewed generated view becomes a (marked) reference
  *   tsx scripts/forge-character.ts plan-unhooded-base <refId>...   plan the hood-down 3D base: ref11 front + adopted views
  *   tsx scripts/forge-character.ts look <name|none>     switch which approved look the Cosmos shows
+ *   tsx scripts/forge-character.ts plan-hood-image      plan an isolated image of her hood (the wearable's source; spends nothing)
+ *   tsx scripts/forge-character.ts plan-hood-model <refId>   plan the hood as its own 3D model from an adopted hood image
+ *   tsx scripts/forge-character.ts wear <slot> <on|off> put a wearable on / take it off (hood up / down)
  *   tsx scripts/forge-character.ts approve <jobId>      submit it (spends credits)
  *   tsx scripts/forge-character.ts reject <jobId> [reason]  decline a planned job; its record is kept
  *   tsx scripts/forge-character.ts watch <jobId>        follow to completion, download, inspect
@@ -211,6 +214,58 @@ async function main(): Promise<void> {
       });
       console.log(reused ? "Existing job for this exact request (no new spend):" : "Planned:");
       show(job);
+      return;
+    }
+    case "plan-hood-image": {
+      const { job, reused } = await forge.request({
+        character: CHARACTER,
+        kind: "image-to-image",
+        purpose: "Hood as a separate wearable: the empty hood alone, from the hooded references",
+        body: {
+          ai_model: "nano-banana-pro",
+          prompt:
+            "Product photo of ONLY the hood this woman wears, as a separate empty garment with no person, no head and no hair inside: " +
+            "the same fabric, camo and rose print, copper wire cage edging, chains and crystals, shaped as if worn and slightly open at the front, " +
+            "three-quarter front view, plain dark grey background, even studio light, entire hood in frame.",
+          reference_image_urls: ["ref:ref14_front_apose_hooded_B", "ref:ref13_three_quarter_hooded_B", "ref:ref12_left_side_hooded_B"],
+          aspect_ratio: "1:1",
+        },
+        approve,
+      });
+      console.log(reused ? "Existing job for this exact request (no new spend):" : "Planned:");
+      show(job);
+      return;
+    }
+    case "plan-hood-model": {
+      const ref = process.argv[3];
+      if (!ref) throw new ForgeError("usage: plan-hood-model <adopted hood image ref id>");
+      const { job, reused } = await forge.request({
+        character: CHARACTER,
+        kind: "image-to-3d",
+        purpose: "Hood wearable (separate mesh, attached to the Head bone)",
+        body: {
+          image_url: `ref:${ref}`,
+          ai_model: "meshy-7.1",
+          should_texture: true,
+          enable_pbr: true,
+          texture_resolution: "2k",
+          should_remesh: true,
+          topology: "triangle",
+          target_polycount: 15_000,
+          image_enhancement: false,
+          target_formats: ["glb"],
+        },
+        approve,
+      });
+      console.log(reused ? "Existing job for this exact request (no new spend):" : "Planned:");
+      show(job);
+      return;
+    }
+    case "wear": {
+      const [slot, state] = process.argv.slice(3);
+      if (!slot || (state !== "on" && state !== "off")) throw new ForgeError("usage: wear <slot> <on|off>");
+      const hits = forge.wear(CHARACTER, slot, state === "on");
+      console.log(`${slot} ${state} (${hits.length} piece(s))`);
       return;
     }
     case "look": {

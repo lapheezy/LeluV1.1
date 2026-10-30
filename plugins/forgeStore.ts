@@ -95,6 +95,12 @@ export interface CosmosPlacement {
    * position/rotationY are ignored while attached.
    */
   attach?: PlacementAttachment | null;
+  /** Wearable slot (e.g. "hood", "pendant"); wearables in one slot are worn or taken off together. */
+  slot?: string | null;
+  /** For a wearable: on her (true) or carried in the wardrobe, not shown (false). */
+  worn?: boolean;
+  /** Which environment it belongs to; absent means the home room. */
+  environmentId?: string;
   createdAt: number;
 }
 

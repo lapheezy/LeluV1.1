@@ -1195,6 +1195,12 @@ class VoiceEngine {
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
+    // Word timing for the 3D avatar's mouth and nods (SPEECH_BOUNDARY_EVENT in core/avatar/AvatarBehaviour).
+    utterance.onboundary = (event) => {
+      if (event.name && event.name !== "word") return;
+      if (typeof window === "undefined") return;
+      window.dispatchEvent(new CustomEvent("lelu:speech-boundary", { detail: { charLength: event.charLength || 4 } }));
+    };
     return utterance;
   }
 
