@@ -1,0 +1,13 @@
+LÉLU, a review of your last self-development change, from an independent check.
+
+Your change (workspace "default", src/core/avatar/CompanionStore.ts): the companion's default position moved from x 0.86, y 0.2 to x 0.7, y 0.3.
+
+What the independent check measured, every animation frame for 8 s after the chat panel opens, 3 fresh loads each:
+- Phone 390×844: before your change the companion covered "New chat", "Search all chats" and "Chats and notifications" for about 2 s; with your change, 0 — confirmed, well done.
+- Desktop 1280×800: before your change, nothing was covered; with your change the companion covers "Open LÉLU menu" and "Close chat" (the chat window's own header) for 4–6 s on every load, until she moves away.
+
+So the change fixes phone but breaks desktop. Please continue your self-development loop on your copy:
+1) Reproduce the desktop problem yourself (browser_capture of your preview, desktop viewport, panel chat) and compare with the app at the same conditions.
+2) Find out why, decide the approach yourself, change your copy, validate it.
+3) Capture your preview at BOTH phone and desktop (panel chat each) and compare each with the app under the same conditions. Keep going until both are resolved, or you have genuinely tried three approaches. Don't stop to ask me.
+4) Show the diff (project_diff) and say plainly, for phone and for desktop, whether the outcome is met, based on the evidence.

@@ -349,3 +349,48 @@ test("a finding seen in only some loads of the same page is marked, and is no ev
   // A stable finding that disappears IS resolved.
   assert.match(compareCaptures([{ label: dot.label, problem: dot.problem }], [], "phone, panel chat"), /resolved: partly-off-screen: button\[Options for Engineering\]/);
 });
+
+test("a control covered only while a panel opens is seen, timed, and reported apart from the settled layout", async (t) => {
+  const { coveredWhileOpening, watchCoveringScript, LAYOUT_SCRIPT } = await import("../plugins/selfViewApi");
+  // The pure rule first: short flickers and controls still covered once
+  // settled are not "while opening" findings.
+  const watched = [
+    { label: 'button "New chat"', rect: [10, 10, 80, 30] as [number, number, number, number], coveredBy: "div#companion", ms: 1900, from: 300, to: 2200 },
+    { label: 'button "Search"', rect: [100, 10, 30, 30] as [number, number, number, number], coveredBy: "div#companion", ms: 60, from: 300, to: 360 },
+    { label: 'button "Under"', rect: [20, 20, 80, 30] as [number, number, number, number], coveredBy: "div", ms: 6000, from: 0, to: 6000 },
+  ];
+  const settled = [{ label: 'button "Under"', rect: [20, 20, 80, 30] as [number, number, number, number], problem: "covered" as const, coveredBy: "div" }];
+  const found = coveredWhileOpening(watched, settled);
+  assert.deepEqual(found.map((f) => `${f.problem}: ${f.label}`), ['covered-while-opening: button "New chat"']);
+  assert.match(found[0].detail ?? "", /covered for 1900 ms between 300 and 2200 ms after the panel was opened/);
+
+  let chromium: { launch: (options: Record<string, unknown>) => Promise<{ newPage: (o: Record<string, unknown>) => Promise<{ setContent: (html: string) => Promise<void>; evaluate: (script: string) => Promise<unknown> }>; close: () => Promise<void> }> };
+  try {
+    ({ chromium } = (await import("playwright")) as unknown as { chromium: typeof chromium });
+  } catch {
+    t.skip("no headless browser in this environment");
+    return;
+  }
+  const { existsSync } = await import("node:fs");
+  const browser = await chromium.launch({ ...(existsSync("/opt/pw-browsers/chromium") ? { executablePath: "/opt/pw-browsers/chromium" } : {}), args: ["--no-sandbox"] });
+  try {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    // Modelled on run 24: a figure starts over the header, then moves away.
+    await page.setContent(`<body style="margin:0">
+      <button style="position:fixed;left:10px;top:10px;width:80px;height:30px">Search  all chats</button>
+      <button style="position:fixed;left:200px;top:10px;width:80px;height:30px">Stays clear</button>
+      <div id="companion" style="position:fixed;left:0;top:0;width:110px;height:235px"></div>
+      <script>setTimeout(() => { document.getElementById("companion").style.top = "400px"; }, 800);</script>
+    </body>`);
+    const watch = (await page.evaluate(watchCoveringScript(2000))) as { opened: string | null; covered: Array<{ label: string; coveredBy: string; ms: number; from: number; to: number }> };
+    assert.equal(watch.opened, null, "no panel was asked for");
+    assert.deepEqual(watch.covered.map((c) => c.label), ['button "Search all chats"'], "named by its text, whitespace collapsed: " + JSON.stringify(watch.covered));
+    assert.match(watch.covered[0].coveredBy, /div#companion/);
+    assert.ok(watch.covered[0].ms > 400 && watch.covered[0].ms < 1500, `about 800 ms: ${watch.covered[0].ms}`);
+    const layout = (await page.evaluate(LAYOUT_SCRIPT)) as { findings: Array<{ label: string; problem: string; rect: [number, number, number, number] }> };
+    assert.ok(!layout.findings.some((f) => f.problem === "covered"), "once settled nothing is covered — which is why the settled report alone read 0");
+    assert.equal(coveredWhileOpening(watch.covered as never, layout.findings as never).length, 1);
+  } finally {
+    await browser.close();
+  }
+});

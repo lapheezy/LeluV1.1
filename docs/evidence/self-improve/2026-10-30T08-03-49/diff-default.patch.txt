@@ -1,0 +1,12 @@
+--- src/core/avatar/CompanionStore.ts (modified, +1/-1)
+--- a/src/core/avatar/CompanionStore.ts
++++ b/src/core/avatar/CompanionStore.ts
+@@ -83,7 +83,7 @@
+ export function defaultCompanionState(): CompanionState {
+   // On unless turned off: the owner asked for her to be present wherever
+   // LÉLU is active (V1.1 avatar brief). Off is remembered.
+-  return { enabled: true, pinned: false, x: 0.86, y: 0.2, size: "medium", framing: "full", lastMovedBy: "none", updatedAt: 0 };
++  return { enabled: true, pinned: false, x: 0.1, y: 0.15, size: "medium", framing: "full", lastMovedBy: "none", updatedAt: 0 };
+ }
+ 
+ function clamp(value: number, min: number, max: number): number {

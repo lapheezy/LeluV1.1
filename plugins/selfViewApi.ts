@@ -282,7 +282,7 @@ export function searchFiles(root: string, query: string, options: { regex?: bool
 export interface LayoutFinding {
   label: string;
   rect: [number, number, number, number];
-  problem: "off-screen" | "partly-off-screen" | "covered" | "sideways-overflow";
+  problem: "off-screen" | "partly-off-screen" | "covered" | "covered-while-opening" | "sideways-overflow";
   coveredBy?: string;
   /** For sideways-overflow: how much wider the content is than its box. */
   detail?: string;
@@ -308,16 +308,96 @@ const DISMISS_NOTICE_SCRIPT = `(() => {
   return Boolean(button);
 })()`;
 
-function openPanelScript(panel: string): string {
+/** How long a capture watches a panel open before measuring it settled. */
+const WATCH_OPENING_MS = 6000;
+
+/**
+ * Watched in the page from the moment a panel is asked to open: every
+ * ~50 ms, which controls are covered at their centre and by what, for
+ * `ms`. The settled report (LAYOUT_SCRIPT) cannot see a control that is
+ * covered only while things are still moving — measured in run 24: the
+ * companion covered the chat header for 1–3 s after the chat opened, until
+ * she moved herself away, and every settled capture read 0. Controls behind
+ * a see-through modal backdrop are covered on purpose and not recorded.
+ */
+export function watchCoveringScript(ms: number, panel?: string): string {
   return `(async () => {
-    try {
-      const { default: Bus } = await import("/src/core/cognition/UIActionBus.ts");
-      const result = Bus.getInstance().dispatch({ type: "open_panel", target: ${JSON.stringify(panel)}, reason: "self-inspection", initiatedBy: "lelu" });
-      return result.ok ? ${JSON.stringify(panel)} : "failed: " + result.detail;
-    } catch (error) {
-      return "failed: " + String(error);
+    let opened = null;
+    if (${JSON.stringify(panel ?? null)}) {
+      try {
+        const { default: Bus } = await import("/src/core/cognition/UIActionBus.ts");
+        const result = Bus.getInstance().dispatch({ type: "open_panel", target: ${JSON.stringify(panel ?? "")}, reason: "self-inspection", initiatedBy: "lelu" });
+        opened = result.ok ? ${JSON.stringify(panel ?? "")} : "failed: " + result.detail;
+      } catch (error) {
+        opened = "failed: " + String(error);
+      }
     }
+    const describe = (el) => {
+      const name = (el.getAttribute("aria-label") || el.textContent || "").trim().replace(/\\s+/g, " ").slice(0, 40);
+      const id = el.getAttribute("data-testid") || el.id;
+      return el.tagName.toLowerCase() + (name ? ' "' + name + '"' : "") + (id && !name ? "#" + id : "");
+    };
+    const isBackdrop = (el) => {
+      const s = getComputedStyle(el);
+      if (s.position !== "fixed") return false;
+      const r = el.getBoundingClientRect();
+      if (r.left > 1 || r.top > 1 || r.right < innerWidth - 1 || r.bottom < innerHeight - 1) return false;
+      const m = /rgba?\\(([^)]+)\\)/.exec(s.backgroundColor);
+      const alpha = m ? (m[1].split(",")[3] === undefined ? 1 : Number(m[1].split(",")[3])) : 0;
+      return (alpha > 0.05 && alpha < 0.95) || s.backdropFilter !== "none";
+    };
+    const seen = new Map();
+    const start = performance.now();
+    let last = start;
+    while (performance.now() - start < ${Math.max(0, Math.round(ms))}) {
+      const now = performance.now();
+      const step = now - last;
+      last = now;
+      for (const el of document.querySelectorAll("button, a[href], input, textarea, select, [role='button'], [role='switch'], [role='tab']")) {
+        const style = getComputedStyle(el);
+        if (style.visibility === "hidden" || style.display === "none" || Number(style.opacity) === 0) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width < 2 || r.height < 2 || r.right <= 0 || r.bottom <= 0 || r.left >= innerWidth || r.top >= innerHeight) continue;
+        const top = document.elementFromPoint(Math.min(innerWidth - 1, Math.max(0, r.left + r.width / 2)), Math.min(innerHeight - 1, Math.max(0, r.top + r.height / 2)));
+        if (!top || top === el || el.contains(top) || top.contains(el) || isBackdrop(top)) continue;
+        const label = describe(el);
+        const entry = seen.get(label) || { label, rect: [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)], coveredBy: describe(top), ms: 0, from: Math.round(now - start), to: 0 };
+        entry.ms += step;
+        entry.to = Math.round(now - start);
+        seen.set(label, entry);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    return { opened, covered: [...seen.values()].map((e) => ({ ...e, ms: Math.round(e.ms) })) };
   })()`;
+}
+
+export interface WatchedCover {
+  label: string;
+  rect: [number, number, number, number];
+  coveredBy: string;
+  /** How long it was covered in total, and between which moments (ms after the panel was asked to open). */
+  ms: number;
+  from: number;
+  to: number;
+}
+
+/**
+ * Controls covered while the panel opened but not once it settled: their
+ * own kind of finding. Shorter than `minMs` is a frame or two of a
+ * transition, not something a user can tap into.
+ */
+export function coveredWhileOpening(watched: readonly WatchedCover[], settled: readonly LayoutFinding[], minMs = 150): LayoutFinding[] {
+  const settledCovered = new Set(settled.filter((finding) => finding.problem === "covered").map((finding) => finding.label));
+  return watched
+    .filter((entry) => entry.ms >= minMs && !settledCovered.has(entry.label))
+    .map((entry) => ({
+      label: entry.label,
+      rect: entry.rect,
+      problem: "covered-while-opening" as const,
+      coveredBy: entry.coveredBy,
+      detail: `covered for ${entry.ms} ms between ${entry.from} and ${entry.to} ms after the panel was opened, then uncovered — a tap in that time lands on what covers it`,
+    }));
 }
 
 /**
@@ -606,6 +686,7 @@ async function capture(options: {
     await page.waitForTimeout(options.ownApp ? 3500 : 1500);
 
     let panelOpened: string | null = null;
+    let watched: WatchedCover[] = [];
     if (options.ownApp) {
       // Her own UI: clear the first-run notice the way a user would, then
       // open the requested panel through the app's own UI action bus.
@@ -614,13 +695,16 @@ async function capture(options: {
         await page.waitForTimeout(dismissed ? 500 : 300);
       }
       if (options.panel) {
-        panelOpened = String(await page.evaluate(openPanelScript(options.panel)));
-        await page.waitForTimeout(2500);
+        // Opened and watched in one step, so the first moments are seen.
+        const watch = (await page.evaluate(watchCoveringScript(WATCH_OPENING_MS, options.panel))) as { opened: string | null; covered: WatchedCover[] };
+        panelOpened = String(watch.opened);
+        watched = watch.covered ?? [];
       }
     }
 
     const stability = await waitForStableLayout(page);
     const layout = { ...((await page.evaluate(LAYOUT_SCRIPT)) as Record<string, unknown>), ...stability } as MeasuredLayout;
+    layout.findings = [...(layout.findings ?? []), ...coveredWhileOpening(watched, layout.findings ?? [])];
 
     let shot = await page.screenshot({ type: "jpeg", quality: 60, fullPage: false });
     if (shot.byteLength > MAX_SCREENSHOT_BYTES) shot = await page.screenshot({ type: "jpeg", quality: 30, fullPage: false });
