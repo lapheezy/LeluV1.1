@@ -1,0 +1,81 @@
+{
+  "se-375x667/app": {
+    "beforeOpen": [
+      "Enter fullscreen"
+    ],
+    "frames": 387,
+    "coveredMs": 1668,
+    "firstCovered": 5,
+    "lastCovered": 1668,
+    "worst": [
+      "New chat",
+      "Search all chats",
+      "Chats and notifications",
+      "Open LÉLU menu",
+      "Close chat"
+    ]
+  },
+  "se-375x667/hers": {
+    "beforeOpen": [],
+    "frames": 404,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "max-430x932/app": {
+    "beforeOpen": [],
+    "frames": 361,
+    "coveredMs": 1319,
+    "firstCovered": 705,
+    "lastCovered": 1624,
+    "worst": [
+      "New chat",
+      "Search all chats",
+      "Chats and notifications"
+    ]
+  },
+  "max-430x932/hers": {
+    "beforeOpen": [],
+    "frames": 367,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "tablet-768x1024/app": {
+    "beforeOpen": [],
+    "frames": 12,
+    "coveredMs": 3637,
+    "firstCovered": 2587,
+    "lastCovered": 5529,
+    "worst": [
+      "Open LÉLU menu",
+      "Close chat"
+    ]
+  },
+  "tablet-768x1024/hers": {
+    "beforeOpen": [],
+    "frames": 12,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "laptop-1440x900/app": {
+    "beforeOpen": [],
+    "frames": 13,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "laptop-1440x900/hers": {
+    "beforeOpen": [],
+    "frames": 12,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  }
+}

@@ -1,0 +1,14 @@
+LÉLU, a review of your last self-development change (run 24), from an independent check.
+
+Your change (workspace "default", src/core/avatar/CompanionStore.ts): the companion's default position is now x 0.1, y 0.15 (it was x 0.86, y 0.2 in the real app; you tried x 0.7, y 0.3 before).
+
+Independent measurement, every animation frame for 8 s after the chat panel opens, 3 fresh loads each:
+- Desktop 1280×800: nothing covered — confirmed fixed.
+- Phone 390×844: the companion now covers "New chat" and "Options for New chat" for 1.2–3.1 s after the chat opens, on every load; before the chat opens she also covers "Expand Genesis". In the real app she covers "New chat", "Search all chats" and "Chats and notifications" for 1–2 s instead. So on phone the problem moved; it is not resolved. Each fixed default spot so far has covered something on one of the two screen sizes.
+- Your captures read 0 because the covering is temporary: it ends once the companion moves herself away, and browser_capture used to measure only the settled layout. browser_capture now also watches the first 6 s after the panel opens and reports any control covered during that time as "covered-while-opening", with how long and by what.
+
+Please continue your self-development loop:
+1) Capture the app at phone and at desktop (panel chat each) and look at the covered-while-opening findings.
+2) Find out why the companion covers controls when a panel opens, decide the approach yourself, change your copy, and validate it with project_validate.
+3) Start the preview and capture it at BOTH phone and desktop (panel chat each), comparing each with the app under the same conditions. Keep going until both show no covered or covered-while-opening controls, or you have genuinely tried three approaches. Don't stop to ask me.
+4) Show the diff (project_diff) and say plainly, for phone and for desktop, whether the outcome is met, based on the evidence.
