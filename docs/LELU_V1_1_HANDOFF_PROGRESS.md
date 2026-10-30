@@ -254,6 +254,7 @@ Most runs failed on infrastructure, not on her. Each defect was fixed in the too
 | 19 | **Reached a layout that measures 0**, but did not complete the loop | Her decisive edits came after her last capture. Her final typecheck failed on a duplicate key she introduced, and the recorder's four go-aheads (my limit) ran out before she could re-validate or re-capture. **Not counted.** The limits are raised to 8 go-aheads and 60 minutes. |
 | 20 | Claimed "met": chat tabs, 2 → 0 | **Two app states, not her fix.** The 2 findings appear only when a background message's unread dot widens a tab. App and preview each read 0 or 2 depending on the load, and her preview with the dot still cuts the button off. Captures now load the page twice, and a finding seen in only some loads is marked and is never "resolved" evidence. |
 | 21 | Claimed "resolved": the same chat-tab defect | Independently, her preview still cuts the button off whenever the unread dot is present. The findings were marked state-dependent, and she concluded "resolved" anyway. The capture's bus event now carries the comparison she was given. |
+| 22 | Honest "not met": the Projects panel, 21 → 21 | One change (ellipsis), a right diagnosis she did not act on, then the only provider failed and the app went offline. |
 
 ### What the runs established
 - **The self-development loop is executable end to end by LÉLU herself**, using real tools on a real sandbox copy of her own code:
@@ -278,7 +279,7 @@ Most runs failed on infrastructure, not on her. Each defect was fixed in the too
 
   Each was found from a run's evidence, fixed, and covered by a test.
 - **Destructive writes are refused.** Placeholders standing in for code, and `project_read`'s display pasted into source, are both blocked (`unsavableContent`).
-- **The acceptance test has not been met.** No run has yet produced a change that LÉLU validated, captured under the same conditions and measured as an improvement, and that independent verification confirmed.
+- **The acceptance test has not been met (22 runs).** No run has yet produced a change that LÉLU validated, captured under the same conditions and measured as an improvement, and that independent verification confirmed.
   - The closest is run 19: her final copy measures 0 findings on the Avatar panel. But she never re-validated (her last edit broke typecheck) or captured it. Not counted.
   - In run 20 she claimed success, but two app states produced the result. Not counted.
 - **Nothing LÉLU wrote has been applied to the real project.** The genuine Avatar-panel overflow at phone width (the two-column body needs 494 px in a 356 px box) is still in the app, reserved for her.
