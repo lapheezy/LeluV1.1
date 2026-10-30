@@ -5,10 +5,17 @@
 # updated ledger, outputs and previews are committed back to the branch the
 # workflow was started on, so every session and the Cosmos see the result.
 #
-# Manual only (workflow_dispatch). Commands that spend credits say so.
+# Two triggers. workflow_dispatch (manual) works once this file is on the
+# default branch. On any other branch, commit leluverse/forge-request.json:
+#   { "command": "approve-and-watch", "job_id": "fj_...", "extra": "" }
+# Pushes made by this workflow's own token never retrigger it.
+# Commands that spend credits say so.
 name: 3D Forge
 
 on:
+  push:
+    paths:
+      - leluverse/forge-request.json
   workflow_dispatch:
     inputs:
       command:
@@ -50,6 +57,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Read the request file (push trigger)
+        if: github.event_name == 'push'
+        run: |
+          f=leluverse/forge-request.json
+          echo "FORGE_COMMAND=$(jq -r '.command // ""' "$f" | tr -cd 'a-z-')" >> "$GITHUB_ENV"
+          echo "FORGE_JOB_ID=$(jq -r '.job_id // ""' "$f" | tr -cd 'a-z0-9_')" >> "$GITHUB_ENV"
+          echo "FORGE_EXTRA=$(jq -r '.extra // ""' "$f" | tr -cd 'a-zA-Z0-9_: -')" >> "$GITHUB_ENV"
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -87,6 +102,7 @@ jobs:
               [[ "$FORGE_EXTRA" =~ ^(base|rig|animation:[a-z0-9_]+)$ ]] || { echo "::error::extra must be base, rig or animation:<name>"; exit 1; }
               forge slot "$FORGE_EXTRA" "$FORGE_JOB_ID" ;;
             library) forge library "$FORGE_EXTRA" ;;
+            *) echo "::error::Unknown command '$FORGE_COMMAND'"; exit 1 ;;
           esac
           forge status
 
@@ -111,4 +127,5 @@ jobs:
           git add leluverse/
           if git diff --cached --quiet; then echo "Nothing to commit."; exit 0; fi
           git commit -m "Forge: $FORGE_COMMAND ${FORGE_JOB_ID:-} (run ${{ github.run_id }})"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"
