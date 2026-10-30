@@ -131,9 +131,19 @@ const loopDone = () =>
       diffed: ran("project.diff"),
     };
   });
+// Her turn ended by offering to go on and asking permission ("Let me know
+// if you'd like me to try one of them") although the request says "decide
+// the approach yourself; don't stop to ask me" — measured in run 17, which
+// stopped after two approaches with the third named but not tried. The
+// answer is the same neutral go-ahead; whether to continue stays hers.
+const asksToContinue = async () => {
+  const messages = await replies().catch(() => []);
+  const last = [...messages].reverse().find((m) => m.role !== "user");
+  return /let me know|would you like|shall i|should i|want me to|i can (?:proceed|continue|try)/i.test((last?.text ?? "").slice(-600));
+};
 for (let nudge = 0; nudge < 4 && finished && Date.now() < deadline; nudge += 1) {
   const done = await loopDone();
-  if (done.validated && done.previewCaptured && done.diffed) break;
+  if (done.validated && done.previewCaptured && done.diffed && !(await asksToContinue())) break;
   console.log(`  her turn ended; recorded so far ${JSON.stringify(done)} — sending the go-ahead (${nudge + 1}/4)`);
   await page.evaluate(async () => {
     const { default: Bus } = await import("/src/core/cognition/UIActionBus.ts");
