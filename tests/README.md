@@ -47,3 +47,14 @@ for f in tests/*.test.ts tests/*.test.tsx; do timeout 90 npx tsx --test "$f"; do
 ```
 
 The per-file counts above come from exactly that loop.
+
+Re-measured after the Anthropic runtime hardening (`ANTHROPIC_RUNTIME_REPORT.md`),
+same loop: **250 assertions passing, 0 failing across 31 files**, including the
+new `anthropic-integration` (20). The same 14 files are unmeasured.
+`engineering-agent` was failing 1 of 3 before this work. The cause was
+`LELU_ANTHROPIC_API_KEY` leaking into a "no credential" test, and that test now
+passes.
+
+If a hung file's child process keeps the pipe open, the loop above can stall
+on `grep`. Write each run to a file instead of piping, and kill leftover
+`tsx --test` processes between files.

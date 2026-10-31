@@ -80,8 +80,10 @@ container).
 - `tests/anthropic-integration.test.ts`: 20 pass / 0 fail.
 - Typecheck: `tsc -p tsconfig.app.json` and `tsc -p tsconfig.node.json` clean.
   `oxlint` is clean on the changed files.
-- Full suite, using the per-file loop from `tests/README.md`: see the commit
-  message for the measured counts.
+- Full suite, using the per-file loop from `tests/README.md`: **250 assertions
+  passing, 0 failing across 31 files**. 14 files are unmeasured (they do not
+  finish inside 90s). These are exactly the 14 that `tests/README.md` already
+  lists.
 - **Verified live** against `api.anthropic.com` on `claude-opus-5-5`, using the
   container's `LELU_ANTHROPIC_API_KEY`. Six calls, each run on both the new code
   and the previous commit (`93f8dc0`):
