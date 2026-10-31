@@ -6,6 +6,10 @@ Image-to-3D models approximate a painted face: the eyes come
 back heavy-lidded, makeup softened. This paints the identity
 reference itself (ref10) onto the model's face texture:
 
+  Default: eyes only (paintFace false) — the model's own face texture is kept
+  exactly; only the eyes get small patches. paintFace true also paints the whole
+  face from the reference.
+
   1. render the model's face straight on (orthographic, so
      every pixel maps to a known x/z in the world)
   2. find the 478 MediaPipe face landmarks in that render
@@ -112,33 +116,68 @@ def eye_patches(head, pos, nrm, px, py, src, ref, tri, cx, cz, width, size, mw):
     removed = 0
     made = []
     head_group = next((g.name for g in head.vertex_groups if g.name.lower() == "head"), None)
+    D = lambda X, Z: np.c_[np.ones_like(X), X, Z, X * X, X * Z, Z * Z]
+    to_world_x = lambda u: (u - size / 2) / size * width + cx
+    to_world_z = lambda v: cz - (v - size / 2) / size * width
+    front = nrm[:, 1] < 0.2
+
+    # The skin surface around each eye, fitted on a fixed ring of skin (independent of
+    # the patch size). Hair hanging in front of one eye can spoil its fit, so the two
+    # are checked against each other; the face is near-symmetric, so a fit that
+    # disagrees with the other eye by more than 3 mm is replaced by the other's mirror.
+    fits = {}
     for (a, b), name in EYES:
         c = (src[a] + src[b]) / 2
         ew = float(np.linalg.norm(src[a] - src[b]))
-        rx, rz = 0.9 * ew, 0.7 * ew
-        e = np.hypot((px - c[0]) / rx, (py - c[1]) / rz)
-        front = nrm[:, 1] < 0.2
-        near = (e < 1.8) & front
+        e_fit = np.hypot((px - c[0]) / (0.9 * ew), (py - c[1]) / (0.7 * ew))
+        near = (e_fit < 1.8) & front
         face_front = np.percentile(pos[near, 1], 2) if near.any() else 0.0
         # Only the outer layer counts: the head shell also has surfaces deeper inside.
-        ring = (e > 1.05) & (e < 1.8) & front & (pos[:, 1] < face_front + 0.02)
+        ring = (e_fit > 1.05) & (e_fit < 1.8) & front & (pos[:, 1] < face_front + 0.02)
         if ring.sum() < 30:
-            REPORT["warnings"].append(f"{name}: too few skin points around the eye; skipped.")
             continue
-        D = lambda X, Z: np.c_[np.ones_like(X), X, Z, X * X, X * Z, Z * Z]
         X, Z, Y = pos[ring, 0], pos[ring, 2], pos[ring, 1]
         coef, *_ = np.linalg.lstsq(D(X, Z), Y, rcond=None)
         for _ in range(3):  # robust: ring points that are fins or hair do not shape the surface
             res = np.abs(D(X, Z) @ coef - Y)
             keep = res < 2.5 * np.median(res) + 1e-5
             coef, *_ = np.linalg.lstsq(D(X[keep], Z[keep]), Y[keep], rcond=None)
-        surf = D(pos[:, 0], pos[:, 2]) @ coef
+        cxw, czw = to_world_x(c[0]), to_world_z(c[1])
+        fits[name] = {
+            "fn": (lambda k: lambda X, Z: D(X, Z) @ k)(coef),
+            "residual": float(np.median(np.abs(D(X, Z) @ coef - Y))),
+            "centre": (cxw, czw),
+            "depth": float((D(np.array([cxw]), np.array([czw])) @ coef)[0]),
+            "ring": int(ring.sum()),
+        }
+    if len(fits) == 2:
+        (n0, f0), (n1, f1) = fits.items()
+        if abs(f0["depth"] - f1["depth"]) > 0.003:
+            good, bad = (n0, n1) if f0["residual"] <= f1["residual"] else (n1, n0)
+            xm = to_world_x(src[1][0])  # nose tip: the face's mirror line
+            g = fits[good]["fn"]
+            fits[bad]["fn"] = lambda X, Z: g(2 * xm - X, Z)
+            REPORT["warnings"].append(f"{bad}: its skin fit disagreed with {good} by {abs(f0['depth'] - f1['depth']) * 1000:.1f} mm (hair in front?); used the mirror of {good}.")
+            log("eye-fit-mirrored", bad=bad, good=good, depthDiffMm=round(abs(f0["depth"] - f1["depth"]) * 1000, 2))
+
+    for (a, b), name in EYES:
+        if name not in fits:
+            REPORT["warnings"].append(f"{name}: too few skin points around the eye; skipped.")
+            continue
+        c = (src[a] + src[b]) / 2
+        ew = float(np.linalg.norm(src[a] - src[b]))
+        fx, fz = float(A.get("eyeRx", 0.62)), float(A.get("eyeRz", 0.36))
+        rx, rz = fx * ew, fz * ew
+        e = np.hypot((px - c[0]) / rx, (py - c[1]) / rz)
+        fn = fits[name]["fn"]
+        ring_count = fits[name]["ring"]
+        surf = fn(pos[:, 0], pos[:, 2])
 
         # Delete what stands in front of that surface inside the eye (the lash fins).
         bm = bmesh.new()
         bm.from_mesh(head.data)
         bm.verts.ensure_lookup_table()
-        doomed = [bm.verts[i] for i in np.where((e < 0.8) & (pos[:, 1] < surf - 0.0004) & (pos[:, 1] > surf - 0.025))[0]]
+        doomed = [bm.verts[i] for i in np.where((e < float(A.get("finCore", 0.7))) & (pos[:, 1] < surf - 0.0004) & (pos[:, 1] > surf - 0.025))[0]]
         removed += len(doomed)
         bmesh.ops.delete(bm, geom=doomed, context="VERTS")
         bm.to_mesh(head.data)
@@ -153,7 +192,7 @@ def eye_patches(head, pos, nrm, px, py, src, ref, tri, cx, cz, width, size, mw):
         gpy = c[1] + gv.ravel() * rz
         gx = (gpx - size / 2) / size * width + cx
         gz = cz - (gpy - size / 2) / size * width
-        gy = D(gx, gz) @ coef - 0.0012
+        gy = fn(gx, gz) - float(A.get("patchOffset", 0.003))
         simplex = tri.find_simplex(np.stack([gpx, gpy], 1))
         if (simplex < 0).any():
             REPORT["warnings"].append(f"{name}: patch leaves the landmark mesh; skipped.")
@@ -174,7 +213,7 @@ def eye_patches(head, pos, nrm, px, py, src, ref, tri, cx, cz, width, size, mw):
         yy, xx = np.mgrid[0:ch, 0:cw]
         img_y = y1 - yy  # back to top-down reference rows
         img_x = x0 + xx
-        ee = np.hypot((img_x - rc[0]) / (0.9 * rew), (img_y - rc[1]) / (0.7 * rew))
+        ee = np.hypot((img_x - rc[0]) / (fx * rew), (img_y - rc[1]) / (fz * rew))
         alpha = np.clip((1.0 - ee) / 0.18, 0, 1)  # solid over the deleted core (e < 0.8), feathered beyond
         crop[..., 3] = alpha * alpha * (3 - 2 * alpha)
         patch_img = bpy.data.images.new(f"{name}_tex", cw, ch, alpha=True)
@@ -227,7 +266,7 @@ def eye_patches(head, pos, nrm, px, py, src, ref, tri, cx, cz, width, size, mw):
         if hasattr(mat, "blend_method"):
             mat.blend_method = "BLEND"
         obj.data.materials.append(mat)
-        made.append({"patch": name, "cropPx": [int(cw), int(ch)], "surfaceFitPoints": int(ring.sum())})
+        made.append({"patch": name, "cropPx": [int(cw), int(ch)], "surfaceFitPoints": ring_count})
     log("eye-patches", patches=made, finVerticesRemoved=removed)
 
 
@@ -282,6 +321,12 @@ def main():
     corners = ref[tri.simplices[simplex[inside]]]
     ref_xy = np.full((len(pos), 2), np.nan)
     ref_xy[inside] = np.einsum("ij,ijk->ik", bary, corners)
+
+    if not A.get("paintFace", False):
+        # Eyes only: the model's own face texture stays exactly as generated.
+        eye_patches(head, pos, nrm, px, py, src, ref, tri, cx, cz, width, size, mw)
+        finish(sc, cam, cx, cz, width, pos)
+        return
 
     # Mask: inside the face oval, feathered towards it, faded where the surface turns away.
     oval = src[FACE_OVAL]
@@ -408,8 +453,10 @@ def main():
         eye_patches(head, pos, nrm, px, py, src, ref, tri, cx, cz, width, size, mw)
     img.update()
     log("texture", image=img.name, size=[W, H], texelsWritten=painted, texelsChanged=int(hit.sum()))
+    finish(sc, cam, cx, cz, width, pos)
 
 
+def finish(sc, cam, cx, cz, width, pos):
     render(sc, cam, os.path.join(A["previewDir"], "faceproject_front_after.png"), (cx, float(pos[:, 1].min()), cz), width)
     render(sc, cam, os.path.join(A["previewDir"], "faceproject_three_quarter_after.png"), (cx, float(pos[:, 1].min()) + 0.08, cz), width, ortho=False, distance=0.9, direction=(-0.6, -0.8, 0))
 
