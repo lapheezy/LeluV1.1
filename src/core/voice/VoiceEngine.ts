@@ -13,7 +13,7 @@
  * ==========================================================
  */
 
-import { postTranscription, transcriptionAvailable } from "./transcriptionTransport";
+import { postTranscription, transcriptionAvailable, WHISPER_NAME_HINT } from "./transcriptionTransport";
 
 import { mapMediaError } from "./speechToText";
 
@@ -274,6 +274,9 @@ async function transcribeViaWhisper(audioBlob: Blob): Promise<string> {
   formData.append("file", audioBlob, `recording.${ext}`);
   formData.append("model", "whisper-large-v3-turbo");
   formData.append("response_format", "verbose_json");
+  // Whisper spells unfamiliar names by sound ("Lou", "Lulu"); a prompt with
+  // her name biases it to the right spelling. Not a language hint.
+  formData.append("prompt", WHISPER_NAME_HINT);
 
   // No local key is the normal case: the request is relayed same-origin
   // and the server attaches the credential (see voice/transcriptionTransport.ts).
@@ -292,9 +295,8 @@ async function transcribeViaWhisper(audioBlob: Blob): Promise<string> {
   const data = await response.json();
   const text = typeof data?.text === "string" ? data.text.trim() : "";
 
-  if (!text) {
-    throw new Error("Whisper returned empty transcription.");
-  }
+  // An empty transcript is silence, not a failure: the loop goes back to
+  // listening. (Throwing here logged an error for every quiet moment.)
 
   return text;
 }
@@ -334,7 +336,19 @@ class VoiceEngine {
 
   /** Groq Whisper fallback: active when Web Speech API is unavailable. */
   private whisperFallbackActive = false;
+  private whisperLoopBusy = false;
+  /** Last submitted utterance, to drop an identical one arriving moments later. */
+  private lastUtterance: { text: string; at: number } | null = null;
   private whisperFallbackTimer: ReturnType<typeof setTimeout> | null = null;
+  /**
+   * Web Speech watchdog: a recognizer that neither returns results nor
+   * raises an error (seen when the browser's speech service is unreachable)
+   * would otherwise leave the user talking into a dead mic. The watchdog
+   * listens to the mic level; speech energy with no recognition result
+   * shortly after means the recognizer is not working -> switch to Whisper.
+   */
+  private webSpeechWatchdog: { stop: () => void } | null = null;
+  private webSpeechGotResult = false;
 
   private readonly stateListeners = new Set<StateListener>();
   private readonly interimListeners = new Set<InterimListener>();
@@ -657,6 +671,12 @@ class VoiceEngine {
           }
         }
 
+        if (interimText || finalText) {
+          // The browser recognizer works — the watchdog is no longer needed.
+          this.webSpeechGotResult = true;
+          this.stopWebSpeechWatchdog();
+        }
+
         if (interimText) {
           this.emitInterim(interimText);
         }
@@ -677,6 +697,16 @@ class VoiceEngine {
         if (diagnosis.kind !== "permission") {
           console.warn("[VoiceEngine] Recognition error:", event.error);
         }
+        // The browser's recognizer is a remote service (Google in Chrome,
+        // Apple/Siri in Safari). When IT fails — not the microphone — the
+        // microphone stream is still good: switch to Whisper through the
+        // server instead of leaving the user with a dead mic button.
+        if ((diagnosis.kind === "service" || diagnosis.kind === "offline") && this._state.active) {
+          console.info("[VoiceEngine] Browser speech service unavailable — switching to Whisper.");
+          this.stopRecognition();
+          this.startWhisperFallback();
+          return;
+        }
         this.setError(diagnosis.message, diagnosis.kind);
       };
 
@@ -693,14 +723,104 @@ class VoiceEngine {
 
       recognition.start();
       this.recognition = recognition;
+      if (!this.webSpeechGotResult) this.startWebSpeechWatchdog();
     } catch (error) {
       console.warn("[VoiceEngine] Could not start recognition:", error);
       this.setError("Speech recognition is not supported in this browser.", "unsupported");
     }
   }
 
+  /** Speech heard on the mic but no recognition result within this window -> fallback. */
+  private static readonly WEB_SPEECH_SILENT_MS = 6000;
+
+  private startWebSpeechWatchdog(): void {
+    this.stopWebSpeechWatchdog();
+    const stream = this.mediaStream;
+    const Ctx =
+      typeof AudioContext !== "undefined"
+        ? AudioContext
+        : typeof window !== "undefined"
+          ? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+          : undefined;
+    if (!stream || !Ctx) return;
+    let ctx: AudioContext;
+    try {
+      ctx = new Ctx();
+      void ctx.resume().catch(() => {});
+    } catch {
+      return;
+    }
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 1024;
+    ctx.createMediaStreamSource(stream).connect(analyser);
+    const buf = new Float32Array(analyser.fftSize);
+    const started = Date.now();
+    const floorSamples: number[] = [];
+    let threshold = 0.02;
+    let speechMs = 0;
+    let heardAt = 0;
+    let last = started;
+    const timer = setInterval(() => {
+      const now = Date.now();
+      const dt = now - last;
+      last = now;
+      if (!this._state.active || this._state.phase !== "listening") {
+        // LÉLU speaking or thinking: her own voice must not count as the user's.
+        speechMs = 0;
+        return;
+      }
+      analyser.getFloatTimeDomainData(buf);
+      let sum = 0;
+      for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+      const level = Math.sqrt(sum / buf.length);
+      if (now - started < 300) {
+        floorSamples.push(level);
+        return;
+      }
+      if (floorSamples.length) {
+        const sorted = [...floorSamples].sort((a, b) => a - b);
+        threshold = Math.min(0.06, Math.max(0.012, sorted[Math.floor(sorted.length / 2)] * 2.5));
+        floorSamples.length = 0;
+      }
+      if (level > threshold) {
+        speechMs += dt;
+        if (speechMs >= 400 && !heardAt) heardAt = now;
+      } else {
+        speechMs = 0;
+      }
+      if (heardAt && !this.webSpeechGotResult && now - heardAt > VoiceEngine.WEB_SPEECH_SILENT_MS) {
+        console.info("[VoiceEngine] Browser recognizer heard speech but returned nothing — switching to Whisper.");
+        this.stopRecognition();
+        this.startWhisperFallback();
+      }
+    }, 50);
+    this.webSpeechWatchdog = {
+      stop: () => {
+        clearInterval(timer);
+        setTimeout(() => ctx.close().catch(() => {}), 0);
+      },
+    };
+  }
+
+  private stopWebSpeechWatchdog(): void {
+    if (this.webSpeechWatchdog) {
+      this.webSpeechWatchdog.stop();
+      this.webSpeechWatchdog = null;
+    }
+  }
+
   private stopRecognition(): void {
+    this.stopWebSpeechWatchdog();
     if (this.recognition) {
+      // onend restarts recognition while voice is active; detach it first so
+      // an intentional stop (or a switch to Whisper) is not undone.
+      try {
+        (this.recognition as unknown as { onend: unknown; onerror: unknown; onresult: unknown }).onend = null;
+        (this.recognition as unknown as { onerror: unknown }).onerror = null;
+        (this.recognition as unknown as { onresult: unknown }).onresult = null;
+      } catch {
+        // ignore
+      }
       try {
         this.recognition.abort();
       } catch {
@@ -720,17 +840,27 @@ class VoiceEngine {
 
   private startWhisperFallback(): void {
     if (this.whisperFallbackActive) return;
-
-    if (!getGroqApiKey()) {
-      this.setError(
-        "Voice requires a Groq API key for transcription. Set VITE_GROQ_API_KEY.",
-        "offline",
-      );
-      return;
-    }
-
+    // Claim the loop now so a second caller (e.g. a recognition error racing
+    // the availability check) cannot start a parallel one.
     this.whisperFallbackActive = true;
-    this.whisperFallbackLoop();
+    void (async () => {
+      // The key normally lives on the SERVER (the broker attaches it), so the
+      // browser holding none is the expected case, not a missing key. Only
+      // when neither this runtime nor the relay can transcribe is it an error.
+      if (!getGroqApiKey()) {
+        if (!this.relayGroqAvailable) await this.refreshRelayDiagnostics();
+        if (!this.relayGroqAvailable) {
+          this.whisperFallbackActive = false;
+          this.setError(
+            "Voice transcription is not available: the server has no GROQ_API_KEY configured.",
+            "offline",
+          );
+          return;
+        }
+      }
+      if (!this.whisperFallbackActive) return;
+      this.whisperFallbackLoop();
+    })();
   }
 
   private stopWhisperFallback(): void {
@@ -747,17 +877,26 @@ class VoiceEngine {
    */
   private async whisperFallbackLoop(): Promise<void> {
     if (!this.whisperFallbackActive || !this.mediaStream) return;
+    // Single flight. The loop is (re)started from several places — after a
+    // reply is spoken, after every cancelled utterance's end event (iOS
+    // fires those too), after errors — and each extra call used to start a
+    // parallel recorder, so one sentence was transcribed and submitted
+    // several times (measured: 8 identical transcriptions in 0.5 s).
+    if (this.whisperLoopBusy) return;
+    this.whisperLoopBusy = true;
+    let again = false;
 
     try {
       // Record a chunk of audio
-      const chunk = await this.recordAudioChunk(VoiceEngine.WHISPER_CHUNK_MS);
+      // One spoken turn (voice-activity detected), not a fixed slice of time.
+      const chunk = await this.recordUtterance();
 
       // If voice was stopped during recording, bail out
       if (!this.whisperFallbackActive || !this._state.active) return;
 
       if (!chunk || chunk.size === 0) {
-        // No audio captured — loop again
-        this.whisperFallbackLoop();
+        // Nothing said — keep listening
+        again = true;
         return;
       }
 
@@ -773,7 +912,7 @@ class VoiceEngine {
       } else {
         // Silence — go back to listening
         this.updateState({ ...this._state, phase: "listening" });
-        this.whisperFallbackLoop();
+        again = true;
       }
     } catch (error) {
       if (!this.whisperFallbackActive) return;
@@ -784,9 +923,13 @@ class VoiceEngine {
       if (this._state.active) {
         this.updateState({ ...this._state, phase: "listening" });
         this.whisperFallbackTimer = setTimeout(() => {
+          this.whisperFallbackTimer = null;
           this.whisperFallbackLoop();
         }, 1000);
       }
+    } finally {
+      this.whisperLoopBusy = false;
+      if (again) setTimeout(() => this.whisperFallbackLoop(), 0);
     }
   }
 
@@ -795,6 +938,129 @@ class VoiceEngine {
    * Uses MediaRecorder (supported in Safari 14.5+) or WAV capture
    * as a fallback. Returns a Blob of the recorded audio.
    */
+  /**
+   * Record ONE spoken turn: start when the person starts speaking, stop after
+   * a short silence. Replaces fixed 5 s chunks on the Whisper path, which cut
+   * sentences in half and uploaded silence (Whisper then invents "Thank you."
+   * on empty audio, and LÉLU answered a sentence nobody said).
+   *
+   * Energy-based voice activity on the live stream (AnalyserNode): the noise
+   * floor is learned from the first ~300 ms, speech is energy above it for
+   * ≥150 ms, the turn ends after 900 ms below it. No speech within 10 s →
+   * nothing is uploaded. A turn is capped at 20 s. Falls back to a fixed
+   * chunk when Web Audio is unavailable.
+   */
+  private async recordUtterance(): Promise<Blob | null> {
+    if (!this.mediaStream) return null;
+    const Ctx =
+      typeof AudioContext !== "undefined"
+        ? AudioContext
+        : (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx || typeof MediaRecorder === "undefined") return this.recordAudioChunk(VoiceEngine.WHISPER_CHUNK_MS);
+
+    const stream = this.mediaStream;
+    let ctx: AudioContext;
+    try {
+      ctx = new Ctx();
+      await ctx.resume().catch(() => {});
+    } catch {
+      return this.recordAudioChunk(VoiceEngine.WHISPER_CHUNK_MS);
+    }
+    const source = ctx.createMediaStreamSource(stream);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 1024;
+    source.connect(analyser);
+    const buf = new Float32Array(analyser.fftSize);
+    const rms = () => {
+      analyser.getFloatTimeDomainData(buf);
+      let sum = 0;
+      for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+      return Math.sqrt(sum / buf.length);
+    };
+
+    const mime = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4"].find((m) => MediaRecorder.isTypeSupported(m)) ?? "";
+    const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {});
+    const parts: Blob[] = [];
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) parts.push(e.data);
+    };
+    const stopped = new Promise<void>((resolve) => {
+      recorder.onstop = () => resolve();
+      recorder.onerror = () => resolve();
+    });
+    recorder.start(250);
+
+    const STEP = 50;
+    const started = Date.now();
+    let last = started;
+    let peak = 0;
+    let lastLevel = 0;
+    let minLevel = 1;
+    const floorSamples: number[] = [];
+    let threshold = 0.015;
+    let speechMs = 0;
+    let silenceMs = 0;
+    let spoke = false;
+    await new Promise<void>((resolve) => {
+      const timer = setInterval(() => {
+        const now = Date.now();
+        const elapsed = now - started;
+        // Real elapsed time, not ticks: a busy page delays intervals.
+        const dt = Math.min(500, now - last);
+        last = now;
+        if (!this.whisperFallbackActive || !this._state.active || !this.mediaStream) {
+          clearInterval(timer);
+          resolve();
+          return;
+        }
+        const level = rms();
+        lastLevel = level;
+        if (elapsed > 300 && level < minLevel) minLevel = level;
+        if (elapsed < 300) {
+          floorSamples.push(level);
+          return;
+        }
+        if (floorSamples.length && threshold === 0.015) {
+          const sorted = [...floorSamples].sort((a, b) => a - b);
+          // Capped: if the user is already talking when the turn starts, the "floor" is speech.
+          threshold = Math.min(0.06, Math.max(0.012, sorted[Math.floor(sorted.length / 2)] * 2.5));
+        }
+        // Silence is judged against the speaker's own loudness too: automatic
+        // gain control lifts room noise in pauses, so a fixed floor alone can
+        // miss the end of a sentence.
+        const speaking = level > threshold && (!spoke || level > peak * 0.2);
+        if (speaking) {
+          speechMs += dt;
+          silenceMs = 0;
+          if (speechMs >= 150) spoke = true;
+          if (level > peak) peak = level;
+        } else {
+          silenceMs += dt;
+          if (!spoke) speechMs = 0;
+        }
+        const done =
+          (spoke && silenceMs >= 900) || // end of the turn
+          elapsed >= 20_000 || // cap
+          (!spoke && elapsed >= 10_000); // nothing said
+        if (done) {
+          clearInterval(timer);
+          resolve();
+        }
+      }, STEP);
+    });
+    if (recorder.state === "recording") recorder.stop();
+    await stopped;
+    try {
+      source.disconnect();
+      await ctx.close();
+    } catch {
+      // ignore
+    }
+    console.debug("[VoiceEngine] turn", JSON.stringify({ spoke, ms: Date.now() - started, peak: +peak.toFixed(4), threshold: +threshold.toFixed(4), lastLevel: +lastLevel.toFixed(4), minLevel: +minLevel.toFixed(4), silenceMs }));
+    if (!spoke || parts.length === 0) return null;
+    return new Blob(parts, { type: mime || "audio/webm" });
+  }
+
   private async recordAudioChunk(durationMs: number): Promise<Blob | null> {
     if (!this.mediaStream) return null;
 
@@ -936,6 +1202,14 @@ class VoiceEngine {
       this.lastSpokenText = "";
       return;
     }
+
+    // Never submit the same sentence twice in a row within a few seconds
+    // (a restarted recognizer or a duplicated audio chunk re-delivering it).
+    const normalized = text.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, "").trim();
+    if (this.lastUtterance && this.lastUtterance.text === normalized && Date.now() - this.lastUtterance.at < 4000) {
+      return;
+    }
+    this.lastUtterance = { text: normalized, at: Date.now() };
 
     // Emit the utterance so VoiceBridge can persist it
     this.emitUtterance(text);

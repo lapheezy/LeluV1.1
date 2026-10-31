@@ -66,8 +66,12 @@ export const LELU_IDENTITY_KEYWORDS = [
 ] as const;
 
 /** Identity-question phrase list (Lélu's own identity). */
+// "what are you" is identity ONLY as the whole question ("What are you?",
+// "what are you, exactly?"). As a substring it matched "what are you working
+// on", "what are you doing", "what are you thinking" — everyday questions that
+// then got the canned self-description instead of reaching cognition.
 const LELU_IDENTITY_PHRASES =
-  /(who are you|what are you|your name|who made you|who created you|what can you do|what do you do|tell me about yourself)/;
+  /(\bwho are you\b|^(?:hey |hi |hello )?(?:lélu|lelu)?[,\s]*what are you(?:,?\s*(?:exactly|really))?\s*[?.!]*$|\byour name\b|\bwho made you\b|\bwho created you\b|\bwhat can you do\b|\bwhat do you do\b|\btell me about yourself\b)/;
 
 /** Profile-question phrase list (the user's identity/profile). */
 const USER_PROFILE_PHRASES =

@@ -71,6 +71,9 @@ export interface ExecutiveSelfState {
   currentGoal: string;
   currentTask: { id: string; label: string } | null;
   taskStatus: "none" | "running" | "completed" | "failed" | "unverified";
+  /** The task before the current one, with how it ended — so "what are you
+   *  working on?" can answer about real work, not about the question itself. */
+  previousTask: { label: string; status: "running" | "completed" | "failed" | "unverified" | "none" } | null;
 
   currentAction: string;
   lastAction: VerifiedAction | null;
@@ -147,6 +150,7 @@ class ExecutiveRuntimeImpl {
     currentMode: "booting",
     currentGoal: "",
     currentTask: null,
+    previousTask: null,
     taskStatus: "none",
     currentAction: "",
     lastAction: null,
@@ -226,6 +230,10 @@ class ExecutiveRuntimeImpl {
       case "task_started":
         this.toolResultsForCurrentTask = 0;
         this.patch({
+          previousTask:
+            this.state.currentTask && this.state.currentTask.id !== event.taskId
+              ? { label: this.state.currentTask.label, status: this.state.taskStatus }
+              : this.state.previousTask,
           currentMode: "working",
           currentTask: { id: event.taskId, label: event.label },
           taskStatus: "running",
@@ -759,7 +767,28 @@ class ExecutiveRuntimeImpl {
   public composeStatusAnswer(prompt = ""): string {
     const s = this.state;
     const parts: string[] = [];
-    if (s.currentTask) {
+    // The turn asking "what are you working on?" is itself registered as the
+    // current task; answering with it quoted the user's own question back.
+    const norm = (t: string) => t.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, "").replace(/\s+/g, " ").trim();
+    const label = s.currentTask ? norm(s.currentTask.label) : "";
+    const asked = norm(prompt);
+    const isThisQuestion = Boolean(label && asked && (label === asked || (label.length >= 12 && asked.startsWith(label.replace(/ ?…$/, "")))));
+    if (isThisQuestion) {
+      const prev = s.previousTask;
+      parts.push(
+        !prev
+          ? s.currentMode === "ambient" || s.currentMode === "working"
+            ? "Before you asked, nothing was assigned — I was in my own background cycle (self-study, reflection, knowledge upkeep)."
+            : "No task is running right now; I'm standing by in the environment."
+          : prev.status === "running"
+            ? `Before you asked, I was working on “${prev.label}”.`
+            : prev.status === "failed"
+              ? `The last thing I worked on, “${prev.label}”, failed — I'm diagnosing it.`
+              : prev.status === "unverified"
+                ? `The last thing I worked on was “${prev.label}”, but I never received a confirmed result, so I won't claim it succeeded.`
+                : `The last thing I finished was “${prev.label}”.`,
+      );
+    } else if (s.currentTask) {
       parts.push(
         s.taskStatus === "running"
           ? `I'm currently working on “${s.currentTask.label}”.`
