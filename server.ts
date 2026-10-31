@@ -25,7 +25,8 @@
  */
 
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
+import { execSync } from "node:child_process";
 import path from "node:path";
 import { loadEnvFilesIntoProcess } from "./plugins/loadEnvFiles.ts";
 import {
@@ -43,6 +44,7 @@ import { createNekoApi } from "./plugins/nekoApi.ts";
 import { createGithubApi } from "./plugins/githubApi.ts";
 import { createModelApi } from "./plugins/modelApi.ts";
 import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
+import { createAccessGate } from "./plugins/accessGate.ts";
 
 // Load the project's existing environment (.env.local overrides .env;
 // platform-injected process env always wins) BEFORE anything reads it,
@@ -92,7 +94,8 @@ if (bridgedHere.length > 0) {
   );
 }
 
-const HOST = "0.0.0.0";
+// Behind a reverse proxy set HOST=127.0.0.1 so only the proxy can reach the app.
+const HOST = process.env.HOST || "0.0.0.0";
 const PORT = Number(process.env.PORT || 4173);
 const WORKSPACE_ROOT = process.cwd();
 const DIST_DIR = path.join(WORKSPACE_ROOT, "dist");
@@ -221,7 +224,16 @@ function sendFile(res: ServerResponse, filePath: string): void {
     return;
   }
 
-  res.end(readFileSync(filePath));
+  // Streamed, not readFileSync: a synchronous whole-file read blocked the
+  // event loop for every asset, so API calls queued behind the ~11 MB of
+  // bundle a first page load pulls (measured: a 0.4 s status call took 5 s).
+  res.setHeader("Content-Length", String(statSync(filePath).size));
+  const stream = createReadStream(filePath);
+  stream.on("error", () => {
+    if (!res.headersSent) res.statusCode = 500;
+    res.end();
+  });
+  stream.pipe(res);
 }
 
 function injectRuntimeKeyBridge(html: string): string {
@@ -306,14 +318,66 @@ middlewares.use("/api/ai", (req, res) => {
   void handleAiProxy(req, res);
 });
 
+const accessGate = createAccessGate((key) => process.env[key]);
+const STARTED_AT = Date.now();
+const VERSION = (() => {
+  try {
+    return execSync("git rev-parse --short HEAD", { cwd: WORKSPACE_ROOT, stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+  } catch {
+    return process.env.LELU_VERSION || "unknown";
+  }
+})();
+
+/** Liveness/readiness for systemd, the reverse proxy and uptime monitors. No secrets. */
+function healthz(res: ServerResponse): void {
+  const mem = process.memoryUsage();
+  res.statusCode = existsSync(INDEX_HTML) ? 200 : 503;
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Cache-Control", "no-store");
+  res.end(
+    JSON.stringify({
+      ok: res.statusCode === 200,
+      version: VERSION,
+      uptimeSeconds: Math.round((Date.now() - STARTED_AT) / 1000),
+      rssMb: Math.round(mem.rss / 1048576),
+      heapMb: Math.round(mem.heapUsed / 1048576),
+      dist: existsSync(INDEX_HTML),
+      accessGate: accessGate.enabled,
+    }),
+  );
+}
+
 const server = createServer((req, res) => {
-  runMiddleware(req, res, 0);
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "same-origin");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  accessGate.handle(req, res, () => {
+    if ((req.url ?? "").split("?")[0] === "/healthz") {
+      healthz(res);
+      return;
+    }
+    runMiddleware(req, res, 0);
+  });
 });
+// Long model streams and slow phones: generous, but bounded.
+server.requestTimeout = 300_000;
+server.headersTimeout = 65_000;
+server.keepAliveTimeout = 61_000;
+
+// systemd sends SIGTERM on stop/restart: finish in-flight requests, then exit.
+for (const signal of ["SIGTERM", "SIGINT"] as const) {
+  process.on(signal, () => {
+    console.log(`[LÉLU runtime] ${signal}: closing (in-flight requests finish, max 10 s).`);
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 10_000).unref();
+  });
+}
 
 server.listen(PORT, HOST, () => {
   const aisState = aisKey ? "configured" : "not configured (AISSTREAM_API_KEY missing)";
   console.log(
     `[LÉLU runtime] serving ${DIST_DIR} on http://${HOST}:${PORT} — ` +
-      `engineering API mounted, AIS bridge ${aisState}, /api/ai proxy ready.`,
+      `engineering API mounted, AIS bridge ${aisState}, /api/ai proxy ready, ` +
+      `access gate ${accessGate.enabled ? "ON" : "OFF"}, version ${VERSION}.`,
   );
 });
