@@ -1,0 +1,44 @@
+# LÉLU — Caddy reverse proxy with automatic HTTPS (Let's Encrypt).
+# Installed by install.sh to /etc/caddy/Caddyfile with LELU_DOMAIN substituted.
+# DNS: an A record for the domain must point at the VPS before Caddy starts.
+
+{
+	email {$LELU_ACME_EMAIL}
+}
+
+{$LELU_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "same-origin"
+		Permissions-Policy "microphone=(self), camera=(self), geolocation=(self)"
+		-Server
+	}
+
+	# Health is public and cheap; everything else goes through the app's own
+	# access gate (LELU_ACCESS_PASSWORD), which owns the session cookie.
+	reverse_proxy 127.0.0.1:4173 {
+		# Stream model responses (SSE) to the phone as they arrive.
+		flush_interval -1
+		transport http {
+			read_timeout 5m
+			write_timeout 5m
+		}
+		health_uri /healthz
+		health_interval 30s
+	}
+
+	# Large uploads (references, workspace files) are bounded.
+	request_body {
+		max_size 64MB
+	}
+
+	log {
+		output file /var/log/caddy/lelu-access.log {
+			roll_size 20MiB
+			roll_keep 10
+		}
+	}
+}
