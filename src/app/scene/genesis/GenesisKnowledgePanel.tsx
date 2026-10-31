@@ -15,7 +15,7 @@
  */
 
 import { useMemo } from "react";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 import GenesisWindowFrame from "./GenesisWindowFrame";
 
@@ -40,7 +40,7 @@ interface GenesisKnowledgePanelProps {
 }
 
 export default function GenesisKnowledgePanel({ onClose }: GenesisKnowledgePanelProps) {
-  const { state } = useGenesis();
+  const { state } = useGenesisState();
 
   const agents = (state.cognition?.agents as AgentShape[] | undefined) ?? EMPTY_AGENTS;
   const nodes = (state.cognition?.nodes as KnowledgeNodeShape[] | undefined) ?? EMPTY_NODES;

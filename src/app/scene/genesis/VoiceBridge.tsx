@@ -24,10 +24,10 @@
 import { useEffect } from "react";
 
 import VoiceEngine from "../../../core/voice/VoiceEngine";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 
 export default function VoiceBridge() {
-  const { addMessage, setVoice, notify } = useGenesis();
+  const { addMessage, setVoice, notify } = useGenesisState();
 
   useEffect(() => {
     const engine = VoiceEngine.getInstance();

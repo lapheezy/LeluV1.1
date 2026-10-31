@@ -19,7 +19,7 @@
  */
 
 import { useEffect, useRef } from "react";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import AIService from "../../../core/AIService";
 import ProactiveCore from "../../../core/proactive/ProactiveCore";
 import PersistentRuntime from "../../../core/proactive/PersistentRuntime";
@@ -44,7 +44,7 @@ function formatBriefing(briefing: ReturnType<ProactiveCore["buildBriefing"]>): s
 }
 
 export default function ProactiveBridge() {
-  const { addMessage, notify } = useGenesis();
+  const { addMessage, notify } = useGenesisState();
   const presentedRef = useRef(false);
 
   useEffect(() => {

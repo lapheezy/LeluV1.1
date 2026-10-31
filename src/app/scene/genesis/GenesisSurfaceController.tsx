@@ -33,7 +33,7 @@
 
 import { useEffect, useRef } from "react";
 import AgentEventBus, { type AgentEvent } from "../../../core/agent/AgentEvents";
-import { useGenesis, type GenesisPanel } from "./GenesisCore";
+import { useGenesisState, type GenesisPanel } from "./GenesisCore";
 import VisualEngine from "../../../core/visual/VisualEngine";
 import { genesisCameraIntentBus, type GenesisV2CameraCommand, type GenesisV2FocusTarget } from "./GenesisCameraIntent";
 
@@ -126,7 +126,7 @@ export default function GenesisSurfaceController() {
     setModuleStatus,
     setUiControl,
     setActiveScene,
-  } = useGenesis();
+  } = useGenesisState();
   const openedRef = useRef<Set<string>>(new Set());
   const queuedCameraRef = useRef<GenesisV2CameraCommand[]>([]);
   const uiControlRef = useRef(state.uiControl);

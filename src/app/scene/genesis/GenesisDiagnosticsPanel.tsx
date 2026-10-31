@@ -23,7 +23,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 import GenesisWindowFrame from "./GenesisWindowFrame";
 
@@ -32,7 +32,7 @@ interface GenesisDiagnosticsPanelProps {
 }
 
 export default function GenesisDiagnosticsPanel({ onClose }: GenesisDiagnosticsPanelProps) {
-  const { state } = useGenesis();
+  const { state } = useGenesisState();
   const [filter, setFilter] = useState<"all" | "enabled" | "disabled" | "error">("all");
 
   const statuses = state.engineStatuses;

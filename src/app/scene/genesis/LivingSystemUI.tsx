@@ -38,7 +38,7 @@ import type { AgentEvent } from "../../../core/agent/AgentEvents";
 import { useVisual } from "../../../core/visual/useVisual";
 import { useWorkspace } from "../../../core/workspace/useWorkspace";
 import type { WorkspaceView } from "../../../core/workspace/WorkspaceEngine";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import type EngineRuntime from "./engines/EngineRuntime";
 import { useSceneMountLog } from "./useSceneMountLog";
 import LivingSystemVisuals from "./LivingSystemVisuals";
@@ -76,7 +76,7 @@ export default function LivingSystemUI() {
 
   const { state: visualState, engine: visualEngine } = useVisual();
   const { state: workspaceState, engine: workspaceEngine } = useWorkspace();
-  const { openPanel, setDialogue, engineRuntime } = useGenesis();
+  const { openPanel, setDialogue, engineRuntime } = useGenesisState();
 
   const { mode, interfaceFocus, heartbeatRate, runtime, structure, signals, activeNodes, activeConnections } =
     visualState;

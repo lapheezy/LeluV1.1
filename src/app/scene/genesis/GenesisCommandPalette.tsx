@@ -23,7 +23,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 import { openStudioMode } from "./GenesisVisualStudio";
 
@@ -44,7 +44,7 @@ export default function GenesisCommandPalette({
       v2 workspace back to v1. */
   onNavigate?: (commandId: string) => void;
 }) {
-  const { state, openPanel, focusWorkspace, selectDestination, clearConversation } = useGenesis();
+  const { state, openPanel, focusWorkspace, selectDestination, clearConversation } = useGenesisState();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);

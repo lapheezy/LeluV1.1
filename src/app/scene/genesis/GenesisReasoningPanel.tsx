@@ -19,7 +19,7 @@
  */
 
 import { useMemo } from "react";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import GenesisWindowFrame from "./GenesisWindowFrame";
 
 interface Hypothesis {
@@ -85,7 +85,7 @@ interface GenesisReasoningPanelProps {
 }
 
 export default function GenesisReasoningPanel({ onClose }: GenesisReasoningPanelProps) {
-  const { state } = useGenesis();
+  const { state } = useGenesisState();
 
   const reasoning = state.cognition?.reasoning as ReasoningResultShape | null | undefined;
   const plan = state.cognition?.plan as PlanShape | null | undefined;
