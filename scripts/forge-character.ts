@@ -18,6 +18,8 @@
  *   tsx scripts/forge-character.ts rig <baseJobId> [--height=1.75] [--approve]
  *   tsx scripts/forge-character.ts animate <rigJobId> <name>=<actionId>... [--approve]
  *   tsx scripts/forge-character.ts slot <slot> <jobId>  promote a validated job (base | rig | animation:<name>)
+ *   tsx scripts/forge-character.ts unslot <slot> [reason]   take a model out of the Cosmos (job and files are kept)
+ *   tsx scripts/forge-character.ts blender <jobId> [--no-face] [--no-mobile]   headless Blender post-process (free)
  *   tsx scripts/forge-character.ts inspect <file.glb>   run the GLB inspector on any file
  *   tsx scripts/forge-character.ts library [search]     Meshy's animation catalogue (free)
  */
@@ -332,6 +334,55 @@ async function main(): Promise<void> {
     case "slot": {
       const manifest = forge.approveSlot(CHARACTER, process.argv[3] as CharacterSlot, jobArg(4));
       console.log(JSON.stringify(manifest.active, null, 2));
+      return;
+    }
+    case "plan-head": {
+      // The full-body model gives the face ~100 px of a shared 2k texture and a few dozen
+      // triangles after the 60k remesh. A head-and-shoulders model gets the whole budget;
+      // Blender swaps it onto the rigged body. ref10 (identity primary) is the front.
+      const views = process.argv.slice(3).filter((a) => !a.startsWith("--"));
+      const images = ["ref:ref10_face_primary", ...(views.length ? views : ["ref18_head_profile_a_unhooded", "ref19_head_back_unhooded"]).map((v) => `ref:${v}`)];
+      const { job, reused } = await forge.request({
+        character: CHARACTER,
+        kind: "multi-image-to-3d",
+        purpose: `Dedicated head (bust) for a head swap: ${images.map((i) => i.slice(4)).join(" + ")}`,
+        body: {
+          image_urls: images,
+          ai_model: "meshy-7.1",
+          geometry_resolution: "2k",
+          should_texture: true,
+          enable_pbr: true,
+          texture_resolution: "8k",
+          pose_mode: "",
+          should_remesh: true,
+          topology: "triangle",
+          target_polycount: 300_000,
+          save_pre_remeshed_model: false,
+          image_enhancement: false,
+          target_formats: ["glb"],
+          multi_view_thumbnails: true,
+        },
+        approve,
+      });
+      console.log(reused ? "Existing job for this exact request (no new spend):" : "Planned:");
+      show(job);
+      return;
+    }
+    case "unslot": {
+      const slot = process.argv[3];
+      if (!slot) throw new ForgeError("Which slot? (base | rig | animation:<name> | look:<name>)");
+      const manifest = store.clearActive(CHARACTER, slot, process.argv.slice(4).join(" ") || "withdrawn by the user");
+      console.log(JSON.stringify(manifest.active, null, 2));
+      return;
+    }
+    case "blender": {
+      const { postprocess } = await import("../plugins/blenderStage.ts");
+      const { job, reused } = await postprocess(store, (name) => process.env[name], jobArg(3), {
+        faceKeys: !process.argv.includes("--no-face"),
+        mobile: process.argv.includes("--no-mobile") ? null : undefined,
+      });
+      if (reused) console.log("(this exact post-process was already done)");
+      show(job);
       return;
     }
     case "inspect": {

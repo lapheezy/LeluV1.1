@@ -97,6 +97,12 @@ interface MeshyTask {
   result?: Record<string, unknown> | null;
 }
 
+/** The Meshy task kind of a job; local Blender jobs never reach Meshy. */
+function meshyKind(job: ForgeJob): ForgeJobKind {
+  if (job.kind === "blender") throw new ForgeError(`Job ${job.id} is a local Blender post-process, not a Meshy task.`, 409);
+  return job.kind;
+}
+
 function newJobId(): string {
   return `fj_${Date.now().toString(36)}_${createHash("sha1").update(String(Math.random())).digest("hex").slice(0, 6)}`;
 }
@@ -274,7 +280,7 @@ export class MeshyForge {
     for (let attempt = 1; ; attempt++) {
       let res: Response;
       try {
-        res = await this.meshy("POST", MESHY_KINDS[job.kind].path, resolved);
+        res = await this.meshy("POST", MESHY_KINDS[meshyKind(job)].path, resolved);
       } catch (error) {
         if (error instanceof ForgeError) throw error;
         job.status = "submit_uncertain";
@@ -338,7 +344,7 @@ export class MeshyForge {
     if (job.status !== "SUCCEEDED") {
       let res: Response;
       try {
-        res = await this.meshy("GET", taskPath(job.kind, job.meshyTaskId));
+        res = await this.meshy("GET", taskPath(meshyKind(job), job.meshyTaskId));
       } catch (error) {
         if (error instanceof ForgeError) throw error;
         job.error = `Status check failed, will retry: ${error instanceof Error ? error.message : String(error)}`;
@@ -365,7 +371,7 @@ export class MeshyForge {
     }
 
     // SUCCEEDED but outputs never landed (e.g. a download failed): fetch the task again and retry the downloads.
-    const res = await this.meshy("GET", taskPath(job.kind, job.meshyTaskId));
+    const res = await this.meshy("GET", taskPath(meshyKind(job), job.meshyTaskId));
     if (!res.ok) throw new ForgeError(`Could not re-read finished task (HTTP ${res.status}).`, 502);
     return this.collect(job, (await res.json()) as MeshyTask);
   }
@@ -406,8 +412,8 @@ export class MeshyForge {
   }
 
   private async collect(job: ForgeJob, task: MeshyTask): Promise<ForgeJob> {
-    const outputs = this.outputsOf(job.kind, task);
-    const images = IMAGE_KINDS.has(job.kind);
+    const outputs = this.outputsOf(meshyKind(job), task);
+    const images = IMAGE_KINDS.has(meshyKind(job));
     if (!outputs.some((o) => o.role === (images ? "image" : "model"))) {
       job.error = images ? "Task succeeded but returned no images." : "Task succeeded but returned no GLB.";
       return this.store.saveJob(job);
@@ -540,7 +546,7 @@ export class MeshyForge {
    */
   adoptView(jobId: string, index: number, classification: { id: string; view: string; outfitVariant?: string; intendedUse?: string; notes?: string }) {
     const job = this.store.job(jobId);
-    if (!job || !IMAGE_KINDS.has(job.kind) || job.status !== "SUCCEEDED" || !job.output) {
+    if (!job || job.kind === "blender" || !IMAGE_KINDS.has(job.kind) || job.status !== "SUCCEEDED" || !job.output) {
       throw new ForgeError(`Job ${jobId} is not a finished image job.`, 409);
     }
     if (!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(classification.id)) throw new ForgeError("id must be lowercase letters, digits, _ or -.");

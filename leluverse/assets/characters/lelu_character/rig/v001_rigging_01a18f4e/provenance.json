@@ -1,0 +1,17 @@
+{
+  "jobId": "fj_mvvnf4v9_1ded97",
+  "character": "lelu_character",
+  "kind": "rigging",
+  "purpose": "Phase G humanoid rig",
+  "meshyTaskId": "01a18f4e-8b2d-77fc-8179-76978df63364",
+  "request": {
+    "input_task_id": "01a18f49-94d7-777f-8f60-d072189c001a",
+    "height_meters": 1.75
+  },
+  "references": [],
+  "identityLock": null,
+  "estimatedCredits": 5,
+  "consumedCredits": 5,
+  "submittedAt": 1793405654679,
+  "finishedAt": 1793405688946
+}

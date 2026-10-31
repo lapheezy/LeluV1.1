@@ -23,7 +23,8 @@
 
 import ToolRegistry, { type ToolDefinition } from "../tools/ToolRegistry";
 import type { ToolExecutionResult } from "../tools/ToolDispatcher";
-import ForgeClient, { type CosmosPlacement, type WorldState } from "../forge/ForgeClient";
+import ForgeClient, { type AvatarMood, type AvatarWorldState, type CosmosPlacement, type WorldState } from "../forge/ForgeClient";
+import { FURNITURE } from "./RoomGenerator";
 
 interface WorldExecutor {
   id: string;
@@ -51,6 +52,22 @@ export const WORLD_TOOLS: ToolDefinition[] = [
     1,
     ["WRITE"],
     { action: "create|move|modify|simulate|remove", id: "string", shape: "string", label: "string", color: "string", position: "number[3]", rotationY: "number", height: "number" },
+  ),
+  tool(
+    "world.generate",
+    "Generate a Room",
+    "Build a furnished environment from a description (e.g. \"a cozy pink reading nook with plants\"): its kind, colours, lighting and furniture made of built-in shapes, saved as one version she can restore. Can also furnish the current environment. Spends nothing",
+    1,
+    ["WRITE"],
+    { description: "string", name: "string", kind: "string", items: "array", furnishCurrent: "boolean", replace: "boolean" },
+  ),
+  tool(
+    "world.avatar",
+    "Move Myself",
+    "Where LÉLU stands in the current environment, which way she faces and her resting mood — remembered across reloads and devices. Walk to a spot or next to an object, turn towards an object or the user, or set her mood",
+    1,
+    ["WRITE"],
+    { action: "get|move|face|mood", position: "number[2|3]", near: "string", towards: "string", facing: "number", mood: "string" },
   ),
   tool("world.versions", "Environment History", "List an environment's saved versions, or restore one (the restore is itself a new version, so it can be undone)", 1, ["WRITE"], { id: "string", restore: "number" }),
   tool("world.promote", "Promote Sandbox", "Replace a working environment with the sandbox copy that was tested — needs the user's approval", 3, ["EXTERNAL_ACTION"], { id: "string" }),
@@ -204,6 +221,100 @@ export const WORLD_EXECUTORS: WorldExecutor[] = [
       if (action === "remove") {
         const { placement } = await ForgeClient.unplace(id);
         return { ok: true, content: `Removed ${placement.label}. It can be brought back by restoring an earlier version.` };
+      }
+      return { ok: false, content: `Unknown action "${action}".` };
+    },
+  },
+  {
+    id: "world.generate",
+    parameters: OBJECT(
+      {
+        description: { type: "string", description: "What the room is like: purpose, mood, colours, furniture." },
+        name: { type: "string" },
+        kind: { type: "string", enum: ["room", "lab", "studio", "garden", "observatory", "open"] },
+        items: {
+          type: "array",
+          description: `Exact pieces instead of the ones read from the description; any of: ${FURNITURE.join(", ")}.`,
+          items: { type: "string" },
+        },
+        furnishCurrent: { type: "boolean", description: "Add the furniture to the current environment instead of creating a new one." },
+        replace: { type: "boolean", description: "With furnishCurrent: clear its objects first (the previous version stays restorable)." },
+        seed: { type: "number", description: "Another seed gives another layout of the same description." },
+      },
+      ["description"],
+    ),
+    run: async (args) => {
+      const furnish = args.furnishCurrent === true;
+      const items = Array.isArray(args.items) ? args.items.filter((i): i is string => typeof i === "string") : undefined;
+      const result = await ForgeClient.generateRoom({
+        description: str(args, "description"),
+        name: str(args, "name") || undefined,
+        kind: str(args, "kind") || undefined,
+        items: items?.length ? items : undefined,
+        seed: num(args, "seed"),
+        environmentId: furnish ? (await ForgeClient.world()).current : undefined,
+        replace: furnish && args.replace === true,
+      });
+      const pieces = result.plan.pieces.map((p) => p.group).join(", ");
+      const skipped = result.plan.skipped.length ? ` Did not fit: ${result.plan.skipped.join(", ")}.` : "";
+      return {
+        ok: true,
+        content: `${furnish ? "Furnished" : "Generated and entered"} "${result.environment.name}" (${result.plan.kind}, version ${result.environment.version}) with ${result.plan.pieces.length} pieces: ${pieces}.${skipped}`,
+        data: result,
+      };
+    },
+  },
+  {
+    id: "world.avatar",
+    parameters: OBJECT(
+      {
+        action: { type: "string", enum: ["get", "move", "face", "mood"] },
+        position: { type: "array", items: { type: "number" }, description: "move: [x, z] or [x, y, z]; her floor is y −2.55, she starts at [0, −2.55, 3.3]." },
+        near: { type: "string", description: "move: an object id or piece (e.g. \"desk-1\") to walk up to." },
+        towards: { type: "string", description: "face: an object id, a piece, or \"user\"." },
+        facing: { type: "number", description: "face: angle in radians (0 faces the user)." },
+        mood: { type: "string", enum: ["neutral", "happy", "focused", "concerned", "surprised", "attentive"] },
+      },
+      ["action"],
+    ),
+    run: async (args) => {
+      const action = str(args, "action");
+      const describe = (a: AvatarWorldState) =>
+        `LÉLU stands at [${a.position.map((n) => n.toFixed(2)).join(", ")}] in ${a.environmentId}, facing ${((a.facing * 180) / Math.PI).toFixed(0)}°, mood ${a.mood}.`;
+      if (action === "get") {
+        const { avatar } = await ForgeClient.avatar();
+        return { ok: true, content: describe(avatar), data: avatar };
+      }
+      if (action === "move") {
+        let position = Array.isArray(args.position) ? (args.position.filter((n) => typeof n === "number") as number[]) : [];
+        const near = str(args, "near");
+        if (near) {
+          const state = await ForgeClient.world();
+          const hits = state.objects.filter((o) => o.id === near || o.group === near);
+          if (!hits.length) return { ok: false, content: `No object or piece "${near}" here (world.state lists them).` };
+          const x = hits.reduce((s, o) => s + o.position[0], 0) / hits.length;
+          const z = hits.reduce((s, o) => s + o.position[2], 0) / hits.length;
+          // Stop about a metre short of it, on the side towards the room centre.
+          const [cx, cz] = state.origin.centre;
+          const d = Math.hypot(cx - x, cz - z) || 1;
+          position = [x + ((cx - x) / d) * 1.1, z + ((cz - z) / d) * 1.1];
+        }
+        if (position.length !== 2 && position.length !== 3) return { ok: false, content: "Give a position [x, z] or something to walk up to (near)." };
+        await ForgeClient.setAvatar({ position: position as [number, number] });
+        const { avatar } = await ForgeClient.setAvatar({ towards: near || "user" });
+        return { ok: true, content: describe(avatar), data: avatar };
+      }
+      if (action === "face") {
+        const towards = str(args, "towards");
+        const facing = num(args, "facing");
+        if (!towards && facing === undefined) return { ok: false, content: "Face what? Give towards or facing." };
+        const { avatar } = await ForgeClient.setAvatar(towards ? { towards } : { facing });
+        return { ok: true, content: describe(avatar), data: avatar };
+      }
+      if (action === "mood") {
+        const mood = str(args, "mood") as AvatarMood;
+        const { avatar } = await ForgeClient.setAvatar({ mood });
+        return { ok: true, content: describe(avatar), data: avatar };
       }
       return { ok: false, content: `Unknown action "${action}".` };
     },

@@ -27,3 +27,16 @@
 {"at":"2026-10-30T20:30:56.208Z","type":"job_rejected","jobId":"fj_mvvc5tlm_2b9ef0","reason":"one persistent avatar: the hood becomes a separate component, not a second full model"}
 {"at":"2026-10-30T20:30:58.181Z","type":"job_planned","jobId":"fj_mvvfg2o3_ebd9c0","kind":"multi-image-to-3d","estimatedCredits":30,"parentJobId":null}
 {"at":"2026-10-30T20:35:45.888Z","type":"job_planned","jobId":"fj_mvvfm8ny_806f57","kind":"image-to-image","estimatedCredits":9,"parentJobId":null}
+{"at":"2026-10-31T00:08:48.554Z","type":"job_submitted","jobId":"fj_mvvfg2o3_ebd9c0","meshyTaskId":"01a18f49-94d7-777f-8f60-d072189c001a","estimatedCredits":30}
+{"at":"2026-10-31T00:13:45.672Z","type":"job_succeeded","jobId":"fj_mvvfg2o3_ebd9c0","consumedCredits":30,"dir":"characters/lelu_character/meshes/v001_multi-image-to-3d_01a18f49","verdict":{"meshValid":true,"textured":true,"rigValid":false,"animated":false},"problems":[]}
+{"at":"2026-10-31T00:14:10.820Z","type":"slot_approved","slot":"base","jobId":"fj_mvvfg2o3_ebd9c0"}
+{"at":"2026-10-31T00:14:11.302Z","type":"job_planned","jobId":"fj_mvvnf4v9_1ded97","kind":"rigging","estimatedCredits":5,"parentJobId":"fj_mvvfg2o3_ebd9c0"}
+{"at":"2026-10-31T00:14:14.679Z","type":"job_submitted","jobId":"fj_mvvnf4v9_1ded97","meshyTaskId":"01a18f4e-8b2d-77fc-8179-76978df63364","estimatedCredits":5}
+{"at":"2026-10-31T00:14:52.916Z","type":"job_succeeded","jobId":"fj_mvvnf4v9_1ded97","consumedCredits":5,"dir":"characters/lelu_character/rig/v001_rigging_01a18f4e","verdict":{"meshValid":true,"textured":true,"rigValid":true,"animated":true},"problems":[]}
+{"at":"2026-10-31T00:14:59.172Z","type":"slot_approved","slot":"rig","jobId":"fj_mvvnf4v9_1ded97"}
+{"at":"2026-10-31T00:25:06.128Z","type":"slot_withdrawn","slot":"rig","jobId":"fj_mvvnf4v9_1ded97","reason":"user rejected: face lost in the 60k remesh"}
+{"at":"2026-10-31T00:25:06.652Z","type":"slot_withdrawn","slot":"base","jobId":"fj_mvvfg2o3_ebd9c0","reason":"user rejected: face lost in the 60k remesh"}
+{"at":"2026-10-31T00:25:42.383Z","type":"job_planned","jobId":"fj_mvvnty3x_546e78","kind":"multi-image-to-3d","estimatedCredits":30,"parentJobId":null}
+{"at":"2026-10-31T00:27:04.982Z","type":"job_rejected","jobId":"fj_mvvnty3x_546e78","reason":"superseded by the max-quality head request"}
+{"at":"2026-10-31T00:27:05.547Z","type":"job_planned","jobId":"fj_mvvnvqa1_b5672e","kind":"multi-image-to-3d","estimatedCredits":40,"parentJobId":null}
+{"at":"2026-10-31T00:27:13.255Z","type":"job_submitted","jobId":"fj_mvvnvqa1_b5672e","meshyTaskId":"01a18f5a-6d77-7666-95f2-bac070e036b9","estimatedCredits":40}

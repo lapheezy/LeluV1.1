@@ -1,0 +1,30 @@
+{
+  "character": "lelu_character",
+  "active": {},
+  "history": [
+    {
+      "slot": "base",
+      "jobId": null,
+      "replacedBy": "fj_mvvfg2o3_ebd9c0",
+      "at": 1793405650819
+    },
+    {
+      "slot": "rig",
+      "jobId": null,
+      "replacedBy": "fj_mvvnf4v9_1ded97",
+      "at": 1793405699171
+    },
+    {
+      "slot": "rig",
+      "jobId": "fj_mvvnf4v9_1ded97",
+      "replacedBy": "withdrawn",
+      "at": 1793406306127
+    },
+    {
+      "slot": "base",
+      "jobId": "fj_mvvfg2o3_ebd9c0",
+      "replacedBy": "withdrawn",
+      "at": 1793406306650
+    }
+  ]
+}

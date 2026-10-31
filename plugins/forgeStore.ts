@@ -46,7 +46,8 @@ export interface ForgeOutputFile {
 export interface ForgeJob {
   id: string;
   character: string;
-  kind: ForgeJobKind;
+  /** A Meshy task kind, or "blender" for a local post-process (spends nothing; see plugins/blenderStage.ts). */
+  kind: ForgeJobKind | "blender";
   purpose: string;
   /** The request as asked for, with `ref:` handles unresolved — what the key is computed from. */
   request: Record<string, unknown>;
@@ -105,6 +106,8 @@ export interface CosmosPlacement {
   primitive?: PrimitiveSpec | null;
   /** Simulated by the rigid-body physics (src/core/world/Physics.ts) when dynamic. */
   physics?: PhysicsSpec | null;
+  /** Furniture piece a part belongs to (e.g. "desk-1"), so a generated piece moves and goes as one. */
+  group?: string | null;
   createdAt: number;
 }
 
@@ -117,6 +120,8 @@ export interface PrimitiveSpec {
   roughness: number;
   emissive: string | null;
   opacity: number;
+  /** Size along x/y/z as a fraction of the placement height (default [1, 1, 1]); lets a desk top be flat. */
+  proportions?: [number, number, number];
 }
 
 export interface PhysicsSpec {
@@ -447,6 +452,18 @@ export class ForgeStore {
     manifest.active[slot] = jobId;
     writeJsonAtomic(this.manifestFile(character), manifest);
     this.logEvent(character, { type: "slot_approved", slot, jobId });
+    return manifest;
+  }
+
+  /** Take a job out of a slot (e.g. a model the user rejected after seeing it). The job and its files are kept. */
+  clearActive(character: string, slot: string, reason: string): CharacterManifest {
+    const manifest = this.manifest(character);
+    const jobId = manifest.active[slot];
+    if (!jobId) return manifest;
+    manifest.history.push({ slot, jobId, replacedBy: "withdrawn", at: Date.now() });
+    delete manifest.active[slot];
+    writeJsonAtomic(this.manifestFile(character), manifest);
+    this.logEvent(character, { type: "slot_withdrawn", slot, jobId, reason });
     return manifest;
   }
 }

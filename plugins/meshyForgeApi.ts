@@ -39,6 +39,11 @@
  *   POST /api/forge/world/objects/<id>/modify          { primitive?, physics?, environmentId? }
  *   POST /api/forge/world/settled                      { positions: {id: [x,y,z]} } — physics came to rest
  *   GET|POST /api/forge/world/improvements             the improvement log
+ *   POST /api/forge/world/generate                     { description, name?, kind?, items?, seed?, radius?,
+ *                                                        environmentId?, replace?, enter? } — furnished room
+ *   POST /api/forge/world/groups/<group>/remove        { environmentId? } — a whole generated piece
+ *   GET  /api/forge/world/avatar[/<character>]         ?environment= — where LÉLU stands, facing, mood
+ *   POST /api/forge/world/avatar[/<character>]         { position?, facing?, towards?, mood?, environmentId? }
  *
  * Writes refuse cross-origin callers: these routes spend
  * credits that belong to whoever runs the server.
@@ -231,9 +236,20 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
           if (method === "POST" && b && c === "restore") return sendJson(res, { ok: true, environment: world.restore(b, Number((await jsonBody(req)).version)) });
           if (method === "POST" && b && c === "promote") return sendJson(res, { ok: true, environment: world.promote(b, (await jsonBody(req)).approve === true) });
         }
+        if (method === "POST" && a === "generate") return sendJson(res, { ok: true, ...world.generateEnvironment(await jsonBody(req)) }, 201);
         if (a === "objects") {
           if (method === "POST" && !b) return sendJson(res, { ok: true, object: world.createObject(await jsonBody(req)) }, 201);
           if (method === "POST" && b && c === "modify") return sendJson(res, { ok: true, object: world.modifyObject(b, await jsonBody(req)) });
+        }
+        if (method === "POST" && a === "groups" && b && c === "remove") {
+          const body = await jsonBody(req);
+          const envId = typeof body.environmentId === "string" && body.environmentId ? body.environmentId : world.state().current;
+          return sendJson(res, { ok: true, removed: world.removeGroup(envId, b) });
+        }
+        if (a === "avatar") {
+          const character = b || "lelu_character";
+          if (method === "GET") return sendJson(res, { ok: true, avatar: world.avatar(character, query.get("environment") ?? undefined) });
+          if (method === "POST") return sendJson(res, { ok: true, avatar: world.setAvatar(character, await jsonBody(req)) });
         }
         if (method === "POST" && a === "settled") {
           const positions = ((await jsonBody(req)).positions ?? {}) as Record<string, unknown>;

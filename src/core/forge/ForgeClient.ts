@@ -16,7 +16,7 @@ import type { GlbReport } from "./GlbInspector";
 export interface ForgeJobView {
   id: string;
   character: string;
-  kind: ForgeJobKind;
+  kind: ForgeJobKind | "blender";
   purpose: string;
   status: string;
   progress: number;
@@ -64,9 +64,45 @@ export interface CosmosPlacement {
   slot?: string | null;
   worn?: boolean;
   environmentId?: string;
-  primitive?: { shape: "box" | "sphere" | "cylinder" | "cone" | "torus" | "plane"; color: string; metalness: number; roughness: number; emissive: string | null; opacity: number } | null;
+  primitive?: {
+    shape: "box" | "sphere" | "cylinder" | "cone" | "torus" | "plane";
+    color: string;
+    metalness: number;
+    roughness: number;
+    emissive: string | null;
+    opacity: number;
+    /** Size along x/y/z as a fraction of height (default [1, 1, 1]). */
+    proportions?: [number, number, number];
+  } | null;
   physics?: { dynamic: boolean; mass: number; restitution: number; friction: number; velocity?: [number, number, number] } | null;
+  /** Generated furniture piece the part belongs to (e.g. "desk-1"). */
+  group?: string | null;
   createdAt: number;
+}
+
+export type AvatarMood = "neutral" | "happy" | "focused" | "concerned" | "surprised" | "attentive";
+
+/** LÉLU's persistent place in the world: where she stands per environment, facing, resting mood. */
+export interface AvatarWorldState {
+  character: string;
+  environmentId: string;
+  position: [number, number, number];
+  facing: number;
+  mood: AvatarMood;
+  revision: number;
+  updatedAt: number;
+}
+
+export interface GeneratedRoom {
+  environment: WorldEnvironment;
+  plan: {
+    kind: string;
+    pieces: Array<{ group: string; type: string; position: [number, number]; rotationY: number }>;
+    skipped: string[];
+    seed: number;
+    settings: Partial<EnvironmentSettings>;
+  };
+  objects: CosmosPlacement[];
 }
 
 export interface EnvironmentSettings {
@@ -100,6 +136,8 @@ export interface WorldState {
   environments: Array<Pick<WorldEnvironment, "id" | "name" | "kind" | "sandbox" | "sandboxOf" | "version">>;
   objects: CosmosPlacement[];
   origin: { centre: [number, number]; floorY: number };
+  /** Absent from servers that predate persistent avatar state. */
+  avatar?: AvatarWorldState;
 }
 
 export interface LibraryAsset {
@@ -219,6 +257,38 @@ export const ForgeClient = {
 
   async modifyObject(id: string, patch: { primitive?: Partial<NonNullable<CosmosPlacement["primitive"]>>; physics?: Partial<NonNullable<CosmosPlacement["physics"]>> | null; environmentId?: string }) {
     const result = await call<{ object: CosmosPlacement }>(`/world/objects/${encodeURIComponent(id)}/modify`, { method: "POST", body: patch });
+    announce();
+    return result;
+  },
+
+  /** Furnish a new environment (or an existing one) from a description; spends nothing. */
+  async generateRoom(input: {
+    description: string;
+    name?: string;
+    kind?: string;
+    items?: Array<string | { type: string; count?: number }>;
+    seed?: number;
+    radius?: number;
+    environmentId?: string;
+    replace?: boolean;
+    enter?: boolean;
+  }) {
+    const result = await call<GeneratedRoom>("/world/generate", { method: "POST", body: input });
+    announce();
+    return result;
+  },
+
+  async removeGroup(group: string, environmentId?: string) {
+    const result = await call<{ removed: CosmosPlacement[] }>(`/world/groups/${encodeURIComponent(group)}/remove`, { method: "POST", body: { environmentId } });
+    announce();
+    return result;
+  },
+
+  avatar: (character = "lelu_character", environmentId?: string) =>
+    call<{ avatar: AvatarWorldState }>(`/world/avatar/${encodeURIComponent(character)}${environmentId ? `?environment=${encodeURIComponent(environmentId)}` : ""}`),
+
+  async setAvatar(patch: { position?: [number, number, number] | [number, number]; facing?: number; towards?: string; mood?: AvatarMood; environmentId?: string }, character = "lelu_character") {
+    const result = await call<{ avatar: AvatarWorldState }>(`/world/avatar/${encodeURIComponent(character)}`, { method: "POST", body: patch });
     announce();
     return result;
   },

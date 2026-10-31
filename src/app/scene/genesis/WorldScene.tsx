@@ -126,6 +126,8 @@ function WorldObject({
     void fn().finally(() => (busy.current = false));
   };
   const h = object.height;
+  // Generated furniture parts carry proportions so a desk top can be flat; older objects are cubic.
+  const [px, py, pz] = p.proportions ?? [1, 1, 1];
   return (
     <group
       ref={(g) => register(object.id, g)}
@@ -137,7 +139,7 @@ function WorldObject({
         onSelect(selected ? null : object.id);
       }}
     >
-      <mesh position={[0, p.shape === "plane" ? 0.02 * h : h / 2, 0]} scale={[h, h, h]} castShadow receiveShadow>
+      <mesh position={[0, p.shape === "plane" ? 0.02 * h * py : (h * py) / 2, 0]} scale={[h * px, h * py, h * pz]} castShadow receiveShadow>
         {shapeGeometry(p.shape)}
         <meshStandardMaterial
           color={p.color}
@@ -155,7 +157,7 @@ function WorldObject({
             <ringGeometry args={[h * 0.62, h * 0.7, 48]} />
             <meshBasicMaterial color="#ffffff" transparent opacity={0.8} toneMapped={false} />
           </mesh>
-          <Html center position={[0, h + 0.45, 0]} zIndexRange={[40, 0]}>
+          <Html center position={[0, h * py + 0.45, 0]} zIndexRange={[40, 0]}>
             <div className="lelu-world-toolbar" style={TOOLBAR}>
               <span style={{ padding: "0 6px", opacity: 0.85 }}>{object.label}</span>
               <button style={BTN} title="Rotate left" onClick={act(() => ForgeClient.updatePlacement(object.id, { rotationY: object.rotationY + STEP_ANGLE }))}>⟲</button>
@@ -173,7 +175,13 @@ function WorldObject({
               >
                 {object.physics?.dynamic ? "↗" : "⤓"}
               </button>
-              <button style={BTN} title="Remove" onClick={act(async () => (onSelect(null), ForgeClient.unplace(object.id)))}>✕</button>
+              <button
+                style={BTN}
+                title={object.group ? `Remove the whole ${object.group}` : "Remove"}
+                onClick={act(async () => (onSelect(null), object.group ? ForgeClient.removeGroup(object.group, object.environmentId) : ForgeClient.unplace(object.id)))}
+              >
+                ✕
+              </button>
             </div>
           </Html>
         </>

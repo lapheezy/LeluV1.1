@@ -14,6 +14,13 @@
  *   cosmos/history/<env>/…     a snapshot after every change —
  *                              any version can be restored
  *   cosmos/improvements.ndjson DISCOVER → … → REMEMBER log
+ *   cosmos/avatar.json         where LÉLU stands in each
+ *                              environment, which way she
+ *                              faces, and her resting mood
+ *
+ * Rooms can also be generated from a description
+ * (src/core/world/RoomGenerator.ts): kind, colours, lighting
+ * and furniture made of built-in shapes, as one version.
  *
  * "home" — LÉLU's circular room — always exists. Sandboxes are
  * copies of an environment to try changes in; promoting one
@@ -27,6 +34,7 @@ import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renam
 import path from "node:path";
 import type { CosmosPlacement, ForgeStore, PhysicsSpec, PrimitiveShape, PrimitiveSpec } from "./forgeStore.ts";
 import { ForgeError } from "./meshyForge.ts";
+import { generateRoom, type RoomRequest } from "../src/core/world/RoomGenerator.ts";
 
 export type EnvironmentKind = "room" | "lab" | "studio" | "garden" | "observatory" | "open";
 
@@ -72,6 +80,35 @@ export interface Improvement {
   passed: boolean | null;
   environmentId: string | null;
 }
+
+export const MOODS = ["neutral", "happy", "focused", "concerned", "surprised", "attentive"] as const;
+export type Mood = (typeof MOODS)[number];
+
+/** LÉLU's own persistent state in the world (her look and wearables live in the Forge manifest and placements). */
+export interface AvatarState {
+  character: string;
+  environmentId: string;
+  /** Where she stands in that environment: [x, floor y, z]. */
+  position: [number, number, number];
+  /** Rotation about Y in radians; 0 faces +z (towards the camera). */
+  facing: number;
+  /** Resting expression when she is not busy listening, thinking or speaking. */
+  mood: Mood;
+  revision: number;
+  updatedAt: number;
+}
+
+interface AvatarFile {
+  [character: string]: {
+    mood: Mood;
+    revision: number;
+    updatedAt: number;
+    spots: Record<string, { position: [number, number, number]; facing: number }>;
+  };
+}
+
+/** Where LÉLU stands until she is moved: in front of her room's centre, facing the camera. */
+export const LELU_SPOT = { position: [0, -2.55, 3.3] as [number, number, number], facing: 0 };
 
 /** Where LÉLU's room sits in the Gen V2 world: her floor (y −2.55), around her (x 0, z 3.3). */
 export const ROOM_ORIGIN = { centre: [0, 2.2] as [number, number], floorY: -2.55 };
@@ -162,6 +199,7 @@ export class WorldEngine {
       environments: world.environments.map(({ id, name, kind, sandbox, sandboxOf, version }) => ({ id, name, kind, sandbox, sandboxOf, version })),
       objects: this.objectsIn(current.id),
       origin: ROOM_ORIGIN,
+      avatar: this.avatar("lelu_character", current.id),
     };
   }
 
@@ -265,6 +303,9 @@ export class WorldEngine {
       roughness: clamp(v.roughness, base?.roughness ?? 0.5, 0, 1),
       emissive: typeof v.emissive === "string" && COLOR.test(v.emissive) ? v.emissive : v.emissive === null ? null : (base?.emissive ?? null),
       opacity: clamp(v.opacity, base?.opacity ?? 1, 0.05, 1),
+      ...(Array.isArray(v.proportions) || base?.proportions
+        ? { proportions: [0, 1, 2].map((i) => clamp((v.proportions as unknown[] | undefined)?.[i], base?.proportions?.[i] ?? 1, 0.005, 1)) as [number, number, number] }
+        : {}),
     };
   }
 
@@ -335,6 +376,163 @@ export class WorldEngine {
   /** Record that objects in an environment changed through another route (moves, removals, physics settling). */
   touched(envId: string | undefined, reason: string): void {
     this.snapshot(envId ?? "home", reason);
+  }
+
+  /* ---------------------------- generation ---------------------------- */
+
+  /**
+   * Build a furnished environment from a description (src/core/world/RoomGenerator.ts):
+   * a new environment with the description's kind, colours and lighting, and
+   * furniture made of built-in shapes, saved as one version so it can be
+   * restored or regenerated. With environmentId it furnishes that environment
+   * instead (replace: true clears its objects first). Spends nothing.
+   */
+  generateEnvironment(input: Partial<RoomRequest> & { environmentId?: unknown; replace?: unknown; enter?: unknown }) {
+    const description = typeof input.description === "string" ? input.description.trim() : "";
+    const items = Array.isArray(input.items) ? input.items : undefined;
+    if (!description && !items?.length) throw new ForgeError("Describe the room, or list the pieces to put in it.");
+    const into = typeof input.environmentId === "string" && input.environmentId ? this.environment(input.environmentId) : null;
+    const spot = this.avatar("lelu_character", into?.id ?? "home");
+    const plan = generateRoom(
+      {
+        description,
+        name: typeof input.name === "string" ? input.name : undefined,
+        kind: into?.kind ?? (typeof input.kind === "string" ? input.kind : undefined),
+        items,
+        seed: typeof input.seed === "number" && Number.isFinite(input.seed) ? input.seed : undefined,
+        radius: into?.settings.radius ?? (typeof input.radius === "number" ? input.radius : undefined),
+      },
+      { centre: ROOM_ORIGIN.centre, floorY: ROOM_ORIGIN.floorY, lelu: [spot.position[0], spot.position[2]] },
+    );
+    let env: Environment;
+    if (into) {
+      env = into;
+    } else {
+      const world = this.file();
+      const now = Date.now();
+      let id = plan.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 32) || plan.kind;
+      while (world.environments.some((e) => e.id === id)) id = `${id}-${createHash("sha1").update(String(Math.random())).digest("hex").slice(0, 3)}`;
+      env = {
+        id,
+        name: plan.name,
+        kind: plan.kind,
+        description: plan.description,
+        settings: this.settingsPatch({ ...BASE_SETTINGS, ...PRESETS[plan.kind] }, plan.settings),
+        sandbox: false,
+        sandboxOf: null,
+        version: 0,
+        createdAt: now,
+        updatedAt: now,
+      };
+      world.environments.push(env);
+      this.save(world);
+    }
+    const now = Date.now();
+    const objects: CosmosPlacement[] = plan.parts.map((part) => ({
+      id: this.newId(),
+      jobId: "",
+      character: "world",
+      label: part.label,
+      file: "",
+      position: part.position,
+      rotationY: part.rotationY,
+      height: part.height,
+      environmentId: env.id,
+      group: part.group,
+      primitive: this.primitiveSpec(part),
+      physics: null,
+      createdAt: now,
+    }));
+    const clearing = into && input.replace === true;
+    const keep = this.store.placements().filter((p) => !(clearing && !p.attach && (p.environmentId ?? "home") === env.id));
+    this.store.savePlacements([...keep, ...objects]);
+    this.snapshot(env.id, `generated ${plan.pieces.length} pieces from "${(description || plan.name).slice(0, 60)}"`);
+    if (input.enter !== false) this.enter(env.id);
+    return {
+      environment: this.environment(env.id),
+      plan: { kind: plan.kind, pieces: plan.pieces, skipped: plan.skipped, seed: plan.seed, settings: plan.settings },
+      objects,
+    };
+  }
+
+  /** Remove a whole generated piece (every part in its group). */
+  removeGroup(envId: string, group: string): CosmosPlacement[] {
+    const placements = this.store.placements();
+    const gone = placements.filter((p) => !p.attach && (p.environmentId ?? "home") === envId && p.group === group);
+    if (!gone.length) throw new ForgeError(`No piece "${group}" in ${envId}.`, 404);
+    this.store.savePlacements(placements.filter((p) => !gone.includes(p)));
+    this.snapshot(envId, `removed ${group}`);
+    return gone;
+  }
+
+  /* ------------------------------- avatar ------------------------------- */
+
+  private avatarFile(): AvatarFile {
+    const f = path.join(this.dir, "avatar.json");
+    return existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")) as AvatarFile) : {};
+  }
+
+  /** LÉLU's state in an environment (the current one by default): where she stands, facing, mood. */
+  avatar(character = "lelu_character", envId?: string): AvatarState {
+    const environmentId = envId ?? this.file().current;
+    const entry = this.avatarFile()[character];
+    const spot = entry?.spots[environmentId] ?? LELU_SPOT;
+    return {
+      character,
+      environmentId,
+      position: [...spot.position] as [number, number, number],
+      facing: spot.facing,
+      mood: entry?.mood ?? "neutral",
+      revision: entry?.revision ?? 0,
+      updatedAt: entry?.updatedAt ?? 0,
+    };
+  }
+
+  /**
+   * Move or turn LÉLU, or set her resting mood. She stays on the floor and
+   * inside the wall; "towards" turns her to an object (id or piece group) or
+   * to "user". Persists across reloads and devices; each environment
+   * remembers its own spot for her.
+   */
+  setAvatar(character: string, patch: { environmentId?: unknown; position?: unknown; facing?: unknown; mood?: unknown; towards?: unknown }): AvatarState {
+    const environmentId = typeof patch.environmentId === "string" && patch.environmentId ? patch.environmentId : this.file().current;
+    const env = this.environment(environmentId);
+    const all = this.avatarFile();
+    const entry = all[character] ?? { mood: "neutral" as Mood, revision: 0, updatedAt: 0, spots: {} };
+    const spot = { ...(entry.spots[environmentId] ?? LELU_SPOT) };
+    if (Array.isArray(patch.position)) {
+      const [cx, cz] = ROOM_ORIGIN.centre;
+      let x = clamp(patch.position[0], spot.position[0], -60, 60);
+      let z = clamp(patch.position[patch.position.length === 2 ? 1 : 2], spot.position[2], -60, 60);
+      const limit = env.settings.wallHeight > 0 ? env.settings.radius - 0.4 : 60;
+      const d = Math.hypot(x - cx, z - cz);
+      if (d > limit) {
+        x = cx + ((x - cx) / d) * limit;
+        z = cz + ((z - cz) / d) * limit;
+      }
+      spot.position = [x, ROOM_ORIGIN.floorY, z];
+    }
+    if (typeof patch.facing === "number" && Number.isFinite(patch.facing)) spot.facing = Math.atan2(Math.sin(patch.facing), Math.cos(patch.facing));
+    if (typeof patch.towards === "string" && patch.towards) {
+      let target: [number, number];
+      if (patch.towards === "user") target = [spot.position[0], spot.position[2] + 10];
+      else {
+        const hits = this.objectsIn(environmentId).filter((o) => o.id === patch.towards || o.group === patch.towards);
+        if (!hits.length) throw new ForgeError(`No object or piece "${patch.towards}" in ${environmentId}.`, 404);
+        target = [hits.reduce((s, o) => s + o.position[0], 0) / hits.length, hits.reduce((s, o) => s + o.position[2], 0) / hits.length];
+      }
+      spot.facing = Math.atan2(target[0] - spot.position[0], target[1] - spot.position[2]);
+    }
+    if (patch.mood !== undefined) {
+      if (!MOODS.includes(patch.mood as Mood)) throw new ForgeError(`mood must be one of ${MOODS.join(", ")}.`);
+      entry.mood = patch.mood as Mood;
+    }
+    entry.spots[environmentId] = spot;
+    entry.revision += 1;
+    entry.updatedAt = Date.now();
+    all[character] = entry;
+    writeJsonAtomic(path.join(this.dir, "avatar.json"), all);
+    return this.avatar(character, environmentId);
   }
 
   /* ------------------------------ versions ----------------------------- */

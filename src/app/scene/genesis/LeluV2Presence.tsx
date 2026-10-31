@@ -35,7 +35,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import AvatarStore from "../../../core/avatar/AvatarProfile";
 import AvatarCommandBus, { type AvatarCommand } from "../../../core/avatar/AvatarCommandBus";
 import Avatar3DReconstructor, { fingerprintOf } from "../../../core/avatar/Avatar3DReconstructor";
-import ForgeClient, { FORGE_CHANGED_EVENT } from "../../../core/forge/ForgeClient";
+import ForgeClient, { FORGE_CHANGED_EVENT, type AvatarMood, type AvatarWorldState } from "../../../core/forge/ForgeClient";
 import AgentEventBus, { type AgentEvent } from "../../../core/agent/AgentEvents";
 import ExecutiveRuntime from "../../../core/executive/ExecutiveRuntime";
 import { useGenesis } from "./GenesisCore";
@@ -554,12 +554,18 @@ function ReconstructedAvatarPresence({
   clips,
   activity,
   position,
+  mood,
+  facing,
 }: {
   glb: ArrayBuffer;
   /** Extra animation GLBs for the same rig (Forge animation slots), bound by bone name. */
   clips?: ArrayBuffer[];
   activity: LeluActivity;
   position?: THREE.Vector3;
+  /** Resting expression when her activity asks for none. */
+  mood?: AvatarMood;
+  /** Yaw she keeps while idle (she turns to the user while listening or speaking). */
+  facing?: number;
 }) {
   const pos = position ?? V2_LELU_POS;
   const { camera } = useThree();
@@ -675,7 +681,7 @@ function ReconstructedAvatarPresence({
     speechClock.current = t;
     const mode = behaviourModeFor(activity);
     behaviour.current?.update(
-      { mode, expression: expressionFor(activity), mouth: envelope.current.value(t, mode === "speaking", delta), lookAt: camera.position },
+      { mode, expression: expressionFor(activity) === "neutral" && mood ? mood : expressionFor(activity), mouth: envelope.current.value(t, mode === "speaking", delta), lookAt: camera.position },
       delta,
       t,
     );
@@ -689,7 +695,7 @@ function ReconstructedAvatarPresence({
     // Turn toward the user smoothly — she faces you without billboard tilt.
     const dx = camera.position.x - pos.x;
     const dz = camera.position.z - pos.z;
-    const targetYaw = Math.atan2(dx, dz);
+    const targetYaw = mode === "idle" && facing !== undefined && facing !== 0 ? facing : Math.atan2(dx, dz);
     let yawDelta = targetYaw - g.rotation.y;
     while (yawDelta > Math.PI) yawDelta -= Math.PI * 2;
     while (yawDelta < -Math.PI) yawDelta += Math.PI * 2;
@@ -788,7 +794,27 @@ function ReconstructedAvatarPresence({
 
 /* ------------------------------ the presence --------------------------- */
 
-export default function LeluV2Presence({ position }: { position?: THREE.Vector3 }) {
+export default function LeluV2Presence({ position: positionProp }: { position?: THREE.Vector3 }) {
+  // Where she stands, which way she faces when idle, and her resting mood, as
+  // persisted by the world engine (per environment; survives reloads and devices).
+  const [place, setPlace] = useState<AvatarWorldState | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      ForgeClient.world()
+        .then((w) => alive && setPlace(w.avatar ?? null))
+        .catch(() => {});
+    void load();
+    window.addEventListener(FORGE_CHANGED_EVENT, load);
+    return () => {
+      alive = false;
+      window.removeEventListener(FORGE_CHANGED_EVENT, load);
+    };
+  }, []);
+  const position = useMemo(
+    () => positionProp ?? (place ? new THREE.Vector3(place.position[0], place.position[1], place.position[2]) : undefined),
+    [positionProp, place],
+  );
   const pos = position ?? V2_LELU_POS;
   const [profile, setProfile] = useState(() => AvatarStore.getInstance().get());
   const activity = useLeluActivity();
@@ -880,7 +906,14 @@ export default function LeluV2Presence({ position }: { position?: THREE.Vector3 
 
       {forgeModel ? (
         /* LÉLU as approved in the 3D Forge — validated mesh or rig, with clips */
-        <ReconstructedAvatarPresence glb={forgeModel.glb} clips={forgeModel.clips} activity={activity} position={position} />
+        <ReconstructedAvatarPresence
+          glb={forgeModel.glb}
+          clips={forgeModel.clips}
+          activity={activity}
+          position={position}
+          mood={place?.mood}
+          facing={place?.facing}
+        />
       ) : referenceImage && reconGlb ? (
         /* TRUE 3D LÉLU — real mesh generated from the exact saved reference */
         <ReconstructedAvatarPresence glb={reconGlb} activity={activity} position={position} />
