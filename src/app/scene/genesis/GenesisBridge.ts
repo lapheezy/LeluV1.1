@@ -11,7 +11,7 @@
  */
 
 import { useEffect, useRef } from "react";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import AIService, {
   type AIActionEvent,
   type AIMessageEvent,
@@ -24,7 +24,7 @@ import { cleanAssistantText } from "../../../core/router/ToolMarkup";
 const ai = AIService.getInstance();
 
 export default function GenesisBridge() {
-  const { addAction, updateCognition, upsertMessage, setThinking, setSpeaking, setListening, notify } = useGenesis();
+  const { addAction, updateCognition, upsertMessage, setThinking, setSpeaking, setListening, notify } = useGenesisState();
 
   // Keep the LATEST context callbacks in a ref so the subscription
   // effect below can run exactly once (ai is a module-level singleton;

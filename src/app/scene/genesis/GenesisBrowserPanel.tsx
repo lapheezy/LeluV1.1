@@ -20,7 +20,7 @@
  */
 
 import { useCallback, useEffect, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from "react";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 import AIService from "../../../core/AIService";
 import BrowserTool from "../../../core/browser/BrowserTool";
@@ -68,7 +68,7 @@ function researchFromEvent(event: AgentEvent): LiveResearch | null {
 }
 
 export default function GenesisBrowserPanel({ onClose }: GenesisBrowserPanelProps) {
-  const { addMessage, notify } = useGenesis();
+  const { addMessage, notify } = useGenesisState();
   // Neko (m1k1o/neko) self-hosted virtual browser: when VITE_NEKO_URL is
   // configured the panel can switch the embedded surface to the LIVE Neko
   // web client — a real, rendered browser session (WebRTC), not an iframe

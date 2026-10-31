@@ -22,7 +22,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
-import { useGenesis, type GenesisPanel, type ModuleState } from "./GenesisCore";
+import { useGenesisState, type GenesisPanel, type ModuleState } from "./GenesisCore";
 import { MODULE_CATALOG } from "./GenesisDock";
 
 const STATUS_DOT: Record<string, string> = {
@@ -59,7 +59,7 @@ interface FloatingWindowProps {
  * in GenesisCore — the same actions LÉLU's structured tool calls use.
  */
 function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: FloatingWindowProps) {
-  const { moveModule, resizeModule, raiseModule, minimizeModule, expandModule, setModulePresentation, closeModule } = useGenesis();
+  const { moveModule, resizeModule, raiseModule, minimizeModule, expandModule, setModulePresentation, closeModule } = useGenesisState();
   const [viewport, setViewport] = useState(() => ({
     width: typeof window !== "undefined" ? window.visualViewport?.width ?? window.innerWidth : 1280,
     height: typeof window !== "undefined" ? window.visualViewport?.height ?? window.innerHeight : 800,
@@ -342,7 +342,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
 }
 
 export default function GenesisModuleHost({ renderers }: { renderers: ModuleRenderers }) {
-  const { state, expandModule } = useGenesis();
+  const { state, expandModule } = useGenesisState();
 
   if (state.minimized) return null;
 

@@ -24,7 +24,7 @@ import GenesisWindowFrame from "./GenesisWindowFrame";
 import AvatarStore, { type AvatarProfile } from "../../../core/avatar/AvatarProfile";
 import { LELU_IDENTITY_STATEMENT } from "../../../brain/LeluIdentity";
 import { useVoice } from "../../../core/voice/useVoice";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import ProceduralAvatarPreview from "./ProceduralAvatarPreview";
 import type { AvatarPresenceMode } from "../../../core/creative/Procedural3DPipeline";
 import { renderAvatarToImage } from "../../../core/creative/Procedural3DPipeline";
@@ -81,7 +81,7 @@ type SaveStatus = "saved" | "unsaved" | "saving" | "failed";
 export default function GenesisAvatarPanel({ onClose }: GenesisAvatarPanelProps) {
   const store = useMemo(() => AvatarStore.getInstance(), []);
   const voice = useVoice();
-  const { state } = useGenesis();
+  const { state } = useGenesisState();
   const renderStore = useMemo(() => RenderStore.getInstance(), []);
   const [profile, setProfile] = useState<AvatarProfile>(() => store.get());
   const profileRef = useRef(profile);

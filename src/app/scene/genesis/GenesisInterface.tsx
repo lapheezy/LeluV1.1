@@ -23,7 +23,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useGenesis, type GenesisPanel } from "./GenesisCore";
+import { useGenesis, useGenesisState, type GenesisPanel } from "./GenesisCore";
 import GenesisModuleHost, { type ModuleRenderers } from "./GenesisModuleHost";
 import UIStateStore from "../../../core/cognition/UIStateStore";
 import UIActionBus from "../../../core/cognition/UIActionBus";
@@ -32,7 +32,6 @@ import GenesisCommandPalette from "./GenesisCommandPalette";
 import { genesisTheme } from "./GenesisTheme";
 import GenesisChat from "./GenesisChat";
 import GenesisErrorBoundary from "./GenesisErrorBoundary";
-import MultiChatTabs from "./MultiChatTabs";
 import GenesisReasoningPanel from "./GenesisReasoningPanel";
 import GenesisDiagnosticsPanel from "./GenesisDiagnosticsPanel";
 import GenesisExecutivePanel from "./GenesisExecutivePanel";
@@ -179,7 +178,7 @@ function GenesisFullscreenButton() {
  *  "Genesis · Live" status card, so the v1 environment keeps its
  *  collapse behavior without anything floating over the interface. */
 function GenesisMinimizeButton() {
-  const { minimize } = useGenesis();
+  const { minimize } = useGenesisState();
   return (
     <button
       type="button"
@@ -220,6 +219,61 @@ function GenesisMinimizeButton() {
   );
 }
 
+/** The "Genesis ＋" expand chip shown while minimized. It is the only
+ *  piece of the interface that animates with the universe pulse, so it
+ *  alone subscribes to the universe tick (useGenesis); the rest of the
+ *  interface uses the state-only context and is not re-rendered 10×/s. */
+function GenesisExpandChip({ onExpand }: { onExpand: () => void }) {
+  const { universe } = useGenesis();
+  const evolutionColor =
+    universe.evolutionSystem.colorShift > 0.72
+      ? "#fbbf24"
+      : universe.evolutionSystem.colorShift > 0.42
+        ? "#a78bfa"
+        : "#67e8f9";
+  const pulse = universe.pulse.heartbeat;
+  const interfaceActivity = Math.max(
+    0.12,
+    Math.min(1, pulse * 0.45 + universe.evolutionSystem.emergence * 0.35 + universe.awareness * 0.2),
+  );
+  return (
+    <button
+      type="button"
+      onClick={onExpand}
+      title="Expand Genesis"
+      aria-label="Expand Genesis"
+      style={{
+        pointerEvents: "auto",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 8,
+        background: `rgba(8, 16, 38, ${0.72 + interfaceActivity * 0.12})`,
+        border: `1px solid ${evolutionColor}${Math.round((0.24 + interfaceActivity * 0.32) * 255).toString(16).padStart(2, "0")}`,
+        borderRadius: genesisTheme.radius.pill,
+        padding: "8px 14px",
+        color: "white",
+        backdropFilter: genesisTheme.glass.blurSoft,
+        cursor: "pointer",
+        boxShadow: genesisTheme.elevation.chrome.boxShadow,
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: 999,
+          background: evolutionColor,
+          boxShadow: `0 0 ${6 + pulse * 8}px ${evolutionColor}`,
+          transform: `scale(${0.8 + pulse * 0.45})`,
+        }}
+      />
+      <strong style={{ fontSize: 12 }}>Genesis</strong>
+      <span style={{ opacity: 0.6, fontSize: 11 }}>＋</span>
+    </button>
+  );
+}
+
 /* Singleton guard — exactly ONE canonical LÉLU interface (chat + dock +
    modules) may be mounted. A second mount is a duplicate-system bug.
    StrictMode's mount→unmount→mount dev cycle keeps the count at 1. */
@@ -240,7 +294,6 @@ export default function GenesisInterface() {
   const dockRailLeft = useDockRailLeft();
   const {
     state,
-    universe,
     engineRuntime,
     openPanel,
     openModule,
@@ -249,7 +302,7 @@ export default function GenesisInterface() {
     expand,
     setSelfExploration,
     setActiveScene,
-  } = useGenesis();
+  } = useGenesisState();
   const voice = useVoice();
 
   useEffect(() => {
@@ -422,7 +475,7 @@ export default function GenesisInterface() {
 
     presence.connect({
       openPanel: (panel) => {
-        if (state.activePanel !== panel) {
+        if (activePanelRef.current !== panel) {
           openPanel(panel as GenesisPanel);
         }
         // Register as cosmos entity so LELU can visit it
@@ -460,7 +513,11 @@ export default function GenesisInterface() {
       AvatarPresenceBridge.getInstance().stop();
       clearInterval(cleanupInterval);
     };
-  }, [openPanel, state.activePanel]);
+    // Runs once per mount: openPanel is identity-stable and the live panel
+    // is read through activePanelRef. Depending on state.activePanel here
+    // stopped and restarted the presence engine and the avatar presence
+    // bridge on every panel change.
+  }, [openPanel]);
 
   // Sync self-exploration toggle to presence engine
   useEffect(() => {
@@ -536,17 +593,10 @@ export default function GenesisInterface() {
   const visualFocus = visualState.interfaceFocus;
   const systemEnvironmentActive = visualFocus === "visual";
 
-  const evolutionColor =
-    universe.evolutionSystem.colorShift > 0.72
-      ? "#fbbf24"
-      : universe.evolutionSystem.colorShift > 0.42
-        ? "#a78bfa"
-        : "#67e8f9";
-  const pulse = universe.pulse.heartbeat;
-  const interfaceActivity = Math.max(
-    0.12,
-    Math.min(1, pulse * 0.45 + universe.evolutionSystem.emergence * 0.35 + universe.awareness * 0.2),
-  );
+  /* On phones the chat is full-screen with its own title bar (☰ opens the
+     LÉLU menu, ✕ closes). The global minimize / palette / fullscreen row
+     sat on top of that title bar and hid its controls. */
+  const phoneChatOpen = !dockRailLeft && !state.minimized && state.activePanel === "chat";
 
   function handleExitChat() {
     openPanel("none");
@@ -644,46 +694,11 @@ export default function GenesisInterface() {
               zIndex: 24,
             }}
           >
-            {state.minimized ? (
-              <button
-                type="button"
-                onClick={expand}
-                title="Expand Genesis"
-                aria-label="Expand Genesis"
-                style={{
-                  pointerEvents: "auto",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  background: `rgba(8, 16, 38, ${0.72 + interfaceActivity * 0.12})`,
-                  border: `1px solid ${evolutionColor}${Math.round((0.24 + interfaceActivity * 0.32) * 255).toString(16).padStart(2, "0")}`,
-                  borderRadius: genesisTheme.radius.pill,
-                  padding: "8px 14px",
-                  color: "white",
-                  backdropFilter: genesisTheme.glass.blurSoft,
-                  cursor: "pointer",
-                  boxShadow: genesisTheme.elevation.chrome.boxShadow,
-                }}
-              >
-                <span
-                  aria-hidden
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: 999,
-                    background: evolutionColor,
-                    boxShadow: `0 0 ${6 + pulse * 8}px ${evolutionColor}`,
-                    transform: `scale(${0.8 + pulse * 0.45})`,
-                  }}
-                />
-                <strong style={{ fontSize: 12 }}>Genesis</strong>
-                <span style={{ opacity: 0.6, fontSize: 11 }}>＋</span>
-              </button>
-            ) : null}
+            {state.minimized ? <GenesisExpandChip onExpand={expand} /> : null}
 
             {/* The System environment owns its top navigation bar, so the
                 global top-right controls stay in the v1/v2 scenes only. */}
-            {systemEnvironmentActive ? null : (
+            {systemEnvironmentActive || phoneChatOpen ? null : (
               <div style={{ pointerEvents: "auto", display: "flex", gap: 8, alignItems: "center" }}>
                 {state.minimized ? null : <GenesisMinimizeButton />}
                 <GenesisCommandPalette />
@@ -693,10 +708,9 @@ export default function GenesisInterface() {
           </div>
         </div>
 
-      {/* Multi-Chat tab bar — visible while the dialogue surface is open so
-          the user can switch between isolated conversations without losing
-          state. It floats above the dialogue overlay (higher z-index). */}
-      {state.minimized ? null : state.activePanel === "chat" ? <MultiChatTabs /> : null}
+      {/* The Multi-Chat tab bar is rendered INSIDE GenesisChat (below its
+          title bar), so it moves and resizes with the chat window and never
+          covers the messages. */}
 
       {/* Explorer cards — autonomous LÉLU discoveries as small floating cards */}
 
