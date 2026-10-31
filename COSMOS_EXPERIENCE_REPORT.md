@@ -129,3 +129,10 @@ The older `tests/genesis-interface.test.tsx` still fails with that flag. The
 cause is not the JSX runtime: `GenesisDock.tsx:580` reads Vite's
 `import.meta.env.BASE_URL`, which is undefined under Node. That failure existed
 before this work and is left as it was.
+
+Whole suite on this branch, per file with a 90 s cap
+(`for f in tests/*.test.ts; do timeout 90 npx tsx --test "$f"; done`, output to
+files): **252 assertions passing, 0 failing across 32 files.** The same 13 files
+listed in `tests/README.md` did not finish within 90 s and are unmeasured. On
+top of that, the 12 new tests in `cosmos-chat-experience.test.tsx` pass. The
+production build (`vite build`) succeeds and `tsc -b` is clean.
