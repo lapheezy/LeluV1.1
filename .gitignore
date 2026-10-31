@@ -48,3 +48,6 @@ leluverse/assets/characters/lelu_character/meshes/v001_multi-image-to-3d_01a18f4
 leluverse/assets/characters/lelu_character/meshes/v001_multi-image-to-3d_01a18f49/texture_*
 leluverse/assets/characters/lelu_character/rig/v001_rigging_01a18f4e/*.glb
 leluverse/assets/characters/lelu_character/rig/v001_rigging_01a18f4e/*.fbx
+
+# MediaPipe segmentation models are downloaded on demand (URLs in scripts/blender/lelu_hairclean.py)
+scripts/blender/models/*.tflite
