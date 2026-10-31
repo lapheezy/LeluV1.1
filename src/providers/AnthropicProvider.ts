@@ -210,14 +210,6 @@ export default class AnthropicProvider implements AIProvider {
   } {
     const history = [...contextMessages(request), ...(request.messages ?? [])];
 
-    // The Messages API rejects tool_use / tool_result blocks in a request
-    // that defines no tools. The router's tool loop withholds tools on its
-    // closing round to force a final answer — over a history that is full
-    // of tool exchanges — so that round was a guaranteed 400 and the
-    // finished work fell through to another provider. With no tools on
-    // the table the exchange is replayed as plain text instead: the model
-    // still sees every call and every result.
-    const toolsOffered = (request.tools?.length ?? 0) > 0;
 
     const systemParts = [LELU_SYSTEM_PROMPT];
     const turns: Array<{ role: "user" | "assistant"; content: string | Array<Record<string, unknown>> }> = [];
@@ -231,14 +223,6 @@ export default class AnthropicProvider implements AIProvider {
       // A tool RESULT is a user turn carrying a tool_result block —
       // that is the Messages API's shape, not a role of its own.
       if (message.role === "tool") {
-        if (!toolsOffered) {
-          const label = message.toolName ? `Result of ${message.toolName}` : "Tool result";
-          turns.push({
-            role: "user",
-            content: `[${label}${message.toolError ? " — FAILED" : ""}]\n${message.content}`,
-          });
-          continue;
-        }
         turns.push({
           role: "user",
           content: [
@@ -259,21 +243,12 @@ export default class AnthropicProvider implements AIProvider {
       // tool_use/tool_result pairing the API requires, and the next call
       // is rejected rather than continuing the exchange.
       if (message.role === "assistant" && message.toolCalls?.length) {
-        if (!toolsOffered) {
-          const calls = message.toolCalls
-            .map((call) => `[Called ${call.name} ${JSON.stringify(call.arguments ?? {})}]`)
-            .join("\n");
-          turns.push({
-            role: "assistant",
-            content: message.content.trim() ? `${message.content}\n${calls}` : calls,
-          });
-          continue;
-        }
-
         // Our own earlier turn, handed back exactly as the API returned
         // it. Current models put thinking blocks before tool_use; rebuilt
         // from text + toolCalls they would be lost, and the model would
         // continue the loop without the reasoning that chose the call.
+        // Replayed the same way when the closing round withholds tools:
+        // history is sent back unchanged, never rewritten.
         if (message.providerBlocks?.provider === "anthropic" && message.providerBlocks.blocks.length) {
           turns.push({ role: "assistant", content: message.providerBlocks.blocks });
           continue;

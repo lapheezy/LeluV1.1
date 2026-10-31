@@ -50,8 +50,11 @@ function freshAgent(): AnthropicEngineeringAgent {
 }
 
 test("a missing credential is reported as did-not-start, never as a failed run", async () => {
-  const saved = process.env.ANTHROPIC_API_KEY;
-  delete process.env.ANTHROPIC_API_KEY;
+  // Every name the agent reads a key from — clearing only one let a key
+  // under another name (LELU_ANTHROPIC_API_KEY) make the run "available".
+  const names = ["ANTHROPIC_API_KEY", "LELU_ANTHROPIC_API_KEY", "CLAUDE_API_KEY"];
+  const saved = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  for (const name of names) delete process.env[name];
   try {
     const result = await freshAgent().execute({
       objective: "x", repository: "https://github.com/o/r", baseCommit: "abc123",
@@ -64,7 +67,9 @@ test("a missing credential is reported as did-not-start, never as a failed run",
     assert.deepEqual(result.filesChanged, []);
     assert.equal(result.diff, null);
   } finally {
-    if (saved !== undefined) process.env.ANTHROPIC_API_KEY = saved;
+    for (const [name, value] of Object.entries(saved)) {
+      if (value !== undefined) process.env[name] = value;
+    }
   }
 });
 
