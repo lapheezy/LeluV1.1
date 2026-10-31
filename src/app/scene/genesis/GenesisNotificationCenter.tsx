@@ -21,14 +21,14 @@
 
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 
 const AUTO_DISMISS_MS = 6000;
 const MAX_VISIBLE = 4;
 
 export default function GenesisNotificationCenter() {
-  const { state, dismissNotification } = useGenesis();
+  const { state, dismissNotification } = useGenesisState();
 
   const visible = state.notifications.slice(-MAX_VISIBLE);
 
@@ -36,7 +36,9 @@ export default function GenesisNotificationCenter() {
     <div
       style={{
         position: "absolute",
-        top: 16,
+        /* Below the top-right controls (palette / fullscreen / OG tabs),
+           which toasts at top:16 used to cover. */
+        top: "calc(env(safe-area-inset-top, 0px) + 124px)",
         right: 16,
         display: "flex",
         flexDirection: "column",
