@@ -115,6 +115,26 @@ export function createAvatarBehaviour(root: THREE.Object3D, random: () => number
   }
   const spine = bones.get("Spine02") ?? bones.get("Spine01") ?? bones.get("Spine");
 
+  // Arms. A rig straight from auto-rigging rests in a T/A pose and its only
+  // clip is often that base layer, so without this she stands with her arms
+  // held out. The relaxed pose is computed from where each upper arm actually
+  // points this frame (whatever the clip wrote), turning it toward hanging at
+  // her side — so it works on any humanoid rig and never accumulates.
+  const arms: Array<{ side: 1 | -1; arm: BoneBinding; fore: THREE.Object3D }> = [];
+  for (const [side, armName, foreName] of [[1, "LeftArm", "LeftForeArm"], [-1, "RightArm", "RightForeArm"]] as const) {
+    const arm = findBone(root, armName);
+    const fore = findBone(root, foreName);
+    if (arm && fore) arms.push({ side, arm: { bone: arm, rest: arm.quaternion.clone(), written: new THREE.Quaternion(NaN, NaN, NaN, NaN) }, fore });
+  }
+  const armFrom = new THREE.Vector3();
+  const armTo = new THREE.Vector3();
+  const armDir = new THREE.Vector3();
+  const armWant = new THREE.Vector3();
+  const rootQuat = new THREE.Quaternion();
+  const turn = new THREE.Quaternion();
+  const boneWorld = new THREE.Quaternion();
+  const identity = new THREE.Quaternion();
+
   const weights = new Map<Control, number>();
   let nextBlink = 1 + random() * 3;
   let blinkStart = -1;
@@ -138,7 +158,7 @@ export function createAvatarBehaviour(root: THREE.Object3D, random: () => number
   };
 
   return {
-    capabilities: { face: [...morphs.keys()], bones: [...bones.keys()] },
+    capabilities: { face: [...morphs.keys()], bones: [...bones.keys(), ...arms.map((a) => a.arm.bone.name)] },
 
     update(input, delta, time) {
       // Blink every 2–6 s, 150 ms; never while the eyes are already closing.
@@ -189,6 +209,33 @@ export function createAvatarBehaviour(root: THREE.Object3D, random: () => number
       applyBone(bones.get("Neck"), gaze.pitch * 0.3, gaze.yaw * 0.3, 0);
       const lean = input.mode === "listening" ? 0.06 : speaking ? 0.02 : 0;
       applyBone(spine, lean + Math.sin(time * 1.6) * 0.012, speaking ? Math.sin(time * 0.6) * 0.03 : 0, 0);
+
+      // Arms hang relaxed at her sides, with a little breathing sway and a
+      // touch more movement while she talks.
+      if (arms.length) {
+        root.getWorldQuaternion(rootQuat);
+        for (const { side, arm, fore } of arms) {
+          const bone = arm.bone;
+          if (bone.quaternion.equals(arm.written)) bone.quaternion.copy(arm.rest);
+          bone.updateWorldMatrix(true, true);
+          bone.getWorldPosition(armFrom);
+          fore.getWorldPosition(armTo);
+          armDir.copy(armTo).sub(armFrom);
+          if (armDir.lengthSq() < 1e-10) continue;
+          armDir.normalize();
+          const sway = Math.sin(time * 1.1 + side) * 0.02 + (speaking ? Math.sin(time * 1.7 + side * 2) * 0.05 : 0);
+          // In her own frame: down, slightly out from the body, slightly forward.
+          armWant.set(side * 0.2, -1, 0.1 + sway).normalize().applyQuaternion(rootQuat);
+          turn.setFromUnitVectors(armDir, armWant);
+          turn.slerp(identity, 0.08); // not perfectly plumb — a resting arm
+          // World-space turn → the bone's local rotation.
+          bone.getWorldQuaternion(boneWorld);
+          boneWorld.premultiply(turn);
+          bone.parent?.getWorldQuaternion(parentQuat);
+          bone.quaternion.copy(parentQuat.invert().multiply(boneWorld));
+          arm.written.copy(bone.quaternion);
+        }
+      }
     },
   };
 }

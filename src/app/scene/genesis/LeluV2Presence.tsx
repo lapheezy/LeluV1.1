@@ -31,150 +31,21 @@ import { useEffect, useMemo, useRef, useState, type MutableRefObject } from "rea
 import { useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import AvatarStore from "../../../core/avatar/AvatarProfile";
 import AvatarCommandBus, { type AvatarCommand } from "../../../core/avatar/AvatarCommandBus";
 import Avatar3DReconstructor, { fingerprintOf } from "../../../core/avatar/Avatar3DReconstructor";
 import ForgeClient, { FORGE_CHANGED_EVENT, type AvatarMood, type AvatarWorldState } from "../../../core/forge/ForgeClient";
-import AgentEventBus, { type AgentEvent } from "../../../core/agent/AgentEvents";
+import AgentEventBus from "../../../core/agent/AgentEvents";
+import LeluModelSource, { type LeluModel } from "../../../core/avatar/LeluModelSource";
+import { ACTIVITY_ACCENT, modeForActivity, useLeluActivity, type LeluActivity } from "./avatar/leluActivity";
+import LeluBody, { behaviourModeFor } from "./avatar/LeluBody";
 import ExecutiveRuntime from "../../../core/executive/ExecutiveRuntime";
-import { useGenesis } from "./GenesisCore";
 import {
   buildAvatarModel,
   tickAvatar,
-  type AvatarPresenceMode,
   type AvatarParts,
 } from "../../../core/creative/Procedural3DPipeline";
 import { V2_LELU_POS } from "./GenesisV2CameraRig";
-import {
-  createAvatarBehaviour,
-  SpeechEnvelope,
-  SPEECH_BOUNDARY_EVENT,
-  type AvatarBehaviour,
-  type BehaviourMode,
-  type Expression,
-} from "../../../core/avatar/AvatarBehaviour";
-
-/* ------------------------ activity → presence ------------------------- */
-
-export type LeluActivity =
-  | "IDLE"
-  | "LISTENING"
-  | "THINKING"
-  | "SPEAKING"
-  | "PRESENTING"
-  | "SEARCHING"
-  | "BROWSING"
-  | "WORKING"
-  | "BUILDING"
-  | "RENDERING"
-  | "EXPLORING"
-  | "COMPLETED"
-  | "ERROR";
-
-const ACTIVITY_ACCENT: Record<LeluActivity, string> = {
-  IDLE: "#4ade80",
-  LISTENING: "#38bdf8",
-  THINKING: "#a78bfa",
-  SPEAKING: "#f0abfc",
-  PRESENTING: "#c4b5fd",
-  SEARCHING: "#22d3ee",
-  BROWSING: "#7dd3fc",
-  WORKING: "#fbbf24",
-  BUILDING: "#fb923c",
-  RENDERING: "#e879f9",
-  EXPLORING: "#34d399",
-  COMPLETED: "#4ade80",
-  ERROR: "#f87171",
-};
-
-function modeForActivity(activity: LeluActivity): AvatarPresenceMode {
-  switch (activity) {
-    case "LISTENING":
-      return "listening";
-    case "PRESENTING":
-      return "speaking";
-    case "THINKING":
-    case "SEARCHING":
-    case "BROWSING":
-    case "WORKING":
-    case "BUILDING":
-    case "RENDERING":
-    case "EXPLORING":
-      return "thinking";
-    case "SPEAKING":
-      return "speaking";
-    default:
-      return "idle";
-  }
-}
-
-function activityFromAgentEvent(event: AgentEvent): LeluActivity | null {
-  switch (event.type) {
-    case "tool_started":
-      if (event.tool === "creative") {
-        const label = (event.label ?? "").toLowerCase();
-        if (label.includes("3d") || label.includes("render")) return "RENDERING";
-        if (label.includes("video")) return "EXPLORING";
-        return "BUILDING";
-      }
-      if (event.tool === "avatar") return "PRESENTING";
-      if (event.tool === "research") return "SEARCHING";
-      if (event.tool === "engineering" || event.tool === "sandbox") return "WORKING";
-      if (event.tool === "browser") return "BROWSING";
-      return "WORKING";
-    case "browser_opened":
-      return "BROWSING";
-    case "tool_progress":
-      return "WORKING";
-    case "task_completed":
-      return "COMPLETED";
-    case "task_failed":
-      return "ERROR";
-    default:
-      return null;
-  }
-}
-
-/** Reads the REAL agent event bus and derives LÉLU's current activity. */
-export function useLeluActivity(): LeluActivity {
-  const genesis = useGenesis();
-  const [activity, setActivity] = useState<LeluActivity>("IDLE");
-
-  useEffect(() => {
-    const unsub = AgentEventBus.getInstance().subscribe((event) => {
-      const next = activityFromAgentEvent(event);
-      if (next) setActivity(next);
-    });
-    return unsub;
-  }, []);
-
-  // Conversation state is the ground truth when no tool is running —
-  // the avatar listens, thinks and speaks with LÉLU's real dialogue.
-  useEffect(() => {
-    if (activity === "COMPLETED" || activity === "ERROR") return;
-    const g = genesis.state;
-    if (g.speaking || g.dialogue === "responding" || g.dialogue === "complete") {
-      setActivity("SPEAKING");
-    } else if (g.thinking || g.dialogue === "processing") {
-      setActivity("THINKING");
-    } else if (g.listening || g.dialogue === "listening") {
-      setActivity("LISTENING");
-    } else if (activity !== "SEARCHING" && activity !== "WORKING" && activity !== "BROWSING" && activity !== "RENDERING" && activity !== "PRESENTING") {
-      setActivity("IDLE");
-    }
-  }, [genesis.state.thinking, genesis.state.speaking, genesis.state.listening, genesis.state.dialogue, activity]);
-
-  // A completed/error state is a beat, not a stuck state — settle back
-  // to idle after a few seconds so the presence never freezes.
-  useEffect(() => {
-    if (activity !== "COMPLETED" && activity !== "ERROR") return;
-    const timer = setTimeout(() => setActivity("IDLE"), 4200);
-    return () => clearTimeout(timer);
-  }, [activity]);
-
-  return activity;
-}
 
 /* --------------------- executive avatar commands ---------------------- */
 
@@ -496,7 +367,6 @@ function ProceduralPresence({
 /* ----------------------- reconstructed true-3D avatar ------------------ */
 
 const RECON_TARGET_HEIGHT = 2.56; // matches the saved-image presence height
-const FORGE_CHARACTER = "lelu_character";
 
 /**
  * The TRUE 3D LÉLU — a real textured mesh produced by the external
@@ -509,46 +379,6 @@ const FORGE_CHARACTER = "lelu_character";
  *   - confirms only with measured deltas,
  *   - reports live render telemetry to the Executive Runtime.
  */
-function behaviourModeFor(activity: LeluActivity): BehaviourMode {
-  switch (activity) {
-    case "SPEAKING":
-    case "PRESENTING":
-      return "speaking";
-    case "LISTENING":
-      return "listening";
-    case "THINKING":
-    case "SEARCHING":
-      return "thinking";
-    case "IDLE":
-    case "COMPLETED":
-    case "ERROR":
-      return "idle";
-    default:
-      return "acting";
-  }
-}
-
-function expressionFor(activity: LeluActivity): Expression {
-  switch (activity) {
-    case "COMPLETED":
-      return "happy";
-    case "ERROR":
-      return "concerned";
-    case "THINKING":
-    case "SEARCHING":
-    case "WORKING":
-    case "BUILDING":
-      return "focused";
-    case "LISTENING":
-      return "attentive";
-    case "SPEAKING":
-    case "PRESENTING":
-      return "happy";
-    default:
-      return "neutral";
-  }
-}
-
 function ReconstructedAvatarPresence({
   glb,
   clips,
@@ -570,123 +400,18 @@ function ReconstructedAvatarPresence({
   const pos = position ?? V2_LELU_POS;
   const { camera } = useThree();
   const group = useRef<THREE.Group>(null);
-  const [model, setModel] = useState<THREE.Group | null>(null);
+  const [ready, setReady] = useState(false);
   const telemetry = useRef({ lastReport: 0, lastY: 0 });
   const cmdRun = useRef<CommandRunState | null>(null);
   const cmdDone = useRef<string | null>(null);
-  const mixer = useRef<THREE.AnimationMixer | null>(null);
-  const behaviour = useRef<AvatarBehaviour | null>(null);
-  const envelope = useRef(new SpeechEnvelope());
-  const speechClock = useRef(0);
 
-  // Each word LÉLU speaks opens the mouth / drives a nod.
-  useEffect(() => {
-    const onWord = (e: Event) => envelope.current.word(speechClock.current, (e as CustomEvent<{ charLength?: number }>).detail?.charLength ?? 4);
-    window.addEventListener(SPEECH_BOUNDARY_EVENT, onWord);
-    return () => window.removeEventListener(SPEECH_BOUNDARY_EVENT, onWord);
-  }, []);
-
-  // Parse once per stored GLB. The bytes come from IndexedDB or the Forge asset store.
-  useEffect(() => {
-    let disposed = false;
-    try {
-      new GLTFLoader().parse(
-        glb,
-        "",
-        (gltf) => {
-          if (disposed) return;
-          // Holder keeps normalization offsets separate from the <primitive>
-          // position prop (which would otherwise clobber them).
-          const holder = new THREE.Group();
-          const scene = gltf.scene;
-          holder.add(scene);
-          // Normalize: uniform scale to presence height, feet at holder origin.
-          const box = new THREE.Box3().setFromObject(scene);
-          const size = new THREE.Vector3();
-          box.getSize(size);
-          if (!isFinite(size.y) || size.y <= 0) {
-            // Honest failure — surfaced on the agent stream; the presence
-            // falls back upstream instead of showing a broken model.
-            AgentEventBus.getInstance().emit({
-              type: "tool_failed",
-              taskId: `avatar-3d-load-${Date.now()}`,
-              tool: "avatar-reconstruction",
-              error: "Reconstructed model has an invalid bounding box.",
-            });
-            return;
-          }
-          scene.scale.setScalar(RECON_TARGET_HEIGHT / size.y);
-          const norm = new THREE.Box3().setFromObject(scene);
-          const center = new THREE.Vector3();
-          norm.getCenter(center);
-          scene.position.x -= center.x;
-          scene.position.z -= center.z;
-          scene.position.y -= norm.min.y;
-          behaviour.current = createAvatarBehaviour(scene);
-          console.info("[Lélu Presence] avatar controls", behaviour.current.capabilities);
-          setModel(holder);
-
-          // A rigged model plays its own clips and any slot clips made for the
-          // same rig. Idle is preferred; without one, the first clip loops.
-          void Promise.all(
-            (clips ?? []).map((bytes) =>
-              new GLTFLoader().parseAsync(bytes, "").then((g) => g.animations).catch(() => [] as THREE.AnimationClip[]),
-            ),
-          ).then((extra) => {
-            if (disposed) return;
-            const all = [...gltf.animations, ...extra.flat()];
-            if (all.length === 0) return;
-            const m = new THREE.AnimationMixer(scene);
-            const clip = all.find((c) => /idle|breath/i.test(c.name)) ?? all[0];
-            m.clipAction(clip).play();
-            mixer.current = m;
-          });
-        },
-        (err) => {
-          if (disposed) return;
-          const message = err instanceof Error ? err.message : String(err);
-          console.error("[Lélu Presence] reconstructed GLB failed to load", err);
-          AgentEventBus.getInstance().emit({
-            type: "tool_failed",
-            taskId: `avatar-3d-load-${Date.now()}`,
-            tool: "avatar-reconstruction",
-            error: `Reconstructed model failed to load: ${message}`,
-          });
-        },
-      );
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error("[Lélu Presence] reconstructed GLB parse threw", error);
-      AgentEventBus.getInstance().emit({
-        type: "tool_failed",
-        taskId: `avatar-3d-load-${Date.now()}`,
-        tool: "avatar-reconstruction",
-        error: `Reconstructed model failed to load: ${message}`,
-      });
-    }
-    return () => {
-      disposed = true;
-      mixer.current?.stopAllAction();
-      mixer.current = null;
-    };
-  }, [glb, clips]);
-
+  // World placement on top of her body: float, turn to the person, commands.
   useFrame(({ clock }, delta) => {
     const g = group.current;
-    if (!g || !model) return;
+    if (!g || !ready) return;
     const t = clock.getElapsedTime();
-    mixer.current?.update(delta);
-
-    // Face, gaze and body language on top of the clip, from her real activity and speech.
-    speechClock.current = t;
     const mode = behaviourModeFor(activity);
-    behaviour.current?.update(
-      { mode, expression: expressionFor(activity) === "neutral" && mood ? mood : expressionFor(activity), mouth: envelope.current.value(t, mode === "speaking", delta), lookAt: camera.position },
-      delta,
-      t,
-    );
 
-    // Presence motion: float + breathe (same rhythm as the other variants).
     let posX = pos.x + Math.sin(t * 0.8) * 0.06;
     let posY = pos.y + Math.sin(t * 1.1) * 0.09 + Math.sin(t * 2.7) * 0.02;
     g.position.set(posX, posY, pos.z);
@@ -700,8 +425,6 @@ function ReconstructedAvatarPresence({
     while (yawDelta > Math.PI) yawDelta -= Math.PI * 2;
     while (yawDelta < -Math.PI) yawDelta += Math.PI * 2;
     g.rotation.y += yawDelta * Math.min(1, delta * 2.5);
-
-    // Idle sway when nothing else drives her.
     g.rotation.z = Math.sin(t * 1.3) * 0.02;
 
     // Executive avatar commands — identical verification contract.
@@ -753,18 +476,16 @@ function ReconstructedAvatarPresence({
     const now = performance.now();
     if (now - telemetry.current.lastReport > 1_000) {
       telemetry.current.lastReport = now;
-      ExecutiveRuntime.getInstance().reportAvatarFrame(
-        Math.abs(g.position.y - telemetry.current.lastY) > 0.001,
-      );
+      ExecutiveRuntime.getInstance().reportAvatarFrame(Math.abs(g.position.y - telemetry.current.lastY) > 0.001);
       telemetry.current.lastY = g.position.y;
     }
   });
 
   return (
     <group ref={group} position={[pos.x, pos.y, pos.z]} name="V2LeluTrue3D">
-      {model ? (
-        <primitive object={model} position={[0, -RECON_TARGET_HEIGHT / 2 + 0.02, 0]} />
-      ) : null}
+      <group position={[0, -RECON_TARGET_HEIGHT / 2 + 0.02, 0]}>
+        <LeluBody glb={glb} clips={clips} activity={activity} mood={mood} height={RECON_TARGET_HEIGHT} onReady={() => setReady(true)} />
+      </group>
       {/* candlelit glow halo + platform ring shared with the other variants */}
       <sprite position={[0, 0, -0.12]} scale={[3.4, 3.4, 1]} raycast={() => null}>
         <spriteMaterial
@@ -860,33 +581,11 @@ export default function LeluV2Presence({ position: positionProp }: { position?: 
   // its animation slots). Preferred over everything else when it exists;
   // without a Forge server (static hosting) the request fails and nothing changes.
   // Reloads when a slot is promoted, so a newly approved version appears without a refresh.
-  const [forgeModel, setForgeModel] = useState<{ key: string; glb: ArrayBuffer; clips: ArrayBuffer[] } | null>(null);
-  const forgeKey = useRef<string | null>(null);
-  useEffect(() => {
-    let alive = true;
-    const load = async () => {
-      try {
-        const active = await ForgeClient.active(FORGE_CHARACTER);
-        if (!active.model) return;
-        const clipFiles = Object.values(active.animations).flatMap((a) => (a ? [a.file] : []));
-        const key = [active.model.file, ...clipFiles].join("|");
-        if (forgeKey.current === key) return; // a placement changed, not her model
-        forgeKey.current = key;
-        const glb = await ForgeClient.assetBytes(active.model.file);
-        const clips = await Promise.all(clipFiles.map((file) => ForgeClient.assetBytes(file)));
-        if (alive) setForgeModel({ key, glb, clips });
-      } catch (error) {
-        console.info("[Lélu Presence] no Forge character available", error instanceof Error ? error.message : error);
-      }
-    };
-    void load();
-    const onChange = () => void load();
-    window.addEventListener(FORGE_CHANGED_EVENT, onChange);
-    return () => {
-      alive = false;
-      window.removeEventListener(FORGE_CHANGED_EVENT, onChange);
-    };
-  }, []);
+  const [forgeModel, setForgeModel] = useState<LeluModel | null>(null);
+  useEffect(
+    () => LeluModelSource.subscribe((state) => setForgeModel(state.status === "ready" ? state.model : null)),
+    [],
+  );
 
     // Report mount/unmount so diagnostics can distinguish "renderer not
   // running" from "presence legitimately closed".

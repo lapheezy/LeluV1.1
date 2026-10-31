@@ -58,7 +58,7 @@ function viewportSize(): { width: number; height: number } {
  * links, fields), dialogs, anything marked keep-clear — and, weighted
  * far above the rest, the field you are typing in right now.
  */
-const INTERACTIVE = "button, a[href], input, textarea, select, [role='button'], [role='tab'], [contenteditable='true'], [data-lelu-keep-clear], [role='dialog']";
+const INTERACTIVE = "button, a[href], input, textarea, select, [role='button'], [role='tab'], [contenteditable='true'], [data-lelu-keep-clear], [role='dialog'], article.lelu-cc-msg";
 
 function keepClearRects(own: HTMLElement | null): Rect[] {
   if (typeof document === "undefined") return [];
@@ -84,7 +84,10 @@ const MOTION_STYLE = `
 export default function LeluCompanion() {
   const [companion, setCompanion] = useState<CompanionState>(() => CompanionStore.getInstance().get());
   useEffect(() => CompanionStore.getInstance().subscribe(setCompanion), []);
-  if (!companion.enabled) return null;
+  // In the Genesis V2 world she stands in the scene as her full 3D self
+  // (LeluV2Presence, same model and body); a second her over it would be two.
+  const { state } = useGenesis();
+  if (!companion.enabled || state.activeScene === "genesisv2") return null;
   return <CompanionFigure companion={companion} />;
 }
 
