@@ -37,6 +37,9 @@ import SupabasePersistence from "./persistence/SupabasePersistence";
 import { registerEarthTools } from "./earth/EarthTools";
 import { registerForgeTools } from "./forge/ForgeTools";
 import { registerWorldTools } from "./world/WorldTools";
+import { registerAgenticTools } from "./agentic/AgenticTools";
+import TaskExecutor from "./agentic/TaskExecutor";
+import DailyReflection from "./agentic/DailyReflection";
 import ToolRegistry from "./tools/ToolRegistry";
 import { markPerf } from "./perf/StartupTelemetry";
 import StartupDiagnostic from "./selfdev/StartupDiagnostic";
@@ -184,6 +187,15 @@ export default class Bootstrap {
       // 3D Forge (character/asset generation through the server-side Meshy broker)
       registerForgeTools();
       registerWorldTools();
+      // Agency: capability discovery, delegation, multi-step tasks,
+      // approvals, reflection. Tasks cut off by the last shutdown are
+      // marked paused (resumable) rather than left "running" forever.
+      registerAgenticTools();
+      const interrupted = TaskExecutor.getInstance().recoverInterrupted();
+      if (interrupted.length) {
+        console.info(`[Bootstrap] ${interrupted.length} interrupted task(s) are paused and resumable.`);
+      }
+      DailyReflection.getInstance().start();
       // Recompute ToolRegistry availability from real runtime state
       // (autonomy gate, GitHub connection, device features) — it was
       // previously a catalog of hardcoded booleans nobody ever checked.

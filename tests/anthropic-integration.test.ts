@@ -10,10 +10,10 @@
  * Why this exists: each case below was a way a current Claude
  * model turned a good turn into a provider failure (a silent
  * drop to the next vendor in the chain) or into a wrong answer:
- * sampling params on a model that rejects them, tool blocks in
- * a tool-less request, a truncated tool call executed anyway,
- * a refusal re-asked of another provider, a stream error read
- * as a finished reply, an overload with no retry.
+ * sampling params on a model that rejects them, a truncated
+ * tool call executed anyway, a refusal re-asked of another
+ * provider, a stream error read as a finished reply, an
+ * overload with no retry.
  * ==========================================================
  */
 
@@ -185,21 +185,19 @@ test("with tools offered, our own tool turn is replayed verbatim — thinking in
   assert.equal(result.tool_use_id, "toolu_1");
 });
 
-test("with tools withheld, the tool exchange is replayed as text, not as tool blocks", async () => {
-  // The router's closing round withholds tools. Tool blocks in a request
-  // that defines no tools are a 400 — the finished work would be lost.
+test("with tools withheld, history is still sent back unchanged", async () => {
+  // The router's closing round withholds tools. The API accepts tool blocks
+  // without a tools list (verified live on claude-opus-5-5), and rewriting
+  // earlier turns would invalidate the cached prefix and thinking blocks.
   const { sent, restore } = scriptFetch([text("summary")]);
   try {
     await (await provider()).generate(request({ messages: toolHistory }));
   } finally {
     restore();
   }
-  const body = JSON.stringify(sent[0].body.messages);
-  assert.equal(body.includes('"tool_use"'), false);
-  assert.equal(body.includes('"tool_result"'), false);
-  assert.match(body, /Called project_read/);
-  assert.match(body, /Result of project_read/);
-  assert.match(body, /export const a = 1;/);
+  const messages = sent[0].body.messages as Array<{ role: string; content: unknown }>;
+  assert.deepEqual(messages[1].content, toolHistory[1].providerBlocks!.blocks);
+  assert.equal("tools" in sent[0].body, false);
 });
 
 /* ------------------------------ reading replies ------------------------------ */

@@ -359,8 +359,8 @@ pinned by `tests/anthropic-integration.test.ts`):
   is dropped and never executed (`metadata.truncatedToolCall` names it).
 - **Tool loop replay**: an assistant tool turn is replayed from its raw blocks
   (`AIResponse.providerBlocks`), so thinking blocks survive between rounds.
-  When the router withholds tools on the closing round, the tool exchange is
-  replayed as text, because tool blocks in a request with no `tools` are a 400.
+  History is sent back unchanged on every round, including the closing round
+  where the router withholds tools (verified live: the API accepts that).
 - **Streams**: `stop_reason` and final usage are read from `message_delta`. An
   `error` event fails the turn (the chain moves on) instead of returning partial
   text as a finished answer.

@@ -123,6 +123,7 @@ export default class ProviderResolver {
     const ordered = this.orderByPreference(eligible, decision.preferredProviders);
 
     for (const provider of ordered) {
+      if (context.request.signal?.aborted) return { handled: true, response: this.cancelled(toolsReallyRun) };
       if (!provider.canHandle(context.request.prompt)) {
         context.logger.info(
           "ProviderResolver",
@@ -184,6 +185,11 @@ export default class ProviderResolver {
           response,
         };
       } catch (error) {
+        // Stopped by the user: not this provider's fault, and asking the
+        // next provider would restart the work they just stopped.
+        if (context.request.signal?.aborted) {
+          return { handled: true, response: this.cancelled(toolsReallyRun) };
+        }
         const message = error instanceof Error ? error.message : String(error);
         context.aiProviders.markFailure(provider.name, message);
         AgentEventBus.getInstance().emit({
@@ -218,6 +224,20 @@ export default class ProviderResolver {
     return {
       handled: true,
       response: this.withRealTools(this.offline(context), toolsReallyRun),
+    };
+  }
+
+  /** What a cancelled turn returns: what already ran, and that it stopped. */
+  private cancelled(toolsReallyRun?: Array<{ tool: string; ok: boolean }>): AIResponse {
+    const ran = toolsReallyRun?.length
+      ? ` Before stopping, these ran: ${toolsReallyRun.map((t) => `${t.tool} (${t.ok ? "ok" : "failed"})`).join(", ")}.`
+      : "";
+    return {
+      text: `Stopped.${ran}`,
+      provider: "cancelled",
+      model: "none",
+      processingTime: 0,
+      metadata: { cancelled: true, success: true, ...(toolsReallyRun?.length ? { toolsExecuted: toolsReallyRun } : {}) },
     };
   }
 
@@ -289,6 +309,7 @@ export default class ProviderResolver {
     for (let round = 1; round <= TOOL_LOOP_MAX_ROUNDS; round += 1) {
       const calls = response.toolCalls ?? [];
       if (calls.length === 0) break;
+      if (context.request.signal?.aborted) throw new Error("cancelled");
 
       // A stuck model repeats itself exactly. Detect that on the calls
       // it is ASKING for, before running them again.
@@ -336,6 +357,8 @@ export default class ProviderResolver {
       });
 
       for (const call of calls) {
+        // Never start a tool after the user pressed stop.
+        if (context.request.signal?.aborted) throw new Error("cancelled");
         const result = await dispatchToolCall(call, taskId, context);
         executed.push({ tool: call.name, ok: result.ok });
         // ALSO record it where a later provider failure cannot erase it.

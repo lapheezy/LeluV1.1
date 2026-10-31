@@ -526,6 +526,7 @@ class VoiceEngine {
 
   private stop(): void {
     this.cancelSpeech();
+    this.cancelInFlightTurn("voice stopped");
     this.stopRecognition();
     this.stopWhisperFallback();
 
@@ -915,6 +916,13 @@ class VoiceEngine {
     }
   }
 
+  /** Stop the AI turn in flight, if any (see AIService.cancelActiveTurn). */
+  private cancelInFlightTurn(reason: string): void {
+    void import("../../core/AIService")
+      .then(({ default: AIService }) => AIService.getInstance().cancelActiveTurn(reason))
+      .catch(() => {});
+  }
+
   /* ---------------------------------------------------------
    * User Speech Handling
    * --------------------------------------------------------- */
@@ -931,6 +939,14 @@ class VoiceEngine {
 
     // Emit the utterance so VoiceBridge can persist it
     this.emitUtterance(text);
+
+    // Barge-in on THINKING, not only on speech: if the previous turn is
+    // still being processed, the user has moved on. Its reply was already
+    // going to be discarded (the turnId check below); stopping it also
+    // stops its model call and any further tool runs.
+    if (this._turn && this._turn.response === null) {
+      this.cancelInFlightTurn("superseded by new speech");
+    }
 
     const turnId = crypto.randomUUID();
     this._turn = { id: turnId, user: text, response: null, timestamp: Date.now() };
