@@ -8,10 +8,10 @@ and ~100 px of texture. A head-and-shoulders model generated
 from the face references gets all of it. This puts that head
 on the rigged body:
 
-  fit     similarity transform (scale, rotation, translation)
-          of the new head's face onto the body's face: start
-          from the nose tips and the throat, then refine with
-          ICP (nearest points + Umeyama) on the front of the
+  fit     scale + translation (kept upright, facing forward)
+          of the new head's face onto the body's face: nose
+          tips together, the scale whose face surfaces match
+          best, then translation-only ICP on the front of the
           face only
   cut     the body loses everything of its own head above the
           choker line; the new head loses everything below it
@@ -35,8 +35,8 @@ import math
 import os
 import sys
 
+import bpy  # noqa: I001 — must load before bmesh/mathutils outside Blender
 import bmesh
-import bpy
 import numpy as np
 from mathutils import Matrix, Vector
 from mathutils.kdtree import KDTree
@@ -72,34 +72,12 @@ def profile(points, cx, z_lo, z_hi, width, step=0.002):
     return np.array([out[k] for k in sorted(out)])
 
 
-def face_landmarks(points, z_lo, z_hi, cx, width):
+def face_nose(points, z_lo, z_hi, cx, width):
+    """The nose tip: the frontmost point of the face's centre column."""
     prof = profile(points, cx, z_lo, z_hi, width)
     if len(prof) < 20:
         raise RuntimeError("face profile too sparse")
-    nose = prof[np.argmin(prof[:, 1])]
-    below = prof[prof[:, 2] < nose[2]]
-    # Throat: the deepest point of the front profile below the chin (largest y),
-    # searched within 1.2 nose-heights of the nose.
-    span = (z_hi - z_lo)
-    window = below[below[:, 2] > nose[2] - 0.45 * span]
-    throat = window[np.argmax(window[:, 1])]
-    return nose, throat, prof
-
-
-def umeyama(src, dst):
-    """Similarity transform (s, R, t) minimising |s R src + t - dst|."""
-    mu_s, mu_d = src.mean(0), dst.mean(0)
-    xs, xd = src - mu_s, dst - mu_d
-    cov = xd.T @ xs / len(src)
-    u, d, vt = np.linalg.svd(cov)
-    sgn = np.eye(3)
-    if np.linalg.det(u) * np.linalg.det(vt) < 0:
-        sgn[2, 2] = -1
-    r = u @ sgn @ vt
-    var = (xs ** 2).sum() / len(src)
-    s = np.trace(np.diag(d) @ sgn) / var
-    t = mu_d - s * r @ mu_s
-    return s, r, t
+    return prof[np.argmin(prof[:, 1])]
 
 
 def main():
@@ -118,8 +96,8 @@ def main():
     top_z = bones.get("head_end", bones["head"] + Vector((0, 0, 0.25))).z
     bp = wverts(body)
     b_cx = float(bones["head"].x)
-    b_nose, b_throat, _ = face_landmarks(bp, neck_z, top_z, b_cx, 0.012)
-    log("body", nose=b_nose.round(4).tolist(), throat=b_throat.round(4).tolist(), neckZ=round(neck_z, 4), headZ=round(head_z, 4))
+    b_nose = face_nose(bp, neck_z + 0.6 * (head_z - neck_z), top_z, b_cx, 0.012)
+    log("body", nose=b_nose.round(4).tolist(), neckZ=round(neck_z, 4), headZ=round(head_z, 4), topZ=round(top_z, 4))
 
     head_objs = import_glb(A["head"])
     head_meshes = [o for o in head_objs if o.type == "MESH"]
@@ -141,50 +119,59 @@ def main():
     lo, hi = hp.min(0), hp.max(0)
     h_cx = float((lo[0] + hi[0]) / 2)
     h_span = hi[2] - lo[2]
-    # The face sits in the upper part of a bust; search its upper 70 %.
-    h_nose, h_throat, _ = face_landmarks(hp, lo[2] + 0.3 * h_span, hi[2], h_cx, 0.012 * h_span / 0.6)
+    # The face is in the top of a bust (the chest would otherwise be "frontmost").
+    h_nose = face_nose(hp, hi[2] - 0.35 * h_span, hi[2], h_cx, 0.012 * h_span / 0.8)
     log("head", vertices=len(hp), triangles=sum(len(p.vertices) - 2 for p in head.data.polygons), bbox=[lo.round(3).tolist(), hi.round(3).tolist()],
-        nose=h_nose.round(4).tolist(), throat=h_throat.round(4).tolist())
+        nose=h_nose.round(4).tolist())
 
-    # Initial fit: nose tips coincide, nose-to-throat height matches.
-    s0 = (b_nose[2] - b_throat[2]) / max(1e-6, (h_nose[2] - h_throat[2]))
-    R = np.eye(3)
-    t = b_nose - s0 * h_nose
-    s = s0
+    # Fit: nose tips coincide; the scale is the one where the two face surfaces
+    # match best (symmetric nearest-point distance over the face, so neither can
+    # "win" by shrinking); position refined by translation-only ICP so the head
+    # stays upright and facing forward.
+    s_est = (top_z - b_nose[2]) / max(1e-6, hi[2] - h_nose[2])
+    R_FACE = 0.08
+    rng = np.random.default_rng(7)
 
-    # ICP on the front of the face (between throat and brow, facing the camera).
-    face_h = (h_nose[2] - h_throat[2])
-    hsel = hp[(hp[:, 2] > h_throat[2]) & (hp[:, 2] < h_nose[2] + 1.0 * face_h) & (hp[:, 1] < h_nose[1] + 0.9 * face_h) & (np.abs(hp[:, 0] - h_cx) < 0.9 * face_h)]
-    if len(hsel) > 4000:
-        hsel = hsel[np.random.default_rng(7).choice(len(hsel), 4000, replace=False)]
-    bsel = bp[(bp[:, 2] > b_throat[2] - 0.01) & (bp[:, 2] < top_z) & (bp[:, 1] < b_nose[1] + 0.07)]
-    kd = KDTree(len(bsel))
-    for i, p in enumerate(bsel):
-        kd.insert(Vector(p), i)
-    kd.balance()
-    err = None
-    for it in range(40):
-        moved = (s * (R @ hsel.T)).T + t
-        pairs = [kd.find(Vector(p)) for p in moved]
-        dist = np.array([d for _, _, d in pairs])
-        keep = dist < np.percentile(dist, 80)
-        tgt = np.array([tuple(c) for c, _, _ in pairs])
-        s, R, t = umeyama(hsel[keep], tgt[keep])
-        # The head must stay upright and facing forward: reject a fit that rolls it.
-        err = float(np.sqrt((dist[keep] ** 2).mean()))
-    angle = math.degrees(math.acos(max(-1.0, min(1.0, (np.trace(R) - 1) / 2))))
-    if angle > 12 or not (0.5 * s0 < s < 2 * s0):
-        REPORT["warnings"].append(f"ICP drifted (rotation {angle:.1f}°, scale {s:.3f} vs {s0:.3f}); using the landmark fit.")
-        s, R, t = s0, np.eye(3), b_nose - s0 * h_nose
-    log("fit", scale=round(float(s), 5), landmarkScale=round(float(s0), 5), rotationDeg=round(angle, 2), rmsMetres=round(err or 0, 5))
+    def sample(points, n):
+        return points if len(points) <= n else points[rng.choice(len(points), n, replace=False)]
 
-    M = Matrix(((*(s * R[0]), t[0]), (*(s * R[1]), t[1]), (*(s * R[2]), t[2]), (0, 0, 0, 1)))
+    bface = sample(bp[(np.linalg.norm(bp - b_nose, axis=1) < R_FACE) & (bp[:, 1] < b_nose[1] + 0.05)], 3000)
+    kd_b = KDTree(len(bface))
+    for i, p in enumerate(bface):
+        kd_b.insert(Vector(p), i)
+    kd_b.balance()
+    best = None
+    for s in np.linspace(0.7 * s_est, 1.4 * s_est, 36):
+        hface = sample(hp[(np.linalg.norm(hp - h_nose, axis=1) < R_FACE / s) & (hp[:, 1] < h_nose[1] + 0.05 / s)], 3000)
+        t = b_nose - s * h_nose
+        for _ in range(10):
+            moved = s * hface + t
+            near = np.array([tuple(kd_b.find(Vector(p))[0]) for p in moved])
+            d = np.linalg.norm(near - moved, axis=1)
+            keep = d < np.percentile(d, 80)
+            t = t + (near[keep] - moved[keep]).mean(0)
+        moved = s * hface + t
+        fwd = np.array([kd_b.find(Vector(p))[2] for p in moved])
+        kd_h = KDTree(len(moved))
+        for i, p in enumerate(moved):
+            kd_h.insert(Vector(p), i)
+        kd_h.balance()
+        back = np.array([kd_h.find(Vector(p))[2] for p in bface])
+        err = float((np.sqrt((np.sort(fwd)[: int(0.8 * len(fwd))] ** 2).mean()) + np.sqrt((np.sort(back)[: int(0.8 * len(back))] ** 2).mean())) / 2)
+        if best is None or err < best[0]:
+            best = (err, float(s), t)
+    err, s, t = best
+    if abs(s - 0.7 * s_est) < 1e-9 or abs(s - 1.4 * s_est) < 1e-9:
+        REPORT["warnings"].append(f"Best scale {s:.4f} is at the edge of the search ({s_est:.4f} ±); check the previews.")
+    log("fit", scale=round(s, 5), estimate=round(float(s_est), 5), rmsMetres=round(err, 5), offset=np.round(t, 4).tolist())
+
+    M = Matrix(((s, 0, 0, t[0]), (0, s, 0, t[1]), (0, 0, s, t[2]), (0, 0, 0, 1)))
     head.data.transform(M)
     head.data.update()
     hp = wverts(head)
 
-    # Cut line: just under the jaw, above the choker's lower edge.
-    cut_z = float(b_throat[2] - 0.012)
+    # Cut line: in the choker, which both models wear, between the neck and Head bones.
+    cut_z = float(neck_z + 0.85 * (head_z - neck_z))
     neck_r = 0.075
 
     # Body: drop its own head (anything above the cut within the head's footprint).
@@ -194,9 +181,17 @@ def main():
     for i, p in enumerate(hp[:: max(1, len(hp) // 60000)]):
         head_kd.insert(Vector(p), i)
     head_kd.balance()
+    # The old head's hair hangs below the cut; in a Meshy rig it is skinned mostly to Head.
+    head_gi = next(g.index for g in body.vertex_groups if g.name.lower() == "head")
+    deform = bm.verts.layers.deform.verify()
     doomed = []
+    old_hair = 0
     for v in bm.verts:
         w = body.matrix_world @ v.co
+        if w.z <= cut_z and v[deform].get(head_gi, 0.0) > 0.5 and math.hypot(w.x - b_cx, w.y - bones["head"].y) > neck_r * 1.25:
+            doomed.append(v)
+            old_hair += 1
+            continue
         if w.z > cut_z:
             near = head_kd.find(w)[2]
             inside_neck = math.hypot(w.x - b_cx, w.y - bones["head"].y) < neck_r * 1.6
@@ -205,34 +200,57 @@ def main():
     bmesh.ops.delete(bm, geom=doomed, context="VERTS")
     bm.to_mesh(body.data)
     bm.free()
-    log("cut-body", removedVertices=len(doomed), cutZ=round(cut_z, 4))
+    log("cut-body", removedVertices=len(doomed), oldHairBelowCut=old_hair, cutZ=round(cut_z, 4))
 
-    # Head: drop the bust below the cut, except hair hanging beside the neck.
+    # Head: below the cut, keep only what hangs away from the body (her long hair);
+    # drop what lies on the torso (the bust's own shoulders, chest and outfit).
+    body_w = wverts(body)
+    body_kd = KDTree(len(body_w))
+    for i, p in enumerate(body_w):
+        body_kd.insert(Vector(p), i)
+    body_kd.balance()
+    hair_gap = float(A.get("hairGap", 0.02))
     bm = bmesh.new()
     bm.from_mesh(head.data)
     hx, hy = b_cx, float(bones["head"].y)
-    doomed = [v for v in bm.verts if v.co.z < cut_z - 0.004 and (math.hypot(v.co.x - hx, v.co.y - hy) < neck_r * 1.25 or v.co.z < cut_z - 0.18)]
+    doomed = [v for v in bm.verts if v.co.z < cut_z - 0.004 and (v.co.z < cut_z - 0.55 or body_kd.find(v.co)[2] < hair_gap)]
     bmesh.ops.delete(bm, geom=doomed, context="VERTS")
     bm.to_mesh(head.data)
     bm.free()
-    log("cut-head", removedVertices=len(doomed), keptVertices=len(head.data.vertices))
+    hanging = sum(1 for v in head.data.vertices if v.co.z < cut_z - 0.004)
+    log("cut-head", removedVertices=len(doomed), keptVertices=len(head.data.vertices), hangingHairVertices=hanging, hairGap=hair_gap)
 
-    # Bind to the rig.
+    # Bind to the rig: the head blends from neck to Head across the choker; hair
+    # hanging below the cut copies the weights of the nearest body point, so it
+    # moves with her shoulders and back.
     head.name = "lelu_head"
     head.parent = armature
     head.matrix_parent_inverse = armature.matrix_world.inverted()
-    vg_head = head.vertex_groups.new(name=next(b.name for b in armature.data.bones if b.name.lower() == "head"))
-    vg_neck = head.vertex_groups.new(name=next(b.name for b in armature.data.bones if b.name.lower() == "neck"))
+    bone_name = {b.name.lower(): b.name for b in armature.data.bones}
+    groups = {}
+
+    def group(name):
+        if name not in groups:
+            groups[name] = head.vertex_groups.get(name) or head.vertex_groups.new(name=name)
+        return groups[name]
+
+    body_groups = {g.index: g.name for g in body.vertex_groups}
     for v in head.data.vertices:
         z = v.co.z
+        if z < cut_z - 0.004:
+            _, j, _ = body_kd.find(v.co)
+            for g in body.data.vertices[j].groups:
+                if g.weight > 0:
+                    group(body_groups[g.group]).add([v.index], g.weight, "REPLACE")
+            continue
         t_ = min(1.0, max(0.0, (z - cut_z) / max(1e-6, head_z + 0.02 - cut_z)))
         t_ = t_ * t_ * (3 - 2 * t_)
         if math.hypot(v.co.x - hx, v.co.y - hy) > neck_r * 1.25:
-            t_ = 1.0  # hair beside the neck follows the head
+            t_ = 1.0  # hair beside the head follows the head
         if t_ > 0:
-            vg_head.add([v.index], t_, "REPLACE")
+            group(bone_name["head"]).add([v.index], t_, "REPLACE")
         if t_ < 1:
-            vg_neck.add([v.index], 1 - t_, "REPLACE")
+            group(bone_name["neck"]).add([v.index], 1 - t_, "REPLACE")
     mod = head.modifiers.new("Armature", "ARMATURE")
     mod.object = armature
     armature.data.pose_position = "POSE"

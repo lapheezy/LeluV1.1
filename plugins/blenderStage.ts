@@ -41,6 +41,8 @@ import type { ForgeJob, ForgeOutputFile, ForgeStore } from "./forgeStore.ts";
 import { ForgeError, type EnvReader } from "./meshyForge.ts";
 
 export const BLENDER_SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "scripts", "blender", "lelu_postprocess.py");
+export const HEADSWAP_SCRIPT = path.join(path.dirname(BLENDER_SCRIPT), "lelu_headswap.py");
+export const POSECHECK_SCRIPT = path.join(path.dirname(BLENDER_SCRIPT), "lelu_posecheck.py");
 
 export interface BlenderRunner {
   kind: "bpy" | "blender";
@@ -82,9 +84,9 @@ export function findBlender(readEnv: EnvReader): BlenderRunner | null {
   return null;
 }
 
-function run(runner: BlenderRunner, json: string, timeoutMs: number): Promise<{ code: number | null; log: string }> {
+function run(runner: BlenderRunner, json: string, timeoutMs: number, script = BLENDER_SCRIPT): Promise<{ code: number | null; log: string }> {
   return new Promise((resolve, reject) => {
-    const child = spawn(runner.command, runner.args(BLENDER_SCRIPT, json), { stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn(runner.command, runner.args(script, json), { stdio: ["ignore", "pipe", "pipe"] });
     let log = "";
     const keep = (chunk: Buffer) => {
       log = (log + chunk.toString()).slice(-20_000);
@@ -184,6 +186,91 @@ export async function postprocess(
       warnings: report.warnings ?? [],
       verdict: job.validation?.verdict ?? null,
     });
+    return { job, reused: false };
+  } finally {
+    rmSync(work, { recursive: true, force: true });
+  }
+}
+
+/**
+ * Put a dedicated head model (a Meshy bust generated from the face references)
+ * onto a rigged body (scripts/blender/lelu_headswap.py), check it deforms with a
+ * clip of the same rig (lelu_posecheck.py), and record the result as a derived
+ * "blender" job whose model is skinned to the body's armature. Spends nothing.
+ */
+export async function headswap(
+  store: ForgeStore,
+  readEnv: EnvReader,
+  rigJobId: string,
+  headJobId: string,
+  options: { textureSize?: number; hairGap?: number } = {},
+  deps: { runner?: BlenderRunner | null; timeoutMs?: number } = {},
+): Promise<{ job: ForgeJob; reused: boolean }> {
+  const rig = store.job(rigJobId);
+  const head = store.job(headJobId);
+  if (!rig || !head) throw new ForgeError(`No job ${!rig ? rigJobId : headJobId}.`, 404);
+  const rigModel = rig.output?.files.find((f) => f.role === "model");
+  const headModel = head.output?.files.find((f) => f.role === "model");
+  if (rig.status !== "SUCCEEDED" || !rigModel || !rig.validation?.verdict.rigValid) throw new ForgeError("The body must be a finished job whose rig validated.", 409);
+  if (head.status !== "SUCCEEDED" || !headModel || !head.validation?.verdict.textured) throw new ForgeError("The head must be a finished, textured job.", 409);
+  const opts = { textureSize: options.textureSize ?? 4096, hairGap: options.hairGap ?? 0.02 };
+  const scripts = [HEADSWAP_SCRIPT, POSECHECK_SCRIPT].map((f) => createHash("sha256").update(readFileSync(f)).digest("hex").slice(0, 16));
+  const request = { operation: "headswap", body: rig.id, bodySha256: rigModel.sha256, head: head.id, headSha256: headModel.sha256, scripts, options: opts };
+  const requestKey = createHash("sha256").update(JSON.stringify(request)).digest("hex");
+  const existing = store.findByKey(rig.character, requestKey);
+  if (existing) return { job: existing, reused: true };
+
+  const runner = deps.runner === undefined ? findBlender(readEnv) : deps.runner;
+  if (!runner) throw new ForgeError("Blender is not available on this server.", 503, ["Set LELU_BLENDER_PYTHON (a Python with bpy) or LELU_BLENDER_BIN."]);
+  const bodyPath = store.safeAssetPath(rigModel.file);
+  const headPath = store.safeAssetPath(headModel.file);
+  if (!bodyPath || !headPath || !existsSync(bodyPath) || !existsSync(headPath)) throw new ForgeError("A model file is missing.", 404);
+  const clip = rig.output!.files.find((f) => /walking_armature/.test(f.file));
+  const clipPath = clip ? store.safeAssetPath(clip.file) : null;
+
+  const work = mkdtempSync(path.join(tmpdir(), "lelu-headswap-"));
+  const started = Date.now();
+  try {
+    const out = path.join(work, "lelu.glb");
+    const swap = await run(runner, JSON.stringify({ body: bodyPath, head: headPath, out, previewDir: work, ...opts }), deps.timeoutMs ?? 20 * 60_000, HEADSWAP_SCRIPT);
+    if (swap.code !== 0 || !existsSync(out)) {
+      store.logEvent(rig.character, { type: "blender_failed", operation: "headswap", jobId: rig.id, headJobId: head.id, code: swap.code, log: swap.log.slice(-2000) });
+      throw new ForgeError(`Head swap failed (exit ${swap.code}).`, 500, swap.log.trim().split("\n").slice(-8));
+    }
+    if (clipPath && existsSync(clipPath)) {
+      const pose = await run(runner, JSON.stringify({ model: out, clip: clipPath, outDir: work }), deps.timeoutMs ?? 20 * 60_000, POSECHECK_SCRIPT);
+      if (pose.code !== 0) store.logEvent(rig.character, { type: "posecheck_failed", log: pose.log.slice(-1000) });
+    }
+    const dir = store.newVersionDir(rig.character, "rig", `headswap_${head.id.slice(3, 11)}`);
+    const files: ForgeOutputFile[] = [];
+    for (const name of readdirSync(work).sort()) {
+      const role = name === "lelu.glb" ? "model" : name === "lelu.glb.report.json" ? "blender-report" : name.endsWith(".png") ? (name === "preview_bust.png" ? "preview" : "preview-extra") : "blender-output";
+      files.push(store.writeOutput(dir, name === "lelu.glb.report.json" ? "report.json" : name, role, new Uint8Array(readFileSync(path.join(work, name)))));
+    }
+    const now = Date.now();
+    const job: ForgeJob = {
+      id: `fj_${now.toString(36)}_${createHash("sha1").update(String(Math.random())).digest("hex").slice(0, 6)}`,
+      character: rig.character,
+      kind: "blender",
+      purpose: `Head swap: head ${head.id} on rig ${rig.id}`,
+      request: { ...request, parentJobId: rig.id, runner: runner.kind },
+      requestKey,
+      estimatedCredits: 0,
+      status: "SUCCEEDED",
+      meshyTaskId: null,
+      progress: 100,
+      consumedCredits: 0,
+      error: null,
+      identityLock: head.identityLock ?? rig.identityLock,
+      createdAt: started,
+      updatedAt: now,
+      submittedAt: started,
+      finishedAt: now,
+      output: { dir: store.relative(dir), files },
+      validation: inspectGlb(new Uint8Array(readFileSync(path.join(dir, "lelu.glb")))),
+    };
+    store.saveJob(job);
+    store.logEvent(rig.character, { type: "blender_succeeded", operation: "headswap", jobId: job.id, parentJobId: rig.id, headJobId: head.id, dir: job.output!.dir, verdict: job.validation?.verdict ?? null });
     return { job, reused: false };
   } finally {
     rmSync(work, { recursive: true, force: true });
