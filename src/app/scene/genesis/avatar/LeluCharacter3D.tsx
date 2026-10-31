@@ -17,7 +17,7 @@
  * ==========================================================
  */
 
-import { useCallback, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { LeluFraming } from "../../../../core/avatar/LeluRig";
@@ -54,14 +54,33 @@ function Framer({ framing, info }: { framing: LeluFraming; info: LeluBodyInfo | 
   return null;
 }
 
+/**
+ * Renders at most `fps` frames a second, and none while the page is hidden.
+ * An overlay over chat does not need 60: the rest of the main thread
+ * belongs to the conversation (typing, voice turn detection).
+ */
+function FrameCap({ fps }: { fps: number }) {
+  const { invalidate } = useThree();
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (!document.hidden) invalidate();
+    }, 1000 / fps);
+    return () => clearInterval(timer);
+  }, [fps, invalidate]);
+  return null;
+}
+
 export default function LeluCharacter3D({
   model,
   framing,
   activity,
   style,
   testId,
+  fps = 30,
 }: {
   model: LeluModel;
+  /** Frame cap: 30 is plenty for an overlay. */
+  fps?: number;
   framing: LeluFraming;
   activity: LeluActivity;
   style?: CSSProperties;
@@ -99,6 +118,7 @@ export default function LeluCharacter3D({
       style={{ display: "block", width: "100%", height: "100%", pointerEvents: "none", ...style }}
     >
       <Canvas
+        frameloop="demand"
         gl={{ alpha: true, antialias: true, powerPreference: "low-power", preserveDrawingBuffer: false }}
         dpr={[1, 1.75]}
         camera={{ fov: FOV, position: [0, 1, 6] }}
@@ -108,6 +128,7 @@ export default function LeluCharacter3D({
         <hemisphereLight args={["#fff1f8", "#2a1840", 0.9]} />
         <directionalLight position={[1.5, 3, 4]} intensity={1.6} color="#fff4ea" />
         <directionalLight position={[-2.5, 1.5, -2]} intensity={0.7} color="#f0abfc" />
+        <FrameCap fps={fps} />
         <Framer framing={framing} info={info} />
         <LeluBody glb={model.glb} clips={model.clips} activity={activity} height={HEIGHT} onReady={setInfo} onFrame={onFrame} />
       </Canvas>

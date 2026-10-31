@@ -16,6 +16,7 @@
 import { postTranscription, transcriptionAvailable, WHISPER_NAME_HINT } from "./transcriptionTransport";
 
 import { mapMediaError } from "./speechToText";
+import { detectTurnOnAudioThread } from "./vadWorklet";
 
 /* ---------------------------------------------------------
  * Types
@@ -1094,7 +1095,21 @@ class VoiceEngine {
     let speechMs = 0;
     let silenceMs = 0;
     let spoke = false;
-    await new Promise<void>((resolve) => {
+    // Audio-thread detection first: measured in audio time, so a busy page
+    // cannot cut a turn short or run it past its end (vadWorklet.ts).
+    const onAudioThread = await detectTurnOnAudioThread(
+      ctx,
+      source,
+      () => !this.whisperFallbackActive || !this._state.active || !this.mediaStream,
+    );
+    let detectedOn = "main";
+    if (onAudioThread) {
+      detectedOn = "audio";
+      spoke = onAudioThread.spoke;
+      peak = onAudioThread.peak;
+      threshold = onAudioThread.threshold;
+      silenceMs = Math.round(onAudioThread.silenceMs);
+    } else await new Promise<void>((resolve) => {
       const timer = setInterval(() => {
         const now = Date.now();
         const elapsed = now - started;
@@ -1149,7 +1164,7 @@ class VoiceEngine {
     } catch {
       // ignore
     }
-    console.debug("[VoiceEngine] turn", JSON.stringify({ spoke, ms: Date.now() - started, peak: +peak.toFixed(4), threshold: +threshold.toFixed(4), lastLevel: +lastLevel.toFixed(4), minLevel: +minLevel.toFixed(4), silenceMs }));
+    console.debug("[VoiceEngine] turn", JSON.stringify({ on: detectedOn, audioMs: onAudioThread ? Math.round(onAudioThread.ms) : undefined, spoke, ms: Date.now() - started, peak: +peak.toFixed(4), threshold: +threshold.toFixed(4), lastLevel: +lastLevel.toFixed(4), minLevel: +minLevel.toFixed(4), silenceMs }));
     if (!spoke || parts.length === 0) return null;
     return new Blob(parts, { type: mime || "audio/webm" });
   }

@@ -71,7 +71,7 @@ export default function LeluCharacter(props: {
   if (model.status === "ready" && webgl) {
     return (
       <Suspense fallback={<div data-testid={testId} data-renderer="loading" style={{ width: "100%", height: "100%" }} />}>
-        <LeluCharacter3D model={model.model} framing={props.framing} activity={activity} style={props.style} testId={testId} />
+        <LeluCharacter3D model={model.model} framing={props.framing} activity={activity} style={props.style} testId={testId} fps={props.fps ?? 30} />
       </Suspense>
     );
   }
