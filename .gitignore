@@ -41,3 +41,10 @@ dist-ssr
 
 # Runtime Cosmos world store written by the dev server (plugins/worldEngine.ts)
 /cosmos/
+
+# Rejected by the user (face lost in the 60k remesh); kept locally, not committed. Ledger + previews are committed.
+leluverse/assets/characters/lelu_character/meshes/v001_multi-image-to-3d_01a18f49/*.glb
+leluverse/assets/characters/lelu_character/meshes/v001_multi-image-to-3d_01a18f49/*.fbx
+leluverse/assets/characters/lelu_character/meshes/v001_multi-image-to-3d_01a18f49/texture_*
+leluverse/assets/characters/lelu_character/rig/v001_rigging_01a18f4e/*.glb
+leluverse/assets/characters/lelu_character/rig/v001_rigging_01a18f4e/*.fbx
