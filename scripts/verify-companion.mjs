@@ -11,7 +11,7 @@
  *     the composer focused (she moves away herself while unpinned);
  *   - dragging her pins her there, and the spot survives a reload;
  *   - double-tapping her opens the chat;
- *   - a real event on LÉLU's event bus becomes her caption;
+ *   - a real event on LÉLU's event bus moves her body (no caption card);
  *   - her speech, as the browser's speech engine plays it, reaches her.
  *
  * Usage: node scripts/verify-companion.mjs [baseUrl]
@@ -214,7 +214,7 @@ for (const viewport of [{ name: "phone 390×844", width: 390, height: 844 }, { n
   check("typing works with her on screen", typed === "typing while she is here", typed);
   await page.fill("[data-lelu-composer] textarea", "").catch(() => {});
 
-  // A real event on LÉLU's bus becomes her caption.
+  // A real event on LÉLU's bus moves her body; no caption card appears.
   await page.evaluate(async () => {
     const { default: Bus } = await import("/src/core/agent/AgentEvents.ts");
     Bus.getInstance().emit({ type: "tool_started", taskId: "verify-companion", tool: "research", label: "Searching the web for tide tables" });
@@ -223,12 +223,12 @@ for (const viewport of [{ name: "phone 390×844", width: 390, height: 844 }, { n
   // seconds to show it: polled, not slept.
   let caption = null;
   let activity = null;
-  for (let i = 0; i < 20 && (caption !== "Searching the web for tide tables…" || activity !== "SEARCHING"); i += 1) {
+  for (let i = 0; i < 20 && activity !== "SEARCHING"; i += 1) {
     await page.waitForTimeout(400);
-    caption = await page.textContent("[data-testid='lelu-companion-caption']").catch(() => null);
+    caption = await page.$("[data-testid='lelu-companion-caption']");
     activity = await page.getAttribute("[data-testid='lelu-companion']", "data-activity").catch(() => null);
   }
-  check("an event on LÉLU's event bus becomes her caption", caption === "Searching the web for tide tables…", caption);
+  check("no caption card beside her", caption === null, caption);
   check("and her body takes that activity (live state, not a mood)", activity === "SEARCHING", activity);
 
   // Her speech as the browser's speech engine plays it.

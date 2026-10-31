@@ -1,0 +1,17 @@
+{
+  "jobId": "fj_mvww3lxu_0b1349",
+  "character": "lelu_character",
+  "kind": "animation",
+  "purpose": "Phase H motion: wave",
+  "meshyTaskId": "01a193c7-a257-700d-aac4-8d5b5dd3156d",
+  "request": {
+    "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+    "action_id": 290
+  },
+  "references": [],
+  "identityLock": null,
+  "estimatedCredits": 3,
+  "consumedCredits": 3,
+  "submittedAt": 1793480696743,
+  "finishedAt": 1793480746092
+}

@@ -37,6 +37,8 @@ export interface BehaviourInput {
   mouth: number;
   /** World point to look at (the camera / the user), or null. */
   lookAt: THREE.Vector3 | null;
+  /** False while captured animation drives her arms; the relaxed-arm pose is only for a rig with none. */
+  armsFree?: boolean;
 }
 
 /** Morph names for each control, in the conventions face-rigged GLBs use. */
@@ -212,7 +214,7 @@ export function createAvatarBehaviour(root: THREE.Object3D, random: () => number
 
       // Arms hang relaxed at her sides, with a little breathing sway and a
       // touch more movement while she talks.
-      if (arms.length) {
+      if (arms.length && input.armsFree !== false) {
         root.getWorldQuaternion(rootQuat);
         for (const { side, arm, fore } of arms) {
           const bone = arm.bone;

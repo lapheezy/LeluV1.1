@@ -189,6 +189,12 @@ export default class AvatarResolver {
     if (/\b(wave|waving|say hi|say hello)\b/.test(lower)) return { kind: "wave", label: "wave" };
     if (/\b(nod|nodding)\b/.test(lower)) return { kind: "nod", label: "nod" };
     if (/\b(bow|bowing)\b/.test(lower)) return { kind: "bow", label: "bow" };
+    if (/\b(shrug|shrugging)\b/.test(lower)) return { kind: "shrug", label: "shrug" };
+    if (/\b(heart|show (me )?(some )?love|blow (me )?a kiss)\b/.test(lower)) return { kind: "heart", label: "heart" };
+    if (/\b(cheer|celebrate|celebrating)\b/.test(lower)) return { kind: "cheer", label: "cheer" };
+    if (/\b(jump|jumping)\b/.test(lower)) return { kind: "jump", label: "jump" };
+    if (/\b(sit (down)?|take a seat|have a seat)\b/.test(lower)) return { kind: "sit", label: "sit down" };
+    if (/\b(stand up|get up)\b/.test(lower)) return { kind: "stand", label: "stand up" };
     if (/\b(look around|look at me|turn (around|toward me)|face me)\b/.test(lower)) {
       return { kind: "look", label: "look around" };
     }

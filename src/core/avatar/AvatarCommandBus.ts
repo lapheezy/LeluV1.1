@@ -28,7 +28,14 @@ export type AvatarCommandKind =
   | "look"
   | "dance"
   | "nod"
-  | "bow";
+  | "bow"
+  | "agree"
+  | "shrug"
+  | "heart"
+  | "cheer"
+  | "jump"
+  | "sit"
+  | "stand";
 
 export interface AvatarCommand {
   id: string;
@@ -102,7 +109,7 @@ class AvatarCommandBusImpl {
       kind,
       label,
       issuedAt: Date.now(),
-      durationMs: kind === "dance" ? 3_200 : 2_200,
+      durationMs: kind === "dance" ? 3_200 : kind === "sit" || kind === "stand" ? 3_000 : 2_200,
     };
 
     return new Promise<string>((resolve, reject) => {

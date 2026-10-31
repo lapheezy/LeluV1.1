@@ -904,6 +904,34 @@ const EXECUTORS: ToolExecutor[] = [
     },
   },
 
+  {
+    id: "avatar.gesture",
+    parameters: {
+      type: "object",
+      properties: {
+        gesture: {
+          type: "string",
+          enum: ["wave", "dance", "bow", "nod", "agree", "shrug", "heart", "cheer", "jump", "look", "move", "sit", "stand"],
+          description: "What your body does. Use it when the person asks, or when it fits the moment (a wave hello, a heart for something kind).",
+        },
+      },
+      required: ["gesture"],
+    },
+    run: async (args) => {
+      const { default: AvatarCommandBus } = await import("../avatar/AvatarCommandBus");
+      const kinds = ["wave", "dance", "bow", "nod", "agree", "shrug", "heart", "cheer", "jump", "look", "move", "sit", "stand"] as const;
+      const gesture = str(args, "gesture") as (typeof kinds)[number];
+      if (!kinds.includes(gesture)) return { ok: false, content: `Unknown gesture “${gesture}”.` };
+      try {
+        // Resolves only when a live renderer measured her body moving.
+        const observation = await AvatarCommandBus.getInstance().issue(gesture, gesture);
+        return { ok: true, content: `Done: ${observation}.` };
+      } catch (reason) {
+        return { ok: false, content: `Not performed: ${reason instanceof Error ? reason.message : String(reason)}` };
+      }
+    },
+  },
+
   /* ---------------------- workspace artifacts ---------------------- */
   // The workspace's views are the artifacts tools produced. These read and
   // change THOSE objects — the view the user sees gets the new revision.

@@ -72,13 +72,14 @@ export default function LeluCharacter3D({
   const frames = useRef(0);
   const lastReport = useRef(0);
 
-  const onFrame = useCallback(() => {
+  const onFrame = useCallback((_time: number, playing: string | null) => {
     frames.current += 1;
     const now = performance.now();
     const el = holder.current;
     if (!el || now - lastReport.current < 250) return;
     lastReport.current = now;
     el.dataset.frames = String(frames.current);
+    el.dataset.playing = playing ?? "";
   }, []);
 
   return (
@@ -91,6 +92,7 @@ export default function LeluCharacter3D({
       data-activity={activity}
       data-ready={info ? "true" : "false"}
       data-face-controls={info ? info.capabilities.face.join(",") : ""}
+      data-clips={info ? info.clips.join(",") : ""}
       data-bones={info ? info.capabilities.bones.join(",") : ""}
       role="img"
       aria-label="LÉLU"

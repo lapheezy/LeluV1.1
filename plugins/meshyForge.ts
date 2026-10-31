@@ -43,6 +43,7 @@ import {
   type MeshyTaskStatus,
 } from "../src/core/forge/MeshyCatalog.ts";
 import { inspectGlb } from "../src/core/forge/GlbInspector.ts";
+import { motionOnlyGlb } from "../src/core/forge/MotionGlb.ts";
 import { buildRecords } from "./forgeReferences.ts";
 import { ForgeStore, isTerminal, type CharacterSlot, type CosmosPlacement, type PlacementAttachment, type ForgeJob, type ForgeOutputFile } from "./forgeStore.ts";
 
@@ -440,6 +441,15 @@ export class MeshyForge {
     }
 
     job.validation = primary ? inspectGlb(primary) : null;
+    // An animation comes back as the whole character again; the client only
+    // needs its motion (see MotionGlb). Kept beside the full file.
+    if (job.kind === "animation" && primary) {
+      try {
+        files.push(this.store.writeOutput(dir, "motion.glb", "motion", motionOnlyGlb(primary, animationName(job))));
+      } catch (error) {
+        this.store.logEvent(job.character, { type: "motion_extract_failed", jobId: job.id, error: error instanceof Error ? error.message : String(error) });
+      }
+    }
     files.push(this.store.writeOutput(dir, "provenance.json", "provenance", new TextEncoder().encode(`${JSON.stringify(this.provenance(job), null, 2)}\n`)));
     job.output = { dir: this.store.relative(dir), files };
     job.error = null;
@@ -714,12 +724,31 @@ export class MeshyForge {
       }));
   }
 
+  /**
+   * Write motion.glb for an animation job collected before motion extraction
+   * existed. Free: reads the job's own downloaded GLB.
+   */
+  ensureMotion(jobId: string): ForgeOutputFile {
+    const job = this.store.job(jobId);
+    if (!job || job.kind !== "animation" || !job.output) throw new ForgeError("Not a collected animation job.");
+    const existing = job.output.files.find((f) => f.role === "motion");
+    if (existing) return existing;
+    const model = job.output.files.find((f) => f.role === "model");
+    if (!model) throw new ForgeError("The job has no GLB to extract motion from.");
+    const bytes = new Uint8Array(readFileSync(this.store.absolute(model.file)));
+    const file = this.store.writeOutput(this.store.absolute(job.output.dir), "motion.glb", "motion", motionOnlyGlb(bytes, animationName(job)));
+    job.output.files.push(file);
+    this.store.saveJob(job);
+    return file;
+  }
+
   /** Files the Cosmos needs to show the character: the best validated model plus clips. */
   activeCharacter(character: string) {
     const manifest = this.store.manifest(character);
     const fileFor = (jobId: string | undefined) => {
       const job = jobId ? this.store.job(jobId) : null;
-      const model = job?.output?.files.find((f) => f.role === "model");
+      // For a clip, its motion-only file: her body is already loaded once.
+      const model = job?.output?.files.find((f) => f.role === "motion") ?? job?.output?.files.find((f) => f.role === "model");
       return job && model ? { jobId: job.id, kind: job.kind, file: model.file, verdict: job.validation?.verdict ?? null } : null;
     };
     const animations: Record<string, ReturnType<typeof fileFor>> = {};
@@ -743,4 +772,10 @@ export class MeshyForge {
       throw new ForgeError(error instanceof Error ? error.message : String(error), 404);
     }
   }
+}
+
+/** The slot name an animation job was made for ("Phase H motion: wave" → "wave"). */
+function animationName(job: ForgeJob): string {
+  const match = /motion:\s*([\w-]+)/.exec(job.purpose ?? "");
+  return match ? match[1] : job.id;
 }

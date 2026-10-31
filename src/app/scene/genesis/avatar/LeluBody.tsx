@@ -22,6 +22,8 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import AgentEventBus from "../../../../core/agent/AgentEvents";
+import AvatarCommandBus, { type AvatarCommandKind } from "../../../../core/avatar/AvatarCommandBus";
+import LeluMotion from "../../../../core/avatar/LeluMotion";
 import {
   createAvatarBehaviour,
   SpeechEnvelope,
@@ -73,6 +75,26 @@ export function expressionFor(activity: LeluActivity): Expression {
   }
 }
 
+/** Which of her captured clips performs each command. */
+const COMMAND_CLIPS: Record<AvatarCommandKind, string[]> = {
+  wave: ["wave", "wave_big"],
+  move: ["walk"],
+  look: ["idle_look_around", "turn_left", "turn_right"],
+  dance: ["dance_cherish", "dance_love"],
+  nod: ["agree"],
+  agree: ["agree"],
+  bow: ["bow"],
+  shrug: ["shrug"],
+  heart: ["heart"],
+  cheer: ["cheer"],
+  jump: ["happy_jump"],
+  sit: ["sit_idle"],
+  stand: ["sit_to_stand"],
+};
+
+/** She greets the person once per visit, not once per surface. */
+let greeted = false;
+
 export interface LeluBodyInfo {
   /** Face and bone controls the model really has (reported by AvatarBehaviour). */
   capabilities: AvatarBehaviour["capabilities"];
@@ -80,6 +102,8 @@ export interface LeluBodyInfo {
   height: number;
   /** Height of her head's centre, for framing a head-and-shoulders view. */
   headY: number;
+  /** Her captured animation clips, by slot name. */
+  clips: string[];
 }
 
 function reportFailure(message: string): void {
@@ -112,11 +136,12 @@ export default function LeluBody({
   lookAt?: () => THREE.Vector3 | null;
   onReady?: (info: LeluBodyInfo) => void;
   /** Called once per rendered frame after her pose is applied. */
-  onFrame?: (time: number) => void;
+  onFrame?: (time: number, playing: string | null) => void;
 }) {
   const { camera } = useThree();
   const [model, setModel] = useState<THREE.Group | null>(null);
-  const mixer = useRef<THREE.AnimationMixer | null>(null);
+  const motion = useRef<LeluMotion | null>(null);
+  const hand = useRef<THREE.Object3D | null>(null);
   const behaviour = useRef<AvatarBehaviour | null>(null);
   const envelope = useRef(new SpeechEnvelope());
   const speechClock = useRef(0);
@@ -175,23 +200,25 @@ export default function LeluBody({
               headY = o.getWorldPosition(new THREE.Vector3()).y;
             }
           });
-          console.info("[Lélu Body] avatar controls", behaviour.current.capabilities);
-          setModel(holder);
-          callbacks.current.onReady?.({ capabilities: behaviour.current.capabilities, height, headY });
-
-          // Idle is preferred; without one, the first clip loops.
+          scene.traverse((o) => {
+            if (!hand.current && /^righthand$/i.test(o.name)) hand.current = o;
+          });
+          // Her captured motion: the model's own clip plus every approved slot
+          // (motion-only GLBs, clips named by slot), on one controller.
           void Promise.all(
             (clips ?? []).map((bytes) =>
               new GLTFLoader().parseAsync(bytes, "").then((g) => g.animations).catch(() => [] as THREE.AnimationClip[]),
             ),
           ).then((extra) => {
-            if (disposed) return;
-            const all = [...gltf.animations, ...extra.flat()];
-            if (all.length === 0) return;
-            const m = new THREE.AnimationMixer(scene);
-            const clip = all.find((c) => /idle|breath/i.test(c.name)) ?? all[0];
-            m.clipAction(clip).play();
-            mixer.current = m;
+            if (disposed || !behaviour.current) return;
+            motion.current = new LeluMotion(scene, [...extra.flat(), ...gltf.animations]);
+            console.info("[Lélu Body] avatar controls", behaviour.current.capabilities, "motion", motion.current.names);
+            setModel(holder);
+            callbacks.current.onReady?.({ capabilities: behaviour.current.capabilities, height, headY, clips: motion.current.names });
+            if (!greeted && motion.current.has("wave")) {
+              greeted = true;
+              motion.current.play("wave");
+            }
           });
         },
         fail,
@@ -201,18 +228,61 @@ export default function LeluBody({
     }
     return () => {
       disposed = true;
-      mixer.current?.stopAllAction();
-      mixer.current = null;
+      motion.current?.stop();
+      motion.current = null;
       behaviour.current = null;
+      hand.current = null;
     };
   }, [glb, clips, height]);
+
+  // Commands ("wave", "dance", "bow"…) from chat or the executive: she
+  // performs the clip, and the command is confirmed only when her hand
+  // actually moved — measured, not assumed.
+  useEffect(() => {
+    if (!model) return;
+    return AvatarCommandBus.getInstance().subscribe((command) => {
+      const m = motion.current;
+      if (!m) return;
+      const options = COMMAND_CLIPS[command.kind].filter((name) => m.has(name));
+      if (!options.length) return;
+      const clip = options[Math.floor(Math.random() * options.length)];
+      const start = hand.current?.getWorldPosition(new THREE.Vector3()) ?? null;
+      m.play(clip);
+      // Watch her hand through the gesture; confirm as soon as it has
+      // really moved (some clips, like a dance, start slowly).
+      const startedAt = Date.now();
+      const timer = setInterval(() => {
+        const now = hand.current?.getWorldPosition(new THREE.Vector3());
+        const moved = start && now ? start.distanceTo(now) : 0;
+        if (moved > 0.01) {
+          clearInterval(timer);
+          AvatarCommandBus.getInstance().confirm(command.id, `played her “${clip}” animation (hand moved ${(moved * 100).toFixed(0)} cm)`);
+        } else if (Date.now() - startedAt > command.durationMs + 1500) {
+          clearInterval(timer);
+        }
+      }, 150);
+    });
+  }, [model]);
+
+  // Moments in the conversation: done → a nod of agreement (sometimes a
+  // heart), an error → a shrug.
+  const lastActivity = useRef(activity);
+  useEffect(() => {
+    const previous = lastActivity.current;
+    lastActivity.current = activity;
+    const m = motion.current;
+    if (!m || previous === activity) return;
+    if (activity === "COMPLETED") m.play(Math.random() < 0.2 && m.has("heart") ? "heart" : "agree");
+    else if (activity === "ERROR") m.play("shrug");
+  }, [activity]);
 
   useFrame(({ clock }, delta) => {
     if (!model) return;
     const t = clock.getElapsedTime();
-    mixer.current?.update(delta);
     speechClock.current = t;
     const mode = behaviourModeFor(activity);
+    motion.current?.setMode(mode);
+    motion.current?.update(delta);
     const wanted = expressionFor(activity);
     behaviour.current?.update(
       {
@@ -220,11 +290,12 @@ export default function LeluBody({
         expression: wanted === "neutral" && mood ? mood : wanted,
         mouth: envelope.current.value(t, mode === "speaking", delta),
         lookAt: callbacks.current.lookAt ? callbacks.current.lookAt() : camera.position,
+        armsFree: !motion.current?.hasLibrary,
       },
       delta,
       t,
     );
-    callbacks.current.onFrame?.(t);
+    callbacks.current.onFrame?.(t, motion.current?.playing ?? null);
   });
 
   return model ? <primitive object={model} /> : null;

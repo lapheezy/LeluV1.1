@@ -1,0 +1,17 @@
+{
+  "jobId": "fj_mvww3pb0_62090f",
+  "character": "lelu_character",
+  "kind": "animation",
+  "purpose": "Phase H motion: dance_love",
+  "meshyTaskId": "01a193c7-b36a-710b-bd26-8607f3216897",
+  "request": {
+    "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+    "action_id": 76
+  },
+  "references": [],
+  "identityLock": null,
+  "estimatedCredits": 3,
+  "consumedCredits": 3,
+  "submittedAt": 1793480701181,
+  "finishedAt": 1793480768118
+}

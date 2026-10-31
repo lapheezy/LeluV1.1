@@ -1,7 +1,32 @@
 {
   "character": "lelu_character",
   "active": {
-    "rig": "fj_mvwaqbim_55226d"
+    "rig": "fj_mvwaqbim_55226d",
+    "animation:idle": "fj_mvww3hnt_14bec0",
+    "animation:idle_1": "fj_mvww3iet_980502",
+    "animation:idle_3": "fj_mvww3its_5dfb32",
+    "animation:idle_look_around": "fj_mvww3j7s_8156e6",
+    "animation:talk_open": "fj_mvww3jlw_7a230f",
+    "animation:talk_right": "fj_mvww3k0y_c1e30f",
+    "animation:talk_hip": "fj_mvww3kdz_1e3514",
+    "animation:talk_passionate": "fj_mvww3kqt_2d5ad7",
+    "animation:listen": "fj_mvww3l4l_a29bed",
+    "animation:agree": "fj_mvww3lkj_de5c40",
+    "animation:wave": "fj_mvww3lxu_0b1349",
+    "animation:wave_big": "fj_mvww3may_d43af7",
+    "animation:bow": "fj_mvww3mn0_ba6c84",
+    "animation:shrug": "fj_mvww3n0t_a78ec5",
+    "animation:hand_on_hip": "fj_mvww3ndk_b34dde",
+    "animation:cheer": "fj_mvww3nsc_7e83cf",
+    "animation:heart": "fj_mvww3o5h_02eab9",
+    "animation:happy_jump": "fj_mvww3oi3_a66db8",
+    "animation:dance_cherish": "fj_mvww3ov7_72c34d",
+    "animation:dance_love": "fj_mvww3pb0_62090f",
+    "animation:walk": "fj_mvww3pq7_6eae1f",
+    "animation:turn_left": "fj_mvww3q3y_076930",
+    "animation:turn_right": "fj_mvww3qht_0037c9",
+    "animation:sit_idle": "fj_mvww3quk_2358de",
+    "animation:sit_to_stand": "fj_mvww3rbc_51e36f"
   },
   "history": [
     {
@@ -33,6 +58,156 @@
       "jobId": null,
       "replacedBy": "fj_mvwaqbim_55226d",
       "at": 1793452079858
+    },
+    {
+      "slot": "animation:idle",
+      "jobId": null,
+      "replacedBy": "fj_mvww3hnt_14bec0",
+      "at": 1793480914067
+    },
+    {
+      "slot": "animation:idle_1",
+      "jobId": null,
+      "replacedBy": "fj_mvww3iet_980502",
+      "at": 1793480915269
+    },
+    {
+      "slot": "animation:idle_3",
+      "jobId": null,
+      "replacedBy": "fj_mvww3its_5dfb32",
+      "at": 1793480916432
+    },
+    {
+      "slot": "animation:idle_look_around",
+      "jobId": null,
+      "replacedBy": "fj_mvww3j7s_8156e6",
+      "at": 1793480917586
+    },
+    {
+      "slot": "animation:talk_open",
+      "jobId": null,
+      "replacedBy": "fj_mvww3jlw_7a230f",
+      "at": 1793480918756
+    },
+    {
+      "slot": "animation:talk_right",
+      "jobId": null,
+      "replacedBy": "fj_mvww3k0y_c1e30f",
+      "at": 1793480919961
+    },
+    {
+      "slot": "animation:talk_hip",
+      "jobId": null,
+      "replacedBy": "fj_mvww3kdz_1e3514",
+      "at": 1793480921065
+    },
+    {
+      "slot": "animation:talk_passionate",
+      "jobId": null,
+      "replacedBy": "fj_mvww3kqt_2d5ad7",
+      "at": 1793480922223
+    },
+    {
+      "slot": "animation:listen",
+      "jobId": null,
+      "replacedBy": "fj_mvww3l4l_a29bed",
+      "at": 1793480923428
+    },
+    {
+      "slot": "animation:agree",
+      "jobId": null,
+      "replacedBy": "fj_mvww3lkj_de5c40",
+      "at": 1793480924648
+    },
+    {
+      "slot": "animation:wave",
+      "jobId": null,
+      "replacedBy": "fj_mvww3lxu_0b1349",
+      "at": 1793480925826
+    },
+    {
+      "slot": "animation:wave_big",
+      "jobId": null,
+      "replacedBy": "fj_mvww3may_d43af7",
+      "at": 1793480927023
+    },
+    {
+      "slot": "animation:bow",
+      "jobId": null,
+      "replacedBy": "fj_mvww3mn0_ba6c84",
+      "at": 1793480928188
+    },
+    {
+      "slot": "animation:shrug",
+      "jobId": null,
+      "replacedBy": "fj_mvww3n0t_a78ec5",
+      "at": 1793480929371
+    },
+    {
+      "slot": "animation:hand_on_hip",
+      "jobId": null,
+      "replacedBy": "fj_mvww3ndk_b34dde",
+      "at": 1793480930539
+    },
+    {
+      "slot": "animation:cheer",
+      "jobId": null,
+      "replacedBy": "fj_mvww3nsc_7e83cf",
+      "at": 1793480931620
+    },
+    {
+      "slot": "animation:heart",
+      "jobId": null,
+      "replacedBy": "fj_mvww3o5h_02eab9",
+      "at": 1793480932759
+    },
+    {
+      "slot": "animation:happy_jump",
+      "jobId": null,
+      "replacedBy": "fj_mvww3oi3_a66db8",
+      "at": 1793480934009
+    },
+    {
+      "slot": "animation:dance_cherish",
+      "jobId": null,
+      "replacedBy": "fj_mvww3ov7_72c34d",
+      "at": 1793480935200
+    },
+    {
+      "slot": "animation:dance_love",
+      "jobId": null,
+      "replacedBy": "fj_mvww3pb0_62090f",
+      "at": 1793480936310
+    },
+    {
+      "slot": "animation:walk",
+      "jobId": null,
+      "replacedBy": "fj_mvww3pq7_6eae1f",
+      "at": 1793480937465
+    },
+    {
+      "slot": "animation:turn_left",
+      "jobId": null,
+      "replacedBy": "fj_mvww3q3y_076930",
+      "at": 1793480938574
+    },
+    {
+      "slot": "animation:turn_right",
+      "jobId": null,
+      "replacedBy": "fj_mvww3qht_0037c9",
+      "at": 1793480939887
+    },
+    {
+      "slot": "animation:sit_idle",
+      "jobId": null,
+      "replacedBy": "fj_mvww3quk_2358de",
+      "at": 1793480941044
+    },
+    {
+      "slot": "animation:sit_to_stand",
+      "jobId": null,
+      "replacedBy": "fj_mvww3rbc_51e36f",
+      "at": 1793480955713
     }
   ]
 }

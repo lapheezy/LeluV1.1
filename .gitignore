@@ -61,3 +61,8 @@ leluverse/assets/characters/lelu_character/meshes/v002_multi-image-to-3d_01a18f5
 leluverse/assets/characters/lelu_character/meshes/v002_multi-image-to-3d_01a18f5a/texture_*
 leluverse/assets/characters/lelu_character/rig/v002_headswap_mvvnvqa1/*.glb
 leluverse/assets/characters/lelu_character/rig/v003_headswap_mvvnvqa1/*.glb
+
+# Meshy animation downloads repeat the whole character (~24 MB each); the
+# client uses motion.glb (bones + clip only), which is committed.
+leluverse/assets/characters/lelu_character/animations/*/animation.glb
+leluverse/assets/characters/lelu_character/animations/*/animation.fbx

@@ -24,6 +24,7 @@
  *   tsx scripts/forge-character.ts plan-head [refIds…]  plan a head-and-shoulders model from ref10 + views (spends nothing)
  *   tsx scripts/forge-character.ts inspect <file.glb>   run the GLB inspector on any file
  *   tsx scripts/forge-character.ts library [search]     Meshy's animation catalogue (free)
+ *   tsx scripts/forge-character.ts motion <jobId>...    motion-only GLB for collected animation jobs (free)
  */
 
 import { readFileSync } from "node:fs";
@@ -397,6 +398,13 @@ async function main(): Promise<void> {
     case "inspect": {
       const report = inspectGlb(new Uint8Array(readFileSync(jobArg(3))));
       console.log(JSON.stringify(report, null, 2));
+      return;
+    }
+    case "motion": {
+      for (const jobId of process.argv.slice(3)) {
+        const file = forge.ensureMotion(jobId);
+        console.log(`${jobId}  ${file.file}  ${(file.bytes / 1024).toFixed(0)} KB`);
+      }
       return;
     }
     case "library":

@@ -465,6 +465,16 @@ export default class ToolRegistry {
         executionRoute: "CompanionStore",
       },
       {
+        id: "avatar.gesture",
+        name: "Gesture",
+        description: "Move your own 3D body: wave, dance, bow, nod/agree, shrug, make a heart, cheer, jump, look around, walk, sit down or stand up",
+        category: "Creative",
+        permissions: ["WRITE"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "AvatarCommandBus.issue",
+      },
+      {
         id: "artifact.read",
         name: "Read Workspace Artifact",
         description: "Read an artifact in the workspace (the one the user selected by default): a capture, a page, a note, a diagram or a table",

@@ -214,6 +214,11 @@ export class ForgeStore {
     return resolved;
   }
 
+  /** A stored relative path back to a file on disk. */
+  absolute(relativePath: string): string {
+    return path.join(this.root, ...relativePath.split("/"));
+  }
+
   relative(file: string): string {
     return path.relative(this.root, file).split(path.sep).join("/");
   }

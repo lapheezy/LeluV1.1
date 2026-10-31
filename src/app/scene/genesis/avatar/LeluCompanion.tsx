@@ -17,9 +17,8 @@
  *     (listening, thinking, browsing, working…) from the same reading the
  *     3D presence uses, and her speech as it actually plays — each word
  *     boundary from the speech engine is a beat of her body.
- *   - She says what she is doing in a small caption, taken from real
- *     events: the tool that started, the page she opened, the sentence
- *     she is speaking. Nothing invented.
+ *   - No caption cards: what she is doing and saying belongs in the
+ *     conversation and the notifications, not in a bubble beside her.
  *
  * A photo cannot move its lips: with a saved image she speaks with her
  * whole presence, not a mouth. Real lip-sync needs a rigged model.
@@ -35,15 +34,12 @@ import CompanionStore, {
   type CompanionState,
   type Rect,
 } from "../../../../core/avatar/CompanionStore";
-import AgentEventBus from "../../../../core/agent/AgentEvents";
-import VoiceEngine from "../../../../core/voice/VoiceEngine";
 import { within } from "../../../../core/ui/Layers";
 import { useGenesis } from "../GenesisCore";
 import { ACTIVITY_ACCENT, useLeluActivity } from "./leluActivity";
 import LeluCharacterStore from "../../../../core/avatar/LeluCharacterStore";
 import LeluCharacter from "./LeluCharacter";
 import { useLeluCharacter } from "./useLeluCharacter";
-import { captionForEvent } from "./companionCaption";
 
 function viewportSize(): { width: number; height: number } {
   const vv = typeof window !== "undefined" ? window.visualViewport : null;
@@ -104,7 +100,6 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
   const [viewport, setViewport] = useState(viewportSize);
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
   const [controlsOpen, setControlsOpen] = useState(false);
-  const [caption, setCaption] = useState<{ text: string; at: number } | null>(null);
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const controlsRef = useRef<HTMLDivElement | null>(null);
@@ -148,27 +143,6 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
     };
   }, [reconsider, viewport, companion.size, companion.framing, companion.pinned]);
 
-  /* ------------------- what she says (real events only) ------------------ */
-  useEffect(() => {
-    const unsubscribeEvents = AgentEventBus.getInstance().subscribe((event) => {
-      const text = captionForEvent(event);
-      if (text) setCaption({ text: text.slice(0, 120), at: Date.now() });
-    });
-    const unsubscribeSpeech = VoiceEngine.getInstance().onSpeechActivity((speech) => {
-      if (speech.kind === "start" && speech.text) setCaption({ text: speech.text.slice(0, 140), at: Date.now() });
-    });
-    return () => {
-      unsubscribeEvents();
-      unsubscribeSpeech();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!caption) return;
-    const timer = setTimeout(() => setCaption((current) => (current?.at === caption.at ? null : current)), 6000);
-    return () => clearTimeout(timer);
-  }, [caption]);
-
   /* ------------------------- drag: you place her ------------------------- */
   const pressRef = useRef<{ x: number; y: number; moved: boolean; at: number } | null>(null);
   const lastTapRef = useRef(0);
@@ -207,11 +181,8 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
   const dimensions = companionDimensions(companion.size, companion.framing);
   const rect = figureRect(position.x, position.y, dimensions, viewport);
   const { width, height } = dimensions;
-  const captionLeftOfHer = rect.left > viewport.width / 2;
-  // The caption sits beside her and the controls under her — both kept
-  // inside the screen (measured on phones: centred controls ran off the
-  // right edge when she stood near it).
-  const captionRoom = Math.max(120, captionLeftOfHer ? rect.left - 16 : viewport.width - (rect.left + width) - 16);
+  // The controls sit under her, kept inside the screen (measured on phones:
+  // centred controls ran off the right edge when she stood near it).
   const controlsWidth = controlsRef.current?.offsetWidth ?? 180;
   const controlsLeft =
     Math.min(Math.max(8, rect.left + width / 2 - controlsWidth / 2), Math.max(8, viewport.width - controlsWidth - 8)) - rect.left;
@@ -280,29 +251,6 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
           <LeluCharacter framing={companion.framing} testId="lelu-companion-character" />
         </div>
 
-        {caption && !drag ? (
-          <div
-            data-testid="lelu-companion-caption"
-            style={{
-              // Words, not a control: the caption never takes a touch, so it
-              // can never stand between the user and what is beneath it.
-              pointerEvents: "none",
-              position: "absolute",
-              top: 6,
-              ...(captionLeftOfHer ? { right: width + 8 } : { left: width + 8 }),
-              maxWidth: Math.min(260, captionRoom),
-              padding: "7px 10px",
-              borderRadius: 12,
-              background: "rgba(14,10,22,0.92)",
-              border: `1px solid ${accent}55`,
-              color: "#efe7ff",
-              font: "500 12px/1.35 system-ui, sans-serif",
-              boxShadow: "0 6px 18px rgba(0,0,0,0.35)",
-            }}
-          >
-            {caption.text}
-          </div>
-        ) : null}
 
         {controlsOpen && !drag ? (
           <div
