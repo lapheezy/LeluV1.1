@@ -32,7 +32,7 @@
 
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -43,6 +43,8 @@ import { ForgeError, type EnvReader } from "./meshyForge.ts";
 export const BLENDER_SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "scripts", "blender", "lelu_postprocess.py");
 export const HEADSWAP_SCRIPT = path.join(path.dirname(BLENDER_SCRIPT), "lelu_headswap.py");
 export const POSECHECK_SCRIPT = path.join(path.dirname(BLENDER_SCRIPT), "lelu_posecheck.py");
+export const FACEPROJECT_SCRIPT = path.join(path.dirname(BLENDER_SCRIPT), "lelu_faceproject.py");
+export const FACE_LANDMARKER = path.join(path.dirname(BLENDER_SCRIPT), "models", "face_landmarker.task");
 
 export interface BlenderRunner {
   kind: "bpy" | "blender";
@@ -203,7 +205,7 @@ export async function headswap(
   readEnv: EnvReader,
   rigJobId: string,
   headJobId: string,
-  options: { textureSize?: number; hairGap?: number } = {},
+  options: { textureSize?: number; hairGap?: number; faceProjection?: boolean } = {},
   deps: { runner?: BlenderRunner | null; timeoutMs?: number } = {},
 ): Promise<{ job: ForgeJob; reused: boolean }> {
   const rig = store.job(rigJobId);
@@ -213,8 +215,8 @@ export async function headswap(
   const headModel = head.output?.files.find((f) => f.role === "model");
   if (rig.status !== "SUCCEEDED" || !rigModel || !rig.validation?.verdict.rigValid) throw new ForgeError("The body must be a finished job whose rig validated.", 409);
   if (head.status !== "SUCCEEDED" || !headModel || !head.validation?.verdict.textured) throw new ForgeError("The head must be a finished, textured job.", 409);
-  const opts = { textureSize: options.textureSize ?? 4096, hairGap: options.hairGap ?? 0.02 };
-  const scripts = [HEADSWAP_SCRIPT, POSECHECK_SCRIPT].map((f) => createHash("sha256").update(readFileSync(f)).digest("hex").slice(0, 16));
+  const opts = { textureSize: options.textureSize ?? 4096, hairGap: options.hairGap ?? 0.02, faceProjection: options.faceProjection ?? true };
+  const scripts = [HEADSWAP_SCRIPT, POSECHECK_SCRIPT, FACEPROJECT_SCRIPT].map((f) => createHash("sha256").update(readFileSync(f)).digest("hex").slice(0, 16));
   const request = { operation: "headswap", body: rig.id, bodySha256: rigModel.sha256, head: head.id, headSha256: headModel.sha256, scripts, options: opts };
   const requestKey = createHash("sha256").update(JSON.stringify(request)).digest("hex");
   const existing = store.findByKey(rig.character, requestKey);
@@ -236,6 +238,27 @@ export async function headswap(
     if (swap.code !== 0 || !existsSync(out)) {
       store.logEvent(rig.character, { type: "blender_failed", operation: "headswap", jobId: rig.id, headJobId: head.id, code: swap.code, log: swap.log.slice(-2000) });
       throw new ForgeError(`Head swap failed (exit ${swap.code}).`, 500, swap.log.trim().split("\n").slice(-8));
+    }
+    // Paint the identity reference onto the face and lay its eyes over the
+    // sculpted lids (lelu_faceproject.py). Skipped only when there is no
+    // identity reference; a failure here fails the stage rather than hiding.
+    const identity = store.identity(rig.character);
+    const primary = identity ? store.references(rig.character).find((r) => r.id === identity.primary) : null;
+    const reference = primary ? store.safeAssetPath(primary.file) : null;
+    if (opts.faceProjection && reference && existsSync(reference)) {
+      const faced = path.join(work, "lelu_face.glb");
+      const fp = await run(
+        runner,
+        JSON.stringify({ model: out, reference, landmarker: readEnv("LELU_FACE_LANDMARKER") ?? FACE_LANDMARKER, out: faced, previewDir: work }),
+        deps.timeoutMs ?? 20 * 60_000,
+        FACEPROJECT_SCRIPT,
+      );
+      if (fp.code !== 0 || !existsSync(faced)) {
+        store.logEvent(rig.character, { type: "blender_failed", operation: "faceproject", log: fp.log.slice(-2000) });
+        throw new ForgeError(`Face projection failed (exit ${fp.code}).`, 500, fp.log.trim().split("\n").slice(-8));
+      }
+      renameSync(faced, out);
+      if (existsSync(`${faced}.report.json`)) renameSync(`${faced}.report.json`, path.join(work, "faceproject.report.json"));
     }
     if (clipPath && existsSync(clipPath)) {
       const pose = await run(runner, JSON.stringify({ model: out, clip: clipPath, outDir: work }), deps.timeoutMs ?? 20 * 60_000, POSECHECK_SCRIPT);
