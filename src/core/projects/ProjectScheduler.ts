@@ -45,6 +45,10 @@ export default class ProjectScheduler {
 
     this.providers = providers;
     this.interval = setInterval(() => this.tick(), CHECK_INTERVAL_MS);
+    // A background poll must not be what keeps a Node process alive (a
+    // server has its listener for that; a test or script should exit when
+    // its work is done). No-op in the browser.
+    (this.interval as { unref?: () => void }).unref?.();
 
     console.log("[Lélu ProjectScheduler] Started — checking every 60s");
   }

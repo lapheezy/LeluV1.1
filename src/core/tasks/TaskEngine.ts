@@ -32,6 +32,33 @@ export interface TaskStep {
   error?: string;
   startedAt?: number;
   completedAt?: number;
+  /**
+   * What this step DOES, when it is executable. A step without an action
+   * is a label (the original planning-only shape); the TaskExecutor runs
+   * steps that carry one. See src/core/agentic/TaskExecutor.ts.
+   */
+  action?: StepAction;
+  /** Step ids that must complete first. Absent: the previous step. */
+  dependsOn?: string[];
+  /** A check the step's real output must pass before it counts as done. */
+  verify?: StepVerification;
+  /** Attempts allowed, including the first (default 2, max 5). */
+  maxAttempts?: number;
+  attempts?: number;
+  /** Full output of the step (result is a short preview). */
+  output?: string;
+  /** Set while the step waits on a human decision. */
+  approvalId?: string;
+}
+
+export type StepAction =
+  | { kind: "tool"; tool: string; args: Record<string, unknown> }
+  | { kind: "agent"; agent: string; instruction: string }
+  | { kind: "reason"; prompt: string };
+
+export interface StepVerification {
+  operator: "not-empty" | "contains" | "not-contains" | "equals";
+  value?: string;
 }
 
 export interface TaskCheckpoint {
@@ -54,6 +81,10 @@ export interface Task {
   result?: string;
   error?: string;
   checkpoint?: TaskCheckpoint;
+  /** Where the task came from: "chat", "orchestrator", "model", "reflection"… */
+  origin?: string;
+  /** The verified completion report, written by the TaskExecutor. */
+  report?: string;
   createdAt: number;
   updatedAt: number;
   startedAt?: number;
@@ -86,10 +117,19 @@ export default class TaskEngine {
     goal: string;
     description?: string;
     priority?: TaskPriority;
-    steps?: { title: string; description: string }[];
+    steps?: Array<{
+      title: string;
+      description: string;
+      id?: string;
+      action?: StepAction;
+      dependsOn?: string[];
+      verify?: StepVerification;
+      maxAttempts?: number;
+    }>;
     requiredTools?: string[];
     permissions?: string[];
     dependencies?: string[];
+    origin?: string;
   }): Task {
     const now = Date.now();
     const task: Task = {
@@ -99,11 +139,16 @@ export default class TaskEngine {
       status: "new",
       priority: input.priority ?? "normal",
       steps: (input.steps ?? []).map((step, index) => ({
-        id: `step-${now}-${index}`,
+        id: step.id ?? `step-${now}-${index}`,
         title: step.title,
         description: step.description,
         status: "pending" as const,
+        ...(step.action ? { action: step.action } : {}),
+        ...(step.dependsOn ? { dependsOn: step.dependsOn } : {}),
+        ...(step.verify ? { verify: step.verify } : {}),
+        ...(step.maxAttempts ? { maxAttempts: step.maxAttempts } : {}),
       })),
+      ...(input.origin ? { origin: input.origin } : {}),
       currentStepIndex: 0,
       requiredTools: input.requiredTools ?? [],
       permissions: input.permissions ?? [],
@@ -285,6 +330,26 @@ export default class TaskEngine {
     const task = this.get(taskId);
     if (!task || task.status !== "running") return undefined;
     return task.steps[task.currentStepIndex];
+  }
+
+  /**
+   * Persist a task the caller has mutated in place. The executor changes
+   * step state directly and checkpoints through here after every step, so
+   * an interrupted run resumes from the last step that really finished.
+   */
+  save(task: Task): void {
+    task.updatedAt = Date.now();
+    const index = this.tasks.findIndex((t) => t.id === task.id);
+    if (index >= 0) this.tasks[index] = task;
+    else this.tasks.unshift(task);
+    this.persist();
+    this.notify();
+  }
+
+  /** Re-read every task from storage (a fresh start reads the same state). */
+  reload(): void {
+    this.tasks = this.load();
+    this.notify();
   }
 
   // ---------- SUBSCRIPTION ----------

@@ -1128,6 +1128,20 @@ export default class AIService {
    * the Brain already maintains: "knowledge" for what she learned about
    * the world, "system" for what she learned about herself.
    */
+  /**
+   * The Brain's own reflection over long-term memory (themes, insights,
+   * priorities). Null when the runtime has not initialised: reflection
+   * never boots the runtime as a side effect.
+   */
+  public async reflectOnMemory(): Promise<Awaited<ReturnType<AIRuntime["brain"]["reflect"]>> | null> {
+    if (!this.initialized) return null;
+    try {
+      return await this.runtime.brain.reflect();
+    } catch {
+      return null;
+    }
+  }
+
   public async consolidate(
     kind: "knowledge" | "system",
     summary: string,

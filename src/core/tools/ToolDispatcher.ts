@@ -30,10 +30,13 @@ import type { ToolCall } from "../../providers/AIProvider";
 import type RouterContext from "../router/RouterContext";
 import AgentEventBus from "../agent/AgentEvents";
 import AutonomyGate from "../cognition/AutonomyGate";
-import ToolRegistry, { type RiskLevel } from "./ToolRegistry";
+import ToolRegistry, { type RiskLevel, type ToolDefinition } from "./ToolRegistry";
 import { FORGE_EXECUTORS } from "../forge/ForgeTools";
 import { WORLD_EXECUTORS } from "../world/WorldTools";
+import { AGENTIC_EXECUTORS } from "../agentic/AgenticTools";
 import EngineeringAuthorization from "../engineering/EngineeringAuthorization";
+import ApprovalGate from "../agentic/ApprovalGate";
+import ToolStats from "../agentic/ToolStats";
 
 export interface ToolExecutionResult {
   ok: boolean;
@@ -43,7 +46,7 @@ export interface ToolExecutionResult {
   data?: unknown;
 }
 
-interface ToolExecutor {
+export interface ToolExecutor {
   /** Registry id, e.g. "research.web". */
   id: string;
   /** JSON Schema for the arguments the model must supply. */
@@ -1173,7 +1176,40 @@ async function runWorkspace(
 
 // The 3D Forge's executors live with the Forge (forge/ForgeTools.ts) and run
 // through this same dispatcher, gate and event stream.
-const BY_ID = new Map<string, ToolExecutor>([...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS].map((executor) => [executor.id, executor]));
+const BY_ID = new Map<string, ToolExecutor>(
+  [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS].map((executor) => [executor.id, executor]),
+);
+
+/**
+ * Add a tool at runtime: a new integration, a provider-backed capability,
+ * a tool LÉLU wrote and the user approved. The executor joins the same
+ * table the static tools live in and the definition joins the registry,
+ * so it is offered, gated, approved, recorded and dispatched exactly like
+ * a built-in — nothing in cognition is rebuilt or special-cased.
+ *
+ * Refuses to replace an existing id: silently swapping the executor behind
+ * a name the model already trusts is how a tool would change under it.
+ */
+export function registerExecutor(executor: ToolExecutor, definition: ToolDefinition): { ok: boolean; reason?: string } {
+  if (executor.id !== definition.id) return { ok: false, reason: "executor and definition ids differ" };
+  if (!/^[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)+$/i.test(executor.id)) {
+    return { ok: false, reason: `"${executor.id}" is not a dotted tool id (e.g. "service.action")` };
+  }
+  if (BY_ID.has(executor.id)) return { ok: false, reason: `a tool named "${executor.id}" already exists` };
+  BY_ID.set(executor.id, executor);
+  ToolRegistry.getInstance().register(definition);
+  return { ok: true };
+}
+
+/** Remove a tool added with registerExecutor. Built-ins cannot be removed. */
+export function unregisterExecutor(id: string): boolean {
+  if (BUILT_IN_IDS.has(id) || !BY_ID.has(id)) return false;
+  BY_ID.delete(id);
+  ToolRegistry.getInstance().unregister(id);
+  return true;
+}
+
+const BUILT_IN_IDS = new Set(BY_ID.keys());
 
 /** Registry ids that have a real executor behind them. */
 export function executableToolIds(): string[] {
@@ -1253,6 +1289,20 @@ function authorizedWorkspaceExists(): boolean {
   }
 }
 
+/**
+ * Can a human approval let this tool run when the autonomy level alone
+ * does not? Only up to "Execute approved" (L3): an approval never makes a
+ * destructive (L4) action runnable below its level, and never stands in
+ * for the project authorization that apply/commit require.
+ */
+function approvalCanLift(id: string): boolean {
+  const definition = ToolRegistry.getInstance().get(id);
+  if (!definition || !definition.available) return false;
+  if (riskToAutonomy(definition.riskLevel) > 3) return false;
+  if ((id === "project.apply" || id === "project.commit") && !authorizedWorkspaceExists()) return false;
+  return true;
+}
+
 /** Map registry risk (0-4) onto the autonomy levels the gate uses. */
 function riskToAutonomy(risk: RiskLevel): number {
   return risk <= 1 ? 1 : risk === 2 ? 2 : risk === 3 ? 3 : 4;
@@ -1269,19 +1319,34 @@ export async function dispatchToolCall(
   call: ToolCall,
   taskId: string,
   context?: RouterContext,
+  options: {
+    /**
+     * A human approval granted for exactly this call (see ApprovalGate).
+     * It is spent here, and lets a tool that is otherwise above the
+     * autonomy level run once at "Execute approved" (L3).
+     */
+    approvalId?: string;
+  } = {},
 ): Promise<ToolExecutionResult> {
   const events = AgentEventBus.getInstance();
+  const stats = ToolStats.getInstance();
   const id = registryIdForToolName(call.name);
   const executor = BY_ID.get(id);
 
   if (!executor) {
-    return {
-      ok: false,
-      content: `There is no tool named "${call.name}", so nothing was executed.`,
-    };
+    const content = `There is no tool named "${call.name}", so nothing was executed.`;
+    stats.record(call.name, "refused", 0, content);
+    return { ok: false, content };
   }
 
-  if (!toolPermitted(id)) {
+  // An approval is spent whenever it is presented, so it is single-use
+  // even for a tool the autonomy level already allows.
+  const consumed =
+    options.approvalId !== undefined &&
+    ApprovalGate.getInstance().consume(options.approvalId, id, call.arguments ?? {});
+  const approved = consumed && approvalCanLift(id);
+
+  if (!approved && !toolPermitted(id)) {
     // Say WHY, accurately.
     //
     // A single "not permitted at the current autonomy level" message
@@ -1289,6 +1354,7 @@ export async function dispatchToolCall(
     // missing session or a missing authorization — a true refusal with
     // a false reason, which sends the user to fix the wrong thing.
     const result = { ok: false, content: refusalReason(id) };
+    stats.record(id, "refused", 0, result.content);
     events.emit({
       type: "tool_result",
       taskId,
@@ -1305,8 +1371,10 @@ export async function dispatchToolCall(
     events.emit({ type: "tool_started", taskId, tool: id, label: `Running ${id}` });
   }
 
+  const started = Date.now();
   try {
     const result = await executor.run(call.arguments ?? {}, context);
+    stats.record(id, result.ok ? "succeeded" : "failed", Date.now() - started, result.ok ? undefined : result.content);
     if (!executor.emitsOwnEvents) {
       events.emit({
         type: "tool_result",
@@ -1320,6 +1388,7 @@ export async function dispatchToolCall(
     return result;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    stats.record(id, "failed", Date.now() - started, message);
     events.emit({
       type: "tool_result",
       taskId,
