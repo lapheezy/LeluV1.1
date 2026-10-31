@@ -1,0 +1,34 @@
+{
+  "base": "http://127.0.0.1:5173/",
+  "startedAt": "2026-10-29T22:12:31.975Z",
+  "durationSeconds": 155,
+  "finished": "task_completed",
+  "toolCalls": [
+    "memory.recall: Checking memory for “capability dispatch”",
+    "memory.recall: Checking memory for “capability dispatch available capabilities cannot actually”",
+    "browser: Looking at my own interface (phone)",
+    "browser: Looking at my own interface (phone, avatar)",
+    "project.search: Running project.search (Reset profile)",
+    "project.read: Running project.read (src/app/scene/genesis/GenesisAvatarPanel.tsx)",
+    "project.copy: Running project.copy",
+    "project.read: Running project.read (src/app/scene/genesis/GenesisAvatarPanel.tsx)"
+  ],
+  "failures": [
+    "memory.recall: No stored memory matches \"capability dispatch\".",
+    "project.read: project.read requires workspace and path."
+  ],
+  "captures": 2,
+  "workspaces": [
+    "default"
+  ],
+  "changedFiles": {
+    "default": [
+      "docs/evidence/self-improve/2026-10-29T22-12-03/capture-01.jpg +0/-86",
+      "docs/evidence/self-improve/2026-10-29T22-12-03/capture-02.jpg +0/-78",
+      "docs/evidence/self-improve/2026-10-29T22-12-03/events.json +0/-386",
+      "docs/evidence/self-improve/2026-10-29T22-12-03/request.txt +0/-8",
+      "docs/evidence/self-improve/2026-10-29T22-12-03/transcript.txt +0/-56"
+    ]
+  },
+  "pageErrors": []
+}

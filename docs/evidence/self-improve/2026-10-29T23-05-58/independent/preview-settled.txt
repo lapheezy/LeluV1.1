@@ -1,0 +1,9 @@
+   covered button[Minimize Genesis] [116,16,34,34] 
+   covered button "⌘KCommand Palette" [158,18,174,30] 
+   covered button[Enter fullscreen] [340,16,34,34] 
+   partly-off-screen button "Exit Core" [353,158,89,40] 
+   partly-off-screen button#companion-toggle "Companion modeShow her over the app whil" [42,226,413,48] 
+   partly-off-screen button "3D" [251,318,203,34] 
+   partly-off-screen button "Upload reference" [42,922,413,34] 
+   partly-off-screen button "Reset profile" [42,1066,413,34] 
+   sideways-overflow div "LÉLU · EmbodimentAvatar · persistent ide" [17,143,356,599] content 437px wide in a 356px box

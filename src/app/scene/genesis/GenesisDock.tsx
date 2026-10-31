@@ -26,6 +26,7 @@ import GenesisMobileMenu from "./GenesisMobileMenu";
 import KvStore from "../../../core/storage/KvStore";
 import OgDockTabs from "./OgDockTabs";
 import ImprovementQueue from "../../../core/selfdev/ImprovementQueue";
+import { layer, within } from "../../../core/ui/Layers";
 
 export interface DockItem {
   id: GenesisPanel;
@@ -52,7 +53,12 @@ export const DOCK_ITEMS: DockItem[] = [
   { id: "chat", label: "LÉLU", glyph: "◎", icon: "orbit", group: "core" },
   // ── Capabilities accessible through the side panel / ⌘K palette ──
   { id: "memory", label: "Memory", glyph: "◐", icon: "crescent", group: "intelligence" },
-  { id: "notifications", label: "Updates", glyph: "◷", icon: "crescent", group: "system" },
+  // The "Updates" slot now opens Briefings — LÉLU's own account of what
+  // her autonomous work did, with read and dismissed state of its own.
+  // The improvement proposals that used to live here are unchanged and
+  // still reachable through Self Development, which is where they are
+  // acted on.
+  { id: "briefings", label: "Briefings", glyph: "◷", icon: "crescent", group: "system" },
   { id: "settings", label: "Settings", glyph: "⚙", icon: "sliders", group: "system" },
 
   // ── Deeper capabilities (default-hidden, restorable via ⚙/⌘K) ──
@@ -469,6 +475,14 @@ interface GenesisDockProps {
    * Visual dock tab reflect the live VisualEngine state.
    */
   visualActive?: boolean;
+  /**
+   * The conversation is the whole (phone-sized) screen — surface/Surface.
+   * The dock then takes its phone shape whatever the width: no rail and
+   * no pill, only the LÉLU menu the chat header's ☰ opens. A landscape
+   * phone is 844px wide, which used to put a tablet rail down the left
+   * of the full-screen chat and push the conversation over.
+   */
+  chatOwnsScreen?: boolean;
   /** Earth Core hold → voice activation callback. */
   onCoreHoldVoice?: () => void;
   /** Self Exploration toggle state + handler. */
@@ -485,11 +499,13 @@ export default function GenesisDock({
   reasoningActive = false,
   engineErrorCount = 0,
   visualActive = false,
+  chatOwnsScreen = false,
   onCoreHoldVoice,
   selfExplorationEnabled = true,
   onToggleSelfExploration,
 }: GenesisDockProps) {
-  const breakpoint = useBreakpoint();
+  const measuredBreakpoint = useBreakpoint();
+  const breakpoint: Breakpoint = chatOwnsScreen ? "mobile" : measuredBreakpoint;
   const dockSettings = useDockSettings();
   // Mobile-only long-press state, but declared unconditionally: these
   // were previously created inside `if (breakpoint === "mobile")`
@@ -709,7 +725,7 @@ export default function GenesisDock({
             style={{
               position: "fixed",
               inset: 0,
-              zIndex: 26,
+              zIndex: within("navigation", 1),
               background: "rgba(2,6,23,0.45)",
               pointerEvents: "auto",
             }}
@@ -754,11 +770,13 @@ export default function GenesisDock({
             setMenuOpen((open) => !open);
           }}
           onPointerDown={(event) => {
-            if (event.pointerType === "touch" && onCoreHoldVoice) {
+            if (onCoreHoldVoice) {
+              // Touch: 600ms deliberate hold; mouse: 500ms (no accidental drags).
+              const threshold = event.pointerType === "touch" ? 600 : 500;
               longPressRef.current = window.setTimeout(() => {
                 longPressFiredRef.current = true;
                 onCoreHoldVoice();
-              }, 600);
+              }, threshold);
             }
           }}
           onPointerUp={() => {
@@ -782,11 +800,16 @@ export default function GenesisDock({
           className={`lelu-tab-cloud${menuOpen ? " lelu-tab-cloud-active" : ""}`}
           title="LÉLU menu — tools, workspace, environments (long-press for voice)"
           aria-label="Open LÉLU menu"
+          // On phones this pill IS the primary navigation, so it carries the
+          // dock marker: layout verification asks "where is the dock" and
+          // must get an answer at every breakpoint, not just the two that
+          // render a rail.
+          data-lelu-dock
           style={{
             position: "fixed",
             right: 12,
             bottom: "calc(env(safe-area-inset-bottom, 0px) + 10px)",
-            zIndex: 28,
+            zIndex: within("navigation", 3),
             pointerEvents: "auto",
             display: "inline-flex",
             alignItems: "center",
@@ -845,13 +868,14 @@ export default function GenesisDock({
     return (
       <>
         <div
+          data-lelu-dock
           className="lelu-tab-bar"
           style={{
             position: "fixed",
             top: "50%",
             left: 12,
             transform: "translateY(-50%)",
-            zIndex: 25,
+            zIndex: layer("navigation"),
             pointerEvents: "auto",
             display: "flex",
             flexDirection: "column",
@@ -994,6 +1018,7 @@ export default function GenesisDock({
   return (
     <>
       <div
+        data-lelu-dock
         className="lelu-tab-bar"
         style={{
           position: "fixed",
@@ -1001,7 +1026,7 @@ export default function GenesisDock({
           left: 0,
           bottom: 0,
           width: 80,
-          zIndex: 25,
+          zIndex: layer("navigation"),
           pointerEvents: "auto",
           display: "flex",
           flexDirection: "column",

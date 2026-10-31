@@ -48,6 +48,17 @@ export interface SandboxRunResult {
 
 const DEFAULT_TIMEOUT_MS = 8_000;
 const MAX_TIMEOUT_MS = 30_000;
+/**
+ * How long a worker may take to START before the job is abandoned.
+ *
+ * Separate from the execution timeout on purpose. The execution clock
+ * used to start when the worker was created, so on a busy main thread
+ * (measured: a first run on a page drawing at 2 fps) loading the worker
+ * module alone used up the 8 s and a script that threw immediately came
+ * back as "Timed out — execution was terminated": a false account of
+ * code that had never run.
+ */
+const BOOT_TIMEOUT_MS = 30_000;
 
 /** Timers guarded so the sandbox never throws when `window` is missing
  *  (non-browser hosts, tests, SSR). In the browser these are the same
@@ -138,7 +149,7 @@ export default class SandboxRuntime {
 
       let settled = false;
       let worker: Worker | null = null;
-      const timer = safeSetTimeout(() => {
+      const fail = (stderr: string, timedOut: boolean, exitCode: number, durationMs: number): void => {
         if (settled) {
           return;
         }
@@ -146,16 +157,20 @@ export default class SandboxRuntime {
         worker?.terminate();
         resolve({
           ok: false,
-          exitCode: 124,
+          exitCode,
           stdout: "",
-          stderr: `Timed out after ${timeoutMs} ms — execution was terminated.`,
-          durationMs: timeoutMs,
-          timedOut: true,
+          stderr,
+          durationMs,
+          timedOut,
           tests: [],
           previewHtml: null,
           syntax: [],
         });
-      }, timeoutMs);
+      };
+      // Until the worker says the job has started, only the boot clock runs.
+      let timer = safeSetTimeout(() => {
+        fail(`The sandbox worker did not start within ${BOOT_TIMEOUT_MS} ms; nothing was executed.`, false, 1, 0);
+      }, BOOT_TIMEOUT_MS);
 
       try {
         worker = new Worker(new URL("./sandbox.worker.ts", import.meta.url), { type: "module" });
@@ -178,6 +193,14 @@ export default class SandboxRuntime {
 
       worker.onmessage = (event: MessageEvent) => {
         if (settled) {
+          return;
+        }
+        if ((event.data as { type?: string } | null)?.type === "started") {
+          // The job is running: from now on the execution timeout applies.
+          safeClearTimeout(timer);
+          timer = safeSetTimeout(() => {
+            fail(`Timed out after ${timeoutMs} ms — execution was terminated.`, true, 124, timeoutMs);
+          }, timeoutMs);
           return;
         }
         settled = true;

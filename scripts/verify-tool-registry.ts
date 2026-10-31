@@ -87,10 +87,18 @@ async function main(): Promise<void> {
   console.log("\n== Raising autonomy and refreshing again actually flips the flag — not cached forever ==");
   gate.setLevel(5);
   await registry.refreshAvailability();
+  // A workspace command needs BOTH the gate and a runtime to run on
+  // (ToolRegistry.refreshAvailability): offering it with no runtime would
+  // be offering a tool that cannot execute. So the flag must equal
+  // exactly that conjunction — whichever way this environment answers.
+  const { default: EngineeringWorkspace } = await import("../src/core/engineering/EngineeringWorkspace");
+  const runtimeReachable = await EngineeringWorkspace.getInstance().runtimeReachable();
+  console.log(`  · engineering runtime reachable here: ${runtimeReachable}`);
   for (const op of ["typecheck", "test", "build"] as const) {
+    assert(workspace.allowed(op) === true, `the real autonomy gate allows workspace.${op} at level 5`);
     assert(
-      registry.get(`workspace.${op}`)?.available === true,
-      `workspace.${op} becomes available once the real autonomy gate allows it`,
+      registry.get(`workspace.${op}`)?.available === (workspace.allowed(op) && runtimeReachable),
+      `workspace.${op} availability (${registry.get(`workspace.${op}`)?.available}) = gate allows it AND a runtime is reachable (${runtimeReachable})`,
     );
   }
   gate.setLevel(2); // restore default for the rest of the run
@@ -122,13 +130,18 @@ async function main(): Promise<void> {
   await registry.refreshAvailability();
   const highCtx = buildCognitiveContext();
   const highText = formatCognitiveContext(highCtx);
+  const testTool = registry.get("workspace.test");
+  const listed = highCtx.toolsRequiringConfirmation.some((t) => t.id === "workspace.test");
   assert(
-    highCtx.toolsRequiringConfirmation.some((t) => t.id === "workspace.test"),
-    "once actually available, workspace.test appears in the SAME snapshot field cognition reads",
+    listed === (testTool?.available === true),
+    testTool?.available
+      ? "once actually available, workspace.test appears in the SAME snapshot field cognition reads"
+      : "with no runtime to run it on, workspace.test is NOT offered to cognition even at level 5",
   );
+  const shown = highCtx.toolsRequiringConfirmation[0];
   assert(
-    highText.includes("## ACTIONS REQUIRING CONFIRMATION") && highText.includes("Run Tests"),
-    "the formatted cognitive context text includes the new section with the real tool name",
+    Boolean(shown) && highText.includes("## ACTIONS REQUIRING CONFIRMATION") && highText.includes(shown.name),
+    `the formatted cognitive context text includes the section with a real tool name (${shown?.name ?? "none"})`,
     highText.slice(0, 200),
   );
   gate.setLevel(2);

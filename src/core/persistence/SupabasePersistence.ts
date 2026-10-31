@@ -1,6 +1,5 @@
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { publicEnv } from "../env/publicEnv";
-import { resolveFirst } from "../resolveEnv";
 import AgentEventBus, { type AgentEvent } from "../agent/AgentEvents";
 import AgentStore from "../agents/AgentStore";
 import type { LeluAgent } from "../agents/AgentTypes";
@@ -9,11 +8,30 @@ import KnowledgeLibrary, { type KnowledgeEntry } from "../cognition/KnowledgeLib
 import MultiChatStore, { type ChatConversation, type ChatMessage } from "../multichat/MultiChatStore";
 import ProjectStore, { type LeluProject } from "../projects/ProjectStore";
 import ProactiveCore, { type ProactiveQuestion } from "../proactive/ProactiveCore";
+import { parseLifecycle } from "../proactive/QuestionLifecycle";
 import ImprovementQueue, { type ImprovementProposal } from "../selfdev/ImprovementQueue";
 import type Brain from "../../brain/Brain";
 import type ResponsePattern from "../../brain/ResponsePattern";
 import type UserManager from "../user/UserManager";
 import type UserProfile from "../user/UserProfile";
+import { resolveSupabaseConfig, checkSupabaseProject } from "../config/supabaseEnv";
+import LeluIdentity, { type LeluIdentityState } from "../identity/LeluIdentity";
+import DailyRecord, { type DailyStore } from "../identity/DailyRecord";
+import CuriosityLedger, { type LedgerSnapshot } from "../curiosity/CuriosityLedger";
+import { backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
+
+/**
+ * LÉLU's development records, synced as per-user documents in the EXISTING
+ * user_preferences store (unique on user_id + preference_key) — the same
+ * table the user profile already uses. No new table, no second store.
+ */
+export const DEVELOPMENT_SYNC_KEYS = {
+  identity: "lelu_identity",
+  daily: "lelu_daily",
+  curiosity: "lelu_curiosity",
+} as const;
+/** Development records change in bursts during a cycle; one write per burst is enough. */
+const DEVELOPMENT_SYNC_THROTTLE_MS = 5_000;
 
 export type SupabasePersistenceStatus = "disabled" | "connecting" | "connected" | "signed_out" | "degraded";
 
@@ -22,6 +40,14 @@ export interface SupabaseAuthState {
   session: Session | null;
   email: string | null;
   displayName: string | null;
+  /**
+   * A problem with the DEPLOYMENT's configuration, not with the user — the
+   * URL and key naming different projects, for instance. It travels with
+   * the auth state because the sign-in form is where it becomes visible,
+   * and showing it there is the difference between "wrong password" and
+   * "this deployment cannot sign anyone in".
+   */
+  configError: string | null;
 }
 
 type RemoteRow = Record<string, any>;
@@ -38,16 +64,68 @@ type RemoteRow = Record<string, any>;
  */
 const MESSAGE_TEXT_LIMIT = 48_000;
 
+/**
+ * Rows per hydration request.
+ *
+ * Comfortably under PostgREST's 1000-row default cap — a page larger than
+ * the cap would come back short and be mistaken for the end of the table —
+ * and small enough that one page cannot exhaust the 8s statement timeout.
+ */
+const HYDRATE_PAGE_SIZE = 500;
+
+/** Ceiling on pages per table, so a pathological loop cannot run forever. */
+const MAX_HYDRATE_PAGES = 200;
+
+/**
+ * The column each table is paged on.
+ *
+ * Declared per table in ONE place rather than passed in by callers: the
+ * first version of this took the key as a call-site argument, and two call
+ * sites (readOne and the realtime refresh) were missed, which turned every
+ * realtime ui_state refresh into `column ui_state.id does not exist`.
+ *
+ * The key must be unique within a user's rows, or paging can repeat or skip
+ * a row. Tables not listed here are keyed on `id`.
+ */
+const PAGE_KEY: Record<string, string> = {
+  // One row per user — no `id` column at all.
+  ui_state: "user_id",
+  news_preferences: "user_id",
+  // Keyed (user_id, preference_key); RLS already scopes to one user.
+  user_preferences: "preference_key",
+  // Keyed (user_id, provider).
+  api_health: "provider",
+};
+
+/** The stable sort key for a table. */
+function pageKeyFor(table: string): string {
+  return PAGE_KEY[table] ?? "id";
+}
+
+/**
+ * Per-table bound for the small stores.
+ *
+ * Per TABLE, not for the whole hydration: the old single bound let the
+ * slowest table discard every other table's rows.
+ */
+const CORE_HYDRATE_TIMEOUT_MS = 15_000;
+
 export default class SupabasePersistence {
   private static instance: SupabasePersistence | null = null;
   private client: SupabaseClient | null = null;
   private userId: string | null = null;
   private status: SupabasePersistenceStatus = "disabled";
   private attached = false;
+  private readonly developmentTimers = new Map<string, BackgroundTimer>();
   private hydrated = false;
+  /** True only once conversations AND every message page have been collected. */
+  private historyHydrated = false;
+  private historyProgress: { loaded: number; total: number } = { loaded: 0, total: 0 };
   private runtimeBrain: Brain | null = null;
   private runtimeUser: UserManager | null = null;
   private authSession: Session | null = null;
+  /** Set when the deployment's own configuration is wrong. See SupabaseAuthState. */
+  private configError: string | null = null;
   private authSubscription: { unsubscribe: () => void } | null = null;
   private readonly authListeners = new Set<(state: SupabaseAuthState) => void>();
   private readonly runtimeUnsubscribers: Array<() => void> = [];
@@ -70,6 +148,7 @@ export default class SupabasePersistence {
       session: this.authSession,
       email: user?.email ?? null,
       displayName: (user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? null) as string | null,
+      configError: this.configError,
     };
   }
 
@@ -83,6 +162,32 @@ export default class SupabasePersistence {
     return (this.status === "connected" || this.status === "degraded") && this.client !== null && this.userId !== null;
   }
 
+  /**
+   * Turn a Supabase auth error into something an operator can act on.
+   *
+   * "Invalid API key" is not a user's problem and must not be shown as one:
+   * it means the configured publishable key does not belong to the project
+   * the configured URL points at. That was true in a real deployment — the
+   * key in the environment was issued for a different project — and the user
+   * saw only a failed sign-in with no way to tell that from a wrong password.
+   *
+   * The key itself is never read, echoed, logged or measured here; only the
+   * upstream's verdict on it is.
+   */
+  private explainAuthError(message: string | undefined): string | null {
+    if (!message) return null;
+    if (/invalid api key/i.test(message)) {
+      return (
+        "This deployment's Supabase key is not valid for the configured project. " +
+        "Check that SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY come from the SAME project."
+      );
+    }
+    if (/failed to fetch|network/i.test(message)) {
+      return "Could not reach Supabase. Check the network and that SUPABASE_URL is correct.";
+    }
+    return message;
+  }
+
   public async signInWithEmail(email: string, password: string): Promise<{ error: string | null }> {
     if (!this.client) await this.initialize(this.runtimeBrain ?? undefined, this.runtimeUser ?? undefined);
     if (!this.client) return { error: "Supabase is not configured." };
@@ -90,7 +195,7 @@ export default class SupabasePersistence {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !password) return { error: "Enter your email and password." };
     const { error } = await this.client.auth.signInWithPassword({ email: normalizedEmail, password });
-    return { error: error?.message ?? null };
+    return { error: this.explainAuthError(error?.message) };
   }
 
   public async signUpWithEmail(email: string, password: string): Promise<{ error: string | null; requiresConfirmation: boolean }> {
@@ -101,8 +206,9 @@ export default class SupabasePersistence {
     if (!normalizedEmail || !password) return { error: "Enter your email and password.", requiresConfirmation: false };
     if (password.length < 6) return { error: "Use a password with at least 6 characters.", requiresConfirmation: false };
     const { data, error } = await this.client.auth.signUp({ email: normalizedEmail, password });
+    const explained = this.explainAuthError(error?.message);
     return {
-      error: error?.message ?? null,
+      error: explained,
       requiresConfirmation: !error && !data.session,
     };
   }
@@ -122,26 +228,37 @@ export default class SupabasePersistence {
       return this.status;
     }
 
-    // Browser-safe allowlist, not the whole env record (see env/publicEnv.ts):
-    // reading import.meta.env as an object inlined every VITE_* value here.
+    // The names themselves live in core/config/supabaseEnv so that this
+    // path, the OG client and the server middleware cannot disagree about
+    // what "configured" means — they used to, and an operator setting one
+    // documented alias could configure one of them and leave the others
+    // blind, which is why cloud identity never worked.
+    //
+    // publicEnv() is passed in rather than read there: it carries
+    // `import.meta.env.VITE_*`, which only a module Vite compiles can read
+    // statically (see resolveEnv's note on why it must not be read
+    // dynamically).
     const env = publicEnv();
-    const firstConfigured = (...values: Array<string | undefined>): string =>
-      values.find((value) => typeof value === "string" && value.trim().length > 0)?.trim() ?? "";
-    // Build-time values first, then the runtime values the server publishes
-    // (plugins/runtimeKeyBridge.ts) for the unprefixed names a server is
-    // given — SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY. Without the second
-    // rung a production server configured with those names left
-    // persistence silently "disabled" (the OG client already resolved them).
-    const url = firstConfigured(env.VITE_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_URL, resolveFirst("SUPABASE_URL"));
-    const publishableKey = firstConfigured(
-      env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-      resolveFirst("SUPABASE_PUBLISHABLE_KEY", "SUPABASE_ANON_KEY"),
-    );
-    if (!url || !publishableKey) {
+    const config = resolveSupabaseConfig({
+      url: [env.VITE_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_URL],
+      key: [env.VITE_SUPABASE_PUBLISHABLE_KEY, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY],
+    });
+    if (!config) {
       this.status = "disabled";
       this.emitAuthState();
       return this.status;
+    }
+    const { url, publishableKey } = config;
+
+    // Say so BEFORE the first request when the two halves name different
+    // projects. Otherwise the only symptom is "Invalid API key" at sign-in,
+    // which reads as the user's bad password.
+    const pairing = checkSupabaseProject(config);
+    if (pairing.verdict === "mismatch") {
+      console.error(`[Lélu] ${pairing.message}`);
+      this.configError = pairing.message;
+    } else {
+      this.configError = null;
     }
 
     this.status = "connecting";
@@ -238,41 +355,166 @@ export default class SupabasePersistence {
     this.attachRuntime();
   }
 
-  /** Hydrate the existing stores; never clears local state. */
+  /**
+   * Hydrate the existing stores; never clears local state.
+   *
+   * Two phases, because the tables are not alike.
+   *
+   * Everything used to be read in ONE `Promise.all` under one 10s bound. On
+   * the live project that meant the slowest table decided the fate of all
+   * eleven: a single timeout threw, the catch marked the status degraded,
+   * and NOTHING hydrated — memories included, even though memories are
+   * small and had already arrived. Conversations and messages are the heavy
+   * ones (235 and 1043 rows and growing); the rest are tens of rows.
+   *
+   * So the small stores hydrate first, under their own bound, and the heavy
+   * conversation history continues in the background afterwards. The UI is
+   * not kept waiting on chat history, and a slow history can no longer cost
+   * the user their memories.
+   */
   public async hydrateRuntime(brain: Brain, user?: UserManager): Promise<void> {
     if (!this.isConnected() || this.hydrated || !this.client) return;
     this.hydrated = true;
-    try {
-      const [memoryRows, projectRows, agentRows, questionRows, conversationRows, messageRows, knowledgeRows, improvementRows, uiRow, newsRow, preferenceRows] = await this.withTimeout(Promise.all([
-        this.read("memory_items"),
-        this.read("projects"),
-        this.read("agents"),
-        this.read("proactive_questions"),
-        this.read("conversations"),
-        this.read("messages"),
-        this.read("knowledge_items"),
-        this.read("improvement_items"),
-        this.readOne("ui_state"),
-        this.readOne("news_preferences"),
-        this.read("user_preferences"),
-      ]), 10000, "Supabase hydrate reads");
 
+    await this.hydrateCoreStores(brain, user);
+
+    // Deliberately not awaited: conversation history is large and the
+    // interface is usable without it. It merges in as it arrives.
+    void this.hydrateConversationHistory();
+  }
+
+  /**
+   * The small stores — memories, projects, agents, questions, settings.
+   *
+   * Each read is settled independently so one failure cannot discard the
+   * others. That is the difference between "chat history was slow" and
+   * "LÉLU lost her memory this session".
+   */
+  private async hydrateCoreStores(brain: Brain, user?: UserManager): Promise<void> {
+    const read = async (table: string): Promise<RemoteRow[]> => {
+      try {
+        return await this.withTimeout(this.read(table), CORE_HYDRATE_TIMEOUT_MS, `Supabase ${table} hydrate`);
+      } catch (error) {
+        this.status = "degraded";
+        console.warn(`[Lélu] Supabase hydrate for ${table} degraded`, error);
+        return [];
+      }
+    };
+
+    const [
+      memoryRows, projectRows, agentRows, questionRows,
+      knowledgeRows, improvementRows, uiRows, newsRows, preferenceRows,
+    ] = await Promise.all([
+      read("memory_items"),
+      read("projects"),
+      read("agents"),
+      read("proactive_questions"),
+      read("knowledge_items"),
+      read("improvement_items"),
+      read("ui_state"),
+      read("news_preferences"),
+      read("user_preferences"),
+    ]);
+
+    try {
       const memories = memoryRows.map((row) => this.toMemory(row)).filter((item): item is ResponsePattern => Boolean(item));
       await brain.mergeMemories(memories);
       ProjectStore.getInstance().mergeRemote(projectRows.map((row) => this.toProject(row)).filter((item): item is LeluProject => Boolean(item)));
       AgentStore.getInstance().mergeRemote(agentRows.map((row) => this.toAgent(row)).filter((item): item is LeluAgent => Boolean(item)));
       ProactiveCore.getInstance().mergeRemote(questionRows.map((row) => this.toQuestion(row)).filter((item): item is ProactiveQuestion => Boolean(item)));
-      MultiChatStore.getInstance().mergeRemote(this.toConversations(conversationRows, messageRows));
       KnowledgeLibrary.getInstance().mergeRemote(knowledgeRows.map((row) => this.toKnowledge(row)).filter((item): item is KnowledgeEntry => Boolean(item)));
       ImprovementQueue.getInstance().mergeRemote(improvementRows.map((row) => this.toImprovement(row)).filter((item): item is ImprovementProposal => Boolean(item)));
+      const uiRow = uiRows[0];
       if (uiRow?.state && typeof uiRow.state === "object") UIStateStore.getInstance().update(uiRow.state as Partial<UIStateSnapshot>);
+      const newsRow = newsRows[0];
       if (Array.isArray(newsRow?.topics)) ProactiveCore.getInstance().mergeNewsPreferences(newsRow.topics);
       const profileRow = preferenceRows.find((row) => row.preference_key === "profile");
       if (user && profileRow?.value && typeof profileRow.value === "object") await user.mergeRemote(profileRow.value as UserProfile);
+      this.mergeDevelopmentRecords(preferenceRows);
     } catch (error) {
       this.status = "degraded";
       console.warn("[Lélu] Supabase hydration degraded; local state remains active", error);
     }
+  }
+
+  /**
+   * Conversations and their messages, merged progressively.
+   *
+   * Conversations arrive first so the chat list is populated, then messages
+   * page in and are merged as each page lands. A partial result is never
+   * mistaken for a complete one: `read` throws rather than return short, and
+   * `historyHydrated` is only set once both tables are fully collected, so a
+   * caller can tell "still loading" from "done".
+   */
+  private async hydrateConversationHistory(): Promise<void> {
+    try {
+      const conversationRows = await this.read("conversations");
+
+      // Messages are collected across pages FIRST, then merged once.
+      //
+      // Merging per page looks appealing but cannot work through
+      // MultiChatStore.mergeRemote, which only accepts a conversation whose
+      // `updatedAt` is strictly newer than the stored one. A conversation's
+      // row does not change between message pages, so the first merge wins
+      // and every later page is silently rejected — measured in a real
+      // browser: conversations loaded, messages stayed at 0.
+      //
+      // Forcing it through by inflating `updatedAt` would reorder the user's
+      // chat list, which is sorted on exactly that field. Collecting first
+      // keeps both the ordering and the message set honest.
+      //
+      // The read itself is still paged and still incremental: progress is
+      // reported per page, and nothing blocks the UI while it runs.
+      const messageRows = await this.read("messages", {
+        onPage: (_rows, loaded, total) => {
+          this.historyProgress = { loaded, total };
+        },
+      });
+
+      this.mergeConversations(conversationRows, messageRows);
+      this.historyHydrated = true;
+    } catch (error) {
+      // History stays incomplete and says so, rather than the store being
+      // left looking authoritative while rows are missing.
+      this.status = "degraded";
+      this.historyHydrated = false;
+      console.warn("[Lélu] Supabase conversation history hydration incomplete", error);
+    }
+  }
+
+  /**
+   * Merge remote conversations without dropping messages that have not
+   * arrived yet.
+   *
+   * MultiChatStore.mergeRemote REPLACES a conversation whole when the remote
+   * copy is newer. During a paged hydration the remote copy is newer and its
+   * `messages` array is still partial — so a naive merge would overwrite a
+   * fully-loaded local conversation with an empty or half-filled one, which
+   * is the silent record loss this work exists to end.
+   *
+   * So a conversation keeps whichever message set is larger: the incoming
+   * page-so-far, or what the store already holds. Messages are only ever
+   * added by hydration, never removed.
+   */
+  private mergeConversations(conversationRows: RemoteRow[], messageRows: RemoteRow[]): void {
+    const store = MultiChatStore.getInstance();
+    const existing = new Map(store.listAll().map((conversation) => [conversation.id, conversation]));
+    const incoming = this.toConversations(conversationRows, messageRows).map((conversation) => {
+      const local = existing.get(conversation.id);
+      if (!local || conversation.messages.length >= local.messages.length) return conversation;
+      return { ...conversation, messages: local.messages };
+    });
+    store.mergeRemote(incoming);
+  }
+
+  /** Has the full conversation history finished loading? */
+  public isHistoryHydrated(): boolean {
+    return this.historyHydrated;
+  }
+
+  /** How far the background history load has got, for status surfaces. */
+  public getHistoryProgress(): { loaded: number; total: number } {
+    return { ...this.historyProgress };
   }
 
   /** Attach canonical stores and meaningful event streams once after boot. */
@@ -297,7 +539,11 @@ export default class SupabasePersistence {
       improvements.subscribe((value) => void this.persistImprovements(value)),
       KnowledgeLibrary.getInstance().subscribe((value) => void this.persistKnowledge(value)),
       events.subscribe((event) => void this.persistCognitiveEvent(event)),
+      LeluIdentity.getInstance().subscribe(() => this.scheduleDevelopmentSync(DEVELOPMENT_SYNC_KEYS.identity)),
+      DailyRecord.getInstance().subscribe(() => this.scheduleDevelopmentSync(DEVELOPMENT_SYNC_KEYS.daily)),
+      CuriosityLedger.getInstance().subscribe(() => this.scheduleDevelopmentSync(DEVELOPMENT_SYNC_KEYS.curiosity)),
     );
+    for (const key of Object.values(DEVELOPMENT_SYNC_KEYS)) this.scheduleDevelopmentSync(key, 0);
 
     void this.persistProjects(projects.list());
     void this.persistAgents(agents.list());
@@ -311,6 +557,53 @@ export default class SupabasePersistence {
     if (this.runtimeBrain) {
       void this.runtimeBrain.recallAll().then((memories) => this.persistMemories(memories));
     }
+  }
+
+  /** Merge another device's development records (identity, journal, curiosity ledger). */
+  public mergeDevelopmentRecords(preferenceRows: RemoteRow[]): void {
+    const value = (key: string) => {
+      const row = preferenceRows.find((item) => item.preference_key === key);
+      return row?.value && typeof row.value === "object" ? row.value : null;
+    };
+    const identity = value(DEVELOPMENT_SYNC_KEYS.identity);
+    if (identity) LeluIdentity.getInstance().mergeRemote(identity as LeluIdentityState);
+    const daily = value(DEVELOPMENT_SYNC_KEYS.daily);
+    if (daily) DailyRecord.getInstance().mergeRemote(daily as DailyStore);
+    const ledger = value(DEVELOPMENT_SYNC_KEYS.curiosity);
+    if (ledger) CuriosityLedger.getInstance().mergeRemote(ledger as Partial<LedgerSnapshot>);
+  }
+
+  private scheduleDevelopmentSync(key: string, delayMs = DEVELOPMENT_SYNC_THROTTLE_MS): void {
+    if (this.developmentTimers.get(key)?.active) return;
+    this.developmentTimers.set(key, backgroundTimeout(() => void this.persistDevelopmentRecord(key), delayMs));
+  }
+
+  public async persistDevelopmentRecord(key: string): Promise<void> {
+    if (!this.isConnected() || !this.client) return;
+    // Read-merge-write. The row is replaced whole, and another device may
+    // have written since this one hydrated — so its copy is merged in first.
+    // If it cannot be read, nothing is written: an upload made blind could
+    // replace real development with this device's partial view.
+    try {
+      const { data, error } = await this.withTimeout(
+        Promise.resolve(this.client.from("user_preferences").select("preference_key, value").eq("user_id", this.userId).eq("preference_key", key)),
+        CORE_HYDRATE_TIMEOUT_MS,
+        `Supabase ${key} read-before-write`,
+      );
+      if (error) throw error;
+      this.mergeDevelopmentRecords(Array.isArray(data) ? (data as RemoteRow[]) : []);
+    } catch (error) {
+      this.status = "degraded";
+      console.warn(`[Lélu] Supabase ${key} sync skipped; the remote copy could not be read`, error);
+      return;
+    }
+    const value =
+      key === DEVELOPMENT_SYNC_KEYS.identity
+        ? LeluIdentity.getInstance().getState()
+        : key === DEVELOPMENT_SYNC_KEYS.daily
+          ? DailyRecord.getInstance().snapshot()
+          : CuriosityLedger.getInstance().snapshot();
+    await this.write("user_preferences", [{ user_id: this.userId, preference_key: key, value, updated_at: new Date().toISOString() }], "user_preferences");
   }
 
   public async persistMemories(memories: ResponsePattern[]): Promise<void> {
@@ -393,6 +686,11 @@ export default class SupabasePersistence {
       related_project_id: question.relatedProjectId ?? null, related_task: question.relatedTask ?? null,
       blocks_execution: question.blocksExecution, remember_answer: question.rememberAnswer, status: question.status,
       user_response: question.userResponse ?? null, asked_at: new Date(question.askedAt).toISOString(),
+      // The lifecycle is what makes a dismissal survive a sync. Without it
+      // a reconnect would hydrate a question whose coarse status still read
+      // "pending" and surface it again — the resurfacing bug, restored by
+      // the database.
+      lifecycle: question.lifecycle ?? {},
       resolved_at: question.resolvedAt ? new Date(question.resolvedAt).toISOString() : null,
       created_at: new Date(question.createdAt).toISOString(), updated_at: new Date(question.updatedAt).toISOString(),
     }], "proactive_questions");
@@ -454,11 +752,76 @@ export default class SupabasePersistence {
     return this.initialize(brain, user);
   }
 
-  private async read(table: string): Promise<RemoteRow[]> {
+  /**
+   * Read a whole table, in pages, without ever silently losing rows.
+   *
+   * `select("*")` with no range is capped by PostgREST's `db-max-rows`
+   * (1000 on Supabase by default). With 1043 messages in the live project
+   * that returned 1000 rows and NO error — 43 messages vanished, and
+   * hydration reported success. A truncated read is indistinguishable from
+   * a complete one unless you ask how many rows there really are, so this
+   * asks: the first page requests an exact count, and paging continues
+   * until that many rows have been collected.
+   *
+   * Pages are also small enough to stay inside the 8s `statement_timeout`
+   * that Supabase sets on the `authenticated` role, which a single
+   * unbounded scan of a large table can exceed.
+   *
+   * `onPage` makes the read incremental: a caller can merge each page as it
+   * lands instead of waiting for the whole table.
+   */
+  private async read(
+    table: string,
+    options: {
+      onPage?: (rows: RemoteRow[], loaded: number, total: number) => void;
+      /** Override the table's declared sort key. Rarely needed. */
+      orderBy?: string;
+    } = {},
+  ): Promise<RemoteRow[]> {
     if (!this.client) return [];
-    const { data, error } = await this.client.from(table).select("*");
-    if (error) throw error;
-    return Array.isArray(data) ? data as RemoteRow[] : [];
+
+    const collected: RemoteRow[] = [];
+    let total = 0;
+    let pagesRead = 0;
+
+    for (let page = 0; page < MAX_HYDRATE_PAGES; page += 1) {
+      pagesRead = page + 1;
+      const from = page * HYDRATE_PAGE_SIZE;
+      const to = from + HYDRATE_PAGE_SIZE - 1;
+      // The exact count is requested on every page rather than only the
+      // first: rows can be inserted while a long hydration is running, and
+      // a stale total would stop paging early.
+      // ORDER BY is not optional here. Postgres guarantees no row order
+      // without one, so two unordered range requests may return overlapping
+      // or disjoint slices — pages would silently duplicate some rows and
+      // skip others, which looks exactly like the truncation this paging
+      // replaced. Every hydrated table is ordered by a stable unique key.
+      const { data, error, count } = await this.client
+        .from(table)
+        .select("*", { count: "exact" })
+        .order(options.orderBy ?? pageKeyFor(table), { ascending: true })
+        .range(from, to);
+      if (error) throw error;
+
+      const rows = Array.isArray(data) ? (data as RemoteRow[]) : [];
+      if (typeof count === "number") total = count;
+      collected.push(...rows);
+      options.onPage?.(rows, collected.length, total || collected.length);
+
+      // A short page means the server had nothing more to give.
+      if (rows.length < HYDRATE_PAGE_SIZE) break;
+      if (total > 0 && collected.length >= total) break;
+    }
+
+    // Reaching the page ceiling with rows still outstanding is a real
+    // shortfall. Returning quietly here is the exact failure this method
+    // exists to prevent, so it is raised instead.
+    if (total > 0 && collected.length < total) {
+      throw new Error(
+        `Hydration incomplete for ${table}: ${collected.length} of ${total} rows after ${pagesRead} page(s).`,
+      );
+    }
+    return collected;
   }
 
   private async readOne(table: string): Promise<RemoteRow | null> {
@@ -538,7 +901,15 @@ export default class SupabasePersistence {
 
   private toQuestion(row: RemoteRow): ProactiveQuestion | null {
     if (!row.id || !row.question) return null;
-    return { id: String(row.id), key: row.question_key, question: row.question, category: row.category, reason: row.reason ?? "", priority: row.priority, relatedProjectId: row.related_project_id ?? undefined, relatedTask: row.related_task ?? undefined, blocksExecution: Boolean(row.blocks_execution), rememberAnswer: row.remember_answer !== false, askedAt: Date.parse(row.asked_at) || Date.now(), userResponse: row.user_response ?? undefined, resolvedAt: row.resolved_at ? Date.parse(row.resolved_at) : undefined, status: row.status, createdAt: Date.parse(row.created_at) || Date.now(), updatedAt: Date.parse(row.updated_at) || Date.now() };
+    // Validated, not cast: this comes from a jsonb column and from other
+    // devices, so a malformed value must read as "none recorded".
+    const lifecycle = parseLifecycle(row.lifecycle);
+    return { id: String(row.id), key: row.question_key, question: row.question, category: row.category, reason: row.reason ?? "", priority: row.priority, relatedProjectId: row.related_project_id ?? undefined, relatedTask: row.related_task ?? undefined, blocksExecution: Boolean(row.blocks_execution), rememberAnswer: row.remember_answer !== false, askedAt: Date.parse(row.asked_at) || Date.now(), userResponse: row.user_response ?? undefined, resolvedAt: row.resolved_at ? Date.parse(row.resolved_at) : undefined, status: row.status, createdAt: Date.parse(row.created_at) || Date.now(), updatedAt: Date.parse(row.updated_at) || Date.now(),
+      // An empty jsonb is a row written before the lifecycle existed.
+      // Leaving it undefined lets ProactiveCore derive one from `status`,
+      // rather than inventing a "never shown" history for a question the
+      // user already closed.
+      ...(lifecycle ? { lifecycle } : {}) };
   }
 
   private toConversations(rows: RemoteRow[], messageRows: RemoteRow[]): ChatConversation[] {

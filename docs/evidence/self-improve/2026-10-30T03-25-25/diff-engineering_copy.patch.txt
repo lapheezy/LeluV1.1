@@ -1,0 +1,31 @@
+--- src/app/scene/genesis/GenesisProjectsPanel.tsx (modified, +12/-9)
+--- a/src/app/scene/genesis/GenesisProjectsPanel.tsx
++++ b/src/app/scene/genesis/GenesisProjectsPanel.tsx
+@@ -178,15 +178,18 @@
+               type="button"
+               onClick={() => setProjectId(item.id)}
+               style={{
+-                textAlign: "left",
+-                borderRadius: 10,
+-                padding: "10px 11px",
+-                border: projectId === item.id ? "1px solid rgba(125, 211, 252, 0.45)" : "1px solid rgba(255,255,255,0.1)",
+-                background: projectId === item.id ? "rgba(34, 211, 238, 0.1)" : "rgba(255,255,255,0.02)",
+-                color: "white",
+-                cursor: "pointer",
+-                fontFamily: "inherit",
+-                opacity: item.status === "archived" ? 0.6 : 1,
++                  textAlign: "left",
++                  borderRadius: 10,
++                  padding: "10px 11px",
++                  border: projectId === item.id ? "1px solid rgba(125, 211, 252, 0.45)" : "1px solid rgba(255,255,255,0.1)",
++                  background: projectId === item.id ? "rgba(34, 211, 238, 0.1)" : "rgba(255,255,255,0.02)",
++                  color: "white",
++                  cursor: "pointer",
++                  fontFamily: "inherit",
++                  opacity: item.status === "archived" ? 0.6 : 1,
++                  overflow: "hidden",
++                  textOverflow: "ellipsis",
++                  whiteSpace: "nowrap",
+               }}
+             >
+               <div style={{ fontSize: 13, fontWeight: 600 }}>{item.name}</div>

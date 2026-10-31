@@ -1,0 +1,65 @@
+{
+  "base": "http://127.0.0.1:5173/",
+  "startedAt": "2026-10-29T22:46:23.705Z",
+  "durationSeconds": 274,
+  "finished": "task_completed",
+  "toolCalls": [
+    "memory.recall: Checking memory for “capability dispatch”",
+    "memory.recall: Checking memory for “capability dispatch available capabilities cannot actually”",
+    "capture: Looking at my own interface (phone)",
+    "capture: Looking at my own interface (phone, memory)",
+    "project.copy: Running project.copy",
+    "project.search: Running project.search (Minimize Genesis)",
+    "project.read: Running project.read (src/app/scene/genesis/GenesisInterface.tsx)",
+    "project.search: Running project.search (Genesis CoreMemory)",
+    "project.search: Running project.search (Memory◎ Chat)",
+    "project.search: Running project.search (GenesisInterface)",
+    "project.read: Running project.read (src/app/scene/genesis/GenesisInterface.tsx)",
+    "project.search: Running project.search (Genesis CoreMemory)",
+    "project.search: Running project.search (GenesisMemoryPanel)",
+    "project.search: Running project.search (position)",
+    "project.search: Running project.search (MemoryPanel)",
+    "project.read: Running project.read (src/app/scene/genesis/GenesisMemoryPanel.tsx)",
+    "project.read: Running project.read (src/app/scene/genesis/GenesisWindowFrame.tsx)",
+    "project.search: Running project.search (Genesis CoreMemory)",
+    "project.read: Running project.read (src/app/scene/genesis/GenesisInterface.tsx)",
+    "project.search: Running project.search (GenesisMemoryPanel)",
+    "project.search: Running project.search (z-index)",
+    "project.search: Running project.search (GenesisMemoryPanel)",
+    "project.read: Running project.read (src/app/scene/genesis/GenesisInterface.tsx)",
+    "project.search: Running project.search (GenesisFullscreenButton)",
+    "project.search: Running project.search (780)",
+    "project.read: Running project.read (src/app/scene/genesis/GenesisInterface.tsx)",
+    "project.search: Running project.search (GenesisFullscreenButton)",
+    "project.search: Running project.search (top:)",
+    "project.search: Running project.search (<GenesisFullscreenButton)",
+    "project.read: Running project.read (src/app/scene/genesis/GenesisInterface.tsx)",
+    "project.edit: Running project.edit (src/app/scene/genesis/GenesisInterface.tsx)",
+    "project.search: Running project.search (z-index)",
+    "project.validate: Running project.validate",
+    "project.preview: Running project.preview (start)",
+    "capture: Looking at workspace self_improvement_copy (phone)",
+    "project.diff: Running project.diff",
+    "capture: Looking at my own interface (phone, memory)"
+  ],
+  "failures": [
+    "memory.recall: No stored memory matches \"capability dispatch\"."
+  ],
+  "captures": 4,
+  "workspaces": [
+    "self_improvement_copy"
+  ],
+  "changedFiles": {
+    "self_improvement_copy": [
+      "docs/evidence/self-improve/2026-10-29T22-45-51/capture-01.jpg +0/-112",
+      "docs/evidence/self-improve/2026-10-29T22-45-51/capture-02.jpg +0/-66",
+      "docs/evidence/self-improve/2026-10-29T22-45-51/capture-03.jpg +0/-135",
+      "docs/evidence/self-improve/2026-10-29T22-45-51/capture-04.jpg +0/-39",
+      "docs/evidence/self-improve/2026-10-29T22-45-51/events.json +0/-1038",
+      "docs/evidence/self-improve/2026-10-29T22-45-51/request.txt +0/-8",
+      "docs/evidence/self-improve/2026-10-29T22-45-51/transcript.txt +0/-64",
+      "src/app/scene/genesis/GenesisInterface.tsx +1/-1"
+    ]
+  },
+  "pageErrors": []
+}

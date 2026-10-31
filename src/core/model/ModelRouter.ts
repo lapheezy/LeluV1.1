@@ -471,20 +471,19 @@ export default class ModelRouter {
     // capability when media is attached.
     const explicit = request.preferredProviders ?? [];
     const ordered = [...explicit];
-    for (const name of preferred) {
-      if (!ordered.includes(name)) ordered.push(name);
-    }
 
-    // Then the CONFIGURED default provider (VITE_DEFAULT_PROVIDER; Anthropic
-    // unless overridden). It used to be appended after the hardware hint
-    // below, which made "Anthropic is primary" false wherever device memory
-    // reads as low — every Node process and many phones — and sent those
-    // turns to Groq first. Device memory says nothing about which REMOTE
-    // API to call, so the operator's choice outranks it. The priority chain
-    // still applies after it, so fallback is unchanged.
+    // The CONFIGURED default provider is inserted immediately after any
+    // explicit per-request overrides, so it leads the chain on ordinary
+    // requests. Modality/hardware signals (low-memory fast providers,
+    // vision-capable providers) come after it — they refine the fallback
+    // order when the default fails or cannot handle the request type.
     const configuredDefault = this.configuredDefaultProviderName();
     if (configuredDefault && !ordered.includes(configuredDefault)) {
       ordered.push(configuredDefault);
+    }
+
+    for (const name of preferred) {
+      if (!ordered.includes(name)) ordered.push(name);
     }
 
     // Low-memory devices then prefer the fastest remote providers.
@@ -598,7 +597,7 @@ export default class ModelRouter {
    */
   private configuredDefaultProviderName(): string | null {
     const token = getEnvironment().defaultProvider?.trim().toLowerCase();
-    if (!token) return null;
+    if (!token) return "Anthropic";
     const byToken: Record<string, string> = {
       anthropic: "Anthropic",
       claude: "Anthropic",

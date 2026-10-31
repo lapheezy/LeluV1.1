@@ -31,7 +31,20 @@ export type AgentMemoryAccess = "none" | "read" | "read-write";
 
 export type AgentStatus = "active" | "paused" | "archived";
 
-export type AgentTaskStatus = "queued" | "running" | "complete" | "failed";
+/**
+ * "interrupted": the task was running when the app stopped (reload,
+ * crash, closed tab). Set on load by AgentStore — a task is never left
+ * claiming to be "running" when nothing is running it.
+ */
+export type AgentTaskStatus = "queued" | "running" | "complete" | "failed" | "interrupted";
+
+/**
+ * Who assigned a task: "user" (the Agents panel), "lelu" (LÉLU CORE's
+ * own delegation), an executive id ("maat", "architect", …), or another
+ * agent's id. Free-form so the existing hierarchy can be expressed
+ * without a second roster.
+ */
+export type DelegatorId = string;
 
 export interface AgentTask {
   id: string;
@@ -45,6 +58,19 @@ export interface AgentTask {
   /** Optional project the task belongs to. */
   projectId?: string;
   error?: string;
+  /** Who assigned this task. Absent on records written before it existed. */
+  delegatedBy?: DelegatorId;
+  /** The interrupted/failed task this one continues. */
+  resumedFrom?: string;
+  /** The task that continued this one (set on the original). */
+  resumedBy?: string;
+  /**
+   * The executive whose galaxy owns this work (ExecutiveOwnership /
+   * SHAMAN). Absent on records written before routing existed.
+   */
+  executive?: string;
+  /** Why SHAMAN (or the caller) chose this agent, in words. */
+  routeReason?: string;
 }
 
 export interface AgentExecution {
@@ -63,7 +89,15 @@ export interface AgentExecution {
 }
 
 export interface LeluAgent {
+  /** Per-install UUID — never use it to look up a template or executive. */
   id: string;
+  /**
+   * The template this agent was created from — its stable identity across
+   * installs. Backfilled by name on load for agents created before it.
+   */
+  templateId?: string;
+  /** Explicit owning executive (AgentStore.assignExecutive); overrides the template's. */
+  executive?: string;
   name: string;
   role: string;
   description: string;

@@ -1,0 +1,65 @@
+── USER ──
+LÉLU, please improve your own interface using your self-development loop.
+1) Look at your own running app at phone size with browser_capture (target "app") — check several panels, not just the home screen.
+2) From the screenshots and layout reports, choose ONE concrete, low-risk problem a user would actually hit. Tell me the problem and a testable expected outcome before you change anything.
+3) Make a workspace copy (project_copy), find the code responsible (project_search, project_read), and fix it there with project_write. Do not change the real project.
+4) Validate the copy with project_validate (typecheck). If it fails, read the output and fix it.
+5) Start a preview of your copy (project_preview) and capture it under the same conditions (browser_capture target "preview", same viewport and panel), then compare it with the original capture.
+6) If the comparison shows the problem is still there, find out why, change your fix, validate and compare again — keep going until the comparison shows it resolved, or until you have genuinely tried three different approaches. Decide the approach yourself; don't stop to ask me.
+7) Show me the diff (project_diff) and tell me plainly whether your expected outcome is met, based on the evidence.
+
+── ASSISTANT ──
+**Problem identified**
+
+When the interface is viewed on a phone‑sized screen, the tab bar overflows:
+
+* The **“New chat”** button and the **“Engineering”** tab run off the right edge, causing a sideways‑overflow warning.
+* The **options button** for a conversation can be partly off‑screen.
+
+**Expected outcome**
+
+All tab‑bar elements should stay fully visible on a 390 px wide viewport, with no overflow or hidden parts.
+
+**What I changed (in a sandbox copy)**  
+
+1. **Added a `maxWidth`** to the shared `tabStyle` so each tab can shrink when space is limited.  
+2. **Reduced the per‑tab `maxWidth`** from 180 px to 120 px.  
+3. **Allowed flex items to shrink** by setting `flexShrink: 1` (instead of 0).
+
+These three edits keep the tabs on‑screen while preserving their appearance.
+
+**Validation**
+
+* Type‑checking passed (`typecheck` succeeded).  
+* I started a preview of the edited copy and captured it at the same phone viewport.
+
+**Result**
+
+The preview shows **0 layout problems** – the overflow warnings are gone, and the “New chat” and “Engineering” tabs are fully visible.
+
+**Diff of the changes**
+
+```diff
+--- a/src/app/scene/genesis/MultiChatTabs.tsx
++++ b/src/app/scene/genesis/MultiChatTabs.tsx
+@@ -144,7 +144,8 @@
+   whiteSpace: "nowrap",
+   fontFamily: "inherit",
+   border: "none",
+-  flexShrink: 0,
++  flexShrink: 1,
++  maxWidth: 120,
+ };
+@@ -355,7 +356,7 @@
+                     minHeight: 32,
+                     background: "transparent",
+                     color: active ? "rgba(255,255,255,0.98)" : "rgba(226, 238, 252, 0.78)",
+-                    maxWidth: 180,
++                    maxWidth: 120,
+                     overflow: "hidden",
+                     textOverflow: "ellipsis",
+```
+
+**Conclusion**
+
+The expected outcome is met: the tab bar no longer overflows on phone screens, fixing a concrete, low‑risk UI issue that users would encounter. The real project remains untouched; the fix lives safely in the sandbox copy.

@@ -11,9 +11,10 @@
  * update → render → validation → complete/error), rendered
  * as "LÉLU is doing this", never as a developer console.
  *
- * Progressive disclosure:
- *   Collapsed  — "LÉLU is researching · 8 operations"
- *   Expanded   — every operation with status + side badge
+ * Progressive disclosure, inside the conversation itself:
+ *   Collapsed  — one compact line: "LÉLU is researching · 8 operations"
+ *   Expanded   — every operation with status + side badge, inline in
+ *                the transcript (no second scroll area)
  *
  * Approvals: when LÉLU reaches an operation that needs user
  * consent, an inline card appears with Approve / Reject /
@@ -30,6 +31,7 @@ import AgentEventBus, {
   type ExecutionSide,
 } from "../../../core/agent/AgentEvents";
 import { genesisTheme } from "./GenesisTheme";
+import { ownerForTask } from "../../../core/multichat/TurnOwnership";
 
 /* --------------------------- bounded store --------------------------- */
 
@@ -72,6 +74,12 @@ export function executionEventLabel(event: AgentEvent): string {
     }
     case "tool_failed":
       return `${humanTool(event.tool)} failed — recovering`;
+    case "tool_narration":
+      return event.text.slice(0, 80);
+    case "cross_chat_reference":
+      return `Used research from ${event.sources.map((source) => `“${source.title}”`).join(", ") || "no other chat"}`;
+    case "user_steering":
+      return `New instruction: ${event.text.slice(0, 60)}`;
     case "file_opened":
       return `Opened ${event.path}`;
     case "file_changed":
@@ -283,6 +291,92 @@ function eventGlyph(event: AgentEvent): string {
   }
 }
 
+/* ----------------------------- grouping ----------------------------- */
+
+/**
+ * The four things the user actually wants to know happened.
+ *
+ * Derived from the event data that already exists — the phase on an
+ * execution_phase, the type of everything else — so this is a reading of
+ * real events, never a set of headings with nothing under them. A group
+ * with no events is not rendered, which is the whole point: the timeline
+ * must not imply work that did not occur.
+ */
+export type ActivityGroup = "Research" | "Analysis" | "Actions" | "Verification";
+
+const GROUP_ORDER: ActivityGroup[] = ["Research", "Analysis", "Actions", "Verification"];
+
+export function groupForEvent(event: AgentEvent): ActivityGroup | null {
+  switch (event.type) {
+    // Looking things up.
+    case "memory_retrieval":
+    case "browser_opened":
+    case "browser_navigation":
+    case "browser_result":
+    case "file_opened":
+      return "Research";
+
+    // Working out what to do.
+    case "task_planning":
+    case "provider_selected":
+    case "provider_status":
+      return "Analysis";
+
+    // Doing something, and what came back.
+    case "tool_selected":
+    case "tool_started":
+    case "tool_progress":
+    case "tool_result":
+    case "tool_failed":
+    case "file_changed":
+    case "memory_update":
+    case "creative_artifact":
+    case "visual_created":
+    case "diagram_created":
+    case "ui_prototype_created":
+      return "Actions";
+
+    case "execution_phase":
+      switch (event.phase) {
+        case "memory_read_started":
+        case "memory_read_completed":
+          return "Research";
+        case "command_parsed":
+        case "project_resolved":
+          return "Analysis";
+        case "validation_started":
+        case "validation_completed":
+        case "error":
+        case "provider_failed":
+        case "retry":
+          return "Verification";
+        default:
+          return null;
+      }
+
+    default:
+      return null;
+  }
+}
+
+/** Only groups that really contain events, in a stable reading order. */
+export function groupEvents(
+  events: AgentEvent[],
+): Array<{ group: ActivityGroup; events: AgentEvent[] }> {
+  const buckets = new Map<ActivityGroup, AgentEvent[]>();
+  for (const event of events) {
+    const group = groupForEvent(event);
+    if (!group) continue;
+    const bucket = buckets.get(group);
+    if (bucket) bucket.push(event);
+    else buckets.set(group, [event]);
+  }
+  return GROUP_ORDER.filter((group) => (buckets.get(group)?.length ?? 0) > 0).map((group) => ({
+    group,
+    events: buckets.get(group) ?? [],
+  }));
+}
+
 function eventFailed(event: AgentEvent): boolean {
   return (
     event.type === "tool_failed" ||
@@ -305,7 +399,18 @@ interface PendingApproval {
 
 /* --------------------------- component --------------------------- */
 
-export default function GenesisExecutionTimeline() {
+export interface ExecutionTimelineProps {
+  /**
+   * Show only work whose task belongs to this conversation
+   * (TurnOwnership.ownerForTask). An approval no conversation owns is
+   * still shown, so a consent point is never lost.
+   */
+  conversationId?: string;
+  /** Approvals only — the chat shows its tool activity per reply instead. */
+  approvalsOnly?: boolean;
+}
+
+export default function GenesisExecutionTimeline({ conversationId, approvalsOnly = false }: ExecutionTimelineProps = {}) {
   const [tasks, setTasks] = useState<TimelineTask[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [approvals, setApprovals] = useState<PendingApproval[]>([]);
@@ -317,9 +422,17 @@ export default function GenesisExecutionTimeline() {
   // survives a chat re-render (no lost work when a panel remounts).
   useEffect(() => {
     const bus = AgentEventBus.getInstance();
-    const initial = bus.recent(40).filter((event) => event.type !== "creative_artifact");
+    const belongs = (event: AgentEvent): boolean => {
+      if (!conversationId) return true;
+      const owner = ownerForTask(event.taskId);
+      if (owner === conversationId) return true;
+      return owner === null && event.type === "approval_requested";
+    };
+    setTasks([]);
+    setApprovals([]);
+    const initial = bus.recent(40).filter((event) => event.type !== "creative_artifact" && belongs(event));
 
-    setTasks((current) => mergeTasks(current, initial));
+    if (!approvalsOnly) setTasks((current) => mergeTasks(current, initial));
     for (const event of initial) {
       if (event.type === "approval_requested") {
         setApprovals((current) => [
@@ -341,6 +454,7 @@ export default function GenesisExecutionTimeline() {
       if (event.type === "creative_artifact" || event.type === "core_transform") {
         return;
       }
+      if (event.type !== "approval_resolved" && !belongs(event)) return;
       if (event.type === "approval_requested") {
         setApprovals((current) => [
           ...current.filter((a) => a.approvalId !== event.approvalId),
@@ -359,9 +473,10 @@ export default function GenesisExecutionTimeline() {
         );
         return;
       }
+      if (approvalsOnly) return;
       setTasks((current) => mergeTasks(current, [event]));
     });
-  }, []);
+  }, [conversationId, approvalsOnly]);
 
   const resolveApproval = useCallback(
     (approval: PendingApproval, decision: "approved" | "rejected" | "modified") => {
@@ -419,15 +534,17 @@ export default function GenesisExecutionTimeline() {
   }
 
   return (
-    <div
+    <section
       data-lelu-execution-timeline
+      aria-label="What LÉLU is doing"
       style={{
-        flexShrink: 0,
-        borderTop: "1px solid rgba(103,232,249,0.12)",
-        background: "rgba(6, 14, 32, 0.72)",
-        maxHeight: expanded[taskIdOrAny(tasks)] ? "42vh" : undefined,
         display: "flex",
         flexDirection: "column",
+        maxWidth: "100%",
+        width: expanded[taskIdOrAny(tasks)] ? "min(100%, 560px)" : undefined,
+        borderRadius: 20,
+        border: "1px solid rgba(255, 236, 252, 0.14)",
+        background: "rgba(28, 18, 58, 0.5)",
         overflow: "hidden",
       }}
     >
@@ -503,56 +620,65 @@ export default function GenesisExecutionTimeline() {
         </div>
       ))}
 
-      {/* Collapsed header — one human line, click to expand. */}
+      {/* Collapsed header — one human line, tap to expand. */}
+      {tasks.length > 0 ? (
       <button
         type="button"
-        onClick={() => {
-          if (tasks.length > 0) toggle(tasks[0].id);
-        }}
+        aria-expanded={Boolean(expanded[tasks[0].id])}
+        onClick={() => toggle(tasks[0].id)}
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 8,
+          gap: 10,
           width: "100%",
+          minHeight: 40,
           padding: "8px 14px",
           border: "none",
           background: "transparent",
-          color: "rgba(203, 228, 255, 0.85)",
+          color: "rgba(244, 232, 255, 0.88)",
           cursor: "pointer",
-          fontSize: 11.5,
+          fontSize: 12.5,
+          fontFamily: "inherit",
           textAlign: "left",
         }}
       >
         <span
+          aria-hidden
           style={{
-            width: 5,
-            height: 5,
+            width: 7,
+            height: 7,
             borderRadius: 999,
-            background: "#67e8f9",
-            boxShadow: "0 0 8px #67e8f9",
+            background: "radial-gradient(circle at 35% 35%, #fff, #f6b8dc 50%, #c6b4ff)",
+            boxShadow: "0 0 10px rgba(246, 184, 220, 0.8)",
             flexShrink: 0,
           }}
         />
         <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {collapsedSummary}
         </span>
-        <span style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", flexShrink: 0 }}>
-          {expanded[tasks[0].id] ? "▾ collapse" : "▸ expand"}
+        <span
+          aria-hidden
+          style={{
+            fontSize: 11,
+            color: "rgba(224, 212, 248, 0.6)",
+            flexShrink: 0,
+            transform: expanded[tasks[0].id] ? "rotate(180deg)" : "none",
+            transition: "transform 160ms ease",
+          }}
+        >
+          ⌄
         </span>
       </button>
+      ) : null}
 
       {/* Expanded detail — every operation for the top task. */}
-      {expanded[tasks[0].id] ? (
+      {tasks.length > 0 && expanded[tasks[0].id] ? (
         <div
           style={{
-            overflowY: "auto",
-            maxHeight: "32vh",
-            padding: "0 12px 10px",
+            padding: "0 12px 12px",
             display: "flex",
             flexDirection: "column",
             gap: 2,
-            scrollbarWidth: "thin",
-            scrollbarColor: "rgba(148,163,184,0.35) transparent",
           }}
         >
           {tasks.slice(0, MAX_TASKS).map((task) => (
@@ -562,10 +688,29 @@ export default function GenesisExecutionTimeline() {
                   {task.label.slice(0, 60)}
                 </div>
               ) : null}
-              {task.events.slice(0, MAX_EVENTS_PER_TASK).map((event, index) => {
-                const side = eventSide(event);
-                const failed = eventFailed(event);
-                return (
+              {groupEvents(task.events.slice(0, MAX_EVENTS_PER_TASK)).map(({ group, events: grouped }) => (
+                <div key={group} style={{ marginBottom: 2 }}>
+                  {/*
+                    One line per group, with a real count. A group only
+                    appears when it has events, so this can never read
+                    "Verification · 0" about work that never ran.
+                  */}
+                  <div
+                    data-lelu-activity-group={group}
+                    style={{
+                      fontSize: 10,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      color: "rgba(148,163,184,0.75)",
+                      margin: "6px 2px 2px",
+                    }}
+                  >
+                    {group} · {grouped.length}
+                  </div>
+                  {grouped.map((event, index) => {
+                    const side = eventSide(event);
+                    const failed = eventFailed(event);
+                    return (
                   <div
                     key={`${event.type}-${index}`}
                     style={{
@@ -574,7 +719,7 @@ export default function GenesisExecutionTimeline() {
                       gap: 8,
                       padding: "4px 6px",
                       borderRadius: 8,
-                      background: index % 2 === 0 ? "rgba(148,163,184,0.04)" : "transparent",
+                      background: index % 2 === 0 ? "rgba(255,236,252,0.04)" : "transparent",
                     }}
                   >
                     <span
@@ -582,7 +727,7 @@ export default function GenesisExecutionTimeline() {
                         width: 16,
                         textAlign: "center",
                         fontSize: 10.5,
-                        color: failed ? "#f87171" : "#67e8f9",
+                        color: failed ? "#ff9fb8" : "#f6b8dc",
                         flexShrink: 0,
                       }}
                     >
@@ -593,12 +738,11 @@ export default function GenesisExecutionTimeline() {
                         flex: 1,
                         minWidth: 0,
                         fontSize: 11.5,
-                        color: failed ? "rgba(248,113,113,0.95)" : "rgba(228,244,255,0.88)",
+                        color: failed ? "rgba(255,175,195,0.95)" : "rgba(244,236,255,0.88)",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
                       }}
-                      title={event.type}
                     >
                       {executionEventLabel(event)}
                     </span>
@@ -619,13 +763,15 @@ export default function GenesisExecutionTimeline() {
                       </span>
                     ) : null}
                   </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           ))}
         </div>
       ) : null}
-    </div>
+    </section>
   );
 }
 

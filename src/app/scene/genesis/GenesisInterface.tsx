@@ -23,7 +23,8 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useGenesis, useGenesisState, type GenesisPanel } from "./GenesisCore";
+import { useWorkspaceRoot } from "./useWorkspace";
+import { useGenesis, type GenesisPanel } from "./GenesisCore";
 import GenesisModuleHost, { type ModuleRenderers } from "./GenesisModuleHost";
 import UIStateStore from "../../../core/cognition/UIStateStore";
 import UIActionBus from "../../../core/cognition/UIActionBus";
@@ -31,7 +32,9 @@ import GenesisDock from "./GenesisDock";
 import GenesisCommandPalette from "./GenesisCommandPalette";
 import { genesisTheme } from "./GenesisTheme";
 import GenesisChat from "./GenesisChat";
-import GenesisErrorBoundary from "./GenesisErrorBoundary";
+import ChatErrorBoundary from "./chat/ChatErrorBoundary";
+import { useSurface } from "./surface/useSurface";
+import MultiChatTabs from "./MultiChatTabs";
 import GenesisReasoningPanel from "./GenesisReasoningPanel";
 import GenesisDiagnosticsPanel from "./GenesisDiagnosticsPanel";
 import GenesisExecutivePanel from "./GenesisExecutivePanel";
@@ -57,6 +60,7 @@ import GenesisNotificationsPanel from "./GenesisNotificationsPanel";
 import GenesisVisualStudio from "./GenesisVisualStudio";
 import GenesisEarthCore from "./GenesisEarthCore";
 import GenesisCosmosPanel from "./GenesisCosmosPanel";
+import GenesisIdentityPanel from "./GenesisIdentityPanel";
 
 /**
  * ONE module set — the same instances the dock, palette, chat commands
@@ -85,11 +89,13 @@ const MODULE_RENDERERS: ModuleRenderers = {
   engineering: ({ onClose }) => <GenesisEngineeringPanel onClose={onClose} />,
   evolution: ({ onClose }) => <GenesisSelfDevPanel onClose={onClose} />,
   notifications: ({ onClose }) => <GenesisNotificationsPanel onClose={onClose} />,
+  briefings: ({ onClose }) => <GenesisBriefingsPanel onClose={onClose} />,
   visualstudio: ({ onClose }) => <GenesisVisualStudio onClose={onClose} />,
   // Earth Core is the canonical Eagle Eye Earth visual state. It remains
   // one module instance, but is rendered inline with chat rather than as a
   // separate navigation destination.
-  earth: ({ onClose }) => <GenesisEarthCore onClose={onClose} />, 
+  earth: ({ onClose }) => <GenesisEarthCore onClose={onClose} />,
+  identity: ({ onClose }) => <GenesisIdentityPanel onClose={onClose} />,
 };
 import CognitiveLoop from "../../../core/cognition/CognitiveLoop";
 import AvatarPresenceBridge from "../../../core/avatar/AvatarPresenceBridge";
@@ -104,6 +110,8 @@ import WorldRegistry, { type DestinationKind } from "./WorldRegistry";
 import CosmosEntityRegistry from "../../../core/cosmos/CosmosEntityRegistry";
 import Sentinel from "../../../core/sentinel/Sentinel";
 import CapabilityManifest from "../../../core/capabilities/CapabilityManifest";
+import LeluSignInGate from "./LeluSignInGate";
+import GenesisBriefingsPanel from "./GenesisBriefingsPanel";
 
 /** Fullscreen toggle — real requestFullscreen / exitFullscreen. */
 function GenesisFullscreenButton() {
@@ -178,7 +186,7 @@ function GenesisFullscreenButton() {
  *  "Genesis · Live" status card, so the v1 environment keeps its
  *  collapse behavior without anything floating over the interface. */
 function GenesisMinimizeButton() {
-  const { minimize } = useGenesisState();
+  const { minimize } = useGenesis();
   return (
     <button
       type="button"
@@ -219,81 +227,16 @@ function GenesisMinimizeButton() {
   );
 }
 
-/** The "Genesis ＋" expand chip shown while minimized. It is the only
- *  piece of the interface that animates with the universe pulse, so it
- *  alone subscribes to the universe tick (useGenesis); the rest of the
- *  interface uses the state-only context and is not re-rendered 10×/s. */
-function GenesisExpandChip({ onExpand }: { onExpand: () => void }) {
-  const { universe } = useGenesis();
-  const evolutionColor =
-    universe.evolutionSystem.colorShift > 0.72
-      ? "#fbbf24"
-      : universe.evolutionSystem.colorShift > 0.42
-        ? "#a78bfa"
-        : "#67e8f9";
-  const pulse = universe.pulse.heartbeat;
-  const interfaceActivity = Math.max(
-    0.12,
-    Math.min(1, pulse * 0.45 + universe.evolutionSystem.emergence * 0.35 + universe.awareness * 0.2),
-  );
-  return (
-    <button
-      type="button"
-      onClick={onExpand}
-      title="Expand Genesis"
-      aria-label="Expand Genesis"
-      style={{
-        pointerEvents: "auto",
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 8,
-        background: `rgba(8, 16, 38, ${0.72 + interfaceActivity * 0.12})`,
-        border: `1px solid ${evolutionColor}${Math.round((0.24 + interfaceActivity * 0.32) * 255).toString(16).padStart(2, "0")}`,
-        borderRadius: genesisTheme.radius.pill,
-        padding: "8px 14px",
-        color: "white",
-        backdropFilter: genesisTheme.glass.blurSoft,
-        cursor: "pointer",
-        boxShadow: genesisTheme.elevation.chrome.boxShadow,
-      }}
-    >
-      <span
-        aria-hidden
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: 999,
-          background: evolutionColor,
-          boxShadow: `0 0 ${6 + pulse * 8}px ${evolutionColor}`,
-          transform: `scale(${0.8 + pulse * 0.45})`,
-        }}
-      />
-      <strong style={{ fontSize: 12 }}>Genesis</strong>
-      <span style={{ opacity: 0.6, fontSize: 11 }}>＋</span>
-    </button>
-  );
-}
-
 /* Singleton guard — exactly ONE canonical LÉLU interface (chat + dock +
    modules) may be mounted. A second mount is a duplicate-system bug.
    StrictMode's mount→unmount→mount dev cycle keeps the count at 1. */
 let genesisInterfaceMountCount = 0;
 
-/** True while GenesisDock is a left rail (tablet and desktop, ≥ 720px). */
-function useDockRailLeft(): boolean {
-  const [wide, setWide] = useState(() => typeof window !== "undefined" && window.innerWidth >= 720);
-  useEffect(() => {
-    const onResize = () => setWide(window.innerWidth >= 720);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-  return wide;
-}
-
 export default function GenesisInterface() {
-  const dockRailLeft = useDockRailLeft();
+  const attachWorkspaceRoot = useWorkspaceRoot();
   const {
     state,
+    universe,
     engineRuntime,
     openPanel,
     openModule,
@@ -302,8 +245,9 @@ export default function GenesisInterface() {
     expand,
     setSelfExploration,
     setActiveScene,
-  } = useGenesisState();
+  } = useGenesis();
   const voice = useVoice();
+  const surface = useSurface();
 
   useEffect(() => {
     genesisInterfaceMountCount += 1;
@@ -475,7 +419,7 @@ export default function GenesisInterface() {
 
     presence.connect({
       openPanel: (panel) => {
-        if (activePanelRef.current !== panel) {
+        if (state.activePanel !== panel) {
           openPanel(panel as GenesisPanel);
         }
         // Register as cosmos entity so LELU can visit it
@@ -497,6 +441,35 @@ export default function GenesisInterface() {
         ExplorationController.getInstance().setMode(mode as any);
       },
     });
+  }, [openPanel, state.activePanel, handleDiscover]);
+
+  /**
+   * The LIFECYCLES the effect above used to own, now started once.
+   *
+   * That effect re-runs on every render, not only on panel changes:
+   * `openPanel` comes from the Genesis context, whose memo depends on
+   * `state`, so its identity changes whenever any state does — which
+   * during a streamed reply is several times a second. Everything
+   * lifecycle-shaped in it was therefore being torn down and rebuilt at
+   * render rate. Measured in a real browser turn: 12 stop/start pairs,
+   * each persisting the whole avatar profile, 170 KB of writes for one
+   * message.
+   *
+   * It also starved the presence engine. start() arms a 2800 ms
+   * interval AND ticks immediately; restarting it per render meant the
+   * interval never got to fire and every render drove an autonomous
+   * camera decision instead. Its own `ticksSinceLastAction` counting
+   * was measuring renders, not time.
+   *
+   * Only connect() belongs in the effect above — it is a plain
+   * assignment, so refreshing the closures per render is free and keeps
+   * them reading current state. Starting things does not belong there,
+   * for the same reason the runtime_start effect above was split out.
+   */
+  useEffect(() => {
+    const presence = presenceRef.current;
+    const cosmosRegistry = CosmosEntityRegistry.getInstance();
+
     presence.start();
 
     // The avatar follows LIVE cognition from here on: the bridge
@@ -513,11 +486,7 @@ export default function GenesisInterface() {
       AvatarPresenceBridge.getInstance().stop();
       clearInterval(cleanupInterval);
     };
-    // Runs once per mount: openPanel is identity-stable and the live panel
-    // is read through activePanelRef. Depending on state.activePanel here
-    // stopped and restarted the presence engine and the avatar presence
-    // bridge on every panel change.
-  }, [openPanel]);
+  }, []);
 
   // Sync self-exploration toggle to presence engine
   useEffect(() => {
@@ -593,10 +562,17 @@ export default function GenesisInterface() {
   const visualFocus = visualState.interfaceFocus;
   const systemEnvironmentActive = visualFocus === "visual";
 
-  /* On phones the chat is full-screen with its own title bar (☰ opens the
-     LÉLU menu, ✕ closes). The global minimize / palette / fullscreen row
-     sat on top of that title bar and hid its controls. */
-  const phoneChatOpen = !dockRailLeft && !state.minimized && state.activePanel === "chat";
+  const evolutionColor =
+    universe.evolutionSystem.colorShift > 0.72
+      ? "#fbbf24"
+      : universe.evolutionSystem.colorShift > 0.42
+        ? "#a78bfa"
+        : "#67e8f9";
+  const pulse = universe.pulse.heartbeat;
+  const interfaceActivity = Math.max(
+    0.12,
+    Math.min(1, pulse * 0.45 + universe.evolutionSystem.emergence * 0.35 + universe.awareness * 0.2),
+  );
 
   function handleExitChat() {
     openPanel("none");
@@ -627,6 +603,12 @@ export default function GenesisInterface() {
   return (
     <div
       data-workspace="genesis-unified"
+      // The measurement root. Every panel, the dock, the composer and the
+      // notification layer size themselves from THIS element rather than
+      // from window.innerWidth, so the interface fits the space it is
+      // actually given — inside the Freebuff workspace that is smaller
+      // than the window, which is why panels were being clipped.
+      ref={attachWorkspaceRoot}
       style={{
         position: "fixed",
         inset: 0,
@@ -638,6 +620,11 @@ export default function GenesisInterface() {
         isolation: "isolate",
       }}
     >
+      {/* Asked once, BEFORE the conversation starts — not inside the chat
+          branch, which only renders after the user has already opened chat.
+          Renders nothing when already signed in or already answered. */}
+      <LeluSignInGate />
+
       {/*
        * THE ONE GENESIS ENVIRONMENT — the canonical LÉLU surface. Mounted
        * above the workspace router, so this exact component (and its chat,
@@ -661,6 +648,7 @@ export default function GenesisInterface() {
             reasoningActive={Boolean(state.cognition?.reasoning)}
             engineErrorCount={state.engineStatuses.filter((engine) => Boolean(engine.error)).length}
             visualActive={systemEnvironmentActive}
+            chatOwnsScreen={surface.chatOwnsScreen || surface.workspaceOwnsScreen}
             onCoreHoldVoice={handleCoreHoldVoice}
             selfExplorationEnabled={state.selfExplorationEnabled}
             onToggleSelfExploration={() => setSelfExploration(!state.selfExplorationEnabled)}
@@ -671,18 +659,17 @@ export default function GenesisInterface() {
 
           {/* The ambient visual layer behind the primary environment — fed
               by the same real agent events through VisualBridge. */}
-          {sceneIsV2 || systemEnvironmentActive ? null : <VisualInterface />}
+          {sceneIsV2 || systemEnvironmentActive || surface.chatOwnsScreen ? null : <VisualInterface />}
 
           {/* Top chrome: expand chip (when minimized) + command palette +
               fullscreen. The palette and fullscreen stay usable in both
               states. */}
+          {surface.chatOwnsScreen ? null : (
           <div
             style={{
               position: "absolute",
               top: 16,
-              /* From tablet width up the dock is a left rail (GenesisDock's
-                 720px breakpoint); keep the expand chip clear of it. */
-              left: dockRailLeft ? 96 : 16,
+              left: 16,
               /* In Gen V2 the scene rail sits on the right — keep the
                  palette/fullscreen controls clear of it. */
               right: sceneIsV2 ? 96 : 16,
@@ -694,38 +681,87 @@ export default function GenesisInterface() {
               zIndex: 24,
             }}
           >
-            {state.minimized ? <GenesisExpandChip onExpand={expand} /> : null}
+            {state.minimized ? (
+              <button
+                type="button"
+                onClick={expand}
+                title="Expand Genesis"
+                aria-label="Expand Genesis"
+                style={{
+                  pointerEvents: "auto",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: `rgba(8, 16, 38, ${0.72 + interfaceActivity * 0.12})`,
+                  border: `1px solid ${evolutionColor}${Math.round((0.24 + interfaceActivity * 0.32) * 255).toString(16).padStart(2, "0")}`,
+                  borderRadius: genesisTheme.radius.pill,
+                  padding: "8px 14px",
+                  color: "white",
+                  backdropFilter: genesisTheme.glass.blurSoft,
+                  cursor: "pointer",
+                  boxShadow: genesisTheme.elevation.chrome.boxShadow,
+                }}
+              >
+                <span
+                  aria-hidden
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 999,
+                    background: evolutionColor,
+                    boxShadow: `0 0 ${6 + pulse * 8}px ${evolutionColor}`,
+                    transform: `scale(${0.8 + pulse * 0.45})`,
+                  }}
+                />
+                <strong style={{ fontSize: 12 }}>Genesis</strong>
+                <span style={{ opacity: 0.6, fontSize: 11 }}>＋</span>
+              </button>
+            ) : null}
 
             {/* The System environment owns its top navigation bar, so the
                 global top-right controls stay in the v1/v2 scenes only. */}
-            {systemEnvironmentActive || phoneChatOpen ? null : (
-              <div style={{ pointerEvents: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+            {systemEnvironmentActive ? null : (
+              // marginLeft:auto keeps these at the top RIGHT. As the row's only
+              // child (when not minimized) they otherwise sat top-left, under
+              // the desktop dock rail.
+              <div style={{ pointerEvents: "auto", display: "flex", gap: 8, alignItems: "center", marginLeft: "auto" }}>
                 {state.minimized ? null : <GenesisMinimizeButton />}
                 <GenesisCommandPalette />
                 <GenesisFullscreenButton />
               </div>
             )}
           </div>
+          )}
         </div>
 
-      {/* The Multi-Chat tab bar is rendered INSIDE GenesisChat (below its
-          title bar), so it moves and resizes with the chat window and never
-          covers the messages. */}
+      {/* Multi-Chat tab bar — visible while the dialogue surface is open so
+          the user can switch between isolated conversations without losing
+          state. It floats above the dialogue overlay (higher z-index). */}
+      {state.minimized || surface.workspaceOwnsScreen ? null : state.activePanel === "chat" ? <MultiChatTabs /> : null}
 
       {/* Explorer cards — autonomous LÉLU discoveries as small floating cards */}
 
 
-      {/* Chat is the PERSISTENT core of the unified UI: it stays mounted
-          and interactive while any environment module is open, so the main
-          UI never disappears when LÉLU is working. It unmounts only when
-          the whole interface is minimized or explicitly exited. Wrapped in
-          an error boundary so a failed message render never takes down the
-          app. */}
-      {state.minimized ? null : state.activePanel === "chat" || openModuleIds.length > 0 ? (
-        <GenesisErrorBoundary>
-          <GenesisChat />
-        </GenesisErrorBoundary>
-      ) : null}
+      {/* Chat is the PERSISTENT core of the unified UI: it is shown while
+          chat or any environment module is open, so the main UI never
+          disappears when LÉLU is working. Closing it (going Home) HIDES it
+          rather than unmounting it: a reply still streaming belongs to the
+          mounted chat that sent it, and unmounting mid-turn left the
+          reopened chat with no Stop control, no streamed text and a turn
+          queue that no longer knew the turn was running. It unmounts only
+          when the whole interface is minimized. Its own boundary logs a
+          render error and offers to reopen the conversation. */}
+      {state.minimized ? null : (
+        <ChatErrorBoundary onLeave={handleExitChat}>
+          <GenesisChat
+            hidden={
+              // On a phone a visible workspace is the screen; the chat waits
+              // underneath, mounted, and returns when it is minimized/closed.
+              surface.workspaceOwnsScreen || !(state.activePanel === "chat" || openModuleIds.length > 0)
+            }
+          />
+        </ChatErrorBoundary>
+      )}
 
       {/* Unified module host — inline / expanded / minimized windows for
           the SAME module instances (one runtime each). Mounted in every

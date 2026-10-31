@@ -1,0 +1,11 @@
+── USER ──
+LÉLU, please improve your own interface using your self-development loop.
+1) Look at your own running app at phone size with browser_capture (target "app") — check several panels, not just the home screen.
+2) From the screenshots and layout reports, choose ONE concrete, low-risk problem a user would actually hit. Tell me the problem and a testable expected outcome before you change anything.
+3) Make a workspace copy (project_copy), find the code responsible (project_search, project_read), and fix it there with project_write. Do not change the real project.
+4) Validate the copy with project_validate (typecheck). If it fails, read the output and fix it.
+5) Start a preview of your copy (project_preview) and capture it the same way (browser_capture target "preview"), then compare it with the original capture.
+6) Show me the diff (project_diff) and tell me plainly whether your expected outcome is met, based on the evidence.
+
+── ASSISTANT ──
+I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking "who are you", "who am I", or about something we've discussed.

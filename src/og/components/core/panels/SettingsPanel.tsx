@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getSupabase } from "@og/integrations/supabase/client";
+import { getSupabase, isSupabaseConfigured } from "@og/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "@og/compat/router";
 import { useSession } from "@og/hooks/use-session";
@@ -40,18 +40,35 @@ export function SettingsPanel() {
         {cat === "profile" && (
           <div className="space-y-3">
             <h3 className="text-base font-medium">Profile</h3>
-            <Row k="Signed in as" v={session?.user.email ?? "—"} />
-            <Row k="User ID" v={session?.user.id ?? "—"} />
-            <button
-              onClick={async () => {
-                await getSupabase()?.auth.signOut();
-                toast.success("Signed out");
-                navigate({ to: "/" });
-              }}
-              className="rounded-md border border-white/15 bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10"
-            >
-              Sign out
-            </button>
+            {/* Signed out used to render an empty identity above a "Sign out"
+                button, which reads as "signed in, broken" rather than "not
+                signed in" — and offered no way to actually sign in. */}
+            {session ? (
+              <>
+                <Row k="Signed in as" v={session.user.email ?? "—"} />
+                <Row k="User ID" v={session.user.id} />
+                <button
+                  onClick={async () => {
+                    await getSupabase()?.auth.signOut();
+                    toast.success("Signed out");
+                    navigate({ to: "/" });
+                  }}
+                  className="rounded-md border border-white/15 bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : isSupabaseConfigured() ? (
+              <SignInForm />
+            ) : (
+              <p className="text-xs leading-relaxed text-foreground/60">
+                Cloud sign-in is unavailable: this deployment has no Supabase
+                URL configured, so there is no account to sign in to. LÉLU runs
+                normally and keeps everything on this device. To enable sync,
+                set <code>SUPABASE_URL</code> and{" "}
+                <code>SUPABASE_PUBLISHABLE_KEY</code> in the environment.
+              </p>
+            )}
           </div>
         )}
         {cat === "appearance" && (
@@ -82,5 +99,81 @@ function Empty({ title, text }: { title: string; text: string }) {
       <h3 className="text-base font-medium">{title}</h3>
       <p className="mt-2 text-xs text-foreground/55">{text}</p>
     </div>
+  );
+}
+
+/**
+ * Email sign-in for the OG surface.
+ *
+ * Uses the same Supabase client every other OG call uses — there is one
+ * client in the app and this is not a second auth path.
+ */
+function SignInForm() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(event: React.FormEvent, mode: "in" | "up") {
+    event.preventDefault();
+    const client = getSupabase();
+    if (!client) return;
+    setBusy(true);
+    try {
+      const { error } =
+        mode === "up"
+          ? await client.auth.signUp({ email: email.trim().toLowerCase(), password })
+          : await client.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
+      if (error) toast.error(error.message);
+      else if (mode === "up") toast.success("Check your email to confirm, then sign in.");
+      else toast.success("Signed in");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={(event) => void submit(event, "in")} className="max-w-xs space-y-2">
+      <p className="text-xs leading-relaxed text-foreground/60">
+        Sign in to carry memory, projects and conversations across devices.
+      </p>
+      <input
+        type="email"
+        value={email}
+        onChange={(event) => setEmail(event.target.value)}
+        placeholder="Email address"
+        autoComplete="email"
+        required
+        disabled={busy}
+        className="w-full rounded-md border border-white/10 bg-black/25 px-2.5 py-2 text-xs text-foreground placeholder:text-foreground/40 focus:border-white/25 focus:outline-none"
+      />
+      <input
+        type="password"
+        value={password}
+        onChange={(event) => setPassword(event.target.value)}
+        placeholder="Password"
+        autoComplete="current-password"
+        required
+        minLength={6}
+        disabled={busy}
+        className="w-full rounded-md border border-white/10 bg-black/25 px-2.5 py-2 text-xs text-foreground placeholder:text-foreground/40 focus:border-white/25 focus:outline-none"
+      />
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="submit"
+          disabled={busy}
+          className="rounded-md border border-white/15 bg-white/10 px-3 py-1.5 text-xs hover:bg-white/15 disabled:opacity-50"
+        >
+          {busy ? "Signing in…" : "Sign in"}
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={(event) => void submit(event, "up")}
+          className="rounded-md border border-white/15 bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10 disabled:opacity-50"
+        >
+          Create account
+        </button>
+      </div>
+    </form>
   );
 }

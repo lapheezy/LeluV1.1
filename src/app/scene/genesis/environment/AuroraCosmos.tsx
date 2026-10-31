@@ -15,7 +15,7 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { useGenesis } from "../GenesisCore";
+import { useGenesisScene } from "../useGenesisScene";
 import { sampleCosmosAtmosphere } from "../cosmos/CosmosAtmosphere";
 import { useMemo, useRef } from "react";
 import {
@@ -176,7 +176,7 @@ function createRibbon(seed: RibbonSeed): AuroraRibbon {
 }
 
 export default function AuroraCosmos() {
-  const { getLiveUniverse } = useGenesis();
+  const { getLiveUniverse } = useGenesisScene("AuroraCosmos");
   const root = useRef<Group>(null);
 
   const ribbons = useMemo<AuroraRibbon[]>(() => {

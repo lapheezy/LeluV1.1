@@ -15,6 +15,7 @@ import {
   openAIToolPayload,
   toOpenAIMessages,
   trailingUserTurn,
+  readOpenAIStream,
 } from "./openaiTools";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
@@ -24,7 +25,12 @@ import { resolveModel } from "../core/ProviderModels";
 
 export default class GroqProvider implements AIProvider {
   readonly name = "Groq";
-  readonly priority = 1;
+  // After OpenRouter (2), before Cerebras (3). Anthropic took 1 when it
+  // became the default (d11dc20), which left Groq tied with OpenRouter at 2
+  // and their order decided by registration order. The owner chose
+  // OpenRouter first — the order that was already in effect — so the tie
+  // is broken here explicitly instead of by accident.
+  readonly priority = 2.5;
   readonly enabled = true;
   readonly timeout = 30000;
   readonly requiresApiKey = true;
@@ -164,7 +170,9 @@ export default class GroqProvider implements AIProvider {
           ...authHeaders("groq", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
         },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(this.timeout),
+        signal: request.signal
+          ? AbortSignal.any([request.signal, AbortSignal.timeout(this.timeout)])
+          : AbortSignal.timeout(this.timeout),
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -251,63 +259,32 @@ export default class GroqProvider implements AIProvider {
       throw new Error(`Groq failed ${response.status}: ${apiMessage}`);
     }
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let content = "";
-    let usage: unknown;
-    let finishReason: string | undefined;
-
-    const processLine = (line: string): void => {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith("data:")) return;
-      const dataStr = trimmed.slice(5).trim();
-      if (!dataStr || dataStr === "[DONE]") return;
-      try {
-        const chunk = JSON.parse(dataStr) as {
-          choices?: Array<{ delta?: { content?: string }; finish_reason?: string }>;
-          usage?: unknown;
-        };
-        if (chunk.usage) usage = chunk.usage;
-        const choice = chunk.choices?.[0];
-        if (choice?.finish_reason) finishReason = choice.finish_reason;
-        const delta = choice?.delta?.content;
-        if (typeof delta === "string" && delta.length > 0) {
-          content += delta;
-          onDelta(content);
-        }
-      } catch {
-        // Ignore malformed keep-alive fragments.
-      }
-    };
-
+    // Shared reader: assembles tool calls too. Groq's own kept only the
+    // text, so a reply that called a tool arrived "empty" and was dropped
+    // as a provider failure whenever tools were offered.
+    let streamed: Awaited<ReturnType<typeof readOpenAIStream>>;
     try {
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) processLine(line);
-      }
-      if (buffer.trim()) processLine(buffer);
+      streamed = await readOpenAIStream(response, "Groq", onDelta);
     } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") throw error;
       const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`Groq stream interrupted: ${message}`);
+      throw new Error(message.startsWith("Groq stream interrupted") ? message : `Groq stream interrupted: ${message}`);
     }
 
-    if (!content.trim()) {
+    if (!streamed.text.trim() && streamed.toolCalls.length === 0) {
       throw new Error("Groq returned no usable content.");
     }
 
     return {
-      text: content.trim(),
+      text: streamed.text.trim(),
       provider: this.name,
       model,
       processingTime: Date.now() - started,
+      ...(streamed.toolCalls.length ? { toolCalls: streamed.toolCalls } : {}),
+      stopReason: streamed.finishReason,
       metadata: {
-        usage,
-        finishReason,
+        usage: streamed.usage,
+        finishReason: streamed.finishReason,
         streamed: true,
       },
     };

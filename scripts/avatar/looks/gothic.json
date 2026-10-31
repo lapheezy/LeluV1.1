@@ -1,0 +1,5 @@
+{
+  "_why": "Hand-checked against the reference: the earlobe landmark sits on the jaw line, so the hoops are placed where they hang (hook x, hook y, radius).",
+  "earrings.left": [425, 203, 27],
+  "earrings.right": [569, 212, 28]
+}

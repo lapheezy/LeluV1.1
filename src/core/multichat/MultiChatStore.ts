@@ -18,6 +18,7 @@
  */
 
 import KvStore from "../storage/KvStore";
+import type { ChatActivity } from "./TurnActivity";
 
 export interface ChatMessage {
   id: string;
@@ -29,6 +30,14 @@ export interface ChatMessage {
   confidence?: number;
   reasoning?: unknown;
   plan?: unknown;
+  /** What LÉLU did for this reply (tools, pages, sources), from real events. */
+  activity?: ChatActivity;
+  /**
+   * The conversation this message was first written in, when it was
+   * carried into a merged chat. LÉLU and the transcript use it to keep
+   * the merged sources apart.
+   */
+  origin?: { conversationId: string; title: string };
 }
 
 export interface ChatConversation {
@@ -67,6 +76,14 @@ type Listener = (conversations: ChatConversation[]) => void;
 
 const KEY = "multichat.workspace.v1";
 const MAX_MESSAGES = 600;
+/**
+ * How long a write may wait for the writes behind it.
+ *
+ * Long enough that a token stream (tens of deltas a second) collapses
+ * into one write, short enough that an ordinary action is on disk before
+ * anyone could act on having done it.
+ */
+const COALESCE_MS = 250;
 /** Practically unlimited — archived conversations don't count against active slots. */
 const MAX_ACTIVE = 200;
 const DEFAULT_TITLE = "New chat";
@@ -109,6 +126,25 @@ export default class MultiChatStore {
   private readonly listeners = new Set<Listener>();
   private activeId: string;
 
+  /**
+   * The conversations, in memory, as the single read path.
+   *
+   * Every read used to go to KvStore and JSON.parse the whole workspace,
+   * and every write used to JSON.stringify it to two backends. Both
+   * happened once per streamed token, because GenesisBridge upserts the
+   * assistant message on every SSE delta. Measured on one short turn:
+   * 384 Storage.setItem calls and 670KB written, with the main thread
+   * blocked for 34.9 of the turn's 36.8 seconds.
+   *
+   * This store is the only writer, so a cache it maintains itself is
+   * authoritative — not an optimisation that can disagree with the
+   * truth.
+   */
+  private cache: ChatConversation[] | null = null;
+  /** A coalesced write that has not landed yet. */
+  private pendingWrite: ReturnType<typeof setTimeout> | null = null;
+  private dirty = false;
+
   private constructor() {
     const stored = this.kv.get<StoredWorkspace>(KEY);
     const conversations = this.readAll();
@@ -119,6 +155,7 @@ export default class MultiChatStore {
     if (!this.activeId) {
       this.ensureSeeded();
     }
+    this.installLifecycleFlush();
   }
 
   public static getInstance(): MultiChatStore {
@@ -131,11 +168,13 @@ export default class MultiChatStore {
   /* ------------------------------ persistence ------------------------------ */
 
   private readAll(): ChatConversation[] {
+    if (this.cache !== null) return this.cache;
     const stored = this.kv.get<StoredWorkspace>(KEY);
     if (!stored || !Array.isArray(stored.conversations) || stored.conversations.length === 0) {
       return [];
     }
-    return stored.conversations;
+    this.cache = stored.conversations;
+    return this.cache;
   }
 
   /** Guarantee at least one conversation exists (LÉLU never boots empty). */
@@ -146,16 +185,84 @@ export default class MultiChatStore {
     }
     const conversation = this.makeConversation(DEFAULT_TITLE);
     this.activeId = conversation.id;
-    this.kv.set(KEY, { conversations: [conversation], activeId: conversation.id });
-    return [conversation];
+    this.cache = [conversation];
+    this.dirty = true;
+    // The first conversation of a session is durable immediately: there
+    // is nothing to coalesce with, and losing it would mean booting
+    // empty.
+    this.flush();
+    return this.cache;
   }
 
+  /**
+   * Record a change: in memory and on screen immediately, on disk soon.
+   *
+   * The cache and the subscribers are updated synchronously, so nothing
+   * about the UI or about what any reader sees becomes eventual. Only
+   * the serialisation is deferred, and only by COALESCE_MS, so a burst
+   * of streamed deltas costs one write instead of one per token.
+   */
   private persist(conversations: ChatConversation[], activeId?: string): void {
-    this.kv.set(KEY, {
-      conversations,
-      activeId: activeId ?? this.activeId,
-    });
+    this.cache = conversations;
+    if (activeId !== undefined) this.activeId = activeId;
+    this.dirty = true;
+    this.scheduleWrite();
     this.notify();
+  }
+
+  /**
+   * Write now.
+   *
+   * Called where the deferral would be a risk rather than a saving: when
+   * a turn finishes, and when the page is going away. Also safe to call
+   * at any time — it is a no-op when nothing is dirty.
+   */
+  public flush(): void {
+    if (this.pendingWrite !== null) {
+      clearTimeout(this.pendingWrite);
+      this.pendingWrite = null;
+    }
+    if (!this.dirty) return;
+    this.dirty = false;
+    this.kv.set(KEY, {
+      conversations: this.cache ?? this.readAll(),
+      activeId: this.activeId,
+    });
+  }
+
+  private scheduleWrite(): void {
+    if (this.pendingWrite !== null) return;
+    this.pendingWrite = setTimeout(() => {
+      this.pendingWrite = null;
+      if (!this.dirty) return;
+      this.dirty = false;
+      this.kv.set(KEY, {
+        conversations: this.cache ?? this.readAll(),
+        activeId: this.activeId,
+      });
+    }, COALESCE_MS);
+    // A pending save must not be the reason a process refuses to end;
+    // the lifecycle listeners below are what guarantee it lands.
+    (this.pendingWrite as unknown as { unref?: () => void }).unref?.();
+  }
+
+  /**
+   * Nothing in flight may be lost to a closing tab.
+   *
+   * pagehide and visibilitychange are the two that actually fire on
+   * mobile Safari, where beforeunload does not; all three are cheap and
+   * flush() is a no-op when there is nothing to write.
+   */
+  private installLifecycleFlush(): void {
+    if (typeof window === "undefined" || typeof window.addEventListener !== "function") return;
+    const flush = () => this.flush();
+    window.addEventListener("beforeunload", flush);
+    window.addEventListener("pagehide", flush);
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") this.flush();
+      });
+    }
   }
 
   /* --------------------------------- events -------------------------------- */
@@ -259,6 +366,49 @@ export default class MultiChatStore {
     const next = [conversation, ...conversations].slice(0, MAX_ACTIVE);
     this.activeId = conversation.id;
     this.persist(next, conversation.id);
+    return conversation;
+  }
+
+  /**
+   * Create a conversation WITHOUT selecting it.
+   *
+   * `create()` makes the new conversation active, which is right when a
+   * person asked for a new chat and wrong for every other caller. The
+   * difference was measured, not theorised: cognition's 10-second tick
+   * reaches SelfDevelopmentEngine.announce(), which calls
+   * EngineeringChat.getOrCreateThread(), which called create() — so the
+   * first self-development observation of the session silently moved the
+   * user into the engineering thread. A person who had just asked a
+   * question watched an unrelated observation appear in its place while
+   * their own answer landed, correctly, in a conversation they were no
+   * longer looking at.
+   *
+   * Tags are applied here rather than through addTag() afterwards so the
+   * conversation is persisted once, complete, instead of twice.
+   */
+  public createBackground(title = DEFAULT_TITLE, tags: string[] = []): ChatConversation {
+    const conversations = this.ensureSeeded();
+    const conversation = this.makeConversation(title);
+    if (tags.length > 0) {
+      conversation.tags = [...new Set(tags.map((tag) => tag.trim()).filter(Boolean))];
+    }
+    // Appended, not prepended: create() puts a user's new chat at the top
+    // of their list, and a conversation nobody asked for has not earned
+    // that place.
+    //
+    // At capacity, the oldest conversation is dropped rather than the new
+    // one — a plain slice() would silently discard the conversation this
+    // call just returned — and never the one the user is looking at.
+    let next = [...conversations, conversation];
+    while (next.length > MAX_ACTIVE) {
+      const victim = next.findIndex(
+        (item) => item.id !== this.activeId && item.id !== conversation.id,
+      );
+      if (victim < 0) break;
+      next = [...next.slice(0, victim), ...next.slice(victim + 1)];
+    }
+    // activeId is deliberately untouched.
+    this.persist(next);
     return conversation;
   }
 
@@ -412,6 +562,56 @@ export default class MultiChatStore {
     this.activeId = copy.id;
     this.persist([copy, ...conversations].slice(0, MAX_ACTIVE), copy.id);
     return copy;
+  }
+
+  /**
+   * A NEW conversation holding the histories of two or more chats, in
+   * time order, with every message labelled by the chat it came from.
+   * The originals are left exactly as they were (only linked to the
+   * merge), so nothing any of them said is lost or rewritten. The merge
+   * becomes active. Undefined when fewer than two distinct chats exist.
+   */
+  public merge(ids: string[], title?: string, options: { activate?: boolean } = {}): ChatConversation | undefined {
+    const sources = [...new Set(ids)]
+      .map((id) => this.get(id))
+      .filter((conversation): conversation is ChatConversation => Boolean(conversation));
+    if (sources.length < 2) return undefined;
+    const carry = (source: ChatConversation): ChatMessage[] =>
+      source.messages.map((message) => ({
+        ...structuredClone(message),
+        id: crypto.randomUUID(),
+        // A message already carried from elsewhere keeps its first source.
+        origin: message.origin ?? { conversationId: source.id, title: source.title },
+      }));
+    const names = sources.map((source) => source.title);
+    const fallbackTitle =
+      names.length <= 3 ? `Merged: ${names.join(" + ")}` : `Merged: ${names.slice(0, 2).join(" + ")} + ${names.length - 2} more`;
+    const now = Date.now();
+    const merged: ChatConversation = {
+      ...this.makeConversation(title?.trim() || fallbackTitle),
+      messages: sources
+        .flatMap(carry)
+        .sort((x, y) => x.timestamp - y.timestamp)
+        .slice(-MAX_MESSAGES),
+      linkedIds: sources.map((source) => source.id),
+      projectId: sources.find((source) => source.projectId)?.projectId ?? null,
+      tags: [...new Set(sources.flatMap((source) => source.tags))],
+      createdAt: now,
+      updatedAt: now,
+    };
+    const sourceIds = new Set(merged.linkedIds);
+    const conversations = this.ensureSeeded();
+    for (const conversation of conversations) {
+      if (sourceIds.has(conversation.id) && !conversation.linkedIds.includes(merged.id)) {
+        conversation.linkedIds = [...conversation.linkedIds, merged.id];
+      }
+    }
+    // LÉLU merging from inside a reply does not pull the user away from
+    // the conversation they are reading; a merge they start does.
+    const activate = options.activate ?? true;
+    if (activate) this.activeId = merged.id;
+    this.persist([merged, ...conversations].slice(0, MAX_ACTIVE), activate ? merged.id : undefined);
+    return merged;
   }
 
   public pin(id: string): void {

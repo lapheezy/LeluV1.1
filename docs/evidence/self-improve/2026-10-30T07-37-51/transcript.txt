@@ -1,0 +1,57 @@
+── USER ──
+LÉLU, please improve your own interface using your self-development loop.
+1) Look at your own running app at phone size with browser_capture (target "app") — check several panels, not just the home screen.
+2) From the screenshots and layout reports, choose ONE concrete, low-risk problem a user would actually hit. Tell me the problem and a testable expected outcome before you change anything.
+3) Make a workspace copy (project_copy), find the code responsible (project_search, project_read), and fix it there with project_write. Do not change the real project.
+4) Validate the copy with project_validate (typecheck). If it fails, read the output and fix it.
+5) Start a preview of your copy (project_preview) and capture it under the same conditions (browser_capture target "preview", same viewport and panel), then compare it with the original capture.
+6) If the comparison shows the problem is still there, find out why, change your fix, validate and compare again — keep going until the comparison shows it resolved, or until you have genuinely tried three different approaches. Decide the approach yourself; don't stop to ask me.
+7) Show me the diff (project_diff) and tell me plainly whether your expected outcome is met, based on the evidence.
+
+── ASSISTANT ──
+**Problem identified**  
+When the app is viewed on a phone (390 × 844 px) the companion avatar covers three top‑right controls: **New chat**, **Search all chats**, and **Chats and notifications**. This makes those buttons inaccessible.
+
+**Expected outcome**  
+Move the companion’s default starting position more toward the centre so that, on a phone viewport, it no longer overlaps those controls. After the change, a capture of the app (phone size, chat panel) should show **zero** overlapping controls.
+
+**What was changed**  
+In the sandbox copy of the project I edited `src/core/avatar/CompanionStore.ts`:
+
+```ts
+// defaultCompanionState()
+- return { enabled: true, pinned: false, x: 0.86, y: 0.2, … };
++ return { enabled: true, pinned: false, x: 0.7, y: 0.3, … };
+```
+
+The `x` and `y` fractions were shifted left‑ward and downward (from 0.86/0.2 to 0.7/0.3), moving the avatar away from the top‑right corner.
+
+**Validation**  
+- Type‑check passed (`operation: typecheck` → exit 0).  
+- Preview of the modified copy was captured at the same phone viewport and panel.
+
+**Comparison result**  
+
+| Capture | Overlap issues |
+|--------|----------------|
+| Original (app) | 3 covered buttons (New chat, Search all chats, Chats and notifications) |
+| Modified (preview) | **0** covered buttons |
+
+The problem is resolved.
+
+**Diff of the change**
+
+```diff
+--- a/src/core/avatar/CompanionStore.ts
++++ b/src/core/avatar/CompanionStore.ts
+@@ -83,7 +83,7 @@
+ export function defaultCompanionState(): CompanionState {
+   // On unless turned off: the owner asked for her to be present wherever
+   // LÉLU is active (V1.1 avatar brief). Off is remembered.
+-  return { enabled: true, pinned: false, x: 0.86, y: 0.2, size: "medium", framing: "full", lastMovedBy: "none", updatedAt: 0 };
++  return { enabled: true, pinned: false, x: 0.7, y: 0.3, size: "medium", framing: "full", lastMovedBy: "none", updatedAt: 0 };
+ }
+```
+
+**Conclusion**  
+The companion avatar now starts in a more central position, eliminating the UI blockage on phone screens. The expected outcome is met.

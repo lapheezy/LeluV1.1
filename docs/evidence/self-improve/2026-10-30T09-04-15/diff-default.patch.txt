@@ -1,0 +1,32 @@
+--- src/app/scene/genesis/avatar/LeluCompanion.tsx (modified, +1/-1)
+--- a/src/app/scene/genesis/avatar/LeluCompanion.tsx
++++ b/src/app/scene/genesis/avatar/LeluCompanion.tsx
+@@ -137,7 +137,7 @@
+     document.addEventListener("focusout", onFocus);
+     // The app changes under her (panels open, the keyboard rises): a cheap
+     // look every second and a half, moving only when she is in the way.
+-    const timer = setInterval(reconsider, 1500);
++    const timer = setInterval(reconsider, 500);
+     return () => {
+       document.removeEventListener("focusin", onFocus);
+       document.removeEventListener("focusout", onFocus);
+--- src/core/avatar/CompanionStore.ts (modified, +2/-2)
+--- a/src/core/avatar/CompanionStore.ts
++++ b/src/core/avatar/CompanionStore.ts
+@@ -76,14 +76,14 @@
+ }
+ 
+ /** Distance kept from the screen edge (and the phone's system bars). */
+-export const EDGE_MARGIN = 12;
++export const EDGE_MARGIN = 48;
+ 
+ const KEY = "lelu.companion.v1";
+ 
+ export function defaultCompanionState(): CompanionState {
+   // On unless turned off: the owner asked for her to be present wherever
+   // LÉLU is active (V1.1 avatar brief). Off is remembered.
+-  return { enabled: true, pinned: false, x: 0.86, y: 0.2, size: "medium", framing: "full", lastMovedBy: "none", updatedAt: 0 };
++  return { enabled: true, pinned: false, x: 0.1, y: 0.15, size: "medium", framing: "full", lastMovedBy: "none", updatedAt: 0 };
+ }
+ 
+ function clamp(value: number, min: number, max: number): number {

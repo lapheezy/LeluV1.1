@@ -21,31 +21,85 @@
 
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useGenesisState } from "./GenesisCore";
+import { useGenesis } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
+import { layer } from "../../../core/ui/Layers";
+import { useWorkspace } from "./useWorkspace";
+import { useSurface } from "./surface/useSurface";
+import NotificationProvider from "../../../core/notifications/NotificationProvider";
 
 const AUTO_DISMISS_MS = 6000;
 const MAX_VISIBLE = 4;
 
+/**
+ * Height of the chat header band on a compact layout, plus a gap.
+ *
+ * Measured: the header occupies the top 49px and carries the LÉLU menu
+ * control at its right edge.
+ */
+const COMPACT_HEADER_CLEARANCE = 64;
+
 export default function GenesisNotificationCenter() {
-  const { state, dismissNotification } = useGenesisState();
+  const { state, dismissNotification } = useGenesis();
+  const workspace = useWorkspace();
+  // A full-screen workspace on a phone is covered the same way: measured,
+  // an "I read that" toast at the top lay over the Browser's title bar and
+  // swallowed the tap on "◎ Chat".
+  const surface = useSurface();
+  const chatOwnsScreen = surface.chatOwnsScreen || surface.workspaceOwnsScreen;
+
+  /*
+   * While the conversation is the whole phone screen, nothing is thrown
+   * over it: each notification goes to the Chats panel's NOTIFICATIONS
+   * (the NotificationProvider history) instead of a toast across the
+   * transcript. Ones that came from the provider are already there; the
+   * direct notify() calls (errors, voice) are recorded there now.
+   */
+  useEffect(() => {
+    if (!chatOwnsScreen || state.notifications.length === 0) return;
+    const provider = NotificationProvider.getInstance();
+    const recorded = new Set(provider.history().map((record) => record.id));
+    for (const notification of state.notifications) {
+      if (!recorded.has(notification.id)) {
+        provider.notify({
+          type: "info",
+          title: notification.title,
+          body: notification.description,
+          silent: true,
+          tag: `toast:${notification.id}`,
+        });
+      }
+      dismissNotification(notification.id);
+    }
+  }, [chatOwnsScreen, state.notifications, dismissNotification]);
+
+  if (chatOwnsScreen) return null;
 
   const visible = state.notifications.slice(-MAX_VISIBLE);
 
   return (
     <div
+      data-lelu-notifications
       style={{
         position: "absolute",
-        /* Below the top-right controls (palette / fullscreen / OG tabs),
-           which toasts at top:16 used to cover. */
-        top: "calc(env(safe-area-inset-top, 0px) + 124px)",
+        // On a phone this stack is 340px wide against a 390px viewport, so
+        // at top:16 it ran straight through the chat header and swallowed
+        // taps meant for the LÉLU menu control — measured with
+        // elementFromPoint, which returned the "Lélu briefing" toast at the
+        // control's own centre. A notification must never cover the
+        // navigation it is announcing, so on compact widths it starts below
+        // the header instead.
+        top: workspace.compact ? COMPACT_HEADER_CLEARANCE : 16,
         right: 16,
         display: "flex",
         flexDirection: "column",
         gap: 8,
         alignItems: "flex-end",
         pointerEvents: "none",
-        zIndex: 40,
+        // Was a bare 40, outside the hierarchy that decides what may cover
+        // what. Transient cognition surfaces belong on the notification
+        // layer, which sits above panels and below overlays and modals.
+        zIndex: layer("notification"),
         maxWidth: "min(90vw, 340px)",
       }}
     >

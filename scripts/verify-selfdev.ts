@@ -320,7 +320,7 @@ async function main(): Promise<void> {
     "a task_completed event marked the candidate Ready",
   );
 
-  const integrateRun = loop.integrate(proposal.id);
+  const integrateRun = await loop.integrate(proposal.id);
   assert(integrateRun.success === true, "integrate() accepts a Ready candidate");
   assert(queue.get(proposal.id)?.status === "Integrated", "queue reflects the real Integrated status");
   const eventsAfterIntegrate = bus.recent(60).filter((e) => e.taskId === proposal.id);
@@ -329,7 +329,7 @@ async function main(): Promise<void> {
     "integrate() also emitted a live task_completed event",
   );
 
-  const doubleIntegrate = loop.integrate(proposal.id);
+  const doubleIntegrate = await loop.integrate(proposal.id);
   assert(doubleIntegrate.success === false, "integrate() refuses a second integration of the same proposal");
 
   console.log("\n== D — production writes stay hard-gated behind autonomy L5 ==");

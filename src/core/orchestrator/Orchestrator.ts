@@ -22,6 +22,7 @@
  */
 
 import AIService from "../AIService";
+import { bindTask } from "../multichat/TurnOwnership";
 import LeluRuntime from "../runtime/LeluRuntime";
 import WorkspaceRuntime, { type WorkspaceOperation } from "../engineering/WorkspaceRuntime";
 import TaskEngine, { type Task } from "../tasks/TaskEngine";
@@ -65,7 +66,9 @@ type OrchestratorListener = (event: {
 export default class Orchestrator {
   private static instance: Orchestrator | null = null;
   private listeners = new Set<OrchestratorListener>();
-  private executing = false;
+  /** Per-conversation serialization. Different conversations can process concurrently;
+   * the same conversation serializes so its turns stay in order. */
+  private readonly executingByConv = new Map<string, boolean>();
 
   private constructor() {}
 
@@ -82,27 +85,25 @@ export default class Orchestrator {
     request: string,
     _conversationHistory: string[] = [],
     context?: string,
+    conversationId?: string,
   ): Promise<OrchestratorResult> {
-    // Re-entry is SERIALIZED, not discarded. Returning a canned "I'm
-    // busy" here dropped the user's message on the floor: it was never
-    // answered and never entered the conversation, which is precisely
-    // how a reply goes missing. Wait for the in-flight request instead,
-    // then process this one.
-    if (this.executing) {
+    // Serialized PER CONVERSATION, not globally. Different conversations
+    // can process concurrently; within one conversation turns stay in
+    // order. A canned "I'm busy" drops the message — wait instead.
+    const convKey = conversationId ?? "__global__";
+    if (this.executingByConv.get(convKey)) {
       const deadline = Date.now() + 30_000;
-      while (this.executing && Date.now() < deadline) {
+      while (this.executingByConv.get(convKey) && Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 120));
       }
-      if (this.executing) {
-        // The previous request is wedged. Rather than lose this message,
-        // release the lock and take it — a stuck flag must never cost
-        // the user a turn.
+      if (this.executingByConv.get(convKey)) {
+        // The previous request is wedged — release so this turn is not lost.
         console.warn("[Orchestrator] Previous request exceeded its window — taking over so the message is not lost.");
-        this.executing = false;
+        this.executingByConv.delete(convKey);
       }
     }
 
-    this.executing = true;
+    this.executingByConv.set(convKey, true);
     console.info("[Orchestrator] Processing request:", request.slice(0, 100));
     const runtime = LeluRuntime.getInstance();
     const actions: OrchestratorResult["actions"] = [];
@@ -111,6 +112,8 @@ export default class Orchestrator {
 
     const events = AgentEventBus.getInstance();
     const taskId = crypto.randomUUID();
+    // This request's events belong to the conversation it came from.
+    if (conversationId) bindTask(taskId, conversationId);
 
     try {
       // PHASE 0: COMMAND RECEIVED — the canonical stream starts here,
@@ -142,13 +145,16 @@ export default class Orchestrator {
       // which emits its own retrieval events. Phases announcing a memory
       // read that this method never performed were removed.
       this.emit({ type: "planning", message: "Planning approach..." });
+      // "Project identified" was claimed here for any planning or
+      // engineering request, and nothing in this method resolves a
+      // project — so the timeline announced a resolution that had not
+      // happened. What DID happen is that the request was classified, so
+      // that is what is reported.
       events.emit({
         type: "execution_phase",
         taskId,
         phase: "project_resolved",
-        label: intent.category === "planning" || intent.category === "engineering"
-          ? "Project identified — planning execution"
-          : "Approach planned",
+        label: `Approach planned — ${intent.category}`,
         side: "backend",
         detail: `category: ${intent.category}`,
       });
@@ -224,7 +230,7 @@ export default class Orchestrator {
         label: "Connecting to AI provider",
         side: "backend",
       });
-      const response = await ai.chat(request, undefined, context);
+      const response = await ai.chat(request, undefined, context, { conversationId });
 
       const ok = response.provider !== "error" && typeof response.text === "string" && response.text.length > 0;
       events.emit({
@@ -287,7 +293,7 @@ export default class Orchestrator {
         uiCommands,
       };
     } finally {
-      this.executing = false;
+      this.executingByConv.delete(convKey);
     }
   }
 
@@ -443,11 +449,47 @@ export default class Orchestrator {
         // Execute step through the AI pipeline
         const ai = AIService.getInstance();
         const contextPrompt = `[Task: ${task.goal}] Step: ${step.title} — ${step.description}`;
-        const response = await ai.chat(contextPrompt);
+        // Use taskId as the conversationId so each task gets its own
+        // AbortController and serialization queue — isolating tasks from
+        // user chats and from each other.
+        const response = await ai.chat(contextPrompt, undefined, undefined, { conversationId: taskId });
 
-        if (response.provider !== "error" && typeof response.text === "string" && response.text.trim().length > 0) {
-          taskEngine.completeStep(task.id, step.id, response.text.slice(0, 200));
+        // THE SAME RULE AS THE PATH ABOVE: a reply is not an execution.
+        //
+        // This loop asked the model about each step and completed the
+        // step if the answer was a non-empty string from a provider that
+        // was not "error" — so every step of every multi-step task
+        // completed on text alone, and TaskEngine then completed the
+        // task because all its steps had. Nothing ran.
+        //
+        // A step is completed only by evidence: tools that really
+        // executed, which the provider reports in
+        // metadata.toolsExecuted after ToolDispatcher ran them. Without
+        // that, the answer is recorded and the step stays pending, which
+        // is the truth about it.
+        const executed =
+          (response.metadata?.toolsExecuted as Array<{ tool: string; ok: boolean }> | undefined) ?? [];
+        const ran = executed.filter((entry) => entry.ok).map((entry) => entry.tool);
+        const answered =
+          response.provider !== "error" &&
+          typeof response.text === "string" &&
+          response.text.trim().length > 0;
+
+        if (answered && ran.length > 0) {
+          taskEngine.completeStep(
+            task.id,
+            step.id,
+            `${response.text.slice(0, 200)}\n\n[executed: ${ran.join(", ")}]`,
+          );
+          actions.push({ tool: ran[0], status: "success", result: response.text.slice(0, 100) });
+        } else if (answered) {
+          taskEngine.recordAnswer(task.id, response.text.slice(0, 400));
           actions.push({ tool: "ai.generate", status: "success", result: response.text.slice(0, 100) });
+          // Not a failure, and not progress either: the step still needs
+          // doing. Stopping here rather than walking the rest of the
+          // plan, because asking the model about step 3 when step 2 was
+          // never carried out produces a plan about imaginary state.
+          break;
         } else {
           taskEngine.failStep(task.id, step.id, "No valid response");
           actions.push({ tool: "ai.generate", status: "error", error: "No valid response" });

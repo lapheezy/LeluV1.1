@@ -26,7 +26,7 @@ import AnthropicEngineeringAgent from "../src/core/engineering/AnthropicEngineer
 const FAKE_KEY = "sk-ant-test-key-not-real-0000000000";
 const FAKE_GH = "ghp_test_token_not_real_0000000000";
 
-function withCreds<T>(run: () => T): T {
+async function withCreds<T>(run: () => Promise<T>): Promise<T> {
   const saved = {
     a: process.env.ANTHROPIC_API_KEY,
     g: process.env.ENGINEERING_GITHUB_TOKEN,
@@ -34,7 +34,14 @@ function withCreds<T>(run: () => T): T {
   process.env.ANTHROPIC_API_KEY = FAKE_KEY;
   process.env.ENGINEERING_GITHUB_TOKEN = FAKE_GH;
   try {
-    return run();
+    // Awaited, not returned: run() executes only until its first `await`
+    // and then hands back a pending promise, at which point a synchronous
+    // `finally` would restore the environment WHILE the test body is still
+    // running. execute() reads the repo token after `await
+    // ensureProvisioned()`, so that early restore deleted the very token
+    // under test. Holding the env for the whole body is what this helper
+    // always meant to do.
+    return await run();
   } finally {
     if (saved.a === undefined) delete process.env.ANTHROPIC_API_KEY;
     else process.env.ANTHROPIC_API_KEY = saved.a;

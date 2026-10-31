@@ -1,0 +1,24 @@
+--- src/app/scene/genesis/GenesisAvatarPanel.tsx (modified, +1/-1)
+--- a/src/app/scene/genesis/GenesisAvatarPanel.tsx
++++ b/src/app/scene/genesis/GenesisAvatarPanel.tsx
+@@ -219,7 +219,7 @@
+       maxHeight="min(92vh, 920px)"
+       elevation="focus"
+     >
+-      <div style={{ display: "flex", gap: 14, minHeight: "min(70vh, 660px)" }}>
++      <div style={{ display: "flex", flexWrap: "wrap", gap: 14, minHeight: "min(70vh, 660px)", overflowX: "auto" }}>
+         {/* ---------------------------------------------- reference */}
+         <div
+           style={{
+--- src/app/scene/genesis/GenesisWindowFrame.tsx (modified, +1/-1)
+--- a/src/app/scene/genesis/GenesisWindowFrame.tsx
++++ b/src/app/scene/genesis/GenesisWindowFrame.tsx
+@@ -94,7 +94,7 @@
+   zoomable?: boolean;
+ }
+ 
+-const DEFAULT_WIDTH = "min(92vw, 520px)";
++const DEFAULT_WIDTH = "100%";
+ 
+ /** Narrow viewport (<720px): panels become full-width bottom sheets. */
+ function useIsNarrow() {

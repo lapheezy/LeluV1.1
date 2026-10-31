@@ -9,6 +9,9 @@
  */
 
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
+import { lineChangeCounts, unifiedPatch } from "./lineDiff.ts";
+import { BASELINE_FILE, classifyChanges, isBinary, parseBaseline, serializeBaseline } from "./workspaceBaseline.ts";
 import {
   cpSync,
   existsSync,
@@ -55,6 +58,8 @@ const NEVER_COPIED = new Set([
   ".cache",
   ".vite",
   ".lelu-sandbox",
+  // The copy's own record of what it was copied from (workspaceBaseline.ts).
+  BASELINE_FILE,
 ]);
 
 /** Build the adapter bound to the current working directory. */
@@ -107,76 +112,26 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
     return out;
   }
 
-  function countLines(text: string): number {
-    return text.length === 0 ? 0 : text.split("\n").length;
+  function hashFile(file: string): string {
+    return createHash("sha1").update(readFileSync(file)).digest("hex");
   }
 
-  /**
-   * How many lines a change actually ADDS and REMOVES.
-   *
-   * These were previously the two files' TOTAL line counts, rendered as
-   * "+58/-0". That is not a diff summary, it just looks like one — and
-   * it actively hid destruction: a write that cut a 192-line test file
-   * down to 57 displayed as "+58/-0" while git recorded 168 deletions.
-   * A reviewer reading the tool output had no way to see the loss.
-   */
-  function changeCounts(before: string, after: string): { added: number; removed: number } {
-    const a = before.length ? before.split("\n") : [];
-    const b = after.length ? after.split("\n") : [];
-    let start = 0;
-    while (start < a.length && start < b.length && a[start] === b[start]) start += 1;
-    let endA = a.length - 1;
-    let endB = b.length - 1;
-    while (endA >= start && endB >= start && a[endA] === b[endB]) {
-      endA -= 1;
-      endB -= 1;
-    }
-    return { added: Math.max(0, endB - start + 1), removed: Math.max(0, endA - start + 1) };
+  function hashTree(base: string): Map<string, string> {
+    return new Map(walkProject(base).map((relative) => [relative, hashFile(path.join(base, relative))]));
   }
 
-  /**
-   * A real unified-style patch between two file contents.
-   *
-   * Deliberately a simple longest-common-prefix/suffix diff rather than
-   * a full Myers implementation: it is exact about WHICH lines differ
-   * (both sides are read from disk), which is what a reviewer and a
-   * model need, without pulling in a diff dependency for it.
-   */
-  function buildPatch(relative: string, before: string, after: string): string {
-    const a = before.length ? before.split("\n") : [];
-    const b = after.length ? after.split("\n") : [];
-
-    let start = 0;
-    while (start < a.length && start < b.length && a[start] === b[start]) start += 1;
-    let endA = a.length - 1;
-    let endB = b.length - 1;
-    while (endA >= start && endB >= start && a[endA] === b[endB]) {
-      endA -= 1;
-      endB -= 1;
-    }
-
-    const removed = a.slice(start, endA + 1);
-    const added = b.slice(start, endB + 1);
-    const CONTEXT = 3;
-    const contextBefore = a.slice(Math.max(0, start - CONTEXT), start);
-    const contextAfter = a.slice(endA + 1, endA + 1 + CONTEXT);
-
-    const lines = [
-      `--- a/${relative}`,
-      `+++ b/${relative}`,
-      `@@ -${start + 1},${removed.length} +${start + 1},${added.length} @@`,
-      ...contextBefore.map((line) => ` ${line}`),
-      ...removed.map((line) => `-${line}`),
-      ...added.map((line) => `+${line}`),
-      ...contextAfter.map((line) => ` ${line}`),
-    ];
-
-    const MAX_PATCH_CHARS = 8000;
-    const patch = lines.join("\n");
-    return patch.length > MAX_PATCH_CHARS
-      ? `${patch.slice(0, MAX_PATCH_CHARS)}\n…[patch truncated]`
-      : patch;
+  /** A file's text for a patch, or null when it is binary. */
+  function textOf(file: string): string | null {
+    if (!existsSync(file)) return "";
+    const bytes = readFileSync(file);
+    return isBinary(bytes) ? null : bytes.toString("utf8");
   }
+
+  // Real line counts and a hunked patch (plugins/lineDiff.ts). Totals
+  // once hid a 192-line file cut to 57 ("+58/-0"); a prefix/suffix trim
+  // later turned two small edits 500 lines apart into "+531/-523".
+  const changeCounts = lineChangeCounts;
+  const buildPatch = unifiedPatch;
 
   function resolveWithinWorkspace(targetPath: string): string {
     const absoluteTarget = path.resolve(workspaceRoot, targetPath);
@@ -197,16 +152,31 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
         // A workspace copy runs its own validation, in its own directory.
         cwd: cwd ?? workspaceRoot,
         shell: true,
+        // Its own process group, so a timeout can stop the whole tree.
+        detached: process.platform !== "win32",
         env: { ...process.env, FORCE_COLOR: "0" },
         stdio: ["ignore", "pipe", "pipe"],
       });
       let stdout = "";
       let stderr = "";
       let settled = false;
+      // Keep the END of a long output (where results and errors are), bounded.
+      const MAX_CAPTURE = 4_000_000;
+      const capture = (current: string, chunk: Buffer) => {
+        const next = current + chunk.toString("utf8");
+        return next.length > MAX_CAPTURE ? next.slice(next.length - MAX_CAPTURE) : next;
+      };
       const timer = setTimeout(() => {
         if (settled) return;
         settled = true;
-        child.kill("SIGKILL");
+        // Killing only the shell left `npm test`'s tsx and node children
+        // running after a timeout. The group goes, not just its leader.
+        try {
+          if (child.pid && process.platform !== "win32") process.kill(-child.pid, "SIGKILL");
+          else child.kill("SIGKILL");
+        } catch {
+          child.kill("SIGKILL");
+        }
         resolve({
           ok: false,
           status: 124,
@@ -217,10 +187,10 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
       }, timeoutMs);
 
       child.stdout?.on("data", (chunk: Buffer) => {
-        stdout += chunk.toString("utf8");
+        stdout = capture(stdout, chunk);
       });
       child.stderr?.on("data", (chunk: Buffer) => {
-        stderr += chunk.toString("utf8");
+        stderr = capture(stderr, chunk);
       });
       child.on("error", (error) => {
         if (settled) return;
@@ -337,7 +307,11 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
         }
       }
 
-      return { id: workspaceId, root, createdAt: Date.now(), fileCount: files.length };
+      // What this copy was made from, so its diff is HER changes and not
+      // whatever the real project gains afterwards (workspaceBaseline.ts).
+      const createdAt = Date.now();
+      writeFileSync(path.join(root, BASELINE_FILE), serializeBaseline(hashTree(root), createdAt));
+      return { id: workspaceId, root, createdAt, fileCount: files.length };
     },
 
     listWorkspaces() {
@@ -376,49 +350,30 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
         throw new WorkspaceBoundaryError(`Workspace "${workspaceId}" does not exist.`);
       }
 
-      // Compare real file contents on both sides — never a record of
-      // what was "supposed" to have changed.
-      const copyFiles = new Set(walkProject(root));
-      const sourceFiles = new Set(walkProject(workspaceRoot));
+      // Real file contents on both sides — never a record of what was
+      // "supposed" to have changed — measured against what the copy was
+      // made from when that is recorded (workspaceBaseline.ts).
+      const baselinePath = path.join(root, BASELINE_FILE);
+      const baseline = existsSync(baselinePath) ? parseBaseline(readFileSync(baselinePath, "utf8")) : null;
+      const classified = classifyChanges(hashTree(root), baseline, hashTree(workspaceRoot));
       const changes: EngineerDiffEntry[] = [];
-
-      for (const relative of copyFiles) {
-        const copyText = readFileSync(path.join(root, relative), "utf8");
-        if (!sourceFiles.has(relative)) {
-          changes.push({
-            path: relative,
-            status: "added",
-            addedLines: countLines(copyText),
-            removedLines: 0,
-            ...(includePatch ? { patch: buildPatch(relative, "", copyText) } : {}),
-          });
-          continue;
-        }
-        const sourceText = readFileSync(path.join(workspaceRoot, relative), "utf8");
-        if (sourceText === copyText) continue;
-        const counts = changeCounts(sourceText, copyText);
+      for (const change of classified) {
+        // The patch is what applying would do to the real file as it is now.
+        const before = change.status === "added" && !change.realChangedSince ? "" : textOf(path.join(workspaceRoot, change.path));
+        const after = change.status === "deleted" ? "" : textOf(path.join(root, change.path));
+        const binary = before === null || after === null;
+        const counts = binary ? { added: 0, removed: 0 } : changeCounts(before, after);
         changes.push({
-          path: relative,
-          status: "modified",
+          path: change.path,
+          status: change.status,
           addedLines: counts.added,
           removedLines: counts.removed,
-          ...(includePatch ? { patch: buildPatch(relative, sourceText, copyText) } : {}),
+          ...(binary ? { binary: true } : {}),
+          ...(change.realChangedSince ? { realChangedSince: true } : {}),
+          ...(includePatch ? { patch: binary ? "(binary file — contents not shown)" : buildPatch(change.path, before, after) } : {}),
         });
       }
-
-      for (const relative of sourceFiles) {
-        if (copyFiles.has(relative)) continue;
-        const sourceText = readFileSync(path.join(workspaceRoot, relative), "utf8");
-        changes.push({
-          path: relative,
-          status: "deleted",
-          addedLines: 0,
-          removedLines: countLines(sourceText),
-          ...(includePatch ? { patch: buildPatch(relative, sourceText, "") } : {}),
-        });
-      }
-
-      return changes.sort((a, b) => a.path.localeCompare(b.path));
+      return changes;
     },
 
     async applyWorkspace(workspaceId, paths) {
@@ -432,6 +387,17 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
       const selected = changes.filter(
         (change) => wanted.size === 0 || wanted.has(change.path),
       );
+
+      // Never overwrite work the real project gained after the copy was
+      // made: a file changed on both sides is refused, and nothing is
+      // written, until it is reconciled.
+      const conflicts = selected.filter((change) => change.realChangedSince);
+      if (conflicts.length > 0) {
+        throw new Error(
+          `Nothing was applied: ${conflicts.map((change) => change.path).join(", ")} changed in the real project after this copy was made. ` +
+            "Make a fresh copy and redo the change there, or apply only the other paths.",
+        );
+      }
 
       const applied: string[] = [];
       for (const change of selected) {

@@ -98,3 +98,33 @@ test("ProviderResolver falls through in priority order and preserves telemetry",
     "Secondary",
   ]);
 });
+
+test("a user Stop is not a provider failure: no penalty, no fallback, no offline notice", async () => {
+  const registry = new AIProviderRegistry();
+  const controller = new AbortController();
+  let secondaryCalled = false;
+  const primary = fakeProvider("Primary", 1, async () => {
+    controller.abort(); // the user presses Stop while this provider streams
+    throw new DOMException("The operation was aborted.", "AbortError");
+  });
+  const secondary = fakeProvider("Secondary", 2, async () => {
+    secondaryCalled = true;
+    return { text: "should never run", provider: "Secondary", model: "m", processingTime: 1 };
+  });
+  registry.registerMany([primary, secondary]);
+  await registry.initialize();
+
+  await assert.rejects(
+    new ProviderResolver().execute({
+      request: { ...request, signal: controller.signal } as AIRequest,
+      started: Date.now(),
+      brain: {} as never,
+      knowledgeProviders: {} as never,
+      aiProviders: registry,
+      logger: new ExecutionLogger(),
+    }),
+    (error: unknown) => error instanceof Error && error.name === "AbortError",
+  );
+  assert.equal(secondaryCalled, false, "no other provider is tried after Stop");
+  assert.equal(registry.failure("Primary"), undefined, "the provider is not put in failure cooldown for the user's Stop");
+});

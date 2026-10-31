@@ -1,0 +1,134 @@
+{
+  "phone-a/app": {
+    "rendered": true,
+    "controlsSeen": 19,
+    "beforeOpen": [],
+    "frames": 387,
+    "coveredMs": 1583,
+    "firstCovered": 1539,
+    "lastCovered": 1583,
+    "worst": [
+      "New chat",
+      "Search all chats",
+      "Chats and notifications"
+    ]
+  },
+  "phone-a/hers": {
+    "rendered": true,
+    "controlsSeen": 19,
+    "beforeOpen": [],
+    "frames": 270,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "phone-b/app": {
+    "rendered": true,
+    "controlsSeen": 19,
+    "beforeOpen": [],
+    "frames": 411,
+    "coveredMs": 1170,
+    "firstCovered": 462,
+    "lastCovered": 1170,
+    "worst": [
+      "New chat",
+      "Search all chats",
+      "Chats and notifications"
+    ]
+  },
+  "phone-b/hers": {
+    "rendered": true,
+    "controlsSeen": 19,
+    "beforeOpen": [],
+    "frames": 386,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "phone-c/app": {
+    "rendered": true,
+    "controlsSeen": 19,
+    "beforeOpen": [],
+    "frames": 374,
+    "coveredMs": 1775,
+    "firstCovered": 1729,
+    "lastCovered": 1775,
+    "worst": [
+      "New chat",
+      "Search all chats",
+      "Chats and notifications"
+    ]
+  },
+  "phone-c/hers": {
+    "rendered": true,
+    "controlsSeen": 19,
+    "beforeOpen": [],
+    "frames": 392,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-a/app": {
+    "rendered": true,
+    "controlsSeen": 30,
+    "beforeOpen": [],
+    "frames": 11,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-a/hers": {
+    "rendered": true,
+    "controlsSeen": 30,
+    "beforeOpen": [],
+    "frames": 8,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-b/app": {
+    "rendered": true,
+    "controlsSeen": 30,
+    "beforeOpen": [],
+    "frames": 13,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-b/hers": {
+    "rendered": true,
+    "controlsSeen": 28,
+    "beforeOpen": [],
+    "frames": 14,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-c/app": {
+    "rendered": true,
+    "controlsSeen": 30,
+    "beforeOpen": [],
+    "frames": 11,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-c/hers": {
+    "rendered": true,
+    "controlsSeen": 30,
+    "beforeOpen": [],
+    "frames": 13,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  }
+}

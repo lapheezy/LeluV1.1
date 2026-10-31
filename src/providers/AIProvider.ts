@@ -238,6 +238,42 @@ export interface AIRequest {
 
 
   /**
+   * Optional cancellation signal. When provided it is combined with the
+   * provider's own timeout signal so whichever fires first terminates the
+   * request — user-initiated cancellation wins without disabling the
+   * safety timeout.
+   */
+  signal?:
+    AbortSignal;
+
+  /**
+   * Messages the user sent while this turn was working. The tool loop
+   * drains it between rounds and hands them to the model, so a new
+   * instruction ("focus on video models") reaches the work in progress
+   * instead of waiting for it to finish. Never sent to a provider.
+   */
+  drainSteering?:
+    () => string[];
+
+  /**
+   * The conversation this turn belongs to. Tools that act on chats
+   * (chats.read / link / merge) need to know which one is "this chat".
+   * Never sent to a provider.
+   */
+  conversationId?:
+    string;
+
+  /**
+   * What the user said DURING this turn (drained steering), oldest first.
+   * Part of the user's words for this turn — consent checks read it.
+   * Never sent to a provider.
+   */
+  steered?:
+    string[];
+
+
+
+  /**
    * Optional model override.
    */
   model?:
@@ -285,13 +321,6 @@ export interface AIRequest {
     boolean;
 
 
-  /**
-   * Cancels the turn. Checked between tool rounds and before each tool
-   * runs; providers that support it abort the in-flight HTTP request.
-   * A cancelled turn is not a provider failure and never falls back.
-   */
-  signal?:
-    AbortSignal;
 
 
 

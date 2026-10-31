@@ -537,24 +537,12 @@ export default class ExplorationController {
       return false;
     }
 
-    // Search the web / look something up / research something.
-    const webSearch = lower.match(
-      /^(?:open(?: a| the)? browser and search(?: for)?\s+|search (?:the web|the internet|online)\s+(?:for\s+)?|search for\s+|look up\s+|google\s+|web search(?: for)?\s+|research\s+)(.+)$/,
-    );
-    if (webSearch) {
-      const q = webSearch[1].trim();
-      // "research lab" is a cosmos destination, not a web query.
-      if (q && q !== "lab" && q !== "the lab") {
-        const url = `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(q)}`;
-        AgentEventBus.getInstance().emit({
-          type: "browser_opened",
-          taskId: `browser-${Date.now()}`,
-          url,
-        });
-        dispatchBrowserGoto(url);
-        return false; // LÉLU still retrieves + answers from real results
-      }
-    }
+    // "Search the web for X" / "research X" no longer navigates the browser
+    // panel to a search page. That page was never what LÉLU read — her
+    // retrieval runs through the knowledge providers and her own
+    // browser.read tool — so showing it was a browser view of work that
+    // was not happening (and most search pages refuse to be framed). The
+    // chat's activity card shows the searches and pages she actually used.
 
     /* ---------------- Gen V2 navigation & camera commands ---------------- */
 

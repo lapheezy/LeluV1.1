@@ -13,16 +13,55 @@
  * Safety model:
  *   - Token is server-only (process.env.GITHUB_TOKEN)
  *   - CORS/origin guard rejects cross-origin POSTs
- *   - Rate-limited to prevent abuse
+ *   - Requests are spaced (queued), not refused, to stay polite
  *   - Only proxied endpoints are allowed
+ *   - WRITES (anything but GET) carry the same three conditions as
+ *     `git push` on the engineering runtime: a verified Supabase
+ *     identity, LELU_ALLOW_PUSH=1, and never the default branch.
+ *     Until this, any same-origin request — or a plain curl — could
+ *     create branches and commits with the server's token.
  * ==========================================================
  */
 
 import { endpoint } from "../src/core/Endpoints.ts";
+import { verifyRequestIdentity } from "./engineerIdentity.ts";
 
 const GITHUB_API_BASE = endpoint("github");
 const RATE_LIMIT_MS = 500;
 let lastRequestTime = 0;
+let queue: Promise<void> = Promise.resolve();
+
+/**
+ * Wait for this request's turn, RATE_LIMIT_MS after the previous one.
+ *
+ * Requests closer together than that used to be refused with 429, so a
+ * normal sequence — read a branch's head, then create a branch from it —
+ * failed on its second step whenever GitHub answered the first quickly.
+ */
+function nextSlot(): Promise<void> {
+  const turn = queue.then(async () => {
+    const wait = lastRequestTime + RATE_LIMIT_MS - Date.now();
+    if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+    lastRequestTime = Date.now();
+  });
+  queue = turn.catch(() => {});
+  return turn;
+}
+
+/** The branch a write would change, when it changes one. */
+export function writeTargetBranch(endpointPath: string, method: string, body: unknown): string | null {
+  const record = (body && typeof body === "object" ? body : {}) as Record<string, unknown>;
+  const refs = endpointPath.match(/^\/repos\/[^/]+\/[^/]+\/git\/refs\/heads\/(.+)$/);
+  if (refs && (method === "PATCH" || method === "DELETE")) return decodeURIComponent(refs[1]);
+  if (/^\/repos\/[^/]+\/[^/]+\/contents\//.test(endpointPath) && (method === "PUT" || method === "DELETE")) {
+    // Without a branch the contents API writes to the DEFAULT branch.
+    return typeof record.branch === "string" && record.branch ? record.branch : "";
+  }
+  if (/^\/repos\/[^/]+\/[^/]+\/merges$/.test(endpointPath)) {
+    return typeof record.base === "string" ? record.base : "";
+  }
+  return null;
+}
 
 interface ConnectLikeRes {
   statusCode?: number;
@@ -175,14 +214,6 @@ export function createGithubApi(): {
           return;
         }
 
-        // Rate limit
-        const now = Date.now();
-        if (now - lastRequestTime < RATE_LIMIT_MS) {
-          sendJson(res, { ok: false, error: "Rate limited — too many requests." }, 429);
-          return;
-        }
-        lastRequestTime = now;
-
         void (async () => {
           try {
             const payload = await readJsonBody(req);
@@ -198,8 +229,53 @@ export function createGithubApi(): {
               sendJson(res, { ok: false, error: `Endpoint '${endpoint}' is not in the allowlist.` }, 403);
               return;
             }
+            const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
 
-            const url = `${GITHUB_API_BASE}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+            if (httpMethod !== "GET" && httpMethod !== "HEAD") {
+              const who = await verifyRequestIdentity(req);
+              if (!who.ok || !who.identity) {
+                sendJson(res, { ok: false, error: `GitHub write refused: ${who.reason}` }, who.status);
+                return;
+              }
+              if (process.env.LELU_ALLOW_PUSH !== "1") {
+                sendJson(
+                  res,
+                  {
+                    ok: false,
+                    error:
+                      "GitHub write refused: publishing is not enabled on this runtime (LELU_ALLOW_PUSH is not set). Nothing was written to GitHub.",
+                  },
+                  403,
+                );
+                return;
+              }
+              const target = writeTargetBranch(path.split("?")[0], httpMethod, body);
+              if (target !== null) {
+                const repoPath = path.split("/").slice(0, 4).join("/");
+                await nextSlot();
+                const repoResponse = await fetch(`${GITHUB_API_BASE}${repoPath}`, {
+                  headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${token}`, "User-Agent": "LÉLU-Runtime" },
+                });
+                const repoData = (await repoResponse.json().catch(() => ({}))) as { default_branch?: string };
+                const defaultBranch = repoData.default_branch ?? "";
+                if (!repoResponse.ok || !defaultBranch || target === "" || target === defaultBranch) {
+                  sendJson(
+                    res,
+                    {
+                      ok: false,
+                      error: repoResponse.ok
+                        ? `GitHub write refused: it would change the default branch${defaultBranch ? ` (${defaultBranch})` : ""}. Work on another branch.`
+                        : `GitHub write refused: could not confirm the repository's default branch (HTTP ${repoResponse.status}).`,
+                    },
+                    403,
+                  );
+                  return;
+                }
+              }
+            }
+
+            await nextSlot();
+            const url = `${GITHUB_API_BASE}${path}`;
             const fetchOptions: RequestInit = {
               method: httpMethod,
               headers: {

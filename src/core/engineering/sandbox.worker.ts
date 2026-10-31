@@ -533,6 +533,10 @@ export type { RunJob, RunResponse, TestRecord };
 
 scope.onmessage = async (event: MessageEvent) => {
   const job = event.data as RunJob;
+  // The job is in hand and about to run: the controller starts the
+  // execution timeout from here, not from when the worker was created,
+  // so a slow worker start-up is never reported as code that ran too long.
+  scope.postMessage({ type: "started", id: job?.id ?? "" });
   try {
     const response = await runJob(job);
     scope.postMessage(response);

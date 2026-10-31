@@ -52,6 +52,9 @@ const STAGE_COLOR: Record<CognitiveStage, string> = {
   RESULT: "rgba(74, 222, 128, 0.9)",
   RESPONSE: "rgba(74, 222, 128, 0.95)",
   MEMORY_WRITE: "rgba(129, 199, 255, 0.8)",
+  STREAM_EMIT: "rgba(56, 189, 248, 0.85)",
+  STREAM_SUBSCRIBER: "rgba(56, 189, 248, 0.7)",
+  EXCHANGE_UPDATE: "rgba(56, 189, 248, 0.55)",
 };
 
 const SECTION: React.CSSProperties = {

@@ -27,6 +27,20 @@
  */
 
 import KvStore from "../storage/KvStore";
+import {
+  canSurface,
+  effectivePriorityOffset,
+  evolve,
+  markDeferred,
+  markDismissed,
+  markEngaged,
+  markIgnored,
+  markResolved,
+  markSurfaced,
+  newLifecycle,
+  shouldReconsider,
+  type QuestionLifecycle,
+} from "./QuestionLifecycle";
 
 /* ------------------------------------------------------------------
  * Settings
@@ -64,6 +78,9 @@ export const PROACTIVE_QUESTION_CATEGORIES = [
 
 export type ProactiveQuestionCategory = (typeof PROACTIVE_QUESTION_CATEGORIES)[number];
 export type ProactiveQuestionPriority = "P0" | "P1" | "P2" | "P3" | "P4";
+// Kept for the Supabase column and for every existing caller. The full
+// lifecycle lives in `lifecycle` (see proactive/QuestionLifecycle.ts); this
+// stays the coarse, three-way view the persistence layer already stores.
 export type ProactiveQuestionStatus = "pending" | "resolved" | "dismissed";
 
 export interface ProactiveQuestion {
@@ -75,6 +92,23 @@ export interface ProactiveQuestion {
   priority: ProactiveQuestionPriority;
   relatedProjectId?: string;
   relatedTask?: string;
+  /**
+   * The conversation this question belongs in.
+   *
+   * A question used to be global — it had a project and a task but no
+   * thread — so an answer had nowhere to be given and nowhere to be
+   * read back. With it, the question is asked where the work is being
+   * discussed rather than wherever the user happens to be looking.
+   */
+  conversationId?: string;
+  /**
+   * The unit of work that needs the answer.
+   *
+   * This is what makes a question resumable: on an answer, THAT
+   * objective is revived and continues. Without it the runtime could
+   * only start something new, which is not the same as being unblocked.
+   */
+  objectiveId?: string;
   blocksExecution: boolean;
   rememberAnswer: boolean;
   askedAt: number;
@@ -83,6 +117,12 @@ export interface ProactiveQuestion {
   status: ProactiveQuestionStatus;
   createdAt: number;
   updatedAt: number;
+  /**
+   * Where this question is in its life, and what justified it.
+   * Optional on the type so a record persisted before the lifecycle
+   * existed still loads; `ensureLifecycle` fills it in on read.
+   */
+  lifecycle?: QuestionLifecycle;
 }
 
 export interface ProactiveQuestionInput {
@@ -93,8 +133,16 @@ export interface ProactiveQuestionInput {
   priority: ProactiveQuestionPriority;
   relatedProjectId?: string;
   relatedTask?: string;
+  conversationId?: string;
+  objectiveId?: string;
   blocksExecution?: boolean;
   rememberAnswer?: boolean;
+  /**
+   * Fingerprint of the state that justified asking. Two cycles observing
+   * the same situation must produce the same string — that is what makes
+   * repeated cycles idempotent instead of repetitive.
+   */
+  evidence?: string;
 }
 
 type QuestionListener = (question: ProactiveQuestion | null) => void;
@@ -109,6 +157,21 @@ export interface ProactiveSettings {
   locationContext: boolean;
   mediaDiscovery: boolean;
   videoAutoplay: boolean;
+  /**
+   * May cognition turn a derived next step into work it actually runs?
+   *
+   * This is the switch on autonomous EXECUTION, not on thinking.
+   * With it off, CognitiveLoop still observes, still derives a project's
+   * next objective and still records it in the WorkQueue for a person to
+   * act on — it simply does not hand it to AgentCognitionRuntime, so no
+   * tool runs unattended. With it on, the derived objective becomes real
+   * work: one objective per project at a time, inside that runtime's own
+   * cycle/action/deadline budgets, under the autonomy gate.
+   *
+   * It does not widen authority. Applying or committing to the real
+   * project still needs a human grant through EngineeringAuthorization.
+   */
+  autonomousExecution: boolean;
   notificationLevel: NotificationLevel;
   categories: ProactiveCategory[];
 }
@@ -127,6 +190,10 @@ const DEFAULT_SETTINGS: ProactiveSettings = {
   locationContext: false,
   mediaDiscovery: false,
   videoAutoplay: false,
+  // On: the loop is meant to close. It is a setting rather than a
+  // constant so it can be switched off from the Cognition panel without
+  // stopping cognition itself.
+  autonomousExecution: true,
   notificationLevel: "normal",
   categories: [...PROACTIVE_CATEGORIES],
 };
@@ -260,6 +327,20 @@ export default class ProactiveCore {
   private watches: string[] = [];
   private mutes: string[] = [];
   private questions: ProactiveQuestion[] = [];
+  /**
+   * Keys that THIS running cognition has raised.
+   *
+   * Questions are durable — they carry the user's decisions — but the
+   * SURFACE is not. A record persisted by an earlier build (or an earlier
+   * session) would otherwise be shown again on load purely because its
+   * status still read "pending": the user saw a card about a project that
+   * cognition was not currently thinking about at all, which is why it felt
+   * pre-made rather than live.
+   *
+   * Nothing surfaces unless cognition raised it in this process. Deliberately
+   * NOT persisted — that is the point.
+   */
+  private affirmed = new Set<string>();
   private questionListeners = new Set<QuestionListener>();
   private questionChangeListeners = new Set<QuestionChangeListener>();
 
@@ -403,26 +484,116 @@ export default class ProactiveCore {
     }
   }
 
+  /** Every record, newest-decided first, with a lifecycle guaranteed. */
   public listQuestions(): ProactiveQuestion[] {
     this.ensureLoaded();
-    return [...this.questions].sort((a, b) => this.priorityValue(a.priority) - this.priorityValue(b.priority) || b.updatedAt - a.updatedAt);
+    return [...this.questions]
+      .map((question) => this.ensureLifecycle(question))
+      .sort((a, b) => this.rank(a) - this.rank(b) || b.updatedAt - a.updatedAt);
   }
 
+  /**
+   * A record loaded before the lifecycle existed, or one that arrived
+   * from Supabase without it, is given one derived from what it does
+   * carry — so an already-dismissed question stays dismissed rather than
+   * reverting to "never shown".
+   */
+  private ensureLifecycle(question: ProactiveQuestion): ProactiveQuestion {
+    if (question.lifecycle) return question;
+    const lifecycle = newLifecycle(`legacy:${question.key}`);
+    if (question.status === "resolved") {
+      return { ...question, lifecycle: markResolved(lifecycle) };
+    }
+    if (question.status === "dismissed") {
+      return { ...question, lifecycle: markDismissed(lifecycle, "Dismissed before the lifecycle was recorded.") };
+    }
+    return { ...question, lifecycle: { ...lifecycle, state: "eligible" } };
+  }
+
+  /** Sort position: declared priority, demoted by how the user has behaved. */
+  private rank(question: ProactiveQuestion): number {
+    const base = this.priorityValue(question.priority);
+    const offset = question.lifecycle ? effectivePriorityOffset(question.lifecycle) : 0;
+    return base + offset;
+  }
+
+  /**
+   * The one question that may be on screen.
+   *
+   * Only lifecycle decides. A record whose coarse status is still
+   * "pending" but which the user deferred, dismissed or has ignored past
+   * the limit is not eligible, which is what stops the resurfacing.
+   */
   public getActiveQuestion(): ProactiveQuestion | null {
     this.ensureLoaded();
-    return this.listQuestions().find((question) => question.status === "pending") ?? null;
+    return (
+      this.listQuestions().find(
+        (question) =>
+          question.status === "pending" &&
+          question.lifecycle !== undefined &&
+          canSurface(question.lifecycle) &&
+          // Live cognition must still be raising it. A pending record that
+          // this process never re-derived is history, not a question.
+          this.affirmed.has(question.key),
+      ) ?? null
+    );
   }
 
   public getQuestion(id: string): ProactiveQuestion | undefined {
     this.ensureLoaded();
-    return this.questions.find((question) => question.id === id);
+    const found = this.questions.find((question) => question.id === id);
+    return found ? this.ensureLifecycle(found) : undefined;
   }
 
+  /** Find a record by its stable cognitive key, whatever its state. */
+  public getQuestionByKey(key: string): ProactiveQuestion | undefined {
+    this.ensureLoaded();
+    const found = this.questions.find((question) => question.key === key);
+    return found ? this.ensureLifecycle(found) : undefined;
+  }
+
+  /**
+   * Offer a question to the surface.
+   *
+   * Idempotent by construction: the stable key identifies the decision,
+   * and the evidence identifies the situation. Same key and same
+   * evidence means this cycle observed what the last one did, so the
+   * existing record is returned untouched — no new row, no re-surfacing,
+   * no matter how many times cognition runs or remounts.
+   *
+   * Different evidence for the same key means the situation moved, so the
+   * existing record EVOLVES: it keeps its history (and therefore the
+   * user's accumulated disinterest) while being allowed to ask again.
+   */
   public enqueueQuestion(input: ProactiveQuestionInput): ProactiveQuestion {
     this.ensureLoaded();
-    const existing = this.questions.find((question) => question.key === input.key);
+    const evidence = input.evidence ?? `key:${input.key}`;
+    // Cognition is raising this right now, so it is allowed to be seen.
+    this.affirmed.add(input.key);
+    const existing = this.getQuestionByKey(input.key);
+
     if (existing) {
-      return existing;
+      const lifecycle = existing.lifecycle ?? newLifecycle(evidence);
+      if (!shouldReconsider(lifecycle, evidence)) {
+        return existing;
+      }
+      const updated: ProactiveQuestion = {
+        ...existing,
+        // The wording may have improved with the new evidence.
+        question: input.question,
+        reason: input.reason,
+        priority: input.priority,
+        // And it may be a DIFFERENT objective asking this time. Rebinding
+        // matters: an answer revives whatever objectiveId is recorded
+        // here, so a stale one would unblock work nobody was waiting on.
+        ...(input.objectiveId ? { objectiveId: input.objectiveId } : {}),
+        ...(input.conversationId ? { conversationId: input.conversationId } : {}),
+        status: "pending",
+        lifecycle: evolve(lifecycle, evidence),
+        updatedAt: Date.now(),
+      };
+      this.replaceQuestion(updated);
+      return updated;
     }
 
     const now = Date.now();
@@ -435,12 +606,53 @@ export default class ProactiveCore {
       status: "pending",
       createdAt: now,
       updatedAt: now,
+      lifecycle: { ...newLifecycle(evidence), state: "eligible" },
     };
     this.questions = [...this.questions, question].slice(-80);
     this.persistQuestions();
     this.notifyQuestionChange(question);
     this.notifyQuestion();
     return question;
+  }
+
+  /** Write one record back, persist it and tell everyone once. */
+  private replaceQuestion(updated: ProactiveQuestion): void {
+    this.questions = this.questions.map((item) => (item.id === updated.id ? updated : item));
+    this.persistQuestions();
+    this.notifyQuestionChange(updated);
+    this.notifyQuestion();
+  }
+
+  /** The UI showed this to the user. Recorded so ignoring can be counted. */
+  public markQuestionSurfaced(id: string): void {
+    this.ensureLoaded();
+    const question = this.getQuestion(id);
+    if (!question?.lifecycle) return;
+    if (question.lifecycle.state === "surfaced") return;
+    this.replaceQuestion({
+      ...question,
+      lifecycle: markSurfaced(question.lifecycle, Date.now()),
+      updatedAt: Date.now(),
+    });
+  }
+
+  /**
+   * The user moved on without answering.
+   *
+   * Past the ignore limit the record parks itself, which is how
+   * "surfaced four times, never engaged" becomes "low priority" without
+   * anything being hardcoded about the subject.
+   */
+  public markQuestionIgnored(id: string): void {
+    this.ensureLoaded();
+    const question = this.getQuestion(id);
+    if (!question?.lifecycle) return;
+    if (question.status !== "pending") return;
+    this.replaceQuestion({
+      ...question,
+      lifecycle: markIgnored(question.lifecycle),
+      updatedAt: Date.now(),
+    });
   }
 
   public resolveQuestion(id: string, response: string): ProactiveQuestion | undefined {
@@ -454,12 +666,86 @@ export default class ProactiveCore {
       userResponse: response.trim().slice(0, 2000),
       resolvedAt: Date.now(),
       status: "resolved",
+      lifecycle: markResolved(question.lifecycle ?? newLifecycle(`key:${question.key}`)),
       updatedAt: Date.now(),
     };
-    this.questions = this.questions.map((item) => item.id === id ? updated : item);
-    this.persistQuestions();
-    this.notifyQuestionChange(updated);
-    this.notifyQuestion();
+    this.replaceQuestion(updated);
+
+    // THE ANSWER UNBLOCKS THE WORK THAT ASKED.
+    //
+    // Without this, answering was only a record: the objective stayed
+    // parked and the user's answer sat in storage being read, at best,
+    // by the next cognitive tick as context. The objective that asked is
+    // revived and the existing runtime is woken — not a new objective,
+    // the same one, continuing.
+    //
+    // Deliberately a dynamic import and deliberately contained: the
+    // proactive layer must not take a hard dependency on the cognition
+    // runtime, and an answer must be recorded even if nothing is there
+    // to be woken.
+    if (updated.objectiveId) {
+      void this.resumeObjective(updated.objectiveId);
+    }
+
+    return updated;
+  }
+
+  /**
+   * Revive the objective that asked, and wake the runtime for it.
+   *
+   * Fire-and-forget on purpose: resolveQuestion() returns the recorded
+   * answer synchronously, and the user must never wait on a cognition
+   * cycle to see that their answer was taken.
+   */
+  private async resumeObjective(objectiveId: string): Promise<void> {
+    try {
+      const [{ default: AgentObjectives }, { default: AgentCognitionRuntime }] = await Promise.all([
+        import("../cognition/AgentObjectives"),
+        import("../cognition/AgentCognitionRuntime"),
+      ]);
+      const objectives = AgentObjectives.getInstance();
+      const objective = objectives.get(objectiveId);
+      if (!objective) return;
+      // revive() is a no-op unless the objective is actually waiting, so
+      // an answer to a question whose work has since finished changes
+      // nothing rather than restarting it.
+      objectives.revive(objectiveId);
+      await AgentCognitionRuntime.getInstance().wake("question-answered");
+    } catch (error) {
+      console.warn("[Lélu] an answer was recorded but its objective could not be resumed", error);
+    }
+  }
+
+  /**
+   * "Not now."
+   *
+   * Kept pending in the coarse status so an answer is still expected
+   * eventually, but ineligible to surface until the evidence changes.
+   */
+  public deferQuestion(id: string, note?: string): ProactiveQuestion | undefined {
+    this.ensureLoaded();
+    const question = this.getQuestion(id);
+    if (!question?.lifecycle || question.status !== "pending") return question;
+    const updated: ProactiveQuestion = {
+      ...question,
+      lifecycle: markDeferred(question.lifecycle, note),
+      updatedAt: Date.now(),
+    };
+    this.replaceQuestion(updated);
+    return updated;
+  }
+
+  /** The user opened it. From here it belongs to its workstream. */
+  public engageQuestion(id: string, workstreamId: string): ProactiveQuestion | undefined {
+    this.ensureLoaded();
+    const question = this.getQuestion(id);
+    if (!question?.lifecycle) return question;
+    const updated: ProactiveQuestion = {
+      ...question,
+      lifecycle: markEngaged(question.lifecycle, workstreamId),
+      updatedAt: Date.now(),
+    };
+    this.replaceQuestion(updated);
     return updated;
   }
 
@@ -469,14 +755,12 @@ export default class ProactiveCore {
     if (!question || question.status !== "pending") {
       return;
     }
-    this.questions = this.questions.map((item) => item.id === id
-      ? { ...item, status: "dismissed", updatedAt: Date.now() }
-      : item,
-    );
-    const updated = this.getQuestion(id);
-    this.persistQuestions();
-    if (updated) this.notifyQuestionChange(updated);
-    this.notifyQuestion();
+    this.replaceQuestion({
+      ...question,
+      status: "dismissed",
+      lifecycle: markDismissed(question.lifecycle ?? newLifecycle(`key:${question.key}`)),
+      updatedAt: Date.now(),
+    });
   }
 
   /** Merge cloud questions while preserving newer local decisions. */
@@ -573,6 +857,28 @@ export default class ProactiveCore {
       briefed: false,
     };
     this.persistSession();
+    this.reapIgnoredQuestions();
+  }
+
+  /**
+   * A question that was on screen when the last session ended, and was
+   * never answered, deferred or dismissed, was ignored.
+   *
+   * Counting it here is what lets repeated indifference become a
+   * conclusion. Past the ignore limit the question parks itself, so the
+   * third unanswered showing is the last one — rather than the card
+   * reappearing on every boot forever, which is what it did before.
+   */
+  private reapIgnoredQuestions(): void {
+    const surfaced = this.questions
+      .map((question) => this.ensureLifecycle(question))
+      .filter(
+        (question) =>
+          question.status === "pending" && question.lifecycle?.state === "surfaced",
+      );
+    for (const question of surfaced) {
+      this.markQuestionIgnored(question.id);
+    }
   }
 
   public endSession(): void {

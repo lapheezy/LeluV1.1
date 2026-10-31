@@ -22,6 +22,7 @@
  * ==========================================================
  */import {
   lazy,
+  memo,
   Suspense,
   Suspense as ReactSuspense,
 } from "react";
@@ -41,8 +42,10 @@ import GenesisController from "./GenesisController";
 import GenesisBridge from "./GenesisBridge";
 import ProactiveBridge from "./ProactiveBridge";
 import VoiceBridge from "./VoiceBridge";
+import { useSurface } from "./surface/useSurface";
+import CoreHoldGesture from "./CoreHoldGesture";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSceneMountLog }
   from "./useSceneMountLog";
 import { sampleCosmosAtmosphere } from "./cosmos/CosmosAtmosphere";
@@ -65,6 +68,9 @@ import DeepLinkIntake
 import EngineTick
   from "./EngineTick";
 
+import LeluCompanion
+  from "./avatar/LeluCompanion";
+
 import GenesisNotificationCenter
   from "./GenesisNotificationCenter";
 
@@ -73,8 +79,6 @@ import CosmosSkyBackdrop
 
 import SceneFrameGovernor, { useSceneFrameloop }
   from "./SceneFrameGovernor";
-import { getSceneRenderBudget }
-  from "./SceneRenderBudget";
 
 import { useLeluRuntime }
   from "../../../core/runtime/useLeluRuntime";
@@ -126,18 +130,31 @@ function SceneLoadingFallback() {
  */
 function CosmosPhaseHUD() {
   const [phase, setPhase] = useState(() => sampleCosmosAtmosphere(0));
+  const shownRef = useRef(phase);
 
   useEffect(() => {
     let raf = 0;
-    let last = 0;
-    const budget = getSceneRenderBudget();
+    let sampledAt = 0;
     const tick = () => {
-      // A text readout: 4 updates/s is plenty, and it was re-rendering
-      // React every frame. Also yields to the render budget.
+      // A text HUD needs a few updates a second, not one per animation
+      // frame — and only when what it shows (phase name, whole percent of
+      // progress, the two values it prints to 2 places) has changed.
       const now = performance.now();
-      if (now - last >= 250 && budget.allowFrame("cosmos-phase-hud")) {
-        last = now;
-        setPhase(sampleCosmosAtmosphere(now / 1000));
+      if (now - sampledAt < 250) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      sampledAt = now;
+      const next = sampleCosmosAtmosphere(now / 1000);
+      const prev = shownRef.current;
+      const same =
+        prev.phase === next.phase &&
+        Math.round(prev.progress * 100) === Math.round(next.progress * 100) &&
+        prev.sunset.toFixed(2) === next.sunset.toFixed(2) &&
+        prev.static.toFixed(2) === next.static.toFixed(2);
+      if (!same) {
+        shownRef.current = next;
+        setPhase(next);
       }
       raf = requestAnimationFrame(tick);
     };
@@ -261,7 +278,22 @@ function CosmosPhaseHUD() {
   );
 }
 
-function GenesisV1Workspace() {
+/**
+ * Memoised, like EngineTick, and for the same reason.
+ *
+ * The router above calls useGenesis(), so it re-renders on every state
+ * change — including every streamed token — and rebuilds each child
+ * element beneath it. The scene's own consumers read the stable scene
+ * context and so are not re-rendered BY context, but they were still
+ * being re-rendered by their parent. This takes no props, so once
+ * memoised a parent re-render stops here.
+ *
+ * It is not a correctness guard: everything inside that must follow
+ * live state reads it from the scene context's getters or subscribes
+ * for itself. Blocking a prop-less re-render therefore removes work,
+ * not updates.
+ */
+const GenesisV1Workspace = memo(function GenesisV1Workspace() {
   useSceneMountLog("GenesisV1Workspace");
   const frameloop = useSceneFrameloop();
 
@@ -277,17 +309,6 @@ function GenesisV1Workspace() {
       }}
     >
       {/*
-        * AI → GENESIS bridges — the real AIService / proactive / voice
-        * event wiring that feeds chat, actions, cognition and voice into
-        * the shared Genesis state. Mounted as DOM siblings of the Canvas
-        * (NOT inside the R3F scene) so no bridge lifecycle code can ever
-        * touch the 3D render loop.
-        */}
-      <GenesisBridge />
-      <ProactiveBridge />
-      <VoiceBridge />
-
-      {/*
         * THE PHASE SKY — a plain DOM layer behind the transparent 3D
         * canvas, driven by the SAME sampleCosmosAtmosphere() as the HUD.
         * It guarantees the atmosphere lifecycle (sunset / static / storm /
@@ -296,7 +317,9 @@ function GenesisV1Workspace() {
         */}
       <CosmosSkyBackdrop />
 
-      {/* The 3D cosmic core: orb, cosmos, atmosphere, evolution */}
+      {/* The 3D cosmic core: orb, cosmos, atmosphere, evolution.
+          CoreHoldGesture observes pointer events for hold-to-voice;
+          it does NOT intercept or prevent R3F / Three.js events. */}
       <div
         style={{
           position: "absolute",
@@ -304,24 +327,26 @@ function GenesisV1Workspace() {
           zIndex: 1,
         }}
       >
-        <ReactSuspense fallback={null}>
-          <Canvas
-            camera={{ position: [0, 0, 5], fov: 50 }}
-            gl={{ alpha: true, antialias: true }}
-            frameloop={frameloop}
-            style={{ width: "100%", height: "100%" }}
-          >
-            <SceneFrameGovernor />
-            <GenesisController />
-          </Canvas>
-        </ReactSuspense>
+        <CoreHoldGesture>
+          <ReactSuspense fallback={null}>
+            <Canvas
+              camera={{ position: [0, 0, 5], fov: 50 }}
+              gl={{ alpha: true, antialias: true }}
+              frameloop={frameloop}
+              style={{ width: "100%", height: "100%" }}
+            >
+              <SceneFrameGovernor />
+              <GenesisController />
+            </Canvas>
+          </ReactSuspense>
+        </CoreHoldGesture>
       </div>
 
       {/* Phase indicator so the user can see lifecycle transitions */}
       <CosmosPhaseHUD />
     </div>
   );
-}
+});
 
 /**
  * PAGE 3 — Genesis v2, wrapped in its own named scene component so the
@@ -358,12 +383,32 @@ function GenesisWorkspaceRouter() {
   const { state, openPanel } = useGenesisState();
   const { state: visualState } = useVisual();
 
+  const surface = useSurface();
+
   const v2Active = state.activeScene === "genesisv2";
   const systemActive = !v2Active && visualState.interfaceFocus === "visual";
 
   return (
     <>
-      {v2Active ? (
+      {/*
+        * AI → GENESIS bridges — the real AIService / proactive / voice
+        * event wiring that feeds chat, actions, cognition and voice into
+        * the shared Genesis state. They lived inside the v1 scene, so
+        * in Gen V2 or the System scene no reply was written back, and
+        * no scene could be left out while chat owns a phone screen.
+        * They belong to the app, not to a scene.
+        */}
+      <GenesisBridge />
+      <ProactiveBridge />
+      <VoiceBridge />
+
+      {!surface.cosmosRendered ? (
+        /* Chat owns the phone screen: no scene is rendered beneath it —
+           not hidden, not behind it. The Core, cognition and the engine
+           tick (below) carry on; only the picture of them stops, and it
+           comes back when the user goes Home. See surface/Surface. */
+        null
+      ) : v2Active ? (
         /* PAGE 3 — Genesis v2 is the complete viewport. Nothing from
            the v1 world is mounted; the shared GenesisCore state below
            stays alive (evolution never pauses). The unified interface
@@ -406,6 +451,10 @@ function GenesisWorkspaceRouter() {
         */}
       <WorkspaceBridge />
       <GenesisSurfaceController />
+
+      {/* LÉLU in companion mode: her figure over every surface, mounted
+          once here so moving between surfaces never recreates her. */}
+      <LeluCompanion />
       <VisualBridge />
       <DeepLinkIntake />
 
@@ -419,7 +468,7 @@ function GenesisWorkspaceRouter() {
         * These are HTML/CSS layers above the canvas, only visible
         * in the v1 workspace (not v2 or system).
         */}
-      {!v2Active && !systemActive && (
+      {surface.cosmosRendered && !v2Active && !systemActive && (
         <Suspense fallback={null}>
           <CosmosOverview />
         </Suspense>

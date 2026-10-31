@@ -18,6 +18,7 @@ import {
   openAIToolPayload,
   toOpenAIMessages,
   trailingUserTurn,
+  readOpenAIStream,
 } from "./openaiTools";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 
@@ -166,6 +167,9 @@ export default class OpenRouterProvider implements AIProvider {
       temperature: request.temperature ?? 0.7,
       ...(request.maxTokens ? { max_tokens: request.maxTokens } : {}),
       ...(request.stop?.length ? { stop: request.stop } : {}),
+      // Stream whenever the turn wants progressive text — tool calls
+      // included (readOpenAIStream assembles them).
+      ...(request.onDelta ? { stream: true } : {}),
     };
 
     let response: Response;
@@ -188,12 +192,30 @@ export default class OpenRouterProvider implements AIProvider {
             "X-Title": "Lélu",
           },
           body: JSON.stringify(payload),
-          signal: AbortSignal.timeout(this.timeout),
+          signal: request.signal
+            ? AbortSignal.any([request.signal, AbortSignal.timeout(this.timeout)])
+            : AbortSignal.timeout(this.timeout),
         },
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`OpenRouter network error: ${message}`);
+    }
+
+    if (payload.stream) {
+      const streamed = await readOpenAIStream(response, "OpenRouter", request.onDelta!);
+      if (!streamed.text.trim() && streamed.toolCalls.length === 0) {
+        throw new Error("OpenRouter returned no usable content.");
+      }
+      return {
+        text: streamed.text.trim(),
+        provider: this.name,
+        model: payload.model,
+        processingTime: Date.now() - started,
+        ...(streamed.toolCalls.length ? { toolCalls: streamed.toolCalls } : {}),
+        stopReason: streamed.finishReason,
+        metadata: { usage: streamed.usage, finishReason: streamed.finishReason, streamed: true },
+      };
     }
 
     const raw = await response.text();

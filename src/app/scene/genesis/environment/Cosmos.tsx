@@ -17,12 +17,12 @@ import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { Group } from "three";
 
-import { useGenesis } from "../GenesisCore";
+import { useGenesisScene } from "../useGenesisScene";
 import AuroraCosmos from "./AuroraCosmos";
 import CosmicBackdrop from "./CosmicBackdrop";
 
 export default function Cosmos() {
-  const { getLiveUniverse } = useGenesis();
+  const { getLiveUniverse } = useGenesisScene("Cosmos");
   const universe = useRef<Group>(null);
 
   useFrame(({ clock }, delta) => {

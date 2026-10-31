@@ -43,7 +43,7 @@
  */
 
 import AgentEventBus from "../agent/AgentEvents";
-import AgentRunner from "../agents/AgentRunner";
+import Shaman from "../agents/Shaman";
 import AgentStore from "../agents/AgentStore";
 import { EXECUTIVE_AGENT_FOR_INTENT } from "../agents/AgentTemplates";
 import ArchitectureMap, { type ArchitectureSubsystem } from "../selfdev/ArchitectureMap";
@@ -386,7 +386,14 @@ export default class SelfStudy {
         agentSkippedReason = "no source was readable — nothing to reason about";
       } else {
         const objectiveText = this.buildAgentObjective(objectiveGap, readEvidence, excerpts);
-        const result = await AgentRunner.getInstance().run(agent.id, objectiveText, undefined, taskId);
+        // Through SHAMAN, so LÉLU's own delegation is checked, owned and
+        // recorded (executive, routeReason, delegatedBy) like any other.
+        const result = await Shaman.getInstance().dispatch({
+          objective: objectiveText,
+          agentId: agent.id,
+          delegatedBy: "lelu",
+          parentTaskId: taskId,
+        });
         // `ok` only means the runner did not throw. When every provider
         // in the chain fails, AIService still resolves — with the error
         // text as the message body and "error" as the provider. Taking

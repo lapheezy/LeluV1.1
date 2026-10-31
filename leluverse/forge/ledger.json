@@ -1,0 +1,67 @@
+{
+  "jobs": [
+    {
+      "id": "forge-c4c1e9c2",
+      "asset": "leluverse/assets/characters/lelu_character",
+      "workflow": "multi-image-to-3d",
+      "purpose": "LÉLU base character: textured full-body model in A-pose from 4 consistent views",
+      "params": {
+        "ai_model": "meshy-7.1",
+        "image_urls": [
+          "ref:references/body-front-apose-hood.png",
+          "ref:references/body-back-apose-hood.png",
+          "ref:references/body-left-profile-hood.png",
+          "ref:references/body-three-quarter-hood.png"
+        ],
+        "texture_image_urls": [
+          "ref:references/face-front-closeup.png",
+          "ref:references/body-front-apose-hood.png"
+        ],
+        "should_texture": true,
+        "enable_pbr": true,
+        "texture_resolution": "2k",
+        "pose_mode": "a-pose",
+        "topology": "triangle",
+        "target_polycount": 100000,
+        "target_formats": [
+          "glb",
+          "fbx"
+        ],
+        "multi_view_thumbnails": true,
+        "alpha_thumbnail": true
+      },
+      "requestHash": "5fb2c6384bf14b8bd23e0299",
+      "estimatedCredits": 30,
+      "state": "awaiting_approval",
+      "plannedBy": "Claude Code (owner's Phase 1B directive)",
+      "history": [
+        {
+          "at": "2026-10-30T16:15:04.154Z",
+          "event": "planned by Claude Code (owner's Phase 1B directive)"
+        }
+      ]
+    },
+    {
+      "id": "forge-ca8f7b98",
+      "asset": "leluverse/assets/characters/lelu_character",
+      "workflow": "rigging",
+      "purpose": "LÉLU skeleton: auto-rig of the base character (includes walking and running clips)",
+      "params": {
+        "height_meters": 1.75
+      },
+      "dependsOn": [
+        "forge-c4c1e9c2"
+      ],
+      "requestHash": "6c2e74516d4d945348362bcb",
+      "estimatedCredits": 5,
+      "state": "awaiting_approval",
+      "plannedBy": "Claude Code (owner's Phase 1B directive)",
+      "history": [
+        {
+          "at": "2026-10-30T16:15:04.155Z",
+          "event": "planned by Claude Code (owner's Phase 1B directive)"
+        }
+      ]
+    }
+  ]
+}

@@ -209,19 +209,12 @@ export interface CosmosState {
 /** Executive type enum */
 export type ExecutiveType = "governor" | "caretaker" | "engineer" | "warden" | "sage" | "forge";
 
-/** Map agent template ids to executive types */
-export const AGENT_TO_EXECUTIVE: Record<string, ExecutiveType> = {
-  designer: "governor",
-  artist: "governor",
-  renderer: "engineer",
-  video: "engineer",
-  researcher: "sage",
-  jewelry: "governor",
-  fashion: "governor",
-  marketing: "caretaker",
-  builder: "engineer",
-  engineer: "engineer",
-};
+/*
+ * Agent → executive ownership lives in core/agents/ExecutiveOwnership.ts
+ * (template / explicit assignment → ExecutiveId → EXECUTIVES[].cosmosType).
+ * The table that was here was keyed by template id and looked up by the
+ * per-install agent UUID, so it never matched.
+ */
 
 /** Executive definitions with visual DNA */
 export const EXECUTIVE_DEFS: Record<ExecutiveType, {

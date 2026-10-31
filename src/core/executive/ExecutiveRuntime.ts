@@ -27,6 +27,7 @@ import UIStateStore from "../cognition/UIStateStore";
 import SelfModel from "../cognition/SelfModel";
 import ImprovementQueue from "../selfdev/ImprovementQueue";
 import KvStore from "../storage/KvStore";
+import { backgroundInterval, type BackgroundTimer } from "../runtime/BackgroundTimer";
 import {
   runDiagnostics,
   type DiagnosticCheck,
@@ -169,7 +170,7 @@ class ExecutiveRuntimeImpl {
 
   private listeners = new Set<ExecutiveListener>();
   private unsubEvents: (() => void) | null = null;
-  private timer: ReturnType<typeof setInterval> | null = null;
+  private timer: BackgroundTimer | null = null;
   private config: StartConfig = {};
   private storageProbeOk: boolean | null = null;
   private lastEventAt: number | null = null;
@@ -201,7 +202,12 @@ class ExecutiveRuntimeImpl {
       }
     });
 
-    this.timer = setInterval(() => void this.tick(), LOOP_INTERVAL_MS);
+    // A 10-second self-state tick must not be the reason a process stays
+    // alive. Measured: this interval — started by AIRuntime.doInitialize(),
+    // so by anything that boots LÉLU at all — kept the cognition test
+    // process running after its last assertion. stop() below is still the
+    // real lifecycle; unref only removes that one consequence.
+    this.timer = backgroundInterval(() => void this.tick(), LOOP_INTERVAL_MS);
     // First tick immediately so self-state exists before chat starts.
     void this.tick();
   }
@@ -211,7 +217,7 @@ class ExecutiveRuntimeImpl {
     this.started = false;
     this.unsubEvents?.();
     this.unsubEvents = null;
-    if (this.timer !== null) clearInterval(this.timer);
+    this.timer?.stop();
     this.timer = null;
     this.patch({ currentMode: "booting" });
   }

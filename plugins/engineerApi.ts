@@ -164,17 +164,29 @@ export interface EngineerDiffEntry {
    * `includePatch`, and bounded so a large file cannot flood a reply.
    */
   patch?: string;
+  /** Binary on either side: counted, never inlined as text. */
+  binary?: boolean;
+  /** Changed in the copy AND in the real project since the copy was made: apply refuses it. */
+  realChangedSince?: boolean;
 }
 
 /** Whitelisted operations — the only commands the server will ever run. */
 export const ENGINEER_OPERATIONS: Record<string, string> = {
   typecheck: "bun tsc -b --noEmit",
   build: "bun run build",
-  test: "bun test",
+  // The project's OWN suite — `npm test` is what package.json defines and
+  // what passes (953/953). This was `bun test`: a different runner over a
+  // different file set, which on the unmodified project reported 20
+  // failures from Bun's node:test compatibility and the excluded
+  // autonomy-end-to-end suite. Validation that disagrees with the
+  // project's own suite cannot tell LÉLU whether her change broke it.
+  test: "npm test",
   inspect: "node --version && bun --version && pwd",
 };
 
 const DEFAULT_TIMEOUT_MS = 180_000;
+/** Operations that legitimately run longer than the default. Measured: `npm test` ≈ 6.5 min. */
+export const ENGINEER_OPERATION_TIMEOUT_MS: Record<string, number> = { test: 900_000 };
 
 const ROUTES = [
   "/api/engineer/status",
@@ -447,7 +459,7 @@ export function createEngineerApi(adapter: EngineerAdapter): {
             }
             const timeoutMs = Number.isFinite(Number(payload.timeoutMs))
               ? Number(payload.timeoutMs)
-              : DEFAULT_TIMEOUT_MS;
+              : (ENGINEER_OPERATION_TIMEOUT_MS[operation] ?? DEFAULT_TIMEOUT_MS);
             // Validation runs INSIDE the copy when one is named, so a
             // typecheck/test/build reports on the changed code rather
             // than on the untouched source project.

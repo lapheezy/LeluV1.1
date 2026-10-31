@@ -59,6 +59,8 @@ import SourceAccess from "../selfdev/SourceAccess";
 import KnowledgeLibrary, { GAP_STATUSES, type KnowledgeEntry } from "./KnowledgeLibrary";
 import SelfModel from "./SelfModel";
 import StudyAgentRouter, { type Investigation } from "./StudyAgentRouter";
+import { backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
+import { computePriority, type PriorityAdjustment } from "./Prioritization";
 import StudyObjectives, {
   type StudyDomain,
   type StudyObjective,
@@ -276,6 +278,34 @@ export async function withDeadline<T>(work: Promise<T>, fallback: T, ms = STEP_D
   }
 }
 
+/**
+ * A question made safe to quote inside another question.
+ *
+ * Drops its quote marks and EVERY question mark, and bounds its
+ * length, so the wrapper carries exactly one question mark — its own —
+ * and a chain of unresolved follow-ups cannot grow by accretion.
+ *
+ * Every one, not just the trailing one: a parent that asks two things
+ * would otherwise still nest, and the guarantee is worth more than the
+ * punctuation.
+ *
+ * Exported because it is pure and because the escalation line it feeds
+ * runs only after three failed attempts on one question — too deep
+ * inside a live cycle to pin from outside, and the nesting it prevents
+ * was structurally guaranteed every time that line ran.
+ */
+export function quotableQuestion(question: string): string {
+  return question
+    .replace(/[“”"']/g, "")
+    .replace(/\?/g, "")
+    .replace(/\s+([,.;:])/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/[\s,;:]+$/, "")
+    .slice(0, 120)
+    .trim();
+}
+
 export default class SelfStudyEngine {
   private static instance: SelfStudyEngine | null = null;
 
@@ -288,7 +318,7 @@ export default class SelfStudyEngine {
   private cycle = 0;
   private running = false;
   private continuous = false;
-  private timer: ReturnType<typeof setTimeout> | null = null;
+  private timer: BackgroundTimer | null = null;
   private lastReport: StudyCycleReport | null = null;
   private history: StudyCycleReport[] = [];
   /** Domains worked in recent cycles — feeds the attention-fatigue term. */
@@ -356,16 +386,21 @@ export default class SelfStudyEngine {
 
   public stop(): void {
     this.continuous = false;
-    if (this.timer !== null) {
-      clearTimeout(this.timer);
-      this.timer = null;
-    }
+    this.timer?.stop();
+    this.timer = null;
   }
 
   private schedule(delayMs: number, intervalMs: number): void {
     if (!this.continuous) return;
-    if (this.timer !== null) clearTimeout(this.timer);
-    this.timer = setTimeout(() => {
+    this.timer?.stop();
+    // backgroundTimeout, not setTimeout: continuous cognition is a
+    // heartbeat, and a heartbeat must not be the reason a process refuses
+    // to end. Measured: this one self-rescheduling timer kept
+    // tests/live-state-integration.test.ts running forever after its last
+    // assertion, which in turn stalled every file queued behind it. stop()
+    // below is still the real lifecycle — unref only removes that one
+    // consequence.
+    this.timer = backgroundTimeout(() => {
       // Do not even attempt a cycle while the user is mid-exchange:
       // come back shortly instead, so the conversation is never
       // competing with autonomous work for the same runtime.
@@ -579,8 +614,24 @@ export default class SelfStudyEngine {
           lastEvidence: investigation.error ?? investigation.summary,
         });
         // An unresolved question is itself something to understand.
+        //
+        // The parent goes through quotableQuestion() first. Without it this
+        // line nested one question inside another EVERY time it ran —
+        // a parent question always ends in "?", so the nesting was
+        // guaranteed, not occasional. Observed in a real self-study
+        // run, and caught by self-study-loop.test.ts:
+        //
+        //   Why can I not answer “What do I actually know about
+        //   Procedural environment generation, and is it true?” with
+        //   the tools I have?
+        //
+        // That is how a continuous loop degenerates into quoting
+        // itself. The model-derived path has been guarded against it
+        // all along (see isSelfReferential, which rejects anything
+        // with more than one question mark); the line the engine
+        // writes itself was not.
         this.enqueue({
-          question: `Why can I not answer “${objective.question}” with the tools I have?`,
+          question: `Why can I not answer “${quotableQuestion(objective.question)}” with the tools I have?`,
           detail: `${objective.attempts + 1} attempt(s) through ${investigation.tool} produced no usable evidence: ${
             investigation.error ?? investigation.summary
           }`,
@@ -1551,33 +1602,52 @@ export default class SelfStudyEngine {
     // every other question — thinking in a circle rather than moving.
     const recentDomains = this.recentDomains.slice(-4);
 
+    // Collected, then applied in one write. Writing per objective
+    // persisted the whole array once per objective — see
+    // StudyObjectives.applyPriorities.
+    const rescored = new Map<string, number>();
+
     for (const objective of this.objectives.open()) {
-      // Always from the intrinsic base, never from last cycle's result:
-      // adjustments must not compound, or a question that lost the
-      // contest once would sink forever and never be investigated.
-      let priority = objective.basePriority ?? objective.priority;
-
+      // The attempts penalty, the age nudge, the fatigue penalty and the
+      // clamp all live in computePriority now, with the numbers this
+      // method has always used. What stays here is the part that is
+      // genuinely about STUDY objectives: which conditions matter and
+      // by how much.
+      //
+      // Starting from basePriority is computePriority's contract, not a
+      // choice made here: adjustments must never compound, or a question
+      // that lost the contest once would sink forever.
+      const adjustments: PriorityAdjustment[] = [];
       // A blocked environment blocks everything downstream of it.
-      if (objective.domain === "runtime" && !state.runtimeReachable) priority += 20;
+      if (objective.domain === "runtime" && !state.runtimeReachable) {
+        adjustments.push({ reason: "runtime unreachable", delta: 20 });
+      }
       // Contradictions and failures outrank curiosity.
-      if (objective.origin === "contradiction") priority += 15;
+      if (objective.origin === "contradiction") {
+        adjustments.push({ reason: "contradiction", delta: 15 });
+      }
       // Questions created by real discoveries beat pre-seeded ones.
-      if (objective.origin === "discovery") priority += 8;
+      if (objective.origin === "discovery") {
+        adjustments.push({ reason: "from a real discovery", delta: 8 });
+      }
       // Snapshot-only re-verification waits until the runtime is back.
-      if (objective.origin === "revalidation" && !state.runtimeReachable) priority -= 15;
-      // Repeated failure to answer lowers, but never zeroes, a question.
-      priority -= objective.attempts * 10;
-      // Age nudges long-carried questions upward so nothing starves.
-      priority += Math.min(10, Math.floor((Date.now() - objective.createdAt) / (60 * 60 * 1000)));
-      // Recency fatigue: attention moves on instead of grinding the same
-      // kind of question cycle after cycle.
-      priority -= 18 * recentDomains.filter((domain) => domain === objective.domain).length;
+      if (objective.origin === "revalidation" && !state.runtimeReachable) {
+        adjustments.push({ reason: "revalidation needs the runtime", delta: -15 });
+      }
 
-      const clamped = Math.max(1, Math.min(100, Math.round(priority)));
+      const clamped = computePriority({
+        basePriority: objective.basePriority ?? objective.priority,
+        adjustments,
+        attempts: objective.attempts,
+        createdAt: objective.createdAt,
+        recentSameKind: recentDomains.filter((domain) => domain === objective.domain).length,
+      });
       if (clamped !== objective.priority) {
-        this.objectives.update(objective.id, { priority: clamped });
+        rescored.set(objective.id, clamped);
       }
     }
+
+    this.objectives.applyPriorities(rescored);
   }
 
   /* -------------------------------- helpers ------------------------------- */

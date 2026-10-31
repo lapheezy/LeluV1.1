@@ -18,6 +18,7 @@ import AIService, {
   type CognitionEvent,
 } from "../../../core/AIService";
 import Sentinel from "../../../core/sentinel/Sentinel";
+import { bindMessage } from "../../../core/multichat/TurnOwnership";
 import CapabilityManifest from "../../../core/capabilities/CapabilityManifest";
 import { cleanAssistantText } from "../../../core/router/ToolMarkup";
 
@@ -85,6 +86,9 @@ export default function GenesisBridge() {
     // completed message, so live text renders in place instead of
     // duplicating bubbles.
     const removeMessages = ai.subscribeMessages((message: AIMessageEvent) => {
+      // A reply that names its conversation goes there — never to
+      // whichever conversation holds the claim or is on screen.
+      if (message.conversationId) bindMessage(message.id, message.conversationId);
       latest.current.upsertMessage({
         id: message.id,
         role: message.role,
@@ -99,6 +103,7 @@ export default function GenesisBridge() {
     });
 
     const removeStream = ai.subscribeStream((event) => {
+      if (event.conversationId) bindMessage(event.id, event.conversationId);
       latest.current.upsertMessage({
         id: event.id,
         role: "assistant",

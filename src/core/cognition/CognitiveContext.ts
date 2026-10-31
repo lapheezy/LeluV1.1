@@ -16,6 +16,7 @@
  */
 
 import AgentEventBus from "../agent/AgentEvents";
+import { ownerForTask } from "../multichat/TurnOwnership";
 import SelfModel from "./SelfModel";
 import type { SelfModelState } from "./SelfModel";
 import ProjectStore from "../projects/ProjectStore";
@@ -32,6 +33,8 @@ import ImprovementQueue from "../selfdev/ImprovementQueue";
 import ToolRegistry from "../tools/ToolRegistry";
 import SelfStudyEngine, { type CognitiveStateView } from "./SelfStudyEngine";
 import EngineeringWorkspace from "../engineering/EngineeringWorkspace";
+import WorkspaceEngine from "../workspace/WorkspaceEngine";
+import { describeWorkspace } from "../workspace/WorkspaceArtifacts";
 import WorkflowStore from "../workflows/WorkflowStore";
 import AgentWorkflowBridge from "../workflows/AgentWorkflowBridge";
 import AgentObjectives from "./AgentObjectives";
@@ -42,6 +45,7 @@ import {
   inspectDocument,
   type VisualReport,
 } from "../selfdev/VisualInspection";
+import LeluIdentity from "../identity/LeluIdentity";
 
 /**
  * Run the existing visual inspection against LÉLU's OWN live document.
@@ -102,6 +106,13 @@ export interface CognitiveContextSnapshot {
    * validation exited.
    */
   engineeringWorkspace: string;
+
+  /**
+   * The shared visual workspace: the artifacts open in it (captures,
+   * pages, notes, diagrams, tables) and the one the user selected — so
+   * "this" in their next message has a referent she can read and change.
+   */
+  workspaceArtifacts: string;
 
   /**
    * Recent workflow executions, described from their real recorded
@@ -231,7 +242,7 @@ export interface CognitiveContextSnapshot {
  * Build a fresh CognitiveContextSnapshot from live singleton state.
  * Called by AIRuntime on every process() invocation.
  */
-export function buildCognitiveContext(): CognitiveContextSnapshot {
+export function buildCognitiveContext(conversationId?: string): CognitiveContextSnapshot {
   const selfModel = SelfModel.getInstance();
   const projectStore = ProjectStore.getInstance();
   const agentStore = AgentStore.getInstance();
@@ -243,8 +254,18 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
 
   // REAL recent execution events — the last actions actually emitted
   // by executing code (never model claims), for situational awareness.
+  //
+  // For a chat turn, only that chat's events and background work no chat
+  // owns: another conversation's tool results here were a way for one
+  // chat's work to surface in another's reply, unlabelled.
   const recentEvents = AgentEventBus.getInstance()
-    .recent(8)
+    .recent(conversationId ? 40 : 8)
+    .filter((event) => {
+      if (!conversationId) return true;
+      const owner = ownerForTask(event.taskId);
+      return owner === null || owner === conversationId;
+    })
+    .slice(-8)
     .map((event) => ({
       type: event.type,
       tool: "tool" in event ? event.tool : undefined,
@@ -333,6 +354,7 @@ export function buildCognitiveContext(): CognitiveContextSnapshot {
     // describe() reads the workspace service's own state, which only
     // ever moves in response to a real backend result.
     engineeringWorkspace: EngineeringWorkspace.getInstance().describe(),
+    workspaceArtifacts: describeWorkspace(WorkspaceEngine.getInstance().getState()),
     workflowActivity: describeWorkflowActivity(),
     configuration: describeConfigurationSafely(),
     // Read-only: describes the objective store as it stands. Assembling
@@ -626,6 +648,10 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   // told in prose.
   sections.push(`## ENGINEERING WORKSPACE\n${ctx.engineeringWorkspace}`);
 
+  // THE VISUAL WORKSPACE — the artifacts beside the conversation, and the
+  // one the user selected. Read from WorkspaceEngine as it stands.
+  sections.push(`## VISUAL WORKSPACE (artifacts beside this conversation)\n${ctx.workspaceArtifacts}`);
+
   // WORKFLOW ACTIVITY — read from persisted execution records.
   //
   // Every line comes from a run that actually occurred: its steps, their
@@ -676,7 +702,13 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
     const toolLines = ctx.toolsRequiringConfirmation.map(
       (t) => `- ${t.name} (risk ${t.riskLevel}) — ask before using`,
     );
-    sections.push(`## ACTIONS REQUIRING CONFIRMATION\n${toolLines.join("\n")}`);
+    // An explicit request for exactly that action IS the confirmation:
+    // measured, "use sandbox_execute to run hello.js" was answered with
+    // "may I run sandbox_execute on hello.js?" three turns running.
+    sections.push(
+      `## ACTIONS REQUIRING CONFIRMATION\n${toolLines.join("\n")}\n` +
+        "If the user's current message explicitly asks for that exact action, that request is the confirmation — do it, do not ask again.",
+    );
   }
 
   // Her own pending engineering work — visible without being told.
@@ -703,6 +735,30 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
 
   // Autonomy
   sections.push(`## AUTONOMY LEVEL: ${ctx.autonomyLevel}`);
+
+  // Personality context — relevant traits only, never a giant prepend.
+  // Guarded so a personality failure never breaks cognition.
+  try {
+    const identity = LeluIdentity.getInstance();
+    const istate = identity.getState();
+    const activeTraits = istate.traits.filter(
+      (t) => t.status === "established" || t.status === "emerging",
+    );
+    if (activeTraits.length > 0 || istate.curiosities.length > 0) {
+      const traitLine = activeTraits.length > 0
+        ? `Active traits: ${activeTraits.slice(0, 4).map((t) => `${t.name} (${t.status})`).join(", ")}.`
+        : "";
+      const curiosityLine = istate.curiosities.length > 0
+        ? `Current curiosity: ${istate.curiosities[istate.curiosities.length - 1]}.`
+        : "";
+      const lines = [traitLine, curiosityLine].filter(Boolean);
+      if (lines.length > 0) {
+        sections.push(`## LÉLU PERSONALITY\n${lines.join(" ")}`);
+      }
+    }
+  } catch {
+    // personality is optional — never let it break context assembly
+  }
 
   return sections.join("\n\n");
 }

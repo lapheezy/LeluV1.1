@@ -93,6 +93,8 @@ export interface CommandOutcome {
   stdout: string;
   stderr: string;
   durationMs: number;
+  /** The command's real exit status, when the runtime reported one. */
+  exitCode?: number;
   error?: string;
 }
 
@@ -103,8 +105,8 @@ type RawModule = Record<string, () => Promise<string>>;
  * paths ships with the bundle but file contents are only fetched when
  * something actually reads one — the initial bundle is unaffected.
  *
- * Scope is a deliberate trade: `.ts` across src, plugins and tests
- * (the whole logic layer, previously only `src/core`) costs ~1.2 MB of
+ * Scope is a deliberate trade: `.ts` across src and plugins (the whole
+ * logic layer; tests/ is excluded from production) costs ~1.2 MB of
  * lazily-served deploy weight. Adding `.tsx` as well would take that to
  * ~2.9 MB for the React component layer, which is the least useful
  * thing to read when answering architecture, capability and runtime
@@ -137,11 +139,9 @@ function buildSnapshot(): RawModule {
         import: "default",
         eager: false,
       }) as RawModule),
-      ...(import.meta.glob("/tests/**/*.ts", {
-        query: "?raw",
-        import: "default",
-        eager: false,
-      }) as RawModule),
+      // tests/ is deliberately NOT bundled: it shipped ~74 test files as
+      // production chunks. Tests stay readable through the development
+      // runtime; a static host answers "not in the build-time snapshot".
       ...(import.meta.glob("/plugins/**/*.ts", {
         query: "?raw",
         import: "default",
@@ -160,6 +160,8 @@ const STATUS_TTL_OK_MS = 20_000;
 const STATUS_TTL_FAIL_MS = 60_000;
 const REQUEST_TIMEOUT_MS = 5_000;
 const COMMAND_TIMEOUT_MS = 180_000;
+/** The project's test suite takes minutes; the runtime allows it 15 (see engineerApi). */
+const COMMAND_TIMEOUT_OVERRIDES_MS: Record<string, number> = { test: 930_000 };
 
 /**
  * Resolve engineering-runtime configuration.
@@ -480,11 +482,12 @@ export default class SourceAccess {
     try {
       const payload = await this.fetchJson<{
         ok?: boolean;
+        status?: number;
         stdout?: string;
         stderr?: string;
         durationMs?: number;
         error?: string;
-      }>("/api/engineer/command", { operation }, COMMAND_TIMEOUT_MS);
+      }>("/api/engineer/command", { operation }, COMMAND_TIMEOUT_OVERRIDES_MS[operation] ?? COMMAND_TIMEOUT_MS);
       return {
         ok: payload?.ok === true,
         origin: "development-runtime",
@@ -492,6 +495,7 @@ export default class SourceAccess {
         stdout: payload?.stdout ?? "",
         stderr: payload?.stderr ?? "",
         durationMs: payload?.durationMs ?? 0,
+        ...(typeof payload?.status === "number" ? { exitCode: payload.status } : {}),
         error: payload?.error,
       };
     } catch (error) {

@@ -107,13 +107,16 @@ async function main() {
 
   check(
     "registry registers the local-first provider plus all eight remote chat providers",
-    names.join(",") ===
-      "Local (on-device),Groq,OpenRouter,Cerebras,Mistral,Fireworks,Anthropic,Gemini,GitHub Models",
+    // Anthropic is the default remote provider since d11dc20 (priority 1).
+    [...names].sort().join(",") ===
+      ["Local (on-device)", "Anthropic", "Groq", "OpenRouter", "Cerebras", "Mistral", "Fireworks", "Gemini", "GitHub Models"].sort().join(",") &&
+      names[0] === "Local (on-device)" && names[1] === "Anthropic",
     names.join(" → "),
   );
   check(
-    "fallback order is strict by priority (0,1,2,3,4,5,7,8,10)",
-    JSON.stringify(priorities) === JSON.stringify([0, 1, 2, 3, 4, 5, 7, 8, 10]),
+    "fallback order is strict by priority (Local 0, Anthropic 1, OpenRouter 2, Groq 2.5, Cerebras 3, Mistral 4, Fireworks 5, Gemini 8, GitHub Models 10)",
+    JSON.stringify(priorities) === JSON.stringify([0, 1, 2, 2.5, 3, 4, 5, 8, 10]) &&
+      names.slice(2, 4).join(",") === "OpenRouter,Groq",
     priorities.join(","),
   );
   check(

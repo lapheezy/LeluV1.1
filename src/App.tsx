@@ -25,12 +25,14 @@ import { BASE_URL } from "./core/env/buildEnv";
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import GenesisScene from "./app/scene/genesis/GenesisScene";
+import BuildStamp from "./app/BuildStamp";
 
 const OgRoutes = lazy(() => import("./og/OgRoutes"));
 
 export default function App() {
   return (
     <BrowserRouter basename={BASE_URL}>
+      <BuildStamp />
       <Routes>
         <Route path="/" element={<GenesisScene />} />
         <Route

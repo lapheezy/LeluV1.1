@@ -46,6 +46,10 @@ export interface WorkspaceChange {
   removedLines: number;
   /** The actual changed lines, when the diff was asked for with a patch. */
   patch?: string;
+  /** Binary: counted, never shown as text. */
+  binary?: boolean;
+  /** Also changed in the real project since the copy was made: applying it is refused. */
+  realChangedSince?: boolean;
 }
 
 export interface WorkspaceRecord {
@@ -53,6 +57,21 @@ export interface WorkspaceRecord {
   root: string;
   createdAt: number;
   fileCount: number;
+}
+
+/** What her context says when this session has not made a copy itself. */
+export function describeEarlierCopies(copies: readonly WorkspaceRecord[]): string {
+  if (copies.length === 0) return "No project copy exists in the engineering sandbox.";
+  const listed = [...copies]
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, 8)
+    .map((copy) => `"${copy.id}" (${copy.fileCount} files)`)
+    .join(", ");
+  return (
+    `No copy has been made in this session, but the sandbox already holds ${copies.length} from earlier: ${listed}. ` +
+    "They are still on disk with any edits made in them; use one by passing its id to the project tools. " +
+    "project_copy with an existing id replaces that copy's contents with the real project."
+  );
 }
 
 export interface WorkspaceState {
@@ -104,6 +123,15 @@ export default class EngineeringWorkspace {
     lastError: null,
     updatedAt: 0,
   };
+
+  /**
+   * Copies already in the sandbox on the server — from earlier sessions of
+   * the app, which this object (it starts empty on every page load) never
+   * made. Measured in self-improvement run 26: her copy with three edits was
+   * on disk, her context said "No project copy exists", and, told not to
+   * replace it, she could not continue. Refreshed with each runtime probe.
+   */
+  private knownCopies: WorkspaceRecord[] = [];
 
   private constructor() {}
 
@@ -196,6 +224,14 @@ export default class EngineeringWorkspace {
       data.error = data.error ?? `HTTP ${response.status}`;
     }
     return data;
+  }
+
+  /**
+   * One call to an engineering-runtime route — same runtime source and
+   * token as every operation below (search, preview, capture use it).
+   */
+  public async callRuntime(route: string, body: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return this.post(route, body);
   }
 
   /* ---------------------------- operations ---------------------------- */
@@ -294,10 +330,11 @@ export default class EngineeringWorkspace {
     { ok: boolean; exitCode: number; output: string; durationMs: number } | { ok: false; error: string }
   > {
     this.update({ phase: "validating" });
+    // No timeout from here: the runtime knows how long each operation
+    // needs (the test suite takes minutes; a fixed 3 minutes cut it off).
     const data = await this.post("/api/engineer/command", {
       workspace: workspaceId,
       operation,
-      timeoutMs: 180_000,
     });
 
     if (typeof data.status !== "number") {
@@ -480,8 +517,22 @@ export default class EngineeringWorkspace {
    * cannot run is exactly what produces a claimed action that never
    * happened — so availability is a measured fact, refreshed here.
    */
-  public async syncToolAvailability(): Promise<boolean> {
-    const { default: ToolRegistry } = await import("../tools/ToolRegistry");
+  /**
+   * Is a development runtime actually serving /api/engineer right now?
+   *
+   * This used to write the project.* availability flags into
+   * ToolRegistry itself, which made two independent writers of the same
+   * facts: ToolRegistry.refreshAvailability() owned workspace.* and
+   * github.*, this owned project.*, and neither knew about the other. So
+   * the registry's answer depended on which had run last, and a tool
+   * could be offered that the runtime could not execute — or be
+   * executable and never offered.
+   *
+   * It is a probe now. ToolRegistry.refreshAvailability() asks it and is
+   * the single writer. The workspace phase is still updated here,
+   * because that is this object's own state.
+   */
+  public async runtimeReachable(): Promise<boolean> {
     let reachable = false;
     try {
       const status = await this.source.status();
@@ -489,27 +540,25 @@ export default class EngineeringWorkspace {
     } catch {
       reachable = false;
     }
-    const registry = ToolRegistry.getInstance();
-    for (const id of [
-      "project.copy",
-      "project.list",
-      "project.read",
-      "project.write",
-      "project.delete",
-      "project.validate",
-      "project.diff",
-      "project.apply",
-      "project.git",
-      "project.commit",
-    ]) {
-      registry.updateAvailability(id, reachable);
-    }
     if (!reachable && this.state.phase !== "no-runtime") {
       this.update({ phase: "no-runtime" });
     } else if (reachable && this.state.phase === "no-runtime") {
       this.update({ phase: "not-copied" });
     }
+    if (reachable) {
+      this.knownCopies = await this.listWorkspaces().catch(() => this.knownCopies);
+    }
     return reachable;
+  }
+
+  /**
+   * Kept for the existing callers, and now one line: availability is the
+   * registry's to decide, from the probe above.
+   */
+  public async syncToolAvailability(): Promise<boolean> {
+    const { default: ToolRegistry } = await import("../tools/ToolRegistry");
+    await ToolRegistry.getInstance().refreshAvailability();
+    return this.state.phase !== "no-runtime";
   }
 
   /* ------------------------------ git ------------------------------ */
@@ -598,7 +647,7 @@ export default class EngineeringWorkspace {
     if (state.phase === "no-runtime") {
       return "No engineering runtime is reachable — the project.* tools are unavailable.";
     }
-    if (!state.workspaceId) return "No project copy exists in the engineering sandbox.";
+    if (!state.workspaceId) return describeEarlierCopies(this.knownCopies);
     const parts = [
       `Workspace "${state.workspaceId}" holds a copy of ${state.fileCount} file(s).`,
       `Phase: ${state.phase}.`,

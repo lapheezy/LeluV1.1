@@ -1,0 +1,7 @@
+LÉLU, about your self-development work in run 25 (workspace "default"): your last phone comparison (at 896 s) was taken BEFORE your last edit (EDGE_MARGIN 12 → 48, at 956 s), and your desktop capture after it timed out. So your verdict "not resolved" describes an earlier version of your copy, not the one you have now.
+
+Without changing anything first, please finish the loop on your current copy:
+1) Do not run project_copy — it would replace your changes with the real project.
+2) Validate the copy as it is (project_validate), start its preview (project_preview), and capture the preview at phone and at desktop (panel chat each), comparing each with the app under the same conditions, including the covered-while-opening findings.
+3) If either still shows the problem, find out why, change your copy, validate and compare again — until both are resolved or you have genuinely tried three approaches. Don't stop to ask me.
+4) Show the diff (project_diff) and say plainly, for phone and for desktop, whether the outcome (no control covered, including while the panel opens) is met, based on the evidence.

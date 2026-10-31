@@ -3,6 +3,7 @@ import {
   type ErrorInfo,
   type ReactNode,
 } from "react";
+import { thrownMessage } from "./thrownMessage";
 
 
 interface Props {
@@ -16,9 +17,16 @@ interface Props {
 
 interface State {
 
+  /**
+   * Whether something below threw. Kept apart from the error itself: a
+   * thrown `undefined` left `error` falsy, so the boundary rendered its
+   * children again, which threw again.
+   */
+  failed: boolean;
+
   error:
 
-    Error | null;
+    unknown;
 
 }
 
@@ -29,6 +37,8 @@ export default class GenesisErrorBoundary
 
   state: State = {
 
+    failed: false,
+
     error: null,
 
   };
@@ -37,12 +47,14 @@ export default class GenesisErrorBoundary
 
   static getDerivedStateFromError(
 
-    error: Error,
+    error: unknown,
 
-  ) {
+  ): State {
 
 
     return {
+
+      failed: true,
 
       error,
 
@@ -54,7 +66,7 @@ export default class GenesisErrorBoundary
 
   componentDidCatch(
 
-    error: Error,
+    error: unknown,
 
     info: ErrorInfo,
 
@@ -78,7 +90,7 @@ export default class GenesisErrorBoundary
   render() {
 
 
-    if (this.state.error) {
+    if (this.state.failed) {
 
 
       return (
@@ -103,7 +115,7 @@ export default class GenesisErrorBoundary
 
           <br />
 
-          {this.state.error.message}
+          {thrownMessage(this.state.error)}
 
         </div>
 

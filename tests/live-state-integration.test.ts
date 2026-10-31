@@ -9,7 +9,7 @@
  */
 
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { after } from "node:test";
 
 if (typeof globalThis.window === "undefined") {
   (globalThis as Record<string, unknown>).window = globalThis;
@@ -31,6 +31,20 @@ import AvatarStore from "../src/core/avatar/AvatarProfile";
 import AvatarPresenceBridge from "../src/core/avatar/AvatarPresenceBridge";
 import SelfTestRunner from "../src/core/selfdev/SelfTestRunner";
 import CapabilityRegistry from "../src/core/selfdev/CapabilityRegistry";
+import { stopBackgroundCognition, backgroundCognitionIsQuiet } from "./support/isolation";
+
+/**
+ * This file boots the real AIService, and booting LÉLU starts her
+ * continuous cognition. Leaving it running is not a tidiness problem:
+ * the loop re-arms itself forever, so the file never ends, and every
+ * file queued behind it in `npm test` never starts. Measured: the suite
+ * stopped dead here at 212 assertions with 34 files still to run.
+ */
+after(async () => {
+  const quiet = await stopBackgroundCognition();
+  assert.ok(quiet, "a cognition cycle was still in flight after teardown asked it to stop");
+  assert.ok(backgroundCognitionIsQuiet(), "teardown left a cognition loop scheduled");
+});
 
 /* ------------------------------------------------------------------ *
  * FINDING 1 — avatar presence follows LIVE cognition

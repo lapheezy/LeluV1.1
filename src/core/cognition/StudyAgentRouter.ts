@@ -37,6 +37,7 @@ import SourceAccess, { type SourceOrigin } from "../selfdev/SourceAccess";
 import AutonomyGate from "./AutonomyGate";
 import type { KnowledgeResult } from "../../providers/Provider";
 import type { StudyDomain, StudyObjective } from "./StudyObjectives";
+import { withDeadline } from "../runtime/BackgroundTimer";
 
 export interface Investigation {
   ok: boolean;
@@ -343,12 +344,11 @@ export default class StudyAgentRouter {
 
       attempted.push(provider.name);
       try {
-        const found = await Promise.race([
-          provider.search(query),
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("timeout")), RESEARCH_TIMEOUT_MS),
-          ),
-        ]);
+        // withDeadline, not a bare Promise.race: the race's losing timer
+        // used to stay pending for its full 6s after the provider had
+        // already answered, which is both a pointless timer and — in a
+        // process that wants to exit — a handle holding it open.
+        const found = await withDeadline(provider.search(query), RESEARCH_TIMEOUT_MS, "timeout");
         this.researchCooldowns.delete(provider.name);
         if (Array.isArray(found) && found.length > 0) {
           results = found;

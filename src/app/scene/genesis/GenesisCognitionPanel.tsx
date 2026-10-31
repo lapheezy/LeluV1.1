@@ -41,6 +41,7 @@ import SelfStudy, {
   type SelfStudyWorkingState,
 } from "../../../core/cognition/SelfStudy";
 import ProjectMission, { type MissionState } from "../../../core/cognition/ProjectMission";
+import ProactiveCore from "../../../core/proactive/ProactiveCore";
 
 const labelStyle: CSSProperties = {
   fontSize: 10.5,
@@ -106,6 +107,10 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
   const [queueItems, setQueueItems] = useState<QueueItem[]>(() => queue.list());
   const [envState, setEnvState] = useState<SystemEnvironmentState>(() => environment.get());
   const [autonomyLevel, setAutonomyLevel] = useState<number>(() => gate.getLevel());
+  const proactive = useMemo(() => ProactiveCore.getInstance(), []);
+  const [autonomousExecution, setAutonomousExecution] = useState<boolean>(
+    () => proactive.getSettings().autonomousExecution,
+  );
   const [report, setReport] = useState<CognitiveCycleReport | null>(() => loop.getLastReport());
   const [studyRecord, setStudyRecord] = useState<SelfStudyCycleRecord | null>(() => study.getLastCycle());
   const [studyWorking, setStudyWorking] = useState<SelfStudyWorkingState>(() => study.getWorkingState());
@@ -869,8 +874,38 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
                 })}
               </div>
               <div style={{ marginTop: 10, fontSize: 11, opacity: 0.65, lineHeight: 1.5 }}>
-                The cognitive loop runs at Observe/Suggest (L0–L1) no matter what. The Engineering workspace operates inside
-                the sandbox (L2). Levels above the configured one always land in REVIEW for your approval.
+                The cognitive loop runs at Observe/Suggest (L0–L1) no matter what. Writing to the sandbox is L2; running
+                typecheck, tests and build against it is L3, which is why L3 is the default — below it LÉLU can write code
+                she cannot verify. Levels above the configured one always land in REVIEW for your approval. Applying or
+                committing to the real project is not a level: it needs your explicit authorization every time.
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={labelStyle}>Autonomous execution</div>
+                <button
+                  type="button"
+                  data-lelu-autonomous-execution={autonomousExecution ? "on" : "off"}
+                  onClick={() => {
+                    const next = !autonomousExecution;
+                    proactive.updateSettings({ autonomousExecution: next });
+                    setAutonomousExecution(next);
+                  }}
+                  style={{
+                    ...chipButton,
+                    padding: "5px 12px",
+                    fontSize: 11,
+                    background: autonomousExecution ? "rgba(34, 211, 238, 0.2)" : "rgba(255,255,255,0.03)",
+                  }}
+                >
+                  {autonomousExecution ? "On" : "Off"}
+                </button>
+              </div>
+              <div style={{ marginTop: 8, fontSize: 11, opacity: 0.65, lineHeight: 1.5 }}>
+                {autonomousExecution
+                  ? "A next step LÉLU derives for a project becomes work she actually runs — one objective per project at a time, inside her cycle and action budgets. Turning this off does not stop her thinking: she still derives the step and records it in the work queue for you, she just does not act on it."
+                  : "LÉLU is observing and proposing only. Derived next steps go to the work queue and wait for you."}
               </div>
             </div>
 

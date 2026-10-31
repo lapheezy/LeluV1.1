@@ -22,7 +22,9 @@
  */
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
-import { useGenesisState, type GenesisPanel, type ModuleState } from "./GenesisCore";
+import { chatFillsScreen } from "./chat/chatLayout";
+import { InModuleWindow } from "./moduleWindowContext";
+import { useGenesis, type GenesisPanel, type ModuleState } from "./GenesisCore";
 import { MODULE_CATALOG } from "./GenesisDock";
 
 const STATUS_DOT: Record<string, string> = {
@@ -59,7 +61,7 @@ interface FloatingWindowProps {
  * in GenesisCore — the same actions LÉLU's structured tool calls use.
  */
 function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: FloatingWindowProps) {
-  const { moveModule, resizeModule, raiseModule, minimizeModule, expandModule, setModulePresentation, closeModule } = useGenesisState();
+  const { moveModule, resizeModule, raiseModule, minimizeModule, expandModule, setModulePresentation, closeModule, openPanel } = useGenesis();
   const [viewport, setViewport] = useState(() => ({
     width: typeof window !== "undefined" ? window.visualViewport?.width ?? window.innerWidth : 1280,
     height: typeof window !== "undefined" ? window.visualViewport?.height ?? window.innerHeight : 800,
@@ -95,6 +97,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
      draggable and resizable. Desktop keeps the cascade so two opened
      modules never stack exactly. */
   const isMobile = viewportWidth < 720;
+  /** The phone rule chat and surfaces use (chat/chatLayout): narrow, or a phone on its side. */
+  const compactScreen = chatFillsScreen({ width: viewportWidth, height: viewportHeight });
   const MOBILE_TOP_RESERVE = 16;
   const MOBILE_BOTTOM_RESERVE = 96; // composer + safe-area + the floating LÉLU menu
   const defaultPosition = isMobile
@@ -241,6 +245,23 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
         title={`status: ${mod.status}`}
         style={{ width: 6, height: 6, borderRadius: 999, background: STATUS_DOT[mod.status] ?? "#64748b", boxShadow: `0 0 6px ${STATUS_DOT[mod.status] ?? "#64748b"}` }}
       />
+      {compactScreen ? (
+        // On a phone a module is the whole screen; the chat waits underneath
+        // and this brings it back in one tap. The module keeps running
+        // (minimized) and the LÉLU menu reopens it.
+        <button
+          type="button"
+          title="Back to the chat — this keeps running"
+          aria-label="Back to chat"
+          onClick={() => {
+            minimizeModule(id);
+            openPanel("chat");
+          }}
+          style={{ ...controlButton, width: "auto", padding: "0 10px", gap: 5, color: "#e9d5ff", borderColor: "rgba(216,180,254,0.45)" }}
+        >
+          <span aria-hidden>◎</span> Chat
+        </button>
+      ) : null}
       <button type="button" title="Minimize — keeps running" aria-label={`Minimize ${label}`} onClick={() => minimizeModule(id)} style={controlButton}>—</button>
       <button type="button" title={isExpanded ? "Restore window" : "Expand"} aria-label={isExpanded ? "Restore" : "Expand"} onClick={() => (isExpanded ? setModulePresentation(id, "inline") : expandModule(id))} style={controlButton}>{isExpanded ? "⊡" : "⤢"}</button>
       <button type="button" title="Close" aria-label={`Close ${label}`} onClick={() => closeModule(id)} style={controlButton}>✕</button>
@@ -281,7 +302,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
           {chrome}
           <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex" }}>
             <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              {render({ onClose: () => closeModule(id) })}
+              <InModuleWindow.Provider value={true}>{render({ onClose: () => closeModule(id) })}</InModuleWindow.Provider>
             </div>
           </div>
         </div>
@@ -316,7 +337,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
     >
       {chrome}
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden" }}>
-        {render({ onClose: () => closeModule(id) })}
+        <InModuleWindow.Provider value={true}>{render({ onClose: () => closeModule(id) })}</InModuleWindow.Provider>
       </div>
       {/* Resize handle — bottom-right corner */}
       <div
@@ -342,7 +363,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
 }
 
 export default function GenesisModuleHost({ renderers }: { renderers: ModuleRenderers }) {
-  const { state, expandModule } = useGenesisState();
+  const { state, expandModule } = useGenesis();
 
   if (state.minimized) return null;
 

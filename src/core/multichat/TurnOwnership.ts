@@ -1,0 +1,147 @@
+/**
+ * ==========================================================
+ * LÉLU — WHICH CONVERSATION OWNS A REPLY
+ *
+ * A reply belongs to the conversation it was ASKED IN, not to
+ * whichever tab happens to be selected when it arrives.
+ *
+ * Measured in a real browser: send a message in chat A, open
+ * chat B before the reply lands, and A's reply was written into
+ * B. A then held the question with no answer, B held an answer
+ * to a question it never asked, and the reply the user was
+ * waiting for appeared under the wrong heading. The user's own
+ * message was routed correctly the whole time — it is written
+ * synchronously, while the right conversation is still active.
+ * Only the reply, which comes back seconds later, went astray.
+ *
+ * The reply arrives through a single global subscription
+ * (GenesisBridge → AIService.subscribeMessages/subscribeStream)
+ * that carries no conversation of its own, so the routing has
+ * to be remembered here. A conversation CLAIMS the turn when it
+ * sends; the first chunk of a reply records the claim against
+ * its own message id; and every later chunk of that same
+ * message follows the recorded id — so a reply still streaming
+ * when the user starts a new turn elsewhere continues to land
+ * where it was asked, rather than following the claim.
+ *
+ * With no claim active there is no owner, and the caller falls
+ * back to the active conversation. That is the right answer for
+ * a message LÉLU raises on her own — a proactive suggestion
+ * belongs in the conversation the user is actually looking at.
+ * ==========================================================
+ */
+
+/**
+ * Enough streamed replies to cover any plausible overlap, bounded so a long
+ * session cannot grow this without limit. Oldest entries are dropped first;
+ * a dropped entry falls back to the active conversation, which is the same
+ * behaviour as before this module existed.
+ */
+const MAX_TRACKED_MESSAGES = 200;
+
+let claim: string | null = null;
+const ownerByMessage = new Map<string, string>();
+
+/** This conversation is sending. Replies to this turn belong to it. */
+export function claimTurn(conversationId: string): void {
+  if (!conversationId) return;
+  claim = conversationId;
+}
+
+/**
+ * This conversation's turn is over.
+ *
+ * Scoped to the claimant so a turn that finishes late cannot release
+ * another conversation's claim: with two sends overlapping, the second
+ * holds the claim and the first finishing must not clear it.
+ */
+export function releaseTurn(conversationId: string): void {
+  if (claim === conversationId) claim = null;
+}
+
+/** The conversation currently sending, if any. */
+export function currentTurnOwner(): string | null {
+  return claim;
+}
+
+/**
+ * Which conversation this reply belongs to, or null if nothing claimed it.
+ *
+ * The first call for a message id binds it to the current claim; later
+ * calls for the same id return that same conversation whatever the claim
+ * has become since.
+ */
+export function ownerForMessage(messageId: string): string | null {
+  if (!messageId) return claim;
+  const known = ownerByMessage.get(messageId);
+  if (known) return known;
+  if (!claim) return null;
+  ownerByMessage.set(messageId, claim);
+  if (ownerByMessage.size > MAX_TRACKED_MESSAGES) {
+    const oldest = ownerByMessage.keys().next();
+    if (!oldest.done) ownerByMessage.delete(oldest.value);
+  }
+  return claim;
+}
+
+/**
+ * Pre-register a message id to a conversation BEFORE any async work
+ * starts. This eliminates the attribution race: without pre-binding,
+ * a second conversation's claimTurn() can overwrite the first's before
+ * the first stream token arrives, causing that token to bind to the
+ * wrong conversation.
+ *
+ * Called by AIService.chat() immediately after creating the streamId,
+ * while the conversationId is still unambiguous — before the network
+ * call or any await that could allow a concurrent turn to run.
+ */
+export function bindMessage(messageId: string, conversationId: string): void {
+  if (!messageId || !conversationId) return;
+  ownerByMessage.set(messageId, conversationId);
+  if (ownerByMessage.size > MAX_TRACKED_MESSAGES) {
+    const oldest = ownerByMessage.keys().next();
+    if (!oldest.done) ownerByMessage.delete(oldest.value);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * WHICH CONVERSATION OWNS A TASK
+ *
+ * Tool, browser and research events travel on the AgentEventBus with a
+ * taskId and nothing else. Without this map the chat could only show
+ * them to whoever was looking — a search run for chat A rendered inside
+ * chat B. AIService.chat() and the Orchestrator bind each turn's taskId
+ * to its conversation before any work starts, so every event of that
+ * turn can be routed to the conversation that asked for it.
+ * ------------------------------------------------------------------ */
+
+const MAX_TRACKED_TASKS = 500;
+const ownerByTask = new Map<string, string>();
+
+/** Every event carrying this taskId belongs to this conversation. */
+export function bindTask(taskId: string, conversationId: string): void {
+  if (!taskId || !conversationId) return;
+  ownerByTask.delete(taskId);
+  ownerByTask.set(taskId, conversationId);
+  if (ownerByTask.size > MAX_TRACKED_TASKS) {
+    const oldest = ownerByTask.keys().next();
+    if (!oldest.done) ownerByTask.delete(oldest.value);
+  }
+}
+
+/**
+ * The conversation a task belongs to, or null for work no conversation
+ * asked for (cognition's own cycles, background agents). Null is never
+ * "the active one": unowned work is not shown inside a chat.
+ */
+export function ownerForTask(taskId: string | undefined): string | null {
+  if (!taskId) return null;
+  return ownerByTask.get(taskId) ?? null;
+}
+
+/** Test seam: forget every claim and binding. */
+export function resetTurnOwnership(): void {
+  claim = null;
+  ownerByMessage.clear();
+  ownerByTask.clear();
+}

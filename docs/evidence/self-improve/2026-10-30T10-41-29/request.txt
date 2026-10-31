@@ -1,0 +1,10 @@
+LÉLU, a review of your self-development change on workspace "default" (reconsider every 500 ms, EDGE_MARGIN 100, default spot top-left).
+
+Your verdict was right: an independent check confirmed that with your copy the companion covers no control while the chat opens, on 8 screen sizes, where the app covers the phone header for 1–2 s. Well done.
+
+Review finding before it can be applied: EDGE_MARGIN is not only the distance used when she picks her own spot — it also clamps every position, including where the user drags her (figureRect). At 100, on a 390 px phone her left edge can only be between 100 and 180 px (before: 12 to 268): dragged to either side she snaps 100 px back in, and she always stands over the middle of the chat.
+
+Please refine your change on the same copy so that the outcome stays met AND the user can still place her near the screen edges:
+1) Do not run project_copy. Find where the margin is used, decide the approach yourself, change the copy, validate it (project_validate).
+2) Start the preview; capture the app and the preview at phone and desktop (panel chat each), app first, and compare.
+3) Show the diff (project_diff) and say plainly, for phone and for desktop, whether no control is covered (including while the panel opens), and how close to the edge she can now be placed.

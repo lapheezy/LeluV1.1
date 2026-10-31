@@ -40,6 +40,10 @@
  *                                  server's key appended. The upstream
  *                                  status and body are returned
  *                                  verbatim.
+ *   POST /api/knowledge/relay    → the same, with a JSON body, for a
+ *                                  provider marked allowPost (Meshy,
+ *                                  whose key goes as a Bearer header).
+ *                                  Same-origin only; body capped.
  *
  * SAFETY
  * ------
@@ -77,8 +81,17 @@ interface UpstreamKnowledgeProvider {
   pathPrefix: string;
   keyVars: string[];
   /** Query parameter the upstream expects the credential in. */
-  queryParam: string;
+  queryParam?: string;
+  /** Send the credential as `Authorization: Bearer …` instead. */
+  bearer?: true;
+  /** Env var that may point the provider at another base URL. */
+  originVar?: string;
+  /** Also relay POST (JSON body, bounded, same-origin only). */
+  allowPost?: true;
 }
+
+/** Largest POST body relayed — an image-to-3D request carries the image as a data URI. */
+const MAX_POST_BYTES = 20 * 1024 * 1024;
 
 const KNOWLEDGE_PROVIDERS: Record<string, UpstreamKnowledgeProvider> = {
   news: {
@@ -93,7 +106,51 @@ const KNOWLEDGE_PROVIDERS: Record<string, UpstreamKnowledgeProvider> = {
     keyVars: ["YOUTUBE_API_KEY", "VITE_YOUTUBE_API_KEY"],
     queryParam: "key",
   },
+  // Meshy is a PAID API (image → 3-D avatar). Its key was read in the
+  // browser from VITE_MESHY_API_KEY, so any build made with it set
+  // shipped a spendable credential to every visitor (verify-bundle-
+  // secrets reported it "SHIPPED in 1 file"). It now stays here.
+  meshy: {
+    origin: "https://api.meshy.ai",
+    originVar: "MESHY_API_URL",
+    pathPrefix: "/openapi/v1/image-to-3d",
+    keyVars: ["MESHY_API_KEY", "VITE_MESHY_API_KEY"],
+    bearer: true,
+    allowPost: true,
+  },
 };
+
+/** A POST from another site must not spend this server's paid credential. */
+function isCrossOrigin(req: ConnectLikeReq): boolean {
+  const headers = req.headers ?? {};
+  const origin = typeof headers.origin === "string" ? headers.origin : "";
+  const host = typeof headers.host === "string" ? headers.host : "";
+  if (!origin || !host) return false;
+  try {
+    return new URL(origin).host !== host;
+  } catch {
+    return true;
+  }
+}
+
+function readBody(req: ConnectLikeReq, limit: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks: string[] = [];
+    const decoder = new TextDecoder();
+    req.on("data", (chunk) => {
+      const text = typeof chunk === "string" ? chunk : decoder.decode(chunk as Uint8Array, { stream: true });
+      size += text.length;
+      if (size > limit) {
+        reject(new Error(`Request body exceeds ${limit} bytes.`));
+        return;
+      }
+      chunks.push(text);
+    });
+    req.on("end", () => resolve(chunks.join("")));
+    req.on("error", (error) => reject(error instanceof Error ? error : new Error(String(error))));
+  });
+}
 
 /** Non-secret headers a provider may ask the relay to pass upstream. */
 const TIMEOUT_MS = 60_000;
@@ -212,7 +269,8 @@ export function createAiProxyApi(env: EnvReader): {
       // discipline; only the credential's position differs (a query
       // parameter rather than a bearer header).
       middlewares.use("/api/knowledge/relay", (req, res, next) => {
-        if ((req.method ?? "GET") !== "GET") {
+        const method = (req.method ?? "GET").toUpperCase();
+        if (method !== "GET" && method !== "POST") {
           next();
           return;
         }
@@ -225,11 +283,24 @@ export function createAiProxyApi(env: EnvReader): {
             sendJson(res, { ok: false, error: `Unknown knowledge provider "${id}".` }, 400);
             return;
           }
+          if (method === "POST" && !entry.allowPost) {
+            sendJson(res, { ok: false, error: `POST is not relayed for provider "${id}".` }, 405);
+            return;
+          }
+          if (method === "POST" && isCrossOrigin(req)) {
+            sendJson(res, { ok: false, error: "Cross-origin requests may not use this server's credentials." }, 403);
+            return;
+          }
 
           // The client sends the upstream path AND its query string as one
           // encoded value; the credential is added here and only here.
           const rawPath = query.get("path") ?? "";
-          if (!rawPath.startsWith(entry.pathPrefix) || rawPath.includes("..")) {
+          // A prefix without a trailing slash is a whole segment:
+          // "/openapi/v1/image-to-3d" admits "/…/image-to-3d/<id>", not
+          // "/…/image-to-3d-anything-else".
+          const after = rawPath.charAt(entry.pathPrefix.length);
+          const segmentEnds = entry.pathPrefix.endsWith("/") || after === "" || after === "/" || after === "?";
+          if (!rawPath.startsWith(entry.pathPrefix) || !segmentEnds || rawPath.includes("..")) {
             sendJson(res, { ok: false, error: `Path is not permitted for provider "${id}".` }, 400);
             return;
           }
@@ -241,13 +312,26 @@ export function createAiProxyApi(env: EnvReader): {
           }
 
           try {
-            const target = new URL(`${entry.origin}${rawPath}`);
-            // A caller-supplied credential parameter is overwritten, never
-            // honoured — the server's key is the only one that goes out.
-            target.searchParams.set(entry.queryParam, key);
+            const origin = ((entry.originVar && env(entry.originVar)?.trim()) || entry.origin).replace(/\/+$/, "");
+            const target = new URL(`${origin}${rawPath}`);
+            const headers: Record<string, string> = { Accept: "application/json" };
+            // A caller-supplied credential is overwritten, never honoured —
+            // the server's key is the only one that goes out.
+            if (entry.bearer) {
+              target.searchParams.delete("key");
+              headers.Authorization = `Bearer ${key}`;
+            } else if (entry.queryParam) {
+              target.searchParams.set(entry.queryParam, key);
+            }
+            let body: string | undefined;
+            if (method === "POST") {
+              body = await readBody(req, MAX_POST_BYTES);
+              headers["Content-Type"] = "application/json";
+            }
             const upstream = await fetch(target.toString(), {
-              method: "GET",
-              headers: { Accept: "application/json" },
+              method,
+              headers,
+              ...(body !== undefined ? { body } : {}),
               signal: AbortSignal.timeout(TIMEOUT_MS),
             });
             await pipeUpstream(res, upstream);
@@ -255,7 +339,7 @@ export function createAiProxyApi(env: EnvReader): {
             sendJson(
               res,
               { ok: false, error: error instanceof Error ? error.message : String(error) },
-              502,
+              error instanceof Error && error.message.startsWith("Request body exceeds") ? 413 : 502,
             );
           }
         })();

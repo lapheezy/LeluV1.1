@@ -1,0 +1,5 @@
+All set! The browser artifact is now titled **“Example Domain — reviewed,”** and I’ve added the note:
+
+*Checked with LÉLU — one heading, one paragraph, one link.*
+
+Let me know what you’d like to do next with this page.

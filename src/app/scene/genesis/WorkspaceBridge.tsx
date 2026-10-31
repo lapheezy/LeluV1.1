@@ -56,6 +56,13 @@ type ActiveTaskKind =
   | "project"
   | "cosmos";
 
+/** A short stable tag, so two captures in one turn are two artifacts. */
+function hashOf(text: string): string {
+  let hash = 0;
+  for (let i = 0; i < text.length; i += 97) hash = (hash * 31 + text.charCodeAt(i)) | 0;
+  return (hash >>> 0).toString(36).slice(0, 6);
+}
+
 export default function WorkspaceBridge() {
   const engineRef = useRef(WorkspaceEngine.getInstance());
   const activeTaskRef = useRef<ActiveTaskKind>("idle");
@@ -330,14 +337,49 @@ export default function WorkspaceBridge() {
           break;
         }
         case "creative_artifact": {
+          if (event.source) {
+            // A capture: the real screenshot, titled by what it shows, with
+            // the page's own text so LÉLU can work with it afterwards.
+            const id = `view-capture-${event.taskId}-${hashOf(event.image)}`;
+            engine.openView({
+              id,
+              kind: "image",
+              title: event.label.replace(/^Looking at /, "") || "Capture",
+              url: event.image,
+              text: event.text,
+              source: { tool: "capture", url: event.source, taskId: event.taskId },
+            });
+            engine.focusView(id);
+            break;
+          }
           // Real render artifact from the creative pipeline.
           showCreativeArtifact(event.taskId, event.image);
           break;
         }
         case "browser_opened": {
           if ("url" in event && event.url) {
-            engine.showBrowser("Browser", event.url, `view-browser-${event.taskId}`, false);
+            engine.openView({
+              id: `view-browser-${event.taskId}`,
+              kind: "browser",
+              title: "Browser",
+              url: event.url,
+              source: { tool: "browser", url: event.url, taskId: event.taskId },
+            });
             engine.focusView(`view-browser-${event.taskId}`);
+          }
+          break;
+        }
+        case "browser_result": {
+          // The page that was read becomes the artifact's content.
+          if (event.status === "read") {
+            engine.openView({
+              id: `view-browser-${event.taskId}`,
+              kind: "browser",
+              title: event.title || event.url,
+              url: event.url,
+              text: event.excerpt,
+              source: { tool: "browser", url: event.url, taskId: event.taskId },
+            });
           }
           break;
         }

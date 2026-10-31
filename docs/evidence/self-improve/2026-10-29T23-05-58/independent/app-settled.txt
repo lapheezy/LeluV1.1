@@ -1,0 +1,13 @@
+   covered button[Minimize Genesis] [116,16,34,34] 
+   covered button "⌘KCommand Palette" [158,18,174,30] 
+   covered button[Enter fullscreen] [340,16,34,34] 
+   partly-off-screen button "Appearance" [299,213,95,34] 
+   off-screen button "Identity" [400,213,68,34] 
+   partly-off-screen button "Presence" [299,253,79,34] 
+   off-screen button "Saved" [438,313,72,34] 
+   partly-off-screen textarea "Refined, sophisticated features; dark ex" [314,414,94,51] 
+   partly-off-screen textarea "Deep, rich dark skin with warm candlelit" [314,510,94,51] 
+   partly-off-screen textarea "Ornate gold: large ankh hoop earrings, m" [314,606,94,51] 
+   partly-off-screen textarea "Dimly lit antique room: dark wood, Egypt" [314,703,94,51] 
+   partly-off-screen textarea "Calm, knowing, quietly powerful; warm mi" [314,799,94,51] 
+   sideways-overflow div "LÉLU · EmbodimentAvatar · persistent ide" [17,143,356,599] content 518px wide in a 356px box

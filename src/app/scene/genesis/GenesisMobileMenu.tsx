@@ -18,6 +18,8 @@
  */
 
 import { useNavigate } from "react-router-dom";
+import CompanionToggle from "./avatar/CompanionToggle";
+import { within } from "../../../core/ui/Layers";
 
 /** A thematic group maps real dock/module ids to a LÉLU label. */
 interface MobileMenuEntry {
@@ -187,7 +189,12 @@ export default function GenesisMobileMenu({
         left: 8,
         right: 8,
         bottom: "calc(env(safe-area-inset-bottom, 0px) + 64px)",
-        zIndex: 27,
+        // ABOVE its own backdrop (GenesisDock: within("navigation", 1)).
+        // The layer migration put the sheet at navigation+0 under a
+        // full-screen backdrop at +1, so every tap on a menu item hit the
+        // backdrop — which closes the menu — and a swipe could not scroll
+        // the sheet. Measured with elementsFromPoint on a phone viewport.
+        zIndex: within("navigation", 2),
         pointerEvents: "auto",
         borderRadius: 24,
         background: "linear-gradient(150deg, rgba(15,23,46,0.98) 0%, rgba(30,41,59,0.94) 55%, rgba(2,8,23,0.98) 100%)",
@@ -252,6 +259,10 @@ export default function GenesisMobileMenu({
 
       <div style={{ fontSize: 10.5, color: "rgba(148,163,184,0.9)", padding: "0 6px 4px", letterSpacing: "0.04em" }}>
         {online ? "live · one runtime" : "booting · one runtime"} — every item is a tool of the chat
+      </div>
+
+      <div style={{ padding: "2px 2px 6px" }}>
+        <CompanionToggle />
       </div>
 
       {/* grouped sections */}

@@ -155,6 +155,22 @@ export default class ToolRegistry {
     if (!tool.available) {
       return { ok: false, detail: `"${tool.name}" is registered but not currently available.` };
     }
+    // ONE AUTHORITY. ToolDispatcher's executors are what a model's tool
+    // call runs; this used to be a second, smaller table, so the same
+    // tool could execute through one path and be "not wired" through the
+    // other (sandbox.execute, every github.* and project.* tool). Any tool
+    // with an executor runs through it here too — with its permission and
+    // authorization checks — and the table below only covers tools the
+    // dispatcher has no executor for. Dynamic import: ToolDispatcher
+    // imports this module.
+    const dispatcher = await import("./ToolDispatcher");
+    if (dispatcher.executableToolIds().includes(toolId)) {
+      const result = await dispatcher.dispatchToolCall(
+        { id: `registry-${toolId}-${Date.now().toString(36)}`, name: dispatcher.toolNameForModel(toolId), arguments: params },
+        `registry-${toolId}`,
+      );
+      return { ok: result.ok, output: result.data ?? result.content, detail: result.content };
+    }
     const handler = ToolRegistry.DISPATCH[toolId];
     if (!handler) {
       return {
@@ -249,13 +265,85 @@ export default class ToolRegistry {
    * repeatedly (Bootstrap calls it once at startup; anything can call
    * it again after a state change, e.g. the autonomy level changing).
    */
+  private refreshing: Promise<void> | null = null;
+  private refreshedAt = 0;
+
+  /**
+   * Availability that has actually been determined — refreshed when it is
+   * older than `maxAgeMs` or was never computed, one refresh at a time.
+   *
+   * The catalog starts with the engineering tools marked unavailable until
+   * the runtime probe answers, and that answer arrived ~22 s after page
+   * load (measured). A turn in that window was routed as if LÉLU had no
+   * project tools: keyword resolvers took it and the model never saw it.
+   */
+  async ensureAvailability(maxAgeMs = 60_000): Promise<void> {
+    if (this.refreshedAt && Date.now() - this.refreshedAt < maxAgeMs) return;
+    if (!this.refreshing) {
+      this.refreshing = this.refreshAvailability().finally(() => {
+        this.refreshing = null;
+      });
+    }
+    return this.refreshing;
+  }
+
   async refreshAvailability(): Promise<void> {
+    try {
+      await this.computeAvailability();
+    } finally {
+      this.refreshedAt = Date.now();
+    }
+  }
+
+  private async computeAvailability(): Promise<void> {
     // Engineering workspace ops: real autonomy-gate check, the exact
     // same one WorkspaceRuntime itself enforces before running anything —
     // this can never say "available" when the real run would be blocked.
+    // ONE PROBE OF THE DEVELOPMENT RUNTIME, used for everything below
+    // that depends on it.
+    //
+    // Those facts used to have two owners: this method set workspace.*
+    // from the autonomy gate alone, and EngineeringWorkspace separately
+    // set project.* from its own probe. So workspace.test could be
+    // offered at L3 with no runtime to run it on, and project.read's
+    // answer depended on which of the two had run last. This is the
+    // single writer now; EngineeringWorkspace answers and writes nothing.
+    let runtimeReachable = false;
+    try {
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      runtimeReachable = await EngineeringWorkspace.getInstance().runtimeReachable();
+    } catch {
+      // Unreachable means unavailable, never "assume yes".
+      runtimeReachable = false;
+    }
+
+    // Workspace commands need BOTH: the same autonomy-gate check
+    // WorkspaceRuntime itself enforces, AND a runtime to run on. Either
+    // missing means the command cannot execute, and a tool that cannot
+    // execute must not be offered.
     const workspace = WorkspaceRuntime.getInstance();
     for (const op of ["typecheck", "test", "build"] as const) {
-      this.updateAvailability(`workspace.${op}`, workspace.allowed(op));
+      this.updateAvailability(`workspace.${op}`, workspace.allowed(op) && runtimeReachable);
+    }
+
+    // The project.* tools only work where that runtime serves
+    // /api/engineer. Authorization is a separate, later question:
+    // toolPermitted() still requires a human grant for project.apply and
+    // project.commit, and the dispatcher re-checks before writing.
+    for (const id of [
+      "project.copy",
+      "project.list",
+      "project.read",
+      "project.write",
+      "project.edit",
+      "project.delete",
+      "project.validate",
+      "project.diff",
+      "project.apply",
+      "project.git",
+      "project.commit",
+    ]) {
+      this.updateAvailability(id, runtimeReachable);
     }
 
     // GitHub: one real probe (network/config), shared by every github.*
@@ -351,6 +439,101 @@ export default class ToolRegistry {
         available: true,
         provider: "research",
         executionRoute: "ResearchResolver",
+      },
+      {
+        id: "browser.read",
+        name: "Read Web Page",
+        description: "Open a web page and read its title and text (through LÉLU's server-side reader)",
+        category: "Research",
+        permissions: ["READ", "EXTERNAL_ACTION"],
+        riskLevel: 1,
+        available: true,
+        provider: "browser",
+        executionRoute: "BrowserTool.visit",
+      },
+
+      // Other chats — what LÉLU may do is decided by the user's words
+      // (multichat/ChatConsent), not by this permission alone.
+      {
+        id: "avatar.companion",
+        name: "Companion Mode",
+        description: "Show or hide yourself as the companion figure over the app, or change your size",
+        category: "Creative",
+        permissions: ["WRITE"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "CompanionStore",
+      },
+      {
+        id: "artifact.read",
+        name: "Read Workspace Artifact",
+        description: "Read an artifact in the workspace (the one the user selected by default): a capture, a page, a note, a diagram or a table",
+        category: "Workspace",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "WorkspaceEngine.getState",
+      },
+      {
+        id: "artifact.edit",
+        name: "Edit Workspace Artifact",
+        description: "Change an artifact in the workspace — its title, text or notes, diagram nodes and connections, table rows — and show the new revision",
+        category: "Workspace",
+        permissions: ["WRITE"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "WorkspaceEngine.updateView",
+        verificationMethod: "the view's revision increases and the changed content is returned",
+      },
+      {
+        id: "artifact.create",
+        name: "Create Workspace Artifact",
+        description: "Make a note, diagram or table in the workspace, beside the conversation",
+        category: "Workspace",
+        permissions: ["WRITE"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "WorkspaceEngine.openView",
+      },
+      {
+        id: "chats.list",
+        name: "List Other Chats",
+        description: "See the titles of the user's other chats (never their contents)",
+        category: "Memory",
+        permissions: ["READ"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "MultiChatStore.list",
+      },
+      {
+        id: "chats.read",
+        name: "Read Another Chat",
+        description: "Read another chat's relevant messages — only when linked, or the user brought it up or agreed",
+        category: "Memory",
+        permissions: ["READ"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "MultiChatStore.get",
+      },
+      {
+        id: "chats.link",
+        name: "Link Another Chat",
+        description: "Link another chat to this one so its research can be used — when the user asks or agrees",
+        category: "Memory",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "MultiChatStore.link",
+      },
+      {
+        id: "chats.merge",
+        name: "Merge Chats",
+        description: "Create a new chat merging two or more chats (originals unchanged) — when the user asks or agrees",
+        category: "Memory",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "MultiChatStore.merge",
       },
 
       // Providers
@@ -452,12 +635,62 @@ export default class ToolRegistry {
       {
         id: "agent.delegate",
         name: "Delegate to Agent",
-        description: "Assign a task to a specialist agent",
+        description: "Hand an objective to SHAMAN: it routes it to the right executive and agent, runs it, and returns the result",
         category: "Agents",
         permissions: ["EXECUTE"],
         riskLevel: 1,
         available: true,
-        executionRoute: "AIService.delegate",
+        executionRoute: "Shaman.dispatch → AgentRunner.run",
+      },
+      {
+        id: "browser.capture",
+        name: "See a Page or Your Own Interface",
+        description: "Render a page in a real headless browser — a public site, your own running app (phone or desktop, optionally a panel), or a workspace preview — and get a screenshot plus a layout report of off-screen and covered controls",
+        category: "Engineering",
+        permissions: ["READ"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "POST /api/browser/capture (plugins/selfViewApi.ts)",
+      },
+      {
+        id: "project.search",
+        name: "Search Code",
+        description: "Find text in the project or a workspace copy (read-only)",
+        category: "Engineering",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "POST /api/engineer/search",
+      },
+      {
+        id: "project.preview",
+        name: "Preview a Workspace",
+        description: "Run a workspace copy as a live app (loopback), so its changed interface can be captured before anything reaches the real project",
+        category: "Engineering",
+        permissions: ["EXECUTE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "POST /api/engineer/preview",
+      },
+      {
+        id: "agent.status",
+        name: "Agent Work Status",
+        description: "See delegated work across agents: who owns it, which executive, why it was routed there, and its status",
+        category: "Agents",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "AgentStore.delegations",
+      },
+      {
+        id: "agent.resume",
+        name: "Resume Agent Work",
+        description: "Continue an interrupted or failed agent task (re-routed within its executive if its agent is unavailable)",
+        category: "Agents",
+        permissions: ["EXECUTE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "Shaman.resume → AgentRunner.resume",
       },
 
       // Projects
@@ -554,7 +787,7 @@ export default class ToolRegistry {
       {
         id: "github.files",
         name: "GitHub Files",
-        description: "Read and write files in GitHub repositories via server proxy",
+        description: "Read files and directories in a GitHub repository at any branch or commit, via the server proxy",
         category: "GitHub",
         permissions: ["READ", "WRITE"],
         riskLevel: 1,
@@ -574,7 +807,7 @@ export default class ToolRegistry {
       {
         id: "github.commits",
         name: "GitHub Commits",
-        description: "Create commits in GitHub repositories",
+        description: "List and read commits, and commit a file to a working (non-default) branch — confirmed by reading the commit back from GitHub",
         category: "GitHub",
         permissions: ["WRITE"],
         riskLevel: 2,
@@ -616,7 +849,7 @@ export default class ToolRegistry {
       {
         id: "sandbox.execute",
         name: "Sandbox Execute",
-        description: "Execute code in the sandbox runtime",
+        description: "Run a sandbox JavaScript file, the sandbox tests, or a syntax check in an isolated worker with a hard timeout; returns the real exit code and output",
         category: "Engineering",
         permissions: ["EXECUTE"],
         riskLevel: 2,
@@ -712,6 +945,18 @@ export default class ToolRegistry {
         riskLevel: 0,
         available: false,
         executionRoute: "EngineeringWorkspace.readFile",
+      },
+      {
+        id: "project.edit",
+        name: "Edit Project File",
+        description:
+          "Change part of a file inside the sandbox copy: replace one exact snippet with new text. " +
+          "Cheaper and safer than rewriting the whole file. This never touches the real project.",
+        category: "Engineering",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: false,
+        executionRoute: "EngineeringWorkspace.readFile + writeFile",
       },
       {
         id: "project.write",

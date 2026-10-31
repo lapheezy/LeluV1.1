@@ -56,6 +56,30 @@ export interface AuthorizationDecision {
 export default class EngineeringAuthorization {
   private static instance: EngineeringAuthorization | null = null;
 
+  /**
+   * Grants live for the RUNTIME, deliberately, and are not persisted.
+   *
+   * This was examined as part of the authorization audit and left as it
+   * is, which is a decision rather than an omission.
+   *
+   * A grant is a person saying "yes, write that to my real project, now".
+   * Persisting it would mean a reload — or a tab restored days later, or
+   * a device that is no longer the one the person was sitting at — came
+   * back holding authority nobody had just given. That is strictly
+   * broader than what was granted, and the failure mode is silent: the
+   * work proceeds and looks authorized.
+   *
+   * The cost of NOT persisting is that a long autonomous task spanning a
+   * reload has to ask again. That is the right way round: asking twice
+   * is an inconvenience, while writing to someone's repository on a
+   * grant they have forgotten giving is not.
+   *
+   * If this ever does need to survive a reload, the shape is already
+   * implied by ApplyGrant — scoped to a workspace and a path set, tied
+   * to the signed-in identity from identity() above, and it would need
+   * an explicit expiry and a revocation path. It must not become "the
+   * Map, serialised".
+   */
   private grants = new Map<string, ApplyGrant>();
 
   private constructor() {}

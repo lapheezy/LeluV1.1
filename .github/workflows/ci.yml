@@ -5,7 +5,8 @@
 # claiming "fixed"/"verified" without this actually passing:
 #   - strict TypeScript across both project references (tsc -b)
 #   - lint (oxlint)
-#   - unit tests (bun test)
+#   - unit tests (`bun run test` = package.json's `test`: tsx, one file
+#     at a time, live end-to-end file excluded — the same suite developers run)
 #   - every scripts/verify-*.ts script — the real, evidence-based
 #     runtime checks this project's audits are built on (cognition,
 #     memory recall, provider fallback, init-race safety, UI action
@@ -45,8 +46,14 @@ jobs:
       - name: Typecheck + build (tsc -b && vite build)
         run: bun run build
 
+      - name: Production bundle contains no test files
+        run: node scripts/verify-no-tests-in-bundle.mjs dist
+
+      # Not bare `bun test`: that runs every file in one process (shared
+      # singletons interleave → spurious failures) and includes the live
+      # autonomy-end-to-end file, which needs a real model.
       - name: Unit tests
-        run: bun test
+        run: bun run test
 
       # verify-voice.ts is no longer quarantined: its failures were
       # deterministic test interleaving (unawaited async checks racing
@@ -57,6 +64,12 @@ jobs:
           set -e
           status=0
           for f in scripts/verify-*.ts; do
+            # Writes a real branch and commit to GitHub; opt-in only
+            # (LELU_VERIFY_GITHUB_WRITE=1), and refuses with exit 2 otherwise.
+            if [ "$f" = "scripts/verify-github-bridge.ts" ]; then
+              echo "::notice file=$f::skipped — writes to GitHub, run by hand with LELU_VERIFY_GITHUB_WRITE=1"
+              continue
+            fi
             echo "::group::$f"
             if ! bun run "$f"; then
               echo "::error file=$f::verify script failed"

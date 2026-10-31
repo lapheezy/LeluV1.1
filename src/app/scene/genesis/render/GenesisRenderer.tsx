@@ -25,12 +25,27 @@ import CoreToPlanet from "./CoreToPlanet";
 
 import { TestPlanet } from "./DebugPlanet";
 
-import { useGenesis } from "../GenesisCore";
+import { useGenesisScene } from "../useGenesisScene";
 
 export default function GenesisRenderer() {
   const root = useRef<Group>(null);
   const coreGroupRef = useRef<Group>(null);
-  const { engineRuntime } = useGenesis();
+  // The SCENE context, which never changes identity.
+  //
+  // This read `engineRuntime` from useGenesis(), whose value is rebuilt
+  // whenever any part of the monolithic Genesis state changes — so the
+  // component compositing the whole 3D world re-rendered, and with it
+  // StarField, Cosmos, AuroraCosmos and CoreAtmosphere beneath it, for
+  // reasons that had nothing to do with the scene. Measured with the
+  // render ledger: 12 re-renders each per message, with EngineTick
+  // already at zero, which is what pointed here.
+  //
+  // NOT destructured, for the same reason EngineTick does not: the
+  // runtime is created in GenesisCore's own effect, which runs AFTER
+  // this component's, so a value captured at render time can be null
+  // for good once nothing re-renders this. The getter is read per
+  // frame instead.
+  const scene = useGenesisScene("GenesisRenderer");
 
   useFrame((_, delta) => {
     if (root.current) {
@@ -41,8 +56,8 @@ export default function GenesisRenderer() {
     // the ONE Core keeps evolving while ANY workspace owns the viewport
     // (this v1 canvas unmounts when Genesis v2 or the LÉLU system opens).
     // The canvas only renders the shared state; it no longer advances it.
-    if (engineRuntime) {
-      engineRuntime.markRendererRead();
+    if (scene.engineRuntime) {
+      scene.engineRuntime.markRendererRead();
     }
   });
 

@@ -40,6 +40,21 @@ import Sentinel from "../sentinel/Sentinel";
 import ProactiveCore, { type ProactiveQuestionInput } from "../proactive/ProactiveCore";
 import AgentEventBus from "../agent/AgentEvents";
 import SelfStudyEngine from "./SelfStudyEngine";
+import CuriosityEngine from "../curiosity/CuriosityEngine";
+import { runDueReflections } from "../identity/DailyReflection";
+import MultiChatStore from "../multichat/MultiChatStore";
+import { hasActiveWorkstream } from "../proactive/Workstream";
+import { backgroundInterval, backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
+import AgentObjectives from "./AgentObjectives";
+import { basePriorityForWork } from "./Prioritization";
+import { outcomesForTools, structuredPlanToolIds } from "./OutcomeDerivation";
+import { executableToolIds } from "../tools/ToolDispatcher";
+import {
+  canAct,
+  intentEvidence,
+  resolveIntent,
+  type IntentInputs,
+} from "./ProjectIntent";
 
 export interface CognitiveCycleReport {
   updatedAt: number;
@@ -89,9 +104,15 @@ const MAX_SUGGESTIONS_PER_CYCLE = 3;
 export default class CognitiveLoop {
   private static instance: CognitiveLoop | null = null;
   private listeners: Listener[] = [];
-  private timer: number | null = null;
-  private bootTimer: number | null = null;
-  private nudgeTimer: number | null = null;
+  // backgroundInterval/backgroundTimeout rather than window.setInterval and
+  // window.setTimeout. The cleanup in stop() below was already complete; what
+  // these change is the other half — that cognition's heartbeat is not, by
+  // itself, a reason for a process to refuse to end. In a browser that makes
+  // no difference (a page has no exit); outside one it is the difference
+  // between a test suite that finishes and one that stalls.
+  private timer: BackgroundTimer | null = null;
+  private bootTimer: BackgroundTimer | null = null;
+  private nudgeTimer: BackgroundTimer | null = null;
   private unsubscribeProjects: (() => void) | null = null;
   private running = false;
   private cycle = 0;
@@ -127,11 +148,11 @@ export default class CognitiveLoop {
     // timeout is TRACKED: an untracked one survives stop(), so a loop
     // the interface has torn down still runs a cycle three seconds
     // later — and StrictMode's mount/unmount/mount leaves an orphan.
-    this.bootTimer = window.setTimeout(() => {
+    this.bootTimer = backgroundTimeout(() => {
       this.bootTimer = null;
       void this.runOnce();
     }, 3000);
-    this.timer = window.setInterval(() => void this.runOnce(), intervalMs);
+    this.timer = backgroundInterval(() => void this.runOnce(), intervalMs);
 
     // Observe state changes, not just the clock.
     //
@@ -146,18 +167,12 @@ export default class CognitiveLoop {
   }
 
   public stop(): void {
-    if (this.timer !== null) {
-      window.clearInterval(this.timer);
-      this.timer = null;
-    }
-    if (this.bootTimer !== null) {
-      window.clearTimeout(this.bootTimer);
-      this.bootTimer = null;
-    }
-    if (this.nudgeTimer !== null) {
-      window.clearTimeout(this.nudgeTimer);
-      this.nudgeTimer = null;
-    }
+    this.timer?.stop();
+    this.timer = null;
+    this.bootTimer?.stop();
+    this.bootTimer = null;
+    this.nudgeTimer?.stop();
+    this.nudgeTimer = null;
     this.unsubscribeProjects?.();
     this.unsubscribeProjects = null;
 
@@ -183,7 +198,7 @@ export default class CognitiveLoop {
     }
     const since = Date.now() - this.lastCycleAt;
     const delay = Math.max(NUDGE_DEBOUNCE_MS, MIN_CYCLE_GAP_MS - since);
-    this.nudgeTimer = window.setTimeout(() => {
+    this.nudgeTimer = backgroundTimeout(() => {
       this.nudgeTimer = null;
       void this.runOnce();
     }, delay);
@@ -229,8 +244,15 @@ export default class CognitiveLoop {
       // nothing downstream of the hang ever runs again. SelfStudyEngine
       // already guards its steps this way; this loop did not.
       let memories = 0;
+      let memoryTexts: string[] = [];
       try {
-        memories = (await withDeadline(ai.getMemories(2000), [])).length;
+        const recalled = await withDeadline(ai.getMemories(2000), []);
+        memories = recalled.length;
+        // Kept as text, not just counted: intent resolution reads these to
+        // work out a project's next step instead of asking the user for it.
+        memoryTexts = recalled
+          .map((memory) => `${memory.prompt ?? ""} ${memory.response ?? ""}`.trim())
+          .filter((text) => text.length > 0);
       } catch {
         // memory may be empty or unavailable — observe as 0
       }
@@ -241,6 +263,7 @@ export default class CognitiveLoop {
       const openItems = allQueue.filter((item) => item.status === "open");
       const doneItems = allQueue.filter((item) => item.status === "done");
       const gaps = knowledge.gaps();
+      const proactiveCore = ProactiveCore.getInstance();
       const sandboxNodes = sandbox.list();
 
       // System environment facts refresh (storage estimate is async).
@@ -337,6 +360,28 @@ export default class CognitiveLoop {
         study.start();
       }
 
+      /* ---------------- CURIOSITY ---------------- */
+      // One bounded curiosity step per cycle: detect from what was
+      // observed, then pursue at most one question through memory, the
+      // permission-gated dispatcher, or Heru. Its own budgets bound it;
+      // the deadline here only guarantees this cycle cannot hang on it.
+      const curiosity = await withDeadline(CuriosityEngine.getInstance().tick(), null);
+      if (curiosity?.pursued) {
+        suggestions.push(`Curiosity: “${curiosity.pursued.question}” → ${curiosity.pursued.status}.`);
+      }
+
+      /* ---------------- DAILY DEVELOPMENT ---------------- */
+      // The daily boundary: each COMPLETED day is reflected exactly once
+      // (DailyRecord → DailyReflection → PersonalityGuard → LeluIdentity).
+      // Pure and cheap — it only does work the first cycle after midnight.
+      try {
+        for (const run of runDueReflections()) {
+          suggestions.push(`Daily reflection ${run.date}: ${run.meaningful ? `${run.traitChanges.length} trait(s) updated${run.staged ? `, ${run.staged} staged` : ""}` : "no meaningful development detected"}.`);
+        }
+      } catch (error) {
+        Sentinel.getInstance().report("system_event", "warning", `Daily reflection failed (contained): ${error instanceof Error ? error.message : String(error)}`, "DailyReflection");
+      }
+
       /* ---------------- API HEALTH CHECKS ---------------- */
       // Verify connected providers and update CapabilityManifest + SelfModel.
       // This runs each cycle so LÉLU always knows her actual capabilities.
@@ -406,52 +451,99 @@ export default class CognitiveLoop {
         }
       }
 
-      /* ------------- DERIVE THE NEXT OBJECTIVE FIRST ------------- */
-      // A project that already states what it is for does not need the
-      // user to restate it. Where the project carries real intent — the
-      // user's original request, a stated objective, or research queries
-      // — cognition derives the next objective from THAT and queues it
-      // through the existing WorkQueue, instead of interrupting to ask
-      // "what should I prioritize there?". Asking is only correct when
-      // there is genuinely nothing to derive from.
-      for (const project of activeProjects) {
-        const intent =
-          project.objective?.trim() ||
-          project.originalRequest?.trim() ||
-          (project.queries?.length ? `Research: ${project.queries.join(", ")}` : "");
+      /* ------------- DERIVE BEFORE ASKING ------------- */
+      // A project that carries any real signal about what it is for does
+      // not need the user to restate it. Intent is resolved from
+      // everything that actually holds it — a checkpoint, a stated
+      // objective, the original request, research already started, an
+      // answer the user gave earlier, the project's own conversation,
+      // completed work, memories — and where that is strong enough,
+      // cognition queues the next step through the existing WorkQueue.
+      //
+      // Asking is the fallback for when every one of those is empty,
+      // which is the only case where the user genuinely knows something
+      // LÉLU cannot work out.
+      const chats = MultiChatStore.getInstance().listAll();
+      const resolvedQuestions = proactiveCore.listQuestions().filter(
+        (question) => question.status === "resolved" && question.userResponse,
+      );
 
-        // No stated intent, or work already queued for it — nothing to do.
-        if (!intent) continue;
+      /** Everything intent resolution needs about one project. */
+      const intentInputsFor = (project: (typeof activeProjects)[number]): IntentInputs => ({
+        project,
+        conversations: chats.filter((conversation) => conversation.projectId === project.id),
+        memories: memoryTexts.filter((text) =>
+          text.toLowerCase().includes(project.name.toLowerCase()),
+        ),
+        items: allQueue.filter((item) => item.detail?.includes(`project:${project.id}`)),
+        priorAnswers: resolvedQuestions
+          .filter((question) => question.relatedProjectId === project.id)
+          .map((question) => question.userResponse ?? ""),
+      });
+
+      /** Projects that still have no derivable direction after all of that. */
+      const undirected: typeof activeProjects = [];
+
+      for (const project of activeProjects) {
         if (project.items.length > 0) continue;
         const alreadyQueued = openItems.some(
           (item) => item.detail?.includes(`project:${project.id}`),
         );
         if (alreadyQueued) continue;
 
+        const inputs = intentInputsFor(project);
+        const intent = resolveIntent(inputs);
+
+        if (!canAct(intent)) {
+          undirected.push(project);
+          continue;
+        }
+
         const nextObjective =
           project.checkpoint?.nextAction?.trim() ||
-          `Advance “${project.name}”: ${intent.slice(0, 160)}`;
+          `Advance “${project.name}”: ${intent!.intent.slice(0, 160)}`;
 
         queue.add({
           category: "NEXT",
           title: nextObjective,
           // The project id is recorded so the same objective is not
           // queued again on the next tick, and so anything acting on the
-          // item can trace it back to the state it came from.
+          // item can trace it back to the state it came from. The source
+          // is recorded because "derived from your original request" and
+          // "inferred from conversation" deserve different trust.
           detail:
-            `Derived from persistent project state (project:${project.id}). ` +
+            `Derived from persistent project state (project:${project.id}, via ${intent!.source}). ` +
             `The project states its intent but has no open work item.`,
           autonomy: 2,
         });
 
-        suggestions.push(`Derived a next objective for “${project.name}” from its own stated intent.`);
+        suggestions.push(
+          `Derived a next objective for “${project.name}” from ${intent!.source} instead of asking.`,
+        );
+
+        // THE DECISION BECOMES WORK.
+        //
+        // The WorkQueue record above is the audit trail and the human
+        // view; it has never had an executor. The runtime that DOES
+        // execute — AgentCognitionRuntime, which calls
+        // AIService.deliberate() with tools and evaluates what really
+        // ran — reads AgentObjectives, and nothing in the product ever
+        // created one. That single missing call is why a complete
+        // autonomous loop never ran outside its own tests.
+        //
+        // No new scheduler and no new executor: creating the objective
+        // is itself the wake condition, because the runtime subscribes
+        // to this store (see AgentCognitionRuntime.start).
+        const derived = this.deriveAutonomousWork(project, nextObjective, intent!.source, "NEXT");
+        if (derived) suggestions.push(derived);
       }
 
       /* ---------------- PROACTIVE QUESTIONS ---------------- */
       // Ask only about unresolved, actionable state. One pending question
-      // at a time keeps the conversation interruptible and the stable key
-      // prevents the same decision from returning after resolution/dismissal.
-      const proactive = ProactiveCore.getInstance();
+      // at a time keeps the conversation interruptible, and the stable
+      // key plus an evidence fingerprint make a repeated cycle a no-op
+      // rather than a repeated question.
+      const proactive = proactiveCore;
       if (proactive.shouldAskQuestions() && !proactive.getActiveQuestion()) {
         let question: ProactiveQuestionInput | null = null;
         const blockedItem = openItems.find(
@@ -468,6 +560,7 @@ export default class CognitiveLoop {
             relatedTask: blockedItem.title,
             blocksExecution: true,
             rememberAnswer: true,
+            evidence: `work-queue:${blockedItem.id}:${blockedItem.status}:${blockedItem.category}`,
           };
         } else {
           // Never ask the user to give direction to a project LÉLU
@@ -482,17 +575,15 @@ export default class CognitiveLoop {
           // outcome" about a project they never created, generated one
           // turn after LÉLU created it empty. A project the USER made and
           // left empty is worth asking about; this is not.
-          const directionProject = activeProjects.find(
+          //
+          // A project with a live workstream is also excluded: its topic
+          // is already being handled in its own conversation, and raising
+          // it globally is what turned every project into a global card.
+          const directionProject = undirected.find(
             (project) =>
-              project.items.length === 0 &&
               !project.queries?.length &&
               !(project.description ?? "").startsWith("Auto-created for") &&
-              // ...and nothing to derive an objective from. If the project
-              // states an objective or carries the user's original
-              // request, the loop above already turned that into queued
-              // work, so asking would be asking for what she was given.
-              !project.objective?.trim() &&
-              !project.originalRequest?.trim(),
+              !hasActiveWorkstream(project.id),
           );
           if (directionProject) {
             question = {
@@ -505,6 +596,10 @@ export default class CognitiveLoop {
               relatedTask: directionProject.name,
               blocksExecution: false,
               rememberAnswer: true,
+              // The situation, not the clock. While this fingerprint is
+              // unchanged the question is already asked; when the project
+              // genuinely moves, it is allowed to evolve.
+              evidence: intentEvidence(intentInputsFor(directionProject)),
             };
           } else if (sandboxNodes.some((node) => node.type === "file")) {
             question = {
@@ -516,6 +611,7 @@ export default class CognitiveLoop {
               relatedTask: "sandbox work",
               blocksExecution: false,
               rememberAnswer: true,
+              evidence: `sandbox:${sandboxNodes.filter((node) => node.type === "file").length}`,
             };
           }
         }
@@ -582,6 +678,115 @@ export default class CognitiveLoop {
     } finally {
       this.running = false;
     }
+  }
+
+  /**
+   * Hand a derived next step to the existing autonomous runtime.
+   *
+   * Returns a line for the cycle report when an objective was created,
+   * or null when one deliberately was not — the report says which, so a
+   * cycle that chose to stay out of the way is distinguishable from one
+   * that was switched off.
+   *
+   * Three things can stop it, and each is a real condition rather than
+   * a guess:
+   *
+   *  · the user has autonomous execution off — cognition still derives
+   *    and still records; it simply does not run anything;
+   *  · the project already has work in flight — a 10-second tick must
+   *    not queue the same step repeatedly, and the objective already
+   *    running is the one that should continue;
+   *  · there is no agent to own it.
+   */
+  private deriveAutonomousWork(
+    project: {
+      id: string;
+      name: string;
+      agentIds?: string[];
+      priority?: string;
+      /** Read only to derive the goal's outcome contract — see below. */
+      executionPlan?: string[];
+      actionableTasks?: string[];
+      checkpoint?: { pending?: string[] };
+    },
+    objective: string,
+    source: string,
+    category: string,
+  ): string | null {
+    try {
+      if (!ProactiveCore.getInstance().getSettings().autonomousExecution) {
+        return null;
+      }
+
+      const objectives = AgentObjectives.getInstance();
+      if (objectives.hasWorkInFlight(project.id)) {
+        return null;
+      }
+
+      const agentId = this.agentForProject(project);
+      if (!agentId) {
+        return `Derived work for “${project.name}” but no enabled agent could own it, so nothing was started.`;
+      }
+
+      // THE GOAL CARRIES ITS OUTCOME CONTRACT.
+      //
+      // The verifier judges completion against a contract. A derived
+      // objective used to carry none, so the only thing left to judge it
+      // by was its own wording — prose that may describe a plan nobody
+      // can check. Where the project's OWN plan states which operations
+      // this step needs, that contract is known before the first cycle
+      // and is recorded with the objective.
+      //
+      // Only structured plan fields are read (executionPlan /
+      // actionableTasks / checkpoint.pending), never the description or
+      // the conversation, and only ids the dispatcher can really run.
+      // No plan step, no contract — the verifier then falls back to the
+      // objective's own wording exactly as it did before.
+      const knownTools = executableToolIds();
+      const contract = outcomesForTools(structuredPlanToolIds(project, knownTools), knownTools);
+
+      objectives.create({
+        agentId,
+        objective,
+        source: "cognition",
+        projectId: project.id,
+        // The same WorkQueue category that files the audit record also
+        // says how important the work is, and the project's own stated
+        // priority moves it from there. Seeded in one place
+        // (Prioritization.basePriorityForWork) so cognition and
+        // self-study agree about what "important" means.
+        basePriority: basePriorityForWork({
+          category,
+          projectPriority: project.priority,
+        }),
+        ...(contract.length > 0 ? { expectedOutcomes: contract } : {}),
+      });
+
+      return `Started autonomous work on “${project.name}” (derived via ${source}).`;
+    } catch (error) {
+      // Cognition observing must never die because execution could not
+      // be started. The queue record above still stands.
+      console.warn("[CognitiveLoop] could not start autonomous work", error);
+      return null;
+    }
+  }
+
+  /**
+   * Which existing agent owns this project's work.
+   *
+   * The project's own binding first, because that is the user's answer
+   * to the question. Otherwise the first enabled agent — this picks an
+   * owner from the existing roster rather than inventing one.
+   */
+  private agentForProject(project: { agentIds?: string[] }): string | null {
+    const agents = AgentStore.getInstance()
+      .list()
+      .filter((agent) => agent.status !== "archived" && agent.enabled);
+    if (agents.length === 0) return null;
+    for (const bound of project.agentIds ?? []) {
+      if (agents.some((agent) => agent.id === bound)) return bound;
+    }
+    return agents[0].id;
   }
 
   /**

@@ -16,6 +16,8 @@
 
 import AIRuntime from "./AIRuntime";
 import MemoryBridge from "./MemoryBridge";
+import { bindMessage, bindTask } from "./multichat/TurnOwnership";
+import MultiChatStore from "./multichat/MultiChatStore";
 import UserManager from "./user/UserManager";
 import AgentEventBus from "./agent/AgentEvents";
 import {
@@ -31,8 +33,9 @@ import type { Plan } from "./planning/PlanningEngine";
 import type { LeluAgent } from "./agents/AgentTypes";
 import { agentSystemPrompt } from "./agents/AgentTypes";
 import AgentStore from "./agents/AgentStore";
-import AgentRunner from "./agents/AgentRunner";
+import Shaman from "./agents/Shaman";
 import ProactiveCore from "./proactive/ProactiveCore";
+import CuriosityEngine from "./curiosity/CuriosityEngine";
 import PromptInjectionGuard from "./security/PromptInjectionGuard";
 import ExecutiveBoard, { type BoardConsultation } from "./executive/ExecutiveBoard";
 import HealthIntelligence from "./caretaker/HealthIntelligence";
@@ -40,6 +43,7 @@ import { buildCognitiveContext, formatCognitiveContext } from "./cognition/Cogni
 import CognitiveTrace from "./cognition/CognitiveTrace";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { markPerf } from "./perf/StartupTelemetry";
+import { mark as latencyMark, annotate as latencyAnnotate, traceError as latencyTraceError } from "./perf/LatencyProbe";
 
 export interface AIActionEvent {
   id: string;
@@ -66,6 +70,60 @@ export interface AIMessageEvent {
   confidence?: number;
   reasoning?: ReasoningResult | null;
   plan?: Plan | null;
+  /** The conversation this reply belongs to — present when sent via ai.chat({ conversationId }). */
+  conversationId?: string;
+}
+
+/** How many earlier turns of a conversation the model is given. */
+const CONVERSATION_TURN_WINDOW = 16;
+
+function sameTurn(stored: string, prompt: string): boolean {
+  const a = stored.replace(/\s+/g, " ").trim();
+  const b = prompt.replace(/\s+/g, " ").trim();
+  if (!a || !b) return false;
+  // The stored line is what was shown (it may carry an attachment label);
+  // the prompt is what is sent (it may carry file context). They share
+  // the words the user typed.
+  const n = Math.min(60, a.length, b.length);
+  return a.slice(0, n) === b.slice(0, n);
+}
+
+/**
+ * The turns of one conversation before the current message, from the
+ * conversation store — the same history the user sees in that chat.
+ * Null when there is no conversation to read (the caller falls back).
+ */
+export function priorTurnsFor(
+  conversationId: string | undefined,
+  message: string,
+): { role: "user" | "assistant"; content: string }[] | null {
+  if (!conversationId) return null;
+  try {
+    const stored = MultiChatStore.getInstance().get(conversationId);
+    if (!stored) return null;
+    const turns = stored.messages.filter((item) => typeof item.text === "string" && item.text.trim().length > 0);
+    let anchor = -1;
+    for (let index = turns.length - 1; index >= 0; index -= 1) {
+      if (turns[index].role === "user" && sameTurn(turns[index].text, message)) {
+        anchor = index;
+        break;
+      }
+    }
+    // The current message is already stored (the chat writes it before
+    // sending); everything before it is the history.
+    let before = anchor >= 0 ? turns.slice(0, anchor) : turns;
+    if (anchor < 0 && before.at(-1)?.role === "user") before = before.slice(0, -1);
+    // In a merged chat each earlier message says which chat it came from,
+    // so the model can keep the sources apart.
+    return before
+      .slice(-CONVERSATION_TURN_WINDOW)
+      .map((item) => ({
+        role: item.role,
+        content: item.origin ? `[from the chat “${item.origin.title}”] ${item.text}` : item.text,
+      }));
+  } catch {
+    return null;
+  }
 }
 
 export default class AIService {
@@ -79,7 +137,7 @@ export default class AIService {
   private readonly cognitionListeners = new Set<(state: CognitionEvent) => void>();
   private readonly messageListeners = new Set<(message: AIMessageEvent) => void>();
   /** Progressive assistant output during generation — same id as the final message. */
-  private readonly streamListeners = new Set<(event: { id: string; text: string }) => void>();
+  private readonly streamListeners = new Set<(event: { id: string; text: string; conversationId?: string }) => void>();
   private readonly thinkingListeners = new Set<(value: boolean) => void>();
   private readonly speakingListeners = new Set<(value: boolean) => void>();
   private readonly listeningListeners = new Set<(value: boolean) => void>();
@@ -92,6 +150,21 @@ export default class AIService {
    * finished, and each independently re-run the whole Promise.allSettled
    * bundle (runtime/user init, Supabase attach, capability registration). */
   private initializingPromise: Promise<void> | null = null;
+
+  /** One AbortController per active conversationId. cancelTurn() aborts it. */
+  private readonly convControllers = new Map<string, AbortController>();
+  /**
+   * Stop pressed before the turn reached chat() — while the Orchestrator was
+   * still routing or researching. There was no controller to abort yet, so
+   * the request was lost and the reply arrived anyway. It is held here and
+   * honoured the moment the turn's chat() starts.
+   */
+  private readonly pendingCancels = new Set<string>();
+  /**
+   * Messages the user sent to a conversation while its turn was working,
+   * waiting for the turn's tool loop to pick them up (see steerTurn).
+   */
+  private readonly steering = new Map<string, string[]>();
 
   /**
    * How many user turns are being processed right now.
@@ -145,7 +218,7 @@ export default class AIService {
   }
 
   /** Live token-stream updates while LÉLU is generating. */
-  public subscribeStream(listener: (event: { id: string; text: string }) => void): () => void {
+  public subscribeStream(listener: (event: { id: string; text: string; conversationId?: string }) => void): () => void {
     this.streamListeners.add(listener);
     return () => {
       this.streamListeners.delete(listener);
@@ -178,6 +251,55 @@ export default class AIService {
     return () => {
       this.notificationListeners.delete(listener);
     };
+  }
+
+  /**
+   * Cancel the in-flight turn for `conversationId`. The provider's
+   * fetch is aborted; the response arrives as `provider: "cancelled"`
+   * with no error notification. Other conversations are not affected.
+   */
+  public cancelTurn(conversationId: string): void {
+    const controller = this.convControllers.get(conversationId);
+    if (controller) controller.abort();
+    else this.pendingCancels.add(conversationId);
+  }
+
+  /**
+   * A new turn starts with no Stop pending. Called by the chat at the start
+   * of each turn, so a Stop that its own turn never consumed (an answer that
+   * did not go through chat()) can never cancel the next message.
+   */
+  public beginTurn(conversationId: string): void {
+    this.pendingCancels.delete(conversationId);
+  }
+
+  /**
+   * The user spoke while this conversation's turn is working.
+   *
+   * Accepted only while the turn is inside chat() — the only place that
+   * can still use it. The tool loop hands it to the model before its next
+   * round, so the instruction changes the work in progress. Returns false
+   * when no turn is running here; the caller then sends it as a turn of
+   * its own.
+   */
+  public steerTurn(conversationId: string, text: string): boolean {
+    const trimmed = text.trim();
+    if (!conversationId || !trimmed || !this.convControllers.has(conversationId)) return false;
+    const queue = this.steering.get(conversationId) ?? [];
+    queue.push(trimmed);
+    this.steering.set(conversationId, queue);
+    return true;
+  }
+
+  /**
+   * Steering the turn never consumed — it finished its last tool round
+   * before the message arrived. The caller answers these as turns of
+   * their own, so nothing the user said is lost.
+   */
+  public takeSteering(conversationId: string): string[] {
+    const queue = this.steering.get(conversationId) ?? [];
+    this.steering.delete(conversationId);
+    return queue;
   }
 
   private emitAction(type: AIActionEvent["type"], label: string, status: AIActionEvent["status"]): string {
@@ -220,10 +342,12 @@ export default class AIService {
     }
   }
 
-  private emitStream(id: string, text: string): void {
+  private emitStream(id: string, text: string, conversationId?: string): void {
+    // T5: stream event emitted to all listeners.
+    latencyMark("T5");
     for (const listener of this.streamListeners) {
       try {
-        listener({ id, text });
+        listener({ id, text, conversationId });
       } catch (error) {
         console.error("[AIService] stream listener threw (contained)", error);
       }
@@ -365,7 +489,7 @@ export default class AIService {
     prompt: string,
     media?: MediaAttachment[],
     context?: string,
-    options?: { forceIntent?: AIIntent },
+    options?: { forceIntent?: AIIntent; conversationId?: string },
   ): Promise<AIResponse> {
     const message = prompt.trim();
 
@@ -387,6 +511,9 @@ export default class AIService {
       await this.initialize();
     }
 
+    // T1: AIService has received the request.
+    latencyMark("T1");
+
     // Claim the conversation for the user BEFORE anything else runs.
     // Autonomous cognition checks this and stands down, so a self-study
     // cycle cannot start midway through the user's turn and answer over
@@ -398,6 +525,10 @@ export default class AIService {
     this.emitListening(true);
 
     const taskId = String(Date.now());
+    // Every tool/browser/research event of this turn carries taskId; bind
+    // it now so the chat can route those events to the conversation that
+    // asked, and to no other.
+    if (options?.conversationId) bindTask(taskId, options.conversationId);
 
     // Open the per-turn cognitive trace. Dev-only (no-op in production)
     // — this is the evidence chain that proves cognition/memory actually
@@ -420,7 +551,19 @@ export default class AIService {
     // deliberately narrow: direct preference/decision language resolves a
     // pending question, while a new question or command remains independent.
     const pendingQuestion = proactive.getActiveQuestion();
-    if (pendingQuestion && this.looksLikeProactiveAnswer(message, pendingQuestion.question)) {
+    const answersPendingQuestion = Boolean(
+      pendingQuestion && this.looksLikeProactiveAnswer(message, pendingQuestion.question),
+    );
+    // Curiosity notices genuine ambiguity in what Heru asks for. An answer
+    // to a question is not a new request, so it is never observed as one.
+    if (!answersPendingQuestion) {
+      try {
+        CuriosityEngine.getInstance().observeConversation(message, options?.conversationId);
+      } catch (error) {
+        console.error("[AIService] Curiosity observation failed (contained)", error);
+      }
+    }
+    if (pendingQuestion && answersPendingQuestion) {
       proactive.resolveQuestion(pendingQuestion.id, message);
       if (pendingQuestion.category === "NEWS") {
         proactive.learnNewsPreferences(message);
@@ -460,13 +603,15 @@ export default class AIService {
     const delegation = this.resolveDelegation(message);
     if (delegation) {
       try {
-        const result = await AgentRunner.getInstance().run(
-          delegation.agent.id,
-          delegation.task,
-          undefined,
+        // LÉLU CORE delegates through SHAMAN: the user named the agent, so
+        // the route is that assignment, recorded with its owning executive.
+        const result = await Shaman.getInstance().dispatch({
+          objective: delegation.task,
+          agentId: delegation.agent.id,
+          delegatedBy: "lelu",
           // Attribute the agent's work to THIS cognitive turn.
-          taskId,
-        );
+          parentTaskId: taskId,
+        });
         const response: AIResponse =
           result.ok && result.response
             ? result.response
@@ -484,18 +629,23 @@ export default class AIService {
         this.runtime.brain.getConversation().record("assistant", response.text);
         this.emitAction("learn", `${delegation.agent.name} completed`, "complete");
         agentEvents.emit({ type: "task_completed", taskId, label: `${delegation.agent.name} delegated` });
+        // Bound like every other reply: unbound, it would land in whichever
+        // conversation happened to be selected.
+        const delegatedId = crypto.randomUUID();
+        if (options?.conversationId) bindMessage(delegatedId, options.conversationId);
         this.emitMessage({
-          id: crypto.randomUUID(),
+          id: delegatedId,
           role: "assistant",
           text: response.text,
           timestamp: Date.now(),
           provider: response.provider,
           confidence: response.metadata?.confidence as number | undefined,
+          conversationId: options?.conversationId,
         });
         this.releaseUserTurn();
         return {
           ...response,
-          metadata: { ...(response.metadata ?? {}), delegated: delegation.agent.name },
+          metadata: { ...(response.metadata ?? {}), delegated: delegation.agent.name, messageId: delegatedId },
         };
       } catch (error) {
         // delegation failed at the orchestration level — fall through to
@@ -516,7 +666,7 @@ export default class AIService {
       // capabilities, UI) as part of the conversation context.
       let cognitiveContextText = "";
       try {
-        const snapshot = buildCognitiveContext();
+        const snapshot = buildCognitiveContext(options?.conversationId);
         cognitiveContextText = formatCognitiveContext(snapshot);
         trace.record(
           "SELF_CONTEXT",
@@ -544,6 +694,31 @@ export default class AIService {
         .join("\n\n");
 
       const streamId = crypto.randomUUID();
+      // Annotate the latency probe so this turn's streamId appears in the
+      // trace record alongside the exchangeId set by GenesisChat at T0.
+      // The two IDs are separate UUIDs — this is the link that correlates them.
+      latencyAnnotate("streamId", streamId);
+
+      // Pre-bind the reply to its conversation before any await. Without
+      // this, a concurrent turn from a different conversation can call
+      // claimTurn() between now and the first stream token, and that token
+      // would bind to the wrong conversation. Pre-binding wins the race.
+      if (options?.conversationId) {
+        bindMessage(streamId, options.conversationId);
+      }
+
+      // One AbortController per turn. Stored by conversationId so
+      // cancelTurn() can reach it. Cleaned up in the finally block.
+      const controller = new AbortController();
+      if (options?.conversationId) {
+        this.convControllers.set(options.conversationId, controller);
+        if (this.pendingCancels.delete(options.conversationId)) {
+          // Stopped before it started: settle as cancelled, without asking
+          // a provider (some answer paths never look at the signal).
+          controller.abort();
+          throw new DOMException("Turn stopped before it started.", "AbortError");
+        }
+      }
 
       // SHORT-TERM CONVERSATION CONTEXT.
       //
@@ -558,7 +733,12 @@ export default class AIService {
       // twice and no history at all — it could not know what it had
       // already asked or been told.
       const conversation = this.runtime.brain.getConversation();
-      const priorTurns = conversation.modelMessages();
+      // The model's history is THIS conversation's, not the brain's one
+      // shared window. That window holds every chat's turns interleaved,
+      // so a question asked in chat B arrived after chat A's unanswered
+      // question — and was answered as if it were A's (measured: "two
+      // paragraphs about the telescope" came back as AI-video research).
+      const priorTurns = priorTurnsFor(options?.conversationId, message) ?? conversation.modelMessages();
       conversation.record("user", message);
 
       const turn = new AbortController();
@@ -566,7 +746,7 @@ export default class AIService {
       const request: AIRequest = {
         messages: priorTurns,
         prompt: message,
-        signal: turn.signal,
+        signal: AbortSignal.any([turn.signal, controller.signal]),
         // This is the conversational turn, so LÉLU may invoke her real
         // tools here. Internal structured-output calls (reason()) leave
         // this unset and keep their pre-tool behaviour.
@@ -577,7 +757,27 @@ export default class AIService {
         timestamp: Number(taskId),
         // True streaming: the provider pushes accumulated text as it
         // arrives and the UI renders it in place under `streamId`.
-        onDelta: (text) => this.emitStream(streamId, text),
+        onDelta: (() => {
+          let firstDelta = true;
+          return (text: string) => {
+            if (firstDelta) {
+              firstDelta = false;
+              latencyMark("T3"); // first SSE chunk from provider
+              latencyMark("T4"); // stream parser (same tick in this codebase)
+            }
+            this.emitStream(streamId, text, options?.conversationId);
+          };
+        })(),
+        ...(options?.conversationId
+          ? {
+              conversationId: options.conversationId,
+              drainSteering: () => {
+                const queue = this.steering.get(options.conversationId!) ?? [];
+                this.steering.delete(options.conversationId!);
+                return queue;
+              },
+            }
+          : {}),
       };
 
       // The request is about to run the existing planning + reasoning
@@ -588,6 +788,8 @@ export default class AIService {
       // memories it produced are handed forward so BrainResolver and
       // composeFromMemory consume them instead of re-querying.
       const { request: enriched, memories: recalledForTurn } = await this.memory.enrich(request);
+      // T2: provider request is about to begin.
+      latencyMark("T2");
       const response = await this.runtime.process(enriched, { recalledMemories: recalledForTurn });
 
       trace.record(
@@ -608,6 +810,9 @@ export default class AIService {
 
       this.emitAction("learn", "Response generated", "complete");
       agentEvents.emit({ type: "task_completed", taskId, label: message });
+
+      // RESPONSE-FIRST: emit the message to the UI immediately so the user
+      // sees the reply before any memory/cognition work blocks the thread.
       this.emitMessage({
         id: streamId,
         role: "assistant",
@@ -617,49 +822,52 @@ export default class AIService {
         confidence: response.metadata?.confidence as number | undefined,
         reasoning,
         plan,
+        conversationId: options?.conversationId,
       });
 
       const responseSucceeded =
         response.provider !== "offline" &&
         response.metadata?.success !== false;
 
-      // Memory consolidation ALWAYS runs — online or offline. An API
-      // failure must never equal a memory failure: meaningful user
-      // statements (name, preferences, projects, goals) are extracted
-      // and persisted locally even when every provider is down, and
-      // the user profile updates from the same consolidation path.
-      await this.memory.learn(message, response.text, taskId);
-      // LÉLU's own turn joins the conversation too. Without this she
-      // cannot see what she just said, so she re-asks questions she has
-      // already asked and loses the thread of her own follow-ups.
+      // LÉLU's own turn joins the conversation synchronously so the NEXT
+      // turn's context includes it — this must happen before return.
       conversation.record("assistant", response.text);
-      // Refresh the active memories for the turn we just recorded.
-      await conversation.refresh(message);
 
-      // A SECOND, deliberate recall — not a duplicate of the cognition
-      // recall above. It runs AFTER this turn's memory write so the user
-      // profile picks up the fact just learned, which the pre-response
-      // recall could not have seen. Labelled distinctly in the trace so
-      // "one cognition recall per turn" stays verifiable.
-      const memories = await this.runtime.brain.recall(message, "post-write-profile-sync");
-      for (const memory of memories) {
-        await this.user.learn(memory.category, memory.response);
-      }
+      // Memory consolidation, profile sync, and cognition update all run
+      // AFTER the response has been delivered. They do not block the
+      // caller; a failure here is contained and never surfaces as a chat
+      // error. All work uses the ONE existing memory/brain path.
+      void (async () => {
+        try {
+          // Memory consolidation ALWAYS runs — online or offline.
+          await this.memory.learn(message, response.text, taskId);
+          // Refresh active memories now that this turn is recorded.
+          await conversation.refresh(message);
 
-      if (responseSucceeded) {
-        // Commit reasoning before publishing cognition so observers never
-        // receive a stale plan/hypothesis snapshot.
-        this.runtime.brain.recordThinking(reasoning, plan);
-      }
+          // Post-write profile sync: second recall so the user profile
+          // picks up the fact just learned, which the pre-response recall
+          // could not have seen.
+          const memories = await this.runtime.brain.recall(message, "post-write-profile-sync");
+          for (const memory of memories) {
+            await this.user.learn(memory.category, memory.response);
+          }
 
-      const cognition = this.runtime.brain.cognitiveState();
-      this.emitCognition({
-        agents: cognition.agents,
-        workspaces: cognition.workspaces,
-        nodes: cognition.nodes,
-        reasoning: cognition.reasoning,
-        plan: cognition.plan,
-      });
+          if (responseSucceeded) {
+            this.runtime.brain.recordThinking(reasoning, plan);
+          }
+
+          const cognition = this.runtime.brain.cognitiveState();
+          this.emitCognition({
+            agents: cognition.agents,
+            workspaces: cognition.workspaces,
+            nodes: cognition.nodes,
+            reasoning: cognition.reasoning,
+            plan: cognition.plan,
+          });
+        } catch (postErr) {
+          console.error("[AIService] Post-response async work failed (contained)", postErr);
+        }
+      })();
 
       return {
         ...response,
@@ -669,9 +877,28 @@ export default class AIService {
           cognition: true,
           memory: true,
           profile: true,
+          // The id the reply was emitted under, so a caller that also
+          // records it (EngineeringChat) writes the SAME message.
+          messageId: streamId,
         },
       };
     } catch (error) {
+      // User-initiated cancellation is not an error: the AbortController
+      // we created fires a DOMException with name "AbortError". Return a
+      // silent cancelled response so the UI can settle without a toast.
+      const isCancelled =
+        (error instanceof DOMException && error.name === "AbortError") ||
+        (error instanceof Error && error.name === "AbortError");
+      if (isCancelled) {
+        return {
+          text: "",
+          provider: "cancelled",
+          model: "cancelled",
+          processingTime: 0,
+          metadata: { intent: "cancelled", success: false },
+        };
+      }
+
       this.emitAction("learn", "Response failed", "error");
       agentEvents.emit({
         type: "task_failed",
@@ -682,6 +909,11 @@ export default class AIService {
       const errorText = PromptInjectionGuard.getInstance().redactSecrets(
         error instanceof Error ? error.message : String(error),
       );
+      // Record the failure stage in the latency trace.
+      // PromptInjectionGuard.redactSecrets() already removed tokens/keys above.
+      // Use stage "D" (Provider) since this catch wraps the entire provider path;
+      // a more specific stage would require re-throwing at each sub-boundary.
+      latencyTraceError("D=Provider", errorText || "Unknown provider error");
 
       this.emitNotification({
         title: "Lélu Error",
@@ -700,6 +932,9 @@ export default class AIService {
         },
       };
     } finally {
+      if (options?.conversationId) {
+        this.convControllers.delete(options.conversationId);
+      }
       this.releaseUserTurn();
       this.emitThinking(false);
       this.emitSpeaking(false);
@@ -1210,6 +1445,11 @@ export default class AIService {
    * checks, capability validation). The SAME registry the chat
    * pipeline uses — no duplicate provider system.
    */
+  /** The runtime's own router context, for a tool call outside a turn. Null until initialized. */
+  public toolContext(prompt: string): import("./router/RouterContext").default | null {
+    return this.initialized ? this.runtime.toolContext(prompt) : null;
+  }
+
   public getKnowledgeProviderRegistry(): import("./ProviderRegistry").default {
     return this.runtime.core.getKnowledgeProviders();
   }

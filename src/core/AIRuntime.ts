@@ -587,6 +587,26 @@ export default class AIRuntime {
     return await LocalRuntime.getInstance().status();
   }
 
+  /**
+   * The SAME router context a chat turn gets — the real brain, knowledge
+   * providers, AI providers and logger — for a tool call made outside a
+   * turn (background curiosity). Not a synthetic context: every field is
+   * the runtime's own object, so a tool behaves exactly as it does in a
+   * conversation.
+   */
+  public toolContext(prompt: string): RouterContext {
+    return {
+      request: { prompt, messages: [{ role: "user", content: prompt }], timestamp: Date.now() },
+      started: Date.now(),
+      brain: this.brain,
+      knowledgeProviders: this.knowledge,
+      aiProviders: this.providers,
+      logger: this.logger,
+      intent: "search",
+      cognitiveContext: buildCognitiveContext(),
+    } as RouterContext;
+  }
+
   public knowledgeProviderList(): {
     name: string;
     category: string;

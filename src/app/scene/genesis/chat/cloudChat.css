@@ -1,0 +1,1084 @@
+/*
+ * ==========================================================
+ * LÉLU — CLOUD CONVERSATION
+ *
+ * The chat's visual language: a twilight sky of soft cloud
+ * banks, conversation bubbles that float in it, and one cloud
+ * composer. Everything that moves is a transform on a
+ * composited layer; nothing animates layout, and no message
+ * bubble uses backdrop-filter (one blur per bubble is what
+ * makes long conversations stutter on a phone).
+ * ==========================================================
+ */
+
+.lelu-cc {
+  --cc-ink: #f7f1ff;
+  --cc-ink-soft: rgba(238, 228, 255, 0.78);
+  --cc-ink-faint: rgba(224, 212, 248, 0.56);
+  --cc-pink: #f6b8dc;
+  --cc-lilac: #c6b4ff;
+  --cc-sky: #a9d8ff;
+  --cc-veil: rgba(28, 18, 58, 0.62);
+  --cc-veil-strong: rgba(24, 15, 50, 0.82);
+  --cc-edge: rgba(255, 236, 252, 0.14);
+  --cc-glow: 0 18px 60px rgba(10, 4, 30, 0.45);
+  --cc-radius: 26px;
+  --cc-hit: 40px;
+  position: relative;
+  color: var(--cc-ink);
+  font-family: inherit;
+  text-align: left;
+  isolation: isolate;
+}
+
+@media (pointer: coarse) {
+  .lelu-cc { --cc-hit: 44px; }
+}
+
+/* ------------------------------ sky ------------------------------ */
+
+.lelu-cc-sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 70% at 50% 118%, rgba(255, 176, 214, 0.38) 0%, rgba(255, 176, 214, 0) 62%),
+    radial-gradient(90% 60% at 12% 100%, rgba(168, 206, 255, 0.22) 0%, rgba(168, 206, 255, 0) 60%),
+    linear-gradient(180deg, #120b2c 0%, #1f1446 30%, #352163 58%, #563072 82%, #6e3a78 100%);
+}
+
+/* A sparse, static starfield ties the sky to the cosmos above it. */
+.lelu-cc-sky::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 45% 0;
+  opacity: 0.55;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgba(255, 255, 255, 0.8), transparent 60%),
+    radial-gradient(1px 1px at 68% 9%, rgba(255, 255, 255, 0.7), transparent 60%),
+    radial-gradient(1.5px 1.5px at 84% 26%, rgba(255, 230, 250, 0.75), transparent 60%),
+    radial-gradient(1px 1px at 35% 32%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(1px 1px at 52% 14%, rgba(220, 230, 255, 0.7), transparent 60%),
+    radial-gradient(1px 1px at 92% 6%, rgba(255, 255, 255, 0.6), transparent 60%);
+}
+
+/*
+ * Cloud banks: each is twice the sky's width and carries the same
+ * pattern twice, so sliding it by half loops seamlessly. Different
+ * speeds per bank give depth without any scroll-linked work.
+ */
+.lelu-cc-clouds {
+  position: absolute;
+  left: 0;
+  width: 200%;
+  will-change: transform;
+  animation: lelu-cc-drift 240s linear infinite;
+  background-repeat: repeat-x;
+}
+
+.lelu-cc-clouds--far {
+  top: 6%;
+  height: 30%;
+  opacity: 0.5;
+  animation-duration: 320s;
+  background-size: 50% 100%;
+  /* Two puffy clusters per tile: overlapping ellipses on a flat base. */
+  background-image:
+    radial-gradient(10% 30% at 14% 62%, rgba(255, 222, 244, 0.5), rgba(255, 222, 244, 0)),
+    radial-gradient(12% 42% at 22% 50%, rgba(255, 236, 250, 0.55), rgba(255, 236, 250, 0)),
+    radial-gradient(9% 30% at 30% 60%, rgba(226, 212, 255, 0.5), rgba(226, 212, 255, 0)),
+    radial-gradient(24% 16% at 22% 72%, rgba(255, 206, 236, 0.45), rgba(255, 206, 236, 0)),
+    radial-gradient(8% 26% at 62% 56%, rgba(214, 228, 255, 0.45), rgba(214, 228, 255, 0)),
+    radial-gradient(11% 38% at 70% 46%, rgba(255, 232, 248, 0.5), rgba(255, 232, 248, 0)),
+    radial-gradient(8% 28% at 78% 58%, rgba(255, 214, 240, 0.45), rgba(255, 214, 240, 0)),
+    radial-gradient(22% 14% at 70% 68%, rgba(226, 212, 255, 0.4), rgba(226, 212, 255, 0));
+}
+
+.lelu-cc-clouds--mid {
+  top: 38%;
+  height: 34%;
+  opacity: 0.36;
+  animation-duration: 210s;
+  animation-direction: reverse;
+  background-size: 50% 100%;
+  background-image:
+    radial-gradient(9% 30% at 8% 58%, rgba(255, 210, 238, 0.55), rgba(255, 210, 238, 0)),
+    radial-gradient(13% 44% at 16% 48%, rgba(255, 236, 250, 0.5), rgba(255, 236, 250, 0)),
+    radial-gradient(10% 32% at 25% 58%, rgba(232, 216, 255, 0.5), rgba(232, 216, 255, 0)),
+    radial-gradient(26% 16% at 16% 70%, rgba(255, 200, 232, 0.4), rgba(255, 200, 232, 0)),
+    radial-gradient(12% 40% at 58% 52%, rgba(255, 226, 246, 0.45), rgba(255, 226, 246, 0)),
+    radial-gradient(9% 28% at 66% 60%, rgba(214, 200, 255, 0.45), rgba(214, 200, 255, 0)),
+    radial-gradient(20% 14% at 60% 70%, rgba(255, 206, 236, 0.38), rgba(255, 206, 236, 0));
+}
+
+.lelu-cc-clouds--near {
+  bottom: -4%;
+  height: 30%;
+  opacity: 0.55;
+  animation-duration: 150s;
+  background-size: 50% 100%;
+  background-image:
+    radial-gradient(14% 40% at 12% 62%, rgba(255, 214, 240, 0.6), rgba(255, 214, 240, 0)),
+    radial-gradient(18% 56% at 26% 52%, rgba(255, 236, 250, 0.55), rgba(255, 236, 250, 0)),
+    radial-gradient(13% 40% at 40% 64%, rgba(234, 218, 255, 0.55), rgba(234, 218, 255, 0)),
+    radial-gradient(16% 48% at 62% 58%, rgba(255, 222, 244, 0.5), rgba(255, 222, 244, 0)),
+    radial-gradient(14% 42% at 80% 62%, rgba(224, 210, 255, 0.5), rgba(224, 210, 255, 0)),
+    radial-gradient(60% 22% at 50% 92%, rgba(255, 206, 236, 0.5), rgba(255, 206, 236, 0));
+}
+
+@keyframes lelu-cc-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+/* Phones: one fewer layer, slower still. */
+@media (max-width: 720px) {
+  .lelu-cc-clouds--mid { display: none; }
+  .lelu-cc-clouds--far { animation-duration: 420s; }
+  .lelu-cc-clouds--near { animation-duration: 260s; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lelu-cc-clouds { animation: none; }
+}
+
+/* ----------------------------- frame ----------------------------- */
+
+.lelu-cc-shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.lelu-cc-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 8px 18px;
+  flex-shrink: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.lelu-cc-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.lelu-cc-orb {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: radial-gradient(circle at 35% 35%, #fff, var(--cc-pink) 45%, var(--cc-lilac) 100%);
+  box-shadow: 0 0 14px rgba(246, 184, 220, 0.8);
+}
+
+.lelu-cc-orb[data-state="thinking"],
+.lelu-cc-orb[data-state="speaking"] {
+  animation: lelu-cc-breathe 1.6s ease-in-out infinite;
+}
+
+@keyframes lelu-cc-breathe {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.35); opacity: 0.75; }
+}
+
+.lelu-cc-name {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--cc-ink);
+}
+
+.lelu-cc-status {
+  font-size: 12px;
+  color: var(--cc-ink-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* One organised control group — every control owns its own hit area. */
+.lelu-cc-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 240, 252, 0.07);
+  border: 1px solid var(--cc-edge);
+  flex-shrink: 0;
+}
+
+.lelu-cc-icon {
+  width: var(--cc-hit);
+  height: var(--cc-hit);
+  min-width: var(--cc-hit);
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--cc-ink-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lelu-cc-icon:hover:not(:disabled) {
+  background: rgba(255, 240, 252, 0.12);
+  color: var(--cc-ink);
+}
+
+.lelu-cc-icon:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.lelu-cc-icon[aria-expanded="true"],
+.lelu-cc-icon[data-active="true"] {
+  background: rgba(246, 184, 220, 0.22);
+  color: #fff;
+}
+
+.lelu-cc-icon--danger:hover:not(:disabled) {
+  background: rgba(255, 140, 170, 0.18);
+  color: #ffd1dc;
+}
+
+.lelu-cc :focus-visible {
+  outline: 2px solid var(--cc-pink);
+  outline-offset: 2px;
+}
+
+/* The composer cloud itself shows focus (see .lelu-cc-composer:focus-within). */
+.lelu-cc textarea:focus-visible,
+.lelu-cc input:focus-visible { outline: none; }
+
+/* --------------------------- popover menu --------------------------- */
+
+.lelu-cc-menu {
+  position: absolute;
+  right: 10px;
+  top: calc(100% + 6px);
+  min-width: 230px;
+  max-width: calc(100vw - 24px);
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: 20px;
+  background: var(--cc-veil-strong);
+  border: 1px solid var(--cc-edge);
+  box-shadow: var(--cc-glow);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  z-index: 5;
+}
+
+.lelu-cc-menu-label {
+  padding: 8px 12px 4px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cc-ink-faint);
+}
+
+.lelu-cc-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--cc-hit);
+  padding: 0 12px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--cc-ink);
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lelu-cc-menu-item:hover,
+.lelu-cc-menu-item:focus-visible {
+  background: rgba(255, 240, 252, 0.1);
+}
+
+.lelu-cc-menu-item svg { flex-shrink: 0; opacity: 0.85; }
+
+.lelu-cc-menu-sep {
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--cc-edge);
+}
+
+/* --------------------------- conversation --------------------------- */
+
+.lelu-cc-scroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(246, 184, 220, 0.3) transparent;
+}
+
+.lelu-cc-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 18px 16px 24px;
+  box-sizing: border-box;
+  min-height: 100%;
+  justify-content: flex-end;
+}
+
+.lelu-cc-empty {
+  margin: auto;
+  text-align: center;
+  color: var(--cc-ink-soft);
+  max-width: 420px;
+  padding: 24px 12px;
+}
+
+.lelu-cc-empty h2 {
+  margin: 0 0 6px;
+  font-size: clamp(20px, 3vw + 10px, 26px);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--cc-ink);
+}
+
+.lelu-cc-empty p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--cc-ink-faint); }
+
+.lelu-cc-earlier {
+  align-self: center;
+}
+
+.lelu-cc-msg {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
+  animation: lelu-cc-arrive 260ms ease-out both;
+}
+
+@keyframes lelu-cc-arrive {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lelu-cc-msg { animation: none; }
+  .lelu-cc-orb { animation: none !important; }
+}
+
+.lelu-cc-msg--user { align-items: flex-end; }
+
+.lelu-cc-bubble--user {
+  max-width: min(84%, 560px);
+  padding: 11px 16px;
+  border-radius: 22px 22px 8px 22px;
+  background: linear-gradient(135deg, rgba(255, 214, 236, 0.96) 0%, rgba(230, 210, 255, 0.95) 100%);
+  color: #23143f;
+  box-shadow: 0 8px 26px rgba(255, 170, 214, 0.18), 0 2px 8px rgba(20, 8, 40, 0.25);
+  overflow-wrap: anywhere;
+}
+
+.lelu-cc-bubble--user .lelu-cc-md a { color: #5b2a9a; }
+.lelu-cc-bubble--user .lelu-cc-md code { background: rgba(60, 30, 110, 0.1); color: #3a1d6b; }
+
+.lelu-cc-msg--assistant { align-items: stretch; }
+
+.lelu-cc-speaker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px 4px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--cc-ink-faint);
+}
+
+/*
+ * LÉLU speaks into the sky: a soft veil sized by its content, with a
+ * luminous edge — not a box.
+ */
+.lelu-cc-bubble--assistant {
+  position: relative;
+  max-width: 100%;
+  padding: 14px 18px;
+  border-radius: 8px var(--cc-radius) var(--cc-radius) var(--cc-radius);
+  background:
+    radial-gradient(140% 120% at 0% 0%, rgba(255, 214, 240, 0.08), rgba(255, 214, 240, 0) 55%),
+    var(--cc-veil);
+  border: 1px solid var(--cc-edge);
+  box-shadow: 0 10px 40px rgba(10, 4, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  color: var(--cc-ink);
+  overflow-wrap: anywhere;
+}
+
+.lelu-cc-msg-actions {
+  display: flex;
+  gap: 6px;
+  margin: 6px 0 0 6px;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.lelu-cc-msg:hover .lelu-cc-msg-actions,
+.lelu-cc-msg:focus-within .lelu-cc-msg-actions {
+  opacity: 1;
+}
+
+/* Touch screens have no hover: actions show on the newest reply only. */
+@media (hover: none) {
+  .lelu-cc-msg-actions { display: none; }
+  .lelu-cc-msg--latest .lelu-cc-msg-actions { display: flex; opacity: 0.75; }
+}
+
+.lelu-cc-thinking {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-start;
+  padding: 10px 16px;
+  border-radius: 8px 22px 22px 22px;
+  background: var(--cc-veil);
+  border: 1px solid var(--cc-edge);
+  color: var(--cc-ink-soft);
+  font-size: 13px;
+}
+
+.lelu-cc-dots { display: inline-flex; gap: 5px; }
+
+.lelu-cc-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--cc-pink);
+  animation: lelu-cc-dot 1.2s ease-in-out infinite;
+}
+
+.lelu-cc-dots span:nth-child(2) { animation-delay: 0.16s; background: var(--cc-lilac); }
+.lelu-cc-dots span:nth-child(3) { animation-delay: 0.32s; background: var(--cc-sky); }
+
+@keyframes lelu-cc-dot {
+  0%, 80%, 100% { transform: translate3d(0, 0, 0); opacity: 0.45; }
+  40% { transform: translate3d(0, -4px, 0); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lelu-cc-dots span { animation: none; opacity: 0.8; }
+}
+
+.lelu-cc-caret {
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.12em;
+  border-radius: 2px;
+  background: rgba(246, 184, 220, 0.75);
+  animation: lelu-cc-blink 1s steps(2, start) infinite;
+}
+
+@keyframes lelu-cc-blink { to { visibility: hidden; } }
+
+.lelu-cc-failure {
+  align-self: stretch;
+  padding: 14px 18px;
+  border-radius: 8px var(--cc-radius) var(--cc-radius) var(--cc-radius);
+  background: rgba(70, 20, 52, 0.62);
+  border: 1px solid rgba(255, 170, 200, 0.28);
+}
+
+.lelu-cc-failure strong { display: block; font-size: 14.5px; font-weight: 600; color: #ffe1ec; }
+.lelu-cc-failure p { margin: 4px 0 10px; font-size: 13.5px; line-height: 1.5; color: rgba(255, 228, 238, 0.82); }
+
+.lelu-cc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--cc-edge);
+  background: rgba(255, 240, 252, 0.08);
+  color: var(--cc-ink-soft);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.lelu-cc-chip:hover { background: rgba(255, 240, 252, 0.16); color: var(--cc-ink); }
+
+.lelu-cc-chip--primary {
+  background: linear-gradient(135deg, rgba(246, 184, 220, 0.9), rgba(198, 180, 255, 0.9));
+  color: #23143f;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.lelu-cc-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+  max-width: min(84%, 560px);
+}
+
+.lelu-cc-attachments img {
+  width: 120px;
+  max-width: 40vw;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 1px solid var(--cc-edge);
+}
+
+.lelu-cc-renders {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+  max-width: min(100%, 420px);
+}
+
+.lelu-cc-renders img {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid var(--cc-edge);
+  box-shadow: 0 12px 36px rgba(10, 4, 30, 0.45);
+  display: block;
+}
+
+.lelu-cc-renders figcaption { font-size: 11px; color: var(--cc-ink-faint); }
+
+.lelu-cc-jump {
+  position: sticky;
+  bottom: 12px;
+  width: max-content;
+  margin: -46px auto 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--cc-edge);
+  background: var(--cc-veil-strong);
+  color: var(--cc-ink);
+  font: inherit;
+  font-size: 12.5px;
+  box-shadow: var(--cc-glow);
+  cursor: pointer;
+}
+
+/* ----------------------------- markdown ----------------------------- */
+
+.lelu-cc-md {
+  font-size: clamp(14.5px, 0.4vw + 13px, 16px);
+  line-height: 1.62;
+  letter-spacing: 0.005em;
+}
+
+.lelu-cc-md > :first-child { margin-top: 0; }
+.lelu-cc-md > :last-child { margin-bottom: 0; }
+.lelu-cc-md p { margin: 0 0 0.75em; }
+.lelu-cc-md strong { font-weight: 650; }
+.lelu-cc-md a { color: #ffc6e6; text-decoration: underline; text-underline-offset: 2px; }
+.lelu-cc-md ul, .lelu-cc-md ol { margin: 0 0 0.8em; padding-left: 1.35em; }
+.lelu-cc-md li { margin: 0.22em 0; }
+.lelu-cc-md li::marker { color: var(--cc-pink); }
+.lelu-cc-md li > ul, .lelu-cc-md li > ol { margin: 0.2em 0 0.3em; }
+.lelu-cc-md input[type="checkbox"] { margin-right: 8px; accent-color: var(--cc-pink); vertical-align: -1px; }
+.lelu-cc-md .contains-task-list { padding-left: 0.2em; }
+.lelu-cc-md .task-list-item { list-style: none; }
+
+.lelu-cc-md code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  padding: 0.12em 0.4em;
+  border-radius: 6px;
+  background: rgba(255, 240, 252, 0.1);
+  color: #ffe4f4;
+}
+
+.lelu-cc-md blockquote {
+  margin: 0 0 0.8em;
+  padding: 2px 0 2px 14px;
+  border-left: 3px solid rgba(246, 184, 220, 0.6);
+  color: var(--cc-ink-soft);
+}
+
+.lelu-cc-md hr {
+  border: none;
+  height: 1px;
+  margin: 1.1em 0;
+  background: linear-gradient(90deg, transparent, rgba(246, 184, 220, 0.45), transparent);
+}
+
+/* Topics: a small label and a soft divider, not a card per section. */
+.lelu-cc-topic {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 1.2em 0 0.6em;
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #ffd6ee;
+}
+
+.lelu-cc-topic::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(246, 184, 220, 0.5), rgba(246, 184, 220, 0));
+}
+
+.lelu-cc-subtopic {
+  margin: 1em 0 0.4em;
+  font-size: 1em;
+  font-weight: 650;
+  color: var(--cc-ink);
+}
+
+.lelu-cc-code,
+.lelu-cc-visual {
+  margin: 0.4em 0 0.9em;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(10, 6, 26, 0.72);
+  border: 1px solid var(--cc-edge);
+}
+
+.lelu-cc-code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px 6px 14px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cc-ink-faint);
+  background: rgba(255, 240, 252, 0.05);
+}
+
+.lelu-cc-code pre,
+.lelu-cc-visual-source {
+  margin: 0;
+  padding: 12px 14px 14px;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #f3eaff;
+  tab-size: 2;
+}
+
+.lelu-cc-code pre code,
+.lelu-cc-visual-source code { background: none; padding: 0; color: inherit; font-size: inherit; white-space: pre; }
+
+.lelu-cc-visual-img {
+  display: block;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 14px;
+  box-sizing: border-box;
+  background: radial-gradient(120% 120% at 50% 0%, rgba(198, 180, 255, 0.12), transparent 70%);
+}
+
+.lelu-cc-visual-note { padding: 10px 14px 0; font-size: 12px; color: var(--cc-ink-faint); }
+
+.lelu-cc-visual-drawing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 140px;
+  font-size: 13px;
+  color: var(--cc-ink-soft);
+  background: radial-gradient(120% 120% at 50% 0%, rgba(198, 180, 255, 0.1), transparent 70%);
+}
+
+.lelu-cc-table-scroll {
+  margin: 0.4em 0 0.9em;
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid var(--cc-edge);
+}
+
+.lelu-cc-table-scroll table { border-collapse: collapse; min-width: 100%; font-size: 13.5px; }
+.lelu-cc-table-scroll th,
+.lelu-cc-table-scroll td { padding: 8px 12px; text-align: left; border-bottom: 1px solid rgba(255, 236, 252, 0.08); white-space: nowrap; }
+.lelu-cc-table-scroll th { font-weight: 650; color: #ffd6ee; background: rgba(255, 240, 252, 0.06); }
+.lelu-cc-table-scroll tr:last-child td { border-bottom: none; }
+
+.lelu-cc-inline-img {
+  display: block;
+  max-width: 100%;
+  border-radius: 16px;
+  margin: 0.4em 0;
+}
+
+/* ----------------------------- activity ----------------------------- */
+
+.lelu-cc-activity { align-self: flex-start; max-width: 100%; }
+
+/* ----------------------------- composer ----------------------------- */
+
+.lelu-cc-dock {
+  position: relative;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 792px;
+  margin: 0 auto;
+  padding: 6px 12px 12px;
+  box-sizing: border-box;
+}
+
+.lelu-cc-composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 28px;
+  background:
+    radial-gradient(120% 160% at 15% 0%, rgba(255, 220, 242, 0.14), rgba(255, 220, 242, 0) 60%),
+    rgba(32, 20, 66, 0.72);
+  border: 1px solid rgba(255, 228, 248, 0.2);
+  box-shadow: 0 14px 44px rgba(10, 4, 30, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+}
+
+.lelu-cc-composer:focus-within {
+  border-color: rgba(255, 210, 238, 0.5);
+  box-shadow: 0 14px 48px rgba(246, 184, 220, 0.2), 0 0 0 4px rgba(246, 184, 220, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.lelu-cc-composer textarea {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--cc-hit);
+  max-height: var(--cc-composer-max, 200px);
+  padding: 10px 6px;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--cc-ink);
+  font: inherit;
+  font-size: 16px; /* ≥16px stops iOS zooming the page on focus */
+  line-height: 1.45;
+  resize: none;
+  overflow-y: auto;
+}
+
+.lelu-cc-composer textarea::placeholder { color: var(--cc-ink-faint); }
+
+.lelu-cc-send {
+  background: linear-gradient(135deg, var(--cc-pink), var(--cc-lilac));
+  color: #23143f;
+}
+
+.lelu-cc-send:hover:not(:disabled) { background: linear-gradient(135deg, #ffd0ea, #d8caff); color: #1a0e33; }
+.lelu-cc-send:disabled { background: rgba(255, 240, 252, 0.12); color: var(--cc-ink-faint); opacity: 1; }
+
+.lelu-cc-stop { background: rgba(255, 150, 180, 0.2); color: #ffc2d4; }
+
+.lelu-cc-pending {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 4px 8px;
+  scrollbar-width: none;
+}
+
+.lelu-cc-pending-item {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 52px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--cc-edge);
+  background: var(--cc-veil);
+  font-size: 12px;
+  color: var(--cc-ink-soft);
+}
+
+.lelu-cc-pending-item img { width: 52px; height: 52px; object-fit: cover; display: block; }
+.lelu-cc-pending-item--file { padding: 0 6px 0 12px; max-width: 200px; }
+.lelu-cc-pending-item--file span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.lelu-cc-pending-remove {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(20, 10, 40, 0.75);
+  color: #ffd1dc;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.lelu-cc-pending-item--file .lelu-cc-pending-remove { position: static; }
+
+.lelu-cc-attach-menu {
+  position: absolute;
+  left: 12px;
+  bottom: calc(100% - 2px);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px;
+  width: min(300px, calc(100% - 24px));
+  border-radius: 22px;
+  background: var(--cc-veil-strong);
+  border: 1px solid var(--cc-edge);
+  box-shadow: var(--cc-glow);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.lelu-cc-attach-menu .lelu-cc-menu-item { justify-content: flex-start; }
+
+.lelu-cc-question {
+  width: calc(100% - 24px);
+  max-width: 768px;
+  margin: 0 auto 6px;
+  box-sizing: border-box;
+  padding: 10px 12px 12px 16px;
+  border-radius: 22px;
+  background: rgba(64, 40, 18, 0.55);
+  border: 1px solid rgba(255, 214, 150, 0.3);
+  color: rgba(255, 244, 222, 0.95);
+}
+
+.lelu-cc-question-reason {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.lelu-cc-question input:focus { border-color: rgba(255, 214, 150, 0.7) !important; }
+
+/* A phone on its side: every vertical pixel counts. */
+@media (max-height: 520px) {
+  .lelu-cc-header { padding-top: 4px; padding-bottom: 2px; }
+  .lelu-cc-thread { padding-top: 10px; gap: 12px; }
+  .lelu-cc-dock { padding-bottom: 6px; }
+  .lelu-cc-empty h2 { font-size: 19px; }
+}
+
+/* ----------------------------- activity card ----------------------------- */
+
+.lelu-cc-activity-card {
+  align-self: stretch;
+  border-radius: 20px;
+  background: rgba(24, 16, 52, 0.62);
+  border: 1px solid rgba(255, 236, 252, 0.14);
+  overflow: hidden;
+}
+
+.lelu-cc-activity-card[data-lelu-activity="running"] { border-color: rgba(246, 184, 220, 0.32); }
+
+.lelu-cc-activity-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px 8px 14px;
+  border: none;
+  background: transparent;
+  color: var(--cc-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lelu-cc-activity-icon { font-size: 18px; flex-shrink: 0; }
+
+.lelu-cc-activity-title { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.lelu-cc-activity-title strong { font-size: 13.5px; font-weight: 650; }
+.lelu-cc-activity-title span { font-size: 12px; color: var(--cc-ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.lelu-cc-activity-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  font-size: 11.5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255, 240, 252, 0.08);
+  color: var(--cc-ink-soft);
+}
+
+.lelu-cc-activity-state.is-running { color: #ffd6ee; }
+.lelu-cc-activity-state.is-failed { color: #ffc2d4; }
+
+.lelu-cc-activity-chevron { flex-shrink: 0; color: var(--cc-ink-faint); transition: transform 160ms ease; }
+
+.lelu-cc-activity-now {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 10px;
+  font-size: 12.5px;
+  color: var(--cc-ink-soft);
+}
+
+.lelu-cc-activity-body { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+
+.lelu-cc-activity-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.lelu-cc-activity-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.lelu-cc-activity-steps li:nth-child(odd) { background: rgba(255, 240, 252, 0.04); }
+.lelu-cc-activity-steps li.kind-narration { color: var(--cc-ink-soft); font-style: italic; }
+.lelu-cc-activity-steps li.kind-steer { color: #ffd6ee; }
+
+.lelu-cc-activity-step-icon { flex-shrink: 0; width: 18px; text-align: center; }
+.lelu-cc-activity-step-text { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 2px 8px; overflow-wrap: anywhere; }
+.lelu-cc-activity-step-text em { font-style: normal; color: var(--cc-ink-faint); }
+.lelu-cc-activity-step-text small { flex-basis: 100%; color: #ffc2d4; }
+.lelu-cc-activity-step-text a { color: #ffc6e6; font-size: 11.5px; }
+
+.lelu-cc-act-done { color: #b6f2d2; flex-shrink: 0; margin-top: 2px; }
+.lelu-cc-act-failed { color: #ffb0c4; flex-shrink: 0; margin-top: 2px; }
+.lelu-cc-act-dot { width: 6px; height: 6px; margin: 6px 4px 0; border-radius: 999px; background: rgba(255, 240, 252, 0.3); flex-shrink: 0; }
+
+.lelu-cc-spin { animation: lelu-cc-spin 0.9s linear infinite; flex-shrink: 0; }
+@keyframes lelu-cc-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .lelu-cc-spin { animation: none; } }
+
+.lelu-cc-activity-pages { display: flex; flex-wrap: wrap; gap: 6px; }
+.lelu-cc-activity-pages a {
+  display: inline-flex; align-items: center; gap: 5px; max-width: 100%;
+  padding: 4px 10px; border-radius: 999px; font-size: 11.5px;
+  background: rgba(255, 240, 252, 0.07); color: var(--cc-ink-soft); text-decoration: none;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.lelu-cc-activity-pages a.is-error, .lelu-cc-activity-pages a.is-blocked { color: #ffc2d4; }
+
+.lelu-cc-activity-sources summary { cursor: pointer; font-size: 12.5px; color: var(--cc-ink-soft); padding: 4px 2px; }
+.lelu-cc-activity-sources ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.lelu-cc-activity-sources li { font-size: 12.5px; overflow-wrap: anywhere; }
+.lelu-cc-activity-sources li a { color: #ffd6ee; }
+.lelu-cc-activity-sources li em { margin-left: 6px; font-style: normal; color: var(--cc-ink-faint); font-size: 11.5px; }
+.lelu-cc-activity-sources li p { margin: 2px 0 0; color: var(--cc-ink-faint); font-size: 12px; line-height: 1.45; }
+
+/* The page LÉLU is reading — a small browser view of the real fetch. */
+.lelu-cc-browser {
+  margin: 0 12px 12px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(10, 6, 26, 0.75);
+  border: 1px solid rgba(255, 236, 252, 0.12);
+}
+.lelu-cc-activity-body .lelu-cc-browser { margin: 0; }
+
+.lelu-cc-browser-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; background: rgba(255, 240, 252, 0.06);
+}
+.lelu-cc-browser-dots { display: inline-flex; gap: 4px; flex-shrink: 0; }
+.lelu-cc-browser-dots i { width: 7px; height: 7px; border-radius: 999px; background: rgba(255, 240, 252, 0.25); }
+.lelu-cc-browser-address {
+  flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 999px; background: rgba(0, 0, 0, 0.25);
+  font-size: 11.5px; color: var(--cc-ink-soft);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.lelu-cc-browser-state { flex-shrink: 0; font-size: 11px; color: var(--cc-ink-faint); }
+.lelu-cc-browser-state.is-read { color: #b6f2d2; }
+.lelu-cc-browser-state.is-error, .lelu-cc-browser-state.is-blocked { color: #ffc2d4; }
+
+.lelu-cc-browser-progress {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cc-pink), transparent);
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  animation: lelu-cc-loading 1.2s ease-in-out infinite;
+}
+@keyframes lelu-cc-loading { from { background-position: -50% 0; } to { background-position: 150% 0; } }
+@media (prefers-reduced-motion: reduce) { .lelu-cc-browser-progress { animation: none; background-position: 50% 0; } }
+
+.lelu-cc-browser-body { padding: 10px 12px 12px; }
+.lelu-cc-browser-body strong { display: block; font-size: 13.5px; font-weight: 650; margin-bottom: 4px; overflow-wrap: anywhere; }
+.lelu-cc-browser-body p { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--cc-ink-soft); white-space: pre-line; overflow-wrap: anywhere; }
+.lelu-cc-browser-body p.is-clamped { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.lelu-cc-browser-body p.is-muted { color: var(--cc-ink-faint); }
+.lelu-cc-browser-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.lelu-cc-browser-actions a { text-decoration: none; }
+
+.lelu-cc-steer-note {
+  align-self: flex-end;
+  font-size: 11.5px;
+  color: var(--cc-ink-faint);
+  margin-top: -10px;
+}
+
+/* Which chat a message in a merged chat came from. */
+.lelu-cc-origin {
+  display: inline-block;
+  margin: 0 0 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: rgba(246, 226, 255, 0.82);
+  background: rgba(255, 236, 252, 0.08);
+  border: 1px solid rgba(255, 236, 252, 0.14);
+}
+.lelu-cc-msg--user .lelu-cc-origin {
+  align-self: flex-end;
+}

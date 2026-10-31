@@ -20,6 +20,7 @@
  */
 
 
+import type { ChatActivity } from "../../../core/multichat/TurnActivity";
 import {
 
   createContext,
@@ -78,11 +79,14 @@ import MultiChatStore, {
 
 } from "../../../core/multichat/MultiChatStore";
 
-import CrossChatResolver from "../../../core/multichat/CrossChatResolver";
+import CrossChatResolver, { type CrossChatReference } from "../../../core/multichat/CrossChatResolver";
 
 import NotificationProvider from "../../../core/notifications/NotificationProvider";
+import { startNotificationRouting } from "../../../core/notifications/NotificationRouting";
 
 import VisualEngine from "../../../core/visual/VisualEngine";
+import { ownerForMessage } from "../../../core/multichat/TurnOwnership";
+import { GenesisSceneContext, countRender, type GenesisSceneValue } from "./useGenesisScene";
 
 
 
@@ -143,6 +147,8 @@ export type GenesisPanel =
 
   | "memory"
 
+  | "briefings"
+
   | "providers"
 
   | "device"
@@ -196,7 +202,9 @@ export type GenesisPanel =
   // Self Evolution — visible research/proposals/experiments dashboard
   | "self-evolution"
   // Cosmos — infinite cosmos map + navigation
-  | "cosmos";
+  | "cosmos"
+  // LÉLU Personality Development — identity, traits, journal
+  | "identity";
 
 
 /**
@@ -281,6 +289,12 @@ export interface GenesisMessage {
   reasoning?:unknown;
 
   plan?:unknown;
+
+  /** What LÉLU did for this reply, recorded from real events. */
+  activity?:ChatActivity;
+
+  /** The chat this message was first written in (a merged chat keeps its sources apart). */
+  origin?:{ conversationId:string; title:string };
 
 }
 
@@ -490,6 +504,13 @@ export interface GenesisContextValue {
 
   duplicateConversation(id:string):void;
 
+  /**
+   * A new chat holding the histories of two or more conversations, each
+   * message labelled by the chat it came from. The originals stay
+   * unchanged. Returns the merged chat's id ("" when it could not be made).
+   */
+  mergeConversations(ids:string[],title?:string):string;
+
   pinConversation(id:string):void;
 
   linkConversations(a:string,b:string):void;
@@ -502,8 +523,14 @@ export interface GenesisContextValue {
 
   searchConversations(query:string,scope?:ConversationSearchScope):ConversationSearchHit[];
 
-  /** Compact cross-chat context for the current conversation/query. */
-  crossChatContext(query:string):string;
+  /**
+   * Compact cross-chat context for a conversation/query. A turn passes its
+   * own conversation: it may have started after the user switched away.
+   */
+  crossChatContext(query:string, conversationId?:string):string;
+
+  /** The same, with which chats were used (authorized) and which were only offered. */
+  crossChatReference(query:string, conversationId?:string):CrossChatReference;
 
 
 
@@ -703,6 +730,12 @@ export function useGenesis(){
   }
 
 
+  // Dev-only render ledger — see useGenesisScene.countRender. Counting
+  // both contexts is what makes the comparison meaningful: chat
+  // consumers SHOULD re-render on a token, scene consumers should not.
+  countRender("chat");
+
+
   return context;
 
 }
@@ -806,6 +839,43 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
     /* backend blocked */
   }
 }
+
+  /**
+   * Follow MultiChatStore's own idea of which conversation is active.
+   *
+   * GenesisCore kept `state.activeConversationId` as React state and wrote
+   * every message to it, while MultiChatStore kept its own `activeId`.
+   * Nothing synchronised the two, so anything that switched conversation
+   * outside this component — Workstream.openWorkstream(), which cognition
+   * calls when a suggestion is explored — moved the store's pointer and
+   * left the UI's behind.
+   *
+   * Measured: the store reported one conversation active while the message
+   * just sent had been written into a different one. That is the reported
+   * "switching workspace does not switch workspace state": two sources of
+   * truth for one fact.
+   *
+   * The store is the source of truth; this makes the view follow it.
+   */
+  useEffect(() => {
+    const multiChat = MultiChatStore.getInstance();
+    return multiChat.subscribe((conversations) => {
+      const activeId = multiChat.getActiveId();
+      setState((current) => {
+        if (current.activeConversationId === activeId) {
+          // Same conversation — only the list changed.
+          return { ...current, conversations };
+        }
+        const active = multiChat.get(activeId);
+        return {
+          ...current,
+          conversations,
+          activeConversationId: activeId,
+          messages: active?.messages ?? current.messages,
+        };
+      });
+    });
+  }, []);
 
   /* Duplicate-runtime assertion — see genesisCoreMountCount above. */
   useEffect(() => {
@@ -994,6 +1064,16 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
   const eventBusRef = useRef(new EventBus());
 
+  /**
+   * The live UI state, for the scene.
+   *
+   * Frame-loop consumers need the current dialogue flags but must not
+   * re-render when they change — a streamed token is not a reason to
+   * rebuild a starfield. They read this through
+   * useGenesisScene().getLiveState() instead of subscribing to `state`.
+   */
+  const stateRef = useRef<GenesisUIState | null>(null);
+
   const runtimeRef = useRef<EngineRuntime | null>(null);  const [
 
     universeVersion,
@@ -1094,6 +1174,10 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
   useEffect(() => {
     const provider = NotificationProvider.getInstance();
 
+    // Side questions, other chats' replies and approvals go to the Chats
+    // panel's NOTIFICATIONS (silent records) rather than over the chat.
+    const stopRouting = startNotificationRouting();
+
     const removeNotifications = provider.subscribe((record) => {
       setState((current) => ({
         ...current,
@@ -1127,6 +1211,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
     });
 
     return () => {
+      stopRouting();
       removeNotifications();
       removeDeepLink();
     };
@@ -1293,8 +1378,6 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
    * few that need the live active conversation id, so they can be built
    * once per provider.
    */
-  const stateRef = useRef(state);
-  stateRef.current = state;
 
   const actions =
 
@@ -1336,13 +1419,28 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         addMessage(message){
 
 
-          multiChat.addMessage(stateRef.current.activeConversationId, message);
+          // The STORE decides which conversation is active, not this
+          // component's mirror of it. `state` here is captured from the
+          // render that created this callback, so after any switch that did
+          // not originate in React — Workstream.openWorkstream(), a deep
+          // link, a restored session — it names the previous conversation
+          // and the message lands in the wrong one.
+          //
+          // A reply still arriving from an earlier turn belongs to the
+          // conversation that turn was asked in, which is what
+          // ownerForMessage reports; with no turn in flight there is no
+          // owner and the active conversation is right.
+          const targetId = ownerForMessage(message.id) ?? multiChat.getActiveId();
+          multiChat.addMessage(targetId, message);
 
 
           setState(current=>{
 
 
-            const active = multiChat.get(current.activeConversationId);
+            const activeId = multiChat.getActiveId();
+
+
+            const active = multiChat.get(activeId);
 
 
             return {
@@ -1351,7 +1449,10 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
               ...current,
 
 
-              messages: active ? active.messages : current.messages,
+              // Only the VISIBLE conversation's messages mirror into state.
+              // A message routed to a conversation the user is not looking
+              // at must change that conversation and nothing on screen.
+              messages: targetId === activeId && active ? active.messages : current.messages,
 
 
               conversations: multiChat.list(),
@@ -1370,13 +1471,29 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         upsertMessage(message){
 
 
-          multiChat.upsertMessage(stateRef.current.activeConversationId, message);
+          // The STORE decides which conversation is active, not this
+          // component's mirror of it. `state` here is captured from the
+          // render that created this callback, so after any switch that did
+          // not originate in React — Workstream.openWorkstream(), a deep
+          // link, a restored session — it names the previous conversation
+          // and the message lands in the wrong one.
+          //
+          // This is the path a streamed reply takes, and it is the one that
+          // was measurably wrong: a reply asked for in chat A and arriving
+          // after the user opened chat B was written into B. The turn's
+          // owner decides, not the selected tab. See core/multichat/
+          // TurnOwnership.
+          const targetId = ownerForMessage(message.id) ?? multiChat.getActiveId();
+          multiChat.upsertMessage(targetId, message);
 
 
           setState(current=>{
 
 
-            const active = multiChat.get(current.activeConversationId);
+            const activeId = multiChat.getActiveId();
+
+
+            const active = multiChat.get(activeId);
 
 
             return {
@@ -1385,7 +1502,8 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
               ...current,
 
 
-              messages: active ? active.messages : current.messages,
+              // Only the VISIBLE conversation's messages mirror into state.
+              messages: targetId === activeId && active ? active.messages : current.messages,
 
 
               conversations: multiChat.list(),
@@ -1404,7 +1522,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         clearConversation(){
 
 
-          multiChat.clear(stateRef.current.activeConversationId);
+          multiChat.clear(multiChat.getActiveId());
 
 
           setState(current=>({
@@ -1617,6 +1735,19 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         },
 
 
+        mergeConversations(ids,title){
+          const merged = multiChat.merge(ids,title);
+          if(!merged) return "";
+          setState(current=>({
+            ...current,
+            activeConversationId:merged.id,
+            messages:merged.messages,
+            conversations:multiChat.list(),
+          }));
+          return merged.id;
+        },
+
+
         pinConversation(id){
 
 
@@ -1686,12 +1817,18 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         },
 
 
-        crossChatContext(query){
+        crossChatContext(query, conversationId){
 
 
-          return crossChat.buildContext(stateRef.current.activeConversationId, query);
+          // Cognition reads the same authority the writes use.
+          return crossChat.buildContext(conversationId ?? multiChat.getActiveId(), query);
 
 
+        },
+
+
+        crossChatReference(query, conversationId){
+          return crossChat.reference(conversationId ?? multiChat.getActiveId(), query);
         },
 
 
@@ -2317,11 +2454,36 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
 
 
+  // Kept in step every render, read on demand rather than subscribed to.
+  stateRef.current = state;
+
+  /**
+   * STABLE, deliberately: no dependencies, so its identity never
+   * changes and no scene consumer re-renders because chat state moved.
+   * Every member reads the same refs and the same state the main
+   * context exposes — this is a second VIEW, not a second source.
+   */
+  const sceneValue = useMemo<GenesisSceneValue>(
+    () => ({
+      getLiveUniverse: () => universeRef.current,
+      getLiveState: () => stateRef.current ?? state,
+      get engineRuntime() {
+        return runtimeRef.current;
+      },
+      eventBus: eventBusRef.current,
+      updateUniverse,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   return (
 
     <GenesisStateContext.Provider value={stateValue}>
       <GenesisContext.Provider value={value}>
-        {children}
+        <GenesisSceneContext.Provider value={sceneValue}>
+          {children}
+        </GenesisSceneContext.Provider>
       </GenesisContext.Provider>
     </GenesisStateContext.Provider>
 

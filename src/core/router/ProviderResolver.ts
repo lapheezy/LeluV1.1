@@ -9,14 +9,16 @@
  * configured provider is attempted immediately.
  */
 
+import { contradictedCaptureClaims, contradictionNote, groundingNote, ungroundedClaims } from "../tools/ClaimGrounding";
 import type AIProvider from "../../providers/AIProvider";
 import type { AIMessage, AIResponse } from "../../providers/AIProvider";
 import type RouterContext from "./RouterContext";
 import type { ProviderResult } from "./RouterResults";
 import AgentEventBus from "../agent/AgentEvents";
 import ModelRouter from "../model/ModelRouter";
-import { dispatchToolCall } from "../tools/ToolDispatcher";
+import { dispatchToolCall, latestCaptureMeasurements } from "../tools/ToolDispatcher";
 import { toolSchemasForModel } from "../tools/ToolSchemas";
+import { labelOtherChats } from "../multichat/ContextProvenance";
 
 /**
  * TERMINATION, not a round quota.
@@ -44,6 +46,18 @@ const TOOL_LOOP_BUDGET_MS = 8 * 60 * 1000;
 const TOOL_LOOP_MAX_ROUNDS = 40;
 const NO_PROGRESS_REPEATS = 3;
 
+/**
+ * A turn that is only LOOKING THINGS UP — searching, reading pages,
+ * recalling memory — is answering someone who is waiting in the chat.
+ * The engineering budget above let a research question run its full
+ * eight minutes (measured: a model kept re-searching because most news
+ * links cannot be read). Until the turn uses any other tool it gets
+ * this shorter bound, and is then told to answer from what it found.
+ */
+const RESEARCH_LOOP_BUDGET_MS = 3 * 60 * 1000;
+const RESEARCH_LOOP_MAX_ROUNDS = 16;
+const RESEARCH_TOOL = /^(research|browser|memory)[._]/;
+
 export default class ProviderResolver {
   public async execute(context: RouterContext): Promise<ProviderResult> {
     /**
@@ -57,6 +71,19 @@ export default class ProviderResolver {
      * finally returned, including the offline one.
      */
     const toolsReallyRun: Array<{ tool: string; ok: boolean }> = [];
+
+    // The last point before any provider sees the context: whatever her
+    // cognition put in it that quotes ANOTHER chat is labelled with that
+    // chat (multichat/ContextProvenance), so she can tell where it came
+    // from instead of presenting it as said here.
+    if (context.request.conversationId && context.request.context) {
+      try {
+        context.request.context = labelOtherChats(context.request.context, context.request.conversationId).context;
+      } catch {
+        // labelling must never cost the turn
+      }
+    }
+
     const providers = await context.aiProviders.available();
 
     if (providers.length === 0) {
@@ -123,7 +150,8 @@ export default class ProviderResolver {
     const ordered = this.orderByPreference(eligible, decision.preferredProviders);
 
     for (const provider of ordered) {
-      if (context.request.signal?.aborted) return { handled: true, response: this.cancelled(toolsReallyRun) };
+      // The user pressed Stop: do not start another provider.
+      throwIfStopped(context);
       if (!provider.canHandle(context.request.prompt)) {
         context.logger.info(
           "ProviderResolver",
@@ -185,11 +213,11 @@ export default class ProviderResolver {
           response,
         };
       } catch (error) {
-        // Stopped by the user: not this provider's fault, and asking the
-        // next provider would restart the work they just stopped.
-        if (context.request.signal?.aborted) {
-          return { handled: true, response: this.cancelled(toolsReallyRun) };
-        }
+        // A user Stop is not a provider failure. Marking it one put a
+        // healthy provider into failure cooldown, and falling through ran
+        // every other provider and then answered with the offline notice
+        // — "all providers are unreachable" — to a turn the user ended.
+        throwIfStopped(context, error);
         const message = error instanceof Error ? error.message : String(error);
         context.aiProviders.markFailure(provider.name, message);
         AgentEventBus.getInstance().emit({
@@ -212,6 +240,7 @@ export default class ProviderResolver {
       }
     }
 
+    throwIfStopped(context);
     context.logger.error(
       "ProviderResolver",
       "All available AI providers failed.",
@@ -224,20 +253,6 @@ export default class ProviderResolver {
     return {
       handled: true,
       response: this.withRealTools(this.offline(context), toolsReallyRun),
-    };
-  }
-
-  /** What a cancelled turn returns: what already ran, and that it stopped. */
-  private cancelled(toolsReallyRun?: Array<{ tool: string; ok: boolean }>): AIResponse {
-    const ran = toolsReallyRun?.length
-      ? ` Before stopping, these ran: ${toolsReallyRun.map((t) => `${t.tool} (${t.ok ? "ok" : "failed"})`).join(", ")}.`
-      : "";
-    return {
-      text: `Stopped.${ran}`,
-      provider: "cancelled",
-      model: "none",
-      processingTime: 0,
-      metadata: { cancelled: true, success: true, ...(toolsReallyRun?.length ? { toolsExecuted: toolsReallyRun } : {}) },
     };
   }
 
@@ -298,11 +313,22 @@ export default class ProviderResolver {
     const taskId = String(context.request.timestamp ?? Date.now());
     const messages: AIMessage[] = [...(context.request.messages ?? [])];
     const executed: Array<{ tool: string; ok: boolean }> = [];
+    // What the model ASKED for, separately from what really ran.
+    //
+    // These are the same list on this path, by construction — every
+    // accepted call is dispatched below. Recording both anyway is what
+    // lets a reader downstream tell "the model wanted three tools and
+    // got three" from "the model wanted three and one never reached the
+    // dispatcher", without having to assume the loop is intact. A
+    // completion claim is checked against executions, and a request
+    // that produced no execution is exactly the gap that check exists
+    // to catch.
+    const requested: string[] = [];
 
     let response = await provider.generate({ ...context.request, messages, tools });
     let promptMaterialized = false;
 
-    const deadline = Date.now() + TOOL_LOOP_BUDGET_MS;
+    const loopStarted = Date.now();
     const recentSignatures: string[] = [];
     let stopReason = "";
 
@@ -323,11 +349,15 @@ export default class ProviderResolver {
       ) {
         stopReason = `the same tool call repeated ${NO_PROGRESS_REPEATS} times without progress`;
       }
-      if (!stopReason && Date.now() > deadline) {
-        stopReason = `the ${Math.round(TOOL_LOOP_BUDGET_MS / 60000)}-minute tool budget was spent`;
+      // Research-only so far, including the calls being asked for now?
+      const researchOnly = [...requested, ...calls.map((call) => call.name)].every((name) => RESEARCH_TOOL.test(name));
+      const budgetMs = researchOnly ? RESEARCH_LOOP_BUDGET_MS : TOOL_LOOP_BUDGET_MS;
+      const maxRounds = researchOnly ? RESEARCH_LOOP_MAX_ROUNDS : TOOL_LOOP_MAX_ROUNDS;
+      if (!stopReason && Date.now() - loopStarted > budgetMs) {
+        stopReason = `the ${Math.round(budgetMs / 60000)}-minute ${researchOnly ? "research" : "tool"} budget was spent`;
       }
-      if (!stopReason && round === TOOL_LOOP_MAX_ROUNDS) {
-        stopReason = `the ${TOOL_LOOP_MAX_ROUNDS}-round limit was reached`;
+      if (!stopReason && round >= maxRounds) {
+        stopReason = `the ${maxRounds}-round ${researchOnly ? "research " : ""}limit was reached`;
       }
 
       // Put the user's actual question INTO the conversation before any
@@ -345,6 +375,13 @@ export default class ProviderResolver {
         promptMaterialized = true;
       }
 
+      // What she said she was doing alongside the request ("I'm checking
+      // current sources") is a status line for the activity — the reply
+      // itself is the final answer, not this.
+      if (response.text?.trim()) {
+        AgentEventBus.getInstance().emit({ type: "tool_narration", taskId, text: response.text.trim().slice(0, 400) });
+      }
+
       // Record the request turn before its results, so the pairing the
       // providers replay stays intact.
       messages.push({
@@ -358,7 +395,8 @@ export default class ProviderResolver {
 
       for (const call of calls) {
         // Never start a tool after the user pressed stop.
-        if (context.request.signal?.aborted) throw new Error("cancelled");
+        throwIfStopped(context);
+        requested.push(call.name);
         const result = await dispatchToolCall(call, taskId, context);
         executed.push({ tool: call.name, ok: result.ok });
         // ALSO record it where a later provider failure cannot erase it.
@@ -378,6 +416,20 @@ export default class ProviderResolver {
           toolCallId: call.id,
           toolName: call.name,
           toolError: !result.ok,
+        });
+      }
+
+      // The user spoke while the tools ran. Hand it to the model now, so
+      // a new instruction changes the work in progress rather than
+      // waiting behind it.
+      for (const text of context.request.drainSteering?.() ?? []) {
+        context.request.steered = [...(context.request.steered ?? []), text];
+        AgentEventBus.getInstance().emit({ type: "user_steering", taskId, text: text.slice(0, 400) });
+        messages.push({
+          role: "user",
+          content:
+            `[The user sent this while you were working. Take it into account from now on, ` +
+            `adjust what you are doing if it changes the task, and acknowledge it briefly in your reply.]\n${text}`,
         });
       }
 
@@ -413,14 +465,34 @@ export default class ProviderResolver {
     // provider is prose about tools, not an unexecuted request, and
     // re-running it would execute a second time and throw away the
     // grounded answer.
+    // A result she reports must have a tool behind it (ClaimGrounding):
+    // claims about tools that did not run successfully this turn are
+    // marked "not verified" in the reply itself.
+    const ungrounded = ungroundedClaims(response.text ?? "", executed);
+    if (ungrounded.length > 0) {
+      context.logger.info("ProviderResolver", "Reply claims tool results with no tool behind them", {
+        claims: ungrounded.map((claim) => claim.label),
+      });
+    }
+    // ...and the numbers she reports must be the ones measured.
+    const contradicted = contradictedCaptureClaims(response.text ?? "", latestCaptureMeasurements());
+    if (contradicted.length > 0) {
+      context.logger.info("ProviderResolver", "Reply contradicts measured capture results", {
+        claims: contradicted.map((claim) => `${claim.target}: ${claim.claimed}`),
+      });
+    }
     return {
       ...response,
+      text: `${response.text ?? ""}${groundingNote(ungrounded)}${contradictionNote(contradicted)}`,
       metadata: {
         ...response.metadata,
+        ...(ungrounded.length ? { ungroundedClaims: ungrounded.map((claim) => claim.label) } : {}),
+        ...(contradicted.length ? { contradictedClaims: contradicted.map((claim) => `${claim.target}: ${claim.claimed}`) } : {}),
         nativeTools: true,
         ...(executed.length
           ? { toolsExecuted: executed, toolRounds: executed.length }
           : {}),
+        ...(requested.length ? { toolsRequested: requested } : {}),
         ...(stopReason ? { toolLoopStopped: stopReason } : {}),
       },
     };
@@ -527,4 +599,16 @@ export default class ProviderResolver {
       },
     };
   }
+}
+
+
+/**
+ * Rethrow as an AbortError when the turn's own signal has been aborted
+ * (the user pressed Stop), so AIService settles it as cancelled.
+ */
+function throwIfStopped(context: RouterContext, cause?: unknown): void {
+  const signal = (context.request as { signal?: AbortSignal }).signal;
+  if (!signal?.aborted) return;
+  if (cause instanceof Error && cause.name === "AbortError") throw cause;
+  throw new DOMException("Turn stopped by the user.", "AbortError");
 }

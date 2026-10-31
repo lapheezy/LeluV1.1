@@ -71,9 +71,10 @@ function publicEnvRecord(): Record<string, string | undefined> {
       VITE_VAPID_PUBLIC_KEY: import.meta.env.VITE_VAPID_PUBLIC_KEY,
 
       /* ---- browser-called service keys ----
-       * NewsAPI, the YouTube Data API and GitHub repo search have been
-       * moved server-side and are deliberately ABSENT here: they relay
-       * through /api/knowledge/relay and /api/github/proxy.
+       * NewsAPI, the YouTube Data API, Meshy (paid, avatar 3-D
+       * reconstruction) and GitHub repo search have been moved
+       * server-side and are deliberately ABSENT here: they relay through
+       * /api/knowledge/relay and /api/github/proxy.
        *
        * The four below are still read in the browser, so they are still
        * shipped in the bundle. That is a real remaining exposure, stated

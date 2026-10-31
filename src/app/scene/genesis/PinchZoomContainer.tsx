@@ -271,14 +271,28 @@ export default function PinchZoomContainer({
     return <div className={className} style={style}>{children}</div>;
   }
 
+  // At 1× the content is an ordinary scroller: one finger scrolls it
+  // natively (touch-action pan-y), and a two-finger pinch still reaches
+  // the pointer handlers. Only ZOOMED does this take over panning.
+  //
+  // It used to clip and claim every touch at any scale, so on a phone no
+  // panel framed by GenesisWindowFrame could be scrolled at all — measured:
+  // Settings showed 466px of 2682px, Memory 490px of 1403px, with the
+  // rest unreachable.
+  const zoomed = scale > 1.01;
+
   return (
     <div
       ref={containerRef}
       className={className}
       style={{
         ...style,
-        overflow: "hidden",
-        touchAction: "none",
+        // Never the `overflow` shorthand next to the long-hands: React
+        // writes an undefined shorthand as "", which clears both.
+        ...(zoomed ? { overflow: "hidden" } : { overflowX: "hidden", overflowY: "auto" }),
+        WebkitOverflowScrolling: "touch",
+        touchAction: zoomed ? "none" : "pan-y",
+        minHeight: 0,
         position: "relative",
         cursor: scale > 1.05 ? "grab" : undefined,
       }}

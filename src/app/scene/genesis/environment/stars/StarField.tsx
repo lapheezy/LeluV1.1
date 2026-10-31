@@ -32,7 +32,7 @@ import {
   Vector3,
 } from "three";
 
-import { useGenesis } from "../../GenesisCore";
+import { useGenesisScene } from "../../useGenesisScene";
 
 const STAR_COUNT = 2400;
 const NEAR_COUNT = 320;
@@ -155,7 +155,7 @@ function randomStar(index: number): Star {
 }
 
 export default function StarField() {
-  const { getLiveUniverse } = useGenesis();
+  const { getLiveUniverse } = useGenesisScene("StarField");
   const group = useRef<Group>(null);
 
   const { geometry, material } = useMemo(() => {

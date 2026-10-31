@@ -1,0 +1,110 @@
+{
+  "phone-a/app": {
+    "beforeOpen": [],
+    "frames": 368,
+    "coveredMs": 1400,
+    "firstCovered": 928,
+    "lastCovered": 2013,
+    "worst": [
+      "New chat",
+      "Search all chats",
+      "Chats and notifications"
+    ]
+  },
+  "phone-a/hers": {
+    "beforeOpen": [],
+    "frames": 384,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "phone-b/app": {
+    "beforeOpen": [],
+    "frames": 392,
+    "coveredMs": 927,
+    "firstCovered": 742,
+    "lastCovered": 1326,
+    "worst": [
+      "New chat",
+      "Search all chats",
+      "Chats and notifications"
+    ]
+  },
+  "phone-b/hers": {
+    "beforeOpen": [],
+    "frames": 335,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "phone-c/app": {
+    "beforeOpen": [],
+    "frames": 372,
+    "coveredMs": 1817,
+    "firstCovered": 432,
+    "lastCovered": 1823,
+    "worst": [
+      "New chat",
+      "Search all chats",
+      "Chats and notifications"
+    ]
+  },
+  "phone-c/hers": {
+    "beforeOpen": [],
+    "frames": 380,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-a/app": {
+    "beforeOpen": [],
+    "frames": 15,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-a/hers": {
+    "beforeOpen": [],
+    "frames": 17,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-b/app": {
+    "beforeOpen": [],
+    "frames": 15,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-b/hers": {
+    "beforeOpen": [],
+    "frames": 17,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-c/app": {
+    "beforeOpen": [],
+    "frames": 16,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-c/hers": {
+    "beforeOpen": [],
+    "frames": 15,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  }
+}

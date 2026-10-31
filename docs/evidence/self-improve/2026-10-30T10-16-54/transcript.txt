@@ -1,0 +1,11 @@
+── USER ──
+LÉLU, to finish your self-development loop on workspace "default" (your copy with EDGE_MARGIN 100, reconsider every 500 ms and the new default spot): in your last session you validated it and your phone comparison showed the three covered-while-opening controls resolved, but the AI provider went offline before you could check desktop, show the diff or give your verdict.
+
+Without changing anything first, please complete it:
+1) Do not run project_copy (it would replace your copy). Validate the copy as it is (project_validate) and start its preview (project_preview).
+2) Capture the preview at phone AND at desktop (panel chat each) and compare each with the app under the same conditions.
+3) If either still shows a control covered (including covered-while-opening) that the app does not, fix your copy, validate and compare again.
+4) Show the diff (project_diff) and say plainly, for phone and for desktop, whether the outcome — no control covered by the companion, including while the panel opens — is met, based on the evidence.
+
+── ASSISTANT ──
+I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking "who are you", "who am I", or about something we've discussed.

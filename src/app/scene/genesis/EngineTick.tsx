@@ -19,25 +19,58 @@
  * ==========================================================
  */
 
-import { useEffect, useRef } from "react";
+import { memo, useCallback, useEffect, useRef } from "react";
 
-import { useGenesis } from "./GenesisCore";
+import { useGenesisScene } from "./useGenesisScene";
 import {
   idleGenesisSignals,
   type GenesisSignals,
 } from "./engines/GenesisSignals";
 import Sentinel from "../../../core/sentinel/Sentinel";
 
-export default function EngineTick() {
-  const { state: uiState, engineRuntime, updateUniverse } = useGenesis();
+/**
+ * Memoised, and that is the other half of the scene-isolation fix.
+ *
+ * Reading the stable scene context stops a token re-rendering this
+ * through CONTEXT. It does not stop it re-rendering because its PARENT
+ * did: GenesisWorkspaceRouter calls useGenesis(), so it re-renders on
+ * every state change and rebuilds every child element beneath it.
+ * Measured with the render ledger: 62 scene-consumer renders for one
+ * message even after the context work, against 320 chat-consumer
+ * renders. memo() takes props into account and this takes none, so a
+ * parent re-render is now a no-op here.
+ */
+function EngineTickImpl() {
+  // The SCENE context, which never changes identity.
+  //
+  // This component's own comment already said the signals are "sampled
+  // once per frame, not once per React render" — but it read them from
+  // useGenesis(), whose value is rebuilt whenever any part of the
+  // monolithic Genesis state changes, and its effect listed
+  // uiState.messages among its dependencies. So every streamed token
+  // re-rendered the component driving the engine loop and re-ran the
+  // sampling. Reading the live state on demand is what the comment
+  // described; this is it.
+  // NOT destructured: `engineRuntime` is a getter on the scene context,
+  // and the whole object's identity never changes. GenesisCore creates
+  // the runtime in its own effect, and a child's effects run BEFORE its
+  // parent's — so at this component's first render and first effect the
+  // runtime is still null. It used to recover by accident: its parent
+  // re-rendered at render rate, so a later render eventually read a
+  // non-null value. Memoising this component (correctly) removed that
+  // accident, which would have left the simulation never started.
+  //
+  // So the frame loop reads the getter each frame instead, which is
+  // exactly what the stable context is for.
+  const scene = useGenesisScene("EngineTick");
+  const { getLiveState, updateUniverse } = scene;
 
-  /* Mirrors the signals the v1 renderer used to feed the engine:
-     live UI state (thinking/speaking/listening/reasoning…) sampled
-     once per frame, not once per React render. */
   const signalsRef = useRef<GenesisSignals>(idleGenesisSignals);
   const lastProviderRef = useRef<string | undefined>(undefined);
 
-  useEffect(() => {
+  /** Sample the live UI state. Called from the frame loop, not from React. */
+  const sampleSignals = useCallback((): GenesisSignals => {
+    const uiState = getLiveState();
     const lastMessage = uiState.messages[uiState.messages.length - 1];
     const provider = lastMessage?.provider;
     const providerSwitched =
@@ -49,7 +82,7 @@ export default function EngineTick() {
       lastProviderRef.current = provider;
     }
 
-    signalsRef.current = {
+    return {
       thinking: uiState.thinking,
       speaking: uiState.speaking,
       listening: uiState.listening,
@@ -60,20 +93,9 @@ export default function EngineTick() {
         (status) => Boolean(status.error) || status.enabled === false,
       ).length,
     };
-  }, [
-    uiState.thinking,
-    uiState.speaking,
-    uiState.listening,
-    uiState.cognition,
-    uiState.engineStatuses,
-    uiState.messages,
-  ]);
+  }, [getLiveState]);
 
   useEffect(() => {
-    if (!engineRuntime) {
-      return;
-    }
-
     // Sentinel: report engine errors every 10 seconds
     const sentinel = Sentinel.getInstance();
     let sentinelTick = 0;
@@ -87,9 +109,18 @@ export default function EngineTick() {
       const delta = Math.min(0.1, Math.max(0.001, (now - last) / 1000));
       last = now;
 
-      updateUniverse((universeState) => {
-        engineRuntime.update(universeState, delta, signalsRef.current);
-      });
+      // Once per frame, from the live state — which is what the engine
+      // needs and what the comment above always claimed.
+      signalsRef.current = sampleSignals();
+
+      // Read per frame, so a runtime that arrives after this effect
+      // started is picked up on the next frame rather than never.
+      const runtime = scene.engineRuntime;
+      if (runtime) {
+        updateUniverse((universeState) => {
+          runtime.update(universeState, delta, signalsRef.current);
+        });
+      }
 
       // Periodic Sentinel health report
       if (now - lastSentinel >= SENTINEL_INTERVAL) {
@@ -119,7 +150,9 @@ export default function EngineTick() {
     raf = requestAnimationFrame(tick);
 
     return () => cancelAnimationFrame(raf);
-  }, [engineRuntime, updateUniverse]);
+  }, [scene, updateUniverse, sampleSignals]);
 
   return null;
 }
+
+export default memo(EngineTickImpl);

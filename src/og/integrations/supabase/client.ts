@@ -2,7 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { brokeredPreviewStorage } from './previewAuthStorage';
-import { resolveFirst } from '../../../core/resolveEnv';
+import { resolveSupabaseConfig } from "../../../core/config/supabaseEnv";
 
 /**
  * Thrown when Supabase-backed OG functionality is invoked with no Supabase
@@ -46,16 +46,16 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 
 
 /**
- * Resolution goes through v1.1's canonical resolver rather than reading
- * import.meta.env directly, so a key supplied under the unprefixed platform
- * name (SUPABASE_URL rather than VITE_SUPABASE_URL) is found — which is how
- * the hosting environment actually delivers it.
+ * Resolution goes through the shared Supabase name list rather than this
+ * file's own, so this client and SupabasePersistence cannot disagree about
+ * whether the deployment is configured. This path used to accept a narrower
+ * set of names than persistence did, which meant one could be configured
+ * while the other reported "not connected".
  */
 function readConfig(): { url: string; key: string } | null {
-  const url = resolveFirst("SUPABASE_URL");
-  const key = resolveFirst("SUPABASE_PUBLISHABLE_KEY", "SUPABASE_ANON_KEY");
-  if (!url || !key) return null;
-  return { url, key };
+  const config = resolveSupabaseConfig();
+  if (!config) return null;
+  return { url: config.url, key: config.publishableKey };
 }
 
 /**

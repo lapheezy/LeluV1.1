@@ -1,0 +1,22 @@
+--- src/app/scene/genesis/MultiChatTabs.tsx (modified, +3/-2)
+--- a/src/app/scene/genesis/MultiChatTabs.tsx
++++ b/src/app/scene/genesis/MultiChatTabs.tsx
+@@ -144,7 +144,8 @@
+   whiteSpace: "nowrap",
+   fontFamily: "inherit",
+   border: "none",
+-  flexShrink: 0,
++  flexShrink: 1,
++  maxWidth: 120,
+ };
+ 
+ 
+@@ -355,7 +356,7 @@
+                     minHeight: 32,
+                     background: "transparent",
+                     color: active ? "rgba(255,255,255,0.98)" : "rgba(226, 238, 252, 0.78)",
+-                    maxWidth: 180,
++                    maxWidth: 120,
+                     overflow: "hidden",
+                     textOverflow: "ellipsis",
+                   }}

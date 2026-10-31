@@ -51,7 +51,7 @@ if (typeof localStorage === "undefined") {
   };
 }
 
-import SelfStudyEngine from "../src/core/cognition/SelfStudyEngine";
+import SelfStudyEngine, { quotableQuestion } from "../src/core/cognition/SelfStudyEngine";
 import StudyObjectives from "../src/core/cognition/StudyObjectives";
 import WorkQueue from "../src/core/cognition/WorkQueue";
 import AIService from "../src/core/AIService";
@@ -209,6 +209,55 @@ test("a continuous loop is not an echo chamber: questions do not quote themselve
       `Objective must not grow by accretion: ${objective.question.slice(0, 160)}`,
     );
   }
+});
+
+/**
+ * THE ONE LINE THE ECHO-CHAMBER GUARD COULD NOT REACH.
+ *
+ * When a question fails three times the engine escalates it: "Why can
+ * I not answer “<the question>” with the tools I have?". A parent
+ * question always ends in "?", so that line nested one question inside
+ * another EVERY time it ran — structurally, not occasionally. The
+ * model-derived path has been guarded all along (isSelfReferential
+ * rejects anything with more than one question mark); the line the
+ * engine writes itself was not, and the cycle-counting test above only
+ * reaches it if a live run happens to exhaust three attempts.
+ *
+ * So the escalation is pinned here on the transformation itself, with
+ * the exact text observed in a real self-study run.
+ */
+test("an escalated question quotes its parent without nesting a question", () => {
+  const observed = "What do I actually know about Procedural environment generation, and is it true?";
+  const escalated = `Why can I not answer “${quotableQuestion(observed)}” with the tools I have?`;
+
+  assert.equal(
+    (escalated.match(/\?/g) ?? []).length,
+    1,
+    `the escalation nests a question inside a question: ${escalated}`,
+  );
+  assert.ok(
+    escalated.includes("Procedural environment generation"),
+    "the escalation lost the subject it is escalating",
+  );
+  assert.ok(escalated.length < 260, "the escalation grows by accretion");
+});
+
+test("quoting is safe for every shape of parent question", () => {
+  // A parent asking two things: both marks go, or the wrapper nests.
+  assert.equal(
+    (quotableQuestion("Why is this slow? And what fixes it?").match(/\?/g) ?? []).length,
+    0,
+  );
+  // Already-quoted text cannot re-open a quote inside the wrapper.
+  assert.ok(!/[“”"']/.test(quotableQuestion('What does “recall” mean here?')));
+  // Removing the mark must not leave a dangling space before a comma,
+  // or a trailing separator where the quote closes.
+  assert.equal(
+    quotableQuestion("What do I know about X , and is it true ?"),
+    "What do I know about X, and is it true",
+  );
+  // Bounded, so a chain of escalations cannot grow without limit.
+  assert.ok(quotableQuestion(`${"a".repeat(400)}?`).length <= 120);
 });
 
 test("malformed model follow-ups are never adopted as objectives", async () => {

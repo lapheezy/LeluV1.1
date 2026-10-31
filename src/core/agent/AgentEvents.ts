@@ -78,6 +78,8 @@ export type CognitionStage =
   | "lesson-retrieved"
   | "decision-made"
   | "branch-selected"
+  /** A claimed completion was checked against what really happened. */
+  | "completion-verified"
   | "result-observed"
   | "lesson-extracted"
   | "lesson-persisted"
@@ -88,6 +90,10 @@ export type CognitionStage =
   | "continuation-scheduled"
   | "approval-required"
   | "approval-decided"
+  /** Blocked on something only the user knows, so a question was raised. */
+  | "question-asked"
+  /** The user answered, and this objective was revived to continue. */
+  | "question-answered"
   | "objective-scheduled"
   | "cycle-completed"
   | "objective-completed"
@@ -119,6 +125,22 @@ export type AgentEvent =
       status?: "complete" | "blocked" | "error";
     }
   | { type: "tool_failed"; taskId: string; tool: string; error?: string }
+  /**
+   * What LÉLU said she was doing while she called tools — the text a
+   * model returns alongside a tool request ("I'm checking current
+   * sources"). A status line in the activity, never part of the reply.
+   */
+  | { type: "tool_narration"; taskId: string; text: string }
+  /** A message the user sent while this turn was working, folded into it. */
+  | { type: "user_steering"; taskId: string; text: string }
+  /** Research from other chats this turn was authorized to use (and related chats it was not). */
+  | {
+      type: "cross_chat_reference";
+      taskId: string;
+      /** linked / same project, or "asked": the user brought it up or agreed in this chat. */
+      sources: Array<{ conversationId: string; title: string; authorization: "linked" | "project" | "asked" }>;
+      suggested: string[];
+    }
   /**
    * Agent lifecycle. Emitted by AgentRunner — the ONE entry point every
    * agent run passes through — so an agent started from the Agents panel
@@ -163,6 +185,10 @@ export type AgentEvent =
       /** Data URL of the real produced image (render snapshot). */
       image: string;
       label: string;
+      /** The page it shows, when it is a capture of one. */
+      source?: string;
+      /** What is known about it as text (a capture's title and visible text). */
+      text?: string;
     }
   | { type: "workspace_open"; taskId: string }
   | { type: "workspace_focus"; taskId: string; view: string }

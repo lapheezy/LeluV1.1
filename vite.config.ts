@@ -15,11 +15,13 @@ import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
+import { createSelfViewApi } from "./plugins/selfViewApi.ts";
 import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { githubApiPlugin } from "./plugins/githubApi.ts";
 import { runtimeKeyBridgePlugin, bridgeReport } from "./plugins/runtimeKeyBridge.ts";
+import { readBuildInfo } from "./plugins/buildInfo.ts";
 
 export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -90,7 +92,14 @@ export default defineConfig(({ mode, command }) => {
     };
   }
 
+  // What code this is — from git at start/build time, never typed by hand.
+  const buildInfo = readBuildInfo(mode);
+  console.info(`[build] LÉLU ${buildInfo.shortSha}${buildInfo.dirty ? "+dirty" : ""} on ${buildInfo.branch} (${mode}) at ${buildInfo.builtAt}`);
+
   return {
+    define: {
+      __LELU_BUILD__: JSON.stringify(buildInfo),
+    },
     // Support Supabase's documented NEXT_PUBLIC_* names alongside the
     // existing Vite convention without exposing any server-only secrets.
     envPrefix: ["VITE_", "NEXT_PUBLIC_"],
@@ -125,6 +134,15 @@ export default defineConfig(({ mode, command }) => {
       // middleware the standalone server (server.ts) mounts — the capability
       // is identical in dev and in the deployed runtime.
       engineerApiPlugin(createNodeEngineerAdapter("vite-dev")),
+
+      // Her eyes: headless capture of pages and her own UI, workspace
+      // previews, and code search (plugins/selfViewApi.ts).
+      {
+        name: "lelu-self-view",
+        configureServer(server: any) {
+          createSelfViewApi().attach(server.middlewares);
+        },
+      },
 
       envApiPlugin(),
 
@@ -212,6 +230,10 @@ export default defineConfig(({ mode, command }) => {
       port: 5173,
       strictPort: true,
       hmr: false,
+      // LÉLU's workspace copies live in .lelu-sandbox. Watching them made
+      // every copy and every edit she made there force a full reload of the
+      // live app — ending the very chat turn doing the work.
+      watch: { ignored: ["**/.lelu-sandbox/**"] },
       proxy: {
         "/api/ai": {
           target: "https://models.inference.ai.azure.com",

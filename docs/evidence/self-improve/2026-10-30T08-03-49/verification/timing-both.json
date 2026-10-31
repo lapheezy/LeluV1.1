@@ -1,0 +1,125 @@
+{
+  "phone-a/app": {
+    "beforeOpen": [],
+    "frames": 367,
+    "coveredMs": 1952,
+    "firstCovered": 398,
+    "lastCovered": 1960,
+    "worst": [
+      "New chat",
+      "Search all chats",
+      "Chats and notifications"
+    ]
+  },
+  "phone-a/hers": {
+    "beforeOpen": [
+      "Expand Genesis"
+    ],
+    "frames": 394,
+    "coveredMs": 1483,
+    "firstCovered": 5,
+    "lastCovered": 1483,
+    "worst": [
+      "New chat",
+      "Options for New chat"
+    ]
+  },
+  "phone-b/app": {
+    "beforeOpen": [],
+    "frames": 384,
+    "coveredMs": 1437,
+    "firstCovered": 372,
+    "lastCovered": 1444,
+    "worst": [
+      "New chat",
+      "Search all chats",
+      "Chats and notifications"
+    ]
+  },
+  "phone-b/hers": {
+    "beforeOpen": [
+      "Expand Genesis"
+    ],
+    "frames": 388,
+    "coveredMs": 1218,
+    "firstCovered": 5,
+    "lastCovered": 1218,
+    "worst": [
+      "New chat",
+      "Options for New chat"
+    ]
+  },
+  "phone-c/app": {
+    "beforeOpen": [],
+    "frames": 418,
+    "coveredMs": 821,
+    "firstCovered": 358,
+    "lastCovered": 826,
+    "worst": [
+      "New chat",
+      "Search all chats",
+      "Chats and notifications"
+    ]
+  },
+  "phone-c/hers": {
+    "beforeOpen": [
+      "Expand Genesis"
+    ],
+    "frames": 302,
+    "coveredMs": 3106,
+    "firstCovered": 8,
+    "lastCovered": 3106,
+    "worst": [
+      "New chat",
+      "Options for New chat"
+    ]
+  },
+  "desktop-a/app": {
+    "beforeOpen": [],
+    "frames": 14,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-a/hers": {
+    "beforeOpen": [],
+    "frames": 17,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-b/app": {
+    "beforeOpen": [],
+    "frames": 16,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-b/hers": {
+    "beforeOpen": [],
+    "frames": 16,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-c/app": {
+    "beforeOpen": [],
+    "frames": 17,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop-c/hers": {
+    "beforeOpen": [],
+    "frames": 17,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  }
+}

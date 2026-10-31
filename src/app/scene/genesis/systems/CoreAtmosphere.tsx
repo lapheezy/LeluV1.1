@@ -20,10 +20,10 @@ import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { Group, PointLight } from "three";
 
-import { useGenesis } from "../GenesisCore";
+import { useGenesisScene } from "../useGenesisScene";
 
 export default function CoreAtmosphere() {
-  const { engineRuntime } = useGenesis();
+  const { engineRuntime } = useGenesisScene("CoreAtmosphere");
 
   const field = useRef<Group>(null);
 

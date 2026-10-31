@@ -32,9 +32,14 @@
  */
 
 import { useEffect, useRef } from "react";
+import { ownerForTask } from "../../../core/multichat/TurnOwnership";
 import AgentEventBus, { type AgentEvent } from "../../../core/agent/AgentEvents";
 import { useGenesisState, type GenesisPanel } from "./GenesisCore";
 import VisualEngine from "../../../core/visual/VisualEngine";
+import MultiChatStore from "../../../core/multichat/MultiChatStore";
+import Workspace from "../../../core/ui/Workspace";
+import { chatFillsScreen } from "./chat/chatLayout";
+import CompanionStore from "../../../core/avatar/CompanionStore";
 import { genesisCameraIntentBus, type GenesisV2CameraCommand, type GenesisV2FocusTarget } from "./GenesisCameraIntent";
 
 /** Map a real agent tool to the existing surface that shows its work. */
@@ -131,6 +136,8 @@ export default function GenesisSurfaceController() {
   const queuedCameraRef = useRef<GenesisV2CameraCommand[]>([]);
   const uiControlRef = useRef(state.uiControl);
   uiControlRef.current = state.uiControl;
+  const activePanelRef = useRef(state.activePanel);
+  activePanelRef.current = state.activePanel;
 
   const v2Active = state.activeScene === "genesisv2";
 
@@ -264,14 +271,52 @@ export default function GenesisSurfaceController() {
       // consequence of the user's request. Open the existing canonical
       // module even in MANUAL mode; MANUAL only suppresses unrelated
       // autonomous presentation changes.
-      const surface = surfaceForEvent(event);
+      const mapped = surfaceForEvent(event);
+      // In companion mode the avatar is the figure floating over the app.
+      // Her own work must not also open the Avatar panel as a window.
+      const surface = mapped === "avatar" && CompanionStore.getInstance().get().enabled ? null : mapped;
       const isLiveResearchSurface =
         event.type === "browser_opened" ||
         event.type === "browser_navigation" ||
         event.type === "browser_result" ||
         ((event.type === "tool_selected" || event.type === "tool_started" || event.type === "tool_result") &&
           (event.tool === "research" || event.tool === "browser"));
-      if (surface && (uiControlRef.current !== "manual" || isLiveResearchSurface)) {
+      // A chat turn's own tool work is shown IN the conversation (the
+      // activity card and its browser view). Opening a panel for it took
+      // the screen away from the chat — the conversation tabs, New chat
+      // and the Chats panel vanished whenever LÉLU read a page, for
+      // whichever conversation's task it was. Background work no chat
+      // owns still opens its surface as before.
+      //
+      // And while the user is IN the chat, no agent event replaces it —
+      // whoever's task it is. Work no conversation owns (a sub-agent's own
+      // research, background cognition) opened the Browser panel over the
+      // conversation mid-reply in live testing, hiding the tabs and New
+      // chat. Buttons the user presses still open panels (genesis-show-
+      // surface above); this only stops events from doing it on their own.
+      const ownedByChat = ownerForTask(event.taskId) !== null;
+      const userInChat = activePanelRef.current === "chat";
+      // ON A PHONE, LÉLU BROWSING FOR THE CHAT YOU ARE IN OPENS THE BROWSER
+      // full screen — the Browser module, the same single instance the menu
+      // opens, following that chat's own browser events — and the chat is
+      // one tap away (the module's "Chat" control). Once per task, so
+      // minimizing it mid-task is not undone by the next page she reads.
+      // On a wider screen the chat shows the page inline, as before.
+      if (
+        surface === "browser" &&
+        isLiveResearchSurface &&
+        ownedByChat &&
+        ownerForTask(event.taskId) === MultiChatStore.getInstance().getActiveId() &&
+        chatFillsScreen(Workspace.getInstance().get())
+      ) {
+        const key = `${event.taskId}:browser-module`;
+        if (!openedRef.current.has(key)) {
+          openedRef.current.add(key);
+          openModule("browser");
+        }
+      }
+
+      if (surface && !ownedByChat && !userInChat && (uiControlRef.current !== "manual" || isLiveResearchSurface)) {
         const key = `${event.taskId}:${surface}`;
         if (!openedRef.current.has(key)) {
           openedRef.current.add(key);
@@ -303,7 +348,7 @@ export default function GenesisSurfaceController() {
       }
     });
     return unsubscribe;
-  }, [openPanel, v2Active, setModuleStatus]);
+  }, [openPanel, openModule, v2Active, setModuleStatus]);
 
   return null;
 }

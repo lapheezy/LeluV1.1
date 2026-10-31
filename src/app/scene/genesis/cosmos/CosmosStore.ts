@@ -33,7 +33,9 @@ import type {
   SpatialPosition,
   AgentSystem,
 } from "./CosmosTypes";
-import { EXECUTIVE_DEFS, AGENT_TO_EXECUTIVE } from "./CosmosTypes";
+import { EXECUTIVE_DEFS } from "./CosmosTypes";
+import { executiveOf } from "../../../../core/agents/ExecutiveOwnership";
+import { EXECUTIVES } from "../../../../core/executive/ExecutiveBoard";
 
 type CosmosListener = (state: CosmosState) => void;
 
@@ -239,7 +241,12 @@ export default class CosmosStore {
     // Map agents to their executive galaxy
     const universes: AgentUniverse[] = [];
     for (const agent of agents) {
-      const execType = AGENT_TO_EXECUTIVE[agent.id] ?? "sage";
+      // Ownership from the agent's stable identity (template / explicit
+      // assignment), the same answer SHAMAN routes by. Looking the UUID up
+      // in a template-keyed table never matched, so every agent landed in
+      // the default galaxy.
+      const owner = executiveOf(agent);
+      const execType = EXECUTIVES.find((executive) => executive.id === owner)?.cosmosType ?? "forge";
       const siblings = execMap.get(execType) ?? [];
       const idx = siblings.length;
       const parentGalaxy = galaxies.find((g) => g.runtimeId === execType);
@@ -397,6 +404,7 @@ export default class CosmosStore {
     switch (event.type) {
       case "task_started":
       case "task_planning":
+      case "agent_started":
         activityType = "thinking";
         energyDelta = 0.4;
         break;
@@ -417,9 +425,11 @@ export default class CosmosStore {
         energyDelta = 0.2;
         break;
       case "task_completed":
+      case "agent_completed":
         energyDelta = -0.1;
         break;
       case "task_failed":
+      case "agent_failed":
         energyDelta = -0.15;
         break;
     }
@@ -433,13 +443,21 @@ export default class CosmosStore {
       changed = true;
     }
 
-    // Update executive galaxies and agent universes
+    // Only the galaxy (and universe) of the agent that is actually working
+    // lights up. This used to light every galaxy with any agent in it on
+    // every event — activity that described nothing.
+    const working =
+      event.type === "agent_started" || event.type === "agent_completed" || event.type === "agent_failed"
+        ? agentUniverses.find((universe) => universe.name === event.agent)
+        : undefined;
+    if (working) {
+      working.activity.energy = Math.max(0, Math.min(1, working.activity.energy + energyDelta));
+      working.activity.type = event.type === "agent_started" ? "thinking" : "idle";
+      working.activity.lastActive = Date.now();
+      changed = true;
+    }
     for (const galaxy of executiveGalaxies) {
-      const hasActiveChild = galaxy.childrenIds.some((cid) => {
-        const agent = agentUniverses.find((u) => u.id === cid);
-        return agent && event.taskId && agent.runtimeId;
-      });
-      if (hasActiveChild) {
+      if (working && working.parentId === galaxy.id) {
         galaxy.activity.energy = Math.min(1, galaxy.activity.energy + energyDelta * 0.7);
         galaxy.activity.type = activityType;
         galaxy.activity.lastActive = Date.now();

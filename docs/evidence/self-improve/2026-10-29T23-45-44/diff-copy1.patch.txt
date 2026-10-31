@@ -1,0 +1,256 @@
+--- src/app/scene/genesis/MultiChatTabs.tsx (modified, +531/-523)
+--- a/src/app/scene/genesis/MultiChatTabs.tsx
++++ b/src/app/scene/genesis/MultiChatTabs.tsx
+@@ -60,523 +60,531 @@
+ /** Where the bar sits: under the chat's header on phones, over the scene otherwise. */
+ function barStyleFor(compact: boolean, visibleTop: number): CSSProperties {
+   return compact
+-    ? {
+-        // Part of the full-screen chat: under its header, moving with it
+-        // when iOS scrolls the visible area up for the keyboard.
+-        position: "fixed",
+-        left: 10,
+-        right: 10,
+-        top: `calc(env(safe-area-inset-top, 0px) + ${64 + visibleTop}px)`,
+-        zIndex: layer("tabs"),
+-        display: "flex",
+-        alignItems: "center",
+-        gap: 4,
+-        padding: 4,
+-        borderRadius: 999,
+-        pointerEvents: "auto",
+-      }
+-    : {
+-        position: "fixed",
+-        left: "50%",
+-        top: "56px",
+-        transform: "translateX(-50%)",
+-        zIndex: layer("tabs"),
+-        display: "flex",
+-        alignItems: "center",
+-        gap: 4,
+-        padding: 4,
+-        borderRadius: 999,
+-        pointerEvents: "auto",
+-        maxWidth: "min(96vw, 760px)",
+-      };
+-}
+-
+-const barIconStyle: CSSProperties = {
+-  width: 36,
+-  height: 36,
+-  minWidth: 36,
+-  borderRadius: 999,
+-  border: "none",
+-  display: "inline-flex",
+-  alignItems: "center",
+-  justifyContent: "center",
+-  cursor: "pointer",
+-  padding: 0,
+-  background: "transparent",
+-  color: "rgba(244, 232, 255, 0.85)",
+-  flexShrink: 0,
+-};
+-
+-const menuItemStyle: CSSProperties = {
+-  display: "flex",
+-  alignItems: "center",
+-  gap: 10,
+-  width: "100%",
+-  minHeight: 40,
+-  padding: "0 12px",
+-  border: "none",
+-  borderRadius: 12,
+-  background: "transparent",
+-  color: "rgba(247, 241, 255, 0.95)",
+-  font: "inherit",
+-  fontSize: 13,
+-  textAlign: "left",
+-  cursor: "pointer",
+-};
+-
+-const sectionLabelStyle: CSSProperties = {
+-  display: "inline-flex",
+-  alignItems: "center",
+-  gap: 6,
+-  fontSize: 10.5,
+-  fontWeight: 700,
+-  letterSpacing: "0.14em",
+-  textTransform: "uppercase",
+-  color: "rgba(244, 214, 238, 0.75)",
+-};
+-
+-const tabStyle: CSSProperties = {
+-  display: "inline-flex",
+-  alignItems: "center",
+-  gap: 6,
+-  borderRadius: 999,
+-  padding: "6px 10px",
+-  fontSize: 12,
+-  letterSpacing: "0.02em",
+-  cursor: "pointer",
+-  whiteSpace: "nowrap",
+-  fontFamily: "inherit",
+-  border: "none",
+-  flexShrink: 0,
+-};
+-
+-
+-export default function MultiChatTabs() {
+-  const {
+-    state,
+-    createConversation,
+-    switchConversation,
+-    renameConversation,
+-    closeConversation,
+-    pinConversation,
+-    linkConversations,
+-    unlinkConversations,
+-    mergeConversations,
+-    searchConversations,
+-    openPanel,
+-  } = useGenesis();
+-
+-  const [renamingId, setRenamingId] = useState<string | null>(null);
+-  const [renameValue, setRenameValue] = useState("");
+-  const [searchOpen, setSearchOpen] = useState(false);
+-  const [chatsOpen, setChatsOpen] = useState(false);
+-  /** Choosing chats to merge (two or more) in the Chats panel. */
+-  const [mergeSelection, setMergeSelection] = useState<string[] | null>(null);
+-  const [inbox, setInbox] = useState<NotificationRecord[]>([]);
+-  const unread = inbox.filter(isUnread).length;
+-  const [query, setQuery] = useState("");
+-  /** Which tab's options are open, and where to draw them. */
+-  const [menu, setMenu] = useState<{ id: string; left: number; top: number } | null>(null);
+-  const menuRef = useRef<HTMLDivElement>(null);
+-  const workspace = useWorkspace();
+-  const fills = chatFillsScreen(workspace);
+-
+-  useEffect(() => NotificationProvider.getInstance().subscribeHistory((history) => setInbox([...history].reverse())), []);
+-
+-  useEffect(() => {
+-    if (!chatsOpen) return;
+-    const onKey = (event: KeyboardEvent) => {
+-      if (event.key === "Escape") setChatsOpen(false);
+-    };
+-    window.addEventListener("keydown", onKey);
+-    return () => window.removeEventListener("keydown", onKey);
+-  }, [chatsOpen]);
+-
+-  useEffect(() => {
+-    if (!chatsOpen) setMergeSelection(null);
+-  }, [chatsOpen]);
+-
+-  function toggleMergePick(id: string) {
+-    setMergeSelection((current) => (current ? (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]) : [id]));
+-  }
+-
+-  function createMerged() {
+-    if (!mergeSelection || mergeSelection.length < 2) return;
+-    if (mergeConversations(mergeSelection)) {
+-      openPanel("chat");
+-      setChatsOpen(false);
+-    }
+-  }
+-
+-  function openNotification(record: NotificationRecord) {
+-    // The provider's deep link switches to the conversation and opens chat.
+-    NotificationProvider.getInstance().open(record.id);
+-    if (record.questionId) {
+-      window.dispatchEvent(new CustomEvent("lelu-open-question", { detail: { questionId: record.questionId } }));
+-    }
+-    if (!record.conversationId) openPanel("chat");
+-    setChatsOpen(false);
+-  }
+-
+-  // The chat's own options menu can open search.
+-  useEffect(() => {
+-    const open = () => setSearchOpen(true);
+-    window.addEventListener("lelu-multichat-search", open);
+-    return () => window.removeEventListener("lelu-multichat-search", open);
+-  }, []);
+-
+-  useEffect(() => {
+-    if (!menu) return;
+-    const close = (event: PointerEvent) => {
+-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setMenu(null);
+-    };
+-    const onKey = (event: KeyboardEvent) => {
+-      if (event.key === "Escape") setMenu(null);
+-    };
+-    document.addEventListener("pointerdown", close, true);
+-    window.addEventListener("keydown", onKey);
+-    return () => {
+-      document.removeEventListener("pointerdown", close, true);
+-      window.removeEventListener("keydown", onKey);
+-    };
+-  }, [menu]);
+-
+-  const conversations = state.conversations;
+-  const activeId = state.activeConversationId;
+-
+-  const results = useMemo(
+-    () => (query.trim().length > 0 ? searchConversations(query, "all") : []),
+-    [query, searchConversations],
+-  );
+-
+-  function beginRename(id: string, title: string) {
+-    setRenamingId(id);
+-    setRenameValue(title === "New chat" ? "" : title);
+-  }
+-
+-  function commitRename() {
+-    if (renamingId) {
+-      renameConversation(renamingId, renameValue);
+-    }
+-    setRenamingId(null);
+-    setRenameValue("");
+-  }
+-
+-  function handleTabClick(event: MouseEvent<HTMLButtonElement>, id: string) {
+-    // Double-click on the active tab enters rename mode.
+-    if (event.detail >= 2) {
+-      const conversation = conversations.find((item) => item.id === id);
+-      beginRename(id, conversation?.title ?? "");
+-      return;
+-    }
+-    if (id !== activeId) {
+-      switchConversation(id);
+-    }
+-  }
+-
+-  function handleResult(hit: { conversationId: string }) {
+-    if (hit.conversationId !== activeId) {
+-      switchConversation(hit.conversationId);
+-    }
+-    setSearchOpen(false);
+-    setQuery("");
+-    openPanel("chat");
+-  }
+-
+-  return (
+-    <>
+-      <div data-lelu-multichat className="lelu-tab-bar" style={barStyleFor(fills, workspace.keyboardOpen ? workspace.visibleTop : 0)} role="tablist" aria-label="Conversations">
+-        <div
+-          style={{
+-            display: "flex",
+-            alignItems: "center",
+-            gap: 4,
+-            flex: 1,
+-            minWidth: 0,
+-            overflowX: "auto",
+-            scrollbarWidth: "none",
+-            WebkitOverflowScrolling: "touch",
+-            // A soft fade at the end says "more tabs this way".
+-            maskImage: "linear-gradient(90deg, #000 0, #000 calc(100% - 18px), transparent)",
+-            WebkitMaskImage: "linear-gradient(90deg, #000 0, #000 calc(100% - 18px), transparent)",
+-          }}
+-        >
+-        {conversations.map((conversation) => {
+-          const active = conversation.id === activeId;
+-          return (
+-            <div
+-              key={conversation.id}
+-              className={active ? "lelu-tab-cloud lelu-tab-cloud-active" : "lelu-tab-cloud"}
+-              style={{ display: "inline-flex", alignIt
+…[patch truncated]

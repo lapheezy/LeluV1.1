@@ -1,0 +1,597 @@
+[
+  {
+    "at": 1793356907250,
+    "type": "task_started",
+    "taskId": "self-study-1",
+    "label": "Self-study: What do I actually know about Latest frontier model architectures, and is it true?"
+  },
+  {
+    "at": 1793356909364,
+    "type": "tool_selected",
+    "taskId": "curiosity-235a8af6-1",
+    "tool": "memory.recall",
+    "label": "Checking memory for “capability dispatch”"
+  },
+  {
+    "at": 1793356909364,
+    "type": "tool_started",
+    "taskId": "curiosity-235a8af6-1",
+    "tool": "memory.recall",
+    "label": "Checking memory for “capability dispatch”"
+  },
+  {
+    "at": 1793356909415,
+    "type": "task_started",
+    "taskId": "67ffa2c1-a8c2-4252-b998-a97ec937f009",
+    "label": "LÉLU, a review of your self-development change on workspace \"default\" (reconsider every 500 ms, EDGE_MARGIN 100, default"
+  },
+  {
+    "at": 1793356909416,
+    "type": "execution_phase",
+    "taskId": "67ffa2c1-a8c2-4252-b998-a97ec937f009",
+    "label": "Command received"
+  },
+  {
+    "at": 1793356909416,
+    "type": "execution_phase",
+    "taskId": "67ffa2c1-a8c2-4252-b998-a97ec937f009",
+    "label": "Parsing request"
+  },
+  {
+    "at": 1793356909417,
+    "type": "execution_phase",
+    "taskId": "67ffa2c1-a8c2-4252-b998-a97ec937f009",
+    "label": "Approach planned — research"
+  },
+  {
+    "at": 1793356909417,
+    "type": "execution_phase",
+    "taskId": "67ffa2c1-a8c2-4252-b998-a97ec937f009",
+    "label": "Planned 3 step(s)"
+  },
+  {
+    "at": 1793356909421,
+    "type": "task_started",
+    "taskId": "1793356909419",
+    "label": "LÉLU, a review of your self-development change on workspace \"default\" (reconsider every 500 ms, EDGE_MARGIN 100, default spot top-left).\n\nYour verdict was right: an independent check confirmed that with your copy the companion covers no control while the chat opens, on 8 screen sizes, where the app covers the phone header for 1–2 s. Well done.\n\nReview finding before it can be applied: EDGE_MARGIN "
+  },
+  {
+    "at": 1793356909425,
+    "type": "task_planning",
+    "taskId": "1793356909419"
+  },
+  {
+    "at": 1793356909472,
+    "type": "memory_retrieval",
+    "taskId": "1793356909419"
+  },
+  {
+    "at": 1793356909491,
+    "type": "provider_selected",
+    "taskId": "1793356909419"
+  },
+  {
+    "at": 1793356909545,
+    "type": "tool_result",
+    "taskId": "curiosity-235a8af6-1",
+    "tool": "memory.recall",
+    "status": "error",
+    "result": "No stored memory matches \"capability dispatch\"."
+  },
+  {
+    "at": 1793356909585,
+    "type": "tool_selected",
+    "taskId": "curiosity-235a8af6-recall",
+    "tool": "memory.recall",
+    "label": "Checking memory for “capability dispatch available capabilities cannot actually”"
+  },
+  {
+    "at": 1793356909586,
+    "type": "tool_started",
+    "taskId": "curiosity-235a8af6-recall",
+    "tool": "memory.recall",
+    "label": "Checking memory for “capability dispatch available capabilities cannot actually”"
+  },
+  {
+    "at": 1793356909616,
+    "type": "tool_result",
+    "taskId": "curiosity-235a8af6-recall",
+    "tool": "memory.recall",
+    "status": "complete",
+    "result": "1. [confidence 0.90] Which of my available capabilities cannot actually be dispatched as tools, and why? — ai.generate: available=true, permi → Which of my available capabilities cannot actually be dispatched as tools, and why? — ai.generate: available=true, permitted=true, executable=false, route=ProviderResolver\nchat: available=true, permitted=true, executable=false, route=AIService.chat\ncosmos.navigate: available=true, permitted=true, executable=false, route=CosmosStore.navigateToEntity\ncosmos.openInterface: available=true, permitted=true, executable=false, route=GenesisCore.openPanel\ndeflock.analyze: available=true, pe"
+  },
+  {
+    "at": 1793356909622,
+    "type": "visual_state_changed",
+    "taskId": "cognitive-1"
+  },
+  {
+    "at": 1793356909755,
+    "type": "provider_selected",
+    "taskId": "1793356909751"
+  },
+  {
+    "at": 1793356911069,
+    "type": "provider_status",
+    "taskId": "1793356909751",
+    "status": "operational"
+  },
+  {
+    "at": 1793356911071,
+    "type": "task_completed",
+    "taskId": "self-study-1",
+    "label": "Self-study: What do I actually know about Latest frontier model architectures, and is it true?"
+  },
+  {
+    "at": 1793356912017,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "project.search",
+    "label": "Running project.search (EDGE_MARGIN)"
+  },
+  {
+    "at": 1793356912017,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "project.search",
+    "label": "Running project.search (EDGE_MARGIN)"
+  },
+  {
+    "at": 1793356912224,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "project.search",
+    "status": "complete",
+    "result": "18 match(es) for \"EDGE_MARGIN\":\ndocs/evidence/self-improve/2026-10-30T08-03-49/events.json:522: \"result\": \"MODIFIED src/core/avatar/CompanionStore.ts (+2/-2 lines)\\n--- a/src/core/avatar/CompanionStore.ts\\n+++ b/src/core/avatar/CompanionStore.ts\\n@@ -83,7 +83,7 @@\\n export function defaultCompan\ndocs/evidence/self-improve/2026-10-30T08-03-49/events.json:907: \"result\": \"MODIFIED src/core/avatar/CompanionStore.ts (+2/-2 lines)\\n--- a/src/core/avatar/CompanionStore.ts\\n+++ b/src/core/avatar/CompanionStore.ts\\n@@ -83,7 +83,7 @@\\n export function defaultCompan\ndocs/evidence/self-improve/2026-10-30T08-03-49/events.json:1062: \"result\": \"src/core/avatar/CompanionStore.ts — lines 80–100 of 239 (the \\\"N| \\\" prefixes are line numbers, not part of the file):\\n 80| \\n 81| const KEY = \\\"lelu.companion.v1\\\";\\n 82| \\n 83| export fu\ndocs/evidence/self-improve/2026-10-30T08-03-49/events.json:1298: \"result\": \"src/core/avatar/CompanionStore.ts — lines 80–100 of 239 (the \\\"N| \\\" prefixes are line numbers, not part of the file):\\n 80| \\n 81| const KEY = \\\"lelu.companion.v1\\\";\\n 82| \\n 83| export fu\ndocs/evidence/self-improve/2026-10-30T08-03-49/events.json:1320: \"result\": \"src/core/avatar/CompanionStore.ts — lines 100–130 of 239 (the \\\"N| \\\" prefixes are line numbers, not part of the file):\\n100| \\n101| export function overlapArea(a: Rect, b: Rect): number {\\\ndocs/evidence/self-improve/2026-10-30T08-03-49/events.json:2561: \"result\": \"src/core/avatar/CompanionStore.ts — lines 70–120 of 239 (the \\\"N| \\\" prefixes are line numbers, not part of the file):\\n 70| export type CompanionShape = CompanionSize | { width: number; he\nsrc/core/avatar/CompanionStore.ts:79: export const EDGE_MARGIN = 100;\nsrc/core/avatar/CompanionStore.ts:96: const left = clamp(x * viewport.width - width / 2, EDGE_MARGIN, Math.max(EDGE_MARGIN, viewport.width - width - EDGE_MARGIN));\nsrc/core/avatar/CompanionStore.ts:97: const top = clamp(y * viewport.height - height / 2, EDGE_MARGIN, Math.max(EDGE_MARGIN, viewport.height"
+  },
+  {
+    "at": 1793356913218,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "project.read",
+    "label": "Running project.read (src/core/avatar/CompanionStore.ts)"
+  },
+  {
+    "at": 1793356913218,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "project.read",
+    "label": "Running project.read (src/core/avatar/CompanionStore.ts)"
+  },
+  {
+    "at": 1793356913238,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "project.read",
+    "status": "complete",
+    "result": "src/core/avatar/CompanionStore.ts — lines 70–130 of 239 (the \"N| \" prefixes are line numbers, not part of the file):\n 70| export type CompanionShape = CompanionSize | { width: number; height: number };\n 71| \n 72| /** Her figure's size for a size name (head-and-shoulders) or explicit dimensions. */\n 73| export function companionDimensions(shape: CompanionShape, framing: CompanionFraming = \"face\"): { width: number; height: number } {\n 74|   if (typeof shape !== \"string\") return shape;\n 75|   return (framing === \"full\" ? COMPANION_FULL_DIMENSIONS : COMPANION_DIMENSIONS)[shape];\n 76| }\n 77| \n 78| /** Distance kept from the screen edge (and the phone's system bars). */\n 79| export const EDGE_MARGIN = 100;\n 80| \n 81| const KEY = \"lelu.companion.v1\";\n 82| \n 83| export function defaultCompanionState(): CompanionState {\n 84|   // On unless turned off: the owner asked for her to be present wherever\n 85|   // LÉLU is active (V1.1 avatar brief). Off is remembered.\n 86|   return { enabled: true, pinned: false, x: 0.1, y: 0.15, size: \"medium\", framing: \"full\", lastMovedBy: \"none\", updatedAt: 0 };\n 87| }\n 88| \n 89| function clamp(value: number, min: number, max: number): number {\n 90|   return Math.min(max, Math.max(min, value));\n 91| }\n 92| \n 93| /** The figure's rectangle for a centre given as viewport fractions. */\n 94| export function figureRect(x: number, y: number, size: CompanionShape, viewport: { width: number; height: number }): Rect {\n 95|   const { width, height } = companionDimensions(size);\n 96|   const left = clamp(x * viewport.width - width / 2, EDGE_MARGIN, Math.max(EDGE_MARGIN, viewport.width - width - EDGE_MARGIN));\n 97|   const top = clamp(y * viewport.height - height / 2, EDGE_MARGIN, Math.max(EDGE_MARGIN, viewport.height - height - EDGE_MARGIN));\n 98|   return { left, top, width, height };\n 99| }\n100| \n101| export function overlapArea(a: Rect, b: Rect): number {\n102|   const w = Math.min(a.left + a.width, b.left + b.width) - Math.max(a.left, b.left);\n103|   co"
+  },
+  {
+    "at": 1793356914383,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "project.search",
+    "label": "Running project.search (lastMovedBy)"
+  },
+  {
+    "at": 1793356914383,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "project.search",
+    "label": "Running project.search (lastMovedBy)"
+  },
+  {
+    "at": 1793356914557,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "project.search",
+    "status": "complete",
+    "result": "16 match(es) for \"lastMovedBy\":\ndocs/evidence/self-improve/2026-10-30T07-37-51/events.json:380: \"result\": \"src/core/avatar/CompanionStore.ts — lines 80–92 of 239 (the \\\"N| \\\" prefixes are line numbers, not part of the file):\\n80| \\n81| const KEY = \\\"lelu.companion.v1\\\";\\n82| \\n83| export functio\ndocs/evidence/self-improve/2026-10-30T07-37-51/events.json:496: \"result\": \"MODIFIED src/core/avatar/CompanionStore.ts (+1/-1 lines)\\n--- a/src/core/avatar/CompanionStore.ts\\n+++ b/src/core/avatar/CompanionStore.ts\\n@@ -83,7 +83,7 @@\\n export function defaultCompan\ndocs/evidence/self-improve/2026-10-30T08-03-49/events.json:522: \"result\": \"MODIFIED src/core/avatar/CompanionStore.ts (+2/-2 lines)\\n--- a/src/core/avatar/CompanionStore.ts\\n+++ b/src/core/avatar/CompanionStore.ts\\n@@ -83,7 +83,7 @@\\n export function defaultCompan\ndocs/evidence/self-improve/2026-10-30T08-03-49/events.json:907: \"result\": \"MODIFIED src/core/avatar/CompanionStore.ts (+2/-2 lines)\\n--- a/src/core/avatar/CompanionStore.ts\\n+++ b/src/core/avatar/CompanionStore.ts\\n@@ -83,7 +83,7 @@\\n export function defaultCompan\ndocs/evidence/self-improve/2026-10-30T08-03-49/events.json:1062: \"result\": \"src/core/avatar/CompanionStore.ts — lines 80–100 of 239 (the \\\"N| \\\" prefixes are line numbers, not part of the file):\\n 80| \\n 81| const KEY = \\\"lelu.companion.v1\\\";\\n 82| \\n 83| export fu\ndocs/evidence/self-improve/2026-10-30T08-03-49/events.json:1298: \"result\": \"src/core/avatar/CompanionStore.ts — lines 80–100 of 239 (the \\\"N| \\\" prefixes are line numbers, not part of the file):\\n 80| \\n 81| const KEY = \\\"lelu.companion.v1\\\";\\n 82| \\n 83| export fu\ndocs/evidence/self-improve/2026-10-30T08-03-49/events.json:1392: \"result\": \"MODIFIED src/core/avatar/CompanionStore.ts (+1/-1 lines)\\n--- a/src/core/avatar/CompanionStore.ts\\n+++ b/src/core/avatar/CompanionStore.ts\\n@@ -83,7 +83,7 @@\\n export function defaultCompan\ndocs/evidence/self-improve/2026-10-30T08-03-49/events.json:1639: \"result\": \"MODIFIED src/core/avatar/Companion"
+  },
+  {
+    "at": 1793356915873,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "project.search",
+    "label": "Running project.search (figureRect()"
+  },
+  {
+    "at": 1793356915873,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "project.search",
+    "label": "Running project.search (figureRect()"
+  },
+  {
+    "at": 1793356916007,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "project.search",
+    "status": "complete",
+    "result": "11 match(es) for \"figureRect(\":\ndocs/evidence/self-improve/2026-10-29T23-31-06/events.json:250: \"result\": \"src/app/scene/genesis/avatar/LeluCompanion.tsx — lines 250–350 of 443 (the \\\"N| \\\" prefixes are line numbers, not part of the file):\\n250|     }\\n251|     // The input event's own time, not\ndocs/evidence/self-improve/2026-10-29T23-31-06/events.json:1207: \"result\": \"src/app/scene/genesis/avatar/LeluCompanion.tsx — lines 251–350 of 443 (the \\\"N| \\\" prefixes are line numbers, not part of the file):\\n251|     // The input event's own time, not when the ha\ndocs/evidence/self-improve/2026-10-30T08-03-49/events.json:1062: \"result\": \"src/core/avatar/CompanionStore.ts — lines 80–100 of 239 (the \\\"N| \\\" prefixes are line numbers, not part of the file):\\n 80| \\n 81| const KEY = \\\"lelu.companion.v1\\\";\\n 82| \\n 83| export fu\ndocs/evidence/self-improve/2026-10-30T08-03-49/events.json:1298: \"result\": \"src/core/avatar/CompanionStore.ts — lines 80–100 of 239 (the \\\"N| \\\" prefixes are line numbers, not part of the file):\\n 80| \\n 81| const KEY = \\\"lelu.companion.v1\\\";\\n 82| \\n 83| export fu\ndocs/evidence/self-improve/2026-10-30T08-03-49/events.json:2561: \"result\": \"src/core/avatar/CompanionStore.ts — lines 70–120 of 239 (the \\\"N| \\\" prefixes are line numbers, not part of the file):\\n 70| export type CompanionShape = CompanionSize | { width: number; he\nsrc/app/scene/genesis/avatar/LeluCompanion.tsx:205: const rect = figureRect(position.x, position.y, dimensions, viewport);\nsrc/core/avatar/CompanionStore.ts:94: export function figureRect(x: number, y: number, size: CompanionShape, viewport: { width: number; height: number }): Rect {\nsrc/core/avatar/CompanionStore.ts:142: const rect = figureRect(spot.x, spot.y, size, viewport);\ntests/companion-mode.test.ts:72: const rect = figureRect(x, y, \"large\", phone);\ntests/companion-mode.test.ts:87: assert.ok(overlapArea(figureRect(start.x, start.y, \"medium\", phone), composer) > 0, \"she starts on the composer\");\ntests/companion-mode.test.ts:9"
+  },
+  {
+    "at": 1793356917931,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "project.search",
+    "label": "Running project.search (lastMovedBy: \"user\")"
+  },
+  {
+    "at": 1793356917932,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "project.search",
+    "label": "Running project.search (lastMovedBy: \"user\")"
+  },
+  {
+    "at": 1793356918073,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "project.search",
+    "status": "complete",
+    "result": "2 match(es) for \"lastMovedBy: \"user\"\":\nsrc/core/avatar/CompanionStore.ts:43: lastMovedBy: \"user\" | \"lelu\" | \"none\";\nsrc/core/avatar/CompanionStore.ts:212: return this.patch({ x: clamp(x, 0, 1), y: clamp(y, 0, 1), pinned: true, lastMovedBy: \"user\" });"
+  },
+  {
+    "at": 1793356920392,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "project.read",
+    "label": "Running project.read (src/app/scene/genesis/avatar/LeluCompanion.tsx)"
+  },
+  {
+    "at": 1793356920392,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "project.read",
+    "label": "Running project.read (src/app/scene/genesis/avatar/LeluCompanion.tsx)"
+  },
+  {
+    "at": 1793356920426,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "project.read",
+    "status": "complete",
+    "result": "src/app/scene/genesis/avatar/LeluCompanion.tsx — lines 180–260 of 365 (the \"N| \" prefixes are line numbers, not part of the file):\n180|     press.moved = true;\n181|     setDrag({ x: event.clientX / viewport.width, y: event.clientY / viewport.height });\n182|   };\n183|   const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {\n184|     const press = pressRef.current;\n185|     pressRef.current = null;\n186|     if (press?.moved) {\n187|       store.placeByUser(event.clientX / viewport.width, event.clientY / viewport.height);\n188|       setDrag(null);\n189|       return;\n190|     }\n191|     // The input event's own time, not when the handler happens to run: on\n192|     // a busy main thread two quick taps can be handled far apart.\n193|     const now = event.timeStamp;\n194|     if (now - lastTapRef.current < 350) {\n195|       openPanel(\"chat\"); // double tap: talk to her\n196|       setControlsOpen(false);\n197|     } else {\n198|       setControlsOpen((open) => !open);\n199|     }\n200|     lastTapRef.current = now;\n201|   };\n202| \n203|   const position = drag ?? { x: companion.x, y: companion.y };\n204|   const dimensions = companionDimensions(companion.size, companion.framing);\n205|   const rect = figureRect(position.x, position.y, dimensions, viewport);\n206|   const { width, height } = dimensions;\n207|   const captionLeftOfHer = rect.left > viewport.width / 2;\n208|   // The caption sits beside her and the controls under her — both kept\n209|   // inside the screen (measured on phones: centred controls ran off the\n210|   // right edge when she stood near it).\n211|   const captionRoom = Math.max(120, captionLeftOfHer ? rect.left - 16 : viewport.width - (rect.left + width) - 16);\n212|   const controlsWidth = controlsRef.current?.offsetWidth ?? 180;\n213|   const controlsLeft =\n214|     Math.min(Math.max(8, rect.left + width / 2 - controlsWidth / 2), Math.max(8, viewport.width - controlsWidth - 8)) - rect.left;\n215|   const nextSize = useMemo(() => (companion.size === \""
+  },
+  {
+    "at": 1793356921485,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "project.search",
+    "label": "Running project.search (placeByUser)"
+  },
+  {
+    "at": 1793356921485,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "project.search",
+    "label": "Running project.search (placeByUser)"
+  },
+  {
+    "at": 1793356921625,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "project.search",
+    "status": "complete",
+    "result": "6 match(es) for \"placeByUser\":\nscripts/photo-lelu-formats.mjs:32: C.getInstance().placeByUser(0.5, 0.5);\nscripts/photo-lelu-formats.mjs:61: await page.evaluate(async () => { const { default: C } = await import(\"/src/core/avatar/CompanionStore.ts\"); C.getInstance().placeByUser(0.82, 0.25); });\nsrc/app/scene/genesis/avatar/LeluCompanion.tsx:187: store.placeByUser(event.clientX / viewport.width, event.clientY / viewport.height);\nsrc/core/avatar/CompanionStore.ts:211: public placeByUser(x: number, y: number): CompanionState {\ntests/companion-mode.test.ts:51: store.placeByUser(0.2, 0.7);\ntests/companion-mode.test.ts:62: store.placeByUser(0.3, 0.3);"
+  },
+  {
+    "at": 1793356923460,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "project.read",
+    "label": "Running project.read (src/core/avatar/CompanionStore.ts)"
+  },
+  {
+    "at": 1793356923460,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "project.read",
+    "label": "Running project.read (src/core/avatar/CompanionStore.ts)"
+  },
+  {
+    "at": 1793356923472,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "project.read",
+    "status": "complete",
+    "result": "src/core/avatar/CompanionStore.ts — lines 200–239 of 239 (the \"N| \" prefixes are line numbers, not part of the file):\n200|   }\n201| \n202|   public setSize(size: CompanionSize): CompanionState {\n203|     return this.patch({ size });\n204|   }\n205| \n206|   public setFraming(framing: CompanionFraming): CompanionState {\n207|     return this.patch({ framing });\n208|   }\n209| \n210|   /** The user placed her: she stays there until they let her choose again. */\n211|   public placeByUser(x: number, y: number): CompanionState {\n212|     return this.patch({ x: clamp(x, 0, 1), y: clamp(y, 0, 1), pinned: true, lastMovedBy: \"user\" });\n213|   }\n214| \n215|   /** She moved herself out of the way (only while unpinned). */\n216|   public placeByLelu(x: number, y: number): CompanionState {\n217|     if (this.state.pinned) return this.state;\n218|     return this.patch({ x: clamp(x, 0, 1), y: clamp(y, 0, 1), lastMovedBy: \"lelu\" });\n219|   }\n220| \n221|   /** Let her choose her own spot again. */\n222|   public unpin(): CompanionState {\n223|     return this.patch({ pinned: false });\n224|   }\n225| \n226|   private patch(patch: Partial<CompanionState>): CompanionState {\n227|     this.state = { ...this.state, ...patch, updatedAt: Date.now() };\n228|     KvStore.getInstance().set(KEY, this.state);\n229|     for (const listener of this.listeners) {\n230|       try {\n231|         listener(this.state);\n232|       } catch (error) {\n233|         console.error(\"[CompanionStore] listener threw (contained)\", error);\n234|       }\n235|     }\n236|     return this.state;\n237|   }\n238| }\n239| "
+  },
+  {
+    "at": 1793356927397,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "project.edit",
+    "label": "Running project.edit (src/core/avatar/CompanionStore.ts)"
+  },
+  {
+    "at": 1793356927398,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "project.edit",
+    "label": "Running project.edit (src/core/avatar/CompanionStore.ts)"
+  },
+  {
+    "at": 1793356927567,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "project.edit",
+    "status": "complete",
+    "result": "Edited src/core/avatar/CompanionStore.ts at line 96: replaced 1 line(s) with 1. The real project is untouched."
+  },
+  {
+    "at": 1793356934325,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "project.edit",
+    "label": "Running project.edit (src/core/avatar/CompanionStore.ts)"
+  },
+  {
+    "at": 1793356934325,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "project.edit",
+    "label": "Running project.edit (src/core/avatar/CompanionStore.ts)"
+  },
+  {
+    "at": 1793356934487,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "project.edit",
+    "status": "complete",
+    "result": "Edited src/core/avatar/CompanionStore.ts at line 97: replaced 1 line(s) with 1. The real project is untouched."
+  },
+  {
+    "at": 1793356937496,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "project.validate",
+    "label": "Running project.validate"
+  },
+  {
+    "at": 1793356937496,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "project.validate",
+    "label": "Running project.validate"
+  },
+  {
+    "at": 1793356963208,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "project.validate",
+    "status": "complete",
+    "result": "typecheck exited 0 after 25696ms (PASSED).\n\n(no output)"
+  },
+  {
+    "at": 1793356965409,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "project.preview",
+    "label": "Running project.preview (start)"
+  },
+  {
+    "at": 1793356965409,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "project.preview",
+    "label": "Running project.preview (start)"
+  },
+  {
+    "at": 1793356965431,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "project.preview",
+    "status": "complete",
+    "result": "Workspace default is running at http://127.0.0.1:5310 (loopback). Capture it with browser_capture target \"preview\"."
+  },
+  {
+    "at": 1793356966742,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "project.diff",
+    "label": "Running project.diff"
+  },
+  {
+    "at": 1793356966743,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "project.diff",
+    "label": "Running project.diff"
+  },
+  {
+    "at": 1793356966877,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "project.diff",
+    "status": "complete",
+    "result": "MODIFIED src/app/scene/genesis/avatar/LeluCompanion.tsx (+1/-1 lines)\n--- a/src/app/scene/genesis/avatar/LeluCompanion.tsx\n+++ b/src/app/scene/genesis/avatar/LeluCompanion.tsx\n@@ -137,7 +137,7 @@\n     document.addEventListener(\"focusout\", onFocus);\n     // The app changes under her (panels open, the keyboard rises): a cheap\n     // look every second and a half, moving only when she is in the way.\n-    const timer = setInterval(reconsider, 1500);\n+    const timer = setInterval(reconsider, 500);\n     return () => {\n       document.removeEventListener(\"focusin\", onFocus);\n       document.removeEventListener(\"focusout\", onFocus);\n\nMODIFIED src/core/avatar/CompanionStore.ts (+4/-4 lines)\n--- a/src/core/avatar/CompanionStore.ts\n+++ b/src/core/avatar/CompanionStore.ts\n@@ -76,14 +76,14 @@\n }\n \n /** Distance kept from the screen edge (and the phone's system bars). */\n-export const EDGE_MARGIN = 12;\n+export const EDGE_MARGIN = 100;\n \n const KEY = \"lelu.companion.v1\";\n \n export function defaultCompanionState(): CompanionState {\n   // On unless turned off: the owner asked for her to be present wherever\n   // LÉLU is active (V1.1 avatar brief). Off is remembered.\n-  return { enabled: true, pinned: false, x: 0.86, y: 0.2, size: \"medium\", framing: \"full\", lastMovedBy: \"none\", updatedAt: 0 };\n+  return { enabled: true, pinned: false, x: 0.1, y: 0.15, size: \"medium\", framing: \"full\", lastMovedBy: \"none\", updatedAt: 0 };\n }\n \n function clamp(value: number, min: number, max: number): number {\n@@ -93,8 +93,8 @@\n /** The figure's rectangle for a centre given as viewport fractions. */\n export function figureRect(x: number, y: number, size: CompanionShape, viewport: { width: number; height: number }): Rect {\n   const { width, height } = companionDimensions(size);\n-  const left = clamp(x * viewport.width - width / 2, EDGE_MARGIN, Math.max(EDGE_MARGIN, viewport.width - width - EDGE_MARGIN));\n-  const top = clamp(y * viewport.height - height / 2, EDGE_MARGIN, Math.max(EDGE_MARGIN, viewport.h"
+  },
+  {
+    "at": 1793356970370,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "capture",
+    "label": "Looking at my own interface (phone, chat)"
+  },
+  {
+    "at": 1793356970370,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "capture",
+    "label": "Looking at my own interface (phone, chat)"
+  },
+  {
+    "at": 1793357017230,
+    "type": "creative_artifact",
+    "taskId": "1793356909419",
+    "label": "Looking at my own interface (phone, chat)",
+    "image": "#1"
+  },
+  {
+    "at": 1793357017230,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "capture",
+    "result": "5 layout finding(s) at phone, panel chat"
+  },
+  {
+    "at": 1793357019421,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "capture",
+    "label": "Looking at workspace default (phone, chat)"
+  },
+  {
+    "at": 1793357019422,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "capture",
+    "label": "Looking at workspace default (phone, chat)"
+  },
+  {
+    "at": 1793357066832,
+    "type": "creative_artifact",
+    "taskId": "1793356909419",
+    "label": "Looking at workspace default (phone, chat)",
+    "image": "#2"
+  },
+  {
+    "at": 1793357066833,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "capture",
+    "result": "2 layout finding(s) at phone, panel chat, 2 of them in only some of 2 loads (depend on the app's state)\nCompared with your app at the same conditions (phone, panel chat): 5 finding(s) before → 2 now.\n  resolved: covered-while-opening: button \"New chat\"; covered-while-opening: button \"Search all chats\"; covered-while-opening: button \"Chats and notifications\"\n  still present: none\n  new: none\n  NOT EVIDENCE either way — seen in only some loads of the same page, so they depend on the app's state when it loaded, not on your code: partly-off-screen: button[Options for Engineering]; sideways-overflow: div \"New chatEngineering\""
+  },
+  {
+    "at": 1793357068223,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "capture",
+    "label": "Looking at my own interface (desktop, chat)"
+  },
+  {
+    "at": 1793357068224,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "capture",
+    "label": "Looking at my own interface (desktop, chat)"
+  },
+  {
+    "at": 1793357211493,
+    "type": "cognitive_sync",
+    "taskId": "1793356909419"
+  },
+  {
+    "at": 1793357211493,
+    "type": "tool_failed",
+    "taskId": "1793356909419",
+    "tool": "capture",
+    "error": "page.screenshot: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+  },
+  {
+    "at": 1793357212107,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "capture",
+    "label": "Looking at my own interface (desktop, chat)"
+  },
+  {
+    "at": 1793357212108,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "capture",
+    "label": "Looking at my own interface (desktop, chat)"
+  },
+  {
+    "at": 1793357302622,
+    "type": "creative_artifact",
+    "taskId": "1793356909419",
+    "label": "Looking at my own interface (desktop, chat)",
+    "image": "#3"
+  },
+  {
+    "at": 1793357302623,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "capture",
+    "result": "1 layout finding(s) at desktop, panel chat"
+  },
+  {
+    "at": 1793357303509,
+    "type": "tool_selected",
+    "taskId": "1793356909419",
+    "tool": "capture",
+    "label": "Looking at workspace default (desktop, chat)"
+  },
+  {
+    "at": 1793357303509,
+    "type": "tool_started",
+    "taskId": "1793356909419",
+    "tool": "capture",
+    "label": "Looking at workspace default (desktop, chat)"
+  },
+  {
+    "at": 1793357409738,
+    "type": "creative_artifact",
+    "taskId": "1793356909419",
+    "label": "Looking at workspace default (desktop, chat)",
+    "image": "#4"
+  },
+  {
+    "at": 1793357409738,
+    "type": "tool_result",
+    "taskId": "1793356909419",
+    "tool": "capture",
+    "result": "1 layout finding(s) at desktop, panel chat\nCompared with your app at the same conditions (desktop, panel chat): 1 finding(s) before → 1 now.\n  resolved: none\n  still present: covered-while-opening: button \"Expand Genesis\"\n  new: none\nIMPORTANT: this preview capture says NOTHING about the problems your app had under other conditions — phone, panel chat: 5 finding(s) in your app. To know whether your fix resolved them, capture the preview with exactly those conditions (the same viewport and panel)."
+  },
+  {
+    "at": 1793357420374,
+    "type": "provider_status",
+    "taskId": "1793356909419",
+    "status": "operational"
+  },
+  {
+    "at": 1793357420376,
+    "type": "task_completed",
+    "taskId": "1793356909419",
+    "label": "LÉLU, a review of your self-development change on workspace \"default\" (reconsider every 500 ms, EDGE_MARGIN 100, default spot top-left).\n\nYour verdict was right: an independent check confirmed that with your copy the companion covers no control while the chat opens, on 8 screen sizes, where the app covers the phone header for 1–2 s. Well done.\n\nReview finding before it can be applied: EDGE_MARGIN "
+  },
+  {
+    "at": 1793357420383,
+    "type": "execution_phase",
+    "taskId": "67ffa2c1-a8c2-4252-b998-a97ec937f009",
+    "label": "Validating result"
+  },
+  {
+    "at": 1793357420383,
+    "type": "execution_phase",
+    "taskId": "67ffa2c1-a8c2-4252-b998-a97ec937f009",
+    "label": "Validation complete"
+  },
+  {
+    "at": 1793357420384,
+    "type": "execution_phase",
+    "taskId": "67ffa2c1-a8c2-4252-b998-a97ec937f009",
+    "label": "Execution complete"
+  },
+  {
+    "at": 1793357420384,
+    "type": "task_completed",
+    "taskId": "67ffa2c1-a8c2-4252-b998-a97ec937f009",
+    "label": "LÉLU, a review of your self-development change on workspace \"default\" (reconsider every 500 ms, EDGE_MARGIN 100, default"
+  },
+  {
+    "at": 1793357420384,
+    "type": "tool_result",
+    "taskId": "1793357420384",
+    "tool": "projects",
+    "result": "Project \"Research\" created"
+  },
+  {
+    "at": 1793357420407,
+    "type": "memory_update",
+    "taskId": "1793356909419"
+  }
+]

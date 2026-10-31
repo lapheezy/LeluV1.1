@@ -26,6 +26,7 @@
  * ==========================================================
  */
 
+import type { MeasuredCapture } from "./ClaimGrounding";
 import type { ToolCall } from "../../providers/AIProvider";
 import type RouterContext from "../router/RouterContext";
 import AgentEventBus from "../agent/AgentEvents";
@@ -37,6 +38,9 @@ import { AGENTIC_EXECUTORS } from "../agentic/AgenticTools";
 import EngineeringAuthorization from "../engineering/EngineeringAuthorization";
 import ApprovalGate from "../agentic/ApprovalGate";
 import ToolStats from "../agentic/ToolStats";
+import MultiChatStore, { tokenizeText, type ChatConversation } from "../multichat/MultiChatStore";
+import { consentFor, findChat } from "../multichat/ChatConsent";
+import { CHAT_SCOPED } from "../multichat/ContextProvenance";
 
 export interface ToolExecutionResult {
   ok: boolean;
@@ -89,6 +93,245 @@ export function missingResearchDependencies(
 }
 
 /** Read a string argument without trusting the model's typing. */
+/** Research focus → the knowledge-provider capabilities it selects. */
+export const RESEARCH_FOCUS: Record<string, string[]> = {
+  news: ["news", "current-events"],
+  video: ["video", "youtube"],
+  academic: ["academic", "research", "paper", "scientific"],
+  encyclopedia: ["encyclopedia", "fact", "reference", "knowledge"],
+  code: ["code", "github"],
+  space: ["space", "astronomy"],
+  tech: ["technology", "developer", "startups"],
+  weather: ["weather"],
+  location: ["geography", "location", "map", "place"],
+};
+const RESEARCH_FOCUS_IDS = Object.keys(RESEARCH_FOCUS);
+
+function hostOf(url: string): string {
+  try {
+    return new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).hostname.replace(/^www\./, "");
+  } catch {
+    return url.slice(0, 60);
+  }
+}
+
+/**
+ * Pages already opened by browser.read, per task. A model that asks for
+ * the same page again in one turn gets what it already has instead of a
+ * second fetch and a second row of activity. Bounded.
+ */
+const pagesReadByTask = new Map<string, Map<string, ToolExecutionResult>>();
+
+function rememberPage(taskId: string, url: string, result: ToolExecutionResult): void {
+  let pages = pagesReadByTask.get(taskId);
+  if (!pages) {
+    pages = new Map();
+    pagesReadByTask.set(taskId, pages);
+    if (pagesReadByTask.size > 40) pagesReadByTask.delete(pagesReadByTask.keys().next().value as string);
+  }
+  pages.set(url, result);
+}
+
+/** A Google News article link is a script redirect: fetching it yields "Google News", never the article. */
+function isNewsRedirect(url: string): boolean {
+  return /^https?:\/\/news\.google\.com\/(rss\/)?articles\//i.test(url);
+}
+
+/** Below this much text a "read" page carried nothing to read (a redirect or script shell). */
+const MIN_READABLE_CHARS = 200;
+
+/** What a tool call is doing, in words — the activity line for it. */
+export function describeToolCall(id: string, args: Record<string, unknown>): string {
+  const pick = (key: string) => (typeof args[key] === "string" ? String(args[key]).trim() : "");
+  switch (id) {
+    case "research.web":
+      return `Searching the web for “${pick("query").slice(0, 80)}”`;
+    case "browser.read":
+      return `Opening ${hostOf(pick("url"))}`;
+    case "memory.recall":
+      return `Checking memory for “${pick("query").slice(0, 60)}”`;
+    case "memory.store":
+      return "Saving to memory";
+    case "chats.list":
+      return "Looking through your other chats";
+    case "chats.read":
+      return `Reading the chat “${pick("chat").slice(0, 60)}”`;
+    case "chats.link":
+      return `Linking the chat “${pick("chat").slice(0, 60)}”`;
+    case "chats.merge":
+      return "Merging chats into a new chat";
+    case "artifact.read":
+      return "Reading the workspace artifact";
+    case "artifact.edit":
+      return "Changing the workspace artifact";
+    case "artifact.create":
+      return `Making a ${pick("kind") || "new artifact"} in the workspace`;
+    default: {
+      const detail = pick("query") || pick("path") || pick("action") || pick("url");
+      return detail ? `Running ${id} (${detail.slice(0, 60)})` : `Running ${id}`;
+    }
+  }
+}
+
+/** Everything the user said in this turn: the message, and what they added while it ran. */
+function userWords(context: RouterContext | undefined): string {
+  return [context?.request.prompt ?? "", ...(context?.request.steered ?? [])].join("\n");
+}
+
+/** The chat this turn belongs to (AIRequest.conversationId), if any. */
+function currentChat(context: RouterContext | undefined): ChatConversation | undefined {
+  const id = context?.request.conversationId;
+  return id ? MultiChatStore.getInstance().get(id) : undefined;
+}
+
+/**
+ * Captures of her own app, by viewport+panel — the "before" a preview
+ * capture is compared with. A self-improvement run compared an app capture
+ * WITH the Memory panel open against a preview capture with NO panel, and
+ * concluded the fix worked; under the same conditions nothing had changed.
+ */
+const appCaptures = new Map<string, Array<{ label: string; problem: string; intermittent?: boolean }>>();
+
+/**
+ * The latest problem count of every capture target under every set of
+ * conditions — what a reply's numbers are checked against
+ * (ClaimGrounding.contradictedCaptureClaims).
+ */
+const measuredCaptures = new Map<string, MeasuredCapture>();
+
+export function latestCaptureMeasurements(): MeasuredCapture[] {
+  return [...measuredCaptures.values()];
+}
+
+export function compareCaptures(
+  before: ReadonlyArray<{ label: string; problem: string; intermittent?: boolean }> | undefined,
+  after: ReadonlyArray<{ label: string; problem: string; intermittent?: boolean }>,
+  conditions: string,
+): string {
+  if (!before) {
+    return `\nNo capture of your own app at ${conditions} exists to compare with — capture target "app" with the same viewport and panel, so before and after are comparable.`;
+  }
+  const key = (finding: { label: string; problem: string }) => `${finding.problem}: ${finding.label}`;
+  // A finding seen in only some loads of the same page depends on the app's
+  // state when it loaded (run 20: an unread dot that came and went), so its
+  // presence or absence on either side is evidence of nothing.
+  const intermittent = new Set([...before, ...after].filter((finding) => finding.intermittent).map(key));
+  const was = new Set(before.map(key).filter((item) => !intermittent.has(item)));
+  const now = new Set(after.map(key).filter((item) => !intermittent.has(item)));
+  const resolved = [...was].filter((item) => !now.has(item));
+  const still = [...was].filter((item) => now.has(item));
+  const added = [...now].filter((item) => !was.has(item));
+  return (
+    `\nCompared with your app at the same conditions (${conditions}): ${before.length} finding(s) before → ${after.length} now.` +
+    `\n  resolved: ${resolved.length ? resolved.join("; ") : "none"}` +
+    `\n  still present: ${still.length ? still.join("; ") : "none"}` +
+    `\n  new: ${added.length ? added.join("; ") : "none"}` +
+    (intermittent.size
+      ? `\n  NOT EVIDENCE either way — seen in only some loads of the same page, so they depend on the app's state when it loaded, not on your code: ${[...intermittent].join("; ")}`
+      : "")
+  );
+}
+
+/**
+ * Why `content` cannot be what a whole-file write means to save, or null.
+ * Two signatures no real source file carries: project_read's display
+ * (its window header, or "N| " line prefixes), and a comment standing in
+ * for code that was not written out ("... rest of the component",
+ * "(full original stylesheet – 1089 lines)").
+ */
+export function unsavableContent(content: string): string | null {
+  const lines = content.split("\n");
+  if (/ — lines \d+–\d+ of \d+/.test(lines.slice(0, 3).join("\n")) || lines.filter((line) => /^\s*\d+\| /.test(line)).length >= 3) {
+    return 'contains project_read\'s display (its "lines N–M of T" header or "N| " line prefixes), not source';
+  }
+  const comment = /^\s*(?:\/\/|\/\*|\{\/\*|<!--|#)\s*(.*)$/;
+  for (const line of lines) {
+    const body = comment.exec(line)?.[1];
+    if (!body) continue;
+    if (
+      /^(?:\.\.\.|…)\s*(?:\*\/\s*\}?|-->)?\s*$/.test(body) ||
+      /^(?:\.\.\.|…)\s*(?:existing|rest|remaining|unchanged|same|other|previous|more)\b/i.test(body) ||
+      /\(\s*(?:the\s+)?(?:full|entire|rest|remaining|original|existing|unchanged)\b/i.test(body) ||
+      /\b(?:rest|remainder) of (?:the )?(?:file|code|component|stylesheet|styles|module)\b/i.test(body) ||
+      /\b(?:full|entire|original|existing) (?:\w+ )?(?:file|code|component|stylesheet|styles|module)\b[^\n]*\b\d+ lines\b/i.test(body)
+    ) {
+      return `has a placeholder where code should be ("${line.trim().slice(0, 80)}") — the code it stands for would be deleted`;
+    }
+  }
+  return null;
+}
+
+/**
+ * App captures that found problems under OTHER conditions than this preview
+ * capture. Measured in run 9: she found 13 problems in her app with the
+ * Avatar panel open, captured her preview with no panel (0 problems, as
+ * her app with no panel also had), and reported "13 → 0, met". The
+ * conditions where she found the problem were never re-captured. Saying
+ * so in the result makes that impossible to miss.
+ */
+export function uncomparedConditions(
+  captures: ReadonlyMap<string, ReadonlyArray<{ label: string; problem: string }>>,
+  conditions: string,
+): string {
+  const others = [...captures].filter(([key, findings]) => key !== conditions && findings.length > 0);
+  if (others.length === 0) return "";
+  return (
+    "\nIMPORTANT: this preview capture says NOTHING about the problems your app had under other conditions — " +
+    others.map(([key, findings]) => `${key}: ${findings.length} finding(s) in your app`).join("; ") +
+    ". To know whether your fix resolved them, capture the preview with exactly those conditions (the same viewport and panel)."
+  );
+}
+
+/**
+ * Where a project.edit snippet sits in a file: an exact unique match, or
+ * — when the model's indentation is off, the commonest failure measured
+ * (23 of 24 edits refused in one run) — a unique match of the same lines
+ * ignoring each line's leading/trailing whitespace. A tolerant match
+ * re-indents the replacement by the same offset, so the file's own
+ * indentation is kept.
+ */
+export function locateSnippet(
+  content: string,
+  find: string,
+  replace: string,
+): { ok: true; start: number; end: number; replacement: string; tolerant: boolean } | { ok: false; count: number } {
+  const exact = content.split(find).length - 1;
+  if (exact === 1) {
+    const start = content.indexOf(find);
+    return { ok: true, start, end: start + find.length, replacement: replace, tolerant: false };
+  }
+  if (exact > 1) return { ok: false, count: exact };
+
+  const wanted = find.split("\n").map((line) => line.trim());
+  while (wanted.length && !wanted[0]) wanted.shift();
+  while (wanted.length && !wanted[wanted.length - 1]) wanted.pop();
+  if (wanted.length === 0) return { ok: false, count: 0 };
+  const lines = content.split("\n");
+  const matches: number[] = [];
+  for (let i = 0; i + wanted.length <= lines.length; i += 1) {
+    if (wanted.every((text, k) => lines[i + k].trim() === text)) matches.push(i);
+  }
+  if (matches.length !== 1) return { ok: false, count: matches.length };
+
+  const first = matches[0];
+  const offsets: number[] = [0];
+  for (const line of lines) offsets.push(offsets[offsets.length - 1] + line.length + 1);
+  const start = offsets[first];
+  const end = offsets[first + wanted.length] - 1;
+  const fileIndent = /^\s*/.exec(lines[first])?.[0] ?? "";
+  const findFirst = find.split("\n").find((line) => line.trim()) ?? "";
+  const findIndent = /^\s*/.exec(findFirst)?.[0] ?? "";
+  const replacement = replace
+    .split("\n")
+    .map((line) => {
+      if (!line.trim()) return line;
+      if (fileIndent.length >= findIndent.length) return fileIndent.slice(0, fileIndent.length - findIndent.length) + line;
+      return line.startsWith(findIndent.slice(fileIndent.length)) ? line.slice(findIndent.length - fileIndent.length) : line.trimStart();
+    })
+    .join("\n");
+  return { ok: true, start, end, replacement, tolerant: true };
+}
+
 function str(args: Record<string, unknown>, key: string): string {
   const value = args[key];
   return typeof value === "string" ? value.trim() : "";
@@ -136,11 +379,20 @@ const EXECUTORS: ToolExecutor[] = [
           description:
             "The search query. Be specific — this runs against real knowledge providers.",
         },
+        focus: {
+          type: "string",
+          enum: [...RESEARCH_FOCUS_IDS],
+          description:
+            "Which connected sources to use: news (NewsAPI, Guardian, GNews, NewsData, GDELT, RSS), " +
+            "video (YouTube), academic (arXiv, OpenAlex, CrossRef), encyclopedia (Wikipedia, Wikidata), " +
+            "code (GitHub), space (NASA), tech (Hacker News), weather, location. Omit to let LÉLU choose.",
+        },
       },
       required: ["query"],
     },
     run: async (args, context) => {
       const query = str(args, "query");
+      const focus = str(args, "focus");
       if (!query) {
         return { ok: false, content: "research.web requires a non-empty query." };
       }
@@ -205,6 +457,7 @@ const EXECUTORS: ToolExecutor[] = [
         // `intent` is the resolver's own supported input for this; the
         // router sets it the same way.
         intent: "search",
+        ...(RESEARCH_FOCUS[focus] ? { researchFocus: RESEARCH_FOCUS[focus] } : {}),
       } as unknown as RouterContext);
 
 
@@ -252,6 +505,690 @@ const EXECUTORS: ToolExecutor[] = [
         ok: true,
         content: lines.join("\n\n"),
         data: { count: result.results.length, results: result.results.slice(0, 8) },
+      };
+    },
+  },
+
+  {
+    id: "browser.read",
+    // Emits the browser_* trio itself, so the chat can show the page.
+    emitsOwnEvents: true,
+    parameters: {
+      type: "object",
+      properties: {
+        url: {
+          type: "string",
+          description:
+            "The full web address to open and read (e.g. a source from research.web). " +
+            "Returns the page title and its readable text. news.google.com article links are " +
+            "redirects that cannot be read — search the headline instead.",
+        },
+      },
+      required: ["url"],
+    },
+    run: async (args, context) => {
+      const url = str(args, "url");
+      if (!url) {
+        return { ok: false, content: "browser.read needs a url; nothing was opened." };
+      }
+      const taskId = String(context?.request?.timestamp ?? Date.now());
+      const already = pagesReadByTask.get(taskId)?.get(url);
+      if (already) {
+        return {
+          ...already,
+          content: `(You already opened this page in this turn — nothing new; do not open it again.)\n${already.content}`,
+        };
+      }
+      const events = AgentEventBus.getInstance();
+      const { default: BrowserTool } = await import("../browser/BrowserTool");
+      events.emit({ type: "tool_selected", taskId, tool: "browser", label: `Opening ${hostOf(url)}` });
+      events.emit({ type: "tool_started", taskId, tool: "browser", label: `Opening ${hostOf(url)}` });
+      events.emit({ type: "browser_opened", taskId, url });
+
+      const visited = await BrowserTool.visit(url);
+      // A "read" with nothing in it is not a read. Reporting it as one
+      // sent the model back to the same Google News redirect again and
+      // again, each time told it had succeeded.
+      const thin = visited.status === "read" && visited.text.trim().length < MIN_READABLE_CHARS;
+      const page = thin
+        ? {
+            ...visited,
+            status: "error" as const,
+            error: isNewsRedirect(url) || isNewsRedirect(visited.url)
+              ? "This is a Google News redirect link — it never contains the article. Search for the headline with research_web, or open the publisher's own URL"
+              : `The page had almost no readable text (“${visited.text.trim().slice(0, 60)}”) — likely a redirect or a page built by scripts`,
+          }
+        : visited;
+      events.emit({ type: "browser_navigation", taskId, url: page.url });
+      events.emit({
+        type: "browser_result",
+        taskId,
+        url: page.url,
+        title: page.title,
+        excerpt: page.excerpt.slice(0, 1200),
+        status: page.status,
+        error: page.error,
+      });
+      events.emit({
+        type: "tool_result",
+        taskId,
+        tool: "browser",
+        query: page.url,
+        result: page.status === "read" ? `Read “${page.title || hostOf(page.url)}”` : page.error ?? `Could not read ${page.url}`,
+        results:
+          page.status === "read"
+            ? [{ title: page.title || page.url, url: page.url, content: page.excerpt.slice(0, 600), source: hostOf(page.url) }]
+            : [],
+        status: page.status === "read" ? "complete" : page.status === "blocked" ? "blocked" : "error",
+      });
+
+      if (page.status !== "read") {
+        // A structured failure the model can act on: what happened, and
+        // what to do instead.
+        const failed = {
+          ok: false,
+          content:
+            `Could not read ${page.url}: ${page.error ?? page.status}. ` +
+            `Nothing from this page is known. Try another source from research.web, or tell the user it could not be opened.`,
+          data: { url: page.url, status: page.status },
+        };
+        rememberPage(taskId, url, failed);
+        return failed;
+      }
+      const text = page.text.length > 6000 ? `${page.text.slice(0, 6000)}…` : page.text;
+      const read = {
+        ok: true,
+        content: `Page: ${page.title || page.url}\nURL: ${page.url}\n\n${text}`,
+        data: { url: page.url, title: page.title, status: page.status, length: page.text.length },
+      };
+      rememberPage(taskId, url, read);
+      return read;
+    },
+  },
+
+  /* ------------------------- other chats ------------------------- */
+  // LÉLU can find, read, link and merge the user's other chats from
+  // inside a conversation. WHETHER she may is decided by the user's own
+  // words (multichat/ChatConsent) — she can raise a connection, the
+  // user decides. Unauthorized chats are never read.
+
+  {
+    id: "browser.capture",
+    emitsOwnEvents: true,
+    parameters: {
+      type: "object",
+      properties: {
+        target: {
+          type: "string",
+          enum: ["app", "preview", "url"],
+          description: "'app' = your own running interface; 'preview' = a workspace copy you started with project_preview; 'url' = a public page.",
+        },
+        url: { type: "string", description: "For target 'url': the page address." },
+        workspace: { type: "string", description: "For target 'preview': the workspace id." },
+        viewport: { type: "string", enum: ["phone", "desktop"], description: "Screen size to render at (default desktop)." },
+        panel: {
+          type: "string",
+          description: "For 'app'/'preview': a panel to open first, e.g. chat, avatar, browser, memory, projects, cosmos.",
+        },
+      },
+      required: ["target"],
+    },
+    run: async (args, context) => {
+      const target = str(args, "target") || "app";
+      const viewport = str(args, "viewport") === "phone" ? "phone" : "desktop";
+      const panel = str(args, "panel") || undefined;
+      const body: Record<string, unknown> = { viewport, ...(panel ? { panel } : {}) };
+      if (target === "url") {
+        const url = str(args, "url");
+        if (!url) return { ok: false, content: "browser.capture with target 'url' needs a url." };
+        body.url = url;
+      } else if (target === "preview") {
+        const workspace = str(args, "workspace");
+        if (!workspace) return { ok: false, content: "browser.capture with target 'preview' needs the workspace id." };
+        body.preview = workspace;
+      } else {
+        body.app = true;
+      }
+      // The turn's own task id (as browser.read uses), so the capture's
+      // events belong to the conversation that asked for it.
+      const taskId = String(context?.request?.timestamp ?? Date.now());
+      const label = target === "url" ? `Looking at ${hostOf(String(body.url))}` : `Looking at ${target === "preview" ? `workspace ${String(body.preview)}` : "my own interface"} (${viewport}${panel ? `, ${panel}` : ""})`;
+      // Reported as "capture", not "browser": a capture is a screenshot shown
+      // in the conversation. As "browser" it opened the in-app Browser window
+      // over the chat on phones (measured in the self-improvement run).
+      const events = AgentEventBus.getInstance();
+      events.emit({ type: "tool_selected", taskId, tool: "capture", label });
+      events.emit({ type: "tool_started", taskId, tool: "capture", label });
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const data = await EngineeringWorkspace.getInstance().callRuntime("/api/browser/capture", body);
+      if (data.ok !== true) {
+        const error = String(data.error ?? "The capture failed.");
+        events.emit({ type: "tool_failed", taskId, tool: "capture", error });
+        return { ok: false, content: `Nothing was captured: ${error}` };
+      }
+      const layout = (data.layout ?? {}) as { viewport?: number[]; controls?: number; belowTheFold?: number; behindModal?: number; settled?: boolean; loads?: number; findings?: Array<{ label: string; rect: number[]; problem: string; coveredBy?: string; detail?: string; seenIn?: number }>; text?: string };
+      const loads = layout.loads ?? 1;
+      const findings = layout.findings ?? [];
+      // The real screenshot goes where every produced image goes: into the
+      // conversation and the shared workspace.
+      if (typeof data.screenshot === "string") {
+        events.emit({
+          type: "creative_artifact",
+          taskId,
+          image: data.screenshot,
+          label,
+          source: String(data.url ?? ""),
+          text: `${data.title ? `Title: ${String(data.title)}\n` : ""}${String((data.layout as { text?: string } | undefined)?.text ?? "").slice(0, 3000)}`,
+        });
+      }
+      const isIntermittent = (f: { seenIn?: number }) => loads > 1 && (f.seenIn ?? loads) < loads;
+      const lines = findings.map((f) => `- ${isIntermittent(f) ? `[in ${f.seenIn} of ${loads} loads — depends on the app's state when it loaded] ` : ""}${f.problem}: ${f.label} at [x ${f.rect[0]}, y ${f.rect[1]}, w ${f.rect[2]}, h ${f.rect[3]}]${f.coveredBy ? ` covered by ${f.coveredBy}` : ""}${f.detail ? ` (${f.detail})` : ""}`);
+      const conditions = `${viewport}${panel ? `, panel ${panel}` : ", no panel"}`;
+      let comparison = "";
+      // Anything but "url" or "preview" was captured as her app (above).
+      const measuredTarget: MeasuredCapture["target"] = target === "url" || target === "preview" ? target : "app";
+      measuredCaptures.set(`${measuredTarget}|${conditions}`, {
+        target: measuredTarget,
+        conditions,
+        problems: findings.length,
+        stableProblems: findings.filter((f) => !isIntermittent(f)).length,
+      });
+      if (target === "app") appCaptures.set(conditions, findings.map((f) => ({ label: f.label, problem: f.problem, intermittent: isIntermittent(f) })));
+      if (target === "preview") comparison = compareCaptures(appCaptures.get(conditions), findings.map((f) => ({ label: f.label, problem: f.problem, intermittent: isIntermittent(f) })), conditions) + uncomparedConditions(appCaptures, conditions);
+      // What the user (and anyone checking her work) sees of this capture:
+      // the count, how many depend on the app's state at load, and — for a
+      // preview — the comparison she was given, verbatim.
+      const unstable = findings.filter(isIntermittent).length;
+      events.emit({
+        type: "tool_result",
+        taskId,
+        tool: "capture",
+        result: `${findings.length} layout finding(s) at ${conditions}${unstable ? `, ${unstable} of them in only some of ${loads} loads (depend on the app's state)` : ""}${comparison}`,
+      });
+      const errors = Array.isArray(data.pageErrors) && data.pageErrors.length ? `\nPage errors: ${(data.pageErrors as string[]).join(" | ")}` : "";
+      return {
+        ok: true,
+        content:
+          `Captured ${String(data.url)} at ${viewport} (${(layout.viewport ?? []).join("×")}), title "${String(data.title ?? "")}"` +
+          `${data.panelOpened ? `, panel: ${String(data.panelOpened)}` : ""}. The screenshot is shown to the user.\n` +
+          `Layout report — ${layout.controls ?? 0} visible controls measured${loads > 1 ? ` in ${loads} independent loads of the page` : ""}, scroll positions reset to the start` +
+          `${layout.settled === false ? " — WARNING: the layout was still moving when measured, so this report may not be repeatable" : ""}` +
+          `${layout.belowTheFold ? `; ${layout.belowTheFold} below the fold of a scrolling area (reachable by scrolling — not problems)` : ""}` +
+          `${layout.behindModal ? `; ${layout.behindModal} behind an open panel's modal backdrop (covered on purpose while it is open — not problems)` : ""}; ${findings.length} problem(s):\n` +
+          `${lines.length ? lines.join("\n") : "(none: every control is on screen and uncovered)"}${comparison}${errors}\n\nVisible text (start):\n${String(layout.text ?? "").slice(0, 1200)}`,
+        data: { findings, viewport, title: data.title, capturedAt: data.capturedAt },
+      };
+    },
+  },
+
+  {
+    id: "project.search",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "Text to find (case-insensitive), e.g. a component name, a style value, an aria-label." },
+        workspace: { type: "string", description: "Search inside this workspace copy instead of the real project." },
+        path: { type: "string", description: "Only under this folder, e.g. src/app." },
+        regex: { type: "boolean", description: "Treat the query as a regular expression." },
+      },
+      required: ["query"],
+    },
+    run: async (args) => {
+      const query = str(args, "query");
+      if (!query) return { ok: false, content: "project.search needs a query." };
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const data = await EngineeringWorkspace.getInstance().callRuntime("/api/engineer/search", {
+        query,
+        ...(str(args, "workspace") ? { workspace: str(args, "workspace") } : {}),
+        ...(str(args, "path") ? { path: str(args, "path") } : {}),
+        ...(args.regex === true ? { regex: true } : {}),
+      });
+      if (data.ok !== true) return { ok: false, content: `Search failed: ${String(data.error ?? "unknown error")}` };
+      const matches = (data.matches ?? []) as Array<{ path: string; line: number; text: string }>;
+      if (matches.length === 0) return { ok: true, content: `No match for "${query}" (${String(data.filesScanned)} files scanned).` };
+      return {
+        ok: true,
+        content: `${matches.length}${data.truncated ? "+" : ""} match(es) for "${query}":\n` + matches.map((m) => `${m.path}:${m.line}: ${m.text}`).join("\n"),
+        data: { matches },
+      };
+    },
+  },
+
+  {
+    id: "project.preview",
+    parameters: {
+      type: "object",
+      properties: {
+        workspace: { type: "string", description: "The workspace copy to run." },
+        action: { type: "string", enum: ["start", "stop", "status"], description: "Default start." },
+      },
+      required: ["workspace"],
+    },
+    run: async (args) => {
+      const action = str(args, "action") || "start";
+      const workspace = str(args, "workspace");
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const data = await EngineeringWorkspace.getInstance().callRuntime("/api/engineer/preview", { action, workspace });
+      if (data.ok !== true) return { ok: false, content: `Preview ${action} failed: ${String(data.error ?? "unknown error")}${data.log ? `\n${String(data.log).slice(-800)}` : ""}` };
+      if (action === "start") return { ok: true, content: `Workspace ${workspace} is running at ${String(data.url)} (loopback). Capture it with browser_capture target "preview".` };
+      if (action === "stop") return { ok: true, content: data.stopped ? `Preview of ${workspace} stopped.` : `No preview of ${workspace} was running.` };
+      return { ok: true, content: JSON.stringify(data.previews ?? []) };
+    },
+  },
+
+  {
+    id: "agent.delegate",
+    parameters: {
+      type: "object",
+      properties: {
+        objective: { type: "string", description: "The work to hand off, stated fully enough for the agent to act on it." },
+        agent: {
+          type: "string",
+          description: "Optional: the agent's name, when the user asked for a specific one. Omit to let SHAMAN choose.",
+        },
+      },
+      required: ["objective"],
+    },
+    run: async (args) => {
+      const objective = str(args, "objective");
+      if (!objective) return { ok: false, content: "agent.delegate requires an objective." };
+      const { default: Shaman } = await import("../agents/Shaman");
+      const { default: AgentStore } = await import("../agents/AgentStore");
+      const named = str(args, "agent").toLowerCase();
+      let agentId: string | undefined;
+      if (named) {
+        const agent = AgentStore.getInstance()
+          .list()
+          .find((candidate) => candidate.name.toLowerCase() === named || candidate.name.toLowerCase().includes(named));
+        if (!agent) return { ok: false, content: `There is no agent called "${str(args, "agent")}". Nothing was run.` };
+        agentId = agent.id;
+      }
+      const result = await Shaman.getInstance().dispatch({ objective, agentId, delegatedBy: "lelu" });
+      const route = result.route.ok
+        ? `SHAMAN routed it to ${result.route.agentName} (${result.route.executive}): ${result.route.routeReason}.`
+        : `SHAMAN could not route it: ${result.route.reason}`;
+      if (!result.ok) {
+        return { ok: false, content: `${route}\nNot completed: ${result.error ?? "the agent run failed"}. Task ${result.taskId}.` };
+      }
+      const text = result.response?.text ?? "";
+      const failedProvider = result.response?.provider === "error" || result.response?.provider === "offline";
+      return {
+        ok: !failedProvider,
+        content: `${route}\n${failedProvider ? "The agent reached no model provider" : "Result"} (task ${result.taskId}):\n${text.slice(0, 4000)}`,
+        data: { taskId: result.taskId, route: result.route },
+      };
+    },
+  },
+
+  {
+    id: "agent.status",
+    parameters: {
+      type: "object",
+      properties: {
+        status: { type: "string", enum: ["running", "interrupted", "failed", "complete", "queued"], description: "Only tasks in this state." },
+      },
+    },
+    run: async (args) => {
+      const { default: AgentStore } = await import("../agents/AgentStore");
+      const status = str(args, "status");
+      const entries = AgentStore.getInstance()
+        .delegations(status ? { status: status as never } : {})
+        .slice(0, 15);
+      if (entries.length === 0) return { ok: true, content: status ? `No ${status} agent tasks.` : "No agent tasks recorded yet." };
+      const lines = entries.map(({ agentName, task }) => {
+        const when = new Date(task.createdAt).toISOString().slice(0, 16).replace("T", " ");
+        return (
+          `- [${task.status}] ${agentName}${task.executive ? ` (${task.executive})` : ""}: "${task.label.slice(0, 80)}" — ${when}` +
+          `${task.delegatedBy ? `, assigned by ${task.delegatedBy}` : ""}${task.routeReason ? `; routed: ${task.routeReason}` : ""}` +
+          `${task.error ? `; error: ${task.error.slice(0, 120)}` : ""} (id ${task.id})`
+        );
+      });
+      return { ok: true, content: lines.join("\n") };
+    },
+  },
+
+  {
+    id: "agent.resume",
+    parameters: {
+      type: "object",
+      properties: { taskId: { type: "string", description: "The id of the interrupted or failed task (from agent_status)." } },
+      required: ["taskId"],
+    },
+    run: async (args) => {
+      const taskId = str(args, "taskId");
+      const { default: AgentStore } = await import("../agents/AgentStore");
+      const owner = AgentStore.getInstance()
+        .list()
+        .find((agent) => agent.tasks.some((task) => task.id === taskId));
+      if (!owner) return { ok: false, content: `No agent task with id ${taskId}.` };
+      const { default: Shaman } = await import("../agents/Shaman");
+      const result = await Shaman.getInstance().resume(owner.id, taskId);
+      const route = result.route.ok ? `${result.route.agentName} (${result.route.executive}): ${result.route.routeReason}` : result.route.reason;
+      return result.ok
+        ? { ok: true, content: `Resumed — ${route}. New task ${result.taskId}:\n${(result.response?.text ?? "").slice(0, 3000)}` }
+        : { ok: false, content: `Not resumed: ${result.error}` };
+    },
+  },
+
+  {
+    id: "avatar.companion",
+    parameters: {
+      type: "object",
+      properties: {
+        enabled: {
+          type: "boolean",
+          description: "true to appear as the companion over the app, false to hide. Omit to only change size.",
+        },
+        size: { type: "string", enum: ["small", "medium", "large"], description: "Your size as the companion." },
+        chooseOwnSpot: {
+          type: "boolean",
+          description: "true to stop staying where the user dragged you and pick an out-of-the-way spot yourself.",
+        },
+      },
+    },
+    run: async (args) => {
+      const { default: CompanionStore } = await import("../avatar/CompanionStore");
+      const store = CompanionStore.getInstance();
+      if (typeof args.enabled === "boolean") store.setEnabled(args.enabled);
+      const size = str(args, "size");
+      if (size === "small" || size === "medium" || size === "large") store.setSize(size);
+      if (args.chooseOwnSpot === true) store.unpin();
+      const state = store.get();
+      return {
+        ok: true,
+        content: state.enabled
+          ? `Companion mode is ON (${state.size}${state.pinned ? ", staying where the user placed you" : ", choosing your own out-of-the-way spot"}).`
+          : "Companion mode is OFF.",
+        data: state,
+      };
+    },
+  },
+
+  /* ---------------------- workspace artifacts ---------------------- */
+  // The workspace's views are the artifacts tools produced. These read and
+  // change THOSE objects — the view the user sees gets the new revision.
+  // "this"/"it"/nothing = the artifact the user selected.
+
+  {
+    id: "artifact.read",
+    parameters: {
+      type: "object",
+      properties: {
+        artifact: {
+          type: "string",
+          description: "Which artifact: its [id] or part of its title. Omit (or 'this') for the one the user selected.",
+        },
+      },
+    },
+    run: async (args) => {
+      const { default: WorkspaceEngine } = await import("../workspace/WorkspaceEngine");
+      const { describeArtifact, describeWorkspace, resolveArtifact } = await import("../workspace/WorkspaceArtifacts");
+      const state = WorkspaceEngine.getInstance().getState();
+      const view = resolveArtifact(state, str(args, "artifact"));
+      if (!view) {
+        return { ok: false, content: `No artifact matches${str(args, "artifact") ? ` “${str(args, "artifact")}”` : " (nothing is selected)"}.
+${describeWorkspace(state)}` };
+      }
+      return { ok: true, content: describeArtifact(view, 6000), data: { id: view.id, revision: view.revision } };
+    },
+  },
+
+  {
+    id: "artifact.edit",
+    parameters: {
+      type: "object",
+      properties: {
+        artifact: { type: "string", description: "Which artifact: its [id] or part of its title. Omit for the one the user selected." },
+        title: { type: "string", description: "A new title." },
+        text: { type: "string", description: "Replace its whole text (a note's content, a page's text, an image's notes)." },
+        append: { type: "string", description: "Add this to the end of its text." },
+        find: { type: "string", description: "An exact passage of its text to replace (with 'replace')." },
+        replace: { type: "string", description: "What replaces 'find'." },
+        caption: { type: "string", description: "Diagram/table caption." },
+        addNodes: { type: "array", items: { type: "string" }, description: "Diagram: node labels to add." },
+        renameNode: {
+          type: "object",
+          properties: { node: { type: "string" }, label: { type: "string" } },
+          description: "Diagram: rename a node (by id or label).",
+        },
+        removeNode: { type: "string", description: "Diagram: remove a node (by id or label) and its connections." },
+        connect: {
+          type: "object",
+          properties: { from: { type: "string" }, to: { type: "string" }, label: { type: "string" } },
+          description: "Diagram: connect two nodes (by id or label).",
+        },
+        addRow: { type: "object", description: "Table: a row to add, column label → value." },
+        removeRow: { type: "number", description: "Table: the 1-based row to remove." },
+      },
+    },
+    run: async (args) => {
+      const { default: WorkspaceEngine } = await import("../workspace/WorkspaceEngine");
+      const { planArtifactEdit, resolveArtifact, describeArtifact, describeWorkspace } = await import("../workspace/WorkspaceArtifacts");
+      const engine = WorkspaceEngine.getInstance();
+      const view = resolveArtifact(engine.getState(), str(args, "artifact"));
+      if (!view) {
+        return { ok: false, content: `Nothing was changed: no artifact matches${str(args, "artifact") ? ` “${str(args, "artifact")}”` : " (nothing is selected)"}.
+${describeWorkspace(engine.getState())}` };
+      }
+      const planned = planArtifactEdit(view, args as Parameters<typeof planArtifactEdit>[1]);
+      if (!planned.ok) return { ok: false, content: planned.reason };
+      engine.updateView(view.id, planned.patch);
+      engine.focusView(view.id);
+      const updated = engine.getState().views.find((item) => item.id === view.id);
+      return {
+        ok: true,
+        content: `Changed [${view.id}] “${updated?.title ?? view.title}” — ${planned.changes.join("; ")}. The user now sees revision ${updated?.revision ?? "?"} in the workspace.
+${updated ? describeArtifact(updated, 1500) : ""}`,
+        data: { id: view.id, revision: updated?.revision, changes: planned.changes },
+      };
+    },
+  },
+
+  {
+    id: "artifact.create",
+    parameters: {
+      type: "object",
+      properties: {
+        kind: { type: "string", enum: ["note", "diagram", "table"], description: "What to make." },
+        title: { type: "string", description: "Its title." },
+        text: { type: "string", description: "A note's content (or notes under a diagram/table)." },
+        nodes: { type: "array", items: { type: "string" }, description: "Diagram: node labels." },
+        connections: {
+          type: "array",
+          items: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, label: { type: "string" } } },
+          description: "Diagram: connections between node labels.",
+        },
+        columns: { type: "array", items: { type: "string" }, description: "Table: column labels." },
+        rows: { type: "array", items: { type: "object" }, description: "Table: rows, column label → value." },
+      },
+      required: ["kind", "title"],
+    },
+    run: async (args, context) => {
+      const { default: WorkspaceEngine } = await import("../workspace/WorkspaceEngine");
+      const { draftArtifact } = await import("../workspace/WorkspaceArtifacts");
+      const drafted = draftArtifact(args as unknown as Parameters<typeof draftArtifact>[0]);
+      if (!drafted.ok) return { ok: false, content: `Nothing was created: ${drafted.reason}` };
+      const view = WorkspaceEngine.getInstance().openView({
+        ...drafted.view,
+        source: { tool: "lelu", taskId: String(context?.request?.timestamp ?? "") || undefined },
+      });
+      return {
+        ok: true,
+        content: `Created [${view.id}] ${view.kind} “${view.title}” in the workspace; the user sees it now. Change it later with artifact_edit (artifact: "${view.id}").`,
+        data: { id: view.id, kind: view.kind },
+      };
+    },
+  },
+
+  {
+    id: "chats.list",
+    parameters: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "Optional words to rank the user's other chats by (matched against their titles).",
+        },
+      },
+    },
+    run: async (args, context) => {
+      const current = currentChat(context);
+      const others = MultiChatStore.getInstance().list().filter((conversation) => conversation.id !== current?.id);
+      if (others.length === 0) return { ok: true, content: "The user has no other chats." };
+      const qTokens = new Set(tokenizeText(str(args, "query")));
+      const ranked = others
+        .map((conversation) => ({
+          conversation,
+          score: tokenizeText(conversation.title).filter((token) => qTokens.has(token)).length,
+        }))
+        .sort((a, b) => b.score - a.score || b.conversation.updatedAt - a.conversation.updatedAt)
+        .slice(0, 15);
+      const lines = ranked.map(({ conversation }) => {
+        const linked = current && (current.linkedIds.includes(conversation.id) || conversation.linkedIds.includes(current.id));
+        return `- “${conversation.title}” — ${conversation.messages.length} messages${linked ? ", linked to this chat" : ""}`;
+      });
+      return {
+        ok: true,
+        content:
+          `The user's other chats (titles only — their contents are not shown here):\n${lines.join("\n")}\n` +
+          "Read one with chats_read only if the user brought it up or agrees; otherwise ask them.",
+      };
+    },
+  },
+
+  {
+    id: "chats.read",
+    parameters: {
+      type: "object",
+      properties: {
+        chat: { type: "string", description: "The other chat's title (or part of it)." },
+        query: { type: "string", description: "What to look for in it (optional)." },
+      },
+      required: ["chat"],
+    },
+    run: async (args, context) => {
+      const current = currentChat(context);
+      if (!current) return { ok: false, content: "This turn is not in a chat, so no other chat can be read." };
+      const target = findChat(str(args, "chat"), MultiChatStore.getInstance().list(), current.id);
+      if (!target) return { ok: false, content: `No other chat matches “${str(args, "chat")}”. Use chats_list to see the titles.` };
+      const consent = consentFor({ prompt: userWords(context), current, target, action: "read" });
+      if (!consent.ok) return { ok: false, content: consent.reason, data: { needsConsent: true, chat: target.title } };
+
+      const qTokens = new Set(tokenizeText(str(args, "query") || (userWords(context))));
+      const messages = target.messages.filter((message) => message.text.trim());
+      const relevant = messages
+        .map((message, index) => ({ message, index, overlap: tokenizeText(message.text).filter((t) => qTokens.has(t)).length }))
+        .filter((item) => item.overlap > 0)
+        .sort((a, b) => b.overlap - a.overlap)
+        .slice(0, 6)
+        .sort((a, b) => a.index - b.index)
+        .map((item) => item.message);
+      const chosen = relevant.length > 0 ? relevant : messages.slice(-8);
+      let budget = 3500;
+      const lines: string[] = [];
+      for (const message of chosen) {
+        if (budget <= 0) break;
+        const text = message.text.replace(/\s+/g, " ").trim().slice(0, Math.min(budget, 900));
+        budget -= text.length;
+        lines.push(`- ${message.role === "assistant" ? "LÉLU" : "User"}: ${text}`);
+      }
+      const taskId = String(context?.request.timestamp ?? Date.now());
+      AgentEventBus.getInstance().emit({
+        type: "cross_chat_reference",
+        taskId,
+        sources: [{ conversationId: target.id, title: target.title, authorization: consent.authorization ?? "asked" }],
+        suggested: [],
+      });
+      return {
+        ok: true,
+        content:
+          `From the chat “${target.title}” (${consent.reason}) — this is that chat's content, not this one's. ` +
+          `When you use it, say it came from “${target.title}”.\n${lines.join("\n")}`,
+        data: { chat: target.title, messages: chosen.length },
+      };
+    },
+  },
+
+  {
+    id: "chats.link",
+    parameters: {
+      type: "object",
+      properties: { chat: { type: "string", description: "The other chat's title (or part of it)." } },
+      required: ["chat"],
+    },
+    run: async (args, context) => {
+      const current = currentChat(context);
+      if (!current) return { ok: false, content: "This turn is not in a chat, so nothing can be linked." };
+      const store = MultiChatStore.getInstance();
+      const target = findChat(str(args, "chat"), store.list(), current.id);
+      if (!target) return { ok: false, content: `No other chat matches “${str(args, "chat")}”.` };
+      const consent = consentFor({ prompt: userWords(context), current, target, action: "link" });
+      if (!consent.ok) return { ok: false, content: consent.reason, data: { needsConsent: true, chat: target.title } };
+      store.link(current.id, target.id);
+      return {
+        ok: true,
+        content: `Linked “${target.title}” to this chat. Its research is available to this chat from now on (the user can unlink it from the tab menu).`,
+      };
+    },
+  },
+
+  {
+    id: "chats.merge",
+    parameters: {
+      type: "object",
+      properties: {
+        chats: {
+          type: "array",
+          items: { type: "string" },
+          description: "The other chats to merge, by title (or part of it). One or more.",
+        },
+        includeThisChat: {
+          type: "boolean",
+          description: "Include the current chat in the merge (default true).",
+        },
+        title: { type: "string", description: "A title for the merged chat (optional)." },
+      },
+      required: ["chats"],
+    },
+    run: async (args, context) => {
+      const current = currentChat(context);
+      if (!current) return { ok: false, content: "This turn is not in a chat, so nothing can be merged." };
+      const store = MultiChatStore.getInstance();
+      const names = stringList(args, "chats");
+      const targets = names.map((name) => ({ name, chat: findChat(name, store.list(), current.id) }));
+      const missing = targets.filter((item) => !item.chat).map((item) => `“${item.name}”`);
+      if (missing.length > 0) return { ok: false, content: `No chat matches ${missing.join(", ")}. Use chats_list to see the titles.` };
+      const chats = [...new Map(targets.map((item) => [item.chat!.id, item.chat!])).values()];
+      const refused = chats
+        .map((chat) => consentFor({ prompt: userWords(context), current, target: chat, action: "merge" }))
+        .filter((result) => !result.ok);
+      if (refused.length > 0) return { ok: false, content: refused.map((result) => result.reason).join(" "), data: { needsConsent: true } };
+      const includeThis = args.includeThisChat !== false;
+      const ids = [...(includeThis ? [current.id] : []), ...chats.map((chat) => chat.id)];
+      if (ids.length < 2) return { ok: false, content: "A merge needs at least two chats." };
+      // Created beside the conversation the user is reading, not instead of it.
+      const merged = store.merge(ids, str(args, "title") || undefined, { activate: false });
+      if (!merged) return { ok: false, content: "The chats could not be merged." };
+      try {
+        const { default: NotificationProvider } = await import("../notifications/NotificationProvider");
+        NotificationProvider.getInstance().notify({
+          type: "info",
+          title: `Merged chat ready: “${merged.title}”`,
+          body: `${merged.messages.length} messages, each labelled with the chat it came from. The originals are unchanged.`,
+          conversationId: merged.id,
+          tag: `merge:${merged.id}`,
+          silent: true,
+        });
+      } catch {
+        // the merge itself succeeded
+      }
+      const sources = ids.map((id) => `“${store.get(id)?.title ?? id}”`).join(", ");
+      return {
+        ok: true,
+        content:
+          `Created the merged chat “${merged.title}” from ${sources}: ${merged.messages.length} messages, each labelled with the chat it came from. ` +
+          "The original chats are unchanged. It is in the user's Chats panel (and its notifications) — tell them where to find it.",
+        data: { mergedId: merged.id, title: merged.title },
       };
     },
   },
@@ -309,11 +1246,24 @@ const EXECUTORS: ToolExecutor[] = [
       },
       required: ["summary"],
     },
-    run: async (args) => {
-      const summary = str(args, "summary");
-      if (!summary) {
+    run: async (args, context) => {
+      const raw = str(args, "summary");
+      if (!raw) {
         return { ok: false, content: "memory.store requires a non-empty summary." };
       }
+      // "Remember this for this chat": the user scoped it. It is already in
+      // this chat's history; making it long-term memory would hand it to
+      // every other chat (measured: it did, unlabelled).
+      if (CHAT_SCOPED.test(userWords(context))) {
+        return {
+          ok: true,
+          content: "Not stored long-term: the user asked to keep this to this chat. It stays in this chat's history — no further action needed.",
+        };
+      }
+      // What she stores from a chat says which chat it came from, so a
+      // later recall in another chat can tell the user where it was learned.
+      const chat = currentChat(context);
+      const summary = chat && !/\(learned in the chat /.test(raw) ? `${raw} (learned in the chat “${chat.title}”)` : raw;
       const kind = str(args, "kind") === "system" ? "system" : "knowledge";
       const keywords = stringList(args, "keywords");
       const { default: AIService } = await import("../AIService");
@@ -417,13 +1367,58 @@ const EXECUTORS: ToolExecutor[] = [
     },
     run: async (args) => {
       const path = str(args, "path");
-      const content = str(args, "content");
+      // The content exactly as given — str() trims, which silently dropped
+      // a file's trailing newline (measured: a read-back did not match).
+      if (typeof args.content !== "string") {
+        return { ok: false, content: `No content was supplied for "${path}", so nothing was written.` };
+      }
+      const content = args.content;
       if (!path) return { ok: false, content: "sandbox.write requires a path." };
       const { default: SandboxFS } = await import("../engineering/SandboxFS");
       const result = SandboxFS.getInstance().write(path, content);
       return result.ok
         ? { ok: true, content: `Wrote ${content.length} character(s) to "${path}".` }
         : { ok: false, content: result.error ?? `Could not write "${path}".` };
+    },
+  },
+
+  {
+    id: "sandbox.execute",
+    parameters: {
+      type: "object",
+      properties: {
+        path: { type: "string", description: "The sandbox file to run (for kind 'run')." },
+        kind: {
+          type: "string",
+          enum: ["run", "test", "syntax"],
+          description: "run an entry file, run the sandbox test files, or syntax-check every JS file. Defaults to run.",
+        },
+        timeoutMs: { type: "number", description: "Execution limit in ms (100–30000). Defaults to 8000." },
+      },
+    },
+    run: async (args) => {
+      const { default: SandboxRuntime } = await import("../engineering/SandboxRuntime");
+      const kind = (["run", "test", "syntax"].includes(str(args, "kind")) ? str(args, "kind") : "run") as "run" | "test" | "syntax";
+      const path = str(args, "path");
+      if (kind === "run" && !path) return { ok: false, content: "sandbox.execute (run) requires the path of the file to run." };
+      const timeoutMs = typeof args.timeoutMs === "number" ? args.timeoutMs : undefined;
+      const runtime = SandboxRuntime.getInstance();
+      // The worker's own verdict, reported as it came back: exit code,
+      // timeout and both streams. Nothing here decides it "worked".
+      const result =
+        kind === "test" ? await runtime.test(timeoutMs)
+        : kind === "syntax" ? await runtime.syntaxCheck(timeoutMs)
+        : await runtime.runFile(path, timeoutMs);
+      const verdict = result.timedOut
+        ? "TIMED OUT — the worker was terminated"
+        : result.ok ? "PASSED" : "FAILED";
+      const streams =
+        `stdout:\n${result.stdout.trim() || "(empty)"}\n\nstderr:\n${result.stderr.trim() || "(empty)"}`;
+      return {
+        ok: result.ok,
+        content: `${kind}${path ? ` ${path}` : ""} exited ${result.exitCode} after ${result.durationMs}ms (${verdict}).\n\n${streams.slice(0, 6000)}`,
+        data: { exitCode: result.exitCode, timedOut: result.timedOut, durationMs: result.durationMs, tests: result.tests },
+      };
     },
   },
 
@@ -504,6 +1499,11 @@ const EXECUTORS: ToolExecutor[] = [
       properties: {
         workspace: { type: "string", description: "The sandbox workspace id." },
         path: { type: "string", description: "File path relative to the copy." },
+        startLine: { type: "number", description: "First line to read (1-based). Default 1." },
+        endLine: {
+          type: "number",
+          description: "Last line to read. Default startLine + 249. Use project_search line numbers to read just the part you need.",
+        },
       },
       required: ["workspace", "path"],
     },
@@ -514,16 +1514,77 @@ const EXECUTORS: ToolExecutor[] = [
       if (!workspace || !path) return { ok: false, content: "project.read requires workspace and path." };
       const result = await EngineeringWorkspace.getInstance().readFile(workspace, path);
       if (!result.ok) return { ok: false, content: result.error };
-      const content = result.content;
-      // Large files are truncated rather than silently dropped, and the
-      // truncation is stated so nothing is mistaken for the whole file.
-      const MAX = 60_000;
+      // A window of lines, not the whole file. Whole-file reads (up to 60k
+      // characters each) were resent with every later round of the tool
+      // loop; four of them exhausted the model providers mid-task in the
+      // self-improvement run. Line numbers match project_search's.
+      const lines = result.content.split("\n");
+      const total = lines.length;
+      const startLine = Math.max(1, Math.floor(Number(args.startLine) || 1));
+      const endLine = Math.min(total, Math.max(startLine, Math.floor(Number(args.endLine) || startLine + 249)));
+      const width = String(endLine).length;
+      const body = lines
+        .slice(startLine - 1, endLine)
+        .map((line, index) => `${String(startLine + index).padStart(width, " ")}| ${line}`)
+        .join("\n");
+      const more = endLine < total ? `\n…lines ${endLine + 1}–${total} not shown (read them with startLine=${endLine + 1}).` : "";
+      return {
+        ok: true,
+        content: `${path} — lines ${startLine}–${endLine} of ${total} (the "N| " prefixes are line numbers, not part of the file):\n${body}${more}`,
+        data: { totalLines: total, startLine, endLine },
+      };
+    },
+  },
+
+  {
+    id: "project.edit",
+    parameters: {
+      type: "object",
+      properties: {
+        workspace: { type: "string", description: "The sandbox workspace id." },
+        path: { type: "string", description: "File path relative to the copy." },
+        find: {
+          type: "string",
+          description: "The exact text to replace, copied from the file WITHOUT the line-number prefixes. Must occur exactly once.",
+        },
+        replace: { type: "string", description: "The new text that takes its place." },
+      },
+      required: ["workspace", "path", "find", "replace"],
+    },
+    run: async (args) => {
+      const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
+      const workspace = str(args, "workspace");
+      const path = str(args, "path");
+      if (!workspace || !path) return { ok: false, content: "project.edit requires workspace and path." };
+      if (typeof args.find !== "string" || !args.find || typeof args.replace !== "string") {
+        return { ok: false, content: "project.edit needs the exact text to find and the replacement; nothing was changed." };
+      }
+      const find = args.find;
+      const replace = args.replace;
+      const workspaceService = EngineeringWorkspace.getInstance();
+      const current = await workspaceService.readFile(workspace, path);
+      if (!current.ok) return { ok: false, content: current.error };
+      const located = locateSnippet(current.content, find, replace);
+      if (!located.ok) {
+        return {
+          ok: false,
+          content:
+            located.count === 0
+              ? `The text to find does not occur in ${path}; nothing was changed. Copy it exactly from project_read (without the "N| " line-number prefixes).`
+              : `The text to find occurs ${located.count} times in ${path}; nothing was changed. Include more surrounding lines so it is unique.`,
+        };
+      }
+      const at = located.start;
+      const next = current.content.slice(0, located.start) + located.replacement + current.content.slice(located.end);
+      const written = await workspaceService.writeFile(workspace, path, next);
+      if (!written.ok) return { ok: false, content: written.error };
+      const line = current.content.slice(0, at).split("\n").length;
       return {
         ok: true,
         content:
-          content.length > MAX
-            ? `${content.slice(0, MAX)}\n…[truncated at ${MAX} characters of ${content.length}]`
-            : content,
+          `Edited ${path} at line ${line}: replaced ${find.split("\n").length} line(s) with ${replace.split("\n").length}` +
+          `${located.tolerant ? " (matched ignoring indentation; the replacement was re-indented to the file's)" : ""}. The real project is untouched.`,
+        data: { line },
       };
     },
   },
@@ -577,6 +1638,24 @@ const EXECUTORS: ToolExecutor[] = [
       }
       const content = args.content;
       const service = EngineeringWorkspace.getInstance();
+
+      // Content that cannot be what she means to save, refused whatever
+      // allowShrink says (measured in self-improvement run 10, both in one
+      // run): the first write carried project_read's display — its header
+      // and "N| " prefixes — into the source; a later one replaced a
+      // 1,089-line stylesheet with "/* (full original stylesheet – 1089
+      // lines) */" plus 11 new lines, the placeholder standing for code it
+      // never wrote out. Typecheck does not read CSS; it "passed".
+      const unsavable = unsavableContent(content);
+      if (unsavable) {
+        return {
+          ok: false,
+          content:
+            `Nothing was written to "${path}": the content ${unsavable}. project.write saves exactly ` +
+            `what it is given and replaces the whole file. For a targeted change use project_edit ` +
+            `(find → replace); to write the whole file, write every line out in full.`,
+        };
+      }
 
       // A WHOLE-FILE WRITE CAN DESTROY WHAT IT DOES NOT REPEAT.
       //
@@ -699,7 +1778,10 @@ const EXECUTORS: ToolExecutor[] = [
         return { ok: true, content: "The copy is identical to the real project — nothing has changed." };
       }
       const lines = changes.map((change) => {
-        const header = `${change.status.toUpperCase()} ${change.path} (+${change.addedLines}/-${change.removedLines} lines)`;
+        const header =
+          `${change.status.toUpperCase()} ${change.path} ` +
+          `${change.binary ? "(binary)" : `(+${change.addedLines}/-${change.removedLines} lines)`}` +
+          `${change.realChangedSince ? " — ALSO CHANGED in the real project since this copy was made: it cannot be applied as is" : ""}`;
         return change.patch ? `${header}\n${change.patch}` : header;
       });
       return { ok: true, content: lines.join("\n\n"), data: { count: changes.length } };
@@ -735,6 +1817,236 @@ const EXECUTORS: ToolExecutor[] = [
           `${result.authorizedBy}: ${result.applied.join(", ")}${post}`,
         data: { applied: result.applied, postApply: state.postApply },
       };
+    },
+  },
+
+  /* ---------------- GitHub (through the server proxy) ---------------- */
+
+  {
+    id: "github.auth",
+    parameters: { type: "object", properties: {} },
+    run: async () => {
+      const { default: GitHubIntegration } = await import("../engineering/GitHubIntegration");
+      const status = await GitHubIntegration.getInstance().getStatus();
+      return status.configured && status.user
+        ? { ok: true, content: `GitHub is connected as ${status.user.login}.`, data: { login: status.user.login } }
+        : { ok: false, content: `GitHub is not connected: ${status.error ?? "no token is configured on the server."}` };
+    },
+  },
+
+  {
+    id: "github.repos",
+    parameters: {
+      type: "object",
+      properties: {
+        owner: { type: "string", description: "Repository owner. Omit both owner and repo to list accessible repositories." },
+        repo: { type: "string", description: "Repository name." },
+      },
+    },
+    run: async (args) => {
+      const { default: GitHubIntegration } = await import("../engineering/GitHubIntegration");
+      const github = GitHubIntegration.getInstance();
+      const owner = str(args, "owner");
+      const repo = str(args, "repo");
+      if (owner && repo) {
+        const result = await github.call<{ full_name: string; default_branch: string; private: boolean; permissions?: Record<string, boolean>; pushed_at?: string }>(`/repos/${owner}/${repo}`);
+        if (!result.ok) return { ok: false, content: result.error ?? "GitHub request failed." };
+        const data = result.data;
+        return {
+          ok: true,
+          content:
+            `${data.full_name} — default branch ${data.default_branch}, ${data.private ? "private" : "public"}` +
+            `${data.permissions ? `, permissions: ${Object.entries(data.permissions).filter(([, v]) => v).map(([k]) => k).join(", ")}` : ""}` +
+            `${data.pushed_at ? `, last push ${data.pushed_at}` : ""}.`,
+          data,
+        };
+      }
+      const result = await github.call<Array<{ full_name: string }>>("/user/repos?per_page=50&sort=pushed");
+      if (!result.ok || !Array.isArray(result.data)) return { ok: false, content: result.error ?? "GitHub request failed." };
+      return { ok: true, content: result.data.map((entry) => entry.full_name).join("\n") || "(no repositories)", data: { count: result.data.length } };
+    },
+  },
+
+  {
+    id: "github.files",
+    parameters: {
+      type: "object",
+      properties: {
+        owner: { type: "string" },
+        repo: { type: "string" },
+        path: { type: "string", description: "File or directory path in the repository. '' for the root." },
+        ref: { type: "string", description: "Branch, tag or commit sha. Defaults to the default branch." },
+      },
+      required: ["owner", "repo"],
+    },
+    run: async (args) => {
+      const { default: GitHubIntegration } = await import("../engineering/GitHubIntegration");
+      const owner = str(args, "owner");
+      const repo = str(args, "repo");
+      const path = str(args, "path").replace(/^\/+/, "");
+      const ref = str(args, "ref");
+      const result = await GitHubIntegration.getInstance().call<unknown>(
+        `/repos/${owner}/${repo}/contents/${path}${ref ? `?ref=${encodeURIComponent(ref)}` : ""}`,
+      );
+      if (!result.ok) return { ok: false, content: result.error ?? "GitHub request failed." };
+      if (Array.isArray(result.data)) {
+        const entries = result.data as Array<{ path: string; type: string; size?: number }>;
+        return { ok: true, content: entries.map((entry) => `${entry.type === "dir" ? "[dir] " : "      "}${entry.path}`).join("\n"), data: { count: entries.length } };
+      }
+      const file = result.data as { path?: string; sha?: string; content?: string; encoding?: string; size?: number };
+      if (typeof file.content !== "string") return { ok: false, content: `"${path}" is not a readable file.` };
+      const bytes = Uint8Array.from(atob(file.content.replace(/\n/g, "")), (char) => char.charCodeAt(0));
+      const text = new TextDecoder().decode(bytes);
+      const MAX = 60_000;
+      return {
+        ok: true,
+        content: text.length > MAX ? `${text.slice(0, MAX)}\n…[truncated at ${MAX} characters of ${text.length}]` : text,
+        data: { path: file.path, sha: file.sha, size: file.size, ref: ref || "(default branch)" },
+      };
+    },
+  },
+
+  {
+    id: "github.branches",
+    parameters: {
+      type: "object",
+      properties: {
+        owner: { type: "string" },
+        repo: { type: "string" },
+        action: { type: "string", enum: ["list", "create"], description: "Defaults to list." },
+        name: { type: "string", description: "For create: the new branch name. Never the default branch." },
+        from: { type: "string", description: "For create: the branch to start from. Defaults to the default branch." },
+      },
+      required: ["owner", "repo"],
+    },
+    run: async (args) => {
+      const { default: GitHubIntegration } = await import("../engineering/GitHubIntegration");
+      const github = GitHubIntegration.getInstance();
+      const owner = str(args, "owner");
+      const repo = str(args, "repo");
+      if (str(args, "action") !== "create") {
+        const result = await github.call<Array<{ name: string; commit: { sha: string } }>>(`/repos/${owner}/${repo}/branches?per_page=100`);
+        if (!result.ok || !Array.isArray(result.data)) return { ok: false, content: result.error ?? "GitHub request failed." };
+        return { ok: true, content: result.data.map((branch) => `${branch.name} ${branch.commit.sha.slice(0, 8)}`).join("\n"), data: { count: result.data.length } };
+      }
+      const refused = githubWriteRefusal();
+      if (refused) return { ok: false, content: refused };
+      const name = str(args, "name");
+      if (!name) return { ok: false, content: "Creating a branch needs a name." };
+      const repoInfo = await github.call<{ default_branch: string }>(`/repos/${owner}/${repo}`);
+      if (!repoInfo.ok) return { ok: false, content: repoInfo.error ?? "GitHub request failed." };
+      if (name === repoInfo.data.default_branch) return { ok: false, content: `"${name}" is the default branch; work happens on a new branch.` };
+      const from = str(args, "from") || repoInfo.data.default_branch;
+      const base = await github.call<{ commit: { sha: string } }>(`/repos/${owner}/${repo}/branches/${encodeURIComponent(from)}`);
+      if (!base.ok) return { ok: false, content: base.error ?? `Could not read branch "${from}".` };
+      const created = await github.call<{ ref: string; object: { sha: string } }>(`/repos/${owner}/${repo}/git/refs`, "POST", {
+        ref: `refs/heads/${name}`,
+        sha: base.data.commit.sha,
+      });
+      if (!created.ok) return { ok: false, content: `Branch "${name}" was NOT created: ${created.error}` };
+      return { ok: true, content: `Created branch ${name} on GitHub at ${created.data.object.sha} (from ${from}).`, data: { branch: name, sha: created.data.object.sha } };
+    },
+  },
+
+  {
+    id: "github.commits",
+    parameters: {
+      type: "object",
+      properties: {
+        owner: { type: "string" },
+        repo: { type: "string" },
+        action: { type: "string", enum: ["list", "show", "commit"], description: "Defaults to list." },
+        branch: { type: "string", description: "list: the branch to list. commit: the branch to commit to (never the default branch)." },
+        sha: { type: "string", description: "show: the commit to read." },
+        path: { type: "string", description: "commit: the file to create or replace." },
+        content: { type: "string", description: "commit: the COMPLETE new file content." },
+        message: { type: "string", description: "commit: the commit message." },
+      },
+      required: ["owner", "repo"],
+    },
+    run: async (args) => {
+      const { default: GitHubIntegration } = await import("../engineering/GitHubIntegration");
+      const github = GitHubIntegration.getInstance();
+      const owner = str(args, "owner");
+      const repo = str(args, "repo");
+      const action = str(args, "action") || "list";
+      if (action === "show") {
+        const sha = str(args, "sha");
+        const result = await github.call<{ sha: string; commit: { message: string; author: { name: string; date: string } }; files?: Array<{ filename: string; status: string; additions: number; deletions: number }> }>(`/repos/${owner}/${repo}/commits/${encodeURIComponent(sha)}`);
+        if (!result.ok) return { ok: false, content: result.error ?? "GitHub request failed." };
+        const files = (result.data.files ?? []).map((file) => `${file.status} ${file.filename} (+${file.additions}/-${file.deletions})`).join("\n");
+        return { ok: true, content: `${result.data.sha}\n${result.data.commit.message}\n\n${files}`, data: { sha: result.data.sha } };
+      }
+      if (action === "list") {
+        const branch = str(args, "branch");
+        const result = await github.call<Array<{ sha: string; commit: { message: string } }>>(`/repos/${owner}/${repo}/commits?per_page=10${branch ? `&sha=${encodeURIComponent(branch)}` : ""}`);
+        if (!result.ok || !Array.isArray(result.data)) return { ok: false, content: result.error ?? "GitHub request failed." };
+        return { ok: true, content: result.data.map((entry) => `${entry.sha.slice(0, 8)} ${entry.commit.message.split("\n")[0]}`).join("\n"), data: { count: result.data.length } };
+      }
+      const refused = githubWriteRefusal();
+      if (refused) return { ok: false, content: refused };
+      const branch = str(args, "branch");
+      const path = str(args, "path").replace(/^\/+/, "");
+      const message = str(args, "message");
+      if (!branch || !path || !message || typeof args.content !== "string") {
+        return { ok: false, content: "A GitHub commit needs branch, path, content and message; nothing was committed." };
+      }
+      const repoInfo = await github.call<{ default_branch: string }>(`/repos/${owner}/${repo}`);
+      if (!repoInfo.ok) return { ok: false, content: repoInfo.error ?? "GitHub request failed." };
+      if (branch === repoInfo.data.default_branch) {
+        return { ok: false, content: `Nothing was committed: "${branch}" is the default branch. Commit to a working branch.` };
+      }
+      // Replacing a file needs its current blob sha on that branch.
+      const existing = await github.call<{ sha?: string }>(`/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(branch)}`);
+      const put = await github.putFile(owner, repo, path, args.content, message, branch, existing.ok ? existing.data.sha : undefined);
+      if (!put.ok || !put.data.commit?.sha) return { ok: false, content: `Nothing was committed: ${put.error ?? "GitHub returned no commit."}` };
+      // Confirmed by GitHub, not by the write's own reply: read the commit back.
+      const confirmed = await github.call<{ sha: string }>(`/repos/${owner}/${repo}/commits/${put.data.commit.sha}`);
+      if (!confirmed.ok) {
+        return { ok: false, content: `GitHub accepted the write but the commit ${put.data.commit.sha} could not be read back: ${confirmed.error}` };
+      }
+      return {
+        ok: true,
+        content: `Committed ${confirmed.data.sha} to ${owner}/${repo}@${branch}: ${path}. GitHub confirms the commit exists.`,
+        data: { sha: confirmed.data.sha, branch, path },
+      };
+    },
+  },
+
+  {
+    id: "github.prs",
+    parameters: {
+      type: "object",
+      properties: {
+        owner: { type: "string" },
+        repo: { type: "string" },
+        action: { type: "string", enum: ["list", "create"], description: "Defaults to list." },
+        title: { type: "string" },
+        head: { type: "string", description: "create: the branch with the changes." },
+        base: { type: "string", description: "create: the branch to merge into." },
+        body: { type: "string" },
+      },
+      required: ["owner", "repo"],
+    },
+    run: async (args) => {
+      const { default: GitHubIntegration } = await import("../engineering/GitHubIntegration");
+      const github = GitHubIntegration.getInstance();
+      const owner = str(args, "owner");
+      const repo = str(args, "repo");
+      if (str(args, "action") !== "create") {
+        const result = await github.call<Array<{ number: number; title: string; head: { ref: string } }>>(`/repos/${owner}/${repo}/pulls?state=open`);
+        if (!result.ok || !Array.isArray(result.data)) return { ok: false, content: result.error ?? "GitHub request failed." };
+        return { ok: true, content: result.data.map((pr) => `#${pr.number} ${pr.title} (${pr.head.ref})`).join("\n") || "(no open pull requests)", data: { count: result.data.length } };
+      }
+      const refused = githubWriteRefusal();
+      if (refused) return { ok: false, content: refused };
+      const title = str(args, "title");
+      const head = str(args, "head");
+      const base = str(args, "base");
+      if (!title || !head || !base) return { ok: false, content: "A pull request needs title, head and base; none was opened." };
+      const created = await github.call<{ number: number; html_url: string }>(`/repos/${owner}/${repo}/pulls`, "POST", { title, head, base, body: str(args, "body") });
+      if (!created.ok) return { ok: false, content: `No pull request was opened: ${created.error}` };
+      return { ok: true, content: `Opened pull request #${created.data.number}: ${created.data.html_url}`, data: created.data };
     },
   },
 
@@ -1278,6 +2590,23 @@ function refusalReason(id: string): string {
   return `"${id}" is not permitted right now, so it was not run.`;
 }
 
+/**
+ * Why a GitHub write may not happen now, or null when it may be attempted.
+ *
+ * The same identity requirement as changing the real project: a model
+ * cannot publish to GitHub on its own say-so. This is the early, accurate
+ * refusal; the server proxy enforces it again (verified identity,
+ * LELU_ALLOW_PUSH, never the default branch) before anything is sent.
+ */
+function githubWriteRefusal(): string | null {
+  try {
+    const preflight = EngineeringAuthorization.getInstance().preflight();
+    return preflight.ready ? null : `Nothing was written to GitHub: ${preflight.reason}`;
+  } catch {
+    return "Nothing was written to GitHub: no authenticated session could be established.";
+  }
+}
+
 /** Does any workspace currently carry a live human authorization? */
 function authorizedWorkspaceExists(): boolean {
   try {
@@ -1334,7 +2663,11 @@ export async function dispatchToolCall(
   const executor = BY_ID.get(id);
 
   if (!executor) {
-    const content = `There is no tool named "${call.name}", so nothing was executed.`;
+    // Registered is not the same as runnable: say which this is.
+    const registered = ToolRegistry.getInstance().get(id);
+    const content = registered
+      ? `"${id}" is registered but has no executor — there is no real dispatch for it, so nothing was executed.`
+      : `There is no tool named "${call.name}", so nothing was executed.`;
     stats.record(call.name, "refused", 0, content);
     return { ok: false, content };
   }
@@ -1367,8 +2700,9 @@ export async function dispatchToolCall(
   }
 
   if (!executor.emitsOwnEvents) {
-    events.emit({ type: "tool_selected", taskId, tool: id, label: `Using ${id}` });
-    events.emit({ type: "tool_started", taskId, tool: id, label: `Running ${id}` });
+    const label = describeToolCall(id, call.arguments ?? {});
+    events.emit({ type: "tool_selected", taskId, tool: id, label });
+    events.emit({ type: "tool_started", taskId, tool: id, label });
   }
 
   const started = Date.now();

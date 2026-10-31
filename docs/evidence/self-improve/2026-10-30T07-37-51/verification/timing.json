@@ -1,0 +1,41 @@
+{
+  "phone/app": {
+    "beforeOpen": [],
+    "frames": 303,
+    "coveredMs": 1963,
+    "firstCovered": 1522,
+    "lastCovered": 2957,
+    "worst": [
+      "New chat",
+      "Search all chats",
+      "Chats and notifications"
+    ]
+  },
+  "phone/hers": {
+    "beforeOpen": [],
+    "frames": 398,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop/app": {
+    "beforeOpen": [],
+    "frames": 10,
+    "coveredMs": 0,
+    "firstCovered": null,
+    "lastCovered": null,
+    "worst": []
+  },
+  "desktop/hers": {
+    "beforeOpen": [],
+    "frames": 11,
+    "coveredMs": 4140,
+    "firstCovered": 2205,
+    "lastCovered": 5659,
+    "worst": [
+      "Open LÉLU menu",
+      "Close chat"
+    ]
+  }
+}

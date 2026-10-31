@@ -216,3 +216,58 @@ test("a request that is not a provider call is passed on rather than swallowed",
   const { nextCalled } = await call(api, "/", { method: "GET" });
   assert.equal(nextCalled, true);
 });
+
+test("a stream that fails after its headers went out ends the response — it does not take the server down", async () => {
+  // Measured: the catch tried to send a JSON 502 after the stream's headers
+  // were already forwarded; setHeader threw ERR_HTTP_HEADERS_SENT inside it,
+  // the rejection was unhandled, and the dev server process exited mid-run.
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async () => ({
+    status: 200,
+    ok: true,
+    headers: new Map([["content-type", "text/event-stream"]]) as never,
+    body: {
+      getReader: () => {
+        let reads = 0;
+        return {
+          read: async () => {
+            reads += 1;
+            if (reads === 1) return { done: false, value: new TextEncoder().encode("data: {\"x\":1}\n\n") };
+            throw new Error("The operation was aborted due to timeout");
+          },
+          releaseLock: () => {},
+        };
+      },
+    },
+  })) as never;
+  const unhandled: unknown[] = [];
+  const onUnhandled = (reason: unknown) => unhandled.push(reason);
+  process.on("unhandledRejection", onUnhandled);
+  try {
+    const api = createModelApi((name) => (name === "GROQ_API_KEY" ? SECRET : undefined));
+    let handler: ((req: unknown, res: unknown, next: () => void) => void) | null = null;
+    api.attach({ use: (_path, fn) => { handler = fn as never; } });
+    const written: string[] = [];
+    let ends = 0;
+    const res = {
+      statusCode: 200,
+      headersSent: false,
+      // Like Node: headers cannot be set once they have been sent.
+      setHeader(name: string) {
+        if (this.headersSent) throw Object.assign(new Error(`Cannot set headers after they are sent (${name})`), { code: "ERR_HTTP_HEADERS_SENT" });
+      },
+      flushHeaders() { this.headersSent = true; },
+      write(chunk: Uint8Array) { this.headersSent = true; written.push(new TextDecoder().decode(chunk)); return true; },
+      end() { ends += 1; },
+    };
+    const req = { method: "POST", url: "/groq/chat/completions", headers: {}, on: (event: string, fn: (chunk?: unknown) => void) => { if (event === "data") fn(Buffer.from("{}")); if (event === "end") fn(); } };
+    (handler as never as (r: unknown, s: unknown, n: () => void) => void)(req, res, () => {});
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    assert.deepEqual(written, ['data: {"x":1}\n\n'], "the part that arrived was forwarded");
+    assert.ok(ends >= 1, "the response was ended");
+    assert.deepEqual(unhandled, [], "no unhandled rejection: the server keeps running");
+  } finally {
+    process.off("unhandledRejection", onUnhandled);
+    globalThis.fetch = realFetch;
+  }
+});

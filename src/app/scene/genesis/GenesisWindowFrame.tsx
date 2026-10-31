@@ -31,10 +31,12 @@
  * ==========================================================
  */
 
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { InModuleWindow } from "./moduleWindowContext";
 import { motion } from "framer-motion";
 import { genesisTheme } from "./GenesisTheme";
 import PinchZoomContainer from "./PinchZoomContainer";
+import { fitFrame, type FrameRect } from "./frameFit";
 
 // Phase 13 — read once per render, not reactive to the preference
 // changing mid-session (rare enough not to warrant a matchMedia
@@ -132,6 +134,7 @@ export default function GenesisWindowFrame({
   const depth = genesisTheme.elevation[elevation];
   const reduceMotion = prefersReducedMotion();
   const narrow = useIsNarrow();
+  const inModuleWindow = useContext(InModuleWindow);
   const frameRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
   const resizeRef = useRef<{ pointerId: number; startX: number; startY: number; originWidth: number; originHeight: number } | null>(null);
@@ -154,6 +157,46 @@ export default function GenesisWindowFrame({
     setSize({});
     setMobileHeight(null);
   }, [motionKey]);
+
+  /*
+   * Desktop frames are anchored 24px above their container's bottom, grow
+   * UPWARD, and are centred on that container — not on the screen. A fixed
+   * max-height and a viewport-based max-width ignore where the container
+   * is and what clips it, so a tall or wide panel ran past it (Cognition
+   * opened at y = -226, and later at x = -168 inside a 620px host that
+   * clipped it). The frame is therefore fitted to the area that actually
+   * shows it — its container intersected with every clipping ancestor and
+   * the viewport — and nudged sideways to keep both edges inside. It is
+   * re-measured whenever that area or the frame itself changes size,
+   * because hosts animate open after the frame mounts.
+   */
+  const [fit, setFit] = useState<{ height: number; width: number; nudgeX: number } | null>(null);
+  useLayoutEffect(() => {
+    if (narrow) return;
+    const frame = frameRef.current;
+    const parent = frame?.offsetParent as HTMLElement | null;
+    if (!frame || !parent) return;
+    const measure = () => {
+      const clips: FrameRect[] = [];
+      for (let el: HTMLElement | null = parent; el && el !== document.body; el = el.parentElement) {
+        if (getComputedStyle(el).overflow !== "visible") clips.push(el.getBoundingClientRect());
+      }
+      const { width, height, nudgeX } = fitFrame(parent.getBoundingClientRect(), clips, { width: window.innerWidth, height: window.innerHeight }, frame.offsetWidth);
+      setFit((current) =>
+        current && current.width === width && current.height === height && current.nudgeX === nudgeX ? current : { width, height, nudgeX },
+      );
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
+    observer?.observe(parent);
+    observer?.observe(frame);
+    return () => {
+      window.removeEventListener("resize", measure);
+      observer?.disconnect();
+    };
+  }, [narrow]);
+  const nudgeX = fit?.nudgeX ?? 0;
 
   /* ---------------------------------------------------------
    * Pointer event handlers (desktop drag + resize)
@@ -288,7 +331,30 @@ export default function GenesisWindowFrame({
   /* ---------------------------------------------------------
    * Style computation
    * --------------------------------------------------------- */
-  const frameStyle: CSSProperties = narrow
+  const frameStyle: CSSProperties = narrow && inModuleWindow
+    ? {
+        // Inside a module window on a phone: fill its body, under its
+        // title bar — never a second fixed sheet laid over it.
+        position: "relative",
+        // border-box: width 100% plus padding overran the window's right
+        // edge by 22px (measured: frame 380px in a 358px body).
+        boxSizing: "border-box",
+        width: "100%",
+        height: "100%",
+        maxHeight: "100%",
+        flex: 1,
+        minHeight: 0,
+        overflowY: "hidden",
+        pointerEvents: "auto",
+        background: background ?? genesisTheme.glass.panel,
+        borderRadius: 0,
+        padding: 12,
+        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)",
+        color: "white",
+        display: "flex",
+        flexDirection: "column",
+      }
+    : narrow
     ? {
         // Mobile: a full-width bottom sheet with touch resize and move
         position: "fixed",
@@ -323,9 +389,16 @@ export default function GenesisWindowFrame({
         left: "50%",
         bottom: 24,
         width: size.width ?? width,
-        maxWidth: "calc(100vw - 24px)",
+        // content-box: 24px of gutter plus 16px padding and 1px border per side.
+        maxWidth: fit ? `min(calc(100vw - 58px), ${fit.width}px)` : "calc(100vw - 58px)",
         height: size.height,
-        maxHeight: size.height === undefined && overflow === "auto-y" ? maxHeight : undefined,
+        // Scrolling frames only: a clipped frame (chat) manages its own height.
+        maxHeight:
+          size.height === undefined && overflow === "auto-y"
+            ? fit
+              ? `min(${maxHeight}, ${fit.height}px)`
+              : maxHeight
+            : undefined,
         overflowY: overflow === "auto-y" ? "auto" : undefined,
         overflow: overflow === "hidden" ? "hidden" : undefined,
         overscrollBehavior: overflow === "auto-y" ? "contain" : undefined,
@@ -353,7 +426,7 @@ export default function GenesisWindowFrame({
       initial={{ opacity: 0, x: "-50%", y: 24, scale: 0.96 }}
       animate={{
         opacity: 1,
-        x: narrow ? position.x : `calc(-50% + ${position.x}px)`,
+        x: narrow ? position.x : `calc(-50% + ${position.x + nudgeX}px)`,
         y: narrow ? position.y : position.y,
         scale: active ? 1.01 : 1,
       }}
@@ -368,7 +441,7 @@ export default function GenesisWindowFrame({
       style={frameStyle}
     >
       {/* Mobile: drag handle at top for resizing the bottom sheet */}
-      {narrow && resizable ? (
+      {narrow && resizable && !inModuleWindow ? (
         <div
           onPointerDown={handleMobileResizePointerDown}
           style={{
@@ -486,6 +559,12 @@ export default function GenesisWindowFrame({
         >
           {children}
         </PinchZoomContainer>
+      ) : narrow ? (
+        // The mobile sheet clips (overflowY hidden), so its content needs
+        // a scroller of its own or everything below the fold is lost.
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", overscrollBehavior: "contain", touchAction: "pan-y" }}>
+          {children}
+        </div>
       ) : (
         children
       )}

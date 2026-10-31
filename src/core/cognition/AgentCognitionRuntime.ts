@@ -30,11 +30,47 @@ import AIService from "../AIService";
 import AgentStore from "../agents/AgentStore";
 import AgentEventBus, { emitCognition } from "../agent/AgentEvents";
 import ObjectiveLearning from "./ObjectiveLearning";
+import ProactiveCore from "../proactive/ProactiveCore";
+import { openWorkstream, findWorkstream } from "../proactive/Workstream";
+import BriefingStore from "../proactive/BriefingStore";
 import AgentObjectives, {
   type AgentObjective,
   type CognitionCycleRecord,
   type ObjectiveState,
 } from "./AgentObjectives";
+import { verifyCompletion, type CompletionResult } from "./CompletionVerifier";
+import { describeEvidence, objectiveEvidence } from "./ObjectiveEvidence";
+import { executableToolIds } from "../tools/ToolDispatcher";
+import DailyRecord from "../identity/DailyRecord";
+
+/**
+ * A verified completion is behaviour LÉLU actually showed, so it is
+ * developmental evidence — one unit per objective, into the day's record
+ * for DailyReflection (never straight into identity). Sustained work over
+ * several cycles is patience; bringing several distinct outcomes together
+ * is synthesis. A one-step completion is neither.
+ */
+export function completionEvidenceTrait(cycles: number, observed: string[]): "patience" | "synthesis" | null {
+  if (cycles >= 3) return "patience";
+  if (new Set(observed).size >= 2) return "synthesis";
+  return null;
+}
+
+function recordCompletionEvidence(objectiveId: string, title: string, cycles: number, verification: CompletionResult): void {
+  const traitId = completionEvidenceTrait(cycles, verification.observed);
+  if (!traitId) return;
+  try {
+    DailyRecord.getInstance().recordEvidence({
+      traitId,
+      unitId: `objective:${objectiveId}`,
+      source: "objective",
+      observation: `Completed “${title.slice(0, 80)}” — verified (${verification.observed.slice(0, 3).join("; ")}) over ${cycles} cycle(s).`,
+      at: Date.now(),
+    });
+  } catch {
+    // Development records are a layer; they never affect the objective.
+  }
+}
 
 /** What the agent concluded this cycle, parsed from its own decision. */
 export interface CycleOutcome {
@@ -42,6 +78,12 @@ export interface CycleOutcome {
   objectiveId: string;
   decision: string;
   executed: Array<{ tool: string; ok: boolean }>;
+  /** What the model asked for, as against what ran. */
+  requested?: string[];
+  provider?: string;
+  model?: string;
+  finishReason?: string;
+  verification?: CognitionCycleRecord["verification"];
   nextState: ObjectiveState;
   yieldReason?: CognitionCycleRecord["yieldReason"];
 }
@@ -302,6 +344,180 @@ export default class AgentCognitionRuntime {
     return outcomes;
   }
 
+  /**
+   * Record a briefing about a real transition in the work.
+   *
+   * Called only where the objective actually ended — completed, or
+   * stopped in a way it will not come back from. Not on every cycle,
+   * not on a pause, and never on a timer: a briefing is something that
+   * happened, and the summary is the runtime's own conclusion plus what
+   * really ran, never a composed account of what might have.
+   *
+   * It is deliberately NOT a chat message. A briefing in the transcript
+   * is indistinguishable from a reply, cannot be dismissed, and has no
+   * read state — which is what it used to be.
+   */
+  private brief(
+    objective: AgentObjective,
+    category: "work-completed" | "work-stopped",
+    reason: string,
+    executed: Array<{ tool: string; ok: boolean }>,
+    verification?: CompletionResult,
+  ): void {
+    try {
+      // What really ran across the WHOLE objective, not just the cycle
+      // that ended it.
+      //
+      // This was handed one cycle's results while its own reason line
+      // said "in this objective", so a multi-cycle objective whose last
+      // cycle happened to execute nothing reported that nothing had
+      // been executed at all — a false account of work that really
+      // happened, in the one place a person reads about it.
+      const records = this.objectives.cycles(objective.id);
+      const earlier = records.flatMap((record) => record.executed);
+      const succeeded = [...earlier, ...executed].filter((entry) => entry.ok);
+      const ran = [...new Set(succeeded.map((entry) => entry.tool))];
+
+      // What the completion check made of it, so the briefing reports
+      // the objective's own requirements rather than a tool list. The
+      // cycle that triggered this is not recorded yet, so a verdict
+      // from it is passed in; otherwise the most recent recorded one
+      // stands, which is what a budget-exhausted objective has.
+      const checked =
+        verification ?? records.find((record) => record.verification)?.verification;
+      // WHAT WAS REQUIRED, AND WHAT WAS ACTUALLY SEEN.
+      //
+      // Built from the same state the verifier used, so the briefing and
+      // the verdict cannot tell different stories: the contract (declared,
+      // read from the objective's own wording, or absent because the
+      // deliverable is the answer), the requirements the record really
+      // shows, and — for work that stopped — the ones it does not. It also
+      // names a rejected completion, because "stopped after one action"
+      // reads very differently when the runtime had already turned the
+      // model back twice.
+      const report = objectiveEvidence({
+        objective,
+        cycles: records,
+        executedNow: executed,
+        ...(checked ? { verification: checked } : {}),
+        // The same set the verifier judges against, so a name in prose that
+        // no executor backs cannot become a requirement in the briefing.
+        knownTools: executableToolIds(),
+        completed: category === "work-completed",
+      });
+      const evidence = describeEvidence(report, { missing: category === "work-stopped" });
+      const summary =
+        reason.trim() ||
+        (ran.length > 0
+          ? `Ran ${ran.join(", ")}.`
+          : "No action was taken.");
+
+      let conversationId: string | undefined;
+      if (objective.projectId) {
+        try {
+          conversationId = findWorkstream(objective.projectId)?.id;
+        } catch {
+          // No conversation is survivable; the briefing simply has no
+          // destination to offer.
+        }
+      }
+
+      BriefingStore.getInstance().create({
+        title:
+          category === "work-completed"
+            ? ran.length > 0
+              ? `Finished: ${objective.objective.slice(0, 80)}`
+              : // The runtime completes an objective when the model
+                // replies DONE:, and nothing requires a tool to have
+                // run first — a reasoned conclusion is a legitimate
+                // outcome for some work. What is NOT legitimate is a
+                // headline that reads like work was done when none
+                // was, so the two are named differently here.
+                `Concluded without acting: ${objective.objective.slice(0, 80)}`
+            : `Stopped: ${objective.objective.slice(0, 80)}`,
+        summary: summary.slice(0, 400),
+        category,
+        // Work that stopped needs a decision; work that finished is news.
+        priority: category === "work-stopped" ? "P1" : "P2",
+        reason:
+          [
+            ran.length > 0
+              ? `${succeeded.length} action(s) really ran: ${ran.join(", ")}.`
+              : "No tool was executed in this objective — this is a conclusion, not completed work.",
+            evidence,
+          ]
+            .filter(Boolean)
+            .join(" "),
+        ...(objective.projectId ? { relatedProjectId: objective.projectId } : {}),
+        relatedObjectiveId: objective.id,
+        ...(conversationId ? { conversationId } : {}),
+      });
+    } catch (error) {
+      // Failing to tell the user must never also lose the work.
+      console.warn("[AgentCognitionRuntime] could not record a briefing", error);
+    }
+  }
+
+  /**
+   * Turn a block on missing information into a real question.
+   *
+   * Everything about the question is taken from state that already
+   * exists: the objective's id so the answer can revive it, its
+   * project, and the project's own workstream conversation so the
+   * question is asked where the work is being discussed. The
+   * conversation is opened in the BACKGROUND — a question must not move
+   * the user into another chat to ask them something.
+   *
+   * The question text is the model's own account of what is missing. It
+   * is not rewritten here, because a prettier version would be a
+   * different question from the one the work is actually blocked on.
+   */
+  private askUser(objective: AgentObjective, missing: string): void {
+    try {
+      const reason = missing.trim();
+      if (!reason) return;
+
+      let conversationId: string | undefined;
+      if (objective.projectId) {
+        try {
+          const context = openWorkstream(objective.projectId, { seed: false, activate: false });
+          conversationId = context?.conversation.id;
+        } catch {
+          // No project conversation is survivable: the question is still
+          // asked, it simply has no thread of its own.
+        }
+      }
+
+      ProactiveCore.getInstance().enqueueQuestion({
+        // Keyed on the objective, so the same block asked twice is the
+        // same question rather than a second one.
+        key: `objective:${objective.id}`,
+        question: reason,
+        category: "EXECUTIVE",
+        reason: `Autonomous work on “${objective.objective.slice(0, 120)}” cannot continue without this.`,
+        priority: "P1",
+        objectiveId: objective.id,
+        ...(conversationId ? { conversationId } : {}),
+        ...(objective.projectId ? { relatedProjectId: objective.projectId } : {}),
+        relatedTask: objective.objective.slice(0, 120),
+        blocksExecution: true,
+        rememberAnswer: true,
+        // The situation, not the clock: while the objective is blocked on
+        // the same thing, re-raising is a no-op.
+        evidence: `objective:${objective.id}:blocked:${reason.slice(0, 120)}`,
+      });
+
+      emitCognition("question-asked", reason.slice(0, 300), {
+        objectiveId: objective.id,
+        data: { conversationId: conversationId ?? null, projectId: objective.projectId ?? null },
+      });
+    } catch (error) {
+      // A question that could not be raised must not also lose the
+      // objective. It stays waiting, and the block is in its record.
+      console.warn("[AgentCognitionRuntime] could not raise a question for a blocked objective", error);
+    }
+  }
+
   /* ------------------------------ the cycle ------------------------------ */
 
   /**
@@ -316,7 +532,28 @@ export default class AgentCognitionRuntime {
     if (this.inFlight.has(objectiveId)) return null;
 
     const since = Date.now() - (this.lastCycleAt.get(objectiveId) ?? 0);
-    if (since < CYCLE_COOLDOWN_MS) return null;
+    if (since < CYCLE_COOLDOWN_MS) {
+      // A WAKE INSIDE THE COOLDOWN IS DEFERRED, NOT DISCARDED.
+      //
+      // The cooldown exists so a burst of events cannot spin the model,
+      // and returning null honoured that — but it also threw the wake
+      // away, and nothing ever re-armed it. Measured: a user answered a
+      // question within a second and a half of the cycle that asked it,
+      // so revive() made the objective active, considerPending() saw a
+      // continuation already pending and stood down, wake() hit this
+      // cooldown, the pending continuation then hit it too, and the
+      // objective sat active and abandoned — the answer was recorded and
+      // the work never moved again.
+      //
+      // Scheduling the remainder keeps the rate limit and keeps the
+      // wake: the next cycle happens as soon as it is allowed to.
+      this.scheduleContinuation(
+        objectiveId,
+        CYCLE_COOLDOWN_MS - since + 50,
+        `${trigger}:deferred-by-cooldown`,
+      );
+      return null;
+    }
 
     /* ---- BUDGETS FIRST: never spend a model call to discover a limit ---- */
     const exhausted = this.objectives.exhausted(objective);
@@ -337,7 +574,13 @@ export default class AgentCognitionRuntime {
 
     if (this.cancelled.has(objectiveId)) return null;
     this.inFlight.add(objectiveId);
-    this.lastCycleAt.set(objectiveId, Date.now());
+    // When this cycle really began. The record used to stamp startedAt
+    // and finishedAt with the same instant, taken when it was written,
+    // so every cycle appeared to take zero time — useless for telling a
+    // model that thought for forty seconds from one that returned at
+    // once.
+    const cycleStartedAt = Date.now();
+    this.lastCycleAt.set(objectiveId, cycleStartedAt);
     // The epoch this cycle belongs to. If the runtime is stopped,
     // paused or this objective is cancelled while the model call is in
     // flight, the result is no longer ours to record.
@@ -436,6 +679,11 @@ export default class AgentCognitionRuntime {
       const decision = (response.text ?? "").trim();
       const executed =
         (response.metadata?.toolsExecuted as Array<{ tool: string; ok: boolean }> | undefined) ?? [];
+      // What the model ASKED for this cycle, which is a different fact
+      // from what ran — see CompletionVerifier.
+      const requested = (response.metadata?.toolsRequested as string[] | undefined) ?? [];
+      const finishReason =
+        typeof response.metadata?.finishReason === "string" ? response.metadata.finishReason : undefined;
 
       emitCognition("decision-made", decision.slice(0, 400) || "(no decision text)", {
         objectiveId,
@@ -467,18 +715,111 @@ export default class AgentCognitionRuntime {
       let nextState: ObjectiveState = "active";
       let yieldReason: CognitionCycleRecord["yieldReason"] | undefined;
       let conclusion = "";
+      /** What the completion check decided, when there was one to make. */
+      let verification: CompletionResult | undefined;
+      /** A correction the verifier owes the next cycle, if it rejected. */
+      let verifierNudge: string | undefined;
 
       if (/^\s*DONE:/i.test(decision)) {
-        nextState = "completed";
-        conclusion = decision.replace(/^\s*DONE:\s*/i, "").trim();
+        // "DONE:" IS A CLAIM. IT IS CHECKED.
+        //
+        // This branch used to be the whole completion decision: the
+        // model said the word and the objective was finished. The live
+        // end-to-end test caught a real model ending a three-operation
+        // objective after one of them, and the runtime believed it.
+        //
+        // The verifier answers only "is this satisfied?". What to do
+        // about an unsatisfied objective is decided below, by the same
+        // mechanisms that already handle a cycle that did not conclude
+        // — there is no second executor here.
+        const claimed = decision.replace(/^\s*DONE:\s*/i, "").trim();
+        verification = verifyCompletion(
+          {
+            objective,
+            // EVERY cycle, not this one: the concluding cycle normally
+            // executes nothing, because the model is told to take no
+            // action when it concludes.
+            cycles: this.objectives.cycles(objectiveId),
+            executedNow: executed,
+            requestedNow: requested,
+            conclusion: claimed,
+          },
+          executableToolIds(),
+        );
+
+        emitCognition("completion-verified", `${verification.verdict}: ${verification.reason}`, {
+          objectiveId,
+          data: {
+            verdict: verification.verdict,
+            observed: verification.observed,
+            missing: verification.missing,
+          },
+        });
+
+        if (verification.verdict === "complete") {
+          nextState = "completed";
+          conclusion = claimed;
+          recordCompletionEvidence(objective.id, objective.objective, this.objectives.cycles(objectiveId).length, verification);
+        } else if (verification.verdict === "blocked") {
+          // Nothing further LÉLU can do will satisfy it, so this takes
+          // the EXISTING question path rather than spending more cycles.
+          nextState = "waiting";
+          conclusion = verification.reason;
+          this.objectives.waitFor(objectiveId, verification.missing.join("; ") || verification.reason);
+          this.askUser(objective, verification.reason);
+        } else {
+          // Incomplete: the work continues on the runtime's own terms.
+          // The objective stays active, the next cycle is scheduled by
+          // the same code that schedules every other continuation, and
+          // the model is told exactly what has not been observed so the
+          // next decision is informed rather than a repeat.
+          nextState = "active";
+          conclusion = "";
+          // The SAME shortfall being rejected again is a different situation
+          // from the first rejection, and the model is told which one it is.
+          const shortfall = verification.missing.join("|");
+          const rejectedBefore = this.objectives
+            .cycles(objectiveId)
+            .filter(
+              (record) =>
+                record.verification?.verdict === "incomplete" &&
+                record.verification.missing.join("|") === shortfall,
+            ).length;
+          verifierNudge =
+            `You reported the objective complete, but ${verification.reason} ` +
+            `Observed so far: ${verification.observed.join("; ") || "nothing"}. ` +
+            (rejectedBefore > 0
+              ? `The same shortfall has now been rejected ${rejectedBefore + 1} time(s); ` +
+                "repeating the claim will not change the check. "
+              : "") +
+            "Take the next action that would satisfy what is missing, or say BLOCKED: " +
+            "with exactly what prevents it.";
+        }
       } else if (/^\s*BLOCKED:/i.test(decision)) {
-        nextState = "yielded";
         // The model reporting a capability gap is a legitimate outcome,
         // and a different one from failing to execute.
         yieldReason = /information|ask|clarif/i.test(decision)
           ? "awaiting-information"
           : "capability-unavailable";
         conclusion = decision.replace(/^\s*BLOCKED:\s*/i, "").trim();
+
+        if (yieldReason === "awaiting-information") {
+          // SOMETHING THE USER KNOWS AND LÉLU CANNOT WORK OUT.
+          //
+          // This used to yield, which ends an objective: the work
+          // stopped, nobody was asked, and the conclusion explaining
+          // what was missing sat in a cycle record. Waiting is the
+          // resumable state — the question carries this objective's id,
+          // and answering it revives exactly this objective rather than
+          // starting something new.
+          nextState = "waiting";
+          this.objectives.waitFor(objectiveId, conclusion || "information from the user");
+          this.askUser(objective, conclusion);
+        } else {
+          // A capability that is genuinely unavailable is not a question
+          // for the user; it is a fact about the runtime.
+          nextState = "yielded";
+        }
       } else if (/^\s*SCHEDULE:/i.test(decision)) {
         // A deliberate deferral is runtime state, not a promise in text.
         const minutes = Number(decision.match(/in\s+(\d+)\s*min/i)?.[1] ?? 5);
@@ -517,11 +858,17 @@ export default class AgentCognitionRuntime {
         : 0;
 
       this.objectives.update(objectiveId, {
+        // A rejected completion outranks the repetition nudge: it says
+        // precisely what is missing, which is more use to the next
+        // decision than "you repeated yourself".
         nudge:
-          shouldNudge && nextState === "active"
-            ? `You already ran ${signature} in an earlier cycle and it produced nothing new. ` +
-              `Either conclude with DONE: and the answer, or take a genuinely different action.`
-            : undefined,
+          nextState !== "active"
+            ? undefined
+            : verifierNudge ??
+              (shouldNudge
+                ? `You already ran ${signature} in an earlier cycle and it produced nothing new. ` +
+                  `Either conclude with DONE: and the answer, or take a genuinely different action.`
+                : undefined),
         cyclesRun: objective.cyclesRun + 1,
         actionsTaken: objective.actionsTaken + executed.length,
         consecutiveFailures: failures,
@@ -532,23 +879,35 @@ export default class AgentCognitionRuntime {
 
       if (nextState === "completed") {
         this.objectives.complete(objectiveId, conclusion);
-      } else if (nextState === "scheduled" || nextState === "awaiting-approval") {
+        this.brief(objective, "work-completed", conclusion, executed, verification);
+      } else if (
+        nextState === "scheduled" ||
+        nextState === "awaiting-approval" ||
+        nextState === "waiting"
+      ) {
         // Already set above; the objective is parked in real state.
       } else if (nextState === "yielded" && yieldReason) {
         this.objectives.yieldObjective(objectiveId, yieldReason, conclusion);
+        // Work that stopped and will not resume on its own is worth
+        // saying. Work that is merely waiting or scheduled is not: it is
+        // still going, and a briefing per pause would be noise.
+        this.brief(objective, "work-stopped", conclusion || yieldReason, executed, verification);
       } else {
         // Still active — but re-check the budget now that this cycle spent
         // some of it, so the NEXT wake does not need a model call to stop.
         const after = this.objectives.get(objectiveId);
         const nowExhausted = after ? this.objectives.exhausted(after) : null;
         if (after && nowExhausted) {
-          this.objectives.yieldObjective(
-            objectiveId,
-            nowExhausted,
-            `Stopped after ${after.cyclesRun} cycle(s): ${nowExhausted}. The objective was NOT completed.`,
-          );
+          const stopped = `Stopped after ${after.cyclesRun} cycle(s): ${nowExhausted}. The objective was NOT completed.`;
+          this.objectives.yieldObjective(objectiveId, nowExhausted, stopped);
           nextState = "yielded";
           yieldReason = nowExhausted;
+          // Work that ended on its budget is work that ended: the same
+          // briefing the other stop path writes, for the same reason.
+          // Without this, the most common way an objective stops — the
+          // budget running out on the very cycle that was refused — was
+          // the one way it could stop silently.
+          this.brief(after, "work-stopped", stopped, executed, verification);
         }
       }
 
@@ -564,9 +923,19 @@ export default class AgentCognitionRuntime {
       const outcome = this.record(finalObjective, trigger, {
         decision: decision || "(no decision text)",
         executed,
+        // Diagnosis, not decoration: which model served the decision,
+        // what it asked for as against what ran, why it stopped
+        // generating, and what the completion check made of it. A short
+        // run is a different fault depending on these, and without them
+        // every red run looks the same.
+        requested,
+        provider: response.provider,
+        model: response.model,
+        finishReason,
+        verification,
         nextState,
         yieldReason,
-      });
+      }, cycleStartedAt);
 
       // EXTRACT LEARNING when the objective ends, from the real cycle
       // records. Contained: a memory failure must not corrupt the run,
@@ -659,6 +1028,7 @@ export default class AgentCognitionRuntime {
     objective: AgentObjective,
     trigger: string,
     outcome: Omit<CycleOutcome, "cycleId" | "objectiveId">,
+    startedAt = Date.now(),
   ): CycleOutcome {
     const cycleId = crypto.randomUUID();
     const record: CognitionCycleRecord = {
@@ -666,10 +1036,15 @@ export default class AgentCognitionRuntime {
       agentId: objective.agentId,
       objectiveId: objective.id,
       trigger,
-      startedAt: Date.now(),
+      startedAt,
       finishedAt: Date.now(),
       decision: outcome.decision,
       executed: outcome.executed,
+      ...(outcome.requested?.length ? { requested: outcome.requested } : {}),
+      ...(outcome.provider ? { provider: outcome.provider } : {}),
+      ...(outcome.model ? { model: outcome.model } : {}),
+      ...(outcome.finishReason ? { finishReason: outcome.finishReason } : {}),
+      ...(outcome.verification ? { verification: outcome.verification } : {}),
       nextState: outcome.nextState,
       yieldReason: outcome.yieldReason,
     };
