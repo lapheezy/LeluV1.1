@@ -561,9 +561,12 @@ export default class AIService {
       const priorTurns = conversation.modelMessages();
       conversation.record("user", message);
 
+      const turn = new AbortController();
+      this.activeTurn = turn;
       const request: AIRequest = {
         messages: priorTurns,
         prompt: message,
+        signal: turn.signal,
         // This is the conversational turn, so LÉLU may invoke her real
         // tools here. Internal structured-output calls (reason()) leave
         // this unset and keep their pre-tool behaviour.
@@ -704,6 +707,7 @@ export default class AIService {
       // Close the turn even when the pipeline threw — a half-open trace
       // would silently swallow the next turn's evidence.
       trace.end();
+      this.activeTurn = null;
     }
   }
 
@@ -1140,6 +1144,26 @@ export default class AIService {
     } catch {
       return null;
     }
+  }
+
+  /** The chat turn in flight, if any — what cancelActiveTurn() stops. */
+  private activeTurn: AbortController | null = null;
+
+  /**
+   * Stop the current chat turn: the in-flight model request is aborted
+   * (where the provider supports it), no further tool runs, and the turn
+   * resolves with what already ran. Background tasks are separate — stop
+   * those with TaskExecutor.cancel(taskId). Returns false when idle.
+   */
+  public cancelActiveTurn(reason = "stopped by the user"): boolean {
+    const turn = this.activeTurn;
+    if (!turn || turn.signal.aborted) return false;
+    turn.abort(reason);
+    return true;
+  }
+
+  public isTurnActive(): boolean {
+    return Boolean(this.activeTurn && !this.activeTurn.signal.aborted);
   }
 
   public async consolidate(

@@ -286,6 +286,16 @@ export interface AIRequest {
 
 
   /**
+   * Cancels the turn. Checked between tool rounds and before each tool
+   * runs; providers that support it abort the in-flight HTTP request.
+   * A cancelled turn is not a provider failure and never falls back.
+   */
+  signal?:
+    AbortSignal;
+
+
+
+  /**
    * Maximum tokens.
    */
   maxTokens?:
