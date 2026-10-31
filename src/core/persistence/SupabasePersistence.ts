@@ -1,5 +1,6 @@
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { publicEnv } from "../env/publicEnv";
+import { resolveFirst } from "../resolveEnv";
 import AgentEventBus, { type AgentEvent } from "../agent/AgentEvents";
 import AgentStore from "../agents/AgentStore";
 import type { LeluAgent } from "../agents/AgentTypes";
@@ -126,8 +127,17 @@ export default class SupabasePersistence {
     const env = publicEnv();
     const firstConfigured = (...values: Array<string | undefined>): string =>
       values.find((value) => typeof value === "string" && value.trim().length > 0)?.trim() ?? "";
-    const url = firstConfigured(env.VITE_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_URL);
-    const publishableKey = firstConfigured(env.VITE_SUPABASE_PUBLISHABLE_KEY, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+    // Build-time values first, then the runtime values the server publishes
+    // (plugins/runtimeKeyBridge.ts) for the unprefixed names a server is
+    // given — SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY. Without the second
+    // rung a production server configured with those names left
+    // persistence silently "disabled" (the OG client already resolved them).
+    const url = firstConfigured(env.VITE_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_URL, resolveFirst("SUPABASE_URL"));
+    const publishableKey = firstConfigured(
+      env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      resolveFirst("SUPABASE_PUBLISHABLE_KEY", "SUPABASE_ANON_KEY"),
+    );
     if (!url || !publishableKey) {
       this.status = "disabled";
       this.emitAuthState();
