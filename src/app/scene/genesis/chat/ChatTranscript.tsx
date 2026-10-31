@@ -161,9 +161,9 @@ function ChatTranscriptImpl({ messages, live, inFlight, liveExtras, activity, sp
       ) : null}
 
       {empty ? (
-        <div className="lelu-cc-empty" data-lelu-keep-clear>
-          <h2>What's on your mind?</h2>
-          <p>Ask, explore, or speak — LÉLU is listening.</p>
+        <div className="lelu-cc-empty">
+          <h2 data-lelu-keep-clear>What's on your mind?</h2>
+          <p data-lelu-keep-clear>Ask, explore, or speak — LÉLU is listening.</p>
         </div>
       ) : null}
 

@@ -41,6 +41,11 @@ export interface CompanionState {
   framing: CompanionFraming;
   /** Who moved her last — shown so a move is never mysterious. */
   lastMovedBy: "user" | "lelu" | "none";
+  /**
+   * Her window (person mode) where the user put it, as fractions of the
+   * viewport. null: docked automatically beside the chat / in the right corner.
+   */
+  window?: { left: number; top: number; width: number; height: number } | null;
   updatedAt: number;
 }
 
@@ -111,17 +116,20 @@ export function candidateSpots(size: CompanionShape, viewport: { width: number; 
   const cy = (px: number) => px / viewport.height;
   const left = cx(EDGE_MARGIN + width / 2);
   const right = cx(viewport.width - EDGE_MARGIN - width / 2);
-  const top = cy(EDGE_MARGIN + height / 2 + 56); // below a header bar
-  const bottom = cy(viewport.height - EDGE_MARGIN - height / 2 - 72); // above a composer
-  const middle = 0.5;
-  return [
-    { x: right, y: top },
-    { x: left, y: top },
-    { x: right, y: middle },
-    { x: left, y: middle },
-    { x: right, y: bottom },
-    { x: left, y: bottom },
-  ];
+  // Below the chat header and its tab bar (~110px on a phone), above a composer.
+  const top = cy(EDGE_MARGIN + height / 2 + 112);
+  const bottom = cy(viewport.height - EDGE_MARGIN - height / 2 - 96);
+  // A grid, edges first: with only six fixed spots every one of them could
+  // overlap something on a phone while empty space sat between them.
+  const columns = [right, left, 0.5];
+  const rows = 5;
+  const spots: Array<{ x: number; y: number }> = [];
+  for (const x of columns) {
+    for (let i = 0; i < rows; i++) {
+      spots.push({ x, y: bottom <= top ? 0.5 : top + ((bottom - top) * i) / (rows - 1) });
+    }
+  }
+  return spots;
 }
 
 /**
@@ -137,13 +145,13 @@ export function chooseSpot(
   size: CompanionShape,
   viewport: { width: number; height: number },
   keepClear: readonly Rect[],
-): { x: number; y: number; moved: boolean } {
+): { x: number; y: number; moved: boolean; covered: number } {
   const cover = (spot: { x: number; y: number }) => {
     const rect = figureRect(spot.x, spot.y, size, viewport);
     return keepClear.reduce((sum, clear) => sum + overlapArea(rect, clear) * (clear.weight ?? 1), 0);
   };
   const here = cover(current);
-  if (here === 0) return { ...current, moved: false };
+  if (here === 0) return { ...current, moved: false, covered: 0 };
   let best: { x: number; y: number; covered: number; distance: number } | null = null;
   for (const spot of candidateSpots(size, viewport)) {
     const covered = cover(spot);
@@ -153,8 +161,8 @@ export function chooseSpot(
     }
   }
   // Move only for a spot that is actually better than staying.
-  if (!best || best.covered >= here) return { ...current, moved: false };
-  return { x: best.x, y: best.y, moved: true };
+  if (!best || best.covered >= here) return { ...current, moved: false, covered: here };
+  return { x: best.x, y: best.y, moved: true, covered: best.covered };
 }
 
 type Listener = (state: CompanionState) => void;
@@ -219,6 +227,16 @@ export default class CompanionStore {
   }
 
   /** Let her choose her own spot again. */
+  /** The user moved or resized her window: it stays there. */
+  public setWindow(window: { left: number; top: number; width: number; height: number }): CompanionState {
+    return this.patch({ window, lastMovedBy: "user" });
+  }
+
+  /** Back to the automatic dock beside the chat. */
+  public dockWindow(): CompanionState {
+    return this.patch({ window: null });
+  }
+
   public unpin(): CompanionState {
     return this.patch({ pinned: false });
   }

@@ -20,7 +20,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import AgentEventBus from "../../../../core/agent/AgentEvents";
 import AvatarCommandBus, { type AvatarCommandKind } from "../../../../core/avatar/AvatarCommandBus";
 import LeluMotion from "../../../../core/avatar/LeluMotion";
@@ -92,6 +92,36 @@ const COMMAND_CLIPS: Record<AvatarCommandKind, string[]> = {
   stand: ["sit_to_stand"],
 };
 
+/**
+ * Her model is parsed once per approved version and handed from view to
+ * view: only one of her views is mounted at a time (the chat backdrop OR
+ * her window; neither in Genesis V2, where the world shows her), so the
+ * view being mounted takes the parsed scene from the one that left.
+ * Switching between face and window does not decode 48 MB again. If two
+ * views ever overlap, the second parses its own copy. (A skeleton clone
+ * would share more, but measured: a SkeletonUtils clone of this rig
+ * rendered nothing.)
+ */
+const parsedModels = new WeakMap<ArrayBuffer, Promise<GLTF>>();
+const parsedClips = new WeakMap<ArrayBuffer, Promise<THREE.AnimationClip[]>>();
+function parseModel(bytes: ArrayBuffer): Promise<GLTF> {
+  let parsed = parsedModels.get(bytes);
+  if (!parsed) {
+    parsed = new GLTFLoader().parseAsync(bytes, "");
+    parsedModels.set(bytes, parsed);
+    parsed.catch(() => parsedModels.delete(bytes));
+  }
+  return parsed;
+}
+function parseClips(bytes: ArrayBuffer): Promise<THREE.AnimationClip[]> {
+  let parsed = parsedClips.get(bytes);
+  if (!parsed) {
+    parsed = new GLTFLoader().parseAsync(bytes, "").then((g) => g.animations).catch(() => [] as THREE.AnimationClip[]);
+    parsedClips.set(bytes, parsed);
+  }
+  return parsed;
+}
+
 /** She greets the person once per visit, not once per surface. */
 let greeted = false;
 
@@ -158,6 +188,7 @@ export default function LeluBody({
 
   useEffect(() => {
     let disposed = false;
+    let owned: THREE.Object3D | null = null;
     const fail = (err: unknown) => {
       if (disposed) return;
       const message = err instanceof Error ? err.message : String(err);
@@ -165,15 +196,19 @@ export default function LeluBody({
       reportFailure(`LÉLU's 3D model failed to load: ${message}`);
     };
     try {
-      new GLTFLoader().parse(
-        glb,
-        "",
-        (gltf) => {
+      parseModel(glb).then(
+        async (shared) => {
+          if (disposed) return;
+          const gltf = shared.scene.parent ? await new GLTFLoader().parseAsync(glb, "") : shared;
           if (disposed) return;
           // The holder carries the normalisation; callers position the holder.
           const holder = new THREE.Group();
           const scene = gltf.scene;
+          // Taken over from a view that left: start from its unnormalised state.
+          scene.position.set(0, 0, 0);
+          scene.scale.set(1, 1, 1);
           holder.add(scene);
+          owned = scene;
           const box = new THREE.Box3().setFromObject(scene);
           const size = new THREE.Vector3();
           box.getSize(size);
@@ -207,7 +242,7 @@ export default function LeluBody({
           // (motion-only GLBs, clips named by slot), on one controller.
           void Promise.all(
             (clips ?? []).map((bytes) =>
-              new GLTFLoader().parseAsync(bytes, "").then((g) => g.animations).catch(() => [] as THREE.AnimationClip[]),
+              parseClips(bytes),
             ),
           ).then((extra) => {
             if (disposed || !behaviour.current) return;
@@ -228,6 +263,8 @@ export default function LeluBody({
     }
     return () => {
       disposed = true;
+      // Hand her scene back for the next view.
+      owned?.removeFromParent();
       motion.current?.stop();
       motion.current = null;
       behaviour.current = null;
@@ -298,5 +335,6 @@ export default function LeluBody({
     callbacks.current.onFrame?.(t, motion.current?.playing ?? null);
   });
 
-  return model ? <primitive object={model} /> : null;
+  // dispose={null}: the geometry and textures are shared with her other views.
+  return model ? <primitive object={model} dispose={null} /> : null;
 }
