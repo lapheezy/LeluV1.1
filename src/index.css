@@ -1089,3 +1089,39 @@ html {
     transition: height 0.1s ease-out;
   }
 }
+
+/* ==========================================================
+ * COSMOS ↔ CHAT COEXISTENCE
+ * ========================================================== */
+
+/* Atmosphere readout — bottom-left, clear of the dock rail (≥720px)
+   and of the top chrome where it used to sit under the Genesis chip. */
+.lelu-phase-hud {
+  left: 12px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+}
+@media (min-width: 720px) {
+  .lelu-phase-hud {
+    left: 96px;
+  }
+}
+
+/* While the composer has focus, its own decorative cloud/star loops
+   hold still — nothing should repaint around the caret while typing. */
+[data-lelu-composer]:focus-within .lelu-tab-cloud::before,
+[data-lelu-composer]:focus-within .lelu-tab-cloud::after {
+  animation-play-state: paused;
+}
+
+/* Chat transcript markdown (GenesisChatTranscript). LÉLU often writes
+   plain text with single line breaks — keep them. */
+.lelu-markdown > :first-child { margin-top: 0; }
+.lelu-markdown > :last-child { margin-bottom: 0; }
+.lelu-markdown p { margin: 0 0 0.6em; white-space: pre-wrap; }
+.lelu-markdown ul, .lelu-markdown ol { margin: 0 0 0.6em; padding-left: 1.3em; }
+.lelu-markdown li { margin: 0.15em 0; }
+.lelu-markdown h1, .lelu-markdown h2, .lelu-markdown h3 { font-size: 1.05em; margin: 0.8em 0 0.4em; }
+.lelu-markdown a { color: #7dd3fc; text-decoration: underline; }
+.lelu-markdown code { font-family: ui-monospace, monospace; font-size: 0.88em; padding: 0.1em 0.35em; border-radius: 6px; background: rgba(148, 163, 184, 0.14); }
+.lelu-markdown pre { overflow-x: auto; padding: 10px 12px; border-radius: 10px; background: rgba(2, 6, 23, 0.6); border: 1px solid rgba(148, 163, 184, 0.16); text-shadow: none; }
+.lelu-markdown pre code { padding: 0; background: none; }
