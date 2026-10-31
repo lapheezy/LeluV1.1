@@ -158,7 +158,8 @@ function ingestUpload(store: ForgeStore, character: string, body: Record<string,
 }
 
 export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: string; poll?: boolean } = {}) {
-  const root = options.assetRoot ?? readEnv("FORGE_ASSET_ROOT") ?? path.join(process.cwd(), "leluverse", "assets");
+  // || not ??: the Vite env reader returns "" for unset keys, which would put the store at the repo root.
+  const root = options.assetRoot || readEnv("FORGE_ASSET_ROOT") || path.join(process.cwd(), "leluverse", "assets");
   const forge = new MeshyForge({ store: new ForgeStore(root), readEnv });
   const world = new WorldEngine(forge.store);
   if (options.poll !== false) forge.startPolling();

@@ -51,3 +51,13 @@ leluverse/assets/characters/lelu_character/rig/v001_rigging_01a18f4e/*.fbx
 
 # MediaPipe segmentation models are downloaded on demand (URLs in scripts/blender/lelu_hairclean.py)
 scripts/blender/models/*.tflite
+
+# Runtime world state of the dev server's Forge store (worldEngine)
+leluverse/assets/cosmos/
+# Local review renders
+review/
+# Head bust source (99 MB GLB, 60 MB textures) and superseded head-swap builds: kept locally, not committed
+leluverse/assets/characters/lelu_character/meshes/v002_multi-image-to-3d_01a18f5a/*.glb
+leluverse/assets/characters/lelu_character/meshes/v002_multi-image-to-3d_01a18f5a/texture_*
+leluverse/assets/characters/lelu_character/rig/v002_headswap_mvvnvqa1/*.glb
+leluverse/assets/characters/lelu_character/rig/v003_headswap_mvvnvqa1/*.glb

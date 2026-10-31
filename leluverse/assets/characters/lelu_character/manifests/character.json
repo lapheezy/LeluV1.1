@@ -1,6 +1,8 @@
 {
   "character": "lelu_character",
-  "active": {},
+  "active": {
+    "rig": "fj_mvwaqbim_55226d"
+  },
   "history": [
     {
       "slot": "base",
@@ -25,6 +27,12 @@
       "jobId": "fj_mvvfg2o3_ebd9c0",
       "replacedBy": "withdrawn",
       "at": 1793406306650
+    },
+    {
+      "slot": "rig",
+      "jobId": null,
+      "replacedBy": "fj_mvwaqbim_55226d",
+      "at": 1793452079858
     }
   ]
 }
