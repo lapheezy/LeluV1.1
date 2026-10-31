@@ -17,7 +17,7 @@
  */
 
 import { useMemo, useState, type CSSProperties, type MouseEvent } from "react";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 
 const barStyle: CSSProperties = {
   position: "fixed",
@@ -32,6 +32,25 @@ const barStyle: CSSProperties = {
   borderRadius: 999,
   pointerEvents: "auto",
   maxWidth: "min(96vw, 760px)",
+};
+
+/* Embedded in the chat window (below its title bar): part of the chat's
+   own column, so it can never float over the messages. Scrolls sideways
+   when there are more tabs than width. */
+const embeddedBarStyle: CSSProperties = {
+  position: "relative",
+  flexShrink: 0,
+  display: "flex",
+  alignItems: "center",
+  gap: 6,
+  margin: "8px 10px 0",
+  padding: "5px 6px",
+  borderRadius: 999,
+  pointerEvents: "auto",
+  overflowX: "auto",
+  overflowY: "hidden",
+  scrollbarWidth: "none",
+  WebkitOverflowScrolling: "touch",
 };
 
 const tabStyle: CSSProperties = {
@@ -66,7 +85,7 @@ const iconButtonStyle: CSSProperties = {
   flexShrink: 0,
 };
 
-export default function MultiChatTabs() {
+export default function MultiChatTabs({ embedded = false }: { embedded?: boolean } = {}) {
   const {
     state,
     createConversation,
@@ -78,7 +97,7 @@ export default function MultiChatTabs() {
     unlinkConversations,
     searchConversations,
     openPanel,
-  } = useGenesis();
+  } = useGenesisState();
 
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
@@ -129,7 +148,7 @@ export default function MultiChatTabs() {
 
   return (
     <>
-      <div data-lelu-multichat className="lelu-tab-bar" style={barStyle}>
+      <div data-lelu-multichat className="lelu-tab-bar" style={embedded ? embeddedBarStyle : barStyle}>
         {conversations.map((conversation) => {
           const active = conversation.id === activeId;
           const linked = conversation.linkedIds.includes(activeId);
@@ -300,12 +319,16 @@ export default function MultiChatTabs() {
         <div
           className="lelu-tab-bar"
           style={{
-            position: "fixed",
-            left: "50%",
-            top: "96px",
-            transform: "translateX(-50%)",
-            zIndex: 27,
-            width: "min(92vw, 560px)",
+            ...(embedded
+              ? { position: "relative", margin: "6px 10px 0", flexShrink: 0, maxHeight: "40%", overflowY: "auto" }
+              : {
+                  position: "fixed",
+                  left: "50%",
+                  top: "96px",
+                  transform: "translateX(-50%)",
+                  zIndex: 27,
+                  width: "min(92vw, 560px)",
+                }),
             padding: 8,
             borderRadius: 16,
             display: "flex",

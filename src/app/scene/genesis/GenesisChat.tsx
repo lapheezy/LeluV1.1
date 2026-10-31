@@ -29,7 +29,8 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, type MotionStyle } from "framer-motion";
+import ReactMarkdown from "react-markdown";
 
 import AIService from "../../../core/AIService";
 import Orchestrator from "../../../core/orchestrator/Orchestrator";
@@ -44,11 +45,19 @@ import {
   processVideoFile,
   type ProcessedMedia,
 } from "../../../core/media/mediaProcessor";
-import { useGenesis, type GenesisMessage } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import ExplorationController from "./ExplorationController";
 import ProactiveCore, { type ProactiveQuestion } from "../../../core/proactive/ProactiveCore";
 import { markPerf } from "../../../core/perf/StartupTelemetry";
 import { cleanAssistantText } from "../../../core/router/ToolMarkup";
+import GenesisChatTranscript, {
+  assistantBlockStyle,
+  userBubbleStyle,
+  type ExchangeExtras,
+} from "./GenesisChatTranscript";
+import { getSceneRenderBudget } from "./SceneRenderBudget";
+import { useVisualViewport } from "./useVisualViewport";
+import MultiChatTabs from "./MultiChatTabs";
 
 const ai = AIService.getInstance();
 const proactive = ProactiveCore.getInstance();
@@ -56,6 +65,9 @@ const proactive = ProactiveCore.getInstance();
 /** One visible exchange: the user's line plus LÉLU's (possibly still being typed). */
 interface Exchange {
   id: string;
+  /** When the turn began — messages from this moment on belong to the
+   *  live exchange, older ones to the transcript above it. */
+  startedAt: number;
   user: string;
   assistant: string;
   fast: boolean;
@@ -73,6 +85,16 @@ function prefersReducedMotion(): boolean {
   );
 }
 
+const EMPTY_EXTRAS: ExchangeExtras[] = [];
+
+function coarsePointer(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(pointer: coarse)").matches
+  );
+}
+
 /* ----------------------------------------------------------
  * Floating text language — no container, no border, no bubble.
  * Readability comes from layered text shadows over the cosmos.
@@ -87,20 +109,17 @@ const dialogueTextBase: CSSProperties = {
   fontWeight: 400,
 };
 
-const userTextStyle: CSSProperties = {
-  ...dialogueTextBase,
-  fontSize: "clamp(14px, 1.5vw + 9px, 17px)",
-  color: "rgba(199, 228, 250, 0.94)",
-  textShadow:
-    "0 0 14px rgba(2, 6, 23, 0.6), 0 1px 2px rgba(2, 6, 23, 0.92)",
-};
+/* The live exchange uses the transcript's layout (user right, LÉLU left)
+   so a finished turn does not jump when it becomes history. */
+const userTextStyle: CSSProperties = userBubbleStyle;
 
-const assistantTextStyle: CSSProperties = {
+const assistantTextStyle: CSSProperties = assistantBlockStyle;
+
+/** Hint text when the conversation is empty. */
+const emptyHintStyle: CSSProperties = {
   ...dialogueTextBase,
-  fontSize: "clamp(15px, 1.7vw + 10px, 19px)",
-  color: "#f4fcff",
-  textShadow:
-    "0 0 22px rgba(103, 232, 249, 0.42), 0 0 46px rgba(56, 189, 248, 0.24), 0 1px 3px rgba(2, 6, 23, 0.95)",
+  fontSize: "clamp(13px, 1.4vw + 8px, 15px)",
+  color: "rgba(148,163,184,0.55)",
 };
 
 /* ------------------------------------------------------------------
@@ -214,9 +233,12 @@ function AssistantLine({ text, fast, onDone }: AssistantLineProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
+      className="lelu-markdown"
       style={assistantTextStyle}
     >
-      {visibleText.slice(0, count)}
+      {/* Same markdown rendering as the transcript, so a finished turn
+          does not change shape when it moves into history. */}
+      <ReactMarkdown>{visibleText.slice(0, count)}</ReactMarkdown>
       {count < total ? <Caret /> : null}
     </motion.div>
   );
@@ -250,7 +272,7 @@ function ThinkingDots() {
  * ---------------------------------------------------------- */
 
 export default function GenesisChat({ onExit }: { onExit?: () => void }) {
-  const { state, openPanel, addMessage, setDialogue, notify, crossChatContext } = useGenesis();
+  const { state, openPanel, addMessage, setDialogue, notify, crossChatContext } = useGenesisState();
   const voiceView = useVoice();
 
   const [input, setInput] = useState("");
@@ -258,6 +280,18 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   const [activeQuestion, setActiveQuestion] = useState<ProactiveQuestion | null>(null);
   const [exchange, setExchange] = useState<Exchange | null>(null);
   const artifactImagesRef = useRef<string[]>([]);
+  /* Images/surfaces of finished exchanges, per conversation, so they stay
+     in the scroll-back after the next message is sent. */
+  const [extrasByConversation, setExtrasByConversation] = useState<Record<string, ExchangeExtras[]>>({});
+
+  /* Switching conversation tab: the live exchange belongs to the tab it
+     was started in, so it must not be drawn over another conversation. */
+  const conversationRef = useRef(state.activeConversationId);
+  useEffect(() => {
+    if (conversationRef.current === state.activeConversationId) return;
+    conversationRef.current = state.activeConversationId;
+    setExchange(null);
+  }, [state.activeConversationId]);
 
   // Stable ref for voice engine — avoids stale closure in send callback
   const voiceEngineRef = useRef(voiceView.engine);
@@ -389,7 +423,11 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   useEffect(() => {
     mountedAtRef.current = Date.now();
     setDialogue("listening");
-    inputRef.current?.focus();
+    // On phones, focusing on open raises the keyboard over half of the
+    // conversation before the user asked to type. Desktop keeps it.
+    if (!coarsePointer()) {
+      inputRef.current?.focus();
+    }
 
     voiceEngineRef.current.unlockAudio();
 
@@ -399,47 +437,31 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         exit();
         return;
       }
-      if (document.activeElement !== inputRef.current && event.key.length === 1) {
+      const target = event.target as HTMLElement | null;
+      const typingElsewhere =
+        target !== inputRef.current &&
+        target !== null &&
+        (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
+      if (!typingElsewhere && document.activeElement !== inputRef.current && event.key.length === 1 && !event.metaKey && !event.ctrlKey) {
         inputRef.current?.focus();
       }
     }
     window.addEventListener("keydown", handleDocumentKey, true);
 
-    const messages = state.messages;
-    let lastAssistant: GenesisMessage | undefined;
-    for (let index = messages.length - 1; index >= 0; index -= 1) {
-      if (messages[index].role === "assistant" && messages[index].text.trim()) {
-        lastAssistant = messages[index];
-        break;
-      }
-    }
-
-    if (lastAssistant) {
-      let userText = "";
-      const assistantIndex = messages.indexOf(lastAssistant);
-      for (let index = assistantIndex - 1; index >= 0; index -= 1) {
-        if (messages[index].role === "user") {
-          userText = messages[index].text;
-          break;
-        }
-      }
-      setExchange({
-        id: `replay-${lastAssistant.id}`,
-        user: userText,
-        assistant: cleanAssistantText(lastAssistant.text),
-        fast: true,
-      });
-    }
+    // The previous turn is no longer replayed here: the transcript shows
+    // the whole conversation.
 
     return () => {
       window.removeEventListener("keydown", handleDocumentKey, true);
       clearTimers();
       setDialogue("idle");
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exit]);
+    // `exit` is identity-stable now that GenesisCore's actions are; this
+    // runs once per mount.
+  }, [exit, clearTimers, setDialogue]);
 
-  // LÉLU finished typing: hold, then fade
+  // LÉLU finished typing: the turn stays on screen (it is part of the
+  // conversation now); only the dialogue phase settles back to listening.
   const handleTyped = useCallback(() => {
     const current = exchangeRef.current;
     if (!current) {
@@ -448,21 +470,28 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     const exchangeId = current.id;
     clearTimers();
     setDialogue("complete");
-
-    const hold = Math.min(16000, 4200 + current.assistant.length * 26);
-    const holdId = window.setTimeout(() => {
-      setFading(true);
-      const fadeId = window.setTimeout(() => {
-        setFading(false);
-        if (exchangeRef.current?.id === exchangeId) {
-          setDialogue("listening");
-        }
-        setExchange((existing) => (existing && existing.id === exchangeId ? null : existing));
-      }, 900);
-      timersRef.current.push(fadeId);
-    }, hold);
-    timersRef.current.push(holdId);
+    const settleId = window.setTimeout(() => {
+      if (exchangeRef.current?.id === exchangeId) {
+        setDialogue("listening");
+      }
+    }, 1500);
+    timersRef.current.push(settleId);
   }, [clearTimers, setDialogue]);
+
+  /** Keep a finished exchange's images/surfaces in the scroll-back. */
+  const archiveExtras = useCallback((finished: Exchange) => {
+    const images = finished.images ?? [];
+    const surfaces = finished.surfaces ?? [];
+    if (images.length === 0 && surfaces.length === 0) return;
+    const conversationId = conversationRef.current;
+    setExtrasByConversation((current) => ({
+      ...current,
+      [conversationId]: [
+        ...(current[conversationId] ?? []).filter((extra) => extra.startedAt !== finished.startedAt),
+        { startedAt: finished.startedAt, images, surfaces },
+      ].slice(-40),
+    }));
+  }, []);
 
   // Voice conversation flows through the SAME scene text
   useEffect(() => {
@@ -480,14 +509,16 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         }
         return current;
       }
+      if (current) archiveExtras(current);
       return {
         id,
+        startedAt: Date.now(),
         user: turn.user,
         assistant: turn.response ? cleanAssistantText(turn.response) : "",
         fast,
       };
     });
-  }, [setDialogue, voiceView.turn]);
+  }, [setDialogue, voiceView.turn, archiveExtras]);
 
   const attachMedia = useCallback(
     async (file: File | undefined, kind: "image" | "video") => {
@@ -598,7 +629,9 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
 
     artifactImagesRef.current = [];
     surfacesRef.current = [];
-    setExchange({ id: exchangeId, user: display, assistant: "", fast: false, surfaces: [] });
+    if (exchangeRef.current) archiveExtras(exchangeRef.current);
+    const startedAt = Date.now();
+    setExchange({ id: exchangeId, startedAt, user: display, assistant: "", fast: false, surfaces: [] });
     setDialogue("processing");
 
     addMessage({
@@ -671,6 +704,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
 
       setExchange({
         id: exchangeId,
+        startedAt,
         user: display,
         assistant: cleanAssistantText(assistantText),
         fast: prefersReducedMotion(),
@@ -697,7 +731,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     } finally {
       setIsSending(false);
     }
-  }, [addMessage, clearTimers, input, isSending, notify, pendingMedia, pendingFiles, setDialogue, crossChatContext]);
+  }, [addMessage, archiveExtras, clearTimers, input, isSending, notify, pendingMedia, pendingFiles, setDialogue, crossChatContext]);
 
 
   const liveEcho =
@@ -882,6 +916,35 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
     e.currentTarget.releasePointerCapture?.(e.pointerId);
   }
 
+  /* Full-screen phone chat: it covers the cosmos completely, so the scene
+     stops repainting underneath it (SceneRenderBudget), and it sizes to
+     the VISUAL viewport so the composer stays above the keyboard. */
+  const fullscreenMobile = isMobileViewport && chatPos.x < 0 && !chatMinimized;
+  const viewportBox = useVisualViewport(fullscreenMobile);
+  const keyboardOpen = Boolean(viewportBox?.keyboardOpen);
+  /* Keyboard up / landscape phone: secondary chrome collapses so the
+     messages keep most of the height. */
+  const shortViewport = keyboardOpen || (viewportBox !== null && viewportBox.height < 520);
+  /* The half sheet is short by design: compact the question banner there too. */
+  const compactChrome =
+    shortViewport || (isMobileViewport && chatPos.x >= 0 && (mobileHeight ?? Infinity) < 560);
+  useEffect(() => {
+    const budget = getSceneRenderBudget();
+    budget.setOccluded("genesis-chat", fullscreenMobile);
+    return () => budget.setOccluded("genesis-chat", false);
+  }, [fullscreenMobile]);
+  useEffect(() => () => getSceneRenderBudget().endTyping(), []);
+
+  /* Keep the newest turn in view when history grows or a tab is switched. */
+  const messageCount = state.messages.length;
+  useEffect(() => {
+    if (!userScrolledRef.current && scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messageCount, state.activeConversationId, keyboardOpen]);
+
+  const conversationExtras = extrasByConversation[state.activeConversationId] ?? EMPTY_EXTRAS;
+
   const sizeStyles: Record<string, CSSProperties> = {
     compact: { width: "min(88vw, 380px)", maxHeight: "min(50vh, 360px)" },
     medium:  { width: "min(92vw, 560px)", maxHeight: "min(62vh, 480px)" },
@@ -921,7 +984,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   const mobileSheetHeight = mobileHeight ?? Math.min(viewportHeight * 0.82, 720);
   const mobileFloatWidth = Math.min(viewportWidth - 16, 400);
 
-  const windowStyle: CSSProperties = {
+  const windowStyle: MotionStyle = {
     position: "fixed",
     zIndex: 21,
     pointerEvents: "auto",
@@ -937,20 +1000,26 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
             maxHeight: "calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px)",
           }
         : {
-            // MOBILE: fullscreen by default — the chat IS the app on mobile
+            // MOBILE: fullscreen by default — the chat IS the app on mobile.
+            // Sized to the visual viewport, not 100dvh: on iOS the keyboard
+            // does not shrink dvh and would cover the composer.
             left: 0,
             right: 0,
-            top: 0,
-            bottom: 0,
+            top: viewportBox ? viewportBox.offsetTop : 0,
+            bottom: "auto",
             width: "100%",
-            height: "100dvh",
-            maxHeight: "100dvh",
+            height: viewportBox ? viewportBox.height : "100dvh",
+            maxHeight: viewportBox ? viewportBox.height : "100dvh",
             borderRadius: 0,
           }
       : chatCorner
-        ? { right: 16, bottom: 16, top: "auto", left: "auto", transform: "none" }
+        ? { right: 16, bottom: 16, top: "auto", left: "auto", x: 0, y: 0 }
         : isCentered
-          ? { left: "50%", top: "50%", transform: "translate(-50%,-45%)" }
+          // framer-motion owns `transform` on this motion.div (its scale
+          // animation replaced an inline translate, so the "centered"
+          // window started at mid-screen and ran off the bottom). Centre
+          // with motion's own x/y instead.
+          ? { left: "50%", top: "50%", x: "-50%", y: "-50%" }
           : { left: chatPos.x, top: chatPos.y }),
     ...(isMobileViewport ? {} : sizeStyles[chatSize]),
     display: "flex", flexDirection: "column",
@@ -1015,14 +1084,28 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         }}
       >
         {isMobileViewport ? (
+          /* Full screen ⇄ half sheet. The half sheet leaves the top of the
+             screen to LÉLU's world (and her avatar in Genesis v2); the
+             scene resumes rendering because the chat no longer covers it.
+             Before this, the floating mode was only reachable by dragging,
+             which full screen disables. */
           <button
-            onClick={() => setChatPos({ x: -1, y: -1 })}
-            disabled={!isFloatingMobile}
-            title="Dock to bottom"
-            aria-label="Dock chat to bottom"
-            style={{ ...titleBtn, opacity: isFloatingMobile ? 1 : 0.35, cursor: isFloatingMobile ? "pointer" : "default" }}
+            onClick={() => {
+              if (isFloatingMobile) {
+                setChatPos({ x: -1, y: -1 });
+                return;
+              }
+              const box = viewportBox ?? { height: window.innerHeight, offsetTop: 0 };
+              const sheet = Math.max(280, Math.round(box.height * 0.56));
+              setMobileHeight(sheet);
+              setChatPos({ x: 8, y: Math.max(8, box.offsetTop + box.height - sheet - 8) });
+            }}
+            title={isFloatingMobile ? "Full-screen chat" : "Half sheet — show LÉLU's world above the chat"}
+            aria-label={isFloatingMobile ? "Make chat full screen" : "Show LÉLU's world above the chat"}
+            aria-pressed={isFloatingMobile}
+            style={titleBtn}
           >
-            ⇩
+            {isFloatingMobile ? "⇧" : "◐"}
           </button>
         ) : (
           <>
@@ -1046,6 +1129,11 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         <button onClick={() => { if (onExit) onExit(); else openPanel("none"); }} title="Close" style={{...titleBtn, color: "rgba(248,113,113,0.7)" }}>✕</button>
       </div>
 
+      {/* Conversation tabs live inside the chat column (they used to float
+          over the messages at a fixed screen position). */}
+      {/* …and step aside while the keyboard is up, like the question banner. */}
+      {shortViewport ? null : <MultiChatTabs embedded />}
+
       {/* Messages scroll area */}
       <div
         ref={scrollRef}
@@ -1054,9 +1142,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
           flex: 1,
           minHeight: 0,
           overflowY: "auto", overflowX: "hidden",
-          padding: isMobileViewport && !isFloatingMobile
-            ? `16px 18px calc(env(safe-area-inset-bottom, 0px) + 16px)`
-            : "16px 18px",
+          padding: "16px 18px",
           position: "relative",
           overscrollBehavior: "contain",
           WebkitOverflowScrolling: "touch",
@@ -1067,9 +1153,15 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         data-lelu-dialogue-scroll
       >
         <div style={{
-          display: "flex", flexDirection: "column", gap: 10,
-          minHeight: "100%", justifyContent: exchange ? "flex-start" : "center",
+          display: "flex", flexDirection: "column", gap: 14,
+          minHeight: "100%",
+          justifyContent: exchange || state.messages.length > 0 ? "flex-end" : "center",
         }}>
+          <GenesisChatTranscript
+            messages={state.messages}
+            liveExchangeStartedAt={exchange ? exchange.startedAt : null}
+            extras={conversationExtras}
+          />
           <AnimatePresence>
             {liveEcho || voiceEcho ? (
               <motion.div
@@ -1090,10 +1182,12 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
             {exchange ? (
               <motion.div
                 key={exchange.id}
+                data-lelu-live-exchange
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: fading ? 0 : 1, y: fading ? -10 : 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: fading ? 0.8 : 0.35 }}
+                style={{ display: "flex", flexDirection: "column" }}
               >
                 {exchange.user ? (
                   <div style={userTextStyle}>{exchange.user}</div>
@@ -1145,11 +1239,11 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
                   <GenesisChatSurface surfaces={exchange.surfaces} />
                 ) : null}
               </motion.div>
-            ) : !liveEcho && !voiceEcho ? (
+            ) : !liveEcho && !voiceEcho && state.messages.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.5 }}
-                style={{ ...userTextStyle, fontSize: "clamp(13px, 1.4vw + 8px, 15px)", color: "rgba(148,163,184,0.55)" }}
+                style={emptyHintStyle}
               >
                 Type a message or speak to Lélu…
               </motion.div>
@@ -1194,10 +1288,23 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         >
           <span aria-hidden style={{ color: "rgba(251, 191, 36, 0.9)", flexShrink: 0 }}>?</span>
           <span style={{ flex: 1, minWidth: 0 }}>
-            <strong style={{ display: "block", fontWeight: 600 }}>{activeQuestion.question}</strong>
-            <span style={{ display: "block", marginTop: 2, color: "rgba(226, 232, 240, 0.62)" }}>
-              {activeQuestion.reason}
-            </span>
+            <strong
+              style={{
+                display: "block",
+                fontWeight: 600,
+                ...(compactChrome
+                  ? { whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }
+                  : {}),
+              }}
+            >
+              {activeQuestion.question}
+            </strong>
+            {/* With the keyboard up the conversation needs the height. */}
+            {compactChrome ? null : (
+              <span style={{ display: "block", marginTop: 2, color: "rgba(226, 232, 240, 0.62)" }}>
+                {activeQuestion.reason}
+              </span>
+            )}
           </span>
           <button
             type="button"
@@ -1223,7 +1330,8 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       {/* Composer */}
       <div data-lelu-composer style={{
         flexShrink: 0,
-        padding: isMobileViewport && !isFloatingMobile
+        // The home-indicator inset only applies while the keyboard is down.
+        padding: isMobileViewport && !isFloatingMobile && !keyboardOpen
           ? `10px 14px calc(env(safe-area-inset-bottom, 0px) + 10px)`
           : "10px 14px",
         borderTop: "1px solid rgba(103,232,249,0.12)",
@@ -1364,14 +1472,16 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
               const value = event.target.value;
               setInput(value);
               setDialogue(value.trim().length > 0 ? "typing" : "listening");
+              getSceneRenderBudget().noteTyping();
             }}
+            onBlur={() => getSceneRenderBudget().endTyping()}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();
                 void send();
               }
             }}
-            autoFocus
+            autoFocus={!coarsePointer()}
             autoComplete="off"
             autoCorrect="on"
             autoCapitalize="sentences"
