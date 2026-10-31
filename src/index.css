@@ -1089,3 +1089,26 @@ html {
     transition: height 0.1s ease-out;
   }
 }
+
+/* ==========================================================
+ * COSMOS ↔ CHAT COEXISTENCE
+ * ========================================================== */
+
+/* Atmosphere readout — bottom-left, clear of the dock rail (≥720px)
+   and of the top chrome where it used to sit under the Genesis chip. */
+.lelu-phase-hud {
+  left: 12px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+}
+@media (min-width: 720px) {
+  .lelu-phase-hud {
+    left: 96px;
+  }
+}
+
+/* While the composer has focus, its own decorative cloud/star loops
+   hold still — nothing should repaint around the caret while typing. */
+[data-lelu-composer]:focus-within .lelu-tab-cloud::before,
+[data-lelu-composer]:focus-within .lelu-tab-cloud::after {
+  animation-play-state: paused;
+}

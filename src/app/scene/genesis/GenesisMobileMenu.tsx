@@ -17,6 +17,8 @@
  * ==========================================================
  */
 
+import { useNavigate } from "react-router-dom";
+
 /** A thematic group maps real dock/module ids to a LÉLU label. */
 interface MobileMenuEntry {
   id: string;
@@ -118,6 +120,19 @@ const GROUPS: MobileMenuGroup[] = [
       { id: "visual", label: "System UI", glyph: "◉" },
     ],
   },
+  {
+    // The OG surfaces are routes, not panels (see OgDockTabs). On phones
+    // their floating buttons step aside while the chat is open, so they
+    // are reachable from here too.
+    id: "og",
+    label: "OG INTERFACES",
+    glyph: "▣",
+    tint: "#fdba74",
+    items: [
+      { id: "route:/og/core", label: "OG Core", glyph: "▣" },
+      { id: "route:/og/chat", label: "OG Chat", glyph: "◗" },
+    ],
+  },
 ];
 
 /** The soft, pillow-like button base shared by every menu chip. */
@@ -152,6 +167,15 @@ export default function GenesisMobileMenu({
   onClose,
   onActivate,
 }: GenesisMobileMenuProps) {
+  const navigate = useNavigate();
+  const activate = (id: string) => {
+    if (id.startsWith("route:")) {
+      onClose();
+      navigate(id.slice("route:".length));
+      return;
+    }
+    onActivate(id);
+  };
   return (
     <div
       data-lelu-mobile-menu
@@ -241,7 +265,7 @@ export default function GenesisMobileMenu({
             <button
               key={item.id}
               type="button"
-              onClick={() => onActivate(item.id)}
+              onClick={() => activate(item.id)}
               style={{
                 display: "flex",
                 alignItems: "center",

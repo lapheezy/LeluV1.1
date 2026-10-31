@@ -28,7 +28,7 @@
 import { Canvas } from "@react-three/fiber";
 
 import GenesisCore, {
-  useGenesis,
+  useGenesisState,
 } from "./GenesisCore";
 
 import GenesisErrorBoundary
@@ -70,6 +70,11 @@ import GenesisNotificationCenter
 
 import CosmosSkyBackdrop
   from "./CosmosSkyBackdrop";
+
+import SceneFrameGovernor
+  from "./SceneFrameGovernor";
+import { getSceneRenderBudget }
+  from "./SceneRenderBudget";
 
 import { useLeluRuntime }
   from "../../../core/runtime/useLeluRuntime";
@@ -124,8 +129,16 @@ function CosmosPhaseHUD() {
 
   useEffect(() => {
     let raf = 0;
+    let last = 0;
+    const budget = getSceneRenderBudget();
     const tick = () => {
-      setPhase(sampleCosmosAtmosphere(performance.now() / 1000));
+      // A text readout: 4 updates/s is plenty, and it was re-rendering
+      // React every frame. Also yields to the render budget.
+      const now = performance.now();
+      if (now - last >= 250 && budget.allowFrame("cosmos-phase-hud")) {
+        last = now;
+        setPhase(sampleCosmosAtmosphere(now / 1000));
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -149,11 +162,12 @@ function CosmosPhaseHUD() {
 
   return (
     <div
+      className="lelu-phase-hud"
       style={{
         position: "fixed",
-        top: 12,
-        left: 12,
-        zIndex: 50,
+        /* Bottom-left (see .lelu-phase-hud): top-left belongs to the dock
+           rail and the Genesis chip, which this readout used to cover. */
+        zIndex: 2,
         pointerEvents: "none",
         display: "flex",
         flexDirection: "column",
@@ -256,8 +270,8 @@ function GenesisV1Workspace() {
       style={{
         position: "fixed",
         inset: 0,
-        width: "100vw",
-        height: "100vh",
+        width: "100%",
+        height: "100%",
         background: "#020617",
       }}
     >
@@ -295,6 +309,7 @@ function GenesisV1Workspace() {
             gl={{ alpha: true, antialias: true }}
             style={{ width: "100%", height: "100%" }}
           >
+            <SceneFrameGovernor />
             <GenesisController />
           </Canvas>
         </ReactSuspense>
@@ -338,7 +353,7 @@ function GenesisV2Workspace({ onClose }: { onClose: () => void }) {
  * mounted scene, and no branch ever renders another scene's content.
  */
 function GenesisWorkspaceRouter() {
-  const { state, openPanel } = useGenesis();
+  const { state, openPanel } = useGenesisState();
   const { state: visualState } = useVisual();
 
   const v2Active = state.activeScene === "genesisv2";

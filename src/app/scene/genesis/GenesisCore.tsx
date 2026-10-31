@@ -643,6 +643,15 @@ export interface GenesisContextValue {
 
 
 
+/** The context value without the 10 Hz universe snapshot. */
+export type GenesisStateValue = Omit<GenesisContextValue, "universe">;
+
+/** Action functions — identity-stable for the provider's lifetime. */
+type GenesisActions = Omit<
+  GenesisStateValue,
+  "state" | "engineRuntime" | "engineStatuses" | "runtimeReady" | "activeDestination"
+>;
+
 export const GenesisContext =
 
   createContext<GenesisContextValue | null>(
@@ -650,6 +659,22 @@ export const GenesisContext =
     null,
 
   );
+
+/**
+ * State-only context. DOM chrome that does not draw the universe (chat,
+ * tabs, dock, module windows) subscribes here so the simulation tick does
+ * not re-render it — that churn competed with typing on phones.
+ */
+export const GenesisStateContext =
+  createContext<GenesisStateValue | null>(null);
+
+export function useGenesisState(): GenesisStateValue {
+  const context = useContext(GenesisStateContext);
+  if (!context) {
+    throw new Error("useGenesisState must be used inside GenesisCore");
+  }
+  return context;
+}
 
 
 
@@ -695,6 +720,22 @@ interface GenesisCoreProps {
 
 
 
+
+/** Shallow equality for the 1 s engine-status poll. */
+function sameEngineStatuses(a: EngineStatus[], b: EngineStatus[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    const x = a[i] as unknown as Record<string, unknown>;
+    const y = b[i] as unknown as Record<string, unknown>;
+    const keys = Object.keys(x);
+    if (keys.length !== Object.keys(y).length) return false;
+    for (const key of keys) {
+      if (x[key] !== y[key]) return false;
+    }
+  }
+  return true;
+}
 
 export default function GenesisCore({
 
@@ -1007,10 +1048,12 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           return;
         }
 
-        setState(current => ({
-          ...current,
-          engineStatuses: runtime.getRegistry().getStatus(),
-        }));
+        const next = runtime.getRegistry().getStatus();
+        setState(current =>
+          sameEngineStatuses(current.engineStatuses, next)
+            ? current
+            : { ...current, engineStatuses: next },
+        );
       }, 1000);
 
     return () => {
@@ -1234,24 +1277,31 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
   }, [dispatch]);
 
 
-  const value =
+  /*
+   * STABLE ACTIONS.
+   *
+   * The action functions below used to be rebuilt inside the same
+   * useMemo as `state` and `universe`, so every universe publish (up to
+   * 10×/s) and every keystroke (setDialogue) gave every action a new
+   * identity. GenesisChat's mount effect depends on `exit`, which closes
+   * over `openPanel`/`setDialogue`; a new identity re-ran that effect,
+   * whose cleanup + setup each called setDialogue — a new state, new
+   * actions, and the effect ran again. That feedback loop froze typing
+   * and replayed the last exchange over in-flight replies.
+   *
+   * Actions only use functional setState updaters, plus stateRef for the
+   * few that need the live active conversation id, so they can be built
+   * once per provider.
+   */
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
-    useMemo<GenesisContextValue>(
+  const actions =
 
-      ()=>({        state,
+    useMemo<GenesisActions>(
 
-
-        universe,
-
+      ()=>({
         getLiveUniverse: () => universeRef.current,
-
-        engineRuntime: runtimeRef.current,
-
-        engineStatuses: state.engineStatuses,
-
-        runtimeReady: state.runtimeReady,
-
-        activeDestination: state.activeDestination,
 
         eventBus: eventBusRef.current,
 
@@ -1286,7 +1336,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         addMessage(message){
 
 
-          multiChat.addMessage(state.activeConversationId, message);
+          multiChat.addMessage(stateRef.current.activeConversationId, message);
 
 
           setState(current=>{
@@ -1320,7 +1370,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         upsertMessage(message){
 
 
-          multiChat.upsertMessage(state.activeConversationId, message);
+          multiChat.upsertMessage(stateRef.current.activeConversationId, message);
 
 
           setState(current=>{
@@ -1354,7 +1404,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         clearConversation(){
 
 
-          multiChat.clear(state.activeConversationId);
+          multiChat.clear(stateRef.current.activeConversationId);
 
 
           setState(current=>({
@@ -1639,7 +1689,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         crossChatContext(query){
 
 
-          return crossChat.buildContext(state.activeConversationId, query);
+          return crossChat.buildContext(stateRef.current.activeConversationId, query);
 
 
         },
@@ -1705,17 +1755,12 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
         setDialogue(phase){
 
-
-          setState(current=>({
-
-
-            ...current,
-
-
-            dialogue:phase,
-
-
-          }));
+          // Called on every keystroke — a same-phase update must not
+          // produce a new state object (and a re-render of every consumer).
+          setState(current=>
+            current.dialogue === phase
+              ? current
+              : { ...current, dialogue:phase });
 
 
         },
@@ -2237,20 +2282,33 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           }));
 
         },
-
-
       }),
-
-
       [
-        state,
-        universe,
         dispatch,
         selectDestination,
         updateUniverse,
       ],
+    );
 
+  /* State-only value — what DOM chrome (chat, dock, tabs, module host)
+     needs. It changes with UI state, NOT with the 10 Hz universe tick. */
+  const stateValue =
+    useMemo<GenesisStateValue>(
+      () => ({
+        ...actions,
+        state,
+        engineRuntime: runtimeRef.current,
+        engineStatuses: state.engineStatuses,
+        runtimeReady: state.runtimeReady,
+        activeDestination: state.activeDestination,
+      }),
+      [actions, state],
+    );
 
+  const value =
+    useMemo<GenesisContextValue>(
+      () => ({ ...stateValue, universe }),
+      [stateValue, universe],
     );
 
 
@@ -2261,15 +2319,11 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
   return (
 
-    <GenesisContext.Provider
-
-      value={value}
-
-    >
-
-      {children}
-
-    </GenesisContext.Provider>
+    <GenesisStateContext.Provider value={stateValue}>
+      <GenesisContext.Provider value={value}>
+        {children}
+      </GenesisContext.Provider>
+    </GenesisStateContext.Provider>
 
   );
 

@@ -18,14 +18,14 @@
  */
 
 import { useEffect, useRef } from "react";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import AIService from "../../../core/AIService";
 import { extractDeepLinkPrompt } from "../../../core/native/capabilities/deeplinks";
 
 const ai = AIService.getInstance();
 
 export default function DeepLinkIntake() {
-  const { openPanel, addMessage, notify } = useGenesis();
+  const { openPanel, addMessage, notify } = useGenesisState();
   const handledRef = useRef(false);
 
   useEffect(() => {

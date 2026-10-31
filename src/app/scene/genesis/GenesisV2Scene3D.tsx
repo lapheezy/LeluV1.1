@@ -74,7 +74,7 @@ import {
   Vector3,
 } from "three";
 
-import { GenesisContext, useGenesis } from "./GenesisCore";
+import { GenesisContext, GenesisStateContext, useGenesis } from "./GenesisCore";
 import GenesisCoreMaterial from "./materials/GenesisCoreMaterial";
 import CoreOrbitalRings from "./render/CoreOrbitalRings";
 import CoreEmission from "./render/CoreEmission";
@@ -85,6 +85,7 @@ import GenesisV2CameraRig from "./GenesisV2CameraRig";
 import LeluV2Presence from "./LeluV2Presence";
 import WorldScene from "./WorldScene";
 import AdaptiveQuality from "./AdaptiveQuality";
+import SceneFrameGovernor from "./SceneFrameGovernor";
 import { DPR_START } from "./qualityLimits";
 
 export type V2NodeId = "core" | "studio" | "lab" | "vault";
@@ -1413,7 +1414,7 @@ export default function GenesisV2Scene3D({
   /* The v2 scene lives inside GenesisCore's provider (GenesisScene wraps the
      whole router). R3F renders this canvas in its own reconciler root, so
      the shared context must be bridged in — exactly like the v1 world does. */
-  const ContextBridge = useContextBridge(GenesisContext);
+  const ContextBridge = useContextBridge(GenesisContext, GenesisStateContext);
   const [dpr, setDpr] = useState(DPR_START);
 
   return (
@@ -1425,6 +1426,8 @@ export default function GenesisV2Scene3D({
     >
       {/* pixel ratio follows measured frame rate (up to the display's own, e.g. 4K) */}
       <AdaptiveQuality onChange={setDpr} />
+      {/* yield the GPU to the conversation (paused under full-screen chat) */}
+      <SceneFrameGovernor />
       <ContextBridge>
         {/* free exploration camera — orbit / free-fly / touch / focus.
             The Gen V2 world is explorable: the camera is never locked. */}
