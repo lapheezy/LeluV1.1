@@ -16,6 +16,7 @@
  * ==========================================================
  */
 
+import { BASE_URL } from "../../../core/env/buildEnv";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useGenesisState, type GenesisPanel } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
@@ -577,7 +578,7 @@ export default function GenesisDock({
     return queue.subscribe(() => update());
   }, []);
 
-  const base = typeof import.meta.env.BASE_URL === "string" ? import.meta.env.BASE_URL : "/";
+  const base = BASE_URL;
   const zipHref = `${base}lelu-project.zip`;
 
   const statusColor = hasErrors

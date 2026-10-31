@@ -2,15 +2,19 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { MemoryRouter } from "react-router-dom";
 
 import GenesisInterface from "../src/app/scene/genesis/GenesisInterface";
 import GenesisCore from "../src/app/scene/genesis/GenesisCore";
 
 function renderInterface() {
   return renderToStaticMarkup(
+    // Mounted the way App.tsx mounts it: inside a router (GenesisInterface navigates).
+    <MemoryRouter>
     <GenesisCore>
       <GenesisInterface />
-    </GenesisCore>,
+    </GenesisCore>
+    </MemoryRouter>,
   );
 }
 

@@ -1,4 +1,3 @@
-/** @jsxRuntime automatic @jsxImportSource react */
 /**
  * ==========================================================
  * LÉLUVERSE — CHAT TRANSCRIPT

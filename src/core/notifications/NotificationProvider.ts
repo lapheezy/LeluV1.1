@@ -19,6 +19,7 @@
  * ==========================================================
  */
 
+import { assetUrl } from "../env/buildEnv";
 import KvStore from "../storage/KvStore";
 
 export interface NotificationPayload {
@@ -175,7 +176,7 @@ export default class NotificationProvider {
       const notification = new Notification(record.title, {
         body: record.body,
         tag: record.id,
-        icon: `${import.meta.env.BASE_URL}apple-touch-icon.png`,
+        icon: assetUrl("apple-touch-icon.png"),
       });
       notification.onclick = () => {
         notification.close();

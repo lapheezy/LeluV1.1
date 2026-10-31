@@ -21,6 +21,7 @@
  * ==========================================================
  */
 
+import { BASE_URL } from "./core/env/buildEnv";
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import GenesisScene from "./app/scene/genesis/GenesisScene";
@@ -29,7 +30,7 @@ const OgRoutes = lazy(() => import("./og/OgRoutes"));
 
 export default function App() {
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
+    <BrowserRouter basename={BASE_URL}>
       <Routes>
         <Route path="/" element={<GenesisScene />} />
         <Route
