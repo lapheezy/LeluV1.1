@@ -139,6 +139,13 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     globalName: "__LELU_ANTHROPIC_MODEL__",
     aliases: ["ANTHROPIC_MODEL"],
   },
+  // "off" disables the server-side refusal fallback. A behaviour switch,
+  // not a credential — and the provider that reads it runs in the page.
+  {
+    viteName: "VITE_ANTHROPIC_REFUSAL_FALLBACK",
+    globalName: "__LELU_ANTHROPIC_REFUSAL_FALLBACK__",
+    aliases: ["ANTHROPIC_REFUSAL_FALLBACK"],
+  },
   // Which provider leads the chain. Not a credential. Without it here the
   // browser never saw VITE_DEFAULT_PROVIDER (resolveEnv reads no
   // import.meta.env) and always routed as if it were "groq".

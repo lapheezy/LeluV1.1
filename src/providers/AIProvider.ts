@@ -58,6 +58,38 @@ export interface AIMessage {
   toolError?:
     boolean;
 
+
+  /**
+   * On an assistant turn, the provider's own content blocks exactly as it
+   * returned them (see AIResponse.providerBlocks). Only the provider named
+   * here reads them; every other provider replays `content`/`toolCalls`.
+   */
+  providerBlocks?:
+    ProviderBlocks;
+
+}
+
+
+
+/**
+ * A provider's raw response content, kept so a tool loop can hand the
+ * turn back VERBATIM. Current Claude models return thinking blocks next to
+ * tool_use blocks; rebuilding the turn from text + toolCalls drops them,
+ * which loses the model's reasoning between tool rounds.
+ */
+export interface ProviderBlocks {
+
+  provider:
+    string;
+
+  blocks:
+    Array<
+      Record<
+        string,
+        unknown
+      >
+    >;
+
 }
 
 
@@ -335,6 +367,16 @@ export interface AIResponse {
    */
   stopReason?:
     string;
+
+
+
+  /**
+   * The provider's raw content for this turn, when it needs it replayed
+   * unchanged on the next tool round. The router copies it onto the
+   * assistant turn it records; it is never shown or persisted.
+   */
+  providerBlocks?:
+    ProviderBlocks;
 
 
 

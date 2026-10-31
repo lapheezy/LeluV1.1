@@ -283,7 +283,7 @@ function build(): LeluEnvironment {
     mistralModel:     opt("VITE_MISTRAL_MODEL", "mistral-small-latest"),
     fireworksModel:   opt("VITE_FIREWORKS_MODEL", "accounts/fireworks/models/llama-v3p1-8b-instruct"),
     githubModel:      opt("VITE_GITHUB_MODEL", "gpt-4o-mini"),
-    anthropicModel:   opt("VITE_ANTHROPIC_MODEL", "claude-sonnet-4-5"),
+    anthropicModel:   opt("VITE_ANTHROPIC_MODEL", "claude-opus-5-5"),
     geminiModel:      opt("VITE_GEMINI_MODEL", "gemini-2.0-flash"),
     // Anthropic is the intended primary. Unset → it leads the chain; an
     // unavailable or failing Anthropic still falls through by priority.

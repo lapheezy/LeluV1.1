@@ -88,7 +88,7 @@ export const MODEL_DEFAULTS = {
   },
   anthropic: {
     names: ["ANTHROPIC_MODEL"],
-    fallback: "claude-sonnet-4-5",
+    fallback: "claude-opus-5-5",
     note: "Anthropic Messages API model id.",
   },
   gemini: {

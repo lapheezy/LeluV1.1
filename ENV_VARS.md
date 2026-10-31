@@ -336,6 +336,46 @@ sends. Below Anthropic's minimum cacheable length the marker is ignored;
 above it, measured on a 3163-token context, a follow-up turn billed 13
 fresh input tokens instead of 3163.
 
+### Anthropic request behaviour
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `ANTHROPIC_MODEL` / `VITE_ANTHROPIC_MODEL` | `claude-opus-5-5` | Model id for every Anthropic call. |
+| `ANTHROPIC_REFUSAL_FALLBACK` | on | `off` stops sending `fallbacks: "default"` + `anthropic-beta: server-side-fallback-2026-07-01`. Only sent for models that take it (Opus 5 / 5.5, Fable 5.1, Sonnet 5.5). Bridged to the page — a switch, not a secret. |
+| `LELU_BROKER_RATE_PER_MIN` | `120` | Credentialed broker requests per client address per minute; `0` disables. Over the limit: `429` + `Retry-After`. |
+
+What the provider does with each kind of reply (`src/providers/AnthropicProvider.ts`,
+pinned by `tests/anthropic-integration.test.ts`):
+
+- **Sampling params** (`temperature`) are sent only to models that still accept
+  them (Claude 3.x and the 4.0–4.6 family). Current models reject them with a 400.
+- **429 / 529 / 5xx / 408 / 409** are retried up to twice on Anthropic itself
+  (honouring `retry-after`, capped at 8s) before the fallback chain moves on.
+  400/401/403/404 are not retried. A timeout is not retried.
+- **`stop_reason: "refusal"`** is returned as LÉLU's answer, not thrown. A throw
+  would send the same request to the next vendor in the chain. A streamed
+  refusal replaces the partial text on screen.
+- **`stop_reason: "max_tokens"` during a tool call**: the last (truncated) call
+  is dropped and never executed (`metadata.truncatedToolCall` names it).
+- **Tool loop replay**: an assistant tool turn is replayed from its raw blocks
+  (`AIResponse.providerBlocks`), so thinking blocks survive between rounds.
+  When the router withholds tools on the closing round, the tool exchange is
+  replayed as text, because tool blocks in a request with no `tools` are a 400.
+- **Streams**: `stop_reason` and final usage are read from `message_delta`. An
+  `error` event fails the turn (the chain moves on) instead of returning partial
+  text as a finished answer.
+
+The broker forwards one page-supplied header for Anthropic, `anthropic-beta`,
+and only when its value is a comma-separated list of beta names. It aborts the
+upstream request when the client disconnects, so an abandoned stream stops
+billing.
+
+The origin check stops other websites from driving the broker through a
+visitor's browser. It cannot stop a non-browser client on the network, which
+can forge `Origin`. The rate limit caps what such a client can spend. Real
+protection for a server exposed beyond localhost means putting authentication
+in front of `/api/model/*`. That is not implemented here.
+
 ---
 
 ## Model credentials are server-owned
@@ -357,7 +397,7 @@ process environment, first match wins:
 
 | Provider | Environment names (in order) |
 | --- | --- |
-| `anthropic` | `VITE_ANTHROPIC_API_KEY`, `ANTHROPIC_API_KEY`, `CLAUDE_API_KEY` |
+| `anthropic` | `VITE_ANTHROPIC_API_KEY`, `ANTHROPIC_API_KEY`, `LELU_ANTHROPIC_API_KEY`, `CLAUDE_API_KEY` |
 | `groq` | `VITE_GROQ_API_KEY`, `GROQ_API_KEY` |
 | `openrouter` | `VITE_OPENROUTER_API_KEY`, `OPENROUTER_API_KEY`, `OPEN_ROUTER_API_KEY` |
 | `cerebras` | `VITE_CEREBRAS_API_KEY`, `CEREBRAS_API_KEY` |
@@ -373,7 +413,9 @@ Setting the unprefixed name is preferable and does the same thing.
 
 Note `ANTHROPIC_API_KEY` is reserved by some hosting runtimes (a managed
 Claude Code container strips it, since it is what the session itself
-authenticates with). Where that applies, use `VITE_ANTHROPIC_API_KEY`.
+authenticates with). Where that applies, use `LELU_ANTHROPIC_API_KEY`: it is
+read by the same broker and, having no `VITE_` prefix, is never exposed by the
+Vite dev server.
 
 ### Verifying without exposing anything
 

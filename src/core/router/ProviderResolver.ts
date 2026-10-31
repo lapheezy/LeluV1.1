@@ -330,6 +330,9 @@ export default class ProviderResolver {
         role: "assistant",
         content: response.text ?? "",
         toolCalls: calls,
+        // Replayed verbatim by the provider that produced it (Anthropic's
+        // thinking blocks must survive the round trip); ignored by others.
+        ...(response.providerBlocks ? { providerBlocks: response.providerBlocks } : {}),
       });
 
       for (const call of calls) {

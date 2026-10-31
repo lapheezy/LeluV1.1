@@ -311,8 +311,8 @@ const REMOTE_MODEL_CATALOG: ModelDescriptor[] = [
     capabilities: ["chat", "vision", "reasoning", "code"],
   },
   {
-    id: "anthropic.claude-sonnet-4-5",
-    name: "Claude Sonnet 4.5 (Anthropic)",
+    id: "anthropic.claude-opus-5-5",
+    name: "Claude Opus 5.5 (Anthropic)",
     provider: "Anthropic",
     modalities: ["text", "vision", "code"],
     local: false,
