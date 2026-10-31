@@ -93,8 +93,11 @@ No dependencies were added.
 `runtime-integration.test.ts`: the default-provider test now also asserts that
 Anthropic leads over Groq.
 
-Full suite, using the per-file loop from `tests/README.md`: see that file for
-the measured counts.
+Full suite, using the per-file loop from `tests/README.md`:
+**379 assertions passing across 41 files** (before this phase: 250 across 31
+files). The 3 failures are pre-existing (details in `tests/README.md`). The
+number of files that do not finish dropped from 14 to 6, because
+`ProjectScheduler` no longer holds the process open.
 
 ### Live, against the real provider chain
 
