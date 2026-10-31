@@ -38,3 +38,6 @@ dist-ssr
 # LÉLU's isolated engineering workspace copies
 .lelu-sandbox/
 
+
+# Runtime Cosmos world store written by the dev server (plugins/worldEngine.ts)
+/cosmos/
