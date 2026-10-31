@@ -467,39 +467,31 @@ export default class ModelRouter {
       }
     }
 
-    // Low-memory devices prefer the fastest remote providers first.
-    if (hardware.tier === "low" || hardware.tier === "minimal") {
-      for (const name of ["Groq", "Cerebras", "Fireworks"]) {
-        if (!preferred.includes(name)) {
-          preferred.push(name);
-        }
-      }
-    }
-
-    // Explicit per-request provider preference always wins, then the
-    // router's modality/hardware ordering is appended as a secondary
-    // signal — the existing chain still applies afterward.
+    // Explicit per-request provider preference always wins, then vision
+    // capability when media is attached.
     const explicit = request.preferredProviders ?? [];
     const ordered = [...explicit];
     for (const name of preferred) {
-      if (!ordered.includes(name)) {
-        ordered.push(name);
-      }
+      if (!ordered.includes(name)) ordered.push(name);
     }
 
-    // The CONFIGURED default provider, appended last so it only decides
-    // ties. VITE_DEFAULT_PROVIDER was read by Environment.ts and by the
-    // diagnostics endpoint and by nothing else — setting it changed
-    // which provider LÉLU reported as default and not which one she
-    // actually used, so "Anthropic is my default" could be true in the
-    // config and false at runtime. It feeds the existing
-    // ProviderResolver.orderByPreference() path rather than a new one;
-    // an explicit per-request preference and the modality/hardware
-    // signals above still outrank it, and the priority chain still
-    // applies after it, so no fallback behaviour changes.
+    // Then the CONFIGURED default provider (VITE_DEFAULT_PROVIDER; Anthropic
+    // unless overridden). It used to be appended after the hardware hint
+    // below, which made "Anthropic is primary" false wherever device memory
+    // reads as low — every Node process and many phones — and sent those
+    // turns to Groq first. Device memory says nothing about which REMOTE
+    // API to call, so the operator's choice outranks it. The priority chain
+    // still applies after it, so fallback is unchanged.
     const configuredDefault = this.configuredDefaultProviderName();
     if (configuredDefault && !ordered.includes(configuredDefault)) {
       ordered.push(configuredDefault);
+    }
+
+    // Low-memory devices then prefer the fastest remote providers.
+    if (hardware.tier === "low" || hardware.tier === "minimal") {
+      for (const name of ["Groq", "Cerebras", "Fireworks"]) {
+        if (!ordered.includes(name)) ordered.push(name);
+      }
     }
 
     let model: string | null = null;

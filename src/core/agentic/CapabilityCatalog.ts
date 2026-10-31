@@ -135,7 +135,9 @@ export function describeCapabilities(capabilities: Capability[]): string {
         capability.blockedReason,
         capability.stats ? `${capability.stats.runs} runs, ${capability.stats.failed} failed` : undefined,
       ].filter(Boolean);
-      return `- ${capability.id}: ${capability.description} [${flags.join("; ")}]`;
+      // Agents are addressed by NAME in plans; their ids are internal.
+      const label = capability.kind === "agent" ? `agent "${capability.name}"` : capability.id;
+      return `- ${label}: ${capability.description} [${flags.join("; ")}]`;
     })
     .join("\n");
 }
