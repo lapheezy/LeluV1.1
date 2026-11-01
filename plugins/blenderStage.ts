@@ -377,3 +377,143 @@ export async function faceshapes(
     rmSync(work, { recursive: true, force: true });
   }
 }
+
+/* ============================ format export ============================ */
+
+export const EXPORT_SCRIPT = path.join(path.dirname(BLENDER_SCRIPT), "lelu_export.py");
+
+export type ExportFormat = "blend" | "glb" | "obj" | "stl" | "fbx";
+
+export interface ExportOptions {
+  /** Which files to write. Default: the editable project, the runtime GLB and the interchange formats. */
+  formats?: ExportFormat[];
+  /** Triangle budget for the runtime copy. 0 keeps the source resolution. */
+  targetTris?: number;
+  /** A preview render, or null to skip it. */
+  render?: { size?: number; samples?: number } | null;
+}
+
+const EXPORT_DEFAULTS: Required<ExportOptions> = {
+  formats: ["blend", "glb", "obj", "stl", "fbx"],
+  targetTris: 30_000,
+  render: { size: 640, samples: 24 },
+};
+
+const EXPORT_ROLE: Record<string, string> = {
+  "editable.blend": "source-project",
+  "runtime.glb": "model-runtime",
+  "render.png": "preview",
+  "report.json": "blender-export-report",
+  "source.obj": "model-obj",
+  "source.mtl": "material",
+  "source.stl": "model-stl",
+  "source.fbx": "model-fbx",
+};
+
+interface ExportReport {
+  formats?: Record<string, { file: string; bytes: number }>;
+  runtime?: { file: string; bytes: number; sourceTriangles: number; decimateRatio: number } | null;
+  render?: { file: string; bytes: number } | null;
+  source?: { meshes?: number; triangles?: number; materials?: number; bones?: number; height?: number | null };
+  warnings?: string[];
+}
+
+/**
+ * Turn one finished job's GLB into the formats the rest of the system needs:
+ * an editable .blend project kept apart from an optimized runtime GLB, plus
+ * OBJ (with its MTL), STL and FBX, and a Cycles render to look at. Recorded
+ * as a derived "blender" job in the same ledger, so slot rules, the asset
+ * route and the Cosmos loader all apply unchanged. Spends nothing.
+ */
+export async function exportFormats(
+  store: ForgeStore,
+  readEnv: EnvReader,
+  sourceJobId: string,
+  options: ExportOptions = {},
+  deps: { runner?: BlenderRunner | null; timeoutMs?: number } = {},
+): Promise<{ job: ForgeJob; reused: boolean }> {
+  const source = store.job(sourceJobId);
+  if (!source) throw new ForgeError(`No job ${sourceJobId}.`, 404);
+  const model = source.output?.files.find((f) => f.role === "model");
+  if (source.status !== "SUCCEEDED" || !model || !source.validation?.verdict.meshValid) {
+    throw new ForgeError("Only a finished job whose GLB passed inspection can be exported.", 409);
+  }
+  const opts: Required<ExportOptions> = {
+    formats: options.formats?.length ? [...new Set(options.formats)] : EXPORT_DEFAULTS.formats,
+    targetTris: options.targetTris === undefined ? EXPORT_DEFAULTS.targetTris : options.targetTris,
+    render: options.render === undefined ? EXPORT_DEFAULTS.render : options.render,
+  };
+  const scriptHash = createHash("sha256").update(readFileSync(EXPORT_SCRIPT)).digest("hex").slice(0, 16);
+  const request = { operation: "export", source: source.id, sourceSha256: model.sha256, script: scriptHash, options: opts };
+  const requestKey = createHash("sha256").update(JSON.stringify(request)).digest("hex");
+  const existing = store.findByKey(source.character, requestKey);
+  if (existing) return { job: existing, reused: true };
+
+  const runner = deps.runner === undefined ? findBlender(readEnv) : deps.runner;
+  if (!runner) {
+    throw new ForgeError("Blender is not available on this server.", 503, [
+      "Set LELU_BLENDER_BIN to a Blender executable (or LELU_BLENDER_PYTHON to a Python with bpy), and make sure its shared libraries are on LD_LIBRARY_PATH.",
+    ]);
+  }
+  const input = store.safeAssetPath(model.file);
+  if (!input || !existsSync(input)) throw new ForgeError(`Model file ${model.file} is missing.`, 404);
+
+  const work = mkdtempSync(path.join(tmpdir(), "lelu-export-"));
+  const started = Date.now();
+  try {
+    const { code, log } = await run(runner, JSON.stringify({ input, outDir: work, ...opts }), deps.timeoutMs ?? 20 * 60_000, EXPORT_SCRIPT);
+    const produced = existsSync(work) ? readdirSync(work) : [];
+    const runtimePath = path.join(work, "runtime.glb");
+    const wantedRuntime = opts.formats.includes("glb");
+    if (code !== 0 || !produced.includes("report.json") || (wantedRuntime && !existsSync(runtimePath))) {
+      store.logEvent(source.character, { type: "blender_failed", operation: "export", jobId: source.id, code, log: log.slice(-2000) });
+      throw new ForgeError(`Blender export failed (exit ${code}).`, 500, log.trim().split("\n").slice(-8));
+    }
+    const dir = store.newVersionDir(source.character, "meshes", `export_${source.id.slice(3, 11)}`);
+    const files: ForgeOutputFile[] = [];
+    for (const name of produced.sort()) {
+      files.push(store.writeOutput(dir, name, EXPORT_ROLE[name] ?? "blender-output", new Uint8Array(readFileSync(path.join(work, name)))));
+    }
+    const report = JSON.parse(readFileSync(path.join(work, "report.json"), "utf8")) as ExportReport;
+    const validationSource = wantedRuntime && existsSync(runtimePath) ? runtimePath : input;
+    const now = Date.now();
+    const job: ForgeJob = {
+      id: `fj_${now.toString(36)}_${createHash("sha1").update(String(Math.random())).digest("hex").slice(0, 6)}`,
+      character: source.character,
+      kind: "blender",
+      purpose: `Blender export of ${source.id}: ${opts.formats.join(", ")}, editable project kept apart from the runtime copy`,
+      request: { ...request, parentJobId: source.id, runner: runner.kind },
+      requestKey,
+      estimatedCredits: 0,
+      status: "SUCCEEDED",
+      meshyTaskId: null,
+      progress: 100,
+      consumedCredits: 0,
+      error: null,
+      identityLock: source.identityLock,
+      createdAt: started,
+      updatedAt: now,
+      submittedAt: started,
+      finishedAt: now,
+      output: { dir: store.relative(dir), files },
+      validation: inspectGlb(new Uint8Array(readFileSync(validationSource))),
+    };
+    store.saveJob(job);
+    store.logEvent(source.character, {
+      type: "blender_succeeded",
+      operation: "export",
+      jobId: job.id,
+      parentJobId: source.id,
+      dir: job.output!.dir,
+      formats: Object.keys(report.formats ?? {}),
+      runtime: report.runtime ?? null,
+      render: report.render ?? null,
+      source: report.source ?? null,
+      warnings: report.warnings ?? [],
+      verdict: job.validation?.verdict ?? null,
+    });
+    return { job, reused: false };
+  } finally {
+    rmSync(work, { recursive: true, force: true });
+  }
+}

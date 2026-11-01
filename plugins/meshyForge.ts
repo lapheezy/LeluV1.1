@@ -664,7 +664,11 @@ export class MeshyForge {
   place(input: { jobId: string; label?: string; position?: unknown; rotationY?: unknown; height?: unknown; attach?: unknown; slot?: unknown; worn?: unknown; environmentId?: unknown }): CosmosPlacement {
     const job = this.store.job(input.jobId);
     if (!job) throw new ForgeError(`No job ${input.jobId}.`, 404);
-    const model = job.output?.files.find((f) => f.role === "model");
+    // A job can offer its own model ("model") or an optimized runtime copy
+    // written by the Blender export stage ("model-runtime"); either is a real,
+    // inspected GLB and either may be placed. The runtime copy is preferred so
+    // the Cosmos holds the lighter mesh.
+    const model = job.output?.files.find((f) => f.role === "model-runtime") ?? job.output?.files.find((f) => f.role === "model");
     if (job.status !== "SUCCEEDED" || !model) throw new ForgeError("Only a finished, downloaded job can be placed.", 409);
     if (!job.validation?.verdict.meshValid) throw new ForgeError("Its GLB did not pass inspection, so it is not placed.", 422, job.validation?.problems ?? []);
     const placements = this.store.placements();

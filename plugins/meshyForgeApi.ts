@@ -16,6 +16,7 @@
  *   GET  /api/forge/jobs/<id>               one job (refreshes it if still running)
  *   POST /api/forge/jobs/<id>/approve       spend the credits
  *   POST /api/forge/jobs/<id>/reject        decline a planned job
+ *   POST /api/forge/jobs/<id>/export        Blender: editable .blend + OBJ/STL/FBX + runtime GLB + render (free)
  *   GET  /api/forge/animations/library      Meshy's action catalogue (free)
  *   GET  /api/forge/library                 every finished, inspected asset
  *   GET  /api/forge/placements              assets placed in the Cosmos
@@ -355,6 +356,22 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
             notes: typeof body.notes === "string" ? body.notes : undefined,
           });
           sendJson(res, { ok: true, reference }, 201);
+          return;
+        }
+        if (id && parts[2] === "export" && method === "POST") {
+          const body = await jsonBody(req);
+          const { exportFormats } = await import("./blenderStage.ts");
+          const allowed = ["blend", "glb", "obj", "stl", "fbx"] as const;
+          const formats = Array.isArray(body.formats)
+            ? (body.formats.filter((f): f is (typeof allowed)[number] => typeof f === "string" && (allowed as readonly string[]).includes(f)))
+            : undefined;
+          const render = body.render === null ? null : body.render && typeof body.render === "object" ? (body.render as { size?: number; samples?: number }) : undefined;
+          const result = await exportFormats(forge.store, readEnv, id, {
+            formats,
+            targetTris: typeof body.targetTris === "number" ? body.targetTris : undefined,
+            render,
+          });
+          sendJson(res, { ok: true, reused: result.reused, job: publicJob(result.job) }, result.reused ? 200 : 201);
           return;
         }
         if (id && parts[2] === "reject" && method === "POST") {
