@@ -2567,7 +2567,6 @@ export function unregisterExecutor(id: string): boolean {
 }
 
 const BUILT_IN_IDS = new Set(BY_ID.keys());
->>>>>>> 52bdcc9
 
 /** Registry ids that have a real executor behind them. */
 export function executableToolIds(): string[] {

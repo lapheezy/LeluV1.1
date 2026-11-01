@@ -5,6 +5,7 @@ import { assetRefsFromLedger, describeAssets, fallbackCharacterAsset } from "../
 import { engineCapabilities, recommendEngine } from "../src/core/studio/StudioEngines";
 import StudioApprovals from "../src/core/studio/StudioApprovals";
 import StudioLibrary, { contentHash } from "../src/core/studio/StudioLibrary";
+import { describeStudioWork, pendingStudioApprovals } from "../src/core/studio/StudioMemory";
 import StudioPipeline from "../src/core/studio/StudioPipeline";
 import { describeSecretFindings, refuseReasonForWrite, scanForSecrets } from "../src/core/studio/StudioSecurity";
 
@@ -281,4 +282,45 @@ test("the refusal names the line and the variable, never the value", () => {
   const described = describeSecretFindings(findings);
   assert.match(described, /line 2/);
   assert.equal(described.includes("sk-live_abcdefghijklmnopqrstuvwxyz"), false);
+});
+
+/* --------------------------- grounded studio memory ---------------------- */
+
+test("studio memory says nothing was built rather than inventing a project", () => {
+  StudioLibrary.resetForTests(memoryStore());
+  StudioPipeline.resetForTests(memoryStore());
+  StudioApprovals.resetForTests();
+  assert.match(describeStudioWork(), /No studio project exists yet/);
+  assert.match(pendingStudioApprovals(), /No studio approval/);
+});
+
+test("studio memory reports the objective, real stage progress and a pending human approval", () => {
+  const store = memoryStore();
+  const library = StudioLibrary.resetForTests(store);
+  const pipeline = StudioPipeline.resetForTests(store);
+  const approvals = StudioApprovals.resetForTests();
+
+  const project = library.create({
+    name: "Memory Probe",
+    kind: "application",
+    engine: "web",
+    stack: "static UI + Node HTTP API",
+    root: ".lelu-studio/memory-probe",
+    documentation: "A small task board for a two-person team.\nSecond line is not the objective.",
+  });
+  pipeline.advance({ projectId: project.id, phase: "understand", evidence: { requirements: "tasks, owners" } });
+  pipeline.advance({ projectId: project.id, phase: "research", evidence: { findings: "no backend needed" } });
+  approvals.request({
+    projectId: project.id,
+    action: "production-deploy",
+    reason: "Publish the built board so the team can use it.",
+  });
+
+  const brief = describeStudioWork();
+  assert.match(brief, /Memory Probe \[memory-probe\] — application on web/);
+  assert.match(brief, /objective: A small task board/);
+  assert.match(brief, /progress: 2\/12 stages/);
+  assert.match(brief, /next: Architect/);
+  assert.match(brief, /WAITING ON A PERSON: production-deploy/);
+  assert.match(pendingStudioApprovals(), /production-deploy/);
 });
