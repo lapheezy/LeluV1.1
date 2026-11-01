@@ -90,12 +90,15 @@ export const BARE_SECRET_ALIASES: readonly BareSecretAlias[] = [
   },
   {
     bare: "Github",
-    names: ["GITHUB_MODELS_TOKEN"],
+    names: ["GITHUB_MODELS_TOKEN", "GITHUB_TOKEN"],
     why:
-      "GITHUB_MODELS_TOKEN is the documented name for a GitHub Models inference token " +
-      "(plugins/modelApi.ts keyNames). The ambient GITHUB_TOKEN is deliberately NOT " +
-      "used — Environment.ts NEVER_ADOPT_BARE blocks it, because a dev container sets " +
-      "one for git tooling that is not an inference key.",
+      "One GitHub PAT serves two documented names: GITHUB_MODELS_TOKEN for brokered " +
+      "inference (plugins/modelApi.ts keyNames) and GITHUB_TOKEN for the server-side " +
+      "repo proxy and the engineering agent (plugins/githubApi.ts, " +
+      "AnthropicEngineeringAgent.ts). Neither is a VITE_ name, so the token never " +
+      "reaches the browser. Environment.ts NEVER_ADOPT_BARE still blocks an AMBIENT " +
+      "GITHUB_TOKEN from being adopted as VITE_GITHUB_TOKEN — that rule is about " +
+      "tokens the platform sets for git tooling, not about this provisioned secret.",
   },
   {
     bare: "Meshy",
@@ -117,10 +120,20 @@ export const BARE_SECRET_ALIASES: readonly BareSecretAlias[] = [
   },
 ];
 
-/** Trim, and treat whitespace-only as absent. */
+/**
+ * Read a secret, removing ALL whitespace, and treat whitespace-only as absent.
+ *
+ * A credential never contains whitespace, and this project's store delivered one
+ * that did: the GitHub PAT arrived as `ghp_` + 36 characters with a space
+ * injected near the end — 43 raw characters for a 40-character token. The token
+ * itself was valid (`GET api.github.com/user` answered 200 once the space was
+ * gone), but every request that used it verbatim came back 401. A stray space is
+ * a copy or line-wrap artifact and never part of a key, so it is removed here
+ * rather than forwarded to a provider.
+ */
 function read(lookup: EnvLookup, name: string): string {
   const raw = lookup.get(name);
-  return typeof raw === "string" ? raw.trim() : "";
+  return typeof raw === "string" ? raw.replace(/\s+/g, "") : "";
 }
 
 /**

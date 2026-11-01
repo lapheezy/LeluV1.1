@@ -158,6 +158,34 @@ remains unverified — and none is claimed. The mobile screenshot shipped by
 the Cosmos branch shows "LÉLU is routing to Anthropic · 3 operations", i.e.
 the path worked when a key was supplied.
 
+### GitHub — one token, two names, and a token that was valid but unusable
+
+`GET /api/github/status` answered `{"configured":false,"error":"No GitHub token
+configured."}` with the secret sitting right there. Two independent faults:
+
+1. **The proxy could not see the token.** `plugins/githubApi.ts` read
+   `process.env` directly, which the Vite dev server never populates from
+   `.env.local`, and it only looked for `VITE_GITHUB_TOKEN` / `GITHUB_TOKEN` —
+   never the store's own name, `Github`.
+2. **The PAT contained a stray space** — 43 raw characters for a 40-character
+   `ghp_` token. GitHub rejected it verbatim with 401; with the space removed,
+   `GET api.github.com/user` returned 200 as `lapheezy`, at 4977/5000 rate-limit
+   remaining. The credential was never broken, only corrupted in transit.
+
+Fix: the proxy now takes the same environment reader as every other plugin,
+also checks the provisioned name, and strips whitespace — as does
+`plugins/bareSecretAliases.ts`, which now supplies `GITHUB_TOKEN` beside
+`GITHUB_MODELS_TOKEN`. Both are server-side names, so the token never reaches
+the browser. Verified after the change:
+
+```
+GET  /api/github/status            → {"configured":true,"user":{"login":"lapheezy",…}}
+POST /api/github/proxy /rate_limit → {"ok":true,"status":200,"resources":{"core":{"remaining":4966,…}}}
+```
+
+Writes are unchanged: a verified Supabase identity, `LELU_ALLOW_PUSH=1`, and
+never the default branch.
+
 ## 6. 3D avatar
 
 Recovered in code: `LeluCharacter` renders the Forge model (GLB) through the

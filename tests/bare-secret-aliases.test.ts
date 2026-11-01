@@ -71,7 +71,15 @@ test("no model credential is ever published under a VITE_ prefix", () => {
     assert.equal(env.has(name), false, `${name} would publish a model credential to the browser`);
   }
   assert.equal(env.valueOf("GITHUB_MODELS_TOKEN"), "d", "the GitHub token goes under its models name");
-  assert.equal(env.has("GITHUB_TOKEN"), false, "the ambient git token is never adopted");
+  assert.equal(env.valueOf("GITHUB_TOKEN"), "d", "and under the repo-proxy name, still server-only");
+  // GITHUB_TOKEN is set — from the provisioned secret, under its server-side
+  // name, which is what the repo proxy reads. What must never happen is an
+  // AMBIENT git token being adopted as if it were a provisioned credential:
+  assert.equal(
+    fillBareSecretAliases(lookupOf({ GITHUB_TOKEN: "ambient-git-tooling-token" })).length,
+    0,
+    "an ambient git token supplies nothing",
+  );
 });
 
 test("an empty or whitespace-only bare secret fills nothing", () => {
@@ -113,6 +121,16 @@ test("every entry names a documented target and explains itself", () => {
     ["Anthropic", "Elevenlabs", "Github", "Groq", "Meshy", "Openrouter", "Supabase"],
     "the list is the set of secrets this project actually provisions",
   );
+});
+
+test("a secret stored with stray whitespace is supplied without it", () => {
+  // The GitHub PAT in this project's store arrived with a space injected near
+  // the end. GitHub rejected every request that used it verbatim; the token
+  // itself was fine. Whitespace is never part of a credential.
+  const env = lookupOf({ Github: "ghp_aaaa bbbb" });
+  fillBareSecretAliases(env);
+  assert.equal(env.valueOf("GITHUB_TOKEN"), "ghp_aaaabbbb");
+  assert.equal(env.valueOf("GITHUB_MODELS_TOKEN"), "ghp_aaaabbbb");
 });
 
 test("the diagnostic report names the source and the targets, never the value", () => {

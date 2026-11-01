@@ -223,7 +223,7 @@ export default defineConfig(({ mode, command }) => {
         },
       },
 
-      githubApiPlugin(),
+      githubApiPlugin(envReader),
 
       glslIncludes(),
 
