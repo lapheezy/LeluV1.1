@@ -38,6 +38,8 @@ import { useWorkspace } from "../useWorkspace";
 import { chatFillsScreen } from "../chat/chatLayout";
 import { ACTIVITY_ACCENT, useLeluActivity, type LeluActivity } from "./leluActivity";
 import LeluCharacter from "./LeluCharacter";
+import { FULL_BODY_COMMANDS } from "./LeluBody";
+import AvatarCommandBus from "../../../../core/avatar/AvatarCommandBus";
 
 /** Her tools at work: she steps out of the backdrop to be seen working. */
 const TOOL_ACTIVITIES = new Set<LeluActivity>(["SEARCHING", "BROWSING", "WORKING", "BUILDING", "RENDERING", "EXPLORING", "PRESENTING"]);
@@ -157,12 +159,31 @@ function Companion({ companion }: { companion: CompanionState }) {
   }, [toolsUntil]);
   const toolsInUse = toolsNow || toolsUntil > Date.now();
 
+  // Asked for something that needs all of her (dance, sit, walk off): her
+  // window opens for it, for long enough to watch — longer to sit or leave.
+  const [bodyUntil, setBodyUntil] = useState(0);
+  useEffect(
+    () =>
+      AvatarCommandBus.getInstance().subscribe((command) => {
+        if (!FULL_BODY_COMMANDS.has(command.kind)) return;
+        const hold = command.kind === "sit" || command.kind === "leave" ? 120_000 : 20_000;
+        setBodyUntil(Date.now() + hold);
+      }),
+    [],
+  );
+  useEffect(() => {
+    if (bodyUntil <= Date.now()) return;
+    const timer = setTimeout(() => tick((n) => n + 1), bodyUntil - Date.now() + 20);
+    return () => clearTimeout(timer);
+  }, [bodyUntil]);
+  const bodyWanted = bodyUntil > Date.now();
+
   const modulesOpen = Object.entries(state.modules).some(
     ([id, module]) => id !== "chat" && (module.presentation === "inline" || module.presentation === "expanded"),
   );
   const chatOpen = state.activePanel === "chat" && Boolean(host);
   const workspaceInUse = modulesOpen || surface.workspaceOwnsScreen || surface.mode === "workspace" || surface.mode === "agent";
-  const presence: CompanionPresence = chatOpen && !workspaceInUse && !toolsInUse ? "face" : "window";
+  const presence: CompanionPresence = chatOpen && !workspaceInUse && !toolsInUse && !bodyWanted ? "face" : "window";
 
   if (presence === "face" && host) {
     return createPortal(<FaceBackdrop activity={activity} />, host);

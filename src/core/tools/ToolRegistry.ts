@@ -467,7 +467,7 @@ export default class ToolRegistry {
       {
         id: "avatar.gesture",
         name: "Gesture",
-        description: "Move your own 3D body: wave, dance, bow, nod/agree, shrug, make a heart, cheer, jump, look around, walk, sit down or stand up",
+        description: "Move your own 3D body: wave, dance, bow, nod/agree, shrug, make a heart, cheer, jump, look around, walk, sit on your sofa, stand up, walk off for a bit or come back",
         category: "Creative",
         permissions: ["WRITE"],
         riskLevel: 0,

@@ -1,7 +1,7 @@
 {
   "character": "lelu_character",
   "active": {
-    "rig": "fj_mvwaqbim_55226d",
+    "rig": "fj_mvx5ruga_571dd5",
     "animation:idle": "fj_mvww3hnt_14bec0",
     "animation:idle_1": "fj_mvww3iet_980502",
     "animation:idle_3": "fj_mvww3its_5dfb32",
@@ -26,7 +26,13 @@
     "animation:turn_left": "fj_mvww3q3y_076930",
     "animation:turn_right": "fj_mvww3qht_0037c9",
     "animation:sit_idle": "fj_mvww3quk_2358de",
-    "animation:sit_to_stand": "fj_mvww3rbc_51e36f"
+    "animation:sit_to_stand": "fj_mvww3rbc_51e36f",
+    "animation:sit_down": "fj_mvx4n5nx_e844e6",
+    "animation:sit_arms_crossed": "fj_mvx4n6kw_cc62c4",
+    "animation:sit_cross_legged": "fj_mvx4n70g_b0b45e",
+    "animation:sit_talk": "fj_mvx4n7fz_ff51bd",
+    "animation:sit_thumbs_up": "fj_mvx4n7uz_fdc107",
+    "animation:strut": "fj_mvx4n8a3_64adf1"
   },
   "history": [
     {
@@ -208,6 +214,48 @@
       "jobId": null,
       "replacedBy": "fj_mvww3rbc_51e36f",
       "at": 1793480955713
+    },
+    {
+      "slot": "animation:sit_down",
+      "jobId": null,
+      "replacedBy": "fj_mvx4n5nx_e844e6",
+      "at": 1793495071202
+    },
+    {
+      "slot": "animation:sit_arms_crossed",
+      "jobId": null,
+      "replacedBy": "fj_mvx4n6kw_cc62c4",
+      "at": 1793495075017
+    },
+    {
+      "slot": "animation:sit_cross_legged",
+      "jobId": null,
+      "replacedBy": "fj_mvx4n70g_b0b45e",
+      "at": 1793495078655
+    },
+    {
+      "slot": "animation:sit_talk",
+      "jobId": null,
+      "replacedBy": "fj_mvx4n7fz_ff51bd",
+      "at": 1793495082131
+    },
+    {
+      "slot": "animation:sit_thumbs_up",
+      "jobId": null,
+      "replacedBy": "fj_mvx4n7uz_fdc107",
+      "at": 1793495085481
+    },
+    {
+      "slot": "animation:strut",
+      "jobId": null,
+      "replacedBy": "fj_mvx4n8a3_64adf1",
+      "at": 1793495088810
+    },
+    {
+      "slot": "rig",
+      "jobId": "fj_mvwaqbim_55226d",
+      "replacedBy": "fj_mvx5ruga_571dd5",
+      "at": 1793496953071
     }
   ]
 }

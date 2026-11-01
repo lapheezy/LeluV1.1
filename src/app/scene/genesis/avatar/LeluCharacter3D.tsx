@@ -130,7 +130,7 @@ export default function LeluCharacter3D({
         <directionalLight position={[-2.5, 1.5, -2]} intensity={0.7} color="#f0abfc" />
         <FrameCap fps={fps} />
         <Framer framing={framing} info={info} />
-        <LeluBody glb={model.glb} clips={model.clips} activity={activity} height={HEIGHT} onReady={setInfo} onFrame={onFrame} />
+        <LeluBody glb={model.glb} clips={model.clips} activity={activity} height={HEIGHT} onReady={setInfo} onFrame={onFrame} life={framing === "full"} />
       </Canvas>
     </div>
   );

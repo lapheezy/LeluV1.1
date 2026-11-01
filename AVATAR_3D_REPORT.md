@@ -7,9 +7,10 @@ infrastructure, cognition or memory.
 
 ## What is live
 
-LÉLU's rig slot is `fj_mvwaqbim_55226d`:
-`leluverse/assets/characters/lelu_character/rig/v004_headswap_mvvnvqa1/lelu.glb` (47 MB).
-The user approved it from renders.
+LÉLU's rig slot is `fj_mvx5ruga_571dd5`:
+`leluverse/assets/characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb` (49.5 MB) —
+the approved model (`fj_mvwaqbim_55226d`, v004, approved from renders) plus her face controls
+(see "Face, motion and life" below).
 
 How it was built (every step is in the ledger, `generation_logs/jobs.json`):
 
@@ -28,8 +29,45 @@ It is withdrawn, and its GLB/FBX stay out of git.
 Known limits:
 - Some of the old coarse curls remain on the shoulders and back. They are fused into one mesh
   with the torso and clothes, so automatic removal (`lelu_hairclean.py`) gets only part of them.
-- There are no face shape keys on this model, so `AvatarBehaviour` drives body language only
-  (no blink or lip sync).
+- v004 had no face shape keys; v005 adds them (below).
+
+## Face, motion and life
+
+**Face controls** (`scripts/blender/lelu_faceshapes.py`, Forge stage `faceshapes`, free).
+Her 478 MediaPipe landmarks are found on a straight-on render; twelve ARKit-named shape keys
+are built as smooth displacement fields around her own lid lines, brows, lip lines and
+corners, on the head mesh and both eye patches: `eyeBlinkLeft/Right`, `eyeWideLeft/Right`,
+`jawOpen`, `mouthSmileLeft/Right`, `mouthFrownLeft/Right`, `browInnerUp`,
+`browDownLeft/Right`. Because the face is one closed surface, the lip line is first opened
+by a hairline seam (after refining the lip triangles) and a mouth — dark cavity and a hint of
+upper teeth, on the head bone — is placed behind it, so `jawOpen` shows a real open mouth.
+Exported sparse (only moved vertices): +0.9 MB. Previews of every shape are in the version
+directory (`faceshapes_*.png`). `AvatarBehaviour` drives them: blinks every 2–6 s, the jaw
+from her speech's word timing, expressions from her activity (happy / focused / concerned /
+surprised / attentive) and, while she speaks aloud, from what she is saying.
+
+**Animations** (Meshy, on her rig `fj_mvvnf4v9_1ded97`, 3 credits each, approved):
+31 slots — idle ×3, look-around, talk ×4, listen, agree, wave ×2, bow, shrug, hand-on-hip,
+cheer, heart, happy jump, two dances, walk, turn left/right (75 credits), and sit down,
+seated idle, seated arms crossed, seated cross-legged, seated talking, seated thumbs up,
+sit-to-stand, confident strut (18 + earlier). Each download repeats the whole character
+(~24 MB); `src/core/forge/MotionGlb.ts` keeps only bones + clip (55–435 KB), and that
+`motion.glb` is what the app loads and what git holds.
+
+**Motion and life** (`src/core/avatar/LeluMotion.ts`, `LeluLife.ts`). Her state picks the
+loop (idle variants, listening, rotating talk clips); gestures play once and blend back;
+clips play in place. Between conversations: quiet for a while → she sits on her sofa
+(`LeluSofa.tsx`: plum velvet, rose-gold legs, placed under her hips) and taps her foot (the
+tap is her foot bone, animated over the seated clip); spoken to while seated → she talks
+seated; seated a long while → she gets up and sometimes struts out of view, back after a
+while or as soon as you talk to her. Asked to (chat, `avatar.gesture` tool, AvatarResolver):
+wave, dance, bow, nod, shrug, heart, cheer, jump, look, walk, sit, stand, walk off, come
+back — each confirmed only when the renderer measured her body move.
+
+**Where she appears** (`LeluCompanion.tsx`): face behind the chat text while you talk;
+her own full-body window (movable, resizable, docked by the chat) when a workspace or her
+tools are in use or when you ask for something that needs all of her; the Cosmos world
+(`LeluV2Presence`). One parsed model, one body component (`LeluBody`) everywhere.
 
 ## Pipeline added (all server-side, all free)
 

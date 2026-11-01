@@ -911,15 +911,15 @@ const EXECUTORS: ToolExecutor[] = [
       properties: {
         gesture: {
           type: "string",
-          enum: ["wave", "dance", "bow", "nod", "agree", "shrug", "heart", "cheer", "jump", "look", "move", "sit", "stand"],
-          description: "What your body does. Use it when the person asks, or when it fits the moment (a wave hello, a heart for something kind).",
+          enum: ["wave", "dance", "bow", "nod", "agree", "shrug", "heart", "cheer", "jump", "look", "move", "sit", "stand", "leave", "return"],
+          description: "What your body does. Use it when the person asks, or when it fits the moment (a wave hello, a heart for something kind). sit: settle on your sofa; leave: walk off for a bit; return: come back.",
         },
       },
       required: ["gesture"],
     },
     run: async (args) => {
       const { default: AvatarCommandBus } = await import("../avatar/AvatarCommandBus");
-      const kinds = ["wave", "dance", "bow", "nod", "agree", "shrug", "heart", "cheer", "jump", "look", "move", "sit", "stand"] as const;
+      const kinds = ["wave", "dance", "bow", "nod", "agree", "shrug", "heart", "cheer", "jump", "look", "move", "sit", "stand", "leave", "return"] as const;
       const gesture = str(args, "gesture") as (typeof kinds)[number];
       if (!kinds.includes(gesture)) return { ok: false, content: `Unknown gesture “${gesture}”.` };
       try {

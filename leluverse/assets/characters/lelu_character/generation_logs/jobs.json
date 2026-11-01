@@ -4540,5 +4540,993 @@
         "animated": true
       }
     }
+  },
+  {
+    "id": "fj_mvx4n5nx_e844e6",
+    "character": "lelu_character",
+    "kind": "animation",
+    "purpose": "Phase H motion: sit_down",
+    "request": {
+      "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+      "action_id": 58
+    },
+    "requestKey": "b24222c7594bc79dbf075de82b9cf1ad95b1ee46d5f9489e3ee3755c3e757b54",
+    "estimatedCredits": 3,
+    "status": "SUCCEEDED",
+    "meshyTaskId": "01a194a2-9703-7223-b97d-4e505160d6cc",
+    "progress": 100,
+    "consumedCredits": 3,
+    "error": null,
+    "identityLock": null,
+    "createdAt": 1793495045229,
+    "updatedAt": 1793495070118,
+    "submittedAt": 1793495046408,
+    "finishedAt": 1793495067952,
+    "output": {
+      "dir": "characters/lelu_character/animations/v026_animation_01a194a2",
+      "files": [
+        {
+          "role": "model",
+          "file": "characters/lelu_character/animations/v026_animation_01a194a2/animation.glb",
+          "bytes": 25003680,
+          "sha256": "4a049e178c44b04f1c022bff5ab1b2d07b59d783eaf32a2b2a19906064e51ea3"
+        },
+        {
+          "role": "model-fbx",
+          "file": "characters/lelu_character/animations/v026_animation_01a194a2/animation.fbx",
+          "bytes": 21558060,
+          "sha256": "a80d1d43f342a39fc52a33fb5a56400cf8a7959f9b4751a150e8bf51aae61ed3"
+        },
+        {
+          "role": "motion",
+          "file": "characters/lelu_character/animations/v026_animation_01a194a2/motion.glb",
+          "bytes": 180728,
+          "sha256": "7875942e93b84e7aa85e769c93cfe33d2ec0f12823a86c35c4814b25017d27c4"
+        },
+        {
+          "role": "provenance",
+          "file": "characters/lelu_character/animations/v026_animation_01a194a2/provenance.json",
+          "bytes": 445,
+          "sha256": "044a84c8e9858b4f9dc4624664fd340089e91faa1ef4e3ddc9e6293a578af6b3"
+        }
+      ]
+    },
+    "validation": {
+      "ok": true,
+      "problems": [],
+      "warnings": [],
+      "bytes": 25003680,
+      "generator": "Khronos glTF Blender I/O v4.5.51",
+      "geometry": {
+        "meshes": 1,
+        "primitives": 1,
+        "vertices": 134127,
+        "triangles": 61874,
+        "bounds": {
+          "min": [
+            -0.44877949357032776,
+            0,
+            -0.20894132554531097
+          ],
+          "max": [
+            0.44877949357032776,
+            1.749999761581421,
+            0.20894131064414978
+          ],
+          "size": [
+            0.8975589871406555,
+            1.749999761581421,
+            0.41788263618946075
+          ]
+        },
+        "dracoCompressed": false
+      },
+      "surface": {
+        "materials": 1,
+        "textures": 3,
+        "images": 3,
+        "baseColorTextured": true,
+        "pbrMaps": true
+      },
+      "rig": {
+        "skins": 1,
+        "joints": 24,
+        "humanoidBonesFound": [
+          "hips",
+          "spine",
+          "neck",
+          "head",
+          "leftUpperArm",
+          "rightUpperArm",
+          "leftForearm",
+          "rightForearm",
+          "leftHand",
+          "rightHand",
+          "leftUpperLeg",
+          "rightUpperLeg",
+          "leftLowerLeg",
+          "rightLowerLeg",
+          "leftFoot",
+          "rightFoot"
+        ],
+        "humanoidBonesMissing": [],
+        "weightValidity": 1,
+        "skinnedVertices": 134127
+      },
+      "motion": {
+        "clips": [
+          {
+            "name": "Armature|Step_to_Sit_Transition|baselayer",
+            "duration": 5.699999809265137,
+            "channels": 66,
+            "drivesJoints": true
+          }
+        ]
+      },
+      "verdict": {
+        "meshValid": true,
+        "textured": true,
+        "rigValid": true,
+        "animated": true
+      }
+    }
+  },
+  {
+    "id": "fj_mvx4n6kw_cc62c4",
+    "character": "lelu_character",
+    "kind": "animation",
+    "purpose": "Phase H motion: sit_arms_crossed",
+    "request": {
+      "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+      "action_id": 364
+    },
+    "requestKey": "4a3731b6e0eb7e800d88cb269c57df3ded6ea876d5c4efb65613528ca15e3565",
+    "estimatedCredits": 3,
+    "status": "SUCCEEDED",
+    "meshyTaskId": "01a194a2-99aa-71aa-9bda-f7c984759ba5",
+    "progress": 100,
+    "consumedCredits": 3,
+    "error": null,
+    "identityLock": null,
+    "createdAt": 1793495046416,
+    "updatedAt": 1793495073937,
+    "submittedAt": 1793495046971,
+    "finishedAt": 1793495072058,
+    "output": {
+      "dir": "characters/lelu_character/animations/v027_animation_01a194a2",
+      "files": [
+        {
+          "role": "model",
+          "file": "characters/lelu_character/animations/v027_animation_01a194a2/animation.glb",
+          "bytes": 24916044,
+          "sha256": "52c31de26088302355d019fc4190f23f4a65a322edaa831982eeabafbd4e4085"
+        },
+        {
+          "role": "model-fbx",
+          "file": "characters/lelu_character/animations/v027_animation_01a194a2/animation.fbx",
+          "bytes": 21461836,
+          "sha256": "16f697660fe732658908a3e932b8acef5565732f950fdaf392a9da0913390c52"
+        },
+        {
+          "role": "motion",
+          "file": "characters/lelu_character/animations/v027_animation_01a194a2/motion.glb",
+          "bytes": 93068,
+          "sha256": "6347b77b2d98f3a2fbd2e22ca7c230672f94ac7266934a7a5379327b79f9805f"
+        },
+        {
+          "role": "provenance",
+          "file": "characters/lelu_character/animations/v027_animation_01a194a2/provenance.json",
+          "bytes": 454,
+          "sha256": "8226478629cbda2a3005ddd61cae30ff3bbbe502236b97482dd74d1a189c92de"
+        }
+      ]
+    },
+    "validation": {
+      "ok": true,
+      "problems": [],
+      "warnings": [],
+      "bytes": 24916044,
+      "generator": "Khronos glTF Blender I/O v4.5.51",
+      "geometry": {
+        "meshes": 1,
+        "primitives": 1,
+        "vertices": 134127,
+        "triangles": 61874,
+        "bounds": {
+          "min": [
+            -0.44877949357032776,
+            0,
+            -0.20894132554531097
+          ],
+          "max": [
+            0.44877949357032776,
+            1.749999761581421,
+            0.20894131064414978
+          ],
+          "size": [
+            0.8975589871406555,
+            1.749999761581421,
+            0.41788263618946075
+          ]
+        },
+        "dracoCompressed": false
+      },
+      "surface": {
+        "materials": 1,
+        "textures": 3,
+        "images": 3,
+        "baseColorTextured": true,
+        "pbrMaps": true
+      },
+      "rig": {
+        "skins": 1,
+        "joints": 24,
+        "humanoidBonesFound": [
+          "hips",
+          "spine",
+          "neck",
+          "head",
+          "leftUpperArm",
+          "rightUpperArm",
+          "leftForearm",
+          "rightForearm",
+          "leftHand",
+          "rightHand",
+          "leftUpperLeg",
+          "rightUpperLeg",
+          "leftLowerLeg",
+          "rightLowerLeg",
+          "leftFoot",
+          "rightFoot"
+        ],
+        "humanoidBonesMissing": [],
+        "weightValidity": 1,
+        "skinnedVertices": 134127
+      },
+      "motion": {
+        "clips": [
+          {
+            "name": "Armature|Sit_on_Chair_Arms_Crossed|baselayer",
+            "duration": 2.4000000953674316,
+            "channels": 66,
+            "drivesJoints": true
+          }
+        ]
+      },
+      "verdict": {
+        "meshValid": true,
+        "textured": true,
+        "rigValid": true,
+        "animated": true
+      }
+    }
+  },
+  {
+    "id": "fj_mvx4n70g_b0b45e",
+    "character": "lelu_character",
+    "kind": "animation",
+    "purpose": "Phase H motion: sit_cross_legged",
+    "request": {
+      "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+      "action_id": 362
+    },
+    "requestKey": "4fc01a1b901cebeec2c73ac736ff13d45c3b7817c8871959f4039a02aaa75b4e",
+    "estimatedCredits": 3,
+    "status": "SUCCEEDED",
+    "meshyTaskId": "01a194a2-9bd7-7335-b90d-315fa996b8db",
+    "progress": 100,
+    "consumedCredits": 3,
+    "error": null,
+    "identityLock": null,
+    "createdAt": 1793495046976,
+    "updatedAt": 1793495077606,
+    "submittedAt": 1793495047524,
+    "finishedAt": 1793495075791,
+    "output": {
+      "dir": "characters/lelu_character/animations/v028_animation_01a194a2",
+      "files": [
+        {
+          "role": "model",
+          "file": "characters/lelu_character/animations/v028_animation_01a194a2/animation.glb",
+          "bytes": 25106212,
+          "sha256": "16665b9c8c0a1854f7182f4d4b71c24d85b5f3112beedac83217a38ad6e37810"
+        },
+        {
+          "role": "model-fbx",
+          "file": "characters/lelu_character/animations/v028_animation_01a194a2/animation.fbx",
+          "bytes": 21660812,
+          "sha256": "73e7468db30e9795163e02e670087a04906b94aca48d8b751d1d30f727682209"
+        },
+        {
+          "role": "motion",
+          "file": "characters/lelu_character/animations/v028_animation_01a194a2/motion.glb",
+          "bytes": 283296,
+          "sha256": "5b46f377a5888b5825bd082608b7ae75d74f0b8cd1e18d80f653c18bfc455444"
+        },
+        {
+          "role": "provenance",
+          "file": "characters/lelu_character/animations/v028_animation_01a194a2/provenance.json",
+          "bytes": 454,
+          "sha256": "fd153c5877654a2dc9d7edf49b65da96f7b8b83492227e4d5a30c67a4db0c2f1"
+        }
+      ]
+    },
+    "validation": {
+      "ok": true,
+      "problems": [],
+      "warnings": [],
+      "bytes": 25106212,
+      "generator": "Khronos glTF Blender I/O v4.5.51",
+      "geometry": {
+        "meshes": 1,
+        "primitives": 1,
+        "vertices": 134127,
+        "triangles": 61874,
+        "bounds": {
+          "min": [
+            -0.44877949357032776,
+            0,
+            -0.20894132554531097
+          ],
+          "max": [
+            0.44877949357032776,
+            1.749999761581421,
+            0.20894131064414978
+          ],
+          "size": [
+            0.8975589871406555,
+            1.749999761581421,
+            0.41788263618946075
+          ]
+        },
+        "dracoCompressed": false
+      },
+      "surface": {
+        "materials": 1,
+        "textures": 3,
+        "images": 3,
+        "baseColorTextured": true,
+        "pbrMaps": true
+      },
+      "rig": {
+        "skins": 1,
+        "joints": 24,
+        "humanoidBonesFound": [
+          "hips",
+          "spine",
+          "neck",
+          "head",
+          "leftUpperArm",
+          "rightUpperArm",
+          "leftForearm",
+          "rightForearm",
+          "leftHand",
+          "rightHand",
+          "leftUpperLeg",
+          "rightUpperLeg",
+          "leftLowerLeg",
+          "rightLowerLeg",
+          "leftFoot",
+          "rightFoot"
+        ],
+        "humanoidBonesMissing": [],
+        "weightValidity": 1,
+        "skinnedVertices": 134127
+      },
+      "motion": {
+        "clips": [
+          {
+            "name": "Armature|Sit_Cross_Legged|baselayer",
+            "duration": 9.566667556762695,
+            "channels": 66,
+            "drivesJoints": true
+          }
+        ]
+      },
+      "verdict": {
+        "meshValid": true,
+        "textured": true,
+        "rigValid": true,
+        "animated": true
+      }
+    }
+  },
+  {
+    "id": "fj_mvx4n7fz_ff51bd",
+    "character": "lelu_character",
+    "kind": "animation",
+    "purpose": "Phase H motion: sit_talk",
+    "request": {
+      "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+      "action_id": 307
+    },
+    "requestKey": "8e7cf8a76225ed31e27000aaa4a23ca0b680c7d50bd20112832610aae21a6f63",
+    "estimatedCredits": 3,
+    "status": "SUCCEEDED",
+    "meshyTaskId": "01a194a2-9e0f-77e7-8317-7da8d25a7a93",
+    "progress": 100,
+    "consumedCredits": 3,
+    "error": null,
+    "identityLock": null,
+    "createdAt": 1793495047535,
+    "updatedAt": 1793495081007,
+    "submittedAt": 1793495048066,
+    "finishedAt": 1793495079355,
+    "output": {
+      "dir": "characters/lelu_character/animations/v029_animation_01a194a2",
+      "files": [
+        {
+          "role": "model",
+          "file": "characters/lelu_character/animations/v029_animation_01a194a2/animation.glb",
+          "bytes": 25109740,
+          "sha256": "0fa30eb9b459560ad0821692ef19be5af38b6dfa458e3e737012c2c88e450556"
+        },
+        {
+          "role": "model-fbx",
+          "file": "characters/lelu_character/animations/v029_animation_01a194a2/animation.fbx",
+          "bytes": 21664428,
+          "sha256": "f5cf2290a521b1b8c6d8ff4fc0f6d4d17910e99088abdcb60be7e0fd6d7e5819"
+        },
+        {
+          "role": "motion",
+          "file": "characters/lelu_character/animations/v029_animation_01a194a2/motion.glb",
+          "bytes": 286804,
+          "sha256": "da414ee73dfd008d1f484cfc3cb638578fe9b3fc0cbe2a034102414839183110"
+        },
+        {
+          "role": "provenance",
+          "file": "characters/lelu_character/animations/v029_animation_01a194a2/provenance.json",
+          "bytes": 446,
+          "sha256": "e0266c6d0fb847b679fac03273045260ac6e2731be7e7109a1a61ac3bd5b2965"
+        }
+      ]
+    },
+    "validation": {
+      "ok": true,
+      "problems": [],
+      "warnings": [],
+      "bytes": 25109740,
+      "generator": "Khronos glTF Blender I/O v4.5.51",
+      "geometry": {
+        "meshes": 1,
+        "primitives": 1,
+        "vertices": 134127,
+        "triangles": 61874,
+        "bounds": {
+          "min": [
+            -0.44877949357032776,
+            0,
+            -0.20894132554531097
+          ],
+          "max": [
+            0.44877949357032776,
+            1.749999761581421,
+            0.20894131064414978
+          ],
+          "size": [
+            0.8975589871406555,
+            1.749999761581421,
+            0.41788263618946075
+          ]
+        },
+        "dracoCompressed": false
+      },
+      "surface": {
+        "materials": 1,
+        "textures": 3,
+        "images": 3,
+        "baseColorTextured": true,
+        "pbrMaps": true
+      },
+      "rig": {
+        "skins": 1,
+        "joints": 24,
+        "humanoidBonesFound": [
+          "hips",
+          "spine",
+          "neck",
+          "head",
+          "leftUpperArm",
+          "rightUpperArm",
+          "leftForearm",
+          "rightForearm",
+          "leftHand",
+          "rightHand",
+          "leftUpperLeg",
+          "rightUpperLeg",
+          "leftLowerLeg",
+          "rightLowerLeg",
+          "leftFoot",
+          "rightFoot"
+        ],
+        "humanoidBonesMissing": [],
+        "weightValidity": 1,
+        "skinnedVertices": 134127
+      },
+      "motion": {
+        "clips": [
+          {
+            "name": "Armature|Sitting_Answering_Questions|baselayer",
+            "duration": 9.700000762939453,
+            "channels": 66,
+            "drivesJoints": true
+          }
+        ]
+      },
+      "verdict": {
+        "meshValid": true,
+        "textured": true,
+        "rigValid": true,
+        "animated": true
+      }
+    }
+  },
+  {
+    "id": "fj_mvx4n7uz_fdc107",
+    "character": "lelu_character",
+    "kind": "animation",
+    "purpose": "Phase H motion: sit_thumbs_up",
+    "request": {
+      "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+      "action_id": 357
+    },
+    "requestKey": "2c9b5fb31b63666d703b692b33ed915f7a9483461a49bce6d53dfb3ab4133da0",
+    "estimatedCredits": 3,
+    "status": "SUCCEEDED",
+    "meshyTaskId": "01a194a2-a021-7672-b7d6-eea0065e96a3",
+    "progress": 100,
+    "consumedCredits": 3,
+    "error": null,
+    "identityLock": null,
+    "createdAt": 1793495048075,
+    "updatedAt": 1793495084418,
+    "submittedAt": 1793495048611,
+    "finishedAt": 1793495082914,
+    "output": {
+      "dir": "characters/lelu_character/animations/v030_animation_01a194a2",
+      "files": [
+        {
+          "role": "model",
+          "file": "characters/lelu_character/animations/v030_animation_01a194a2/animation.glb",
+          "bytes": 24955072,
+          "sha256": "c9bf328b1c52f799675b91ad2f6e42a515e49ae6d15b75c8bbdc25d2d82862e0"
+        },
+        {
+          "role": "model-fbx",
+          "file": "characters/lelu_character/animations/v030_animation_01a194a2/animation.fbx",
+          "bytes": 21501660,
+          "sha256": "edf98d2e96538d49e2744f9183814b65b6ca70b8ece3b66f2b247211037e2971"
+        },
+        {
+          "role": "motion",
+          "file": "characters/lelu_character/animations/v030_animation_01a194a2/motion.glb",
+          "bytes": 132108,
+          "sha256": "83652377432c7b4494cccf4172fe09f5fb272dd7a153c5bb148d43d7d1365c9f"
+        },
+        {
+          "role": "provenance",
+          "file": "characters/lelu_character/animations/v030_animation_01a194a2/provenance.json",
+          "bytes": 451,
+          "sha256": "c7bebb3a351f15912dda57fe8cf0f670b020b16706d7c58a8b4f8f93b407cbb2"
+        }
+      ]
+    },
+    "validation": {
+      "ok": true,
+      "problems": [],
+      "warnings": [],
+      "bytes": 24955072,
+      "generator": "Khronos glTF Blender I/O v4.5.51",
+      "geometry": {
+        "meshes": 1,
+        "primitives": 1,
+        "vertices": 134127,
+        "triangles": 61874,
+        "bounds": {
+          "min": [
+            -0.44877949357032776,
+            0,
+            -0.20894132554531097
+          ],
+          "max": [
+            0.44877949357032776,
+            1.749999761581421,
+            0.20894131064414978
+          ],
+          "size": [
+            0.8975589871406555,
+            1.749999761581421,
+            0.41788263618946075
+          ]
+        },
+        "dracoCompressed": false
+      },
+      "surface": {
+        "materials": 1,
+        "textures": 3,
+        "images": 3,
+        "baseColorTextured": true,
+        "pbrMaps": true
+      },
+      "rig": {
+        "skins": 1,
+        "joints": 24,
+        "humanoidBonesFound": [
+          "hips",
+          "spine",
+          "neck",
+          "head",
+          "leftUpperArm",
+          "rightUpperArm",
+          "leftForearm",
+          "rightForearm",
+          "leftHand",
+          "rightHand",
+          "leftUpperLeg",
+          "rightUpperLeg",
+          "leftLowerLeg",
+          "rightLowerLeg",
+          "leftFoot",
+          "rightFoot"
+        ],
+        "humanoidBonesMissing": [],
+        "weightValidity": 1,
+        "skinnedVertices": 134127
+      },
+      "motion": {
+        "clips": [
+          {
+            "name": "Armature|Sit_Thumbs_Up_Right|baselayer",
+            "duration": 3.866666793823242,
+            "channels": 66,
+            "drivesJoints": true
+          }
+        ]
+      },
+      "verdict": {
+        "meshValid": true,
+        "textured": true,
+        "rigValid": true,
+        "animated": true
+      }
+    }
+  },
+  {
+    "id": "fj_mvx4n8a3_64adf1",
+    "character": "lelu_character",
+    "kind": "animation",
+    "purpose": "Phase H motion: strut",
+    "request": {
+      "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+      "action_id": 107
+    },
+    "requestKey": "c127989ea9dfa7cf3d6ae90bfa585d9ec408e31f61afdbeab79b781ddc8250a3",
+    "estimatedCredits": 3,
+    "status": "SUCCEEDED",
+    "meshyTaskId": "01a194a2-a244-7699-a317-a00f03ac1231",
+    "progress": 100,
+    "consumedCredits": 3,
+    "error": null,
+    "identityLock": null,
+    "createdAt": 1793495048618,
+    "updatedAt": 1793495087710,
+    "submittedAt": 1793495049064,
+    "finishedAt": 1793495086267,
+    "output": {
+      "dir": "characters/lelu_character/animations/v031_animation_01a194a2",
+      "files": [
+        {
+          "role": "model",
+          "file": "characters/lelu_character/animations/v031_animation_01a194a2/animation.glb",
+          "bytes": 24924012,
+          "sha256": "acd59785e4ce15d70e39cc7ac37723014a2d1f0e54d2bdc9afa0735241b07561"
+        },
+        {
+          "role": "model-fbx",
+          "file": "characters/lelu_character/animations/v031_animation_01a194a2/animation.fbx",
+          "bytes": 21470364,
+          "sha256": "c0cbd970798b7cb0ba9e625e6fc4fc711ee07d74e653fec08b94b7dc5b086245"
+        },
+        {
+          "role": "motion",
+          "file": "characters/lelu_character/animations/v031_animation_01a194a2/motion.glb",
+          "bytes": 101040,
+          "sha256": "ac32f9af2ab87be7a0ae1eeb2dbafa61a0f44b77229bdb3580bab2d98e818251"
+        },
+        {
+          "role": "provenance",
+          "file": "characters/lelu_character/animations/v031_animation_01a194a2/provenance.json",
+          "bytes": 443,
+          "sha256": "10f8295aaadb476b624fe07f6f434bc7cbc6dc8067ab5f0775f4f9a71ae75f14"
+        }
+      ]
+    },
+    "validation": {
+      "ok": true,
+      "problems": [],
+      "warnings": [],
+      "bytes": 24924012,
+      "generator": "Khronos glTF Blender I/O v4.5.51",
+      "geometry": {
+        "meshes": 1,
+        "primitives": 1,
+        "vertices": 134127,
+        "triangles": 61874,
+        "bounds": {
+          "min": [
+            -0.44877949357032776,
+            0,
+            -0.20894132554531097
+          ],
+          "max": [
+            0.44877949357032776,
+            1.749999761581421,
+            0.20894131064414978
+          ],
+          "size": [
+            0.8975589871406555,
+            1.749999761581421,
+            0.41788263618946075
+          ]
+        },
+        "dracoCompressed": false
+      },
+      "surface": {
+        "materials": 1,
+        "textures": 3,
+        "images": 3,
+        "baseColorTextured": true,
+        "pbrMaps": true
+      },
+      "rig": {
+        "skins": 1,
+        "joints": 24,
+        "humanoidBonesFound": [
+          "hips",
+          "spine",
+          "neck",
+          "head",
+          "leftUpperArm",
+          "rightUpperArm",
+          "leftForearm",
+          "rightForearm",
+          "leftHand",
+          "rightHand",
+          "leftUpperLeg",
+          "rightUpperLeg",
+          "leftLowerLeg",
+          "rightLowerLeg",
+          "leftFoot",
+          "rightFoot"
+        ],
+        "humanoidBonesMissing": [],
+        "weightValidity": 1,
+        "skinnedVertices": 134127
+      },
+      "motion": {
+        "clips": [
+          {
+            "name": "Armature|Confident_Strut|baselayer",
+            "duration": 2.700000047683716,
+            "channels": 66,
+            "drivesJoints": true
+          }
+        ]
+      },
+      "verdict": {
+        "meshValid": true,
+        "textured": true,
+        "rigValid": true,
+        "animated": true
+      }
+    }
+  },
+  {
+    "id": "fj_mvx5ruga_571dd5",
+    "character": "lelu_character",
+    "kind": "blender",
+    "purpose": "Face shapes (blink, expressions, open mouth) on fj_mvwaqbim_55226d",
+    "request": {
+      "operation": "faceshapes",
+      "source": "fj_mvwaqbim_55226d",
+      "sourceSha256": "540c4c32a6d9ad830e4c53ccd2e4c380c96524cc16658e6f0149b326ca4df282",
+      "scripts": [
+        "f3b3790d28de2bb4"
+      ],
+      "parentJobId": "fj_mvwaqbim_55226d",
+      "runner": "bpy"
+    },
+    "requestKey": "625237a14d5db89b91fe6a60fbf8cd2fe0521e8aed541cdc18be538e60488135",
+    "estimatedCredits": 0,
+    "status": "SUCCEEDED",
+    "meshyTaskId": null,
+    "progress": 100,
+    "consumedCredits": 0,
+    "error": null,
+    "identityLock": "c90e0e46f7d2cb053aa6de43ba524c6eb13bf1a392b0b687ccce775a9e8336e9",
+    "createdAt": 1793496547500,
+    "updatedAt": 1793496944030,
+    "submittedAt": 1793496547500,
+    "finishedAt": 1793496943594,
+    "output": {
+      "dir": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim",
+      "files": [
+        {
+          "role": "preview",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/faceshapes_blink_smile.png",
+          "bytes": 1608667,
+          "sha256": "fe5ae298efd31728bf3e63ba4333a97be89bdf2fc50d097d16564165ca4bd2c5"
+        },
+        {
+          "role": "preview-extra",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/faceshapes_browDownLeft.png",
+          "bytes": 1608971,
+          "sha256": "4fa682dcdfd4069868814ffeae01add49231e78306ce8230b7223c556b01f595"
+        },
+        {
+          "role": "preview-extra",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/faceshapes_browDownRight.png",
+          "bytes": 1608803,
+          "sha256": "f391be3b2ce3d4d3613a2f9a56f505762125b201e0747cecb71c2925f9c478a1"
+        },
+        {
+          "role": "preview-extra",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/faceshapes_browInnerUp.png",
+          "bytes": 1609048,
+          "sha256": "919c61ca954712eae38a093a1e7f21c71823c089c493c427d73e998dce5eb534"
+        },
+        {
+          "role": "preview-extra",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/faceshapes_eyeBlinkLeft.png",
+          "bytes": 1608542,
+          "sha256": "1b1576c26a6a2c850bbe7bea30a0f5a1eafc9c8ac7575ca49853bcc92dd66555"
+        },
+        {
+          "role": "preview-extra",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/faceshapes_eyeBlinkRight.png",
+          "bytes": 1608888,
+          "sha256": "a26b473dfbf69eab3a36649da851745c383b1b657b3f9d61970e8dcc7127a884"
+        },
+        {
+          "role": "preview-extra",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/faceshapes_eyeWideLeft.png",
+          "bytes": 1609387,
+          "sha256": "4cae5073f7fe293951d0f44572b77176e922e09f3b0a6cc965d76b51dd61fdfc"
+        },
+        {
+          "role": "preview-extra",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/faceshapes_eyeWideRight.png",
+          "bytes": 1609169,
+          "sha256": "61c33a033945afb074c87c11407fb5ebace9e4817d2220adefb5db4986512cbb"
+        },
+        {
+          "role": "preview-extra",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/faceshapes_jawOpen.png",
+          "bytes": 1608337,
+          "sha256": "7ea3e712e41e399c9be0f6e705ebc0efb95d94a45e4d21c0a75f98b962c99329"
+        },
+        {
+          "role": "preview-extra",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/faceshapes_mouthFrownLeft.png",
+          "bytes": 1608991,
+          "sha256": "4345f2c6aabb2eaea25a806ec972072c4f8bc0c6dcd9ddff103667d0cf52a9f6"
+        },
+        {
+          "role": "preview-extra",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/faceshapes_mouthFrownRight.png",
+          "bytes": 1608890,
+          "sha256": "510fa6c8e4a3a85f6cea0ad89da2789972cfb5c0aa767105a19d1bfe87d820ef"
+        },
+        {
+          "role": "preview-extra",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/faceshapes_mouthSmileLeft.png",
+          "bytes": 1609100,
+          "sha256": "8490c056b3e0c319810bfc8481b5d3e33bd3711f397d9cd2489a86225bf3710b"
+        },
+        {
+          "role": "preview-extra",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/faceshapes_mouthSmileRight.png",
+          "bytes": 1609458,
+          "sha256": "25bc38a7c31a0de02cdd0dbf6cd86ed7ff7c17e64d5244fc7e943b8cc33ebb3a"
+        },
+        {
+          "role": "preview-extra",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/faceshapes_neutral.png",
+          "bytes": 1607981,
+          "sha256": "e0626f538066954ce3b5020551cd0fec9c7cf6f3d978a39dd57de9c23c9bcf15"
+        },
+        {
+          "role": "model",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.glb",
+          "bytes": 49511140,
+          "sha256": "80089844d989c413dd1ce66bf8c70bf11441831e1256ad6854ab28e5db67e2ce"
+        },
+        {
+          "role": "blender-report",
+          "file": "characters/lelu_character/rig/v005_faceshapes_mvwaqbim/report.json",
+          "bytes": 7920,
+          "sha256": "70afbdec2d513b0c862febe2032695dbc161131a91c287c25bc6e4ffc25d2201"
+        }
+      ]
+    },
+    "validation": {
+      "ok": true,
+      "problems": [],
+      "warnings": [],
+      "bytes": 49511140,
+      "generator": "Khronos glTF Blender I/O v5.2.41",
+      "geometry": {
+        "meshes": 6,
+        "primitives": 6,
+        "vertices": 443521,
+        "triangles": 224233,
+        "bounds": {
+          "min": [
+            -0.448779433965683,
+            2.898841557907872e-7,
+            -0.2089412659406662
+          ],
+          "max": [
+            0.4487793743610382,
+            1.7185015678405762,
+            0.208938866853714
+          ],
+          "size": [
+            0.8975588083267212,
+            1.7185012779564204,
+            0.4178801327943802
+          ]
+        },
+        "dracoCompressed": false
+      },
+      "surface": {
+        "materials": 6,
+        "textures": 8,
+        "images": 8,
+        "baseColorTextured": true,
+        "pbrMaps": true
+      },
+      "rig": {
+        "skins": 1,
+        "joints": 24,
+        "humanoidBonesFound": [
+          "hips",
+          "spine",
+          "neck",
+          "head",
+          "leftUpperArm",
+          "rightUpperArm",
+          "leftForearm",
+          "rightForearm",
+          "leftHand",
+          "rightHand",
+          "leftUpperLeg",
+          "rightUpperLeg",
+          "leftLowerLeg",
+          "rightLowerLeg",
+          "leftFoot",
+          "rightFoot"
+        ],
+        "humanoidBonesMissing": [],
+        "weightValidity": 1,
+        "skinnedVertices": 443521
+      },
+      "motion": {
+        "clips": [
+          {
+            "name": "Armature|clip0|baselayer",
+            "duration": 0,
+            "channels": 72,
+            "drivesJoints": true
+          }
+        ]
+      },
+      "verdict": {
+        "meshValid": true,
+        "textured": true,
+        "rigValid": true,
+        "animated": false
+      }
+    }
   }
 ]

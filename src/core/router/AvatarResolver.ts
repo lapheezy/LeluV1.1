@@ -195,6 +195,8 @@ export default class AvatarResolver {
     if (/\b(jump|jumping)\b/.test(lower)) return { kind: "jump", label: "jump" };
     if (/\b(sit (down)?|take a seat|have a seat)\b/.test(lower)) return { kind: "sit", label: "sit down" };
     if (/\b(stand up|get up)\b/.test(lower)) return { kind: "stand", label: "stand up" };
+    if (/\b(walk (away|off)|take a (walk|break)|leave for a bit|go for a walk)\b/.test(lower)) return { kind: "leave", label: "walk off" };
+    if (/\b(come back|come here|where are you)\b/.test(lower)) return { kind: "return", label: "come back" };
     if (/\b(look around|look at me|turn (around|toward me)|face me)\b/.test(lower)) {
       return { kind: "look", label: "look around" };
     }

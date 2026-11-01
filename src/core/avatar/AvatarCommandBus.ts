@@ -35,7 +35,9 @@ export type AvatarCommandKind =
   | "cheer"
   | "jump"
   | "sit"
-  | "stand";
+  | "stand"
+  | "leave"
+  | "return";
 
 export interface AvatarCommand {
   id: string;

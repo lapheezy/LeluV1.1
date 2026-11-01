@@ -1,0 +1,17 @@
+{
+  "jobId": "fj_mvx4n7uz_fdc107",
+  "character": "lelu_character",
+  "kind": "animation",
+  "purpose": "Phase H motion: sit_thumbs_up",
+  "meshyTaskId": "01a194a2-a021-7672-b7d6-eea0065e96a3",
+  "request": {
+    "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+    "action_id": 357
+  },
+  "references": [],
+  "identityLock": null,
+  "estimatedCredits": 3,
+  "consumedCredits": 3,
+  "submittedAt": 1793495048611,
+  "finishedAt": 1793495082914
+}

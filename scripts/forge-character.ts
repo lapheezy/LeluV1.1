@@ -21,6 +21,7 @@
  *   tsx scripts/forge-character.ts unslot <slot> [reason]   take a model out of the Cosmos (job and files are kept)
  *   tsx scripts/forge-character.ts blender <jobId> [--no-face] [--no-mobile]   headless Blender post-process (free)
  *   tsx scripts/forge-character.ts headswap <rigJobId> <headJobId>   put a dedicated head on a rigged body (free)
+ *   tsx scripts/forge-character.ts faceshapes <jobId>   blink, expressions and an opening mouth on a rigged model (free)
  *   tsx scripts/forge-character.ts plan-head [refIds…]  plan a head-and-shoulders model from ref10 + views (spends nothing)
  *   tsx scripts/forge-character.ts inspect <file.glb>   run the GLB inspector on any file
  *   tsx scripts/forge-character.ts library [search]     Meshy's animation catalogue (free)
@@ -385,6 +386,13 @@ async function main(): Promise<void> {
         mobile: process.argv.includes("--no-mobile") ? null : undefined,
       });
       if (reused) console.log("(this exact post-process was already done)");
+      show(job);
+      return;
+    }
+    case "faceshapes": {
+      const { faceshapes } = await import("../plugins/blenderStage.ts");
+      const { job, reused } = await faceshapes(store, (name) => process.env[name], jobArg(3));
+      if (reused) console.log("(same request already done)");
       show(job);
       return;
     }

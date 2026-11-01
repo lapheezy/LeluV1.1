@@ -44,6 +44,7 @@ export const BLENDER_SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.u
 export const HEADSWAP_SCRIPT = path.join(path.dirname(BLENDER_SCRIPT), "lelu_headswap.py");
 export const POSECHECK_SCRIPT = path.join(path.dirname(BLENDER_SCRIPT), "lelu_posecheck.py");
 export const FACEPROJECT_SCRIPT = path.join(path.dirname(BLENDER_SCRIPT), "lelu_faceproject.py");
+export const FACESHAPES_SCRIPT = path.join(path.dirname(BLENDER_SCRIPT), "lelu_faceshapes.py");
 export const FACE_LANDMARKER = path.join(path.dirname(BLENDER_SCRIPT), "models", "face_landmarker.task");
 
 export interface BlenderRunner {
@@ -294,6 +295,83 @@ export async function headswap(
     };
     store.saveJob(job);
     store.logEvent(rig.character, { type: "blender_succeeded", operation: "headswap", jobId: job.id, parentJobId: rig.id, headJobId: head.id, dir: job.output!.dir, verdict: job.validation?.verdict ?? null });
+    return { job, reused: false };
+  } finally {
+    rmSync(work, { recursive: true, force: true });
+  }
+}
+
+/**
+ * Give a rigged character her face controls (scripts/blender/lelu_faceshapes.py):
+ * ARKit-named shape keys built from her own landmarks — blinks, wide eyes,
+ * smile, frown, brows, and a jaw that opens a real mouth — recorded as a
+ * derived "blender" job in the rig area. Spends nothing.
+ */
+export async function faceshapes(
+  store: ForgeStore,
+  readEnv: EnvReader,
+  sourceJobId: string,
+  deps: { runner?: BlenderRunner | null; timeoutMs?: number } = {},
+): Promise<{ job: ForgeJob; reused: boolean }> {
+  const source = store.job(sourceJobId);
+  if (!source) throw new ForgeError(`No job ${sourceJobId}.`, 404);
+  const model = source.output?.files.find((f) => f.role === "model");
+  if (source.status !== "SUCCEEDED" || !model || !source.validation?.verdict.rigValid) throw new ForgeError("The source must be a finished job whose rig validated.", 409);
+  const scripts = [FACESHAPES_SCRIPT].map((f) => createHash("sha256").update(readFileSync(f)).digest("hex").slice(0, 16));
+  const request = { operation: "faceshapes", source: source.id, sourceSha256: model.sha256, scripts };
+  const requestKey = createHash("sha256").update(JSON.stringify(request)).digest("hex");
+  const existing = store.findByKey(source.character, requestKey);
+  if (existing) return { job: existing, reused: true };
+
+  const runner = deps.runner === undefined ? findBlender(readEnv) : deps.runner;
+  if (!runner) throw new ForgeError("Blender is not available on this server.", 503, ["Set LELU_BLENDER_PYTHON (a Python with bpy) or LELU_BLENDER_BIN."]);
+  const modelPath = store.safeAssetPath(model.file);
+  if (!modelPath || !existsSync(modelPath)) throw new ForgeError("The model file is missing.", 404);
+
+  const work = mkdtempSync(path.join(tmpdir(), "lelu-faceshapes-"));
+  const started = Date.now();
+  try {
+    const out = path.join(work, "lelu.glb");
+    const result = await run(
+      runner,
+      JSON.stringify({ model: modelPath, out, previewDir: work, landmarker: readEnv("LELU_FACE_LANDMARKER") ?? FACE_LANDMARKER }),
+      deps.timeoutMs ?? 30 * 60_000,
+      FACESHAPES_SCRIPT,
+    );
+    if (result.code !== 0 || !existsSync(out)) {
+      store.logEvent(source.character, { type: "blender_failed", operation: "faceshapes", jobId: source.id, code: result.code, log: result.log.slice(-2000) });
+      throw new ForgeError(`Face shapes failed (exit ${result.code}).`, 500, result.log.trim().split("\n").slice(-8));
+    }
+    const dir = store.newVersionDir(source.character, "rig", `faceshapes_${source.id.slice(3, 11)}`);
+    const files: ForgeOutputFile[] = [];
+    for (const name of readdirSync(work).sort()) {
+      const role = name === "lelu.glb" ? "model" : name === "lelu.glb.report.json" ? "blender-report" : name.endsWith(".png") ? (name === "faceshapes_blink_smile.png" ? "preview" : "preview-extra") : "blender-output";
+      files.push(store.writeOutput(dir, name === "lelu.glb.report.json" ? "report.json" : name, role, new Uint8Array(readFileSync(path.join(work, name)))));
+    }
+    const now = Date.now();
+    const job: ForgeJob = {
+      id: `fj_${now.toString(36)}_${createHash("sha1").update(String(Math.random())).digest("hex").slice(0, 6)}`,
+      character: source.character,
+      kind: "blender",
+      purpose: `Face shapes (blink, expressions, open mouth) on ${source.id}`,
+      request: { ...request, parentJobId: source.id, runner: runner.kind },
+      requestKey,
+      estimatedCredits: 0,
+      status: "SUCCEEDED",
+      meshyTaskId: null,
+      progress: 100,
+      consumedCredits: 0,
+      error: null,
+      identityLock: source.identityLock,
+      createdAt: started,
+      updatedAt: now,
+      submittedAt: started,
+      finishedAt: now,
+      output: { dir: store.relative(dir), files },
+      validation: inspectGlb(new Uint8Array(readFileSync(path.join(dir, "lelu.glb")))),
+    };
+    store.saveJob(job);
+    store.logEvent(source.character, { type: "blender_succeeded", operation: "faceshapes", jobId: job.id, parentJobId: source.id, dir: job.output!.dir, verdict: job.validation?.verdict ?? null });
     return { job, reused: false };
   } finally {
     rmSync(work, { recursive: true, force: true });

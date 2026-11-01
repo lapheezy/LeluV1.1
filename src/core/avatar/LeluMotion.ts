@@ -41,7 +41,13 @@ export type LeluGesture =
   | "sit_idle"
   | "sit_to_stand"
   | "hand_on_hip"
-  | "idle_look_around";
+  | "idle_look_around"
+  | "sit_down"
+  | "sit_thumbs_up"
+  | "strut";
+
+/** Standing, seated (on her sofa), or on the move. */
+export type Posture = "standing" | "sitting" | "walking";
 
 const LOOPS: Record<BehaviourMode, string[]> = {
   idle: ["idle", "idle_1", "idle_3"],
@@ -50,6 +56,20 @@ const LOOPS: Record<BehaviourMode, string[]> = {
   thinking: ["idle_3", "idle_1"],
   acting: ["idle_1", "idle"],
 };
+
+/** Seated: her clips for each state while she is on the sofa. */
+const SEATED_LOOPS: Record<BehaviourMode, string[]> = {
+  idle: ["sit_idle", "sit_arms_crossed", "sit_cross_legged"],
+  listening: ["sit_idle"],
+  speaking: ["sit_talk"],
+  thinking: ["sit_arms_crossed", "sit_idle"],
+  acting: ["sit_idle"],
+};
+
+const WALK_LOOPS = ["strut", "walk"];
+
+/** Gestures that are made seated; any other gesture needs her to stand first. */
+export const SEATED_GESTURES = new Set(["sit_thumbs_up", "sit_talk", "sit_idle", "sit_arms_crossed", "sit_cross_legged", "sit_to_stand"]);
 
 /** Now and then while idle, instead of the next idle loop. */
 const IDLE_FLOURISHES = ["idle_look_around", "hand_on_hip"];
@@ -60,6 +80,7 @@ export default class LeluMotion {
   private readonly mixer: THREE.AnimationMixer;
   private readonly actions = new Map<string, THREE.AnimationAction>();
   private mode: BehaviourMode = "idle";
+  private stance: Posture = "standing";
   private current: THREE.AnimationAction | null = null;
   private gesture: { action: THREE.AnimationAction; done?: () => void } | null = null;
   private loopEndsAt = 0;
@@ -99,6 +120,50 @@ export default class LeluMotion {
 
   has(name: string): boolean {
     return this.actions.has(name);
+  }
+
+  get posture(): Posture {
+    return this.stance;
+  }
+
+  /** She has what sitting down, staying seated and getting up take. */
+  get canSit(): boolean {
+    return ["sit_down", "sit_idle", "sit_to_stand"].every((name) => this.actions.has(name));
+  }
+
+  get canWalk(): boolean {
+    return WALK_LOOPS.some((name) => this.actions.has(name));
+  }
+
+  /** Sit down (onto her sofa). False when she cannot from here. */
+  sit(done?: () => void): boolean {
+    if (this.stance !== "standing" || !this.canSit) return false;
+    this.stance = "sitting";
+    this.play("sit_down", done);
+    return true;
+  }
+
+  /** Get up. The posture changes once she is on her feet. */
+  stand(done?: () => void): boolean {
+    if (this.stance !== "sitting") return false;
+    this.play("sit_to_stand", () => {
+      this.stance = "standing";
+      this.toLoop(true);
+      done?.();
+    });
+    return true;
+  }
+
+  /** Start or stop walking (the body is moved by its owner; the clip plays in place). */
+  walk(on: boolean): boolean {
+    if (on) {
+      if (this.stance === "sitting" || !this.canWalk) return false;
+      this.stance = "walking";
+    } else if (this.stance === "walking") {
+      this.stance = "standing";
+    } else return false;
+    if (!this.gesture) this.toLoop(true);
+    return true;
   }
 
   /** What is playing now (for telemetry and tests). */
@@ -150,12 +215,13 @@ export default class LeluMotion {
       return;
     }
     if (!this.hasLibrary) return;
-    const options = LOOPS[this.mode].filter((name) => this.actions.has(name));
+    const table = this.stance === "sitting" ? SEATED_LOOPS[this.mode] : this.stance === "walking" ? WALK_LOOPS : LOOPS[this.mode];
+    const options = table.filter((name) => this.actions.has(name));
     // A new state starts with its primary clip; variants follow as it continues.
     if (stateChanged) this.turn = 0;
     let pick = options[this.turn % Math.max(1, options.length)];
     this.turn += 1;
-    if (!stateChanged && this.mode === "idle" && this.random() < 0.25) {
+    if (!stateChanged && this.stance === "standing" && this.mode === "idle" && this.random() < 0.25) {
       const flourish = IDLE_FLOURISHES.filter((name) => this.actions.has(name));
       if (flourish.length) pick = flourish[Math.floor(this.random() * flourish.length)];
     }
@@ -163,8 +229,8 @@ export default class LeluMotion {
     if (!action) return;
     const clip = action.getClip();
     // Talking clips rotate every cycle; idles hold for a couple of cycles.
-    const cycles = this.mode === "speaking" ? 1 : 2;
-    this.loopEndsAt = this.time + Math.max(2, clip.duration * cycles);
+    const cycles = this.mode === "speaking" ? 1 : this.stance === "sitting" ? 4 : 2;
+    this.loopEndsAt = this.stance === "walking" ? Number.POSITIVE_INFINITY : this.time + Math.max(2, clip.duration * cycles);
     if (action === this.current && action.isRunning()) return;
     action.reset();
     action.setLoop(THREE.LoopRepeat, Infinity);
