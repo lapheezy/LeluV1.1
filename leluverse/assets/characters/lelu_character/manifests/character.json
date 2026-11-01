@@ -33,7 +33,7 @@
     "animation:sit_talk": "fj_mvx4n7fz_ff51bd",
     "animation:sit_thumbs_up": "fj_mvx4n7uz_fdc107",
     "animation:strut": "fj_mvx4n8a3_64adf1",
-    "look:hooded": "fj_mvxg0q5l_10c652"
+    "look:hooded": "fj_mvxh0elc_01b3ea"
   },
   "history": [
     {
@@ -275,6 +275,12 @@
       "jobId": null,
       "replacedBy": "fj_mvxg0q5l_10c652",
       "at": 1793514360343
+    },
+    {
+      "slot": "look:hooded",
+      "jobId": "fj_mvxg0q5l_10c652",
+      "replacedBy": "fj_mvxh0elc_01b3ea",
+      "at": 1793515872726
     }
   ],
   "currentLook": "hooded"

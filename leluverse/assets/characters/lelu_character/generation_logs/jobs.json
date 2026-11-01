@@ -6934,5 +6934,153 @@
         "animated": false
       }
     }
+  },
+  {
+    "id": "fj_mvxh0elc_01b3ea",
+    "character": "lelu_character",
+    "kind": "rigging",
+    "purpose": "Rig the approved Outfit B hooded look so it can carry her animations",
+    "request": {
+      "input_task_id": "01a195c6-292f-74f9-94d6-99f752535dbd",
+      "height_meters": 1.72
+    },
+    "requestKey": "60edaef04739eab853f635dcf7180050521192981a778e2845f11963985338f4",
+    "estimatedCredits": 5,
+    "status": "SUCCEEDED",
+    "meshyTaskId": "01a195df-8f6f-76c6-ab03-31ae738f5d03",
+    "progress": 100,
+    "consumedCredits": 5,
+    "error": null,
+    "identityLock": null,
+    "createdAt": 1793515818720,
+    "updatedAt": 1793515850447,
+    "submittedAt": 1793515822545,
+    "finishedAt": 1793515846993,
+    "output": {
+      "dir": "characters/lelu_character/rig/v006_rigging_01a195df",
+      "files": [
+        {
+          "role": "model",
+          "file": "characters/lelu_character/rig/v006_rigging_01a195df/rigged.glb",
+          "bytes": 18768960,
+          "sha256": "6848796da04eee3f36191d2bc29c62e054b05cf999c6727843336f15caffb903"
+        },
+        {
+          "role": "model-fbx",
+          "file": "characters/lelu_character/rig/v006_rigging_01a195df/rigged.fbx",
+          "bytes": 17953004,
+          "sha256": "b1206efaab47b849b65c93da09e15341f156b07789bc640e90c689c3b703da61"
+        },
+        {
+          "role": "animation",
+          "file": "characters/lelu_character/rig/v006_rigging_01a195df/walking_glb.glb",
+          "bytes": 18749140,
+          "sha256": "00e0ebf542d89e9b4e89126e6f3db9f3f6e7ba1852718b6ab98afeede1bacdbd"
+        },
+        {
+          "role": "armature",
+          "file": "characters/lelu_character/rig/v006_rigging_01a195df/walking_armature_glb.glb",
+          "bytes": 90036,
+          "sha256": "9a13f6b63df6b847d5d3e90db44d8be8e900d35e84acb9ef92536a3cc00fb0af"
+        },
+        {
+          "role": "animation",
+          "file": "characters/lelu_character/rig/v006_rigging_01a195df/running_glb.glb",
+          "bytes": 18738532,
+          "sha256": "9067886efed1fa40748688306cacd265f07b146630317a4112079b0fd25f189d"
+        },
+        {
+          "role": "armature",
+          "file": "characters/lelu_character/rig/v006_rigging_01a195df/running_armature_glb.glb",
+          "bytes": 79416,
+          "sha256": "6f84233882b8092cf366b30ad56274aed77d8428389eafdb68ef7fe67971f604"
+        },
+        {
+          "role": "provenance",
+          "file": "characters/lelu_character/rig/v006_rigging_01a195df/provenance.json",
+          "bytes": 495,
+          "sha256": "1f698645965b912963c26e37ce87966f9ddcef4427ebd6c38d831d75f0351cc4"
+        }
+      ]
+    },
+    "validation": {
+      "ok": true,
+      "problems": [],
+      "warnings": [],
+      "bytes": 18768960,
+      "generator": "Khronos glTF Blender I/O v4.5.51",
+      "geometry": {
+        "meshes": 1,
+        "primitives": 1,
+        "vertices": 64296,
+        "triangles": 30709,
+        "bounds": {
+          "min": [
+            -0.37821078300476074,
+            0,
+            -0.24709400534629822
+          ],
+          "max": [
+            0.37821072340011597,
+            1.7200000286102295,
+            0.2470940351486206
+          ],
+          "size": [
+            0.7564215064048767,
+            1.7200000286102295,
+            0.4941880404949188
+          ]
+        },
+        "dracoCompressed": false
+      },
+      "surface": {
+        "materials": 1,
+        "textures": 3,
+        "images": 3,
+        "baseColorTextured": true,
+        "pbrMaps": true
+      },
+      "rig": {
+        "skins": 1,
+        "joints": 24,
+        "humanoidBonesFound": [
+          "hips",
+          "spine",
+          "neck",
+          "head",
+          "leftUpperArm",
+          "rightUpperArm",
+          "leftForearm",
+          "rightForearm",
+          "leftHand",
+          "rightHand",
+          "leftUpperLeg",
+          "rightUpperLeg",
+          "leftLowerLeg",
+          "rightLowerLeg",
+          "leftFoot",
+          "rightFoot"
+        ],
+        "humanoidBonesMissing": [],
+        "weightValidity": 1,
+        "skinnedVertices": 64296
+      },
+      "motion": {
+        "clips": [
+          {
+            "name": "Armature|clip0|baselayer",
+            "duration": 0.03333333507180214,
+            "channels": 72,
+            "drivesJoints": true
+          }
+        ]
+      },
+      "verdict": {
+        "meshValid": true,
+        "textured": true,
+        "rigValid": true,
+        "animated": true
+      }
+    }
   }
 ]

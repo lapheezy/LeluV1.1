@@ -194,3 +194,8 @@
 {"at":"2026-11-01T06:26:00.290Z","type":"blender_succeeded","operation":"export","jobId":"fj_mvxg5592_36c413","parentJobId":"fj_mvxg0q5l_10c652","dir":"characters/lelu_character/meshes/v010_export_mvxg0q5l","formats":["blend","obj","stl","fbx"],"runtime":{"file":"runtime.glb","bytes":16330272,"sourceTriangles":30709,"decimateRatio":0.9769},"render":{"file":"render.png","bytes":1078785},"source":{"objects":1,"meshes":1,"armatures":0,"bones":0,"materials":1,"images":3,"triangles":30709,"actions":0,"height":1.8968,"min":[-0.4175,-0.2675,-0.95],"max":[0.4167,0.2774,0.9468]},"warnings":[],"verdict":{"meshValid":true,"textured":true,"rigValid":false,"animated":false}}
 {"at":"2026-11-01T06:26:00.344Z","type":"slot_approved","slot":"look:hooded","jobId":"fj_mvxg0q5l_10c652"}
 {"at":"2026-11-01T06:26:00.382Z","type":"look_changed","look":"hooded"}
+{"at":"2026-11-01T06:50:18.724Z","type":"job_planned","jobId":"fj_mvxh0elc_01b3ea","kind":"rigging","estimatedCredits":5,"parentJobId":"fj_mvxg0q5l_10c652"}
+{"at":"2026-11-01T06:50:22.545Z","type":"job_submitted","jobId":"fj_mvxh0elc_01b3ea","meshyTaskId":"01a195df-8f6f-76c6-ab03-31ae738f5d03","estimatedCredits":5}
+{"at":"2026-11-01T06:50:50.446Z","type":"job_succeeded","jobId":"fj_mvxh0elc_01b3ea","consumedCredits":5,"dir":"characters/lelu_character/rig/v006_rigging_01a195df","verdict":{"meshValid":true,"textured":true,"rigValid":true,"animated":true},"problems":[]}
+{"at":"2026-11-01T06:51:12.727Z","type":"slot_approved","slot":"look:hooded","jobId":"fj_mvxh0elc_01b3ea"}
+{"at":"2026-11-01T06:51:12.737Z","type":"look_changed","look":"hooded"}
