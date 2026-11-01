@@ -20,6 +20,7 @@ import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { githubApiPlugin } from "./plugins/githubApi.ts";
+import { voiceApiPlugin } from "./plugins/voiceApi.ts";
 import { runtimeKeyBridgePlugin, bridgeReport } from "./plugins/runtimeKeyBridge.ts";
 import { fillBareSecretAliases } from "./plugins/bareSecretAliases.ts";
 import { readBuildInfo } from "./plugins/buildInfo.ts";
@@ -224,6 +225,7 @@ export default defineConfig(({ mode, command }) => {
       },
 
       githubApiPlugin(envReader),
+      voiceApiPlugin(envReader),
 
       glslIncludes(),
 

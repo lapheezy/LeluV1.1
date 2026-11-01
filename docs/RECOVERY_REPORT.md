@@ -208,6 +208,53 @@ animation hooks, and no caption cards (`97f161a`). Untested: this container
 has no microphone and no browser, so no
 microphone→AI→audio interaction was performed and none is claimed.
 
+### Her own voice — ElevenLabs, brokered by the server
+
+Her speech was browser `speechSynthesis`: whatever voice the visitor's OS
+happened to install, different on every machine, and absent on some. There was
+no ElevenLabs code in the tree at all — only the unused secret.
+
+Added:
+
+- `plugins/voiceApi.ts` — `GET /api/voice/status` (`{configured, voiceId,
+  modelId}`, no network call, no key) and `POST /api/voice/tts` (audio/mpeg).
+  The server attaches `xi-api-key`; the browser never sees it. Cross-origin
+  POSTs are refused, text is capped at 900 characters per segment, and an
+  upstream refusal returns a JSON error with the upstream status — never a 200
+  carrying an error, never silent audio.
+- `src/core/voice/elevenLabsTts.ts` — serialised playback, so streamed
+  sentences cannot overlap, plus `stopSpeaking()` for barge-in.
+- `src/core/voice/VoiceEngine.ts` — her voice now takes priority in
+  `speakResponse`, both streaming paths, and `cancelSpeech()` stops the playing
+  MP3 (not just the browser queue). Browser TTS remains the fallback, and a
+  mid-reply failure demotes to it so a reply is never left unspoken.
+
+Voice: **Jessica** (`cgSgspJ2msm6clMCkdW9`, "Playful, Bright, Warm", American,
+conversational) — chosen from the 21 voices this key can reach for a natural
+feminine register rather than an announcer. Model: **`eleven_v3`** (the
+expressive model on this account). Both are overridable with
+`ELEVENLABS_VOICE_ID` / `ELEVENLABS_MODEL_ID`.
+
+Verified live through the route:
+
+```
+GET  /api/voice/status → {"configured":true,"voiceId":"cgSgspJ2msm6clMCkdW9","modelId":"eleven_v3"}
+POST /api/voice/tts    → 200, 23 030 bytes, content-type audio/mpeg
+POST with foreign Origin → 403
+```
+
+Account tier is **free**: 10 000 characters. That is enough for testing and
+short replies, not for a long conversation — synthesis fails loudly when it runs
+out rather than degrading silently.
+
+Listening is unchanged and still honest: the echo guard (`isEchoUtterance`)
+still discards her own voice picked up by the open mic, and barge-in still
+interrupts — now including the MP3, which the browser-only path could not stop.
+
+**Not yet verified:** actual playback in a browser. The route, the audio bytes
+and the wiring are proven; hearing her voice needs a real browser, which this
+container does not have.
+
 ## 8. Genesis / Cosmos
 
 Recovered and merged: Genesis V2, the Cosmos renderer, the render budget that

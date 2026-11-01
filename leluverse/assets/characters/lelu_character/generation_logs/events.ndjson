@@ -171,3 +171,4 @@
 {"at":"2026-11-01T01:04:48.812Z","type":"slot_approved","slot":"animation:strut","jobId":"fj_mvx4n8a3_64adf1"}
 {"at":"2026-11-01T01:35:44.032Z","type":"blender_succeeded","operation":"faceshapes","jobId":"fj_mvx5ruga_571dd5","parentJobId":"fj_mvwaqbim_55226d","dir":"characters/lelu_character/rig/v005_faceshapes_mvwaqbim","verdict":{"meshValid":true,"textured":true,"rigValid":true,"animated":false}}
 {"at":"2026-11-01T01:35:53.072Z","type":"slot_approved","slot":"rig","jobId":"fj_mvx5ruga_571dd5"}
+{"at":"2026-11-01T04:47:32.298Z","type":"slot_approved","slot":"animation:wave","jobId":"fj_mvww3may_d43af7"}
