@@ -48,7 +48,16 @@ const res = await page.goto(`${SCHEME}://${HOST}:${PORT}/`, { waitUntil: "load",
 console.log("HTTP", res?.status(), "| title:", await page.title());
 
 // Let the canvas mount, the character GLB download and the first frames draw.
-await page.waitForTimeout(20_000);
+await page.waitForTimeout(Number(process.env.PV_WAIT ?? 20_000));
+for (const label of [/enter/i, /begin/i, /start/i, /continue/i, /tap to/i]) {
+  const button = page.getByRole("button", { name: label });
+  if (await button.count()) {
+    await button.first().click({ timeout: 5_000 }).catch(() => {});
+    console.log("dismissed gate via", String(label));
+    await page.waitForTimeout(Number(process.env.PV_AFTER ?? 15_000));
+    break;
+  }
+}
 // SwiftShader takes a long time to composite a 1400x900 three.js scene, so the
 // default 30s capture budget is not enough; the render itself is fine.
 await page.screenshot({ path: OUT, timeout: 180_000, animations: "disabled", caret: "hide" });
