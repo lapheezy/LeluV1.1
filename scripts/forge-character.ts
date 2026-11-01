@@ -16,6 +16,8 @@
  *   tsx scripts/forge-character.ts wardrobe-add <category> <id> <jobId> [slot] [bone]   name a finished asset as wearable (free)
  *   tsx scripts/forge-character.ts dress <look|-> [slot=item|slot=-]...   switch look and swap pieces at once
  *   tsx scripts/forge-character.ts ingest <image.png> <refId> <view…>   store a supplied image as a reference
+ *   tsx scripts/forge-character.ts crop <board.png> <refId> <x,y,w,h> [--category=clothing] [--view=…]   one asset out of a board (free)
+ *   tsx scripts/forge-character.ts plan-inventory <inventory.json> [--approve --budget=N]   every asset: what it costs, what blocks it
  *   tsx scripts/forge-character.ts plan-look <refId>...   plan an approved look from 1–4 of her own photos (spends nothing)
  *   tsx scripts/forge-character.ts approve <jobId>      submit it (spends credits)
  *   tsx scripts/forge-character.ts reject <jobId> [reason]  decline a planned job; its record is kept
@@ -37,6 +39,8 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { inspectGlb } from "../src/core/forge/GlbInspector.ts";
 import { buildRecords } from "../plugins/forgeReferences.ts";
+import { cropPng } from "../plugins/forgeCrop.ts";
+import { planInventory, totalise, validateInventory } from "../plugins/wardrobeInventory.ts";
 import { ForgeStore, type CharacterSlot, type ForgeJob } from "../plugins/forgeStore.ts";
 import { ForgeError, MeshyForge } from "../plugins/meshyForge.ts";
 
@@ -467,6 +471,93 @@ async function main(): Promise<void> {
       const result = forge.dressOutfit(CHARACTER, { look: lookArg === "-" ? undefined : lookArg, wear });
       console.log(`showing ${result.manifest.currentLook ?? "base rig"}`);
       for (const d of result.dressed) console.log(`  ${d.slot}  ${d.item ?? "off"}${d.placementId ? `  ${d.placementId}` : ""}`);
+      return;
+    }
+    case "crop": {
+      // The board is a blueprint, not the product: cut ONE asset out of it, keep
+      // where it came from, and store the cut as its own reference.
+      const [file, refId, rect] = process.argv.slice(3);
+      if (!file || !refId || !rect) throw new ForgeError("usage: crop <board.png> <refId> <x,y,w,h> [--category=clothing] [--view=…]");
+      const numbers = rect.split(",").map(Number);
+      if (numbers.length !== 4 || numbers.some((n) => !Number.isFinite(n))) throw new ForgeError(`Region must be four fractions x,y,w,h (got "${rect}").`);
+      const [x, y, w, h] = numbers;
+      const flag = (name: string, fallback: string) => new RegExp(`--${name}=([^\\s]+)`).exec(process.argv.join(" "))?.[1] ?? fallback;
+      const category = flag("category", "clothing") as "identity" | "body" | "hair" | "clothing" | "accessories";
+      const view = flag("view", "detail");
+      const sheet = new Uint8Array(readFileSync(file));
+      const source = buildRecords([{ classification: { id: "source", sourceName: path.basename(file), category, view, outfitVariant: "unspecified", intendedUse: "n/a", uses: [] }, file, bytes: sheet }], [])[0];
+      const cropped = cropPng(sheet, { x, y, w, h });
+      const existing = store.references(CHARACTER);
+      if (existing.some((r) => r.id === refId)) throw new ForgeError(`Reference id "${refId}" already exists; crops are never overwritten.`);
+      const [record] = buildRecords(
+        [
+          {
+            classification: {
+              id: refId,
+              sourceName: `${path.basename(file)}#${rect}`,
+              category,
+              view,
+              outfitVariant: "unspecified",
+              intendedUse: `One asset cut out of ${path.basename(file)} (${rect}); a design guide, second to the original photograph.`,
+              uses: ["geometry"],
+              notes: `crop ${rect} of ${path.basename(file)} sha256 ${source.metrics.sha256.slice(0, 16)}`,
+            },
+            file: "",
+            bytes: cropped.png,
+          },
+        ],
+        existing,
+      );
+      record.file = store.relative(store.storeReferenceFile(CHARACTER, refId, ".png", cropped.png));
+      store.saveReferences(CHARACTER, [...existing, record]);
+      console.log(`${record.id}  ${cropped.width}×${cropped.height}  ${record.file}  quality ${record.quality}`);
+      return;
+    }
+    case "plan-inventory": {
+      const file = process.argv[3];
+      if (!file) throw new ForgeError("usage: plan-inventory <inventory.json> [--approve --budget=N]");
+      const inventory = validateInventory(JSON.parse(readFileSync(file, "utf8")));
+      const planned = planInventory(inventory, store.references(CHARACTER));
+      const totals = totalise(planned);
+      let look = "";
+      for (const item of planned) {
+        if (item.look !== look) {
+          look = item.look;
+          console.log(`\n${inventory.looks.find((l) => l.id === look)?.title ?? look}`);
+          console.log("asset                          category     slot             kind        credits");
+        }
+        const name = item.asset.id.padEnd(30);
+        console.log(
+          `${name} ${item.asset.category.padEnd(12)} ${item.asset.slot.padEnd(16)} ${item.kind.padEnd(11)} ${item.blockers.length ? "blocked" : String(item.estimate + item.rigEstimate).padStart(5)}`,
+        );
+        for (const blocker of item.blockers) console.log(`  ! ${blocker}`);
+      }
+      console.log(
+        `\n${planned.length} assets: ${totals.ready} ready, ${totals.blocked} blocked.  ` +
+          `Generation ${totals.generation} credits + rigging ${totals.rigging} = ${totals.generation + totals.rigging} credits.`,
+      );
+      const approve = process.argv.includes("--approve");
+      if (!approve) {
+        console.log("Nothing submitted. Planning is free; --approve --budget=N submits the ready assets.");
+        return;
+      }
+      const budget = Number(/--budget=(\d+)/.exec(process.argv.join(" "))?.[1] ?? 0);
+      const needed = totals.generation + totals.rigging;
+      if (!budget) throw new ForgeError("--approve needs --budget=N: the most credits this run may spend.");
+      if (needed > budget) throw new ForgeError(`This run would cost ${needed} credits, over the ${budget}-credit budget. Nothing submitted.`);
+      if (totals.blocked) {
+        console.log(`${totals.blocked} assets are blocked and will be skipped.`);
+      }
+      for (const item of planned.filter((p) => !p.blockers.length)) {
+        const { job } = await forge.request({
+          character: CHARACTER,
+          kind: item.kind,
+          purpose: `${item.look} — ${item.asset.name}`,
+          body: item.body,
+          approve: true,
+        });
+        console.log(`${item.asset.id.padEnd(30)} ${job.status.padEnd(18)} ${job.id}  ${job.estimatedCredits} cr`);
+      }
       return;
     }
     case "ingest": {
