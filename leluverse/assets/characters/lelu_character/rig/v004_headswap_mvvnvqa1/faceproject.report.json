@@ -1,0 +1,45 @@
+{
+  "steps": [
+    {
+      "step": "landmarks",
+      "render": 478,
+      "reference": 478
+    },
+    {
+      "step": "eye-fit-mirrored",
+      "bad": "eye_patch_l",
+      "good": "eye_patch_r",
+      "depthDiffMm": 3.21
+    },
+    {
+      "step": "eye-patches",
+      "patches": [
+        {
+          "patch": "eye_patch_r",
+          "cropPx": [
+            121,
+            78
+          ],
+          "surfaceFitPoints": 245
+        },
+        {
+          "patch": "eye_patch_l",
+          "cropPx": [
+            121,
+            83
+          ],
+          "surfaceFitPoints": 248
+        }
+      ],
+      "finVerticesRemoved": 258
+    },
+    {
+      "step": "export",
+      "file": "lelu_face.glb",
+      "bytes": 48585500
+    }
+  ],
+  "warnings": [
+    "eye_patch_l: its skin fit disagreed with eye_patch_r by 3.2 mm (hair in front?); used the mirror of eye_patch_r."
+  ]
+}

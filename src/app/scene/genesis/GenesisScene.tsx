@@ -29,7 +29,7 @@
 import { Canvas } from "@react-three/fiber";
 
 import GenesisCore, {
-  useGenesis,
+  useGenesisState,
 } from "./GenesisCore";
 
 import GenesisErrorBoundary
@@ -76,6 +76,9 @@ import GenesisNotificationCenter
 
 import CosmosSkyBackdrop
   from "./CosmosSkyBackdrop";
+
+import SceneFrameGovernor, { useSceneFrameloop }
+  from "./SceneFrameGovernor";
 
 import { useLeluRuntime }
   from "../../../core/runtime/useLeluRuntime";
@@ -176,11 +179,12 @@ function CosmosPhaseHUD() {
 
   return (
     <div
+      className="lelu-phase-hud"
       style={{
         position: "fixed",
-        top: 12,
-        left: 12,
-        zIndex: 50,
+        /* Bottom-left (see .lelu-phase-hud): top-left belongs to the dock
+           rail and the Genesis chip, which this readout used to cover. */
+        zIndex: 2,
         pointerEvents: "none",
         display: "flex",
         flexDirection: "column",
@@ -291,6 +295,7 @@ function CosmosPhaseHUD() {
  */
 const GenesisV1Workspace = memo(function GenesisV1Workspace() {
   useSceneMountLog("GenesisV1Workspace");
+  const frameloop = useSceneFrameloop();
 
   return (
     <div
@@ -298,8 +303,8 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
       style={{
         position: "fixed",
         inset: 0,
-        width: "100vw",
-        height: "100vh",
+        width: "100%",
+        height: "100%",
         background: "#020617",
       }}
     >
@@ -327,8 +332,10 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
             <Canvas
               camera={{ position: [0, 0, 5], fov: 50 }}
               gl={{ alpha: true, antialias: true }}
+              frameloop={frameloop}
               style={{ width: "100%", height: "100%" }}
             >
+              <SceneFrameGovernor />
               <GenesisController />
             </Canvas>
           </ReactSuspense>
@@ -373,7 +380,7 @@ function GenesisV2Workspace({ onClose }: { onClose: () => void }) {
  * mounted scene, and no branch ever renders another scene's content.
  */
 function GenesisWorkspaceRouter() {
-  const { state, openPanel } = useGenesis();
+  const { state, openPanel } = useGenesisState();
   const { state: visualState } = useVisual();
 
   const surface = useSurface();

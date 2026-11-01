@@ -311,8 +311,8 @@ const REMOTE_MODEL_CATALOG: ModelDescriptor[] = [
     capabilities: ["chat", "vision", "reasoning", "code"],
   },
   {
-    id: "anthropic.claude-sonnet-4-5",
-    name: "Claude Sonnet 4.5 (Anthropic)",
+    id: "anthropic.claude-opus-5-5",
+    name: "Claude Opus 5.5 (Anthropic)",
     provider: "Anthropic",
     modalities: ["text", "vision", "code"],
     local: false,
@@ -467,18 +467,8 @@ export default class ModelRouter {
       }
     }
 
-    // Low-memory devices prefer the fastest remote providers first.
-    if (hardware.tier === "low" || hardware.tier === "minimal") {
-      for (const name of ["Groq", "Cerebras", "Fireworks"]) {
-        if (!preferred.includes(name)) {
-          preferred.push(name);
-        }
-      }
-    }
-
-    // Explicit per-request provider preference always wins, then the
-    // router's modality/hardware ordering is appended as a secondary
-    // signal — the existing chain still applies afterward.
+    // Explicit per-request provider preference always wins, then vision
+    // capability when media is attached.
     const explicit = request.preferredProviders ?? [];
     const ordered = [...explicit];
 
@@ -493,8 +483,13 @@ export default class ModelRouter {
     }
 
     for (const name of preferred) {
-      if (!ordered.includes(name)) {
-        ordered.push(name);
+      if (!ordered.includes(name)) ordered.push(name);
+    }
+
+    // Low-memory devices then prefer the fastest remote providers.
+    if (hardware.tier === "low" || hardware.tier === "minimal") {
+      for (const name of ["Groq", "Cerebras", "Fireworks"]) {
+        if (!ordered.includes(name)) ordered.push(name);
       }
     }
 

@@ -27,6 +27,7 @@
 import { useEffect, useRef } from "react";
 
 import { sampleCosmosAtmosphere } from "./cosmos/CosmosAtmosphere";
+import { getSceneRenderBudget } from "./SceneRenderBudget";
 
 function clamp255(value: number): number {
   return Math.max(0, Math.min(255, Math.round(value)));
@@ -140,7 +141,14 @@ export default function CosmosSkyBackdrop() {
     }
 
     let frame = 0;
+    const budget = getSceneRenderBudget();
     const tick = () => {
+      // Covered by the full-screen chat, or the user is typing on a phone:
+      // skip the paint (the static-snow noise alone is ~130k randoms).
+      if (!budget.allowFrame("cosmos-sky")) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
       const sky = buildSky(performance.now() / 1000);
       frame += 1;
 

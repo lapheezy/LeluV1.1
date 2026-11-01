@@ -48,6 +48,7 @@ function parseLine(line: string): { key: string; value: string } | null {
   return { key: match[1], value };
 }
 
+import { fillBareSecretAliases } from "./bareSecretAliases.ts";
 import { readFileSync } from "node:fs";
 
 function readFileLines(filePath: string): string[] {
@@ -89,6 +90,12 @@ export function loadEnvFiles(
       }
     }
   }
+
+  // The platform writes these files from the project's secret store, under
+  // the SECRET names (`Anthropic`, `Groq`, `Supabase`). Map them onto the
+  // documented names here too, so the standalone and Deno runtimes behave
+  // exactly like the Vite dev server — see plugins/bareSecretAliases.ts.
+  fillBareSecretAliases(lookup);
 
   for (const key of watchedKeys) {
     const value = lookup.get(key);

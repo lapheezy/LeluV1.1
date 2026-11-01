@@ -35,6 +35,12 @@ import WorldLifecycle from "../app/scene/genesis/engines/WorldLifecycle";
 import PersistentRuntime from "./proactive/PersistentRuntime";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { registerEarthTools } from "./earth/EarthTools";
+import { registerForgeTools } from "./forge/ForgeTools";
+import { registerWorldTools } from "./world/WorldTools";
+import { registerAgenticTools } from "./agentic/AgenticTools";
+import { registerCosmosTools } from "./cosmos/CosmosTools";
+import TaskExecutor from "./agentic/TaskExecutor";
+import DailyReflection from "./agentic/DailyReflection";
 import ToolRegistry from "./tools/ToolRegistry";
 import { markPerf } from "./perf/StartupTelemetry";
 import StartupDiagnostic from "./selfdev/StartupDiagnostic";
@@ -179,6 +185,21 @@ export default class Bootstrap {
       const tasks = TaskEngine.getInstance();
       // Earth Core tool registry (spatial capabilities for cognition)
       registerEarthTools();
+      // 3D Forge (character/asset generation through the server-side Meshy broker)
+      registerForgeTools();
+      registerWorldTools();
+      // Agency: capability discovery, delegation, multi-step tasks,
+      // approvals, reflection. Tasks cut off by the last shutdown are
+      // marked paused (resumable) rather than left "running" forever.
+      registerAgenticTools();
+      // Cosmos: the navigable map and the workspace API, offered through the
+      // same dispatcher/gate/approval path as every other tool.
+      registerCosmosTools();
+      const interrupted = TaskExecutor.getInstance().recoverInterrupted();
+      if (interrupted.length) {
+        console.info(`[Bootstrap] ${interrupted.length} interrupted task(s) are paused and resumable.`);
+      }
+      DailyReflection.getInstance().start();
       // Recompute ToolRegistry availability from real runtime state
       // (autonomy gate, GitHub connection, device features) — it was
       // previously a catalog of hardcoded booleans nobody ever checked.

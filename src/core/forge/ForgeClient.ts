@@ -1,0 +1,361 @@
+/**
+ * ==========================================================
+ * LÉLU 3D FORGE — BROWSER CLIENT
+ *
+ * The page's only route to Meshy is the same-origin Forge
+ * (/api/forge, plugins/meshyForgeApi.ts), which holds the
+ * credential, the ledger and the approval gate. This client
+ * holds nothing secret: it plans, asks for approval, follows
+ * progress and fetches finished, inspected outputs.
+ * ==========================================================
+ */
+
+import type { ForgeJobKind } from "./MeshyCatalog";
+import type { GlbReport } from "./GlbInspector";
+
+export interface ForgeJobView {
+  id: string;
+  character: string;
+  kind: ForgeJobKind | "blender";
+  purpose: string;
+  status: string;
+  progress: number;
+  estimatedCredits: number;
+  consumedCredits: number | null;
+  meshyTaskId: string | null;
+  error: string | null;
+  output: { dir: string; files: Array<{ role: string; file: string; bytes: number; sha256: string }> } | null;
+  validation: GlbReport | null;
+}
+
+export interface ForgeStatus {
+  configured: boolean;
+  credential: string | null;
+  usage: { jobs: number; estimatedCredits: number; consumedCredits: number; byStatus: Record<string, number> };
+}
+
+export interface ActiveModel {
+  jobId: string;
+  kind: string;
+  file: string;
+  verdict: GlbReport["verdict"] | null;
+}
+
+export interface ActiveCharacter {
+  character: string;
+  model: ActiveModel | null;
+  animations: Record<string, ActiveModel | null>;
+  /** Approved looks (e.g. hood_up, hood_down) and the one being shown. */
+  looks: Record<string, ActiveModel | null>;
+  currentLook: string | null;
+  assetBase: string;
+}
+
+export interface CosmosPlacement {
+  id: string;
+  jobId: string;
+  character: string;
+  label: string;
+  file: string;
+  position: [number, number, number];
+  rotationY: number;
+  height: number;
+  attach?: { character: string; bone: string; offset: [number, number, number]; rotation: [number, number, number] } | null;
+  slot?: string | null;
+  worn?: boolean;
+  environmentId?: string;
+  primitive?: {
+    shape: "box" | "sphere" | "cylinder" | "cone" | "torus" | "plane";
+    color: string;
+    metalness: number;
+    roughness: number;
+    emissive: string | null;
+    opacity: number;
+    /** Size along x/y/z as a fraction of height (default [1, 1, 1]). */
+    proportions?: [number, number, number];
+  } | null;
+  physics?: { dynamic: boolean; mass: number; restitution: number; friction: number; velocity?: [number, number, number] } | null;
+  /** Generated furniture piece the part belongs to (e.g. "desk-1"). */
+  group?: string | null;
+  createdAt: number;
+}
+
+export type AvatarMood = "neutral" | "happy" | "focused" | "concerned" | "surprised" | "attentive";
+
+/** LÉLU's persistent place in the world: where she stands per environment, facing, resting mood. */
+export interface AvatarWorldState {
+  character: string;
+  environmentId: string;
+  position: [number, number, number];
+  facing: number;
+  mood: AvatarMood;
+  revision: number;
+  updatedAt: number;
+}
+
+export interface GeneratedRoom {
+  environment: WorldEnvironment;
+  plan: {
+    kind: string;
+    pieces: Array<{ group: string; type: string; position: [number, number]; rotationY: number }>;
+    skipped: string[];
+    seed: number;
+    settings: Partial<EnvironmentSettings>;
+  };
+  objects: CosmosPlacement[];
+}
+
+export interface EnvironmentSettings {
+  radius: number;
+  floorColor: string;
+  wallColor: string;
+  accent: string;
+  wallHeight: number;
+  ambient: number;
+  keyLight: number;
+  keyColor: string;
+  fogColor: string;
+  fogDensity: number;
+  gravity: number;
+}
+
+export interface WorldEnvironment {
+  id: string;
+  name: string;
+  kind: string;
+  description: string;
+  settings: EnvironmentSettings;
+  sandbox: boolean;
+  sandboxOf: string | null;
+  version: number;
+}
+
+export interface WorldState {
+  current: string;
+  environment: WorldEnvironment;
+  environments: Array<Pick<WorldEnvironment, "id" | "name" | "kind" | "sandbox" | "sandboxOf" | "version">>;
+  objects: CosmosPlacement[];
+  origin: { centre: [number, number]; floorY: number };
+  /** Absent from servers that predate persistent avatar state. */
+  avatar?: AvatarWorldState;
+}
+
+export interface LibraryAsset {
+  jobId: string;
+  character: string;
+  kind: string;
+  purpose: string;
+  dir: string;
+  model: string | null;
+  preview: string | null;
+  meshValid: boolean;
+  rigValid: boolean;
+  consumedCredits: number | null;
+  finishedAt: number | null;
+}
+
+/** Fired after anything the Cosmos renders changes (a slot promotion, a placement). */
+export const FORGE_CHANGED_EVENT = "lelu:forge-changed";
+
+function announce(): void {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(FORGE_CHANGED_EVENT));
+}
+
+const BASE = "/api/forge";
+const TERMINAL = new Set(["SUCCEEDED", "FAILED", "CANCELED", "rejected"]);
+
+async function call<T>(path: string, init?: { method?: string; body?: unknown }): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: init?.method ?? "GET",
+    headers: init?.body !== undefined ? { "Content-Type": "application/json" } : undefined,
+    body: init?.body !== undefined ? JSON.stringify(init.body) : undefined,
+  });
+  const payload = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; details?: string[] } & T;
+  if (!res.ok || payload.ok === false) {
+    const details = payload.details?.length ? ` (${payload.details.join("; ")})` : "";
+    throw new Error(`${payload.error ?? `Forge request failed (HTTP ${res.status})`}${details}`);
+  }
+  return payload;
+}
+
+export const ForgeClient = {
+  status: () => call<ForgeStatus>("/status"),
+
+  character: (character: string) => call<Record<string, unknown>>(`/characters/${encodeURIComponent(character)}`),
+
+  active: (character: string) => call<ActiveCharacter>(`/characters/${encodeURIComponent(character)}/active`),
+
+  addReference: (character: string, id: string, dataUrl: string, classification: Record<string, unknown> = {}) =>
+    call<{ reference: { id: string } }>(`/characters/${encodeURIComponent(character)}/references`, {
+      method: "POST",
+      body: { id, dataUrl, classification },
+    }),
+
+  /** Plan a job. Without `approve` it waits for approval and spends nothing. */
+  request: (input: { character: string; kind: ForgeJobKind; body: Record<string, unknown>; purpose?: string; approve?: boolean }) =>
+    call<{ reused: boolean; job: ForgeJobView }>("/jobs", { method: "POST", body: input }),
+
+  approve: (jobId: string) => call<{ job: ForgeJobView }>(`/jobs/${encodeURIComponent(jobId)}/approve`, { method: "POST", body: {} }),
+
+  reject: (jobId: string, reason = "") =>
+    call<{ job: ForgeJobView }>(`/jobs/${encodeURIComponent(jobId)}/reject`, { method: "POST", body: { reason } }),
+
+  job: (jobId: string) => call<{ job: ForgeJobView }>(`/jobs/${encodeURIComponent(jobId)}`),
+
+  jobs: (character?: string) =>
+    call<{ jobs: ForgeJobView[] }>(`/jobs${character ? `?character=${encodeURIComponent(character)}` : ""}`),
+
+  async approveSlot(character: string, slot: string, jobId: string) {
+    const result = await call<{ manifest: unknown }>(`/characters/${encodeURIComponent(character)}/slots`, { method: "POST", body: { slot, jobId } });
+    announce();
+    return result;
+  },
+
+  library: () => call<{ assets: LibraryAsset[] }>("/library"),
+
+  placements: () => call<{ placements: CosmosPlacement[] }>("/placements"),
+
+  world: () => call<WorldState>("/world"),
+
+  async enterEnvironment(id: string) {
+    const result = await call<WorldState>("/world/enter", { method: "POST", body: { id } });
+    announce();
+    return result;
+  },
+
+  async createEnvironment(input: { name: string; kind?: string; description?: string; settings?: Partial<EnvironmentSettings>; sandboxOf?: string }) {
+    const result = await call<{ environment: WorldEnvironment }>("/world/environments", { method: "POST", body: input });
+    announce();
+    return result;
+  },
+
+  async updateEnvironment(id: string, patch: { name?: string; description?: string; settings?: Partial<EnvironmentSettings> }) {
+    const result = await call<{ environment: WorldEnvironment }>(`/world/environments/${encodeURIComponent(id)}/update`, { method: "POST", body: patch });
+    announce();
+    return result;
+  },
+
+  history: (id: string) => call<{ history: Array<{ version: number; at: string; reason: string; objects: number }> }>(`/world/environments/${encodeURIComponent(id)}/history`),
+
+  async restoreEnvironment(id: string, version: number) {
+    const result = await call<{ environment: WorldEnvironment }>(`/world/environments/${encodeURIComponent(id)}/restore`, { method: "POST", body: { version } });
+    announce();
+    return result;
+  },
+
+  async promoteSandbox(id: string, approve: boolean) {
+    const result = await call<{ environment: WorldEnvironment }>(`/world/environments/${encodeURIComponent(id)}/promote`, { method: "POST", body: { approve } });
+    announce();
+    return result;
+  },
+
+  async createObject(input: Record<string, unknown>) {
+    const result = await call<{ object: CosmosPlacement }>("/world/objects", { method: "POST", body: input });
+    announce();
+    return result;
+  },
+
+  async modifyObject(id: string, patch: { primitive?: Partial<NonNullable<CosmosPlacement["primitive"]>>; physics?: Partial<NonNullable<CosmosPlacement["physics"]>> | null; environmentId?: string }) {
+    const result = await call<{ object: CosmosPlacement }>(`/world/objects/${encodeURIComponent(id)}/modify`, { method: "POST", body: patch });
+    announce();
+    return result;
+  },
+
+  /** Furnish a new environment (or an existing one) from a description; spends nothing. */
+  async generateRoom(input: {
+    description: string;
+    name?: string;
+    kind?: string;
+    items?: Array<string | { type: string; count?: number }>;
+    seed?: number;
+    radius?: number;
+    environmentId?: string;
+    replace?: boolean;
+    enter?: boolean;
+  }) {
+    const result = await call<GeneratedRoom>("/world/generate", { method: "POST", body: input });
+    announce();
+    return result;
+  },
+
+  async removeGroup(group: string, environmentId?: string) {
+    const result = await call<{ removed: CosmosPlacement[] }>(`/world/groups/${encodeURIComponent(group)}/remove`, { method: "POST", body: { environmentId } });
+    announce();
+    return result;
+  },
+
+  avatar: (character = "lelu_character", environmentId?: string) =>
+    call<{ avatar: AvatarWorldState }>(`/world/avatar/${encodeURIComponent(character)}${environmentId ? `?environment=${encodeURIComponent(environmentId)}` : ""}`),
+
+  async setAvatar(patch: { position?: [number, number, number] | [number, number]; facing?: number; towards?: string; mood?: AvatarMood; environmentId?: string }, character = "lelu_character") {
+    const result = await call<{ avatar: AvatarWorldState }>(`/world/avatar/${encodeURIComponent(character)}`, { method: "POST", body: patch });
+    announce();
+    return result;
+  },
+
+  /** Physics came to rest: persist where things ended up (no change event — the scene already shows it). */
+  settled: (positions: Record<string, [number, number, number]>) => call<{ ok: true }>("/world/settled", { method: "POST", body: { positions } }),
+
+  improvements: () => call<{ improvements: Array<Record<string, unknown>> }>("/world/improvements"),
+
+  recordImprovement: (entry: { stage: string; subject: string; what: string; why: string; tests?: string; passed?: boolean | null; environmentId?: string | null }) =>
+    call<{ improvement: Record<string, unknown> }>("/world/improvements", { method: "POST", body: entry }),
+
+  async wear(character: string, slot: string, worn: boolean) {
+    const result = await call<{ placements: CosmosPlacement[] }>(`/characters/${encodeURIComponent(character)}/wear`, { method: "POST", body: { slot, worn } });
+    announce();
+    return result;
+  },
+
+  async setLook(character: string, look: string | null) {
+    const result = await call<{ manifest: unknown }>(`/characters/${encodeURIComponent(character)}/look`, { method: "POST", body: { look } });
+    announce();
+    return result;
+  },
+
+  async updatePlacement(placementId: string, patch: Partial<Pick<CosmosPlacement, "label" | "position" | "rotationY" | "height" | "attach" | "slot" | "worn">>) {
+    const result = await call<{ placement: CosmosPlacement }>(`/placements/${encodeURIComponent(placementId)}/update`, { method: "POST", body: patch });
+    announce();
+    return result;
+  },
+
+  async place(input: { jobId: string; label?: string; position?: [number, number, number]; rotationY?: number; height?: number; attach?: CosmosPlacement["attach"]; slot?: string; worn?: boolean }) {
+    const result = await call<{ placement: CosmosPlacement }>("/placements", { method: "POST", body: input });
+    announce();
+    return result;
+  },
+
+  async unplace(placementId: string) {
+    const result = await call<{ placement: CosmosPlacement }>(`/placements/${encodeURIComponent(placementId)}/remove`, { method: "POST", body: {} });
+    announce();
+    return result;
+  },
+
+  assetUrl: (file: string) => `${BASE}/assets/${file.split("/").map(encodeURIComponent).join("/")}`,
+
+  async assetBytes(file: string): Promise<ArrayBuffer> {
+    const res = await fetch(ForgeClient.assetUrl(file));
+    if (!res.ok) throw new Error(`Asset download failed (HTTP ${res.status}).`);
+    return res.arrayBuffer();
+  },
+
+  /**
+   * Follow a job until it finishes and its outputs are on disk. Each read
+   * is one free status call that the server de-duplicates; the server's
+   * own monitor keeps polling Meshy whether or not anyone is watching.
+   */
+  async waitFor(jobId: string, onProgress?: (job: ForgeJobView) => void, options: { intervalMs?: number; timeoutMs?: number } = {}): Promise<ForgeJobView> {
+    const interval = options.intervalMs ?? 5_000;
+    const deadline = Date.now() + (options.timeoutMs ?? 15 * 60_000);
+    for (;;) {
+      const { job } = await ForgeClient.job(jobId);
+      onProgress?.(job);
+      if (TERMINAL.has(job.status) && (job.status !== "SUCCEEDED" || job.output)) return job;
+      if (job.status === "awaiting_approval" || job.status === "submit_uncertain") return job;
+      if (Date.now() > deadline) throw new Error(`Job ${jobId} is still ${job.status} after the wait budget; it keeps running server-side.`);
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+  },
+};
+
+export default ForgeClient;

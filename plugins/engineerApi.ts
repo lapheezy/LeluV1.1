@@ -49,14 +49,17 @@
  *     the workspace root (path traversal is rejected).
  *   • origin guard — state-changing POSTs from a different origin
  *     are rejected (CSRF).
- *   • optional token — when LELU_ENGINEER_TOKEN is set, POSTs must
- *     carry `x-lelu-token`; without it the runtime returns 401 so
- *     the app reports "token required" honestly instead of failing
- *     silently.
+ *   • access token — REQUIRED, and enforced fail-closed through
+ *     plugins/engineerAuth.ts. With no LELU_ENGINEER_TOKEN configured
+ *     every route answers 503 (disabled): this reads source, runs
+ *     commands and spawns servers, so an unconfigured host must expose
+ *     none of it rather than all of it. A configured token is required
+ *     on EVERY route, status included.
  * ==========================================================
  */
 
 import { identityConfigured, verifyRequestIdentity } from "./engineerIdentity.ts";
+import { engineerAuthVerdict, sendEngineerAuthFailure } from "./engineerAuth.ts";
 
 export interface EngineerCommandResult {
   ok: boolean;
@@ -333,21 +336,9 @@ function applyCors(req: ConnectLikeReq, res: ConnectLikeRes): void {
   if (!allowed.includes("*") && !allowed.includes(origin)) return;
   res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Vary", "Origin");
-  res.setHeader("Access-Control-Allow-Headers", "content-type, x-lelu-token");
+  res.setHeader("Access-Control-Allow-Headers", "content-type, x-lelu-token, x-lelu-engineer-token");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Max-Age", "600");
-}
-
-function tokenRequired(): boolean {
-  return typeof process !== "undefined" && Boolean(process.env.LELU_ENGINEER_TOKEN);
-}
-
-/** Does this request carry the configured access token? */
-function hasValidToken(req: ConnectLikeReq): boolean {
-  if (typeof process === "undefined") return false;
-  const header = req.headers?.["x-lelu-token"];
-  const provided = Array.isArray(header) ? header[0] : header;
-  return typeof provided === "string" && provided === process.env.LELU_ENGINEER_TOKEN;
 }
 
 /* ------------------------------------------------------------------ */
@@ -370,37 +361,39 @@ export function createEngineerApi(adapter: EngineerAdapter): {
       }
 
       /* ---- GET /api/engineer/status — runtime capability report ----
-         Deliberately reachable without a token: the client has to be
-         able to discover whether a runtime exists at all (and whether
-         a token is even required) before it can present one.
 
-         But an unauthenticated probe gets only the capability facts.
-         Absolute filesystem paths and engine/version details are
-         disclosed ONLY to a caller that already holds the token, so
-         enabling LELU_ENGINEER_TOKEN does not leave server internals
-         readable by anyone who can reach the port. */
+         Token-gated like everything else. This endpoint used to stay
+         open on the theory that a client must learn whether a token is
+         needed before it can present one — but it also disclosed the
+         absolute workspace path, the engine and version, and the
+         operation list, which is a map of the host handed to anyone who
+         could reach the port.
+
+         The refusal body still answers the one question a client
+         legitimately needs (`tokenRequired`), and nothing more: no
+         paths, no operations, no versions. */
       if (route === "/api/engineer/status") {
         if (method === "GET") {
-          const trusted = !tokenRequired() || hasValidToken(req);
+          const verdict = engineerAuthVerdict(req);
+          if (!verdict.ok) {
+            sendEngineerAuthFailure(res, verdict);
+            return;
+          }
           sendJson(res, {
             ok: true,
             runtime: adapter.runtime,
             available: true,
             operations: Object.keys(ENGINEER_OPERATIONS),
             workspace: adapter.workspaceRoot.split(/[\\/]/).pop() ?? "",
-            tokenRequired: tokenRequired(),
+            tokenRequired: true,
             // Whether this runtime can establish WHO is asking. When
             // false, apply is refused outright — the client shows that
             // as a real limitation rather than discovering it on use.
             identityVerification: identityConfigured(),
-            ...(trusted
-              ? {
-                  workspaceRoot: adapter.workspaceRoot,
-                  // Live runtime facts, so the client can report REAL
-                  // DEVELOPMENT RUNTIME rather than assuming one exists.
-                  runtimeInfo: adapter.runtimeInfo(),
-                }
-              : {}),
+            workspaceRoot: adapter.workspaceRoot,
+            // Live runtime facts, so the client can report REAL
+            // DEVELOPMENT RUNTIME rather than assuming one exists.
+            runtimeInfo: adapter.runtimeInfo(),
           });
           return;
         }
@@ -423,13 +416,13 @@ export function createEngineerApi(adapter: EngineerAdapter): {
         return;
       }
 
-      /* ---- optional token gate ---- */
-      if (tokenRequired() && !hasValidToken(req)) {
-        sendJson(
-          res,
-          { ok: false, error: "Engineering runtime requires an access token (LELU_ENGINEER_TOKEN)." },
-          401,
-        );
+      /* ---- access token gate — FAIL CLOSED ----
+         Nothing below this line runs without a valid token. There is no
+         loopback exemption: behind a reverse proxy every request arrives
+         from 127.0.0.1, so one would be a total bypass. */
+      const authVerdict = engineerAuthVerdict(req);
+      if (!authVerdict.ok) {
+        sendEngineerAuthFailure(res, authVerdict);
         return;
       }
 

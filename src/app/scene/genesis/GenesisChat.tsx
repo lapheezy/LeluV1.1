@@ -1512,6 +1512,10 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         <div className="lelu-cc-clouds lelu-cc-clouds--near" />
       </div>
 
+      {/* LÉLU's face, behind the conversation (LeluCompanion, face mode).
+          Under the text, never over it, and it takes no touches. */}
+      <div className="lelu-cc-face" data-lelu-face-host aria-hidden />
+
       <div className="lelu-cc-shell">
         {/* Phone-only resize handle — only when floating (not fullscreen) */}
         {isFloatingMobile ? (
