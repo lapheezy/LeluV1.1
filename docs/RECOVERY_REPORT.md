@@ -71,130 +71,68 @@ Recovered by one merge (`66557f2`, 352 files, +29,262/−6,458):
 | `Avatar3DReconstructor.ts` | Kept this branch's **memory-only fallback** for a paid model and took the new `meshyTaskId` (`finished.meshyTaskId ?? finished.id`), plus the restored `sizeKb` the new message text needs. |
 | `LeluCompanion.tsx` | Took **theirs**: the new geometry/docked-window design supersedes the run-29 auto-placement (`chooseSpot`/500 ms `reconsider` no longer exists there). `CompanionStore` keeps `EDGE_MARGIN` 100 and the 0.1/0.15 default spot. |
 
-## 3. Supabase — key present, URL absent, and the key does not pair with the archived project
+## 3. Supabase — connected; the key and the URL now belong to the same project
 
-The code is present and the integration survived the merge (94 files
-reference Supabase; the client resolves `VITE_SUPABASE_URL` /
-`VITE_SUPABASE_PUBLISHABLE_KEY`, and the server also accepts the
-server-published `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY`).
+The integration itself survived the merge (94 files reference Supabase; the
+client resolves `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY`, and the
+server also accepts `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY`). Getting it to
+actually connect took three separate faults. Each was proved with a live
+request, not inferred from a successful build.
 
-**The file is generated, and its names are the SECRET names.** Its first line
-says so:
+**Fault 1 — the names.** `.env.local` is generated, and says so:
 
 ```
 # Written by Freebuff from this project's secrets (Settings → Projects). Changes here are replaced.
 ```
 
-The seven entries are keyed by a provider word — the name the secret store uses
-— while the code asks for `ANTHROPIC_API_KEY` / `GROQ_API_KEY` (server, where
-model calls are brokered) and `VITE_SUPABASE_PUBLISHABLE_KEY` (browser):
+Its entries are keyed by the *secret* name (`Anthropic`, `Groq`, `Supabase`)
+while the code asks for `ANTHROPIC_API_KEY`, `GROQ_API_KEY` and
+`VITE_SUPABASE_PUBLISHABLE_KEY`. A hand-rename worked until the file was next
+regenerated; `plugins/bareSecretAliases.ts` now performs that mapping in code,
+fills only absent names, and is pinned by `tests/bare-secret-aliases.test.ts`.
+
+**Fault 2 — no URL.** The `Supabase` secret is a genuine publishable key
+(`sb_publishable_…`, 46 characters), client-safe by design, with RLS as the
+protection. It is not a project URL, and no alias invents one from it.
+
+**Fault 3 — the key belonged to a different project.** Two URLs were supplied
+before the right one, and the first of them was a real, reachable project:
 
 ```
-Anthropic=…    Elevenlabs=…   Github=…     Groq=…
-Meshy=…        Openrouter=…   Supabase=…
+apikey → dndbribvsphduvrrypxr       → 401 {"message":"Invalid API key", "hint":"…might also be owned by another Supabase project."}
+apikey → a ref that does not exist  → 400 {"message":"Project not specified."}
 ```
 
-So seven real credentials sat in the file while every provider reported itself
-unconfigured, and Supabase reported `disabled` because its key was filed under
-`Supabase`. Renaming the lines by hand fixes that only until the file is next
-regenerated — which is exactly what happened here: a working hand-rename was
-replaced, and the providers went dark again with the keys still in place.
+Different answers mean the project existed and answered — the key just was not
+its key. (An intermediate reply of mine read that hostname as NXDOMAIN; that
+was a stale negative cache, not a fact.)
 
-**The fix is in code, not in the file, and it is pinned by a test.**
-`plugins/bareSecretAliases.ts` fills each documented name from its bare
-counterpart — only where the documented name is absent, so it can fill a hole
-but never redirect a working configuration. It is applied by `vite.config.ts`
-(the dev server and the build) and by `plugins/loadEnvFiles.ts` (the standalone
-and Deno runtimes), and `tests/bare-secret-aliases.test.ts` holds it (8/8).
-
-Model credentials map to their **server-side** names only (`ANTHROPIC_API_KEY`,
-`GROQ_API_KEY`, `OPENROUTER_API_KEY`, `GITHUB_MODELS_TOKEN`), never to a `VITE_`
-name: requests are brokered through `/api/model/<id>`, and putting a model key
-in a `VITE_` variable would publish it to anyone who can reach the dev server.
-After the change the broker's own exposure warning is silent — it previously
-named the keys as readable from the browser.
-
-The GitHub secret maps to `GITHUB_MODELS_TOKEN`, not `GITHUB_TOKEN`: the ambient
-one is blocked on purpose (`Environment.ts` → `NEVER_ADOPT_BARE`), because a
-dev container sets one for git tooling that is not an inference key.
-
-This was checked against the code, not assumed: `Environment.ts` reads
-`VITE_ANTHROPIC_API_KEY` / `VITE_GROQ_API_KEY` / `VITE_OPENROUTER_API_KEY` /
-`VITE_GITHUB_TOKEN`, the Anthropic provider resolves
-`ANTHROPIC_API_KEY` → `LELU_ANTHROPIC_API_KEY` → `CLAUDE_API_KEY`, and
-`ENV_VARS.md` documents `MESHY_API_KEY` as server-side only.
-
-Evidence, all of it from the regenerated bare-name file and none of it
-inferred from a successful build. The startup line names what was supplied:
+**Connected.** `https://nrehsldbfxthspikaxvr.supabase.co` is that key's project,
+proved live:
 
 ```
-[env] bare secret names supplied ANTHROPIC_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY,
-      GITHUB_MODELS_TOKEN, MESHY_API_KEY, ELEVENLABS_API_KEY,
-      VITE_SUPABASE_PUBLISHABLE_KEY, SUPABASE_PUBLISHABLE_KEY
+GET /auth/v1/settings                 → 200
+GET /rest/v1/user_preferences?limit=1 → 200 []
+GET /rest/v1/  (bare root)            → 401 "Secret API key required"
 ```
 
-`GET /api/model/status` (booleans only, no values):
+The last line is correct behaviour, not a fault: a publishable key may query
+tables (subject to RLS) but not the bare REST root, which demands a secret key.
 
-```json
-{"ok":true,"providers":{"anthropic":true,"groq":true,"openrouter":true,
- "cerebras":false,"mistral":false,"fireworks":false,"gemini":false,
- "githubModels":true}}
-```
+`/api/env-check` reports `VITE_SUPABASE_URL: SET (40 chars)` beside
+`VITE_SUPABASE_PUBLISHABLE_KEY: SET (46 chars)`.
 
-`GET /api/provider-health` — live requests, not a local check:
+**The one fragile part.** The URL exists only in `.env.local`, which is
+regenerated and has already erased it once. It must be added as a project
+secret named `SUPABASE_URL`; the runtime bridge lists that name as an alias for
+both the server and the browser, so one secret is enough. Nothing in code
+hardcodes a project URL, because a guessed default would configure a project
+nobody chose — `tests/supabase-env.test.ts` pins that.
 
-```json
-{"groq":{"status":200,"ok":true},"openrouter":{"status":200,"ok":true},
- "anthropic":{"status":200,"ok":true}}
-```
-
-**What is actually wrong with Supabase.** The `Supabase` secret is a genuine
-publishable key (`sb_publishable_…`, 46 characters) — the right *kind* of
-credential, client-safe by design, with RLS as the protection. It is not a URL, so no alias
-invents one; the URL came separately from the owner, below.
-
-**The project URL was supplied by the owner, and it is live.** `https://dndbribvsphduvrrypxr.supabase.co`
-resolves from public DNS (Cloudflare DoH `Status:0` → `104.18.38.10` /
-`172.64.149.246`) and is written into `SUPABASE_URL` and `VITE_SUPABASE_URL`.
-`/api/env-check` now reports `VITE_SUPABASE_URL: SET (40 chars)` beside
-`VITE_SUPABASE_PUBLISHABLE_KEY: SET (46 chars)`. An earlier reading of this
-hostname as NXDOMAIN was a stale negative cache; it is not a typo and not a
-deleted project.
-
-**The key, however, is not that project's key.** Supabase's edge distinguishes
-the two failure modes, which makes this provable rather than a guess:
-
-```
-apikey → dndbribvsphduvrrypxr  → 401 {"message":"Invalid API key",
-                                      "hint":"…might also be owned by another Supabase project."}
-apikey → a ref that does not exist → 400 {"message":"Project not specified."}
-```
-
-So the project exists and answers; the stored `Supabase` secret is simply
-another project's publishable key. It also 401s against the archived
-`dkcwonxfomxzmguawege` project, so it is not that one either. A modern
-`sb_publishable_` key carries no project ref (`projectRefFromKey`), so the
-pairing can only be settled by a request — and every request says no.
-
-**What remains is the key.** Take the publishable/anon key from Dashboard →
-Project Settings → API keys for `dndbribvsphduvrrypxr` and replace the project
-secret named `Supabase` (never a line in `.env.local`, which is regenerated),
-and add `SUPABASE_URL` as a secret too, so the URL survives the next
-regeneration. Until then `SupabasePersistence` reports `degraded`, not
-`connected` — a 401 is never dressed up as a working connection.
-
-**To connect, provide** (in `.env.local`, and as repository/host secrets):
-
-| Variable | Used by | Notes |
-|---|---|---|
-| `VITE_SUPABASE_URL` | client | published to the browser, safe |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | client | publishable/anon key only |
-| `SUPABASE_URL` | server | same project URL |
-| `SUPABASE_PUBLISHABLE_KEY` | server | same publishable key |
-
-A service-role key, if ever used, must be server-only and **never** in a
-`VITE_` name. Existing RLS is untouched: no migration, no policy, and no
-project was created or duplicated.
+**Not yet verified:** the sign-in round-trip and a write through
+`SupabasePersistence`. Both need a browser, which this container does not have,
+so they are reported as pending rather than claimed. No project was created or
+duplicated, no migration was run, and no RLS policy was touched.
 
 ## 4. LÉLU CORE
 
@@ -334,12 +272,10 @@ The failing set, by cause:
 
 ## 15. Blockers
 
-1. **Supabase has no project URL.** Every other credential is now visible to
-   the runtime through the alias layer in §3, but the `Supabase` entry is a key
-   with no URL beside it, so `VITE_SUPABASE_URL` / `SUPABASE_URL` are empty and
-   persistence cannot connect. The project URL is now live (§3); what 401s is
-   the key, which belongs to a different Supabase project. Replacing that one
-   secret is the last step.
+1. **Supabase's URL is not yet a stored secret.** It is configured in
+   `.env.local` and live (§3), but that file is regenerated, so until
+   `SUPABASE_URL` exists as a project secret the connection disappears on the
+   next rewrite. The credential pairing itself is verified.
 2. **No browser** in this container — avatar rendering, voice, lip sync,
    mobile layout, offline fallback and screenshots are unverified here.
 3. **19 pre-existing failing tests** on the recovered branch, 3 of which are
