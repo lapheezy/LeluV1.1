@@ -150,30 +150,38 @@ inferred from a successful build. The startup line names what was supplied:
 
 **What is actually wrong with Supabase.** The `Supabase` secret is a genuine
 publishable key (`sb_publishable_…`, 46 characters) — the right *kind* of
-credential, client-safe by design, with RLS as the protection. It is not a URL,
-so no alias invents one and `VITE_SUPABASE_URL` / `SUPABASE_URL` stay empty.
+credential, client-safe by design, with RLS as the protection. It is not a URL, so no alias
+invents one; the URL came separately from the owner, below.
 
-There is one URL in this repository — `https://dkcwonxfomxzmguawege.supabase.co`,
-recorded by the OG archive (`OG_INTEGRATION_MAP.md` §5) — and it does **not**
-accept this key. Probed live from this container:
+**The project URL was supplied by the owner, and it is live.** `https://dndbribvsphduvrrypxr.supabase.co`
+resolves from public DNS (Cloudflare DoH `Status:0` → `104.18.38.10` /
+`172.64.149.246`) and is written into `SUPABASE_URL` and `VITE_SUPABASE_URL`.
+`/api/env-check` now reports `VITE_SUPABASE_URL: SET (40 chars)` beside
+`VITE_SUPABASE_PUBLISHABLE_KEY: SET (46 chars)`. An earlier reading of this
+hostname as NXDOMAIN was a stale negative cache; it is not a typo and not a
+deleted project.
+
+**The key, however, is not that project's key.** Supabase's edge distinguishes
+the two failure modes, which makes this provable rather than a guess:
 
 ```
-GET /rest/v1/      → 401 {"message":"Invalid API key",
-                    "hint":"… This API key might also be owned by another Supabase project."}
-GET /auth/v1/settings → 401 (same body)
+apikey → dndbribvsphduvrrypxr  → 401 {"message":"Invalid API key",
+                                      "hint":"…might also be owned by another Supabase project."}
+apikey → a ref that does not exist → 400 {"message":"Project not specified."}
 ```
 
-So one of two things is true, and they cannot be told apart from here: the key
-was rotated, or it belongs to a different project than the archived one. A
-modern `sb_publishable_` key carries no project ref (see
-`projectRefFromKey`), so the pairing can only be settled by a request — and
-that request says no. Reporting "configured" on the strength of a key that
-401s would be exactly the fake connectivity this project forbids.
+So the project exists and answers; the stored `Supabase` secret is simply
+another project's publishable key. It also 401s against the archived
+`dkcwonxfomxzmguawege` project, so it is not that one either. A modern
+`sb_publishable_` key carries no project ref (`projectRefFromKey`), so the
+pairing can only be settled by a request — and every request says no.
 
-**To connect, the project URL is required** — it is not a secret, and a single
-secret named `SUPABASE_URL` reaches both the server and the browser (the
-runtime bridge lists it as an alias). In this environment it should be added as
-a project secret, because `.env.local` is regenerated and hand-edits are lost.
+**What remains is the key.** Take the publishable/anon key from Dashboard →
+Project Settings → API keys for `dndbribvsphduvrrypxr` and replace the project
+secret named `Supabase` (never a line in `.env.local`, which is regenerated),
+and add `SUPABASE_URL` as a secret too, so the URL survives the next
+regeneration. Until then `SupabasePersistence` reports `degraded`, not
+`connected` — a 401 is never dressed up as a working connection.
 
 **To connect, provide** (in `.env.local`, and as repository/host secrets):
 
@@ -329,9 +337,9 @@ The failing set, by cause:
 1. **Supabase has no project URL.** Every other credential is now visible to
    the runtime through the alias layer in §3, but the `Supabase` entry is a key
    with no URL beside it, so `VITE_SUPABASE_URL` / `SUPABASE_URL` are empty and
-   persistence cannot connect. The one URL the repository documents rejects
-   this key with 401 (§3), so the project URL has to be supplied rather than
-   assumed. This is the single remaining credential gap.
+   persistence cannot connect. The project URL is now live (§3); what 401s is
+   the key, which belongs to a different Supabase project. Replacing that one
+   secret is the last step.
 2. **No browser** in this container — avatar rendering, voice, lip sync,
    mobile layout, offline fallback and screenshots are unverified here.
 3. **19 pre-existing failing tests** on the recovered branch, 3 of which are
