@@ -6544,5 +6544,41 @@
         "animated": false
       }
     }
+  },
+  {
+    "id": "fj_mvxfz5sk_a2aaee",
+    "character": "lelu_character",
+    "kind": "multi-image-to-3d",
+    "purpose": "Outfit B (wire-cage hood) as a hooded look, from the approved full-body references ref14/ref12/ref13",
+    "request": {
+      "image_urls": [
+        "ref:ref14_front_apose_hooded_B",
+        "ref:ref12_left_side_hooded_B",
+        "ref:ref13_three_quarter_hooded_B"
+      ],
+      "ai_model": "meshy-6",
+      "should_texture": true,
+      "texture_resolution": "2k",
+      "enable_pbr": true,
+      "should_remesh": true,
+      "topology": "triangle",
+      "target_polycount": 30000,
+      "geometry_resolution": "2k",
+      "pose_mode": ""
+    },
+    "requestKey": "017c549e1fe22df41fb23abe7647eedd2bdf9ba702192d1bde1e7f6af4461147",
+    "estimatedCredits": 35,
+    "status": "FAILED",
+    "meshyTaskId": null,
+    "progress": 0,
+    "consumedCredits": null,
+    "error": "Meshy refused the request (HTTP 400): {\"message\":\"geometry_resolution is not supported for this ai_model; use meshy-7.1\"}",
+    "identityLock": "c90e0e46f7d2cb053aa6de43ba524c6eb13bf1a392b0b687ccce775a9e8336e9",
+    "createdAt": 1793514081044,
+    "updatedAt": 1793514082419,
+    "submittedAt": null,
+    "finishedAt": 1793514082417,
+    "output": null,
+    "validation": null
   }
 ]
