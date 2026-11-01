@@ -6580,5 +6580,359 @@
     "finishedAt": 1793514082417,
     "output": null,
     "validation": null
+  },
+  {
+    "id": "fj_mvxg0q5l_10c652",
+    "character": "lelu_character",
+    "kind": "multi-image-to-3d",
+    "purpose": "Outfit B (wire-cage hood) hooded look, from approved full-body references ref14/ref12/ref13",
+    "request": {
+      "image_urls": [
+        "ref:ref14_front_apose_hooded_B",
+        "ref:ref12_left_side_hooded_B",
+        "ref:ref13_three_quarter_hooded_B"
+      ],
+      "ai_model": "meshy-7.1",
+      "should_texture": true,
+      "texture_resolution": "2k",
+      "enable_pbr": true,
+      "should_remesh": true,
+      "topology": "triangle",
+      "target_polycount": 30000,
+      "geometry_resolution": "2k",
+      "pose_mode": ""
+    },
+    "requestKey": "f5164c15e716a808a886062670cd0a330ced9e67222d41732232813135a9f329",
+    "estimatedCredits": 35,
+    "status": "SUCCEEDED",
+    "meshyTaskId": "01a195c6-292f-74f9-94d6-99f752535dbd",
+    "progress": 100,
+    "consumedCredits": 35,
+    "error": null,
+    "identityLock": "c90e0e46f7d2cb053aa6de43ba524c6eb13bf1a392b0b687ccce775a9e8336e9",
+    "createdAt": 1793514154089,
+    "updatedAt": 1793514333684,
+    "submittedAt": 1793514157288,
+    "finishedAt": 1793514329495,
+    "output": {
+      "dir": "characters/lelu_character/meshes/v009_multi-image-to-3d_01a195c6",
+      "files": [
+        {
+          "role": "model",
+          "file": "characters/lelu_character/meshes/v009_multi-image-to-3d_01a195c6/model.glb",
+          "bytes": 16350752,
+          "sha256": "6009c706c94a65a2af72c2dd3dcaf1e801c3dbef9c9c4469f985d476bf180e8b"
+        },
+        {
+          "role": "model-fbx",
+          "file": "characters/lelu_character/meshes/v009_multi-image-to-3d_01a195c6/model.fbx",
+          "bytes": 16257244,
+          "sha256": "94c729771ad9790d693774f3ddb1e53486c1645742e1e4234752a82a61aa0c36"
+        },
+        {
+          "role": "model-obj",
+          "file": "characters/lelu_character/meshes/v009_multi-image-to-3d_01a195c6/model.obj",
+          "bytes": 3374554,
+          "sha256": "b1b10d840307e431c64427cc638f08b5f26507bfaa43249625a65d11df7e72bf"
+        },
+        {
+          "role": "model-mtl",
+          "file": "characters/lelu_character/meshes/v009_multi-image-to-3d_01a195c6/model.mtl",
+          "bytes": 228,
+          "sha256": "10a40817a5422a70fbfd161ad86c915d2bfb81cee153f166b379c118f8fd1fbe"
+        },
+        {
+          "role": "model-usdz",
+          "file": "characters/lelu_character/meshes/v009_multi-image-to-3d_01a195c6/model.usdz",
+          "bytes": 18040635,
+          "sha256": "9cca62adf99638d0d060ad47042d51f4718caa6ecf958c8c8825218d38279d66"
+        },
+        {
+          "role": "model-stl",
+          "file": "characters/lelu_character/meshes/v009_multi-image-to-3d_01a195c6/model.stl",
+          "bytes": 1535534,
+          "sha256": "a32ea73e18b351bb48a493b540509855f284ce91f6809c07eb94946c211d6a3f"
+        },
+        {
+          "role": "texture:base_color",
+          "file": "characters/lelu_character/meshes/v009_multi-image-to-3d_01a195c6/texture_0_base_color.png",
+          "bytes": 5459348,
+          "sha256": "9c96f75706ca832ac0c1ef7f9d29786d86989045882098de8a02aa6e83f212b7"
+        },
+        {
+          "role": "texture:metallic",
+          "file": "characters/lelu_character/meshes/v009_multi-image-to-3d_01a195c6/texture_0_metallic.png",
+          "bytes": 2825089,
+          "sha256": "ddd74b34bc4ef75ad5ed9058d46adca6fa15cba02bd9dec09b01e8168920d26e"
+        },
+        {
+          "role": "texture:roughness",
+          "file": "characters/lelu_character/meshes/v009_multi-image-to-3d_01a195c6/texture_0_roughness.png",
+          "bytes": 2938989,
+          "sha256": "7a406269a61caf96e048bcdce9b2ed6e685ee79ce96a87120ee0be1cad2c8a3f"
+        },
+        {
+          "role": "texture:normal",
+          "file": "characters/lelu_character/meshes/v009_multi-image-to-3d_01a195c6/texture_0_normal.png",
+          "bytes": 7271246,
+          "sha256": "90b4a635f30debefc032287faeb3c644f27ef2409ba2e06e3a4a7f526a8268d9"
+        },
+        {
+          "role": "preview",
+          "file": "characters/lelu_character/meshes/v009_multi-image-to-3d_01a195c6/preview.png",
+          "bytes": 117673,
+          "sha256": "d23c18ae11648188520c5d2652220ae168e5963388da39c9dd3b412f68747fc7"
+        },
+        {
+          "role": "preview",
+          "file": "characters/lelu_character/previews/fj_mvxg0q5l_10c652.png",
+          "bytes": 117673,
+          "sha256": "d23c18ae11648188520c5d2652220ae168e5963388da39c9dd3b412f68747fc7"
+        },
+        {
+          "role": "provenance",
+          "file": "characters/lelu_character/meshes/v009_multi-image-to-3d_01a195c6/provenance.json",
+          "bytes": 1575,
+          "sha256": "871aa3af68c4559c2a336bb95a6f4c3259d843a8954bad380184a950d68c5fc3"
+        }
+      ]
+    },
+    "validation": {
+      "ok": true,
+      "problems": [],
+      "warnings": [],
+      "bytes": 16350752,
+      "generator": "Khronos glTF Blender I/O v4.4.55",
+      "geometry": {
+        "meshes": 1,
+        "primitives": 1,
+        "vertices": 63561,
+        "triangles": 30709,
+        "bounds": {
+          "min": [
+            -0.4174570143222809,
+            -0.9500330090522766,
+            -0.27744898200035095
+          ],
+          "max": [
+            0.41673603653907776,
+            0.9468090534210205,
+            0.267549067735672
+          ],
+          "size": [
+            0.8341930508613586,
+            1.8968420624732971,
+            0.544998049736023
+          ]
+        },
+        "dracoCompressed": false
+      },
+      "surface": {
+        "materials": 1,
+        "textures": 3,
+        "images": 3,
+        "baseColorTextured": true,
+        "pbrMaps": true
+      },
+      "rig": {
+        "skins": 0,
+        "joints": 0,
+        "humanoidBonesFound": [],
+        "humanoidBonesMissing": [
+          "hips",
+          "spine",
+          "neck",
+          "head",
+          "leftUpperArm",
+          "rightUpperArm",
+          "leftForearm",
+          "rightForearm",
+          "leftHand",
+          "rightHand",
+          "leftUpperLeg",
+          "rightUpperLeg",
+          "leftLowerLeg",
+          "rightLowerLeg",
+          "leftFoot",
+          "rightFoot"
+        ],
+        "weightValidity": null,
+        "skinnedVertices": 0
+      },
+      "motion": {
+        "clips": []
+      },
+      "verdict": {
+        "meshValid": true,
+        "textured": true,
+        "rigValid": false,
+        "animated": false
+      }
+    }
+  },
+  {
+    "id": "fj_mvxg5592_36c413",
+    "character": "lelu_character",
+    "kind": "blender",
+    "purpose": "Blender export of fj_mvxg0q5l_10c652: blend, glb, obj, stl, fbx, editable project kept apart from the runtime copy",
+    "request": {
+      "operation": "export",
+      "source": "fj_mvxg0q5l_10c652",
+      "sourceSha256": "6009c706c94a65a2af72c2dd3dcaf1e801c3dbef9c9c4469f985d476bf180e8b",
+      "script": "419e4ca14ad8e71e",
+      "options": {
+        "formats": [
+          "blend",
+          "glb",
+          "obj",
+          "stl",
+          "fbx"
+        ],
+        "targetTris": 30000,
+        "render": {
+          "size": 760,
+          "samples": 32
+        }
+      },
+      "parentJobId": "fj_mvxg0q5l_10c652",
+      "runner": "blender"
+    },
+    "requestKey": "25e5e1bbb259269f2b7b4b66d38712b1e63458dff62ca70abf68c85f66264d7e",
+    "estimatedCredits": 0,
+    "status": "SUCCEEDED",
+    "meshyTaskId": null,
+    "progress": 100,
+    "consumedCredits": 0,
+    "error": null,
+    "identityLock": "c90e0e46f7d2cb053aa6de43ba524c6eb13bf1a392b0b687ccce775a9e8336e9",
+    "createdAt": 1793514351033,
+    "updatedAt": 1793514360288,
+    "submittedAt": 1793514351033,
+    "finishedAt": 1793514360278,
+    "output": {
+      "dir": "characters/lelu_character/meshes/v010_export_mvxg0q5l",
+      "files": [
+        {
+          "role": "source-project",
+          "file": "characters/lelu_character/meshes/v010_export_mvxg0q5l/editable.blend",
+          "bytes": 15870798,
+          "sha256": "34c288043c1d4c99c2f03d4b4322d97e54625cdabcf2256cdac89423db935b42"
+        },
+        {
+          "role": "preview",
+          "file": "characters/lelu_character/meshes/v010_export_mvxg0q5l/render.png",
+          "bytes": 1078785,
+          "sha256": "c76b69f6997be4255f96db7cd43cc8e9cde2968b4c76efb9358a2e07c76b475a"
+        },
+        {
+          "role": "blender-export-report",
+          "file": "characters/lelu_character/meshes/v010_export_mvxg0q5l/report.json",
+          "bytes": 1727,
+          "sha256": "796e45bf1b12d105d7544a8c7b1f632c46a26a6741795d5e58d7f6249c3a171e"
+        },
+        {
+          "role": "model-runtime",
+          "file": "characters/lelu_character/meshes/v010_export_mvxg0q5l/runtime.glb",
+          "bytes": 16330272,
+          "sha256": "73300543b4c2f64372182cc94054ee385d573bbc821db5ebb3a9583fe71df84f"
+        },
+        {
+          "role": "model-fbx",
+          "file": "characters/lelu_character/meshes/v010_export_mvxg0q5l/source.fbx",
+          "bytes": 13096572,
+          "sha256": "4c488edc27b7f1a99f817e4a357c7dfd1e2be5768e3fd507ee620ebf6557b068"
+        },
+        {
+          "role": "material",
+          "file": "characters/lelu_character/meshes/v010_export_mvxg0q5l/source.mtl",
+          "bytes": 249,
+          "sha256": "30d020f080433f2191cf57260eff9d49189eed8be9d79d0dd337515b8b62a356"
+        },
+        {
+          "role": "model-obj",
+          "file": "characters/lelu_character/meshes/v010_export_mvxg0q5l/source.obj",
+          "bytes": 5408668,
+          "sha256": "9b54987a557d78d032ca52230abcf1ca3d01992bf84a7b25c4bfc282957e28ca"
+        },
+        {
+          "role": "model-stl",
+          "file": "characters/lelu_character/meshes/v010_export_mvxg0q5l/source.stl",
+          "bytes": 1535534,
+          "sha256": "aa961ab63f570debdd0ca6b060508ec54f21233a68eaa3ee2d7e6c4ce9f5eac9"
+        }
+      ]
+    },
+    "validation": {
+      "ok": true,
+      "problems": [],
+      "warnings": [],
+      "bytes": 16330272,
+      "generator": "Khronos glTF Blender I/O v5.2.41",
+      "geometry": {
+        "meshes": 1,
+        "primitives": 1,
+        "vertices": 63054,
+        "triangles": 30000,
+        "bounds": {
+          "min": [
+            -0.4174570143222809,
+            -0.9500330090522766,
+            -0.27744898200035095
+          ],
+          "max": [
+            0.41673603653907776,
+            0.9468090534210205,
+            0.267549067735672
+          ],
+          "size": [
+            0.8341930508613586,
+            1.8968420624732971,
+            0.544998049736023
+          ]
+        },
+        "dracoCompressed": false
+      },
+      "surface": {
+        "materials": 1,
+        "textures": 3,
+        "images": 3,
+        "baseColorTextured": true,
+        "pbrMaps": true
+      },
+      "rig": {
+        "skins": 0,
+        "joints": 0,
+        "humanoidBonesFound": [],
+        "humanoidBonesMissing": [
+          "hips",
+          "spine",
+          "neck",
+          "head",
+          "leftUpperArm",
+          "rightUpperArm",
+          "leftForearm",
+          "rightForearm",
+          "leftHand",
+          "rightHand",
+          "leftUpperLeg",
+          "rightUpperLeg",
+          "leftLowerLeg",
+          "rightLowerLeg",
+          "leftFoot",
+          "rightFoot"
+        ],
+        "weightValidity": null,
+        "skinnedVertices": 0
+      },
+      "motion": {
+        "clips": []
+      },
+      "verdict": {
+        "meshValid": true,
+        "textured": true,
+        "rigValid": false,
+        "animated": false
+      }
+    }
   }
 ]
