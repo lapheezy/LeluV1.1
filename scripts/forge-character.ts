@@ -18,6 +18,8 @@
  *   tsx scripts/forge-character.ts ingest <image.png> <refId> <view…>   store a supplied image as a reference
  *   tsx scripts/forge-character.ts crop <board.png> <refId> <x,y,w,h> [--category=clothing] [--view=…]   one asset out of a board (free)
  *   tsx scripts/forge-character.ts plan-inventory <inventory.json> [--approve --budget=N]   every asset: what it costs, what blocks it
+ *   tsx scripts/forge-character.ts audit-inventory <inventory.json>   check bones, references and duplicate geometry (free)
+ *   tsx scripts/forge-character.ts weight <garmentJob> <bodyJob>   bind a long garment to her skeleton and measure it (free)
  *   tsx scripts/forge-character.ts plan-look <refId>...   plan an approved look from 1–4 of her own photos (spends nothing)
  *   tsx scripts/forge-character.ts approve <jobId>      submit it (spends credits)
  *   tsx scripts/forge-character.ts reject <jobId> [reason]  decline a planned job; its record is kept
@@ -35,12 +37,13 @@
  *   tsx scripts/forge-character.ts motion <jobId>...    motion-only GLB for collected animation jobs (free)
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { inspectGlb } from "../src/core/forge/GlbInspector.ts";
 import { buildRecords } from "../plugins/forgeReferences.ts";
 import { cropPng } from "../plugins/forgeCrop.ts";
-import { planInventory, totalise, validateInventory } from "../plugins/wardrobeInventory.ts";
+import { auditInventory, boneNamesFromGlb, planInventory, totalise, validateInventory } from "../plugins/wardrobeInventory.ts";
+import { weightGarment } from "../plugins/coatRig.ts";
 import { ForgeStore, type CharacterSlot, type ForgeJob } from "../plugins/forgeStore.ts";
 import { ForgeError, MeshyForge } from "../plugins/meshyForge.ts";
 
@@ -471,6 +474,38 @@ async function main(): Promise<void> {
       const result = forge.dressOutfit(CHARACTER, { look: lookArg === "-" ? undefined : lookArg, wear });
       console.log(`showing ${result.manifest.currentLook ?? "base rig"}`);
       for (const d of result.dressed) console.log(`  ${d.slot}  ${d.item ?? "off"}${d.placementId ? `  ${d.placementId}` : ""}`);
+      return;
+    }
+    case "weight": {
+      // A long coat cannot hang off one bone. Bind it to her own skeleton and
+      // keep the result only if the deformation checks pass (spends nothing).
+      const [garmentId, bodyId] = process.argv.slice(3).filter((a) => !a.startsWith("--"));
+      if (!garmentId || !bodyId) throw new ForgeError("usage: weight <garmentJobId> <bodyJobId> [--max-influences=4] [--min-weight=0.02]");
+      const maxInfluences = Number(/--max-influences=(\d+)/.exec(process.argv.join(" "))?.[1] ?? 4);
+      const minWeight = Number(/--min-weight=([\d.]+)/.exec(process.argv.join(" "))?.[1] ?? 0.02);
+      const { job, report, reused } = await weightGarment(store, (name) => process.env[name], garmentId, bodyId, { maxInfluences, minWeight });
+      console.log(reused ? `Already weighted as ${job.id}:` : `Weighted garment as ${job.id}:`);
+      console.log(`  bones ${(report.bones ?? []).join(", ")}`);
+      console.log(`  weights ${JSON.stringify(report.weights)}`);
+      for (const pose of report.deformation ?? []) {
+        console.log(`  ${pose.name.padEnd(8)} max ${pose.maxDisplacement.toFixed(3)} m  moved ${(pose.movedShare * 100).toFixed(0)}%  inside her ${pose.penetratingVertices}`);
+      }
+      console.log(`  ${job.output!.dir}`);
+      return;
+    }
+    case "audit-inventory": {
+      const file = process.argv[3];
+      if (!file) throw new ForgeError("usage: audit-inventory <inventory.json>");
+      const inventory = validateInventory(JSON.parse(readFileSync(file, "utf8")));
+      const rigId = store.manifest(CHARACTER).active["rig"];
+      const rig = rigId ? store.job(rigId) : null;
+      const model = rig?.output?.files.find((f) => f.role === "model");
+      const modelPath = model ? store.safeAssetPath(model.file) : null;
+      const bones = modelPath && existsSync(modelPath) ? boneNamesFromGlb(new Uint8Array(readFileSync(modelPath))) : [];
+      console.log(`${inventory.looks.length} looks, ${inventory.looks.reduce((n, l) => n + l.assets.length, 0)} assets, audited against ${bones.length} rig bones${bones.length ? "" : " (no rig: bone checks skipped)"}`);
+      const { findings, problems, warnings } = auditInventory(inventory, store.references(CHARACTER), bones);
+      for (const finding of findings) console.log(`  ${finding.severity === "problem" ? "PROBLEM" : "warning"}  ${finding.look}/${finding.asset}: ${finding.message}`);
+      console.log(`${problems} problems, ${warnings} warnings`);
       return;
     }
     case "crop": {

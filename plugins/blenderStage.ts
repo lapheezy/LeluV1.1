@@ -87,7 +87,7 @@ export function findBlender(readEnv: EnvReader): BlenderRunner | null {
   return null;
 }
 
-function run(runner: BlenderRunner, json: string, timeoutMs: number, script = BLENDER_SCRIPT): Promise<{ code: number | null; log: string }> {
+export function run(runner: BlenderRunner, json: string, timeoutMs: number, script = BLENDER_SCRIPT): Promise<{ code: number | null; log: string }> {
   return new Promise((resolve, reject) => {
     const child = spawn(runner.command, runner.args(script, json), { stdio: ["ignore", "pipe", "pipe"] });
     let log = "";

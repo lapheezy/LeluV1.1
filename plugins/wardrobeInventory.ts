@@ -170,3 +170,89 @@ export function totalise(planned: PlannedAsset[]): { ready: number; blocked: num
 export function categoryOf(asset: InventoryAsset): WardrobeCategory {
   return asset.category as WardrobeCategory;
 }
+
+/* ------------------------------ audit ------------------------------ */
+
+/** Bone names a GLB's skins actually bind to — her rig, as exported. */
+export function boneNamesFromGlb(bytes: Uint8Array): string[] {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (view.getUint32(0, true) !== 0x46546c67) throw new Error("Not a GLB.");
+  const chunkLength = view.getUint32(12, true);
+  const chunkType = view.getUint32(16, true);
+  if (chunkType !== 0x4e4f534a) throw new Error("GLB does not start with a JSON chunk.");
+  const json = JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + chunkLength))) as {
+    nodes?: Array<{ name?: string }>;
+    skins?: Array<{ joints: number[] }>;
+  };
+  const names = new Set<string>();
+  for (const skin of json.skins ?? []) {
+    for (const joint of skin.joints) {
+      const name = json.nodes?.[joint]?.name;
+      if (name) names.add(name);
+    }
+  }
+  return [...names].sort();
+}
+
+export interface AssetFinding {
+  look: string;
+  asset: string;
+  severity: "problem" | "warning";
+  message: string;
+}
+
+/**
+ * Check every record against reality: the bones her rig actually has, the
+ * references actually on disk, and whether two assets would pay twice for
+ * the same geometry.
+ */
+export function auditInventory(
+  inventory: WardrobeInventory,
+  references: ReferenceRecord[],
+  rigBones: string[],
+): { findings: AssetFinding[]; problems: number; warnings: number } {
+  const byId = new Map(references.map((reference) => [reference.id, reference]));
+  const boneSet = new Set(rigBones.map((bone) => bone.toLowerCase()));
+  const findings: AssetFinding[] = [];
+  const seenReferences = new Map<string, string>();
+
+  for (const look of inventory.looks) {
+    for (const asset of look.assets) {
+      const add = (severity: AssetFinding["severity"], message: string) => findings.push({ look: look.id, asset: asset.id, severity, message });
+
+      if (asset.category !== "look") {
+        if (!asset.bone) add("problem", "no bone: a piece cannot be worn without one.");
+        else if (rigBones.length && !boneSet.has(asset.bone.toLowerCase())) add("problem", `bone "${asset.bone}" is not in her rig.`);
+      } else if (asset.isLook && !asset.rig) {
+        add("warning", "a complete look has to be rigged to animate on her skeleton.");
+      }
+      if (asset.category !== "look" && asset.rig) add("warning", "rigging a piece spends 5 credits for nothing; pieces are worn on a bone.");
+
+      if (!asset.references.length) add("problem", "no reference assigned.");
+      for (const id of asset.references) {
+        const reference = byId.get(id);
+        if (!reference) add("problem", `reference "${id}" is not ingested.`);
+        else if (reference.quality === "poor") add("warning", `reference "${id}" drifted to poor quality.`);
+      }
+      if (asset.generation.kind === "multi-image-to-3d" && asset.references.length < 2) {
+        add("problem", "a multi-image job needs at least two reference images.");
+      }
+
+      const key = [...asset.references].sort().join("|");
+      if (key) {
+        const twin = seenReferences.get(key);
+        if (twin) add("warning", `shares an identical reference set with "${twin}": check this is not duplicate geometry.`);
+        else seenReferences.set(key, asset.id);
+      }
+      if (!(asset.inferred ?? []).length && asset.category === "look") {
+        add("warning", "no inferred details documented, although no single view can show the back, lining or closures.");
+      }
+    }
+  }
+
+  return {
+    findings,
+    problems: findings.filter((finding) => finding.severity === "problem").length,
+    warnings: findings.filter((finding) => finding.severity === "warning").length,
+  };
+}
