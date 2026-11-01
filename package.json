@@ -26,6 +26,7 @@
     "verify:hydration": "node scripts/verify-authenticated-hydration.mjs",
     "verify:layout": "node scripts/verify-workspace-layout.mjs",
     "verify:workspace": "node scripts/verify-workspace-isolation.mjs",
+    "verify:studio": "node scripts/verify-studio.mjs",
     "verify:mobile-chat": "node scripts/verify-mobile-chat.mjs",
     "verify:github-bridge": "tsx scripts/verify-github-bridge.ts",
     "verify:auth": "node scripts/verify-supabase-auth.mjs",

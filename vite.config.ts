@@ -15,6 +15,7 @@ import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
 import { createSelfViewApi } from "./plugins/selfViewApi.ts";
+import { createStudioApi, stopAllStudioBackends } from "./plugins/studioApi.ts";
 import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
@@ -135,6 +136,20 @@ export default defineConfig(({ mode }) => {
         name: "lelu-self-view",
         configureServer(server: any) {
           createSelfViewApi().attach(server.middlewares);
+        },
+      },
+
+      // Session 3C — the software studio runtime: real scaffolds, builds,
+      // tests, same-origin previews, approvals and deployment preparation.
+      {
+        name: "lelu-studio",
+        configureServer(server: any) {
+          createStudioApi().attach(server.middlewares);
+          server.httpServer?.once("close", stopAllStudioBackends);
+        },
+        configurePreviewServer(server: any) {
+          createStudioApi().attach(server.middlewares);
+          server.httpServer?.once("close", stopAllStudioBackends);
         },
       },
 

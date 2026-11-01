@@ -62,6 +62,7 @@ export const DOCK_ITEMS: DockItem[] = [
 
   // ── Deeper capabilities (default-hidden, restorable via ⚙/⌘K) ──
   { id: "cosmos", label: "Cosmos", glyph: "✦", icon: "spark", group: "core" },
+  { id: "studio", label: "Studio", glyph: "⌘", icon: "grid", group: "core" },
   { id: "history", label: "History", glyph: "≡", icon: "arrows", group: "core" },
   { id: "genesisv2", label: "Genesis v2", glyph: "⬡", icon: "lab", group: "core" },
   { id: "video", label: "Video", glyph: "▶", icon: "film", group: "core" },

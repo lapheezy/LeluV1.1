@@ -32,6 +32,7 @@ import type RouterContext from "../router/RouterContext";
 import AgentEventBus from "../agent/AgentEvents";
 import AutonomyGate from "../cognition/AutonomyGate";
 import ToolRegistry, { type RiskLevel } from "./ToolRegistry";
+import { studioToolExecutors } from "../studio/StudioToolExecutors";
 import EngineeringAuthorization from "../engineering/EngineeringAuthorization";
 import MultiChatStore, { tokenizeText, type ChatConversation } from "../multichat/MultiChatStore";
 import { consentFor, findChat } from "../multichat/ChatConsent";
@@ -45,7 +46,7 @@ export interface ToolExecutionResult {
   data?: unknown;
 }
 
-interface ToolExecutor {
+export interface ToolExecutor {
   /** Registry id, e.g. "research.web". */
   id: string;
   /** JSON Schema for the arguments the model must supply. */
@@ -361,7 +362,7 @@ export function registryIdForToolName(name: string): string {
  * THE EXECUTORS
  * ------------------------------------------------------------------ */
 
-const EXECUTORS: ToolExecutor[] = [
+const CORE_EXECUTORS: ToolExecutor[] = [
   {
     id: "research.web",
     // ResearchResolver emits its own execution events.
@@ -2480,6 +2481,13 @@ async function runWorkspace(
 /* ------------------------------------------------------------------ *
  * DISPATCH
  * ------------------------------------------------------------------ */
+
+/**
+ * The studio's executors are a separate module so the studio can grow
+ * without this file growing without bound. Appending them here keeps one
+ * source of advertisable tools: BY_ID is still the single dispatch table.
+ */
+const EXECUTORS: ToolExecutor[] = [...CORE_EXECUTORS, ...studioToolExecutors];
 
 const BY_ID = new Map(EXECUTORS.map((executor) => [executor.id, executor]));
 

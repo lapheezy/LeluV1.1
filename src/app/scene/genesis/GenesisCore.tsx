@@ -202,9 +202,13 @@ export type GenesisPanel =
   // Self Evolution — visible research/proposals/experiments dashboard
   | "self-evolution"
   // Cosmos — infinite cosmos map + navigation
-  | "cosmos"
-  // LÉLU Personality Development — identity, traits, journal
-  | "identity";
+  | "cosmos"  // LÉLU Personality Development — identity, traits, journal
+
+  | "identity"
+
+  // Session 3C — the software studio: websites, applications and games,
+  // built and previewed inside the Cosmos window system.
+  | "studio";
 
 
 /**

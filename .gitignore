@@ -37,4 +37,5 @@ dist-ssr
 
 # LÉLU's isolated engineering workspace copies
 .lelu-sandbox/
+.lelu-studio/
 

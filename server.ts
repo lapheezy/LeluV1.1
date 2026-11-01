@@ -25,6 +25,7 @@
  */
 
 import { createSelfViewApi } from "./plugins/selfViewApi.ts";
+import { createStudioApi, stopAllStudioBackends } from "./plugins/studioApi.ts";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
@@ -288,6 +289,7 @@ const nekoApi = createNekoApi((key) => process.env[key]);
 
 createEngineerApi(createNodeEngineerAdapter("node-server")).attach(middlewares);
 createSelfViewApi().attach(middlewares);
+createStudioApi().attach(middlewares);
 createEnvApi((key) => process.env[key], "node-server", {
   aisStatus: () => aisBridge.getStatus(),
 }).attach(middlewares);
@@ -307,6 +309,9 @@ middlewares.use("/api/ai", (req, res) => {
 const server = createServer((req, res) => {
   runMiddleware(req, res, 0);
 });
+
+// A preview backend outlives its parent unless it is stopped deliberately.
+server.on("close", stopAllStudioBackends);
 
 server.listen(PORT, HOST, () => {
   const aisState = aisKey ? "configured" : "not configured (AISSTREAM_API_KEY missing)";

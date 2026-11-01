@@ -54,6 +54,7 @@ import GenesisSettingsPanel from "./GenesisSettingsPanel";
 import GenesisCognitionPanel from "./GenesisCognitionPanel";
 import GenesisCognitiveTracePanel from "./GenesisCognitiveTracePanel";
 import GenesisEngineeringPanel from "./GenesisEngineeringPanel";
+import GenesisStudioPanel from "./GenesisStudioPanel";
 import GenesisSelfDevPanel from "./GenesisSelfDevPanel";
 import GenesisSelfEvolutionPanel from "./GenesisSelfEvolutionPanel";
 import GenesisNotificationsPanel from "./GenesisNotificationsPanel";
@@ -87,6 +88,7 @@ const MODULE_RENDERERS: ModuleRenderers = {
   cognition: ({ onClose }) => <GenesisCognitionPanel onClose={onClose} />,
   "cognitive-trace": ({ onClose }) => <GenesisCognitiveTracePanel onClose={onClose} />,
   engineering: ({ onClose }) => <GenesisEngineeringPanel onClose={onClose} />,
+  studio: ({ onClose }) => <GenesisStudioPanel onClose={onClose} />,
   evolution: ({ onClose }) => <GenesisSelfDevPanel onClose={onClose} />,
   notifications: ({ onClose }) => <GenesisNotificationsPanel onClose={onClose} />,
   briefings: ({ onClose }) => <GenesisBriefingsPanel onClose={onClose} />,

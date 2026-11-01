@@ -1112,6 +1112,172 @@ export default class ToolRegistry {
         executionRoute: "EngineeringWorkspace.gitCommit",
         verificationMethod: "git returns the commit sha and stat",
       },
+
+      /* ---- Session 3C: the software studio ----
+         Websites, applications and games, built on the real studio runtime.
+         Every entry has an executor in StudioToolExecutors; a build or test
+         result is a process exit code, never a summary. */
+      {
+        id: "studio.engine",
+        name: "Choose a Development Engine",
+        description:
+          "Decide the right engine for a website, application or game from its real requirements " +
+          "(dimension, targets, team, realism) and this runtime's measured capabilities. Games are not " +
+          "assumed to need Godot, Unity or Unreal; those are reported unavailable when their editors are.",
+        category: "Studio",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "StudioEngines.recommendEngine",
+        verificationMethod: "the runtime's own capability probe",
+      },
+      {
+        id: "studio.list",
+        name: "List Studio Projects",
+        description: "List every studio project with its kind, engine, versions and last build result.",
+        category: "Studio",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "StudioLibrary.list",
+      },
+      {
+        id: "studio.create",
+        name: "Create Studio Project",
+        description:
+          "Scaffold a new website, application or 3D/2D game in an isolated studio directory on the " +
+          "runtime. Real template files are copied; nothing is deployed and the real project is untouched.",
+        category: "Studio",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "StudioRuntime.scaffold",
+        verificationMethod: "the runtime counts the files it wrote",
+      },
+      {
+        id: "studio.files",
+        name: "List Studio Files",
+        description: "List files and directories inside a studio project.",
+        category: "Studio",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "StudioRuntime.tree",
+      },
+      {
+        id: "studio.read",
+        name: "Read Studio File",
+        description: "Read a real file from a studio project.",
+        category: "Studio",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "StudioRuntime.read",
+      },
+      {
+        id: "studio.write",
+        name: "Write Studio File",
+        description:
+          "Write a file in an isolated studio project. A file that would expose a credential to the " +
+          "browser is refused, and nothing outside the project directory can be written.",
+        category: "Studio",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "StudioRuntime.write",
+        verificationMethod: "the server re-reads the path and refuses secret-shaped content",
+      },
+      {
+        id: "studio.build",
+        name: "Build Studio Project",
+        description:
+          "Run the project's own build and report its real exit code, duration and output directory.",
+        category: "Studio",
+        permissions: ["EXECUTE"],
+        riskLevel: 2,
+        available: true,
+        executionRoute: "StudioRuntime.build",
+        verificationMethod: "child process exit code plus the dist directory on disk",
+      },
+      {
+        id: "studio.test",
+        name: "Test Studio Project",
+        description:
+          "Run the project's node:test suite and report how many tests passed and failed, from the " +
+          "test runner's own output and exit code.",
+        category: "Studio",
+        permissions: ["EXECUTE"],
+        riskLevel: 2,
+        available: true,
+        executionRoute: "StudioRuntime.test",
+        verificationMethod: "node --test exit code and # pass / # fail counts",
+      },
+      {
+        id: "studio.preview",
+        name: "Preview Studio Project",
+        description:
+          "Serve the project's real build output (or its backend, for an application) at a same-origin " +
+          "URL that can be shown inside a Cosmos window.",
+        category: "Studio",
+        permissions: ["EXECUTE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "StudioRuntime.previewUrl",
+        verificationMethod: "the preview URL is fetched and must answer",
+      },
+      {
+        id: "studio.assets",
+        name: "Studio Asset References",
+        description:
+          "Read Session 3B's forge ledger and character references. Unrun Meshy jobs are reported as " +
+          "awaiting approval — never as models that exist.",
+        category: "Studio",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "StudioAssets.assetRefsFromLedger",
+      },
+      {
+        id: "studio.approval",
+        name: "Request Human Approval",
+        description:
+          "Ask a person to approve a protected act: production deploy, paid service, production " +
+          "database, auth/security change, secret management or LÉLU CORE change. This only REQUESTS; " +
+          "the decision is made in the Studio panel and cannot be granted by a tool.",
+        category: "Studio",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "StudioRuntime.requestApproval",
+        verificationMethod: "the approval stays pending until a person decides",
+      },
+      {
+        id: "studio.deploy",
+        name: "Deploy Studio Project",
+        description:
+          "Prepare a deployment of the built output, or publish it where a publish target is " +
+          "configured. Production publishing needs a live human approval id.",
+        category: "Studio",
+        permissions: ["EXECUTE", "EXTERNAL_ACTION"],
+        riskLevel: 3,
+        available: true,
+        executionRoute: "StudioRuntime.deploy",
+        verificationMethod: "the deployment directory and manifest written on disk",
+      },
+      {
+        id: "studio.workflow",
+        name: "Studio Development Workflow",
+        description:
+          "Read or advance the development workflow (understand → research → architect → generate → " +
+          "build → integrate → test → debug → preview → approve → deploy → maintain). A stage is only " +
+          "recorded with its real evidence, and stages cannot be skipped.",
+        category: "Studio",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "StudioPipeline.advance",
+        verificationMethod: "each stage stores the evidence it was given",
+      },
     ];
 
     for (const tool of builtins) {
