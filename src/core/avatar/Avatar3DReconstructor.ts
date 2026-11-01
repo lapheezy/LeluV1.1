@@ -35,7 +35,17 @@ import { endpoint } from "../Endpoints";
 export type ReconstructionStatus =
   | { state: "idle" }
   | { state: "running"; progress: number; note: string }
-  | { state: "succeeded"; taskId: string; finishedAt: number }
+  | {
+      state: "succeeded";
+      taskId: string;
+      finishedAt: number;
+      /**
+       * "persisted" survives a reload. "memory-only" means the model is
+       * usable right now but the browser refused to store it — the write
+       * is retried, and the UI must not promise offline availability.
+       */
+      storage?: "persisted" | "memory-only";
+    }
   | { state: "failed"; error: string; finishedAt: number };
 
 interface StoredModel {
@@ -138,6 +148,8 @@ class Avatar3DReconstructorImpl {
   private listeners = new Set<ReconstructionListener>();
   private status: ReconstructionStatus = { state: "idle" };
   private stored: StoredModel | null = null;
+  /** A model whose IndexedDB write failed, kept so it can be retried. */
+  private pendingPersist: StoredModel | null = null;
   private running = false;
 
   private constructor() {
@@ -170,7 +182,47 @@ class Avatar3DReconstructorImpl {
   /** Raw GLB bytes of the reconstructed model (null if none/stale). */
   public async getModelFor(fingerprint: string): Promise<ArrayBuffer | null> {
     if (!this.stored || this.stored.fingerprint !== fingerprint) return null;
+    // Reading the model is a free moment to retry a failed write — the
+    // user may have freed space since it was downloaded.
+    if (this.pendingPersist) void this.retryPersist();
     return this.stored.glb;
+  }
+
+  /** Whether the current model is stored, or only alive in memory. */
+  public storageState(): "persisted" | "memory-only" | "none" {
+    if (!this.stored) return "none";
+    return this.pendingPersist ? "memory-only" : "persisted";
+  }
+
+  /**
+   * Try again to store a model whose write failed.
+   *
+   * Meshy is paid: the reconstruction is already bought and downloaded
+   * by the time the store is attempted, so a storage failure must never
+   * be the end of it. Returns whether the model is now on disk.
+   */
+  public async retryPersist(): Promise<boolean> {
+    const pending = this.pendingPersist;
+    if (!pending) return this.stored !== null;
+    return this.persist(pending);
+  }
+
+  private async persist(record: StoredModel): Promise<boolean> {
+    try {
+      await writeStored(record);
+      this.pendingPersist = null;
+      this.stored = record;
+      return true;
+    } catch (error) {
+      // Not fatal: the bytes are in memory and this session can use them.
+      this.pendingPersist = record;
+      this.stored = record;
+      console.warn(
+        "[Lélu Avatar3D] model is in memory but could not be stored — retrying on next read",
+        error,
+      );
+      return false;
+    }
   }
 
   public subscribe(listener: ReconstructionListener): () => void {
@@ -302,15 +354,29 @@ class Avatar3DReconstructorImpl {
       if (glb.byteLength < 1024) throw new Error("Downloaded GLB is implausibly small — rejecting.");
 
       // 4 — persist locally so every future session boots with the SAME model.
-      await writeStored({ glb, fingerprint, taskId: meshyTaskId, createdAt: Date.now() });
-      this.stored = await readStored();
+      //
+      // The reconstruction is already PAID FOR and downloaded at this
+      // point, so a failed IndexedDB write must not throw all of it away:
+      // the model stays usable in memory, the write is retried, and the
+      // status reports which of the two happened instead of claiming
+      // offline availability that does not exist.
+      const record: StoredModel = { glb, fingerprint, taskId: meshyTaskId, createdAt: Date.now() };
+      const persisted = await this.persist(record);
+      const sizeKb = Math.round(glb.byteLength / 1024);
 
-      this.setStatus({ state: "succeeded", taskId: meshyTaskId, finishedAt: Date.now() });
+      this.setStatus({
+        state: "succeeded",
+        taskId: meshyTaskId,
+        finishedAt: Date.now(),
+        storage: persisted ? "persisted" : "memory-only",
+      });
       bus.emit({
         type: "tool_result",
         taskId,
         tool: "avatar-reconstruction",
-        result: `True 3D model reconstructed and stored (${Math.round(glb.byteLength / 1024)} KB GLB).`,
+        result: persisted
+          ? `True 3D model reconstructed and stored (${sizeKb} KB GLB).`
+          : `True 3D model reconstructed (${sizeKb} KB GLB) but NOT stored — browser storage refused the write. It is usable now and the store is retried automatically.`,
       });
       bus.emit({
         type: "visual_created",

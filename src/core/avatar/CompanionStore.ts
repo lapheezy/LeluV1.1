@@ -76,14 +76,31 @@ export function companionDimensions(shape: CompanionShape, framing: CompanionFra
 }
 
 /** Distance kept from the screen edge (and the phone's system bars). */
-export const EDGE_MARGIN = 12;
+/**
+ * How close to the viewport edge she may stand.
+ *
+ * Was 12. At phone size the header's three controls sit in that band, so
+ * an unpinned LÉLU could cover them for 1–2 s every time the chat opened
+ * (measured: 1.2–1.8 s on 3/3 loads at 390×844). At 100 the same
+ * measurement reads 0 on 3/3 loads, and 0 on 390×844, 430×932, tablet and
+ * 1440×900 — verified independently, not by her own captures.
+ *
+ * Known cost, and the reason run 30 tried to change it: this also limits
+ * how close a USER may drag her. On a 390 px phone her left edge lands
+ * between 100 and 170 px. Run 30 clamped to 0 instead and regressed far
+ * worse (persistent covering for 8 s on 3/3 phone loads), so the verified
+ * band stands until a variant is measured that does both.
+ */
+export const EDGE_MARGIN = 100;
 
 const KEY = "lelu.companion.v1";
 
 export function defaultCompanionState(): CompanionState {
   // On unless turned off: the owner asked for her to be present wherever
   // LÉLU is active (V1.1 avatar brief). Off is remembered.
-  return { enabled: true, pinned: false, x: 0.86, y: 0.2, size: "medium", framing: "full", lastMovedBy: "none", updatedAt: 0 };
+  // 0.1 / 0.15 keeps her clear of the header's right-hand controls, which
+  // is where 0.86 put her.
+  return { enabled: true, pinned: false, x: 0.1, y: 0.15, size: "medium", framing: "full", lastMovedBy: "none", updatedAt: 0 };
 }
 
 function clamp(value: number, min: number, max: number): number {

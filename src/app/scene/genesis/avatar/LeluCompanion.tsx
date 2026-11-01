@@ -137,7 +137,10 @@ function CompanionFigure({ companion }: { companion: CompanionState }) {
     document.addEventListener("focusout", onFocus);
     // The app changes under her (panels open, the keyboard rises): a cheap
     // look every second and a half, moving only when she is in the way.
-    const timer = setInterval(reconsider, 1500);
+    // 500 ms, not 1500: at 1500 a panel that opens after the first check
+    // could cover her for over a second before she moved, which is exactly
+    // the covering the phone capture kept catching.
+    const timer = setInterval(reconsider, 500);
     return () => {
       document.removeEventListener("focusin", onFocus);
       document.removeEventListener("focusout", onFocus);

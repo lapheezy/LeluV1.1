@@ -456,8 +456,21 @@ const server = createServer((req, res) => {
 
 server.listen(PORT, HOST, () => {
   const aisState = aisKey ? "configured" : "not configured (AISSTREAM_API_KEY missing)";
+  // Say OUT LOUD which way the engineering API is facing. It reads source,
+  // runs commands and spawns servers, so on a public host the correct state
+  // is DISABLED (no LELU_ENGINEER_TOKEN) — and an operator needs to see that
+  // in the log rather than discover it from a probe.
+  const engineerState = process.env.LELU_ENGINEER_TOKEN
+    ? "token required (LELU_ENGINEER_TOKEN set)"
+    : "DISABLED — LELU_ENGINEER_TOKEN is not set, every /api/engineer/* route answers 503";
   console.log(
     `[LÉLU runtime] serving ${DIST_DIR} on http://${HOST}:${PORT} — ` +
-      `engineering API mounted, AIS bridge ${aisState}, /api/ai proxy ready.`,
+      `engineering API ${engineerState}, AIS bridge ${aisState}, /api/ai proxy ready.`,
   );
+  if (!process.env.LELU_ENGINEER_TOKEN && HOST === "0.0.0.0") {
+    console.log(
+      "[LÉLU runtime] listening on all interfaces with the engineering API disabled (fail-closed). " +
+        "That is the correct posture for a public host.",
+    );
+  }
 });

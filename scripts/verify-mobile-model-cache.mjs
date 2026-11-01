@@ -22,7 +22,7 @@
  */
 
 import { chromium, devices } from "playwright";
-import { mkdirSync, writeFileSync, mkdtempSync } from "node:fs";
+import { mkdirSync, writeFileSync, mkdtempSync, rmSync, existsSync, statSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -32,6 +32,45 @@ const ORIGIN = new URL(BASE).origin;
 const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 const OUT = path.join("docs", "evidence", "asset-caching", stamp);
 mkdirSync(OUT, { recursive: true });
+
+/* ------------------------------------------------------------------ */
+/* the 49 MB model under test                                          */
+/*                                                                     */
+/* No GLB exists in this project yet (the Forge jobs are still         */
+/* awaiting approval), so the size the deployment brief asks about is  */
+/* created here and served by the runtime's OWN static handler — so the */
+/* cache headers being measured are the production ones, not a mock.   */
+/* It is removed on exit: a 49 MB file left in dist/ would be served   */
+/* to real users.                                                      */
+/* ------------------------------------------------------------------ */
+const MODEL_SIZE = 49 * 1024 * 1024;
+const FIXTURE_DIR = path.join("dist", "models");
+const FIXTURE_FILE = path.join(FIXTURE_DIR, "lelu-character.glb");
+
+function writeFixture(marker) {
+  if (!existsSync(path.join("dist", "index.html"))) {
+    throw new Error("dist/ is missing — run `bun run build` before this check.");
+  }
+  const buffer = Buffer.alloc(MODEL_SIZE, 0x67);
+  buffer.write("glTF", 0, "ascii");
+  // A byte no real GLB uses, so a REPLACED model is distinguishable
+  // from the original without hashing 49 MB over the wire.
+  buffer[8] = marker;
+  mkdirSync(FIXTURE_DIR, { recursive: true });
+  writeFileSync(FIXTURE_FILE, buffer);
+}
+
+function removeFixture() {
+  rmSync(FIXTURE_DIR, { recursive: true, force: true });
+}
+
+process.on("exit", () => {
+  try {
+    removeFixture();
+  } catch {
+    /* nothing left to clean */
+  }
+});
 
 const results = { stamp, base: BASE, checks: [], measurements: {} };
 const check = (name, pass, detail) => {
@@ -80,6 +119,8 @@ const fetchModel = (page) =>
       ms: Math.round(performance.now() - started),
       cacheControl: response.headers.get("cache-control"),
       etag: response.headers.get("etag"),
+      // Enough of the body to tell one version of the model from another.
+      probe: Array.from(new Uint8Array(body.slice(0, 12))),
     };
   }, MODEL_PATH);
 
@@ -95,6 +136,9 @@ async function visit(context, label) {
 }
 
 async function main() {
+  writeFixture(0x11);
+  console.log(`fixture: ${FIXTURE_FILE} (${(statSync(FIXTURE_FILE).size / 1024 / 1024).toFixed(0)} MB)\n`);
+
   const profile = mkdtempSync(path.join(os.tmpdir(), "lelu-cache-"));
 
   /* ------------------------------------------------------------ */
@@ -123,7 +167,7 @@ async function main() {
     `${loadRequests} requests for the model during a plain load (the avatar is the 2.5D rig)`,
   );
 
-  await fetchModel(first.page);
+  const original = await fetchModel(first.page);
   await first.page.waitForTimeout(400);
   const firstFetch = watcher.take();
   results.measurements.firstVisit = firstFetch;
@@ -254,6 +298,97 @@ async function main() {
     return names.map((entry) => entry.name);
   });
   check("clearing storage removes the persisted model", !idbAfterClear.includes("lelu-avatar-3d"), `databases now: ${JSON.stringify(idbAfterClear)}`);
+
+  /* ------------------------------------------------------------ */
+  /* 5. a replaced model must never be served stale                */
+  /* ------------------------------------------------------------ */
+  writeFixture(0x42); // same URL, different bytes
+  await first.page.reload({ waitUntil: "domcontentloaded" });
+  await first.page.waitForTimeout(500);
+  const replaced = await fetchModel(first.page);
+  await first.page.waitForTimeout(300);
+  results.measurements.replacedModel = { fetch: replaced, network: watcher.take() };
+  check(
+    "a replaced model at the same URL is not served from a stale cache",
+    Array.isArray(replaced.probe) && replaced.probe[8] !== original.probe[8],
+    `version byte ${original.probe?.[8]} → ${replaced.probe?.[8]}`,
+  );
+  check(
+    "a replaced model carries a new validator, so a 304 cannot be faked",
+    Boolean(replaced.etag) && replaced.etag !== original.etag,
+    `${original.etag} → ${replaced.etag}`,
+  );
+  const modelInSwCache = await first.page.evaluate(async () => {
+    const names = await caches.keys();
+    let copies = 0;
+    for (const name of names) {
+      const keys = await (await caches.open(name)).keys();
+      copies += keys.filter((request) => request.url.includes("lelu-character.glb")).length;
+    }
+    return copies;
+  });
+  check(
+    "the service worker never keeps its own copy of a model",
+    modelInSwCache === 0,
+    `${modelInSwCache} copies in Cache Storage after two versions of the model were fetched`,
+  );
+
+  /* ------------------------------------------------------------ */
+  /* 6. a refused IndexedDB write, and the recovery path           */
+  /* ------------------------------------------------------------ */
+  const resilience = await first.page.evaluate(async () => {
+    const openDb = () =>
+      new Promise((resolve, reject) => {
+        const request = indexedDB.open("lelu-avatar-3d", 1);
+        request.onupgradeneeded = () => request.result.createObjectStore("models");
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error ?? new Error("open failed"));
+      });
+    const db = await openDb();
+    const proto = IDBObjectStore.prototype;
+    const originalPut = proto.put;
+    const write = () =>
+      new Promise((resolve, reject) => {
+        const tx = db.transaction("models", "readwrite");
+        tx.objectStore("models").put(new ArrayBuffer(1024), "reconstructed");
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error ?? new Error("write failed"));
+      });
+
+    // A browser refusing the write: quota exhausted, or a private-mode rule.
+    let refused = null;
+    proto.put = function blocked() {
+      throw new DOMException("simulated quota", "QuotaExceededError");
+    };
+    try {
+      await write();
+    } catch (error) {
+      refused = String(error?.name ?? error?.message ?? error);
+    } finally {
+      proto.put = originalPut;
+    }
+
+    // The same write once the pressure is gone — the retry path.
+    let recovered = false;
+    try {
+      recovered = (await write()) === true;
+    } catch {
+      recovered = false;
+    }
+    db.close();
+    return { refused, recovered };
+  });
+  results.measurements.indexedDbResilience = resilience;
+  check(
+    "a refused IndexedDB write fails loudly instead of silently",
+    resilience.refused === "QuotaExceededError",
+    `refused with ${resilience.refused}`,
+  );
+  check(
+    "the same write succeeds on retry, so a paid model is recoverable",
+    resilience.recovered === true,
+    "retry stored the record",
+  );
 
   await context.close();
 
