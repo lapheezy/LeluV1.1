@@ -30,7 +30,9 @@
     "verify:github-bridge": "tsx scripts/verify-github-bridge.ts",
     "verify:auth": "node scripts/verify-supabase-auth.mjs",
     "measure:cost": "node scripts/measure-render-cost.mjs",
-    "verify:bundle": "node scripts/verify-no-tests-in-bundle.mjs"
+    "verify:bundle": "node scripts/verify-no-tests-in-bundle.mjs",
+    "verify:asset-caching": "node scripts/verify-asset-caching.mjs",
+    "verify:mobile-cache": "node scripts/verify-mobile-model-cache.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",
