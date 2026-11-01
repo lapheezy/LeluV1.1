@@ -71,29 +71,52 @@ Recovered by one merge (`66557f2`, 352 files, +29,262/−6,458):
 | `Avatar3DReconstructor.ts` | Kept this branch's **memory-only fallback** for a paid model and took the new `meshyTaskId` (`finished.meshyTaskId ?? finished.id`), plus the restored `sizeKb` the new message text needs. |
 | `LeluCompanion.tsx` | Took **theirs**: the new geometry/docked-window design supersedes the run-29 auto-placement (`chooseSpot`/500 ms `reconsider` no longer exists there). `CompanionStore` keeps `EDGE_MARGIN` 100 and the 0.1/0.15 default spot. |
 
-## 3. Supabase — **not connected**, and the exact reason
+## 3. Supabase — key present, URL absent, and the key does not pair with the archived project
 
 The code is present and the integration survived the merge (94 files
 reference Supabase; the client resolves `VITE_SUPABASE_URL` /
 `VITE_SUPABASE_PUBLISHABLE_KEY`, and the server also accepts the
 server-published `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY`).
 
-**The values were present, but under names no code path reads.** `.env.local`
-held seven entries keyed by a provider word — `Anthropic`, `Groq`, `Supabase`
-— while the runtime asks for `VITE_ANTHROPIC_API_KEY`, `VITE_GROQ_API_KEY` and
-so on, and `vite.config.ts` exposes only `VITE_*` / `NEXT_PUBLIC_*` to the
-browser. So every provider reported itself unconfigured with real keys sitting
-in the file:
+**The file is generated, and its names are the SECRET names.** Its first line
+says so:
 
 ```
-Anthropic=
-Elevenlabs=
-Github=
-Groq=
-Meshy=
-Openrouter=
-Supabase=
+# Written by Freebuff from this project's secrets (Settings → Projects). Changes here are replaced.
 ```
+
+The seven entries are keyed by a provider word — the name the secret store uses
+— while the code asks for `ANTHROPIC_API_KEY` / `GROQ_API_KEY` (server, where
+model calls are brokered) and `VITE_SUPABASE_PUBLISHABLE_KEY` (browser):
+
+```
+Anthropic=…    Elevenlabs=…   Github=…     Groq=…
+Meshy=…        Openrouter=…   Supabase=…
+```
+
+So seven real credentials sat in the file while every provider reported itself
+unconfigured, and Supabase reported `disabled` because its key was filed under
+`Supabase`. Renaming the lines by hand fixes that only until the file is next
+regenerated — which is exactly what happened here: a working hand-rename was
+replaced, and the providers went dark again with the keys still in place.
+
+**The fix is in code, not in the file, and it is pinned by a test.**
+`plugins/bareSecretAliases.ts` fills each documented name from its bare
+counterpart — only where the documented name is absent, so it can fill a hole
+but never redirect a working configuration. It is applied by `vite.config.ts`
+(the dev server and the build) and by `plugins/loadEnvFiles.ts` (the standalone
+and Deno runtimes), and `tests/bare-secret-aliases.test.ts` holds it (8/8).
+
+Model credentials map to their **server-side** names only (`ANTHROPIC_API_KEY`,
+`GROQ_API_KEY`, `OPENROUTER_API_KEY`, `GITHUB_MODELS_TOKEN`), never to a `VITE_`
+name: requests are brokered through `/api/model/<id>`, and putting a model key
+in a `VITE_` variable would publish it to anyone who can reach the dev server.
+After the change the broker's own exposure warning is silent — it previously
+named the keys as readable from the browser.
+
+The GitHub secret maps to `GITHUB_MODELS_TOKEN`, not `GITHUB_TOKEN`: the ambient
+one is blocked on purpose (`Environment.ts` → `NEVER_ADOPT_BARE`), because a
+dev container sets one for git tooling that is not an inference key.
 
 This was checked against the code, not assumed: `Environment.ts` reads
 `VITE_ANTHROPIC_API_KEY` / `VITE_GROQ_API_KEY` / `VITE_OPENROUTER_API_KEY` /
@@ -101,21 +124,16 @@ This was checked against the code, not assumed: `Environment.ts` reads
 `ANTHROPIC_API_KEY` → `LELU_ANTHROPIC_API_KEY` → `CLAUDE_API_KEY`, and
 `ENV_VARS.md` documents `MESHY_API_KEY` as server-side only.
 
-The names were therefore remapped onto the names the code actually reads, with
-every value preserved verbatim and never printed:
+Evidence, all of it from the regenerated bare-name file and none of it
+inferred from a successful build. The startup line names what was supplied:
 
-| Was | Now |
-|---|---|
-| `Anthropic` | `VITE_ANTHROPIC_API_KEY` + `ANTHROPIC_API_KEY` |
-| `Groq` | `VITE_GROQ_API_KEY` + `GROQ_API_KEY` |
-| `Openrouter` | `VITE_OPENROUTER_API_KEY` |
-| `Github` | `VITE_GITHUB_TOKEN` |
-| `Meshy` | `MESHY_API_KEY` (server-side, paid — deliberately not `VITE_`) |
-| `Elevenlabs` | `ELEVENLABS_API_KEY` |
-| `Supabase` | `VITE_SUPABASE_PUBLISHABLE_KEY` + `SUPABASE_PUBLISHABLE_KEY` |
+```
+[env] bare secret names supplied ANTHROPIC_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY,
+      GITHUB_MODELS_TOKEN, MESHY_API_KEY, ELEVENLABS_API_KEY,
+      VITE_SUPABASE_PUBLISHABLE_KEY, SUPABASE_PUBLISHABLE_KEY
+```
 
-Evidence after the rename, from the project's own boolean-only route
-(`GET /api/model/status`, no values in the response):
+`GET /api/model/status` (booleans only, no values):
 
 ```json
 {"ok":true,"providers":{"anthropic":true,"groq":true,"openrouter":true,
@@ -123,11 +141,39 @@ Evidence after the rename, from the project's own boolean-only route
  "githubModels":true}}
 ```
 
-What is still missing: the `Supabase` value is a **key**, not a project URL
-(it does not begin with `http`), so `VITE_SUPABASE_URL` / `SUPABASE_URL` remain
-empty and Supabase still cannot authenticate, read a profile, save a
-conversation or persist memory. That is the one real credential gap left, and
-it is named precisely instead of being faked.
+`GET /api/provider-health` — live requests, not a local check:
+
+```json
+{"groq":{"status":200,"ok":true},"openrouter":{"status":200,"ok":true},
+ "anthropic":{"status":200,"ok":true}}
+```
+
+**What is actually wrong with Supabase.** The `Supabase` secret is a genuine
+publishable key (`sb_publishable_…`, 46 characters) — the right *kind* of
+credential, client-safe by design, with RLS as the protection. It is not a URL,
+so no alias invents one and `VITE_SUPABASE_URL` / `SUPABASE_URL` stay empty.
+
+There is one URL in this repository — `https://dkcwonxfomxzmguawege.supabase.co`,
+recorded by the OG archive (`OG_INTEGRATION_MAP.md` §5) — and it does **not**
+accept this key. Probed live from this container:
+
+```
+GET /rest/v1/      → 401 {"message":"Invalid API key",
+                    "hint":"… This API key might also be owned by another Supabase project."}
+GET /auth/v1/settings → 401 (same body)
+```
+
+So one of two things is true, and they cannot be told apart from here: the key
+was rotated, or it belongs to a different project than the archived one. A
+modern `sb_publishable_` key carries no project ref (see
+`projectRefFromKey`), so the pairing can only be settled by a request — and
+that request says no. Reporting "configured" on the strength of a key that
+401s would be exactly the fake connectivity this project forbids.
+
+**To connect, the project URL is required** — it is not a secret, and a single
+secret named `SUPABASE_URL` reaches both the server and the browser (the
+runtime bridge lists it as an alias). In this environment it should be added as
+a project secret, because `.env.local` is regenerated and hand-edits are lost.
 
 **To connect, provide** (in `.env.local`, and as repository/host secrets):
 
@@ -158,7 +204,7 @@ this environment, not a regression.
 
 Accepted key names: `VITE_ANTHROPIC_API_KEY`, `ANTHROPIC_API_KEY`,
 `LELU_ANTHROPIC_API_KEY`, `CLAUDE_API_KEY`; Groq likewise through its provider.
-After the rename (§3) the status route reports Anthropic, Groq, OpenRouter and
+After the alias layer (§3) the status route reports Anthropic, Groq, OpenRouter and
 GitHub Models as configured, and `scripts/verify-providers.ts` builds and sends
 correct requests for each against a stubbed transport (64/66 pass). **No live
 paid call was made from this container**, so correctness of the keys themselves
@@ -281,9 +327,11 @@ The failing set, by cause:
 ## 15. Blockers
 
 1. **Supabase has no project URL.** Every other credential is now visible to
-   the runtime after the rename in §3, but the `Supabase` entry is a key with
-   no URL beside it, so `VITE_SUPABASE_URL` / `SUPABASE_URL` are empty and
-   persistence cannot connect. This is the single remaining credential gap.
+   the runtime through the alias layer in §3, but the `Supabase` entry is a key
+   with no URL beside it, so `VITE_SUPABASE_URL` / `SUPABASE_URL` are empty and
+   persistence cannot connect. The one URL the repository documents rejects
+   this key with 401 (§3), so the project URL has to be supplied rather than
+   assumed. This is the single remaining credential gap.
 2. **No browser** in this container — avatar rendering, voice, lip sync,
    mobile layout, offline fallback and screenshots are unverified here.
 3. **19 pre-existing failing tests** on the recovered branch, 3 of which are
