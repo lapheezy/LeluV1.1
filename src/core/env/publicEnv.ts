@@ -78,10 +78,12 @@ function publicEnvRecord(): Record<string, string | undefined> {
        *
        * The four below are still read in the browser, so they are still
        * shipped in the bundle. That is a real remaining exposure, stated
-       * plainly rather than glossed over (see ENV_VARS.md). Each is a
-       * free-tier key for a browser-only feature — the Earth fire layer
-       * and three secondary news fallbacks — and closing them means
-       * giving each the same relay treatment. */
+       * plainly rather than glossed over (see ENV_VARS.md). Each is used
+       * by a browser-only feature — the Earth fire layer and three news
+       * fallbacks — and closing them means giving each the same relay
+       * treatment. Meshy has had it: avatar 3-D reconstruction now goes
+       * through the server-side Forge (/api/forge), and its key is gone
+       * from this list. */
       VITE_GUARDIAN_API_KEY: import.meta.env.VITE_GUARDIAN_API_KEY,
       VITE_GNEWS_API_KEY: import.meta.env.VITE_GNEWS_API_KEY,
       VITE_NEWSDATA_API_KEY: import.meta.env.VITE_NEWSDATA_API_KEY,

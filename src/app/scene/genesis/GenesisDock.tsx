@@ -16,8 +16,9 @@
  * ==========================================================
  */
 
+import { BASE_URL } from "../../../core/env/buildEnv";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { useGenesis, type GenesisPanel } from "./GenesisCore";
+import { useGenesisState, type GenesisPanel } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 import GenesisNavIcon, { type GenesisNavIconName } from "./GenesisNavIcons";
 import GenesisTabEditor from "./GenesisTabEditor";
@@ -532,7 +533,7 @@ export default function GenesisDock({
      item launches the SAME one runtime (openModule for environments like
      Earth/Render/Sketch, onSelect for capability panels). No separate
      navigation state exists; the menu is a presentation of the dock. */
-  const { openModule } = useGenesis();
+  const { openModule } = useGenesisState();
   const tokens = sizeTokens(dockSettings.settings.size);
   const hasErrors = engineErrorCount > 0;
   const isLive = thinking || speaking;
@@ -593,7 +594,7 @@ export default function GenesisDock({
     return queue.subscribe(() => update());
   }, []);
 
-  const base = typeof import.meta.env.BASE_URL === "string" ? import.meta.env.BASE_URL : "/";
+  const base = BASE_URL;
   const zipHref = `${base}lelu-project.zip`;
 
   const statusColor = hasErrors
@@ -849,8 +850,10 @@ export default function GenesisDock({
         their own, so reaching them is navigation and the runtime under
         them is never rebuilt (§2, §18). Rendered at every breakpoint,
         because the dock has three different shapes and an interface
-        that only exists on tablets is not "exposed". */}
-        <OgDockTabs railSize={44} iconSize={16} />
+        that only exists on tablets is not "exposed". On phones they step
+        aside while the full-screen chat is open — they covered its
+        messages — and are listed in the LÉLU menu instead. */}
+        {!chatIsFullscreen ? <OgDockTabs railSize={44} iconSize={16} /> : null}
 
         {tabEditor}
       </>

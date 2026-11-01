@@ -1,0 +1,166 @@
+{
+  "character": "lelu_character",
+  "batch": "phase-1b",
+  "classifiedBy": "visual review of the supplied Phase 1B images (Claude Code session, 2026-10-30)",
+  "outfitVariants": {
+    "A-corset-harness": "Fitted camo corset with rose print and copper O-ring front, banded leather forearm cuffs with copper plates, heavy chain/pouch hip harness with octagonal copper frames, rose-print cargo pants, laced platform boots. No hood.",
+    "B-wire-cage-hood": "Camo crop top with sheer camo sleeves, copper wire-cage forearm armour with crystal drops, looser draped cargo pants with sweeping copper wire, chunkier sneaker-boots, optional camo hood. Signature pendant with two rose-quartz spheres."
+  },
+  "images": [
+    {
+      "id": "ref01_front_fullbody_A",
+      "sourceName": "cf8bb14a-image.png",
+      "category": "body",
+      "view": "front full-body",
+      "outfitVariant": "A-corset-harness",
+      "intendedUse": "Full-body front of outfit A; silhouette, proportions and texture reference for outfit A.",
+      "uses": ["geometry", "texture", "design"],
+      "notes": "Relaxed stance, arms slightly away from body, not a true A-pose. Dense dangling chains will read as fused geometry in a single-image reconstruction."
+    },
+    {
+      "id": "ref02_hip_harness_detail_A",
+      "sourceName": "403bb34a-image.png",
+      "category": "clothing",
+      "view": "waist and hip close-up, three-quarter",
+      "outfitVariant": "A-corset-harness",
+      "intendedUse": "Waist belt, hip harness, pouches, octagonal copper frames, crystal drops, rose-print fabric.",
+      "uses": ["texture", "design"]
+    },
+    {
+      "id": "ref03_boots_detail_A",
+      "sourceName": "cb46916c-image.png",
+      "category": "clothing",
+      "view": "boots close-up",
+      "outfitVariant": "A-corset-harness",
+      "intendedUse": "Platform boot construction: lacing, buckled straps, copper toe/heel plates, crystal chains, rose-camo leather, cleated sole.",
+      "uses": ["texture", "design"],
+      "notes": "Best single source if boots are later generated as a separate module."
+    },
+    {
+      "id": "ref04_hands_jewelry",
+      "sourceName": "e56aaf18-image.png",
+      "category": "accessories",
+      "view": "forearms and hands close-up",
+      "outfitVariant": "A-corset-harness",
+      "intendedUse": "Rings, hand chains, cuff stacks, stiletto nails with copper caps, rose and filigree hand tattoos.",
+      "uses": ["texture", "design"]
+    },
+    {
+      "id": "ref05_lower_body_A",
+      "sourceName": "9c66f016-image.png",
+      "category": "clothing",
+      "view": "front waist-to-floor",
+      "outfitVariant": "A-corset-harness",
+      "intendedUse": "Cargo pant construction, layered straps, pouches, cuffing at the ankle, boot fit.",
+      "uses": ["texture", "design"]
+    },
+    {
+      "id": "ref06_torso_corset_A",
+      "sourceName": "6b8f2fcf-image.png",
+      "category": "clothing",
+      "view": "front torso close-up",
+      "outfitVariant": "A-corset-harness",
+      "intendedUse": "Corset/top construction, strap harness, choker, chest tattoos, hair ornament chains.",
+      "uses": ["texture", "design"]
+    },
+    {
+      "id": "ref07_signature_pendant",
+      "sourceName": "c13dbc13-image.png",
+      "category": "accessories",
+      "view": "product macro",
+      "outfitVariant": "both",
+      "intendedUse": "LÉLU signature pendant: twisted rose-gold frame holding two rose-quartz spheres, faceted rose-quartz drop, caged crystal side drops.",
+      "uses": ["design"],
+      "notes": "Isolated object on dark ground; suitable for a separate image-to-3d accessory job later."
+    },
+    {
+      "id": "ref08_face_upper_body",
+      "sourceName": "89ef06bf-image.png",
+      "category": "identity",
+      "view": "front head and upper torso",
+      "outfitVariant": "A-corset-harness",
+      "intendedUse": "Secondary identity reference; hair framing, hair chains and roses, neck and chest tattoos.",
+      "uses": ["texture", "design"]
+    },
+    {
+      "id": "ref09_back_upper_body",
+      "sourceName": "bc9b9515-image.png",
+      "category": "hair",
+      "view": "back, head to upper thigh",
+      "outfitVariant": "mixed",
+      "intendedUse": "Rear hair volume and length, braided chains with roses and crystals, back of harness and pants.",
+      "uses": ["texture", "design"],
+      "notes": "Arms show B-style wire cages while pants show A-style octagonal frames. Not full length. Not combined with either front view in a multi-image job because the outfits disagree."
+    },
+    {
+      "id": "ref10_face_primary",
+      "sourceName": "403870d8-image.png",
+      "category": "identity",
+      "view": "front face close-up",
+      "outfitVariant": "both",
+      "intendedUse": "PRIMARY identity reference: face shape, eyes, brows, nose, lips, skin, markings, piercings, hairline.",
+      "uses": ["texture", "design"]
+    },
+    {
+      "id": "ref11_front_apose_B",
+      "sourceName": "65d892fb-image.png",
+      "category": "body",
+      "view": "front full-body A-pose",
+      "outfitVariant": "B-wire-cage-hood",
+      "intendedUse": "Base character geometry: true A-pose, unhooded, whole body including hair and feet visible, plain background.",
+      "uses": ["geometry", "texture", "design"]
+    },
+    {
+      "id": "ref12_left_side_hooded_B",
+      "sourceName": "94c68174-image.png",
+      "category": "body",
+      "view": "left side, head turned to camera",
+      "outfitVariant": "B-wire-cage-hood",
+      "intendedUse": "Side silhouette of outfit B: pant volume, pouch depth, boot profile, hood shape.",
+      "uses": ["geometry", "design"],
+      "notes": "Hood up. Mixing with the unhooded front in one job would put two different heads into one reconstruction."
+    },
+    {
+      "id": "ref13_three_quarter_hooded_B",
+      "sourceName": "58a488d3-image.png",
+      "category": "body",
+      "view": "three-quarter front",
+      "outfitVariant": "B-wire-cage-hood",
+      "intendedUse": "Three-quarter volume of outfit B with hood up.",
+      "uses": ["geometry", "design"]
+    },
+    {
+      "id": "ref14_front_apose_hooded_B",
+      "sourceName": "cf190c57-image.png",
+      "category": "body",
+      "view": "front full-body A-pose",
+      "outfitVariant": "B-wire-cage-hood",
+      "intendedUse": "Front of the hooded variant; with ref12 and ref13 forms the only view-consistent multi-image set.",
+      "uses": ["geometry", "design"]
+    }
+  ],
+  "identity": {
+    "primary": "ref10_face_primary",
+    "secondary": ["ref08_face_upper_body"],
+    "preserve": {
+      "faceShape": "Oval face, high defined cheekbones, softly tapered jaw and rounded chin.",
+      "eyes": "Almond-shaped warm brown eyes, slightly upturned outer corners, winged liner, long dense lashes, moderate spacing.",
+      "brows": "Full, dark, softly arched brows with a clean tail.",
+      "nose": "Straight bridge, softly rounded tip, moderately full alae.",
+      "lips": "Full lips, defined cupid's bow, fuller lower lip, glossy deep berry-brown colour.",
+      "skin": "Deep warm brown complexion with a soft sheen; light freckles across cheeks and nose.",
+      "markings": "Small star marks high on the cheekbones; dark swirl/curl markings at the forehead and temples; rose-quartz jewel at the hairline centre with a small crystal drop between the brows.",
+      "piercings": "Septum ring; centred lower-lip (labret) stud with small drop; large rose-gold hoop earrings.",
+      "tattoos": "Ornamental filigree across collarbones and chest; rose and filigree tattoos on hands and forearms.",
+      "hairline": "Centre part; dense black corkscrew curls framing the face, pink/magenta highlights."
+    },
+    "mayChange": ["outfit", "hairstyle", "pose", "expression", "accessories"],
+    "rule": "Identity references change only through an explicit, approved relock. Generated images are never promoted to identity references automatically."
+  },
+  "coverageGaps": [
+    "No right-side profile in either variant.",
+    "No full-length back view (ref09 stops at the upper thigh) and no back view of outfit B alone.",
+    "Outfit A has no A-pose, side or three-quarter view; outfit B has no unhooded side or three-quarter view.",
+    "No neutral-expression or open-mouth face reference for facial rigging and visemes."
+  ]
+}

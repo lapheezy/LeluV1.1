@@ -112,6 +112,8 @@ const SERVER_ONLY: Record<string, string> = {
   AISSTREAM_API_KEY: "CANARYsrv3_SERVERONLY",
   INSTAGRAM_ACCESS_TOKEN: "CANARYsrv4_SERVERONLY",
   LELU_ENGINEER_TOKEN: "CANARYsrv5_SERVERONLY",
+  // Read only by the server-side 3D Forge; never referenced by client code.
+  MESHY_API_KEY: "CANARYsrv6_SERVERONLY",
 };
 
 const OUT_DIR = "dist-secret-scan";

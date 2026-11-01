@@ -13,7 +13,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import GenesisWindowFrame from "./GenesisWindowFrame";
-import { useGenesis, type GenesisPanel } from "./GenesisCore";
+import { useGenesisState, type GenesisPanel } from "./GenesisCore";
 import AIService from "../../../core/AIService";
 import AvatarStore from "../../../core/avatar/AvatarProfile";
 import AgentStore from "../../../core/agents/AgentStore";
@@ -237,7 +237,7 @@ const LINKS: { id: GenesisPanel; label: string; description: string }[] = [
 ];
 
 export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelProps) {
-  const { openPanel, clearConversation, state } = useGenesis();
+  const { openPanel, clearConversation, state } = useGenesisState();
   const [memoryCount, setMemoryCount] = useState<number | null>(null);
   const [avatarName, setAvatarName] = useState<string>("Lélu");
   const [exported, setExported] = useState(false);

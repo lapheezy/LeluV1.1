@@ -1,0 +1,380 @@
+{
+  "steps": [
+    {
+      "step": "meshes",
+      "head": "lelu_head",
+      "patches": [
+        "eye_patch_l",
+        "eye_patch_r"
+      ]
+    },
+    {
+      "step": "landmarks",
+      "count": 478
+    },
+    {
+      "step": "scale",
+      "mouthWidthM": 0.0338
+    },
+    {
+      "step": "lip-seam",
+      "facesRemoved": 128
+    },
+    {
+      "step": "mouth",
+      "parts": [
+        "lelu_mouth",
+        "lelu_teeth"
+      ]
+    },
+    {
+      "step": "shapes",
+      "shapes": {
+        "eyeBlinkLeft": {
+          "lelu_head": {
+            "verticesMoved": 1587,
+            "maxMm": 6.04
+          },
+          "eye_patch_l": {
+            "verticesMoved": 1160,
+            "maxMm": 6.05
+          },
+          "eye_patch_r": {
+            "verticesMoved": 0,
+            "maxMm": 0.0
+          }
+        },
+        "eyeBlinkRight": {
+          "lelu_head": {
+            "verticesMoved": 2031,
+            "maxMm": 6.14
+          },
+          "eye_patch_l": {
+            "verticesMoved": 0,
+            "maxMm": 0.0
+          },
+          "eye_patch_r": {
+            "verticesMoved": 1264,
+            "maxMm": 6.18
+          }
+        },
+        "eyeWideLeft": {
+          "lelu_head": {
+            "verticesMoved": 558,
+            "maxMm": 1.88
+          },
+          "eye_patch_l": {
+            "verticesMoved": 588,
+            "maxMm": 1.88
+          },
+          "eye_patch_r": {
+            "verticesMoved": 0,
+            "maxMm": 0.0
+          }
+        },
+        "eyeWideRight": {
+          "lelu_head": {
+            "verticesMoved": 847,
+            "maxMm": 1.9
+          },
+          "eye_patch_l": {
+            "verticesMoved": 0,
+            "maxMm": 0.0
+          },
+          "eye_patch_r": {
+            "verticesMoved": 674,
+            "maxMm": 1.92
+          }
+        },
+        "jawOpen": {
+          "lelu_head": {
+            "verticesMoved": 13055,
+            "maxMm": 5.42
+          },
+          "eye_patch_l": {
+            "verticesMoved": 0,
+            "maxMm": 0.0
+          },
+          "eye_patch_r": {
+            "verticesMoved": 0,
+            "maxMm": 0.0
+          }
+        },
+        "mouthSmileLeft": {
+          "lelu_head": {
+            "verticesMoved": 4588,
+            "maxMm": 3.84
+          },
+          "eye_patch_l": {
+            "verticesMoved": 86,
+            "maxMm": 0.07
+          },
+          "eye_patch_r": {
+            "verticesMoved": 0,
+            "maxMm": 0.0
+          }
+        },
+        "mouthSmileRight": {
+          "lelu_head": {
+            "verticesMoved": 4939,
+            "maxMm": 3.85
+          },
+          "eye_patch_l": {
+            "verticesMoved": 0,
+            "maxMm": 0.0
+          },
+          "eye_patch_r": {
+            "verticesMoved": 38,
+            "maxMm": 0.03
+          }
+        },
+        "mouthFrownLeft": {
+          "lelu_head": {
+            "verticesMoved": 2894,
+            "maxMm": 2.78
+          },
+          "eye_patch_l": {
+            "verticesMoved": 0,
+            "maxMm": 0.0
+          },
+          "eye_patch_r": {
+            "verticesMoved": 0,
+            "maxMm": 0.0
+          }
+        },
+        "mouthFrownRight": {
+          "lelu_head": {
+            "verticesMoved": 2653,
+            "maxMm": 2.79
+          },
+          "eye_patch_l": {
+            "verticesMoved": 0,
+            "maxMm": 0.0
+          },
+          "eye_patch_r": {
+            "verticesMoved": 0,
+            "maxMm": 0.0
+          }
+        },
+        "browInnerUp": {
+          "lelu_head": {
+            "verticesMoved": 2378,
+            "maxMm": 2.37
+          },
+          "eye_patch_l": {
+            "verticesMoved": 105,
+            "maxMm": 0.39
+          },
+          "eye_patch_r": {
+            "verticesMoved": 59,
+            "maxMm": 0.18
+          }
+        },
+        "browDownLeft": {
+          "lelu_head": {
+            "verticesMoved": 1695,
+            "maxMm": 2.17
+          },
+          "eye_patch_l": {
+            "verticesMoved": 191,
+            "maxMm": 0.27
+          },
+          "eye_patch_r": {
+            "verticesMoved": 0,
+            "maxMm": 0.0
+          }
+        },
+        "browDownRight": {
+          "lelu_head": {
+            "verticesMoved": 1654,
+            "maxMm": 2.18
+          },
+          "eye_patch_l": {
+            "verticesMoved": 0,
+            "maxMm": 0.0
+          },
+          "eye_patch_r": {
+            "verticesMoved": 212,
+            "maxMm": 0.26
+          }
+        }
+      }
+    },
+    {
+      "step": "export",
+      "file": "lelu.glb",
+      "bytes": 49511140
+    }
+  ],
+  "warnings": [],
+  "shapes": {
+    "eyeBlinkLeft": {
+      "lelu_head": {
+        "verticesMoved": 1587,
+        "maxMm": 6.04
+      },
+      "eye_patch_l": {
+        "verticesMoved": 1160,
+        "maxMm": 6.05
+      },
+      "eye_patch_r": {
+        "verticesMoved": 0,
+        "maxMm": 0.0
+      }
+    },
+    "eyeBlinkRight": {
+      "lelu_head": {
+        "verticesMoved": 2031,
+        "maxMm": 6.14
+      },
+      "eye_patch_l": {
+        "verticesMoved": 0,
+        "maxMm": 0.0
+      },
+      "eye_patch_r": {
+        "verticesMoved": 1264,
+        "maxMm": 6.18
+      }
+    },
+    "eyeWideLeft": {
+      "lelu_head": {
+        "verticesMoved": 558,
+        "maxMm": 1.88
+      },
+      "eye_patch_l": {
+        "verticesMoved": 588,
+        "maxMm": 1.88
+      },
+      "eye_patch_r": {
+        "verticesMoved": 0,
+        "maxMm": 0.0
+      }
+    },
+    "eyeWideRight": {
+      "lelu_head": {
+        "verticesMoved": 847,
+        "maxMm": 1.9
+      },
+      "eye_patch_l": {
+        "verticesMoved": 0,
+        "maxMm": 0.0
+      },
+      "eye_patch_r": {
+        "verticesMoved": 674,
+        "maxMm": 1.92
+      }
+    },
+    "jawOpen": {
+      "lelu_head": {
+        "verticesMoved": 13055,
+        "maxMm": 5.42
+      },
+      "eye_patch_l": {
+        "verticesMoved": 0,
+        "maxMm": 0.0
+      },
+      "eye_patch_r": {
+        "verticesMoved": 0,
+        "maxMm": 0.0
+      }
+    },
+    "mouthSmileLeft": {
+      "lelu_head": {
+        "verticesMoved": 4588,
+        "maxMm": 3.84
+      },
+      "eye_patch_l": {
+        "verticesMoved": 86,
+        "maxMm": 0.07
+      },
+      "eye_patch_r": {
+        "verticesMoved": 0,
+        "maxMm": 0.0
+      }
+    },
+    "mouthSmileRight": {
+      "lelu_head": {
+        "verticesMoved": 4939,
+        "maxMm": 3.85
+      },
+      "eye_patch_l": {
+        "verticesMoved": 0,
+        "maxMm": 0.0
+      },
+      "eye_patch_r": {
+        "verticesMoved": 38,
+        "maxMm": 0.03
+      }
+    },
+    "mouthFrownLeft": {
+      "lelu_head": {
+        "verticesMoved": 2894,
+        "maxMm": 2.78
+      },
+      "eye_patch_l": {
+        "verticesMoved": 0,
+        "maxMm": 0.0
+      },
+      "eye_patch_r": {
+        "verticesMoved": 0,
+        "maxMm": 0.0
+      }
+    },
+    "mouthFrownRight": {
+      "lelu_head": {
+        "verticesMoved": 2653,
+        "maxMm": 2.79
+      },
+      "eye_patch_l": {
+        "verticesMoved": 0,
+        "maxMm": 0.0
+      },
+      "eye_patch_r": {
+        "verticesMoved": 0,
+        "maxMm": 0.0
+      }
+    },
+    "browInnerUp": {
+      "lelu_head": {
+        "verticesMoved": 2378,
+        "maxMm": 2.37
+      },
+      "eye_patch_l": {
+        "verticesMoved": 105,
+        "maxMm": 0.39
+      },
+      "eye_patch_r": {
+        "verticesMoved": 59,
+        "maxMm": 0.18
+      }
+    },
+    "browDownLeft": {
+      "lelu_head": {
+        "verticesMoved": 1695,
+        "maxMm": 2.17
+      },
+      "eye_patch_l": {
+        "verticesMoved": 191,
+        "maxMm": 0.27
+      },
+      "eye_patch_r": {
+        "verticesMoved": 0,
+        "maxMm": 0.0
+      }
+    },
+    "browDownRight": {
+      "lelu_head": {
+        "verticesMoved": 1654,
+        "maxMm": 2.18
+      },
+      "eye_patch_l": {
+        "verticesMoved": 0,
+        "maxMm": 0.0
+      },
+      "eye_patch_r": {
+        "verticesMoved": 212,
+        "maxMm": 0.26
+      }
+    }
+  }
+}

@@ -50,6 +50,11 @@ interface BrokeredProvider {
   keyNames: string[];
   /** Build the auth headers from the resolved credential. */
   authHeaders: (key: string) => Record<string, string>;
+  /**
+   * Request headers the browser MAY set, each with the pattern its value
+   * must match. Everything else the page sends is dropped.
+   */
+  passHeaders?: Record<string, RegExp>;
 }
 
 /**
@@ -62,8 +67,12 @@ interface BrokeredProvider {
 export const BROKERED: Record<string, BrokeredProvider> = {
   anthropic: {
     endpointId: "anthropic",
-    keyNames: ["VITE_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY", "CLAUDE_API_KEY"],
+    keyNames: ["VITE_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY", "LELU_ANTHROPIC_API_KEY", "CLAUDE_API_KEY"],
     authHeaders: (key) => ({ "x-api-key": key, "anthropic-version": "2023-06-01" }),
+    // Beta opt-ins (e.g. the server-side refusal fallback) are a property of
+    // the request, not of the credential, so the page chooses them — but
+    // only as comma-separated beta names, never as arbitrary header text.
+    passHeaders: { "anthropic-beta": /^[a-z0-9-]+(?:\s*,\s*[a-z0-9-]+)*$/ },
   },
   groq: {
     endpointId: "groq",
@@ -120,8 +129,11 @@ export function brokerPath(provider: string, path = ""): string {
   return tail ? `/api/model/${provider}/${tail}` : `/api/model/${provider}`;
 }
 
-interface ConnectLikeRes {
+export interface ConnectLikeRes {
   statusCode?: number;
+  /** Present on a real Node response; "close" fires when the client goes away. */
+  on?: (event: "close", fn: () => void) => void;
+  writableFinished?: boolean;
   setHeader: (name: string, value: string) => void;
   end: (body?: string) => void;
   /** Present on a real Node response; used to forward a stream chunk by chunk. */
@@ -131,11 +143,12 @@ interface ConnectLikeRes {
   headersSent?: boolean;
 }
 
-interface ConnectLikeReq {
+export interface ConnectLikeReq {
   method?: string;
   url?: string;
   headers?: Record<string, string | string[] | undefined>;
   on?: (event: "data" | "end" | "error", fn: (chunk?: unknown) => void) => void;
+  socket?: { remoteAddress?: string };
 }
 
 type Handler = (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void) => void;
@@ -159,7 +172,7 @@ function sendJson(res: ConnectLikeRes, payload: unknown, status = 200): void {
  * leaving the envelope readable — which fails upstream with a parse error that
  * looks like anything but an encoding bug.
  */
-function readBody(req: ConnectLikeReq): Promise<Buffer> {
+export function readBody(req: ConnectLikeReq): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     if (!req.on) return resolve(Buffer.alloc(0));
     const chunks: Buffer[] = [];
@@ -205,7 +218,7 @@ function headerValue(req: ConnectLikeReq, name: string): string {
  * same-process or CLI caller and is allowed through, matching the behaviour
  * the dedicated relay had before this became the single mechanism.
  */
-function crossOrigin(req: ConnectLikeReq): boolean {
+export function crossOrigin(req: ConnectLikeReq): boolean {
   const origin = headerValue(req, "origin");
   const referer = headerValue(req, "referer");
   const host = headerValue(req, "host");
@@ -288,6 +301,60 @@ function warnAboutPrefixedCredentials(readEnv: EnvReader): void {
   );
 }
 
+/** The headers from `provider.passHeaders` the request carries with a valid value. */
+function passedHeaders(req: ConnectLikeReq, provider: BrokeredProvider): Record<string, string> {
+  const passed: Record<string, string> = {};
+  for (const [name, pattern] of Object.entries(provider.passHeaders ?? {})) {
+    const value = headerValue(req, name).trim();
+    if (value && value.length <= 256 && pattern.test(value)) passed[name] = value;
+  }
+  return passed;
+}
+
+/**
+ * Per-client request budget for the credentialed routes.
+ *
+ * The broker spends the operator's quota on behalf of whoever reaches it.
+ * The origin check stops other WEBSITES driving it from a visitor's
+ * browser, but any non-browser client on the network can send a matching
+ * Origin header, so this bounds what one address can spend: a fixed
+ * window of LELU_BROKER_RATE_PER_MIN requests per minute (default 120;
+ * 0 disables). It is a ceiling on abuse, not an authentication scheme.
+ */
+export function createRateLimiter(perMinute: number, now: () => number = Date.now) {
+  const windows = new Map<string, { start: number; count: number }>();
+  return {
+    /** Seconds to wait, or 0 when the request may proceed. */
+    take(client: string): number {
+      if (perMinute <= 0) return 0;
+      const time = now();
+      let window = windows.get(client);
+      if (!window || time - window.start >= 60_000) {
+        // Bound memory: forget windows that have expired.
+        if (windows.size > 10_000) {
+          for (const [key, entry] of windows) {
+            if (time - entry.start >= 60_000) windows.delete(key);
+          }
+        }
+        window = { start: time, count: 0 };
+        windows.set(client, window);
+      }
+      if (window.count >= perMinute) {
+        return Math.max(1, Math.ceil((window.start + 60_000 - time) / 1000));
+      }
+      window.count += 1;
+      return 0;
+    },
+  };
+}
+
+function rateLimitFromEnv(readEnv: EnvReader): number {
+  const raw = readEnv("LELU_BROKER_RATE_PER_MIN");
+  if (raw === undefined || raw.trim() === "") return 120;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : 120;
+}
+
 /**
  * Providers whose credential the upstream has actually REJECTED.
  *
@@ -313,6 +380,7 @@ function isAuthFailure(status: number): boolean {
 
 export function createModelApi(readEnv: EnvReader) {
   warnAboutPrefixedCredentials(readEnv);
+  const limiter = createRateLimiter(rateLimitFromEnv(readEnv));
   const credentialFor = (provider: BrokeredProvider): string => {
     for (const name of provider.keyNames) {
       const value = readEnv(name);
@@ -322,7 +390,12 @@ export function createModelApi(readEnv: EnvReader) {
   };
 
   async function handle(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): Promise<void> {
-    const url = req.url ?? "";
+    // Connect (Vite) strips the mount path before calling a handler; the
+    // standalone server's router (server.ts) does not. Without this, every
+    // production request arrived as "/api/model/…" and was read as a call
+    // to a provider named "api".
+    const raw = req.url ?? "";
+    const url = raw.startsWith("/api/model/") || raw === "/api/model" ? raw.slice("/api/model".length) : raw;
 
     // WHICH PROVIDERS THE SERVER CAN REACH. Booleans only — a status
     // route that leaked the key would defeat the point of the broker.
@@ -383,18 +456,34 @@ export function createModelApi(readEnv: EnvReader) {
       return;
     }
 
+    const wait = limiter.take(req.socket?.remoteAddress ?? "local");
+    if (wait > 0) {
+      res.setHeader("Retry-After", String(wait));
+      sendJson(res, { ok: false, error: "Broker rate limit reached; retry shortly." }, 429);
+      return;
+    }
+
+    // A client that goes away (closed tab, aborted fetch, its own timeout)
+    // must stop the upstream too. Otherwise a long streamed generation kept
+    // running — and billing — for nobody, for up to two minutes.
+    const clientGone = new AbortController();
+    res.on?.("close", () => {
+      if (!res.writableFinished) clientGone.abort();
+    });
+
     const target = `${endpoint(provider.endpointId)}${rest ?? ""}`;
     try {
       const upstream = await fetch(target, {
         method: req.method ?? "POST",
         headers: {
           "Content-Type": forwardedContentType(req),
-          // The server's credential, always. Anything the page sent is
-          // dropped: the browser is not a source of authority here.
+          ...passedHeaders(req, provider),
+          // The server's credential, always. Anything else the page sent
+          // is dropped: the browser is not a source of authority here.
           ...provider.authHeaders(key),
         },
         body: req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req),
-        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+        signal: AbortSignal.any([AbortSignal.timeout(UPSTREAM_TIMEOUT_MS), clientGone.signal]),
       });
 
       // Learn from the real answer: a rejected credential takes the provider
@@ -427,9 +516,12 @@ export function createModelApi(readEnv: EnvReader) {
         try {
           for (;;) {
             const { done, value } = await reader.read();
-            if (done) break;
+            if (done || clientGone.signal.aborted) break;
             if (value) res.write(value);
           }
+        } catch {
+          // The client left mid-stream (or the upstream dropped); there is
+          // no one to send an error to — end what was started.
         } finally {
           reader.releaseLock();
           res.end();
@@ -439,6 +531,7 @@ export function createModelApi(readEnv: EnvReader) {
 
       res.end(await upstream.text());
     } catch (error) {
+      if (clientGone.signal.aborted) return;
       // Measured: an upstream stream that failed AFTER its headers were
       // forwarded (cut off mid-reply, timed out, the page gone) landed
       // here, sendJson's setHeader threw ERR_HTTP_HEADERS_SENT inside this

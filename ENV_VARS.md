@@ -364,6 +364,46 @@ sends. Below Anthropic's minimum cacheable length the marker is ignored;
 above it, measured on a 3163-token context, a follow-up turn billed 13
 fresh input tokens instead of 3163.
 
+### Anthropic request behaviour
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `ANTHROPIC_MODEL` / `VITE_ANTHROPIC_MODEL` | `claude-opus-5-5` | Model id for every Anthropic call. |
+| `ANTHROPIC_REFUSAL_FALLBACK` | on | `off` stops sending `fallbacks: "default"` + `anthropic-beta: server-side-fallback-2026-07-01`. Only sent for models that take it (Opus 5 / 5.5, Fable 5.1, Sonnet 5.5). Bridged to the page — a switch, not a secret. |
+| `LELU_BROKER_RATE_PER_MIN` | `120` | Credentialed broker requests per client address per minute; `0` disables. Over the limit: `429` + `Retry-After`. |
+
+What the provider does with each kind of reply (`src/providers/AnthropicProvider.ts`,
+pinned by `tests/anthropic-integration.test.ts`):
+
+- **Sampling params** (`temperature`) are sent only to models that still accept
+  them (Claude 3.x and the 4.0–4.6 family). Current models reject them with a 400.
+- **429 / 529 / 5xx / 408 / 409** are retried up to twice on Anthropic itself
+  (honouring `retry-after`, capped at 8s) before the fallback chain moves on.
+  400/401/403/404 are not retried. A timeout is not retried.
+- **`stop_reason: "refusal"`** is returned as LÉLU's answer, not thrown. A throw
+  would send the same request to the next vendor in the chain. A streamed
+  refusal replaces the partial text on screen.
+- **`stop_reason: "max_tokens"` during a tool call**: the last (truncated) call
+  is dropped and never executed (`metadata.truncatedToolCall` names it).
+- **Tool loop replay**: an assistant tool turn is replayed from its raw blocks
+  (`AIResponse.providerBlocks`), so thinking blocks survive between rounds.
+  History is sent back unchanged on every round, including the closing round
+  where the router withholds tools (verified live: the API accepts that).
+- **Streams**: `stop_reason` and final usage are read from `message_delta`. An
+  `error` event fails the turn (the chain moves on) instead of returning partial
+  text as a finished answer.
+
+The broker forwards one page-supplied header for Anthropic, `anthropic-beta`,
+and only when its value is a comma-separated list of beta names. It aborts the
+upstream request when the client disconnects, so an abandoned stream stops
+billing.
+
+The origin check stops other websites from driving the broker through a
+visitor's browser. It cannot stop a non-browser client on the network, which
+can forge `Origin`. The rate limit caps what such a client can spend. Real
+protection for a server exposed beyond localhost means putting authentication
+in front of `/api/model/*`. That is not implemented here.
+
 ---
 
 ## Model credentials are server-owned
@@ -385,7 +425,7 @@ process environment, first match wins:
 
 | Provider | Environment names (in order) |
 | --- | --- |
-| `anthropic` | `VITE_ANTHROPIC_API_KEY`, `ANTHROPIC_API_KEY`, `CLAUDE_API_KEY` |
+| `anthropic` | `VITE_ANTHROPIC_API_KEY`, `ANTHROPIC_API_KEY`, `LELU_ANTHROPIC_API_KEY`, `CLAUDE_API_KEY` |
 | `groq` | `VITE_GROQ_API_KEY`, `GROQ_API_KEY` |
 | `openrouter` | `VITE_OPENROUTER_API_KEY`, `OPENROUTER_API_KEY`, `OPEN_ROUTER_API_KEY` |
 | `cerebras` | `VITE_CEREBRAS_API_KEY`, `CEREBRAS_API_KEY` |
@@ -401,7 +441,9 @@ Setting the unprefixed name is preferable and does the same thing.
 
 Note `ANTHROPIC_API_KEY` is reserved by some hosting runtimes (a managed
 Claude Code container strips it, since it is what the session itself
-authenticates with). Where that applies, use `VITE_ANTHROPIC_API_KEY`.
+authenticates with). Where that applies, use `LELU_ANTHROPIC_API_KEY`: it is
+read by the same broker and, having no `VITE_` prefix, is never exposed by the
+Vite dev server.
 
 ### Verifying without exposing anything
 
@@ -425,3 +467,26 @@ Supabase SERVICE ROLE key is never bridged.
 Knowledge/data providers (news, YouTube, Geoapify, Guardian, NewsData, NASA)
 still read their keys in the browser. They call those APIs directly from the
 page and have no broker; moving them behind one is a separate change.
+
+## 3D Forge (Meshy) — server-owned
+
+Character and asset generation runs through `plugins/meshyForge.ts`, mounted at
+`/api/forge` by both `vite.config.ts` (dev/preview) and `server.ts`. It is the
+only code that holds the Meshy credential; the page talks to `/api/forge` and
+never sees it. (Before this, avatar reconstruction called Meshy from the
+browser with `VITE_MESHY_API_KEY`, and the runtime key bridge published
+`MESHY_API_KEY` into every page. Both paths are gone.)
+
+| Variable | Purpose | Without it |
+|---|---|---|
+| `MESHY_API_KEY` (or `MESHY_API`) | Meshy API key (paid plan). Read server-side only. | Jobs can be planned and priced; approving one fails with "MESHY_API_KEY is not set on the server". |
+| `MESHY_API_URL` | API base, default `https://api.meshy.ai` | Default is used |
+| `FORGE_ASSET_ROOT` | Where references, outputs and the ledger live, default `leluverse/assets` | Default is used |
+| `FORGE_AUTO_APPROVE_CREDITS` | Jobs estimated at or under this many credits submit without approval. Default `0`: every spend is approved. | Every job waits for approval |
+
+`VITE_MESHY_API_KEY` is still read as a fallback name so an existing setup
+keeps working, but `/api/forge/status` reports it with a warning: Vite's dev
+server exposes every `VITE_` variable to the page. Rename it and rotate it.
+
+Deno (`main.ts`) does not mount the Forge: its ledger and asset store are
+files on disk, and a Deno Deploy filesystem is read-only.

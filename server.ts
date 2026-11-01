@@ -27,6 +27,7 @@
 import { createSelfViewApi } from "./plugins/selfViewApi.ts";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
+import { execSync } from "node:child_process";
 import path from "node:path";
 import { loadEnvFilesIntoProcess } from "./plugins/loadEnvFiles.ts";
 import {
@@ -43,6 +44,8 @@ import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { createGithubApi } from "./plugins/githubApi.ts";
 import { createModelApi } from "./plugins/modelApi.ts";
+import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
+import { createAccessGate } from "./plugins/accessGate.ts";
 
 // Load the project's existing environment (.env.local overrides .env;
 // platform-injected process env always wins) BEFORE anything reads it,
@@ -50,6 +53,7 @@ import { createModelApi } from "./plugins/modelApi.ts";
 const envSummary = loadEnvFilesIntoProcess([
   "VITE_ANTHROPIC_API_KEY",
   "ANTHROPIC_API_KEY",
+  "LELU_ANTHROPIC_API_KEY",
   "VITE_FIRMS_API_KEY",
   "AISSTREAM_API_KEY",
   "INSTAGRAM_ACCESS_TOKEN",
@@ -91,7 +95,8 @@ if (bridgedHere.length > 0) {
   );
 }
 
-const HOST = "0.0.0.0";
+// Behind a reverse proxy set HOST=127.0.0.1 so only the proxy can reach the app.
+const HOST = process.env.HOST || "0.0.0.0";
 const PORT = Number(process.env.PORT || 4173);
 const WORKSPACE_ROOT = process.cwd();
 const DIST_DIR = path.join(WORKSPACE_ROOT, "dist");
@@ -446,13 +451,66 @@ createGithubApi().attach(middlewares);
 // Same-origin model broker: the browser posts here, the server holds
 // the credential and talks to the provider.
 createModelApi((key) => process.env[key]).attach(middlewares);
+// LÉLU 3D Forge — the only holder of the Meshy credential (see meshyForgeApi.ts).
+createMeshyForgeApi((key) => process.env[key]).attach(middlewares);
 middlewares.use("/api/ai", (req, res) => {
   void handleAiProxy(req, res);
 });
 
+const accessGate = createAccessGate((key) => process.env[key]);
+const STARTED_AT = Date.now();
+const VERSION = (() => {
+  try {
+    return execSync("git rev-parse --short HEAD", { cwd: WORKSPACE_ROOT, stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+  } catch {
+    return process.env.LELU_VERSION || "unknown";
+  }
+})();
+
+/** Liveness/readiness for systemd, the reverse proxy and uptime monitors. No secrets. */
+function healthz(res: ServerResponse): void {
+  const mem = process.memoryUsage();
+  res.statusCode = existsSync(INDEX_HTML) ? 200 : 503;
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Cache-Control", "no-store");
+  res.end(
+    JSON.stringify({
+      ok: res.statusCode === 200,
+      version: VERSION,
+      uptimeSeconds: Math.round((Date.now() - STARTED_AT) / 1000),
+      rssMb: Math.round(mem.rss / 1048576),
+      heapMb: Math.round(mem.heapUsed / 1048576),
+      dist: existsSync(INDEX_HTML),
+      accessGate: accessGate.enabled,
+    }),
+  );
+}
+
 const server = createServer((req, res) => {
-  runMiddleware(req, res, 0);
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "same-origin");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  accessGate.handle(req, res, () => {
+    if ((req.url ?? "").split("?")[0] === "/healthz") {
+      healthz(res);
+      return;
+    }
+    runMiddleware(req, res, 0);
+  });
 });
+// Long model streams and slow phones: generous, but bounded.
+server.requestTimeout = 300_000;
+server.headersTimeout = 65_000;
+server.keepAliveTimeout = 61_000;
+
+// systemd sends SIGTERM on stop/restart: finish in-flight requests, then exit.
+for (const signal of ["SIGTERM", "SIGINT"] as const) {
+  process.on(signal, () => {
+    console.log(`[LÉLU runtime] ${signal}: closing (in-flight requests finish, max 10 s).`);
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 10_000).unref();
+  });
+}
 
 server.listen(PORT, HOST, () => {
   const aisState = aisKey ? "configured" : "not configured (AISSTREAM_API_KEY missing)";
@@ -465,7 +523,8 @@ server.listen(PORT, HOST, () => {
     : "DISABLED — LELU_ENGINEER_TOKEN is not set, every /api/engineer/* route answers 503";
   console.log(
     `[LÉLU runtime] serving ${DIST_DIR} on http://${HOST}:${PORT} — ` +
-      `engineering API ${engineerState}, AIS bridge ${aisState}, /api/ai proxy ready.`,
+      `engineering API ${engineerState}, AIS bridge ${aisState}, /api/ai proxy ready, ` +
+      `access gate ${accessGate.enabled ? "ON" : "OFF"}, version ${VERSION}.`,
   );
   if (!process.env.LELU_ENGINEER_TOKEN && HOST === "0.0.0.0") {
     console.log(

@@ -335,6 +335,7 @@ export default class ProviderResolver {
     for (let round = 1; round <= TOOL_LOOP_MAX_ROUNDS; round += 1) {
       const calls = response.toolCalls ?? [];
       if (calls.length === 0) break;
+      if (context.request.signal?.aborted) throw new Error("cancelled");
 
       // A stuck model repeats itself exactly. Detect that on the calls
       // it is ASKING for, before running them again.
@@ -387,9 +388,14 @@ export default class ProviderResolver {
         role: "assistant",
         content: response.text ?? "",
         toolCalls: calls,
+        // Replayed verbatim by the provider that produced it (Anthropic's
+        // thinking blocks must survive the round trip); ignored by others.
+        ...(response.providerBlocks ? { providerBlocks: response.providerBlocks } : {}),
       });
 
       for (const call of calls) {
+        // Never start a tool after the user pressed stop.
+        throwIfStopped(context);
         requested.push(call.name);
         const result = await dispatchToolCall(call, taskId, context);
         executed.push({ tool: call.name, ok: result.ok });

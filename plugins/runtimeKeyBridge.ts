@@ -141,6 +141,21 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     globalName: "__LELU_ANTHROPIC_MODEL__",
     aliases: ["ANTHROPIC_MODEL"],
   },
+  // "off" disables the server-side refusal fallback. A behaviour switch,
+  // not a credential — and the provider that reads it runs in the page.
+  {
+    viteName: "VITE_ANTHROPIC_REFUSAL_FALLBACK",
+    globalName: "__LELU_ANTHROPIC_REFUSAL_FALLBACK__",
+    aliases: ["ANTHROPIC_REFUSAL_FALLBACK"],
+  },
+  // Which provider leads the chain. Not a credential. Without it here the
+  // browser never saw VITE_DEFAULT_PROVIDER (resolveEnv reads no
+  // import.meta.env) and always routed as if it were "groq".
+  {
+    viteName: "VITE_DEFAULT_PROVIDER",
+    globalName: "__LELU_DEFAULT_PROVIDER__",
+    aliases: ["DEFAULT_PROVIDER"],
+  },
 
   // ---- Supabase (persistence + the OG archive) ----
   //
@@ -440,11 +455,6 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     viteName: "VITE_HACKERNEWS_API_URL",
     globalName: "__LELU_HACKERNEWS_API_URL__",
     aliases: ["HACKERNEWS_API_URL"],
-  },
-  {
-    viteName: "VITE_MESHY_API_URL",
-    globalName: "__LELU_MESHY_API_URL__",
-    aliases: ["MESHY_API_URL"],
   },
 ];
 

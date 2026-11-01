@@ -26,6 +26,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useVisual } from "../../../core/visual/useVisual";
 import { COGNITION_STAGES } from "../../../core/visual/VisualEngine";
+import { getSceneRenderBudget } from "./SceneRenderBudget";
 
 /* ------------------------------ shared state ----------------------------- */
 
@@ -366,8 +367,13 @@ function useNow(): number {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     let id = 0;
+    const budget = getSceneRenderBudget();
     const tick = () => {
-      setNow(Date.now());
+      // A React re-render per frame — skipped while the scene is covered
+      // or throttled for typing (see SceneRenderBudget).
+      if (budget.allowFrame("visual-interface")) {
+        setNow(Date.now());
+      }
       id = requestAnimationFrame(tick);
     };
     id = requestAnimationFrame(tick);
