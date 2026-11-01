@@ -51,6 +51,28 @@ export interface ActiveCharacter {
   assetBase: string;
 }
 
+/** One piece she can wear, as listed by the wardrobe. */
+export interface WardrobePiece {
+  id: string;
+  name: string;
+  category: string;
+  slot: string;
+  jobId: string;
+  bone: string;
+  height: number;
+  file: string | null;
+  worn: boolean;
+  placementId: string | null;
+}
+
+/** Every approved look, and every worn slot with its pieces. */
+export interface Wardrobe {
+  character: string;
+  currentLook: string | null;
+  looks: Array<{ id: string; jobId: string; file: string | null; showing: boolean }>;
+  slots: Array<{ slot: string; category: string; wornId: string | null; items: WardrobePiece[] }>;
+}
+
 export interface CosmosPlacement {
   id: string;
   jobId: string;
@@ -309,6 +331,28 @@ export const ForgeClient = {
 
   async setLook(character: string, look: string | null) {
     const result = await call<{ manifest: unknown }>(`/characters/${encodeURIComponent(character)}/look`, { method: "POST", body: { look } });
+    announce();
+    return result;
+  },
+
+  wardrobe: (character = "lelu_character") => call<Wardrobe & { ok: true }>(`/characters/${encodeURIComponent(character)}/wardrobe`),
+
+  /** Name a finished, inspected asset as a look or a worn piece (spends nothing). */
+  async addWardrobeItem(
+    character: string,
+    input: { id: string; jobId: string; category?: string; name?: string; slot?: string; bone?: string; height?: number; offset?: [number, number, number]; rotation?: [number, number, number] },
+  ) {
+    const result = await call<{ wardrobe: Wardrobe }>(`/characters/${encodeURIComponent(character)}/wardrobe`, { method: "POST", body: input });
+    announce();
+    return result;
+  },
+
+  /** Switch the look and swap worn pieces in one call; a slot set to null comes off. */
+  async dress(character: string, input: { look?: string | null; wear?: Record<string, string | null> }) {
+    const result = await call<{ wardrobe: Wardrobe; dressed: Array<{ slot: string; item: string | null }>; manifest: { currentLook?: string | null } }>(
+      `/characters/${encodeURIComponent(character)}/dress`,
+      { method: "POST", body: input },
+    );
     announce();
     return result;
   },

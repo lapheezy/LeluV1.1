@@ -25,6 +25,9 @@
  *   POST /api/forge/placements/<id>/remove  take it out of the Cosmos (asset is kept)
  *   POST /api/forge/characters/<c>/look     { look } — switch look (null = rig/base)
  *   POST /api/forge/characters/<c>/wear     { slot, worn } — put a wearable on / take it off (hood up/down)
+ *   GET  /api/forge/characters/<c>/wardrobe every approved look and worn piece she can switch between
+ *   POST /api/forge/characters/<c>/wardrobe { id, category, jobId, slot?, bone?, height? } — name a finished asset as wearable
+ *   POST /api/forge/characters/<c>/dress    { look?, wear?: { slot: itemId | null } } — switch look and swap pieces at once
  *   POST /api/forge/jobs/<id>/adopt         { index, id, view, … } — a reviewed generated view becomes a reference
  *   GET  /api/forge/assets/<path>           a stored output (GLB, texture, preview)
  *
@@ -304,6 +307,30 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
           const body = await jsonBody(req);
           const manifest = forge.setLook(character, typeof body.look === "string" && body.look ? body.look : null);
           sendJson(res, { ok: true, manifest });
+          return;
+        }
+        if (method === "GET" && parts[2] === "wardrobe") {
+          sendJson(res, { ok: true, ...forge.wardrobeView(character) });
+          return;
+        }
+        if (method === "POST" && parts[2] === "wardrobe") {
+          const body = await jsonBody(req);
+          const result = forge.addWardrobeItem(character, {
+            id: String(body.id ?? ""),
+            name: typeof body.name === "string" ? body.name : undefined,
+            category: typeof body.category === "string" ? body.category : undefined,
+            slot: typeof body.slot === "string" ? body.slot : undefined,
+            jobId: String(body.jobId ?? ""),
+            bone: typeof body.bone === "string" ? body.bone : undefined,
+            offset: body.offset,
+            rotation: body.rotation,
+            height: typeof body.height === "number" ? body.height : undefined,
+          });
+          sendJson(res, { ok: true, ...result }, 201);
+          return;
+        }
+        if (method === "POST" && parts[2] === "dress") {
+          sendJson(res, { ok: true, ...forge.dressOutfit(character, await jsonBody(req)) });
           return;
         }
         if (method === "POST" && parts[2] === "slots") {

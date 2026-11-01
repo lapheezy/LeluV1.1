@@ -12,6 +12,11 @@
  *   tsx scripts/forge-character.ts plan-hood-image      plan an isolated image of her hood (the wearable's source; spends nothing)
  *   tsx scripts/forge-character.ts plan-hood-model <refId>   plan the hood as its own 3D model from an adopted hood image
  *   tsx scripts/forge-character.ts wear <slot> <on|off> put a wearable on / take it off (hood up / down)
+ *   tsx scripts/forge-character.ts wardrobe          every approved look and worn piece
+ *   tsx scripts/forge-character.ts wardrobe-add <category> <id> <jobId> [slot] [bone]   name a finished asset as wearable (free)
+ *   tsx scripts/forge-character.ts dress <look|-> [slot=item|slot=-]...   switch look and swap pieces at once
+ *   tsx scripts/forge-character.ts ingest <image.png> <refId> <view…>   store a supplied image as a reference
+ *   tsx scripts/forge-character.ts plan-look <refId>...   plan an approved look from 1–4 of her own photos (spends nothing)
  *   tsx scripts/forge-character.ts approve <jobId>      submit it (spends credits)
  *   tsx scripts/forge-character.ts reject <jobId> [reason]  decline a planned job; its record is kept
  *   tsx scripts/forge-character.ts watch <jobId>        follow to completion, download, inspect
@@ -31,6 +36,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { inspectGlb } from "../src/core/forge/GlbInspector.ts";
+import { buildRecords } from "../plugins/forgeReferences.ts";
 import { ForgeStore, type CharacterSlot, type ForgeJob } from "../plugins/forgeStore.ts";
 import { ForgeError, MeshyForge } from "../plugins/meshyForge.ts";
 
@@ -340,6 +346,27 @@ async function main(): Promise<void> {
       console.log(JSON.stringify(manifest.active, null, 2));
       return;
     }
+    case "plan-look": {
+      // An approved look the person supplies: one reference (a full-body photo) or
+      // several views of the same outfit, and nothing else. Same request settings as
+      // the approved Outfit B tree, so a new look is built exactly like the one that
+      // worked; the look name is what `dress <name>` switches to once rigged.
+      const refs = process.argv.slice(3).filter((a) => !a.startsWith("--"));
+      if (!refs.length) throw new ForgeError("usage: plan-look <refId> [refId…] — 1 full-body image, or 2–4 views of the same outfit");
+      if (refs.length > 4) throw new ForgeError("Meshy takes 1–4 images for a multi-image job.");
+      const body = refs.length === 1 ? { ...BASE_REQUEST, image_url: `ref:${refs[0]}` } : { ...MULTIVIEW_REQUEST, image_urls: refs.map((r) => `ref:${r}`) };
+      const { job, reused } = await forge.request({
+        character: CHARACTER,
+        kind: refs.length === 1 ? "image-to-3d" : "multi-image-to-3d",
+        purpose: `Approved look from ${refs.join(" + ")}`,
+        body,
+        approve,
+      });
+      console.log(reused ? "Existing job for this exact request (no new spend):" : "Planned:");
+      show(job);
+      if (job.status === "awaiting_approval") console.log(`\nApprove with: tsx scripts/forge-character.ts approve ${job.id}`);
+      return;
+    }
     case "plan-head": {
       // The full-body model gives the face ~100 px of a shared 2k texture and a few dozen
       // triangles after the 60k remesh. A head-and-shoulders model gets the whole budget;
@@ -418,6 +445,64 @@ async function main(): Promise<void> {
     case "library":
       console.log(JSON.stringify(await forge.animationLibrary(process.argv[3] ? { search: process.argv[3] } : {}), null, 2));
       return;
+    case "wardrobe":
+      console.log(JSON.stringify(forge.wardrobeView(CHARACTER), null, 2));
+      return;
+    case "wardrobe-add": {
+      const [category, id, jobId, slot, bone] = process.argv.slice(3);
+      if (!category || !id || !jobId) throw new ForgeError("usage: wardrobe-add <category> <id> <jobId> [slot] [bone]");
+      const height = Number(/--height=([\d.]+)/.exec(process.argv.join(" "))?.[1] ?? 0.3);
+      const result = forge.addWardrobeItem(CHARACTER, { id, category, jobId, slot, bone, height });
+      console.log(JSON.stringify(result.item, null, 2));
+      return;
+    }
+    case "dress": {
+      const [lookArg, ...pairs] = process.argv.slice(3);
+      if (!lookArg) throw new ForgeError("usage: dress <look|-> [slot=item|slot=-]...");
+      const wear: Record<string, string | null> = {};
+      for (const pair of pairs) {
+        const [slot, item] = pair.split("=");
+        if (slot) wear[slot] = item && item !== "-" ? item : null;
+      }
+      const result = forge.dressOutfit(CHARACTER, { look: lookArg === "-" ? undefined : lookArg, wear });
+      console.log(`showing ${result.manifest.currentLook ?? "base rig"}`);
+      for (const d of result.dressed) console.log(`  ${d.slot}  ${d.item ?? "off"}${d.placementId ? `  ${d.placementId}` : ""}`);
+      return;
+    }
+    case "ingest": {
+      const [file, id, ...view] = process.argv.slice(3);
+      if (!file || !id) throw new ForgeError("usage: ingest <image.png|jpg|webp> <refId> <view description…>");
+      const bytes = new Uint8Array(readFileSync(file));
+      const ext = (path.extname(file) || ".png").toLowerCase();
+      const existing = store.references(CHARACTER);
+      const [record] = buildRecords(
+        [
+          {
+            classification: {
+              id,
+              sourceName: path.basename(file),
+              category: "body",
+              view: view.join(" ") || "unspecified",
+              outfitVariant: "unspecified",
+              intendedUse: "Supplied by the user as an approved look.",
+              uses: ["geometry", "texture"],
+            },
+            file: "",
+            bytes,
+          },
+        ],
+        existing,
+      );
+      if (record.duplicateOf) {
+        console.log(`${id} is already stored as ${record.duplicateOf} (identical bytes); nothing written.`);
+        return;
+      }
+      if (existing.some((r) => r.id === id)) throw new ForgeError(`Reference id "${id}" is taken by different content.`);
+      record.file = store.relative(store.storeReferenceFile(CHARACTER, id, ext, bytes));
+      store.saveReferences(CHARACTER, [...existing, record]);
+      console.log(`ingested ${record.id}  ${record.metrics.width}×${record.metrics.height}  ${record.file}  sha256 ${record.metrics.sha256.slice(0, 16)}`);
+      return;
+    }
     default:
       console.log(readFileSync(new URL(import.meta.url), "utf8").split("*/")[0]);
   }

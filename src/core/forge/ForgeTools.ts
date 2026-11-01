@@ -135,6 +135,30 @@ export const FORGE_TOOLS: ToolDefinition[] = [
     inputSchema: { character: "string", look: "string" },
     executionRoute: "POST /api/forge/characters/<c>/look",
   },
+  {
+    id: "forge.wardrobe",
+    name: "Her Wardrobe",
+    description:
+      "Everything she can switch between: every approved look, and every worn slot (hair, earrings, bag, shoes, outerwear…) with the pieces registered for it and whether each is on",
+    category: "3D Forge",
+    permissions: ["READ"],
+    riskLevel: 0,
+    available: true,
+    inputSchema: { character: "string" },
+    executionRoute: "GET /api/forge/characters/<c>/wardrobe",
+  },
+  {
+    id: "forge.dress",
+    name: "Dress LÉLU",
+    description:
+      "Switch her look and swap worn pieces in one step: a slot given an item id puts that piece on and takes off whatever was in the slot; a slot given null comes off. Refused as a whole if any id is unknown, so she is never left half-dressed",
+    category: "3D Forge",
+    permissions: ["WRITE"],
+    riskLevel: 1,
+    available: true,
+    inputSchema: { character: "string", look: "string", wear: "object" },
+    executionRoute: "POST /api/forge/characters/<c>/dress",
+  },
 ];
 
 function describe(job: ForgeJobView): string {
@@ -346,6 +370,51 @@ export const FORGE_EXECUTORS: ForgeExecutor[] = [
       const look = str(args, "look") || null;
       await ForgeClient.setLook(character, look);
       return { ok: true, content: look ? `${character} is now shown with the ${look} look.` : `${character} is back to the base look.` };
+    },
+  },
+  {
+    id: "forge.wardrobe",
+    parameters: OBJECT({ character: { type: "string", description: "Default lelu_character." } }, []),
+    run: async (args) => {
+      const character = str(args, "character") || "lelu_character";
+      const wardrobe = await ForgeClient.wardrobe(character);
+      const looks = wardrobe.looks.map((l) => `${l.id}${l.showing ? " (showing)" : ""}`);
+      const slots = wardrobe.slots.map((s) => `${s.slot}: ${s.items.map((i) => `${i.id}${i.worn ? " (on)" : ""}`).join(", ")}`);
+      return {
+        ok: true,
+        content:
+          `${character} is showing ${wardrobe.currentLook ?? "her base rig"}. ` +
+          `Looks: ${looks.join(", ") || "none approved"}. ` +
+          `Worn slots: ${slots.join("; ") || "none"}.`,
+        data: wardrobe,
+      };
+    },
+  },
+  {
+    id: "forge.dress",
+    parameters: OBJECT(
+      {
+        character: { type: "string", description: "Default lelu_character." },
+        look: { type: "string", description: "An approved look to switch to; empty leaves the current look alone." },
+        wear: {
+          type: "object",
+          description: "slot → wardrobe item id (put it on, taking off what was there) or null (take the slot off), e.g. { hair: \"curls\", bag: null }.",
+        },
+      },
+      [],
+    ),
+    run: async (args) => {
+      const character = str(args, "character") || "lelu_character";
+      const look = str(args, "look");
+      const wear = (args.wear && typeof args.wear === "object" && !Array.isArray(args.wear) ? args.wear : {}) as Record<string, string | null>;
+      if (!look && !Object.keys(wear).length) return { ok: false, content: "Nothing asked for: give a look, a wear map, or both." };
+      const result = await ForgeClient.dress(character, { ...(look ? { look } : {}), wear });
+      const changed = result.dressed.map((d) => `${d.slot}=${d.item ?? "off"}`);
+      return {
+        ok: true,
+        content: `${character} is showing ${result.manifest.currentLook ?? "her base rig"}${changed.length ? `; ${changed.join(", ")}` : ""}.`,
+        data: result,
+      };
     },
   },
 ];

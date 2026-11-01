@@ -100,6 +100,8 @@ export interface CosmosPlacement {
   slot?: string | null;
   /** For a wearable: on her (true) or carried in the wardrobe, not shown (false). */
   worn?: boolean;
+  /** The wardrobe item this placement was dressed from, so swapping items in one slot can find it again. */
+  item?: string | null;
   /** Which environment it belongs to; absent means the home room. */
   environmentId?: string;
   /** A built-in shape instead of a Forge asset (jobId and file are then empty). */
@@ -148,6 +150,32 @@ export interface CharacterManifest {
   /** Which look:<name> slot the Cosmos shows; null shows the rig/base. */
   currentLook?: string | null;
   history: Array<{ slot: string; jobId: string | null; replacedBy: string; at: number }>;
+}
+
+/**
+ * What a finished asset is when worn. A "look" replaces her whole model
+ * (a fitted outfit), so it lives in a look:<name> slot; every other
+ * category is a separate piece layered on her rig, and pieces in one
+ * `slot` swap for each other (two hairs, two bags, two necklaces).
+ */
+export type WardrobeCategory = "look" | "hair" | "headwear" | "jewelry" | "outerwear" | "bag" | "shoes" | "accessory" | "other";
+
+export interface WardrobeItem {
+  /** Lowercase registry id, e.g. "curls" or "gold_hoops". */
+  id: string;
+  /** How it is written about; defaults to the id. */
+  name: string;
+  /** The interchangeable slot: items sharing a slot replace each other. */
+  slot: string;
+  category: WardrobeCategory;
+  jobId: string;
+  /** Bone of her rig the piece follows while worn. */
+  bone: string;
+  offset: [number, number, number];
+  rotation: [number, number, number];
+  /** Height in metres the piece is fitted to (attachments ignore the bone's scale). */
+  height: number;
+  createdAt: number;
 }
 
 const TERMINAL: ReadonlySet<ForgeJobStatus> = new Set(["SUCCEEDED", "FAILED", "CANCELED", "rejected"]);
@@ -448,6 +476,19 @@ export class ForgeStore {
     writeJsonAtomic(this.manifestFile(character), manifest);
     this.logEvent(character, { type: "look_changed", look });
     return manifest;
+  }
+
+  /** The pieces she can wear, per character. Looks are look:<name> slots, not items. */
+  private wardrobeFile(character: string): string {
+    return path.join(this.characterDir(character), "manifests", "wardrobe.json");
+  }
+
+  wardrobeItems(character: string): WardrobeItem[] {
+    return readJson<WardrobeItem[]>(this.wardrobeFile(character), []);
+  }
+
+  saveWardrobeItems(character: string, items: WardrobeItem[]): void {
+    writeJsonAtomic(this.wardrobeFile(character), items);
   }
 
   /** Point a slot at a finished job. The previous holder is kept in history, never deleted. */
