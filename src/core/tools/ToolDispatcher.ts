@@ -166,6 +166,12 @@ export function describeToolCall(id: string, args: Record<string, unknown>): str
       return "Changing the workspace artifact";
     case "artifact.create":
       return `Making a ${pick("kind") || "new artifact"} in the workspace`;
+    case "cosmos.workspace":
+      return `Working in the cosmos: ${pick("action") || "workspace"}${pick("roomId") ? ` (${pick("roomId").slice(0, 40)})` : ""}`;
+    case "cosmos.map":
+      return "Reading the live cosmos map";
+    case "cosmos.inspect":
+      return `Inspecting a placed ${pick("objectId").slice(0, 40)}`;
     default: {
       const detail = pick("query") || pick("path") || pick("action") || pick("url");
       return detail ? `Running ${id} (${detail.slice(0, 60)})` : `Running ${id}`;

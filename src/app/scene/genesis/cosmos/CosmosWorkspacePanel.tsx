@@ -15,8 +15,11 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import CosmosNavigation, { type NavigationState } from "../../../../core/cosmos/CosmosNavigation";
+import CosmosNavigation, { type NavNode, type NavigationState } from "../../../../core/cosmos/CosmosNavigation";
 import SpatialObjects, { type SpatialObject } from "../../../../core/cosmos/SpatialObjects";
+import CosmosFocus, { type FocusTarget } from "../../../../core/cosmos/CosmosFocus";
+import CosmosInspector, { type Inspection } from "../../../../core/cosmos/CosmosInspector";
+import { syncCosmosMap } from "../../../../core/cosmos/CosmosLiveMap";
 import TaskEngine, { type Task } from "../../../../core/tasks/TaskEngine";
 import WorkspaceAPI, { type WorkspaceJournalEntry, type WorkspaceResult } from "../../../../core/workspace/WorkspaceAPI";
 import WorkspaceEngine from "../../../../core/workspace/WorkspaceEngine";
@@ -53,19 +56,41 @@ export default function CosmosWorkspacePanel({ onClose }: { onClose: () => void 
   const [journal, setJournal] = useState<WorkspaceJournalEntry[]>(() => api.journalEntries());
   const [roomLabel, setRoomLabel] = useState("");
   const [notice, setNotice] = useState<string>("");
+  const [focus, setFocus] = useState<FocusTarget | null>(() => CosmosFocus.getInstance().get());
+  const [inspection, setInspection] = useState<Inspection | null>(null);
+  const [archived, setArchived] = useState<NavNode[]>(() => nav.archivedRooms());
+  const [mapNote, setMapNote] = useState<string>("");
 
   useEffect(() => {
     const unsubNav = nav.subscribe(setState);
     const unsubObjects = objects.subscribe(setPlaced);
     const unsubTasks = TaskEngine.getInstance().subscribe(setTasks);
     const unsubJournal = api.onApplied((entry) => setJournal((current) => [...current, entry].slice(-20)));
+    const unsubFocus = CosmosFocus.getInstance().subscribe((target) => {
+      setFocus(target);
+      setInspection(target?.kind === "object" ? CosmosInspector.getInstance().inspect(target.id) : null);
+    });
     return () => {
       unsubNav();
       unsubObjects();
       unsubTasks();
       unsubJournal();
+      unsubFocus();
     };
   }, [nav, objects, api]);
+
+  // The map reflects the live environment when it opens, never a stored sketch.
+  useEffect(() => {
+    let live = true;
+    void syncCosmosMap().then((result) => {
+      if (!live) return;
+      setMapNote(result.ok ? `${result.destinations} live destinations` : `could not sync: ${result.error ?? "unknown error"}`);
+      setState(nav.getState());
+    });
+    return () => {
+      live = false;
+    };
+  }, [nav]);
 
   const act = useCallback((result: WorkspaceResult) => {
     setNotice(
@@ -76,10 +101,14 @@ export default function CosmosWorkspacePanel({ onClose }: { onClose: () => void 
     setJournal(api.journalEntries());
     setState(nav.getState());
     setPlaced(objects.list());
+    setArchived(nav.archivedRooms());
   }, [api, nav, objects]);
 
   const path = nav.pathTo(state.currentId);
   const rooms = state.nodes.filter((node) => node.level === "room");
+  const galaxies = state.nodes.filter((node) => node.level === "galaxy");
+  const projects = state.nodes.filter((node) => node.ref?.kind === "project");
+  const focusedNode = focus?.kind === "node" ? nav.get(focus.id) ?? null : null;
   const openTasks = tasks.filter((task) => task.status === "running" || task.status === "paused" || task.status === "waiting");
   const here = objects.inRoom(state.currentId);
 
@@ -118,6 +147,47 @@ export default function CosmosWorkspacePanel({ onClose }: { onClose: () => void 
       </div>
 
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "8px 12px 12px", display: "flex", flexDirection: "column", gap: 10 }}>
+        {/* Live map — read from the runtime, not authored by hand */}
+        <section>
+          <div style={{ fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", opacity: 0.5, marginBottom: 5 }}>
+            Map · {galaxies.length} galaxies · {projects.length} projects
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+            {galaxies.map((galaxy) => (
+              <button
+                key={galaxy.id}
+                type="button"
+                data-lelu-galaxy={galaxy.id}
+                title={`${galaxy.label} · ${nav.children(galaxy.id).length} planets`}
+                onClick={() => {
+                  CosmosFocus.getInstance().set({ kind: "node", id: galaxy.id });
+                  act(api.execute({ action: "navigate", actor: "user", roomId: galaxy.id }));
+                }}
+                style={{ ...ease, background: "rgba(251,191,36,0.10)", color: "#fde68a", cursor: "pointer", padding: "3px 8px", fontSize: 10 }}
+              >
+                ◎ {galaxy.label}
+              </button>
+            ))}
+            {projects.map((project) => (
+              <button
+                key={project.id}
+                type="button"
+                data-lelu-project={project.id}
+                title={`project ${project.ref?.id ?? ""}`}
+                onClick={() => {
+                  CosmosFocus.getInstance().set({ kind: "node", id: project.id });
+                  act(api.execute({ action: "navigate", actor: "user", roomId: project.id }));
+                }}
+                style={{ ...ease, background: "rgba(52,211,153,0.10)", color: "#a7f3d0", cursor: "pointer", padding: "3px 8px", fontSize: 10 }}
+              >
+                ▣ {project.label}
+              </button>
+            ))}
+            {galaxies.length === 0 ? <span style={{ fontSize: 10, opacity: 0.45 }}>No galaxy is registered in the runtime yet.</span> : null}
+          </div>
+          <div style={{ fontSize: 9, opacity: 0.4, marginTop: 4 }}>{mapNote || "syncing with the live environment…"}</div>
+        </section>
+
         {/* Rooms */}
         <section>
           <div style={{ fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", opacity: 0.5, marginBottom: 5 }}>Rooms</div>
@@ -133,26 +203,64 @@ export default function CosmosWorkspacePanel({ onClose }: { onClose: () => void 
               </button>
             ))}
             {rooms.map((room) => (
-              <button
-                key={room.id}
-                type="button"
-                data-lelu-room={room.id}
-                title={`${room.visits} visit${room.visits === 1 ? "" : "s"} · ${room.origin}`}
-                onClick={() => act(api.execute({ action: "navigate", actor: "user", roomId: room.id }))}
-                style={{
-                  ...ease,
-                  background: state.currentId === room.id ? "rgba(52,211,153,0.16)" : "rgba(255,255,255,0.04)",
-                  color: state.currentId === room.id ? "#a7f3d0" : "#cbd5e1",
-                  cursor: "pointer",
-                  padding: "3px 8px",
-                  fontSize: 10,
-                }}
-              >
-                ⬡ {room.label}
-              </button>
+              <span key={room.id} style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                <button
+                  type="button"
+                  data-lelu-room={room.id}
+                  title={`${room.visits} visit${room.visits === 1 ? "" : "s"} · ${room.origin}`}
+                  onClick={() => {
+                    CosmosFocus.getInstance().set({ kind: "node", id: room.id });
+                    act(api.execute({ action: "navigate", actor: "user", roomId: room.id }));
+                  }}
+                  style={{
+                    ...ease,
+                    background: state.currentId === room.id ? "rgba(52,211,153,0.16)" : "rgba(255,255,255,0.04)",
+                    color: state.currentId === room.id ? "#a7f3d0" : "#cbd5e1",
+                    cursor: "pointer",
+                    padding: "3px 8px",
+                    fontSize: 10,
+                  }}
+                >
+                  ⬡ {room.label}
+                </button>
+                {room.removable ? (
+                  <button
+                    type="button"
+                    data-lelu-remove-room={room.id}
+                    aria-label={`Remove ${room.label}`}
+                    title="Remove this room — reversible"
+                    onClick={() => act(api.execute({ action: "remove-room", actor: "user", roomId: room.id }))}
+                    style={{ ...ease, background: "rgba(248,113,113,0.10)", color: "#fca5a5", cursor: "pointer", padding: "2px 5px", fontSize: 9 }}
+                  >
+                    ✕
+                  </button>
+                ) : null}
+              </span>
             ))}
             {rooms.length === 0 ? <span style={{ fontSize: 10, opacity: 0.45 }}>No rooms yet — the core is where you are.</span> : null}
           </div>
+
+          {archived.length ? (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 6, alignItems: "center" }}>
+              <span style={{ fontSize: 9, opacity: 0.45 }}>Archived:</span>
+              {archived.slice(-4).map((room) => (
+                <button
+                  key={`archived-${room.id}`}
+                  type="button"
+                  data-lelu-restore-room={room.id}
+                  onClick={() => {
+                    const restored = nav.restoreRoom(room.id);
+                    setNotice(restored.ok ? `↺ Restored room "${restored.node.label}"` : `✕ ${restored.error}`);
+                    setArchived(nav.archivedRooms());
+                    setState(nav.getState());
+                  }}
+                  style={{ ...ease, background: "rgba(255,255,255,0.04)", color: "#cbd5e1", cursor: "pointer", padding: "2px 6px", fontSize: 9 }}
+                >
+                  ↺ {room.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           <div style={{ display: "flex", gap: 5, marginTop: 6 }}>
             <input
@@ -228,7 +336,12 @@ export default function CosmosWorkspacePanel({ onClose }: { onClose: () => void 
           ) : (
             <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 4 }}>
               {here.map((object) => (
-                <li key={object.id} data-lelu-spatial-object={object.link.kind} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10 }}>
+                <li
+                  key={object.id}
+                  data-lelu-spatial-object={object.link.kind}
+                  onClick={() => CosmosFocus.getInstance().set({ kind: "object", id: object.id })}
+                  style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, cursor: "pointer" }}
+                >
                   <span style={pill("#67e8f9")} />
                   <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {object.title}
@@ -238,6 +351,67 @@ export default function CosmosWorkspacePanel({ onClose }: { onClose: () => void 
               ))}
             </ul>
           )}
+        </section>
+
+        {/* Inspection — the real record behind what is selected */}
+        <section>
+          <div style={{ fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", opacity: 0.5, marginBottom: 5 }}>
+            Selected
+          </div>
+          {!focus ? (
+            <span style={{ fontSize: 10, opacity: 0.45 }}>Tap a ring or a prism in the cosmos, or a placed record above.</span>
+          ) : null}
+          {focus?.kind === "node" && focusedNode ? (
+            <div data-lelu-focused-node={focusedNode.id} style={{ fontSize: 10, display: "flex", flexDirection: "column", gap: 3 }}>
+              <span style={{ fontWeight: 600 }}>
+                {focusedNode.level} · {focusedNode.label}
+              </span>
+              <span style={{ opacity: 0.6 }}>
+                {nav.pathTo(focusedNode.id).map((node) => node.label).join(" › ")} · {focusedNode.visits} visit{focusedNode.visits === 1 ? "" : "s"}
+              </span>
+              <button
+                type="button"
+                onClick={() => act(api.execute({ action: "navigate", actor: "user", roomId: focusedNode.id }))}
+                style={{ ...ease, alignSelf: "flex-start", background: "rgba(103,232,249,0.10)", color: "#a5f3fc", cursor: "pointer", padding: "2px 8px", fontSize: 9 }}
+              >
+                go here
+              </button>
+            </div>
+          ) : null}
+          {focus?.kind === "object" && inspection ? (
+            <div data-lelu-inspect={inspection.link.kind} style={{ fontSize: 10, display: "flex", flexDirection: "column", gap: 3 }}>
+              <span style={{ fontWeight: 600 }}>
+                {inspection.title} · {inspection.link.kind} {inspection.link.id.slice(0, 12)}
+              </span>
+              <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 2, opacity: 0.8 }}>
+                {inspection.lines.map((line, index) => (
+                  <li key={`${inspection.objectId}-line-${index}`}>{line}</li>
+                ))}
+              </ul>
+              <div style={{ display: "flex", gap: 5, marginTop: 2 }}>
+                {inspection.openable ? (
+                  <button
+                    type="button"
+                    data-lelu-open-record
+                    onClick={() => {
+                      const opened = CosmosInspector.getInstance().open(inspection.objectId);
+                      setNotice(`${opened.ok ? "✓" : "✕"} ${opened.message}`);
+                    }}
+                    style={{ ...ease, background: "rgba(52,211,153,0.14)", color: "#a7f3d0", cursor: "pointer", padding: "2px 8px", fontSize: 9 }}
+                  >
+                    open
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => CosmosFocus.getInstance().clear()}
+                  style={{ ...ease, background: "rgba(255,255,255,0.04)", color: "#cbd5e1", cursor: "pointer", padding: "2px 8px", fontSize: 9 }}
+                >
+                  clear
+                </button>
+              </div>
+            </div>
+          ) : null}
         </section>
 
         {/* Background tasks */}

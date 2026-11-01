@@ -76,6 +76,12 @@ export interface NavDestination {
   opens?: NavOpen | null;
   position?: [number, number, number];
   origin?: NavOrigin;
+  /**
+   * Only what the user or LÉLU added may be removed. Destinations that
+   * mirror a live record (an agent's planet, an open view) follow their
+   * source instead, so the map cannot be emptied out from under it.
+   */
+  removable?: boolean;
 }
 
 export interface NavigationState {
@@ -88,7 +94,9 @@ export interface NavigationState {
 }
 
 const KEY = "lelu.cosmos.nav.v1";
-const CORE_ID = "cosmos-core";
+/** The root of the map. Exported so callers hang destinations in one place. */
+export const COSMOS_CORE_ID = "cosmos-core";
+const CORE_ID = COSMOS_CORE_ID;
 const MAX_TRAIL = 50;
 const MAX_PERSISTED_ROOMS = 200;
 
@@ -186,7 +194,11 @@ export default class CosmosNavigation {
       if (destination.opens !== undefined) existing.opens = destination.opens;
       if (destination.origin) existing.origin = destination.origin;
       if (destination.position) existing.position = destination.position;
+      if (destination.removable !== undefined) existing.removable = destination.removable;
       this.version += 1;
+      // A persisted room whose label the runtime corrected must keep the
+      // correction across a reload, or a rename would revert on boot.
+      if (existing.origin !== "system") this.persist();
       this.notify();
       return existing;
     }
@@ -205,7 +217,7 @@ export default class CosmosNavigation {
       createdAt: Date.now(),
       visits: 0,
       lastVisited: null,
-      removable: destination.level === "room",
+      removable: destination.removable ?? destination.level === "room",
       archived: false,
     };
     this.nodes.set(node.id, node);
@@ -333,6 +345,32 @@ export default class CosmosNavigation {
     this.persist();
     this.notify();
     return { ok: true, node };
+  }
+
+  /**
+   * Remove a destination that mirrors a live record, because that record
+   * is gone. Only system-owned destinations can be retired this way; a
+   * room the user or LÉLU made goes through removeRoom instead.
+   */
+  retire(id: string): boolean {
+    if (id === CORE_ID) return false;
+    const node = this.nodes.get(id);
+    if (!node || node.archived) return false;
+    if (node.origin !== "system" || node.removable) return false;
+    node.archived = true;
+    if (this.currentId === id) {
+      this.currentId = node.parentId && this.nodes.get(node.parentId) ? node.parentId : CORE_ID;
+    }
+    this.trail = this.trail.filter((entry) => entry !== id);
+    this.version += 1;
+    this.persist();
+    this.notify();
+    return true;
+  }
+
+  /** Archived rooms, so a removal can be undone from the interface. */
+  archivedRooms(): NavNode[] {
+    return [...this.nodes.values()].filter((node) => node.level === "room" && node.archived);
   }
 
   /** Bring an archived room back exactly as it was. */
