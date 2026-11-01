@@ -695,6 +695,27 @@ export const GenesisContext =
 export const GenesisStateContext =
   createContext<GenesisStateValue | null>(null);
 
+/**
+ * Actions-only context.
+ *
+ * The state-only context still changes whenever UI state moves, so chrome
+ * that only needs to CALL something (open a panel, add a message, minimise a
+ * window) was re-rendering on every state change for no reason. This context
+ * carries the memoised action object and nothing else — its value changes
+ * only if an action's identity actually changes. It is what chat chrome and
+ * the module host should read.
+ */
+export const GenesisActionsContext =
+  createContext<GenesisActions | null>(null);
+
+export function useGenesisActions(): GenesisActions {
+  const context = useContext(GenesisActionsContext);
+  if (!context) {
+    throw new Error("useGenesisActions must be used inside GenesisCore");
+  }
+  return context;
+}
+
 export function useGenesisState(): GenesisStateValue {
   const context = useContext(GenesisStateContext);
   if (!context) {
@@ -2479,13 +2500,15 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
   return (
 
-    <GenesisStateContext.Provider value={stateValue}>
-      <GenesisContext.Provider value={value}>
-        <GenesisSceneContext.Provider value={sceneValue}>
-          {children}
-        </GenesisSceneContext.Provider>
-      </GenesisContext.Provider>
-    </GenesisStateContext.Provider>
+    <GenesisActionsContext.Provider value={actions}>
+      <GenesisStateContext.Provider value={stateValue}>
+        <GenesisContext.Provider value={value}>
+          <GenesisSceneContext.Provider value={sceneValue}>
+            {children}
+          </GenesisSceneContext.Provider>
+        </GenesisContext.Provider>
+      </GenesisStateContext.Provider>
+    </GenesisActionsContext.Provider>
 
   );
 

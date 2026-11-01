@@ -29,7 +29,7 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { Bell, Ellipsis, GitMerge, Link, MessagesSquare, Pencil, Pin, Plus, Search, X } from "lucide-react";
-import { useGenesis } from "./GenesisCore";
+import {useGenesisActions, useGenesisState} from "./GenesisCore";
 import { layer } from "../../../core/ui/Layers";
 import { useWorkspace } from "./useWorkspace";
 import { chatFillsScreen } from "./chat/chatLayout";
@@ -149,8 +149,8 @@ const tabStyle: CSSProperties = {
 
 
 export default function MultiChatTabs() {
+  const { state } = useGenesisState();
   const {
-    state,
     createConversation,
     switchConversation,
     renameConversation,
@@ -161,7 +161,7 @@ export default function MultiChatTabs() {
     mergeConversations,
     searchConversations,
     openPanel,
-  } = useGenesis();
+  } = useGenesisActions();
 
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");

@@ -24,7 +24,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { chatFillsScreen } from "./chat/chatLayout";
 import { InModuleWindow } from "./moduleWindowContext";
-import { useGenesis, type GenesisPanel, type ModuleState } from "./GenesisCore";
+import {type GenesisPanel, type ModuleState, useGenesisActions, useGenesisState} from "./GenesisCore";
 import { MODULE_CATALOG } from "./GenesisDock";
 
 const STATUS_DOT: Record<string, string> = {
@@ -61,7 +61,7 @@ interface FloatingWindowProps {
  * in GenesisCore — the same actions LÉLU's structured tool calls use.
  */
 function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: FloatingWindowProps) {
-  const { moveModule, resizeModule, raiseModule, minimizeModule, expandModule, setModulePresentation, closeModule, openPanel } = useGenesis();
+  const { moveModule, resizeModule, raiseModule, minimizeModule, expandModule, setModulePresentation, closeModule, openPanel } = useGenesisActions();
   const [viewport, setViewport] = useState(() => ({
     width: typeof window !== "undefined" ? window.visualViewport?.width ?? window.innerWidth : 1280,
     height: typeof window !== "undefined" ? window.visualViewport?.height ?? window.innerHeight : 800,
@@ -363,7 +363,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
 }
 
 export default function GenesisModuleHost({ renderers }: { renderers: ModuleRenderers }) {
-  const { state, expandModule } = useGenesis();
+  const { state } = useGenesisState();
+  const { expandModule } = useGenesisActions();
 
   if (state.minimized) return null;
 
