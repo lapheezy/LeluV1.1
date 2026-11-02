@@ -17,6 +17,7 @@
  */
 
 import KvStore from "../storage/KvStore";
+import { persistedDisplayName, type PersistedStudioProject } from "./StudioPersistence";
 import {
   studioSlug,
   type StudioAssetRef,
@@ -271,6 +272,47 @@ export default class StudioLibrary {
     project.updatedAt = Date.now();
     this.persist();
     return record;
+  }
+
+  /**
+   * Adopt projects that exist on disk but are absent from this browser's
+   * library. No build/version/test record is invented: the disk flag is
+   * kept separately and the next real build/test fills the history.
+   */
+  public syncFromDisk(entries: readonly PersistedStudioProject[]): StudioProject[] {
+    const bySlug = new Map(this.projects.map((project) => [project.slug, project]));
+    let changed = false;
+    for (const entry of entries) {
+      if (bySlug.has(entry.slug)) continue;
+      const now = Date.now();
+      const project: StudioProject = {
+        id: `studio-disk-${entry.slug}`,
+        slug: entry.slug,
+        name: persistedDisplayName(entry.slug),
+        kind: "application",
+        engine: "web",
+        stack: "persisted on disk",
+        root: `.lelu-studio/${entry.slug}`,
+        createdAt: entry.updatedAt,
+        updatedAt: entry.updatedAt,
+        versions: [],
+        builds: [],
+        tests: [],
+        assets: [],
+        deployments: [],
+        documentation: `Found on disk at .lelu-studio/${entry.slug}. Build and test history is recorded the next time they run.`,
+        previewUrl: null,
+        lastOpenedAt: now,
+        discovered: true,
+        discoveredBuilt: entry.built,
+      };
+      this.projects = [...this.projects, project];
+      bySlug.set(entry.slug, project);
+      changed = true;
+    }
+    if (changed) this.persist();
+    const onDisk = new Set(entries.map((entry) => entry.slug));
+    return this.list().filter((project) => onDisk.has(project.slug));
   }
 
   /** A factual description for LÉLU's own context. */

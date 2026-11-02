@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "r
 import GenesisWindowFrame from "./GenesisWindowFrame";
 import EngineeringAuthorization from "../../../core/engineering/EngineeringAuthorization";
 import StudioLibrary from "../../../core/studio/StudioLibrary";
+import { fetchPersistedStudioProjects } from "../../../core/studio/StudioPersistence";
 import StudioApprovals, { PROTECTED_ACTION_LABELS } from "../../../core/studio/StudioApprovals";
 import StudioPipeline from "../../../core/studio/StudioPipeline";
 import StudioRuntime, { type StudioEntry } from "../../../core/studio/StudioRuntime";
@@ -104,6 +105,23 @@ export default function GenesisStudioPanel({ onClose }: { onClose: () => void })
   const refresh = useCallback(() => {
     setProjects(library.list());
     setTick((value) => value + 1);
+  }, [library]);
+
+  // The disk is the authority for which projects exist. Adopt projects
+  // created in another browser/session, while keeping measured history.
+  useEffect(() => {
+    let cancelled = false;
+    void fetchPersistedStudioProjects().then((disk) => {
+      if (cancelled || !disk) return;
+      const synced = library.syncFromDisk(disk);
+      setProjects(synced);
+      setSelectedId((current) =>
+        current && synced.some((project) => project.id === current) ? current : synced[0]?.id ?? null,
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [library]);
 
   useEffect(() => {
@@ -472,7 +490,9 @@ export default function GenesisStudioPanel({ onClose }: { onClose: () => void })
             >
               <strong style={{ display: "block", fontSize: 11.5 }}>{project.name}</strong>
               <span style={{ fontSize: 10, opacity: 0.6 }}>
-                {KIND_LABEL[project.kind]} · {project.engine}
+                {project.discovered
+                  ? `On disk${project.discoveredBuilt ? " · built" : ""}`
+                  : `${KIND_LABEL[project.kind]} · ${project.engine}`}
               </span>
             </button>
           ))}
@@ -493,8 +513,10 @@ export default function GenesisStudioPanel({ onClose }: { onClose: () => void })
               </button>
             ))}
             <span style={{ marginLeft: "auto", fontSize: 10.5, opacity: 0.6 }}>
-              {selected.slug} · {selected.versions.length} versions ·{" "}
-              {selected.builds.at(-1)?.ok ? "build passing" : selected.builds.length ? "build failing" : "not built"}
+              {selected.slug} · {selected.discovered ? "disk project" : `${selected.versions.length} versions`} ·{" "}
+              {selected.discovered
+                ? selected.discoveredBuilt ? "built on disk" : "not built"
+                : selected.builds.at(-1)?.ok ? "build passing" : selected.builds.length ? "build failing" : "not built"}
             </span>
           </div>
 

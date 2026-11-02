@@ -228,12 +228,17 @@ export interface ModuleState {
   presentation: ModulePresentation;
   status: ModuleStatus;
   updatedAt: number;
+  /** Where a minimized window returns: the presentation it had before. */
+  restoreTo?: "inline" | "expanded";
   /** Floating-window geometry — persisted per module so move/resize
       survives presentation changes (inline ↔ expanded ↔ minimized). */
   position?: { x: number; y: number };
   size?: { width: number; height: number };
   /** Stacking order among floating windows (raise = top-most). */
   zIndex?: number;
+  /** A deliberate drag/resize wins over the automatic tiling until the user
+      asks for automatic layout again. */
+  manualPlacement?: boolean;
 }
 
 /** Who decides module presentation: LÉLU (auto), LÉLU+approval (assisted), or the user (manual). */
@@ -594,6 +599,8 @@ export interface GenesisContextValue {
       move/resize/stack operations LÉLU and the user share. */
   moveModule(id:string, position:{x:number;y:number}):void;
   resizeModule(id:string, size:{width:number;height:number}):void;
+  /** Return every inline window to the automatic tiled arrangement. */
+  autoLayoutModules():void;
   raiseModule(id:string):void;
 
   /** Switch the workspace SCENE without touching open panels/chat — scene
@@ -698,6 +705,27 @@ export const GenesisContext =
  */
 export const GenesisStateContext =
   createContext<GenesisStateValue | null>(null);
+
+/**
+ * Actions-only context.
+ *
+ * The state-only context still changes whenever UI state moves, so chrome
+ * that only needs to CALL something (open a panel, add a message, minimise a
+ * window) was re-rendering on every state change for no reason. This context
+ * carries the memoised action object and nothing else — its value changes
+ * only if an action's identity actually changes. It is what chat chrome and
+ * the module host should read.
+ */
+export const GenesisActionsContext =
+  createContext<GenesisActions | null>(null);
+
+export function useGenesisActions(): GenesisActions {
+  const context = useContext(GenesisActionsContext);
+  if (!context) {
+    throw new Error("useGenesisActions must be used inside GenesisCore");
+  }
+  return context;
+}
 
 export function useGenesisState(): GenesisStateValue {
   const context = useContext(GenesisStateContext);
@@ -2006,9 +2034,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
                   presentation:
                     existing && existing.presentation !== "closed"
                       ? existing.presentation
-                      : typeof window !== "undefined" && window.innerWidth < 768
-                        ? ("expanded" as ModulePresentation)
-                        : ("inline" as ModulePresentation),
+                      : ("inline" as ModulePresentation),
                   status: existing?.status ?? "idle",
                   updatedAt: Date.now(),
                 },
@@ -2029,6 +2055,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
             const modules = {
               ...current.modules,
               [id]: {
+                ...current.modules[id],
                 presentation: normalizedPresentation,
                 status: current.modules[id]?.status ?? "idle",
                 updatedAt: Date.now(),
@@ -2051,12 +2078,10 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
             const currentPresentation = current.modules[id]?.presentation;
             const presentation: ModulePresentation =
               currentPresentation === "minimized"
-                ? "expanded"
+                ? current.modules[id]?.restoreTo ?? "inline"
                 : currentPresentation && currentPresentation !== "closed"
                   ? currentPresentation
-                  : typeof window !== "undefined" && window.innerWidth < 768
-                    ? "expanded"
-                    : "inline";
+                  : "inline";
             const modules = {
               ...current.modules,
               [id]: { presentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
@@ -2067,9 +2092,16 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
         expandModule(id){
           setState(current=>{
+            const existing = current.modules[id];
+            // A minimized window returns where it was before, not always
+            // fullscreen: restoring an inline window must keep its geometry.
+            const presentation: ModulePresentation =
+              existing?.presentation === "minimized"
+                ? existing.restoreTo ?? "inline"
+                : "expanded";
             const modules = {
               ...current.modules,
-              [id]: { presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...existing, presentation, status: existing?.status ?? "idle", updatedAt: Date.now() },
             };
             return { ...current, modules, minimized:false, activePanel:id as GenesisPanel };
           });
@@ -2077,9 +2109,18 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
         minimizeModule(id){
           setState(current=>{
+            const existing = current.modules[id];
+            const restoreTo: "inline" | "expanded" =
+              existing?.presentation === "expanded" ? "expanded" : "inline";
             const modules = {
               ...current.modules,
-              [id]: { presentation:"minimized" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: {
+                ...existing,
+                presentation:"minimized" as ModulePresentation,
+                restoreTo,
+                status: existing?.status ?? "idle",
+                updatedAt: Date.now(),
+              },
             };
             return { ...current, modules, activePanel:id as GenesisPanel };
           });
@@ -2096,9 +2137,11 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
         restoreModule(id){
           setState(current=>{
+            const existing = current.modules[id];
+            const presentation = existing?.restoreTo ?? "inline";
             const modules = {
               ...current.modules,
-              [id]: { presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...existing, presentation, status: existing?.status ?? "idle", updatedAt: Date.now() },
             };
             return { ...current, modules, minimized:false, activePanel:id as GenesisPanel };
           });
@@ -2130,7 +2173,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
               ...current,
               modules: {
                 ...current.modules,
-                [id]: { ...existing, position, updatedAt: Date.now() },
+                [id]: { ...existing, position, manualPlacement: true, updatedAt: Date.now() },
               },
             };
           });
@@ -2144,9 +2187,23 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
               ...current,
               modules: {
                 ...current.modules,
-                [id]: { ...existing, size, updatedAt: Date.now() },
+                [id]: { ...existing, size, manualPlacement: true, updatedAt: Date.now() },
               },
             };
+          });
+        },
+
+        autoLayoutModules(){
+          setState(current=>{
+            const modules = Object.fromEntries(
+              Object.entries(current.modules).map(([id, module]) => [
+                id,
+                module.presentation === "inline"
+                  ? { ...module, position: undefined, size: undefined, manualPlacement: false, updatedAt: Date.now() }
+                  : module,
+              ]),
+            );
+            return { ...current, modules };
           });
         },
 
@@ -2154,8 +2211,8 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           setState(current=>{
             const existing = current.modules[id];
             if (!existing) return current;
-            const top = Math.max(30, ...Object.values(current.modules)
-              .map(m => m.zIndex ?? 30)) + 1;
+            const top = Math.max(510, ...Object.values(current.modules)
+              .map(m => m.zIndex ?? 510)) + 1;
             return {
               ...current,
               modules: {
@@ -2483,13 +2540,15 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
   return (
 
-    <GenesisStateContext.Provider value={stateValue}>
-      <GenesisContext.Provider value={value}>
-        <GenesisSceneContext.Provider value={sceneValue}>
-          {children}
-        </GenesisSceneContext.Provider>
-      </GenesisContext.Provider>
-    </GenesisStateContext.Provider>
+    <GenesisActionsContext.Provider value={actions}>
+      <GenesisStateContext.Provider value={stateValue}>
+        <GenesisContext.Provider value={value}>
+          <GenesisSceneContext.Provider value={sceneValue}>
+            {children}
+          </GenesisSceneContext.Provider>
+        </GenesisContext.Provider>
+      </GenesisStateContext.Provider>
+    </GenesisActionsContext.Provider>
 
   );
 

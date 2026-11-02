@@ -331,10 +331,11 @@ export default function GenesisWindowFrame({
   /* ---------------------------------------------------------
    * Style computation
    * --------------------------------------------------------- */
-  const frameStyle: CSSProperties = narrow && inModuleWindow
+  const frameStyle: CSSProperties = inModuleWindow
     ? {
-        // Inside a module window on a phone: fill its body, under its
-        // title bar — never a second fixed sheet laid over it.
+        // Inside a module window (desktop or phone): fill its body, under
+        // its title bar — never a second absolutely positioned frame over
+        // the host's Minimize/Restore/Close controls.
         position: "relative",
         // border-box: width 100% plus padding overran the window's right
         // edge by 22px (measured: frame 380px in a 358px body).
@@ -390,7 +391,10 @@ export default function GenesisWindowFrame({
         bottom: 24,
         width: size.width ?? width,
         // content-box: 24px of gutter plus 16px padding and 1px border per side.
-        maxWidth: fit ? `min(calc(100vw - 58px), ${fit.width}px)` : "calc(100vw - 58px)",
+        // The fitted width is an initial bound, not a cap on the user's
+        // deliberate resize: a bottom-right drag must actually grow the
+        // window (it used to be pinned at fit.width and do nothing).
+        maxWidth: size.width ? "calc(100vw - 58px)" : fit ? `min(calc(100vw - 58px), ${fit.width}px)` : "calc(100vw - 58px)",
         height: size.height,
         // Scrolling frames only: a clipped frame (chat) manages its own height.
         maxHeight:

@@ -24,8 +24,10 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { chatFillsScreen } from "./chat/chatLayout";
 import { InModuleWindow } from "./moduleWindowContext";
-import { useGenesis, type GenesisPanel, type ModuleState } from "./GenesisCore";
+import {type GenesisPanel, type ModuleState, useGenesisActions, useGenesisState} from "./GenesisCore";
 import { MODULE_CATALOG } from "./GenesisDock";
+import { within } from "../../../core/ui/Layers";
+import { layoutWindowRects } from "./windowLayout";
 
 const STATUS_DOT: Record<string, string> = {
   idle: "#64748b",
@@ -51,6 +53,8 @@ interface FloatingWindowProps {
   label: string;
   glyph: string;
   cascadeIndex: number;
+  layoutIndex: number;
+  layoutCount: number;
 }
 
 /**
@@ -60,8 +64,8 @@ interface FloatingWindowProps {
  * toggle, detach, close), all through the canonical module actions
  * in GenesisCore — the same actions LÉLU's structured tool calls use.
  */
-function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: FloatingWindowProps) {
-  const { moveModule, resizeModule, raiseModule, minimizeModule, expandModule, setModulePresentation, closeModule, openPanel } = useGenesis();
+function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, layoutIndex, layoutCount }: FloatingWindowProps) {
+  const { moveModule, resizeModule, raiseModule, minimizeModule, expandModule, setModulePresentation, closeModule, openPanel, autoLayoutModules } = useGenesisActions();
   const [viewport, setViewport] = useState(() => ({
     width: typeof window !== "undefined" ? window.visualViewport?.width ?? window.innerWidth : 1280,
     height: typeof window !== "undefined" ? window.visualViewport?.height ?? window.innerHeight : 800,
@@ -113,16 +117,33 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
   const mobileHeight = Math.max(1, viewportHeight - MOBILE_TOP_RESERVE - MOBILE_BOTTOM_RESERVE);
   const mobileMinWidth = Math.min(MIN_WIDTH, mobileWidth);
   const mobileMinHeight = Math.min(MIN_HEIGHT, mobileHeight);
-  const size = isMobile
-    ? {
-        width: Math.max(mobileMinWidth, Math.min(mod.size?.width ?? mobileWidth, mobileWidth)),
-        height: Math.max(mobileMinHeight, Math.min(mod.size?.height ?? Math.min(viewportHeight * 0.6, 520), mobileHeight)),
-      }
-    : mod.size ?? {
-        width: Math.min(620, viewportWidth - 24),
-        height: Math.min(480, viewportHeight - CHROME_HEIGHT - 24),
-      };
-  const rawPosition = mod.position ?? defaultPosition;
+  const automaticRects =
+    layoutCount > 1
+      ? layoutWindowRects(layoutCount, { width: viewportWidth, height: viewportHeight }, {
+          top: isMobile ? MOBILE_TOP_RESERVE : 64,
+          bottom: isMobile ? MOBILE_BOTTOM_RESERVE : 20,
+          left: isMobile ? 8 : 88,
+          right: 16,
+          gap: isMobile ? 8 : 12,
+          // Two large workspaces leave a visible centre channel for the
+          // scene and LÉLU; narrow/small screens still get usable widths.
+          centerGap: !isMobile && layoutCount === 2 && viewportWidth >= 1200 ? 220 : 0,
+        })
+      : [];
+  const automaticRect = automaticRects[layoutIndex] ?? null;
+  const manual = mod.manualPlacement === true;
+  const size = !manual && automaticRect
+    ? { width: automaticRect.width, height: automaticRect.height }
+    : isMobile
+      ? {
+          width: Math.max(mobileMinWidth, Math.min(mod.size?.width ?? mobileWidth, mobileWidth)),
+          height: Math.max(mobileMinHeight, Math.min(mod.size?.height ?? Math.min(viewportHeight * 0.6, 520), mobileHeight)),
+        }
+      : mod.size ?? {
+          width: Math.min(620, viewportWidth - 24),
+          height: Math.min(480, viewportHeight - CHROME_HEIGHT - 24),
+        };
+  const rawPosition = !manual && automaticRect ? { x: automaticRect.x, y: automaticRect.y } : mod.position ?? defaultPosition;
   const position = {
     x: isMobile
       ? Math.max(0, Math.min(rawPosition.x, Math.max(0, viewportWidth - size.width)))
@@ -131,13 +152,20 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       ? Math.max(MOBILE_TOP_RESERVE, Math.min(rawPosition.y, Math.max(MOBILE_TOP_RESERVE, viewportHeight - MOBILE_BOTTOM_RESERVE - size.height)))
       : rawPosition.y,
   };
-  const zIndex = mod.zIndex ?? 30 + cascadeIndex;
+  // A workspace window is a primary surface, not scenery: it must sit above
+  // the chat panel and its status overlay or its own controls cannot be
+  // clicked. It stays below the modal layer so dialogs still block it.
+  const zIndex = mod.zIndex ?? within("overlay", 10 + cascadeIndex);
 
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; baseX: number; baseY: number } | null>(null);
   const resizeRef = useRef<{ pointerId: number; startX: number; startY: number; baseW: number; baseH: number } | null>(null);
 
   const handlePointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
+      // The chrome owns dragging, but its children are real controls. A
+      // pointerdown captured on the header retargets the following click
+      // to the header, so Minimize/Restore/Close never fired.
+      if ((e.target as Element | null)?.closest?.("button, a, input, textarea, select, [role='button']")) return;
       if (e.button !== 0 && e.pointerType !== "touch") return;
       e.preventDefault();
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -262,6 +290,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
           <span aria-hidden>◎</span> Chat
         </button>
       ) : null}
+      <button type="button" title="Tile all windows automatically" aria-label="Tile windows" onClick={() => autoLayoutModules()} style={controlButton}>⊞</button>
       <button type="button" title="Minimize — keeps running" aria-label={`Minimize ${label}`} onClick={() => minimizeModule(id)} style={controlButton}>—</button>
       <button type="button" title={isExpanded ? "Restore window" : "Expand"} aria-label={isExpanded ? "Restore" : "Expand"} onClick={() => (isExpanded ? setModulePresentation(id, "inline") : expandModule(id))} style={controlButton}>{isExpanded ? "⊡" : "⤢"}</button>
       <button type="button" title="Close" aria-label={`Close ${label}`} onClick={() => closeModule(id)} style={controlButton}>✕</button>
@@ -271,6 +300,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
   if (isExpanded) {
     return (
       <div
+        data-lelu-module-window={id}
+        data-lelu-module-presentation="expanded"
         style={{
           position: "fixed",
           inset: 0,
@@ -312,6 +343,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
 
   return (
     <div
+      data-lelu-module-window={id}
+      data-lelu-module-presentation="inline"
       style={{
         position: "fixed",
         left: isMobile
@@ -346,6 +379,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
         title="Resize"
+        aria-label={`Resize ${label}`}
         style={{
           position: "absolute",
           right: 0,
@@ -363,7 +397,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
 }
 
 export default function GenesisModuleHost({ renderers }: { renderers: ModuleRenderers }) {
-  const { state, expandModule } = useGenesis();
+  const { state } = useGenesisState();
+  const { expandModule } = useGenesisActions();
 
   if (state.minimized) return null;
 
@@ -374,6 +409,7 @@ export default function GenesisModuleHost({ renderers }: { renderers: ModuleRend
     m.presentation === "inline" || m.presentation === "expanded",
   );
   const minimized = entries.filter(([, m]) => m.presentation === "minimized");
+  const inlineEntries = floating.filter(([, m]) => m.presentation === "inline");
 
   const labelOf = (id: string) => MODULE_CATALOG.find((m) => m.id === id)?.label ?? id;
   const glyphOf = (id: string) => MODULE_CATALOG.find((m) => m.id === id)?.glyph ?? "◈";
@@ -392,6 +428,8 @@ export default function GenesisModuleHost({ renderers }: { renderers: ModuleRend
             label={labelOf(id)}
             glyph={glyphOf(id)}
             cascadeIndex={index}
+            layoutIndex={Math.max(0, inlineEntries.findIndex(([entryId]) => entryId === id))}
+            layoutCount={inlineEntries.length}
           />
         );
       })}

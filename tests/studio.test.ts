@@ -5,6 +5,7 @@ import { assetRefsFromLedger, describeAssets, fallbackCharacterAsset } from "../
 import { engineCapabilities, recommendEngine } from "../src/core/studio/StudioEngines";
 import StudioApprovals from "../src/core/studio/StudioApprovals";
 import StudioLibrary, { contentHash } from "../src/core/studio/StudioLibrary";
+import { asksForStudioBuild, asksForStudioChange } from "../src/core/studio/StudioIntent";
 import { describeStudioWork, pendingStudioApprovals } from "../src/core/studio/StudioMemory";
 import StudioPipeline from "../src/core/studio/StudioPipeline";
 import { describeSecretFindings, refuseReasonForWrite, scanForSecrets } from "../src/core/studio/StudioSecurity";
@@ -323,4 +324,31 @@ test("studio memory reports the objective, real stage progress and a pending hum
   assert.match(brief, /next: Architect/);
   assert.match(brief, /WAITING ON A PERSON: production-deploy/);
   assert.match(pendingStudioApprovals(), /production-deploy/);
+});
+
+/* ------------------------------ studio intent ---------------------------- */
+
+test("a software build request belongs to the studio when studio_create is offered", () => {
+  assert.equal(
+    asksForStudioBuild(
+      "Create a Focus Ledger 3E application with a dashboard, task tracking, priorities and completion statistics.",
+      true,
+    ),
+    true,
+  );
+  assert.equal(asksForStudioBuild("Build me a small website with a contact form.", true), true);
+  assert.equal(asksForStudioBuild("Make a 3D browser game.", true), true);
+});
+
+test("non-software project work and an unavailable studio keep the project path", () => {
+  assert.equal(asksForStudioBuild("Start a project to research pendant collections.", true), false);
+  assert.equal(asksForStudioBuild("Make the collection larger and add three designs.", true), false);
+  assert.equal(asksForStudioBuild("Create a dashboard application.", false), false);
+});
+
+test("a follow-up change to an existing studio project keeps the studio tools", () => {
+  assert.equal(asksForStudioChange("Add a status filter to the Focus Ledger.", true), true);
+  assert.equal(asksForStudioChange("Fix the tests and preview the application.", true), true);
+  assert.equal(asksForStudioChange("Start a project to research pendant collections.", true), false);
+  assert.equal(asksForStudioChange("Add a status filter to the Focus Ledger.", false), false);
 });

@@ -76,11 +76,10 @@ const DEFAULT_LIMITS: V2CameraLimits = {
 };
 
 const DEFAULT_CAMERA = new THREE.Vector3(0, 1.7, 10.4);
-const DEFAULT_LOOK = new THREE.Vector3(0, 0.6, 0);
+const DEFAULT_LOOK = new THREE.Vector3(0, -0.35, 1.8);
 
 export type V2CameraMode = "orbit" | "fly";
 
-const X_AXIS = new THREE.Vector3(1, 0, 0);
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
 function clamp(value: number, min: number, max: number): number {
@@ -100,7 +99,10 @@ export default function GenesisV2CameraRig({ limits }: { limits?: Partial<V2Came
   const mode = useRef<V2CameraMode>("orbit");
 
   /* Orbit state */
-  const orbitTarget = useRef(new THREE.Vector3(0, 0.6, 0));
+  // Frame the shared room, not just the Core: the Core sits high, LÉLU
+  // stands on the floor below it. Looking at Core height alone put her
+  // feet under the viewport.
+  const orbitTarget = useRef(new THREE.Vector3(0, -0.35, 1.8));
   const spherical = useRef({
     radius: DEFAULT_CAMERA.distanceTo(orbitTarget.current),
     theta: 0,
@@ -343,6 +345,10 @@ export default function GenesisV2CameraRig({ limits }: { limits?: Partial<V2Came
     el.style.cursor = "grab";
 
     function pointerDown(e: PointerEvent) {
+      // A hold on LÉLU belongs to her, not the camera. R3F sets the hover
+      // flag before the press; the drag flag covers touch, where there is no
+      // hover, as soon as her pointer handler has claimed the gesture.
+      if (document.body.dataset.leluAvatarHover === "true" || document.body.dataset.leluAvatarDragging === "true") return;
       el.setPointerCapture?.(e.pointerId);
       pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (e.button === 2) rightDown.current = true;
@@ -521,8 +527,11 @@ export default function GenesisV2CameraRig({ limits }: { limits?: Partial<V2Came
 
     if (mode.current === "orbit") {
       const s = spherical.current;
-      const offset = new THREE.Vector3(0, 0, s.radius)
-        .applyAxisAngle(X_AXIS, s.phi)
+      // Spherical → Cartesian directly. Rotating (0,0,r) about X by phi
+      // produced y = -r·sin(phi): a "level" orbit ended up beneath the
+      // floor looking up, which cropped LÉLU at the top of the screen.
+      const offset = new THREE.Vector3(0, Math.cos(s.phi), Math.sin(s.phi))
+        .multiplyScalar(s.radius)
         .applyAxisAngle(Y_AXIS, s.theta);
       camera.position.copy(orbitTarget.current).add(offset);
       clampToWorld(camera.position, limits);

@@ -14,6 +14,7 @@
 import type { ToolExecutionResult, ToolExecutor } from "../tools/ToolDispatcher";
 import StudioApprovals, { PROTECTED_ACTION_LABELS } from "./StudioApprovals";
 import StudioLibrary from "./StudioLibrary";
+import { fetchPersistedStudioProjects } from "./StudioPersistence";
 import StudioPipeline from "./StudioPipeline";
 import StudioRuntime from "./StudioRuntime";
 import { describeAssets } from "./StudioAssets";
@@ -106,8 +107,38 @@ export const studioToolExecutors: ToolExecutor[] = [
     parameters: { type: "object", properties: {} },
     run: async (): Promise<ToolExecutionResult> => {
       const library = StudioLibrary.getInstance();
-      const projects = library.list();
-      if (projects.length === 0) {
+      const disk = await fetchPersistedStudioProjects();
+      if (disk !== null) {
+        if (disk.length === 0) {
+          return {
+            ok: true,
+            content:
+              "No studio project exists on disk yet. Use studio.create to scaffold a website, application or game " +
+              "(the runtime copies a real template onto disk).",
+          };
+        }
+        const diskBySlug = new Map(disk.map((entry) => [entry.slug, entry]));
+        const projects = library.syncFromDisk(disk);
+        return {
+          ok: true,
+          content: projects
+            .map((project) => {
+              const entry = diskBySlug.get(project.slug);
+              if (project.discovered) {
+                return `${project.name} [${project.slug}] — on disk, ${entry?.files ?? 0} files, ` +
+                  `${entry?.built ? "built" : "not built"}, last modified ` +
+                  `${new Date(entry?.updatedAt ?? project.updatedAt).toISOString()}`;
+              }
+              return `${project.name} [${project.slug}] — ${project.kind}, ${project.engine}, ` +
+                `${project.versions.length} version(s), last build ${project.builds.at(-1)?.ok ? "passed" : "none/failed"}, ` +
+                `disk ${entry?.files ?? 0} files${entry?.built ? ", built" : ""}`;
+            })
+            .join("\n"),
+          data: projects,
+        };
+      }
+      const recorded = library.list();
+      if (recorded.length === 0) {
         return {
           ok: true,
           content:
@@ -117,14 +148,14 @@ export const studioToolExecutors: ToolExecutor[] = [
       }
       return {
         ok: true,
-        content: projects
+        content: recorded
           .map(
             (project) =>
               `${project.name} [${project.slug}] — ${project.kind}, ${project.engine}, ` +
               `${project.versions.length} version(s), last build ${project.builds.at(-1)?.ok ? "passed" : "none/failed"}`,
           )
           .join("\n"),
-        data: projects,
+        data: recorded,
       };
     },
   },

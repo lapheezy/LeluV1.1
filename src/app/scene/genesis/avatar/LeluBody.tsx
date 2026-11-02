@@ -188,6 +188,7 @@ export default function LeluBody({
   onReady,
   onFrame,
   life = true,
+  walking = false,
 }: {
   glb: ArrayBuffer;
   clips?: ArrayBuffer[];
@@ -203,6 +204,8 @@ export default function LeluBody({
   onFrame?: (time: number, playing: string | null) => void;
   /** Her life between conversations (sitting, walking off). Off for a face-only view. */
   life?: boolean;
+  /** The world owner is moving her root across the floor. */
+  walking?: boolean;
 }) {
   const { camera } = useThree();
   const [model, setModel] = useState<THREE.Group | null>(null);
@@ -394,6 +397,16 @@ export default function LeluBody({
     }
     return AvatarCommandBus.getInstance().subscribe(perform);
   }, [model, life]);
+
+  // World traversal: the root is moved by the spatial controller, so the
+  // captured walk clip must play in place instead of her standing glide.
+  useEffect(() => {
+    if (life || !model) return;
+    const motionNow = motion.current;
+    if (!motionNow) return;
+    if (walking) motionNow.walk(true);
+    else if (motionNow.posture === "walking") motionNow.walk(false);
+  }, [walking, life, model]);
 
   // Moments in the conversation: done → a nod of agreement (sometimes a
   // heart), an error → a shrug.

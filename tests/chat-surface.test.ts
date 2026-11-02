@@ -281,7 +281,9 @@ test("a panel inside a module window fills it on a phone, under the title bar", 
   const host = code("src/app/scene/genesis/GenesisModuleHost.tsx");
   assert.equal(host.split("<InModuleWindow.Provider value={true}>").length - 1, 2, "both window shapes mark their panel");
   const frame = code("src/app/scene/genesis/GenesisWindowFrame.tsx");
-  assert.match(frame, /const frameStyle: CSSProperties = narrow && inModuleWindow\s*\?\s*\{[\s\S]{0,400}position: "relative",[\s\S]{0,200}boxSizing: "border-box",/);
+  // A module panel fills its host on every width; only the host chrome
+  // changes between phone and desktop.
+  assert.match(frame, /const frameStyle: CSSProperties = inModuleWindow\s*\?\s*\{[\s\S]{0,400}position: "relative",[\s\S]{0,200}boxSizing: "border-box",/);
   assert.match(frame, /\{narrow && resizable && !inModuleWindow \? \(/, "the window has the resize handle, not the panel");
 });
 

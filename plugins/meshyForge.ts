@@ -45,13 +45,36 @@ import {
 import { inspectGlb } from "../src/core/forge/GlbInspector.ts";
 import { motionOnlyGlb } from "../src/core/forge/MotionGlb.ts";
 import { buildRecords } from "./forgeReferences.ts";
-import { ForgeStore, isTerminal, type CharacterSlot, type CosmosPlacement, type PlacementAttachment, type ForgeJob, type ForgeOutputFile } from "./forgeStore.ts";
+import {
+  ForgeStore,
+  isTerminal,
+  type CharacterSlot,
+  type CosmosPlacement,
+  type ForgeJob,
+  type ForgeOutputFile,
+  type PlacementAttachment,
+  type WardrobeCategory,
+  type WardrobeItem,
+} from "./forgeStore.ts";
 
 export type EnvReader = (name: string) => string | undefined;
 
 const KEY_NAMES = ["MESHY_API_KEY", "MESHY_API", "MESSY_API", "VITE_MESHY_API_KEY"];
 const LOOSE_KEY_NAME = /^(messy|meshy)[ _-]?api([ _-]?key)?$/i;
 const DEFAULT_BASE = "https://api.meshy.ai";
+
+/** What can be worn, and the bone a piece of each kind follows by default. */
+const WARDROBE_CATEGORIES: ReadonlySet<WardrobeCategory> = new Set(["look", "hair", "headwear", "jewelry", "outerwear", "bag", "shoes", "accessory", "other"]);
+const DEFAULT_BONE: Partial<Record<WardrobeCategory, string>> = {
+  hair: "Head",
+  headwear: "Head",
+  jewelry: "Neck",
+  outerwear: "Spine02",
+  bag: "RightHand",
+  shoes: "RightFoot",
+  accessory: "Spine02",
+  other: "Spine02",
+};
 const IDENTITY_BOUND: ReadonlySet<ForgeJobKind> = new Set(["image-to-3d", "multi-image-to-3d", "retexture", "image-to-image"]);
 
 export interface ForgeOptions {
@@ -664,7 +687,11 @@ export class MeshyForge {
   place(input: { jobId: string; label?: string; position?: unknown; rotationY?: unknown; height?: unknown; attach?: unknown; slot?: unknown; worn?: unknown; environmentId?: unknown }): CosmosPlacement {
     const job = this.store.job(input.jobId);
     if (!job) throw new ForgeError(`No job ${input.jobId}.`, 404);
-    const model = job.output?.files.find((f) => f.role === "model");
+    // A job can offer its own model ("model") or an optimized runtime copy
+    // written by the Blender export stage ("model-runtime"); either is a real,
+    // inspected GLB and either may be placed. The runtime copy is preferred so
+    // the Cosmos holds the lighter mesh.
+    const model = job.output?.files.find((f) => f.role === "model-runtime") ?? job.output?.files.find((f) => f.role === "model");
     if (job.status !== "SUCCEEDED" || !model) throw new ForgeError("Only a finished, downloaded job can be placed.", 409);
     if (!job.validation?.verdict.meshValid) throw new ForgeError("Its GLB did not pass inspection, so it is not placed.", 422, job.validation?.problems ?? []);
     const placements = this.store.placements();
@@ -762,6 +789,171 @@ export class MeshyForge {
     const currentLook = manifest.currentLook && looks[manifest.currentLook] ? manifest.currentLook : null;
     const model = (currentLook ? looks[currentLook] : null) ?? fileFor(manifest.active.rig) ?? fileFor(manifest.active.base);
     return { character, model, base: fileFor(manifest.active.base), rig: fileFor(manifest.active.rig), animations, looks, currentLook };
+  }
+
+  /* ----------------------------- wardrobe ----------------------------- */
+
+  /**
+   * Register a finished asset so it can be worn. A `look` becomes a
+   * look:<name> slot (it replaces her whole model); anything else becomes
+   * a piece with a bone to follow and an interchangeable slot. Nothing is
+   * regenerated and nothing is spent: this only names an asset that
+   * already finished and passed inspection.
+   */
+  addWardrobeItem(
+    character: string,
+    input: { id: string; name?: string; category?: string; slot?: string; jobId: string; bone?: string; offset?: unknown; rotation?: unknown; height?: number },
+  ) {
+    const job = this.store.job(String(input.jobId ?? ""));
+    if (!job || job.character !== character) throw new ForgeError(`No job ${input.jobId} for ${character}.`, 404);
+    if (job.status !== "SUCCEEDED" || !job.output) throw new ForgeError("Only a finished, downloaded job can be worn.", 409);
+    if (!job.validation?.verdict.meshValid) throw new ForgeError("Its GLB did not pass inspection, so it cannot be worn.", 422, job.validation?.problems ?? []);
+    const id = String(input.id ?? "");
+    if (!/^[a-z0-9][a-z0-9_-]{1,40}$/.test(id)) throw new ForgeError("Wardrobe ids are 2–41 lowercase letters, digits, _ or -.");
+    const category = String(input.category ?? "accessory") as WardrobeCategory;
+    if (!WARDROBE_CATEGORIES.has(category)) {
+      throw new ForgeError(`"${category}" is not a wardrobe category.`, 422, [`Categories: ${[...WARDROBE_CATEGORIES].join(", ")}.`]);
+    }
+    if (category === "look") {
+      const manifest = this.approveSlot(character, `look:${id}`, job.id);
+      return { item: { id, category, slot: "look", jobId: job.id, bone: null }, wardrobe: this.wardrobeView(character), manifest };
+    }
+    const slot = this.slotName(input.slot ?? category);
+    if (!slot) throw new ForgeError("slot is required for a worn piece (e.g. hair, earrings, bag).");
+    const bone = String(input.bone ?? DEFAULT_BONE[category] ?? "Spine02");
+    if (!/^[A-Za-z0-9_.:-]{1,64}$/.test(bone)) throw new ForgeError("bone must be a bone name such as Head, Neck or RightHand.");
+    const vec = (v: unknown, limit: number): [number, number, number] => {
+      const arr = Array.isArray(v) ? v : [];
+      return [0, 1, 2].map((i) => (typeof arr[i] === "number" && Number.isFinite(arr[i]) ? Math.max(-limit, Math.min(limit, arr[i] as number)) : 0)) as [number, number, number];
+    };
+    const item: WardrobeItem = {
+      id,
+      name: String(input.name ?? id).trim().slice(0, 80) || id,
+      slot,
+      category,
+      jobId: job.id,
+      bone,
+      offset: vec(input.offset, 5),
+      rotation: vec(input.rotation, Math.PI * 2),
+      height: typeof input.height === "number" && Number.isFinite(input.height) ? Math.min(5, Math.max(0.02, input.height)) : 0.3,
+      createdAt: Date.now(),
+    };
+    // Re-registering an id replaces its settings; the asset it pointed at is kept.
+    this.store.saveWardrobeItems(character, [...this.store.wardrobeItems(character).filter((i) => i.id !== id), item]);
+    this.store.logEvent(character, { type: "wardrobe_item_registered", id, slot, category, jobId: job.id, bone });
+    return { item, wardrobe: this.wardrobeView(character) };
+  }
+
+  /**
+   * Everything she can switch between: approved looks, and every worn
+   * slot with the pieces registered for it and whether each is on.
+   */
+  wardrobeView(character: string) {
+    const manifest = this.store.manifest(character);
+    const placed = this.store.placements();
+    const model = (jobId: string | undefined) => {
+      const job = jobId ? this.store.job(jobId) : null;
+      const file = job?.output?.files.find((f) => f.role === "model");
+      return job && file ? { jobId: job.id, kind: job.kind, file: file.file, verdict: job.validation?.verdict ?? null } : null;
+    };
+    const looks = Object.entries(manifest.active)
+      .filter(([slot]) => slot.startsWith("look:"))
+      .map(([slot, jobId]) => {
+        const name = slot.slice("look:".length);
+        return { id: name, ...(model(jobId) ?? { jobId, kind: null, file: null, verdict: null }), showing: manifest.currentLook === name };
+      });
+    const slots = new Map<string, { slot: string; category: WardrobeCategory; wornId: string | null; items: Array<Record<string, unknown>> }>();
+    for (const item of this.store.wardrobeItems(character)) {
+      const entry = slots.get(item.slot) ?? { slot: item.slot, category: item.category, wornId: null, items: [] };
+      const piece = placed.find((p) => p.attach?.character === character && p.item === item.id);
+      const worn = Boolean(piece && piece.worn !== false);
+      if (worn) entry.wornId = item.id;
+      entry.items.push({ ...item, ...(model(item.jobId) ?? { file: null }), worn, placementId: piece?.id ?? null });
+      slots.set(item.slot, entry);
+    }
+    return { character, currentLook: manifest.currentLook ?? null, looks, slots: [...slots.values()] };
+  }
+
+  /**
+   * Put an outfit on: switch the look and swap any worn pieces in one
+   * call. `wear` maps a slot to an item id (put that one on, taking off
+   * whatever was in the slot) or to null (take the slot off). Everything
+   * is validated before anything changes, so a bad id leaves her as she
+   * was.
+   */
+  dressOutfit(character: string, input: { look?: unknown; wear?: unknown }) {
+    const manifest = this.store.manifest(character);
+    const approved = Object.keys(manifest.active).filter((s) => s.startsWith("look:")).map((s) => s.slice("look:".length));
+    let look: string | null = manifest.currentLook ?? null;
+    const lookGiven = "look" in input && input.look !== undefined;
+    if (lookGiven) {
+      if (input.look === null || input.look === "") look = null;
+      else {
+        const name = String(input.look);
+        if (!approved.includes(name)) {
+          throw new ForgeError(`No approved look "${name}" for ${character}.`, 404, [`Approved looks: ${approved.join(", ") || "none (approve one with slot look:<name>)"}.`]);
+        }
+        look = name;
+      }
+    }
+    const items = this.store.wardrobeItems(character);
+    const wear = (input.wear ?? {}) as Record<string, unknown>;
+    if (wear === null || typeof wear !== "object" || Array.isArray(wear)) throw new ForgeError("wear must be an object of slot: item id or null.");
+    const plan = Object.entries(wear).map(([rawSlot, value]) => {
+      const slot = this.slotName(rawSlot);
+      if (!slot) throw new ForgeError("wear keys are wearable slots such as hair, earrings or bag.");
+      if (value === null || value === "") return { slot, item: null as WardrobeItem | null };
+      if (typeof value !== "string") throw new ForgeError(`wear.${rawSlot} must be a wardrobe item id, or null to take the slot off.`);
+      const item = items.find((i) => i.id === value);
+      if (!item) throw new ForgeError(`No wardrobe item "${value}" for ${character}.`, 404, [items.length ? `Items: ${items.map((i) => i.id).join(", ")}.` : "The wardrobe is empty."]);
+      if (item.slot !== slot) throw new ForgeError(`"${value}" belongs in slot "${item.slot}", not "${slot}".`, 422);
+      return { slot, item };
+    });
+
+    // Validated: switch the look, then swap the pieces in those slots.
+    if (lookGiven) this.setLook(character, look);
+    const placements = this.store.placements();
+    const slots = new Set(plan.map((p) => p.slot));
+    let touched = false;
+    for (const p of placements) {
+      if (p.attach?.character === character && p.slot && slots.has(p.slot) && p.worn !== false) {
+        p.worn = false;
+        touched = true;
+      }
+    }
+    if (touched) this.store.savePlacements(placements);
+
+    const dressed: Array<{ slot: string; item: string | null; placementId: string | null }> = [];
+    for (const { slot, item } of plan) {
+      if (!item) {
+        dressed.push({ slot, item: null, placementId: null });
+        continue;
+      }
+      const current = this.store.placements();
+      const existing = current.find((p) => p.attach?.character === character && p.item === item.id && p.slot === slot);
+      if (existing) {
+        const updated = this.updatePlacement(existing.id, { worn: true, label: item.name });
+        dressed.push({ slot, item: item.id, placementId: updated.id });
+        continue;
+      }
+      const created = this.place({
+        jobId: item.jobId,
+        label: item.name,
+        attach: { character, bone: item.bone, offset: item.offset, rotation: item.rotation },
+        slot,
+        worn: true,
+        height: item.height,
+      });
+      const withItem = this.store.placements();
+      const target = withItem.find((p) => p.id === created.id);
+      if (target) {
+        target.item = item.id;
+        this.store.savePlacements(withItem);
+      }
+      dressed.push({ slot, item: item.id, placementId: created.id });
+    }
+    this.store.logEvent(character, { type: "dressed", look: this.store.manifest(character).currentLook ?? null, wear: dressed });
+    return { manifest: this.store.manifest(character), dressed, wardrobe: this.wardrobeView(character) };
   }
 
   /** Switch what the Cosmos shows (e.g. hood up / hood down). null returns to the rig/base. */

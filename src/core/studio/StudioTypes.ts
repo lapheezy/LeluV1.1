@@ -197,6 +197,10 @@ export interface StudioProject {
   previewUrl: string | null;
   /** Last measured upstream health. */
   lastOpenedAt: number | null;
+  /** True when this record was adopted from a project already on disk. */
+  discovered?: boolean;
+  /** The disk API found a build output; no build record was invented for it. */
+  discoveredBuilt?: boolean;
 }
 
 /** What a phase had to show before it could be recorded. */

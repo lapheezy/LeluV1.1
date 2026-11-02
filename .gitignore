@@ -67,3 +67,8 @@ leluverse/assets/characters/lelu_character/rig/v003_headswap_mvvnvqa1/*.glb
 # client uses motion.glb (bones + clip only), which is committed.
 leluverse/assets/characters/lelu_character/animations/*/animation.glb
 leluverse/assets/characters/lelu_character/animations/*/animation.fbx
+
+# Blender export outputs are large (a 53 MB .blend, a 40 MB .obj) and are
+# free to regenerate from their source job through POST /api/forge/jobs/<id>/export,
+# so the binaries stay local and only the ledger records them.
+leluverse/assets/**/meshes/v*_export_*/

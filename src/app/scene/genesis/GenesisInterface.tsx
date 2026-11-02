@@ -490,9 +490,14 @@ export default function GenesisInterface() {
     };
   }, []);
 
-  // Sync self-exploration toggle to presence engine
+  // Sync self-exploration toggle to presence engine and stop any camera
+  // exploration already in flight. The presence gate only prevented NEW
+  // actions; an active ExplorationController interval kept navigating.
   useEffect(() => {
     presenceRef.current.setSelfExploration(state.selfExplorationEnabled);
+    const exploration = ExplorationController.getInstance();
+    if (state.selfExplorationEnabled) exploration.enable();
+    else exploration.disable();
   }, [state.selfExplorationEnabled]);
 
   /* Earth Core hold → voice activation. Opens chat and starts listening. */

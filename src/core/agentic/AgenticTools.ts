@@ -131,25 +131,6 @@ export const AGENTIC_EXECUTORS: ToolExecutor[] = [
     },
   },
   {
-    id: "agent.delegate",
-    parameters: {
-      type: "object",
-      properties: {
-        agent: { type: "string", description: "The agent's name (see agent.list)." },
-        task: { type: "string", description: "The sub-task, stated completely — the agent does not see this conversation." },
-      },
-      required: ["agent", "task"],
-    },
-    run: async (args) => {
-      const agent = str(args, "agent");
-      const task = str(args, "task");
-      if (!agent || !task) return { ok: false, content: "agent.delegate needs both an agent and a task." };
-      const { delegateToAgent } = await import("./TaskExecutor");
-      const result = await delegateToAgent(agent, task, `delegate-${Date.now()}`);
-      return { ok: result.ok, content: result.ok ? `${agent} answered:\n${result.content}` : result.content };
-    },
-  },
-  {
     id: "task.start",
     parameters: {
       type: "object",

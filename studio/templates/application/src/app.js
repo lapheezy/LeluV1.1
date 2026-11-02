@@ -4,7 +4,10 @@
  * being hidden by a UI that already moved.
  */
 
-const API = "/api";
+// Relative on purpose: the same frontend is served directly by its backend
+// and through /api/studio/serve/<slug>/, where a root-absolute /api would
+// escape the proxy and reach the host application instead.
+const API = "api";
 const LANES = ["todo", "doing", "done"];
 const NEXT_LANE = { todo: "doing", doing: "done", done: "todo" };
 

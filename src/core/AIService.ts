@@ -741,12 +741,16 @@ export default class AIService {
       const priorTurns = priorTurnsFor(options?.conversationId, message) ?? conversation.modelMessages();
       conversation.record("user", message);
 
-      const turn = new AbortController();
-      this.activeTurn = turn;
+      // ONE controller per turn, not two composed with AbortSignal.any.
+      // cancelTurn() reaches it through convControllers and isTurnActive()
+      // reads it through activeTurn, so both cancellation dimensions are the
+      // same signal. Composing two controllers meant stopping one left the
+      // other live, and a provider could keep streaming after a Stop.
+      this.activeTurn = controller;
       const request: AIRequest = {
         messages: priorTurns,
         prompt: message,
-        signal: AbortSignal.any([turn.signal, controller.signal]),
+        signal: controller.signal,
         // This is the conversational turn, so LÉLU may invoke her real
         // tools here. Internal structured-output calls (reason()) leave
         // this unset and keep their pre-tool behaviour.
