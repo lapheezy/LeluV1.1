@@ -20,10 +20,26 @@ import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { githubApiPlugin } from "./plugins/githubApi.ts";
 import { runtimeKeyBridgePlugin, bridgeReport } from "./plugins/runtimeKeyBridge.ts";
+import { fillBareSecretAliases } from "./plugins/bareSecretAliases.ts";
 import { readBuildInfo } from "./plugins/buildInfo.ts";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+
+  // The platform writes .env.local from the project's secret store, under
+  // the SECRET names (`Anthropic`, `Groq`, `Supabase`) — names no code
+  // reads. Fill the documented names from them, only where the documented
+  // name is absent, so a regenerated file cannot put the providers back to
+  // "unconfigured" and the Supabase key cannot be orphaned again.
+  const filledFromBareNames = fillBareSecretAliases({
+    get: (key) => env[key],
+    set: (key, value) => {
+      env[key] = value;
+    },
+  });
+  if (filledFromBareNames.length > 0) {
+    console.info(`[env] bare secret names supplied ${filledFromBareNames.join(", ")}`);
+  }
   // AISStream key: server-only (non-VITE) — read once here, passed into
   // the bridge instance, never exposed to the browser bundle.
   const aisKey = process.env.AISSTREAM_API_KEY || env.AISSTREAM_API_KEY || "";
