@@ -300,6 +300,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, lay
   if (isExpanded) {
     return (
       <div
+        data-lelu-module={id}
         data-lelu-module-window={id}
         data-lelu-module-presentation="expanded"
         style={{
@@ -343,6 +344,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, lay
 
   return (
     <div
+      data-lelu-module={id}
       data-lelu-module-window={id}
       data-lelu-module-presentation="inline"
       style={{

@@ -40,6 +40,9 @@ import GenesisWorkspace
 import GenesisNavigator
   from "./GenesisNavigator";
 
+import SpatialPortals
+  from "../spatial/SpatialPortals";
+
 export default function GenesisController() {
 
 
@@ -58,6 +61,11 @@ export default function GenesisController() {
       <Suspense fallback={null}>
         <CosmosLayer />
       </Suspense>
+
+      {/* Spatial interfaces — portals into every environment, drawn in
+          THIS canvas (no second renderer) and driven by the one
+          SpatialRuntime. */}
+      <SpatialPortals />
     </>
   );
 
