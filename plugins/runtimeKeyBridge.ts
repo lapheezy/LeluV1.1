@@ -67,6 +67,8 @@
  */
 
 /** Reads a name out of the host environment. Returns undefined when unset. */
+import { isBrowserSafeSupabaseKey } from "../src/core/config/supabaseEnv.ts";
+
 export type EnvReader = (key: string) => string | undefined;
 
 /**
@@ -83,6 +85,11 @@ export interface BridgedKey {
   readonly globalName: string;
   /** Unprefixed names accepted as a lower-priority fallback. */
   readonly aliases: readonly string[];
+  /**
+   * Optional guard: a value it rejects is never published, and the next
+   * alias is tried. Used to keep admin credentials off the page.
+   */
+  readonly accept?: (value: string) => boolean;
 }
 
 /**
@@ -188,6 +195,9 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
       "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
       "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     ],
+    // An sbp_ personal access token, sb_secret_ key or service_role JWT
+    // filed under a publishable name must never be written into the HTML.
+    accept: isBrowserSafeSupabaseKey,
   },
 
   // NO entry for NEWS_API_KEY, YOUTUBE_API_KEY or MESHY_API_KEY. Those
@@ -480,10 +490,11 @@ export interface BridgeEntry {
 export function resolveBridge(read: EnvReader): BridgeEntry[] {
   const entries: BridgeEntry[] = [];
   for (const key of BRIDGED_KEYS) {
-    if (value(read, key.viteName)) continue; // documented name wins
+    const vite = value(read, key.viteName);
+    if (vite && (!key.accept || key.accept(vite))) continue; // documented name wins
     for (const alias of key.aliases) {
       const found = value(read, alias);
-      if (found) {
+      if (found && (!key.accept || key.accept(found))) {
         entries.push({ globalName: key.globalName, sourceName: alias, value: found });
         break; // first alias carrying a value wins
       }

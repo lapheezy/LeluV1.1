@@ -45,6 +45,8 @@
  * ==========================================================
  */
 
+import { isBrowserSafeSupabaseKey } from "../src/core/config/supabaseEnv.ts";
+
 /** Anything that can be read from and written to, like `process.env`. */
 export interface EnvLookup {
   get: (name: string) => string | undefined;
@@ -58,6 +60,8 @@ export interface BareSecretAlias {
   readonly names: readonly string[];
   /** Why the mapping is correct, for whoever reads this next. */
   readonly why: string;
+  /** Optional guard: a bare value it rejects fills nothing. */
+  readonly accept?: (value: string) => boolean;
 }
 
 /**
@@ -118,7 +122,9 @@ export const BARE_SECRET_ALIASES: readonly BareSecretAlias[] = [
       "there would make plugins/runtimeKeyBridge.ts skip the key (its VITE_-wins rule), " +
       "leaving the browser with no key at all. The bridge publishes " +
       "__LELU_SUPABASE_PUBLISHABLE_KEY__ from this name instead. It is not a URL, so no " +
-      "URL name is filled from it.",
+      "URL name is filled from it. Observed live: this secret held an sbp_ personal " +
+      "access token, which is NOT a publishable key, so only a browser-safe key fills.",
+    accept: isBrowserSafeSupabaseKey,
   },
 ];
 
@@ -140,6 +146,7 @@ export function fillBareSecretAliases(lookup: EnvLookup): string[] {
   for (const alias of BARE_SECRET_ALIASES) {
     const bare = read(lookup, alias.bare);
     if (!bare) continue;
+    if (alias.accept && !alias.accept(bare)) continue;
     // A documented name always wins: this can fill a hole, never redirect.
     if (alias.names.some((name) => read(lookup, name) !== "")) continue;
     for (const name of alias.names) {

@@ -469,3 +469,12 @@ server exposes every `VITE_` variable to the page. Rename it and rotate it.
 
 Deno (`main.ts`) does not mount the Forge: its ledger and asset store are
 files on disk, and a Deno Deploy filesystem is read-only.
+
+### Supabase keys: what is accepted
+
+- `SUPABASE_PUBLISHABLE_KEY` (and its aliases) must be a **publishable** key (`sb_publishable_…`) or a legacy **anon** JWT.
+- Admin credentials are refused and are never written into the page:
+  - `sbp_…` personal access tokens
+  - `sb_secret_…` keys
+  - `service_role` JWTs
+- When nothing usable is set, the project's public URL and publishable key in `src/core/config/supabasePublic.ts` apply. They are only used as a pair.
