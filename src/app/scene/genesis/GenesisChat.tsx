@@ -1335,6 +1335,21 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     void sendRef.current();
   }, []);
 
+  // The Chat Universe's universal composer: it has already made its target
+  // the active conversation, and hands the words to this send path so the
+  // turn streams, queues and persists exactly like one typed here.
+  useEffect(() => {
+    const onUniverseSend = (event: Event) => {
+      const detail = (event as CustomEvent<{ text?: string; conversationId?: string }>).detail;
+      const text = detail?.text?.trim();
+      if (!text) return;
+      if (detail?.conversationId && MultiChatStore.getInstance().getActiveId() !== detail.conversationId) return;
+      retry(text);
+    };
+    window.addEventListener("lelu-universe-send", onUniverseSend);
+    return () => window.removeEventListener("lelu-universe-send", onUniverseSend);
+  }, [retry]);
+
   const visibleExchange =
     exchange && exchange.conversationId && exchange.conversationId !== state.activeConversationId ? null : exchange;
 

@@ -103,6 +103,7 @@ import useVisual from "../../../core/visual/useVisual";
 import VisualEngine from "../../../core/visual/VisualEngine";
 import CosmosHome from "./home/CosmosHome";
 import SpatialNav, { type HomeSheet } from "./home/SpatialNav";
+import ChatUniverse from "./chat/universe/ChatUniverse";
 import { useHomeStore } from "./home/useHomeLive";
 import AgentEventBus from "../../../core/agent/AgentEvents";
 import ExplorationController from "./ExplorationController";
@@ -748,6 +749,7 @@ export default function GenesisInterface() {
         </ChatErrorBoundary>
       )}
 
+      <ChatUniverse />
       <SpatialNav
         sheet={homeSheet}
         setSheet={setHomeSheet}
