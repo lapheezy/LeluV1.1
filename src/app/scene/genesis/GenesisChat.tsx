@@ -1476,7 +1476,9 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
             width: "auto",
             bottom: `calc(${workspace.keyboardOpen ? 8 : 92}px + env(safe-area-inset-bottom, 0px))`,
             height: sheetHeight,
-            maxHeight: "calc(100dvh - 104px)",
+            // A layer, not a takeover: at most 62% of the screen, so the
+            // Cosmos is visibly behind it and the navigation stays reachable.
+            maxHeight: "min(62dvh, calc(100dvh - 104px))",
           }
         : {
             // MOBILE: the chat owns the whole screen (surface/Surface) —
