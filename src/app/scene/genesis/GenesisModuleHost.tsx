@@ -26,6 +26,7 @@ import { chatFillsScreen } from "./chat/chatLayout";
 import { InModuleWindow } from "./moduleWindowContext";
 import { useGenesisActions, useGenesisState, type GenesisPanel, type ModuleState } from "./GenesisCore";
 import { MODULE_CATALOG } from "./GenesisDock";
+import { genesisTheme } from "./GenesisTheme";
 
 const STATUS_DOT: Record<string, string> = {
   idle: "#64748b",
@@ -216,8 +217,16 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
     flexShrink: 0,
   };
 
+  /*
+   * THE one window chrome. Every application in LÉLU is presented by this
+   * host, so the title bar below is the only title bar a user ever sees:
+   * identity (glyph + label), live status, and the window controls. Panels
+   * render inside it through GenesisWindowFrame, which switches to a
+   * body-only surface when it detects this context (moduleWindowContext).
+   */
   const chrome = (
     <div
+      data-lelu-module-chrome={id}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={endDrag}
@@ -228,7 +237,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
         alignItems: "center",
         gap: 8,
         padding: "0 10px",
-        borderBottom: "1px solid rgba(125,211,252,0.16)",
+        borderBottom: genesisTheme.glass.borderSoft,
         background: "rgba(8,16,38,0.82)",
         cursor: "grab",
         touchAction: "none",
@@ -237,8 +246,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
         flexShrink: 0,
       }}
     >
-      <span aria-hidden style={{ fontSize: 13, opacity: 0.9 }}>{glyph}</span>
-      <strong style={{ fontSize: 12, letterSpacing: "0.04em", color: "#dbeafe", flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+      <span aria-hidden style={{ fontSize: 13, opacity: 0.9, color: "#67e8f9" }}>{glyph}</span>
+      <strong style={{ ...genesisTheme.text.label, fontSize: 11.5, letterSpacing: "0.1em", opacity: 1, color: "#dbeafe", flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
         {label}
       </strong>
       <span
@@ -271,6 +280,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
   if (isExpanded) {
     return (
       <div
+        data-lelu-module-backdrop={id}
         style={{
           position: "fixed",
           inset: 0,
@@ -284,18 +294,20 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
         }}
       >
         <div
+          data-lelu-module-window={id}
+          data-presentation="expanded"
           style={{
             pointerEvents: "auto",
             width: "min(92vw, 900px)",
             height: "min(84dvh, 640px)",
             display: "flex",
             flexDirection: "column",
-            background: "rgba(6,14,32,0.97)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
-            borderRadius: 16,
-            border: "1px solid rgba(103,232,249,0.22)",
-            boxShadow: "0 24px 80px rgba(2,6,23,0.65)",
+            background: genesisTheme.glass.panel,
+            backdropFilter: genesisTheme.elevation.float.backdropFilter,
+            WebkitBackdropFilter: genesisTheme.elevation.float.backdropFilter,
+            borderRadius: genesisTheme.radius.md,
+            border: genesisTheme.glass.borderAccent,
+            boxShadow: genesisTheme.elevation.float.boxShadow,
             overflow: "hidden",
           }}
         >
@@ -312,6 +324,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
 
   return (
     <div
+      data-lelu-module-window={id}
+      data-presentation="inline"
       style={{
         position: "fixed",
         left: isMobile
@@ -326,12 +340,12 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
         pointerEvents: "auto",
         display: "flex",
         flexDirection: "column",
-        background: "rgba(6,14,32,0.96)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
-        borderRadius: 14,
-        border: "1px solid rgba(103,232,249,0.22)",
-        boxShadow: "0 16px 56px rgba(2,6,23,0.6)",
+        background: genesisTheme.glass.panel,
+        backdropFilter: genesisTheme.elevation.float.backdropFilter,
+        WebkitBackdropFilter: genesisTheme.elevation.float.backdropFilter,
+        borderRadius: genesisTheme.radius.md,
+        border: genesisTheme.glass.borderAccent,
+        boxShadow: genesisTheme.elevation.float.boxShadow,
         overflow: "hidden",
       }}
     >

@@ -277,14 +277,29 @@ test("the chat is never counted as a module window", () => {
   assert.match(code("src/app/scene/genesis/surface/useSurface.ts"), /\.filter\(\(\[id\]\) => id !== "chat"\)/);
 });
 
-test("a panel inside a module window fills it on a phone, under the title bar", () => {
-  // Measured: the panel's own fixed 587px sheet rose over the 560px
-  // window's title bar, so ◎ Chat / — / ✕ could not be touched.
+test("a panel inside a module window is a body, not a second window", () => {
+  // Measured on a phone: the panel's own fixed 587px sheet rose over the
+  // 560px window's title bar, so ◎ Chat / — / ✕ could not be touched. On
+  // desktop the same panel drew a second full glass frame (border, shadow,
+  // its own "Exit Core") inside the host window — one window, two chromes.
   const host = code("src/app/scene/genesis/GenesisModuleHost.tsx");
   assert.equal(host.split("<InModuleWindow.Provider value={true}>").length - 1, 2, "both window shapes mark their panel");
   const frame = code("src/app/scene/genesis/GenesisWindowFrame.tsx");
-  assert.match(frame, /const frameStyle: CSSProperties = narrow && inModuleWindow\s*\?\s*\{[\s\S]{0,400}position: "relative",[\s\S]{0,200}boxSizing: "border-box",/);
-  assert.match(frame, /\{narrow && resizable && !inModuleWindow \? \(/, "the window has the resize handle, not the panel");
+
+  // ONE rule for both widths: inside the host the frame is a plain body.
+  assert.match(
+    frame,
+    /const frameStyle: CSSProperties = inModuleWindow\s*\?\s*\{[\s\S]{0,400}position: "relative",[\s\S]{0,200}boxSizing: "border-box",/,
+    "no viewport-dependent chrome inside a module window",
+  );
+  assert.match(frame, /background: "transparent",\s*border: "none",/, "no second glass pane inside the window");
+  assert.match(
+    frame,
+    /\{inModuleWindow \? \(\s*\/\*[\s\S]{0,400}data-lelu-panel-heading/,
+    "identity and counts stay; the window controls do not",
+  );
+  assert.match(frame, /\{resizable && !narrow && !inModuleWindow \? \(/, "the window has the resize handle, not the panel");
+  assert.match(frame, /\{narrow && resizable && !inModuleWindow \? \(/, "the sheet handle too");
 });
 
 test("nothing is toasted over a full-screen phone workspace either", () => {
