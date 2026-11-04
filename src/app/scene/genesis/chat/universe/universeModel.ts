@@ -15,12 +15,13 @@ import type { ChatConversation } from "../../../../../core/multichat/MultiChatSt
 
 export type UniverseView = "grid" | "carousel";
 export type UniverseFocus = "overview" | "window" | "full";
-export type TimelineRange = "24h" | "7d" | "30d";
+export type TimelineRange = "24h" | "7d" | "30d" | "all";
 
 export const RANGE_MS: Record<TimelineRange, number> = {
   "24h": 24 * 3600_000,
   "7d": 7 * 24 * 3600_000,
   "30d": 30 * 24 * 3600_000,
+  all: 0, // computed from the oldest stored timestamp
 };
 
 /* ---------------- previews ---------------- */
@@ -92,7 +93,8 @@ export function timelineMarkers(
   now = Date.now(),
   perChat = 6,
 ): TimelineMarker[] {
-  const span = RANGE_MS[range];
+  const oldest = Math.min(now - 3600_000, ...conversations.map((c) => c.createdAt));
+  const span = range === "all" ? Math.max(3600_000, now - oldest) : RANGE_MS[range];
   const from = now - span;
   const markers: TimelineMarker[] = [];
   const place = (at: number) => Math.min(1, Math.max(0, (at - from) / span));
@@ -201,4 +203,34 @@ export function relativeTime(at: number, now = Date.now()): string {
   if (s < 86400) return new Date(at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   if (s < 7 * 86400) return new Date(at).toLocaleDateString([], { weekday: "short" });
   return new Date(at).toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
+/* ---------------- artwork (visual only, never organisation) ---------------- */
+
+/** The artwork set shipped in public/universe (from the LÉLU design references). */
+export const ARTWORK = ["lotus", "rings", "fabric", "crystals", "build", "jellyfish", "forest", "horizon", "galaxy"] as const;
+export type Artwork = (typeof ARTWORK)[number];
+
+const ART_HINTS: Array<[RegExp, Artwork]> = [
+  [/daily|reflect|cognit|diary|journal|morning|mind/i, "lotus"],
+  [/dev|code|engineer|interface|bug|build ui|app|lélu|lelu/i, "rings"],
+  [/fashion|design|style|outfit|cloth|brand/i, "fabric"],
+  [/research|ai\b|model|science|study|learn/i, "crystals"],
+  [/project|build|system|plan|architect/i, "build"],
+  [/idea|creative|art|music|visual|concept/i, "jellyfish"],
+  [/health|well|sleep|fitness|food|recover/i, "forest"],
+  [/travel|trip|route|move|work|job|money|business/i, "horizon"],
+];
+
+/**
+ * Which artwork represents a chat: chosen from the chat's OWN title/topic
+ * and first message (a picture, not a category — nothing is filed), else a
+ * stable pick by id so every chat keeps one identity.
+ */
+export function artFor(conversation: Pick<ChatConversation, "id" | "title" | "topic" | "messages">): Artwork {
+  const text = `${conversation.title} ${conversation.topic} ${conversation.messages[0]?.text ?? ""}`;
+  for (const [hint, art] of ART_HINTS) if (hint.test(text)) return art;
+  let h = 0;
+  for (let i = 0; i < conversation.id.length; i += 1) h = (h * 31 + conversation.id.charCodeAt(i)) >>> 0;
+  return ARTWORK[h % ARTWORK.length];
 }

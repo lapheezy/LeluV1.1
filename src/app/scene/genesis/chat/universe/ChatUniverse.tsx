@@ -1,29 +1,37 @@
 /**
  * LÉLU — Multi-Chat Universe.
  *
- * Every conversation as a translucent glass window floating in the Cosmos.
- *   overview — all windows visible (grid, or the rotating carousel)
- *   window   — the tapped chat comes forward mid-size; the rest stay behind
- *   full     — that chat fills the screen; one tap returns to the overview
+ * One owner for the whole screen while open (z-index 480, opaque Cosmos
+ * backdrop): nothing from the home, the nav or the 3D scene's labels can
+ * show through. Regions are a CSS grid, not stacked fixed layers:
  *
- * ONE universal composer targets whichever chat is selected. It does not
- * send by itself: it switches the active conversation (GenesisCore →
- * MultiChatStore) and hands the text to the existing GenesisChat send path
- * (`lelu-universe-send`), so streaming, tools, queueing per conversation,
+ *   desktop  [rail] [header+timeline / card grid / carousel] [chat window]
+ *            [            quick chat dock                              ]
+ *   phone    [header with LÉLU] [card grid] [chat window sheet] [dock]
+ *
+ * Windows: several chats can be open (tabs in the window head); one is
+ * focused and is the composer's target. Minimise keeps it in the dock,
+ * close drops it from the open set, maximise fills the main region.
+ *
+ * Sending reuses GenesisChat's send path (`lelu-universe-send`) after the
+ * target is made the active conversation, so streaming, tools, queueing,
  * steering and persistence are the ones that already work.
  *
- * Organisation is the user's: no categories are created, nothing is moved.
+ * Organisation is the user's: no categories, nothing moved. Artwork is a
+ * picture chosen from the chat's own words, never a folder.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { Archive, ArrowLeft, Expand, Grid2x2, GalleryHorizontal, Image as ImageIcon, Mic, Paperclip, Plus, Send, Shrink, X } from "lucide-react";
+import * as Icons from "lucide-react";
 import { useGenesis } from "../../GenesisCore";
-import MultiChatStore from "../../../../../core/multichat/MultiChatStore";
+import MultiChatStore, { type ChatConversation } from "../../../../../core/multichat/MultiChatStore";
 import { hasVisibleActivity } from "../../../../../core/multichat/TurnActivity";
 import ChatActivityCard from "../ChatActivity";
 import { currentActivity, subscribeActivity } from "../activityRecorder";
+import { goHome } from "../../home/homeActions";
 import {
-  autoVisual,
+  artFor,
   gridOrder,
+  previewOf,
   loadAppearance,
   recentOrder,
   relativeTime,
@@ -32,8 +40,6 @@ import {
   type ChatAppearance,
   type ChatPreview,
   type TimelineRange,
-  type UniverseFocus,
-  type UniverseView,
 } from "./universeModel";
 import "./chatUniverse.css";
 
@@ -44,11 +50,12 @@ export function openChatUniverse(): void {
   window.dispatchEvent(new CustomEvent(OPEN_UNIVERSE_EVENT));
 }
 
+const ART_BASE = `${import.meta.env?.BASE_URL ?? "/"}universe/`.replace(/\/\/+/g, "/");
+
 function useArchived() {
   const store = MultiChatStore.getInstance();
-  const subscribe = (cb: () => void) => store.subscribe(cb);
-  // listArchived() builds a new array each call; key the snapshot on content.
-  const snapshot = () => store.listArchived().map((c) => `${c.id}:${c.updatedAt}`).join("|");
+  const subscribe = useCallback((cb: () => void) => store.subscribe(cb), [store]);
+  const snapshot = useCallback(() => store.listArchived().map((c) => `${c.id}:${c.updatedAt}`).join("|"), [store]);
   const key = useSyncExternalStore(subscribe, snapshot, snapshot);
   return useMemo(() => store.listArchived(), [key]); // eslint-disable-line react-hooks/exhaustive-deps
 }
@@ -60,63 +67,68 @@ function useLiveActivity(conversationId: string | null) {
   return useSyncExternalStore(subscribe, snapshot, snapshot);
 }
 
-function Visual({ preview, appearance }: { preview: ChatPreview; appearance?: ChatAppearance }) {
-  if (appearance?.image === null) return <div className="lcu-visual" data-off="true" />;
-  const src = appearance?.image ?? preview.attachment;
-  if (src) return <div className="lcu-visual" style={{ backgroundImage: `url("${src}")` }} />;
-  const v = autoVisual(preview.id);
-  return (
-    <div
-      className="lcu-visual"
-      data-auto="true"
-      style={{
-        backgroundImage: `radial-gradient(circle at 50% 60%, hsla(${v.hueB},95%,75%,.85) 0 6%, transparent 26%), radial-gradient(ellipse at 50% 62%, hsla(${v.hueA},90%,62%,.55), transparent 62%), linear-gradient(${v.angle}deg, hsla(${v.hueA},70%,22%,.9), hsla(${v.hueB},75%,30%,.75))`,
-      }}
-    />
-  );
+function Ico({ name, size = 18 }: { name: string; size?: number }) {
+  const C = (Icons as unknown as Record<string, React.ComponentType<{ size?: number }>>)[name] ?? Icons.Circle;
+  return <C size={size} />;
 }
+
+const ART_ICON: Record<string, string> = {
+  lotus: "Moon", rings: "Code2", fabric: "Shirt", crystals: "Atom", build: "Layers",
+  jellyfish: "Sparkles", forest: "Leaf", horizon: "Plane", galaxy: "Orbit",
+};
+
+function Art({ conversation, appearance, className = "lcu-art" }: { conversation: ChatConversation; appearance?: ChatAppearance; className?: string }) {
+  if (appearance?.image === null) return <div className={className} data-off="true" />;
+  const src = appearance?.image ?? previewOf(conversation as ChatConversation).attachment ?? `${ART_BASE}${artFor(conversation)}.webp`;
+  return <div className={className} style={{ backgroundImage: `url("${src}")` }} />;
+}
+
+/** LÉLU's state, from real application state only. */
+function presenceOf(processing: boolean, activityStatus: string | null): { label: string; state: string } {
+  if (activityStatus === "running") return { label: "Working", state: "working" };
+  if (processing) return { label: "Thinking", state: "thinking" };
+  return { label: "Here with you", state: "idle" };
+}
+
+const RAIL: Array<{ id: string; label: string; icon: string }> = [
+  { id: "home", label: "Home", icon: "Home" },
+  { id: "chat", label: "Chat ∞", icon: "MessagesSquare" },
+  { id: "browser", label: "Browser", icon: "Globe" },
+  { id: "workspaces", label: "Apps", icon: "LayoutGrid" },
+  { id: "visualstudio", label: "Studio", icon: "Box" },
+  { id: "render", label: "Render", icon: "Play" },
+  { id: "projects", label: "Files", icon: "Folder" },
+  { id: "agents", label: "Agents", icon: "Network" },
+  { id: "memory", label: "Memory", icon: "Layers" },
+  { id: "history", label: "Diary", icon: "BookOpen" },
+  { id: "settings", label: "Settings", icon: "Settings" },
+];
 
 export default function ChatUniverse() {
   const genesis = useGenesis();
   const { conversations, activeConversationId } = genesis.state;
   const archived = useArchived();
   const [open, setOpen] = useState(false);
-  const [view, setView] = useState<UniverseView>("grid");
-  const [focus, setFocus] = useState<UniverseFocus>("overview");
+  const [openIds, setOpenIds] = useState<string[]>([]);
+  const [maximized, setMaximized] = useState(false);
   const [range, setRange] = useState<TimelineRange>("24h");
-  const [showArchived, setShowArchived] = useState(false);
+  const [filter, setFilter] = useState<"all" | "active" | "archived">("all");
+  const [view, setView] = useState<"grid" | "carousel">("grid");
+  const [railOpen, setRailOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [appearance, setAppearance] = useState<Record<string, ChatAppearance>>(() => loadAppearance());
   const fileRef = useRef<HTMLInputElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const show = () => { setOpen(true); setFocus("overview"); };
+    const show = () => setOpen(true);
     window.addEventListener(OPEN_UNIVERSE_EVENT, show);
     return () => window.removeEventListener(OPEN_UNIVERSE_EVENT, show);
   }, []);
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      if (focus === "overview") setOpen(false);
-      else setFocus("overview");
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, focus]);
 
-  const visible = showArchived ? archived : conversations;
-  const grid = useMemo(() => gridOrder(visible), [visible]);
-  const recent = useMemo(() => recentOrder(conversations), [conversations]);
-  const markers = useMemo(() => timelineMarkers(conversations, range), [conversations, range]);
-  const active = conversations.find((c) => c.id === activeConversationId) ?? null;
-  const activeCount = conversations.filter((c) => c.processing).length;
-  // What she is doing for this chat, live, and the same steps the chat panel lists.
-  const liveActivity = useLiveActivity(active?.id ?? null);
-
-  // While open, the home and its nav step aside so only the Cosmos (and
-  // LÉLU) sit behind the glass windows.
+  // While open, the Universe owns the screen: home, nav and scene labels step aside.
   useEffect(() => {
     const root = document.documentElement;
     if (open) root.dataset.leluUniverse = "open";
@@ -124,23 +136,70 @@ export default function ChatUniverse() {
     return () => { delete root.dataset.leluUniverse; };
   }, [open]);
 
+  const byId = useMemo(() => new Map([...conversations, ...archived].map((c) => [c.id, c])), [conversations, archived]);
+  const focusedId = openIds.length ? openIds[openIds.length - 1] : null;
+  const focused = focusedId ? byId.get(focusedId) ?? null : null;
+  const liveActivity = useLiveActivity(focused?.id ?? null);
+
+  // Drop windows whose chat no longer exists.
+  useEffect(() => {
+    setOpenIds((ids) => ids.filter((id) => byId.has(id)));
+  }, [byId]);
+
   useEffect(() => {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight });
-  }, [active?.messages.length, focus]);
+  }, [focused?.id, focused?.messages.length, focused?.processing]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (maximized) setMaximized(false);
+      else if (openIds.length) setOpenIds((ids) => ids.slice(0, -1));
+      else setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, openIds.length, maximized]);
+
+  const list = filter === "archived" ? archived : filter === "active" ? conversations.filter((c) => c.processing || c.unread > 0) : conversations;
+  const grid = useMemo(() => gridOrder(list), [list]);
+  const recent = useMemo(() => recentOrder(conversations), [conversations]);
+  const markers = useMemo(() => timelineMarkers(conversations, range), [conversations, range]);
+  const activeCount = conversations.filter((c) => c.processing).length;
+  const presence = presenceOf(activeCount > 0, liveActivity?.status ?? null);
 
   if (!open) return null;
 
-  const select = (id: string) => {
+  const openChat = (id: string) => {
     if (archived.some((c) => c.id === id)) genesis.unarchiveConversation(id);
     if (id !== activeConversationId) genesis.switchConversation(id);
-    setFocus("window");
+    MultiChatStore.getInstance().markRead(id);
+    setOpenIds((ids) => [...ids.filter((x) => x !== id), id].slice(-4));
+    requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
+  };
+  const closeChat = (id: string) => {
+    setOpenIds((ids) => {
+      const next = ids.filter((x) => x !== id);
+      const top = next[next.length - 1];
+      if (top && top !== activeConversationId) genesis.switchConversation(top);
+      return next;
+    });
+    if (openIds.length <= 1) setMaximized(false);
+  };
+  const minimize = () => { setOpenIds([]); setMaximized(false); };
+  const newChat = () => {
+    const id = genesis.createConversation();
+    if (id) setOpenIds((ids) => [...ids.filter((x) => x !== id), id].slice(-4));
   };
   const send = () => {
     const text = draft.trim();
-    if (!text || !active) return;
-    // The store already names `active` as the target (select() switched it).
-    window.dispatchEvent(new CustomEvent(UNIVERSE_SEND_EVENT, { detail: { text, conversationId: active.id } }));
+    const target = focused ?? byId.get(activeConversationId) ?? null;
+    if (!text || !target) return;
+    if (target.id !== MultiChatStore.getInstance().getActiveId()) genesis.switchConversation(target.id);
+    window.dispatchEvent(new CustomEvent(UNIVERSE_SEND_EVENT, { detail: { text, conversationId: target.id } }));
     setDraft("");
+    if (!focused) openChat(target.id);
   };
   const setImage = (id: string, image: string | null | undefined) => {
     const next = { ...appearance, [id]: { image } };
@@ -149,167 +208,245 @@ export default function ChatUniverse() {
     saveAppearance(next);
   };
   const onFile = (file: File | undefined) => {
-    if (!file || !active) return;
+    if (!file || !focused) return;
     const reader = new FileReader();
-    reader.onload = () => typeof reader.result === "string" && setImage(active.id, reader.result);
+    reader.onload = () => typeof reader.result === "string" && setImage(focused.id, reader.result);
     reader.readAsDataURL(file);
   };
+  const railGo = (id: string) => {
+    setRailOpen(false);
+    if (id === "chat") return;
+    setOpen(false);
+    if (id === "home") goHome(genesis);
+    else genesis.openPanel(id as never);
+  };
+  const spin = (dir: 1 | -1) => {
+    if (recent.length === 0) return;
+    const i = Math.max(0, recent.findIndex((p) => p.id === (focusedId ?? activeConversationId)));
+    const next = recent[(i + dir + recent.length) % recent.length];
+    openChat(next.id);
+    carouselRef.current?.querySelector(`[data-id="${next.id}"]`)?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  };
 
-  const windowCard = (p: ChatPreview, extra = "") => (
-    <button
-      key={p.id}
-      type="button"
-      className={`lcu-win ${extra}`}
-      data-selected={p.id === activeConversationId && focus !== "overview"}
-      data-target={p.id === activeConversationId}
-      onClick={() => select(p.id)}
-      aria-label={`Open ${p.title}`}
-    >
-      <span className="lcu-win-head">
-        <span className="lcu-win-title">{p.title}</span>
-        <span className="lcu-dot" data-state={p.processing ? "working" : p.unread ? "unread" : "idle"} />
-      </span>
-      <Visual preview={p} appearance={appearance[p.id]} />
-      <span className="lcu-win-text">{p.lastText || "No messages yet"}</span>
-      <span className="lcu-win-foot">
-        {p.unread > 0 ? <span className="lcu-unread">{p.unread}</span> : null}
-        <time dateTime={new Date(p.lastUsed).toISOString()}>{relativeTime(p.lastUsed)}</time>
-      </span>
-    </button>
-  );
+  const target = focused ?? byId.get(activeConversationId) ?? null;
+  const card = (p: ChatPreview) => {
+    const c = byId.get(p.id);
+    if (!c) return null;
+    return (
+      <button key={p.id} type="button" className="lcu-card" data-open={openIds.includes(p.id)} data-focused={p.id === focusedId} onClick={() => openChat(p.id)} aria-label={`Open ${p.title}`}>
+        <span className="lcu-card-head">
+          <span className="lcu-card-ico"><Ico name={ART_ICON[artFor(c)]} size={15} /></span>
+          <span className="lcu-card-title">{p.title}</span>
+          <span className="lcu-dot" data-state={p.processing ? "working" : p.unread ? "unread" : "idle"} />
+        </span>
+        <Art conversation={c} appearance={appearance[p.id]} />
+        <span className="lcu-card-text">{p.lastText || "No messages yet"}</span>
+        <span className="lcu-card-foot">
+          {p.unread > 0 ? <span className="lcu-unread">{p.unread}</span> : null}
+          <time dateTime={new Date(p.lastUsed).toISOString()}>{relativeTime(p.lastUsed)}</time>
+        </span>
+      </button>
+    );
+  };
 
   return (
-    <div className="lcu" data-focus={focus} data-view={view} role="dialog" aria-label="Chat Universe">
-      <div className="lcu-haze" aria-hidden="true" />
-      <header className="lcu-head">
-        <button type="button" className="lcu-icon" onClick={() => (focus === "overview" ? setOpen(false) : setFocus("overview"))} aria-label={focus === "overview" ? "Close Chat Universe" : "Back to all chats"}>
-          <ArrowLeft size={18} />
-        </button>
-        <div className="lcu-brand">
-          <strong>Chat Universe ∞</strong>
-          <small>
-            {conversations.length} chats · {activeCount} active · {archived.length} archived
-          </small>
-        </div>
-        <div className="lcu-seg" role="group" aria-label="Layout">
-          <button type="button" data-on={view === "grid"} onClick={() => setView("grid")} aria-label="Grid"><Grid2x2 size={16} /></button>
-          <button type="button" data-on={view === "carousel"} onClick={() => setView("carousel")} aria-label="Carousel"><GalleryHorizontal size={16} /></button>
-          <button type="button" data-on={showArchived} onClick={() => setShowArchived((v) => !v)} aria-label="Archived chats"><Archive size={16} /></button>
-        </div>
-        <button type="button" className="lcu-icon" onClick={() => { genesis.createConversation(); setFocus("window"); }} aria-label="New chat">
-          <Plus size={18} />
-        </button>
-      </header>
+    <div className="lcu" data-window={focused ? "open" : "closed"} data-max={maximized} data-rail={railOpen} role="dialog" aria-label="Chat Universe">
+      <div className="lcu-cosmos" aria-hidden="true" style={{ backgroundImage: `url("${ART_BASE}galaxy.webp")` }} />
 
-      <section className="lcu-timeline" aria-label="Chat activity timeline">
-        <div className="lcu-ranges">
-          {(["24h", "7d", "30d"] as TimelineRange[]).map((r) => (
-            <button key={r} type="button" data-on={range === r} onClick={() => setRange(r)}>{r.toUpperCase()}</button>
+      {/* ---------- navigation rail (permanent on desktop, drawer on phone) ---------- */}
+      <aside className="lcu-rail" aria-label="LÉLU navigation">
+        <div className="lcu-rail-id">
+          <span className="lcu-orb" data-state={presence.state} />
+          <span><strong>LÉLU</strong><small>Cosmos Workspace</small></span>
+        </div>
+        <nav>
+          {RAIL.map((r) => (
+            <button key={r.id} type="button" data-on={r.id === "chat"} onClick={() => railGo(r.id)}>
+              <Ico name={r.icon} size={18} /> <span>{r.label}</span>
+            </button>
           ))}
+        </nav>
+        <div className="lcu-rail-ws">
+          <small>Open windows</small>
+          {openIds.length === 0 ? <span className="lcu-rail-none">None open</span> : null}
+          {openIds.map((id) => {
+            const c = byId.get(id);
+            return c ? (
+              <button key={id} type="button" data-on={id === focusedId} onClick={() => openChat(id)}>
+                <Art conversation={c} appearance={appearance[id]} className="lcu-art-mini" /> <span>{c.title}</span>
+              </button>
+            ) : null;
+          })}
         </div>
-        <div className="lcu-track">
-          {markers.map((m, i) => (
-            <span
-              key={`${m.conversationId}-${m.at}-${i}`}
-              className="lcu-mark"
-              data-kind={m.kind}
-              data-on={m.conversationId === activeConversationId}
-              style={{ left: `${m.position * 100}%` }}
-              title={`${conversations.find((c) => c.id === m.conversationId)?.title ?? ""} · ${new Date(m.at).toLocaleString()}`}
-            />
-          ))}
-          <span className="lcu-now">Now</span>
-        </div>
-      </section>
+      </aside>
+      <div className="lcu-rail-scrim" onClick={() => setRailOpen(false)} aria-hidden="true" />
 
-      <main className="lcu-field" onClick={(e) => { if (e.target === e.currentTarget && focus === "window") setFocus("overview"); }}>
-        {grid.length === 0 ? <p className="lcu-empty">{showArchived ? "No archived chats." : "No chats yet — start one with +."}</p> : null}
-        <div className={view === "grid" ? "lcu-grid" : "lcu-carousel"}>{grid.map((p) => windowCard(p))}</div>
-      </main>
-
-      {focus !== "overview" && active ? (
-        <>
-          <div className="lcu-scrim" onClick={() => setFocus("overview")} aria-hidden="true" />
-          <article className="lcu-active" data-full={focus === "full"} aria-label={`${active.title} conversation`}>
-            <header className="lcu-active-head">
-              <span className="lcu-dot" data-state={active.processing ? "working" : "idle"} />
-              <strong>{active.title}</strong>
-              {active.processing ? <span className="lcu-live">Active</span> : null}
-              <span className="lcu-active-tools">
-                <button type="button" onClick={() => fileRef.current?.click()} aria-label="Change thumbnail"><ImageIcon size={16} /></button>
-                <button type="button" onClick={() => setFocus(focus === "full" ? "window" : "full")} aria-label={focus === "full" ? "Restore window" : "Expand to full screen"}>
-                  {focus === "full" ? <Shrink size={16} /> : <Expand size={16} />}
-                </button>
-                <button type="button" onClick={() => setFocus("overview")} aria-label="Back to all chats"><X size={16} /></button>
-              </span>
-              <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => onFile(e.target.files?.[0])} />
-            </header>
-            {hasVisibleActivity(liveActivity) ? (
-              <div className="lcu-activity" data-lelu-universe-activity={liveActivity.status}>
-                <ChatActivityCard activity={liveActivity} />
-              </div>
-            ) : null}
-            <div className="lcu-thread" ref={threadRef} data-lelu-universe-thread data-streaming={active.processing ? "true" : "false"}>
-              {active.messages.length === 0 ? <p className="lcu-empty">Say something to start this chat.</p> : null}
-              {active.messages.slice(-40).map((m) => (
-                <div key={m.id} className="lcu-msg" data-role={m.role}>
-                  <p>{m.text}</p>
-                  <time>{relativeTime(m.timestamp)}</time>
-                </div>
-              ))}
-              {/* She is answering now: deltas land in this list as they stream. */}
-              {active.processing ? (
-                <div className="lcu-typing" data-lelu-universe-typing role="status" aria-live="polite">
-                  <span /><span /><span />
-                </div>
-              ) : null}
+      {/* ---------- main region ---------- */}
+      <section className="lcu-main">
+        <header className="lcu-head">
+          <button type="button" className="lcu-icon lcu-menu" onClick={() => setRailOpen(true)} aria-label="Open navigation"><Icons.Menu size={20} /></button>
+          <div className="lcu-hero" style={{ backgroundImage: `url("${ART_BASE}lelu-portrait.webp")` }} data-state={presence.state} aria-label={`LÉLU — ${presence.label}`} role="img" />
+          <div className="lcu-title">
+            <h1>Chat Universe <span>∞</span></h1>
+            <p>
+              {conversations.length} Chats · {activeCount} Active · <span className="lcu-sync">● {presence.label}</span>
+            </p>
+          </div>
+          <div className="lcu-head-tools">
+            <div className="lcu-seg" role="group" aria-label="Layout">
+              <button type="button" data-on={view === "grid"} onClick={() => setView("grid")} aria-label="Grid view"><Icons.LayoutGrid size={17} /></button>
+              <button type="button" data-on={view === "carousel"} onClick={() => setView("carousel")} aria-label="Carousel view"><Icons.GalleryHorizontal size={17} /></button>
             </div>
-            {appearance[active.id] !== undefined ? (
-              <button type="button" className="lcu-reset-visual" onClick={() => setImage(active.id, undefined)}>Automatic thumbnail</button>
-            ) : (
-              <button type="button" className="lcu-reset-visual" onClick={() => setImage(active.id, null)}>Hide thumbnail</button>
-            )}
-          </article>
-        </>
-      ) : null}
+            <button type="button" className="lcu-icon" onClick={newChat} aria-label="New chat"><Icons.Plus size={19} /></button>
+            <button type="button" className="lcu-icon" onClick={() => setOpen(false)} aria-label="Close Chat Universe"><Icons.X size={19} /></button>
+          </div>
+        </header>
 
-      <footer className="lcu-bottom">
-        <div className="lcu-composer" data-disabled={!active}>
-          <span className="lcu-target" aria-live="polite">{active ? `To: ${active.title}` : "Select a chat"}</span>
-          <div className="lcu-input">
-            <button type="button" className="lcu-icon sm" aria-label="Attach (opens the full chat composer)" onClick={() => { setOpen(false); genesis.openPanel("chat"); }}>
-              <Paperclip size={16} />
-            </button>
-            <textarea
-              rows={1}
-              value={draft}
-              placeholder={active ? `Message ${active.title}…` : "Tap a chat first"}
-              onChange={(e) => setDraft(e.target.value)}
-              onFocus={() => focus === "overview" && active && setFocus("window")}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-              disabled={!active}
-              enterKeyHint="send"
-            />
-            <button type="button" className="lcu-icon sm" aria-label="Voice (opens the full chat)" onClick={() => { setOpen(false); genesis.openPanel("chat"); }}>
-              <Mic size={16} />
-            </button>
-            <button type="button" className="lcu-send" onClick={send} disabled={!active || !draft.trim()} aria-label="Send">
-              <Send size={16} />
-            </button>
+        <div className="lcu-timeline" aria-label="Chat activity timeline">
+          <span className="lcu-tl-label"><Icons.Clock size={15} /> Chat Activity</span>
+          <div className="lcu-ranges">
+            {(["24h", "7d", "30d", "all"] as TimelineRange[]).map((r) => (
+              <button key={r} type="button" data-on={range === r} onClick={() => setRange(r)}>{r === "all" ? "All" : r.toUpperCase()}</button>
+            ))}
+          </div>
+          <div className="lcu-track">
+            {markers.map((m, i) => (
+              <button
+                key={`${m.conversationId}-${m.at}-${i}`}
+                type="button"
+                className="lcu-mark"
+                data-kind={m.kind}
+                data-on={m.conversationId === focusedId}
+                style={{ left: `${m.position * 100}%` }}
+                onClick={() => openChat(m.conversationId)}
+                aria-label={`${byId.get(m.conversationId)?.title ?? "Chat"} at ${new Date(m.at).toLocaleString()}`}
+              />
+            ))}
+            <span className="lcu-now">Now</span>
           </div>
         </div>
-        <nav className="lcu-dock" aria-label="Recent chats">
-          {recent.map((p) => (
-            <button key={p.id} type="button" className="lcu-dock-item" data-on={p.id === activeConversationId} onClick={() => select(p.id)}>
-              <Visual preview={p} appearance={appearance[p.id]} />
-              <span>{p.title}</span>
-              <time>{relativeTime(p.lastUsed)}</time>
-              <span className="lcu-dot" data-state={p.processing ? "working" : p.unread ? "unread" : "idle"} />
+
+        <div className="lcu-filters">
+          {(["all", "active", "archived"] as const).map((f) => (
+            <button key={f} type="button" data-on={filter === f} onClick={() => setFilter(f)}>
+              {f === "all" ? `All (${conversations.length})` : f === "active" ? "Active" : `Archived (${archived.length})`}
             </button>
           ))}
-          <button type="button" className="lcu-dock-item lcu-dock-more" onClick={() => { setView("carousel"); setFocus("overview"); }} aria-label="Open the full carousel">
-            <GalleryHorizontal size={18} />
-          </button>
+        </div>
+
+        {view === "grid" ? (
+          <div className="lcu-grid">
+            {grid.map(card)}
+            {filter !== "archived" ? (
+              <button type="button" className="lcu-card lcu-card-new" onClick={newChat}><Icons.Plus size={26} /><span>New Chat</span></button>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className="lcu-carousel-wrap" data-view={view}>
+          <button type="button" className="lcu-icon lcu-spin" onClick={() => spin(-1)} aria-label="Previous chat"><Icons.ChevronLeft size={20} /></button>
+          <div className="lcu-carousel" ref={carouselRef}>
+            {recent.map((p) => {
+              const c = byId.get(p.id);
+              return c ? (
+                <button key={p.id} type="button" data-id={p.id} className="lcu-orbit" data-on={p.id === (focusedId ?? activeConversationId)} onClick={() => openChat(p.id)}>
+                  <span className="lcu-card-head"><Ico name={ART_ICON[artFor(c)]} size={14} /><span className="lcu-card-title">{p.title}</span><span className="lcu-dot" data-state={p.processing ? "working" : p.unread ? "unread" : "idle"} /></span>
+                  <Art conversation={c} appearance={appearance[p.id]} />
+                  <span className="lcu-card-text">{p.lastText || "No messages yet"}</span>
+                  <time>{relativeTime(p.lastUsed)}</time>
+                </button>
+              ) : null;
+            })}
+          </div>
+          <button type="button" className="lcu-icon lcu-spin" onClick={() => spin(1)} aria-label="Next chat"><Icons.ChevronRight size={20} /></button>
+          <div className="lcu-ring" aria-hidden="true" />
+        </div>
+        {grid.length === 0 ? <p className="lcu-empty">{filter === "archived" ? "No archived chats." : "No chats here yet."}</p> : null}
+      </section>
+
+      {/* ---------- floating chat window ---------- */}
+      {focused ? (
+        <article className="lcu-window" aria-label={`${focused.title} conversation`}>
+          {openIds.length > 1 ? (
+            <div className="lcu-tabs" role="tablist">
+              {openIds.map((id) => {
+                const c = byId.get(id);
+                return c ? (
+                  <button key={id} type="button" role="tab" aria-selected={id === focusedId} onClick={() => openChat(id)}>
+                    <Ico name={ART_ICON[artFor(c)]} size={13} /> <span>{c.title}</span>
+                    <span className="lcu-dot" data-state={c.processing ? "working" : "idle"} />
+                  </button>
+                ) : null;
+              })}
+            </div>
+          ) : null}
+          <header className="lcu-win-head">
+            <span className="lcu-card-ico"><Ico name={ART_ICON[artFor(focused)]} size={16} /></span>
+            <strong>{focused.title}</strong>
+            <span className="lcu-dot" data-state={focused.processing ? "working" : "idle"} />
+            {focused.processing ? <span className="lcu-live">Active</span> : null}
+            <span className="lcu-win-tools">
+              <button type="button" onClick={() => fileRef.current?.click()} aria-label="Change thumbnail"><Icons.ImagePlus size={16} /></button>
+              <button type="button" onClick={minimize} aria-label="Minimize"><Icons.Minus size={16} /></button>
+              <button type="button" onClick={() => setMaximized((m) => !m)} aria-label={maximized ? "Restore" : "Maximize"}>
+                {maximized ? <Icons.Minimize2 size={16} /> : <Icons.Maximize2 size={16} />}
+              </button>
+              <button type="button" onClick={() => closeChat(focused.id)} aria-label="Close chat window"><Icons.X size={16} /></button>
+            </span>
+            <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => onFile(e.target.files?.[0])} />
+          </header>
+          {hasVisibleActivity(liveActivity) ? (
+            <div className="lcu-activity" data-lelu-universe-activity={liveActivity?.status}>
+              <ChatActivityCard activity={liveActivity!} />
+            </div>
+          ) : null}
+          <div className="lcu-thread" ref={threadRef} data-lelu-universe-thread data-streaming={focused.processing ? "true" : "false"}>
+            {focused.messages.length === 0 ? <p className="lcu-empty">Say something to start this chat.</p> : null}
+            {focused.messages.slice(-60).map((m) => (
+              <div key={m.id} className="lcu-msg" data-role={m.role}>
+                {m.role === "assistant" ? <span className="lcu-msg-orb" aria-hidden="true" /> : null}
+                <div className="lcu-bubble"><p>{m.text}</p><time>{relativeTime(m.timestamp)}</time></div>
+              </div>
+            ))}
+            {focused.processing ? (
+              <div className="lcu-typing" data-lelu-universe-typing role="status" aria-live="polite"><span /><span /><span /></div>
+            ) : null}
+          </div>
+        </article>
+      ) : null}
+
+      {/* ---------- universal composer + quick dock ---------- */}
+      <footer className="lcu-bottom">
+        <div className="lcu-composer">
+          <button type="button" className="lcu-icon" aria-label="Attach in the full chat" onClick={() => { setOpen(false); genesis.openPanel("chat"); }}><Icons.Plus size={19} /></button>
+          <div className="lcu-input">
+            <span className="lcu-target" title="This message goes to">{target ? target.title : "Pick a chat"}</span>
+            <textarea
+              ref={inputRef}
+              rows={1}
+              value={draft}
+              placeholder={target ? "Message LÉLU…" : "Tap a chat first"}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+              disabled={!target}
+              enterKeyHint="send"
+            />
+            <button type="button" className="lcu-icon sm" aria-label="Voice in the full chat" onClick={() => { setOpen(false); genesis.openPanel("chat"); }}><Icons.Mic size={17} /></button>
+            <button type="button" className="lcu-send" onClick={send} disabled={!target || !draft.trim()} aria-label={`Send to ${target?.title ?? "chat"}`}><Icons.ArrowRight size={19} /></button>
+          </div>
+        </div>
+        <nav className="lcu-dock" aria-label="Quick chat dock">
+          <span className="lcu-dock-label"><Icons.Infinity size={18} /><span>Quick Chat Dock</span></span>
+          {recent.map((p) => {
+            const c = byId.get(p.id);
+            return c ? (
+              <button key={p.id} type="button" className="lcu-dock-item" data-on={p.id === focusedId} onClick={() => openChat(p.id)}>
+                <Art conversation={c} appearance={appearance[p.id]} className="lcu-art-mini" />
+                <span className="lcu-dock-txt"><span>{p.title}</span><time>{relativeTime(p.lastUsed)}</time></span>
+                {p.unread > 0 ? <span className="lcu-unread">{p.unread}</span> : <span className="lcu-dot" data-state={p.processing ? "working" : "idle"} />}
+              </button>
+            ) : null;
+          })}
         </nav>
       </footer>
     </div>
