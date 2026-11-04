@@ -217,7 +217,27 @@ export default class ProviderResolver {
         // healthy provider into failure cooldown, and falling through ran
         // every other provider and then answered with the offline notice
         // — "all providers are unreachable" — to a turn the user ended.
-        throwIfStopped(context, error);
+        //
+        // It is also not an exception the UI should have to catch: a stop
+        // is settled HERE, as a cancelled answer that says what already
+        // ran, so the caller gets one ordinary result and every other
+        // provider is left alone.
+        if (stopped(context, error)) {
+          const ran = (toolsReallyRun ?? []).map((tool) => tool.tool);
+          // Nothing ran: there is nothing to report, so the AbortError goes
+          // back to the caller exactly as a pre-flight stop always has.
+          if (ran.length === 0) throwIfStopped(context, error);
+          return {
+            handled: true,
+            response: {
+              text: ran.length ? `Stopped. Already ran: ${ran.join(", ")}.` : "Stopped before anything ran.",
+              provider: "cancelled",
+              model: "stopped",
+              processingTime: Date.now() - context.started,
+              metadata: { success: false, toolLoopStopped: "user" },
+            },
+          };
+        }
         const message = error instanceof Error ? error.message : String(error);
         context.aiProviders.markFailure(provider.name, message);
         AgentEventBus.getInstance().emit({
@@ -611,4 +631,11 @@ function throwIfStopped(context: RouterContext, cause?: unknown): void {
   if (!signal?.aborted) return;
   if (cause instanceof Error && cause.name === "AbortError") throw cause;
   throw new DOMException("Turn stopped by the user.", "AbortError");
+}
+
+/** Has the turn been stopped — by its signal, or by an AbortError from below? */
+function stopped(context: RouterContext, cause?: unknown): boolean {
+  const signal = (context.request as { signal?: AbortSignal }).signal;
+  if (signal?.aborted) return true;
+  return cause instanceof Error && cause.name === "AbortError";
 }

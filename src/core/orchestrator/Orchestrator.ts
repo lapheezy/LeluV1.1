@@ -554,7 +554,7 @@ export default class Orchestrator {
     }
 
     const task = createTask(request.slice(0, 200), plan.validation, "orchestrator");
-    this.emit({ type: "executing", message: `Executing ${task.steps.length} steps`, taskId: task.id });
+    this.emit({ type: "executing", message: "Working through the plan", taskId: task.id });
     const executor = TaskExecutor.getInstance();
     const finished = (await executor.run(task.id)) ?? task;
     this.emit({

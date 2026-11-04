@@ -131,12 +131,14 @@ test("the AI bridges belong to the app, not to the v1 scene", () => {
 
 test("the interface leaves out Cosmos chrome while chat owns the screen", () => {
   const ui = code("src/app/scene/genesis/GenesisInterface.tsx");
-  assert.match(ui, /surface\.chatOwnsScreen \? null : <VisualInterface \/>/);
-  assert.match(ui, /\{surface\.chatOwnsScreen \? null : \(\s*<div/, "the top chrome is not drawn over the chat header");
-  assert.match(ui, /chatOwnsScreen=\{surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen\}/, "the dock is told");
-  const dock = code("src/app/scene/genesis/GenesisDock.tsx");
-  assert.match(dock, /const breakpoint: Breakpoint = chatOwnsScreen \? "mobile" : measuredBreakpoint;/,
-    "a landscape phone (844px wide) must not get a tablet rail beside the full-screen chat");
+  assert.match(ui, /surface\.chatOwnsScreen \|\| showHome \? null : <VisualInterface \/>/);
+  assert.match(ui, /\{surface\.chatOwnsScreen \|\| showHome \? null : \(\s*<div/, "the top chrome is not drawn over the chat header");
+  assert.match(
+    ui,
+    /const navHidden = state\.minimized \|\| surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen;/,
+    "the navigation is not told that the chat owns the screen",
+  );
+  assert.match(ui, /hidden=\{navHidden\}/, "the spatial navigation ignores navHidden");
 });
 
 /* ------------------------------ the chat ------------------------------ */

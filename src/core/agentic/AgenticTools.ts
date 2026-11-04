@@ -135,18 +135,36 @@ export const AGENTIC_EXECUTORS: ToolExecutor[] = [
     parameters: {
       type: "object",
       properties: {
-        agent: { type: "string", description: "The agent's name (see agent.list)." },
+        agent: { type: "string", description: "The agent's name (see agent.list). Omit to let SHAMAN route the objective." },
         task: { type: "string", description: "The sub-task, stated completely — the agent does not see this conversation." },
+        objective: { type: "string", description: "What needs doing, when no agent is named — SHAMAN routes it." },
       },
-      required: ["agent", "task"],
+      required: [],
     },
     run: async (args) => {
-      const agent = str(args, "agent");
-      const task = str(args, "task");
-      if (!agent || !task) return { ok: false, content: "agent.delegate needs both an agent and a task." };
-      const { delegateToAgent } = await import("./TaskExecutor");
-      const result = await delegateToAgent(agent, task, `delegate-${Date.now()}`);
-      return { ok: result.ok, content: result.ok ? `${agent} answered:\n${result.content}` : result.content };
+      const explicit = str(args, "agent");
+      const objective = str(args, "objective");
+      const task = str(args, "task") || objective;
+      if (!task) return { ok: false, content: "agent.delegate needs a task, or an objective to route." };
+      const [{ delegateToAgent }, { default: Shaman }] = await Promise.all([
+        import("./TaskExecutor"),
+        import("../agents/Shaman"),
+      ]);
+      let agent = explicit;
+      let routed = "";
+      const meta: { delegatedBy: string; executive?: string; routeReason?: string } = { delegatedBy: "lelu" };
+      if (!agent) {
+        // No agent named: SHAMAN decides, from the roster, by the objective's
+        // own words — and says why, so the routing is inspectable.
+        const decision = Shaman.getInstance().route({ objective: task, delegatedBy: "lelu" });
+        if (!decision.ok) return { ok: false, content: `SHAMAN could not route it: ${decision.reason}` };
+        agent = decision.agentName;
+        meta.executive = decision.executive;
+        meta.routeReason = decision.routeReason;
+        routed = `SHAMAN routed it to ${decision.agentName} (${decision.executive}): ${decision.routeReason}\n`;
+      }
+      const result = await delegateToAgent(agent, task, `delegate-${Date.now()}`, meta);
+      return { ok: result.ok, content: result.ok ? `${routed}${agent} answered:\n${result.content}` : result.content };
     },
   },
   {

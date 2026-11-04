@@ -86,7 +86,8 @@ test("the browser env allowlist holds no relayed or brokered key", () => {
   }
   const avatar = code("src/core/avatar/Avatar3DReconstructor.ts");
   assert.ok(!/meshyApiKey|Authorization/.test(avatar), "the avatar reconstructor holds no Meshy key");
-  assert.match(avatar, /knowledgeFetch\("meshy"/, "Meshy is reached through the relay");
+  assert.ok(!/api\.meshy\.ai/.test(avatar), "the browser calls Meshy directly instead of the server");
+  assert.ok(!/Authorization/.test(avatar), "the browser sends a Meshy credential");
   assert.ok(!/meshyApiKey/.test(code("src/core/Environment.ts")), "no browser getter for the Meshy key");
 });
 

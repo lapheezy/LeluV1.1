@@ -31,6 +31,9 @@ export function acceptsSamplingParams(model: string): boolean {
   return SAMPLING_MODELS.test(model);
 }
 
+/** The older name, kept because callers and tests ask whether a model samples. */
+export const acceptsSampling = acceptsSamplingParams;
+
 /**
  * Models that take the server-side refusal fallback (`fallbacks: "default"`).
  * On a safety decline the API re-runs the request on a fallback model inside
@@ -397,12 +400,11 @@ export default class AnthropicProvider implements AIProvider {
         : {}),
       ...(useServerFallback ? { fallbacks: "default" } : {}),
       ...(request.stop?.length ? { stop_sequences: request.stop } : {}),
-      // Streaming is suppressed while tools are on the table: a
-      // tool_use block arrives as fragmented input_json_delta chunks,
-      // and a half-parsed argument object is worse than a slightly
-      // later answer. The final generation of the loop, which carries
-      // no tools, streams normally.
-      ...(request.onDelta && !request.tools?.length ? { stream: true } : {}),
+      // Tools stream too. A tool_use block arrives as fragmented
+      // input_json_delta chunks, so the parser ASSEMBLES them and only parses
+      // a complete object — the loop never sees half an argument map, and the
+      // answer does not wait for the whole turn to arrive.
+      ...(request.onDelta ? { stream: true } : {}),
     };
 
     const response = await this.send(payload, useServerFallback, this.timeoutFor(request), request.signal);
@@ -631,6 +633,9 @@ export default class AnthropicProvider implements AIProvider {
 
     let servedBy = model;
     let streamError: string | undefined;
+    // tool_use arrives as fragments (a start block, then partial JSON).
+    // Assembled here and parsed only when complete.
+    const blocks = new Map<number, { id: string; name: string; json: string }>();
 
     const processLine = (line: string): void => {
       const trimmed = line.trim();
@@ -639,7 +644,9 @@ export default class AnthropicProvider implements AIProvider {
       if (!dataStr) return;
       let chunk: {
         type: string;
-        delta?: { type?: string; text?: string; stop_reason?: string };
+        index?: number;
+        delta?: { type?: string; text?: string; stop_reason?: string; partial_json?: string };
+        content_block?: { type?: string; id?: string; name?: string };
         message?: { model?: string; usage?: Record<string, unknown> };
         usage?: Record<string, unknown>;
         error?: { type?: string; message?: string };
@@ -673,10 +680,27 @@ export default class AnthropicProvider implements AIProvider {
         }
       }
 
+      if (chunk.type === "content_block_start" && chunk.content_block?.type === "tool_use") {
+        blocks.set(chunk.index ?? 0, {
+          id: chunk.content_block.id ?? "",
+          name: chunk.content_block.name ?? "",
+          json: "",
+        });
+      }
+
+      if (chunk.type === "content_block_delta" && chunk.delta?.type === "input_json_delta") {
+        const block = blocks.get(chunk.index ?? 0);
+        if (block && typeof chunk.delta.partial_json === "string") block.json += chunk.delta.partial_json;
+      }
+
       // An overload or API error can arrive AFTER a 200 and some text.
       // Ignoring it returned the partial reply as if it were complete.
       if (chunk.type === "error") {
-        streamError = `${chunk.error?.type ?? "error"}: ${chunk.error?.message ?? "stream error"}`;
+        // Both halves matter: the type is what an operator searches for, the
+        // message is what a person reads.
+        streamError =
+          [chunk.error?.message, chunk.error?.type ? `(${chunk.error.type})` : null].filter(Boolean).join(" ") ||
+          "stream error";
       }
     };
 
@@ -699,7 +723,7 @@ export default class AnthropicProvider implements AIProvider {
     }
 
     if (streamError) {
-      throw new Error(`Anthropic stream failed: ${streamError}`);
+      throw new Error(`Anthropic stream error: ${streamError}`);
     }
 
     // A decline after partial output: the partial is not an answer and is
@@ -717,12 +741,26 @@ export default class AnthropicProvider implements AIProvider {
       };
     }
 
-    if (!content.trim()) {
+    const toolCalls = [...blocks.values()]
+      .filter((block) => block.name)
+      .map((block) => {
+        let args: Record<string, unknown> = {};
+        try {
+          args = block.json.trim() ? (JSON.parse(block.json) as Record<string, unknown>) : {};
+        } catch {
+          args = {};
+        }
+        return { id: block.id, name: block.name, arguments: args };
+      });
+
+    // A turn that only asks for tools has no text yet — that is not empty.
+    if (!content.trim() && toolCalls.length === 0) {
       throw new Error("Anthropic returned no usable content.");
     }
 
     return {
       text: content.trim(),
+      ...(toolCalls.length ? { toolCalls } : {}),
       provider: this.name,
       model: servedBy,
       processingTime: Date.now() - started,

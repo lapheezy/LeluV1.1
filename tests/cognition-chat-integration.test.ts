@@ -106,10 +106,11 @@ test("it does not steal operational-status questions from the Executive Runtime"
 test("the identity matcher would otherwise swallow the question, so ordering matters", () => {
   const prompt = "LÉLU, what are you thinking about today?";
   // This is exactly why CognitiveStateResolver must run BEFORE BrainResolver.
-  assert.ok(
-    isIdentityOrProfileQuestion(prompt),
-    "identity matcher claims it (contains 'what are you' + '?')",
-  );
+  // Asking what she is THINKING is a question about state, not about who she
+  // is — the identity matcher no longer swallows it. Ordering still matters
+  // for anything both could claim, and static identity stays local.
+  assert.ok(!isIdentityOrProfileQuestion(prompt), "a state question is not an identity question");
+  assert.ok(isIdentityOrProfileQuestion("who are you?"), "static identity questions are still answered locally");
   assert.ok(isCognitiveStateQuestion(prompt), "cognition matcher also claims it");
 });
 

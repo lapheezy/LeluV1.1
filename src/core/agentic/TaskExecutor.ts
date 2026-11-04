@@ -103,7 +103,13 @@ async function realDispatch(call: ToolCall, taskId: string, options?: { approval
   return dispatchToolCall(call, taskId, undefined, options);
 }
 
-export async function delegateToAgent(agentRef: string, instruction: string, taskId: string): Promise<StepResult> {
+export async function delegateToAgent(
+  agentRef: string,
+  instruction: string,
+  taskId: string,
+  /** Who assigned it and why it went to this agent — carried onto the task record. */
+  meta: { delegatedBy?: string; executive?: string; routeReason?: string } = {},
+): Promise<StepResult> {
   const [{ default: AgentStore }, { default: AgentRunner }] = await Promise.all([
     import("../agents/AgentStore"),
     import("../agents/AgentRunner"),
@@ -112,8 +118,8 @@ export async function delegateToAgent(agentRef: string, instruction: string, tas
   const agent = AgentStore.getInstance()
     .runnable()
     .find((candidate) => candidate.id.toLowerCase() === wanted || candidate.name.toLowerCase() === wanted);
-  if (!agent) return { ok: false, content: `No runnable agent named "${agentRef}".` };
-  const result = await AgentRunner.getInstance().run(agent.id, instruction, undefined, taskId);
+  if (!agent) return { ok: false, content: `There is no agent called "${agentRef}". Nothing was run.` };
+  const result = await AgentRunner.getInstance().run(agent.id, instruction, undefined, taskId, meta);
   if (!result.ok || !result.response) {
     return { ok: false, content: result.error ?? `${agent.name} did not complete the task.` };
   }
