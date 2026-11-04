@@ -38,6 +38,14 @@ export interface SurfaceInput {
   visibleModuleCount?: number;
   /** chatLayout.chatFillsScreen() for the measured workspace. */
   compact: boolean;
+  /**
+   * On a phone, the user has expanded the chat to the whole screen
+   * (chat/chatExpand). Collapsed — the default — the chat floats above
+   * the navigation and the Cosmos keeps rendering behind it, which is
+   * the point of a layer: asking one question no longer costs you the
+   * view you asked it from.
+   */
+  chatExpanded?: boolean;
 }
 
 export interface Surface {
@@ -68,6 +76,6 @@ function modeFor(activePanel: string, openModuleCount: number): SurfaceMode {
 export function resolveSurface(input: SurfaceInput): Surface {
   const mode = input.minimized ? "home" : modeFor(input.activePanel, input.openModuleCount);
   const workspaceOwnsScreen = input.compact && !input.minimized && (input.visibleModuleCount ?? 0) > 0;
-  const chatOwnsScreen = input.compact && mode === "chat" && !workspaceOwnsScreen;
+  const chatOwnsScreen = input.compact && mode === "chat" && !workspaceOwnsScreen && (input.chatExpanded ?? true);
   return { mode, chatOwnsScreen, workspaceOwnsScreen, cosmosRendered: !chatOwnsScreen && !workspaceOwnsScreen };
 }

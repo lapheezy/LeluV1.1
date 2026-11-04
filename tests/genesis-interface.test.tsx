@@ -27,8 +27,9 @@ test("GenesisInterface does not render the placeholder overlay UI", () => {
 test("GenesisInterface renders interactive controls for the living scene", () => {
   const markup = renderInterface();
 
+  assert.match(markup, /data-lelu-home/, "the Cosmos home is the screen");
   assert.match(markup, /Chat/i);
-  assert.match(markup, /Core/i);
-  assert.match(markup, /Memory/i);
+  assert.match(markup, /App Library/i);
+  assert.match(markup, /Notifications/i);
   // Visual Studio is accessible through the side panel, not a separate dock destination.
 });

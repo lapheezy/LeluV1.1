@@ -42,12 +42,31 @@ export default class BrainResolver {
     // upstream enrich (a direct runtime.process() caller, e.g. a
     // "none"-memoryAccess agent) — so the brain is queried once per
     // turn, not once per interested stage.
-    const memories = context.recalledMemories ?? await context.brain.recall(prompt);
+    // THE MEMORY PHASE IS A MEASUREMENT, so it brackets the recall itself:
+    // started → the real recall → completed with the count it returned. A
+    // recall that throws is reported as an error, never as a read.
+    const taskId = String(context.request.timestamp ?? Date.now());
+    const events = AgentEventBus.getInstance();
+    events.emit({ type: "execution_phase", taskId, phase: "memory_read_started", label: "Recalling", side: "backend" });
+    let memories: Awaited<ReturnType<typeof context.brain.recall>>;
+    try {
+      memories = context.recalledMemories ?? await context.brain.recall(prompt);
+    } catch (error) {
+      events.emit({
+        type: "execution_phase",
+        taskId,
+        phase: "error",
+        label: "Memory recall failed",
+        side: "backend",
+        detail: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
     context.recalledMemories = memories;
-
-    AgentEventBus.getInstance().emit({
+    events.emit({ type: "execution_phase", taskId, phase: "memory_read_completed", label: `Recalled ${memories.length}`, side: "backend" });
+    events.emit({
       type: "memory_retrieval",
-      taskId: String(context.request.timestamp ?? Date.now()),
+      taskId,
       query: prompt,
       count: memories.length,
     });

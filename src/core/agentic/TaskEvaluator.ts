@@ -53,7 +53,7 @@ const MAX_RECORDS = 200;
 const GAP_PATTERNS: Array<{ pattern: RegExp; kind: CapabilityGap["kind"] }> = [
   { pattern: /There is no tool named "([^"]+)"/i, kind: "missing-tool" },
   { pattern: /"([^"]+)" is not available in this runtime/i, kind: "unavailable-tool" },
-  { pattern: /No runnable agent named "([^"]+)"/i, kind: "missing-agent" },
+  { pattern: /(?:No runnable agent named|no agent called) "([^"]+)"/i, kind: "missing-agent" },
   { pattern: /"([^"]+)" has no executor/i, kind: "unexecutable-tool" },
 ];
 

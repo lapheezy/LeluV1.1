@@ -88,6 +88,7 @@ import { notifyTurnOutcome } from "../../../core/notifications/NotificationRouti
 import ChatTranscript from "./chat/ChatTranscript";
 import { describeFailure, isNearBottom, type ChatFailure } from "./chat/chatTranscript";
 import { chatFillsScreen } from "./chat/chatLayout";
+import { chatExpand, useChatExpanded } from "./chat/chatExpand";
 import "./chat/cloudChat.css";
 
 const ai = AIService.getInstance();
@@ -1432,25 +1433,47 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
   }
 
   const isCentered = chatPos.x === -1;
-  const isFloatingMobile = isMobileViewport && chatPos.x >= 0;
-  const isFullMobile = isMobileViewport && !isFloatingMobile;
+  /**
+   * PHONE: a layer by default, not a takeover.
+   *
+   * Floating keeps the Cosmos and the navigation in view (surface/Surface
+   * keeps rendering them); expanding is one tap and is remembered. Nothing
+   * about the conversation changes either way — the transcript, the open
+   * turn and its stream all live in this component, which never unmounts
+   * for a layout decision.
+   */
+  const phoneExpanded = useChatExpanded();
+  const isSheetMobile = isMobileViewport && !phoneExpanded;
+  const isFloatingMobile = isSheetMobile;
+  const isFullMobile = isMobileViewport && phoneExpanded;
   const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 800;
-  const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 800;
   const mobileSheetHeight = mobileHeight ?? Math.min(viewportHeight * 0.82, 720);
-  const mobileFloatWidth = Math.min(viewportWidth - 16, 400);
+  /**
+   * The floating sheet's height: readable, bottom-anchored, and never taller
+   * than what a keyboard has left visible (workspace tracks the visual
+   * viewport, so the composer stays above the keys).
+   */
+  const sheetHeight = Math.max(
+    240,
+    Math.min(mobileSheetHeight, Math.max(240, workspace.visibleHeight - (workspace.keyboardOpen ? 72 : 128))),
+  );
 
   const windowStyle: CSSProperties = {
     position: "fixed",
     zIndex: layer("panel"),
     pointerEvents: "auto",
     ...(isMobileViewport
-      ? isFloatingMobile
+      ? isSheetMobile
         ? {
-            left: chatPos.x,
-            top: chatPos.y,
-            width: mobileFloatWidth,
-            height: mobileSheetHeight,
-            maxHeight: "calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px)",
+            // THE LAYER: a sheet above the spatial navigation, the Cosmos
+            // behind it. Bottom-anchored so the composer sits where a thumb
+            // expects it, and clear of the safe area and the orb.
+            left: 8,
+            right: 8,
+            width: "auto",
+            bottom: `calc(${workspace.keyboardOpen ? 8 : 92}px + env(safe-area-inset-bottom, 0px))`,
+            height: sheetHeight,
+            maxHeight: "calc(100dvh - 104px)",
           }
         : {
             // MOBILE: the chat owns the whole screen (surface/Surface) —
@@ -1536,14 +1559,14 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         <div
           ref={headerRef}
           className="lelu-cc-header"
-          onPointerDown={isFullMobile ? undefined : handlePointerDown}
-          onPointerMove={isFullMobile ? undefined : handlePointerMove}
-          onPointerUp={isFullMobile ? undefined : handlePointerUp}
-          onPointerCancel={isFullMobile ? undefined : handlePointerUp}
+          onPointerDown={isFullMobile || isSheetMobile ? undefined : handlePointerDown}
+          onPointerMove={isFullMobile || isSheetMobile ? undefined : handlePointerMove}
+          onPointerUp={isFullMobile || isSheetMobile ? undefined : handlePointerUp}
+          onPointerCancel={isFullMobile || isSheetMobile ? undefined : handlePointerUp}
           style={{
             position: "relative",
-            cursor: isFullMobile ? "default" : "grab",
-            touchAction: isFullMobile ? "auto" : "none",
+            cursor: isFullMobile || isSheetMobile ? "default" : "grab",
+            touchAction: isFullMobile || isSheetMobile ? "auto" : "none",
             paddingTop: isFullMobile ? "calc(env(safe-area-inset-top, 0px) + 10px)" : undefined,
           }}
         >
@@ -1553,6 +1576,18 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
             <span className="lelu-cc-status" aria-live="polite">{statusText}</span>
           </div>
           <div className="lelu-cc-controls" role="toolbar" aria-label="Chat controls">
+            {isMobileViewport ? (
+              <button
+                type="button"
+                className="lelu-cc-icon"
+                onClick={() => chatExpand.set(!phoneExpanded)}
+                title={phoneExpanded ? "Float the chat" : "Expand the chat"}
+                aria-label={phoneExpanded ? "Float the chat" : "Expand the chat"}
+                aria-pressed={phoneExpanded}
+              >
+                {phoneExpanded ? <Minimize2 size={19} aria-hidden /> : <Maximize2 size={19} aria-hidden />}
+              </button>
+            ) : null}
             <button
               type="button"
               className="lelu-cc-icon"
@@ -1601,7 +1636,9 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
               {menuItem("Search conversations", <Search size={17} aria-hidden />, () => window.dispatchEvent(new Event("lelu-multichat-search")))}
               <div className="lelu-cc-menu-sep" />
               {isMobileViewport ? (
-                isFloatingMobile ? menuItem("Dock chat to bottom", <PanelBottom size={17} aria-hidden />, () => setChatPos({ x: -1, y: -1 })) : null
+                phoneExpanded
+                  ? menuItem("Float the chat", <PanelBottom size={17} aria-hidden />, () => chatExpand.set(false))
+                  : menuItem("Expand the chat", <Maximize2 size={17} aria-hidden />, () => chatExpand.set(true))
               ) : (
                 <>
                   <div className="lelu-cc-menu-label">Window</div>
