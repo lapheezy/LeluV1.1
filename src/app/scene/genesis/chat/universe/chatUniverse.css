@@ -115,6 +115,14 @@ html[data-lelu-universe="open"] .lsn { visibility: hidden; pointer-events: none;
 .lcu-active-tools { margin-left: auto; display: flex; gap: 4px; }
 .lcu-active-tools button { width: 34px; height: 34px; border-radius: 999px; border: 1px solid rgba(255, 214, 255, 0.18); background: rgba(255, 255, 255, 0.05); display: grid; place-items: center; }
 .lcu-thread { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; overscroll-behavior: contain; }
+/* The turn's activity card, identical to the one in the chat panel. */
+.lcu-activity { padding: 10px 12px 0; flex: 0 0 auto; max-height: 40%; overflow-y: auto; }
+.lcu-activity .lelu-cc-activity-card { margin: 0; }
+.lcu-typing { display: flex; gap: 4px; padding: 4px 2px; }
+.lcu-typing span { width: 6px; height: 6px; border-radius: 999px; background: #f0abfc; opacity: 0.5; animation: lcu-typing 1s ease-in-out infinite; }
+.lcu-typing span:nth-child(2) { animation-delay: 0.15s; }
+.lcu-typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes lcu-typing { 50% { opacity: 1; transform: translateY(-2px); } }
 .lcu-msg { max-width: 86%; padding: 9px 12px; border-radius: 18px; font-size: 14px; line-height: 1.4; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 220, 255, 0.1); align-self: flex-start; }
 .lcu-msg[data-role="user"] { align-self: flex-end; background: linear-gradient(160deg, rgba(192, 132, 252, 0.4), rgba(126, 34, 206, 0.42)); border-color: rgba(240, 171, 252, 0.32); }
 .lcu-msg p { margin: 0; white-space: pre-wrap; word-break: break-word; }

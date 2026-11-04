@@ -15,6 +15,47 @@ export interface ActivityRecording {
   current: () => ChatActivity;
 }
 
+/* ------------------------------------------------------------------
+ * The turn that is happening, by conversation.
+ *
+ * The chat panel records a turn and keeps the record to itself; the
+ * Chat Universe window shows the same turn from outside that component.
+ * This is the one place that record is published, so both surfaces read
+ * ONE activity built from real AgentEventBus events — nothing is
+ * re-derived or invented for the window.
+ * ------------------------------------------------------------------ */
+
+const liveActivity = new Map<string, ChatActivity>();
+const activityListeners = new Set<() => void>();
+
+function emit(): void {
+  for (const listener of activityListeners) listener();
+}
+
+/** The current (or most recently finished) turn in a conversation, if any. */
+export function currentActivity(conversationId: string | null | undefined): ChatActivity | null {
+  if (!conversationId) return null;
+  return liveActivity.get(conversationId) ?? null;
+}
+
+export function subscribeActivity(listener: () => void): () => void {
+  activityListeners.add(listener);
+  return () => {
+    activityListeners.delete(listener);
+  };
+}
+
+/** Publish a turn's activity so every surface for that chat shows the same record. */
+export function publishActivity(conversationId: string, activity: ChatActivity): void {
+  liveActivity.set(conversationId, activity);
+  emit();
+}
+
+/** Forget a conversation's turn (used when it is deleted). */
+export function clearActivity(conversationId: string): void {
+  if (liveActivity.delete(conversationId)) emit();
+}
+
 /**
  * Start recording. `onChange` is batched (at most every ~80ms) so a burst
  * of events re-renders the chat once, not once per event.
@@ -27,6 +68,8 @@ export function recordTurnActivity(
   let timer: ReturnType<typeof setTimeout> | null = null;
   const flush = () => {
     timer = null;
+    // The chat panel and the Universe window both read this record.
+    publishActivity(conversationId, activity);
     onChange(activity);
   };
   const unsubscribe = AgentEventBus.getInstance().subscribe((event) => {
@@ -44,6 +87,8 @@ export function recordTurnActivity(
         clearTimeout(timer);
         timer = null;
       }
+      // The finished record stays visible in its window until the next turn.
+      publishActivity(conversationId, activity);
       return activity;
     },
   };

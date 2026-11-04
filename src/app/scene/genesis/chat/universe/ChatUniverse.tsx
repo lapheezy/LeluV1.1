@@ -14,10 +14,13 @@
  *
  * Organisation is the user's: no categories are created, nothing is moved.
  */
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Archive, ArrowLeft, Expand, Grid2x2, GalleryHorizontal, Image as ImageIcon, Mic, Paperclip, Plus, Send, Shrink, X } from "lucide-react";
 import { useGenesis } from "../../GenesisCore";
 import MultiChatStore from "../../../../../core/multichat/MultiChatStore";
+import { hasVisibleActivity } from "../../../../../core/multichat/TurnActivity";
+import ChatActivityCard from "../ChatActivity";
+import { currentActivity, subscribeActivity } from "../activityRecorder";
 import {
   autoVisual,
   gridOrder,
@@ -48,6 +51,13 @@ function useArchived() {
   const snapshot = () => store.listArchived().map((c) => `${c.id}:${c.updatedAt}`).join("|");
   const key = useSyncExternalStore(subscribe, snapshot, snapshot);
   return useMemo(() => store.listArchived(), [key]); // eslint-disable-line react-hooks/exhaustive-deps
+}
+
+/** The turn running in a chat, from the same record the chat panel shows. */
+function useLiveActivity(conversationId: string | null) {
+  const subscribe = useCallback((cb: () => void) => subscribeActivity(cb), []);
+  const snapshot = useCallback(() => currentActivity(conversationId), [conversationId]);
+  return useSyncExternalStore(subscribe, snapshot, snapshot);
 }
 
 function Visual({ preview, appearance }: { preview: ChatPreview; appearance?: ChatAppearance }) {
@@ -102,6 +112,8 @@ export default function ChatUniverse() {
   const markers = useMemo(() => timelineMarkers(conversations, range), [conversations, range]);
   const active = conversations.find((c) => c.id === activeConversationId) ?? null;
   const activeCount = conversations.filter((c) => c.processing).length;
+  // What she is doing for this chat, live, and the same steps the chat panel lists.
+  const liveActivity = useLiveActivity(active?.id ?? null);
 
   // While open, the home and its nav step aside so only the Cosmos (and
   // LÉLU) sit behind the glass windows.
@@ -232,7 +244,12 @@ export default function ChatUniverse() {
               </span>
               <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => onFile(e.target.files?.[0])} />
             </header>
-            <div className="lcu-thread" ref={threadRef}>
+            {hasVisibleActivity(liveActivity) ? (
+              <div className="lcu-activity" data-lelu-universe-activity={liveActivity.status}>
+                <ChatActivityCard activity={liveActivity} />
+              </div>
+            ) : null}
+            <div className="lcu-thread" ref={threadRef} data-lelu-universe-thread data-streaming={active.processing ? "true" : "false"}>
               {active.messages.length === 0 ? <p className="lcu-empty">Say something to start this chat.</p> : null}
               {active.messages.slice(-40).map((m) => (
                 <div key={m.id} className="lcu-msg" data-role={m.role}>
@@ -240,6 +257,12 @@ export default function ChatUniverse() {
                   <time>{relativeTime(m.timestamp)}</time>
                 </div>
               ))}
+              {/* She is answering now: deltas land in this list as they stream. */}
+              {active.processing ? (
+                <div className="lcu-typing" data-lelu-universe-typing role="status" aria-live="polite">
+                  <span /><span /><span />
+                </div>
+              ) : null}
             </div>
             {appearance[active.id] !== undefined ? (
               <button type="button" className="lcu-reset-visual" onClick={() => setImage(active.id, undefined)}>Automatic thumbnail</button>
