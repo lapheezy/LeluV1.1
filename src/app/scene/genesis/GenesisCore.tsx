@@ -936,10 +936,11 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
     // many scenes.
     activeScene:readStoredWorkspace() === "genesisv2" ? "genesisv2" : "genesis",
 
-    // The interface is tap-gated: the scene/runtime may initialize, but
-    // chat must remain closed until the user taps the Core/Genesis control.
-    // A restored Genesis v2 workspace still respects that gate.
-    minimized:true,
+    // The interface opens on the home (home/CosmosHome) over the Cosmos.
+    // The chat still stays closed until the user opens it — the home is
+    // what the person sees first, not the conversation. (This used to start
+    // minimized to keep the chat closed, which left a bare scene and a chip.)
+    minimized:false,
 
     activeWorkspace:null,
 

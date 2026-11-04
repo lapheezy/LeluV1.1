@@ -50,7 +50,7 @@ const EDGE = 12;
 const MIN_W = 100;
 const MIN_H = 160;
 
-export type CompanionPresence = "face" | "window";
+export type CompanionPresence = "face" | "window" | "hero";
 
 interface Box {
   left: number;
@@ -68,21 +68,24 @@ function viewportSize(): { width: number; height: number } {
 }
 
 /** The chat window and its face layer, looked up live (the chat mounts and unmounts). */
-function useChatGeometry(): { host: HTMLElement | null; chat: Box | null; viewport: { width: number; height: number } } {
-  const [geometry, setGeometry] = useState(() => ({ host: null as HTMLElement | null, chat: null as Box | null, viewport: viewportSize() }));
+function useChatGeometry(): { host: HTMLElement | null; hero: HTMLElement | null; chat: Box | null; viewport: { width: number; height: number } } {
+  const [geometry, setGeometry] = useState(() => ({ host: null as HTMLElement | null, hero: null as HTMLElement | null, chat: null as Box | null, viewport: viewportSize() }));
   useEffect(() => {
     const read = () => {
       const host = document.querySelector<HTMLElement>("[data-lelu-face-host]");
+      // The home's hero spot (home/CosmosHome), when the home is showing.
+      const hero = document.querySelector<HTMLElement>("[data-lelu-hero-host]");
       const r = document.querySelector("[data-lelu-chat-window]")?.getBoundingClientRect();
       const chat = r && r.width > 0 && r.height > 0 ? { left: r.left, top: r.top, width: r.width, height: r.height } : null;
       const viewport = viewportSize();
       setGeometry((current) =>
         current.host === host &&
+        current.hero === hero &&
         current.viewport.width === viewport.width &&
         current.viewport.height === viewport.height &&
         JSON.stringify(current.chat) === JSON.stringify(chat)
           ? current
-          : { host, chat, viewport },
+          : { host, hero, chat, viewport },
       );
     };
     read();
@@ -111,7 +114,8 @@ export function dockedWindow(viewport: { width: number; height: number }, chat: 
     }
   }
   // The right corner, above a phone composer / the desktop dock.
-  return { left: viewport.width - width - EDGE, top: Math.max(EDGE, viewport.height - height - (compact ? 108 : 84)), width, height };
+  // Clear of the spatial navigation bar (and its raised orb) at the bottom.
+  return { left: viewport.width - width - EDGE, top: Math.max(EDGE, viewport.height - height - (compact ? 116 : 108)), width, height };
 }
 
 function clampBox(box: Box, viewport: { width: number; height: number }): Box {
@@ -138,7 +142,7 @@ function Companion({ companion }: { companion: CompanionState }) {
   const workspace = useWorkspace();
   const compact = chatFillsScreen(workspace);
   const activity = useLeluActivity();
-  const { host, chat, viewport } = useChatGeometry();
+  const { host, hero, chat, viewport } = useChatGeometry();
 
   // Tool work keeps her in her window a little after it ends.
   const [toolsUntil, setToolsUntil] = useState(0);
@@ -188,6 +192,10 @@ function Companion({ companion }: { companion: CompanionState }) {
   if (presence === "face" && host) {
     return createPortal(<FaceBackdrop activity={activity} />, host);
   }
+  // On the home she is its hero: her face, in the middle of her workspace.
+  if (hero && state.activePanel === "none" && !workspaceInUse && !bodyWanted) {
+    return createPortal(<HeroPresence activity={activity} />, hero);
+  }
   return (
     <CompanionWindow
       companion={companion}
@@ -219,6 +227,15 @@ function FaceBackdrop({ activity }: { activity: LeluActivity }) {
       <div style={{ position: "absolute", left: 0, right: 0, top: "4%", height: "74%" }}>
         <LeluCharacter framing="face" testId="lelu-companion-character" />
       </div>
+    </div>
+  );
+}
+
+/** Hero: her face at the centre of the home (home/CosmosHome's hero spot). */
+function HeroPresence({ activity }: { activity: LeluActivity }) {
+  return (
+    <div data-testid="lelu-companion" data-presence="hero" data-activity={activity} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+      <LeluCharacter framing="face" testId="lelu-companion-character" />
     </div>
   );
 }

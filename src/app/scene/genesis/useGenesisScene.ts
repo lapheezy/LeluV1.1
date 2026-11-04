@@ -29,6 +29,7 @@
  * ==========================================================
  */
 
+import { IS_DEV } from "../../../core/env/buildEnv";
 import { createContext, useContext } from "react";
 import type EventBus from "../../../core/EventBus";
 import type EngineRuntime from "./engines/EngineRuntime";
@@ -73,7 +74,7 @@ export interface RenderLedger {
 }
 
 export function countRender(which: "scene" | "chat", who = "unnamed"): void {
-  if (!import.meta.env.DEV) return;
+  if (!IS_DEV) return;
   const host = globalThis as { __leluRenderLedger?: RenderLedger };
   const ledger = (host.__leluRenderLedger ??= { scene: 0, chat: 0, by: {} });
   ledger[which] += 1;

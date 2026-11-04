@@ -28,7 +28,6 @@ import { useGenesis, type GenesisPanel } from "./GenesisCore";
 import GenesisModuleHost, { type ModuleRenderers } from "./GenesisModuleHost";
 import UIStateStore from "../../../core/cognition/UIStateStore";
 import UIActionBus from "../../../core/cognition/UIActionBus";
-import GenesisDock from "./GenesisDock";
 import GenesisCommandPalette from "./GenesisCommandPalette";
 import { genesisTheme } from "./GenesisTheme";
 import GenesisChat from "./GenesisChat";
@@ -102,6 +101,9 @@ import AvatarPresenceBridge from "../../../core/avatar/AvatarPresenceBridge";
 import VisualInterface from "./VisualInterface";
 import useVisual from "../../../core/visual/useVisual";
 import VisualEngine from "../../../core/visual/VisualEngine";
+import CosmosHome from "./home/CosmosHome";
+import SpatialNav, { type HomeSheet } from "./home/SpatialNav";
+import { useHomeStore } from "./home/useHomeLive";
 import AgentEventBus from "../../../core/agent/AgentEvents";
 import ExplorationController from "./ExplorationController";
 import { useVoice } from "../../../core/voice/useVoice";
@@ -244,7 +246,6 @@ export default function GenesisInterface() {
     closeModule,
     expand,
     setSelfExploration,
-    setActiveScene,
   } = useGenesis();
   const voice = useVoice();
   const surface = useSurface();
@@ -578,28 +579,20 @@ export default function GenesisInterface() {
     openPanel("none");
   }
 
+  // THE HOME: the Cosmos workspace (home/CosmosHome) and the one spatial
+  // navigation (home/SpatialNav). They replace the side rail and the
+  // phone's vertical menu list; every panel is still one tap away in the
+  // app library, and ⌘K.
+  const homeStore = useHomeStore();
+  const [homeSheet, setHomeSheet] = useState<HomeSheet>(null);
+  const showHome = !state.minimized && state.activePanel === "none" && !sceneIsV2 && !systemEnvironmentActive && !homeStore.immersive;
+  const navHidden = state.minimized || surface.chatOwnsScreen || surface.workspaceOwnsScreen;
+
   /*
    * Workspace activity is event-driven. Opening Chat or Avatar must not
    * force the workspace surface open; only real agent/tool activity may
    * reveal it through WorkspaceEngine.autoShow().
    */
-  function handleDockSelect(panel: GenesisPanel) {
-    if (panel === "visual") {
-      // Leaving the Gen V2 workspace returns to the Genesis environment
-      // first — chat and open modules stay mounted (scene change is
-      // presentation only); the System scene is then toggled on top of it.
-      if (state.activeScene === "genesisv2") {
-        setActiveScene("genesis");
-      }
-      const visualEngine = VisualEngine.getInstance();
-      visualEngine.setInterfaceFocus(
-        visualEngine.getState().interfaceFocus === "visual" ? "genesis" : "visual",
-      );
-      return;
-    }
-    openPanel(panel);
-  }
-
   return (
     <div
       data-workspace="genesis-unified"
@@ -639,32 +632,24 @@ export default function GenesisInterface() {
           animation: "lelu-environment-enter 0.38s ease",
         }}
       >
-          <GenesisDock
-            activePanel={state.activePanel}
-            onSelect={handleDockSelect}
-            online={state.runtimeReady}
-            thinking={state.thinking}
-            speaking={state.speaking}
-            reasoningActive={Boolean(state.cognition?.reasoning)}
-            engineErrorCount={state.engineStatuses.filter((engine) => Boolean(engine.error)).length}
-            visualActive={systemEnvironmentActive}
-            chatOwnsScreen={surface.chatOwnsScreen || surface.workspaceOwnsScreen}
-            onCoreHoldVoice={handleCoreHoldVoice}
-            selfExplorationEnabled={state.selfExplorationEnabled}
-            onToggleSelfExploration={() => setSelfExploration(!state.selfExplorationEnabled)}
-          />
+          {showHome ? (
+            <CosmosHome
+              onOpenLibrary={(group) => setHomeSheet({ kind: "library", group })}
+              onOpenWindows={() => setHomeSheet({ kind: "windows" })}
+            />
+          ) : null}
 
           {/* Live tool activity is rendered by GenesisChat's execution
               timeline. There is no second workspace/activity surface. */}
 
           {/* The ambient visual layer behind the primary environment — fed
               by the same real agent events through VisualBridge. */}
-          {sceneIsV2 || systemEnvironmentActive || surface.chatOwnsScreen ? null : <VisualInterface />}
+          {sceneIsV2 || systemEnvironmentActive || surface.chatOwnsScreen || showHome ? null : <VisualInterface />}
 
           {/* Top chrome: expand chip (when minimized) + command palette +
               fullscreen. The palette and fullscreen stay usable in both
               states. */}
-          {surface.chatOwnsScreen ? null : (
+          {surface.chatOwnsScreen || showHome ? null : (
           <div
             style={{
               position: "absolute",
@@ -762,6 +747,15 @@ export default function GenesisInterface() {
           />
         </ChatErrorBoundary>
       )}
+
+      <SpatialNav
+        sheet={homeSheet}
+        setSheet={setHomeSheet}
+        onHoldVoice={handleCoreHoldVoice}
+        hidden={navHidden}
+        selfExploration={state.selfExplorationEnabled}
+        onToggleSelfExploration={() => setSelfExploration(!state.selfExplorationEnabled)}
+      />
 
       {/* Unified module host — inline / expanded / minimized windows for
           the SAME module instances (one runtime each). Mounted in every
