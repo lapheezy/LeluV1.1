@@ -103,6 +103,15 @@ export default function ChatUniverse() {
   const active = conversations.find((c) => c.id === activeConversationId) ?? null;
   const activeCount = conversations.filter((c) => c.processing).length;
 
+  // While open, the home and its nav step aside so only the Cosmos (and
+  // LÉLU) sit behind the glass windows.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (open) root.dataset.leluUniverse = "open";
+    else delete root.dataset.leluUniverse;
+    return () => { delete root.dataset.leluUniverse; };
+  }, [open]);
+
   useEffect(() => {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight });
   }, [active?.messages.length, focus]);
