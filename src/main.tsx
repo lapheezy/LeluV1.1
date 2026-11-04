@@ -1,3 +1,7 @@
+// Must stay first: this restores `crypto.randomUUID` before any engine that
+// generates an id at import time runs, so an insecure origin (plain HTTP on a
+// LAN address) renders the app instead of a white screen.
+import "./core/env/cryptoRandomUUID";
 import { BASE_URL, IS_PROD } from "./core/env/buildEnv";
 import React from "react";
 import ReactDOM from "react-dom/client";
