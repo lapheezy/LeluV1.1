@@ -20,7 +20,7 @@
  */
 
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync, unlinkSync } from "node:fs";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -477,6 +477,39 @@ test("a hood is a wearable component: up/down changes only that component, never
     assert.equal(store.placements()[0].worn, true, "hood up");
     assert.throws(() => forge.wear("hero", "cape", true), /no wearable in slot "cape"/);
     assert.throws(() => forge.place({ jobId: job.id, slot: "Bad Slot!" }), /slot must be/);
+  } finally {
+    cleanup();
+    await fake.close();
+  }
+});
+
+test("an approved look whose bytes are not on this machine never hides her behind a 404", async () => {
+  const fake = await startFakeMeshy();
+  const { forge, store, cleanup } = setup(fake);
+  try {
+    const base = await forge.request({ ...BASE_REQUEST, approve: true });
+    await forge.refresh(base.job.id);
+    await forge.refresh(base.job.id);
+    forge.approveSlot("hero", "base", base.job.id);
+
+    // A different body, so this is a second job rather than a de-duplicated
+    // repeat of the first (requests with the same key return the same job).
+    const look = await forge.request({ ...BASE_REQUEST, body: { ...BASE_REQUEST.body, texture_resolution: "4k" }, approve: true });
+    await forge.refresh(look.job.id);
+    await forge.refresh(look.job.id);
+    forge.approveSlot("hero", "look:hooded", look.job.id);
+    forge.setLook("hero", "hooded");
+    assert.equal(forge.activeCharacter("hero").model?.jobId, look.job.id, "the approved look is what she wears");
+
+    // A look approved on a machine that had the bytes, restored without them:
+    // exactly the state that left her showing "Asset download failed (HTTP 404)".
+    const file = store.job(look.job.id)!.output!.files.find((f) => f.role === "model")!;
+    unlinkSync(store.absolute(file.file));
+
+    const active = forge.activeCharacter("hero");
+    assert.equal(active.currentLook, null, "a look with no bytes is never advertised");
+    assert.equal(active.model?.jobId, base.job.id, "she falls back to the approved rig instead of a URL that can only 404");
+    assert.ok(existsSync(store.absolute(active.model!.file)), "the model that is advertised is really on disk");
   } finally {
     cleanup();
     await fake.close();

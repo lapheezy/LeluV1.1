@@ -29,7 +29,7 @@
  */
 
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
   IMAGE_KINDS,
@@ -776,7 +776,14 @@ export class MeshyForge {
       const job = jobId ? this.store.job(jobId) : null;
       // For a clip, its motion-only file: her body is already loaded once.
       const model = job?.output?.files.find((f) => f.role === "motion") ?? job?.output?.files.find((f) => f.role === "model");
-      return job && model ? { jobId: job.id, kind: job.kind, file: model.file, verdict: job.validation?.verdict ?? null } : null;
+      // A job can be in the ledger while its bytes are not on this machine: a
+      // fresh clone, a restored backup, or a version folder that never copied.
+      // Advertising it hands the Cosmos a URL that can only 404 and hides her
+      // behind "asset download failed", when a perfectly good approved rig
+      // sits one slot down. Missing bytes mean missing, so the caller's
+      // fallback (look → rig → base) can do its job.
+      if (!job || !model || !existsSync(this.store.absolute(model.file))) return null;
+      return { jobId: job.id, kind: job.kind, file: model.file, verdict: job.validation?.verdict ?? null };
     };
     const animations: Record<string, ReturnType<typeof fileFor>> = {};
     for (const [slot, jobId] of Object.entries(manifest.active)) {
