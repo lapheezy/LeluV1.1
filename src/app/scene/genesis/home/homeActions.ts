@@ -83,6 +83,12 @@ export function playLaunch(from: Element | null, id: GenesisPanel): void {
 
 export function launch(genesis: Genesis, id: GenesisPanel, from: Element | null): void {
   playLaunch(from, id);
+  // Chat opens the Multi-Chat Universe; the single chat stays reachable
+  // from inside it (attach / voice) and from the library.
+  if (id === "chat") {
+    window.dispatchEvent(new CustomEvent("lelu-open-universe"));
+    return;
+  }
   genesis.openPanel(id);
 }
 
