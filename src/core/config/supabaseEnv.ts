@@ -31,7 +31,8 @@
  * ==========================================================
  */
 
-import { resolveFirst, resolveEnvValue } from "../resolveEnv.ts";
+import { resolveFirst } from "../resolveEnv.ts";
+import { resolveEnvValue } from "../resolveEnv.ts";
 import { SUPABASE_PUBLIC_DEFAULT } from "./supabasePublic.ts";
 
 /**
