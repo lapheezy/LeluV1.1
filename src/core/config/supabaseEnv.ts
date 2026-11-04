@@ -31,7 +31,8 @@
  * ==========================================================
  */
 
-import { resolveFirst } from "../resolveEnv";
+import { resolveFirst, resolveEnvValue } from "../resolveEnv.ts";
+import { SUPABASE_PUBLIC_DEFAULT } from "./supabasePublic.ts";
 
 /**
  * Every name a Supabase URL may arrive under, in precedence order.
@@ -85,16 +86,83 @@ export function resolveSupabaseConfig(extra: {
   url?: Array<string | undefined>;
   key?: Array<string | undefined>;
 } = {}): SupabaseConfig | null {
-  const url = firstValue([resolveFirst(...SUPABASE_URL_NAMES), ...(extra.url ?? [])]);
-  const publishableKey = firstValue([resolveFirst(...SUPABASE_KEY_NAMES), ...(extra.key ?? [])]);
-  if (!url || !publishableKey) return null;
-  return { url, publishableKey };
+  const { url, key } = resolveHalves(extra);
+  if (!url || !key) return null;
+  return { url, publishableKey: key };
+}
+
+/**
+ * What a candidate Supabase key is, read from its shape alone. The value is
+ * never logged or returned.
+ *
+ *   publishable — `sb_publishable_…`, issued for browsers
+ *   anon        — a legacy JWT whose role is `anon`
+ *   secret      — `sb_secret_…`, a service_role JWT, or an `sbp_…`
+ *                 personal access token: admin credentials that bypass RLS
+ *                 or control the account, and must never reach a page
+ *   unknown     — anything else (kept for self-hosted setups)
+ */
+export type SupabaseKeyKind = "publishable" | "anon" | "secret" | "unknown";
+
+export function classifySupabaseKey(raw: string): SupabaseKeyKind {
+  const key = raw.trim();
+  if (key.startsWith("sb_publishable_")) return "publishable";
+  if (key.startsWith("sb_secret_") || key.startsWith("sbp_")) return "secret";
+  const parts = key.split(".");
+  if (parts.length === 3) {
+    try {
+      const payload = JSON.parse(base64UrlDecode(parts[1])) as { role?: unknown };
+      if (payload.role === "anon") return "anon";
+      if (payload.role === "service_role") return "secret";
+    } catch {
+      /* not a JWT */
+    }
+  }
+  return "unknown";
+}
+
+/** May this value be used as the browser's Supabase key? */
+export function isBrowserSafeSupabaseKey(raw: string | undefined): boolean {
+  return typeof raw === "string" && raw.trim() !== "" && classifySupabaseKey(raw) !== "secret";
+}
+
+/** Names whose value is set but refused as a browser key (names only). */
+export function refusedSupabaseKeyNames(): string[] {
+  return SUPABASE_KEY_NAMES.filter((name) => {
+    const value = resolveEnvValue(name);
+    return Boolean(value && value.trim()) && !isBrowserSafeSupabaseKey(value);
+  });
+}
+
+function resolveHalves(extra: { url?: Array<string | undefined>; key?: Array<string | undefined> } = {}): {
+  url: string;
+  key: string;
+} {
+  const configuredUrl = firstValue([resolveFirst(...SUPABASE_URL_NAMES), ...(extra.url ?? [])]);
+  const configuredKey = firstValue(
+    [...SUPABASE_KEY_NAMES.map((n) => resolveEnvValue(n)), ...(extra.key ?? [])].filter(isBrowserSafeSupabaseKey),
+  );
+  // The default URL fills in only when no key from some OTHER project is
+  // configured — a foreign key must be reported as missing its URL, never
+  // silently paired with this project.
+  const keyIsOurs = !configuredKey || configuredKey === SUPABASE_PUBLIC_DEFAULT.publishableKey;
+  const url = configuredUrl || (keyIsOurs ? SUPABASE_PUBLIC_DEFAULT.url : "");
+  // The default key only ever travels with the default project.
+  const key = configuredKey || (sameProject(url, SUPABASE_PUBLIC_DEFAULT.url) ? SUPABASE_PUBLIC_DEFAULT.publishableKey : "");
+  return { url, key };
+}
+
+function sameProject(a: string, b: string): boolean {
+  try {
+    return new URL(a).host === new URL(b).host;
+  } catch {
+    return false;
+  }
 }
 
 /** Which half is missing. Returns null when nothing is. */
 export function supabaseConfigGap(extra?: Parameters<typeof resolveSupabaseConfig>[0]): SupabaseConfigGap | null {
-  const url = firstValue([resolveFirst(...SUPABASE_URL_NAMES), ...(extra?.url ?? [])]);
-  const key = firstValue([resolveFirst(...SUPABASE_KEY_NAMES), ...(extra?.key ?? [])]);
+  const { url, key } = resolveHalves(extra);
   const missing: Array<"url" | "key"> = [];
   if (!url) missing.push("url");
   if (!key) missing.push("key");

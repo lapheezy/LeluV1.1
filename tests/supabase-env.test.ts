@@ -38,7 +38,10 @@ import {
   projectRefFromUrl,
   projectRefFromKey,
   checkSupabaseProject,
+  classifySupabaseKey,
+  isBrowserSafeSupabaseKey,
 } from "../src/core/config/supabaseEnv";
+import { SUPABASE_PUBLIC_DEFAULT } from "../src/core/config/supabasePublic";
 
 /** An unsigned JWT whose payload claims a project ref. Not a credential. */
 function anonKeyForProject(ref: string): string {
@@ -134,11 +137,28 @@ test("a key with no URL is reported as missing the URL", () => {
   });
 });
 
-test("nothing set is unconfigured rather than a guess at a default", () => {
+test("nothing set falls back to the project's public identity, never a guess", () => {
+  // The platform supplies no URL, so with nothing set the project's own
+  // public URL + publishable key (src/core/config/supabasePublic.ts) apply.
   withEnv({}, () => {
-    assert.equal(resolveSupabaseConfig(), null);
-    assert.deepEqual(supabaseConfigGap()?.missing, ["url", "key"]);
+    assert.deepEqual(resolveSupabaseConfig(), { ...SUPABASE_PUBLIC_DEFAULT });
+    assert.equal(supabaseConfigGap(), null);
   });
+});
+
+test("an admin credential filed as the publishable key is refused, never used or bridged", () => {
+  // Observed live: the platform's `Supabase` secret held an sbp_ personal
+  // access token. It must not become the browser key.
+  for (const admin of ["sbp_0123456789abcdef", "sb_secret_0123456789"]) {
+    assert.equal(classifySupabaseKey(admin), "secret");
+    assert.equal(isBrowserSafeSupabaseKey(admin), false);
+    withEnv({ SUPABASE_PUBLISHABLE_KEY: admin }, () => {
+      const config = resolveSupabaseConfig();
+      assert.notEqual(config?.publishableKey, admin);
+      assert.deepEqual(config, { ...SUPABASE_PUBLIC_DEFAULT });
+    });
+  }
+  assert.equal(classifySupabaseKey("sb_publishable_x"), "publishable");
 });
 
 test("a caller's own extra values are consulted after the shared names, never instead", () => {

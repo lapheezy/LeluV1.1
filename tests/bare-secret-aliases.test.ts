@@ -121,3 +121,12 @@ test("the diagnostic report names the source and the targets, never the value", 
   assert.deepEqual(report, [{ bare: "Groq", supplies: ["GROQ_API_KEY"] }]);
   assert.doesNotMatch(JSON.stringify(report), /gsk_secret_value/);
 });
+
+test("an admin Supabase token is never published to the page by the bridge", async () => {
+  const { resolveBridge } = await import("../plugins/runtimeKeyBridge");
+  const env: Record<string, string> = { SUPABASE_PUBLISHABLE_KEY: "sbp_0123456789abcdef" };
+  const entries = resolveBridge((name) => env[name]);
+  assert.equal(entries.some((e) => e.globalName === "__LELU_SUPABASE_PUBLISHABLE_KEY__"), false);
+  env.SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ok";
+  assert.ok(resolveBridge((name) => env[name]).some((e) => e.globalName === "__LELU_SUPABASE_PUBLISHABLE_KEY__"));
+});
