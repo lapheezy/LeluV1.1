@@ -224,6 +224,9 @@ export default class ProviderResolver {
         // provider is left alone.
         if (stopped(context, error)) {
           const ran = (toolsReallyRun ?? []).map((tool) => tool.tool);
+          // Nothing ran: there is nothing to report, so the AbortError goes
+          // back to the caller exactly as a pre-flight stop always has.
+          if (ran.length === 0) throwIfStopped(context, error);
           return {
             handled: true,
             response: {

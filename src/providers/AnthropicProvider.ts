@@ -696,7 +696,11 @@ export default class AnthropicProvider implements AIProvider {
       // An overload or API error can arrive AFTER a 200 and some text.
       // Ignoring it returned the partial reply as if it were complete.
       if (chunk.type === "error") {
-        streamError = chunk.error?.message ?? chunk.error?.type ?? "stream error";
+        // Both halves matter: the type is what an operator searches for, the
+        // message is what a person reads.
+        streamError =
+          [chunk.error?.message, chunk.error?.type ? `(${chunk.error.type})` : null].filter(Boolean).join(" ") ||
+          "stream error";
       }
     };
 
