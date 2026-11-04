@@ -695,6 +695,23 @@ export const GenesisContext =
 export const GenesisStateContext =
   createContext<GenesisStateValue | null>(null);
 
+/**
+ * ACTIONS ONLY, and stable: the action memo's identity does not change when
+ * the simulation ticks, so chrome that only CALLS the Core (chat, tabs,
+ * module windows, the dock) can drop its subscription to state it does not
+ * draw. Before this they read the whole context and re-rendered on every
+ * frame of the universe.
+ */
+export const GenesisActionsContext = createContext<GenesisActions | null>(null);
+
+export function useGenesisActions(): GenesisActions {
+  const context = useContext(GenesisActionsContext);
+  if (!context) {
+    throw new Error("useGenesisActions must be used inside GenesisCore");
+  }
+  return context;
+}
+
 export function useGenesisState(): GenesisStateValue {
   const context = useContext(GenesisStateContext);
   if (!context) {
@@ -2480,6 +2497,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
   return (
 
+    <GenesisActionsContext.Provider value={actions}>
     <GenesisStateContext.Provider value={stateValue}>
       <GenesisContext.Provider value={value}>
         <GenesisSceneContext.Provider value={sceneValue}>
@@ -2487,6 +2505,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
         </GenesisSceneContext.Provider>
       </GenesisContext.Provider>
     </GenesisStateContext.Provider>
+    </GenesisActionsContext.Provider>
 
   );
 

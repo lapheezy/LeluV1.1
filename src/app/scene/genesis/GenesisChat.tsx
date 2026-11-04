@@ -70,7 +70,7 @@ import {
   processVideoFile,
   type ProcessedMedia,
 } from "../../../core/media/mediaProcessor";
-import { useGenesis, type GenesisMessage } from "./GenesisCore";
+import { useGenesisActions, useGenesisState, type GenesisMessage } from "./GenesisCore";
 import ExplorationController from "./ExplorationController";
 import ProactiveCore, { type ProactiveQuestion } from "../../../core/proactive/ProactiveCore";
 import { openWorkstream } from "../../../core/proactive/Workstream";
@@ -221,7 +221,10 @@ function fileContextPrompt(files: PendingFile[]): string {
  * ---------------------------------------------------------- */
 
 export default function GenesisChat({ onExit, hidden = false }: { onExit?: () => void; hidden?: boolean }) {
-  const { state, openPanel, addMessage, upsertMessage, setDialogue, notify, crossChatReference, createConversation, minimize } = useGenesis();
+  const { state } = useGenesisState();
+  // Actions come from the STABLE actions context, so a simulation tick does
+  // not re-render the conversation; only the state it draws does.
+  const { openPanel, addMessage, upsertMessage, setDialogue, notify, crossChatReference, createConversation, minimize } = useGenesisActions();
   const voiceView = useVoice();
   const navigate = useNavigate();
 
