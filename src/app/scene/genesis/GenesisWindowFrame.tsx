@@ -31,10 +31,11 @@
  * ==========================================================
  */
 
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { useContext, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { genesisTheme } from "./GenesisTheme";
 import PinchZoomContainer from "./PinchZoomContainer";
+import { ModuleWindowContext } from "./ModuleWindowContext";
 
 // Phase 13 — read once per render, not reactive to the preference
 // changing mid-session (rare enough not to warrant a matchMedia
@@ -132,6 +133,7 @@ export default function GenesisWindowFrame({
   const depth = genesisTheme.elevation[elevation];
   const reduceMotion = prefersReducedMotion();
   const narrow = useIsNarrow();
+  const embedded = useContext(ModuleWindowContext);
   const frameRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
   const resizeRef = useRef<{ pointerId: number; startX: number; startY: number; originWidth: number; originHeight: number } | null>(null);
@@ -345,6 +347,37 @@ export default function GenesisWindowFrame({
         backdropFilter: depth.backdropFilter,
         transformOrigin: "bottom center",
       };
+
+  // Inside a module window the host already provides the floating chrome
+  // (title bar, drag, resize, close): render as its body, not a second window.
+  if (embedded) {
+    return (
+      <div
+        data-lelu-surface="panel"
+        style={{
+          position: "relative",
+          width: "100%",
+          minHeight: "100%",
+          boxSizing: "border-box",
+          display: "flex",
+          flexDirection: "column",
+          padding: 12,
+          color: "var(--lelu-color-text, white)",
+          background: background && background !== genesisTheme.glass.panel ? background : undefined,
+        }}
+      >
+        {beforeHeader}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 10, flexShrink: 0 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={genesisTheme.text.eyebrow}>{eyebrow}</div>
+            <div data-lelu-text="title" style={{ fontWeight: 700, overflowWrap: "anywhere" }}>{title}</div>
+          </div>
+          {extraActions ? <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>{extraActions}</div> : null}
+        </div>
+        <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>{children}</div>
+      </div>
+    );
+  }
 
   return (
     <motion.div

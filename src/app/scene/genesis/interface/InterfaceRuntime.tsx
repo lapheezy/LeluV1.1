@@ -175,13 +175,18 @@ export default function InterfaceRuntime({ windowIds, labelOf }: { windowIds: st
   /* ------------------- restore the workspace on reload ---------------- */
 
   const restoredRef = useRef(false);
+  const restoreDoneRef = useRef(false);
   useEffect(() => {
     if (restoredRef.current) return;
     restoredRef.current = true;
     const observed = InterfaceOrchestrator.getInstance().observedWindows();
     const entries = Object.entries(observed).filter(([id, l]) => windowIds.includes(id) && l.presentation !== "closed");
-    if (!entries.length) return;
+    if (!entries.length) {
+      restoreDoneRef.current = true;
+      return;
+    }
     const timer = window.setTimeout(() => {
+      restoreDoneRef.current = true;
       if (Object.keys(stateRef.current.modules).length) return; // something else already opened windows
       // Re-fit to THIS viewport (a phone after a desktop session gets the
       // one-sheet phone layout, never off-screen windows).
@@ -202,15 +207,22 @@ export default function InterfaceRuntime({ windowIds, labelOf }: { windowIds: st
       }
       actionsRef.current.applyModuleLayout(modules);
     }, 400);
-    return () => window.clearTimeout(timer);
+    // Deliberately not cancelled on cleanup: StrictMode's dev double-mount
+    // would cancel the only restore (the guard above blocks a second one).
+    void timer;
   }, [windowIds, labelOf]);
 
   /* --------------- remember where windows actually are ---------------- */
 
+  // Throttled, not debounced: module state changes on every agent status
+  // event, so a debounce on a busy session would never fire. A final write
+  // on pagehide covers the last moves before a reload or tab close.
+  const recordPendingRef = useRef<number | null>(null);
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const record = () => {
+      recordPendingRef.current = null;
       const layout: Record<string, WindowLayout> = {};
-      for (const [id, mod] of Object.entries(state.modules)) {
+      for (const [id, mod] of Object.entries(stateRef.current.modules)) {
         if (!windowIds.includes(id)) continue;
         if (!mod.position || !mod.size) {
           // Never moved: remember where the window manager actually put it.
@@ -230,9 +242,20 @@ export default function InterfaceRuntime({ windowIds, labelOf }: { windowIds: st
         };
       }
       InterfaceOrchestrator.getInstance().recordObservedWindows(layout);
-    }, 500);
-    return () => window.clearTimeout(timer);
+    };
+    // Until the reload restore has run, an empty boot state must not
+    // overwrite the saved workspace.
+    if (!restoreDoneRef.current) return;
+    if (recordPendingRef.current === null) recordPendingRef.current = window.setTimeout(record, 600);
+    const onHide = () => record();
+    window.addEventListener("pagehide", onHide);
+    return () => window.removeEventListener("pagehide", onHide);
   }, [state.modules, windowIds]);
+
+  useEffect(() => () => {
+    if (recordPendingRef.current !== null) window.clearTimeout(recordPendingRef.current);
+    recordPendingRef.current = null;
+  }, []);
 
   /* -------------------- design tokens → the live DOM ------------------ */
 

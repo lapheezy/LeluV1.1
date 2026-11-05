@@ -83,13 +83,22 @@ export default function InterfaceConsentBar() {
   const [message, setMessage] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [toastFor, setToastFor] = useState<string | null>(null);
+  /** Tucked away so the whole preview can be inspected unobstructed. */
+  const [collapsed, setCollapsed] = useState(false);
 
   const proposal = view.previewing ?? view.pending[0] ?? null;
+  const [narrow, setNarrow] = useState(() => typeof window !== "undefined" && window.innerWidth < 720);
+  useEffect(() => {
+    const onResize = () => setNarrow(window.innerWidth < 720);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     setShowAll(false);
     setConfirmed(false);
     setMessage(null);
+    setCollapsed(false);
   }, [proposal?.id]);
 
   // Recently applied → show Undo for a moment.
@@ -177,7 +186,23 @@ export default function InterfaceConsentBar() {
   if (!proposal) {
     if (!toastFor || !view.lastApplied) return null;
     return (
-      <div style={{ ...panel, border: "1px solid rgba(74, 222, 128, 0.45)", padding: 10, display: "flex", alignItems: "center", gap: 10, justifyContent: "space-between" }} role="status">
+      <div
+        style={{
+          ...panel,
+          border: "1px solid rgba(74, 222, 128, 0.45)",
+          padding: 8,
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          justifyContent: "space-between",
+          // Phones: a window's title bar sits at the top, so the toast goes
+          // bottom-left, above the composer and clear of the resize grip.
+          ...(narrow
+            ? { top: "auto", bottom: "calc(env(safe-area-inset-bottom, 0px) + 104px)", left: 8, transform: "none", width: "auto", maxWidth: "calc(100vw - 72px)" }
+            : {}),
+        }}
+        role="status"
+      >
         <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>✓ Applied: {view.lastApplied.description}</span>
         <span style={{ display: "flex", gap: 6, flexShrink: 0 }}>
           <button type="button" style={button()} onClick={() => { orchestrator.undo(); setToastFor(null); }}>Undo</button>
@@ -189,6 +214,34 @@ export default function InterfaceConsentBar() {
 
   const previewing = view.previewing?.id === proposal.id;
   const approveDisabled = proposal.destructive && !confirmed;
+
+  if (collapsed) {
+    return (
+      <button
+        type="button"
+        onClick={() => setCollapsed(false)}
+        aria-label="Review LÉLU's proposed interface change"
+        style={{
+          ...button(),
+          position: "fixed",
+          top: "calc(env(safe-area-inset-top, 0px) + 10px)",
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 9000,
+          pointerEvents: "auto",
+          maxWidth: "calc(100vw - 16px)",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          background: "rgba(8, 12, 28, 0.94)",
+          border: "1px solid rgba(250, 204, 21, 0.6)",
+          fontFamily: "system-ui, -apple-system, sans-serif",
+        }}
+      >
+        ◐ Previewing: {proposal.description} — Review
+      </button>
+    );
+  }
 
   return (
     <div style={panel} role="dialog" aria-label="LÉLU proposes an interface change" data-lelu-consent="">
@@ -252,6 +305,7 @@ export default function InterfaceConsentBar() {
           {previewing ? "Show current" : "Preview"}
         </button>
         <button type="button" style={button()} onClick={() => setHistoryOpen(true)}>History</button>
+        <button type="button" style={button()} onClick={() => setCollapsed(true)} title="Hide this panel to inspect the whole preview">Hide panel</button>
       </div>
       {view.pending.length > 1 ? <div style={{ fontSize: 11, opacity: 0.6, marginTop: 8 }}>{view.pending.length - 1} more proposal(s) waiting.</div> : null}
     </div>

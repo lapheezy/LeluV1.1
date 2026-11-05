@@ -143,9 +143,9 @@ export const ENVIRONMENT_PRESETS: EnvironmentPreset[] = [
       environment: { backdrop: "garden", gradientStops: ["#03140c", "#0f3b25", "#3f2a12"], nebulaColors: ["#4ade80", "#facc15", "#f472b6"], particleColor: "#fef9c3", particleDensity: 0.45, vignette: 0.35 },
     },
     scene: [
-      { op: "add", object: { kind: "flora", label: "Fern bloom", position: [-2.6, -1.2, -2.5], scale: 0.9, color: "#86efac", secondaryColor: "#f9a8d4", features: { petals: 7 } } },
-      { op: "add", object: { kind: "flora", label: "Lotus", position: [2.8, -1.4, -3], scale: 0.7, color: "#f9a8d4", secondaryColor: "#fde68a", features: { petals: 9 } } },
-      { op: "add", object: { kind: "flora", label: "Seedling", position: [0.4, -1.8, -4.2], scale: 0.5, color: "#bbf7d0", features: { petals: 5 } } },
+      { op: "add", object: { kind: "flora", label: "Fern bloom", position: [-2.8, -1.4, -3], scale: 0.5, color: "#86efac", secondaryColor: "#f9a8d4", features: { petals: 7 } } },
+      { op: "add", object: { kind: "flora", label: "Lotus", position: [2.9, -1.5, -3.4], scale: 0.42, color: "#f9a8d4", secondaryColor: "#fde68a", features: { petals: 9 } } },
+      { op: "add", object: { kind: "flora", label: "Seedling", position: [0.6, -1.9, -4.4], scale: 0.3, color: "#bbf7d0", features: { petals: 5 } } },
       { op: "add", object: { kind: "particles", label: "Pollen", position: [0, 0, -3], scale: 7, color: "#fef9c3", features: { count: 380 } } },
       { op: "add", object: { kind: "orb", label: "Sun-seed", position: [0, 2.2, -5], scale: 0.4, color: "#fde68a", material: { emissiveIntensity: 1.6 } } },
     ],

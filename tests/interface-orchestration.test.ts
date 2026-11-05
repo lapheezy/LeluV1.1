@@ -387,3 +387,50 @@ test("Test 6 (engine) — phone layouts: chat stays full-screen, one sheet, noth
   const moved = planWindows(current, [{ op: "move", id: "browser", x: 900, y: 900 }], viewport);
   assert.deepEqual(moved.check.offscreen, [], "a drag target off-screen is clamped back");
 });
+
+test("fit keeps the arrangement windows already express (replay of a real model's operations)", () => {
+  // Captured from a live turn: the model hand-placed browser and projects
+  // in one right-hand column (overlapping), then asked to fit everything.
+  // Fitting must resolve the overlap WITHOUT re-gridding them away.
+  const viewport = makeViewport(1440, 900);
+  const current: WindowDescriptor[] = [
+    { id: "chat", kind: "chat", label: "Chat", presentation: "inline", rect: { x: 440, y: 200, width: 560, height: 480 }, zIndex: 21, rotation: 0 },
+    { id: "browser", kind: "module", label: "Browser", presentation: "inline", rect: { x: 120, y: 110, width: 620, height: 480 }, zIndex: 31, rotation: 0 },
+    { id: "projects", kind: "module", label: "Projects", presentation: "inline", rect: { x: 160, y: 140, width: 620, height: 480 }, zIndex: 32, rotation: 0 },
+  ];
+  const plan = planWindows(
+    current,
+    [
+      { op: "move", id: "browser", x: 1000, y: 200 },
+      { op: "move", id: "projects", x: 1000, y: 0 },
+      { op: "resize", id: "browser", width: 600, height: 400 },
+      { op: "resize", id: "projects", width: 600, height: 400 },
+      { op: "arrange", strategy: "fit" },
+    ],
+    viewport,
+  );
+  const { chat, browser, projects } = plan.layout;
+  assert.ok(browser.x >= chat.x + chat.width, "browser stays beside (right of) the chat");
+  assert.ok(projects.y + projects.height <= browser.y, "projects stays above the browser");
+  assert.equal(projects.x, browser.x, "same column");
+  assert.deepEqual(plan.check.overlaps, []);
+  assert.deepEqual(plan.check.offscreen, []);
+});
+
+test("a proposal whose description contradicts its own layout is flagged", () => {
+  const { orchestrator } = fresh();
+  const r = orchestrator.propose({
+    description: "Project window above the browser, browser beside the chat",
+    windows: [
+      { op: "move", id: "chat", x: 96, y: 64 },
+      { op: "move", id: "browser", x: 700, y: 64 },
+      { op: "move", id: "projects", x: 700, y: 560 },
+      { op: "resize", id: "projects", width: 600, height: 300 },
+      { op: "resize", id: "browser", width: 600, height: 400 },
+      { op: "resize", id: "chat", width: 560, height: 700 },
+    ],
+  });
+  assert.ok(r.proposal);
+  assert.ok(r.proposal.warnings.some((w) => /projects above browser/.test(w)), r.proposal.warnings.join(" | "));
+  assert.ok(!r.proposal.warnings.some((w) => /browser beside chat/.test(w)), "true claims are not flagged");
+});

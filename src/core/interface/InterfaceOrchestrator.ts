@@ -53,6 +53,7 @@ import { describeFontLibrary, getFont, validateCustomFont, type CustomFont } fro
 import { ENVIRONMENT_PRESETS, TYPOGRAPHY_SYSTEMS, getPreset, recommendEnvironment, type EnvironmentRecommendation } from "./EnvironmentLibrary";
 import { EMPTY_SCENE, SCENE_KINDS, applySceneOps, describeScene, type SceneCamera, type SceneOp, type SceneState, type WorkspaceRef } from "./SceneModel";
 import {
+  contradictedClaims,
   describeRelationships,
   describeWindows,
   makeViewport,
@@ -551,6 +552,9 @@ export default class InterfaceOrchestrator {
           if (after.presentation === "closed" && w.presentation !== "closed") destructiveReasons.push(`closes the ${w.label} window (its unsaved state may be lost)`);
         }
         if (windowsChanged) next.windows = plan.layout;
+        // Say-one-thing-do-another guard: relational claims in the
+        // description must hold in the geometry that was actually planned.
+        issues.push(...contradictedClaims(description, plan.layout, current));
       }
     }
 

@@ -509,19 +509,19 @@ function SceneObjectNode({ object, segments }: { object: SceneObject; segments: 
         </SceneBoundary>
       </group>
       {object.label && (interactive || hovered) ? (
-        <Html position={[0, object.kind === "flora" ? 0.6 : 1.45, 0]} center distanceFactor={8} zIndexRange={[20, 0]} style={{ pointerEvents: interactive ? "auto" : "none" }}>
+        <Html position={[0, object.kind === "flora" ? 0.6 : 1.45, 0]} center zIndexRange={[20, 0]} style={{ pointerEvents: interactive ? "auto" : "none" }}>
           <button
             type="button"
             onClick={open}
             style={{
               whiteSpace: "nowrap",
-              padding: "6px 12px",
-              minHeight: 32,
+              padding: "4px 10px",
+              minHeight: 28,
               borderRadius: 999,
               border: "1px solid rgba(255,255,255,0.35)",
               background: hovered ? "rgba(15,23,42,0.92)" : "rgba(15,23,42,0.7)",
               color: "#f8fafc",
-              fontSize: 13,
+              fontSize: 12,
               fontFamily: "var(--lelu-font-heading, system-ui)",
               cursor: interactive ? "pointer" : "default",
               backdropFilter: "blur(8px)",

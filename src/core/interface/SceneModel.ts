@@ -292,7 +292,9 @@ export function applySceneOps(scene: SceneState, ops: SceneOp[], workspaces: Wor
               kind,
               label: ws.title,
               position: [Math.cos(angle) * radius, Math.sin(i * 1.7) * 0.6 + 0.4, -2.4 + Math.sin(angle) * radius * 0.5],
-              scale: ws.active ? 0.62 : 0.5,
+              // Small enough to read as a system of worlds around the native core,
+              // not a wall in front of it.
+              scale: ws.active ? 0.34 : 0.27,
               color: accents[i % accents.length],
               features: kind === "planet" ? { atmosphere: true, rings: i % 2 === 1, moons: i % 3 } : {},
               animation: { type: kind === "planet" ? "spin" : "bob", speed: 0.6 + i * 0.15 },

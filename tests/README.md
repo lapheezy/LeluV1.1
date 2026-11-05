@@ -81,3 +81,12 @@ Still unmeasured (they do not finish inside 90s): `autonomy-end-to-end`,
 `cognition-chat-integration`, `live-state-integration`, `runtime-lifecycle`,
 `self-study-loop`, `test-isolation`.
 
+
+Interface orchestration (`INTERFACE_ORCHESTRATION_REPORT.md`): new
+`interface-orchestration` (18 passing, no network). Re-checked after the
+change: `agentic-execution` 20, `agentic-live` 5, `anthropic-integration` 20,
+`runtime-integration` 19, `architecture-integrity` 6, `ui-truthfulness` 3,
+`world-tools` 1, `forge-tools` 1, `project-interpretation` 6 — all passing.
+`genesis-interface.test.tsx` still fails 2/2 with the same pre-existing
+`React is not defined`. Live model check: `npx tsx scripts/verify-interface.ts`
+(needs a provider key; spends ~5 model turns).

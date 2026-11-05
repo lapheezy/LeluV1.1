@@ -24,6 +24,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { useGenesis, type GenesisPanel, type ModuleState } from "./GenesisCore";
 import { MODULE_CATALOG } from "./GenesisDock";
+import { ModuleWindowContext } from "./ModuleWindowContext";
 
 const STATUS_DOT: Record<string, string> = {
   idle: "#64748b",
@@ -287,9 +288,9 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
           }}
         >
           {chrome}
-          <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex" }}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", position: "relative" }}>
             <div style={{ flex: 1, display: "flex", flexDirection: "column", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}>
-              {render({ onClose: () => closeModule(id) })}
+              <ModuleWindowContext.Provider value={true}>{render({ onClose: () => closeModule(id) })}</ModuleWindowContext.Provider>
             </div>
           </div>
         </div>
@@ -331,8 +332,11 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       }}
     >
       {chrome}
-      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}>
-        {render({ onClose: () => closeModule(id) })}
+      {/* position: relative contains panels' absolutely-positioned layers
+          (e.g. the browser's overlays) inside the content area, so they can
+          never paint over the title bar and steal its drag gesture. */}
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", position: "relative", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}>
+        <ModuleWindowContext.Provider value={true}>{render({ onClose: () => closeModule(id) })}</ModuleWindowContext.Provider>
       </div>
       {/* Resize handle — bottom-right corner */}
       <div

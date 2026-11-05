@@ -54,7 +54,7 @@ export const INTERFACE_TOOLS: ToolDefinition[] = [
   tool(
     "interface.propose",
     "Propose an Interface Change",
-    "Design a change to LÉLU's own interface — move/resize/rotate/group/arrange windows to fit the screen, change typography and fonts, palette, glass/materials/textures/window shape, lighting, motion, the backdrop environment, or create/animate 3D objects (planets, nebulae, flora, crystals, artboards, glTF models) in the Cosmos. It builds the full result in isolation and shows the user a live PREVIEW; it does NOT apply anything. The user approves or rejects it. Use for any 'change my workspace/theme/fonts/layout/environment' request",
+    "Design a change to LÉLU's own interface — move/resize/rotate/group/arrange windows to fit the screen, change typography and fonts, palette, glass/materials/textures/window shape, lighting, motion, the backdrop environment, or create/animate 3D objects (planets, nebulae, flora, crystals, artboards, glTF models) in the Cosmos. It builds the full result in isolation and shows the user a live PREVIEW; it does NOT apply anything. The user approves or rejects it. Use for any 'change my workspace/theme/fonts/layout/environment' request. Change ONLY what the user asked for: a layout request gets window operations, not a new theme or preset. For relative placement ('X beside Y, Z above X') use one arrange op with strategy 'relations' rather than guessing coordinates. Describe the result using the Changes list this tool returns",
     1,
     ["WRITE"],
   ),
@@ -75,6 +75,9 @@ function proposalReport(proposal: Proposal, issues: string[]): string {
   ];
   if (proposal.destructive) lines.push(`Destructive: ${proposal.destructiveReasons.join("; ")}.`);
   if (proposal.notes.length) lines.push(`Notes:\n- ${proposal.notes.join("\n- ")}`);
+  if (proposal.warnings.some((w) => w.includes("planned layout does not place it there"))) {
+    lines.push("⚠ Your description and the planned layout disagree (see warnings). Re-propose with an arrange op using strategy 'relations' before telling the user it matches.");
+  }
   if (proposal.warnings.length || issues.length) lines.push(`Warnings / adjustments:\n- ${[...new Set([...proposal.warnings, ...issues])].join("\n- ")}`);
   return lines.join("\n");
 }
@@ -154,7 +157,10 @@ export const INTERFACE_EXECUTORS: InterfaceExecutor[] = [
       {
         description: { type: "string", description: "One sentence the user reads on the consent bar: what this changes." },
         rationale: { type: "string", description: "Why this design works (typography/colour/layout reasoning)." },
-        preset: { type: "string", description: `Optional starting point: ${ENVIRONMENT_PRESETS.map((p) => p.id).join(", ")}, or a saved theme id. Omit to invent from scratch.` },
+        preset: {
+          type: "string",
+          description: `ONLY when the user asks for a whole new environment that matches one (replaces palette, typography, materials, backdrop and decorations): ${ENVIRONMENT_PRESETS.map((p) => p.id).join(", ")}, or a saved theme id. Omit it for anything else — layout, typography or object requests must not carry a preset.`,
+        },
         resetTokens: { type: "boolean", description: "Start from the original Genesis design instead of the current one." },
         typographySystem: { type: "string", enum: Object.keys(TYPOGRAPHY_SYSTEMS) },
         tokens: {
@@ -168,7 +174,12 @@ export const INTERFACE_EXECUTORS: InterfaceExecutor[] = [
         },
         customFonts: { type: "array", items: OBJ({ family: { type: "string" }, url: { type: "string" }, licence: { type: "string" }, weight: { type: "string" } }, ["family", "url", "licence"]) },
         windows: { type: "array", items: WINDOW_OP_SCHEMA },
-        scene: { type: "array", items: SCENE_OP_SCHEMA },
+        scene: {
+          type: "array",
+          items: SCENE_OP_SCHEMA,
+          description:
+            "Cosmos objects. To represent the user's workspaces use [{op:'populate', from:'workspaces', kind:'planet', limit:N}] — it builds one object per real workspace and LINKS each so selecting it opens that workspace (hand-made objects are not linked unless you set link). Typical scales: planet 0.25–0.45, moon 0.1–0.2, flora 0.3–0.6, nebula 4–7.",
+        },
         environment: OBJ({ name: { type: "string" }, description: { type: "string" } }),
       },
       ["description"],

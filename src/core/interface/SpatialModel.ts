@@ -104,7 +104,9 @@ export function makeViewport(width: number, height: number): Viewport {
     height,
     mobile,
     insets: mobile
-      ? { top: 12, right: 8, bottom: 96, left: 8 }
+      ? // top: notification toasts occupy the top lane on phones; a sheet's
+        // title bar (its drag handle) must never sit underneath one.
+        { top: 104, right: 8, bottom: 96, left: 8 }
       : { top: 64, right: 16, bottom: 16, left: width >= MOBILE_BREAKPOINT ? 96 : 16 },
   };
 }
@@ -633,12 +635,55 @@ function arrange(
       for (const id of ids) clampInto(layout[id], viewport);
       const shown = Object.fromEntries(ids.map((id) => [id, layout[id]]));
       if (checkLayout(shown, viewport, kinds).overlaps.length) {
-        notes.push("windows overlapped after fitting to the screen; arranged them in a grid");
-        const rects = gridRects(area, ids.length, ids.length <= 2 ? ids.length : ids.length <= 4 ? 2 : 3);
-        apply(Object.fromEntries(ids.map((id, i) => [id, rects[i]])));
+        // Keep the arrangement the windows already express — which ones
+        // share a column, which is above which — and only resolve overlap.
+        const rects = fitPreservingArrangement(ids, layout, kinds, area);
+        if (rects) {
+          apply(rects);
+          notes.push("windows overlapped; kept their arrangement (columns and top-to-bottom order) and sized them to fit");
+        } else {
+          notes.push("windows overlapped and their arrangement could not fit; arranged them in a grid");
+          const grid = gridRects(area, ids.length, ids.length <= 2 ? ids.length : ids.length <= 4 ? 2 : 3);
+          apply(Object.fromEntries(ids.map((id, i) => [id, grid[i]])));
+        }
       }
     }
   }
+}
+
+/**
+ * Cluster windows into columns by horizontal position (a window joins a
+ * column when most of its width lies over it), order each column by
+ * vertical position, then size columns and rows to the work area.
+ */
+function fitPreservingArrangement(ids: string[], layout: Record<string, WindowLayout>, kinds: Record<string, WindowKind>, area: Rect): Record<string, Rect> | null {
+  const sorted = [...ids].sort((a, b) => layout[a].x + layout[a].width / 2 - (layout[b].x + layout[b].width / 2));
+  const columns: Array<{ left: number; right: number; members: string[] }> = [];
+  for (const id of sorted) {
+    const l = layout[id];
+    const column = columns.find((c) => {
+      const overlap = Math.min(c.right, l.x + l.width) - Math.max(c.left, l.x);
+      return overlap > 0.5 * Math.min(l.width, c.right - c.left);
+    });
+    if (column) {
+      column.members.push(id);
+      column.left = Math.min(column.left, l.x);
+      column.right = Math.max(column.right, l.x + l.width);
+    } else {
+      columns.push({ left: l.x, right: l.x + l.width, members: [id] });
+    }
+  }
+  columns.sort((a, b) => a.left - b.left);
+  if (columns.length * MIN_WIDTH + GAP * (columns.length - 1) > area.width) return null;
+  const rects: Record<string, Rect> = {};
+  const weights = columns.map((c) => Math.max(...c.members.map((id) => weightFor(kinds[id]))));
+  const boxes = columnRects(area, weights);
+  for (let i = 0; i < columns.length; i++) {
+    const members = [...columns[i].members].sort((a, b) => layout[a].y - layout[b].y);
+    if (members.length * MIN_HEIGHT + GAP * (members.length - 1) > boxes[i].height) return null;
+    stackRects(boxes[i], members.length).forEach((rect, j) => (rects[members[j]] = rect));
+  }
+  return rects;
 }
 
 /** Phone rules: chat stays the full-screen base, at most one sheet above it. */
@@ -711,4 +756,34 @@ export function describeRelationships(relationships: WindowRelationship[]): stri
   return relationships
     .map((r) => (r.relation === "overlaps" ? `${r.a} overlaps ${r.b} (${r.overlapPercent}% of the smaller)` : r.relation === "diagonal" ? `${r.a} and ${r.b} are diagonal` : `${r.a} is ${r.relation} ${r.b} (gap ${r.gap}px)`))
     .join("\n");
+}
+
+/**
+ * Check relational claims in a sentence ("project window above the
+ * browser", "browser beside the chat") against a layout. Returns one line
+ * per claim the geometry contradicts — so a proposal can never silently
+ * say one thing and do another.
+ */
+export function contradictedClaims(sentence: string, layout: Record<string, WindowLayout>, windows: Array<{ id: string; label: string }>): string[] {
+  const out: string[] = [];
+  const text = sentence.toLowerCase();
+  const pattern = /\b([a-z]+)(?:\s+(?:window|panel))?\s+(?:is\s+|goes\s+|sits\s+)?(above|below|beside|next to|left of|right of|to the left of|to the right of)\s+(?:the\s+|my\s+)?([a-z]+)/g;
+  for (const match of text.matchAll(pattern)) {
+    const a = resolveWindowId(match[1], windows);
+    const b = resolveWindowId(match[3], windows);
+    if (!a || !b || a === b) continue;
+    const A = layout[a];
+    const B = layout[b];
+    if (!A || !B || A.presentation !== "inline" || B.presentation !== "inline") continue;
+    const relation = match[2];
+    const vertical = Math.min(A.y + A.height, B.y + B.height) - Math.max(A.y, B.y) > 0;
+    const holds =
+      relation === "above" ? A.y + A.height <= B.y + 1 :
+      relation === "below" ? A.y >= B.y + B.height - 1 :
+      relation.includes("left") ? A.x + A.width <= B.x + 1 :
+      relation.includes("right") ? A.x >= B.x + B.width - 1 :
+      vertical && (A.x + A.width <= B.x + 1 || A.x >= B.x + B.width - 1);
+    if (!holds) out.push(`the description says ${a} ${relation} ${b}, but the planned layout does not place it there`);
+  }
+  return out;
 }
