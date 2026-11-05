@@ -1,0 +1,137 @@
+{
+ "title": "[TEST] Add isTerminalStatus() to the improvement queue",
+ "problem": "Panels decide which proposals are finished with their own hardcoded status lists, which drifted when new states were added.",
+ "observation": "GenesisNotificationsPanel keeps a local DONE_STATUSES list.",
+ "evidence": "src/app/scene/genesis/GenesisNotificationsPanel.tsx: DONE_STATUSES",
+ "proposedSolution": "Export isTerminalStatus(status) from src/core/selfdev/ImprovementQueue.ts (true for Integrated, Recorded, Rejected, Rolled Back) and cover it with a node:test unit test in tests/. Do not change any other behaviour.",
+ "expectedBenefit": "One definition of a finished proposal.",
+ "dependencies": [],
+ "risk": "Low — additive helper.",
+ "requiredTools": [],
+ "requiredAgents": [],
+ "complexity": "low",
+ "kind": "Opportunity",
+ "version": "1.0",
+ "testPlan": "Unit test for isTerminalStatus over every status.",
+ "status": "Recorded",
+ "id": "13d0e925-b4f2-4d84-a9f0-7ca02e9990c5",
+ "created": 1793907820720,
+ "updated": 1793908006660,
+ "lastExecution": {
+  "executionId": "exec-mw3yi0a7-ycmt",
+  "kind": "apply",
+  "started": 1793907990511,
+  "agent": "Anthropic/claude-opus-5-5",
+  "plan": "Add an exported TERMINAL_STATUSES list and an isTerminalStatus(status) predicate to ImprovementQueue.ts, next to the existing PENDING_APPROVAL_STATUSES and RUNNING_STATUSES. It returns true only for Integrated, Recorded, Rejected and Rolled Back. No existing caller is changed (the panel, open() and hasOpenSimilar() keep their current behaviour), as the proposal requires. A new node:test file checks every status against a Record<ImprovementStatus, boolean> table, so a newly added status also fails typecheck until its terminal-ness is decided.",
+  "filesInspected": [
+   "src/core/selfdev/ImprovementQueue.ts",
+   "src/app/scene/genesis/GenesisNotificationsPanel.tsx",
+   "src/core/selfdev/ProposalEngineer.ts",
+   "src/core/selfdev/SelfDevelopmentLoop.ts"
+  ],
+  "filesChanged": [],
+  "diff": "--- a/src/core/selfdev/ImprovementQueue.ts\n+++ b/src/core/selfdev/ImprovementQueue.ts\n@@ -82,6 +82,13 @@\n export const PENDING_APPROVAL_STATUSES: ImprovementStatus[] = [\"Detected\", \"Analyzing\", \"Proposed\"];\n /** Statuses that mean a run is in flight right now. */\n export const RUNNING_STATUSES: ImprovementStatus[] = [\"In Development\", \"Testing\", \"Evaluation\", \"Applying\"];\n+/** Statuses that mean a proposal is finished, one way or another (not \"active\"). */\n+export const TERMINAL_STATUSES: readonly ImprovementStatus[] = [\"Integrated\", \"Recorded\", \"Rejected\", \"Rolled Back\"];\n+\n+/** The single definition of a finished proposal. */\n+export function isTerminalStatus(status: ImprovementStatus): boolean {\n+  return TERMINAL_STATUSES.includes(status);\n+}\n \n /** Why a proposal is Blocked, and what unblocks it. */\n export interface ProposalBlock {\n--- a/tests/terminal-status.test.ts\n+++ b/tests/terminal-status.test.ts\n@@ -0,0 +1,43 @@\n+import { test } from \"node:test\";\n+import assert from \"node:assert/strict\";\n+import {\n+  IMPROVEMENT_STATUSES,\n+  TERMINAL_STATUSES,\n+  isTerminalStatus,\n+  type ImprovementStatus,\n+} from \"../src/core/selfdev/ImprovementQueue\";\n+\n+// Exhaustive: adding a status without deciding here fails typecheck.\n+const EXPECTED: Record<ImprovementStatus, boolean> = {\n+  Detected: false,\n+  Analyzing: false,\n+  Proposed: false,\n+  Approved: false,\n+  \"In Development\": false,\n+  Testing: false,\n+  Evaluation: false,\n+  Ready: false,\n+  Applying: false,\n+  Integrated: true,\n+  Recorded: true,\n+  Failed: false,\n+  Blocked: false,\n+  Rejected: true,\n+  \"Rolled Back\": true,\n+};\n+\n+test(\"isTerminalStatus is true exactly for Integrated, Recorded, Rejected and Rolled Back\", () => {\n+  for (const status of IMPROVEMENT_STATUSES) {\n+    assert.equal(isTerminalStatus(status), EXPECTED[status], `status ${status}`);\n+  }\n+});\n+\n+test(\"every status is covered and TERMINAL_STATUSES matches the predicate\", () => {\n+  assert.deepEqual([...IMPROVEMENT_STATUSES].sort(), (Object.keys(EXPECTED) as ImprovementStatus[]).sort());\n+  assert.deepEqual(\n+    [...TERMINAL_STATUSES].sort(),\n+    IMPROVEMENT_STATUSES.filter((status) => isTerminalStatus(status)).sort(),\n+  );\n+  assert.equal(TERMINAL_STATUSES.length, 4);\n+});\n+",
+  "workspaceId": "ws-13d0e925-b4f2-4d84-a9f0--mw3yf9z2",
+  "checks": [],
+  "finished": 1793907990511,
+  "outcome": "Blocked",
+  "error": "No authenticated session. Applying changes to the real project requires a signed-in Supabase identity; sandbox work does not."
+ },
+ "executions": [
+  {
+   "executionId": "exec-mw3yet1w-olu0",
+   "kind": "develop",
+   "started": 1793907841172,
+   "filesInspected": [],
+   "filesChanged": [],
+   "checks": [],
+   "finished": 1793907841177,
+   "outcome": "Blocked",
+   "error": "Developing a change runs commands in a project copy, which needs autonomy level 3; the current level is 2."
+  },
+  {
+   "executionId": "exec-mw3yf604-1skl",
+   "kind": "develop",
+   "started": 1793907857956,
+   "filesInspected": [
+    "src/core/selfdev/ImprovementQueue.ts",
+    "src/app/scene/genesis/GenesisNotificationsPanel.tsx",
+    "src/core/selfdev/ProposalEngineer.ts",
+    "src/core/selfdev/SelfDevelopmentLoop.ts"
+   ],
+   "filesChanged": [
+    "src/core/selfdev/ImprovementQueue.ts",
+    "tests/terminal-status.test.ts"
+   ],
+   "checks": [
+    {
+     "name": "syntax",
+     "ok": true,
+     "detail": "exit 0: syntax ok: 2 file(s)"
+    },
+    {
+     "name": "test",
+     "ok": true,
+     "detail": "tests/proposal-engineering.test.ts, tests/development-loop.test.ts, tests/live-notifications.test.ts, tests/terminal-status.test.ts — 56 passed, 0 failed (exit 0)"
+    },
+    {
+     "name": "typecheck",
+     "ok": true,
+     "detail": "exit 0 in 40s"
+    }
+   ],
+   "workspaceId": "ws-13d0e925-b4f2-4d84-a9f0--mw3yf9z2",
+   "agent": "Anthropic/claude-opus-5-5",
+   "plan": "Add an exported TERMINAL_STATUSES list and an isTerminalStatus(status) predicate to ImprovementQueue.ts, next to the existing PENDING_APPROVAL_STATUSES and RUNNING_STATUSES. It returns true only for Integrated, Recorded, Rejected and Rolled Back. No existing caller is changed (the panel, open() and hasOpenSimilar() keep their current behaviour), as the proposal requires. A new node:test file checks every status against a Record<ImprovementStatus, boolean> table, so a newly added status also fails typecheck until its terminal-ness is decided.",
+   "diff": "--- a/src/core/selfdev/ImprovementQueue.ts\n+++ b/src/core/selfdev/ImprovementQueue.ts\n@@ -82,6 +82,13 @@\n export const PENDING_APPROVAL_STATUSES: ImprovementStatus[] = [\"Detected\", \"Analyzing\", \"Proposed\"];\n /** Statuses that mean a run is in flight right now. */\n export const RUNNING_STATUSES: ImprovementStatus[] = [\"In Development\", \"Testing\", \"Evaluation\", \"Applying\"];\n+/** Statuses that mean a proposal is finished, one way or another (not \"active\"). */\n+export const TERMINAL_STATUSES: readonly ImprovementStatus[] = [\"Integrated\", \"Recorded\", \"Rejected\", \"Rolled Back\"];\n+\n+/** The single definition of a finished proposal. */\n+export function isTerminalStatus(status: ImprovementStatus): boolean {\n+  return TERMINAL_STATUSES.includes(status);\n+}\n \n /** Why a proposal is Blocked, and what unblocks it. */\n export interface ProposalBlock {\n--- a/tests/terminal-status.test.ts\n+++ b/tests/terminal-status.test.ts\n@@ -0,0 +1,43 @@\n+import { test } from \"node:test\";\n+import assert from \"node:assert/strict\";\n+import {\n+  IMPROVEMENT_STATUSES,\n+  TERMINAL_STATUSES,\n+  isTerminalStatus,\n+  type ImprovementStatus,\n+} from \"../src/core/selfdev/ImprovementQueue\";\n+\n+// Exhaustive: adding a status without deciding here fails typecheck.\n+const EXPECTED: Record<ImprovementStatus, boolean> = {\n+  Detected: false,\n+  Analyzing: false,\n+  Proposed: false,\n+  Approved: false,\n+  \"In Development\": false,\n+  Testing: false,\n+  Evaluation: false,\n+  Ready: false,\n+  Applying: false,\n+  Integrated: true,\n+  Recorded: true,\n+  Failed: false,\n+  Blocked: false,\n+  Rejected: true,\n+  \"Rolled Back\": true,\n+};\n+\n+test(\"isTerminalStatus is true exactly for Integrated, Recorded, Rejected and Rolled Back\", () => {\n+  for (const status of IMPROVEMENT_STATUSES) {\n+    assert.equal(isTerminalStatus(status), EXPECTED[status], `status ${status}`);\n+  }\n+});\n+\n+test(\"every status is covered and TERMINAL_STATUSES matches the predicate\", () => {\n+  assert.deepEqual([...IMPROVEMENT_STATUSES].sort(), (Object.keys(EXPECTED) as ImprovementStatus[]).sort());\n+  assert.deepEqual(\n+    [...TERMINAL_STATUSES].sort(),\n+    IMPROVEMENT_STATUSES.filter((status) => isTerminalStatus(status)).sort(),\n+  );\n+  assert.equal(TERMINAL_STATUSES.length, 4);\n+});\n+",
+   "tests": [
+    "tests/proposal-engineering.test.ts",
+    "tests/development-loop.test.ts",
+    "tests/live-notifications.test.ts",
+    "tests/terminal-status.test.ts"
+   ],
+   "finished": 1793907965922,
+   "outcome": "Ready"
+  },
+  {
+   "executionId": "exec-mw3yht5j-y2te",
+   "kind": "apply",
+   "started": 1793907981271,
+   "agent": "Anthropic/claude-opus-5-5",
+   "plan": "Add an exported TERMINAL_STATUSES list and an isTerminalStatus(status) predicate to ImprovementQueue.ts, next to the existing PENDING_APPROVAL_STATUSES and RUNNING_STATUSES. It returns true only for Integrated, Recorded, Rejected and Rolled Back. No existing caller is changed (the panel, open() and hasOpenSimilar() keep their current behaviour), as the proposal requires. A new node:test file checks every status against a Record<ImprovementStatus, boolean> table, so a newly added status also fails typecheck until its terminal-ness is decided.",
+   "filesInspected": [
+    "src/core/selfdev/ImprovementQueue.ts",
+    "src/app/scene/genesis/GenesisNotificationsPanel.tsx",
+    "src/core/selfdev/ProposalEngineer.ts",
+    "src/core/selfdev/SelfDevelopmentLoop.ts"
+   ],
+   "filesChanged": [],
+   "diff": "--- a/src/core/selfdev/ImprovementQueue.ts\n+++ b/src/core/selfdev/ImprovementQueue.ts\n@@ -82,6 +82,13 @@\n export const PENDING_APPROVAL_STATUSES: ImprovementStatus[] = [\"Detected\", \"Analyzing\", \"Proposed\"];\n /** Statuses that mean a run is in flight right now. */\n export const RUNNING_STATUSES: ImprovementStatus[] = [\"In Development\", \"Testing\", \"Evaluation\", \"Applying\"];\n+/** Statuses that mean a proposal is finished, one way or another (not \"active\"). */\n+export const TERMINAL_STATUSES: readonly ImprovementStatus[] = [\"Integrated\", \"Recorded\", \"Rejected\", \"Rolled Back\"];\n+\n+/** The single definition of a finished proposal. */\n+export function isTerminalStatus(status: ImprovementStatus): boolean {\n+  return TERMINAL_STATUSES.includes(status);\n+}\n \n /** Why a proposal is Blocked, and what unblocks it. */\n export interface ProposalBlock {\n--- a/tests/terminal-status.test.ts\n+++ b/tests/terminal-status.test.ts\n@@ -0,0 +1,43 @@\n+import { test } from \"node:test\";\n+import assert from \"node:assert/strict\";\n+import {\n+  IMPROVEMENT_STATUSES,\n+  TERMINAL_STATUSES,\n+  isTerminalStatus,\n+  type ImprovementStatus,\n+} from \"../src/core/selfdev/ImprovementQueue\";\n+\n+// Exhaustive: adding a status without deciding here fails typecheck.\n+const EXPECTED: Record<ImprovementStatus, boolean> = {\n+  Detected: false,\n+  Analyzing: false,\n+  Proposed: false,\n+  Approved: false,\n+  \"In Development\": false,\n+  Testing: false,\n+  Evaluation: false,\n+  Ready: false,\n+  Applying: false,\n+  Integrated: true,\n+  Recorded: true,\n+  Failed: false,\n+  Blocked: false,\n+  Rejected: true,\n+  \"Rolled Back\": true,\n+};\n+\n+test(\"isTerminalStatus is true exactly for Integrated, Recorded, Rejected and Rolled Back\", () => {\n+  for (const status of IMPROVEMENT_STATUSES) {\n+    assert.equal(isTerminalStatus(status), EXPECTED[status], `status ${status}`);\n+  }\n+});\n+\n+test(\"every status is covered and TERMINAL_STATUSES matches the predicate\", () => {\n+  assert.deepEqual([...IMPROVEMENT_STATUSES].sort(), (Object.keys(EXPECTED) as ImprovementStatus[]).sort());\n+  assert.deepEqual(\n+    [...TERMINAL_STATUSES].sort(),\n+    IMPROVEMENT_STATUSES.filter((status) => isTerminalStatus(status)).sort(),\n+  );\n+  assert.equal(TERMINAL_STATUSES.length, 4);\n+});\n+",
+   "workspaceId": "ws-13d0e925-b4f2-4d84-a9f0--mw3yf9z2",
+   "checks": [],
+   "finished": 1793907981272,
+   "outcome": "Blocked",
+   "error": "Changing the real project needs autonomy level 5 (Production); the current level is 3."
+  },
+  {
+   "executionId": "exec-mw3yi0a7-ycmt",
+   "kind": "apply",
+   "started": 1793907990511,
+   "agent": "Anthropic/claude-opus-5-5",
+   "plan": "Add an exported TERMINAL_STATUSES list and an isTerminalStatus(status) predicate to ImprovementQueue.ts, next to the existing PENDING_APPROVAL_STATUSES and RUNNING_STATUSES. It returns true only for Integrated, Recorded, Rejected and Rolled Back. No existing caller is changed (the panel, open() and hasOpenSimilar() keep their current behaviour), as the proposal requires. A new node:test file checks every status against a Record<ImprovementStatus, boolean> table, so a newly added status also fails typecheck until its terminal-ness is decided.",
+   "filesInspected": [
+    "src/core/selfdev/ImprovementQueue.ts",
+    "src/app/scene/genesis/GenesisNotificationsPanel.tsx",
+    "src/core/selfdev/ProposalEngineer.ts",
+    "src/core/selfdev/SelfDevelopmentLoop.ts"
+   ],
+   "filesChanged": [],
+   "diff": "--- a/src/core/selfdev/ImprovementQueue.ts\n+++ b/src/core/selfdev/ImprovementQueue.ts\n@@ -82,6 +82,13 @@\n export const PENDING_APPROVAL_STATUSES: ImprovementStatus[] = [\"Detected\", \"Analyzing\", \"Proposed\"];\n /** Statuses that mean a run is in flight right now. */\n export const RUNNING_STATUSES: ImprovementStatus[] = [\"In Development\", \"Testing\", \"Evaluation\", \"Applying\"];\n+/** Statuses that mean a proposal is finished, one way or another (not \"active\"). */\n+export const TERMINAL_STATUSES: readonly ImprovementStatus[] = [\"Integrated\", \"Recorded\", \"Rejected\", \"Rolled Back\"];\n+\n+/** The single definition of a finished proposal. */\n+export function isTerminalStatus(status: ImprovementStatus): boolean {\n+  return TERMINAL_STATUSES.includes(status);\n+}\n \n /** Why a proposal is Blocked, and what unblocks it. */\n export interface ProposalBlock {\n--- a/tests/terminal-status.test.ts\n+++ b/tests/terminal-status.test.ts\n@@ -0,0 +1,43 @@\n+import { test } from \"node:test\";\n+import assert from \"node:assert/strict\";\n+import {\n+  IMPROVEMENT_STATUSES,\n+  TERMINAL_STATUSES,\n+  isTerminalStatus,\n+  type ImprovementStatus,\n+} from \"../src/core/selfdev/ImprovementQueue\";\n+\n+// Exhaustive: adding a status without deciding here fails typecheck.\n+const EXPECTED: Record<ImprovementStatus, boolean> = {\n+  Detected: false,\n+  Analyzing: false,\n+  Proposed: false,\n+  Approved: false,\n+  \"In Development\": false,\n+  Testing: false,\n+  Evaluation: false,\n+  Ready: false,\n+  Applying: false,\n+  Integrated: true,\n+  Recorded: true,\n+  Failed: false,\n+  Blocked: false,\n+  Rejected: true,\n+  \"Rolled Back\": true,\n+};\n+\n+test(\"isTerminalStatus is true exactly for Integrated, Recorded, Rejected and Rolled Back\", () => {\n+  for (const status of IMPROVEMENT_STATUSES) {\n+    assert.equal(isTerminalStatus(status), EXPECTED[status], `status ${status}`);\n+  }\n+});\n+\n+test(\"every status is covered and TERMINAL_STATUSES matches the predicate\", () => {\n+  assert.deepEqual([...IMPROVEMENT_STATUSES].sort(), (Object.keys(EXPECTED) as ImprovementStatus[]).sort());\n+  assert.deepEqual(\n+    [...TERMINAL_STATUSES].sort(),\n+    IMPROVEMENT_STATUSES.filter((status) => isTerminalStatus(status)).sort(),\n+  );\n+  assert.equal(TERMINAL_STATUSES.length, 4);\n+});\n+",
+   "workspaceId": "ws-13d0e925-b4f2-4d84-a9f0--mw3yf9z2",
+   "checks": [],
+   "finished": 1793907990511,
+   "outcome": "Blocked",
+   "error": "No authenticated session. Applying changes to the real project requires a signed-in Supabase identity; sandbox work does not."
+  }
+ ]
+}
