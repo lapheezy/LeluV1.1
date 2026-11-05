@@ -275,6 +275,8 @@ html[data-lelu-universe="open"] [data-testid="lelu-companion"] { visibility: hid
 /* ---------- managed chat windows (GenesisModuleHost, module chat:<id>) ---------- */
 /* Above the Universe while it is open, so a window carried in from the
    Cosmos stays usable; otherwise they keep the host's own stacking. */
+/* Outside the Universe: above the home (40), below navigation (200). */
+[data-lelu-module-window^="chat:"], [data-lelu-module-backdrop^="chat:"] { z-index: calc(15 + var(--lelu-z, 30)) !important; }
 /* The host's own stacking order (--lelu-z = its zIndex) is kept and lifted
    above the Universe (480) by a constant, so raise/focus still works. */
 html[data-lelu-universe="open"] [data-lelu-module-window^="chat:"],

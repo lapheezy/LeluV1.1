@@ -275,7 +275,9 @@ export default function GenesisInterface() {
 
   // Sync UI state to cognition — panel changes are visible to the cognitive loop
   const openModuleIds = Object.entries(state.modules)
-    .filter(([, m]) => m.presentation !== "closed")
+    // A chat window (chat:<id>) is its own view of a conversation: it must
+    // not summon the GenesisChat surface as a second view of the same chat.
+    .filter(([id, m]) => m.presentation !== "closed" && !id.startsWith("chat:"))
     .map(([id]) => id);
 
   useEffect(() => {
