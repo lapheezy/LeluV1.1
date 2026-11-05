@@ -378,6 +378,23 @@ function isAuthFailure(status: number): boolean {
   return status === 401 || status === 403;
 }
 
+/**
+ * The Anthropic opt-in, enforced HERE as well as in the page.
+ *
+ * ProviderPolicy (src/core/model) turns Anthropic off by default, but only
+ * the page's AnthropicProvider consulted it: the broker still attached the
+ * server's Anthropic key to any same-origin request. A script, an old
+ * client or a future caller could therefore spend Anthropic credit with the
+ * policy "off". Premium escalation is manual: without
+ * LELU_ENABLE_ANTHROPIC=true on the SERVER, the broker refuses.
+ */
+const POLICY_TRUE = new Set(["1", "true", "yes", "on"]);
+function brokerAllows(providerId: string, readEnv: EnvReader): boolean {
+  if (providerId !== "anthropic") return true;
+  const raw = readEnv("LELU_ENABLE_ANTHROPIC");
+  return raw !== undefined && POLICY_TRUE.has(raw.trim().toLowerCase());
+}
+
 export function createModelApi(readEnv: EnvReader) {
   warnAboutPrefixedCredentials(readEnv);
   const limiter = createRateLimiter(rateLimitFromEnv(readEnv));
@@ -404,7 +421,7 @@ export function createModelApi(readEnv: EnvReader) {
       for (const [id, provider] of Object.entries(BROKERED)) {
         // Configured AND not known-rejected. A provider holding a revoked key
         // is not available, and saying otherwise sends every turn through it.
-        status[id] = credentialFor(provider).length > 0 && !unauthorized.has(id);
+        status[id] = credentialFor(provider).length > 0 && !unauthorized.has(id) && brokerAllows(id, readEnv);
       }
       sendJson(res, { ok: true, providers: status });
       return;
@@ -432,6 +449,15 @@ export function createModelApi(readEnv: EnvReader) {
     // attaches the server's credential to what it forwards.
     if (crossOrigin(req)) {
       sendJson(res, { ok: false, error: "Cross-origin broker requests are refused." }, 403);
+      return;
+    }
+
+    if (!brokerAllows(providerId, readEnv)) {
+      sendJson(
+        res,
+        { ok: false, error: "Anthropic is disabled by policy on this server (set LELU_ENABLE_ANTHROPIC=true to opt in)." },
+        403,
+      );
       return;
     }
 

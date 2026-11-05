@@ -421,7 +421,9 @@ async function brokerCall(
 test("the broker passes a valid anthropic-beta header and drops a malformed one", async () => {
   const { sent, restore } = scriptFetch([text("ok")]);
   try {
-    const api = createModelApi((name) => (name === "ANTHROPIC_API_KEY" ? "sk-server" : undefined));
+    // These broker tests exercise Anthropic forwarding, so they opt in: the
+    // broker refuses Anthropic unless LELU_ENABLE_ANTHROPIC is true.
+    const api = createModelApi((name) => (name === "ANTHROPIC_API_KEY" ? "sk-server" : name === "LELU_ENABLE_ANTHROPIC" ? "true" : undefined));
     await brokerCall(api, { "anthropic-beta": SERVER_FALLBACK_BETA, "x-api-key": "sk-page" });
     await brokerCall(api, { "anthropic-beta": "x\r\nx-api-key: sk-page" });
   } finally {
@@ -436,7 +438,7 @@ test("the broker rate-limits a client and says when to come back", async () => {
   const { restore } = scriptFetch([text("ok")]);
   try {
     const api = createModelApi((name) =>
-      name === "ANTHROPIC_API_KEY" ? "sk-server" : name === "LELU_BROKER_RATE_PER_MIN" ? "1" : undefined,
+      name === "ANTHROPIC_API_KEY" ? "sk-server" : name === "LELU_BROKER_RATE_PER_MIN" ? "1" : name === "LELU_ENABLE_ANTHROPIC" ? "true" : undefined,
     );
     assert.equal((await brokerCall(api)).status, 200);
     const limited = await brokerCall(api);
@@ -470,10 +472,42 @@ test("a client that disconnects aborts the upstream request", async () => {
       });
     })) as typeof fetch;
   try {
-    const api = createModelApi(() => "sk-server");
+    const api = createModelApi((name) => (name === "LELU_ENABLE_ANTHROPIC" ? "true" : "sk-server"));
     await brokerCall(api, {}, (fire) => setTimeout(fire, 10));
     await new Promise((resolve) => setTimeout(resolve, 10));
     assert.equal(aborted, true, "the upstream kept running for a client that had gone");
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test("the broker refuses Anthropic unless the server opts in, and status says so", async () => {
+  const calls: string[] = [];
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    calls.push(String(input));
+    return new Response("{}", { status: 200 });
+  }) as typeof fetch;
+  try {
+    // A key is present but the policy is off: no upstream call, a clear 403.
+    const off = createModelApi((name) => (name === "ANTHROPIC_API_KEY" ? "sk-server" : undefined));
+    const refused = await brokerCall(off);
+    assert.equal(refused.status, 403);
+    assert.match(refused.body, /disabled by policy/);
+    assert.equal(calls.length, 0, "no Anthropic request leaves the server while the policy is off");
+
+    let statusHandler: ((req: unknown, res: unknown, next: () => void) => void) | null = null;
+    off.attach({ use: (_path, fn) => (statusHandler = fn as never) });
+    const status = await new Promise<string>((resolve) => {
+      statusHandler!({ method: "GET", url: "/status", headers: {}, on: () => undefined }, {
+        statusCode: 200, setHeader: () => undefined, end: (body?: string) => resolve(body ?? ""), on: () => undefined,
+      }, () => resolve(""));
+    });
+    assert.equal(JSON.parse(status).providers.anthropic, false, "status reports Anthropic unavailable while opted out");
+
+    const on = createModelApi((name) => (name === "ANTHROPIC_API_KEY" ? "sk-server" : name === "LELU_ENABLE_ANTHROPIC" ? "true" : undefined));
+    assert.equal((await brokerCall(on)).status, 200);
+    assert.equal(calls.length, 1);
   } finally {
     globalThis.fetch = realFetch;
   }
