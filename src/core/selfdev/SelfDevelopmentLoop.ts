@@ -585,16 +585,18 @@ export default class SelfDevelopmentLoop {
       if (depth > 6) return [];
       const listing = await workspace.listDir(workspaceId, dir);
       if (!listing.ok) return [];
-      const found: string[] = [];
-      for (const entry of listing.entries) {
-        const path = entry.path.replace(/^\.?\/+/, "");
-        if (entry.type === "dir") {
-          if (!/(^|\/)(node_modules|assets|_deferred)$/.test(path)) found.push(...(await walk(path, accept, depth + 1)));
-        } else if (accept(path)) {
-          found.push(path);
-        }
-      }
-      return found;
+      // Sibling directories are listed concurrently: one request per
+      // directory, sequentially, took over two minutes on the real tree.
+      const nested = await Promise.all(
+        listing.entries.map(async (entry) => {
+          const path = entry.path.replace(/^\.?\/+/, "");
+          if (entry.type === "dir") {
+            return /(^|\/)(node_modules|assets|_deferred)$/.test(path) ? [] : walk(path, accept, depth + 1);
+          }
+          return accept(path) ? [path] : [];
+        }),
+      );
+      return nested.flat();
     };
     return {
       listSources: async () => (await walk("src", (path) => /\.(ts|tsx)$/.test(path) && !path.endsWith(".d.ts"))).sort(),

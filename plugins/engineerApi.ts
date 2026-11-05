@@ -188,12 +188,12 @@ export const ENGINEER_OPERATIONS: Record<string, string> = {
 
 /**
  * Whitelisted commands over caller-named files: a syntax-only parse of
- * changed sources (every lint rule off, so only a parse error fails) and
+ * changed sources (TypeScript parser, syntax diagnostics only) and
  * the relevant test files, instead of the whole 15-minute suite.
  */
 export const TARGETED_OPERATIONS: Record<string, { command: string; pattern: RegExp }> = {
   "syntax-files": {
-    command: "npx oxlint -A all",
+    command: "node scripts/syntax-check.mjs",
     pattern: /^(src|plugins|tests)\/[A-Za-z0-9_./-]+\.(ts|tsx|js|mjs)$/,
   },
   "test-files": {
