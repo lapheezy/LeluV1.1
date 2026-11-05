@@ -1,27 +1,17 @@
 /**
  * LÉLU — Multi-Chat Universe.
  *
- * One owner for the whole screen while open (z-index 480): nothing from the
- * home, the nav or the 3D scene's labels can show through in WORKSPACE mode.
- * Regions are a CSS grid, not stacked fixed layers:
+ * One owner for the whole screen while open (z-index 480, opaque Cosmos
+ * backdrop): nothing from the home, the nav or the 3D scene's labels can
+ * show through. Regions are a CSS grid, not stacked fixed layers:
  *
- *   desktop  [rail] [header + timeline / card grid / carousel]
- *            [universal composer + quick dock]
- *   phone    [header with LÉLU] [card grid] [composer + dock]
+ *   desktop  [rail] [header+timeline / card grid / carousel] [chat window]
+ *            [            quick chat dock                              ]
+ *   phone    [header with LÉLU] [card grid] [chat window sheet] [dock]
  *
- * Windows are NOT this file's. Opening a chat opens `chat:<id>` in the one
- * window host (GenesisModuleHost → GenesisWindowFrame), so a chat window is
- * the same window as every application's: draggable, resizable, stackable,
- * minimizable, and it survives closing the Universe. The open set is read
- * from the module state, so there is exactly one source of truth.
- *
- * Cosmos mode (homeStore.cosmosMode, single owner — also toggled from the
- * Worlds sheet):
- *
- *   workspace  the opaque Cosmos room; the scene's frameloop is paused
- *              through the existing budget while this covers it
- *   floating   the live scene shows through: only the cards and windows
- *              are solid, and the scene keeps rendering
+ * Windows: several chats can be open (tabs in the window head); one is
+ * focused and is the composer's target. Minimise keeps it in the dock,
+ * close drops it from the open set, maximise fills the main region.
  *
  * Sending reuses GenesisChat's send path (`lelu-universe-send`) after the
  * target is made the active conversation, so streaming, tools, queueing,
@@ -32,17 +22,20 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import * as Icons from "lucide-react";
-import { chatWindowId, conversationIdOf, useGenesis } from "../../GenesisCore";
+import { isChatWindowId, useGenesis } from "../../GenesisCore";
+import { chatWindowId } from "./ChatWindow";
 import MultiChatStore, { type ChatConversation } from "../../../../../core/multichat/MultiChatStore";
+import { currentActivity, subscribeActivity } from "../activityRecorder";
 import { goHome } from "../../home/homeActions";
-import HomeStore from "../../home/homeStore";
-import { useHomeStore } from "../../home/useHomeLive";
 import { getSceneRenderBudget } from "../../SceneRenderBudget";
 import {
   artFor,
   gridOrder,
   previewOf,
   loadAppearance,
+  loadCosmosMode,
+  saveCosmosMode,
+  type CosmosMode,
   recentOrder,
   relativeTime,
   saveAppearance,
@@ -68,6 +61,13 @@ function useArchived() {
   const snapshot = useCallback(() => store.listArchived().map((c) => `${c.id}:${c.updatedAt}`).join("|"), [store]);
   const key = useSyncExternalStore(subscribe, snapshot, snapshot);
   return useMemo(() => store.listArchived(), [key]); // eslint-disable-line react-hooks/exhaustive-deps
+}
+
+/** The turn running in a chat, from the same record the chat panel shows. */
+function useLiveActivity(conversationId: string | null) {
+  const subscribe = useCallback((cb: () => void) => subscribeActivity(cb), []);
+  const snapshot = useCallback(() => currentActivity(conversationId), [conversationId]);
+  return useSyncExternalStore(subscribe, snapshot, snapshot);
 }
 
 function Ico({ name, size = 18 }: { name: string; size?: number }) {
@@ -109,9 +109,7 @@ const RAIL: Array<{ id: string; label: string; icon: string }> = [
 
 export default function ChatUniverse() {
   const genesis = useGenesis();
-  const { conversations, activeConversationId, modules } = genesis.state;
-  const home = useHomeStore();
-  const mode = home.cosmosMode;
+  const { conversations, activeConversationId } = genesis.state;
   const archived = useArchived();
   const [open, setOpen] = useState(false);
   const [range, setRange] = useState<TimelineRange>("24h");
@@ -119,8 +117,9 @@ export default function ChatUniverse() {
   const [view, setView] = useState<"grid" | "carousel">("grid");
   const [railOpen, setRailOpen] = useState(false);
   const [draft, setDraft] = useState("");
+  const [cosmosMode, setCosmosModeState] = useState<CosmosMode>(() => loadCosmosMode());
+  const setCosmosMode = (mode: CosmosMode) => { setCosmosModeState(mode); saveCosmosMode(mode); };
   const [appearance, setAppearance] = useState<Record<string, ChatAppearance>>(() => loadAppearance());
-  const [hydrated, setHydrated] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -139,108 +138,49 @@ export default function ChatUniverse() {
     return () => { delete root.dataset.leluUniverse; };
   }, [open]);
 
-  const byId = useMemo(() => new Map([...conversations, ...archived].map((c) => [c.id, c])), [conversations, archived]);
-
-  /* The open set IS the module set: a chat window is the `chat:<id>` module
-     the host renders, ordered by when it was last touched. */
-  const openIds = useMemo(
-    () =>
-      Object.entries(modules)
-        .filter(([id, m]) => m.presentation !== "closed" && conversationIdOf(id) !== null)
-        .sort(([, a], [, b]) => a.updatedAt - b.updatedAt)
-        .map(([id]) => conversationIdOf(id))
-        .filter((id): id is string => id !== null && byId.has(id)),
-    [modules, byId],
-  );
-  const focusedId = openIds.length ? openIds[openIds.length - 1] : null;
-  const focused = focusedId ? byId.get(focusedId) ?? null : null;
-
-  const openKey = openIds.join("|");
-  const geometryKey = useMemo(
-    () =>
-      Object.entries(modules)
-        .filter(([id]) => conversationIdOf(id) !== null)
-        .map(([id, m]) => `${id}:${m.position?.x ?? ""},${m.position?.y ?? ""},${m.size?.width ?? ""},${m.size?.height ?? ""}`)
-        .join("|"),
-    [modules],
-  );
-
-  /* Reopen the chats the last session left here. Waits for the store to
-     hydrate — an empty conversation list would otherwise read as "the user
-     closed everything" and forget them. */
-  useEffect(() => {
-    if (hydrated) return;
-    if (conversations.length === 0) return;
-    const saved = HomeStore.get().universe;
-    const width = Math.max(1, window.innerWidth);
-    const height = Math.max(1, window.innerHeight);
-    for (const conversationId of saved.open) {
-      if (!conversations.some((c) => c.id === conversationId)) continue;
-      const moduleId = chatWindowId(conversationId);
-      genesis.openModule(moduleId);
-      genesis.setModulePresentation(moduleId, "inline");
-      const rect = saved.geometry[conversationId];
-      if (!rect) continue;
-      genesis.moveModule(moduleId, { x: Math.round(rect.x * width), y: Math.round(rect.y * height) });
-      genesis.resizeModule(moduleId, { width: Math.round(rect.width * width), height: Math.round(rect.height * height) });
-    }
-    setHydrated(true);
-    // Runs once, after hydration; `genesis` changes identity with every state.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversations, hydrated]);
-
-  /* Persist the open set (homeStore owns it, so windows survive a reload). */
-  useEffect(() => {
-    if (!hydrated) return;
-    HomeStore.rememberUniverseOpen(openKey ? openKey.split("|") : []);
-  }, [hydrated, openKey]);
-
-  /* Persist geometry NORMALISED to the viewport, so the arrangement survives
-     a reload on a different screen. */
-  useEffect(() => {
-    if (!hydrated) return;
-    const width = Math.max(1, window.innerWidth);
-    const height = Math.max(1, window.innerHeight);
-    for (const [id, mod] of Object.entries(modules)) {
-      const conversationId = conversationIdOf(id);
-      if (!conversationId || !mod.position || !mod.size) continue;
-      HomeStore.rememberUniverseGeometry(conversationId, {
-        x: mod.position.x / width,
-        y: mod.position.y / height,
-        width: mod.size.width / width,
-        height: mod.size.height / height,
-      });
-    }
-    // `modules` is read here; `geometryKey` is what actually changed.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, geometryKey]);
-
-  /* Workspace mode covers the scene with an opaque room: tell the existing
-     render budget, so the canvas stops drawing (frameloop "never") instead
-     of painting a cosmos nobody can see. Floating mode leaves it live. */
+  // Workspace mode is an opaque surface: the existing render budget pauses
+  // the Cosmos scene (frameloop "never") while it is up. Floating mode keeps
+  // the scene running behind the windows. Nothing else changes on a switch.
   useEffect(() => {
     const budget = getSceneRenderBudget();
-    budget.setOccluded("chat-universe", open && mode === "workspace");
+    budget.setOccluded("chat-universe", open && cosmosMode === "workspace");
     return () => budget.setOccluded("chat-universe", false);
-  }, [open, mode]);
+  }, [open, cosmosMode]);
+
+  const byId = useMemo(() => new Map([...conversations, ...archived].map((c) => [c.id, c])), [conversations, archived]);
+  // Open chats are the window system's `chat:*` modules — one source of truth.
+  const chatModules = Object.entries(genesis.state.modules)
+    .filter(([key, mod]) => isChatWindowId(key) && mod.presentation !== "closed")
+    .sort((a, b) => (a[1].zIndex ?? 0) - (b[1].zIndex ?? 0));
+  const openIds = chatModules.map(([key]) => key.slice("chat:".length)).filter((id) => byId.has(id));
+  const visibleIds = chatModules.filter(([, mod]) => mod.presentation !== "minimized").map(([key]) => key.slice("chat:".length));
+  const focusedId = visibleIds.length ? visibleIds[visibleIds.length - 1] : null;
+  const focused = focusedId ? byId.get(focusedId) ?? null : null;
+  // The front-most chat window is the universal composer's target, however
+  // it came to the front (title bar, body, dock, restore).
+  useEffect(() => {
+    if (focusedId && focusedId !== MultiChatStore.getInstance().getActiveId()) genesis.switchConversation(focusedId);
+  }, [focusedId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const liveActivity = useLiveActivity(focused?.id ?? null);
+
+
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (openKey) genesis.closeModule(chatWindowId(openKey.split("|").pop()!));
-      else setOpen(false);
+      setOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, openKey, genesis]);
+  }, [open]);
 
   const list = filter === "archived" ? archived : filter === "active" ? conversations.filter((c) => c.processing || c.unread > 0) : conversations;
   const grid = useMemo(() => gridOrder(list), [list]);
   const recent = useMemo(() => recentOrder(conversations), [conversations]);
   const markers = useMemo(() => timelineMarkers(conversations, range), [conversations, range]);
   const activeCount = conversations.filter((c) => c.processing).length;
-  const presence = presenceOf(activeCount > 0 || Boolean(focused?.processing), null);
+  const presence = presenceOf(activeCount > 0, liveActivity?.status ?? null);
 
   if (!open) return null;
 
@@ -248,17 +188,10 @@ export default function ChatUniverse() {
     if (archived.some((c) => c.id === id)) genesis.unarchiveConversation(id);
     if (id !== activeConversationId) genesis.switchConversation(id);
     MultiChatStore.getInstance().markRead(id);
-    // Present it as a WINDOW, not a full-screen takeover: on a phone that is
-    // the docked sheet above the composer, so the grid and dock stay usable
-    // and a second chat can be opened without going back first.
-    const moduleId = chatWindowId(id);
-    genesis.openModule(moduleId);
-    genesis.setModulePresentation(moduleId, "inline");
-    genesis.raiseModule(moduleId);
-    requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
-  };
-  const minimizeWindows = () => {
-    for (const id of openIds) genesis.minimizeModule(chatWindowId(id));
+    // Open (or bring forward) the managed window — a view of this chat,
+    // never a second instance of it.
+    genesis.openModule(chatWindowId(id));
+    genesis.raiseModule?.(chatWindowId(id));
   };
   const newChat = () => {
     const id = genesis.createConversation();
@@ -280,9 +213,9 @@ export default function ChatUniverse() {
     saveAppearance(next);
   };
   const onFile = (file: File | undefined) => {
-    if (!file || !focused) return;
+    if (!file || !target) return;
     const reader = new FileReader();
-    reader.onload = () => typeof reader.result === "string" && setImage(focused.id, reader.result);
+    reader.onload = () => typeof reader.result === "string" && setImage(target.id, reader.result);
     reader.readAsDataURL(file);
   };
   const railGo = (id: string) => {
@@ -299,7 +232,6 @@ export default function ChatUniverse() {
     openChat(next.id);
     carouselRef.current?.querySelector(`[data-id="${next.id}"]`)?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   };
-  const toggleMode = () => HomeStore.setCosmosMode(mode === "floating" ? "workspace" : "floating");
 
   const target = focused ?? byId.get(activeConversationId) ?? null;
   const card = (p: ChatPreview) => {
@@ -323,7 +255,7 @@ export default function ChatUniverse() {
   };
 
   return (
-    <div className="lcu" data-cosmos={mode} data-rail={railOpen} role="dialog" aria-label="Chat Universe">
+    <div className="lcu" data-cosmos={cosmosMode} data-window="closed" data-rail={railOpen} role="dialog" aria-label="Chat Universe">
       <div className="lcu-cosmos" aria-hidden="true" style={{ backgroundImage: `url("${ART_BASE}galaxy.webp")` }} />
 
       {/* ---------- navigation rail (permanent on desktop, drawer on phone) ---------- */}
@@ -366,21 +298,22 @@ export default function ChatUniverse() {
             </p>
           </div>
           <div className="lcu-head-tools">
-            <button
-              type="button"
-              className="lcu-icon lcu-mode"
-              data-mode={mode}
-              onClick={toggleMode}
-              aria-pressed={mode === "floating"}
-              aria-label={mode === "floating" ? "Float the windows over the Cosmos" : "Workspace mode: the Cosmos behind the windows"}
-              title={mode === "floating" ? "Floating over the live Cosmos — switch to the workspace" : "Workspace — float the windows over the live Cosmos"}
-            >
-              {mode === "floating" ? <Icons.Orbit size={18} /> : <Icons.Layers size={18} />}
-            </button>
             <div className="lcu-seg" role="group" aria-label="Layout">
               <button type="button" data-on={view === "grid"} onClick={() => setView("grid")} aria-label="Grid view"><Icons.LayoutGrid size={17} /></button>
               <button type="button" data-on={view === "carousel"} onClick={() => setView("carousel")} aria-label="Carousel view"><Icons.GalleryHorizontal size={17} /></button>
             </div>
+            <button
+              type="button"
+              className="lcu-icon lcu-mode"
+              data-mode={cosmosMode}
+              onClick={() => setCosmosMode(cosmosMode === "workspace" ? "floating" : "workspace")}
+              aria-label={cosmosMode === "workspace" ? "Float over the live Cosmos" : "Clean Workspace Universe"}
+              title={cosmosMode === "workspace" ? "Floating Cosmos" : "Workspace Universe"}
+            >
+              {cosmosMode === "workspace" ? <Icons.Orbit size={19} /> : <Icons.PanelsTopLeft size={19} />}
+            </button>
+            <button type="button" className="lcu-icon" onClick={() => fileRef.current?.click()} disabled={!target} aria-label="Change the selected chat's thumbnail"><Icons.ImagePlus size={18} /></button>
+            <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => onFile(e.target.files?.[0])} />
             <button type="button" className="lcu-icon" onClick={newChat} aria-label="New chat"><Icons.Plus size={19} /></button>
             <button type="button" className="lcu-icon" onClick={() => setOpen(false)} aria-label="Close Chat Universe"><Icons.X size={19} /></button>
           </div>
@@ -448,6 +381,8 @@ export default function ChatUniverse() {
         {grid.length === 0 ? <p className="lcu-empty">{filter === "archived" ? "No archived chats." : "No chats here yet."}</p> : null}
       </section>
 
+      {/* Chat windows are GenesisModuleHost windows (chat:<id>), drawn above the Universe. */}
+
       {/* ---------- universal composer + quick dock ---------- */}
       <footer className="lcu-bottom">
         <div className="lcu-composer">
@@ -481,12 +416,6 @@ export default function ChatUniverse() {
             ) : null;
           })}
         </nav>
-        <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => onFile(e.target.files?.[0])} />
-        {openIds.length ? (
-          <button type="button" className="lcu-minimize" onClick={minimizeWindows} aria-label="Minimize the open chat windows">
-            <Icons.Minus size={15} /> {openIds.length} window{openIds.length === 1 ? "" : "s"} — minimize
-          </button>
-        ) : null}
       </footer>
     </div>
   );

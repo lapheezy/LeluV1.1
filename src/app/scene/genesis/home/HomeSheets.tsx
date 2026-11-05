@@ -15,7 +15,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { conversationIdOf, useGenesis, type GenesisPanel, type ModuleState } from "../GenesisCore";
+import { useGenesis, type GenesisPanel, type ModuleState } from "../GenesisCore";
 import { HomeIcon } from "./CosmosHome";
 import { APPS, GROUPS, appFor, type AppGroup } from "./homeCatalog";
 import { goHome, launch, restoreLayout } from "./homeActions";
@@ -131,26 +131,21 @@ export function WindowsSheet({ onClose }: { onClose: () => void }) {
           ) : null}
           {open.map(([id, mod]) => {
             const app = appFor(id);
-            const conversationId = conversationIdOf(id);
-            const title = conversationId
-              ? genesis.state.conversations.find((c) => c.id === conversationId)?.title ?? "Chat"
-              : app?.label ?? id;
-            const icon = conversationId ? "MessageCircle" : app?.icon ?? "AppWindow";
             return (
               <li key={id}>
                 <span className="lsh-app-icon">
-                  <HomeIcon name={icon} size={20} />
+                  <HomeIcon name={app?.icon ?? "AppWindow"} size={20} />
                 </span>
-                <span className="lsh-list-name">{title}</span>
+                <span className="lsh-list-name">{app?.label ?? id}</span>
                 <small>{stateLabel(mod)}</small>
                 <span className="lsh-list-actions">
-                  <button type="button" aria-label={`Bring ${title} forward`} title="Bring forward" onClick={() => { genesis.setModulePresentation(id, "inline"); genesis.raiseModule(id); onClose(); }}>
+                  <button type="button" aria-label={`Bring ${app?.label ?? id} forward`} title="Bring forward" onClick={() => { genesis.setModulePresentation(id, "inline"); genesis.raiseModule(id); onClose(); }}>
                     <HomeIcon name="Maximize2" size={15} />
                   </button>
-                  <button type="button" aria-label={`Minimize ${title}`} title="Minimize" onClick={() => genesis.minimizeModule(id)}>
+                  <button type="button" aria-label={`Minimize ${app?.label ?? id}`} title="Minimize" onClick={() => genesis.minimizeModule(id)}>
                     <HomeIcon name="Minimize2" size={15} />
                   </button>
-                  <button type="button" aria-label={`Close ${title}`} title="Close" onClick={() => genesis.closeModule(id)}>
+                  <button type="button" aria-label={`Close ${app?.label ?? id}`} title="Close" onClick={() => genesis.closeModule(id)}>
                     <HomeIcon name="X" size={15} />
                   </button>
                 </span>
@@ -189,7 +184,6 @@ export function WorldsSheet({
   onToggleSelfExploration: () => void;
 }) {
   const genesis = useGenesis();
-  const home = useHomeStore();
   const scene = genesis.state.activeScene;
   const worlds: Array<{ id: string; label: string; hint: string; icon: string; on: boolean; go: () => void }> = [
     { id: "cosmos", label: "Cosmos", hint: "Her living universe — home", icon: "Orbit", on: scene !== "genesisv2", go: () => { if (scene === "genesisv2") genesis.openPanel("none"); HomeStore.setImmersive(false); } },
@@ -213,14 +207,6 @@ export function WorldsSheet({
         ))}
       </ul>
       <div className="lsh-actions">
-        <button
-          type="button"
-          role="switch"
-          aria-checked={home.cosmosMode === "floating"}
-          onClick={() => HomeStore.setCosmosMode(home.cosmosMode === "floating" ? "workspace" : "floating")}
-        >
-          <HomeIcon name="Orbit" size={16} /> Float the windows over the live Cosmos: {home.cosmosMode === "floating" ? "on" : "off"}
-        </button>
         <button type="button" role="switch" aria-checked={selfExploration} onClick={onToggleSelfExploration}>
           <HomeIcon name="Sparkles" size={16} /> Let her explore the Cosmos on her own: {selfExploration ? "on" : "off"}
         </button>

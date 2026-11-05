@@ -24,7 +24,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { chatFillsScreen } from "./chat/chatLayout";
 import { InModuleWindow } from "./moduleWindowContext";
-import { CHAT_WINDOW_Z, conversationIdOf, useGenesisActions, useGenesisState, type ModuleState } from "./GenesisCore";
+import { CHAT_WINDOW_PREFIX, isChatWindowId, useGenesisActions, useGenesisState, type GenesisPanel, type ModuleState } from "./GenesisCore";
 import { MODULE_CATALOG } from "./GenesisDock";
 import { genesisTheme } from "./GenesisTheme";
 
@@ -37,14 +37,10 @@ const STATUS_DOT: Record<string, string> = {
   failed: "#f87171",
 };
 
-export type ModuleRenderer = (props: { onClose: () => void }) => ReactNode;
-
-/**
- * Every environment's renderer, plus the chat windows: a `chat:<id>` module
- * is resolved by the same host (see GenesisInterface), so the Chat Universe
- * opens real module windows instead of a window system of its own.
- */
-export type ModuleRenderers = Record<string, ModuleRenderer | undefined>;
+export type ModuleRenderers = Partial<Record<GenesisPanel, (props: { onClose: () => void; id?: string }) => ReactNode>> & {
+  /** Renders every `chat:<conversationId>` window (one renderer, many windows). */
+  chatWindow?: (props: { onClose: () => void; id: string }) => ReactNode;
+};
 
 const CHROME_HEIGHT = 40;
 // Large enough for a finger: the resize grip must be reachable on iPhone.
@@ -53,9 +49,9 @@ const MIN_WIDTH = 280;
 const MIN_HEIGHT = 200;
 
 interface FloatingWindowProps {
-  id: string;
+  id: GenesisPanel;
   mod: ModuleState;
-  render: (props: { onClose: () => void }) => ReactNode;
+  render: (props: { onClose: () => void; id?: string }) => ReactNode;
   label: string;
   glyph: string;
   cascadeIndex: number;
@@ -139,12 +135,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       ? Math.max(MOBILE_TOP_RESERVE, Math.min(rawPosition.y, Math.max(MOBILE_TOP_RESERVE, viewportHeight - MOBILE_BOTTOM_RESERVE - size.height)))
       : rawPosition.y,
   };
-  const chatWindow = conversationIdOf(id) !== null;
-  // A chat window never sinks below the Universe overlay, not even when an
-  // older session persisted a panel-level z-index for it.
-  const zIndex = chatWindow
-    ? Math.max(CHAT_WINDOW_Z, mod.zIndex ?? CHAT_WINDOW_Z)
-    : mod.zIndex ?? 30 + cascadeIndex;
+  const zIndex = mod.zIndex ?? 30 + cascadeIndex;
 
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; baseX: number; baseY: number } | null>(null);
   const resizeRef = useRef<{ pointerId: number; startX: number; startY: number; baseW: number; baseH: number } | null>(null);
@@ -297,6 +288,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
           position: "fixed",
           inset: 0,
           zIndex,
+        ["--lelu-z" as string]: zIndex,
+          ["--lelu-z" as string]: zIndex,
           background: "rgba(2,6,23,0.55)",
           pointerEvents: "auto",
           display: "flex",
@@ -326,7 +319,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
           {chrome}
           <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex" }}>
             <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              <InModuleWindow.Provider value={true}>{render({ onClose: () => closeModule(id) })}</InModuleWindow.Provider>
+              <InModuleWindow.Provider value={true}>{render({ onClose: () => closeModule(id), id })}</InModuleWindow.Provider>
             </div>
           </div>
         </div>
@@ -349,6 +342,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
         width: Math.min(size.width, viewportWidth),
         height: size.height,
         zIndex,
+        ["--lelu-z" as string]: zIndex,
         pointerEvents: "auto",
         display: "flex",
         flexDirection: "column",
@@ -363,7 +357,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
     >
       {chrome}
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden" }}>
-        <InModuleWindow.Provider value={true}>{render({ onClose: () => closeModule(id) })}</InModuleWindow.Provider>
+        <InModuleWindow.Provider value={true}>{render({ onClose: () => closeModule(id), id })}</InModuleWindow.Provider>
       </div>
       {/* Resize handle — bottom-right corner */}
       <div
@@ -388,23 +382,13 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
   );
 }
 
-export default function GenesisModuleHost({
-  renderers,
-  resolve,
-  labelFor,
-}: {
-  renderers: ModuleRenderers;
-  /** Renderer for ids a static map cannot enumerate (`chat:<id>`). */
-  resolve?: (id: string) => ModuleRenderer | undefined;
-  /** Live label for a dynamic id (a conversation's own title). */
-  labelFor?: (id: string) => string | undefined;
-}) {
+export default function GenesisModuleHost({ renderers }: { renderers: ModuleRenderers }) {
   const { state } = useGenesisState();
   const { expandModule } = useGenesisActions();
 
   if (state.minimized) return null;
 
-  const entries = Object.entries(state.modules) as Array<[string, ModuleState]>;
+  const entries = Object.entries(state.modules) as Array<[GenesisPanel, ModuleState]>;
   // Legacy detached state is still restored as the same inline module window;
   // it never gets a tab or an independent application surface.
   const floating = entries.filter(([, m]) =>
@@ -412,13 +396,20 @@ export default function GenesisModuleHost({
   );
   const minimized = entries.filter(([, m]) => m.presentation === "minimized");
 
-  const labelOf = (id: string) => labelFor?.(id) ?? MODULE_CATALOG.find((m) => m.id === id)?.label ?? id;
-  const glyphOf = (id: string) => MODULE_CATALOG.find((m) => m.id === id)?.glyph ?? (conversationIdOf(id) ? "◍" : "◈");
+  const chatTitle = (id: string) =>
+    state.conversations.find((c) => c.id === id.slice(CHAT_WINDOW_PREFIX.length))?.title ?? "Chat";
+  const labelOf = (id: string) =>
+    isChatWindowId(id) ? chatTitle(id) : MODULE_CATALOG.find((m) => m.id === id)?.label ?? id;
+  const glyphOf = (id: string) => (isChatWindowId(id) ? "💬" : MODULE_CATALOG.find((m) => m.id === id)?.glyph ?? "◈");
 
   return (
     <>
       {floating.map(([id, mod], index) => {
-        const render = renderers[id] ?? resolve?.(id);
+        const render = isChatWindowId(id)
+          ? renderers.chatWindow && state.conversations.some((c) => c.id === id.slice(CHAT_WINDOW_PREFIX.length))
+            ? (props: { onClose: () => void; id?: string }) => renderers.chatWindow!({ onClose: props.onClose, id })
+            : undefined
+          : renderers[id];
         if (!render) return null;
         return (
           <FloatingModuleWindow
