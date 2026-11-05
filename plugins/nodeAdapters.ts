@@ -76,6 +76,11 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
     return dir;
   }
 
+  /** Where applyWorkspace records the real files it is about to overwrite. */
+  function applyBackupPath(workspaceId: string): string {
+    return `${workspaceDir(workspaceId)}.apply-backup.json`;
+  }
+
   /** Resolve a path inside one workspace copy; never outside it. */
   function resolveInWorkspace(workspaceId: string, targetPath: string): string {
     const root = workspaceDir(workspaceId);
@@ -399,6 +404,16 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
         );
       }
 
+      // What the real project held before this apply, so a failed
+      // post-apply verification can put it back (rollbackApply). A file
+      // the apply creates is recorded as null and removed on rollback.
+      const backup: Record<string, string | null> = {};
+      for (const change of selected) {
+        const target = path.join(workspaceRoot, change.path);
+        backup[change.path] = existsSync(target) ? readFileSync(target, "utf8") : null;
+      }
+      writeFileSync(applyBackupPath(workspaceId), JSON.stringify({ createdAt: Date.now(), files: backup }));
+
       const applied: string[] = [];
       for (const change of selected) {
         const target = path.join(workspaceRoot, change.path);
@@ -412,6 +427,33 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
         applied.push(change.path);
       }
       return applied;
+    },
+
+    /**
+     * Undo the last apply of this workspace: restore every file it wrote to
+     * the content recorded just before writing, and remove files it created.
+     * Only files named in the backup are touched.
+     */
+    async rollbackApply(workspaceId) {
+      const backupFile = applyBackupPath(workspaceId);
+      if (!existsSync(backupFile)) {
+        throw new Error(`No apply to roll back for workspace "${workspaceId}".`);
+      }
+      const { files } = JSON.parse(readFileSync(backupFile, "utf8")) as { files: Record<string, string | null> };
+      const restored: string[] = [];
+      for (const [relative, content] of Object.entries(files)) {
+        const target = path.resolve(workspaceRoot, relative);
+        if (!target.startsWith(workspaceRoot + path.sep)) continue;
+        if (content === null) {
+          rmSync(target, { force: true });
+        } else {
+          mkdirSync(path.dirname(target), { recursive: true });
+          writeFileSync(target, content);
+        }
+        restored.push(relative);
+      }
+      rmSync(backupFile, { force: true });
+      return restored;
     },
 
     /**

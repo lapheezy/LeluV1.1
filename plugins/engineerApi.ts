@@ -112,6 +112,8 @@ export interface EngineerAdapter {
   diffWorkspace: (workspaceId: string, includePatch?: boolean) => Promise<EngineerDiffEntry[]>;
   /** Copy the named changed files from the workspace back to the source. */
   applyWorkspace: (workspaceId: string, paths: string[]) => Promise<string[]>;
+  /** Restore what the last applyWorkspace overwrote. Optional: adapters without it answer 501. */
+  rollbackApply?: (workspaceId: string) => Promise<string[]>;
 
   /* ---- version control on the REAL project ---- */
 
@@ -182,6 +184,22 @@ export const ENGINEER_OPERATIONS: Record<string, string> = {
   // project's own suite cannot tell LÉLU whether her change broke it.
   test: "npm test",
   inspect: "node --version && bun --version && pwd",
+};
+
+/**
+ * Whitelisted commands over caller-named files: a syntax-only parse of
+ * changed sources (every lint rule off, so only a parse error fails) and
+ * the relevant test files, instead of the whole 15-minute suite.
+ */
+export const TARGETED_OPERATIONS: Record<string, { command: string; pattern: RegExp }> = {
+  "syntax-files": {
+    command: "npx oxlint -A all",
+    pattern: /^(src|plugins|tests)\/[A-Za-z0-9_./-]+\.(ts|tsx|js|mjs)$/,
+  },
+  "test-files": {
+    command: "npx tsx --tsconfig tsconfig.app.json --test --test-concurrency=1",
+    pattern: /^tests\/[A-Za-z0-9_.-]+\.test\.tsx?$/,
+  },
 };
 
 const DEFAULT_TIMEOUT_MS = 180_000;
@@ -444,6 +462,27 @@ export function createEngineerApi(adapter: EngineerAdapter): {
             let command = "";
             if (operation && ENGINEER_OPERATIONS[operation]) {
               command = ENGINEER_OPERATIONS[operation];
+            } else if (operation && TARGETED_OPERATIONS[operation]) {
+              // A fixed command over files the caller names, each checked
+              // against a strict pattern so nothing but a project-relative
+              // source or test path can reach the command line.
+              const files = Array.isArray(payload.files) ? (payload.files as unknown[]).map(String) : [];
+              const spec = TARGETED_OPERATIONS[operation];
+              const bad = files.filter((file) => !spec.pattern.test(file) || file.split("/").includes(".."));
+              if (files.length === 0 || files.length > 20 || bad.length > 0) {
+                sendJson(
+                  res,
+                  {
+                    ok: false,
+                    error:
+                      `${operation} needs 1–20 files matching ${spec.pattern}` +
+                      (bad.length ? `; refused: ${bad.join(", ")}` : "."),
+                  },
+                  400,
+                );
+                return;
+              }
+              command = `${spec.command} ${files.join(" ")}`;
             } else if (rawCommand && Object.values(ENGINEER_OPERATIONS).includes(rawCommand)) {
               command = rawCommand; // backward compat: exact whitelist match only
             } else {
@@ -640,6 +679,29 @@ export function createEngineerApi(adapter: EngineerAdapter): {
                 workspace: id,
                 applied,
                 appliedBy: who.identity.email ?? who.identity.userId,
+              });
+              return;
+            }
+
+            if (action === "rollback-apply") {
+              const id = safeWorkspaceId(payload.workspace);
+              // Restoring the real project is still a write to it, so it
+              // carries the same identity requirement as apply itself.
+              const who = await verifyRequestIdentity(req);
+              if (!who.ok || !who.identity) {
+                sendJson(res, { ok: false, error: who.reason }, who.status);
+                return;
+              }
+              if (!adapter.rollbackApply) {
+                sendJson(res, { ok: false, error: "This runtime cannot roll back an apply." }, 501);
+                return;
+              }
+              const restored = await adapter.rollbackApply(id);
+              sendJson(res, {
+                ok: true,
+                workspace: id,
+                restored,
+                rolledBackBy: who.identity.email ?? who.identity.userId,
               });
               return;
             }

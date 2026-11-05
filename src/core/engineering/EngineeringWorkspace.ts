@@ -36,6 +36,7 @@ export type WorkspacePhase =
   | "authorized"
   | "applied"
   | "post-apply-failed"
+  | "rolled-back"
   | "committed"
   | "failed";
 
@@ -373,6 +374,50 @@ export default class EngineeringWorkspace {
     return { ok, exitCode: Number(data.status), output, durationMs: Number(data.durationMs ?? 0) };
   }
 
+  /**
+   * A whitelisted check over named files: "syntax-files" parses changed
+   * sources, "test-files" runs the relevant test files. Inside the copy
+   * when a workspace is given, against the real project otherwise.
+   */
+  public async checkFiles(
+    workspaceId: string | null,
+    operation: "syntax-files" | "test-files",
+    files: string[],
+  ): Promise<{ ok: boolean; exitCode: number; output: string; durationMs: number } | { ok: false; error: string }> {
+    const data = await this.post("/api/engineer/command", {
+      ...(workspaceId ? { workspace: workspaceId } : {}),
+      operation,
+      files,
+      timeoutMs: 240_000,
+    });
+    if (typeof data.status !== "number") {
+      return { ok: false, error: String(data.error ?? `The runtime did not run ${operation}.`) };
+    }
+    const combined = `${String(data.stdout ?? "")}\n${String(data.stderr ?? "")}`.trim();
+    return {
+      ok: data.ok === true,
+      exitCode: Number(data.status),
+      output: combined.length > MAX_OUTPUT_CHARS ? `${combined.slice(0, MAX_OUTPUT_CHARS)}\n…[truncated]` : combined,
+      durationMs: Number(data.durationMs ?? 0),
+    };
+  }
+
+  /** Put back what the last apply of this workspace overwrote in the real project. */
+  public async rollbackApply(workspaceId: string): Promise<
+    { ok: true; restored: string[] } | { ok: false; error: string }
+  > {
+    const data = await this.post(
+      "/api/engineer/workspace",
+      { action: "rollback-apply", workspace: workspaceId },
+      { withIdentity: true },
+    );
+    if (data.ok !== true) return { ok: false, error: String(data.error ?? "rollback failed") };
+    const restored = (data.restored ?? []) as string[];
+    this.record("rolled_back", { workspaceId, restored });
+    this.update({ phase: "rolled-back", appliedPaths: [] });
+    return { ok: true, restored };
+  }
+
   /** The REAL difference between the copy and the source project. */
   public async diff(workspaceId: string, includePatch = false): Promise<WorkspaceChange[]> {
     return this.refreshChanges(workspaceId, includePatch);
@@ -420,7 +465,8 @@ export default class EngineeringWorkspace {
    * used, and the last moment before writing is the one that matters.
    */
   public async apply(workspaceId: string): Promise<
-    { ok: true; applied: string[]; authorizedBy: string } | { ok: false; error: string }
+    | { ok: true; applied: string[]; authorizedBy: string }
+    | { ok: false; error: string; rolledBack?: boolean; applied?: string[] }
   > {
     const authorization = EngineeringAuthorization.getInstance();
     const grantHeld = authorization.authorizationFor(workspaceId);
@@ -489,6 +535,21 @@ export default class EngineeringWorkspace {
         phase: postApply.ok ? "applied" : "post-apply-failed",
         lastError: postApply.ok ? null : `Post-apply typecheck exited ${postApply.exitCode}`,
       });
+      // A project that no longer typechecks is not left that way: the
+      // files this apply wrote are restored from the server's backup.
+      if (!postApply.ok) {
+        const rolledBack = await this.rollbackApply(workspaceId);
+        return {
+          ok: false,
+          error:
+            `Applied, but the real project failed its typecheck (exit ${postApply.exitCode}); ` +
+            (rolledBack.ok
+              ? `rolled back ${rolledBack.restored.length} file(s): ${rolledBack.restored.join(", ")}.`
+              : `ROLLBACK FAILED: ${rolledBack.error}`),
+          rolledBack: rolledBack.ok,
+          applied,
+        };
+      }
     }
 
     // An audit record on the existing event bus: who authorized it, and
