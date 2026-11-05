@@ -80,13 +80,20 @@ export default class ProviderResolver {
     // optional fallbacks — in offline mode they are skipped even when
     // a key happens to be configured, so LÉLU stays local-first.
     const router = ModelRouter.getInstance();
-    const decision = router.route(context.request);
+    const decision = router.route(context.request, context.intent);
+    // Mark coding turns on the request itself so a provider with a
+    // dedicated coding model (Fireworks → Kimi) selects it. Not `model`:
+    // that would pin a Fireworks id onto every provider in the chain.
+    if (decision.workload === "coding") {
+      context.request.workload = "coding";
+    }
 
     context.logger.info(
       "ProviderResolver",
       "Model routing decision",
       {
         modality: decision.modality,
+        workload: decision.workload ?? "general",
         hardwareTier: decision.hardware.tier,
         offlineEnabled: decision.offlineEnabled,
         preferredProviders: decision.preferredProviders,

@@ -30,6 +30,10 @@ import AnthropicProvider, {
 import type { AIMessage, AIRequest } from "../src/providers/AIProvider";
 import { createModelApi, createRateLimiter } from "../plugins/modelApi";
 
+// These tests exercise the Anthropic adapter itself, which is opt-in
+// (core/model/ProviderPolicy). Each test file runs in its own process.
+process.env.LELU_ENABLE_ANTHROPIC = "true";
+
 /* ------------------------------ harness ------------------------------ */
 
 interface Sent {

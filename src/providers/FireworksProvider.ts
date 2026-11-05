@@ -12,6 +12,11 @@
  * __LELU_*__ runtime globals the platform's Keys UI injects,
  * or process.env. Never returns fake success — throws on
  * failure so the next provider in the chain is tried.
+ *
+ * CODING TURNS (request.workload === "coding") run on the
+ * dedicated coding model — FIREWORKS_CODING_MODEL, Kimi K2.7 Code
+ * by default (core/ProviderModels.ts) — with a longer time budget.
+ * Every other turn uses FIREWORKS_MODEL, unchanged.
  */
 
 import type AIProvider from "./AIProvider";
@@ -49,19 +54,39 @@ export default class FireworksProvider implements AIProvider {
 
   private apiKey = "";
   private model = resolveModel("fireworks");
+  private codingModel = resolveModel("fireworksCoding");
   private initialized = false;
+
+  /**
+   * 30s suits a chat turn. A coding turn on a large model, or any turn
+   * replaying tool results, legitimately takes longer; cutting it off
+   * loses the work and drops to the next provider having done none.
+   */
+  private timeoutFor(request: AIRequest): number {
+    return request.workload === "coding" || request.tools?.length ? 180_000 : this.timeout;
+  }
+
+  /** Explicit model > coding model on coding turns > chat model. */
+  private selectModel(request: AIRequest): string {
+    const requested = request.model?.trim();
+    if (requested) return requested;
+    return request.workload === "coding" ? this.codingModel : this.model;
+  }
 
   async initialize(): Promise<void> {
     this.apiKey =
       resolveFirst("FIREWORKS_API_KEY") ?? "";
     this.model =
       resolveModel("fireworks");
+    this.codingModel =
+      resolveModel("fireworksCoding");
 
     this.initialized = true;
 
     console.info("[FireworksProvider] Initialized", {
       hasKey: this.apiKey.length > 0,
       model: this.model,
+      codingModel: this.codingModel,
     });
   }
 
@@ -115,12 +140,15 @@ export default class FireworksProvider implements AIProvider {
     ];
 
     const payload = {
-      model: request.model?.trim() || this.model,
+      model: this.selectModel(request),
       messages,
       ...openAIToolPayload(request),
       temperature: request.temperature ?? 0.7,
       ...(request.maxTokens ? { max_tokens: request.maxTokens } : {}),
       ...(request.stop?.length ? { stop: request.stop } : {}),
+      // Real token streaming when the caller wants progressive output.
+      // include_usage makes the final chunk carry real token counts.
+      ...(request.onDelta ? { stream: true, stream_options: { include_usage: true } } : {}),
     };
 
     let response: Response;
@@ -132,18 +160,24 @@ export default class FireworksProvider implements AIProvider {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Accept: "application/json",
+            Accept: payload.stream ? "text/event-stream" : "application/json",
             // Brokered: no credential leaves the browser — the server attaches
             // its own. Direct (server/tests): the real header.
             ...authHeaders("fireworks", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
           },
           body: JSON.stringify(payload),
-          signal: AbortSignal.timeout(this.timeout),
+          signal: request.signal
+            ? AbortSignal.any([request.signal, AbortSignal.timeout(this.timeoutFor(request))])
+            : AbortSignal.timeout(this.timeoutFor(request)),
         },
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`Fireworks network error: ${message}`);
+    }
+
+    if (payload.stream && response.ok && response.body) {
+      return await this.generateStreamed(response, started, payload.model, request.onDelta!);
     }
 
     const raw = await response.text();
@@ -170,7 +204,7 @@ export default class FireworksProvider implements AIProvider {
         {
           status: response.status,
           message: apiMessage,
-          model: this.model,
+          model: payload.model,
         },
       );
 
@@ -197,6 +231,91 @@ export default class FireworksProvider implements AIProvider {
         usage: data?.usage,
         finishReason: data?.choices?.[0]?.finish_reason,
       },
+    };
+  }
+
+  /**
+   * Consume Fireworks' OpenAI-compatible SSE stream. Text deltas are
+   * delivered ACCUMULATED via onDelta; tool-call deltas are assembled by
+   * index and parsed through the same extractor as the non-streamed path,
+   * so a streamed tool turn still executes its tools.
+   */
+  private async generateStreamed(
+    response: Response,
+    started: number,
+    model: string,
+    onDelta: (accumulated: string) => void,
+  ): Promise<AIResponse> {
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let content = "";
+    let usage: unknown;
+    let finishReason: string | undefined;
+    let chunks = 0;
+    const calls: Array<{ id?: string; type: "function"; function: { name: string; arguments: string } }> = [];
+
+    const processLine = (line: string): void => {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith("data:")) return;
+      const dataStr = trimmed.slice(5).trim();
+      if (!dataStr || dataStr === "[DONE]") return;
+      let chunk: any;
+      try {
+        chunk = JSON.parse(dataStr);
+      } catch {
+        return; // keep-alive fragment
+      }
+      if (chunk?.error) {
+        throw new Error(`Fireworks stream error: ${chunk.error.message ?? JSON.stringify(chunk.error)}`);
+      }
+      chunks += 1;
+      if (chunk.usage) usage = chunk.usage;
+      const choice = chunk.choices?.[0];
+      if (choice?.finish_reason) finishReason = choice.finish_reason;
+      const delta = choice?.delta;
+      if (typeof delta?.content === "string" && delta.content.length > 0) {
+        content += delta.content;
+        onDelta(content);
+      }
+      for (const part of delta?.tool_calls ?? []) {
+        const index = typeof part.index === "number" ? part.index : calls.length;
+        const slot = (calls[index] ??= { type: "function", function: { name: "", arguments: "" } });
+        if (part.id) slot.id = part.id;
+        if (part.function?.name) slot.function.name += part.function.name;
+        if (part.function?.arguments) slot.function.arguments += part.function.arguments;
+      }
+    };
+
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) processLine(line);
+      }
+      if (buffer.trim()) processLine(buffer);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(message.startsWith("Fireworks") ? message : `Fireworks stream interrupted: ${message}`);
+    }
+
+    const assembled = { message: { content, tool_calls: calls.filter(Boolean) }, finish_reason: finishReason };
+    const toolCalls = extractOpenAIToolCalls(assembled);
+    if (!content.trim() && toolCalls.length === 0) {
+      throw new Error(describeEmptyChoice("Fireworks", assembled));
+    }
+
+    return {
+      text: content.trim(),
+      provider: this.name,
+      model,
+      processingTime: Date.now() - started,
+      ...(toolCalls.length ? { toolCalls } : {}),
+      stopReason: finishReason,
+      metadata: { usage, finishReason, streamed: true, chunks },
     };
   }
 

@@ -41,6 +41,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import AgentEventBus from "../agent/AgentEvents";
 import { resolveFirst } from "../resolveEnv";
+import { anthropicEnabled, ANTHROPIC_DISABLED_REASON } from "../model/ProviderPolicy";
 
 /* ------------------------------------------------------------------ */
 /* the task LÉLU's cognition hands over                                */
@@ -162,6 +163,9 @@ export default class AnthropicEngineeringAgent {
    * "not configured" rather than as a failed engineering run.
    */
   public availability(): { available: boolean; reason?: string } {
+    if (!anthropicEnabled()) {
+      return { available: false, reason: ANTHROPIC_DISABLED_REASON };
+    }
     if (!this.apiKey()) {
       return { available: false, reason: "ANTHROPIC_API_KEY is not configured." };
     }

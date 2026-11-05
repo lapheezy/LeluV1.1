@@ -24,10 +24,13 @@ repo even if `.env` itself is ever recreated.
 | `VITE_MISTRAL_API_KEY` | Mistral — fallback #3 | yes |
 | `VITE_MISTRAL_MODEL` | Mistral model override | no |
 | `VITE_FIREWORKS_API_KEY` | Fireworks AI — fallback #4 | yes |
-| `VITE_FIREWORKS_MODEL` | Fireworks model override | no |
+| `VITE_FIREWORKS_MODEL` | Fireworks chat model override | no |
+| `FIREWORKS_CODING_MODEL` | Fireworks model for coding turns. Default `accounts/fireworks/models/kimi-k2p7-code` (dedicated deployment only; set to e.g. `accounts/fireworks/models/kimi-k3p1-pro` for serverless) | no |
+| `VITE_CODING_PROVIDER` | Provider that leads coding (engineering) turns. Default `fireworks` | no |
+| `LELU_ENABLE_ANTHROPIC` | `true` opts in to Anthropic (chat + managed engineering agent). **Default off**: Anthropic is unavailable and never a fallback | no |
 | `VITE_GITHUB_TOKEN` | GitHub Models — fallback #5 + GitHub repo tool | yes |
 | `VITE_GITHUB_MODEL` | GitHub Models model override | no |
-| `VITE_ANTHROPIC_API_KEY` | Anthropic (Claude) — fallback #6 | yes |
+| `VITE_ANTHROPIC_API_KEY` | Anthropic (Claude) — only used when `LELU_ENABLE_ANTHROPIC=true` | yes |
 | `VITE_ANTHROPIC_MODEL` | Anthropic model override | no |
 | `VITE_AI_PROXY_BASE_URL` | Custom AI proxy for GitHub Models | no |
 
