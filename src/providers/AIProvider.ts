@@ -358,6 +358,18 @@ export interface AIRequest {
   forceIntent?:
     AIIntent;
 
+
+
+  /**
+   * What KIND of work this turn is, set by the router (never by a user).
+   * "coding" = an engineering-intent turn: the coding provider leads and
+   * a provider with a dedicated coding model (Fireworks → Kimi) uses it.
+   * Unlike `model`, it does not pin one model id onto every provider in
+   * the fallback chain. Providers without a coding model ignore it.
+   */
+  workload?:
+    "coding";
+
 }
 
 

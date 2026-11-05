@@ -158,6 +158,8 @@ export interface LeluEnvironment {
   anthropicModel: string;
   geminiModel: string;
   defaultProvider: string;
+  /** Provider that leads CODING (engineering-intent) turns. */
+  codingProvider: string;
   aiProxyBaseUrl: string;
 }
 
@@ -223,8 +225,8 @@ function build(): LeluEnvironment {
     mistral:         providerEnv("VITE_MISTRAL_API_KEY", 4, true, "mistral"),
     fireworks:       providerEnv("VITE_FIREWORKS_API_KEY", 5, true, "fireworks"),
     githubModels:    providerEnv("VITE_GITHUB_TOKEN", 6, true, "githubModels"),
-    // Anthropic keeps priority 7 in the fallback chain; it LEADS because
-    // defaultProvider below is "anthropic" (override with VITE_DEFAULT_PROVIDER).
+    // Anthropic keeps priority 7 in the fallback chain but is OPT-IN:
+    // unavailable unless LELU_ENABLE_ANTHROPIC=true (core/model/ProviderPolicy).
     anthropic:       providerEnv("VITE_ANTHROPIC_API_KEY", 7, true, "anthropic"),
     gemini:          providerEnv("VITE_GEMINI_API_KEY", 8, true, "gemini"),
     localInference:  { configured: true, keyVar: "", hasKey: true, priority: 0, required: false },
@@ -285,9 +287,12 @@ function build(): LeluEnvironment {
     githubModel:      opt("VITE_GITHUB_MODEL", "gpt-4o-mini"),
     anthropicModel:   opt("VITE_ANTHROPIC_MODEL", "claude-opus-5-5"),
     geminiModel:      opt("VITE_GEMINI_MODEL", "gemini-2.0-flash"),
-    // Anthropic is the intended primary. Unset → it leads the chain; an
-    // unavailable or failing Anthropic still falls through by priority.
-    defaultProvider:  opt("VITE_DEFAULT_PROVIDER", "anthropic"),
+    // Fireworks leads by default. Anthropic is opt-in (LELU_ENABLE_ANTHROPIC),
+    // so it is never the default and never a silent fallback.
+    defaultProvider:  opt("VITE_DEFAULT_PROVIDER", "fireworks"),
+    // Coding turns lead with this provider; Fireworks runs them on
+    // FIREWORKS_CODING_MODEL (Kimi K2.7 Code by default, core/ProviderModels).
+    codingProvider:   opt("VITE_CODING_PROVIDER", "fireworks"),
     aiProxyBaseUrl:   opt("VITE_AI_PROXY_BASE_URL", ""),
   };
 
@@ -354,6 +359,7 @@ export function environmentDiagnostics(): Record<string, string> {
   out["knowledge.youtube"] = providerLabel(config.youtube);
   out["persistence.supabase"] = providerLabel(config.supabase);
   out["models.primary"] = config.defaultProvider;
+  out["models.coding"] = config.codingProvider;
   out["network.neko"] = config.nekoUrl ? `configured (${config.nekoUrl})` : "not configured";
 
   return out;

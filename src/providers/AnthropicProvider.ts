@@ -13,6 +13,7 @@ import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
 import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
+import { anthropicEnabled, ANTHROPIC_DISABLED_REASON } from "../core/model/ProviderPolicy";
 
 type MessageContent = string | Array<Record<string, unknown>>;
 
@@ -114,7 +115,26 @@ function mergeContent(a: MessageContent, b: MessageContent): MessageContent {
 export default class AnthropicProvider implements AIProvider {
   readonly name = "Anthropic";
   readonly priority = 7;
-  readonly enabled = true;
+
+  /**
+   * Opt-in only (LELU_ENABLE_ANTHROPIC=true). Off, the provider is never
+   * available, so no turn can fall back to Claude without that decision.
+   * A getter, so flipping the flag takes effect without a re-register.
+   */
+  get enabled(): boolean {
+    return !this.switchedOff && anthropicEnabled();
+  }
+
+  /**
+   * Callers (and tests) may switch the provider OFF like any other.
+   * Setting true only clears that switch — it can never override the
+   * policy, so assignment is not a way around LELU_ENABLE_ANTHROPIC.
+   */
+  set enabled(value: boolean) {
+    this.switchedOff = !value;
+  }
+
+  private switchedOff = false;
   readonly timeout = 30000;
 
   /**
@@ -320,7 +340,9 @@ export default class AnthropicProvider implements AIProvider {
     const available = await this.isAvailable();
     let lastError: string | undefined;
 
-    if (!this.initialized) {
+    if (!this.enabled) {
+      lastError = ANTHROPIC_DISABLED_REASON;
+    } else if (!this.initialized) {
       lastError = "Anthropic provider not initialized.";
     } else if (!isBrokered("anthropic") && !this.apiKey) {
       lastError = "Anthropic API key missing.";
@@ -340,6 +362,10 @@ export default class AnthropicProvider implements AIProvider {
 
   async generate(request: AIRequest): Promise<AIResponse> {
     const started = Date.now();
+
+    if (!this.enabled) {
+      throw new Error(ANTHROPIC_DISABLED_REASON);
+    }
 
     if (!this.initialized) {
       throw new Error("Anthropic provider is not initialized.");

@@ -134,7 +134,10 @@ test("a provider's raw blocks are carried onto the replayed assistant tool turn"
 
 test("the Anthropic request is aborted in flight and not retried", async () => {
   const saved = process.env.ANTHROPIC_API_KEY;
+  const savedOptIn = process.env.LELU_ENABLE_ANTHROPIC;
   process.env.ANTHROPIC_API_KEY = "sk-test";
+  // Anthropic is opt-in; this test is about the adapter's abort path.
+  process.env.LELU_ENABLE_ANTHROPIC = "true";
   const realFetch = globalThis.fetch;
   let attempts = 0;
   globalThis.fetch = ((_input: unknown, init: RequestInit) => {
@@ -155,6 +158,8 @@ test("the Anthropic request is aborted in flight and not retried", async () => {
     globalThis.fetch = realFetch;
     if (saved === undefined) delete process.env.ANTHROPIC_API_KEY;
     else process.env.ANTHROPIC_API_KEY = saved;
+    if (savedOptIn === undefined) delete process.env.LELU_ENABLE_ANTHROPIC;
+    else process.env.LELU_ENABLE_ANTHROPIC = savedOptIn;
   }
 });
 

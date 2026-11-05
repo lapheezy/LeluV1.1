@@ -23,6 +23,10 @@ import test from "node:test";
 
 import AnthropicEngineeringAgent from "../src/core/engineering/AnthropicEngineeringAgent";
 
+// These tests exercise the Anthropic adapter itself, which is opt-in
+// (core/model/ProviderPolicy). Each test file runs in its own process.
+process.env.LELU_ENABLE_ANTHROPIC = "true";
+
 const FAKE_KEY = "sk-ant-test-key-not-real-0000000000";
 const FAKE_GH = "ghp_test_token_not_real_0000000000";
 

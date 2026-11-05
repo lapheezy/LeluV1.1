@@ -37,6 +37,7 @@ import SystemEnvironment from "../cognition/SystemEnvironment";
 import KvStore from "../storage/KvStore";
 import LocalLLMAdapter from "../runtime/local/LocalLLMAdapter";
 import { getEnvironment } from "../Environment";
+import type { AIIntent } from "../router/AIIntent";
 
 /* ------------------------------------------------------------
  * HARDWARE
@@ -300,6 +301,19 @@ const REMOTE_MODEL_CATALOG: ModelDescriptor[] = [
     capabilities: ["chat", "reasoning", "code"],
   },
   {
+    // Coding model for engineering turns; id and override live in
+    // core/ProviderModels.ts (fireworksCoding). Dedicated deployment only.
+    id: "fireworks.kimi-k2p7-code",
+    name: "Kimi K2.7 Code (Fireworks)",
+    provider: "Fireworks",
+    modalities: ["text", "vision", "code"],
+    local: false,
+    requiresApiKey: true,
+    quality: 0.9,
+    latency: "medium",
+    capabilities: ["chat", "reasoning", "code", "tools"],
+  },
+  {
     id: "github-models.gpt-4o",
     name: "GPT-4o (GitHub Models)",
     provider: "GitHub Models",
@@ -359,6 +373,8 @@ export interface RoutingDecision {
   blockedProviders: string[];
   /** Recommended model override, if the router has a concrete pick. */
   model: string | null;
+  /** "coding" for engineering-intent turns (see AIRequest.workload). */
+  workload?: "coding";
   reason: string;
 }
 
@@ -448,9 +464,11 @@ export default class ModelRouter {
    * the real fallback loop; this only reorders and filters the provider
    * set based on modality, hardware, and offline mode.
    */
-  public route(request: AIRequest): RoutingDecision {
+  public route(request: AIRequest, intent?: AIIntent): RoutingDecision {
     const hardware = detectHardware();
     const modality = detectModality(request);
+    const coding =
+      request.workload === "coding" || intent === "engineering" || request.forceIntent === "engineering";
 
     // Vision-capable providers first when media is attached.
     const visionProviders = new Set(
@@ -472,11 +490,23 @@ export default class ModelRouter {
     const explicit = request.preferredProviders ?? [];
     const ordered = [...explicit];
 
-    // The CONFIGURED default provider is inserted immediately after any
-    // explicit per-request overrides, so it leads the chain on ordinary
-    // requests. Modality/hardware signals (low-memory fast providers,
-    // vision-capable providers) come after it — they refine the fallback
-    // order when the default fails or cannot handle the request type.
+    // Coding turns: the configured CODING provider (VITE_CODING_PROVIDER,
+    // Fireworks → Kimi by default) leads, ahead of the general default.
+    // Explicit per-request preferences above still win.
+    if (coding) {
+      const codingProvider = this.providerNameForToken(getEnvironment().codingProvider);
+      if (codingProvider && !ordered.includes(codingProvider)) {
+        ordered.push(codingProvider);
+      }
+    }
+
+    // Then the CONFIGURED default provider (VITE_DEFAULT_PROVIDER; Fireworks
+    // unless overridden — Anthropic is opt-in). It used to be appended after the hardware hint
+    // below, which made "Anthropic is primary" false wherever device memory
+    // reads as low — every Node process and many phones — and sent those
+    // turns to Groq first. Device memory says nothing about which REMOTE
+    // API to call, so the operator's choice outranks it. The priority chain
+    // still applies after it, so fallback is unchanged.
     const configuredDefault = this.configuredDefaultProviderName();
     if (configuredDefault && !ordered.includes(configuredDefault)) {
       ordered.push(configuredDefault);
@@ -513,11 +543,14 @@ export default class ModelRouter {
       preferredProviders: ordered,
       blockedProviders: [],
       model,
+      ...(coding ? { workload: "coding" as const } : {}),
       reason: degraded
         ? "Offline mode is ON — remote API providers are skipped; local-only capabilities are used."
         : modality === "vision"
           ? "Media attached — vision-capable providers are preferred."
-          : "Standard text route — provider priority chain applies.",
+          : coding
+            ? "Coding turn — the configured coding provider leads."
+            : "Standard text route — provider priority chain applies.",
     };
   }
 
@@ -596,8 +629,13 @@ export default class ModelRouter {
    * degrades to "no preference" rather than silently pinning nothing.
    */
   private configuredDefaultProviderName(): string | null {
-    const token = getEnvironment().defaultProvider?.trim().toLowerCase();
-    if (!token) return "Anthropic";
+    return this.providerNameForToken(getEnvironment().defaultProvider);
+  }
+
+  /** Config token ("fireworks", "github-models", …) → registry name. */
+  private providerNameForToken(raw: string | undefined): string | null {
+    const token = raw?.trim().toLowerCase();
+    if (!token) return null;
     const byToken: Record<string, string> = {
       anthropic: "Anthropic",
       claude: "Anthropic",

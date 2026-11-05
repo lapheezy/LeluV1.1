@@ -143,6 +143,12 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     globalName: "__LELU_FIREWORKS_MODEL__",
     aliases: ["FIREWORKS_MODEL"],
   },
+  // Model for CODING turns on Fireworks (Kimi K2.7 Code by default).
+  {
+    viteName: "VITE_FIREWORKS_CODING_MODEL",
+    globalName: "__LELU_FIREWORKS_CODING_MODEL__",
+    aliases: ["FIREWORKS_CODING_MODEL"],
+  },
   {
     viteName: "VITE_ANTHROPIC_MODEL",
     globalName: "__LELU_ANTHROPIC_MODEL__",
@@ -162,6 +168,19 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     viteName: "VITE_DEFAULT_PROVIDER",
     globalName: "__LELU_DEFAULT_PROVIDER__",
     aliases: ["DEFAULT_PROVIDER"],
+  },
+  // Which provider leads CODING turns (default fireworks). Not a credential.
+  {
+    viteName: "VITE_CODING_PROVIDER",
+    globalName: "__LELU_CODING_PROVIDER__",
+    aliases: ["CODING_PROVIDER"],
+  },
+  // Anthropic opt-in switch (default off). A policy flag, not a credential;
+  // the page's AnthropicProvider reads it, so it must reach the page.
+  {
+    viteName: "VITE_LELU_ENABLE_ANTHROPIC",
+    globalName: "__LELU_LELU_ENABLE_ANTHROPIC__",
+    aliases: ["LELU_ENABLE_ANTHROPIC"],
   },
 
   // ---- Supabase (persistence + the OG archive) ----
