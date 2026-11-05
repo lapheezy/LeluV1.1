@@ -35,6 +35,7 @@ import ToolRegistry, { type RiskLevel, type ToolDefinition } from "./ToolRegistr
 import { FORGE_EXECUTORS } from "../forge/ForgeTools";
 import { WORLD_EXECUTORS } from "../world/WorldTools";
 import { AGENTIC_EXECUTORS } from "../agentic/AgenticTools";
+import { INTERFACE_EXECUTORS } from "../interface/InterfaceTools";
 import EngineeringAuthorization from "../engineering/EngineeringAuthorization";
 import ApprovalGate from "../agentic/ApprovalGate";
 import ToolStats from "../agentic/ToolStats";
@@ -2517,7 +2518,7 @@ async function runWorkspace(
 // The 3D Forge's executors live with the Forge (forge/ForgeTools.ts) and run
 // through this same dispatcher, gate and event stream.
 const BY_ID = new Map<string, ToolExecutor>(
-  [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS].map((executor) => [executor.id, executor]),
+  [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS].map((executor) => [executor.id, executor]),
 );
 
 /**

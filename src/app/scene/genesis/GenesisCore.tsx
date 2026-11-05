@@ -257,6 +257,20 @@ export interface ModuleState {
   size?: { width: number; height: number };
   /** Stacking order among floating windows (raise = top-most). */
   zIndex?: number;
+  /** Tilt in degrees (interface orchestration: organic layouts). */
+  rotation?: number;
+  /** Windows sharing a group id move and arrange together. */
+  group?: string;
+}
+
+/** One module's target state in an approved interface layout. */
+export interface ModuleLayoutTarget {
+  presentation: ModulePresentation;
+  position?: { x: number; y: number };
+  size?: { width: number; height: number };
+  zIndex?: number;
+  rotation?: number;
+  group?: string;
 }
 
 /** Who decides module presentation: LÉLU (auto), LÉLU+approval (assisted), or the user (manual). */
@@ -618,6 +632,11 @@ export interface GenesisContextValue {
   moveModule(id:string, position:{x:number;y:number}):void;
   resizeModule(id:string, size:{width:number;height:number}):void;
   raiseModule(id:string):void;
+  /** Apply a whole approved layout (presentation + geometry + depth +
+      tilt + group for many modules) in ONE state update — the
+      InterfaceOrchestrator's apply path, so a layout never renders
+      half-applied. */
+  applyModuleLayout(layout:Record<string, ModuleLayoutTarget>):void;
 
   /** Switch the workspace SCENE without touching open panels/chat — scene
       changes are presentation only (v1 ↔ Gen V2), same LÉLU runtime. */
@@ -2070,6 +2089,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
             const modules = {
               ...current.modules,
               [id]: {
+                ...current.modules[id],
                 presentation: normalizedPresentation,
                 status: current.modules[id]?.status ?? "idle",
                 updatedAt: Date.now(),
@@ -2102,7 +2122,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
                     : "inline";
             const modules = {
               ...current.modules,
-              [id]: { presentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...current.modules[id], presentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
             // A chat window is not an application panel: opening it must not
             // take the panel slot from the app behind it (that slot drives
@@ -2115,7 +2135,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           setState(current=>{
             const modules = {
               ...current.modules,
-              [id]: { presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...current.modules[id], presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
             return { ...current, modules, minimized:false, activePanel:conversationIdOf(id) ? current.activePanel : id as GenesisPanel };
           });
@@ -2125,7 +2145,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           setState(current=>{
             const modules = {
               ...current.modules,
-              [id]: { presentation:"minimized" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...current.modules[id], presentation:"minimized" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
             return { ...current, modules, activePanel:id as GenesisPanel };
           });
@@ -2144,7 +2164,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           setState(current=>{
             const modules = {
               ...current.modules,
-              [id]: { presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...current.modules[id], presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
             return { ...current, modules, minimized:false, activePanel:conversationIdOf(id) ? current.activePanel : id as GenesisPanel };
           });
@@ -2211,6 +2231,40 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
                 ...current.modules,
                 [id]: { ...existing, zIndex: top, updatedAt: Date.now() },
               },
+            };
+          });
+        },
+
+        applyModuleLayout(layout){
+          setState(current=>{
+            const modules = { ...current.modules };
+            for (const [id, target] of Object.entries(layout)) {
+              if (target.presentation === "closed") {
+                delete modules[id];
+                continue;
+              }
+              const existing = modules[id];
+              modules[id] = {
+                ...existing,
+                presentation: target.presentation,
+                status: existing?.status ?? "idle",
+                updatedAt: Date.now(),
+                ...(target.position ? { position: target.position } : {}),
+                ...(target.size ? { size: target.size } : {}),
+                ...(typeof target.zIndex === "number" ? { zIndex: target.zIndex } : {}),
+                rotation: target.rotation ?? 0,
+                ...(target.group ? { group: target.group } : { group: undefined }),
+              };
+            }
+            const open = Object.entries(modules).filter(([, m]) => m.presentation !== "closed");
+            const top = open.sort((a, b) => (b[1].zIndex ?? 0) - (a[1].zIndex ?? 0))[0]?.[0];
+            return {
+              ...current,
+              modules,
+              minimized:false,
+              // Chat stays mounted while any module is open; with none open
+              // the active surface is left exactly as it was.
+              activePanel: open.length ? (top as GenesisPanel) : current.activePanel,
             };
           });
         },

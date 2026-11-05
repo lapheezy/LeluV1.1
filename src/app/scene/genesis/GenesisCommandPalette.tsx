@@ -78,6 +78,8 @@ export default function GenesisCommandPalette({
   const commands = useMemo<Command[]>(() => {
     const base: Command[] = [
       { id: "open-chat", label: "Open chat", hint: "Genesis Core", run: () => openPanel("chat") },
+      { id: "interface-history", label: "Interface history — versions, restore, permissions", hint: "Interface", run: () => window.dispatchEvent(new CustomEvent("lelu-interface-open-history")) },
+      { id: "interface-undo", label: "Undo last interface change", hint: "Interface", run: () => window.dispatchEvent(new CustomEvent("lelu-interface-undo")) },
       { id: "open-genesis-v2", label: "Open Genesis v2 · Transformation Lab", hint: "Genesis Core", run: () => openPanel("genesisv2") },
       { id: "open-history", label: "Open conversation history", hint: "Genesis Core", run: () => openPanel("history") },
       { id: "open-projects", label: "Open Projects", hint: "Projects", run: () => openPanel("projects") },
