@@ -1,6 +1,6 @@
 {
   "base": "http://127.0.0.1:4176",
-  "startedAt": "2026-11-05T20:36:41.217Z",
+  "startedAt": "2026-11-05T21:09:55.995Z",
   "sizes": {
     "390x844": {
       "size": "390x844",
@@ -117,8 +117,7 @@
         "390x844_8_after_reload.png"
       ],
       "notes": [
-        "phone window docks at 8,242 376x508",
-        "button[aria-label=\"Close Chat Universe\"]: pointer click fell back to its handler (attempt 1, TimeoutError: locator.click: Timeout 3000ms exceeded.)"
+        "phone window docks at 8,242 376x508"
       ]
     },
     "430x932": {
@@ -236,8 +235,7 @@
         "430x932_8_after_reload.png"
       ],
       "notes": [
-        "phone window docks at 8,316 416x522",
-        "button[aria-label=\"Close Chat Universe\"]: pointer click fell back to its handler (attempt 1, TimeoutError: locator.click: Timeout 3000ms exceeded.)"
+        "phone window docks at 8,316 416x522"
       ]
     },
     "1440x900": {
@@ -359,9 +357,7 @@
         "1440x900_7_universe_reopened.png",
         "1440x900_8_after_reload.png"
       ],
-      "notes": [
-        "button[aria-label=\"Close Chat Universe\"]: pointer click fell back to its handler (attempt 1, TimeoutError: locator.click: Timeout 3000ms exceeded.)"
-      ]
+      "notes": []
     }
   },
   "pageerrors": [],
@@ -378,19 +374,11 @@
     "390x844: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
     "390x844: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
     "390x844: Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "390x844: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
-    "390x844: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
     "390x844: Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "390x844: Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "390x844: Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "390x844: Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "390x844: Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "390x844: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
-    "390x844: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
-    "390x844: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
-    "390x844: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Procedural%20environment%20generation%20Techniques%20for%20generating%20terrain%2C%20textures%20and%20environments%20from%20rules%20rather%20than%20hand-authoring.&start=0&max_results=10&sortBy=relevance' from origin 'http://127",
-    "390x844: Failed to load resource: net::ERR_FAILED",
-    "390x844: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "430x932: Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "430x932: Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "430x932: Failed to load resource: net::ERR_CONNECTION_REFUSED",
@@ -403,8 +391,6 @@
     "430x932: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
     "430x932: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
     "430x932: Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "430x932: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
-    "430x932: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
     "430x932: Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "430x932: Failed to load resource: net::ERR_CONNECTION_REFUSED",
     "430x932: Failed to load resource: net::ERR_CONNECTION_REFUSED",
@@ -425,7 +411,6 @@
     "1440x900: Failed to load resource: net::ERR_FAILED",
     "1440x900: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "1440x900: Failed to load resource: the server responded with a status of 400 (Bad Request)",
-    "1440x900: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
     "1440x900: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
     "1440x900: Failed to load resource: the server responded with a status of 400 (Bad Request)",
     "1440x900: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
@@ -564,10 +549,8 @@
       "1440x900_7_universe_reopened.png",
       "1440x900_8_after_reload.png"
     ],
-    "notes": [
-      "button[aria-label=\"Close Chat Universe\"]: pointer click fell back to its handler (attempt 1, TimeoutError: locator.click: Timeout 3000ms exceeded.)"
-    ]
+    "notes": []
   },
-  "finishedAt": "2026-11-05T20:43:37.724Z",
+  "finishedAt": "2026-11-05T21:19:08.055Z",
   "failures": []
 }

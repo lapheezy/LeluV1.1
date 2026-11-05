@@ -16,7 +16,7 @@ export function useSurface(): Surface {
   // is not a module window, and counting it made opening chat on a phone
   // read as "a workspace owns the screen" — which hid the chat.
   const modules = Object.entries(state.modules)
-    .filter(([id]) => id !== "chat" && !id.startsWith("chat:")) // chat windows float; they never own the screen
+    .filter(([id]) => id !== "chat")
     .map(([, module]) => module);
   const openModuleCount = modules.filter((module) => module.presentation !== "closed").length;
   const visibleModuleCount = modules.filter((module) => module.presentation === "inline" || module.presentation === "expanded").length;
