@@ -24,7 +24,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { chatFillsScreen } from "./chat/chatLayout";
 import { InModuleWindow } from "./moduleWindowContext";
-import { useGenesisActions, useGenesisState, type GenesisPanel, type ModuleState } from "./GenesisCore";
+import { conversationIdOf, useGenesisActions, useGenesisState, type ModuleState } from "./GenesisCore";
 import { MODULE_CATALOG } from "./GenesisDock";
 import { genesisTheme } from "./GenesisTheme";
 
@@ -37,16 +37,26 @@ const STATUS_DOT: Record<string, string> = {
   failed: "#f87171",
 };
 
-export type ModuleRenderers = Partial<Record<GenesisPanel, (props: { onClose: () => void }) => ReactNode>>;
+export type ModuleRenderer = (props: { onClose: () => void }) => ReactNode;
+
+/**
+ * Every environment's renderer, plus the chat windows: a `chat:<id>` module
+ * is resolved by the same host (see GenesisInterface), so the Chat Universe
+ * opens real module windows instead of a window system of its own.
+ */
+export type ModuleRenderers = Record<string, ModuleRenderer | undefined>;
 
 const CHROME_HEIGHT = 40;
+/** Chat windows float ABOVE the Chat Universe overlay (z-index 480): the
+ *  Universe is where they open from, not a lid over them. */
+const CHAT_WINDOW_Z = 520;
 // Large enough for a finger: the resize grip must be reachable on iPhone.
 const RESIZE_HANDLE = 28;
 const MIN_WIDTH = 280;
 const MIN_HEIGHT = 200;
 
 interface FloatingWindowProps {
-  id: GenesisPanel;
+  id: string;
   mod: ModuleState;
   render: (props: { onClose: () => void }) => ReactNode;
   label: string;
@@ -132,7 +142,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       ? Math.max(MOBILE_TOP_RESERVE, Math.min(rawPosition.y, Math.max(MOBILE_TOP_RESERVE, viewportHeight - MOBILE_BOTTOM_RESERVE - size.height)))
       : rawPosition.y,
   };
-  const zIndex = mod.zIndex ?? 30 + cascadeIndex;
+  const zIndex = mod.zIndex ?? (conversationIdOf(id) ? CHAT_WINDOW_Z : 30 + cascadeIndex);
 
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; baseX: number; baseY: number } | null>(null);
   const resizeRef = useRef<{ pointerId: number; startX: number; startY: number; baseW: number; baseH: number } | null>(null);
@@ -376,13 +386,23 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
   );
 }
 
-export default function GenesisModuleHost({ renderers }: { renderers: ModuleRenderers }) {
+export default function GenesisModuleHost({
+  renderers,
+  resolve,
+  labelFor,
+}: {
+  renderers: ModuleRenderers;
+  /** Renderer for ids a static map cannot enumerate (`chat:<id>`). */
+  resolve?: (id: string) => ModuleRenderer | undefined;
+  /** Live label for a dynamic id (a conversation's own title). */
+  labelFor?: (id: string) => string | undefined;
+}) {
   const { state } = useGenesisState();
   const { expandModule } = useGenesisActions();
 
   if (state.minimized) return null;
 
-  const entries = Object.entries(state.modules) as Array<[GenesisPanel, ModuleState]>;
+  const entries = Object.entries(state.modules) as Array<[string, ModuleState]>;
   // Legacy detached state is still restored as the same inline module window;
   // it never gets a tab or an independent application surface.
   const floating = entries.filter(([, m]) =>
@@ -390,13 +410,13 @@ export default function GenesisModuleHost({ renderers }: { renderers: ModuleRend
   );
   const minimized = entries.filter(([, m]) => m.presentation === "minimized");
 
-  const labelOf = (id: string) => MODULE_CATALOG.find((m) => m.id === id)?.label ?? id;
-  const glyphOf = (id: string) => MODULE_CATALOG.find((m) => m.id === id)?.glyph ?? "◈";
+  const labelOf = (id: string) => labelFor?.(id) ?? MODULE_CATALOG.find((m) => m.id === id)?.label ?? id;
+  const glyphOf = (id: string) => MODULE_CATALOG.find((m) => m.id === id)?.glyph ?? (conversationIdOf(id) ? "◍" : "◈");
 
   return (
     <>
       {floating.map(([id, mod], index) => {
-        const render = renderers[id];
+        const render = renderers[id] ?? resolve?.(id);
         if (!render) return null;
         return (
           <FloatingModuleWindow
