@@ -24,7 +24,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useWorkspaceRoot } from "./useWorkspace";
-import { useGenesis, type GenesisPanel } from "./GenesisCore";
+import { conversationIdOf, useGenesis, type GenesisPanel } from "./GenesisCore";
 import GenesisModuleHost, { type ModuleRenderers } from "./GenesisModuleHost";
 import UIStateStore from "../../../core/cognition/UIStateStore";
 import UIActionBus from "../../../core/cognition/UIActionBus";
@@ -104,6 +104,7 @@ import VisualEngine from "../../../core/visual/VisualEngine";
 import CosmosHome from "./home/CosmosHome";
 import SpatialNav, { type HomeSheet } from "./home/SpatialNav";
 import ChatUniverse from "./chat/universe/ChatUniverse";
+import UniverseChatWindow from "./chat/universe/UniverseChatWindow";
 import { useHomeStore } from "./home/useHomeLive";
 import AgentEventBus from "../../../core/agent/AgentEvents";
 import ExplorationController from "./ExplorationController";
@@ -270,9 +271,12 @@ export default function GenesisInterface() {
      when a cinematic scene (Gen V2 / System) owns the viewport. */
   const sceneIsV2 = state.activeScene === "genesisv2";
 
-  // Sync UI state to cognition — panel changes are visible to the cognitive loop
+  // Sync UI state to cognition — panel changes are visible to the cognitive loop.
+  // Chat windows are module windows too, but they are not an APPLICATION
+  // panel: counting them here would make the single-chat surface think a
+  // panel opened (and cover the window that just opened).
   const openModuleIds = Object.entries(state.modules)
-    .filter(([, m]) => m.presentation !== "closed")
+    .filter(([id, m]) => m.presentation !== "closed" && conversationIdOf(id) === null)
     .map(([id]) => id);
 
   useEffect(() => {
@@ -594,6 +598,32 @@ export default function GenesisInterface() {
    * force the workspace surface open; only real agent/tool activity may
    * reveal it through WorkspaceEngine.autoShow().
    */
+  /*
+   * CHAT WINDOWS — the Universe's open chats are module windows rendered by
+   * the ONE host (GenesisModuleHost). Their ids are per conversation, so
+   * they are resolved here rather than in the static renderer map; the
+   * window itself is GenesisWindowFrame's body, so there is no second
+   * window system and no second title bar.
+   */
+  const resolveModule = useCallback(
+    (id: string) => {
+      const conversationId = conversationIdOf(id);
+      if (!conversationId) return undefined;
+      return ({ onClose }: { onClose: () => void }) => (
+        <UniverseChatWindow conversationId={conversationId} onClose={onClose} />
+      );
+    },
+    [],
+  );
+  const labelForModule = useCallback(
+    (id: string) => {
+      const conversationId = conversationIdOf(id);
+      if (!conversationId) return undefined;
+      return state.conversations.find((c) => c.id === conversationId)?.title ?? "Chat";
+    },
+    [state.conversations],
+  );
+
   return (
     <div
       data-workspace="genesis-unified"
@@ -762,7 +792,7 @@ export default function GenesisInterface() {
       {/* Unified module host — inline / expanded / minimized windows for
           the SAME module instances (one runtime each). Mounted in every
           scene so tools remain part of the canonical chat surface. */}
-      <GenesisModuleHost renderers={MODULE_RENDERERS} />
+      <GenesisModuleHost renderers={MODULE_RENDERERS} resolve={resolveModule} labelFor={labelForModule} />
 
       {/* Full-page / special surfaces keep their dedicated mounts. */}
       {state.activePanel === "self-evolution" ? (

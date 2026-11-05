@@ -212,6 +212,33 @@ export type GenesisPanel =
  * Render, …) is ONE instance that can be shown in different presentations.
  * Changing presentation never duplicates the underlying singleton runtime.
  */
+/**
+ * Chat conversations are presented by the ONE window host too.
+ *
+ * A module id of `chat:<conversationId>` is the same single conversation
+ * the Chat Universe lists, opened as a module window: move, resize,
+ * z-order and saved geometry all come from the module state below, so the
+ * Universe adds no second window system. The prefix lives here because
+ * module ids are this file's vocabulary.
+ */
+export const CHAT_WINDOW_PREFIX = "chat:";
+
+export function chatWindowId(conversationId: string): string {
+  return `${CHAT_WINDOW_PREFIX}${conversationId}`;
+}
+
+/** The conversation a module id presents, or null for an application module. */
+export function conversationIdOf(moduleId: string): string | null {
+  return moduleId.startsWith(CHAT_WINDOW_PREFIX) ? moduleId.slice(CHAT_WINDOW_PREFIX.length) : null;
+}
+
+/**
+ * Chat windows float ABOVE the Chat Universe overlay (z-index 480): the
+ * Universe is where they open from, not a lid over them. Application panels
+ * stack among themselves below it, as before.
+ */
+export const CHAT_WINDOW_Z = 520;
+
 export type ModulePresentation =
   | "closed"      // not rendered anywhere
   | "inline"      // floating window alongside the persistent Chat
@@ -2053,9 +2080,11 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
               ...current,
               modules,
               minimized:false,
-              activePanel: normalizedPresentation === "closed"
-                ? (anyOpen ? current.activePanel : "none")
-                : (id as GenesisPanel),
+              activePanel: conversationIdOf(id)
+                ? current.activePanel
+                : normalizedPresentation === "closed"
+                  ? (anyOpen ? current.activePanel : "none")
+                  : (id as GenesisPanel),
             };
           });
         },
@@ -2075,7 +2104,10 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
               ...current.modules,
               [id]: { presentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
-            return { ...current, modules, minimized:false, activePanel:id as GenesisPanel };
+            // A chat window is not an application panel: opening it must not
+            // take the panel slot from the app behind it (that slot drives
+            // the home and the single-chat surface).
+            return { ...current, modules, minimized:false, activePanel:conversationIdOf(id) ? current.activePanel : id as GenesisPanel };
           });
         },
 
@@ -2085,7 +2117,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
               ...current.modules,
               [id]: { presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
-            return { ...current, modules, minimized:false, activePanel:id as GenesisPanel };
+            return { ...current, modules, minimized:false, activePanel:conversationIdOf(id) ? current.activePanel : id as GenesisPanel };
           });
         },
 
@@ -2104,7 +2136,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
             const modules = { ...current.modules };
             delete modules[id];
             const anyOpen = Object.values(modules).some(m=>m.presentation !== "closed");
-            return { ...current, modules, activePanel:anyOpen ? current.activePanel : "none" };
+            return { ...current, modules, activePanel:conversationIdOf(id) || anyOpen ? current.activePanel : "none" };
           });
         },
 
@@ -2114,7 +2146,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
               ...current.modules,
               [id]: { presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
-            return { ...current, modules, minimized:false, activePanel:id as GenesisPanel };
+            return { ...current, modules, minimized:false, activePanel:conversationIdOf(id) ? current.activePanel : id as GenesisPanel };
           });
         },
 
@@ -2168,8 +2200,11 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           setState(current=>{
             const existing = current.modules[id];
             if (!existing) return current;
-            const top = Math.max(30, ...Object.values(current.modules)
-              .map(m => m.zIndex ?? 30)) + 1;
+            // The stacking FLOOR depends on what the window is: application
+            // panels stack among panels, chat windows above the Universe.
+            const floor = conversationIdOf(id) ? CHAT_WINDOW_Z : 30;
+            const top = Math.max(floor, ...Object.values(current.modules)
+              .map(m => m.zIndex ?? floor)) + 1;
             return {
               ...current,
               modules: {

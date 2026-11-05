@@ -1,4 +1,8 @@
-/* LÉLU — Multi-Chat Universe. One owner of the screen, regions in a grid. */
+/* LÉLU — Multi-Chat Universe. One owner of the screen, regions in a grid.
+   Chat windows are NOT styled here as their own floating window: they are
+   module windows (GenesisModuleHost), so the chrome, drag, resize and
+   z-order are the shared ones. This file styles the Universe and the
+   window BODY that host chrome wraps. */
 :root {
   --lcu-ink: #fbf3ff;
   --lcu-dim: rgba(236, 222, 255, 0.74);
@@ -21,11 +25,14 @@ html[data-lelu-universe="open"] [data-testid="lelu-companion"] { visibility: hid
 
 .lcu {
   position: fixed; inset: 0; height: 100dvh; z-index: 480;
+  /* The interface root is pointer-events:none so the scene stays clickable;
+     the Universe owns the screen while it is open, so it takes them back. */
+  pointer-events: auto;
   color: var(--lcu-ink); font-size: 14px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) auto auto;
-  grid-template-areas: "main" "window" "bottom";
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas: "main" "bottom";
   padding: env(safe-area-inset-top, 0px) 0 0;
   box-sizing: border-box; isolation: isolate;
   animation: lcu-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -35,7 +42,9 @@ html[data-lelu-universe="open"] [data-testid="lelu-companion"] { visibility: hid
 .lcu button { font-family: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .lcu button:focus-visible { outline: 2px solid #f0abfc; outline-offset: 2px; }
 
-/* The Cosmos behind everything: opaque, so nothing else bleeds through. */
+/* The Cosmos behind everything in WORKSPACE mode: opaque, so nothing else
+   bleeds through. FLOATING mode removes it — the live scene shows through
+   and only the cards, chrome and windows stay solid. */
 .lcu-cosmos { position: absolute; inset: 0; z-index: -1; pointer-events: none; background-color: #0c0322; background-size: 170% auto; background-position: 50% 18%; background-repeat: no-repeat; }
 .lcu-cosmos::after {
   content: ""; position: absolute; inset: 0;
@@ -45,12 +54,18 @@ html[data-lelu-universe="open"] [data-testid="lelu-companion"] { visibility: hid
     radial-gradient(ellipse 80% 40% at 50% 106%, rgba(217, 70, 239, 0.38), transparent 70%),
     linear-gradient(180deg, rgba(12, 3, 34, 0.45), rgba(12, 3, 34, 0.78) 38%, rgba(16, 4, 40, 0.92));
 }
+.lcu[data-cosmos="floating"] .lcu-cosmos { display: none; }
+.lcu[data-cosmos="floating"] .lcu-main { background: transparent; }
+.lcu[data-cosmos="floating"] .lcu-head { text-shadow: 0 2px 18px rgba(6, 0, 20, 0.9); }
+.lcu[data-cosmos="floating"] .lcu-timeline,
+.lcu[data-cosmos="floating"] .lcu-filters button { backdrop-filter: blur(22px) saturate(1.4); -webkit-backdrop-filter: blur(22px) saturate(1.4); }
 
 .lcu-icon { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 999px; display: grid; place-items: center; border: 1px solid var(--lcu-edge); background: rgba(255, 255, 255, 0.07); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12); }
 .lcu-icon.sm { width: 36px; height: 36px; border: 0; background: transparent; box-shadow: none; }
+.lcu-mode[data-mode="floating"] { border-color: var(--lcu-edge-hot); color: #f5d0fe; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 0 18px var(--lcu-glow); }
 
 /* ---------- glass ---------- */
-.lcu-card, .lcu-orbit, .lcu-window, .lcu-timeline, .lcu-input, .lcu-dock-item, .lcu-seg {
+.lcu-card, .lcu-orbit, .lcu-timeline, .lcu-input, .lcu-dock-item, .lcu-seg {
   background: linear-gradient(165deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 45%), var(--lcu-glass);
   border: 1px solid var(--lcu-edge);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 12px 30px rgba(6, 0, 20, 0.45);
@@ -161,44 +176,27 @@ html[data-lelu-universe="open"] [data-testid="lelu-companion"] { visibility: hid
 .lcu-spin { position: relative; z-index: 2; }
 .lcu-ring { position: absolute; left: 8%; right: 8%; bottom: 6px; height: 36px; border-radius: 50%; border: 2px solid rgba(240, 171, 252, 0.55); box-shadow: 0 0 30px rgba(217, 70, 239, 0.55), inset 0 0 20px rgba(217, 70, 239, 0.35); pointer-events: none; }
 
-/* ---------- floating chat window ---------- */
-.lcu-window {
-  grid-area: window; position: relative; z-index: 5; margin: 0 10px; min-height: 0;
-  height: min(50dvh, 470px); display: flex; flex-direction: column; overflow: hidden; border-radius: 26px;
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 40%), var(--lcu-glass-strong);
-  border-color: rgba(244, 180, 255, 0.42);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 34px rgba(217, 70, 239, 0.3), 0 20px 50px rgba(4, 0, 16, 0.6);
-  animation: lcu-rise 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-@keyframes lcu-rise { from { transform: translateY(20px); opacity: 0; } }
-.lcu[data-window="open"] .lcu-carousel-wrap { display: none; }
-.lcu[data-max="true"] { grid-template-rows: 0 minmax(0, 1fr) auto; }
-.lcu[data-max="true"] .lcu-main { visibility: hidden; }
-.lcu[data-max="true"] .lcu-window { height: auto; margin-top: 8px; }
-.lcu-tabs { display: flex; gap: 4px; padding: 8px 10px 0; overflow-x: auto; scrollbar-width: none; flex: 0 0 auto; }
-.lcu-tabs button { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; max-width: 170px; padding: 5px 10px; border-radius: 12px 12px 6px 6px; border: 1px solid var(--lcu-edge); background: rgba(255, 255, 255, 0.04); font-size: 12px; color: var(--lcu-dim); }
-.lcu-tabs button span:not(.lcu-dot) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lcu-tabs button[aria-selected="true"] { color: #fff; background: rgba(217, 70, 239, 0.3); border-color: var(--lcu-edge-hot); }
-.lcu-win-head { display: flex; align-items: center; gap: 9px; padding: 12px 12px 11px 14px; border-bottom: 1px solid rgba(255, 220, 255, 0.12); flex: 0 0 auto; }
-.lcu-win-head strong { font-size: 17px; font-weight: 600; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lcu-live { font-size: 12px; padding: 2px 10px; border-radius: 999px; background: rgba(74, 222, 128, 0.16); color: #86efac; border: 1px solid rgba(74, 222, 128, 0.35); }
-.lcu-win-tools { margin-left: auto; display: flex; gap: 4px; }
-.lcu-win-tools button { width: 34px; height: 34px; border-radius: 999px; border: 1px solid var(--lcu-edge); background: rgba(255, 255, 255, 0.06); display: grid; place-items: center; }
-.lcu-activity { padding: 10px 12px 0; flex: 0 0 auto; max-height: 40%; overflow-y: auto; }
+/* ---------- one chat window's BODY (the host owns its chrome) ---------- */
+.lcu-win-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.lcu-activity { padding: 4px 0 8px; flex: 0 0 auto; max-height: 40%; overflow-y: auto; }
 .lcu-activity .lelu-cc-activity-card { margin: 0; }
-.lcu-thread { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; overscroll-behavior: contain; }
+.lcu-live { font-size: 12px; padding: 2px 10px; border-radius: 999px; background: rgba(74, 222, 128, 0.16); color: #86efac; border: 1px solid rgba(74, 222, 128, 0.35); white-space: nowrap; }
+.lcu-thread { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 2px 10px; display: flex; flex-direction: column; gap: 10px; overscroll-behavior: contain; }
 .lcu-msg { display: flex; gap: 8px; align-items: flex-start; max-width: 90%; }
 .lcu-msg[data-role="user"] { align-self: flex-end; }
 .lcu-msg-orb { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 999px; background: radial-gradient(circle, #fff 0 6%, transparent 16%), conic-gradient(#f0abfc, #818cf8, #22d3ee, #c084fc, #f0abfc); box-shadow: 0 0 12px var(--lcu-glow); }
 .lcu-bubble { padding: 10px 13px; border-radius: 18px; font-size: 14.5px; line-height: 1.45; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 220, 255, 0.12); }
 .lcu-msg[data-role="user"] .lcu-bubble { background: linear-gradient(160deg, rgba(168, 85, 247, 0.55), rgba(109, 40, 217, 0.55)); border-color: rgba(240, 171, 252, 0.4); }
 .lcu-bubble p { margin: 0; white-space: pre-wrap; word-break: break-word; }
-.lcu-bubble time { display: block; text-align: right; font-size: 10.5px; color: var(--lcu-faint); margin-top: 4px; }
 .lcu-typing { display: flex; gap: 4px; padding: 4px 40px; }
 .lcu-typing span { width: 7px; height: 7px; border-radius: 999px; background: #f0abfc; opacity: 0.5; animation: lcu-typing 1s ease-in-out infinite; }
 .lcu-typing span:nth-child(2) { animation-delay: 0.15s; }
 .lcu-typing span:nth-child(3) { animation-delay: 0.3s; }
 @keyframes lcu-typing { 50% { opacity: 1; transform: translateY(-2px); } }
+.lcu-win-composer { flex: 0 0 auto; display: flex; align-items: flex-end; gap: 8px; padding-top: 8px; }
+.lcu-win-composer textarea { flex: 1; min-width: 0; resize: none; border-radius: 20px; border: 1px solid var(--lcu-edge); background: rgba(8, 16, 38, 0.55); color: var(--lcu-ink); font: inherit; font-size: 16px; line-height: 1.35; padding: 9px 12px; max-height: 110px; outline: none; }
+.lcu-win-composer textarea::placeholder { color: var(--lcu-faint); }
+.lcu-win-composer .lcu-send { width: auto; height: 38px; padding: 0 16px; font-size: 12.5px; font-weight: 600; border-radius: 999px; }
 
 /* ---------- universal composer + quick dock ---------- */
 .lcu-bottom { grid-area: bottom; position: relative; z-index: 6; display: flex; flex-direction: column; gap: 8px; padding: 8px 10px calc(env(safe-area-inset-bottom, 0px) + 8px); min-width: 0; }
@@ -219,6 +217,7 @@ html[data-lelu-universe="open"] [data-testid="lelu-companion"] { visibility: hid
 .lcu-dock-txt { display: flex; flex-direction: column; min-width: 0; }
 .lcu-dock-txt span { font-size: 13px; font-weight: 600; max-width: 104px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lcu-dock-txt time { font-size: 11px; color: var(--lcu-faint); }
+.lcu-minimize { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--lcu-edge); background: rgba(255, 255, 255, 0.05); font-size: 11.5px; color: var(--lcu-dim); }
 
 /* ---------- phone fine-tuning ---------- */
 @media (max-width: 440px) {
@@ -227,13 +226,11 @@ html[data-lelu-universe="open"] [data-testid="lelu-companion"] { visibility: hid
   .lcu-timeline { grid-template-columns: 1fr; }
   .lcu-ranges { justify-content: flex-start; }
 }
-@media (max-height: 760px) and (max-width: 700px) { .lcu-window { height: 46dvh; } }
 @media (min-width: 700px) { .lcu-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .lcu-title h1 { font-size: 30px; } }
 
-/* ---------- desktop: rail | main | window, dock along the bottom ---------- */
+/* ---------- desktop: rail | main, dock along the bottom ---------- */
 @media (min-width: 1024px) {
-  .lcu { grid-template-columns: 220px minmax(0, 1fr) 0; grid-template-rows: minmax(0, 1fr) auto; grid-template-areas: "rail main window" "rail bottom bottom"; column-gap: 16px; padding: 14px 16px 0; }
-  .lcu[data-window="open"] { grid-template-columns: 220px minmax(0, 1fr) minmax(380px, 36%); }
+  .lcu { grid-template-columns: 220px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; grid-template-areas: "rail main" "rail bottom"; column-gap: 16px; padding: 14px 16px 0; }
   .lcu-rail { grid-area: rail; position: relative; transform: none; width: auto; border-radius: 24px; margin-bottom: 14px; padding-top: 16px; }
   .lcu-menu, .lcu-rail-scrim { display: none !important; }
   .lcu-main { padding: 0 2px 8px; }
@@ -241,21 +238,29 @@ html[data-lelu-universe="open"] [data-testid="lelu-companion"] { visibility: hid
   .lcu-timeline { grid-template-columns: auto 1fr auto; align-items: center; }
   .lcu-track { grid-column: auto; grid-row: 1; order: 2; }
   .lcu-ranges { order: 3; }
-  .lcu-window { margin: 0 0 8px; height: auto; align-self: stretch; }
-  .lcu[data-window="open"] .lcu-carousel-wrap[data-view="carousel"] { display: flex; }
-  .lcu[data-max="true"] { grid-template-columns: 220px 0 minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
-  .lcu[data-max="true"] .lcu-window { margin-top: 0; }
   .lcu-bottom { flex-direction: column-reverse; padding-bottom: 14px; }
   .lcu-dock-label { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; padding: 0 14px; border-radius: 18px; font-size: 13.5px; border: 1px solid var(--lcu-edge); background: var(--lcu-glass); }
   .lcu-orbit { flex-basis: 30%; }
 }
 @media (min-width: 1360px) {
   .lcu-grid { gap: 14px; }
-  .lcu:not([data-window="open"]) .lcu-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .lcu-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lcu, .lcu-window, .lcu-orb, .lcu-typing span { animation: none !important; }
+  .lcu, .lcu-orb, .lcu-typing span { animation: none !important; }
   .lcu-rail, .lcu-orbit, .lcu-card { transition: none !important; }
   .lcu-orbit { transform: none; }
 }
+
+/* ---------- Floating Cosmos: the live scene behind the windows ---------- */
+.lcu[data-cosmos="floating"] .lcu-cosmos {
+  /* The backdrop image is removed entirely (it carries an inline
+     background-image), so the live 3D Cosmos is what shows between the
+     surfaces; only a soft vignette keeps their contrast. */
+  background-image: radial-gradient(ellipse 120% 90% at 50% 40%, transparent 45%, rgba(8, 2, 24, 0.5)) !important;
+  background-color: transparent;
+  background-size: auto;
+}
+.lcu[data-cosmos="floating"] .lcu-cosmos::after { display: none; }
+.lcu-mode[data-mode="floating"] { border-color: var(--lcu-edge-hot); box-shadow: 0 0 14px var(--lcu-glow); }
