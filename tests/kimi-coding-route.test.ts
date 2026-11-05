@@ -124,6 +124,8 @@ test("Anthropic is disabled by default even with a key, and opt-in works", async
     const a = new AnthropicProvider();
     await a.initialize();
     assert.equal(a.enabled, false);
+    (a as { enabled: boolean }).enabled = true; // assignment cannot bypass the policy
+    assert.equal(a.enabled, false);
     assert.equal(await a.isAvailable(), false);
     await assert.rejects(a.generate({ prompt: "hi", messages: [] }), /disabled by policy/);
   });

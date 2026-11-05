@@ -119,8 +119,19 @@ export default class AnthropicProvider implements AIProvider {
    * A getter, so flipping the flag takes effect without a re-register.
    */
   get enabled(): boolean {
-    return anthropicEnabled();
+    return !this.switchedOff && anthropicEnabled();
   }
+
+  /**
+   * Callers (and tests) may switch the provider OFF like any other.
+   * Setting true only clears that switch — it can never override the
+   * policy, so assignment is not a way around LELU_ENABLE_ANTHROPIC.
+   */
+  set enabled(value: boolean) {
+    this.switchedOff = !value;
+  }
+
+  private switchedOff = false;
   readonly timeout = 30000;
 
   /**
