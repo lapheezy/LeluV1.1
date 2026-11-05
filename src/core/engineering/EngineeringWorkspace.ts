@@ -397,7 +397,8 @@ export default class EngineeringWorkspace {
     return {
       ok: data.ok === true,
       exitCode: Number(data.status),
-      output: combined.length > MAX_OUTPUT_CHARS ? `${combined.slice(0, MAX_OUTPUT_CHARS)}\n…[truncated]` : combined,
+      // Keep the END: node:test and the parser print their summary last.
+      output: combined.length > MAX_OUTPUT_CHARS ? `…[truncated]\n${combined.slice(-MAX_OUTPUT_CHARS)}` : combined,
       durationMs: Number(data.durationMs ?? 0),
     };
   }
