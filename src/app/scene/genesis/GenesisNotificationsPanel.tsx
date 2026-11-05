@@ -321,7 +321,11 @@ export default function GenesisNotificationsPanel({ onClose }: Props) {
                     <ActionButton tone="#38bdf8" onClick={() => void loop.retry(proposal.id)} title={ACTION_REQUIREMENTS.develop}>DEVELOP AGAIN</ActionButton>
                     <ActionButton tone="#f87171" onClick={() => handleReject(proposal.id)}>REJECT</ActionButton>
                   </>
-                ) : proposal.status === "Blocked" ? null : (
+                ) : proposal.status === "Blocked" ? (
+                  proposal.blocked?.action === "apply" ? (
+                    <ActionButton tone="rgba(148,163,184,0.85)" onClick={() => void loop.integrate(proposal.id)} title={ACTION_REQUIREMENTS.record}>RECORD ONLY</ActionButton>
+                  ) : null
+                ) : (
                   <div style={{ fontSize: 11, color: "rgba(148, 163, 184, 0.6)", fontStyle: "italic" }}>{statusLabel(proposal)}</div>
                 )}
               </div>

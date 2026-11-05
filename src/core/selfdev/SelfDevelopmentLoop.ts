@@ -620,7 +620,10 @@ export default class SelfDevelopmentLoop {
     const steps: LoopStep[] = [];
     const started = Date.now();
 
-    if (!proposal || proposal.status !== "Ready") {
+    // A verified change can be recorded while Ready, or while only its
+    // APPLY is blocked (recording does not need the apply permissions).
+    const applyBlocked = proposal?.status === "Blocked" && proposal.blocked?.action === "apply";
+    if (!proposal || (proposal.status !== "Ready" && !applyBlocked)) {
       this.lastRun = {
         proposalId,
         title: proposal?.title ?? "(unknown)",
@@ -629,7 +632,7 @@ export default class SelfDevelopmentLoop {
         success: false,
         finalStatus: proposal?.status ?? "Rejected",
         steps,
-        summary: "Only a Ready candidate can be integrated.",
+        summary: "Only a Ready candidate can be recorded.",
       };
       return this.lastRun;
     }
@@ -721,7 +724,7 @@ export default class SelfDevelopmentLoop {
 
     // Recording is not implementing: the real project was not touched.
     // "Integrated" is reserved for a change applied and verified there.
-    this.queue.update(proposalId, { status: "Recorded" });
+    this.queue.update(proposalId, { status: "Recorded", blocked: undefined });
     this.memory.record({
       kind: "upgrade",
       topic: proposal.title,
