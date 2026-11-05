@@ -18,6 +18,7 @@
  * ==========================================================
  */
 
+import ProposalEvidence, { ACTION_REQUIREMENTS, ProposalBlocked } from "./ProposalEvidence";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import GenesisWindowFrame from "./GenesisWindowFrame";
 import GenesisRuntimeUI, { type RuntimeValues } from "./GenesisRuntimeUI";
@@ -230,6 +231,16 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
   function integrateProposal(proposalId: string) {
     void loop.integrate(proposalId).then(setLastLoopRun);
     refresh();
+  }
+
+  async function retryProposal(proposalId: string) {
+    setRunning(true);
+    try {
+      setLastLoopRun(await loop.retry(proposalId));
+    } finally {
+      setRunning(false);
+      refresh();
+    }
   }
 
   // The REAL write-to-production path: applies the candidate working
@@ -448,6 +459,7 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
             onDevelop={(id) => void developProposal(id)}
             onIntegrate={integrateProposal}
             onApply={(id) => void applyProposal(id)}
+            onRetry={(id) => void retryProposal(id)}
           />
         ) : null}
 
@@ -845,6 +857,7 @@ function ImprovementsTab({
   onDevelop,
   onIntegrate,
   onApply,
+  onRetry,
 }: {
   proposals: ImprovementProposal[];
   queue: ImprovementQueue;
@@ -860,6 +873,7 @@ function ImprovementsTab({
   onDevelop: (id: string) => void;
   onIntegrate: (id: string) => void;
   onApply: (id: string) => void;
+  onRetry: (id: string) => void;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [newProposal, setNewProposal] = useState({ title: "", problem: "", kind: "Opportunity" as ImprovementProposal["kind"], complexity: "medium" as ImprovementProposal["complexity"] });
@@ -959,9 +973,9 @@ function ImprovementsTab({
                   </option>
                 ))}
               </select>
-              {proposal.status === "Approved" || proposal.status === "Testing" ? (
-                <button type="button" onClick={() => onDevelop(proposal.id)} style={{ ...chipButton, padding: "5px 12px", fontSize: 11, background: "rgba(34, 211, 238, 0.2)" }}>
-                  Develop — run + test
+              {proposal.status === "Approved" || proposal.status === "Failed" ? (
+                <button type="button" onClick={() => onDevelop(proposal.id)} title={ACTION_REQUIREMENTS.develop} style={{ ...chipButton, padding: "5px 12px", fontSize: 11, background: "rgba(34, 211, 238, 0.2)" }}>
+                  {proposal.status === "Failed" ? "Develop again — generate + check" : "Develop — generate + check"}
                 </button>
               ) : null}
               {proposal.status === "Ready" ? (
@@ -969,13 +983,13 @@ function ImprovementsTab({
                   <button
                     type="button"
                     onClick={() => onApply(proposal.id)}
-                    title="Writes the candidate to real source via /api/engineer/write, re-runs the workspace typecheck, and rolls back automatically on failure. Requires autonomy L5."
+                    title={ACTION_REQUIREMENTS.apply}
                     style={{ ...chipButton, padding: "5px 12px", fontSize: 11, background: "rgba(34, 211, 238, 0.22)", border: "1px solid rgba(125, 211, 252, 0.55)" }}
                   >
-                    Apply to workspace — write + verify + rollback
+                    Apply to project — write + verify + rollback (L5, signed in)
                   </button>
                   <button type="button" onClick={() => onIntegrate(proposal.id)} style={{ ...chipButton, padding: "5px 12px", fontSize: 11, background: "rgba(74, 222, 128, 0.2)", border: "1px solid rgba(74, 222, 128, 0.5)" }}>
-                    Integrate (record result)
+                    Record only (project not changed)
                   </button>
                 </>
               ) : null}
@@ -986,6 +1000,8 @@ function ImprovementsTab({
                 Delete
               </button>
             </div>
+            <ProposalBlocked proposal={proposal} onRetry={() => onRetry(proposal.id)} />
+            <ProposalEvidence proposal={proposal} />
             {open ? (
               <div style={{ marginTop: 10, fontSize: 11.5, lineHeight: 1.5, display: "flex", flexDirection: "column", gap: 5 }}>
                 <div><strong>Observation:</strong> {proposal.observation}</div>
