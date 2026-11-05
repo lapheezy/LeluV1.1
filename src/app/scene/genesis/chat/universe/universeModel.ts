@@ -234,3 +234,29 @@ export function artFor(conversation: Pick<ChatConversation, "id" | "title" | "to
   for (let i = 0; i < conversation.id.length; i += 1) h = (h * 31 + conversation.id.charCodeAt(i)) >>> 0;
   return ARTWORK[h % ARTWORK.length];
 }
+
+/* ---------------- Cosmos mode (persisted, one owner) ---------------- */
+
+/**
+ * workspace — a clean, solid Workspace Universe; the live Cosmos scene is
+ *             paused (SceneRenderBudget occlusion), so it costs no GPU.
+ * floating  — the windows float over the live, moving Cosmos.
+ */
+export type CosmosMode = "workspace" | "floating";
+const MODE_KEY = "lelu.universe.cosmosMode.v1";
+
+export function loadCosmosMode(): CosmosMode {
+  try {
+    return KvStore.getInstance().get<CosmosMode>(MODE_KEY) === "floating" ? "floating" : "workspace";
+  } catch {
+    return "workspace";
+  }
+}
+
+export function saveCosmosMode(mode: CosmosMode): void {
+  try {
+    KvStore.getInstance().set(MODE_KEY, mode);
+  } catch {
+    /* storage unavailable: the mode lasts for this session */
+  }
+}

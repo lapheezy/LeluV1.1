@@ -28,11 +28,15 @@ import { hasVisibleActivity } from "../../../../../core/multichat/TurnActivity";
 import ChatActivityCard from "../ChatActivity";
 import { currentActivity, subscribeActivity } from "../activityRecorder";
 import { goHome } from "../../home/homeActions";
+import { getSceneRenderBudget } from "../../SceneRenderBudget";
 import {
   artFor,
   gridOrder,
   previewOf,
   loadAppearance,
+  loadCosmosMode,
+  saveCosmosMode,
+  type CosmosMode,
   recentOrder,
   relativeTime,
   saveAppearance,
@@ -116,6 +120,8 @@ export default function ChatUniverse() {
   const [view, setView] = useState<"grid" | "carousel">("grid");
   const [railOpen, setRailOpen] = useState(false);
   const [draft, setDraft] = useState("");
+  const [cosmosMode, setCosmosModeState] = useState<CosmosMode>(() => loadCosmosMode());
+  const setCosmosMode = (mode: CosmosMode) => { setCosmosModeState(mode); saveCosmosMode(mode); };
   const [appearance, setAppearance] = useState<Record<string, ChatAppearance>>(() => loadAppearance());
   const fileRef = useRef<HTMLInputElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
@@ -135,6 +141,15 @@ export default function ChatUniverse() {
     else delete root.dataset.leluUniverse;
     return () => { delete root.dataset.leluUniverse; };
   }, [open]);
+
+  // Workspace mode is an opaque surface: the existing render budget pauses
+  // the Cosmos scene (frameloop "never") while it is up. Floating mode keeps
+  // the scene running behind the windows. Nothing else changes on a switch.
+  useEffect(() => {
+    const budget = getSceneRenderBudget();
+    budget.setOccluded("chat-universe", open && cosmosMode === "workspace");
+    return () => budget.setOccluded("chat-universe", false);
+  }, [open, cosmosMode]);
 
   const byId = useMemo(() => new Map([...conversations, ...archived].map((c) => [c.id, c])), [conversations, archived]);
   const focusedId = openIds.length ? openIds[openIds.length - 1] : null;
@@ -250,7 +265,7 @@ export default function ChatUniverse() {
   };
 
   return (
-    <div className="lcu" data-window={focused ? "open" : "closed"} data-max={maximized} data-rail={railOpen} role="dialog" aria-label="Chat Universe">
+    <div className="lcu" data-cosmos={cosmosMode} data-window={focused ? "open" : "closed"} data-max={maximized} data-rail={railOpen} role="dialog" aria-label="Chat Universe">
       <div className="lcu-cosmos" aria-hidden="true" style={{ backgroundImage: `url("${ART_BASE}galaxy.webp")` }} />
 
       {/* ---------- navigation rail (permanent on desktop, drawer on phone) ---------- */}
@@ -297,6 +312,16 @@ export default function ChatUniverse() {
               <button type="button" data-on={view === "grid"} onClick={() => setView("grid")} aria-label="Grid view"><Icons.LayoutGrid size={17} /></button>
               <button type="button" data-on={view === "carousel"} onClick={() => setView("carousel")} aria-label="Carousel view"><Icons.GalleryHorizontal size={17} /></button>
             </div>
+            <button
+              type="button"
+              className="lcu-icon lcu-mode"
+              data-mode={cosmosMode}
+              onClick={() => setCosmosMode(cosmosMode === "workspace" ? "floating" : "workspace")}
+              aria-label={cosmosMode === "workspace" ? "Float over the live Cosmos" : "Clean Workspace Universe"}
+              title={cosmosMode === "workspace" ? "Floating Cosmos" : "Workspace Universe"}
+            >
+              {cosmosMode === "workspace" ? <Icons.Orbit size={19} /> : <Icons.PanelsTopLeft size={19} />}
+            </button>
             <button type="button" className="lcu-icon" onClick={newChat} aria-label="New chat"><Icons.Plus size={19} /></button>
             <button type="button" className="lcu-icon" onClick={() => setOpen(false)} aria-label="Close Chat Universe"><Icons.X size={19} /></button>
           </div>
