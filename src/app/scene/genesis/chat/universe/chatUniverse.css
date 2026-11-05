@@ -25,6 +25,9 @@ html[data-lelu-universe="open"] [data-testid="lelu-companion"] { visibility: hid
 
 .lcu {
   position: fixed; inset: 0; height: 100dvh; z-index: 480;
+  /* The interface root is pointer-events:none so the scene stays clickable;
+     the Universe owns the screen while it is open, so it takes them back. */
+  pointer-events: auto;
   color: var(--lcu-ink); font-size: 14px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);

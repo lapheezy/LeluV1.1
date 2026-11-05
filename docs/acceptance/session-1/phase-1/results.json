@@ -1,0 +1,573 @@
+{
+  "base": "http://127.0.0.1:4176",
+  "startedAt": "2026-11-05T20:36:41.217Z",
+  "sizes": {
+    "390x844": {
+      "size": "390x844",
+      "checks": [
+        {
+          "name": "workspace mode paints the opaque Cosmos",
+          "ok": true,
+          "detail": "`.lcu-cosmos` is not visible"
+        },
+        {
+          "name": "workspace mode covers the viewport",
+          "ok": true,
+          "detail": "the Universe does not cover the screen"
+        },
+        {
+          "name": "workspace mode is the persisted default",
+          "ok": true,
+          "detail": "data-cosmos=workspace"
+        },
+        {
+          "name": "opening a chat opens a chat module window",
+          "ok": true,
+          "detail": "1 windows"
+        },
+        {
+          "name": "the window uses the shared module chrome",
+          "ok": true,
+          "detail": "no shared host chrome on the chat window"
+        },
+        {
+          "name": "the window body is the shared window frame",
+          "ok": true,
+          "detail": "GenesisWindowFrame is not the window body"
+        },
+        {
+          "name": "one title bar only (frame renders body-only inside the host)",
+          "ok": true,
+          "detail": "the frame drew its own header inside the host window"
+        },
+        {
+          "name": "the chat window paints above the Cosmos and takes a click",
+          "ok": true,
+          "detail": "the window paints behind the Cosmos or cannot take a click"
+        },
+        {
+          "name": "the chat window fits the phone viewport",
+          "ok": true,
+          "detail": "window overflows the phone viewport"
+        },
+        {
+          "name": "a second chat opens a second window",
+          "ok": true,
+          "detail": "2 windows"
+        },
+        {
+          "name": "clicking a window raises it (z-order)",
+          "ok": true,
+          "detail": "the last window is not the top one"
+        },
+        {
+          "name": "closing one window leaves the other",
+          "ok": true,
+          "detail": "1 windows"
+        },
+        {
+          "name": "floating mode removes the opaque Cosmos",
+          "ok": true,
+          "detail": "`.lcu-cosmos` still paints"
+        },
+        {
+          "name": "floating mode is recorded on the root",
+          "ok": true,
+          "detail": "data-cosmos is not floating"
+        },
+        {
+          "name": "the chat window is still there while floating",
+          "ok": true,
+          "detail": "1 windows"
+        },
+        {
+          "name": "the chat window survives closing the Universe",
+          "ok": true,
+          "detail": "1 windows after close"
+        },
+        {
+          "name": "reopening the Universe keeps the open set",
+          "ok": true,
+          "detail": "1 windows after reopen"
+        },
+        {
+          "name": "the chat window comes back after a reload",
+          "ok": true,
+          "detail": "1 windows after reload"
+        },
+        {
+          "name": "the mode persists across a reload",
+          "ok": true,
+          "detail": "data-cosmos=floating"
+        },
+        {
+          "name": "the reloaded window is the same conversation window",
+          "ok": true,
+          "detail": "1 windows after reopen"
+        }
+      ],
+      "screenshots": [
+        "390x844_1_home.png",
+        "390x844_2_workspace.png",
+        "390x844_3_chat_window.png",
+        "390x844_4_two_windows.png",
+        "390x844_5_floating.png",
+        "390x844_6_universe_closed.png",
+        "390x844_7_universe_reopened.png",
+        "390x844_8_after_reload.png"
+      ],
+      "notes": [
+        "phone window docks at 8,242 376x508",
+        "button[aria-label=\"Close Chat Universe\"]: pointer click fell back to its handler (attempt 1, TimeoutError: locator.click: Timeout 3000ms exceeded.)"
+      ]
+    },
+    "430x932": {
+      "size": "430x932",
+      "checks": [
+        {
+          "name": "workspace mode paints the opaque Cosmos",
+          "ok": true,
+          "detail": "`.lcu-cosmos` is not visible"
+        },
+        {
+          "name": "workspace mode covers the viewport",
+          "ok": true,
+          "detail": "the Universe does not cover the screen"
+        },
+        {
+          "name": "workspace mode is the persisted default",
+          "ok": true,
+          "detail": "data-cosmos=workspace"
+        },
+        {
+          "name": "opening a chat opens a chat module window",
+          "ok": true,
+          "detail": "1 windows"
+        },
+        {
+          "name": "the window uses the shared module chrome",
+          "ok": true,
+          "detail": "no shared host chrome on the chat window"
+        },
+        {
+          "name": "the window body is the shared window frame",
+          "ok": true,
+          "detail": "GenesisWindowFrame is not the window body"
+        },
+        {
+          "name": "one title bar only (frame renders body-only inside the host)",
+          "ok": true,
+          "detail": "the frame drew its own header inside the host window"
+        },
+        {
+          "name": "the chat window paints above the Cosmos and takes a click",
+          "ok": true,
+          "detail": "the window paints behind the Cosmos or cannot take a click"
+        },
+        {
+          "name": "the chat window fits the phone viewport",
+          "ok": true,
+          "detail": "window overflows the phone viewport"
+        },
+        {
+          "name": "a second chat opens a second window",
+          "ok": true,
+          "detail": "2 windows"
+        },
+        {
+          "name": "clicking a window raises it (z-order)",
+          "ok": true,
+          "detail": "the last window is not the top one"
+        },
+        {
+          "name": "closing one window leaves the other",
+          "ok": true,
+          "detail": "1 windows"
+        },
+        {
+          "name": "floating mode removes the opaque Cosmos",
+          "ok": true,
+          "detail": "`.lcu-cosmos` still paints"
+        },
+        {
+          "name": "floating mode is recorded on the root",
+          "ok": true,
+          "detail": "data-cosmos is not floating"
+        },
+        {
+          "name": "the chat window is still there while floating",
+          "ok": true,
+          "detail": "1 windows"
+        },
+        {
+          "name": "the chat window survives closing the Universe",
+          "ok": true,
+          "detail": "1 windows after close"
+        },
+        {
+          "name": "reopening the Universe keeps the open set",
+          "ok": true,
+          "detail": "1 windows after reopen"
+        },
+        {
+          "name": "the chat window comes back after a reload",
+          "ok": true,
+          "detail": "1 windows after reload"
+        },
+        {
+          "name": "the mode persists across a reload",
+          "ok": true,
+          "detail": "data-cosmos=floating"
+        },
+        {
+          "name": "the reloaded window is the same conversation window",
+          "ok": true,
+          "detail": "1 windows after reopen"
+        }
+      ],
+      "screenshots": [
+        "430x932_1_home.png",
+        "430x932_2_workspace.png",
+        "430x932_3_chat_window.png",
+        "430x932_4_two_windows.png",
+        "430x932_5_floating.png",
+        "430x932_6_universe_closed.png",
+        "430x932_7_universe_reopened.png",
+        "430x932_8_after_reload.png"
+      ],
+      "notes": [
+        "phone window docks at 8,316 416x522",
+        "button[aria-label=\"Close Chat Universe\"]: pointer click fell back to its handler (attempt 1, TimeoutError: locator.click: Timeout 3000ms exceeded.)"
+      ]
+    },
+    "1440x900": {
+      "size": "1440x900",
+      "checks": [
+        {
+          "name": "workspace mode paints the opaque Cosmos",
+          "ok": true,
+          "detail": "`.lcu-cosmos` is not visible"
+        },
+        {
+          "name": "workspace mode covers the viewport",
+          "ok": true,
+          "detail": "the Universe does not cover the screen"
+        },
+        {
+          "name": "workspace mode is the persisted default",
+          "ok": true,
+          "detail": "data-cosmos=workspace"
+        },
+        {
+          "name": "opening a chat opens a chat module window",
+          "ok": true,
+          "detail": "1 windows"
+        },
+        {
+          "name": "the window uses the shared module chrome",
+          "ok": true,
+          "detail": "no shared host chrome on the chat window"
+        },
+        {
+          "name": "the window body is the shared window frame",
+          "ok": true,
+          "detail": "GenesisWindowFrame is not the window body"
+        },
+        {
+          "name": "one title bar only (frame renders body-only inside the host)",
+          "ok": true,
+          "detail": "the frame drew its own header inside the host window"
+        },
+        {
+          "name": "the chat window paints above the Cosmos and takes a click",
+          "ok": true,
+          "detail": "the window paints behind the Cosmos or cannot take a click"
+        },
+        {
+          "name": "dragging the title bar moves the window",
+          "ok": true,
+          "detail": "moved 88,76 -> 158,126"
+        },
+        {
+          "name": "dragging the corner resizes the window",
+          "ok": true,
+          "detail": "resized 622x482 -> 538x408"
+        },
+        {
+          "name": "a second chat opens a second window",
+          "ok": true,
+          "detail": "2 windows"
+        },
+        {
+          "name": "clicking a window raises it (z-order)",
+          "ok": true,
+          "detail": "the last window is not the top one"
+        },
+        {
+          "name": "closing one window leaves the other",
+          "ok": true,
+          "detail": "1 windows"
+        },
+        {
+          "name": "floating mode removes the opaque Cosmos",
+          "ok": true,
+          "detail": "`.lcu-cosmos` still paints"
+        },
+        {
+          "name": "floating mode is recorded on the root",
+          "ok": true,
+          "detail": "data-cosmos is not floating"
+        },
+        {
+          "name": "the chat window is still there while floating",
+          "ok": true,
+          "detail": "1 windows"
+        },
+        {
+          "name": "the chat window survives closing the Universe",
+          "ok": true,
+          "detail": "1 windows after close"
+        },
+        {
+          "name": "reopening the Universe keeps the open set",
+          "ok": true,
+          "detail": "1 windows after reopen"
+        },
+        {
+          "name": "the chat window comes back after a reload",
+          "ok": true,
+          "detail": "1 windows after reload"
+        },
+        {
+          "name": "the mode persists across a reload",
+          "ok": true,
+          "detail": "data-cosmos=floating"
+        },
+        {
+          "name": "the reloaded window is the same conversation window",
+          "ok": true,
+          "detail": "1 windows after reopen"
+        }
+      ],
+      "screenshots": [
+        "1440x900_1_home.png",
+        "1440x900_2_workspace.png",
+        "1440x900_3_chat_window.png",
+        "1440x900_4_two_windows.png",
+        "1440x900_5_floating.png",
+        "1440x900_6_universe_closed.png",
+        "1440x900_7_universe_reopened.png",
+        "1440x900_8_after_reload.png"
+      ],
+      "notes": [
+        "button[aria-label=\"Close Chat Universe\"]: pointer click fell back to its handler (attempt 1, TimeoutError: locator.click: Timeout 3000ms exceeded.)"
+      ]
+    }
+  },
+  "pageerrors": [],
+  "consoleErrors": [
+    "390x844: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "390x844: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "390x844: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "390x844: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "390x844: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "390x844: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20needs%20provider%20docs%20%2B%20research%20to%20stay%20current.&start=0&max_results=10&sortBy=relevance'",
+    "390x844: Failed to load resource: net::ERR_FAILED",
+    "390x844: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "390x844: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "390x844: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "390x844: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "390x844: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "390x844: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "390x844: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "390x844: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "390x844: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "390x844: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "390x844: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "390x844: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "390x844: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "390x844: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "390x844: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "390x844: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Procedural%20environment%20generation%20Techniques%20for%20generating%20terrain%2C%20textures%20and%20environments%20from%20rules%20rather%20than%20hand-authoring.&start=0&max_results=10&sortBy=relevance' from origin 'http://127",
+    "390x844: Failed to load resource: net::ERR_FAILED",
+    "390x844: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "430x932: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "430x932: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "430x932: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "430x932: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "430x932: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "430x932: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20needs%20provider%20docs%20%2B%20research%20to%20stay%20current.&start=0&max_results=10&sortBy=relevance'",
+    "430x932: Failed to load resource: net::ERR_FAILED",
+    "430x932: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "430x932: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "430x932: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "430x932: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "430x932: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "430x932: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "430x932: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "430x932: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "430x932: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "430x932: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "430x932: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "430x932: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "430x932: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "430x932: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "430x932: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "430x932: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Procedural%20environment%20generation%20Techniques%20for%20generating%20terrain%2C%20textures%20and%20environments%20from%20rules%20rather%20than%20hand-authoring.&start=0&max_results=10&sortBy=relevance' from origin 'http://127",
+    "430x932: Failed to load resource: net::ERR_FAILED",
+    "430x932: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "1440x900: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "1440x900: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "1440x900: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "1440x900: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "1440x900: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "1440x900: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20needs%20provider%20docs%20%2B%20research%20to%20stay%20current.&start=0&max_results=10&sortBy=relevance'",
+    "1440x900: Failed to load resource: net::ERR_FAILED",
+    "1440x900: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "1440x900: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "1440x900: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "1440x900: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "1440x900: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "1440x900: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "1440x900: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "1440x900: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "1440x900: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "1440x900: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "1440x900: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "1440x900: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "1440x900: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "1440x900: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "1440x900: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "1440x900: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Procedural%20environment%20generation%20Techniques%20for%20generating%20terrain%2C%20textures%20and%20environments%20from%20rules%20rather%20than%20hand-authoring.&start=0&max_results=10&sortBy=relevance' from origin 'http://127",
+    "1440x900: Failed to load resource: net::ERR_FAILED",
+    "1440x900: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "1440x900: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "1440x900: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "1440x900: Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  ],
+  "current": {
+    "size": "1440x900",
+    "checks": [
+      {
+        "name": "workspace mode paints the opaque Cosmos",
+        "ok": true,
+        "detail": "`.lcu-cosmos` is not visible"
+      },
+      {
+        "name": "workspace mode covers the viewport",
+        "ok": true,
+        "detail": "the Universe does not cover the screen"
+      },
+      {
+        "name": "workspace mode is the persisted default",
+        "ok": true,
+        "detail": "data-cosmos=workspace"
+      },
+      {
+        "name": "opening a chat opens a chat module window",
+        "ok": true,
+        "detail": "1 windows"
+      },
+      {
+        "name": "the window uses the shared module chrome",
+        "ok": true,
+        "detail": "no shared host chrome on the chat window"
+      },
+      {
+        "name": "the window body is the shared window frame",
+        "ok": true,
+        "detail": "GenesisWindowFrame is not the window body"
+      },
+      {
+        "name": "one title bar only (frame renders body-only inside the host)",
+        "ok": true,
+        "detail": "the frame drew its own header inside the host window"
+      },
+      {
+        "name": "the chat window paints above the Cosmos and takes a click",
+        "ok": true,
+        "detail": "the window paints behind the Cosmos or cannot take a click"
+      },
+      {
+        "name": "dragging the title bar moves the window",
+        "ok": true,
+        "detail": "moved 88,76 -> 158,126"
+      },
+      {
+        "name": "dragging the corner resizes the window",
+        "ok": true,
+        "detail": "resized 622x482 -> 538x408"
+      },
+      {
+        "name": "a second chat opens a second window",
+        "ok": true,
+        "detail": "2 windows"
+      },
+      {
+        "name": "clicking a window raises it (z-order)",
+        "ok": true,
+        "detail": "the last window is not the top one"
+      },
+      {
+        "name": "closing one window leaves the other",
+        "ok": true,
+        "detail": "1 windows"
+      },
+      {
+        "name": "floating mode removes the opaque Cosmos",
+        "ok": true,
+        "detail": "`.lcu-cosmos` still paints"
+      },
+      {
+        "name": "floating mode is recorded on the root",
+        "ok": true,
+        "detail": "data-cosmos is not floating"
+      },
+      {
+        "name": "the chat window is still there while floating",
+        "ok": true,
+        "detail": "1 windows"
+      },
+      {
+        "name": "the chat window survives closing the Universe",
+        "ok": true,
+        "detail": "1 windows after close"
+      },
+      {
+        "name": "reopening the Universe keeps the open set",
+        "ok": true,
+        "detail": "1 windows after reopen"
+      },
+      {
+        "name": "the chat window comes back after a reload",
+        "ok": true,
+        "detail": "1 windows after reload"
+      },
+      {
+        "name": "the mode persists across a reload",
+        "ok": true,
+        "detail": "data-cosmos=floating"
+      },
+      {
+        "name": "the reloaded window is the same conversation window",
+        "ok": true,
+        "detail": "1 windows after reopen"
+      }
+    ],
+    "screenshots": [
+      "1440x900_1_home.png",
+      "1440x900_2_workspace.png",
+      "1440x900_3_chat_window.png",
+      "1440x900_4_two_windows.png",
+      "1440x900_5_floating.png",
+      "1440x900_6_universe_closed.png",
+      "1440x900_7_universe_reopened.png",
+      "1440x900_8_after_reload.png"
+    ],
+    "notes": [
+      "button[aria-label=\"Close Chat Universe\"]: pointer click fell back to its handler (attempt 1, TimeoutError: locator.click: Timeout 3000ms exceeded.)"
+    ]
+  },
+  "finishedAt": "2026-11-05T20:43:37.724Z",
+  "failures": []
+}

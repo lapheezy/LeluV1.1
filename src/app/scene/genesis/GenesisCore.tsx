@@ -232,6 +232,13 @@ export function conversationIdOf(moduleId: string): string | null {
   return moduleId.startsWith(CHAT_WINDOW_PREFIX) ? moduleId.slice(CHAT_WINDOW_PREFIX.length) : null;
 }
 
+/**
+ * Chat windows float ABOVE the Chat Universe overlay (z-index 480): the
+ * Universe is where they open from, not a lid over them. Application panels
+ * stack among themselves below it, as before.
+ */
+export const CHAT_WINDOW_Z = 520;
+
 export type ModulePresentation =
   | "closed"      // not rendered anywhere
   | "inline"      // floating window alongside the persistent Chat
@@ -2193,8 +2200,11 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           setState(current=>{
             const existing = current.modules[id];
             if (!existing) return current;
-            const top = Math.max(30, ...Object.values(current.modules)
-              .map(m => m.zIndex ?? 30)) + 1;
+            // The stacking FLOOR depends on what the window is: application
+            // panels stack among panels, chat windows above the Universe.
+            const floor = conversationIdOf(id) ? CHAT_WINDOW_Z : 30;
+            const top = Math.max(floor, ...Object.values(current.modules)
+              .map(m => m.zIndex ?? floor)) + 1;
             return {
               ...current,
               modules: {

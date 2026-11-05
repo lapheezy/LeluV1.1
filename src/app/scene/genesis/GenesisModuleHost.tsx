@@ -24,7 +24,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { chatFillsScreen } from "./chat/chatLayout";
 import { InModuleWindow } from "./moduleWindowContext";
-import { conversationIdOf, useGenesisActions, useGenesisState, type ModuleState } from "./GenesisCore";
+import { CHAT_WINDOW_Z, conversationIdOf, useGenesisActions, useGenesisState, type ModuleState } from "./GenesisCore";
 import { MODULE_CATALOG } from "./GenesisDock";
 import { genesisTheme } from "./GenesisTheme";
 
@@ -47,9 +47,6 @@ export type ModuleRenderer = (props: { onClose: () => void }) => ReactNode;
 export type ModuleRenderers = Record<string, ModuleRenderer | undefined>;
 
 const CHROME_HEIGHT = 40;
-/** Chat windows float ABOVE the Chat Universe overlay (z-index 480): the
- *  Universe is where they open from, not a lid over them. */
-const CHAT_WINDOW_Z = 520;
 // Large enough for a finger: the resize grip must be reachable on iPhone.
 const RESIZE_HANDLE = 28;
 const MIN_WIDTH = 280;
@@ -142,7 +139,12 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       ? Math.max(MOBILE_TOP_RESERVE, Math.min(rawPosition.y, Math.max(MOBILE_TOP_RESERVE, viewportHeight - MOBILE_BOTTOM_RESERVE - size.height)))
       : rawPosition.y,
   };
-  const zIndex = mod.zIndex ?? (conversationIdOf(id) ? CHAT_WINDOW_Z : 30 + cascadeIndex);
+  const chatWindow = conversationIdOf(id) !== null;
+  // A chat window never sinks below the Universe overlay, not even when an
+  // older session persisted a panel-level z-index for it.
+  const zIndex = chatWindow
+    ? Math.max(CHAT_WINDOW_Z, mod.zIndex ?? CHAT_WINDOW_Z)
+    : mod.zIndex ?? 30 + cascadeIndex;
 
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; baseX: number; baseY: number } | null>(null);
   const resizeRef = useRef<{ pointerId: number; startX: number; startY: number; baseW: number; baseH: number } | null>(null);

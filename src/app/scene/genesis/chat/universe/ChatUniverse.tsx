@@ -178,6 +178,7 @@ export default function ChatUniverse() {
       if (!conversations.some((c) => c.id === conversationId)) continue;
       const moduleId = chatWindowId(conversationId);
       genesis.openModule(moduleId);
+      genesis.setModulePresentation(moduleId, "inline");
       const rect = saved.geometry[conversationId];
       if (!rect) continue;
       genesis.moveModule(moduleId, { x: Math.round(rect.x * width), y: Math.round(rect.y * height) });
@@ -247,8 +248,13 @@ export default function ChatUniverse() {
     if (archived.some((c) => c.id === id)) genesis.unarchiveConversation(id);
     if (id !== activeConversationId) genesis.switchConversation(id);
     MultiChatStore.getInstance().markRead(id);
-    genesis.openModule(chatWindowId(id));
-    genesis.raiseModule(chatWindowId(id));
+    // Present it as a WINDOW, not a full-screen takeover: on a phone that is
+    // the docked sheet above the composer, so the grid and dock stay usable
+    // and a second chat can be opened without going back first.
+    const moduleId = chatWindowId(id);
+    genesis.openModule(moduleId);
+    genesis.setModulePresentation(moduleId, "inline");
+    genesis.raiseModule(moduleId);
     requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
   };
   const minimizeWindows = () => {
