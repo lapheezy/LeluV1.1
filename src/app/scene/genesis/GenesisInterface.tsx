@@ -67,6 +67,8 @@ import GenesisIdentityPanel from "./GenesisIdentityPanel";
  * presentation (inline / expanded / minimized).
  */
 const MODULE_RENDERERS: ModuleRenderers = {
+  // Every conversation window (chat:<conversationId>) — a view of an existing chat.
+  chatWindow: ({ id }) => <ChatWindowBody conversationId={id.slice("chat:".length)} />,
   reasoning: ({ onClose }) => <GenesisReasoningPanel onClose={onClose} />,
   diagnostics: ({ onClose }) => <GenesisDiagnosticsPanel onClose={onClose} />,
   executive: ({ onClose }) => <GenesisExecutivePanel onClose={onClose} />,
@@ -104,6 +106,7 @@ import VisualEngine from "../../../core/visual/VisualEngine";
 import CosmosHome from "./home/CosmosHome";
 import SpatialNav, { type HomeSheet } from "./home/SpatialNav";
 import ChatUniverse from "./chat/universe/ChatUniverse";
+import { ChatWindowBody, ChatWindowPersistence } from "./chat/universe/ChatWindow";
 import { useHomeStore } from "./home/useHomeLive";
 import AgentEventBus from "../../../core/agent/AgentEvents";
 import ExplorationController from "./ExplorationController";
@@ -750,6 +753,7 @@ export default function GenesisInterface() {
       )}
 
       <ChatUniverse />
+      <ChatWindowPersistence />
       <SpatialNav
         sheet={homeSheet}
         setSheet={setHomeSheet}

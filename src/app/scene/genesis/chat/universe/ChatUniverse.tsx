@@ -22,10 +22,9 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import * as Icons from "lucide-react";
-import { useGenesis } from "../../GenesisCore";
+import { isChatWindowId, useGenesis } from "../../GenesisCore";
+import { chatWindowId } from "./ChatWindow";
 import MultiChatStore, { type ChatConversation } from "../../../../../core/multichat/MultiChatStore";
-import { hasVisibleActivity } from "../../../../../core/multichat/TurnActivity";
-import ChatActivityCard from "../ChatActivity";
 import { currentActivity, subscribeActivity } from "../activityRecorder";
 import { goHome } from "../../home/homeActions";
 import { getSceneRenderBudget } from "../../SceneRenderBudget";
@@ -113,8 +112,6 @@ export default function ChatUniverse() {
   const { conversations, activeConversationId } = genesis.state;
   const archived = useArchived();
   const [open, setOpen] = useState(false);
-  const [openIds, setOpenIds] = useState<string[]>([]);
-  const [maximized, setMaximized] = useState(false);
   const [range, setRange] = useState<TimelineRange>("24h");
   const [filter, setFilter] = useState<"all" | "active" | "archived">("all");
   const [view, setView] = useState<"grid" | "carousel">("grid");
@@ -124,7 +121,6 @@ export default function ChatUniverse() {
   const setCosmosMode = (mode: CosmosMode) => { setCosmosModeState(mode); saveCosmosMode(mode); };
   const [appearance, setAppearance] = useState<Record<string, ChatAppearance>>(() => loadAppearance());
   const fileRef = useRef<HTMLInputElement>(null);
-  const threadRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
 
@@ -152,30 +148,32 @@ export default function ChatUniverse() {
   }, [open, cosmosMode]);
 
   const byId = useMemo(() => new Map([...conversations, ...archived].map((c) => [c.id, c])), [conversations, archived]);
-  const focusedId = openIds.length ? openIds[openIds.length - 1] : null;
+  // Open chats are the window system's `chat:*` modules — one source of truth.
+  const chatModules = Object.entries(genesis.state.modules)
+    .filter(([key, mod]) => isChatWindowId(key) && mod.presentation !== "closed")
+    .sort((a, b) => (a[1].zIndex ?? 0) - (b[1].zIndex ?? 0));
+  const openIds = chatModules.map(([key]) => key.slice("chat:".length)).filter((id) => byId.has(id));
+  const visibleIds = chatModules.filter(([, mod]) => mod.presentation !== "minimized").map(([key]) => key.slice("chat:".length));
+  const focusedId = visibleIds.length ? visibleIds[visibleIds.length - 1] : null;
   const focused = focusedId ? byId.get(focusedId) ?? null : null;
+  // The front-most chat window is the universal composer's target, however
+  // it came to the front (title bar, body, dock, restore).
+  useEffect(() => {
+    if (focusedId && focusedId !== MultiChatStore.getInstance().getActiveId()) genesis.switchConversation(focusedId);
+  }, [focusedId]); // eslint-disable-line react-hooks/exhaustive-deps
   const liveActivity = useLiveActivity(focused?.id ?? null);
 
-  // Drop windows whose chat no longer exists.
-  useEffect(() => {
-    setOpenIds((ids) => ids.filter((id) => byId.has(id)));
-  }, [byId]);
 
-  useEffect(() => {
-    threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight });
-  }, [focused?.id, focused?.messages.length, focused?.processing]);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (maximized) setMaximized(false);
-      else if (openIds.length) setOpenIds((ids) => ids.slice(0, -1));
-      else setOpen(false);
+      setOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, openIds.length, maximized]);
+  }, [open]);
 
   const list = filter === "archived" ? archived : filter === "active" ? conversations.filter((c) => c.processing || c.unread > 0) : conversations;
   const grid = useMemo(() => gridOrder(list), [list]);
@@ -190,22 +188,14 @@ export default function ChatUniverse() {
     if (archived.some((c) => c.id === id)) genesis.unarchiveConversation(id);
     if (id !== activeConversationId) genesis.switchConversation(id);
     MultiChatStore.getInstance().markRead(id);
-    setOpenIds((ids) => [...ids.filter((x) => x !== id), id].slice(-4));
-    requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
+    // Open (or bring forward) the managed window — a view of this chat,
+    // never a second instance of it.
+    genesis.openModule(chatWindowId(id));
+    genesis.raiseModule?.(chatWindowId(id));
   };
-  const closeChat = (id: string) => {
-    setOpenIds((ids) => {
-      const next = ids.filter((x) => x !== id);
-      const top = next[next.length - 1];
-      if (top && top !== activeConversationId) genesis.switchConversation(top);
-      return next;
-    });
-    if (openIds.length <= 1) setMaximized(false);
-  };
-  const minimize = () => { setOpenIds([]); setMaximized(false); };
   const newChat = () => {
     const id = genesis.createConversation();
-    if (id) setOpenIds((ids) => [...ids.filter((x) => x !== id), id].slice(-4));
+    if (id) openChat(id);
   };
   const send = () => {
     const text = draft.trim();
@@ -223,9 +213,9 @@ export default function ChatUniverse() {
     saveAppearance(next);
   };
   const onFile = (file: File | undefined) => {
-    if (!file || !focused) return;
+    if (!file || !target) return;
     const reader = new FileReader();
-    reader.onload = () => typeof reader.result === "string" && setImage(focused.id, reader.result);
+    reader.onload = () => typeof reader.result === "string" && setImage(target.id, reader.result);
     reader.readAsDataURL(file);
   };
   const railGo = (id: string) => {
@@ -265,7 +255,7 @@ export default function ChatUniverse() {
   };
 
   return (
-    <div className="lcu" data-cosmos={cosmosMode} data-window={focused ? "open" : "closed"} data-max={maximized} data-rail={railOpen} role="dialog" aria-label="Chat Universe">
+    <div className="lcu" data-cosmos={cosmosMode} data-window="closed" data-rail={railOpen} role="dialog" aria-label="Chat Universe">
       <div className="lcu-cosmos" aria-hidden="true" style={{ backgroundImage: `url("${ART_BASE}galaxy.webp")` }} />
 
       {/* ---------- navigation rail (permanent on desktop, drawer on phone) ---------- */}
@@ -322,6 +312,8 @@ export default function ChatUniverse() {
             >
               {cosmosMode === "workspace" ? <Icons.Orbit size={19} /> : <Icons.PanelsTopLeft size={19} />}
             </button>
+            <button type="button" className="lcu-icon" onClick={() => fileRef.current?.click()} disabled={!target} aria-label="Change the selected chat's thumbnail"><Icons.ImagePlus size={18} /></button>
+            <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => onFile(e.target.files?.[0])} />
             <button type="button" className="lcu-icon" onClick={newChat} aria-label="New chat"><Icons.Plus size={19} /></button>
             <button type="button" className="lcu-icon" onClick={() => setOpen(false)} aria-label="Close Chat Universe"><Icons.X size={19} /></button>
           </div>
@@ -389,56 +381,7 @@ export default function ChatUniverse() {
         {grid.length === 0 ? <p className="lcu-empty">{filter === "archived" ? "No archived chats." : "No chats here yet."}</p> : null}
       </section>
 
-      {/* ---------- floating chat window ---------- */}
-      {focused ? (
-        <article className="lcu-window" aria-label={`${focused.title} conversation`}>
-          {openIds.length > 1 ? (
-            <div className="lcu-tabs" role="tablist">
-              {openIds.map((id) => {
-                const c = byId.get(id);
-                return c ? (
-                  <button key={id} type="button" role="tab" aria-selected={id === focusedId} onClick={() => openChat(id)}>
-                    <Ico name={ART_ICON[artFor(c)]} size={13} /> <span>{c.title}</span>
-                    <span className="lcu-dot" data-state={c.processing ? "working" : "idle"} />
-                  </button>
-                ) : null;
-              })}
-            </div>
-          ) : null}
-          <header className="lcu-win-head">
-            <span className="lcu-card-ico"><Ico name={ART_ICON[artFor(focused)]} size={16} /></span>
-            <strong>{focused.title}</strong>
-            <span className="lcu-dot" data-state={focused.processing ? "working" : "idle"} />
-            {focused.processing ? <span className="lcu-live">Active</span> : null}
-            <span className="lcu-win-tools">
-              <button type="button" onClick={() => fileRef.current?.click()} aria-label="Change thumbnail"><Icons.ImagePlus size={16} /></button>
-              <button type="button" onClick={minimize} aria-label="Minimize"><Icons.Minus size={16} /></button>
-              <button type="button" onClick={() => setMaximized((m) => !m)} aria-label={maximized ? "Restore" : "Maximize"}>
-                {maximized ? <Icons.Minimize2 size={16} /> : <Icons.Maximize2 size={16} />}
-              </button>
-              <button type="button" onClick={() => closeChat(focused.id)} aria-label="Close chat window"><Icons.X size={16} /></button>
-            </span>
-            <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => onFile(e.target.files?.[0])} />
-          </header>
-          {hasVisibleActivity(liveActivity) ? (
-            <div className="lcu-activity" data-lelu-universe-activity={liveActivity?.status}>
-              <ChatActivityCard activity={liveActivity!} />
-            </div>
-          ) : null}
-          <div className="lcu-thread" ref={threadRef} data-lelu-universe-thread data-streaming={focused.processing ? "true" : "false"}>
-            {focused.messages.length === 0 ? <p className="lcu-empty">Say something to start this chat.</p> : null}
-            {focused.messages.slice(-60).map((m) => (
-              <div key={m.id} className="lcu-msg" data-role={m.role}>
-                {m.role === "assistant" ? <span className="lcu-msg-orb" aria-hidden="true" /> : null}
-                <div className="lcu-bubble"><p>{m.text}</p><time>{relativeTime(m.timestamp)}</time></div>
-              </div>
-            ))}
-            {focused.processing ? (
-              <div className="lcu-typing" data-lelu-universe-typing role="status" aria-live="polite"><span /><span /><span /></div>
-            ) : null}
-          </div>
-        </article>
-      ) : null}
+      {/* Chat windows are GenesisModuleHost windows (chat:<id>), drawn above the Universe. */}
 
       {/* ---------- universal composer + quick dock ---------- */}
       <footer className="lcu-bottom">

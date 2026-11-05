@@ -220,6 +220,17 @@ export type ModulePresentation =
 
 export type ModuleStatus = "idle" | "active" | "loading" | "complete" | "attention" | "failed";
 
+/**
+ * A conversation shown as a managed window: module id `chat:<conversationId>`.
+ * It is a VIEW of an existing MultiChatStore conversation — opening it never
+ * creates a chat — and it never becomes the activePanel, so the home, the
+ * Chat Universe and the surface logic keep their own state.
+ */
+export const CHAT_WINDOW_PREFIX = "chat:";
+export function isChatWindowId(id: string): boolean {
+  return id.startsWith(CHAT_WINDOW_PREFIX);
+}
+
 export interface ModuleState {
   presentation: ModulePresentation;
   status: ModuleStatus;
@@ -2068,14 +2079,16 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
                 ? "expanded"
                 : currentPresentation && currentPresentation !== "closed"
                   ? currentPresentation
-                  : typeof window !== "undefined" && window.innerWidth < 768
-                    ? "expanded"
-                    : "inline";
+                  : isChatWindowId(id)
+                    ? "inline" // a chat window floats (and drags) on every width
+                    : typeof window !== "undefined" && window.innerWidth < 768
+                      ? "expanded"
+                      : "inline";
             const modules = {
               ...current.modules,
               [id]: { presentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
-            return { ...current, modules, minimized:false, activePanel:id as GenesisPanel };
+            return { ...current, modules, minimized:false, activePanel:(isChatWindowId(id) ? current.activePanel : id as GenesisPanel) };
           });
         },
 
@@ -2085,7 +2098,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
               ...current.modules,
               [id]: { presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
-            return { ...current, modules, minimized:false, activePanel:id as GenesisPanel };
+            return { ...current, modules, minimized:false, activePanel:(isChatWindowId(id) ? current.activePanel : id as GenesisPanel) };
           });
         },
 
@@ -2095,7 +2108,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
               ...current.modules,
               [id]: { presentation:"minimized" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
-            return { ...current, modules, activePanel:id as GenesisPanel };
+            return { ...current, modules, activePanel:(isChatWindowId(id) ? current.activePanel : id as GenesisPanel) };
           });
         },
 
@@ -2114,7 +2127,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
               ...current.modules,
               [id]: { presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
-            return { ...current, modules, minimized:false, activePanel:id as GenesisPanel };
+            return { ...current, modules, minimized:false, activePanel:(isChatWindowId(id) ? current.activePanel : id as GenesisPanel) };
           });
         },
 

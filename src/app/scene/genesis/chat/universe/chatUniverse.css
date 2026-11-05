@@ -271,3 +271,25 @@ html[data-lelu-universe="open"] [data-testid="lelu-companion"] { visibility: hid
 }
 .lcu[data-cosmos="floating"] .lcu-cosmos::after { display: none; }
 .lcu-mode[data-mode="floating"] { border-color: var(--lcu-edge-hot); box-shadow: 0 0 14px var(--lcu-glow); }
+
+/* ---------- managed chat windows (GenesisModuleHost, module chat:<id>) ---------- */
+/* Above the Universe while it is open, so a window carried in from the
+   Cosmos stays usable; otherwise they keep the host's own stacking. */
+/* The host's own stacking order (--lelu-z = its zIndex) is kept and lifted
+   above the Universe (480) by a constant, so raise/focus still works. */
+html[data-lelu-universe="open"] [data-lelu-module-window^="chat:"],
+html[data-lelu-universe="open"] [data-lelu-module-backdrop^="chat:"] { z-index: calc(455 + var(--lelu-z, 30)) !important; }
+.lcw { display: flex; flex-direction: column; height: 100%; min-height: 0; color: #fbf3ff; background: rgba(26, 9, 54, 0.92); }
+.lcw-activity { padding: 8px 10px 0; flex: 0 0 auto; max-height: 38%; overflow-y: auto; }
+.lcw-thread { flex: 1; min-height: 0; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; overscroll-behavior: contain; }
+.lcw-msg { max-width: 88%; padding: 9px 12px; border-radius: 16px; font-size: 14px; line-height: 1.42; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 220, 255, 0.12); align-self: flex-start; }
+.lcw-msg[data-role="user"] { align-self: flex-end; background: linear-gradient(160deg, rgba(168, 85, 247, 0.55), rgba(109, 40, 217, 0.55)); border-color: rgba(240, 171, 252, 0.4); }
+.lcw-msg p { margin: 0; white-space: pre-wrap; word-break: break-word; }
+.lcw-msg time { display: block; text-align: right; font-size: 10px; opacity: 0.6; margin-top: 3px; }
+.lcw-empty { color: rgba(236, 222, 255, 0.6); font-size: 13px; text-align: center; margin: 18px 0; }
+.lcw-typing { display: flex; gap: 4px; padding: 4px 2px; }
+.lcw-typing span { width: 6px; height: 6px; border-radius: 999px; background: #f0abfc; opacity: 0.5; animation: lcu-typing 1s ease-in-out infinite; }
+.lcw-input { flex: 0 0 auto; display: flex; align-items: flex-end; gap: 6px; padding: 8px; border-top: 1px solid rgba(255, 220, 255, 0.12); }
+.lcw-input textarea { flex: 1; min-width: 0; resize: none; border: 1px solid rgba(244, 180, 255, 0.3); border-radius: 18px; background: rgba(255, 255, 255, 0.06); color: inherit; font: inherit; font-size: 16px; padding: 8px 12px; max-height: 110px; outline: none; }
+.lcw-input button { width: 38px; height: 38px; border-radius: 999px; border: 0; display: grid; place-items: center; background: linear-gradient(160deg, #f0abfc, #a855f7); color: #fff; cursor: pointer; }
+.lcw-input button:disabled { opacity: 0.45; }
