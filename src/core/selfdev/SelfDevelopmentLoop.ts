@@ -795,8 +795,10 @@ export default class SelfDevelopmentLoop {
       agent: developed.agent,
       plan: developed.plan,
       filesInspected: developed.filesInspected,
-      filesChanged: [],
+      // The change being applied; replaced by what was actually written.
+      filesChanged: developed.filesChanged,
       diff: developed.diff,
+      tests: developed.tests,
       workspaceId,
       checks: [],
     };

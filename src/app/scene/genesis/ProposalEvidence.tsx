@@ -89,9 +89,32 @@ export function ProposalBlocked({ proposal, onRetry }: { proposal: ImprovementPr
   );
 }
 
+/** One line per apply attempt after the change was developed. */
+function ApplyAttempts({ attempts }: { attempts: ProposalExecution[] }) {
+  if (attempts.length === 0) return null;
+  return (
+    <div data-lelu-apply-attempts style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 4 }}>
+      <strong>Apply attempts:</strong>
+      {attempts.map((attempt) => (
+        <div key={attempt.executionId} style={{ ...mono, color: attempt.outcome === "Integrated" ? "#86efac" : "rgba(254,243,199,0.85)" }}>
+          {attempt.executionId} · {attempt.outcome ? IMPROVEMENT_STATUS_LABELS[attempt.outcome] ?? attempt.outcome : "running"}
+          {attempt.error ? ` — ${attempt.error}` : ""}
+          {attempt.rollback ? ` — rollback ${attempt.rollback.ok ? `restored ${attempt.rollback.restored.join(", ")}` : `FAILED: ${attempt.rollback.error}`}` : ""}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function ProposalEvidence({ proposal }: { proposal: ImprovementProposal }) {
   const [showDiff, setShowDiff] = useState(false);
-  const execution = proposal.lastExecution;
+  // The change itself is the latest DEVELOPMENT run; apply attempts made
+  // after it are listed under it, so a blocked or failed apply never hides
+  // (or replaces) the diff that was reviewed.
+  const runs = proposal.executions ?? (proposal.lastExecution ? [proposal.lastExecution] : []);
+  const developIndex = runs.map((run) => run.kind).lastIndexOf("develop");
+  const execution = developIndex >= 0 ? runs[developIndex] : proposal.lastExecution;
+  const applyAttempts = developIndex >= 0 ? runs.slice(developIndex + 1).filter((run) => run.kind === "apply") : [];
   if (!execution) return null;
   return (
     <div
@@ -134,6 +157,7 @@ export default function ProposalEvidence({ proposal }: { proposal: ImprovementPr
         </div>
       ) : null}
       {execution.error ? <div style={{ color: "#fca5a5" }}><strong>Result:</strong> {execution.error}</div> : null}
+      <ApplyAttempts attempts={applyAttempts} />
       {execution.diff ? (
         <>
           <button
@@ -152,7 +176,7 @@ export default function ProposalEvidence({ proposal }: { proposal: ImprovementPr
               cursor: "pointer",
             }}
           >
-            {showDiff ? "Hide diff" : `Review diff (${execution.filesChanged.length} file(s))`}
+            {showDiff ? "Hide diff" : `Review diff (${execution.filesChanged.length || "changed"} file(s))`}
           </button>
           {showDiff ? (
             <pre
