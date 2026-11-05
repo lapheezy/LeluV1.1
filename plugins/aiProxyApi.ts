@@ -88,6 +88,10 @@ interface UpstreamKnowledgeProvider {
   originVar?: string;
   /** Also relay POST (JSON body, bounded, same-origin only). */
   allowPost?: true;
+  /** Public credential used when none is configured (NASA's shared DEMO_KEY). */
+  defaultKey?: string;
+  /** The key is a PATH segment inserted right after pathPrefix (NASA FIRMS). */
+  keyInPath?: true;
 }
 
 /** Largest POST body relayed — an image-to-3D request carries the image as a data URI. */
@@ -117,6 +121,49 @@ const KNOWLEDGE_PROVIDERS: Record<string, UpstreamKnowledgeProvider> = {
     keyVars: ["MESHY_API_KEY", "VITE_MESHY_API_KEY"],
     bearer: true,
     allowPost: true,
+  },
+  // The five below were published into every served page by the runtime
+  // key bridge (window.__LELU_*__), so any visitor could read the keys from
+  // the HTML. They take their key as a query parameter, like news/youtube,
+  // and now stay on the server too.
+  guardian: {
+    origin: "https://content.guardianapis.com",
+    pathPrefix: "/search",
+    keyVars: ["GUARDIAN_API_KEY", "VITE_GUARDIAN_API_KEY"],
+    queryParam: "api-key",
+  },
+  gnews: {
+    origin: "https://gnews.io",
+    pathPrefix: "/api/v4/",
+    keyVars: ["GNEWS_API_KEY", "VITE_GNEWS_API_KEY"],
+    queryParam: "apikey",
+  },
+  newsdata: {
+    origin: "https://newsdata.io",
+    pathPrefix: "/api/1/",
+    keyVars: ["NEWSDATA_API_KEY", "VITE_NEWSDATA_API_KEY"],
+    queryParam: "apikey",
+  },
+  geoapify: {
+    origin: "https://api.geoapify.com",
+    pathPrefix: "/v1/",
+    keyVars: ["GEOAPIFY_API_KEY", "VITE_GEOAPIFY_API_KEY"],
+    queryParam: "apiKey",
+  },
+  nasa: {
+    origin: "https://api.nasa.gov",
+    pathPrefix: "/",
+    keyVars: ["NASA_API_KEY", "VITE_NASA_API_KEY"],
+    queryParam: "api_key",
+    defaultKey: "DEMO_KEY",
+  },
+  // NASA FIRMS (Earth fire layer): /api/area/csv/{MAP_KEY}/{SOURCE}/… —
+  // the client sends the path WITHOUT the key segment.
+  firms: {
+    origin: "https://firms.modaps.eosdis.nasa.gov",
+    pathPrefix: "/api/area/csv/",
+    keyVars: ["FIRMS_API_KEY", "VITE_FIRMS_API_KEY"],
+    keyInPath: true,
   },
 };
 
@@ -257,7 +304,7 @@ export function createAiProxyApi(env: EnvReader): {
         for (const [id, entry] of Object.entries(KNOWLEDGE_PROVIDERS)) {
           // Deliberately a boolean. Not the value, not a prefix, not a
           // length — nothing an attacker could use to narrow a key.
-          knowledge[id] = { configured: firstSetVar(env, entry.keyVars).length > 0 };
+          knowledge[id] = { configured: firstSetVar(env, entry.keyVars).length > 0 || Boolean(entry.defaultKey) };
         }
         sendJson(res, { ok: true, knowledge });
       });
@@ -305,7 +352,7 @@ export function createAiProxyApi(env: EnvReader): {
             return;
           }
 
-          const key = firstSetVar(env, entry.keyVars);
+          const key = firstSetVar(env, entry.keyVars) || entry.defaultKey || "";
           if (!key) {
             sendJson(res, { ok: false, error: `No server-side credential configured for "${id}".` }, 503);
             return;
@@ -313,7 +360,11 @@ export function createAiProxyApi(env: EnvReader): {
 
           try {
             const origin = ((entry.originVar && env(entry.originVar)?.trim()) || entry.origin).replace(/\/+$/, "");
-            const target = new URL(`${origin}${rawPath}`);
+            const target = new URL(
+              entry.keyInPath
+                ? `${origin}${entry.pathPrefix}${encodeURIComponent(key)}/${rawPath.slice(entry.pathPrefix.length)}`
+                : `${origin}${rawPath}`,
+            );
             const headers: Record<string, string> = { Accept: "application/json" };
             // A caller-supplied credential is overwritten, never honoured —
             // the server's key is the only one that goes out.
