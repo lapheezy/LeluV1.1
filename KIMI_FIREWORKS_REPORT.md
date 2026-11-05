@@ -83,7 +83,18 @@ npx tsx scripts/kimi-code.ts --root <worktree> --task "<objective>" \
 
 ## 6. Test suite
 
-See the final section, which is filled in from the real run.
+Full suite (`tsx --test --test-force-exit --test-concurrency=1 tests/*.test.ts`):
+
+| Tree | Result |
+|---|---|
+| Baseline `d3e6e75` (untouched worktree) | 427/427 on the second run; the first run failed #82 (live real-model test, "only 1 action(s) were taken") |
+| This change | **433/434**. The only failure is the same live test #82 with the same message; it passed in an earlier run on this tree |
+
+* #82 calls a real model and asserts on how many actions the model chooses to take, so it is flaky on both trees. It is not a regression.
+* Two regressions found along the way and fixed: (a) the Anthropic adapter tests now opt in with `LELU_ENABLE_ANTHROPIC=true`; (b) suites that switch providers off by assigning `enabled = false` needed a setter, and that setter can never re-enable Anthropic past the policy.
+* `--test-force-exit` is needed because `tests/autonomy-end-to-end.test.ts` leaves a `LeluRuntime` health-check timer running, so plain `npm test` never exits. That is pre-existing and also happens on baseline.
+* The two `activeProvider: 'Anthropic'` lines in the test log come from stub providers (`model: 'Anthropic-m'`, no usage). No real Claude calls were made.
+* `npm ci` fails because `package-lock.json` is out of sync with `package.json` (pre-existing). Dependencies were installed with `bun install --frozen-lockfile`.
 
 ## 7. To make K2.7 Code live
 
