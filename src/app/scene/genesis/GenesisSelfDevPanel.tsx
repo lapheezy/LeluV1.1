@@ -18,6 +18,7 @@
  * ==========================================================
  */
 
+import EngineeringWorkspace from "../../../core/engineering/EngineeringWorkspace";
 import ProposalEvidence, { ACTION_REQUIREMENTS, ProposalBlocked } from "./ProposalEvidence";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import GenesisWindowFrame from "./GenesisWindowFrame";
@@ -206,6 +207,35 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
   }
 
   const [autonomyLevel, setAutonomyLevel] = useState(AutonomyGate.getInstance().getLevel());
+  const [autonomySource, setAutonomySource] = useState<"server" | "local">(() => AutonomyGate.getInstance().source());
+  const [autonomyPassword, setAutonomyPassword] = useState("");
+  const [autonomyMessage, setAutonomyMessage] = useState<string | null>(null);
+  const autonomyPost = (body: Record<string, unknown>) => EngineeringWorkspace.getInstance().autonomyRequest(body);
+  useEffect(() => {
+    const gate = AutonomyGate.getInstance();
+    const sync = () => {
+      setAutonomyLevel(gate.getLevel());
+      setAutonomySource(gate.source());
+    };
+    const unsubscribe = gate.subscribe(sync);
+    // The server is authoritative for a signed-in user.
+    void gate.syncFromServer(autonomyPost).then(sync);
+    return unsubscribe;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  async function chooseAutonomy(level: number) {
+    const gate = AutonomyGate.getInstance();
+    setAutonomyMessage(null);
+    if (gate.source() === "server") {
+      const raising = level > gate.getLevel();
+      const result = await gate.requestServerChange(autonomyPost, level, raising ? autonomyPassword : undefined);
+      setAutonomyPassword("");
+      if (!result.ok) setAutonomyMessage(result.error);
+      return;
+    }
+    gate.setLevel(level);
+    setAutonomyLevel(level);
+  }
   const autonomy = autonomyLevel;
   const [runtimeState, setRuntimeState] = useState<EngineeringRuntimeState>(() =>
     WorkspaceRuntime.getInstance().getRuntimeState(),
@@ -341,15 +371,29 @@ export default function GenesisSelfDevPanel({ onClose }: GenesisSelfDevPanelProp
             {/* Autonomy — explicit authorization for real execution */}
             <div style={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: 12 }}>
               <div style={labelStyle}>Autonomy level — what LÉLU is allowed to actually do</div>
+              <div data-lelu-autonomy-source style={{ fontSize: 11, marginBottom: 6, color: autonomySource === "server" ? "#86efac" : "#fde68a" }}>
+                {autonomySource === "server"
+                  ? `Stored on the server for your account (L${autonomyLevel}) — the same on every device. Raising it asks for your password.`
+                  : "This browser only — not signed in, so the server has no level for you and refuses changes to the real project."}
+              </div>
+              {autonomySource === "server" ? (
+                <input
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="Password (only needed to raise the level)"
+                  aria-label="Password to raise autonomy"
+                  value={autonomyPassword}
+                  onChange={(event) => setAutonomyPassword(event.target.value)}
+                  style={{ marginBottom: 6, width: "100%", maxWidth: 320, padding: "6px 10px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(2,6,23,0.5)", color: "white", fontFamily: "inherit", fontSize: 12 }}
+                />
+              ) : null}
+              {autonomyMessage ? <div style={{ fontSize: 11, color: "#fca5a5", marginBottom: 6 }}>{autonomyMessage}</div> : null}
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {[0, 1, 2, 3, 4, 5].map((level) => (
                   <button
                     key={level}
                     type="button"
-                    onClick={() => {
-                      AutonomyGate.getInstance().setLevel(level);
-                      setAutonomyLevel(level);
-                    }}
+                    onClick={() => void chooseAutonomy(level)}
                     style={{
                       ...chipButton,
                       padding: "6px 12px",

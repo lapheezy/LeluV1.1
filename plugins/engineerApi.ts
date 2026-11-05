@@ -56,7 +56,9 @@
  * ==========================================================
  */
 
-import { identityConfigured, verifyRequestIdentity } from "./engineerIdentity.ts";
+import { identityConfigured, reverifyPassword, verifyRequestIdentity } from "./engineerIdentity.ts";
+import { randomBytes } from "node:crypto";
+import { createServerAutonomyStore, SERVER_APPLY_LEVEL, type ServerAutonomyStore } from "./serverAutonomy.ts";
 
 export interface EngineerCommandResult {
   ok: boolean;
@@ -215,6 +217,7 @@ const ROUTES = [
   "/api/engineer/delete",
   "/api/engineer/workspace",
   "/api/engineer/git",
+  "/api/engineer/autonomy",
 ] as const;
 
 /**
@@ -235,7 +238,8 @@ const applyGrants = new Map<string, { nonce: string; issuedAt: number; userId: s
 const GRANT_TTL_MS = 10 * 60 * 1000;
 
 function issueGrant(workspaceId: string, userId: string): string {
-  const nonce = `grant_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  // Unguessable: a grant is an authorization token, so it comes from the CSPRNG.
+  const nonce = `grant_${randomBytes(24).toString("base64url")}`;
   applyGrants.set(workspaceId, { nonce, issuedAt: Date.now(), userId });
   return nonce;
 }
@@ -372,9 +376,37 @@ function hasValidToken(req: ConnectLikeReq): boolean {
 /* the API                                                             */
 /* ------------------------------------------------------------------ */
 
-export function createEngineerApi(adapter: EngineerAdapter): {
+export interface EngineerApiOptions {
+  /** Server-side autonomy store (default: .lelu-runtime/autonomy.json). */
+  autonomy?: ServerAutonomyStore;
+  /** Identity verification (default: Supabase). Injected only by tests. */
+  verifyIdentity?: typeof verifyRequestIdentity;
+  /** Password re-verification for RAISING autonomy (default: Supabase). */
+  reverifyPassword?: typeof reverifyPassword;
+}
+
+export function createEngineerApi(adapter: EngineerAdapter, options: EngineerApiOptions = {}): {
   attach: (middlewares: { use: (path: string, handler: Handler) => void }) => void;
 } {
+  const autonomy = options.autonomy ?? createServerAutonomyStore();
+  const verifyIdentity = options.verifyIdentity ?? verifyRequestIdentity;
+  const checkPassword = options.reverifyPassword ?? reverifyPassword;
+  /**
+   * The SERVER's answer to "may this verified user change the real project
+   * now?", read at execution time from the server-stored level — never from
+   * anything the page sends.
+   */
+  const autonomyAllowsApply = (userId: string): { ok: true } | { ok: false; reason: string } => {
+    const record = autonomy.get(userId);
+    return record.level >= SERVER_APPLY_LEVEL
+      ? { ok: true }
+      : {
+          ok: false,
+          reason:
+            `Your server-side autonomy level is L${record.level}; changing the real project needs ` +
+            `L${SERVER_APPLY_LEVEL}. Raise it in Settings (your password is required), then retry.`,
+        };
+  };
   function handleRoute(route: (typeof ROUTES)[number]) {
     return (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): void => {
       const method = req.method ?? "GET";
@@ -454,6 +486,43 @@ export function createEngineerApi(adapter: EngineerAdapter): {
       void (async () => {
         try {
           const payload = await readJsonBody(req);
+
+          /* ---- POST /api/engineer/autonomy — the authoritative level ----
+             { action: "get" } → the verified user's server-stored level.
+             { action: "set", level, confirm: true, password? } → change it;
+             raising needs the password re-verified by Supabase here. */
+          if (route === "/api/engineer/autonomy") {
+            const who = await verifyIdentity(req);
+            if (!who.ok || !who.identity) {
+              sendJson(res, { ok: false, error: who.reason }, who.status);
+              return;
+            }
+            const action = String(payload.action ?? "get");
+            if (action === "get") {
+              sendJson(res, { ok: true, source: "server", ...autonomy.get(who.identity.userId), applyLevel: SERVER_APPLY_LEVEL });
+              return;
+            }
+            if (action === "set") {
+              const current = autonomy.get(who.identity.userId).level;
+              const raising = Number(payload.level) > current;
+              const passwordVerified = raising ? await checkPassword(who.identity.email, payload.password) : false;
+              const decision = await autonomy.change({
+                userId: who.identity.userId,
+                by: who.identity.email ?? who.identity.userId,
+                level: payload.level,
+                confirm: payload.confirm,
+                passwordVerified,
+              });
+              if (!decision.ok) {
+                sendJson(res, { ok: false, error: decision.reason }, decision.status);
+                return;
+              }
+              sendJson(res, { ok: true, source: "server", ...decision.record, applyLevel: SERVER_APPLY_LEVEL });
+              return;
+            }
+            sendJson(res, { ok: false, error: `Unknown autonomy action: ${action}` }, 400);
+            return;
+          }
 
           /* ---- POST /api/engineer/command (whitelisted) ---- */
           if (route === "/api/engineer/command") {
@@ -622,9 +691,14 @@ export function createEngineerApi(adapter: EngineerAdapter): {
               const id = safeWorkspaceId(payload.workspace);
               // Identity FIRST: a grant is only meaningful once we know
               // who it belongs to.
-              const who = await verifyRequestIdentity(req);
+              const who = await verifyIdentity(req);
               if (!who.ok || !who.identity) {
                 sendJson(res, { ok: false, error: who.reason }, who.status);
+                return;
+              }
+              const allowed = autonomyAllowsApply(who.identity.userId);
+              if (!allowed.ok) {
+                sendJson(res, { ok: false, error: allowed.reason, blocked: "autonomy" }, 403);
                 return;
               }
               const changes = await adapter.diffWorkspace(id);
@@ -648,13 +722,21 @@ export function createEngineerApi(adapter: EngineerAdapter): {
               // THREE independent conditions, all required, all checked
               // here on the server. A client-side "authorized: true" is
               // not one of them and never reaches this code.
-              const who = await verifyRequestIdentity(req);
+              const who = await verifyIdentity(req);
               if (!who.ok || !who.identity) {
                 sendJson(res, { ok: false, error: who.reason }, who.status);
                 return;
               }
               if (payload.confirm !== true) {
                 sendJson(res, { ok: false, error: "Apply requires confirm:true." }, 403);
+                return;
+              }
+              // Re-checked at execution time: lowering the level between
+              // request-apply and apply revokes the pending grant's use.
+              const allowedNow = autonomyAllowsApply(who.identity.userId);
+              if (!allowedNow.ok) {
+                applyGrants.delete(id);
+                sendJson(res, { ok: false, error: allowedNow.reason, blocked: "autonomy" }, 403);
                 return;
               }
               if (!consumeGrant(id, String(payload.grant ?? ""), who.identity.userId)) {
@@ -687,7 +769,7 @@ export function createEngineerApi(adapter: EngineerAdapter): {
               const id = safeWorkspaceId(payload.workspace);
               // Restoring the real project is still a write to it, so it
               // carries the same identity requirement as apply itself.
-              const who = await verifyRequestIdentity(req);
+              const who = await verifyIdentity(req);
               if (!who.ok || !who.identity) {
                 sendJson(res, { ok: false, error: who.reason }, who.status);
                 return;
@@ -747,7 +829,7 @@ export function createEngineerApi(adapter: EngineerAdapter): {
             }
 
             if (action === "commit") {
-              const who = await verifyRequestIdentity(req);
+              const who = await verifyIdentity(req);
               if (!who.ok || !who.identity) {
                 sendJson(res, { ok: false, error: who.reason }, who.status);
                 return;
@@ -807,7 +889,7 @@ export function createEngineerApi(adapter: EngineerAdapter): {
             }
 
             if (action === "push") {
-              const who = await verifyRequestIdentity(req);
+              const who = await verifyIdentity(req);
               if (!who.ok || !who.identity) {
                 sendJson(res, { ok: false, error: who.reason }, who.status);
                 return;

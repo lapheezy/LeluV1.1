@@ -235,6 +235,14 @@ export default class EngineeringWorkspace {
     return this.post(route, body);
   }
 
+  /**
+   * The signed-in user's SERVER-stored autonomy (plugins/serverAutonomy.ts),
+   * sent with the session token. Used by AutonomyGate; never by a tool.
+   */
+  public async autonomyRequest(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return this.post("/api/engineer/autonomy", body, { withIdentity: true });
+  }
+
   /* ---------------------------- operations ---------------------------- */
 
   /** Create a REAL copy of the project. Returns the server's own record. */

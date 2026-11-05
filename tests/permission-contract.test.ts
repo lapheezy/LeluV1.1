@@ -53,9 +53,10 @@ test("the server, not the page, enforces identity and a single-use grant for cha
     const start = api.indexOf(`if (action === "${action}")`);
     assert.ok(start > 0, `${action} handler exists`);
     const body = api.slice(start, start + 1400);
-    assert.match(body, /verifyRequestIdentity\(req\)/, `${action} verifies identity on the server`);
+    assert.match(body, /verifyIdentity\(req\)/, `${action} verifies identity on the server`);
   }
-  const apply = api.slice(api.indexOf('if (action === "apply")'), api.indexOf('if (action === "apply")') + 1600);
+  assert.match(api, /options\.verifyIdentity \?\? verifyRequestIdentity/, "production uses the Supabase verifier; only tests inject one");
+  const apply = api.slice(api.indexOf('if (action === "apply")'), api.indexOf('if (action === "apply")') + 2400);
   assert.match(apply, /payload\.confirm !== true/, "apply needs an explicit confirm");
   assert.match(apply, /consumeGrant\(/, "apply needs the single-use grant issued to the same identity");
   assert.match(api, /error:\s*\n?\s*"Writes require a workspace copy/, "direct writes to the live project are refused");

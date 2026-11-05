@@ -34,7 +34,8 @@ import {
 } from "./engineerApi.ts";
 
 /** Directories never worth listing back to the client. */
-const SKIPPED_DIRS = new Set([".git", "node_modules", "dist", ".cache", ".vite", SANDBOX_DIR_NAME()]);
+// .lelu-runtime holds server state (autonomy levels): never copied, diffed or applied.
+const SKIPPED_DIRS = new Set([".git", "node_modules", "dist", ".cache", ".vite", ".lelu-runtime", SANDBOX_DIR_NAME()]);
 
 /** Where isolated project copies live, relative to the project root. */
 function SANDBOX_DIR_NAME(): string {

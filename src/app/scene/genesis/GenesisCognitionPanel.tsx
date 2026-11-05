@@ -847,9 +847,14 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
                       key={level.level}
                       type="button"
                       onClick={() => {
+                        // Signed in, the SERVER holds the level: it is changed in
+                        // Self Development, where raising asks for the password.
+                        if (gate.source() === "server") return;
                         gate.setLevel(level.level);
                         setAutonomyLevel(level.level);
                       }}
+                      disabled={gate.source() === "server"}
+                      title={gate.source() === "server" ? "Stored on the server for your account — change it in Self Development (password required to raise)." : undefined}
                       style={{
                         textAlign: "left",
                         border: active

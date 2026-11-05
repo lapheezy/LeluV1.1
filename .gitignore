@@ -37,6 +37,8 @@ dist-ssr
 
 # LÉLU's isolated engineering workspace copies
 .lelu-sandbox/
+# Server-side runtime state (autonomy levels + audit) — never committed.
+.lelu-runtime/
 
 
 # Runtime Cosmos world store written by the dev server (plugins/worldEngine.ts)

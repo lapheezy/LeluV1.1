@@ -173,3 +173,29 @@ export async function verifyRequestIdentity(req: {
     reason: `Verified Supabase identity ${user.email ?? user.id}.`,
   };
 }
+
+/**
+ * Re-verify a user's PASSWORD with Supabase (the password grant), on the
+ * server. Used only to RAISE the server-stored autonomy level: code in the
+ * page holds the session token, never the password, so a successful
+ * re-verification is evidence the human typed it. The password is sent to
+ * Supabase and nowhere else; it is never logged, stored or returned.
+ *
+ * `email` must be the email of the identity already verified from the
+ * session, so one account cannot vouch for another.
+ */
+export async function reverifyPassword(email: string | null, password: unknown): Promise<boolean> {
+  const settings = config();
+  if (!settings || !email || typeof password !== "string" || password.length === 0) return false;
+  try {
+    const response = await fetch(`${settings.url}/auth/v1/token?grant_type=password`, {
+      method: "POST",
+      headers: { apikey: settings.anonKey, "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
