@@ -24,7 +24,7 @@ import path from "node:path";
 import ProposalEngineer, { applyEdits, extractJson, type ProposalSourceAccess } from "../src/core/selfdev/ProposalEngineer";
 import { createNodeEngineerAdapter } from "../plugins/nodeAdapters";
 import { TARGETED_OPERATIONS } from "../plugins/engineerApi";
-import type { ImprovementProposal } from "../src/core/selfdev/ImprovementQueue";
+import { recoverInterrupted, type ImprovementProposal } from "../src/core/selfdev/ImprovementQueue";
 
 const proposal = {
   id: "p1",
@@ -158,4 +158,18 @@ test("targeted check operations accept only strict project-relative paths", () =
   assert.ok(tests.test("tests/proposal-engineering.test.ts"));
   assert.ok(!tests.test("tests/../plugins/x.test.ts"));
   assert.ok(!tests.test("tests/a.test.ts && curl x"));
+});
+
+test("a proposal saved mid-run is not left showing in progress after a reload", () => {
+  const stored = [
+    { ...proposal, id: "a", status: "In Development", lastExecution: { executionId: "e1", kind: "develop", started: 1, filesInspected: [], filesChanged: [], checks: [] } },
+    { ...proposal, id: "b", status: "Applying" },
+    { ...proposal, id: "c", status: "Ready" },
+  ] as ImprovementProposal[];
+  const recovered = recoverInterrupted(stored, 99);
+  assert.deepEqual(recovered.map((p) => p.status), ["Failed", "Failed", "Ready"]);
+  assert.match(recovered[0].lastExecution?.error ?? "", /Interrupted: the development run stopped/);
+  assert.equal(recovered[0].lastExecution?.outcome, "Failed");
+  const untouched = [{ ...proposal, id: "d", status: "Proposed" }] as ImprovementProposal[];
+  assert.equal(recoverInterrupted(untouched), untouched, "nothing to recover returns the same array");
 });

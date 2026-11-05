@@ -83,6 +83,24 @@ export const PENDING_APPROVAL_STATUSES: ImprovementStatus[] = ["Detected", "Anal
 /** Statuses that mean a run is in flight right now. */
 export const RUNNING_STATUSES: ImprovementStatus[] = ["In Development", "Testing", "Evaluation", "Applying"];
 
+/**
+ * Runs execute inside the page that started them, so when stored state is
+ * loaded nothing can be running yet. A proposal saved mid-run (the page was
+ * closed or reloaded) would otherwise show "Developing" / "Applying" forever.
+ * It becomes Failed with the reason, and can be developed again.
+ */
+export function recoverInterrupted(proposals: ImprovementProposal[], now = Date.now()): ImprovementProposal[] {
+  if (!proposals.some((proposal) => RUNNING_STATUSES.includes(proposal.status))) return proposals;
+  return proposals.map((proposal) => {
+    if (!RUNNING_STATUSES.includes(proposal.status)) return proposal;
+    const error = `Interrupted: the ${proposal.status === "Applying" ? "apply" : "development run"} stopped when the page that ran it closed. Nothing is running now.`;
+    const lastExecution = proposal.lastExecution
+      ? { ...proposal.lastExecution, finished: proposal.lastExecution.finished ?? now, outcome: "Failed" as const, error }
+      : undefined;
+    return { ...proposal, status: "Failed", updated: now, ...(lastExecution ? { lastExecution } : {}) };
+  });
+}
+
 /** Why a proposal is Blocked, and what unblocks it. */
 export interface ProposalBlock {
   reason: string;
@@ -289,8 +307,8 @@ export default class ImprovementQueue {
 
   private constructor() {
     const stored = KvStore.getInstance().get<ImprovementProposal[]>(KEY);
-    this.proposals = stored && stored.length > 0 ? stored : seedProposals();
-    if (!stored || stored.length === 0) {
+    this.proposals = stored && stored.length > 0 ? recoverInterrupted(stored) : seedProposals();
+    if (!stored || stored.length === 0 || this.proposals !== stored) {
       this.persist();
     }
   }
