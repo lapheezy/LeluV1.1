@@ -29,6 +29,9 @@
 
 import KvStore from "../../../../core/storage/KvStore";
 import type { GenesisPanel, ModuleState } from "../GenesisCore";
+import { loadCosmosMode, saveCosmosMode, type CosmosMode } from "../chat/universe/universeModel";
+
+export type { CosmosMode };
 
 export interface SavedLayout {
   activePanel: GenesisPanel;
@@ -36,8 +39,8 @@ export interface SavedLayout {
   savedAt: number;
 }
 
-/** How the Chat Universe relates to the live Cosmos. */
-export type CosmosMode = "workspace" | "floating";
+/** The mode's persisted form (lelu.universe.cosmosMode.v1, owned by this
+    store — `universeModel` only reads and writes the value). */
 
 /** Window geometry in 0..1 of the viewport. */
 export interface NormalizedRect {
@@ -76,7 +79,7 @@ class HomeStoreImpl {
     this.state = {
       layout: saved?.layout ?? null,
       immersive: false,
-      cosmosMode: saved?.cosmosMode === "floating" ? "floating" : "workspace",
+      cosmosMode: loadCosmosMode(),
       universe: {
         open: Array.isArray(saved?.universe?.open) ? saved!.universe!.open.filter((id) => typeof id === "string") : [],
         geometry: saved?.universe?.geometry ?? {},
@@ -124,6 +127,7 @@ class HomeStoreImpl {
   /** The single owner of the Cosmos mode. Persisted. */
   setCosmosMode(mode: CosmosMode): void {
     if (mode === this.state.cosmosMode) return;
+    saveCosmosMode(mode);
     this.patch({ cosmosMode: mode });
   }
 
@@ -161,10 +165,11 @@ class HomeStoreImpl {
   private patch(next: Partial<HomeState>): void {
     this.state = { ...this.state, ...next };
     try {
+      // The Cosmos mode has its own key (universeModel's load/save), so it is
+      // not duplicated into this snapshot.
       KvStore.getInstance().set(KEY, {
         layout: this.state.layout,
         immersive: false,
-        cosmosMode: this.state.cosmosMode,
         universe: this.state.universe,
       });
     } catch {

@@ -249,3 +249,15 @@ html[data-lelu-universe="open"] [data-testid="lelu-companion"] { visibility: hid
   .lcu-rail, .lcu-orbit, .lcu-card { transition: none !important; }
   .lcu-orbit { transform: none; }
 }
+
+/* ---------- Floating Cosmos: the live scene behind the windows ---------- */
+.lcu[data-cosmos="floating"] .lcu-cosmos {
+  /* The backdrop image is removed entirely (it carries an inline
+     background-image), so the live 3D Cosmos is what shows between the
+     surfaces; only a soft vignette keeps their contrast. */
+  background-image: radial-gradient(ellipse 120% 90% at 50% 40%, transparent 45%, rgba(8, 2, 24, 0.5)) !important;
+  background-color: transparent;
+  background-size: auto;
+}
+.lcu[data-cosmos="floating"] .lcu-cosmos::after { display: none; }
+.lcu-mode[data-mode="floating"] { border-color: var(--lcu-edge-hot); box-shadow: 0 0 14px var(--lcu-glow); }
