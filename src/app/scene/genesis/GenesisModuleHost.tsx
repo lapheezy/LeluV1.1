@@ -131,6 +131,9 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
 
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; baseX: number; baseY: number } | null>(null);
   const resizeRef = useRef<{ pointerId: number; startX: number; startY: number; baseW: number; baseH: number } | null>(null);
+  // While the user drags/resizes, geometry follows the pointer 1:1 — the
+  // theme's motion transition applies only to orchestrated layout changes.
+  const [interacting, setInteracting] = useState(false);
 
   const handlePointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -138,6 +141,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       e.preventDefault();
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
       dragRef.current = { pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, baseX: position.x, baseY: position.y };
+      setInteracting(true);
       raiseModule(id);
     },
     [id, position.x, position.y, raiseModule],
@@ -171,6 +175,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       e.stopPropagation();
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
       resizeRef.current = { pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, baseW: size.width, baseH: size.height };
+      setInteracting(true);
       raiseModule(id);
     },
     [id, size.width, size.height, raiseModule],
@@ -191,6 +196,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
   const endDrag = useCallback(() => {
     dragRef.current = null;
     resizeRef.current = null;
+    setInteracting(false);
   }, []);
 
   const isExpanded = mod.presentation === "expanded";
@@ -224,8 +230,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
         alignItems: "center",
         gap: 8,
         padding: "0 10px",
-        borderBottom: "1px solid rgba(125,211,252,0.16)",
-        background: "rgba(8,16,38,0.82)",
+        borderBottom: "var(--lelu-border-soft, 1px solid rgba(125,211,252,0.16))",
+        background: "var(--lelu-chrome-bg, rgba(8,16,38,0.82))",
         cursor: "grab",
         touchAction: "none",
         userSelect: "none",
@@ -234,7 +240,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       }}
     >
       <span aria-hidden style={{ fontSize: 13, opacity: 0.9 }}>{glyph}</span>
-      <strong style={{ fontSize: 12, letterSpacing: "0.04em", color: "#dbeafe", flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+      <strong data-lelu-text="title" style={{ fontSize: 12, letterSpacing: "0.04em", color: "var(--lelu-color-text, #dbeafe)", flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
         {label}
       </strong>
       <span
@@ -263,24 +269,26 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
         }}
       >
         <div
+          data-lelu-surface="window"
+          data-lelu-window={id}
           style={{
             pointerEvents: "auto",
             width: "min(92vw, 900px)",
             height: "min(84dvh, 640px)",
             display: "flex",
             flexDirection: "column",
-            background: "rgba(6,14,32,0.97)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
-            borderRadius: 16,
-            border: "1px solid rgba(103,232,249,0.22)",
-            boxShadow: "0 24px 80px rgba(2,6,23,0.65)",
+            background: "var(--lelu-surface-bg, rgba(6,14,32,0.97))",
+            backdropFilter: "var(--lelu-backdrop, blur(24px))",
+            WebkitBackdropFilter: "var(--lelu-backdrop, blur(24px))",
+            borderRadius: "var(--lelu-radius, 16px)",
+            border: "var(--lelu-border, 1px solid rgba(103,232,249,0.22))",
+            boxShadow: "var(--lelu-shadow, 0 24px 80px rgba(2,6,23,0.65))",
             overflow: "hidden",
           }}
         >
           {chrome}
           <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex" }}>
-            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}>
               {render({ onClose: () => closeModule(id) })}
             </div>
           </div>
@@ -291,6 +299,9 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
 
   return (
     <div
+      data-lelu-surface="window"
+      data-lelu-window={id}
+      data-lelu-interacting={interacting ? "" : undefined}
       style={{
         position: "fixed",
         left: isMobile
@@ -305,17 +316,22 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
         pointerEvents: "auto",
         display: "flex",
         flexDirection: "column",
-        background: "rgba(6,14,32,0.96)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
-        borderRadius: 14,
-        border: "1px solid rgba(103,232,249,0.22)",
-        boxShadow: "0 16px 56px rgba(2,6,23,0.6)",
+        background: "var(--lelu-surface-bg, rgba(6,14,32,0.96))",
+        backdropFilter: "var(--lelu-backdrop, blur(24px))",
+        WebkitBackdropFilter: "var(--lelu-backdrop, blur(24px))",
+        borderRadius: "var(--lelu-window-radius, 14px)",
+        border: "var(--lelu-border, 1px solid rgba(103,232,249,0.22))",
+        boxShadow: "var(--lelu-shadow, 0 16px 56px rgba(2,6,23,0.6))",
         overflow: "hidden",
+        // Tilt is a separate CSS property from transform, so it composes
+        // with the idle float animation instead of fighting it. Phones
+        // never tilt: a rotated sheet would push controls off-screen.
+        rotate: !isMobile && mod.rotation ? `${mod.rotation}deg` : undefined,
+        transition: interacting ? "none" : "left var(--lelu-motion-duration, 0ms) var(--lelu-motion-easing, ease), top var(--lelu-motion-duration, 0ms) var(--lelu-motion-easing, ease), width var(--lelu-motion-duration, 0ms) var(--lelu-motion-easing, ease), height var(--lelu-motion-duration, 0ms) var(--lelu-motion-easing, ease), rotate var(--lelu-motion-duration, 0ms) ease",
       }}
     >
       {chrome}
-      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden" }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}>
         {render({ onClose: () => closeModule(id) })}
       </div>
       {/* Resize handle — bottom-right corner */}
@@ -333,7 +349,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
           height: RESIZE_HANDLE,
           cursor: "nwse-resize",
           touchAction: "none",
-          background: "linear-gradient(135deg, transparent 50%, rgba(103,232,249,0.5) 50%)",
+          background: "linear-gradient(135deg, transparent 50%, var(--lelu-color-accent, rgba(103,232,249,0.5)) 50%)",
+          opacity: 0.8,
           borderBottomRightRadius: 14,
         }}
       />

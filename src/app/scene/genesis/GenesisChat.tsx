@@ -78,27 +78,30 @@ function prefersReducedMotion(): boolean {
  * Readability comes from layered text shadows over the cosmos.
  * ---------------------------------------------------------- */
 
+// Each value reads LÉLU's typography tokens when an approved theme sets
+// them, and is the original Genesis value otherwise.
 const dialogueTextBase: CSSProperties = {
   whiteSpace: "pre-wrap",
   overflowWrap: "anywhere",
-  lineHeight: 1.55,
-  letterSpacing: "0.015em",
-  textAlign: "center",
-  fontWeight: 400,
+  lineHeight: "var(--lelu-line-height, 1.55)",
+  letterSpacing: "var(--lelu-letter-spacing, 0.015em)",
+  textAlign: "var(--lelu-text-align, center)" as CSSProperties["textAlign"],
+  fontWeight: "var(--lelu-font-weight-body, 400)" as CSSProperties["fontWeight"],
+  fontFamily: "var(--lelu-font-body, inherit)",
 };
 
 const userTextStyle: CSSProperties = {
   ...dialogueTextBase,
-  fontSize: "clamp(14px, 1.5vw + 9px, 17px)",
-  color: "rgba(199, 228, 250, 0.94)",
+  fontSize: "var(--lelu-font-size-body, clamp(14px, 1.5vw + 9px, 17px))",
+  color: "var(--lelu-color-text-muted, rgba(199, 228, 250, 0.94))",
   textShadow:
     "0 0 14px rgba(2, 6, 23, 0.6), 0 1px 2px rgba(2, 6, 23, 0.92)",
 };
 
 const assistantTextStyle: CSSProperties = {
   ...dialogueTextBase,
-  fontSize: "clamp(15px, 1.7vw + 10px, 19px)",
-  color: "#f4fcff",
+  fontSize: "var(--lelu-font-size-dialogue, clamp(15px, 1.7vw + 10px, 19px))",
+  color: "var(--lelu-color-text, #f4fcff)",
   textShadow:
     "0 0 22px rgba(103, 232, 249, 0.42), 0 0 46px rgba(56, 189, 248, 0.24), 0 1px 3px rgba(2, 6, 23, 0.95)",
 };
@@ -215,6 +218,7 @@ function AssistantLine({ text, fast, onDone }: AssistantLineProps) {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
       style={assistantTextStyle}
+      data-lelu-text="dialogue"
     >
       {visibleText.slice(0, count)}
       {count < total ? <Caret /> : null}
@@ -715,6 +719,36 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
   const [chatSize, setChatSize] = useState<"compact" | "medium" | "large">("medium");
   const [chatCorner, setChatCorner] = useState(false);
   const [chatMinimized, setChatMinimized] = useState(false);
+  /** Exact size from an approved interface layout (null = size preset). */
+  const [chatCustomSize, setChatCustomSize] = useState<{ width: number; height: number } | null>(null);
+
+  /* Approved interface layouts place the chat like any other window
+     (InterfaceRuntime dispatches this after the user approves). On
+     phones the chat stays the full-screen base layer. */
+  useEffect(() => {
+    function onLayout(e: Event) {
+      const detail = (e as CustomEvent).detail as { x?: number; y?: number; width?: number; height?: number; presentation?: string } | undefined;
+      if (!detail) return;
+      if (detail.presentation === "minimized") {
+        setChatMinimized(true);
+        return;
+      }
+      setChatMinimized(false);
+      if (window.matchMedia("(max-width: 720px)").matches) {
+        setChatPos({ x: -1, y: -1 });
+        return;
+      }
+      if (typeof detail.x === "number" && typeof detail.y === "number") {
+        setChatCorner(false);
+        setChatPos({ x: Math.round(detail.x), y: Math.round(detail.y) });
+      }
+      if (typeof detail.width === "number" && typeof detail.height === "number") {
+        setChatCustomSize({ width: Math.round(detail.width), height: Math.round(detail.height) });
+      }
+    }
+    window.addEventListener("lelu-interface-chat-layout", onLayout);
+    return () => window.removeEventListener("lelu-interface-chat-layout", onLayout);
+  }, []);
   const dragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0, posX: 0, posY: 0, height: 480 });
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
@@ -905,6 +939,8 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
           boxShadow: "0 8px 32px rgba(2,6,23,0.5)",
         }}
         onClick={() => setChatMinimized(false)}
+        data-lelu-window="chat"
+        data-lelu-chat-minimized=""
       >
         <span style={{ fontSize: 16 }}>◎</span>
         <span style={{ color: "#e2e8f0", fontSize: 13, fontWeight: 500 }}>
@@ -952,13 +988,17 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
         : isCentered
           ? { left: "50%", top: "50%", transform: "translate(-50%,-45%)" }
           : { left: chatPos.x, top: chatPos.y }),
-    ...(isMobileViewport ? {} : sizeStyles[chatSize]),
+    ...(isMobileViewport
+      ? {}
+      : chatCustomSize && !chatCorner
+        ? { width: `min(${chatCustomSize.width}px, calc(100vw - 16px))`, height: `min(${chatCustomSize.height}px, calc(100dvh - 16px))`, maxHeight: "none" }
+        : sizeStyles[chatSize]),
     display: "flex", flexDirection: "column",
-    background: "rgba(6,14,32,0.94)",
-    backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
-    borderRadius: isMobileViewport && !isFloatingMobile ? 0 : "18px",
-    border: isMobileViewport && !isFloatingMobile ? "none" : "1px solid rgba(103,232,249,0.2)",
-    boxShadow: isMobileViewport && !isFloatingMobile ? "none" : "0 12px 48px rgba(2,6,23,0.55), inset 0 1px 0 rgba(255,255,255,0.04)",
+    background: "var(--lelu-surface-bg, rgba(6,14,32,0.94))",
+    backdropFilter: "var(--lelu-backdrop, blur(24px))", WebkitBackdropFilter: "var(--lelu-backdrop, blur(24px))",
+    borderRadius: isMobileViewport && !isFloatingMobile ? 0 : "var(--lelu-window-radius, 18px)",
+    border: isMobileViewport && !isFloatingMobile ? "none" : "var(--lelu-border, 1px solid rgba(103,232,249,0.2))",
+    boxShadow: isMobileViewport && !isFloatingMobile ? "none" : "var(--lelu-shadow, 0 12px 48px rgba(2,6,23,0.55), inset 0 1px 0 rgba(255,255,255,0.04))",
     overflow: "hidden",
     overscrollBehavior: "contain",
   };
@@ -970,6 +1010,9 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
       style={windowStyle}
+      data-lelu-surface="chat"
+      data-lelu-window="chat"
+      data-lelu-chat-minimized={chatMinimized ? "" : undefined}
     >
       {/* Phone-only resize handle — only when floating (not fullscreen) */}
       {isMobileViewport && isFloatingMobile ? (
@@ -1026,7 +1069,7 @@ export default function GenesisChat({ onExit }: { onExit?: () => void }) {
           </button>
         ) : (
           <>
-            <button onClick={() => setChatSize(s => s === "compact" ? "medium" : s === "medium" ? "large" : "compact")}
+            <button onClick={() => { setChatCustomSize(null); setChatSize(s => s === "compact" ? "medium" : s === "medium" ? "large" : "compact"); }}
               title="Resize" style={titleBtn}>⤢</button>
             <button onClick={() => setChatCorner(!chatCorner)}
               title={chatCorner ? "Float" : "Snap to corner"} style={titleBtn}>{chatCorner ? "⊡" : "⊟"}</button>

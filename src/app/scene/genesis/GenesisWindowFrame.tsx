@@ -338,9 +338,9 @@ export default function GenesisWindowFrame({
         pointerEvents: "auto",
         background: background ?? genesisTheme.glass.panel,
         border: active ? genesisTheme.glass.borderAccent : genesisTheme.glass.border,
-        borderRadius: genesisTheme.radius.lg,
+        borderRadius: `var(--lelu-window-radius, ${genesisTheme.radius.lg}px)`,
         padding: 16,
-        color: "white",
+        color: "var(--lelu-color-text, white)",
         boxShadow: depth.boxShadow,
         backdropFilter: depth.backdropFilter,
         transformOrigin: "bottom center",
@@ -365,6 +365,7 @@ export default function GenesisWindowFrame({
       className={
         "genesis-window-frame" + (active ? " genesis-signal-active" : "")
       }
+      data-lelu-surface="panel"
       style={frameStyle}
     >
       {/* Mobile: drag handle at top for resizing the bottom sheet */}
@@ -429,7 +430,7 @@ export default function GenesisWindowFrame({
       >
         <div style={{ minWidth: 0 }}>
           <div style={genesisTheme.text.eyebrow}>{eyebrow}</div>
-          <div style={{ fontWeight: 700, overflowWrap: "anywhere" }}>{title}</div>
+          <div data-lelu-text="title" style={{ fontWeight: 700, overflowWrap: "anywhere" }}>{title}</div>
         </div>
         <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
           {/* Mobile: zoom toggle button */}

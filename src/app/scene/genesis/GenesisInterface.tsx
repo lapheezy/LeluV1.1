@@ -25,9 +25,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useGenesis, type GenesisPanel } from "./GenesisCore";
 import GenesisModuleHost, { type ModuleRenderers } from "./GenesisModuleHost";
+import InterfaceRuntime from "./interface/InterfaceRuntime";
+import InterfaceConsentBar from "./interface/InterfaceConsentBar";
+import InterfaceLayoutPreview from "./interface/InterfaceLayoutPreview";
 import UIStateStore from "../../../core/cognition/UIStateStore";
 import UIActionBus from "../../../core/cognition/UIActionBus";
-import GenesisDock from "./GenesisDock";
+import GenesisDock, { MODULE_CATALOG } from "./GenesisDock";
 import GenesisCommandPalette from "./GenesisCommandPalette";
 import { genesisTheme } from "./GenesisTheme";
 import GenesisChat from "./GenesisChat";
@@ -92,6 +95,10 @@ const MODULE_RENDERERS: ModuleRenderers = {
   // separate navigation destination.
   earth: ({ onClose }) => <GenesisEarthCore onClose={onClose} />, 
 };
+
+/** Every module that can be a window — what LÉLU's interface tools can see and arrange. */
+const MODULE_WINDOW_IDS = Object.keys(MODULE_RENDERERS);
+const moduleLabel = (id: string) => MODULE_CATALOG.find((m) => m.id === id)?.label ?? id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 import CognitiveLoop from "../../../core/cognition/CognitiveLoop";
 import AvatarPresenceBridge from "../../../core/avatar/AvatarPresenceBridge";
 import VisualInterface from "./VisualInterface";
@@ -717,6 +724,15 @@ export default function GenesisInterface() {
           the SAME module instances (one runtime each). Mounted in every
           scene so tools remain part of the canonical chat surface. */}
       <GenesisModuleHost renderers={MODULE_RENDERERS} />
+
+      {/* Interface orchestration: the live bridge LÉLU's interface.* tools
+          act through, the consent bar where the user approves or rejects
+          her proposals, and the outlines that preview new window layouts. */}
+      <InterfaceRuntime windowIds={MODULE_WINDOW_IDS} labelOf={moduleLabel} />
+      <InterfaceLayoutPreview />
+      <GenesisErrorBoundary>
+        <InterfaceConsentBar />
+      </GenesisErrorBoundary>
 
       {/* Full-page / special surfaces keep their dedicated mounts. */}
       {state.activePanel === "self-evolution" ? (

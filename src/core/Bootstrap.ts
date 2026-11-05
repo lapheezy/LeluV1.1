@@ -38,6 +38,7 @@ import { registerEarthTools } from "./earth/EarthTools";
 import { registerForgeTools } from "./forge/ForgeTools";
 import { registerWorldTools } from "./world/WorldTools";
 import { registerAgenticTools } from "./agentic/AgenticTools";
+import { registerInterfaceTools } from "./interface/InterfaceTools";
 import TaskExecutor from "./agentic/TaskExecutor";
 import DailyReflection from "./agentic/DailyReflection";
 import ToolRegistry from "./tools/ToolRegistry";
@@ -191,6 +192,10 @@ export default class Bootstrap {
       // approvals, reflection. Tasks cut off by the last shutdown are
       // marked paused (resumable) rather than left "running" forever.
       registerAgenticTools();
+      // Interface orchestration: LÉLU inspects, designs and previews her own
+      // environment (windows, typography, themes, 3D Cosmos); the user
+      // approves before anything is applied.
+      registerInterfaceTools();
       const interrupted = TaskExecutor.getInstance().recoverInterrupted();
       if (interrupted.length) {
         console.info(`[Bootstrap] ${interrupted.length} interrupted task(s) are paused and resumable.`);
