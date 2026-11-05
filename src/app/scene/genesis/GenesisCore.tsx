@@ -2086,7 +2086,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
                       : "inline";
             const modules = {
               ...current.modules,
-              [id]: { presentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...current.modules[id], presentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
             return { ...current, modules, minimized:false, activePanel:(isChatWindowId(id) ? current.activePanel : id as GenesisPanel) };
           });
@@ -2096,7 +2096,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           setState(current=>{
             const modules = {
               ...current.modules,
-              [id]: { presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...current.modules[id], presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
             return { ...current, modules, minimized:false, activePanel:(isChatWindowId(id) ? current.activePanel : id as GenesisPanel) };
           });
@@ -2106,7 +2106,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           setState(current=>{
             const modules = {
               ...current.modules,
-              [id]: { presentation:"minimized" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...current.modules[id], presentation:"minimized" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
             return { ...current, modules, activePanel:(isChatWindowId(id) ? current.activePanel : id as GenesisPanel) };
           });
@@ -2125,7 +2125,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           setState(current=>{
             const modules = {
               ...current.modules,
-              [id]: { presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...current.modules[id], presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
             return { ...current, modules, minimized:false, activePanel:(isChatWindowId(id) ? current.activePanel : id as GenesisPanel) };
           });
