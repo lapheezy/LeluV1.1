@@ -11,3 +11,5 @@ export * from "./model.ts";
 export * from "./dependencies.ts";
 export * from "./collector.ts";
 export * from "./planner.ts";
+export * from "./declarations.ts";
+export * from "./repositories.ts";

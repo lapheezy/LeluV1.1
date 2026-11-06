@@ -38,6 +38,7 @@ import { probeAllServices } from "./integration/services.ts";
 import { runSecurityGate, type ScannerId } from "./integration/scanners.ts";
 import { integrationState } from "./integration/state.ts";
 import { collectOperationalSnapshot, explainOperationalState, planActivation } from "./integration/intelligence.ts";
+import { REPOSITORY_CATALOG, dependencyCoverage, repositoryCoverage } from "../src/core/operational-intelligence/index.ts";
 import { evaluatePolicy, type PolicyInput } from "../src/core/security/policy.ts";
 import { VadDetector } from "../src/core/voice/adapters/VoiceAdapters.ts";
 
@@ -518,7 +519,28 @@ export async function handleIntegrationRoute(
       baseUrl: publicOrigin(request),
       force: query.get("refresh") === "1",
     });
-    sendJson(response, 200, { ok: true, tokenAccepted: gate.ok, snapshot });
+    sendJson(response, 200, {
+      ok: true,
+      tokenAccepted: gate.ok,
+      snapshot,
+      // Which reported capabilities have a stated dependency position. An
+      // undeclared capability is listed here rather than assumed ready.
+      dependencyDeclarations: dependencyCoverage(snapshot.capabilities.map((capability) => capability.capabilityId)),
+    });
+    return true;
+  }
+
+  if (route === "/api/integration/repositories" && method === "GET") {
+    const gate = authorized(request, options);
+    const coverage = repositoryCoverage();
+    sendJson(response, 200, {
+      ok: true,
+      tokenAccepted: gate.ok,
+      verifiedAt: REPOSITORY_CATALOG[0]?.verifiedAt ?? null,
+      coverage,
+      catalog: REPOSITORY_CATALOG,
+      note: "Catalog entries are verified provenance and identified boundaries. PRESENT is the only state backed by an adapter that produced evidence; listing a repository never means it is installed or running.",
+    });
     return true;
   }
 

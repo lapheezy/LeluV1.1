@@ -25,6 +25,7 @@ import ResponseBuilder from "./router/ResponseBuilder";
 import AvatarResolver from "./router/AvatarResolver";
 import SurfaceResolver from "./router/SurfaceResolver";
 import CognitiveStateResolver from "./router/CognitiveStateResolver";
+import IntelligenceResolver from "./router/IntelligenceResolver";
 import CapabilityManifest from "./capabilities/CapabilityManifest";
 import ToolRegistry from "./tools/ToolRegistry";
 import { toolSchemasForModel } from "./tools/ToolSchemas";
@@ -52,6 +53,7 @@ export default class AIRouter {
     private readonly avatar = new AvatarResolver(),
     private readonly surfaces: SurfaceResolver = new SurfaceResolver(workspace),
     private readonly cognitiveState = new CognitiveStateResolver(),
+    private readonly intelligence = new IntelligenceResolver(),
     private readonly responses = new ResponseBuilder(),
   ) {}
 
@@ -142,6 +144,16 @@ export default class AIRouter {
     // 1. Brain / identity — always local
     const brain = await this.brain.execute(context);
     if (brain.handled && brain.response) return brain.response;
+
+    // 1.2 OPERATIONAL INTELLIGENCE — "why can't you run OpenHands?" is
+    // answered from the four live studios, not from the model's memory.
+    // The stage reads the same /api/integration surface the panels do,
+    // never an adapter, and returns unhandled when no data is available
+    // so the provider keeps the turn instead of guessing.
+    const intelligence = await this.intelligence.execute(context);
+    if (intelligence.handled && intelligence.response) {
+      return this.attachThinking(context, intelligence.response);
+    }
 
     // 1.5 Explicit surface commands — "open the browser", "show me the
     // 3d", "take me into gen v2". Chat is the primary control surface:
