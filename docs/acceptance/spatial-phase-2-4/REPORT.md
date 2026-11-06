@@ -129,3 +129,22 @@ headless browser, not the app.
 7. The Cloud preview panel cannot be resized (328×528) and `preview_playwright` fails with
    `options.mode must be one of: 'strip'`; this phase used a locally launched Chromium
    instead (see `environment.md`).
+
+---
+
+## 7. Visual inspection of the captured screenshots
+
+I opened `screenshots/1024x768-04-frame-result.png` and
+`screenshots/390x844-07-mobile-create.png`.
+
+* Both show the real chat surface over the Genesis scene, the composer, the send
+  control and the surrounding Cosmic UI at the captured viewport.
+* In both, the transcript bubbles are present but **carry no legible text**: the
+  message rows render as an orb plus a small empty pill. The message text exists in the
+  DOM (`.lcu-thread .lcu-msg` → `"Framed "Comet" …"`) and is what this report quotes, but
+  the rendered bubbles do not visibly show it in these screenshots.
+
+So "the reply is in the transcript" is verified at the DOM level, not visually. The
+bubble text rendering at these sizes is an open interface defect and is **not** claimed
+as working. Camera and object state claims rest on `__leluSpatialProbe()` readings, not
+on anything visible in these images.
