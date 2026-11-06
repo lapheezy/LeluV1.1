@@ -152,7 +152,12 @@ export type SpatialOperationId =
   | "scene.undo"
   | "scene.recover"
   | "scene.compose"
-  | "scene.commit";
+  | "scene.commit"
+  | "camera.focus"
+  | "camera.frame"
+  | "camera.reset"
+  | "camera.orbit"
+  | "camera.zoom";
 
 export interface SpatialOperationDef {
   id: SpatialOperationId;
@@ -197,6 +202,38 @@ export interface SpatialRefusal {
   candidates?: string[];
 }
 
+export type SpatialVerificationLayer =
+  | "graph"
+  | "renderer"
+  | "camera"
+  | "framing"
+  | "screenshot";
+
+export type SpatialVerificationStatus = "pass" | "fail" | "skipped";
+
+export interface SpatialVerificationCheck {
+  layer: SpatialVerificationLayer;
+  name: string;
+  status: SpatialVerificationStatus;
+  detail: string;
+}
+
+export interface SpatialVerificationSummary {
+  ok: boolean;
+  layers: Record<SpatialVerificationLayer, SpatialVerificationStatus>;
+  checks: readonly SpatialVerificationCheck[];
+  /** Honest screenshot state: the core never fabricates visual evidence. */
+  screenshot: "not-captured" | "captured-externally" | "unavailable";
+  checkedAt: number;
+}
+
+export interface SpatialCameraPose {
+  position: SpatialVec3;
+  target: SpatialVec3;
+  distance: number;
+  fov: number;
+}
+
 export interface SpatialIntentResult {
   ok: boolean;
   op: SpatialOperationId;
@@ -207,7 +244,13 @@ export interface SpatialIntentResult {
   objectId?: string;
   objectName?: string;
   objectIds?: string[];
+  objectNames?: string[];
   relationshipId?: string;
+  /** Prepared (but uncommitted) composition, awaiting owner approval. */
+  planId?: string;
+  planSummary?: string;
+  verification?: SpatialVerificationSummary;
+  camera?: SpatialCameraPose;
   refusal?: SpatialRefusal;
 }
 
@@ -251,7 +294,31 @@ export type SpatialIntent =
       kind?: SpatialRelationshipKind;
     }
   | { op: "object.delete"; target: string }
-  | { op: "scene.undo" };
+  | { op: "scene.undo" }
+  | { op: "scene.compose"; request: string; anchor?: string }
+  | { op: "scene.commit"; planId?: string }
+  | { op: "camera.focus"; targets: string[]; padding?: number }
+  | { op: "camera.frame"; targets?: string[]; padding?: number }
+  | { op: "camera.reset" }
+  | { op: "camera.orbit"; target?: string; degrees: number }
+  | { op: "camera.zoom"; factor: number };
+
+/**
+ * Viewport/camera bounds shared by the applier and the existing Genesis
+ * v2 rig (GenesisV2CameraRig DEFAULT_LIMITS), so a requested pose can be
+ * clamped by the rig without the core inventing different limits.
+ */
+export const SPATIAL_VIEW_LIMITS = {
+  minDistance: 1.8,
+  maxDistance: 64,
+  worldRadius: 36,
+  yMin: -12,
+  yMax: 30,
+  defaultFov: 46,
+  defaultAspect: 1.7,
+  /** Extra room around a framed bounding sphere. */
+  padding: 1.35,
+} as const;
 
 /** Hard bounds — validated on every mutation, never clamped silently. */
 export const SPATIAL_LIMITS = {

@@ -141,23 +141,71 @@ export const SPATIAL_OPERATIONS: Record<SpatialOperationId, SpatialOperationDef>
     implemented: true,
     description: "Restore a validated scene snapshot (disaster recovery).",
   },
+  // Planning writes nothing, so it needs no approval of its own; the
+  // commit it hands back is the gated operation.
   "scene.compose": {
     id: "scene.compose",
+    tier: 3,
+    mutates: false,
+    destructive: false,
+    requiresApproval: false,
+    implemented: true,
+    description: "Plan a multi-step scene composition without changing anything.",
+  },
+  "scene.commit": {
+    id: "scene.commit",
     tier: 4,
     mutates: true,
     destructive: false,
     requiresApproval: true,
-    implemented: false,
-    description: "Plan and execute a multi-step scene composition.",
+    implemented: true,
+    description: "Commit a prepared composition as one atomic revision, after owner approval.",
   },
-  "scene.commit": {
-    id: "scene.commit",
-    tier: 5,
-    mutates: true,
-    destructive: true,
-    requiresApproval: true,
-    implemented: false,
-    description: "Commit a prepared change set after an owner-reviewed preview.",
+  // Camera operations move the existing Genesis camera, never the scene.
+  "camera.focus": {
+    id: "camera.focus",
+    tier: 2,
+    mutates: false,
+    destructive: false,
+    requiresApproval: false,
+    implemented: true,
+    description: "Frame one or more world entities with geometry-aware camera distance.",
+  },
+  "camera.frame": {
+    id: "camera.frame",
+    tier: 2,
+    mutates: false,
+    destructive: false,
+    requiresApproval: false,
+    implemented: true,
+    description: "Frame every object LÉLU authored in the scene.",
+  },
+  "camera.reset": {
+    id: "camera.reset",
+    tier: 2,
+    mutates: false,
+    destructive: false,
+    requiresApproval: false,
+    implemented: true,
+    description: "Return the existing camera to its opening Genesis view.",
+  },
+  "camera.orbit": {
+    id: "camera.orbit",
+    tier: 2,
+    mutates: false,
+    destructive: false,
+    requiresApproval: false,
+    implemented: true,
+    description: "Orbit the camera around a target by a bounded angle.",
+  },
+  "camera.zoom": {
+    id: "camera.zoom",
+    tier: 2,
+    mutates: false,
+    destructive: false,
+    requiresApproval: false,
+    implemented: true,
+    description: "Dolly the existing camera in or out by a bounded factor.",
   },
 };
 
@@ -240,6 +288,9 @@ export default class SpatialTierGuard {
     detail: string,
   ): { approvalId: string; expiresAt: number } {
     const approvalId = `approval-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    for (const [id, record] of this.approvals) {
+      if (record.used || record.expiresAt < Date.now()) this.approvals.delete(id);
+    }
     this.approvals.set(approvalId, {
       id: approvalId,
       ops: new Set(ops),
@@ -297,18 +348,6 @@ export default class SpatialTierGuard {
       if (def.destructive && !destructive) destructive = def;
     }
 
-    if (!this.granted.has(tier)) {
-      return {
-        ok: false,
-        refusal: {
-          code: "tier-insufficient",
-          detail: `${tier === 1 ? "Tier 1" : `Tier ${tier} (${SPATIAL_TIER_LABELS[tier]})`} is not granted to this session`,
-          requiredTier: tier,
-          grantedTier: this.maxGrantedTier(),
-        },
-      };
-    }
-
     let approvalId: string | undefined;
     if (needsApproval) {
       const approval = options.approvalId ? this.approvals.get(options.approvalId) : undefined;
@@ -327,9 +366,28 @@ export default class SpatialTierGuard {
       for (const op of ops) {
         if (SPATIAL_OPERATIONS[op].requiresApproval && !approval.ops.has(op)) return invalid();
       }
+      // Keep the record (marked used) so a second attempt is reported as an
+      // invalid approval instead of being mistaken for a missing one.
       approval.used = true;
-      this.approvals.delete(approval.id);
       approvalId = approval.id;
+    }
+
+    // Tier check comes after approval so an owner-approved Tier 4 batch
+    // can run above the configured grant — but ONLY for that one
+    // authorization, and never for Tier 5, which stays unconfigured.
+    if (!this.granted.has(tier)) {
+      const approvedOverride = needsApproval && approvalId !== undefined && tier <= 4;
+      if (!approvedOverride) {
+        return {
+          ok: false,
+          refusal: {
+            code: "tier-insufficient",
+            detail: `${tier === 1 ? "Tier 1" : `Tier ${tier} (${SPATIAL_TIER_LABELS[tier]})`} is not granted to this session`,
+            requiredTier: tier,
+            grantedTier: this.maxGrantedTier(),
+          },
+        };
+      }
     }
 
     const seal = issueSpatialWriteSeal(0, ops);

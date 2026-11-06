@@ -21,12 +21,17 @@ the single source of truth enforced by `SPATIAL_OPERATIONS` in `SpatialTierGuard
 | `object.create` | 3 construct | yes | no | no | yes |
 | `object.connect` | 3 construct | yes | no | no | yes |
 | `object.delete` | 3 construct | yes | **yes** | **yes, per execution** | yes |
-| `scene.recover` | 4 orchestrate | yes | no | no | **no** (`not-implemented`) |
-| `scene.compose` | 4 orchestrate | yes | no | no | **no** (`not-implemented`) |
-| `scene.commit` | 5 autonomous | yes | no | no | **no** (`not-implemented`) |
+| `scene.compose` | 3 construct | **no** (plan only) | no | no | yes |
+| `scene.commit` | 4 orchestrate | yes | no | **yes, per execution** | yes |
+| `camera.focus` | 2 manipulate | no (camera only) | no | no | yes |
+| `camera.frame` | 2 manipulate | no (camera only) | no | no | yes |
+| `camera.reset` | 2 manipulate | no (camera only) | no | no | yes |
+| `camera.orbit` | 2 manipulate | no (camera only) | no | no | yes |
+| `camera.zoom` | 2 manipulate | no (camera only) | no | no | yes |
+| `scene.recover` | 4 orchestrate | yes | no | **yes, per execution** | yes |
+| `scene.commit` (Tier 5 escape hatch) | — | — | — | — | **none exists** |
 
-Default grant: **tiers 1, 2 and 3**. Tier 4 and 5 are refused with `tier-insufficient` even when an approval
-phrase accompanies the request, and `SpatialCapabilityManifest` registers them as `not_configured`.
+Default grant: **tiers 1, 2 and 3**. An **owner-approved Tier 4** operation (only `scene.commit` and `scene.recover`) may run above that grant for exactly one authorization; Tier 5 cannot be approved into existence and remains `not_configured`.
 
 ## 2. Revision contract
 
@@ -120,13 +125,43 @@ The layer publishes a read-only diagnostic, `window.__leluSpatialProbe()`, retur
 `worldPosition` is `getWorldPosition()` from the live three.js object and `color` is read from its material.
 It exposes nothing that is not already on screen and is used only for acceptance evidence.
 
-## 7. Known limits
+## 7. Composition, camera and verification (Phase 2.2)
+
+**`SpatialAdapter`** (`SpatialAdapter.ts`) — read-only discovery over authored objects, `CosmosEntityRegistry`,
+`WorldRegistry` and the live three.js scene. Identity is namespaced (`<spatial id>`, `cosmos:<id>`,
+`world:<key>`, `scene:<name>`); authored meshes are excluded from the scene layer so nothing is counted twice;
+registered entities that are missing from a mounted scene report `stale`. It never writes to any of the
+systems it reads.
+
+**`SpatialLiveScene`** — the framework-free seam. The R3F layer registers `{ listNodes, findNode, camera }`;
+the core reads real world/local positions, materials, visibility and the real camera without importing React
+or three.js. No renderer attached ⇒ `null` ⇒ verification layers report `skipped`, never `pass`.
+
+**`scene.compose` → `scene.commit`** — planning writes nothing and is Tier 3; committing is Tier 4, needs the
+owner's approval, and lands as **one** revision. The plan is bound to the revision it was built against, so a
+scene that moved in between is refused (`stale-revision`). Verification runs after the commit: graph always,
+renderer when a renderer is attached; a disagreement triggers a real undo and a `verification-failed` reply
+that says the batch was rolled back.
+
+**`SpatialCameraApplier`** — drives the existing `genesisCameraIntentBus` and the `genesis-v2-camera` bridge.
+Framing is geometry-aware: bounding sphere of the targets, distance from the smaller of the vertical and
+horizontal FOV at the live aspect ratio, clamped to the rig's own limits. Supports focus, frame-all, orbit,
+zoom, reset and restore. Camera operations never change the scene revision, and the rig's existing
+gesture handling still cancels autonomous flights.
+
+**`SpatialVerification`** — five layers: graph, renderer (live mesh, local position, material), camera
+(arrival), framing (target inside FOV), screenshot (`not-captured` by the core). Each layer is `pass`,
+`fail` or `skipped`; the reply names them.
+
+## 8. Known limits
 
 - Tier 4–5 appliers (`scene.compose`, `scene.commit`) do not exist; `scene.recover` is enforced but
   unimplemented. The manifest says so.
-- Existing Cosmos/Genesis entities are **not** registered as spatial nodes in this phase; the graph owns only
-  objects authored through the spatial API. The planned read-only `SpatialAdapter` over `GenesisState`,
-  `WorldRegistry` and `CosmosEntityRegistry` is Phase 2.2 work.
-- Camera manipulation and lighting are not spatial operations yet.
+- Existing Cosmos/Genesis entities are discoverable and camera-frameable, but **not mutable** through
+  spatial operations in this phase; the adapter is read-only by design.
+- Camera and composition evidence is structural in this environment: no Genesis canvas mounts at the
+  mobile preview viewport, so capture limitations are recorded in
+  `docs/acceptance/master-capability-upgrade/phase-2-2/probe-readings.json` rather than papered over.
+- Screenshot verification is not automated; the core never claims visual proof it did not take.
 - World positions inherit the Genesis group's rotation, so the same committed local position yields a
   different world position over time. This is reported, not hidden.

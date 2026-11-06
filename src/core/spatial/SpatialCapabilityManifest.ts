@@ -2,15 +2,14 @@
  * ==========================================================
  * LÉLU — SPATIAL CAPABILITY MANIFEST
  *
- * Registers the spatial tiers in the EXISTING CapabilityManifest,
- * so cognition's self-model knows what LÉLU can do right now —
- * and, just as importantly, what she cannot.
+ * Registers the spatial capabilities in the EXISTING
+ * CapabilityManifest, so cognition's self-model knows what LÉLU
+ * can do right now — and, just as importantly, what she cannot.
  *
- * Tiers 1–3 are registered as available because appliers exist.
- * Tiers 4–5 are `not_configured`: the guard enforces them, but
- * this build ships no applier and no granted tier, so claiming
- * them would be exactly the kind of invented capability the
- * project forbids.
+ * Phase 2.2 added real appliers for composition, the camera and
+ * world discovery, so those rows are `available`. Tier 5 stays
+ * `not_configured`: no operation in the table is Tier 5, no
+ * applier exists, and the guard refuses it.
  * ==========================================================
  */
 
@@ -33,6 +32,13 @@ const ROWS: ReadonlyArray<{
     description: "Tier 1 — list, inspect and describe the live 3D scene without changing it.",
   },
   {
+    id: "spatial-adapter",
+    name: "World Discovery",
+    status: "available",
+    description:
+      "Read-only adapter over authored objects, Cosmos entities, world destinations and live three.js nodes, with stable namespaced identity.",
+  },
+  {
     id: "spatial-manipulate",
     name: "Spatial Manipulation",
     status: "available",
@@ -44,21 +50,35 @@ const ROWS: ReadonlyArray<{
     name: "Spatial Construction",
     status: "available",
     description:
-      "Tier 3 — create and connect objects. Deleting is destructive and requires the owner's explicit approval.",
+      "Tier 3 — create and connect objects, and plan multi-object compositions. Deleting is destructive and requires the owner's explicit approval.",
   },
   {
     id: "spatial-orchestrate",
-    name: "Spatial Orchestration",
-    status: "not_configured",
+    name: "Scene Composition",
+    status: "available",
     description:
-      "Tier 4 — multi-step scene composition. Enforced by the tier guard; needs a granted tier and approval, neither of which ships in this phase.",
+      "Tier 4 — a prepared composition commits as ONE atomic revision after the owner's explicit approval, then is verified and rolled back if the renderer disagrees.",
+  },
+  {
+    id: "spatial-camera",
+    name: "Camera Control",
+    status: "available",
+    description:
+      "Tier 2 — geometry-aware focus, multi-object framing, orbit, zoom and reset driven through the existing Genesis camera rig.",
+  },
+  {
+    id: "spatial-verification",
+    name: "Spatial Verification",
+    status: "available",
+    description:
+      "Graph, live-renderer, camera and framing layers verified independently; screenshots are reported as not captured by the core rather than claimed.",
   },
   {
     id: "spatial-autonomous",
     name: "Autonomous Scene Commit",
     status: "not_configured",
     description:
-      "Tier 5 — propose, preview, approve, commit. Enforced by the tier guard; no applier exists in this phase.",
+      "Tier 5 — propose, preview, approve, commit without an owner in the loop. Enforced by the tier guard; no operation and no applier exist in this phase.",
   },
 ];
 

@@ -22,6 +22,9 @@
  */
 
 import AgentEventBus from "../agent/AgentEvents";
+import SpatialCameraApplier from "./SpatialCameraApplier";
+import SpatialComposition from "./SpatialComposition";
+import { liveCamera } from "./SpatialLiveScene";
 import SpatialObjectRegistry from "./SpatialObjectRegistry";
 import SpatialPresence, { type SpatialTraversal } from "./SpatialPresence";
 import SpatialSceneGraph, { type SpatialMutation } from "./SpatialSceneGraph";
@@ -41,6 +44,7 @@ import {
   type SpatialVec3,
 } from "./SpatialTypes";
 import { normalizeSpatialColor, sameSpatialPosition } from "./SpatialValidation";
+import { describeVerification, summarize, verifyCamera } from "./SpatialVerification";
 
 export interface SpatialApplyOptions {
   /** Single-use owner approval id, when the operation requires one. */
@@ -70,6 +74,22 @@ type BuildResult =
 type ResolveResult =
   | { ok: true; object: SpatialObject }
   | { ok: false; refusal: SpatialRefusal };
+
+/** The intents that go through the single scene-commit path. */
+type SceneMutationIntent = Extract<
+  SpatialIntent,
+  {
+    op:
+      | "object.create"
+      | "object.move"
+      | "object.rotate"
+      | "object.scale"
+      | "object.setVisible"
+      | "material.set"
+      | "object.connect"
+      | "object.delete";
+  }
+>;
 
 export default class SpatialIntentBus {
   private static instance: SpatialIntentBus | null = null;
@@ -127,6 +147,20 @@ export default class SpatialIntentBus {
         return this.inspect(intent.target, taskId);
       case "scene.undo":
         return this.undo(taskId);
+      case "camera.focus":
+        return this.cameraIntent(intent, taskId);
+      case "camera.frame":
+        return this.cameraIntent(intent, taskId);
+      case "camera.reset":
+        return this.cameraIntent(intent, taskId);
+      case "camera.orbit":
+        return this.cameraIntent(intent, taskId);
+      case "camera.zoom":
+        return this.cameraIntent(intent, taskId);
+      case "scene.compose":
+        return this.compose(intent, options, taskId);
+      case "scene.commit":
+        return this.commitPlan(intent.planId, options, taskId);
       default:
         return this.mutate(intent, options, taskId);
     }
@@ -227,7 +261,7 @@ export default class SpatialIntentBus {
   }
 
   private mutate(
-    intent: Exclude<SpatialIntent, { op: "scene.list" | "scene.inspect" | "scene.undo" }>,
+    intent: SceneMutationIntent,
     options: SpatialApplyOptions,
     taskId: string,
   ): SpatialIntentResult {
@@ -293,11 +327,187 @@ export default class SpatialIntentBus {
     };
   }
 
+  // ---- composition + camera (Phase 2.2) ----
+
+  /**
+   * Camera operations drive the EXISTING Genesis camera through its intent
+   * bus and DOM bridge. They never touch the scene graph, so the revision is
+   * unchanged — and the reply says so.
+   */
+  private async cameraIntent(
+    intent: Extract<SpatialIntent, { op: `camera.${string}` }>,
+    taskId: string,
+  ): Promise<SpatialIntentResult> {
+    const op = intent.op as SpatialOperationId;
+    const authorization = this.guard.authorize([op]);
+    if (!authorization.ok) return this.refuse(op, authorization.refusal, taskId);
+
+    const applier = SpatialCameraApplier.getInstance();
+    let plan;
+    switch (intent.op) {
+      case "camera.focus":
+        plan = applier.focus(intent.targets, intent.padding);
+        break;
+      case "camera.frame":
+        plan = applier.frameAll(intent.padding);
+        break;
+      case "camera.reset":
+        plan = applier.reset();
+        break;
+      case "camera.orbit":
+        plan = applier.orbit(intent.degrees, intent.target);
+        break;
+      case "camera.zoom":
+        plan = applier.zoom(intent.factor);
+        break;
+    }
+    if (!plan.ok) return this.refuse(op, plan.refusal, taskId);
+
+    this.emitStarted(taskId, `move the camera (${intent.op})`);
+    // The rig eases to the pose over ~1.4 s; wait for the flight to land so
+    // verification reads the settled camera instead of a frame mid-flight.
+    await delay(1300);
+    const report = summarize(verifyCamera(plan.pose, liveCamera()), { screenshot: "not-captured" });
+
+    this.presence.record({
+      op,
+      traversal: "inspecting",
+      revision: this.graph.getRevision(),
+    });
+    this.emitEvent(taskId, op, `camera → (${formatVec(plan.pose.position)})`);
+    this.emitResult(taskId, "moved the camera", this.graph.getRevision());
+
+    const subjectText =
+      plan.subjects.length > 0 ? plan.subjects.map((subject) => `"${subject.name}"`).join(", ") : "the scene";
+    const verb =
+      intent.op === "camera.reset"
+        ? "Returned the camera to the opening Genesis view"
+        : intent.op === "camera.orbit"
+          ? `Orbited ${intent.degrees}° around ${subjectText}`
+          : intent.op === "camera.zoom"
+            ? `Zoomed the camera ${intent.factor < 1 ? "in" : "out"}`
+            : `Framed ${subjectText}`;
+
+    return {
+      ok: true,
+      op,
+      revision: this.graph.getRevision(),
+      message: `${verb} — camera at (${formatVec(plan.pose.position)}) looking at (${formatVec(plan.pose.target)}). ${describeVerification(report)}. No scene object changed.`,
+      camera: plan.pose,
+      verification: report,
+    };
+  }
+
+  /** Plan a composition. Nothing is committed, so nothing is verified yet. */
+  private compose(
+    intent: Extract<SpatialIntent, { op: "scene.compose" }>,
+    options: SpatialApplyOptions,
+    taskId: string,
+  ): SpatialIntentResult {
+    const op: SpatialOperationId = "scene.compose";
+    const authorization = this.guard.authorize(["scene.compose"]);
+    if (!authorization.ok) return this.refuse(op, authorization.refusal, taskId);
+
+    const prepared = SpatialComposition.getInstance().prepare(intent.request, intent.anchor);
+    if (!prepared.ok) return this.refuse(op, prepared.refusal, taskId);
+
+    const planned = prepared.plan;
+    const expectedRevision = options.expectedRevision ?? this.graph.getRevision();
+    this.emitStarted(taskId, planned.summary);
+    this.emitEvent(taskId, op, planned.summary);
+    this.presence.record({ op, traversal: "inspecting", revision: this.graph.getRevision() });
+
+    return {
+      ok: true,
+      op,
+      revision: this.graph.getRevision(),
+      planId: planned.planId,
+      planSummary: planned.summary,
+      message: `Prepared: ${planned.summary}. Nothing is committed yet — revision is still ${expectedRevision}, and it will become ${expectedRevision + 1} in one atomic commit. Say "…, I approve" to commit it.`,
+    };
+  }
+
+  /** Commit a prepared composition as exactly one revision. */
+  private commitPlan(
+    planId: string | undefined,
+    options: SpatialApplyOptions,
+    taskId: string,
+  ): SpatialIntentResult {
+    const op: SpatialOperationId = "scene.commit";
+    const composition = SpatialComposition.getInstance();
+    const plan = planId ? composition.get(planId) : composition.pending();
+    if (!plan) {
+      return this.refuse(
+        op,
+        {
+          code: "validation-failed",
+          detail: "there is no prepared scene waiting for approval — ask me to build something first",
+        },
+        taskId,
+      );
+    }
+
+    this.emitStarted(taskId, plan.summary);
+    const committed = composition.commit(plan.planId, {
+      approvalId: options.approvalId,
+      expectedRevision: options.expectedRevision,
+    });
+
+    if (!committed.ok) {
+      this.emitEvent(taskId, "scene.commit", committed.message);
+      return {
+        ok: false,
+        op,
+        revision: committed.revision,
+        message: committed.message,
+        verification: committed.verification,
+        refusal: committed.refusal ?? {
+          code: "verification-failed",
+          detail: committed.message,
+        },
+      };
+    }
+
+    const snapshot = this.graph.snapshot();
+    const created = (committed.objectIds ?? [])
+      .map((id) => snapshot.objects.find((object) => object.id === id))
+      .filter((object): object is SpatialObject => object !== undefined);
+    const detail = created
+      .map(
+        (object) =>
+          `"${object.name}" (${object.id}) at (${formatVec(object.transform.position)}), ${object.material.color}`,
+      )
+      .join("; ");
+    const report = committed.verification;
+
+    this.presence.record({
+      op,
+      traversal: "constructing",
+      objectId: created[0]?.id,
+      objectName: created[0]?.name,
+      revision: committed.revision,
+    });
+    this.emitEvent(taskId, "scene.commit", plan.summary);
+    this.emitResult(taskId, "committed the composition", committed.revision);
+
+    return {
+      ok: true,
+      op,
+      revision: committed.revision,
+      message: `${committed.message}${detail ? ` ${detail}.` : ""} Scene revision ${committed.revision}${
+        report ? ` — ${describeVerification(report)}` : ""
+      }.`,
+      objectIds: committed.objectIds,
+      objectNames: committed.objectNames,
+      planId: plan.planId,
+      planSummary: plan.summary,
+      verification: report,
+    };
+  }
+
   // ---- planning ----
 
-  private build(
-    intent: Exclude<SpatialIntent, { op: "scene.list" | "scene.inspect" | "scene.undo" }>,
-  ): BuildResult {
+  private build(intent: SceneMutationIntent): BuildResult {
     switch (intent.op) {
       case "object.create":
         return this.planCreate(intent);
@@ -750,4 +960,8 @@ function clamp01(value: number): number {
 
 function capitalize(value: string): string {
   return value.length === 0 ? value : value[0].toUpperCase() + value.slice(1);
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

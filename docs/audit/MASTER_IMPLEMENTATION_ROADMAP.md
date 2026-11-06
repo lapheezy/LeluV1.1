@@ -190,3 +190,15 @@ No file in two streams at once. Shared interfaces (`SpatialObjectRegistry` ids, 
 | Divergent branches (207/236 commits) | merge conflicts for the owner later | additive files + named localized edits only; no merges |
 | Provider-order wording in brief | behaviour change risk | not changed; owner decision recorded |
 | Meshy is paid | 3D Forge cannot complete | local procedural path remains the default; no key invented |
+
+### 2.2 Spatial world integration, composition, camera & verification (DONE)
+
+Shipped on top of `claude/master-integration`: a read-only `SpatialAdapter` (authored objects, Cosmos, world
+destinations, live three.js nodes, namespaced identity, stale detection), `SpatialComposition` (plan →
+owner-approved commit as one revision → verification → rollback on disagreement), `SpatialCameraApplier`
+(geometry-aware focus/frame/orbit/zoom/reset on the existing Genesis rig), `SpatialVerification` (graph,
+renderer, camera, framing and screenshot layers with honest skips), plus chat and capability-manifest wiring.
+
+Measured: typecheck clean; 46 spatial tests pass; full suite 1392 tests, 1386 pass, 0 fail, 6 skipped; lint
+reports 1 pre-existing error in `GenesisChat.tsx` (byte-identical to master-integration) and 108 warnings.
+Evidence, gates and limitations: `docs/acceptance/master-capability-upgrade/phase-2-2/REPORT.md`.

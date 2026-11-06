@@ -28,6 +28,7 @@ import { registerSpatialCapabilities } from "../spatial/SpatialCapabilityManifes
 import {
   SPATIAL_PRIMITIVES,
   type SpatialIntent,
+  type SpatialIntentResult,
   type SpatialMaterial,
   type SpatialOperationId,
   type SpatialPrimitiveKind,
@@ -93,6 +94,13 @@ const OP_FOR_INTENT: Record<SpatialIntent["op"], SpatialOperationId> = {
   "object.connect": "object.connect",
   "object.delete": "object.delete",
   "scene.undo": "scene.undo",
+  "scene.compose": "scene.compose",
+  "scene.commit": "scene.commit",
+  "camera.focus": "camera.focus",
+  "camera.frame": "camera.frame",
+  "camera.reset": "camera.reset",
+  "camera.orbit": "camera.orbit",
+  "camera.zoom": "camera.zoom",
 };
 
 export function operationsFor(intent: SpatialIntent): SpatialOperationId[] {
@@ -112,19 +120,36 @@ export default class SpatialResolver {
     const parsed = parseSpatialCommand(prompt);
     if (!parsed) return { handled: false };
 
-    let approvalId: string | undefined;
-    if (parsed.ownerApproval) {
-      approvalId = this.guard.requestApproval(
-        operationsFor(parsed.intent),
+    const taskId = String(context.request.timestamp ?? Date.now());
+
+    // Composition with an inline approval: plan first, then commit that
+    // exact plan (never a re-parse) with a single-use owner ticket.
+    if (parsed.intent.op === "scene.compose" && parsed.ownerApproval) {
+      const prepared = await this.bus.apply(parsed.intent, { taskId });
+      if (!prepared.ok || !prepared.planId) return this.reply(prepared, context);
+      const approvalId = this.guard.requestApproval(
+        ["scene.commit"],
         `owner approved "${parsed.label}" in chat`,
       ).approvalId;
+      const committed = await this.bus.apply(
+        { op: "scene.commit", planId: prepared.planId },
+        { approvalId, taskId },
+      );
+      return this.reply(committed, context);
     }
 
-    const result = await this.bus.apply(parsed.intent, {
-      approvalId,
-      taskId: String(context.request.timestamp ?? Date.now()),
-    });
+    const approvalId = parsed.ownerApproval
+      ? this.guard.requestApproval(
+          operationsFor(parsed.intent),
+          `owner approved "${parsed.label}" in chat`,
+        ).approvalId
+      : undefined;
 
+    const result = await this.bus.apply(parsed.intent, { approvalId, taskId });
+    return this.reply(result, context);
+  }
+
+  private reply(result: SpatialIntentResult, context: RouterContext): BrainResult {
     const response: AIResponse = {
       text: result.message,
       provider: "spatial",
@@ -137,6 +162,8 @@ export default class SpatialResolver {
         revision: result.revision,
         refusal: result.refusal?.code,
         objectId: result.objectId,
+        planId: result.planId,
+        verification: result.verification?.layers,
       },
     };
 
@@ -165,6 +192,10 @@ export function parseSpatialCommand(prompt: string): ParsedSpatialCommand | null
   }
 
   const lower = text.toLowerCase();
+
+  if (!text && ownerApproval) {
+    return { intent: { op: "scene.commit" }, label: "commit the prepared scene", ownerApproval: true };
+  }
 
   // ---- Tier 1 reads ----
   if (
@@ -209,6 +240,75 @@ export function parseSpatialCommand(prompt: string): ParsedSpatialCommand | null
     const target = cleanReference(remove[1]);
     if (target) {
       return { intent: { op: "object.delete", target }, label: `delete "${target}"`, ownerApproval };
+    }
+  }
+
+  // ---- Camera (Tier 2): the EXISTING Genesis camera, never a new one ----
+  if (
+    /^(?:return|go back|take me back)\s+to\s+(?:the\s+)?(?:original\s+|opening\s+|default\s+|genesis\s+)*(?:view|camera|scene view)\s*$/.test(
+      lower,
+    ) ||
+    /^(?:reset|recenter|recentre)\s+(?:the\s+)?camera\s*$/.test(lower)
+  ) {
+    return { intent: { op: "camera.reset" }, label: "reset the camera", ownerApproval };
+  }
+
+  if (
+    /^(?:zoom out and\s+)?(?:show|frame|fit)\s+(?:me\s+)?(?:the\s+)?(?:whole|entire|all)\b/.test(lower) ||
+    /\bshow everything\b/.test(lower)
+  ) {
+    return { intent: { op: "camera.frame" }, label: "frame the whole scene", ownerApproval };
+  }
+
+  const orbit = /^(?:please\s+)?orbit\s+(?:the camera\s+)?(?:around\s+)?(?:the\s+)?(.+?)(?:\s+by\s+(-?\d+(?:\.\d+)?)\s*(?:degrees?|deg|°))?\s*$/.exec(
+    lower,
+  );
+  if (orbit?.[1]) {
+    const target = cleanReference(orbit[1]);
+    const degrees = orbit[2] ? Number(orbit[2]) : 45;
+    if (target && !/^(?:around|camera)$/.test(target.toLowerCase())) {
+      return {
+        intent: { op: "camera.orbit", target, degrees },
+        label: `orbit around "${target}"`,
+        ownerApproval,
+      };
+    }
+  }
+
+  const zoom = /^(?:please\s+)?zoom\s+(in|out)(?:\s+(?:by\s+)?(\d+(?:\.\d+)?)\s*(?:x|times)?)?\s*$/.exec(
+    lower,
+  );
+  if (zoom?.[1]) {
+    const factor = zoom[2]
+      ? zoom[1] === "in"
+        ? 1 / Math.max(0.1, Number(zoom[2]))
+        : Number(zoom[2])
+      : zoom[1] === "in"
+        ? 0.72
+        : 1.4;
+    return { intent: { op: "camera.zoom", factor }, label: `zoom ${zoom[1]}`, ownerApproval };
+  }
+
+  const closeUp = /^(?:give me\s+)?(?:a\s+)?close-?up\s+(?:of|on)\s+(.+)$/i.exec(text);
+  if (closeUp?.[1]) {
+    const target = cleanReference(closeUp[1]);
+    if (target) {
+      return { intent: { op: "camera.focus", targets: [target] }, label: `close up on "${target}"`, ownerApproval };
+    }
+  }
+
+  const focus =
+    /^(?:please\s+)?(?:show me|show us|focus(?: the camera)? on|look at|frame|centre on|center on)\s+(?:the\s+)?(.+?)(?:\s+(?:in|from)\s+(?:view|close))?\s*$/i.exec(
+      text,
+    );
+  if (focus?.[1]) {
+    const targets = splitTargets(cleanReference(focus[1]));
+    if (targets.length > 0) {
+      return {
+        intent: { op: "camera.focus", targets },
+        label: `focus on ${targets.join(", ")}`,
+        ownerApproval,
+      };
     }
   }
 
@@ -351,6 +451,15 @@ export function parseSpatialCommand(prompt: string): ParsedSpatialCommand | null
     }
   }
 
+  // ---- Tier 3/4 composition: plan now, commit only with approval ----
+  if (isCompositionRequest(lower)) {
+    return {
+      intent: { op: "scene.compose", request: text, ...(detectAnchor(text) ? { anchor: detectAnchor(text) } : {}) },
+      label: "compose a scene",
+      ownerApproval,
+    };
+  }
+
   // ---- Tier 3 construction ----
   const create = /^(?:please\s+|can you\s+|could you\s+)?(?:create|add|build|spawn|make)\b(.*)$/i.exec(
     text,
@@ -398,6 +507,38 @@ function cleanReference(raw: string): string {
     .replace(/\s+(?:from|in)\s+(?:the\s+)?scene$/i, "")
     .replace(/[.!?]+$/, "")
     .trim();
+}
+
+function splitTargets(reference: string): string[] {
+  return reference
+    .split(/\s*(?:,|\band\b|\btogether\b|\bwith\b)\s*/i)
+    .map((part) => cleanReference(part))
+    .filter((part) => part.length > 0)
+    .slice(0, 6);
+}
+
+/** Sentences that ask for a composed environment rather than one primitive. */
+function isCompositionRequest(lower: string): boolean {
+  return (
+    /planetary system|solar system|star and .*planets?|orbiting planets?/.test(lower) ||
+    /research station|orbital observatory|observatory/.test(lower) ||
+    /laborator|research zones?/.test(lower) ||
+    /(?:\d+|two|three|four|five|six)\s+(?:interconnected\s+)?structures?/.test(lower) ||
+    /interconnected structures?/.test(lower) ||
+    /symmetr(?:y|ical)|formation|arrange\s+(?:these|the|my)\b/.test(lower)
+  );
+}
+
+function detectAnchor(text: string): string | undefined {
+  const match =
+    /\b(?:beside|next to|around|near|orbiting)\s+(?:the\s+)?([a-z0-9][a-z0-9 _-]{0,40}?)(?:\s+(?:with|and)\b.*)?$/i.exec(
+      text,
+    );
+  if (!match?.[1]) return undefined;
+  const anchor = cleanReference(match[1]);
+  if (!anchor) return undefined;
+  if (/^(?:the\s+)?(?:central|main)\s+planet$|^scene$|^origin$|^whole scene$/i.test(anchor)) return undefined;
+  return anchor;
 }
 
 function detectPrimitive(text: string): SpatialPrimitiveKind | null {

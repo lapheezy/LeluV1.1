@@ -12,21 +12,25 @@
  * move it. Vertex positions come from `spatialMeshModel()` —
  * the same projection the tests assert.
  *
- * The layer also publishes `window.__leluSpatialProbe`, a
- * read-only diagnostic that reports WORLD positions read back
- * from the live three.js objects. It exposes nothing that is not
- * already on screen, and acceptance evidence uses it to prove a
- * move reached the rendered scene, not just the store.
+ * The layer also registers the READ-ONLY live-scene provider the
+ * adapter, camera applier and verifier read: real three.js nodes,
+ * real world/local positions, real materials, and the real
+ * camera. It exposes nothing that is not already on screen.
  * ==========================================================
  */
 
 import { useEffect, useSyncExternalStore } from "react";
 import { Line } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import { Vector3, type Scene } from "three";
+import { Vector3, type Camera, type Mesh, type Object3D, type Scene } from "three";
 
 import SpatialSceneGraph from "../../../../core/spatial/SpatialSceneGraph";
 import SpatialPresence from "../../../../core/spatial/SpatialPresence";
+import {
+  registerLiveSceneProvider,
+  type LiveCameraState,
+  type LiveSceneNode,
+} from "../../../../core/spatial/SpatialLiveScene";
 import {
   spatialLinkModels,
   spatialMeshModel,
@@ -44,17 +48,105 @@ const subscribePresence = (listener: () => void): (() => void) => presence.subsc
 const getPresenceSnapshot = () => presence.getSnapshot();
 
 /**
- * The live three.js scene, captured while the layer renders. The
- * probe reads through this, so its answer is what the renderer
- * actually produced rather than what the graph intended.
+ * The live three.js scene, captured while the layer renders. Reads go
+ * through this, so answers describe what the renderer actually produced
+ * rather than what the graph intended.
  */
 let liveScene: Scene | null = null;
+let liveCamera: Camera | null = null;
+
+const worldPosition = new Vector3();
+const worldDirection = new Vector3();
+
+function radiusOf(object: Object3D): number | undefined {
+  const mesh = object as Mesh;
+  if (!mesh.geometry) return undefined;
+  if (!mesh.geometry.boundingSphere) mesh.geometry.computeBoundingSphere();
+  const radius = mesh.geometry.boundingSphere?.radius;
+  if (!radius) return undefined;
+  const scale = Math.max(object.scale.x, object.scale.y, object.scale.z);
+  return radius * (Number.isFinite(scale) && scale > 0 ? scale : 1);
+}
+
+function colourOf(object: Object3D): string | undefined {
+  const material = (object as Mesh).material as
+    | { color?: { getHexString(): string } }
+    | { color?: { getHexString(): string } }[]
+    | undefined;
+  const single = Array.isArray(material) ? material[0] : material;
+  return single?.color ? `#${single.color.getHexString()}` : undefined;
+}
+
+function toNode(object: Object3D): LiveSceneNode | null {
+  if (!object.name) return null;
+  object.getWorldPosition(worldPosition);
+  return {
+    id: object.name,
+    name: object.name,
+    label: (object.userData as { spatialName?: string })?.spatialName,
+    worldPosition: [worldPosition.x, worldPosition.y, worldPosition.z],
+    localPosition: [object.position.x, object.position.y, object.position.z],
+    visible: object.visible,
+    color: colourOf(object),
+    radius: radiusOf(object),
+    geometry: (object as Mesh).geometry?.type,
+    parentName: object.parent?.name || null,
+  };
+}
+
+function listLiveNodes(): LiveSceneNode[] {
+  if (!liveScene) return [];
+  const nodes: LiveSceneNode[] = [];
+  liveScene.traverse((object) => {
+    const node = toNode(object);
+    if (node) nodes.push(node);
+  });
+  return nodes;
+}
+
+function findLiveNode(reference: string): LiveSceneNode | null {
+  if (!liveScene) return null;
+  const candidates = [reference, `spatial:${reference}`];
+  for (const name of candidates) {
+    const object = liveScene.getObjectByName(name);
+    if (object) return toNode(object);
+  }
+  const lower = reference.toLowerCase();
+  let match: LiveSceneNode | null = null;
+  liveScene.traverse((object) => {
+    if (match || !object.name) return;
+    if (object.name.toLowerCase() === lower) match = toNode(object);
+  });
+  return match;
+}
+
+function cameraState(): LiveCameraState | null {
+  if (!liveCamera) return null;
+  const camera = liveCamera as unknown as {
+    position: Vector3;
+    fov?: number;
+    aspect?: number;
+    near: number;
+    far: number;
+  };
+  liveCamera.getWorldDirection(worldDirection);
+  return {
+    position: [camera.position.x, camera.position.y, camera.position.z],
+    direction: [worldDirection.x, worldDirection.y, worldDirection.z],
+    fov: camera.fov ?? 46,
+    aspect: camera.aspect ?? 1.7,
+    near: camera.near,
+    far: camera.far,
+    updatedAt: Date.now(),
+  };
+}
 
 interface SpatialProbeObject {
   id: string;
   name: string;
   rendered: boolean;
   worldPosition?: [number, number, number];
+  localPosition?: [number, number, number];
   visible?: boolean;
   color?: string;
 }
@@ -62,45 +154,61 @@ interface SpatialProbeObject {
 interface SpatialProbeResult {
   revision: number;
   presence: ReturnType<typeof presence.get>;
+  camera: LiveCameraState | null;
+  nodes: number;
   objects: SpatialProbeObject[];
 }
 
 function installSpatialProbe(): void {
   if (typeof window === "undefined") return;
-  const host = window as unknown as { __leluSpatialProbe?: () => SpatialProbeResult };
+  const host = window as unknown as {
+    __leluSpatialProbe?: () => SpatialProbeResult;
+    __leluSpatialNodes?: () => string[];
+  };
   host.__leluSpatialProbe = () => {
     const snapshot = graph.snapshot();
-    const position = new Vector3();
     const objects = snapshot.objects.map((object) => {
-      const node = liveScene?.getObjectByName(`spatial:${object.id}`);
-      if (!node) {
-        return { id: object.id, name: object.name, rendered: false };
-      }
-      node.getWorldPosition(position);
-      const material = (node as unknown as { material?: { color?: { getHexString(): string } } })
-        .material;
+      const node = findLiveNode(`spatial:${object.id}`);
+      if (!node) return { id: object.id, name: object.name, rendered: false };
       return {
         id: object.id,
         name: object.name,
         rendered: true,
-        worldPosition: [
-          Math.round(position.x * 1000) / 1000,
-          Math.round(position.y * 1000) / 1000,
-          Math.round(position.z * 1000) / 1000,
-        ] as [number, number, number],
+        worldPosition: node.worldPosition,
+        localPosition: node.localPosition,
         visible: node.visible,
-        color: material?.color ? `#${material.color.getHexString()}` : undefined,
+        color: node.color,
       };
     });
-    return { revision: graph.getRevision(), presence: presence.get(), objects };
+    return {
+      revision: graph.getRevision(),
+      presence: presence.get(),
+      camera: cameraState(),
+      nodes: listLiveNodes().length,
+      objects,
+    };
   };
+  host.__leluSpatialNodes = () => listLiveNodes().map((node) => node.name);
 }
 
 installSpatialProbe();
 
 function SceneCapture() {
   const scene = useThree((state) => state.scene);
+  const camera = useThree((state) => state.camera);
   liveScene = scene;
+  liveCamera = camera;
+
+  useEffect(() => {
+    const unregister = registerLiveSceneProvider({
+      listNodes: listLiveNodes,
+      findNode: findLiveNode,
+      camera: cameraState,
+    });
+    installSpatialProbe();
+    return unregister;
+  }, []);
+
   return null;
 }
 
