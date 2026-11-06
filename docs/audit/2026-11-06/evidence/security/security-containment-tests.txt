@@ -1,0 +1,18 @@
+ok 1 - address classification: every internal range is refused, public addresses are not
+ok 2 - a public page is fetched and read
+ok 3 - redirects to localhost, private IPv4, cloud metadata, private and mapped IPv6 are refused
+ok 4 - a redirect to a NAME that resolves to an internal address is refused
+ok 5 - a name with ANY internal address among its answers is refused (no picking the good one)
+ok 6 - each hop resolves once and the socket is pinned to the checked address
+ok 7 - redirect loops and excessive redirect depth are refused
+ok 8 - an oversized body is cut off at 2 MB while streaming — the rest is never downloaded
+ok 9 - a gzip bomb is capped on the decoded size
+ok 10 - a slow page times out; malformed compression fails cleanly
+ok 11 - non-text content, unsupported protocols, odd ports, credentials and malformed URLs are refused
+ok 12 - browse relay: anonymous, invalid and expired sessions are refused; a signed-in user reads; internal targets stay blocked
+ok 13 - browse relay: a user is rate-limited
+ok 14 - knowledge relay: anonymous callers cannot spend the server's provider keys
+ok 15 - integration API: identity on every route, admin for scans and policy, no forged roles, rate-limited scans
+ok 16 - production server mounts the same guarded routes as development
+# pass 16
+# fail 0

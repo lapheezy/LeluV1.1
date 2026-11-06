@@ -154,7 +154,14 @@ test("changing the real project: the SERVER level gates request-apply and apply,
     assert.equal(low.status, 403);
     assert.equal(low.data.blocked, "autonomy");
 
+    // L4 ("Project autonomy") is not enough: changing the real project is L5 ("Production"),
+    // the one threshold the page and the server share (src/core/cognition/AutonomyPolicy.ts).
     await h.autonomy({ action: "set", level: 4, confirm: true, password: PASSWORD }, "token-owner");
+    const atFour = await h.workspace({ action: "request-apply", workspace: "ws" }, "token-owner");
+    assert.equal(atFour.status, 403, "L4 cannot change the real project");
+    assert.equal(atFour.data.blocked, "autonomy");
+
+    await h.autonomy({ action: "set", level: 5, confirm: true, password: PASSWORD }, "token-owner");
     const granted = await h.workspace({ action: "request-apply", workspace: "ws" }, "token-owner");
     assert.equal(granted.status, 200);
     const grant = String(granted.data.grant);
@@ -175,7 +182,7 @@ test("changing the real project: the SERVER level gates request-apply and apply,
     assert.equal(readFileSync(path.join(root, "src", "edge.ts"), "utf8"), "export const EDGE = 48;\n", "nothing was written");
 
     // Authorized: applied once; the same grant cannot be replayed.
-    await h.autonomy({ action: "set", level: 4, confirm: true, password: PASSWORD }, "token-owner");
+    await h.autonomy({ action: "set", level: 5, confirm: true, password: PASSWORD }, "token-owner");
     const fresh = String((await h.workspace({ action: "request-apply", workspace: "ws" }, "token-owner")).data.grant);
     const applied = await h.workspace({ action: "apply", workspace: "ws", grant: fresh, confirm: true }, "token-owner");
     assert.equal(applied.status, 200);
@@ -194,7 +201,7 @@ test("an expired grant is refused", async () => {
     const h = harness(root);
     await h.workspace({ action: "create", workspace: "ws" }, "token-owner");
     writeFileSync(path.join(root, ".lelu-sandbox", "ws", "src", "edge.ts"), "export const EDGE = 40;\n");
-    await h.autonomy({ action: "set", level: 4, confirm: true, password: PASSWORD }, "token-owner");
+    await h.autonomy({ action: "set", level: 5, confirm: true, password: PASSWORD }, "token-owner");
     const grant = String((await h.workspace({ action: "request-apply", workspace: "ws" }, "token-owner")).data.grant);
     const realNow = Date.now;
     Date.now = () => realNow() + 11 * 60 * 1000; // past the 10-minute grant lifetime
@@ -205,4 +212,19 @@ test("an expired grant is refused", async () => {
     }
     assert.equal(readFileSync(path.join(root, "src", "edge.ts"), "utf8"), "export const EDGE = 48;\n");
   });
+});
+
+test("one apply threshold: the server reports the level the page enforces", async () => {
+  const { SERVER_APPLY_LEVEL } = await import("../plugins/serverAutonomy");
+  const { REAL_PROJECT_APPLY_LEVEL } = await import("../src/core/cognition/AutonomyPolicy");
+  const { AUTONOMY_LEVELS } = await import("../src/core/cognition/AutonomyGate");
+  assert.equal(SERVER_APPLY_LEVEL, REAL_PROJECT_APPLY_LEVEL);
+  assert.equal(AUTONOMY_LEVELS.find((l) => l.level === SERVER_APPLY_LEVEL)?.label, "Production");
+  await withProject(async (root) => {
+    const h = harness(root);
+    assert.equal((await h.autonomy({ action: "get" }, "token-owner")).data.applyLevel, REAL_PROJECT_APPLY_LEVEL, "the page reads the threshold from the server");
+  });
+  const loop = readFileSync("src/core/selfdev/SelfDevelopmentLoop.ts", "utf8");
+  assert.doesNotMatch(loop, /gate\.can\(5\)/, "no hard-coded threshold of its own in the page");
+  assert.match(loop, /serverState\(\)\?\.applyLevel \?\? REAL_PROJECT_APPLY_LEVEL/);
 });

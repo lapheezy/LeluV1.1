@@ -17,6 +17,7 @@
  * ==========================================================
  */
 
+import { REAL_PROJECT_APPLY_LEVEL } from "./AutonomyPolicy";
 import KvStore from "../storage/KvStore";
 
 export interface AutonomyLevel {
@@ -125,7 +126,7 @@ export default class AutonomyGate {
           level: data.level,
           updatedAt: Number(data.updatedAt ?? 0),
           updatedBy: String(data.updatedBy ?? ""),
-          applyLevel: Number(data.applyLevel ?? 4),
+          applyLevel: Number(data.applyLevel ?? REAL_PROJECT_APPLY_LEVEL),
         };
         this.emit();
         return true;
@@ -152,7 +153,7 @@ export default class AutonomyGate {
         level: data.level,
         updatedAt: Number(data.updatedAt ?? Date.now()),
         updatedBy: String(data.updatedBy ?? ""),
-        applyLevel: Number(data.applyLevel ?? 4),
+        applyLevel: Number(data.applyLevel ?? REAL_PROJECT_APPLY_LEVEL),
       };
       this.emit();
       return { ok: true };

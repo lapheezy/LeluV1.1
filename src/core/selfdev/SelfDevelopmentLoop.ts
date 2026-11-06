@@ -23,6 +23,7 @@
  * ==========================================================
  */
 
+import { REAL_PROJECT_APPLY_LEVEL } from "../cognition/AutonomyPolicy";
 import ImprovementQueue, {
   PENDING_APPROVAL_STATUSES,
   RUNNING_STATUSES,
@@ -809,14 +810,17 @@ export default class SelfDevelopmentLoop {
     events.emit({ type: "task_started", taskId, label: `Applying to the project: ${proposal.title} (${execution.executionId})` });
 
     const gate = AutonomyGate.getInstance();
-    if (!gate.can(5)) {
+    // The server's threshold when it has answered; the same shared constant otherwise.
+    // The server re-checks this on request-apply and apply — this is only the early refusal.
+    const required = gate.serverState()?.applyLevel ?? REAL_PROJECT_APPLY_LEVEL;
+    if (!gate.can(required)) {
       this.block(proposalId, {
-        reason: `Changing the real project needs autonomy level 5 (Production); the current level is ${gate.getLevel()}.`,
-        requiredAutonomy: 5,
-        unblock: "Raise autonomy to L5 (Production) in Self Development → Autonomy, then Retry apply. Lower it again afterwards if you like.",
+        reason: `Changing the real project needs autonomy level ${required} (Production); the current level is ${gate.getLevel()}.`,
+        requiredAutonomy: required,
+        unblock: `Raise autonomy to L${required} (Production) in Self Development → Autonomy, then Retry apply. Lower it again afterwards if you like.`,
         action: "apply",
       }, execution);
-      this.lastRun = this.finish(proposal, false, "Blocked", steps, "Blocked: production changes need autonomy L5.", started);
+      this.lastRun = this.finish(proposal, false, "Blocked", steps, `Blocked: production changes need autonomy L${required}.`, started);
       return this.lastRun;
     }
     const authorization = EngineeringAuthorization.getInstance();

@@ -20,6 +20,12 @@ import { readFileSync } from "node:fs";
 import { bridgeScriptBody } from "../plugins/runtimeKeyBridge";
 import { createAiProxyApi } from "../plugins/aiProxyApi";
 
+// The relay now requires a signed-in user (plugins/requestGuard.ts, tested in
+// tests/security-containment.test.ts). These tests are about WHERE each key
+// goes, so they run as one admitted user.
+const admitted = { check: async () => ({ ok: true as const, userId: "test-user", email: null, role: "user" }) };
+
+
 const CANARIES: Record<string, string> = {
   NASA_API_KEY: "CANARY_nasa_relay",
   GEOAPIFY_API_KEY: "CANARY_geo_relay",
@@ -55,7 +61,7 @@ async function relay(env: Record<string, string>, provider: string, path: string
   }) as typeof fetch;
   try {
     const handlers: Record<string, (req: unknown, res: unknown, next: () => void) => void> = {};
-    createAiProxyApi((name) => env[name]).attach({ use: (route, handler) => { handlers[route] = handler as never; } });
+    createAiProxyApi((name) => env[name], { guard: admitted }).attach({ use: (route, handler) => { handlers[route] = handler as never; } });
     const captured: Captured = { url: "", status: 0, body: "", headers: {} };
     await new Promise<void>((resolve) => {
       const res = {

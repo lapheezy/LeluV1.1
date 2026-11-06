@@ -47,6 +47,9 @@ import { createModelApi } from "./plugins/modelApi.ts";
 import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 import { createAccessGate } from "./plugins/accessGate.ts";
 import { createIntegrationApi } from "./plugins/integrationApi.ts";
+import { createBrowseApi } from "./plugins/browseApi.ts";
+import { createGuard, sendRefusal } from "./plugins/requestGuard.ts";
+import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
 
 // Load the project's existing environment (.env.local overrides .env;
 // platform-injected process env always wins) BEFORE anything reads it,
@@ -329,13 +332,28 @@ rssApi.attach(middlewares);
 quad9Api.attach(middlewares);
 nekoApi.attach(middlewares);
 createGithubApi().attach(middlewares);
+// Page reader and knowledge relay — the same implementations Vite dev mounts.
+// Both require a Supabase-verified signed-in user (plugins/requestGuard.ts);
+// the reader fetches through plugins/safeFetch.ts (SSRF containment).
+createBrowseApi().attach(middlewares);
+createAiProxyApi((key) => process.env[key]).attach(middlewares);
 // Same-origin model broker: the browser posts here, the server holds
 // the credential and talks to the provider.
 createModelApi((key) => process.env[key]).attach(middlewares);
 // LÉLU 3D Forge — the only holder of the Meshy credential (see meshyForgeApi.ts).
 createMeshyForgeApi((key) => process.env[key]).attach(middlewares);
+// The GitHub Models relay forwards with the SERVER's token, so it is for a
+// signed-in user only (it was reachable anonymously).
+const aiRelayGuard = createGuard();
 middlewares.use("/api/ai", (req, res) => {
-  void handleAiProxy(req, res);
+  void (async () => {
+    const decision = await aiRelayGuard.check(req, "user", "github-models", { max: 60, windowMs: 60_000 });
+    if (!decision.ok) {
+      sendRefusal(res, decision);
+      return;
+    }
+    await handleAiProxy(req, res);
+  })();
 });
 
 const accessGate = createAccessGate((key) => process.env[key]);

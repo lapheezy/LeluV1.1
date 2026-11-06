@@ -27,13 +27,18 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { REAL_PROJECT_APPLY_LEVEL } from "../src/core/cognition/AutonomyPolicy.ts";
 
 export const MIN_LEVEL = 0;
 export const MAX_LEVEL = 5;
 /** A user with no stored level starts here (the same default the page shows). */
 export const DEFAULT_SERVER_LEVEL = 3;
-/** Changing the real project (workspace:request-apply / apply). */
-export const SERVER_APPLY_LEVEL = 4;
+/**
+ * Changing the real project (workspace:request-apply / apply). One shared
+ * constant with the page (src/core/cognition/AutonomyPolicy.ts): L5,
+ * "Production". It was 4 here while the page required 5.
+ */
+export const SERVER_APPLY_LEVEL = REAL_PROJECT_APPLY_LEVEL;
 
 export interface AutonomyRecord {
   level: number;

@@ -35,6 +35,12 @@
 export interface VerifiedIdentity {
   userId: string;
   email: string | null;
+  /**
+   * The LÉLU role from app_metadata.lelu_role, as Supabase returned it.
+   * app_metadata is writable only server-side (service role / SQL), never by
+   * the user; user_metadata is user-editable and is deliberately ignored.
+   */
+  role?: string | null;
 }
 
 export interface IdentityCheck {
@@ -155,9 +161,9 @@ export async function verifyRequestIdentity(req: {
     };
   }
 
-  let user: { id?: string; email?: string } | null = null;
+  let user: { id?: string; email?: string; app_metadata?: { lelu_role?: unknown } } | null = null;
   try {
-    user = (await response.json()) as { id?: string; email?: string };
+    user = (await response.json()) as { id?: string; email?: string; app_metadata?: { lelu_role?: unknown } };
   } catch {
     user = null;
   }
@@ -169,7 +175,11 @@ export async function verifyRequestIdentity(req: {
   return {
     ok: true,
     status: 200,
-    identity: { userId: user.id, email: user.email ?? null },
+    identity: {
+      userId: user.id,
+      email: user.email ?? null,
+      role: typeof user.app_metadata?.lelu_role === "string" ? user.app_metadata.lelu_role : null,
+    },
     reason: `Verified Supabase identity ${user.email ?? user.id}.`,
   };
 }
