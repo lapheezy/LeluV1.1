@@ -24,9 +24,8 @@ Application windows stack above the desktop chat panel (`APP_WINDOW_Z` = 101 > 1
 
 ## Tests
 
-- The full `npm test` passed: 1365/0, run before fix 2.
+- The full `npm test` passes after both fixes: 1366 passed, 0 failed.
 - After fix 2, the studio and atelier suites pass 11/11 and the typecheck is clean.
-- The full suite has **not** been re-run since fix 2.
 
 ## Open / blockers
 
