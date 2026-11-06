@@ -71,8 +71,11 @@ const EMPTY_COUNTS = (): Record<Severity, number> => ({
 function resolveBinary(tool: ScannerId, workspaceRoot: string): string[] {
   const envName = `LELU_${tool.toUpperCase()}_BINARY`;
   const fromEnv = process.env[envName]?.trim();
+  // An explicit path is authoritative. If it does not run, the scanner is
+  // reported as not installed rather than silently substituting another
+  // binary the operator did not choose.
+  if (fromEnv) return [fromEnv];
   return [
-    ...(fromEnv ? [fromEnv] : []),
     join(workspaceRoot, ".tools", tool),
     join(workspaceRoot, "node_modules", ".bin", tool),
     tool,

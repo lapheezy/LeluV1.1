@@ -76,6 +76,15 @@ export const DOCK_ITEMS: DockItem[] = [
   { id: "diagnostics", label: "Engines", glyph: "●", icon: "wave", group: "system" },
   { id: "executive", label: "Executive", glyph: "◉", icon: "brain", group: "system" },
   { id: "logs", label: "Logs", glyph: "▤", icon: "file", group: "system" },
+
+  // ── Operational studios ──
+  // Real backend surfaces added with the intelligence integration. They
+  // live in the deeper capability list (reachable from the tab editor and
+  // ⌘K) and from Settings, so the default rail keeps its environment shape.
+  { id: "eng-studio", label: "Engineering Studio", glyph: "⌗", icon: "brain", group: "system" },
+  { id: "voice-studio", label: "Voice Studio", glyph: "◍", icon: "wave", group: "system" },
+  { id: "infra-monitor", label: "Infrastructure", glyph: "◫", icon: "globe", group: "system" },
+  { id: "security-center", label: "Security Center", glyph: "⛨", icon: "sliders", group: "system" },
 ];
 
 /**

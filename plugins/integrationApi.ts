@@ -33,7 +33,9 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { detectOpa, evaluateWithOpa } from "./integration/opa.ts";
 import { probeAllServices } from "./integration/services.ts";
 import { runSecurityGate, type ScannerId } from "./integration/scanners.ts";
+import { integrationState } from "./integration/state.ts";
 import { evaluatePolicy, type PolicyInput } from "../src/core/security/policy.ts";
+import { VadDetector } from "../src/core/voice/adapters/VoiceAdapters.ts";
 
 export interface IntegrationApiOptions {
   workspaceRoot: string;
@@ -43,6 +45,16 @@ export interface IntegrationApiOptions {
   token?: string;
   /** Allowed origins for cross-origin POSTs; empty = same-origin only. */
   allowedOrigins?: string[];
+  /**
+   * The prefix this middleware was mounted at when the host does NOT strip
+   * it (Vite's `server.middlewares.use(fn)`). Setting it makes the handler
+   * claim ONLY its own paths — without it, an unstripped mount answered
+   * every request, including `/`, and the whole application 404'd.
+   *
+   * Leave undefined when the host mounts at a path (connect's
+   * `use("/api/integration", fn)`), which strips the prefix.
+   */
+  mountPath?: string;
 }
 
 const POLICY_ACTIONS = [
@@ -107,6 +119,33 @@ function authorized(request: IncomingMessage, options: IntegrationApiOptions): {
   return { ok: true, status: 200, reason: "ok" };
 }
 
+/**
+ * Which scanner binaries this host actually has. A path is required —
+ * a bare name on PATH is not probed here, so "installed" always means
+ * "found at a path we can run", and the lightweight probe list matches
+ * the adapters' own resolution order (env → .tools → node_modules/.bin).
+ */
+function scannerBinaries(workspaceRoot: string): { gitleaks: boolean; trivy: boolean; semgrep: boolean } {
+  const present = (tool: string) => {
+    // Same rule as the adapters: an explicit path is authoritative, with no
+    // fallback to a different binary.
+    const explicit = process.env[`LELU_${tool.toUpperCase()}_BINARY`]?.trim();
+    if (explicit) return existsSync(explicit);
+    return [join(workspaceRoot, ".tools", tool), join(workspaceRoot, "node_modules", ".bin", tool)]
+      .filter((candidate): candidate is string => typeof candidate === "string")
+      .some((candidate) => candidate.includes("/") && existsSync(candidate));
+  };
+  return { gitleaks: present("gitleaks"), trivy: present("trivy"), semgrep: present("semgrep") };
+}
+
+/** Begin a trace for a real request and expose the correlation id the client sees. */
+function beginTrace(name: string, attributes: Record<string, unknown>, runtime: string): { traceId: string; rootId: string; correlationId: string } {
+  const correlationId = `corr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  const traceId = integrationState.telemetry.startTrace(name, correlationId, { runtime, ...attributes });
+  const rootId = integrationState.telemetry.recentTraces(1)[0]?.rootSpanId ?? "";
+  return { traceId, rootId, correlationId };
+}
+
 /** Resolve a scan target inside the workspace; refuse an escape. */
 function scopedTarget(workspaceRoot: string, requested: unknown): { ok: true; path: string } | { ok: false; reason: string } {
   const raw = typeof requested === "string" && requested.trim() ? requested.trim() : ".";
@@ -137,17 +176,7 @@ export async function handleIntegrationRoute(
   if (route === "/api/integration/status" && method === "GET") {
     const gate = authorized(request, options);
     const [opa, services] = await Promise.all([detectOpa(options.workspaceRoot), probeAllServices()]);
-    const binaries = {
-      gitleaks: [process.env.LELU_GITLEAKS_BINARY, join(options.workspaceRoot, ".tools", "gitleaks"), "gitleaks"]
-        .filter((candidate): candidate is string => typeof candidate === "string")
-        .some((candidate) => candidate.includes("/") && existsSync(candidate)),
-      trivy: [process.env.LELU_TRIVY_BINARY, join(options.workspaceRoot, ".tools", "trivy"), "trivy"]
-        .filter((candidate): candidate is string => typeof candidate === "string")
-        .some((candidate) => candidate.includes("/") && existsSync(candidate)),
-      semgrep: [process.env.LELU_SEMGREP_BINARY, join(options.workspaceRoot, ".tools", "semgrep"), "semgrep"]
-        .filter((candidate): candidate is string => typeof candidate === "string")
-        .some((candidate) => candidate.includes("/") && existsSync(candidate)),
-    };
+    const binaries = scannerBinaries(options.workspaceRoot);
     sendJson(response, 200, {
       ok: true,
       runtime: options.runtime,
@@ -190,18 +219,71 @@ export async function handleIntegrationRoute(
       return true;
     }
     const input = body as unknown as PolicyInput;
+    const trace = beginTrace("policy decision", { action: String(body.action), subjectKind: input.subject?.kind ?? "unknown" }, options.runtime);
+    const core = integrationState.telemetry.startSpan({
+      traceId: trace.traceId,
+      stage: "core",
+      name: "validate request",
+      parentId: trace.rootId,
+      attributes: { action: String(body.action), resource: input.resource?.kind ?? "unknown" },
+    });
+    integrationState.telemetry.endSpan(core.id, "ok");
+
+    const tool = integrationState.telemetry.startSpan({
+      traceId: trace.traceId,
+      stage: "tool",
+      name: "policy evaluation",
+      parentId: core.id,
+      attributes: { engine: "opa-or-reference" },
+    });
     const evaluated = await evaluateWithOpa(input, options.workspaceRoot);
+    integrationState.telemetry.endSpan(tool.id, "ok", evaluated.fromOpa ? undefined : "OPA unavailable — reference evaluator answered");
     const reference = evaluatePolicy(input);
+    const agrees = reference.allowed === evaluated.decision.allowed;
+
+    const resultSpan = integrationState.telemetry.startSpan({
+      traceId: trace.traceId,
+      stage: "result",
+      name: "decision",
+      parentId: tool.id,
+      attributes: { allowed: evaluated.decision.allowed, rules: evaluated.decision.rules.join(","), engine: evaluated.fromOpa ? "opa" : "reference" },
+    });
+    integrationState.telemetry.endSpan(resultSpan.id, "ok");
+    const verificationSpan = integrationState.telemetry.startSpan({
+      traceId: trace.traceId,
+      stage: "verification",
+      name: "reference parity",
+      parentId: resultSpan.id,
+      attributes: { agrees },
+    });
+    integrationState.telemetry.endSpan(verificationSpan.id, agrees ? "ok" : "failed", agrees ? undefined : "The reference evaluator disagrees with the policy engine.");
+
+    integrationState.recordDecision({
+      subjectKind: String(input.subject?.kind ?? "unknown"),
+      subjectId: input.subject?.userId ?? input.subject?.agentId ?? null,
+      action: String(body.action),
+      resourceKind: String(input.resource?.kind ?? "unknown"),
+      resourceId: input.resource?.id ?? null,
+      allowed: evaluated.decision.allowed,
+      requiresApproval: evaluated.decision.requiresApproval,
+      rules: evaluated.decision.rules,
+      engine: evaluated.fromOpa ? "opa" : "reference",
+      durationMs: evaluated.durationMs,
+      agrees,
+      correlationId: trace.correlationId,
+    });
+
     sendJson(response, 200, {
       ok: true,
       decision: evaluated.decision,
       engine: evaluated.fromOpa ? "opa" : "reference",
       detail: evaluated.detail,
       durationMs: evaluated.durationMs,
+      correlationId: trace.correlationId,
       // The reference answer is returned beside it so a divergence is
       // visible in production, not only in the test suite.
       reference: { allowed: reference.allowed, requiresApproval: reference.requiresApproval, rules: reference.rules },
-      agrees: reference.allowed === evaluated.decision.allowed,
+      agrees,
     });
     return true;
   }
@@ -225,6 +307,14 @@ export async function handleIntegrationRoute(
     const requested = Array.isArray(body.scanners)
       ? body.scanners.filter((item): item is ScannerId => item === "gitleaks" || item === "trivy" || item === "semgrep")
       : undefined;
+    const trace = beginTrace("security scan", { target: relative(options.workspaceRoot, target.path) || "." }, options.runtime);
+    const tool = integrationState.telemetry.startSpan({
+      traceId: trace.traceId,
+      stage: "tool",
+      name: "scanners",
+      parentId: trace.rootId,
+      attributes: { scanners: (requested ?? ["gitleaks", "trivy", "semgrep"]).join(",") },
+    });
     const report = await runSecurityGate({
       target: target.path,
       workspaceRoot: options.workspaceRoot,
@@ -232,11 +322,225 @@ export async function handleIntegrationRoute(
       ...(requested && requested.length > 0 ? { scanners: requested } : {}),
       ...(typeof body.failAt === "string" ? { failAt: body.failAt as "critical" | "high" | "medium" | "low" } : {}),
     });
-    sendJson(response, 200, { ok: true, report });
+    const skipped = report.results.filter((result) => !result.ran).map((result) => result.scanner);
+    integrationState.telemetry.endSpan(tool.id, skipped.length > 0 ? "failed" : "ok", skipped.length > 0 ? `did not run: ${skipped.join(", ")}` : undefined);
+
+    const resultSpan = integrationState.telemetry.startSpan({
+      traceId: trace.traceId,
+      stage: "result",
+      name: "scan report",
+      parentId: tool.id,
+      attributes: { gatePassed: report.gatePassed, findingCount: report.results.reduce((total, item) => total + item.findings.length, 0) },
+    });
+    integrationState.telemetry.endSpan(resultSpan.id, "ok");
+    const verificationSpan = integrationState.telemetry.startSpan({
+      traceId: trace.traceId,
+      stage: "verification",
+      name: "gate verdict",
+      parentId: resultSpan.id,
+      attributes: { gatePassed: report.gatePassed, skipped: skipped.join(",") },
+    });
+    integrationState.telemetry.endSpan(verificationSpan.id, skipped.length > 0 ? "failed" : "ok");
+
+    integrationState.recordScan(relative(options.workspaceRoot, target.path) || ".", report);
+    sendJson(response, 200, { ok: true, report, correlationId: trace.correlationId });
+    return true;
+  }
+
+  if (route === "/api/integration/security" && method === "GET") {
+    const gate = authorized(request, options);
+    const [opa, services] = await Promise.all([detectOpa(options.workspaceRoot), probeAllServices()]);
+    const relevant = new Set(["openfga", "infisical", "temporal", "litellm"]);
+    const scans = integrationState.scans_();
+    sendJson(response, 200, {
+      ok: true,
+      tokenAccepted: gate.ok,
+      policy: {
+        engine: opa.available ? "opa" : "reference",
+        available: opa.available,
+        version: opa.version,
+        policyDir: opa.policyDir,
+        detail: opa.detail,
+      },
+      scanners: scannerBinaries(options.workspaceRoot),
+      decisions: integrationState.decisions_(),
+      audit: integrationState.audit_(),
+      lastScan: integrationState.lastScan(),
+      scanHistory: scans.map((entry) => ({ at: entry.at, gatePassed: entry.report.gatePassed, summary: entry.report.summary })),
+      relationships: integrationState.relationshipSummary(),
+      services: services.filter((service) => relevant.has(service.id)),
+      // Triage of the baseline scan is a human judgement recorded in
+      // docs/integration/acceptance-report.md; the panel does not
+      // pretend to have classified them on its own.
+      gitleaksTriage: gate.ok
+        ? {
+            known: 59,
+            needsReview: 13,
+            detail:
+              "Baseline working-tree scan: 59 findings are generation logs or the bundle-secret canary scanner's own patterns; 13 source files are still awaiting human review. This count is documentation, not a live re-scan.",
+          }
+        : null,
+    });
+    return true;
+  }
+
+  if (route === "/api/integration/engineering" && method === "GET") {
+    const services = await probeAllServices();
+    const healthOf = (id: string) =>
+      services.find((service) => service.id === id)?.health ?? {
+        state: "not_configured" as const,
+        detail: `No probe exists for "${id}"; nothing is claimed about it.`,
+      };
+    const orchestrator = integrationState.orchestrator;
+    const locks = orchestrator.activeLocks().map((lock) => ({ workspaceId: lock.workspaceId, engine: lock.engine, since: lock.at }));
+    const outcomes = orchestrator.history(20);
+    const registered = new Set(orchestrator.backends_().map((backend) => backend.id));
+    sendJson(response, 200, {
+      ok: true,
+      runtime: {
+        name: options.runtime,
+        workspaceRoot: options.workspaceRoot,
+        node: process.version,
+        engineeringApi: true,
+        detail:
+          registered.size === 0
+            ? "The whitelisted engineering runtime is mounted, but no CodingBackend is registered with the orchestrator, so no task can execute yet. That is a real gap, not a health state."
+            : `${registered.size} coding backend(s) registered with the orchestrator.`,
+      },
+      engines: [
+        { id: "openhands", name: "OpenHands", source: "OPENHANDS_BASE_URL", health: healthOf("openhands"), selectable: registered.has("openhands") },
+        { id: "opencode", name: "OpenCode", source: "OPENCODE_BASE_URL", health: healthOf("opencode"), selectable: registered.has("opencode") },
+        {
+          id: "local",
+          name: "Local engineering runtime",
+          source: "plugins/engineerApi.ts",
+          health: {
+            state: registered.has("local") ? "healthy" : "degraded",
+            detail: registered.has("local")
+              ? "registered with the orchestrator"
+              : "runtime mounted (whitelisted commands, workspace copies) but not registered as an orchestrator backend",
+          },
+          selectable: registered.has("local"),
+        },
+      ],
+      tasks: [],
+      locks,
+      verificationPolicy: [
+        { rule: "backend_reported_success", detail: "the backend itself reported ok" },
+        { rule: "changes_within_allowed_paths", detail: "every changed file is inside the task's allowed paths" },
+        { rule: "tests_ran", detail: "a test command actually ran" },
+        { rule: "tests_passed", detail: "zero failures and at least one passing test" },
+        { rule: "other_commands_succeeded", detail: "no other recorded command failed" },
+      ],
+      history: outcomes.map((outcome) => ({
+        taskId: outcome.taskId,
+        engine: outcome.engine,
+        verified: outcome.verification.verified,
+        at: outcome.finishedAt,
+        reason: outcome.verification.checks.find((check) => !check.ok)?.detail ?? outcome.selectedReason,
+      })),
+    });
+    return true;
+  }
+
+  if (route === "/api/integration/voice" && method === "GET") {
+    const services = await probeAllServices();
+    const healthOf = (id: string) =>
+      services.find((service) => service.id === id)?.health ?? {
+        state: "not_configured" as const,
+        detail: `No probe exists for "${id}"; nothing is claimed about it.`,
+      };
+    const vad = new VadDetector();
+    sendJson(response, 200, {
+      ok: true,
+      adapters: [
+        {
+          id: "whisper",
+          label: "Whisper.cpp · speech recognition",
+          state: healthOf("whisper").state,
+          detail: healthOf("whisper").detail,
+          model: process.env.WHISPER_MODEL ?? null,
+          streaming: false,
+        },
+        {
+          id: "kokoro",
+          label: "Kokoro · speech synthesis",
+          state: healthOf("kokoro").state,
+          detail: healthOf("kokoro").detail,
+          model: process.env.KOKORO_VOICE ?? null,
+          streaming: true,
+        },
+        {
+          id: "pipecat",
+          label: "Pipecat · realtime transport",
+          state: healthOf("pipecat").state,
+          detail: `${healthOf("pipecat").detail} Streaming WebRTC transport is not in use here.`,
+          model: null,
+          streaming: true,
+        },
+      ],
+      vad: {
+        implementation: vad.model(),
+        neuralModelPresent: false,
+        // Mirrors VadDetector's documented defaults (see VadOptions).
+        thresholds: { openRatio: 3.2, closeRatio: 1.6, minSpeechFrames: 3, minSilenceFrames: 17 },
+        detail:
+          "An energy detector with an adaptive noise floor: it learns steady room tone while the user is silent and uses hysteresis so a quiet tail is still speech. Silero's ONNX weights are not present.",
+      },
+      benchmark: {
+        samples: 0,
+        median: null,
+        p95: null,
+        detail: "No audio device or synthesis server is reachable from this runtime, so no sample has been recorded.",
+      },
+    });
+    return true;
+  }
+
+  if (route === "/api/integration/traces" && method === "GET") {
+    const telemetry = integrationState.telemetry;
+    const traces = telemetry.recentTraces(25).map((trace) => ({
+      ...trace,
+      spans: telemetry.traceSpans(trace.traceId).map((span) => ({
+        id: span.id,
+        parentId: span.parentId,
+        stage: span.stage,
+        name: span.name,
+        startedAt: span.startedAt,
+        durationMs: span.endedAt ? span.endedAt - span.startedAt : null,
+        status: span.status,
+        attributes: span.attributes,
+        ...(span.error ? { error: span.error } : {}),
+      })),
+    }));
+    const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
+    sendJson(response, 200, {
+      ok: true,
+      traces,
+      exporter: {
+        configured: Boolean(endpoint),
+        // The endpoint itself may carry credentials in its userinfo; only
+        // the origin is ever disclosed.
+        endpoint: endpoint ? safeOrigin(endpoint) : null,
+        detail: endpoint
+          ? "An OTLP endpoint is configured; traces can be exported from a server-side caller."
+          : "No collector is configured. Traces stay in this process and nothing is shipped.",
+      },
+      buffer: integrationState.traceBuffer(),
+    });
     return true;
   }
 
   return false;
+}
+
+function safeOrigin(url: string): string {
+  try {
+    const parsed = new URL(url);
+    return `${parsed.protocol}//${parsed.host}`;
+  } catch {
+    return "configured (unparseable as a URL)";
+  }
 }
 
 /**
@@ -251,14 +555,26 @@ export function createIntegrationApi(options: IntegrationApiOptions) {
   ): Promise<void> {
     const url = request.url ?? "/";
     const raw = url.split("?")[0] ?? "/";
-    // Connect-style servers strip the mount prefix before invoking the
-    // handler, so a request mounted at /api/integration arrives as
-    // "/status". Restore the full route so one implementation serves both
-    // the unstripped (Vite, `use(fn)`) and stripped (mounted) forms.
-    const route = raw.startsWith("/api/integration")
-      ? raw
-      : `/api/integration${raw.startsWith("/") ? raw : `/${raw}`}`;
+    let route: string;
+    if (options.mountPath) {
+      // Unstripped mount (Vite): claim only the prefix we own.
+      const prefix = options.mountPath;
+      if (raw !== prefix && !raw.startsWith(`${prefix}/`)) {
+        next();
+        return;
+      }
+      route = raw;
+    } else {
+      // Stripped mount (connect): a request mounted at /api/integration
+      // arrives as "/status", so restore the full route.
+      route = raw.startsWith("/api/integration")
+        ? raw
+        : `/api/integration${raw.startsWith("/") ? raw : `/${raw}`}`;
+    }
     if (!route.startsWith("/api/integration/")) {
+      // Only an unknown path UNDER our prefix is ours to 404. Anything else
+      // belongs to the next middleware — this is the branch whose absence
+      // took the application down.
       next();
       return;
     }

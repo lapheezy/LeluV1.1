@@ -234,6 +234,10 @@ const LINKS: { id: GenesisPanel; label: string; description: string }[] = [
   { id: "browser", label: "Browser", description: "Live browser surface" },
   { id: "knowledge", label: "Knowledge", description: "Research / knowledge providers" },
   { id: "workspaces", label: "Projects", description: "The workspace / project system" },
+  { id: "eng-studio", label: "Engineering Studio", description: "Engines, workspace locks, test evidence and verification" },
+  { id: "voice-studio", label: "Voice Studio", description: "STT/TTS/VAD adapters, device audio and measured latency" },
+  { id: "infra-monitor", label: "Infrastructure", description: "Service health, provider routing and execution traces" },
+  { id: "security-center", label: "Security Center", description: "Policy decisions, permissions and scanner findings" },
 ];
 
 export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelProps) {

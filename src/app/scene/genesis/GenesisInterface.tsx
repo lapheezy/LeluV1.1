@@ -75,6 +75,10 @@ import GenesisVisualStudio from "./GenesisVisualStudio";
 import GenesisEarthCore from "./GenesisEarthCore";
 import GenesisCosmosPanel from "./GenesisCosmosPanel";
 import GenesisIdentityPanel from "./GenesisIdentityPanel";
+import EngineeringStudioPanel from "./integration/EngineeringStudioPanel";
+import VoiceStudioPanel from "./integration/VoiceStudioPanel";
+import InfrastructureMonitorPanel from "./integration/InfrastructureMonitorPanel";
+import SecurityCenterPanel from "./integration/SecurityCenterPanel";
 
 /**
  * ONE module set — the same instances the dock, palette, chat commands
@@ -111,6 +115,11 @@ const MODULE_RENDERERS: ModuleRenderers = {
   earth: ({ onClose }) => <GenesisEarthCore onClose={onClose} />,
   identity: ({ onClose }) => <GenesisIdentityPanel onClose={onClose} />,
   creation: ({ onClose }) => <GenesisCreationStudio onClose={onClose} />,
+  // Operational studios — live server data, one capability gate.
+  "eng-studio": ({ onClose }) => <EngineeringStudioPanel onClose={onClose} />,
+  "voice-studio": ({ onClose }) => <VoiceStudioPanel onClose={onClose} />,
+  "infra-monitor": ({ onClose }) => <InfrastructureMonitorPanel onClose={onClose} />,
+  "security-center": ({ onClose }) => <SecurityCenterPanel onClose={onClose} />,
 };
 
 /** Every module that can be a window — what LÉLU's interface tools can see and arrange. */

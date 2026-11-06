@@ -206,7 +206,13 @@ export type GenesisPanel =
   // LÉLU Personality Development — identity, traits, journal
   | "identity"
   // Creation Studio — documents, presentations, spreadsheets (library)
-  | "creation";
+  | "creation"
+  // Operational studios — live backend surfaces. Every value they show
+  // comes from the server's own probe or record; there are no placeholders.
+  | "eng-studio"
+  | "voice-studio"
+  | "infra-monitor"
+  | "security-center";
 
 
 /**

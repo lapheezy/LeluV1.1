@@ -54,8 +54,9 @@ const cache = new Map<string, OpaAvailability>();
 
 function candidates(workspaceRoot: string): string[] {
   const fromEnv = process.env.LELU_OPA_BINARY?.trim();
+  // An explicit path is authoritative: no silent fallback to .tools or PATH.
+  if (fromEnv) return [fromEnv];
   return [
-    ...(fromEnv ? [fromEnv] : []),
     join(workspaceRoot, ".tools", "opa"),
     join(workspaceRoot, "node_modules", ".bin", "opa"),
     "opa",

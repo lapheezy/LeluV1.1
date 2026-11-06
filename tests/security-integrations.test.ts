@@ -161,16 +161,25 @@ test("a clean directory scans clean — and says it actually ran", async (t) => 
 });
 
 test("a scanner that is not installed fails the gate instead of reporting clean", async () => {
-  // semgrep is deliberately not bundled with this project.
-  const report = await runSecurityGate({
-    target: ROOT,
-    workspaceRoot: ROOT,
-    scanners: ["semgrep"],
-  });
-  const [semgrep] = report.results;
-  assert.equal(semgrep.ran, false);
-  assert.equal(semgrep.gatePassed, false);
-  assert.match(semgrep.detail, /not installed/);
-  assert.equal(report.gatePassed, false);
-  assert.match(report.summary, /did not run/);
+  // Semgrep may now be installed in .tools/, so this proves the fail-closed
+  // path with an explicit, deliberately wrong path: LELU_SEMGREP_BINARY is
+  // authoritative and never silently falls back to another binary.
+  const previous = process.env.LELU_SEMGREP_BINARY;
+  process.env.LELU_SEMGREP_BINARY = join(tmpdir(), "lelu-no-such-semgrep");
+  try {
+    const report = await runSecurityGate({
+      target: ROOT,
+      workspaceRoot: ROOT,
+      scanners: ["semgrep"],
+    });
+    const [semgrep] = report.results;
+    assert.equal(semgrep.ran, false);
+    assert.equal(semgrep.gatePassed, false);
+    assert.match(semgrep.detail, /not installed/);
+    assert.equal(report.gatePassed, false);
+    assert.match(report.summary, /did not run/);
+  } finally {
+    if (previous === undefined) delete process.env.LELU_SEMGREP_BINARY;
+    else process.env.LELU_SEMGREP_BINARY = previous;
+  }
 });

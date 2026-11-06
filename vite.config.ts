@@ -162,6 +162,9 @@ export default defineConfig(({ mode, command }) => {
           server.middlewares.use(createIntegrationApi({
             workspaceRoot: process.cwd(),
             runtime: "vite-dev",
+            // Vite's use(fn) does not strip a prefix, so the handler must
+            // claim its own paths explicitly or it answers every request.
+            mountPath: "/api/integration",
             token: process.env.LELU_ENGINEER_TOKEN,
             allowedOrigins: (process.env.LELU_ENGINEER_ALLOWED_ORIGINS ?? "")
               .split(",")
@@ -173,6 +176,7 @@ export default defineConfig(({ mode, command }) => {
           server.middlewares.use(createIntegrationApi({
             workspaceRoot: process.cwd(),
             runtime: "vite-dev",
+            mountPath: "/api/integration",
             token: process.env.LELU_ENGINEER_TOKEN,
             allowedOrigins: (process.env.LELU_ENGINEER_ALLOWED_ORIGINS ?? "")
               .split(",")

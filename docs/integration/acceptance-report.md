@@ -24,12 +24,15 @@ partially exercised · `BLOCKED` = cannot run in this environment · `NOT STARTE
 | Infisical | health adapter; **no secret migrated** | probe only | `services.json` | **PARTIAL** |
 | OPA | Rego policy + real engine + reference mirror | 15-case parity, 10 evidence cases | `policy-decisions.json` | **PASS** |
 | OpenFGA | tuple store (in-process) + HTTP adapter | 7 unit tests | test output | **PARTIAL** |
-| Semgrep | adapter | missing-binary path | `security-scan.json` | **BLOCKED** |
-| Trivy | adapter | binary detected, no DB | `security-scan.json` | **BLOCKED** |
+| Semgrep | adapter + real run (1.184.0) | executed over `src/`: 21 findings (5 medium, 16 info) | `studios-2026-11-06/scan-three-scanners.json` | **PASS** |
+| Trivy | adapter + real run with a downloaded DB (0.76.2) | executed over `src/`: 0 findings | `studios-2026-11-06/scan-three-scanners.json` | **PASS** |
 | Gitleaks | adapter + real scan | real run + 2 scanner tests | `security-scan.json` | **PASS** |
 
 **No row is marked PASS without a real artefact produced in this container.**
-Nine rows are PARTIAL, one NOT STARTED, two BLOCKED.
+Nine rows are PARTIAL, one NOT STARTED, none BLOCKED. Semgrep and Trivy moved
+from BLOCKED to PASS only after both binaries really ran: Semgrep installed into
+`.tools/venv` (`1.184.0`) and the Trivy vulnerability DB downloaded into
+`.tools/trivy-cache`.
 
 ## End-to-end scenarios (spec §9)
 
@@ -49,7 +52,7 @@ Nine rows are PARTIAL, one NOT STARTED, two BLOCKED.
 
 | Gate | Result |
 |---|---|
-| No critical unresolved vulnerability in scope | **UNVERIFIED** — Trivy has no DB, Semgrep absent. Stated, not assumed. |
+| No critical unresolved vulnerability in scope | **FAILED, and honestly so** — real Gitleaks + Semgrep + Trivy runs over `src/` produced 30 findings (9 high, 5 medium, 16 info). The gate refuses to pass and the UI shows `FAIL`. Findings are listed, never suppressed. |
 | No exposed credential in the repository | **PASS for Git history** — `.env.local` is untracked and gitignored; `git log --all -- .env.local` is empty |
 | Privileged tools require authorization | **PASS** — every adapter call passes identity + policy |
 | Sensitive operations auditable | **PASS** — audit entries carry subject/action/resource/decision/engine/correlation id |
@@ -106,10 +109,9 @@ the Vite dev server on port 5199 while it was serving:
 
 ## What is not delivered, plainly
 
-- No UI: no Engineering Studio, Voice Studio, Infrastructure Monitor or Security
-  Centre screen. The APIs they need exist; the screens do not.
-- No visual evidence: no screenshot of the running application, because no
-  integration UI exists to photograph. This is a deliberate choice over shipping
-  fabricated panels (spec §6 forbids them).
+- The four studios **do** exist now (Engineering Studio, Voice Studio,
+  Infrastructure Monitor, Security Center) inside Cosmos/Genesis, reading only
+  `/api/integration/*`. Real screenshots, each with its API source and timestamp,
+  are in `docs/acceptance/intelligence-integration/studios-2026-11-06/REPORT.md`.
 - No connected coding backend, no model credential, no audio, no device.
 - No CI wiring for the scanners.
