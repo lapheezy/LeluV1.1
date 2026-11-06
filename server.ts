@@ -48,6 +48,7 @@ import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 import { createAccessGate } from "./plugins/accessGate.ts";
 import { createIntegrationApi } from "./plugins/integrationApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
+import { createSourceCatalogApi } from "./plugins/sourceCatalogApi.ts";
 import { createGuard, sendRefusal } from "./plugins/requestGuard.ts";
 import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
 
@@ -336,6 +337,8 @@ createGithubApi().attach(middlewares);
 // Both require a Supabase-verified signed-in user (plugins/requestGuard.ts);
 // the reader fetches through plugins/safeFetch.ts (SSRF containment).
 createBrowseApi().attach(middlewares);
+// Source catalog + gated discovery (fixed catalog URL only, via safeFetch).
+createSourceCatalogApi().attach(middlewares);
 createAiProxyApi((key) => process.env[key]).attach(middlewares);
 // Same-origin model broker: the browser posts here, the server holds
 // the credential and talks to the provider.
