@@ -44,6 +44,40 @@ OpenCode was installed at `/usr/local/bin/opencode` (v1.19.5) but unconfigured. 
   The chain must fall through to the next rung *before* the turn budget is gone; that is the remaining defect and it is
   deliberately left failing honestly rather than papered over.
 
+### Follow-up — the chain's own budget (implemented later on 2026-11-06)
+
+The "timeout being spent" reading above was directionally right but incomplete. Capturing the actual request bodies showed
+what the budget was being spent on:
+
+- The chain sent **86,331 characters carrying 87 tool schemas** on an ordinary "write me a poem" turn, with 17,816
+  characters of system context.
+- **OpenRouter** answered `429 free-models-per-day` with `X-RateLimit-Remaining: 0`.
+- **Groq** answered `429 ... on tokens per day (TPD): Limit 200000, Used 199144, Requested 5786. Please try again in
+  35m29s.` — 856 tokens left for the day.
+- **Anthropic** answered `400 Your credit balance is too low to access the Anthropic API.`
+- A **control probe** through the same broker, with one short message, answered in **452 ms** with a real four-line poem.
+
+So no configured provider was reachable *for that request*, and the chain had no per-rung limit — every turn re-paid the
+full refusal latency of rungs that could not answer today, then said `offline`.
+
+What changed (two files, no new architecture):
+
+| Change | File | Evidence |
+|---|---|---|
+| A per-rung deadline (12 s) inside a chain budget (20 s); a cut-off rung is recorded as that provider's failure, and the next rung starts while time remains | `ProviderResolver.ts` | `the chain stops starting rungs once its own budget is spent`; `a slow provider is cut off at its own budget and the next one answers` |
+| The rung deadline never mutates the turn's signal, so a Stop stays a Stop and is not read as a fallback | `ProviderResolver.ts` | `the rung budget never turns a user Stop into a fallback` |
+| A size refusal (413 / tokens-per-minute / context ceiling) is retried once without the 87 tool schemas | `ProviderResolver.ts` | `a request refused for its size is retried without the tool schemas` |
+| A spent **daily** allowance (`free-models-per-day`, `tokens per day (TPD)`) is `quota-exhausted`: 15-minute cooldown, not 30 seconds, and no pointless smaller retry | `AIProviderRegistry.ts` | `a spent daily quota is classified apart from a transient rate limit`; `a spent daily allowance is not retried smaller` |
+
+Live effect, measured after the change on a fresh page load: the first turn paid both refusals once (provider stage
+**8,512 ms**, two 429s); the next turn reached the provider stage in **1 ms with zero provider calls**, because both rungs
+were parked by their measured daily-quota failures. Before the fix every turn re-paid that ~8.5 s.
+
+Honest result: **the chain is bounded and no longer pays repeatedly for dead rungs (PASS, unit- and live-verified), but no
+live successful generation could be produced**, because at measurement time every configured provider was out of allowance
+or credit. That is recorded as **BLOCKED**, with the exact refusal bodies, not presented as a pass. The numbers for this
+follow-up are in `evidence/provider-reliability/rung-budget-fix.json`.
+
 ---
 
 ## Phase 3 — Spatial avatar & environmental integration
@@ -112,7 +146,9 @@ She remains an independent presentation layer: the module exports pure functions
 ## Phase 5 — Verification summary
 
 - `npx tsc -b --force` → exit 0.
-- Full suite: **1446 tests, 1444 passed, 0 failed, 2 skipped** (`bun run test`, 166 s).
+- Full suite (after the provider-chain fix): **1453 tests, 1451 passed, 0 failed, 2 skipped** (`bun run test`, 158 s).
+- Provider-chain suites: 28/28 (`provider-rung-budget`, `provider-fallback`, `provider-fallback-cognition`,
+  `runtime-integrity`).
 - Spatial suite: 13/13. Related avatar/companion/layout suites: 31/31.
 - Live browser: page mounted, chat opened, placement measured, screenshot captured, poem turn traced.
 
@@ -132,7 +168,8 @@ She remains an independent presentation layer: the module exports pure functions
 
 ## Open items (not claimed as done)
 
-1. In-app provider chain: fall through to an answering rung before the ~20 s budget is exhausted, and give reasoning
-   models enough completion budget for content. This remains the one genuine FAIL.
+1. In-app provider chain: the per-rung and chain budgets are in place and tested. A live successful generation is
+   **BLOCKED by provider allowance**, not by the code: Groq had 856 tokens left for the day, OpenRouter had no free
+   requests left, Anthropic had no credit. Re-run the poem turn after the allowances reset to close this out.
 2. Anthropic: needs `ANTHROPIC_API_KEY` in the server environment before connectivity can be tested.
 3. A rendered iPhone 390×844 browser capture (harness blocked) and real skeletal climb/lean clips.
