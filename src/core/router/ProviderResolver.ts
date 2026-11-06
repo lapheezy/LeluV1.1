@@ -19,6 +19,31 @@ import ModelRouter from "../model/ModelRouter";
 import { dispatchToolCall, latestCaptureMeasurements } from "../tools/ToolDispatcher";
 import { toolSchemasForModel } from "../tools/ToolSchemas";
 import { labelOtherChats } from "../multichat/ContextProvenance";
+import UsageLedger from "../observability/UsageLedger";
+
+/**
+ * One model call, counted. Every round of the tool loop is a separate
+ * billed request, so each is recorded with the usage that provider
+ * reported for it; recording only the final response would undercount.
+ * A failed call is recorded where the failure is handled (markFailure).
+ */
+async function meteredGenerate(
+  provider: { name: string; generate: (request: any) => Promise<AIResponse> },
+  request: Parameters<typeof provider.generate>[0],
+): Promise<AIResponse> {
+  const started = Date.now();
+  const response = await provider.generate(request);
+  UsageLedger.getInstance().record({
+    kind: "ai",
+    source: provider.name,
+    model: response.model,
+    operation: "generate",
+    ok: true,
+    latencyMs: Date.now() - started,
+    usage: response.metadata?.usage,
+  });
+  return response;
+}
 
 /**
  * TERMINATION, not a round quota.
@@ -247,6 +272,14 @@ export default class ProviderResolver {
         }
         const message = error instanceof Error ? error.message : String(error);
         context.aiProviders.markFailure(provider.name, message);
+        UsageLedger.getInstance().record({
+          kind: "ai",
+          source: provider.name,
+          operation: "generate",
+          ok: false,
+          rateLimited: /\b429\b|rate.?limit|too many requests|overloaded/i.test(message),
+          error: message,
+        });
         AgentEventBus.getInstance().emit({
           type: "provider_status",
           taskId: String(context.request.timestamp ?? Date.now()),
@@ -334,7 +367,7 @@ export default class ProviderResolver {
     // the original single call, untouched. This is the fallback path —
     // ToolCallInterceptor still salvages tool markup from these.
     if (tools.length === 0) {
-      return provider.generate(context.request);
+      return meteredGenerate(provider, context.request);
     }
 
     const taskId = String(context.request.timestamp ?? Date.now());
@@ -352,7 +385,7 @@ export default class ProviderResolver {
     // to catch.
     const requested: string[] = [];
 
-    let response = await provider.generate({ ...context.request, messages, tools });
+    let response = await meteredGenerate(provider, { ...context.request, messages, tools });
     let promptMaterialized = false;
 
     const loopStarted = Date.now();
@@ -472,7 +505,7 @@ export default class ProviderResolver {
         });
       }
 
-      response = await provider.generate({
+      response = await meteredGenerate(provider, {
         ...context.request,
         messages,
         ...(stopReason ? {} : { tools }),
