@@ -302,9 +302,9 @@ const REMOTE_MODEL_CATALOG: ModelDescriptor[] = [
   },
   {
     // Coding model for engineering turns; id and override live in
-    // core/ProviderModels.ts (fireworksCoding). Dedicated deployment only.
-    id: "fireworks.kimi-k2p7-code",
-    name: "Kimi K2.7 Code (Fireworks)",
+    // core/ProviderModels.ts (fireworksCoding). Serverless.
+    id: "fireworks.kimi-k3p1-pro",
+    name: "Kimi K3.1 Pro (Fireworks)",
     provider: "Fireworks",
     modalities: ["text", "vision", "code"],
     local: false,

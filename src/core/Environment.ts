@@ -291,7 +291,7 @@ function build(): LeluEnvironment {
     // so it is never the default and never a silent fallback.
     defaultProvider:  opt("VITE_DEFAULT_PROVIDER", "fireworks"),
     // Coding turns lead with this provider; Fireworks runs them on
-    // FIREWORKS_CODING_MODEL (Kimi K2.7 Code by default, core/ProviderModels).
+    // FIREWORKS_CODING_MODEL (Kimi K3.1 Pro by default, core/ProviderModels).
     codingProvider:   opt("VITE_CODING_PROVIDER", "fireworks"),
     aiProxyBaseUrl:   opt("VITE_AI_PROXY_BASE_URL", ""),
   };

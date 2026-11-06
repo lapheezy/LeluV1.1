@@ -4,7 +4,7 @@
  *
  * A minimal agentic coding loop whose inference runs on Fireworks
  * through LÉLU's OWN FireworksProvider (workload "coding", so it
- * uses FIREWORKS_CODING_MODEL — Kimi K2.7 Code by default). No
+ * uses FIREWORKS_CODING_MODEL — Kimi K3.1 Pro by default). No
  * second provider client, no Anthropic anywhere in the path.
  *
  * WHY IT EXISTS: the Claude Code session that set this up runs on

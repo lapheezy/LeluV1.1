@@ -134,7 +134,7 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     globalName: "__LELU_FIREWORKS_MODEL__",
     aliases: ["FIREWORKS_MODEL"],
   },
-  // Model for CODING turns on Fireworks (Kimi K2.7 Code by default).
+  // Model for CODING turns on Fireworks (Kimi K3.1 Pro by default).
   {
     viteName: "VITE_FIREWORKS_CODING_MODEL",
     globalName: "__LELU_FIREWORKS_CODING_MODEL__",

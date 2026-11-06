@@ -25,7 +25,7 @@ repo even if `.env` itself is ever recreated.
 | `VITE_MISTRAL_MODEL` | Mistral model override | no |
 | `VITE_FIREWORKS_API_KEY` | Fireworks AI — fallback #4 | yes |
 | `VITE_FIREWORKS_MODEL` | Fireworks chat model override | no |
-| `FIREWORKS_CODING_MODEL` | Fireworks model for coding turns. Default `accounts/fireworks/models/kimi-k2p7-code` (dedicated deployment only; set to e.g. `accounts/fireworks/models/kimi-k3p1-pro` for serverless) | no |
+| `FIREWORKS_CODING_MODEL` | Fireworks model for coding turns. Default `accounts/fireworks/models/kimi-k3p1-pro` (serverless). `accounts/fireworks/models/kimi-k2p7-code` works only once you have a dedicated Fireworks deployment of it | no |
 | `VITE_CODING_PROVIDER` | Provider that leads coding (engineering) turns. Default `fireworks` | no |
 | `LELU_ENABLE_ANTHROPIC` | `true` opts in to Anthropic (chat + managed engineering agent). **Default off**: Anthropic is unavailable and never a fallback | no |
 | `VITE_GITHUB_TOKEN` | GitHub Models — fallback #5 + GitHub repo tool | yes |
