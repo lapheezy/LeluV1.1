@@ -14,7 +14,7 @@
  * failure so the next provider in the chain is tried.
  *
  * CODING TURNS (request.workload === "coding") run on the
- * dedicated coding model — FIREWORKS_CODING_MODEL, Kimi K2.7 Code
+ * dedicated coding model — FIREWORKS_CODING_MODEL, Kimi K3.1 Pro
  * by default (core/ProviderModels.ts) — with a longer time budget.
  * Every other turn uses FIREWORKS_MODEL, unchanged.
  */

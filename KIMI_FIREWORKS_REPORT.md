@@ -2,6 +2,16 @@
 
 Date: 2026-11-05. Every number below comes from a real Fireworks API response or a real command run in this session.
 
+## Update 2026-11-06: coding model set to Kimi K3.1 Pro
+
+`FIREWORKS_CODING_MODEL` now defaults to **`accounts/fireworks/models/kimi-k3p1-pro`** (serverless). On re-check, K2.7 Code still returned 404 and the account still had 0 deployments, so LÉLU coding turns would otherwise have failed.
+
+* Live re-verification ran with no override, using the new default exactly as LÉLU does: **9/9 checks pass**, including configured-model connectivity, which was the 404 before. Usage was 3,339 input (864 cached) / 742 output tokens = **$0.0125**.
+* The cooldown caveat in §7 no longer applies, because coding turns no longer hit a 404.
+* To move to K2.7 Code later, create a dedicated Fireworks deployment and set `FIREWORKS_CODING_MODEL=accounts/fireworks/models/kimi-k2p7-code` (or the deployment's model id). No code change is needed.
+
+The sections below describe the original 2026-11-05 integration, when K2.7 Code was the default.
+
 ## TL;DR
 
 * **Kimi K2.7 Code (`accounts/fireworks/models/kimi-k2p7-code`) is wired in as LÉLU's coding model, but Fireworks does not serve it serverless.** The control-plane record shows `state: READY`, `supportsServerless: false`, `serverlessModes: []` and `deployedModelRefs: []`. A real call returns `404 Model not found, inaccessible, and/or not deployed`. The account `accounts/laelpheru` has **0 deployments**. The model page also lists Serverless as "Not Supported".

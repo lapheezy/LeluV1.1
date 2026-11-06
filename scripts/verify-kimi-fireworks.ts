@@ -5,10 +5,10 @@
  *
  *   npx tsx scripts/verify-kimi-fireworks.ts [--model <serverless kimi id>]
  *
- * The configured coding model (FIREWORKS_CODING_MODEL, default Kimi
- * K2.7 Code) is probed first and its REAL outcome recorded. The
+ * The configured coding model (FIREWORKS_CODING_MODEL, default Kimi K3.1 Pro)
+ * is probed first and its REAL outcome recorded. The
  * capability checks then run on --model (default: the coding model;
- * pass a serverless Kimi when K2.7 Code has no deployment).
+ * pass e.g. kimi-k2p7-code once it has a deployment).
  */
 
 import type { AIRequest, ToolSchema } from "../src/providers/AIProvider";

@@ -13,7 +13,7 @@ import { defaultModel } from "../src/core/ProviderModels";
 import { anthropicEnabled } from "../src/core/model/ProviderPolicy";
 import AnthropicEngineeringAgent from "../src/core/engineering/AnthropicEngineeringAgent";
 
-const KIMI = "accounts/fireworks/models/kimi-k2p7-code";
+const KIMI = "accounts/fireworks/models/kimi-k3p1-pro";
 
 function withEnv(values: Record<string, string | undefined>, body: () => Promise<void>): Promise<void> {
   const previous: Record<string, string | undefined> = {};
@@ -44,7 +44,7 @@ function stubFetch(handler: (body: any) => Response): { bodies: any[]; restore: 
 const ok = (content: string) =>
   new Response(JSON.stringify({ choices: [{ message: { content }, finish_reason: "stop" }], usage: { prompt_tokens: 5, completion_tokens: 1 } }), { status: 200 });
 
-test("the coding model defaults to Kimi K2.7 Code", () => {
+test("the coding model defaults to serverless Kimi K3.1 Pro", () => {
   assert.equal(defaultModel("fireworksCoding"), KIMI);
 });
 
@@ -67,13 +67,13 @@ test("coding turns use the coding model; chat turns keep the chat model", async 
 });
 
 test("FIREWORKS_CODING_MODEL overrides the coding model", async () => {
-  await withEnv({ FIREWORKS_API_KEY: "test", FIREWORKS_CODING_MODEL: "accounts/fireworks/models/kimi-k3p1-pro" }, async () => {
+  await withEnv({ FIREWORKS_API_KEY: "test", FIREWORKS_CODING_MODEL: "accounts/fireworks/models/kimi-k2p7-code" }, async () => {
     const fetchStub = stubFetch(() => ok("done"));
     try {
       const fw = new FireworksProvider();
       await fw.initialize();
       await fw.generate({ prompt: "x", messages: [], workload: "coding" });
-      assert.equal(fetchStub.bodies[0].model, "accounts/fireworks/models/kimi-k3p1-pro");
+      assert.equal(fetchStub.bodies[0].model, "accounts/fireworks/models/kimi-k2p7-code");
     } finally {
       fetchStub.restore();
     }
