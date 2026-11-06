@@ -135,3 +135,12 @@ Coverage added: adapter discovery/identity/duplicates/read-only/staleness, plan-
 ## 17. Final state
 
 Commit and tree hashes are recorded in the closing message and in the git history of `freebuff/phase-2-2`. Nothing was pushed.
+
+## 18. Recorded hashes
+
+- Implementation commit: `3d6148f7384ce3d608739479fdfbd89db21b747c`
+- Implementation tree: `1f6953381fa59276e5ae673c7a864113200713f2`
+- Branch: `freebuff/phase-2-2`, based on `claude/master-integration` `1549194`, with the Phase 2.1 spatial core replayed as `9b2ac00`.
+
+This addendum is committed immediately after that implementation commit; the branch tip therefore differs
+from the recorded implementation commit by this documentation-only change.
