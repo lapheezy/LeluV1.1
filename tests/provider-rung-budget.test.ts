@@ -249,3 +249,105 @@ test("a spent daily quota is classified apart from a transient rate limit", () =
   registry.markFailure("Groq", "Groq failed 429: rate limit reached");
   assert.equal(registry.cooldownFor("Groq"), 30_000, "a per-minute limit must still clear quickly");
 });
+
+/**
+ * A tool turn is several provider rounds plus the tools they ask for.
+ *
+ * The rung deadline bounds a provider that has gone SILENT — it must not
+ * bound a turn that is visibly working, or the deadline becomes the stall it
+ * was added to prevent. Measured live (2026-11-06): product creation ran
+ * multi-tool rounds inside one rung and the 12 s cut fired mid-work.
+ */
+test("a turn that keeps executing tools is not cut off by the rung deadline", async () => {
+  let round = 0;
+  const provider = fakeProvider(
+    "Working",
+    1,
+    async () => {
+      round += 1;
+      // Every single round is inside the rung budget; the TURN is not.
+      await new Promise((resolve) => setTimeout(resolve, 60));
+      if (round <= 2) {
+        return {
+          text: "",
+          provider: "Working",
+          model: "working-1",
+          processingTime: 60,
+          toolCalls: [{ id: `call-${round}`, name: "lelu_no_such_tool_for_rung_test", arguments: {} }],
+        } as AIResponse;
+      }
+      return {
+        text: "Both files are written.",
+        provider: "Working",
+        model: "working-1",
+        processingTime: 60,
+      };
+    },
+    true,
+  );
+
+  const { context } = harness([provider], { allowTools: true });
+  const started = Date.now();
+  const result = await new ProviderResolver({ rungBudgetMs: 100 }).execute(context);
+  const elapsed = Date.now() - started;
+
+  assert.ok(elapsed > 100, `the turn finished in ${elapsed} ms, inside one rung budget`);
+  assert.equal(result.response?.provider, "Working", "a working multi-round turn was cut off mid-work");
+  assert.equal(result.response?.text, "Both files are written.");
+  assert.equal(result.response?.metadata?.toolsExecuted?.length, 2);
+});
+
+/**
+ * The other half of that report: the work must not be replayed.
+ *
+ * A provider that dies after running a tool leaves edits behind. Handing the
+ * same messages and tools to the next provider repeats every one of them, and
+ * the second attempt's failure then replaces the reply with the offline
+ * notice — a conversation that looks stuck after a successful tool run.
+ */
+test("a rung that already ran tools is not replayed on the next provider", async () => {
+  let primaryCalls = 0;
+  let secondaryCalled = false;
+
+  const primary = fakeProvider(
+    "Primary",
+    1,
+    async () => {
+      primaryCalls += 1;
+      if (primaryCalls === 1) {
+        return {
+          text: "",
+          provider: "Primary",
+          model: "p-1",
+          processingTime: 5,
+          toolCalls: [{ id: "call-1", name: "lelu_no_such_tool_for_rung_test", arguments: {} }],
+        } as AIResponse;
+      }
+      throw new Error("Primary failed 500: upstream went away");
+    },
+    true,
+  );
+  const secondary = fakeProvider(
+    "Secondary",
+    2,
+    async () => {
+      secondaryCalled = true;
+      return { text: "the second provider answered", provider: "Secondary", model: "s-1", processingTime: 2 };
+    },
+    true,
+  );
+
+  const { context } = harness([primary, secondary], { allowTools: true });
+  const result = await new ProviderResolver({ rungBudgetMs: 5_000 }).execute(context);
+
+  assert.equal(secondaryCalled, false, "the work was handed to another provider, which would run it again");
+  assert.equal(primaryCalls, 2, "the failed rung was not the one that answered");
+  assert.equal(result.response?.provider, "Primary");
+  assert.match(
+    result.response?.text ?? "",
+    /lelu_no_such_tool_for_rung_test/,
+    "the reply did not say what actually ran",
+  );
+  assert.equal(result.response?.metadata?.toolsExecuted?.length, 1);
+  assert.equal(result.response?.metadata?.toolLoopStopped, "provider-failed-after-tools");
+});

@@ -203,6 +203,8 @@ export default class ProviderResolver {
         continue;
       }
 
+      /** Tools that ran on THIS attempt — a fallback would repeat them. */
+      const toolsBeforeRung = toolsReallyRun.length;
       try {
         context.logger.info(
           "ProviderResolver",
@@ -297,6 +299,51 @@ export default class ProviderResolver {
           };
         }
         const message = error instanceof Error ? error.message : String(error);
+        // Did this attempt already do real work before it failed?
+        //
+        // Falling through now would hand the next provider the SAME messages
+        // and the SAME tools, so every edit already made would be made
+        // again — and the user's reply would be replaced by the offline
+        // notice. That is the measured product-creation stall: tools ran,
+        // then the turn "stuck" with nothing to show. The turn ends here,
+        // naming what ran, and nothing is repeated.
+        const ranThisRung = toolsReallyRun.slice(toolsBeforeRung);
+        if (ranThisRung.length > 0) {
+          const names = [...new Set(ranThisRung.map((tool) => tool.tool))];
+          context.aiProviders.markFailure(provider.name, message);
+          AgentEventBus.getInstance().emit({
+            type: "provider_status",
+            taskId: String(context.request.timestamp ?? Date.now()),
+            provider: provider.name,
+            status: "failed after running tools — not falling back",
+          });
+          context.logger.error(
+            "ProviderResolver",
+            `${provider.name} failed after running tools; not repeating them on another provider.`,
+            { provider: provider.name, ran: names, fallbackReason: message.slice(0, 200) },
+          );
+          return {
+            handled: true,
+            response: {
+              text:
+                `I did the work — I ran ${names.join(", ")} — but ${provider.name} failed before it could ` +
+                `write the summary: ${message}. Nothing was repeated, and everything I ran is listed above.`,
+              provider: provider.name,
+              model: context.request.model ?? "unknown",
+              processingTime: Date.now() - context.started,
+              metadata: {
+                success: false,
+                partial: true,
+                toolsExecuted: ranThisRung,
+                // The same contract the fallback path keeps: work that
+                // happened before the answer is marked as such, so nothing
+                // reads it as the answering provider's own doing.
+                toolsRanBeforeFallback: true,
+                toolLoopStopped: "provider-failed-after-tools",
+              },
+            },
+          };
+        }
         context.aiProviders.markFailure(provider.name, message);
         AgentEventBus.getInstance().emit({
           type: "provider_status",
@@ -392,15 +439,41 @@ export default class ProviderResolver {
   ): Promise<AIResponse> {
     const rung = new AbortController();
     let expired = false;
-    const timer = setTimeout(() => {
-      expired = true;
-      rung.abort();
-    }, budgetMs);
+    /**
+     * The rung deadline is a STALL watchdog, not a total.
+     *
+     * Measured live (2026-11-06): a product-creation turn ran several tool
+     * rounds inside one rung, each round a real edit. The fixed 12 s
+     * deadline fired mid-round, the abort surfaced as a provider failure,
+     * and the chain fell through carrying the ORIGINAL messages and tools —
+     * so the work was repeated on the next provider, and the reply the user
+     * was waiting for became the offline notice. That is the reported "stuck
+     * conversation after successful multi-tool execution".
+     *
+     * So every round that returns and every tool that finishes re-arms it. A
+     * silent provider is still cut off at the same budget; a turn visibly
+     * making progress is bounded by the tool loop's own budget instead.
+     */
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const arm = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        expired = true;
+        rung.abort();
+      }, budgetMs);
+    };
+    arm();
+    const onProgress = () => {
+      if (!expired) arm();
+    };
 
     try {
       try {
-        return await this.executeProvider(provider, context, toolsReallyRun, rung.signal);
+        return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, false, onProgress);
       } catch (error) {
+        // A user Stop outranks the deadline: the turn ended, it did not time
+        // out, and settling it as a timeout would hide the Stop.
+        if (context.request.signal?.aborted) throwIfStopped(context, error);
         // The deadline fired: report it as the provider's, not as a Stop.
         if (expired) {
           throw new Error(
@@ -419,10 +492,10 @@ export default class ProviderResolver {
           { provider: provider.name, fallbackReason: reason.slice(0, 200) },
         );
 
-        return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, true);
+        return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, true, onProgress);
       }
     } finally {
-      clearTimeout(timer);
+      if (timer) clearTimeout(timer);
     }
   }
 
@@ -441,6 +514,7 @@ export default class ProviderResolver {
     toolsReallyRun?: Array<{ tool: string; ok: boolean }>,
     rungSignal?: AbortSignal,
     withoutTools = false,
+    onProgress?: () => void,
   ): Promise<AIResponse> {
     // Tools are offered only on a conversational turn. Internal
     // structured-output calls (see AIRequest.allowTools) must reach the
@@ -477,6 +551,8 @@ export default class ProviderResolver {
       messages,
       tools,
     });
+    // A round that came back is proof the rung is alive.
+    onProgress?.();
     let promptMaterialized = false;
 
     const loopStarted = Date.now();
@@ -549,6 +625,8 @@ export default class ProviderResolver {
         throwIfStopped(context);
         requested.push(call.name);
         const result = await dispatchToolCall(call, taskId, context);
+        // A tool that finished running is progress, however long it took.
+        onProgress?.();
         executed.push({ tool: call.name, ok: result.ok });
         // ALSO record it where a later provider failure cannot erase it.
         // A tool that ran, ran: if this provider throws on the next
@@ -601,6 +679,7 @@ export default class ProviderResolver {
         messages,
         ...(stopReason ? {} : { tools }),
       });
+      onProgress?.();
 
       if (stopReason) break;
     }
@@ -655,6 +734,7 @@ export default class ProviderResolver {
     toolsReallyRun?: Array<{ tool: string; ok: boolean }>,
     rungSignal?: AbortSignal,
     withoutTools = false,
+    onProgress?: () => void,
   ): Promise<AIResponse> {
     const started = Date.now();
     const response = await this.generateWithTools(
@@ -663,6 +743,7 @@ export default class ProviderResolver {
       toolsReallyRun,
       rungSignal,
       withoutTools,
+      onProgress,
     );
 
     if (!response || typeof response.text !== "string") {
