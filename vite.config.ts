@@ -8,6 +8,7 @@ import glsl from "vite-plugin-glsl";
 import glslIncludes from "./plugins/glslIncludes.js";
 import { createAisBridge } from "./plugins/aisBridgePlugin.ts";
 import { engineerApiPlugin } from "./plugins/engineerApi.ts";
+import { createIntegrationApi } from "./plugins/integrationApi.ts";
 import { createNodeEngineerAdapter } from "./plugins/nodeAdapters.ts";
 import { createEnvApi } from "./plugins/envApi.ts";
 import { createModelApi } from "./plugins/modelApi.ts";
@@ -150,6 +151,36 @@ export default defineConfig(({ mode, command }) => {
       // middleware the standalone server (server.ts) mounts — the capability
       // is identical in dev and in the deployed runtime.
       engineerApiPlugin(createNodeEngineerAdapter("vite-dev")),
+
+      // The intelligence integrations: real service probes, real OPA
+      // decisions and real security scans (plugins/integrationApi.ts).
+      // Same middleware the standalone server mounts, so a deployed runtime
+      // reports the same real state instead of a dev-only view.
+      {
+        name: "lelu-integration-api",
+        configureServer(server: any) {
+          server.middlewares.use(createIntegrationApi({
+            workspaceRoot: process.cwd(),
+            runtime: "vite-dev",
+            token: process.env.LELU_ENGINEER_TOKEN,
+            allowedOrigins: (process.env.LELU_ENGINEER_ALLOWED_ORIGINS ?? "")
+              .split(",")
+              .map((origin) => origin.trim())
+              .filter(Boolean),
+          }));
+        },
+        configurePreviewServer(server: any) {
+          server.middlewares.use(createIntegrationApi({
+            workspaceRoot: process.cwd(),
+            runtime: "vite-dev",
+            token: process.env.LELU_ENGINEER_TOKEN,
+            allowedOrigins: (process.env.LELU_ENGINEER_ALLOWED_ORIGINS ?? "")
+              .split(",")
+              .map((origin) => origin.trim())
+              .filter(Boolean),
+          }));
+        },
+      },
 
       // Her eyes: headless capture of pages and her own UI, workspace
       // previews, and code search (plugins/selfViewApi.ts).

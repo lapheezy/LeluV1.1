@@ -46,6 +46,7 @@ import { createGithubApi } from "./plugins/githubApi.ts";
 import { createModelApi } from "./plugins/modelApi.ts";
 import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 import { createAccessGate } from "./plugins/accessGate.ts";
+import { createIntegrationApi } from "./plugins/integrationApi.ts";
 
 // Load the project's existing environment (.env.local overrides .env;
 // platform-injected process env always wins) BEFORE anything reads it,
@@ -304,6 +305,21 @@ const nekoApi = createNekoApi((key) => process.env[key]);
 
 createEngineerApi(createNodeEngineerAdapter("node-server")).attach(middlewares);
 createSelfViewApi().attach(middlewares);
+// Intelligence integrations: real service probes, real OPA decisions and
+// real security scans. Mounted HERE as well as in Vite dev, so the deployed
+// runtime is not a lesser version of the development one.
+middlewares.use(
+  "/api/integration",
+  createIntegrationApi({
+    workspaceRoot: process.cwd(),
+    runtime: "node-server",
+    token: process.env.LELU_ENGINEER_TOKEN,
+    allowedOrigins: (process.env.LELU_ENGINEER_ALLOWED_ORIGINS ?? "")
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean),
+  }),
+);
 createEnvApi((key) => process.env[key], "node-server", {
   aisStatus: () => aisBridge.getStatus(),
 }).attach(middlewares);

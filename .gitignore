@@ -68,3 +68,6 @@ leluverse/assets/characters/lelu_character/rig/v003_headswap_mvvnvqa1/*.glb
 # client uses motion.glb (bones + clip only), which is committed.
 leluverse/assets/characters/lelu_character/animations/*/animation.glb
 leluverse/assets/characters/lelu_character/animations/*/animation.fbx
+
+# Local integration binaries (opa, gitleaks, trivy). Not source; ~260 MB.
+.tools/
