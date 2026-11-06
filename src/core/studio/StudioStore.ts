@@ -158,6 +158,13 @@ export default class StudioStore {
     }
     const exact = this.artifacts.get(r);
     if (exact) return exact;
+    // A planned step refers to the artifact an earlier step made through
+    // that step's output ("Created [art_…] document …"): the id inside it
+    // names the artifact, the sentence around it does not.
+    for (const id of r.match(/\bart_[a-z0-9]+\b/gi) ?? []) {
+      const tagged = this.artifacts.get(id);
+      if (tagged) return tagged;
+    }
     const lower = r.toLowerCase();
     return pool.find((a) => a.title.toLowerCase() === lower) ?? pool.find((a) => a.title.toLowerCase().includes(lower));
   }

@@ -1,0 +1,25 @@
+{
+  "base": "http://127.0.0.1:5178",
+  "checks": [
+    {
+      "name": "the product conversation is open full-screen",
+      "ok": true,
+      "detail": "e5a0e59f-2d5e-42c3-b10f-b8ab296e0e4b"
+    },
+    {
+      "name": "run completed",
+      "ok": false,
+      "detail": "Error: page.evaluate: Target page, context or browser has been closed"
+    }
+  ],
+  "log": [
+    "model 200",
+    "model 200",
+    "model 200",
+    "model 200",
+    "model 200",
+    "model 200",
+    "model 200",
+    "model 200"
+  ]
+}

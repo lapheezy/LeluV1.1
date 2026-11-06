@@ -310,3 +310,44 @@ test("nothing is toasted over a full-screen phone workspace either", () => {
     /const chatOwnsScreen = surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen;/,
   );
 });
+
+/* ---------------- Phase 2: the Chat Universe owns the phone ---------------- */
+
+test("an open Chat Universe (workspace mode) owns a phone screen: no Cosmos, no Home", () => {
+  const universe = resolveSurface({ activePanel: "none", minimized: false, openModuleCount: 0, visibleModuleCount: 0, compact: true, universeOwnsScreen: true });
+  assert.equal(universe.chatOwnsScreen, true);
+  assert.equal(universe.cosmosRendered, false);
+  // Floating mode keeps the live Cosmos behind the windows, by design.
+  const floating = resolveSurface({ activePanel: "none", minimized: false, openModuleCount: 0, visibleModuleCount: 0, compact: true, universeOwnsScreen: false });
+  assert.equal(floating.cosmosRendered, true);
+  // A desktop Universe never takes the screen.
+  const desktop = resolveSurface({ activePanel: "none", minimized: false, openModuleCount: 0, visibleModuleCount: 0, compact: false, universeOwnsScreen: true });
+  assert.equal(desktop.chatOwnsScreen, false);
+  assert.equal(desktop.cosmosRendered, true);
+  // Minimizing the whole interface returns Home even with the Universe open.
+  assert.equal(resolveSurface({ activePanel: "none", minimized: true, openModuleCount: 0, compact: true, universeOwnsScreen: true }).cosmosRendered, true);
+});
+
+test("the surface reads the Universe's open state from one shared store", () => {
+  const surface = readFileSync("src/app/scene/genesis/surface/useSurface.ts", "utf8");
+  assert.match(surface, /useUniverseOpen\(\)/);
+  assert.match(surface, /universeOpen && cosmosMode !== "floating"/);
+  const universe = readFileSync("src/app/scene/genesis/chat/universe/ChatUniverse.tsx", "utf8");
+  assert.match(universe, /const open = useUniverseOpen\(\)/, "the Universe uses the shared store, not a private useState");
+});
+
+test("Home and the spatial nav leave the tree (not hidden) while a conversation owns the phone", () => {
+  const ui = readFileSync("src/app/scene/genesis/GenesisInterface.tsx", "utf8");
+  assert.match(ui, /const showHome = [^;]*!surface\.chatOwnsScreen && !surface\.workspaceOwnsScreen;/);
+  assert.match(ui, /navHidden && \(surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen\) \? null : \(\s*<SpatialNav/);
+});
+
+test("on a phone a conversation window is the full visual viewport; one composer; apps above the chat panel", () => {
+  const host = readFileSync("src/app/scene/genesis/GenesisModuleHost.tsx", "utf8");
+  assert.match(host, /const phoneSheet = compactScreen && chatWindow;/);
+  assert.match(host, /top: viewport\.offsetTop,\s*width: viewportWidth,\s*height: viewportHeight,/, "follows the keyboard-shrunk visual viewport");
+  assert.match(host, /env\(safe-area-inset-bottom/);
+  assert.match(host, /Math\.max\(APP_WINDOW_Z, mod\.zIndex \?\? APP_WINDOW_Z \+ cascadeIndex\)/);
+  const universe = readFileSync("src/app/scene/genesis/chat/universe/ChatUniverse.tsx", "utf8");
+  assert.match(universe, /\{sheetOpen \? null : \(/, "the Universe composer leaves while a conversation sheet owns the screen");
+});

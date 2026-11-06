@@ -29,6 +29,19 @@ import { summarizeVerification } from "./StudioExport";
 import type { StudioOp } from "./StudioOps";
 import StudioStore, { type StudioArtifact } from "./StudioStore";
 import { FORMATS_BY_KIND, type ArtifactSpec, type ExportFormat } from "./StudioTypes";
+import { ownerForTask } from "../multichat/TurnOwnership";
+
+/**
+ * The conversation this tool call belongs to. The request carries it on most
+ * paths; where a router layer rebuilt the request without it, the turn's
+ * task id is still bound to its conversation (multichat/TurnOwnership) — the
+ * same binding the chat cards use — so the artifact stays with the chat that
+ * asked for it.
+ */
+function conversationOf(context: RouterContext | undefined): string | undefined {
+  return context?.request?.conversationId ?? ownerForTask(String(context?.request?.timestamp ?? "")) ?? undefined;
+}
+
 
 export interface StudioExecutor {
   id: string;
@@ -188,7 +201,7 @@ export const STUDIO_EXECUTORS: StudioExecutor[] = [
     }, ["kind", "title"]),
     run: async (args, context) => {
       const store = StudioStore.getInstance();
-      const created = store.create(specFrom(args), { by: "lelu", conversationId: context?.request?.conversationId });
+      const created = store.create(specFrom(args), { by: "lelu", conversationId: conversationOf(context) });
       if (!created.ok) return { ok: false, content: `Nothing was created: ${created.reason}.` };
       const a = created.artifact;
       announce(context, a, "created");
@@ -225,7 +238,7 @@ export const STUDIO_EXECUTORS: StudioExecutor[] = [
     }),
     run: async (args, context) => {
       const store = StudioStore.getInstance();
-      const a = store.resolve(str(args, "artifact"), context?.request?.conversationId);
+      const a = store.resolve(str(args, "artifact"), conversationOf(context));
       if (!a) return { ok: false, content: `No artifact matches${str(args, "artifact") ? ` “${str(args, "artifact")}”` : ""}. studio_list shows what exists.` };
       const r = store.revise(a.id, { ops: Array.isArray(args.ops) ? (args.ops as StudioOp[]) : undefined, spec: args.spec, note: str(args, "note") || undefined, by: "lelu" });
       if (!r.ok) return { ok: false, content: r.reason };
@@ -249,7 +262,7 @@ export const STUDIO_EXECUTORS: StudioExecutor[] = [
     }, ["formats"]),
     run: async (args, context) => {
       const store = StudioStore.getInstance();
-      const a = store.resolve(str(args, "artifact"), context?.request?.conversationId);
+      const a = store.resolve(str(args, "artifact"), conversationOf(context));
       if (!a) return { ok: false, content: "No artifact matches; nothing was exported." };
       const { formats, refused } = formatsFrom(args, a.kind);
       if (formats.length === 0) return { ok: false, content: `Nothing was exported: a ${a.kind} can be ${FORMATS_BY_KIND[a.kind].join(", ")}${refused.length ? ` (not ${refused.join(", ")})` : ""}.` };
@@ -275,7 +288,7 @@ export const STUDIO_EXECUTORS: StudioExecutor[] = [
     }),
     run: async (args, context) => {
       const store = StudioStore.getInstance();
-      const a = store.resolve(str(args, "artifact"), context?.request?.conversationId);
+      const a = store.resolve(str(args, "artifact"), conversationOf(context));
       if (!a) return { ok: false, content: "No artifact matches." };
       const r = store.revision(a, typeof args.rev === "number" ? args.rev : undefined);
       if (!r) return { ok: false, content: `Revision ${String(args.rev)} does not exist (1–${store.latest(a).rev}).` };
@@ -309,7 +322,7 @@ export const STUDIO_EXECUTORS: StudioExecutor[] = [
     parameters: OBJ({ artifact: { type: "string" }, from: { type: "number" }, to: { type: "number" } }, ["from", "to"]),
     run: async (args, context) => {
       const store = StudioStore.getInstance();
-      const a = store.resolve(str(args, "artifact"), context?.request?.conversationId);
+      const a = store.resolve(str(args, "artifact"), conversationOf(context));
       if (!a) return { ok: false, content: "No artifact matches." };
       const r = store.compare(a.id, Number(args.from), Number(args.to));
       return r.ok ? { ok: true, content: `“${a.title}” r${args.from} → r${args.to}:\n${r.changes.join("\n") || "no differences"}` } : { ok: false, content: r.reason };
@@ -320,7 +333,7 @@ export const STUDIO_EXECUTORS: StudioExecutor[] = [
     parameters: OBJ({ artifact: { type: "string" }, rev: { type: "number" } }, ["rev"]),
     run: async (args, context) => {
       const store = StudioStore.getInstance();
-      const a = store.resolve(str(args, "artifact"), context?.request?.conversationId);
+      const a = store.resolve(str(args, "artifact"), conversationOf(context));
       if (!a) return { ok: false, content: "No artifact matches." };
       const r = store.restore(a.id, Number(args.rev), "lelu");
       if (!r.ok) return { ok: false, content: r.reason };
@@ -334,7 +347,7 @@ export const STUDIO_EXECUTORS: StudioExecutor[] = [
     run: async (args, context) => {
       const store = StudioStore.getInstance();
       const refs = Array.isArray(args.artifacts) ? args.artifacts.map(String) : [];
-      const found = refs.map((ref) => ({ ref, a: store.resolve(ref, context?.request?.conversationId) }));
+      const found = refs.map((ref) => ({ ref, a: store.resolve(ref, conversationOf(context)) }));
       const missing = found.filter((f) => !f.a).map((f) => f.ref);
       const ids = found.flatMap((f) => (f.a ? [f.a.id] : []));
       if (ids.length === 0) return { ok: false, content: `Nothing was opened: no artifact matches ${missing.map((m) => `“${m}”`).join(", ")}.` };

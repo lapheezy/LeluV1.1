@@ -21,6 +21,7 @@ import { useGenesis } from "../../GenesisCore";
 import MultiChatStore from "../../../../../core/multichat/MultiChatStore";
 import { hasVisibleActivity } from "../../../../../core/multichat/TurnActivity";
 import ChatActivityCard from "../ChatActivity";
+import StudioArtifactCards from "../../studio/StudioArtifactCards";
 import { currentActivity, subscribeActivity } from "../activityRecorder";
 import GenesisWindowFrame from "../../GenesisWindowFrame";
 import { UNIVERSE_SEND_EVENT } from "./ChatUniverse";
@@ -82,6 +83,8 @@ export default function UniverseChatWindow({
         {hasVisibleActivity(liveActivity) ? (
           <div className="lcu-activity">
             <ChatActivityCard activity={liveActivity!} />
+            {/* What the running turn has made so far — inside this conversation. */}
+            {conversation.processing && liveActivity?.artifacts?.length ? <StudioArtifactCards artifacts={liveActivity.artifacts} /> : null}
           </div>
         ) : null}
         <div
@@ -94,7 +97,11 @@ export default function UniverseChatWindow({
           {conversation.messages.slice(-60).map((m) => (
             <div key={m.id} className="lcu-msg" data-role={m.role}>
               {m.role === "assistant" ? <span className="lcu-msg-orb" aria-hidden="true" /> : null}
-              <div className="lcu-bubble"><p>{m.text}</p></div>
+              <div className="lcu-bubble">
+                <p>{m.text}</p>
+                {/* Documents, decks, spreadsheets and designs this reply made, with their verified files. */}
+                {m.role === "assistant" && m.activity?.artifacts?.length ? <StudioArtifactCards artifacts={m.activity.artifacts} /> : null}
+              </div>
             </div>
           ))}
           {conversation.processing ? (

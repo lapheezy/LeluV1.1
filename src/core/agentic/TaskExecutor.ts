@@ -44,6 +44,8 @@ import AgentEventBus from "../agent/AgentEvents";
 import TaskEngine, { type Task, type TaskStep, type StepVerification } from "../tasks/TaskEngine";
 import type { ToolExecutionResult } from "../tools/ToolDispatcher";
 import ApprovalGate, { type ApprovalRequest } from "./ApprovalGate";
+import { ownerForTask } from "../multichat/TurnOwnership";
+import type RouterContext from "../router/RouterContext";
 
 export interface StepResult {
   ok: boolean;
@@ -100,7 +102,34 @@ const NOT_RETRYABLE = [
 
 async function realDispatch(call: ToolCall, taskId: string, options?: { approvalId?: string }) {
   const { dispatchToolCall } = await import("../tools/ToolDispatcher");
-  return dispatchToolCall(call, taskId, undefined, options);
+  return dispatchToolCall(call, taskId, await conversationContext(taskId), options);
+}
+
+/**
+ * The tool context for a step of a task a conversation asked for.
+ *
+ * Without it a planned step ran with no context at all, so a Studio
+ * artifact made by "write the brief and export it" belonged to no
+ * conversation: its card never reached the chat that asked, and the
+ * follow-up "make it a line chart" could not resolve it. A task with no
+ * owning conversation keeps the context-free dispatch it always had.
+ */
+async function conversationContext(taskId: string): Promise<RouterContext | undefined> {
+  const owner = ownerForTask(taskId);
+  if (!owner) return undefined;
+  try {
+    const { default: AIService } = await import("../AIService");
+    return ownedToolContext(AIService.getInstance().toolContext(TaskEngine.getInstance().get(taskId)?.goal ?? ""), taskId);
+  } catch {
+    return undefined;
+  }
+}
+
+/** A runtime tool context, addressed to the conversation that owns the task. Undefined when nothing owns it. */
+export function ownedToolContext(base: RouterContext | null, taskId: string): RouterContext | undefined {
+  const owner = ownerForTask(taskId);
+  if (!owner || !base) return undefined;
+  return { ...base, request: { ...base.request, conversationId: owner } };
 }
 
 export async function delegateToAgent(

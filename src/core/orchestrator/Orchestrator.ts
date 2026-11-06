@@ -22,7 +22,7 @@
  */
 
 import AIService from "../AIService";
-import { bindTask } from "../multichat/TurnOwnership";
+import { bindTask, ownerForTask } from "../multichat/TurnOwnership";
 import LeluRuntime from "../runtime/LeluRuntime";
 import WorkspaceRuntime, { type WorkspaceOperation } from "../engineering/WorkspaceRuntime";
 import TaskEngine, { type Task } from "../tasks/TaskEngine";
@@ -554,6 +554,10 @@ export default class Orchestrator {
     }
 
     const task = createTask(request.slice(0, 200), plan.validation, "orchestrator");
+    // The task works for the conversation whose turn planned it: its step
+    // events and the artifacts its tools make belong to that chat.
+    const owner = ownerForTask(taskId);
+    if (owner) bindTask(task.id, owner);
     this.emit({ type: "executing", message: "Working through the plan", taskId: task.id });
     const executor = TaskExecutor.getInstance();
     const finished = (await executor.run(task.id)) ?? task;

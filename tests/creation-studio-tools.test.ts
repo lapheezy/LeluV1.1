@@ -97,3 +97,43 @@ test("“this” in a later message means the artifact made in this chat", async
   assert.equal(result.ok, true);
   assert.match(result.content, /^\[art_[0-9a-f]+\]/);
 });
+
+test("a planned task's Studio step makes the artifact for the conversation that asked", async () => {
+  // A multi-step request ("write the brief, export it as DOCX") runs as a
+  // TaskEngine task whose tool steps used to be dispatched with no
+  // context, so the artifact belonged to no conversation. The task is
+  // bound to the asking conversation and its steps carry that binding.
+  const { bindTask } = await import("../src/core/multichat/TurnOwnership");
+  const { ownedToolContext } = await import("../src/core/agentic/TaskExecutor");
+  const base = { request: { prompt: "brief", messages: [], timestamp: 1 } } as never;
+  assert.equal(ownedToolContext(base, "task-unowned"), undefined, "a task nobody asked for keeps the context-free dispatch");
+  bindTask("task-owned", "conv-task");
+  const context = ownedToolContext(base, "task-owned");
+  assert.equal(context?.request.conversationId, "conv-task");
+  const result = await dispatchToolCall(
+    { id: "c-task", name: toolNameForModel("studio.create"), arguments: { kind: "document", title: "Task brief", blocks: [{ type: "paragraph", text: "x" }] } },
+    "task-owned",
+    context,
+  );
+  assert.equal(result.ok, true, result.content);
+  assert.equal(StudioStore.getInstance().get((result.data as { id: string }).id)!.conversationId, "conv-task");
+});
+
+test("the orchestrator binds a planned task to the conversation whose turn planned it", async () => {
+  const { readFileSync } = await import("node:fs");
+  const source = readFileSync(new URL("../src/core/orchestrator/Orchestrator.ts", import.meta.url), "utf8");
+  assert.match(source, /const owner = ownerForTask\(taskId\);\s*if \(owner\) bindTask\(task\.id, owner\);/);
+  const executor = readFileSync(new URL("../src/core/agentic/TaskExecutor.ts", import.meta.url), "utf8");
+  assert.match(executor, /dispatchToolCall\(call, taskId, await conversationContext\(taskId\), options\)/);
+});
+
+test("a planned export step finds the artifact through the create step's output", async () => {
+  // TaskPlanner wires `artifact: "{{steps.s1.output}}"`, so the export step
+  // receives the create step's sentence, not a bare id. It used to answer
+  // "No artifact matches; nothing was exported."
+  const created = await call("studio.create", { kind: "document", title: "Planned brief", blocks: [{ type: "paragraph", text: "x" }] });
+  const id = (created.data as { id: string }).id;
+  const exported = await call("studio.export", { artifact: created.content, formats: ["docx"] });
+  assert.equal(exported.ok, true, exported.content);
+  assert.ok(StudioStore.getInstance().get(id)!.exports.some((e) => e.format === "docx" && e.ok), "the DOCX was written for that artifact");
+});
