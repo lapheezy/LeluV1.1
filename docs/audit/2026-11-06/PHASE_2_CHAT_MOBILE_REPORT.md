@@ -27,9 +27,18 @@ Application windows stack above the desktop chat panel (`APP_WINDOW_Z` = 101 > 1
 - The full `npm test` passes after both fixes: 1366 passed, 0 failed.
 - After fix 2, the studio and atelier suites pass 11/11 and the typecheck is clean.
 
+## Live product-creation run (after both fixes)
+
+Results are in `evidence/phase-2-chat-mobile/product-creation-report.json`: 7 of 9 checks pass.
+
+- PASS: LÉLU created a real Studio artifact, with a column chart of Lite, Standard and Pro.
+- PASS: The artifact belongs to the conversation that requested it.
+- PASS: The DOCX was written and verified from its bytes (14.0 KB).
+- PASS: The artifact renders, and fills the screen on the phone.
+- FAIL: No artifact card appears inside the conversation.
+- FAIL: The run did not complete, because a screenshot timed out.
+
 ## Open / blockers
 
-- The live product-creation e2e (`tests/e2e/chat-product-creation.e2e.mjs`) is not green. The last live run was stopped before the export fix could be confirmed live. The refinement, persistence and independence steps have not been reached.
-- During live model turns the page becomes intermittently unresponsive: screenshots and evaluate calls time out. Long tasks stay small, while CPU time goes to native "(program)", which looks like rendering. This is not yet diagnosed.
+- **The chat turn hangs after the planned task finishes.** The conversation still shows "Working with tools · 2 tools used", even though both tools finished and the DOCX is verified (screenshot `07-regression/…-product-creation-failure.jpg`). Because the reply never settles, its artifact card is never attached. The refinement message then queues behind the stuck turn, so the refinement, persistence and independence steps are not reached. This hang is probably also behind the unresponsiveness seen during live turns. Next step: find where `Orchestrator.planAndExecute`, the task status, or the `GenesisChat` turn fails to settle.
 - No physical iPhone test has been run. Everything above is Chromium emulation.
-- Next steps: re-run the full suite, re-run the live flow, diagnose the stall, and complete evidence folders 11 and 13–15.

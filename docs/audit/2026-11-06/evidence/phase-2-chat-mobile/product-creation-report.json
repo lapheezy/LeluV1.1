@@ -4,21 +4,50 @@
     {
       "name": "the product conversation is open full-screen",
       "ok": true,
-      "detail": "e5a0e59f-2d5e-42c3-b10f-b8ab296e0e4b"
+      "detail": "bf00aa74-3899-405b-bb0c-e22654c3632e"
+    },
+    {
+      "name": "LÉLU created a real artifact with the Studio",
+      "ok": true,
+      "detail": "{\"id\":\"art_9f65537d70e2\",\"title\":\"Lumo Solar Camping Lantern – Product Brief\",\"revs\":1,\"conversationId\":\"bf00aa74-3899-405b-bb0c-e22654c3632e\",\"charts\":[{\"kind\":\"column\",\"labels\":[\"Lite\",\"Standard\",\"Pro\"]}],\"exports\":[{\"rev\":1,\"f\":\"Lumo-Solar-Camping-Lantern-Product-Brief.docx\",\"ok\":true}]}"
+    },
+    {
+      "name": "the artifact belongs to the requesting conversation",
+      "ok": true,
+      "detail": "bf00aa74-3899-405b-bb0c-e22654c3632e vs bf00aa74-3899-405b-bb0c-e22654c3632e"
+    },
+    {
+      "name": "its DOCX was written and verified from its bytes",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the chart is the requested column chart with three versions",
+      "ok": true,
+      "detail": "[{\"kind\":\"column\",\"labels\":[\"Lite\",\"Standard\",\"Pro\"]}]"
+    },
+    {
+      "name": "the artifact card is shown inside the conversation",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "name": "opening the card shows the rendered artifact",
+      "ok": true,
+      "detail": "{\"fullscreen\":true,\"text\":\"r1 · created\\nDOCX\\nPDF\\nMD\\nHTML\\nTXT\\nRTF\\nLumo-Solar-Camping-Lantern-Product-Brief.docx\\n14.0 KB · verified\\nReopen\\nDownload\\nchecks\"}"
+    },
+    {
+      "name": "on the phone the artifact fills the screen",
+      "ok": true,
+      "detail": ""
     },
     {
       "name": "run completed",
       "ok": false,
-      "detail": "Error: page.evaluate: Target page, context or browser has been closed"
+      "detail": "TimeoutError: page.screenshot: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n"
     }
   ],
   "log": [
-    "model 200",
-    "model 200",
-    "model 200",
-    "model 200",
-    "model 200",
-    "model 200",
     "model 200",
     "model 200"
   ]
