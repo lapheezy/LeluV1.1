@@ -26,6 +26,7 @@ import CoreToPlanet from "./CoreToPlanet";
 import { TestPlanet } from "./DebugPlanet";
 
 import { useGenesisScene } from "../useGenesisScene";
+import SpatialLayer from "../spatial/SpatialLayer";
 
 export default function GenesisRenderer() {
   const root = useRef<Group>(null);
@@ -87,6 +88,10 @@ export default function GenesisRenderer() {
 
       {/* ═══ TEST PLANET — lifecycle-connected, surrounds Core (r=2.0 vs Core r=0.9) ═══ */}
       <TestPlanet />
+
+      {/* Authored spatial objects — the live SpatialSceneGraph drawn with
+          this same renderer, in the default Genesis world as well as v2. */}
+      <SpatialLayer />
 
     </group>
   );

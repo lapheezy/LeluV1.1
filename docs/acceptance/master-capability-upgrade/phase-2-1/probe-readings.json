@@ -1,0 +1,95 @@
+{
+  "harness": {
+    "app": "LÉLU V1.1 dev build (vite dev server, port 3014)",
+    "browser": "Cloud Browser (Chromium, Freebuff Desktop browser panel) — simulated context, no physical device",
+    "probe": "window.__leluSpatialProbe() — read-only; reads world positions from the live three.js objects named spatial:<id>",
+    "date": "2026-11-06"
+  },
+  "readings": [
+    {
+      "stage": "after create ×2, move, material, connect",
+      "revision": 5,
+      "presence": {
+        "traversal": "constructing",
+        "attention": { "kind": "object", "id": "spatial-sphere-2", "name": "Comet" },
+        "lastAction": "object.connect → \"Comet\"",
+        "revision": 5
+      },
+      "objects": [
+        {
+          "id": "spatial-box-1",
+          "name": "Nova",
+          "rendered": true,
+          "worldPosition": [-1.871, 0.8, 2.846],
+          "visible": true,
+          "color": "#eab308",
+          "committedLocalPosition": [-2.6, 0.8, 2.2]
+        },
+        {
+          "id": "spatial-sphere-2",
+          "name": "Comet",
+          "rendered": true,
+          "worldPosition": [3.116, -1.2, 1.374],
+          "visible": true,
+          "color": "#3b82f6",
+          "committedLocalPosition": [2.6, -1.2, 2.2]
+        }
+      ]
+    },
+    {
+      "stage": "after moving both objects and glowing them",
+      "revision": 9,
+      "presence": {
+        "traversal": "constructing",
+        "attention": { "kind": "object", "id": "spatial-sphere-2", "name": "Comet" },
+        "lastAction": "material.set → \"Comet\"",
+        "revision": 9
+      },
+      "objects": [
+        {
+          "id": "spatial-box-1",
+          "name": "Nova",
+          "rendered": true,
+          "worldPosition": [2.239, 0, 3.525],
+          "visible": true,
+          "color": "#eab308",
+          "committedLocalPosition": [-1.2, 0, 4]
+        },
+        {
+          "id": "spatial-sphere-2",
+          "name": "Comet",
+          "rendered": true,
+          "worldPosition": [3.81, 0, 1.71],
+          "visible": true,
+          "color": "#3b82f6",
+          "committedLocalPosition": [1.2, 0, 4]
+        }
+      ]
+    },
+    {
+      "stage": "after moving both objects outside the Core",
+      "revision": 11,
+      "objects": [
+        {
+          "id": "spatial-box-1",
+          "name": "Nova",
+          "rendered": true,
+          "worldPosition": [2.535, 3, 8.864],
+          "visible": true,
+          "color": "#eab308",
+          "committedLocalPosition": [-7, 3, 6]
+        },
+        {
+          "id": "spatial-sphere-2",
+          "name": "Comet",
+          "rendered": true,
+          "worldPosition": [8.372, 3, -3.861],
+          "visible": true,
+          "color": "#3b82f6",
+          "committedLocalPosition": [7, 3, 6]
+        }
+      ]
+    }
+  ],
+  "note": "Local positions are the committed transforms and match the chat replies exactly. World positions differ because the spatial meshes are children of the existing Genesis group, which rotates slowly; the probe reads getWorldPosition() from the live mesh, so it reports that rotation rather than the stored value."
+}
