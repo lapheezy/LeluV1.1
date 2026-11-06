@@ -1,0 +1,560 @@
+{
+  "capturedAt": "2026-11-06T18:03:12.789Z",
+  "head": "2a134494f7e9fd944b61daff46198ed01327563d",
+  "runs": [
+    {
+      "name": "camera-focus-nova",
+      "error": "Error: keyboard.press: Target page, context or browser has been closed\nBrowser logs:\n\n[pid=316483][err] [316483:316483:1106/180339.658836:ERROR:ui/gfx/render_text_harfbuzz.cc:1156]  TextRunHarfBuzz error, please report a",
+      "runs": [
+        {
+          "setup": true,
+          "text": "create a cube called Nova",
+          "typed": "create a cube called Nova",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                -0.0014852266696675622,
+                3.499009848886889,
+                7.999504924443447
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "after": {
+            "revision": 1,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  -1.8981787680631284,
+                  -1.35,
+                  2.465140435041043
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                -3.0000000000000004,
+                1.5000000000000004,
+                7.000000000000001
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "create a cube called Nova"
+            },
+            {
+              "role": "assistant",
+              "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+            }
+          ],
+          "latencyMs": 5191
+        }
+      ]
+    },
+    {
+      "name": "camera-zoom-out",
+      "viewport": {
+        "w": 1280,
+        "h": 800
+      },
+      "runs": [
+        {
+          "setup": true,
+          "text": "create a cube called Nova",
+          "typed": "create a cube called Nova",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                0,
+                6,
+                0.4999999999999989
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "after": {
+            "revision": 1,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  -2.319920614857225,
+                  -1.35,
+                  -2.0731542009123385
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                0,
+                6,
+                0.4999999999999989
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "create a cube called Nova"
+            },
+            {
+              "role": "assistant",
+              "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+            }
+          ],
+          "latencyMs": 6174
+        },
+        {
+          "setup": false,
+          "text": "zoom out",
+          "typed": "zoom out",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                2.999589262219645,
+                2.0000513422225454,
+                6.499922986666183
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "after": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                -6.5,
+                3.5549999999999997,
+                6.500000000000002
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "zoom out"
+            },
+            {
+              "role": "assistant",
+              "text": "Zoomed the camera out — camera at (-7, 3.96, 7) looking at (0, 0.6, 0). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed."
+            }
+          ],
+          "latencyMs": 6933
+        }
+      ]
+    },
+    {
+      "name": "camera-orbit-nova",
+      "viewport": {
+        "w": 1280,
+        "h": 800
+      },
+      "runs": [
+        {
+          "setup": true,
+          "text": "create a cube called Nova",
+          "typed": "create a cube called Nova",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                3,
+                2,
+                6.5
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "after": {
+            "revision": 1,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  -2.8584047010239333,
+                  -1.35,
+                  -1.2286262919066475
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                2.8442162932718653,
+                2.0778918533640662,
+                6.577891853364067
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "create a cube called Nova"
+            },
+            {
+              "role": "assistant",
+              "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+            }
+          ],
+          "latencyMs": 11712
+        },
+        {
+          "setup": false,
+          "text": "orbit around Nova by 30 degrees",
+          "typed": "orbit around Nova by 30 degrees",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                0,
+                3.5000000000000004,
+                8.000000000000002
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "after": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                0,
+                3.340958560101421,
+                7.761437840152131
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "orbit around Nova by 30 degrees"
+            },
+            {
+              "role": "assistant",
+              "text": "I did not change the scene: nothing called \"nova\" is in the visible world. The scene is empty. Revision is still 0."
+            }
+          ],
+          "latencyMs": 6268
+        }
+      ]
+    },
+    {
+      "name": "camera-reset",
+      "viewport": {
+        "w": 1280,
+        "h": 800
+      },
+      "runs": [
+        {
+          "setup": false,
+          "text": "return to the original view",
+          "typed": "return to the original view",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                3.998860764447481,
+                4.000569617776262,
+                -2.9990031688915457
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "after": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                0,
+                4.1637991171010006e-16,
+                6.8
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "return to the original view"
+            },
+            {
+              "role": "assistant",
+              "text": "Returned the camera to the opening Genesis view — camera at (0, 1.7, 10.4) looking at (0, 0.6, 0). verification: camera fail, framing pass (graph, renderer, screenshot not measurable here). No scene object changed."
+            }
+          ],
+          "latencyMs": 6051
+        }
+      ]
+    },
+    {
+      "name": "refuse-cosmos-owner",
+      "viewport": {
+        "w": 1280,
+        "h": 800
+      },
+      "runs": [
+        {
+          "setup": true,
+          "text": "create a cube called Nova",
+          "typed": "create a cube called Nova",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                0,
+                1.5000000000000009,
+                5
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "after": {
+            "revision": 1,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  2.866429609003738,
+                  -1.35,
+                  1.2097856407755376
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                -5,
+                2.9999999999999996,
+                5.000000000000001
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "create a cube called Nova"
+            },
+            {
+              "role": "assistant",
+              "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+            }
+          ],
+          "latencyMs": 4818
+        },
+        {
+          "setup": false,
+          "text": "move the Earth to 1, 2, 3",
+          "typed": "move the Earth to 1, 2, 3",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                0,
+                0.8999999999999999,
+                3.2000000000000006
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "after": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                0,
+                1.1598160319482496,
+                3.062450336027397
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "move the Earth to 1, 2, 3"
+            },
+            {
+              "role": "assistant",
+              "text": "I did not change the scene: \"Earth\" is owned by WorldRegistry and is read-only for position. WorldRegistry destinations are labels and metadata (weight, scale class) with no spatial transform; there is nothing to move, rotate or recolour.. Revision is still 0."
+            }
+          ],
+          "latencyMs": 5788
+        }
+      ]
+    },
+    {
+      "name": "refuse-unknown",
+      "viewport": {
+        "w": 1280,
+        "h": 800
+      },
+      "runs": [
+        {
+          "setup": false,
+          "text": "describe the thing that does not exist",
+          "typed": "describe the thing that does not exist",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                2.9999551733328125,
+                1.9999835635553647,
+                6.499950690666094
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "after": {
+            "revision": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                0,
+                0.8999999999999999,
+                3.2000000000000006
+              ],
+              "fov": 49
+            },
+            "canvases": 3,
+            "viewport": {
+              "w": 1280,
+              "h": 800
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "describe the thing that does not exist"
+            },
+            {
+              "role": "assistant",
+              "text": "I did not change the scene: \"thing that does not exist\" is not in the scene. The scene is empty. Revision is still 0."
+            }
+          ],
+          "latencyMs": 5790
+        }
+      ]
+    }
+  ]
+}

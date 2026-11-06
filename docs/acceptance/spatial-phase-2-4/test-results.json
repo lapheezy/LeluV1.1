@@ -1,0 +1,32 @@
+{
+  "capturedAt": "2026-11-06T18:16:45.018Z",
+  "head": "2a134494f7e9fd944b61daff46198ed01327563d",
+  "typecheck": {
+    "exit": 0
+  },
+  "spatialSuite": {
+    "pass": 23,
+    "fail": 0
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 108
+  },
+  "fullSuite": {
+    "pass": 1329,
+    "skip": 6,
+    "fail": 38,
+    "preExistingFailures": 38,
+    "baselinePhase23": {
+      "pass": 1329,
+      "fail": 38,
+      "skip": 6
+    },
+    "newFailures": 0
+  },
+  "notes": [
+    "No product source changed in phase 2.4; speculative composer edits were reverted after measurement.",
+    "The 38 failures are identical to the phase 2.3 branch baseline and are not caused by this work."
+  ],
+  "browserAcceptance": "see acceptance-scenarios.json, acceptance-runs.json, acceptance-groups.json"
+}
