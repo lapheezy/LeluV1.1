@@ -22,6 +22,7 @@
  */
 
 import {
+  beginSpatialCameraTakeover,
   dispatchV2CameraCommand,
   genesisCameraIntentBus,
 } from "../../app/scene/genesis/GenesisCameraIntent";
@@ -201,6 +202,7 @@ export default class SpatialCameraApplier {
   }
 
   public focus(references: readonly string[], padding?: number): CameraPlan {
+    beginSpatialCameraTakeover();
     const resolved = this.subjectsFor(references);
     if ("refusal" in resolved) return { ok: false, refusal: resolved.refusal };
     const camera = liveCamera();
@@ -209,6 +211,7 @@ export default class SpatialCameraApplier {
   }
 
   public frameAll(padding?: number): CameraPlan {
+    beginSpatialCameraTakeover();
     const authored = this.adapter.list().filter((entity) => entity.source === "authored" && entity.position);
     if (authored.length === 0) {
       return {
@@ -227,6 +230,7 @@ export default class SpatialCameraApplier {
   }
 
   public reset(): CameraPlan {
+    beginSpatialCameraTakeover();
     this.epoch += 1;
     this.previousPose = this.lastPose;
     this.lastPose = null;
@@ -234,10 +238,14 @@ export default class SpatialCameraApplier {
     dispatchV2CameraCommand({ intent: "reset" });
     return {
       ok: true,
+      // The home of the world this applier drives (the v1 Genesis camera
+      // resets to (0, 0, 6.8) looking at the origin). Verification still reads
+      // the live rig, so a v2 rig answering the same reset is checked against
+      // its own documented home instead of this pose.
       pose: {
-        position: { x: 0, y: 1.7, z: 10.4 },
-        target: { x: 0, y: 0.6, z: 0 },
-        distance: 10.4,
+        position: { x: 0, y: 0, z: 6.8 },
+        target: { x: 0, y: 0, z: 0 },
+        distance: 6.8,
         fov: SPATIAL_VIEW_LIMITS.defaultFov,
       },
       subjects: [],
@@ -256,6 +264,7 @@ export default class SpatialCameraApplier {
 
   /** Orbit around the last framed target by a number of degrees. */
   public orbit(degrees: number, target?: string): CameraPlan {
+    beginSpatialCameraTakeover();
     if (!Number.isFinite(degrees)) return invalid("the orbit angle must be a number");
     if (Math.abs(degrees) > 360) return invalid("the orbit angle must be within ±360°");
     const camera = liveCamera();
@@ -299,6 +308,7 @@ export default class SpatialCameraApplier {
   }
 
   public zoom(factor: number): CameraPlan {
+    beginSpatialCameraTakeover();
     if (!Number.isFinite(factor) || factor <= 0 || factor > 8) {
       return invalid("the zoom factor must be between 0 and 8");
     }

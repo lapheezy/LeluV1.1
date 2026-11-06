@@ -222,6 +222,83 @@ export function verifyCamera(
   return checks;
 }
 
+/**
+ * The documented home views of the live Genesis world. The scene has two
+ * camera rigs (the v1 OrbitControls world and the v2 rig), so a reset is only
+ * verified when the camera actually comes to rest on one of them — the pose
+ * the applier asked for is not evidence that the rig arrived anywhere.
+ */
+export const CAMERA_HOME_VIEWS: ReadonlyArray<{
+  label: string;
+  position: SpatialVec3;
+  target: SpatialVec3;
+}> = [
+  { label: "the Genesis world home", position: { x: 0, y: 0, z: 6.8 }, target: { x: 0, y: 0, z: 0 } },
+  { label: "the Genesis v2 home", position: { x: 0, y: 1.7, z: 10.4 }, target: { x: 0, y: 0.6, z: 0 } },
+];
+
+const HOME_TOLERANCE = 0.45;
+
+/** The documented home view the live camera is closest to (null with no camera). */
+export function nearestHomeView(
+  camera: LiveCameraState | null,
+): { label: string; position: SpatialVec3; target: SpatialVec3; delta: number } | null {
+  if (!camera) return null;
+  const live = tuple(camera.position);
+  let best: { label: string; position: SpatialVec3; target: SpatialVec3; delta: number } | null = null;
+  for (const home of CAMERA_HOME_VIEWS) {
+    const delta = distance(live, home.position);
+    if (!best || delta < best.delta) best = { ...home, delta };
+  }
+  return best;
+}
+
+/**
+ * Layer 3 for a reset: the live camera must be resting on a documented home
+ * view and looking at that view's target. If the rig never moved, the check
+ * fails with the distance it actually reached.
+ */
+export function verifyCameraHome(camera: LiveCameraState | null): SpatialVerificationCheck[] {
+  if (!camera) return [check("camera", "home view", "skipped", "the renderer has no camera attached")];
+  const nearest = nearestHomeView(camera);
+  if (!nearest) return [check("camera", "home view", "skipped", "no home view is defined")];
+  const checks: SpatialVerificationCheck[] = [
+    check(
+      "camera",
+      "home view",
+      nearest.delta <= HOME_TOLERANCE ? "pass" : "fail",
+      `live camera is ${nearest.delta.toFixed(2)} from ${nearest.label} (tolerance ${HOME_TOLERANCE})`,
+    ),
+  ];
+
+  const toTarget: [number, number, number] = [
+    nearest.target.x - camera.position[0],
+    nearest.target.y - camera.position[1],
+    nearest.target.z - camera.position[2],
+  ];
+  const targetDistance = Math.hypot(...toTarget);
+  if (targetDistance > 0.001) {
+    const dot =
+      (toTarget[0] * camera.direction[0] +
+        toTarget[1] * camera.direction[1] +
+        toTarget[2] * camera.direction[2]) /
+      targetDistance;
+    const angle = (Math.acos(Math.max(-1, Math.min(1, dot))) * 180) / Math.PI;
+    const halfFov = camera.fov / 2;
+    checks.push(
+      check(
+        "framing",
+        "target inside the field of view",
+        angle <= halfFov * 0.95 ? "pass" : "fail",
+        `target is ${angle.toFixed(1)}° from the view axis, half-FOV is ${halfFov.toFixed(1)}°`,
+      ),
+    );
+  } else {
+    checks.push(check("framing", "target inside the field of view", "fail", "the camera is on top of its target"));
+  }
+  return checks;
+}
+
 export function summarize(
   checks: readonly SpatialVerificationCheck[],
   options: { screenshot?: SpatialVerificationSummary["screenshot"] } = {},

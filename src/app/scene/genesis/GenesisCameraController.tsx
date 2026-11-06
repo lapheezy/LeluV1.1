@@ -305,6 +305,19 @@ export default function GenesisCameraController({
         return;
       }
 
+      /*
+       * A fly request (LÉLU's spatial camera: focus, frame, orbit, zoom) is a
+       * real destination, not a zoom step. Without this branch every spatial
+       * camera command was applied as a 1.3× dolly along the current view axis
+       * and the camera never arrived at the pose the caller asked for.
+       */
+      if (intent.type === "fly") {
+        const destination = new Vector3(...intent.position);
+        const lookAt = intent.lookAt ? new Vector3(...intent.lookAt) : controls.target.clone();
+        flyCameraTo(camera as PerspectiveCamera, controls, destination, lookAt, 0.9);
+        return;
+      }
+
       const direction = camera.position.clone().sub(controls.target);
       const distance = direction.length();
       if (distance < 0.001) {

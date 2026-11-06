@@ -50,6 +50,7 @@ PKGS=(
   libatk-bridge2.0-0t64 libatspi2.0-0t64 libcairo2 libcups2t64 libpango-1.0-0
   libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libxkbcommon0 libgbm1
   libdrm2 libexpat1 libdbus-1-3 libx11-6 libxcb1 libxext6 libglib2.0-0t64
+  fonts-dejavu-core
 )
 
 echo "==> downloading dependency closure"
@@ -65,6 +66,21 @@ done
 echo "    unpacked $count packages"
 
 [ -x "$CHROME" ] || fail "chromium not found at $CHROME (set CHROME=...)"
+
+# The unpacked tree is not a chroot: fontconfig's compiled-in /usr/share/fonts
+# does not exist on this host, so Chromium found no fonts, laid text out at zero
+# width (empty-looking chat bubbles) and eventually aborted in HarfBuzz. Point a
+# fontconfig file at the sysroot's own font directory instead.
+FONTS_CONF=/tmp/lelu-fonts.conf
+mkdir -p /tmp/lelu-fontcache
+cat > "$FONTS_CONF" <<FONTCONF
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+  <dir>$SYSROOT/usr/share/fonts</dir>
+  <cachedir>/tmp/lelu-fontcache</cachedir>
+</fontconfig>
+FONTCONF
 
 LD_PATH=""
 for d in $LIB_DIRS; do LD_PATH="$LD_PATH:$SYSROOT/$d"; done
@@ -85,6 +101,7 @@ Chromium is ready.
 
 export CHROME="$CHROME"
 export LD_LIBRARY_PATH="$LD_PATH"
+export FONTCONFIG_FILE="$FONTS_CONF"
 
 Nothing was installed system-wide; $SYSROOT and $ROOT are disposable.
 EOF

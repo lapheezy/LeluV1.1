@@ -45,7 +45,43 @@ import {
   type SpatialVec3,
 } from "./SpatialTypes";
 import { normalizeSpatialColor, sameSpatialPosition } from "./SpatialValidation";
-import { describeVerification, summarize, verifyCamera } from "./SpatialVerification";
+import { endSpatialCameraTakeover } from "../../app/scene/genesis/GenesisCameraIntent";
+import {
+  describeVerification,
+  nearestHomeView,
+  summarize,
+  verifyCamera,
+  verifyCameraHome,
+} from "./SpatialVerification";
+
+/**
+ * Wait until the live camera stops moving (or the budget runs out), so post-
+ * commit verification reads the rig that is on screen instead of a frame in
+ * the middle of its flight. With no renderer attached (tests, SSR) this
+ * returns immediately: there is no camera to wait for.
+ */
+async function settleCamera(budgetMs = 6000): Promise<ReturnType<typeof liveCamera>> {
+  if (!liveCamera()) return null;
+  const started = Date.now();
+  let previous = liveCamera();
+  let stableSince = Date.now();
+  while (Date.now() - started < budgetMs) {
+    await delay(90);
+    const current = liveCamera();
+    if (!current) return null;
+    const moved = previous
+      ? Math.hypot(
+          current.position[0] - previous.position[0],
+          current.position[1] - previous.position[1],
+          current.position[2] - previous.position[2],
+        )
+      : Number.POSITIVE_INFINITY;
+    previous = current;
+    if (moved > 0.008) stableSince = Date.now();
+    else if (Date.now() - stableSince >= 240) return current;
+  }
+  return liveCamera();
+}
 
 export interface SpatialApplyOptions {
   /** Single-use owner approval id, when the operation requires one. */
@@ -362,20 +398,44 @@ export default class SpatialIntentBus {
         plan = applier.zoom(intent.factor);
         break;
     }
-    if (!plan.ok) return this.refuse(op, plan.refusal, taskId);
+    if (!plan.ok) {
+      // A refused command never took the camera, so exploration may resume.
+      endSpatialCameraTakeover();
+      return this.refuse(op, plan.refusal, taskId);
+    }
 
     this.emitStarted(taskId, `move the camera (${intent.op})`);
-    // The rig eases to the pose over ~1.4 s; wait for the flight to land so
-    // verification reads the settled camera instead of a frame mid-flight.
-    await delay(1300);
-    const report = summarize(verifyCamera(plan.pose, liveCamera()), { screenshot: "not-captured" });
+    // The rig eases to the pose; wait for it to come to rest so verification
+    // reads the camera that is actually on screen, not a mid-flight frame.
+    const measured = await settleCamera();
+    const report = summarize(
+      intent.op === "camera.reset" ? verifyCameraHome(measured) : verifyCamera(plan.pose, measured),
+      { screenshot: "not-captured" },
+    );
+    // The command is over once its result is read; autonomous motion may resume.
+    endSpatialCameraTakeover();
+    // Report what the renderer measured, never the pose that was merely asked
+    // for: a camera that never arrived must not be described as if it had.
+    const home = intent.op === "camera.reset" ? nearestHomeView(measured) : null;
+    const achievedPose = measured
+      ? {
+          position: { x: measured.position[0], y: measured.position[1], z: measured.position[2] },
+          target: home?.target ?? plan.pose.target,
+          distance: Math.hypot(
+            measured.position[0] - (home?.target ?? plan.pose.target).x,
+            measured.position[1] - (home?.target ?? plan.pose.target).y,
+            measured.position[2] - (home?.target ?? plan.pose.target).z,
+          ),
+          fov: measured.fov,
+        }
+      : plan.pose;
 
     this.presence.record({
       op,
       traversal: "inspecting",
       revision: this.graph.getRevision(),
     });
-    this.emitEvent(taskId, op, `camera → (${formatVec(plan.pose.position)})`);
+    this.emitEvent(taskId, op, `camera → (${formatVec(achievedPose.position)})`);
     this.emitResult(taskId, "moved the camera", this.graph.getRevision());
 
     const subjectText =
@@ -393,8 +453,8 @@ export default class SpatialIntentBus {
       ok: true,
       op,
       revision: this.graph.getRevision(),
-      message: `${verb} — camera at (${formatVec(plan.pose.position)}) looking at (${formatVec(plan.pose.target)}). ${describeVerification(report)}. No scene object changed.`,
-      camera: plan.pose,
+      message: `${verb} — camera at (${formatVec(achievedPose.position)}) looking at (${formatVec(achievedPose.target)}). ${describeVerification(report)}. No scene object changed.`,
+      camera: achievedPose,
       verification: report,
     };
   }

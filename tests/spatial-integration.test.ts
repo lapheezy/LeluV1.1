@@ -315,9 +315,12 @@ test("camera focus frames a real object and camera reset returns the opening vie
 
   const reset = await bus.apply({ op: "camera.reset" });
   assert.equal(reset.ok, true);
+  // The live v1 Genesis camera resets to (0, 0, 6.8) looking at the origin;
+  // the old expectation pinned the v2 rig's home, which the mounted world
+  // never visits, so verification used to report a failure on a real reset.
   assert.deepEqual(
     [reset.camera?.position.x, reset.camera?.position.y, reset.camera?.position.z],
-    [0, 1.7, 10.4],
+    [0, 0, 6.8],
   );
 });
 
