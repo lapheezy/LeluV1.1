@@ -97,20 +97,37 @@ against a live OpenCode server.
 | Why OpenHands cannot run | **PASS** | turns 1–2 traces; grounded answer rendered |
 | Ask again, identical wording | **PASS** | turn 2 trace, owner `IntelligenceResolver` |
 | Differently phrased activation/blocker question | **PASS** | turn 4 trace after fix (turn 3 is the captured failure) |
-| Current ecosystem snapshot | **NOT RUN LIVE** | stage unit-tested with the live payload shape; browser stopped rendering after the dev-server restart |
-| Activation plan | **NOT RUN LIVE** | same |
-| Unrelated conversational question | **NOT RUN LIVE** | routing path unchanged; full suite covers resolvers |
-| Provider fallback when the surface is unavailable | unit-tested (**PASS**) | `operational-chat-stage.test.ts`: honest refusal, no fabrication |
+| Current ecosystem snapshot | **PASS** | `stage-routing-traces/turn-5-snapshot.json`; `final-acceptance/05-snapshot-live.png` |
+| Activation plan | **PASS** | `stage-routing-traces/turn-6-plan.json`; `final-acceptance/06-plan-live.png` |
+| Unrelated conversational question | **PASS (routing) / FAIL (generation)** | `turn-7-unrelated.json`: stage declined in 0 ms, provider owned the turn, provider chain returned `offline` after 20.3 s |
+| Provider fallback when the surface is unavailable | **PASS** (live, simulated outage) | `turn-8-fallback.json`; `provider-fallback/08-fallback-live.png` |
 
-The browser environment was unstable during this run: tabs stalled (even `1+1`
-timed out), the preview hostname 502'd until the dev server was registered, and
-after the plugin restart the page stopped mounting. The final state is recorded
-verbatim in `evidence/ecosystem-routing/final-acceptance/browser-state.txt`:
-title `LÉLU`, `#root` empty, **21** DOM nodes (document scaffolding only), no JS
-exception, and module requests answering **503** through the preview tunnel while
-the same modules answer **200** from the server itself. That is a delivery
-failure of the dev-server module graph, not a client crash and not evidence
-about the routing fix either way.
+### Ownership across the acceptance turns
+
+| Prompt | Stage decision | Owner / model | Visible outcome |
+|---|---|---|---|
+| What is operational right now? | `snapshot`, handled 2 200 ms | `IntelligenceResolver` / `operational-snapshot` | readiness + blockers, "0 failed. Nothing here is inferred." |
+| What would it take to enable OpenCode? | `plan:…`, handled 5 077 ms | `IntelligenceResolver` / `activation-plan` | approval-gated steps, "Nothing has run." |
+| Write me a short poem about the sea. | `intelligence` declined in 0 ms | `offline` (provider chain) | offline notice; no operational speculation |
+| Why can't you run OpenHands? (surface down) | `explain:…` handled 1 ms, fetch `ok:false` | `IntelligenceResolver` / `operational-unavailable` | names the outage, refuses to guess |
+
+No operational question was answered by provider speculation in any captured
+turn: every operational prompt either got live state or the explicit refusal.
+
+**Recovery.** The preview stopped mounting after the plugin restart: `#root`
+empty, 21 DOM nodes, no JS exception, and a few module requests answering 503
+through the tunnel while the same modules answered 200 from the server (recorded
+in `final-acceptance/browser-state.txt`). Re-registering the preview
+(`cloud_show_dev_server`), opening a fresh browser tab and reloading restored
+it — those two 503s were transient gateway failures on aborted requests, and two
+lost modules were enough to abort the whole graph. Once mounted, all four
+turns ran on the same running dev server (`:3013`).
+
+**Fallback method.** The surface outage was simulated in the page only: a
+wrapper around `window.fetch` rejected any URL containing `/api/integration`,
+left everything else untouched, and was restored immediately after the turn
+(`restored: true`). This is a real request failure as far as the stage is
+concerned — not a unit-test stub.
 
 The two captured screenshots (`live-chat/03-blocking-openhands.png`,
 `repeated-questions/02-identical-repeat.png`) were taken **while LÉLU was still
