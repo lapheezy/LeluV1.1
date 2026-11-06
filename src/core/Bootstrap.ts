@@ -39,6 +39,8 @@ import { registerForgeTools } from "./forge/ForgeTools";
 import { registerWorldTools } from "./world/WorldTools";
 import { registerAgenticTools } from "./agentic/AgenticTools";
 import { registerInterfaceTools } from "./interface/InterfaceTools";
+import { registerStudioTools } from "./studio/StudioTools";
+import { registerAtelierTools } from "./atelier/AtelierTools";
 import TaskExecutor from "./agentic/TaskExecutor";
 import DailyReflection from "./agentic/DailyReflection";
 import ToolRegistry from "./tools/ToolRegistry";
@@ -196,6 +198,12 @@ export default class Bootstrap {
       // environment (windows, typography, themes, 3D Cosmos); the user
       // approves before anything is applied.
       registerInterfaceTools();
+      // Creation Studio: documents, presentations and spreadsheets made,
+      // revised, exported (and verified from the written bytes) in chat.
+      registerStudioTools();
+      // Atelier: research-to-production design (directions, BOM, drawings,
+      // 3D models, dossiers), every file verified from its bytes.
+      registerAtelierTools();
       const interrupted = TaskExecutor.getInstance().recoverInterrupted();
       if (interrupted.length) {
         console.info(`[Bootstrap] ${interrupted.length} interrupted task(s) are paused and resumable.`);

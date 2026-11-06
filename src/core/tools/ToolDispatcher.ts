@@ -36,6 +36,8 @@ import { FORGE_EXECUTORS } from "../forge/ForgeTools";
 import { WORLD_EXECUTORS } from "../world/WorldTools";
 import { AGENTIC_EXECUTORS } from "../agentic/AgenticTools";
 import { INTERFACE_EXECUTORS } from "../interface/InterfaceTools";
+import { STUDIO_EXECUTORS } from "../studio/StudioTools";
+import { ATELIER_EXECUTORS } from "../atelier/AtelierTools";
 import EngineeringAuthorization from "../engineering/EngineeringAuthorization";
 import ApprovalGate from "../agentic/ApprovalGate";
 import ToolStats from "../agentic/ToolStats";
@@ -167,6 +169,30 @@ export function describeToolCall(id: string, args: Record<string, unknown>): str
       return "Changing the workspace artifact";
     case "artifact.create":
       return `Making a ${pick("kind") || "new artifact"} in the workspace`;
+    case "studio.create": {
+      const noun = pick("kind") === "deck" ? "presentation" : pick("kind") === "workbook" ? "spreadsheet" : "document";
+      return `Creating the ${noun} “${pick("title").slice(0, 60)}”`;
+    }
+    case "studio.revise":
+      return `Revising “${pick("artifact").slice(0, 60) || "the artifact"}”`;
+    case "studio.export": {
+      const formats = Array.isArray(args.formats) ? args.formats.map((f) => String(f).toUpperCase()).join(", ") : "";
+      return `Exporting and verifying ${formats || "the file"}`;
+    }
+    case "studio.read":
+      return pick("file") ? `Re-opening the exported ${pick("file").toUpperCase()}` : "Reading the artifact";
+    case "studio.open":
+      return "Opening artifacts in Cosmos";
+    case "atelier.project":
+      return `Starting the design project “${pick("title").slice(0, 60)}”`;
+    case "atelier.directions":
+      return "Developing design directions";
+    case "atelier.component":
+      return `Changing ${pick("component")} in ${pick("direction")}`;
+    case "atelier.assess":
+      return "Calculating BOM, mass, cost and interference";
+    case "atelier.export":
+      return "Writing and verifying design files";
     default: {
       const detail = pick("query") || pick("path") || pick("action") || pick("url");
       return detail ? `Running ${id} (${detail.slice(0, 60)})` : `Running ${id}`;
@@ -2518,7 +2544,7 @@ async function runWorkspace(
 // The 3D Forge's executors live with the Forge (forge/ForgeTools.ts) and run
 // through this same dispatcher, gate and event stream.
 const BY_ID = new Map<string, ToolExecutor>(
-  [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS].map((executor) => [executor.id, executor]),
+  [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS].map((executor) => [executor.id, executor]),
 );
 
 /**

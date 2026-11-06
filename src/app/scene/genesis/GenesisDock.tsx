@@ -67,6 +67,7 @@ export const DOCK_ITEMS: DockItem[] = [
   { id: "genesisv2", label: "Genesis v2", glyph: "⬡", icon: "lab", group: "core" },
   { id: "video", label: "Video", glyph: "▶", icon: "film", group: "core" },
   { id: "visualstudio", label: "Visual Studio", glyph: "◍", icon: "aperture", group: "core" },
+  { id: "creation", label: "Creation Studio", glyph: "▤", icon: "file", group: "core" },
   { id: "reasoning", label: "Reasoning", glyph: "✦", icon: "spark", group: "intelligence" },
   { id: "cognition", label: "Cognition", glyph: "◬", icon: "brain", group: "intelligence" },
   { id: "cognitive-trace", label: "Trace", glyph: "⌁", icon: "wave", group: "intelligence" },

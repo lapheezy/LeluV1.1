@@ -138,8 +138,16 @@ function anchorXml(index: number, chartRid: string, fromCol: number, fromRow: nu
 }
 
 async function addCharts(bytes: Uint8Array, book: WorkbookSpec): Promise<Uint8Array> {
-  const { default: JSZip } = await import("jszip");
-  const zip = await JSZip.loadAsync(bytes);
+  // Synchronous (fflate): no per-part yielding on a busy page.
+  const { unzipSync, zipSync, strToU8, strFromU8 } = await import("fflate");
+  const parts = unzipSync(bytes);
+  const zip = {
+    file(path: string, content?: string) {
+      if (content !== undefined) { parts[path] = strToU8(content); return null; }
+      return parts[path] ? { async: async (_t: "string") => strFromU8(parts[path]) } : null;
+    },
+    generate: () => zipSync(parts, { level: 6 }),
+  };
   let types = await zip.file("[Content_Types].xml")!.async("string");
   let chartNo = 0;
   for (let s = 0; s < book.sheets.length; s += 1) {
@@ -175,5 +183,5 @@ async function addCharts(bytes: Uint8Array, book: WorkbookSpec): Promise<Uint8Ar
     zip.file(sheetPath, xml);
   }
   zip.file("[Content_Types].xml", types);
-  return zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
+  return zip.generate();
 }

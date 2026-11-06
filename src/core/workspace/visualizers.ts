@@ -398,6 +398,7 @@ const EVENT_STATUS: Record<AgentEvent["type"], TimelineEvent["status"]> = {
   visual_created: "ok",
   ui_prototype_created: "ok",
   creative_artifact: "ok",
+  studio_artifact: "ok",
   workspace_open: "idle",
   workspace_focus: "idle",
   workspace_minimize: "idle",

@@ -24,7 +24,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { chatFillsScreen } from "./chat/chatLayout";
 import { InModuleWindow } from "./moduleWindowContext";
-import { CHAT_WINDOW_Z, conversationIdOf, useGenesisActions, useGenesisState, type ModuleState } from "./GenesisCore";
+import { CHAT_WINDOW_Z, conversationIdOf, floatsAboveChat, useGenesisActions, useGenesisState, type ModuleState } from "./GenesisCore";
 import { MODULE_CATALOG } from "./GenesisDock";
 import { genesisTheme } from "./GenesisTheme";
 
@@ -139,7 +139,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       ? Math.max(MOBILE_TOP_RESERVE, Math.min(rawPosition.y, Math.max(MOBILE_TOP_RESERVE, viewportHeight - MOBILE_BOTTOM_RESERVE - size.height)))
       : rawPosition.y,
   };
-  const chatWindow = conversationIdOf(id) !== null;
+  const chatWindow = floatsAboveChat(id);
   // A chat window never sinks below the Universe overlay, not even when an
   // older session persisted a panel-level z-index for it.
   const zIndex = chatWindow

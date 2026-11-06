@@ -19,6 +19,7 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
+import { REDUCED_FRAME_MS, useSceneRenderMode } from "../SceneRenderBudget";
 import * as THREE from "three";
 import type { LeluFraming } from "../../../../core/avatar/LeluRig";
 import type { LeluModel } from "../../../../core/avatar/LeluModelSource";
@@ -61,12 +62,20 @@ function Framer({ framing, info }: { framing: LeluFraming; info: LeluBodyInfo | 
  */
 function FrameCap({ fps }: { fps: number }) {
   const { invalidate } = useThree();
+  // The same budget the Cosmos scene follows: when the scene is paused
+  // (a full-screen surface covers it) the avatar stops drawing too, and
+  // a reduced budget lowers its rate. A skinned, morphing character
+  // re-uploads its bone/morph textures every frame — cheap on a GPU, and
+  // on a software renderer enough to freeze the page during a chat turn.
+  const mode = useSceneRenderMode();
   useEffect(() => {
+    if (mode === "paused") return;
+    const interval = mode === "reduced" ? Math.max(1000 / fps, REDUCED_FRAME_MS) : 1000 / fps;
     const timer = setInterval(() => {
       if (!document.hidden) invalidate();
-    }, 1000 / fps);
+    }, interval);
     return () => clearInterval(timer);
-  }, [fps, invalidate]);
+  }, [fps, invalidate, mode]);
   return null;
 }
 

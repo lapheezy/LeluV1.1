@@ -28,6 +28,7 @@ export const APPS: HomeApp[] = [
   { id: "chat", label: "Chat", hint: "Talk with LÉLU", icon: "MessageCircle", group: "business" },
   { id: "browser", label: "Browser", hint: "Browse and research", icon: "Compass", group: "research" },
   { id: "visualstudio", label: "Studio", hint: "Sketch, render, avatar", icon: "Box", group: "creativity" },
+  { id: "creation", label: "Documents", hint: "Docs, decks and spreadsheets", icon: "FileText", group: "business" },
   { id: "projects", label: "Files", hint: "Projects and their files", icon: "Folder", group: "business" },
   { id: "agents", label: "Agents", hint: "Her agents at work", icon: "Workflow", group: "business" },
   { id: "sketch", label: "Sketch", hint: "Draw with LÉLU", icon: "PenLine", group: "creativity" },

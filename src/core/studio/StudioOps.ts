@@ -59,8 +59,10 @@ export function normalizeChart(v: unknown, where: string): ChartSpec | string {
 }
 
 function normalizeTable(v: Record<string, unknown>, where: string): { columns: string[]; rows: Array<Array<string | number>> } | string {
-  const columns = strList(v.columns);
-  if (columns.length === 0) return `${where}: a table needs columns`;
+  // A blank header (a table's top-left corner) is a real column: dropping it
+  // shifted every row and lost the last column of data.
+  const columns = Array.isArray(v.columns) ? v.columns.map((c) => str(c)) : [];
+  if (columns.length === 0 || columns.every((c) => c === "")) return `${where}: a table needs columns`;
   if (columns.length > LIMITS.cols) return `${where}: at most ${LIMITS.cols} columns`;
   const rawRows = Array.isArray(v.rows) ? v.rows : [];
   const rows = rawRows.slice(0, LIMITS.rows).map((r) =>

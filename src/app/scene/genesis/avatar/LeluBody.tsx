@@ -151,6 +151,40 @@ function parseClips(bytes: ArrayBuffer): Promise<THREE.AnimationClip[]> {
   return parsed;
 }
 
+/**
+ * A second, overlapping view parses its own copy of her model, and with it
+ * its own 4096² textures — uploaded again into its own WebGL context. A
+ * small view cannot show that detail; on a software renderer those
+ * uploads took over 30 s and froze the page mid-reply. Its private copy is
+ * downscaled to what its canvas can show before its first frame.
+ */
+async function fitTexturesTo(scene: THREE.Object3D, maxSize: number): Promise<number> {
+  if (typeof createImageBitmap !== "function") return 0;
+  const seen = new Set<THREE.Texture>();
+  scene.traverse((o) => {
+    const mats = (o as THREE.Mesh).material;
+    for (const m of Array.isArray(mats) ? mats : mats ? [mats] : []) {
+      for (const value of Object.values(m as unknown as Record<string, unknown>)) {
+        if (value instanceof THREE.Texture) seen.add(value);
+      }
+    }
+  });
+  let resized = 0;
+  await Promise.all([...seen].map(async (t) => {
+    const img = t.image as { width?: number; height?: number } | undefined;
+    if (!img?.width || !img.height || Math.max(img.width, img.height) <= maxSize) return;
+    const scale = maxSize / Math.max(img.width, img.height);
+    try {
+      t.image = await createImageBitmap(img as ImageBitmapSource, { resizeWidth: Math.round(img.width * scale), resizeHeight: Math.round(img.height * scale), resizeQuality: "high" });
+      t.needsUpdate = true;
+      resized += 1;
+    } catch {
+      /* keep the original: a sharper texture is better than none */
+    }
+  }));
+  return resized;
+}
+
 /** Requests that need all of her: a face-only view hands them to her full-body view. */
 export const FULL_BODY_COMMANDS = new Set<AvatarCommandKind>(["sit", "stand", "leave", "return", "dance", "move", "jump", "bow"]);
 let handoff: { command: AvatarCommand; at: number } | null = null;
@@ -204,7 +238,9 @@ export default function LeluBody({
   /** Her life between conversations (sitting, walking off). Off for a face-only view. */
   life?: boolean;
 }) {
-  const { camera } = useThree();
+  const { camera, size: canvasSize } = useThree();
+  const canvasSizeRef = useRef(canvasSize);
+  canvasSizeRef.current = canvasSize;
   const [model, setModel] = useState<THREE.Group | null>(null);
   const motion = useRef<LeluMotion | null>(null);
   const hand = useRef<THREE.Object3D | null>(null);
@@ -243,8 +279,17 @@ export default function LeluBody({
       parseModel(glb).then(
         async (shared) => {
           if (disposed) return;
-          const gltf = shared.scene.parent ? await new GLTFLoader().parseAsync(glb, "") : shared;
+          const ownCopy = Boolean(shared.scene.parent);
+          const gltf = ownCopy ? await new GLTFLoader().parseAsync(glb, "") : shared;
           if (disposed) return;
+          if (ownCopy) {
+            // Twice the canvas's longest side in device pixels, as a power of two (512–2048).
+            const px = Math.max(canvasSizeRef.current.width, canvasSizeRef.current.height) * Math.min(2, window.devicePixelRatio || 1) * 2;
+            const limit = Math.min(2048, Math.max(512, 2 ** Math.ceil(Math.log2(Math.max(1, px)))));
+            const resized = await fitTexturesTo(gltf.scene, limit);
+            if (resized) console.info(`[Lélu Body] second view: ${resized} texture(s) fitted to ${limit}px`);
+            if (disposed) return;
+          }
           // The holder carries the normalisation; callers position the holder.
           const holder = new THREE.Group();
           const scene = gltf.scene;

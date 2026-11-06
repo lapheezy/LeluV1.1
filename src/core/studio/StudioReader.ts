@@ -12,7 +12,7 @@
  * ==========================================================
  */
 
-import { unzlibSync } from "fflate";
+import { unzipSync, unzlibSync } from "fflate";
 import type { ArtifactSpec, Block, Cell, ChartKind, ChartSpec, ExportFormat, SheetSpec, SlideSpec, Source } from "./StudioTypes";
 
 export interface ReadStructure {
@@ -66,9 +66,22 @@ export function resolvePart(fromPart: string, target: string): string {
   return parts.join("/");
 }
 
+/**
+ * An OOXML package's parts, unzipped synchronously (fflate). JSZip's async
+ * API yields between every part, which on a busy page (the Cosmos scene
+ * rendering) turned a read-back into tens of seconds.
+ */
 async function zipOf(bytes: Uint8Array) {
-  const { default: JSZip } = await import("jszip");
-  return JSZip.loadAsync(bytes);
+  let parts: Record<string, Uint8Array>;
+  try {
+    parts = unzipSync(bytes);
+  } catch (error) {
+    throw new Error(`not a ZIP package (${error instanceof Error ? error.message : String(error)})`);
+  }
+  const text = new TextDecoder();
+  return {
+    file: (path: string) => (parts[path] ? { async: async (_type: "string") => text.decode(parts[path]) } : null),
+  };
 }
 
 /** A chart part (DrawingML chart XML) back into a ChartSpec, from its cached values. */

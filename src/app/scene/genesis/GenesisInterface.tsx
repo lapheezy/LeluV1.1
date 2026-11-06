@@ -33,6 +33,16 @@ import UIStateStore from "../../../core/cognition/UIStateStore";
 import UIActionBus from "../../../core/cognition/UIActionBus";
 import { MODULE_CATALOG } from "./GenesisDock";
 import GenesisErrorBoundary from "./GenesisErrorBoundary";
+import GenesisCreationStudio from "./studio/GenesisCreationStudio";
+import StudioArtifactWindow from "./studio/StudioArtifactWindow";
+import { artifactIdOf, artifactWindowId } from "./studio/useStudio";
+import StudioStore from "../../../core/studio/StudioStore";
+import { STUDIO_OPEN_EVENT } from "../../../core/studio/StudioTools";
+import AtelierWindow from "./atelier/AtelierWindow";
+import AtelierStore from "../../../core/atelier/AtelierStore";
+import { ATELIER_OPEN_EVENT } from "../../../core/atelier/AtelierTools";
+
+const ATELIER_WINDOW_PREFIX = "atelier:";
 import GenesisCommandPalette from "./GenesisCommandPalette";
 import { genesisTheme } from "./GenesisTheme";
 import GenesisChat from "./GenesisChat";
@@ -100,6 +110,7 @@ const MODULE_RENDERERS: ModuleRenderers = {
   // separate navigation destination.
   earth: ({ onClose }) => <GenesisEarthCore onClose={onClose} />,
   identity: ({ onClose }) => <GenesisIdentityPanel onClose={onClose} />,
+  creation: ({ onClose }) => <GenesisCreationStudio onClose={onClose} />,
 };
 
 /** Every module that can be a window — what LÉLU's interface tools can see and arrange. */
@@ -257,9 +268,60 @@ export default function GenesisInterface() {
     closeModule,
     expand,
     setSelfExploration,
+    setModulePresentation,
+    raiseModule,
+    applyModuleLayout,
   } = useGenesis();
   const voice = useVoice();
   const surface = useSurface();
+
+  /* Creation Studio: LÉLU's studio.* tools and the chat cards ask for
+     artifacts to be shown; each is its own `artifact:<id>` window in the
+     one window host. Two or more are placed side by side across the
+     screen (a phone shows one window at a time anyway). */
+  useEffect(() => {
+    const onOpen = (event: Event) => {
+      const detail = (event as CustomEvent<{ ids?: string[]; layout?: string }>).detail;
+      const ids = (detail?.ids ?? []).filter((id) => StudioStore.getInstance().get(id));
+      if (ids.length === 0) return;
+      const windows = ids.map(artifactWindowId);
+      for (const id of windows) {
+        openModule(id);
+        setModulePresentation(id, "inline");
+      }
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      if (windows.length === 1 && width > 900) {
+        // One document: big enough to read, beside the side rail.
+        const w = Math.min(1000, width - (width > 1200 ? 300 : 48));
+        applyModuleLayout({ [windows[0]]: { presentation: "inline", position: { x: width > 1200 ? 270 : 24, y: 64 }, size: { width: w, height: Math.min(height - 110, 860) } } });
+      } else if (windows.length > 1 && detail?.layout === "side-by-side" && width > 900) {
+        const gap = 16;
+        const left = width > 1200 ? 260 : 24;
+        const usable = width - left - gap * (windows.length + 1);
+        const w = Math.max(360, Math.floor(usable / windows.length));
+        const h = Math.max(420, Math.min(height - 140, 900));
+        applyModuleLayout(Object.fromEntries(windows.map((id, i) => [id, { presentation: "inline" as const, position: { x: left + gap + i * (w + gap), y: 72 }, size: { width: w, height: h } }])));
+      }
+      raiseModule(windows[windows.length - 1]);
+    };
+    // An Atelier project is one window; LÉLU opening it again raises it.
+    const onAtelier = (event: Event) => {
+      const projectId = (event as CustomEvent<{ id?: string }>).detail?.id;
+      if (!projectId || !AtelierStore.getInstance().get(projectId)) return;
+      const id = `${ATELIER_WINDOW_PREFIX}${projectId}`;
+      openModule(id);
+      setModulePresentation(id, "inline");
+      if (window.innerWidth > 900) applyModuleLayout({ [id]: { presentation: "inline", position: { x: window.innerWidth > 1200 ? 280 : 24, y: 64 }, size: { width: Math.min(1100, window.innerWidth - 320), height: Math.min(window.innerHeight - 110, 920) } } });
+      raiseModule(id);
+    };
+    window.addEventListener(STUDIO_OPEN_EVENT, onOpen);
+    window.addEventListener(ATELIER_OPEN_EVENT, onAtelier);
+    return () => {
+      window.removeEventListener(STUDIO_OPEN_EVENT, onOpen);
+      window.removeEventListener(ATELIER_OPEN_EVENT, onAtelier);
+    };
+  }, [openModule, setModulePresentation, raiseModule, applyModuleLayout]);
 
   useEffect(() => {
     genesisInterfaceMountCount += 1;
@@ -616,6 +678,14 @@ export default function GenesisInterface() {
    */
   const resolveModule = useCallback(
     (id: string) => {
+      const artifactId = artifactIdOf(id);
+      if (artifactId) {
+        return ({ onClose }: { onClose: () => void }) => <StudioArtifactWindow artifactId={artifactId} onClose={onClose} />;
+      }
+      if (id.startsWith(ATELIER_WINDOW_PREFIX)) {
+        const projectId = id.slice(ATELIER_WINDOW_PREFIX.length);
+        return ({ onClose }: { onClose: () => void }) => <AtelierWindow projectId={projectId} onClose={onClose} />;
+      }
       const conversationId = conversationIdOf(id);
       if (!conversationId) return undefined;
       return ({ onClose }: { onClose: () => void }) => (
@@ -626,6 +696,9 @@ export default function GenesisInterface() {
   );
   const labelForModule = useCallback(
     (id: string) => {
+      const artifactId = artifactIdOf(id);
+      if (artifactId) return StudioStore.getInstance().get(artifactId)?.title ?? "Artifact";
+      if (id.startsWith(ATELIER_WINDOW_PREFIX)) return AtelierStore.getInstance().get(id.slice(ATELIER_WINDOW_PREFIX.length))?.title ?? "Atelier";
       const conversationId = conversationIdOf(id);
       if (!conversationId) return undefined;
       return state.conversations.find((c) => c.id === conversationId)?.title ?? "Chat";

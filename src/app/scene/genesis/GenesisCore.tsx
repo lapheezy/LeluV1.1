@@ -204,7 +204,9 @@ export type GenesisPanel =
   // Cosmos — infinite cosmos map + navigation
   | "cosmos"
   // LÉLU Personality Development — identity, traits, journal
-  | "identity";
+  | "identity"
+  // Creation Studio — documents, presentations, spreadsheets (library)
+  | "creation";
 
 
 /**
@@ -238,6 +240,15 @@ export function conversationIdOf(moduleId: string): string | null {
  * stack among themselves below it, as before.
  */
 export const CHAT_WINDOW_Z = 520;
+
+/**
+ * Windows that open FROM a conversation — the chat itself, and the
+ * documents and designs LÉLU makes in it — float above the chat panel
+ * like chat windows do; application panels stay below it.
+ */
+export function floatsAboveChat(moduleId: string): boolean {
+  return conversationIdOf(moduleId) !== null || moduleId.startsWith("artifact:") || moduleId.startsWith("atelier:");
+}
 
 export type ModulePresentation =
   | "closed"      // not rendered anywhere
@@ -2222,7 +2233,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
             if (!existing) return current;
             // The stacking FLOOR depends on what the window is: application
             // panels stack among panels, chat windows above the Universe.
-            const floor = conversationIdOf(id) ? CHAT_WINDOW_Z : 30;
+            const floor = floatsAboveChat(id) ? CHAT_WINDOW_Z : 30;
             const top = Math.max(floor, ...Object.values(current.modules)
               .map(m => m.zIndex ?? floor)) + 1;
             return {

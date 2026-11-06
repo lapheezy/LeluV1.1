@@ -14,6 +14,7 @@ import { Fragment, memo, useMemo, useState, type ReactNode } from "react";
 import { RotateCcw } from "lucide-react";
 import ChatMarkdown, { MessageCopy } from "./ChatMarkdown";
 import ChatActivityCard from "./ChatActivity";
+import StudioArtifactCards from "../studio/StudioArtifactCards";
 import { hasVisibleActivity } from "../../../../core/multichat/TurnActivity";
 import {
   buildTranscript,
@@ -182,7 +183,13 @@ function ChatTranscriptImpl({ messages, live, inFlight, liveExtras, activity, sp
               // The live turn's activity shows above its reply as it happens;
               // once stored on the reply it comes from the message itself.
               const activity = message.id === transcript.liveReplyId && live?.activity ? live.activity : message.activity;
-              return hasVisibleActivity(activity) ? <ChatActivityCard activity={activity} /> : null;
+              return (
+                <>
+                  {hasVisibleActivity(activity) ? <ChatActivityCard activity={activity} /> : null}
+                  {/* What the reply made: documents, decks, spreadsheets and their verified files. */}
+                  {activity?.artifacts?.length ? <StudioArtifactCards artifacts={activity.artifacts} /> : null}
+                </>
+              );
             })()}
             <AssistantBubble text={message.text} latest={index === lastIndex} streaming={message.id === transcript.streamingId} origin={message.origin?.title}>
               {extrasOnLast && index === lastIndex ? liveExtras : null}

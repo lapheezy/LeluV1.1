@@ -190,6 +190,19 @@ export type AgentEvent =
       /** What is known about it as text (a capture's title and visible text). */
       text?: string;
     }
+  | {
+      /** A Creation Studio artifact was made or revised (and possibly exported) in this turn. */
+      type: "studio_artifact";
+      taskId: string;
+      artifactId: string;
+      rev: number;
+      title: string;
+      /** "design" is an Atelier project (artifactId is the project id). */
+      kind: "document" | "deck" | "workbook" | "design";
+      action: "created" | "revised" | "exported" | "restored" | "opened";
+      /** Exports of this revision and whether each one passed read-back verification. */
+      exports?: Array<{ format: string; filename: string; ok: boolean; size: number }>;
+    }
   | { type: "workspace_open"; taskId: string }
   | { type: "workspace_focus"; taskId: string; view: string }
   | {

@@ -57,6 +57,15 @@ export interface StudioArtifact {
 
 type Listener = (artifacts: StudioArtifact[]) => void;
 
+/** In a browser, exports run in a Web Worker so they never compete with the Cosmos scene. */
+async function runExport(spec: ArtifactSpec, format: ExportFormat): Promise<ExportResult> {
+  if (typeof window !== "undefined" && typeof Worker !== "undefined") {
+    const { exportOffMainThread } = await import("./StudioExportClient");
+    return exportOffMainThread(spec, format);
+  }
+  return exportArtifact(spec, format);
+}
+
 const STORAGE_KEY = "lelu.studio.artifacts.v1";
 
 function storage(): Storage | null {
@@ -78,6 +87,7 @@ export default class StudioStore {
   private artifacts = new Map<string, StudioArtifact>();
   private files = new Map<string, Uint8Array>(); // `${id}@${rev}.${format}` and `${id}#original`
   private listeners = new Set<Listener>();
+  private version = 0;
 
   static getInstance(): StudioStore {
     if (!StudioStore.instance) StudioStore.instance = new StudioStore();
@@ -108,6 +118,7 @@ export default class StudioStore {
         /* quota: the in-memory store still holds everything this session */
       }
     }
+    this.version += 1;
     const list = this.list();
     for (const l of this.listeners) l(list);
   }
@@ -115,6 +126,11 @@ export default class StudioStore {
   subscribe(listener: Listener): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
+  }
+
+  /** Changes on every write: a stable snapshot for useSyncExternalStore. */
+  getVersion(): number {
+    return this.version;
   }
 
   list(): StudioArtifact[] {
@@ -225,7 +241,7 @@ export default class StudioStore {
     if (!r) return { ok: false, reason: `revision ${rev} not found` };
     let result: ExportResult;
     try {
-      result = await exportArtifact(r.spec, format);
+      result = await runExport(r.spec, format);
     } catch (error) {
       return { ok: false, reason: error instanceof Error ? error.message : String(error) };
     }

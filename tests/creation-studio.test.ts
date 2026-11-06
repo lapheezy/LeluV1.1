@@ -124,6 +124,15 @@ test("a spec is checked, never filled in: precise reasons for what is wrong", ()
   assert.equal(normalizeSpec({ kind: "workbook", title: "x", sheets: [{ name: "A", columns: ["a"] }, { name: "a", columns: ["b"] }] }).ok, false, "duplicate sheet names");
 });
 
+test("a blank corner header is a column: no row loses its last value", async () => {
+  const n = normalizeSpec({ kind: "deck", title: "x", slides: [{ title: "Compare", table: { columns: ["", "A", "B"], rows: [["cost", 1, 2]] } }] });
+  assert.ok(n.ok);
+  const r = await exportArtifact(n.ok ? n.spec : deck, "pptx");
+  assert.equal(r.verification.ok, true, JSON.stringify(r.verification.missing));
+  const read = await readArtifact(r.bytes, "pptx");
+  assert.deepEqual(read.spec!.kind === "deck" ? read.spec!.slides[0].table?.rows : null, [["cost", "1", "2"]]);
+});
+
 test("revisions as operations: chart kind change, slide move, cell formula — the old spec is untouched", () => {
   const r1 = applyOps(doc, [{ op: "updateChart", index: 1, chart: { kind: "line" } }]);
   assert.ok(r1.ok);
