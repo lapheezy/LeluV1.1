@@ -64,9 +64,21 @@ function parseCookies(header: string | undefined): Record<string, string> {
   return out;
 }
 
+/**
+ * Per-process salt for the constant-time comparison below.
+ *
+ * It was a hard-coded string, which Semgrep rightly reports as a
+ * hard-coded HMAC key. It was never key material protecting a
+ * secret (both sides are digested, then compared in constant
+ * time), but a random salt is strictly better and removes the
+ * finding instead of arguing with it: an attacker cannot precompute
+ * digests, and the value dies with the process.
+ */
+const COMPARE_SALT = randomBytes(32);
+
 function sameSecret(a: string, b: string): boolean {
-  const ha = createHmac("sha256", "lelu-compare").update(a).digest();
-  const hb = createHmac("sha256", "lelu-compare").update(b).digest();
+  const ha = createHmac("sha256", COMPARE_SALT).update(a).digest();
+  const hb = createHmac("sha256", COMPARE_SALT).update(b).digest();
   return timingSafeEqual(ha, hb);
 }
 

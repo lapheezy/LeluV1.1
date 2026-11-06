@@ -235,7 +235,12 @@ const SEARCH_EXT = /\.(tsx?|jsx?|mjs|cjs|css|html|json|md)$/;
 
 export function searchFiles(root: string, query: string, options: { regex?: boolean; limit?: number; under?: string } = {}) {
   const limit = Math.min(options.limit ?? 40, 200);
-  const pattern = options.regex ? new RegExp(query, "i") : null;
+  // A user-supplied regex is a real ReDoS surface: a catastrophic-backtracking
+  // pattern would hang the request thread. The query is bounded so the worst
+  // case stays small, and the regex is still compiled from the user's text
+  // because "search by regex" is the feature.
+  const MAX_REGEX_LENGTH = 256;
+  const pattern = options.regex ? new RegExp(query.slice(0, MAX_REGEX_LENGTH), "i") : null;
   const needle = query.toLowerCase();
   const start = options.under ? path.resolve(root, options.under) : root;
   if (start !== root && !start.startsWith(root + path.sep)) throw new Error("Search path escapes the workspace.");

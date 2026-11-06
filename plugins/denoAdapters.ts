@@ -14,6 +14,7 @@
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { createHash } from "node:crypto";
 import { lineChangeCounts, unifiedPatch } from "./lineDiff.ts";
+import { assertSafeShellCommand } from "./commandSafety.ts";
 import { BASELINE_FILE, classifyChanges, isBinary, parseBaseline, serializeBaseline } from "./workspaceBaseline.ts";
 import {
   WorkspaceBoundaryError,
@@ -119,6 +120,19 @@ export function createDenoEngineerAdapter(runtime: string): EngineerAdapter {
     cwd?: string,
   ): Promise<EngineerCommandResult> {
     const started = Date.now();
+    // Deno runs the command through `bash -c`, so the same string check the
+    // Node adapter applies is required here (see plugins/commandSafety.ts).
+    try {
+      assertSafeShellCommand(command);
+    } catch (error) {
+      return {
+        ok: false,
+        status: 1,
+        stdout: "",
+        stderr: error instanceof Error ? error.message : "Command refused.",
+        durationMs: Date.now() - started,
+      };
+    }
     try {
       const cmd = new Deno.Command("bash", {
         args: ["-c", command],
