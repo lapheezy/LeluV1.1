@@ -107,6 +107,10 @@ export const RESEARCH_FOCUS: Record<string, string[]> = {
   tech: ["technology", "developer", "startups"],
   weather: ["weather"],
   location: ["geography", "location", "map", "place"],
+  dictionary: ["dictionary", "definition"],
+  books: ["books", "literature"],
+  currency: ["currency", "exchange-rate"],
+  earthquakes: ["earthquake", "hazards"],
 };
 const RESEARCH_FOCUS_IDS = Object.keys(RESEARCH_FOCUS);
 

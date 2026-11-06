@@ -85,6 +85,12 @@ import {
   GuardianProvider,
   NewsDataProvider,
 } from "../providers/NewsFallbackProviders";
+import {
+  DictionaryProvider,
+  FrankfurterProvider,
+  OpenLibraryProvider,
+  UsgsEarthquakeProvider,
+} from "../providers/ReferenceProviders";
 
 
 export default function registerProviders():
@@ -184,6 +190,13 @@ export default function registerProviders():
   registry.register(new GNewsProvider());
   registry.register(new GuardianProvider());
   registry.register(new NewsDataProvider());
+
+  // Key-less reference sources added by the API-ecosystem inventory. Each
+  // one's canSearch() declines anything that is not its kind of question.
+  registry.register(new DictionaryProvider());
+  registry.register(new OpenLibraryProvider());
+  registry.register(new FrankfurterProvider());
+  registry.register(new UsgsEarthquakeProvider());
 
   return registry;
 

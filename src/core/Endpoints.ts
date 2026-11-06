@@ -358,6 +358,23 @@ export const ENDPOINTS = {
     fallback: "https://hn.algolia.com/api/v1",
     description: "Hacker News search (Algolia)",
   },
+
+  /* ---- reference (API ecosystem, 2026-11) ---- */
+  dictionary: {
+    names: ["DICTIONARY_API_URL"],
+    fallback: "https://api.dictionaryapi.dev",
+    description: "Free Dictionary API (Wiktionary definitions)",
+  },
+  openlibrary: {
+    names: ["OPENLIBRARY_API_URL"],
+    fallback: "https://openlibrary.org",
+    description: "Open Library book search",
+  },
+  frankfurter: {
+    names: ["FRANKFURTER_API_URL"],
+    fallback: "https://api.frankfurter.dev",
+    description: "Frankfurter — ECB daily reference exchange rates",
+  },
   meshy: {
     names: ["MESHY_API_URL"],
     fallback: "https://api.meshy.ai",
