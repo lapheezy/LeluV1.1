@@ -7,6 +7,9 @@
  *   GET  /api/integration/status   → what each integration really is
  *   POST /api/integration/policy   → a REAL OPA decision
  *   POST /api/integration/scan     → REAL gitleaks/trivy/semgrep runs
+ *   GET  /api/integration/intelligence       → the four-studio snapshot
+ *   GET  /api/integration/intelligence/explain?capability=… → why it is blocked
+ *   POST /api/integration/intelligence/plan  → an activation plan (never executes)
  *
  * Every answer here is observed, not asserted:
  *   • `/status` probes each service and reports it unconfigured
@@ -34,6 +37,7 @@ import { detectOpa, evaluateWithOpa } from "./integration/opa.ts";
 import { probeAllServices } from "./integration/services.ts";
 import { runSecurityGate, type ScannerId } from "./integration/scanners.ts";
 import { integrationState } from "./integration/state.ts";
+import { collectOperationalSnapshot, explainOperationalState, planActivation } from "./integration/intelligence.ts";
 import { evaluatePolicy, type PolicyInput } from "../src/core/security/policy.ts";
 import { VadDetector } from "../src/core/voice/adapters/VoiceAdapters.ts";
 
@@ -107,6 +111,15 @@ function sameOrigin(request: IncomingMessage, options: IntegrationApiOptions): b
   } catch {
     return false;
   }
+}
+
+/** This server's own origin, for probing its own APIs honestly. */
+function publicOrigin(request: IncomingMessage): string | undefined {
+  const host = request.headers.host;
+  if (!host) return undefined;
+  const forwarded = request.headers["x-forwarded-proto"];
+  const proto = (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(",")[0]?.trim() || "http";
+  return `${proto}://${host}`;
 }
 
 function authorized(request: IncomingMessage, options: IntegrationApiOptions): { ok: boolean; status: number; reason: string } {
@@ -493,6 +506,64 @@ export async function handleIntegrationRoute(
         p95: null,
         detail: "No audio device or synthesis server is reachable from this runtime, so no sample has been recorded.",
       },
+    });
+    return true;
+  }
+
+  if (route === "/api/integration/intelligence" && method === "GET") {
+    const gate = authorized(request, options);
+    const query = new URL(request.url ?? "/", "http://localhost").searchParams;
+    const snapshot = await collectOperationalSnapshot({
+      workspaceRoot: options.workspaceRoot,
+      baseUrl: publicOrigin(request),
+      force: query.get("refresh") === "1",
+    });
+    sendJson(response, 200, { ok: true, tokenAccepted: gate.ok, snapshot });
+    return true;
+  }
+
+  if (route === "/api/integration/intelligence/explain" && method === "GET") {
+    const gate = authorized(request, options);
+    const query = new URL(request.url ?? "/", "http://localhost").searchParams;
+    const capability = (query.get("capability") ?? "").trim();
+    if (!/^[a-z0-9][a-z0-9._-]{2,80}$/i.test(capability)) {
+      sendJson(response, 400, { ok: false, error: "capability must be a capability id, e.g. engineering.openhands.execute" });
+      return true;
+    }
+    const explanation = await explainOperationalState(capability, {
+      workspaceRoot: options.workspaceRoot,
+      baseUrl: publicOrigin(request),
+    });
+    sendJson(response, 200, { ok: true, tokenAccepted: gate.ok, ...explanation });
+    return true;
+  }
+
+  if (route === "/api/integration/intelligence/plan" && method === "POST") {
+    if (!sameOrigin(request, options)) {
+      sendJson(response, 403, { ok: false, error: "Cross-origin POST refused." });
+      return true;
+    }
+    const gate = authorized(request, options);
+    if (!gate.ok) {
+      sendJson(response, gate.status, { ok: false, error: gate.reason });
+      return true;
+    }
+    const body = (await readBody(request)) as { goal?: unknown };
+    if (typeof body.goal !== "string" || !body.goal.trim()) {
+      sendJson(response, 400, { ok: false, error: "goal is required" });
+      return true;
+    }
+    // A plan is a proposal. This route never dispatches work: execution is
+    // AdapterRegistry + EngineeringOrchestrator, and it is not called here.
+    const { plan, snapshot } = await planActivation(body.goal.trim().slice(0, 400), {
+      workspaceRoot: options.workspaceRoot,
+      baseUrl: publicOrigin(request),
+    });
+    sendJson(response, 200, {
+      ok: true,
+      plan,
+      snapshotId: snapshot.snapshotId,
+      readiness: snapshot.overallReadiness,
     });
     return true;
   }
