@@ -109,6 +109,8 @@ export function framingPose(
     aspect?: number;
     padding?: number;
     camera?: LiveCameraState | null;
+    /** Explicit viewing direction (overrides the camera's current angle). */
+    direction?: [number, number, number];
   } = {},
 ): SpatialCameraPose {
   const { center, radius } = frameSubjects(subjects);
@@ -129,13 +131,15 @@ export function framingPose(
 
   // Keep the viewing angle the person already has; fall back to a
   // three-quarter view when there is no live camera yet.
-  const rawDirection: [number, number, number] = options.camera
-    ? [
-        options.camera.position[0] - center.x,
-        options.camera.position[1] - center.y,
-        options.camera.position[2] - center.z,
-      ]
-    : FALLBACK_DIRECTION;
+  const rawDirection: [number, number, number] =
+    options.direction ??
+    (options.camera
+      ? [
+          options.camera.position[0] - center.x,
+          options.camera.position[1] - center.y,
+          options.camera.position[2] - center.z,
+        ]
+      : FALLBACK_DIRECTION);
   const direction = normalise(length(rawDirection) < 1e-3 ? FALLBACK_DIRECTION : rawDirection);
 
   const position: SpatialVec3 = {
@@ -201,12 +205,16 @@ export default class SpatialCameraApplier {
     return subjects;
   }
 
-  public focus(references: readonly string[], padding?: number): CameraPlan {
+  public focus(
+    references: readonly string[],
+    padding?: number,
+    direction?: [number, number, number],
+  ): CameraPlan {
     beginSpatialCameraTakeover();
     const resolved = this.subjectsFor(references);
     if ("refusal" in resolved) return { ok: false, refusal: resolved.refusal };
     const camera = liveCamera();
-    const pose = framingPose(resolved, { padding, camera, aspect: camera?.aspect });
+    const pose = framingPose(resolved, { padding, camera, aspect: camera?.aspect, direction });
     return this.dispatch(pose, resolved);
   }
 

@@ -297,7 +297,18 @@ export type SpatialIntent =
   | { op: "scene.undo" }
   | { op: "scene.compose"; request: string; anchor?: string }
   | { op: "scene.commit"; planId?: string }
-  | { op: "camera.focus"; targets: string[]; padding?: number }
+  | {
+      op: "camera.focus";
+      targets: string[];
+      padding?: number;
+      /**
+       * A deliberate viewing direction from the subject. Without it the
+       * framing keeps whatever angle the person already had, which is right
+       * for "frame this" but can put a newly created object at the edge of
+       * the screen when the camera happened to face away from it.
+       */
+      direction?: [number, number, number];
+    }
   | { op: "camera.frame"; targets?: string[]; padding?: number }
   | { op: "camera.reset" }
   | { op: "camera.orbit"; target?: string; degrees: number }

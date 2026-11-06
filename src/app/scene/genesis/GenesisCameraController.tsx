@@ -98,6 +98,14 @@ export default function GenesisCameraController({
   const controlsRef = useRef<any>(null);
   const followTarget = useRef(new Vector3(0, 0, 0));
   const keysRef = useRef<Record<string, boolean>>({});
+  /**
+   * True while the camera is held by a gesture OR by a spatial command
+   * (LÉLU frames an object, then holds the view for the reveal). The
+   * planet-following drift below must not run then: it lerps the controls
+   * target back to the origin every frame, which slid a freshly framed
+   * object out of the middle of the screen while it was being looked at.
+   */
+  const cameraHeld = useRef(false);
 
   /*
    * Responsive framing: on narrow/portrait viewports the same composition
@@ -199,6 +207,21 @@ export default function GenesisCameraController({
    * view plane so it reads as walking, not zooming.
    */
   useEffect(() => {
+    const hold = () => {
+      cameraHeld.current = true;
+    };
+    const release = () => {
+      cameraHeld.current = false;
+    };
+    window.addEventListener("genesis-user-camera-start", hold);
+    window.addEventListener("genesis-user-camera-end", release);
+    return () => {
+      window.removeEventListener("genesis-user-camera-start", hold);
+      window.removeEventListener("genesis-user-camera-end", release);
+    };
+  }, []);
+
+  useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       const key = e.key.toLowerCase();
       if (key === "arrowup" || key === "arrowdown" || key === "arrowleft" || key === "arrowright") {
@@ -241,14 +264,16 @@ export default function GenesisCameraController({
     const toCam = camera.position.clone().sub(PLANET_CENTER);
     const dist = toCam.length();
 
-    if (dist < PLANET_RADIUS + 2.5 && dist > 0.001) {
-      // Entering the planet: focus the controls on the surface under us.
-      const dir = toCam.clone().normalize();
-      const surface = PLANET_CENTER.clone().addScaledVector(dir, PLANET_RADIUS);
-      controls.target.lerp(surface, 0.06);
-    } else if (controls.target.distanceTo(PLANET_CENTER) < 4) {
-      // Leaving the planet: gently drift the target back to the origin.
-      controls.target.lerp(ORIGIN, 0.04);
+    if (!cameraHeld.current) {
+      if (dist < PLANET_RADIUS + 2.5 && dist > 0.001) {
+        // Entering the planet: focus the controls on the surface under us.
+        const dir = toCam.clone().normalize();
+        const surface = PLANET_CENTER.clone().addScaledVector(dir, PLANET_RADIUS);
+        controls.target.lerp(surface, 0.06);
+      } else if (controls.target.distanceTo(PLANET_CENTER) < 4) {
+        // Leaving the planet: gently drift the target back to the origin.
+        controls.target.lerp(ORIGIN, 0.04);
+      }
     }
 
     // WASD / arrow-key walking at close range.

@@ -27,6 +27,7 @@ import SpatialComposition from "./SpatialComposition";
 import { liveCamera } from "./SpatialLiveScene";
 import SpatialObjectRegistry from "./SpatialObjectRegistry";
 import SpatialPresence, { type SpatialTraversal } from "./SpatialPresence";
+import SpatialRevealIntent from "./SpatialRevealIntent";
 import SpatialMutationBridge from "./SpatialMutationBridge";
 import SpatialSceneGraph, { type SpatialMutation } from "./SpatialSceneGraph";
 import SpatialTierGuard from "./SpatialTierGuard";
@@ -35,6 +36,7 @@ import {
   SPATIAL_LIMITS,
   SPATIAL_PRIMITIVE_LABELS,
   defaultSpatialPlacement,
+  type SpatialCameraPose,
   type SpatialIntent,
   type SpatialIntentResult,
   type SpatialMaterial,
@@ -60,11 +62,15 @@ import {
  * the middle of its flight. With no renderer attached (tests, SSR) this
  * returns immediately: there is no camera to wait for.
  */
-async function settleCamera(budgetMs = 6000): Promise<ReturnType<typeof liveCamera>> {
+async function settleCamera(
+  expected?: SpatialCameraPose,
+  budgetMs = 6000,
+): Promise<ReturnType<typeof liveCamera>> {
   if (!liveCamera()) return null;
   const started = Date.now();
   let previous = liveCamera();
   let stableSince = Date.now();
+  let arrivedSince: number | null = null;
   while (Date.now() - started < budgetMs) {
     await delay(90);
     const current = liveCamera();
@@ -77,6 +83,22 @@ async function settleCamera(budgetMs = 6000): Promise<ReturnType<typeof liveCame
         )
       : Number.POSITIVE_INFINITY;
     previous = current;
+    // An expected pose is the honest arrival test: the rig is at rest at
+    // its OLD pose for the first frames after a fly is dispatched, so
+    // "has stopped moving" alone certified a camera that had not left yet.
+    if (expected) {
+      const delta = Math.hypot(
+        current.position[0] - expected.position.x,
+        current.position[1] - expected.position.y,
+        current.position[2] - expected.position.z,
+      );
+      if (delta <= 0.35) {
+        arrivedSince ??= Date.now();
+        if (Date.now() - arrivedSince >= 180) return current;
+        continue;
+      }
+      arrivedSince = null;
+    }
     if (moved > 0.008) stableSince = Date.now();
     else if (Date.now() - stableSince >= 240) return current;
   }
@@ -346,6 +368,13 @@ export default class SpatialIntentBus {
     this.emitEvent(taskId, intent.op, plan.label);
     this.emitResult(taskId, plan.label, snapshot.revision);
 
+    // A created object is invisible while chat covers the world. Tell the
+    // interface which object has to be seen, so closing chat can land on
+    // the live Genesis world framed on it instead of the home dashboard.
+    if (intent.op === "object.create" && attention) {
+      SpatialRevealIntent.getInstance().request([attention.id], [attention.name]);
+    }
+
     const count = snapshot.objects.length;
     const message =
       intent.op === "object.create"
@@ -383,7 +412,7 @@ export default class SpatialIntentBus {
     let plan;
     switch (intent.op) {
       case "camera.focus":
-        plan = applier.focus(intent.targets, intent.padding);
+        plan = applier.focus(intent.targets, intent.padding, intent.direction);
         break;
       case "camera.frame":
         plan = applier.frameAll(intent.padding);
@@ -407,7 +436,7 @@ export default class SpatialIntentBus {
     this.emitStarted(taskId, `move the camera (${intent.op})`);
     // The rig eases to the pose; wait for it to come to rest so verification
     // reads the camera that is actually on screen, not a mid-flight frame.
-    const measured = await settleCamera();
+    const measured = await settleCamera(plan.pose);
     const report = summarize(
       intent.op === "camera.reset" ? verifyCameraHome(measured) : verifyCamera(plan.pose, measured),
       { screenshot: "not-captured" },
@@ -550,6 +579,13 @@ export default class SpatialIntentBus {
     });
     this.emitEvent(taskId, "scene.commit", plan.summary);
     this.emitResult(taskId, "committed the composition", committed.revision);
+
+    if (created.length > 0) {
+      SpatialRevealIntent.getInstance().request(
+        created.map((object) => object.id),
+        created.map((object) => object.name),
+      );
+    }
 
     return {
       ok: true,
