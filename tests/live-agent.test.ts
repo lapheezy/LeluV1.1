@@ -262,6 +262,11 @@ test("an OpenAI-shaped HTTP error is thrown with the API's own message", async (
 });
 
 async function anthropicWith(response: Response) {
+  // These tests exercise the Anthropic adapter's streaming, so they opt in:
+  // Anthropic is disabled by policy unless LELU_ENABLE_ANTHROPIC is true
+  // (ProviderPolicy, enforced in the page and in the server broker).
+  const previousOptIn = process.env.LELU_ENABLE_ANTHROPIC;
+  process.env.LELU_ENABLE_ANTHROPIC = "true";
   const { default: AnthropicProvider } = await import("../src/providers/AnthropicProvider");
   const provider = new AnthropicProvider();
   // A direct (non-brokered) send in Node: a fake key, a fake fetch.
@@ -272,7 +277,15 @@ async function anthropicWith(response: Response) {
     sent.push(JSON.parse(String(init?.body ?? "{}")));
     return response;
   }) as typeof fetch;
-  return { provider, sent, restore: () => { globalThis.fetch = realFetch; } };
+  return {
+    provider,
+    sent,
+    restore: () => {
+      globalThis.fetch = realFetch;
+      if (previousOptIn === undefined) delete process.env.LELU_ENABLE_ANTHROPIC;
+      else process.env.LELU_ENABLE_ANTHROPIC = previousOptIn;
+    },
+  };
 }
 
 test("Anthropic streams with tools on, and returns the tool_use blocks whole", async () => {

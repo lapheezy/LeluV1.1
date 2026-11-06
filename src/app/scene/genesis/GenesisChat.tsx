@@ -1044,6 +1044,8 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
   menusOpenRef.current = optionsOpen || mediaOpen;
   const headerRef = useRef<HTMLDivElement>(null);
   const dockRef = useRef<HTMLDivElement>(null);
+  /** Mirrors isMobileViewport (computed below) for the layout listener. */
+  const fillsScreenRef = useRef(false);
   /** Exact size from an approved interface layout (null = size preset). */
   const [chatCustomSize, setChatCustomSize] = useState<{ width: number; height: number } | null>(null);
 
@@ -1059,7 +1061,10 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         return;
       }
       setChatMinimized(false);
-      if (window.matchMedia("(max-width: 720px)").matches) {
+      // Compactness comes from the chat's own measured workspace (the same
+      // chatFillsScreen() the layout uses), never from a window-width query,
+      // which cannot see the container the chat is mounted in.
+      if (fillsScreenRef.current) {
         setChatPos({ x: -1, y: -1 });
         return;
       }
@@ -1095,6 +1100,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
   // Same rule as chat/chatLayout chatFillsScreen(): narrow OR short (a
   // landscape phone) gets the full-screen sky.
   const isMobileViewport = chatFillsScreen(workspace);
+  fillsScreenRef.current = isMobileViewport;
   /** Short screens (a phone on its side) fold the question card to one line. */
   const shortScreen = workspace.visibleHeight < 560;
   const [questionOpen, setQuestionOpen] = useState(false);
