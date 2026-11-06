@@ -368,10 +368,13 @@ export default class SpatialIntentBus {
     this.emitEvent(taskId, intent.op, plan.label);
     this.emitResult(taskId, plan.label, snapshot.revision);
 
-    // A created object is invisible while chat covers the world. Tell the
-    // interface which object has to be seen, so closing chat can land on
-    // the live Genesis world framed on it instead of the home dashboard.
-    if (intent.op === "object.create" && attention) {
+    // A scene change is invisible while chat covers the world — not only a
+    // creation. A moved, resized or recoloured object has to be seen too, or
+    // the reply describes something the user cannot look at. Every verified
+    // mutation therefore asks the interface to reveal its subject, whatever
+    // surface asked for it (chat, voice, the palette, a panel). A delete is
+    // the one exception: there is nothing left to frame.
+    if (intent.op !== "object.delete" && attention) {
       SpatialRevealIntent.getInstance().request([attention.id], [attention.name]);
     }
 
@@ -852,6 +855,12 @@ export default class SpatialIntentBus {
       const color = normalizeSpatialColor(intent.color);
       if (!color) return fail("validation-failed", `"${intent.color}" is not a #rrggbb colour`);
       patch.color = color;
+      // The glow is part of what a colour looks like. Objects carry a violet
+      // emissive by default, so changing only the base colour left a repainted
+      // object visibly violet on screen — the change committed and could not
+      // be seen. Mirror the colour unless a specific glow was asked for, which
+      // is the same convention a composed scene uses.
+      if (intent.emissive === undefined) patch.emissive = color;
     }
     if (intent.emissive !== undefined) {
       const emissive = normalizeSpatialColor(intent.emissive);

@@ -133,13 +133,19 @@ rather than smoothed over.
 | Check | Result |
 | --- | --- |
 | `bun run typecheck` | exit 0 |
-| `bun test tests/spatial-reveal.test.ts tests/spatial-integration.test.ts tests/chat-surface.test.ts` | **51 pass, 0 fail** |
+| `bun run test tests/spatial-reveal.test.ts …` (tsx, `node:test`) | **51 pass, 0 fail** |
 | `bun run lint` | **0 errors**, 108 warnings (unchanged) |
-| `bun test` (clean env) | **1334 pass, 38 fail, 6 skip** — same 38 failures as the Phase 2.5 baseline (pre-existing autonomy/`indexedDB` environment failures); +5 new passing reveal tests |
+| `bun run test` (the project's runner) | **1389 pass, 1 fail, 6 skip** — the single failure was this phase's `tests/spatial-reveal.test.ts` importing `bun:test`, fixed in Phase 2.7 |
 | Playwright | 3 viewport runs, 3 traces, no page error or crash |
 
-Run the suite with `env -u CHROME -u LD_LIBRARY_PATH -u FONTCONFIG_FILE`;
-exporting `CHROME` makes a browser-dependent layout test run instead of skipping.
+**Correction (Phase 2.7):** an earlier version of this table reported
+`bun test` — **1334 pass / 38 fail / 6 skip** — and attributed the 38 failures to
+pre-existing product bugs. That was wrong. `bun test` is not this project's test
+command; the suite is `bun run test` (`tsx --test` with `tests/support/ignore-css.mjs`,
+tests import `node:test`). Under the real runner those 38 were the same files
+passing, and the only genuine failure was the one introduced here. Corrected
+numbers and the full explanation are in
+[`../spatial-phase-2-7/REPORT.md`](../spatial-phase-2-7/REPORT.md) §4.
 
 ## 7. Files
 

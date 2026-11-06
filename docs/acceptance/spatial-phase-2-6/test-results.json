@@ -7,14 +7,16 @@
     "spatialAndChatSuites": "51 pass, 0 fail (spatial-reveal 5, spatial-integration 23, chat-surface 23)",
     "lint": "0 errors, 108 warnings",
     "fullSuite": {
-      "pass": 1334,
-      "fail": 38,
+      "runner": "bun run test (tsx --test, node:test) — the project's configured command",
+      "pass": 1389,
+      "fail": 1,
       "skip": 6,
       "exit": 1,
-      "note": "run with env -u CHROME -u LD_LIBRARY_PATH -u FONTCONFIG_FILE"
+      "failure": "tests/spatial-reveal.test.ts imported bun:test (ERR_UNSUPPORTED_ESM_URL_SCHEME); fixed in Phase 2.7"
     },
-    "baselinePhase25": {
-      "pass": 1329,
+    "supersededMeasurement": {
+      "note": "an earlier gate reported `bun test` — 1334 pass / 38 fail / 6 skip — and called those failures pre-existing. bun test is not this project's runner; under `bun run test` the same files pass. See ../spatial-phase-2-7/REPORT.md §4.",
+      "pass": 1334,
       "fail": 38,
       "skip": 6
     },
