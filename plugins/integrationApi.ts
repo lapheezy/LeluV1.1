@@ -38,6 +38,7 @@ import { probeAllServices } from "./integration/services.ts";
 import { runSecurityGate, type ScannerId } from "./integration/scanners.ts";
 import { integrationState } from "./integration/state.ts";
 import { collectOperationalSnapshot, explainOperationalState, planActivation } from "./integration/intelligence.ts";
+import { openCodeHealth, runOpenCodeTask } from "./integration/opencode.ts";
 import { REPOSITORY_CATALOG, dependencyCoverage, repositoryCoverage } from "../src/core/operational-intelligence/index.ts";
 import { evaluatePolicy, type PolicyInput } from "../src/core/security/policy.ts";
 import { VadDetector } from "../src/core/voice/adapters/VoiceAdapters.ts";
@@ -587,6 +588,47 @@ export async function handleIntegrationRoute(
       snapshotId: snapshot.snapshotId,
       readiness: snapshot.overallReadiness,
     });
+    return true;
+  }
+
+  /**
+   * OPENCODE — the one execution boundary for that engine.
+   *
+   * Health answers whether a real server is configured and reachable;
+   * run dispatches one objective and refuses with the real reason when
+   * it is not. Neither route substitutes the local shell: an engine the
+   * caller did not ask for is not a fallback, it is a different task.
+   */
+  if (route === "/api/integration/opencode/health" && method === "GET") {
+    const gate = authorized(request, options);
+    const health = await openCodeHealth();
+    sendJson(response, 200, { ok: true, tokenAccepted: gate.ok, ...health });
+    return true;
+  }
+
+  if (route === "/api/integration/opencode/run" && method === "POST") {
+    if (!sameOrigin(request, options)) {
+      sendJson(response, 403, { ok: false, error: "Cross-origin POST refused." });
+      return true;
+    }
+    const gate = authorized(request, options);
+    if (!gate.ok) {
+      sendJson(response, gate.status, { ok: false, error: gate.reason });
+      return true;
+    }
+    const body = (await readBody(request)) as { objective?: unknown; workspace?: unknown; checks?: unknown };
+    if (typeof body.objective !== "string" || !body.objective.trim()) {
+      sendJson(response, 400, { ok: false, error: "objective is required" });
+      return true;
+    }
+    const result = await runOpenCodeTask({
+      objective: body.objective.trim().slice(0, 4_000),
+      ...(typeof body.workspace === "string" ? { workspace: body.workspace } : {}),
+      checks: Array.isArray(body.checks)
+        ? body.checks.filter((check): check is string => typeof check === "string").slice(0, 10)
+        : [],
+    });
+    sendJson(response, result.ok ? 200 : 503, { ...result, ok: result.ok });
     return true;
   }
 

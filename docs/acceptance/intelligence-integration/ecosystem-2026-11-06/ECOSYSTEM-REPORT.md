@@ -146,7 +146,30 @@ unlicensed, or redundant.
 | `ccca94d` | Phase 3A gate report + evidence |
 | `06fa205` | chat stage, repository catalog, declaration guard, `/api/integration/repositories` |
 
-## 9. First end-to-end demonstration — NOT VERIFIED
+## 9. Chat routing — root cause found and fixed (2026-11-06, follow-up pass)
+
+A routing trace was added (`src/core/router/RoutingTrace.ts`) and the live turns
+re-measured. The stage was reaching the turn but **throwing while formatting the
+payload**: a non-JSON 2xx body became `{}`, `formatExplanation` read
+`reasons.length` on `undefined`, and the catch returned `handled: false`, so the
+provider answered an operational question from model context.
+
+Fixed by validating the payload (`coerceExplanation`/`coerceSnapshot`), making
+the formatters tolerant of absent arrays, and **never letting an operational
+question fall through to the model** — when state cannot be read, the stage says
+so and refuses to guess. Ordinary conversation still goes to the provider.
+
+Measured after the fix: the previously failing phrasing
+("What's blocking OpenHands from running?") is owned by `IntelligenceResolver`
+(1 933 ms, `capability-explanation`) instead of OpenRouter. Full audit:
+`docs/audit/2026-11-06/ECOSYSTEM-ROUTING-AUDIT.md`.
+
+OpenCode is now **integrated as a real backend**: server adapter, orchestrator
+registration, `/health` and `/run` routes. Live: `not_configured`
+(`OPENCODE_BASE_URL` unset) and a 503 refusal that dispatches nothing. The
+dispatch path is stub-tested, not verified against a running engine.
+
+### Original observation (now explained)
 
 What was implemented and proven:
 
@@ -169,12 +192,12 @@ This means acceptance criterion 1 ("existing operational intelligence works thro
 | `tests/operational-chat-stage.test.ts` | 6 pass, 0 fail |
 | `tests/operational-ecosystem.test.ts` | 23 pass, 0 fail |
 | `tests/operational-intelligence.test.ts` | 30 pass, 0 fail |
-| Full suite | 1419 tests, 1417 pass, 0 fail, 2 skipped (exit 0) — re-run after the final edit |
+| Full suite | 1433 tests, 1431 pass, 0 fail, 2 skipped (exit 0) — after the routing fix and OpenCode integration |
 | Live routes | `/api/integration/repositories`, `/api/integration/intelligence` captured as JSON |
 
 ## 11. Limitations and next steps
 
-1. Fix the live chat routing gap — instrument `AIRouter.route` to record which stage claimed the turn, then correct the ordering or the surface.
+1. Capture the remaining live acceptance turns (snapshot, plan, unrelated question, provider fallback) on a stable browser — the paths are unit-tested, the live runs are not.
 2. No repository was installed in this pass; `PRESENT` remains the only state backed by evidence, and OpenHands/OpenCode stay `NOT_CONFIGURED`.
 3. The requirement table now covers all 27 reported capabilities, but new capabilities still need an explicit declaration; the guard reports omissions instead of assuming readiness.
 4. Panels for the new intelligence views (Studio, Perception, Device) do not exist yet.

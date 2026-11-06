@@ -24,6 +24,7 @@
 import Telemetry from "../../src/core/observability/Telemetry.ts";
 import RelationshipStore from "../../src/core/security/authz/RelationshipStore.ts";
 import EngineeringOrchestrator from "../../src/core/engineering/EngineeringOrchestrator.ts";
+import OpenCodeBackend from "../../src/core/engineering/OpenCodeBackend.ts";
 import type { runSecurityGate } from "./scanners.ts";
 
 /** The gate's own report shape, taken from the function that produces it. */
@@ -72,12 +73,36 @@ export class IntegrationState {
   public readonly relationships = RelationshipStore.getInstance();
   public readonly orchestrator = EngineeringOrchestrator.getInstance();
 
+  /**
+   * Real engine registration, done once per process.
+   *
+   * OpenCode is registered because a backend genuinely exists (it
+   * transports to the OpenCode server route). Registration is NOT a
+   * health claim: with OPENCODE_BASE_URL unset its health probe answers
+   * `not_configured`, so the orchestrator still refuses to dispatch and
+   * says why. Registering it is what lets the studios report "backend
+   * registered, runtime not configured" instead of "no backend at all".
+   */
+  private registerEngines(): void {
+    try {
+      if (!this.orchestrator.backends_().some((backend) => backend.id === "opencode")) {
+        this.orchestrator.registerBackend(new OpenCodeBackend());
+      }
+    } catch {
+      // A registration failure must never stop integrations starting;
+      // the engineering snapshot reports the missing backend honestly.
+    }
+  }
+
   private decisions: DecisionRecord[] = [];
   private scans: ScanRecord[] = [];
   private audit: AuditEntry[] = [];
 
   public static getInstance(): IntegrationState {
-    if (!IntegrationState.instance) IntegrationState.instance = new IntegrationState();
+    if (!IntegrationState.instance) {
+      IntegrationState.instance = new IntegrationState();
+      IntegrationState.instance.registerEngines();
+    }
     return IntegrationState.instance;
   }
 

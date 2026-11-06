@@ -28,6 +28,7 @@ import type { BrainResult } from "./RouterResults";
 import AgentEventBus from "../agent/AgentEvents";
 import type { OperationalSnapshot } from "../operational-intelligence/types.ts";
 import { repositoryCoverage, REPOSITORY_CATALOG } from "../operational-intelligence/repositories.ts";
+import { note } from "./RoutingTrace";
 
 export type IntelligenceIntent =
   | { kind: "snapshot" }
@@ -156,17 +157,19 @@ export interface ExplanationPayload {
 }
 
 export function formatExplanation(payload: ExplanationPayload): string {
+  const reasons = Array.isArray(payload.reasons) ? payload.reasons : [];
+  const requirements = Array.isArray(payload.requirements) ? payload.requirements : [];
   const lines: string[] = [];
   lines.push(`**\`${payload.capabilityId}\`** is **${payload.state}**.`);
-  if (payload.reasons.length > 0) {
+  if (reasons.length > 0) {
     lines.push("");
     lines.push("Why:");
-    for (const reason of payload.reasons) lines.push(`- ${reason}`);
+    for (const reason of reasons) lines.push(`- ${reason}`);
   }
-  if (payload.requirements.length > 0) {
+  if (requirements.length > 0) {
     lines.push("");
     lines.push("Requirements:");
-    for (const requirement of payload.requirements) {
+    for (const requirement of requirements) {
       const mark = requirement.reason === "satisfied" ? "met" : "missing";
       lines.push(`- \`${requirement.required}\` — ${requirement.state} (${mark})${requirement.reason === "satisfied" ? "" : `: ${requirement.reason}`}`);
     }
@@ -247,12 +250,56 @@ async function getJson<T>(path: string, timeoutMs = 8000): Promise<T> {
   return body;
 }
 
+/**
+ * A 200 is not a promise that the body has the shape we asked for.
+ *
+ * Measured: a slow explain call came back as a non-JSON body, `json()`
+ * fell back to `{}`, and the formatter threw on `reasons.length`. The
+ * catch then handed an OPERATIONAL question to the model, which
+ * described OpenHands from its own guess — the exact fabrication this
+ * stage exists to prevent. So the payload is checked, and a body that
+ * is not an explanation is refused with a reason rather than formatted.
+ */
+function coerceExplanation(raw: unknown): ExplanationPayload {
+  const body = (raw ?? {}) as Partial<ExplanationPayload>;
+  if (typeof body.capabilityId !== "string" || !body.capabilityId || typeof body.state !== "string" || !body.state) {
+    throw new Error("the explain endpoint answered without a capability id and state");
+  }
+  return {
+    capabilityId: body.capabilityId,
+    state: body.state,
+    reasons: Array.isArray(body.reasons) ? body.reasons.filter((reason): reason is string => typeof reason === "string") : [],
+    requirements: Array.isArray(body.requirements)
+      ? body.requirements.filter(
+          (item): item is ExplanationPayload["requirements"][number] =>
+            Boolean(item) && typeof item.required === "string" && typeof item.state === "string",
+        )
+      : [],
+  };
+}
+
+/** The snapshot is checked the same way: no arrays, no answer. */
+function coerceSnapshot(raw: unknown): OperationalSnapshot {
+  const snapshot = (raw as { snapshot?: OperationalSnapshot } | null)?.snapshot;
+  if (!snapshot || !Array.isArray(snapshot.capabilities) || !Array.isArray(snapshot.studioStatuses)) {
+    throw new Error("the intelligence endpoint answered without a usable snapshot");
+  }
+  return snapshot;
+}
+
 export default class IntelligenceResolver {
   public async execute(context: RouterContext): Promise<BrainResult> {
     const prompt = context.request?.prompt ?? "";
     const intent = detectIntelligenceIntent(prompt);
     if (!intent) return { handled: false };
     if (typeof fetch !== "function") return { handled: false };
+
+    note(
+      context,
+      "intelligence.intent",
+      `${intent.kind}${intent.kind === "explain" ? `:${intent.capability}` : intent.kind === "plan" ? `:${intent.goal.slice(0, 80)}` : ""}`,
+      true,
+    );
 
     const taskId = String(context.request.timestamp ?? Date.now());
     const events = AgentEventBus.getInstance();
@@ -264,17 +311,16 @@ export default class IntelligenceResolver {
       let model: string;
 
       if (intent.kind === "snapshot") {
-        const payload = await getJson<{ snapshot: OperationalSnapshot }>("/api/integration/intelligence");
-        text = formatSnapshot(payload.snapshot);
+        text = formatSnapshot(coerceSnapshot(await getJson("/api/integration/intelligence")));
         model = "operational-snapshot";
       } else if (intent.kind === "explain") {
-        const payload = await getJson<ExplanationPayload>(
-          `/api/integration/intelligence/explain?capability=${encodeURIComponent(intent.capability)}`,
+        const payload = coerceExplanation(
+          await getJson(`/api/integration/intelligence/explain?capability=${encodeURIComponent(intent.capability)}`),
         );
         if (payload.state === "NOT_REPORTED") {
           // Ask the snapshot which capabilities DO exist before claiming absence.
-          const snapshot = await getJson<{ snapshot: OperationalSnapshot }>("/api/integration/intelligence");
-          const alternatives = snapshot.snapshot.capabilities
+          const snapshot = coerceSnapshot(await getJson("/api/integration/intelligence"));
+          const alternatives = snapshot.capabilities
             .filter((capability) => capability.capabilityId.includes(intent.capability.split(".")[0] ?? ""))
             .slice(0, 6)
             .map((capability) => `- \`${capability.capabilityId}\` — ${capability.state}`);
@@ -310,20 +356,40 @@ export default class IntelligenceResolver {
         processingTime: Date.now() - context.started,
         metadata: { source: "IntelligenceResolver", kind: intent.kind, live: true },
       };
+      note(context, "intelligence.fetch", `${intent.kind} answered from live state (${model})`, true);
       context.logger.info("IntelligenceResolver", "Answered from operational intelligence", { kind: intent.kind });
       return { handled: true, response };
     } catch (error) {
-      // No data, no answer: the provider keeps the turn rather than this
-      // stage describing a state it could not read.
+      // THE ONE RULE: an operational question is never answered from a
+      // guess. When the surface cannot be read, this stage says so and
+      // names the reason. It used to return unhandled, and the provider
+      // then described capabilities it had never inspected — a fabricated
+      // installation status is worse than an admitted outage. Ordinary
+      // conversation never reaches here (the intent detector declines it
+      // before any fetch), so provider fallback for chat is unchanged.
+      const reason = error instanceof Error ? error.message : String(error);
+      const subject = intent.kind === "explain" ? `\`${intent.capability}\`` : "the live studios";
+      const response: AIResponse = {
+        text: [
+          `I could not read ${subject} from the integration surface just now: ${reason}`,
+          "",
+          "I am not going to guess whether it is installed, configured or running — that answer has to come from a live probe. Nothing has changed in the meantime, and nothing was executed.",
+        ].join("\n"),
+        provider: "intelligence",
+        model: "operational-unavailable",
+        processingTime: Date.now() - context.started,
+        metadata: { source: "IntelligenceResolver", kind: intent.kind, live: false, unavailable: true },
+      };
+      note(context, "intelligence.fetch", `could not read live state: ${reason}`, false);
       events.emit({
         type: "execution_phase",
         taskId,
         phase: "error",
         label: "Operational intelligence unavailable",
         side: "backend",
-        detail: error instanceof Error ? error.message : String(error),
+        detail: reason,
       });
-      return { handled: false };
+      return { handled: true, response };
     }
   }
 }

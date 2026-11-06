@@ -32,6 +32,8 @@ import { toolSchemasForModel } from "./tools/ToolSchemas";
 import { registryIdForToolName } from "./tools/ToolDispatcher";
 import WorkflowStore from "./workflows/WorkflowStore";
 import { cleanAssistantText } from "./router/ToolMarkup";
+import { beginRoutingTrace, finishRoutingTrace, noteStage } from "./router/RoutingTrace";
+import type { BrainResult } from "./router/RouterResults";
 
 export default class AIRouter {
   private readonly time = new TimeResolver();
@@ -117,8 +119,22 @@ export default class AIRouter {
     }
   }
 
-  /** Route an AI request. */
+  /**
+   * Route an AI request, recording WHICH stage claimed it.
+   *
+   * The wrapper changes no routing: it opens a trace for the turn,
+   * runs the existing chain, and closes the trace with the reply that
+   * was actually returned. Without it, "the stage never ran" and "the
+   * stage ran and something replaced it" are indistinguishable.
+   */
   public async route(context: RouterContext): Promise<AIResponse> {
+    beginRoutingTrace(context, context.request.prompt ?? "");
+    const response = await this.routeThroughStages(context);
+    finishRoutingTrace(context, response);
+    return response;
+  }
+
+  private async routeThroughStages(context: RouterContext): Promise<AIResponse> {
     // Route on availability that has been determined, not on the startup
     // default (engineering tools read "unavailable" until the runtime probe
     // answers). Bounded so a slow probe can never hold a turn hostage.
@@ -128,7 +144,7 @@ export default class AIRouter {
     ]);
 
     // 0. TIME — deterministic local capability, no external API needed
-    const timeResult = await this.time.execute(context);
+    const timeResult = await this.traced(context, "time", () => this.time.execute(context));
     if (timeResult.handled && timeResult.response) return timeResult.response;
 
     // 0.5 COGNITIVE STATE — "what are you thinking about?" REPORTS the
@@ -138,11 +154,11 @@ export default class AIRouter {
     // Must precede the brain stage, whose identity matcher would
     // otherwise claim "what are you …" and answer with the identity
     // statement instead.
-    const cognitiveState = await this.cognitiveState.execute(context);
+    const cognitiveState = await this.traced(context, "cognitive-state", () => this.cognitiveState.execute(context));
     if (cognitiveState.handled && cognitiveState.response) return cognitiveState.response;
 
     // 1. Brain / identity — always local
-    const brain = await this.brain.execute(context);
+    const brain = await this.traced(context, "brain", () => this.brain.execute(context));
     if (brain.handled && brain.response) return brain.response;
 
     // 1.2 OPERATIONAL INTELLIGENCE — "why can't you run OpenHands?" is
@@ -150,7 +166,7 @@ export default class AIRouter {
     // The stage reads the same /api/integration surface the panels do,
     // never an adapter, and returns unhandled when no data is available
     // so the provider keeps the turn instead of guessing.
-    const intelligence = await this.intelligence.execute(context);
+    const intelligence = await this.traced(context, "intelligence", () => this.intelligence.execute(context));
     if (intelligence.handled && intelligence.response) {
       return this.attachThinking(context, intelligence.response);
     }
@@ -159,7 +175,7 @@ export default class AIRouter {
     // 3d", "take me into gen v2". Chat is the primary control surface:
     // these EXECUTE the real UI state transition deterministically,
     // before any research/creative stage could misroute them.
-    const surface = await this.surfaces.execute(context);
+    const surface = await this.traced(context, "surface", () => this.surfaces.execute(context));
     if (surface.handled && surface.response) return surface.response;
 
     await this.planning.execute(context);
@@ -171,11 +187,11 @@ export default class AIRouter {
     // CAMERA capture from the word "capture", before the model saw it.
     const namesTool = this.namesAnOfferedTool(context);
     if (!namesTool) {
-      const tools = await this.tools.execute(context);
+      const tools = await this.traced(context, "tools", () => this.tools.execute(context));
       if (tools.handled && tools.response) return this.attachThinking(context, tools.response);
     }
 
-    const engineering = await this.engineering.execute(context);
+    const engineering = await this.traced(context, "engineering", () => this.engineering.execute(context));
     if (engineering.handled && engineering.response) return this.attachThinking(context, engineering.response);
 
     // The creative scaffold writes to the sandbox from keyword matching
@@ -185,7 +201,7 @@ export default class AIRouter {
     // engineering work, or the user names one of its tools, the turn is
     // the model's — the same stand-aside ProjectResolver already makes.
     if (!this.modelCanDoEngineeringWork(context) && !namesTool) {
-      const creative = await this.creative.execute(context);
+      const creative = await this.traced(context, "creative", () => this.creative.execute(context));
       if (creative.handled && creative.response) return this.attachThinking(context, creative.response);
     }
 
@@ -193,7 +209,7 @@ export default class AIRouter {
     // against the saved avatar runtime. MUST run before any research so
     // "update your avatar to 3d render and simulations" never becomes a
     // knowledge-search request.
-    const avatarResult = await this.avatar.execute(context);
+    const avatarResult = await this.traced(context, "avatar", () => this.avatar.execute(context));
     if (avatarResult.handled && avatarResult.response) {
       return this.attachThinking(context, avatarResult.response);
     }
@@ -228,7 +244,7 @@ export default class AIRouter {
       !this.modelCanRunWorkflow(context) &&
       !namesTool
     ) {
-      const projectResult = await this.projects.execute(context);
+      const projectResult = await this.traced(context, "projects", () => this.projects.execute(context));
       if (projectResult.handled && projectResult.response) {
         return this.attachThinking(context, projectResult.response);
       }
@@ -254,7 +270,9 @@ export default class AIRouter {
     // ResearchResolver applies its own narrower current-info gate for
     // chat intents on top of this.
     if (context.intent === "news" || context.intent === "search") {
+      const researchStarted = Date.now();
       const research = await this.research.execute(context);
+      noteStage(context, "research", research.handled, { durationMs: Date.now() - researchStarted });
       if (research.handled) {
         return this.attachThinking(
           context,
@@ -264,7 +282,9 @@ export default class AIRouter {
       // handled:false ⇒ results retrieved and attached to context;
       // continue so the AI provider synthesizes the answer from them.
     } else if (context.intent === "chat") {
+      const researchStarted = Date.now();
       const research = await this.research.execute(context);
+      noteStage(context, "research", research.handled, { durationMs: Date.now() - researchStarted });
       if (research.handled) {
         return this.attachThinking(
           context,
@@ -277,21 +297,23 @@ export default class AIRouter {
     // camera/surveillance intents, executes REAL Overpass queries, drives
     // the Earth Core (fly-to + ALPR layer), attaches real data to the
     // context, and returns unhandled so the provider answers over facts.
+    const deflockStarted = Date.now();
     await this.deflock.execute(context);
+    noteStage(context, "deflock", false, { durationMs: Date.now() - deflockStarted });
 
     // Keyword browsing ("browser" in "browser_capture") opened the in-app
     // Browser over the chat with the user's whole message as its address
     // (measured in the self-improvement run). A turn naming the model's
     // tools is the model's.
     if (!namesTool) {
-      const browser = await this.browser.execute(context);
+      const browser = await this.traced(context, "browser", () => this.browser.execute(context));
       if (browser.handled && browser.response) return this.attachThinking(context, browser.response);
     }
 
-    const workspace = await this.workspace.execute(context);
+    const workspace = await this.traced(context, "workspace", () => this.workspace.execute(context));
     if (workspace.handled && workspace.response) return this.attachThinking(context, workspace.response);
 
-    const provider = await this.providers.execute(context);
+    const provider = await this.traced(context, "provider", () => this.providers.execute(context));
     if (provider.handled && provider.response) {
       // Intercept raw tool-call markup before it reaches chat
       const intercepted = await this.interceptor.intercept(provider.response, context);
@@ -302,6 +324,22 @@ export default class AIRouter {
     }
 
     return this.attachThinking(context, this.responses.offline(context.started));
+  }
+
+  /** Run one stage and record its claim (or refusal) in this turn's trace. */
+  private async traced(
+    context: RouterContext,
+    stage: string,
+    run: () => Promise<BrainResult>,
+  ): Promise<BrainResult> {
+    const started = Date.now();
+    const result = await run();
+    noteStage(context, stage, result.handled, {
+      provider: result.response?.provider,
+      model: result.response?.model,
+      durationMs: Date.now() - started,
+    });
+    return result;
   }
 
   private attachThinking(context: RouterContext, response: AIResponse): AIResponse {

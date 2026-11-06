@@ -128,11 +128,54 @@ describe("chat stage answers from the real surface", () => {
     assert.ok(text.includes("connection refused"));
   });
 
-  test("an unreachable surface declines the turn rather than inventing a state", async () => {
+  test("an unreachable surface refuses to guess instead of letting the model invent a state", async () => {
     stub({}, true);
     const result = await new IntelligenceResolver().execute(context("why can't you run OpenHands?"));
-    assert.equal(result.handled, false);
-    assert.equal(result.response, undefined);
+    // It still owns the turn: an operational question must never be
+    // handed to the provider, which described OpenHands from its own
+    // guess when this stage returned unhandled (measured live).
+    assert.equal(result.handled, true);
+    const text = result.response?.text ?? "";
+    assert.ok(text.includes("could not read"));
+    assert.ok(text.includes("not going to guess"));
+    assert.equal(result.response?.metadata?.unavailable, true);
+  });
+
+  test("a 200 with a body that is not an explanation is refused, not formatted", async () => {
+    // Measured live: a slow explain answer arrived as a non-JSON body,
+    // json() fell back to {}, and formatExplanation threw on
+    // reasons.length — so the model answered an operational question.
+    stub({ "/intelligence/explain": { ok: true, html: "<html>proxy error</html>" } });
+    const result = await new IntelligenceResolver().execute(context("why can't you run OpenHands?"));
+    assert.equal(result.handled, true);
+    const text = result.response?.text ?? "";
+    assert.ok(text.includes("could not read"));
+    assert.ok(text.includes("without a capability id and state"));
+    assert.ok(!text.includes("NOT_CONFIGURED"));
+  });
+
+  test("a NOT_REPORTED explanation with no requirement arrays still formats", async () => {
+    stub({
+      "/intelligence/explain": { ok: true, capabilityId: "engineering.opencode.execute", state: "NOT_REPORTED" },
+      "/intelligence": {
+        ok: true,
+        snapshot: {
+          snapshotId: "s2",
+          timestamp: 1_700_000_000_000,
+          studioStatuses: [],
+          capabilities: [],
+          dependencies: [],
+          findings: [],
+          overallReadiness: { score: 0, readyCapabilities: 0, totalCapabilities: 0, blockedCapabilities: 0, detail: "none" },
+          collection: { collectedAt: 1_700_000_000_000, durationMs: 1, fromCache: false, stale: false, studiosRead: 0, studiosFailed: 0 },
+        },
+      },
+    });
+    const result = await new IntelligenceResolver().execute(context("why can't you run OpenCode?"));
+    assert.equal(result.handled, true);
+    const text = result.response?.text ?? "";
+    assert.ok(text.includes("NOT_REPORTED"));
+    assert.ok(text.includes("cannot describe it as working or broken"));
   });
 
   test("ordinary conversation is never sent to the integration surface", async () => {
