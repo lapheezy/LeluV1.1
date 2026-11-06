@@ -26,4 +26,10 @@ export type { SpatialPresenceState, SpatialTraversal } from "./SpatialPresence";
 export { default as SpatialAdapter } from "./SpatialAdapter";
 export type { SpatialEntityRef, SpatialEntitySource } from "./SpatialAdapter";
 export { default as SpatialCameraApplier } from "./SpatialCameraApplier";
+export { default as SpatialMutationBridge } from "./SpatialMutationBridge";
+export type {
+  EntityMutationSupport,
+  MutationCapability,
+  SpatialMutationAudit,
+} from "./SpatialMutationBridge";
 export { default as SpatialComposition } from "./SpatialComposition";

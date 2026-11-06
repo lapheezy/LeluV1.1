@@ -1455,6 +1455,12 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     </button>
   );
 
+  /**
+   * Phone expansion is a hook, so it runs before every early return —
+   * hooks must be called in the same order on every render path.
+   */
+  const phoneExpanded = useChatExpanded();
+
   // Closed (Home): nothing is drawn, the turn bookkeeping stays alive.
   if (hidden && chatMinimized) return null;
 
@@ -1500,7 +1506,6 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
    * turn and its stream all live in this component, which never unmounts
    * for a layout decision.
    */
-  const phoneExpanded = useChatExpanded();
   const isSheetMobile = isMobileViewport && !phoneExpanded;
   const isFloatingMobile = isSheetMobile;
   const isFullMobile = isMobileViewport && phoneExpanded;

@@ -12,6 +12,7 @@ import SpatialCameraApplier, {
 } from "../src/core/spatial/SpatialCameraApplier";
 import SpatialComposition from "../src/core/spatial/SpatialComposition";
 import SpatialIntentBus from "../src/core/spatial/SpatialIntentBus";
+import SpatialMutationBridge from "../src/core/spatial/SpatialMutationBridge";
 import {
   registerLiveSceneProvider,
   resetLiveSceneProvider,
@@ -464,4 +465,71 @@ test("Tier 4 runs only under a single-use owner approval, never by self-elevatio
   if (!reuse.ok) assert.equal(reuse.refusal.code, "approval-invalid");
 
   assert.deepEqual(guard.grantedTiers(), [1, 2, 3], "the configured grant is unchanged");
+});
+
+/* ===================== Phase 2.3 — mutation compatibility ===================== */
+
+test("only authored objects are mutable; every other world entity names its owner", async () => {
+  fresh();
+  const bridge = SpatialMutationBridge.getInstance();
+  bridge.resetForTests();
+  await bus.apply({ op: "object.create", kind: "box", name: "Nova" });
+  const nova = graph.snapshot().objects[0];
+  const cosmos = CosmosEntityRegistry.getInstance().register("tab", "mutate-test", "Alpha Tab", "🔷");
+
+  const authored = bridge.matrix().find((row) => row.source === "authored");
+  assert.equal(authored?.writable, true);
+  assert.equal(authored?.supported.includes("position"), true);
+
+  for (const source of ["cosmos", "world", "scene"] as const) {
+    const row = bridge.matrix().find((entry) => entry.source === source);
+    assert.equal(row?.writable, false, `${source} must not be marked mutable`);
+    assert.deepEqual(row?.supported, [], `${source} supports no mutation`);
+    assert.ok((row?.reason.length ?? 0) > 40, `${source} must document why`);
+  }
+
+  const allowed = bridge.authorize(nova.id, "position", graph.getRevision());
+  assert.equal(allowed.ok, true);
+
+  const blocked = bridge.authorize(`cosmos:${cosmos.id}`, "position", graph.getRevision());
+  assert.equal(blocked.ok, false);
+  if (!blocked.ok) {
+    assert.equal(blocked.refusal.code, "validation-failed");
+    assert.match(blocked.refusal.detail, /CosmosEntityRegistry/);
+    assert.match(blocked.refusal.detail, /read-only/);
+  }
+
+  const audit = bridge.audit();
+  assert.equal(audit.some((entry) => entry.outcome === "allowed"), true);
+  assert.equal(audit.some((entry) => entry.outcome === "blocked"), true);
+});
+
+test("moving a Cosmos entity through chat is refused with its owner and changes nothing", async () => {
+  fresh();
+  const cosmos = CosmosEntityRegistry.getInstance().register("tab", "mutate-chat-test", "Scout", "🛰");
+  const before = graph.snapshot();
+  const result = await bus.apply({ op: "object.move", target: `cosmos:${cosmos.id}`, delta: { x: 1 } });
+
+  assert.equal(result.ok, false);
+  assert.match(result.message, /CosmosEntityRegistry/);
+  assert.equal(result.revision, before.revision);
+  assert.equal(graph.snapshot().objects.length, before.objects.length);
+});
+
+test("the mutation bridge never writes to the systems it inspects", async () => {
+  fresh();
+  const bridge = SpatialMutationBridge.getInstance();
+  bridge.resetForTests();
+  const cosmosBefore = CosmosEntityRegistry.getInstance().getAll().map((entity) => ({ ...entity }));
+  bridge.matrix();
+  bridge.authorize("scene:Core", "material", graph.getRevision());
+  bridge.authorize("world:missing", "position", graph.getRevision());
+  const cosmosAfter = CosmosEntityRegistry.getInstance().getAll();
+  assert.equal(cosmosAfter.length, cosmosBefore.length);
+  assert.deepEqual(
+    cosmosAfter.map((entity) => entity.position),
+    cosmosBefore.map((entity) => entity.position),
+    "no Cosmos entity position was altered",
+  );
+  assert.equal(graph.getRevision(), 0);
 });

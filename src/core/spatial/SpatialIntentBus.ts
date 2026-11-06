@@ -27,6 +27,7 @@ import SpatialComposition from "./SpatialComposition";
 import { liveCamera } from "./SpatialLiveScene";
 import SpatialObjectRegistry from "./SpatialObjectRegistry";
 import SpatialPresence, { type SpatialTraversal } from "./SpatialPresence";
+import SpatialMutationBridge from "./SpatialMutationBridge";
 import SpatialSceneGraph, { type SpatialMutation } from "./SpatialSceneGraph";
 import SpatialTierGuard from "./SpatialTierGuard";
 import {
@@ -864,6 +865,18 @@ export default class SpatialIntentBus {
   private resolveTarget(reference: string): ResolveResult {
     const object = this.registry.resolve(reference);
     if (object) return { ok: true, object };
+
+    // The reference may name something that exists in the world but is
+    // owned elsewhere. Say which owner, instead of "not in the scene".
+    const ownership = SpatialMutationBridge.getInstance().authorize(
+      reference,
+      "position",
+      this.graph.getRevision(),
+    );
+    if (!ownership.ok && ownership.refusal.code === "validation-failed") {
+      return { ok: false, refusal: ownership.refusal };
+    }
+
     return {
       ok: false,
       refusal: {
