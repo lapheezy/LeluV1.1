@@ -104,8 +104,19 @@ against a live OpenCode server.
 
 The browser environment was unstable during this run: tabs stalled (even `1+1`
 timed out), the preview hostname 502'd until the dev server was registered, and
-after the plugin restart the page rendered 0 nodes. I have **not** claimed the
-not-run rows as passing.
+after the plugin restart the page stopped mounting. The final state is recorded
+verbatim in `evidence/ecosystem-routing/final-acceptance/browser-state.txt`:
+title `LÉLU`, `#root` empty, **21** DOM nodes (document scaffolding only), no JS
+exception, and module requests answering **503** through the preview tunnel while
+the same modules answer **200** from the server itself. That is a delivery
+failure of the dev-server module graph, not a client crash and not evidence
+about the routing fix either way.
+
+The two captured screenshots (`live-chat/03-blocking-openhands.png`,
+`repeated-questions/02-identical-repeat.png`) were taken **while LÉLU was still
+answering** and therefore do **not** prove the correct answers; they are kept only
+as an honest record of the attempt. The traces — not the screenshots — are the
+evidence for turns 1, 2 and 4. I have **not** claimed the not-run rows as passing.
 
 ## 8. Checks
 

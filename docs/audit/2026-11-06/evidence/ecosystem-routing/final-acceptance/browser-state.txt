@@ -1,0 +1,29 @@
+BROWSER STATE AT THE END OF THE ROUTING ACCEPTANCE RUN
+2026-11-06 · dev server :3013 · https://pv-1fb0099bf53a-20687709-e391-42a8-b6a9-96c58abc4a09.style.dev/
+
+Document
+  title: "LÉLU"
+  body.innerText: ""            (empty)
+  #root child nodes: 0
+  document nodes: 21            (html/head/body/#root/script tags only)
+  scripts: index.html?html-proxy&index=1.js, /src/main.tsx
+
+Server (same moment, direct request with the preview Host header)
+  GET /                      -> 200
+  GET /src/main.tsx          -> 200
+  GET /src/core/AIRouter.ts  -> 200 (valid transformed module)
+  GET /src/core/router/RoutingTrace.ts -> 200 (valid transformed module)
+
+Browser console
+  repeated "Failed to load resource: the server responded with a status of 503"
+  for module requests; manifest.webmanifest 403 (preview auth, documented);
+  NO JavaScript exception, and no import/export error.
+
+Conclusion
+  The module graph could not be delivered through the preview tunnel, so React
+  never mounted. This is an environment/tunnel failure. It neither confirms nor
+  refutes the routing fix; it is why the snapshot, plan, unrelated-question and
+  provider-fallback turns were not captured live.
+
+Traces that WERE captured before this state are in
+../stage-routing-traces/captured-traces.json (turns 1, 2, 3-failure, 3-fixed).
