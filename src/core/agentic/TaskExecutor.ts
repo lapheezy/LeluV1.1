@@ -44,7 +44,7 @@ import AgentEventBus from "../agent/AgentEvents";
 import TaskEngine, { type Task, type TaskStep, type StepVerification } from "../tasks/TaskEngine";
 import type { ToolExecutionResult } from "../tools/ToolDispatcher";
 import ApprovalGate, { type ApprovalRequest } from "./ApprovalGate";
-import { ownerForTask } from "../multichat/TurnOwnership";
+import { bindTask, ownerForTask } from "../multichat/TurnOwnership";
 import type RouterContext from "../router/RouterContext";
 
 export interface StepResult {
@@ -129,6 +129,9 @@ async function conversationContext(taskId: string): Promise<RouterContext | unde
 export function ownedToolContext(base: RouterContext | null, taskId: string): RouterContext | undefined {
   const owner = ownerForTask(taskId);
   if (!owner || !base) return undefined;
+  // Tools key their own events (a Studio artifact card) on the request
+  // timestamp; bind it too, or the card is announced to no conversation.
+  bindTask(String(base.request.timestamp), owner);
   return { ...base, request: { ...base.request, conversationId: owner } };
 }
 
@@ -175,7 +178,11 @@ export function interpolate(
   missing: string[],
 ): unknown {
   if (typeof value === "string") {
-    return value.replace(/\{\{\s*steps\.([A-Za-z0-9_-]+)\.output\s*\}\}/g, (_match, stepId: string) => {
+    // `{{steps.s1.output}}`, and the `{{steps.s1.output.id}}` planners also
+    // write: a step's output is its text, which names what it made
+    // ("Created [art_…]"), so a field path gets that text too. Left
+    // unreplaced, the raw placeholder reached the tool and the step failed.
+    return value.replace(/\{\{\s*steps\.([A-Za-z0-9_-]+)\.output(?:\.[A-Za-z0-9_]+)*\s*\}\}/g, (_match, stepId: string) => {
       const output = outputs.get(stepId);
       if (output === undefined) {
         missing.push(stepId);
