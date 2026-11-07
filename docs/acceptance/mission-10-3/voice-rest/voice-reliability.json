@@ -1,5 +1,5 @@
 {
- "ranAt": "2026-11-07T19:34:26.782Z",
+ "ranAt": "2026-11-07T19:43:06.107Z",
  "base": "http://127.0.0.1:5174/",
  "results": {
   "provider-timeout": {
@@ -449,6 +449,81 @@
       "message": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
       "at": 1794080050549
      }
+    }
+   ]
+  },
+  "playback": {
+   "line": "Which planet is the largest in our solar system?",
+   "heard": null,
+   "sttLatencyMs": null,
+   "replyLatencyMs": null,
+   "response": null,
+   "failure": null,
+   "settled": false,
+   "pass": false,
+   "history": [],
+   "events": [
+    {
+     "t": 2311,
+     "kind": "req",
+     "url": "/api/model/status"
+    },
+    {
+     "t": 15652,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 74446,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 133554,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 192198,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 251729,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    }
+   ]
+  },
+  "user-cancellation": {
+   "pass": false,
+   "reason": "she never started speaking the long answer",
+   "history": [],
+   "events": [
+    {
+     "t": 1891,
+     "kind": "req",
+     "url": "/api/model/status"
+    },
+    {
+     "t": 12375,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 67922,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 133930,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 204394,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
     }
    ]
   }
