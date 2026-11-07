@@ -38,3 +38,13 @@ lockfiles) change only in a commit that states why and is reviewed by Claude.
 2. **Mobile Chat ownership** (Phase 2) — next; owned by session 2's lane. Depends on nothing
    in (1) except that the browse relay now needs a signed-in user.
 3. **Avatar and render performance** (Phase 3) — after (2): both touch Chat lifecycle.
+
+## Claims (2026-11-07)
+
+| Claimed by | Files | For | Since |
+|---|---|---|---|
+| Claude (released) | `avatar/LeluBody.tsx` (texture fit of the shared model only) | Shared model textures fitted to 2048² (240 → 96 MB per mount). `LeluCompanion.tsx` not changed. Single persistent avatar canvas left to the avatar owner. | `095b7f9` |
+
+Freebuff's lane for these files is unchanged. This claim is narrow and ends with its commit.
+Freebuff pushes directly to `claude/master-integration` (rule 3 is not followed in practice),
+so each executor fetches and rebases before every push and never force-pushes.
