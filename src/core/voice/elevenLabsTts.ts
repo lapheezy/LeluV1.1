@@ -19,6 +19,26 @@
  * ==========================================================
  */
 
+import UsageBudgetGate from "../observability/UsageBudgetGate";
+
+interface ReportedUsage { characterCost: number | null; fiatCostUsd: number | null }
+
+function parseUsageHeader(raw: string | null): ReportedUsage {
+  try {
+    const value = raw ? (JSON.parse(raw) as Partial<ReportedUsage>) : {};
+    const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : null);
+    return { characterCost: num(value.characterCost), fiatCostUsd: num(value.fiatCostUsd) };
+  } catch {
+    return { characterCost: null, fiatCostUsd: null };
+  }
+}
+
+/** Last synthesis: time to audio and ElevenLabs' reported characters (evidence). */
+let lastSynthesis: { ms: number; characters: number | null; at: number } | null = null;
+export function getLastSynthesis(): { ms: number; characters: number | null; at: number } | null {
+  return lastSynthesis;
+}
+
 /** How long a status answer is trusted before asking again. */
 const STATUS_TTL_MS = 60_000;
 
@@ -73,10 +93,34 @@ export function speakText(text: string, callbacks: SpeakCallbacks = {}): Promise
     }
     let url = "";
     try {
-      const response = await fetch("/api/voice/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "audio/mpeg" },
-        body: JSON.stringify({ text: trimmed }),
+      // Metered and budget-gated like every billed call (kind "api",
+      // source "elevenlabs-tts"). A spent budget lands in onFail, whose
+      // fallback is the browser's own (free) voice — never another paid one.
+      const gate = UsageBudgetGate.getInstance();
+      const reservation = await gate.reserve("api", "elevenlabs-tts");
+      const started = Date.now();
+      let response: Response;
+      try {
+        response = await fetch("/api/voice/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "audio/mpeg" },
+          body: JSON.stringify({ text: trimmed }),
+        });
+      } catch (error) {
+        await gate.settle(reservation, { operation: "tts", ok: false, latencyMs: Date.now() - started, error: (error as Error).message });
+        throw error;
+      }
+      const usage = parseUsageHeader(response.headers.get("X-Lelu-Usage"));
+      lastSynthesis = { ms: Date.now() - started, characters: usage.characterCost, at: Date.now() };
+      await gate.settle(reservation, {
+        operation: "tts",
+        ok: response.ok,
+        latencyMs: Date.now() - started,
+        rateLimited: response.status === 429,
+        // `results` carries ElevenLabs' reported character cost for this call.
+        results: usage.characterCost ?? undefined,
+        usage: usage.fiatCostUsd !== null ? { cost: usage.fiatCostUsd } : undefined,
+        error: response.ok ? undefined : `HTTP ${response.status}`,
       });
       if (!response.ok) throw new Error(`tts ${response.status}`);
       const blob = await response.blob();

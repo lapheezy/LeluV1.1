@@ -18,6 +18,8 @@ import { postTranscription, transcriptionAvailable, WHISPER_NAME_HINT } from "./
 import { mapMediaError } from "./speechToText";
 import { detectTurnOnAudioThread } from "./vadWorklet";
 import { elevenLabsReady, speakText, stopSpeaking } from "./elevenLabsTts";
+import { elevenLabsSttReady, transcribeWithElevenLabs } from "./elevenLabsStt";
+import UsageBudgetGate, { BudgetExhaustedError, budgetNotice } from "../observability/UsageBudgetGate";
 
 /* ---------------------------------------------------------
  * Types
@@ -260,7 +262,25 @@ function getGroqApiKey(): string {
  * Transcribe a Blob of audio via the Groq Whisper API.
  * Accepts webm, ogg, wav, mp4, and m4a formats.
  */
+/**
+ * Groq Whisper, metered like every other billed call (UsageBudgetGate,
+ * kind "api", source "groq-whisper"). Before Phase 10 it was not counted.
+ */
 async function transcribeViaWhisper(audioBlob: Blob): Promise<string> {
+  const gate = UsageBudgetGate.getInstance();
+  const reservation = await gate.reserve("api", "groq-whisper");
+  const started = Date.now();
+  try {
+    const text = await transcribeViaWhisperUnmetered(audioBlob);
+    await gate.settle(reservation, { operation: "stt", model: "whisper-large-v3-turbo", ok: true, latencyMs: Date.now() - started });
+    return text;
+  } catch (error) {
+    await gate.settle(reservation, { operation: "stt", model: "whisper-large-v3-turbo", ok: false, latencyMs: Date.now() - started, error: (error as Error).message });
+    throw error;
+  }
+}
+
+async function transcribeViaWhisperUnmetered(audioBlob: Blob): Promise<string> {
   const apiKey = getGroqApiKey();
 
   const mime = audioBlob.type || "audio/webm";
@@ -564,6 +584,9 @@ class VoiceEngine {
    * --------------------------------------------------------- */
 
   private async start(): Promise<void> {
+    // Learn now whether the server holds her voice, so the first reply
+    // rarely has to wait for the answer.
+    void this.probeElevenLabs();
     this.unlockAudio();
     this.updateState({
       ...this._state,
@@ -779,7 +802,15 @@ class VoiceEngine {
         // Apple/Siri in Safari). When IT fails — not the microphone — the
         // microphone stream is still good: switch to Whisper through the
         // server instead of leaving the user with a dead mic button.
-        if ((diagnosis.kind === "service" || diagnosis.kind === "offline") && this._state.active) {
+        // "audio-capture" while OUR microphone stream is live means the
+        // browser's recognizer could not open its own capture (seen in
+        // embedded/headless Chromium), not that the mic is busy: the stream
+        // LÉLU records from works, so switch now. Before, the engine kept
+        // retrying the recognizer and lost the user's first sentence (live
+        // run, 2026-11-07: ~54 s until the watchdog switched).
+        const ownMicLive = Boolean(this.mediaStream?.getAudioTracks().some((track) => track.readyState === "live"));
+        const recognizerOnly = event.error === "audio-capture" && ownMicLive;
+        if ((diagnosis.kind === "service" || diagnosis.kind === "offline" || recognizerOnly) && this._state.active) {
           console.info("[VoiceEngine] Browser speech service unavailable — switching to Whisper.");
           this.stopRecognition();
           this.startWhisperFallback();
@@ -942,7 +973,7 @@ class VoiceEngine {
       // The key normally lives on the SERVER (the broker attaches it), so the
       // browser holding none is the expected case, not a missing key. Only
       // when neither this runtime nor the relay can transcribe is it an error.
-      if (!getGroqApiKey()) {
+      if (!getGroqApiKey() && !(await elevenLabsSttReady())) {
         if (!this.relayGroqAvailable) await this.refreshRelayDiagnostics();
         if (!this.relayGroqAvailable) {
           this.whisperFallbackActive = false;
@@ -956,6 +987,35 @@ class VoiceEngine {
       if (!this.whisperFallbackActive) return;
       this.whisperFallbackLoop();
     })();
+  }
+
+  /** Last transcriber used and how long it took (diagnostics, evidence). */
+  private lastTranscription: { engine: "elevenlabs" | "whisper"; ms: number; at: number } | null = null;
+
+  getLastTranscription(): { engine: "elevenlabs" | "whisper"; ms: number; at: number } | null {
+    return this.lastTranscription;
+  }
+
+  /**
+   * One utterance → text. ElevenLabs Scribe first when the server has it;
+   * Groq Whisper only when ElevenLabs fails TECHNICALLY. A spent budget is
+   * rethrown: it is not a reason to spend on a different transcriber.
+   */
+  private async transcribeUtterance(chunk: Blob): Promise<string> {
+    const started = Date.now();
+    if (await elevenLabsSttReady()) {
+      try {
+        const text = await transcribeWithElevenLabs(chunk);
+        this.lastTranscription = { engine: "elevenlabs", ms: Date.now() - started, at: Date.now() };
+        return text;
+      } catch (error) {
+        if (error instanceof BudgetExhaustedError) throw error;
+        console.warn("[VoiceEngine] ElevenLabs transcription failed; using Whisper.", (error as Error).message);
+      }
+    }
+    const text = await transcribeViaWhisper(chunk);
+    this.lastTranscription = { engine: "whisper", ms: Date.now() - started, at: Date.now() };
+    return text;
   }
 
   private stopWhisperFallback(): void {
@@ -995,9 +1055,9 @@ class VoiceEngine {
         return;
       }
 
-      // Transcribe via Groq Whisper
+      // Transcribe: ElevenLabs Scribe when configured, Groq Whisper otherwise.
       this.updateState({ ...this._state, phase: "processing" });
-      const transcript = await transcribeViaWhisper(chunk);
+      const transcript = await this.transcribeUtterance(chunk);
 
       if (!this.whisperFallbackActive || !this._state.active) return;
 
@@ -1011,6 +1071,13 @@ class VoiceEngine {
       }
     } catch (error) {
       if (!this.whisperFallbackActive) return;
+      if (error instanceof BudgetExhaustedError) {
+        // A spent transcription budget is not a transient error: say so and
+        // stop listening, rather than recording utterances it may not send.
+        this.stopWhisperFallback();
+        this.setError(budgetNotice(error), "service");
+        return;
+      }
       const msg = error instanceof Error ? error.message : String(error);
       console.error("[VoiceEngine] Whisper fallback error:", msg);
 
@@ -1371,7 +1438,6 @@ class VoiceEngine {
 
   /** The server holds an ElevenLabs key and it answered. */
   private elevenLabs = false;
-  private elevenLabsProbed = false;
 
   /**
    * Ask the server once per session whether her voice is available.
@@ -1380,13 +1446,23 @@ class VoiceEngine {
    * engine while this resolves, but nothing is ever claimed as working
    * before the server has said so.
    */
-  private probeElevenLabs(): void {
-    if (this.elevenLabsProbed) return;
-    this.elevenLabsProbed = true;
-    void elevenLabsReady().then((ready) => {
+  private elevenLabsProbe: Promise<void> | null = null;
+
+  /**
+   * Ask the server once whether it holds her voice. Returns the pending
+   * answer so speakResponse can WAIT for it: fire-and-forget meant the first
+   * reply of every session was decided before the answer arrived and was
+   * spoken by the browser's voice, not hers (found live, 2026-11-07).
+   */
+  private probeElevenLabs(): Promise<void> {
+    if (this.elevenLabsProbe) return this.elevenLabsProbe;
+    this.elevenLabsProbe = elevenLabsReady().then((ready) => {
       this.elevenLabs = ready;
     });
+    return this.elevenLabsProbe;
   }
+
+  private elevenLabsSettled = false;
 
   /**
    * Speak the whole reply through ElevenLabs, one segment at a time.
@@ -1449,6 +1525,15 @@ class VoiceEngine {
   }
 
   speakResponse(text: string): void {
+    // Decide the voice only once the server has answered whether it holds
+    // hers (bounded: an unreachable server is a "no" after the fetch fails).
+    if (!this.elevenLabsSettled) {
+      void this.probeElevenLabs().then(() => {
+        this.elevenLabsSettled = true;
+        this.speakResponse(text);
+      });
+      return;
+    }
     // A response reached the speech layer — true regardless of whether
     // TTS then works, which is exactly what makes this diagnosable.
     this.patchDiagnostics({ responseReceived: true });
@@ -1481,7 +1566,7 @@ class VoiceEngine {
 
     // One voice everywhere: if her server holds the ElevenLabs key, this is
     // the speaker, on every machine. The browser engine stays the fallback.
-    this.probeElevenLabs();
+    void this.probeElevenLabs();
     if (this.elevenLabs) {
       this.speakThroughElevenLabs(text.trim());
       return;
@@ -1603,7 +1688,7 @@ class VoiceEngine {
     // replies used to leave it empty, so her own voice could come back
     // through the open mic as a user turn.
     this.lastSpokenText = fullText.slice(0, this.streamCursor).trim();
-    this.probeElevenLabs();
+    void this.probeElevenLabs();
     if (this.elevenLabs) {
       // speakText() serialises, so streamed sentences stay in order and in
       // the same voice.
