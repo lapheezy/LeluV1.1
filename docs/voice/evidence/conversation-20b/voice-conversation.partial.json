@@ -1,5 +1,5 @@
 {
- "at": "2026-11-07T16:51:48.873Z",
+ "at": "2026-11-07T16:56:23.304Z",
  "spoken": [
   {
    "n": 1,
@@ -151,6 +151,15 @@
    "text": "Name a famous painting by Leonardo da Vinci.",
    "spokeAt": 4122108,
    "endedAt": 4133681,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 18,
+   "mode": "after-reply",
+   "text": "What did I say my favorite color was?",
+   "spokeAt": 4401990,
+   "endedAt": 4410245,
    "repeated": true,
    "heard": true
   }
@@ -3209,6 +3218,192 @@
    "t": 4133682,
    "kind": "user-repeated",
    "n": 17
+  },
+  {
+   "t": 4144543,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22514,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4149266,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 4174948,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":25670,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4174949,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 4174951,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 4196273,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21316,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4228570,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":25105,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4234339,
+   "kind": "console",
+   "text": "🔴 [4:53:18 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 4234340,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 4255704,
+   "kind": "console",
+   "text": "🔴 [4:53:40 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 4255704,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 4259658,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":25306,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4263633,
+   "kind": "console",
+   "text": "🔴 [4:53:47 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 4263634,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 4263634,
+   "kind": "console",
+   "text": "🔴 [4:53:47 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 4263634,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 4263637,
+   "kind": "turn",
+   "user": "Name a famous painting by Leonardo da Vinci.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 4263639,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 4263639,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 4283317,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19760,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4292456,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 4306021,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19772,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4310326,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 4333543,
+   "kind": "not-ready",
+   "before": 18
+  },
+  {
+   "t": 4337801,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":27472,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4359741,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 4367310,
+   "kind": "user-said",
+   "n": 18,
+   "mode": "after-reply",
+   "text": "What did I say my favorite color was?",
+   "seconds": 2
+  },
+  {
+   "t": 4367336,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":5851,\"spoke\":true,\"ms\":20269,\"peak\":0.336,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 4376924,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 4376924,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 4389003,
+   "kind": "utterance",
+   "text": "What did I say my favorite color was?",
+   "at": 1794070553339
+  },
+  {
+   "t": 4389005,
+   "kind": "turn",
+   "user": "What did I say my favorite color was?",
+   "response": null
+  },
+  {
+   "t": 4389005,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 4410246,
+   "kind": "user-repeated",
+   "n": 18
+  },
+  {
+   "t": 4410253,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2560,\"spoke\":true,\"ms\":12989,\"peak\":0.3361,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
   }
  ],
  "turns": [
@@ -3385,145 +3580,20 @@
   {
    "id": "0189819e-ec81-46f8-9196-94bb558b23f5",
    "user": "Name a famous painting by Leonardo da Vinci.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794070427972,
+   "startedAt": 1794070283518,
+   "respondedAt": 1794070427972
+  },
+  {
+   "id": "942040d1-6ada-4a41-9561-6c211c1cc3c6",
+   "user": "What did I say my favorite color was?",
    "response": null,
-   "at": 1794070283518,
-   "startedAt": 1794070283518
+   "at": 1794070553339,
+   "startedAt": 1794070553339
   }
  ],
  "ledger": [
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 1264,
-   "out": 326,
-   "cost": "reported",
-   "usd": 0.000261988,
-   "ms": 19480
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-stt",
-   "op": "stt",
-   "ok": true,
-   "model": "scribe_v1",
-   "in": null,
-   "out": null,
-   "results": 16,
-   "cost": "reported",
-   "usd": 0.0016,
-   "ms": 13221
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 1282,
-   "out": 281,
-   "cost": "reported",
-   "usd": 0.000225112,
-   "ms": 11279
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 34352,
-   "error": "BodyStreamBuffer was aborted"
-  },
-  {
-   "kind": "ai",
-   "source": "Groq",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 9890,
-   "error": "Groq failed 429: Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 185680, Reques"
-  },
-  {
-   "kind": "ai",
-   "source": "Cerebras",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 10720,
-   "error": "Cerebras HTTP 401: Wrong API Key"
-  },
-  {
-   "kind": "ai",
-   "source": "Fireworks",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 12625,
-   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info"
-  },
-  {
-   "kind": "ai",
-   "source": "Anthropic",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 2577,
-   "error": "The user aborted a request."
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-tts",
-   "op": "tts",
-   "ok": true,
-   "in": null,
-   "out": null,
-   "results": 114,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 4960
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 1282,
-   "out": 298,
-   "cost": "reported",
-   "usd": 0.000248028,
-   "ms": 11034
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-tts",
-   "op": "tts",
-   "ok": true,
-   "in": null,
-   "out": null,
-   "results": 192,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 5994
-  },
   {
    "kind": "ai",
    "source": "OpenRouter",
@@ -4601,6 +4671,139 @@
    "cost": "reported",
    "usd": 0.0018,
    "ms": 17192
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1252,
+   "out": 462,
+   "cost": "reported",
+   "usd": 0.000335828,
+   "ms": 15567
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 564,
+   "out": 144,
+   "cost": "reported",
+   "usd": 0.00006822,
+   "ms": 22506
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 38068,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "ai",
+   "source": "Fireworks",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 21364,
+   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info"
+  },
+  {
+   "kind": "ai",
+   "source": "Anthropic",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 7926,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 114,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 5983
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1281,
+   "out": 280,
+   "cost": "reported",
+   "usd": 0.000434595,
+   "ms": 13130
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 192,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 13469
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 564,
+   "out": 65,
+   "cost": "reported",
+   "usd": 0.000085683,
+   "ms": 18709
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1294,
+   "out": 271,
+   "cost": "reported",
+   "usd": 0.000234138,
+   "ms": 17845
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 17,
+   "cost": "reported",
+   "usd": 0.0017,
+   "ms": 12080
   }
  ]
 }
