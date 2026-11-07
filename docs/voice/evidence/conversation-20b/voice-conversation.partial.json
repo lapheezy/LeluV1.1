@@ -1,5 +1,5 @@
 {
- "at": "2026-11-07T16:42:59.840Z",
+ "at": "2026-11-07T16:47:22.186Z",
  "spoken": [
   {
    "n": 1,
@@ -133,6 +133,15 @@
    "text": "Recommend one classic novel, in one sentence.",
    "spokeAt": 3385020,
    "endedAt": 3392951,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 16,
+   "mode": "after-reply",
+   "text": "What is the square root of eighty-one?",
+   "spokeAt": 3859674,
+   "endedAt": 3869343,
    "repeated": true,
    "heard": true
   }
@@ -2921,6 +2930,109 @@
    "kind": "user-typed-blocked",
    "reason": "TimeoutError: page.click: Timeout 8000ms exceeded.",
    "coveredBy": "DIV."
+  },
+  {
+   "t": 3627438,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20637,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3627439,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 3627440,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 3644436,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":16997,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3666688,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19247,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3694516,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":24795,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3721269,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23504,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3749746,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":28399,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3773257,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23423,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3798656,
+   "kind": "not-ready",
+   "before": 16
+  },
+  {
+   "t": 3804317,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":30985,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3823602,
+   "kind": "user-said",
+   "n": 16,
+   "mode": "after-reply",
+   "text": "What is the square root of eighty-one?",
+   "seconds": 2.2
+  },
+  {
+   "t": 3823609,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2769,\"spoke\":true,\"ms\":16189,\"peak\":0.3446,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 3823609,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 3849993,
+   "kind": "utterance",
+   "text": "What is the square root of 81?",
+   "at": 1794070014328
+  },
+  {
+   "t": 3849994,
+   "kind": "turn",
+   "user": "What is the square root of 81?",
+   "response": null
+  },
+  {
+   "t": 3849994,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 3869344,
+   "kind": "user-repeated",
+   "n": 16
+  },
+  {
+   "t": 3869442,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2664,\"spoke\":true,\"ms\":14914,\"peak\":0.3546,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
   }
  ],
  "turns": [
@@ -3078,70 +3190,16 @@
    "at": 1794069691025,
    "startedAt": 1794069567794,
    "respondedAt": 1794069691025
+  },
+  {
+   "id": "b60a8d4e-af44-4f7e-a03b-2467c16b2dfb",
+   "user": "What is the square root of 81?",
+   "response": null,
+   "at": 1794070014328,
+   "startedAt": 1794070014328
   }
  ],
  "ledger": [
-  {
-   "kind": "api",
-   "source": "elevenlabs-tts",
-   "op": "tts",
-   "ok": true,
-   "in": null,
-   "out": null,
-   "results": 192,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 10640
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 1179,
-   "out": 518,
-   "cost": "reported",
-   "usd": 0.00081275,
-   "ms": 17051
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-stt",
-   "op": "stt",
-   "ok": true,
-   "model": "scribe_v1",
-   "in": null,
-   "out": null,
-   "results": 11,
-   "cost": "reported",
-   "usd": 0.0011,
-   "ms": 9750
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 1424,
-   "out": 694,
-   "cost": "reported",
-   "usd": 0.00039036,
-   "ms": 12982
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 33905,
-   "error": "BodyStreamBuffer was aborted"
-  },
   {
    "kind": "ai",
    "source": "Fireworks",
@@ -4291,6 +4349,67 @@
    "cost": "unknown",
    "usd": null,
    "ms": 6791
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 562,
+   "out": 116,
+   "cost": "reported",
+   "usd": 0.00013851,
+   "ms": 11806
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1361,
+   "out": 526,
+   "cost": "reported",
+   "usd": 0.000242595,
+   "ms": 14130
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1221,
+   "out": 496,
+   "cost": "reported",
+   "usd": 0.00053989,
+   "ms": 14595
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1291,
+   "out": 323,
+   "cost": "reported",
+   "usd": 0.000157602,
+   "ms": 10900
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 12,
+   "cost": "reported",
+   "usd": 0.0012,
+   "ms": 16702
   }
  ]
 }
