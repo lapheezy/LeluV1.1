@@ -19,8 +19,14 @@ branch head at mission start was `7a2bf49`, which contains the spatial phases
 
 ## 2. Ending commit
 
-Recorded in the final message of this mission; the evidence commit follows this
-report.
+`750466a` — the evidence commit, pushed to `claude/master-integration`
+(`3d914dd..750466a`, fast-forward, no force, no remote history rewritten).
+
+To make that push possible, this branch's own **unpublished** commits were rewritten
+once to drop 18 Playwright trace archives; the tree is otherwise byte-identical to
+`d3eb456` (`git diff --name-only` shows only `docs/acceptance/**/traces`). The
+pre-rewrite branch is kept locally as `backup/pre-trace-drop`. Payload fell from
+1,521.7 MB / 2,125 objects to 111.3 MB / 571 objects.
 
 ## 3. Files changed
 
