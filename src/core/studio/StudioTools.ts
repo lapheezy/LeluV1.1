@@ -367,3 +367,18 @@ export function registerStudioTools(): void {
   const registry = ToolRegistry.getInstance();
   for (const definition of STUDIO_TOOLS) registry.register(definition);
 }
+
+/**
+ * What a planner must know to refine instead of re-create: the artifacts
+ * this conversation already made. Empty when it made none.
+ */
+export function conversationArtifactsContext(conversationId: string | null | undefined): string {
+  if (!conversationId) return "";
+  const mine = StudioStore.getInstance().list().filter((a) => a.conversationId === conversationId).slice(0, 8);
+  if (mine.length === 0) return "";
+  return [
+    "ARTIFACTS ALREADY IN THIS CONVERSATION (a change to one of these is studio.revise with its [id], then studio.export — never a new artifact or a project):",
+    ...mine.map((a) => `- [${a.id}] ${a.kind} “${a.title}”, revision ${a.revisions.length}`),
+  ].join("\n");
+}
+

@@ -188,3 +188,20 @@ test("9. two conversations run planned turns at once and keep their own artifact
   assert.deepEqual(a.activity.artifacts?.map((x) => x.title), ["Alpha brief"]);
   assert.deepEqual(b.activity.artifacts?.map((x) => x.title), ["Beta brief"]);
 });
+
+test("8b. a refinement is planned against the conversation's own artifact (studio.revise), not a new project", async () => {
+  const { conversationArtifactsContext } = await import("../src/core/studio/StudioTools");
+  const { planTask } = await import("../src/core/agentic/TaskPlanner");
+  await plannedTurn("conv-plan", [{ id: "s1", title: "Create", tool: "studio.create", args: DOC("Planner brief") }]);
+  const [mine] = artifactsOf("conv-plan");
+  const context = conversationArtifactsContext("conv-plan");
+  assert.match(context, new RegExp(`\\[${mine.id}\\] document “Planner brief”, revision 1`));
+  assert.match(context, /studio\.revise/);
+  assert.doesNotMatch(context, /Alpha brief|Beta brief/, "another conversation's artifacts are not offered");
+  assert.equal(conversationArtifactsContext("conv-empty"), "");
+  let seen = "";
+  await planTask("Change the chart in the Planner brief to a line chart", { context, generate: async (prompt) => { seen = prompt; return { ok: false, text: "" }; } });
+  assert.ok(seen.includes(mine.id), "the planner's prompt names the artifact to revise");
+  const orchestrator = readFileSync(new URL("../src/core/orchestrator/Orchestrator.ts", import.meta.url), "utf8");
+  assert.match(orchestrator, /conversationArtifactsContext\(ownerForTask\(taskId\)\)/);
+});
