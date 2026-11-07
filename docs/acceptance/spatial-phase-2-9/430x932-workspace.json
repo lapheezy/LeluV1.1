@@ -1,0 +1,204 @@
+{
+  "viewport": "430x932",
+  "surface": "workspace",
+  "capturedAt": "2026-11-07T02:39:46.243Z",
+  "steps": {
+    "start": {
+      "immersive": null,
+      "home": true,
+      "studio": false,
+      "living": false,
+      "canvases": 3,
+      "revision": 0,
+      "objects": [],
+      "camera": [
+        -5,
+        3,
+        5
+      ],
+      "owner": null,
+      "reveal": null
+    },
+    "dashboardPlace": {
+      "immersive": true,
+      "home": false,
+      "studio": false,
+      "living": false,
+      "canvases": 3,
+      "revision": 1,
+      "objects": [
+        {
+          "name": "Jewelry",
+          "rendered": true
+        }
+      ],
+      "camera": [
+        3.955,
+        -0.279,
+        5.184
+      ],
+      "owner": "cinematic",
+      "reveal": {
+        "target": "Jewelry",
+        "requestedAt": 1794019212683,
+        "ok": true,
+        "message": "Framed \"Jewelry\" — camera at (3.95, -0.28, 5.18) looking at (2.27, -1.35, 2.13). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+        "camera": {
+          "position": {
+            "x": 3.9547101804642173,
+            "y": -0.2793616211050194,
+            "z": 5.184231646481562
+          },
+          "target": {
+            "x": 2.2722784422006765,
+            "y": -1.35,
+            "z": 2.125264849638762
+          },
+          "distance": 3.6515915648475876,
+          "fov": 56
+        },
+        "at": 1794019216419
+      }
+    },
+    "exit:after-dashboard-place": {
+      "was": true,
+      "now": false,
+      "home": true
+    },
+    "systemOpen": {
+      "immersive": false,
+      "home": true,
+      "studio": false,
+      "living": true,
+      "canvases": 3,
+      "revision": 1,
+      "objects": [
+        {
+          "name": "Jewelry",
+          "rendered": true
+        }
+      ],
+      "camera": [
+        3.955,
+        -0.279,
+        5.184
+      ],
+      "owner": "autonomous",
+      "reveal": {
+        "target": "Jewelry",
+        "requestedAt": 1794019212683,
+        "ok": true,
+        "message": "Framed \"Jewelry\" — camera at (3.95, -0.28, 5.18) looking at (2.27, -1.35, 2.13). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+        "camera": {
+          "position": {
+            "x": 3.9547101804642173,
+            "y": -0.2793616211050194,
+            "z": 5.184231646481562
+          },
+          "target": {
+            "x": 2.2722784422006765,
+            "y": -1.35,
+            "z": 2.125264849638762
+          },
+          "distance": 3.6515915648475876,
+          "fov": 56
+        },
+        "at": 1794019216419
+      }
+    },
+    "workspacePlace": {
+      "immersive": true,
+      "home": false,
+      "studio": false,
+      "living": true,
+      "canvases": 3,
+      "revision": 2,
+      "objects": [
+        {
+          "name": "Jewelry",
+          "rendered": true
+        },
+        {
+          "name": "Jewelry 2",
+          "rendered": true
+        }
+      ],
+      "camera": [
+        5.527,
+        -0.279,
+        4.461
+      ],
+      "owner": "cinematic",
+      "reveal": {
+        "target": "Jewelry 2",
+        "requestedAt": 1794019305887,
+        "ok": true,
+        "message": "Framed \"Jewelry 2\" — camera at (5.53, -0.28, 4.46) looking at (3.84, -1.35, 1.4). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+        "camera": {
+          "position": {
+            "x": 5.526548842781321,
+            "y": -0.2793616211050196,
+            "z": 4.460845424525608
+          },
+          "target": {
+            "x": 3.844117104517781,
+            "y": -1.35,
+            "z": 1.4018786276828088
+          },
+          "distance": 3.651591564847587,
+          "fov": 56
+        },
+        "at": 1794019308812
+      }
+    },
+    "afterReturn": {
+      "immersive": true,
+      "home": false,
+      "studio": false,
+      "living": false,
+      "canvases": 3,
+      "revision": 2,
+      "objects": [
+        {
+          "name": "Jewelry",
+          "rendered": true
+        },
+        {
+          "name": "Jewelry 2",
+          "rendered": true
+        }
+      ],
+      "camera": [
+        5.527,
+        -0.279,
+        4.461
+      ],
+      "owner": "cinematic",
+      "reveal": {
+        "target": "Jewelry 2",
+        "requestedAt": 1794019305887,
+        "ok": true,
+        "message": "Framed \"Jewelry 2\" — camera at (5.53, -0.28, 4.46) looking at (3.84, -1.35, 1.4). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+        "camera": {
+          "position": {
+            "x": 5.526548842781321,
+            "y": -0.2793616211050196,
+            "z": 4.460845424525608
+          },
+          "target": {
+            "x": 3.844117104517781,
+            "y": -1.35,
+            "z": 1.4018786276828088
+          },
+          "distance": 3.651591564847587,
+          "fov": 56
+        },
+        "at": 1794019308812
+      }
+    }
+  },
+  "events": [],
+  "dashboardExitPass": true,
+  "workspaceArtifactText": "",
+  "workspacePass": true
+}

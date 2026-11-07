@@ -122,6 +122,11 @@ class HomeStoreImpl {
 
   setImmersive(immersive: boolean): void {
     this.patch({ immersive });
+    // Read-only diagnostic (same convention as __leluSpatialProbe): whether
+    // the world, rather than the workspace, currently owns the screen.
+    if (typeof window !== "undefined") {
+      (window as unknown as { __leluImmersive?: boolean }).__leluImmersive = immersive;
+    }
   }
 
   /** The single owner of the Cosmos mode. Persisted. */
