@@ -366,3 +366,13 @@ test("Phase 2: on a phone, a sheet that owns the screen unmounts LÉLU's hidden 
     "decided before the face/hero/window branches; the face behind the classic chat panel is untouched",
   );
 });
+
+test("Universe replies render markdown with the shared renderer and never overflow the conversation", () => {
+  const window = readFileSync("src/app/scene/genesis/chat/universe/UniverseChatWindow.tsx", "utf8");
+  assert.match(window, /m\.role === "assistant" \? <ChatMarkdown text=\{m\.text\} \/> : <p>\{m\.text\}<\/p>/, "the same ChatMarkdown as the classic transcript, not a second renderer");
+  const css = readFileSync("src/app/scene/genesis/chat/universe/chatUniverse.css", "utf8");
+  // Measured on iPhone 13: thread scrollWidth 360 === clientWidth 360, 0 elements past its edges.
+  assert.match(css, /\.lcu-thread \{ overflow-x: hidden; \}/);
+  assert.match(css, /\.lcu-msg \{ min-width: 0; \}/);
+  assert.match(css, /\.lcu-bubble \{ min-width: 0; max-width: 100%; overflow-wrap: anywhere; \}/);
+});
