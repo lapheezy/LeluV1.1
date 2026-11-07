@@ -33,3 +33,20 @@ export function subscribeUniverseOpen(listener: () => void): () => void {
 export function useUniverseOpen(): boolean {
   return useSyncExternalStore(subscribeUniverseOpen, isUniverseOpen, () => false);
 }
+
+/**
+ * The full (single-panel) chat is only for what the Universe windows cannot
+ * do yet — attachments. Everywhere else "open the chat" means the Universe.
+ * The Universe's own "attach in the full chat" control asks for it once.
+ */
+let fullChatRequested = false;
+
+export function requestFullChatOnce(): void {
+  fullChatRequested = true;
+}
+
+export function consumeFullChatRequest(): boolean {
+  const requested = fullChatRequested;
+  fullChatRequested = false;
+  return requested;
+}

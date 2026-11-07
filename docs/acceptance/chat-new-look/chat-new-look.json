@@ -1,0 +1,110 @@
+{
+ "ranAt": "2026-11-07T20:20:02.392Z",
+ "base": "http://127.0.0.1:5174/",
+ "results": [
+  {
+   "viewport": "desktop-1440x900",
+   "tappedNav": true,
+   "viaNavigator": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true
+   },
+   "viaLelu": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true
+   },
+   "typed": true,
+   "landed": true,
+   "afterSend": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true
+   },
+   "errors": [],
+   "pass": true
+  },
+  {
+   "viewport": "375x812",
+   "tappedNav": true,
+   "viaNavigator": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true
+   },
+   "viaLelu": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true
+   },
+   "typed": true,
+   "landed": true,
+   "afterSend": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": false
+   },
+   "errors": [],
+   "pass": true
+  },
+  {
+   "viewport": "390x844",
+   "tappedNav": true,
+   "viaNavigator": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true
+   },
+   "viaLelu": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true
+   },
+   "typed": true,
+   "landed": true,
+   "afterSend": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": false
+   },
+   "errors": [],
+   "pass": true
+  },
+  {
+   "viewport": "iPhone13",
+   "tappedNav": true,
+   "viaNavigator": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true
+   },
+   "viaLelu": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true
+   },
+   "typed": true,
+   "landed": true,
+   "afterSend": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": false
+   },
+   "errors": [],
+   "pass": true
+  }
+ ]
+}

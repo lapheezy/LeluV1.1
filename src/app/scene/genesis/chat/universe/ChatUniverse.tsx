@@ -33,7 +33,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import * as Icons from "lucide-react";
 import { chatWindowId, conversationIdOf, floatsAboveChat, useGenesis } from "../../GenesisCore";
-import { setUniverseOpen, useUniverseOpen } from "./universeOpen";
+import { requestFullChatOnce, setUniverseOpen, useUniverseOpen } from "./universeOpen";
+import VoiceEngine from "../../../../../core/voice/VoiceEngine";
 import { useSurface } from "../../surface/useSurface";
 import MultiChatStore, { type ChatConversation } from "../../../../../core/multichat/MultiChatStore";
 import { goHome } from "../../home/homeActions";
@@ -463,7 +464,7 @@ export default function ChatUniverse() {
       {sheetOpen ? null : (
       <footer className="lcu-bottom">
         <div className="lcu-composer">
-          <button type="button" className="lcu-icon" aria-label="Attach in the full chat" onClick={() => { setOpen(false); genesis.openPanel("chat"); }}><Icons.Plus size={19} /></button>
+          <button type="button" className="lcu-icon" aria-label="Attach in the full chat" onClick={() => { setOpen(false); requestFullChatOnce(); genesis.openPanel("chat"); }}><Icons.Plus size={19} /></button>
           <div className="lcu-input">
             <span className="lcu-target" title="This message goes to">{target ? target.title : "Pick a chat"}</span>
             <textarea
@@ -476,7 +477,7 @@ export default function ChatUniverse() {
               disabled={!target}
               enterKeyHint="send"
             />
-            <button type="button" className="lcu-icon sm" aria-label="Voice in the full chat" onClick={() => { setOpen(false); genesis.openPanel("chat"); }}><Icons.Mic size={17} /></button>
+            <button type="button" className="lcu-icon sm" aria-label="Talk to LÉLU" onClick={() => { void VoiceEngine.getInstance().toggle(); }}><Icons.Mic size={17} /></button>
             <button type="button" className="lcu-send" onClick={send} disabled={!target || !draft.trim()} aria-label={`Send to ${target?.title ?? "chat"}`}><Icons.ArrowRight size={19} /></button>
           </div>
         </div>

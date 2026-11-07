@@ -20,6 +20,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { composerLift, liftOverflowsTop } from "./composerClearance";
+import { useUniverseOpen } from "../genesis/chat/universe/universeOpen";
 import SpatialRuntime, { type SpatialState } from "./SpatialRuntime";
 import { SPATIAL_DESTINATIONS, destinationFor, type SpatialSceneId } from "./SpatialScenes";
 import PortalRegistry, { isBuiltinPortal, type PortalRecord } from "./PortalRegistry";
@@ -133,7 +134,10 @@ export default function SpatialNavigator() {
   // while the chat interface is collapsed (the state the app opens in), so
   // the Cosmos can be navigated without summoning chat at all. It steps
   // aside only when a phone chat owns the whole screen.
-  const hidden = surface.chatOwnsScreen;
+  // The Chat Universe brings its own rail and composer; the world's rail
+  // steps aside while it is open so it never covers the Universe composer.
+  const universeOpen = useUniverseOpen();
+  const hidden = surface.chatOwnsScreen || universeOpen;
   const travelling = Boolean(spatial.transition);
   const progress = spatial.transition ? Math.round(spatial.transition.progress * 100) : 100;
   const active = destinationFor(spatial.current);
