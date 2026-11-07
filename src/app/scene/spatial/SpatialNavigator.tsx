@@ -28,6 +28,7 @@ import { chatFillsScreen } from "../genesis/chat/chatLayout";
 import { layer } from "../../../core/ui/Layers";
 import VoiceEngine from "../../../core/voice/VoiceEngine";
 import { DOCK_GLYPHS, orderedGroups } from "./capabilityGroups";
+import SavedWorlds from "./SavedWorlds";
 
 function useSpatialState(): SpatialState {
   const runtime = SpatialRuntime.getInstance();
@@ -317,6 +318,8 @@ export default function SpatialNavigator() {
               </span>
             </div>
           ))}
+          {/* Environments created through the world engine, from the same store. */}
+          <SavedWorlds compact={compact} />
         </div>
       ) : null}
 
