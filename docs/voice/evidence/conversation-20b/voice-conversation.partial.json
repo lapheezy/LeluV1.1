@@ -1,0 +1,4296 @@
+{
+ "at": "2026-11-07T16:42:59.840Z",
+ "spoken": [
+  {
+   "n": 1,
+   "mode": "after-reply",
+   "text": "Hey Lélu, my name is Sam and my favorite color is teal. Just say hello.",
+   "spokeAt": 29619,
+   "endedAt": 34556,
+   "repeated": false,
+   "heard": true
+  },
+  {
+   "n": 2,
+   "mode": "after-reply",
+   "text": "What is the capital of Peru? One sentence.",
+   "spokeAt": 136994,
+   "endedAt": 140781,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 3,
+   "mode": "after-reply",
+   "text": "And roughly how many people live there? One sentence.",
+   "spokeAt": 360936,
+   "endedAt": 365234,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 4,
+   "mode": "after-reply",
+   "text": "What is two plus two times three?",
+   "spokeAt": 588676,
+   "endedAt": 592507,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 5,
+   "mode": "after-reply",
+   "text": "Name one animal that lives in the Andes.",
+   "spokeAt": 846779,
+   "endedAt": 852226,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 6,
+   "mode": "after-reply",
+   "text": "Give me one tip for better sleep, in one sentence.",
+   "spokeAt": 1108147,
+   "endedAt": 1115008,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 7,
+   "mode": "after-reply",
+   "text": "What's a synonym for happy?",
+   "spokeAt": 1360052,
+   "endedAt": 1369383,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 8,
+   "mode": "after-reply",
+   "text": "How do you say thank you in Spanish?",
+   "spokeAt": 1632891,
+   "endedAt": 1639049,
+   "repeated": true,
+   "heard": false
+  },
+  {
+   "n": 9,
+   "mode": "after-reply",
+   "text": "What is my favorite color?",
+   "spokeAt": 1904180,
+   "endedAt": 1911843,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 10,
+   "mode": "after-reply",
+   "text": "Tell me one fun fact about octopuses, in one sentence.",
+   "spokeAt": 2167680,
+   "endedAt": 2176425,
+   "repeated": true,
+   "heard": false
+  },
+  {
+   "n": 11,
+   "mode": "after-reply",
+   "text": "Explain in detail, in about eight sentences, how a rainbow forms.",
+   "spokeAt": 2426293,
+   "endedAt": 2433638,
+   "repeated": true,
+   "heard": false
+  },
+  {
+   "n": 12,
+   "mode": "barge-in",
+   "text": "Stop. Just one sentence please.",
+   "spokeAt": 2617000,
+   "endedAt": 2620677,
+   "repeated": false,
+   "heard": true
+  },
+  {
+   "n": 13,
+   "mode": "after-reply",
+   "text": "What is the boiling point of water in Fahrenheit?",
+   "spokeAt": 2879410,
+   "endedAt": 2884819,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 14,
+   "mode": "after-reply",
+   "text": "Which planet is the largest in our solar system?",
+   "spokeAt": 3125314,
+   "endedAt": 3131117,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 15,
+   "mode": "after-reply",
+   "text": "Recommend one classic novel, in one sentence.",
+   "spokeAt": 3385020,
+   "endedAt": 3392951,
+   "repeated": true,
+   "heard": true
+  }
+ ],
+ "events": [
+  {
+   "t": 17022,
+   "kind": "phase",
+   "phase": "idle",
+   "error": null
+  },
+  {
+   "t": 17024,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 18302,
+   "kind": "console",
+   "text": "[VoiceEngine] ElevenLabs transcription is configured — recording turns for it directly."
+  },
+  {
+   "t": 18304,
+   "kind": "voice-on"
+  },
+  {
+   "t": 29624,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":11319,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 34566,
+   "kind": "user-said",
+   "n": 1,
+   "mode": "after-reply",
+   "text": "Hey Lélu, my name is Sam and my favorite color is teal. Just say hello.",
+   "seconds": 3.9
+  },
+  {
+   "t": 34568,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2821,\"spoke\":true,\"ms\":4898,\"peak\":0.3099,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 34568,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 38380,
+   "kind": "utterance",
+   "text": "Hey, Leilu. My name is Sam and my favorite color is teal. Just say hello",
+   "at": 1794066202715
+  },
+  {
+   "t": 38380,
+   "kind": "turn",
+   "user": "Hey, Leilu. My name is Sam and my favorite color is teal. Just say hello",
+   "response": null
+  },
+  {
+   "t": 38380,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 52675,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":12579,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 68829,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14298,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 85957,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15465,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 86660,
+   "kind": "console",
+   "text": "🔴 [3:44:10 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 86660,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 90716,
+   "kind": "console",
+   "text": "🔴 [3:44:15 PM] [ProviderResolver] Groq failed; falling back to the next provider."
+  },
+  {
+   "t": 90716,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Groq failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 94865,
+   "kind": "console",
+   "text": "🔴 [3:44:19 PM] [ProviderResolver] Cerebras failed; falling back to the next provider."
+  },
+  {
+   "t": 94865,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Cerebras failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 100974,
+   "kind": "console",
+   "text": "🔴 [3:44:25 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 100975,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 100986,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14330,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 105096,
+   "kind": "console",
+   "text": "🔴 [3:44:29 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 105096,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 105096,
+   "kind": "console",
+   "text": "🔴 [3:44:29 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 105096,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 105100,
+   "kind": "turn",
+   "user": "Hey, Leilu. My name is Sam and my favorite color is teal. Just say hello",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 105100,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 105101,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 117099,
+   "kind": "user-said",
+   "n": 2,
+   "mode": "after-reply",
+   "text": "What is the capital of Peru? One sentence.",
+   "seconds": 3.5
+  },
+  {
+   "t": 118928,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 121307,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":9822,\"spoke\":true,\"ms\":18246,\"peak\":0.3685,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 127986,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 131898,
+   "kind": "utterance",
+   "text": "What is the capital of Peru?",
+   "at": 1794066296233
+  },
+  {
+   "t": 131898,
+   "kind": "turn",
+   "user": "What is the capital of Peru?",
+   "response": null
+  },
+  {
+   "t": 131899,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 138822,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 140007,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3657,\"spoke\":true,\"ms\":6223,\"peak\":0.3722,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 140784,
+   "kind": "user-repeated",
+   "n": 2
+  },
+  {
+   "t": 141547,
+   "kind": "utterance",
+   "text": "What is the capital of Peru?",
+   "at": 1794066305882
+  },
+  {
+   "t": 141548,
+   "kind": "turn",
+   "user": "What is the capital of Peru?",
+   "response": null
+  },
+  {
+   "t": 141548,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 154542,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 154542,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 155272,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":11326,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 168118,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":12110,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 183273,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13876,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 195362,
+   "kind": "console",
+   "text": "🔴 [3:45:59 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 195363,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 195374,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":12095,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 199630,
+   "kind": "console",
+   "text": "🔴 [3:46:03 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 199631,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 205699,
+   "kind": "console",
+   "text": "🔴 [3:46:10 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 205699,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 205700,
+   "kind": "console",
+   "text": "🔴 [3:46:10 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 205700,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 205701,
+   "kind": "turn",
+   "user": "What is the capital of Peru?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 205703,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 205703,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 212319,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14809,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 225650,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 232526,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17642,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 234584,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 249387,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14805,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 253622,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 266598,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15119,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 268675,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 268675,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 281533,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":12900,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 295663,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":11730,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 315451,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17809,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 325361,
+   "kind": "not-ready",
+   "before": 3
+  },
+  {
+   "t": 330808,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13420,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 335692,
+   "kind": "user-said",
+   "n": 3,
+   "mode": "after-reply",
+   "text": "And roughly how many people live there? One sentence.",
+   "seconds": 3.4
+  },
+  {
+   "t": 346311,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13088,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 360936,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14580,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 365236,
+   "kind": "user-repeated",
+   "n": 3
+  },
+  {
+   "t": 365241,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3657,\"spoke\":true,\"ms\":4261,\"peak\":0.3206,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 365241,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 376174,
+   "kind": "utterance",
+   "text": "And roughly how many people live there? One sentence",
+   "at": 1794066540507
+  },
+  {
+   "t": 376175,
+   "kind": "turn",
+   "user": "And roughly how many people live there? One sentence",
+   "response": null
+  },
+  {
+   "t": 376175,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 391514,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15300,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 406816,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13375,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 422228,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13577,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 437966,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15701,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 437974,
+   "kind": "console",
+   "text": "🔴 [3:50:02 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 437974,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 443948,
+   "kind": "console",
+   "text": "🔴 [3:50:08 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 443948,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 449869,
+   "kind": "console",
+   "text": "🔴 [3:50:14 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 449869,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 449870,
+   "kind": "console",
+   "text": "🔴 [3:50:14 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 449870,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 449872,
+   "kind": "turn",
+   "user": "And roughly how many people live there? One sentence",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 449872,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 449873,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 456331,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":16407,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 463614,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 471348,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14983,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 475101,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 490481,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17170,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 492386,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 504741,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14210,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 504741,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 504742,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 518063,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13318,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 534074,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14153,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 550553,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14485,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 558775,
+   "kind": "not-ready",
+   "before": 4
+  },
+  {
+   "t": 568277,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17715,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 568325,
+   "kind": "user-said",
+   "n": 4,
+   "mode": "after-reply",
+   "text": "What is two plus two times three?",
+   "seconds": 2
+  },
+  {
+   "t": 584824,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14043,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 592508,
+   "kind": "user-repeated",
+   "n": 4
+  },
+  {
+   "t": 594455,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2560,\"spoke\":true,\"ms\":7607,\"peak\":0.3492,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 594456,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 598545,
+   "kind": "utterance",
+   "text": "What is two plus two times three?",
+   "at": 1794066762880
+  },
+  {
+   "t": 598546,
+   "kind": "turn",
+   "user": "What is two plus two times three?",
+   "response": null
+  },
+  {
+   "t": 598546,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 614550,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15962,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 630428,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13985,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 646054,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13477,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 653749,
+   "kind": "console",
+   "text": "Metadata: {provider: wikidata, reason: wikidata timed out, latencyMs: 2563}"
+  },
+  {
+   "t": 662283,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":16193,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 678718,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14509,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 685720,
+   "kind": "console",
+   "text": "🔴 [3:54:10 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 685721,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 690816,
+   "kind": "console",
+   "text": "🔴 [3:54:15 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 690816,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 695631,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14859,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 697810,
+   "kind": "console",
+   "text": "🔴 [3:54:22 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 697810,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 697812,
+   "kind": "console",
+   "text": "🔴 [3:54:22 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 697812,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 697812,
+   "kind": "turn",
+   "user": "What is two plus two times three?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 697812,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 697812,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 708046,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 712418,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14609,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 719318,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 730381,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 730385,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15479,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 749882,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 749883,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 760889,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":27589,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 789879,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":25717,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 790377,
+   "kind": "not-ready",
+   "before": 5
+  },
+  {
+   "t": 816889,
+   "kind": "user-said",
+   "n": 5,
+   "mode": "after-reply",
+   "text": "Name one animal that lives in the Andes.",
+   "seconds": 2.2
+  },
+  {
+   "t": 816894,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11964,\"spoke\":true,\"ms\":21215,\"peak\":0.3502,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 816894,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 840792,
+   "kind": "utterance",
+   "text": "Name one animal that lives in the Andes.",
+   "at": 1794067005125
+  },
+  {
+   "t": 840793,
+   "kind": "turn",
+   "user": "Name one animal that lives in the Andes.",
+   "response": null
+  },
+  {
+   "t": 840794,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 852230,
+   "kind": "user-repeated",
+   "n": 5
+  },
+  {
+   "t": 855799,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2717,\"spoke\":true,\"ms\":14928,\"peak\":0.3636,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 871314,
+   "kind": "utterance",
+   "text": "Name one animal that lives in the Andes.",
+   "at": 1794067035649
+  },
+  {
+   "t": 871315,
+   "kind": "turn",
+   "user": "Name one animal that lives in the Andes.",
+   "response": null
+  },
+  {
+   "t": 871315,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 892131,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17625,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 924839,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23447,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 951487,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22308,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 963114,
+   "kind": "console",
+   "text": "🔴 [3:58:47 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 963114,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 975074,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20663,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 983656,
+   "kind": "console",
+   "text": "🔴 [3:59:07 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 983656,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 997750,
+   "kind": "console",
+   "text": "🔴 [3:59:22 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 997751,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 997751,
+   "kind": "console",
+   "text": "🔴 [3:59:22 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 997751,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 997755,
+   "kind": "turn",
+   "user": "Name one animal that lives in the Andes.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 997756,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 997757,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 1004542,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20890,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1021642,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 1029758,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":25136,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1029760,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 1048713,
+   "kind": "not-ready",
+   "before": 6
+  },
+  {
+   "t": 1051533,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":18998,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1069099,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 1075853,
+   "kind": "user-said",
+   "n": 6,
+   "mode": "after-reply",
+   "text": "Give me one tip for better sleep, in one sentence.",
+   "seconds": 2.8
+  },
+  {
+   "t": 1075858,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":6531,\"spoke\":true,\"ms\":15987,\"peak\":0.3998,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 1087860,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 1087861,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 1105389,
+   "kind": "utterance",
+   "text": "Give me one tip for better sleep in one sentence.",
+   "at": 1794067269720
+  },
+  {
+   "t": 1105390,
+   "kind": "turn",
+   "user": "Give me one tip for better sleep in one sentence.",
+   "response": null
+  },
+  {
+   "t": 1105390,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 1115009,
+   "kind": "user-repeated",
+   "n": 6
+  },
+  {
+   "t": 1128047,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19902,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1156401,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22381,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1181287,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":24815,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1200471,
+   "kind": "console",
+   "text": "🔴 [4:02:44 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 1200471,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 1209377,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":24999,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1212064,
+   "kind": "console",
+   "text": "🔴 [4:02:56 PM] [ProviderResolver] Groq failed; falling back to the next provider."
+  },
+  {
+   "t": 1212070,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Groq failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 1223802,
+   "kind": "console",
+   "text": "🔴 [4:03:08 PM] [ProviderResolver] Cerebras failed; falling back to the next provider."
+  },
+  {
+   "t": 1223802,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Cerebras failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 1233589,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21510,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1236699,
+   "kind": "console",
+   "text": "🔴 [4:03:21 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 1236700,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 1236702,
+   "kind": "console",
+   "text": "🟢 [4:03:21 PM] [ProviderResolver] Not trying Anthropic: the fallback chain's 70s budget is spent."
+  },
+  {
+   "t": 1236703,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Not trying Anthropic: the fallback chain's 70s budget is spent., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 1236704,
+   "kind": "console",
+   "text": "🔴 [4:03:21 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 1236704,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 1236709,
+   "kind": "turn",
+   "user": "Give me one tip for better sleep in one sentence.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 1236711,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 1236713,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 1254761,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":18046,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1272034,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 1288561,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 1288565,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":26707,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1303781,
+   "kind": "not-ready",
+   "before": 7
+  },
+  {
+   "t": 1311697,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":18936,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1321485,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 1324827,
+   "kind": "user-said",
+   "n": 7,
+   "mode": "after-reply",
+   "text": "What's a synonym for happy?",
+   "seconds": 1.7
+  },
+  {
+   "t": 1324847,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2247,\"spoke\":true,\"ms\":9855,\"peak\":0.2939,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 1342062,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 1342064,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 1359982,
+   "kind": "utterance",
+   "text": "What's a synonym for happy?",
+   "at": 1794067524316
+  },
+  {
+   "t": 1359983,
+   "kind": "turn",
+   "user": "What's a synonym for happy?",
+   "response": null
+  },
+  {
+   "t": 1359990,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 1369385,
+   "kind": "user-repeated",
+   "n": 7
+  },
+  {
+   "t": 1392019,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":31967,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1419954,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":25156,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1443751,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20579,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1467616,
+   "kind": "console",
+   "text": "🔴 [4:07:11 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 1467617,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 1476778,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":25635,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1481189,
+   "kind": "console",
+   "text": "🔴 [4:07:25 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 1481189,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 1491696,
+   "kind": "console",
+   "text": "🔴 [4:07:36 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 1491696,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 1491697,
+   "kind": "console",
+   "text": "🔴 [4:07:36 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 1491697,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 1491698,
+   "kind": "turn",
+   "user": "What's a synonym for happy?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 1491698,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 1491701,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 1504298,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23180,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1525349,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 1533668,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 1533682,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":24831,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1563303,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":26319,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1563794,
+   "kind": "not-ready",
+   "before": 8
+  },
+  {
+   "t": 1571405,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 1586307,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":18247,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1586307,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 1586308,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 1595358,
+   "kind": "user-said",
+   "n": 8,
+   "mode": "after-reply",
+   "text": "How do you say thank you in Spanish?",
+   "seconds": 1.9
+  },
+  {
+   "t": 1620580,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":34266,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1639050,
+   "kind": "user-repeated",
+   "n": 8
+  },
+  {
+   "t": 1639061,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2508,\"spoke\":true,\"ms\":13931,\"peak\":0.2868,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 1639061,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 1657858,
+   "kind": "utterance",
+   "text": "How do you say thank you in Spanish?",
+   "at": 1794067822193
+  },
+  {
+   "t": 1657859,
+   "kind": "turn",
+   "user": "How do you say thank you in Spanish?",
+   "response": null
+  },
+  {
+   "t": 1657859,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 1685933,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20967,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1708568,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19458,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1728590,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":16885,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1754943,
+   "kind": "console",
+   "text": "🔴 [4:11:59 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 1754943,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 1758507,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21134,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1765211,
+   "kind": "console",
+   "text": "🔴 [4:12:09 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 1765214,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 1776982,
+   "kind": "console",
+   "text": "🔴 [4:12:21 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 1776982,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 1776985,
+   "kind": "console",
+   "text": "🔴 [4:12:21 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 1776985,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 1776987,
+   "kind": "turn",
+   "user": "How do you say thank you in Spanish?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 1776992,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 1776993,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 1784533,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19331,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1813422,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 1817680,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":24323,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1821593,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 1841824,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20224,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1842320,
+   "kind": "not-ready",
+   "before": 9
+  },
+  {
+   "t": 1859402,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 1869279,
+   "kind": "user-said",
+   "n": 9,
+   "mode": "after-reply",
+   "text": "What is my favorite color?",
+   "seconds": 1.5
+  },
+  {
+   "t": 1872712,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":8202,\"spoke\":true,\"ms\":21717,\"peak\":0.2772,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 1875841,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 1875843,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 1888732,
+   "kind": "utterance",
+   "text": "What is my favorite color?",
+   "at": 1794068053067
+  },
+  {
+   "t": 1888732,
+   "kind": "turn",
+   "user": "What is my favorite color?",
+   "response": null
+  },
+  {
+   "t": 1888732,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 1911844,
+   "kind": "user-repeated",
+   "n": 9
+  },
+  {
+   "t": 1911853,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2038,\"spoke\":true,\"ms\":14192,\"peak\":0.2887,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 1923632,
+   "kind": "utterance",
+   "text": "What is my favorite color?",
+   "at": 1794068087967
+  },
+  {
+   "t": 1923633,
+   "kind": "turn",
+   "user": "What is my favorite color?",
+   "response": null
+  },
+  {
+   "t": 1923634,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 1942807,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19096,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 1973846,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":30969,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2000929,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22644,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2024502,
+   "kind": "console",
+   "text": "🔴 [4:16:28 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 2024502,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2027212,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23375,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2037763,
+   "kind": "console",
+   "text": "🔴 [4:16:42 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 2037768,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2053923,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23753,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2059603,
+   "kind": "console",
+   "text": "🔴 [4:17:03 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 2059603,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2059603,
+   "kind": "console",
+   "text": "🔴 [4:17:03 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 2059603,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2059609,
+   "kind": "turn",
+   "user": "What is my favorite color?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 2059610,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 2059611,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 2086475,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":26861,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2094319,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 2098201,
+   "kind": "not-ready",
+   "before": 10
+  },
+  {
+   "t": 2107391,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 2121962,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":27647,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2129646,
+   "kind": "user-said",
+   "n": 10,
+   "mode": "after-reply",
+   "text": "Tell me one fun fact about octopuses, in one sentence.",
+   "seconds": 3.3
+  },
+  {
+   "t": 2151508,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 2151511,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":24984,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2171846,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 2171847,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 2176426,
+   "kind": "user-repeated",
+   "n": 10
+  },
+  {
+   "t": 2176428,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":8516,\"spoke\":true,\"ms\":19545,\"peak\":0.303,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 2176429,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 2200344,
+   "kind": "utterance",
+   "text": "Tell me one fun fact about octopuses in one sentence.",
+   "at": 1794068364676
+  },
+  {
+   "t": 2200344,
+   "kind": "turn",
+   "user": "Tell me one fun fact about octopuses in one sentence.",
+   "response": null
+  },
+  {
+   "t": 2200345,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 2228536,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21103,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2253540,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22212,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2276528,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20273,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2302837,
+   "kind": "console",
+   "text": "🔴 [4:21:07 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 2302838,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2302858,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20629,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2312736,
+   "kind": "console",
+   "text": "🔴 [4:21:17 PM] [ProviderResolver] Groq failed; falling back to the next provider."
+  },
+  {
+   "t": 2312736,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Groq failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2323461,
+   "kind": "console",
+   "text": "🔴 [4:21:27 PM] [ProviderResolver] Cerebras failed; falling back to the next provider."
+  },
+  {
+   "t": 2323461,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Cerebras failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2326936,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21091,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2336089,
+   "kind": "console",
+   "text": "🔴 [4:21:40 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 2336089,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2338667,
+   "kind": "console",
+   "text": "🔴 [4:21:43 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 2338667,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2338667,
+   "kind": "console",
+   "text": "Metadata: {provider: Anthropic, priority: 7, fallbackReason: Anthropic timed out after its 2.4s budget., latencyMs: 85125}"
+  },
+  {
+   "t": 2338667,
+   "kind": "console",
+   "text": "🔴 [4:21:43 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 2338668,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2338670,
+   "kind": "turn",
+   "user": "Tell me one fun fact about octopuses in one sentence.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 2338672,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 2338672,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 2346422,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":16408,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2358191,
+   "kind": "console",
+   "text": "[AIProviderRegistry] Skipping Anthropic during failure cooldown. {retryInMs: 10482, reason: Anthropic timed out after its 2.4s budget., credentialRefused: false}"
+  },
+  {
+   "t": 2369147,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 2374565,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22774,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2376896,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 2381117,
+   "kind": "not-ready",
+   "before": 11
+  },
+  {
+   "t": 2395246,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":18424,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2399426,
+   "kind": "user-said",
+   "n": 11,
+   "mode": "after-reply",
+   "text": "Explain in detail, in about eight sentences, how a rainbow forms.",
+   "seconds": 3.9
+  },
+  {
+   "t": 2399427,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 2416921,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21594,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2419059,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 2419063,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 2433639,
+   "kind": "user-repeated",
+   "n": 11
+  },
+  {
+   "t": 2435596,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":6478,\"spoke\":true,\"ms\":16530,\"peak\":0.3526,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 2435596,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 2450143,
+   "kind": "utterance",
+   "text": "Explain in detail in about eight sentences how a rainbow forms.",
+   "at": 1794068614478
+  },
+  {
+   "t": 2450144,
+   "kind": "turn",
+   "user": "Explain in detail in about eight sentences how a rainbow forms.",
+   "response": null
+  },
+  {
+   "t": 2450145,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 2470311,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20082,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2487272,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":12842,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2503318,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":12739,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2518697,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":12114,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2528096,
+   "kind": "console",
+   "text": "🔴 [4:24:52 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 2528096,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2536657,
+   "kind": "console",
+   "text": "🔴 [4:25:00 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 2536658,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2538736,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":16542,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2546195,
+   "kind": "console",
+   "text": "🔴 [4:25:10 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 2546195,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2546195,
+   "kind": "console",
+   "text": "🔴 [4:25:10 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 2546197,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2546198,
+   "kind": "turn",
+   "user": "Explain in detail in about eight sentences how a rainbow forms.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 2546200,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 2546200,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 2558879,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":18080,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2569341,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 2580277,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19154,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2580278,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 2603355,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20506,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2605389,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 2620679,
+   "kind": "user-said",
+   "n": 12,
+   "mode": "barge-in",
+   "text": "Stop. Just one sentence please.",
+   "seconds": 1.8
+  },
+  {
+   "t": 2622661,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":9874,\"spoke\":true,\"ms\":17280,\"peak\":0.3322,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 2622662,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 2622663,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 2634731,
+   "kind": "utterance",
+   "text": "Stop. Just one sentence, please.",
+   "at": 1794068799066
+  },
+  {
+   "t": 2634732,
+   "kind": "turn",
+   "user": "Stop. Just one sentence, please.",
+   "response": null
+  },
+  {
+   "t": 2634732,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 2655736,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17141,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2674643,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":16987,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2694600,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":16030,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2712498,
+   "kind": "console",
+   "text": "🔴 [4:27:56 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 2712499,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2720349,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17769,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2720420,
+   "kind": "console",
+   "text": "🔴 [4:28:04 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 2720420,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2727961,
+   "kind": "console",
+   "text": "🔴 [4:28:12 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 2727961,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2727962,
+   "kind": "console",
+   "text": "🔴 [4:28:12 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 2727962,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 2727963,
+   "kind": "turn",
+   "user": "Stop. Just one sentence, please.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 2727963,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 2727964,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 2748152,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":27735,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2761766,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 2768965,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17069,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2774047,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 2791736,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20023,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2810739,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 2824937,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22907,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2825433,
+   "kind": "not-ready",
+   "before": 13
+  },
+  {
+   "t": 2830220,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 2830220,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 2849232,
+   "kind": "user-said",
+   "n": 13,
+   "mode": "after-reply",
+   "text": "What is the boiling point of water in Fahrenheit?",
+   "seconds": 2.7
+  },
+  {
+   "t": 2849300,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":12487,\"spoke\":true,\"ms\":21817,\"peak\":0.371,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 2849301,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 2870302,
+   "kind": "utterance",
+   "text": "What is the boiling point of water in Fahrenheit?",
+   "at": 1794069034638
+  },
+  {
+   "t": 2870306,
+   "kind": "turn",
+   "user": "What is the boiling point of water in Fahrenheit?",
+   "response": null
+  },
+  {
+   "t": 2870307,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 2884820,
+   "kind": "user-repeated",
+   "n": 13
+  },
+  {
+   "t": 2891509,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3135,\"spoke\":true,\"ms\":14871,\"peak\":0.3734,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 2904205,
+   "kind": "utterance",
+   "text": "What is the boiling point of water in Fahrenheit?",
+   "at": 1794069068536
+  },
+  {
+   "t": 2904206,
+   "kind": "turn",
+   "user": "What is the boiling point of water in Fahrenheit?",
+   "response": null
+  },
+  {
+   "t": 2904207,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 2924773,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20488,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2944551,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19718,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2966100,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19093,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 2966101,
+   "kind": "console",
+   "text": "Metadata: {provider: wikimedia, reason: wikimedia timed out, latencyMs: 4653}"
+  },
+  {
+   "t": 3002909,
+   "kind": "console",
+   "text": "🔴 [4:32:47 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 3002909,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 3002937,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":30909,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3016160,
+   "kind": "console",
+   "text": "🔴 [4:33:00 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 3016160,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 3024420,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21478,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3029338,
+   "kind": "console",
+   "text": "🔴 [4:33:13 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 3029338,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 3029339,
+   "kind": "console",
+   "text": "🔴 [4:33:13 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 3029339,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 3029344,
+   "kind": "turn",
+   "user": "What is the boiling point of water in Fahrenheit?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 3029346,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 3029347,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 3050123,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20814,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3056059,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 3067454,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 3073080,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19939,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3073572,
+   "kind": "not-ready",
+   "before": 14
+  },
+  {
+   "t": 3096490,
+   "kind": "user-said",
+   "n": 14,
+   "mode": "after-reply",
+   "text": "Which planet is the largest in our solar system?",
+   "seconds": 2.3
+  },
+  {
+   "t": 3096492,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 3105170,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11024,\"spoke\":true,\"ms\":27975,\"peak\":0.3287,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 3115435,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 3115435,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 3122888,
+   "kind": "utterance",
+   "text": "Which planet is the largest in our solar system?",
+   "at": 1794069287223
+  },
+  {
+   "t": 3122889,
+   "kind": "turn",
+   "user": "Which planet is the largest in our solar system?",
+   "response": null
+  },
+  {
+   "t": 3122889,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 3131118,
+   "kind": "user-repeated",
+   "n": 14
+  },
+  {
+   "t": 3145665,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22690,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3174821,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":26079,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3200701,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23286,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3225006,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":24235,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3228080,
+   "kind": "console",
+   "text": "🔴 [4:36:32 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 3228082,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 3236825,
+   "kind": "console",
+   "text": "🔴 [4:36:41 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 3236825,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 3259372,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":31373,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3259372,
+   "kind": "console",
+   "text": "🔴 [4:37:03 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 3259373,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 3259374,
+   "kind": "console",
+   "text": "🔴 [4:37:03 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 3259374,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 3259376,
+   "kind": "turn",
+   "user": "Which planet is the largest in our solar system?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 3259381,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 3259382,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 3284950,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21015,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3293821,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 3302396,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 3305305,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17677,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3324608,
+   "kind": "not-ready",
+   "before": 15
+  },
+  {
+   "t": 3328797,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17239,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3338840,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 3347947,
+   "kind": "user-said",
+   "n": 15,
+   "mode": "after-reply",
+   "text": "Recommend one classic novel, in one sentence.",
+   "seconds": 2.9
+  },
+  {
+   "t": 3350966,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":6113,\"spoke\":true,\"ms\":15185,\"peak\":0.3512,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 3359269,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 3359270,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 3377019,
+   "kind": "utterance",
+   "text": "Recommend one classic novel in one sentence.",
+   "at": 1794069541354
+  },
+  {
+   "t": 3377020,
+   "kind": "turn",
+   "user": "Recommend one classic novel in one sentence.",
+   "response": null
+  },
+  {
+   "t": 3377020,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 3392957,
+   "kind": "user-repeated",
+   "n": 15
+  },
+  {
+   "t": 3393014,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3448,\"spoke\":true,\"ms\":10967,\"peak\":0.3261,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 3403459,
+   "kind": "utterance",
+   "text": "Recommend one classic novel in one sentence.",
+   "at": 1794069567794
+  },
+  {
+   "t": 3403459,
+   "kind": "turn",
+   "user": "Recommend one classic novel in one sentence.",
+   "response": null
+  },
+  {
+   "t": 3403460,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 3429715,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23746,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3455926,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23125,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3481507,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22829,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3492954,
+   "kind": "console",
+   "text": "🔴 [4:40:57 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 3492954,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 3506001,
+   "kind": "console",
+   "text": "🔴 [4:41:10 PM] [ProviderResolver] Groq failed; falling back to the next provider."
+  },
+  {
+   "t": 3506002,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Groq failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 3506026,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":24454,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3515210,
+   "kind": "console",
+   "text": "🔴 [4:41:19 PM] [ProviderResolver] Cerebras failed; falling back to the next provider."
+  },
+  {
+   "t": 3515210,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Cerebras failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 3523848,
+   "kind": "console",
+   "text": "🔴 [4:41:28 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 3523848,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 3526686,
+   "kind": "console",
+   "text": "🔴 [4:41:31 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 3526686,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 3526686,
+   "kind": "console",
+   "text": "Metadata: {provider: Anthropic, priority: 7, fallbackReason: Anthropic timed out after its 2.1s budget., latencyMs: 70786}"
+  },
+  {
+   "t": 3526686,
+   "kind": "console",
+   "text": "🔴 [4:41:31 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 3526686,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 3526689,
+   "kind": "turn",
+   "user": "Recommend one classic novel in one sentence.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 3526690,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 3526690,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 3526696,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17657,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3548455,
+   "kind": "console",
+   "text": "[AIProviderRegistry] Skipping Anthropic during failure cooldown. {retryInMs: 8233, reason: Anthropic timed out after its 2.1s budget., credentialRefused: false}"
+  },
+  {
+   "t": 3556845,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23999,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3567988,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 3575885,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 3579949,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":18909,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3600076,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17400,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3609646,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 3609653,
+   "kind": "user-typed-blocked",
+   "reason": "TimeoutError: page.click: Timeout 8000ms exceeded.",
+   "coveredBy": "DIV."
+  }
+ ],
+ "turns": [
+  {
+   "id": "b4bd44b5-9912-4e37-b66c-e53fd5fced12",
+   "user": "Hey, Leilu. My name is Sam and my favorite color is teal. Just say hello",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794066269435,
+   "startedAt": 1794066202715,
+   "respondedAt": 1794066269435
+  },
+  {
+   "id": "9196178e-0df3-4917-9432-f504b23dd8dd",
+   "user": "What is the capital of Peru?",
+   "response": null,
+   "at": 1794066296233,
+   "startedAt": 1794066296233
+  },
+  {
+   "id": "2ddf8d14-05e3-4203-a084-02ef093c2f50",
+   "user": "What is the capital of Peru?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794066370036,
+   "startedAt": 1794066305883,
+   "respondedAt": 1794066370036
+  },
+  {
+   "id": "fdfdccb8-273e-4fb2-a4ec-f3edf92ed725",
+   "user": "And roughly how many people live there? One sentence",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794066614207,
+   "startedAt": 1794066540507,
+   "respondedAt": 1794066614207
+  },
+  {
+   "id": "a0ef65a9-16be-4bda-91c5-235f488e5ad8",
+   "user": "What is two plus two times three?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794066862146,
+   "startedAt": 1794066762880,
+   "respondedAt": 1794066862146
+  },
+  {
+   "id": "7dcadd58-c256-446c-90ee-6e1cd379fad4",
+   "user": "Name one animal that lives in the Andes.",
+   "response": null,
+   "at": 1794067005126,
+   "startedAt": 1794067005126
+  },
+  {
+   "id": "0bf010ce-66bc-4608-aaf3-b24fbaaa7bd2",
+   "user": "Name one animal that lives in the Andes.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794067162090,
+   "startedAt": 1794067035649,
+   "respondedAt": 1794067162090
+  },
+  {
+   "id": "d71cf424-f945-45f7-996d-885e5650a1f5",
+   "user": "Give me one tip for better sleep in one sentence.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794067401044,
+   "startedAt": 1794067269720,
+   "respondedAt": 1794067401044
+  },
+  {
+   "id": "18c78bcb-c845-4c10-9b22-d316f5975fe2",
+   "user": "What's a synonym for happy?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794067656033,
+   "startedAt": 1794067524319,
+   "respondedAt": 1794067656033
+  },
+  {
+   "id": "d9bf433f-2031-4964-b926-01bdeddd9509",
+   "user": "How do you say thank you in Spanish?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794067941321,
+   "startedAt": 1794067822193,
+   "respondedAt": 1794067941321
+  },
+  {
+   "id": "b8b85c27-e588-4027-ad06-12a5b9aa73c0",
+   "user": "What is my favorite color?",
+   "response": null,
+   "at": 1794068053067,
+   "startedAt": 1794068053067
+  },
+  {
+   "id": "843c5cc5-d913-42fa-83c9-9dc66941057e",
+   "user": "What is my favorite color?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794068223942,
+   "startedAt": 1794068087968,
+   "respondedAt": 1794068223942
+  },
+  {
+   "id": "731cce85-df91-4995-8602-25290ed6e9bb",
+   "user": "Tell me one fun fact about octopuses in one sentence.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794068503006,
+   "startedAt": 1794068364677,
+   "respondedAt": 1794068503006
+  },
+  {
+   "id": "5c76b652-67ba-47e2-807c-87fb7823615e",
+   "user": "Explain in detail in about eight sentences how a rainbow forms.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794068710531,
+   "startedAt": 1794068614479,
+   "respondedAt": 1794068710531
+  },
+  {
+   "id": "1839aec4-8169-4a74-b74b-7a938eaa8ba0",
+   "user": "Stop. Just one sentence, please.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794068892298,
+   "startedAt": 1794068799066,
+   "respondedAt": 1794068892298
+  },
+  {
+   "id": "da4c9406-2c66-4ae1-afc0-06030b15523a",
+   "user": "What is the boiling point of water in Fahrenheit?",
+   "response": null,
+   "at": 1794069034638,
+   "startedAt": 1794069034638
+  },
+  {
+   "id": "415ea82a-2d9b-4950-9cae-33d68f4b71f5",
+   "user": "What is the boiling point of water in Fahrenheit?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794069193679,
+   "startedAt": 1794069068541,
+   "respondedAt": 1794069193679
+  },
+  {
+   "id": "48e51b5a-f485-4cbe-a38a-35d10f5f8269",
+   "user": "Which planet is the largest in our solar system?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794069423711,
+   "startedAt": 1794069287224,
+   "respondedAt": 1794069423711
+  },
+  {
+   "id": "d1259621-cf7a-4d5c-a53b-09da20857728",
+   "user": "Recommend one classic novel in one sentence.",
+   "response": null,
+   "at": 1794069541355,
+   "startedAt": 1794069541355
+  },
+  {
+   "id": "82893acf-9228-4e21-a37f-260ee2839d7c",
+   "user": "Recommend one classic novel in one sentence.",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794069691025,
+   "startedAt": 1794069567794,
+   "respondedAt": 1794069691025
+  }
+ ],
+ "ledger": [
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 192,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 10640
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1179,
+   "out": 518,
+   "cost": "reported",
+   "usd": 0.00081275,
+   "ms": 17051
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 11,
+   "cost": "reported",
+   "usd": 0.0011,
+   "ms": 9750
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1424,
+   "out": 694,
+   "cost": "reported",
+   "usd": 0.00039036,
+   "ms": 12982
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 33905,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "ai",
+   "source": "Fireworks",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 10266,
+   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info"
+  },
+  {
+   "kind": "ai",
+   "source": "Anthropic",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 11765,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 114,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 7451
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1362,
+   "out": 537,
+   "cost": "reported",
+   "usd": 0.000335544,
+   "ms": 15508
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 563,
+   "out": 41,
+   "cost": "reported",
+   "usd": 0.000034726,
+   "ms": 15793
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 192,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 9008
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 15,
+   "cost": "reported",
+   "usd": 0.0015,
+   "ms": 9716
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1379,
+   "out": 507,
+   "cost": "reported",
+   "usd": 0.00024769696,
+   "ms": 12818
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 9,
+   "cost": "reported",
+   "usd": 0.0009,
+   "ms": 11777
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1407,
+   "out": 581,
+   "cost": "reported",
+   "usd": 0.00036085,
+   "ms": 14176
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 35017,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "ai",
+   "source": "Fireworks",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 13258,
+   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info"
+  },
+  {
+   "kind": "ai",
+   "source": "Anthropic",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 21836,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 114,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 8975
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1169,
+   "out": 419,
+   "cost": "reported",
+   "usd": 0.000216514,
+   "ms": 10353
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 192,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 9928
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1264,
+   "out": 326,
+   "cost": "reported",
+   "usd": 0.000261988,
+   "ms": 19480
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 16,
+   "cost": "reported",
+   "usd": 0.0016,
+   "ms": 13221
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1282,
+   "out": 281,
+   "cost": "reported",
+   "usd": 0.000225112,
+   "ms": 11279
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 34352,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "ai",
+   "source": "Groq",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 9890,
+   "error": "Groq failed 429: Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 185680, Reques"
+  },
+  {
+   "kind": "ai",
+   "source": "Cerebras",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 10720,
+   "error": "Cerebras HTTP 401: Wrong API Key"
+  },
+  {
+   "kind": "ai",
+   "source": "Fireworks",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 12625,
+   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info"
+  },
+  {
+   "kind": "ai",
+   "source": "Anthropic",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 2577,
+   "error": "The user aborted a request."
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 114,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 4960
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1282,
+   "out": 298,
+   "cost": "reported",
+   "usd": 0.000248028,
+   "ms": 11034
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 192,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 5994
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 572,
+   "out": 36,
+   "cost": "reported",
+   "usd": 0.000062064,
+   "ms": 9975
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1319,
+   "out": 700,
+   "cost": "reported",
+   "usd": 0.000674604,
+   "ms": 9605
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 13,
+   "cost": "reported",
+   "usd": 0.0013,
+   "ms": 8594
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 32127,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "ai",
+   "source": "Fireworks",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 8560,
+   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info"
+  },
+  {
+   "kind": "ai",
+   "source": "Anthropic",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 9533,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 114,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 2839
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1655,
+   "out": 600,
+   "cost": "reported",
+   "usd": 0.000924372,
+   "ms": 7946
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 192,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 7368
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 570,
+   "out": 96,
+   "cost": "reported",
+   "usd": 0.00017451,
+   "ms": 6117
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 15,
+   "cost": "reported",
+   "usd": 0.0015,
+   "ms": 6777
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1424,
+   "out": 700,
+   "cost": "reported",
+   "usd": 0.000421136,
+   "ms": 12531
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 31464,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "ai",
+   "source": "Fireworks",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 7918,
+   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info"
+  },
+  {
+   "kind": "ai",
+   "source": "Anthropic",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 7542,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 114,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 5727
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 2057,
+   "out": 284,
+   "cost": "reported",
+   "usd": 0.000222195,
+   "ms": 10899
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 561,
+   "out": 140,
+   "cost": "reported",
+   "usd": 0.000107026,
+   "ms": 9738
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 192,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 7330
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1261,
+   "out": 379,
+   "cost": "reported",
+   "usd": 0.000341571,
+   "ms": 15264
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 20,
+   "cost": "reported",
+   "usd": 0.002,
+   "ms": 11370
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 7,
+   "cost": "reported",
+   "usd": 0.0007,
+   "ms": 12692
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1449,
+   "out": 387,
+   "cost": "reported",
+   "usd": 0.000537975,
+   "ms": 10291
+  },
+  {
+   "kind": "api",
+   "source": "wikipedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 2538
+  },
+  {
+   "kind": "api",
+   "source": "wikidata",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 4669,
+   "error": "Failed to fetch"
+  },
+  {
+   "kind": "api",
+   "source": "wikimedia",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 4767,
+   "error": "Wikimedia 429"
+  },
+  {
+   "kind": "api",
+   "source": "wikipedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 0
+  },
+  {
+   "kind": "api",
+   "source": "wikipedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 2478
+  },
+  {
+   "kind": "api",
+   "source": "wikidata",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 2465,
+   "error": "Failed to fetch"
+  },
+  {
+   "kind": "api",
+   "source": "wikidata",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 2320,
+   "error": "Wikidata 429"
+  },
+  {
+   "kind": "api",
+   "source": "wikimedia",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 2318,
+   "error": "Wikimedia 429"
+  },
+  {
+   "kind": "api",
+   "source": "wikipedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 0
+  },
+  {
+   "kind": "api",
+   "source": "wikimedia",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 3990,
+   "error": "Wikimedia 429"
+  },
+  {
+   "kind": "api",
+   "source": "wikidata",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 3995,
+   "error": "Failed to fetch"
+  },
+  {
+   "kind": "api",
+   "source": "wikimedia",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 2752,
+   "error": "Wikimedia 429"
+  },
+  {
+   "kind": "api",
+   "source": "wikipedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 2857
+  },
+  {
+   "kind": "api",
+   "source": "wikidata",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 2501,
+   "error": "Failed to fetch"
+  },
+  {
+   "kind": "api",
+   "source": "wikimedia",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 4652,
+   "error": "wikimedia timed out"
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 36802,
+   "error": "OpenRouter returned no usable content."
+  },
+  {
+   "kind": "ai",
+   "source": "Fireworks",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 13246,
+   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info"
+  },
+  {
+   "kind": "ai",
+   "source": "Anthropic",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 13149,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 114,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 7626
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1697,
+   "out": 495,
+   "cost": "reported",
+   "usd": 0.00108613,
+   "ms": 14582
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 192,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 9727
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 566,
+   "out": 151,
+   "cost": "reported",
+   "usd": 0.00007047,
+   "ms": 9736
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 21,
+   "cost": "reported",
+   "usd": 0.0021,
+   "ms": 9362
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 566,
+   "out": 100,
+   "cost": "reported",
+   "usd": 0.000103338,
+   "ms": 14513
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1217,
+   "out": 622,
+   "cost": "reported",
+   "usd": 0.0003944975,
+   "ms": 22679
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 30199,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "ai",
+   "source": "Fireworks",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 8741,
+   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info"
+  },
+  {
+   "kind": "ai",
+   "source": "Anthropic",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 22544,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 114,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 4616
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 2018,
+   "out": 411,
+   "cost": "reported",
+   "usd": 0.000282184,
+   "ms": 12256
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 192,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 9160
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 566,
+   "out": 62,
+   "cost": "reported",
+   "usd": 0.000079704,
+   "ms": 16293
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 10,
+   "cost": "reported",
+   "usd": 0.001,
+   "ms": 17679
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1464,
+   "out": 646,
+   "cost": "reported",
+   "usd": 0.000396776,
+   "ms": 20721
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 7,
+   "cost": "reported",
+   "usd": 0.0007,
+   "ms": 10443
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 5918,
+   "error": "OpenRouter network error: superseded by new speech"
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 37039,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "ai",
+   "source": "Groq",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 13047,
+   "error": "Groq failed 429: Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 197507, Reques"
+  },
+  {
+   "kind": "ai",
+   "source": "Cerebras",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 9208,
+   "error": "Cerebras HTTP 401: Wrong API Key"
+  },
+  {
+   "kind": "ai",
+   "source": "Fireworks",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 8636,
+   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info"
+  },
+  {
+   "kind": "ai",
+   "source": "Anthropic",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 2836,
+   "error": "The user aborted a request."
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 114,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 9311
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 561,
+   "out": 38,
+   "cost": "reported",
+   "usd": 0.000029566,
+   "ms": 16579
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1347,
+   "out": 353,
+   "cost": "reported",
+   "usd": 0.00019928496,
+   "ms": 12246
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 192,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 6791
+  }
+ ]
+}
