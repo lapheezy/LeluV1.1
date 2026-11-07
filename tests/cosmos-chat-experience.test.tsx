@@ -204,7 +204,7 @@ test("GenesisCore actions do not depend on state or the universe tick", () => {
 });
 
 test("chat chrome reads the state-only context and the canvases take the governed frameloop", () => {
-  for (const file of ["GenesisChat.tsx", "MultiChatTabs.tsx", "GenesisDock.tsx", "GenesisModuleHost.tsx"]) {
+  for (const file of ["GenesisChat.tsx", "GenesisDock.tsx", "GenesisModuleHost.tsx"]) {
     const source = readFileSync(`src/app/scene/genesis/${file}`, "utf8");
     assert.doesNotMatch(source, /\buseGenesis\(\)/, `${file} should use useGenesisState()`);
   }

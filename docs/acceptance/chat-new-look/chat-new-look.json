@@ -1,5 +1,5 @@
 {
- "ranAt": "2026-11-07T20:20:02.392Z",
+ "ranAt": "2026-11-07T20:47:13.565Z",
  "base": "http://127.0.0.1:5174/",
  "results": [
   {
@@ -9,13 +9,19 @@
     "universe": true,
     "oldComposer": false,
     "oldTabStrip": false,
-    "universeComposer": true
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
    },
    "viaLelu": {
-    "universe": true,
+    "universe": false,
     "oldComposer": false,
     "oldTabStrip": false,
-    "universeComposer": true
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
    },
    "typed": true,
    "landed": true,
@@ -23,10 +29,15 @@
     "universe": true,
     "oldComposer": false,
     "oldTabStrip": false,
-    "universeComposer": true
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
    },
+   "attachPreview": false,
+   "imageSent": true,
    "errors": [],
-   "pass": true
+   "pass": false
   },
   {
    "viewport": "375x812",
@@ -35,13 +46,19 @@
     "universe": true,
     "oldComposer": false,
     "oldTabStrip": false,
-    "universeComposer": true
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
    },
    "viaLelu": {
     "universe": true,
     "oldComposer": false,
     "oldTabStrip": false,
-    "universeComposer": true
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
    },
    "typed": true,
    "landed": true,
@@ -49,10 +66,15 @@
     "universe": true,
     "oldComposer": false,
     "oldTabStrip": false,
-    "universeComposer": false
+    "universeComposer": false,
+    "oldPanelInDom": false,
+    "attachButton": false,
+    "shareButton": false
    },
+   "attachPreview": false,
+   "imageSent": false,
    "errors": [],
-   "pass": true
+   "pass": false
   },
   {
    "viewport": "390x844",
@@ -61,13 +83,19 @@
     "universe": true,
     "oldComposer": false,
     "oldTabStrip": false,
-    "universeComposer": true
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
    },
    "viaLelu": {
     "universe": true,
     "oldComposer": false,
     "oldTabStrip": false,
-    "universeComposer": true
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
    },
    "typed": true,
    "landed": true,
@@ -75,10 +103,15 @@
     "universe": true,
     "oldComposer": false,
     "oldTabStrip": false,
-    "universeComposer": false
+    "universeComposer": false,
+    "oldPanelInDom": false,
+    "attachButton": false,
+    "shareButton": false
    },
+   "attachPreview": false,
+   "imageSent": false,
    "errors": [],
-   "pass": true
+   "pass": false
   },
   {
    "viewport": "iPhone13",
@@ -87,13 +120,19 @@
     "universe": true,
     "oldComposer": false,
     "oldTabStrip": false,
-    "universeComposer": true
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
    },
    "viaLelu": {
     "universe": true,
     "oldComposer": false,
     "oldTabStrip": false,
-    "universeComposer": true
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
    },
    "typed": true,
    "landed": true,
@@ -101,10 +140,15 @@
     "universe": true,
     "oldComposer": false,
     "oldTabStrip": false,
-    "universeComposer": false
+    "universeComposer": false,
+    "oldPanelInDom": false,
+    "attachButton": false,
+    "shareButton": false
    },
+   "attachPreview": false,
+   "imageSent": false,
    "errors": [],
-   "pass": true
+   "pass": false
   }
  ]
 }

@@ -156,7 +156,9 @@ test("closing chat hides it; it is unmounted only with the whole interface", () 
   const ui = code("src/app/scene/genesis/GenesisInterface.tsx");
   assert.match(
     ui,
-    /\{state\.minimized \? null : \(\s*<ChatErrorBoundary onLeave=\{handleExitChat\}>\s*<GenesisChat\s+hidden=\{[\s\S]{0,200}surface\.workspaceOwnsScreen \|\| !\(state\.activePanel === "chat" \|\| openModuleIds\.length > 0\)\s*\}/,
+    // The send engine stays mounted (always hidden — the Chat Universe is
+    // the chat) and unmounts only with the whole interface.
+    /\{state\.minimized \? null : \(\s*<ChatErrorBoundary onLeave=\{handleExitChat\}>[\s\S]{0,160}<GenesisChat hidden \/>/,
   );
   const chat = code("src/app/scene/genesis/GenesisChat.tsx");
   assert.match(chat, /display: hidden \? "none" : "flex"/);
@@ -170,7 +172,6 @@ test("the phone chat is edge to edge: no dock inset, 100vw × 100dvh, keyboard-a
   const chat = code("src/app/scene/genesis/GenesisChat.tsx");
   assert.ok(!/useDockInset|dockInset/.test(chat), "nothing pushes the full-screen chat over");
   assert.ok(!/export function useDockInset/.test(code("src/app/scene/genesis/chat/chatLayout.ts")));
-  assert.ok(!/useDockInset/.test(code("src/app/scene/genesis/MultiChatTabs.tsx")));
   assert.match(chat, /left: 0,\s*right: 0,\s*top: workspace\.keyboardOpen \? workspace\.visibleTop : 0,\s*width: "100vw",\s*height: workspace\.keyboardOpen \? workspace\.visibleHeight : "100dvh",/);
   assert.match(chat, /paddingTop: isFullMobile \? "calc\(env\(safe-area-inset-top, 0px\) \+ 10px\)"/, "safe areas are padding inside the sky");
 });
@@ -232,7 +233,8 @@ test("on a phone a visible workspace owns the screen; chat waits underneath", ()
   assert.equal(minimized.chatOwnsScreen, true, "minimizing the module brings the chat back");
   const desktop = resolveSurface({ activePanel: "chat", minimized: false, openModuleCount: 1, visibleModuleCount: 1, compact: false });
   assert.equal(desktop.workspaceOwnsScreen, false, "on a desktop module windows float beside the chat");
-  assert.match(code("src/app/scene/genesis/GenesisInterface.tsx"), /state\.minimized \|\| surface\.workspaceOwnsScreen \? null : state\.activePanel === "chat" \? <MultiChatTabs \/>/);
+  // The old browser-style chat tab strip is gone; the Chat Universe is the chat.
+  assert.doesNotMatch(code("src/app/scene/genesis/GenesisInterface.tsx"), /<MultiChatTabs\b/);
 });
 
 test("the LÉLU menu sheet sits above its own backdrop", () => {

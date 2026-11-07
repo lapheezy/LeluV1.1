@@ -33,7 +33,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import * as Icons from "lucide-react";
 import { chatWindowId, conversationIdOf, floatsAboveChat, useGenesis } from "../../GenesisCore";
-import { requestFullChatOnce, setUniverseOpen, useUniverseOpen } from "./universeOpen";
+import { setUniverseOpen, useUniverseOpen } from "./universeOpen";
+import { processImageFile, processVideoFile, type ProcessedMedia } from "../../../../../core/media/mediaProcessor";
+import ScreenShare from "../../../../../core/perception/ScreenShare";
+import { explainScreenShareFailure, screenShareSupport } from "../../../../../core/perception/screenCapability";
 import VoiceEngine from "../../../../../core/voice/VoiceEngine";
 import { useSurface } from "../../surface/useSurface";
 import MultiChatStore, { type ChatConversation } from "../../../../../core/multichat/MultiChatStore";
@@ -254,6 +257,16 @@ export default function ChatUniverse() {
   const activeCount = conversations.filter((c) => c.processing).length;
   const presence = presenceOf(activeCount > 0 || Boolean(focused?.processing), null);
 
+  // Attachments and screen sharing live HERE now — the old panel is gone.
+  const [attached, setAttached] = useState<ProcessedMedia[]>([]);
+  const [attachNotice, setAttachNotice] = useState<string | null>(null);
+  const mediaRef = useRef<HTMLInputElement | null>(null);
+  const canShareScreen = useMemo(() => screenShareSupport().supported, []);
+  const [sharing, setSharing] = useState(() => ScreenShare.getInstance().isActive());
+  useEffect(() => ScreenShare.getInstance().subscribe((stats) => {
+    setSharing(stats.active);
+    if (stats.active) setAttachNotice(null);
+  }), []);
   if (!open) return null;
 
   const openChat = (id: string) => {
@@ -276,12 +289,25 @@ export default function ChatUniverse() {
     const id = genesis.createConversation();
     if (id) openChat(id);
   };
+  const onAttach = async (files: FileList | null) => {
+    if (!files?.length) return;
+    const next: ProcessedMedia[] = [];
+    for (const file of [...files].slice(0, 4)) {
+      try {
+        next.push(file.type.startsWith("video/") ? await processVideoFile(file) : await processImageFile(file));
+      } catch (error) {
+        setAttachNotice(`Could not attach ${file.name}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    if (next.length) setAttached((current) => [...current, ...next].slice(0, 4));
+  };
   const send = () => {
     const text = draft.trim();
     const target = focused ?? byId.get(activeConversationId) ?? null;
-    if (!text || !target) return;
+    if ((!text && attached.length === 0) || !target) return;
     if (target.id !== MultiChatStore.getInstance().getActiveId()) genesis.switchConversation(target.id);
-    window.dispatchEvent(new CustomEvent(UNIVERSE_SEND_EVENT, { detail: { text, conversationId: target.id } }));
+    window.dispatchEvent(new CustomEvent(UNIVERSE_SEND_EVENT, { detail: { text, conversationId: target.id, media: attached } }));
+    setAttached([]);
     setDraft("");
     if (!focused) openChat(target.id);
   };
@@ -463,8 +489,25 @@ export default function ChatUniverse() {
       {/* ---------- universal composer + quick dock ---------- */}
       {sheetOpen ? null : (
       <footer className="lcu-bottom">
+        {attachNotice ? (
+          <div role="status" data-lelu-screen-share-notice className="lcu-notice" style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", marginBottom: 6, borderRadius: 10, background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.35)", color: "#fde68a", font: "500 12px system-ui, sans-serif" }}>
+            <span style={{ flex: 1 }}>{attachNotice}</span>
+            <button type="button" className="lcu-icon sm" aria-label="Dismiss notice" onClick={() => setAttachNotice(null)}><Icons.X size={13} /></button>
+          </div>
+        ) : null}
+        {attached.length ? (
+          <div className="lcu-attached" aria-label="Attachments" style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+            {attached.map((m, i) => (
+              <span key={i} style={{ position: "relative", display: "inline-block" }}>
+                <img src={m.dataUrl} alt={m.kind === "video" ? "Video frame" : "Attached image"} style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)" }} />
+                <button type="button" className="lcu-icon sm" aria-label="Remove attachment" style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20 }} onClick={() => setAttached((cur) => cur.filter((_, j) => j !== i))}><Icons.X size={11} /></button>
+              </span>
+            ))}
+          </div>
+        ) : null}
         <div className="lcu-composer">
-          <button type="button" className="lcu-icon" aria-label="Attach in the full chat" onClick={() => { setOpen(false); requestFullChatOnce(); genesis.openPanel("chat"); }}><Icons.Plus size={19} /></button>
+          <button type="button" className="lcu-icon" aria-label="Attach an image or video" onClick={() => mediaRef.current?.click()} disabled={!target}><Icons.Plus size={19} /></button>
+          <input ref={mediaRef} type="file" accept="image/*,video/*" multiple hidden onChange={(e) => { void onAttach(e.target.files); e.target.value = ""; }} />
           <div className="lcu-input">
             <span className="lcu-target" title="This message goes to">{target ? target.title : "Pick a chat"}</span>
             <textarea
@@ -477,8 +520,24 @@ export default function ChatUniverse() {
               disabled={!target}
               enterKeyHint="send"
             />
+            {canShareScreen ? (
+              <button
+                type="button"
+                className="lcu-icon sm"
+                data-lelu-share-screen
+                aria-pressed={sharing}
+                aria-label={sharing ? "Stop sharing your screen" : "Share your screen with Lélu"}
+                onClick={() => {
+                  const share = ScreenShare.getInstance();
+                  if (share.isActive()) share.stop();
+                  else void share.start().catch((error: unknown) => setAttachNotice(explainScreenShareFailure(error)));
+                }}
+              >
+                {sharing ? <Icons.ScreenShareOff size={17} /> : <Icons.ScreenShare size={17} />}
+              </button>
+            ) : null}
             <button type="button" className="lcu-icon sm" aria-label="Talk to LÉLU" onClick={() => { void VoiceEngine.getInstance().toggle(); }}><Icons.Mic size={17} /></button>
-            <button type="button" className="lcu-send" onClick={send} disabled={!target || !draft.trim()} aria-label={`Send to ${target?.title ?? "chat"}`}><Icons.ArrowRight size={19} /></button>
+            <button type="button" className="lcu-send" onClick={send} disabled={!target || (!draft.trim() && attached.length === 0)} aria-label={`Send to ${target?.title ?? "chat"}`}><Icons.ArrowRight size={19} /></button>
           </div>
         </div>
         <nav className="lcu-dock" aria-label="Quick chat dock">

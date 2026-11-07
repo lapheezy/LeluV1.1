@@ -48,7 +48,6 @@ import { genesisTheme } from "./GenesisTheme";
 import GenesisChat from "./GenesisChat";
 import ChatErrorBoundary from "./chat/ChatErrorBoundary";
 import { useSurface } from "./surface/useSurface";
-import MultiChatTabs from "./MultiChatTabs";
 import GenesisReasoningPanel from "./GenesisReasoningPanel";
 import GenesisDiagnosticsPanel from "./GenesisDiagnosticsPanel";
 import GenesisExecutivePanel from "./GenesisExecutivePanel";
@@ -847,7 +846,7 @@ export default function GenesisInterface() {
       {/* Multi-Chat tab bar — visible while the dialogue surface is open so
           the user can switch between isolated conversations without losing
           state. It floats above the dialogue overlay (higher z-index). */}
-      {state.minimized || surface.workspaceOwnsScreen ? null : state.activePanel === "chat" ? <MultiChatTabs /> : null}
+      {/* The old browser-style chat tab strip is gone: the Chat Universe lists and switches chats. */}
 
       {/* Explorer cards — autonomous LÉLU discoveries as small floating cards */}
 
@@ -863,13 +862,8 @@ export default function GenesisInterface() {
           render error and offers to reopen the conversation. */}
       {state.minimized ? null : (
         <ChatErrorBoundary onLeave={handleExitChat}>
-          <GenesisChat
-            hidden={
-              // On a phone a visible workspace is the screen; the chat waits
-              // underneath, mounted, and returns when it is minimized/closed.
-              surface.workspaceOwnsScreen || !(state.activePanel === "chat" || openModuleIds.length > 0)
-            }
-          />
+          {/* Send engine only — draws nothing. The Chat Universe is the chat. */}
+          <GenesisChat hidden />
         </ChatErrorBoundary>
       )}
 

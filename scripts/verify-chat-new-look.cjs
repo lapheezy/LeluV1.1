@@ -33,6 +33,10 @@ const looks = (page) => page.evaluate(() => {
     oldComposer: anyVis("[data-lelu-composer]"),
     oldTabStrip: anyVis("[class*='lelu-tab-bar'], [class*='lelu-tab-cloud']"),
     universeComposer: anyVis(".lcu-composer textarea"),
+    // The old panel must not exist at all, visible or not.
+    oldPanelInDom: Boolean(document.querySelector("[data-lelu-composer], .lelu-cc-dock, [class*='lelu-tab-bar']")),
+    attachButton: anyVis('.lcu-composer button[aria-label="Attach an image or video"]'),
+    shareButton: anyVis(".lcu-composer [data-lelu-share-screen]"),
   };
 });
 
@@ -81,11 +85,26 @@ async function run() {
     await page.waitForTimeout(2500);
     const landed = await page.evaluate(async (t) => { const M = (await import("/src/core/multichat/MultiChatStore.ts")).default.getInstance(); return M.list().some((c) => c.messages.some((m) => m.role === "user" && m.text === t)); }, text);
     const afterSend = await looks(page);
+
+    // 4. Attach an image in the Universe composer and send it: the image must
+    //    leave in the model request (it no longer needs the old panel).
+    let imageSent = false;
+    const onReq = (r) => { if (/\/api\/model\//.test(r.url()) && (r.postData() ?? "").includes("data:image")) imageSent = true; };
+    page.on("request", onReq);
+    const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP8z8DAwMDAxMDAwMDAAAANHQEDK+mmyAAAAABJRU5ErkJggg==", "base64");
+    await page.setInputFiles('.lcu-composer input[type="file"]', { name: "dot.png", mimeType: "image/png", buffer: png }).catch(() => {});
+    await page.waitForTimeout(1200);
+    const preview = await page.evaluate(() => Boolean(document.querySelector('.lcu-attached img')));
+    await tap(".lcu-composer textarea");
+    await page.keyboard.type("What is in this image?", { delay: 3 });
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(8000);
+    page.off("request", onReq);
     await page.screenshot({ path: path.join(outDir, `after-send-${vp.name}.png`) }).catch(() => {});
 
-    const r = { viewport: vp.name, tappedNav, viaNavigator, viaLelu, typed, landed, afterSend, errors: errors.slice(0, 3) };
-    const newLook = (l) => l.universe && !l.oldComposer && !l.oldTabStrip;
-    r.pass = newLook(viaNavigator) && newLook(viaLelu) && landed && !afterSend.oldTabStrip && !afterSend.oldComposer;
+    const r = { viewport: vp.name, tappedNav, viaNavigator, viaLelu, typed, landed, afterSend, attachPreview: preview, imageSent, errors: errors.slice(0, 3) };
+    const newLook = (l) => l.universe && !l.oldComposer && !l.oldTabStrip && !l.oldPanelInDom;
+    r.pass = newLook(viaNavigator) && newLook(viaLelu) && landed && newLook(afterSend) && viaNavigator.attachButton && preview && imageSent;
     results.push(r);
     console.log(JSON.stringify(r));
     await ctx.close();

@@ -324,6 +324,8 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
   }, []);
 
   const [pendingMedia, setPendingMedia] = useState<ProcessedMedia[]>([]);
+  /** Attachments from the Chat Universe composer, consumed by the next send. */
+  const universeMediaRef = useRef<ProcessedMedia[]>([]);
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [mediaBusy, setMediaBusy] = useState(false);
   const [mediaOpen, setMediaOpen] = useState(false);
@@ -700,7 +702,9 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     followUpRef.current = null;
     const reused = retrying !== null || followUp !== null;
     const typed = (followUp?.text ?? retrying ?? input).trim();
-    const media = reused ? [] : pendingMedia;
+    // Media handed over by the Chat Universe composer rides with its words.
+    const handedMedia = retrying !== null ? universeMediaRef.current.splice(0) : [];
+    const media = reused ? handedMedia : pendingMedia;
     const files = reused ? [] : pendingFiles;
     if (!typed && media.length === 0 && files.length === 0) {
       return;
@@ -1408,10 +1412,12 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
   // turn streams, queues and persists exactly like one typed here.
   useEffect(() => {
     const onUniverseSend = (event: Event) => {
-      const detail = (event as CustomEvent<{ text?: string; conversationId?: string }>).detail;
-      const text = detail?.text?.trim();
+      const detail = (event as CustomEvent<{ text?: string; conversationId?: string; media?: ProcessedMedia[] }>).detail;
+      const media = Array.isArray(detail?.media) ? detail.media : [];
+      const text = detail?.text?.trim() || (media.length ? defaultMediaPrompt(media) : "");
       if (!text) return;
       if (detail?.conversationId && MultiChatStore.getInstance().getActiveId() !== detail.conversationId) return;
+      universeMediaRef.current = media;
       retry(text);
     };
     window.addEventListener("lelu-universe-send", onUniverseSend);
@@ -1497,8 +1503,10 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
    */
   const phoneExpanded = useChatExpanded();
 
-  // Closed (Home): nothing is drawn, the turn bookkeeping stays alive.
-  if (hidden && chatMinimized) return null;
+  // The old single-panel chat is gone: the Chat Universe is the chat. This
+  // component stays mounted only as the send engine behind the Universe
+  // (streaming, queueing, persistence, voice turns) and draws nothing.
+  if (hidden) return null;
 
   // Minimized bubble
   if (chatMinimized) {
