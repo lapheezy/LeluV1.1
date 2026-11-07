@@ -50,6 +50,24 @@ test("a claim backed by the tool that really ran is not flagged", () => {
   assert.equal(groundingNote([]), "");
 });
 
+test("canonical studio tools ground build, test and preview claims", () => {
+  const reply =
+    "Build: finished with no errors in 124 ms.\n" +
+    "Tests: 10 passed, 0 failed (exit 0).\n" +
+    "Preview: it's running at /api/studio/serve/focus-ledger-3e/.";
+  const studio = [
+    { tool: "studio.build", ok: true },
+    { tool: "studio.test", ok: true },
+    { tool: "studio.preview", ok: true },
+  ];
+  assert.deepEqual(ungroundedClaims(reply, studio), [], "the successful studio workflow is not falsely unverified");
+  assert.deepEqual(
+    ungroundedClaims(reply, [{ tool: "studio.list", ok: true }]).map((claim) => claim.label),
+    ["the build result", "the test results", "the running preview"],
+    "the same claims are still flagged when no build/test/preview ran",
+  );
+});
+
 test("numbers that were not measured are contradicted: run 15's '0 problems' against captures of 10 and 9", async () => {
   const { contradictedCaptureClaims, contradictionNote } = await import("../src/core/tools/ClaimGrounding");
   const run15 = readFileSync("docs/evidence/self-improve/2026-10-30T00-34-29/transcript.txt", "utf8");

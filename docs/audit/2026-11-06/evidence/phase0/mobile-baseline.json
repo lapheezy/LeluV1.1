@@ -1,0 +1,130 @@
+{
+  "home": {
+    "viewport": {
+      "w": 390,
+      "h": 664,
+      "vv": 664
+    },
+    "mounted": {
+      "CosmosHome": true,
+      "CosmosHomeVisible": true,
+      "SpatialNav": true,
+      "SpatialNavVisible": true,
+      "GenesisV1Workspace": true,
+      "CosmosOverview": false,
+      "CosmosOverviewVisible": false,
+      "ChatUniverse": false
+    },
+    "canvases": [
+      {
+        "owner": "workspace:genesis-v1",
+        "w": 390,
+        "h": 664,
+        "visible": true
+      },
+      {
+        "owner": "workspace:genesis-v1",
+        "w": 390,
+        "h": 664,
+        "visible": true
+      }
+    ],
+    "textareas": [],
+    "overflowX": false
+  },
+  "opened": "Chat",
+  "chat": {
+    "viewport": {
+      "w": 390,
+      "h": 664,
+      "vv": 664
+    },
+    "mounted": {
+      "CosmosHome": true,
+      "CosmosHomeVisible": false,
+      "SpatialNav": true,
+      "SpatialNavVisible": false,
+      "GenesisV1Workspace": true,
+      "CosmosOverview": false,
+      "CosmosOverviewVisible": false,
+      "ChatUniverse": true
+    },
+    "canvases": [
+      {
+        "owner": "workspace:genesis-v1",
+        "w": 390,
+        "h": 664,
+        "visible": true
+      },
+      {
+        "owner": "workspace:genesis-v1",
+        "w": 390,
+        "h": 664,
+        "visible": true
+      },
+      {
+        "owner": "testid:lelu-companion-character",
+        "w": 162,
+        "h": 166,
+        "visible": false
+      }
+    ],
+    "textareas": [
+      {
+        "ph": "Message LÉLU…",
+        "aria": null,
+        "x": 146,
+        "y": 550,
+        "w": 142,
+        "h": 38
+      }
+    ],
+    "overflowX": false
+  },
+  "conv": true,
+  "convo": {
+    "viewport": {
+      "w": 390,
+      "h": 664,
+      "vv": 664
+    },
+    "mounted": {
+      "CosmosHome": true,
+      "CosmosHomeVisible": false,
+      "SpatialNav": true,
+      "SpatialNavVisible": false,
+      "GenesisV1Workspace": false,
+      "CosmosOverview": false,
+      "CosmosOverviewVisible": false,
+      "ChatUniverse": true
+    },
+    "canvases": [
+      {
+        "owner": "testid:lelu-companion-character",
+        "w": 120,
+        "h": 174,
+        "visible": false
+      }
+    ],
+    "textareas": [
+      {
+        "ph": "Message LÉLU…",
+        "aria": null,
+        "x": 146,
+        "y": 515,
+        "w": 142,
+        "h": 38
+      },
+      {
+        "ph": "Message LÉLU…",
+        "aria": "Message New chat",
+        "x": 23,
+        "y": 513,
+        "w": 275,
+        "h": 42
+      }
+    ],
+    "overflowX": false
+  },
+  "errors": []
+}

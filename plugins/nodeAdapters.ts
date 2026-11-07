@@ -11,6 +11,7 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { lineChangeCounts, unifiedPatch } from "./lineDiff.ts";
+import { assertSafeShellCommand } from "./commandSafety.ts";
 import { BASELINE_FILE, classifyChanges, isBinary, parseBaseline, serializeBaseline } from "./workspaceBaseline.ts";
 import {
   cpSync,
@@ -153,6 +154,21 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
     cwd?: string,
   ): Promise<EngineerCommandResult> {
     const started = Date.now();
+    // The operation name was already checked against the whitelist; this checks
+    // the STRING that reaches bash. Without it, `shell: true` would let any
+    // metacharacter smuggled through a validated-looking argument start a
+    // second command. A refusal is reported as a failed command, not a crash.
+    try {
+      assertSafeShellCommand(command);
+    } catch (error) {
+      return {
+        ok: false,
+        status: 1,
+        stdout: "",
+        stderr: error instanceof Error ? error.message : "Command refused.",
+        durationMs: Date.now() - started,
+      };
+    }
     return new Promise((resolve) => {
       const child = spawn(command, {
         // A workspace copy runs its own validation, in its own directory.

@@ -32,6 +32,19 @@ import { ATELIER_FORMATS } from "./AtelierFiles";
 import { bomWorkbook, dossierDocument, reviewDeck } from "./AtelierPackage";
 import AtelierStore, { assess } from "./AtelierStore";
 import type { AtelierProject } from "./AtelierTypes";
+import { ownerForTask } from "../multichat/TurnOwnership";
+
+/**
+ * The conversation this tool call belongs to. The request carries it on most
+ * paths; where a router layer rebuilt the request without it, the turn's
+ * task id is still bound to its conversation (multichat/TurnOwnership) — the
+ * same binding the chat cards use — so the artifact stays with the chat that
+ * asked for it.
+ */
+function conversationOf(context: RouterContext | undefined): string | undefined {
+  return context?.request?.conversationId ?? ownerForTask(String(context?.request?.timestamp ?? "")) ?? undefined;
+}
+
 
 export interface AtelierExecutor {
   id: string;
@@ -97,7 +110,7 @@ export function openAtelier(projectId: string): boolean {
 }
 
 function project(args: Record<string, unknown>, context: RouterContext | undefined): AtelierProject | undefined {
-  return AtelierStore.getInstance().resolve(str(args, "project"), context?.request?.conversationId);
+  return AtelierStore.getInstance().resolve(str(args, "project"), conversationOf(context));
 }
 
 function describeAssessment(p: AtelierProject, id?: string): string {
@@ -127,7 +140,7 @@ export const ATELIER_EXECUTORS: AtelierExecutor[] = [
       materials: { type: "array", description: "materials not in the built-in library: {name, density g/cm³, source}", items: OBJ({ name: { type: "string" }, density: { type: "number" }, source: { type: "string" } }) },
     }, ["title", "brief"]),
     run: async (args, context) => {
-      const r = AtelierStore.getInstance().create({ ...args, title: args.title, brief: args.brief, conversationId: context?.request?.conversationId });
+      const r = AtelierStore.getInstance().create({ ...args, title: args.title, brief: args.brief, conversationId: conversationOf(context) });
       if (!r.ok) return { ok: false, content: `No project was created: ${r.reason}.` };
       announce(context, r.project, "created");
       openAtelier(r.project.id);
@@ -251,7 +264,7 @@ export const ATELIER_EXECUTORS: AtelierExecutor[] = [
       }
       const studio = StudioStore.getInstance();
       for (const [, entry] of made) {
-        const created = studio.create(entry.spec, { by: "lelu", note: `from Atelier ${p.title} ${d.id} v${v}`, conversationId: context?.request?.conversationId });
+        const created = studio.create(entry.spec, { by: "lelu", note: `from Atelier ${p.title} ${d.id} v${v}`, conversationId: conversationOf(context) });
         if (!created.ok) { ok = false; lines.push(`✗ ${entry.spec.title}: ${created.reason}`); continue; }
         const a = created.artifact;
         const records: Array<{ format: string; filename: string; ok: boolean; size: number }> = [];

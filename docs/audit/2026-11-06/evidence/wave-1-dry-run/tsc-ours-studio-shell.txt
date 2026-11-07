@@ -1,0 +1,71 @@
+src/app/scene/genesis/GenesisCore.tsx(2156,19): error TS6133: 'presentation' is declared but its value is never read.
+src/app/scene/genesis/GenesisCore.tsx(2171,19): error TS6133: 'restoreTo' is declared but its value is never read.
+src/app/scene/genesis/GenesisCore.tsx(2193,19): error TS6133: 'presentation' is declared but its value is never read.
+src/app/scene/genesis/GenesisDock.tsx(66,5): error TS2322: Type '"studio"' is not assignable to type 'GenesisPanel'.
+src/app/scene/genesis/GenesisModuleHost.tsx(127,5): error TS2304: Cannot find name 'layoutCount'.
+src/app/scene/genesis/GenesisModuleHost.tsx(128,9): error TS2304: Cannot find name 'layoutWindowRects'.
+src/app/scene/genesis/GenesisModuleHost.tsx(128,27): error TS2304: Cannot find name 'layoutCount'.
+src/app/scene/genesis/GenesisModuleHost.tsx(136,35): error TS2304: Cannot find name 'layoutCount'.
+src/app/scene/genesis/GenesisModuleHost.tsx(139,40): error TS2304: Cannot find name 'layoutIndex'.
+src/app/scene/genesis/GenesisModuleHost.tsx(140,22): error TS2339: Property 'manualPlacement' does not exist on type 'ModuleState'.
+src/app/scene/genesis/GenesisModuleHost.tsx(317,109): error TS2304: Cannot find name 'autoLayoutModules'.
+src/app/scene/genesis/GenesisStudioPanel.tsx(25,3): error TS2305: Module '"../../../core/studio/StudioTypes"' has no exported member 'STUDIO_PHASE_LABELS'.
+src/app/scene/genesis/GenesisStudioPanel.tsx(26,3): error TS2305: Module '"../../../core/studio/StudioTypes"' has no exported member 'STUDIO_PHASES'.
+src/app/scene/genesis/GenesisStudioPanel.tsx(27,8): error TS2305: Module '"../../../core/studio/StudioTypes"' has no exported member 'ProtectedAction'.
+src/app/scene/genesis/GenesisStudioPanel.tsx(28,8): error TS2305: Module '"../../../core/studio/StudioTypes"' has no exported member 'StudioProject'.
+src/app/scene/genesis/GenesisStudioPanel.tsx(29,8): error TS2305: Module '"../../../core/studio/StudioTypes"' has no exported member 'StudioProjectKind'.
+src/app/scene/genesis/GenesisStudioPanel.tsx(643,37): error TS7006: Parameter 'phase' implicitly has an 'any' type.
+src/app/scene/genesis/GenesisStudioPanel.tsx(644,59): error TS7006: Parameter 'stage' implicitly has an 'any' type.
+src/app/scene/genesis/GenesisStudioPanel.tsx(724,45): error TS7006: Parameter 'deployment' implicitly has an 'any' type.
+src/app/scene/genesis/GenesisStudioPanel.tsx(742,36): error TS7006: Parameter 'asset' implicitly has an 'any' type.
+src/app/scene/genesis/useGenesisScene.ts(32,10): error TS2300: Duplicate identifier 'IS_DEV'.
+src/app/scene/genesis/useGenesisScene.ts(34,10): error TS2300: Duplicate identifier 'IS_DEV'.
+src/core/env/buildEnv.ts(40,14): error TS2451: Cannot redeclare block-scoped variable 'IS_DEV'.
+src/core/env/buildEnv.ts(50,14): error TS2451: Cannot redeclare block-scoped variable 'IS_DEV'.
+src/core/studio/StudioApprovals.ts(18,15): error TS2305: Module '"./StudioTypes"' has no exported member 'ProtectedAction'.
+src/core/studio/StudioApprovals.ts(18,32): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioApproval'.
+src/core/studio/StudioApprovals.ts(19,10): error TS2305: Module '"./StudioTypes"' has no exported member 'isProtectedAction'.
+src/core/studio/StudioAssets.ts(16,15): error TS2305: Module '"./StudioTypes.ts"' has no exported member 'StudioAssetRef'.
+src/core/studio/StudioEngines.ts(19,3): error TS2305: Module '"./StudioTypes"' has no exported member 'EngineCapability'.
+src/core/studio/StudioEngines.ts(20,3): error TS2305: Module '"./StudioTypes"' has no exported member 'EngineRecommendation'.
+src/core/studio/StudioEngines.ts(21,3): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioEngineId'.
+src/core/studio/StudioEngines.ts(22,3): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioRequirements'.
+src/core/studio/StudioEngines.ts(96,24): error TS7006: Parameter 'target' implicitly has an 'any' type.
+src/core/studio/StudioLibrary.ts(22,3): error TS2305: Module '"./StudioTypes"' has no exported member 'studioSlug'.
+src/core/studio/StudioLibrary.ts(23,8): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioAssetRef'.
+src/core/studio/StudioLibrary.ts(24,8): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioBuildRecord'.
+src/core/studio/StudioLibrary.ts(25,8): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioDeployment'.
+src/core/studio/StudioLibrary.ts(26,8): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioEngineId'.
+src/core/studio/StudioLibrary.ts(27,8): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioProject'.
+src/core/studio/StudioLibrary.ts(28,8): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioProjectKind'.
+src/core/studio/StudioLibrary.ts(29,8): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioTestRecord'.
+src/core/studio/StudioLibrary.ts(30,8): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioVersion'.
+src/core/studio/StudioMemory.ts(22,10): error TS2305: Module '"./StudioTypes"' has no exported member 'STUDIO_PHASE_LABELS'.
+src/core/studio/StudioMemory.ts(22,31): error TS2305: Module '"./StudioTypes"' has no exported member 'STUDIO_PHASES'.
+src/core/studio/StudioMemory.ts(22,51): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioProject'.
+src/core/studio/StudioMemory.ts(31,13): error TS7006: Parameter 'entry' implicitly has an 'any' type.
+src/core/studio/StudioMemory.ts(32,14): error TS7006: Parameter 'entry' implicitly has an 'any' type.
+src/core/studio/StudioMemory.ts(33,36): error TS7006: Parameter 'entry' implicitly has an 'any' type.
+src/core/studio/StudioPipeline.ts(21,3): error TS2305: Module '"./StudioTypes"' has no exported member 'STUDIO_PHASES'.
+src/core/studio/StudioPipeline.ts(22,8): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioEvidence'.
+src/core/studio/StudioPipeline.ts(23,8): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioPhase'.
+src/core/studio/StudioPipeline.ts(24,8): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioPipelineState'.
+src/core/studio/StudioPipeline.ts(25,8): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioStageRecord'.
+src/core/studio/StudioPipeline.ts(104,57): error TS7006: Parameter 'stage' implicitly has an 'any' type.
+src/core/studio/StudioPipeline.ts(113,34): error TS7006: Parameter 'phase' implicitly has an 'any' type.
+src/core/studio/StudioPipeline.ts(225,47): error TS7006: Parameter 'stage' implicitly has an 'any' type.
+src/core/studio/StudioPipeline.ts(225,72): error TS7006: Parameter 'stage' implicitly has an 'any' type.
+src/core/studio/StudioPipeline.ts(226,41): error TS7006: Parameter 'phase' implicitly has an 'any' type.
+src/core/studio/StudioRuntime.ts(16,15): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioProjectKind'.
+src/core/studio/StudioToolExecutors.ts(23,3): error TS2305: Module '"./StudioTypes"' has no exported member 'STUDIO_PHASE_LABELS'.
+src/core/studio/StudioToolExecutors.ts(24,3): error TS2305: Module '"./StudioTypes"' has no exported member 'STUDIO_PHASES'.
+src/core/studio/StudioToolExecutors.ts(25,8): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioPhase'.
+src/core/studio/StudioToolExecutors.ts(26,8): error TS2305: Module '"./StudioTypes"' has no exported member 'StudioRequirements'.
+src/core/studio/StudioToolExecutors.ts(94,41): error TS7006: Parameter 'line' implicitly has an 'any' type.
+src/core/studio/StudioToolExecutors.ts(97,19): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/core/tools/ToolDispatcher.ts(35,1): error TS6133: 'studioToolExecutors' is declared but its value is never read.
+src/core/tools/ToolDispatcher.ts(403,7): error TS6133: 'CORE_EXECUTORS' is declared but its value is never read.
+src/core/tools/ToolDispatcher.ts(2556,7): error TS2304: Cannot find name 'EXECUTORS'.
+plugins/loadEnvFiles.ts(29,10): error TS2300: Duplicate identifier 'fillBareSecretAliases'.
+plugins/loadEnvFiles.ts(53,10): error TS2300: Duplicate identifier 'fillBareSecretAliases'.
+src/core/studio/StudioAssets.ts(16,15): error TS2305: Module '"./StudioTypes.ts"' has no exported member 'StudioAssetRef'.

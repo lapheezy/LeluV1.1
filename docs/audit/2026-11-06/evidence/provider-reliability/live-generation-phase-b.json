@@ -1,0 +1,80 @@
+{
+  "capturedAt": "2026-11-06T22:05:00Z",
+  "phase": "B — provider reliability integration and live-generation proof",
+  "integratedCommit": {
+    "commit": "fd463c002b6aa4b0eb6cb5ada31c289a0888926d",
+    "tree": "9701a7f215fdacaaa0ad3a914babeb4bd5c5dc95",
+    "branch": "claude/master-integration",
+    "parent": "924cb2aa35912edb93b8ea50bf7a0a982a8bdadb",
+    "containedByOtherBranches": false,
+    "pushed": false,
+    "preservedBehaviours": [
+      "12 s per-provider deadline",
+      "20 s total provider-chain budget",
+      "a rung deadline is not a user Stop",
+      "one schema-free retry for a size refusal",
+      "daily-quota exhaustion classified separately",
+      "15-minute cooldown for an exhausted daily allowance",
+      "no smaller retry against an exhausted daily allowance"
+    ]
+  },
+  "liveTurn": {
+    "prompt": "write me a short poem about the sea, four lines",
+    "surface": "the LÉLU chat interface on the preview origin",
+    "providerStageMs": 18187,
+    "rungsAttempted": 2,
+    "calls": [
+      {
+        "path": "/api/model/openrouter/chat/completions",
+        "status": 429,
+        "requestChars": 81015,
+        "toolSchemas": 75,
+        "refusal": "Rate limit exceeded: free-models-per-day"
+      },
+      {
+        "path": "/api/model/groq/chat/completions",
+        "status": 429,
+        "requestChars": 81019,
+        "toolSchemas": 75,
+        "refusal": "on tokens per day (TPD)"
+      }
+    ],
+    "owner": "offline",
+    "assistantText": "offline notice (explicit, metadata.success=false)",
+    "meaning": "The chain stayed inside its 20 s budget and each rung was bounded, so the fix behaved as designed. The turn still could not be answered because both providers refused on daily allowance."
+  },
+  "allowanceAtMeasurement": {
+    "groq": {
+      "probeHttp": 200,
+      "probeLatencyMs": 257,
+      "probeNote": "A 20-token probe answered, but with empty content and finish_reason=length: the tiny ceiling was spent on reasoning.",
+      "poemProbeHttp": 429,
+      "quotaBody": "on tokens per day (TPD): Limit 200000, Used 199546, Requested 680. Please try again in 1m37.631999999s.",
+      "remainingTokensApprox": 454,
+      "tokensConsumedByThisSession": "76 prompt tokens on the successful probe; the rest of the allowance was already spent before this session began"
+    },
+    "openrouter": {
+      "probeHttp": 429,
+      "body": "Rate limit exceeded: free-models-per-day",
+      "resetAt": "2026-11-07T00:00:00Z"
+    },
+    "anthropic": {
+      "probeHttp": 400,
+      "body": "Your credit balance is too low to access the Anthropic API."
+    },
+    "githubModels": {
+      "probeHttp": 200,
+      "body": "OK",
+      "meaning": "Not a chat completion; not an answering rung."
+    }
+  },
+  "verdict": {
+    "providerFailover": "PASS — the chain is bounded and each refusal is attributed to the rung that produced it.",
+    "liveGeneration": "BLOCKED — every configured provider refused on allowance or credit. No assistant completion with usable content exists to show, so none is claimed.",
+    "whatWouldUnblockIt": [
+      "Groq daily allowance headroom, or a Dev-tier key (the app's conversational request is ~20k tokens; the free daily cap is 200k)",
+      "OpenRouter credits or waiting for the 2026-11-07T00:00:00Z free-tier reset",
+      "Anthropic credit, or a working GitHub Models base URL (the brokered endpoint currently answers OK, not a completion)"
+    ]
+  }
+}

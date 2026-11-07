@@ -214,7 +214,14 @@ export default class AtelierStore {
     const r = (ref ?? "").trim();
     const pool = this.list();
     if (!r || /^(this|it|latest|last)$/i.test(r)) return (conversationId ? pool.find((p) => p.conversationId === conversationId) : undefined) ?? pool[0];
-    return this.projects.get(r) ?? pool.find((p) => p.title.toLowerCase().includes(r.toLowerCase()));
+    const exact = this.projects.get(r);
+    if (exact) return exact;
+    // A planned step names the project through an earlier step's output: the id inside it is the reference.
+    for (const id of r.match(/\batl_[a-z0-9]+\b/gi) ?? []) {
+      const tagged = this.projects.get(id);
+      if (tagged) return tagged;
+    }
+    return pool.find((p) => p.title.toLowerCase().includes(r.toLowerCase()));
   }
 
   create(input: { title: unknown; brief: unknown; currency?: unknown; inputs?: unknown; sources?: unknown; materials?: unknown; conversationId?: string }): Result<{ project: AtelierProject }> {

@@ -62,6 +62,9 @@ import {
   scaleFromDistance,
 } from "./cosmos/CosmosScales";
 
+import { useSpatialCamera }
+  from "../spatial/useSpatialCamera";
+
 interface GenesisCameraControllerProps {
   navigator: GenesisNavigator;
 }
@@ -116,6 +119,13 @@ export default function GenesisCameraController({
    * object out of the middle of the screen while it was being looked at.
    */
   const cameraHeld = useRef(false);
+
+  /*
+   * Spatial transitions move THIS camera through THIS OrbitControls —
+   * the one controller stays authoritative, and a pointer press during
+   * a cinematic flight hands control straight back to the user.
+   */
+  useSpatialCamera(camera as PerspectiveCamera, controlsRef);
 
   /*
    * Responsive framing: on narrow/portrait viewports the same composition

@@ -32,7 +32,9 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import * as Icons from "lucide-react";
-import { chatWindowId, conversationIdOf, useGenesis } from "../../GenesisCore";
+import { chatWindowId, conversationIdOf, floatsAboveChat, useGenesis } from "../../GenesisCore";
+import { setUniverseOpen, useUniverseOpen } from "./universeOpen";
+import { useSurface } from "../../surface/useSurface";
 import MultiChatStore, { type ChatConversation } from "../../../../../core/multichat/MultiChatStore";
 import { goHome } from "../../home/homeActions";
 import HomeStore from "../../home/homeStore";
@@ -113,7 +115,9 @@ export default function ChatUniverse() {
   const home = useHomeStore();
   const mode = home.cosmosMode;
   const archived = useArchived();
-  const [open, setOpen] = useState(false);
+  // Shared, so the surface resolver knows when the Universe owns a phone screen.
+  const open = useUniverseOpen();
+  const setOpen = setUniverseOpen;
   const [range, setRange] = useState<TimelineRange>("24h");
   const [filter, setFilter] = useState<"all" | "active" | "archived">("all");
   const [view, setView] = useState<"grid" | "carousel">("grid");
@@ -156,6 +160,13 @@ export default function ChatUniverse() {
   const focused = focusedId ? byId.get(focusedId) ?? null : null;
 
   const openKey = openIds.join("|");
+
+  // On a phone an open conversation window fills the screen and has its own
+  // composer; the Universe's composer leaves the tree so there is exactly one.
+  const surface = useSurface();
+  const sheetOpen = surface.workspaceOwnsScreen && Object.entries(modules).some(
+    ([id, m]) => floatsAboveChat(id) && (m.presentation === "inline" || m.presentation === "expanded"),
+  );
   const geometryKey = useMemo(
     () =>
       Object.entries(modules)
@@ -449,6 +460,7 @@ export default function ChatUniverse() {
       </section>
 
       {/* ---------- universal composer + quick dock ---------- */}
+      {sheetOpen ? null : (
       <footer className="lcu-bottom">
         <div className="lcu-composer">
           <button type="button" className="lcu-icon" aria-label="Attach in the full chat" onClick={() => { setOpen(false); genesis.openPanel("chat"); }}><Icons.Plus size={19} /></button>
@@ -488,6 +500,7 @@ export default function ChatUniverse() {
           </button>
         ) : null}
       </footer>
+      )}
     </div>
   );
 }

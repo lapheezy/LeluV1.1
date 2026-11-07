@@ -46,6 +46,13 @@ export interface SurfaceInput {
    * view you asked it from.
    */
   chatExpanded?: boolean;
+  /**
+   * The Chat Universe is open in its opaque "workspace" mode. On a phone
+   * that is the conversation surface: Home, the spatial nav and the Cosmos
+   * scene must leave the tree, not sit hidden under it. ("Floating" mode
+   * keeps the live Cosmos behind its windows by design, and still does.)
+   */
+  universeOwnsScreen?: boolean;
 }
 
 export interface Surface {
@@ -76,6 +83,8 @@ function modeFor(activePanel: string, openModuleCount: number): SurfaceMode {
 export function resolveSurface(input: SurfaceInput): Surface {
   const mode = input.minimized ? "home" : modeFor(input.activePanel, input.openModuleCount);
   const workspaceOwnsScreen = input.compact && !input.minimized && (input.visibleModuleCount ?? 0) > 0;
-  const chatOwnsScreen = input.compact && mode === "chat" && !workspaceOwnsScreen && (input.chatExpanded ?? true);
+  const chatOwnsScreen =
+    input.compact && !input.minimized && !workspaceOwnsScreen &&
+    ((mode === "chat" && (input.chatExpanded ?? true)) || Boolean(input.universeOwnsScreen));
   return { mode, chatOwnsScreen, workspaceOwnsScreen, cosmosRendered: !chatOwnsScreen && !workspaceOwnsScreen };
 }

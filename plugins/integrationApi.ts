@@ -7,6 +7,9 @@
  *   GET  /api/integration/status   → what each integration really is
  *   POST /api/integration/policy   → a REAL OPA decision
  *   POST /api/integration/scan     → REAL gitleaks/trivy/semgrep runs
+ *   GET  /api/integration/intelligence       → the four-studio snapshot
+ *   GET  /api/integration/intelligence/explain?capability=… → why it is blocked
+ *   POST /api/integration/intelligence/plan  → an activation plan (never executes)
  *
  * Every answer here is observed, not asserted:
  *   • `/status` probes each service and reports it unconfigured
@@ -26,6 +29,7 @@
  * ==========================================================
  */
 
+import { createGuard, sendRefusal, type Guard, type GuardRequest, type Requirement } from "./requestGuard.ts";
 import { existsSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -34,6 +38,9 @@ import { detectOpa, evaluateWithOpa } from "./integration/opa.ts";
 import { probeAllServices } from "./integration/services.ts";
 import { runSecurityGate, type ScannerId } from "./integration/scanners.ts";
 import { integrationState } from "./integration/state.ts";
+import { collectOperationalSnapshot, explainOperationalState, planActivation } from "./integration/intelligence.ts";
+import { openCodeHealth, runOpenCodeTask } from "./integration/opencode.ts";
+import { REPOSITORY_CATALOG, dependencyCoverage, repositoryCoverage } from "../src/core/operational-intelligence/index.ts";
 import { evaluatePolicy, type PolicyInput } from "../src/core/security/policy.ts";
 import { VadDetector } from "../src/core/voice/adapters/VoiceAdapters.ts";
 
@@ -55,6 +62,21 @@ export interface IntegrationApiOptions {
    * `use("/api/integration", fn)`), which strips the prefix.
    */
   mountPath?: string;
+  /**
+   * Identity, role and rate gate. Every route requires a Supabase-verified
+   * signed-in user; policy evaluation and scans require the LÉLU admin role
+   * (app_metadata.lelu_role). Default: plugins/requestGuard with Supabase.
+   * The shared token above, when configured, is an ADDITIONAL factor — on
+   * its own it no longer authorizes anything.
+   */
+  guard?: Guard;
+}
+
+/** What each route needs, and how often one identity may call it. */
+function routeRequirement(route: string): { requirement: Requirement; bucket: string; limit: { max: number; windowMs: number } } {
+  if (route === "/api/integration/scan") return { requirement: "admin", bucket: "integration-scan", limit: { max: 3, windowMs: 10 * 60_000 } };
+  if (route === "/api/integration/policy") return { requirement: "admin", bucket: "integration-policy", limit: { max: 30, windowMs: 60_000 } };
+  return { requirement: "user", bucket: "integration-read", limit: { max: 120, windowMs: 60_000 } };
 }
 
 const POLICY_ACTIONS = [
@@ -109,6 +131,15 @@ function sameOrigin(request: IncomingMessage, options: IntegrationApiOptions): b
   }
 }
 
+/** This server's own origin, for probing its own APIs honestly. */
+function publicOrigin(request: IncomingMessage): string | undefined {
+  const host = request.headers.host;
+  if (!host) return undefined;
+  const forwarded = request.headers["x-forwarded-proto"];
+  const proto = (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(",")[0]?.trim() || "http";
+  return `${proto}://${host}`;
+}
+
 function authorized(request: IncomingMessage, options: IntegrationApiOptions): { ok: boolean; status: number; reason: string } {
   if (options.token) {
     const presented = request.headers["x-lelu-token"];
@@ -158,6 +189,12 @@ function scopedTarget(workspaceRoot: string, requested: unknown): { ok: true; pa
   return { ok: true, path: absolute };
 }
 
+let sharedGuard: Guard | null = null;
+function defaultGuard(): Guard {
+  sharedGuard ??= createGuard();
+  return sharedGuard;
+}
+
 /**
  * Handle an integration route. Returns true when the request was
  * handled, so the caller can fall through to the rest of the stack.
@@ -173,6 +210,16 @@ export async function handleIntegrationRoute(
 ): Promise<boolean> {
   const method = request.method ?? "GET";
 
+  // Identity first, for every route: an anonymous caller gets no status,
+  // no traces, no policy decision and no scan.
+  const need = routeRequirement(route);
+  const guard = options.guard ?? defaultGuard();
+  const decision = await guard.check(request as unknown as GuardRequest, need.requirement, need.bucket, need.limit);
+  if (!decision.ok) {
+    sendRefusal(response as unknown as Parameters<typeof sendRefusal>[0], decision);
+    return true;
+  }
+
   if (route === "/api/integration/status" && method === "GET") {
     const gate = authorized(request, options);
     const [opa, services] = await Promise.all([detectOpa(options.workspaceRoot), probeAllServices()]);
@@ -182,7 +229,9 @@ export async function handleIntegrationRoute(
       runtime: options.runtime,
       tokenRequired: Boolean(options.token),
       tokenAccepted: gate.ok,
-      workspaceRoot: gate.ok ? options.workspaceRoot : undefined,
+      // A filesystem path is for the administrator only.
+      workspaceRoot: gate.ok && decision.role === "admin" ? options.workspaceRoot : undefined,
+      identity: { role: decision.role ?? "user" },
       policy: {
         engine: opa.available ? "opa" : "reference",
         available: opa.available,
@@ -494,6 +543,126 @@ export async function handleIntegrationRoute(
         detail: "No audio device or synthesis server is reachable from this runtime, so no sample has been recorded.",
       },
     });
+    return true;
+  }
+
+  if (route === "/api/integration/intelligence" && method === "GET") {
+    const gate = authorized(request, options);
+    const query = new URL(request.url ?? "/", "http://localhost").searchParams;
+    const snapshot = await collectOperationalSnapshot({
+      workspaceRoot: options.workspaceRoot,
+      baseUrl: publicOrigin(request),
+      force: query.get("refresh") === "1",
+    });
+    sendJson(response, 200, {
+      ok: true,
+      tokenAccepted: gate.ok,
+      snapshot,
+      // Which reported capabilities have a stated dependency position. An
+      // undeclared capability is listed here rather than assumed ready.
+      dependencyDeclarations: dependencyCoverage(snapshot.capabilities.map((capability) => capability.capabilityId)),
+    });
+    return true;
+  }
+
+  if (route === "/api/integration/repositories" && method === "GET") {
+    const gate = authorized(request, options);
+    const coverage = repositoryCoverage();
+    sendJson(response, 200, {
+      ok: true,
+      tokenAccepted: gate.ok,
+      verifiedAt: REPOSITORY_CATALOG[0]?.verifiedAt ?? null,
+      coverage,
+      catalog: REPOSITORY_CATALOG,
+      note: "Catalog entries are verified provenance and identified boundaries. PRESENT is the only state backed by an adapter that produced evidence; listing a repository never means it is installed or running.",
+    });
+    return true;
+  }
+
+  if (route === "/api/integration/intelligence/explain" && method === "GET") {
+    const gate = authorized(request, options);
+    const query = new URL(request.url ?? "/", "http://localhost").searchParams;
+    const capability = (query.get("capability") ?? "").trim();
+    if (!/^[a-z0-9][a-z0-9._-]{2,80}$/i.test(capability)) {
+      sendJson(response, 400, { ok: false, error: "capability must be a capability id, e.g. engineering.openhands.execute" });
+      return true;
+    }
+    const explanation = await explainOperationalState(capability, {
+      workspaceRoot: options.workspaceRoot,
+      baseUrl: publicOrigin(request),
+    });
+    sendJson(response, 200, { ok: true, tokenAccepted: gate.ok, ...explanation });
+    return true;
+  }
+
+  if (route === "/api/integration/intelligence/plan" && method === "POST") {
+    if (!sameOrigin(request, options)) {
+      sendJson(response, 403, { ok: false, error: "Cross-origin POST refused." });
+      return true;
+    }
+    const gate = authorized(request, options);
+    if (!gate.ok) {
+      sendJson(response, gate.status, { ok: false, error: gate.reason });
+      return true;
+    }
+    const body = (await readBody(request)) as { goal?: unknown };
+    if (typeof body.goal !== "string" || !body.goal.trim()) {
+      sendJson(response, 400, { ok: false, error: "goal is required" });
+      return true;
+    }
+    // A plan is a proposal. This route never dispatches work: execution is
+    // AdapterRegistry + EngineeringOrchestrator, and it is not called here.
+    const { plan, snapshot } = await planActivation(body.goal.trim().slice(0, 400), {
+      workspaceRoot: options.workspaceRoot,
+      baseUrl: publicOrigin(request),
+    });
+    sendJson(response, 200, {
+      ok: true,
+      plan,
+      snapshotId: snapshot.snapshotId,
+      readiness: snapshot.overallReadiness,
+    });
+    return true;
+  }
+
+  /**
+   * OPENCODE — the one execution boundary for that engine.
+   *
+   * Health answers whether a real server is configured and reachable;
+   * run dispatches one objective and refuses with the real reason when
+   * it is not. Neither route substitutes the local shell: an engine the
+   * caller did not ask for is not a fallback, it is a different task.
+   */
+  if (route === "/api/integration/opencode/health" && method === "GET") {
+    const gate = authorized(request, options);
+    const health = await openCodeHealth();
+    sendJson(response, 200, { ok: true, tokenAccepted: gate.ok, ...health });
+    return true;
+  }
+
+  if (route === "/api/integration/opencode/run" && method === "POST") {
+    if (!sameOrigin(request, options)) {
+      sendJson(response, 403, { ok: false, error: "Cross-origin POST refused." });
+      return true;
+    }
+    const gate = authorized(request, options);
+    if (!gate.ok) {
+      sendJson(response, gate.status, { ok: false, error: gate.reason });
+      return true;
+    }
+    const body = (await readBody(request)) as { objective?: unknown; workspace?: unknown; checks?: unknown };
+    if (typeof body.objective !== "string" || !body.objective.trim()) {
+      sendJson(response, 400, { ok: false, error: "objective is required" });
+      return true;
+    }
+    const result = await runOpenCodeTask({
+      objective: body.objective.trim().slice(0, 4_000),
+      ...(typeof body.workspace === "string" ? { workspace: body.workspace } : {}),
+      checks: Array.isArray(body.checks)
+        ? body.checks.filter((check): check is string => typeof check === "string").slice(0, 10)
+        : [],
+    });
+    sendJson(response, result.ok ? 200 : 503, { ...result, ok: result.ok });
     return true;
   }
 

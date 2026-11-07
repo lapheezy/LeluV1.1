@@ -28,20 +28,24 @@
  */
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  measureSpace,
+  planPresence,
+  presenceModeFor,
+  sameSpace,
+  type AvatarAnchor,
+  type SpaceLayout,
+} from "./spatialPresence";
 import { createPortal } from "react-dom";
 import AvatarStore from "../../../../core/avatar/AvatarProfile";
 import CompanionStore, { type CompanionState } from "../../../../core/avatar/CompanionStore";
 import { layer, within } from "../../../../core/ui/Layers";
 import { useGenesis } from "../GenesisCore";
 import { useSurface } from "../surface/useSurface";
-import { useWorkspace } from "../useWorkspace";
-import { chatFillsScreen } from "../chat/chatLayout";
 import { ACTIVITY_ACCENT, useLeluActivity, type LeluActivity } from "./leluActivity";
 import LeluCharacter from "./LeluCharacter";
 import { FULL_BODY_COMMANDS } from "./LeluBody";
 import AvatarCommandBus from "../../../../core/avatar/AvatarCommandBus";
-import HomeStore from "../home/homeStore";
-import { immersiveDock } from "./companionDock";
 
 /** Her tools at work: she steps out of the backdrop to be seen working. */
 const TOOL_ACTIVITIES = new Set<LeluActivity>(["SEARCHING", "BROWSING", "WORKING", "BUILDING", "RENDERING", "EXPLORING", "PRESENTING"]);
@@ -104,6 +108,33 @@ function useChatGeometry(): { host: HTMLElement | null; hero: HTMLElement | null
   return geometry;
 }
 
+/**
+ * The live layout, read from the interface the app already publishes.
+ * Polled because panels open, close and resize without a window event.
+ */
+function useSpaceLayout(): SpaceLayout {
+  const [space, setSpace] = useState<SpaceLayout>(() => measureSpace());
+  useEffect(() => {
+    const read = () => setSpace((current) => {
+      const next = measureSpace();
+      return sameSpace(current, next) ? current : next;
+    });
+    read();
+    const timer = setInterval(read, 500);
+    window.addEventListener("resize", read);
+    window.visualViewport?.addEventListener("resize", read);
+    const motion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    motion?.addEventListener?.("change", read);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("resize", read);
+      window.visualViewport?.removeEventListener("resize", read);
+      motion?.removeEventListener?.("change", read);
+    };
+  }, []);
+  return space;
+}
+
 /** Where her window docks: beside the chat box when it fits, else the right corner. */
 export function dockedWindow(viewport: { width: number; height: number }, chat: Box | null, compact: boolean): Box {
   const width = compact ? 120 : 200;
@@ -119,13 +150,6 @@ export function dockedWindow(viewport: { width: number; height: number }, chat: 
   // The right corner, above a phone composer / the desktop dock.
   // Clear of the spatial navigation bar (and its raised orb) at the bottom.
   return { left: viewport.width - width - EDGE, top: Math.max(EDGE, viewport.height - height - (compact ? 116 : 108)), width, height };
-}
-
-/** The home store's immersion flag, which is what "the world has the screen" means. */
-function useImmersive(): boolean {
-  const [immersive, setImmersive] = useState(() => HomeStore.get().immersive);
-  useEffect(() => HomeStore.subscribe((state) => setImmersive(state.immersive)), []);
-  return immersive;
 }
 
 function clampBox(box: Box, viewport: { width: number; height: number }): Box {
@@ -149,11 +173,9 @@ export default function LeluCompanion() {
 function Companion({ companion }: { companion: CompanionState }) {
   const { state, openPanel } = useGenesis();
   const surface = useSurface();
-  const workspace = useWorkspace();
-  const compact = chatFillsScreen(workspace);
   const activity = useLeluActivity();
-  const immersive = useImmersive();
-  const { host, hero, chat, viewport } = useChatGeometry();
+  const { host, hero, viewport } = useChatGeometry();
+  const space = useSpaceLayout();
 
   // Tool work keeps her in her window a little after it ends.
   const [toolsUntil, setToolsUntil] = useState(0);
@@ -200,6 +222,32 @@ function Companion({ companion }: { companion: CompanionState }) {
   const workspaceInUse = modulesOpen || surface.workspaceOwnsScreen || surface.mode === "workspace" || surface.mode === "agent";
   const presence: CompanionPresence = chatOpen && !workspaceInUse && !toolsInUse && !bodyWanted ? "face" : "window";
 
+  // On a phone a full-screen sheet (a conversation, an artifact) covers
+  // her window completely. Rendering it there drew a WebGL scene nobody
+  // could see, and in a software-GL browser that canvas stalled the GPU
+  // channel for ~35 s after a turn — the page produced no frames at all.
+  // She unmounts with the rest of the scene, as Home and Cosmos do; her
+  // face behind the classic chat panel is visible and stays.
+  if (presence === "window" && !surface.cosmosRendered) return null;
+  // Where she belongs in the interface that is actually on screen.
+  const mode = presenceModeFor({
+    chatOpen,
+    workspaceOpen: workspaceInUse,
+    turnActive,
+    dialogue: state.dialogue,
+  });
+  const demonstrating = workspaceInUse && (toolsInUse || activity === "PRESENTING");
+  const plan = planPresence(space, {
+    mode,
+    chatOpen,
+    workspaceOpen: workspaceInUse,
+    demonstrating,
+    speaking: Boolean(state.speaking) || state.dialogue === "responding",
+    listening: Boolean(state.listening) || state.dialogue === "listening",
+    interacting: false,
+    toolActive: toolsInUse,
+  });
+
   if (presence === "face" && host) {
     return createPortal(<FaceBackdrop activity={activity} />, host);
   }
@@ -207,20 +255,14 @@ function Companion({ companion }: { companion: CompanionState }) {
   if (hero && state.activePanel === "none" && !workspaceInUse && !bodyWanted) {
     return createPortal(<HeroPresence activity={activity} />, hero);
   }
-  // The world has the screen and she is not being talked to: step aside rather
-  // than sit in the middle of what the user is looking at.
-  const steppedAside = immersive && !chatOpen;
+  // No placement kept her clear of a control: she steps out rather than block it.
+  if (plan.hidden) return null;
   return (
     <CompanionWindow
       companion={companion}
       activity={activity}
       viewport={viewport}
-      collapsed={steppedAside}
-      docked={
-        steppedAside
-          ? immersiveDock(viewport)
-          : dockedWindow(viewport, state.activePanel === "chat" ? chat : null, compact)
-      }
+      plan={plan}
       onOpenChat={() => openPanel("chat")}
     />
   );
@@ -264,15 +306,13 @@ function CompanionWindow({
   companion,
   activity,
   viewport,
-  docked,
-  collapsed,
+  plan,
   onOpenChat,
 }: {
   companion: CompanionState;
   activity: LeluActivity;
   viewport: { width: number; height: number };
-  docked: Box;
-  collapsed: boolean;
+  plan: AvatarAnchor;
   onOpenChat: () => void;
 }) {
   const store = CompanionStore.getInstance();
@@ -280,9 +320,9 @@ function CompanionWindow({
   const [name, setName] = useState(() => AvatarStore.getInstance().get().identity.name || "LÉLU");
   useEffect(() => AvatarStore.getInstance().subscribe((profile) => setName(profile.identity.name || "LÉLU")), []);
 
-  // A rememberered position is hers only when she is her full self: the small
-  // step-aside size is a decision about what is on screen, not a placement.
-  const saved = collapsed ? null : companion.window;
+  // A remembered position is hers when you placed her there. When the space
+  // plan has no room for her at all, she is not rendered at all.
+  const saved = companion.window;
   const placed: Box | null = saved
     ? clampBox(
         { left: saved.left * viewport.width, top: saved.top * viewport.height, width: saved.width * viewport.width, height: saved.height * viewport.height },
@@ -290,7 +330,8 @@ function CompanionWindow({
       )
     : null;
   const [live, setLive] = useState<Box | null>(null); // while dragging / resizing
-  const box = live ?? placed ?? docked;
+  // Where she belongs wins until you place her yourself.
+  const box = live ?? placed ?? plan.rect;
 
   const gesture = useRef<{ kind: "move" | "resize"; x: number; y: number; start: Box } | null>(null);
   const begin = (kind: "move" | "resize") => (event: ReactPointerEvent<HTMLElement>) => {
@@ -346,7 +387,11 @@ function CompanionWindow({
       data-presence="window"
       data-activity={activity}
       data-docked={saved ? "false" : "true"}
-      data-collapsed={collapsed ? "true" : "false"}
+      data-spatial-state={plan.state}
+      data-presence-mode={plan.mode}
+      data-posture={plan.posture}
+      data-edge={plan.edge}
+      data-placement={plan.reason}
       role="complementary"
       aria-label={`${name} — her window. Drag the top bar to move it, the corner grip to resize it.`}
       style={{
@@ -366,7 +411,10 @@ function CompanionWindow({
         boxShadow: `0 12px 32px rgba(0,0,0,0.45), 0 0 18px ${accent}22`,
         backdropFilter: "blur(10px)",
         WebkitBackdropFilter: "blur(10px)",
-        transition: live ? "none" : "left 450ms cubic-bezier(.2,.8,.2,1), top 450ms cubic-bezier(.2,.8,.2,1), width 450ms, height 450ms",
+        opacity: plan.opacity,
+        transition: live
+          ? "none"
+          : `left ${plan.durationMs}ms cubic-bezier(.2,.8,.2,1), top ${plan.durationMs}ms cubic-bezier(.2,.8,.2,1), width 450ms, height 450ms, opacity ${plan.durationMs}ms`,
         display: "flex",
         flexDirection: "column",
       }}
@@ -383,7 +431,7 @@ function CompanionWindow({
           display: "flex",
           alignItems: "center",
           gap: 6,
-          padding: collapsed ? "0 4px" : "0 4px 0 22px",
+          padding: "0 4px 0 22px",
           cursor: live ? "grabbing" : "grab",
           touchAction: "none",
           userSelect: "none",
@@ -393,28 +441,36 @@ function CompanionWindow({
         }}
       >
         <span aria-hidden style={{ width: 6, height: 6, borderRadius: 999, background: accent, boxShadow: `0 0 6px ${accent}` }} />
-        {collapsed ? null : (
-          <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
-        )}
-        {!collapsed && saved ? (
+        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
+        {saved ? (
           <button type="button" title="Dock her beside the chat" aria-label="Dock her window" onClick={() => store.dockWindow()} style={buttonStyle}>
             ⤓
           </button>
         ) : null}
-        {collapsed ? null : (
-          <button type="button" title="Hide" aria-label="Hide her window" onClick={() => store.setEnabled(false)} style={buttonStyle}>
-            ✕
-          </button>
-        )}
+        <button type="button" title="Hide" aria-label="Hide her window" onClick={() => store.setEnabled(false)} style={buttonStyle}>
+          ✕
+        </button>
       </div>
 
-      {/* All of her. Double-click / double-tap: talk to her. */}
-      <div style={{ flex: 1, minHeight: 0 }} onDoubleClick={onOpenChat} onClick={collapsed ? onOpenChat : undefined}>
+      {/* All of her. Double-click / double-tap: talk to her. The posture
+          transform belongs to her body, never to the bar or the grip. */}
+      <div
+        data-testid="lelu-companion-body"
+        style={{
+          flex: 1,
+          minHeight: 0,
+          transform: plan.transform,
+          transformOrigin: "bottom center",
+          transition: live || plan.durationMs === 0 ? "none" : `transform ${plan.durationMs}ms cubic-bezier(.2,.8,.2,1)`,
+        }}
+        onDoubleClick={onOpenChat}
+      >
         <LeluCharacter framing="full" testId="lelu-companion-character" />
       </div>
 
-      {/* Corner grip: drag to resize (grows up and to the left). */}
-      <div
+      {/* Corner grip: drag to resize (grows up and to the left). Ambient
+          presence stays minimal: no resize affordance until you need her. */}
+      {plan.mode === "ambient" ? null : <div
         data-testid="lelu-companion-resize"
         role="separator"
         aria-label="Resize her window"
@@ -433,7 +489,7 @@ function CompanionWindow({
           background: `linear-gradient(135deg, ${accent}aa 0 22%, transparent 23%)`,
           borderTopLeftRadius: 16,
         }}
-      />
+      />}
     </div>
   );
 }

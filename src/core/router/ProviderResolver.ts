@@ -11,7 +11,7 @@
 
 import { contradictedCaptureClaims, contradictionNote, groundingNote, ungroundedClaims } from "../tools/ClaimGrounding";
 import type AIProvider from "../../providers/AIProvider";
-import type { AIMessage, AIResponse } from "../../providers/AIProvider";
+import type { AIMessage, AIRequest, AIResponse } from "../../providers/AIProvider";
 import type RouterContext from "./RouterContext";
 import type { ProviderResult } from "./RouterResults";
 import AgentEventBus from "../agent/AgentEvents";
@@ -58,7 +58,41 @@ const RESEARCH_LOOP_BUDGET_MS = 3 * 60 * 1000;
 const RESEARCH_LOOP_MAX_ROUNDS = 16;
 const RESEARCH_TOOL = /^(research|browser|memory)[._]/;
 
+/**
+ * ONE provider attempt, bounded.
+ *
+ * Measured live (2026-11-06): an ordinary chat turn spent 20.1 s inside
+ * the chain and then answered with the offline notice, while the provider
+ * that answers in under a second had only the tail of that time left. The
+ * wait was spent on a slow rung, not on an answer — and a rung whose
+ * credential is out of quota for the day was re-paid for on every turn.
+ *
+ * So each attempt gets its own deadline, comfortably below the chain's
+ * total, and the next provider is tried while time is still on the clock.
+ * A deadline is NOT a user Stop: the turn's own signal is untouched, so
+ * the chain falls through instead of settling the turn as cancelled.
+ */
+const PROVIDER_RUNG_BUDGET_MS = 12_000;
+
+/** The whole fallback chain. No new rung starts once this is spent. */
+const CHAIN_BUDGET_MS = 20_000;
+
+/** Too little left to be worth starting another provider. */
+const MIN_RUNG_SLICE_MS = 1_500;
+
 export default class ProviderResolver {
+  private readonly rungBudgetMs: number;
+  private readonly chainBudgetMs: number;
+
+  /**
+   * Budgets are injectable so a test can prove the cut-off in
+   * milliseconds instead of waiting out the production numbers.
+   */
+  constructor(budget: { rungBudgetMs?: number; chainBudgetMs?: number } = {}) {
+    this.rungBudgetMs = budget.rungBudgetMs ?? PROVIDER_RUNG_BUDGET_MS;
+    this.chainBudgetMs = budget.chainBudgetMs ?? CHAIN_BUDGET_MS;
+  }
+
   public async execute(context: RouterContext): Promise<ProviderResult> {
     /**
      * Tools that really executed, across every provider attempt.
@@ -155,6 +189,7 @@ export default class ProviderResolver {
     // still falls through to every other configured provider instead of
     // breaking the agent.
     const ordered = this.orderByPreference(eligible, decision.preferredProviders);
+    const chainStarted = Date.now();
 
     for (const provider of ordered) {
       // The user pressed Stop: do not start another provider.
@@ -168,6 +203,8 @@ export default class ProviderResolver {
         continue;
       }
 
+      /** Tools that ran on THIS attempt — a fallback would repeat them. */
+      const toolsBeforeRung = toolsReallyRun.length;
       try {
         context.logger.info(
           "ProviderResolver",
@@ -189,7 +226,23 @@ export default class ProviderResolver {
           priority: provider.priority,
         });
 
-        const response = await this.executeProvider(provider, context, toolsReallyRun);
+        // Start a rung only while the chain has time to hear its answer.
+        const remaining = this.chainBudgetMs - (Date.now() - chainStarted);
+        if (remaining < MIN_RUNG_SLICE_MS) {
+          context.logger.info(
+            "ProviderResolver",
+            `Not trying ${provider.name}: the fallback chain's ${Math.round(this.chainBudgetMs / 1000)}s budget is spent.`,
+            { provider: provider.name, chainElapsedMs: Date.now() - chainStarted },
+          );
+          break;
+        }
+
+        const response = await this.executeRung(
+          provider,
+          context,
+          toolsReallyRun,
+          Math.min(this.rungBudgetMs, remaining),
+        );
         events.emit({
           type: "provider_status",
           taskId,
@@ -246,6 +299,51 @@ export default class ProviderResolver {
           };
         }
         const message = error instanceof Error ? error.message : String(error);
+        // Did this attempt already do real work before it failed?
+        //
+        // Falling through now would hand the next provider the SAME messages
+        // and the SAME tools, so every edit already made would be made
+        // again — and the user's reply would be replaced by the offline
+        // notice. That is the measured product-creation stall: tools ran,
+        // then the turn "stuck" with nothing to show. The turn ends here,
+        // naming what ran, and nothing is repeated.
+        const ranThisRung = toolsReallyRun.slice(toolsBeforeRung);
+        if (ranThisRung.length > 0) {
+          const names = [...new Set(ranThisRung.map((tool) => tool.tool))];
+          context.aiProviders.markFailure(provider.name, message);
+          AgentEventBus.getInstance().emit({
+            type: "provider_status",
+            taskId: String(context.request.timestamp ?? Date.now()),
+            provider: provider.name,
+            status: "failed after running tools — not falling back",
+          });
+          context.logger.error(
+            "ProviderResolver",
+            `${provider.name} failed after running tools; not repeating them on another provider.`,
+            { provider: provider.name, ran: names, fallbackReason: message.slice(0, 200) },
+          );
+          return {
+            handled: true,
+            response: {
+              text:
+                `I did the work — I ran ${names.join(", ")} — but ${provider.name} failed before it could ` +
+                `write the summary: ${message}. Nothing was repeated, and everything I ran is listed above.`,
+              provider: provider.name,
+              model: context.request.model ?? "unknown",
+              processingTime: Date.now() - context.started,
+              metadata: {
+                success: false,
+                partial: true,
+                toolsExecuted: ranThisRung,
+                // The same contract the fallback path keeps: work that
+                // happened before the answer is marked as such, so nothing
+                // reads it as the answering provider's own doing.
+                toolsRanBeforeFallback: true,
+                toolLoopStopped: "provider-failed-after-tools",
+              },
+            },
+          };
+        }
         context.aiProviders.markFailure(provider.name, message);
         AgentEventBus.getInstance().emit({
           type: "provider_status",
@@ -317,16 +415,112 @@ export default class ProviderResolver {
    * model that keeps requesting tools, and a bounded one that keeps
    * offering tools ends on a tool request with no text.
    */
+  /**
+   * ONE provider attempt: its own deadline, and one narrow retry.
+   *
+   * The retry exists for a measured request shape. An ordinary "write me a
+   * poem" turn carried 87 tool schemas — an 86,331-character request, 17,816
+   * of them system context — and the same prompt with no schemas answered in
+   * 452 ms. The schemas ARE the bulk of the request, and a conversational
+   * answer needs none of them, so a refusal about the request's SIZE is met
+   * with the request the provider will accept rather than with the offline
+   * notice.
+   *
+   * Only a size refusal retries. The refusal measured on the day this was
+   * written was a spent DAILY allowance (`tokens per day (TPD): Used 199144`
+   * of 200000), which is not in this pattern on purpose: sending that smaller
+   * still exceeds what is left, so it is parked by the registry instead.
+   */
+  private async executeRung(
+    provider: AIProvider,
+    context: RouterContext,
+    toolsReallyRun: Array<{ tool: string; ok: boolean }> | undefined,
+    budgetMs: number,
+  ): Promise<AIResponse> {
+    const rung = new AbortController();
+    let expired = false;
+    /**
+     * The rung deadline is a STALL watchdog, not a total.
+     *
+     * Measured live (2026-11-06): a product-creation turn ran several tool
+     * rounds inside one rung, each round a real edit. The fixed 12 s
+     * deadline fired mid-round, the abort surfaced as a provider failure,
+     * and the chain fell through carrying the ORIGINAL messages and tools —
+     * so the work was repeated on the next provider, and the reply the user
+     * was waiting for became the offline notice. That is the reported "stuck
+     * conversation after successful multi-tool execution".
+     *
+     * So every round that returns and every tool that finishes re-arms it. A
+     * silent provider is still cut off at the same budget; a turn visibly
+     * making progress is bounded by the tool loop's own budget instead.
+     */
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const arm = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        expired = true;
+        rung.abort();
+      }, budgetMs);
+    };
+    arm();
+    const onProgress = () => {
+      if (!expired) arm();
+    };
+
+    try {
+      try {
+        return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, false, onProgress);
+      } catch (error) {
+        // A user Stop outranks the deadline: the turn ended, it did not time
+        // out, and settling it as a timeout would hide the Stop.
+        if (context.request.signal?.aborted) throwIfStopped(context, error);
+        // The deadline fired: report it as the provider's, not as a Stop.
+        if (expired) {
+          throw new Error(
+            `${provider.name} timed out after its ${(budgetMs / 1000).toFixed(1)}s budget.`,
+          );
+        }
+
+        const reason = error instanceof Error ? error.message : String(error);
+        const offeredTools =
+          provider.supportsTools === true && context.request.allowTools === true;
+        if (!offeredTools || !requestTooLarge(reason)) throw error;
+
+        context.logger.info(
+          "ProviderResolver",
+          `${provider.name} refused the request as too large; retrying without the tool schemas.`,
+          { provider: provider.name, fallbackReason: reason.slice(0, 200) },
+        );
+
+        return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, true, onProgress);
+      }
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  /** The request as this attempt sends it: the user's signal, plus the rung's. */
+  private withRungSignal(request: AIRequest, rung?: AbortSignal): AIRequest {
+    if (!rung) return request;
+    return {
+      ...request,
+      signal: request.signal ? AbortSignal.any([request.signal, rung]) : rung,
+    };
+  }
+
   private async generateWithTools(
     provider: AIProvider,
     context: RouterContext,
     toolsReallyRun?: Array<{ tool: string; ok: boolean }>,
+    rungSignal?: AbortSignal,
+    withoutTools = false,
+    onProgress?: () => void,
   ): Promise<AIResponse> {
     // Tools are offered only on a conversational turn. Internal
     // structured-output calls (see AIRequest.allowTools) must reach the
     // provider exactly as they did before, or their parsers break.
     const tools =
-      provider.supportsTools === true && context.request.allowTools === true
+      !withoutTools && provider.supportsTools === true && context.request.allowTools === true
         ? toolSchemasForModel()
         : [];
 
@@ -334,7 +528,7 @@ export default class ProviderResolver {
     // the original single call, untouched. This is the fallback path —
     // ToolCallInterceptor still salvages tool markup from these.
     if (tools.length === 0) {
-      return provider.generate(context.request);
+      return provider.generate(this.withRungSignal(context.request, rungSignal));
     }
 
     const taskId = String(context.request.timestamp ?? Date.now());
@@ -352,7 +546,13 @@ export default class ProviderResolver {
     // to catch.
     const requested: string[] = [];
 
-    let response = await provider.generate({ ...context.request, messages, tools });
+    let response = await provider.generate({
+      ...this.withRungSignal(context.request, rungSignal),
+      messages,
+      tools,
+    });
+    // A round that came back is proof the rung is alive.
+    onProgress?.();
     let promptMaterialized = false;
 
     const loopStarted = Date.now();
@@ -425,6 +625,8 @@ export default class ProviderResolver {
         throwIfStopped(context);
         requested.push(call.name);
         const result = await dispatchToolCall(call, taskId, context);
+        // A tool that finished running is progress, however long it took.
+        onProgress?.();
         executed.push({ tool: call.name, ok: result.ok });
         // ALSO record it where a later provider failure cannot erase it.
         // A tool that ran, ran: if this provider throws on the next
@@ -473,10 +675,11 @@ export default class ProviderResolver {
       }
 
       response = await provider.generate({
-        ...context.request,
+        ...this.withRungSignal(context.request, rungSignal),
         messages,
         ...(stopReason ? {} : { tools }),
       });
+      onProgress?.();
 
       if (stopReason) break;
     }
@@ -529,9 +732,19 @@ export default class ProviderResolver {
     provider: AIProvider,
     context: RouterContext,
     toolsReallyRun?: Array<{ tool: string; ok: boolean }>,
+    rungSignal?: AbortSignal,
+    withoutTools = false,
+    onProgress?: () => void,
   ): Promise<AIResponse> {
     const started = Date.now();
-    const response = await this.generateWithTools(provider, context, toolsReallyRun);
+    const response = await this.generateWithTools(
+      provider,
+      context,
+      toolsReallyRun,
+      rungSignal,
+      withoutTools,
+      onProgress,
+    );
 
     if (!response || typeof response.text !== "string") {
       throw new Error(`${provider.name} returned an invalid response.`);
@@ -628,6 +841,21 @@ export default class ProviderResolver {
   }
 }
 
+
+/**
+ * Did the provider refuse the REQUEST for its size, rather than fail?
+ *
+ * Deliberately only the size ceilings — 413, a token/context ceiling, or a
+ * tokens-per-minute limit — because those are the refusals the SAME provider
+ * answers when the request is smaller. A daily quota and a refused credential
+ * are not here: sending those smaller changes nothing, and the registry gives
+ * them their own cooldown instead of a retry.
+ */
+function requestTooLarge(reason: string): boolean {
+  return /\b413\b|too large|tokens per minute|\btpm\b|maximum context|context length|request entity/i.test(
+    reason,
+  );
+}
 
 /**
  * Rethrow as an AbortError when the turn's own signal has been aborted

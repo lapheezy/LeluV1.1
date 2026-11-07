@@ -57,6 +57,8 @@
  * ==========================================================
  */
 
+import { createGuard, sendRefusal, type Guard, type GuardRequest } from "./requestGuard.ts";
+
 interface ConnectLikeReq {
   method?: string;
   url?: string;
@@ -284,10 +286,18 @@ function warnAboutPrefixedCredentials(env: EnvReader): void {
   );
 }
 
-export function createAiProxyApi(env: EnvReader): {
+export interface AiProxyApiOptions {
+  /** Identity + rate gate for the relay (it spends the server's keys). Default: Supabase-verified user. */
+  guard?: Guard;
+}
+
+const KNOWLEDGE_LIMIT = { max: 60, windowMs: 60_000 };
+
+export function createAiProxyApi(env: EnvReader, options: AiProxyApiOptions = {}): {
   attach: (middlewares: { use: (path: string, handler: Handler) => void }) => void;
 } {
   warnAboutPrefixedCredentials(env);
+  const guard = options.guard ?? createGuard();
   return {
     attach(middlewares) {
       // ---- capability report: booleans only -------------------------
@@ -323,6 +333,17 @@ export function createAiProxyApi(env: EnvReader): {
         }
 
         void (async () => {
+          // A signed-in user only: an anonymous caller would be spending the
+          // owner's provider quota through this server.
+          // The body (POST) is collected from the start, alongside the identity
+          // check, so no stream event can pass while the check is in flight.
+          const postBody = method === "POST" ? readBody(req, MAX_POST_BYTES) : null;
+          postBody?.catch(() => undefined);
+          const decision = await guard.check(req as unknown as GuardRequest, "user", "knowledge", KNOWLEDGE_LIMIT);
+          if (!decision.ok) {
+            sendRefusal(res, decision);
+            return;
+          }
           const query = new URL(req.url ?? "", "http://localhost").searchParams;
           const id = (query.get("provider") ?? "").toLowerCase();
           const entry = KNOWLEDGE_PROVIDERS[id];
@@ -376,7 +397,7 @@ export function createAiProxyApi(env: EnvReader): {
             }
             let body: string | undefined;
             if (method === "POST") {
-              body = await readBody(req, MAX_POST_BYTES);
+              body = await postBody!;
               headers["Content-Type"] = "application/json";
             }
             const upstream = await fetch(target.toString(), {

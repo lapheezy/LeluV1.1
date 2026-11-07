@@ -22,7 +22,8 @@
  */
 
 import AIService from "../AIService";
-import { bindTask } from "../multichat/TurnOwnership";
+import { bindTask, ownerForTask } from "../multichat/TurnOwnership";
+import { conversationArtifactsContext } from "../studio/StudioTools";
 import LeluRuntime from "../runtime/LeluRuntime";
 import WorkspaceRuntime, { type WorkspaceOperation } from "../engineering/WorkspaceRuntime";
 import TaskEngine, { type Task } from "../tasks/TaskEngine";
@@ -540,7 +541,11 @@ export default class Orchestrator {
   ): Promise<Pick<OrchestratorResult, "response" | "actions" | "task"> | null> {
     const events = AgentEventBus.getInstance();
     this.emit({ type: "planning", message: "Planning steps..." });
-    const plan = await planTask(request, context ? { context } : {});
+    // The planner sees what this conversation already made, so "change the
+    // chart in the brief" revises that artifact instead of starting anew.
+    const made = conversationArtifactsContext(ownerForTask(taskId));
+    const planContext = [context, made].filter(Boolean).join("\n\n");
+    const plan = await planTask(request, planContext ? { context: planContext } : {});
     if (!plan.ok || !plan.validation) {
       events.emit({
         type: "execution_phase",
@@ -554,6 +559,10 @@ export default class Orchestrator {
     }
 
     const task = createTask(request.slice(0, 200), plan.validation, "orchestrator");
+    // The task works for the conversation whose turn planned it: its step
+    // events and the artifacts its tools make belong to that chat.
+    const owner = ownerForTask(taskId);
+    if (owner) bindTask(task.id, owner);
     this.emit({ type: "executing", message: "Working through the plan", taskId: task.id });
     const executor = TaskExecutor.getInstance();
     const finished = (await executor.run(task.id)) ?? task;

@@ -8,6 +8,8 @@ import { useWorkspace } from "../useWorkspace";
 import { chatFillsScreen } from "../chat/chatLayout";
 import { useChatExpanded } from "../chat/chatExpand";
 import { resolveSurface, type Surface } from "./Surface";
+import { useUniverseOpen } from "../chat/universe/universeOpen";
+import { useHomeStore } from "../home/useHomeLive";
 
 export function useSurface(): Surface {
   const { state } = useGenesis();
@@ -24,8 +26,11 @@ export function useSurface(): Surface {
   // A floating phone chat does not own the screen: the Cosmos and the
   // navigation stay, and only an expanded one takes everything.
   const chatExpanded = useChatExpanded();
+  const universeOpen = useUniverseOpen();
+  const cosmosMode = useHomeStore().cosmosMode;
+  const universeOwnsScreen = universeOpen && cosmosMode !== "floating";
   return useMemo(
-    () => resolveSurface({ activePanel: state.activePanel, minimized: state.minimized, openModuleCount, visibleModuleCount, compact, chatExpanded }),
-    [state.activePanel, state.minimized, openModuleCount, visibleModuleCount, compact, chatExpanded],
+    () => resolveSurface({ activePanel: state.activePanel, minimized: state.minimized, openModuleCount, visibleModuleCount, compact, chatExpanded, universeOwnsScreen }),
+    [state.activePanel, state.minimized, openModuleCount, visibleModuleCount, compact, chatExpanded, universeOwnsScreen],
   );
 }

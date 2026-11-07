@@ -17,6 +17,7 @@
 import { exportArtifact, type ExportResult, type Verification } from "./StudioExport";
 import { applyOps, compareSpecs, normalizeSpec, type StudioOp } from "./StudioOps";
 import { formatOf, readArtifact, type ReadResult } from "./StudioReader";
+import { fromCreationArtifact, type CanonicalStudioProject } from "./StudioModel";
 import type { ArtifactSpec, ExportFormat } from "./StudioTypes";
 import { sha256Hex } from "./writers/bytes";
 
@@ -133,6 +134,18 @@ export default class StudioStore {
     return this.version;
   }
 
+  /**
+   * Every artifact as the ONE canonical studio project (StudioModel).
+   *
+   * The Creation Studio is the primary studio, so this is where its work
+   * enters the unified model; a caller that only knows CanonicalStudioProject
+   * can read documents, decks and workbooks without knowing this store exists,
+   * and software projects from the preserved backup arrive in the same shape.
+   */
+  canonicalProjects(): CanonicalStudioProject[] {
+    return this.list().map(fromCreationArtifact);
+  }
+
   list(): StudioArtifact[] {
     return [...this.artifacts.values()].sort((a, b) => b.updatedAt - a.updatedAt);
   }
@@ -158,6 +171,13 @@ export default class StudioStore {
     }
     const exact = this.artifacts.get(r);
     if (exact) return exact;
+    // A planned step refers to the artifact an earlier step made through
+    // that step's output ("Created [art_…] document …"): the id inside it
+    // names the artifact, the sentence around it does not.
+    for (const id of r.match(/\bart_[a-z0-9]+\b/gi) ?? []) {
+      const tagged = this.artifacts.get(id);
+      if (tagged) return tagged;
+    }
     const lower = r.toLowerCase();
     return pool.find((a) => a.title.toLowerCase() === lower) ?? pool.find((a) => a.title.toLowerCase().includes(lower));
   }

@@ -248,6 +248,13 @@ export function conversationIdOf(moduleId: string): string | null {
 export const CHAT_WINDOW_Z = 520;
 
 /**
+ * Application windows (Settings, Security Center, Studio …) stack just above
+ * the persistent chat panel (core/ui/Layers "panel" = 100) and below the
+ * navigation (200). At 30 they sat UNDER the chat panel, which covered them.
+ */
+export const APP_WINDOW_Z = 101;
+
+/**
  * Windows that open FROM a conversation — the chat itself, and the
  * documents and designs LÉLU makes in it — float above the chat panel
  * like chat windows do; application panels stay below it.
@@ -2239,7 +2246,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
             if (!existing) return current;
             // The stacking FLOOR depends on what the window is: application
             // panels stack among panels, chat windows above the Universe.
-            const floor = floatsAboveChat(id) ? CHAT_WINDOW_Z : 30;
+            const floor = floatsAboveChat(id) ? CHAT_WINDOW_Z : APP_WINDOW_Z;
             const top = Math.max(floor, ...Object.values(current.modules)
               .map(m => m.zIndex ?? floor)) + 1;
             return {

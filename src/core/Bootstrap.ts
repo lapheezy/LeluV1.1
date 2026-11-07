@@ -41,6 +41,7 @@ import { registerAgenticTools } from "./agentic/AgenticTools";
 import { registerInterfaceTools } from "./interface/InterfaceTools";
 import { registerStudioTools } from "./studio/StudioTools";
 import { registerAtelierTools } from "./atelier/AtelierTools";
+import { registerCosmosTools } from "./cosmos/CosmosTools";
 import TaskExecutor from "./agentic/TaskExecutor";
 import DailyReflection from "./agentic/DailyReflection";
 import ToolRegistry from "./tools/ToolRegistry";
@@ -204,6 +205,9 @@ export default class Bootstrap {
       // Atelier: research-to-production design (directions, BOM, drawings,
       // 3D models, dossiers), every file verified from its bytes.
       registerAtelierTools();
+      // Cosmos: the navigable map and the workspace API, offered through the
+      // same dispatcher/gate/approval path as every other tool.
+      registerCosmosTools();
       const interrupted = TaskExecutor.getInstance().recoverInterrupted();
       if (interrupted.length) {
         console.info(`[Bootstrap] ${interrupted.length} interrupted task(s) are paused and resumable.`);

@@ -433,7 +433,7 @@ export default class AnthropicProvider implements AIProvider {
       ...(request.onDelta ? { stream: true } : {}),
     };
 
-    const response = await this.send(payload, useServerFallback, this.timeoutFor(request), request.signal);
+    const response = await this.send(payload, useServerFallback, this.timeoutFor(request), request);
 
     if (payload.stream) {
       return await this.generateStreamed(response, started, payload.model, request.onDelta!);
@@ -547,7 +547,7 @@ export default class AnthropicProvider implements AIProvider {
     payload: Record<string, unknown>,
     useServerFallback: boolean,
     timeoutMs: number,
-    cancel?: AbortSignal,
+    request: { signal?: AbortSignal },
   ): Promise<Response> {
     const init = {
       method: "POST",
@@ -570,11 +570,13 @@ export default class AnthropicProvider implements AIProvider {
       try {
         response = await fetch(endpointUrl("anthropic", "messages"), {
           ...init,
-          signal: cancel ? AbortSignal.any([AbortSignal.timeout(timeoutMs), cancel]) : AbortSignal.timeout(timeoutMs),
+          signal: request.signal
+            ? AbortSignal.any([request.signal, AbortSignal.timeout(timeoutMs)])
+            : AbortSignal.timeout(timeoutMs),
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        if (cancel?.aborted) throw new Error("Anthropic request cancelled");
+        if (request.signal?.aborted) throw new Error("Anthropic request cancelled");
         const timedOut = error instanceof Error && error.name === "TimeoutError";
         // A timeout already spent the whole budget; retrying doubles the
         // wait before the chain can move on.
@@ -585,7 +587,7 @@ export default class AnthropicProvider implements AIProvider {
         continue;
       }
 
-      if (!RETRYABLE_STATUS.has(response.status) || attempt >= MAX_RETRIES || cancel?.aborted) {
+      if (!RETRYABLE_STATUS.has(response.status) || attempt >= MAX_RETRIES || request.signal?.aborted) {
         return response;
       }
       // Drain the failed body so the connection can be reused.

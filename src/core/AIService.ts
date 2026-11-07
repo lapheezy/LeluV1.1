@@ -332,6 +332,21 @@ export default class AIService {
     }
   }
 
+  /**
+   * Deliver a reply that was produced outside ai.chat: a planned task's
+   * report or an engineering run, which the Orchestrator returns as text.
+   * Without this the reply never reached the message channel, so the
+   * conversation stored only the user's message, the turn's artifact card
+   * had no reply to attach to, and the chat looked as if it never finished.
+   * The same channel and shape as every other reply; returns its id.
+   */
+  public deliverReply(text: string, conversationId?: string, provider = "orchestrator"): string {
+    const id = crypto.randomUUID();
+    if (conversationId) bindMessage(id, conversationId);
+    this.emitMessage({ id, role: "assistant", text, timestamp: Date.now(), provider, ...(conversationId ? { conversationId } : {}) });
+    return id;
+  }
+
   private emitMessage(message: AIMessageEvent): void {
     for (const listener of this.messageListeners) {
       try {
@@ -741,6 +756,11 @@ export default class AIService {
       const priorTurns = priorTurnsFor(options?.conversationId, message) ?? conversation.modelMessages();
       conversation.record("user", message);
 
+      // TWO controllers, by design, combined at the request: one per
+      // conversation (convControllers — what cancelTurn/Stop aborts) and one
+      // per turn (activeTurn — the tool loop's own stop). AbortSignal.any is
+      // what keeps a Stop authoritative: aborting EITHER signal aborts the
+      // composed one, so a provider can never keep streaming past a stop.
       const turn = new AbortController();
       this.activeTurn = turn;
       const request: AIRequest = {

@@ -39,6 +39,7 @@ dist-ssr
 .lelu-sandbox/
 # Server-side runtime state (autonomy levels + audit) — never committed.
 .lelu-runtime/
+.lelu-studio/
 
 
 # Runtime Cosmos world store written by the dev server (plugins/worldEngine.ts)
@@ -71,3 +72,7 @@ leluverse/assets/characters/lelu_character/animations/*/animation.fbx
 
 # Local integration binaries (opa, gitleaks, trivy). Not source; ~260 MB.
 .tools/
+# Blender export outputs are large (a 53 MB .blend, a 40 MB .obj) and are
+# free to regenerate from their source job through POST /api/forge/jobs/<id>/export,
+# so the binaries stay local and only the ledger records them.
+leluverse/assets/**/meshes/v*_export_*/

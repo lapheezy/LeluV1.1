@@ -264,3 +264,27 @@ html[data-lelu-universe="open"] [data-testid="lelu-companion"] { visibility: hid
 }
 .lcu[data-cosmos="floating"] .lcu-cosmos::after { display: none; }
 .lcu-mode[data-mode="floating"] { border-color: var(--lcu-edge-hot); box-shadow: 0 0 14px var(--lcu-glow); }
+
+/* Nothing in a conversation may be wider than the conversation. Flex items
+   default to min-width:auto, so one wide card (an artifact preview, an
+   export checks line) pushed the whole thread sideways and clipped every
+   bubble at its edges on a phone. */
+.lcu-thread { overflow-x: hidden; }
+.lcu-msg { min-width: 0; }
+.lcu-msg[data-role="assistant"] { width: 90%; }
+.lcu-bubble { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.lcu-msg[data-role="assistant"] .lcu-bubble { flex: 1 1 auto; }
+.lcu-bubble > *, .lcu-thread > * { max-width: 100%; }
+.lcu-bubble pre, .lcu-bubble table { max-width: 100%; overflow-x: auto; }
+.lcu-bubble img, .lcu-bubble svg { max-width: 100%; height: auto; }
+.lcu-bubble p + p, .lcu-bubble ul, .lcu-bubble ol { margin-top: 6px; }
+.lcu-bubble ul, .lcu-bubble ol { padding-left: 18px; margin-bottom: 0; }
+
+/* A reply reads left-aligned (the window centres its content); file sizes never wrap. */
+.lcu-msg[data-role="assistant"] .lcu-bubble { text-align: left; }
+.lcu-bubble [data-lelu-chat-artifact] span { white-space: nowrap; overflow-wrap: normal; }
+/* Buttons keep their label on one line (overflow-wrap:anywhere broke "Open" into letters). */
+.lcu-bubble .lst-btn { white-space: nowrap; overflow-wrap: normal; flex-shrink: 0; }
+/* The card title shrinks (and ellipsizes) so its subtitle never runs under the Open button. */
+.lcu-bubble .lst-chat-card header .title { flex: 1 1 auto; min-width: 0; }
+.lcu-bubble .lst-chat-card header .title em { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

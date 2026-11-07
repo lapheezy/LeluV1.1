@@ -1,0 +1,101 @@
+{
+  "capturedAt": "2026-11-06T21:40:00Z",
+  "scope": "In-app provider fallback chain: per-rung budget, chain budget, daily-quota parking, size-refusal retry.",
+  "whyTheTurnTook20s": {
+    "explanation": "The chain was not short of providers. Every configured provider was refusing the request, and the chain had no per-rung limit, so a rung that could not answer today was paid for in full on every turn before the next one was tried.",
+    "inAppProviderStageMs": [20139, 12292, 6433, 8512],
+    "note": "Measured on successive live 'write me a short poem about the sea' turns. Every one ended with owner=offline."
+  },
+  "whatTheChainActuallySent": {
+    "requestChars": 86331,
+    "toolSchemas": 87,
+    "systemMessageChars": 17816,
+    "messages": 20,
+    "capturedBy": "fetch wrapper installed in the page, reading the body of each POST to /api/model/*"
+  },
+  "refusalsMeasuredLive": {
+    "openrouter": {
+      "http": 429,
+      "body": "Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day",
+      "xRateLimitLimit": "50",
+      "xRateLimitRemaining": "0",
+      "xRateLimitReset": 1794009600000,
+      "meaning": "The free daily allowance is spent. It does not come back in thirty seconds."
+    },
+    "groq": {
+      "http": 429,
+      "body": "Rate limit reached for model `openai/gpt-oss-120b` in organization `org_...` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199144, Requested 5786. Please try again in 35m29.759999999s.",
+      "meaning": "The daily token allowance was nearly spent: 856 tokens remained, so no substantive request could fit."
+    },
+    "anthropic": {
+      "http": 400,
+      "body": "Your credit balance is too low to access the Anthropic API.",
+      "note": "A key exists on the server, but there is no balance behind it. Policy also leaves Anthropic off unless LELU_ENABLE_ANTHROPIC=true."
+    },
+    "githubModels": {
+      "http": 200,
+      "body": "OK",
+      "note": "The brokered endpoint answers OK rather than a chat completion, so it is not an answering rung today. Reported as observed; not repaired here."
+    }
+  },
+  "controlProbe": {
+    "endpoint": "POST /api/model/groq/chat/completions",
+    "payload": "one short user message, max_tokens 400",
+    "http": 200,
+    "timeSeconds": 0.4528,
+    "content": "Blue horizons kiss the restless tide, / Whispers of foam in moonlit sighs, / Each wave a secret, deep and wide, / The sea—eternal, where dreams arise.",
+    "meaning": "Groq itself is healthy and fast. The refusals above are budget refusals on the app's 86 KB request, not an unreachable provider."
+  },
+  "fix": {
+    "file": "src/core/router/ProviderResolver.ts",
+    "rungBudgetMs": 12000,
+    "chainBudgetMs": 20000,
+    "minRungSliceMs": 1500,
+    "behaviour": [
+      "Each provider attempt is raced against its own AbortController deadline; on expiry the request is aborted, the failure is recorded as that provider's, and the next rung starts with the turn's remaining time.",
+      "The turn's own signal is never mutated, so a rung deadline can never be read as a user Stop (the Stop path still settles the turn as cancelled and penalises nothing).",
+      "No rung starts with less than 1.5 s left in the chain's 20 s budget.",
+      "A refusal about the request's SIZE (413, tokens-per-minute, context ceiling) is retried once on the same rung without the tool schemas — the schemas are the bulk of the 86 KB request and a conversational answer needs none of them.",
+      "A refusal for a DAILY allowance is NOT retried smaller: it is classified as quota-exhausted and the provider sits out 15 minutes instead of 30 seconds."
+    ],
+    "registryFile": "src/core/AIProviderRegistry.ts",
+    "registryBehaviour": "New failure kind `quota-exhausted`, matched on the two refusals actually seen (`free-models-per-day`, `tokens per day (TPD)`), with a 15-minute cooldown so the chain stops paying for a rung that cannot answer today. Per-minute limits keep the 30-second cooldown."
+  },
+  "liveAfterTheFix": {
+    "firstTurnOnAFreshLoad": {
+      "providerStageMs": 8512,
+      "calls": [
+        { "path": "/api/model/openrouter/chat/completions", "status": 429, "requestChars": 86367, "toolSchemas": 87 },
+        { "path": "/api/model/groq/chat/completions", "status": 429, "requestChars": 86371, "toolSchemas": 87 }
+      ],
+      "result": "offline, honestly reported"
+    },
+    "secondTurnOnTheSameLoad": {
+      "prompt": "and now a two-line poem about snow",
+      "providerStageMs": 1,
+      "providerCalls": 0,
+      "totalTurnMs": 5,
+      "meaning": "Both rungs are parked after their measured daily-quota refusals, so the turn is no longer re-paying ~8.5 s for providers that cannot answer today. Before the fix every turn paid that cost."
+    }
+  },
+  "checks": {
+    "focusedSuites": "28/28 (provider-rung-budget, provider-fallback, provider-fallback-cognition, runtime-integrity)",
+    "newTests": [
+      "a slow provider is cut off at its own budget and the next one answers",
+      "a request refused for its size is retried without the tool schemas",
+      "a spent daily allowance is not retried smaller",
+      "a refusal that is not about size is not retried smaller",
+      "the rung budget never turns a user Stop into a fallback",
+      "the chain stops starting rungs once its own budget is spent",
+      "a spent daily quota is classified apart from a transient rate limit"
+    ],
+    "fullSuite": "1453 tests, 1451 passed, 0 failed, 2 skipped (bun run test)",
+    "typecheck": "npx tsc -b --force -> exit 0"
+  },
+  "verdict": {
+    "chainBudget": "PASS — unit-verified, and live-verified in effect: a dead rung no longer costs the turn.",
+    "quotaParking": "PASS — live: 8,512 ms to pay the refusals once, 1 ms and zero provider calls on the next turn.",
+    "liveGeneration": "BLOCKED — not a code failure. At measurement time the account had 856 Groq tokens left for the day, no OpenRouter free requests, no Anthropic credit and no usable GitHub Models rung, so no request the app can send could have been answered. The honest offline notice is the correct outcome until the allowances reset.",
+    "notClaimed": "No live successful poem turn is claimed. The retry-without-schemas path is covered by tests, not by a live success."
+  }
+}
