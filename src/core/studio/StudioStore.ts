@@ -111,12 +111,20 @@ export default class StudioStore {
     }
   }
 
+  /** False when the last write did not reach storage (quota): the editor says so. */
+  private persisted = true;
+  lastSavePersisted(): boolean {
+    return this.persisted;
+  }
+
   private save(): void {
     if (this.persist) {
       try {
         storage()?.setItem(STORAGE_KEY, JSON.stringify([...this.artifacts.values()]));
+        this.persisted = true;
       } catch {
         /* quota: the in-memory store still holds everything this session */
+        this.persisted = false;
       }
     }
     this.version += 1;
@@ -235,6 +243,32 @@ export default class StudioStore {
     }
     const revision = this.addRevision(a, spec, change.note ?? changes.slice(0, 3).join("; "), change.by ?? "lelu", base.rev);
     return { ok: true, artifact: a, revision, changes };
+  }
+
+  /**
+   * A live editor's save (a graph or drawing being edited by hand). One
+   * "edited" revision per editing session: further edits within 10 minutes
+   * update that revision instead of adding one per drag or stroke. LÉLU's
+   * revisions in between start a new session, so nothing of hers is lost.
+   */
+  saveEdit(id: string, spec: unknown, by = "user"):
+    { ok: true; revision: Revision; persisted: boolean } | { ok: false; reason: string } {
+    const a = this.artifacts.get(id);
+    if (!a) return { ok: false, reason: `no artifact ${id}` };
+    const n = normalizeSpec(spec);
+    if (!n.ok) return { ok: false, reason: n.reason };
+    if (n.spec.kind !== a.kind) return { ok: false, reason: `“${a.title}” is a ${a.kind}` };
+    const latest = this.latest(a);
+    if (latest.note === "edited" && latest.by === by && Date.now() - latest.at < 10 * 60_000) {
+      latest.spec = n.spec;
+      latest.at = Date.now();
+      a.title = n.spec.title;
+      a.updatedAt = latest.at;
+      this.save();
+      return { ok: true, revision: latest, persisted: this.persisted };
+    }
+    const revision = this.addRevision(a, n.spec, "edited", by, latest.rev);
+    return { ok: true, revision, persisted: this.persisted };
   }
 
   /** Bring an old revision back — as a NEW revision; nothing in between is lost. */

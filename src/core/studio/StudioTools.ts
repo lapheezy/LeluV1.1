@@ -139,7 +139,7 @@ const ALL_FORMATS: ExportFormat[] = ["docx", "pptx", "xlsx", "pdf", "csv", "md",
 
 
 const SPEC_PROPERTIES = {
-  kind: { type: "string", enum: ["document", "deck", "workbook"], description: "document = report/brief/letter; deck = presentation; workbook = spreadsheet" },
+  kind: { type: "string", enum: ["document", "deck", "workbook", "graph", "drawing"], description: "document = report/brief/letter; deck = presentation; workbook = spreadsheet; graph = connected nodes (agents, tools, systems, workflows), edited in React Flow; drawing = freeform sketch, edited in Excalidraw" },
   title: { type: "string" },
   subtitle: { type: "string" },
   author: { type: "string" },
@@ -152,6 +152,25 @@ const SPEC_PROPERTIES = {
     type: "array",
     description: "deck: {title, subtitle?, layout?: title|section|content|two-column|chart|table|image, bullets?:[], right?:[] (two-column), chart?, table?:{columns,rows}, notes?: speaker notes}",
     items: { type: "object" },
+  },
+  nodes: {
+    type: "array",
+    description: "graph: {id, label, type?: agent|tool|capability|api|knowledge|workflow|world|idea, x?, y? (pixels), color?, group?: parent node id (nested systems), ref?: the LÉLU id it stands for}",
+    items: { type: "object" },
+  },
+  edges: {
+    type: "array",
+    description: "graph: {from: node id, to: node id, label?}",
+    items: { type: "object" },
+  },
+  scene: {
+    type: "object",
+    description: "drawing: Excalidraw scene data {elements:[…]} — e.g. {type:'rectangle',x,y,width,height} {type:'ellipse',…} {type:'text',x,y,text} {type:'arrow',x,y,points:[[0,0],[dx,dy]]}",
+  },
+  links: {
+    type: "array",
+    description: "graph/drawing: ids it belongs to — a world, conversation, project or artifact",
+    items: { type: "string" },
   },
   sheets: {
     type: "array",
@@ -218,6 +237,14 @@ export function describeArtifactSpec(spec: ArtifactSpec, max = 5000): string {
     });
   } else if (spec.kind === "deck") {
     spec.slides.forEach((s, i) => lines.push(`slide ${i + 1}: ${s.title}${s.layout ? ` (${s.layout})` : ""}${s.bullets ? ` — ${s.bullets.join(" | ")}` : ""}${s.right ? ` || ${s.right.join(" | ")}` : ""}${s.chart ? ` [${s.chart.kind} chart: ${s.chart.series.map((x) => `${x.name} ${x.values.join("/")}`).join("; ")} over ${s.chart.labels.join("/")}]` : ""}${s.table ? ` [table ${s.table.columns.join("|")} ×${s.table.rows.length}]` : ""}${s.notes ? ` (notes: ${s.notes})` : ""}`));
+  } else if (spec.kind === "graph") {
+    for (const n of spec.nodes) lines.push(`node [${n.id}] ${n.label}${n.type ? ` (${n.type})` : ""}${n.group ? ` in [${n.group}]` : ""}${n.ref ? ` → ${n.ref}` : ""} at ${Math.round(n.x)},${Math.round(n.y)}`);
+    for (const e of spec.edges) lines.push(`edge [${e.id}] ${e.from} → ${e.to}${e.label ? ` “${e.label}”` : ""}`);
+  } else if (spec.kind === "drawing") {
+    spec.scene.elements.slice(0, 200).forEach((el) => {
+      const e = el as { id?: string; type?: string; text?: string; x?: number; y?: number };
+      lines.push(`element [${e.id ?? "?"}] ${e.type ?? "?"}${e.text ? ` “${e.text}”` : ""} at ${Math.round(e.x ?? 0)},${Math.round(e.y ?? 0)}`);
+    });
   } else {
     for (const sh of spec.sheets) {
       lines.push(`sheet ${sh.name}: ${sh.columns.join(" | ")}`);

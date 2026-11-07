@@ -52,7 +52,7 @@ export interface ActivityArtifact {
   artifactId: string;
   rev: number;
   title: string;
-  kind: "document" | "deck" | "workbook" | "design";
+  kind: "document" | "deck" | "workbook" | "graph" | "drawing" | "design";
   action: "created" | "revised" | "exported" | "restored" | "opened";
   exports: Array<{ format: string; filename: string; ok: boolean; size: number }>;
 }

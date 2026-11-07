@@ -7,7 +7,7 @@
  * viewed, compared with the one before, and restored (as a new revision).
  */
 
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { Check, Download, FileSearch, History, RotateCcw, TriangleAlert } from "lucide-react";
 import GenesisWindowFrame from "../GenesisWindowFrame";
 import { previewHtml } from "../../../../core/studio/StudioPreview";
@@ -15,6 +15,10 @@ import type { ReadResult } from "../../../../core/studio/StudioReader";
 import { FORMATS_BY_KIND, type ExportFormat } from "../../../../core/studio/StudioTypes";
 import { downloadBytes, formatBytes, KIND_LABEL, useStudioStore } from "./useStudio";
 import "./studio.css";
+
+// Each editor (and its library) loads only when an artifact of its kind is opened.
+const GraphEditor = lazy(() => import("./GraphEditor"));
+const DrawingEditor = lazy(() => import("./DrawingEditor"));
 
 export default function StudioArtifactWindow({ artifactId, onClose }: { artifactId: string; onClose: () => void }) {
   const store = useStudioStore();
@@ -99,7 +103,19 @@ export default function StudioArtifactWindow({ artifactId, onClose }: { artifact
           </div>
         ) : null}
 
-        <iframe className={`lst-preview kind-${artifact.kind}`} title={`Preview of ${artifact.title}`} sandbox="" srcDoc={html} />
+        {revision.spec.kind === "graph" || revision.spec.kind === "drawing" ? (
+          <Suspense fallback={<p className="lst-note" role="status">Opening the {revision.spec.kind === "graph" ? "graph" : "drawing"} editor…</p>}>
+            {/* "latest" keeps one editor across its own saves; an earlier revision opens read-only. */}
+            {revision.spec.kind === "graph" ? (
+              <GraphEditor key={viewRev ?? "latest"} artifactId={artifact.id} spec={revision.spec} readOnly={revision.rev !== latest.rev} />
+            ) : (
+              <DrawingEditor key={viewRev ?? "latest"} artifactId={artifact.id} spec={revision.spec} readOnly={revision.rev !== latest.rev} />
+            )}
+          </Suspense>
+        ) : (
+          <iframe className={`lst-preview kind-${artifact.kind}`} title={`Preview of ${artifact.title}`} sandbox="" srcDoc={html} />
+        )}
+        {"links" in revision.spec && revision.spec.links?.length ? <p className="lst-note">Linked to {revision.spec.links.join(", ")}</p> : null}
 
         {exportsHere.length || artifact.original ? (
           <div className="lst-exports" aria-label="Files">

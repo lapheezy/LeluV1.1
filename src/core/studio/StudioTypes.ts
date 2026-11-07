@@ -108,7 +108,53 @@ export interface WorkbookSpec {
   sheets: SheetSpec[];
 }
 
-export type ArtifactSpec = DocumentSpec | DeckSpec | WorkbookSpec;
+/**
+ * A connected system: agents, tools, capabilities, worlds, workflows.
+ * Edited in React Flow; positions are the editor's own coordinates.
+ * `group` makes a node a child of another (expandable nested systems).
+ */
+export interface GraphNodeSpec {
+  id: string;
+  label: string;
+  /** What it is (agent, tool, capability, api, knowledge, workflow, world…). */
+  type?: string;
+  x: number;
+  y: number;
+  color?: string;
+  /** Parent node id: the node sits inside that group. */
+  group?: string;
+  /** A LÉLU entity this node stands for (agent id, world id, artifact id…). */
+  ref?: string;
+}
+export interface GraphEdgeSpec {
+  id: string;
+  from: string;
+  to: string;
+  label?: string;
+}
+export interface GraphSpec {
+  kind: "graph";
+  title: string;
+  author?: string;
+  nodes: GraphNodeSpec[];
+  edges: GraphEdgeSpec[];
+  /** Where this graph belongs: a world, conversation, project or artifact id. */
+  links?: string[];
+}
+
+/**
+ * A freeform drawing. `scene` is Excalidraw's own scene data, kept as is
+ * (elements, the app-state fields that matter, files) — never converted.
+ */
+export interface DrawingSpec {
+  kind: "drawing";
+  title: string;
+  author?: string;
+  scene: { elements: unknown[]; appState?: Record<string, unknown>; files?: Record<string, unknown> };
+  links?: string[];
+}
+
+export type ArtifactSpec = DocumentSpec | DeckSpec | WorkbookSpec | GraphSpec | DrawingSpec;
 
 export type ExportFormat = "docx" | "pdf" | "md" | "html" | "txt" | "rtf" | "pptx" | "xlsx" | "csv";
 
@@ -117,6 +163,10 @@ export const FORMATS_BY_KIND: Record<ArtifactSpec["kind"], ExportFormat[]> = {
   document: ["docx", "pdf", "md", "html", "txt", "rtf"],
   deck: ["pptx", "pdf", "html", "md"],
   workbook: ["xlsx", "csv", "html", "md"],
+  // Edited live in their own editors; Excalidraw's menu saves/loads
+  // .excalidraw and exports PNG/SVG natively. No Studio writer is added.
+  graph: [],
+  drawing: [],
 };
 
 export const MIME: Record<ExportFormat, string> = {

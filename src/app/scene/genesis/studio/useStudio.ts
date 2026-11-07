@@ -42,7 +42,7 @@ export function openArtifacts(ids: string[]): void {
   window.dispatchEvent(new CustomEvent(STUDIO_OPEN_EVENT, { detail: { ids, layout: ids.length > 1 ? "side-by-side" : "single" } }));
 }
 
-export const KIND_LABEL: Record<StudioArtifact["kind"], string> = { document: "Document", deck: "Presentation", workbook: "Spreadsheet" };
+export const KIND_LABEL: Record<StudioArtifact["kind"], string> = { document: "Document", deck: "Presentation", workbook: "Spreadsheet", graph: "Graph", drawing: "Drawing" };
 
 export function formatBytes(n: number): string {
   return n < 1024 ? `${n} B` : n < 1024 * 1024 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`;

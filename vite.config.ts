@@ -344,6 +344,15 @@ export default defineConfig(({ mode, command }) => {
       },
     },
 
+    // The graph (React Flow) and drawing (Excalidraw) editors are lazy
+    // chunks, so Vite would discover these only when one is first opened,
+    // re-bundle mid-session and reload — leaving two React copies on that
+    // page ("Cannot read properties of null (reading 'useState')").
+    // Pre-bundled at server start instead. Dev only; the build is unchanged.
+    optimizeDeps: {
+      include: ["@xyflow/react", "@excalidraw/excalidraw"],
+    },
+
     resolve: {
       alias: {
         // The OG interfaces keep their own import root so their sources stay
