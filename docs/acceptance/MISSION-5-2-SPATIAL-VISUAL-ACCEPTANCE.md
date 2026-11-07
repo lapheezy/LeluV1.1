@@ -19,7 +19,7 @@ branch head at mission start was `7a2bf49`, which contains the spatial phases
 
 ## 2. Ending commit
 
-Evidence commit `__EVIDENCE__`, pushed to `claude/master-integration`
+Evidence commit `0885651`, pushed to `claude/master-integration`
 (fast-forward, no force, no remote history rewritten). It is the immediate parent of
 the commit that carries this line; that successor changes nothing except this hash.
 
