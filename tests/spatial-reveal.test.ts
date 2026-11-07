@@ -60,6 +60,34 @@ test("duplicate ids and names are collapsed", () => {
   assert.deepEqual(intent.latestRequest()?.objectNames, ["Nova"]);
 });
 
+test("two rapid reveals have distinct identities, even in the same millisecond", () => {
+  fresh();
+  const intent = SpatialRevealIntent.getInstance();
+  intent.request(["a"], ["Nova"]);
+  const first = intent.latestRequest()!;
+  intent.request(["b"], ["Comet"]);
+  const second = intent.latestRequest()!;
+  assert.notEqual(first.id, second.id, "identity is not the timestamp");
+  assert.equal(intent.isConsumed(first.id), false);
+});
+
+test("a reveal is consumed once, and only itself", () => {
+  fresh();
+  const intent = SpatialRevealIntent.getInstance();
+  intent.request(["a"], ["Nova"]);
+  const first = intent.latestRequest()!;
+  intent.request(["b"], ["Comet"]);
+  const second = intent.latestRequest()!;
+
+  intent.consume(first.id);
+  assert.equal(intent.isConsumed(first.id), false, "an older request cannot be consumed by id");
+
+  intent.consume(second.id);
+  assert.equal(intent.isConsumed(second.id), true);
+  assert.equal(intent.isConsumed(second.id), true, "consumption is idempotent");
+  assert.equal(intent.latestRequest()?.id, second.id, "consume does not erase the world-return target");
+});
+
 test("unsubscribing stops a reveal that is no longer wanted", () => {
   fresh();
   const intent = SpatialRevealIntent.getInstance();

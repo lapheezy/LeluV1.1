@@ -22,6 +22,14 @@
  */
 
 export interface SpatialRevealRequest {
+  /**
+   * Stable identity of this reveal, unique per request. The timestamp alone
+   * was not an identity: two placements in the same millisecond produced the
+   * same key, so the second one was treated as already framed and never
+   * reached the camera. Identity is also what lets a frame be consumed once
+   * without clearing the target that the world-return policy still reads.
+   */
+  id: string;
   /** The committed object ids, in commit order. */
   objectIds: string[];
   /** Their names, which is how the camera intent resolves a target. */
@@ -36,6 +44,9 @@ export default class SpatialRevealIntent {
 
   private readonly listeners = new Set<Listener>();
   private latest: SpatialRevealRequest | null = null;
+  /** Requests the camera has already framed. Kept so a remount cannot reframe. */
+  private readonly consumed = new Set<string>();
+  private sequence = 0;
 
   public static getInstance(): SpatialRevealIntent {
     if (!SpatialRevealIntent.instance) {
@@ -53,13 +64,35 @@ export default class SpatialRevealIntent {
     const ids = [...new Set(objectIds.filter((id) => typeof id === "string" && id.length > 0))];
     const names = [...new Set(objectNames.filter((name) => typeof name === "string" && name.length > 0))];
     if (ids.length === 0 || names.length === 0) return;
-    this.latest = { objectIds: ids, objectNames: names, requestedAt: Date.now() };
+    this.sequence += 1;
+    const requestedAt = Date.now();
+    this.latest = {
+      id: `${requestedAt.toString(36)}-${this.sequence.toString(36)}`,
+      objectIds: ids,
+      objectNames: names,
+      requestedAt,
+    };
     for (const listener of this.listeners) listener(this.latest);
   }
 
   /** The most recent reveal the interface should honour. */
   public latestRequest(): SpatialRevealRequest | null {
     return this.latest;
+  }
+
+  /**
+   * Record that the camera has framed this request, exactly once. Consuming
+   * does not clear `latest`: the world-return policy still reads the most
+   * recent target to know that closing a panel should land on the world, not
+   * the dashboard. It is identity, not presence, that prevents a second frame.
+   */
+  public consume(id: string): void {
+    if (this.latest?.id === id) this.consumed.add(id);
+  }
+
+  /** Already framed, so it must never move the camera again. */
+  public isConsumed(id: string): boolean {
+    return this.consumed.has(id);
   }
 
   public subscribe(listener: Listener): () => void {
@@ -71,6 +104,8 @@ export default class SpatialRevealIntent {
 
   public resetForTests(): void {
     this.latest = null;
+    this.consumed.clear();
+    this.sequence = 0;
     this.listeners.clear();
   }
 }

@@ -86,14 +86,24 @@ export default function SpatialRevealBridge() {
   const { state } = useGenesis();
   const surface = useSurface();
   const [requestRevision, setRequestRevision] = useState(0);
-  const framed = useRef<string | null>(null);
+  const framed = useRef<Set<string>>(new Set());
 
   useEffect(
     () =>
-      SpatialRevealIntent.getInstance().subscribe(() => {
+      SpatialRevealIntent.getInstance().subscribe((request) => {
         // From this point, closing chat returns to the world the object is
         // in, not to the home dashboard that covers it.
         HomeStore.setImmersive(true);
+        // A new request invalidates the previous answer: nothing may read an
+        // older frame as the reveal of the object just placed.
+        if (typeof window !== "undefined") {
+          (window as unknown as { __leluReveal?: unknown }).__leluReveal = null;
+          (window as unknown as { __leluRevealPending?: unknown }).__leluRevealPending = {
+            id: request.id,
+            targets: request.objectNames,
+            requestedAt: request.requestedAt,
+          };
+        }
         setRequestRevision((revision) => revision + 1);
       }),
     [],
@@ -157,8 +167,8 @@ export default function SpatialRevealBridge() {
      * object from a new angle — a different view of the same scene every time
      * the user came back. The restored pose carries the view instead.
      */
-    const key = String(request.requestedAt);
-    if (framed.current === key) return;
+    const key = request.id;
+    if (framed.current.has(key) || SpatialRevealIntent.getInstance().isConsumed(key)) return;
 
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -168,7 +178,7 @@ export default function SpatialRevealBridge() {
       if (cancelled) return;
       const target = renderedTarget(request);
       if (target) {
-        framed.current = key;
+        framed.current.add(key);
         let result = await SpatialIntentBus.getInstance().apply({
           op: "camera.focus",
           targets: [target],
@@ -190,9 +200,19 @@ export default function SpatialRevealBridge() {
           });
         }
         claimCinematicCamera();
+        /*
+         * A newer placement may have arrived while this one was flying. It
+         * owns the camera now, so this run must not consume it or publish a
+         * frame that describes the wrong object.
+         */
+        const latest = SpatialRevealIntent.getInstance().latestRequest();
+        if (latest && latest.id !== key) return;
+        // Framed exactly once: a remount or a returning panel must not reframe.
+        SpatialRevealIntent.getInstance().consume(key);
         // Read-only diagnostic, like __leluSpatialProbe: what the reveal asked
         // for and what the camera bus answered, for acceptance evidence.
         (window as unknown as { __leluReveal?: unknown }).__leluReveal = {
+          id: key,
           target,
           requestedAt: request.requestedAt,
           ok: result.ok,
