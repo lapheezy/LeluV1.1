@@ -2,9 +2,9 @@
 
 Starting checkpoint `ef1ea1d` (tree `5c18a6e`), baseline `3092cd8`.
 Remote integrated: `claude/master-integration` at `095b7f9`.
-Branch after this work: `freebuff/phase-2-2`, pushed to `claude/master-integration`.
-No force-push. Ending commits: `ba9b8b6` (merge), `2c7b767` (both fixes),
-`17ad0be` (exact preview hostname), report commit.
+Branch after this work: `freebuff/phase-2-2`. **Not pushed yet** — see §7.
+Ending commits: `ba9b8b6` + `88ceda9` (merges of the integration branch),
+`2c7b767` (both fixes), `17ad0be` (exact preview hostname), report commits.
 
 No new architecture: the same `placeInWorld → SpatialIntentBus → commit →
 verify → reveal` path, the same Studio, the same scene and camera ownership.
@@ -135,3 +135,42 @@ in a live phone session**. That is the honest state of this phase.
 * Merge resolution: `GenesisChat.tsx`, `GenesisInterface.tsx`,
   `LeluCompanion.tsx`, `AIRouter.ts`, `package.json`/`bun.lock` (gsap).
 * `vite.config.ts` — exact preview hostname from `LELU_ALLOWED_HOSTS`.
+
+
+## 7. Push status — blocked by committed evidence, not by the code
+
+The integration branch was verified and reconciled twice, and the final merge
+(`88ceda9`, remote tip `3d914dd`) applied with **zero conflicts**. The push itself
+never completed:
+
+* `cloud_git push` to `claude/master-integration` was killed twice by the runner
+  (`statusCode -1`, then `137`) with no server rejection; a later attempt returned
+  `-1` again.
+* The reason is the payload: this branch has **2,125 objects and 1,521.7 MB of
+  unique blob data** that the remote does not have.
+* The largest are committed Playwright trace archives, not source:
+  `docs/acceptance/spatial-phase-2-7/traces/390x844-world-continuity.zip` (124 MB),
+  `…-2-6/traces/375x812-world-continuity.zip` (116 MB),
+  `…-2-6/traces/390x844-world-continuity.zip` (112 MB),
+  `…-2-9/traces/430x932-workspace.zip` (98 MB),
+  `…-2-9/traces/375x812-workspace.zip` (96 MB), and more of the same.
+* Local `git push` cannot substitute: this worktree has no GitHub credentials
+  (`fatal: could not read Username for 'https://github.com'`).
+* A small fix-only branch is **not** an option: the remote lacks the spatial core
+  this work depends on — `src/core/spatial/SpatialRevealIntent.ts`,
+  `src/app/scene/genesis/spatial/SpatialRevealBridge.tsx` and
+  `avatar/spatialPresence.ts` are all absent at `3d914dd`.
+
+To land it, from a credentialed clone of this worktree:
+
+```bash
+git push origin HEAD:claude/master-integration
+```
+
+If that is still too large, move the trace archives out of history (for example
+`git filter-repo --path 'docs/acceptance/**/traces' --invert-paths`, or Git LFS)
+and push the rewritten branch — a history rewrite, so it needs the owner's
+decision, not a silent one here.
+
+Until then the remote branch does **not** contain this fix set, and no claim in
+this report says otherwise.
