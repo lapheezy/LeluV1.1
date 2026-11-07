@@ -1,0 +1,142 @@
+{
+ "ranAt": "2026-11-07T05:22:33.781Z",
+ "log": [
+  {
+   "t": 37695,
+   "step": "share-started",
+   "error": "NotReadableError: Could not start video source"
+  },
+  {
+   "t": 84029,
+   "step": "ask-1",
+   "prompt": "Look at my shared screen. In one or two sentences, what am I looking at?",
+   "frames": [],
+   "provider": "offline",
+   "model": "offline",
+   "ms": 25518,
+   "answer": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "stats": {
+    "active": false,
+    "startedAt": null,
+    "sampled": 0,
+    "kept": 0,
+    "unchangedSkipped": 0,
+    "lastChangeAt": null,
+    "surface": null
+   }
+  },
+  {
+   "t": 151928,
+   "step": "ask-2",
+   "prompt": "What changed on my screen just now, and what does the message mean for me?",
+   "frames": [],
+   "provider": "offline",
+   "model": "offline",
+   "ms": 41439,
+   "answer": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "stats": {
+    "active": false,
+    "startedAt": null,
+    "sampled": 0,
+    "kept": 0,
+    "unchangedSkipped": 0,
+    "lastChangeAt": null,
+    "surface": null
+   }
+  },
+  {
+   "t": 178880,
+   "step": "stop",
+   "liveBeforeStop": false,
+   "liveAfterStop": false,
+   "active": false,
+   "framesAfterStop": 0
+  },
+  {
+   "t": 182855,
+   "step": "ledger",
+   "ai": [
+    {
+     "source": "Anthropic",
+     "ok": false,
+     "in": null,
+     "out": null,
+     "cost": "unknown",
+     "usd": null
+    },
+    {
+     "source": "OpenRouter",
+     "ok": false,
+     "in": null,
+     "out": null,
+     "cost": "unknown",
+     "usd": null
+    },
+    {
+     "source": "Groq",
+     "ok": false,
+     "in": null,
+     "out": null,
+     "cost": "unknown",
+     "usd": null
+    },
+    {
+     "source": "Fireworks",
+     "ok": false,
+     "in": null,
+     "out": null,
+     "cost": "unknown",
+     "usd": null
+    },
+    {
+     "source": "Anthropic",
+     "ok": false,
+     "in": null,
+     "out": null,
+     "cost": "unknown",
+     "usd": null
+    },
+    {
+     "source": "Fireworks",
+     "ok": false,
+     "in": null,
+     "out": null,
+     "cost": "unknown",
+     "usd": null
+    },
+    {
+     "source": "Anthropic",
+     "ok": false,
+     "in": null,
+     "out": null,
+     "cost": "unknown",
+     "usd": null
+    },
+    {
+     "source": "Anthropic",
+     "ok": false,
+     "in": null,
+     "out": null,
+     "cost": "unknown",
+     "usd": null
+    },
+    {
+     "source": "Fireworks",
+     "ok": false,
+     "in": null,
+     "out": null,
+     "cost": "unknown",
+     "usd": null
+    },
+    {
+     "source": "Fireworks",
+     "ok": false,
+     "in": null,
+     "out": null,
+     "cost": "unknown",
+     "usd": null
+    }
+   ]
+  }
+ ]
+}

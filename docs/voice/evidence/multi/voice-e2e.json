@@ -1,0 +1,2015 @@
+{
+ "base": "http://127.0.0.1:5174/",
+ "micWav": "multi.wav",
+ "ranAt": "2026-11-07T05:15:42.969Z",
+ "timeline": [
+  {
+   "t": 1370,
+   "kind": "request",
+   "url": "/api/model/status"
+  },
+  {
+   "t": 1579,
+   "kind": "response",
+   "url": "/api/model/status",
+   "status": 200,
+   "ms": 208
+  },
+  {
+   "t": 11530,
+   "kind": "request",
+   "url": "/api/model/anthropic/messages"
+  },
+  {
+   "t": 12684,
+   "kind": "response",
+   "url": "/api/model/anthropic/messages",
+   "status": 400,
+   "ms": 1154
+  },
+  {
+   "t": 13249,
+   "kind": "request",
+   "url": "/api/model/openrouter/chat/completions"
+  },
+  {
+   "t": 13921,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "error": null
+  },
+  {
+   "t": 16215,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 16219,
+   "kind": "voice-started"
+  },
+  {
+   "t": 16765,
+   "kind": "console",
+   "text": "[VoiceEngine] Recognition error: audio-capture"
+  },
+  {
+   "t": 16766,
+   "kind": "console",
+   "text": "[VoiceEngine] Browser speech service unavailable — switching to Whisper."
+  },
+  {
+   "t": 23261,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3082,\"spoke\":true,\"ms\":4971,\"peak\":0.4192,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 23261,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 23263,
+   "kind": "request",
+   "url": "/api/voice/stt"
+  },
+  {
+   "t": 25960,
+   "kind": "response",
+   "url": "/api/voice/stt",
+   "status": 200,
+   "ms": 2696
+  },
+  {
+   "t": 25967,
+   "kind": "request",
+   "url": "/api/model/groq/chat/completions"
+  },
+  {
+   "t": 27346,
+   "kind": "utterance",
+   "text": "Hey Leilou, what is the capital of Peru? One short sentence"
+  },
+  {
+   "t": 27347,
+   "kind": "turn",
+   "user": "Hey Leilou, what is the capital of Peru? One short sentence",
+   "response": null
+  },
+  {
+   "t": 27347,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 27352,
+   "kind": "response",
+   "url": "/api/model/openrouter/chat/completions",
+   "status": 200,
+   "ms": 14103
+  },
+  {
+   "t": 28640,
+   "kind": "response",
+   "url": "/api/model/groq/chat/completions",
+   "status": 429,
+   "ms": 2673
+  },
+  {
+   "t": 29973,
+   "kind": "request",
+   "url": "/api/model/cerebras/chat/completions"
+  },
+  {
+   "t": 32671,
+   "kind": "response",
+   "url": "/api/model/cerebras/chat/completions",
+   "status": 401,
+   "ms": 2698
+  },
+  {
+   "t": 42437,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13799,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 56803,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":12894,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 59672,
+   "kind": "request",
+   "url": "/api/model/anthropic/messages"
+  },
+  {
+   "t": 62762,
+   "kind": "response",
+   "url": "/api/model/anthropic/messages",
+   "status": 400,
+   "ms": 3089
+  },
+  {
+   "t": 64186,
+   "kind": "request",
+   "url": "/api/model/openrouter/chat/completions"
+  },
+  {
+   "t": 68727,
+   "kind": "turn",
+   "user": "Hey Leilou, what is the capital of Peru? One short sentence",
+   "response": "The capital of Peru is Lima."
+  },
+  {
+   "t": 68728,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 68730,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 68734,
+   "kind": "request",
+   "url": "/api/voice/tts"
+  },
+  {
+   "t": 70230,
+   "kind": "response",
+   "url": "/api/model/openrouter/chat/completions",
+   "status": 200,
+   "ms": 6044
+  },
+  {
+   "t": 70286,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":12094,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 70287,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 1553,
+   "usage": "{\"characterCost\":28,\"fiatCostUsd\":null}"
+  },
+  {
+   "t": 74948,
+   "kind": "audio-playing",
+   "src": "blob:http://127.0.0.1:5174/6e3"
+  },
+  {
+   "t": 78161,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 78161,
+   "kind": "audio-ended"
+  },
+  {
+   "t": 83095,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":11327,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 84795,
+   "kind": "request",
+   "url": "/api/model/openrouter/chat/completions"
+  },
+  {
+   "t": 89380,
+   "kind": "response",
+   "url": "/api/model/openrouter/chat/completions",
+   "status": 200,
+   "ms": 4585
+  },
+  {
+   "t": 97883,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13153,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 110014,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":9718,\"spoke\":true,\"ms\":12112,\"peak\":0.4257,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 110016,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 113914,
+   "kind": "request",
+   "url": "/api/voice/stt"
+  },
+  {
+   "t": 117062,
+   "kind": "response",
+   "url": "/api/voice/stt",
+   "status": 200,
+   "ms": 3148
+  },
+  {
+   "t": 118648,
+   "kind": "utterance",
+   "text": "And roughly how many people live there?"
+  },
+  {
+   "t": 118649,
+   "kind": "turn",
+   "user": "And roughly how many people live there?",
+   "response": null
+  },
+  {
+   "t": 118651,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 127534,
+   "kind": "request",
+   "url": "/api/model/anthropic/messages"
+  },
+  {
+   "t": 130738,
+   "kind": "response",
+   "url": "/api/model/anthropic/messages",
+   "status": 400,
+   "ms": 3204
+  },
+  {
+   "t": 132355,
+   "kind": "request",
+   "url": "/api/model/openrouter/chat/completions"
+  },
+  {
+   "t": 135655,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15292,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 137170,
+   "kind": "response",
+   "url": "/api/model/openrouter/chat/completions",
+   "status": 200,
+   "ms": 4815
+  },
+  {
+   "t": 141541,
+   "kind": "request",
+   "url": "/api/model/openrouter/chat/completions"
+  },
+  {
+   "t": 147583,
+   "kind": "response",
+   "url": "/api/model/openrouter/chat/completions",
+   "status": 200,
+   "ms": 6042
+  },
+  {
+   "t": 149528,
+   "kind": "request",
+   "url": "/api/model/openrouter/chat/completions"
+  },
+  {
+   "t": 149534,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":12397,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 156959,
+   "kind": "response",
+   "url": "/api/model/openrouter/chat/completions",
+   "status": 200,
+   "ms": 7431
+  },
+  {
+   "t": 163740,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14152,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 176628,
+   "kind": "turn",
+   "user": "And roughly how many people live there?",
+   "response": "I did the work — I ran research_web — but OpenRouter failed before it could write the summary: OpenRouter timed out after its 12.0s budget.. Nothing was repeated, and everything I ran is listed above."
+  },
+  {
+   "t": 176629,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 176631,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 176632,
+   "kind": "request",
+   "url": "/api/voice/tts"
+  },
+  {
+   "t": 178761,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13116,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 183327,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 6695,
+   "usage": "{\"characterCost\":200,\"fiatCostUsd\":null}"
+  },
+  {
+   "t": 190882,
+   "kind": "audio-playing",
+   "src": "blob:http://127.0.0.1:5174/0da"
+  },
+  {
+   "t": 192571,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13762,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 198367,
+   "kind": "request",
+   "url": "/api/model/anthropic/messages"
+  },
+  {
+   "t": 201977,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":4911,\"spoke\":true,\"ms\":9380,\"peak\":0.3109,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 201977,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 201978,
+   "kind": "response",
+   "url": "/api/model/anthropic/messages",
+   "status": 400,
+   "ms": 3611
+  },
+  {
+   "t": 203842,
+   "kind": "request",
+   "url": "/api/model/cerebras/chat/completions"
+  },
+  {
+   "t": 203889,
+   "kind": "request",
+   "url": "/api/voice/stt"
+  },
+  {
+   "t": 207770,
+   "kind": "response",
+   "url": "/api/model/cerebras/chat/completions",
+   "status": 401,
+   "ms": 3928
+  },
+  {
+   "t": 207771,
+   "kind": "response",
+   "url": "/api/voice/stt",
+   "status": 200,
+   "ms": 3882
+  },
+  {
+   "t": 209259,
+   "kind": "request",
+   "url": "/api/model/fireworks/chat/completions"
+  },
+  {
+   "t": 209260,
+   "kind": "utterance",
+   "text": "Explain in about five sentences how the Inca built Machu Picchu."
+  },
+  {
+   "t": 209260,
+   "kind": "turn",
+   "user": "Explain in about five sentences how the Inca built Machu Picchu.",
+   "response": null
+  },
+  {
+   "t": 209261,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 209261,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 209263,
+   "kind": "audio-ended"
+  },
+  {
+   "t": 212683,
+   "kind": "response",
+   "url": "/api/model/fireworks/chat/completions",
+   "status": 412,
+   "ms": 3424
+  },
+  {
+   "t": 225012,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15752,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 228742,
+   "kind": "request",
+   "url": "/api/model/openrouter/chat/completions"
+  },
+  {
+   "t": 239092,
+   "kind": "response",
+   "url": "/api/model/openrouter/chat/completions",
+   "status": 200,
+   "ms": 10350
+  },
+  {
+   "t": 241708,
+   "kind": "request",
+   "url": "/api/model/anthropic/messages"
+  },
+  {
+   "t": 244308,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17361,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 244363,
+   "kind": "response",
+   "url": "/api/model/anthropic/messages",
+   "status": 400,
+   "ms": 2655
+  },
+  {
+   "t": 246988,
+   "kind": "request",
+   "url": "/api/model/openrouter/chat/completions"
+  },
+  {
+   "t": 253326,
+   "kind": "response",
+   "url": "/api/model/openrouter/chat/completions",
+   "status": 200,
+   "ms": 6338
+  },
+  {
+   "t": 258831,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14504,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 265755,
+   "kind": "turn",
+   "user": "Explain in about five sentences how the Inca built Machu Picchu.",
+   "response": "I did the work — I ran research_web — but OpenRouter failed before it could write the summary: OpenRouter timed out after its 12.0s budget.. Nothing was repeated, and everything I ran is listed above."
+  },
+  {
+   "t": 265757,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 265758,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 265758,
+   "kind": "request",
+   "url": "/api/voice/tts"
+  },
+  {
+   "t": 271233,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 5475,
+   "usage": "{\"characterCost\":200,\"fiatCostUsd\":null}"
+  },
+  {
+   "t": 277249,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":11128,\"spoke\":true,\"ms\":16788,\"peak\":0.3691,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 277249,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 278360,
+   "kind": "audio-playing",
+   "src": "blob:http://127.0.0.1:5174/0aa"
+  },
+  {
+   "t": 280339,
+   "kind": "request",
+   "url": "/api/voice/stt"
+  },
+  {
+   "t": 282489,
+   "kind": "response",
+   "url": "/api/voice/stt",
+   "status": 200,
+   "ms": 2149
+  },
+  {
+   "t": 284306,
+   "kind": "utterance",
+   "text": "Stop. Just tell me one fact about llamas instead"
+  },
+  {
+   "t": 284307,
+   "kind": "turn",
+   "user": "Stop. Just tell me one fact about llamas instead",
+   "response": null
+  },
+  {
+   "t": 284307,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 291184,
+   "kind": "request",
+   "url": "/api/model/anthropic/messages"
+  },
+  {
+   "t": 294579,
+   "kind": "response",
+   "url": "/api/model/anthropic/messages",
+   "status": 400,
+   "ms": 3395
+  },
+  {
+   "t": 295740,
+   "kind": "request",
+   "url": "/api/model/fireworks/chat/completions"
+  },
+  {
+   "t": 295740,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 295741,
+   "kind": "audio-ended"
+  },
+  {
+   "t": 298171,
+   "kind": "response",
+   "url": "/api/model/fireworks/chat/completions",
+   "status": 412,
+   "ms": 2431
+  },
+  {
+   "t": 298172,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13826,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 299950,
+   "kind": "request",
+   "url": "/api/model/openrouter/chat/completions"
+  },
+  {
+   "t": 302583,
+   "kind": "turn",
+   "user": "Stop. Just tell me one fact about llamas instead",
+   "response": "Llamas are native to the Andes Mountains and were domesticated by the Inca civilization around 4,000-5,000 years ago for their wool, meat, and as pack animals."
+  },
+  {
+   "t": 302585,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 302585,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 302592,
+   "kind": "request",
+   "url": "/api/voice/tts"
+  },
+  {
+   "t": 307643,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 5051,
+   "usage": "{\"characterCost\":159,\"fiatCostUsd\":null}"
+  },
+  {
+   "t": 312604,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14412,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 312614,
+   "kind": "request",
+   "url": "/api/model/openrouter/chat/completions"
+  },
+  {
+   "t": 317019,
+   "kind": "audio-playing",
+   "src": "blob:http://127.0.0.1:5174/e2d"
+  },
+  {
+   "t": 319470,
+   "kind": "response",
+   "url": "/api/model/openrouter/chat/completions",
+   "status": 200,
+   "ms": 6856
+  },
+  {
+   "t": 325933,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":11589,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 328589,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 328589,
+   "kind": "audio-ended"
+  },
+  {
+   "t": 338208,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":12257,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 352520,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":12796,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 363583,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3500,\"spoke\":true,\"ms\":8518,\"peak\":0.2438,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 363584,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 363592,
+   "kind": "request",
+   "url": "/api/model/anthropic/messages"
+  },
+  {
+   "t": 365993,
+   "kind": "response",
+   "url": "/api/model/anthropic/messages",
+   "status": 400,
+   "ms": 2401
+  },
+  {
+   "t": 366030,
+   "kind": "request",
+   "url": "/api/voice/stt"
+  },
+  {
+   "t": 366038,
+   "kind": "request",
+   "url": "/api/model/openrouter/chat/completions"
+  },
+  {
+   "t": 371272,
+   "kind": "response",
+   "url": "/api/voice/stt",
+   "status": 200,
+   "ms": 5242
+  },
+  {
+   "t": 374174,
+   "kind": "utterance",
+   "text": "What was the first thing I asked you today?"
+  },
+  {
+   "t": 374174,
+   "kind": "turn",
+   "user": "What was the first thing I asked you today?",
+   "response": null
+  },
+  {
+   "t": 374175,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 376204,
+   "kind": "request",
+   "url": "/api/model/openrouter/chat/completions"
+  },
+  {
+   "t": 376205,
+   "kind": "response",
+   "url": "/api/model/openrouter/chat/completions",
+   "status": 200,
+   "ms": 10167
+  },
+  {
+   "t": 379649,
+   "kind": "response",
+   "url": "/api/model/openrouter/chat/completions",
+   "status": 429,
+   "ms": 3445
+  },
+  {
+   "t": 381351,
+   "kind": "request",
+   "url": "/api/model/fireworks/chat/completions"
+  },
+  {
+   "t": 384485,
+   "kind": "response",
+   "url": "/api/model/fireworks/chat/completions",
+   "status": 412,
+   "ms": 3134
+  },
+  {
+   "t": 393643,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":17446,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 412795,
+   "kind": "request",
+   "url": "/api/model/anthropic/messages"
+  },
+  {
+   "t": 412797,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":16826,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 414672,
+   "kind": "response",
+   "url": "/api/model/anthropic/messages",
+   "status": 400,
+   "ms": 1877
+  },
+  {
+   "t": 416197,
+   "kind": "turn",
+   "user": "What was the first thing I asked you today?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've dis"
+  },
+  {
+   "t": 416198,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 416198,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 416200,
+   "kind": "request",
+   "url": "/api/voice/tts"
+  },
+  {
+   "t": 422050,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 5850,
+   "usage": "{\"characterCost\":114,\"fiatCostUsd\":null}"
+  },
+  {
+   "t": 428138,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13529,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 430235,
+   "kind": "audio-playing",
+   "src": "blob:http://127.0.0.1:5174/09b"
+  },
+  {
+   "t": 440701,
+   "kind": "request",
+   "url": "/api/model/fireworks/chat/completions"
+  },
+  {
+   "t": 440738,
+   "kind": "request",
+   "url": "/api/voice/tts"
+  },
+  {
+   "t": 440738,
+   "kind": "audio-ended"
+  },
+  {
+   "t": 440745,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":12595,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 442238,
+   "kind": "response",
+   "url": "/api/model/fireworks/chat/completions",
+   "status": 412,
+   "ms": 1537
+  },
+  {
+   "t": 447617,
+   "kind": "response",
+   "url": "/api/voice/tts",
+   "status": 200,
+   "ms": 6879,
+   "usage": "{\"characterCost\":192,\"fiatCostUsd\":null}"
+  },
+  {
+   "t": 450455,
+   "kind": "audio-playing",
+   "src": "blob:http://127.0.0.1:5174/e88"
+  },
+  {
+   "t": 454030,
+   "kind": "request",
+   "url": "/api/model/anthropic/messages"
+  },
+  {
+   "t": 455893,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13703,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 457434,
+   "kind": "response",
+   "url": "/api/model/anthropic/messages",
+   "status": 400,
+   "ms": 3404
+  },
+  {
+   "t": 463083,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "error": null
+  },
+  {
+   "t": 463097,
+   "kind": "voice-stopped"
+  },
+  {
+   "t": 463099,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2612,\"spoke\":true,\"ms\":5662,\"peak\":0.2632,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  }
+ ],
+ "state": {
+  "active": false,
+  "phase": "idle",
+  "permission": "granted",
+  "error": null,
+  "errorKind": null
+ },
+ "lastTranscription": {
+  "engine": "elevenlabs",
+  "ms": 10591,
+  "at": 1794028444471
+ },
+ "bargeIns": 0,
+ "events": [
+  {
+   "id": "27c9c740-a942-4e86-87d8-51f4c4c83636",
+   "userId": null,
+   "at": 1794028083540,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 1715,
+   "rateLimited": false,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.",
+   "kind": "ai",
+   "source": "Anthropic",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "7b3afd3f-6850-4eb4-af34-3338ba06bf1e",
+   "userId": null,
+   "at": 1794028096254,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 12711,
+   "rateLimited": false,
+   "error": "The user aborted a request.",
+   "kind": "ai",
+   "source": "OpenRouter",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "e6f2d41e-564a-4a49-903c-cf4b5313d2bc",
+   "userId": null,
+   "at": 1794028097639,
+   "operation": "stt",
+   "model": "scribe_v1",
+   "ok": true,
+   "latencyMs": 4081,
+   "rateLimited": false,
+   "results": 5,
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": 0.0005,
+   "costKind": "reported"
+  },
+  {
+   "id": "1cd92ef6-bafd-423b-99d3-a5d8b2f14413",
+   "userId": null,
+   "at": 1794028100266,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 4010,
+   "rateLimited": true,
+   "error": "Groq failed 429: Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 198379, Reques",
+   "kind": "ai",
+   "source": "Groq",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "691897f2-2892-4e06-bde0-486447e253d2",
+   "userId": null,
+   "at": 1794028104093,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 3825,
+   "rateLimited": false,
+   "error": "The user aborted a request.",
+   "kind": "ai",
+   "source": "Cerebras",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "a6435d24-ec34-47fb-a64e-e36782cce86d",
+   "userId": null,
+   "at": 1794028115751,
+   "kind": "api",
+   "source": "wikipedia",
+   "operation": "search",
+   "ok": true,
+   "latencyMs": 1478,
+   "results": 0,
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "f5d8dbe0-680b-4527-bfd4-880fb8876ac6",
+   "userId": null,
+   "at": 1794028118547,
+   "kind": "api",
+   "source": "wikidata",
+   "operation": "search",
+   "ok": true,
+   "latencyMs": 2795,
+   "results": 0,
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "de4e606c-bc66-4ed9-914c-41f26858d29b",
+   "userId": null,
+   "at": 1794028119942,
+   "kind": "api",
+   "source": "wikimedia",
+   "operation": "search",
+   "ok": false,
+   "latencyMs": 1394,
+   "rateLimited": true,
+   "error": "Wikimedia 429",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "83953524-a11f-48be-948c-7992dabb51c4",
+   "userId": null,
+   "at": 1794028119943,
+   "kind": "api",
+   "source": "github",
+   "operation": "search",
+   "ok": false,
+   "latencyMs": 0,
+   "rateLimited": false,
+   "error": "GitHub token missing.",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "b8d72483-5eec-4c3a-9680-6fe904062f25",
+   "userId": null,
+   "at": 1794028121376,
+   "kind": "api",
+   "source": "wikipedia",
+   "operation": "search",
+   "ok": true,
+   "latencyMs": 1432,
+   "results": 0,
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "cc1747ed-be26-4367-8066-926afef67e87",
+   "userId": null,
+   "at": 1794028124182,
+   "kind": "api",
+   "source": "wikidata",
+   "operation": "search",
+   "ok": true,
+   "latencyMs": 2805,
+   "results": 0,
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "b5e0988a-89bc-47a8-b36a-02195a5ad8dc",
+   "userId": null,
+   "at": 1794028125613,
+   "kind": "api",
+   "source": "wikimedia",
+   "operation": "search",
+   "ok": false,
+   "latencyMs": 1430,
+   "rateLimited": true,
+   "error": "Wikimedia 429",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "afc9f818-3edf-47f3-ad91-5d7af21db44a",
+   "userId": null,
+   "at": 1794028125614,
+   "kind": "api",
+   "source": "github",
+   "operation": "search",
+   "ok": false,
+   "latencyMs": 0,
+   "rateLimited": false,
+   "error": "GitHub token missing.",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "baa0b904-89b1-487b-aee5-700b8f4d501b",
+   "userId": null,
+   "at": 1794028127092,
+   "kind": "api",
+   "source": "wikipedia",
+   "operation": "search",
+   "ok": true,
+   "latencyMs": 1478,
+   "results": 0,
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "cd10815e-fa0c-4d9f-89f0-2d018af3452a",
+   "userId": null,
+   "at": 1794028128488,
+   "kind": "api",
+   "source": "wikidata",
+   "operation": "search",
+   "ok": false,
+   "latencyMs": 1394,
+   "rateLimited": true,
+   "error": "Wikidata 429",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "d1943ae7-896f-47d6-a256-3994643fd0a0",
+   "userId": null,
+   "at": 1794028129949,
+   "kind": "api",
+   "source": "wikimedia",
+   "operation": "search",
+   "ok": false,
+   "latencyMs": 1460,
+   "rateLimited": true,
+   "error": "Wikimedia 429",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "9f2371ed-b47f-4fe2-8e63-a6d319a09c27",
+   "userId": null,
+   "at": 1794028129950,
+   "kind": "api",
+   "source": "github",
+   "operation": "search",
+   "ok": false,
+   "latencyMs": 0,
+   "rateLimited": false,
+   "error": "GitHub token missing.",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "4aafb43b-6251-45c4-961b-5fcfa6d02436",
+   "userId": null,
+   "at": 1794028134471,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 4513,
+   "rateLimited": false,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.",
+   "kind": "ai",
+   "source": "Anthropic",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "169c09f4-f30c-4128-a99f-2ec251688366",
+   "userId": null,
+   "at": 1794028139019,
+   "model": "openrouter/free",
+   "operation": "generate",
+   "ok": true,
+   "latencyMs": 4546,
+   "kind": "ai",
+   "source": "OpenRouter",
+   "inputTokens": 27714,
+   "outputTokens": 86,
+   "cachedInputTokens": 0,
+   "reasoningTokens": 77,
+   "costUsd": 0,
+   "costKind": "reported"
+  },
+  {
+   "id": "795426e8-b92e-4dc7-9067-602cc020f3a4",
+   "userId": null,
+   "at": 1794028140529,
+   "operation": "tts",
+   "ok": true,
+   "latencyMs": 1503,
+   "rateLimited": false,
+   "results": 28,
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "877cc000-ff45-4f10-b687-866b618402dd",
+   "userId": null,
+   "at": 1794028161319,
+   "model": "openrouter/free",
+   "operation": "generate",
+   "ok": true,
+   "latencyMs": 6231,
+   "kind": "ai",
+   "source": "OpenRouter",
+   "inputTokens": 1840,
+   "outputTokens": 575,
+   "cachedInputTokens": 0,
+   "reasoningTokens": 417,
+   "costUsd": 0,
+   "costKind": "reported"
+  },
+  {
+   "id": "d2f26d5b-374b-44ed-8032-4bdebc7810dc",
+   "userId": null,
+   "at": 1794028188944,
+   "operation": "stt",
+   "model": "scribe_v1",
+   "ok": true,
+   "latencyMs": 4735,
+   "rateLimited": false,
+   "results": 11,
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": 0.0011,
+   "costKind": "reported"
+  },
+  {
+   "id": "aef1d792-710a-402f-9421-e9a2bce6d157",
+   "userId": null,
+   "at": 1794028202637,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 4819,
+   "rateLimited": false,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.",
+   "kind": "ai",
+   "source": "Anthropic",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "f1f271d1-d76b-4127-b990-78c633aaa3a3",
+   "userId": null,
+   "at": 1794028209101,
+   "model": "openrouter/free",
+   "operation": "generate",
+   "ok": true,
+   "latencyMs": 6462,
+   "kind": "ai",
+   "source": "OpenRouter",
+   "inputTokens": 20738,
+   "outputTokens": 89,
+   "cachedInputTokens": 0,
+   "reasoningTokens": 91,
+   "costUsd": 0,
+   "costKind": "reported"
+  },
+  {
+   "id": "b83da16a-c821-430b-96a2-aea72893882c",
+   "userId": null,
+   "at": 1794028217910,
+   "model": "openrouter/free",
+   "operation": "generate",
+   "ok": true,
+   "latencyMs": 6082,
+   "kind": "ai",
+   "source": "OpenRouter",
+   "inputTokens": 24862,
+   "outputTokens": 292,
+   "cachedInputTokens": 0,
+   "reasoningTokens": 280,
+   "costUsd": 0,
+   "costKind": "reported"
+  },
+  {
+   "id": "e5ac5edb-7c9c-4d76-aa8e-fe6b17c7adde",
+   "userId": null,
+   "at": 1794028227211,
+   "model": "openrouter/free",
+   "operation": "generate",
+   "ok": true,
+   "latencyMs": 7394,
+   "kind": "ai",
+   "source": "OpenRouter",
+   "inputTokens": 23605,
+   "outputTokens": 306,
+   "cachedInputTokens": 0,
+   "reasoningTokens": 324,
+   "costUsd": 0,
+   "costKind": "reported"
+  },
+  {
+   "id": "368b4bff-6075-462e-857e-f24d1592b2e1",
+   "userId": null,
+   "at": 1794028235945,
+   "kind": "api",
+   "source": "openstreetmap",
+   "operation": "search",
+   "ok": true,
+   "latencyMs": 6152,
+   "results": 0,
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "7f1d6ace-94de-40a7-94a6-6a2145c65fd5",
+   "userId": null,
+   "at": 1794028241685,
+   "kind": "api",
+   "source": "nominatim",
+   "operation": "search",
+   "ok": true,
+   "latencyMs": 5739,
+   "results": 0,
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "345a8445-7267-4579-9bbd-d8f529d6251a",
+   "userId": null,
+   "at": 1794028245117,
+   "kind": "api",
+   "source": "open-meteo",
+   "operation": "search",
+   "ok": true,
+   "latencyMs": 3431,
+   "results": 0,
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "f10d90ee-f64c-46fd-8113-bf61fc392396",
+   "userId": null,
+   "at": 1794028246917,
+   "kind": "api",
+   "source": "geoapify",
+   "operation": "search",
+   "ok": true,
+   "latencyMs": 1799,
+   "results": 0,
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "8b964cf9-398e-40c4-b57a-8fc858cf3dd4",
+   "userId": null,
+   "at": 1794028253573,
+   "operation": "tts",
+   "ok": true,
+   "latencyMs": 6647,
+   "rateLimited": false,
+   "results": 200,
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "e6433fa0-f0ce-4be0-951e-1e7228ae64e5",
+   "userId": null,
+   "at": 1794028274132,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 5472,
+   "rateLimited": false,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.",
+   "kind": "ai",
+   "source": "Anthropic",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "6eb52f8d-712d-4b0b-8496-1c61d557666c",
+   "userId": null,
+   "at": 1794028279553,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 5420,
+   "rateLimited": false,
+   "error": "Cerebras HTTP 401: Wrong API Key",
+   "kind": "ai",
+   "source": "Cerebras",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "afba9dee-97da-434f-a819-6dc68fdbf14d",
+   "userId": null,
+   "at": 1794028279556,
+   "operation": "stt",
+   "model": "scribe_v1",
+   "ok": true,
+   "latencyMs": 5371,
+   "rateLimited": false,
+   "results": 7,
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": 0.0007,
+   "costKind": "reported"
+  },
+  {
+   "id": "265c4006-a2b0-467d-9653-fd360aace25c",
+   "userId": null,
+   "at": 1794028284648,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 5094,
+   "rateLimited": false,
+   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info",
+   "kind": "ai",
+   "source": "Fireworks",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "354a6c32-4cc4-476a-91e3-2cb0831d7e88",
+   "userId": null,
+   "at": 1794028311987,
+   "model": "openrouter/free",
+   "operation": "generate",
+   "ok": true,
+   "latencyMs": 12950,
+   "kind": "ai",
+   "source": "OpenRouter",
+   "inputTokens": 1900,
+   "outputTokens": 640,
+   "cachedInputTokens": 0,
+   "reasoningTokens": 557,
+   "costUsd": 0,
+   "costKind": "reported"
+  },
+  {
+   "id": "f73f056c-cdec-4f23-9db4-a29b63f89a71",
+   "userId": null,
+   "at": 1794028317276,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 5283,
+   "rateLimited": false,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.",
+   "kind": "ai",
+   "source": "Anthropic",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "a4a8c53c-7e9b-41d8-9cb1-8b2d35927761",
+   "userId": null,
+   "at": 1794028321722,
+   "model": "openrouter/free",
+   "operation": "generate",
+   "ok": true,
+   "latencyMs": 4445,
+   "kind": "ai",
+   "source": "OpenRouter",
+   "inputTokens": 23881,
+   "outputTokens": 121,
+   "cachedInputTokens": 0,
+   "reasoningTokens": 89,
+   "costUsd": 0,
+   "costKind": "reported"
+  },
+  {
+   "id": "0fbc9dd9-8409-44aa-8599-271e3482b4b3",
+   "userId": null,
+   "at": 1794028325667,
+   "kind": "api",
+   "source": "wikipedia",
+   "operation": "search",
+   "ok": true,
+   "latencyMs": 2003,
+   "results": 0,
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "eb426d4e-c1f8-4ec3-baf1-5c993402d2a3",
+   "userId": null,
+   "at": 1794028330756,
+   "kind": "api",
+   "source": "wikidata",
+   "operation": "search",
+   "ok": true,
+   "latencyMs": 5088,
+   "results": 0,
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "5a378be0-85ae-4bf9-9d41-9b1fd6b2441f",
+   "userId": null,
+   "at": 1794028336042,
+   "kind": "api",
+   "source": "wikimedia",
+   "operation": "search",
+   "ok": true,
+   "latencyMs": 5285,
+   "results": 0,
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "7a7bfaab-48bb-4223-9877-b0652ec121f5",
+   "userId": null,
+   "at": 1794028341488,
+   "operation": "tts",
+   "ok": true,
+   "latencyMs": 5436,
+   "rateLimited": false,
+   "results": 200,
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "0efe4ed2-d37a-4c8e-b521-bdb35b2085c4",
+   "userId": null,
+   "at": 1794028354602,
+   "operation": "stt",
+   "model": "scribe_v1",
+   "ok": true,
+   "latencyMs": 3971,
+   "rateLimited": false,
+   "results": 14,
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": 0.0014,
+   "costKind": "reported"
+  },
+  {
+   "id": "7e22995f-9ba4-47af-a8f6-bd12bdd65e27",
+   "userId": null,
+   "at": 1794028366032,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 4552,
+   "rateLimited": false,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.",
+   "kind": "ai",
+   "source": "Anthropic",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "e0713002-e623-41b2-a3a8-c608f52673b7",
+   "userId": null,
+   "at": 1794028368483,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 2449,
+   "rateLimited": false,
+   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info",
+   "kind": "ai",
+   "source": "Fireworks",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "60ef40be-3d4b-4912-9f5a-7fd1b64e6b9a",
+   "userId": null,
+   "at": 1794028372877,
+   "model": "openrouter/free",
+   "operation": "generate",
+   "ok": true,
+   "latencyMs": 2638,
+   "kind": "ai",
+   "source": "OpenRouter",
+   "inputTokens": 19166,
+   "outputTokens": 159,
+   "cachedInputTokens": 0,
+   "reasoningTokens": 140,
+   "costUsd": 0,
+   "costKind": "reported"
+  },
+  {
+   "id": "811ef2a3-f607-413d-b928-6d7476085aad",
+   "userId": null,
+   "at": 1794028376327,
+   "operation": "tts",
+   "ok": true,
+   "latencyMs": 3447,
+   "rateLimited": false,
+   "results": 159,
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "c2fc1b19-fa62-499a-993e-0f62d685aefa",
+   "userId": null,
+   "at": 1794028391384,
+   "model": "openrouter/free",
+   "operation": "generate",
+   "ok": true,
+   "latencyMs": 8477,
+   "kind": "ai",
+   "source": "OpenRouter",
+   "inputTokens": 2202,
+   "outputTokens": 527,
+   "cachedInputTokens": 0,
+   "reasoningTokens": 381,
+   "costUsd": 0,
+   "costKind": "reported"
+  },
+  {
+   "id": "e1118c2e-e8db-4992-9fd7-2fe2211cac89",
+   "userId": null,
+   "at": 1794028436326,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 2438,
+   "rateLimited": false,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.",
+   "kind": "ai",
+   "source": "Anthropic",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "963c713c-cb55-4a8c-804a-22dfe1ca7784",
+   "userId": null,
+   "at": 1794028444470,
+   "operation": "stt",
+   "model": "scribe_v1",
+   "ok": true,
+   "latencyMs": 8145,
+   "rateLimited": false,
+   "results": 9,
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": 0.0009,
+   "costKind": "reported"
+  },
+  {
+   "id": "4665dd19-a412-432a-a75c-a359529a46f4",
+   "userId": null,
+   "at": 1794028448404,
+   "model": "openrouter/free",
+   "operation": "generate",
+   "ok": true,
+   "latencyMs": 12074,
+   "kind": "ai",
+   "source": "OpenRouter",
+   "inputTokens": 578,
+   "outputTokens": 400,
+   "cachedInputTokens": 416,
+   "reasoningTokens": 400,
+   "costUsd": 0,
+   "costKind": "reported"
+  },
+  {
+   "id": "44619ceb-a9b9-42c3-bb8d-3b2421f90e5b",
+   "userId": null,
+   "at": 1794028451643,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 5148,
+   "rateLimited": true,
+   "error": "OpenRouter HTTP 429: Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day",
+   "kind": "ai",
+   "source": "OpenRouter",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "8d98258e-c1b7-4185-a3c6-44ae75a130e0",
+   "userId": null,
+   "at": 1794028456515,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 4870,
+   "rateLimited": false,
+   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info",
+   "kind": "ai",
+   "source": "Fireworks",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "b65ad162-7a2a-40c3-b758-0b8619a6a8f7",
+   "userId": null,
+   "at": 1794028486490,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 3408,
+   "rateLimited": false,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.",
+   "kind": "ai",
+   "source": "Anthropic",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "7e235b9e-d7f4-46fc-a19b-53a56791ff89",
+   "userId": null,
+   "at": 1794028490636,
+   "operation": "tts",
+   "ok": true,
+   "latencyMs": 4139,
+   "rateLimited": false,
+   "results": 114,
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "c1b6e555-4835-4a3f-9c72-6cb60a5b6f7f",
+   "userId": null,
+   "at": 1794028514268,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 3273,
+   "rateLimited": false,
+   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info",
+   "kind": "ai",
+   "source": "Fireworks",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "f834620d-fdd0-4c4b-ad7d-10d51e752d1c",
+   "userId": null,
+   "at": 1794028516063,
+   "operation": "tts",
+   "ok": true,
+   "latencyMs": 5028,
+   "rateLimited": false,
+   "results": 192,
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  },
+  {
+   "id": "ad701806-7b28-408a-89e1-c6268b4f12cf",
+   "userId": null,
+   "at": 1794028530320,
+   "operation": "generate",
+   "ok": false,
+   "latencyMs": 5995,
+   "rateLimited": false,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.",
+   "kind": "ai",
+   "source": "Anthropic",
+   "inputTokens": null,
+   "outputTokens": null,
+   "cachedInputTokens": null,
+   "reasoningTokens": null,
+   "costUsd": null,
+   "costKind": "unknown"
+  }
+ ]
+}
