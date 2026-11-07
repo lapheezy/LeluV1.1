@@ -28,6 +28,20 @@ const FAILURE_COOLDOWN_MS = 30_000;
 const AUTH_FAILURE_COOLDOWN_MS = 15 * 60_000;
 
 /**
+ * How long a provider sits out after its DAILY quota is gone.
+ *
+ * A daily free-tier quota does not come back in thirty seconds, and the
+ * thirty-second cooldown made the chain pay for it on every turn:
+ * measured live, OpenRouter answered `429 free-models-per-day` with an
+ * `X-RateLimit-Remaining: 0` for the rest of the day, and each chat turn
+ * still spent its slowest seconds on that rung before falling through.
+ *
+ * Long like a refused credential, for the same reason: retrying it fixes
+ * nothing. Still finite, because the window does roll over.
+ */
+const QUOTA_COOLDOWN_MS = 15 * 60_000;
+
+/**
  * WHY a provider failed, in the terms someone would act on.
  *
  * "failed" is not a diagnosis. A refused key is fixed in a dashboard, a
@@ -48,6 +62,7 @@ export type ProviderFailureKind =
   | "network"
   | "server"
   | "billing"
+  | "quota-exhausted"
   | "model-not-found"
   | "bad-request"
   | "unknown";
@@ -104,6 +119,20 @@ export function classifyProviderFailure(reason: string): ProviderFailureKind {
   // in code. Must come before the generic server check.
   if (/\b402\b|out of credit|payment required|insufficient.{0,20}(credit|fund)/.test(text)) {
     return "billing";
+  }
+  // A DAILY quota that is already spent. Distinct from a per-minute limit,
+  // which does clear on its own: this one is still refused a minute later,
+  // so attempting it again costs the turn time for nothing.
+  //
+  // Both measured refusals this pattern covers:
+  //   OpenRouter: "Rate limit exceeded: free-models-per-day"
+  //   Groq:       "on tokens per day (TPD): Limit 200000, Used 199144"
+  if (
+    /free-models?-per-day|daily (?:free )?(?:limit|quota)|quota (?:exceeded|exhausted)|tokens per day|\btpd\b/.test(
+      text,
+    )
+  ) {
+    return "quota-exhausted";
   }
   // 404 in an AI provider context almost always means the model id is
   // wrong or not available on this account's plan.
@@ -312,9 +341,12 @@ export default class AIProviderRegistry {
 
   /** How long this provider sits out, given why it failed. */
   public cooldownFor(name: string): number {
-    return this.failures.get(name)?.authRejected === true
-      ? AUTH_FAILURE_COOLDOWN_MS
-      : FAILURE_COOLDOWN_MS;
+    const failure = this.failures.get(name);
+    if (failure?.authRejected === true) return AUTH_FAILURE_COOLDOWN_MS;
+    // A spent daily quota is as unresponsive as a wrong key, and retrying
+    // it every thirty seconds is what made the chain slow.
+    if (failure?.kind === "quota-exhausted") return QUOTA_COOLDOWN_MS;
+    return FAILURE_COOLDOWN_MS;
   }
 
   /**

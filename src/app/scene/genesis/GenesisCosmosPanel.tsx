@@ -15,6 +15,7 @@ import CosmosStore from "./cosmos/CosmosStore";
 import InfiniteCosmos from "./engines/InfiniteCosmos";
 import type { CosmosState } from "./cosmos/CosmosTypes";
 import { genesisTheme } from "./GenesisTheme";
+import CosmosWorkspacePanel from "./cosmos/CosmosWorkspacePanel";
 
 interface Props {
   onClose: () => void;
@@ -95,6 +96,7 @@ export default function GenesisCosmosPanel({ onClose }: Props) {
   const [moving, setMoving] = useState(false);
   const [mapScale, setMapScale] = useState(1);
   const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
+  const [showWorkspace, setShowWorkspace] = useState(false);
 
   const dragStart = useRef({ x: 0, y: 0, w: 0, h: 0, px: 0, py: 0 });
   const pinchRef = useRef<{ dist: number; scale: number } | null>(null);
@@ -304,6 +306,23 @@ export default function GenesisCosmosPanel({ onClose }: Props) {
             </span>
             <button
               type="button"
+              data-lelu-workspace-toggle
+              onClick={() => setShowWorkspace((open) => !open)}
+              style={{
+                background: showWorkspace ? "rgba(103, 232, 249, 0.18)" : "rgba(103, 232, 249, 0.08)",
+                border: "1px solid rgba(103, 232, 249, 0.25)",
+                borderRadius: 6,
+                color: "rgba(165, 243, 252, 0.95)",
+                fontSize: 10,
+                padding: "3px 8px",
+                cursor: "pointer",
+                fontFamily: "system-ui, sans-serif",
+              }}
+            >
+              ⬡ Rooms
+            </button>
+            <button
+              type="button"
               onClick={onClose}
               style={{
                 background: "rgba(148, 163, 184, 0.1)",
@@ -474,6 +493,7 @@ export default function GenesisCosmosPanel({ onClose }: Props) {
           <div style={{ width: 32, height: 3, borderRadius: 2, background: "rgba(148, 163, 184, 0.25)" }} />
         </div>
       </motion.div>
+      {showWorkspace ? <CosmosWorkspacePanel onClose={() => setShowWorkspace(false)} /> : null}
     </AnimatePresence>
   );
 }

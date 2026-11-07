@@ -114,9 +114,8 @@ Endpoints (same-origin by default, no credentials):
   happened to be bundled at build time.
 
 Safety model: command whitelist + workspace path boundary + origin
-guard + optional `LELU_ENGINEER_TOKEN` (when set, POSTs must carry
-`x-lelu-token`; the app reports `token required` honestly if it is
-missing).
+guard + a **required** access token (`LELU_ENGINEER_TOKEN`), enforced
+fail-closed by `plugins/engineerAuth.ts`.
 
 ### Connecting a deployed front-end to a real development runtime
 
@@ -133,7 +132,7 @@ To point a deployed front-end at a real runtime instead:
 | --- | --- | --- |
 | `VITE_LELU_ENGINEER_URL` | client | Base URL of the engineering runtime. Empty (default) means same origin. |
 | `VITE_LELU_ENGINEER_TOKEN` | client | Sent as `x-lelu-token`. Required only when the runtime sets `LELU_ENGINEER_TOKEN`. |
-| `LELU_ENGINEER_TOKEN` | server | When set, every POST must carry the matching token. |
+| `LELU_ENGINEER_TOKEN` | server | **Required.** Unset ⇒ the whole engineering runtime is DISABLED: every `/api/engineer/*` route and `/api/browser/capture` answers `503`. That is the correct state on a public host. |
 | `LELU_ENGINEER_ALLOWED_ORIGINS` | server | Comma-separated exact origins (or `*`) permitted to call cross-origin. **Empty by default — same-origin only.** |
 
 `LELU_ENGINEER_ALLOWED_ORIGINS` is what makes the cross-origin case work
@@ -163,12 +162,34 @@ the standalone runtime:
 - allowlisted origin + token → `200`
 - CORS headers are echoed only for an allowlisted origin
 
-`GET /api/engineer/status` stays reachable without a token, because a
-client has to be able to discover whether a runtime exists and whether a
-token is required before it can present one. When a token IS configured,
-an unauthenticated probe gets only the capability fields — the absolute
-`workspaceRoot` and the `runtimeInfo` engine/version/cwd details are
-returned only to a caller that already holds the token.
+`GET /api/engineer/status` is token-gated like every other route. A
+client that has no token gets `401` with `tokenRequired: true` and
+nothing else — no workspace path, no operation list, no engine or
+version. All capability detail (including `workspaceRoot` and
+`runtimeInfo`) is returned only to a caller that presents the token.
+
+With `LELU_ENGINEER_TOKEN` **unset** every route answers `503` and
+reports `disabled: true`. Fail-closed is the default on purpose: this
+surface reads source, runs commands, spawns preview servers and drives
+a headless browser, so a host that has not configured a token must
+expose none of it instead of all of it.
+
+There is **no loopback exemption.** Behind a reverse proxy every
+request arrives from `127.0.0.1`, so exempting local addresses would
+be a total bypass on exactly the deployment this protects.
+
+**Working locally.** The token is required in development too, so a
+development shell needs the pair in `.env.local` (never committed):
+
+```
+LELU_ENGINEER_TOKEN=dev-local-only
+VITE_LELU_ENGINEER_TOKEN=dev-local-only
+```
+
+The client value must be present at **build** time (`VITE_` names are
+inlined by Vite); the server value is read at run time. They must
+match. Only the `VITE_` name reaches the browser — `scripts/verify-bundle-secrets.ts`
+asserts the server-side name never does.
 
 Fires are real NASA VIIRS NRT hotspots via the FIRMS area CSV API
 (bbox-bounded around the camera focus, with acquisition timestamps,

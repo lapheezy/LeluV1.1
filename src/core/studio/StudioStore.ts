@@ -17,6 +17,7 @@
 import { exportArtifact, type ExportResult, type Verification } from "./StudioExport";
 import { applyOps, compareSpecs, normalizeSpec, type StudioOp } from "./StudioOps";
 import { formatOf, readArtifact, type ReadResult } from "./StudioReader";
+import { fromCreationArtifact, type CanonicalStudioProject } from "./StudioModel";
 import type { ArtifactSpec, ExportFormat } from "./StudioTypes";
 import { sha256Hex } from "./writers/bytes";
 
@@ -131,6 +132,18 @@ export default class StudioStore {
   /** Changes on every write: a stable snapshot for useSyncExternalStore. */
   getVersion(): number {
     return this.version;
+  }
+
+  /**
+   * Every artifact as the ONE canonical studio project (StudioModel).
+   *
+   * The Creation Studio is the primary studio, so this is where its work
+   * enters the unified model; a caller that only knows CanonicalStudioProject
+   * can read documents, decks and workbooks without knowing this store exists,
+   * and software projects from the preserved backup arrive in the same shape.
+   */
+  canonicalProjects(): CanonicalStudioProject[] {
+    return this.list().map(fromCreationArtifact);
   }
 
   list(): StudioArtifact[] {

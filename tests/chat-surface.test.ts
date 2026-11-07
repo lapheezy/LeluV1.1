@@ -351,3 +351,34 @@ test("on a phone a conversation window is the full visual viewport; one composer
   const universe = readFileSync("src/app/scene/genesis/chat/universe/ChatUniverse.tsx", "utf8");
   assert.match(universe, /\{sheetOpen \? null : \(/, "the Universe composer leaves while a conversation sheet owns the screen");
 });
+
+test("Phase 2: on a phone, a sheet that owns the screen unmounts LÉLU's hidden companion window (no WebGL under the sheet)", () => {
+  // Measured: the docked companion canvas kept rendering under the
+  // full-screen conversation and stalled the GPU channel for ~35 s.
+  const phoneSheet = resolveSurface({ compact: true, minimized: false, activePanel: "none", openModuleCount: 1, visibleModuleCount: 1 });
+  assert.equal(phoneSheet.cosmosRendered, false);
+  const desktop = resolveSurface({ compact: false, minimized: false, activePanel: "none", openModuleCount: 1, visibleModuleCount: 1 });
+  assert.equal(desktop.cosmosRendered, true, "desktop keeps her window");
+  const companion = readFileSync("src/app/scene/genesis/avatar/LeluCompanion.tsx", "utf8");
+  assert.match(companion, /if \(presence === "window" && !surface\.cosmosRendered\) return null;/);
+  assert.ok(
+    companion.indexOf('if (presence === "window" && !surface.cosmosRendered) return null;') < companion.indexOf('if (presence === "face" && host)'),
+    "decided before the face/hero/window branches; the face behind the classic chat panel is untouched",
+  );
+});
+
+test("Universe replies render markdown with the shared renderer and never overflow the conversation", () => {
+  const window = readFileSync("src/app/scene/genesis/chat/universe/UniverseChatWindow.tsx", "utf8");
+  assert.match(window, /m\.role === "assistant" \? <ChatMarkdown text=\{m\.text\} \/> : <p>\{m\.text\}<\/p>/, "the same ChatMarkdown as the classic transcript, not a second renderer");
+  const css = readFileSync("src/app/scene/genesis/chat/universe/chatUniverse.css", "utf8");
+  // Measured on iPhone 13: thread scrollWidth 360 === clientWidth 360, 0 elements past its edges.
+  assert.match(css, /\.lcu-thread \{ overflow-x: hidden; \}/);
+  assert.match(css, /\.lcu-msg \{ min-width: 0; \}/);
+  assert.match(css, /\.lcu-bubble \{ min-width: 0; max-width: 100%; overflow-wrap: anywhere; \}/);
+});
+
+test("LÉLU's shared model fits its textures once at parse (measured: 240 → 96 MB uploaded per mount on iPhone 13)", () => {
+  const body = readFileSync("src/app/scene/genesis/avatar/LeluBody.tsx", "utf8");
+  assert.match(body, /export const SHARED_TEXTURE_LIMIT = 2048;/);
+  assert.match(body, /new GLTFLoader\(\)\.parseAsync\(bytes, ""\)\.then\(async \(gltf\) => \{\s*const resized = await fitTexturesTo\(gltf\.scene, SHARED_TEXTURE_LIMIT\);/);
+});

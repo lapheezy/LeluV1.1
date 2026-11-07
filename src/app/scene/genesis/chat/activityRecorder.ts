@@ -7,11 +7,11 @@
  */
 import AgentEventBus from "../../../../core/agent/AgentEvents";
 import { ownerForTask } from "../../../../core/multichat/TurnOwnership";
-import { emptyActivity, reduceActivity, type ChatActivity } from "../../../../core/multichat/TurnActivity";
+import { emptyActivity, finishActivity, reduceActivity, type ChatActivity } from "../../../../core/multichat/TurnActivity";
 
 export interface ActivityRecording {
-  /** Stop listening and return what was recorded. */
-  stop: () => ChatActivity;
+  /** Stop listening; publish and return the record, marked finished (failed when the turn failed). */
+  stop: (failed?: boolean) => ChatActivity;
   current: () => ChatActivity;
 }
 
@@ -81,13 +81,16 @@ export function recordTurnActivity(
   });
   return {
     current: () => activity,
-    stop: () => {
+    stop: (failed = false) => {
       unsubscribe();
       if (timer !== null) {
         clearTimeout(timer);
         timer = null;
       }
-      // The finished record stays visible in its window until the next turn.
+      // The finished record stays visible in its window until the next
+      // turn — FINISHED: publishing the running record left every surface
+      // reading this store (the Universe window) on "Working" for good.
+      activity = finishActivity(activity, failed);
       publishActivity(conversationId, activity);
       return activity;
     },

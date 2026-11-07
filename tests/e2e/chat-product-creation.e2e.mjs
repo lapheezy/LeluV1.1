@@ -44,7 +44,10 @@ const studio = () => within(page.evaluate(async () => {
   return S.list().filter((a) => /lumo/i.test(a.title)).map((a) => {
     const last = a.revisions[a.revisions.length - 1].spec;
     const charts = last.kind === "document" ? last.blocks.filter((b) => b.type === "chart").map((b) => ({ kind: b.chart.kind, labels: b.chart.labels })) : [];
-    return { id: a.id, title: a.title, revs: a.revisions.length, conversationId: a.conversationId ?? null, charts, exports: a.exports.map((e) => ({ rev: e.rev, f: e.filename, ok: e.ok })) };
+    const texts = (spec) => spec.kind === "document" ? spec.blocks.filter((b) => b.type !== "chart" && b.type !== "image").map((b) => b.text ?? (b.items ?? b.columns ?? []).join(" | ")) : [];
+    const first = texts(a.revisions[0].spec), lastTexts = texts(last);
+    const lost = first.filter((t) => !lastTexts.includes(t)).map((t) => t.slice(0, 60));
+    return { id: a.id, title: a.title, revs: a.revisions.length, conversationId: a.conversationId ?? null, charts, lost, exports: a.exports.map((e) => ({ rev: e.rev, f: e.filename, ok: e.ok })) };
   });
 }), 20000);
 const sendIn = async (text) => {
@@ -113,6 +116,7 @@ try {
   record("the same artifact gained a new revision (not a new artifact)", r2 && r2.id === art?.id && r2.revs >= 2, JSON.stringify(r2)?.slice(0, 300));
   record("the revision has a line chart with four versions", r2 && r2.charts[0]?.kind === "line" && r2.charts[0]?.labels.length === 4, JSON.stringify(r2?.charts));
   record("the new revision's DOCX was verified", r2 && r2.exports.some((e) => e.rev >= 2 && e.ok));
+  record("the revision kept every text block it was not asked to change", r2 && r2.lost.length === 0, JSON.stringify(r2?.lost));
   for (let i = 0; i < 24; i += 1) { if (!(await page.evaluate(() => document.querySelector("[data-lelu-universe-typing]") !== null))) break; await page.waitForTimeout(5000); }
   await page.waitForTimeout(2000);
   await page.evaluate(() => { const cards = document.querySelectorAll("[data-lelu-fullscreen] [data-lelu-chat-artifact]"); cards[cards.length - 1]?.scrollIntoView(); });
@@ -147,11 +151,20 @@ try {
   // 6. Independence: the other conversation has no trace of the product.
   await page.evaluate(() => { const w = document.querySelector("[data-lelu-fullscreen]"); [...(w?.querySelectorAll("button") ?? [])].find((b) => /^Close /.test(b.getAttribute("aria-label") ?? ""))?.click(); });
   await page.waitForTimeout(1200);
-  await page.evaluate(() => [...document.querySelectorAll(".lcu-card")].find((x) => /Engineering/.test(x.getAttribute("aria-label") ?? ""))?.click());
+  // Closing the sheet returns to Home: reopen the Universe, then another
+  // conversation — Engineering where it exists, otherwise a new chat.
+  if (!(await page.evaluate(() => document.querySelector(".lcu-card") !== null))) {
+    await page.evaluate(() => [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Chat")?.click());
+    await page.waitForTimeout(2500);
+  }
+  await page.evaluate(() => {
+    const cards = [...document.querySelectorAll(".lcu-card")];
+    (cards.find((x) => /Engineering/.test(x.getAttribute("aria-label") ?? "")) ?? cards.find((x) => /New chat/.test(x.getAttribute("aria-label") ?? "")))?.click();
+  });
   await page.waitForTimeout(2500);
-  const other = await page.evaluate(() => { const w = document.querySelector("[data-lelu-fullscreen]"); return w ? { title: w.getAttribute("data-lelu-module-window"), lumo: /Lumo/i.test(w.innerText), cards: w.querySelectorAll("[data-lelu-chat-artifact]").length } : null; });
+  const other = await page.evaluate(() => { const w = document.querySelector("[data-lelu-fullscreen]"); return w ? { id: w.getAttribute("data-lelu-module-window")?.replace(/^chat:/, ""), lumo: /Lumo/i.test(w.innerText), cards: w.querySelectorAll("[data-lelu-chat-artifact]").length } : null; });
   await shot("10-multi-chat", "02-other-conversation-independent");
-  record("the other conversation shows no trace of the product", other && !other.lumo && other.cards === 0, JSON.stringify(other));
+  record("the other conversation shows no trace of the product", other && other.id !== conversationId && !other.lumo && other.cards === 0, JSON.stringify(other));
   record("no uncaught page errors", !log.some((l) => l.startsWith("pageerror")), log.filter((l) => l.startsWith("pageerror")).slice(0, 2).join(" | "));
 } catch (error) {
   record("run completed", false, String(error).slice(0, 300));

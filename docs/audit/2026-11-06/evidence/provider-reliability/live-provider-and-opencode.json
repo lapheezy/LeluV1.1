@@ -1,0 +1,57 @@
+{
+  "capturedAt": "2026-11-06T19:5x:00Z",
+  "note": "Live measurements from this session. No value from .env.local is reproduced here.",
+  "brokerStatus": {
+    "anthropic": false,
+    "groq": true,
+    "openrouter": true,
+    "githubModels": true,
+    "cerebras": false,
+    "mistral": false,
+    "fireworks": false,
+    "gemini": false
+  },
+  "liveCompletions": [
+    {
+      "provider": "groq",
+      "endpoint": "POST /api/model/groq/chat/completions",
+      "model": "openai/gpt-oss-120b",
+      "http": 200,
+      "content": "Two plus two equals four.",
+      "reasoningTokens": 32,
+      "note": "A first probe with max_tokens=16 returned empty content and finish_reason=length: the whole budget was spent reasoning. The larger budget answered normally."
+    },
+    {
+      "provider": "openrouter",
+      "endpoint": "POST /api/model/openrouter/chat/completions",
+      "model": "openrouter/free",
+      "http": 200,
+      "timeSeconds": 2.742,
+      "note": "Reachable during this session; the earlier poem turn's empty/offline result is consistent with a reasoning-only reply hitting a token/time ceiling, not an unreachable provider."
+    },
+    {
+      "provider": "anthropic",
+      "state": "not_configured",
+      "note": "ANTHROPIC_API_KEY is absent from the running server, so connectivity could not be verified. Marked BLOCKED, not PASS."
+    }
+  ],
+  "openCode": {
+    "binaryVersion": "1.19.5",
+    "server": "127.0.0.1:4096 (pid 353828), started with `opencode serve --port 4096 --hostname 127.0.0.1`",
+    "health": {
+      "state": "healthy",
+      "http": 200,
+      "latencyMs": 53,
+      "detail": "OpenCode answered /health with HTTP 200 at http://127.0.0.1:4096."
+    },
+    "dispatch": {
+      "http": 200,
+      "latencyMs": 5077,
+      "sessionId": "ses_e4d97b6faffecrudfLpUe9Twqh",
+      "summary": "ready",
+      "contacted": true,
+      "note": "A real OpenCode session was created and answered. No files were modified by this probe."
+    },
+    "configuration": "OPENCODE_BASE_URL=http://127.0.0.1:4096 persisted in .env.local (not committed) and passed to the Vite server process."
+  }
+}

@@ -25,6 +25,7 @@
         "docx": "^9.15.2",
         "exceljs": "^4.4.0",
         "framer-motion": "^12.42.2",
+        "gsap": "^3.15.0",
         "jszip": "^3.10.2",
         "lucide-react": "^1.43.0",
         "mermaid": "^11.12.0",
@@ -935,6 +936,8 @@
     "graceful-fs": ["graceful-fs@4.2.11", "", {}, "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="],
 
     "gradle-to-js": ["gradle-to-js@2.0.1", "", { "dependencies": { "lodash.merge": "^4.6.2" }, "bin": { "gradle-to-js": "cli.js" } }, "sha512-is3hDn9zb8XXnjbEeAEIqxTpLHUiGBqjegLmXPuyMBfKAggpadWFku4/AP8iYAGBX6qR9/5UIUIp47V0XI3aMw=="],
+
+    "gsap": ["gsap@3.15.0", "", {}, "sha512-dMW4CWBTUK1AEEDeZc1g4xpPGIrSf9fJF960qbTZmN/QwZIWY5wgliS6JWl9/25fpTGJrMRtSjGtOmPnfjZB+A=="],
 
     "hachure-fill": ["hachure-fill@0.5.2", "", {}, "sha512-3GKBOn+m2LX9iq+JC1064cSFprJY4jL1jCXTcpnfER5HYE2l/4EfWSGzkPa/ZDBmYI0ZOEj5VHV/eKnPGkHuOg=="],
 

@@ -1,0 +1,343 @@
+{
+  "stamp": "2026-11-01T03-27-57",
+  "base": "http://127.0.0.1:4173/",
+  "pass": 33,
+  "total": 33,
+  "checks": [
+    {
+      "name": "app shell is not cached without revalidation",
+      "pass": true,
+      "detail": "no-cache"
+    },
+    {
+      "name": "app shell carries an ETag",
+      "pass": true,
+      "detail": "\"h8c6c8eb7\""
+    },
+    {
+      "name": "repeat shell request is a 304",
+      "pass": true,
+      "detail": "status 304"
+    },
+    {
+      "name": "a 304 carries no body",
+      "pass": true,
+      "detail": "0 bytes"
+    },
+    {
+      "name": "content-hashed bundle is immutable for a year",
+      "pass": true,
+      "detail": "assets/AICore-DOTUH6CI.js: public, max-age=31536000, immutable"
+    },
+    {
+      "name": "the service worker script is not served immutable",
+      "pass": true,
+      "detail": "sw.js: no-cache"
+    },
+    {
+      "name": "the service worker script revalidates",
+      "pass": true,
+      "detail": "sw.js: no-cache"
+    },
+    {
+      "name": "the service worker script carries an ETag",
+      "pass": true,
+      "detail": "sw.js: \"1085-1a1952610f9\""
+    },
+    {
+      "name": "the web manifest is not served immutable",
+      "pass": true,
+      "detail": "manifest.webmanifest: public, max-age=0, must-revalidate"
+    },
+    {
+      "name": "the web manifest revalidates",
+      "pass": true,
+      "detail": "manifest.webmanifest: public, max-age=0, must-revalidate"
+    },
+    {
+      "name": "the web manifest carries an ETag",
+      "pass": true,
+      "detail": "manifest.webmanifest: \"484-1a1952610f9\""
+    },
+    {
+      "name": "the avatar art is not served immutable",
+      "pass": true,
+      "detail": "avatar/lelu/earthy/body.webp: public, max-age=0, must-revalidate"
+    },
+    {
+      "name": "the avatar art revalidates",
+      "pass": true,
+      "detail": "avatar/lelu/earthy/body.webp: public, max-age=0, must-revalidate"
+    },
+    {
+      "name": "the avatar art carries an ETag",
+      "pass": true,
+      "detail": "avatar/lelu/earthy/body.webp: \"2a6f0-1a1952610f9\""
+    },
+    {
+      "name": "the avatar rig is not served immutable",
+      "pass": true,
+      "detail": "avatar/lelu/earthy/rig.json: public, max-age=0, must-revalidate"
+    },
+    {
+      "name": "the avatar rig revalidates",
+      "pass": true,
+      "detail": "avatar/lelu/earthy/rig.json: public, max-age=0, must-revalidate"
+    },
+    {
+      "name": "the avatar rig carries an ETag",
+      "pass": true,
+      "detail": "avatar/lelu/earthy/rig.json: \"4b6-1a1952610f9\""
+    },
+    {
+      "name": "unchanged avatar art costs a 304, not a re-download",
+      "pass": true,
+      "detail": "status 304, 0 bytes"
+    },
+    {
+      "name": "the service worker can be updated on an installed phone",
+      "pass": true,
+      "detail": "no-cache"
+    },
+    {
+      "name": "model advertises range support",
+      "pass": true,
+      "detail": "bytes"
+    },
+    {
+      "name": "HEAD reports the real length",
+      "pass": true,
+      "detail": "12582912 bytes"
+    },
+    {
+      "name": "a range request is 206, not the whole file",
+      "pass": true,
+      "detail": "status 206"
+    },
+    {
+      "name": "a range request returns only the asked bytes",
+      "pass": true,
+      "detail": "1024 bytes"
+    },
+    {
+      "name": "Content-Range names the slice",
+      "pass": true,
+      "detail": "bytes 0-1023/12582912"
+    },
+    {
+      "name": "a suffix range resumes from the end",
+      "pass": true,
+      "detail": "status 206, 100 bytes"
+    },
+    {
+      "name": "an open-ended range resumes to the end",
+      "pass": true,
+      "detail": "status 206, 1024 bytes"
+    },
+    {
+      "name": "an impossible range is 416 with the real size",
+      "pass": true,
+      "detail": "status 416, bytes */12582912"
+    },
+    {
+      "name": "a stale If-Range gets the full current file",
+      "pass": true,
+      "detail": "status 200, 12582912 bytes"
+    },
+    {
+      "name": "a matching If-Range gets the slice",
+      "pass": true,
+      "detail": "status 206, 1024 bytes"
+    },
+    {
+      "name": "an unchanged model is a 304, not 49 MB again",
+      "pass": true,
+      "detail": "status 304, 0 bytes"
+    },
+    {
+      "name": "the model has a real content type",
+      "pass": true,
+      "detail": "model/gltf-binary"
+    },
+    {
+      "name": "a missing bundle is still a 404, not the shell",
+      "pass": true,
+      "detail": "status 404"
+    },
+    {
+      "name": "an app route still returns the shell",
+      "pass": true,
+      "detail": "status 200"
+    }
+  ],
+  "evidence": {
+    "shell": {
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "no-cache",
+        "connection": "close",
+        "content-length": "43750",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Sun, 01 Nov 2026 03:27:57 GMT",
+        "etag": "\"h8c6c8eb7\"",
+        "last-modified": "Sun, 01 Nov 2026 03:27:43 GMT",
+        "referrer-policy": "same-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN"
+      }
+    },
+    "shellConditional": {
+      "status": 304,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "no-cache",
+        "connection": "keep-alive",
+        "content-type": "text/html; charset=utf-8",
+        "date": "Sun, 01 Nov 2026 03:27:57 GMT",
+        "etag": "\"h8c6c8eb7\"",
+        "keep-alive": "timeout=61",
+        "last-modified": "Sun, 01 Nov 2026 03:27:43 GMT",
+        "referrer-policy": "same-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN"
+      },
+      "bytes": 0
+    },
+    "hashedAsset": {
+      "asset": "assets/AICore-DOTUH6CI.js",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=31536000, immutable",
+        "connection": "close",
+        "content-length": "3163",
+        "content-type": "text/javascript; charset=utf-8",
+        "date": "Sun, 01 Nov 2026 03:27:57 GMT",
+        "etag": "\"c5b-1a19526162b\"",
+        "last-modified": "Sun, 01 Nov 2026 03:27:43 GMT",
+        "referrer-policy": "same-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN"
+      }
+    },
+    "mutable": {
+      "sw.js": {
+        "status": 200,
+        "headers": {
+          "accept-ranges": "bytes",
+          "cache-control": "no-cache",
+          "connection": "close",
+          "content-length": "4229",
+          "content-type": "text/javascript; charset=utf-8",
+          "date": "Sun, 01 Nov 2026 03:27:57 GMT",
+          "etag": "\"1085-1a1952610f9\"",
+          "last-modified": "Sun, 01 Nov 2026 03:27:42 GMT",
+          "referrer-policy": "same-origin",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN"
+        }
+      },
+      "manifest.webmanifest": {
+        "status": 200,
+        "headers": {
+          "accept-ranges": "bytes",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "connection": "close",
+          "content-length": "1156",
+          "content-type": "application/manifest+json",
+          "date": "Sun, 01 Nov 2026 03:27:57 GMT",
+          "etag": "\"484-1a1952610f9\"",
+          "last-modified": "Sun, 01 Nov 2026 03:27:42 GMT",
+          "referrer-policy": "same-origin",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN"
+        }
+      },
+      "avatar/lelu/earthy/body.webp": {
+        "status": 200,
+        "headers": {
+          "accept-ranges": "bytes",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "connection": "close",
+          "content-length": "173808",
+          "content-type": "image/webp",
+          "date": "Sun, 01 Nov 2026 03:27:57 GMT",
+          "etag": "\"2a6f0-1a1952610f9\"",
+          "last-modified": "Sun, 01 Nov 2026 03:27:42 GMT",
+          "referrer-policy": "same-origin",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN"
+        }
+      },
+      "avatar/lelu/earthy/rig.json": {
+        "status": 200,
+        "headers": {
+          "accept-ranges": "bytes",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "connection": "close",
+          "content-length": "1206",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Sun, 01 Nov 2026 03:27:57 GMT",
+          "etag": "\"4b6-1a1952610f9\"",
+          "last-modified": "Sun, 01 Nov 2026 03:27:42 GMT",
+          "referrer-policy": "same-origin",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN"
+        }
+      }
+    },
+    "avatarConditional": {
+      "status": 304,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-type": "image/webp",
+        "date": "Sun, 01 Nov 2026 03:27:57 GMT",
+        "etag": "\"2a6f0-1a1952610f9\"",
+        "keep-alive": "timeout=61",
+        "last-modified": "Sun, 01 Nov 2026 03:27:42 GMT",
+        "referrer-policy": "same-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN"
+      },
+      "bytes": 0
+    },
+    "modelHead": {
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "connection": "close",
+        "content-length": "12582912",
+        "content-type": "model/gltf-binary",
+        "date": "Sun, 01 Nov 2026 03:27:57 GMT",
+        "etag": "\"c00000-1a195264b06\"",
+        "last-modified": "Sun, 01 Nov 2026 03:27:57 GMT",
+        "referrer-policy": "same-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN"
+      }
+    },
+    "rangeFirstKb": {
+      "status": 206,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "1024",
+        "content-range": "bytes 0-1023/12582912",
+        "content-type": "model/gltf-binary",
+        "date": "Sun, 01 Nov 2026 03:27:57 GMT",
+        "etag": "\"c00000-1a195264b06\"",
+        "keep-alive": "timeout=61",
+        "last-modified": "Sun, 01 Nov 2026 03:27:57 GMT",
+        "referrer-policy": "same-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN"
+      },
+      "bytes": 1024
+    }
+  }
+}

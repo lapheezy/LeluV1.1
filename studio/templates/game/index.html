@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#04070f" />
+    <title>Rift Runner 3D</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app" aria-label="Rift Runner 3D play area"></div>
+
+    <header class="hud">
+      <div class="hud-block">
+        <p class="hud-label">Quest</p>
+        <p class="hud-value" id="quest">Speak to the Keeper</p>
+      </div>
+      <div class="hud-block right">
+        <p class="hud-label">Shards</p>
+        <p class="hud-value"><span id="shards">0</span><span class="muted">/4</span></p>
+      </div>
+    </header>
+
+    <p class="hint" id="hint">WASD / arrows to move · E to talk · click the world to look</p>
+
+    <section class="dialogue" id="dialogue" hidden aria-live="polite">
+      <p class="speaker" id="speaker">Keeper</p>
+      <p id="dialogue-text"></p>
+    </section>
+
+    <section class="win" id="win" hidden>
+      <h1>The rift is closed.</h1>
+      <p>Four shards returned. The Keeper can rest.</p>
+      <button id="again" type="button">Run it again</button>
+    </section>
+
+    <div class="touch" aria-label="Touch controls">
+      <div class="dpad">
+        <button data-move="up" type="button" aria-label="Forward">▲</button>
+        <button data-move="left" type="button" aria-label="Left">◀</button>
+        <button data-move="down" type="button" aria-label="Back">▼</button>
+        <button data-move="right" type="button" aria-label="Right">▶</button>
+      </div>
+      <button id="interact" class="interact" type="button">Talk / Take</button>
+    </div>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>

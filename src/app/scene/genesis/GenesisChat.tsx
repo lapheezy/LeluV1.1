@@ -914,6 +914,17 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         return;
       }
 
+      // A reply the Orchestrator produced without ai.chat (a planned task's
+      // report, an engineering run) has not been through the message
+      // channel, so the conversation holds no reply for this turn. Deliver
+      // it there, once: the reply and its artifact card belong in the chat.
+      {
+        const stored = MultiChatStore.getInstance().get(turnConversationId)?.messages ?? [];
+        const anchor = stored.findIndex((message) => message.id === userMessageId);
+        const answered = anchor >= 0 && stored.slice(anchor + 1).some((message) => message.role === "assistant");
+        if (anchor >= 0 && !answered) ai.deliverReply(assistantText, turnConversationId);
+      }
+
       // Finished in a chat the user has left: a pointer in NOTIFICATIONS.
       notifyTurnOutcome({ conversationId: turnConversationId, turnId: exchangeId, ok: true, text: cleanAssistantText(assistantText) });
 
@@ -978,7 +989,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     } finally {
       // The activity is kept with the reply it produced, so coming back to
       // this conversation later still shows what LÉLU did for it.
-      const activity = finishActivity(recording.stop(), turnFailed);
+      const activity = recording.stop(turnFailed);
       if (hasVisibleActivity(activity)) {
         try {
           const stored = MultiChatStore.getInstance().get(turnConversationId)?.messages ?? [];
@@ -1455,6 +1466,18 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     </button>
   );
 
+  /**
+   * Hooks run on every render, including the two early returns below.
+   *
+   * Calling this after them made it a CONDITIONAL hook: React refuses that
+   * (the hook order changes the moment the chat is minimised), and the whole
+   * expanded state was discarded and re-read anyway every time the chat was
+   * minimised and reopened. Before the returns, the layout decision is stable
+   * for the lifetime of the component, which is what the transcript and the
+   * open turn depend on.
+   */
+  const phoneExpanded = useChatExpanded();
+
   // Closed (Home): nothing is drawn, the turn bookkeeping stays alive.
   if (hidden && chatMinimized) return null;
 
@@ -1500,7 +1523,6 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
    * turn and its stream all live in this component, which never unmounts
    * for a layout decision.
    */
-  const phoneExpanded = useChatExpanded();
   const isSheetMobile = isMobileViewport && !phoneExpanded;
   const isFloatingMobile = isSheetMobile;
   const isFullMobile = isMobileViewport && phoneExpanded;

@@ -18,10 +18,12 @@ import { createRssApi } from "./plugins/rssApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
 import { createSourceCatalogApi } from "./plugins/sourceCatalogApi.ts";
 import { createSelfViewApi } from "./plugins/selfViewApi.ts";
+import { createStudioApi, stopAllStudioBackends } from "./plugins/studioApi.ts";
 import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { githubApiPlugin } from "./plugins/githubApi.ts";
+import { voiceApiPlugin } from "./plugins/voiceApi.ts";
 import { runtimeKeyBridgePlugin, bridgeReport } from "./plugins/runtimeKeyBridge.ts";
 import { fillBareSecretAliases } from "./plugins/bareSecretAliases.ts";
 import { readBuildInfo } from "./plugins/buildInfo.ts";
@@ -198,6 +200,20 @@ export default defineConfig(({ mode, command }) => {
         },
       },
 
+      // Session 3C — the software studio runtime: real scaffolds, builds,
+      // tests, same-origin previews, approvals and deployment preparation.
+      {
+        name: "lelu-studio",
+        configureServer(server: any) {
+          createStudioApi().attach(server.middlewares);
+          server.httpServer?.once("close", stopAllStudioBackends);
+        },
+        configurePreviewServer(server: any) {
+          createStudioApi().attach(server.middlewares);
+          server.httpServer?.once("close", stopAllStudioBackends);
+        },
+      },
+
       envApiPlugin(),
 
       {
@@ -262,7 +278,8 @@ export default defineConfig(({ mode, command }) => {
         },
       },
 
-      githubApiPlugin(),
+      githubApiPlugin(envReader),
+      voiceApiPlugin(envReader),
 
       glslIncludes(),
 

@@ -220,7 +220,8 @@ test("the execution timeout starts when the job starts, not when the worker is c
 test("a request that names a tool reaches the model, not a keyword scaffold", () => {
   const router = code("src/core/AIRouter.ts");
   assert.match(router, /const namesTool = this\.namesAnOfferedTool\(context\);/);
-  assert.match(router, /if \(!this\.modelCanDoEngineeringWork\(context\) && !namesTool\) \{\s*const creative = await this\.creative\.execute\(context\);/);
+  // The stage is wrapped by the routing trace, which must stay a pass-through.
+  assert.match(router, /if \(!this\.modelCanDoEngineeringWork\(context\) && !namesTool\) \{\s*const creative = await this\.traced\(context, "creative", \(\) => this\.creative\.execute\(context\)\);/);
   assert.match(code("src/core/cognition/CognitiveContext.ts"), /that request is the confirmation — do it, do not ask again/);
 });
 
@@ -229,9 +230,12 @@ test("naming the model's tools keeps device and project keyword resolvers out of
   // project_copy fired a CAMERA capture ("capture") and was answered by
   // ProjectResolver with a toy scaffold — the model never saw it.
   const router = code("src/core/AIRouter.ts");
-  assert.match(router, /if \(!namesTool\) \{\s*const tools = await this\.tools\.execute\(context\);/);
-  assert.match(router, /!this\.modelCanRunWorkflow\(context\) &&\s*!namesTool\s*\) \{\s*const projectResult = await this\.projects\.execute/);
-  assert.match(router, /if \(!namesTool\) \{\s*const browser = await this\.browser\.execute\(context\);/);
+  assert.match(router, /if \(!namesTool\) \{\s*const tools = await this\.traced\(context, "tools", \(\) => this\.tools\.execute\(context\)\);/);
+  // Further guards may follow `!namesTool` — the studio owns a build request,
+  // and a refinement of this conversation's artifact belongs to the model.
+  // Naming a tool must STILL keep ProjectResolver out; that is what is pinned.
+  assert.match(router, /!this\.modelCanRunWorkflow\(context\) &&\s*!namesTool(?:\s*&&[^{]*?)?\s*\) \{\s*const projectResult = await this\.traced\(context, "projects", \(\) => this\.projects\.execute/);
+  assert.match(router, /if \(!namesTool\) \{\s*const browser = await this\.traced\(context, "browser", \(\) => this\.browser\.execute\(context\)\);/);
 });
 
 test("the dev server does not watch LÉLU's workspace copies", () => {

@@ -4,15 +4,82 @@
     {
       "name": "the product conversation is open full-screen",
       "ok": true,
-      "detail": "e5a0e59f-2d5e-42c3-b10f-b8ab296e0e4b"
+      "detail": "1061b7f8-8e79-4359-9571-8b776bf5cff8"
     },
     {
-      "name": "run completed",
-      "ok": false,
-      "detail": "Error: page.evaluate: Target page, context or browser has been closed"
+      "name": "LÉLU created a real artifact with the Studio",
+      "ok": true,
+      "detail": "{\"id\":\"art_a09a7468384e\",\"title\":\"Lumo Solar Camping Lantern – Product Brief\",\"revs\":1,\"conversationId\":\"1061b7f8-8e79-4359-9571-8b776bf5cff8\",\"charts\":[{\"kind\":\"column\",\"labels\":[\"Lite\",\"Standard\",\"Pro\"]}],\"exports\":[{\"rev\":1,\"f\":\"Lumo-Solar-Camping-Lantern-Product-Brief.docx\",\"ok\":true}]}"
+    },
+    {
+      "name": "the artifact belongs to the requesting conversation",
+      "ok": true,
+      "detail": "1061b7f8-8e79-4359-9571-8b776bf5cff8 vs 1061b7f8-8e79-4359-9571-8b776bf5cff8"
+    },
+    {
+      "name": "its DOCX was written and verified from its bytes",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the chart is the requested column chart with three versions",
+      "ok": true,
+      "detail": "[{\"kind\":\"column\",\"labels\":[\"Lite\",\"Standard\",\"Pro\"]}]"
+    },
+    {
+      "name": "the artifact card is shown inside the conversation",
+      "ok": true,
+      "detail": "Lumo Solar Camping Lantern – Product Brief Created · Document · revision 1 Open Weight of Lumo Versions (grams) 0 125 250 375 500 Lite Standard Pro Lumo Solar Camping Lantern · 1 chart Lumo-Solar-Camp"
+    },
+    {
+      "name": "opening the card shows the rendered artifact",
+      "ok": true,
+      "detail": "{\"fullscreen\":true,\"text\":\"r1 · created\\nDOCX\\nPDF\\nMD\\nHTML\\nTXT\\nRTF\\nLumo-Solar-Camping-Lantern-Product-Brief.docx\\n13.9 KB · verified\\nReopen\\nDownload\\nchecks\"}"
+    },
+    {
+      "name": "on the phone the artifact fills the screen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the same artifact gained a new revision (not a new artifact)",
+      "ok": true,
+      "detail": "{\"id\":\"art_a09a7468384e\",\"title\":\"Lumo Solar Camping Lantern – Product Brief\",\"revs\":2,\"conversationId\":\"1061b7f8-8e79-4359-9571-8b776bf5cff8\",\"charts\":[{\"kind\":\"line\",\"labels\":[\"Lite\",\"Standard\",\"Pro\",\"Max\"]}],\"exports\":[{\"rev\":1,\"f\":\"Lumo-Solar-Camping-Lantern-Product-Brief.docx\",\"ok\":true},{\"rev\""
+    },
+    {
+      "name": "the revision has a line chart with four versions",
+      "ok": true,
+      "detail": "[{\"kind\":\"line\",\"labels\":[\"Lite\",\"Standard\",\"Pro\",\"Max\"]}]"
+    },
+    {
+      "name": "the new revision's DOCX was verified",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "after a reload the artifact and its revisions are still there",
+      "ok": true,
+      "detail": "{\"id\":\"art_a09a7468384e\",\"title\":\"Lumo Solar Camping Lantern – Product Brief\",\"revs\":2,\"conversationId\":\"1061b7f8-8e79-4359-9571-8b776bf5cff8\",\"charts\":[{\"kind\":\"line\",\"labels\":[\"Lite\",\"Standard\",\"Pro"
+    },
+    {
+      "name": "after a reload the conversation keeps its messages and artifact cards",
+      "ok": true,
+      "detail": "{\"msgs\":4,\"cards\":2}"
+    },
+    {
+      "name": "the other conversation shows no trace of the product",
+      "ok": true,
+      "detail": "{\"id\":\"745cdfb5-68be-4c62-bcc3-5e12491d4927\",\"lumo\":false,\"cards\":0}"
+    },
+    {
+      "name": "no uncaught page errors",
+      "ok": true,
+      "detail": ""
     }
   ],
   "log": [
+    "model 200",
+    "model 200",
     "model 200",
     "model 200",
     "model 200",

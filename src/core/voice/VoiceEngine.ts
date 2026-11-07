@@ -17,6 +17,7 @@ import { postTranscription, transcriptionAvailable, WHISPER_NAME_HINT } from "./
 
 import { mapMediaError } from "./speechToText";
 import { detectTurnOnAudioThread } from "./vadWorklet";
+import { elevenLabsReady, speakText, stopSpeaking } from "./elevenLabsTts";
 
 /* ---------------------------------------------------------
  * Types
@@ -1366,14 +1367,96 @@ class VoiceEngine {
    * Text-to-Speech
    * --------------------------------------------------------- */
 
+  /* ---- Her own voice: ElevenLabs, brokered by the server ---- */
+
+  /** The server holds an ElevenLabs key and it answered. */
+  private elevenLabs = false;
+  private elevenLabsProbed = false;
+
+  /**
+   * Ask the server once per session whether her voice is available.
+   *
+   * Deliberately not awaited: the first reply may still use the browser
+   * engine while this resolves, but nothing is ever claimed as working
+   * before the server has said so.
+   */
+  private probeElevenLabs(): void {
+    if (this.elevenLabsProbed) return;
+    this.elevenLabsProbed = true;
+    void elevenLabsReady().then((ready) => {
+      this.elevenLabs = ready;
+    });
+  }
+
+  /**
+   * Speak the whole reply through ElevenLabs, one segment at a time.
+   *
+   * Segments are chained rather than queued blind so barge-in — which
+   * sets cancelFlag — stops the NEXT segment too, and a failure demotes
+   * the pipeline to the browser engine instead of going silent.
+   */
+  private speakThroughElevenLabs(text: string): void {
+    const segments = chunkForSpeech(text);
+    if (segments.length === 0) {
+      this.patchDiagnostics({ ttsRequested: false, ttsStage: "idle" });
+      this.settleSpeech();
+      return;
+    }
+    this.patchDiagnostics({ ttsRequested: true });
+    let index = 0;
+    this.chainActive = true;
+
+    const next = (): void => {
+      if (this.cancelFlag || index >= segments.length) {
+        this.chainActive = false;
+        this.patchDiagnostics({ audioPlaying: false, ttsStage: "ended" });
+        this.settleSpeech();
+        if (this._state.active) {
+          this.updateState({ ...this._state, phase: "listening" });
+          if (this.whisperFallbackActive && !this.whisperFallbackTimer) {
+            this.whisperFallbackLoop();
+          }
+        }
+        return;
+      }
+      const segment = segments[index];
+      index += 1;
+      void speakText(segment, {
+        onStart: () =>
+          this.patchDiagnostics({ audioGenerated: true, audioPlaying: true, ttsStage: "playing" }),
+        onEnd: () => next(),
+        onFail: () => {
+          // Her voice failed mid-reply: say the rest with the browser engine
+          // rather than leaving the reply unspoken, and report the failure.
+          this.elevenLabs = false;
+          this.patchDiagnostics({ audioPlaying: false, ttsStage: "failed" });
+          const rest = segments.slice(index - 1).join(" ").trim();
+          index = segments.length;
+          if (typeof speechSynthesis !== "undefined" && rest) {
+            for (const chunk of chunkForSpeech(rest)) {
+              try {
+                speechSynthesis.speak(this.createUtterance(chunk));
+              } catch {
+                // ignore
+              }
+            }
+          }
+          next();
+        },
+      });
+    };
+    next();
+  }
+
   speakResponse(text: string): void {
     // A response reached the speech layer — true regardless of whether
     // TTS then works, which is exactly what makes this diagnosable.
     this.patchDiagnostics({ responseReceived: true });
 
-    if (typeof speechSynthesis === "undefined") {
-      // No TTS engine in this runtime: nothing was ever requested of a
-      // provider that does not exist, and the stage is honestly failed.
+    if (typeof speechSynthesis === "undefined" && !this.elevenLabs) {
+      // Neither a browser engine nor a server voice: nothing was ever
+      // requested of a provider that does not exist, and the stage is
+      // honestly failed.
       this.patchDiagnostics({
         ttsAvailable: false,
         ttsRequested: false,
@@ -1395,6 +1478,14 @@ class VoiceEngine {
     this.lastSpokenText = text.trim();
     this.cancelFlag = false;
     // speaking flag is managed by cancelFlag and phase state
+
+    // One voice everywhere: if her server holds the ElevenLabs key, this is
+    // the speaker, on every machine. The browser engine stays the fallback.
+    this.probeElevenLabs();
+    if (this.elevenLabs) {
+      this.speakThroughElevenLabs(text.trim());
+      return;
+    }
 
     const chunks = chunkForSpeech(text.trim());
     let index = 0;
@@ -1447,6 +1538,9 @@ class VoiceEngine {
     this.cancelFlag = true;
     this.chainActive = false;
     this.streaming = false;
+    // Real audio, not just the browser queue: barge-in must stop a playing
+    // MP3 too, or she keeps talking over the user.
+    stopSpeaking();
     if (typeof speechSynthesis !== "undefined") {
       try {
         speechSynthesis.cancel();
@@ -1491,7 +1585,11 @@ class VoiceEngine {
   }
 
   feedStreamingSpeech(fullText: string): void {
-    if (typeof speechSynthesis === "undefined" || this.cancelFlag || this.streamFinalizing) {
+    if (
+      (typeof speechSynthesis === "undefined" && !this.elevenLabs) ||
+      this.cancelFlag ||
+      this.streamFinalizing
+    ) {
       return;
     }
     const rest = fullText.slice(this.streamCursor);
@@ -1505,6 +1603,13 @@ class VoiceEngine {
     // replies used to leave it empty, so her own voice could come back
     // through the open mic as a user turn.
     this.lastSpokenText = fullText.slice(0, this.streamCursor).trim();
+    this.probeElevenLabs();
+    if (this.elevenLabs) {
+      // speakText() serialises, so streamed sentences stay in order and in
+      // the same voice.
+      void speakText(segment);
+      return;
+    }
     try {
       speechSynthesis.speak(this.createUtterance(segment));
     } catch {
@@ -1515,7 +1620,7 @@ class VoiceEngine {
   finishStreamingSpeech(fullText: string): void {
     this.streamFinalizing = true;
     this.streaming = false;
-    if (typeof speechSynthesis === "undefined" || this.cancelFlag) {
+    if ((typeof speechSynthesis === "undefined" && !this.elevenLabs) || this.cancelFlag) {
       this.settleSpeech();
       return;
     }
@@ -1528,6 +1633,10 @@ class VoiceEngine {
       return;
     }
     for (const chunk of chunkForSpeech(rest)) {
+      if (this.elevenLabs) {
+        void speakText(chunk);
+        continue;
+      }
       try {
         speechSynthesis.speak(this.createUtterance(chunk));
       } catch {

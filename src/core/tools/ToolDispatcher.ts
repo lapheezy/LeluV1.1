@@ -32,6 +32,7 @@ import type RouterContext from "../router/RouterContext";
 import AgentEventBus from "../agent/AgentEvents";
 import AutonomyGate from "../cognition/AutonomyGate";
 import ToolRegistry, { type RiskLevel, type ToolDefinition } from "./ToolRegistry";
+import { studioToolExecutors } from "../studio/StudioToolExecutors";
 import { FORGE_EXECUTORS } from "../forge/ForgeTools";
 import { WORLD_EXECUTORS } from "../world/WorldTools";
 import { AGENTIC_EXECUTORS } from "../agentic/AgenticTools";
@@ -197,6 +198,12 @@ export function describeToolCall(id: string, args: Record<string, unknown>): str
       return "Calculating BOM, mass, cost and interference";
     case "atelier.export":
       return "Writing and verifying design files";
+    case "cosmos.workspace":
+      return `Working in the cosmos: ${pick("action") || "workspace"}${pick("roomId") ? ` (${pick("roomId").slice(0, 40)})` : ""}`;
+    case "cosmos.map":
+      return "Reading the live cosmos map";
+    case "cosmos.inspect":
+      return `Inspecting a placed ${pick("objectId").slice(0, 40)}`;
     default: {
       const detail = pick("query") || pick("path") || pick("action") || pick("url");
       return detail ? `Running ${id} (${detail.slice(0, 60)})` : `Running ${id}`;
@@ -397,7 +404,7 @@ export function registryIdForToolName(name: string): string {
  * THE EXECUTORS
  * ------------------------------------------------------------------ */
 
-const EXECUTORS: ToolExecutor[] = [
+const CORE_EXECUTORS: ToolExecutor[] = [
   {
     id: "research.web",
     // ResearchResolver emits its own execution events.
@@ -2546,7 +2553,17 @@ async function runWorkspace(
  * ------------------------------------------------------------------ */
 
 // The 3D Forge's executors live with the Forge (forge/ForgeTools.ts) and run
-// through this same dispatcher, gate and event stream.
+// through this same dispatcher, gate and event stream. The studio's executors
+// (studio/StudioExecutors) and the interface/atelier sets are appended the same
+// way, so BY_ID stays the ONE dispatch table every runtime shares.
+const EXECUTORS: ToolExecutor[] = [
+  ...CORE_EXECUTORS,
+  ...studioToolExecutors,
+  ...FORGE_EXECUTORS,
+  ...WORLD_EXECUTORS,
+  ...AGENTIC_EXECUTORS,
+];
+
 const BY_ID = new Map<string, ToolExecutor>(
   [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS].map((executor) => [executor.id, executor]),
 );

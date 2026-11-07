@@ -192,6 +192,12 @@ export function validateRequest(kind: ForgeJobKind, body: Record<string, unknown
       problems.push("texture_image_urls cannot be combined with texture_image_url, texture_prompt or should_texture:false.");
     }
   }
+  // Meshy answers 400 "geometry_resolution is not supported for this ai_model;
+  // use meshy-7.1" for every other model. Refusing it here costs nothing;
+  // letting it through spends a round trip and, on a paid kind, a job.
+  if (has("geometry_resolution") && String(body.ai_model ?? "latest") !== "meshy-7.1") {
+    problems.push('geometry_resolution is only supported by ai_model "meshy-7.1".');
+  }
   if ((kind === "remesh" || kind === "retexture" || kind === "rigging") && !has("input_task_id") && !has("model_url")) {
     problems.push(`${kind} needs input_task_id or model_url.`);
   }

@@ -46,6 +46,7 @@ import {
   type VisualReport,
 } from "../selfdev/VisualInspection";
 import LeluIdentity from "../identity/LeluIdentity";
+import { describeStudioWork, pendingStudioApprovals } from "../studio/StudioMemory";
 
 /**
  * Run the existing visual inspection against LÉLU's OWN live document.
@@ -210,6 +211,17 @@ export interface CognitiveContextSnapshot {
   }>;
 
   /**
+   * The studio's grounded engineering state: project objectives, stage
+   * progress, the last real build failure, the last successful build,
+   * previews and anything waiting on a person. Read from the persisted
+   * studio records, not from a summary a model wrote about itself.
+   */
+  studioWork: string;
+
+  /** Live protected actions waiting for a human decision. */
+  studioApprovals: string;
+
+  /**
    * Open self-development proposals (the real ImprovementQueue, not a
    * count nobody explains) — her own pending engineering work, visible
    * to every request the same way an open project or active agent is.
@@ -361,6 +373,11 @@ export function buildCognitiveContext(conversationId?: string): CognitiveContext
     // context never starts, advances or ends a cycle.
     autonomousWork: describeAutonomousWork(),
     workflowCapabilities: describeWorkflowCapabilities(),
+    // Grounded in StudioLibrary / StudioPipeline / StudioApprovals — the
+    // same records the Studio window shows, so a chat answer about a
+    // project cannot disagree with the panel.
+    studioWork: describeStudioWork(),
+    studioApprovals: pendingStudioApprovals(),
     checkpoints,
     recentErrors,
     pendingImprovements,
@@ -569,6 +586,15 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
       const pending = checkpoint.pending.slice(0, 4).join("; ") || "none recorded";
       return `- ${checkpoint.projectName} [${checkpoint.status}]: ${checkpoint.summary || "No summary"}. Next: ${checkpoint.nextAction || "reassess"}. Pending: ${pending}`;
     }).join("\\n")}`);
+  }
+
+  // Studio engineering state. Objective, progress, real build outcomes,
+  // and pending human approvals — the same records the Studio window reads.
+  if (ctx.studioWork) {
+    sections.push(`## STUDIO PROJECTS\n${ctx.studioWork}`);
+  }
+  if (ctx.studioApprovals && !/^No studio approval/.test(ctx.studioApprovals)) {
+    sections.push(`## STUDIO APPROVALS WAITING ON A PERSON\n${ctx.studioApprovals}`);
   }
 
   // Active agents

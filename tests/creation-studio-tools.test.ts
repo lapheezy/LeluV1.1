@@ -137,3 +137,29 @@ test("a planned export step finds the artifact through the create step's output"
   assert.equal(exported.ok, true, exported.content);
   assert.ok(StudioStore.getInstance().get(id)!.exports.some((e) => e.format === "docx" && e.ok), "the DOCX was written for that artifact");
 });
+
+test("a revision may not silently drop content the request did not mention", async () => {
+  const blocks = [
+    { type: "heading", text: "Lumo" },
+    { type: "paragraph", text: "Lumo is a lightweight solar lantern." },
+    { type: "chart", chart: { kind: "column", labels: ["Lite", "Pro"], series: [{ name: "g", values: [180, 320] }] } },
+    { type: "bullets", items: ["Solar", "USB-C"] },
+  ];
+  const created = await call("studio.create", { kind: "document", title: "Keep brief", blocks, open: false });
+  const id = (created.data as { id: string }).id;
+  const lineChart = { type: "chart", chart: { kind: "line", labels: ["Lite", "Pro", "Max"], series: [{ name: "g", values: [180, 320, 400] }] } };
+  // What the model did live: re-sent the whole spec, chart changed, paragraph gone.
+  // A refusal ended the planned refinement (no model to retry), so the content is kept instead.
+  const lossy = await call("studio.revise", { artifact: id, spec: { kind: "document", title: "Keep brief", blocks: [blocks[0], lineChart, blocks[3]] } });
+  assert.equal(lossy.ok, true, lossy.content);
+  assert.match(lossy.content, /Kept content the new spec left out \(not asked to remove\): paragraph: Lumo is a lightweight solar lantern\./);
+  const r2 = StudioStore.getInstance().get(id)!.revisions[1].spec;
+  assert.ok(r2.kind === "document");
+  assert.deepEqual(r2.blocks.map((b) => b.type), ["heading", "paragraph", "chart", "bullets"], "the paragraph is back where it was");
+  assert.equal((r2.blocks[2] as { chart: { kind: string } }).chart.kind, "line", "and the requested change still applied");
+  // An asked-for removal is honoured explicitly.
+  const asked = await call("studio.revise", { artifact: id, spec: { kind: "document", title: "Keep brief", blocks: [blocks[0], lineChart] }, removes: true });
+  assert.equal(asked.ok, true, asked.content);
+  const r3 = StudioStore.getInstance().get(id)!.revisions[2].spec;
+  assert.ok(r3.kind === "document" && r3.blocks.length === 2);
+});

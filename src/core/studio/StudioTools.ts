@@ -26,7 +26,7 @@ import ToolRegistry, { type ToolDefinition } from "../tools/ToolRegistry";
 import type { ToolExecutionResult } from "../tools/ToolDispatcher";
 import type RouterContext from "../router/RouterContext";
 import { summarizeVerification } from "./StudioExport";
-import type { StudioOp } from "./StudioOps";
+import { normalizeSpec, type StudioOp } from "./StudioOps";
 import StudioStore, { type StudioArtifact } from "./StudioStore";
 import { FORMATS_BY_KIND, type ArtifactSpec, type ExportFormat } from "./StudioTypes";
 import { ownerForTask } from "../multichat/TurnOwnership";
@@ -38,6 +38,69 @@ import { ownerForTask } from "../multichat/TurnOwnership";
  * same binding the chat cards use — so the artifact stays with the chat that
  * asked for it.
  */
+/**
+ * What a full-spec revision would drop from the current revision: text
+ * the user wrote or approved, lost because the model re-sent the whole
+ * artifact and left it out. Charts and images are excluded — changing a
+ * chart is the usual reason for a revision. Measured live: "change the
+ * chart to a line chart" came back with a paragraph silently removed.
+ */
+export function droppedContent(current: ArtifactSpec, next: ArtifactSpec): string[] {
+  const clip = (t: string) => (t.length > 60 ? `${t.slice(0, 57)}…` : t);
+  if (current.kind === "document" && next.kind === "document") {
+    const key = (b: (typeof current.blocks)[number]) =>
+      b.type === "heading" || b.type === "paragraph" || b.type === "quote" ? `${b.type}: ${b.text.trim()}`
+        : b.type === "bullets" ? `bullets: ${b.items.join(" | ").trim()}`
+          : b.type === "table" ? `table: ${b.columns.join(" | ")}` : "";
+    const kept = new Set(next.blocks.map(key));
+    return current.blocks.map(key).filter((k) => k && !kept.has(k)).map(clip);
+  }
+  if (current.kind === "deck" && next.kind === "deck") {
+    const kept = new Set(next.slides.map((x) => x.title.trim()));
+    return current.slides.filter((x) => !kept.has(x.title.trim())).map((x) => clip(`slide: ${x.title}`));
+  }
+  if (current.kind === "workbook" && next.kind === "workbook") {
+    const kept = new Set(next.sheets.map((x) => x.name.trim()));
+    return current.sheets.filter((x) => !kept.has(x.name.trim())).map((x) => clip(`sheet: ${x.name}`));
+  }
+  return [];
+}
+
+/**
+ * Put back what a re-sent spec left out, each piece after the block it
+ * followed before (documents) or in its old place (slides, sheets).
+ */
+export function preserveDropped(current: ArtifactSpec, next: ArtifactSpec): { spec: ArtifactSpec; kept: string[] } {
+  const kept = droppedContent(current, next);
+  if (kept.length === 0) return { spec: next, kept };
+  if (current.kind === "document" && next.kind === "document") {
+    const key = (b: (typeof current.blocks)[number]) => JSON.stringify(b.type === "chart" || b.type === "image" ? b.type : b);
+    const out = [...next.blocks];
+    const present = new Set(next.blocks.map(key));
+    current.blocks.forEach((block, index) => {
+      if (block.type === "chart" || block.type === "image" || present.has(key(block))) return;
+      const before = current.blocks.slice(0, index).reverse().find((b) => present.has(key(b)));
+      const at = before ? out.findIndex((b) => key(b) === key(before)) + 1 : 0;
+      out.splice(at, 0, block);
+      present.add(key(block));
+    });
+    return { spec: { ...next, blocks: out }, kept };
+  }
+  if (current.kind === "deck" && next.kind === "deck") {
+    const out = [...next.slides];
+    current.slides.forEach((slide, index) => {
+      if (out.some((x) => x.title.trim() === slide.title.trim())) return;
+      out.splice(Math.min(index, out.length), 0, slide);
+    });
+    return { spec: { ...next, slides: out }, kept };
+  }
+  if (current.kind === "workbook" && next.kind === "workbook") {
+    const missing = current.sheets.filter((x) => !next.sheets.some((y) => y.name.trim() === x.name.trim()));
+    return { spec: { ...next, sheets: [...next.sheets, ...missing] }, kept };
+  }
+  return { spec: next, kept: [] };
+}
+
 function conversationOf(context: RouterContext | undefined): string | undefined {
   return context?.request?.conversationId ?? ownerForTask(String(context?.request?.timestamp ?? "")) ?? undefined;
 }
@@ -234,13 +297,28 @@ export const STUDIO_EXECUTORS: StudioExecutor[] = [
       },
       spec: OBJ(SPEC_PROPERTIES, ["kind", "title"]),
       note: { type: "string", description: "what this revision is, in a few words" },
+      removes: { type: "boolean", description: "true ONLY when the user asked to remove or rewrite existing content; otherwise content a full spec leaves out is kept — prefer ops" },
       export: { type: "array", items: { type: "string", enum: ALL_FORMATS } },
     }),
     run: async (args, context) => {
       const store = StudioStore.getInstance();
       const a = store.resolve(str(args, "artifact"), conversationOf(context));
       if (!a) return { ok: false, content: `No artifact matches${str(args, "artifact") ? ` “${str(args, "artifact")}”` : ""}. studio_list shows what exists.` };
-      const r = store.revise(a.id, { ops: Array.isArray(args.ops) ? (args.ops as StudioOp[]) : undefined, spec: args.spec, note: str(args, "note") || undefined, by: "lelu" });
+      // A whole re-sent spec must not quietly lose what the user did not ask
+      // to change. Refusing it ended a planned refinement outright (a task
+      // step has no model to retry), so the omitted content is put back
+      // where it was and the requested change still applies.
+      let spec: unknown = args.spec;
+      let kept: string[] = [];
+      if (args.spec !== undefined && args.removes !== true) {
+        const next = normalizeSpec(args.spec);
+        if (next.ok) {
+          const preserved = preserveDropped(a.revisions[a.revisions.length - 1].spec, next.spec);
+          spec = preserved.spec;
+          kept = preserved.kept;
+        }
+      }
+      const r = store.revise(a.id, { ops: Array.isArray(args.ops) ? (args.ops as StudioOp[]) : undefined, spec, note: str(args, "note") || undefined, by: "lelu" });
       if (!r.ok) return { ok: false, content: r.reason };
       announce(context, a, "revised");
       const { formats } = formatsFrom(args, a.kind);
@@ -248,7 +326,7 @@ export const STUDIO_EXECUTORS: StudioExecutor[] = [
       openInCosmos([a.id]);
       return {
         ok: exported.ok,
-        content: [`Revised [${a.id}] “${a.title}”: revision ${r.revision.rev} (from ${r.revision.basedOn}; earlier revisions are kept).`, `Changes: ${r.changes.join("; ") || "none"}`, ...exported.lines].join("\n"),
+        content: [`Revised [${a.id}] “${a.title}”: revision ${r.revision.rev} (from ${r.revision.basedOn}; earlier revisions are kept).`, `Changes: ${r.changes.join("; ") || "none"}`, ...(kept.length ? [`Kept content the new spec left out (not asked to remove): ${kept.join("; ")}.`] : []), ...exported.lines].join("\n"),
         data: { id: a.id, rev: r.revision.rev, changes: r.changes },
       };
     },
@@ -367,3 +445,34 @@ export function registerStudioTools(): void {
   const registry = ToolRegistry.getInstance();
   for (const definition of STUDIO_TOOLS) registry.register(definition);
 }
+
+/**
+ * What a planner must know to refine instead of re-create: the artifacts
+ * this conversation already made. Empty when it made none.
+ */
+export function conversationArtifactsContext(conversationId: string | null | undefined): string {
+  if (!conversationId) return "";
+  const mine = StudioStore.getInstance().list().filter((a) => a.conversationId === conversationId).slice(0, 8);
+  if (mine.length === 0) return "";
+  return [
+    "ARTIFACTS ALREADY IN THIS CONVERSATION (a change to one of these is studio.revise with its [id], then studio.export — never a new artifact or a project):",
+    ...mine.map((a) => `- [${a.id}] ${a.kind} “${a.title}”, revision ${a.revisions.length}`),
+  ].join("\n");
+}
+
+/**
+ * Does this request change something the conversation already made?
+ * True when the conversation has a Studio artifact and the request names
+ * it (a distinctive word of its title) or speaks of what artifacts are
+ * made of (chart, revision, export, a file format). Such a turn belongs to
+ * the model, which has studio.revise — never to a text-parsing resolver.
+ */
+export function refersToConversationArtifact(conversationId: string | null | undefined, prompt: string): boolean {
+  if (!conversationId) return false;
+  const mine = StudioStore.getInstance().list().filter((a) => a.conversationId === conversationId);
+  if (mine.length === 0) return false;
+  const text = prompt.toLowerCase();
+  if (/\b(?:chart|graph|revision|revise|export|docx|pptx|xlsx|pdf|csv|slides?|deck|spreadsheet|sheet|document|brief)\b/.test(text)) return true;
+  return mine.some((a) => a.title.toLowerCase().split(/[^\p{L}\p{N}]+/u).some((word) => word.length >= 4 && new RegExp(`\\b${word}\\b`, "u").test(text)));
+}
+
