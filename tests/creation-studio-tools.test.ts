@@ -143,24 +143,23 @@ test("a revision may not silently drop content the request did not mention", asy
     { type: "heading", text: "Lumo" },
     { type: "paragraph", text: "Lumo is a lightweight solar lantern." },
     { type: "chart", chart: { kind: "column", labels: ["Lite", "Pro"], series: [{ name: "g", values: [180, 320] }] } },
+    { type: "bullets", items: ["Solar", "USB-C"] },
   ];
   const created = await call("studio.create", { kind: "document", title: "Keep brief", blocks, open: false });
   const id = (created.data as { id: string }).id;
-  // What the model did live: re-sent the whole spec with the chart changed and the paragraph gone.
   const lineChart = { type: "chart", chart: { kind: "line", labels: ["Lite", "Pro", "Max"], series: [{ name: "g", values: [180, 320, 400] }] } };
-  const lossy = await call("studio.revise", { artifact: id, spec: { kind: "document", title: "Keep brief", blocks: [blocks[0], lineChart] } });
-  assert.equal(lossy.ok, false);
-  assert.match(lossy.content, /would remove content the request did not mention — paragraph: Lumo is a lightweight solar lantern\./);
-  assert.equal(StudioStore.getInstance().get(id)!.revisions.length, 1, "nothing was revised");
-  // The targeted way keeps everything else.
-  const targeted = await call("studio.revise", { artifact: id, ops: [{ op: "updateChart", index: 1, chart: { kind: "line", labels: ["Lite", "Pro", "Max"], series: [{ name: "g", values: [180, 320, 400] }] } }] });
-  assert.equal(targeted.ok, true, targeted.content);
+  // What the model did live: re-sent the whole spec, chart changed, paragraph gone.
+  // A refusal ended the planned refinement (no model to retry), so the content is kept instead.
+  const lossy = await call("studio.revise", { artifact: id, spec: { kind: "document", title: "Keep brief", blocks: [blocks[0], lineChart, blocks[3]] } });
+  assert.equal(lossy.ok, true, lossy.content);
+  assert.match(lossy.content, /Kept content the new spec left out \(not asked to remove\): paragraph: Lumo is a lightweight solar lantern\./);
   const r2 = StudioStore.getInstance().get(id)!.revisions[1].spec;
-  assert.ok(r2.kind === "document" && r2.blocks.some((b) => b.type === "paragraph" && b.text.startsWith("Lumo is")), "the paragraph is kept");
-  // A full spec that keeps everything is fine; an asked-for removal is allowed explicitly.
-  const full = await call("studio.revise", { artifact: id, spec: { kind: "document", title: "Keep brief", blocks: [blocks[0], blocks[1], lineChart] } });
-  assert.equal(full.ok, true, full.content);
+  assert.ok(r2.kind === "document");
+  assert.deepEqual(r2.blocks.map((b) => b.type), ["heading", "paragraph", "chart", "bullets"], "the paragraph is back where it was");
+  assert.equal((r2.blocks[2] as { chart: { kind: string } }).chart.kind, "line", "and the requested change still applied");
+  // An asked-for removal is honoured explicitly.
   const asked = await call("studio.revise", { artifact: id, spec: { kind: "document", title: "Keep brief", blocks: [blocks[0], lineChart] }, removes: true });
   assert.equal(asked.ok, true, asked.content);
-  assert.equal(StudioStore.getInstance().get(id)!.revisions.length, 4);
+  const r3 = StudioStore.getInstance().get(id)!.revisions[2].spec;
+  assert.ok(r3.kind === "document" && r3.blocks.length === 2);
 });
