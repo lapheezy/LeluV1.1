@@ -104,10 +104,10 @@ No test was weakened, deleted or skipped.
 | Gate | Result |
 |---|---|
 | `npx tsc -b --force` | **PASS** — 0 errors |
-| `bun run test` | **PASS** — 1572 tests, **1570 pass, 0 fail**, 2 skipped (final run on the pushed tree; the run before the hook fix was 1566 pass / 0 fail / 6 skipped) |
+| `bun run test` | **PASS** — 1610 tests, **1608 pass, 0 fail**, 2 skipped (on the final merged tree; 1572/1570/0/2 before the remote merge, 1566 pass before the hook fix) |
 | Targeted suites (autonomy, cancellation, engineering chain, unified model) | **PASS** — 47/47 |
 | `bun run build` | **PASS** — exit 0 (chunk-size warning only) |
-| Lint (`bun run lint` → oxlint) | **PASS** — 0 errors after two fixes; 110 pre-existing warnings remain |
+| Lint (`bun run lint` → oxlint) | **PASS** — 0 errors after two fixes; 112 pre-existing warnings remain |
 | UI / screenshots | **UNVERIFIED** — see "What is not verified" |
 
 After the merge, the main worktree needed `bun install` before it could typecheck:
@@ -118,6 +118,23 @@ gsap@3.15.0 from the committed lockfile; no version was upgraded.
 Evidence: `evidence/wave-2-unification/` — `full-suite.log` (first run),
 `full-suite-final.log` (final tree), `build.log`, `install-main.log`,
 `build-main.log`, `lint.log` — plus the wave-1 logs.
+
+## Integration result
+
+- **Final integration commit:** `96ac22c` on `claude/master-integration`,
+  merge parents `0d11933` (this work) and `3eff810` (the fifteen commits that
+  landed on the branch while it ran).
+- **Push:** `3eff810..96ac22c` to `origin/claude/master-integration` —
+  fast-forward, no force, no reset.
+- The branch moved mid-work. Those fifteen commits were **merged, not
+  overwritten**: studio revision semantics, artifact-aware routing, Universe
+  chat markdown, ecosystem phase state. Three conflicts were resolved by
+  keeping both intents — the phone chat e2e steps *and* the mobile-model-cache
+  CI job, the companion's phone-sheet unmount guard *and* its presence plan,
+  and a router assertion that tolerates the new artifact-refinement guard
+  instead of deleting it.
+- Final gate on the pushed tree: typecheck 0, lint 0 errors (112 warnings),
+  1610 tests / 1608 pass / 0 fail / 2 skip, build exit 0.
 
 ## What is not verified
 
