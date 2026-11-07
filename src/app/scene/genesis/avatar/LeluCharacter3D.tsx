@@ -60,7 +60,7 @@ function Framer({ framing, info }: { framing: LeluFraming; info: LeluBodyInfo | 
  * An overlay over chat does not need 60: the rest of the main thread
  * belongs to the conversation (typing, voice turn detection).
  */
-function FrameCap({ fps }: { fps: number }) {
+function FrameCap({ fps, paused = false }: { fps: number; paused?: boolean }) {
   const { invalidate } = useThree();
   // The same budget the Cosmos scene follows: when the scene is paused
   // (a full-screen surface covers it) the avatar stops drawing too, and
@@ -69,13 +69,16 @@ function FrameCap({ fps }: { fps: number }) {
   // on a software renderer enough to freeze the page during a chat turn.
   const mode = useSceneRenderMode();
   useEffect(() => {
-    if (mode === "paused") return;
+    // Paused by the scene budget, or by her presence (hidden in a world
+    // view where she stands in the scene): she keeps her canvas and her
+    // state, and simply draws nothing until she is shown again.
+    if (mode === "paused" || paused) return;
     const interval = mode === "reduced" ? Math.max(1000 / fps, REDUCED_FRAME_MS) : 1000 / fps;
     const timer = setInterval(() => {
       if (!document.hidden) invalidate();
     }, interval);
     return () => clearInterval(timer);
-  }, [fps, invalidate, mode]);
+  }, [fps, invalidate, mode, paused]);
   return null;
 }
 
@@ -86,10 +89,13 @@ export default function LeluCharacter3D({
   style,
   testId,
   fps = 30,
+  paused = false,
 }: {
   model: LeluModel;
   /** Frame cap: 30 is plenty for an overlay. */
   fps?: number;
+  /** Draw nothing, keep everything (canvas, model, state). */
+  paused?: boolean;
   framing: LeluFraming;
   activity: LeluActivity;
   style?: CSSProperties;
@@ -127,7 +133,7 @@ export default function LeluCharacter3D({
       style={{ display: "block", width: "100%", height: "100%", pointerEvents: "none", ...style }}
     >
       <Canvas
-        frameloop="demand"
+        frameloop={paused ? "never" : "demand"}
         gl={{ alpha: true, antialias: true, powerPreference: "low-power", preserveDrawingBuffer: false }}
         dpr={[1, 1.75]}
         camera={{ fov: FOV, position: [0, 1, 6] }}
@@ -137,7 +143,7 @@ export default function LeluCharacter3D({
         <hemisphereLight args={["#fff1f8", "#2a1840", 0.9]} />
         <directionalLight position={[1.5, 3, 4]} intensity={1.6} color="#fff4ea" />
         <directionalLight position={[-2.5, 1.5, -2]} intensity={0.7} color="#f0abfc" />
-        <FrameCap fps={fps} />
+        <FrameCap fps={fps} paused={paused} />
         <Framer framing={framing} info={info} />
         <LeluBody glb={model.glb} clips={model.clips} activity={activity} height={HEIGHT} onReady={setInfo} onFrame={onFrame} life={framing === "full"} />
       </Canvas>

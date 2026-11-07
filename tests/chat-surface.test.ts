@@ -352,20 +352,19 @@ test("on a phone a conversation window is the full visual viewport; one composer
   assert.match(universe, /\{sheetOpen \? null : \(/, "the Universe composer leaves while a conversation sheet owns the screen");
 });
 
-test("Phase 2: on a phone, a sheet that owns the screen unmounts LÉLU's hidden companion window (no WebGL under the sheet)", () => {
-  // Measured: the docked companion canvas kept rendering under the
-  // full-screen conversation and stalled the GPU channel for ~35 s.
-  const phoneSheet = resolveSurface({ compact: true, minimized: false, activePanel: "none", openModuleCount: 1, visibleModuleCount: 1 });
-  assert.equal(phoneSheet.cosmosRendered, false);
-  const desktop = resolveSurface({ compact: false, minimized: false, activePanel: "none", openModuleCount: 1, visibleModuleCount: 1 });
-  assert.equal(desktop.cosmosRendered, true, "desktop keeps her window");
+test("Step 3: under a phone sheet LÉLU's single presence stays mounted, drawing slowly at an edge (no unmount, no hidden WebGL)", () => {
+  // Phase 2 unmounted her window under phone sheets (a hidden canvas stalled
+  // the GPU). Step 3 keeps ONE presence: under a sheet she rests visible at
+  // the least obstructive edge at a reduced frame rate, and in a world view
+  // she is hidden AND paused — never a hidden canvas that keeps drawing.
   const companion = readFileSync("src/app/scene/genesis/avatar/LeluCompanion.tsx", "utf8");
-  assert.match(companion, /if \(presence === "window" && !surface\.cosmosRendered\) return null;/);
-  assert.ok(
-    companion.indexOf('if (presence === "window" && !surface.cosmosRendered) return null;') < companion.indexOf('if (presence === "face" && host)'),
-    "decided before the face/hero/window branches; the face behind the classic chat panel is untouched",
-  );
+  assert.doesNotMatch(companion, /return null;\s*\/\/ Where she belongs/, "no unmount under a sheet");
+  assert.match(companion, /paused=\{inWorld\}/, "hidden ⇒ paused");
+  assert.match(companion, /fps=\{compact && !surface\.cosmosRendered \? 12 : 30\}/, "slower under a phone sheet");
+  const character3d = readFileSync("src/app/scene/genesis/avatar/LeluCharacter3D.tsx", "utf8");
+  assert.match(character3d, /if \(mode === "paused" \|\| paused\) return;/);
 });
+
 
 test("Universe replies render markdown with the shared renderer and never overflow the conversation", () => {
   const window = readFileSync("src/app/scene/genesis/chat/universe/UniverseChatWindow.tsx", "utf8");

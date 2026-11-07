@@ -69,3 +69,13 @@ Open items for Freebuff's lanes:
 - The navigator panel overlaps workspace windows.
 - The library tile clips its cards.
 - Touch node-drag in React Flow under emulation needs a physical-device check.
+
+## Claim: Step 3, unified avatar presence (2026-11-07, Claude, from `db988c8`)
+
+The owner directed this step to Claude. The claim covers:
+
+- `src/app/scene/genesis/avatar/LeluCompanion.tsx`: replaced by one persistent presence.
+- `src/app/scene/genesis/avatar/LeluCharacter3D.tsx`: a pause control on the existing frame cap.
+- Avatar tests.
+
+**Not claimed:** `LeluBody`, `spatialPresence` (used as is), `LeluV2Presence`, the asset pipeline, Home, layout, the navigator.
