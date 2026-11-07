@@ -128,6 +128,12 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     globalName: "__LELU_OPENROUTER_MODEL__",
     aliases: ["OPENROUTER_MODEL"],
   },
+  // The model OpenRouter uses when a turn carries an image. Not a credential.
+  {
+    viteName: "VITE_OPENROUTER_VISION_MODEL",
+    globalName: "__LELU_OPENROUTER_VISION_MODEL__",
+    aliases: ["OPENROUTER_VISION_MODEL"],
+  },
   {
     viteName: "VITE_CEREBRAS_MODEL",
     globalName: "__LELU_CEREBRAS_MODEL__",

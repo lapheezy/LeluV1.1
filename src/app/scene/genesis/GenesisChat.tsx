@@ -49,6 +49,8 @@ import {
   Menu,
   MessageCircle,
   Mic,
+  ScreenShare as ScreenShareIcon,
+  ScreenShareOff,
   Minimize2,
   PanelBottom,
   Plus,
@@ -57,6 +59,7 @@ import {
   Video,
   X,
 } from "lucide-react";
+import ScreenShare from "../../../core/perception/ScreenShare";
 
 import AIService from "../../../core/AIService";
 import Orchestrator from "../../../core/orchestrator/Orchestrator";
@@ -675,6 +678,14 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     try { voiceEngineRef.current.cancelSpeech(); } catch { /* best-effort */ }
   }, []);
 
+  // Screen sharing state (the browser's own consent picker starts it).
+  const [screenSharing, setScreenSharing] = useState(() => ScreenShare.getInstance().isActive());
+  const [screenShareError, setScreenShareError] = useState<string | null>(null);
+  useEffect(() => ScreenShare.getInstance().subscribe((stats) => {
+    setScreenSharing(stats.active);
+    if (stats.active) setScreenShareError(null);
+  }), []);
+
   const send = useCallback(async (): Promise<void> => {
     // "Try again" resends the failed words without touching the draft.
     const retrying = retryRef.current;
@@ -880,8 +891,12 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
 
       let assistantText: string;
       try {
-        if (media.length > 0) {
-          const response = await ai.chat(prompt, media, context, { conversationId: turnConversationId });
+        // A shared screen rides along with the user's turn (and only then):
+        // the latest kept frame, plus the one before it when they ask what
+        // changed. Same multimodal path as an attached image.
+        const turnMedia = [...media, ...ScreenShare.getInstance().attachmentsFor(prompt)];
+        if (turnMedia.length > 0) {
+          const response = await ai.chat(prompt, turnMedia, context, { conversationId: turnConversationId });
           assistantText = typeof response.text === "string" ? response.text : "";
         } else {
           const result = await Orchestrator.getInstance().process(prompt, undefined, context, turnConversationId);
@@ -2039,6 +2054,21 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
                 <Square size={15} fill="currentColor" aria-hidden />
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => {
+                const share = ScreenShare.getInstance();
+                if (share.isActive()) share.stop();
+                else void share.start().catch((error: unknown) => setScreenShareError(error instanceof Error ? error.message : String(error)));
+              }}
+              title={screenSharing ? "Stop sharing your screen" : screenShareError ? `Screen sharing failed: ${screenShareError}` : "Share your screen with Lélu"}
+              aria-label={screenSharing ? "Stop sharing your screen" : "Share your screen with Lélu"}
+              aria-pressed={screenSharing}
+              data-active={screenSharing ? "true" : "false"}
+              className="lelu-cc-icon"
+            >
+              {screenSharing ? <ScreenShareOff size={19} aria-hidden /> : <ScreenShareIcon size={19} aria-hidden />}
+            </button>
             <button
               type="button"
               onClick={() => void voiceView.engine.toggle()}

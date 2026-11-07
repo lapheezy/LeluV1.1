@@ -1,59 +1,70 @@
 {
- "ranAt": "2026-11-07T05:22:33.781Z",
+ "ranAt": "2026-11-07T05:33:35.738Z",
  "log": [
   {
-   "t": 37695,
+   "t": 19015,
    "step": "share-started",
-   "error": "NotReadableError: Could not start video source"
+   "active": true,
+   "startedAt": 1794029585448,
+   "sampled": 1,
+   "kept": 1,
+   "unchangedSkipped": 0,
+   "lastChangeAt": 1794029585462,
+   "surface": "browser"
   },
   {
-   "t": 84029,
+   "t": 29098,
    "step": "ask-1",
    "prompt": "Look at my shared screen. In one or two sentences, what am I looking at?",
-   "frames": [],
+   "frames": [
+    "shared-screen.jpg"
+   ],
    "provider": "offline",
    "model": "offline",
-   "ms": 25518,
+   "ms": 4411,
    "answer": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
    "stats": {
-    "active": false,
-    "startedAt": null,
-    "sampled": 0,
-    "kept": 0,
-    "unchangedSkipped": 0,
-    "lastChangeAt": null,
-    "surface": null
+    "active": true,
+    "startedAt": 1794029585448,
+    "sampled": 8,
+    "kept": 1,
+    "unchangedSkipped": 7,
+    "lastChangeAt": 1794029585462,
+    "surface": "browser"
    }
   },
   {
-   "t": 151928,
+   "t": 36961,
    "step": "ask-2",
    "prompt": "What changed on my screen just now, and what does the message mean for me?",
-   "frames": [],
+   "frames": [
+    "shared-screen-before.jpg",
+    "shared-screen-now.jpg"
+   ],
    "provider": "offline",
    "model": "offline",
-   "ms": 41439,
+   "ms": 2791,
    "answer": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
    "stats": {
-    "active": false,
-    "startedAt": null,
-    "sampled": 0,
-    "kept": 0,
-    "unchangedSkipped": 0,
-    "lastChangeAt": null,
-    "surface": null
+    "active": true,
+    "startedAt": 1794029585448,
+    "sampled": 13,
+    "kept": 2,
+    "unchangedSkipped": 11,
+    "lastChangeAt": 1794029597871,
+    "surface": "browser"
    }
   },
   {
-   "t": 178880,
+   "t": 46720,
    "step": "stop",
-   "liveBeforeStop": false,
+   "liveBeforeStop": true,
    "liveAfterStop": false,
    "active": false,
    "framesAfterStop": 0
   },
   {
-   "t": 182855,
+   "t": 48243,
    "step": "ledger",
    "ai": [
     {
@@ -89,47 +100,16 @@
      "usd": null
     },
     {
-     "source": "Anthropic",
-     "ok": false,
-     "in": null,
-     "out": null,
+     "source": "Groq",
+     "model": "openai/gpt-oss-120b",
+     "ok": true,
+     "in": 1203,
+     "out": 522,
      "cost": "unknown",
      "usd": null
     },
     {
-     "source": "Fireworks",
-     "ok": false,
-     "in": null,
-     "out": null,
-     "cost": "unknown",
-     "usd": null
-    },
-    {
-     "source": "Anthropic",
-     "ok": false,
-     "in": null,
-     "out": null,
-     "cost": "unknown",
-     "usd": null
-    },
-    {
-     "source": "Anthropic",
-     "ok": false,
-     "in": null,
-     "out": null,
-     "cost": "unknown",
-     "usd": null
-    },
-    {
-     "source": "Fireworks",
-     "ok": false,
-     "in": null,
-     "out": null,
-     "cost": "unknown",
-     "usd": null
-    },
-    {
-     "source": "Fireworks",
+     "source": "Groq",
      "ok": false,
      "in": null,
      "out": null,

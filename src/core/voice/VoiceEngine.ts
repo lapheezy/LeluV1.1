@@ -1431,7 +1431,10 @@ class VoiceEngine {
       // The conversation the user was in when they spoke owns the reply,
       // even if they switch before it arrives.
       const conversationId = MultiChatStore.getInstance().getActiveId();
-      const response = await ai.chat(text, undefined, undefined, conversationId ? { conversationId } : undefined);
+      // A shared screen rides along with the spoken turn, as with typed ones.
+      const { default: ScreenShare } = await import("../perception/ScreenShare");
+      const seen = ScreenShare.getInstance().attachmentsFor(text);
+      const response = await ai.chat(text, seen.length > 0 ? seen : undefined, undefined, conversationId ? { conversationId } : undefined);
 
       if (this._turn?.id === turnId) {
         this._turn = { ...this._turn, response: response.text };

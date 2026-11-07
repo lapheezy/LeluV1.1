@@ -35,7 +35,12 @@ const errorView = `<div style="position:fixed;inset:0;background:rgba(0,0,0,.45)
   const browser = await chromium.launch({
     executablePath: "/opt/pw-browsers/chromium",
     headless: process.env.LELU_HEADED !== "1",
-    args: ["--no-sandbox", "--use-fake-ui-for-media-stream", `--auto-select-tab-capture-source-by-title=${TITLE}`, "--enable-usermedia-screen-capturing"],
+    // LELU_CAPTURE=desktop captures the whole (virtual) display instead of
+    // selecting the tab by title; tab selection could not start a source here.
+    // NOT --use-fake-ui-for-media-stream: with it every capture fails with
+    // "NotReadableError: Could not start video source" (measured).
+    args: ["--no-sandbox", "--enable-usermedia-screen-capturing",
+      process.env.LELU_CAPTURE === "desktop" ? "--auto-select-desktop-capture-source=Entire screen" : `--auto-select-tab-capture-source-by-title=${TITLE}`],
   });
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const target = await ctx.newPage();
@@ -65,6 +70,8 @@ const errorView = `<div style="position:fixed;inset:0;background:rgba(0,0,0,.45)
     document.body.appendChild(b);
   });
   await page.click("#__share");
+  // On a desktop capture the user's screen is whatever window is in front.
+  if (process.env.LELU_CAPTURE === "desktop") await target.bringToFront();
   await page.waitForFunction(() => window.__shareResult, null, { timeout: 15000 });
   note("share-started", await page.evaluate(() => window.__shareResult));
   await page.waitForTimeout(2500);

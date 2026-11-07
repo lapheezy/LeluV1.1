@@ -29,6 +29,9 @@ import type {
 } from "./AIProvider";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+
+/** Free, image-capable on OpenRouter at the time of writing (see selectModel). */
+export const DEFAULT_VISION_MODEL = "google/gemma-4-31b-it:free";
 import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
 
@@ -68,7 +71,11 @@ export default class OpenRouterProvider implements AIProvider {
     if (lower.includes("vision") || lower.includes("llava")) {
       return requested;
     }
-    return "meta-llama/llama-3.2-11b-vision-instruct:free";
+    // Configurable, because free vision models come and go: the previous
+    // hard-coded "meta-llama/llama-3.2-11b-vision-instruct:free" was retired
+    // (OpenRouter 404, observed 2026-11-07) and every image turn routed here
+    // failed. The default is one OpenRouter listed as free + image-capable.
+    return resolveFirst("OPENROUTER_VISION_MODEL")?.trim() || DEFAULT_VISION_MODEL;
   }
 
   /**
