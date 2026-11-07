@@ -1,0 +1,22 @@
+{
+ "viewport": "1440x900",
+ "at": "2026-11-07T21:20:48.862Z",
+ "shots": [],
+ "steps": [
+  "FAIL gate TimeoutError: locator.click: Timeout 12000ms exceeded.",
+  "OK open-studio",
+  "FAIL create-document TimeoutError: locator.click: Timeout 12000ms exceeded."
+ ],
+ "checks": {
+  "studioPanel": true,
+  "studioTitle": "Creation Studio · 0",
+  "documentButtons": 1,
+  "studioTitleAfter": "Creation Studio · 0",
+  "libraryCards": 0,
+  "artifactWindows": 0,
+  "pinControls": 1,
+  "manualBefore": null,
+  "pinLabel": "Pin Creation Studio"
+ },
+ "errors": []
+}

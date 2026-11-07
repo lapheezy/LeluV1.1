@@ -1,0 +1,13 @@
+{
+ "viewport": "1920x1080",
+ "at": "2026-11-07T21:41:49.635Z",
+ "shots": [],
+ "steps": [
+  "studio=true"
+ ],
+ "checks": {
+  "studioVisible": true,
+  "titleBefore": "Creation Studio · 0"
+ },
+ "errors": []
+}

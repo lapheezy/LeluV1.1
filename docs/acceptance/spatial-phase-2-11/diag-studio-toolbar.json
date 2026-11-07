@@ -1,0 +1,13 @@
+{
+ "viewport": "1920x1080",
+ "at": "2026-11-07T21:29:03.181Z",
+ "steps": [
+  "studio open",
+  "probe done"
+ ],
+ "probe": {
+  "found": false,
+  "titleBefore": null
+ },
+ "errors": []
+}

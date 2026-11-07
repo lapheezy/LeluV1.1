@@ -1,0 +1,70 @@
+{
+ "viewport": "1920x1080",
+ "at": "2026-11-07T21:42:49.650Z",
+ "steps": [
+  "OK travel-1 scene=core transition=studio-entrance progress=30 heap=270 canvases=3",
+  "OK travel-2 scene=core transition=return-to-core progress=0 heap=344 canvases=3",
+  "OK travel-3 scene=core transition=studio-entrance progress=93 heap=387 canvases=3",
+  "OK travel-4 scene=core transition=return-to-core progress=0 heap=417 canvases=3",
+  "OK travel-5 scene=core transition=studio-entrance progress=0 heap=413 canvases=3"
+ ],
+ "samples": [
+  {
+   "label": "start",
+   "scene": "core",
+   "transition": "",
+   "progress": "100",
+   "heapMB": 108,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-1-studio",
+   "scene": "core",
+   "transition": "studio-entrance",
+   "progress": "30",
+   "heapMB": 270,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-2-core",
+   "scene": "core",
+   "transition": "return-to-core",
+   "progress": "0",
+   "heapMB": 344,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-3-studio",
+   "scene": "core",
+   "transition": "studio-entrance",
+   "progress": "93",
+   "heapMB": 387,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-4-core",
+   "scene": "core",
+   "transition": "return-to-core",
+   "progress": "0",
+   "heapMB": 417,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-5-studio",
+   "scene": "core",
+   "transition": "studio-entrance",
+   "progress": "0",
+   "heapMB": 413,
+   "canvases": 3,
+   "navs": 1
+  }
+ ],
+ "checks": {},
+ "errors": [],
+ "note": "sampled 4 s after each issued transition; transitions are much slower than that under SwiftShader, so samples are mid-flight"
+}

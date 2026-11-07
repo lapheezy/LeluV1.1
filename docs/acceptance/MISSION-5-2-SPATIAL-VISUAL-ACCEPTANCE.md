@@ -262,14 +262,16 @@ modified here.
 | Portal panel (create/layout controls) rendered | **PASS** at 375×812, visually inspected |
 | Built-in portals in ring | **PASS** (rendered, switchable) |
 | User-created portals in ring | **PASS** — two created through the panel (`Site Survey`, `Field Notes`), count `1 → 2`, ids recorded |
-| Agent-created portals in ring | **PARTIAL** — one portal (`Agent Relay → Projects`) created and removed live; the mission asked for two |
+| Agent-created portals in ring | **PASS** — two created live over the agent channel (`Agent Relay Two → Genesis Studios`, `Agent Beacon → Projects`), both `createdBy: agent`, both rows present in the panel |
 | Portal creation panel operation | **PASS** — destination, name, Create, status line and count all confirmed |
 | Portal removal updating ring | **PASS** — `Portal removed.`, count `1 → 0`, remove button gone |
 | Portal travel + destination environment | **PASS** — `core → studio`, transition cleared, same 3 canvases |
 | Auto-arrange / regenerate operated | **PASS** — both pressed, each returned its own status line |
-| Pinned / manually positioned module | **UNVERIFIED** |
+| Pinned module | **PASS** — `Pin Creation Studio` became `Unpin Creation Studio`, panel counter read `0 placed · 1 pinned` |
+| Manually positioned module | **UNVERIFIED** — the header drag hangs the busy main thread under SwiftShader; no counter change was recorded |
 | Chat open during spatial navigation | **PASS** at 1440×900 — summoned from the rail with a real click |
-| Creation Studio in spatial environment | **PARTIAL** — frame captured, panel not confirmed |
+| Creation Studio in spatial environment | **PASS** for the panel — real window, `Creation Studio · 0`, full toolbar and empty state at 1920×1080 |
+| Creation Studio artifact action | **BLOCKED** — dispatching the Document button never resolves and freezes the renderer, the same software-compositing failure §18 documents |
 | Conversation preserved across travel | **PASS** — message survived `core → studio` with chat open |
 | Mobile touch interaction (real input) | **PASS** for the exercised steps at 375×812 — creation, agent channel, travel, removal, layout (DPR 1) |
 | Desktop interaction | **PASS** for the rail and chat; the Creation Studio panel is still unconfirmed |
@@ -280,10 +282,55 @@ modified here.
 
 Mission 5.2 is **not** closed. The visual surface and the portal lifecycle — creation,
 agent creation, travel, removal, both layout actions, chat during travel and
-conversation continuity — are now verified with real input and recorded values. Still
-open: the second agent portal, the Creation Studio panel, pinned/manual module
-placement, memory growth across 10 transitions, and any valid performance benchmark
-(software rasterization on a contended VM cannot supply one).
+conversation continuity — are now verified with real input and recorded values. Since
+this paragraph was written, the second agent portal, the Creation Studio panel and a
+pinned module were verified in a second pass (§16a); manual placement, artifact
+creation, memory growth and any performance benchmark remain open.
+
+## 16a. Second interactive pass
+
+Run after the first matrix, at 1920×1080 (DPR 1) with `prefers-reduced-motion: reduce`,
+because at 1440×900 and DPR 2 the renderer trapped when a panel composited over the
+live WebGL canvas — the failure §18 describes.
+
+- **Two agent portals**, both created over the documented event channel
+  (`lelu-portal-create` → `lelu-portal-created`): `portal_studio_mw6w2kk3_0j7m`
+  ("Agent Relay Two", destination `studio`) and `portal_projects_mw6w2t3e_78wa`
+  ("Agent Beacon", destination `projects`). Both carry `createdBy: "agent"`, both
+  appear as removable rows in the panel. Evidence:
+  `screenshots/1440x900-i30-two-agent-portals.png`, `interactive-studio-pin-1440x900.json`.
+- **Creation Studio panel opens** from the spatial rail and is a real module window:
+  eyebrow `CREATION STUDIO`, title `Creation Studio · 0`, toolbar Document /
+  Presentation / Spreadsheet / Graph / Drawing / Agent hierarchy / Import file, and
+  the empty state "Nothing yet…". Evidence:
+  `screenshots/1920x1080-i31-creation-studio.png`, `interactive-studio-pin-1920x1080.json`.
+- **Pinned module**: the Studio window's own control flipped from
+  `Pin Creation Studio` to `Unpin Creation Studio` (`aria-pressed` set), and the
+  portal panel's counter changed to `0 placed · 1 pinned`. No pin screenshot was
+  captured in that pass; the evidence is the recorded values in
+  `interactive-studio-pin-1920x1080.json` (`pinLabelBefore`, `pinLabelAfter`,
+  `countersPinned`) plus the Studio frame in
+  `screenshots/1920x1080-i31-creation-studio.png`.
+- **Manual placement did not complete.** Dragging the window header never returned —
+  the page's main thread stalls for tens of seconds per frame under SwiftShader — so
+  the counter stayed at `0 placed · 1 pinned`.
+- **An artifact action blocks the renderer.** Dispatching a click on Document (the
+  first toolbar button) never resolves; a forced DOM `.click()` in an earlier run
+  killed the tab outright. Both are consistent with the SIGTRAP Part B reproduced:
+  the artifact window composites over the live canvas and Chromium's software
+  compositor traps. This is recorded as blocked, not as a passing check.
+- **Honesty about mechanism:** the two rail controls (Creation Studio, portals) and
+  the pin button did not accept synthetic *pointer* clicks — Playwright's
+  actionability check timed out while the same elements responded to dispatched
+  click events and, for the pin, visibly changed the UI. Every result above came
+  from the application's own click handlers; none came from writing to a store.
+
+Memory and performance remain unmeasured for the same reason: a transition that
+should take a second takes tens of seconds here, so ten completed transitions cannot
+be sampled inside this environment's command limits. Five further transitions were
+issued and sampled mid-flight (heap 270 → 344 → 387 → 417 → 413 MB, canvases steady
+at 3, one navigator). That is a record of the environment, not a leak verdict:
+`interactive-memory-transitions.json`.
 
 ---
 
