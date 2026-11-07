@@ -17,6 +17,7 @@ import { postTranscription, transcriptionAvailable, WHISPER_NAME_HINT } from "./
 
 import { mapMediaError } from "./speechToText";
 import { detectTurnOnAudioThread } from "./vadWorklet";
+import { resolveFirst } from "../resolveEnv";
 import { elevenLabsReady, speakText, stopSpeaking } from "./elevenLabsTts";
 import { elevenLabsSttReady, transcribeWithElevenLabs } from "./elevenLabsStt";
 import UsageBudgetGate, { BudgetExhaustedError, budgetNotice } from "../observability/UsageBudgetGate";
@@ -631,7 +632,10 @@ class VoiceEngine {
       return;
     }
 
-    // Start speech recognition — Web Speech API or Groq Whisper fallback
+    // Which ears: ElevenLabs when the server has it (unless the browser
+    // recognizer is explicitly preferred), else Web Speech, else Whisper.
+    const sttPreference = (resolveFirst("LELU_VOICE_STT") ?? "").trim().toLowerCase();
+    this.preferElevenLabsStt = sttPreference !== "browser" && (await elevenLabsSttReady().catch(() => false));
     this.startRecognition();
   }
 
@@ -723,7 +727,22 @@ class VoiceEngine {
     return Boolean(w.SpeechRecognition || w.webkitSpeechRecognition);
   }
 
+  /**
+   * Set at session start: the server can transcribe with ElevenLabs (her
+   * selected ears). Then LÉLU records and transcribes with it from the first
+   * sentence, the same on every browser — instead of trying the browser's
+   * recognizer first, which on a browser where it fails SILENTLY costs the
+   * user's first sentence to discover the failure (found live, 2026-11-07).
+   * LELU_VOICE_STT=browser keeps the browser recognizer first (live partials).
+   */
+  private preferElevenLabsStt = false;
+
   private startRecognition(): void {
+    if (this.preferElevenLabsStt) {
+      console.info("[VoiceEngine] ElevenLabs transcription is configured — recording turns for it directly.");
+      this.startWhisperFallback();
+      return;
+    }
     if (VoiceEngine.hasSpeechRecognitionAPI()) {
       this.startWebSpeechRecognition();
     } else {

@@ -9,6 +9,7 @@
  * configured provider is attempted immediately.
  */
 
+import { resolveFirst } from "../resolveEnv";
 import { contradictedCaptureClaims, contradictionNote, groundingNote, ungroundedClaims } from "../tools/ClaimGrounding";
 import type AIProvider from "../../providers/AIProvider";
 import type { AIMessage, AIRequest, AIResponse } from "../../providers/AIProvider";
@@ -79,6 +80,12 @@ const PROVIDER_RUNG_BUDGET_MS = 12_000;
 /** The whole fallback chain. No new rung starts once this is spent. */
 const CHAIN_BUDGET_MS = 20_000;
 
+/** A positive millisecond setting from the environment, or undefined. */
+function configuredMs(name: string): number | undefined {
+  const value = Number(resolveFirst(name));
+  return Number.isFinite(value) && value >= 1000 && value <= 600_000 ? value : undefined;
+}
+
 /** Too little left to be worth starting another provider. */
 const MIN_RUNG_SLICE_MS = 1_500;
 
@@ -91,8 +98,10 @@ export default class ProviderResolver {
    * milliseconds instead of waiting out the production numbers.
    */
   constructor(budget: { rungBudgetMs?: number; chainBudgetMs?: number } = {}) {
-    this.rungBudgetMs = budget.rungBudgetMs ?? PROVIDER_RUNG_BUDGET_MS;
-    this.chainBudgetMs = budget.chainBudgetMs ?? CHAIN_BUDGET_MS;
+    // Operator overrides (defaults unchanged). A rung covers a whole tool
+    // loop, so slow providers doing research can need more than 12 s.
+    this.rungBudgetMs = budget.rungBudgetMs ?? configuredMs("LELU_PROVIDER_RUNG_BUDGET_MS") ?? PROVIDER_RUNG_BUDGET_MS;
+    this.chainBudgetMs = budget.chainBudgetMs ?? configuredMs("LELU_CHAIN_BUDGET_MS") ?? CHAIN_BUDGET_MS;
   }
 
   public async execute(context: RouterContext): Promise<ProviderResult> {

@@ -128,6 +128,10 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     globalName: "__LELU_OPENROUTER_MODEL__",
     aliases: ["OPENROUTER_MODEL"],
   },
+  // Voice and chain-timing switches read by the page. Not credentials.
+  { viteName: "VITE_LELU_VOICE_STT", globalName: "__LELU_LELU_VOICE_STT__", aliases: ["LELU_VOICE_STT"] },
+  { viteName: "VITE_LELU_PROVIDER_RUNG_BUDGET_MS", globalName: "__LELU_LELU_PROVIDER_RUNG_BUDGET_MS__", aliases: ["LELU_PROVIDER_RUNG_BUDGET_MS"] },
+  { viteName: "VITE_LELU_CHAIN_BUDGET_MS", globalName: "__LELU_LELU_CHAIN_BUDGET_MS__", aliases: ["LELU_CHAIN_BUDGET_MS"] },
   // The model OpenRouter uses when a turn carries an image. Not a credential.
   {
     viteName: "VITE_OPENROUTER_VISION_MODEL",
