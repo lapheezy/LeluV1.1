@@ -205,3 +205,15 @@ test("8b. a refinement is planned against the conversation's own artifact (studi
   const orchestrator = readFileSync(new URL("../src/core/orchestrator/Orchestrator.ts", import.meta.url), "utf8");
   assert.match(orchestrator, /conversationArtifactsContext\(ownerForTask\(taskId\)\)/);
 });
+
+test("8c. a refinement of this conversation's artifact goes to the model, not to the project text-parser", async () => {
+  const { refersToConversationArtifact } = await import("../src/core/studio/StudioTools");
+  await plannedTurn("conv-route", [{ id: "s1", title: "Create", tool: "studio.create", args: DOC("Lumo Solar Camping Lantern – Product Brief") }]);
+  const refine = "Change the chart in the Lumo brief to a line chart and add a fourth version, Max, at 400 grams. Export the new revision as DOCX.";
+  assert.equal(refersToConversationArtifact("conv-route", refine), true);
+  assert.equal(refersToConversationArtifact("conv-route", "update the lantern copy"), true, "a distinctive title word names it");
+  assert.equal(refersToConversationArtifact("conv-empty-route", refine), false, "a conversation with no artifacts keeps the old routing");
+  assert.equal(refersToConversationArtifact("conv-route", "start a new project for my garden"), false);
+  const router = readFileSync(new URL("../src/core/AIRouter.ts", import.meta.url), "utf8");
+  assert.match(router, /!refersToConversationArtifact\(context\.request\.conversationId, context\.request\.prompt \?\? ""\)/);
+});

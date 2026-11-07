@@ -382,3 +382,19 @@ export function conversationArtifactsContext(conversationId: string | null | und
   ].join("\n");
 }
 
+/**
+ * Does this request change something the conversation already made?
+ * True when the conversation has a Studio artifact and the request names
+ * it (a distinctive word of its title) or speaks of what artifacts are
+ * made of (chart, revision, export, a file format). Such a turn belongs to
+ * the model, which has studio.revise — never to a text-parsing resolver.
+ */
+export function refersToConversationArtifact(conversationId: string | null | undefined, prompt: string): boolean {
+  if (!conversationId) return false;
+  const mine = StudioStore.getInstance().list().filter((a) => a.conversationId === conversationId);
+  if (mine.length === 0) return false;
+  const text = prompt.toLowerCase();
+  if (/\b(?:chart|graph|revision|revise|export|docx|pptx|xlsx|pdf|csv|slides?|deck|spreadsheet|sheet|document|brief)\b/.test(text)) return true;
+  return mine.some((a) => a.title.toLowerCase().split(/[^\p{L}\p{N}]+/u).some((word) => word.length >= 4 && new RegExp(`\\b${word}\\b`, "u").test(text)));
+}
+
