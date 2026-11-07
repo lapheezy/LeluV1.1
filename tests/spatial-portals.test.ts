@@ -5,7 +5,12 @@
  */
 import assert from "node:assert/strict";
 import test from "node:test";
-import PortalRegistry, { PORTAL_STORAGE_KEY, readPortals } from "../src/app/scene/spatial/PortalRegistry";
+import PortalRegistry, {
+  PORTAL_STORAGE_KEY,
+  builtinPortalId,
+  isBuiltinPortal,
+  readPortals,
+} from "../src/app/scene/spatial/PortalRegistry";
 import { SPATIAL_DESTINATIONS } from "../src/app/scene/spatial/SpatialScenes";
 
 function memoryPort() {
@@ -48,6 +53,67 @@ test("a portal to nowhere is refused with a reason and nothing is stored", () =>
   assert.match(refused.reason, /not a destination in the scene graph/);
   assert.equal(registry.list().length, 0);
   assert.equal(port.get(PORTAL_STORAGE_KEY), null, "the store was never written");
+});
+
+test("the built-in ring is seeded once, with stable namespaced ids and no duplicates", () => {
+  const port = memoryPort();
+  const registry = PortalRegistry.resetForTests(port);
+  const scenes = ["galaxy", "browser", "studio"] as const;
+  assert.equal(registry.seedRing(scenes), 3);
+  assert.equal(registry.seedRing(scenes), 0, "seeding again adds nothing");
+  assert.equal(registry.list().length, 3);
+  const galaxy = registry.get(builtinPortalId("galaxy"));
+  assert.ok(galaxy);
+  assert.equal(galaxy!.destination, "galaxy");
+  assert.equal(isBuiltinPortal(galaxy!), true);
+
+  // A user portal to the same environment is a DIFFERENT identity, so the ring
+  // can draw both without one replacing the other.
+  const created = registry.create({ destination: "galaxy", label: "Mine" });
+  assert.ok(created.ok);
+  assert.notEqual(created.portal.id, galaxy!.id);
+  assert.equal(isBuiltinPortal(created.portal), false);
+  assert.equal(registry.list().length, 4);
+  assert.equal(PortalRegistry.resetForTests(port).list().length, 4, "both survive a reload");
+});
+
+test("a portal that cannot be saved is refused instead of reported as created", () => {
+  let failWrites = false;
+  const data = new Map<string, unknown>();
+  const registry = PortalRegistry.resetForTests({
+    get<T>(key: string): T | null {
+      return (data.get(key) as T) ?? null;
+    },
+    set(key: string, value: unknown): void {
+      if (failWrites) throw new Error("quota");
+      data.set(key, value);
+    },
+  });
+  failWrites = true;
+  const refused = registry.create({ destination: "studio" });
+  assert.equal(refused.ok, false);
+  assert.ok(!refused.ok);
+  assert.match(refused.reason, /could not be saved/);
+  assert.equal(registry.list().length, 0, "a portal that was not saved is not in the ring");
+  assert.equal(registry.seedRing(["studio"]), 0, "seeding reports the failure too");
+  failWrites = false;
+  assert.equal(registry.create({ destination: "studio" }).ok, true, "and it works once storage does");
+});
+
+test("a portal's name and destination can change without losing its identity", () => {
+  const registry = PortalRegistry.resetForTests(memoryPort());
+  const created = registry.create({ destination: "studio", label: "Atelier" });
+  assert.ok(created.ok);
+  const updated = registry.update(created.portal.id, { label: "Bright atelier", destination: "files" });
+  assert.ok(updated.ok);
+  assert.equal(updated.portal.id, created.portal.id);
+  assert.equal(updated.portal.label, "Bright atelier");
+  assert.equal(updated.portal.destination, "files");
+  assert.equal(registry.resolve(created.portal.id)?.id, "files");
+  const refused = registry.update(created.portal.id, { destination: "atlantis" });
+  assert.equal(refused.ok, false, "a destination that does not exist is refused");
+  assert.equal(registry.get(created.portal.id)?.destination, "files", "and the old destination stays");
+  assert.equal(registry.update("portal_missing", { label: "x" }).ok, false);
 });
 
 test("travelling keeps the one scene, the existing camera ownership and the context", () => {

@@ -376,3 +376,9 @@ test("Universe replies render markdown with the shared renderer and never overfl
   assert.match(css, /\.lcu-msg \{ min-width: 0; \}/);
   assert.match(css, /\.lcu-bubble \{ min-width: 0; max-width: 100%; overflow-wrap: anywhere; \}/);
 });
+
+test("LÉLU's shared model fits its textures once at parse (measured: 240 → 96 MB uploaded per mount on iPhone 13)", () => {
+  const body = readFileSync("src/app/scene/genesis/avatar/LeluBody.tsx", "utf8");
+  assert.match(body, /export const SHARED_TEXTURE_LIMIT = 2048;/);
+  assert.match(body, /new GLTFLoader\(\)\.parseAsync\(bytes, ""\)\.then\(async \(gltf\) => \{\s*const resized = await fitTexturesTo\(gltf\.scene, SHARED_TEXTURE_LIMIT\);/);
+});

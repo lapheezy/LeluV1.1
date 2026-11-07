@@ -38,6 +38,7 @@ import {
 import SpatialRuntime from "./SpatialRuntime";
 import type { SpatialState } from "./SpatialRuntime";
 import { SPATIAL_DESTINATIONS, destinationFor, type SpatialSceneId } from "./SpatialScenes";
+import PortalRegistry, { isBuiltinPortal, type PortalRecord } from "./PortalRegistry";
 import CosmosStore from "../genesis/cosmos/CosmosStore";
 
 /** Destinations drawn as portals in the world (the core and cosmos are the world itself). */
@@ -48,9 +49,35 @@ const PORTAL_SCENES: SpatialSceneId[] = SPATIAL_DESTINATIONS.filter(
 const PARTICLE_COUNT = 420;
 
 interface PortalSpec {
-  id: SpatialSceneId;
+  /** The portal record's id — stable across reloads. */
+  id: string;
+  /** The environment it opens; every portal points at a real destination. */
+  destination: SpatialSceneId;
+  label: string;
   accent: string;
   radius: number;
+}
+
+/**
+ * The ring is built from the registry, not from the static scene graph: the
+ * built-in environments are seeded as identities once, and a portal a person
+ * or an agent creates appears here as soon as it is registered and disappears
+ * when it is removed. No scene rebuild — this is React state over the one
+ * canvas.
+ */
+function usePortalRecords(): PortalRecord[] {
+  const [records, setRecords] = useState<PortalRecord[]>(() => {
+    const registry = PortalRegistry.getInstance();
+    registry.seedRing(PORTAL_SCENES);
+    return registry.list();
+  });
+  useEffect(() => {
+    const registry = PortalRegistry.getInstance();
+    registry.seedRing(PORTAL_SCENES);
+    setRecords(registry.list());
+    return registry.subscribe((next) => setRecords(next));
+  }, []);
+  return records;
 }
 
 function useSpatialState(): SpatialState {
@@ -115,9 +142,9 @@ function Portal({
 }) {
   const runtime = SpatialRuntime.getInstance();
   const seam = useRef<Group>(null);
-  const hovered = state.interaction.hovered === spec.id;
-  const travellingHere = state.destination === spec.id && Boolean(state.transition);
-  const visited = state.current === spec.id;
+  const hovered = state.interaction.hovered === spec.destination;
+  const travellingHere = state.destination === spec.destination && Boolean(state.transition);
+  const visited = state.current === spec.destination;
   const intensity = hovered || travellingHere ? 1 : visited ? 0.55 : 0.28;
   const pulse = 1 + Math.sin(state.updatedAt / 320 + spec.radius) * 0.04;
 
@@ -131,13 +158,16 @@ function Portal({
       <group ref={seam} scale={pulse}>
         <mesh
           name={`spatial-portal-${spec.id}`}
+          userData={{ portalId: spec.id, destination: spec.destination, label: spec.label }}
           onClick={(event) => {
             event.stopPropagation();
-            runtime.travel(spec.id);
+            // Travelling through a portal is the SAME travel the rail uses:
+            // one scene, one camera, no second canvas and no context reset.
+            runtime.travel(spec.destination);
           }}
           onPointerOver={(event) => {
             event.stopPropagation();
-            runtime.hover(spec.id);
+            runtime.hover(spec.destination);
             document.body.style.cursor = "pointer";
           }}
           onPointerOut={() => {
@@ -168,7 +198,7 @@ function Portal({
         </mesh>
       </group>
       {/* The dimensional surface: what you pass through. */}
-      <mesh name={`spatial-portal-surface-${spec.id}`}>
+      <mesh name={`spatial-portal-surface-${spec.id}`} userData={{ portalId: spec.id }}>
         <circleGeometry args={[spec.radius * 0.86, 48]} />
         <meshBasicMaterial
           color={spec.accent}
@@ -306,18 +336,45 @@ export default function SpatialPortals() {
   // LOD: the portal field belongs to the wide Cosmos view. Once you are
   // inside an environment the portals dim rather than paint under it.
   const wide = state.current === "core" || state.current === "cosmos" || state.current === "portal";
+  const records = usePortalRecords();
   const positions = useMemo(() => {
-    return PORTAL_SCENES.map((id) => {
-      const destination = destinationFor(id);
-      const anchor = runtime.poseFor(id).target;
-      return {
-        id,
-        accent: destination.accent,
-        radius: destination.kind === "portal" ? 1.5 : destination.kind === "galaxy" ? 1.25 : 0.95,
-        position: new Vector3(anchor.x, anchor.y, anchor.z),
-      };
-    });
-  }, [runtime, anchorVersion]);
+    // A second portal to the same environment orbits beside the first rather
+    // than stacking on it: the golden angle keeps them apart deterministically.
+    const orbits = new Map<SpatialSceneId, number>();
+    return records
+      .filter((record) => {
+        const kind = destinationFor(record.destination).kind;
+        return kind !== "core" && kind !== "cosmos";
+      })
+      .map((record) => {
+        const destination = destinationFor(record.destination);
+        const anchor = runtime.poseFor(record.destination).target;
+        const builtin = isBuiltinPortal(record);
+        const orbitIndex = builtin ? 0 : orbits.get(record.destination) ?? 0;
+        if (!builtin) orbits.set(record.destination, orbitIndex + 1);
+        const angle = orbitIndex * 2.399963 + record.destination.length;
+        const orbit = builtin ? 0 : 1.7 + (orbitIndex % 3) * 0.55;
+        const radius = builtin
+          ? destination.kind === "portal"
+            ? 1.5
+            : destination.kind === "galaxy"
+              ? 1.25
+              : 0.95
+          : 0.72;
+        return {
+          id: record.id,
+          destination: record.destination,
+          label: record.label,
+          accent: destination.accent,
+          radius,
+          position: new Vector3(
+            anchor.x + Math.cos(angle) * orbit,
+            anchor.y + Math.sin(angle) * orbit * 0.62,
+            anchor.z + orbit * 0.45,
+          ),
+        };
+      });
+  }, [records, runtime, anchorVersion]);
 
   return (
     <group name="spatial-portals">
@@ -331,7 +388,13 @@ export default function SpatialPortals() {
       {positions.map((portal) => (
         <Portal
           key={portal.id}
-          spec={{ id: portal.id, accent: portal.accent, radius: portal.radius }}
+          spec={{
+            id: portal.id,
+            destination: portal.destination,
+            label: portal.label,
+            accent: portal.accent,
+            radius: portal.radius,
+          }}
           state={state}
           position={portal.position}
         />

@@ -28,6 +28,7 @@
 import { useEffect, useRef, useState } from "react";
 import SpatialRuntime, { installSpatialBridge, type SpatialState } from "./SpatialRuntime";
 import SpatialNavigator from "./SpatialNavigator";
+import PortalRegistry from "./PortalRegistry";
 import { destinationFor, destinationForPanel, type SpatialSceneId } from "./SpatialScenes";
 import { useGenesis } from "../genesis/GenesisCore";
 import AvatarCommandBus from "../../../core/avatar/AvatarCommandBus";
@@ -142,6 +143,53 @@ export default function SpatialExperience() {
     window.addEventListener("genesis-show-surface", onShowSurface);
     return () => window.removeEventListener("genesis-show-surface", onShowSurface);
   }, [runtime]);
+
+  /* ---------------- agent-created portals: the same channel --------------- */
+
+  /*
+   * LÉLU (or any authorised agent) creates portals through the canonical
+   * registry and gets a structured result back — never a claimed success. The
+   * domain events are the agent-facing surface, the same way
+   * `genesis-show-surface` is for surfaces; a request that names a destination
+   * the scene graph does not have is answered with `{ ok: false, reason }`.
+   *
+   *   window.dispatchEvent(new CustomEvent("lelu-portal-create", {
+   *     detail: { destination: "browser", label: "Research feed", workspace, requestId },
+   *   }))
+   *   → "lelu-portal-created" { ...result, requestId }
+   */
+  useEffect(() => {
+    const registry = PortalRegistry.getInstance();
+    function onCreate(event: Event) {
+      const detail = (event as CustomEvent).detail as
+        | { destination?: string; label?: string; workspace?: string; requestId?: string }
+        | undefined;
+      const result = registry.create({
+        destination: detail?.destination,
+        label: detail?.label,
+        workspace: detail?.workspace,
+        createdBy: "agent",
+      });
+      window.dispatchEvent(
+        new CustomEvent("lelu-portal-created", { detail: { ...result, requestId: detail?.requestId } }),
+      );
+    }
+    function onRemove(event: Event) {
+      const detail = (event as CustomEvent).detail as { id?: string; requestId?: string } | undefined;
+      const ok = detail?.id ? registry.remove(detail.id) : false;
+      window.dispatchEvent(
+        new CustomEvent("lelu-portal-removed", {
+          detail: { ok, id: detail?.id, requestId: detail?.requestId },
+        }),
+      );
+    }
+    window.addEventListener("lelu-portal-create", onCreate);
+    window.addEventListener("lelu-portal-remove", onRemove);
+    return () => {
+      window.removeEventListener("lelu-portal-create", onCreate);
+      window.removeEventListener("lelu-portal-remove", onRemove);
+    };
+  }, []);
 
   /* ------------------------------ diagnostics --------------------------- */
 

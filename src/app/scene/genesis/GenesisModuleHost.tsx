@@ -205,9 +205,31 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
     });
   }, [id, mod.position?.x, mod.position?.y, mod.size?.width, mod.size?.height]);
 
+  /*
+   * Pin is a layout preference, so it lives in the ONE layout store — not in a
+   * second persistence key and not in module state. Pinned means: the next
+   * auto-arrange leaves this window where it is, and the dock lists it first.
+   */
+  const layoutStore = ModuleLayoutStore.getInstance();
+  const [pinned, setPinned] = useState(
+    () => layoutStore.getState().entries.find((entry) => entry.moduleId === id)?.pinned ?? false,
+  );
+  useEffect(
+    () =>
+      layoutStore.subscribe((layout) =>
+        setPinned(layout.entries.find((entry) => entry.moduleId === id)?.pinned ?? false),
+      ),
+    [layoutStore, id],
+  );
+
   const handlePointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       if (e.button !== 0 && e.pointerType !== "touch") return;
+      // The title bar is a drag handle, but its controls are real buttons.
+      // preventDefault() on their pointerdown suppressed the click, so
+      // minimize / expand / close / pin never fired.
+      const target = e.target as HTMLElement | null;
+      if (target?.closest("button, input, select, textarea, a")) return;
       e.preventDefault();
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
       dragRef.current = { pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, baseX: position.x, baseY: position.y };
@@ -344,6 +366,22 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
           <span aria-hidden>◎</span> Chat
         </button>
       ) : null}
+      <button
+        type="button"
+        title={pinned ? "Unpin — auto-arrange may tile it again" : "Pin — keep this window where it is"}
+        aria-label={pinned ? `Unpin ${label}` : `Pin ${label}`}
+        aria-pressed={pinned}
+        data-lelu-module-pin={id}
+        onClick={() => layoutStore.pin(id, !pinned)}
+        style={{
+          ...controlButton,
+          color: pinned ? "#67e8f9" : controlButton.color,
+          borderColor: pinned ? "rgba(103,232,249,0.55)" : controlButton.borderColor,
+          background: pinned ? "rgba(34,211,238,0.16)" : controlButton.background,
+        }}
+      >
+        {pinned ? "📌" : "📍"}
+      </button>
       <button type="button" title="Minimize — keeps running" aria-label={`Minimize ${label}`} onClick={() => minimizeModule(id)} style={controlButton}>—</button>
       <button type="button" title={isExpanded ? "Restore window" : "Expand"} aria-label={isExpanded ? "Restore" : "Expand"} onClick={() => (isExpanded ? setModulePresentation(id, "inline") : expandModule(id))} style={controlButton}>{isExpanded ? "⊡" : "⤢"}</button>
       <button type="button" title="Close" aria-label={`Close ${label}`} onClick={() => closeModule(id)} style={controlButton}>✕</button>
