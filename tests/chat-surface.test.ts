@@ -355,12 +355,14 @@ test("on a phone a conversation window is the full visual viewport; one composer
 test("Step 3: under a phone sheet LÉLU's single presence stays mounted, drawing slowly at an edge (no unmount, no hidden WebGL)", () => {
   // Phase 2 unmounted her window under phone sheets (a hidden canvas stalled
   // the GPU). Step 3 keeps ONE presence: under a sheet she rests visible at
-  // the least obstructive edge at a reduced frame rate, and in a world view
+  // the least obstructive edge, paused (a live canvas beside a sheet stalled the page), and in a world view
   // she is hidden AND paused — never a hidden canvas that keeps drawing.
   const companion = readFileSync("src/app/scene/genesis/avatar/LeluCompanion.tsx", "utf8");
   assert.doesNotMatch(companion, /return null;\s*\/\/ Where she belongs/, "no unmount under a sheet");
-  assert.match(companion, /paused=\{inWorld\}/, "hidden ⇒ paused");
-  assert.match(companion, /fps=\{compact && !surface\.cosmosRendered \? 12 : 30\}/, "slower under a phone sheet");
+  assert.match(companion, /paused=\{inWorld \|\| underSheet\}/, "hidden in a world, or beside a phone sheet ⇒ paused (measured stall otherwise)");
+  assert.match(companion, /scale\(\$\{scale\.toFixed\(4\)\}\)/, "under a sheet she is scaled, not resized (a resize clears her last frame)");
+  assert.match(companion, /underSheet \? CHAT_WINDOW_Z \+ 10/, "above the sheet, not hidden behind it");
+  assert.match(companion, /const underSheet = compact && !surface\.cosmosRendered;/);
   const character3d = readFileSync("src/app/scene/genesis/avatar/LeluCharacter3D.tsx", "utf8");
   assert.match(character3d, /if \(mode === "paused" \|\| paused\) return;/);
 });

@@ -111,7 +111,7 @@ test("LÉLU can turn companion mode on and off herself, through her real tool", 
 });
 
 test("her window docks beside a floating chat box, else in the right corner", async () => {
-  const { dockedWindow } = await import("../src/app/scene/genesis/avatar/LeluCompanion");
+  const { dockedWindow } = await import("../src/app/scene/genesis/avatar/presencePlacement");
   const viewport = { width: 1440, height: 900 };
   const chat = { left: 410, top: 112, width: 620, height: 700 };
   const beside = dockedWindow(viewport, chat, false);

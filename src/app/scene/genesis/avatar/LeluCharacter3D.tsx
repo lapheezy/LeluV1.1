@@ -82,6 +82,25 @@ function FrameCap({ fps, paused = false }: { fps: number; paused?: boolean }) {
   return null;
 }
 
+/**
+ * When she pauses (a phone sheet), one frame is rendered and captured as
+ * an image, in the same task (no preserveDrawingBuffer needed), so her
+ * presence can keep showing her while her canvas draws nothing.
+ */
+function StillCapture({ paused, onStill }: { paused: boolean; onStill?: (dataUrl: string) => void }) {
+  const { gl, scene, camera } = useThree();
+  useEffect(() => {
+    if (!paused || !onStill) return;
+    try {
+      gl.render(scene, camera);
+      onStill(gl.domElement.toDataURL("image/png"));
+    } catch {
+      /* no still: she keeps her place, just not her picture */
+    }
+  }, [paused, onStill, gl, scene, camera]);
+  return null;
+}
+
 export default function LeluCharacter3D({
   model,
   framing,
@@ -90,12 +109,15 @@ export default function LeluCharacter3D({
   testId,
   fps = 30,
   paused = false,
+  onStill,
 }: {
   model: LeluModel;
   /** Frame cap: 30 is plenty for an overlay. */
   fps?: number;
   /** Draw nothing, keep everything (canvas, model, state). */
   paused?: boolean;
+  /** Receives one captured frame when she pauses. */
+  onStill?: (dataUrl: string) => void;
   framing: LeluFraming;
   activity: LeluActivity;
   style?: CSSProperties;
@@ -144,6 +166,7 @@ export default function LeluCharacter3D({
         <directionalLight position={[1.5, 3, 4]} intensity={1.6} color="#fff4ea" />
         <directionalLight position={[-2.5, 1.5, -2]} intensity={0.7} color="#f0abfc" />
         <FrameCap fps={fps} paused={paused} />
+        <StillCapture paused={paused} onStill={onStill} />
         <Framer framing={framing} info={info} />
         <LeluBody glb={model.glb} clips={model.clips} activity={activity} height={HEIGHT} onReady={setInfo} onFrame={onFrame} life={framing === "full"} />
       </Canvas>

@@ -18,10 +18,10 @@
 
 html[data-lelu-universe="open"] .lch,
 html[data-lelu-universe="open"] .lch-scrim,
-html[data-lelu-universe="open"] .lsn,
-/* The companion's floating window would cover the chat window; inside the
-   Universe LÉLU's presence is the header portrait + live state. */
-html[data-lelu-universe="open"] [data-testid="lelu-companion"] { visibility: hidden !important; pointer-events: none !important; }
+html[data-lelu-universe="open"] .lsn { visibility: hidden !important; pointer-events: none !important; }
+/* LÉLU's presence is NOT hidden here (Step 3): it was the old floating
+   window that covered the chat window. Her single presence rests where it
+   covers no composer or control, so she stays reachable inside the Universe. */
 
 .lcu {
   position: fixed; inset: 0; height: 100dvh; z-index: 480;

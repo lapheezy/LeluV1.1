@@ -13,7 +13,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { blocksSomething, choosePlace, edgeRest } from "../src/app/scene/genesis/avatar/LeluCompanion";
+import { blocksSomething, choosePlace, edgeRest } from "../src/app/scene/genesis/avatar/presencePlacement";
 import type { SpaceLayout } from "../src/app/scene/genesis/avatar/spatialPresence";
 
 const space = (over: Partial<SpaceLayout> = {}): SpaceLayout => ({
@@ -71,7 +71,7 @@ test("one presence: one LeluCharacter, no portals, no window chrome", () => {
 });
 
 test("dropped on a control, she settles in the nearest free spot instead", async () => {
-  const { nearestFree, blocksSomething: blocks } = await import("../src/app/scene/genesis/avatar/LeluCompanion");
+  const { nearestFree, blocksSomething: blocks } = await import("../src/app/scene/genesis/avatar/presencePlacement");
   const s = space({ viewport: { width: 844, height: 390 }, controls: [box(80, 60, 300, 120)] });
   const drop = box(100, 80, 200, 200);
   assert.equal(blocks(drop, s), true);

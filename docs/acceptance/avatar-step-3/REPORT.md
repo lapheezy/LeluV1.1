@@ -39,8 +39,8 @@ Desktop uses real Playwright mouse input; phones use real CDP touch.
 | 390×844 | **PASS 14/14** | |
 | 375×812 | **PASS 14/14** | |
 | 430×932 | **PASS 14/14** | |
-| 1920×1080 | **UNVERIFIED** at this commit | The first run was void (the dev server was killed at its time limit mid-run). A rerun is in progress. |
-| 844×390 (phone, landscape) | **PARTIAL** at this commit | First run: render, return, tap → chat, no obstruction and one canvas all PASS. Touch drag FAILED (the drop covered a control, so she correctly refused it and went back). Fixed by `nearestFree` (snap to the nearest free spot, unit-tested). The live rerun is in progress. |
+| 1920×1080 | PASS 14/15 + 1 UNVERIFIED (earlier rerun) | The world-view check read her state while the v2 world was still loading at this size. Home runs at 1 fps here, and stalls occur with the presence off too (`phone-sheet/MEASUREMENTS.md`). |
+| 844×390 (phone, landscape) | **PASS 14/14** (rerun) | After `nearestFree`: dragged to (76, 84) and kept through a reload. |
 
 Checks per viewport:
 
@@ -64,29 +64,44 @@ Screens are in `screens/` and before/after captures in `before-after/`.
 
 ## Commands
 
-- `npm run typecheck` (`tsc -b --force`): exit 0.
+- `npm run typecheck` (`tsc -b --force`): exit 0 on the final code.
 - `tests/avatar-presence.test.ts`: 5/5 PASS.
 - `chat-surface`, `companion-mode`, `self-view`: 53/53 PASS (`chat-surface`'s Phase 2 assertion updated to the new design).
 - **Full `npm test`:**
 
   | | Pass | Fail | Skipped |
   |---|---|---|---|
-  | After | 1719 | 3 | 4 |
+  | After (final code) | 1724 | 3 | 4 |
   | Baseline (Step 2) | 1714 | 3 | 4 |
 
   The same 3 failures by name: the camera-transition tests in `spatial-experience.test.ts`, which are pre-existing. The +5 are the new tests.
-- `npm run build`: exit 0.
-- `oxlint` on the avatar files: 0 errors and 5 fast-refresh warnings (pure helpers exported next to the component).
+- `npm run build`: exit 0 on the final code.
+- `oxlint` on the changed avatar files: **0 errors, 0 warnings** (final code). `LeluBody.tsx` has 2 warnings that predate this step.
 
 ## Voice and expression regression
 
 - **PASS (unit):** the existing `lelu-character`, `companion-mode`, `chat-surface` and voice-related suites pass in the full run. The presence still feeds `useLeluActivity` into the same `LeluCharacter` → `LeluBody` chain.
 - **UNVERIFIED (live):** speaking and listening animation with real audio. There is no microphone or speaker in this headless browser.
 
+## Late fixes (after the first acceptance run)
+
+These are found and fixed with measurement. See `phone-sheet/MEASUREMENTS.md`.
+
+- **She was invisible under phone conversation sheets.**
+  - Causes: an old Universe CSS rule hid the companion; a z-index tie with the sheet; and a canvas cleared while paused.
+  - Now: visible at the edge, above the sheet, paused on one captured frame, at 60 fps page frame rate. Earlier phone results for "covers no composer" passed trivially because she was hidden; the final rerun on all six viewports re-tests them with her visible.
+- **Layout box versus visible body:** input now goes only to her visible body.
+- **Landscape drag:** a drop on a control snaps to the nearest free spot.
+- **Code organisation:** the placement helpers moved to `presencePlacement.ts`, so lint is clean. The return button is now 44 px on phones.
+
+## Final acceptance rerun
+
+All six viewports against the final code: **in progress at this commit**. Results will be added in the follow-up commit.
+
 ## Remaining limitations
 
-1. 1920×1080 and the landscape rerun are pending at this commit.
-2. On phones, when Chat or Studio fill the screen, she rests small (76×104) at the least obstructive edge with a reduced frame rate (12 fps). A long-run GPU and frame measurement under a phone sheet (the Phase 2 stall scenario) has **not yet been re-run** with a visible presence.
+1. The final six-viewport rerun was in progress at this commit.
+2. On phones, when a sheet fills the screen, she is shown as **one paused frame** at the edge. She does not animate there; she animates again when the sheet closes. A live loop beside the sheet stalled the page in this environment. Whether real iPhone GPUs tolerate a live loop is **UNVERIFIED** (no physical device).
 3. Cosmos and worlds: in the Genesis v2 world view she is hidden here because `LeluV2Presence` stands her in the world. Spatial Cosmos destinations use the same 2D presence. There is no animated "walking into" 3D space.
-4. The ⤓ return button is 36 px on phones, below the 44 px touch-target guideline.
+4. ⤓ return button: 44 px on phones (fixed).
 5. No physical iPhone or Safari test.
