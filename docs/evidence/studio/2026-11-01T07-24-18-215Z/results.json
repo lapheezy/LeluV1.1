@@ -1,0 +1,266 @@
+{
+  "stamp": "2026-11-01T07-24-18-215Z",
+  "origin": "http://127.0.0.1:5199",
+  "health": {
+    "ok": true,
+    "runtime": "studio",
+    "root": ".lelu-studio",
+    "templates": [
+      "application",
+      "game",
+      "website"
+    ],
+    "capabilities": {
+      "node": true,
+      "godot": false,
+      "unity": false,
+      "unreal": false,
+      "headlessBrowser": true
+    }
+  },
+  "demos": [
+    {
+      "slug": "aurora-site",
+      "files": 7,
+      "notes": []
+    },
+    {
+      "slug": "pulse-board",
+      "files": 8,
+      "notes": []
+    },
+    {
+      "slug": "rift-runner-3d",
+      "files": 9,
+      "notes": [
+        "The character card uses Session 3B's real reference image; the rigged GLB is still awaiting Meshy approval."
+      ]
+    }
+  ],
+  "builds": {
+    "aurora-site": {
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 80,
+      "output": "built aurora-site: 8 files, 28.5 KB source, 2 referenced assets verified",
+      "artifact": "dist",
+      "bytes": 30011,
+      "timedOut": false,
+      "version": {
+        "files": 7,
+        "bytes": 29211,
+        "hash": "7e03838a"
+      }
+    },
+    "pulse-board": {
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 88,
+      "output": "built pulse-board: 5 files, 14.8 KB, backend imports and serves 3 checked routes",
+      "artifact": "dist",
+      "bytes": 15682,
+      "timedOut": false,
+      "version": {
+        "files": 8,
+        "bytes": 30620,
+        "hash": "d70a30d0"
+      }
+    },
+    "rift-runner-3d": {
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 69,
+      "output": "built rift-runner-3d: 8 files, 3.25 MB, three.js 0.62 MB verified, 5 obstacles / 4 shards in the real world",
+      "artifact": "dist",
+      "bytes": 3407016,
+      "timedOut": false,
+      "version": {
+        "files": 9,
+        "bytes": 3414651,
+        "hash": "b11ea7c6"
+      }
+    }
+  },
+  "tests": {
+    "aurora-site": {
+      "ok": true,
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0,
+      "durationMs": 187,
+      "output": "TAP version 13\n# Subtest: filterProjects returns only matching projects\nok 1 - filterProjects returns only matching projects\n  ---\n  duration_ms: 1.658702\n  type: 'test'\n  ...\n# Subtest: filterProjects treats all and unknown filters as everything\nok 2 - filterProjects treats all and unknown filters as everything\n  ---\n  duration_ms: 0.285515\n  type: 'test'\n  ...\n# Subtest: filterProjects does not mutate its input\nok 3 - filterProjects does not mutate its input\n  ---\n  duration_ms: 0.22402\n  type: 'test'\n  ...\n# Subtest: describeCount reports singular and plural honestly\nok 4 - describeCount reports singular and plural honestly\n  ---\n  duration_ms: 0.216706\n  type: 'test'\n  ...\n# Subtest: validateContact accepts a complete brief\nok 5 - validateContact accepts a complete brief\n  ---\n  duration_ms: 0.616797\n  type: 'test'\n  ...\n# Subtest: validateContact names every field that is wrong\nok 6 - validateContact names every field that is wrong\n  ---\n  duration_ms: 0.335018\n  type: 'test'\n  ...\n# Subtest: validateContact rejects a blank form and trims whitespace\nok 7 - validateContact rejects a blank form and trims whitespace\n  ---\n  duration_ms: 0.215625\n  type: 'test'\n  ...\n# Subtest: theme toggles between two values and is labelled\nok 8 - theme toggles between two values and is labelled\n  ---\n  duration_ms: 0.19166\n  type: 'test'\n  ...\n# Subtest: confirmation uses the person's name when there is one\nok 9 - confirmation uses the person's name when there is one\n  ---\n  duration_ms: 1.806488\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 128.253861",
+      "timedOut": false
+    },
+    "pulse-board": {
+      "ok": true,
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0,
+      "durationMs": 261,
+      "output": "TAP version 13\n# Subtest: health reports the service without inventing data\nok 1 - health reports the service without inventing data\n  ---\n  duration_ms: 30.198408\n  type: 'test'\n  ...\n# Subtest: creating a task persists it and returns an id\nok 2 - creating a task persists it and returns an id\n  ---\n  duration_ms: 11.424216\n  type: 'test'\n  ...\n# Subtest: the core workflow moves a task across every lane\nok 3 - the core workflow moves a task across every lane\n  ---\n  duration_ms: 22.929945\n  type: 'test'\n  ...\n# Subtest: lane filtering is done by the backend, not the browser\nok 4 - lane filtering is done by the backend, not the browser\n  ---\n  duration_ms: 4.247807\n  type: 'test'\n  ...\n# Subtest: invalid input is refused with a named reason\nok 5 - invalid input is refused with a named reason\n  ---\n  duration_ms: 5.601776\n  type: 'test'\n  ...\n# Subtest: unknown tasks and routes are 404, not silent successes\nok 6 - unknown tasks and routes are 404, not silent successes\n  ---\n  duration_ms: 2.878489\n  type: 'test'\n  ...\n# Subtest: deleting a task removes it from the store\nok 7 - deleting a task removes it from the store\n  ---\n  duration_ms: 3.020666\n  type: 'test'\n  ...\n# Subtest: stats are computed from the real task list\nok 8 - stats are computed from the real task list\n  ---\n  duration_ms: 0.926848\n  type: 'test'\n  ...\n# Subtest: validation is pure and reports every problem\nok 9 - validation is pure and reports every problem\n  ---\n  duration_ms: 0.258866\n  type: 'test'\n  ...\n1..9\n# tests 9\n# suites 0\n# pass 9\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 212.415087",
+      "timedOut": false
+    },
+    "rift-runner-3d": {
+      "ok": true,
+      "exitCode": 0,
+      "passed": 11,
+      "failed": 0,
+      "durationMs": 187,
+      "output": "TAP version 13\n# Subtest: a new run starts at the spawn with every shard uncollected\nok 1 - a new run starts at the spawn with every shard uncollected\n  ---\n  duration_ms: 3.198839\n  type: 'test'\n  ...\n# Subtest: the spawn point and world edge behave consistently\nok 2 - the spawn point and world edge behave consistently\n  ---\n  duration_ms: 0.32545\n  type: 'test'\n  ...\n# Subtest: circle/rectangle collision is exact at the boundary\nok 3 - circle/rectangle collision is exact at the boundary\n  ---\n  duration_ms: 0.216666\n  type: 'test'\n  ...\n# Subtest: moving into a pillar is refused and counted as a collision\nok 4 - moving into a pillar is refused and counted as a collision\n  ---\n  duration_ms: 0.273252\n  type: 'test'\n  ...\n# Subtest: movement slides along a wall instead of sticking\nok 5 - movement slides along a wall instead of sticking\n  ---\n  duration_ms: 0.231804\n  type: 'test'\n  ...\n# Subtest: walking onto a shard collects it and hides the dialogue\nok 6 - walking onto a shard collects it and hides the dialogue\n  ---\n  duration_ms: 0.262642\n  type: 'test'\n  ...\n# Subtest: the gate opens only when all four shards are collected\nok 7 - the gate opens only when all four shards are collected\n  ---\n  duration_ms: 0.61833\n  type: 'test'\n  ...\n# Subtest: talking to the Keeper gives real progress, and talking to air does nothing\nok 8 - talking to the Keeper gives real progress, and talking to air does nothing\n  ---\n  duration_ms: 0.337874\n  type: 'test'\n  ...\n# Subtest: reaching the open gate wins, and a won run stops accepting input\nok 9 - reaching the open gate wins, and a won run stops accepting input\n  ---\n  duration_ms: 0.924905\n  type: 'test'\n  ...\n# Subtest: a frame of movement is bounded by dt, so a slow tab cannot teleport\nok 10 - a frame of movement is bounded by dt, so a slow tab cannot teleport\n  ---\n  duration_ms: 0.469531\n  type: 'test'\n  ...\n# Subtest: every obstacle is inside the world and actually blocks its centre\nok 11 - every obstacle is inside the world and actually blocks its centre\n  ---\n  duration_ms: 0.245571\n  type: 'test'\n  ...\n1..11\n# tests 11\n# suites 0\n# pass 11\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 118.020188",
+      "timedOut": false
+    }
+  },
+  "deployment": {
+    "ok": true,
+    "status": "prepared",
+    "environment": "production",
+    "target": ".lelu-studio/aurora-site/deploy/production",
+    "note": "Prepared only. No STUDIO_PUBLISH_TARGET is configured, so nothing was published to a live host."
+  },
+  "approval": {
+    "id": "approval-a52e1b2f",
+    "slug": "aurora-site",
+    "action": "production-deploy",
+    "reason": "Publish the verified build of the Aurora site to the production host.",
+    "scope": [],
+    "requestedAt": 1793517861084,
+    "expiresAt": 1793518761084,
+    "status": "approved",
+    "decidedAt": 1793517861089,
+    "decidedBy": "owner@example.com"
+  },
+  "results": [
+    {
+      "name": "dev server becomes reachable",
+      "ok": true,
+      "detail": "http://127.0.0.1:5199"
+    },
+    {
+      "name": "studio runtime reports itself",
+      "ok": true,
+      "detail": "studio"
+    },
+    {
+      "name": "all three templates are present",
+      "ok": true,
+      "detail": "application, game, website"
+    },
+    {
+      "name": "the three demonstration projects are written to disk",
+      "ok": true,
+      "detail": "aurora-site:7 pulse-board:8 rift-runner-3d:9"
+    },
+    {
+      "name": "website builds (exit 0)",
+      "ok": true,
+      "detail": "30011 B"
+    },
+    {
+      "name": "website tests pass",
+      "ok": true,
+      "detail": "9/9"
+    },
+    {
+      "name": "website preview serves the real built page",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "website preview serves its stylesheet",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "application builds (exit 0)",
+      "ok": true,
+      "detail": "15682 B"
+    },
+    {
+      "name": "application tests pass against its real HTTP server",
+      "ok": true,
+      "detail": "9/9"
+    },
+    {
+      "name": "application preview serves its UI",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "the application's real backend is reached through the preview",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "name": "the backend's stats reflect the created task",
+      "ok": true,
+      "detail": "total 1"
+    },
+    {
+      "name": "3D game builds (exit 0)",
+      "ok": true,
+      "detail": "3407016 B"
+    },
+    {
+      "name": "3D game world logic tests pass",
+      "ok": true,
+      "detail": "11/11"
+    },
+    {
+      "name": "game preview serves the real built game",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "vendored three.js is served for offline play",
+      "ok": true,
+      "detail": "650153 chars"
+    },
+    {
+      "name": "Session 3B's character card is in the build",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "asset pipeline reports unrun Mesh jobs honestly",
+      "ok": true,
+      "detail": "forge-c4c1e9c2, forge-ca8f7b98"
+    },
+    {
+      "name": "production deployment is refused without human approval",
+      "ok": true,
+      "detail": "Production deployment needs a live human approval for this project. No approval "
+    },
+    {
+      "name": "an approval can be requested for a protected action",
+      "ok": true,
+      "detail": "approval-a52e1b2f"
+    },
+    {
+      "name": "an approval cannot be granted without the person's explicit confirmation",
+      "ok": true,
+      "detail": "An approval can only be decided by the person, through the Studio pane"
+    },
+    {
+      "name": "a person can approve it",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "an approved production deployment is prepared, with a real manifest",
+      "ok": true,
+      "detail": ".lelu-studio/aurora-site/deploy/production · Prepared only. No STUDIO_PUBLISH_TARGET is configured, so nothing was publi"
+    },
+    {
+      "name": "the deployment manifest records the approving person and the files",
+      "ok": true,
+      "detail": "8 files"
+    },
+    {
+      "name": "a credential in frontend source is refused",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "passed": 26,
+  "failed": 0
+}

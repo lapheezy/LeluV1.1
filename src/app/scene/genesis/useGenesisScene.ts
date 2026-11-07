@@ -64,7 +64,7 @@ export const GenesisSceneContext = createContext<GenesisSceneValue | null>(null)
  * message costs. It needs no GPU, no profiler and no React internals.
  *
  * Dev-only and branch-free in production: the whole block is behind
- * import.meta.env.DEV, which Vite replaces with `false` and drops.
+ * IS_DEV, which Vite replaces with `false` and drops.
  */
 export interface RenderLedger {
   scene: number;

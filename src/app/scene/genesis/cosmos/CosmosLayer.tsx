@@ -35,6 +35,7 @@ import {
   CosmicEntities,
 } from "./CosmosVisuals";
 import SolarSystem from "./SolarSystem";
+import CosmosRooms3D from "./CosmosRooms3D";
 
 /* ------------------------------------------------------------------
  * CAMERA BLEND — smoothly transitions between Genesis view and Cosmos view
@@ -702,6 +703,12 @@ export default function CosmosLayer() {
 
       {/* ─── SOLAR SYSTEM ─── */}
       <SolarSystem />
+
+      {/* ─── NAVIGABLE MAP ─── */}
+      {/* Rooms, agent/project planets and the records placed in the room
+          you are in. Added to this scene; nothing already drawn here is
+          replaced. */}
+      <CosmosRooms3D />
 
       {/* ─── EXISTING ENTITY LAYER ─── */}
       {state.entities.filter((e) => e.level === "lelu-core").map((entity) => (

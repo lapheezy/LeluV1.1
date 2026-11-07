@@ -56,8 +56,14 @@ export default function AdaptiveQuality({ onChange }: { onChange: (dpr: number) 
     frames.current = 0;
     since.current = now;
 
-    slow.current = fps < 40 ? slow.current + 1 : 0;
-    fast.current = fps > 57 ? fast.current + 1 : 0;
+    // A spatial transition re-renders the same scene through a moving
+    // camera; lowering the pixel ratio mid-flight reallocates the drawing
+    // buffer exactly when the frame budget is thinnest. Hold adaptation
+    // steady while the SpatialRuntime reports a transition.
+    const transitioning = Boolean(document.body.dataset.spatialTransition);
+
+    slow.current = !transitioning && fps < 40 ? slow.current + 1 : 0;
+    fast.current = !transitioning && fps > 57 ? fast.current + 1 : 0;
     let next = dpr.current;
     if (slow.current >= 2) next = Math.max(DPR_MIN, dpr.current - 0.25);
     else if (fast.current >= 4) next = Math.min(DPR_MAX, dpr.current + 0.25);

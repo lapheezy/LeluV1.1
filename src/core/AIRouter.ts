@@ -34,6 +34,7 @@ import WorkflowStore from "./workflows/WorkflowStore";
 import { cleanAssistantText } from "./router/ToolMarkup";
 import { beginRoutingTrace, finishRoutingTrace, noteStage } from "./router/RoutingTrace";
 import type { BrainResult } from "./router/RouterResults";
+import { asksForStudioChange } from "./studio/StudioIntent";
 
 export default class AIRouter {
   private readonly time = new TimeResolver();
@@ -89,6 +90,25 @@ export default class AIRouter {
    * actually be defined. With nothing to run, the previous behaviour is
    * exactly as before.
    */
+  /**
+   * Is this software the studio can actually build?
+   *
+   * The project detector claims "create … application" before the model
+   * sees it, and its reference guard then asked the user what "the
+   * built and tested application" meant. When studio_create is really
+   * offered, the studio owns the turn: it can scaffold, build, test and
+   * preview the software, and the model chooses those tools.
+   */
+  private modelCanBuildInStudio(context: RouterContext): boolean {
+    let studioAvailable = false;
+    try {
+      studioAvailable = toolSchemasForModel().some((schema) => schema.name === "studio_create");
+    } catch {
+      return false;
+    }
+    return asksForStudioChange(context.request.prompt ?? "", studioAvailable);
+  }
+
   private modelCanRunWorkflow(context: RouterContext): boolean {
     const runTool = ToolRegistry.getInstance().get("workflow.run");
     if (!runTool?.available) return false;
@@ -241,6 +261,7 @@ export default class AIRouter {
     if (
       context.intent === "project" &&
       !this.modelCanDoEngineeringWork(context) &&
+      !this.modelCanBuildInStudio(context) &&
       !this.modelCanRunWorkflow(context) &&
       !namesTool
     ) {

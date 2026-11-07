@@ -1,0 +1,70 @@
+# ==========================================================
+# LÉLU — systemd unit (native deployment, no Docker)
+#
+#   sudo useradd --system --create-home --home-dir /opt/lelu lelu
+#   sudo install -o lelu -g lelu -m 600 .env /opt/lelu/.env
+#   sudo cp deploy/lelu.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now lelu
+#
+# Assumes the app is at /opt/lelu and built there
+# (`bun install --frozen-lockfile && bun run build`).
+# ==========================================================
+
+[Unit]
+Description=LÉLU V1.1 runtime (bun server.ts)
+Documentation=file:/opt/lelu/docs/CONTABO_DEPLOYMENT.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lelu
+Group=lelu
+WorkingDirectory=/opt/lelu
+
+# Server-only secrets. chmod 600, owned by lelu, never in git.
+EnvironmentFile=/opt/lelu/.env
+Environment=NODE_ENV=production
+Environment=PORT=4173
+
+# Bind to loopback ONLY. The reverse proxy is the public face, so the
+# runtime cannot be reached over plain HTTP on :4173 — which is also
+# what makes the proxy-level block on /api/engineer/* meaningful.
+Environment=HOST=127.0.0.1
+
+ExecStart=/usr/local/bin/bun server.ts
+
+Restart=always
+RestartSec=3
+# A build or a whitelisted typecheck can legitimately run for minutes;
+# do not let the watchdog kill a working process.
+TimeoutStopSec=30
+KillMode=mixed
+KillSignal=SIGTERM
+OOMPolicy=continue
+
+# ---- hardening -----------------------------------------------------
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=false
+SystemCallArchitectures=native
+
+# Writable paths the app actually needs.
+ReadWritePaths=/opt/lelu/data /opt/lelu/dist /opt/lelu/.lelu-sandbox
+
+# ---- logging -------------------------------------------------------
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lelu
+
+[Install]
+WantedBy=multi-user.target

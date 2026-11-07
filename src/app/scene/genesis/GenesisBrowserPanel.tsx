@@ -81,8 +81,13 @@ export default function GenesisBrowserPanel({ onClose }: GenesisBrowserPanelProp
   const [nekoStatus, setNekoStatus] = useState<"checking" | "reachable" | "unavailable" | "unconfigured">(
     nekoUrl ? "checking" : "unconfigured",
   );
-  const [address, setAddress] = useState("https://en.wikipedia.org");
-  const [current, setCurrent] = useState("https://en.wikipedia.org");
+  // Nothing is fetched until someone navigates. The panel used to mount a
+  // live wikipedia.org frame on open, so every arrival in the Cosmos carried
+  // a third-party page, its network retries and its own renderer into a
+  // spatial transition — measured: the renderer died during the next scene
+  // change with the embedded page mounted.
+  const [address, setAddress] = useState("");
+  const [current, setCurrent] = useState("");
   const [reading, setReading] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
   const [research, setResearch] = useState<LiveResearch | null>(null);
@@ -191,6 +196,10 @@ export default function GenesisBrowserPanel({ onClose }: GenesisBrowserPanelProp
    */
   const readForLelu = useCallback(async () => {
     if (reading) {
+      return;
+    }
+    if (!current) {
+      notify("Lélu Browser", "Navigate to a page first.");
       return;
     }
     setReading(true);
@@ -399,13 +408,33 @@ export default function GenesisBrowserPanel({ onClose }: GenesisBrowserPanelProp
               allow="clipboard-read; clipboard-write; fullscreen; autoplay; camera; microphone"
               style={{ width: "100%", height: "100%", border: "none", display: "block" }}
             />
-          ) : (
+          ) : current ? (
             <iframe
               src={current}
               title="Lélu in-app browser"
               referrerPolicy="no-referrer-when-downgrade"
+              loading="lazy"
               style={{ width: "100%", height: "100%", border: "none", display: "block" }}
             />
+          ) : (
+            <div
+              data-lelu-browser-idle
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+                padding: 24,
+                color: "rgba(203, 228, 255, 0.55)",
+                fontSize: 12.5,
+                lineHeight: 1.6,
+              }}
+            >
+              The in-app browser is ready. Enter an address above, or ask LÉLU to read a page — nothing is
+              loaded until you do.
+            </div>
           )}
           {mode === "neko" ? (
             <span

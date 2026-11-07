@@ -26,11 +26,14 @@
     "verify:hydration": "node scripts/verify-authenticated-hydration.mjs",
     "verify:layout": "node scripts/verify-workspace-layout.mjs",
     "verify:workspace": "node scripts/verify-workspace-isolation.mjs",
+    "verify:studio": "node scripts/verify-studio.mjs",
     "verify:mobile-chat": "node scripts/verify-mobile-chat.mjs",
     "verify:github-bridge": "tsx scripts/verify-github-bridge.ts",
     "verify:auth": "node scripts/verify-supabase-auth.mjs",
     "measure:cost": "node scripts/measure-render-cost.mjs",
-    "verify:bundle": "node scripts/verify-no-tests-in-bundle.mjs"
+    "verify:bundle": "node scripts/verify-no-tests-in-bundle.mjs",
+    "verify:asset-caching": "node scripts/verify-asset-caching.mjs",
+    "verify:mobile-cache": "node scripts/verify-mobile-model-cache.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",
@@ -54,6 +57,7 @@
     "exceljs": "^4.4.0",
     "framer-motion": "^12.42.2",
     "jszip": "^3.10.2",
+    "gsap": "^3.15.0",
     "lucide-react": "^1.43.0",
     "mermaid": "^11.12.0",
     "openai": "^6.45.0",
