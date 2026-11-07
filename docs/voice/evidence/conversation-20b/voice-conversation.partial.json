@@ -1,5 +1,5 @@
 {
- "at": "2026-11-07T16:56:23.304Z",
+ "at": "2026-11-07T17:00:43.346Z",
  "spoken": [
   {
    "n": 1,
@@ -160,6 +160,15 @@
    "text": "What did I say my favorite color was?",
    "spokeAt": 4401990,
    "endedAt": 4410245,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 19,
+   "mode": "after-reply",
+   "text": "What's my name, and which city did we talk about first?",
+   "spokeAt": 4665925,
+   "endedAt": 4669639,
    "repeated": true,
    "heard": true
   }
@@ -3404,6 +3413,224 @@
    "t": 4410253,
    "kind": "console",
    "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2560,\"spoke\":true,\"ms\":12989,\"peak\":0.3361,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 4425121,
+   "kind": "utterance",
+   "text": "What did I say my favorite color was?",
+   "at": 1794070589454
+  },
+  {
+   "t": 4425122,
+   "kind": "turn",
+   "user": "What did I say my favorite color was?",
+   "response": null
+  },
+  {
+   "t": 4425123,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 4449120,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23920,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4468235,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":16504,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4500127,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23406,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4516498,
+   "kind": "console",
+   "text": "🔴 [4:58:00 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 4516498,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 4527899,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21685,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4531862,
+   "kind": "console",
+   "text": "🔴 [4:58:16 PM] [ProviderResolver] Groq failed; falling back to the next provider."
+  },
+  {
+   "t": 4531862,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Groq failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 4548006,
+   "kind": "console",
+   "text": "🔴 [4:58:32 PM] [ProviderResolver] Cerebras failed; falling back to the next provider."
+  },
+  {
+   "t": 4548006,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Cerebras failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 4552022,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20140,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4552025,
+   "kind": "console",
+   "text": "🔴 [4:58:36 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 4552026,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 4552026,
+   "kind": "console",
+   "text": "Metadata: {provider: Fireworks, priority: 5, fallbackReason: Fireworks timed out after its 3.7s budget., latencyMs: 75300}"
+  },
+  {
+   "t": 4552027,
+   "kind": "console",
+   "text": "🟢 [4:58:36 PM] [ProviderResolver] Not trying Anthropic: the fallback chain's 70s budget is spent."
+  },
+  {
+   "t": 4552027,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: true, Message: Not trying Anthropic: the fallback chain's 70s budget is spent., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 4552027,
+   "kind": "console",
+   "text": "🔴 [4:58:36 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 4552027,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 4552032,
+   "kind": "turn",
+   "user": "What did I say my favorite color was?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as"
+  },
+  {
+   "t": 4552032,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 4552033,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 4567299,
+   "kind": "console",
+   "text": "[AIProviderRegistry] Skipping Fireworks during failure cooldown. {retryInMs: 14732, reason: Fireworks timed out after its 3.7s budget., credentialRefused: false}"
+  },
+  {
+   "t": 4570065,
+   "kind": "console",
+   "text": "[AIProviderRegistry] Skipping Fireworks during failure cooldown. {retryInMs: 11965, reason: Fireworks timed out after its 3.7s budget., credentialRefused: false}"
+  },
+  {
+   "t": 4580468,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21921,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4585281,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 4595848,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 4601081,
+   "kind": "not-ready",
+   "before": 19
+  },
+  {
+   "t": 4613370,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":28088,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4630824,
+   "kind": "user-said",
+   "n": 19,
+   "mode": "after-reply",
+   "text": "What's my name, and which city did we talk about first?",
+   "seconds": 2.8
+  },
+  {
+   "t": 4630840,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3187,\"spoke\":true,\"ms\":17382,\"peak\":0.3103,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 4634576,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 4654056,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 4654057,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 4654061,
+   "kind": "utterance",
+   "text": "What's my name and which city did we talk about first?",
+   "at": 1794070818392
+  },
+  {
+   "t": 4654061,
+   "kind": "turn",
+   "user": "What's my name and which city did we talk about first?",
+   "response": null
+  },
+  {
+   "t": 4654061,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 4669640,
+   "kind": "user-repeated",
+   "n": 19
+  },
+  {
+   "t": 4675999,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3187,\"spoke\":true,\"ms\":17875,\"peak\":0.3187,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
   }
  ],
  "turns": [
@@ -3591,155 +3818,24 @@
    "response": null,
    "at": 1794070553339,
    "startedAt": 1794070553339
+  },
+  {
+   "id": "879361d6-2769-47b9-b434-f7c3755fe9e3",
+   "user": "What did I say my favorite color was?",
+   "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "at": 1794070716367,
+   "startedAt": 1794070589455,
+   "respondedAt": 1794070716367
+  },
+  {
+   "id": "1c1b5e7a-8aad-47ee-aaa6-af208218e2e7",
+   "user": "What's my name and which city did we talk about first?",
+   "response": null,
+   "at": 1794070818392,
+   "startedAt": 1794070818392
   }
  ],
  "ledger": [
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 572,
-   "out": 36,
-   "cost": "reported",
-   "usd": 0.000062064,
-   "ms": 9975
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 1319,
-   "out": 700,
-   "cost": "reported",
-   "usd": 0.000674604,
-   "ms": 9605
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-stt",
-   "op": "stt",
-   "ok": true,
-   "model": "scribe_v1",
-   "in": null,
-   "out": null,
-   "results": 13,
-   "cost": "reported",
-   "usd": 0.0013,
-   "ms": 8594
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 32127,
-   "error": "BodyStreamBuffer was aborted"
-  },
-  {
-   "kind": "ai",
-   "source": "Fireworks",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 8560,
-   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info"
-  },
-  {
-   "kind": "ai",
-   "source": "Anthropic",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 9533,
-   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-tts",
-   "op": "tts",
-   "ok": true,
-   "in": null,
-   "out": null,
-   "results": 114,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 2839
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 1655,
-   "out": 600,
-   "cost": "reported",
-   "usd": 0.000924372,
-   "ms": 7946
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-tts",
-   "op": "tts",
-   "ok": true,
-   "in": null,
-   "out": null,
-   "results": 192,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 7368
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 570,
-   "out": 96,
-   "cost": "reported",
-   "usd": 0.00017451,
-   "ms": 6117
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-stt",
-   "op": "stt",
-   "ok": true,
-   "model": "scribe_v1",
-   "in": null,
-   "out": null,
-   "results": 15,
-   "cost": "reported",
-   "usd": 0.0015,
-   "ms": 6777
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 1424,
-   "out": 700,
-   "cost": "reported",
-   "usd": 0.000421136,
-   "ms": 12531
-  },
   {
    "kind": "ai",
    "source": "OpenRouter",
@@ -4804,6 +4900,152 @@
    "cost": "reported",
    "usd": 0.0017,
    "ms": 12080
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 8,
+   "cost": "reported",
+   "usd": 0.0008,
+   "ms": 14863
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 34813,
+   "error": "OpenRouter returned no usable content."
+  },
+  {
+   "kind": "ai",
+   "source": "Groq",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 15366,
+   "error": "Groq failed 429: Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m23qhezbeeb9d4t04bra28s6` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 198744, Reques"
+  },
+  {
+   "kind": "ai",
+   "source": "Cerebras",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 16141,
+   "error": "Cerebras HTTP 401: Wrong API Key"
+  },
+  {
+   "kind": "ai",
+   "source": "Fireworks",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 4017,
+   "error": "The user aborted a request."
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 114,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 6517
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1240,
+   "out": 206,
+   "cost": "reported",
+   "usd": 0.000194068,
+   "ms": 13160
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 564,
+   "out": 129,
+   "cost": "reported",
+   "usd": 0.00024015,
+   "ms": 15215
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 192,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 4732
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 564,
+   "out": 141,
+   "cost": "reported",
+   "usd": 0.00015228,
+   "ms": 15535
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 14,
+   "cost": "reported",
+   "usd": 0.0014,
+   "ms": 15535
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1264,
+   "out": 211,
+   "cost": "reported",
+   "usd": 0.000198738,
+   "ms": 15478
   }
  ]
 }
