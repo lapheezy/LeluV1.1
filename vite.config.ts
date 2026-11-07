@@ -51,6 +51,18 @@ export default defineConfig(({ mode, command }) => {
 
   const envReader = (key: string) => env[key] ?? process.env[key] ?? "";
 
+  /*
+   * Exact extra hosts the Cloud Browser serves this dev server under. Vite's
+   * `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS` hook only applies when
+   * `allowedHosts` is already an array, so it is read here instead. Names come
+   * from the environment only: unset means no extra host is allowed, and there
+   * is no blanket allowlist.
+   */
+  const extraAllowedHosts = (process.env.LELU_ALLOWED_HOSTS ?? "")
+    .split(",")
+    .map((host) => host.trim())
+    .filter(Boolean);
+
   // Report — by NAME only, never by value — which provider keys were
   // supplied under an unprefixed platform name and are therefore being
   // bridged onto the __LELU_*__ channel the providers already read.
@@ -297,6 +309,7 @@ export default defineConfig(({ mode, command }) => {
       host: "0.0.0.0",
       port: 5173,
       strictPort: true,
+      allowedHosts: extraAllowedHosts.length ? extraAllowedHosts : undefined,
       hmr: false,
       // LÉLU's workspace copies live in .lelu-sandbox. Watching them made
       // every copy and every edit she made there force a full reload of the
@@ -318,6 +331,7 @@ export default defineConfig(({ mode, command }) => {
       host: "0.0.0.0",
       port: 4173,
       strictPort: true,
+      allowedHosts: extraAllowedHosts.length ? extraAllowedHosts : undefined,
       proxy: {
         "/api/ai": {
           target: "https://models.inference.ai.azure.com",

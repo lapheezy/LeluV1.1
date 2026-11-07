@@ -26,6 +26,7 @@ import ResponseBuilder from "./router/ResponseBuilder";
 import AvatarResolver from "./router/AvatarResolver";
 import SurfaceResolver from "./router/SurfaceResolver";
 import CognitiveStateResolver from "./router/CognitiveStateResolver";
+import SpatialResolver from "./router/SpatialResolver";
 import IntelligenceResolver from "./router/IntelligenceResolver";
 import CapabilityManifest from "./capabilities/CapabilityManifest";
 import ToolRegistry from "./tools/ToolRegistry";
@@ -57,6 +58,7 @@ export default class AIRouter {
     private readonly avatar = new AvatarResolver(),
     private readonly surfaces: SurfaceResolver = new SurfaceResolver(workspace),
     private readonly cognitiveState = new CognitiveStateResolver(),
+    private readonly spatial = new SpatialResolver(),
     private readonly intelligence = new IntelligenceResolver(),
     private readonly responses = new ResponseBuilder(),
   ) {}
@@ -198,6 +200,14 @@ export default class AIRouter {
     // before any research/creative stage could misroute them.
     const surface = await this.traced(context, "surface", () => this.surfaces.execute(context));
     if (surface.handled && surface.response) return surface.response;
+
+    // 1.6 SPATIAL — scene commands execute against the live spatial
+    // graph through the tier guard: "create a red cube", "move it up",
+    // "connect the cube to the sphere". Deterministic and local, and it
+    // runs before creative/engineering stages so the word "create" can
+    // no longer send a scene request into a scaffold.
+    const spatial = await this.spatial.execute(context);
+    if (spatial.handled && spatial.response) return spatial.response;
 
     await this.planning.execute(context);
     await this.reasoning.execute(context);

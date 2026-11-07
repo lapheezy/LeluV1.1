@@ -1,0 +1,309 @@
+{
+  "capturedAt": "2026-11-06T17:02:59.651Z",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "steps": [
+    {
+      "slug": "nova",
+      "command": "create a box named Nova",
+      "error": null,
+      "before": {
+        "revision": 0,
+        "nodes": 29,
+        "objects": [],
+        "camera": {
+          "position": [
+            -5,
+            2.9999999999999996,
+            5.000000000000001
+          ],
+          "direction": [
+            0.684081586246062,
+            -0.25311018691104287,
+            -0.6840815862460622
+          ],
+          "fov": 49,
+          "aspect": 1.6,
+          "near": 0.1,
+          "far": 1000,
+          "updatedAt": 1793984367572
+        }
+      },
+      "after": {
+        "revision": 0,
+        "nodes": 29,
+        "objects": [],
+        "camera": {
+          "position": [
+            6,
+            2.500000000000001,
+            4
+          ],
+          "direction": [
+            -0.8178418254902374,
+            -0.18401441073530356,
+            -0.5452278836601582
+          ],
+          "fov": 49,
+          "aspect": 1.6,
+          "near": 0.1,
+          "far": 1000,
+          "updatedAt": 1793984379719
+        }
+      },
+      "transcript": ""
+    },
+    {
+      "slug": "comet",
+      "command": "create a sphere named Comet",
+      "error": null,
+      "before": {
+        "revision": 0,
+        "nodes": 29,
+        "objects": [],
+        "camera": {
+          "position": [
+            6,
+            2.500000000000001,
+            4
+          ],
+          "direction": [
+            -0.8178418254902374,
+            -0.18401441073530356,
+            -0.5452278836601582
+          ],
+          "fov": 49,
+          "aspect": 1.6,
+          "near": 0.1,
+          "far": 1000,
+          "updatedAt": 1793984380276
+        }
+      },
+      "after": {
+        "revision": 0,
+        "nodes": 29,
+        "objects": [],
+        "camera": {
+          "position": [
+            -3.0000000000000004,
+            1.5000000000000004,
+            7.000000000000001
+          ],
+          "direction": [
+            0.3935039640122068,
+            -0.04590879580142419,
+            -0.9181759160284826
+          ],
+          "fov": 49,
+          "aspect": 1.6,
+          "near": 0.1,
+          "far": 1000,
+          "updatedAt": 1793984392332
+        }
+      },
+      "transcript": ""
+    },
+    {
+      "slug": "show-nova",
+      "command": "Show me Nova.",
+      "error": null,
+      "before": {
+        "revision": 0,
+        "nodes": 29,
+        "objects": [],
+        "camera": {
+          "position": [
+            -3.0000000000000004,
+            1.5000000000000004,
+            7.000000000000001
+          ],
+          "direction": [
+            0.3935039640122068,
+            -0.04590879580142419,
+            -0.9181759160284826
+          ],
+          "fov": 49,
+          "aspect": 1.6,
+          "near": 0.1,
+          "far": 1000,
+          "updatedAt": 1793984392759
+        }
+      },
+      "after": {
+        "revision": 0,
+        "nodes": 29,
+        "objects": [],
+        "camera": {
+          "position": [
+            4,
+            4,
+            -2.9999999999999987
+          ],
+          "direction": [
+            -0.6950218161541288,
+            -0.49520304400981674,
+            0.5212663621155964
+          ],
+          "fov": 49,
+          "aspect": 1.6,
+          "near": 0.1,
+          "far": 1000,
+          "updatedAt": 1793984537517
+        }
+      },
+      "transcript": ""
+    },
+    {
+      "slug": "closeup-comet",
+      "command": "Give me a close-up of Comet.",
+      "error": null,
+      "before": {
+        "revision": 0,
+        "nodes": 29,
+        "objects": [],
+        "camera": {
+          "position": [
+            0,
+            1.5000000000000004,
+            5
+          ],
+          "direction": [
+            0,
+            -0.06982912769991398,
+            -0.9975589671416267
+          ],
+          "fov": 49,
+          "aspect": 1.6,
+          "near": 0.1,
+          "far": 1000,
+          "updatedAt": 1793984541695
+        }
+      },
+      "after": {
+        "revision": 0,
+        "nodes": 29,
+        "objects": [],
+        "camera": {
+          "position": [
+            0,
+            3.5000000000000004,
+            8.000000000000002
+          ],
+          "direction": [
+            0,
+            -0.2818416494769944,
+            -0.9594609343897682
+          ],
+          "fov": 49,
+          "aspect": 1.6,
+          "near": 0.1,
+          "far": 1000,
+          "updatedAt": 1793984554033
+        }
+      },
+      "transcript": ""
+    },
+    {
+      "slug": "system",
+      "command": "Zoom out and show the entire planetary system.",
+      "error": null,
+      "before": {
+        "revision": 0,
+        "nodes": 29,
+        "objects": [],
+        "camera": {
+          "position": [
+            0,
+            3.5000000000000004,
+            8.000000000000002
+          ],
+          "direction": [
+            0,
+            -0.2818416494769944,
+            -0.9594609343897682
+          ],
+          "fov": 49,
+          "aspect": 1.6,
+          "near": 0.1,
+          "far": 1000,
+          "updatedAt": 1793984554640
+        }
+      },
+      "after": {
+        "revision": 0,
+        "nodes": 29,
+        "objects": [],
+        "camera": {
+          "position": [
+            0,
+            3.5000000000000004,
+            8.000000000000002
+          ],
+          "direction": [
+            0,
+            -0.2818416494769944,
+            -0.9594609343897682
+          ],
+          "fov": 49,
+          "aspect": 1.6,
+          "near": 0.1,
+          "far": 1000,
+          "updatedAt": 1793984566677
+        }
+      },
+      "transcript": ""
+    },
+    {
+      "slug": "reset",
+      "command": "Return to the original Genesis view.",
+      "error": null,
+      "before": {
+        "revision": 0,
+        "nodes": 29,
+        "objects": [],
+        "camera": {
+          "position": [
+            0,
+            3.5000000000000004,
+            8.000000000000002
+          ],
+          "direction": [
+            0,
+            -0.2818416494769944,
+            -0.9594609343897682
+          ],
+          "fov": 49,
+          "aspect": 1.6,
+          "near": 0.1,
+          "far": 1000,
+          "updatedAt": 1793984567149
+        }
+      },
+      "after": {
+        "revision": 0,
+        "nodes": 29,
+        "objects": [],
+        "camera": {
+          "position": [
+            -3.0000000000000004,
+            1.5000000000000004,
+            7.000000000000001
+          ],
+          "direction": [
+            0.3935039640122068,
+            -0.04590879580142419,
+            -0.9181759160284826
+          ],
+          "fov": 49,
+          "aspect": 1.6,
+          "near": 0.1,
+          "far": 1000,
+          "updatedAt": 1793984579179
+        }
+      },
+      "transcript": ""
+    }
+  ]
+}

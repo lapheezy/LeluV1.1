@@ -77,5 +77,8 @@ leluverse/assets/characters/lelu_character/animations/*/animation.fbx
 # so the binaries stay local and only the ledger records them.
 leluverse/assets/**/meshes/v*_export_*/
 
+# Playwright trace archives are large; keep them out of git
+docs/acceptance/**/traces/
+
 # Playwright browser libraries unpacked into the workspace (see docs/acceptance/spatial-phase-2-11/scripts/README.md)
 .apt/

@@ -50,6 +50,7 @@
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Html, useContextBridge } from "@react-three/drei";
+import SpatialLayer from "./spatial/SpatialLayer";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AdditiveBlending,
@@ -1454,6 +1455,10 @@ export default function GenesisV2Scene3D({
           coreLabel={coreLabel}
         />
         <V2EnergyBeams active={activity > 0.5} />
+
+        {/* Authorial spatial objects — the live SpatialSceneGraph rendered
+            with the EXISTING renderer, as siblings of the Core. */}
+        <SpatialLayer />
         {SATELLITES.map((seed) => (
           <V2Satellite
             key={seed.id}

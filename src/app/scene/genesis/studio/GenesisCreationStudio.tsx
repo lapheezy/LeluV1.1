@@ -10,6 +10,7 @@ import GenesisWindowFrame from "../GenesisWindowFrame";
 import { artifactGist, firstChartSvg } from "../../../../core/studio/StudioPreview";
 import type { StudioArtifact } from "../../../../core/studio/StudioStore";
 import { KIND_LABEL, openArtifacts, useStudioStore } from "./useStudio";
+import PlaceInWorldButton from "../spatial/PlaceInWorldButton";
 import "./studio.css";
 
 export const KIND_ICON = { document: FileText, deck: Presentation, workbook: FileSpreadsheet } as const;
@@ -73,13 +74,25 @@ function LibraryCard({ artifact }: { artifact: StudioArtifact }) {
   const Icon = KIND_ICON[artifact.kind];
   const svg = firstChartSvg(latest.spec);
   const verified = [...new Set(artifact.exports.filter((e) => e.ok && e.rev === latest.rev).map((e) => e.format.toUpperCase()))];
+  const color = artifact.kind === "deck" ? "#38bdf8" : artifact.kind === "workbook" ? "#34d399" : "#a78bfa";
   return (
-    <button type="button" className="lst-card" onClick={() => openArtifacts([artifact.id])} data-lelu-studio-card={artifact.id}>
-      <span className="lst-card-head"><Icon size={15} aria-hidden /> {KIND_LABEL[artifact.kind]} · r{latest.rev}</span>
-      <strong>{artifact.title}</strong>
-      {svg ? <span className="lst-thumb" dangerouslySetInnerHTML={{ __html: svg }} /> : null}
-      <span className="lst-gist">{artifactGist(latest.spec)}</span>
-      <span className="lst-meta">{verified.length ? `verified: ${verified.join(", ")}` : "not exported"}{artifact.original ? ` · from ${artifact.original.name}` : ""}</span>
-    </button>
+    <div className="lst-card" data-lelu-studio-card={artifact.id}>
+      <button type="button" className="lst-card-open" onClick={() => openArtifacts([artifact.id])}>
+        <span className="lst-card-head"><Icon size={15} aria-hidden /> {KIND_LABEL[artifact.kind]} · r{latest.rev}</span>
+        <strong>{artifact.title}</strong>
+        {svg ? <span className="lst-thumb" dangerouslySetInnerHTML={{ __html: svg }} /> : null}
+        <span className="lst-gist">{artifactGist(latest.spec)}</span>
+        <span className="lst-meta">{verified.length ? `verified: ${verified.join(", ")}` : "not exported"}{artifact.original ? ` · from ${artifact.original.name}` : ""}</span>
+      </button>
+      {/* The artifact is the subject; placing it makes a real scene object. */}
+      <PlaceInWorldButton
+        name={artifact.title}
+        kind="box"
+        color={color}
+        scale={0.8}
+        label="Place in world"
+        className="lst-btn ghost"
+      />
+    </div>
   );
 }

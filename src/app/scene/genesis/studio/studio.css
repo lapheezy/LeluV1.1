@@ -32,7 +32,8 @@
 .lst-reopen pre { margin: 0; max-height: 160px; overflow: auto; white-space: pre-wrap; font: 11.5px/1.45 var(--lelu-font-mono, ui-monospace, monospace); }
 .lst-reopen .bad { color: #ffb4b4; }
 .lst-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; overflow: auto; }
-.lst-card { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 12px; border-radius: 14px; border: 1px solid rgba(255, 236, 252, 0.14); background: rgba(24, 16, 52, 0.62); color: inherit; font: inherit; cursor: pointer; }
+.lst-card { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 12px; border-radius: 14px; border: 1px solid rgba(255, 236, 252, 0.14); background: rgba(24, 16, 52, 0.62); color: inherit; font: inherit; cursor: default; }
+.lst-card-open { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
 .lst-card:hover { border-color: rgba(185, 140, 255, 0.5); }
 .lst-card-head { display: flex; align-items: center; gap: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; }
 .lst-card strong { font-size: 14px; line-height: 1.3; }
@@ -59,4 +60,20 @@
   .lst-export { grid-template-columns: auto 1fr auto; }
   .lst-export .meta { grid-column: 2 / -1; }
   .lst-preview { min-height: 240px; }
+
+  /*
+   * The library had TWO nested scrollers inside the sheet's transformed
+   * content wrapper: the frame body scrolled, and so did this grid, sized by
+   * `height: 100%` against an auto-height parent. On a phone the action at
+   * the bottom of a card could not be scrolled into view at all — Chromium
+   * reported it outside the viewport and a tap never landed. One scroller
+   * (the sheet body), one column, and the card flows in it: every action is
+   * reachable by scrolling the same surface the rest of the panel uses.
+   */
+  .lst-library { height: auto; }
+  .lst-grid { grid-template-columns: 1fr; overflow: visible; }
+  .lst-card { min-height: 0; }
+  .lst-card-open { min-width: 0; }
+  .lst-card > span { min-width: 0; }
+  .lst-card .lst-btn { align-self: flex-start; }
 }

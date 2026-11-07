@@ -133,6 +133,7 @@ import VisualEngine from "../../../core/visual/VisualEngine";
 import CosmosHome from "./home/CosmosHome";
 import SpatialNav, { type HomeSheet } from "./home/SpatialNav";
 import ChatUniverse from "./chat/universe/ChatUniverse";
+import SpatialRevealBridge from "./spatial/SpatialRevealBridge";
 import UniverseChatWindow from "./chat/universe/UniverseChatWindow";
 import { useHomeStore } from "./home/useHomeLive";
 import AgentEventBus from "../../../core/agent/AgentEvents";
@@ -873,6 +874,10 @@ export default function GenesisInterface() {
       )}
 
       <ChatUniverse />
+      {/* A chat-created object is revealed in the live Genesis world: closing
+          chat lands on the world framed on it instead of the home dashboard. */}
+      <SpatialRevealBridge />
+      
       {/* Unmounted (not hidden) while a conversation or window owns the phone screen. */}
       {navHidden && (surface.chatOwnsScreen || surface.workspaceOwnsScreen) ? null : (
         <SpatialNav

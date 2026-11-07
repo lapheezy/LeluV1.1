@@ -56,6 +56,7 @@ const EDGE = 12;
 const MIN_W = 100;
 const MIN_H = 160;
 
+
 export type CompanionPresence = "face" | "window" | "hero";
 
 interface Box {
@@ -319,6 +320,8 @@ function CompanionWindow({
   const [name, setName] = useState(() => AvatarStore.getInstance().get().identity.name || "LÉLU");
   useEffect(() => AvatarStore.getInstance().subscribe((profile) => setName(profile.identity.name || "LÉLU")), []);
 
+  // A remembered position is hers when you placed her there. When the space
+  // plan has no room for her at all, she is not rendered at all.
   const saved = companion.window;
   const placed: Box | null = saved
     ? clampBox(

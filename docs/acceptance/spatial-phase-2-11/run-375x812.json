@@ -1,0 +1,70 @@
+{
+ "commit": "7a2bf49",
+ "at": "2026-11-07T06:48:39.087Z",
+ "results": [
+  {
+   "viewport": "375x812",
+   "mobile": true,
+   "dpr": 2,
+   "shots": [
+    "01-genesis-shell",
+    "02-cosmos",
+    "03-portal-ring",
+    "04-portals-and-layout",
+    "05-creation-studio",
+    "06-chat-open"
+   ],
+   "steps": [
+    "OK identity-gate",
+    "OK cosmos",
+    "OK spatial-nav",
+    "OK portals-layout",
+    "NO studio",
+    "NO chat"
+   ],
+   "errors": [
+    "C Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectu"
+   ],
+   "metrics": {
+    "fpsIdle": 2,
+    "fpsSpatial": 4,
+    "canvases": 3,
+    "textLen": 1149,
+    "heapMB": 527,
+    "heapLimitMB": 3586,
+    "cameraOwner": null,
+    "probe": {
+     "revision": 0,
+     "presence": {
+      "traversal": "idle",
+      "attention": null,
+      "lastAction": "",
+      "lastActionAt": 0,
+      "revision": 0
+     },
+     "camera": {
+      "position": [
+       0,
+       6,
+       0.5000000000000007
+      ],
+      "direction": [
+       0,
+       -0.9948257635665623,
+       -0.10159576833808884
+      ],
+      "fov": 56,
+      "aspect": 0.4618226600985222,
+      "near": 0.1,
+      "far": 1000,
+      "updatedAt": 1794034118861
+     },
+     "nodes": 29,
+     "objects": []
+    },
+    "reveal": null,
+    "glRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+   }
+  }
+ ]
+}

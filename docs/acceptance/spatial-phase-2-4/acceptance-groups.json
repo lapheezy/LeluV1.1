@@ -1,0 +1,881 @@
+{
+  "capturedAt": "2026-11-06T18:00:05.361Z",
+  "head": "2a134494f7e9fd944b61daff46198ed01327563d",
+  "groups": [
+    {
+      "name": "1440x900",
+      "viewport": {
+        "w": 1440,
+        "h": 900,
+        "dpr": 1
+      },
+      "steps": [
+        {
+          "text": "create a cube called Nova",
+          "typed": "create a cube called Nova",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "nodes": 29,
+            "objects": [],
+            "camera": {
+              "position": [
+                3.058115787233304,
+                2.990314035461118,
+                5.961256141844466
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 480,
+                "h": 270,
+                "cssW": 1440
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "cssW": 1440
+              },
+              {
+                "w": 395,
+                "h": 330,
+                "cssW": 395
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900,
+              "dpr": 1
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "id": "spatial-box-1",
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  -2.853882216028187,
+                  -1.35,
+                  1.239094950775785
+                ],
+                "color": "#7c3aed"
+              }
+            ],
+            "camera": {
+              "position": [
+                0,
+                3.1817535821863556,
+                7.522630373279536
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 480,
+                "h": 270,
+                "cssW": 1440
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "cssW": 1440
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "cssW": 200
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900,
+              "dpr": 1
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "create a cube called Nova"
+            },
+            {
+              "role": "assistant",
+              "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+            }
+          ],
+          "latencyMs": 9254
+        },
+        {
+          "text": "add a sphere called Comet",
+          "typed": "add a sphere called Comet",
+          "submitted": true,
+          "before": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "id": "spatial-box-1",
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  -2.853882216028187,
+                  -1.35,
+                  1.239094950775785
+                ],
+                "color": "#7c3aed"
+              }
+            ],
+            "camera": {
+              "position": [
+                0,
+                2.0737557509184783,
+                5.860633626377717
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 480,
+                "h": 270,
+                "cssW": 1440
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "cssW": 1440
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "cssW": 200
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900,
+              "dpr": 1
+            }
+          },
+          "after": {
+            "revision": 2,
+            "nodes": 29,
+            "objects": [
+              {
+                "id": "spatial-box-1",
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  -2.853882216028187,
+                  -1.35,
+                  1.239094950775785
+                ],
+                "color": "#7c3aed"
+              },
+              {
+                "id": "spatial-sphere-2",
+                "name": "Comet",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  -3.3126285982021653,
+                  -1.35,
+                  2.401872554981459
+                ],
+                "color": "#7c3aed"
+              }
+            ],
+            "camera": {
+              "position": [
+                0,
+                1.5000000000000004,
+                5
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 480,
+                "h": 270,
+                "cssW": 1440
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "cssW": 1440
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "cssW": 200
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900,
+              "dpr": 1
+            }
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+            },
+            {
+              "role": "user",
+              "text": "add a sphere called Comet"
+            },
+            {
+              "role": "assistant",
+              "text": "Created \"Comet\" (sphere) at (3.45, -1.35, 2.2). Scene revision 2 — 2 objects."
+            }
+          ],
+          "latencyMs": 2228
+        }
+      ]
+    },
+    {
+      "name": "1280x800",
+      "viewport": {
+        "w": 1280,
+        "h": 800,
+        "dpr": 1
+      },
+      "steps": [
+        {
+          "text": "create a cube called Nova",
+          "typed": "create a cube called Nova",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "nodes": 29,
+            "objects": [],
+            "camera": {
+              "position": [
+                3.8907374576886165,
+                3.931710911055385,
+                -2.7814749153772307
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 480,
+                "h": 270,
+                "cssW": 1280
+              },
+              {
+                "w": 1280,
+                "h": 800,
+                "cssW": 1280
+              },
+              {
+                "w": 395,
+                "h": 330,
+                "cssW": 395
+              }
+            ],
+            "viewport": {
+              "w": 1280,
+              "h": 800,
+              "dpr": 1
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "id": "spatial-box-1",
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  -3.1107459230663164,
+                  -1.35,
+                  0.057094676864742455
+                ],
+                "color": "#7c3aed"
+              }
+            ],
+            "camera": {
+              "position": [
+                0,
+                1.5000000000000004,
+                5
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 480,
+                "h": 270,
+                "cssW": 1280
+              },
+              {
+                "w": 1280,
+                "h": 800,
+                "cssW": 1280
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "cssW": 200
+              }
+            ],
+            "viewport": {
+              "w": 1280,
+              "h": 800,
+              "dpr": 1
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "create a cube called Nova"
+            },
+            {
+              "role": "assistant",
+              "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+            }
+          ],
+          "latencyMs": 5134
+        },
+        {
+          "text": "what is in the scene",
+          "typed": "what is in the scene",
+          "submitted": true,
+          "before": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "id": "spatial-box-1",
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  -3.1107459230663164,
+                  -1.35,
+                  0.057094676864742455
+                ],
+                "color": "#7c3aed"
+              }
+            ],
+            "camera": {
+              "position": [
+                0,
+                1.5000000000000004,
+                5
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 480,
+                "h": 270,
+                "cssW": 1280
+              },
+              {
+                "w": 1280,
+                "h": 800,
+                "cssW": 1280
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "cssW": 200
+              }
+            ],
+            "viewport": {
+              "w": 1280,
+              "h": 800,
+              "dpr": 1
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "id": "spatial-box-1",
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  -3.1107459230663164,
+                  -1.35,
+                  0.057094676864742455
+                ],
+                "color": "#7c3aed"
+              }
+            ],
+            "camera": {
+              "position": [
+                0,
+                1.5000000000000004,
+                5
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 480,
+                "h": 270,
+                "cssW": 1280
+              },
+              {
+                "w": 1280,
+                "h": 800,
+                "cssW": 1280
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "cssW": 200
+              }
+            ],
+            "viewport": {
+              "w": 1280,
+              "h": 800,
+              "dpr": 1
+            }
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+            },
+            {
+              "role": "user",
+              "text": "what is in the scene"
+            },
+            {
+              "role": "assistant",
+              "text": "Scene revision 1: 1 object — \"Nova\" (box) at (2.2, -1.35, 2.2)."
+            }
+          ],
+          "latencyMs": 2131
+        },
+        {
+          "slug": "focus",
+          "text": "show me Nova",
+          "error": "Error: keyboard.press: Target page, context or browser has been closed\nBrowser logs:\n\n[pid=315245][err] [315245:315245:1106/180039.260222:ERROR:ui/gfx/render_te"
+        }
+      ]
+    },
+    {
+      "name": "1024x768",
+      "viewport": {
+        "w": 1024,
+        "h": 768,
+        "dpr": 1
+      },
+      "steps": [
+        {
+          "text": "add a sphere called Comet",
+          "typed": "add a sphere called Comet",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "nodes": 29,
+            "objects": [],
+            "camera": {
+              "position": [
+                0,
+                6,
+                0.4999999999999989
+              ],
+              "fov": 51
+            },
+            "canvases": [
+              {
+                "w": 480,
+                "h": 270,
+                "cssW": 1024
+              },
+              {
+                "w": 1024,
+                "h": 768,
+                "cssW": 1024
+              },
+              {
+                "w": 365,
+                "h": 330,
+                "cssW": 365
+              }
+            ],
+            "viewport": {
+              "w": 1024,
+              "h": 768,
+              "dpr": 1
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "id": "spatial-sphere-1",
+                "name": "Comet",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  2.9895462999833358,
+                  -1.35,
+                  -0.8617499174679091
+                ],
+                "color": "#7c3aed"
+              }
+            ],
+            "camera": {
+              "position": [
+                -0.10709375997451777,
+                5.839359360038223,
+                0.7320364799447873
+              ],
+              "fov": 51
+            },
+            "canvases": [
+              {
+                "w": 480,
+                "h": 270,
+                "cssW": 1024
+              },
+              {
+                "w": 1024,
+                "h": 768,
+                "cssW": 1024
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "cssW": 200
+              }
+            ],
+            "viewport": {
+              "w": 1024,
+              "h": 768,
+              "dpr": 1
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "add a sphere called Comet"
+            },
+            {
+              "role": "assistant",
+              "text": "Created \"Comet\" (sphere) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+            }
+          ],
+          "latencyMs": 7917
+        },
+        {
+          "text": "show everything",
+          "typed": "show everything",
+          "submitted": true,
+          "before": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "id": "spatial-sphere-1",
+                "name": "Comet",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  2.9895462999833358,
+                  -1.35,
+                  -0.8617499174679091
+                ],
+                "color": "#7c3aed"
+              }
+            ],
+            "camera": {
+              "position": [
+                -0.8461517065234117,
+                4.730772440214882,
+                2.3333286974673904
+              ],
+              "fov": 51
+            },
+            "canvases": [
+              {
+                "w": 480,
+                "h": 270,
+                "cssW": 1024
+              },
+              {
+                "w": 1024,
+                "h": 768,
+                "cssW": 1024
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "cssW": 200
+              }
+            ],
+            "viewport": {
+              "w": 1024,
+              "h": 768,
+              "dpr": 1
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "id": "spatial-sphere-1",
+                "name": "Comet",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  2.9895462999833358,
+                  -1.35,
+                  -0.8617499174679091
+                ],
+                "color": "#7c3aed"
+              }
+            ],
+            "camera": {
+              "position": [
+                -3.9000000000000017,
+                1.6050000000000009,
+                9.100000000000003
+              ],
+              "fov": 51
+            },
+            "canvases": [
+              {
+                "w": 480,
+                "h": 270,
+                "cssW": 1024
+              },
+              {
+                "w": 1024,
+                "h": 768,
+                "cssW": 1024
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "cssW": 200
+              }
+            ],
+            "viewport": {
+              "w": 1024,
+              "h": 768,
+              "dpr": 1
+            }
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "text": "Created \"Comet\" (sphere) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+            },
+            {
+              "role": "user",
+              "text": "show everything"
+            },
+            {
+              "role": "assistant",
+              "text": "Framed \"Comet\" — camera at (1.89, -0.83, 0.58) looking at (2.99, -1.35, -0.86). verification: camera fail, framing pass (graph, renderer, screenshot not measurable here). No scene object changed."
+            }
+          ],
+          "latencyMs": 3079
+        }
+      ]
+    },
+    {
+      "name": "390x844",
+      "viewport": {
+        "w": 390,
+        "h": 844,
+        "dpr": 1
+      },
+      "steps": [
+        {
+          "text": "what is in the scene",
+          "typed": "what is in the scene",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "nodes": 29,
+            "objects": [],
+            "camera": {
+              "position": [
+                3,
+                2,
+                6.5
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 480,
+                "h": 270,
+                "cssW": 390
+              },
+              {
+                "w": 390,
+                "h": 844,
+                "cssW": 390
+              },
+              {
+                "w": 161,
+                "h": 220,
+                "cssW": 162
+              }
+            ],
+            "viewport": {
+              "w": 390,
+              "h": 844,
+              "dpr": 1
+            }
+          },
+          "after": {
+            "revision": 0,
+            "nodes": 0,
+            "objects": [],
+            "camera": {
+              "position": [
+                3,
+                2,
+                6.5
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 120,
+                "h": 174,
+                "cssW": 120
+              }
+            ],
+            "viewport": {
+              "w": 390,
+              "h": 844,
+              "dpr": 1
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "what is in the scene"
+            },
+            {
+              "role": "assistant",
+              "text": "The scene is empty — revision 0."
+            }
+          ],
+          "latencyMs": 5136
+        },
+        {
+          "slug": "create",
+          "text": "add a sphere called Comet",
+          "error": "TimeoutError: locator.click: Timeout 6000ms exceeded.\nCall log:\n  - waiting for locator('textarea').nth(1)\n    - locator resolved to <textarea rows=\"1\" enterkey"
+        }
+      ]
+    },
+    {
+      "name": "375x812",
+      "viewport": {
+        "w": 375,
+        "h": 812,
+        "dpr": 1
+      },
+      "steps": [
+        {
+          "text": "create a cube called Nova",
+          "typed": "create a cube called Nova",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "nodes": 29,
+            "objects": [],
+            "camera": {
+              "position": [
+                -0.19368066666666667,
+                1.5000000000000022,
+                5.129120444444443
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 480,
+                "h": 270,
+                "cssW": 375
+              },
+              {
+                "w": 375,
+                "h": 812,
+                "cssW": 375
+              },
+              {
+                "w": 157,
+                "h": 220,
+                "cssW": 157
+              }
+            ],
+            "viewport": {
+              "w": 375,
+              "h": 812,
+              "dpr": 1
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 0,
+            "objects": [
+              {
+                "id": "spatial-box-1",
+                "name": "Nova",
+                "rendered": false
+              }
+            ],
+            "camera": {
+              "position": [
+                -3.0000000000000004,
+                1.5000000000000004,
+                7.000000000000001
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 120,
+                "h": 174,
+                "cssW": 120
+              }
+            ],
+            "viewport": {
+              "w": 375,
+              "h": 812,
+              "dpr": 1
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "create a cube called Nova"
+            },
+            {
+              "role": "assistant",
+              "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+            }
+          ],
+          "latencyMs": 4684
+        }
+      ]
+    }
+  ]
+}

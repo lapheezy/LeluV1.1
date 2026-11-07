@@ -1,0 +1,371 @@
+{
+  "capturedAt": "2026-11-06T17:58:52.879Z",
+  "head": "2a134494f7e9fd944b61daff46198ed01327563d",
+  "viewport": {
+    "w": 1440,
+    "h": 900,
+    "dpr": 1
+  },
+  "steps": [
+    {
+      "text": "what is in the scene",
+      "typed": "what is in the scene",
+      "submitted": true,
+      "before": {
+        "revision": 0,
+        "nodes": 29,
+        "objects": [],
+        "camera": {
+          "position": [
+            3,
+            2,
+            6.5
+          ],
+          "fov": 49
+        },
+        "canvases": [
+          {
+            "w": 480,
+            "h": 270,
+            "cssW": 1440
+          },
+          {
+            "w": 1440,
+            "h": 900,
+            "cssW": 1440
+          },
+          {
+            "w": 395,
+            "h": 330,
+            "cssW": 395
+          }
+        ],
+        "viewport": {
+          "w": 1440,
+          "h": 900,
+          "dpr": 1
+        }
+      },
+      "after": {
+        "revision": 0,
+        "nodes": 27,
+        "objects": [],
+        "camera": {
+          "position": [
+            3.2319093599625015,
+            2.0386515599937507,
+            6.306742200031248
+          ],
+          "fov": 49
+        },
+        "canvases": [
+          {
+            "w": 480,
+            "h": 270,
+            "cssW": 1440
+          },
+          {
+            "w": 1440,
+            "h": 900,
+            "cssW": 1440
+          },
+          {
+            "w": 200,
+            "h": 304,
+            "cssW": 200
+          }
+        ],
+        "viewport": {
+          "w": 1440,
+          "h": 900,
+          "dpr": 1
+        }
+      },
+      "transcript": [
+        {
+          "role": "user",
+          "text": "what is in the scene"
+        },
+        {
+          "role": "assistant",
+          "text": "The scene is empty — revision 0."
+        }
+      ],
+      "latencyMs": 12463,
+      "slug": "list"
+    },
+    {
+      "text": "create a cube called Nova",
+      "typed": "create a cube called Nova",
+      "submitted": true,
+      "before": {
+        "revision": 0,
+        "nodes": 27,
+        "objects": [],
+        "camera": {
+          "position": [
+            4.930482960161057,
+            2.3217471600268427,
+            4.891264199865786
+          ],
+          "fov": 49
+        },
+        "canvases": [
+          {
+            "w": 480,
+            "h": 270,
+            "cssW": 1440
+          },
+          {
+            "w": 1440,
+            "h": 900,
+            "cssW": 1440
+          },
+          {
+            "w": 200,
+            "h": 304,
+            "cssW": 200
+          }
+        ],
+        "viewport": {
+          "w": 1440,
+          "h": 900,
+          "dpr": 1
+        }
+      },
+      "after": {
+        "revision": 1,
+        "nodes": 28,
+        "objects": [
+          {
+            "id": "spatial-box-1",
+            "name": "Nova",
+            "rendered": true,
+            "visible": true,
+            "world": [
+              2.780755008546424,
+              -1.35,
+              -1.3954933115009833
+            ],
+            "color": "#7c3aed"
+          }
+        ],
+        "camera": {
+          "position": [
+            6,
+            2.500000000000001,
+            4
+          ],
+          "fov": 49
+        },
+        "canvases": [
+          {
+            "w": 480,
+            "h": 270,
+            "cssW": 1440
+          },
+          {
+            "w": 1440,
+            "h": 900,
+            "cssW": 1440
+          },
+          {
+            "w": 200,
+            "h": 304,
+            "cssW": 200
+          }
+        ],
+        "viewport": {
+          "w": 1440,
+          "h": 900,
+          "dpr": 1
+        }
+      },
+      "transcript": [
+        {
+          "role": "assistant",
+          "text": "The scene is empty — revision 0."
+        },
+        {
+          "role": "user",
+          "text": "create a cube called Nova"
+        },
+        {
+          "role": "assistant",
+          "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+        }
+      ],
+      "latencyMs": 2126,
+      "slug": "nova"
+    },
+    {
+      "text": "add a sphere called Comet",
+      "typed": "add a sphere called Comet",
+      "submitted": true,
+      "before": {
+        "revision": 1,
+        "nodes": 28,
+        "objects": [
+          {
+            "id": "spatial-box-1",
+            "name": "Nova",
+            "rendered": true,
+            "visible": true,
+            "world": [
+              2.780755008546424,
+              -1.35,
+              -1.3954933115009833
+            ],
+            "color": "#7c3aed"
+          }
+        ],
+        "camera": {
+          "position": [
+            6,
+            2.500000000000001,
+            4
+          ],
+          "fov": 49
+        },
+        "canvases": [
+          {
+            "w": 480,
+            "h": 270,
+            "cssW": 1440
+          },
+          {
+            "w": 1440,
+            "h": 900,
+            "cssW": 1440
+          },
+          {
+            "w": 200,
+            "h": 304,
+            "cssW": 200
+          }
+        ],
+        "viewport": {
+          "w": 1440,
+          "h": 900,
+          "dpr": 1
+        }
+      },
+      "after": {
+        "revision": 2,
+        "nodes": 29,
+        "objects": [
+          {
+            "id": "spatial-box-1",
+            "name": "Nova",
+            "rendered": true,
+            "visible": true,
+            "world": [
+              2.780755008546424,
+              -1.35,
+              -1.3954933115009833
+            ],
+            "color": "#7c3aed"
+          },
+          {
+            "id": "spatial-sphere-2",
+            "name": "Comet",
+            "rendered": true,
+            "visible": true,
+            "world": [
+              3.174295263388879,
+              -1.35,
+              -2.581927493332633
+            ],
+            "color": "#7c3aed"
+          }
+        ],
+        "camera": {
+          "position": [
+            6,
+            2.500000000000001,
+            4
+          ],
+          "fov": 49
+        },
+        "canvases": [
+          {
+            "w": 480,
+            "h": 270,
+            "cssW": 1440
+          },
+          {
+            "w": 1440,
+            "h": 900,
+            "cssW": 1440
+          },
+          {
+            "w": 200,
+            "h": 304,
+            "cssW": 200
+          }
+        ],
+        "viewport": {
+          "w": 1440,
+          "h": 900,
+          "dpr": 1
+        }
+      },
+      "transcript": [
+        {
+          "role": "assistant",
+          "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object."
+        },
+        {
+          "role": "user",
+          "text": "add a sphere called Comet"
+        },
+        {
+          "role": "assistant",
+          "text": "Created \"Comet\" (sphere) at (3.45, -1.35, 2.2). Scene revision 2 — 2 objects."
+        }
+      ],
+      "latencyMs": 2133,
+      "slug": "comet"
+    },
+    {
+      "slug": "focus",
+      "text": "show me Nova",
+      "error": "Error: keyboard.press: Target page, context or browser has been closed\nBrowser logs:\n\n[pid=314361][err] [314361:314361:1106/175853.139326:ERROR:ui/gfx/render_text_harfbuzz.cc:1156]  TextRunHarfBuzz er"
+    },
+    {
+      "slug": "zoom",
+      "text": "zoom out",
+      "error": "Error: page.evaluate: Target page, context or browser has been closed"
+    },
+    {
+      "slug": "orbit",
+      "text": "orbit around Nova by 30 degrees",
+      "error": "Error: page.evaluate: Target page, context or browser has been closed"
+    },
+    {
+      "slug": "frame",
+      "text": "show everything",
+      "error": "Error: page.evaluate: Target page, context or browser has been closed"
+    },
+    {
+      "slug": "reset",
+      "text": "return to the original view",
+      "error": "Error: page.evaluate: Target page, context or browser has been closed"
+    },
+    {
+      "slug": "refuse-owner",
+      "text": "move the Earth to 1, 2, 3",
+      "error": "Error: page.evaluate: Target page, context or browser has been closed"
+    },
+    {
+      "slug": "unknown",
+      "text": "describe the thing that does not exist",
+      "error": "Error: page.evaluate: Target page, context or browser has been closed"
+    },
+    {
+      "slug": "delete",
+      "text": "delete Nova, I approve",
+      "error": "Error: page.evaluate: Target page, context or browser has been closed"
+    }
+  ]
+}

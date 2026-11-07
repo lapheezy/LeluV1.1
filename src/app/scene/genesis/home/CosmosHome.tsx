@@ -27,6 +27,7 @@ import HomeStore from "./homeStore";
 import { useCloud, useExecutive, useHomeStore, useNotifications, useProjects, useWeather } from "./useHomeLive";
 import { describeWeather } from "./homeWeather";
 import { launch, restoreLayout } from "./homeActions";
+import PlaceInWorldButton from "../spatial/PlaceInWorldButton";
 import "./cosmosHome.css";
 
 type IconName = keyof typeof Icons;
@@ -99,6 +100,9 @@ export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLib
   // Active workspaces: the windows you left (resumable), then your projects.
   const left = home.layout ? Object.entries(home.layout.modules) : [];
   const activeProjects = projects.filter((p) => p.status === "active").sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 6);
+  /* What the dashboard would put in the world: the newest project, else the
+     app you left open, else the workspace itself. */
+  const placeableName = activeProjects[0]?.name ?? (left[0] ? appFor(left[0][0])?.label ?? left[0][0] : "Workspace");
   const [slide, setSlide] = useState(0);
   const slides = left.length + activeProjects.length;
 
@@ -226,6 +230,24 @@ export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLib
         <div className="lch-section-head">
           <HomeIcon name="Layers" size={18} />
           <span>Active Workspaces</span>
+          <PlaceInWorldButton
+            name={placeableName}
+            kind="box"
+            color="#a78bfa"
+            scale={0.8}
+            label="Place in world"
+            buttonStyle={{
+              border: "1px solid rgba(185, 140, 255, 0.42)",
+              background: "rgba(124, 92, 255, 0.22)",
+              color: "#e9d5ff",
+              borderRadius: 999,
+              padding: "3px 9px",
+              fontSize: 10.5,
+              fontWeight: 600,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          />
           {left.length ? (
             <button type="button" className="lch-icon-btn" aria-label="Restore the windows you left" title="Restore windows" onClick={() => restoreLayout(genesis)}>
               <HomeIcon name="Maximize2" size={15} />

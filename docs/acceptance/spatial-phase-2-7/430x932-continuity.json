@@ -1,0 +1,221 @@
+{
+  "viewport": "430x932",
+  "capturedAt": "2026-11-07T00:00:08.592Z",
+  "steps": {
+    "home": {
+      "universe": false,
+      "home": true,
+      "canvases": 3,
+      "revision": 0,
+      "objects": [],
+      "camera": [
+        4,
+        4,
+        -3
+      ],
+      "target": null,
+      "reveal": null,
+      "companion": {
+        "presence": "hero",
+        "collapsed": null,
+        "left": 128,
+        "top": 14,
+        "width": 173,
+        "height": 220,
+        "bottomGap": 698,
+        "areaShare": 0.095
+      }
+    },
+    "created": {
+      "universe": true,
+      "home": false,
+      "canvases": 1,
+      "revision": 1,
+      "objects": [
+        {
+          "name": "Nova",
+          "rendered": false
+        }
+      ],
+      "camera": [
+        4,
+        4,
+        -3
+      ],
+      "target": null,
+      "reveal": null,
+      "companion": {
+        "presence": "window",
+        "collapsed": "true",
+        "left": 334,
+        "top": 716,
+        "width": 86,
+        "height": 102,
+        "bottomGap": 114,
+        "areaShare": 0.022
+      }
+    },
+    "revealed": {
+      "universe": false,
+      "home": false,
+      "canvases": 3,
+      "revision": 1,
+      "objects": [
+        {
+          "name": "Nova",
+          "rendered": true,
+          "world": [
+            2.263811731272279,
+            -1.35,
+            2.1342812479507027
+          ]
+        }
+      ],
+      "camera": [
+        4.303,
+        -0.012,
+        6.024
+      ],
+      "target": null,
+      "reveal": {
+        "target": "Nova",
+        "requestedAt": 1794009646618,
+        "ok": true,
+        "message": "Framed \"Nova\" — camera at (4.3, -0.01, 6.02) looking at (2.2, -1.35, 2.2). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+        "camera": {
+          "position": {
+            "x": 4.303039672829426,
+            "y": -0.011702026381274822,
+            "z": 6.0237084960535014
+          },
+          "target": {
+            "x": 2.2,
+            "y": -1.35,
+            "z": 2.2
+          },
+          "distance": 4.564489456059485,
+          "fov": 56
+        },
+        "at": 1794009671764
+      },
+      "companion": {
+        "presence": "window",
+        "collapsed": "true",
+        "left": 334,
+        "top": 716,
+        "width": 86,
+        "height": 102,
+        "bottomGap": 114,
+        "areaShare": 0.022
+      }
+    },
+    "reopened": {
+      "universe": true,
+      "home": true,
+      "canvases": 1,
+      "revision": 1,
+      "objects": [
+        {
+          "name": "Nova",
+          "rendered": false
+        }
+      ],
+      "camera": [
+        6,
+        2.5,
+        4
+      ],
+      "target": null,
+      "reveal": {
+        "target": "Nova",
+        "requestedAt": 1794009646618,
+        "ok": true,
+        "message": "Framed \"Nova\" — camera at (4.3, -0.01, 6.02) looking at (2.2, -1.35, 2.2). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+        "camera": {
+          "position": {
+            "x": 4.303039672829426,
+            "y": -0.011702026381274822,
+            "z": 6.0237084960535014
+          },
+          "target": {
+            "x": 2.2,
+            "y": -1.35,
+            "z": 2.2
+          },
+          "distance": 4.564489456059485,
+          "fov": 56
+        },
+        "at": 1794009671764
+      },
+      "companion": {
+        "presence": "window",
+        "collapsed": "false",
+        "left": 298,
+        "top": 616,
+        "width": 122,
+        "height": 202,
+        "bottomGap": 114,
+        "areaShare": 0.061
+      }
+    },
+    "returned": {
+      "universe": false,
+      "home": false,
+      "canvases": 3,
+      "revision": 1,
+      "objects": [
+        {
+          "name": "Nova",
+          "rendered": true,
+          "world": [
+            2.283149412597466,
+            -1.35,
+            2.113581973748794
+          ]
+        }
+      ],
+      "camera": [
+        4.303,
+        -0.012,
+        6.024
+      ],
+      "target": null,
+      "reveal": {
+        "target": "Nova",
+        "requestedAt": 1794009646618,
+        "ok": true,
+        "message": "Framed \"Nova\" — camera at (4.3, -0.01, 6.02) looking at (2.2, -1.35, 2.2). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+        "camera": {
+          "position": {
+            "x": 4.303039672829426,
+            "y": -0.011702026381274822,
+            "z": 6.0237084960535014
+          },
+          "target": {
+            "x": 2.2,
+            "y": -1.35,
+            "z": 2.2
+          },
+          "distance": 4.564489456059485,
+          "fov": 56
+        },
+        "at": 1794009731432
+      },
+      "companion": {
+        "presence": "window",
+        "collapsed": "true",
+        "left": 334,
+        "top": 716,
+        "width": 86,
+        "height": 102,
+        "bottomGap": 114,
+        "areaShare": 0.022
+      }
+    }
+  },
+  "events": [],
+  "cameraKept": true,
+  "cameraDelta": 0,
+  "worldKept": true,
+  "companionClearOfFrame": true
+}

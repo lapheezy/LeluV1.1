@@ -1,0 +1,21 @@
+{
+  "capturedAt": "2026-11-06T17:06:45.339Z",
+  "source": "bun test tests/spatial-integration.test.ts",
+  "note": "Deterministic transaction/authorization coverage. LIVE browser transaction results are not claimed: no chat command reached the resolver (see REPORT.md).",
+  "covered": [
+    "adapter resolution is stable and refuses ambiguity instead of guessing",
+    "a registered world destination missing from the live scene is reported stale, not dropped",
+    "discovery is read-only: no revision, no object and no foreign registry changes",
+    "an unapproved composition commit is refused and changes nothing",
+    "an approved composition commits every object and link as exactly one revision",
+    "a plan built against an older revision is refused instead of overwriting the newer scene",
+    "a renderer that disagrees with the commit causes a rollback, not a claim of success",
+    "camera focus refuses an unknown target with candidates instead of moving somewhere",
+    "camera verification fails honestly when the camera never arrived",
+    "renderer verification reports a missing mesh as a failure, and an unattached renderer as skipped",
+    "chat maps camera, composition and approval phrases to real intents",
+    "end to end from chat: plan, approve, commit as one revision",
+    "Tier 4 runs only under a single-use owner approval, never by self-elevation",
+    "moving a Cosmos entity through chat is refused with its owner and changes nothing"
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "capturedAt": "2026-11-06T17:06:45.337Z",
+  "branch": "freebuff/phase-2-2",
+  "head": "fbdf0cb",
+  "typecheck": {
+    "exit": 0
+  },
+  "lint": {
+    "exit": 0,
+    "errors": 0,
+    "warnings": 108,
+    "note": "1 pre-existing rules-of-hooks error repaired in GenesisChat.tsx"
+  },
+  "spatialSuite": {
+    "tests": 23,
+    "pass": 23,
+    "fail": 0,
+    "names": [
+      "adapter discovers authored, Cosmos, world and live scene entities without duplicating any",
+      "adapter resolution is stable and refuses ambiguity instead of guessing",
+      "a registered world destination missing from the live scene is reported stale, not dropped",
+      "discovery is read-only: no revision, no object and no foreign registry changes",
+      "planning a composition writes nothing and reports the plan",
+      "an unapproved composition commit is refused and changes nothing",
+      "an approved composition commits every object and link as exactly one revision",
+      "a plan built against an older revision is refused instead of overwriting the newer scene",
+      "a renderer that disagrees with the commit causes a rollback, not a claim of success",
+      "planetary composition produces a star, its planets and orbit links",
+      "framing distance follows object size, not a fixed radius",
+      "portrait viewports frame further back, so mobile keeps the subject in view",
+      "camera focus frames a real object and camera reset returns the opening view",
+      "camera focus refuses an unknown target with candidates instead of moving somewhere",
+      "camera verification fails honestly when the camera never arrived",
+      "renderer verification reports a missing mesh as a failure, and an unattached renderer as skipped",
+      "chat maps camera, composition and approval phrases to real intents",
+      "end to end from chat: plan, approve, commit as one revision",
+      "the manifest tells the truth about what Phase 2.2 implemented",
+      "Tier 4 runs only under a single-use owner approval, never by self-elevation",
+      "only authored objects are mutable; every other world entity names its owner",
+      "moving a Cosmos entity through chat is refused with its owner and changes nothing",
+      "the mutation bridge never writes to the systems it inspects"
+    ]
+  },
+  "fullSuite": {
+    "withChanges": {
+      "pass": 1329,
+      "skip": 6,
+      "fail": 38
+    },
+    "branchBaseline": {
+      "pass": 1326,
+      "skip": 6,
+      "fail": 38
+    },
+    "newFailures": 0,
+    "note": "the 38 failures are identical with and without this change; three tests were added and pass"
+  },
+  "commands": [
+    "bun run typecheck",
+    "bun test tests/spatial-integration.test.ts",
+    "bun test",
+    "bun run lint"
+  ]
+}
