@@ -76,3 +76,6 @@ leluverse/assets/characters/lelu_character/animations/*/animation.fbx
 # free to regenerate from their source job through POST /api/forge/jobs/<id>/export,
 # so the binaries stay local and only the ledger records them.
 leluverse/assets/**/meshes/v*_export_*/
+
+# Playwright browser libraries unpacked into the workspace (see docs/acceptance/spatial-phase-2-11/scripts/README.md)
+.apt/

@@ -104,3 +104,18 @@
 - **Ownership released:** when the mission commit lands on `claude/master-integration`.
 
 Mission report: `docs/audit/2026-11-07/MISSION-5-1-SPATIAL-COMPLETION.md`.
+
+---
+
+## Mission 5.2 — coordination claim (Freebuff)
+
+- **Branch / start:** `claude/master-integration` @ `3d914dd` (verified ancestor; branch and remote identical at start). Reconciled by merge only, never force.
+- **Files claimed:**
+  - `src/core/interface/InterfaceTools.ts` — `spatial.portal.create` / `spatial.portal.remove` tool definitions and executors (the agent-side portal capability, which did not exist).
+  - `tests/portal-tools.test.ts` — new.
+  - `docs/acceptance/` — report `MISSION-5-2-SPATIAL-VISUAL-ACCEPTANCE.md`, `spatial-phase-2-11/` evidence and harness.
+- **Not touched:** `PortalRegistry.ts`, `SpatialPortals.tsx`, `SpatialNavigator.tsx`, `SpatialExperience.tsx`, `SpatialRuntime.ts`, `moduleLayout.ts`, `GenesisModuleHost.tsx`, the docks, the Studio, anything voice/multimodal. Mission 5.1's implementation is the baseline.
+- **Depends on / note for the other executor:** the portal panel (`data-portal-panel`) reproducibly kills a software-rendered Chromium when composited over the live WebGL canvas (`dmesg`: `traps: chrome-headless trap int3`). If you capture spatial UI, use a GPU browser. Also: in headless runs `lelu.lelu.spatial.portals.v1` was **never written** after `seedRing`, so the ring may be empty at runtime — worth checking on a real GPU before claiming the ring renders. Not fixed blind.
+- **Ownership released:** when the mission commit lands on `claude/master-integration`.
+
+Mission report: `docs/acceptance/MISSION-5-2-SPATIAL-VISUAL-ACCEPTANCE.md`.
