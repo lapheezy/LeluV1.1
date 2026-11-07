@@ -22,6 +22,8 @@
  * ==========================================================
  */
 
+import { sessionAuthHeader } from "../persistence/sessionAuth";
+
 export interface BrowserPage {
   url: string;
   title: string;
@@ -109,8 +111,13 @@ export default class BrowserTool {
     try {
       const response = await fetch(`/api/browse?url=${encodeURIComponent(url)}`, {
         signal: AbortSignal.timeout(timeoutMs),
+        // The reader runs on the server and requires a signed-in user.
+        headers: sessionAuthHeader(),
       });
-      if (!response.ok) return null;
+      if (response.status === 401) return { error: "reading pages on the server needs you to be signed in" };
+      if (response.status === 429) return { error: "the page reader is rate-limited; try again in a minute" };
+      // 403/415/502/504 carry the reader's own reason; anything else means no reader.
+      if (!response.ok && ![403, 415, 502, 504].includes(response.status)) return null;
       const payload = (await response.json()) as {
         ok?: boolean;
         url?: string;

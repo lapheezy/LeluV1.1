@@ -97,3 +97,69 @@ test("“this” in a later message means the artifact made in this chat", async
   assert.equal(result.ok, true);
   assert.match(result.content, /^\[art_[0-9a-f]+\]/);
 });
+
+test("a planned task's Studio step makes the artifact for the conversation that asked", async () => {
+  // A multi-step request ("write the brief, export it as DOCX") runs as a
+  // TaskEngine task whose tool steps used to be dispatched with no
+  // context, so the artifact belonged to no conversation. The task is
+  // bound to the asking conversation and its steps carry that binding.
+  const { bindTask } = await import("../src/core/multichat/TurnOwnership");
+  const { ownedToolContext } = await import("../src/core/agentic/TaskExecutor");
+  const base = { request: { prompt: "brief", messages: [], timestamp: 1 } } as never;
+  assert.equal(ownedToolContext(base, "task-unowned"), undefined, "a task nobody asked for keeps the context-free dispatch");
+  bindTask("task-owned", "conv-task");
+  const context = ownedToolContext(base, "task-owned");
+  assert.equal(context?.request.conversationId, "conv-task");
+  const result = await dispatchToolCall(
+    { id: "c-task", name: toolNameForModel("studio.create"), arguments: { kind: "document", title: "Task brief", blocks: [{ type: "paragraph", text: "x" }] } },
+    "task-owned",
+    context,
+  );
+  assert.equal(result.ok, true, result.content);
+  assert.equal(StudioStore.getInstance().get((result.data as { id: string }).id)!.conversationId, "conv-task");
+});
+
+test("the orchestrator binds a planned task to the conversation whose turn planned it", async () => {
+  const { readFileSync } = await import("node:fs");
+  const source = readFileSync(new URL("../src/core/orchestrator/Orchestrator.ts", import.meta.url), "utf8");
+  assert.match(source, /const owner = ownerForTask\(taskId\);\s*if \(owner\) bindTask\(task\.id, owner\);/);
+  const executor = readFileSync(new URL("../src/core/agentic/TaskExecutor.ts", import.meta.url), "utf8");
+  assert.match(executor, /dispatchToolCall\(call, taskId, await conversationContext\(taskId\), options\)/);
+});
+
+test("a planned export step finds the artifact through the create step's output", async () => {
+  // TaskPlanner wires `artifact: "{{steps.s1.output}}"`, so the export step
+  // receives the create step's sentence, not a bare id. It used to answer
+  // "No artifact matches; nothing was exported."
+  const created = await call("studio.create", { kind: "document", title: "Planned brief", blocks: [{ type: "paragraph", text: "x" }] });
+  const id = (created.data as { id: string }).id;
+  const exported = await call("studio.export", { artifact: created.content, formats: ["docx"] });
+  assert.equal(exported.ok, true, exported.content);
+  assert.ok(StudioStore.getInstance().get(id)!.exports.some((e) => e.format === "docx" && e.ok), "the DOCX was written for that artifact");
+});
+
+test("a revision may not silently drop content the request did not mention", async () => {
+  const blocks = [
+    { type: "heading", text: "Lumo" },
+    { type: "paragraph", text: "Lumo is a lightweight solar lantern." },
+    { type: "chart", chart: { kind: "column", labels: ["Lite", "Pro"], series: [{ name: "g", values: [180, 320] }] } },
+    { type: "bullets", items: ["Solar", "USB-C"] },
+  ];
+  const created = await call("studio.create", { kind: "document", title: "Keep brief", blocks, open: false });
+  const id = (created.data as { id: string }).id;
+  const lineChart = { type: "chart", chart: { kind: "line", labels: ["Lite", "Pro", "Max"], series: [{ name: "g", values: [180, 320, 400] }] } };
+  // What the model did live: re-sent the whole spec, chart changed, paragraph gone.
+  // A refusal ended the planned refinement (no model to retry), so the content is kept instead.
+  const lossy = await call("studio.revise", { artifact: id, spec: { kind: "document", title: "Keep brief", blocks: [blocks[0], lineChart, blocks[3]] } });
+  assert.equal(lossy.ok, true, lossy.content);
+  assert.match(lossy.content, /Kept content the new spec left out \(not asked to remove\): paragraph: Lumo is a lightweight solar lantern\./);
+  const r2 = StudioStore.getInstance().get(id)!.revisions[1].spec;
+  assert.ok(r2.kind === "document");
+  assert.deepEqual(r2.blocks.map((b) => b.type), ["heading", "paragraph", "chart", "bullets"], "the paragraph is back where it was");
+  assert.equal((r2.blocks[2] as { chart: { kind: string } }).chart.kind, "line", "and the requested change still applied");
+  // An asked-for removal is honoured explicitly.
+  const asked = await call("studio.revise", { artifact: id, spec: { kind: "document", title: "Keep brief", blocks: [blocks[0], lineChart] }, removes: true });
+  assert.equal(asked.ok, true, asked.content);
+  const r3 = StudioStore.getInstance().get(id)!.revisions[2].spec;
+  assert.ok(r3.kind === "document" && r3.blocks.length === 2);
+});

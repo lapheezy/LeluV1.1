@@ -24,6 +24,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { sessionAuthHeader } from "../../../../core/persistence/sessionAuth";
 
 /* ------------------------------ types ------------------------------ */
 
@@ -321,7 +322,7 @@ export interface Resource<T> {
 
 async function getJson<T>(path: string, timeoutMs = 8_000): Promise<T> {
   const response = await fetch(path, {
-    headers: { Accept: "application/json" },
+    headers: { ...sessionAuthHeader(), Accept: "application/json" },
     cache: "no-store",
     signal: AbortSignal.timeout(timeoutMs),
   });
@@ -412,7 +413,7 @@ export function useIntegrationResource<T>(path: string, intervalMs = 15_000): Re
 export async function postJson<T>(path: string, body: unknown, timeoutMs = 90_000): Promise<T> {
   const response = await fetch(path, {
     method: "POST",
-    headers: { "content-type": "application/json", Accept: "application/json" },
+    headers: { ...sessionAuthHeader(), "content-type": "application/json", Accept: "application/json" },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(timeoutMs),
   });

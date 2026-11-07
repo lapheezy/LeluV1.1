@@ -231,7 +231,10 @@ test("naming the model's tools keeps device and project keyword resolvers out of
   // ProjectResolver with a toy scaffold — the model never saw it.
   const router = code("src/core/AIRouter.ts");
   assert.match(router, /if \(!namesTool\) \{\s*const tools = await this\.traced\(context, "tools", \(\) => this\.tools\.execute\(context\)\);/);
-  assert.match(router, /!this\.modelCanRunWorkflow\(context\) &&\s*!namesTool\s*\) \{\s*const projectResult = await this\.traced\(context, "projects", \(\) => this\.projects\.execute/);
+  // Further guards may follow `!namesTool` — the studio owns a build request,
+  // and a refinement of this conversation's artifact belongs to the model.
+  // Naming a tool must STILL keep ProjectResolver out; that is what is pinned.
+  assert.match(router, /!this\.modelCanRunWorkflow\(context\) &&\s*!namesTool(?:\s*&&[^{]*?)?\s*\) \{\s*const projectResult = await this\.traced\(context, "projects", \(\) => this\.projects\.execute/);
   assert.match(router, /if \(!namesTool\) \{\s*const browser = await this\.traced\(context, "browser", \(\) => this\.browser\.execute\(context\)\);/);
 });
 

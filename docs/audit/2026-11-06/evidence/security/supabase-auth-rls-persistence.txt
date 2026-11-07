@@ -1,0 +1,24 @@
+PASS admin signs in
+PASS standard user signs in
+PASS wrong password is refused — Invalid login credentials
+PASS roles come from app_metadata in the JWT — admin=admin user=user
+PASS the session has an expiry — expires in 3599 s
+PASS session refresh issues a new token
+PASS user writes its own conversation
+PASS user reads it back
+PASS session restores from storage after a reload
+PASS the row is there after the reload
+PASS the row persists into a new session
+PASS admin cannot read the user's row (RLS) — 0 rows
+PASS admin cannot write a row as the user (WITH CHECK) — 42501
+PASS admin cannot change the user's row — 0 rows changed
+PASS admin cannot delete the user's row — 0 rows deleted
+PASS user cannot hand its row to another user — 42501
+PASS anonymous client reads nothing — 0 rows
+PASS anonymous client cannot write — 42501
+PASS a user cannot make itself admin — app_metadata.lelu_role=user (user_metadata may say admin)
+PASS a forged admin token is rejected — PGRST301
+PASS the auth server refuses the forged token — invalid JWT: unable to parse or verify signature, token signature is invalid: crypto/ecdsa: verification error
+PASS after sign-out the refresh token no longer works — Invalid Refresh Token: Refresh Token Not Found
+PASS user deletes its own test row
+{"project":"ugshflwlyakipeduifkd","checks":23,"failed":0}

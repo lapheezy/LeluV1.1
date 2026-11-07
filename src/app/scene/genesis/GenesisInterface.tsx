@@ -670,7 +670,9 @@ export default function GenesisInterface() {
   // app library, and ⌘K.
   const homeStore = useHomeStore();
   const [homeSheet, setHomeSheet] = useState<HomeSheet>(null);
-  const showHome = !state.minimized && state.activePanel === "none" && !sceneIsV2 && !systemEnvironmentActive && !homeStore.immersive;
+  // On a phone, when chat (or a window) owns the screen, Home is not rendered
+  // at all — it is not hidden under the conversation.
+  const showHome = !state.minimized && state.activePanel === "none" && !sceneIsV2 && !systemEnvironmentActive && !homeStore.immersive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen;
   const navHidden = state.minimized || surface.chatOwnsScreen || surface.workspaceOwnsScreen;
 
   /*
@@ -871,14 +873,17 @@ export default function GenesisInterface() {
       )}
 
       <ChatUniverse />
-      <SpatialNav
-        sheet={homeSheet}
-        setSheet={setHomeSheet}
-        onHoldVoice={handleCoreHoldVoice}
-        hidden={navHidden}
-        selfExploration={state.selfExplorationEnabled}
-        onToggleSelfExploration={() => setSelfExploration(!state.selfExplorationEnabled)}
-      />
+      {/* Unmounted (not hidden) while a conversation or window owns the phone screen. */}
+      {navHidden && (surface.chatOwnsScreen || surface.workspaceOwnsScreen) ? null : (
+        <SpatialNav
+          sheet={homeSheet}
+          setSheet={setHomeSheet}
+          onHoldVoice={handleCoreHoldVoice}
+          hidden={navHidden}
+          selfExploration={state.selfExplorationEnabled}
+          onToggleSelfExploration={() => setSelfExploration(!state.selfExplorationEnabled)}
+        />
+      )}
 
       {/* Unified module host — inline / expanded / minimized windows for
           the SAME module instances (one runtime each). Mounted in every

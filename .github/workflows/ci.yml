@@ -20,7 +20,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # The integration branch is where verified work lands first; it gets the
+    # same blocking gate as main.
+    branches: [main, claude/master-integration]
   pull_request:
 
 concurrency:
@@ -102,6 +104,17 @@ jobs:
             sleep 1
           done
           node scripts/verify-live-runtime.mjs http://127.0.0.1:4173
+          # Phase 2: Chat owns the phone — iPhone/Android viewports + desktop
+          # regression against the same production preview. Blocking.
+          node tests/e2e/mobile-chat.e2e.mjs http://127.0.0.1:4173 mobile-chat-e2e
+
+      - name: Upload mobile chat evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-chat-e2e
+          path: mobile-chat-e2e
+          if-no-files-found: ignore
 
   # ==========================================================================
   # THE PHONE-SIDE CLAIMS, IN A REAL MOBILE BROWSER

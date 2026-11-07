@@ -310,3 +310,69 @@ test("nothing is toasted over a full-screen phone workspace either", () => {
     /const chatOwnsScreen = surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen;/,
   );
 });
+
+/* ---------------- Phase 2: the Chat Universe owns the phone ---------------- */
+
+test("an open Chat Universe (workspace mode) owns a phone screen: no Cosmos, no Home", () => {
+  const universe = resolveSurface({ activePanel: "none", minimized: false, openModuleCount: 0, visibleModuleCount: 0, compact: true, universeOwnsScreen: true });
+  assert.equal(universe.chatOwnsScreen, true);
+  assert.equal(universe.cosmosRendered, false);
+  // Floating mode keeps the live Cosmos behind the windows, by design.
+  const floating = resolveSurface({ activePanel: "none", minimized: false, openModuleCount: 0, visibleModuleCount: 0, compact: true, universeOwnsScreen: false });
+  assert.equal(floating.cosmosRendered, true);
+  // A desktop Universe never takes the screen.
+  const desktop = resolveSurface({ activePanel: "none", minimized: false, openModuleCount: 0, visibleModuleCount: 0, compact: false, universeOwnsScreen: true });
+  assert.equal(desktop.chatOwnsScreen, false);
+  assert.equal(desktop.cosmosRendered, true);
+  // Minimizing the whole interface returns Home even with the Universe open.
+  assert.equal(resolveSurface({ activePanel: "none", minimized: true, openModuleCount: 0, compact: true, universeOwnsScreen: true }).cosmosRendered, true);
+});
+
+test("the surface reads the Universe's open state from one shared store", () => {
+  const surface = readFileSync("src/app/scene/genesis/surface/useSurface.ts", "utf8");
+  assert.match(surface, /useUniverseOpen\(\)/);
+  assert.match(surface, /universeOpen && cosmosMode !== "floating"/);
+  const universe = readFileSync("src/app/scene/genesis/chat/universe/ChatUniverse.tsx", "utf8");
+  assert.match(universe, /const open = useUniverseOpen\(\)/, "the Universe uses the shared store, not a private useState");
+});
+
+test("Home and the spatial nav leave the tree (not hidden) while a conversation owns the phone", () => {
+  const ui = readFileSync("src/app/scene/genesis/GenesisInterface.tsx", "utf8");
+  assert.match(ui, /const showHome = [^;]*!surface\.chatOwnsScreen && !surface\.workspaceOwnsScreen;/);
+  assert.match(ui, /navHidden && \(surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen\) \? null : \(\s*<SpatialNav/);
+});
+
+test("on a phone a conversation window is the full visual viewport; one composer; apps above the chat panel", () => {
+  const host = readFileSync("src/app/scene/genesis/GenesisModuleHost.tsx", "utf8");
+  assert.match(host, /const phoneSheet = compactScreen && chatWindow;/);
+  assert.match(host, /top: viewport\.offsetTop,\s*width: viewportWidth,\s*height: viewportHeight,/, "follows the keyboard-shrunk visual viewport");
+  assert.match(host, /env\(safe-area-inset-bottom/);
+  assert.match(host, /Math\.max\(APP_WINDOW_Z, mod\.zIndex \?\? APP_WINDOW_Z \+ cascadeIndex\)/);
+  const universe = readFileSync("src/app/scene/genesis/chat/universe/ChatUniverse.tsx", "utf8");
+  assert.match(universe, /\{sheetOpen \? null : \(/, "the Universe composer leaves while a conversation sheet owns the screen");
+});
+
+test("Phase 2: on a phone, a sheet that owns the screen unmounts LÉLU's hidden companion window (no WebGL under the sheet)", () => {
+  // Measured: the docked companion canvas kept rendering under the
+  // full-screen conversation and stalled the GPU channel for ~35 s.
+  const phoneSheet = resolveSurface({ compact: true, minimized: false, activePanel: "none", openModuleCount: 1, visibleModuleCount: 1 });
+  assert.equal(phoneSheet.cosmosRendered, false);
+  const desktop = resolveSurface({ compact: false, minimized: false, activePanel: "none", openModuleCount: 1, visibleModuleCount: 1 });
+  assert.equal(desktop.cosmosRendered, true, "desktop keeps her window");
+  const companion = readFileSync("src/app/scene/genesis/avatar/LeluCompanion.tsx", "utf8");
+  assert.match(companion, /if \(presence === "window" && !surface\.cosmosRendered\) return null;/);
+  assert.ok(
+    companion.indexOf('if (presence === "window" && !surface.cosmosRendered) return null;') < companion.indexOf('if (presence === "face" && host)'),
+    "decided before the face/hero/window branches; the face behind the classic chat panel is untouched",
+  );
+});
+
+test("Universe replies render markdown with the shared renderer and never overflow the conversation", () => {
+  const window = readFileSync("src/app/scene/genesis/chat/universe/UniverseChatWindow.tsx", "utf8");
+  assert.match(window, /m\.role === "assistant" \? <ChatMarkdown text=\{m\.text\} \/> : <p>\{m\.text\}<\/p>/, "the same ChatMarkdown as the classic transcript, not a second renderer");
+  const css = readFileSync("src/app/scene/genesis/chat/universe/chatUniverse.css", "utf8");
+  // Measured on iPhone 13: thread scrollWidth 360 === clientWidth 360, 0 elements past its edges.
+  assert.match(css, /\.lcu-thread \{ overflow-x: hidden; \}/);
+  assert.match(css, /\.lcu-msg \{ min-width: 0; \}/);
+  assert.match(css, /\.lcu-bubble \{ min-width: 0; max-width: 100%; overflow-wrap: anywhere; \}/);
+});

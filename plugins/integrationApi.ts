@@ -29,6 +29,7 @@
  * ==========================================================
  */
 
+import { createGuard, sendRefusal, type Guard, type GuardRequest, type Requirement } from "./requestGuard.ts";
 import { existsSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -61,6 +62,21 @@ export interface IntegrationApiOptions {
    * `use("/api/integration", fn)`), which strips the prefix.
    */
   mountPath?: string;
+  /**
+   * Identity, role and rate gate. Every route requires a Supabase-verified
+   * signed-in user; policy evaluation and scans require the LÉLU admin role
+   * (app_metadata.lelu_role). Default: plugins/requestGuard with Supabase.
+   * The shared token above, when configured, is an ADDITIONAL factor — on
+   * its own it no longer authorizes anything.
+   */
+  guard?: Guard;
+}
+
+/** What each route needs, and how often one identity may call it. */
+function routeRequirement(route: string): { requirement: Requirement; bucket: string; limit: { max: number; windowMs: number } } {
+  if (route === "/api/integration/scan") return { requirement: "admin", bucket: "integration-scan", limit: { max: 3, windowMs: 10 * 60_000 } };
+  if (route === "/api/integration/policy") return { requirement: "admin", bucket: "integration-policy", limit: { max: 30, windowMs: 60_000 } };
+  return { requirement: "user", bucket: "integration-read", limit: { max: 120, windowMs: 60_000 } };
 }
 
 const POLICY_ACTIONS = [
@@ -173,6 +189,12 @@ function scopedTarget(workspaceRoot: string, requested: unknown): { ok: true; pa
   return { ok: true, path: absolute };
 }
 
+let sharedGuard: Guard | null = null;
+function defaultGuard(): Guard {
+  sharedGuard ??= createGuard();
+  return sharedGuard;
+}
+
 /**
  * Handle an integration route. Returns true when the request was
  * handled, so the caller can fall through to the rest of the stack.
@@ -188,6 +210,16 @@ export async function handleIntegrationRoute(
 ): Promise<boolean> {
   const method = request.method ?? "GET";
 
+  // Identity first, for every route: an anonymous caller gets no status,
+  // no traces, no policy decision and no scan.
+  const need = routeRequirement(route);
+  const guard = options.guard ?? defaultGuard();
+  const decision = await guard.check(request as unknown as GuardRequest, need.requirement, need.bucket, need.limit);
+  if (!decision.ok) {
+    sendRefusal(response as unknown as Parameters<typeof sendRefusal>[0], decision);
+    return true;
+  }
+
   if (route === "/api/integration/status" && method === "GET") {
     const gate = authorized(request, options);
     const [opa, services] = await Promise.all([detectOpa(options.workspaceRoot), probeAllServices()]);
@@ -197,7 +229,9 @@ export async function handleIntegrationRoute(
       runtime: options.runtime,
       tokenRequired: Boolean(options.token),
       tokenAccepted: gate.ok,
-      workspaceRoot: gate.ok ? options.workspaceRoot : undefined,
+      // A filesystem path is for the administrator only.
+      workspaceRoot: gate.ok && decision.role === "admin" ? options.workspaceRoot : undefined,
+      identity: { role: decision.role ?? "user" },
       policy: {
         engine: opa.available ? "opa" : "reference",
         available: opa.available,

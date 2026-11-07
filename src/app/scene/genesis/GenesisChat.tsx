@@ -914,6 +914,17 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         return;
       }
 
+      // A reply the Orchestrator produced without ai.chat (a planned task's
+      // report, an engineering run) has not been through the message
+      // channel, so the conversation holds no reply for this turn. Deliver
+      // it there, once: the reply and its artifact card belong in the chat.
+      {
+        const stored = MultiChatStore.getInstance().get(turnConversationId)?.messages ?? [];
+        const anchor = stored.findIndex((message) => message.id === userMessageId);
+        const answered = anchor >= 0 && stored.slice(anchor + 1).some((message) => message.role === "assistant");
+        if (anchor >= 0 && !answered) ai.deliverReply(assistantText, turnConversationId);
+      }
+
       // Finished in a chat the user has left: a pointer in NOTIFICATIONS.
       notifyTurnOutcome({ conversationId: turnConversationId, turnId: exchangeId, ok: true, text: cleanAssistantText(assistantText) });
 
@@ -978,7 +989,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     } finally {
       // The activity is kept with the reply it produced, so coming back to
       // this conversation later still shows what LÉLU did for it.
-      const activity = finishActivity(recording.stop(), turnFailed);
+      const activity = recording.stop(turnFailed);
       if (hasVisibleActivity(activity)) {
         try {
           const stored = MultiChatStore.getInstance().get(turnConversationId)?.messages ?? [];

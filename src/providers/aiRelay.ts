@@ -28,6 +28,8 @@
  * ==========================================================
  */
 
+import { sessionAuthHeader } from "../core/persistence/sessionAuth";
+
 /** Knowledge/research providers the relay can reach — see aiProxyApi.ts. */
 export type RelayKnowledgeId = "news" | "youtube" | "meshy" | "guardian" | "gnews" | "newsdata" | "geoapify" | "nasa" | "firms";
 
@@ -49,7 +51,8 @@ export async function knowledgeFetch(
   const post = options?.method === "POST";
   return fetch(`/api/knowledge/relay?${query.toString()}`, {
     method: post ? "POST" : "GET",
-    headers: post ? { Accept: "application/json", "Content-Type": "application/json" } : { Accept: "application/json" },
+    // The relay spends the server's provider keys, so it requires a signed-in user.
+    headers: { ...sessionAuthHeader(), ...(post ? { Accept: "application/json", "Content-Type": "application/json" } : { Accept: "application/json" }) },
     ...(post ? { body: JSON.stringify(options?.body ?? {}) } : {}),
     ...(options?.signal ? { signal: options.signal } : {}),
   });

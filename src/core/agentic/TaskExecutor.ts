@@ -44,6 +44,8 @@ import AgentEventBus from "../agent/AgentEvents";
 import TaskEngine, { type Task, type TaskStep, type StepVerification } from "../tasks/TaskEngine";
 import type { ToolExecutionResult } from "../tools/ToolDispatcher";
 import ApprovalGate, { type ApprovalRequest } from "./ApprovalGate";
+import { bindTask, ownerForTask } from "../multichat/TurnOwnership";
+import type RouterContext from "../router/RouterContext";
 
 export interface StepResult {
   ok: boolean;
@@ -100,7 +102,37 @@ const NOT_RETRYABLE = [
 
 async function realDispatch(call: ToolCall, taskId: string, options?: { approvalId?: string }) {
   const { dispatchToolCall } = await import("../tools/ToolDispatcher");
-  return dispatchToolCall(call, taskId, undefined, options);
+  return dispatchToolCall(call, taskId, await conversationContext(taskId), options);
+}
+
+/**
+ * The tool context for a step of a task a conversation asked for.
+ *
+ * Without it a planned step ran with no context at all, so a Studio
+ * artifact made by "write the brief and export it" belonged to no
+ * conversation: its card never reached the chat that asked, and the
+ * follow-up "make it a line chart" could not resolve it. A task with no
+ * owning conversation keeps the context-free dispatch it always had.
+ */
+async function conversationContext(taskId: string): Promise<RouterContext | undefined> {
+  const owner = ownerForTask(taskId);
+  if (!owner) return undefined;
+  try {
+    const { default: AIService } = await import("../AIService");
+    return ownedToolContext(AIService.getInstance().toolContext(TaskEngine.getInstance().get(taskId)?.goal ?? ""), taskId);
+  } catch {
+    return undefined;
+  }
+}
+
+/** A runtime tool context, addressed to the conversation that owns the task. Undefined when nothing owns it. */
+export function ownedToolContext(base: RouterContext | null, taskId: string): RouterContext | undefined {
+  const owner = ownerForTask(taskId);
+  if (!owner || !base) return undefined;
+  // Tools key their own events (a Studio artifact card) on the request
+  // timestamp; bind it too, or the card is announced to no conversation.
+  bindTask(String(base.request.timestamp), owner);
+  return { ...base, request: { ...base.request, conversationId: owner } };
 }
 
 export async function delegateToAgent(
@@ -146,7 +178,11 @@ export function interpolate(
   missing: string[],
 ): unknown {
   if (typeof value === "string") {
-    return value.replace(/\{\{\s*steps\.([A-Za-z0-9_-]+)\.output\s*\}\}/g, (_match, stepId: string) => {
+    // `{{steps.s1.output}}`, and the `{{steps.s1.output.id}}` planners also
+    // write: a step's output is its text, which names what it made
+    // ("Created [art_…]"), so a field path gets that text too. Left
+    // unreplaced, the raw placeholder reached the tool and the step failed.
+    return value.replace(/\{\{\s*steps\.([A-Za-z0-9_-]+)\.output(?:\.[A-Za-z0-9_]+)*\s*\}\}/g, (_match, stepId: string) => {
       const output = outputs.get(stepId);
       if (output === undefined) {
         missing.push(stepId);

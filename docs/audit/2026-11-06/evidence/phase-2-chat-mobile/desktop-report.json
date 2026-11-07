@@ -1,0 +1,31 @@
+{
+  "base": "http://127.0.0.1:5178",
+  "checks": 4,
+  "failed": 0,
+  "results": [
+    {
+      "viewport": "desktop",
+      "name": "desktop conversation stays a free window (not full-screen)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "desktop",
+      "name": "desktop keeps the Universe composer and the window composer",
+      "ok": true,
+      "detail": "2"
+    },
+    {
+      "viewport": "desktop",
+      "name": "an application window stacks above the chat panel",
+      "ok": true,
+      "detail": "{\"win\":102,\"chat\":100}"
+    },
+    {
+      "viewport": "desktop",
+      "name": "no uncaught page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

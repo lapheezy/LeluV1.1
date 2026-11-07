@@ -1235,3 +1235,7 @@ html[data-lelu-previewing]::after {
     animation: none !important;
   }
 }
+
+/* Phase 2 — a conversation owns the phone screen: the build stamp must not
+   sit on the composer's edge (it is diagnostics, not part of the chat). */
+body:has([data-lelu-fullscreen]) [data-lelu-build] { display: none; }

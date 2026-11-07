@@ -1,0 +1,901 @@
+{
+  "base": "http://127.0.0.1:5178",
+  "checks": 149,
+  "failed": 0,
+  "results": [
+    {
+      "viewport": "iphone-13",
+      "name": "Home renders on load",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "no horizontal overflow on Home",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "Chat tile found",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "Chat Universe is on screen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "Home is unmounted under Chat",
+      "ok": true,
+      "detail": "{\"home\":false,\"spatialNav\":false,\"genesisV1\":false,\"universe\":true}"
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "spatial nav is unmounted under Chat",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "Genesis V1 scene is unmounted under Chat",
+      "ok": true,
+      "detail": "0 scene canvases"
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "one visible composer in the Universe",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "no horizontal overflow in Chat",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "conversation card found",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "conversation is a full-screen sheet",
+      "ok": true,
+      "detail": "{\"id\":\"chat:2fb438ec-4b2c-4aa3-8b8f-2e6fbe54ccb9\",\"x\":0,\"y\":0,\"w\":390,\"h\":664}"
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "exactly one visible composer",
+      "ok": true,
+      "detail": "Message New chat"
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "composer row spans the screen",
+      "ok": true,
+      "detail": "15–375 of 390"
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "composer is above the bottom edge",
+      "ok": true,
+      "detail": "649 ≤ 664"
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "Home still unmounted with a conversation open",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "composer font ≥ 16 px (no iOS focus zoom)",
+      "ok": true,
+      "detail": "16px"
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "with the keyboard open the sheet fits the visible area",
+      "ok": true,
+      "detail": "{\"id\":\"chat:2fb438ec-4b2c-4aa3-8b8f-2e6fbe54ccb9\",\"x\":0,\"y\":0,\"w\":390,\"h\":385}"
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "with the keyboard open the composer stays visible",
+      "ok": true,
+      "detail": "328–370 of 385"
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "the draft survives the viewport change",
+      "ok": true,
+      "detail": "150 chars"
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "a sent message appears in the conversation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "the composer clears after sending",
+      "ok": true,
+      "detail": "\"\""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "closing the conversation returns to the Universe",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "a second conversation opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "the second conversation does not show the first one's message",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "switching back restores the first conversation's history",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "landscape: still one composer, no overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "closing Chat brings Home back",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "the Cosmos scene is rendered again on Home",
+      "ok": true,
+      "detail": "2 scene canvases"
+    },
+    {
+      "viewport": "iphone-13",
+      "name": "no uncaught page errors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "Home renders on load",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "no horizontal overflow on Home",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "Chat tile found",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "Chat Universe is on screen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "Home is unmounted under Chat",
+      "ok": true,
+      "detail": "{\"home\":false,\"spatialNav\":false,\"genesisV1\":false,\"universe\":true}"
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "spatial nav is unmounted under Chat",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "Genesis V1 scene is unmounted under Chat",
+      "ok": true,
+      "detail": "0 scene canvases"
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "one visible composer in the Universe",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "no horizontal overflow in Chat",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "conversation card found",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "conversation is a full-screen sheet",
+      "ok": true,
+      "detail": "{\"id\":\"chat:fc8567c3-dfe0-475c-bf03-b50adc5b1380\",\"x\":0,\"y\":0,\"w\":320,\"h\":568}"
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "exactly one visible composer",
+      "ok": true,
+      "detail": "Message New chat"
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "composer row spans the screen",
+      "ok": true,
+      "detail": "15–305 of 320"
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "composer is above the bottom edge",
+      "ok": true,
+      "detail": "553 ≤ 568"
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "Home still unmounted with a conversation open",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "composer font ≥ 16 px (no iOS focus zoom)",
+      "ok": true,
+      "detail": "16px"
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "with the keyboard open the sheet fits the visible area",
+      "ok": true,
+      "detail": "{\"id\":\"chat:fc8567c3-dfe0-475c-bf03-b50adc5b1380\",\"x\":0,\"y\":0,\"w\":320,\"h\":329}"
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "with the keyboard open the composer stays visible",
+      "ok": true,
+      "detail": "272–314 of 329"
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "the draft survives the viewport change",
+      "ok": true,
+      "detail": "150 chars"
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "a sent message appears in the conversation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "the composer clears after sending",
+      "ok": true,
+      "detail": "\"\""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "closing the conversation returns to the Universe",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "a second conversation opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "the second conversation does not show the first one's message",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "switching back restores the first conversation's history",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "landscape: still one composer, no overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "closing Chat brings Home back",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "the Cosmos scene is rendered again on Home",
+      "ok": true,
+      "detail": "2 scene canvases"
+    },
+    {
+      "viewport": "iphone-se",
+      "name": "no uncaught page errors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "Home renders on load",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "no horizontal overflow on Home",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "Chat tile found",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "Chat Universe is on screen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "Home is unmounted under Chat",
+      "ok": true,
+      "detail": "{\"home\":false,\"spatialNav\":false,\"genesisV1\":false,\"universe\":true}"
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "spatial nav is unmounted under Chat",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "Genesis V1 scene is unmounted under Chat",
+      "ok": true,
+      "detail": "0 scene canvases"
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "one visible composer in the Universe",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "no horizontal overflow in Chat",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "conversation card found",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "conversation is a full-screen sheet",
+      "ok": true,
+      "detail": "{\"id\":\"chat:0469d370-751a-43a7-8423-13c44e838db5\",\"x\":0,\"y\":0,\"w\":430,\"h\":739}"
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "exactly one visible composer",
+      "ok": true,
+      "detail": "Message New chat"
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "composer row spans the screen",
+      "ok": true,
+      "detail": "15–415 of 430"
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "composer is above the bottom edge",
+      "ok": true,
+      "detail": "724 ≤ 739"
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "Home still unmounted with a conversation open",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "composer font ≥ 16 px (no iOS focus zoom)",
+      "ok": true,
+      "detail": "16px"
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "with the keyboard open the sheet fits the visible area",
+      "ok": true,
+      "detail": "{\"id\":\"chat:0469d370-751a-43a7-8423-13c44e838db5\",\"x\":0,\"y\":0,\"w\":430,\"h\":429}"
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "with the keyboard open the composer stays visible",
+      "ok": true,
+      "detail": "372–414 of 429"
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "the draft survives the viewport change",
+      "ok": true,
+      "detail": "150 chars"
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "a sent message appears in the conversation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "the composer clears after sending",
+      "ok": true,
+      "detail": "\"\""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "closing the conversation returns to the Universe",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "a second conversation opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "the second conversation does not show the first one's message",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "switching back restores the first conversation's history",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "landscape: still one composer, no overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "closing Chat brings Home back",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "the Cosmos scene is rendered again on Home",
+      "ok": true,
+      "detail": "2 scene canvases"
+    },
+    {
+      "viewport": "iphone-15-pro-max",
+      "name": "no uncaught page errors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "Home renders on load",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "no horizontal overflow on Home",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "Chat tile found",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "Chat Universe is on screen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "Home is unmounted under Chat",
+      "ok": true,
+      "detail": "{\"home\":false,\"spatialNav\":false,\"genesisV1\":false,\"universe\":true}"
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "spatial nav is unmounted under Chat",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "Genesis V1 scene is unmounted under Chat",
+      "ok": true,
+      "detail": "0 scene canvases"
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "one visible composer in the Universe",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "no horizontal overflow in Chat",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "conversation card found",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "conversation is a full-screen sheet",
+      "ok": true,
+      "detail": "{\"id\":\"chat:e03b1080-ad5b-4254-9e5e-efd2a0e385d5\",\"x\":0,\"y\":0,\"w\":360,\"h\":740}"
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "exactly one visible composer",
+      "ok": true,
+      "detail": "Message New chat"
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "composer row spans the screen",
+      "ok": true,
+      "detail": "15–345 of 360"
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "composer is above the bottom edge",
+      "ok": true,
+      "detail": "725 ≤ 740"
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "Home still unmounted with a conversation open",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "composer font ≥ 16 px (no iOS focus zoom)",
+      "ok": true,
+      "detail": "16px"
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "with the keyboard open the sheet fits the visible area",
+      "ok": true,
+      "detail": "{\"id\":\"chat:e03b1080-ad5b-4254-9e5e-efd2a0e385d5\",\"x\":0,\"y\":0,\"w\":360,\"h\":429}"
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "with the keyboard open the composer stays visible",
+      "ok": true,
+      "detail": "372–414 of 429"
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "the draft survives the viewport change",
+      "ok": true,
+      "detail": "150 chars"
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "a sent message appears in the conversation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "the composer clears after sending",
+      "ok": true,
+      "detail": "\"\""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "closing the conversation returns to the Universe",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "a second conversation opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "the second conversation does not show the first one's message",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "switching back restores the first conversation's history",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "landscape: still one composer, no overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "closing Chat brings Home back",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "the Cosmos scene is rendered again on Home",
+      "ok": true,
+      "detail": "2 scene canvases"
+    },
+    {
+      "viewport": "galaxy-s8",
+      "name": "no uncaught page errors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "Home renders on load",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "no horizontal overflow on Home",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "Chat tile found",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "Chat Universe is on screen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "Home is unmounted under Chat",
+      "ok": true,
+      "detail": "{\"home\":false,\"spatialNav\":false,\"genesisV1\":false,\"universe\":true}"
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "spatial nav is unmounted under Chat",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "Genesis V1 scene is unmounted under Chat",
+      "ok": true,
+      "detail": "0 scene canvases"
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "one visible composer in the Universe",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "no horizontal overflow in Chat",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "conversation card found",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "conversation is a full-screen sheet",
+      "ok": true,
+      "detail": "{\"id\":\"chat:3d109ee9-bade-4af3-bc1d-e22aca7cb408\",\"x\":0,\"y\":0,\"w\":412,\"h\":839}"
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "exactly one visible composer",
+      "ok": true,
+      "detail": "Message New chat"
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "composer row spans the screen",
+      "ok": true,
+      "detail": "15–397 of 412"
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "composer is above the bottom edge",
+      "ok": true,
+      "detail": "824 ≤ 839"
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "Home still unmounted with a conversation open",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "composer font ≥ 16 px (no iOS focus zoom)",
+      "ok": true,
+      "detail": "16px"
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "with the keyboard open the sheet fits the visible area",
+      "ok": true,
+      "detail": "{\"id\":\"chat:3d109ee9-bade-4af3-bc1d-e22aca7cb408\",\"x\":0,\"y\":0,\"w\":412,\"h\":487}"
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "with the keyboard open the composer stays visible",
+      "ok": true,
+      "detail": "430–472 of 487"
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "the draft survives the viewport change",
+      "ok": true,
+      "detail": "150 chars"
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "a sent message appears in the conversation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "the composer clears after sending",
+      "ok": true,
+      "detail": "\"\""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "closing the conversation returns to the Universe",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "a second conversation opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "the second conversation does not show the first one's message",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "switching back restores the first conversation's history",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "landscape: still one composer, no overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "closing Chat brings Home back",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "the Cosmos scene is rendered again on Home",
+      "ok": true,
+      "detail": "2 scene canvases"
+    },
+    {
+      "viewport": "pixel-7",
+      "name": "no uncaught page errors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "desktop",
+      "name": "desktop conversation stays a free window (not full-screen)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "desktop",
+      "name": "desktop keeps the Universe composer and the window composer",
+      "ok": true,
+      "detail": "2"
+    },
+    {
+      "viewport": "desktop",
+      "name": "an application window stacks above the chat panel",
+      "ok": true,
+      "detail": "{\"win\":102,\"chat\":100}"
+    },
+    {
+      "viewport": "desktop",
+      "name": "no uncaught page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

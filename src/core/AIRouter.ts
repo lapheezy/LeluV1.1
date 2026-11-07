@@ -5,6 +5,7 @@
  * ==========================================================
  */
 
+import { refersToConversationArtifact } from "./studio/StudioTools";
 import type { AIResponse } from "../providers/AIProvider";
 import type RouterContext from "./router/RouterContext";
 import BrainResolver from "./router/BrainResolver";
@@ -263,7 +264,11 @@ export default class AIRouter {
       !this.modelCanDoEngineeringWork(context) &&
       !this.modelCanBuildInStudio(context) &&
       !this.modelCanRunWorkflow(context) &&
-      !namesTool
+      !namesTool &&
+      // "Change the chart in the Lumo brief…" is a revision of an artifact
+      // this conversation made, which the model does with studio.revise.
+      // Measured: ProjectResolver claimed it and answered "Project created".
+      !refersToConversationArtifact(context.request.conversationId, context.request.prompt ?? "")
     ) {
       const projectResult = await this.traced(context, "projects", () => this.projects.execute(context));
       if (projectResult.handled && projectResult.response) {

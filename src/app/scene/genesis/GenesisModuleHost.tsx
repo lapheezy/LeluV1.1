@@ -24,7 +24,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { chatFillsScreen } from "./chat/chatLayout";
 import { InModuleWindow } from "./moduleWindowContext";
-import { CHAT_WINDOW_Z, conversationIdOf, floatsAboveChat, useGenesisActions, useGenesisState, type ModuleState } from "./GenesisCore";
+import { APP_WINDOW_Z, CHAT_WINDOW_Z, conversationIdOf, floatsAboveChat, useGenesisActions, useGenesisState, type ModuleState } from "./GenesisCore";
 import { MODULE_CATALOG } from "./GenesisDock";
 import { genesisTheme } from "./GenesisTheme";
 
@@ -73,6 +73,9 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
   const [viewport, setViewport] = useState(() => ({
     width: typeof window !== "undefined" ? window.visualViewport?.width ?? window.innerWidth : 1280,
     height: typeof window !== "undefined" ? window.visualViewport?.height ?? window.innerHeight : 800,
+    // iOS scrolls the visual viewport when the keyboard opens: a fixed
+    // full-screen sheet must follow it or its composer slides under the keys.
+    offsetTop: typeof window !== "undefined" ? window.visualViewport?.offsetTop ?? 0 : 0,
   }));
 
   useEffect(() => {
@@ -81,6 +84,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       setViewport({
         width: visual?.width ?? window.innerWidth,
         height: visual?.height ?? window.innerHeight,
+        offsetTop: visual?.offsetTop ?? 0,
       });
     };
     updateViewport();
@@ -140,11 +144,17 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       : rawPosition.y,
   };
   const chatWindow = floatsAboveChat(id);
+  /**
+   * On a phone a conversation (and what it produced: an artifact, a design)
+   * IS the screen — the full visual viewport above the keyboard, not a
+   * floating card beside a second composer. Desktop keeps free windows.
+   */
+  const phoneSheet = compactScreen && chatWindow;
   // A chat window never sinks below the Universe overlay, not even when an
   // older session persisted a panel-level z-index for it.
   const zIndex = chatWindow
     ? Math.max(CHAT_WINDOW_Z, mod.zIndex ?? CHAT_WINDOW_Z)
-    : mod.zIndex ?? 30 + cascadeIndex;
+    : Math.max(APP_WINDOW_Z, mod.zIndex ?? APP_WINDOW_Z + cascadeIndex);
 
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; baseX: number; baseY: number } | null>(null);
   const resizeRef = useRef<{ pointerId: number; startX: number; startY: number; baseW: number; baseH: number } | null>(null);
@@ -350,6 +360,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       data-presentation="inline"
       data-lelu-surface="window"
       data-lelu-window={id}
+      data-lelu-fullscreen={phoneSheet ? "" : undefined}
       data-lelu-interacting={interacting ? "" : undefined}
       style={{
         position: "fixed",
@@ -361,6 +372,20 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
           : Math.max(0, Math.min(position.y, viewportHeight - CHROME_HEIGHT - 16)),
         width: Math.min(size.width, viewportWidth),
         height: size.height,
+        ...(phoneSheet
+          ? {
+              left: 0,
+              top: viewport.offsetTop,
+              width: viewportWidth,
+              height: viewportHeight,
+              borderRadius: 0,
+              paddingTop: "env(safe-area-inset-top, 0px)",
+              paddingBottom: "env(safe-area-inset-bottom, 0px)",
+              paddingLeft: "env(safe-area-inset-left, 0px)",
+              paddingRight: "env(safe-area-inset-right, 0px)",
+              boxSizing: "border-box" as const,
+            }
+          : {}),
         zIndex,
         pointerEvents: "auto",
         display: "flex",
