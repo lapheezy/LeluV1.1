@@ -1,0 +1,116 @@
+{
+ "ranAt": "2026-11-07T13:26:39.813Z",
+ "log": [
+  {
+   "t": 25070,
+   "step": "share-started",
+   "active": true,
+   "startedAt": 1794057970106,
+   "sampled": 1,
+   "kept": 1,
+   "unchangedSkipped": 0,
+   "lastChangeAt": 1794057970121,
+   "surface": "browser"
+  },
+  {
+   "t": 32512,
+   "step": "ask-1",
+   "prompt": "Look at my shared screen. In one or two sentences, what am I looking at?",
+   "frames": [
+    "shared-screen.jpg"
+   ],
+   "provider": "OpenRouter",
+   "model": "openrouter/auto",
+   "ms": 3878,
+   "answer": "You're looking at a mail inbox titled \"Mail — Inbox\" with three messages: Priya's \"Quarterly report draft,\" Sam's \"Lunch on Friday?\", and a Billing notice that \"Invoice #4471 paid,\" with 3 unread messages noted below.",
+   "stats": {
+    "active": true,
+    "startedAt": 1794057970106,
+    "sampled": 8,
+    "kept": 1,
+    "unchangedSkipped": 7,
+    "lastChangeAt": 1794057970121,
+    "surface": "browser"
+   }
+  },
+  {
+   "t": 41961,
+   "step": "ask-2",
+   "prompt": "What changed on my screen just now, and what does the message mean for me?",
+   "frames": [
+    "shared-screen-before.jpg",
+    "shared-screen-now.jpg"
+   ],
+   "provider": "OpenRouter",
+   "model": "openrouter/auto",
+   "ms": 5947,
+   "answer": "A payment error dialog (\"Error 503 — Service Unavailable\") appeared over your inbox. It says the payment service didn't respond and your card was not charged, with a retry offered in 30 seconds.\n\nThis matters because the inbox says Invoice #4471 is already paid. Before you retry, check your bank or billing account to confirm whether this payment is for the same invoice. If it is, retrying could risk a double charge, so I'd wait and verify first.",
+   "stats": {
+    "active": true,
+    "startedAt": 1794057970106,
+    "sampled": 12,
+    "kept": 2,
+    "unchangedSkipped": 10,
+    "lastChangeAt": 1794057983249,
+    "surface": "browser"
+   }
+  },
+  {
+   "t": 48250,
+   "step": "stop",
+   "liveBeforeStop": true,
+   "liveAfterStop": false,
+   "active": false,
+   "framesAfterStop": 0
+  },
+  {
+   "t": 50472,
+   "step": "ledger",
+   "ai": [
+    {
+     "source": "Anthropic",
+     "ok": false,
+     "in": null,
+     "out": null,
+     "cost": "unknown",
+     "usd": null
+    },
+    {
+     "source": "OpenRouter",
+     "model": "openrouter/free",
+     "ok": true,
+     "in": 1265,
+     "out": 699,
+     "cost": "reported",
+     "usd": 0
+    },
+    {
+     "source": "Groq",
+     "ok": false,
+     "in": null,
+     "out": null,
+     "cost": "unknown",
+     "usd": null
+    },
+    {
+     "source": "OpenRouter",
+     "model": "openrouter/auto",
+     "ok": true,
+     "in": 35545,
+     "out": 91,
+     "cost": "reported",
+     "usd": 0.004488525
+    },
+    {
+     "source": "OpenRouter",
+     "model": "openrouter/auto",
+     "ok": true,
+     "in": 36826,
+     "out": 415,
+     "cost": "reported",
+     "usd": 0.00481065
+    }
+   ]
+  }
+ ]
+}

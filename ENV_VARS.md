@@ -284,6 +284,9 @@ instance, a gateway, or a proxy.
 | `OPENALEX_API_URL` | `https://api.openalex.org` |
 | `GDELT_API_URL` | `https://api.gdeltproject.org` |
 | `HACKERNEWS_API_URL` | `https://hn.algolia.com/api/v1` |
+| `DICTIONARY_API_URL` | `https://api.dictionaryapi.dev` |
+| `OPENLIBRARY_API_URL` | `https://openlibrary.org` |
+| `FRANKFURTER_API_URL` | `https://api.frankfurter.dev` |
 | `MESHY_API_URL` | `https://api.meshy.ai` |
 
 ### All endpoints have consumers

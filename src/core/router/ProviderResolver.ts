@@ -9,6 +9,8 @@
  * configured provider is attempted immediately.
  */
 
+import { resolveFirst } from "../resolveEnv";
+import { classifyChainFailure } from "../voice/turnFailure";
 import { contradictedCaptureClaims, contradictionNote, groundingNote, ungroundedClaims } from "../tools/ClaimGrounding";
 import type AIProvider from "../../providers/AIProvider";
 import type { AIMessage, AIRequest, AIResponse } from "../../providers/AIProvider";
@@ -19,6 +21,8 @@ import ModelRouter from "../model/ModelRouter";
 import { dispatchToolCall, latestCaptureMeasurements } from "../tools/ToolDispatcher";
 import { toolSchemasForModel } from "../tools/ToolSchemas";
 import { labelOtherChats } from "../multichat/ContextProvenance";
+import { BudgetExhaustedError, budgetNotice, gatedGenerate } from "../observability/UsageBudgetGate";
+
 
 /**
  * TERMINATION, not a round quota.
@@ -77,6 +81,12 @@ const PROVIDER_RUNG_BUDGET_MS = 12_000;
 /** The whole fallback chain. No new rung starts once this is spent. */
 const CHAIN_BUDGET_MS = 20_000;
 
+/** A positive millisecond setting from the environment, or undefined. */
+function configuredMs(name: string): number | undefined {
+  const value = Number(resolveFirst(name));
+  return Number.isFinite(value) && value >= 1000 && value <= 600_000 ? value : undefined;
+}
+
 /** Too little left to be worth starting another provider. */
 const MIN_RUNG_SLICE_MS = 1_500;
 
@@ -89,8 +99,10 @@ export default class ProviderResolver {
    * milliseconds instead of waiting out the production numbers.
    */
   constructor(budget: { rungBudgetMs?: number; chainBudgetMs?: number } = {}) {
-    this.rungBudgetMs = budget.rungBudgetMs ?? PROVIDER_RUNG_BUDGET_MS;
-    this.chainBudgetMs = budget.chainBudgetMs ?? CHAIN_BUDGET_MS;
+    // Operator overrides (defaults unchanged). A rung covers a whole tool
+    // loop, so slow providers doing research can need more than 12 s.
+    this.rungBudgetMs = budget.rungBudgetMs ?? configuredMs("LELU_PROVIDER_RUNG_BUDGET_MS") ?? PROVIDER_RUNG_BUDGET_MS;
+    this.chainBudgetMs = budget.chainBudgetMs ?? configuredMs("LELU_CHAIN_BUDGET_MS") ?? CHAIN_BUDGET_MS;
   }
 
   public async execute(context: RouterContext): Promise<ProviderResult> {
@@ -105,6 +117,8 @@ export default class ProviderResolver {
      * finally returned, including the offline one.
      */
     const toolsReallyRun: Array<{ tool: string; ok: boolean }> = [];
+    /** Why each provider in the chain failed — so the final notice can say timeout vs network vs unavailable. */
+    const chainErrors: string[] = [];
 
     // The last point before any provider sees the context: whatever her
     // cognition put in it that quotes ANOTHER chat is labelled with that
@@ -298,6 +312,32 @@ export default class ProviderResolver {
             },
           };
         }
+        // A spent budget is not a provider failure, and it must not fall
+        // through to the next provider: that could be a paid one the user
+        // never chose. Stop here and say why, inside the chat.
+        if (error instanceof BudgetExhaustedError) {
+          context.logger.info("ProviderResolver", "Budget refused the call before dispatch.", {
+            provider: provider.name,
+            scope: error.scope,
+            reason: error.message,
+          });
+          AgentEventBus.getInstance().emit({
+            type: "provider_status",
+            taskId: String(context.request.timestamp ?? Date.now()),
+            provider: provider.name,
+            status: "budget reached — not sent",
+          });
+          return {
+            handled: true,
+            response: {
+              text: budgetNotice(error),
+              provider: "budget",
+              model: "none",
+              processingTime: Date.now() - context.started,
+              metadata: { success: false, budgetExhausted: { source: error.source, scope: error.scope, reason: error.message } },
+            },
+          };
+        }
         const message = error instanceof Error ? error.message : String(error);
         // Did this attempt already do real work before it failed?
         //
@@ -345,6 +385,7 @@ export default class ProviderResolver {
           };
         }
         context.aiProviders.markFailure(provider.name, message);
+        chainErrors.push(message);
         AgentEventBus.getInstance().emit({
           type: "provider_status",
           taskId: String(context.request.timestamp ?? Date.now()),
@@ -377,7 +418,7 @@ export default class ProviderResolver {
 
     return {
       handled: true,
-      response: this.withRealTools(this.offline(context), toolsReallyRun),
+      response: this.withRealTools(this.offline(context, false, chainErrors), toolsReallyRun),
     };
   }
 
@@ -528,7 +569,7 @@ export default class ProviderResolver {
     // the original single call, untouched. This is the fallback path —
     // ToolCallInterceptor still salvages tool markup from these.
     if (tools.length === 0) {
-      return provider.generate(this.withRungSignal(context.request, rungSignal));
+      return gatedGenerate(provider, this.withRungSignal(context.request, rungSignal));
     }
 
     const taskId = String(context.request.timestamp ?? Date.now());
@@ -546,7 +587,7 @@ export default class ProviderResolver {
     // to catch.
     const requested: string[] = [];
 
-    let response = await provider.generate({
+    let response = await gatedGenerate(provider, {
       ...this.withRungSignal(context.request, rungSignal),
       messages,
       tools,
@@ -674,7 +715,7 @@ export default class ProviderResolver {
         });
       }
 
-      response = await provider.generate({
+      response = await gatedGenerate(provider, {
         ...this.withRungSignal(context.request, rungSignal),
         messages,
         ...(stopReason ? {} : { tools }),
@@ -794,7 +835,7 @@ export default class ProviderResolver {
     };
   }
 
-  private offline(context: RouterContext, offlineMode = false): AIResponse {
+  private offline(context: RouterContext, offlineMode = false, chainErrors: string[] = []): AIResponse {
     const started = context.started;
 
     // If knowledge tools already retrieved real data for this
@@ -823,6 +864,22 @@ export default class ProviderResolver {
       };
     }
 
+    // Say what really happened. "Unreachable or unconfigured" was read out
+    // for every failure — including a provider that was reached and simply
+    // ran out of time (Mission 10.3, 18 of 20 turns).
+    const failureKind = offlineMode ? "provider-unavailable" : classifyChainFailure(chainErrors);
+    if (!offlineMode && chainErrors.length > 0 && failureKind !== "provider-unavailable") {
+      return {
+        text:
+          failureKind === "provider-timeout"
+            ? "I couldn't get an answer in time — the model provider took too long to reply and the other providers are unavailable right now. Nothing was lost; ask me again."
+            : "The network failed while I was reaching the model providers. Nothing was lost; ask me again once you're back online.",
+        provider: "offline",
+        model: "offline",
+        processingTime: Date.now() - started,
+        metadata: { success: false, reason: "all-ai-providers-failed", failureKind, offline: true },
+      };
+    }
     return {
       text: offlineMode
         ? "I'm in local / offline mode right now — remote AI providers are disabled, and no local model runtime is installed yet, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Turn offline mode off in Settings → Local-first model engine, or ask \"who are you\" / \"who am I\"."
@@ -833,6 +890,7 @@ export default class ProviderResolver {
       metadata: {
         success: false,
         reason: "all-ai-providers-failed",
+        failureKind,
         offline: true,
         identity: true,
         memory: true,
@@ -868,9 +926,19 @@ function throwIfStopped(context: RouterContext, cause?: unknown): void {
   throw new DOMException("Turn stopped by the user.", "AbortError");
 }
 
-/** Has the turn been stopped — by its signal, or by an AbortError from below? */
-function stopped(context: RouterContext, cause?: unknown): boolean {
+/**
+ * Has the TURN been stopped? Only when the turn's own signal is aborted.
+ *
+ * An AbortError from below with the turn's signal intact is a provider
+ * aborting its own request — e.g. OpenRouter's internal 30 s
+ * AbortSignal.timeout, which surfaces in Chrome as "BodyStreamBuffer was
+ * aborted" (AbortError). Treating that as a Stop settled live voice turns as
+ * "Stopped before anything ran." instead of falling through to the next
+ * provider (found live, 2026-11-07). A Stop always aborts the turn signal
+ * (AIService composes it from the turn and conversation controllers), so
+ * nothing a user does is missed by this.
+ */
+function stopped(context: RouterContext, _cause?: unknown): boolean {
   const signal = (context.request as { signal?: AbortSignal }).signal;
-  if (signal?.aborted) return true;
-  return cause instanceof Error && cause.name === "AbortError";
+  return Boolean(signal?.aborted);
 }

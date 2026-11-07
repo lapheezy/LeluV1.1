@@ -18,7 +18,8 @@
  * ==========================================================
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { composerLift, liftOverflowsTop } from "./composerClearance";
 import SpatialRuntime, { type SpatialState } from "./SpatialRuntime";
 import { SPATIAL_DESTINATIONS, destinationFor, type SpatialSceneId } from "./SpatialScenes";
 import PortalRegistry, { isBuiltinPortal, type PortalRecord } from "./PortalRegistry";
@@ -140,6 +141,55 @@ export default function SpatialNavigator() {
   const voice = genesis.voice;
   const chatOpen = genesis.activePanel === "chat";
 
+  /* Never over the chat composer. The composer sits inside the chat
+     window's stacking context, so the composer layer cannot rise above this
+     rail; instead the rail measures the composer and lifts itself clear
+     (collapsing the tall capability groups if lifting would run off the
+     top). Found live in the Mission 10.3 20-turn run: the open groups
+     covered the textarea and the typed turn could not be entered. */
+  const navRef = useRef<HTMLDivElement | null>(null);
+  const [lift, setLift] = useState(0);
+  useEffect(() => {
+    if (!chatOpen || hidden) {
+      setLift(0);
+      return;
+    }
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const nav = navRef.current;
+      const composer = document.querySelector("[data-lelu-composer]");
+      if (!nav || !composer) {
+        setLift((value) => (value === 0 ? value : 0));
+        return;
+      }
+      const r = nav.getBoundingClientRect();
+      // The rect at the natural (un-lifted) position.
+      const current = Number(nav.dataset.spatialComposerClearance ?? 0) || 0;
+      const natural = { top: r.top + current, bottom: r.bottom + current, left: r.left, right: r.right };
+      const c = composer.getBoundingClientRect();
+      const next = composerLift(natural, { top: c.top, bottom: c.bottom, left: c.left, right: c.right });
+      if (next > 0 && liftOverflowsTop(natural, next, 8) && open) {
+        setOpen(false);
+        return;
+      }
+      setLift((value) => (value === next ? value : next));
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+    schedule();
+    // The chat window can be dragged or resized, and the composer grows
+    // with its text: re-measure on resize, and on a slow interval.
+    const timer = window.setInterval(schedule, 400);
+    window.addEventListener("resize", schedule);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("resize", schedule);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [chatOpen, hidden, open]);
+
   if (hidden) return null;
 
   const button = (scene: SpatialSceneId) => {
@@ -223,7 +273,9 @@ export default function SpatialNavigator() {
 
   return (
     <div
+      ref={navRef}
       data-spatial-nav
+      data-spatial-composer-clearance={lift}
       data-spatial-current={spatial.current}
       data-spatial-destination={spatial.destination ?? ""}
       data-spatial-progress={progress}
@@ -239,6 +291,7 @@ export default function SpatialNavigator() {
         alignItems: "center",
         gap: 6,
         pointerEvents: "none",
+        transform: lift > 0 ? `translateY(-${lift}px)` : undefined,
       }}
     >
       {travelling ? (

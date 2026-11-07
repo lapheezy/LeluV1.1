@@ -29,6 +29,9 @@ import type {
 } from "./AIProvider";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+
+/** Free, image-capable on OpenRouter at the time of writing (see selectModel). */
+export const DEFAULT_VISION_MODEL = "google/gemma-4-31b-it:free";
 import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
 
@@ -68,7 +71,11 @@ export default class OpenRouterProvider implements AIProvider {
     if (lower.includes("vision") || lower.includes("llava")) {
       return requested;
     }
-    return "meta-llama/llama-3.2-11b-vision-instruct:free";
+    // Configurable, because free vision models come and go: the previous
+    // hard-coded "meta-llama/llama-3.2-11b-vision-instruct:free" was retired
+    // (OpenRouter 404, observed 2026-11-07) and every image turn routed here
+    // failed. The default is one OpenRouter listed as free + image-capable.
+    return resolveFirst("OPENROUTER_VISION_MODEL")?.trim() || DEFAULT_VISION_MODEL;
   }
 
   /**
@@ -173,6 +180,14 @@ export default class OpenRouterProvider implements AIProvider {
     };
 
     let response: Response;
+    // The provider's own cap must never be SHORTER than the budget the
+    // resolver gives this attempt: measured in the Mission 10.3 20-turn run,
+    // a 30 s cap under a 45 s rung budget cut every long answer off as
+    // "BodyStreamBuffer was aborted" — and that reached the person as
+    // "all providers unreachable". The resolver's rung signal still bounds it.
+    const timeoutMs = Math.max(this.timeout, Number(resolveFirst("LELU_PROVIDER_RUNG_BUDGET_MS")) || 0);
+    const deadline = AbortSignal.timeout(timeoutMs);
+    const timedOut = () => deadline.aborted && !request.signal?.aborted;
 
     try {
       response = await fetch(
@@ -192,18 +207,24 @@ export default class OpenRouterProvider implements AIProvider {
             "X-Title": "Lélu",
           },
           body: JSON.stringify(payload),
-          signal: request.signal
-            ? AbortSignal.any([request.signal, AbortSignal.timeout(this.timeout)])
-            : AbortSignal.timeout(this.timeout),
+          signal: request.signal ? AbortSignal.any([request.signal, deadline]) : deadline,
         },
       );
     } catch (error) {
+      if (timedOut()) throw new Error(`OpenRouter timed out after ${Math.round(timeoutMs / 1000)}s.`);
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`OpenRouter network error: ${message}`);
     }
 
     if (payload.stream) {
-      const streamed = await readOpenAIStream(response, "OpenRouter", request.onDelta!);
+      let streamed: Awaited<ReturnType<typeof readOpenAIStream>>;
+      try {
+        streamed = await readOpenAIStream(response, "OpenRouter", request.onDelta!);
+      } catch (error) {
+        // Name a timeout as a timeout, not as the stream's internal abort.
+        if (timedOut()) throw new Error(`OpenRouter timed out after ${Math.round(timeoutMs / 1000)}s while answering.`);
+        throw error;
+      }
       if (!streamed.text.trim() && streamed.toolCalls.length === 0) {
         throw new Error("OpenRouter returned no usable content.");
       }

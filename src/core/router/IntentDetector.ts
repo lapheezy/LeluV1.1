@@ -113,15 +113,20 @@ export default class IntentDetector {
     }
 
     // -- Live time / date --
+    // "what is today" is a date question only when TODAY is the subject:
+    // in "what is today's exchange rate" (or "…today's weather / news")
+    // the subject is the rate, and answering with the clock dropped the
+    // question entirely (found by a live chat turn, 2026-11-06).
+    const todaysSomething = /\btoday['’]?s\s+(?!date\b|day\b)[a-z]/i.test(text);
     if (
       this.matches(text, [
         "what time", "current time", "what's the time", "whats the time",
         "what day", "what date", "today's date", "todays date",
-        "what is today", "what's today", "whats today",
         "time now", "date now", "what year", "current date",
         "tell me the time", "tell me the date",
         "what month", "what day is it",
-      ])
+      ]) ||
+      (!todaysSomething && this.matches(text, ["what is today", "what's today", "whats today"]))
     ) {
       return "time";
     }
