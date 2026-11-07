@@ -45,6 +45,7 @@ import PortalRegistry, { RING_SCENES, type PortalRecord } from "./PortalRegistry
 import {
   collidingPortalIds,
   duplicatePortalIds,
+  overlappingHitIds,
   portalPlacements,
   type PortalPlacement,
 } from "./portalField";
@@ -67,6 +68,8 @@ interface PortalSpec {
   label: string;
   accent: string;
   radius: number;
+  /** Radius of the interactive mouth; derived from neighbour spacing. */
+  hitRadius: number;
 }
 
 /**
@@ -294,7 +297,9 @@ function Portal({
           document.body.style.cursor = "default";
         }}
       >
-        <circleGeometry args={[spec.radius * 1.08, 32]} />
+        {/* Sized by the layout from the distance to its nearest neighbour, so
+            two mouths can never cover the same pointer position. */}
+        <circleGeometry args={[spec.hitRadius, 32]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} side={DoubleSide} />
       </mesh>
       <pointLight
@@ -360,6 +365,9 @@ function PortalFieldProbe({
         ? { portalId: null, name: hits[0].object.name, distance: hits[0].distance }
         : null;
     };
+    /* A stable handle on the canvas that draws this field: the page has more
+       than one canvas and a probe must click the right one. */
+    gl.domElement.dataset.spatialCanvas = "genesis";
     const round = (value: number) => Math.round(value * 100) / 100;
     host.__leluPortalField = () => {
       const registry = PortalRegistry.getInstance().list();
@@ -380,6 +388,7 @@ function PortalFieldProbe({
           orbitIndex: placement.orbitIndex,
           meshName,
           hitMeshName: `spatial-portal-hit-${placement.id}`,
+          hitRadius: round(placement.hitRadius),
           hitDrawn: Boolean(scene.getObjectByName(`spatial-portal-hit-${placement.id}`)),
           drawn: Boolean(object),
           visible: object ? object.visible : false,
@@ -399,12 +408,22 @@ function PortalFieldProbe({
         drawnCount: reading.filter((portal) => portal.drawn).length,
         duplicates: duplicatePortalIds(registry),
         collisions: collidingPortalIds(placements),
+        overlappingMouths: overlappingHitIds(placements),
         selected,
         viewport: {
           width: Math.round(rect.width),
           height: Math.round(rect.height),
           left: Math.round(rect.left),
           top: Math.round(rect.top),
+        },
+        // Which canvas actually draws this field. The page has more than one
+        // (!), and a measurement that clicks the wrong one proves nothing.
+        canvas: {
+          selector: '[data-spatial-canvas="genesis"]',
+          id: gl.domElement.id || "",
+          className: gl.domElement.className || "",
+          width: gl.domElement.width,
+          height: gl.domElement.height,
         },
         portals: reading,
       };
@@ -536,7 +555,7 @@ function MorphShell({ state }: { state: SpatialState }) {
  * field of view — so the field occupies the middle of the wide view, and the
  * geometry changes only when the SCENE changes, never per rendered frame.
  */
-const RING_FIT = 0.4;
+const RING_FIT = 0.36;
 
 export default function SpatialPortals() {
   const state = useSpatialState();
@@ -547,17 +566,31 @@ export default function SpatialPortals() {
   // inside an environment the portals dim rather than paint under it.
   const wide = state.current === "core" || state.current === "cosmos" || state.current === "portal";
   const records = usePortalRecords();
+  // The ring is fitted to the real drawing surface, so the same field is
+  // aimable in a phone's portrait viewport and on a wide desktop one.
+  const size = useThree((three) => three.size);
   const pose = runtime.poseFor(state.current);
   const basis = useMemo(() => {
     const position = new Vector3(pose.position.x, pose.position.y, pose.position.z);
     const target = new Vector3(pose.target.x, pose.target.y, pose.target.z);
     const distance = position.distanceTo(target);
     const visibleHeight = 2 * distance * Math.tan((pose.fov * Math.PI) / 360);
+    const aspect = size.width / Math.max(1, size.height);
     const quaternion = new Quaternion().setFromRotationMatrix(
       new Matrix4().lookAt(position, target, new Vector3(0, 1, 0)),
     );
-    return { centre: target, quaternion, radius: Math.max(1.8, visibleHeight * RING_FIT) };
+    // Fit the NARROWER screen axis: a portrait phone has a small visible
+    // width, and a ring sized from height alone pushes its outer portals off
+    // screen, where they cannot be aimed at at all.
+    const visibleWidth = visibleHeight * aspect;
+    return {
+      centre: target,
+      quaternion,
+      radius: Math.max(1.2, Math.min(visibleHeight, visibleWidth) * RING_FIT),
+    };
   }, [
+    size.width,
+    size.height,
     state.current,
     pose.position.x,
     pose.position.y,
@@ -628,6 +661,7 @@ export default function SpatialPortals() {
             label: portal.label,
             accent: portal.accent,
             radius: portal.radius,
+            hitRadius: portal.hitRadius,
           }}
           state={state}
           position={portal.position}

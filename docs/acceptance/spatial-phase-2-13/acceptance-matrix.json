@@ -1,6 +1,6 @@
 {
-  "mission": "5.4 — spatial interaction completion",
-  "status": "incomplete",
+  "mission": "5.4 / 5.4B.1 — portal targeting",
+  "status": "incomplete-blocked-on-targeting",
   "branch": "claude/mission-5-4-spatial-interaction",
   "start": {
     "canonicalRemoteTip": "91f5361481bcf52913181867ad928ed9c1745b30",
@@ -13,23 +13,55 @@
     "realDevicePerformance": false
   },
   "gates": {
-    "typescript": { "command": "npx tsc -b --force", "errors": 0 },
+    "typescript": {
+      "command": "npx tsc -b --force",
+      "errors": 0
+    },
     "tests": {
       "command": "bun run test (same file list, run as two halves because the runner killed two full runs)",
-      "half1": { "tests": 864, "pass": 864, "fail": 0, "skipped": 0 },
-      "half2": { "tests": 874, "pass": 872, "fail": 0, "skipped": 2 },
+      "half1": {
+        "tests": 864,
+        "pass": 864,
+        "fail": 0,
+        "skipped": 0
+      },
+      "half2": {
+        "tests": 874,
+        "pass": 872,
+        "fail": 0,
+        "skipped": 2
+      },
       "totalPass": 1736,
       "totalFail": 0
     },
-    "lint": { "command": "bun run lint", "errors": 0, "warnings": 130 },
-    "build": { "command": "bun run build", "exit": 0, "duration": "7.13s" }
+    "lint": {
+      "command": "bun run lint",
+      "errors": 0,
+      "warnings": 130
+    },
+    "build": {
+      "command": "bun run build",
+      "exit": 0,
+      "duration": "7.13s"
+    },
+    "portalTests": {
+      "command": "tsx --test tests/portal-field.test.ts tests/spatial-experience.test.ts tests/spatial-portals.test.ts",
+      "tests": 40,
+      "pass": 40,
+      "fail": 0
+    }
   },
   "requirements": [
     {
       "id": "A1",
       "requirement": "Every registry portal produces a visible 3D representation",
       "status": "PASS",
-      "evidence": { "registry": 11, "placed": 11, "drawn": 11, "hitSurfaces": 11 }
+      "evidence": {
+        "registry": 11,
+        "placed": 11,
+        "drawn": 11,
+        "hitSurfaces": 11
+      }
     },
     {
       "id": "A2",
@@ -46,65 +78,96 @@
       "id": "A3",
       "requirement": "Visuals update on create/remove/rename with no stale or duplicate objects",
       "status": "PARTIAL",
-      "evidence": { "unit": "portal-field tests pass (create/remove/rename/reload, duplicates [], collisions [])", "live": "not exercised this mission" }
+      "evidence": {
+        "unit": "portal-field tests pass (create/remove/rename/reload, duplicates [], collisions [])",
+        "live": "not exercised this mission"
+      }
     },
     {
       "id": "B1",
       "requirement": "Clicking an actual 3D portal initiates a real spatial transition",
       "status": "PASS",
-      "evidence": { "click": "real mouse click on canvas at a raycaster-confirmed point", "transition": "portal-open" }
+      "evidence": {
+        "click": "real mouse click on canvas at a raycaster-confirmed point",
+        "transition": "environment-morph (real transition started from a canvas click)"
+      }
     },
     {
       "id": "B2",
       "requirement": "The selected portal identifies its actual registry destination",
       "status": "FAIL",
       "evidence": {
-        "aimed": "spatial-portal-hit-scene:files",
-        "travelledTo": "portal",
-        "earlier": "a click aimed at scene:studio also travelled to scene:portal"
+        "geometry": {
+          "overlappingMouths": "[]",
+          "portalsDrawn": 11,
+          "onScreen": 11,
+          "mouthRadius": 0.46,
+          "rule": "hitRadius <= 0.45 * nearest-neighbour distance"
+        },
+        "clickAimed": "scene:files",
+        "clickAttributedByRaycaster": "spatial-portal-hit-scene:files",
+        "clickPointOffsetPx": 44,
+        "landedScene": "media",
+        "secondTarget": "scene:studio projected off screen (9538,-25794) — no clickable point",
+        "verdict": "the overlapping-mouth defect is fixed and proven; the click identity chain is still not established"
       }
     },
     {
       "id": "B3",
       "requirement": "Rapid repeat selection / selection during a transition / removal during interaction",
       "status": "PARTIAL",
-      "evidence": { "guard": "clicks during an in-flight transition to another destination are refused in the component", "measured": "rapid run started a transition; completion and removal cases not measured" }
+      "evidence": {
+        "guard": "clicks during an in-flight transition to another destination are refused in the component",
+        "measured": "rapid run started a transition; completion and removal cases not measured"
+      }
     },
     {
       "id": "B4",
       "requirement": "Travel after reload",
       "status": "UNVERIFIED",
-      "evidence": { "reason": "probe did not complete the reload pass" }
+      "evidence": {
+        "reason": "probe did not complete the reload pass"
+      }
     },
     {
       "id": "C",
       "requirement": "Conversation identity and usable chat survive real portal travel",
       "status": "UNVERIFIED",
-      "evidence": { "reason": "not attempted" }
+      "evidence": {
+        "reason": "not attempted"
+      }
     },
     {
       "id": "D",
       "requirement": "Creation Studio artifact lifecycle inside the spatial environment",
       "status": "UNVERIFIED",
-      "evidence": { "reason": "not attempted" }
+      "evidence": {
+        "reason": "not attempted"
+      }
     },
     {
       "id": "E",
       "requirement": "Manual and pinned module placement, persisted across reload",
       "status": "UNVERIFIED",
-      "evidence": { "reason": "existing drag/pin and ModuleLayoutStore were not modified and not exercised" }
+      "evidence": {
+        "reason": "existing drag/pin and ModuleLayoutStore were not modified and not exercised"
+      }
     },
     {
       "id": "F",
       "requirement": "Lifecycle/performance measurements",
       "status": "UNVERIFIED",
-      "evidence": { "reason": "not attempted" }
+      "evidence": {
+        "reason": "not attempted"
+      }
     },
     {
       "id": "G",
       "requirement": "Capability presentation contract with one real integration",
       "status": "UNVERIFIED",
-      "evidence": { "reason": "not attempted" }
+      "evidence": {
+        "reason": "not attempted"
+      }
     }
   ],
   "artifacts": {
@@ -116,6 +179,27 @@
     "scripts": [
       "docs/acceptance/spatial-phase-2-13/scripts/probe-interaction.mjs",
       "docs/acceptance/spatial-phase-2-13/scripts/probe-portal-click.mjs"
+    ]
+  },
+  "mission54b1": {
+    "branch": "claude/mission-5-4-spatial-interaction",
+    "baseCommit": "382088d",
+    "rootCause": "mouth radius came from each portal own size while slots were spaced 2piR/N; coplanar equidistant discs tied in the raycast and the tie was broken by traversal order",
+    "fix": "mouth radius derived from nearest-neighbour distance (<=0.45d), extras clustered in orbits, ring fitted to the narrower screen axis",
+    "remaining": {
+      "candidate1": "screen-space overlap under a grazing camera is not covered by a ring-plane guarantee",
+      "candidate2": "harness clicked 44px off centre and read the field while the camera was moving (studio projected far off screen while onScreen said 11)"
+    },
+    "harnessBugs": [
+      "orb is a toggle and was pressed every settle",
+      "window.__leluImmersive is not set in this build",
+      "three canvases on the page; only one draws the field"
+    ],
+    "measurements": [
+      "docs/acceptance/spatial-phase-2-13/measurements/portal-targets-1440x900.json"
+    ],
+    "scripts": [
+      "docs/acceptance/spatial-phase-2-13/scripts/probe-portal-targets.mjs"
     ]
   }
 }

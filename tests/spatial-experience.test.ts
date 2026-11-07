@@ -381,7 +381,7 @@ test("portal geometry is stable between emitted frames", () => {
     "the field is built from the registry list, once per registry/scene change",
   );
   assert.ok(
-    /\}, \[\s*state\.current,[\s\S]{0,240}?pose\.fov,\s*\]\)/.test(portals),
+    /\}, \[\s*size\.width,\s*size\.height,\s*state\.current,[\s\S]{0,320}?pose\.fov,\s*\]\)/.test(portals),
     "the ring's basis follows the scene pose, never a frame",
   );
   assert.ok(

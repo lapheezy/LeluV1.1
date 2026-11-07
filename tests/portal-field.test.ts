@@ -21,9 +21,12 @@ import PortalRegistry, {
   type PortalPort,
 } from "../src/app/scene/spatial/PortalRegistry";
 import {
+  MOUTH_SEPARATION,
   collidingPortalIds,
   duplicatePortalIds,
+  overlappingHitIds,
   portalPlacements,
+  ringSpacing,
 } from "../src/app/scene/spatial/portalField";
 
 function memoryPort(): PortalPort & { data: Map<string, unknown> } {
@@ -91,9 +94,10 @@ test("a second portal to the same environment never stacks on the first", () => 
   assert.notDeepEqual(extras[0].offset, extras[1].offset);
   assert.notDeepEqual(extras[0].offset, builtin.offset);
   assert.notDeepEqual(extras[1].offset, builtin.offset);
-  // A created portal reads as a child of the ring, not a second main portal.
-  assert.ok(extras[0].radius < builtin.radius);
+  // Each mouth stays clear of its neighbour: the ring slot and both extras are
+  // independently aimable, whatever their drawn size.
   assert.deepEqual(collidingPortalIds(placements), []);
+  assert.deepEqual(overlappingHitIds(placements), []);
 });
 
 test("removing a portal removes its drawn object and leaves no stale placement", () => {
@@ -148,6 +152,68 @@ test("the Core and the Cosmos are the world, not portals in it", () => {
   ]);
   assert.equal(placements.some((placement) => placement.destination === "core"), false);
   assert.equal(placements.some((placement) => placement.destination === "cosmos"), false);
+});
+
+/**
+ * Mission 5.4B's failure in measurable form: a click on `files` travelled to
+ * `portal` because two coplanar interactive mouths covered the same pointer
+ * position, and the raycast tie was decided by traversal order. These cases
+ * assert the geometric guarantee at the sizes the app really reaches.
+ */
+test("no two interactive mouths ever overlap, at any portal count", () => {
+  const cases: Array<{ builtins: number; extras: number; radius: number }> = [
+    { builtins: 11, extras: 0, radius: 3 },
+    { builtins: 11, extras: 11, radius: 3 },
+    { builtins: 11, extras: 30, radius: 2.2 },
+    { builtins: 11, extras: 53, radius: 1.6 },
+    { builtins: 2, extras: 0, radius: 6 },
+  ];
+  for (const testCase of cases) {
+    const port = memoryPort();
+    const registry = PortalRegistry.resetForTests(port);
+    registry.seedRing(RING_SCENES.slice(0, testCase.builtins));
+    for (let index = 0; index < testCase.extras; index += 1) {
+      const created = registry.create({
+        destination: RING_SCENES[index % testCase.builtins],
+        label: `Extra ${index}`,
+      });
+      assert.equal(created.ok, true);
+    }
+    const placements = portalPlacements(registry.list(), { radius: testCase.radius });
+    assert.deepEqual(
+      overlappingHitIds(placements),
+      [],
+      `${testCase.builtins}+${testCase.extras} at radius ${testCase.radius} must have no overlapping mouths`,
+    );
+  }
+});
+
+test("each mouth is measured against its nearest neighbour, not its own size", () => {
+  const { registry } = seeded();
+  const placements = portalPlacements(registry.list(), { radius: 3 });
+  const spacing = ringSpacing(3, placements.length);
+  for (const placement of placements) {
+    assert.equal(placement.builtin, true);
+    assert.ok(
+      placement.hitRadius <= MOUTH_SEPARATION * spacing + 1e-6,
+      "a mouth may not be wider than the gap to the next slot",
+    );
+    assert.ok(placement.hitRadius > placement.radius, "the mouth covers the seam it belongs to");
+  }
+  // Every mouth is comfortably wider than a pointer: at a framed ring of
+  // radius 3 the slots are ~1.7 units apart, so the mouth keeps a real target.
+  assert.ok(placements[0].hitRadius > 0.15);
+});
+
+test("a portrait viewport shrinks the ring instead of pushing portals off screen", () => {
+  // The component fits the ring to the narrower axis; the model must keep the
+  // same guarantee at the smaller radius that produces.
+  const { registry } = seeded();
+  const portrait = portalPlacements(registry.list(), { radius: 1.2 });
+  const desktop = portalPlacements(registry.list(), { radius: 3.4 });
+  assert.deepEqual(overlappingHitIds(portrait), []);
+  assert.deepEqual(overlappingHitIds(desktop), []);
+  assert.ok(portrait.every((placement) => Math.abs(placement.offset.x) <= 1.2 + 1e-6));
 });
 
 test("the field is fed by the storage key the registry actually writes", () => {
