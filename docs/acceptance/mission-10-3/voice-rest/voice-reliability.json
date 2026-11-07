@@ -1,0 +1,456 @@
+{
+ "ranAt": "2026-11-07T19:34:26.782Z",
+ "base": "http://127.0.0.1:5174/",
+ "results": {
+  "provider-timeout": {
+   "failed": {
+    "line": "What is two plus two times three?",
+    "heard": null,
+    "sttLatencyMs": null,
+    "replyLatencyMs": null,
+    "response": null,
+    "failure": null,
+    "settled": false
+   },
+   "ttsRequestsDuringFailure": 0,
+   "recovery": {
+    "line": "Name one animal that lives in the Andes.",
+    "heard": "Name one animal that lives in the Andes.",
+    "sttLatencyMs": 18662,
+    "replyLatencyMs": 98082,
+    "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+    "failure": {
+     "kind": "provider-unavailable",
+     "message": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed."
+    },
+    "settled": true
+   },
+   "notTreatedAsStop": true,
+   "pass": false,
+   "history": [
+    {
+     "role": "user",
+     "text": "Name one animal that lives in the Andes."
+    },
+    {
+     "role": "assistant",
+     "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared "
+    }
+   ],
+   "events": [
+    {
+     "t": 1705,
+     "kind": "req",
+     "url": "/api/model/status"
+    },
+    {
+     "t": 13401,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 81950,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 128230,
+     "kind": "req",
+     "url": "/api/model/groq/chat/completions"
+    },
+    {
+     "t": 167045,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 212203,
+     "kind": "req",
+     "url": "/api/model/fireworks/chat/completions"
+    },
+    {
+     "t": 247774,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 295484,
+     "kind": "req",
+     "url": "/api/model/groq/chat/completions"
+    },
+    {
+     "t": 323992,
+     "kind": "req",
+     "url": "/api/model/fireworks/chat/completions"
+    },
+    {
+     "t": 329410,
+     "kind": "req",
+     "url": "/api/voice/stt"
+    },
+    {
+     "t": 332088,
+     "kind": "res",
+     "url": "/api/voice/stt",
+     "status": 200
+    },
+    {
+     "t": 337488,
+     "kind": "utterance",
+     "text": "Name one animal that lives in the Andes.",
+     "at": 1794079648910
+    },
+    {
+     "t": 337491,
+     "kind": "turn",
+     "user": "Name one animal that lives in the Andes.",
+     "response": null,
+     "failure": null
+    },
+    {
+     "t": 356316,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 374486,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 409653,
+     "kind": "req",
+     "url": "/api/model/fireworks/chat/completions"
+    },
+    {
+     "t": 416908,
+     "kind": "turn",
+     "user": "Name one animal that lives in the Andes.",
+     "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as",
+     "failure": {
+      "kind": "provider-unavailable",
+      "message": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed."
+     }
+    },
+    {
+     "t": 416910,
+     "kind": "failure",
+     "failure": {
+      "kind": "provider-unavailable",
+      "message": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+      "at": 1794079728330
+     }
+    }
+   ]
+  },
+  "network-failure": {
+   "failed": {
+    "line": "What's a synonym for happy?",
+    "heard": "What's a synonym for happy?",
+    "sttLatencyMs": 6475,
+    "replyLatencyMs": 28575,
+    "response": "The network failed while I was reaching the model providers. Nothing was lost; ask me again once you're back online.",
+    "failure": {
+     "kind": "network-failure",
+     "message": "The network failed while I was reaching the model providers. Nothing was lost; ask me again once you're back online."
+    },
+    "settled": true
+   },
+   "ttsRequestsDuringFailure": 0,
+   "recovery": {
+    "line": "How do you say thank you in Spanish?",
+    "heard": "How do you say thank you in Spanish?",
+    "sttLatencyMs": 3701,
+    "replyLatencyMs": 78017,
+    "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+    "failure": {
+     "kind": "provider-unavailable",
+     "message": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed."
+    },
+    "settled": true
+   },
+   "pass": false,
+   "history": [
+    {
+     "role": "user",
+     "text": "What's a synonym for happy?"
+    },
+    {
+     "role": "assistant",
+     "text": "The network failed while I was reaching the model providers. Nothing was lost; ask me again once you're back online."
+    },
+    {
+     "role": "user",
+     "text": "How do you say thank you in Spanish?"
+    },
+    {
+     "role": "assistant",
+     "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared "
+    }
+   ],
+   "events": [
+    {
+     "t": 1773,
+     "kind": "req",
+     "url": "/api/model/status"
+    },
+    {
+     "t": 15293,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 32554,
+     "kind": "req",
+     "url": "/api/voice/stt"
+    },
+    {
+     "t": 34183,
+     "kind": "res",
+     "url": "/api/voice/stt",
+     "status": 200
+    },
+    {
+     "t": 37500,
+     "kind": "utterance",
+     "text": "What's a synonym for happy?",
+     "at": 1794079781789
+    },
+    {
+     "t": 37500,
+     "kind": "turn",
+     "user": "What's a synonym for happy?",
+     "response": null,
+     "failure": null
+    },
+    {
+     "t": 56148,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 57887,
+     "kind": "req",
+     "url": "/api/model/groq/chat/completions"
+    },
+    {
+     "t": 57939,
+     "kind": "req",
+     "url": "/api/model/fireworks/chat/completions"
+    },
+    {
+     "t": 59603,
+     "kind": "turn",
+     "user": "What's a synonym for happy?",
+     "response": "The network failed while I was reaching the model providers. Nothing was lost; ask me again once you're back online.",
+     "failure": {
+      "kind": "network-failure",
+      "message": "The network failed while I was reaching the model providers. Nothing was lost; ask me again once you're back online."
+     }
+    },
+    {
+     "t": 59609,
+     "kind": "failure",
+     "failure": {
+      "kind": "network-failure",
+      "message": "The network failed while I was reaching the model providers. Nothing was lost; ask me again once you're back online.",
+      "at": 1794079803889
+     }
+    },
+    {
+     "t": 73657,
+     "kind": "req",
+     "url": "/api/voice/stt"
+    },
+    {
+     "t": 75503,
+     "kind": "res",
+     "url": "/api/voice/stt",
+     "status": 200
+    },
+    {
+     "t": 77348,
+     "kind": "utterance",
+     "text": "How do you say thank you in Spanish?",
+     "at": 1794079821637
+    },
+    {
+     "t": 77348,
+     "kind": "turn",
+     "user": "How do you say thank you in Spanish?",
+     "response": null,
+     "failure": null
+    },
+    {
+     "t": 93372,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 110825,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 143514,
+     "kind": "req",
+     "url": "/api/model/groq/chat/completions"
+    },
+    {
+     "t": 147253,
+     "kind": "req",
+     "url": "/api/model/fireworks/chat/completions"
+    },
+    {
+     "t": 151664,
+     "kind": "turn",
+     "user": "How do you say thank you in Spanish?",
+     "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as",
+     "failure": {
+      "kind": "provider-unavailable",
+      "message": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed."
+     }
+    },
+    {
+     "t": 151666,
+     "kind": "failure",
+     "failure": {
+      "kind": "provider-unavailable",
+      "message": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+      "at": 1794079895953
+     }
+    }
+   ]
+  },
+  "transcription": {
+   "failure": {
+    "kind": "transcription-failure",
+    "message": "I couldn't make out what you said — transcription failed. Please say it again.",
+    "at": 1794079953289
+   },
+   "recovery": {
+    "line": "What is the boiling point of water in Fahrenheit?",
+    "heard": "What is the boiling point of water in Fahrenheit?",
+    "sttLatencyMs": 3699,
+    "replyLatencyMs": 86209,
+    "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+    "failure": {
+     "kind": "provider-unavailable",
+     "message": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed."
+    },
+    "settled": true
+   },
+   "pass": true,
+   "history": [
+    {
+     "role": "user",
+     "text": "What is the boiling point of water in Fahrenheit?"
+    },
+    {
+     "role": "assistant",
+     "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared "
+    }
+   ],
+   "events": [
+    {
+     "t": 2182,
+     "kind": "req",
+     "url": "/api/model/status"
+    },
+    {
+     "t": 14866,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 36985,
+     "kind": "req",
+     "url": "/api/voice/stt"
+    },
+    {
+     "t": 38934,
+     "kind": "res",
+     "url": "/api/voice/stt",
+     "status": 500
+    },
+    {
+     "t": 42408,
+     "kind": "req",
+     "url": "/api/model/groq/audio/transcriptions"
+    },
+    {
+     "t": 44142,
+     "kind": "failure",
+     "failure": {
+      "kind": "transcription-failure",
+      "message": "I couldn't make out what you said — transcription failed. Please say it again.",
+      "at": 1794079953289
+     }
+    },
+    {
+     "t": 55203,
+     "kind": "req",
+     "url": "/api/voice/stt"
+    },
+    {
+     "t": 57086,
+     "kind": "res",
+     "url": "/api/voice/stt",
+     "status": 200
+    },
+    {
+     "t": 58892,
+     "kind": "utterance",
+     "text": "What is the boiling point of water in Fahrenheit?",
+     "at": 1794079968039
+    },
+    {
+     "t": 58893,
+     "kind": "turn",
+     "user": "What is the boiling point of water in Fahrenheit?",
+     "response": null,
+     "failure": null
+    },
+    {
+     "t": 68092,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 99502,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 132479,
+     "kind": "req",
+     "url": "/api/model/groq/chat/completions"
+    },
+    {
+     "t": 137058,
+     "kind": "req",
+     "url": "/api/model/fireworks/chat/completions"
+    },
+    {
+     "t": 141402,
+     "kind": "turn",
+     "user": "What is the boiling point of water in Fahrenheit?",
+     "response": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try as",
+     "failure": {
+      "kind": "provider-unavailable",
+      "message": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed."
+     }
+    },
+    {
+     "t": 141402,
+     "kind": "failure",
+     "failure": {
+      "kind": "provider-unavailable",
+      "message": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+      "at": 1794080050549
+     }
+    }
+   ]
+  }
+ }
+}
