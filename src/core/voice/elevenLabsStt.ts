@@ -51,7 +51,7 @@ export function forgetElevenLabsSttStatus(): void {
  * utterance or after a greeting is rewritten — never a word that
  * merely contains these letters.
  */
-const NAME_VARIANTS = /(^|\b(?:hey|hi|hello|okay|ok|so|and)\s*,?\s*)(lei\s+liu|lay\s+lou|lay\s+lu|lei\s+lu|le\s*lou|lelu|lélou|lelou|lulu)(?=\b)/i;
+const NAME_VARIANTS = /(^|\b(?:hey|hi|hello|okay|ok|so|and)\s*,?\s*)(lei\s+liu|lay\s+lou|lay\s+lu|lei\s+lu|lei\s*lou|le\s*lou|lelu|lélou|lelou|lulu)(?=\b)/i;
 
 export function normalizeHerName(text: string): string {
   return text.replace(NAME_VARIANTS, (_m, lead: string) => `${lead}Lélu`);

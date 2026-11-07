@@ -562,9 +562,14 @@ class VoiceEngine {
     };
   }
 
-  /** Whether her voice is audibly playing right now (queue not drained). */
+  /**
+   * Whether she is speaking right now: browser utterances queued, OR her
+   * ElevenLabs reply chain running (synthesising or playing a segment).
+   * Counting only browser utterances made this false for the whole of her
+   * real voice, so barge-in never fired on it (found live, 2026-11-07).
+   */
   isSpeaking(): boolean {
-    return this.pendingUtterances > 0;
+    return this.pendingUtterances > 0 || (this.chainActive && this.elevenLabs);
   }
 
   /** How many times the user has interrupted her this session. */
@@ -1056,17 +1061,32 @@ class VoiceEngine {
       }
 
       // Transcribe: ElevenLabs Scribe when configured, Groq Whisper otherwise.
-      this.updateState({ ...this._state, phase: "processing" });
+      // While she speaks or thinks, the phase is hers to show, not ours.
+      const busy = this.isSpeaking() || (this._turn !== null && this._turn.response === null);
+      if (!busy) this.updateState({ ...this._state, phase: "processing" });
       const transcript = await this.transcribeUtterance(chunk);
 
       if (!this.whisperFallbackActive || !this._state.active) return;
 
       if (transcript.trim()) {
         this.emitInterim("");
-        this.handleUserSpeech(transcript.trim());
+        const heard = transcript.trim();
+        // BARGE-IN on the recording path. The loop keeps listening while she
+        // speaks; what it hears is either the user (she stops, their words
+        // become the next turn) or her own voice coming back through the mic
+        // (handleUserSpeech's echo filter drops it). Same rule as the Web
+        // Speech path. Before, this path stopped listening while she spoke,
+        // so she could not be interrupted at all.
+        if (this.isSpeaking() && isBargeIn(heard, this.lastSpokenText)) {
+          this.bargeIns += 1;
+          this.cancelSpeech();
+        }
+        this.handleUserSpeech(heard);
+        // Keep listening through her thinking and speaking.
+        again = true;
       } else {
-        // Silence — go back to listening
-        this.updateState({ ...this._state, phase: "listening" });
+        // Silence — go back to listening (unless she is speaking or thinking)
+        if (!busy) this.updateState({ ...this._state, phase: "listening" });
         again = true;
       }
     } catch (error) {
