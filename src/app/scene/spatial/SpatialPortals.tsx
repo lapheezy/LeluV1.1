@@ -21,8 +21,9 @@
  * ==========================================================
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import { Html } from "@react-three/drei";
 import {
   AdditiveBlending,
   BufferAttribute,
@@ -33,12 +34,20 @@ import {
   Matrix4,
   Points,
   Quaternion,
+  Raycaster,
+  Vector2,
   Vector3,
 } from "three";
 import SpatialRuntime from "./SpatialRuntime";
 import type { SpatialState } from "./SpatialRuntime";
 import { destinationFor, type SpatialSceneId } from "./SpatialScenes";
-import PortalRegistry, { RING_SCENES, isBuiltinPortal, type PortalRecord } from "./PortalRegistry";
+import PortalRegistry, { RING_SCENES, type PortalRecord } from "./PortalRegistry";
+import {
+  collidingPortalIds,
+  duplicatePortalIds,
+  portalPlacements,
+  type PortalPlacement,
+} from "./portalField";
 import CosmosStore from "../genesis/cosmos/CosmosStore";
 
 /**
@@ -137,17 +146,24 @@ function Portal({
   spec,
   state,
   position,
+  selected,
+  showLabel,
+  onSelect,
 }: {
   spec: PortalSpec;
   state: SpatialState;
   position: Vector3;
+  selected: boolean;
+  showLabel: boolean;
+  onSelect: (spec: PortalSpec) => void;
 }) {
   const runtime = SpatialRuntime.getInstance();
   const seam = useRef<Group>(null);
   const hovered = state.interaction.hovered === spec.destination;
   const travellingHere = state.destination === spec.destination && Boolean(state.transition);
   const visited = state.current === spec.destination;
-  const intensity = hovered || travellingHere ? 1 : visited ? 0.55 : 0.28;
+  const intensity = selected || hovered || travellingHere ? 1 : visited ? 0.55 : 0.28;
+  const busyElsewhere = Boolean(state.transition) && state.destination !== spec.destination;
   const pulse = 1 + Math.sin(state.updatedAt / 320 + spec.radius) * 0.04;
 
   useFrame((_, delta) => {
@@ -156,25 +172,15 @@ function Portal({
   });
 
   return (
-    <group position={position}>
+    <group position={position} name={`spatial-portal-group-${spec.id}`}>
       <group ref={seam} scale={pulse}>
         <mesh
           name={`spatial-portal-${spec.id}`}
-          userData={{ portalId: spec.id, destination: spec.destination, label: spec.label }}
-          onClick={(event) => {
-            event.stopPropagation();
-            // Travelling through a portal is the SAME travel the rail uses:
-            // one scene, one camera, no second canvas and no context reset.
-            runtime.travel(spec.destination);
-          }}
-          onPointerOver={(event) => {
-            event.stopPropagation();
-            runtime.hover(spec.destination);
-            document.body.style.cursor = "pointer";
-          }}
-          onPointerOut={() => {
-            runtime.hover(null);
-            document.body.style.cursor = "default";
+          userData={{
+            portalId: spec.id,
+            destination: spec.destination,
+            label: spec.label,
+            selected,
           }}
         >
           <torusGeometry args={[spec.radius, 0.045, 10, 72]} />
@@ -199,6 +205,50 @@ function Portal({
           />
         </mesh>
       </group>
+      {showLabel ? (
+        /*
+         * The portal's readable identity, in the world next to the thing it
+         * names. It is the SAME selection path as the mesh (one handler, one
+         * travel call), which is what makes the field keyboard-reachable
+         * without a second widget: Tab to a chip, Enter to travel.
+         */
+        <Html position={[0, spec.radius + 0.3, 0]} center distanceFactor={16} zIndexRange={[6, 0]} style={{ pointerEvents: "auto" }}>
+          <button
+            type="button"
+            data-portal-select={spec.id}
+            data-portal-select-destination={spec.destination}
+            data-portal-selected={selected ? "" : undefined}
+            aria-label={`Travel to ${spec.label}`}
+            aria-pressed={selected}
+            aria-disabled={busyElsewhere || undefined}
+            title={`${spec.label} → ${spec.destination} (${spec.id})`}
+            onClick={(event) => {
+              event.stopPropagation();
+              if (busyElsewhere) return;
+              onSelect(spec);
+            }}
+            style={{
+              pointerEvents: "auto",
+              font: "inherit",
+              fontSize: 11,
+              letterSpacing: "0.06em",
+              color: selected ? "#f8fafc" : "rgba(226,232,240,0.86)",
+              background: selected ? "rgba(34,211,238,0.22)" : "rgba(8,16,38,0.62)",
+              border: `1px solid ${selected ? "rgba(103,232,249,0.85)" : "rgba(148,163,184,0.32)"}`,
+              borderRadius: 999,
+              padding: "3px 9px",
+              whiteSpace: "nowrap",
+              cursor: busyElsewhere ? "progress" : "pointer",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              boxShadow: selected ? `0 0 12px ${spec.accent}` : "0 4px 14px rgba(2,6,23,0.45)",
+              opacity: busyElsewhere ? 0.5 : 1,
+            }}
+          >
+            ◈ {spec.label}
+          </button>
+        </Html>
+      ) : null}
       {/* The dimensional surface: what you pass through. */}
       <mesh name={`spatial-portal-surface-${spec.id}`} userData={{ portalId: spec.id }}>
         <circleGeometry args={[spec.radius * 0.86, 48]} />
@@ -212,6 +262,41 @@ function Portal({
           toneMapped={false}
         />
       </mesh>
+      {/*
+       * The interactive region: the whole mouth of the portal, not just the
+       * torus seam.
+       *
+       * The handlers used to sit on the torus alone, whose centre is a HOLE —
+       * a measured click at the portal's projected centre raycast straight
+       * through it and started nothing, so the field looked interactive and
+       * was not. This disc covers the opening (slightly wider than the seam) so
+       * pointer, touch and keyboard all reach the same portal from the middle.
+       * It paints nothing: opacity 0, no depth write. */}
+      <mesh
+        name={`spatial-portal-hit-${spec.id}`}
+        userData={{ portalId: spec.id, destination: spec.destination, label: spec.label }}
+        onClick={(event) => {
+          event.stopPropagation();
+          // One camera, one flight: a click while another destination is in
+          // flight is refused rather than rebasing the path on top of itself.
+          // Travelling through a portal is the SAME travel the rail uses: one
+          // scene, one camera, no second canvas and no context reset.
+          if (busyElsewhere) return;
+          onSelect(spec);
+        }}
+        onPointerOver={(event) => {
+          event.stopPropagation();
+          runtime.hover(spec.destination);
+          document.body.style.cursor = "pointer";
+        }}
+        onPointerOut={() => {
+          runtime.hover(null);
+          document.body.style.cursor = "default";
+        }}
+      >
+        <circleGeometry args={[spec.radius * 1.08, 32]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} side={DoubleSide} />
+      </mesh>
       <pointLight
         color={spec.accent}
         intensity={0.35 + intensity * 0.9 + state.particles * 2.2}
@@ -220,6 +305,116 @@ function Portal({
       />
     </group>
   );
+}
+
+/**
+ * Read-only diagnostics: what the registry says, and what the renderer
+ * actually drew for it.
+ *
+ * Installed on the window exactly like SpatialLayer's probe, so a measurement
+ * describes the REAL scene graph (an object with that name, its world
+ * position, its projected screen point) rather than the intent of the code
+ * that was supposed to draw it. Nothing here mutates the scene.
+ */
+function PortalFieldProbe({
+  placements,
+  portals,
+  selected,
+}: {
+  placements: PortalPlacement[];
+  portals: Array<{ id: string; destination: SpatialSceneId; position: Vector3 }>;
+  selected: string | null;
+}) {
+  const scene = useThree((state) => state.scene);
+  const camera = useThree((state) => state.camera);
+  const gl = useThree((state) => state.gl);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const host = window as unknown as {
+      __leluPortalField?: () => unknown;
+      __leluPortalPick?: (x: number, y: number) => unknown;
+    };
+    /*
+     * What a click at a screen point would actually hit, from the renderer's
+     * own raycaster. Read-only: it moves nothing. Without it a measurement can
+     * only compare projected arithmetic against itself, which is how the
+     * field looked correct while a click through the middle of a portal did
+     * nothing at all.
+     */
+    host.__leluPortalPick = (x: number, y: number) => {
+      const rect = gl.domElement.getBoundingClientRect();
+      const ndc = new Vector2(
+        ((x - rect.left) / Math.max(1, rect.width)) * 2 - 1,
+        -((y - rect.top) / Math.max(1, rect.height)) * 2 + 1,
+      );
+      const raycaster = new Raycaster();
+      raycaster.setFromCamera(ndc, camera);
+      const hits = raycaster.intersectObjects(scene.children, true);
+      const hit = hits.find((entry) => entry.object.name.startsWith("spatial-portal-hit-"));
+      if (hit) {
+        const userData = hit.object.userData as { portalId?: string };
+        return { portalId: userData.portalId ?? null, name: hit.object.name, distance: hit.distance };
+      }
+      return hits.length
+        ? { portalId: null, name: hits[0].object.name, distance: hits[0].distance }
+        : null;
+    };
+    const round = (value: number) => Math.round(value * 100) / 100;
+    host.__leluPortalField = () => {
+      const registry = PortalRegistry.getInstance().list();
+      const rect = gl.domElement.getBoundingClientRect();
+      const reading = placements.map((placement) => {
+        const entry = portals.find((portal) => portal.id === placement.id);
+        const meshName = `spatial-portal-${placement.id}`;
+        const object = scene.getObjectByName(meshName);
+        const world = new Vector3();
+        if (object) object.getWorldPosition(world);
+        else if (entry) world.copy(entry.position);
+        const projected = world.clone().project(camera);
+        return {
+          id: placement.id,
+          destination: placement.destination,
+          label: placement.label,
+          builtin: placement.builtin,
+          orbitIndex: placement.orbitIndex,
+          meshName,
+          hitMeshName: `spatial-portal-hit-${placement.id}`,
+          hitDrawn: Boolean(scene.getObjectByName(`spatial-portal-hit-${placement.id}`)),
+          drawn: Boolean(object),
+          visible: object ? object.visible : false,
+          worldPosition: [round(world.x), round(world.y), round(world.z)],
+          screen: {
+            x: Math.round(rect.left + (projected.x * 0.5 + 0.5) * rect.width),
+            y: Math.round(rect.top + (-projected.y * 0.5 + 0.5) * rect.height),
+          },
+          onScreen:
+            projected.z < 1 && Math.abs(projected.x) <= 1 && Math.abs(projected.y) <= 1,
+          selected: selected === placement.id,
+        };
+      });
+      return {
+        registryCount: registry.length,
+        placedCount: placements.length,
+        drawnCount: reading.filter((portal) => portal.drawn).length,
+        duplicates: duplicatePortalIds(registry),
+        collisions: collidingPortalIds(placements),
+        selected,
+        viewport: {
+          width: Math.round(rect.width),
+          height: Math.round(rect.height),
+          left: Math.round(rect.left),
+          top: Math.round(rect.top),
+        },
+        portals: reading,
+      };
+    };
+    return () => {
+      delete host.__leluPortalField;
+      delete host.__leluPortalPick;
+    };
+  }, [placements, portals, selected, camera, scene, gl]);
+  return null;
 }
 
 /**
@@ -330,6 +525,19 @@ function MorphShell({ state }: { state: SpatialState }) {
   );
 }
 
+/**
+ * Where the ring lives: the plane the SCENE's camera looks through.
+ *
+ * Two measured failures shaped this. Placed at each destination's own anchor,
+ * the portals projected into the same few dozen pixels and a click on one
+ * travelled through another. Placed at a fixed world radius, none of them were
+ * on screen at all. The ring is therefore framed from the pose the runtime
+ * publishes for the scene we are in — its camera position, its target and its
+ * field of view — so the field occupies the middle of the wide view, and the
+ * geometry changes only when the SCENE changes, never per rendered frame.
+ */
+const RING_FIT = 0.4;
+
 export default function SpatialPortals() {
   const state = useSpatialState();
   const anchorVersion = useCosmosAnchors();
@@ -339,47 +547,70 @@ export default function SpatialPortals() {
   // inside an environment the portals dim rather than paint under it.
   const wide = state.current === "core" || state.current === "cosmos" || state.current === "portal";
   const records = usePortalRecords();
-  const positions = useMemo(() => {
-    // A second portal to the same environment orbits beside the first rather
-    // than stacking on it: the golden angle keeps them apart deterministically.
-    const orbits = new Map<SpatialSceneId, number>();
-    return records
-      .filter((record) => {
-        const kind = destinationFor(record.destination).kind;
-        return kind !== "core" && kind !== "cosmos";
-      })
-      .map((record) => {
-        const destination = destinationFor(record.destination);
-        const anchor = runtime.poseFor(record.destination).target;
-        const builtin = isBuiltinPortal(record);
-        const orbitIndex = builtin ? 0 : orbits.get(record.destination) ?? 0;
-        if (!builtin) orbits.set(record.destination, orbitIndex + 1);
-        const angle = orbitIndex * 2.399963 + record.destination.length;
-        const orbit = builtin ? 0 : 1.7 + (orbitIndex % 3) * 0.55;
-        const radius = builtin
-          ? destination.kind === "portal"
-            ? 1.5
-            : destination.kind === "galaxy"
-              ? 1.25
-              : 0.95
-          : 0.72;
-        return {
-          id: record.id,
-          destination: record.destination,
-          label: record.label,
-          accent: destination.accent,
-          radius,
-          position: new Vector3(
-            anchor.x + Math.cos(angle) * orbit,
-            anchor.y + Math.sin(angle) * orbit * 0.62,
-            anchor.z + orbit * 0.45,
-          ),
-        };
-      });
-  }, [records, runtime, anchorVersion]);
+  const pose = runtime.poseFor(state.current);
+  const basis = useMemo(() => {
+    const position = new Vector3(pose.position.x, pose.position.y, pose.position.z);
+    const target = new Vector3(pose.target.x, pose.target.y, pose.target.z);
+    const distance = position.distanceTo(target);
+    const visibleHeight = 2 * distance * Math.tan((pose.fov * Math.PI) / 360);
+    const quaternion = new Quaternion().setFromRotationMatrix(
+      new Matrix4().lookAt(position, target, new Vector3(0, 1, 0)),
+    );
+    return { centre: target, quaternion, radius: Math.max(1.8, visibleHeight * RING_FIT) };
+  }, [
+    state.current,
+    pose.position.x,
+    pose.position.y,
+    pose.position.z,
+    pose.target.x,
+    pose.target.y,
+    pose.target.z,
+    pose.fov,
+  ]);
+
+  // Placement maths lives in one pure module so the ring, the probe and the
+  // tests all agree about where a portal is. Offsets are in the ring's own
+  // plane, which the group below lays into the camera's view.
+  const placements = useMemo(
+    () => portalPlacements(records, { radius: basis.radius }),
+    [records, basis.radius],
+  );
+  const portals = useMemo(
+    () =>
+      placements.map((placement) => ({
+        ...placement,
+        position: new Vector3(placement.offset.x, placement.offset.y, placement.offset.z),
+      })),
+    // `anchorVersion` is not read here: the ring is framed by the camera, not
+    // by the Cosmos anchors. It stays in the dependency list so a change in
+    // the real galaxy/agent positions still republishes the field's props.
+    [placements, anchorVersion],
+  );
+
+  const [selected, setSelected] = useState<string | null>(null);
+  /*
+   * ONE selection path: the seam mesh, the label chip and a keyboard Enter all
+   * call this, so there is no second way to travel and no chance of the two
+   * disagreeing about which portal was chosen.
+   */
+  const select = useCallback(
+    (spec: PortalSpec) => {
+      setSelected(spec.id);
+      runtime.travel(spec.destination);
+    },
+    [runtime],
+  );
+
+  // A portal removed while selected must not leave a ghost selection behind.
+  useEffect(() => {
+    if (selected && !placements.some((placement) => placement.id === selected)) {
+      setSelected(null);
+    }
+  }, [placements, selected]);
 
   return (
     <group name="spatial-portals">
+      <PortalFieldProbe placements={placements} portals={portals} selected={selected} />
       <ambientLight intensity={0.06 + state.lighting * 0.1} color="#a5b4fc" />
       <pointLight
         position={[0, 2, 6]}
@@ -387,7 +618,8 @@ export default function SpatialPortals() {
         intensity={0.4 + state.lighting * 0.6 + state.particles * 3}
         distance={26}
       />
-      {positions.map((portal) => (
+      <group name="spatial-portal-ring" position={basis.centre} quaternion={basis.quaternion}>
+      {portals.map((portal) => (
         <Portal
           key={portal.id}
           spec={{
@@ -399,8 +631,12 @@ export default function SpatialPortals() {
           }}
           state={state}
           position={portal.position}
+          selected={selected === portal.id}
+          showLabel={wide}
+          onSelect={select}
         />
       ))}
+      </group>
       <SpatialParticleField state={state} />
       <MorphShell state={state} />
       <group visible={!wide} />

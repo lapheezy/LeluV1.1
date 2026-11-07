@@ -371,14 +371,24 @@ test("portal geometry is stable between emitted frames", () => {
   assert.ok(!/\}, \[runtime, state\.updatedAt\]\)/.test(portals), "positions are not rebuilt per frame");
   assert.ok(portals.includes("anchorVersion"), "they follow a version that changes only with real anchors");
   assert.ok(/setVersion\(\(value\) => value \+ 1\)/.test(portals), "the version is bumped on anchor sync");
+  // Mission 5.4 framed the ring from the scene pose instead of a fixed anchor
+  // offset, because a fixed radius put the whole field off screen. The
+  // invariant is unchanged and now asserted directly: geometry is a function
+  // of the registry list and the SCENE, and nothing in the render loop is
+  // allowed to rebuild or re-read it.
   assert.ok(
-    /\}, \[records, runtime, anchorVersion\]\)/.test(portals),
-    "the memo depends on the anchor version and the registry list — never on a frame",
+    portals.includes("portalPlacements(records, { radius: basis.radius })"),
+    "the field is built from the registry list, once per registry/scene change",
+  );
+  assert.ok(
+    /\}, \[\s*state\.current,[\s\S]{0,240}?pose\.fov,\s*\]\)/.test(portals),
+    "the ring's basis follows the scene pose, never a frame",
   );
   assert.ok(
     !/useFrame\([^)]*\)[\s\S]{0,200}setRecords/.test(portals),
     "the registry list is not re-read per frame",
   );
+  assert.ok(!/useFrame\([^)]*\)[\s\S]{0,200}setBasis/.test(portals), "no per-frame geometry update exists");
 });
 
 test("voice is available without opening the chat", () => {

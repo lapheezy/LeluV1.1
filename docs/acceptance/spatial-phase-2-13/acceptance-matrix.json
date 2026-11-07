@@ -1,0 +1,121 @@
+{
+  "mission": "5.4 — spatial interaction completion",
+  "status": "incomplete",
+  "branch": "claude/mission-5-4-spatial-interaction",
+  "start": {
+    "canonicalRemoteTip": "91f5361481bcf52913181867ad928ed9c1745b30",
+    "tree": "1c42ab0fd45c0caa8fcb6c16e1d74146eec50a62",
+    "note": "local origin ref was stale at 1031053, an ancestor of Mission 5.3's ae5a9cb; git ls-remote was the authority"
+  },
+  "environment": {
+    "browser": "Chromium headless=new, --enable-unsafe-swiftshader (software compositor)",
+    "viewport": "1440x900, DPR 1, reducedMotion reduce",
+    "realDevicePerformance": false
+  },
+  "gates": {
+    "typescript": { "command": "npx tsc -b --force", "errors": 0 },
+    "tests": {
+      "command": "bun run test (same file list, run as two halves because the runner killed two full runs)",
+      "half1": { "tests": 864, "pass": 864, "fail": 0, "skipped": 0 },
+      "half2": { "tests": 874, "pass": 872, "fail": 0, "skipped": 2 },
+      "totalPass": 1736,
+      "totalFail": 0
+    },
+    "lint": { "command": "bun run lint", "errors": 0, "warnings": 130 },
+    "build": { "command": "bun run build", "exit": 0, "duration": "7.13s" }
+  },
+  "requirements": [
+    {
+      "id": "A1",
+      "requirement": "Every registry portal produces a visible 3D representation",
+      "status": "PASS",
+      "evidence": { "registry": 11, "placed": 11, "drawn": 11, "hitSurfaces": 11 }
+    },
+    {
+      "id": "A2",
+      "requirement": "Portals are individually distinguishable (identity, label, hover/focus/selection)",
+      "status": "PARTIAL",
+      "evidence": {
+        "uniqueRingSlots": 11,
+        "labelsInDom": 11,
+        "hoverAndSelectionFeedback": "implemented (accent intensity, label state, aria-pressed)",
+        "gap": "mesh appearance differs only by accent and size; per-mesh visual distinction was not verified from pixels"
+      }
+    },
+    {
+      "id": "A3",
+      "requirement": "Visuals update on create/remove/rename with no stale or duplicate objects",
+      "status": "PARTIAL",
+      "evidence": { "unit": "portal-field tests pass (create/remove/rename/reload, duplicates [], collisions [])", "live": "not exercised this mission" }
+    },
+    {
+      "id": "B1",
+      "requirement": "Clicking an actual 3D portal initiates a real spatial transition",
+      "status": "PASS",
+      "evidence": { "click": "real mouse click on canvas at a raycaster-confirmed point", "transition": "portal-open" }
+    },
+    {
+      "id": "B2",
+      "requirement": "The selected portal identifies its actual registry destination",
+      "status": "FAIL",
+      "evidence": {
+        "aimed": "spatial-portal-hit-scene:files",
+        "travelledTo": "portal",
+        "earlier": "a click aimed at scene:studio also travelled to scene:portal"
+      }
+    },
+    {
+      "id": "B3",
+      "requirement": "Rapid repeat selection / selection during a transition / removal during interaction",
+      "status": "PARTIAL",
+      "evidence": { "guard": "clicks during an in-flight transition to another destination are refused in the component", "measured": "rapid run started a transition; completion and removal cases not measured" }
+    },
+    {
+      "id": "B4",
+      "requirement": "Travel after reload",
+      "status": "UNVERIFIED",
+      "evidence": { "reason": "probe did not complete the reload pass" }
+    },
+    {
+      "id": "C",
+      "requirement": "Conversation identity and usable chat survive real portal travel",
+      "status": "UNVERIFIED",
+      "evidence": { "reason": "not attempted" }
+    },
+    {
+      "id": "D",
+      "requirement": "Creation Studio artifact lifecycle inside the spatial environment",
+      "status": "UNVERIFIED",
+      "evidence": { "reason": "not attempted" }
+    },
+    {
+      "id": "E",
+      "requirement": "Manual and pinned module placement, persisted across reload",
+      "status": "UNVERIFIED",
+      "evidence": { "reason": "existing drag/pin and ModuleLayoutStore were not modified and not exercised" }
+    },
+    {
+      "id": "F",
+      "requirement": "Lifecycle/performance measurements",
+      "status": "UNVERIFIED",
+      "evidence": { "reason": "not attempted" }
+    },
+    {
+      "id": "G",
+      "requirement": "Capability presentation contract with one real integration",
+      "status": "UNVERIFIED",
+      "evidence": { "reason": "not attempted" }
+    }
+  ],
+  "artifacts": {
+    "report": "docs/acceptance/MISSION-5-4-SPATIAL-INTERACTION.md",
+    "measurements": [
+      "docs/acceptance/spatial-phase-2-13/measurements/portal-click.json",
+      "docs/acceptance/spatial-phase-2-13/measurements/interaction.json"
+    ],
+    "scripts": [
+      "docs/acceptance/spatial-phase-2-13/scripts/probe-interaction.mjs",
+      "docs/acceptance/spatial-phase-2-13/scripts/probe-portal-click.mjs"
+    ]
+  }
+}
