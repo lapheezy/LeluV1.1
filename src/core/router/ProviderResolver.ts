@@ -905,9 +905,19 @@ function throwIfStopped(context: RouterContext, cause?: unknown): void {
   throw new DOMException("Turn stopped by the user.", "AbortError");
 }
 
-/** Has the turn been stopped — by its signal, or by an AbortError from below? */
-function stopped(context: RouterContext, cause?: unknown): boolean {
+/**
+ * Has the TURN been stopped? Only when the turn's own signal is aborted.
+ *
+ * An AbortError from below with the turn's signal intact is a provider
+ * aborting its own request — e.g. OpenRouter's internal 30 s
+ * AbortSignal.timeout, which surfaces in Chrome as "BodyStreamBuffer was
+ * aborted" (AbortError). Treating that as a Stop settled live voice turns as
+ * "Stopped before anything ran." instead of falling through to the next
+ * provider (found live, 2026-11-07). A Stop always aborts the turn signal
+ * (AIService composes it from the turn and conversation controllers), so
+ * nothing a user does is missed by this.
+ */
+function stopped(context: RouterContext, _cause?: unknown): boolean {
   const signal = (context.request as { signal?: AbortSignal }).signal;
-  if (signal?.aborted) return true;
-  return cause instanceof Error && cause.name === "AbortError";
+  return Boolean(signal?.aborted);
 }

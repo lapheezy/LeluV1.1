@@ -536,3 +536,24 @@ test("a call sent while signed out stays the device's even if the user signs in 
   const r2 = await gate.reserve("ai", "OpenRouter");
   assert.equal((await gate.settle(r2, { ok: true })).userId, "user-b");
 });
+
+test("a provider aborting its OWN request (internal timeout) is a provider failure, not a user Stop: the chain falls through", async () => {
+  const timingOut = {
+    ...spy("TimesOut").provider,
+    generate: async () => { throw new DOMException("BodyStreamBuffer was aborted", "AbortError"); },
+  };
+  const next = spy("Answers");
+  const result = await new ProviderResolver().execute(chat([timingOut, next.provider]));
+  assert.equal(result.response?.text, "answer from Answers", "found live: this was settled as 'Stopped before anything ran.'");
+  assert.equal(next.calls.length, 1);
+});
+
+test("a real Stop (the turn's own signal aborted) is still a Stop and tries no other provider", async () => {
+  const controller = new AbortController();
+  const first = { ...spy("First").provider, generate: async () => { controller.abort(); throw new DOMException("aborted", "AbortError"); } };
+  const second = spy("Second");
+  const context = chat([first, second.provider]) as unknown as { request: Record<string, unknown> };
+  context.request.signal = controller.signal;
+  await assert.rejects(new ProviderResolver().execute(context as never), (e: Error) => e.name === "AbortError");
+  assert.equal(second.calls.length, 0);
+});
