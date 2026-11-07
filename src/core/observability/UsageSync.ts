@@ -26,18 +26,13 @@
 import UsageLedger, { ALL_SOURCES, type UsageBudget, type UsageEvent, type UsageKind, type UsageTotals } from "./UsageLedger";
 import UsageBudgetGate, { type RemoteReserveResult, type UsageRemote } from "./UsageBudgetGate";
 
-type Result<T = unknown> = PromiseLike<{ data: T | null; error: { message: string } | null }>;
-
-/** The slice of SupabaseClient used here (a fake implements it in tests). */
+/**
+ * The slice of SupabaseClient used here. Typed loosely on purpose: it is the
+ * PostgREST query builder (supabase-js) in the app, and a small fake in tests.
+ */
 export interface UsageBackend {
-  rpc(fn: string, args: Record<string, unknown>): Result;
-  from(table: string): {
-    upsert(rows: unknown, options: Record<string, unknown>): Result;
-    select(columns: string): {
-      gte(column: string, value: string): Result<unknown[]>;
-    } & Result<unknown[]>;
-    delete(): { eq(c: string, v: string): { eq(c: string, v: string): Result } };
-  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  from(table: string): any;
 }
 
 export interface UsageChannel {
@@ -84,26 +79,127 @@ const BUDGET_COLUMNS: Array<[keyof UsageBudget, string]> = [
 
 interface Storage { getItem(k: string): string | null; setItem(k: string, v: string): void }
 
+interface BudgetRow {
+  kind: string; source: string;
+  daily_requests: number | null; monthly_requests: number | null;
+  daily_tokens: number | null; monthly_tokens: number | null;
+  daily_cost_usd: number | string | null; monthly_cost_usd: number | string | null;
+}
+interface DailyRow { day: string; kind: string; source: string; requests: number; input_tokens: number | null; output_tokens: number | null; reported_cost_usd: number | string | null; unknown_cost_requests: number }
+interface ReservationRow { id: string; source: string; reserved_tokens: number; created_at: string }
+
+/**
+ * May this reservation proceed? Pure, so it is unit-tested directly.
+ *
+ * `ahead` are the live reservations ranked BEFORE this one by the database
+ * clock. Each counts one request (and its declared tokens) against every
+ * budget covering its source. Reported cost only; unknown cost never estimated.
+ */
+export function evaluateAccountBudgets(
+  source: string,
+  reserveTokens: number,
+  budgets: BudgetRow[],
+  daily: DailyRow[],
+  ahead: ReservationRow[],
+  today: string,
+): RemoteReserveResult {
+  const warnings: string[] = [];
+  const ordered = [...budgets].sort((a, c) => (a.source === ALL_SOURCES ? 1 : 0) - (c.source === ALL_SOURCES ? 1 : 0));
+  for (const b of ordered) {
+    if (b.source !== source && b.source !== ALL_SOURCES) continue;
+    const scope = b.source === ALL_SOURCES ? `all ${b.kind === "ai" ? "AI providers" : "sources"}` : source;
+    const inScope = (s: string) => b.source === ALL_SOURCES || s === source;
+    const rows = daily.filter((r) => inScope(r.source));
+    const sumRows = (list: DailyRow[]) => list.reduce(
+      (t, r) => ({
+        req: t.req + Number(r.requests ?? 0),
+        tok: t.tok + Number(r.input_tokens ?? 0) + Number(r.output_tokens ?? 0),
+        cost: t.cost + Number(r.reported_cost_usd ?? 0),
+        unknown: t.unknown + Number(r.unknown_cost_requests ?? 0),
+      }),
+      { req: 0, tok: 0, cost: 0, unknown: 0 },
+    );
+    const month = sumRows(rows);
+    const day = sumRows(rows.filter((r) => r.day === today));
+    const held = ahead.filter((r) => inScope(r.source));
+    const heldReq = held.length;
+    const heldTok = held.reduce((t, r) => t + Number(r.reserved_tokens ?? 0), 0);
+    const refuse = (limit: string, detail: string): RemoteReserveResult => ({ allowed: false, reason: `${scope}: ${limit} budget reached (${detail}).` });
+    if (b.daily_requests && day.req + heldReq + 1 > b.daily_requests) return refuse("daily request", `${day.req} used + ${heldReq} in flight of ${b.daily_requests}`);
+    if (b.monthly_requests && month.req + heldReq + 1 > b.monthly_requests) return refuse("monthly request", `${month.req} used + ${heldReq} in flight of ${b.monthly_requests}`);
+    if (b.daily_tokens && (day.tok + heldTok >= b.daily_tokens || day.tok + heldTok + reserveTokens > b.daily_tokens)) return refuse("daily token", `${day.tok} reported + ${heldTok + reserveTokens} reserved of ${b.daily_tokens}`);
+    if (b.monthly_tokens && (month.tok + heldTok >= b.monthly_tokens || month.tok + heldTok + reserveTokens > b.monthly_tokens)) return refuse("monthly token", `${month.tok} reported + ${heldTok + reserveTokens} reserved of ${b.monthly_tokens}`);
+    if (b.daily_cost_usd && day.cost >= Number(b.daily_cost_usd)) return refuse("daily spending", `$${day.cost.toFixed(4)} reported of $${b.daily_cost_usd}`);
+    if (b.monthly_cost_usd && month.cost >= Number(b.monthly_cost_usd)) return refuse("monthly spending", `$${month.cost.toFixed(4)} reported of $${b.monthly_cost_usd}`);
+    if ((b.daily_cost_usd || b.monthly_cost_usd) && month.unknown > 0) {
+      warnings.push(`${scope}: ${month.unknown} call(s) this month reported no cost; the spending cap counts reported cost only.`);
+    }
+  }
+  return { allowed: true, warnings };
+}
+
+/**
+ * The account half of UsageBudgetGate, on plain tables under RLS:
+ *
+ *   reserve  INSERT the reservation (its created_at is the database clock),
+ *            THEN read live reservations, THEN read usage. Rank this
+ *            reservation among the live ones; admit only if used + earlier
+ *            reservations + 1 fits. Reading reservations before records means
+ *            a call settling in between is counted twice (safe), never zero
+ *            times. Refused → the reservation is deleted.
+ *   settle   INSERT the record (ON CONFLICT DO NOTHING) THEN delete the
+ *            reservation, so the call is never in neither table.
+ *   release  delete the reservation.
+ */
 export class SupabaseUsageRemote implements UsageRemote {
   constructor(private readonly channel: UsageChannel) {}
 
-  async reserve(args: { id: string; kind: UsageKind; source: string; reserveTokens: number }): Promise<RemoteReserveResult> {
-    const { data, error } = await this.channel.client.rpc("reserve_usage", {
-      p_id: args.id, p_kind: args.kind, p_source: args.source, p_reserve_tokens: args.reserveTokens, p_ttl_seconds: 600,
-    });
+  private async must<T>(query: PromiseLike<{ data: unknown; error: { message: string } | null }>): Promise<T | null> {
+    const { data, error } = await query;
     if (error) throw new Error(error.message);
-    const d = (data ?? {}) as { allowed?: boolean; reason?: string; warnings?: string[] };
-    return { allowed: d.allowed === true, reason: d.reason, warnings: d.warnings ?? [] };
+    return data as T | null;
+  }
+
+  async reserve(args: { id: string; kind: UsageKind; source: string; reserveTokens: number }): Promise<RemoteReserveResult> {
+    const db = this.channel.client;
+    const mine = await this.must<ReservationRow>(
+      db.from("usage_reservations")
+        .insert({ user_id: this.channel.userId, id: args.id, kind: args.kind, source: args.source, reserved_tokens: args.reserveTokens })
+        .select("id, source, reserved_tokens, created_at")
+        .single(),
+    );
+    try {
+      const budgets = (await this.must<BudgetRow[]>(db.from("usage_budgets").select("*").eq("kind", args.kind).in("source", [args.source, ALL_SOURCES]))) ?? [];
+      if (budgets.length === 0) return { allowed: true, warnings: [] };
+      const nowIso = new Date().toISOString();
+      const live = (await this.must<ReservationRow[]>(
+        db.from("usage_reservations").select("id, source, reserved_tokens, created_at").eq("kind", args.kind).gt("expires_at", nowIso),
+      )) ?? [];
+      const at = Date.parse(mine?.created_at ?? nowIso);
+      const ahead = live.filter((r) => {
+        if (r.id === args.id) return false;
+        const t = Date.parse(r.created_at);
+        return t < at || (t === at && r.id < args.id);
+      });
+      const monthStart = `${nowIso.slice(0, 7)}-01`;
+      const daily = (await this.must<DailyRow[]>(db.from("usage_daily").select("*").eq("kind", args.kind).gte("day", monthStart))) ?? [];
+      const verdict = evaluateAccountBudgets(args.source, args.reserveTokens, budgets, daily, ahead, nowIso.slice(0, 10));
+      if (!verdict.allowed) await this.release(args.id);
+      return verdict;
+    } catch (error) {
+      await this.release(args.id).catch(() => undefined);
+      throw error;
+    }
   }
 
   async settle(id: string, event: UsageEvent): Promise<void> {
-    const { error } = await this.channel.client.rpc("settle_usage", { p_reservation_id: id, p_record: toRow(event, this.channel.userId) });
-    if (error) throw new Error(error.message);
+    const db = this.channel.client;
+    await this.must(db.from("usage_records").upsert({ ...toRow(event, this.channel.userId), reservation_id: id }, { onConflict: "user_id,id", ignoreDuplicates: true }));
+    await this.release(id);
   }
 
   async release(id: string): Promise<void> {
-    const { error } = await this.channel.client.rpc("release_usage", { p_reservation_id: id });
-    if (error) throw new Error(error.message);
+    await this.must(this.channel.client.from("usage_reservations").delete().eq("id", id));
   }
 }
 
@@ -120,6 +216,8 @@ export default class UsageSync {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private listeners = new Set<() => void>();
   private started = false;
+  private budgetsLoadedFor: string | null = null;
+  private budgetsLoading: Promise<void> | null = null;
 
   constructor(
     private readonly ledger: UsageLedger = UsageLedger.getInstance(),
@@ -128,12 +226,17 @@ export default class UsageSync {
   ) {}
 
   /** Connect to a channel source (SupabasePersistence.usageChannel) and wire the gate. Idempotent. */
-  start(channel: () => UsageChannel | null, onAuthChange?: (listener: () => void) => void): void {
+  start(
+    channel: () => UsageChannel | null,
+    onAuthChange?: (listener: () => void) => void,
+    makeRemote: (channel: UsageChannel) => UsageRemote = (c) => new SupabaseUsageRemote(c),
+  ): void {
     this.channelFactory = channel;
     this.gate.setRemote(() => {
       const c = this.channelFactory();
-      return c ? new SupabaseUsageRemote(c) : null;
+      return c ? makeRemote(c) : null;
     });
+    this.gate.setAccountReadiness(() => this.accountReady());
     if (this.started) return;
     this.started = true;
     this.ledger.subscribe(() => this.schedule());
@@ -168,7 +271,7 @@ export default class UsageSync {
     this.status.signedIn = Boolean(channel);
     this.emit();
     if (channel) {
-      await this.pullBudgets().catch((e) => this.fail(e));
+      await this.loadBudgets(channel.userId);
       await this.flush();
     }
   }
@@ -239,6 +342,28 @@ export default class UsageSync {
   }
 
   /* ---------- budgets ---------- */
+
+  private loadBudgets(userId: string): Promise<void> {
+    if (this.budgetsLoadedFor === userId) return Promise.resolve();
+    this.budgetsLoading ??= this.pullBudgets()
+      .then(() => { this.budgetsLoadedFor = userId; })
+      .catch((e) => this.fail(e))
+      .finally(() => { this.budgetsLoading = null; });
+    return this.budgetsLoading;
+  }
+
+  /**
+   * Are the signed-in user's budgets on this device? Waits up to `timeoutMs`
+   * for a load in progress, retrying once if none is. Signed out → true.
+   */
+  async accountReady(timeoutMs = 10_000): Promise<boolean> {
+    const channel = this.channelFactory();
+    if (!channel) return true;
+    if (this.budgetsLoadedFor === channel.userId) return true;
+    const load = this.loadBudgets(channel.userId);
+    await Promise.race([load, new Promise((r) => setTimeout(r, timeoutMs))]);
+    return this.budgetsLoadedFor === channel.userId;
+  }
 
   async pullBudgets(): Promise<void> {
     const channel = this.channelFactory();

@@ -94,6 +94,18 @@ export default class UsageBudgetGate {
     this.remoteFactory = factory;
   }
 
+  private accountReady: () => Promise<boolean> = async () => true;
+
+  /**
+   * Signed in, the account's budgets must be on this device before a call is
+   * sent — otherwise a fresh device would check an empty budget list and let
+   * a call through that the account forbids (found live: a call went out on a
+   * newly signed-in device seconds before its budgets loaded).
+   */
+  setAccountReadiness(ready: () => Promise<boolean>): void {
+    this.accountReady = ready;
+  }
+
   pending(kind: UsageKind, source: string): PendingUsage {
     let requests = 0;
     let tokens = 0;
@@ -111,6 +123,14 @@ export default class UsageBudgetGate {
 
   async reserve(kind: UsageKind, source: string, options: { reserveTokens?: number } = {}): Promise<Reservation> {
     const tokens = Math.max(0, Math.floor(options.reserveTokens ?? 0));
+    if (this.remoteFactory() && !(await this.accountReady())) {
+      throw new BudgetExhaustedError(
+        kind,
+        source,
+        "your account's budgets could not be loaded yet, so I could not confirm this call is within them. Try again in a moment.",
+        "account",
+      );
+    }
     // The source's own budget sees its own in-flight calls; the "*" budget
     // sees every in-flight call of the kind. Check both with the right pending.
     const own = this.ledger.check(kind, source, this.pending(kind, source), "source");
@@ -186,4 +206,64 @@ export function budgetNotice(error: BudgetExhaustedError): string {
     `This limit comes from ${where}, so I stopped here instead of switching to another provider. ` +
     "You can raise or clear it in Settings → Usage & budgets."
   );
+}
+
+/**
+ * One model call: reserved, sent, settled. EVERY path that calls a model
+ * provider goes through this — chat turns (ProviderResolver), provider health
+ * probes (ProviderHealth) and source reading (ingestSource) — so no billed
+ * call can skip a budget.
+ *
+ * Every round of the tool loop is a separate billed request, so each is
+ * gated on its own. The reservation is taken BEFORE the request leaves
+ * (UsageBudgetGate: this device, then the account across devices), so a
+ * spent budget stops the call instead of being discovered afterwards.
+ * The settlement records exactly what the provider reported; a failed
+ * request is settled as a failure (it was a request), and only a call
+ * that never left — stopped before sending — gives its reservation back.
+ */
+export async function gatedGenerate<R extends { model?: string; metadata?: { usage?: unknown } }>(
+  provider: { name: string; generate: (request: any) => Promise<R> },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  request: any,
+  operation = "generate",
+): Promise<R> {
+  const gate = UsageBudgetGate.getInstance();
+  const declared = Number((request as { maxTokens?: unknown })?.maxTokens);
+  // Reserve the output ceiling the request itself declares, when it declares
+  // one; otherwise nothing is guessed — the token cap applies to reported use.
+  const reservation = await gate.reserve("ai", provider.name, { reserveTokens: Number.isFinite(declared) && declared > 0 ? declared : 0 });
+  // Stopped before sending: nothing reaches the provider, so the
+  // reservation is given back rather than counted.
+  const signal = (request as { signal?: AbortSignal })?.signal;
+  if (signal?.aborted) {
+    await gate.release(reservation);
+    throw signal.reason instanceof Error ? signal.reason : Object.assign(new Error("Stopped before sending."), { name: "AbortError" });
+  }
+  const started = Date.now();
+  let response: R;
+  try {
+    response = await provider.generate(request);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    {
+      // It was sent (or may have been): a request, counted as a failed one.
+      await gate.settle(reservation, {
+        operation,
+        ok: false,
+        latencyMs: Date.now() - started,
+        rateLimited: /\b429\b|rate.?limit|too many requests|overloaded/i.test(message),
+        error: message,
+      });
+    }
+    throw error;
+  }
+  await gate.settle(reservation, {
+    model: response.model,
+    operation,
+    ok: true,
+    latencyMs: Date.now() - started,
+    usage: response.metadata?.usage,
+  });
+  return response;
 }

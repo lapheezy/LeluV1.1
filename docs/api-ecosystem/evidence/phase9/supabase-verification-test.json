@@ -1,0 +1,144 @@
+{
+  "project": "ugshflwlyakipeduifkd",
+  "run": "vmw5qsydl",
+  "ranAt": "2026-11-07T01:46:45.082Z",
+  "passed": 27,
+  "failed": 0,
+  "results": [
+    {
+      "check": "two real users signed in (and a second device for A)",
+      "ok": true,
+      "detail": "A=1bf2a79e… B=6afc29a7…"
+    },
+    {
+      "check": "A inserts its own record",
+      "ok": true,
+      "detail": "inserted"
+    },
+    {
+      "check": "B cannot read A's record",
+      "ok": true,
+      "detail": "B saw 0 row(s)"
+    },
+    {
+      "check": "B cannot insert a record as A",
+      "ok": true,
+      "detail": "new row violates row-level security policy for table \"usage_records\""
+    },
+    {
+      "check": "A cannot rewrite or delete its own record (append-only)",
+      "ok": true,
+      "detail": "update affected 0, delete affected 0, input_tokens still 11"
+    },
+    {
+      "check": "signed-out (anon) callers read nothing",
+      "ok": true,
+      "detail": "0 rows"
+    },
+    {
+      "check": "signed-out (anon) callers write nothing",
+      "ok": true,
+      "detail": "new row violates row-level security policy for table \"usage_records\""
+    },
+    {
+      "check": "B cannot read A's budgets",
+      "ok": true,
+      "detail": "0 row(s)"
+    },
+    {
+      "check": "B cannot remove or forge A's reservations",
+      "ok": true,
+      "detail": "delete affected 0, forge: new row violates row-level security policy for table \"usage_reservations\""
+    },
+    {
+      "check": "the aggregation view honours RLS for B",
+      "ok": true,
+      "detail": "0 row(s)"
+    },
+    {
+      "check": "10 simultaneous reservations from 2 devices never exceed a cap of 4",
+      "ok": true,
+      "detail": "4 admitted, 6 refused (e.g. \"vmw5qsydl-concurrency: daily request budget reached (0 used + 4 in flight of 4).\")"
+    },
+    {
+      "check": "refused reservations were withdrawn",
+      "ok": true,
+      "detail": "4 live reservation(s) = 4 admitted"
+    },
+    {
+      "check": "each admitted call settled into exactly one record, reservation released",
+      "ok": true,
+      "detail": "4 record(s), 0 reservation(s) left"
+    },
+    {
+      "check": "at the cap, the next call from the other device is refused before dispatch",
+      "ok": true,
+      "detail": "vmw5qsydl-concurrency: daily request budget reached (4 used + 0 in flight of 4)."
+    },
+    {
+      "check": "a failed provider call is stored as a failed request",
+      "ok": true,
+      "detail": "{\"id\":\"3104fa3a-aa1a-4f39-966a-67dde4581bda\",\"ok\":false,\"error\":\"provider 503\",\"input_tokens\":null,\"output_tokens\":null,\"cost_usd\":null,\"cost_kind\":\"unknown\"}"
+    },
+    {
+      "check": "a released reservation leaves no record",
+      "ok": true,
+      "detail": "3 record(s) for 4 reservations"
+    },
+    {
+      "check": "unreported tokens and cost are stored as NULL / unknown, not 0",
+      "ok": true,
+      "detail": "{\"id\":\"6ac88209-7cb9-4814-8881-807f5cc44435\",\"ok\":true,\"error\":null,\"input_tokens\":null,\"output_tokens\":null,\"cost_usd\":null,\"cost_kind\":\"unknown\"}"
+    },
+    {
+      "check": "provider-reported tokens and cost are stored exactly",
+      "ok": true,
+      "detail": "{\"id\":\"5b16c323-e4c0-4b37-97a8-b08c13ba856b\",\"ok\":true,\"error\":null,\"input_tokens\":120,\"output_tokens\":30,\"cost_usd\":0.00042,\"cost_kind\":\"reported\"}"
+    },
+    {
+      "check": "account-checked reservations",
+      "ok": true,
+      "detail": "accountChecked = true for all"
+    },
+    {
+      "check": "sync is duplicate-safe (3 events flushed twice → 3 rows; settled + synced event → 1 row)",
+      "ok": true,
+      "detail": "3 + 1"
+    },
+    {
+      "check": "a budget saved on one device is loaded on another",
+      "ok": true,
+      "detail": "{\"dailyCalls\":1,\"monthlyTokens\":5000}"
+    },
+    {
+      "check": "…and enforced there against usage recorded on the first device",
+      "ok": true,
+      "detail": "account: vmw5qsydl-sync-ai: daily request budget reached (1 used + 0 in flight of 1)."
+    },
+    {
+      "check": "history recorded on one device is visible on the other (usage_daily)",
+      "ok": true,
+      "detail": "calls=3, latency total=303"
+    },
+    {
+      "check": "…and invisible to the other user",
+      "ok": true,
+      "detail": "0 row(s)"
+    },
+    {
+      "check": "yesterday's call does not count against today's cap; it does against the month",
+      "ok": true,
+      "detail": "vmw5qsydl-reset: monthly request budget reached (1 used + 0 in flight of 1)."
+    },
+    {
+      "check": "with only a daily cap, a new day starts with the full allowance",
+      "ok": true,
+      "detail": "allowed"
+    },
+    {
+      "check": "offline: the account is not consulted, the device budget still stops the call",
+      "ok": true,
+      "detail": "accountChecked=false; vmw5qsydl-reset: daily calls budget reached (1/1). Raise or clear the budget to continue."
+    }
+  ]
+}

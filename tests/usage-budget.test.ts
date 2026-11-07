@@ -13,7 +13,7 @@ import test from "node:test";
 
 import UsageLedger, { legacyEventId, type UsageEvent } from "../src/core/observability/UsageLedger";
 import UsageBudgetGate, { BudgetExhaustedError, budgetNotice, type UsageRemote } from "../src/core/observability/UsageBudgetGate";
-import UsageSync, { toRow, type UsageBackend } from "../src/core/observability/UsageSync";
+import UsageSync, { evaluateAccountBudgets, toRow, type UsageBackend } from "../src/core/observability/UsageSync";
 import ProviderResolver from "../src/core/router/ProviderResolver";
 import ExecutionLogger from "../src/core/ExecutionLogger";
 
@@ -226,7 +226,7 @@ test("offline: the device budget still applies, the reservation says the account
   const ledger = new UsageLedger(() => T0, null);
   const gate = new UsageBudgetGate(ledger);
   const sync = new UsageSync(ledger, gate, storage);
-  sync.start(() => ({ client: account.client("user-a"), userId: "user-a" }));
+  sync.start(() => ({ client: account.client("user-a"), userId: "user-a" }), undefined, (c) => account.remote(c.userId));
   await sync.refresh();
   account.online = false;
   const r = await gate.reserve("ai", "Groq");
@@ -248,7 +248,7 @@ test("an online call is settled on the account by its reservation id, and the la
   const ledger = new UsageLedger(() => T0, null);
   const gate = new UsageBudgetGate(ledger);
   const sync = new UsageSync(ledger, gate, memoryStorage());
-  sync.start(() => ({ client: account.client("user-a"), userId: "user-a" }));
+  sync.start(() => ({ client: account.client("user-a"), userId: "user-a" }), undefined, (c) => account.remote(c.userId));
   await sync.refresh();
   const r = await gate.reserve("ai", "Groq");
   assert.equal(r.accountChecked, true);
@@ -267,7 +267,7 @@ test("multiple users on one browser: each user's events go only to that user; si
   const gate = new UsageBudgetGate(ledger);
   const sync = new UsageSync(ledger, gate, storage);
   let who: string | null = null;
-  sync.start(() => (who ? { client: account.client(who), userId: who } : null));
+  sync.start(() => (who ? { client: account.client(who), userId: who } : null), undefined, (c) => account.remote(c.userId));
 
   await sync.refresh();
   ledger.record({ kind: "ai", source: "Groq", ok: true }); // signed out
@@ -291,13 +291,13 @@ test("budgets follow the user across devices: saved on one, enforced on another"
   const account = new FakeAccount();
   const deviceA = new UsageLedger(() => T0, null);
   const syncA = new UsageSync(deviceA, new UsageBudgetGate(deviceA), memoryStorage());
-  syncA.start(() => ({ client: account.client("user-a"), userId: "user-a" }));
+  syncA.start(() => ({ client: account.client("user-a"), userId: "user-a" }), undefined, (c) => account.remote(c.userId));
   await syncA.saveBudget("ai", "Groq", { dailyCalls: 1 });
 
   const deviceB = new UsageLedger(() => T0, null);
   const gateB = new UsageBudgetGate(deviceB);
   const syncB = new UsageSync(deviceB, gateB, memoryStorage());
-  syncB.start(() => ({ client: account.client("user-a"), userId: "user-a" }));
+  syncB.start(() => ({ client: account.client("user-a"), userId: "user-a" }), undefined, (c) => account.remote(c.userId));
   await syncB.refresh();
   assert.deepEqual(deviceB.budgetsSnapshot()["ai:Groq"], { dailyCalls: 1 });
   await gateB.settle(await gateB.reserve("ai", "Groq"), { ok: true });
@@ -391,4 +391,111 @@ test("a provider failure is settled as a failed request and the chain falls back
   assert.equal(failed?.ok, false);
   assert.equal(failed?.error, "Broken 503");
   assert.equal(UsageBudgetGate.getInstance().inFlightCount(), 0);
+});
+
+
+/* ---------- the account-side admission rule (pure) ---------- */
+
+const budget = (over: Record<string, unknown>) => ({
+  kind: "ai", source: "Groq", daily_requests: null, monthly_requests: null, daily_tokens: null,
+  monthly_tokens: null, daily_cost_usd: null, monthly_cost_usd: null, ...over,
+});
+const dayRow = (over: Record<string, unknown>) => ({
+  day: "2026-11-07", kind: "ai", source: "Groq", requests: 0, input_tokens: null, output_tokens: null,
+  reported_cost_usd: null, unknown_cost_requests: 0, ...over,
+});
+const held = (id: string, source = "Groq") => ({ id, source, reserved_tokens: 0, created_at: "2026-11-07T10:00:00Z" });
+
+test("account rule: used + reservations ranked ahead + this one must fit the cap", () => {
+  const b = [budget({ daily_requests: 4 })];
+  assert.equal(evaluateAccountBudgets("Groq", 0, b, [dayRow({ requests: 2 })], [held("a")], "2026-11-07").allowed, true, "2 + 1 + 1 = 4");
+  const r = evaluateAccountBudgets("Groq", 0, b, [dayRow({ requests: 2 })], [held("a"), held("b")], "2026-11-07");
+  assert.equal(r.allowed, false);
+  assert.equal(r.reason, "Groq: daily request budget reached (2 used + 2 in flight of 4).");
+});
+
+test("account rule: yesterday counts for the month, not the day; '*' covers every source; other sources do not count against a per-source cap", () => {
+  const rows = [dayRow({ day: "2026-11-06", requests: 5 }), dayRow({ source: "Cerebras", requests: 3 })];
+  assert.equal(evaluateAccountBudgets("Groq", 0, [budget({ daily_requests: 1 })], rows, [], "2026-11-07").allowed, true);
+  assert.equal(evaluateAccountBudgets("Groq", 0, [budget({ monthly_requests: 5 })], rows, [], "2026-11-07").allowed, false);
+  const all = evaluateAccountBudgets("Groq", 0, [budget({ source: "*", daily_requests: 3 })], rows, [], "2026-11-07");
+  assert.match(all.reason ?? "", /^all AI providers: daily request budget reached \(3 used/);
+});
+
+test("account rule: tokens are reported tokens plus declared reservations; cost is reported cost only, unknown never estimated", () => {
+  const rows = [dayRow({ requests: 3, input_tokens: 900, output_tokens: 50, unknown_cost_requests: 3 })];
+  assert.equal(evaluateAccountBudgets("Groq", 0, [budget({ daily_tokens: 1000 })], rows, [], "2026-11-07").allowed, true);
+  assert.equal(evaluateAccountBudgets("Groq", 100, [budget({ daily_tokens: 1000 })], rows, [], "2026-11-07").allowed, false);
+  const spend = evaluateAccountBudgets("Groq", 0, [budget({ monthly_cost_usd: "0.01" })], rows, [], "2026-11-07");
+  assert.equal(spend.allowed, true, "3 calls of unknown cost are not guessed into a spend");
+  assert.match(spend.warnings?.[0] ?? "", /3 call\(s\) this month reported no cost/);
+  const reported = [dayRow({ requests: 1, reported_cost_usd: "0.0100", unknown_cost_requests: 0 })];
+  assert.equal(evaluateAccountBudgets("Groq", 0, [budget({ monthly_cost_usd: "0.01" })], reported, [], "2026-11-07").allowed, false);
+});
+
+/* ---------- every billed path is gated (found live: a health probe ran past a spent budget) ---------- */
+
+test("gatedGenerate: a refused call never reaches the provider and records nothing", async () => {
+  const { gatedGenerate } = await import("../src/core/observability/UsageBudgetGate");
+  const ledger = UsageLedger.getInstance();
+  ledger.setBudget("ai", "ProbeTarget", { dailyCalls: 1 });
+  let sent = 0;
+  const provider = { name: "ProbeTarget", generate: async () => { sent += 1; return { text: "ok", model: "m", metadata: { usage: { prompt_tokens: 1, completion_tokens: 1 } } }; } };
+  try {
+    await gatedGenerate(provider, { prompt: "ping" }, "health-probe");
+    await assert.rejects(gatedGenerate(provider, { prompt: "ping" }, "health-probe"), BudgetExhaustedError);
+    assert.equal(sent, 1);
+    const probes = ledger.recent(10).filter((e) => e.source === "ProbeTarget");
+    assert.equal(probes.length, 1);
+    assert.equal(probes[0].operation, "health-probe");
+  } finally {
+    ledger.setBudget("ai", "ProbeTarget", null);
+  }
+});
+
+test("no code calls a model provider's generate() except through the budget gate", async () => {
+  const { readdirSync, readFileSync, statSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const offenders: string[] = [];
+  const walk = (dir: string) => {
+    for (const name of readdirSync(dir)) {
+      const path = join(dir, name);
+      if (statSync(path).isDirectory()) { walk(path); continue; }
+      if (!/\.(ts|tsx)$/.test(name)) continue;
+      // The gate itself, and on-device inference (free, never billed).
+      if (/UsageBudgetGate\.ts$|LocalRuntime\.ts$|LocalInferenceProvider\.ts$/.test(path)) continue;
+      readFileSync(path, "utf8").split("\n").forEach((line, i) => {
+        if (/\bprovider\.generate\(/.test(line)) offenders.push(`${path}:${i + 1}`);
+      });
+    }
+  };
+  walk("src");
+  assert.deepEqual(offenders, [], "ungated provider.generate() call(s)");
+});
+
+test("a fresh signed-in device does not send until the account's budgets are loaded (found live)", async () => {
+  const account = new FakeAccount();
+  account.budgets.set("user-a", [{ kind: "ai", source: "*", daily_requests: 1 }]);
+  const ledger = new UsageLedger(() => T0, null);
+  const gate = new UsageBudgetGate(ledger);
+  const sync = new UsageSync(ledger, gate, memoryStorage());
+  sync.start(() => ({ client: account.client("user-a"), userId: "user-a" }), undefined, (c) => account.remote(c.userId));
+  // No refresh() awaited: the first call races the budget load, as on a real cold start.
+  const r = await gate.reserve("ai", "Groq");
+  assert.deepEqual(ledger.budgetsSnapshot()["ai:*"], { dailyCalls: 1 }, "the account budget was loaded before the call was admitted");
+  await gate.settle(r, { ok: true });
+  await assert.rejects(gate.reserve("ai", "Cerebras"), /all AI providers/);
+});
+
+test("signed in but the account's budgets cannot be loaded: the call is refused, not sent blind", async () => {
+  const account = new FakeAccount();
+  account.online = false;
+  const ledger = new UsageLedger(() => T0, null);
+  const gate = new UsageBudgetGate(ledger);
+  const sync = new UsageSync(ledger, gate, memoryStorage());
+  sync.start(() => ({ client: account.client("user-a"), userId: "user-a" }), undefined, (c) => account.remote(c.userId));
+  gate.setAccountReadiness(() => sync.accountReady(50));
+  await assert.rejects(gate.reserve("ai", "Groq"), /budgets could not be loaded yet/);
+  account.online = true;
+  await gate.reserve("ai", "Groq");
 });

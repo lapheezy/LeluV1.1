@@ -19,62 +19,8 @@ import ModelRouter from "../model/ModelRouter";
 import { dispatchToolCall, latestCaptureMeasurements } from "../tools/ToolDispatcher";
 import { toolSchemasForModel } from "../tools/ToolSchemas";
 import { labelOtherChats } from "../multichat/ContextProvenance";
-import UsageBudgetGate, { BudgetExhaustedError, budgetNotice } from "../observability/UsageBudgetGate";
+import { BudgetExhaustedError, budgetNotice, gatedGenerate } from "../observability/UsageBudgetGate";
 
-/**
- * One model call: reserved, sent, settled.
- *
- * Every round of the tool loop is a separate billed request, so each is
- * gated on its own. The reservation is taken BEFORE the request leaves
- * (UsageBudgetGate: this device, then the account across devices), so a
- * spent budget stops the call instead of being discovered afterwards.
- * The settlement records exactly what the provider reported; a failed
- * request is settled as a failure (it was a request), and only a call
- * that never left — stopped before sending — gives its reservation back.
- */
-async function meteredGenerate(
-  provider: { name: string; generate: (request: any) => Promise<AIResponse> },
-  request: Parameters<typeof provider.generate>[0],
-): Promise<AIResponse> {
-  const gate = UsageBudgetGate.getInstance();
-  const declared = Number((request as { maxTokens?: unknown })?.maxTokens);
-  // Reserve the output ceiling the request itself declares, when it declares
-  // one; otherwise nothing is guessed — the token cap applies to reported use.
-  const reservation = await gate.reserve("ai", provider.name, { reserveTokens: Number.isFinite(declared) && declared > 0 ? declared : 0 });
-  // Stopped before sending: nothing reaches the provider, so the
-  // reservation is given back rather than counted.
-  const signal = (request as { signal?: AbortSignal })?.signal;
-  if (signal?.aborted) {
-    await gate.release(reservation);
-    throw signal.reason instanceof Error ? signal.reason : Object.assign(new Error("Stopped before sending."), { name: "AbortError" });
-  }
-  const started = Date.now();
-  let response: AIResponse;
-  try {
-    response = await provider.generate(request);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    {
-      // It was sent (or may have been): a request, counted as a failed one.
-      await gate.settle(reservation, {
-        operation: "generate",
-        ok: false,
-        latencyMs: Date.now() - started,
-        rateLimited: /\b429\b|rate.?limit|too many requests|overloaded/i.test(message),
-        error: message,
-      });
-    }
-    throw error;
-  }
-  await gate.settle(reservation, {
-    model: response.model,
-    operation: "generate",
-    ok: true,
-    latencyMs: Date.now() - started,
-    usage: response.metadata?.usage,
-  });
-  return response;
-}
 
 /**
  * TERMINATION, not a round quota.
@@ -416,7 +362,7 @@ export default class ProviderResolver {
     // the original single call, untouched. This is the fallback path —
     // ToolCallInterceptor still salvages tool markup from these.
     if (tools.length === 0) {
-      return meteredGenerate(provider, context.request);
+      return gatedGenerate(provider, context.request);
     }
 
     const taskId = String(context.request.timestamp ?? Date.now());
@@ -434,7 +380,7 @@ export default class ProviderResolver {
     // to catch.
     const requested: string[] = [];
 
-    let response = await meteredGenerate(provider, { ...context.request, messages, tools });
+    let response = await gatedGenerate(provider, { ...context.request, messages, tools });
     let promptMaterialized = false;
 
     const loopStarted = Date.now();
@@ -554,7 +500,7 @@ export default class ProviderResolver {
         });
       }
 
-      response = await meteredGenerate(provider, {
+      response = await gatedGenerate(provider, {
         ...context.request,
         messages,
         ...(stopReason ? {} : { tools }),
