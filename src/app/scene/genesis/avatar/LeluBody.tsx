@@ -133,10 +133,23 @@ function tapAngle(t: number): number {
  */
 const parsedModels = new WeakMap<ArrayBuffer, Promise<GLTF>>();
 const parsedClips = new WeakMap<ArrayBuffer, Promise<THREE.AnimationClip[]>>();
+/**
+ * The shared copy's textures, fitted once at parse time. Her model ships
+ * 4096² textures; she is drawn in a canvas a few hundred pixels tall (the
+ * phone hero is 162×166 CSS px). Measured on iPhone 13 emulation: every
+ * mount of her view uploaded ~240 MB of textures into its new WebGL
+ * context, so each return to Home added another ~240 MB. Fitted to 2048²,
+ * each mount uploads a quarter of that; every later view reuses them.
+ */
+export const SHARED_TEXTURE_LIMIT = 2048;
 function parseModel(bytes: ArrayBuffer): Promise<GLTF> {
   let parsed = parsedModels.get(bytes);
   if (!parsed) {
-    parsed = new GLTFLoader().parseAsync(bytes, "");
+    parsed = new GLTFLoader().parseAsync(bytes, "").then(async (gltf) => {
+      const resized = await fitTexturesTo(gltf.scene, SHARED_TEXTURE_LIMIT);
+      if (resized) console.info(`[Lélu Body] ${resized} texture(s) fitted to ${SHARED_TEXTURE_LIMIT}px`);
+      return gltf;
+    });
     parsedModels.set(bytes, parsed);
     parsed.catch(() => parsedModels.delete(bytes));
   }
