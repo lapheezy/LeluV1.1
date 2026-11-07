@@ -2,8 +2,9 @@
 
 Starting checkpoint `ef1ea1d` (tree `5c18a6e`), baseline `3092cd8`.
 Remote integrated: `claude/master-integration` at `095b7f9`.
-Branch after this work: `freebuff/phase-2-2` (merge commit), pushed to
-`claude/master-integration`. No force-push.
+Branch after this work: `freebuff/phase-2-2`, pushed to `claude/master-integration`.
+No force-push. Ending commits: `ba9b8b6` (merge), `2c7b767` (both fixes),
+`17ad0be` (exact preview hostname), report commit.
 
 No new architecture: the same `placeInWorld → SpatialIntentBus → commit →
 verify → reveal` path, the same Studio, the same scene and camera ownership.
@@ -110,7 +111,12 @@ The blocker is environmental, and it is recorded rather than papered over:
   (`Blocked request. This host ... is not allowed`), so the panel showed an error
   page instead of the app; restarting the preview with that exact hostname in
   `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS` is required for panel-driven checks.
-* `preview_playwright` in this environment fails before running any script with
+* The Browser panel was blocked by the dev server's host allowlist
+  (`403 Blocked request. This host ... is not allowed`). Fixed at the source:
+  `vite.config.ts` now allows only the exact hostnames in `LELU_ALLOWED_HOSTS`
+  (unset behaves as before). Verified: the panel hostname went from **403 to
+  200** and the panel rendered the live app at 328×528. The panel's Playwright
+  bridge still fails before running any script with
   `The property 'options.mode' must be one of: 'strip'. Received 'transform'`,
   so panel-side scripted driving is unavailable until that bridge is fixed.
 
@@ -128,3 +134,4 @@ in a live phone session**. That is the honest state of this phase.
 * `tests/spatial-reveal.test.ts` — two lifecycle tests.
 * Merge resolution: `GenesisChat.tsx`, `GenesisInterface.tsx`,
   `LeluCompanion.tsx`, `AIRouter.ts`, `package.json`/`bun.lock` (gsap).
+* `vite.config.ts` — exact preview hostname from `LELU_ALLOWED_HOSTS`.
