@@ -94,13 +94,22 @@ These are found and fixed with measurement. See `phone-sheet/MEASUREMENTS.md`.
 - **Landscape drag:** a drop on a control snaps to the nearest free spot.
 - **Code organisation:** the placement helpers moved to `presencePlacement.ts`, so lint is clean. The return button is now 44 px on phones.
 
-## Final acceptance rerun
+## Final acceptance rerun (final code)
 
-All six viewports against the final code: **in progress at this commit**. Results will be added in the follow-up commit.
+| Viewport | Result |
+|---|---|
+| 1440×900 | PASS 15/15 |
+| 390×844 | PASS 14/14 |
+| 375×812 | PASS 14/14 |
+| 430×932 | PASS 14/14 |
+| 844×390 | PASS 14/14 |
+| 1920×1080 | **not re-run** (stopped at the owner's request) |
+
+Evidence is in `final/`.
 
 ## Remaining limitations
 
-1. The final six-viewport rerun was in progress at this commit.
+1. 1920×1080 was not re-run on the final code. Its last run, on the previous code, was 14/15 plus 1 UNVERIFIED.
 2. On phones, when a sheet fills the screen, she is shown as **one paused frame** at the edge. She does not animate there; she animates again when the sheet closes. A live loop beside the sheet stalled the page in this environment. Whether real iPhone GPUs tolerate a live loop is **UNVERIFIED** (no physical device).
 3. Cosmos and worlds: in the Genesis v2 world view she is hidden here because `LeluV2Presence` stands her in the world. Spatial Cosmos destinations use the same 2D presence. There is no animated "walking into" 3D space.
 4. ⤓ return button: 44 px on phones (fixed).
