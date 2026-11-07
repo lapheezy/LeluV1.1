@@ -40,7 +40,7 @@ function entry(moduleId: string, overrides: Partial<ModuleLayoutEntry> = {}): Mo
     rect: { x: 100, y: 100, width: 400, height: 320 },
     zIndex: 200,
     manual: false,
-    pinned: true,
+    pinned: false,
     minimized: false,
     workspace: DEFAULT_WORKSPACE,
     ...overrides,
@@ -99,8 +99,12 @@ test("a viewport change keeps every rect on screen and manual rects in place", (
 });
 
 test("dock order puts pinned modules first and reorder moves a module into a slot", () => {
-  const entries = [entry("a", { zIndex: 200 }), entry("b", { pinned: false, zIndex: 201 }), entry("c", { zIndex: 202 })];
-  assert.deepEqual(dockOrder(entries), ["a", "c", "b"], "an unpinned module is not in the rail's main run");
+  const entries = [
+    entry("a", { pinned: true, zIndex: 200 }),
+    entry("b", { pinned: false, zIndex: 201 }),
+    entry("c", { pinned: true, zIndex: 202 }),
+  ];
+  assert.deepEqual(dockOrder(entries), ["a", "c", "b"], "a pinned module leads; an unpinned module follows in z order");
   const moved = reorder(entries, "a", "c");
   assert.deepEqual(dockOrder(moved), ["c", "a", "b"]);
   assert.equal(removeEntry(entries, "c").length, 2);
@@ -134,6 +138,18 @@ test("legacy geometry migrates as manual placement, and unreadable geometry is c
   assert.equal(browser.pinned, false, "a hidden dock item migrates as unpinned, not deleted");
   assert.equal(browser.manual, false);
   assert.equal(migrated.skipped, 2, "the NaN rect and the empty id are reported, not invented");
+});
+
+test("a pinned module holds its rect during auto-arrange, and regenerate overrides it", () => {
+  const held = { x: 640, y: 120, width: 420, height: 300 };
+  const entries = [entry("held", { pinned: true, rect: held, zIndex: 200 }), entry("free", { zIndex: 201 })];
+  const arranged = autoArrange(entries, desktop);
+  assert.deepEqual(arranged[0].rect, held, "pin means the window stays where it is");
+  assert.ok(!rectsOverlap(arranged[0].rect, arranged[1].rect), "and the automatic window avoids it");
+  const restored = restoreAutoLayout(entries, desktop);
+  assert.notDeepEqual(restored.entries[0].rect, held, "an explicit regenerate is the person's decision");
+  assert.equal(restored.entries[0].pinned, true, "the pin preference itself is preserved");
+  assert.equal(restored.entries[0].manual, false, "regenerate hands everything back to auto");
 });
 
 test("a stored layout is re-validated and corrupt entries are reported", () => {

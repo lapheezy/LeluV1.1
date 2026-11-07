@@ -110,25 +110,13 @@ function orderedAuto(entries: ModuleLayoutEntry[]): ModuleLayoutEntry[] {
  * what makes "restore my layout" reproducible.
  */
 function resolveCollisions(placed: LayoutRect[], rect: LayoutRect, viewport: LayoutViewport): LayoutRect {
-  let candidate = rect;
-  let shrunk = 0;
   const overlaps = (value: LayoutRect): boolean => placed.some((other) => rectsOverlap(other, value));
-  for (let attempt = 0; attempt < 48 && overlaps(candidate); attempt += 1) {
-    if (attempt === 15 || attempt === 31) {
-      // A window that already spans the viewport cannot step aside — the clamp
-      // pins it. Give it less room instead of looping in place.
-      shrunk += 1;
-      const factor = shrunk === 1 ? 0.6 : 0.45;
-      candidate = clampRect(
-        {
-          ...candidate,
-          width: Math.max(MIN_ENTRY_WIDTH, Math.round(candidate.width * factor)),
-          height: Math.max(MIN_ENTRY_HEIGHT, Math.round(candidate.height * factor)),
-        },
-        viewport,
-      );
-      continue;
-    }
+  if (!overlaps(rect)) return rect;
+
+  // 1. Step aside, keeping the window's size: the common case, and the least
+  //    intrusive change to what the person sees.
+  let candidate = rect;
+  for (let attempt = 0; attempt < 24 && overlaps(candidate); attempt += 1) {
     candidate = clampRect(
       attempt % 4 === 3
         ? { ...candidate, y: candidate.y + 24 }
@@ -136,6 +124,25 @@ function resolveCollisions(placed: LayoutRect[], rect: LayoutRect, viewport: Lay
       viewport,
     );
   }
+  if (!overlaps(candidate)) return candidate;
+
+  // 2. A window wider than the gap beside the obstacle can never step far
+  //    enough — the clamp pins it. Shrink it progressively and scan for a free
+  //    slot, so the result is always a real, non-overlapping, deterministic
+  //    placement instead of a rect that lands on top of another.
+  for (const factor of [0.7, 0.55, 0.42, 0.34]) {
+    const width = Math.max(MIN_ENTRY_WIDTH, Math.round(rect.width * factor));
+    const height = Math.max(MIN_ENTRY_HEIGHT, Math.round(rect.height * factor));
+    const maxX = Math.max(0, viewport.width - width);
+    const maxY = Math.max(0, viewport.height - height);
+    for (let y = 0; y <= maxY; y += 24) {
+      for (let x = 0; x <= maxX; x += 24) {
+        const slot = { x, y, width, height };
+        if (!overlaps(slot)) return slot;
+      }
+    }
+  }
+
   return candidate;
 }
 
@@ -150,9 +157,22 @@ export function autoArrange(
   entries: ModuleLayoutEntry[],
   viewport: LayoutViewport,
   insets: Parameters<typeof layoutWindowRects>[2] = {},
+  options: { respectPinned?: boolean } = {},
 ): ModuleLayoutEntry[] {
-  const auto = orderedAuto(entries);
-  const manualRects = entries.filter((entry) => entry.manual && !entry.minimized).map((entry) => entry.rect);
+  /**
+   * Pin policy: a pinned window holds its rect when the rest of the workspace
+   * is auto-arranged, exactly like a hand-placed one. An explicit regenerate
+   * (`respectPinned: false`) is the person's decision and overrides it — the
+   * flag itself is never cleared, so the preference survives.
+   */
+  const respectPinned = options.respectPinned !== false;
+  const held = new Set(
+    entries
+      .filter((entry) => entry.manual || (respectPinned && entry.pinned))
+      .map((entry) => entry.moduleId),
+  );
+  const auto = orderedAuto(entries).filter((entry) => !held.has(entry.moduleId));
+  const manualRects = entries.filter((entry) => held.has(entry.moduleId) && !entry.minimized).map((entry) => entry.rect);
   const tiles = layoutWindowRects(auto.length, viewport, insets);
   const placed: LayoutRect[] = [...manualRects];
   const byId = new Map<string, LayoutRect>();
@@ -194,7 +214,7 @@ export function restoreAutoLayout(
   viewport: LayoutViewport,
 ): { entries: ModuleLayoutEntry[]; changed: string[] } {
   const released = entries.map((entry) => ({ ...entry, manual: false }));
-  const arranged = autoArrange(released, viewport);
+  const arranged = autoArrange(released, viewport, {}, { respectPinned: false });
   const changed = arranged
     .filter((entry, index) => {
       const before = entries[index].rect;
@@ -232,7 +252,8 @@ export function addEntry(
       rect: { x: 0, y: 0, width: MIN_ENTRY_WIDTH, height: MIN_ENTRY_HEIGHT },
       zIndex: DOCK_Z_BASE + entries.length,
       manual: false,
-      pinned: true,
+      // A new module is not pinned: only the person pins a window.
+      pinned: false,
       minimized: false,
       workspace,
     },
@@ -333,7 +354,10 @@ export function migrateLayout(
       ? Object.entries(legacyModules).map(([moduleId, value]) => ({ moduleId, ...(value as object) }))
       : [];
 
+  // Kept for the dock's own visibility state; a hidden item is preserved as an
+  // entry below rather than dropped, so nothing disappears silently.
   const hidden = new Set(Array.isArray(legacyDock?.hidden) ? legacyDock.hidden : []);
+  void hidden;
   const order = Array.isArray(legacyDock?.order) ? legacyDock.order : [];
   const entries: ModuleLayoutEntry[] = [];
   const migrated: string[] = [];
@@ -373,7 +397,8 @@ export function migrateLayout(
         ? item.zIndex!
         : DOCK_Z_BASE + (orderIndex >= 0 ? orderIndex : entries.length),
       manual: hasPosition,
-      pinned: !hidden.has(moduleId),
+      // Pin is a preference the person sets, not a side-effect of migration.
+      pinned: false,
       minimized: false,
       workspace,
     });

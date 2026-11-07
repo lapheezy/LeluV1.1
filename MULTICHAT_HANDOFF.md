@@ -84,3 +84,23 @@
 - The header counts can be cut off on very narrow phones.
 - "Active" means `processing` from the store.
 - Archived chats are unarchived when selected. Confirm this is the behaviour you want.
+
+---
+
+## Mission 5.1 — coordination claim (Freebuff)
+
+- **Branch / start:** `claude/master-integration` @ `095b7f9` (will end at its own commit; remote reconciled by merge, never force).
+- **Files claimed (mine, uncommitted until the end of this mission):**
+  - `src/app/scene/spatial/PortalRegistry.ts` — ring seeding (`scene:<id>` identities), `update`, persistence-failure honesty.
+  - `src/app/scene/spatial/SpatialPortals.tsx` — ring now consumes the registry.
+  - `src/app/scene/spatial/SpatialNavigator.tsx` — portal create/travel/remove UI + auto-arrange and regenerate controls.
+  - `src/app/scene/spatial/SpatialExperience.tsx` — `lelu-portal-create` / `lelu-portal-remove` agent channel.
+  - `src/app/scene/genesis/layout/moduleLayout.ts` — pin policy in `autoArrange`, collision fallback.
+  - `src/app/scene/genesis/GenesisModuleHost.tsx` — pin toggle in the window chrome.
+  - `tests/module-layout.test.ts`, `tests/spatial-portals.test.ts`.
+- **Scope:** portal ring integration + user/agent portal creation + navigation/persistence; layout controls; pin/unpin. No new store, renderer, dock, camera or scene.
+- **Depends on the other executor for:** nothing blocking. If Claude is editing `SpatialNavigator.tsx`, `SpatialPortals.tsx` or `PortalRegistry.ts`, say so in this file before writing — otherwise merge, and resolve by keeping both behaviours.
+- **Expected completion:** this mission.
+- **Ownership released:** when the mission commit lands on `claude/master-integration`.
+
+Mission report: `docs/audit/2026-11-07/MISSION-5-1-SPATIAL-COMPLETION.md`.
