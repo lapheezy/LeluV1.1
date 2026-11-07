@@ -144,6 +144,11 @@ const TYPED = "(typed) Quick check by text: what's my favorite color again? One 
   }
 
   const turns = [];
+  // Written after every turn, so a later failure never loses earlier turns.
+  const checkpoint = async () => {
+    const live = await page.evaluate(() => ({ turns: window.__leluVoice.turns, ledger: (JSON.parse(localStorage.getItem("lelu.usage.v1") || "{}").events ?? []).map((x) => ({ kind: x.kind, source: x.source, op: x.operation, ok: x.ok, model: x.model, in: x.inputTokens, out: x.outputTokens, results: x.results, cost: x.costKind, usd: x.costUsd, ms: x.latencyMs, error: x.error })) })).catch(() => ({}));
+    fs.writeFileSync(path.join(outDir, "voice-conversation.partial.json"), JSON.stringify({ at: new Date().toISOString(), spoken: turns, events, ...live }, null, 1) + "\n");
+  };
   for (let i = 1; i <= lines.length; i += 1) {
     const file = `u${String(i).padStart(2, "0")}.mp3`;
     let mode = "after-reply";
@@ -181,15 +186,30 @@ const TYPED = "(typed) Quick check by text: what's my favorite color again? One 
     }
     const wasHeard = await heard(15000);
     turns.push({ n: i, mode, text: lines[i - 1], spokeAt: said.startedAt - t0, endedAt: said.endedAt - t0, repeated, heard: wasHeard });
+    await checkpoint();
 
     if (i === TYPED_AFTER) {
       await waitReady(180000);
-      await page.click("[data-lelu-composer] textarea");
-      await page.keyboard.type(TYPED, { delay: 15 });
-      await page.keyboard.press("Enter");
-      ev("user-typed", { text: TYPED });
+      try {
+        // A real click: if anything covers the composer, that is a finding.
+        await page.click("[data-lelu-composer] textarea", { timeout: 8000 });
+        await page.keyboard.type(TYPED, { delay: 15 });
+        await page.keyboard.press("Enter");
+        ev("user-typed", { text: TYPED });
+      } catch (error) {
+        const cover = await page.evaluate(() => {
+          const t = document.querySelector("[data-lelu-composer] textarea");
+          if (!t) return "no composer";
+          const r = t.getBoundingClientRect();
+          const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+          return top ? `${top.tagName}${top.getAttribute("data-spatial-nav") !== null ? "[data-spatial-nav]" : ""}.${String(top.className).slice(0, 40)}` : "nothing";
+        });
+        await page.screenshot({ path: path.join(outDir, "typed-turn-blocked.png") });
+        ev("user-typed-blocked", { reason: String(error).split("\n")[0].slice(0, 160), coveredBy: cover });
+      }
       await page.waitForTimeout(3000);
     }
+    await checkpoint();
   }
   await waitReady(180000);
   await page.waitForTimeout(4000);
