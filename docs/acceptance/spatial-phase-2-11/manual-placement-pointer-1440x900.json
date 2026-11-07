@@ -1,0 +1,17 @@
+{
+ "viewport": "1440x900",
+ "at": "2026-11-07T23:01:02.390Z",
+ "deviceScaleFactor": 1,
+ "input": "real pointer (page.mouse, CDP-driven) — no DOM click, no direct state mutation",
+ "steps": [
+  "OK-pointer gate",
+  "FAIL-pointer open-creation-studio locator.click: Timeout 15000ms exceeded.\nCall log:\n  - waiti"
+ ],
+ "checks": {
+  "studioVisible": false,
+  "moduleIds": [],
+  "rectBefore": null,
+  "chrome": null
+ },
+ "errors": []
+}

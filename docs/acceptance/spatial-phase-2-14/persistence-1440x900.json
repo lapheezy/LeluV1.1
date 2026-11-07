@@ -1,0 +1,46 @@
+{
+ "viewport": "1440x900",
+ "at": "2026-11-07T23:39:42.697Z",
+ "deviceScaleFactor": 1,
+ "input": "real CDP mouse events at element coordinates (page.mouse)",
+ "purpose": "reload-equivalent: the page is closed and a fresh document is opened in the same context, so the window can only land where it does from the persisted layout store",
+ "steps": [
+  "OK-pointer gate first",
+  "OK-pointer Studio",
+  "OK-pointer portal-panel",
+  "OK-pointer drag-to-place",
+  "OK-pointer Studio"
+ ],
+ "checks": {
+  "placedRect": {
+   "x": 88,
+   "y": 64,
+   "w": 1338,
+   "h": 818
+  },
+  "counterPlaced": "1 placed · 0 pinned",
+  "rectAfterDrag": {
+   "x": 208,
+   "y": 134,
+   "w": 1338,
+   "h": 818
+  },
+  "layoutBeforeClose": {
+   "key": "lelu.lelu.layout.v2",
+   "manual": 1,
+   "bytes": 233
+  },
+  "reopenedRect": {
+   "x": 208,
+   "y": 134,
+   "w": 1340,
+   "h": 820
+  },
+  "restored": {
+   "dx": 0,
+   "dy": 0
+  },
+  "pass": true
+ },
+ "errors": []
+}

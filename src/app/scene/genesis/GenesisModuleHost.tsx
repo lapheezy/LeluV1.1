@@ -168,6 +168,21 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
 
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; baseX: number; baseY: number } | null>(null);
   const resizeRef = useRef<{ pointerId: number; startX: number; startY: number; baseW: number; baseH: number } | null>(null);
+  /*
+   * A gesture is committed to the layout store ONCE, not once per pointermove.
+   *
+   * Every `moveModule` used to reach ModuleLayoutStore.place through the sync
+   * effect below, which serialized the whole layout into KvStore and notified
+   * the spatial navigator — re-rendering the entire surface for each of the
+   * pointer events a drag produces. On software rendering that stalled the main
+   * thread for seconds at a time and the drag never landed as a manual
+   * placement, so the layout counter stayed at `0 placed`. Geometry still
+   * follows the pointer 1:1 (state is coalesced to one update per frame), and
+   * the person's final rect is written when the gesture ends.
+   */
+  const pendingMoveRef = useRef<{ x: number; y: number } | null>(null);
+  const moveFrameRef = useRef<number | null>(null);
+  const gesturing = useRef(false);
   // While the user drags/resizes, geometry follows the pointer 1:1 — the
   // theme's motion transition applies only to orchestrated layout changes.
   const [interacting, setInteracting] = useState(false);
@@ -182,6 +197,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
    *   moves it again and a reload lands it back where they left it.
    */
   useEffect(() => {
+    if (gesturing.current) return;
     const store = ModuleLayoutStore.getInstance();
     if (!mod.position || !mod.size) {
       store.ensure(id);
@@ -233,6 +249,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       e.preventDefault();
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
       dragRef.current = { pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, baseX: position.x, baseY: position.y };
+      gesturing.current = true;
       setInteracting(true);
       raiseModule(id);
     },
@@ -248,14 +265,21 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       // Keep the window's full chrome + resize handle within the visual
       // viewport — on mobile the window must never be clipped at an edge or
       // slide its composer out of reach.
-      moveModule(id, {
+      pendingMoveRef.current = {
         x: isMobile
           ? Math.max(0, Math.min(x, viewportWidth - Math.min(size.width, viewportWidth)))
           : Math.max(-size.width + 140, Math.min(x, viewportWidth - 96)),          y: isMobile
           ? Math.max(MOBILE_TOP_RESERVE, Math.min(y, viewportHeight - MOBILE_BOTTOM_RESERVE - size.height))
           : Math.max(0, Math.min(y, viewportHeight - CHROME_HEIGHT - 16)),
 
-      });
+      };
+      if (moveFrameRef.current === null) {
+        moveFrameRef.current = requestAnimationFrame(() => {
+          moveFrameRef.current = null;
+          const next = pendingMoveRef.current;
+          if (next) moveModule(id, next);
+        });
+      }
     },
     [id, moveModule, size.width, viewportWidth, viewportHeight, isMobile],
   );
@@ -286,10 +310,39 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
   );
 
   const endDrag = useCallback(() => {
+    if (moveFrameRef.current !== null) {
+      cancelAnimationFrame(moveFrameRef.current);
+      moveFrameRef.current = null;
+    }
+    const finalRect = pendingMoveRef.current;
+    const drag = dragRef.current;
+    const resized = resizeRef.current !== null;
+    pendingMoveRef.current = null;
     dragRef.current = null;
     resizeRef.current = null;
+    if (finalRect) moveModule(id, finalRect);
+    gesturing.current = false;
+    /*
+     * Record the gesture HERE, not only through the sync effect above.
+     *
+     * That effect keys on the module's position and size, so when the last
+     * animation frame had already applied the final geometry its dependencies
+     * do not change and it never runs again after `gesturing` clears. The
+     * window moved but the layout store never learned it was placed by hand —
+     * the counter stayed at `0 placed` and auto-arrange could still move it.
+     * A press with no movement is a raise, not a placement.
+     */
+    const moved = Boolean(finalRect && drag && (finalRect.x !== drag.baseX || finalRect.y !== drag.baseY));
+    if (moved || resized) {
+      ModuleLayoutStore.getInstance().place(id, {
+        x: finalRect?.x ?? mod.position?.x ?? position.x,
+        y: finalRect?.y ?? mod.position?.y ?? position.y,
+        width: mod.size?.width ?? size.width,
+        height: mod.size?.height ?? size.height,
+      });
+    }
     setInteracting(false);
-  }, []);
+  }, [id, moveModule, mod.position?.x, mod.position?.y, mod.size?.width, mod.size?.height, position.x, position.y, size.width, size.height]);
 
   const isExpanded = mod.presentation === "expanded";
 
