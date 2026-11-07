@@ -294,3 +294,18 @@ modified here.
 | Chat open during spatial navigation | **PASS** at 1440×900 — summoned from the rail with a real click |
 | Creation Studio in spatial environment | **PASS** for the panel — real window, `Creation Studio · 0`, full toolbar and empty state at 1920×1080 |
 | Creation Studio artifact action | **PASS** at 1440×900 — **Document** produced `Creation Studio · 1`, one library card and an artifact window at `r1`. A separate 1920×1080 pointer run froze the renderer on the same button; both results are kept |
+| Desktop interaction | **PASS** for the rail, chat, Creation Studio panel, artifact creation and the pin control |
+| Memory growth across 10 transitions | **UNVERIFIED** — the ten-attempt sampling run is invalid (the scene never changed), so no growth claim is made |
+
+Mission 5.2 is **not** closed, but the acceptance list is nearly complete. Verified with
+recorded values: the visual surface at five viewports, portal creation (two user, two
+agent), agent removal, travel, removal, both layout actions, chat during travel,
+conversation continuity, the Creation Studio panel with a real `r1` artifact, and a
+pinned module. Still open: manual module placement (the header drag never registered and
+the concurrent run reports it hanging the main thread), memory growth across ten
+transitions (the attempt is kept as refuted, not quoted), and any valid performance
+benchmark — software rasterisation on a contended VM cannot supply one.
+
+The later interactive steps at 1440×900 were driven by a DOM click dispatched on the
+same control elements, because pointer clicks repeatedly timed out under a load average
+near 6; they are recorded as `OK-dom` in the JSON rather than presented as pointer input.
