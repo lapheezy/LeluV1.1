@@ -3,7 +3,7 @@
 ## 1. Commits
 
 - **Starting commit:** `095b7f9` (`claude/master-integration`, Mission 5 merge).
-- **Ending commit:** the Mission 5.1 commit on the same branch (see `git log`; the report is committed with the work it describes).
+- **Ending commit:** `e7f4fe9` — the Mission 5.1 work is `8f0caef`, merged with the remote's concurrent `558d0fb`, `e052061` and one further commit (`e7f4fe9`). Pushed as `e052061..e7f4fe9`.
 - **Remote:** reconciled by `git fetch` + merge before pushing. No force-push, no reset, no file reclaimed from another executor.
 
 ## 2–3. Files
