@@ -1,6 +1,6 @@
 {
   "mission": "5.4 / 5.4B.1 — portal targeting",
-  "status": "incomplete-blocked-on-targeting",
+  "status": "unverified-blocked-on-click-delivery",
   "branch": "claude/mission-5-4-spatial-interaction",
   "start": {
     "canonicalRemoteTip": "91f5361481bcf52913181867ad928ed9c1745b30",
@@ -201,5 +201,37 @@
     "scripts": [
       "docs/acceptance/spatial-phase-2-13/scripts/probe-portal-targets.mjs"
     ]
+  },
+  "mission54b2": {
+    "report": "docs/acceptance/MISSION-5-4B-2-REPORT.md",
+    "instrumentation": [
+      "src/app/scene/spatial/portalTrace.ts",
+      "SpatialPortals CameraSettleProbe",
+      "docs/acceptance/spatial-phase-2-13/scripts/probe-settled-targets.mjs"
+    ],
+    "measured": {
+      "cameraSettles": false,
+      "settleSample": {
+        "stableFrames": 0,
+        "deltaPosition": 0,
+        "deltaRotation": 0.0049
+      },
+      "immersive": "false",
+      "clicksDeliveredToPortalHandler": 0,
+      "field": {
+        "registry": 11,
+        "drawn": 11,
+        "onScreen": 11,
+        "overlappingMouths": []
+      }
+    },
+    "verdict": {
+      "A": "UNTESTED - no handler ran",
+      "B": "UNTESTED",
+      "C": "CONFIRMED - Core camera rotates every frame, projections stale",
+      "D": "NOT DECIDED"
+    },
+    "blocker": "the app never enters immersive mode in this environment, so the home HUD covers the canvas and pointer clicks never reach the Genesis canvas",
+    "nextStep": "assert data-immersive === true before any attempt (or measure on a surface with no HUD), then read __leluPortalEvents[-1].delivered.portalId"
   }
 }

@@ -1,0 +1,250 @@
+{
+  "mission": "5.4B.2",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "device": "Chromium headless + SwiftShader software compositor (NOT real-device performance)",
+  "settledFramesRequired": 30,
+  "reps": 3,
+  "errors": [],
+  "attempts": [
+    {
+      "destination": "files",
+      "rep": 1,
+      "aim": {
+        "id": "scene:files",
+        "destination": "files",
+        "screen": {
+          "x": 8,
+          "y": 750
+        },
+        "hitRadius": 0.35,
+        "onScreen": true,
+        "insideViewport": true,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "topElement": "BUTTON",
+        "elements": [
+          "BUTTON",
+          "DIV",
+          "CANVAS",
+          "DIV"
+        ],
+        "canvasOnTop": false,
+        "pickAtCentre": {
+          "portalId": "scene:files",
+          "name": "spatial-portal-hit-scene:files",
+          "distance": 3.981047275100308
+        }
+      },
+      "clickPoint": {
+        "x": 8,
+        "y": 750
+      },
+      "deliveredPortalId": null,
+      "deliveredDestination": null,
+      "intersections": null,
+      "settleAtClick": null,
+      "projectedCentreAtClick": null,
+      "transitionDestination": "media",
+      "transitionKind": "environment-morph",
+      "landed": "core",
+      "deliveredMatchesAim": false,
+      "sceneMatchesDestination": false,
+      "matches": false
+    },
+    {
+      "destination": "files",
+      "rep": 2,
+      "aim": {
+        "id": "scene:files",
+        "destination": "files",
+        "screen": {
+          "x": 50,
+          "y": 365
+        },
+        "hitRadius": 0.97,
+        "onScreen": true,
+        "insideViewport": true,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "topElement": "CANVAS",
+        "elements": [
+          "CANVAS",
+          "DIV",
+          "DIV",
+          "DIV"
+        ],
+        "canvasOnTop": true,
+        "pickAtCentre": {
+          "portalId": "scene:files",
+          "name": "spatial-portal-hit-scene:files",
+          "distance": 13.873718443849938
+        }
+      },
+      "clickPoint": {
+        "x": 50,
+        "y": 365
+      },
+      "deliveredPortalId": null,
+      "deliveredDestination": null,
+      "intersections": null,
+      "settleAtClick": null,
+      "projectedCentreAtClick": null,
+      "transitionDestination": null,
+      "transitionKind": "",
+      "landed": "media",
+      "deliveredMatchesAim": false,
+      "sceneMatchesDestination": false,
+      "matches": false
+    },
+    {
+      "destination": "files",
+      "rep": 3,
+      "aborted": "transition still running",
+      "matches": false
+    },
+    {
+      "destination": "studio",
+      "rep": 1,
+      "aborted": "transition still running",
+      "matches": false
+    },
+    {
+      "destination": "studio",
+      "rep": 2,
+      "aim": {
+        "id": "scene:studio",
+        "destination": "studio",
+        "screen": {
+          "x": 917,
+          "y": 400
+        },
+        "hitRadius": 0.52,
+        "onScreen": true,
+        "insideViewport": true,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "topElement": "DIV",
+        "elements": [
+          "DIV",
+          "DIV",
+          "DIV",
+          "DIV"
+        ],
+        "canvasOnTop": false,
+        "pickAtCentre": {
+          "portalId": "scene:studio",
+          "name": "spatial-portal-hit-scene:studio",
+          "distance": 3.290054536051927
+        }
+      },
+      "clickPoint": {
+        "x": 917,
+        "y": 400
+      },
+      "deliveredPortalId": null,
+      "deliveredDestination": null,
+      "intersections": null,
+      "settleAtClick": null,
+      "projectedCentreAtClick": null,
+      "transitionDestination": null,
+      "transitionKind": "",
+      "landed": "core",
+      "deliveredMatchesAim": false,
+      "sceneMatchesDestination": false,
+      "matches": false
+    },
+    {
+      "destination": "studio",
+      "rep": 3,
+      "aim": {
+        "id": "scene:studio",
+        "destination": "studio",
+        "screen": {
+          "x": 811,
+          "y": 237
+        },
+        "hitRadius": 0.52,
+        "onScreen": true,
+        "insideViewport": true,
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "topElement": "DIV",
+        "elements": [
+          "DIV",
+          "DIV",
+          "DIV",
+          "DIV"
+        ],
+        "canvasOnTop": false,
+        "pickAtCentre": {
+          "portalId": "scene:studio",
+          "name": "spatial-portal-hit-scene:studio",
+          "distance": 7.728874848057493
+        }
+      },
+      "clickPoint": {
+        "x": 811,
+        "y": 237
+      },
+      "deliveredPortalId": null,
+      "deliveredDestination": null,
+      "intersections": null,
+      "settleAtClick": null,
+      "projectedCentreAtClick": null,
+      "transitionDestination": null,
+      "transitionKind": "",
+      "landed": "core",
+      "deliveredMatchesAim": false,
+      "sceneMatchesDestination": false,
+      "matches": false
+    }
+  ],
+  "entry": {
+    "ok": true,
+    "reason": null,
+    "immersive": "false",
+    "scene": "core",
+    "settle": {
+      "frame": 60,
+      "stableFrames": 0,
+      "deltaPosition": 0,
+      "deltaRotation": 0.0049,
+      "position": [
+        -5,
+        3,
+        5
+      ],
+      "quaternion": [
+        -0.1329,
+        -0.3787,
+        -0.055,
+        0.9143
+      ]
+    },
+    "canvases": 3,
+    "field": {
+      "registry": 11,
+      "drawn": 11,
+      "onScreen": 11,
+      "overlappingMouths": []
+    }
+  },
+  "summary": {
+    "attempts": 6,
+    "deliveredMatchesAim": 0,
+    "sceneMatchesDestination": 0,
+    "fullyMatched": 0,
+    "aborted": 2
+  }
+}

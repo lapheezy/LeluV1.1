@@ -50,6 +50,7 @@ import {
   type PortalPlacement,
 } from "./portalField";
 import CosmosStore from "../genesis/cosmos/CosmosStore";
+import { recordPortalClick, traceEnabled } from "./portalTrace";
 
 /**
  * Destinations drawn as portals in the world (the core and cosmos are the world
@@ -162,6 +163,9 @@ function Portal({
 }) {
   const runtime = SpatialRuntime.getInstance();
   const seam = useRef<Group>(null);
+  // Read-only references used by the development click trace only.
+  const camera = useThree((three) => three.camera);
+  const gl = useThree((three) => three.gl);
   const hovered = state.interaction.hovered === spec.destination;
   const travellingHere = state.destination === spec.destination && Boolean(state.transition);
   const visited = state.current === spec.destination;
@@ -280,6 +284,61 @@ function Portal({
         userData={{ portalId: spec.id, destination: spec.destination, label: spec.label }}
         onClick={(event) => {
           event.stopPropagation();
+          /*
+           * Development trace: record what the REAL handler received in the
+           * same frame as the pointer event — the event object's own portal id,
+           * every intersection with its distance, the camera pose, the
+           * viewport and the projected centre of the object that was hit.
+           * Without this, "wrong portal" and "stale coordinates" are
+           * indistinguishable.
+           */
+          if (traceEnabled()) {
+            const native = event.nativeEvent as MouseEvent | undefined;
+            const rect = gl.domElement.getBoundingClientRect();
+            const world = new Vector3();
+            event.object.getWorldPosition(world);
+            const projected = world.clone().project(camera);
+            const round = (value: number, places = 4) =>
+              Math.round(value * 10 ** places) / 10 ** places;
+            recordPortalClick({
+              t: Math.round(performance.now()),
+              client: { x: Math.round(native?.clientX ?? -1), y: Math.round(native?.clientY ?? -1) },
+              ndc: {
+                x: round((((native?.clientX ?? 0) - rect.left) / Math.max(1, rect.width)) * 2 - 1),
+                y: round(-(((native?.clientY ?? 0) - rect.top) / Math.max(1, rect.height)) * 2 + 1),
+              },
+              delivered: {
+                portalId: (event.object.userData as { portalId?: string }).portalId ?? null,
+                destination: spec.destination,
+                object: event.object.name,
+              },
+              hitDistance: Number.isFinite(event.distance) ? round(event.distance, 3) : null,
+              hitPoint: [round(event.point.x, 3), round(event.point.y, 3), round(event.point.z, 3)],
+              intersections: event.intersections.slice(0, 8).map((entry) => ({
+                name: entry.object.name,
+                portalId: (entry.object.userData as { portalId?: string }).portalId ?? null,
+                distance: round(entry.distance, 3),
+              })),
+              camera: {
+                position: camera.position.toArray().map((value) => round(value)),
+                quaternion: camera.quaternion.toArray().map((value) => round(value)),
+                projection: camera.projectionMatrix.elements.map((value) => round(value)),
+              },
+              viewport: {
+                width: Math.round(rect.width),
+                height: Math.round(rect.height),
+                dpr: window.devicePixelRatio,
+              },
+              projectedCentre: {
+                x: Math.round(rect.left + (projected.x * 0.5 + 0.5) * rect.width),
+                y: Math.round(rect.top + (-projected.y * 0.5 + 0.5) * rect.height),
+              },
+              settle: (window as unknown as { __leluCameraSettle?: unknown }).__leluCameraSettle ?? null,
+              scene: state.current,
+              transition: state.transition?.kind ?? null,
+              travelDestination: state.destination,
+            });
+          }
           // One camera, one flight: a click while another destination is in
           // flight is refused rather than rebasing the path on top of itself.
           // Travelling through a portal is the SAME travel the rail uses: one
@@ -433,6 +492,51 @@ function PortalFieldProbe({
       delete host.__leluPortalPick;
     };
   }, [placements, portals, selected, camera, scene, gl]);
+  return null;
+}
+
+/**
+ * Camera settlement, measured per rendered frame.
+ *
+ * A fixed delay is not evidence that the camera stopped: the earlier harness
+ * clicked "after 2 seconds" and, on a software compositor, was still mid-flight.
+ * This publishes how many consecutive frames the camera's position and rotation
+ * have not changed, so a click can require a settled frame instead of assuming
+ * one. Development only.
+ */
+function CameraSettleProbe() {
+  const camera = useThree((three) => three.camera);
+  const last = useRef({
+    frame: 0,
+    stableFrames: 0,
+    position: new Vector3(),
+    quaternion: new Quaternion(),
+    ready: false,
+  });
+  useFrame(() => {
+    if (!traceEnabled() || typeof window === "undefined") return;
+    const tracking = last.current;
+    tracking.frame += 1;
+    if (!tracking.ready) {
+      tracking.position.copy(camera.position);
+      tracking.quaternion.copy(camera.quaternion);
+      tracking.ready = true;
+    }
+    const deltaPosition = camera.position.distanceTo(tracking.position);
+    const deltaRotation = tracking.quaternion.angleTo(camera.quaternion);
+    tracking.stableFrames = deltaPosition < 1e-4 && deltaRotation < 1e-4 ? tracking.stableFrames + 1 : 0;
+    tracking.position.copy(camera.position);
+    tracking.quaternion.copy(camera.quaternion);
+    const round = (value: number) => Math.round(value * 1e4) / 1e4;
+    (window as unknown as { __leluCameraSettle?: unknown }).__leluCameraSettle = {
+      frame: tracking.frame,
+      stableFrames: tracking.stableFrames,
+      deltaPosition: round(deltaPosition),
+      deltaRotation: round(deltaRotation),
+      position: camera.position.toArray().map(round),
+      quaternion: camera.quaternion.toArray().map(round),
+    };
+  });
   return null;
 }
 
@@ -644,6 +748,7 @@ export default function SpatialPortals() {
   return (
     <group name="spatial-portals">
       <PortalFieldProbe placements={placements} portals={portals} selected={selected} />
+      <CameraSettleProbe />
       <ambientLight intensity={0.06 + state.lighting * 0.1} color="#a5b4fc" />
       <pointLight
         position={[0, 2, 6]}
