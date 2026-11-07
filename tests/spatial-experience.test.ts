@@ -371,7 +371,14 @@ test("portal geometry is stable between emitted frames", () => {
   assert.ok(!/\}, \[runtime, state\.updatedAt\]\)/.test(portals), "positions are not rebuilt per frame");
   assert.ok(portals.includes("anchorVersion"), "they follow a version that changes only with real anchors");
   assert.ok(/setVersion\(\(value\) => value \+ 1\)/.test(portals), "the version is bumped on anchor sync");
-  assert.ok(/\}, \[runtime, anchorVersion\]\)/.test(portals), "the memo depends on the anchor version");
+  assert.ok(
+    /\}, \[records, runtime, anchorVersion\]\)/.test(portals),
+    "the memo depends on the anchor version and the registry list — never on a frame",
+  );
+  assert.ok(
+    !/useFrame\([^)]*\)[\s\S]{0,200}setRecords/.test(portals),
+    "the registry list is not re-read per frame",
+  );
 });
 
 test("voice is available without opening the chat", () => {

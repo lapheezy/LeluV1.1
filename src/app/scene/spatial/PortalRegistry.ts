@@ -40,6 +40,19 @@ export interface PortalPort {
 export const PORTAL_STORAGE_KEY = "lelu.spatial.portals.v1";
 const MAX_PORTALS = 64;
 
+/**
+ * The built-in ring's ids are namespaced: `scene:<destination>`. A portal a
+ * person or an agent creates gets a `portal:<destination>:<stamp>` id, so the
+ * two can never collide and a built-in portal can never be duplicated.
+ */
+export function builtinPortalId(scene: SpatialSceneId): string {
+  return `scene:${scene}`;
+}
+
+export function isBuiltinPortal(portal: PortalRecord): boolean {
+  return portal.id.startsWith("scene:");
+}
+
 const kvPort: PortalPort = {
   get<T>(key: string): T | null {
     return KvStore.getInstance().get<T>(key) ?? null;
@@ -186,8 +199,66 @@ export default class PortalRegistry {
       workspace: input.workspace ?? existing?.workspace ?? "default",
     };
     this.portals.set(portal.id, portal);
-    this.persist();
+    if (!this.persist()) {
+      // Never report success for a portal that was not saved: a UI or an agent
+      // action must see the refusal, not a portal that vanishes on reload.
+      if (existing) this.portals.set(existing.id, existing);
+      else this.portals.delete(portal.id);
+      return { ok: false, reason: "The portal could not be saved on this device." };
+    }
     return { ok: true, portal };
+  }
+
+  /** Rename or re-point a portal. The id and the creation time never change. */
+  update(
+    id: string,
+    patch: { label?: string; destination?: unknown },
+  ): { ok: true; portal: PortalRecord } | { ok: false; reason: string } {
+    const current = this.portals.get(id);
+    if (!current) return { ok: false, reason: `No portal ${id}.` };
+    let destination = current.destination;
+    if (patch.destination !== undefined) {
+      if (
+        typeof patch.destination !== "string" ||
+        !SPATIAL_DESTINATIONS.some((item) => item.id === patch.destination)
+      ) {
+        return { ok: false, reason: `"${String(patch.destination)}" is not a destination in the scene graph.` };
+      }
+      destination = patch.destination as SpatialSceneId;
+    }
+    const next: PortalRecord = { ...current, destination, label: patch.label?.trim() || current.label };
+    this.portals.set(id, next);
+    if (!this.persist()) {
+      this.portals.set(id, current);
+      return { ok: false, reason: "The portal could not be saved on this device." };
+    }
+    return { ok: true, portal: next };
+  }
+
+  /**
+   * Give the ring its identities: one stable record per built-in destination.
+   * Idempotent, so calling it on every mount adds nothing after the first time
+   * and never duplicates a built-in portal.
+   */
+  seedRing(scenes: readonly SpatialSceneId[], workspace = "default"): number {
+    const added: string[] = [];
+    for (const scene of scenes) {
+      const id = builtinPortalId(scene);
+      if (this.portals.has(id)) continue;
+      this.portals.set(id, {
+        id,
+        destination: scene,
+        label: destinationFor(scene).label,
+        createdBy: "user",
+        createdAt: Date.now() + added.length,
+        workspace,
+      });
+      added.push(id);
+    }
+    if (added.length === 0) return 0;
+    if (this.persist()) return added.length;
+    for (const id of added) this.portals.delete(id);
+    return 0;
   }
 
   /** The destination behind a portal, or null when it no longer exists. */
@@ -217,9 +288,13 @@ export default class PortalRegistry {
   }
 
   remove(id: string): boolean {
-    const removed = this.portals.delete(id);
-    if (removed) this.persist();
-    return removed;
+    const current = this.portals.get(id);
+    if (!current) return false;
+    this.portals.delete(id);
+    if (this.persist()) return true;
+    // The removal could not be saved: the portal is still there, so say so.
+    this.portals.set(id, current);
+    return false;
   }
 
   subscribe(listener: (portals: PortalRecord[]) => void): () => void {
@@ -227,12 +302,14 @@ export default class PortalRegistry {
     return () => this.listeners.delete(listener);
   }
 
-  private persist(): void {
+  /** Returns whether the write actually happened — callers must not fake success. */
+  private persist(): boolean {
     try {
       this.port.set(PORTAL_STORAGE_KEY, [...this.portals.values()]);
-      for (const listener of this.listeners) listener(this.list());
     } catch {
-      // A world that cannot save a portal still works this session.
+      return false;
     }
+    for (const listener of this.listeners) listener(this.list());
+    return true;
   }
 }

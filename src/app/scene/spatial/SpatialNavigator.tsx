@@ -18,9 +18,11 @@
  * ==========================================================
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SpatialRuntime, { type SpatialState } from "./SpatialRuntime";
-import { destinationFor, type SpatialSceneId } from "./SpatialScenes";
+import { SPATIAL_DESTINATIONS, destinationFor, type SpatialSceneId } from "./SpatialScenes";
+import PortalRegistry, { isBuiltinPortal, type PortalRecord } from "./PortalRegistry";
+import ModuleLayoutStore from "../genesis/layout/ModuleLayoutStore";
 import { useGenesis } from "../genesis/GenesisCore";
 import { useSurface } from "../genesis/surface/useSurface";
 import { useWorkspace } from "../genesis/useWorkspace";
@@ -39,6 +41,39 @@ function useSpatialState(): SpatialState {
   return state;
 }
 
+/** The registry's live portal list: created, edited and removed portals appear here at once. */
+function usePortalRegistry(): PortalRecord[] {
+  const registry = PortalRegistry.getInstance();
+  const [portals, setPortals] = useState<PortalRecord[]>(() => registry.list());
+  useEffect(() => {
+    setPortals(registry.list());
+    return registry.subscribe(setPortals);
+  }, [registry]);
+  return portals;
+}
+
+const FIELD: React.CSSProperties = {
+  font: "500 11px system-ui, sans-serif",
+  color: "rgba(224,242,254,0.92)",
+  background: "rgba(8,16,38,0.7)",
+  border: "1px solid rgba(148,163,184,0.24)",
+  borderRadius: 8,
+  padding: "5px 8px",
+  maxWidth: 150,
+};
+
+const TINY: React.CSSProperties = {
+  font: "600 10.5px system-ui, sans-serif",
+  letterSpacing: "0.04em",
+  color: "rgba(214,228,244,0.86)",
+  background: "rgba(34,211,238,0.12)",
+  border: "1px solid rgba(103,232,249,0.35)",
+  borderRadius: 999,
+  padding: "4px 9px",
+  cursor: "pointer",
+  whiteSpace: "nowrap",
+};
+
 export default function SpatialNavigator() {
   const runtime = SpatialRuntime.getInstance();
   const spatial = useSpatialState();
@@ -47,6 +82,50 @@ export default function SpatialNavigator() {
   const workspace = useWorkspace();
   const compact = chatFillsScreen(workspace);
   const [open, setOpen] = useState(() => !compact);
+
+  /* Portals and the workspace layout are part of THIS interface, not a
+     separate settings screen: the rail that navigates the world also names
+     the connections in it and arranges the windows. */
+  const portals = usePortalRegistry();
+  const [portalPanel, setPortalPanel] = useState(false);
+  const [portalTarget, setPortalTarget] = useState<SpatialSceneId>("studio");
+  const [portalName, setPortalName] = useState("");
+  const [portalNotice, setPortalNotice] = useState("");
+  const layoutStore = ModuleLayoutStore.getInstance();
+  const [layoutVersion, setLayoutVersion] = useState(0);
+  useEffect(() => layoutStore.subscribe(() => setLayoutVersion((value) => value + 1)), [layoutStore]);
+  const layout = useMemo(() => layoutStore.getState(), [layoutStore, layoutVersion]);
+  const manualCount = layout.entries.filter((entry) => entry.manual).length;
+  const pinnedCount = layout.entries.filter((entry) => entry.pinned).length;
+  const customPortals = portals.filter((portal) => !isBuiltinPortal(portal));
+
+  const createPortal = () => {
+    const result = PortalRegistry.getInstance().create({
+      destination: portalTarget,
+      label: portalName,
+      createdBy: "user",
+    });
+    if (!result.ok) {
+      setPortalNotice(result.reason);
+      return;
+    }
+    setPortalName("");
+    setPortalNotice(`Portal “${result.portal.label}” created.`);
+  };
+
+  const travelPortal = (id: string) => {
+    const plan = PortalRegistry.getInstance().planTravel(id);
+    if (!plan) {
+      setPortalNotice("That portal no longer leads anywhere.");
+      return;
+    }
+    runtime.travel(plan.destination.id);
+  };
+
+  const removePortal = (id: string) => {
+    const removed = PortalRegistry.getInstance().remove(id);
+    setPortalNotice(removed ? "Portal removed." : "The portal could not be removed.");
+  };
 
   // The rail belongs to the WORLD, not to the conversation: it is present
   // while the chat interface is collapsed (the state the app opens in), so
@@ -253,6 +332,12 @@ export default function SpatialNavigator() {
           { testId: "voice", active: voice !== "idle", title: "Speak with LÉLU — no chat window needed" },
         )}
 
+        {control(portalPanel ? "Close portals and layout" : "Portals and layout", "◇", () => setPortalPanel((value) => !value), {
+          testId: "portals",
+          active: portalPanel,
+          title: "Create a portal, or arrange the workspace windows",
+        })}
+
         {/* Chat is summonable and dismissible: a destination, not the frame. */}
         {control(
           chatOpen ? "Dismiss the chat" : "Summon the chat",
@@ -317,6 +402,171 @@ export default function SpatialNavigator() {
               </span>
             </div>
           ))}
+        </div>
+      ) : null}
+
+      {portalPanel ? (
+        <div
+          data-portal-panel
+          data-portal-count={customPortals.length}
+          style={{
+            display: "grid",
+            gap: 7,
+            width: "min(620px, 100%)",
+            pointerEvents: "auto",
+            padding: "9px 11px",
+            borderRadius: 16,
+            background: "rgba(4,10,26,0.72)",
+            border: "1px solid rgba(125,211,252,0.18)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <span
+              style={{
+                font: "600 8.5px system-ui, sans-serif",
+                letterSpacing: "0.09em",
+                textTransform: "uppercase",
+                color: "rgba(103,232,249,0.85)",
+              }}
+            >
+              New portal
+            </span>
+            <select
+              data-portal-destination
+              aria-label="Portal destination"
+              value={portalTarget}
+              onChange={(event) => setPortalTarget(event.target.value as SpatialSceneId)}
+              style={FIELD}
+            >
+              {SPATIAL_DESTINATIONS.filter(
+                (destination) => destination.kind !== "core" && destination.kind !== "cosmos",
+              ).map((destination) => (
+                <option key={destination.id} value={destination.id}>
+                  {destination.label}
+                </option>
+              ))}
+            </select>
+            <input
+              data-portal-name
+              aria-label="Portal name"
+              placeholder="Name (optional)"
+              value={portalName}
+              onChange={(event) => setPortalName(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") createPortal();
+              }}
+              style={{ ...FIELD, width: 132 }}
+            />
+            <button type="button" data-portal-create onClick={createPortal} style={TINY}>
+              Create
+            </button>
+          </div>
+
+          {portalNotice ? (
+            <span data-portal-notice role="status" style={{ font: "500 10.5px system-ui, sans-serif", color: "rgba(186,230,253,0.85)" }}>
+              {portalNotice}
+            </span>
+          ) : null}
+
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <span
+              style={{
+                font: "600 8.5px system-ui, sans-serif",
+                letterSpacing: "0.09em",
+                textTransform: "uppercase",
+                color: "rgba(148,163,184,0.8)",
+              }}
+            >
+              Portals
+            </span>
+            {customPortals.length === 0 ? (
+              <span style={{ font: "500 10.5px system-ui, sans-serif", color: "rgba(148,163,184,0.65)" }}>
+                Only the built-in ring exists.
+              </span>
+            ) : null}
+            {customPortals.map((portal) => (
+              <span
+                key={portal.id}
+                data-portal-id={portal.id}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 2,
+                  padding: "2px 3px 2px 2px",
+                  borderRadius: 999,
+                  border: `1px solid ${destinationFor(portal.destination).accent}44`,
+                  background: `${destinationFor(portal.destination).accent}14`,
+                }}
+              >
+                <button
+                  type="button"
+                  data-portal-travel={portal.id}
+                  title={`Travel to ${destinationFor(portal.destination).label}`}
+                  onClick={() => travelPortal(portal.id)}
+                  style={{ ...TINY, background: "transparent", border: "none", padding: "3px 7px" }}
+                >
+                  {portal.label}
+                  <span aria-hidden style={{ opacity: 0.55 }}> · {destinationFor(portal.destination).label}</span>
+                </button>
+                <button
+                  type="button"
+                  data-portal-remove={portal.id}
+                  aria-label={`Remove ${portal.label}`}
+                  title="Remove this portal"
+                  onClick={() => removePortal(portal.id)}
+                  style={{ ...TINY, background: "transparent", border: "none", padding: "2px 6px", color: "rgba(252,165,165,0.85)" }}
+                >
+                  ✕
+                </button>
+              </span>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <span
+              style={{
+                font: "600 8.5px system-ui, sans-serif",
+                letterSpacing: "0.09em",
+                textTransform: "uppercase",
+                color: "rgba(148,163,184,0.8)",
+              }}
+            >
+              Layout
+            </span>
+            <button
+              type="button"
+              data-layout-arrange
+              title="Tile the automatic windows around the ones you placed"
+              onClick={() => {
+                layoutStore.arrange();
+                setPortalNotice("Auto-arranged the automatic windows; your placed windows stayed put.");
+              }}
+              style={TINY}
+            >
+              Auto-arrange
+            </button>
+            <button
+              type="button"
+              data-layout-regenerate
+              title="Regenerate every window's position. This is a layout change, not a data reset."
+              onClick={() => {
+                const changed = layoutStore.restore();
+                setPortalNotice(
+                  changed.length === 0
+                    ? "Layout already matches the automatic arrangement."
+                    : `Regenerated ${changed.length} window${changed.length === 1 ? "" : "s"}. Your data, dock order and visibility are untouched.`,
+                );
+              }}
+              style={TINY}
+            >
+              Regenerate layout
+            </button>
+            <span data-layout-manual-count style={{ font: "500 10.5px system-ui, sans-serif", color: "rgba(148,163,184,0.7)" }}>
+              {manualCount} placed · {pinnedCount} pinned
+            </span>
+          </div>
         </div>
       ) : null}
 
