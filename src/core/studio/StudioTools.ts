@@ -26,7 +26,7 @@ import ToolRegistry, { type ToolDefinition } from "../tools/ToolRegistry";
 import type { ToolExecutionResult } from "../tools/ToolDispatcher";
 import type RouterContext from "../router/RouterContext";
 import { summarizeVerification } from "./StudioExport";
-import type { StudioOp } from "./StudioOps";
+import { normalizeSpec, type StudioOp } from "./StudioOps";
 import StudioStore, { type StudioArtifact } from "./StudioStore";
 import { FORMATS_BY_KIND, type ArtifactSpec, type ExportFormat } from "./StudioTypes";
 import { ownerForTask } from "../multichat/TurnOwnership";
@@ -38,6 +38,34 @@ import { ownerForTask } from "../multichat/TurnOwnership";
  * same binding the chat cards use — so the artifact stays with the chat that
  * asked for it.
  */
+/**
+ * What a full-spec revision would drop from the current revision: text
+ * the user wrote or approved, lost because the model re-sent the whole
+ * artifact and left it out. Charts and images are excluded — changing a
+ * chart is the usual reason for a revision. Measured live: "change the
+ * chart to a line chart" came back with a paragraph silently removed.
+ */
+export function droppedContent(current: ArtifactSpec, next: ArtifactSpec): string[] {
+  const clip = (t: string) => (t.length > 60 ? `${t.slice(0, 57)}…` : t);
+  if (current.kind === "document" && next.kind === "document") {
+    const key = (b: (typeof current.blocks)[number]) =>
+      b.type === "heading" || b.type === "paragraph" || b.type === "quote" ? `${b.type}: ${b.text.trim()}`
+        : b.type === "bullets" ? `bullets: ${b.items.join(" | ").trim()}`
+          : b.type === "table" ? `table: ${b.columns.join(" | ")}` : "";
+    const kept = new Set(next.blocks.map(key));
+    return current.blocks.map(key).filter((k) => k && !kept.has(k)).map(clip);
+  }
+  if (current.kind === "deck" && next.kind === "deck") {
+    const kept = new Set(next.slides.map((x) => x.title.trim()));
+    return current.slides.filter((x) => !kept.has(x.title.trim())).map((x) => clip(`slide: ${x.title}`));
+  }
+  if (current.kind === "workbook" && next.kind === "workbook") {
+    const kept = new Set(next.sheets.map((x) => x.name.trim()));
+    return current.sheets.filter((x) => !kept.has(x.name.trim())).map((x) => clip(`sheet: ${x.name}`));
+  }
+  return [];
+}
+
 function conversationOf(context: RouterContext | undefined): string | undefined {
   return context?.request?.conversationId ?? ownerForTask(String(context?.request?.timestamp ?? "")) ?? undefined;
 }
@@ -234,12 +262,27 @@ export const STUDIO_EXECUTORS: StudioExecutor[] = [
       },
       spec: OBJ(SPEC_PROPERTIES, ["kind", "title"]),
       note: { type: "string", description: "what this revision is, in a few words" },
+      removes: { type: "boolean", description: "true ONLY when the user asked to remove or rewrite existing content; a full spec that drops content is refused otherwise — prefer ops" },
       export: { type: "array", items: { type: "string", enum: ALL_FORMATS } },
     }),
     run: async (args, context) => {
       const store = StudioStore.getInstance();
       const a = store.resolve(str(args, "artifact"), conversationOf(context));
       if (!a) return { ok: false, content: `No artifact matches${str(args, "artifact") ? ` “${str(args, "artifact")}”` : ""}. studio_list shows what exists.` };
+      // A whole re-sent spec must not quietly lose what the user did not ask to change.
+      if (args.spec !== undefined && args.removes !== true) {
+        const next = normalizeSpec(args.spec);
+        const dropped = next.ok ? droppedContent(a.revisions[a.revisions.length - 1].spec, next.spec) : [];
+        if (dropped.length > 0) {
+          return {
+            ok: false,
+            content:
+              `Nothing was revised: this full spec would remove content the request did not mention — ${dropped.join("; ")}. ` +
+              `Make the requested change with ops (e.g. updateChart, addBlock, replaceBlock) so everything else is kept, ` +
+              `or set removes: true only if the user asked to remove or rewrite that content.`,
+          };
+        }
+      }
       const r = store.revise(a.id, { ops: Array.isArray(args.ops) ? (args.ops as StudioOp[]) : undefined, spec: args.spec, note: str(args, "note") || undefined, by: "lelu" });
       if (!r.ok) return { ok: false, content: r.reason };
       announce(context, a, "revised");

@@ -137,3 +137,30 @@ test("a planned export step finds the artifact through the create step's output"
   assert.equal(exported.ok, true, exported.content);
   assert.ok(StudioStore.getInstance().get(id)!.exports.some((e) => e.format === "docx" && e.ok), "the DOCX was written for that artifact");
 });
+
+test("a revision may not silently drop content the request did not mention", async () => {
+  const blocks = [
+    { type: "heading", text: "Lumo" },
+    { type: "paragraph", text: "Lumo is a lightweight solar lantern." },
+    { type: "chart", chart: { kind: "column", labels: ["Lite", "Pro"], series: [{ name: "g", values: [180, 320] }] } },
+  ];
+  const created = await call("studio.create", { kind: "document", title: "Keep brief", blocks, open: false });
+  const id = (created.data as { id: string }).id;
+  // What the model did live: re-sent the whole spec with the chart changed and the paragraph gone.
+  const lineChart = { type: "chart", chart: { kind: "line", labels: ["Lite", "Pro", "Max"], series: [{ name: "g", values: [180, 320, 400] }] } };
+  const lossy = await call("studio.revise", { artifact: id, spec: { kind: "document", title: "Keep brief", blocks: [blocks[0], lineChart] } });
+  assert.equal(lossy.ok, false);
+  assert.match(lossy.content, /would remove content the request did not mention — paragraph: Lumo is a lightweight solar lantern\./);
+  assert.equal(StudioStore.getInstance().get(id)!.revisions.length, 1, "nothing was revised");
+  // The targeted way keeps everything else.
+  const targeted = await call("studio.revise", { artifact: id, ops: [{ op: "updateChart", index: 1, chart: { kind: "line", labels: ["Lite", "Pro", "Max"], series: [{ name: "g", values: [180, 320, 400] }] } }] });
+  assert.equal(targeted.ok, true, targeted.content);
+  const r2 = StudioStore.getInstance().get(id)!.revisions[1].spec;
+  assert.ok(r2.kind === "document" && r2.blocks.some((b) => b.type === "paragraph" && b.text.startsWith("Lumo is")), "the paragraph is kept");
+  // A full spec that keeps everything is fine; an asked-for removal is allowed explicitly.
+  const full = await call("studio.revise", { artifact: id, spec: { kind: "document", title: "Keep brief", blocks: [blocks[0], blocks[1], lineChart] } });
+  assert.equal(full.ok, true, full.content);
+  const asked = await call("studio.revise", { artifact: id, spec: { kind: "document", title: "Keep brief", blocks: [blocks[0], lineChart] }, removes: true });
+  assert.equal(asked.ok, true, asked.content);
+  assert.equal(StudioStore.getInstance().get(id)!.revisions.length, 4);
+});

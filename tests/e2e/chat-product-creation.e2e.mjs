@@ -44,7 +44,10 @@ const studio = () => within(page.evaluate(async () => {
   return S.list().filter((a) => /lumo/i.test(a.title)).map((a) => {
     const last = a.revisions[a.revisions.length - 1].spec;
     const charts = last.kind === "document" ? last.blocks.filter((b) => b.type === "chart").map((b) => ({ kind: b.chart.kind, labels: b.chart.labels })) : [];
-    return { id: a.id, title: a.title, revs: a.revisions.length, conversationId: a.conversationId ?? null, charts, exports: a.exports.map((e) => ({ rev: e.rev, f: e.filename, ok: e.ok })) };
+    const texts = (spec) => spec.kind === "document" ? spec.blocks.filter((b) => b.type !== "chart" && b.type !== "image").map((b) => b.text ?? (b.items ?? b.columns ?? []).join(" | ")) : [];
+    const first = texts(a.revisions[0].spec), lastTexts = texts(last);
+    const lost = first.filter((t) => !lastTexts.includes(t)).map((t) => t.slice(0, 60));
+    return { id: a.id, title: a.title, revs: a.revisions.length, conversationId: a.conversationId ?? null, charts, lost, exports: a.exports.map((e) => ({ rev: e.rev, f: e.filename, ok: e.ok })) };
   });
 }), 20000);
 const sendIn = async (text) => {
@@ -113,6 +116,7 @@ try {
   record("the same artifact gained a new revision (not a new artifact)", r2 && r2.id === art?.id && r2.revs >= 2, JSON.stringify(r2)?.slice(0, 300));
   record("the revision has a line chart with four versions", r2 && r2.charts[0]?.kind === "line" && r2.charts[0]?.labels.length === 4, JSON.stringify(r2?.charts));
   record("the new revision's DOCX was verified", r2 && r2.exports.some((e) => e.rev >= 2 && e.ok));
+  record("the revision kept every text block it was not asked to change", r2 && r2.lost.length === 0, JSON.stringify(r2?.lost));
   for (let i = 0; i < 24; i += 1) { if (!(await page.evaluate(() => document.querySelector("[data-lelu-universe-typing]") !== null))) break; await page.waitForTimeout(5000); }
   await page.waitForTimeout(2000);
   await page.evaluate(() => { const cards = document.querySelectorAll("[data-lelu-fullscreen] [data-lelu-chat-artifact]"); cards[cards.length - 1]?.scrollIntoView(); });
