@@ -63,6 +63,8 @@ export interface Reservation {
   id: string;
   kind: UsageKind;
   source: string;
+  /** Signed-in user when the call was reserved (sent); the record belongs to them. */
+  userId: string | null;
   tokens: number;
   accountChecked: boolean;
   warnings: string[];
@@ -141,7 +143,7 @@ export default class UsageBudgetGate {
     // Taken synchronously, before any await, so a concurrent reserve on this
     // device already counts it.
     const reservation: Reservation = {
-      id: newId(), kind, source, tokens, accountChecked: false,
+      id: newId(), kind, source, tokens, accountChecked: false, userId: this.ledger.getUser(),
       warnings: [own.warning, all.warning].filter((w): w is string => Boolean(w)),
     };
     this.inFlight.set(reservation.id, reservation);
@@ -184,7 +186,7 @@ export default class UsageBudgetGate {
 
   /** The call happened: record what the provider reported and free the reservation. */
   async settle(reservation: Reservation, outcome: Settlement): Promise<UsageEvent> {
-    const event = this.ledger.record({ ...outcome, id: reservation.id, kind: reservation.kind, source: reservation.source });
+    const event = this.ledger.record({ ...outcome, id: reservation.id, kind: reservation.kind, source: reservation.source, userId: reservation.userId });
     this.inFlight.delete(reservation.id);
     const remote = reservation.accountChecked ? this.remoteFactory() : null;
     if (remote) {

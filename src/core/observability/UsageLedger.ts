@@ -205,9 +205,11 @@ export default class UsageLedger {
     return this.currentUser;
   }
 
-  record(event: Omit<UsageEvent, "id" | "userId" | "at" | "inputTokens" | "outputTokens" | "cachedInputTokens" | "reasoningTokens" | "costUsd" | "costKind"> & { usage?: unknown; id?: string }): UsageEvent {
-    const { usage, id, ...rest } = event;
-    const full: UsageEvent = { id: id ?? newId(), userId: this.currentUser, at: this.now(), ...rest, ...normalizeUsage(usage) };
+  record(event: Omit<UsageEvent, "id" | "userId" | "at" | "inputTokens" | "outputTokens" | "cachedInputTokens" | "reasoningTokens" | "costUsd" | "costKind"> & { usage?: unknown; id?: string; userId?: string | null }): UsageEvent {
+    const { usage, id, userId, ...rest } = event;
+    // A call belongs to whoever was signed in when it was SENT (the caller
+    // passes that), not whoever is signed in when it finishes.
+    const full: UsageEvent = { id: id ?? newId(), userId: userId === undefined ? this.currentUser : userId, at: this.now(), ...rest, ...normalizeUsage(usage) };
     if (full.error) full.error = full.error.slice(0, 200);
     this.events.push(full);
     if (this.events.length > MAX_EVENTS) this.events.splice(0, this.events.length - MAX_EVENTS);

@@ -1,7 +1,7 @@
 {
   "project": "ugshflwlyakipeduifkd",
-  "run": "vmw5qsydl",
-  "ranAt": "2026-11-07T01:46:45.082Z",
+  "run": "vmw5vseiy",
+  "ranAt": "2026-11-07T04:06:15.767Z",
   "passed": 27,
   "failed": 0,
   "results": [
@@ -58,7 +58,7 @@
     {
       "check": "10 simultaneous reservations from 2 devices never exceed a cap of 4",
       "ok": true,
-      "detail": "4 admitted, 6 refused (e.g. \"vmw5qsydl-concurrency: daily request budget reached (0 used + 4 in flight of 4).\")"
+      "detail": "4 admitted, 6 refused (e.g. \"vmw5vseiy-concurrency: daily request budget reached (0 used + 7 in flight of 4).\")"
     },
     {
       "check": "refused reservations were withdrawn",
@@ -73,12 +73,12 @@
     {
       "check": "at the cap, the next call from the other device is refused before dispatch",
       "ok": true,
-      "detail": "vmw5qsydl-concurrency: daily request budget reached (4 used + 0 in flight of 4)."
+      "detail": "vmw5vseiy-concurrency: daily request budget reached (4 used + 0 in flight of 4)."
     },
     {
       "check": "a failed provider call is stored as a failed request",
       "ok": true,
-      "detail": "{\"id\":\"3104fa3a-aa1a-4f39-966a-67dde4581bda\",\"ok\":false,\"error\":\"provider 503\",\"input_tokens\":null,\"output_tokens\":null,\"cost_usd\":null,\"cost_kind\":\"unknown\"}"
+      "detail": "{\"id\":\"38a3fdd6-0b62-4108-8ee1-d581837f598f\",\"ok\":false,\"error\":\"provider 503\",\"input_tokens\":null,\"output_tokens\":null,\"cost_usd\":null,\"cost_kind\":\"unknown\"}"
     },
     {
       "check": "a released reservation leaves no record",
@@ -88,12 +88,12 @@
     {
       "check": "unreported tokens and cost are stored as NULL / unknown, not 0",
       "ok": true,
-      "detail": "{\"id\":\"6ac88209-7cb9-4814-8881-807f5cc44435\",\"ok\":true,\"error\":null,\"input_tokens\":null,\"output_tokens\":null,\"cost_usd\":null,\"cost_kind\":\"unknown\"}"
+      "detail": "{\"id\":\"d641ad6b-ca22-489c-accd-35ffb85edea6\",\"ok\":true,\"error\":null,\"input_tokens\":null,\"output_tokens\":null,\"cost_usd\":null,\"cost_kind\":\"unknown\"}"
     },
     {
       "check": "provider-reported tokens and cost are stored exactly",
       "ok": true,
-      "detail": "{\"id\":\"5b16c323-e4c0-4b37-97a8-b08c13ba856b\",\"ok\":true,\"error\":null,\"input_tokens\":120,\"output_tokens\":30,\"cost_usd\":0.00042,\"cost_kind\":\"reported\"}"
+      "detail": "{\"id\":\"4f16aafd-902d-45e8-a1a9-b84746c5a221\",\"ok\":true,\"error\":null,\"input_tokens\":120,\"output_tokens\":30,\"cost_usd\":0.00042,\"cost_kind\":\"reported\"}"
     },
     {
       "check": "account-checked reservations",
@@ -113,7 +113,7 @@
     {
       "check": "…and enforced there against usage recorded on the first device",
       "ok": true,
-      "detail": "account: vmw5qsydl-sync-ai: daily request budget reached (1 used + 0 in flight of 1)."
+      "detail": "account: vmw5vseiy-sync-ai: daily request budget reached (1 used + 0 in flight of 1)."
     },
     {
       "check": "history recorded on one device is visible on the other (usage_daily)",
@@ -128,7 +128,7 @@
     {
       "check": "yesterday's call does not count against today's cap; it does against the month",
       "ok": true,
-      "detail": "vmw5qsydl-reset: monthly request budget reached (1 used + 0 in flight of 1)."
+      "detail": "vmw5vseiy-reset: monthly request budget reached (1 used + 0 in flight of 1)."
     },
     {
       "check": "with only a daily cap, a new day starts with the full allowance",
@@ -136,9 +136,9 @@
       "detail": "allowed"
     },
     {
-      "check": "offline: the account is not consulted, the device budget still stops the call",
+      "check": "offline: an uncapped call goes out flagged; a capped call is refused because the account cannot confirm it",
       "ok": true,
-      "detail": "accountChecked=false; vmw5qsydl-reset: daily calls budget reached (1/1). Raise or clear the budget to continue."
+      "detail": "uncapped accountChecked=false; capped: your account could not be reached to confirm this call is within your budget, so it was not sent. Try again when you're back online."
     }
   ]
 }

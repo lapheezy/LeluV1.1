@@ -524,3 +524,15 @@ test("account unreachable: a call a budget covers is refused (cannot confirm oth
   assert.equal(free.accountChecked, false);
   assert.match(free.warnings.join(" "), /no budget covers this call/);
 });
+
+test("a call sent while signed out stays the device's even if the user signs in before it finishes (found live)", async () => {
+  const ledger = new UsageLedger(() => T0, null);
+  const gate = new UsageBudgetGate(ledger);
+  ledger.setUser(null);
+  const r = await gate.reserve("ai", "OpenRouter");
+  ledger.setUser("user-b"); // signs in mid-call
+  const e = await gate.settle(r, { ok: true });
+  assert.equal(e.userId, null, "not attributed to the user who signed in afterwards");
+  const r2 = await gate.reserve("ai", "OpenRouter");
+  assert.equal((await gate.settle(r2, { ok: true })).userId, "user-b");
+});

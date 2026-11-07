@@ -49,6 +49,9 @@ const phoneA = await signIn("a");
 const laptopA = await signIn("a"); // a second, independent session of the same user
 const B = await signIn("b");
 const anon = createClient(url, key, { auth: { persistSession: false } });
+// Start clean: an all-provider cap left by an earlier run (e.g. the UI evidence
+// run) would refuse this run's calls — correctly, but it is not under test here.
+for (const who of [phoneA, B]) await who.client.from("usage_budgets").delete().eq("source", "*");
 check("two real users signed in (and a second device for A)", phoneA.userId !== B.userId && phoneA.userId === laptopA.userId, `A=${phoneA.userId.slice(0, 8)}… B=${B.userId.slice(0, 8)}…`);
 
 /* ---------------- RLS isolation ---------------- */
