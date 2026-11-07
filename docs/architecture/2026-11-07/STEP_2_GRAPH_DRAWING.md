@@ -1,6 +1,6 @@
 # Step 2: React Flow and Excalidraw in the LÉLU workspace
 
-Baseline: `3d914dd` (it includes Step 1, `e052061`). Status: **in progress**. See "Verified" and "Not yet verified" below.
+Baseline: `3d914dd` (it includes Step 1, `e052061`). Status: **complete, except one failing touch check** (see Results).
 
 ## Architecture decision
 
@@ -67,41 +67,78 @@ The install added 88 packages, all under permissive licences:
 
 Without it, Vite discovered the libraries only when an editor first opened, re-bundled mid-session and reloaded. That left two React copies on the page and crashed it with `Cannot read properties of null (reading 'useState')`. The fix affects development only.
 
-## Verified
+## Results: live runs (`canvas-e2e.mjs`, 15 checks per viewport)
 
-### Desktop, 1440×900, real mouse input (Playwright mouse)
+| Viewport | Input | Result |
+|---|---|---|
+| 1440×900 | real mouse (Playwright) | **15/15** |
+| 390×844 | real touch (CDP `Input.dispatchTouchEvent`) | 14/15 |
+| 375×812 | real touch | 14/15 |
+| 430×932 | real touch | 14/15 |
 
-- The library opens from App Library → Documents.
-- Neither editor is loaded before one is opened, and only the graph editor's code loads for a graph.
-- The hierarchy graph is built from real agents: 13 nodes and 12 edges.
-- Dragging SHAMAN saved its new position (112, 189).
-- Dragging from LÉLU Core's handle to Forge's handle saved a new edge (12 → 13).
-- A node added 100 ms before closing the window was saved (flush on unmount).
-- No horizontal overflow.
-- The drawing editor's code loads only when a drawing is opened, and Excalidraw's native editor renders inside the artifact window.
+Logs are in `evidence/step2-graph-drawing/run-*.log` and the reports in `*-report.json`. These pass on every viewport:
 
-### Tests and checks
+- the library opens;
+- neither editor loads before one is opened, and only the graph editor's code loads for a graph;
+- the hierarchy graph comes from real agents (13 nodes, 12 edges);
+- **connecting two nodes by dragging handle to handle** saves a new edge (12 → 13);
+- a node added just before closing is saved (flush on unmount);
+- Excalidraw's code loads only when a drawing is opened;
+- **drawing a rectangle** with the rectangle tool, by a real drag, saves an element (revision 2);
+- **switching drawing → graph** keeps all edits;
+- **reload** brings back the graph (14 nodes) and the drawing (1 element);
+- chat stays reachable;
+- no horizontal overflow;
+- no page errors.
 
-- `tests/studio-graph-drawing.test.ts`: 7/7 pass.
-  - Graph and drawing validation.
-  - Excalidraw data kept unchanged.
-  - **Real `studio.create` / `studio.read` / `studio.revise` tool calls through the dispatcher** create, read and revise graphs and drawings bound to the conversation.
+**The one failing check: dragging a node by touch (all three phones).** On desktop, a mouse drag moves the node and saves its position.
+
+`touch-probe.mjs` shows, on phones:
+
+- the touch lands on the node (`react-flow__node … nopan`);
+- touch and pointer events arrive (pointerdown → touchstart → pointermove/touchmove);
+- the canvas does not pan;
+- but the node does not move on screen, even zoomed in 3× (node 71×21 px).
+
+So React Flow's node drag does not engage under this touch emulation, while its connection drag does (a different code path). **Unverified:** whether a physical iPhone behaves the same. This needs a device test before it is called a bug or an emulation artefact. Not fixed here.
+
+## Tests and checks (exact results)
+
+- `tests/studio-graph-drawing.test.ts`: **7/7 pass**.
+  - Real `studio.create` / `studio.read` / `studio.revise` tool calls through the dispatcher create, read and revise graphs and drawings bound to the conversation.
   - One revision per editing session.
   - Hierarchy built from the ownership resolver.
   - Lazy-loading wiring.
+- **Full `npm test`:**
+
+  | | Pass | Fail | Skipped |
+  |---|---|---|---|
+  | After | 1714 | 3 | 4 |
+  | Baseline `3d914dd` | 1625 | 3 | 4 |
+
+  The 3 failures are the same tests by name in both runs: the camera-transition tests in `spatial-experience.test.ts` (`requestAnimationFrame` in Node). There are no new failures. The higher pass count is the new tests plus Freebuff's tests that arrived with the rebase.
 - `npm run typecheck` (`tsc -b --force`): exit 0.
 - `npm run build`: exit 0.
 - `oxlint` on changed files: 0 errors and 2 fast-refresh warnings, a pattern already present in the codebase.
 
-## Not yet verified (at this commit)
+## Not verified
 
-- The desktop drawing interaction (rectangle drawn with a real drag), switching back to the graph, and reload persistence. A long run of `canvas-e2e.mjs` is in progress: every pointer move on Excalidraw is slow in this software-rendered browser.
-- **Mobile, 375×812, 390×844 and 430×932, with CDP touch input:** not yet run.
-- Full `npm test` after the change. Baseline on `3d914dd` before it: 1625 pass, 3 fail, 4 skipped. The 3 failures are the pre-existing camera-transition tests in `spatial-experience.test.ts`.
-- **A model-initiated graph or drawing.** Only direct tool calls through the dispatcher are verified, not a live chat turn. Anthropic stays disabled.
+- **A model-initiated graph or drawing in a live chat turn.** Tool calls through the dispatcher are verified, but no model was called. Anthropic stays disabled.
+- Physical iPhone or Safari: all phone results are Chromium emulation.
+- Linking UI: `links` is stored and displayed, but there is no picker for choosing a world, conversation or project yet.
+
+## Usage (this step)
+
+- AI calls: **0**. No provider or token usage.
+- Browser runs: about 20, including probes and 4 full viewport runs of about 15 minutes each in this software-rendered browser.
+- Full test runs: 2 (baseline and after).
+- Typecheck runs: about 6. Production builds: 2 (baseline and after).
+- One `bun add`: 88 packages.
+- Account-level usage meter: not accessible from this session.
 
 ## Findings outside this step's scope (not changed)
 
+- **Studio library tile:** the module layout gave the Creation Studio library a small tile that clips its artifact cards. The e2e expands the window with its own Expand control, as a user would.
 - **App Library sheet (Home, Freebuff lane):** the sheet is drawn, but pointer hit-testing at the Documents tile reaches the Home section beneath it, and Playwright never sees the tile as clickable. The e2e therefore opens the library with the tiles' own handlers. Navigation only; all canvas interaction uses real input.
 - **Navigator panel:** the spatial navigator's group panel opens over the bottom of workspace windows on desktop. The e2e collapses it with its toggle, as a user would.
 - **Companion window:** LÉLU's floating companion window overlaps the top-right of artifact windows.

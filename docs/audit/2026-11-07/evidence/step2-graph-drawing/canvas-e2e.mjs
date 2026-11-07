@@ -29,6 +29,14 @@ const gate = async () => {
   // The gate is not under test: dismiss it directly (the overlap above is recorded as a finding).
   await page.evaluate(() => [...document.querySelectorAll("button")].find((x) => x.textContent.trim() === "Continue without an account")?.click());
 };
+async function openCard(id) {
+  const card = page.locator(`[data-lelu-studio-card='${id}']`);
+  // A small library tile can clip its cards: a person expands the window first.
+  const inView = await card.evaluate((el) => { const r = el.getBoundingClientRect(); const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return r.height > 0 && (el === top || el.contains(top)); }).catch(() => false);
+  if (!inView) { await tap(page.locator("[data-lelu-studio-library]").locator("xpath=ancestor::*[@data-lelu-module-window][1]").locator("button[aria-label=Expand]").first()); await sleep(1200); }
+  await card.scrollIntoViewIfNeeded();
+  await tap(card);
+}
 async function openLibrary() {
   // Home → App Library → Documents. The App Library sheet is drawn but does
   // not receive pointer input in this build (hit-testing reaches the Home
@@ -93,7 +101,7 @@ try {
   const rectTool = page.locator("[data-testid='toolbar-rectangle']").first();
   if (await rectTool.count()) await tap(rectTool); else await page.keyboard.press("r");
   const cv = await page.locator(".excalidraw .excalidraw__canvas.interactive, .excalidraw canvas").last().boundingBox();
-  await drag(cv.x + cv.width * 0.25, cv.y + cv.height * 0.3, cv.x + cv.width * 0.6, cv.y + cv.height * 0.55, 16);
+  await drag(cv.x + cv.width * (touch ? 0.35 : 0.45), cv.y + cv.height * 0.45, cv.x + cv.width * (touch ? 0.75 : 0.7), cv.y + cv.height * 0.65, 16);
   await sleep(2000);
   const drawing = (await studio()).find((a) => a.kind === "drawing");
   rec("drawing a rectangle creates an element and saves it", drawing && drawing.elements >= 1, JSON.stringify(drawing));
@@ -106,7 +114,7 @@ try {
   const closeD = page.locator("[data-lelu-drawing-editor]").locator("xpath=ancestor::*[@data-lelu-module-window][1]").locator("button[aria-label^='Close']").first();
   await tap(closeD); await sleep(1200);
   if (!(await page.locator("[data-lelu-studio-library]").count())) await openLibrary();
-  await tap(page.locator(`[data-lelu-studio-card='${before.id}']`)); await page.waitForFunction(() => document.querySelectorAll(".react-flow__node").length > 0); await sleep(1500);
+  await openCard(before.id); await page.waitForFunction(() => document.querySelectorAll(".react-flow__node").length > 0); await sleep(1500);
   const back = await page.locator(".react-flow__edge").count();
   rec("switching back to the graph keeps its edits", back === afterClose.edges, `${back} edges drawn, ${afterClose.edges} stored`);
   await shot("06-switched-back-to-graph");
@@ -119,7 +127,7 @@ try {
   rec("after reload the graph and drawing are still there, as saved", survived.some((a) => a.id === before.id && a.edges === afterClose.edges && a.nodes === afterClose.nodes) && survived.some((a) => a.kind === "drawing" && a.elements >= 1), JSON.stringify(survived.map((a) => [a.kind, a.nodes ?? a.elements, a.revs])));
   await openLibrary();
   const did = survived.find((a) => a.kind === "drawing").id;
-  await tap(page.locator(`[data-lelu-studio-card='${did}']`)); await page.waitForFunction(() => document.querySelectorAll(".excalidraw canvas").length > 0, null, { timeout: 60000 }); await sleep(3000);
+  await openCard(did); await page.waitForFunction(() => document.querySelectorAll(".excalidraw canvas").length > 0, null, { timeout: 60000 }); await sleep(3000);
   await shot("07-drawing-after-reload");
   rec("no uncaught page errors", errors.length === 0, errors.slice(0, 2).join(" | "));
 } catch (e) { rec("run completed", false, String(e).slice(0, 240)); await shot("99-failure").catch(() => {}); }
