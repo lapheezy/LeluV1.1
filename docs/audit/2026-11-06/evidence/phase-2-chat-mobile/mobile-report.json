@@ -1,7 +1,7 @@
 {
   "base": "http://127.0.0.1:5178",
-  "checks": 146,
-  "failed": 1,
+  "checks": 149,
+  "failed": 0,
   "results": [
     {
       "viewport": "iphone-13",
@@ -67,7 +67,7 @@
       "viewport": "iphone-13",
       "name": "conversation is a full-screen sheet",
       "ok": true,
-      "detail": "{\"id\":\"chat:b3b5b2c7-f34d-4ea5-bbf8-0eb731c019b7\",\"x\":0,\"y\":0,\"w\":390,\"h\":664}"
+      "detail": "{\"id\":\"chat:2fb438ec-4b2c-4aa3-8b8f-2e6fbe54ccb9\",\"x\":0,\"y\":0,\"w\":390,\"h\":664}"
     },
     {
       "viewport": "iphone-13",
@@ -103,7 +103,7 @@
       "viewport": "iphone-13",
       "name": "with the keyboard open the sheet fits the visible area",
       "ok": true,
-      "detail": "{\"id\":\"chat:b3b5b2c7-f34d-4ea5-bbf8-0eb731c019b7\",\"x\":0,\"y\":0,\"w\":390,\"h\":385}"
+      "detail": "{\"id\":\"chat:2fb438ec-4b2c-4aa3-8b8f-2e6fbe54ccb9\",\"x\":0,\"y\":0,\"w\":390,\"h\":385}"
     },
     {
       "viewport": "iphone-13",
@@ -241,7 +241,7 @@
       "viewport": "iphone-se",
       "name": "conversation is a full-screen sheet",
       "ok": true,
-      "detail": "{\"id\":\"chat:6886f7a4-9f65-4ad4-b7b6-f5c7290894c8\",\"x\":0,\"y\":0,\"w\":320,\"h\":568}"
+      "detail": "{\"id\":\"chat:fc8567c3-dfe0-475c-bf03-b50adc5b1380\",\"x\":0,\"y\":0,\"w\":320,\"h\":568}"
     },
     {
       "viewport": "iphone-se",
@@ -277,7 +277,7 @@
       "viewport": "iphone-se",
       "name": "with the keyboard open the sheet fits the visible area",
       "ok": true,
-      "detail": "{\"id\":\"chat:6886f7a4-9f65-4ad4-b7b6-f5c7290894c8\",\"x\":0,\"y\":0,\"w\":320,\"h\":329}"
+      "detail": "{\"id\":\"chat:fc8567c3-dfe0-475c-bf03-b50adc5b1380\",\"x\":0,\"y\":0,\"w\":320,\"h\":329}"
     },
     {
       "viewport": "iphone-se",
@@ -415,7 +415,7 @@
       "viewport": "iphone-15-pro-max",
       "name": "conversation is a full-screen sheet",
       "ok": true,
-      "detail": "{\"id\":\"chat:8a491697-b550-4f86-b1b0-d7825a530f01\",\"x\":0,\"y\":0,\"w\":430,\"h\":739}"
+      "detail": "{\"id\":\"chat:0469d370-751a-43a7-8423-13c44e838db5\",\"x\":0,\"y\":0,\"w\":430,\"h\":739}"
     },
     {
       "viewport": "iphone-15-pro-max",
@@ -451,7 +451,7 @@
       "viewport": "iphone-15-pro-max",
       "name": "with the keyboard open the sheet fits the visible area",
       "ok": true,
-      "detail": "{\"id\":\"chat:8a491697-b550-4f86-b1b0-d7825a530f01\",\"x\":0,\"y\":0,\"w\":430,\"h\":429}"
+      "detail": "{\"id\":\"chat:0469d370-751a-43a7-8423-13c44e838db5\",\"x\":0,\"y\":0,\"w\":430,\"h\":429}"
     },
     {
       "viewport": "iphone-15-pro-max",
@@ -589,7 +589,7 @@
       "viewport": "galaxy-s8",
       "name": "conversation is a full-screen sheet",
       "ok": true,
-      "detail": "{\"id\":\"chat:ab77b43b-520d-4411-aa56-d37419b35fe6\",\"x\":0,\"y\":0,\"w\":360,\"h\":740}"
+      "detail": "{\"id\":\"chat:e03b1080-ad5b-4254-9e5e-efd2a0e385d5\",\"x\":0,\"y\":0,\"w\":360,\"h\":740}"
     },
     {
       "viewport": "galaxy-s8",
@@ -625,7 +625,7 @@
       "viewport": "galaxy-s8",
       "name": "with the keyboard open the sheet fits the visible area",
       "ok": true,
-      "detail": "{\"id\":\"chat:ab77b43b-520d-4411-aa56-d37419b35fe6\",\"x\":0,\"y\":0,\"w\":360,\"h\":429}"
+      "detail": "{\"id\":\"chat:e03b1080-ad5b-4254-9e5e-efd2a0e385d5\",\"x\":0,\"y\":0,\"w\":360,\"h\":429}"
     },
     {
       "viewport": "galaxy-s8",
@@ -763,7 +763,7 @@
       "viewport": "pixel-7",
       "name": "conversation is a full-screen sheet",
       "ok": true,
-      "detail": "{\"id\":\"chat:4b172ac1-d575-4529-a0f9-f8e623cf78bb\",\"x\":0,\"y\":0,\"w\":412,\"h\":839}"
+      "detail": "{\"id\":\"chat:3d109ee9-bade-4af3-bc1d-e22aca7cb408\",\"x\":0,\"y\":0,\"w\":412,\"h\":839}"
     },
     {
       "viewport": "pixel-7",
@@ -799,7 +799,7 @@
       "viewport": "pixel-7",
       "name": "with the keyboard open the sheet fits the visible area",
       "ok": true,
-      "detail": "{\"id\":\"chat:4b172ac1-d575-4529-a0f9-f8e623cf78bb\",\"x\":0,\"y\":0,\"w\":412,\"h\":487}"
+      "detail": "{\"id\":\"chat:3d109ee9-bade-4af3-bc1d-e22aca7cb408\",\"x\":0,\"y\":0,\"w\":412,\"h\":487}"
     },
     {
       "viewport": "pixel-7",
@@ -875,9 +875,27 @@
     },
     {
       "viewport": "desktop",
-      "name": "suite ran to the end",
-      "ok": false,
-      "detail": "ReferenceError: document is not defined"
+      "name": "desktop conversation stays a free window (not full-screen)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "viewport": "desktop",
+      "name": "desktop keeps the Universe composer and the window composer",
+      "ok": true,
+      "detail": "2"
+    },
+    {
+      "viewport": "desktop",
+      "name": "an application window stacks above the chat panel",
+      "ok": true,
+      "detail": "{\"win\":102,\"chat\":100}"
+    },
+    {
+      "viewport": "desktop",
+      "name": "no uncaught page errors",
+      "ok": true,
+      "detail": ""
     }
   ]
 }
