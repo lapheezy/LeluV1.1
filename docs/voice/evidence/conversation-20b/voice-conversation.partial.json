@@ -1,5 +1,5 @@
 {
- "at": "2026-11-07T16:47:22.186Z",
+ "at": "2026-11-07T16:51:48.873Z",
  "spoken": [
   {
    "n": 1,
@@ -142,6 +142,15 @@
    "text": "What is the square root of eighty-one?",
    "spokeAt": 3859674,
    "endedAt": 3869343,
+   "repeated": true,
+   "heard": true
+  },
+  {
+   "n": 17,
+   "mode": "after-reply",
+   "text": "Name a famous painting by Leonardo da Vinci.",
+   "spokeAt": 4122108,
+   "endedAt": 4133681,
    "repeated": true,
    "heard": true
   }
@@ -3033,6 +3042,173 @@
    "t": 3869442,
    "kind": "console",
    "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2664,\"spoke\":true,\"ms\":14914,\"peak\":0.3546,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 3885774,
+   "kind": "utterance",
+   "text": "What is the square root of 81?",
+   "at": 1794070050109
+  },
+  {
+   "t": 3885779,
+   "kind": "turn",
+   "user": "What is the square root of 81?",
+   "response": null
+  },
+  {
+   "t": 3885779,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 3914011,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22288,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3933492,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13870,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3948041,
+   "kind": "console",
+   "text": "Metadata: {provider: wikimedia, reason: wikimedia timed out, latencyMs: 8734}"
+  },
+  {
+   "t": 3960354,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23857,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3982401,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22033,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 3997568,
+   "kind": "console",
+   "text": "🔴 [4:49:21 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider."
+  },
+  {
+   "t": 3997568,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 4005309,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22898,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4011875,
+   "kind": "console",
+   "text": "🔴 [4:49:36 PM] [ProviderResolver] Fireworks failed; falling back to the next provider."
+  },
+  {
+   "t": 4011875,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Fireworks failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 4023064,
+   "kind": "console",
+   "text": "🔴 [4:49:47 PM] [ProviderResolver] Anthropic failed; falling back to the next provider."
+  },
+  {
+   "t": 4023065,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: Anthropic failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 4023065,
+   "kind": "console",
+   "text": "🔴 [4:49:47 PM] [ProviderResolver] All available AI providers failed."
+  },
+  {
+   "t": 4023065,
+   "kind": "console",
+   "text": "{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}"
+  },
+  {
+   "t": 4023071,
+   "kind": "turn",
+   "user": "What is the square root of 81?",
+   "response": "Here's what I found:\n\n1. Emoji/Table — Emoji/Table (source: Wikimedia Commons)\n   https://commons.wikimedia.org/wiki/Emoji/Table\n\n2. Paintings in the Hungarian National Gallery — Paintings in the Hungarian National Gallery (source: Wikimedi"
+  },
+  {
+   "t": 4023074,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 4023074,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 4029345,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20258,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4061374,
+   "kind": "not-ready",
+   "before": 17
+  },
+  {
+   "t": 4066631,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":30095,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4072909,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 4087492,
+   "kind": "user-said",
+   "n": 17,
+   "mode": "after-reply",
+   "text": "Name a famous painting by Leonardo da Vinci.",
+   "seconds": 2.8
+  },
+  {
+   "t": 4087497,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":9927,\"spoke\":true,\"ms\":17713,\"peak\":0.3173,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 4098817,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 4119183,
+   "kind": "utterance",
+   "text": "Name a famous painting by Leonardo da Vinci.",
+   "at": 1794070283518
+  },
+  {
+   "t": 4119184,
+   "kind": "turn",
+   "user": "Name a famous painting by Leonardo da Vinci.",
+   "response": null
+  },
+  {
+   "t": 4119184,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 4133682,
+   "kind": "user-repeated",
+   "n": 17
   }
  ],
  "turns": [
@@ -3197,203 +3373,24 @@
    "response": null,
    "at": 1794070014328,
    "startedAt": 1794070014328
+  },
+  {
+   "id": "10467917-a7fa-47c5-8a39-8e4cfcc9e99f",
+   "user": "What is the square root of 81?",
+   "response": "Here's what I found:\n\n1. Emoji/Table — Emoji/Table (source: Wikimedia Commons)\n   https://commons.wikimedia.org/wiki/Emoji/Table\n\n2. Paintings in the Hungarian National Gallery — Paintings in the Hungarian National Gallery (source: Wikimedia Commons)\n   https://commons.wikimedia.org/wiki/Paintings_in_the_Hungarian_National_Gallery\n\n3. Paintings in the Carnegie Museum of Art — Paintings in the Carnegie Museum of Art (source: Wikimedia Commons)\n   https://commons.wikimedia.org/wiki/Paintings_in_the_Carnegie_Museum_of_Art\n\n4. Artworks by Edvard Munch — Artworks by Edvard Munch (source: Wikimedia Commons)\n   https://commons.wikimedia.org/wiki/Artworks_by_Edvard_Munch",
+   "at": 1794070187406,
+   "startedAt": 1794070050109,
+   "respondedAt": 1794070187406
+  },
+  {
+   "id": "0189819e-ec81-46f8-9196-94bb558b23f5",
+   "user": "Name a famous painting by Leonardo da Vinci.",
+   "response": null,
+   "at": 1794070283518,
+   "startedAt": 1794070283518
   }
  ],
  "ledger": [
-  {
-   "kind": "ai",
-   "source": "Fireworks",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 10266,
-   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info"
-  },
-  {
-   "kind": "ai",
-   "source": "Anthropic",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 11765,
-   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-tts",
-   "op": "tts",
-   "ok": true,
-   "in": null,
-   "out": null,
-   "results": 114,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 7451
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 1362,
-   "out": 537,
-   "cost": "reported",
-   "usd": 0.000335544,
-   "ms": 15508
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 563,
-   "out": 41,
-   "cost": "reported",
-   "usd": 0.000034726,
-   "ms": 15793
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-tts",
-   "op": "tts",
-   "ok": true,
-   "in": null,
-   "out": null,
-   "results": 192,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 9008
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-stt",
-   "op": "stt",
-   "ok": true,
-   "model": "scribe_v1",
-   "in": null,
-   "out": null,
-   "results": 15,
-   "cost": "reported",
-   "usd": 0.0015,
-   "ms": 9716
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 1379,
-   "out": 507,
-   "cost": "reported",
-   "usd": 0.00024769696,
-   "ms": 12818
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-stt",
-   "op": "stt",
-   "ok": true,
-   "model": "scribe_v1",
-   "in": null,
-   "out": null,
-   "results": 9,
-   "cost": "reported",
-   "usd": 0.0009,
-   "ms": 11777
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 1407,
-   "out": 581,
-   "cost": "reported",
-   "usd": 0.00036085,
-   "ms": 14176
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 35017,
-   "error": "BodyStreamBuffer was aborted"
-  },
-  {
-   "kind": "ai",
-   "source": "Fireworks",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 13258,
-   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info"
-  },
-  {
-   "kind": "ai",
-   "source": "Anthropic",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 21836,
-   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-tts",
-   "op": "tts",
-   "ok": true,
-   "in": null,
-   "out": null,
-   "results": 114,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 8975
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 1169,
-   "out": 419,
-   "cost": "reported",
-   "usd": 0.000216514,
-   "ms": 10353
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-tts",
-   "op": "tts",
-   "ok": true,
-   "in": null,
-   "out": null,
-   "results": 192,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 9928
-  },
   {
    "kind": "ai",
    "source": "OpenRouter",
@@ -4410,6 +4407,200 @@
    "cost": "reported",
    "usd": 0.0012,
    "ms": 16702
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1419,
+   "out": 294,
+   "cost": "reported",
+   "usd": 0.000148818,
+   "ms": 17187
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 9,
+   "cost": "reported",
+   "usd": 0.0009,
+   "ms": 16331
+  },
+  {
+   "kind": "api",
+   "source": "wikipedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 6650
+  },
+  {
+   "kind": "api",
+   "source": "wikidata",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 9613
+  },
+  {
+   "kind": "api",
+   "source": "wikipedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 0,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 0
+  },
+  {
+   "kind": "api",
+   "source": "wikidata",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 6029,
+   "error": "Wikidata 429"
+  },
+  {
+   "kind": "api",
+   "source": "wikimedia",
+   "op": "search",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 8733,
+   "error": "wikimedia timed out"
+  },
+  {
+   "kind": "api",
+   "source": "wikimedia",
+   "op": "search",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 4,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 9284
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 34378,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "ai",
+   "source": "Fireworks",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 14304,
+   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info"
+  },
+  {
+   "kind": "ai",
+   "source": "Anthropic",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 11184,
+   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 132,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 6272
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1281,
+   "out": 440,
+   "cost": "reported",
+   "usd": 0.00089949,
+   "ms": 20804
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 539,
+   "out": 120,
+   "cost": "reported",
+   "usd": 0.00010912,
+   "ms": 14483
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 199,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 12836
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 18,
+   "cost": "reported",
+   "usd": 0.0018,
+   "ms": 17192
   }
  ]
 }
