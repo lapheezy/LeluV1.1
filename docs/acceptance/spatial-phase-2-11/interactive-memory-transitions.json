@@ -1,70 +1,145 @@
 {
- "viewport": "1920x1080",
- "at": "2026-11-07T21:42:49.650Z",
+ "viewport": "375x812",
+ "at": "2026-11-07T22:24:31.088Z",
+ "deviceScaleFactor": 1,
+ "reducedMotion": "reduce",
+ "method": "DOM click dispatch on scene controls",
  "steps": [
-  "OK travel-1 scene=core transition=studio-entrance progress=30 heap=270 canvases=3",
-  "OK travel-2 scene=core transition=return-to-core progress=0 heap=344 canvases=3",
-  "OK travel-3 scene=core transition=studio-entrance progress=93 heap=387 canvases=3",
-  "OK travel-4 scene=core transition=return-to-core progress=0 heap=417 canvases=3",
-  "OK travel-5 scene=core transition=studio-entrance progress=0 heap=413 canvases=3"
+  "OK-dom gate",
+  "opened-panel",
+  "NO travel-1->studio settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "OK travel-2->core settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "NO travel-3->studio settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "OK travel-4->core settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "NO travel-5->studio settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "OK travel-6->core settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "NO travel-7->studio settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "OK travel-8->core settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "NO travel-9->studio settled={\"scene\":\"core\",\"transition\":\"\"}",
+  "OK travel-10->core settled={\"scene\":\"core\",\"transition\":\"\"}"
  ],
  "samples": [
   {
    "label": "start",
    "scene": "core",
    "transition": "",
-   "progress": "100",
-   "heapMB": 108,
+   "heapMB": 255,
    "canvases": 3,
    "navs": 1
   },
   {
    "label": "after-1-studio",
    "scene": "core",
-   "transition": "studio-entrance",
-   "progress": "30",
-   "heapMB": 270,
+   "transition": "",
+   "heapMB": 355,
    "canvases": 3,
    "navs": 1
   },
   {
    "label": "after-2-core",
    "scene": "core",
-   "transition": "return-to-core",
-   "progress": "0",
-   "heapMB": 344,
+   "transition": "",
+   "heapMB": 362,
    "canvases": 3,
    "navs": 1
   },
   {
    "label": "after-3-studio",
    "scene": "core",
-   "transition": "studio-entrance",
-   "progress": "93",
-   "heapMB": 387,
+   "transition": "",
+   "heapMB": 369,
    "canvases": 3,
    "navs": 1
   },
   {
    "label": "after-4-core",
    "scene": "core",
-   "transition": "return-to-core",
-   "progress": "0",
-   "heapMB": 417,
+   "transition": "",
+   "heapMB": 369,
    "canvases": 3,
    "navs": 1
   },
   {
    "label": "after-5-studio",
    "scene": "core",
-   "transition": "studio-entrance",
-   "progress": "0",
-   "heapMB": 413,
+   "transition": "",
+   "heapMB": 382,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-6-core",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 371,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-7-studio",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 386,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-8-core",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 372,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-9-studio",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 378,
+   "canvases": 3,
+   "navs": 1
+  },
+  {
+   "label": "after-10-core",
+   "scene": "core",
+   "transition": "",
+   "heapMB": 374,
    "canvases": 3,
    "navs": 1
   }
  ],
- "checks": {},
- "errors": [],
- "note": "sampled 4 s after each issued transition; transitions are much slower than that under SwiftShader, so samples are mid-flight"
+ "checks": {
+  "transitions": 10,
+  "heaps": [
+   255,
+   355,
+   362,
+   369,
+   369,
+   382,
+   371,
+   386,
+   372,
+   378,
+   374
+  ],
+  "canvases": [
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3,
+   3
+  ],
+  "firstHeap": 255,
+  "lastHeap": 374,
+  "growthMB": 119,
+  "monotonic": false
+ },
+ "errors": []
 }
