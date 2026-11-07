@@ -113,9 +113,9 @@ async function run() {
   for (let i = 0; i < 40; i++) { await page.waitForTimeout(1000); if (await page.evaluate(() => [...document.querySelectorAll("button")].some((b) => b.textContent.trim() === "Continue without an account")).catch(() => false)) break; }
   await page.evaluate(() => [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Continue without an account")?.click());
   await page.waitForTimeout(2500);
-  await page.evaluate(() => [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Chat")?.click());
-  await page.waitForTimeout(2500);
-  await page.evaluate(() => [...document.querySelectorAll(".lcu-card")].find((x) => /New chat/.test(x.getAttribute("aria-label") ?? ""))?.click());
+  // Summon the chat with the navigator's own control (a real click).
+  const chatBtn = await page.evaluate(() => { const b = document.querySelector('[data-spatial-control="chat"]'); if (!b) return null; const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+  if (chatBtn) await page.mouse.click(chatBtn.x, chatBtn.y);
   await page.waitForTimeout(2500);
 
   const steps = [];
@@ -125,7 +125,7 @@ async function run() {
     users += s.sent ? 1 : 0;
     const reply = s.sent ? await waitForReply(page, users) : null;
     const snap = await snapshot(page);
-    await page.screenshot({ path: path.join(outDir, `${step.id}.png`) });
+    await page.screenshot({ path: path.join(outDir, `${step.id}.png`), timeout: 60000 }).catch(() => {});
     const last = snap.messages[snap.messages.length - 1];
     steps.push({ ...step, ...s, reply, replyText: last?.role === "assistant" ? last.text : null, replyArtifacts: last?.artifacts ?? [], studio: snap.studio, views: snap.views });
     console.log(JSON.stringify({ step: step.id, sent: s.sent, ms: reply?.ms, timedOut: reply?.timedOut ?? false, reply: (last?.text ?? "").slice(0, 160), artifacts: (last?.artifacts ?? []).map((a) => `${a.title} r${a.rev} ${a.action}`), studio: snap.studio.map((a) => `${a.title}:${a.revisions.length}rev`), views: snap.views.map((v) => `${v.title}:r${v.revision}`) }));
@@ -151,7 +151,7 @@ async function run() {
     };
   }, before.conversationId);
   console.log(JSON.stringify({ afterReload }));
-  await page.screenshot({ path: path.join(outDir, "after-reload.png") });
+  await page.screenshot({ path: path.join(outDir, "after-reload.png"), timeout: 60000 }).catch(() => {});
 
   fs.writeFileSync(path.join(outDir, "chat-creation.json"), JSON.stringify({ ranAt: new Date().toISOString(), base: BASE, conversationId: before.conversationId, steps, final: before, afterReload, errors: errors.slice(0, 5) }, null, 1) + "\n");
   await browser.close();

@@ -113,10 +113,16 @@ async function run() {
     await page.waitForTimeout(2500);
     const voiceAfterStart = await voiceState(page);
 
-    await page.evaluate(() => [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Chat")?.click());
+    // Summon the chat with the navigator's own control (real tap/click).
+    const chatBtn = await probe(page, '[data-spatial-control="chat"]');
+    let chatOpenedBy = "navigator";
+    if (chatBtn.found && chatBtn.reachable) await tapAt(page, touch, chatBtn);
     await page.waitForTimeout(2500);
-    await page.evaluate(() => [...document.querySelectorAll(".lcu-card")].find((x) => /New chat/.test(x.getAttribute("aria-label") ?? ""))?.click());
-    await page.waitForTimeout(2500);
+    if (!(await page.evaluate(() => Boolean(document.querySelector("[data-lelu-composer] textarea"))))) {
+      chatOpenedBy = "ui-action-bus";
+      await page.evaluate(async () => { const { default: Bus } = await import("/src/core/cognition/UIActionBus.ts"); Bus.getInstance().dispatch({ type: "open_panel", target: "chat", reason: "verify", initiatedBy: "lelu" }); });
+      await page.waitForTimeout(2500);
+    }
 
     // Open the capability groups with the navigator's own toggle (if the navigator is shown here).
     let nav = await navState(page);
@@ -166,7 +172,7 @@ async function run() {
     await page.screenshot({ path: path.join(outDir, `after-${vp.name}.png`) });
 
     const r = {
-      viewport: vp.name, touch,
+      viewport: vp.name, touch, chatOpenedBy,
       navigatorShown: nav.present, navigatorWithChat: nav, controls,
       sent, messageLanded: after.id === before.id && after.count > before.count && after.last === text,
       chatSurvived: after.id === before.id,

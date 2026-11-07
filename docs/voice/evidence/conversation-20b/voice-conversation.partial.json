@@ -1,5 +1,5 @@
 {
- "at": "2026-11-07T17:00:43.346Z",
+ "at": "2026-11-07T17:05:22.530Z",
  "spoken": [
   {
    "n": 1,
@@ -171,6 +171,15 @@
    "endedAt": 4669639,
    "repeated": true,
    "heard": true
+  },
+  {
+   "n": 20,
+   "mode": "after-reply",
+   "text": "Thanks Lélu, that's all for now.",
+   "spokeAt": 4927183,
+   "endedAt": 4933649,
+   "repeated": true,
+   "heard": false
   }
  ],
  "events": [
@@ -3631,6 +3640,127 @@
    "t": 4675999,
    "kind": "console",
    "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":3187,\"spoke\":true,\"ms\":17875,\"peak\":0.3187,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 4692456,
+   "kind": "utterance",
+   "text": "What's my name and which city did we talk about first?",
+   "at": 1794070856791
+  },
+  {
+   "t": 4692457,
+   "kind": "turn",
+   "user": "What's my name and which city did we talk about first?",
+   "response": null
+  },
+  {
+   "t": 4692457,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 4724834,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":27594,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4753382,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20752,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4761806,
+   "kind": "turn",
+   "user": "What's my name and which city did we talk about first?",
+   "response": "Your name is Sam.\nYou've told me you my favorite color is teal. just say hello."
+  },
+  {
+   "t": 4761807,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 4761807,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 4776982,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":20651,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4801166,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 4801234,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19678,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4817514,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 4817514,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 4830687,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":21880,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4856816,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":23113,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4860261,
+   "kind": "not-ready",
+   "before": 20
+  },
+  {
+   "t": 4879377,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":19694,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4885739,
+   "kind": "user-said",
+   "n": 20,
+   "mode": "after-reply",
+   "text": "Thanks Lélu, that's all for now.",
+   "seconds": 1.6
+  },
+  {
+   "t": 4908152,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":22421,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 4933653,
+   "kind": "user-repeated",
+   "n": 20
+  },
+  {
+   "t": 4933658,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":2142,\"spoke\":true,\"ms\":16391,\"peak\":0.335,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 4933658,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
   }
  ],
  "turns": [
@@ -3833,93 +3963,17 @@
    "response": null,
    "at": 1794070818392,
    "startedAt": 1794070818392
+  },
+  {
+   "id": "27758787-9d69-47e9-9c5d-6554ac989224",
+   "user": "What's my name and which city did we talk about first?",
+   "response": "Your name is Sam.\nYou've told me you my favorite color is teal. just say hello.",
+   "at": 1794070926141,
+   "startedAt": 1794070856792,
+   "respondedAt": 1794070926141
   }
  ],
  "ledger": [
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 31464,
-   "error": "BodyStreamBuffer was aborted"
-  },
-  {
-   "kind": "ai",
-   "source": "Fireworks",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 7918,
-   "error": "Fireworks HTTP 412: Account laelpheru is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices. Please go to https://fireworks.ai/account/billing for more info"
-  },
-  {
-   "kind": "ai",
-   "source": "Anthropic",
-   "op": "generate",
-   "ok": false,
-   "in": null,
-   "out": null,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 7542,
-   "error": "Anthropic failed 400: Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-tts",
-   "op": "tts",
-   "ok": true,
-   "in": null,
-   "out": null,
-   "results": 114,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 5727
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 2057,
-   "out": 284,
-   "cost": "reported",
-   "usd": 0.000222195,
-   "ms": 10899
-  },
-  {
-   "kind": "ai",
-   "source": "OpenRouter",
-   "op": "generate",
-   "ok": true,
-   "model": "deepseek/deepseek-v4.1-flash-1017",
-   "in": 561,
-   "out": 140,
-   "cost": "reported",
-   "usd": 0.000107026,
-   "ms": 9738
-  },
-  {
-   "kind": "api",
-   "source": "elevenlabs-tts",
-   "op": "tts",
-   "ok": true,
-   "in": null,
-   "out": null,
-   "results": 192,
-   "cost": "unknown",
-   "usd": null,
-   "ms": 7330
-  },
   {
    "kind": "ai",
    "source": "OpenRouter",
@@ -5046,6 +5100,91 @@
    "cost": "reported",
    "usd": 0.000198738,
    "ms": 15478
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 12,
+   "cost": "reported",
+   "usd": 0.0012,
+   "ms": 16467
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 573,
+   "out": 84,
+   "cost": "reported",
+   "usd": 0.0002727,
+   "ms": 8891
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1394,
+   "out": 298,
+   "cost": "reported",
+   "usd": 0.000241004,
+   "ms": 11076
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 79,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 5331
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 572,
+   "out": 133,
+   "cost": "reported",
+   "usd": 0.000065784,
+   "ms": 16706
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1309,
+   "out": 239,
+   "cost": "reported",
+   "usd": 0.00038266,
+   "ms": 11981
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1239,
+   "out": 199,
+   "cost": "reported",
+   "usd": 0.00016145,
+   "ms": 18272
   }
  ]
 }

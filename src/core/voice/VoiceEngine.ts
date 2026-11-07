@@ -19,6 +19,7 @@ import { mapMediaError } from "./speechToText";
 import { detectTurnOnAudioThread } from "./vadWorklet";
 import { resolveFirst } from "../resolveEnv";
 import { elevenLabsReady, speakText, stopSpeaking } from "./elevenLabsTts";
+import { failureFromError, failureFromResponse, type VoiceTurnFailure } from "./turnFailure";
 import { elevenLabsSttReady, transcribeWithElevenLabs } from "./elevenLabsStt";
 import UsageBudgetGate, { BudgetExhaustedError, budgetNotice } from "../observability/UsageBudgetGate";
 
@@ -173,6 +174,12 @@ export interface VoiceState {
   permission: "unknown" | "granted" | "denied";
   error: string | null;
   errorKind: VoiceErrorKind | null;
+  /**
+   * The last turn-level failure, told apart: provider timeout, transcription
+   * failure, playback failure, user cancellation, network failure, provider
+   * unavailable. Shown, never spoken as her answer.
+   */
+  turnFailure?: (VoiceTurnFailure & { at: number }) | null;
 }
 
 export interface VoiceTurn {
@@ -180,6 +187,8 @@ export interface VoiceTurn {
   user: string;
   response: string | null;
   timestamp: number;
+  /** Set when the turn ended in a failure rather than an answer. */
+  failure?: VoiceTurnFailure | null;
 }
 
 /** How far the text-to-speech pipeline actually got for the last
@@ -800,6 +809,7 @@ class VoiceEngine {
         if (this.isSpeaking() && isBargeIn(heard, this.lastSpokenText)) {
           this.bargeIns += 1;
           this.cancelSpeech();
+          this.noteFailure({ kind: "user-cancellation", message: "You spoke over her, so she stopped." });
         }
 
         if (interimText) {
@@ -1099,6 +1109,7 @@ class VoiceEngine {
         if (this.isSpeaking() && isBargeIn(heard, this.lastSpokenText)) {
           this.bargeIns += 1;
           this.cancelSpeech();
+          this.noteFailure({ kind: "user-cancellation", message: "You spoke over her, so she stopped." });
         }
         this.handleUserSpeech(heard);
         // Keep listening through her thinking and speaking.
@@ -1119,6 +1130,8 @@ class VoiceEngine {
       }
       const msg = error instanceof Error ? error.message : String(error);
       console.error("[VoiceEngine] Whisper fallback error:", msg);
+      // The person spoke and nothing could transcribe it: say so (on screen).
+      this.noteFailure({ kind: "transcription-failure", message: "I couldn't make out what you said — transcription failed. Please say it again." });
 
       // Don't treat transient errors as fatal — retry after a short delay
       if (this._state.active) {
@@ -1398,7 +1411,15 @@ class VoiceEngine {
   }
 
   /** Stop the AI turn in flight, if any (see AIService.cancelActiveTurn). */
+  /** Record a turn-level failure on the state (visible, not spoken). */
+  private noteFailure(failure: VoiceTurnFailure): void {
+    this.updateState({ ...this._state, turnFailure: { ...failure, at: Date.now() } });
+  }
+
   private cancelInFlightTurn(reason: string): void {
+    if (this._turn && this._turn.response === null) {
+      this.noteFailure({ kind: "user-cancellation", message: `Stopped (${reason}).` });
+    }
     void import("../../core/AIService")
       .then(({ default: AIService }) => AIService.getInstance().cancelActiveTurn(reason))
       .catch(() => {});
@@ -1456,6 +1477,17 @@ class VoiceEngine {
       const response = await ai.chat(text, seen.length > 0 ? seen : undefined, undefined, conversationId ? { conversationId } : undefined);
 
       if (this._turn?.id === turnId) {
+        // A failure notice is not her answer: it is shown in the
+        // conversation and on the voice state, and she goes back to
+        // listening without reading it out (Mission 10.3: the offline notice
+        // was spoken as the answer on 18 of 20 turns).
+        const failure = failureFromResponse(response as { text?: string; provider?: string; metadata?: Record<string, unknown> });
+        if (failure) {
+          this._turn = { ...this._turn, response: response.text, failure };
+          this.emitTurn(this._turn);
+          this.updateState({ ...this._state, phase: "listening", turnFailure: { ...failure, at: Date.now() } });
+          return;
+        }
         this._turn = { ...this._turn, response: response.text };
         this.emitTurn(this._turn);
         this.updateState({ ...this._state, phase: "speaking" });
@@ -1464,10 +1496,10 @@ class VoiceEngine {
     } catch (error) {
       console.error("[VoiceEngine] Chat failed:", error);
       if (this._turn?.id === turnId) {
-        const errorMsg = "I couldn't process that. Please try again.";
-        this._turn = { ...this._turn, response: errorMsg };
+        const failure = failureFromError(error);
+        this._turn = { ...this._turn, response: failure.message, failure };
         this.emitTurn(this._turn);
-        this.speakResponse(errorMsg);
+        this.updateState({ ...this._state, phase: this._state.active ? "listening" : this._state.phase, turnFailure: { ...failure, at: Date.now() } });
       }
     }
   }
@@ -1548,6 +1580,7 @@ class VoiceEngine {
           // rather than leaving the reply unspoken, and report the failure.
           this.elevenLabs = false;
           this.patchDiagnostics({ audioPlaying: false, ttsStage: "failed" });
+          this.noteFailure({ kind: "playback-failure", message: "Her voice could not be played; the rest of the reply uses the browser voice. The answer itself is in the conversation." });
           const rest = segments.slice(index - 1).join(" ").trim();
           index = segments.length;
           if (typeof speechSynthesis !== "undefined" && rest) {

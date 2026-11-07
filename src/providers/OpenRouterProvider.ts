@@ -180,6 +180,14 @@ export default class OpenRouterProvider implements AIProvider {
     };
 
     let response: Response;
+    // The provider's own cap must never be SHORTER than the budget the
+    // resolver gives this attempt: measured in the Mission 10.3 20-turn run,
+    // a 30 s cap under a 45 s rung budget cut every long answer off as
+    // "BodyStreamBuffer was aborted" — and that reached the person as
+    // "all providers unreachable". The resolver's rung signal still bounds it.
+    const timeoutMs = Math.max(this.timeout, Number(resolveFirst("LELU_PROVIDER_RUNG_BUDGET_MS")) || 0);
+    const deadline = AbortSignal.timeout(timeoutMs);
+    const timedOut = () => deadline.aborted && !request.signal?.aborted;
 
     try {
       response = await fetch(
@@ -199,18 +207,24 @@ export default class OpenRouterProvider implements AIProvider {
             "X-Title": "Lélu",
           },
           body: JSON.stringify(payload),
-          signal: request.signal
-            ? AbortSignal.any([request.signal, AbortSignal.timeout(this.timeout)])
-            : AbortSignal.timeout(this.timeout),
+          signal: request.signal ? AbortSignal.any([request.signal, deadline]) : deadline,
         },
       );
     } catch (error) {
+      if (timedOut()) throw new Error(`OpenRouter timed out after ${Math.round(timeoutMs / 1000)}s.`);
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`OpenRouter network error: ${message}`);
     }
 
     if (payload.stream) {
-      const streamed = await readOpenAIStream(response, "OpenRouter", request.onDelta!);
+      let streamed: Awaited<ReturnType<typeof readOpenAIStream>>;
+      try {
+        streamed = await readOpenAIStream(response, "OpenRouter", request.onDelta!);
+      } catch (error) {
+        // Name a timeout as a timeout, not as the stream's internal abort.
+        if (timedOut()) throw new Error(`OpenRouter timed out after ${Math.round(timeoutMs / 1000)}s while answering.`);
+        throw error;
+      }
       if (!streamed.text.trim() && streamed.toolCalls.length === 0) {
         throw new Error("OpenRouter returned no usable content.");
       }
