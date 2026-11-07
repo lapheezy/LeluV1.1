@@ -189,6 +189,14 @@ function Companion({ companion }: { companion: CompanionState }) {
   const workspaceInUse = modulesOpen || surface.workspaceOwnsScreen || surface.mode === "workspace" || surface.mode === "agent";
   const presence: CompanionPresence = chatOpen && !workspaceInUse && !toolsInUse && !bodyWanted ? "face" : "window";
 
+  // On a phone a full-screen sheet (a conversation, an artifact) covers
+  // her window completely. Rendering it there drew a WebGL scene nobody
+  // could see, and in a software-GL browser that canvas stalled the GPU
+  // channel for ~35 s after a turn — the page produced no frames at all.
+  // She unmounts with the rest of the scene, as Home and Cosmos do; her
+  // face behind the classic chat panel is visible and stays.
+  if (presence === "window" && !surface.cosmosRendered) return null;
+
   if (presence === "face" && host) {
     return createPortal(<FaceBackdrop activity={activity} />, host);
   }

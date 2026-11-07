@@ -351,3 +351,18 @@ test("on a phone a conversation window is the full visual viewport; one composer
   const universe = readFileSync("src/app/scene/genesis/chat/universe/ChatUniverse.tsx", "utf8");
   assert.match(universe, /\{sheetOpen \? null : \(/, "the Universe composer leaves while a conversation sheet owns the screen");
 });
+
+test("Phase 2: on a phone, a sheet that owns the screen unmounts LÉLU's hidden companion window (no WebGL under the sheet)", () => {
+  // Measured: the docked companion canvas kept rendering under the
+  // full-screen conversation and stalled the GPU channel for ~35 s.
+  const phoneSheet = resolveSurface({ compact: true, minimized: false, activePanel: "none", openModuleCount: 1, visibleModuleCount: 1 });
+  assert.equal(phoneSheet.cosmosRendered, false);
+  const desktop = resolveSurface({ compact: false, minimized: false, activePanel: "none", openModuleCount: 1, visibleModuleCount: 1 });
+  assert.equal(desktop.cosmosRendered, true, "desktop keeps her window");
+  const companion = readFileSync("src/app/scene/genesis/avatar/LeluCompanion.tsx", "utf8");
+  assert.match(companion, /if \(presence === "window" && !surface\.cosmosRendered\) return null;/);
+  assert.ok(
+    companion.indexOf('if (presence === "window" && !surface.cosmosRendered) return null;') < companion.indexOf('if (presence === "face" && host)'),
+    "decided before the face/hero/window branches; the face behind the classic chat panel is untouched",
+  );
+});
