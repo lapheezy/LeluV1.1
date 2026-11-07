@@ -18,7 +18,7 @@
  * ==========================================================
  */
 
-import AgentEventBus, { type AgentEvent } from "../agent/AgentEvents";
+import AgentEventBus from "../agent/AgentEvents";
 import WorkspaceEngine, {
   type WorkspaceView,
   type WorkspaceViewKind,
@@ -27,7 +27,6 @@ import WorkspaceEngine, {
 } from "../workspace/WorkspaceEngine";
 import InterfaceOrchestrator, {
   type ChangeSet,
-  type Proposal,
 } from "../interface/InterfaceOrchestrator";
 import type { VisualSpec } from "../workspace/VisualSpec";
 
@@ -313,7 +312,7 @@ export default class EnvironmentOrchestrationEngine {
     this.events.emit({
       type: "execution_phase",
       taskId: id,
-      phase: "ui_orchestration_started",
+      phase: "frontend_update_started",
       label: `Composing environment: ${request.title ?? request.category ?? "Custom"}`,
       side: "both",
     });
@@ -383,7 +382,7 @@ export default class EnvironmentOrchestrationEngine {
     this.events.emit({
       type: "execution_phase",
       taskId: id,
-      phase: "ui_orchestration_completed",
+      phase: "frontend_update_completed",
       label: `Environment ready with ${createdViews.length} surface(s)`,
       side: "both",
     });
@@ -414,10 +413,15 @@ export default class EnvironmentOrchestrationEngine {
         spec: {
           kind: "table",
           title: "Research Evidence",
-          columns: ["Source / Citation", "Domain", "Key Finding", "Status"],
+          columns: [
+            { key: "source", label: "Source / Citation" },
+            { key: "domain", label: "Domain" },
+            { key: "finding", label: "Key Finding" },
+            { key: "status", label: "Status" },
+          ],
           rows: [
-            { "Source / Citation": "Primary Literature", Domain: "Core Corpus", "Key Finding": "Validated hypothesis", Status: "Verified" },
-            { "Source / Citation": "Cross-Reference Map", Domain: "Ecosystem Index", "Key Finding": "Coherent multi-model alignment", Status: "Active" },
+            { source: "Primary Literature", domain: "Core Corpus", finding: "Validated hypothesis", status: "Verified" },
+            { source: "Cross-Reference Map", domain: "Ecosystem Index", finding: "Coherent multi-model alignment", status: "Active" },
           ],
         },
       });
@@ -464,8 +468,10 @@ export default class EnvironmentOrchestrationEngine {
           kind: "chart",
           title: "Telemetry Stream",
           series: [
-            { label: "Token Efficiency", points: [{ label: "T0", value: 40 }, { label: "T1", value: 85 }, { label: "T2", value: 92 }] },
-            { label: "Execution Latency (ms)", points: [{ label: "T0", value: 120 }, { label: "T1", value: 65 }, { label: "T2", value: 42 }] },
+            { label: "Token Efficiency T0", value: 40 },
+            { label: "Token Efficiency T1", value: 85 },
+            { label: "Token Efficiency T2", value: 92 },
+            { label: "Latency (ms)", value: 42 },
           ],
         },
       });

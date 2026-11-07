@@ -141,7 +141,6 @@ describe("Environment Orchestration Engine (Session 02)", () => {
   });
 
   test("environment snapshot save and restore preserves views and layout accurately", async () => {
-    const engine = EnvironmentOrchestrationEngine.getInstance();
     const workspace = WorkspaceEngine.getInstance();
 
     const saveRes = await dispatchToolCall(

@@ -2640,7 +2640,9 @@ export async function dispatchToolCall(
     return result;
   }
 
-  if (!executor.emitsOwnEvents) {
+  const emitsOwn = "emitsOwnEvents" in executor && Boolean(executor.emitsOwnEvents);
+
+  if (!emitsOwn) {
     const label = describeToolCall(id, call.arguments ?? {});
     events.emit({ type: "tool_selected", taskId, tool: id, label });
     events.emit({ type: "tool_started", taskId, tool: id, label });
@@ -2648,7 +2650,7 @@ export async function dispatchToolCall(
 
   try {
     const result = await executor.run(call.arguments ?? {}, context);
-    if (!executor.emitsOwnEvents) {
+    if (!emitsOwn) {
       events.emit({
         type: "tool_result",
         taskId,

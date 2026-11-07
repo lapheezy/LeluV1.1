@@ -54,7 +54,7 @@ export const ENVIRONMENT_TOOLS: ToolDefinition[] = [
     "Compose Operational Environment",
     "Dynamically construct an operational presentation environment with multiple workspaces, interactive surfaces, and optional 3D cosmos objects based on user intent.",
     1,
-    ["WRITE", "UI_CONTROL"],
+    ["WRITE", "EXECUTE"],
   ),
   tool(
     "environment.present_artifact",
@@ -75,7 +75,7 @@ export const ENVIRONMENT_TOOLS: ToolDefinition[] = [
     "Manage Workspace Arrangement",
     "Control spatial layout, arrange presentation surfaces (grid, split, stack, auto), focus specific views, or lock layout.",
     1,
-    ["UI_CONTROL"],
+    ["WRITE", "EXECUTE"],
   ),
   tool(
     "environment.save_state",
@@ -89,7 +89,7 @@ export const ENVIRONMENT_TOOLS: ToolDefinition[] = [
     "Restore Environment State",
     "Restore a previously saved environment snapshot, reconstructing its exact layout and surfaces.",
     1,
-    ["WRITE", "UI_CONTROL"],
+    ["WRITE", "EXECUTE"],
   ),
 ];
 
