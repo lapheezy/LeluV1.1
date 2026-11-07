@@ -36,6 +36,8 @@ import EngineeringAuthorization from "../engineering/EngineeringAuthorization";
 import MultiChatStore, { tokenizeText, type ChatConversation } from "../multichat/MultiChatStore";
 import { consentFor, findChat } from "../multichat/ChatConsent";
 import { CHAT_SCOPED } from "../multichat/ContextProvenance";
+import { INTERFACE_EXECUTORS } from "../interface/InterfaceTools";
+import { ENVIRONMENT_EXECUTORS } from "../orchestrator/EnvironmentTools";
 
 export interface ToolExecutionResult {
   ok: boolean;
@@ -354,7 +356,16 @@ export function toolNameForModel(registryId: string): string {
 }
 
 export function registryIdForToolName(name: string): string {
-  return name.replace(/_/g, ".");
+  if (BY_ID.has(name)) return name;
+  const direct = name.replace(/_/g, ".");
+  if (BY_ID.has(direct)) return direct;
+  // If the tool has only one namespace separator (e.g. environment_mutate_surface -> environment.mutate_surface)
+  const firstUnderscore = name.indexOf("_");
+  if (firstUnderscore !== -1) {
+    const candidate = name.slice(0, firstUnderscore) + "." + name.slice(firstUnderscore + 1);
+    if (BY_ID.has(candidate)) return candidate;
+  }
+  return direct;
 }
 
 /* ------------------------------------------------------------------ *
@@ -2481,7 +2492,7 @@ async function runWorkspace(
  * DISPATCH
  * ------------------------------------------------------------------ */
 
-const BY_ID = new Map(EXECUTORS.map((executor) => [executor.id, executor]));
+const BY_ID = new Map([...EXECUTORS, ...INTERFACE_EXECUTORS, ...ENVIRONMENT_EXECUTORS].map((executor) => [executor.id, executor]));
 
 /** Registry ids that have a real executor behind them. */
 export function executableToolIds(): string[] {
