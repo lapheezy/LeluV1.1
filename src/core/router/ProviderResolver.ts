@@ -19,23 +19,54 @@ import ModelRouter from "../model/ModelRouter";
 import { dispatchToolCall, latestCaptureMeasurements } from "../tools/ToolDispatcher";
 import { toolSchemasForModel } from "../tools/ToolSchemas";
 import { labelOtherChats } from "../multichat/ContextProvenance";
-import UsageLedger from "../observability/UsageLedger";
+import UsageBudgetGate, { BudgetExhaustedError, budgetNotice } from "../observability/UsageBudgetGate";
 
 /**
- * One model call, counted. Every round of the tool loop is a separate
- * billed request, so each is recorded with the usage that provider
- * reported for it; recording only the final response would undercount.
- * A failed call is recorded where the failure is handled (markFailure).
+ * One model call: reserved, sent, settled.
+ *
+ * Every round of the tool loop is a separate billed request, so each is
+ * gated on its own. The reservation is taken BEFORE the request leaves
+ * (UsageBudgetGate: this device, then the account across devices), so a
+ * spent budget stops the call instead of being discovered afterwards.
+ * The settlement records exactly what the provider reported; a failed
+ * request is settled as a failure (it was a request), and only a call
+ * that never left — stopped before sending — gives its reservation back.
  */
 async function meteredGenerate(
   provider: { name: string; generate: (request: any) => Promise<AIResponse> },
   request: Parameters<typeof provider.generate>[0],
 ): Promise<AIResponse> {
+  const gate = UsageBudgetGate.getInstance();
+  const declared = Number((request as { maxTokens?: unknown })?.maxTokens);
+  // Reserve the output ceiling the request itself declares, when it declares
+  // one; otherwise nothing is guessed — the token cap applies to reported use.
+  const reservation = await gate.reserve("ai", provider.name, { reserveTokens: Number.isFinite(declared) && declared > 0 ? declared : 0 });
+  // Stopped before sending: nothing reaches the provider, so the
+  // reservation is given back rather than counted.
+  const signal = (request as { signal?: AbortSignal })?.signal;
+  if (signal?.aborted) {
+    await gate.release(reservation);
+    throw signal.reason instanceof Error ? signal.reason : Object.assign(new Error("Stopped before sending."), { name: "AbortError" });
+  }
   const started = Date.now();
-  const response = await provider.generate(request);
-  UsageLedger.getInstance().record({
-    kind: "ai",
-    source: provider.name,
+  let response: AIResponse;
+  try {
+    response = await provider.generate(request);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    {
+      // It was sent (or may have been): a request, counted as a failed one.
+      await gate.settle(reservation, {
+        operation: "generate",
+        ok: false,
+        latencyMs: Date.now() - started,
+        rateLimited: /\b429\b|rate.?limit|too many requests|overloaded/i.test(message),
+        error: message,
+      });
+    }
+    throw error;
+  }
+  await gate.settle(reservation, {
     model: response.model,
     operation: "generate",
     ok: true,
@@ -270,16 +301,34 @@ export default class ProviderResolver {
             },
           };
         }
+        // A spent budget is not a provider failure, and it must not fall
+        // through to the next provider: that could be a paid one the user
+        // never chose. Stop here and say why, inside the chat.
+        if (error instanceof BudgetExhaustedError) {
+          context.logger.info("ProviderResolver", "Budget refused the call before dispatch.", {
+            provider: provider.name,
+            scope: error.scope,
+            reason: error.message,
+          });
+          AgentEventBus.getInstance().emit({
+            type: "provider_status",
+            taskId: String(context.request.timestamp ?? Date.now()),
+            provider: provider.name,
+            status: "budget reached — not sent",
+          });
+          return {
+            handled: true,
+            response: {
+              text: budgetNotice(error),
+              provider: "budget",
+              model: "none",
+              processingTime: Date.now() - context.started,
+              metadata: { success: false, budgetExhausted: { source: error.source, scope: error.scope, reason: error.message } },
+            },
+          };
+        }
         const message = error instanceof Error ? error.message : String(error);
         context.aiProviders.markFailure(provider.name, message);
-        UsageLedger.getInstance().record({
-          kind: "ai",
-          source: provider.name,
-          operation: "generate",
-          ok: false,
-          rateLimited: /\b429\b|rate.?limit|too many requests|overloaded/i.test(message),
-          error: message,
-        });
         AgentEventBus.getInstance().emit({
           type: "provider_status",
           taskId: String(context.request.timestamp ?? Date.now()),

@@ -163,6 +163,14 @@ export default class SupabasePersistence {
   }
 
   /**
+   * The signed-in client and user for usage accounting (UsageSync), or null
+   * when signed out. Every query made with it is scoped by RLS to this user.
+   */
+  public usageChannel(): { client: SupabaseClient; userId: string } | null {
+    return this.isConnected() && this.client && this.userId ? { client: this.client, userId: this.userId } : null;
+  }
+
+  /**
    * Turn a Supabase auth error into something an operator can act on.
    *
    * "Invalid API key" is not a user's problem and must not be shown as one:

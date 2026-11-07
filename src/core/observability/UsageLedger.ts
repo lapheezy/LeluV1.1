@@ -30,6 +30,10 @@ export type UsageKind = "ai" | "api";
 export type CostKind = "reported" | "unknown";
 
 export interface UsageEvent {
+  /** Stable id: the dedupe key when the event is synced to Supabase. */
+  id: string;
+  /** The signed-in user the event was recorded for; null when signed out. */
+  userId: string | null;
   at: number;
   kind: UsageKind;
   /** Provider / knowledge-source name. */
@@ -71,6 +75,36 @@ export interface UsageBudget {
   dailyCalls?: number;
   monthlyCalls?: number;
   dailyTokens?: number;
+  monthlyTokens?: number;
+  /** Spending caps count REPORTED cost only; unknown cost is never estimated. */
+  dailyCostUsd?: number;
+  monthlyCostUsd?: number;
+}
+
+/** Calls already reserved but not yet settled (they hold budget). */
+export interface PendingUsage {
+  requests: number;
+  tokens: number;
+}
+
+/** Budgets keyed "kind:*" apply to every source of that kind. */
+export const ALL_SOURCES = "*";
+
+function newId(): string {
+  const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
+  if (c?.randomUUID) return c.randomUUID();
+  return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+/** Deterministic id for an event recorded before ids existed, so re-syncing it never duplicates. */
+export function legacyEventId(e: Pick<UsageEvent, "at" | "kind" | "source" | "ok"> & { latencyMs?: number; model?: string }): string {
+  const text = `${e.at}|${e.kind}|${e.source}|${e.ok}|${e.latencyMs ?? ""}|${e.model ?? ""}`;
+  let h1 = 0x811c9dc5, h2 = 0x9e3779b9;
+  for (let i = 0; i < text.length; i += 1) {
+    h1 = Math.imul(h1 ^ text.charCodeAt(i), 16777619);
+    h2 = Math.imul(h2 ^ text.charCodeAt(i), 2246822507);
+  }
+  return `legacy-${(h1 >>> 0).toString(36)}${(h2 >>> 0).toString(36)}`;
 }
 
 export interface BudgetDecision {
@@ -150,6 +184,7 @@ export default class UsageLedger {
   private budgets: Record<string, UsageBudget> = {};
   private readonly sessionStart: number;
   private listeners = new Set<() => void>();
+  private currentUser: string | null = null;
 
   constructor(
     private readonly now: () => number = () => Date.now(),
@@ -161,9 +196,18 @@ export default class UsageLedger {
 
   /* ---------- recording ---------- */
 
-  record(event: Omit<UsageEvent, "at" | "inputTokens" | "outputTokens" | "cachedInputTokens" | "reasoningTokens" | "costUsd" | "costKind"> & { usage?: unknown }): UsageEvent {
-    const { usage, ...rest } = event;
-    const full: UsageEvent = { at: this.now(), ...rest, ...normalizeUsage(usage) };
+  /** Who new events belong to (SupabasePersistence auth). */
+  setUser(userId: string | null): void {
+    this.currentUser = userId;
+  }
+
+  getUser(): string | null {
+    return this.currentUser;
+  }
+
+  record(event: Omit<UsageEvent, "id" | "userId" | "at" | "inputTokens" | "outputTokens" | "cachedInputTokens" | "reasoningTokens" | "costUsd" | "costKind"> & { usage?: unknown; id?: string }): UsageEvent {
+    const { usage, id, ...rest } = event;
+    const full: UsageEvent = { id: id ?? newId(), userId: this.currentUser, at: this.now(), ...rest, ...normalizeUsage(usage) };
     if (full.error) full.error = full.error.slice(0, 200);
     this.events.push(full);
     if (this.events.length > MAX_EVENTS) this.events.splice(0, this.events.length - MAX_EVENTS);
@@ -185,6 +229,11 @@ export default class UsageLedger {
 
   recent(limit = 25): UsageEvent[] {
     return this.events.slice(-limit).reverse();
+  }
+
+  /** Every retained event, oldest first (the sync queue reads this). */
+  allEvents(): readonly UsageEvent[] {
+    return this.events;
   }
 
   /** Per-source totals for a period. "session" counts only events since this ledger started. */
@@ -240,32 +289,58 @@ export default class UsageLedger {
     return { ...this.budgets };
   }
 
-  /** May this source be called now? Checked BEFORE the call. */
-  check(kind: UsageKind, source: string): BudgetDecision {
-    const budget = this.budgets[`${kind}:${source}`];
-    if (!budget) return { allowed: true };
-    const t = this.now();
-    const today = this.daily[dayKey(t)]?.[`${kind}:${source}`] ?? emptyTotals();
-    let month = 0;
-    for (const [day, perSource] of Object.entries(this.daily)) {
-      if (day.startsWith(monthKey(t))) month += perSource[`${kind}:${source}`]?.calls ?? 0;
-    }
-    const caps: Array<[string, number, number | undefined]> = [
-      ["daily calls", today.calls, budget.dailyCalls],
-      ["monthly calls", month, budget.monthlyCalls],
-      ["daily tokens", today.inputTokens + today.outputTokens, budget.dailyTokens],
-    ];
+  /**
+   * May this source be called now? Checked BEFORE the call, against the
+   * source's own budget and the kind's "*" budget, counting calls that are
+   * reserved but not yet settled (`pending`) so concurrent calls cannot
+   * both take the last unit.
+   */
+  check(kind: UsageKind, source: string, pending: PendingUsage = { requests: 0, tokens: 0 }, only?: "source" | "all"): BudgetDecision {
     let warning: string | undefined;
-    for (const [label, used, cap] of caps) {
-      if (cap === undefined) continue;
-      if (used >= cap) {
-        return {
-          allowed: false,
-          reason: `${source}: ${label} budget reached (${used}/${cap}). Raise or clear the budget to continue.`,
-          warning: `${source}: ${label} ${used}/${cap}`,
-        };
+    const scopes = only === "source" ? [source] : only === "all" ? [ALL_SOURCES] : [source, ALL_SOURCES];
+    for (const scope of scopes) {
+      const budget = this.budgets[`${kind}:${scope}`];
+      if (!budget) continue;
+      const label = scope === ALL_SOURCES ? `all ${kind === "ai" ? "AI providers" : "sources"}` : source;
+      const t = this.now();
+      const today = emptyTotals();
+      const month = emptyTotals();
+      for (const [day, perSource] of Object.entries(this.daily)) {
+        const inMonth = day.startsWith(monthKey(t));
+        if (!inMonth) continue;
+        for (const [key, totals] of Object.entries(perSource)) {
+          const [k, ...rest] = key.split(":");
+          if (k !== kind || (scope !== ALL_SOURCES && rest.join(":") !== source)) continue;
+          for (const field of Object.keys(month) as Array<keyof UsageTotals>) {
+            month[field] += totals[field];
+            if (day === dayKey(t)) today[field] += totals[field];
+          }
+        }
       }
-      if (used >= cap * 0.8) warning = `${source}: ${label} at ${used}/${cap} (${Math.round((used / cap) * 100)}%)`;
+      const caps: Array<[string, number, number | undefined, boolean]> = [
+        // [label, used incl. pending, cap, isCount (a new call adds 1)]
+        ["daily calls", today.calls + pending.requests, budget.dailyCalls, true],
+        ["monthly calls", month.calls + pending.requests, budget.monthlyCalls, true],
+        ["daily tokens", today.inputTokens + today.outputTokens + pending.tokens, budget.dailyTokens, false],
+        ["monthly tokens", month.inputTokens + month.outputTokens + pending.tokens, budget.monthlyTokens, false],
+        ["daily reported spend ($)", today.reportedCostUsd, budget.dailyCostUsd, false],
+        ["monthly reported spend ($)", month.reportedCostUsd, budget.monthlyCostUsd, false],
+      ];
+      for (const [name, used, cap, isCount] of caps) {
+        if (cap === undefined) continue;
+        const shown = name.includes("$") ? used.toFixed(4) : String(used);
+        if (isCount ? used + 1 > cap : used >= cap) {
+          return {
+            allowed: false,
+            reason: `${label}: ${name} budget reached (${shown}/${cap}${pending.requests ? `, ${pending.requests} in flight` : ""}). Raise or clear the budget to continue.`,
+            warning: `${label}: ${name} ${shown}/${cap}`,
+          };
+        }
+        if (used >= cap * 0.8) warning = `${label}: ${name} at ${shown}/${cap} (${Math.round((used / cap) * 100)}%)`;
+      }
+      if ((budget.dailyCostUsd !== undefined || budget.monthlyCostUsd !== undefined) && month.unknownCostCalls > 0) {
+        warning ??= `${label}: ${month.unknownCostCalls} call(s) this month reported no cost — the spending cap counts reported cost only.`;
+      }
     }
     return { allowed: true, warning };
   }
@@ -280,7 +355,9 @@ export default class UsageLedger {
       const parsed = JSON.parse(raw) as { daily?: Daily; budgets?: Record<string, UsageBudget>; events?: UsageEvent[] };
       this.daily = parsed.daily && typeof parsed.daily === "object" ? parsed.daily : {};
       this.budgets = parsed.budgets && typeof parsed.budgets === "object" ? parsed.budgets : {};
-      this.events = Array.isArray(parsed.events) ? parsed.events.slice(-PERSISTED_EVENTS) : [];
+      this.events = Array.isArray(parsed.events)
+        ? parsed.events.slice(-PERSISTED_EVENTS).map((e) => ({ ...e, id: e.id ?? legacyEventId(e), userId: e.userId ?? null }))
+        : [];
     } catch {
       /* a corrupt record starts a fresh ledger rather than breaking the app */
     }
