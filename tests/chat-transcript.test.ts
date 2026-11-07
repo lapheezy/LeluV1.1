@@ -122,7 +122,8 @@ const chat = readFileSync("src/app/scene/genesis/GenesisChat.tsx", "utf8");
 test("the transcript renders the existing conversation store, through the one chat", () => {
   assert.match(chat, /<ChatTranscript[\s\S]{0,80}messages=\{state\.messages\}/, "history comes from state.messages (GenesisBridge already upserts streamed replies there)");
   assert.match(chat, /Orchestrator\.getInstance\(\)\.process\(/, "sending still goes through the existing Orchestrator");
-  assert.match(chat, /ai\.chat\(prompt, media, context/, "media still goes through AIService.chat");
+  // turnMedia = the user's attachments plus any shared-screen frames (Mission 10).
+  assert.match(chat, /ai\.chat\(prompt, (?:media|turnMedia), context/, "media still goes through AIService.chat");
   assert.ok(!/new AbortController/.test(chat), "cancellation is still ai.cancelTurn only");
 });
 
