@@ -184,3 +184,14 @@ So "revision history persists" is achievable for graphs but not, with the curren
   - Probes: 2 TTS calls (2 characters accepted, 1 refused).
   - The monthly character quota is effectively exhausted.
 - **Anthropic:** disabled. 6 refused calls (400, no credit) occurred inside the 20-turn run, which was started before this mission with Anthropic enabled. No calls after that, and no charge.
+
+## 10. After merging into `claude/master-integration`
+
+The merge commit was clean: no conflicts, no force, and no history was rewritten. Concurrent work on the integration branch is kept, including its own `DrawingEditor` and `GraphEditor` studio files, which this mission did not test or change. Gates on the merged tree:
+
+| Gate | Result |
+|---|---|
+| `npm run typecheck` | pass, after `npm install` added `@excalidraw/excalidraw` and `@xyflow/react`. `package.json` already listed them, but the integration branch's lock file and `node_modules` did not have them. The updated `package-lock.json` is committed. |
+| `npm test` | **1790 pass / 0 fail / 4 skipped** (1794 tests) |
+| `npm run build` | pass |
+| `npm run lint` | pass (0 errors) |
