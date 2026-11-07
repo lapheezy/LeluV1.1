@@ -1455,6 +1455,18 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     </button>
   );
 
+  /**
+   * Hooks run on every render, including the two early returns below.
+   *
+   * Calling this after them made it a CONDITIONAL hook: React refuses that
+   * (the hook order changes the moment the chat is minimised), and the whole
+   * expanded state was discarded and re-read anyway every time the chat was
+   * minimised and reopened. Before the returns, the layout decision is stable
+   * for the lifetime of the component, which is what the transcript and the
+   * open turn depend on.
+   */
+  const phoneExpanded = useChatExpanded();
+
   // Closed (Home): nothing is drawn, the turn bookkeeping stays alive.
   if (hidden && chatMinimized) return null;
 
@@ -1500,7 +1512,6 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
    * turn and its stream all live in this component, which never unmounts
    * for a layout decision.
    */
-  const phoneExpanded = useChatExpanded();
   const isSheetMobile = isMobileViewport && !phoneExpanded;
   const isFloatingMobile = isSheetMobile;
   const isFullMobile = isMobileViewport && phoneExpanded;

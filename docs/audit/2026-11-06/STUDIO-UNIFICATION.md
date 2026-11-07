@@ -89,10 +89,13 @@ and software projects arrive in the same shape when the backup is active.
    engineering/workflow/`namesTool` stand-aside chain keeps its pinned shape;
    the guard itself stays, and no tool was removed.
 
-4. **Lint (1 error).** `scripts/verify-workspace-artifacts.mjs` destructured a
-   `waitFor` it never used; the binding was removed. The 111 warnings are
-   pre-existing style warnings (`no-unused-vars` on arguments and similar) and
-   were left alone — they are not part of this integration.
+4. **Lint (2 errors).** `scripts/verify-workspace-artifacts.mjs` destructured a
+   `waitFor` it never used, and `GenesisChat.tsx` called `useChatExpanded()`
+   *after* two early returns — a conditional hook React refuses, which also
+   discarded the phone-expanded state whenever the chat was minimised and
+   reopened. The hook now runs before the returns. The remaining 110 warnings
+   are pre-existing style warnings (`no-unused-vars` on arguments and similar)
+   and were left alone — they are not part of this integration.
 
 No test was weakened, deleted or skipped.
 
@@ -104,7 +107,7 @@ No test was weakened, deleted or skipped.
 | `bun run test` | **PASS** — 1572 tests, 1566 pass, 0 fail, 6 skipped |
 | Targeted suites (autonomy, cancellation, engineering chain, unified model) | **PASS** — 47/47 |
 | `bun run build` | **PASS** — exit 0 (chunk-size warning only) |
-| Lint (`bun run lint` → oxlint) | **PASS** — 0 errors after one fix; 111 pre-existing warnings remain |
+| Lint (`bun run lint` → oxlint) | **PASS** — 0 errors after two fixes; 110 pre-existing warnings remain |
 | UI / screenshots | **UNVERIFIED** — see "What is not verified" |
 
 After the merge, the main worktree needed `bun install` before it could typecheck:
