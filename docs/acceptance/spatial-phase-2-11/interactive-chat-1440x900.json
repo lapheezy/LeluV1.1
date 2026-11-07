@@ -1,0 +1,30 @@
+{
+ "viewport": "1440x900",
+ "at": "2026-11-07T16:56:27.218Z",
+ "shots": [
+  "20-chat-open",
+  "21-message-sent"
+ ],
+ "steps": [
+  "OK gate",
+  "OK summon-chat",
+  "OK send",
+  "OK travel-while-chat-open"
+ ],
+ "checks": {
+  "navPresent": 1,
+  "summonButtons": 1,
+  "chatPanel": {
+   "input": true,
+   "placeholder": "Message LÉLU…",
+   "disabled": false
+  },
+  "before": 2,
+  "transcriptChars": 1125,
+  "afterTravel": {
+   "scene": "core",
+   "transition": "studio-entrance"
+  }
+ },
+ "errors": []
+}
