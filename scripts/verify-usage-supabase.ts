@@ -203,12 +203,13 @@ check("two real users signed in (and a second device for A)", phoneA.userId !== 
   const offlineGate = new UsageBudgetGate(offlineLedger);
   const unreachable = createClient("http://127.0.0.1:9", key, { auth: { persistSession: false } });
   offlineGate.setRemote(() => new SupabaseUsageRemote({ client: unreachable, userId: phoneA.userId }));
-  offlineLedger.setBudget("ai", source, { dailyCalls: 1 });
-  const r = await offlineGate.reserve("ai", source);
-  await offlineGate.settle(r, { ok: true });
+  const free = await offlineGate.reserve("ai", `${source}-uncapped`);
+  await offlineGate.settle(free, { ok: true });
+  offlineLedger.setBudget("ai", source, { dailyCalls: 5 });
   let stopped = "";
   try { await offlineGate.reserve("ai", source); } catch (e) { stopped = (e as Error).message; }
-  check("offline: the account is not consulted, the device budget still stops the call", !r.accountChecked && /daily calls budget reached/.test(stopped), `accountChecked=${r.accountChecked}; ${stopped}`);
+  check("offline: an uncapped call goes out flagged; a capped call is refused because the account cannot confirm it",
+    !free.accountChecked && /could not be reached to confirm/.test(stopped), `uncapped accountChecked=${free.accountChecked}; capped: ${stopped}`);
 }
 
 const report = { project: new URL(url).hostname.split(".")[0], run, ranAt: new Date().toISOString(), passed: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok).length, results };

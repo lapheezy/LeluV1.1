@@ -499,3 +499,28 @@ test("signed in but the account's budgets cannot be loaded: the call is refused,
   account.online = true;
   await gate.reserve("ai", "Groq");
 });
+
+test("account unreachable: a call a budget covers is refused (cannot confirm other devices' spend); an uncovered call still goes out", async () => {
+  const account = new FakeAccount();
+  account.budgets.set("user-a", [{ kind: "ai", source: "Groq", daily_requests: 1 }]);
+  const storage = memoryStorage();
+  const ledger = new UsageLedger(() => T0, storage);
+  const gate = new UsageBudgetGate(ledger);
+  const sync = new UsageSync(ledger, gate, storage);
+  sync.start(() => ({ client: account.client("user-a"), userId: "user-a" }), undefined, (c) => account.remote(c.userId));
+  await sync.refresh();
+  // Next session on the same device, account unreachable:
+  account.online = false;
+  const ledger2 = new UsageLedger(() => T0, storage);
+  const gate2 = new UsageBudgetGate(ledger2);
+  const sync2 = new UsageSync(ledger2, gate2, storage);
+  sync2.start(() => ({ client: account.client("user-a"), userId: "user-a" }), undefined, (c) => account.remote(c.userId));
+  gate2.setAccountReadiness(() => sync2.accountReady(50));
+  // The budget is known (kept copy), the account cannot confirm the spend
+  // on other devices: refused, never sent on a guess.
+  await assert.rejects(gate2.reserve("ai", "Groq"), /could not be reached to confirm/);
+  // A call no budget covers still goes out offline, flagged and synced later.
+  const free = await gate2.reserve("ai", "Cerebras");
+  assert.equal(free.accountChecked, false);
+  assert.match(free.warnings.join(" "), /no budget covers this call/);
+});

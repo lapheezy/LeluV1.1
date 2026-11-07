@@ -152,8 +152,23 @@ export default class UsageBudgetGate {
       try {
         result = await remote.reserve({ id: reservation.id, kind, source, reserveTokens: tokens });
       } catch {
-        // Unreachable account side (offline): the device budget still held.
-        reservation.warnings.push("Account budget could not be checked (offline); this device's budget was applied.");
+        // The account could not be checked. With no budget covering this
+        // call there is nothing to enforce: send it, record it, sync later.
+        // With one, this device's own count says nothing about the other
+        // devices' spend, so sending would be a guess — refuse instead
+        // (found live: a new device sent a call past a cap while its account
+        // requests were timing out).
+        const covered = this.ledger.budgetsSnapshot()[`${kind}:${source}`] || this.ledger.budgetsSnapshot()[`${kind}:${ALL_SOURCES}`];
+        if (covered) {
+          this.inFlight.delete(reservation.id);
+          throw new BudgetExhaustedError(
+            kind,
+            source,
+            "your account could not be reached to confirm this call is within your budget, so it was not sent. Try again when you're back online.",
+            "account",
+          );
+        }
+        reservation.warnings.push("Account could not be checked (offline) and no budget covers this call; it was sent and will sync later.");
       }
       if (result) {
         if (!result.allowed) {

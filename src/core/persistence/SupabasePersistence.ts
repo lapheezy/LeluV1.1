@@ -165,9 +165,14 @@ export default class SupabasePersistence {
   /**
    * The signed-in client and user for usage accounting (UsageSync), or null
    * when signed out. Every query made with it is scoped by RLS to this user.
+   *
+   * Deliberately NOT gated on isConnected(): that waits for data hydration,
+   * which can time out while the session is perfectly valid — and during that
+   * window budgets must still apply (found live: a call went out on a freshly
+   * signed-in device whose hydration had timed out).
    */
   public usageChannel(): { client: SupabaseClient; userId: string } | null {
-    return this.isConnected() && this.client && this.userId ? { client: this.client, userId: this.userId } : null;
+    return this.client && this.userId ? { client: this.client, userId: this.userId } : null;
   }
 
   /**

@@ -346,7 +346,10 @@ export default class UsageSync {
   private loadBudgets(userId: string): Promise<void> {
     if (this.budgetsLoadedFor === userId) return Promise.resolve();
     this.budgetsLoading ??= this.pullBudgets()
-      .then(() => { this.budgetsLoadedFor = userId; })
+      .then(() => {
+        this.budgetsLoadedFor = userId;
+        this.storage?.setItem(`lelu.usage.budgetsSeen.${userId}`, String(Date.now()));
+      })
       .catch((e) => this.fail(e))
       .finally(() => { this.budgetsLoading = null; });
     return this.budgetsLoading;
@@ -362,7 +365,11 @@ export default class UsageSync {
     if (this.budgetsLoadedFor === channel.userId) return true;
     const load = this.loadBudgets(channel.userId);
     await Promise.race([load, new Promise((r) => setTimeout(r, timeoutMs))]);
-    return this.budgetsLoadedFor === channel.userId;
+    if (this.budgetsLoadedFor === channel.userId) return true;
+    // Could not load now. A device that loaded this user's budgets before
+    // keeps that copy (UsageLedger persists it) and enforces it; a device
+    // that never has must not send blind.
+    return Boolean(this.storage?.getItem(`lelu.usage.budgetsSeen.${channel.userId}`));
   }
 
   async pullBudgets(): Promise<void> {
