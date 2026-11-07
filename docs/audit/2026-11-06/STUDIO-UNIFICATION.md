@@ -104,7 +104,7 @@ No test was weakened, deleted or skipped.
 | Gate | Result |
 |---|---|
 | `npx tsc -b --force` | **PASS** — 0 errors |
-| `bun run test` | **PASS** — 1572 tests, 1566 pass, 0 fail, 6 skipped |
+| `bun run test` | **PASS** — 1572 tests, **1570 pass, 0 fail**, 2 skipped (final run on the pushed tree; the run before the hook fix was 1566 pass / 0 fail / 6 skipped) |
 | Targeted suites (autonomy, cancellation, engineering chain, unified model) | **PASS** — 47/47 |
 | `bun run build` | **PASS** — exit 0 (chunk-size warning only) |
 | Lint (`bun run lint` → oxlint) | **PASS** — 0 errors after two fixes; 110 pre-existing warnings remain |
@@ -115,8 +115,9 @@ After the merge, the main worktree needed `bun install` before it could typechec
 `node_modules` predated the merged lockfile. `bun install` installed
 gsap@3.15.0 from the committed lockfile; no version was upgraded.
 
-Evidence: `evidence/wave-2-unification/` — `full-suite.log`, `build.log`,
-`install-main.log`, `build-main.log`, `lint.log` — plus the wave-1 logs.
+Evidence: `evidence/wave-2-unification/` — `full-suite.log` (first run),
+`full-suite-final.log` (final tree), `build.log`, `install-main.log`,
+`build-main.log`, `lint.log` — plus the wave-1 logs.
 
 ## What is not verified
 
