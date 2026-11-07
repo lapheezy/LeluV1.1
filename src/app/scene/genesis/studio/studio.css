@@ -60,4 +60,20 @@
   .lst-export { grid-template-columns: auto 1fr auto; }
   .lst-export .meta { grid-column: 2 / -1; }
   .lst-preview { min-height: 240px; }
+
+  /*
+   * The library had TWO nested scrollers inside the sheet's transformed
+   * content wrapper: the frame body scrolled, and so did this grid, sized by
+   * `height: 100%` against an auto-height parent. On a phone the action at
+   * the bottom of a card could not be scrolled into view at all — Chromium
+   * reported it outside the viewport and a tap never landed. One scroller
+   * (the sheet body), one column, and the card flows in it: every action is
+   * reachable by scrolling the same surface the rest of the panel uses.
+   */
+  .lst-library { height: auto; }
+  .lst-grid { grid-template-columns: 1fr; overflow: visible; }
+  .lst-card { min-height: 0; }
+  .lst-card-open { min-width: 0; }
+  .lst-card > span { min-width: 0; }
+  .lst-card .lst-btn { align-self: flex-start; }
 }
