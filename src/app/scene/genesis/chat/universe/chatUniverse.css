@@ -283,3 +283,8 @@ html[data-lelu-universe="open"] [data-testid="lelu-companion"] { visibility: hid
 /* A reply reads left-aligned (the window centres its content); file sizes never wrap. */
 .lcu-msg[data-role="assistant"] .lcu-bubble { text-align: left; }
 .lcu-bubble [data-lelu-chat-artifact] span { white-space: nowrap; overflow-wrap: normal; }
+/* Buttons keep their label on one line (overflow-wrap:anywhere broke "Open" into letters). */
+.lcu-bubble .lst-btn { white-space: nowrap; overflow-wrap: normal; flex-shrink: 0; }
+/* The card title shrinks (and ellipsizes) so its subtitle never runs under the Open button. */
+.lcu-bubble .lst-chat-card header .title { flex: 1 1 auto; min-width: 0; }
+.lcu-bubble .lst-chat-card header .title em { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
