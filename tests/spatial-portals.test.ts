@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import PortalRegistry, {
   PORTAL_STORAGE_KEY,
+  RING_SCENES,
   builtinPortalId,
   isBuiltinPortal,
   readPortals,
@@ -20,8 +21,9 @@ function memoryPort() {
     get<T>(key: string): T | null {
       return (data.get(key) as T) ?? null;
     },
-    set(key: string, value: unknown): void {
+    set(key: string, value: unknown): boolean {
       data.set(key, value);
+      return true;
     },
   };
 }
@@ -84,9 +86,10 @@ test("a portal that cannot be saved is refused instead of reported as created", 
     get<T>(key: string): T | null {
       return (data.get(key) as T) ?? null;
     },
-    set(key: string, value: unknown): void {
+    set(key: string, value: unknown): boolean {
       if (failWrites) throw new Error("quota");
       data.set(key, value);
+      return true;
     },
   });
   failWrites = true;
@@ -141,6 +144,65 @@ test("a removed portal stops resolving, and a replaced one keeps its creation ti
   assert.equal(registry.remove(id), true);
   assert.equal(registry.resolve(id), null);
   assert.equal(registry.remove(id), false, "removing twice is not an error, just false");
+});
+
+test("a backend that swallows the failure cannot be mistaken for a saved portal", () => {
+  // The real store used to return nothing, so a write the browser dropped was
+  // indistinguishable from a successful one. That is how a portal was reported
+  // as created and then vanished on reload.
+  const data = new Map<string, unknown>();
+  const silent = PortalRegistry.resetForTests({
+    get<T>(key: string): T | null {
+      return (data.get(key) as T) ?? null;
+    },
+    set(): boolean {
+      return false;
+    },
+  });
+  const refused = silent.create({ destination: "studio" });
+  if (refused.ok) assert.fail("a portal that was not saved must not be reported as created");
+  assert.match(refused.reason, /could not be saved/);
+  assert.equal(silent.list().length, 0, "nothing enters the ring");
+  assert.equal(silent.seedRing(RING_SCENES), 0, "seeding reports the failure instead of pretending");
+  assert.equal(silent.getMigrationReport().portals, 0);
+});
+
+test("the built-in ring is every real destination except the world itself", () => {
+  const ids: readonly string[] = RING_SCENES;
+  assert.ok(ids.length >= 8, "the ring holds the environments, not two entries");
+  for (const id of ["core", "cosmos"]) {
+    assert.ok(!ids.includes(id), `${id} is the world the ring hangs in, not a portal`);
+  }
+  for (const id of ids) {
+    assert.ok(
+      SPATIAL_DESTINATIONS.some((destination) => destination.id === id),
+      `${id} exists in the scene graph`,
+    );
+  }
+});
+
+test("the built-in ring survives a reload exactly once", () => {
+  const port = memoryPort();
+  const registry = PortalRegistry.resetForTests(port);
+  assert.equal(registry.seedRing(RING_SCENES), RING_SCENES.length);
+
+  // A reload: the same storage, a fresh registry, nothing duplicated.
+  const reloaded = PortalRegistry.resetForTests(port);
+  assert.equal(reloaded.list().length, RING_SCENES.length);
+  assert.equal(reloaded.seedRing(RING_SCENES), 0, "seeding after a reload adds nothing");
+  assert.equal(reloaded.list().length, RING_SCENES.length);
+
+  const user = reloaded.create({ destination: "files", label: "Client files" });
+  assert.ok(user.ok);
+  const afterCreate = PortalRegistry.resetForTests(port);
+  assert.equal(afterCreate.list().length, RING_SCENES.length + 1);
+  assert.equal(afterCreate.get(user.portal.id)?.destination, "files", "the same identity comes back");
+  assert.equal(afterCreate.remove(user.portal.id), true);
+  assert.equal(
+    PortalRegistry.resetForTests(port).get(user.portal.id),
+    null,
+    "the removal survives the reload too",
+  );
 });
 
 test("legacy portal lists migrate only real destinations, counting the rest", () => {

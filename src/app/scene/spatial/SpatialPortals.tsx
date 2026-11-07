@@ -37,14 +37,16 @@ import {
 } from "three";
 import SpatialRuntime from "./SpatialRuntime";
 import type { SpatialState } from "./SpatialRuntime";
-import { SPATIAL_DESTINATIONS, destinationFor, type SpatialSceneId } from "./SpatialScenes";
-import PortalRegistry, { isBuiltinPortal, type PortalRecord } from "./PortalRegistry";
+import { destinationFor, type SpatialSceneId } from "./SpatialScenes";
+import PortalRegistry, { RING_SCENES, isBuiltinPortal, type PortalRecord } from "./PortalRegistry";
 import CosmosStore from "../genesis/cosmos/CosmosStore";
 
-/** Destinations drawn as portals in the world (the core and cosmos are the world itself). */
-const PORTAL_SCENES: SpatialSceneId[] = SPATIAL_DESTINATIONS.filter(
-  (destination) => destination.kind !== "core" && destination.kind !== "cosmos",
-).map((destination) => destination.id);
+/**
+ * Destinations drawn as portals in the world (the core and cosmos are the world
+ * itself). The list belongs to the registry, so the ring and the seeding can
+ * never disagree about what the built-in ring contains.
+ */
+const PORTAL_SCENES: readonly SpatialSceneId[] = RING_SCENES;
 
 const PARTICLE_COUNT = 420;
 

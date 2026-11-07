@@ -28,7 +28,7 @@
 import { useEffect, useRef, useState } from "react";
 import SpatialRuntime, { installSpatialBridge, type SpatialState } from "./SpatialRuntime";
 import SpatialNavigator from "./SpatialNavigator";
-import PortalRegistry from "./PortalRegistry";
+import PortalRegistry, { RING_SCENES } from "./PortalRegistry";
 import { destinationFor, destinationForPanel, type SpatialSceneId } from "./SpatialScenes";
 import { useGenesis } from "../genesis/GenesisCore";
 import AvatarCommandBus from "../../../core/avatar/AvatarCommandBus";
@@ -50,6 +50,18 @@ export default function SpatialExperience() {
     runtime.start("core");
     return uninstall;
   }, [runtime]);
+
+  /*
+   * The built-in ring's identities belong to the registry, not to a
+   * component's lifetime. They are seeded here, in the always-mounted
+   * experience, so a reload finds them whether or not the 3D field has drawn
+   * yet — the field only exists inside the canvas, and it used to be the only
+   * seeder, which is why nothing was ever written. `seedRing` is idempotent:
+   * a second call adds nothing and never duplicates a built-in portal.
+   */
+  useEffect(() => {
+    PortalRegistry.getInstance().seedRing(RING_SCENES);
+  }, []);
 
   useEffect(() => {
     setSpatial(runtime.getState());

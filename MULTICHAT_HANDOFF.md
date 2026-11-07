@@ -119,3 +119,30 @@ Mission report: `docs/audit/2026-11-07/MISSION-5-1-SPATIAL-COMPLETION.md`.
 - **Ownership released:** when the mission commit lands on `claude/master-integration`.
 
 Mission report: `docs/acceptance/MISSION-5-2-SPATIAL-VISUAL-ACCEPTANCE.md`.
+
+---
+
+## Mission 5.3 — portal persistence (claimed)
+
+**Files claimed:** `src/app/scene/spatial/PortalRegistry.ts`, `src/app/scene/spatial/SpatialPortals.tsx`,
+`src/app/scene/spatial/SpatialExperience.tsx`, `src/app/scene/genesis/render/GenesisRenderer.tsx`,
+`src/core/storage/KvStore.ts`, `tests/spatial-portals.test.ts`, `tests/portal-dispatch.test.ts`,
+`docs/acceptance/spatial-phase-2-12/`, `docs/acceptance/MISSION-5-3-PORTAL-PERSISTENCE.md`.
+
+- **The 5.2 warning was wrong in its cause, not its observation.** The portal key was never written
+  because `SpatialPortals.tsx` had **no importer in `src`**: the component that called `seedRing`
+  was never mounted, so no built-in identity was ever created and the 3D field never drew. The
+  navigator Part A photographed is `SpatialNavigator`, a different surface.
+- **Fixed:** seeding moved to the always-mounted `SpatialExperience`; the field is mounted in the
+  existing `GenesisRenderer` beside `SpatialLayer`; the ring's list is `RING_SCENES` in the registry.
+- **Also fixed:** `KvStore.set` now returns whether a backend stored the value, and `PortalRegistry`
+  requires `true`, so a failed write can no longer be reported as a durable success.
+- **Measured:** 11 built-in identities at mount and after reload; panel-created portals 11→13→13 and
+  removal 13→12→11 across reloads; the same at 375/390/430/1440/1920; agent path through
+  `dispatchToolCall` covered by two tests.
+- **Still unproven (do not claim):** that each portal mesh is visually distinguishable in the 3D
+  ring (software compositor, no R3F probe), conversation continuity across an actual flight, and
+  memory/CPU behaviour. `SpatialPortals`'s pre-existing exhaustive-deps warning was left alone.
+- If another executor needs to touch the spatial registry, mount, or `KvStore.set`'s return type,
+  say so here first: `KvStore.set` changing from `void` to `boolean` is source-compatible for callers
+  that ignore the value, but a caller that *tested* the result was never possible before.

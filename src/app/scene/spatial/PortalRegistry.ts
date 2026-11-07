@@ -34,10 +34,20 @@ export interface PortalRecord {
 
 export interface PortalPort {
   get<T>(key: string): T | null;
-  set(key: string, value: unknown): void;
+  /** True only when the value is actually stored somewhere durable. */
+  set(key: string, value: unknown): boolean;
 }
 
 export const PORTAL_STORAGE_KEY = "lelu.spatial.portals.v1";
+
+/**
+ * The built-in ring: every destination that is a place to go. The Core and the
+ * Cosmos are the world itself, not portals in it. This is the registry's list,
+ * not a scene's copy: the 3D field and the seeding both read it from here.
+ */
+export const RING_SCENES: readonly SpatialSceneId[] = SPATIAL_DESTINATIONS.filter(
+  (destination) => destination.kind !== "core" && destination.kind !== "cosmos",
+).map((destination) => destination.id);
 const MAX_PORTALS = 64;
 
 /**
@@ -57,8 +67,8 @@ const kvPort: PortalPort = {
   get<T>(key: string): T | null {
     return KvStore.getInstance().get<T>(key) ?? null;
   },
-  set(key: string, value: unknown): void {
-    KvStore.getInstance().set(key, value);
+  set(key: string, value: unknown): boolean {
+    return KvStore.getInstance().set(key, value);
   },
 };
 
@@ -68,8 +78,9 @@ function memoryPort(): PortalPort {
     get<T>(key: string): T | null {
       return (data.get(key) as T) ?? null;
     },
-    set(key: string, value: unknown): void {
+    set(key: string, value: unknown): boolean {
       data.set(key, value);
+      return true;
     },
   };
 }
@@ -302,13 +313,20 @@ export default class PortalRegistry {
     return () => this.listeners.delete(listener);
   }
 
-  /** Returns whether the write actually happened — callers must not fake success. */
+  /**
+   * Returns whether the write actually happened — callers must not fake
+   * success. The port reports it: a backend that swallows its errors cannot be
+   * told apart from a saved one, which is how a portal used to be reported as
+   * created and then vanish on reload.
+   */
   private persist(): boolean {
+    let saved = false;
     try {
-      this.port.set(PORTAL_STORAGE_KEY, [...this.portals.values()]);
+      saved = this.port.set(PORTAL_STORAGE_KEY, [...this.portals.values()]) === true;
     } catch {
-      return false;
+      saved = false;
     }
+    if (!saved) return false;
     for (const listener of this.listeners) listener(this.list());
     return true;
   }

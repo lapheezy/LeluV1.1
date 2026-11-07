@@ -27,6 +27,7 @@ import { TestPlanet } from "./DebugPlanet";
 
 import { useGenesisScene } from "../useGenesisScene";
 import SpatialLayer from "../spatial/SpatialLayer";
+import SpatialPortals from "../../spatial/SpatialPortals";
 
 export default function GenesisRenderer() {
   const root = useRef<Group>(null);
@@ -92,6 +93,12 @@ export default function GenesisRenderer() {
       {/* Authored spatial objects — the live SpatialSceneGraph drawn with
           this same renderer, in the default Genesis world as well as v2. */}
       <SpatialLayer />
+
+      {/* The portal ring: the registry's identities drawn in this same canvas,
+          so a portal a person or an agent created is a place in the world —
+          not a row in a panel. It consumes the one registry and creates no
+          renderer, camera or scene of its own. */}
+      <SpatialPortals />
 
     </group>
   );
