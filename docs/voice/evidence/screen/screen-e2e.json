@@ -1,62 +1,62 @@
 {
- "ranAt": "2026-11-07T05:33:35.738Z",
+ "ranAt": "2026-11-07T13:26:39.813Z",
  "log": [
   {
-   "t": 19015,
+   "t": 25070,
    "step": "share-started",
    "active": true,
-   "startedAt": 1794029585448,
+   "startedAt": 1794057970106,
    "sampled": 1,
    "kept": 1,
    "unchangedSkipped": 0,
-   "lastChangeAt": 1794029585462,
+   "lastChangeAt": 1794057970121,
    "surface": "browser"
   },
   {
-   "t": 29098,
+   "t": 32512,
    "step": "ask-1",
    "prompt": "Look at my shared screen. In one or two sentences, what am I looking at?",
    "frames": [
     "shared-screen.jpg"
    ],
-   "provider": "offline",
-   "model": "offline",
-   "ms": 4411,
-   "answer": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "provider": "OpenRouter",
+   "model": "openrouter/auto",
+   "ms": 3878,
+   "answer": "You're looking at a mail inbox titled \"Mail — Inbox\" with three messages: Priya's \"Quarterly report draft,\" Sam's \"Lunch on Friday?\", and a Billing notice that \"Invoice #4471 paid,\" with 3 unread messages noted below.",
    "stats": {
     "active": true,
-    "startedAt": 1794029585448,
+    "startedAt": 1794057970106,
     "sampled": 8,
     "kept": 1,
     "unchangedSkipped": 7,
-    "lastChangeAt": 1794029585462,
+    "lastChangeAt": 1794057970121,
     "surface": "browser"
    }
   },
   {
-   "t": 36961,
+   "t": 41961,
    "step": "ask-2",
    "prompt": "What changed on my screen just now, and what does the message mean for me?",
    "frames": [
     "shared-screen-before.jpg",
     "shared-screen-now.jpg"
    ],
-   "provider": "offline",
-   "model": "offline",
-   "ms": 2791,
-   "answer": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "provider": "OpenRouter",
+   "model": "openrouter/auto",
+   "ms": 5947,
+   "answer": "A payment error dialog (\"Error 503 — Service Unavailable\") appeared over your inbox. It says the payment service didn't respond and your card was not charged, with a retry offered in 30 seconds.\n\nThis matters because the inbox says Invoice #4471 is already paid. Before you retry, check your bank or billing account to confirm whether this payment is for the same invoice. If it is, retrying could risk a double charge, so I'd wait and verify first.",
    "stats": {
     "active": true,
-    "startedAt": 1794029585448,
-    "sampled": 13,
+    "startedAt": 1794057970106,
+    "sampled": 12,
     "kept": 2,
-    "unchangedSkipped": 11,
-    "lastChangeAt": 1794029597871,
+    "unchangedSkipped": 10,
+    "lastChangeAt": 1794057983249,
     "surface": "browser"
    }
   },
   {
-   "t": 46720,
+   "t": 48250,
    "step": "stop",
    "liveBeforeStop": true,
    "liveAfterStop": false,
@@ -64,7 +64,7 @@
    "framesAfterStop": 0
   },
   {
-   "t": 48243,
+   "t": 50472,
    "step": "ledger",
    "ai": [
     {
@@ -77,36 +77,12 @@
     },
     {
      "source": "OpenRouter",
-     "ok": false,
-     "in": null,
-     "out": null,
-     "cost": "unknown",
-     "usd": null
-    },
-    {
-     "source": "Groq",
-     "ok": false,
-     "in": null,
-     "out": null,
-     "cost": "unknown",
-     "usd": null
-    },
-    {
-     "source": "Fireworks",
-     "ok": false,
-     "in": null,
-     "out": null,
-     "cost": "unknown",
-     "usd": null
-    },
-    {
-     "source": "Groq",
-     "model": "openai/gpt-oss-120b",
+     "model": "openrouter/free",
      "ok": true,
-     "in": 1203,
-     "out": 522,
-     "cost": "unknown",
-     "usd": null
+     "in": 1265,
+     "out": 699,
+     "cost": "reported",
+     "usd": 0
     },
     {
      "source": "Groq",
@@ -115,6 +91,24 @@
      "out": null,
      "cost": "unknown",
      "usd": null
+    },
+    {
+     "source": "OpenRouter",
+     "model": "openrouter/auto",
+     "ok": true,
+     "in": 35545,
+     "out": 91,
+     "cost": "reported",
+     "usd": 0.004488525
+    },
+    {
+     "source": "OpenRouter",
+     "model": "openrouter/auto",
+     "ok": true,
+     "in": 36826,
+     "out": 415,
+     "cost": "reported",
+     "usd": 0.00481065
     }
    ]
   }
