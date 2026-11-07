@@ -40,6 +40,8 @@ import { ACTIVITY_ACCENT, useLeluActivity, type LeluActivity } from "./leluActiv
 import LeluCharacter from "./LeluCharacter";
 import { FULL_BODY_COMMANDS } from "./LeluBody";
 import AvatarCommandBus from "../../../../core/avatar/AvatarCommandBus";
+import HomeStore from "../home/homeStore";
+import { immersiveDock } from "./companionDock";
 
 /** Her tools at work: she steps out of the backdrop to be seen working. */
 const TOOL_ACTIVITIES = new Set<LeluActivity>(["SEARCHING", "BROWSING", "WORKING", "BUILDING", "RENDERING", "EXPLORING", "PRESENTING"]);
@@ -49,6 +51,7 @@ const TOOL_HOLD_MS = 8000;
 const EDGE = 12;
 const MIN_W = 100;
 const MIN_H = 160;
+
 
 export type CompanionPresence = "face" | "window" | "hero";
 
@@ -118,6 +121,13 @@ export function dockedWindow(viewport: { width: number; height: number }, chat: 
   return { left: viewport.width - width - EDGE, top: Math.max(EDGE, viewport.height - height - (compact ? 116 : 108)), width, height };
 }
 
+/** The home store's immersion flag, which is what "the world has the screen" means. */
+function useImmersive(): boolean {
+  const [immersive, setImmersive] = useState(() => HomeStore.get().immersive);
+  useEffect(() => HomeStore.subscribe((state) => setImmersive(state.immersive)), []);
+  return immersive;
+}
+
 function clampBox(box: Box, viewport: { width: number; height: number }): Box {
   const width = Math.min(Math.max(MIN_W, box.width), viewport.width - EDGE * 2);
   const height = Math.min(Math.max(MIN_H, box.height), viewport.height - EDGE * 2);
@@ -142,6 +152,7 @@ function Companion({ companion }: { companion: CompanionState }) {
   const workspace = useWorkspace();
   const compact = chatFillsScreen(workspace);
   const activity = useLeluActivity();
+  const immersive = useImmersive();
   const { host, hero, chat, viewport } = useChatGeometry();
 
   // Tool work keeps her in her window a little after it ends.
@@ -196,12 +207,20 @@ function Companion({ companion }: { companion: CompanionState }) {
   if (hero && state.activePanel === "none" && !workspaceInUse && !bodyWanted) {
     return createPortal(<HeroPresence activity={activity} />, hero);
   }
+  // The world has the screen and she is not being talked to: step aside rather
+  // than sit in the middle of what the user is looking at.
+  const steppedAside = immersive && !chatOpen;
   return (
     <CompanionWindow
       companion={companion}
       activity={activity}
       viewport={viewport}
-      docked={dockedWindow(viewport, state.activePanel === "chat" ? chat : null, compact)}
+      collapsed={steppedAside}
+      docked={
+        steppedAside
+          ? immersiveDock(viewport)
+          : dockedWindow(viewport, state.activePanel === "chat" ? chat : null, compact)
+      }
       onOpenChat={() => openPanel("chat")}
     />
   );
@@ -246,12 +265,14 @@ function CompanionWindow({
   activity,
   viewport,
   docked,
+  collapsed,
   onOpenChat,
 }: {
   companion: CompanionState;
   activity: LeluActivity;
   viewport: { width: number; height: number };
   docked: Box;
+  collapsed: boolean;
   onOpenChat: () => void;
 }) {
   const store = CompanionStore.getInstance();
@@ -259,7 +280,9 @@ function CompanionWindow({
   const [name, setName] = useState(() => AvatarStore.getInstance().get().identity.name || "LÉLU");
   useEffect(() => AvatarStore.getInstance().subscribe((profile) => setName(profile.identity.name || "LÉLU")), []);
 
-  const saved = companion.window;
+  // A rememberered position is hers only when she is her full self: the small
+  // step-aside size is a decision about what is on screen, not a placement.
+  const saved = collapsed ? null : companion.window;
   const placed: Box | null = saved
     ? clampBox(
         { left: saved.left * viewport.width, top: saved.top * viewport.height, width: saved.width * viewport.width, height: saved.height * viewport.height },
@@ -323,6 +346,7 @@ function CompanionWindow({
       data-presence="window"
       data-activity={activity}
       data-docked={saved ? "false" : "true"}
+      data-collapsed={collapsed ? "true" : "false"}
       role="complementary"
       aria-label={`${name} — her window. Drag the top bar to move it, the corner grip to resize it.`}
       style={{
@@ -359,7 +383,7 @@ function CompanionWindow({
           display: "flex",
           alignItems: "center",
           gap: 6,
-          padding: "0 4px 0 22px",
+          padding: collapsed ? "0 4px" : "0 4px 0 22px",
           cursor: live ? "grabbing" : "grab",
           touchAction: "none",
           userSelect: "none",
@@ -369,19 +393,23 @@ function CompanionWindow({
         }}
       >
         <span aria-hidden style={{ width: 6, height: 6, borderRadius: 999, background: accent, boxShadow: `0 0 6px ${accent}` }} />
-        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
-        {saved ? (
+        {collapsed ? null : (
+          <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
+        )}
+        {!collapsed && saved ? (
           <button type="button" title="Dock her beside the chat" aria-label="Dock her window" onClick={() => store.dockWindow()} style={buttonStyle}>
             ⤓
           </button>
         ) : null}
-        <button type="button" title="Hide" aria-label="Hide her window" onClick={() => store.setEnabled(false)} style={buttonStyle}>
-          ✕
-        </button>
+        {collapsed ? null : (
+          <button type="button" title="Hide" aria-label="Hide her window" onClick={() => store.setEnabled(false)} style={buttonStyle}>
+            ✕
+          </button>
+        )}
       </div>
 
       {/* All of her. Double-click / double-tap: talk to her. */}
-      <div style={{ flex: 1, minHeight: 0 }} onDoubleClick={onOpenChat}>
+      <div style={{ flex: 1, minHeight: 0 }} onDoubleClick={onOpenChat} onClick={collapsed ? onOpenChat : undefined}>
         <LeluCharacter framing="full" testId="lelu-companion-character" />
       </div>
 

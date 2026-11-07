@@ -43,6 +43,11 @@ import { genesisCameraIntentBus }
   from "./GenesisCameraIntent";
 
 import {
+  recallCameraPose,
+  rememberCameraPose,
+} from "./cameraPoseMemory";
+
+import {
   PLANET_CENTER,
   PLANET_RADIUS,
 } from "./render/PlanetExplorer";
@@ -144,11 +149,40 @@ export default function GenesisCameraController({
     return unsubscribe;
   }, [navigator]);
 
+  /*
+   * The phone unmounts this whole world while chat owns the screen, so a mount
+   * used to reset the view to the origin even though the scene the user was
+   * looking at had not changed. Restore the pose this session left behind;
+   * the origin is the right answer only for a world that was never left.
+   */
   useEffect(() => {
-    if (controlsRef.current) {
-      controlsRef.current.target.set(0, 0, 0);
-      controlsRef.current.update();
+    const controls = controlsRef.current;
+    if (!controls) return;
+    const remembered = recallCameraPose();
+    if (remembered) {
+      camera.position.set(remembered.position[0], remembered.position[1], remembered.position[2]);
+      controls.target.set(remembered.target[0], remembered.target[1], remembered.target[2]);
+    } else {
+      controls.target.set(0, 0, 0);
     }
+    controls.update();
+  }, [camera]);
+
+  /*
+   * Remember the view when the world goes away (chat opening on a phone),
+   * not only on an explicit navigation, so returning does not fly home.
+   */
+  useEffect(() => {
+    const perspective = camera as PerspectiveCamera;
+    return () => {
+      const controls = controlsRef.current;
+      if (!controls) return;
+      rememberCameraPose({
+        position: [camera.position.x, camera.position.y, camera.position.z],
+        target: [controls.target.x, controls.target.y, controls.target.z],
+        fov: perspective.isPerspectiveCamera ? perspective.fov : undefined,
+      });
+    };
   }, [camera]);
 
   /*
