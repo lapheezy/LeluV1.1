@@ -89,6 +89,11 @@ and software projects arrive in the same shape when the backup is active.
    engineering/workflow/`namesTool` stand-aside chain keeps its pinned shape;
    the guard itself stays, and no tool was removed.
 
+4. **Lint (1 error).** `scripts/verify-workspace-artifacts.mjs` destructured a
+   `waitFor` it never used; the binding was removed. The 111 warnings are
+   pre-existing style warnings (`no-unused-vars` on arguments and similar) and
+   were left alone — they are not part of this integration.
+
 No test was weakened, deleted or skipped.
 
 ## Validation
@@ -98,11 +103,17 @@ No test was weakened, deleted or skipped.
 | `npx tsc -b --force` | **PASS** — 0 errors |
 | `bun run test` | **PASS** — 1572 tests, 1566 pass, 0 fail, 6 skipped |
 | Targeted suites (autonomy, cancellation, engineering chain, unified model) | **PASS** — 47/47 |
-| `bun run build` | **PASS** (see below) |
-| Lint | **NOT RUN** — no lint script in `package.json` |
+| `bun run build` | **PASS** — exit 0 (chunk-size warning only) |
+| Lint (`bun run lint` → oxlint) | **PASS** — 0 errors after one fix; 111 pre-existing warnings remain |
 | UI / screenshots | **UNVERIFIED** — see "What is not verified" |
 
-Evidence: `evidence/wave-2-unification/full-suite.log`, plus the wave-1 logs.
+After the merge, the main worktree needed `bun install` before it could typecheck:
+`gsap` is a dependency session3d's spatial runtime adds, and the worktree's
+`node_modules` predated the merged lockfile. `bun install` installed
+gsap@3.15.0 from the committed lockfile; no version was upgraded.
+
+Evidence: `evidence/wave-2-unification/` — `full-suite.log`, `build.log`,
+`install-main.log`, `build-main.log`, `lint.log` — plus the wave-1 logs.
 
 ## What is not verified
 
