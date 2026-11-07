@@ -25,10 +25,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import SpatialIntentBus from "../../../../core/spatial/SpatialIntentBus";
-import {
-  beginSpatialCameraTakeover,
-  endSpatialCameraTakeover,
-} from "../GenesisCameraIntent";
+import { claimCinematicCamera } from "../cameraOwnership";
 import SpatialRevealIntent, { type SpatialRevealRequest } from "../../../../core/spatial/SpatialRevealIntent";
 import { useGenesis } from "../GenesisCore";
 import HomeStore from "../home/homeStore";
@@ -89,7 +86,6 @@ export default function SpatialRevealBridge() {
   const { state } = useGenesis();
   const surface = useSurface();
   const [requestRevision, setRequestRevision] = useState(0);
-  const [overlayRevision, setOverlayRevision] = useState(0);
   const framed = useRef<string | null>(null);
 
   useEffect(
@@ -119,10 +115,10 @@ export default function SpatialRevealBridge() {
       if (!next && SpatialRevealIntent.getInstance().latestRequest()) {
         HomeStore.setImmersive(true);
       }
-      // Going back into chat ends the held reveal view: the camera belongs to
-      // the user again, and the next reveal will frame afresh.
-      if (next) endSpatialCameraTakeover();
-      setOverlayRevision((revision) => revision + 1);
+      // Going back into chat does NOT end the held reveal view: chat is not
+      // the user taking the camera, and the framed object must still be in
+      // frame when they come back. Ownership is released by an actual
+      // gesture (GenesisCameraController → cameraOwnership).
     });
     observer.observe(root, { attributes: true, attributeFilter: ["data-lelu-universe"] });
     return () => observer.disconnect();
@@ -150,17 +146,18 @@ export default function SpatialRevealBridge() {
     surface.cosmosRendered &&
     !chatUniverseOpen();
 
-  // A new world appearance gets its own framing (the canvas remounts at
-  // its default pose on a phone, and the object must be back in view).
-  useEffect(() => {
-    if (!worldReady) framed.current = null;
-  }, [worldReady]);
-
   useEffect(() => {
     if (!worldReady) return;
     const request = SpatialRevealIntent.getInstance().latestRequest();
     if (!request) return;
-    const key = `${request.requestedAt}:${overlayRevision}`;
+    /*
+     * One request is framed once. The world can appear again without a new
+     * request (chat closing on a phone remounts the canvas; opening the
+     * desktop chat leaves it mounted), and re-framing then framed a rotating
+     * object from a new angle — a different view of the same scene every time
+     * the user came back. The restored pose carries the view instead.
+     */
+    const key = String(request.requestedAt);
     if (framed.current === key) return;
 
     let cancelled = false;
@@ -192,7 +189,7 @@ export default function SpatialRevealBridge() {
             direction: REVEAL_DIRECTION,
           });
         }
-        beginSpatialCameraTakeover();
+        claimCinematicCamera();
         // Read-only diagnostic, like __leluSpatialProbe: what the reveal asked
         // for and what the camera bus answered, for acceptance evidence.
         (window as unknown as { __leluReveal?: unknown }).__leluReveal = {
@@ -214,7 +211,7 @@ export default function SpatialRevealBridge() {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [worldReady, requestRevision, overlayRevision]);
+  }, [worldReady, requestRevision]);
 
   return null;
 }

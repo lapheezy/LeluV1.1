@@ -1,6 +1,6 @@
 {
   "viewport": "375x812",
-  "capturedAt": "2026-11-06T23:57:47.505Z",
+  "capturedAt": "2026-11-07T01:52:29.776Z",
   "steps": {
     "home": {
       "universe": false,
@@ -9,9 +9,9 @@
       "revision": 0,
       "objects": [],
       "camera": [
-        6,
-        2.5,
-        4
+        -3,
+        1.5,
+        7
       ],
       "target": null,
       "reveal": null,
@@ -65,9 +65,9 @@
           "name": "Nova",
           "rendered": true,
           "world": [
-            2.2570749554489895,
+            2.264421189661631,
             -1.35,
-            2.1414043629088235
+            2.1336346162854136
           ]
         }
       ],
@@ -79,7 +79,7 @@
       "target": null,
       "reveal": {
         "target": "Nova",
-        "requestedAt": 1794009511140,
+        "requestedAt": 1794016393516,
         "ok": true,
         "message": "Framed \"Nova\" — camera at (4.3, -0.01, 6.02) looking at (2.2, -1.35, 2.2). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
         "camera": {
@@ -96,7 +96,7 @@
           "distance": 4.560301209473714,
           "fov": 56
         },
-        "at": 1794009533835
+        "at": 1794016418191
       },
       "companion": {
         "presence": "window",
@@ -121,14 +121,14 @@
         }
       ],
       "camera": [
-        0,
-        0.9,
-        3.2
+        4.301,
+        -0.013,
+        6.02
       ],
       "target": null,
       "reveal": {
         "target": "Nova",
-        "requestedAt": 1794009511140,
+        "requestedAt": 1794016393516,
         "ok": true,
         "message": "Framed \"Nova\" — camera at (4.3, -0.01, 6.02) looking at (2.2, -1.35, 2.2). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
         "camera": {
@@ -145,7 +145,7 @@
           "distance": 4.560301209473714,
           "fov": 56
         },
-        "at": 1794009533835
+        "at": 1794016418191
       },
       "companion": {
         "presence": "window",
@@ -168,9 +168,9 @@
           "name": "Nova",
           "rendered": true,
           "world": [
-            2.2813169253709926,
+            2.2868809675853163,
             -1.35,
-            2.1155597571365936
+            2.109543893853847
           ]
         }
       ],
@@ -182,7 +182,7 @@
       "target": null,
       "reveal": {
         "target": "Nova",
-        "requestedAt": 1794009511140,
+        "requestedAt": 1794016393516,
         "ok": true,
         "message": "Framed \"Nova\" — camera at (4.3, -0.01, 6.02) looking at (2.2, -1.35, 2.2). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
         "camera": {
@@ -199,7 +199,7 @@
           "distance": 4.560301209473714,
           "fov": 56
         },
-        "at": 1794009583245
+        "at": 1794016418191
       },
       "companion": {
         "presence": "window",

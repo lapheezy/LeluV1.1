@@ -43,6 +43,7 @@ import type EngineRuntime from "./engines/EngineRuntime";
 import { useSceneMountLog } from "./useSceneMountLog";
 import LivingSystemVisuals from "./LivingSystemVisuals";
 import WorkspaceVisual from "./WorkspaceVisual";
+import PlaceInWorldButton from "./spatial/PlaceInWorldButton";
 import {
   type VisualStateRuntime,
   type VisualStateStructure,
@@ -719,6 +720,25 @@ function SystemWorkspace({
                   Selected · ask LÉLU
                 </button>
               ) : null}
+              {/* The view is the subject: place it as a real scene object. */}
+              <PlaceInWorldButton
+                name={view.title}
+                kind="box"
+                color={view.kind === "image" ? "#c084fc" : "#67e8f9"}
+                scale={0.8}
+                label="In world"
+                buttonStyle={{
+                  border: "1px solid rgba(103, 232, 249, 0.4)",
+                  background: "rgba(56, 189, 248, 0.14)",
+                  color: "#bae6fd",
+                  borderRadius: 999,
+                  padding: "2px 8px",
+                  fontSize: 10,
+                  cursor: "pointer",
+                  flexShrink: 0,
+                  whiteSpace: "nowrap",
+                }}
+              />
               <button
                 type="button"
                 onClick={(event) => {

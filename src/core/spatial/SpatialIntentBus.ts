@@ -47,7 +47,6 @@ import {
   type SpatialVec3,
 } from "./SpatialTypes";
 import { normalizeSpatialColor, sameSpatialPosition } from "./SpatialValidation";
-import { endSpatialCameraTakeover } from "../../app/scene/genesis/GenesisCameraIntent";
 import {
   describeVerification,
   nearestHomeView,
@@ -431,8 +430,8 @@ export default class SpatialIntentBus {
         break;
     }
     if (!plan.ok) {
-      // A refused command never took the camera, so exploration may resume.
-      endSpatialCameraTakeover();
+      // A refused command never took the camera. It also must not release a
+      // reveal's hold: the object that was framed is still being looked at.
       return this.refuse(op, plan.refusal, taskId);
     }
 
@@ -444,8 +443,9 @@ export default class SpatialIntentBus {
       intent.op === "camera.reset" ? verifyCameraHome(measured) : verifyCamera(plan.pose, measured),
       { screenshot: "not-captured" },
     );
-    // The command is over once its result is read; autonomous motion may resume.
-    endSpatialCameraTakeover();
+    // Finishing a command does not hand the camera back to autonomous motion:
+    // the view that was just framed is what the user is looking at. Only a
+    // deliberate gesture releases it (cameraOwnership).
     // Report what the renderer measured, never the pose that was merely asked
     // for: a camera that never arrived must not be described as if it had.
     const home = intent.op === "camera.reset" ? nearestHomeView(measured) : null;

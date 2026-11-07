@@ -32,7 +32,8 @@
 .lst-reopen pre { margin: 0; max-height: 160px; overflow: auto; white-space: pre-wrap; font: 11.5px/1.45 var(--lelu-font-mono, ui-monospace, monospace); }
 .lst-reopen .bad { color: #ffb4b4; }
 .lst-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; overflow: auto; }
-.lst-card { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 12px; border-radius: 14px; border: 1px solid rgba(255, 236, 252, 0.14); background: rgba(24, 16, 52, 0.62); color: inherit; font: inherit; cursor: pointer; }
+.lst-card { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 12px; border-radius: 14px; border: 1px solid rgba(255, 236, 252, 0.14); background: rgba(24, 16, 52, 0.62); color: inherit; font: inherit; cursor: default; }
+.lst-card-open { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
 .lst-card:hover { border-color: rgba(185, 140, 255, 0.5); }
 .lst-card-head { display: flex; align-items: center; gap: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; }
 .lst-card strong { font-size: 14px; line-height: 1.3; }

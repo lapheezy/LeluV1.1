@@ -48,6 +48,11 @@ import {
 } from "./cameraPoseMemory";
 
 import {
+  noteUserCameraEnd,
+  noteUserCameraStart,
+} from "./cameraOwnership";
+
+import {
   PLANET_CENTER,
   PLANET_RADIUS,
 } from "./render/PlanetExplorer";
@@ -156,34 +161,63 @@ export default function GenesisCameraController({
    * the origin is the right answer only for a world that was never left.
    */
   useEffect(() => {
-    const controls = controlsRef.current;
-    if (!controls) return;
-    const remembered = recallCameraPose();
-    if (remembered) {
-      camera.position.set(remembered.position[0], remembered.position[1], remembered.position[2]);
-      controls.target.set(remembered.target[0], remembered.target[1], remembered.target[2]);
-    } else {
-      controls.target.set(0, 0, 0);
-    }
-    controls.update();
+    let cancelled = false;
+    let attempts = 0;
+    /*
+     * OrbitControls attaches its ref on the first commit, AFTER this effect
+     * runs, so reading controlsRef.current here returned null and the pose
+     * was silently never restored — the remount started at the canvas
+     * default (0, 0, 5). Wait for the controls, then restore once. A reveal
+     * that has taken the camera in the meantime wins: it is a newer, more
+     * deliberate view than the one being restored.
+     */
+    const apply = () => {
+      if (cancelled) return;
+      const controls = controlsRef.current;
+      if (!controls) {
+        if (attempts++ < 60) requestAnimationFrame(apply);
+        return;
+      }
+      /*
+       * Restore unconditionally: framing a NEW object happens later (the
+       * bridge waits for the target to be rendered), so a fresh reveal still
+       * wins. Skipping while a previous reveal owned the camera was wrong —
+       * that claim is exactly the view this pose came from.
+       */
+      const remembered = recallCameraPose();
+      if (remembered) {
+        camera.position.set(remembered.position[0], remembered.position[1], remembered.position[2]);
+        controls.target.set(remembered.target[0], remembered.target[1], remembered.target[2]);
+      } else {
+        controls.target.set(0, 0, 0);
+      }
+      controls.update();
+    };
+    apply();
+    return () => {
+      cancelled = true;
+    };
   }, [camera]);
 
   /*
-   * Remember the view when the world goes away (chat opening on a phone),
-   * not only on an explicit navigation, so returning does not fly home.
+   * Remember the view while the world is live (throttled), not only on
+   * unmount. By cleanup time OrbitControls has already detached, so the
+   * unmount-only save silently stored nothing and a phone came back to the
+   * default pose. Saving during the live frames cannot miss the view.
    */
-  useEffect(() => {
-    const perspective = camera as PerspectiveCamera;
-    return () => {
+  const lastPoseSave = useRef(0);
+  useEffect(
+    () => () => {
       const controls = controlsRef.current;
       if (!controls) return;
       rememberCameraPose({
         position: [camera.position.x, camera.position.y, camera.position.z],
         target: [controls.target.x, controls.target.y, controls.target.z],
-        fov: perspective.isPerspectiveCamera ? perspective.fov : undefined,
+        fov: (camera as PerspectiveCamera).isPerspectiveCamera ? (camera as PerspectiveCamera).fov : undefined,
       });
-    };
-  }, [camera]);
+    },
+    [camera],
+  );
 
   /*
    * Cosmos navigation — dispatched by the cosmos map panel tap.
@@ -343,6 +377,18 @@ export default function GenesisCameraController({
     }
 
     controls.update();
+
+    // Keep the pose fresh for a surface that unmounts this world (chat on a
+    // phone): the last live frame is the view the user expects to return to.
+    const now = performance.now();
+    if (now - lastPoseSave.current > 400) {
+      lastPoseSave.current = now;
+      rememberCameraPose({
+        position: [camera.position.x, camera.position.y, camera.position.z],
+        target: [controls.target.x, controls.target.y, controls.target.z],
+        fov: (camera as PerspectiveCamera).isPerspectiveCamera ? (camera as PerspectiveCamera).fov : undefined,
+      });
+    }
   });
 
   /*
@@ -418,16 +464,13 @@ export default function GenesisCameraController({
       onStart={() => {
         if (userCameraActive.current) return;
         userCameraActive.current = true;
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("genesis-user-camera-start"));
-        }
+        // A real gesture is the one thing that ends a reveal's hold.
+        noteUserCameraStart();
       }}
       onEnd={() => {
         if (!userCameraActive.current) return;
         userCameraActive.current = false;
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("genesis-user-camera-end"));
-        }
+        noteUserCameraEnd();
       }}
     />
   );
