@@ -12,6 +12,15 @@
  *   tsx scripts/forge-character.ts plan-hood-image      plan an isolated image of her hood (the wearable's source; spends nothing)
  *   tsx scripts/forge-character.ts plan-hood-model <refId>   plan the hood as its own 3D model from an adopted hood image
  *   tsx scripts/forge-character.ts wear <slot> <on|off> put a wearable on / take it off (hood up / down)
+ *   tsx scripts/forge-character.ts wardrobe          every approved look and worn piece
+ *   tsx scripts/forge-character.ts wardrobe-add <category> <id> <jobId> [slot] [bone]   name a finished asset as wearable (free)
+ *   tsx scripts/forge-character.ts dress <look|-> [slot=item|slot=-]...   switch look and swap pieces at once
+ *   tsx scripts/forge-character.ts ingest <image.png> <refId> <view…>   store a supplied image as a reference
+ *   tsx scripts/forge-character.ts crop <board.png> <refId> <x,y,w,h> [--category=clothing] [--view=…]   one asset out of a board (free)
+ *   tsx scripts/forge-character.ts plan-inventory <inventory.json> [--approve --budget=N]   every asset: what it costs, what blocks it
+ *   tsx scripts/forge-character.ts audit-inventory <inventory.json>   check bones, references and duplicate geometry (free)
+ *   tsx scripts/forge-character.ts weight <garmentJob> <bodyJob>   bind a long garment to her skeleton and measure it (free)
+ *   tsx scripts/forge-character.ts plan-look <refId>...   plan an approved look from 1–4 of her own photos (spends nothing)
  *   tsx scripts/forge-character.ts approve <jobId>      submit it (spends credits)
  *   tsx scripts/forge-character.ts reject <jobId> [reason]  decline a planned job; its record is kept
  *   tsx scripts/forge-character.ts watch <jobId>        follow to completion, download, inspect
@@ -28,9 +37,13 @@
  *   tsx scripts/forge-character.ts motion <jobId>...    motion-only GLB for collected animation jobs (free)
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { inspectGlb } from "../src/core/forge/GlbInspector.ts";
+import { buildRecords } from "../plugins/forgeReferences.ts";
+import { cropPng } from "../plugins/forgeCrop.ts";
+import { auditInventory, boneNamesFromGlb, planInventory, totalise, validateInventory } from "../plugins/wardrobeInventory.ts";
+import { weightGarment } from "../plugins/coatRig.ts";
 import { ForgeStore, type CharacterSlot, type ForgeJob } from "../plugins/forgeStore.ts";
 import { ForgeError, MeshyForge } from "../plugins/meshyForge.ts";
 
@@ -340,6 +353,27 @@ async function main(): Promise<void> {
       console.log(JSON.stringify(manifest.active, null, 2));
       return;
     }
+    case "plan-look": {
+      // An approved look the person supplies: one reference (a full-body photo) or
+      // several views of the same outfit, and nothing else. Same request settings as
+      // the approved Outfit B tree, so a new look is built exactly like the one that
+      // worked; the look name is what `dress <name>` switches to once rigged.
+      const refs = process.argv.slice(3).filter((a) => !a.startsWith("--"));
+      if (!refs.length) throw new ForgeError("usage: plan-look <refId> [refId…] — 1 full-body image, or 2–4 views of the same outfit");
+      if (refs.length > 4) throw new ForgeError("Meshy takes 1–4 images for a multi-image job.");
+      const body = refs.length === 1 ? { ...BASE_REQUEST, image_url: `ref:${refs[0]}` } : { ...MULTIVIEW_REQUEST, image_urls: refs.map((r) => `ref:${r}`) };
+      const { job, reused } = await forge.request({
+        character: CHARACTER,
+        kind: refs.length === 1 ? "image-to-3d" : "multi-image-to-3d",
+        purpose: `Approved look from ${refs.join(" + ")}`,
+        body,
+        approve,
+      });
+      console.log(reused ? "Existing job for this exact request (no new spend):" : "Planned:");
+      show(job);
+      if (job.status === "awaiting_approval") console.log(`\nApprove with: tsx scripts/forge-character.ts approve ${job.id}`);
+      return;
+    }
     case "plan-head": {
       // The full-body model gives the face ~100 px of a shared 2k texture and a few dozen
       // triangles after the 60k remesh. A head-and-shoulders model gets the whole budget;
@@ -418,6 +452,183 @@ async function main(): Promise<void> {
     case "library":
       console.log(JSON.stringify(await forge.animationLibrary(process.argv[3] ? { search: process.argv[3] } : {}), null, 2));
       return;
+    case "wardrobe":
+      console.log(JSON.stringify(forge.wardrobeView(CHARACTER), null, 2));
+      return;
+    case "wardrobe-add": {
+      const [category, id, jobId, slot, bone] = process.argv.slice(3);
+      if (!category || !id || !jobId) throw new ForgeError("usage: wardrobe-add <category> <id> <jobId> [slot] [bone]");
+      const height = Number(/--height=([\d.]+)/.exec(process.argv.join(" "))?.[1] ?? 0.3);
+      const result = forge.addWardrobeItem(CHARACTER, { id, category, jobId, slot, bone, height });
+      console.log(JSON.stringify(result.item, null, 2));
+      return;
+    }
+    case "dress": {
+      const [lookArg, ...pairs] = process.argv.slice(3);
+      if (!lookArg) throw new ForgeError("usage: dress <look|-> [slot=item|slot=-]...");
+      const wear: Record<string, string | null> = {};
+      for (const pair of pairs) {
+        const [slot, item] = pair.split("=");
+        if (slot) wear[slot] = item && item !== "-" ? item : null;
+      }
+      const result = forge.dressOutfit(CHARACTER, { look: lookArg === "-" ? undefined : lookArg, wear });
+      console.log(`showing ${result.manifest.currentLook ?? "base rig"}`);
+      for (const d of result.dressed) console.log(`  ${d.slot}  ${d.item ?? "off"}${d.placementId ? `  ${d.placementId}` : ""}`);
+      return;
+    }
+    case "weight": {
+      // A long coat cannot hang off one bone. Bind it to her own skeleton and
+      // keep the result only if the deformation checks pass (spends nothing).
+      const [garmentId, bodyId] = process.argv.slice(3).filter((a) => !a.startsWith("--"));
+      if (!garmentId || !bodyId) throw new ForgeError("usage: weight <garmentJobId> <bodyJobId> [--max-influences=4] [--min-weight=0.02]");
+      const maxInfluences = Number(/--max-influences=(\d+)/.exec(process.argv.join(" "))?.[1] ?? 4);
+      const minWeight = Number(/--min-weight=([\d.]+)/.exec(process.argv.join(" "))?.[1] ?? 0.02);
+      const { job, report, reused } = await weightGarment(store, (name) => process.env[name], garmentId, bodyId, { maxInfluences, minWeight });
+      console.log(reused ? `Already weighted as ${job.id}:` : `Weighted garment as ${job.id}:`);
+      console.log(`  bones ${(report.bones ?? []).join(", ")}`);
+      console.log(`  weights ${JSON.stringify(report.weights)}`);
+      for (const pose of report.deformation ?? []) {
+        console.log(`  ${pose.name.padEnd(8)} max ${pose.maxDisplacement.toFixed(3)} m  moved ${(pose.movedShare * 100).toFixed(0)}%  inside her ${pose.penetratingVertices}`);
+      }
+      console.log(`  ${job.output!.dir}`);
+      return;
+    }
+    case "audit-inventory": {
+      const file = process.argv[3];
+      if (!file) throw new ForgeError("usage: audit-inventory <inventory.json>");
+      const inventory = validateInventory(JSON.parse(readFileSync(file, "utf8")));
+      const rigId = store.manifest(CHARACTER).active["rig"];
+      const rig = rigId ? store.job(rigId) : null;
+      const model = rig?.output?.files.find((f) => f.role === "model");
+      const modelPath = model ? store.safeAssetPath(model.file) : null;
+      const bones = modelPath && existsSync(modelPath) ? boneNamesFromGlb(new Uint8Array(readFileSync(modelPath))) : [];
+      console.log(`${inventory.looks.length} looks, ${inventory.looks.reduce((n, l) => n + l.assets.length, 0)} assets, audited against ${bones.length} rig bones${bones.length ? "" : " (no rig: bone checks skipped)"}`);
+      const { findings, problems, warnings } = auditInventory(inventory, store.references(CHARACTER), bones);
+      for (const finding of findings) console.log(`  ${finding.severity === "problem" ? "PROBLEM" : "warning"}  ${finding.look}/${finding.asset}: ${finding.message}`);
+      console.log(`${problems} problems, ${warnings} warnings`);
+      return;
+    }
+    case "crop": {
+      // The board is a blueprint, not the product: cut ONE asset out of it, keep
+      // where it came from, and store the cut as its own reference.
+      const [file, refId, rect] = process.argv.slice(3);
+      if (!file || !refId || !rect) throw new ForgeError("usage: crop <board.png> <refId> <x,y,w,h> [--category=clothing] [--view=…]");
+      const numbers = rect.split(",").map(Number);
+      if (numbers.length !== 4 || numbers.some((n) => !Number.isFinite(n))) throw new ForgeError(`Region must be four fractions x,y,w,h (got "${rect}").`);
+      const [x, y, w, h] = numbers;
+      const flag = (name: string, fallback: string) => new RegExp(`--${name}=([^\\s]+)`).exec(process.argv.join(" "))?.[1] ?? fallback;
+      const category = flag("category", "clothing") as "identity" | "body" | "hair" | "clothing" | "accessories";
+      const view = flag("view", "detail");
+      const sheet = new Uint8Array(readFileSync(file));
+      const source = buildRecords([{ classification: { id: "source", sourceName: path.basename(file), category, view, outfitVariant: "unspecified", intendedUse: "n/a", uses: [] }, file, bytes: sheet }], [])[0];
+      const cropped = cropPng(sheet, { x, y, w, h });
+      const existing = store.references(CHARACTER);
+      if (existing.some((r) => r.id === refId)) throw new ForgeError(`Reference id "${refId}" already exists; crops are never overwritten.`);
+      const [record] = buildRecords(
+        [
+          {
+            classification: {
+              id: refId,
+              sourceName: `${path.basename(file)}#${rect}`,
+              category,
+              view,
+              outfitVariant: "unspecified",
+              intendedUse: `One asset cut out of ${path.basename(file)} (${rect}); a design guide, second to the original photograph.`,
+              uses: ["geometry"],
+              notes: `crop ${rect} of ${path.basename(file)} sha256 ${source.metrics.sha256.slice(0, 16)}`,
+            },
+            file: "",
+            bytes: cropped.png,
+          },
+        ],
+        existing,
+      );
+      record.file = store.relative(store.storeReferenceFile(CHARACTER, refId, ".png", cropped.png));
+      store.saveReferences(CHARACTER, [...existing, record]);
+      console.log(`${record.id}  ${cropped.width}×${cropped.height}  ${record.file}  quality ${record.quality}`);
+      return;
+    }
+    case "plan-inventory": {
+      const file = process.argv[3];
+      if (!file) throw new ForgeError("usage: plan-inventory <inventory.json> [--approve --budget=N]");
+      const inventory = validateInventory(JSON.parse(readFileSync(file, "utf8")));
+      const planned = planInventory(inventory, store.references(CHARACTER));
+      const totals = totalise(planned);
+      let look = "";
+      for (const item of planned) {
+        if (item.look !== look) {
+          look = item.look;
+          console.log(`\n${inventory.looks.find((l) => l.id === look)?.title ?? look}`);
+          console.log("asset                          category     slot             kind        credits");
+        }
+        const name = item.asset.id.padEnd(30);
+        console.log(
+          `${name} ${item.asset.category.padEnd(12)} ${item.asset.slot.padEnd(16)} ${item.kind.padEnd(11)} ${item.blockers.length ? "blocked" : String(item.estimate + item.rigEstimate).padStart(5)}`,
+        );
+        for (const blocker of item.blockers) console.log(`  ! ${blocker}`);
+      }
+      console.log(
+        `\n${planned.length} assets: ${totals.ready} ready, ${totals.blocked} blocked.  ` +
+          `Generation ${totals.generation} credits + rigging ${totals.rigging} = ${totals.generation + totals.rigging} credits.`,
+      );
+      const approve = process.argv.includes("--approve");
+      if (!approve) {
+        console.log("Nothing submitted. Planning is free; --approve --budget=N submits the ready assets.");
+        return;
+      }
+      const budget = Number(/--budget=(\d+)/.exec(process.argv.join(" "))?.[1] ?? 0);
+      const needed = totals.generation + totals.rigging;
+      if (!budget) throw new ForgeError("--approve needs --budget=N: the most credits this run may spend.");
+      if (needed > budget) throw new ForgeError(`This run would cost ${needed} credits, over the ${budget}-credit budget. Nothing submitted.`);
+      if (totals.blocked) {
+        console.log(`${totals.blocked} assets are blocked and will be skipped.`);
+      }
+      for (const item of planned.filter((p) => !p.blockers.length)) {
+        const { job } = await forge.request({
+          character: CHARACTER,
+          kind: item.kind,
+          purpose: `${item.look} — ${item.asset.name}`,
+          body: item.body,
+          approve: true,
+        });
+        console.log(`${item.asset.id.padEnd(30)} ${job.status.padEnd(18)} ${job.id}  ${job.estimatedCredits} cr`);
+      }
+      return;
+    }
+    case "ingest": {
+      const [file, id, ...view] = process.argv.slice(3);
+      if (!file || !id) throw new ForgeError("usage: ingest <image.png|jpg|webp> <refId> <view description…>");
+      const bytes = new Uint8Array(readFileSync(file));
+      const ext = (path.extname(file) || ".png").toLowerCase();
+      const existing = store.references(CHARACTER);
+      const [record] = buildRecords(
+        [
+          {
+            classification: {
+              id,
+              sourceName: path.basename(file),
+              category: "body",
+              view: view.join(" ") || "unspecified",
+              outfitVariant: "unspecified",
+              intendedUse: "Supplied by the user as an approved look.",
+              uses: ["geometry", "texture"],
+            },
+            file: "",
+            bytes,
+          },
+        ],
+        existing,
+      );
+      if (record.duplicateOf) {
+        console.log(`${id} is already stored as ${record.duplicateOf} (identical bytes); nothing written.`);
+        return;
+      }
+      if (existing.some((r) => r.id === id)) throw new ForgeError(`Reference id "${id}" is taken by different content.`);
+      record.file = store.relative(store.storeReferenceFile(CHARACTER, id, ext, bytes));
+      store.saveReferences(CHARACTER, [...existing, record]);
+      console.log(`ingested ${record.id}  ${record.metrics.width}×${record.metrics.height}  ${record.file}  sha256 ${record.metrics.sha256.slice(0, 16)}`);
+      return;
+    }
     default:
       console.log(readFileSync(new URL(import.meta.url), "utf8").split("*/")[0]);
   }

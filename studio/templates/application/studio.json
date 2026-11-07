@@ -1,0 +1,9 @@
+{
+  "name": "Pulse Board",
+  "kind": "application",
+  "backend": {
+    "command": "server.mjs",
+    "health": "/api/health"
+  },
+  "preview": "backend"
+}

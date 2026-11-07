@@ -118,13 +118,34 @@ function isCrossOrigin(req: ConnectLikeReq): boolean {
   }
 }
 
-function getToken(): string {
-  return (
-    process.env.VITE_GITHUB_TOKEN ||
-    process.env.GITHUB_TOKEN ||
-    process.env.GITHUB_CODESPACE_TOKEN ||
-    ""
-  );
+type ReadEnv = (key: string) => string | undefined;
+
+/**
+ * Resolve the token from the first name that has one.
+ *
+ * `readEnv` is the caller's environment reader; the Vite plugin passes one that
+ * also sees `.env.local`. Without it the dev server could not find the token at
+ * all — `.env.local` is NOT copied into `process.env`, so `/api/github/status`
+ * answered `configured: false` while the secret sat both in the file and in the
+ * process environment under the store's own name, `Github`.
+ *
+ * Whitespace is removed for the same reason as in plugins/bareSecretAliases.ts:
+ * the stored PAT carries a stray space, and a token containing one is rejected
+ * with 401 even though the token itself is valid.
+ */
+function getToken(readEnv?: ReadEnv): string {
+  const candidates = [
+    "VITE_GITHUB_TOKEN", // explicit browser-build name, if an operator sets it
+    "GITHUB_TOKEN", // server-side name, filled from the secret store
+    "Github", // the platform's own secret name
+    "GITHUB_CODESPACE_TOKEN", // last: ambient Codespaces credential
+  ];
+  for (const name of candidates) {
+    const raw = readEnv?.(name) ?? process.env[name];
+    const token = typeof raw === "string" ? raw.replace(/\s+/g, "") : "";
+    if (token) return token;
+  }
+  return "";
 }
 
 /** Only allow proxying to specific GitHub API paths. */
@@ -155,13 +176,13 @@ function isAllowedEndpoint(endpoint: string): boolean {
 /* the API                                                             */
 /* ------------------------------------------------------------------ */
 
-export function createGithubApi(): {
+export function createGithubApi(readEnv?: ReadEnv): {
   attach: (middlewares: { use: (path: string, handler: Handler) => void }) => void;
 } {
   function handleRoute(route: "/api/github/status" | "/api/github/proxy") {
     return (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): void => {
       const method = req.method ?? "GET";
-      const token = getToken();
+      const token = getToken(readEnv);
 
       /* ---- GET /api/github/status ---- */
       if (route === "/api/github/status") {
@@ -330,12 +351,12 @@ export function createGithubApi(): {
 /* Vite plugin wrapper                                                 */
 /* ------------------------------------------------------------------ */
 
-export function githubApiPlugin(): {
+export function githubApiPlugin(readEnv?: ReadEnv): {
   name: string;
   configureServer: (server: { middlewares: { use: (path: string, handler: Handler) => void } }) => void;
   configurePreviewServer: (server: { middlewares: { use: (path: string, handler: Handler) => void } }) => void;
 } {
-  const api = createGithubApi();
+  const api = createGithubApi(readEnv);
   return {
     name: "github-api",
     configureServer(server) {

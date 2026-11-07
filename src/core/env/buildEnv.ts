@@ -36,8 +36,7 @@ export const IS_PROD: boolean = (() => {
   }
 })();
 
-/** A path under the app's base, e.g. assetUrl("apple-touch-icon.png"). */
-/** Vite dev server; false in production builds and outside Vite (tests, scripts). */
+/** True only in a Vite dev server (false under the node test runner). */
 export const IS_DEV: boolean = (() => {
   try {
     return import.meta.env.DEV === true;
@@ -45,6 +44,8 @@ export const IS_DEV: boolean = (() => {
     return false;
   }
 })();
+
+/** A path under the app's base, e.g. assetUrl("apple-touch-icon.png"). */
 
 export function assetUrl(file: string): string {
   return `${BASE_URL.endsWith("/") ? BASE_URL : `${BASE_URL}/`}${file.replace(/^\/+/, "")}`;

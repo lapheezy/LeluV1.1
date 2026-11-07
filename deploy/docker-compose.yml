@@ -1,0 +1,84 @@
+# ==========================================================
+# LÉLU — CONTABO DEPLOYMENT (app + automatic HTTPS)
+#
+#   docker compose -f deploy/docker-compose.yml up -d
+#
+# Two services and one network:
+#
+#   lelu    the Bun runtime (server.ts) — NOT published to the host.
+#           Only Caddy can reach it.
+#   caddy   terminates TLS with an automatic Let's Encrypt certificate,
+#           compresses text, and forwards ranges and validators intact.
+#
+# Secrets live in `.env` (chmod 600, never committed) and are injected
+# with `env_file`, so they are not in the image, not in this file and
+# not in `docker compose config`.
+# ==========================================================
+
+services:
+  lelu:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: lelu:1.1
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      # Listen on all interfaces INSIDE the container so Caddy can reach
+      # it. Nothing is published to the host — see the `ports` note below.
+      PORT: "4173"
+      # The engineering API is intentionally left disabled here: it reads
+      # source and runs commands, so it stays closed unless someone
+      # deliberately sets LELU_ENGINEER_TOKEN in .env.
+    volumes:
+      # Runtime state that must outlive a container: forge ledger,
+      # generated artifacts and anything written to data/.
+      - lelu-data:/app/data
+    # Deliberately no `ports:` — the app is reachable only through Caddy.
+    # Publishing 4173 would expose it over plain HTTP and bypass the
+    # proxy-level block on /api/engineer/*.
+    expose:
+      - "4173"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:4173/api/env-check"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      lelu:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      # Set to the real hostname; Caddy fetches the certificate for it.
+      # Must be an apex or subdomain root — the webmanifest uses absolute
+      # `/` paths, so a subpath deploy would install a broken PWA.
+      LELU_HOST: ${LELU_HOST:?set LELU_HOST in .env, e.g. lelu.example.com}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env for expiry notices}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+volumes:
+  lelu-data:
+  caddy-data:
+  caddy-config:

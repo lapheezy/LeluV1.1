@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#080d18" />
+    <title>Pulse Board</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="dot" aria-hidden="true"></span>
+        <div>
+          <h1>Pulse Board</h1>
+          <p class="sub">Tasks kept by a real HTTP backend</p>
+        </div>
+      </div>
+      <p class="connection" id="connection" role="status" aria-live="polite">Connecting…</p>
+    </header>
+
+    <main>
+      <section class="composer" aria-labelledby="composer-title">
+        <h2 id="composer-title">Add a task</h2>
+        <form id="task-form">
+          <label class="sr-only" for="task-title">Task title</label>
+          <input id="task-title" name="title" placeholder="What has to move?" maxlength="120" required />
+          <label class="sr-only" for="task-lane">Lane</label>
+          <select id="task-lane" name="lane">
+            <option value="todo">To do</option>
+            <option value="doing">Doing</option>
+            <option value="done">Done</option>
+          </select>
+          <button type="submit">Add</button>
+        </form>
+        <p class="error" id="composer-error" role="alert" hidden></p>
+      </section>
+
+      <section class="stats" aria-label="Totals">
+        <div><span id="stat-total">0</span><small>total</small></div>
+        <div><span id="stat-doing">0</span><small>doing</small></div>
+        <div><span id="stat-done">0</span><small>done</small></div>
+        <div><span id="stat-percent">0%</span><small>complete</small></div>
+      </section>
+
+      <section class="board" aria-label="Task board">
+        <article class="lane" data-lane="todo">
+          <header><h2>To do</h2><span class="count" data-count="todo">0</span></header>
+          <ul class="tasks" data-list="todo"></ul>
+          <p class="empty" data-empty="todo">Nothing waiting.</p>
+        </article>
+        <article class="lane" data-lane="doing">
+          <header><h2>Doing</h2><span class="count" data-count="doing">0</span></header>
+          <ul class="tasks" data-list="doing"></ul>
+          <p class="empty" data-empty="doing">Nothing in flight.</p>
+        </article>
+        <article class="lane" data-lane="done">
+          <header><h2>Done</h2><span class="count" data-count="done">0</span></header>
+          <ul class="tasks" data-list="done"></ul>
+          <p class="empty" data-empty="done">Finished work lands here.</p>
+        </article>
+      </section>
+      <p class="error" id="board-error" role="alert" hidden></p>
+    </main>
+
+    <footer>
+      <p>Every change is a request to <code>/api/tasks</code>, stored on disk by the Node backend.</p>
+      <button id="reset-demo" type="button" class="link">Remove all tasks</button>
+    </footer>
+
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>

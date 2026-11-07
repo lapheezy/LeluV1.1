@@ -741,6 +741,11 @@ export default class AIService {
       const priorTurns = priorTurnsFor(options?.conversationId, message) ?? conversation.modelMessages();
       conversation.record("user", message);
 
+      // TWO controllers, by design, combined at the request: one per
+      // conversation (convControllers — what cancelTurn/Stop aborts) and one
+      // per turn (activeTurn — the tool loop's own stop). AbortSignal.any is
+      // what keeps a Stop authoritative: aborting EITHER signal aborts the
+      // composed one, so a provider can never keep streaming past a stop.
       const turn = new AbortController();
       this.activeTurn = turn;
       const request: AIRequest = {

@@ -75,10 +75,43 @@ export default function LeluCharacter(props: {
       </Suspense>
     );
   }
-  return <LeluCharacter2D {...props} />;
+  // No silent substitution. The old look rig was a different LÉLU; an
+  // honest unavailable state is better than pretending it is her body.
+  const reason = !webgl
+    ? "WebGL is unavailable on this device."
+    : model.status === "loading"
+      ? "LÉLU’s 3D body is loading."
+      : model.status === "unavailable"
+        ? model.reason || "No approved 3D model is available."
+        : "No approved 3D model is available.";
+  return (
+    <div
+      data-testid={testId}
+      data-renderer={model.status === "loading" ? "loading" : "unavailable"}
+      role="img"
+      aria-label={`LÉLU — ${reason}`}
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 12,
+        boxSizing: "border-box",
+        color: "rgba(254,205,211,0.9)",
+        textAlign: "center",
+        font: "600 10px/1.45 system-ui, sans-serif",
+        pointerEvents: "none",
+        ...props.style,
+      }}
+    >
+      {reason} She is not being replaced by a 2D stand-in.
+    </div>
+  );
 }
 
-function LeluCharacter2D({
+/** Legacy authoring renderer, kept for reference but never mounted by the production path. */
+export function LeluCharacter2D({
   framing,
   form,
   look,

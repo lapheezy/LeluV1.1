@@ -226,7 +226,10 @@ export default function GenesisSurfaceController() {
       if (!detail?.id || !detail?.presentation) return;
       switch (detail.presentation) {
         case "inline":
-          openModule(detail.id);
+          // An explicit inline request means inline on every screen. The old
+          // openModule path promoted phones to expanded, which made a second
+          // workspace cover the first instead of reaching the tiled layout.
+          setModulePresentation(detail.id, "inline");
           break;
         case "expanded":
           expandModule(detail.id);

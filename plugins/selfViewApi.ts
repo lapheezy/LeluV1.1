@@ -26,8 +26,11 @@
  *        or a workspace copy — how she finds the code behind what she saw.
  *
  * SAFETY
- *   - Same-origin POST only (CSRF), and LELU_ENGINEER_TOKEN when set —
- *     the engineering runtime's own gates.
+ *   - Same-origin POST only (CSRF), plus the engineering runtime's own
+ *     access token — REQUIRED, enforced fail-closed through
+ *     plugins/engineerAuth.ts. These routes drive a real browser, start
+ *     real servers and read real source, so with no token configured
+ *     they are disabled (503) rather than open.
  *   - Capture never fetches a private/loopback address except this
  *     server's own origin and its own previews. It returns pixels and
  *     visible text only — no cookies, headers or storage.
@@ -42,6 +45,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { isBlockedHost } from "./browseApi.ts";
+import { engineerAuthVerdict, sendEngineerAuthFailure } from "./engineerAuth.ts";
 
 interface ConnectLikeReq {
   method?: string;
@@ -118,11 +122,6 @@ function isCrossOrigin(req: ConnectLikeReq): boolean {
   }
 }
 
-function tokenOk(req: ConnectLikeReq): boolean {
-  const required = process.env.LELU_ENGINEER_TOKEN;
-  if (!required) return true;
-  return header(req, "x-lelu-engineer-token") === required;
-}
 
 /* ------------------------------ previews ------------------------------ */
 
@@ -795,8 +794,13 @@ export function createSelfViewApi(): { attach: (middlewares: { use: (route: stri
       sendJson(res, { ok: false, error: "Cross-origin requests are not permitted." }, 403);
       return false;
     }
-    if (!tokenOk(req)) {
-      sendJson(res, { ok: false, error: "Engineering runtime requires an access token (LELU_ENGINEER_TOKEN)." }, 401);
+    // The shared fail-closed gate. It reads BOTH header names: these
+    // routes used to demand `x-lelu-engineer-token` while the app sent
+    // `x-lelu-token`, so configuring a token made capture, preview and
+    // search unreachable from LÉLU's own interface.
+    const verdict = engineerAuthVerdict(req);
+    if (!verdict.ok) {
+      sendEngineerAuthFailure(res, verdict);
       return false;
     }
     return true;

@@ -16,6 +16,7 @@
  *   GET  /api/forge/jobs/<id>               one job (refreshes it if still running)
  *   POST /api/forge/jobs/<id>/approve       spend the credits
  *   POST /api/forge/jobs/<id>/reject        decline a planned job
+ *   POST /api/forge/jobs/<id>/export        Blender: editable .blend + OBJ/STL/FBX + runtime GLB + render (free)
  *   GET  /api/forge/animations/library      Meshy's action catalogue (free)
  *   GET  /api/forge/library                 every finished, inspected asset
  *   GET  /api/forge/placements              assets placed in the Cosmos
@@ -24,6 +25,9 @@
  *   POST /api/forge/placements/<id>/remove  take it out of the Cosmos (asset is kept)
  *   POST /api/forge/characters/<c>/look     { look } — switch look (null = rig/base)
  *   POST /api/forge/characters/<c>/wear     { slot, worn } — put a wearable on / take it off (hood up/down)
+ *   GET  /api/forge/characters/<c>/wardrobe every approved look and worn piece she can switch between
+ *   POST /api/forge/characters/<c>/wardrobe { id, category, jobId, slot?, bone?, height? } — name a finished asset as wearable
+ *   POST /api/forge/characters/<c>/dress    { look?, wear?: { slot: itemId | null } } — switch look and swap pieces at once
  *   POST /api/forge/jobs/<id>/adopt         { index, id, view, … } — a reviewed generated view becomes a reference
  *   GET  /api/forge/assets/<path>           a stored output (GLB, texture, preview)
  *
@@ -305,6 +309,30 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
           sendJson(res, { ok: true, manifest });
           return;
         }
+        if (method === "GET" && parts[2] === "wardrobe") {
+          sendJson(res, { ok: true, ...forge.wardrobeView(character) });
+          return;
+        }
+        if (method === "POST" && parts[2] === "wardrobe") {
+          const body = await jsonBody(req);
+          const result = forge.addWardrobeItem(character, {
+            id: String(body.id ?? ""),
+            name: typeof body.name === "string" ? body.name : undefined,
+            category: typeof body.category === "string" ? body.category : undefined,
+            slot: typeof body.slot === "string" ? body.slot : undefined,
+            jobId: String(body.jobId ?? ""),
+            bone: typeof body.bone === "string" ? body.bone : undefined,
+            offset: body.offset,
+            rotation: body.rotation,
+            height: typeof body.height === "number" ? body.height : undefined,
+          });
+          sendJson(res, { ok: true, ...result }, 201);
+          return;
+        }
+        if (method === "POST" && parts[2] === "dress") {
+          sendJson(res, { ok: true, ...forge.dressOutfit(character, await jsonBody(req)) });
+          return;
+        }
         if (method === "POST" && parts[2] === "slots") {
           const body = await jsonBody(req);
           const manifest = forge.approveSlot(character, String(body.slot) as CharacterSlot, String(body.jobId));
@@ -355,6 +383,22 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
             notes: typeof body.notes === "string" ? body.notes : undefined,
           });
           sendJson(res, { ok: true, reference }, 201);
+          return;
+        }
+        if (id && parts[2] === "export" && method === "POST") {
+          const body = await jsonBody(req);
+          const { exportFormats } = await import("./blenderStage.ts");
+          const allowed = ["blend", "glb", "obj", "stl", "fbx"] as const;
+          const formats = Array.isArray(body.formats)
+            ? (body.formats.filter((f): f is (typeof allowed)[number] => typeof f === "string" && (allowed as readonly string[]).includes(f)))
+            : undefined;
+          const render = body.render === null ? null : body.render && typeof body.render === "object" ? (body.render as { size?: number; samples?: number }) : undefined;
+          const result = await exportFormats(forge.store, readEnv, id, {
+            formats,
+            targetTris: typeof body.targetTris === "number" ? body.targetTris : undefined,
+            render,
+          });
+          sendJson(res, { ok: true, reused: result.reused, job: publicJob(result.job) }, result.reused ? 200 : 201);
           return;
         }
         if (id && parts[2] === "reject" && method === "POST") {
