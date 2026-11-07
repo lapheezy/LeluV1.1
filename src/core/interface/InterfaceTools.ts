@@ -33,6 +33,7 @@ import InterfaceOrchestrator, { type ChangeSet, type Proposal } from "./Interfac
 import { ENVIRONMENT_PRESETS, TYPOGRAPHY_SYSTEMS } from "./EnvironmentLibrary";
 import { FONT_LIBRARY } from "./FontLibrary";
 import { SCENE_KINDS } from "./SceneModel";
+import { SPATIAL_DESTINATIONS } from "../../app/scene/spatial/SpatialScenes";
 
 interface InterfaceExecutor {
   id: string;
@@ -61,10 +62,61 @@ export const INTERFACE_TOOLS: ToolDefinition[] = [
   tool("interface.revert", "Propose Restoring a Version", "Propose returning the interface to an earlier saved version (see interface.inspect history). The user approves it like any change", 1, ["WRITE"]),
   tool("interface.themes", "Interface Themes", "List saved themes and environment presets, save the current (or previewed) design as a reusable theme, propose applying a saved theme, or propose deleting one (destructive — the user must confirm)", 1, ["WRITE"]),
   tool("interface.recommend", "Recommend an Environment", "Suggest which interface environment and window arrangement suits a kind of work (research, coding, creative, project management, casual conversation). Advisory only", 0, ["READ"]),
+  tool(
+    "spatial.portal.create",
+    "Create a Spatial Portal",
+    "Create a named portal in LÉLU's spatial ring that leads to one real environment. It is stored in the canonical portal registry, appears in the ring immediately and can be removed later. Only destinations that exist in the scene graph are accepted; an unknown one is refused with a reason rather than creating a portal that opens nothing",
+    1,
+    ["WRITE"],
+  ),
+  tool(
+    "spatial.portal.remove",
+    "Remove a Spatial Portal",
+    "Remove a portal from LÉLU's spatial ring by its id (the id returned by spatial.portal.create). Built-in destinations are not portals a person created, so removing one is refused; the ring keeps its identity",
+    1,
+    ["WRITE"],
+  ),
 ];
 
 const OBJ = (properties: Record<string, unknown>, required: string[] = []) => ({ type: "object", properties, required });
 const str = (args: Record<string, unknown>, key: string) => (typeof args[key] === "string" ? (args[key] as string).trim() : "");
+
+interface PortalReply {
+  ok: boolean;
+  reason?: string;
+  portal?: { id: string; label: string; destination: string };
+}
+
+/**
+ * Ask the mounted spatial interface to do something and wait for ITS answer.
+ *
+ * This is the same domain-event surface `genesis-show-surface` already uses, so
+ * an agent reaches the one portal registry through the one scene rather than
+ * importing it and acting on state the interface is also rendering. The answer
+ * carries the registry's real result: a refusal stays a refusal.
+ */
+function askSpatial(requestEvent: string, replyEvent: string, detail: Record<string, unknown>): Promise<PortalReply> {
+  return new Promise<PortalReply>((resolve) => {
+    if (typeof window === "undefined") {
+      resolve({ ok: false, reason: "there is no spatial interface in this context" });
+      return;
+    }
+    const requestId = `portal_req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+    const onReply = (event: Event) => {
+      const reply = (event as CustomEvent).detail as (PortalReply & { requestId?: string }) | undefined;
+      if (!reply || reply.requestId !== requestId) return;
+      window.removeEventListener(replyEvent, onReply);
+      clearTimeout(timer);
+      resolve(reply);
+    };
+    const timer = setTimeout(() => {
+      window.removeEventListener(replyEvent, onReply);
+      resolve({ ok: false, reason: "the spatial interface did not answer in time" });
+    }, 4000);
+    window.addEventListener(replyEvent, onReply);
+    window.dispatchEvent(new CustomEvent(requestEvent, { detail: { ...detail, requestId } }));
+  });
+}
 
 function proposalReport(proposal: Proposal, issues: string[]): string {
   const lines = [
@@ -257,6 +309,56 @@ export const INTERFACE_EXECUTORS: InterfaceExecutor[] = [
         content: `For ${rec.task}: ${rec.why} Suggested windows: ${rec.windows.join(", ")}; arrangement ${JSON.stringify(rec.arrangement)}; typography system ${rec.typography}${rec.presetId ? `; environment preset ${rec.presetId}` : ""}. This is a recommendation only — offer it, and use interface.propose if the user wants it.`,
         data: rec,
       };
+    },
+  },
+  {
+    id: "spatial.portal.create",
+    parameters: OBJ(
+      {
+        destination: {
+          type: "string",
+          enum: SPATIAL_DESTINATIONS.map((destination) => destination.id),
+          description: "The environment the portal leads to. Use the environment's own id, not a made-up name.",
+        },
+        label: { type: "string", description: "What to call the portal, e.g. 'Client files'. Defaults to the destination's name." },
+        workspace: { type: "string", description: "Workspace the portal belongs to (default: the current one)." },
+      },
+      ["destination"],
+    ),
+    run: async (args) => {
+      const reply = await askSpatial("lelu-portal-create", "lelu-portal-created", {
+        destination: str(args, "destination"),
+        label: str(args, "label"),
+        workspace: str(args, "workspace") || undefined,
+      });
+      if (!reply.ok || !reply.portal) {
+        return { ok: false, content: `No portal was created: ${reply.reason ?? "the spatial interface refused it"}.` };
+      }
+      return {
+        ok: true,
+        content: `Created the portal "${reply.portal.label}" (${reply.portal.id}) to ${reply.portal.destination}. It is in the ring now; selecting it opens that environment.`,
+        data: reply.portal,
+      };
+    },
+  },
+  {
+    id: "spatial.portal.remove",
+    parameters: OBJ(
+      {
+        id: { type: "string", description: "The portal id returned by spatial.portal.create." },
+      },
+      ["id"],
+    ),
+    run: async (args) => {
+      const id = str(args, "id");
+      if (!id) return { ok: false, content: "Give the id of the portal to remove (see spatial.portal.create)." };
+      if (id.startsWith("scene:")) {
+        return { ok: false, content: `"${id}" is a built-in destination in the ring, not a portal that was created, so it cannot be removed.` };
+      }
+      const reply = await askSpatial("lelu-portal-remove", "lelu-portal-removed", { id });
+      return reply.ok
+        ? { ok: true, content: `Removed the portal ${id}. The destination itself is untouched.`, data: { id } }
+        : { ok: false, content: `The portal was not removed: ${id} is not in the registry.` };
     },
   },
 ];

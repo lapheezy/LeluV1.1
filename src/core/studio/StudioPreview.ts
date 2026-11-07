@@ -7,7 +7,7 @@
  */
 
 import { chartToSvg } from "./ChartSvg";
-import { cellText, DEFAULT_THEME, type ArtifactSpec, type ChartSpec, type DeckSpec, type SlideSpec } from "./StudioTypes";
+import { cellText, DEFAULT_THEME, type ArtifactSpec, type ChartSpec, type DeckSpec, type GraphSpec, type SlideSpec } from "./StudioTypes";
 import { documentToHtml, workbookToHtml } from "./writers/textWriters";
 import { slideLayoutOf } from "./writers/pptxWriter";
 
@@ -46,13 +46,28 @@ img{max-width:100%;max-height:70%;display:block;margin:auto}.num{position:absolu
 
 /** The preview document for any artifact. */
 export function previewHtml(spec: ArtifactSpec): string {
+  if (spec.kind === "graph") return graphPreviewHtml(spec);
+  if (spec.kind === "drawing") return `<!DOCTYPE html><html><head><meta charset="utf-8"/></head><body style="font:14px system-ui;color:#2a2440;padding:16px"><h1 style="font-size:18px">${esc(spec.title)}</h1><p>${spec.scene.elements.length} drawing element${spec.scene.elements.length === 1 ? "" : "s"} — open it to draw.</p></body></html>`;
   if (spec.kind === "deck") return deckPreviewHtml(spec);
   if (spec.kind === "workbook") return workbookToHtml(spec);
   return documentToHtml(spec);
 }
 
 /** A one-line, text-only gist for compact cards. */
+/** A static picture of a graph (thumbnails, the no-JS preview): its nodes and connections. */
+export function graphPreviewHtml(spec: GraphSpec): string {
+  const xs = spec.nodes.map((n) => n.x), ys = spec.nodes.map((n) => n.y);
+  const minX = Math.min(...xs), minY = Math.min(...ys);
+  const w = Math.max(...xs) - minX + 200, h = Math.max(...ys) - minY + 80;
+  const at = new Map(spec.nodes.map((n) => [n.id, { x: n.x - minX + 20, y: n.y - minY + 20 }]));
+  const edges = spec.edges.map((e) => { const a = at.get(e.from)!, b = at.get(e.to)!; return `<line x1="${a.x + 80}" y1="${a.y + 20}" x2="${b.x + 80}" y2="${b.y + 20}" stroke="#8b7fd4" stroke-width="2"/>`; }).join("");
+  const nodes = spec.nodes.map((n) => { const p = at.get(n.id)!; return `<g><rect x="${p.x}" y="${p.y}" width="160" height="40" rx="10" fill="${esc(n.color ?? "#ede9fe")}" stroke="#7c6fd0"/><text x="${p.x + 80}" y="${p.y + 25}" text-anchor="middle" font-size="13" fill="#2a2440">${esc(n.label.slice(0, 22))}</text></g>`; }).join("");
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/></head><body style="margin:0;font-family:system-ui"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="100%">${edges}${nodes}</svg></body></html>`;
+}
+
 export function artifactGist(spec: ArtifactSpec): string {
+  if (spec.kind === "graph") return `${spec.nodes.length} node${spec.nodes.length === 1 ? "" : "s"} · ${spec.edges.length} connection${spec.edges.length === 1 ? "" : "s"}`;
+  if (spec.kind === "drawing") return `${spec.scene.elements.length} drawing element${spec.scene.elements.length === 1 ? "" : "s"}`;
   if (spec.kind === "deck") return `${spec.slides.length} slide${spec.slides.length === 1 ? "" : "s"} · ${spec.slides.map((s) => s.title).slice(0, 3).join(" · ")}`;
   if (spec.kind === "workbook") return `${spec.sheets.length} sheet${spec.sheets.length === 1 ? "" : "s"} · ${spec.sheets.map((s) => `${s.name} (${s.rows.length} rows)`).join(" · ")}`;
   const headings = spec.blocks.filter((b) => b.type === "heading").map((b) => (b as { text: string }).text);
@@ -69,7 +84,7 @@ export function firstChartSvg(spec: ArtifactSpec, ink = "2A2440"): string | null
     chart = block?.type === "chart" ? block.chart : undefined;
   } else if (spec.kind === "deck") {
     chart = spec.slides.find((s) => s.chart)?.chart;
-  } else {
+  } else if (spec.kind === "workbook") {
     chart = spec.sheets.find((s) => s.charts?.length)?.charts?.[0];
   }
   return chart ? chartToSvg(chart, { ink, width: 320, height: 190 }) : null;

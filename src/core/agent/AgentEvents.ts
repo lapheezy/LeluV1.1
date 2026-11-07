@@ -198,7 +198,7 @@ export type AgentEvent =
       rev: number;
       title: string;
       /** "design" is an Atelier project (artifactId is the project id). */
-      kind: "document" | "deck" | "workbook" | "design";
+      kind: "document" | "deck" | "workbook" | "graph" | "drawing" | "design";
       action: "created" | "revised" | "exported" | "restored" | "opened";
       /** Exports of this revision and whether each one passed read-back verification. */
       exports?: Array<{ format: string; filename: string; ok: boolean; size: number }>;

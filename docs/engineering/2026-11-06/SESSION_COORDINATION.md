@@ -48,3 +48,24 @@ lockfiles) change only in a commit that states why and is reviewed by Claude.
 Freebuff's lane for these files is unchanged. This claim is narrow and ends with its commit.
 Freebuff pushes directly to `claude/master-integration` (rule 3 is not followed in practice),
 so each executor fetches and rebases before every push and never force-pushes.
+
+## Step 2 handoff (2026-11-07, Claude)
+
+React Flow and Excalidraw are in, as Creation Studio artifact kinds `graph` and `drawing` (see `docs/architecture/2026-11-07/STEP_2_GRAPH_DRAWING.md`).
+
+Files touched:
+
+- Claude's lane: `src/core/studio/**` and `src/app/scene/genesis/studio/**`.
+- Shared files, each for a stated reason:
+  - `package.json` / `bun.lock`: the two dependencies.
+  - `vite.config.ts`: `optimizeDeps` include, dev only.
+  - `AgentEvents.ts` / `TurnActivity.ts`: kind unions.
+
+**Not touched:** the avatar, the navigator and layout, `home/**`.
+
+Open items for Freebuff's lanes:
+
+- App Library tiles do not receive pointer input.
+- The navigator panel overlaps workspace windows.
+- The library tile clips its cards.
+- Touch node-drag in React Flow under emulation needs a physical-device check.

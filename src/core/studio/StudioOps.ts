@@ -13,12 +13,18 @@
  * ==========================================================
  */
 
-import type { ArtifactSpec, Block, Cell, ChartKind, ChartSpec, DeckSpec, DocumentSpec, SheetSpec, SlideSpec, Source, WorkbookSpec } from "./StudioTypes";
+import type { ArtifactSpec, Block, Cell, ChartKind, ChartSpec, DeckSpec, DocumentSpec, DrawingSpec, GraphEdgeSpec, GraphNodeSpec, GraphSpec, SheetSpec, SlideSpec, Source, WorkbookSpec } from "./StudioTypes";
 
 export type Normalized = { ok: true; spec: ArtifactSpec } | { ok: false; reason: string };
 
 const CHART_KINDS: ChartKind[] = ["bar", "column", "line", "pie", "donut", "scatter"];
-const LIMITS = { blocks: 400, slides: 120, sheets: 30, rows: 20000, cols: 200, text: 20000 };
+const LIMITS = { blocks: 400, slides: 120, sheets: 30, rows: 20000, cols: 200, text: 20000, graphNodes: 500, graphEdges: 2000, drawingElements: 5000 };
+
+/** World, conversation, project or artifact ids a graph or drawing belongs to. */
+function normalizeLinks(v: unknown): string[] | undefined {
+  const out = Array.isArray(v) ? [...new Set(v.map((x) => (typeof x === "string" ? x.trim().slice(0, 120) : "")).filter(Boolean))].slice(0, 20) : [];
+  return out.length ? out : undefined;
+}
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 const str = (v: unknown, max = LIMITS.text) => (typeof v === "string" ? v.slice(0, max) : typeof v === "number" ? String(v) : "");
@@ -191,7 +197,53 @@ export function normalizeSpec(input: unknown): Normalized {
     const spec: WorkbookSpec = { kind, title, author, sheets };
     return { ok: true, spec };
   }
-  return { ok: false, reason: `unknown kind “${kind}”: use document, deck or workbook` };
+  if (kind === "graph") {
+    const rawNodes = Array.isArray(input.nodes) ? input.nodes.slice(0, LIMITS.graphNodes) : [];
+    if (rawNodes.length === 0) return { ok: false, reason: "a graph needs at least one node" };
+    const nodes: GraphNodeSpec[] = [];
+    const ids = new Set<string>();
+    for (const [i, n] of rawNodes.entries()) {
+      if (!isObj(n)) return { ok: false, reason: `node ${i + 1} must be an object` };
+      const id = str(n.id, 80).trim() || `n${i + 1}`;
+      if (ids.has(id)) return { ok: false, reason: `two nodes have the id “${id}”` };
+      ids.add(id);
+      const label = str(n.label, 200).trim() || id;
+      const num = (v: unknown, fallback: number) => (typeof v === "number" && Number.isFinite(v) ? v : fallback);
+      nodes.push({
+        id, label,
+        type: str(n.type, 40).trim() || undefined,
+        x: num(n.x, (i % 4) * 220), y: num(n.y, Math.floor(i / 4) * 140),
+        color: str(n.color, 20).trim() || undefined,
+        group: str(n.group, 80).trim() || undefined,
+        ref: str(n.ref, 120).trim() || undefined,
+      });
+    }
+    for (const n of nodes) if (n.group && !ids.has(n.group)) return { ok: false, reason: `node “${n.id}” is in group “${n.group}”, which is not a node` };
+    const rawEdges = Array.isArray(input.edges) ? input.edges.slice(0, LIMITS.graphEdges) : [];
+    const edges: GraphEdgeSpec[] = [];
+    for (const [i, e] of rawEdges.entries()) {
+      if (!isObj(e)) return { ok: false, reason: `edge ${i + 1} must be an object` };
+      const from = str(e.from ?? e.source, 80).trim();
+      const to = str(e.to ?? e.target, 80).trim();
+      if (!ids.has(from) || !ids.has(to)) return { ok: false, reason: `edge ${i + 1} connects “${from}” and “${to}”, which must both be nodes` };
+      edges.push({ id: str(e.id, 80).trim() || `e${i + 1}-${from}-${to}`, from, to, label: str(e.label, 120).trim() || undefined });
+    }
+    const spec: GraphSpec = { kind, title, author, nodes, edges, links: normalizeLinks(input.links) };
+    return { ok: true, spec };
+  }
+  if (kind === "drawing") {
+    const scene = isObj(input.scene) ? input.scene : {};
+    const elements = Array.isArray(scene.elements) ? scene.elements.slice(0, LIMITS.drawingElements) : [];
+    if (!elements.every(isObj)) return { ok: false, reason: "every drawing element must be an object" };
+    // Excalidraw's own data, kept as is: never converted.
+    const spec: DrawingSpec = {
+      kind, title, author,
+      scene: { elements, appState: isObj(scene.appState) ? scene.appState : undefined, files: isObj(scene.files) ? scene.files : undefined },
+      links: normalizeLinks(input.links),
+    };
+    return { ok: true, spec };
+  }
+  return { ok: false, reason: `unknown kind “${kind}”: use document, deck, workbook, graph or drawing` };
 }
 
 /* ------------------------------------------------------------------ *
@@ -237,6 +289,19 @@ function mergeChart(base: ChartSpec, patch: Record<string, unknown>, where: stri
 export function applyOps(spec: ArtifactSpec, ops: StudioOp[]): OpsResult {
   const next = JSON.parse(JSON.stringify(spec)) as ArtifactSpec;
   const changes: string[] = [];
+  if (next.kind === "graph" || next.kind === "drawing") {
+    // Graphs and drawings are edited in their own editors and revised
+    // with a full spec; the only op they take is a new title.
+    for (const [n, op] of ops.entries()) {
+      if (op.op !== "setTitle" || !str(op.title).trim()) {
+        return { ok: false, reason: `change ${n + 1} (${op.op}): a ${next.kind} is revised with a full spec (or setTitle). Nothing was changed.` };
+      }
+      next.title = str(op.title, 300).trim();
+      changes.push(`title → “${next.title}”`);
+    }
+    const checked = normalizeSpec(next);
+    return checked.ok ? { ok: true, spec: checked.spec, changes } : { ok: false, reason: `the revision would not be valid: ${checked.reason}. Nothing was changed.` };
+  }
   for (const [n, op] of ops.entries()) {
     const fail = (reason: string): OpsResult => ({ ok: false, reason: `change ${n + 1} (${op.op}): ${reason}. Nothing was changed.` });
     switch (op.op) {
@@ -369,6 +434,8 @@ export function compareSpecs(a: ArtifactSpec, b: ArtifactSpec): string[] {
   if (a.title !== b.title) out.push(`title “${a.title}” → “${b.title}”`);
   const lines = (s: ArtifactSpec): string[] =>
     s.kind === "document" ? s.blocks.map((x) => `${x.type}: ${x.type === "chart" ? `${x.chart.kind} ${x.chart.title ?? ""} ${x.chart.series.map((se) => `${se.name}=${se.values.join("/")}`).join(" ")}` : x.type === "table" ? `${x.columns.join("|")} ×${x.rows.length}` : x.type === "bullets" ? x.items.join(" · ") : x.type === "image" ? x.caption ?? "image" : x.text}`)
+    : s.kind === "graph" ? [...s.nodes.map((x) => `node ${x.label}${x.type ? ` (${x.type})` : ""}${x.group ? ` in ${x.group}` : ""}`), ...s.edges.map((e) => `edge ${e.from} → ${e.to}${e.label ? ` “${e.label}”` : ""}`)]
+    : s.kind === "drawing" ? s.scene.elements.map((el) => { const e = el as { type?: string; text?: string; id?: string }; return `${e.type ?? "element"}${e.text ? `: ${e.text}` : ""} [${e.id ?? "?"}]`; })
     : s.kind === "deck" ? s.slides.map((x, i) => `slide ${i + 1}: ${x.title}${x.bullets ? ` — ${x.bullets.join(" · ")}` : ""}${x.chart ? ` [${x.chart.kind} chart]` : ""}${x.table ? " [table]" : ""}${x.notes ? ` (notes: ${x.notes})` : ""}`)
     : s.sheets.flatMap((sh) => [`sheet ${sh.name}: ${sh.columns.join("|")}`, ...sh.rows.map((r, i) => `${sh.name} row ${i + 2}: ${r.map((c) => (typeof c === "object" && c ? `=${(c as { formula: string }).formula}` : String(c ?? ""))).join("|")}`), ...(sh.charts ?? []).map((c) => `${sh.name} chart: ${c.kind}`)]);
   const la = lines(a);
