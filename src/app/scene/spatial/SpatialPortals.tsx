@@ -849,6 +849,10 @@ export default function SpatialPortals() {
   const select = useCallback(
     (spec: PortalSpec) => {
       setSelected(spec.id);
+      if (traceEnabled()) {
+        const host = window as unknown as { __leluSelectCalls?: unknown[] };
+        host.__leluSelectCalls = [...(host.__leluSelectCalls ?? []), { portalId: spec.id, destination: spec.destination, at: Math.round(performance.now()) }];
+      }
       runtime.travel(spec.destination);
     },
     [runtime],

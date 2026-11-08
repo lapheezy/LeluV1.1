@@ -1,0 +1,506 @@
+{
+  "mission": "5.4B.5",
+  "mode": "burst",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "summary": {
+    "files": 4,
+    "studio": 0,
+    "attempts": 5,
+    "wrongDestination": 0,
+    "noEvent": 1
+  },
+  "attempts": [
+    {
+      "load": 1,
+      "destination": "files",
+      "ready": {
+        "ok": true,
+        "stableFrames": 0,
+        "current": "core",
+        "transition": null,
+        "progress": 100,
+        "dataset": "core",
+        "settle": {
+          "frame": 7,
+          "stableFrames": 0,
+          "deltaPosition": 0.0044,
+          "deltaRotation": 0.0008,
+          "position": [
+            -0.0038,
+            0.0023,
+            5
+          ],
+          "quaternion": [
+            -0.0001,
+            -0.0004,
+            0,
+            1
+          ]
+        }
+      },
+      "entryReady": {
+        "ok": true,
+        "stableFrames": 0,
+        "current": "core",
+        "transition": null,
+        "progress": 100,
+        "dataset": "core",
+        "settle": {
+          "frame": 7,
+          "stableFrames": 0,
+          "deltaPosition": 0.0044,
+          "deltaRotation": 0.0008,
+          "position": [
+            -0.0038,
+            0.0023,
+            5
+          ],
+          "quaternion": [
+            -0.0001,
+            -0.0004,
+            0,
+            1
+          ]
+        }
+      },
+      "measure": {
+        "x": 253,
+        "y": 480,
+        "id": "scene:files",
+        "centre": {
+          "x": 253,
+          "y": 480
+        },
+        "radius": 26,
+        "tried": 0,
+        "fieldCamera": null
+      },
+      "pointersBefore": {
+        "down": 0,
+        "up": 0,
+        "events": 0
+      },
+      "pointersAfter": {
+        "down": 1,
+        "up": 1
+      },
+      "eventsBefore": 0,
+      "eventsAfter": 0,
+      "delivered": null,
+      "deliveredDestination": null,
+      "settleAtClick": null,
+      "projectedCentreAtClick": null,
+      "landed": "core",
+      "deliveredMatches": false,
+      "sceneMatches": false,
+      "matches": false
+    },
+    {
+      "load": 2,
+      "destination": "files",
+      "ready": {
+        "ok": true,
+        "stableFrames": 0,
+        "current": "core",
+        "transition": null,
+        "progress": 100,
+        "dataset": "core",
+        "settle": {
+          "frame": 8,
+          "stableFrames": 0,
+          "deltaPosition": 6.762,
+          "deltaRotation": 1.767,
+          "position": [
+            3.9995,
+            3.9995,
+            -2.9991
+          ],
+          "quaternion": [
+            -0.1146,
+            0.8646,
+            0.2291,
+            0.4323
+          ]
+        }
+      },
+      "entryReady": {
+        "ok": true,
+        "stableFrames": 0,
+        "current": "core",
+        "transition": null,
+        "progress": 100,
+        "dataset": "core",
+        "settle": {
+          "frame": 8,
+          "stableFrames": 0,
+          "deltaPosition": 6.762,
+          "deltaRotation": 1.767,
+          "position": [
+            3.9995,
+            3.9995,
+            -2.9991
+          ],
+          "quaternion": [
+            -0.1146,
+            0.8646,
+            0.2291,
+            0.4323
+          ]
+        }
+      },
+      "measure": {
+        "x": 892,
+        "y": 435,
+        "id": "scene:files",
+        "centre": {
+          "x": 892,
+          "y": 435
+        },
+        "radius": 26,
+        "tried": 0,
+        "fieldCamera": null
+      },
+      "pointersBefore": {
+        "down": 0,
+        "up": 0,
+        "events": 0
+      },
+      "pointersAfter": {
+        "down": 1,
+        "up": 1
+      },
+      "eventsBefore": 0,
+      "eventsAfter": 1,
+      "delivered": "scene:files",
+      "deliveredDestination": "files",
+      "settleAtClick": {
+        "frame": 10,
+        "stableFrames": 0,
+        "deltaPosition": 0,
+        "deltaRotation": 0.0069,
+        "position": [
+          4,
+          4,
+          -3
+        ],
+        "quaternion": [
+          -0.116,
+          0.8638,
+          0.2321,
+          0.4319
+        ]
+      },
+      "projectedCentreAtClick": null,
+      "landed": "files",
+      "deliveredMatches": true,
+      "sceneMatches": true,
+      "matches": true
+    },
+    {
+      "load": 3,
+      "destination": "files",
+      "ready": {
+        "ok": true,
+        "stableFrames": 1,
+        "current": "core",
+        "transition": null,
+        "progress": 100,
+        "dataset": "core",
+        "settle": {
+          "frame": 9,
+          "stableFrames": 1,
+          "deltaPosition": 0,
+          "deltaRotation": 0,
+          "position": [
+            0,
+            0.9,
+            3.2
+          ],
+          "quaternion": [
+            0.039,
+            0,
+            0,
+            0.9992
+          ]
+        }
+      },
+      "entryReady": {
+        "ok": true,
+        "stableFrames": 0,
+        "current": "core",
+        "transition": null,
+        "progress": 100,
+        "dataset": "core",
+        "settle": {
+          "frame": 7,
+          "stableFrames": 0,
+          "deltaPosition": 0.4004,
+          "deltaRotation": 0.0107,
+          "position": [
+            0,
+            0.1792,
+            4.6416
+          ],
+          "quaternion": [
+            0.0054,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      "measure": {
+        "x": 8,
+        "y": 750,
+        "id": "scene:files",
+        "centre": {
+          "x": 8,
+          "y": 750
+        },
+        "radius": 26,
+        "tried": 0,
+        "fieldCamera": null
+      },
+      "pointersBefore": {
+        "down": 0,
+        "up": 0,
+        "events": 0
+      },
+      "pointersAfter": {
+        "down": 1,
+        "up": 1
+      },
+      "eventsBefore": 0,
+      "eventsAfter": 1,
+      "delivered": "scene:files",
+      "deliveredDestination": "files",
+      "settleAtClick": {
+        "frame": 11,
+        "stableFrames": 3,
+        "deltaPosition": 0,
+        "deltaRotation": 0,
+        "position": [
+          0,
+          0.9,
+          3.2
+        ],
+        "quaternion": [
+          0.039,
+          0,
+          0,
+          0.9992
+        ]
+      },
+      "projectedCentreAtClick": null,
+      "landed": "files",
+      "deliveredMatches": true,
+      "sceneMatches": true,
+      "matches": true
+    },
+    {
+      "load": 4,
+      "destination": "files",
+      "ready": {
+        "ok": true,
+        "stableFrames": 0,
+        "current": "core",
+        "transition": null,
+        "progress": 100,
+        "dataset": "core",
+        "settle": {
+          "frame": 8,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0069,
+          "position": [
+            4,
+            4,
+            -3
+          ],
+          "quaternion": [
+            -0.116,
+            0.8638,
+            0.2321,
+            0.4319
+          ]
+        }
+      },
+      "entryReady": {
+        "ok": true,
+        "stableFrames": 0,
+        "current": "core",
+        "transition": null,
+        "progress": 100,
+        "dataset": "core",
+        "settle": {
+          "frame": 7,
+          "stableFrames": 0,
+          "deltaPosition": 5.4446,
+          "deltaRotation": 1.3264,
+          "position": [
+            4,
+            4,
+            -3
+          ],
+          "quaternion": [
+            -0.1146,
+            0.8646,
+            0.2291,
+            0.4323
+          ]
+        }
+      },
+      "measure": {
+        "x": 892,
+        "y": 422,
+        "id": "scene:files",
+        "centre": {
+          "x": 892,
+          "y": 422
+        },
+        "radius": 26,
+        "tried": 0,
+        "fieldCamera": null
+      },
+      "pointersBefore": {
+        "down": 0,
+        "up": 0,
+        "events": 0
+      },
+      "pointersAfter": {
+        "down": 1,
+        "up": 1
+      },
+      "eventsBefore": 0,
+      "eventsAfter": 1,
+      "delivered": "scene:files",
+      "deliveredDestination": "files",
+      "settleAtClick": {
+        "frame": 13,
+        "stableFrames": 0,
+        "deltaPosition": 0,
+        "deltaRotation": 0.0054,
+        "position": [
+          4,
+          4,
+          -3
+        ],
+        "quaternion": [
+          -0.1225,
+          0.8602,
+          0.245,
+          0.4301
+        ]
+      },
+      "projectedCentreAtClick": null,
+      "landed": "files",
+      "deliveredMatches": true,
+      "sceneMatches": true,
+      "matches": true
+    },
+    {
+      "load": 5,
+      "destination": "files",
+      "ready": {
+        "ok": true,
+        "stableFrames": 0,
+        "current": "core",
+        "transition": null,
+        "progress": 100,
+        "dataset": "core",
+        "settle": {
+          "frame": 9,
+          "stableFrames": 0,
+          "deltaPosition": 0.0969,
+          "deltaRotation": 0.0084,
+          "position": [
+            4,
+            4,
+            -3
+          ],
+          "quaternion": [
+            -0.1146,
+            0.8646,
+            0.2291,
+            0.4323
+          ]
+        }
+      },
+      "entryReady": {
+        "ok": true,
+        "stableFrames": 0,
+        "current": "core",
+        "transition": null,
+        "progress": 100,
+        "dataset": "core",
+        "settle": {
+          "frame": 8,
+          "stableFrames": 0,
+          "deltaPosition": 6.9129,
+          "deltaRotation": 1.8229,
+          "position": [
+            3.9604,
+            3.9604,
+            -2.9209
+          ],
+          "quaternion": [
+            -0.116,
+            0.8625,
+            0.2298,
+            0.4356
+          ]
+        }
+      },
+      "measure": {
+        "x": 892,
+        "y": 435,
+        "id": "scene:files",
+        "centre": {
+          "x": 892,
+          "y": 435
+        },
+        "radius": 26,
+        "tried": 0,
+        "fieldCamera": null
+      },
+      "pointersBefore": {
+        "down": 0,
+        "up": 0,
+        "events": 0
+      },
+      "pointersAfter": {
+        "down": 1,
+        "up": 1
+      },
+      "eventsBefore": 0,
+      "eventsAfter": 1,
+      "delivered": "scene:files",
+      "deliveredDestination": "files",
+      "settleAtClick": {
+        "frame": 12,
+        "stableFrames": 0,
+        "deltaPosition": 0,
+        "deltaRotation": 0.0063,
+        "position": [
+          4,
+          4,
+          -3
+        ],
+        "quaternion": [
+          -0.1188,
+          0.8623,
+          0.2376,
+          0.4311
+        ]
+      },
+      "projectedCentreAtClick": null,
+      "landed": "files",
+      "deliveredMatches": true,
+      "sceneMatches": true,
+      "matches": true
+    }
+  ]
+}

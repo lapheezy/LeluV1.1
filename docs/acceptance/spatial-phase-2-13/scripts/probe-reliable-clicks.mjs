@@ -132,12 +132,15 @@ for (let load = 1; load <= LOADS; load += 1) {
       };
     });
     let after = await poll(page);
-    for (let i = 0; i < 16; i += 1) {
+    const travelDeadline = Date.now() + 14000;
+    for (let i = 0; i < 400; i += 1) {
+      if (Date.now() > travelDeadline) break;
       after = await poll(page);
       if (!after.transition) break;
-      await page.waitForTimeout(T(280));
+      await page.waitForTimeout(120);
     }
-    const landed = after.dataset ?? after.current;
+    // The runtime is authoritative; the DOM dataset is a mirror of it.
+    const landed = after.current ?? after.dataset;
     attempts.push({
       load,
       destination,

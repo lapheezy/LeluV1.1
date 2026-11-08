@@ -1,6 +1,6 @@
 {
   "mission": "5.4 / 5.4B.1 — portal targeting",
-  "status": "not-passed-travel-resolution-blocker",
+  "status": "not-passed-8-of-10-and-one-wrong-destination",
   "branch": "claude/mission-5-4-spatial-interaction",
   "start": {
     "canonicalRemoteTip": "91f5361481bcf52913181867ad928ed9c1745b30",
@@ -369,6 +369,23 @@
       "wrongTravel": 0
     },
     "case": "B — correct identity delivered, destination never reached",
+    "gates": {
+      "tsc": "0 errors",
+      "portalTests": "40 pass / 0 fail",
+      "suite": "not run"
+    }
+  },
+  "mission54b8": {
+    "report": "docs/acceptance/MISSION-5-4B-8-REPORT.md",
+    "evidence": "docs/acceptance/spatial-phase-5-4b-8/summary.json",
+    "rootCause": "GSAP lag smoothing clamped each transition tick to ~33ms; at ~3fps the journey advanced at 11% of wall clock and never arrived",
+    "fix": "tweenDriver calls ticker.lagSmoothing(0) so transitions use real elapsed time",
+    "result": {
+      "files": "4/5",
+      "studio": "4/5",
+      "wrongDestination": 1,
+      "lostActivation": 1
+    },
     "gates": {
       "tsc": "0 errors",
       "portalTests": "40 pass / 0 fail",
