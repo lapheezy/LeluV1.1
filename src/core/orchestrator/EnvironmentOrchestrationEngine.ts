@@ -29,6 +29,7 @@ import InterfaceOrchestrator, {
   type ChangeSet,
 } from "../interface/InterfaceOrchestrator";
 import type { VisualSpec } from "../workspace/VisualSpec";
+import KvStore from "../storage/KvStore";
 
 export type EnvironmentTaskCategory =
   | "research"
@@ -124,7 +125,39 @@ export default class EnvironmentOrchestrationEngine {
     viewsAffected: string[];
   }> = [];
 
-  private constructor() {}
+  private constructor() {
+    this.hydrateFromStorage();
+  }
+
+  private hydrateFromStorage(): void {
+    try {
+      const kv = KvStore.getInstance();
+      const storedSnapshots = kv.get<EnvironmentStateSnapshot[]>("environment.snapshots");
+      if (Array.isArray(storedSnapshots)) {
+        for (const snap of storedSnapshots) {
+          if (snap && snap.id) {
+            this.snapshots.set(snap.id, snap);
+          }
+        }
+      }
+      const storedHistory = kv.get<typeof this.revisionHistory>("environment.revisions");
+      if (Array.isArray(storedHistory)) {
+        this.revisionHistory = storedHistory;
+      }
+    } catch (e) {
+      console.warn("[EnvironmentOrchestrationEngine] Storage hydration fallback:", e);
+    }
+  }
+
+  private persistToStorage(): void {
+    try {
+      const kv = KvStore.getInstance();
+      kv.set("environment.snapshots", Array.from(this.snapshots.values()));
+      kv.set("environment.revisions", this.revisionHistory.slice(-50));
+    } catch (e) {
+      console.warn("[EnvironmentOrchestrationEngine] Storage persistence fallback:", e);
+    }
+  }
 
   public static getInstance(): EnvironmentOrchestrationEngine {
     if (!EnvironmentOrchestrationEngine.instance) {
@@ -557,6 +590,7 @@ export default class EnvironmentOrchestrationEngine {
       appliedAt: Date.now(),
       viewsAffected: [viewId],
     });
+    this.persistToStorage();
 
     return { ok: true, view: updated };
   }
@@ -584,6 +618,7 @@ export default class EnvironmentOrchestrationEngine {
     this.snapshots.set(snapshotId, snapshot);
     // Also save in workspace engine layout history
     this.workspace.saveLayout();
+    this.persistToStorage();
 
     return snapshot;
   }
