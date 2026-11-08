@@ -106,6 +106,35 @@ export function toolSchemasForRequest(prompt = "", intent?: string): ToolSchema[
 }
 
 /**
+ * How many tools a size-refused turn may still carry on its retry.
+ *
+ * Small on purpose: this is the middle rung, not a budget.
+ */
+export const REDUCED_TOOL_LIMIT = 3;
+
+/**
+ * The set offered on a retry after a size refusal.
+ *
+ * The resolver used to answer a 413 by sending the SAME request with NO tools
+ * at all — which is why the model then described work it could not perform.
+ * A refused turn now first retries with a smaller set: the environment family
+ * when the turn is about the environment, otherwise the cheapest schemas to
+ * carry, so a tool-calling turn keeps the ability to act while it shrinks.
+ * Only if THAT is still refused does the turn fall back to no tools.
+ */
+export function reducedToolSchemas(prompt = "", intent?: string): ToolSchema[] {
+  const scoped = toolSchemasForRequest(prompt, intent);
+  if (scoped.length <= REDUCED_TOOL_LIMIT) return scoped;
+
+  const environment = scoped.filter((schema) => schema.name.startsWith(ENVIRONMENT_TOOL_PREFIX));
+  if (environment.length > 0) return environment.slice(0, REDUCED_TOOL_LIMIT);
+
+  return [...scoped]
+    .sort((a, b) => a.description.length - b.description.length)
+    .slice(0, REDUCED_TOOL_LIMIT);
+}
+
+/**
  * Diagnostic: why each executable tool is or is not being offered.
  * Used by the verification script and the capability matrix so the
  * offered set can be inspected rather than assumed.

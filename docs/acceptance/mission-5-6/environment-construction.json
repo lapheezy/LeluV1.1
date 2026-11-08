@@ -1,0 +1,18 @@
+{
+  "result": "BLOCKED",
+  "reason": "no provider could answer; every turn in the real composer ended with the app's own 'No AI providers are available.' notice",
+  "what_the_app_did_render": {
+    "windows": 1,
+    "contents": [
+      "chat surface"
+    ],
+    "note": "the Cosmos opened a single chat surface; the banner read '1 tool used \u00b7 1 issue' from the deterministic path, message 'I did not change the scene: there are fewer than two objects to arrange \u2014 create something first.'"
+  },
+  "honesty_note": "that tool line is NOT model-selected autonomy and is not counted as such",
+  "instruction_used": "the Gate B/J instruction verbatim, through the real Chat Universe composer",
+  "evidence": [
+    "cycle-probe1.json",
+    "cycle-default.json",
+    "shots/"
+  ]
+}

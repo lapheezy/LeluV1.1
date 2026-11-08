@@ -1,0 +1,7 @@
+{
+  "result": "PARTIAL",
+  "wiring_unchanged": "DailyReflection started at Bootstrap.ts:215; CognitiveLoop.ts:375 runDueReflections each cycle; AgenticTools exposes manual reflection",
+  "observed": "reflection/self-study keys are written in a real session (lelu.lelu.reflection.last.v1, lelu.lelu.reflection.history.v1, lelu.lelu.selfstudy.trace.v1); SelfStudyEngine handles a provider-less cycle without throwing",
+  "not_verified": "that completed environment work informs later turns \u2014 impossible without a model turn",
+  "duplicate_memory_system_added": false
+}

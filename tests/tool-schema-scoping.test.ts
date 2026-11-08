@@ -14,7 +14,12 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { scopeToolSchemas, toolSchemasForModel } from "../src/core/tools/ToolSchemas";
+import {
+  REDUCED_TOOL_LIMIT,
+  reducedToolSchemas,
+  scopeToolSchemas,
+  toolSchemasForModel,
+} from "../src/core/tools/ToolSchemas";
 
 const schema = (name: string) => ({
   name,
@@ -84,5 +89,29 @@ test("the resolver's derived list is what gets narrowed, not a second list", () 
   assert.ok(scoped.length <= derived.length);
   for (const item of scoped) {
     assert.ok(derived.some((d) => d.name === item.name), `${item.name} must come from the derived list`);
+  }
+});
+
+test("a size-refused environment turn retries with a smaller environment set, never none", () => {
+  const offered = reducedToolSchemas("create an environment about cities");
+  assert.ok(offered.length > 0, "a refused turn must keep at least one tool");
+  assert.ok(offered.length <= REDUCED_TOOL_LIMIT);
+  assert.ok(offered.every((s) => s.name.startsWith("environment_")));
+});
+
+test("a size-refused ordinary turn keeps the cheapest schemas instead of losing every tool", () => {
+  const offered = reducedToolSchemas("who are you, and what did we discuss yesterday?");
+  assert.ok(offered.length > 0 && offered.length <= REDUCED_TOOL_LIMIT);
+  const scoped = reducedToolSchemas(ALL, "summarise the conversation");
+  assert.ok(scoped.length > 0);
+  for (const item of scoped) assert.ok(ALL.some((a) => a.name === item.name), "no invented schema");
+});
+
+test("the reduced set stays a subset of the full derived set", () => {
+  const derived = toolSchemasForModel();
+  for (const prompt of ["create an environment", "hello there", "build a workspace"]) {
+    const reduced = reducedToolSchemas(prompt);
+    assert.ok(reduced.length <= Math.max(REDUCED_TOOL_LIMIT, 0) || reduced.length === derived.length);
+    for (const item of reduced) assert.ok(derived.some((d) => d.name === item.name));
   }
 });

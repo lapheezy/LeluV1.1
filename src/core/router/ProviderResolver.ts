@@ -19,7 +19,7 @@ import type { ProviderResult } from "./RouterResults";
 import AgentEventBus from "../agent/AgentEvents";
 import ModelRouter from "../model/ModelRouter";
 import { dispatchToolCall, latestCaptureMeasurements } from "../tools/ToolDispatcher";
-import { toolSchemasForRequest } from "../tools/ToolSchemas";
+import { reducedToolSchemas, toolSchemasForRequest } from "../tools/ToolSchemas";
 import { labelOtherChats } from "../multichat/ContextProvenance";
 import { BudgetExhaustedError, budgetNotice, gatedGenerate } from "../observability/UsageBudgetGate";
 
@@ -510,7 +510,7 @@ export default class ProviderResolver {
 
     try {
       try {
-        return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, false, onProgress);
+        return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, "full", onProgress);
       } catch (error) {
         // A user Stop outranks the deadline: the turn ended, it did not time
         // out, and settling it as a timeout would hide the Stop.
@@ -527,13 +527,32 @@ export default class ProviderResolver {
           provider.supportsTools === true && context.request.allowTools === true;
         if (!offeredTools || !requestTooLarge(reason)) throw error;
 
+        // Degrade in TWO steps, not one. Dropping every tool on the first
+        // refusal is what turned a size error into a model that described
+        // work it could not do; a smaller set still lets it act.
         context.logger.info(
           "ProviderResolver",
-          `${provider.name} refused the request as too large; retrying without the tool schemas.`,
+          `${provider.name} refused the request as too large; retrying with a reduced tool set.`,
           { provider: provider.name, fallbackReason: reason.slice(0, 200) },
         );
 
-        return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, true, onProgress);
+        try {
+          return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, "reduced", onProgress);
+        } catch (again) {
+          if (context.request.signal?.aborted) throwIfStopped(context, again);
+          if (expired) {
+            throw new Error(`${provider.name} timed out after its ${(budgetMs / 1000).toFixed(1)}s budget.`);
+          }
+          const secondReason = again instanceof Error ? again.message : String(again);
+          if (!requestTooLarge(secondReason)) throw again;
+
+          context.logger.info(
+            "ProviderResolver",
+            `${provider.name} refused the reduced set too; retrying without tools.`,
+            { provider: provider.name, fallbackReason: secondReason.slice(0, 200) },
+          );
+          return await this.executeProvider(provider, context, toolsReallyRun, rung.signal, "none", onProgress);
+        }
       }
     } finally {
       if (timer) clearTimeout(timer);
@@ -554,15 +573,17 @@ export default class ProviderResolver {
     context: RouterContext,
     toolsReallyRun?: Array<{ tool: string; ok: boolean }>,
     rungSignal?: AbortSignal,
-    withoutTools = false,
+    toolMode: "full" | "reduced" | "none" = "full",
     onProgress?: () => void,
   ): Promise<AIResponse> {
     // Tools are offered only on a conversational turn. Internal
     // structured-output calls (see AIRequest.allowTools) must reach the
     // provider exactly as they did before, or their parsers break.
     const tools =
-      !withoutTools && provider.supportsTools === true && context.request.allowTools === true
-        ? toolSchemasForRequest(context.request.prompt, context.intent)
+      toolMode !== "none" && provider.supportsTools === true && context.request.allowTools === true
+        ? toolMode === "reduced"
+          ? reducedToolSchemas(context.request.prompt, context.intent)
+          : toolSchemasForRequest(context.request.prompt, context.intent)
         : [];
 
     // No native tool support, or nothing currently executable to offer:
@@ -774,7 +795,7 @@ export default class ProviderResolver {
     context: RouterContext,
     toolsReallyRun?: Array<{ tool: string; ok: boolean }>,
     rungSignal?: AbortSignal,
-    withoutTools = false,
+    toolMode: "full" | "reduced" | "none" = "full",
     onProgress?: () => void,
   ): Promise<AIResponse> {
     const started = Date.now();
@@ -783,7 +804,7 @@ export default class ProviderResolver {
       context,
       toolsReallyRun,
       rungSignal,
-      withoutTools,
+      toolMode,
       onProgress,
     );
 

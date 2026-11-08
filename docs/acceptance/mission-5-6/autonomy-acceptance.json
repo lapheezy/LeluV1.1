@@ -1,0 +1,22 @@
+{
+  "gates": {
+    "A_provider_capacity_and_tool_reliability": "PARTIAL \u2014 scoping verified and degradation improved (17 unit tests green); live capacity exhausted so no successful live model turn",
+    "B_complete_environment_construction": "BLOCKED \u2014 provider capacity",
+    "C_self_inspection_and_correction": "BLOCKED \u2014 provider capacity; structural channel audited",
+    "D_continuous_evolution": "BLOCKED \u2014 provider capacity",
+    "E_persistence_and_continued_work": "PARTIAL \u2014 plumbing verified, environment save/restore not demonstrated",
+    "F_cosmos_universal_surface": "PARTIAL \u2014 audited only; nothing rebuilt",
+    "G_chromium_renderer_stability": "PARTIAL \u2014 338 s session survived, growth measured, cause not proven",
+    "H_memory_and_reflection": "PARTIAL \u2014 wiring verified, live effect not verifiable",
+    "I_regression_and_mobile": "PASS \u2014 tsc 0, build 0, lint 0 errors, 1838/1838 tests pass, 4/4 viewports",
+    "J_complete_autonomy_acceptance": "BLOCKED \u2014 sequence sent through the real composer, no provider answered"
+  },
+  "code_gates": {
+    "tsc": "exit 0",
+    "build": "exit 0",
+    "lint": "exit 0 (133 warnings, 0 errors)",
+    "test": "exit 0 \u2014 1838 tests, 1838 pass, 0 fail, 0 skipped"
+  },
+  "baseline_note": "Mission 5.5 recorded 1835 tests / 1833 pass / 2 skipped; this run reports 1838 / 1838 / 0 skipped, i.e. the two previously skipped tests were conditional skips that executed and passed in this environment",
+  "evidence_origin": "every entry from real execution in this session; no mocked model, no manual tool invocation, no fabricated success"
+}

@@ -106,7 +106,7 @@ test("a slow provider is cut off at its own budget and the next one answers", as
   assert.equal(failure?.kind, "timeout");
 });
 
-test("a request refused for its size is retried without the tool schemas", async () => {
+test("a request refused for its size degrades its tool set instead of dropping every tool", async () => {
   const seen: AIRequest[] = [];
   const provider = fakeProvider(
     "Groq",
@@ -134,12 +134,23 @@ test("a request refused for its size is retried without the tool schemas", async
   const result = await new ProviderResolver().execute(context);
 
   assert.equal(result.response?.provider, "Groq");
-  assert.equal(seen.length, 2, "the oversized attempt was not retried");
+  // TWO degradations, not one: the refused turn first retries with a REDUCED
+  // tool set, and only a second refusal drops tools entirely. Dropping every
+  // tool on the first refusal is what made the model describe work it could
+  // not do.
+  assert.equal(seen.length, 3, "the oversized attempt was not retried twice");
   assert.ok((seen[0].tools?.length ?? 0) > 0, "the first attempt did not carry the schemas");
-  assert.equal(seen[1].tools, undefined, "the retry still carried the schemas");
-  // The retry is the same turn: the request itself is unchanged.
-  assert.equal(seen[1].allowTools, true);
-  assert.equal(seen[1].prompt, "write me a short poem about the sea");
+  assert.ok((seen[1].tools?.length ?? 0) > 0, "the reduced retry dropped every tool");
+  assert.ok(
+    (seen[1].tools?.length ?? 0) <= (seen[0].tools?.length ?? 0),
+    "the reduced retry was not smaller than the first attempt",
+  );
+  assert.equal(seen[2].tools, undefined, "the final retry still carried the schemas");
+  // Every retry is the same turn: the request itself is unchanged.
+  for (const retry of [seen[1], seen[2]]) {
+    assert.equal(retry.allowTools, true);
+    assert.equal(retry.prompt, "write me a short poem about the sea");
+  }
 });
 
 test("a spent daily allowance is not retried smaller", async () => {
