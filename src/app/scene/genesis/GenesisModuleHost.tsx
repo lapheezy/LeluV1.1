@@ -124,6 +124,20 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
   /* Default geometry cascades so two opened modules never stack exactly. */
   const mobileWidth = Math.max(1, viewportWidth - 16);
   const mobileHeight = Math.max(1, viewportHeight - MOBILE_TOP_RESERVE - MOBILE_BOTTOM_RESERVE);
+  /*
+   * A phone window is a SHEET, not a viewport-sized panel.
+   *
+   * It used to take `mobileHeight` — the entire usable height — which made its
+   * vertical clamp `max(TOP, min(y, H - BOTTOM - height))` collapse to exactly
+   * TOP: the window could not move at all, at any phone size (measured dx 0,
+   * dy 0 at 360x640 with touch input arriving normally). A sheet that is a
+   * little over half the usable height leaves three meaningful docks — top,
+   * middle, bottom — while every control stays reachable above the safe area.
+   */
+  const mobileSheetHeight = Math.max(
+    300,
+    Math.min(Math.round(mobileHeight * 0.62), Math.round(viewportHeight * 0.66), 520),
+  );
   const mobileMinWidth = Math.min(MIN_WIDTH, mobileWidth);
   const mobileMinHeight = Math.min(MIN_HEIGHT, mobileHeight);
   /**
@@ -138,13 +152,25 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
   const size = isMobile
     ? {
         width: Math.max(mobileMinWidth, Math.min(mod.size?.width ?? mobileWidth, mobileWidth)),
-        height: Math.max(mobileMinHeight, Math.min(mod.size?.height ?? Math.min(viewportHeight * 0.6, 520), mobileHeight)),
+        // The sheet's height is the DOCK height, not the whole viewport: that is
+        // what gives placement a range. A resize on a phone is clamped into it.
+        height: Math.max(mobileMinHeight, Math.min(mod.size?.height ?? mobileSheetHeight, Math.min(mobileSheetHeight, mobileHeight))),
       }
-    : mod.size ?? {
-        width: Math.min(storedRect?.width ?? 620, viewportWidth - 24),
-        height: Math.min(storedRect?.height ?? 480, viewportHeight - CHROME_HEIGHT - 24),
+    : {
+        width: Math.min(storedRect?.width ?? mod.size?.width ?? 620, viewportWidth - 24),
+        height: Math.min(storedRect?.height ?? mod.size?.height ?? 480, viewportHeight - CHROME_HEIGHT - 24),
       };
-  const rawPosition = mod.position ?? (storedRect ? { x: storedRect.x, y: storedRect.y } : defaultPosition);
+  /*
+   * A placement the person made (or auto-arrange computed) is authoritative:
+   * it is where the window was actually left, and the layout store is the one
+   * owner of that fact. The module's own live position is the in-session value,
+   * so it wins only when it is what the store already agrees with; otherwise a
+   * stale transcript of the module (a legacy size, a pre-reload restack) could
+   * reopen the window a few pixels away from the rectangle that was saved.
+   */
+  const rawPosition = storedRect
+    ? { x: storedRect.x, y: storedRect.y }
+    : mod.position ?? defaultPosition;
   const position = {
     x: isMobile
       ? Math.max(0, Math.min(rawPosition.x, Math.max(0, viewportWidth - size.width)))
@@ -334,11 +360,31 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
      */
     const moved = Boolean(finalRect && drag && (finalRect.x !== drag.baseX || finalRect.y !== drag.baseY));
     if (moved || resized) {
+      /*
+       * On a phone the sheet DOCKS: the free drag lands on the nearest of the
+       * three meaningful vertical stops (top / middle / bottom) inside the safe
+       * band. Free-floating at a 12px offset would be a placement the person
+       * cannot reproduce; a dock is one they can find again, and it is what gets
+       * persisted. Horizontal position is fixed because the sheet is full width.
+       */
+      const dockTop = MOBILE_TOP_RESERVE;
+      const dockBottom = Math.max(dockTop, viewportHeight - MOBILE_BOTTOM_RESERVE - size.height);
+      const dockMiddle = Math.round((dockTop + dockBottom) / 2);
+      const snappedY = isMobile
+        ? [dockTop, dockMiddle, dockBottom].reduce(
+            (best, stop) => (Math.abs(stop - (finalRect?.y ?? position.y)) < Math.abs(best - (finalRect?.y ?? position.y)) ? stop : best),
+            dockTop,
+          )
+        : null;
+      if (snappedY !== null && finalRect) {
+        finalRect.y = snappedY;
+        moveModule(id, { x: finalRect.x, y: snappedY });
+      }
       ModuleLayoutStore.getInstance().place(id, {
-        x: finalRect?.x ?? mod.position?.x ?? position.x,
-        y: finalRect?.y ?? mod.position?.y ?? position.y,
-        width: mod.size?.width ?? size.width,
-        height: mod.size?.height ?? size.height,
+        x: finalRect?.x ?? position.x,
+        y: snappedY ?? finalRect?.y ?? position.y,
+        width: size.width,
+        height: size.height,
       });
     }
     setInteracting(false);
