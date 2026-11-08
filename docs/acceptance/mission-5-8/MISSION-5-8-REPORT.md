@@ -13,8 +13,9 @@ after-cycles listener attribution (F), and no live environment lifecycle (G).
 | Starting branch | `claude/mission-5-7-provider-resilience-autonomy` |
 | Starting HEAD (full) | `0b89f54d52708b3e5edf4f808bb6affe423e11fe` |
 | Mission branch | `claude/mission-5-8-provider-capability-truthfulness` (base `0b89f54`) |
-| Canonical `claude/master-integration` | `ce768e08cebd71eaa05418c5942ad637a8ac0596` — **unchanged** |
+| Canonical `claude/master-integration` | `ce768e08…` at start, `ae5a9cba447100bd32d8f4b95ce7d3e304b92001` at end — **not moved by this work** (this branch's commit descends from `0b89f54`; the only push from this chat created the Mission 5.8 branch; the bare repository is shared with sibling worktrees) |
 | Tree at start | clean, 0 untracked |
+| Local == remote | `e6501fe2a3e995e9cefe3650710de74fb852e20b` on both, tree clean |
 | 5.7 evidence | `docs/acceptance/mission-5-7` (20 files) preserved; one file was overwritten by a re-run of the 5.7 listener probe and has been restored with `git checkout --` before commit |
 | 5.7 fixes still present | broker-aware GitHub Models guard, `broker-consolidation` regression pin, rung budget, schema scoping, probes, report |
 

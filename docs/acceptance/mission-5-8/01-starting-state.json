@@ -14,5 +14,8 @@
     "tests/tool-schema-scoping.test.ts": true,
     "probesAndScreenshots": true,
     "mission57Report": true
-  }
+  },
+  "canonicalHeadAtStart": "ce768e08cebd71eaa05418c5942ad637a8ac0596",
+  "canonicalHeadAtEnd": "ae5a9cba447100bd32d8f4b95ce7d3e304b92001",
+  "canonicalNote": "the canonical branch moved during the mission window. It was NOT moved by this work: this branch's commit has parent 0b89f54 (the Mission 5.7 head), the only push from this chat created claude/mission-5-8-provider-capability-truthfulness, and no command here wrote to canonical. The bare repository is shared with sibling worktrees of this project, so the movement came from outside this chat. Recorded as observed instead of repeating the starting value as though it were still true."
 }
