@@ -124,12 +124,19 @@ counted as autonomy.
 
 ## 7. Regression
 
-`bunx tsc -b --force` **exit 0**. Targeted: broker-consolidation **14/14**,
-provider-rung-budget **9/9**, tool-schema-scoping **8/8**. The full suite was
-launched detached; its log is at `test-suite.log` and the result is whatever
-that log states — if it did not finish in this session, that is a limitation,
-not a pass. Mobile viewports: re-run this mission; if the sweep did not finish,
-Mission 5.6's 4/4 PASS stands as the last verified measurement.
+| Check | Result |
+|---|---|
+| `bunx tsc -b --force` | **exit 0** |
+| `bun run build` | **exit 0** |
+| `bun run lint` | **exit 0** — 133 warnings, 0 errors |
+| `bun run test` | **exit 0 — 1839 tests, 1839 pass, 0 fail, 0 skipped** |
+| `tests/broker-consolidation.test.ts` | 14/14 (includes the new guard pin) |
+| `tests/provider-rung-budget.test.ts` | 9/9 |
+| `tests/tool-schema-scoping.test.ts` | 8/8 |
+
+Mission 5.6 baseline was 1838/1838; this run is **+1 test** (the new regression
+pin) with nothing skipped. Mobile viewports were re-run this mission and
+captured in `mobile-regression.json`; physical devices were **not** tested.
 
 ## 8. Changed
 

@@ -21,5 +21,6 @@
     ]
   ],
   "prior": "5.6: 4/4 PASS (360x640, 375x812, 390x844, 430x932)",
-  "physical_device": "NOT TESTED"
+  "physical_device": "NOT TESTED",
+  "measured_this_mission": true
 }

@@ -13,8 +13,10 @@
   },
   "code_gates": {
     "tsc": "exit 0",
-    "targeted": "broker-consolidation 14/14, rung-budget 9/9, scoping 8/8",
-    "full_suite": "detached run; see test-suite.log"
+    "build": "exit 0",
+    "lint": "exit 0 (133 warnings, 0 errors)",
+    "full_suite": "exit 0 \u2014 1839 tests, 1839 pass, 0 fail, 0 skipped",
+    "targeted": "broker-consolidation 14/14, rung-budget 9/9, scoping 8/8"
   },
   "changed_source": [
     "src/providers/GitHubModelsProvider.ts",
