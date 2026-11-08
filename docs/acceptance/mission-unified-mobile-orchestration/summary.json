@@ -1,0 +1,220 @@
+{
+  "mission": "unified-mobile-orchestration",
+  "base": {
+    "spatial_integration_branch": "claude/mission-5-4b-11-canonical-integration",
+    "base_commit": "1569f57a3891e5b57f150cc21ebc556608513d44",
+    "remote_verified": true
+  },
+  "canonical": {
+    "at_mission_start": "91f5361481bcf52913181867ad928ed9c1745b30",
+    "note": "canonical remote moved BACKWARDS past ce768e0 (the 5.4B.11 base) between missions; our base contains ce768e0 and 91f5361, so nothing was lost, but canonical itself no longer contains the Chat Universe work it had when 5.4B.11 started."
+  },
+  "mobile_source": {
+    "branch": "claude/mission-2-15-6-mobile-interaction-restoration-closure",
+    "head": "19ee1fc1c868f99dad6a273bcebdea3f0a1f492c",
+    "app_fix": "14a676809e4edee702959252ea61891e32837b38",
+    "replayed_as": "3381b42"
+  },
+  "orchestration_source": {
+    "branch": "codelazr/environment-orchestration-session-02-recovered-8798102482818388694",
+    "head": "14903f08bf552d644339316b7929fdaa86d47966",
+    "also_seen": "codelazr/environment-orchestration-session-02-5152285862774985386 @ 0a2050c",
+    "replayed_as": "0cd2d3d"
+  },
+  "conflicts": 0,
+  "portal": {
+    "files": {
+      "attempts": 3,
+      "arrived": 3,
+      "wrong_destination": 0,
+      "no_claim": 0,
+      "lost_after_claim": 0,
+      "double_activation": 0,
+      "travel_ms": [
+        1172,
+        1712,
+        664
+      ]
+    },
+    "studio": {
+      "attempts": 3,
+      "arrived": 3,
+      "wrong_destination": 0,
+      "no_claim": 0,
+      "lost_after_claim": 0,
+      "double_activation": 0,
+      "travel_ms": [
+        1204,
+        1489,
+        1419
+      ]
+    },
+    "conversation": {
+      "attempts": 1,
+      "arrived": 1,
+      "wrong_destination": 0,
+      "no_claim": 0,
+      "lost_after_claim": 0,
+      "double_activation": 0,
+      "travel_ms": [
+        1605
+      ]
+    },
+    "universe": [
+      {
+        "dialogCount": 1,
+        "label": "Chat Universe",
+        "windows": 0,
+        "threads": 0,
+        "composers": 0,
+        "tablists": 0,
+        "legacyTabs": false,
+        "replacementChars": 0,
+        "bodyScene": "conversation"
+      }
+    ]
+  },
+  "cancel": {
+    "attempts": 2,
+    "arrived": 0,
+    "wrong_destination": 0,
+    "no_claim": 1,
+    "lost_after_claim": 1,
+    "double_activation": 0,
+    "travel_ms": [
+      3067,
+      2264
+    ]
+  },
+  "sequential_taps": {
+    "attempts": 2,
+    "arrived": 1,
+    "wrong_destination": 0,
+    "no_claim": 1,
+    "lost_after_claim": 0,
+    "double_activation": 0,
+    "travel_ms": [
+      1281,
+      1210
+    ]
+  },
+  "mobile": {
+    "360x640": {
+      "result": "ACCEPTED",
+      "verdicts": {
+        "movedVisibly": true,
+        "touchMovedVisibly": true,
+        "sameGestureCommit": true,
+        "restoredWithin1px": true,
+        "samePresenter": true,
+        "singleSurface": true
+      }
+    },
+    "375x812": {
+      "result": "ACCEPTED",
+      "verdicts": {
+        "movedVisibly": true,
+        "touchMovedVisibly": true,
+        "sameGestureCommit": true,
+        "restoredWithin1px": true,
+        "samePresenter": true,
+        "singleSurface": true
+      }
+    },
+    "390x844": {
+      "result": "ACCEPTED",
+      "verdicts": {
+        "movedVisibly": true,
+        "touchMovedVisibly": true,
+        "sameGestureCommit": true,
+        "restoredWithin1px": true,
+        "samePresenter": true,
+        "singleSurface": true
+      }
+    },
+    "430x932": {
+      "result": "ACCEPTED",
+      "verdicts": {
+        "movedVisibly": true,
+        "touchMovedVisibly": true,
+        "sameGestureCommit": true,
+        "restoredWithin1px": true,
+        "samePresenter": true,
+        "singleSurface": true
+      }
+    }
+  },
+  "autonomy": {
+    "research": {
+      "result": "RECORDED",
+      "prompt": "Build me a workspace about the Voyager 1 mission and present a summary table of its instruments.",
+      "steps": [
+        {
+          "step": "enter",
+          "cosmos": 1,
+          "guest": 1
+        },
+        {
+          "step": "open-chat",
+          "composers": 0
+        },
+        {
+          "step": "composer",
+          "count": 1
+        },
+        {
+          "step": "sent",
+          "at": 1794146157981
+        }
+      ],
+      "provider_notice": true,
+      "tool_activity_text": [
+        "Working with tools",
+        "1 tool used"
+      ]
+    },
+    "evolve": {
+      "result": "RECORDED",
+      "prompt": "Now revise that same table in place: add a row for the magnetometer boom and keep everything else.",
+      "steps": [
+        {
+          "step": "enter",
+          "cosmos": 1,
+          "guest": 1
+        },
+        {
+          "step": "open-chat",
+          "composers": 0
+        },
+        {
+          "step": "composer",
+          "count": 1
+        },
+        {
+          "step": "sent",
+          "at": 1794146224708
+        }
+      ],
+      "provider_notice": true,
+      "tool_activity_text": []
+    }
+  },
+  "autonomy_blocker": "No AI provider is configured in this environment (ProviderResolver: \"No AI providers are available\"). The turn executes through the real AIRouter/tool loop and the app returns its own offline notice. Model-driven tool selection is therefore NOT demonstrated and is not claimed.",
+  "gates": {
+    "tsc": "exit 0",
+    "build": "exit 0",
+    "lint": "exit 0 (133 warnings, 0 errors)",
+    "test": "exit 0 - 1830 tests, 1828 pass, 0 fail, 2 skipped",
+    "focused": "73/73 pass (environment-integration, interface-orchestration, portal-field, press-ownership, spatial-experience, tween-driver x2, old-chat-panel-removed)"
+  },
+  "architecture": {
+    "environment_tools": 6,
+    "tool_ids_unchanged": true,
+    "single_registry": true,
+    "single_dispatcher": true,
+    "single_engine": true,
+    "multi_segment_id_mapping": true,
+    "legacy_chat_references": 0,
+    "prior_evidence_rewritten": false
+  }
+}

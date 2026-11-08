@@ -1,0 +1,754 @@
+{
+ "viewport": "430x932",
+ "at": "2026-11-08T13:38:10.373Z",
+ "phases": [
+  {
+   "phase": "opened",
+   "health": {
+    "canvas": 1,
+    "hosts": 1,
+    "contents": [
+     "creation"
+    ],
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "interacting": false,
+      "x": 8,
+      "y": 16,
+      "w": 416,
+      "h": 510
+     }
+    ],
+    "chrome": {
+     "x": 216,
+     "y": 38,
+     "left": 9,
+     "right": 423,
+     "w": 414,
+     "h": 41
+    },
+    "capture": [],
+    "store": {
+     "moduleId": "creation",
+     "x": 8,
+     "y": 16,
+     "w": 406,
+     "h": 820,
+     "manual": false,
+     "pinned": false
+    },
+    "vv": {
+     "w": 430,
+     "h": 932
+    }
+   }
+  },
+  {
+   "phase": "touch-release",
+   "health": {
+    "canvas": 1,
+    "hosts": 1,
+    "contents": [
+     "creation"
+    ],
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "interacting": false,
+      "x": 8,
+      "y": 172,
+      "w": 416,
+      "h": 510
+     }
+    ],
+    "chrome": {
+     "x": 216,
+     "y": 194,
+     "left": 9,
+     "right": 423,
+     "w": 414,
+     "h": 41
+    },
+    "capture": [
+     {
+      "id": 2,
+      "held": false
+     }
+    ],
+    "store": {
+     "moduleId": "creation",
+     "x": 8,
+     "y": 172,
+     "w": 414,
+     "h": 508,
+     "manual": true,
+     "pinned": false
+    },
+    "vv": {
+     "w": 430,
+     "h": 932
+    }
+   }
+  },
+  {
+   "phase": "pointer-release",
+   "health": {
+    "canvas": 1,
+    "hosts": 1,
+    "contents": [
+     "creation"
+    ],
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "interacting": false,
+      "x": 8,
+      "y": 172,
+      "w": 416,
+      "h": 510
+     }
+    ],
+    "chrome": {
+     "x": 216,
+     "y": 194,
+     "left": 9,
+     "right": 423,
+     "w": 414,
+     "h": 41
+    },
+    "capture": [
+     {
+      "id": 1,
+      "held": false
+     }
+    ],
+    "store": {
+     "moduleId": "creation",
+     "x": 8,
+     "y": 172,
+     "w": 414,
+     "h": 508,
+     "manual": true,
+     "pinned": false
+    },
+    "vv": {
+     "w": 430,
+     "h": 932
+    }
+   }
+  },
+  {
+   "phase": "second-release",
+   "health": {
+    "canvas": 1,
+    "hosts": 1,
+    "contents": [
+     "creation"
+    ],
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "interacting": false,
+      "x": 8,
+      "y": 172,
+      "w": 416,
+      "h": 510
+     }
+    ],
+    "chrome": {
+     "x": 216,
+     "y": 194,
+     "left": 9,
+     "right": 423,
+     "w": 414,
+     "h": 41
+    },
+    "capture": [
+     {
+      "id": 1,
+      "held": false
+     }
+    ],
+    "store": {
+     "moduleId": "creation",
+     "x": 8,
+     "y": 172,
+     "w": 414,
+     "h": 508,
+     "manual": true,
+     "pinned": false
+    },
+    "vv": {
+     "w": 430,
+     "h": 932
+    }
+   }
+  },
+  {
+   "phase": "opened",
+   "health": {
+    "canvas": 1,
+    "hosts": 1,
+    "contents": [
+     "creation"
+    ],
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "interacting": false,
+      "x": 8,
+      "y": 16,
+      "w": 416,
+      "h": 510
+     }
+    ],
+    "chrome": {
+     "x": 216,
+     "y": 38,
+     "left": 9,
+     "right": 423,
+     "w": 414,
+     "h": 41
+    },
+    "capture": [],
+    "store": {
+     "moduleId": "creation",
+     "x": 8,
+     "y": 16,
+     "w": 406,
+     "h": 820,
+     "manual": false,
+     "pinned": false
+    },
+    "vv": {
+     "w": 430,
+     "h": 932
+    }
+   }
+  },
+  {
+   "phase": "touch-release",
+   "health": {
+    "canvas": 1,
+    "hosts": 1,
+    "contents": [
+     "creation"
+    ],
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "interacting": false,
+      "x": 8,
+      "y": 172,
+      "w": 416,
+      "h": 510
+     }
+    ],
+    "chrome": {
+     "x": 216,
+     "y": 194,
+     "left": 9,
+     "right": 423,
+     "w": 414,
+     "h": 41
+    },
+    "capture": [
+     {
+      "id": 2,
+      "held": false
+     }
+    ],
+    "store": {
+     "moduleId": "creation",
+     "x": 8,
+     "y": 172,
+     "w": 414,
+     "h": 508,
+     "manual": true,
+     "pinned": false
+    },
+    "vv": {
+     "w": 430,
+     "h": 932
+    }
+   }
+  },
+  {
+   "phase": "pointer-release",
+   "health": {
+    "canvas": 1,
+    "hosts": 1,
+    "contents": [
+     "creation"
+    ],
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "interacting": false,
+      "x": 8,
+      "y": 172,
+      "w": 416,
+      "h": 510
+     }
+    ],
+    "chrome": {
+     "x": 216,
+     "y": 194,
+     "left": 9,
+     "right": 423,
+     "w": 414,
+     "h": 41
+    },
+    "capture": [
+     {
+      "id": 1,
+      "held": false
+     }
+    ],
+    "store": {
+     "moduleId": "creation",
+     "x": 8,
+     "y": 172,
+     "w": 414,
+     "h": 508,
+     "manual": true,
+     "pinned": false
+    },
+    "vv": {
+     "w": 430,
+     "h": 932
+    }
+   }
+  },
+  {
+   "phase": "second-release",
+   "health": {
+    "canvas": 1,
+    "hosts": 1,
+    "contents": [
+     "creation"
+    ],
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "interacting": false,
+      "x": 8,
+      "y": 172,
+      "w": 416,
+      "h": 510
+     }
+    ],
+    "chrome": {
+     "x": 216,
+     "y": 194,
+     "left": 9,
+     "right": 423,
+     "w": 414,
+     "h": 41
+    },
+    "capture": [
+     {
+      "id": 1,
+      "held": false
+     }
+    ],
+    "store": {
+     "moduleId": "creation",
+     "x": 8,
+     "y": 172,
+     "w": 414,
+     "h": 508,
+     "manual": true,
+     "pinned": false
+    },
+    "vv": {
+     "w": 430,
+     "h": 932
+    }
+   }
+  }
+ ],
+ "errors": [],
+ "attempt": 2,
+ "identity": {
+  "moduleId": "creation",
+  "presentation": "inline",
+  "host": "creation",
+  "canvases": 1,
+  "contents": [
+   "creation"
+  ]
+ },
+ "touch": {
+  "pointer": {
+   "id": 2,
+   "type": "touch",
+   "target": "STRONG",
+   "onChrome": true,
+   "onControl": false
+  },
+  "events": {
+   "down": 1,
+   "move": 6,
+   "up": 1,
+   "cancel": 0
+  },
+  "moveOnChrome": 6,
+  "capture": [
+   {
+    "id": 2,
+    "held": true
+   }
+  ],
+  "live": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": true,
+   "x": 8,
+   "y": 96,
+   "w": 416,
+   "h": 510
+  },
+  "liveDelta": {
+   "dx": 0,
+   "dy": 80
+  },
+  "atRelease": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 172,
+   "w": 416,
+   "h": 510
+  },
+  "atReleaseStore": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 172,
+   "w": 414,
+   "h": 508,
+   "manual": true,
+   "pinned": false
+  },
+  "settled": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 172,
+   "w": 416,
+   "h": 510
+  },
+  "settledStore": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 172,
+   "w": 414,
+   "h": 508,
+   "manual": true,
+   "pinned": false
+  },
+  "committedSameGesture": true
+ },
+ "pointer": {
+  "pointer": {
+   "id": 1,
+   "type": "mouse",
+   "target": "STRONG",
+   "onChrome": true,
+   "onControl": false
+  },
+  "events": {
+   "down": 1,
+   "move": 13,
+   "up": 1,
+   "cancel": 0
+  },
+  "moveOnChrome": 13,
+  "capture": [
+   {
+    "id": 1,
+    "held": true
+   }
+  ],
+  "live": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": true,
+   "x": 8,
+   "y": 244,
+   "w": 416,
+   "h": 510
+  },
+  "liveDelta": {
+   "dx": 0,
+   "dy": 72
+  },
+  "atRelease": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 172,
+   "w": 416,
+   "h": 510
+  },
+  "atReleaseStore": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 172,
+   "w": 414,
+   "h": 508,
+   "manual": true,
+   "pinned": false
+  },
+  "settled": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 172,
+   "w": 416,
+   "h": 510
+  },
+  "settledStore": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 172,
+   "w": 414,
+   "h": 508,
+   "manual": true,
+   "pinned": false
+  },
+  "committedSameGesture": true
+ },
+ "secondDrag": {
+  "startedAt": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 172,
+   "w": 416,
+   "h": 510
+  },
+  "committedBefore": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 172,
+   "w": 414,
+   "h": 508,
+   "manual": true,
+   "pinned": false
+  },
+  "startedFromCommit": true,
+  "pointer": {
+   "id": 1,
+   "type": "mouse",
+   "target": "STRONG",
+   "onChrome": true,
+   "onControl": false
+  },
+  "events": {
+   "down": 1,
+   "move": 13,
+   "up": 1,
+   "cancel": 0
+  },
+  "moveOnChrome": 13,
+  "capture": [
+   {
+    "id": 1,
+    "held": true
+   }
+  ],
+  "live": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": true,
+   "x": 8,
+   "y": 108,
+   "w": 416,
+   "h": 510
+  },
+  "liveDelta": {
+   "dx": 0,
+   "dy": -64
+  },
+  "atRelease": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 172,
+   "w": 416,
+   "h": 510
+  },
+  "atReleaseStore": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 172,
+   "w": 414,
+   "h": 508,
+   "manual": true,
+   "pinned": false
+  },
+  "settled": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 172,
+   "w": 416,
+   "h": 510
+  },
+  "settledStore": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 172,
+   "w": 414,
+   "h": 508,
+   "manual": true,
+   "pinned": false
+  },
+  "committedSameGesture": true
+ },
+ "pin": {
+  "tapped": {
+   "pin": true,
+   "unpin": true
+  },
+  "before": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 172,
+   "w": 416,
+   "h": 510
+  },
+  "pinnedRect": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 172,
+   "w": 416,
+   "h": 510
+  },
+  "unpinnedRect": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 172,
+   "w": 416,
+   "h": 510
+  },
+  "pinnedFlag": true,
+  "unpinnedFlag": false,
+  "geometryUnchanged": true
+ },
+ "preReload": {
+  "rect": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 172,
+   "w": 416,
+   "h": 510
+  },
+  "store": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 172,
+   "w": 414,
+   "h": 508,
+   "manual": true,
+   "pinned": false
+  }
+ },
+ "result": "ACCEPTED",
+ "blockedAttempts": [
+  "BLOCKED: page.waitForTimeout: Target page, context or browser has been closed"
+ ],
+ "reload": {
+  "rect": {
+   "id": "creation",
+   "presentation": "inline",
+   "host": "creation",
+   "interacting": false,
+   "x": 8,
+   "y": 172,
+   "w": 416,
+   "h": 510
+  },
+  "presentation": "inline",
+  "host": "creation",
+  "windows": 1,
+  "hosts": 1,
+  "contents": [
+   "creation"
+  ],
+  "canvases": 1,
+  "store": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 172,
+   "w": 414,
+   "h": 508,
+   "manual": true,
+   "pinned": false
+  },
+  "delta": {
+   "dx": 0,
+   "dy": 0,
+   "dw": 0,
+   "dh": 0
+  }
+ },
+ "restoredWithin1px": true,
+ "samePresenter": true,
+ "singleSurface": true,
+ "verdicts": {
+  "movedVisibly": true,
+  "touchMovedVisibly": true,
+  "sameGestureCommit": true,
+  "restoredWithin1px": true,
+  "samePresenter": true,
+  "singleSurface": true
+ }
+}
