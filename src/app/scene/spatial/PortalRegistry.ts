@@ -103,6 +103,28 @@ export interface PortalMigration {
   skipped: number;
 }
 
+/**
+ * A fresh id that is actually free in this registry.
+ *
+ * Two creations can be issued in the same millisecond (an agent and a person,
+ * or two tool calls in one turn), and `Date.now()` alone then collides: the
+ * second portal would silently overwrite the first, which looks like a lost
+ * portal rather than a duplicate id. The random suffix makes a collision
+ * unlikely and the existence check makes it impossible.
+ */
+function freshPortalId(destination: SpatialSceneId, taken: (id: string) => boolean): string {
+  const stamp = Date.now().toString(36);
+  for (let attempt = 0; attempt < 64; attempt += 1) {
+    const suffix =
+      attempt === 0
+        ? Math.random().toString(36).slice(2, 6)
+        : `${attempt.toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+    const id = `portal_${destination}_${stamp}_${suffix}`;
+    if (!taken(id)) return id;
+  }
+  return `portal_${destination}_${stamp}_${crypto.randomUUID().slice(0, 8)}`;
+}
+
 function isPortal(value: unknown): value is Partial<PortalRecord> {
   return typeof value === "object" && value !== null;
 }
@@ -202,7 +224,10 @@ export default class PortalRegistry {
     }
     const existing = input.id ? this.portals.get(input.id) : undefined;
     const portal: PortalRecord = {
-      id: existing?.id ?? input.id ?? `portal_${destination}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
+      id:
+        existing?.id ??
+        input.id ??
+        freshPortalId(destination, (candidate) => this.portals.has(candidate)),
       destination,
       label: input.label?.trim() || destinationFor(destination).label,
       createdBy: input.createdBy === "agent" ? "agent" : "user",
