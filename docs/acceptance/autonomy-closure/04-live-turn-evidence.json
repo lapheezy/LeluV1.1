@@ -1,0 +1,106 @@
+{
+  "phase": 1,
+  "turns": [
+    {
+      "stage": "create",
+      "result": "RECORDED",
+      "waitedMs": 151009,
+      "windows": 1,
+      "contents": 1,
+      "tools": [
+        "startGroupCollapsed: \ud83d\udfe2 [10:59:31 PM] [ProviderResolver] Tool environment_compose -> ok",
+        "table: {Stage: ProviderResolver, Success: true, Message: Tool environment_compose -> ok, Provider: -, Duration: -, Confidence: -}"
+      ]
+    },
+    {
+      "stage": "modify",
+      "result": "RECORDED",
+      "waitedMs": 3324,
+      "windows": 1,
+      "contents": 1,
+      "tools": []
+    },
+    {
+      "stage": "reorganize",
+      "result": "RECORDED",
+      "waitedMs": 3311,
+      "windows": 1,
+      "contents": 1,
+      "tools": []
+    },
+    {
+      "stage": "save",
+      "result": "RECORDED",
+      "waitedMs": 3080,
+      "windows": 1,
+      "contents": 1,
+      "tools": []
+    }
+  ],
+  "dispatcherExecutions": [
+    {
+      "stage": "create",
+      "evidence": "startGroupCollapsed: \ud83d\udfe2 [10:59:31 PM] [ProviderResolver] Tool environment_compose -> ok"
+    },
+    {
+      "stage": "create",
+      "evidence": "table: {Stage: ProviderResolver, Success: true, Message: Tool environment_compose -> ok, Provider: -, Duration: -, Confidence: -}"
+    }
+  ],
+  "modelRequests": [
+    [
+      "/api/model/status",
+      200
+    ],
+    [
+      "/api/model/openrouter/chat/completions",
+      429
+    ],
+    [
+      "/api/model/groq/chat/completions",
+      200
+    ],
+    [
+      "/api/model/groq/chat/completions",
+      200
+    ],
+    [
+      "/api/model/groq/chat/completions",
+      200
+    ],
+    [
+      "/api/model/groq/chat/completions",
+      429
+    ],
+    [
+      "/api/model/githubModels/chat/completions",
+      502
+    ],
+    [
+      "/api/model/githubModels/chat/completions",
+      502
+    ],
+    [
+      "/api/model/githubModels/chat/completions",
+      502
+    ],
+    [
+      "/api/model/githubModels/chat/completions",
+      502
+    ],
+    [
+      "/api/model/githubModels/chat/completions",
+      502
+    ]
+  ],
+  "providerNotices": [
+    "info: [AIProviderRegistry] Skipping OpenRouter during failure cooldown. {retryInMs: 700443, reason: OpenRouter HTTP 429: Rate limit exceeded: free-mod\u2026redits to unlock 1000 free model requests per day, credentialRefused: false}",
+    "info: [AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 776854, reason: Groq failed 429: Rate limit reached for model `ope\u2026oday at https://console.groq.com/settings/billing, credentialRefused: false}",
+    "info: [AIProviderRegistry] Skipping OpenRouter during failure cooldown. {retryInMs: 691776, reason: OpenRouter HTTP 429: Rate limit exceeded: free-mod\u2026redits to unlock 1000 free model requests per day, credentialRefused: false}",
+    "info: [AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 768187, reason: Groq failed 429: Rate limit reached for model `ope\u2026oday at https://console.groq.com/settings/billing, credentialRefused: false}",
+    "info: [AIProviderRegistry] Skipping GitHub Models during failure cooldown. {retryInMs: 21978, reason: GitHub Models HTTP 502: {\"ok\":false,\"code\":\"BROKER\u2026ontentType\":\"text/plain\",\"upstreamPreview\":\"OK \"}, credentialRefused: false}",
+    "log: Metadata: {reason: missing-credentials-or-provider-cooldown, registeredProviders: Array(9)}",
+    "info: [AIProviderRegistry] Skipping OpenRouter during failure cooldown. {retryInMs: 683266, reason: OpenRouter HTTP 429: Rate limit exceeded: free-mod\u2026redits to unlock 1000 free model requests per day, credentialRefused: false}",
+    "info: [AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 759677, reason: Groq failed 429: Rate limit reached for model `ope\u2026oday at https://console.groq.com/settings/billing, credentialRefused: false}"
+  ]
+}
