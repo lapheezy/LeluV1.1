@@ -51,7 +51,14 @@ import {
   type PortalPlacement,
 } from "./portalField";
 import CosmosStore from "../genesis/cosmos/CosmosStore";
-import { recordPortalClick, traceEnabled } from "./portalTrace";
+import { recordPortalClick, recordPortalPress, traceEnabled } from "./portalTrace";
+import {
+  ACTIVATION_WINDOW_MS,
+  claimPress,
+  refusesBusyFlight,
+  resolvePress,
+  type OwnedPress,
+} from "./pressOwnership";
 
 /**
  * Destinations drawn as portals in the world (the core and cosmos are the world
@@ -153,14 +160,20 @@ function Portal({
   position,
   selected,
   showLabel,
-  onSelect,
+  onPressStart,
+  onPressCancel,
+  onActivateClick,
+  onActivateKeyboard,
 }: {
   spec: PortalSpec;
   state: SpatialState;
   position: Vector3;
   selected: boolean;
   showLabel: boolean;
-  onSelect: (spec: PortalSpec) => void;
+  onPressStart: (spec: PortalSpec, event: ThreeEvent<PointerEvent>) => void;
+  onPressCancel: (spec: PortalSpec, event: ThreeEvent<PointerEvent>) => void;
+  onActivateClick: (spec: PortalSpec) => void;
+  onActivateKeyboard: (spec: PortalSpec) => void;
 }) {
   const runtime = SpatialRuntime.getInstance();
   const seam = useRef<Group>(null);
@@ -180,177 +193,78 @@ function Portal({
   });
 
   /*
-   * PRESS OWNERSHIP — one interaction, one activation.
+   * PRESS OWNERSHIP — the field owns the identity; the mouth only reports it.
    *
-   * R3F derives onClick from a pointerdown/pointerup pair resolved on the same
-   * frame, so a fast press-and-release can reach the canvas and still produce no
-   * click (measured: 6 of 10 real presses). The mouth owns the pointer from the
-   * down event: a press that starts inside this portal completes on release, as
-   * long as it is the same pointer, it has not moved beyond a deliberate
-   * threshold, and no other flight already owns the camera.
-   *
-   * The release and the click R3F may derive from it are one press, so the
-   * second is discarded — never two activations from one interaction.
+   * A press belongs to the portal the pointer LANDED ON, for the whole life of
+   * that press. The field records it once at pointer-down and resolves that
+   * record on the canvas release, so the release completes the interaction the
+   * user started even when the rotating field has moved a different mouth under
+   * the pointer — and it can never open a neighbour, because the portal is
+   * never re-picked at release.
    */
-  const press = useRef<{ pointerId: number; x: number; y: number } | null>(null);
-  const pressPoint = useRef<{ x: number; y: number } | null>(null);
-  const lastActivation = useRef(0);
-
-  const beginPress = (event: ThreeEvent<PointerEvent>) => {
-    event.stopPropagation();
-    press.current = {
-      pointerId: event.pointerId,
-      x: event.nativeEvent.clientX,
-      y: event.nativeEvent.clientY,
-    };
-    pressPoint.current = { x: event.nativeEvent.clientX, y: event.nativeEvent.clientY };
-    try {
-      gl.domElement.setPointerCapture(event.pointerId);
-    } catch {
-      /* capture is best effort: the canvas still receives the release */
-    }
-  };
-
-  const endPress = (event: ThreeEvent<PointerEvent>) => {
-    const started = press.current;
-    press.current = null;
-    if (!started || started.pointerId !== event.pointerId) return;
-    const moved = Math.hypot(
-      event.nativeEvent.clientX - started.x,
-      event.nativeEvent.clientY - started.y,
-    );
-    if (moved > 18) return;
-    /* Activation is completed by the canvas-level release listener below, which
-       does not need the mouth to still be under the pointer. */
-  };
-
   const activate = (event: ThreeEvent<MouseEvent> | ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
-    const now = performance.now();
-    if (now - lastActivation.current < 500) return;
-    lastActivation.current = now;
-          event.stopPropagation();
-          /*
-           * Development trace: record what the REAL handler received in the
-           * same frame as the pointer event — the event object's own portal id,
-           * every intersection with its distance, the camera pose, the
-           * viewport and the projected centre of the object that was hit.
-           * Without this, "wrong portal" and "stale coordinates" are
-           * indistinguishable.
-           */
-          if (traceEnabled()) {
-            const native = event.nativeEvent as MouseEvent | undefined;
-            const rect = gl.domElement.getBoundingClientRect();
-            const world = new Vector3();
-            event.object.getWorldPosition(world);
-            const projected = world.clone().project(camera);
-            const round = (value: number, places = 4) =>
-              Math.round(value * 10 ** places) / 10 ** places;
-            recordPortalClick({
-              t: Math.round(performance.now()),
-              client: { x: Math.round(native?.clientX ?? -1), y: Math.round(native?.clientY ?? -1) },
-              ndc: {
-                x: round((((native?.clientX ?? 0) - rect.left) / Math.max(1, rect.width)) * 2 - 1),
-                y: round(-(((native?.clientY ?? 0) - rect.top) / Math.max(1, rect.height)) * 2 + 1),
-              },
-              delivered: {
-                portalId: (event.object.userData as { portalId?: string }).portalId ?? null,
-                destination: spec.destination,
-                object: event.object.name,
-              },
-              hitDistance: Number.isFinite(event.distance) ? round(event.distance, 3) : null,
-              hitPoint: [round(event.point.x, 3), round(event.point.y, 3), round(event.point.z, 3)],
-              intersections: event.intersections.slice(0, 8).map((entry) => ({
-                name: entry.object.name,
-                portalId: (entry.object.userData as { portalId?: string }).portalId ?? null,
-                distance: round(entry.distance, 3),
-              })),
-              camera: {
-                position: camera.position.toArray().map((value) => round(value)),
-                quaternion: camera.quaternion.toArray().map((value) => round(value)),
-                projection: camera.projectionMatrix.elements.map((value) => round(value)),
-              },
-              viewport: {
-                width: Math.round(rect.width),
-                height: Math.round(rect.height),
-                dpr: window.devicePixelRatio,
-              },
-              projectedCentre: {
-                x: Math.round(rect.left + (projected.x * 0.5 + 0.5) * rect.width),
-                y: Math.round(rect.top + (-projected.y * 0.5 + 0.5) * rect.height),
-              },
-              settle: (window as unknown as { __leluCameraSettle?: unknown }).__leluCameraSettle ?? null,
-              scene: state.current,
-              transition: state.transition?.kind ?? null,
-              travelDestination: state.destination,
-            });
-          }
-          // One camera, one flight: a click while another destination is in
-          // flight is refused rather than rebasing the path on top of itself.
-          // Travelling through a portal is the SAME travel the rail uses: one
-          // scene, one camera, no second canvas and no context reset.
-          if (busyElsewhere) return;
-          onSelect(spec);
-  };
-
-
-  /*
-   * A press that starts inside this mouth is owned by this portal until the
-   * pointer is released or cancelled. The release is read from the canvas, so it
-   * completes even when the field has rotated the mouth away from the pointer in
-   * between — the case that made a fast press activate nothing.
-   */
-  const activateOwnedPress = () => {
-    const now = performance.now();
-    if (now - lastActivation.current < 500) return;
-    lastActivation.current = now;
+    /*
+     * Development trace: record what the REAL handler received in the same
+     * frame as the pointer event — the event object's own portal id, every
+     * intersection with its distance, the camera pose, the viewport and the
+     * projected centre of the object that was hit. Without this, "wrong
+     * portal" and "stale coordinates" are indistinguishable.
+     */
     if (traceEnabled()) {
+      const native = event.nativeEvent as MouseEvent | undefined;
       const rect = gl.domElement.getBoundingClientRect();
+      const world = new Vector3();
+      event.object.getWorldPosition(world);
+      const projected = world.clone().project(camera);
       const round = (value: number, places = 4) => Math.round(value * 10 ** places) / 10 ** places;
       recordPortalClick({
-        t: Math.round(now),
-        client: pressPoint.current ?? { x: -1, y: -1 },
-        ndc: { x: 0, y: 0 },
-        delivered: { portalId: spec.id, destination: spec.destination, object: `spatial-portal-hit-${spec.id}` },
-        hitDistance: null,
-        hitPoint: null,
-        intersections: [],
+        t: Math.round(performance.now()),
+        client: { x: Math.round(native?.clientX ?? -1), y: Math.round(native?.clientY ?? -1) },
+        ndc: {
+          x: round((((native?.clientX ?? 0) - rect.left) / Math.max(1, rect.width)) * 2 - 1),
+          y: round(-(((native?.clientY ?? 0) - rect.top) / Math.max(1, rect.height)) * 2 + 1),
+        },
+        delivered: {
+          portalId: (event.object.userData as { portalId?: string }).portalId ?? null,
+          destination: spec.destination,
+          object: event.object.name,
+        },
+        hitDistance: Number.isFinite(event.distance) ? round(event.distance, 3) : null,
+        hitPoint: [round(event.point.x, 3), round(event.point.y, 3), round(event.point.z, 3)],
+        intersections: event.intersections.slice(0, 8).map((entry) => ({
+          name: entry.object.name,
+          portalId: (entry.object.userData as { portalId?: string }).portalId ?? null,
+          distance: round(entry.distance, 3),
+        })),
         camera: {
           position: camera.position.toArray().map((value) => round(value)),
           quaternion: camera.quaternion.toArray().map((value) => round(value)),
           projection: camera.projectionMatrix.elements.map((value) => round(value)),
         },
-        viewport: { width: Math.round(rect.width), height: Math.round(rect.height), dpr: window.devicePixelRatio },
-        projectedCentre: null,
+        viewport: {
+          width: Math.round(rect.width),
+          height: Math.round(rect.height),
+          dpr: window.devicePixelRatio,
+        },
+        projectedCentre: {
+          x: Math.round(rect.left + (projected.x * 0.5 + 0.5) * rect.width),
+          y: Math.round(rect.top + (-projected.y * 0.5 + 0.5) * rect.height),
+        },
         settle: (window as unknown as { __leluCameraSettle?: unknown }).__leluCameraSettle ?? null,
         scene: state.current,
         transition: state.transition?.kind ?? null,
         travelDestination: state.destination,
       });
     }
-    if (busyElsewhere) return;
-    onSelect(spec);
+    /*
+     * The click a release synthesises is the same interaction the press already
+     * resolved; the field discards it there. Anything that reaches here without
+     * a press (a synthetic click, a keyboard activation through a chip) still
+     * travels through the SAME single selection path.
+     */
+    onActivateClick(spec);
   };
-
-  useEffect(() => {
-    const canvas = gl.domElement;
-    const release = (event: PointerEvent) => {
-      const started = press.current;
-      if (!started || started.pointerId !== event.pointerId) return;
-      press.current = null;
-      if (Math.hypot(event.clientX - started.x, event.clientY - started.y) > 18) return;
-      activateOwnedPress();
-    };
-    const cancel = (event: PointerEvent) => {
-      if (press.current?.pointerId === event.pointerId) press.current = null;
-    };
-    canvas.addEventListener("pointerup", release);
-    canvas.addEventListener("pointercancel", cancel);
-    return () => {
-      canvas.removeEventListener("pointerup", release);
-      canvas.removeEventListener("pointercancel", cancel);
-    };
-  });
 
   return (
     <group position={position} name={`spatial-portal-group-${spec.id}`}>
@@ -406,7 +320,7 @@ function Portal({
             onClick={(event) => {
               event.stopPropagation();
               if (busyElsewhere) return;
-              onSelect(spec);
+              onActivateKeyboard(spec);
             }}
             style={{
               pointerEvents: "auto",
@@ -455,13 +369,10 @@ function Portal({
        * It paints nothing: opacity 0, no depth write. */}
       <mesh
         name={`spatial-portal-hit-${spec.id}`}
-        userData={{ portalId: spec.id, destination: spec.destination, label: spec.label }}
-        onPointerDown={(event) => beginPress(event)}
-        onPointerUp={(event) => endPress(event)}
+        userData={{ portalId: spec.id, destination: spec.destination, label: spec.label, hitRadius: spec.hitRadius }}
+        onPointerDown={(event) => onPressStart(spec, event)}
         onClick={(event) => activate(event)}
-        onPointerCancel={() => {
-          press.current = null;
-        }}
+        onPointerCancel={(event) => onPressCancel(spec, event)}
         onPointerOver={(event) => {
           event.stopPropagation();
           runtime.hover(spec.destination);
@@ -533,8 +444,21 @@ function PortalFieldProbe({
       const hits = raycaster.intersectObjects(scene.children, true);
       const hit = hits.find((entry) => entry.object.name.startsWith("spatial-portal-hit-"));
       if (hit) {
-        const userData = hit.object.userData as { portalId?: string };
-        return { portalId: userData.portalId ?? null, name: hit.object.name, distance: hit.distance };
+        const userData = hit.object.userData as { portalId?: string; hitRadius?: number };
+        const world = new Vector3();
+        hit.object.getWorldPosition(world);
+        const projected = world.clone().project(camera);
+        return {
+          portalId: userData.portalId ?? null,
+          name: hit.object.name,
+          distance: hit.distance,
+          hitRadius: userData.hitRadius ?? null,
+          /* The aim point: pressing here leaves maximum margin for drift. */
+          mouthCentre: {
+            x: Math.round(rect.left + (projected.x * 0.5 + 0.5) * rect.width),
+            y: Math.round(rect.top + (-projected.y * 0.5 + 0.5) * rect.height),
+          },
+        };
       }
       return hits.length
         ? { portalId: null, name: hits[0].object.name, distance: hits[0].distance }
@@ -841,22 +765,206 @@ export default function SpatialPortals() {
   );
 
   const [selected, setSelected] = useState<string | null>(null);
+  const gl = useThree((three) => three.gl);
+  const camera = useThree((three) => three.camera);
+
   /*
-   * ONE selection path: the seam mesh, the label chip and a keyboard Enter all
-   * call this, so there is no second way to travel and no chance of the two
-   * disagreeing about which portal was chosen.
+   * ONE press record for the whole field and ONE selection path.
+   *
+   * The record is keyed by the portal the pointer landed on, so release
+   * completes that portal even when the field has rotated a neighbour under the
+   * pointer. It is also what makes "one press, one activation" true: the click
+   * the renderer derives from the same press is recognised as the same
+   * interaction and discarded instead of travelling on its own.
    */
-  const select = useCallback(
-    (spec: PortalSpec) => {
+  const pressRef = useRef<OwnedPress | null>(null);
+  const guardRef = useRef({ lastActivationAt: 0, lastResolvedAt: 0 });
+
+  /* The single travel path: mouth, keyboard chip and owned press all come here. */
+  const handleActivate = useCallback(
+    (
+      spec: { id: string; destination: SpatialSceneId },
+      source: "press" | "click" | "keyboard",
+    ) => {
+      const now = performance.now();
+      /* A click that follows a resolved press is the same interaction. */
+      if (source === "click" && now - guardRef.current.lastResolvedAt < ACTIVATION_WINDOW_MS) return;
+      if (source !== "keyboard" && now - guardRef.current.lastActivationAt < ACTIVATION_WINDOW_MS) return;
+      guardRef.current.lastActivationAt = now;
+      /*
+       * One camera, one flight: a press while another destination is in flight
+       * is refused by the RUNTIME's own state, read here rather than from a
+       * render-time closure that may already be a frame or two old.
+       */
+      const current = runtime.getState();
+      if (refusesBusyFlight(current.transition, current.destination, spec.destination)) return;
       setSelected(spec.id);
       if (traceEnabled()) {
         const host = window as unknown as { __leluSelectCalls?: unknown[] };
-        host.__leluSelectCalls = [...(host.__leluSelectCalls ?? []), { portalId: spec.id, destination: spec.destination, at: Math.round(performance.now()) }];
+        host.__leluSelectCalls = [
+          ...(host.__leluSelectCalls ?? []),
+          { portalId: spec.id, destination: spec.destination, source, at: Math.round(now) },
+        ];
       }
       runtime.travel(spec.destination);
     },
     [runtime],
   );
+
+  const handleActivateClick = useCallback(
+    (spec: PortalSpec) => handleActivate(spec, "click"),
+    [handleActivate],
+  );
+  const handleActivateKeyboard = useCallback(
+    (spec: PortalSpec) => handleActivate(spec, "keyboard"),
+    [handleActivate],
+  );
+
+  /* Pointer-down: claim the portal under the pointer. This is the identity. */
+  const beginPress = useCallback(
+    (spec: PortalSpec, event: ThreeEvent<PointerEvent>) => {
+      event.stopPropagation();
+      const native = event.nativeEvent;
+      const now = performance.now();
+      pressRef.current = claimPress(
+        { id: spec.id, destination: spec.destination, label: spec.label },
+        { pointerId: event.pointerId, x: native.clientX, y: native.clientY },
+        now,
+      );
+      try {
+        gl.domElement.setPointerCapture(event.pointerId);
+      } catch {
+        /* capture is best effort: the canvas still receives the release */
+      }
+      if (traceEnabled()) {
+        const rect = gl.domElement.getBoundingClientRect();
+        const world = new Vector3();
+        event.object.getWorldPosition(world);
+        const projected = world.clone().project(camera);
+        const centre = {
+          x: Math.round(rect.left + (projected.x * 0.5 + 0.5) * rect.width),
+          y: Math.round(rect.top + (-projected.y * 0.5 + 0.5) * rect.height),
+        };
+        const round = (value: number, places = 3) => Math.round(value * 10 ** places) / 10 ** places;
+        const current = runtime.getState();
+        recordPortalPress({
+          t: Math.round(now),
+          phase: "down",
+          pointerId: event.pointerId,
+          client: { x: Math.round(native.clientX), y: Math.round(native.clientY) },
+          portalId: spec.id,
+          destination: spec.destination,
+          intersections: event.intersections.slice(0, 8).map((entry) => ({
+            name: entry.object.name,
+            portalId: (entry.object.userData as { portalId?: string }).portalId ?? null,
+            distance: round(entry.distance),
+          })),
+          mouthCentre: centre,
+          distanceFromCentre: Math.round(
+            Math.hypot(native.clientX - centre.x, native.clientY - centre.y),
+          ),
+          moved: null,
+          outcome: "claimed",
+          reason: null,
+          scene: current.current,
+          transition: current.transition?.kind ?? null,
+          travelDestination: current.destination,
+        });
+      }
+    },
+    [camera, gl, runtime],
+  );
+
+  const cancelPress = useCallback(
+    (_spec: PortalSpec, event: ThreeEvent<PointerEvent>) => {
+      const owned = pressRef.current;
+      if (!owned || owned.pointerId !== event.pointerId) return;
+      pressRef.current = null;
+      guardRef.current.lastResolvedAt = performance.now();
+      if (traceEnabled()) {
+        const current = runtime.getState();
+        recordPortalPress({
+          t: Math.round(performance.now()),
+          phase: "cancel",
+          pointerId: event.pointerId,
+          client: { x: Math.round(event.nativeEvent.clientX), y: Math.round(event.nativeEvent.clientY) },
+          portalId: owned.portalId,
+          destination: owned.destination,
+          intersections: [],
+          mouthCentre: null,
+          distanceFromCentre: null,
+          moved: null,
+          outcome: "cleared",
+          reason: "pointer-cancel",
+          scene: current.current,
+          transition: current.transition?.kind ?? null,
+          travelDestination: current.destination,
+        });
+      }
+    },
+    [runtime],
+  );
+
+  /*
+   * The release is read from the canvas, not from the mouth: it completes the
+   * owned press even when the mouth has rotated away from the pointer, and it
+   * travels to the identity claimed at pointer-down.
+   */
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const release = (event: PointerEvent) => {
+      const owned = pressRef.current;
+      if (!owned) return;
+      const now = performance.now();
+      pressRef.current = null;
+      const resolution = resolvePress(
+        owned,
+        { pointerId: event.pointerId, x: event.clientX, y: event.clientY },
+        guardRef.current.lastActivationAt,
+        now,
+      );
+      /* Resolved either way: the click derived from it is the same press. */
+      guardRef.current.lastResolvedAt = now;
+      if (traceEnabled()) {
+        const current = runtime.getState();
+        recordPortalPress({
+          t: Math.round(now),
+          phase: "up",
+          pointerId: event.pointerId,
+          client: { x: Math.round(event.clientX), y: Math.round(event.clientY) },
+          portalId: owned.portalId,
+          destination: owned.destination,
+          intersections: [],
+          mouthCentre: null,
+          distanceFromCentre: null,
+          moved: Math.round(resolution.moved),
+          outcome: resolution.kind === "activate" ? "activated" : "refused",
+          reason: resolution.kind === "refuse" ? resolution.reason : null,
+          scene: current.current,
+          transition: current.transition?.kind ?? null,
+          travelDestination: current.destination,
+        });
+      }
+      if (resolution.kind !== "activate") return;
+      handleActivate(
+        { id: owned.portalId, destination: owned.destination as SpatialSceneId },
+        "press",
+      );
+    };
+    const cancel = (event: PointerEvent) => {
+      if (pressRef.current?.pointerId !== event.pointerId) return;
+      pressRef.current = null;
+      guardRef.current.lastResolvedAt = performance.now();
+    };
+    canvas.addEventListener("pointerup", release);
+    canvas.addEventListener("pointercancel", cancel);
+    return () => {
+      canvas.removeEventListener("pointerup", release);
+      canvas.removeEventListener("pointercancel", cancel);
+      /* A press cannot outlive the field that owns it. */
+      pressRef.current = null;
+    };
+  }, [gl, handleActivate, runtime]);
 
   // A portal removed while selected must not leave a ghost selection behind.
   useEffect(() => {
@@ -892,7 +1000,10 @@ export default function SpatialPortals() {
           position={portal.position}
           selected={selected === portal.id}
           showLabel={wide}
-          onSelect={select}
+          onPressStart={beginPress}
+          onPressCancel={cancelPress}
+          onActivateClick={handleActivateClick}
+          onActivateKeyboard={handleActivateKeyboard}
         />
       ))}
       </group>

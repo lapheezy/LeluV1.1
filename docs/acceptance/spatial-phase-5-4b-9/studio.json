@@ -1,0 +1,514 @@
+{
+  "mission": "5.4B.9",
+  "destination": "studio",
+  "protocol": "fresh page load per attempt; real CDP mouse press/release at a pixel verified inside the target mouth minutes-of-ms before the press; runtime scene authoritative",
+  "required": 5,
+  "passed": 5,
+  "wrongDestination": 0,
+  "lostActivation": 0,
+  "duplicateActivation": 0,
+  "identityReplaced": 0,
+  "note": "Every press claimed the Studio mouth and resolved to the same identity 0 px away.",
+  "attempts": [
+    {
+      "loadId": "accept-b2-l1",
+      "freshLoad": true,
+      "settledWorld": {
+        "entry": true,
+        "ready": true,
+        "scene": "core"
+      },
+      "destination": "studio",
+      "portalIdentityAtPressDown": "scene:studio",
+      "portalIdentityAtRelease": "scene:studio",
+      "identityHeld": true,
+      "movementPx": 0,
+      "pressResolution": "activated",
+      "refusalReason": null,
+      "onSelectCalls": 1,
+      "duplicateActivation": false,
+      "aimPoint": {
+        "x": 647,
+        "y": 464,
+        "portalId": "scene:studio",
+        "destination": "studio",
+        "hitRadius": 0.5219402961513734,
+        "mouthCentre": {
+          "x": 647,
+          "y": 464
+        },
+        "margin": 0
+      },
+      "pressLanding": [
+        {
+          "x": 647,
+          "y": 464,
+          "pick": "scene:studio",
+          "object": "spatial-portal-hit-scene:studio",
+          "element": "CANVAS"
+        }
+      ],
+      "pressTrace": [
+        {
+          "t": 24131,
+          "phase": "down",
+          "pointerId": 1,
+          "client": {
+            "x": 647,
+            "y": 464
+          },
+          "portalId": "scene:studio",
+          "destination": "studio",
+          "intersections": [
+            {
+              "name": "GenesisCoreBody",
+              "portalId": null,
+              "distance": 4.884
+            },
+            {
+              "name": "spatial-portal-hit-scene:studio",
+              "portalId": "scene:studio",
+              "distance": 5.344
+            }
+          ],
+          "mouthCentre": {
+            "x": 647,
+            "y": 430
+          },
+          "distanceFromCentre": 34,
+          "moved": null,
+          "outcome": "claimed",
+          "reason": null,
+          "scene": "core",
+          "transition": null,
+          "travelDestination": null
+        },
+        {
+          "t": 27037,
+          "phase": "up",
+          "pointerId": 1,
+          "client": {
+            "x": 647,
+            "y": 464
+          },
+          "portalId": "scene:studio",
+          "destination": "studio",
+          "intersections": [],
+          "mouthCentre": null,
+          "distanceFromCentre": null,
+          "moved": 0,
+          "outcome": "activated",
+          "reason": null,
+          "scene": "core",
+          "transition": null,
+          "travelDestination": null
+        }
+      ],
+      "runtimeScene": "studio",
+      "travelMs": 1324,
+      "outcome": "arrived",
+      "passed": true,
+      "measurementMisses": []
+    },
+    {
+      "loadId": "accept-b2-l2",
+      "freshLoad": true,
+      "settledWorld": {
+        "entry": true,
+        "ready": true,
+        "scene": "core"
+      },
+      "destination": "studio",
+      "portalIdentityAtPressDown": "scene:studio",
+      "portalIdentityAtRelease": "scene:studio",
+      "identityHeld": true,
+      "movementPx": 0,
+      "pressResolution": "activated",
+      "refusalReason": null,
+      "onSelectCalls": 1,
+      "duplicateActivation": false,
+      "aimPoint": {
+        "x": 772,
+        "y": 418,
+        "portalId": "scene:studio",
+        "destination": "studio",
+        "hitRadius": 0.5219402961513734,
+        "mouthCentre": {
+          "x": 772,
+          "y": 418
+        },
+        "margin": 0
+      },
+      "pressLanding": [
+        {
+          "x": 772,
+          "y": 418,
+          "pick": "scene:studio",
+          "object": "spatial-portal-hit-scene:studio",
+          "element": "CANVAS"
+        }
+      ],
+      "pressTrace": [
+        {
+          "t": 16654,
+          "phase": "down",
+          "pointerId": 1,
+          "client": {
+            "x": 772,
+            "y": 418
+          },
+          "portalId": "scene:studio",
+          "destination": "studio",
+          "intersections": [
+            {
+              "name": "GenesisCoreBody",
+              "portalId": null,
+              "distance": 6.389
+            },
+            {
+              "name": "spatial-portal-hit-scene:studio",
+              "portalId": "scene:studio",
+              "distance": 6.824
+            }
+          ],
+          "mouthCentre": {
+            "x": 772,
+            "y": 390
+          },
+          "distanceFromCentre": 28,
+          "moved": null,
+          "outcome": "claimed",
+          "reason": null,
+          "scene": "core",
+          "transition": null,
+          "travelDestination": null
+        },
+        {
+          "t": 18256,
+          "phase": "up",
+          "pointerId": 1,
+          "client": {
+            "x": 772,
+            "y": 418
+          },
+          "portalId": "scene:studio",
+          "destination": "studio",
+          "intersections": [],
+          "mouthCentre": null,
+          "distanceFromCentre": null,
+          "moved": 0,
+          "outcome": "activated",
+          "reason": null,
+          "scene": "core",
+          "transition": null,
+          "travelDestination": null
+        }
+      ],
+      "runtimeScene": "studio",
+      "travelMs": 1495,
+      "outcome": "arrived",
+      "passed": true,
+      "measurementMisses": []
+    },
+    {
+      "loadId": "accept-b2-l3",
+      "freshLoad": true,
+      "settledWorld": {
+        "entry": true,
+        "ready": true,
+        "scene": "core"
+      },
+      "destination": "studio",
+      "portalIdentityAtPressDown": "scene:studio",
+      "portalIdentityAtRelease": "scene:studio",
+      "identityHeld": true,
+      "movementPx": 0,
+      "pressResolution": "activated",
+      "refusalReason": null,
+      "onSelectCalls": 1,
+      "duplicateActivation": false,
+      "aimPoint": {
+        "x": 647,
+        "y": 452,
+        "portalId": "scene:studio",
+        "destination": "studio",
+        "hitRadius": 0.5219402961513734,
+        "mouthCentre": {
+          "x": 647,
+          "y": 452
+        },
+        "margin": 0
+      },
+      "pressLanding": [
+        {
+          "x": 647,
+          "y": 452,
+          "pick": "scene:studio",
+          "object": "spatial-portal-hit-scene:studio",
+          "element": "CANVAS"
+        }
+      ],
+      "pressTrace": [
+        {
+          "t": 18115,
+          "phase": "down",
+          "pointerId": 1,
+          "client": {
+            "x": 647,
+            "y": 452
+          },
+          "portalId": "scene:studio",
+          "destination": "studio",
+          "intersections": [
+            {
+              "name": "GenesisCoreBody",
+              "portalId": null,
+              "distance": 4.863
+            },
+            {
+              "name": "spatial-portal-hit-scene:studio",
+              "portalId": "scene:studio",
+              "distance": 5.351
+            }
+          ],
+          "mouthCentre": {
+            "x": 647,
+            "y": 416
+          },
+          "distanceFromCentre": 36,
+          "moved": null,
+          "outcome": "claimed",
+          "reason": null,
+          "scene": "core",
+          "transition": null,
+          "travelDestination": null
+        },
+        {
+          "t": 19054,
+          "phase": "up",
+          "pointerId": 1,
+          "client": {
+            "x": 647,
+            "y": 452
+          },
+          "portalId": "scene:studio",
+          "destination": "studio",
+          "intersections": [],
+          "mouthCentre": null,
+          "distanceFromCentre": null,
+          "moved": 0,
+          "outcome": "activated",
+          "reason": null,
+          "scene": "core",
+          "transition": null,
+          "travelDestination": null
+        }
+      ],
+      "runtimeScene": "studio",
+      "travelMs": 1429,
+      "outcome": "arrived",
+      "passed": true,
+      "measurementMisses": []
+    },
+    {
+      "loadId": "accept-b2-l4",
+      "freshLoad": true,
+      "settledWorld": {
+        "entry": true,
+        "ready": true,
+        "scene": "core"
+      },
+      "destination": "studio",
+      "portalIdentityAtPressDown": "scene:studio",
+      "portalIdentityAtRelease": "scene:studio",
+      "identityHeld": true,
+      "movementPx": 0,
+      "pressResolution": "activated",
+      "refusalReason": null,
+      "onSelectCalls": 1,
+      "duplicateActivation": false,
+      "aimPoint": {
+        "x": 797,
+        "y": 385,
+        "portalId": "scene:studio",
+        "destination": "studio",
+        "hitRadius": 0.5219402961513734,
+        "mouthCentre": {
+          "x": 797,
+          "y": 385
+        },
+        "margin": 0
+      },
+      "pressLanding": [
+        {
+          "x": 797,
+          "y": 385,
+          "pick": "scene:studio",
+          "object": "spatial-portal-hit-scene:studio",
+          "element": "CANVAS"
+        }
+      ],
+      "pressTrace": [
+        {
+          "t": 17761,
+          "phase": "down",
+          "pointerId": 1,
+          "client": {
+            "x": 797,
+            "y": 385
+          },
+          "portalId": "scene:studio",
+          "destination": "studio",
+          "intersections": [
+            {
+              "name": "GenesisCoreBody",
+              "portalId": null,
+              "distance": 7.567
+            },
+            {
+              "name": "spatial-portal-hit-scene:studio",
+              "portalId": "scene:studio",
+              "distance": 8.367
+            }
+          ],
+          "mouthCentre": {
+            "x": 797,
+            "y": 364
+          },
+          "distanceFromCentre": 21,
+          "moved": null,
+          "outcome": "claimed",
+          "reason": null,
+          "scene": "core",
+          "transition": null,
+          "travelDestination": null
+        },
+        {
+          "t": 18522,
+          "phase": "up",
+          "pointerId": 1,
+          "client": {
+            "x": 797,
+            "y": 385
+          },
+          "portalId": "scene:studio",
+          "destination": "studio",
+          "intersections": [],
+          "mouthCentre": null,
+          "distanceFromCentre": null,
+          "moved": 0,
+          "outcome": "activated",
+          "reason": null,
+          "scene": "core",
+          "transition": null,
+          "travelDestination": null
+        }
+      ],
+      "runtimeScene": "studio",
+      "travelMs": 1530,
+      "outcome": "arrived",
+      "passed": true,
+      "measurementMisses": []
+    },
+    {
+      "loadId": "accept-b2-l5",
+      "freshLoad": true,
+      "settledWorld": {
+        "entry": true,
+        "ready": true,
+        "scene": "core"
+      },
+      "destination": "studio",
+      "portalIdentityAtPressDown": "scene:studio",
+      "portalIdentityAtRelease": "scene:studio",
+      "identityHeld": true,
+      "movementPx": 0,
+      "pressResolution": "activated",
+      "refusalReason": null,
+      "onSelectCalls": 1,
+      "duplicateActivation": false,
+      "aimPoint": {
+        "x": 778,
+        "y": 365,
+        "portalId": "scene:studio",
+        "destination": "studio",
+        "hitRadius": 0.5219402961513734,
+        "mouthCentre": {
+          "x": 778,
+          "y": 365
+        },
+        "margin": 0
+      },
+      "pressLanding": [
+        {
+          "x": 778,
+          "y": 365,
+          "pick": "scene:studio",
+          "object": "spatial-portal-hit-scene:studio",
+          "element": "CANVAS"
+        }
+      ],
+      "pressTrace": [
+        {
+          "t": 18473,
+          "phase": "down",
+          "pointerId": 1,
+          "client": {
+            "x": 778,
+            "y": 365
+          },
+          "portalId": "scene:studio",
+          "destination": "studio",
+          "intersections": [
+            {
+              "name": "GenesisCoreBody",
+              "portalId": null,
+              "distance": 6.397
+            },
+            {
+              "name": "spatial-portal-hit-scene:studio",
+              "portalId": "scene:studio",
+              "distance": 7.763
+            }
+          ],
+          "mouthCentre": {
+            "x": 779,
+            "y": 344
+          },
+          "distanceFromCentre": 21,
+          "moved": null,
+          "outcome": "claimed",
+          "reason": null,
+          "scene": "core",
+          "transition": null,
+          "travelDestination": null
+        },
+        {
+          "t": 19109,
+          "phase": "up",
+          "pointerId": 1,
+          "client": {
+            "x": 778,
+            "y": 365
+          },
+          "portalId": "scene:studio",
+          "destination": "studio",
+          "intersections": [],
+          "mouthCentre": null,
+          "distanceFromCentre": null,
+          "moved": 0,
+          "outcome": "activated",
+          "reason": null,
+          "scene": "core",
+          "transition": null,
+          "travelDestination": null
+        }
+      ],
+      "runtimeScene": "studio",
+      "travelMs": 1338,
+      "outcome": "arrived",
+      "passed": true,
+      "measurementMisses": []
+    }
+  ]
+}

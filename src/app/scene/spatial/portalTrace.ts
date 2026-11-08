@@ -68,3 +68,49 @@ export function recordPortalClick(trace: PortalClickTrace): void {
   list.push(trace);
   if (list.length > MAX_TRACES) list.splice(0, list.length - MAX_TRACES);
 }
+
+/**
+ * One press, from the moment it is claimed to the moment it is resolved.
+ *
+ * Clicks alone could not answer Mission 5.4B.8's remaining question — whether
+ * the portal under the pointer changed between down and up — because a click
+ * only ever describes the release. These records carry both ends of the same
+ * press, the identity claimed at down, and the mouth's projected centre at
+ * that instant, so "aimed wrong" and "identity replaced" are distinguishable.
+ */
+export interface PortalPressTrace {
+  t: number;
+  phase: "down" | "up" | "cancel";
+  pointerId: number;
+  client: { x: number; y: number };
+  /** The portal identity the press claimed, or that the release resolved. */
+  portalId: string | null;
+  destination: string | null;
+  /** Every mouth under the pointer at that instant, nearest first. */
+  intersections: Array<{ name: string; portalId: string | null; distance: number }>;
+  /** Where the claimed mouth's own centre projects, in client coordinates. */
+  mouthCentre: { x: number; y: number } | null;
+  /** How far the pointer sat from that centre: aim margin, in CSS pixels. */
+  distanceFromCentre: number | null;
+  moved: number | null;
+  outcome: "claimed" | "activated" | "refused" | "cleared";
+  reason: string | null;
+  scene: string | null;
+  transition: string | null;
+  travelDestination: string | null;
+}
+
+const MAX_PRESSES = 400;
+
+function pressBuffer(): PortalPressTrace[] {
+  const host = window as unknown as { __leluPortalPresses?: PortalPressTrace[] };
+  if (!host.__leluPortalPresses) host.__leluPortalPresses = [];
+  return host.__leluPortalPresses;
+}
+
+export function recordPortalPress(trace: PortalPressTrace): void {
+  if (typeof window === "undefined" || !traceEnabled()) return;
+  const list = pressBuffer();
+  list.push(trace);
+  if (list.length > MAX_PRESSES) list.splice(0, list.length - MAX_PRESSES);
+}

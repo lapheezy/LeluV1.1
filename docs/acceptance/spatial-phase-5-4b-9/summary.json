@@ -1,0 +1,145 @@
+{
+  "mission": "5.4B.9",
+  "objective": "A press belongs to the portal it landed on for the whole interaction.",
+  "acceptance": {
+    "files": {
+      "required": 5,
+      "passed": 5
+    },
+    "studio": {
+      "required": 5,
+      "passed": 5
+    }
+  },
+  "wrongDestination": 0,
+  "lostActivation": 0,
+  "duplicateActivation": 0,
+  "identityReplaced": 0,
+  "travelTimesMs": [
+    1275,
+    1580,
+    1718,
+    800,
+    1540,
+    1324,
+    1495,
+    1429,
+    1530,
+    1338
+  ],
+  "edgeCases": {
+    "drift": {
+      "loadId": "drift-b1-l1",
+      "portalIdentityAtPressDown": "scene:files",
+      "portalIdentityAtRelease": "scene:files",
+      "movementPx": 0,
+      "pressResolution": "activated",
+      "refusalReason": null,
+      "onSelectCalls": 1,
+      "portalUnderPointerAtRelease": null,
+      "runtimeScene": "files",
+      "travelMs": 836,
+      "expected": "travel",
+      "outcome": "arrived",
+      "passed": true
+    },
+    "neighbour": {
+      "loadId": "neighbour-b1-l1",
+      "portalIdentityAtPressDown": "scene:files",
+      "portalIdentityAtRelease": "scene:files",
+      "movementPx": 0,
+      "pressResolution": "activated",
+      "refusalReason": null,
+      "onSelectCalls": 1,
+      "portalUnderPointerAtRelease": {
+        "id": "scene:files",
+        "name": "spatial-portal-hit-scene:files",
+        "expected": "scene:files"
+      },
+      "runtimeScene": "files",
+      "travelMs": 6571,
+      "expected": "travel",
+      "outcome": "arrived",
+      "passed": true
+    },
+    "drag": {
+      "loadId": "drag-b1-l1",
+      "portalIdentityAtPressDown": null,
+      "portalIdentityAtRelease": null,
+      "movementPx": null,
+      "pressResolution": null,
+      "refusalReason": null,
+      "onSelectCalls": null,
+      "portalUnderPointerAtRelease": null,
+      "runtimeScene": "core",
+      "travelMs": 1552,
+      "expected": "no travel",
+      "outcome": "refused-as-designed",
+      "passed": true
+    },
+    "keyboard": {
+      "loadId": "keyboard-b1-l1",
+      "portalIdentityAtPressDown": null,
+      "portalIdentityAtRelease": null,
+      "movementPx": null,
+      "pressResolution": null,
+      "refusalReason": null,
+      "onSelectCalls": 1,
+      "portalUnderPointerAtRelease": null,
+      "runtimeScene": "files",
+      "travelMs": 1807,
+      "expected": "travel",
+      "outcome": "arrived",
+      "passed": true
+    },
+    "tap": {
+      "loadId": "tap-b1-l1",
+      "portalIdentityAtPressDown": "scene:files",
+      "portalIdentityAtRelease": "scene:files",
+      "movementPx": 0,
+      "pressResolution": "activated",
+      "refusalReason": null,
+      "onSelectCalls": 1,
+      "portalUnderPointerAtRelease": null,
+      "runtimeScene": "files",
+      "travelMs": 1641,
+      "expected": "travel",
+      "outcome": "arrived",
+      "passed": true
+    },
+    "cancel": {
+      "loadId": "cancel-b1-l1",
+      "portalIdentityAtPressDown": "scene:files",
+      "portalIdentityAtRelease": null,
+      "movementPx": null,
+      "pressResolution": null,
+      "refusalReason": null,
+      "onSelectCalls": 0,
+      "portalUnderPointerAtRelease": null,
+      "runtimeScene": "core",
+      "travelMs": 1687,
+      "expected": "no travel",
+      "outcome": "no-travel",
+      "passed": false
+    }
+  },
+  "supersededRunsQuotedNotPreserved": [
+    {
+      "run": "files, first acceptance run (probe before aim verification)",
+      "result": "4/5",
+      "cause": "one press was delivered onto empty canvas (raycast pick null at the press pixel); no portal interaction started; no transition, no selection"
+    },
+    {
+      "run": "studio, acceptance run A",
+      "result": "4/5",
+      "cause": "one press was delivered while the Browser mouth occupied the verified pixel (pick scene:browser at press); the app opened Browser, which is what was pressed; identity was consistent from down to release. Not reproducible once the probe verified the pixel immediately before pressing."
+    }
+  ],
+  "regression": {
+    "typecheck": "npx tsc -b --force -> exit 0",
+    "tests": "1743 tests: 1741 pass, 0 fail, 2 skipped",
+    "lint": "oxlint -> exit 0, 134 pre-existing warnings, 0 errors",
+    "build": "tsc -b && vite build -> exit 0"
+  },
+  "status": "PASSED"
+}
