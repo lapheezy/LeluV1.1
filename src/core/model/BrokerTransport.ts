@@ -230,3 +230,5 @@ export function providerConfigured(id: BrokeredProviderId, localKey: string): bo
   const known = brokerKnows(id);
   return known === undefined ? true : known;
 }
+
+export const classifyProviderFailure = classifyBrokerResponse;
