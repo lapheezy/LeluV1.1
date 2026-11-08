@@ -1,0 +1,52 @@
+{
+  "mission": "autonomy-closure",
+  "provider": "groq",
+  "model": "openai/gpt-oss-120b",
+  "via": "app broker /api/model/groq/chat/completions",
+  "method": "bounded investigation only: one tool-call capability probe, then the normal live turns. No identifier was changed, no new provider abstraction was added, and the intercepted host was never counted as a completion.",
+  "timeline": [
+    {
+      "step": "bounded capability probe with a tools payload",
+      "result": "200 JSON; finish_reason 'tool_calls'; model chose environment_compose with its own arguments; usage 517 tokens (153 prompt / 364 completion)",
+      "verdict": "TOOL CALLING VERIFIED"
+    },
+    {
+      "step": "live application turns (create, modify, reorganize, save)",
+      "result": "the create turn produced a real production dispatch: '[ProviderResolver] Tool environment_compose -> ok', module windows 0 -> 1, one data-lelu-module-content element. By the fourth provider decision Groq answered 429 'Rate limit reached for model' and the registry parked it in a cooldown of about 750 s",
+      "verdict": "QUOTA EXHAUSTED MID-WORKFLOW"
+    },
+    {
+      "step": "openrouter",
+      "result": "429 free-models-per-day",
+      "verdict": "CAPACITY_LIMITED"
+    },
+    {
+      "step": "githubModels",
+      "result": "every completion attempt was answered by the egress boundary instead of the provider; the broker returned 502 BROKER_CONTRACT_VIOLATION, so the model never received a fake completion",
+      "verdict": "INTERCEPTED — correctly refused, never counted"
+    },
+    {
+      "step": "post-cooldown re-probe",
+      "result": "a plain completion returned 404; the tool payload returned 200 text/plain 'OK' (the interception signature) and never JSON",
+      "verdict": "ROUTE NO LONGER AVAILABLE"
+    }
+  ],
+  "statesAtStatusEndpoint": {
+    "groq": "COMPLETION_VERIFIED (from the successful live traffic)",
+    "openrouter": "CAPACITY_LIMITED (429)",
+    "githubModels": "CONFIGURED, but its host is intercepted",
+    "cerebras": "UNCONFIGURED",
+    "mistral": "UNCONFIGURED",
+    "fireworks": "UNCONFIGURED",
+    "gemini": "UNCONFIGURED",
+    "anthropic": "POLICY_DISABLED"
+  },
+  "externalActionRequired": "Restore a permitted provider allowance: raise the Groq daily token limit for openai/gpt-oss-120b on this key, or supply a key for one of cerebras / mistral / fireworks / gemini and configure it. GitHub Models cannot serve as the route from this environment because its host is answered by the egress boundary, not by the provider. Anthropic stays excluded by policy.",
+  "whatIsAlreadyProvenSoAKeyIsAllThatIsNeeded": [
+    "the model chooses environment tools from offered schemas (observed tool_calls)",
+    "the production dispatcher executes the chosen tool (observed '-> ok')",
+    "the environment engine and workspace render the result (windows 0 -> 1)",
+    "provider failure is reported instead of fabricated (observed 429 / 502 handling)"
+  ],
+  "honesty": "no model identifier was swapped to manufacture a pass; 'OK' text was never accepted as a completion; the remaining stages are recorded BLOCKED / NOT TESTED rather than inferred"
+}
