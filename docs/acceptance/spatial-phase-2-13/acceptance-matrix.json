@@ -1,6 +1,6 @@
 {
   "mission": "5.4 / 5.4B.1 — portal targeting",
-  "status": "partial-input-routing-fixed-repeatability-failing",
+  "status": "incomplete-repeatability-not-achieved",
   "branch": "claude/mission-5-4-spatial-interaction",
   "start": {
     "canonicalRemoteTip": "91f5361481bcf52913181867ad928ed9c1745b30",
@@ -311,5 +311,22 @@
     },
     "remainingFailure": "reachable pixel and correct raycast, but no R3F event at press time — camera rotation between sampling and delivery under automation",
     "notChanged": "portal geometry, placement, identity, registry, camera behaviour"
+  },
+  "mission54b5": {
+    "report": "docs/acceptance/MISSION-5-4B-5-REPORT.md",
+    "script": "docs/acceptance/spatial-phase-2-13/scripts/probe-reliable-clicks.mjs",
+    "evidence": "docs/acceptance/spatial-phase-2-13/measurements/reliable-clicks-1440x900-burst.json",
+    "result": {
+      "files": "0/5",
+      "studio": "0/5",
+      "wrongDestination": 0,
+      "canvasPointerDownWithoutR3FEvent": "6 of 10"
+    },
+    "cause": {
+      "dispatch": "burst release precedes R3F click-pair resolution",
+      "travel": "refused because the entry transition was still in flight"
+    },
+    "note": "gated rerun exceeded the command cap; the evidence file is the un-gated run",
+    "appSourceChanged": false
   }
 }
