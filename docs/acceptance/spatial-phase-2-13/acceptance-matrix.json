@@ -1,6 +1,6 @@
 {
   "mission": "5.4 / 5.4B.1 — portal targeting",
-  "status": "fix-implemented-acceptance-unproven",
+  "status": "not-passed-travel-resolution-blocker",
   "branch": "claude/mission-5-4-spatial-interaction",
   "start": {
     "canonicalRemoteTip": "91f5361481bcf52913181867ad928ed9c1745b30",
@@ -346,6 +346,29 @@
       "studio": "no evidence",
       "reason": "each fresh load ~75s under SwiftShader; 290s command ceiling allowed ~3 loads per invocation"
     },
+    "gates": {
+      "tsc": "0 errors",
+      "portalTests": "40 pass / 0 fail",
+      "suite": "not run"
+    }
+  },
+  "mission54b7": {
+    "report": "docs/acceptance/MISSION-5-4B-7-REPORT.md",
+    "evidence": "docs/acceptance/spatial-phase-5-4b-7/batch-summary.json",
+    "activation": {
+      "delivered": "9/10",
+      "files": "4/5",
+      "studio": "5/5"
+    },
+    "identity": {
+      "correct": "9/10",
+      "wrongOne": "files press delivered scene:projects"
+    },
+    "destination": {
+      "reached": "0/10",
+      "wrongTravel": 0
+    },
+    "case": "B — correct identity delivered, destination never reached",
     "gates": {
       "tsc": "0 errors",
       "portalTests": "40 pass / 0 fail",

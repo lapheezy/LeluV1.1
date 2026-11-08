@@ -18,7 +18,9 @@ const CHROME = `${process.env.HOME}/.cache/ms-playwright/chromium-1234/chrome-li
 const VP = (process.env.VP ?? "1440x900").split("x").map(Number);
 const LOADS = Number(process.env.LOADS ?? 5);
 const MODE = process.env.MODE ?? "burst"; // burst | hold | playwright
-const OUT = `docs/acceptance/spatial-phase-2-13/measurements/reliable-clicks-${VP[0]}x${VP[1]}-${MODE}.json`;
+const OUT = `docs/acceptance/spatial-phase-2-13/measurements/reliable-clicks-${VP[0]}x${VP[1]}-${MODE}-${(process.env.DESTS ?? "files,studio").split(",").join("-")}.json`;
+const SPEED = Number(process.env.FAST ?? 1);
+const T = (ms) => Math.max(200, Math.round(ms * SPEED));
 const DESTS = (process.env.DESTS ?? "files,studio").split(",");
 mkdirSync("docs/acceptance/spatial-phase-2-13/screenshots", { recursive: true });
 
@@ -38,8 +40,8 @@ const waitReady = async (page, budgetMs = 10000) => {
   let last = null;
   while (Date.now() < end) {
     last = await poll(page);
-    if (!last.transition && (last.settle?.stableFrames ?? 0) >= 8) return { ok: true, ...last };
-    await page.waitForTimeout(120);
+    if (!last.transition) return { ok: true, stableFrames: last.settle?.stableFrames ?? 0, ...last };
+    await page.waitForTimeout(T(120));
   }
   return { ok: false, ...(last ?? {}) };
 };
@@ -61,18 +63,18 @@ for (let load = 1; load <= LOADS; load += 1) {
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);
   await page.goto("http://127.0.0.1:3013/", { waitUntil: "domcontentloaded", timeout: 60000 });
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(T(3000));
   await page.evaluate(() => {
     [...document.querySelectorAll("button")]
       .find((b) => (b.textContent ?? "").toLowerCase().includes("continue without an account"))
       ?.click();
   });
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(T(1200));
   const cosmos = await (await page.$(".lch-cosmos"))?.boundingBox();
   if (cosmos) await page.mouse.click(cosmos.x + cosmos.width / 2, cosmos.y + cosmos.height / 2);
-  await page.waitForTimeout(3600);
+  await page.waitForTimeout(T(3600));
   const entry = await page.evaluate(() => ({ immersive: window.__leluImmersive ?? null }));
-  const entryReady = await waitReady(page, 8000);
+  const entryReady = await waitReady(page, T(8000));
   await page.evaluate(() => {
     const canvas = document.querySelector('[data-spatial-canvas="genesis"]');
     window.__leluCanvasPointers = { down: 0, up: 0 };
@@ -83,7 +85,7 @@ for (let load = 1; load <= LOADS; load += 1) {
   });
 
   for (const destination of DESTS) {
-    const ready = await waitReady(page);
+    const ready = await waitReady(page, T(10000));
     const measure = await page.evaluate((wanted) => {
       const field = window.__leluPortalField?.();
       const portal = (field?.portals ?? []).find((p) => p.destination === wanted);
@@ -117,10 +119,10 @@ for (let load = 1; load <= LOADS; load += 1) {
     } else {
       await cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: measure.x, y: measure.y, button: "none", clickCount: 0 });
       await cdp.send("Input.dispatchMouseEvent", { type: "mousePressed", x: measure.x, y: measure.y, button: "left", clickCount: 1 });
-      if (MODE === "hold") await page.waitForTimeout(110);
+      if (MODE === "hold") await page.waitForTimeout(T(110));
       await cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: measure.x, y: measure.y, button: "left", clickCount: 1 });
     }
-    await page.waitForTimeout(700);
+    await page.waitForTimeout(T(700));
     const delivered = await page.evaluate(() => {
       const t = window.__leluPortalEvents?.at(-1) ?? null;
       return {
@@ -133,7 +135,7 @@ for (let load = 1; load <= LOADS; load += 1) {
     for (let i = 0; i < 16; i += 1) {
       after = await poll(page);
       if (!after.transition) break;
-      await page.waitForTimeout(280);
+      await page.waitForTimeout(T(280));
     }
     const landed = after.dataset ?? after.current;
     attempts.push({
@@ -158,7 +160,7 @@ for (let load = 1; load <= LOADS; load += 1) {
     if (landed !== "core") {
       const core = await (await page.$('[data-spatial-control="core"]'))?.boundingBox();
       if (core) await page.mouse.click(core.x + core.width / 2, core.y + core.height / 2);
-      await page.waitForTimeout(1600);
+      await page.waitForTimeout(T(1600));
     }
   }
   // Evidence after every load: a timeout must not erase what was measured.

@@ -193,6 +193,7 @@ function Portal({
    * second is discarded — never two activations from one interaction.
    */
   const press = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const pressPoint = useRef<{ x: number; y: number } | null>(null);
   const lastActivation = useRef(0);
 
   const beginPress = (event: ThreeEvent<PointerEvent>) => {
@@ -202,6 +203,7 @@ function Portal({
       x: event.nativeEvent.clientX,
       y: event.nativeEvent.clientY,
     };
+    pressPoint.current = { x: event.nativeEvent.clientX, y: event.nativeEvent.clientY };
     try {
       gl.domElement.setPointerCapture(event.pointerId);
     } catch {
@@ -218,7 +220,8 @@ function Portal({
       event.nativeEvent.clientY - started.y,
     );
     if (moved > 18) return;
-    activate(event);
+    /* Activation is completed by the canvas-level release listener below, which
+       does not need the mouth to still be under the pointer. */
   };
 
   const activate = (event: ThreeEvent<MouseEvent> | ThreeEvent<PointerEvent>) => {
@@ -289,6 +292,65 @@ function Portal({
           if (busyElsewhere) return;
           onSelect(spec);
   };
+
+
+  /*
+   * A press that starts inside this mouth is owned by this portal until the
+   * pointer is released or cancelled. The release is read from the canvas, so it
+   * completes even when the field has rotated the mouth away from the pointer in
+   * between — the case that made a fast press activate nothing.
+   */
+  const activateOwnedPress = () => {
+    const now = performance.now();
+    if (now - lastActivation.current < 500) return;
+    lastActivation.current = now;
+    if (traceEnabled()) {
+      const rect = gl.domElement.getBoundingClientRect();
+      const round = (value: number, places = 4) => Math.round(value * 10 ** places) / 10 ** places;
+      recordPortalClick({
+        t: Math.round(now),
+        client: pressPoint.current ?? { x: -1, y: -1 },
+        ndc: { x: 0, y: 0 },
+        delivered: { portalId: spec.id, destination: spec.destination, object: `spatial-portal-hit-${spec.id}` },
+        hitDistance: null,
+        hitPoint: null,
+        intersections: [],
+        camera: {
+          position: camera.position.toArray().map((value) => round(value)),
+          quaternion: camera.quaternion.toArray().map((value) => round(value)),
+          projection: camera.projectionMatrix.elements.map((value) => round(value)),
+        },
+        viewport: { width: Math.round(rect.width), height: Math.round(rect.height), dpr: window.devicePixelRatio },
+        projectedCentre: null,
+        settle: (window as unknown as { __leluCameraSettle?: unknown }).__leluCameraSettle ?? null,
+        scene: state.current,
+        transition: state.transition?.kind ?? null,
+        travelDestination: state.destination,
+      });
+    }
+    if (busyElsewhere) return;
+    onSelect(spec);
+  };
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const release = (event: PointerEvent) => {
+      const started = press.current;
+      if (!started || started.pointerId !== event.pointerId) return;
+      press.current = null;
+      if (Math.hypot(event.clientX - started.x, event.clientY - started.y) > 18) return;
+      activateOwnedPress();
+    };
+    const cancel = (event: PointerEvent) => {
+      if (press.current?.pointerId === event.pointerId) press.current = null;
+    };
+    canvas.addEventListener("pointerup", release);
+    canvas.addEventListener("pointercancel", cancel);
+    return () => {
+      canvas.removeEventListener("pointerup", release);
+      canvas.removeEventListener("pointercancel", cancel);
+    };
+  });
 
   return (
     <group position={position} name={`spatial-portal-group-${spec.id}`}>
