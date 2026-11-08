@@ -1,5 +1,5 @@
 {
-  "result": "PASS",
+  "result": "PARTIAL",
   "viewports": [
     [
       "360x640",
@@ -22,5 +22,16 @@
   ],
   "prior": "5.6: 4/4 PASS (360x640, 375x812, 390x844, 430x932)",
   "physical_device": "NOT TESTED",
-  "measured_this_mission": true
+  "measured_this_mission": "3 of 4 viewports captured (360x640, 375x812, 390x844 PASS); the 430x932 sweep was cut off by the probe timeout",
+  "sweep_completeness": {
+    "captured_this_mission": [
+      "360x640",
+      "375x812",
+      "390x844"
+    ],
+    "not_captured_this_mission": [
+      "430x932"
+    ],
+    "last_verified_430x932": "Mission 5.6 PASS"
+  }
 }

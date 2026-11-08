@@ -135,8 +135,12 @@ counted as autonomy.
 | `tests/tool-schema-scoping.test.ts` | 8/8 |
 
 Mission 5.6 baseline was 1838/1838; this run is **+1 test** (the new regression
-pin) with nothing skipped. Mobile viewports were re-run this mission and
-captured in `mobile-regression.json`; physical devices were **not** tested.
+pin) with nothing skipped.
+
+Mobile: **3 of 4 viewports re-captured this mission** — 360×640, 375×812 and
+390×844 all PASS (non-blank shell, live composer). The 430×932 sweep was cut off
+by the probe timeout, so its last verified result is Mission 5.6's PASS. Stated
+as 3/4, not 4/4. Physical devices were **not** tested.
 
 ## 8. Changed
 
