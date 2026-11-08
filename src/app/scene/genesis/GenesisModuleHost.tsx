@@ -148,6 +148,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
    * drag. Before this, reopening a module always cascaded it back to a default
    * and a manual arrangement could not survive a reload.
    */
+  /* Gesture state is declared here because the geometry below must read it. */
+  const [interacting, setInteracting] = useState(false);
   const storedRect = ModuleLayoutStore.getInstance().rectFor(id);
   const size = isMobile
     ? {
@@ -168,9 +170,21 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
    * stale transcript of the module (a legacy size, a pre-reload restack) could
    * reopen the window a few pixels away from the rectangle that was saved.
    */
-  const rawPosition = storedRect
-    ? { x: storedRect.x, y: storedRect.y }
-    : mod.position ?? defaultPosition;
+  /*
+   * A live gesture must read the LIVE position.
+   *
+   * The store-first rule below is right at rest, but during a drag it made
+   * every render snap the window back to the stored rectangle: moveModule()
+   * updated the module, the store had not been written yet, and the drag
+   * preview (and the rect the commit was derived from) stayed at the dock the
+   * window started in — the measured "touch arrives, dx 0" failure.
+   */
+  const rawPosition =
+    interacting && mod.position
+      ? mod.position
+      : storedRect
+        ? { x: storedRect.x, y: storedRect.y }
+        : mod.position ?? defaultPosition;
   const position = {
     x: isMobile
       ? Math.max(0, Math.min(rawPosition.x, Math.max(0, viewportWidth - size.width)))
@@ -211,7 +225,6 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
   const gesturing = useRef(false);
   // While the user drags/resizes, geometry follows the pointer 1:1 — the
   // theme's motion transition applies only to orchestrated layout changes.
-  const [interacting, setInteracting] = useState(false);
 
   /*
    * Geometry lives in the ONE layout store, not only in this component.
@@ -390,7 +403,15 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
     setInteracting(false);
   }, [id, moveModule, mod.position?.x, mod.position?.y, mod.size?.width, mod.size?.height, position.x, position.y, size.width, size.height]);
 
-  const isExpanded = mod.presentation === "expanded";
+  /*
+   * Phones have exactly ONE window presentation: the sheet host below.
+   *
+   * The expanded presenter is a desktop modal (backdrop, 92vw, centred). On a
+   * phone it was a second geometry path that also reopened differently after a
+   * reload — the window came back through the inline host, so "restore" could
+   * never be exact. `expandModule` still works on a phone: it means the sheet.
+   */
+  const isExpanded = mod.presentation === "expanded" && !isMobile;
 
   const controlButton: React.CSSProperties = {
     width: 26,
@@ -520,9 +541,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
              * geometry ignored `position`/`size`, so drags arrived and nothing
              * could move. Desktop keeps its centred modal untouched.
              */
-            ...(isMobile
-              ? { position: "fixed" as const, left: position.x, top: position.y, width: size.width, height: size.height }
-              : { width: "min(92vw, 900px)", height: "min(84dvh, 640px)" }),
+            width: "min(92vw, 900px)",
+            height: "min(84dvh, 640px)",
             display: "flex",
             flexDirection: "column",
             background: `var(--lelu-surface-bg, ${genesisTheme.glass.panel})`,
