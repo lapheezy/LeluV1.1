@@ -1,0 +1,79 @@
+{
+ "viewport": "1440x900",
+ "at": "2026-11-08T03:58:15.743Z",
+ "input": "real CDP mouse at element coordinates",
+ "steps": [],
+ "checks": {
+  "rail": [
+   "expand",
+   "core",
+   "voice",
+   "creation",
+   "portals",
+   "chat",
+   "minimise"
+  ],
+  "creationWindow": {
+   "x": 88,
+   "y": 64,
+   "w": 1338,
+   "h": 818
+  },
+  "openedMs": 61,
+  "host": {
+   "windowId": "creation",
+   "hasChrome": true,
+   "hasPin": true,
+   "hostTag": null,
+   "library": true,
+   "moduleWindows": 1
+  },
+  "drag": {
+   "before": {
+    "x": 88,
+    "y": 64,
+    "w": 1338,
+    "h": 818
+   },
+   "after": {
+    "x": 124,
+    "y": 40,
+    "w": 1338,
+    "h": 818
+   },
+   "dx": 36,
+   "dy": -24,
+   "settledMs": 2
+  },
+  "counter": "1 placed · 0 pinned",
+  "pinned": {
+   "label": "Unpin Creation Studio",
+   "pressed": "true",
+   "counter": "1 placed · 1 pinned"
+  },
+  "unpinned": {
+   "label": "Pin Creation Studio",
+   "pressed": "false",
+   "counter": "1 placed · 0 pinned"
+  },
+  "layout": {
+   "stored": true,
+   "bytes": 229,
+   "manual": [
+    null
+   ],
+   "creation": null
+  },
+  "layoutStores": [
+   "lelu.lelu.layout.v2"
+  ],
+  "savedRect": {
+   "x": 124,
+   "y": 40,
+   "w": 1338,
+   "h": 818
+  },
+  "result": "PLACED"
+ },
+ "errors": []
+}
