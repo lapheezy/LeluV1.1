@@ -537,6 +537,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
   return (
     <div
       data-lelu-module-window={id}
+      data-lelu-module-host={id}
+      data-lelu-module-presentation="inline"
       data-presentation="inline"
       data-lelu-surface="window"
       data-lelu-window={id}
@@ -588,7 +590,10 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       {/* position: relative contains panels' absolutely-positioned layers
           (e.g. the browser's overlays) inside the content area, so they can
           never paint over the title bar and steal its drag gesture. */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", position: "relative", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}>
+      <div
+        data-lelu-module-content={id}
+        style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", position: "relative", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}
+      >
         <InModuleWindow.Provider value={true}>{render({ onClose: () => closeModule(id) })}</InModuleWindow.Provider>
       </div>
       {/* Resize handle — bottom-right corner */}
