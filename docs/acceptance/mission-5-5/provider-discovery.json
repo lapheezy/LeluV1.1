@@ -1,0 +1,67 @@
+{
+  "chain": "AIRouter -> ProviderResolver -> AIProviderRegistry -> provider adapter -> /api/model/<id> broker (server attaches the key)",
+  "registry_order": [
+    "Local (priority 0)",
+    "Anthropic (1, opt-in)",
+    "Groq (2.5)",
+    "OpenRouter",
+    "Cerebras",
+    "Mistral",
+    "Fireworks",
+    "GitHub Models",
+    "Gemini"
+  ],
+  "credential_names_resolved": [
+    "ANTHROPIC_API_KEY",
+    "GROQ_API_KEY",
+    "OPENROUTER_API_KEY",
+    "GITHUB_MODELS_TOKEN"
+  ],
+  "platform_secret_names": [
+    "Anthropic",
+    "Groq",
+    "Openrouter",
+    "Github",
+    "Elevenlabs",
+    "Meshy",
+    "Supabase"
+  ],
+  "alias_layer": {
+    "module": "plugins/bareSecretAliases.ts",
+    "applied_by": [
+      "vite.config.ts (dev)",
+      "plugins/loadEnvFiles.ts (standalone/deno)"
+    ],
+    "filled": [
+      "ANTHROPIC_API_KEY",
+      "GROQ_API_KEY",
+      "OPENROUTER_API_KEY",
+      "GITHUB_MODELS_TOKEN",
+      "MESHY_API_KEY",
+      "ELEVENLABS_API_KEY",
+      "SUPABASE_PUBLISHABLE_KEY"
+    ],
+    "rule": "a documented name always wins; the bare name only fills a hole; no model credential is ever published under VITE_"
+  },
+  "broker_status_endpoint": {
+    "path": "/api/model/status",
+    "observed": {
+      "anthropic": false,
+      "groq": true,
+      "openrouter": true,
+      "cerebras": false,
+      "mistral": false,
+      "fireworks": false,
+      "gemini": false,
+      "githubModels": true
+    },
+    "note": "anthropic false is POLICY, not a missing key: ProviderPolicy requires LELU_ENABLE_ANTHROPIC=true; githubModels true only reflects a token string being present (the token itself is rejected upstream, see provider-verification.json)"
+  },
+  "models": {
+    "groq": "openai/gpt-oss-120b",
+    "openrouter": "openrouter/free",
+    "anthropic": "claude-opus-5-5",
+    "githubModels": "openai/gpt-4o"
+  },
+  "selection": "no provider priority or model was changed by this mission"
+}
