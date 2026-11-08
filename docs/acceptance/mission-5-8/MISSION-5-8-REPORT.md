@@ -130,13 +130,7 @@ the provider receives; no parallel registry was added.
 
 Method unchanged (`DOMDebugger.getEventListeners`, grouped by registration source site).
 Baseline retained from 5.7: window 63 listeners / 57 sites, document 3 / 3.
-**After-cycles capture failed four times** (6, 4, 3 and 3 cycles), the last with the dev server
-confirmed answering `HTTP 200`, each ending with
-`Target page, context or browser has been closed`. Chromium does launch here — a control run
-reached `page.goto` — so the context dies during the chat-cycle phase rather than at start-up;
-one earlier control run got `ERR_CONNECTION_REFUSED` because a runner restart had killed the
-server. Both failure modes are harness/lifecycle, neither is an application defect. No
-after-cycles attribution and **no leak claim**.
+**After-cycles capture succeeded** once the probe was rewritten to sample and persist after every cycle (`scripts/probe-listeners58.mjs`, 3/3 cycles). Window listeners go 60 -> 63 on the first cycle and then hold at **63 total / 57 distinct sites with 6 duplicate groups for cycles 1, 2 and 3**; `document` holds at 3/3. Every duplicate is exactly two registrations and is identical at every sample (supabase-js `pagehide`/`pageshow`/`visibilitychange`, react-three-fiber `scroll`/`resize`), so nothing re-registers per cycle at either scope — the 5.6 "listeners nearly double" reading does not reproduce as window/document accumulation. The residual growth is DOM-wide: `JSEventListeners` 1949 -> 8629 on first mount then +170/+174 per cycle while `Nodes` move +7/cycle. That figure is a document-wide total, and this gate forbids passing a total off as attribution, so it stays **UNATTRIBUTED residual** — no leak claim in either direction. The four earlier failures were harness flow in the 5.7 script, not a browser that cannot run here.
 
 ### Gate G — live environment lifecycle — **BLOCKED**
 

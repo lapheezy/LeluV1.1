@@ -1,0 +1,21 @@
+{
+  "mission": "5.8",
+  "question": "why 2 tests skipped in the full run when Mission 5.7 reported 0",
+  "method": "the only conditional skips in the suite are t.skip calls in tests/security-integrations.test.ts (opa x2, gitleaks x2) and tests/self-view.test.ts (no headless browser / browser could not start x2); those two files were re-run alone to see which fire",
+  "subsetTotals": [
+    "\u2139 tests 21",
+    "\u2139 pass 21",
+    "\u2139 fail 0",
+    "\u2139 skipped 0",
+    "\u2139 todo 0"
+  ],
+  "observedMarkers": [
+    "\u2139 tests 21",
+    "\u2139 pass 21",
+    "\u2139 fail 0",
+    "\u2139 skipped 0",
+    "\u2139 todo 0"
+  ],
+  "subsetLog": "docs/acceptance/mission-5-8/test-skips.log",
+  "note": "a t.skip is reported as skipped, while the '[skipped] no IndexedDB in this runtime' line in the suite log is a console message from the conversation-memory test, not one of the two counted skips"
+}

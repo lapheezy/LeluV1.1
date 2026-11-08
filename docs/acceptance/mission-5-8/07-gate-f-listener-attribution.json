@@ -34,7 +34,97 @@
         "outcome": "probe timed out (exit 124) after 'page.waitForTimeout: Target page, context or browser has been closed'"
       }
     ],
-    "diagnosis": "Chromium launches successfully in this session \u2014 a later control run got as far as page.goto \u2014 but the page/context closes during the chat-cycle phase every time (four attempts, 6/4/3/3 cycles, the last with the dev server confirmed answering HTTP 200). One earlier control run hit ERR_CONNECTION_REFUSED because the server itself had been lost to a runner restart, so both failure modes exist in this session and neither is an application defect. The after-cycles attribution is therefore not captured and no growth/leak classification is claimed."
+    "diagnosis": "Chromium launches successfully in this session \u2014 a later control run got as far as page.goto \u2014 but the page/context closes during the chat-cycle phase every time (four attempts, 6/4/3/3 cycles, the last with the dev server confirmed answering HTTP 200). One earlier control run hit ERR_CONNECTION_REFUSED because the server itself had been lost to a runner restart, so both failure modes exist in this session and neither is an application defect. The after-cycles attribution is therefore not captured and no growth/leak classification is claimed.",
+    "status": "CAPTURED",
+    "capturedWith": "docs/acceptance/mission-5-8/scripts/probe-listeners58.mjs",
+    "samples": [
+      {
+        "label": "window:start",
+        "total": 60,
+        "distinctSites": 56,
+        "duplicateGroups": 4,
+        "perf": {
+          "label": "start",
+          "heapMB": 82.4,
+          "nodes": 670,
+          "jsListeners": 1949
+        }
+      },
+      {
+        "label": "document:start",
+        "total": 3,
+        "distinctSites": 3,
+        "duplicateGroups": 0,
+        "perf": {
+          "label": "start",
+          "heapMB": 82.5,
+          "nodes": 676,
+          "jsListeners": 1953
+        }
+      },
+      {
+        "label": "window:after-cycle-1",
+        "total": 63,
+        "distinctSites": 57,
+        "duplicateGroups": 6,
+        "perf": {
+          "label": "cycle-1",
+          "heapMB": 102,
+          "nodes": 1005,
+          "jsListeners": 8629
+        }
+      },
+      {
+        "label": "window:after-cycle-2",
+        "total": 63,
+        "distinctSites": 57,
+        "duplicateGroups": 6,
+        "perf": {
+          "label": "cycle-2",
+          "heapMB": 120.5,
+          "nodes": 1012,
+          "jsListeners": 8799
+        }
+      },
+      {
+        "label": "window:after-cycle-3",
+        "total": 63,
+        "distinctSites": 57,
+        "duplicateGroups": 6,
+        "perf": {
+          "label": "cycle-3",
+          "heapMB": 111,
+          "nodes": 1019,
+          "jsListeners": 8973
+        }
+      },
+      {
+        "label": "window:after-3-cycles",
+        "total": 63,
+        "distinctSites": 57,
+        "duplicateGroups": 6,
+        "perf": {
+          "label": "cycles",
+          "heapMB": 116.4,
+          "nodes": 1019,
+          "jsListeners": 8973
+        }
+      },
+      {
+        "label": "document:after-3-cycles",
+        "total": 3,
+        "distinctSites": 3,
+        "duplicateGroups": 0,
+        "perf": {
+          "label": "cycles",
+          "heapMB": 121.4,
+          "nodes": 1019,
+          "jsListeners": 9046
+        }
+      }
+    ],
+    "conclusion": "window saturates at 63 listeners / 57 distinct sites after the first cycle and does not grow on cycles 2 and 3 (63/57/6 twice, then 63/57/6 again); document stays at 3/3 with no duplicates. Every duplicate group is exactly 2 registrations and is identical across cycles (supabase-js pagehide/pageshow/visibilitychange, react-three-fiber scroll/resize), so nothing re-registers per cycle at window or document scope. The residual growth is DOM-wide: JSEventListeners total 1949 -> 8629 on first mount, then +170/+174 per cycle while Nodes move 1005 -> 1012 -> 1019 (+7/cycle). That is a document-wide total, not attribution, and this gate forbids presenting it as such, so it is recorded as UNATTRIBUTED residual rather than a leak.",
+    "priorFailure": "the four earlier attempts used the 5.7 script whose click/waits lacked per-cycle checkpoints; the rewritten probe samples and persists after every cycle and completed 3/3 cycles, so the earlier 'context closed' outcome was harness flow, not a browser that cannot run here."
   },
   "classification": "growth cannot be classified as expected / retained / unbounded without the after-cycles capture. No leak claim is made."
 }
