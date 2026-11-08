@@ -104,6 +104,55 @@ const aim = (page, wanted) =>
     return { error: "no reachable pixel", id: portal.id, centre: portal.screen };
   }, wanted);
 
+/**
+ * Aim at the EDGE of the target mouth facing its nearest neighbour. Holding a
+ * press there means a small rotation of the field slides the neighbour under the
+ * pointer while the pointer itself never moves — the live neighbour swap.
+ */
+const aimSwap = (page, wanted) =>
+  page.evaluate((destination) => {
+    const field = window.__leluPortalField?.();
+    const portals = field?.portals ?? [];
+    const a = portals.find((p) => p.destination === destination);
+    if (!a) return { error: "target not in field" };
+    let b = null;
+    let best = Infinity;
+    for (const p of portals) {
+      if (p.id === a.id) continue;
+      const d = Math.hypot(p.screen.x - a.screen.x, p.screen.y - a.screen.y);
+      if (d < best) { best = d; b = p; }
+    }
+    if (!b) return { error: "no neighbour" };
+    const steps = Math.max(4, Math.ceil(best / 2));
+    let lastA = null;
+    let firstB = null;
+    for (let i = 0; i <= steps; i += 1) {
+      const t = i / steps;
+      const x = Math.round(a.screen.x + (b.screen.x - a.screen.x) * t);
+      const y = Math.round(a.screen.y + (b.screen.y - a.screen.y) * t);
+      const pick = window.__leluPortalPick?.(x, y);
+      if (!pick?.portalId) continue;
+      if (pick.portalId === a.id) lastA = { x, y };
+      else if (!firstB) { firstB = { x, y, id: pick.portalId, name: pick.name }; break; }
+    }
+    if (!lastA) return { error: "no pixel inside the target" };
+    /* Step back from the boundary into the mouth so the press itself lands on
+       A with margin, while still sitting on the side the neighbour will sweep. */
+    const bx = a.screen.x - lastA.x;
+    const by = a.screen.y - lastA.y;
+    const blen = Math.hypot(bx, by) || 1;
+    const margin = Math.min(20, blen * 0.6);
+    let press = { x: Math.round(lastA.x + (bx / blen) * margin), y: Math.round(lastA.y + (by / blen) * margin) };
+    if (window.__leluPortalPick?.(press.x, press.y)?.portalId !== a.id) press = { x: lastA.x, y: lastA.y };
+    return {
+      x: press.x, y: press.y, portalId: a.id, destination: a.destination,
+      neighbourId: b.id, neighbour: b.destination,
+      boundary: { lastA, firstB },
+      gapPx: firstB ? Math.round(Math.hypot(firstB.x - lastA.x, firstB.y - lastA.y)) : null,
+      mouthCentre: a.screen,
+    };
+  }, wanted);
+
 const pressRecords = (page) =>
   page.evaluate(() => {
     const list = window.__leluPortalPresses ?? [];
@@ -162,7 +211,7 @@ for (let load = 1; load <= total; load += 1) {
   const context = await browser.newContext({
     viewport: { width: VP[0], height: VP[1] },
     reducedMotion: "reduce",
-    hasTouch: SCENARIO === "cancel",
+    hasTouch: ["cancel", "touch", "touchdrag"].includes(SCENARIO),
   });
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);
@@ -253,6 +302,124 @@ for (let load = 1; load <= total; load += 1) {
       });
       await page.waitForTimeout(120);
       await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
+    } else if (SCENARIO === "swap") {
+      /*
+       * LIVE NEIGHBOUR SWAP: press portal A at the edge facing B, hold the
+       * pointer perfectly still, let the rotating field put B under the release
+       * pixel, then release. A must open; B must never open.
+       */
+      let edge = await aimSwap(page, destination);
+      record.aim = edge;
+      if (edge.error) {
+        records.push({ ...record, failure: edge.error });
+        writeFileSync(OUT, `${JSON.stringify({ mission: "5.4B.9", scenario: SCENARIO, batch: BATCH, records }, null, 2)}\n`);
+        continue;
+      }
+      /* The press must START on A: verify the claim, and if the field drifted
+         it away, abort that press (drag off) and re-aim before holding. */
+      let claimed = null;
+      for (let i = 0; i < 4; i += 1) {
+        point = edge;
+        await cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: point.x, y: point.y, button: "none", clickCount: 0 });
+        await cdp.send("Input.dispatchMouseEvent", { type: "mousePressed", x: point.x, y: point.y, button: "left", clickCount: 1 });
+        claimed = await page.evaluate(() => (window.__leluPortalPresses ?? []).filter((p) => p.phase === "down").at(-1)?.portalId ?? null);
+        if (claimed === edge.portalId) break;
+        await cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: point.x + 70, y: point.y + 50, button: "left", clickCount: 0 });
+        await cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: point.x + 70, y: point.y + 50, button: "left", clickCount: 1 });
+        record.aimAttempts = [...(record.aimAttempts ?? []), { x: point.x, y: point.y, claimed }];
+        await page.waitForTimeout(240);
+        edge = await aimSwap(page, destination);
+        if (edge.error) break;
+        record.aim = edge;
+      }
+      record.claimAtDown = claimed;
+      let swapped = null;
+      const holdStart = Date.now();
+      while (Date.now() - holdStart < 30000) {
+        swapped = await page.evaluate(({ x, y }) => {
+          const pick = window.__leluPortalPick?.(x, y);
+          return { id: pick?.portalId ?? null, name: pick?.name ?? null };
+        }, { x: point.x, y: point.y });
+        if (swapped.id && swapped.id !== point.portalId) break;
+        await page.waitForTimeout(120);
+      }
+      record.neighbourUnderPointerAtRelease = swapped;
+      record.heldMs = Date.now() - holdStart;
+      await cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: point.x, y: point.y, button: "left", clickCount: 1 });
+      pressPick = record.claimAtDown;
+    } else if (SCENARIO === "retap") {
+      /*
+       * TWO INDEPENDENT PRESSES on the same page: the first must complete and
+       * clear its ownership, the second must be accepted on its own merits.
+       */
+      const rounds = [];
+      for (let round = 1; round <= 2; round += 1) {
+        if (round > 1) {
+          /* the field must be back in the wide core view before the second press */
+          await waitSettled(page, 20000);
+          for (let w = 0; w < 40; w += 1) {
+            const ready = await page.evaluate((d) => {
+              const field = window.__leluPortalField?.();
+              const portal = (field?.portals ?? []).find((x) => x.destination === d);
+              return Boolean(portal && window.__leluPortalPick?.(portal.screen.x, portal.screen.y));
+            }, destination);
+            if (ready) break;
+            await page.waitForTimeout(250);
+          }
+        }
+        const target = await aim(page, destination);
+        if (target.error) { rounds.push({ round, failure: target.error }); break; }
+        const selectsBeforeRound = await selectCalls(page);
+        const downBefore = (await pressRecords(page)).length;
+        await cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: target.x, y: target.y, button: "none", clickCount: 0 });
+        await cdp.send("Input.dispatchMouseEvent", { type: "mousePressed", x: target.x, y: target.y, button: "left", clickCount: 1 });
+        await cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: target.x, y: target.y, button: "left", clickCount: 1 });
+        const landedRound = await arrive(page, 20000);
+        const roundPresses = (await pressRecords(page)).slice(downBefore);
+        rounds.push({
+          round,
+          aim: target,
+          claimAtDown: roundPresses.find((p) => p.phase === "down")?.portalId ?? null,
+          resolution: roundPresses.find((p) => p.phase === "up")?.outcome ?? null,
+          onSelectCalls: (await selectCalls(page)) - selectsBeforeRound,
+          runtimeScene: landedRound.current,
+          travelMs: landedRound.travelMs,
+        });
+        if (round === 1) {
+          await backToCore(page);
+          await page.waitForTimeout(800);
+        }
+      }
+      record.retap = rounds;
+    } else if (SCENARIO === "touch" || SCENARIO === "touchdrag") {
+      /*
+       * Real touch input through the browser protocol: touchStart → touchMove
+       * (2 px for a tap, 60/40 px for a drag) → touchEnd. Pointer identity,
+       * threshold and activation are all the app's own pointer path.
+       */
+      let touchClaim = null;
+      for (let i = 0; i < 3; i += 1) {
+        await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: point.x, y: point.y, id: 1 }] });
+        await page.waitForTimeout(120);
+        touchClaim = await page.evaluate(() => (window.__leluPortalPresses ?? []).filter((p) => p.phase === "down").at(-1)?.portalId ?? null);
+        if (touchClaim === point.portalId) break;
+        /* the finger landed on empty canvas: cancel and re-aim (see the mouse path) */
+        await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
+        record.touchMisses = [...(record.touchMisses ?? []), { x: point.x, y: point.y, claim: touchClaim }];
+        await page.waitForTimeout(240);
+        const reaim = await aim(page, destination);
+        if (reaim.error) break;
+        point = reaim;
+        record.aim = reaim;
+      }
+      record.claimAtDown = touchClaim;
+      const to = SCENARIO === "touchdrag"
+        ? { x: point.x + 60, y: point.y + 40 }
+        : { x: point.x + 2, y: point.y + 2 };
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: to.x, y: to.y, id: 1 }] });
+      record.touchMoveTo = to;
+      await page.waitForTimeout(120);
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     } else {
       /*
        * Deliver the press. A press that lands on EMPTY canvas starts no
@@ -262,6 +429,7 @@ for (let load = 1; load <= total; load += 1) {
        * A press that reaches a DIFFERENT portal is a real wrong-destination and
        * is never retried.
        */
+      if (SCENARIO === "lowfps") await cdp.send("Emulation.setCPUThrottlingRate", { rate: 6 });
       for (let i = 0; i < 4; i += 1) {
         await cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: point.x, y: point.y, button: "none", clickCount: 0 });
         await cdp.send("Input.dispatchMouseEvent", { type: "mousePressed", x: point.x, y: point.y, button: "left", clickCount: 1 });
@@ -315,6 +483,19 @@ for (let load = 1; load <= total; load += 1) {
         await cdp.send("Input.dispatchMouseEvent", { type: "mousePressed", x: point.x, y: point.y, button: "left", clickCount: 1 });
       }
       await cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: point.x, y: point.y, button: "left", clickCount: 1 });
+    }
+
+    if (SCENARIO === "lowfps") {
+      const series = [];
+      const startedAt = Date.now();
+      while (Date.now() - startedAt < 25000) {
+        const sample = await poll(page);
+        series.push({ ms: Date.now() - startedAt, progress: sample.progress, transition: sample.transition, scene: sample.current });
+        if (!sample.transition && Date.now() - startedAt > 400) break;
+        await page.waitForTimeout(150);
+      }
+      record.lowFps = { rate: 6, series };
+      await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
     }
 
     const presses = (await pressRecords(page)).slice(eventsBefore);

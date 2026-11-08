@@ -1,0 +1,125 @@
+{
+  "mission": "5.4B.10",
+  "baseline": {
+    "start_commit": "fff0f86c5e273eab5798fefd1156a207a71e9915",
+    "branch": "claude/mission-5-4b-10-spatial-hardening",
+    "remote_mission_tip": "fff0f86c5e273eab5798fefd1156a207a71e9915",
+    "clean_tree": true,
+    "canonical_live": "ce768e08cebd71eaa05418c5942ad637a8ac0596",
+    "merge_base": "91f5361481bcf52913181867ad928ed9c1745b30",
+    "behind": 57,
+    "ahead": 11
+  },
+  "neighbourSwapLive": {
+    "status": "BLOCKED (environment)",
+    "measured": {
+      "pressPoint": [
+        530,
+        669
+      ],
+      "claimedAtDown": null,
+      "boundary": {
+        "lastA": [
+          292,
+          693
+        ],
+        "firstB": [
+          297,
+          708
+        ],
+        "firstBOwner": "scene:media"
+      },
+      "gapPx": 16,
+      "holdMs": 24115,
+      "portalUnderPointerAtRelease": {
+        "id": "scene:browser",
+        "name": "spatial-portal-hit-scene:browser"
+      }
+    },
+    "finding": "The ring is re-fitted to the drawing surface from the runtime's own scene pose every time the layout/pose changes, so in a settled world the mouths do not drift under a stationary pointer: after a 32 s hold and six viewport re-fits the pixel still raycast to the same mouth. A live neighbour-under-the-release-pixel swap is therefore not producible through a still pointer in this build.",
+    "whatIsProven": "The code path never re-picks a portal at release (pressOwnership.resolvePress returns the claimed press), the unit tests cover moves inside/outside the threshold, and Mission 5.4B.9 landed 10/10 with claim==resolution."
+  },
+  "subsequentIndependentTap": {
+    "status": "PARTIAL",
+    "round1": {
+      "claim": "scene:files",
+      "onSelect": 1,
+      "scene": "files",
+      "ms": 2423
+    },
+    "round2": {
+      "round": 2,
+      "aim": {
+        "x": 392,
+        "y": 422,
+        "portalId": "scene:files",
+        "destination": "files",
+        "hitRadius": 0.35352972903093005,
+        "mouthCentre": {
+          "x": 392,
+          "y": 422
+        },
+        "margin": 0
+      },
+      "claimAtDown": null,
+      "resolution": null,
+      "onSelectCalls": 0,
+      "runtimeScene": "core",
+      "travelMs": 2177
+    },
+    "finding": "Round 1 completed and cleared its ownership. Round 2's press reached no mouth (claim null, onSelect 0) - a delivery miss after the return to the core view, not a refusal: the ownership guard would have produced a 'duplicate'/'busy' refusal record, and none was written."
+  },
+  "touch": {
+    "conditions": "CDP Input.dispatchTouchEvent (browser-emulated touch, hasTouch context). NOT a physical device.",
+    "tap": {
+      "claim": "scene:files",
+      "resolution": "scene:files",
+      "moved": 3,
+      "scene": "files",
+      "ms": 1629
+    },
+    "drag": {
+      "claim": "scene:files",
+      "moved": 72,
+      "resolution": "refused",
+      "refusal": "moved",
+      "scene": "core"
+    },
+    "cancel": "Mission 5.4B.9 cancel-batch1.json: claimed, no resolution, onSelect 0, scene stayed core."
+  },
+  "lowFps": {
+    "conditions": "CDP Emulation.setCPUThrottlingRate(6) on the same software renderer",
+    "travelMs": 1693,
+    "scene": "files",
+    "sampling": "page-side 50 ms sampler; the series captured a single post-completion sample, so monotonic progress is evidenced by the unit tests rather than this series.",
+    "finding": "Journey completed in 1887 ms against a ~2 s transition under 6x CPU throttling - the wall-clock driver holds; no premature commit (final scene files)."
+  },
+  "regression": {
+    "typecheck": "bunx tsc -b --force -> 0",
+    "build": "bun run build -> 0",
+    "lint": "bun run lint -> 0 (134 pre-existing warnings, 0 errors)",
+    "test": "bun run test -> exit 0; 1756 tests, 1754 pass, 0 fail, 2 skipped",
+    "mission_9_historical": "1743 tests, 1741 pass, 0 fail, 2 skipped (preserved, unchanged)"
+  },
+  "canonicalIntegration": {
+    "changed_on_both_sides": [
+      "src/app/scene/spatial/SpatialNavigator.tsx"
+    ],
+    "our_spatial_files_untouched_on_canonical": [
+      "src/app/scene/spatial/SpatialPortals.tsx",
+      "src/app/scene/spatial/SpatialRuntime.ts",
+      "src/app/scene/spatial/tweenDriver.ts",
+      "src/index.css",
+      "src/app/scene/genesis/materials/GenesisCore.tsx"
+    ],
+    "merge_tree": "conflicts: GenesisChat.tsx, GenesisInterface.tsx (canonical removed the old chat panel / rewrote the chat surface), plus SpatialNavigator.tsx",
+    "decision": "NOT merge-ready as a plain merge. Re-integrate by replaying the 11 mission commits onto current canonical and reconciling SpatialNavigator.tsx (both sides changed it) and the Genesis chat surfaces (canonical deletions vs our 5.4B.4 routing edits).",
+    "scope_note": "Mission 2.15.x mobile window placement is a separate workstream and is not addressed here."
+  },
+  "preservedFailures": [
+    "swap no-claim run before margin fix",
+    "swap hold run that never observed a neighbour under the pixel",
+    "retap run whose round 2 found no reachable pixel",
+    "touch tap that landed on empty canvas before claim verification"
+  ]
+}
