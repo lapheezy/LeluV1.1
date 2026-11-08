@@ -20,6 +20,7 @@ import AgentEventBus from "../agent/AgentEvents";
 import ModelRouter from "../model/ModelRouter";
 import { dispatchToolCall, latestCaptureMeasurements } from "../tools/ToolDispatcher";
 import { reducedToolSchemas, toolSchemasForRequest } from "../tools/ToolSchemas";
+import { describeRequestBudget } from "./RequestBudget";
 import { labelOtherChats } from "../multichat/ContextProvenance";
 import { BudgetExhaustedError, budgetNotice, gatedGenerate } from "../observability/UsageBudgetGate";
 
@@ -585,6 +586,21 @@ export default class ProviderResolver {
           ? reducedToolSchemas(context.request.prompt, context.intent)
           : toolSchemasForRequest(context.request.prompt, context.intent)
         : [];
+
+    // The request as it will actually be sent, measured at the boundary where
+    // it is assembled. Lengths and counts only: never content, never a key.
+    context.logger.info(
+      "ProviderResolver",
+      "Request budget",
+      describeRequestBudget({
+        messages: context.request.messages as never,
+        prompt: context.request.prompt,
+        tools,
+        tier: toolMode === "reduced" ? "REDUCED" : toolMode === "none" ? "NONE" : "FULL",
+        provider: provider.name,
+        model: context.request.model,
+      }) as unknown as Record<string, unknown>,
+    );
 
     // No native tool support, or nothing currently executable to offer:
     // the original single call, untouched. This is the fallback path —

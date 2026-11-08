@@ -1,0 +1,35 @@
+{
+  "gate": "F",
+  "verdict": "PARTIAL",
+  "method": "unchanged from Mission 5.7: CDP DOMDebugger.getEventListeners per target, grouped by registration source site",
+  "baselineAvailable": {
+    "window": {
+      "listeners": 63,
+      "distinctSites": 57
+    },
+    "document": {
+      "listeners": 3,
+      "distinctSites": 3
+    },
+    "source": "Mission 5.7"
+  },
+  "afterCycles": {
+    "captured": false,
+    "attempts": [
+      {
+        "cycles": 6,
+        "outcome": "probe aborted: Target page, context or browser has been closed"
+      },
+      {
+        "cycles": 4,
+        "outcome": "probe aborted: locator.count \u2014 Target page, context or browser has been closed"
+      },
+      {
+        "cycles": 3,
+        "outcome": "probe aborted: page.waitForTimeout \u2014 Target page, context or browser has been closed"
+      }
+    ],
+    "diagnosis": "the Chromium instance terminates almost immediately after launch in the current session (2 chrome processes present, 8 GB RAM free); the dev server is healthy and answers HTTP. This is a browser-runtime availability failure in the measurement harness, not an application failure."
+  },
+  "classification": "growth cannot be classified as expected / retained / unbounded without the after-cycles capture. No leak claim is made."
+}

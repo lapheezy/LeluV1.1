@@ -1,0 +1,52 @@
+{
+  "observedAt": "2026-11-08, live against the patched broker on 127.0.0.1:3013",
+  "providers": [
+    {
+      "id": "groq",
+      "configured": true,
+      "state": "COMPLETION_VERIFIED",
+      "liveEvidence": "HTTP 200 application/json, chatcmpl-913288be\u2026, choices[], model openai/gpt-oss-120b",
+      "toolCalling": "not demonstrated this mission"
+    },
+    {
+      "id": "openrouter",
+      "configured": true,
+      "state": "CAPACITY_LIMITED",
+      "liveEvidence": "HTTP 404 'This model is unavailable for free' for meta-llama/llama-3.1-8b-instruct:free; earlier 429 free-models-per-day",
+      "toolCalling": "not demonstrated"
+    },
+    {
+      "id": "githubModels",
+      "configured": true,
+      "state": "CONTRACT_VIOLATION",
+      "liveEvidence": "every path answered 200 text/plain 'OK' even with no credential (egress interception); broker now refuses it as 502",
+      "toolCalling": "not demonstrated"
+    },
+    {
+      "id": "cerebras",
+      "configured": false,
+      "state": "UNCONFIGURED"
+    },
+    {
+      "id": "mistral",
+      "configured": false,
+      "state": "UNCONFIGURED"
+    },
+    {
+      "id": "fireworks",
+      "configured": false,
+      "state": "UNCONFIGURED"
+    },
+    {
+      "id": "gemini",
+      "configured": false,
+      "state": "UNCONFIGURED"
+    },
+    {
+      "id": "anthropic",
+      "configured": "excluded by policy",
+      "state": "POLICY_DISABLED",
+      "note": "never enabled, configured, called or used as fallback"
+    }
+  ]
+}

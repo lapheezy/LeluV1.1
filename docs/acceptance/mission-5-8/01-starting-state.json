@@ -1,0 +1,18 @@
+{
+  "startingBranch": "claude/mission-5-7-provider-resilience-autonomy",
+  "startingHead": "0b89f54d52708b3e5edf4f808bb6affe423e11fe",
+  "missionBranch": "claude/mission-5-8-provider-capability-truthfulness",
+  "missionBase": "0b89f54d52708b3e5edf4f808bb6affe423e11fe",
+  "canonicalHead": "ce768e08cebd71eaa05418c5942ad637a8ac0596",
+  "canonicalModified": false,
+  "workingTreeAtStart": "clean, 0 untracked",
+  "mission57EvidencePreserved": "docs/acceptance/mission-5-7 (20 files, unchanged)",
+  "mission57ChangesStillPresent": {
+    "brokerAwareGithubModelsGuard": true,
+    "tests/broker-consolidation.test.ts": true,
+    "tests/provider-rung-budget.test.ts": true,
+    "tests/tool-schema-scoping.test.ts": true,
+    "probesAndScreenshots": true,
+    "mission57Report": true
+  }
+}
