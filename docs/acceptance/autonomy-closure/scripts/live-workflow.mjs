@@ -123,37 +123,65 @@ try {
   await metrics('entered'); save();
   if (!(await box.count())) throw new Error('composer not found after guest entry');
 
+  const COOLDOWN_MS = Number(process.env.COOLDOWN_MS ?? 70_000);
+  const ATTEMPTS = Number(process.env.ATTEMPTS ?? 3);
+  const offline = (s2) => /no ai providers|offline mode|unreachable or unconfigured/i.test((s2?.tail || []).join(' '));
+
   for (const turn of TURNS[PHASE]) {
-    const t = { stage: turn.stage, prompt: turn.prompt, at: Date.now(), mark: rec.console.length };
+    const t = { stage: turn.stage, prompt: turn.prompt, at: Date.now(), mark: rec.console.length, attempts: [] };
     try {
-      box = page.locator('textarea[placeholder*="Message"]:visible, textarea:visible').first();
-      if (!(await box.count())) throw new Error('composer missing');
-      await box.evaluate((el) => el.focus());
-      await box.fill(turn.prompt).catch(async () => page.keyboard.insertText(turn.prompt));
-      await page.waitForTimeout(400);
       t.before = await snap();
-      await box.evaluate((el) => el.focus());
-      await page.keyboard.press('Enter');
-      t.sent = Date.now();
-      const deadline = Date.now() + WAIT_MS;
-      let observed = t.before, changed = false, stable = 0;
-      while (Date.now() < deadline) {
-        await page.waitForTimeout(3000);
-        const now = await snap();
-        const grew = now.textLen !== observed.textLen || now.windows !== observed.windows || now.contents.length !== observed.contents.length;
-        if (grew) changed = true;
-        observed = now; stable = grew ? 0 : stable + 1;
-        if (/no ai providers|offline mode|unreachable or unconfigured/i.test(now.tail.join(' '))) break;
-        if (changed && stable >= 4) break;
+      let observed = t.before, changed = false;
+      for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
+        const a = { n: attempt, at: Date.now() };
+        box = page.locator('textarea[placeholder*="Message"]:visible, textarea:visible').first();
+        if (!(await box.count())) throw new Error('composer missing');
+        await box.evaluate((el) => el.focus());
+        await box.fill(turn.prompt).catch(async () => page.keyboard.insertText(turn.prompt));
+        await page.waitForTimeout(400);
+        await box.evaluate((el) => el.focus());
+        await page.keyboard.press('Enter');
+        a.sent = Date.now();
+        const deadline = Date.now() + WAIT_MS;
+        changed = false;
+        let stable = 0, limited = false;
+        while (Date.now() < deadline) {
+          await page.waitForTimeout(3000);
+          const now = await snap();
+          const grew =
+            now.windows !== observed.windows ||
+            now.contents.length !== observed.contents.length ||
+            now.toolMentions.length > (observed.toolMentions || []).length ||
+            now.snapshotMentions.length > (observed.snapshotMentions || []).length;
+          if (grew) changed = true;
+          observed = now;
+          stable = grew ? 0 : stable + 1;
+          if (offline(now)) { limited = true; break; }
+          if (changed && stable >= 4) break;
+        }
+        a.waitedMs = Date.now() - a.sent;
+        a.changed = changed; a.providerLimited = limited;
+        a.windows = observed.windows; a.contents = observed.contents.length;
+        a.tools = rec.console.slice(t.mark).filter((l) => /Tool [a-z_.]+ ->|Composed environment|Presented |Saved environment|Restored environment|Surface \[/i.test(l)).slice(-6);
+        t.attempts.push(a);
+        save();
+        console.log(`  ${turn.stage} attempt ${attempt}: changed=${changed} limited=${limited} win=${observed.windows} waited=${a.waitedMs}ms`);
+        if (changed) break;
+        if (limited && attempt < ATTEMPTS) {
+          rec.cooldowns = rec.cooldowns || [];
+          rec.cooldowns.push({ stage: turn.stage, waitedMs: COOLDOWN_MS, at: Date.now() });
+          save();
+          await page.waitForTimeout(COOLDOWN_MS);
+        }
       }
       t.observed = observed;
-      t.waitedMs = Date.now() - t.sent;
+      t.waitedMs = t.attempts.reduce((n, a) => n + (a.waitedMs || 0), 0);
       t.console = rec.console.slice(t.mark);
       t.toolEvidence = t.console.filter((l) => /Tool [a-z_.]+ ->|toolCalls|Composed environment|Presented |Saved environment|Restored environment|Surface \[|mutat/i.test(l)).slice(-24);
       t.provider = t.console.filter((l) => /Trying |generated response|refused|cooldown|rate limit|429/i.test(l)).slice(-12);
       await page.screenshot({ path: path.join(OUT, 'shots', `${TAG}-p${PHASE}-${turn.stage}.png`) }).catch(() => {});
       await metrics(`turn-${turn.stage}`);
-      t.result = 'RECORDED';
+      t.result = changed ? 'RECORDED' : (t.attempts.every((a) => a.providerLimited) ? 'PROVIDER_LIMITED' : 'NO_CHANGE');
     } catch (e) {
       t.error = String(e.message || e).slice(0, 400); t.result = 'ERROR';
       await page.screenshot({ path: path.join(OUT, 'shots', `${TAG}-p${PHASE}-${turn.stage}-error.png`) }).catch(() => {});
