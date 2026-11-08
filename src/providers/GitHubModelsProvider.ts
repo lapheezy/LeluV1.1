@@ -116,7 +116,12 @@ export default class GitHubModelsProvider implements AIProvider {
       );
     }
 
-    if (!this.apiKey) {
+    if (!isBrokered("githubModels") && !this.apiKey) {
+      // Brokered requests carry the SERVER's credential; only a DIRECT send
+      // needs a token here. This is the rule Groq and OpenRouter already
+      // follow. Without it this rung failed in 27 ms with "token missing"
+      // while the broker answered 200 for the very same model, so the chain
+      // reported exhaustion with a working provider sitting in it.
       throw new Error(
         "GitHub Models token missing.",
       );

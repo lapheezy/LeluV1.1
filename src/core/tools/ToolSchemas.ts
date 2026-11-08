@@ -59,6 +59,82 @@ export function toolSchemasForModel(): ToolSchema[] {
 }
 
 /**
+ * An OPERATE-MY-ENVIRONMENT turn: it asks to build, change or present what
+ * is on screen. Deliberately the same vocabulary the environment tools
+ * themselves serve, so the narrowing below cannot drift from them.
+ */
+const ENVIRONMENT_REQUEST =
+  /\b(?:environment|workspaces?|surfaces?|layout|artifact|diagram|table|chart|panel|window|cosmos)\b/i;
+
+export const ENVIRONMENT_TOOL_PREFIX = "environment_";
+
+/**
+ * Narrow an already-derived tool list to the environment family.
+ *
+ * Fails OPEN: if the narrowing would leave nothing to offer, the full set
+ * is returned instead — a turn is never left with no tools because a
+ * category happened to be empty.
+ */
+export function scopeToolSchemas(
+  schemas: ToolSchema[],
+  prompt = "",
+  intent?: string,
+): ToolSchema[] {
+  const environmentTurn = Boolean(intent && /environment/i.test(intent)) || ENVIRONMENT_REQUEST.test(prompt);
+  if (!environmentTurn) return schemas;
+  const narrowed = schemas.filter((schema) => schema.name.startsWith(ENVIRONMENT_TOOL_PREFIX));
+  return narrowed.length > 0 ? narrowed : schemas;
+}
+
+/**
+ * The tools offered for ONE turn.
+ *
+ * Offering every executable tool made each request ~19.5k tokens. Measured
+ * against Groq: `413 Request too large … tokens per minute (TPM): Limit
+ * 8000, Requested 19553`. The resolver then did what it is designed to do —
+ * retried the SAME request without tool schemas — so the model never had a
+ * single tool to choose from and answered with prose about a workspace it
+ * could not build. Autonomy was not missing; it was refused by the request
+ * size, on a payload the schemas were 90% of.
+ *
+ * So an environment turn is offered the environment tools, and every other
+ * turn keeps the full set exactly as before. The narrowing is a filter over
+ * the derived list (registry ∩ executor ∩ gate), never a second list.
+ */
+export function toolSchemasForRequest(prompt = "", intent?: string): ToolSchema[] {
+  return scopeToolSchemas(toolSchemasForModel(), prompt, intent);
+}
+
+/**
+ * How many tools a size-refused turn may still carry on its retry.
+ *
+ * Small on purpose: this is the middle rung, not a budget.
+ */
+export const REDUCED_TOOL_LIMIT = 3;
+
+/**
+ * The set offered on a retry after a size refusal.
+ *
+ * The resolver used to answer a 413 by sending the SAME request with NO tools
+ * at all — which is why the model then described work it could not perform.
+ * A refused turn now first retries with a smaller set: the environment family
+ * when the turn is about the environment, otherwise the cheapest schemas to
+ * carry, so a tool-calling turn keeps the ability to act while it shrinks.
+ * Only if THAT is still refused does the turn fall back to no tools.
+ */
+export function reducedToolSchemas(prompt = "", intent?: string): ToolSchema[] {
+  const scoped = toolSchemasForRequest(prompt, intent);
+  if (scoped.length <= REDUCED_TOOL_LIMIT) return scoped;
+
+  const environment = scoped.filter((schema) => schema.name.startsWith(ENVIRONMENT_TOOL_PREFIX));
+  if (environment.length > 0) return environment.slice(0, REDUCED_TOOL_LIMIT);
+
+  return [...scoped]
+    .sort((a, b) => a.description.length - b.description.length)
+    .slice(0, REDUCED_TOOL_LIMIT);
+}
+
+/**
  * Diagnostic: why each executable tool is or is not being offered.
  * Used by the verification script and the capability matrix so the
  * offered set can be inspected rather than assumed.

@@ -17,7 +17,7 @@ import type { ProviderResult } from "./RouterResults";
 import AgentEventBus from "../agent/AgentEvents";
 import ModelRouter from "../model/ModelRouter";
 import { dispatchToolCall, latestCaptureMeasurements } from "../tools/ToolDispatcher";
-import { toolSchemasForModel } from "../tools/ToolSchemas";
+import { toolSchemasForRequest } from "../tools/ToolSchemas";
 import { labelOtherChats } from "../multichat/ContextProvenance";
 
 /**
@@ -300,7 +300,7 @@ export default class ProviderResolver {
     // provider exactly as they did before, or their parsers break.
     const tools =
       provider.supportsTools === true && context.request.allowTools === true
-        ? toolSchemasForModel()
+        ? toolSchemasForRequest(context.request.prompt, context.intent ? String(context.intent) : undefined)
         : [];
 
     // No native tool support, or nothing currently executable to offer:
