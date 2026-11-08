@@ -1,0 +1,111 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "entry": {
+    "immersive": true,
+    "dataImmersive": "true",
+    "settle": {
+      "frame": 19,
+      "stableFrames": 0,
+      "deltaPosition": 0,
+      "deltaRotation": 0.0049,
+      "position": [
+        -3,
+        1.5,
+        7
+      ],
+      "quaternion": [
+        -0.0385,
+        -0.2009,
+        -0.0079,
+        0.9788
+      ]
+    }
+  },
+  "attempts": [
+    {
+      "destination": "files",
+      "aim": {
+        "found": null,
+        "centre": {
+          "x": 419,
+          "y": 557
+        },
+        "radius": 18,
+        "id": "scene:files",
+        "tried": 84,
+        "sample": [
+          {
+            "x": 419,
+            "y": 557,
+            "top": "BUTTON",
+            "pick": "scene:files"
+          },
+          {
+            "x": 413,
+            "y": 551,
+            "top": "BUTTON",
+            "pick": "scene:files"
+          },
+          {
+            "x": 413,
+            "y": 557,
+            "top": "BUTTON",
+            "pick": "scene:files"
+          },
+          {
+            "x": 413,
+            "y": 563,
+            "top": "BUTTON",
+            "pick": "scene:files"
+          },
+          {
+            "x": 419,
+            "y": 551,
+            "top": "BUTTON",
+            "pick": "scene:files"
+          },
+          {
+            "x": 419,
+            "y": 557,
+            "top": "BUTTON",
+            "pick": "scene:files"
+          }
+        ]
+      },
+      "clicked": false
+    },
+    {
+      "destination": "studio",
+      "aim": {
+        "found": {
+          "x": 806,
+          "y": 396
+        },
+        "centre": {
+          "x": 806,
+          "y": 396
+        },
+        "radius": 18,
+        "tried": 1,
+        "id": "scene:studio"
+      },
+      "eventsBefore": 0,
+      "deliveredPortalId": null,
+      "deliveredDestination": null,
+      "clickPoint": {
+        "x": 806,
+        "y": 396
+      },
+      "projectedCentreAtClick": null,
+      "intersections": null,
+      "settleAtClick": null,
+      "landed": "core",
+      "deliveredMatches": false,
+      "sceneMatches": false
+    }
+  ],
+  "errors": []
+}

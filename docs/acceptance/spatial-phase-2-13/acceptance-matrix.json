@@ -273,6 +273,25 @@
       "D": "undecided",
       "E": "confirmed primary cause - UI layer intercepts the click"
     },
-    "nextStep": "make immersive chrome non-interactive where the field is drawn, then rerun probe-settled-targets.mjs and read __leluPortalEvents.at(-1).delivered.portalId"
+    "nextStep": "make immersive chrome non-interactive where the field is drawn, then rerun probe-settled-targets.mjs and read __leluPortalEvents.at(-1).delivered.portalId",
+    "reachability": {
+      "script": "docs/acceptance/spatial-phase-2-13/scripts/probe-first-real-click.mjs",
+      "files": {
+        "mouthPixelsSampled": 84,
+        "canvasOnTop": 0,
+        "verdict": "entirely behind interface chrome - unclickable"
+      },
+      "studio": {
+        "reachablePixel": [
+          806,
+          396
+        ],
+        "clickDelivered": true,
+        "r3fEvent": false,
+        "landed": "core",
+        "reason": "mouth moved under the pixel between sampling and press (camera deltaRotation 0.0049/frame)"
+      }
+    },
+    "status": "FAIL"
   }
 }

@@ -138,3 +138,45 @@ persistence, renderer/camera architecture, and canonical branch untouched
 | No neighbouring portal intercepts | **UNVERIFIED** |
 
 Mission B remains **not passed**. Missions C–G not started.
+
+## 8. Addendum — the first click that reached the canvas, and the one that could not
+
+`probe-first-real-click.mjs` searches *inside each portal's mouth* for a pixel
+that satisfies both conditions at once: the top DOM element is the Genesis
+canvas, and the raycast at that pixel returns the aimed portal. Only such a pixel
+is clicked.
+
+| Destination | Pixels sampled in the mouth | Canvas on top | Result of the real click |
+|---|---|---|---|
+| `scene:files` | 84 | **0** — every pixel is a `BUTTON` | not clicked: no uncovered pixel exists |
+| `scene:studio` | (scan stopped at first hit) | 1 at (806, 396) | click delivered, **no R3F event** (`delivered: null`), scene stayed `core` |
+
+Two distinct, measured obstacles:
+
+1. **For `files`, the portal is entirely behind interface chrome.** Not a single
+   pixel of its mouth is reachable by the pointer. The raycast is correct at every
+   one of those pixels; the DOM simply does not let the press through.
+2. **For `studio`, the single reachable pixel was reachable only at sampling
+   time.** The click produced no event at all, while the camera rotated at
+   `deltaRotation 0.0049` per frame (~0.3°). Between the scan and the press — a
+   few frames — the mouth moved out from under that one pixel. Position was
+   static (`deltaPosition 0`), so this is orientation drift, exactly the Case C
+   condition measured earlier.
+
+So a click can only be attributed once the field is both **uncovered** and
+**not moving** between measurement and press — or once the aim is computed in the
+same frame as the press. Neither is true today, and neither is a portal geometry
+problem.
+
+## 9. Final position for Mission B
+
+- The world can be entered through the app's own affordance (PASS, evidenced).
+- The raycast at a portal's projected position returns that portal (PASS,
+  evidenced at every sampled pixel).
+- World-space interactive mouths do not overlap (PASS, carried forward).
+- A real pointer press cannot reach a portal, because chrome covers the field;
+  where chrome does not cover it, the field moves between sampling and pressing
+  (FAIL, evidenced).
+- Therefore Mission B stays **not passed**, and the next change is interface
+  layering (`pointer-events` on the immersive chrome and placement of the HUD)
+  plus an in-frame aim strategy — not geometry.
