@@ -27,9 +27,14 @@
       {
         "cycles": 3,
         "outcome": "probe aborted: page.waitForTimeout \u2014 Target page, context or browser has been closed"
+      },
+      {
+        "cycles": 3,
+        "serverAtLaunch": "HTTP 200",
+        "outcome": "probe timed out (exit 124) after 'page.waitForTimeout: Target page, context or browser has been closed'"
       }
     ],
-    "diagnosis": "the Chromium instance terminates almost immediately after launch in the current session (2 chrome processes present, 8 GB RAM free); the dev server is healthy and answers HTTP. This is a browser-runtime availability failure in the measurement harness, not an application failure."
+    "diagnosis": "Chromium launches successfully in this session \u2014 a later control run got as far as page.goto \u2014 but the page/context closes during the chat-cycle phase every time (four attempts, 6/4/3/3 cycles, the last with the dev server confirmed answering HTTP 200). One earlier control run hit ERR_CONNECTION_REFUSED because the server itself had been lost to a runner restart, so both failure modes exist in this session and neither is an application defect. The after-cycles attribution is therefore not captured and no growth/leak classification is claimed."
   },
   "classification": "growth cannot be classified as expected / retained / unbounded without the after-cycles capture. No leak claim is made."
 }

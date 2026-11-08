@@ -1,20 +1,103 @@
 {
-  "result": "PARTIAL",
-  "method": "CDP DOMDebugger.getEventListeners on window/document aggregated by registering (script,line)",
-  "captured": [
+  "mission": "5.7",
+  "at": "2026-11-08T21:11:07.858Z",
+  "samples": [
     {
       "label": "window:start",
       "total": 63,
-      "distinct_sites": 57
+      "byType": {
+        "scroll": 2,
+        "keydown": 2,
+        "beforeunload": 3,
+        "message": 1,
+        "error": 2,
+        "unhandledrejection": 2,
+        "pagehide": 4,
+        "lelu:forge-changed": 2,
+        "online": 2,
+        "offline": 1,
+        "pageshow": 2,
+        "visibilitychange": 4,
+        "genesis-user-camera-start": 3,
+        "genesis-user-camera-end": 3,
+        "popstate": 1,
+        "resize": 6,
+        "lelu-open-question": 1,
+        "lelu-interface-chat-layout": 1,
+        "lelu-universe-send": 1,
+        "lelu-open-universe": 1,
+        "lelu-interface-open-link": 1,
+        "lelu-interface-open-history": 1,
+        "lelu-interface-undo": 1,
+        "lelu-studio-open": 1,
+        "lelu-atelier-open": 1,
+        "genesis-v2-camera": 1,
+        "genesis-show-surface": 2,
+        "genesis-module-presentation": 1,
+        "genesis-ui-control": 1,
+        "genesis-set-scene": 1,
+        "orientationchange": 1,
+        "lelu-portal-create": 1,
+        "lelu-portal-remove": 1,
+        "cosmos-navigate": 1,
+        "planet-navigate": 1,
+        "keyup": 1,
+        "blur": 1,
+        "lelu:speech-boundary": 1
+      },
+      "duplicates": [
+        [
+          "scroll @ deps/react-three-fiber.esm-BluGo4Fn.js?v=3a9a0638:9337",
+          2
+        ],
+        [
+          "pagehide @ deps/@supabase_supabase-js.js?v=3a9a0638:5797",
+          2
+        ],
+        [
+          "pageshow @ deps/@supabase_supabase-js.js?v=3a9a0638:5803",
+          2
+        ],
+        [
+          "visibilitychange @ deps/@supabase_supabase-js.js?v=3a9a0638:5809",
+          2
+        ],
+        [
+          "visibilitychange @ deps/@supabase_supabase-js.js?v=3a9a0638:19294",
+          2
+        ],
+        [
+          "resize @ deps/react-three-fiber.esm-BluGo4Fn.js?v=3a9a0638:9366",
+          2
+        ]
+      ],
+      "distinctSites": 57,
+      "perf": {
+        "label": "start",
+        "heapMB": 138.1,
+        "nodes": 859,
+        "jsListeners": 8880
+      }
     },
     {
       "label": "document:start",
       "total": 3,
-      "distinct_sites": 3
+      "byType": {
+        "visibilitychange": 2,
+        "selectionchange": 1
+      },
+      "duplicates": [],
+      "distinctSites": 3,
+      "perf": {
+        "label": "start",
+        "heapMB": 167.9,
+        "nodes": 862,
+        "jsListeners": 8934
+      }
     }
   ],
-  "missing": [
-    "after 8 pill+cosmos cycles",
-    "after repeated chat open/close"
-  ]
+  "notes": [],
+  "error": "page.waitForTimeout: Target page, context or browser has been closed",
+  "result": "ERROR",
+  "finishedAt": "2026-11-08T21:13:37.647Z"
 }

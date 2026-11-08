@@ -130,10 +130,13 @@ the provider receives; no parallel registry was added.
 
 Method unchanged (`DOMDebugger.getEventListeners`, grouped by registration source site).
 Baseline retained from 5.7: window 63 listeners / 57 sites, document 3 / 3.
-**After-cycles capture failed three times** (6, 4 and 3 cycles) with
-`Target page, context or browser has been closed` — Chromium terminates on launch in this
-session while the dev server is healthy and 8 GB RAM is free. That is a measurement-harness
-failure, not an application failure. No leak claim is made.
+**After-cycles capture failed four times** (6, 4, 3 and 3 cycles), the last with the dev server
+confirmed answering `HTTP 200`, each ending with
+`Target page, context or browser has been closed`. Chromium does launch here — a control run
+reached `page.goto` — so the context dies during the chat-cycle phase rather than at start-up;
+one earlier control run got `ERR_CONNECTION_REFUSED` because a runner restart had killed the
+server. Both failure modes are harness/lifecycle, neither is an application defect. No
+after-cycles attribution and **no leak claim**.
 
 ### Gate G — live environment lifecycle — **BLOCKED**
 
