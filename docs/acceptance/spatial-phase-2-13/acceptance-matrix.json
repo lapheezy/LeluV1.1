@@ -1,6 +1,6 @@
 {
   "mission": "5.4 / 5.4B.1 — portal targeting",
-  "status": "unverified-blocked-on-click-delivery",
+  "status": "unverified-blocked-on-ui-interception",
   "branch": "claude/mission-5-4-spatial-interaction",
   "start": {
     "canonicalRemoteTip": "91f5361481bcf52913181867ad928ed9c1745b30",
@@ -233,5 +233,46 @@
     },
     "blocker": "the app never enters immersive mode in this environment, so the home HUD covers the canvas and pointer clicks never reach the Genesis canvas",
     "nextStep": "assert data-immersive === true before any attempt (or measure on a surface with no HUD), then read __leluPortalEvents[-1].delivered.portalId"
+  },
+  "mission54b3": {
+    "report": "docs/acceptance/MISSION-5-4B-3-REPORT.md",
+    "immersiveEntry": {
+      "control": "button.lch-cosmos",
+      "pointerPress": true,
+      "dataImmersive": "true",
+      "homeHidden": true,
+      "rendererMounted": true
+    },
+    "orbDefect": "div[data-spatial-group=communication] covers the navigator orb centre, so the advertised tap cannot reach it",
+    "camera": {
+      "settles": false,
+      "idle": {
+        "deltaPosition": 0,
+        "deltaRotation": 0.0049
+      },
+      "entry": {
+        "deltaPosition": 3.0054,
+        "deltaRotation": 0.427
+      },
+      "cause": "GenesisCameraController lerps OrbitControls target every frame with damping"
+    },
+    "firstClick": {
+      "aimed": [
+        "scene:files",
+        "scene:studio"
+      ],
+      "raycastAtCentre": "matches aimed portal",
+      "topElementAtCentre": "HUD BUTTON/DIV above canvas",
+      "handlerRan": false,
+      "delivered": null
+    },
+    "verdict": {
+      "A": "ruled out - no R3F event produced",
+      "B": "untested",
+      "C": "confirmed present",
+      "D": "undecided",
+      "E": "confirmed primary cause - UI layer intercepts the click"
+    },
+    "nextStep": "make immersive chrome non-interactive where the field is drawn, then rerun probe-settled-targets.mjs and read __leluPortalEvents.at(-1).delivered.portalId"
   }
 }

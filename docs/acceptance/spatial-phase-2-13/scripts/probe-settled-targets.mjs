@@ -97,26 +97,37 @@ const enterWorld = async (page) => {
   const core = await (await page.$('[data-spatial-control="core"]'))?.boundingBox();
   if (core) await page.mouse.click(core.x + core.width / 2, core.y + core.height / 2);
   await page.waitForTimeout(1500);
-  // Inspect the published state; press the orb only when the world is closed.
-  // The page can hold several `.lsn-orb` nodes (some hidden), so press the
-  // VISIBLE one through its own click handler rather than guessing a point.
-  for (let attempt = 0; attempt < 4; attempt += 1) {
+  /*
+   * Enter the world through the application's own affordance.
+   *
+   * The navigator orb CANNOT be used: measured with elementsFromPoint, the
+   * spatial communication HUD (div[data-spatial-groups]) covers its centre, so
+   * a press at its coordinates never reaches the button. The home offers a
+   * second user-facing control, "Look at the Cosmos" (.lch-cosmos), which does
+   * set HomeStore.immersive — pressed here with real pointer input.
+   */
+  const entryPath = [];
+  for (let attempt = 0; attempt < 3; attempt += 1) {
     const info = await state(page);
     if (info.immersive === "true") break;
-    const pressed = await page.evaluate(() => {
-      const orbs = [...document.querySelectorAll(".lsn-orb")];
-      const visible = orbs.find((orb) => {
-        const rect = orb.getBoundingClientRect();
-        return rect.width > 0 && rect.height > 0 && getComputedStyle(orb).visibility !== "hidden";
-      });
-      if (!visible) return { pressed: false, count: orbs.length };
-      visible.click();
-      return { pressed: true, count: orbs.length, before: visible.getAttribute("data-immersive") };
-    });
-    result.entry = { ...(result.entry ?? {}), orb: pressed };
-    if (!pressed.pressed) break;
-    await page.waitForTimeout(1800);
+    const box = await (await page.$(".lch-cosmos"))?.boundingBox();
+    if (!box) {
+      entryPath.push({ control: "look-at-the-cosmos", found: false });
+      break;
+    }
+    const point = { x: Math.round(box.x + box.width / 2), y: Math.round(box.y + box.height / 2) };
+    const stack = await page.evaluate(
+      (target) => document.elementsFromPoint(target.x, target.y).slice(0, 3).map((node) => `${node.tagName}.${node.className}`.slice(0, 48)),
+      point,
+    );
+    entryPath.push({ control: "look-at-the-cosmos", found: true, point, stack });
+    await page.mouse.click(point.x, point.y);
+    await page.waitForTimeout(1600);
   }
+  const entered = await state(page);
+  entryPath.push({ after: { immersive: entered.immersive, flag: await page.evaluate(() => window.__leluImmersive ?? null) } });
+  result.entryPath = entryPath;
+  result.entry = { ...(result.entry ?? {}), orbCoveredBy: "div[data-spatial-groups]" };
   return settle(page, "enter");
 };
 

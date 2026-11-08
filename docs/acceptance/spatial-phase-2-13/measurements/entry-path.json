@@ -1,0 +1,1360 @@
+{
+  "samples": [],
+  "presses": [
+    {
+      "label": "orb-pointer",
+      "selector": ".lsn-orb",
+      "box": {
+        "x": 681,
+        "y": 802,
+        "w": 78,
+        "h": 78
+      }
+    },
+    {
+      "label": "cosmos-home",
+      "selector": ".lch-cosmos",
+      "box": {
+        "x": 1224,
+        "y": 72,
+        "w": 44,
+        "h": 44
+      }
+    }
+  ],
+  "errors": [],
+  "before": {
+    "t": 21738,
+    "immersiveFlag": null,
+    "dataImmersive": "false",
+    "orbCount": 1,
+    "orbDisabled": false,
+    "orbStyle": {
+      "pointerEvents": "auto",
+      "visibility": "visible"
+    },
+    "centre": {
+      "x": 720,
+      "y": 841
+    },
+    "stackTop": [
+      "DIV.",
+      "DIV.",
+      "SPAN.lsn-orb-core",
+      "BUTTON.lsn-orb"
+    ],
+    "homeVisible": true,
+    "camera": {
+      "frame": 6,
+      "stableFrames": 0,
+      "deltaPosition": 0.0102,
+      "deltaRotation": 0.0019,
+      "position": [
+        -0.0087,
+        0.0052,
+        5
+      ],
+      "quaternion": [
+        -0.0003,
+        -0.0009,
+        0,
+        1
+      ]
+    }
+  },
+  "pressOrb": {
+    "before": {
+      "t": 23624,
+      "immersiveFlag": null,
+      "dataImmersive": "false",
+      "orbCount": 1,
+      "orbDisabled": false,
+      "orbStyle": {
+        "pointerEvents": "auto",
+        "visibility": "visible"
+      },
+      "centre": {
+        "x": 720,
+        "y": 841
+      },
+      "stackTop": [
+        "DIV.",
+        "DIV.",
+        "SPAN.lsn-orb-core",
+        "BUTTON.lsn-orb"
+      ],
+      "homeVisible": true,
+      "camera": {
+        "frame": 9,
+        "stableFrames": 0,
+        "deltaPosition": 0.4553,
+        "deltaRotation": 0.0419,
+        "position": [
+          -5,
+          3,
+          5
+        ],
+        "quaternion": [
+          -0.1179,
+          -0.3796,
+          -0.0488,
+          0.9163
+        ]
+      }
+    },
+    "timeline": [
+      {
+        "t": 24742,
+        "immersiveFlag": null,
+        "dataImmersive": "false",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": true,
+        "camera": {
+          "frame": 10,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0061,
+          "position": [
+            -5,
+            3,
+            5
+          ],
+          "quaternion": [
+            -0.1207,
+            -0.3794,
+            -0.05,
+            0.916
+          ]
+        }
+      },
+      {
+        "t": 27472,
+        "immersiveFlag": null,
+        "dataImmersive": "false",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": true,
+        "camera": {
+          "frame": 16,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0047,
+          "position": [
+            -5,
+            3,
+            5
+          ],
+          "quaternion": [
+            -0.135,
+            -0.3786,
+            -0.0559,
+            0.914
+          ]
+        }
+      },
+      {
+        "t": 33399,
+        "immersiveFlag": null,
+        "dataImmersive": "false",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": true,
+        "camera": {
+          "frame": 24,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0388,
+          "position": [
+            -5,
+            3,
+            5
+          ],
+          "quaternion": [
+            -0.1179,
+            -0.3796,
+            -0.0488,
+            0.9163
+          ]
+        }
+      },
+      {
+        "t": 42719,
+        "immersiveFlag": null,
+        "dataImmersive": "false",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": true,
+        "camera": {
+          "frame": 30,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.006,
+          "position": [
+            -3,
+            1.5,
+            7
+          ],
+          "quaternion": [
+            -0.0254,
+            -0.201,
+            -0.0052,
+            0.9792
+          ]
+        }
+      }
+    ]
+  },
+  "afterOrb": {
+    "t": 47595,
+    "immersiveFlag": null,
+    "dataImmersive": "false",
+    "orbCount": 1,
+    "orbDisabled": false,
+    "orbStyle": {
+      "pointerEvents": "auto",
+      "visibility": "visible"
+    },
+    "centre": {
+      "x": 720,
+      "y": 841
+    },
+    "stackTop": [
+      "DIV.",
+      "DIV.",
+      "SPAN.lsn-orb-core",
+      "BUTTON.lsn-orb"
+    ],
+    "homeVisible": true,
+    "camera": {
+      "frame": 35,
+      "stableFrames": 0,
+      "deltaPosition": 0,
+      "deltaRotation": 0.0049,
+      "position": [
+        -3,
+        1.5,
+        7
+      ],
+      "quaternion": [
+        -0.0385,
+        -0.2009,
+        -0.0079,
+        0.9788
+      ]
+    }
+  },
+  "pressCosmos": {
+    "before": {
+      "t": 50918,
+      "immersiveFlag": null,
+      "dataImmersive": "false",
+      "orbCount": 1,
+      "orbDisabled": false,
+      "orbStyle": {
+        "pointerEvents": "auto",
+        "visibility": "visible"
+      },
+      "centre": {
+        "x": 720,
+        "y": 841
+      },
+      "stackTop": [
+        "DIV.",
+        "DIV.",
+        "SPAN.lsn-orb-core",
+        "BUTTON.lsn-orb"
+      ],
+      "homeVisible": true,
+      "camera": {
+        "frame": 36,
+        "stableFrames": 0,
+        "deltaPosition": 0.1394,
+        "deltaRotation": 0.014,
+        "position": [
+          -2.8685,
+          1.5146,
+          6.9562
+        ],
+        "quaternion": [
+          -0.0397,
+          -0.1942,
+          -0.0079,
+          0.9801
+        ]
+      }
+    },
+    "timeline": [
+      {
+        "t": 52318,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 37,
+          "stableFrames": 0,
+          "deltaPosition": 9.4,
+          "deltaRotation": 1.3772,
+          "position": [
+            6,
+            2.5,
+            4
+          ],
+          "quaternion": [
+            -0.0815,
+            0.4698,
+            0.0436,
+            0.8779
+          ]
+        }
+      },
+      {
+        "t": 53666,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 38,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0062,
+          "position": [
+            6,
+            2.5,
+            4
+          ],
+          "quaternion": [
+            -0.0842,
+            0.4697,
+            0.045,
+            0.8776
+          ]
+        }
+      },
+      {
+        "t": 54837,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 39,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0059,
+          "position": [
+            6,
+            2.5,
+            4
+          ],
+          "quaternion": [
+            -0.0868,
+            0.4696,
+            0.0464,
+            0.8774
+          ]
+        }
+      },
+      {
+        "t": 55887,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 40,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0056,
+          "position": [
+            6,
+            2.5,
+            4
+          ],
+          "quaternion": [
+            -0.0892,
+            0.4694,
+            0.0478,
+            0.8771
+          ]
+        }
+      },
+      {
+        "t": 56958,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 41,
+          "stableFrames": 0,
+          "deltaPosition": 0.0026,
+          "deltaRotation": 0.0003,
+          "position": [
+            5.9978,
+            2.5004,
+            4.0015
+          ],
+          "quaternion": [
+            -0.0893,
+            0.4693,
+            0.0478,
+            0.8772
+          ]
+        }
+      },
+      {
+        "t": 57977,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 42,
+          "stableFrames": 0,
+          "deltaPosition": 6.124,
+          "deltaRotation": 0.8582,
+          "position": [
+            0.9507,
+            3.3416,
+            7.3662
+          ],
+          "quaternion": [
+            -0.144,
+            0.0635,
+            0.0093,
+            0.9875
+          ]
+        }
+      },
+      {
+        "t": 58902,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 43,
+          "stableFrames": 0,
+          "deltaPosition": 1.1535,
+          "deltaRotation": 0.1284,
+          "position": [
+            0,
+            3.5,
+            8
+          ],
+          "quaternion": [
+            -0.1424,
+            0,
+            0,
+            0.9898
+          ]
+        }
+      },
+      {
+        "t": 59874,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 44,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0053,
+          "position": [
+            0,
+            3.5,
+            8
+          ],
+          "quaternion": [
+            -0.145,
+            0,
+            0,
+            0.9894
+          ]
+        }
+      },
+      {
+        "t": 60801,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 45,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0051,
+          "position": [
+            0,
+            3.5,
+            8
+          ],
+          "quaternion": [
+            -0.1475,
+            0,
+            0,
+            0.9891
+          ]
+        }
+      },
+      {
+        "t": 61685,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 46,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0048,
+          "position": [
+            0,
+            3.5,
+            8
+          ],
+          "quaternion": [
+            -0.1499,
+            0,
+            0,
+            0.9887
+          ]
+        }
+      },
+      {
+        "t": 62507,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 47,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0046,
+          "position": [
+            0,
+            3.5,
+            8
+          ],
+          "quaternion": [
+            -0.1522,
+            0,
+            0,
+            0.9884
+          ]
+        }
+      },
+      {
+        "t": 63517,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 48,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0044,
+          "position": [
+            0,
+            3.5,
+            8
+          ],
+          "quaternion": [
+            -0.1544,
+            0,
+            0,
+            0.988
+          ]
+        }
+      },
+      {
+        "t": 64428,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 49,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0042,
+          "position": [
+            0,
+            3.5,
+            8
+          ],
+          "quaternion": [
+            -0.1565,
+            0,
+            0,
+            0.9877
+          ]
+        }
+      },
+      {
+        "t": 65418,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 50,
+          "stableFrames": 0,
+          "deltaPosition": 0.0194,
+          "deltaRotation": 0.0023,
+          "position": [
+            -0.0156,
+            3.4896,
+            7.9948
+          ],
+          "quaternion": [
+            -0.1559,
+            -0.001,
+            -0.0002,
+            0.9878
+          ]
+        }
+      },
+      {
+        "t": 66475,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 51,
+          "stableFrames": 0,
+          "deltaPosition": 3.0009,
+          "deltaRotation": 0.3847,
+          "position": [
+            -2.4217,
+            1.8856,
+            7.1928
+          ],
+          "quaternion": [
+            -0.0508,
+            -0.1615,
+            -0.0083,
+            0.9855
+          ]
+        }
+      },
+      {
+        "t": 67475,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 52,
+          "stableFrames": 0,
+          "deltaPosition": 0.7213,
+          "deltaRotation": 0.0983,
+          "position": [
+            -3,
+            1.5,
+            7
+          ],
+          "quaternion": [
+            -0.0225,
+            -0.201,
+            -0.0046,
+            0.9793
+          ]
+        }
+      },
+      {
+        "t": 68633,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 53,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.006,
+          "position": [
+            -3,
+            1.5,
+            7
+          ],
+          "quaternion": [
+            -0.0254,
+            -0.201,
+            -0.0052,
+            0.9792
+          ]
+        }
+      },
+      {
+        "t": 69476,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 54,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0058,
+          "position": [
+            -3,
+            1.5,
+            7
+          ],
+          "quaternion": [
+            -0.0283,
+            -0.201,
+            -0.0058,
+            0.9792
+          ]
+        }
+      },
+      {
+        "t": 70397,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 55,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0055,
+          "position": [
+            -3,
+            1.5,
+            7
+          ],
+          "quaternion": [
+            -0.031,
+            -0.201,
+            -0.0064,
+            0.9791
+          ]
+        }
+      },
+      {
+        "t": 71293,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 56,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0053,
+          "position": [
+            -3,
+            1.5,
+            7
+          ],
+          "quaternion": [
+            -0.0336,
+            -0.2009,
+            -0.0069,
+            0.979
+          ]
+        }
+      },
+      {
+        "t": 72278,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 57,
+          "stableFrames": 0,
+          "deltaPosition": 0,
+          "deltaRotation": 0.0051,
+          "position": [
+            -3,
+            1.5,
+            7
+          ],
+          "quaternion": [
+            -0.0361,
+            -0.2009,
+            -0.0074,
+            0.9789
+          ]
+        }
+      },
+      {
+        "t": 73256,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 58,
+          "stableFrames": 0,
+          "deltaPosition": 0.011,
+          "deltaRotation": 0.0008,
+          "position": [
+            -2.9908,
+            1.5,
+            6.9939
+          ],
+          "quaternion": [
+            -0.0361,
+            -0.2005,
+            -0.0074,
+            0.979
+          ]
+        }
+      },
+      {
+        "t": 74450,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 59,
+          "stableFrames": 0,
+          "deltaPosition": 2.9444,
+          "deltaRotation": 0.3035,
+          "position": [
+            -0.541,
+            1.5,
+            5.3606
+          ],
+          "quaternion": [
+            -0.0359,
+            -0.0502,
+            -0.0018,
+            0.9981
+          ]
+        }
+      },
+      {
+        "t": 75709,
+        "immersiveFlag": true,
+        "dataImmersive": "true",
+        "orbCount": 1,
+        "orbDisabled": false,
+        "orbStyle": {
+          "pointerEvents": "auto",
+          "visibility": "visible"
+        },
+        "centre": {
+          "x": 720,
+          "y": 841
+        },
+        "stackTop": [
+          "DIV.",
+          "DIV.",
+          "SPAN.lsn-orb-core",
+          "BUTTON.lsn-orb"
+        ],
+        "homeVisible": false,
+        "camera": {
+          "frame": 60,
+          "stableFrames": 0,
+          "deltaPosition": 0.6502,
+          "deltaRotation": 0.1006,
+          "position": [
+            0,
+            1.5,
+            5
+          ],
+          "quaternion": [
+            -0.0349,
+            0,
+            0,
+            0.9994
+          ]
+        }
+      }
+    ]
+  },
+  "afterCosmos": {
+    "t": 76637,
+    "immersiveFlag": true,
+    "dataImmersive": "true",
+    "orbCount": 1,
+    "orbDisabled": false,
+    "orbStyle": {
+      "pointerEvents": "auto",
+      "visibility": "visible"
+    },
+    "centre": {
+      "x": 720,
+      "y": 841
+    },
+    "stackTop": [
+      "DIV.",
+      "DIV.",
+      "SPAN.lsn-orb-core",
+      "BUTTON.lsn-orb"
+    ],
+    "homeVisible": false,
+    "camera": {
+      "frame": 61,
+      "stableFrames": 0,
+      "deltaPosition": 0,
+      "deltaRotation": 0.0091,
+      "position": [
+        0,
+        1.5,
+        5
+      ],
+      "quaternion": [
+        -0.0395,
+        0,
+        0,
+        0.9992
+      ]
+    }
+  },
+  "final": {
+    "t": 76689,
+    "immersiveFlag": true,
+    "dataImmersive": "true",
+    "orbCount": 1,
+    "orbDisabled": false,
+    "orbStyle": {
+      "pointerEvents": "auto",
+      "visibility": "visible"
+    },
+    "centre": {
+      "x": 720,
+      "y": 841
+    },
+    "stackTop": [
+      "DIV.",
+      "DIV.",
+      "SPAN.lsn-orb-core",
+      "BUTTON.lsn-orb"
+    ],
+    "homeVisible": false,
+    "camera": {
+      "frame": 61,
+      "stableFrames": 0,
+      "deltaPosition": 0,
+      "deltaRotation": 0.0091,
+      "position": [
+        0,
+        1.5,
+        5
+      ],
+      "quaternion": [
+        -0.0395,
+        0,
+        0,
+        0.9992
+      ]
+    }
+  }
+}
