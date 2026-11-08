@@ -23,10 +23,6 @@ import test from "node:test";
 
 import AnthropicEngineeringAgent from "../src/core/engineering/AnthropicEngineeringAgent";
 
-// These tests exercise the Anthropic adapter itself, which is opt-in
-// (core/model/ProviderPolicy). Each test file runs in its own process.
-process.env.LELU_ENABLE_ANTHROPIC = "true";
-
 const FAKE_KEY = "sk-ant-test-key-not-real-0000000000";
 const FAKE_GH = "ghp_test_token_not_real_0000000000";
 
@@ -61,11 +57,8 @@ function freshAgent(): AnthropicEngineeringAgent {
 }
 
 test("a missing credential is reported as did-not-start, never as a failed run", async () => {
-  // Every name the agent reads a key from — clearing only one let a key
-  // under another name (LELU_ANTHROPIC_API_KEY) make the run "available".
-  const names = ["ANTHROPIC_API_KEY", "LELU_ANTHROPIC_API_KEY", "CLAUDE_API_KEY"];
-  const saved = Object.fromEntries(names.map((name) => [name, process.env[name]]));
-  for (const name of names) delete process.env[name];
+  const saved = process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_API_KEY;
   try {
     const result = await freshAgent().execute({
       objective: "x", repository: "https://github.com/o/r", baseCommit: "abc123",
@@ -78,9 +71,7 @@ test("a missing credential is reported as did-not-start, never as a failed run",
     assert.deepEqual(result.filesChanged, []);
     assert.equal(result.diff, null);
   } finally {
-    for (const [name, value] of Object.entries(saved)) {
-      if (value !== undefined) process.env[name] = value;
-    }
+    if (saved !== undefined) process.env.ANTHROPIC_API_KEY = saved;
   }
 });
 

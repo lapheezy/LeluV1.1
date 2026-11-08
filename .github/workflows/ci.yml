@@ -62,13 +62,6 @@ jobs:
       - name: Run every scripts/verify-*.ts script
         run: |
           set -e
-          bun run dev &
-          DEV_PID=$!
-          trap 'kill $DEV_PID 2>/dev/null || true' EXIT
-          for i in $(seq 1 30); do
-            curl -sf http://127.0.0.1:5173/ > /dev/null && break
-            sleep 1
-          done
           status=0
           for f in scripts/verify-*.ts; do
             # Writes a real branch and commit to GitHub; opt-in only
@@ -79,11 +72,12 @@ jobs:
             fi
             echo "::group::$f"
             if ! bun run "$f"; then
-              echo "::warning file=$f::verify script non-fatal failure in CI headless sandbox"
+              echo "::error file=$f::verify script failed"
+              status=1
             fi
             echo "::endgroup::"
           done
-          kill $DEV_PID 2>/dev/null || true
+          exit $status
 
       # The live check: a REAL browser against a REAL server. It is the
       # only place three claims can actually be proven — that the app

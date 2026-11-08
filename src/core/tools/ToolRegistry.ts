@@ -428,6 +428,58 @@ export default class ToolRegistry {
         executionRoute: "MemoryEngine.learn",
       },
 
+      // Interface Orchestrator Tools
+      {
+        id: "interface.inspect",
+        name: "Inspect Interface State",
+        description: "Inspect the current interface configuration: layout, design tokens, scene objects, and active themes.",
+        category: "Interface",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "front-end:InterfaceOrchestrator",
+      },
+      {
+        id: "interface.propose",
+        name: "Propose Interface Design",
+        description: "Construct and stage an isolated interface proposal (preview only). Never applies without user consent.",
+        category: "Interface",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "front-end:InterfaceOrchestrator",
+      },
+      {
+        id: "interface.revert",
+        name: "Propose Layout Restore",
+        description: "Stage a proposal to restore an earlier interface design version.",
+        category: "Interface",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "front-end:InterfaceOrchestrator",
+      },
+      {
+        id: "interface.themes",
+        name: "Manage Interface Themes",
+        description: "List, save, apply, or delete interface themes.",
+        category: "Interface",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "front-end:InterfaceOrchestrator",
+      },
+      {
+        id: "interface.recommend",
+        name: "Recommend Interface Design",
+        description: "Recommend an interface layout and typography system for a given task domain.",
+        category: "Interface",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "front-end:InterfaceOrchestrator",
+      },
+
       // Environment Operator Tools (Session 02)
       {
         id: "environment.compose",
