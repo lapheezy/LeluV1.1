@@ -6,8 +6,10 @@
     "remote_verified": true
   },
   "canonical": {
-    "at_mission_start": "91f5361481bcf52913181867ad928ed9c1745b30",
-    "note": "canonical remote moved BACKWARDS past ce768e0 (the 5.4B.11 base) between missions; our base contains ce768e0 and 91f5361, so nothing was lost, but canonical itself no longer contains the Chat Universe work it had when 5.4B.11 started."
+    "observed_mid_mission": "91f5361481bcf52913181867ad928ed9c1745b30",
+    "verified_at_completion": "ce768e08cebd71eaa05418c5942ad637a8ac0596",
+    "note": "Two reads disagreed: a transient 91f5361 (an ancestor) and the verified ce768e0. Recorded, not diagnosed. This branch contains both; canonical was never written to by this mission.",
+    "canonical_modified_by_mission": false
   },
   "mobile_source": {
     "branch": "claude/mission-2-15-6-mobile-interaction-restoration-closure",

@@ -8,11 +8,12 @@ integration commit and then run.
 
 - Spatial integration base: `claude/mission-5-4b-11-canonical-integration` @
   `1569f57a3891e5b57f150cc21ebc556608513d44` — re-verified as the actual remote HEAD at mission start.
-- Canonical `claude/master-integration` at mission start: **`91f5361`**.
-  It has moved **backwards**: `91f5361` is an ancestor of `ce768e0`, the commit canonical pointed at
-  when Mission 5.4B.11 began. The integration base contains both, so this branch lost nothing, but
-  canonical itself no longer carries the Chat Universe commit it had during 5.4B.11. That is recorded
-  here as an external change, not repaired by this mission.
+- Canonical `claude/master-integration` was read twice during this mission: once as **`91f5361`** and
+  again at completion as **`ce768e08cebd71eaa05418c5942ad637a8ac0596`**. `ce768e0` is the canonical the
+  Chat Universe lives on and is the 5.4B.11 reference; `91f5361` is its ancestor. The single transient
+  read is recorded rather than diagnosed, and note that a first draft of this report wrongly described
+  it as canonical having moved backwards — that reading did not hold on re-check and is corrected here.
+  Either way this branch contains both commits, and this mission never wrote to canonical.
 - No source branch was rewritten; no worktree or uncommitted work was touched.
 
 ## 2. Mission 2.15.6 source and commits integrated
@@ -122,7 +123,8 @@ No test was skipped, weakened or removed. The 2 skipped tests are the same two s
    be wired in later or the tools would register twice.
 4. **Field-rotation `no-claim` presses** (~2 of 12 presses) travel nowhere and land on no wrong
    destination; this is the same behaviour recorded in 5.4B.9–11.
-5. **Canonical moved backwards** to `91f5361`; this branch is unaffected but canonical is.
+5. **Canonical's tip read `91f5361` once mid-mission and `ce768e0` at completion**; the branch contains
+   both, so this is noted for the record, not diagnosed as damage.
 6. Physical-device touch testing was not performed.
 
 ## 12. Merge-readiness decision
