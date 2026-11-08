@@ -1,6 +1,6 @@
 {
   "mission": "5.4 / 5.4B.1 — portal targeting",
-  "status": "unverified-blocked-on-ui-interception",
+  "status": "partial-input-routing-fixed-repeatability-failing",
   "branch": "claude/mission-5-4-spatial-interaction",
   "start": {
     "canonicalRemoteTip": "91f5361481bcf52913181867ad928ed9c1745b30",
@@ -293,5 +293,23 @@
       }
     },
     "status": "FAIL"
+  },
+  "mission54b4": {
+    "report": "docs/acceptance/MISSION-5-4B-4-REPORT.md",
+    "changes": [
+      "SpatialNavigator containers pointer-events none with controls restored",
+      "portal label wrapper and chip pointer-events none (keyboard retained)",
+      "GenesisCoreBody defers when the press also hits a portal",
+      "index.css expresses the routing rule once"
+    ],
+    "evidence": "docs/acceptance/spatial-phase-2-13/measurements/real-click-summary.json",
+    "firstCorrectTravels": {
+      "files": 1,
+      "studio": 2,
+      "reps": 5,
+      "note": "reps 4-5 predate the wrapper fix and are retained"
+    },
+    "remainingFailure": "reachable pixel and correct raycast, but no R3F event at press time — camera rotation between sampling and delivery under automation",
+    "notChanged": "portal geometry, placement, identity, registry, camera behaviour"
   }
 }

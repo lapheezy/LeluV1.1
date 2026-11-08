@@ -219,7 +219,7 @@ function Portal({
          * travel call), which is what makes the field keyboard-reachable
          * without a second widget: Tab to a chip, Enter to travel.
          */
-        <Html position={[0, spec.radius + 0.3, 0]} center distanceFactor={16} zIndexRange={[6, 0]} style={{ pointerEvents: "auto" }}>
+        <Html position={[0, spec.radius + 0.3, 0]} center distanceFactor={16} zIndexRange={[6, 0]} style={{ pointerEvents: "none" }}>
           <button
             type="button"
             data-portal-select={spec.id}

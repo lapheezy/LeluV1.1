@@ -328,7 +328,14 @@ export default function SpatialNavigator() {
           maxWidth: "100%",
           flexWrap: "wrap",
           justifyContent: "center",
-          pointerEvents: "auto",
+          /*
+           * INPUT ROUTING: this pill's background is decoration. It sits over
+           * the live Cosmos, so if the container owns the pointer a person can
+           * never press a portal that happens to be behind it. The controls
+           * inside re-take the pointer (see `button`, `control` and the
+           * rule set in index.css); the gaps let the world through.
+           */
+          pointerEvents: "none",
           padding: compact ? "6px 7px" : "8px 10px",
           borderRadius: compact ? 14 : 18,
           background: "rgba(4,10,26,0.55)",
@@ -419,7 +426,8 @@ export default function SpatialNavigator() {
             display: "grid",
             gap: 4,
             width: "min(600px, 100%)",
-            pointerEvents: "auto",
+            /* Panel surface is decoration: only its chips own the pointer. */
+            pointerEvents: "none",
             padding: "8px 10px",
             borderRadius: 18,
             background: "rgba(4,10,26,0.55)",
@@ -473,7 +481,8 @@ export default function SpatialNavigator() {
             display: "grid",
             gap: 7,
             width: "min(620px, 100%)",
-            pointerEvents: "auto",
+            /* Panel surface is decoration: only its fields and buttons own it. */
+            pointerEvents: "none",
             padding: "9px 11px",
             borderRadius: 16,
             background: "rgba(4,10,26,0.72)",
