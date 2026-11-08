@@ -37,6 +37,10 @@ import { FORGE_EXECUTORS } from "../forge/ForgeTools";
 import { WORLD_EXECUTORS } from "../world/WorldTools";
 import { AGENTIC_EXECUTORS } from "../agentic/AgenticTools";
 import { INTERFACE_EXECUTORS } from "../interface/InterfaceTools";
+// Session 02's environment operator tools join the SAME table as everything
+// else. They are not a second registry or a parallel dispatch path: one
+// dispatchToolCall() runs them, with the same gate, events and result shape.
+import { ENVIRONMENT_EXECUTORS } from "../orchestrator/EnvironmentTools";
 import { STUDIO_EXECUTORS } from "../studio/StudioTools";
 import { ATELIER_EXECUTORS } from "../atelier/AtelierTools";
 import EngineeringAuthorization from "../engineering/EngineeringAuthorization";
@@ -397,7 +401,19 @@ export function toolNameForModel(registryId: string): string {
 }
 
 export function registryIdForToolName(name: string): string {
-  return name.replace(/_/g, ".");
+  if (BY_ID.has(name)) return name;
+  const direct = name.replace(/_/g, ".");
+  if (BY_ID.has(direct)) return direct;
+  // Multi-segment ids cannot be recovered by replacing every underscore:
+  // "environment_present_artifact" would become "environment.present.artifact"
+  // and resolve to nothing, so the tool would be offered but never run. Try
+  // the split after the namespace first, and only fall back to the plain form.
+  const firstUnderscore = name.indexOf("_");
+  if (firstUnderscore !== -1) {
+    const candidate = `${name.slice(0, firstUnderscore)}.${name.slice(firstUnderscore + 1)}`;
+    if (BY_ID.has(candidate)) return candidate;
+  }
+  return direct;
 }
 
 /* ------------------------------------------------------------------ *
@@ -2565,7 +2581,7 @@ const EXECUTORS: ToolExecutor[] = [
 ];
 
 const BY_ID = new Map<string, ToolExecutor>(
-  [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS].map((executor) => [executor.id, executor]),
+  [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...ENVIRONMENT_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS].map((executor) => [executor.id, executor]),
 );
 
 /**

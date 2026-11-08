@@ -221,7 +221,11 @@ test("a request that names a tool reaches the model, not a keyword scaffold", ()
   const router = code("src/core/AIRouter.ts");
   assert.match(router, /const namesTool = this\.namesAnOfferedTool\(context\);/);
   // The stage is wrapped by the routing trace, which must stay a pass-through.
-  assert.match(router, /if \(!this\.modelCanDoEngineeringWork\(context\) && !namesTool\) \{\s*const creative = await this\.traced\(context, "creative", \(\) => this\.creative\.execute\(context\)\);/);
+  // The creative scaffold stands down for BOTH kinds of work the model can do
+  // itself — real engineering, and operating the environment (environment.compose
+  // is offered): "design a diagram of X" is the environment's, not a scaffold's.
+  assert.match(router, /if \(!this\.modelCanComposeEnvironment\(context\) && !this\.modelCanDoEngineeringWork\(context\) && !namesTool\) \{\s*const creative = await this\.traced\(context, "creative", \(\) => this\.creative\.execute\(context\)\);/);
+  assert.match(router, /private modelCanComposeEnvironment\(context: RouterContext\): boolean \{/);
   assert.match(code("src/core/cognition/CognitiveContext.ts"), /that request is the confirmation — do it, do not ask again/);
 });
 
