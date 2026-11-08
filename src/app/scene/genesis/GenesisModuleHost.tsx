@@ -505,13 +505,24 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       >
         <div
           data-lelu-module-window={id}
+          data-lelu-module-host={id}
+          data-lelu-module-presentation="expanded"
           data-presentation="expanded"
           data-lelu-surface="window"
           data-lelu-window={id}
           style={{
             pointerEvents: "auto",
-            width: "min(92vw, 900px)",
-            height: "min(84dvh, 640px)",
+            /*
+             * On a phone the expanded presentation IS a sheet, driven by the
+             * same contract as the inline host: store-owned position, the dock
+             * height from 2.15.2, drag from the chrome, docking committed by
+             * endDrag. Before this the phone window was a centred modal whose
+             * geometry ignored `position`/`size`, so drags arrived and nothing
+             * could move. Desktop keeps its centred modal untouched.
+             */
+            ...(isMobile
+              ? { position: "fixed" as const, left: position.x, top: position.y, width: size.width, height: size.height }
+              : { width: "min(92vw, 900px)", height: "min(84dvh, 640px)" }),
             display: "flex",
             flexDirection: "column",
             background: `var(--lelu-surface-bg, ${genesisTheme.glass.panel})`,
@@ -524,7 +535,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
           }}
         >
           {chrome}
-          <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", position: "relative" }}>
+          <div data-lelu-module-content={id} style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", position: "relative" }}>
             <div style={{ flex: 1, display: "flex", flexDirection: "column", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}>
               <InModuleWindow.Provider value={true}>{render({ onClose: () => closeModule(id) })}</InModuleWindow.Provider>
             </div>
