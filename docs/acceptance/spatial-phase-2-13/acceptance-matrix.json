@@ -1,6 +1,6 @@
 {
   "mission": "5.4 / 5.4B.1 — portal targeting",
-  "status": "incomplete-repeatability-not-achieved",
+  "status": "fix-implemented-acceptance-unproven",
   "branch": "claude/mission-5-4-spatial-interaction",
   "start": {
     "canonicalRemoteTip": "91f5361481bcf52913181867ad928ed9c1745b30",
@@ -328,5 +328,28 @@
     },
     "note": "gated rerun exceeded the command cap; the evidence file is the un-gated run",
     "appSourceChanged": false
+  },
+  "mission54b6": {
+    "report": "docs/acceptance/MISSION-5-4B-6-REPORT.md",
+    "rootCause": "portal mouth attached only R3F onClick, which is synthesised from a pointerdown/up pair resolved on one frame; a fast press produced no activation (measured 6/10), and delivered clicks were refused because the entry flight still owned the camera",
+    "files": [
+      "src/app/scene/spatial/SpatialPortals.tsx"
+    ],
+    "change": [
+      "beginPress records pointer id + start point and takes pointer capture",
+      "endPress activates only for the same pointer released within 18px",
+      "single activate() path preserves the trace and the busyElsewhere guard",
+      "activations within 500ms collapse so pointer-up and click cannot double-fire"
+    ],
+    "acceptance": {
+      "files": "no evidence",
+      "studio": "no evidence",
+      "reason": "each fresh load ~75s under SwiftShader; 290s command ceiling allowed ~3 loads per invocation"
+    },
+    "gates": {
+      "tsc": "0 errors",
+      "portalTests": "40 pass / 0 fail",
+      "suite": "not run"
+    }
   }
 }

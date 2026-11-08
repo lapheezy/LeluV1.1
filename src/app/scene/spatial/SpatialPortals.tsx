@@ -23,6 +23,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
+import type { ThreeEvent } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import {
   AdditiveBlending,
@@ -178,6 +179,117 @@ function Portal({
     seam.current.rotation.z += delta * (0.25 + intensity * 0.5);
   });
 
+  /*
+   * PRESS OWNERSHIP — one interaction, one activation.
+   *
+   * R3F derives onClick from a pointerdown/pointerup pair resolved on the same
+   * frame, so a fast press-and-release can reach the canvas and still produce no
+   * click (measured: 6 of 10 real presses). The mouth owns the pointer from the
+   * down event: a press that starts inside this portal completes on release, as
+   * long as it is the same pointer, it has not moved beyond a deliberate
+   * threshold, and no other flight already owns the camera.
+   *
+   * The release and the click R3F may derive from it are one press, so the
+   * second is discarded — never two activations from one interaction.
+   */
+  const press = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const lastActivation = useRef(0);
+
+  const beginPress = (event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation();
+    press.current = {
+      pointerId: event.pointerId,
+      x: event.nativeEvent.clientX,
+      y: event.nativeEvent.clientY,
+    };
+    try {
+      gl.domElement.setPointerCapture(event.pointerId);
+    } catch {
+      /* capture is best effort: the canvas still receives the release */
+    }
+  };
+
+  const endPress = (event: ThreeEvent<PointerEvent>) => {
+    const started = press.current;
+    press.current = null;
+    if (!started || started.pointerId !== event.pointerId) return;
+    const moved = Math.hypot(
+      event.nativeEvent.clientX - started.x,
+      event.nativeEvent.clientY - started.y,
+    );
+    if (moved > 18) return;
+    activate(event);
+  };
+
+  const activate = (event: ThreeEvent<MouseEvent> | ThreeEvent<PointerEvent>) => {
+    event.stopPropagation();
+    const now = performance.now();
+    if (now - lastActivation.current < 500) return;
+    lastActivation.current = now;
+          event.stopPropagation();
+          /*
+           * Development trace: record what the REAL handler received in the
+           * same frame as the pointer event — the event object's own portal id,
+           * every intersection with its distance, the camera pose, the
+           * viewport and the projected centre of the object that was hit.
+           * Without this, "wrong portal" and "stale coordinates" are
+           * indistinguishable.
+           */
+          if (traceEnabled()) {
+            const native = event.nativeEvent as MouseEvent | undefined;
+            const rect = gl.domElement.getBoundingClientRect();
+            const world = new Vector3();
+            event.object.getWorldPosition(world);
+            const projected = world.clone().project(camera);
+            const round = (value: number, places = 4) =>
+              Math.round(value * 10 ** places) / 10 ** places;
+            recordPortalClick({
+              t: Math.round(performance.now()),
+              client: { x: Math.round(native?.clientX ?? -1), y: Math.round(native?.clientY ?? -1) },
+              ndc: {
+                x: round((((native?.clientX ?? 0) - rect.left) / Math.max(1, rect.width)) * 2 - 1),
+                y: round(-(((native?.clientY ?? 0) - rect.top) / Math.max(1, rect.height)) * 2 + 1),
+              },
+              delivered: {
+                portalId: (event.object.userData as { portalId?: string }).portalId ?? null,
+                destination: spec.destination,
+                object: event.object.name,
+              },
+              hitDistance: Number.isFinite(event.distance) ? round(event.distance, 3) : null,
+              hitPoint: [round(event.point.x, 3), round(event.point.y, 3), round(event.point.z, 3)],
+              intersections: event.intersections.slice(0, 8).map((entry) => ({
+                name: entry.object.name,
+                portalId: (entry.object.userData as { portalId?: string }).portalId ?? null,
+                distance: round(entry.distance, 3),
+              })),
+              camera: {
+                position: camera.position.toArray().map((value) => round(value)),
+                quaternion: camera.quaternion.toArray().map((value) => round(value)),
+                projection: camera.projectionMatrix.elements.map((value) => round(value)),
+              },
+              viewport: {
+                width: Math.round(rect.width),
+                height: Math.round(rect.height),
+                dpr: window.devicePixelRatio,
+              },
+              projectedCentre: {
+                x: Math.round(rect.left + (projected.x * 0.5 + 0.5) * rect.width),
+                y: Math.round(rect.top + (-projected.y * 0.5 + 0.5) * rect.height),
+              },
+              settle: (window as unknown as { __leluCameraSettle?: unknown }).__leluCameraSettle ?? null,
+              scene: state.current,
+              transition: state.transition?.kind ?? null,
+              travelDestination: state.destination,
+            });
+          }
+          // One camera, one flight: a click while another destination is in
+          // flight is refused rather than rebasing the path on top of itself.
+          // Travelling through a portal is the SAME travel the rail uses: one
+          // scene, one camera, no second canvas and no context reset.
+          if (busyElsewhere) return;
+          onSelect(spec);
+  };
+
   return (
     <group position={position} name={`spatial-portal-group-${spec.id}`}>
       <group ref={seam} scale={pulse}>
@@ -282,69 +394,11 @@ function Portal({
       <mesh
         name={`spatial-portal-hit-${spec.id}`}
         userData={{ portalId: spec.id, destination: spec.destination, label: spec.label }}
-        onClick={(event) => {
-          event.stopPropagation();
-          /*
-           * Development trace: record what the REAL handler received in the
-           * same frame as the pointer event — the event object's own portal id,
-           * every intersection with its distance, the camera pose, the
-           * viewport and the projected centre of the object that was hit.
-           * Without this, "wrong portal" and "stale coordinates" are
-           * indistinguishable.
-           */
-          if (traceEnabled()) {
-            const native = event.nativeEvent as MouseEvent | undefined;
-            const rect = gl.domElement.getBoundingClientRect();
-            const world = new Vector3();
-            event.object.getWorldPosition(world);
-            const projected = world.clone().project(camera);
-            const round = (value: number, places = 4) =>
-              Math.round(value * 10 ** places) / 10 ** places;
-            recordPortalClick({
-              t: Math.round(performance.now()),
-              client: { x: Math.round(native?.clientX ?? -1), y: Math.round(native?.clientY ?? -1) },
-              ndc: {
-                x: round((((native?.clientX ?? 0) - rect.left) / Math.max(1, rect.width)) * 2 - 1),
-                y: round(-(((native?.clientY ?? 0) - rect.top) / Math.max(1, rect.height)) * 2 + 1),
-              },
-              delivered: {
-                portalId: (event.object.userData as { portalId?: string }).portalId ?? null,
-                destination: spec.destination,
-                object: event.object.name,
-              },
-              hitDistance: Number.isFinite(event.distance) ? round(event.distance, 3) : null,
-              hitPoint: [round(event.point.x, 3), round(event.point.y, 3), round(event.point.z, 3)],
-              intersections: event.intersections.slice(0, 8).map((entry) => ({
-                name: entry.object.name,
-                portalId: (entry.object.userData as { portalId?: string }).portalId ?? null,
-                distance: round(entry.distance, 3),
-              })),
-              camera: {
-                position: camera.position.toArray().map((value) => round(value)),
-                quaternion: camera.quaternion.toArray().map((value) => round(value)),
-                projection: camera.projectionMatrix.elements.map((value) => round(value)),
-              },
-              viewport: {
-                width: Math.round(rect.width),
-                height: Math.round(rect.height),
-                dpr: window.devicePixelRatio,
-              },
-              projectedCentre: {
-                x: Math.round(rect.left + (projected.x * 0.5 + 0.5) * rect.width),
-                y: Math.round(rect.top + (-projected.y * 0.5 + 0.5) * rect.height),
-              },
-              settle: (window as unknown as { __leluCameraSettle?: unknown }).__leluCameraSettle ?? null,
-              scene: state.current,
-              transition: state.transition?.kind ?? null,
-              travelDestination: state.destination,
-            });
-          }
-          // One camera, one flight: a click while another destination is in
-          // flight is refused rather than rebasing the path on top of itself.
-          // Travelling through a portal is the SAME travel the rail uses: one
-          // scene, one camera, no second canvas and no context reset.
-          if (busyElsewhere) return;
-          onSelect(spec);
+        onPointerDown={(event) => beginPress(event)}
+        onPointerUp={(event) => endPress(event)}
+        onClick={(event) => activate(event)}
+        onPointerCancel={() => {
+          press.current = null;
         }}
         onPointerOver={(event) => {
           event.stopPropagation();

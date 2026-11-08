@@ -19,7 +19,7 @@ const VP = (process.env.VP ?? "1440x900").split("x").map(Number);
 const LOADS = Number(process.env.LOADS ?? 5);
 const MODE = process.env.MODE ?? "burst"; // burst | hold | playwright
 const OUT = `docs/acceptance/spatial-phase-2-13/measurements/reliable-clicks-${VP[0]}x${VP[1]}-${MODE}.json`;
-const DESTS = ["files", "studio"];
+const DESTS = (process.env.DESTS ?? "files,studio").split(",");
 mkdirSync("docs/acceptance/spatial-phase-2-13/screenshots", { recursive: true });
 
 const browser = await chromium.launch({
@@ -61,18 +61,18 @@ for (let load = 1; load <= LOADS; load += 1) {
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);
   await page.goto("http://127.0.0.1:3013/", { waitUntil: "domcontentloaded", timeout: 60000 });
-  await page.waitForTimeout(4500);
+  await page.waitForTimeout(3000);
   await page.evaluate(() => {
     [...document.querySelectorAll("button")]
       .find((b) => (b.textContent ?? "").toLowerCase().includes("continue without an account"))
       ?.click();
   });
-  await page.waitForTimeout(1800);
+  await page.waitForTimeout(1200);
   const cosmos = await (await page.$(".lch-cosmos"))?.boundingBox();
   if (cosmos) await page.mouse.click(cosmos.x + cosmos.width / 2, cosmos.y + cosmos.height / 2);
-  await page.waitForTimeout(5200);
+  await page.waitForTimeout(3600);
   const entry = await page.evaluate(() => ({ immersive: window.__leluImmersive ?? null }));
-  const entryReady = await waitReady(page, 12000);
+  const entryReady = await waitReady(page, 8000);
   await page.evaluate(() => {
     const canvas = document.querySelector('[data-spatial-canvas="genesis"]');
     window.__leluCanvasPointers = { down: 0, up: 0 };
@@ -130,7 +130,7 @@ for (let load = 1; load <= LOADS; load += 1) {
       };
     });
     let after = await poll(page);
-    for (let i = 0; i < 26; i += 1) {
+    for (let i = 0; i < 16; i += 1) {
       after = await poll(page);
       if (!after.transition) break;
       await page.waitForTimeout(280);
@@ -161,6 +161,8 @@ for (let load = 1; load <= LOADS; load += 1) {
       await page.waitForTimeout(1600);
     }
   }
+  // Evidence after every load: a timeout must not erase what was measured.
+  writeFileSync(OUT, `${JSON.stringify({ mission: "5.4B.6", mode: MODE, viewport: { width: VP[0], height: VP[1] }, partial: load < LOADS, attempts }, null, 2)}\n`);
   await context.close();
   console.error(`load ${load} done`);
 }
