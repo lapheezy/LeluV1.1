@@ -1,0 +1,25 @@
+{
+  "result": "PASS",
+  "viewports": [
+    [
+      "360x640",
+      "PASS",
+      false,
+      1
+    ],
+    [
+      "375x812",
+      "PASS",
+      false,
+      1
+    ],
+    [
+      "390x844",
+      "PASS",
+      false,
+      1
+    ]
+  ],
+  "prior": "5.6: 4/4 PASS (360x640, 375x812, 390x844, 430x932)",
+  "physical_device": "NOT TESTED"
+}

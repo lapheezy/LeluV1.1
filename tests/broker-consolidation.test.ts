@@ -101,6 +101,23 @@ test("no provider source attaches a credential directly any more", () => {
   }
 });
 
+test("a brokered provider never demands a local credential at send time", () => {
+  // The observed Mission 5.7 defect: /api/model/status reported GitHub Models
+  // configured (the SERVER holds the token) while its generate() threw
+  // "GitHub Models token missing." on a route the broker answers 200. A
+  // brokered send carries no credential by design, so the send-time guard must
+  // be brokered-aware — exactly the guard the other adapters already had.
+  const source = readFileSync("src/providers/GitHubModelsProvider.ts", "utf8");
+  assert.ok(
+    /if \(!isBrokered\("githubModels"\) && !this\.apiKey\)/.test(source),
+    "GitHub Models must not refuse a brokered send for want of a local token",
+  );
+  assert.ok(
+    !/^\s{4}if \(!this\.apiKey\) \{$/m.test(source),
+    "the unguarded send-time key requirement is back",
+  );
+});
+
 test("brokered requests carry no auth header; direct ones still do", () => {
   // In Node there is no document, so isBrokered() is false — the server-side
   // and test path, which must still authenticate normally.

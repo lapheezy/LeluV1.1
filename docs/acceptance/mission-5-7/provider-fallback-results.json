@@ -1,0 +1,17 @@
+{
+  "result": "PARTIAL",
+  "unit": "tests/provider-rung-budget.test.ts 9/9",
+  "live": [
+    {
+      "groq": 200
+    },
+    {
+      "groq": 429
+    },
+    {
+      "openrouter": 429
+    }
+  ],
+  "behaviour": "chain advanced, parked refusals in cooldown, finished with the app's own 'No AI providers are available.' - no invented completion",
+  "not_proven": "a live second-provider fallback completing a tool turn"
+}

@@ -1,0 +1,20 @@
+{
+  "result": "PARTIAL",
+  "method": "CDP DOMDebugger.getEventListeners on window/document aggregated by registering (script,line)",
+  "captured": [
+    {
+      "label": "window:start",
+      "total": 63,
+      "distinct_sites": 57
+    },
+    {
+      "label": "document:start",
+      "total": 3,
+      "distinct_sites": 3
+    }
+  ],
+  "missing": [
+    "after 8 pill+cosmos cycles",
+    "after repeated chat open/close"
+  ]
+}

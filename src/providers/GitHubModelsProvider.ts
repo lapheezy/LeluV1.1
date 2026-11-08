@@ -116,7 +116,13 @@ export default class GitHubModelsProvider implements AIProvider {
       );
     }
 
-    if (!this.apiKey) {
+    if (!isBrokered("githubModels") && !this.apiKey) {
+      // Only a DIRECT send needs a token here. A brokered request carries
+      // none by design — the server attaches it — so refusing it made this
+      // provider throw "token missing" on a route the broker answers 200.
+      // Every other brokered adapter already guards on isBrokered; this one
+      // did not, which is why /api/model/status said configured while the
+      // turn said the token was missing.
       throw new Error(
         "GitHub Models token missing.",
       );

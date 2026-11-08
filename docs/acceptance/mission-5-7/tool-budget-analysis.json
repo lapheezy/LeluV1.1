@@ -1,0 +1,8 @@
+{
+  "result": "PARTIAL",
+  "mechanism": "6 environment tools on an environment turn; full derived set otherwise; on size refusal reduced (<=3) then none",
+  "evidence": "tool-schema-scoping 8/8, rung-budget 9/9",
+  "not_measured": "exact prompt/history/schema token split - provider turns were refused before it could be logged",
+  "no_second_tool_list": true,
+  "capabilities_removed": false
+}
