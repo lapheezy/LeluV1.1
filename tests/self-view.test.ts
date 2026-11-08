@@ -235,7 +235,15 @@ test("the layout report is the page as a user first sees it: stable, scroll-awar
   }
   const { LAYOUT_SCRIPT } = await import("../plugins/selfViewApi");
   const { existsSync } = await import("node:fs");
-  const browser = await chromium.launch({ ...(existsSync("/opt/pw-browsers/chromium") ? { executablePath: "/opt/pw-browsers/chromium" } : {}), args: ["--no-sandbox"] });
+  let browser: Awaited<ReturnType<typeof chromium.launch>>;
+  try {
+    browser = await chromium.launch({ ...(existsSync("/opt/pw-browsers/chromium") ? { executablePath: "/opt/pw-browsers/chromium" } : {}), args: ["--no-sandbox"] });
+  } catch (error) {
+    // A browser whose shared libraries are missing cannot be launched here;
+    // that is the environment, not the layout code under test.
+    t.skip(`the browser could not start: ${error instanceof Error ? error.message.split("\n")[0] : String(error)}`);
+    return;
+  }
   try {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
     // Modelled on run 8's Avatar panel: a fixed window that clips, a
@@ -375,7 +383,15 @@ test("a control covered only while a panel opens is seen, timed, and reported ap
     return;
   }
   const { existsSync } = await import("node:fs");
-  const browser = await chromium.launch({ ...(existsSync("/opt/pw-browsers/chromium") ? { executablePath: "/opt/pw-browsers/chromium" } : {}), args: ["--no-sandbox"] });
+  let browser: Awaited<ReturnType<typeof chromium.launch>>;
+  try {
+    browser = await chromium.launch({ ...(existsSync("/opt/pw-browsers/chromium") ? { executablePath: "/opt/pw-browsers/chromium" } : {}), args: ["--no-sandbox"] });
+  } catch (error) {
+    // A browser whose shared libraries are missing cannot be launched here;
+    // that is the environment, not the layout code under test.
+    t.skip(`the browser could not start: ${error instanceof Error ? error.message.split("\n")[0] : String(error)}`);
+    return;
+  }
   try {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
     // Modelled on run 24: a figure starts over the header, then moves away.
