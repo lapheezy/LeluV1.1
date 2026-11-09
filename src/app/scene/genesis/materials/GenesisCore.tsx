@@ -145,7 +145,24 @@ export default function GenesisCore({ children }: GenesisCoreProps) {
       name="GenesisCoreBody"
       renderOrder={201}
       material={material}
-      onClick={() => openPanel(state.activePanel === "chat" ? "none" : "chat")}
+      onClick={(event) => {
+        /*
+         * INPUT ROUTING: the Core body is a large sphere at the centre of the
+         * view, so it is hit before anything standing behind it — including a
+         * portal's interactive mouth. Measured: a press aimed at
+         * `scene:studio` intersected `GenesisCoreBody` at 2.418 and the portal
+         * disc at 3.290, and the panel opened instead of the portal travelling.
+         *
+         * A press that also hits a portal belongs to the portal. Return without
+         * stopping propagation so the portal's own handler still runs, and so
+         * the sphere keeps its normal behaviour when no portal is involved.
+         */
+        const portalUnderPointer = event.intersections.some(
+          (hit) => (hit.object.userData as { portalId?: string } | undefined)?.portalId,
+        );
+        if (portalUnderPointer) return;
+        openPanel(state.activePanel === "chat" ? "none" : "chat");
+      }}
       onPointerOver={(event) => {
         event.stopPropagation();
         document.body.style.cursor = "pointer";

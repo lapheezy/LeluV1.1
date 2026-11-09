@@ -1,0 +1,41 @@
+{
+  "ranAt": "2026-11-06T21:58:26.431Z",
+  "node": "v22.23.4",
+  "rows": [
+    {
+      "check": "dictionary: define serendipity",
+      "live": true,
+      "ok": true,
+      "latencyMs": 127,
+      "detail": "1 result(s); first: serendipity /ˌsɛ.ɹən.ˈdɪ.pɪ.ti/ — (noun) A combination of events which have come together by chance to make a surprisingly good or wonderful outcome. · (noun) An unsought, un"
+    },
+    {
+      "check": "openlibrary: books by Octavia Butler",
+      "live": true,
+      "ok": true,
+      "latencyMs": 240,
+      "detail": "5 result(s); first: Conversations with Octavia Butler — by Octavia E. Butler; first published 2010; 1 edition(s); subjects: Interviews, American Authors, Science fiction, African American authors,"
+    },
+    {
+      "check": "frankfurter: convert 100 USD to EUR",
+      "live": true,
+      "ok": true,
+      "latencyMs": 86,
+      "detail": "1 result(s); first: 100 USD = 89.5660 EUR — European Central Bank reference rate for 2026-11-06: 1 USD = 0.89566 EUR. This is a once-daily reference rate, not a live market quote."
+    },
+    {
+      "check": "usgs: recent earthquakes",
+      "live": true,
+      "ok": true,
+      "latencyMs": 129,
+      "detail": "8 result(s); first: M4.5 — 101 km SSE of Palekastro, Greece — Magnitude 4.5 mb at 2026-11-06T15:26:58.080Z, depth 40.657 km. Status: reviewed."
+    },
+    {
+      "check": "discovery: public-apis README via safeFetch + parser",
+      "live": true,
+      "ok": true,
+      "latencyMs": 61,
+      "detail": "346523 bytes; 2170 APIs in 51 categories; 100+ key-less HTTPS+CORS; matched to catalog: Jikan→jikan, Gutendex→gutendex, Open Library→openlibrary, Frankfurter→frankfurter, GitHub→github-rest, Free Dictionary→dictionaryapi, Open-Meteo→open-meteo, TheMealDB→themealdb, Pokéapi→pokeapi, Nominatim→nominatim, OpenStreetMap→openstreetmap, REST Countries→restcountries"
+    }
+  ]
+}

@@ -124,6 +124,20 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
   /* Default geometry cascades so two opened modules never stack exactly. */
   const mobileWidth = Math.max(1, viewportWidth - 16);
   const mobileHeight = Math.max(1, viewportHeight - MOBILE_TOP_RESERVE - MOBILE_BOTTOM_RESERVE);
+  /*
+   * A phone window is a SHEET, not a viewport-sized panel.
+   *
+   * It used to take `mobileHeight` — the entire usable height — which made its
+   * vertical clamp `max(TOP, min(y, H - BOTTOM - height))` collapse to exactly
+   * TOP: the window could not move at all, at any phone size (measured dx 0,
+   * dy 0 at 360x640 with touch input arriving normally). A sheet that is a
+   * little over half the usable height leaves three meaningful docks — top,
+   * middle, bottom — while every control stays reachable above the safe area.
+   */
+  const mobileSheetHeight = Math.max(
+    300,
+    Math.min(Math.round(mobileHeight * 0.62), Math.round(viewportHeight * 0.66), 520),
+  );
   const mobileMinWidth = Math.min(MIN_WIDTH, mobileWidth);
   const mobileMinHeight = Math.min(MIN_HEIGHT, mobileHeight);
   /**
@@ -134,17 +148,60 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
    * drag. Before this, reopening a module always cascaded it back to a default
    * and a manual arrangement could not survive a reload.
    */
+  /* Gesture state is declared here because the geometry below must read it. */
+  const [interacting, setInteracting] = useState(false);
   const storedRect = ModuleLayoutStore.getInstance().rectFor(id);
+  /*
+   * A hand-placed rectangle is the committed geometry — position AND size.
+   *
+   * `mod.size` is in-session state that is rebuilt from the viewport whenever a
+   * module is (re)opened, so it may describe a window nobody placed. Preferring
+   * it for the height is what restored 273 px where 329 px had been committed
+   * (and 379 where 436 had been): the reloaded window was re-derived from the
+   * module instead of restored from the rectangle the person left behind.
+   *
+   * The viewport still has the final say through the clamps below — a stored
+   * rect that no longer fits is reduced to the visible sheet, never silently
+   * replaced by an unrelated default.
+   */
+  const committedRect = storedRect && ModuleLayoutStore.getInstance().isManual(id) ? storedRect : null;
   const size = isMobile
     ? {
-        width: Math.max(mobileMinWidth, Math.min(mod.size?.width ?? mobileWidth, mobileWidth)),
-        height: Math.max(mobileMinHeight, Math.min(mod.size?.height ?? Math.min(viewportHeight * 0.6, 520), mobileHeight)),
+        width: Math.max(mobileMinWidth, Math.min(committedRect?.width ?? mod.size?.width ?? mobileWidth, mobileWidth)),
+        // The sheet's height is the DOCK height, not the whole viewport: that is
+        // what gives placement a range. A resize on a phone is clamped into it.
+        height: Math.max(
+          mobileMinHeight,
+          Math.min(committedRect?.height ?? mod.size?.height ?? mobileSheetHeight, Math.min(mobileSheetHeight, mobileHeight)),
+        ),
       }
-    : mod.size ?? {
-        width: Math.min(storedRect?.width ?? 620, viewportWidth - 24),
-        height: Math.min(storedRect?.height ?? 480, viewportHeight - CHROME_HEIGHT - 24),
+    : {
+        width: Math.min(storedRect?.width ?? mod.size?.width ?? 620, viewportWidth - 24),
+        height: Math.min(storedRect?.height ?? mod.size?.height ?? 480, viewportHeight - CHROME_HEIGHT - 24),
       };
-  const rawPosition = mod.position ?? (storedRect ? { x: storedRect.x, y: storedRect.y } : defaultPosition);
+  /*
+   * A placement the person made (or auto-arrange computed) is authoritative:
+   * it is where the window was actually left, and the layout store is the one
+   * owner of that fact. The module's own live position is the in-session value,
+   * so it wins only when it is what the store already agrees with; otherwise a
+   * stale transcript of the module (a legacy size, a pre-reload restack) could
+   * reopen the window a few pixels away from the rectangle that was saved.
+   */
+  /*
+   * A live gesture must read the LIVE position.
+   *
+   * The store-first rule below is right at rest, but during a drag it made
+   * every render snap the window back to the stored rectangle: moveModule()
+   * updated the module, the store had not been written yet, and the drag
+   * preview (and the rect the commit was derived from) stayed at the dock the
+   * window started in — the measured "touch arrives, dx 0" failure.
+   */
+  const rawPosition =
+    interacting && mod.position
+      ? mod.position
+      : storedRect
+        ? { x: storedRect.x, y: storedRect.y }
+        : mod.position ?? defaultPosition;
   const position = {
     x: isMobile
       ? Math.max(0, Math.min(rawPosition.x, Math.max(0, viewportWidth - size.width)))
@@ -168,9 +225,23 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
 
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; baseX: number; baseY: number } | null>(null);
   const resizeRef = useRef<{ pointerId: number; startX: number; startY: number; baseW: number; baseH: number } | null>(null);
+  /*
+   * A gesture is committed to the layout store ONCE, not once per pointermove.
+   *
+   * Every `moveModule` used to reach ModuleLayoutStore.place through the sync
+   * effect below, which serialized the whole layout into KvStore and notified
+   * the spatial navigator — re-rendering the entire surface for each of the
+   * pointer events a drag produces. On software rendering that stalled the main
+   * thread for seconds at a time and the drag never landed as a manual
+   * placement, so the layout counter stayed at `0 placed`. Geometry still
+   * follows the pointer 1:1 (state is coalesced to one update per frame), and
+   * the person's final rect is written when the gesture ends.
+   */
+  const pendingMoveRef = useRef<{ x: number; y: number } | null>(null);
+  const moveFrameRef = useRef<number | null>(null);
+  const gesturing = useRef(false);
   // While the user drags/resizes, geometry follows the pointer 1:1 — the
   // theme's motion transition applies only to orchestrated layout changes.
-  const [interacting, setInteracting] = useState(false);
 
   /*
    * Geometry lives in the ONE layout store, not only in this component.
@@ -182,7 +253,19 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
    *   moves it again and a reload lands it back where they left it.
    */
   useEffect(() => {
+    if (gesturing.current) return;
     const store = ModuleLayoutStore.getInstance();
+    /*
+     * A manual placement must survive the module re-rendering itself.
+     *
+     * Every open reconstructs `mod.position`/`mod.size` from the viewport, and
+     * this effect used to mirror that reconstruction straight into the layout
+     * store — overwriting the rectangle the person had committed (a viewport
+     * default replacing a valid manual rectangle). The store is the owner of
+     * hand-placed geometry; only geometry produced by a gesture, or by a module
+     * with no placement yet, is written from here.
+     */
+    if (store.isManual(id)) return;
     if (!mod.position || !mod.size) {
       store.ensure(id);
       return;
@@ -233,6 +316,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       e.preventDefault();
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
       dragRef.current = { pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, baseX: position.x, baseY: position.y };
+      gesturing.current = true;
       setInteracting(true);
       raiseModule(id);
     },
@@ -248,14 +332,21 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       // Keep the window's full chrome + resize handle within the visual
       // viewport — on mobile the window must never be clipped at an edge or
       // slide its composer out of reach.
-      moveModule(id, {
+      pendingMoveRef.current = {
         x: isMobile
           ? Math.max(0, Math.min(x, viewportWidth - Math.min(size.width, viewportWidth)))
           : Math.max(-size.width + 140, Math.min(x, viewportWidth - 96)),          y: isMobile
           ? Math.max(MOBILE_TOP_RESERVE, Math.min(y, viewportHeight - MOBILE_BOTTOM_RESERVE - size.height))
           : Math.max(0, Math.min(y, viewportHeight - CHROME_HEIGHT - 16)),
 
-      });
+      };
+      if (moveFrameRef.current === null) {
+        moveFrameRef.current = requestAnimationFrame(() => {
+          moveFrameRef.current = null;
+          const next = pendingMoveRef.current;
+          if (next) moveModule(id, next);
+        });
+      }
     },
     [id, moveModule, size.width, viewportWidth, viewportHeight, isMobile],
   );
@@ -286,12 +377,69 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
   );
 
   const endDrag = useCallback(() => {
+    if (moveFrameRef.current !== null) {
+      cancelAnimationFrame(moveFrameRef.current);
+      moveFrameRef.current = null;
+    }
+    const finalRect = pendingMoveRef.current;
+    const drag = dragRef.current;
+    const resized = resizeRef.current !== null;
+    pendingMoveRef.current = null;
     dragRef.current = null;
     resizeRef.current = null;
+    if (finalRect) moveModule(id, finalRect);
+    gesturing.current = false;
+    /*
+     * Record the gesture HERE, not only through the sync effect above.
+     *
+     * That effect keys on the module's position and size, so when the last
+     * animation frame had already applied the final geometry its dependencies
+     * do not change and it never runs again after `gesturing` clears. The
+     * window moved but the layout store never learned it was placed by hand —
+     * the counter stayed at `0 placed` and auto-arrange could still move it.
+     * A press with no movement is a raise, not a placement.
+     */
+    const moved = Boolean(finalRect && drag && (finalRect.x !== drag.baseX || finalRect.y !== drag.baseY));
+    if (moved || resized) {
+      /*
+       * On a phone the sheet DOCKS: the free drag lands on the nearest of the
+       * three meaningful vertical stops (top / middle / bottom) inside the safe
+       * band. Free-floating at a 12px offset would be a placement the person
+       * cannot reproduce; a dock is one they can find again, and it is what gets
+       * persisted. Horizontal position is fixed because the sheet is full width.
+       */
+      const dockTop = MOBILE_TOP_RESERVE;
+      const dockBottom = Math.max(dockTop, viewportHeight - MOBILE_BOTTOM_RESERVE - size.height);
+      const dockMiddle = Math.round((dockTop + dockBottom) / 2);
+      const snappedY = isMobile
+        ? [dockTop, dockMiddle, dockBottom].reduce(
+            (best, stop) => (Math.abs(stop - (finalRect?.y ?? position.y)) < Math.abs(best - (finalRect?.y ?? position.y)) ? stop : best),
+            dockTop,
+          )
+        : null;
+      if (snappedY !== null && finalRect) {
+        finalRect.y = snappedY;
+        moveModule(id, { x: finalRect.x, y: snappedY });
+      }
+      ModuleLayoutStore.getInstance().place(id, {
+        x: finalRect?.x ?? position.x,
+        y: snappedY ?? finalRect?.y ?? position.y,
+        width: size.width,
+        height: size.height,
+      });
+    }
     setInteracting(false);
-  }, []);
+  }, [id, moveModule, mod.position?.x, mod.position?.y, mod.size?.width, mod.size?.height, position.x, position.y, size.width, size.height]);
 
-  const isExpanded = mod.presentation === "expanded";
+  /*
+   * Phones have exactly ONE window presentation: the sheet host below.
+   *
+   * The expanded presenter is a desktop modal (backdrop, 92vw, centred). On a
+   * phone it was a second geometry path that also reopened differently after a
+   * reload — the window came back through the inline host, so "restore" could
+   * never be exact. `expandModule` still works on a phone: it means the sheet.
+   */
+  const isExpanded = mod.presentation === "expanded" && !isMobile;
 
   const controlButton: React.CSSProperties = {
     width: 26,
@@ -406,11 +554,21 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       >
         <div
           data-lelu-module-window={id}
+          data-lelu-module-host={id}
+          data-lelu-module-presentation="expanded"
           data-presentation="expanded"
           data-lelu-surface="window"
           data-lelu-window={id}
           style={{
             pointerEvents: "auto",
+            /*
+             * On a phone the expanded presentation IS a sheet, driven by the
+             * same contract as the inline host: store-owned position, the dock
+             * height from 2.15.2, drag from the chrome, docking committed by
+             * endDrag. Before this the phone window was a centred modal whose
+             * geometry ignored `position`/`size`, so drags arrived and nothing
+             * could move. Desktop keeps its centred modal untouched.
+             */
             width: "min(92vw, 900px)",
             height: "min(84dvh, 640px)",
             display: "flex",
@@ -425,7 +583,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
           }}
         >
           {chrome}
-          <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", position: "relative" }}>
+          <div data-lelu-module-content={id} style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", position: "relative" }}>
             <div style={{ flex: 1, display: "flex", flexDirection: "column", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}>
               <InModuleWindow.Provider value={true}>{render({ onClose: () => closeModule(id) })}</InModuleWindow.Provider>
             </div>
@@ -438,6 +596,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
   return (
     <div
       data-lelu-module-window={id}
+      data-lelu-module-host={id}
+      data-lelu-module-presentation="inline"
       data-presentation="inline"
       data-lelu-surface="window"
       data-lelu-window={id}
@@ -489,7 +649,10 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       {/* position: relative contains panels' absolutely-positioned layers
           (e.g. the browser's overlays) inside the content area, so they can
           never paint over the title bar and steal its drag gesture. */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", position: "relative", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}>
+      <div
+        data-lelu-module-content={id}
+        style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", position: "relative", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}
+      >
         <InModuleWindow.Provider value={true}>{render({ onClose: () => closeModule(id) })}</InModuleWindow.Provider>
       </div>
       {/* Resize handle — bottom-right corner */}

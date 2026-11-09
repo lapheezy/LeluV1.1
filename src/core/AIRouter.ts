@@ -38,6 +38,18 @@ import { beginRoutingTrace, finishRoutingTrace, noteStage } from "./router/Routi
 import type { BrainResult } from "./router/RouterResults";
 import { asksForStudioChange } from "./studio/StudioIntent";
 
+/**
+ * An OPERATE-MY-ENVIRONMENT request: a verb that changes what is on screen,
+ * aimed at a surface, layout, workspace or artifact.
+ *
+ * Narrow on purpose. It exists only so the model keeps turns that the
+ * keyword project/creative stages used to take: measured, "create a workspace
+ * to research X" became a text project and the model never saw it, even
+ * though environment.compose could have built the workspace for real.
+ */
+const ENVIRONMENT_REQUEST =
+  /\b(?:open|build|compose|create|make|set ?up|arrange|rearrange|lay ?out|present|show|display|update|revise|change|modify|highlight|trace|compare|save|restore)\b[^.?!]{0,48}\b(?:workspace|environment|surfaces?|layout|artifact|diagram|table|chart|panel|window|on screen|in place)\b/i;
+
 export default class AIRouter {
   private readonly time = new TimeResolver();
   private readonly interceptor = new ToolCallInterceptor();
@@ -110,6 +122,25 @@ export default class AIRouter {
       return false;
     }
     return asksForStudioChange(context.request.prompt ?? "", studioAvailable);
+  }
+
+  /**
+   * Can the MODEL operate the environment itself, for real?
+   *
+   * True only when environment.compose is genuinely offered (it has a real
+   * executor and is permitted at this autonomy level) AND the request is
+   * environment-shaped. Anything less and the existing resolvers keep the
+   * turn exactly as before.
+   */
+  private modelCanComposeEnvironment(context: RouterContext): boolean {
+    let offered = false;
+    try {
+      offered = toolSchemasForModel().some((schema) => schema.name === "environment_compose");
+    } catch {
+      return false;
+    }
+    if (!offered) return false;
+    return ENVIRONMENT_REQUEST.test(context.request.prompt ?? "");
   }
 
   private modelCanRunWorkflow(context: RouterContext): boolean {
@@ -231,7 +262,7 @@ export default class AIRouter {
     // generated a 4-file app skeleton. Where the model can do the real
     // engineering work, or the user names one of its tools, the turn is
     // the model's — the same stand-aside ProjectResolver already makes.
-    if (!this.modelCanDoEngineeringWork(context) && !namesTool) {
+    if (!this.modelCanComposeEnvironment(context) && !this.modelCanDoEngineeringWork(context) && !namesTool) {
       const creative = await this.traced(context, "creative", () => this.creative.execute(context));
       if (creative.handled && creative.response) return this.attachThinking(context, creative.response);
     }
@@ -273,6 +304,7 @@ export default class AIRouter {
       context.intent === "project" &&
       !this.modelCanDoEngineeringWork(context) &&
       !this.modelCanBuildInStudio(context) &&
+      !this.modelCanComposeEnvironment(context) &&
       !this.modelCanRunWorkflow(context) &&
       !namesTool &&
       // "Change the chart in the Lumo brief…" is a revision of an artifact

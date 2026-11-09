@@ -1,0 +1,92 @@
+{
+  "mission": "5.4B.4",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "note": "loop truncated by the 290s command cap; each rep file is a separate fresh page load",
+  "rows": [
+    {
+      "rep": 1,
+      "dest": "files",
+      "found": true,
+      "tried": 1,
+      "delivered": null,
+      "landed": "core",
+      "matches": false
+    },
+    {
+      "rep": 1,
+      "dest": "studio",
+      "found": true,
+      "tried": 1,
+      "delivered": "scene:studio",
+      "landed": "studio",
+      "matches": true
+    },
+    {
+      "rep": 2,
+      "dest": "files",
+      "found": true,
+      "tried": 1,
+      "delivered": null,
+      "landed": "core",
+      "matches": false
+    },
+    {
+      "rep": 2,
+      "dest": "studio",
+      "found": true,
+      "tried": 1,
+      "delivered": "scene:studio",
+      "landed": "studio",
+      "matches": true
+    },
+    {
+      "rep": 3,
+      "dest": "files",
+      "found": true,
+      "tried": 1,
+      "delivered": "scene:files",
+      "landed": "files",
+      "matches": true
+    },
+    {
+      "rep": 3,
+      "dest": "studio",
+      "found": false,
+      "tried": 84,
+      "matches": false
+    },
+    {
+      "rep": 4,
+      "dest": "files",
+      "found": false,
+      "tried": 84,
+      "matches": false
+    },
+    {
+      "rep": 4,
+      "dest": "studio",
+      "found": false,
+      "tried": 84,
+      "matches": false
+    },
+    {
+      "rep": 5,
+      "dest": "files",
+      "found": false,
+      "tried": 84,
+      "matches": false
+    },
+    {
+      "rep": 5,
+      "dest": "studio",
+      "found": true,
+      "tried": 2,
+      "delivered": null,
+      "landed": "core",
+      "matches": false
+    }
+  ]
+}

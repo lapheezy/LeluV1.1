@@ -1,0 +1,760 @@
+{
+  "phases": {
+    "field": {
+      "phase": "field",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "errors": [
+        "console: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "console: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%",
+        "console: Failed to load resource: net::ERR_FAILED",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+      ],
+      "core": {
+        "scene": "core",
+        "field": {
+          "registryCount": 11,
+          "placedCount": 11,
+          "drawnCount": 11,
+          "duplicates": [],
+          "collisions": [],
+          "selected": null,
+          "viewport": {
+            "width": 1440,
+            "height": 900,
+            "left": 0,
+            "top": 0
+          },
+          "portals": [
+            {
+              "id": "scene:galaxy",
+              "destination": "galaxy",
+              "label": "Governor galaxy",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:galaxy",
+              "hitMeshName": "spatial-portal-hit-scene:galaxy",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -1.13,
+                -1.69,
+                0.69
+              ],
+              "screen": {
+                "x": 735,
+                "y": 658
+              },
+              "onScreen": true,
+              "selected": false
+            },
+            {
+              "id": "scene:planet",
+              "destination": "planet",
+              "label": "Creation world",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:planet",
+              "hitMeshName": "spatial-portal-hit-scene:planet",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -2.02,
+                -1.47,
+                -0.5
+              ],
+              "screen": {
+                "x": 913,
+                "y": 638
+              },
+              "onScreen": true,
+              "selected": false
+            },
+            {
+              "id": "scene:portal",
+              "destination": "portal",
+              "label": "Dimensional portal",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:portal",
+              "hitMeshName": "spatial-portal-hit-scene:portal",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -2.86,
+                -0.87,
+                -1.17
+              ],
+              "screen": {
+                "x": 1041,
+                "y": 561
+              },
+              "onScreen": true,
+              "selected": false
+            },
+            {
+              "id": "scene:agents",
+              "destination": "agents",
+              "label": "Agent universes",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:agents",
+              "hitMeshName": "spatial-portal-hit-scene:agents",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -3.38,
+                -0.09,
+                -1.1
+              ],
+              "screen": {
+                "x": 1073,
+                "y": 451
+              },
+              "onScreen": true,
+              "selected": false
+            },
+            {
+              "id": "scene:browser",
+              "destination": "browser",
+              "label": "Browser",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:browser",
+              "hitMeshName": "spatial-portal-hit-scene:browser",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -3.41,
+                0.63,
+                -0.33
+              ],
+              "screen": {
+                "x": 998,
+                "y": 346
+              },
+              "onScreen": true,
+              "selected": false
+            },
+            {
+              "id": "scene:studio",
+              "destination": "studio",
+              "label": "Genesis Studios",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:studio",
+              "hitMeshName": "spatial-portal-hit-scene:studio",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -2.96,
+                1.06,
+                0.91
+              ],
+              "screen": {
+                "x": 844,
+                "y": 281
+              },
+              "onScreen": true,
+              "selected": false
+            },
+            {
+              "id": "scene:research",
+              "destination": "research",
+              "label": "Research",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:research",
+              "hitMeshName": "spatial-portal-hit-scene:research",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -2.15,
+                1.06,
+                2.22
+              ],
+              "screen": {
+                "x": 663,
+                "y": 275
+              },
+              "onScreen": true,
+              "selected": false
+            },
+            {
+              "id": "scene:projects",
+              "destination": "projects",
+              "label": "Projects",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:projects",
+              "hitMeshName": "spatial-portal-hit-scene:projects",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -1.25,
+                0.63,
+                3.19
+              ],
+              "screen": {
+                "x": 511,
+                "y": 328
+              },
+              "onScreen": true,
+              "selected": false
+            },
+            {
+              "id": "scene:files",
+              "destination": "files",
+              "label": "Files",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:files",
+              "hitMeshName": "spatial-portal-hit-scene:files",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -0.54,
+                -0.09,
+                3.51
+              ],
+              "screen": {
+                "x": 434,
+                "y": 422
+              },
+              "onScreen": true,
+              "selected": false
+            },
+            {
+              "id": "scene:media",
+              "destination": "media",
+              "label": "Media",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:media",
+              "hitMeshName": "spatial-portal-hit-scene:media",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -0.25,
+                -0.87,
+                3.07
+              ],
+              "screen": {
+                "x": 453,
+                "y": 529
+              },
+              "onScreen": true,
+              "selected": false
+            },
+            {
+              "id": "scene:conversation",
+              "destination": "conversation",
+              "label": "Conversation",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:conversation",
+              "hitMeshName": "spatial-portal-hit-scene:conversation",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -0.47,
+                -1.47,
+                2.02
+              ],
+              "screen": {
+                "x": 564,
+                "y": 617
+              },
+              "onScreen": true,
+              "selected": false
+            }
+          ]
+        }
+      },
+      "enterCosmos": {
+        "immersive": null,
+        "home": true,
+        "canvasTop": "NAV"
+      },
+      "under": [
+        {
+          "destination": "galaxy",
+          "screen": {
+            "x": 385,
+            "y": -1773
+          },
+          "tag": null,
+          "className": null,
+          "portalSelect": null,
+          "surface": null
+        },
+        {
+          "destination": "planet",
+          "screen": {
+            "x": -91,
+            "y": -1683
+          },
+          "tag": null,
+          "className": null,
+          "portalSelect": null,
+          "surface": null
+        },
+        {
+          "destination": "portal",
+          "screen": {
+            "x": -404,
+            "y": -1438
+          },
+          "tag": null,
+          "className": null,
+          "portalSelect": null,
+          "surface": null
+        },
+        {
+          "destination": "agents",
+          "screen": {
+            "x": -455,
+            "y": -1122
+          },
+          "tag": null,
+          "className": null,
+          "portalSelect": null,
+          "surface": null
+        },
+        {
+          "destination": "browser",
+          "screen": {
+            "x": -239,
+            "y": -839
+          },
+          "tag": null,
+          "className": null,
+          "portalSelect": null,
+          "surface": null
+        },
+        {
+          "destination": "studio",
+          "screen": {
+            "x": 169,
+            "y": -674
+          },
+          "tag": null,
+          "className": null,
+          "portalSelect": null,
+          "surface": null
+        },
+        {
+          "destination": "research",
+          "screen": {
+            "x": 641,
+            "y": -673
+          },
+          "tag": null,
+          "className": null,
+          "portalSelect": null,
+          "surface": null
+        },
+        {
+          "destination": "projects",
+          "screen": {
+            "x": 1039,
+            "y": -835
+          },
+          "tag": null,
+          "className": null,
+          "portalSelect": null,
+          "surface": null
+        },
+        {
+          "destination": "files",
+          "screen": {
+            "x": 1241,
+            "y": -1114
+          },
+          "tag": null,
+          "className": null,
+          "portalSelect": null,
+          "surface": null
+        },
+        {
+          "destination": "media",
+          "screen": {
+            "x": 1179,
+            "y": -1427
+          },
+          "tag": null,
+          "className": null,
+          "portalSelect": null,
+          "surface": null
+        },
+        {
+          "destination": "conversation",
+          "screen": {
+            "x": 861,
+            "y": -1676
+          },
+          "tag": null,
+          "className": null,
+          "portalSelect": null,
+          "surface": null
+        }
+      ],
+      "cosmos": {
+        "scene": "cosmos",
+        "labels": 11,
+        "field": {
+          "registryCount": 11,
+          "placedCount": 11,
+          "drawnCount": 11,
+          "duplicates": [],
+          "collisions": [],
+          "selected": null,
+          "viewport": {
+            "width": 1440,
+            "height": 900,
+            "left": 0,
+            "top": 0
+          },
+          "portals": [
+            {
+              "id": "scene:galaxy",
+              "destination": "galaxy",
+              "label": "Governor galaxy",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:galaxy",
+              "hitMeshName": "spatial-portal-hit-scene:galaxy",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                0,
+                -0.66,
+                -2.37
+              ],
+              "screen": {
+                "x": -13920,
+                "y": 17436
+              },
+              "onScreen": false,
+              "selected": false
+            },
+            {
+              "id": "scene:planet",
+              "destination": "planet",
+              "label": "Creation world",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:planet",
+              "hitMeshName": "spatial-portal-hit-scene:planet",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                1.48,
+                -0.4,
+                -2.39
+              ],
+              "screen": {
+                "x": -13519,
+                "y": 25156
+              },
+              "onScreen": false,
+              "selected": false
+            },
+            {
+              "id": "scene:portal",
+              "destination": "portal",
+              "label": "Dimensional portal",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:portal",
+              "hitMeshName": "spatial-portal-hit-scene:portal",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                2.49,
+                0.3,
+                -2.43
+              ],
+              "screen": {
+                "x": -20885,
+                "y": 52868
+              },
+              "onScreen": false,
+              "selected": false
+            },
+            {
+              "id": "scene:agents",
+              "destination": "agents",
+              "label": "Agent universes",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:agents",
+              "hitMeshName": "spatial-portal-hit-scene:agents",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                2.71,
+                1.21,
+                -2.5
+              ],
+              "screen": {
+                "x": 94070,
+                "y": -199729
+              },
+              "onScreen": false,
+              "selected": false
+            },
+            {
+              "id": "scene:browser",
+              "destination": "browser",
+              "label": "Browser",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:browser",
+              "hitMeshName": "spatial-portal-hit-scene:browser",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                2.07,
+                2.05,
+                -2.56
+              ],
+              "screen": {
+                "x": 39838,
+                "y": -39231
+              },
+              "onScreen": false,
+              "selected": false
+            },
+            {
+              "id": "scene:studio",
+              "destination": "studio",
+              "label": "Genesis Studios",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:studio",
+              "hitMeshName": "spatial-portal-hit-scene:studio",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                0.77,
+                2.55,
+                -2.59
+              ],
+              "screen": {
+                "x": 131339,
+                "y": -58846
+              },
+              "onScreen": false,
+              "selected": false
+            },
+            {
+              "id": "scene:research",
+              "destination": "research",
+              "label": "Research",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:research",
+              "hitMeshName": "spatial-portal-hit-scene:research",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -0.77,
+                2.55,
+                -2.59
+              ],
+              "screen": {
+                "x": -89253,
+                "y": 27940
+              },
+              "onScreen": false,
+              "selected": false
+            },
+            {
+              "id": "scene:projects",
+              "destination": "projects",
+              "label": "Projects",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:projects",
+              "hitMeshName": "spatial-portal-hit-scene:projects",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -2.07,
+                2.05,
+                -2.56
+              ],
+              "screen": {
+                "x": -37433,
+                "y": 12686
+              },
+              "onScreen": false,
+              "selected": false
+            },
+            {
+              "id": "scene:files",
+              "destination": "files",
+              "label": "Files",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:files",
+              "hitMeshName": "spatial-portal-hit-scene:files",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -2.71,
+                1.21,
+                -2.5
+              ],
+              "screen": {
+                "x": -25134,
+                "y": 11154
+              },
+              "onScreen": false,
+              "selected": false
+            },
+            {
+              "id": "scene:media",
+              "destination": "media",
+              "label": "Media",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:media",
+              "hitMeshName": "spatial-portal-hit-scene:media",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -2.49,
+                0.3,
+                -2.43
+              ],
+              "screen": {
+                "x": -19415,
+                "y": 11890
+              },
+              "onScreen": false,
+              "selected": false
+            },
+            {
+              "id": "scene:conversation",
+              "destination": "conversation",
+              "label": "Conversation",
+              "builtin": true,
+              "orbitIndex": 0,
+              "meshName": "spatial-portal-scene:conversation",
+              "hitMeshName": "spatial-portal-hit-scene:conversation",
+              "hitDrawn": true,
+              "drawn": true,
+              "visible": true,
+              "worldPosition": [
+                -1.48,
+                -0.4,
+                -2.39
+              ],
+              "screen": {
+                "x": -16015,
+                "y": 13836
+              },
+              "onScreen": false,
+              "selected": false
+            }
+          ]
+        },
+        "clickable": []
+      }
+    },
+    "click": {
+      "phase": "click",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "errors": [
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%",
+        "console: Failed to load resource: net::ERR_FAILED",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+      ],
+      "worldEntered": {
+        "immersive": null,
+        "home": true,
+        "canvasTop": "NAV"
+      },
+      "before": {
+        "scene": "cosmos",
+        "clickable": 11
+      },
+      "attempts": [],
+      "rapid": {
+        "portal": "scene:galaxy",
+        "during": {
+          "transition": "portal-open",
+          "progress": 0
+        },
+        "settled": "cosmos",
+        "matches": false
+      },
+      "conflict": {
+        "first": "galaxy",
+        "second": "planet",
+        "inFlight": {
+          "transition": "portal-open",
+          "destination": "portal"
+        },
+        "landed": "cosmos",
+        "keptFirst": false
+      },
+      "afterReload": {
+        "portal": "scene:galaxy",
+        "expected": "galaxy",
+        "landed": "cosmos",
+        "matches": false,
+        "registry": 11,
+        "drawn": 11
+      }
+    }
+  },
+  "at": "2026-11-07T21:00:37.810Z",
+  "base": "http://127.0.0.1:3013/",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "commit": null
+}

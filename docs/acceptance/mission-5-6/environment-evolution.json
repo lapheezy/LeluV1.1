@@ -1,0 +1,4 @@
+{
+  "result": "BLOCKED",
+  "reason": "no model turn; evolution path (compose/mutate/manage/save/restore) remains unit-covered but was not driven live"
+}

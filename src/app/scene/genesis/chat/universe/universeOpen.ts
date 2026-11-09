@@ -33,3 +33,4 @@ export function subscribeUniverseOpen(listener: () => void): () => void {
 export function useUniverseOpen(): boolean {
   return useSyncExternalStore(subscribeUniverseOpen, isUniverseOpen, () => false);
 }
+

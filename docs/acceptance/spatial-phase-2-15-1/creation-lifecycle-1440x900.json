@@ -1,0 +1,84 @@
+{
+ "viewport": "1440x900",
+ "at": "2026-11-08T04:59:59.860Z",
+ "input": "real CDP mouse at element coordinates",
+ "steps": [],
+ "checks": {
+  "opened": {
+   "x": 88,
+   "y": 64,
+   "w": 1338,
+   "h": 818
+  },
+  "openedMs": 42,
+  "singleModuleWindow": 1,
+  "sharedHost": {
+   "chrome": true,
+   "pin": true,
+   "library": true
+  },
+  "drag": {
+   "before": {
+    "x": 88,
+    "y": 64,
+    "w": 1338,
+    "h": 818
+   },
+   "after": {
+    "x": 128,
+    "y": 38,
+    "w": 1338,
+    "h": 818
+   },
+   "dx": 40,
+   "dy": -26,
+   "settledMs": 5
+  },
+  "counter": "1 placed · 0 pinned",
+  "committedEntry": null,
+  "pinned": {
+   "label": "Unpin Creation Studio",
+   "pressed": "true"
+  },
+  "pinnedReposition": {
+   "before": {
+    "x": 128,
+    "y": 38,
+    "w": 1338,
+    "h": 818
+   },
+   "after": {
+    "x": 110,
+    "y": 50,
+    "w": 1338,
+    "h": 818
+   },
+   "dx": -18,
+   "dy": 12
+  },
+  "unpinned": {
+   "pressed": "false"
+  },
+  "placedRect": {
+   "x": 110,
+   "y": 50,
+   "w": 1338,
+   "h": 818
+  },
+  "layoutStores": [
+   "lelu.lelu.layout.v2"
+  ],
+  "reopenedRect": {
+   "x": 102,
+   "y": 50,
+   "w": 1340,
+   "h": 820
+  },
+  "restored": {
+   "dx": -8,
+   "dy": 0
+  },
+  "pass": false
+ },
+ "errors": []
+}

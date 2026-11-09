@@ -284,7 +284,33 @@ test("the layout report is the page as a user first sees it: stable, scroll-awar
     assert.equal(overflow.length, 1, "the outermost box that hides controls sideways — not the ellipsis label, nor a tab whose content is wider but cuts no control off: " + JSON.stringify(overflow));
     assert.match(overflow[0].detail ?? "", /content 5\d\dpx wide in a 3\d\dpx box/);
     // Where it begins: the row is wider than the window it sits in.
-    assert.match(overflow[0].detail ?? "", /the overflow begins at: div "Default Identity" \(width 520px, needs at least 414px, display flex\) → button "Identity" \(width 200px, needs at least 59px, min-width auto\)/);
+    //
+    // The button's "needs at least" is its MIN-CONTENT width, which is the
+    // label's text width plus padding: it depends on which font this host
+    // actually has, not on the layout. The same page measured 59px on the
+    // machine this was written on, 66px on a host with a wider default font,
+    // and 16px on a host with no usable font at all (zero-width text). A
+    // hard-coded number therefore fails for reasons the report cannot know.
+    // What the report must be right about is that it names THIS element and
+    // its real min-content, so the expectation is measured from the same
+    // page immediately afterwards.
+    const identityMinContent = await page.evaluate(`(() => {
+      const b = [...document.querySelectorAll("button")].find((el) => el.textContent === "Identity");
+      const before = b.style.getPropertyValue("width");
+      const priority = b.style.getPropertyPriority("width");
+      b.style.setProperty("width", "min-content", "important");
+      const w = Math.round(b.getBoundingClientRect().width);
+      if (before) b.style.setProperty("width", before, priority); else b.style.removeProperty("width");
+      return w;
+    })()`);
+    assert.match(
+      overflow[0].detail ?? "",
+      new RegExp(
+        'the overflow begins at: div "Default Identity" \\(width 520px, needs at least 414px, display flex\\) → button "Identity" \\(width 200px, needs at least ' +
+          identityMinContent +
+          'px, min-width auto\\)',
+      ),
+    );
 
     // An expanded panel: a see-through fixed backdrop over the whole screen,
     // the way GenesisModuleHost renders one. What is behind it is covered on

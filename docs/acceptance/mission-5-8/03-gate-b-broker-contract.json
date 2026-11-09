@@ -1,0 +1,53 @@
+{
+  "gate": "B",
+  "verdict": "PASS",
+  "contractBefore": {
+    "status": "passed through upstream verbatim",
+    "failureMode": "a 2xx that is not a completion was reported as a successful completion; the app would parse 'OK' as a model reply"
+  },
+  "contractAfter": {
+    "rule": "for completion routes, a 2xx whose body is not JSON (and which is not an event stream) is refused as a contract violation. The declared content type is reported as evidence but is not the test: a provider may mislabel a real JSON body.",
+    "response": {
+      "httpStatus": 502,
+      "body": {
+        "ok": false,
+        "code": "BROKER_CONTRACT_VIOLATION",
+        "provider": "githubModels",
+        "error": "Upstream answered 2xx without a JSON completion; refusing to report it as one.",
+        "upstreamStatus": 200,
+        "upstreamContentType": "text/plain",
+        "upstreamPreview": "OK "
+      }
+    },
+    "preserved": [
+      "streaming event-stream forwarding unchanged",
+      "upstream error statuses still returned unchanged (401 stays 401)",
+      "credential never included in any response"
+    ],
+    "liveCapture": true,
+    "narrowingNote": "the first draft keyed on content-type alone and refused a legitimate JSON body that arrived without a JSON content type (caught by the pre-existing Anthropic broker test). The rule was narrowed to the body's parseability rather than the assertion being relaxed."
+  },
+  "successPath": {
+    "verifiedModelCompletion": "Groq openai/gpt-oss-120b, HTTP 200 application/json, real choices[] array, state COMPLETION_VERIFIED",
+    "verifiedToolCall": false
+  },
+  "failurePath": {
+    "verifiedStructuredError": true,
+    "githubModels": "502 BROKER_CONTRACT_VIOLATION, classified, not a success"
+  },
+  "twoOutcomesSeparate": true,
+  "testsAdded": {
+    "file": "tests/broker-contract.test.ts",
+    "count": 6,
+    "passed": 6,
+    "cases": [
+      "2xx non-completion refused",
+      "authenticated completion passes through and is verified",
+      "tool calling claimed only from a real tool call",
+      "401 reported as authentication failure and provider drops out of the chain",
+      "quota refusal classification",
+      "configuration alone never reported as capability"
+    ]
+  },
+  "upstreamCredentialRejectionOutcome": "GitHub Models never even reached credential rejection in this environment: the host does not answer. Reported as CONTRACT_VIOLATION / unusable, not as a route repair success."
+}

@@ -1,0 +1,354 @@
+{
+ "ranAt": "2026-11-07T19:08:31.898Z",
+ "base": "http://127.0.0.1:5174/",
+ "results": [
+  {
+   "viewport": "desktop-1440x900",
+   "touch": false,
+   "chatOpenedBy": "navigator",
+   "navigatorShown": true,
+   "navigatorWithChat": {
+    "present": true,
+    "groupsOpen": true,
+    "clearance": "145",
+    "navRect": {
+     "top": 438,
+     "bottom": 735,
+     "left": 92,
+     "right": 1428
+    },
+    "composerRect": {
+     "top": 743,
+     "bottom": 813,
+     "left": 411,
+     "right": 1031
+    },
+    "overlapPx": 0
+   },
+   "controls": {
+    "textarea": {
+     "found": true,
+     "x": 677,
+     "y": 775,
+     "reachable": true,
+     "coveredBy": null
+    },
+    "send": {
+     "found": true,
+     "x": 993,
+     "y": 775,
+     "reachable": true,
+     "coveredBy": null
+    },
+    "mic": {
+     "found": false
+    },
+    "share": {
+     "found": true,
+     "x": 905,
+     "y": 775,
+     "reachable": true,
+     "coveredBy": null
+    }
+   },
+   "sent": true,
+   "messageLanded": true,
+   "chatSurvived": true,
+   "navigatorStillWorks": true,
+   "navigatorAfter": {
+    "present": true,
+    "groupsOpen": false,
+    "clearance": "0",
+    "navRect": {
+     "top": 832,
+     "bottom": 880,
+     "left": 92,
+     "right": 1428
+    },
+    "composerRect": {
+     "top": 740,
+     "bottom": 813,
+     "left": 411,
+     "right": 1031
+    },
+    "overlapPx": 0
+   },
+   "voice": {
+    "afterStart": {
+     "active": true,
+     "phase": "listening",
+     "error": null
+    },
+    "atEnd": {
+     "active": true,
+     "phase": "speaking",
+     "error": null
+    },
+    "stayedActive": true
+   },
+   "errors": [],
+   "pass": true
+  },
+  {
+   "viewport": "375x812",
+   "touch": true,
+   "chatOpenedBy": "navigator",
+   "navigatorShown": true,
+   "navigatorWithChat": {
+    "present": true,
+    "groupsOpen": true,
+    "clearance": "91",
+    "navRect": {
+     "top": 398,
+     "bottom": 637,
+     "left": 8,
+     "right": 363
+    },
+    "composerRect": {
+     "top": 645,
+     "bottom": 719,
+     "left": 9,
+     "right": 366
+    },
+    "overlapPx": 0
+   },
+   "controls": {
+    "textarea": {
+     "found": true,
+     "x": 140,
+     "y": 679,
+     "reachable": true,
+     "coveredBy": null
+    },
+    "send": {
+     "found": true,
+     "x": 326,
+     "y": 679,
+     "reachable": true,
+     "coveredBy": null
+    },
+    "mic": {
+     "found": false
+    },
+    "share": {
+     "found": true,
+     "x": 230,
+     "y": 679,
+     "reachable": true,
+     "coveredBy": null
+    }
+   },
+   "sent": true,
+   "messageLanded": true,
+   "chatSurvived": true,
+   "navigatorStillWorks": true,
+   "navigatorAfter": {
+    "present": true,
+    "groupsOpen": false,
+    "clearance": "113",
+    "navRect": {
+     "top": 571,
+     "bottom": 615,
+     "left": 8,
+     "right": 363
+    },
+    "composerRect": {
+     "top": 623,
+     "bottom": 719,
+     "left": 9,
+     "right": 366
+    },
+    "overlapPx": 0
+   },
+   "voice": {
+    "afterStart": {
+     "active": true,
+     "phase": "listening",
+     "error": null
+    },
+    "atEnd": {
+     "active": true,
+     "phase": "speaking",
+     "error": null
+    },
+    "stayedActive": true
+   },
+   "errors": [],
+   "pass": true
+  },
+  {
+   "viewport": "390x844",
+   "touch": true,
+   "chatOpenedBy": "navigator",
+   "navigatorShown": true,
+   "navigatorWithChat": {
+    "present": true,
+    "groupsOpen": true,
+    "clearance": "91",
+    "navRect": {
+     "top": 430,
+     "bottom": 669,
+     "left": 8,
+     "right": 378
+    },
+    "composerRect": {
+     "top": 677,
+     "bottom": 751,
+     "left": 9,
+     "right": 381
+    },
+    "overlapPx": 0
+   },
+   "controls": {
+    "textarea": {
+     "found": true,
+     "x": 147,
+     "y": 711,
+     "reachable": true,
+     "coveredBy": null
+    },
+    "send": {
+     "found": true,
+     "x": 341,
+     "y": 711,
+     "reachable": true,
+     "coveredBy": null
+    },
+    "mic": {
+     "found": false
+    },
+    "share": {
+     "found": true,
+     "x": 245,
+     "y": 711,
+     "reachable": true,
+     "coveredBy": null
+    }
+   },
+   "sent": true,
+   "messageLanded": true,
+   "chatSurvived": true,
+   "navigatorStillWorks": true,
+   "navigatorAfter": {
+    "present": true,
+    "groupsOpen": false,
+    "clearance": "113",
+    "navRect": {
+     "top": 603,
+     "bottom": 647,
+     "left": 8,
+     "right": 378
+    },
+    "composerRect": {
+     "top": 655,
+     "bottom": 751,
+     "left": 9,
+     "right": 381
+    },
+    "overlapPx": 0
+   },
+   "voice": {
+    "afterStart": {
+     "active": true,
+     "phase": "listening",
+     "error": null
+    },
+    "atEnd": {
+     "active": true,
+     "phase": "speaking",
+     "error": null
+    },
+    "stayedActive": true
+   },
+   "errors": [],
+   "pass": true
+  },
+  {
+   "viewport": "iPhone13",
+   "touch": true,
+   "chatOpenedBy": "navigator",
+   "navigatorShown": true,
+   "navigatorWithChat": {
+    "present": true,
+    "groupsOpen": true,
+    "clearance": "91",
+    "navRect": {
+     "top": 250,
+     "bottom": 489,
+     "left": 8,
+     "right": 378
+    },
+    "composerRect": {
+     "top": 497,
+     "bottom": 571,
+     "left": 9,
+     "right": 381
+    },
+    "overlapPx": 0
+   },
+   "controls": {
+    "textarea": {
+     "found": true,
+     "x": 147,
+     "y": 531,
+     "reachable": true,
+     "coveredBy": null
+    },
+    "send": {
+     "found": true,
+     "x": 341,
+     "y": 531,
+     "reachable": true,
+     "coveredBy": null
+    },
+    "mic": {
+     "found": false
+    },
+    "share": {
+     "found": true,
+     "x": 245,
+     "y": 531,
+     "reachable": true,
+     "coveredBy": null
+    }
+   },
+   "sent": true,
+   "messageLanded": true,
+   "chatSurvived": true,
+   "navigatorStillWorks": true,
+   "navigatorAfter": {
+    "present": true,
+    "groupsOpen": false,
+    "clearance": "113",
+    "navRect": {
+     "top": 423,
+     "bottom": 467,
+     "left": 8,
+     "right": 378
+    },
+    "composerRect": {
+     "top": 475,
+     "bottom": 571,
+     "left": 9,
+     "right": 381
+    },
+    "overlapPx": 0
+   },
+   "voice": {
+    "afterStart": {
+     "active": true,
+     "phase": "listening",
+     "error": null
+    },
+    "atEnd": {
+     "active": true,
+     "phase": "speaking",
+     "error": null
+    },
+    "stayedActive": true
+   },
+   "errors": [],
+   "pass": true
+  }
+ ]
+}

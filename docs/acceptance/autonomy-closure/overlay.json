@@ -1,0 +1,193 @@
+{
+  "at": "2026-11-09T00:32:16.703Z",
+  "stack": [
+    {
+      "tag": "div",
+      "cls": "",
+      "id": null,
+      "data": {},
+      "position": "static",
+      "zIndex": "auto",
+      "pointerEvents": "auto",
+      "background": "rgba(0, 0, 0, 0)",
+      "opacity": "1",
+      "rect": {
+        "x": 372,
+        "y": 107,
+        "w": 463,
+        "h": 43
+      },
+      "inCard": true
+    },
+    {
+      "tag": "div",
+      "cls": "",
+      "id": null,
+      "data": {
+        "data-workspace-view": "view-3fb30498",
+        "data-kind": "file",
+        "data-selected": "false",
+        "data-revision": "1"
+      },
+      "position": "absolute",
+      "zIndex": "auto",
+      "pointerEvents": "auto",
+      "background": "rgba(6, 12, 24, 0.82)",
+      "opacity": "1",
+      "rect": {
+        "x": 371,
+        "y": 106,
+        "w": 465,
+        "h": 82
+      },
+      "inCard": true
+    },
+    {
+      "tag": "div",
+      "cls": "",
+      "id": null,
+      "data": {},
+      "position": "absolute",
+      "zIndex": "auto",
+      "pointerEvents": "auto",
+      "background": "rgba(0, 0, 0, 0)",
+      "opacity": "0.628869",
+      "rect": {
+        "x": -5,
+        "y": -3,
+        "w": 1450,
+        "h": 906
+      },
+      "inCard": false
+    },
+    {
+      "tag": "div",
+      "cls": "",
+      "id": null,
+      "data": {},
+      "position": "absolute",
+      "zIndex": "auto",
+      "pointerEvents": "auto",
+      "background": "rgba(0, 0, 0, 0)",
+      "opacity": "1",
+      "rect": {
+        "x": -5,
+        "y": -3,
+        "w": 1450,
+        "h": 906
+      },
+      "inCard": false
+    },
+    {
+      "tag": "div",
+      "cls": "lelu-living-system-ui",
+      "id": null,
+      "data": {
+        "data-workspace": "lelu-system"
+      },
+      "position": "fixed",
+      "zIndex": "auto",
+      "pointerEvents": "auto",
+      "background": "rgba(0, 0, 0, 0)",
+      "opacity": "0.527021",
+      "rect": {
+        "x": -5,
+        "y": -3,
+        "w": 1450,
+        "h": 906
+      },
+      "inCard": false
+    },
+    {
+      "tag": "div",
+      "cls": "",
+      "id": "root",
+      "data": {},
+      "position": "static",
+      "zIndex": "auto",
+      "pointerEvents": "auto",
+      "background": "rgb(2, 6, 23)",
+      "opacity": "1",
+      "rect": {
+        "x": 157,
+        "y": 0,
+        "w": 1126,
+        "h": 900
+      },
+      "inCard": false
+    }
+  ],
+  "overlays": [
+    {
+      "tag": "div",
+      "cls": "lelu-living-system-ui",
+      "id": null,
+      "data": {
+        "data-workspace": "lelu-system"
+      },
+      "position": "fixed",
+      "zIndex": "auto",
+      "pointerEvents": "auto",
+      "background": "rgba(0, 0, 0, 0)",
+      "opacity": "0.527021",
+      "rect": {
+        "x": -5,
+        "y": -3,
+        "w": 1450,
+        "h": 906
+      },
+      "inCard": false
+    },
+    {
+      "tag": "div",
+      "cls": "",
+      "id": null,
+      "data": {},
+      "position": "absolute",
+      "zIndex": "auto",
+      "pointerEvents": "auto",
+      "background": "rgba(0, 0, 0, 0)",
+      "opacity": "1",
+      "rect": {
+        "x": -5,
+        "y": -3,
+        "w": 1450,
+        "h": 906
+      },
+      "inCard": false
+    },
+    {
+      "tag": "div",
+      "cls": "",
+      "id": null,
+      "data": {},
+      "position": "absolute",
+      "zIndex": "auto",
+      "pointerEvents": "auto",
+      "background": "rgba(0, 0, 0, 0)",
+      "opacity": "0.628869",
+      "rect": {
+        "x": -5,
+        "y": -3,
+        "w": 1450,
+        "h": 906
+      },
+      "inCard": false
+    }
+  ],
+  "errors": [],
+  "point": {
+    "x": 604,
+    "y": 146
+  },
+  "cardRect": {
+    "x": 371,
+    "y": 106,
+    "w": 465,
+    "h": 82
+  },
+  "homePresent": false,
+  "gatePresent": false,
+  "chatWindow": false,
+  "activeElement": "body"
+}

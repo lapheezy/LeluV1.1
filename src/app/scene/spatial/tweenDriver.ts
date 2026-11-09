@@ -43,6 +43,17 @@ function resolveGsap(): GsapLike | null {
 
 const gsapInstance = resolveGsap();
 
+/*
+ * GSAP smooths over slow frames by clamping each tick to a fixed ~33 ms. That is
+ * meant to hide a hitch, but a spatial transition is a timed journey: when frames
+ * are genuinely slow (software rendering, a busy phone) the clamp makes the
+ * transition take minutes instead of its declared duration, so travel starts and
+ * never arrives. The driver therefore asks GSAP to use real elapsed time.
+ */
+(gsapInstance as unknown as {
+  ticker?: { lagSmoothing?: (threshold: number, adjustedLag?: number) => void };
+} | null)?.ticker?.lagSmoothing?.(0);
+
 /** True when the real GSAP is driving transitions. */
 export const gsapDriving = gsapInstance !== null;
 

@@ -1,0 +1,145 @@
+{
+  "at": "2026-11-09T00:07:13.470Z",
+  "timeline": [
+    {
+      "when": "immediately",
+      "engineSelected": null,
+      "events": [
+        {
+          "type": "pointerdown",
+          "at": 1794182960936,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "pointerup",
+          "at": 1794182960942,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "click",
+          "at": 1794182960943,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        }
+      ],
+      "selects": []
+    },
+    {
+      "when": "after-400ms",
+      "engineSelected": null,
+      "events": [
+        {
+          "type": "pointerdown",
+          "at": 1794182960936,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "pointerup",
+          "at": 1794182960942,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "click",
+          "at": 1794182960943,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        }
+      ],
+      "selects": []
+    },
+    {
+      "when": "after-1600ms",
+      "engineSelected": null,
+      "events": [
+        {
+          "type": "pointerdown",
+          "at": 1794182960936,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "pointerup",
+          "at": 1794182960942,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "click",
+          "at": 1794182960943,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        }
+      ],
+      "selects": []
+    },
+    {
+      "when": "second-press",
+      "engineSelected": null,
+      "events": [
+        {
+          "type": "pointerdown",
+          "at": 1794182960936,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "pointerup",
+          "at": 1794182960942,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "click",
+          "at": 1794182960943,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "pointerdown",
+          "at": 1794182967135,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "pointerup",
+          "at": 1794182967156,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        },
+        {
+          "type": "click",
+          "at": 1794182967156,
+          "target": "div",
+          "inCard": false,
+          "view": null
+        }
+      ],
+      "selects": []
+    }
+  ],
+  "errors": [],
+  "point": {
+    "x": 209,
+    "y": 203,
+    "hit": "div",
+    "inCard": false
+  }
+}

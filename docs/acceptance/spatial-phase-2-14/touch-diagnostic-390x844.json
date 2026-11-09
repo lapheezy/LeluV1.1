@@ -1,0 +1,38 @@
+{
+ "viewport": "390x844",
+ "at": "2026-11-07T23:44:48.352Z",
+ "input": "real CDP touch events",
+ "steps": [],
+ "checks": {
+  "rect": {
+   "x": 16,
+   "y": 101,
+   "w": 358,
+   "h": 642
+  },
+  "chrome": {
+   "x": 195,
+   "y": 123,
+   "w": 356,
+   "h": 41
+  },
+  "from": {
+   "x": 135,
+   "y": 123
+  },
+  "events": {
+   "down": 1,
+   "move": 10,
+   "up": 1,
+   "types": "111111111"
+  },
+  "rectAfter": {
+   "x": 16,
+   "y": 101,
+   "w": 358,
+   "h": 642
+  },
+  "counter": "1 placed · 0 pinned"
+ },
+ "errors": []
+}

@@ -59,6 +59,8 @@ export default function LeluCharacter(props: {
   fps?: number;
   /** Keep her mounted but draw nothing (see LeluCharacter3D). */
   paused?: boolean;
+  /** Receives one captured frame when she pauses (see LeluCharacter3D). */
+  onStill?: (dataUrl: string) => void;
   style?: CSSProperties;
   testId?: string;
 }) {
@@ -73,7 +75,7 @@ export default function LeluCharacter(props: {
   if (model.status === "ready" && webgl) {
     return (
       <Suspense fallback={<div data-testid={testId} data-renderer="loading" style={{ width: "100%", height: "100%" }} />}>
-        <LeluCharacter3D model={model.model} framing={props.framing} activity={activity} style={props.style} testId={testId} fps={props.fps ?? 30} paused={props.paused} />
+        <LeluCharacter3D model={model.model} framing={props.framing} activity={activity} style={props.style} testId={testId} fps={props.fps ?? 30} paused={props.paused} onStill={props.onStill} />
       </Suspense>
     );
   }

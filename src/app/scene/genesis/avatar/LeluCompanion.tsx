@@ -40,20 +40,12 @@
  */
 
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
-import {
-  measureSpace,
-  overlaps,
-  planPresence,
-  presenceModeFor,
-  sameSpace,
-  type AvatarAnchor,
-  type Rect,
-  type SpaceLayout,
-} from "./spatialPresence";
+import { planPresence, presenceModeFor, sameSpace, type AvatarAnchor, type Rect, type SpaceLayout } from "./spatialPresence";
+import { choosePlace, clampBox, nearestFree, readSpace, rectOf } from "./presencePlacement";
 import AvatarStore from "../../../../core/avatar/AvatarProfile";
 import CompanionStore, { type CompanionState } from "../../../../core/avatar/CompanionStore";
 import { layer, within } from "../../../../core/ui/Layers";
-import { useGenesis } from "../GenesisCore";
+import { CHAT_WINDOW_Z, useGenesis } from "../GenesisCore";
 import { useSurface } from "../surface/useSurface";
 import { ACTIVITY_ACCENT, useLeluActivity, type LeluActivity } from "./leluActivity";
 import LeluCharacter from "./LeluCharacter";
@@ -64,155 +56,16 @@ import AvatarCommandBus from "../../../../core/avatar/AvatarCommandBus";
 const TOOL_ACTIVITIES = new Set<LeluActivity>(["SEARCHING", "BROWSING", "WORKING", "BUILDING", "RENDERING", "EXPLORING", "PRESENTING"]);
 /** How long she stays forward after tool work ends (no flicker between steps). */
 const TOOL_HOLD_MS = 8000;
-const EDGE = 12;
 /** A press that moves less than this is a tap (talk to her), not a drag. */
 const DRAG_SLOP = 6;
 
 type Box = Rect;
-
-/** Where she is, and why — the attribute tests and evidence read. */
-export type PresencePlace = "hero" | "planned" | "placed" | "edge" | "world";
 
 function viewportSize(): { width: number; height: number } {
   const vv = typeof window !== "undefined" ? window.visualViewport : null;
   return {
     width: vv?.width ?? (typeof window !== "undefined" ? window.innerWidth : 1024),
     height: vv?.height ?? (typeof window !== "undefined" ? window.innerHeight : 768),
-  };
-}
-
-/**
- * The corner she rests in when no planned spot is clear. Kept for the
- * dock geometry tests: beside a floating chat box when it fits, else the
- * right corner above the phone composer / desktop navigation.
- */
-export function dockedWindow(viewport: { width: number; height: number }, chat: Box | null, compact: boolean): Box {
-  const width = compact ? 120 : 200;
-  const height = compact ? 200 : 330;
-  const floatingChat = chat && !compact && chat.width < viewport.width * 0.9;
-  if (floatingChat) {
-    const left = chat.left + chat.width + EDGE;
-    if (left + width <= viewport.width - EDGE) {
-      const top = Math.max(EDGE, Math.min(chat.top + chat.height - height, viewport.height - height - EDGE));
-      return { left, top, width, height };
-    }
-  }
-  return { left: viewport.width - width - EDGE, top: Math.max(EDGE, viewport.height - height - (compact ? 116 : 108)), width, height };
-}
-
-/** The controls the current shell adds on top of what measureSpace reads. */
-const EXTRA_CONTROLS = [
-  "[data-spatial-groups]",
-  "[data-spatial-control]",
-  "[data-lelu-fullscreen] textarea",
-  "[data-lelu-fullscreen] form",
-  "[data-lelu-module-window] > header",
-  "[data-lelu-graph-editor] .lst-toolbar",
-  "[data-lelu-drawing-editor] .lst-toolbar",
-  ".excalidraw .App-toolbar",
-  ".react-flow__controls",
-];
-
-function rectOf(element: Element): Rect | null {
-  const r = element.getBoundingClientRect();
-  return r.width > 0 && r.height > 0 ? { left: r.left, top: r.top, width: r.width, height: r.height } : null;
-}
-
-/** The space planner's reading of the interface, plus the current shell's controls. Never her own box. */
-export function readSpace(doc: Document = document): SpaceLayout {
-  const space = measureSpace(doc);
-  const extra: Rect[] = [];
-  for (const selector of EXTRA_CONTROLS) {
-    for (const element of Array.from(doc.querySelectorAll(selector))) {
-      if (element.closest("[data-testid=lelu-companion]")) continue;
-      const r = rectOf(element);
-      if (r) extra.push(r);
-    }
-  }
-  return { ...space, controls: [...space.controls, ...extra] };
-}
-
-/** Does this box cover something you need (the composer, a control)? */
-export function blocksSomething(box: Rect, space: SpaceLayout, margin = 4): boolean {
-  if (space.composer && overlaps(box, space.composer, margin)) return true;
-  return space.controls.some((control) => overlaps(box, control, margin));
-}
-
-/** Smallest edge rest that covers nothing — or the least bad one. */
-export function edgeRest(space: SpaceLayout, compact: boolean): Box {
-  const { width: vw, height: vh } = space.viewport;
-  const width = compact ? 76 : 120;
-  const height = compact ? 104 : 170;
-  const top = space.safe.top + EDGE;
-  const bottom = vh - space.safe.bottom - height - EDGE;
-  const ys = [0.5, 0.33, 0.66, 0.2, 0.8].map((f) => Math.round(top + (bottom - top) * f));
-  const candidates: Box[] = [];
-  for (const y of ys) {
-    candidates.push({ left: vw - space.safe.right - width - 2, top: y, width, height });
-    candidates.push({ left: space.safe.left + 2, top: y, width, height });
-  }
-  const covered = (b: Box) =>
-    (space.composer && overlaps(b, space.composer) ? 1000 : 0) +
-    space.controls.filter((c) => overlaps(b, c)).length * 100 +
-    (space.chat && overlaps(b, space.chat) ? 10 : 0) +
-    space.panels.filter((p) => overlaps(b, p)).length;
-  return candidates.reduce((best, b) => (covered(b) < covered(best) ? b : best), candidates[0]);
-}
-
-/**
- * Where she goes, in order: hidden in a world view (she stands in it);
- * where you put her, unless that now covers something you need; the
- * home's hero spot; the space planner's spot; the least obstructive edge.
- */
-export function choosePlace(input: {
-  inWorld: boolean;
-  placed: Box | null;
-  onHome: boolean;
-  hero: Rect | null;
-  plan: Pick<AvatarAnchor, "hidden" | "rect">;
-  space: SpaceLayout;
-  compact: boolean;
-}): { place: PresencePlace; target: Box } {
-  const { inWorld, placed, onHome, hero, plan, space, compact } = input;
-  if (inWorld) return { place: "world", target: placed ?? edgeRest(space, compact) };
-  if (placed && !blocksSomething(placed, space)) return { place: "placed", target: placed };
-  if (onHome && hero) return { place: "hero", target: hero };
-  if (!plan.hidden) return { place: "planned", target: plan.rect };
-  return { place: "edge", target: edgeRest(space, compact) };
-}
-
-/**
- * Where you dropped her, moved to the nearest spot that covers nothing you
- * need (searched outward from the drop point). Null when nothing nearby is
- * free — she then keeps her own place rather than sit on a control.
- */
-export function nearestFree(drop: Box, space: SpaceLayout): Box | null {
-  const { width: vw, height: vh } = space.viewport;
-  let best: Box | null = null;
-  let bestDistance = Number.POSITIVE_INFINITY;
-  for (let ring = 0; ring <= 12; ring += 1) {
-    const step = ring * 24;
-    for (let dx = -step; dx <= step; dx += Math.max(24, step)) {
-      for (let dy = -step; dy <= step; dy += Math.max(24, step)) {
-        const candidate = clampBox({ ...drop, left: drop.left + dx, top: drop.top + dy }, { width: vw, height: vh });
-        if (blocksSomething(candidate, space)) continue;
-        const distance = Math.hypot(candidate.left - drop.left, candidate.top - drop.top);
-        if (distance < bestDistance) { best = candidate; bestDistance = distance; }
-      }
-    }
-    if (best) return best;
-  }
-  return null;
-}
-
-function clampBox(box: Box, viewport: { width: number; height: number }): Box {
-  const width = Math.min(box.width, viewport.width - EDGE * 2);
-  const height = Math.min(box.height, viewport.height - EDGE * 2);
-  return {
-    left: Math.min(Math.max(EDGE, box.left), viewport.width - width - EDGE),
-    top: Math.min(Math.max(EDGE, box.top), viewport.height - height - EDGE),
-    width,
-    height,
   };
 }
 
@@ -318,6 +171,9 @@ function Presence({ companion }: { companion: CompanionState }) {
   const chatOpen = Boolean(space.chat) || state.activePanel === "chat";
   const workspaceInUse = modulesOpen || surface.workspaceOwnsScreen || surface.mode === "workspace" || surface.mode === "agent";
   const inWorld = state.activeScene === "genesisv2";
+  const underSheet = compact && !surface.cosmosRendered;
+  // Her last frame, captured as she paused beside a phone sheet.
+  const [still, setStill] = useState<string | null>(null);
   const onHome = Boolean(hero) && state.activePanel === "none" && !workspaceInUse && !bodyWanted && !inWorld;
 
   const mode = presenceModeFor({ chatOpen, workspaceOpen: workspaceInUse, turnActive, dialogue: state.dialogue });
@@ -344,6 +200,12 @@ function Presence({ companion }: { companion: CompanionState }) {
 
   const { place, target } = choosePlace({ inWorld, placed: placedBox, onHome, hero, plan, space, compact });
   const box = live ?? target;
+  // Her canvas size before a sheet took the screen: kept under the sheet,
+  // where she is scaled rather than resized (a resize clears the canvas).
+  const sizeBeforeSheet = useRef<{ width: number; height: number } | null>(null);
+  if (!underSheet) sizeBeforeSheet.current = { width: box.width, height: box.height };
+  const drawn = underSheet && sizeBeforeSheet.current ? sizeBeforeSheet.current : { width: box.width, height: box.height };
+  const scale = Math.min(1, box.width / drawn.width, box.height / drawn.height);
   const framing = place === "hero" || box.height < 150 ? "face" : "full";
   const duration = space.reducedMotion ? 0 : live ? 0 : Math.max(plan.durationMs, 520);
 
@@ -391,13 +253,16 @@ function Presence({ companion }: { companion: CompanionState }) {
     position: "fixed",
     left: 0,
     top: 0,
-    width: box.width,
-    height: box.height,
-    transform: `translate3d(${Math.round(box.left)}px, ${Math.round(box.top)}px, 0)`,
+    width: drawn.width,
+    height: drawn.height,
+    transformOrigin: "top left",
+    transform: `translate3d(${Math.round(box.left)}px, ${Math.round(box.top)}px, 0)${scale < 1 ? ` scale(${scale.toFixed(4)})` : ""}`,
     transition: duration ? `transform ${duration}ms ${ease}, width ${duration}ms ${ease}, height ${duration}ms ${ease}, opacity 300ms` : "none",
     // Above workspace windows (so she stays seen), below menus, the
-    // composer, notifications and dialogs (so she never covers a control).
-    zIndex: live ? layer("panelActive") : within("panel", 45),
+    // composer, notifications and dialogs. Over a phone's full-screen
+    // sheet she rests just above it, at the edge spot that avoids its
+    // controls — or she would be behind it, unreachable.
+    zIndex: live ? layer("panelActive") : underSheet ? CHAT_WINDOW_Z + 10 : within("panel", 45),
     visibility: inWorld ? "hidden" : "visible",
     opacity: inWorld ? 0 : place === "planned" ? plan.opacity : 1,
     pointerEvents: "none",
@@ -417,6 +282,8 @@ function Presence({ companion }: { companion: CompanionState }) {
       data-posture={place === "planned" ? plan.posture : "stand"}
       data-placement={place === "planned" ? plan.reason : place}
       data-placed={saved ? "true" : "false"}
+      data-scene={state.activeScene}
+      data-panel={state.activePanel}
       style={style}
     >
       {/* Only her visible body takes touches: a posture (peek, lean) moves
@@ -445,7 +312,16 @@ function Presence({ companion }: { companion: CompanionState }) {
         }}
       >
         {/* The one canvas: framing and size change, the surface never does. */}
-        <LeluCharacter framing={framing} testId="lelu-companion-character" paused={inWorld} fps={compact && !surface.cosmosRendered ? 12 : 30} />
+        {/* Under a phone sheet she stays visible and reachable, PAUSED on
+            her last frame: measured on iPhone 13 emulation, any drawing of
+            her canvas beside a full-screen sheet stalled the page (60 fps →
+            0 after ~15 s; 60 fps throughout with her paused or off). Her
+            canvas keeps its size and one captured frame of it is shown,
+            scaled to the edge spot; she animates again when it closes. */}
+        <LeluCharacter framing={framing} testId="lelu-companion-character" paused={inWorld || underSheet} onStill={underSheet ? setStill : undefined} />
+        {underSheet && still ? (
+          <img data-testid="lelu-companion-still" src={still} alt="" draggable={false} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", pointerEvents: "none" }} />
+        ) : null}
       {saved ? (
         <button
           type="button"
@@ -457,8 +333,8 @@ function Presence({ companion }: { companion: CompanionState }) {
             position: "absolute",
             right: -6,
             top: -6,
-            width: compact ? 36 : 26,
-            height: compact ? 36 : 26,
+            width: compact ? 44 : 28,
+            height: compact ? 44 : 28,
             borderRadius: 999,
             border: `1px solid ${accent}88`,
             background: "rgba(20,12,36,0.82)",

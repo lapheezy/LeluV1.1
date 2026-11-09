@@ -79,3 +79,9 @@ The owner directed this step to Claude. The claim covers:
 - Avatar tests.
 
 **Not claimed:** `LeluBody`, `spatialPresence` (used as is), `LeluV2Presence`, the asset pipeline, Home, layout, the navigator.
+
+Step 3 note: one line was changed in `chat/universe/chatUniverse.css` (Freebuff's lane). The rule `html[data-lelu-universe="open"] [data-testid="lelu-companion"] { visibility: hidden }` was removed. It hid the old floating window, and it made the new presence invisible inside the Universe. The `.lch`, `.lch-scrim` and `.lsn` hiding is unchanged.
+
+## Claims released (2026-11-07, Claude)
+
+The Step 3 claim on the avatar files is released. Claude is pausing. The handoff is `docs/engineering/2026-11-07/FREEBUFF_HANDOFF.md`.

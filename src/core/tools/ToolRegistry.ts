@@ -428,6 +428,85 @@ export default class ToolRegistry {
         executionRoute: "MemoryEngine.learn",
       },
 
+      // Environment operator tools (Session 02) — the surface LÉLU arranges
+      // her own environment with. Every one has a real executor in
+      // orchestrator/EnvironmentTools.ts, reached through the same dispatcher.
+      {
+        id: "environment.compose",
+        name: "Compose Operational Environment",
+        description:
+          "Build an operational environment for the task at hand: its workspaces, ".concat(
+            "the visual surfaces inside them, and optional 3D cosmos objects.",
+          ),
+        category: "Environment",
+        permissions: ["WRITE", "EXECUTE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "EnvironmentOrchestrationEngine.composeEnvironment",
+        verificationMethod: "the created views are read back from WorkspaceEngine",
+      },
+      {
+        id: "environment.present_artifact",
+        name: "Present Visual Artifact",
+        description:
+          "Present a diagram, table, document, browser or chart in the active environment ".concat(
+            "so the person can look at it, instead of describing it in chat.",
+          ),
+        category: "Environment",
+        permissions: ["READ", "WRITE"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "WorkspaceEngine.openView",
+        verificationMethod: "the workspace view exists with that kind and title",
+      },
+      {
+        id: "environment.mutate_surface",
+        name: "Mutate Presentation Surface",
+        description:
+          "Revise a surface that is already on screen — its text, diagram nodes, table rows " +
+          "or focus — in place, keeping the environment instead of replacing it.",
+        category: "Environment",
+        permissions: ["WRITE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "EnvironmentOrchestrationEngine.mutateSurface",
+        verificationMethod: "the revised view's revision increases",
+      },
+      {
+        id: "environment.manage_workspace",
+        name: "Manage Workspace Arrangement",
+        description:
+          "Arrange, focus, lock or minimise the surfaces in the environment (auto, grid, split, stack).",
+        category: "Environment",
+        permissions: ["WRITE", "EXECUTE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "WorkspaceEngine.setLayout",
+        verificationMethod: "WorkspaceEngine reports the new layout",
+      },
+      {
+        id: "environment.save_state",
+        name: "Save Environment State",
+        description: "Snapshot the environment's surfaces, layout and focus so it can be restored later.",
+        category: "Environment",
+        permissions: ["READ", "WRITE"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "EnvironmentOrchestrationEngine.saveSnapshot",
+        verificationMethod: "the snapshot id is returned and can be restored",
+      },
+      {
+        id: "environment.restore_state",
+        name: "Restore Environment State",
+        description: "Restore a saved environment snapshot, reconstructing its surfaces and layout.",
+        category: "Environment",
+        permissions: ["WRITE", "EXECUTE"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "EnvironmentOrchestrationEngine.restoreSnapshot",
+        verificationMethod: "the restored views match the snapshot",
+      },
+
       // Research
       {
         id: "research.web",

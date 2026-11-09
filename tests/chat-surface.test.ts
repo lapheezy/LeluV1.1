@@ -156,7 +156,9 @@ test("closing chat hides it; it is unmounted only with the whole interface", () 
   const ui = code("src/app/scene/genesis/GenesisInterface.tsx");
   assert.match(
     ui,
-    /\{state\.minimized \? null : \(\s*<ChatErrorBoundary onLeave=\{handleExitChat\}>\s*<GenesisChat\s+hidden=\{[\s\S]{0,200}surface\.workspaceOwnsScreen \|\| !\(state\.activePanel === "chat" \|\| openModuleIds\.length > 0\)\s*\}/,
+    // The send engine stays mounted (always hidden — the Chat Universe is
+    // the chat) and unmounts only with the whole interface.
+    /\{state\.minimized \? null : \(\s*<ChatErrorBoundary onLeave=\{handleExitChat\}>[\s\S]{0,160}<GenesisChat hidden \/>/,
   );
   const chat = code("src/app/scene/genesis/GenesisChat.tsx");
   assert.match(chat, /display: hidden \? "none" : "flex"/);
@@ -170,7 +172,6 @@ test("the phone chat is edge to edge: no dock inset, 100vw × 100dvh, keyboard-a
   const chat = code("src/app/scene/genesis/GenesisChat.tsx");
   assert.ok(!/useDockInset|dockInset/.test(chat), "nothing pushes the full-screen chat over");
   assert.ok(!/export function useDockInset/.test(code("src/app/scene/genesis/chat/chatLayout.ts")));
-  assert.ok(!/useDockInset/.test(code("src/app/scene/genesis/MultiChatTabs.tsx")));
   assert.match(chat, /left: 0,\s*right: 0,\s*top: workspace\.keyboardOpen \? workspace\.visibleTop : 0,\s*width: "100vw",\s*height: workspace\.keyboardOpen \? workspace\.visibleHeight : "100dvh",/);
   assert.match(chat, /paddingTop: isFullMobile \? "calc\(env\(safe-area-inset-top, 0px\) \+ 10px\)"/, "safe areas are padding inside the sky");
 });
@@ -232,7 +233,8 @@ test("on a phone a visible workspace owns the screen; chat waits underneath", ()
   assert.equal(minimized.chatOwnsScreen, true, "minimizing the module brings the chat back");
   const desktop = resolveSurface({ activePanel: "chat", minimized: false, openModuleCount: 1, visibleModuleCount: 1, compact: false });
   assert.equal(desktop.workspaceOwnsScreen, false, "on a desktop module windows float beside the chat");
-  assert.match(code("src/app/scene/genesis/GenesisInterface.tsx"), /state\.minimized \|\| surface\.workspaceOwnsScreen \? null : state\.activePanel === "chat" \? <MultiChatTabs \/>/);
+  // The old browser-style chat tab strip is gone; the Chat Universe is the chat.
+  assert.doesNotMatch(code("src/app/scene/genesis/GenesisInterface.tsx"), /<MultiChatTabs\b/);
 });
 
 test("the LÉLU menu sheet sits above its own backdrop", () => {
@@ -355,12 +357,14 @@ test("on a phone a conversation window is the full visual viewport; one composer
 test("Step 3: under a phone sheet LÉLU's single presence stays mounted, drawing slowly at an edge (no unmount, no hidden WebGL)", () => {
   // Phase 2 unmounted her window under phone sheets (a hidden canvas stalled
   // the GPU). Step 3 keeps ONE presence: under a sheet she rests visible at
-  // the least obstructive edge at a reduced frame rate, and in a world view
+  // the least obstructive edge, paused (a live canvas beside a sheet stalled the page), and in a world view
   // she is hidden AND paused — never a hidden canvas that keeps drawing.
   const companion = readFileSync("src/app/scene/genesis/avatar/LeluCompanion.tsx", "utf8");
   assert.doesNotMatch(companion, /return null;\s*\/\/ Where she belongs/, "no unmount under a sheet");
-  assert.match(companion, /paused=\{inWorld\}/, "hidden ⇒ paused");
-  assert.match(companion, /fps=\{compact && !surface\.cosmosRendered \? 12 : 30\}/, "slower under a phone sheet");
+  assert.match(companion, /paused=\{inWorld \|\| underSheet\}/, "hidden in a world, or beside a phone sheet ⇒ paused (measured stall otherwise)");
+  assert.match(companion, /scale\(\$\{scale\.toFixed\(4\)\}\)/, "under a sheet she is scaled, not resized (a resize clears her last frame)");
+  assert.match(companion, /underSheet \? CHAT_WINDOW_Z \+ 10/, "above the sheet, not hidden behind it");
+  assert.match(companion, /const underSheet = compact && !surface\.cosmosRendered;/);
   const character3d = readFileSync("src/app/scene/genesis/avatar/LeluCharacter3D.tsx", "utf8");
   assert.match(character3d, /if \(mode === "paused" \|\| paused\) return;/);
 });

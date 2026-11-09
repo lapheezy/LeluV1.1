@@ -2026,6 +2026,16 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
         openPanel(panel){
 
+          // "Open the chat" — from the spatial nav, the companion, voice, a
+          // deep link, a briefing or LÉLU herself — opens the Chat Universe
+          // (the glass, windowed chat), not the old single-panel chat with
+          // the browser-style tab strip. That panel no longer exists.
+          if (panel === "chat") {
+            dispatch("genesis:panel-open", { panel });
+            window.dispatchEvent(new CustomEvent("lelu-open-universe"));
+            return;
+          }
+
           dispatch("genesis:panel-open", { panel });
 
           // Closing everything ("none") clears the module set, returns to

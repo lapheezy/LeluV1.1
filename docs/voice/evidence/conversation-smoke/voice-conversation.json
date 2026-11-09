@@ -1,0 +1,252 @@
+{
+ "ranAt": "2026-11-07T13:42:02.078Z",
+ "base": "http://127.0.0.1:5174/",
+ "spoken": [
+  {
+   "n": 1,
+   "mode": "after-reply",
+   "text": "Hey Lélu, my name is Sam and my favorite color is teal. Just say hello.",
+   "spokeAt": 41079,
+   "endedAt": 45165
+  },
+  {
+   "n": 2,
+   "mode": "after-reply",
+   "text": "What is the capital of Peru? One sentence.",
+   "spokeAt": 103503,
+   "endedAt": 110945
+  }
+ ],
+ "typed": "(typed) Quick check by text: what's my favorite color again? One word.",
+ "events": [
+  {
+   "t": 17482,
+   "kind": "phase",
+   "phase": "idle",
+   "error": null
+  },
+  {
+   "t": 17487,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 19021,
+   "kind": "console",
+   "text": "[VoiceEngine] ElevenLabs transcription is configured — recording turns for it directly."
+  },
+  {
+   "t": 19024,
+   "kind": "voice-on"
+  },
+  {
+   "t": 33681,
+   "kind": "mic-probe",
+   "stream": true,
+   "tracks": [
+    {
+     "state": "live",
+     "muted": false,
+     "enabled": true,
+     "label": "MediaStreamAudioDestinationNode"
+    }
+   ],
+   "peakWhileSpeaking": 0.633
+  },
+  {
+   "t": 35672,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":14263,\"spoke\":true,\"ms\":16640,\"peak\":0.3436,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 35673,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 41076,
+   "kind": "utterance",
+   "text": "Hey, Leilu, my name is Sam and my favorite color is teal. Just say hello.",
+   "at": 1794058828138
+  },
+  {
+   "t": 41078,
+   "kind": "turn",
+   "user": "Hey, Leilu, my name is Sam and my favorite color is teal. Just say hello.",
+   "response": null
+  },
+  {
+   "t": 41081,
+   "kind": "phase",
+   "phase": "processing",
+   "error": null
+  },
+  {
+   "t": 45166,
+   "kind": "user-said",
+   "n": 1,
+   "mode": "after-reply",
+   "text": "Hey Lélu, my name is Sam and my favorite color is teal. Just say hello.",
+   "seconds": 3.9
+  },
+  {
+   "t": 56842,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":15103,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 72026,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":13484,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 84981,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":12906,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 95636,
+   "kind": "turn",
+   "user": "Hey, Leilu, my name is Sam and my favorite color is teal. Just say hello.",
+   "response": "Stopped before anything ran."
+  },
+  {
+   "t": 95638,
+   "kind": "phase",
+   "phase": "speaking",
+   "error": null
+  },
+  {
+   "t": 95639,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 101655,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":10031,\"spoke\":false,\"ms\":14783,\"peak\":0,\"threshold\":0.012,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":9770}"
+  },
+  {
+   "t": 106176,
+   "kind": "her-audio",
+   "state": "playing"
+  },
+  {
+   "t": 110946,
+   "kind": "user-said",
+   "n": 2,
+   "mode": "after-reply",
+   "text": "What is the capital of Peru? One sentence.",
+   "seconds": 3.5
+  },
+  {
+   "t": 110998,
+   "kind": "console",
+   "text": "[VoiceEngine] turn {\"on\":\"audio\",\"audioMs\":4075,\"spoke\":true,\"ms\":9304,\"peak\":0.3858,\"threshold\":0.06,\"lastLevel\":0,\"minLevel\":1,\"silenceMs\":940}"
+  },
+  {
+   "t": 110998,
+   "kind": "her-audio",
+   "state": "ended"
+  },
+  {
+   "t": 110999,
+   "kind": "phase",
+   "phase": "listening",
+   "error": null
+  },
+  {
+   "t": 124103,
+   "kind": "phase",
+   "phase": "idle",
+   "error": null
+  }
+ ],
+ "bargeIns": 0,
+ "turns": [
+  {
+   "id": "4fb646b9-d64c-4713-bbbb-4ac649c9b218",
+   "user": "Hey, Leilu, my name is Sam and my favorite color is teal. Just say hello.",
+   "response": "Stopped before anything ran.",
+   "at": 1794058882699,
+   "startedAt": 1794058828141,
+   "respondedAt": 1794058882699
+  }
+ ],
+ "transcript": [
+  {
+   "role": "user",
+   "text": "Hey, Leilu, my name is Sam and my favorite color is teal. Just say hello."
+  },
+  {
+   "role": "assistant",
+   "text": "Stopped before anything ran."
+  }
+ ],
+ "ledger": [
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1195,
+   "out": 630,
+   "cost": "reported",
+   "usd": 0.00032217,
+   "ms": 5139
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-stt",
+   "op": "stt",
+   "ok": true,
+   "model": "scribe_v1",
+   "in": null,
+   "out": null,
+   "results": 17,
+   "cost": "reported",
+   "usd": 0.0017,
+   "ms": 5407
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": false,
+   "in": null,
+   "out": null,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 33522,
+   "error": "BodyStreamBuffer was aborted"
+  },
+  {
+   "kind": "api",
+   "source": "elevenlabs-tts",
+   "op": "tts",
+   "ok": true,
+   "in": null,
+   "out": null,
+   "results": 28,
+   "cost": "unknown",
+   "usd": null,
+   "ms": 1951
+  },
+  {
+   "kind": "ai",
+   "source": "OpenRouter",
+   "op": "generate",
+   "ok": true,
+   "model": "deepseek/deepseek-v4.1-flash-1017",
+   "in": 1411,
+   "out": 653,
+   "cost": "reported",
+   "usd": 0.00078245,
+   "ms": 8662
+  }
+ ]
+}

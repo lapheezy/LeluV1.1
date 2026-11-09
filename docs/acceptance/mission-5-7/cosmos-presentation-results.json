@@ -1,0 +1,5 @@
+{
+  "result": "BLOCKED",
+  "reason": "presentation choices need model-selected tool calls; none executed",
+  "audit": "Cosmos/Genesis/WorkspaceEngine unchanged, not rebuilt"
+}

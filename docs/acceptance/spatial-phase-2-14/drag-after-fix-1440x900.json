@@ -1,0 +1,62 @@
+{
+ "viewport": "1440x900",
+ "at": "2026-11-07T23:32:14.482Z",
+ "deviceScaleFactor": 1,
+ "input": "real CDP mouse events at element coordinates (page.mouse): pointerdown on the title bar, 16 pointermoves, pointerup",
+ "methodNote": "Playwright actionability waits are bypassed because the spatial surface animates continuously; the events are genuine browser input. Post-conditions are polled, not assumed after a fixed sleep, because rendering under SwiftShader is slow.",
+ "steps": [
+  "OK-pointer gate",
+  "OK-pointer Studio",
+  "OK-pointer portal-panel"
+ ],
+ "checks": {
+  "moduleOpened": {
+   "ok": true,
+   "settledMs": 2479,
+   "value": 1
+  },
+  "moduleId": "visualstudio",
+  "counterBefore": "0 placed · 0 pinned",
+  "rectBefore": {
+   "x": 88,
+   "y": 64,
+   "w": 1338,
+   "h": 818
+  },
+  "chrome": {
+   "x": 89,
+   "y": 65,
+   "w": 1336,
+   "h": 41
+  },
+  "grab": {
+   "x": 623,
+   "y": 86
+  },
+  "dragMs": 32700,
+  "probe": {
+   "pointerMovesSeen": 17,
+   "frames": 24,
+   "maxFrameGapMs": 9112,
+   "longTasks": 10,
+   "longTaskMs": 24808
+  },
+  "rectAfterDrag": {
+   "x": 228,
+   "y": 154,
+   "w": 1338,
+   "h": 818
+  },
+  "manualSettled": {
+   "ok": true,
+   "settledMs": 2,
+   "value": "1 placed · 0 pinned"
+  },
+  "moved": {
+   "dx": 140,
+   "dy": 90
+  },
+  "result": "PASS — real pointer drag moved the window and the layout store recorded it as manual"
+ },
+ "errors": []
+}

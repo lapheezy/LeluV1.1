@@ -4,6 +4,7 @@
  */
 import { useMemo } from "react";
 import { useGenesis } from "../GenesisCore";
+import { useVisual } from "../../../../core/visual/useVisual";
 import { useWorkspace } from "../useWorkspace";
 import { chatFillsScreen } from "../chat/chatLayout";
 import { useChatExpanded } from "../chat/chatExpand";
@@ -29,8 +30,11 @@ export function useSurface(): Surface {
   const universeOpen = useUniverseOpen();
   const cosmosMode = useHomeStore().cosmosMode;
   const universeOwnsScreen = universeOpen && cosmosMode !== "floating";
+  // The System environment is where LÉLU paints workspaces, so on a phone
+  // it outranks the expanded chat (the chat floats above it instead).
+  const systemEnvironmentActive = useVisual().state.interfaceFocus === "visual";
   return useMemo(
-    () => resolveSurface({ activePanel: state.activePanel, minimized: state.minimized, openModuleCount, visibleModuleCount, compact, chatExpanded, universeOwnsScreen }),
-    [state.activePanel, state.minimized, openModuleCount, visibleModuleCount, compact, chatExpanded, universeOwnsScreen],
+    () => resolveSurface({ activePanel: state.activePanel, minimized: state.minimized, openModuleCount, visibleModuleCount, compact, chatExpanded, universeOwnsScreen, systemEnvironmentActive }),
+    [state.activePanel, state.minimized, openModuleCount, visibleModuleCount, compact, chatExpanded, universeOwnsScreen, systemEnvironmentActive],
   );
 }

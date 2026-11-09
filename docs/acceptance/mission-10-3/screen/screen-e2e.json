@@ -1,0 +1,106 @@
+{
+ "ranAt": "2026-11-07T19:59:29.884Z",
+ "log": [
+  {
+   "t": 20072,
+   "step": "share-started",
+   "active": true,
+   "startedAt": 1794081543539,
+   "sampled": 1,
+   "kept": 1,
+   "unchangedSkipped": 0,
+   "lastChangeAt": 1794081543555,
+   "surface": "browser"
+  },
+  {
+   "t": 30653,
+   "step": "ask-1",
+   "prompt": "Look at my shared screen. In one or two sentences, what am I looking at?",
+   "frames": [
+    "shared-screen.jpg"
+   ],
+   "provider": "offline",
+   "model": "offline",
+   "ms": 5549,
+   "answer": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "stats": {
+    "active": true,
+    "startedAt": 1794081543539,
+    "sampled": 7,
+    "kept": 1,
+    "unchangedSkipped": 6,
+    "lastChangeAt": 1794081543555,
+    "surface": "browser"
+   }
+  },
+  {
+   "t": 34413,
+   "step": "ask-2",
+   "prompt": "What changed on my screen just now, and what does the message mean for me?",
+   "frames": [
+    "shared-screen-before.jpg",
+    "shared-screen-now.jpg"
+   ],
+   "provider": "offline",
+   "model": "offline",
+   "ms": 161,
+   "answer": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "stats": {
+    "active": true,
+    "startedAt": 1794081543539,
+    "sampled": 9,
+    "kept": 2,
+    "unchangedSkipped": 7,
+    "lastChangeAt": 1794081558612,
+    "surface": "browser"
+   }
+  },
+  {
+   "t": 43239,
+   "step": "stop",
+   "liveBeforeStop": true,
+   "liveAfterStop": false,
+   "active": false,
+   "framesAfterStop": 0
+  },
+  {
+   "t": 45383,
+   "step": "ledger",
+   "ai": [
+    {
+     "source": "OpenRouter",
+     "model": "deepseek/deepseek-v4.1-flash-1017",
+     "ok": true,
+     "in": 1194,
+     "out": 552,
+     "cost": "reported",
+     "usd": 0.00028626
+    },
+    {
+     "source": "OpenRouter",
+     "ok": false,
+     "in": null,
+     "out": null,
+     "cost": "unknown",
+     "usd": null
+    },
+    {
+     "source": "Groq",
+     "ok": false,
+     "in": null,
+     "out": null,
+     "cost": "unknown",
+     "usd": null
+    },
+    {
+     "source": "Fireworks",
+     "ok": false,
+     "in": null,
+     "out": null,
+     "cost": "unknown",
+     "usd": null
+    }
+   ]
+  }
+ ]
+}

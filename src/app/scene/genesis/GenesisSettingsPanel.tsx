@@ -30,6 +30,7 @@ import type { LocalRuntimeStatus } from "../../../core/runtime/local/LocalRuntim
 import SupabasePersistence, { type SupabaseAuthState } from "../../../core/persistence/SupabasePersistence";
 import { getEnvironment } from "../../../core/Environment";
 import VoiceEngine from "../../../core/voice/VoiceEngine";
+import UsageSection from "./UsageSection";
 
 const LEVELS: { value: NotificationLevel; label: string }[] = [
   { value: "quiet", label: "Quiet" },
@@ -610,6 +611,8 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
           </div>
 
           <VoiceSection />
+
+          <UsageSection />
 
           <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, margin: "12px 0 8px" }}>
             Initiation level

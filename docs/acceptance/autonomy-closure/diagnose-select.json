@@ -1,0 +1,529 @@
+{
+  "at": "2026-11-08T23:22:12.713Z",
+  "cards": [
+    {
+      "id": "view-providers",
+      "revision": "1",
+      "selected": "false",
+      "rect": {
+        "x": 374,
+        "y": 108,
+        "w": 462,
+        "h": 416
+      },
+      "center": {
+        "x": 605,
+        "y": 316
+      },
+      "top": {
+        "tag": "svg",
+        "cls": "[object SVGAnimatedString]",
+        "id": null,
+        "attrs": {
+          "view": null,
+          "panel": null,
+          "tab": null
+        },
+        "pointerEvents": "auto",
+        "zIndex": "auto",
+        "position": "static",
+        "rect": {
+          "x": 401,
+          "y": 210,
+          "w": 408,
+          "h": 408
+        },
+        "inCard": true,
+        "chain": [
+          "svg.[object",
+          "div",
+          "div",
+          "div"
+        ]
+      },
+      "points": [
+        {
+          "at": "center",
+          "el": {
+            "tag": "svg",
+            "cls": "[object SVGAnimatedString]",
+            "id": null,
+            "attrs": {
+              "view": null,
+              "panel": null,
+              "tab": null
+            },
+            "pointerEvents": "auto",
+            "zIndex": "auto",
+            "position": "static",
+            "rect": {
+              "x": 401,
+              "y": 210,
+              "w": 408,
+              "h": 408
+            },
+            "inCard": true,
+            "chain": [
+              "svg.[object",
+              "div",
+              "div",
+              "div"
+            ]
+          }
+        },
+        {
+          "at": "topLeft+10",
+          "el": {
+            "tag": "div",
+            "cls": "",
+            "id": null,
+            "attrs": {
+              "view": null,
+              "panel": null,
+              "tab": null
+            },
+            "pointerEvents": "auto",
+            "zIndex": "auto",
+            "position": "static",
+            "rect": {
+              "x": 375,
+              "y": 109,
+              "w": 460,
+              "h": 43
+            },
+            "inCard": true,
+            "chain": [
+              "div",
+              "div",
+              "div",
+              "div.lelu-living-system-ui"
+            ]
+          }
+        },
+        {
+          "at": "below-header",
+          "el": {
+            "tag": "div",
+            "cls": "",
+            "id": null,
+            "attrs": {
+              "view": null,
+              "panel": null,
+              "tab": null
+            },
+            "pointerEvents": "auto",
+            "zIndex": "auto",
+            "position": "static",
+            "rect": {
+              "x": 387,
+              "y": 162,
+              "w": 436,
+              "h": 497
+            },
+            "inCard": true,
+            "chain": [
+              "div",
+              "div",
+              "div",
+              "div"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "view-bf8d9ba0",
+      "revision": "1",
+      "selected": "false",
+      "rect": {
+        "x": 58,
+        "y": 162,
+        "w": 302,
+        "h": 81
+      },
+      "center": {
+        "x": 209,
+        "y": 203
+      },
+      "top": {
+        "tag": "div",
+        "cls": "",
+        "id": null,
+        "attrs": {
+          "view": null,
+          "panel": null,
+          "tab": null
+        },
+        "pointerEvents": "auto",
+        "zIndex": "auto",
+        "position": "static",
+        "rect": {
+          "x": 59,
+          "y": 163,
+          "w": 300,
+          "h": 43
+        },
+        "inCard": true,
+        "chain": [
+          "div",
+          "div",
+          "div",
+          "div.lelu-living-system-ui"
+        ]
+      },
+      "points": [
+        {
+          "at": "center",
+          "el": {
+            "tag": "div",
+            "cls": "",
+            "id": null,
+            "attrs": {
+              "view": null,
+              "panel": null,
+              "tab": null
+            },
+            "pointerEvents": "auto",
+            "zIndex": "auto",
+            "position": "static",
+            "rect": {
+              "x": 59,
+              "y": 163,
+              "w": 300,
+              "h": 43
+            },
+            "inCard": true,
+            "chain": [
+              "div",
+              "div",
+              "div",
+              "div.lelu-living-system-ui"
+            ]
+          }
+        },
+        {
+          "at": "topLeft+10",
+          "el": {
+            "tag": "div",
+            "cls": "",
+            "id": null,
+            "attrs": {
+              "view": null,
+              "panel": null,
+              "tab": null
+            },
+            "pointerEvents": "auto",
+            "zIndex": "auto",
+            "position": "static",
+            "rect": {
+              "x": 59,
+              "y": 163,
+              "w": 300,
+              "h": 43
+            },
+            "inCard": true,
+            "chain": [
+              "div",
+              "div",
+              "div",
+              "div.lelu-living-system-ui"
+            ]
+          }
+        },
+        {
+          "at": "below-header",
+          "el": {
+            "tag": "div",
+            "cls": "",
+            "id": null,
+            "attrs": {
+              "view": null,
+              "panel": null,
+              "tab": null
+            },
+            "pointerEvents": "auto",
+            "zIndex": "auto",
+            "position": "static",
+            "rect": {
+              "x": 71,
+              "y": 216,
+              "w": 276,
+              "h": 16
+            },
+            "inCard": true,
+            "chain": [
+              "div",
+              "div",
+              "div",
+              "div"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "view-9281f32d",
+      "revision": "1",
+      "selected": "false",
+      "rect": {
+        "x": 58,
+        "y": 468,
+        "w": 302,
+        "h": 81
+      },
+      "center": {
+        "x": 209,
+        "y": 509
+      },
+      "top": {
+        "tag": "div",
+        "cls": "",
+        "id": null,
+        "attrs": {
+          "view": null,
+          "panel": null,
+          "tab": null
+        },
+        "pointerEvents": "auto",
+        "zIndex": "auto",
+        "position": "static",
+        "rect": {
+          "x": 59,
+          "y": 469,
+          "w": 300,
+          "h": 43
+        },
+        "inCard": true,
+        "chain": [
+          "div",
+          "div",
+          "div",
+          "div.lelu-living-system-ui"
+        ]
+      },
+      "points": [
+        {
+          "at": "center",
+          "el": {
+            "tag": "div",
+            "cls": "",
+            "id": null,
+            "attrs": {
+              "view": null,
+              "panel": null,
+              "tab": null
+            },
+            "pointerEvents": "auto",
+            "zIndex": "auto",
+            "position": "static",
+            "rect": {
+              "x": 59,
+              "y": 469,
+              "w": 300,
+              "h": 43
+            },
+            "inCard": true,
+            "chain": [
+              "div",
+              "div",
+              "div",
+              "div.lelu-living-system-ui"
+            ]
+          }
+        },
+        {
+          "at": "topLeft+10",
+          "el": {
+            "tag": "div",
+            "cls": "",
+            "id": null,
+            "attrs": {
+              "view": null,
+              "panel": null,
+              "tab": null
+            },
+            "pointerEvents": "auto",
+            "zIndex": "auto",
+            "position": "static",
+            "rect": {
+              "x": 59,
+              "y": 469,
+              "w": 300,
+              "h": 43
+            },
+            "inCard": true,
+            "chain": [
+              "div",
+              "div",
+              "div",
+              "div.lelu-living-system-ui"
+            ]
+          }
+        },
+        {
+          "at": "below-header",
+          "el": {
+            "tag": "div",
+            "cls": "",
+            "id": null,
+            "attrs": {
+              "view": null,
+              "panel": null,
+              "tab": null
+            },
+            "pointerEvents": "auto",
+            "zIndex": "auto",
+            "position": "static",
+            "rect": {
+              "x": 71,
+              "y": 522,
+              "w": 276,
+              "h": 16
+            },
+            "inCard": true,
+            "chain": [
+              "div",
+              "div",
+              "div",
+              "div"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "view-a84c6937",
+      "revision": "1",
+      "selected": "false",
+      "rect": {
+        "x": 720,
+        "y": 576,
+        "w": 302,
+        "h": 81
+      },
+      "center": {
+        "x": 871,
+        "y": 617
+      },
+      "top": {
+        "tag": "button",
+        "cls": "",
+        "id": null,
+        "attrs": {
+          "view": null,
+          "panel": null,
+          "tab": null
+        },
+        "pointerEvents": "auto",
+        "zIndex": "auto",
+        "position": "static",
+        "rect": {
+          "x": 843,
+          "y": 599,
+          "w": 30,
+          "h": 30
+        },
+        "inCard": false,
+        "chain": [
+          "button",
+          "div",
+          "div",
+          "div"
+        ]
+      },
+      "points": [
+        {
+          "at": "center",
+          "el": {
+            "tag": "button",
+            "cls": "",
+            "id": null,
+            "attrs": {
+              "view": null,
+              "panel": null,
+              "tab": null
+            },
+            "pointerEvents": "auto",
+            "zIndex": "auto",
+            "position": "static",
+            "rect": {
+              "x": 843,
+              "y": 599,
+              "w": 30,
+              "h": 30
+            },
+            "inCard": false,
+            "chain": [
+              "button",
+              "div",
+              "div",
+              "div"
+            ]
+          }
+        },
+        {
+          "at": "topLeft+10",
+          "el": {
+            "tag": "div",
+            "cls": "",
+            "id": null,
+            "attrs": {
+              "view": null,
+              "panel": null,
+              "tab": null
+            },
+            "pointerEvents": "auto",
+            "zIndex": "auto",
+            "position": "static",
+            "rect": {
+              "x": 721,
+              "y": 577,
+              "w": 300,
+              "h": 43
+            },
+            "inCard": true,
+            "chain": [
+              "div",
+              "div",
+              "div",
+              "div.lelu-living-system-ui"
+            ]
+          }
+        },
+        {
+          "at": "below-header",
+          "el": {
+            "tag": "div",
+            "cls": "",
+            "id": null,
+            "attrs": {
+              "view": null,
+              "panel": null,
+              "tab": null
+            },
+            "pointerEvents": "auto",
+            "zIndex": "auto",
+            "position": "static",
+            "rect": {
+              "x": 733,
+              "y": 630,
+              "w": 276,
+              "h": 16
+            },
+            "inCard": true,
+            "chain": [
+              "div",
+              "div",
+              "div",
+              "div"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "trial": {
+    "ok": true
+  },
+  "errors": []
+}

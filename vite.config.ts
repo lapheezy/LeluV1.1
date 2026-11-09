@@ -16,6 +16,7 @@ import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
+import { createSourceCatalogApi } from "./plugins/sourceCatalogApi.ts";
 import { createSelfViewApi } from "./plugins/selfViewApi.ts";
 import { createStudioApi, stopAllStudioBackends } from "./plugins/studioApi.ts";
 import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
@@ -86,6 +87,8 @@ export default defineConfig(({ mode, command }) => {
   // Server-side page reader: gives BrowserTool a CORS-free path so a
   // browsed page's TEXT can actually reach cognition (see browseApi.ts).
   const browseApi = createBrowseApi();
+  // Evaluated source inventory + gated public-apis discovery (sourceCatalogApi.ts).
+  const sourceCatalogApi = createSourceCatalogApi();
   // Server-side AI credential relay: the provider keys stay in the
   // server process and never reach the client bundle (aiProxyApi.ts).
   const aiProxyApi = createAiProxyApi(envReader);
@@ -249,9 +252,11 @@ export default defineConfig(({ mode, command }) => {
         name: "browse-api",
         configureServer(server: any) {
           browseApi.attach(server.middlewares);
+          sourceCatalogApi.attach(server.middlewares);
         },
         configurePreviewServer(server: any) {
           browseApi.attach(server.middlewares);
+          sourceCatalogApi.attach(server.middlewares);
         },
       },
 

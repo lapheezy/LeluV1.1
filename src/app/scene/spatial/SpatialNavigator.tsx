@@ -18,10 +18,12 @@
  * ==========================================================
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { composerLift, liftOverflowsTop } from "./composerClearance";
+import { useUniverseOpen } from "../genesis/chat/universe/universeOpen";
 import SpatialRuntime, { type SpatialState } from "./SpatialRuntime";
 import { SPATIAL_DESTINATIONS, destinationFor, type SpatialSceneId } from "./SpatialScenes";
-import PortalRegistry, { isBuiltinPortal, type PortalRecord } from "./PortalRegistry";
+import PortalRegistry, { RING_SCENES, isBuiltinPortal, type PortalRecord } from "./PortalRegistry";
 import ModuleLayoutStore from "../genesis/layout/ModuleLayoutStore";
 import { useGenesis } from "../genesis/GenesisCore";
 import { useSurface } from "../genesis/surface/useSurface";
@@ -42,11 +44,25 @@ function useSpatialState(): SpatialState {
   return state;
 }
 
-/** The registry's live portal list: created, edited and removed portals appear here at once. */
+/**
+ * The registry's live portal list: created, edited and removed portals appear
+ * here at once.
+ *
+ * The built-in ring is SEEDED HERE as well as in the 3D field. Before this, only
+ * SpatialPortals called `seedRing`, so the panel's only travel controls were
+ * user-created portals: with none created, every registered destination in the
+ * world had no entry point in the interface at all, and the panel said "only the
+ * built-in ring exists" while listing nothing. Seeding is idempotent, so the
+ * field and the panel agree and neither depends on the other being mounted.
+ */
 function usePortalRegistry(): PortalRecord[] {
   const registry = PortalRegistry.getInstance();
-  const [portals, setPortals] = useState<PortalRecord[]>(() => registry.list());
+  const [portals, setPortals] = useState<PortalRecord[]>(() => {
+    registry.seedRing(RING_SCENES);
+    return registry.list();
+  });
   useEffect(() => {
+    registry.seedRing(RING_SCENES);
     setPortals(registry.list());
     return registry.subscribe(setPortals);
   }, [registry]);
@@ -99,6 +115,14 @@ export default function SpatialNavigator() {
   const manualCount = layout.entries.filter((entry) => entry.manual).length;
   const pinnedCount = layout.entries.filter((entry) => entry.pinned).length;
   const customPortals = portals.filter((portal) => !isBuiltinPortal(portal));
+  /* The ring's own destinations, in registry order: real ids, real labels, and
+     the same `planTravel` a created portal uses. */
+  const builtinPortals = portals.filter((portal) => isBuiltinPortal(portal));
+  /* Who made each connection is part of its identity: a portal LÉLU created
+     and one the person created are both first-class, and the panel says which
+     is which instead of leaving it to be inferred from a label. */
+  const agentPortals = customPortals.filter((portal) => portal.createdBy === "agent");
+  const userPortals = customPortals.filter((portal) => portal.createdBy === "user");
 
   const createPortal = () => {
     const result = PortalRegistry.getInstance().create({
@@ -132,13 +156,65 @@ export default function SpatialNavigator() {
   // while the chat interface is collapsed (the state the app opens in), so
   // the Cosmos can be navigated without summoning chat at all. It steps
   // aside only when a phone chat owns the whole screen.
-  const hidden = surface.chatOwnsScreen;
+  // The Chat Universe brings its own rail and composer; the world's rail
+  // steps aside while it is open so it never covers the Universe composer.
+  const universeOpen = useUniverseOpen();
+  const hidden = surface.chatOwnsScreen || universeOpen;
   const travelling = Boolean(spatial.transition);
   const progress = spatial.transition ? Math.round(spatial.transition.progress * 100) : 100;
   const active = destinationFor(spatial.current);
   const hovered = spatial.interaction.hovered ? destinationFor(spatial.interaction.hovered) : null;
   const voice = genesis.voice;
   const chatOpen = genesis.activePanel === "chat";
+
+  /* Never over the chat composer. The composer sits inside the chat
+     window's stacking context, so the composer layer cannot rise above this
+     rail; instead the rail measures the composer and lifts itself clear
+     (collapsing the tall capability groups if lifting would run off the
+     top). Found live in the Mission 10.3 20-turn run: the open groups
+     covered the textarea and the typed turn could not be entered. */
+  const navRef = useRef<HTMLDivElement | null>(null);
+  const [lift, setLift] = useState(0);
+  useEffect(() => {
+    if (!chatOpen || hidden) {
+      setLift(0);
+      return;
+    }
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const nav = navRef.current;
+      const composer = document.querySelector("[data-lelu-composer]");
+      if (!nav || !composer) {
+        setLift((value) => (value === 0 ? value : 0));
+        return;
+      }
+      const r = nav.getBoundingClientRect();
+      // The rect at the natural (un-lifted) position.
+      const current = Number(nav.dataset.spatialComposerClearance ?? 0) || 0;
+      const natural = { top: r.top + current, bottom: r.bottom + current, left: r.left, right: r.right };
+      const c = composer.getBoundingClientRect();
+      const next = composerLift(natural, { top: c.top, bottom: c.bottom, left: c.left, right: c.right });
+      if (next > 0 && liftOverflowsTop(natural, next, 8) && open) {
+        setOpen(false);
+        return;
+      }
+      setLift((value) => (value === next ? value : next));
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+    schedule();
+    // The chat window can be dragged or resized, and the composer grows
+    // with its text: re-measure on resize, and on a slow interval.
+    const timer = window.setInterval(schedule, 400);
+    window.addEventListener("resize", schedule);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("resize", schedule);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [chatOpen, hidden, open]);
 
   if (hidden) return null;
 
@@ -223,7 +299,9 @@ export default function SpatialNavigator() {
 
   return (
     <div
+      ref={navRef}
       data-spatial-nav
+      data-spatial-composer-clearance={lift}
       data-spatial-current={spatial.current}
       data-spatial-destination={spatial.destination ?? ""}
       data-spatial-progress={progress}
@@ -239,6 +317,7 @@ export default function SpatialNavigator() {
         alignItems: "center",
         gap: 6,
         pointerEvents: "none",
+        transform: lift > 0 ? `translateY(-${lift}px)` : undefined,
       }}
     >
       {travelling ? (
@@ -271,7 +350,14 @@ export default function SpatialNavigator() {
           maxWidth: "100%",
           flexWrap: "wrap",
           justifyContent: "center",
-          pointerEvents: "auto",
+          /*
+           * INPUT ROUTING: this pill's background is decoration. It sits over
+           * the live Cosmos, so if the container owns the pointer a person can
+           * never press a portal that happens to be behind it. The controls
+           * inside re-take the pointer (see `button`, `control` and the
+           * rule set in index.css); the gaps let the world through.
+           */
+          pointerEvents: "none",
           padding: compact ? "6px 7px" : "8px 10px",
           borderRadius: compact ? 14 : 18,
           background: "rgba(4,10,26,0.55)",
@@ -333,6 +419,19 @@ export default function SpatialNavigator() {
           { testId: "voice", active: voice !== "idle", title: "Speak with LÉLU — no chat window needed" },
         )}
 
+        {/*
+          The Studio destination opens Visual Studio; the canonical Creation
+          Studio (panel id `creation`) had no control in the spatial shell at
+          all — the dock that names it is not rendered on desktop, so the one
+          surface for documents, decks, graphs and drawings was unreachable
+          without chat. This opens that SAME panel through GenesisCore's own
+          openPanel; it is an entry point, not a second studio.
+        */}
+        {control("Open Creation Studio", "▤", () => openPanel("creation"), {
+          testId: "creation",
+          title: "Open the Creation Studio — documents, decks, graphs and drawings",
+        })}
+
         {control(portalPanel ? "Close portals and layout" : "Portals and layout", "◇", () => setPortalPanel((value) => !value), {
           testId: "portals",
           active: portalPanel,
@@ -362,7 +461,8 @@ export default function SpatialNavigator() {
             display: "grid",
             gap: 4,
             width: "min(600px, 100%)",
-            pointerEvents: "auto",
+            /* Panel surface is decoration: only its chips own the pointer. */
+            pointerEvents: "none",
             padding: "8px 10px",
             borderRadius: 18,
             background: "rgba(4,10,26,0.55)",
@@ -412,11 +512,14 @@ export default function SpatialNavigator() {
         <div
           data-portal-panel
           data-portal-count={customPortals.length}
+          data-portal-agent-count={agentPortals.length}
+          data-portal-user-count={userPortals.length}
           style={{
             display: "grid",
             gap: 7,
             width: "min(620px, 100%)",
-            pointerEvents: "auto",
+            /* Panel surface is decoration: only its fields and buttons own it. */
+            pointerEvents: "none",
             padding: "9px 11px",
             borderRadius: 16,
             background: "rgba(4,10,26,0.72)",
@@ -484,15 +587,46 @@ export default function SpatialNavigator() {
             >
               Portals
             </span>
-            {customPortals.length === 0 ? (
+            {builtinPortals.length === 0 ? (
               <span style={{ font: "500 10.5px system-ui, sans-serif", color: "rgba(148,163,184,0.65)" }}>
-                Only the built-in ring exists.
+                The built-in ring did not register on this device.
+              </span>
+            ) : null}
+            {/* Every registered destination, travelable by pointer without aiming
+                at 3D geometry. Same registry ids the world portals use. */}
+            {builtinPortals.map((portal) => {
+              const destination = destinationFor(portal.destination);
+              return (
+                <button
+                  key={portal.id}
+                  type="button"
+                  data-portal-travel={portal.id}
+                  data-portal-builtin="true"
+                  data-portal-destination-id={portal.destination}
+                  title={`Travel to ${destination.label}`}
+                  onClick={() => travelPortal(portal.id)}
+                  style={{
+                    ...TINY,
+                    border: `1px solid ${destination.accent}55`,
+                    background: `${destination.accent}14`,
+                    color: spatial.current === portal.destination ? destination.accent : TINY.color,
+                  }}
+                >
+                  {destination.label}
+                </button>
+              );
+            })}
+            {customPortals.length === 0 && builtinPortals.length > 0 ? (
+              <span style={{ font: "500 10.5px system-ui, sans-serif", color: "rgba(148,163,184,0.65)" }}>
+                No portals of your own yet — travel above is the world&apos;s ring.
               </span>
             ) : null}
             {customPortals.map((portal) => (
               <span
                 key={portal.id}
                 data-portal-id={portal.id}
+                data-portal-creator={portal.createdBy}
+                data-portal-destination-id={portal.destination}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -512,6 +646,13 @@ export default function SpatialNavigator() {
                 >
                   {portal.label}
                   <span aria-hidden style={{ opacity: 0.55 }}> · {destinationFor(portal.destination).label}</span>
+                  <span
+                    aria-hidden
+                    data-portal-authority={portal.createdBy}
+                    style={{ opacity: 0.6, marginLeft: 3, fontSize: 9, letterSpacing: "0.04em" }}
+                  >
+                    {portal.createdBy === "agent" ? "LÉLU" : "you"}
+                  </span>
                 </button>
                 <button
                   type="button"

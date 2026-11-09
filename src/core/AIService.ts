@@ -14,6 +14,7 @@
  * ==========================================================
  */
 
+import UsageSync, { type UsageChannel } from "./observability/UsageSync";
 import AIRuntime from "./AIRuntime";
 import MemoryBridge from "./MemoryBridge";
 import { bindMessage, bindTask } from "./multichat/TurnOwnership";
@@ -471,7 +472,14 @@ export default class AIService {
     void (async () => {
       try {
         const persistence = SupabasePersistence.getInstance();
+        // Usage accounting follows the signed-in user: events are tagged and
+        // synced per user, and the account budget gate is wired (UsageSync).
+        UsageSync.getInstance().start(
+          () => persistence.usageChannel() as UsageChannel | null,
+          (listener) => void persistence.subscribeAuth(() => listener()),
+        );
         await persistence.initialize(this.runtime.brain, this.user);
+        void UsageSync.getInstance().refresh();
         if (persistence.isConnected()) {
           persistence.attachRuntime();
           const health = await this.getProviderHealth();

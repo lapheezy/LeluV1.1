@@ -1,0 +1,36 @@
+{
+ "viewport": "720x520",
+ "at": "2026-11-08T03:43:42.187Z",
+ "input": "real CDP mouse at element coordinates",
+ "interface": "spatial rail: [data-spatial-scene] destinations and [data-spatial-control=\"core\"]",
+ "method": "a transition counts only when [data-spatial-nav][data-spatial-current] equals the requested scene AND no transition is in flight; the run aborts on the first miss",
+ "transitions": [],
+ "samples": [
+  {
+   "navCurrent": "core",
+   "transition": "",
+   "canvases": 3,
+   "nodes": 1074,
+   "moduleWindows": 0,
+   "heapMB": 125.3,
+   "at": 1794109457209
+  }
+ ],
+ "errors": [],
+ "crashed": null,
+ "census": {
+  "scenes": [
+   "core"
+  ],
+  "controls": [
+   "expand",
+   "core",
+   "voice",
+   "creation",
+   "portals",
+   "chat"
+  ],
+  "nav": "core"
+ },
+ "result": "BLOCKED: no studio control in the rail (scenes: core)"
+}

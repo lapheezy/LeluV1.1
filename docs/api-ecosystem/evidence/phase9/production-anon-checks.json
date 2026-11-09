@@ -1,0 +1,13 @@
+{
+  "project": "nrehsldbfxthspikaxvr",
+  "ranAt": "2026-11-07T01:48:14.356Z",
+  "checks": {
+    "anon read usage_records": "0 rows",
+    "anon read usage_budgets": "0 rows",
+    "anon read usage_reservations": "0 rows",
+    "anon read usage_daily": "0 rows",
+    "anon read usage_monthly": "0 rows",
+    "anon insert usage_records": "refused: new row violates row-level security policy for table \"usage_records\"",
+    "anon insert usage_budgets": "refused: new row violates row-level security policy for table \"usage_budgets\""
+  }
+}

@@ -31,6 +31,7 @@ import IntentDetector from "./IntentDetector";
 import AgentEventBus from "../agent/AgentEvents";
 import { isIdentityOrProfileQuestion } from "../../brain/LeluIdentity";
 import { withDeadline } from "../runtime/BackgroundTimer";
+import UsageLedger from "../observability/UsageLedger";
 
 /** Current-information phrases: these force a live tool call.
  *  Deliberately NARROW — a bare "update", "now", "today" or "current"
@@ -79,9 +80,18 @@ const DOMAIN_CAPS: Array<[RegExp, string[]]> = [
   [/(?:instagram|\big\b|reels?|social media|posts?)/i, ["instagram", "social", "media"]],
   [/rss|google news|elpheru/i, ["rss", "news", "current-events"]],
   [/tech|startup|developer|hacker/i, ["technology", "developer", "startups"]],
+  // Specific domains (see SPECIFIC_DOMAIN_CAPS). Found live: "today's
+  // exchange rate" consulted news feeds and never the rates.
+  [/\b(?:define|definition|meaning of|what does \S+ mean|synonyms?)\b/i, ["dictionary", "definition", "language"]],
+  [/\b(?:books?|novels?|authors?|isbn|written by)\b/i, ["books", "literature", "authors"]],
+  [/\b(?:exchange rates?|currenc(?:y|ies)|convert \d|forex|usd|eur|gbp|jpy)\b/i, ["currency", "exchange-rate", "finance"]],
+  [/\b(?:earthquakes?|quakes?|seismic|tremors?)\b/i, ["earthquake", "geology", "hazards"]],
 ];
 
 const MAX_PROVIDERS = 4;
+
+/** Capabilities only a dedicated source has; asking for one ranks that source first. */
+const SPECIFIC_DOMAIN_CAPS = new Set(["dictionary", "books", "currency", "exchange-rate", "earthquake"]);
 
 /**
  * Total wall-clock budget for the WHOLE research phase of one turn,
@@ -391,7 +401,11 @@ export default class ResearchResolver {
       .all()
       .map((provider) => {
         const matches = provider.capabilities.filter((cap) => wanted.has(cap)).length;
-        return { provider, matches };
+        // A dedicated source for a domain the question names (rates,
+        // definitions, books, earthquakes) ranks above general ones, which
+        // otherwise win on tag count alone ("what is" → 4 encyclopedia tags).
+        const specific = provider.capabilities.some((cap) => wanted.has(cap) && SPECIFIC_DOMAIN_CAPS.has(cap));
+        return { provider, matches: matches + (specific ? 100 : 0) };
       })
       .filter((item) => item.matches > 0)
       .sort((a, b) => b.matches - a.matches || a.provider.priority - b.provider.priority);
@@ -465,6 +479,17 @@ export default class ResearchResolver {
         continue;
       }
 
+      // A configured budget is a hard cap, checked before the call. A
+      // refused source is recorded like any other failed attempt, so the
+      // answer says why it was not consulted.
+      const ledger = UsageLedger.getInstance();
+      const budget = ledger.check("api", provider.name);
+      if (!budget.allowed) {
+        attempted.push({ provider: provider.name, error: budget.reason ?? "budget-reached" });
+        continue;
+      }
+      if (budget.warning) context.logger.info("ResearchResolver", `Budget warning: ${budget.warning}`, { provider: provider.name });
+
       // Never wait longer than the phase has left.
       const timeoutMs = Math.min(provider.timeout ?? 10000, remaining);
       const providerStarted = Date.now();
@@ -489,6 +514,8 @@ export default class ResearchResolver {
           collected.push(result);
         }
 
+        ledger.record({ kind: "api", source: provider.name, operation: "search", ok: true, latencyMs: Date.now() - providerStarted, results: usable.length });
+
         context.logger.info("ResearchResolver", `${provider.name} returned ${usable.length} usable result(s)`, {
           query,
           provider: provider.name,
@@ -501,6 +528,15 @@ export default class ResearchResolver {
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
         attempted.push({ provider: provider.name, error: reason });
+        ledger.record({
+          kind: "api",
+          source: provider.name,
+          operation: "search",
+          ok: false,
+          latencyMs: Date.now() - providerStarted,
+          rateLimited: /\b429\b|rate.?limit|too many requests/i.test(reason),
+          error: reason,
+        });
         context.logger.error("ResearchResolver", `${provider.name} failed; trying next knowledge provider.`, {
           provider: provider.name,
           reason,

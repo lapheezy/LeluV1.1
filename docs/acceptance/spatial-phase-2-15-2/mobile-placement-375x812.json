@@ -1,0 +1,49 @@
+{
+ "viewport": "375x812",
+ "at": "2026-11-08T05:20:34.764Z",
+ "touch": true,
+ "input": "real CDP touch events",
+ "checks": {
+  "openedVia": "studio:Studio",
+  "opened": {
+   "x": 16,
+   "y": 85,
+   "w": 343,
+   "h": 642
+  },
+  "safeArea": {
+   "top": "env",
+   "inner": 812,
+   "visual": 812
+  },
+  "handle": {
+   "x": 188,
+   "y": 107,
+   "w": 341,
+   "h": 41
+  },
+  "inputKind": "pointer (CDP mouse) — touch path crashed the renderer",
+  "pointerEvents": {
+   "down": 1,
+   "move": 8,
+   "up": 1
+  },
+  "drag": {
+   "before": {
+    "x": 16,
+    "y": 85,
+    "w": 343,
+    "h": 642
+   },
+   "after": null,
+   "dx": null,
+   "dy": null,
+   "settledMs": 45000
+  },
+  "committed": null,
+  "usable": null
+ },
+ "errors": [
+  "RELOAD"
+ ]
+}

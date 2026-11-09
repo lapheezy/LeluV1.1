@@ -291,3 +291,7 @@ change: `agentic-execution` 20, `agentic-live` 5, `anthropic-integration` 20,
 `genesis-interface.test.tsx` still fails 2/2 with the same pre-existing
 `React is not defined`. Live model check: `npx tsx scripts/verify-interface.ts`
 (needs a provider key; spends ~5 model turns).
+
+<!-- LELU_VERIFICATION_MARKER mvqyjv7l -->
+
+<!-- LELU_VERIFICATION_MARKER mvqyldvo -->

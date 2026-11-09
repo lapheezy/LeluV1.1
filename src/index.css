@@ -1239,3 +1239,48 @@ html[data-lelu-previewing]::after {
 /* Phase 2 — a conversation owns the phone screen: the build stamp must not
    sit on the composer's edge (it is diagnostics, not part of the chat). */
 body:has([data-lelu-fullscreen]) [data-lelu-build] { display: none; }
+
+/*
+ * ---------------- immersive input routing ----------------
+ *
+ * The spatial interface floats over the live Genesis canvas. Panels, pills and
+ * layout containers are surfaces — painting, not targets — so they must not
+ * swallow a press meant for the world. Only genuine controls take the pointer
+ * back, and they do it for themselves, not for the space around them.
+ *
+ * Containers set `pointer-events: none` inline; this rule restores the pointer
+ * on the real controls inside them so every button, field and navigation item
+ * still works exactly as before.
+ */
+[data-spatial-nav],
+[data-spatial-groups],
+[data-portal-panel] {
+  pointer-events: none;
+}
+[data-spatial-nav] button,
+[data-spatial-nav] a,
+[data-spatial-nav] input,
+[data-spatial-nav] select,
+[data-spatial-groups] button,
+[data-spatial-groups] a,
+[data-spatial-groups] input,
+[data-spatial-groups] select,
+[data-portal-panel] button,
+[data-portal-panel] a,
+[data-portal-panel] input,
+[data-portal-panel] select,
+[data-portal-panel] textarea,
+[data-portal-panel] label {
+  pointer-events: auto;
+}
+
+/*
+ * The portal chips are the accessible twin of the portal mouth: keyboard Enter
+ * travels through the same `select()` as a click. They are positioned over the
+ * mouth, so they must not take the pointer — the canvas raycast is the owner of
+ * a pointer press, and it resolves the same portal id from the same surface.
+ * Keyboard focus and activation are unaffected by pointer-events.
+ */
+[data-portal-select] {
+  pointer-events: none !important;
+}

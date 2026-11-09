@@ -1,0 +1,6 @@
+{
+  "result": "NOT RE-RUN in this mission",
+  "reason": "permission-gated by provider quota and time; the only source change is tool-schema gating (ToolSchemas/ProviderResolver), which touches no rendering, portal, pointer or persistence path",
+  "prior_evidence": "4/4 viewports ACCEPTED at 7c4a373 (360x640, 375x812, 390x844, 430x932) \u2014 unchanged code path",
+  "physical_device_touch": "not performed"
+}

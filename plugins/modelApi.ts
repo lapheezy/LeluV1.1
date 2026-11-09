@@ -398,6 +398,21 @@ function brokerAllows(providerId: string, readEnv: EnvReader): boolean {
 export function createModelApi(readEnv: EnvReader) {
   warnAboutPrefixedCredentials(readEnv);
   const limiter = createRateLimiter(rateLimitFromEnv(readEnv));
+
+  /**
+   * WHAT THE SERVER HAS ACTUALLY SEEN, per provider.
+   *
+   * Configuration is not capability. A key string can exist while every
+   * request is refused, and reporting that as available sends each turn
+   * through a provider that cannot answer. This records the last real
+   * upstream outcome so /status can say what is KNOWN rather than what is
+   * merely configured. It costs no provider quota: it is filled by requests
+   * that were going to be made anyway.
+   */
+  const evidence = new Map<
+    string,
+    { state: string; httpStatus?: number; contentType?: string; at: number; note?: string }
+  >();
   const credentialFor = (provider: BrokeredProvider): string => {
     for (const name of provider.keyNames) {
       const value = readEnv(name);
@@ -418,12 +433,35 @@ export function createModelApi(readEnv: EnvReader) {
     // route that leaked the key would defeat the point of the broker.
     if (url === "/status" || url.startsWith("/status?")) {
       const status: Record<string, boolean> = {};
+      const states: Record<string, { state: string; at?: number; httpStatus?: number; note?: string }> = {};
       for (const [id, provider] of Object.entries(BROKERED)) {
         // Configured AND not known-rejected. A provider holding a revoked key
         // is not available, and saying otherwise sends every turn through it.
-        status[id] = credentialFor(provider).length > 0 && !unauthorized.has(id) && brokerAllows(id, readEnv);
+        const configured = credentialFor(provider).length > 0;
+        status[id] = configured && !unauthorized.has(id) && brokerAllows(id, readEnv);
+
+        // CONFIGURED is the honest answer when nothing has been observed yet;
+        // it is NOT a capability claim. Every stronger state needs evidence.
+        const seen = evidence.get(id);
+        let state: string;
+        if (!configured) state = "UNCONFIGURED";
+        else if (!brokerAllows(id, readEnv)) state = "POLICY_DISABLED";
+        else if (unauthorized.has(id)) state = "COOLDOWN";
+        else state = seen?.state ?? "CONFIGURED";
+        states[id] = {
+          state,
+          ...(seen ? { at: seen.at, httpStatus: seen.httpStatus, ...(seen.note ? { note: seen.note } : {}) } : {}),
+        };
       }
-      sendJson(res, { ok: true, providers: status });
+      sendJson(res, {
+        ok: true,
+        // Back-compatible booleans: "should the chain try it".
+        providers: status,
+        // The distinction Mission 5.7 asked for. `CONFIGURED` means only that;
+        // `COMPLETION_VERIFIED` / `TOOL_CALLING_VERIFIED` mean a real 2xx came
+        // back, and tool-calling is only ever claimed from an actual tool call.
+        states,
+      });
       return;
     }
 
@@ -516,11 +554,96 @@ export function createModelApi(readEnv: EnvReader) {
       // out of the chain, a successful one puts it back.
       if (isAuthFailure(upstream.status)) {
         unauthorized.add(providerId);
+        evidence.set(providerId, {
+          state: "AUTHENTICATION_FAILED",
+          httpStatus: upstream.status,
+          at: Date.now(),
+          note: "provider rejected the credential",
+        });
+      } else if (upstream.status === 429) {
+        evidence.set(providerId, {
+          state: "CAPACITY_LIMITED",
+          httpStatus: 429,
+          at: Date.now(),
+          note: "rate limit / quota refusal",
+        });
+      } else if (upstream.status >= 500) {
+        evidence.set(providerId, {
+          state: "UNREACHABLE",
+          httpStatus: upstream.status,
+          at: Date.now(),
+        });
       } else if (upstream.ok) {
         unauthorized.delete(providerId);
+        evidence.set(providerId, {
+          state: "COMPLETION_VERIFIED",
+          httpStatus: upstream.status,
+          at: Date.now(),
+        });
       }
 
       const contentType = upstream.headers.get("content-type") ?? "application/json";
+      const isEventStream = contentType.includes("text/event-stream");
+      // Read a non-streamed body once, so the contract can be judged from what
+      // actually came back rather than from the status code alone.
+      const bodyText = isEventStream ? "" : await upstream.text();
+      const wantsCompletion = /chat\/completions|\/messages|:generateContent/i.test(rest ?? "");
+
+      // MEASURED (2026-11-08): models.github.ai answered 200 text/plain "OK"
+      // for EVERY path from this host — including with no credential at all —
+      // while the same egress refused arXiv outright. A 2xx that is not a
+      // completion is an intercepted or broken route, and passing it through
+      // as success makes the app parse "OK" as a model reply. Refuse it,
+      // truthfully, and record why.
+      // The truth test is the BODY, not the declared type: a provider may omit
+      // or mislabel content-type while still returning real JSON. "OK", a
+      // login page or an egress interceptor's greeting does not parse.
+      const isJsonBody = (() => {
+        const trimmed = bodyText.trim();
+        if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return false;
+        try {
+          JSON.parse(trimmed);
+          return true;
+        } catch {
+          return false;
+        }
+      })();
+
+      if (upstream.ok && wantsCompletion && !isEventStream && !isJsonBody) {
+        evidence.set(providerId, {
+          state: "CONTRACT_VIOLATION",
+          httpStatus: upstream.status,
+          contentType,
+          at: Date.now(),
+          note: "2xx body was not JSON, so not a completion",
+        });
+        sendJson(
+          res,
+          {
+            ok: false,
+            code: "BROKER_CONTRACT_VIOLATION",
+            provider: providerId,
+            error:
+              "Upstream answered 2xx without a JSON completion; refusing to report it as one.",
+            upstreamStatus: upstream.status,
+            upstreamContentType: contentType,
+            upstreamPreview: bodyText.replace(/\s+/g, " ").slice(0, 80),
+          },
+          502,
+        );
+        return;
+      }
+
+      // Tool-calling is claimed only from an actual tool call in a real body.
+      if (upstream.ok && bodyText.includes('"tool_calls"')) {
+        evidence.set(providerId, {
+          state: "TOOL_CALLING_VERIFIED",
+          httpStatus: upstream.status,
+          contentType,
+          at: Date.now(),
+        });
+      }
+
       res.statusCode = upstream.status;
       res.setHeader("Content-Type", contentType);
       res.setHeader("Cache-Control", "no-store");
@@ -535,7 +658,6 @@ export function createModelApi(readEnv: EnvReader) {
       // else is still returned whole, including the upstream's own errors: a
       // broker that rewrote a 401 into something friendlier would hide the
       // one fact the caller needs.
-      const isEventStream = contentType.includes("text/event-stream");
       if (isEventStream && upstream.body && typeof res.write === "function") {
         res.flushHeaders?.();
         const reader = upstream.body.getReader();
@@ -555,7 +677,7 @@ export function createModelApi(readEnv: EnvReader) {
         return;
       }
 
-      res.end(await upstream.text());
+      res.end(bodyText);
     } catch (error) {
       if (clientGone.signal.aborted) return;
       // Measured: an upstream stream that failed AFTER its headers were

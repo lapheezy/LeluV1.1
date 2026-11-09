@@ -1,0 +1,4 @@
+{
+  "result": "NOT TESTED live",
+  "correction": "the earlier belief that DailyReflection is never called is outdated in this code: Bootstrap.ts:215 starts it, CognitiveLoop.ts:375 calls runDueReflections each cycle (failures contained), and AgenticTools exposes a manual reflection tool. No second memory system was added."
+}

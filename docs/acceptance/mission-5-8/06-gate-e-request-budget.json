@@ -1,0 +1,41 @@
+{
+  "gate": "E",
+  "verdict": "PARTIAL",
+  "instrumentationPoint": "src/core/router/ProviderResolver.generateWithTools, immediately after the tool list is chosen and before any provider call",
+  "module": "src/core/router/RequestBudget.ts",
+  "fields": [
+    "provider",
+    "model",
+    "tier",
+    "messageCount",
+    "systemBytes",
+    "historyBytes",
+    "promptBytes",
+    "toolCount",
+    "toolSchemaBytes",
+    "totalBytes",
+    "estimatedTokens",
+    "estimation",
+    "toolNames"
+  ],
+  "byteVsTokenSeparation": "every size field is bytes (UTF-8, TextEncoder). The only token-like field is estimatedTokens, labelled estimation:'bytes/4', and no provider usage is invented.",
+  "contentPolicy": "lengths, counts and tool names only; no message text, no tool arguments, no credential",
+  "singleToolList": "the budget describes the same `tools` array the provider receives; no second schema list was introduced",
+  "testsAdded": {
+    "file": "tests/request-budget.test.ts",
+    "count": 5,
+    "passed": 5,
+    "cases": [
+      "six environment tools at FULL",
+      "NONE tier carries no schemas",
+      "bytes not characters for non-ASCII",
+      "empty tool list costs zero schema bytes",
+      "no message content in the budget"
+    ]
+  },
+  "liveCapture": {
+    "captured": false,
+    "reason": "no live app chat turn was driven this mission, so the resolver log line has not been observed in a real turn"
+  },
+  "environmentToolCountAtFullTier": 6
+}
