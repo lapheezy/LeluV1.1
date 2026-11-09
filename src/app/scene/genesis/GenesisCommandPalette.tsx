@@ -86,6 +86,7 @@ export default function GenesisCommandPalette({
       { id: "open-reasoning", label: "Open reasoning & planning", hint: "Genesis Core", run: () => openPanel("reasoning") },
       { id: "open-cognition", label: "Open Cognition — self, knowledge, queue", hint: "Cognition", run: () => openPanel("cognition") },
       { id: "open-engineering", label: "Open Engineering sandbox", hint: "Engineering", run: () => openPanel("engineering") },
+      { id: "open-command", label: "Open Engineering Command — acquisitions, workforce, capabilities", hint: "Engineering", run: () => openPanel("command") },
       { id: "open-evolution", label: "Open Evolution — self-development engine", hint: "Evolution", run: () => openPanel("evolution") },
       { id: "open-visualstudio", label: "Open Genesis Studios", hint: "Visual environment", run: () => openPanel("visualstudio") },
       // Earth Core — a capability of the unified environment, not a tab.

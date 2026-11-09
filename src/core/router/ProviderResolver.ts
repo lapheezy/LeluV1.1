@@ -73,7 +73,6 @@ const RESEARCH_LOOP_BUDGET_MS = 3 * 60 * 1000;
  * only rounds that carry tools are trimmed, and the plain reply keeps its own
  * budget.
  */
-const TOOL_TURN_MAX_TOKENS = 768;
 const RESEARCH_LOOP_MAX_ROUNDS = 16;
 const RESEARCH_TOOL = /^(research|browser|memory)[._]/;
 
@@ -642,12 +641,6 @@ export default class ProviderResolver {
     // Tools are offered only on a conversational turn. Internal
     // structured-output calls (see AIRequest.allowTools) must reach the
     // provider exactly as they did before, or their parsers break.
-    /** The same request, with a reply reservation that fits a small TPM ceiling. */
-    const lean = (req: AIRequest): AIRequest => ({
-      ...req,
-      maxTokens: Math.min(req.maxTokens ?? TOOL_TURN_MAX_TOKENS, TOOL_TURN_MAX_TOKENS),
-    });
-
     const offeredTools =
       toolMode !== "none" && provider.supportsTools === true && context.request.allowTools === true
         ? toolMode === "reduced"
@@ -685,7 +678,7 @@ export default class ProviderResolver {
     // ToolCallInterceptor still salvages tool markup from these.
     if (tools.length === 0) {
       return gatedGenerate(provider, {
-        ...this.withRungSignal(lean(context.request), rungSignal),
+        ...this.withRungSignal(context.request, rungSignal),
         messages: fitted.messages,
       });
     }
@@ -706,7 +699,7 @@ export default class ProviderResolver {
     const requested: string[] = [];
 
     let response = await gatedGenerate(provider, {
-      ...this.withRungSignal(lean(context.request), rungSignal),
+      ...this.withRungSignal(context.request, rungSignal),
       messages,
       tools,
     });
@@ -845,7 +838,7 @@ export default class ProviderResolver {
         stopReason ? "NONE" : tools.length === offeredTools.length ? requestedTier : "REDUCED",
       );
       response = await gatedGenerate(provider, {
-        ...this.withRungSignal(lean(context.request), rungSignal),
+        ...this.withRungSignal(context.request, rungSignal),
         messages: refitted.messages,
         ...(refitted.tools.length ? { tools: refitted.tools } : {}),
       });

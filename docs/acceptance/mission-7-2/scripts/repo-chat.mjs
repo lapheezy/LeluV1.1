@@ -92,6 +92,7 @@ const snap = () => page.evaluate(() => {
     tail: text.split('\n').map((l) => l.trim()).filter(Boolean).slice(-40),
     toolMentions: (text.match(/repo[._][a-z_]+/g) || []).slice(-10),
     acquisitionMentions: (text.match(/acq-[a-z0-9-]+/g) || []).slice(-6),
+    assistant: [...document.querySelectorAll('[data-role="assistant"] .lcu-bubble')].slice(-2).map((el) => (el.innerText || '').slice(0, 900)),
   };
 });
 
