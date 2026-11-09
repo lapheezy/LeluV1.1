@@ -191,10 +191,18 @@ try {
       //   "… 1 waiting for your approval · Needs your approval: …"
       // The decision controls do not exist until a person opens it, which is
       // why every earlier attempt clicked something that was not this card.
-      const opener = page.locator('button', { hasText: /waiting for your approval/i }).first();
-      if ((await opener.count().catch(() => 0)) && (await opener.isVisible().catch(() => false))) {
-        await opener.click({ force: true }).catch(() => {});
-        await page.waitForTimeout(900);
+      // The card now renders directly in the Chat Universe window; open the
+      // task header only if the decision controls are not already there.
+      const decideVisible = async () => {
+        const el = page.locator('button:text-is("✓ Approve")').first();
+        return (await el.count().catch(() => 0)) && (await el.isVisible().catch(() => false));
+      };
+      if (!(await decideVisible())) {
+        const opener = page.locator('button', { hasText: /waiting for your approval/i }).first();
+        if ((await opener.count().catch(() => 0)) && (await opener.isVisible().catch(() => false))) {
+          await opener.click({ force: true }).catch(() => {});
+          await page.waitForTimeout(900);
+        }
       }
       // A second collapsed level (the timeline's own header) may sit between.
       const header = page.locator('button[aria-expanded="false"]').first();
