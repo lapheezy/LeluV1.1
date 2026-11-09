@@ -46,6 +46,8 @@ const AUTO_ROUTES = new Set(["openrouter/auto", "openrouter/free", "auto", "free
 import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
 
+import ProviderKeyRing from "../core/model/ProviderKeyRing";
+
 export default class OpenRouterProvider implements AIProvider {
   readonly name = "OpenRouter";
   readonly priority = 2;
@@ -169,6 +171,70 @@ export default class OpenRouterProvider implements AIProvider {
     return true;
   }
 
+  /**
+   * Send one payload, rotating across the configured OpenRouter accounts.
+   *
+   * Each account has its own free-model allowance, so a 401/403/429 that one
+   * account reports may be nothing to the next. The request itself does not
+   * change: model routing and preferences are preserved exactly. When every
+   * configured slot is cooling, the last response is returned and the caller
+   * reports it — the account-level cooldown stays the registry's job.
+   */
+  private async post(payload: unknown, request: AIRequest, deadline: AbortSignal): Promise<Response> {
+    const broker = isBrokered("openrouter");
+    const ring = ProviderKeyRing.for("openrouter");
+    const slots = broker ? 1 : Math.max(1, Math.min(ring.size(), 4));
+    let last: Response | null = null;
+    let lastError: unknown;
+
+    for (let attempt = 0; attempt < slots; attempt += 1) {
+      const credential = broker ? null : ring.next();
+      const key = credential?.key ?? this.apiKey;
+      if (!key && !broker) break;
+      try {
+        const response = await fetch(endpointUrl("openrouter", "chat/completions"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            // Brokered: no credential leaves the browser — the server attaches
+            // its own. Direct (server/tests): the real header.
+            ...authHeaders("openrouter", key, (value) => ({ Authorization: `Bearer ${value}` })),
+            "HTTP-Referer":
+              typeof window !== "undefined"
+                ? window.location.origin
+                : "https://freebuff.com",
+            "X-Title": "Lélu",
+          },
+          body: JSON.stringify(payload),
+          signal: request.signal ? AbortSignal.any([request.signal, deadline]) : deadline,
+        });
+        if (response.ok) {
+          if (credential) ring.markSuccess(credential.label);
+          return response;
+        }
+        const reason = await response.clone().text().catch(() => "");
+        const retryable = response.status === 401 || response.status === 403 || response.status === 429;
+        if (credential) {
+          ring.markFailure(credential.label, reason || `HTTP ${response.status}`);
+        }
+        if (retryable && ring.readyCount() > 0) {
+          last = response;
+          continue;
+        }
+        return response;
+      } catch (error) {
+        lastError = error;
+        if (credential) {
+          ring.markFailure(credential.label, error instanceof Error ? error.message : String(error));
+        }
+      }
+    }
+
+    if (last) return last;
+    throw lastError ?? new Error("OpenRouter: no usable credential.");
+  }
+
   async generate(request: AIRequest): Promise<AIResponse> {
     const started = Date.now();
 
@@ -217,26 +283,7 @@ export default class OpenRouterProvider implements AIProvider {
     const timedOut = () => deadline.aborted && !request.signal?.aborted;
 
     try {
-      response = await fetch(
-        endpointUrl("openrouter", "chat/completions"),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            // Brokered: no credential leaves the browser — the server attaches
-            // its own. Direct (server/tests): the real header.
-            ...authHeaders("openrouter", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
-            "HTTP-Referer":
-              typeof window !== "undefined"
-                ? window.location.origin
-                : "https://freebuff.com",
-            "X-Title": "Lélu",
-          },
-          body: JSON.stringify(payload),
-          signal: request.signal ? AbortSignal.any([request.signal, deadline]) : deadline,
-        },
-      );
+      response = await this.post(payload, request, deadline);
     } catch (error) {
       if (timedOut()) throw new Error(`OpenRouter timed out after ${Math.round(timeoutMs / 1000)}s.`);
       const message = error instanceof Error ? error.message : String(error);
