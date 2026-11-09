@@ -623,10 +623,28 @@ export default class EnvironmentOrchestrationEngine {
     return snapshot;
   }
 
+  /**
+   * Restore by id OR by the name the snapshot was saved under.
+   *
+   * Required live (Mission 8.1): a session that had just saved
+   * "planets-closure" asked to restore it by that name, and this accepted only
+   * an opaque `snapshot-…` id — so the one handle a person, or a model reading
+   * the conversation, actually has failed with "not found" while the snapshot
+   * sat in storage. An id is precise; a name is what is said out loud. Both
+   * resolve here, and a name used twice takes the most recent save.
+   */
   public restoreSnapshot(snapshotId: string): { ok: boolean; snapshot?: EnvironmentStateSnapshot; error?: string } {
-    const snapshot = this.snapshots.get(snapshotId);
+    const key = snapshotId.trim();
+    const snapshot =
+      this.snapshots.get(key) ??
+      [...this.snapshots.values()]
+        .filter((candidate) => candidate.name.trim().toLowerCase() === key.toLowerCase())
+        .sort((a, b) => b.timestamp - a.timestamp)[0];
     if (!snapshot) {
-      return { ok: false, error: `Snapshot ${snapshotId} not found.` };
+      // Say what DOES exist: a refusal that lists the available names is
+      // actionable, an opaque "not found" is a dead end.
+      const known = this.getSnapshots().map((saved) => `"${saved.name}" (${saved.id})`).join(", ") || "none";
+      return { ok: false, error: `Snapshot ${snapshotId} not found. Saved snapshots: ${known}.` };
     }
 
     // Reconstruct workspace

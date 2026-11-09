@@ -541,6 +541,10 @@
     "table: {Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}",
     "log: Metadata: {provider: OpenRouter, tier: FULL, messageCount: 2, systemBytes: 127, historyBytes: 368}",
     "error: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "error: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "startGroupCollapsed: 🟢 [12:30:19 PM] [ProviderResolver] OpenRouter generated response",
+    "table: {Stage: ProviderResolver, Success: true, Message: OpenRouter generated response, Provider: -, Duration: -, Confidence: -}",
+    "log: Metadata: {provider: OpenRouter, model: openai/gpt-4o-mini, latencyMs: 4008, responseLength: 138, usage: Object}",
     "error: Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
   ],
   "modelRequests": [
@@ -610,7 +614,7 @@
       "documents": 1
     }
   ],
-  "result": "RUNNING",
+  "result": "RECORDED",
   "storageAtStart": null,
   "entry": {
     "composer": 1,
@@ -682,5 +686,6 @@
       "lelu.proactive.runtime.checkpoint.v1"
     ],
     "envState": "[{\"id\":\"snapshot-mw98jvhh\",\"name\":\"planets-closure\",\"timestamp\":1794227204645,\"category\":\"development\",\"workspaceSnapshot\":{\"views\":[{\"id\":\"view-executive\",\"kind\":\"executive\",\"title\":\"Lélu · Live Execution\",\"createdAt\":1794227005311,\"updatedAt\":1794227005331,\"minimized\":false,\"pinned\":false,\"temporary\":false,\"weight\":1,\"stackOrder\":0,\"viewState\":{\"zoom\":1,\"pan\":{\"x\":0,\"y\":0},\"highlighted\":[],\"sele"
-  }
+  },
+  "finishedAt": "2026-11-09T12:30:29.395Z"
 }

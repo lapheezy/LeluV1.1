@@ -355,13 +355,19 @@ export const ENVIRONMENT_EXECUTORS: ToolExecutor[] = [
     parameters: {
       type: "object",
       properties: {
-        snapshotId: { type: "string", description: "Snapshot ID to restore." },
+        snapshotId: {
+          type: "string",
+          description:
+            "Snapshot to restore: either its id (snapshot-…) or the name it was saved under, e.g. \"planets-closure\".",
+        },
+        name: { type: "string", description: "Alias for snapshotId when you know the snapshot by name." },
       },
       required: ["snapshotId"],
     },
     run: async (args) => {
       const engine = EnvironmentOrchestrationEngine.getInstance();
-      const snapshotId = str(args, "snapshotId");
+      // A caller that says the NAME is not wrong: the engine resolves both.
+      const snapshotId = str(args, "snapshotId") || str(args, "name");
       const res = engine.restoreSnapshot(snapshotId);
       if (!res.ok || !res.snapshot) {
         return { ok: false, content: res.error ?? "Failed to restore environment snapshot." };
@@ -369,7 +375,7 @@ export const ENVIRONMENT_EXECUTORS: ToolExecutor[] = [
       return {
         ok: true,
         content: `Restored environment snapshot "${res.snapshot.name}" (${res.snapshot.category}). ${res.snapshot.workspaceSnapshot.views.length} views restored.`,
-        data: { snapshotId, layout: res.snapshot.workspaceSnapshot.layout },
+        data: { snapshotId: res.snapshot.id, layout: res.snapshot.workspaceSnapshot.layout },
       };
     },
   },
