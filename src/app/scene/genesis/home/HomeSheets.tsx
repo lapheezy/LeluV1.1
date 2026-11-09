@@ -192,9 +192,9 @@ export function WorldsSheet({
   const home = useHomeStore();
   const scene = genesis.state.activeScene;
   const worlds: Array<{ id: string; label: string; hint: string; icon: string; on: boolean; go: () => void }> = [
-    { id: "cosmos", label: "Cosmos", hint: "Her living universe — home", icon: "Orbit", on: scene !== "genesisv2", go: () => { if (scene === "genesisv2") genesis.openPanel("none"); HomeStore.setImmersive(false); } },
+    { id: "cosmos", label: "Cosmos", hint: "Her living universe — home", icon: "Orbit", on: scene !== "genesisv2" && genesis.state.activePanel === "none", go: () => { goHome(genesis); HomeStore.setImmersive(false); } },
     { id: "genesisv2", label: "Her world", hint: "LÉLU in 3D, her rooms", icon: "Layers", on: scene === "genesisv2", go: () => genesis.openPanel("genesisv2" as GenesisPanel) },
-    { id: "earth", label: "Earth", hint: "Live planet data", icon: "Globe2", on: genesis.state.activePanel === "earth", go: () => genesis.openPanel("earth" as GenesisPanel) },
+    { id: "earth", label: "Earth", hint: "Live planet data", icon: "Globe2", on: genesis.state.activePanel === "earth", go: () => { if (scene === "genesisv2") genesis.openPanel("none"); genesis.openPanel("earth" as GenesisPanel); } },
     { id: "system", label: "System", hint: "Her systems, visualised", icon: "Activity", on: false, go: onSystem },
   ];
   return (
@@ -202,7 +202,7 @@ export function WorldsSheet({
       <ul className="lsh-list">
         {worlds.map((w) => (
           <li key={w.id}>
-            <button type="button" className="lsh-world" data-on={w.on ? "true" : "false"} onClick={() => { w.go(); onClose(); }}>
+            <button type="button" className="lsh-world" data-world={w.id} data-on={w.on ? "true" : "false"} aria-current={w.on ? "true" : undefined} onClick={() => { w.go(); onClose(); }}>
               <span className="lsh-app-icon">
                 <HomeIcon name={w.icon} size={20} />
               </span>

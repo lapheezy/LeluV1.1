@@ -159,7 +159,11 @@ export default function SpatialNavigator() {
   // The Chat Universe brings its own rail and composer; the world's rail
   // steps aside while it is open so it never covers the Universe composer.
   const universeOpen = useUniverseOpen();
-  const hidden = surface.chatOwnsScreen || universeOpen;
+  // An application window owns a phone screen. Its controls were being
+  // covered by this floating rail; the window's own close/palette remain.
+  const phoneWindowOpen =
+    genesis.activePanel !== "none" && typeof window !== "undefined" && window.innerWidth < 720;
+  const hidden = surface.chatOwnsScreen || universeOpen || phoneWindowOpen;
   const travelling = Boolean(spatial.transition);
   const progress = spatial.transition ? Math.round(spatial.transition.progress * 100) : 100;
   const active = destinationFor(spatial.current);

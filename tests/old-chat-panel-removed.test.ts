@@ -29,7 +29,7 @@ test("openPanel('chat') always opens the Chat Universe — no way back to the ol
 
 test("the Universe composer carries attachments, screen sharing and voice itself", () => {
   const u = code("src/app/scene/genesis/chat/universe/ChatUniverse.tsx");
-  assert.match(u, /aria-label="Attach an image or video"/);
+  assert.match(u, /aria-label="Attach an image, video or file"/);
   assert.match(u, /screenShareSupport\(\)\.supported/);
   assert.match(u, /VoiceEngine\.getInstance\(\)\.toggle\(\)/);
   assert.match(u, /media: attached/);

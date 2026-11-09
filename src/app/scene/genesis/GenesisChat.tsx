@@ -326,6 +326,8 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
   const [pendingMedia, setPendingMedia] = useState<ProcessedMedia[]>([]);
   /** Attachments from the Chat Universe composer, consumed by the next send. */
   const universeMediaRef = useRef<ProcessedMedia[]>([]);
+  /** Files handed over by the Chat Universe composer, consumed by the next send. */
+  const universeFilesRef = useRef<PendingFile[]>([]);
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [mediaBusy, setMediaBusy] = useState(false);
   const [mediaOpen, setMediaOpen] = useState(false);
@@ -705,7 +707,8 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     // Media handed over by the Chat Universe composer rides with its words.
     const handedMedia = retrying !== null ? universeMediaRef.current.splice(0) : [];
     const media = reused ? handedMedia : pendingMedia;
-    const files = reused ? [] : pendingFiles;
+    const handedFiles = retrying !== null ? universeFilesRef.current.splice(0) : [];
+    const files = reused ? handedFiles : pendingFiles;
     if (!typed && media.length === 0 && files.length === 0) {
       return;
     }
@@ -1412,13 +1415,15 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
   // turn streams, queues and persists exactly like one typed here.
   useEffect(() => {
     const onUniverseSend = (event: Event) => {
-      const detail = (event as CustomEvent<{ text?: string; conversationId?: string; media?: ProcessedMedia[] }>).detail;
+      const detail = (event as CustomEvent<{ text?: string; conversationId?: string; media?: ProcessedMedia[]; files?: PendingFile[] }>).detail;
       const media = Array.isArray(detail?.media) ? detail.media : [];
+      const files = Array.isArray(detail?.files) ? detail.files : [];
       const text = detail?.text?.trim() || (media.length ? defaultMediaPrompt(media) : "");
-      if (!text) return;
+      if (!text && media.length === 0 && files.length === 0) return;
       if (detail?.conversationId && MultiChatStore.getInstance().getActiveId() !== detail.conversationId) return;
       universeMediaRef.current = media;
-      retry(text);
+      universeFilesRef.current = files;
+      retry(text || "Please read the attached file(s).");
     };
     window.addEventListener("lelu-universe-send", onUniverseSend);
     return () => window.removeEventListener("lelu-universe-send", onUniverseSend);

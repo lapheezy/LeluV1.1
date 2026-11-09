@@ -675,7 +675,14 @@ export default function GenesisInterface() {
   // On a phone, when chat (or a window) owns the screen, Home is not rendered
   // at all — it is not hidden under the conversation.
   const showHome = !state.minimized && state.activePanel === "none" && !sceneIsV2 && !systemEnvironmentActive && !homeStore.immersive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen;
-  const navHidden = state.minimized || surface.chatOwnsScreen || surface.workspaceOwnsScreen;
+  const navHidden =
+    state.minimized ||
+    surface.chatOwnsScreen ||
+    surface.workspaceOwnsScreen ||
+    // On a phone an application window is the screen. The bottom nav was
+    // painting over its last controls and composer; the window's own close
+    // and the ⌘K palette remain the way out.
+    (state.activePanel !== "none" && typeof window !== "undefined" && window.innerWidth < 720);
 
   /*
    * Workspace activity is event-driven. Opening Chat or Avatar must not

@@ -68,6 +68,15 @@ export function openChatUniverse(): void {
 
 const ART_BASE = `${import.meta.env?.BASE_URL ?? "/"}universe/`.replace(/\/\/+/g, "/");
 
+/** A document attached beside the composer. It enters GenesisChat's real file context pipeline. */
+interface UniverseFile {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  preview: string;
+}
+
 function useArchived() {
   const store = MultiChatStore.getInstance();
   const subscribe = useCallback((cb: () => void) => store.subscribe(cb), [store]);
@@ -259,6 +268,7 @@ export default function ChatUniverse() {
 
   // Attachments and screen sharing live HERE now — the old panel is gone.
   const [attached, setAttached] = useState<ProcessedMedia[]>([]);
+  const [attachedFiles, setAttachedFiles] = useState<UniverseFile[]>([]);
   const [attachNotice, setAttachNotice] = useState<string | null>(null);
   const mediaRef = useRef<HTMLInputElement | null>(null);
   const canShareScreen = useMemo(() => screenShareSupport().supported, []);
@@ -291,23 +301,46 @@ export default function ChatUniverse() {
   };
   const onAttach = async (files: FileList | null) => {
     if (!files?.length) return;
-    const next: ProcessedMedia[] = [];
+    const nextMedia: ProcessedMedia[] = [];
+    const nextFiles: UniverseFile[] = [];
     for (const file of [...files].slice(0, 4)) {
       try {
-        next.push(file.type.startsWith("video/") ? await processVideoFile(file) : await processImageFile(file));
+        if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
+          nextMedia.push(file.type.startsWith("video/") ? await processVideoFile(file) : await processImageFile(file));
+          continue;
+        }
+        let preview = "";
+        const textLike =
+          file.size < 512 * 1024 &&
+          (/^text\/|json|javascript|typescript|xml|yaml|markdown|html|css|svg/.test(file.type) ||
+            /\.(txt|md|json|js|ts|tsx|jsx|py|css|html|xml|yml|yaml|csv|log|env|gitignore)$/i.test(file.name));
+        if (textLike) preview = (await file.text()).slice(0, 800);
+        nextFiles.push({
+          id: crypto.randomUUID(),
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          preview,
+        });
       } catch (error) {
         setAttachNotice(`Could not attach ${file.name}: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
-    if (next.length) setAttached((current) => [...current, ...next].slice(0, 4));
+    if (nextMedia.length) setAttached((current) => [...current, ...nextMedia].slice(0, 4));
+    if (nextFiles.length) setAttachedFiles((current) => [...current, ...nextFiles].slice(0, 4));
   };
   const send = () => {
-    const text = draft.trim();
+    const text = draft.trim() || (attached.length === 0 && attachedFiles.length > 0 ? "Please read the attached file(s)." : "");
     const target = focused ?? byId.get(activeConversationId) ?? null;
     if ((!text && attached.length === 0) || !target) return;
     if (target.id !== MultiChatStore.getInstance().getActiveId()) genesis.switchConversation(target.id);
-    window.dispatchEvent(new CustomEvent(UNIVERSE_SEND_EVENT, { detail: { text, conversationId: target.id, media: attached } }));
+    window.dispatchEvent(
+      new CustomEvent(UNIVERSE_SEND_EVENT, {
+        detail: { text, conversationId: target.id, media: attached, files: attachedFiles },
+      }),
+    );
     setAttached([]);
+    setAttachedFiles([]);
     setDraft("");
     if (!focused) openChat(target.id);
   };
@@ -488,26 +521,47 @@ export default function ChatUniverse() {
 
       {/* ---------- universal composer + quick dock ---------- */}
       {sheetOpen ? null : (
-      <footer className="lcu-bottom">
+      <footer
+        className="lcu-bottom"
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          void onAttach(event.dataTransfer.files);
+        }}
+      >
         {attachNotice ? (
           <div role="status" data-lelu-screen-share-notice className="lcu-notice" style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", marginBottom: 6, borderRadius: 10, background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.35)", color: "#fde68a", font: "500 12px system-ui, sans-serif" }}>
             <span style={{ flex: 1 }}>{attachNotice}</span>
             <button type="button" className="lcu-icon sm" aria-label="Dismiss notice" onClick={() => setAttachNotice(null)}><Icons.X size={13} /></button>
           </div>
         ) : null}
-        {attached.length ? (
-          <div className="lcu-attached" aria-label="Attachments" style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+        {attached.length || attachedFiles.length ? (
+          <div className="lcu-attached" aria-label="Attachments" style={{ display: "flex", gap: 6, marginBottom: 6, flexWrap: "wrap" }}>
             {attached.map((m, i) => (
               <span key={i} style={{ position: "relative", display: "inline-block" }}>
                 <img src={m.dataUrl} alt={m.kind === "video" ? "Video frame" : "Attached image"} style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)" }} />
                 <button type="button" className="lcu-icon sm" aria-label="Remove attachment" style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20 }} onClick={() => setAttached((cur) => cur.filter((_, j) => j !== i))}><Icons.X size={11} /></button>
               </span>
             ))}
+            {attachedFiles.map((file) => (
+              <span key={file.id} className="lcu-attached-file" title={file.name}>
+                <Icons.FileText size={13} />
+                <span>{file.name}</span>
+                <button type="button" className="lcu-icon sm" aria-label={`Remove ${file.name}`} onClick={() => setAttachedFiles((cur) => cur.filter((item) => item.id !== file.id))}><Icons.X size={11} /></button>
+              </span>
+            ))}
           </div>
         ) : null}
         <div className="lcu-composer">
-          <button type="button" className="lcu-icon" aria-label="Attach an image or video" onClick={() => mediaRef.current?.click()} disabled={!target}><Icons.Plus size={19} /></button>
-          <input ref={mediaRef} type="file" accept="image/*,video/*" multiple hidden onChange={(e) => { void onAttach(e.target.files); e.target.value = ""; }} />
+          <button type="button" className="lcu-icon" aria-label="Attach an image, video or file" onClick={() => mediaRef.current?.click()} disabled={!target}><Icons.Plus size={19} /></button>
+          <input
+            ref={mediaRef}
+            type="file"
+            accept="image/*,video/*,.txt,.md,.json,.js,.ts,.tsx,.jsx,.py,.css,.html,.xml,.yml,.yaml,.csv,.log,.pdf,.doc,.docx"
+            multiple
+            hidden
+            onChange={(e) => { void onAttach(e.target.files); e.target.value = ""; }}
+          />
           <div className="lcu-input">
             <span className="lcu-target" title="This message goes to">{target ? target.title : "Pick a chat"}</span>
             <textarea
@@ -536,8 +590,8 @@ export default function ChatUniverse() {
                 {sharing ? <Icons.ScreenShareOff size={17} /> : <Icons.ScreenShare size={17} />}
               </button>
             ) : null}
-            <button type="button" className="lcu-icon sm" aria-label="Talk to LÉLU" onClick={() => { void VoiceEngine.getInstance().toggle(); }}><Icons.Mic size={17} /></button>
-            <button type="button" className="lcu-send" onClick={send} disabled={!target || (!draft.trim() && attached.length === 0)} aria-label={`Send to ${target?.title ?? "chat"}`}><Icons.ArrowRight size={19} /></button>
+            <button type="button" className="lcu-icon sm" aria-label="Talk to LÉLU"            onClick={() => { void VoiceEngine.getInstance().toggle(); }}><Icons.Mic size={17} /></button>
+            <button type="button" className="lcu-send" onClick={send} disabled={!target || (!draft.trim() && attached.length === 0 && attachedFiles.length === 0)} aria-label={`Send to ${target?.title ?? "chat"}`}><Icons.ArrowRight size={19} /></button>
           </div>
         </div>
         <nav className="lcu-dock" aria-label="Quick chat dock">

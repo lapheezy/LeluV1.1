@@ -17,7 +17,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { useGenesis } from "../../GenesisCore";
+import { chatWindowId, useGenesis } from "../../GenesisCore";
 import MultiChatStore from "../../../../../core/multichat/MultiChatStore";
 import { hasVisibleActivity } from "../../../../../core/multichat/TurnActivity";
 import ChatActivityCard from "../ChatActivity";
@@ -50,6 +50,9 @@ export default function UniverseChatWindow({
   );
   const liveActivity = useLiveActivity(conversationId);
   const [draft, setDraft] = useState("");
+  const [controlsOpen, setControlsOpen] = useState(false);
+  const moduleId = chatWindowId(conversationId);
+  const presentation = genesis.state.modules[moduleId]?.presentation ?? "inline";
   const threadRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -72,6 +75,21 @@ export default function UniverseChatWindow({
     setDraft("");
   };
 
+  const action = (label: string, run: () => void, pressed?: boolean) => (
+    <button
+      type="button"
+      role="menuitem"
+      className="lcu-win-action"
+      aria-pressed={pressed}
+      onClick={() => {
+        setControlsOpen(false);
+        run();
+      }}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <GenesisWindowFrame
       eyebrow="Chat Universe"
@@ -79,9 +97,32 @@ export default function UniverseChatWindow({
       onClose={onClose}
       active={conversation.processing}
       overflow="hidden"
-      extraActions={conversation.processing ? <span className="lcu-live">Active</span> : null}
+      extraActions={
+        <span className="lcu-win-head-actions">
+          {conversation.processing ? <span className="lcu-live">Active</span> : null}
+          <button
+            type="button"
+            className="lcu-win-controls-toggle"
+            aria-label="Chat controls"
+            aria-haspopup="menu"
+            aria-expanded={controlsOpen}
+            onClick={() => setControlsOpen((open) => !open)}
+          >
+            ⚙ Controls
+          </button>
+        </span>
+      }
     >
       <div className="lcu-win-body" data-lelu-universe-window={conversation.id}>
+        <div className="lcu-win-controls" data-open={controlsOpen ? "true" : "false"}>
+          <div className="lcu-win-controls-row" role="menu" aria-label={`${conversation.title} controls`}>
+            {action(conversation.pinned ? "Unpin conversation" : "Pin conversation", () => MultiChatStore.getInstance().pin(conversation.id), conversation.pinned)}
+            {action("Minimize", () => genesis.minimizeModule(moduleId))}
+            {action(presentation === "expanded" ? "Restore window" : "Maximize", () => genesis.setModulePresentation(moduleId, presentation === "expanded" ? "inline" : "expanded"))}
+            {action("Chat settings", () => genesis.openPanel("settings"))}
+            {action("Close window", onClose)}
+          </div>
+        </div>
         {/* A consent point must be decidable where the person is looking. The
             card lives in GenesisExecutionTimeline, but the chat panel is
             mounted hidden behind this window and draws nothing — so the same

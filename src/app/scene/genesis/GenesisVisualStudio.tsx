@@ -2,19 +2,24 @@
  * ==========================================================
  * LÉLU — UNIFIED VISUAL STUDIO
  *
- * Merges Render + Sketch + Avatar into one creative environment.
- * All three modes share the same CreativeOrchestrator pipeline —
- * the user switches between sketch/concept, 3D scene, and avatar
- * without leaving the studio. Chat remains open alongside.
+ * Render + Sketch + Avatar are modes of ONE studio, and each mode is the
+ * existing, working workspace — not a second generation form:
+ *
+ *   Sketch  GenesisSketchPanel  real canvas, strokes, layers, export
+ *   Render  GenesisRenderPanel  real offline render engines + saved outputs
+ *   Avatar  GenesisAvatarPanel  real profile, procedural 3D and saved renders
+ *
+ * The three panels already share the window chrome through InModuleWindow,
+ * so embedding them here does not create a window inside a window.
  * ==========================================================
  */
 
-import { useCallback, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import GenesisWindowFrame from "./GenesisWindowFrame";
-import CreativeOrchestrator, {
-  type CreativeResult,
-} from "../../../core/creative/CreativeOrchestrator";
-import AgentEventBus from "../../../core/agent/AgentEvents";
+import { useGenesis } from "./GenesisCore";
+import GenesisSketchPanel from "./GenesisSketchPanel";
+import GenesisRenderPanel from "./GenesisRenderPanel";
+import GenesisAvatarPanel from "./GenesisAvatarPanel";
 
 export type StudioMode = "sketch" | "render" | "avatar";
 
@@ -25,8 +30,8 @@ interface Props {
 
 /*
  * Genesis Studios is the ONE visual environment — sketch, render and
- * avatar are modes inside it. Commands that used to open separate
- * panels now request a mode here and open the studio.
+ * avatar are modes inside it. Commands request a mode here and open the
+ * studio; no separate process or parallel studio is created.
  */
 let requestedMode: StudioMode | null = null;
 
@@ -35,7 +40,7 @@ export function openStudioMode(mode: StudioMode): void {
 }
 
 const tabChip = (active: boolean): React.CSSProperties => ({
-  padding: "5px 14px",
+  padding: "6px 15px",
   borderRadius: 999,
   border: active
     ? "1px solid rgba(167, 139, 250, 0.5)"
@@ -50,181 +55,79 @@ const tabChip = (active: boolean): React.CSSProperties => ({
   gap: 6,
 });
 
+const MODES: Array<{ key: StudioMode; glyph: string; label: string; hint: string }> = [
+  { key: "render", glyph: "◍", label: "Render", hint: "Finished visuals and 3D" },
+  { key: "sketch", glyph: "✎", label: "Sketch", hint: "Draw, layer and export" },
+  { key: "avatar", glyph: "◉", label: "Avatar", hint: "Identity and presence" },
+];
+
 export default function GenesisVisualStudio({ onClose, initialMode = "render" }: Props) {
+  const genesis = useGenesis();
   const [mode, setMode] = useState<StudioMode>(() => {
     const requested = requestedMode;
     requestedMode = null;
     return requested ?? initialMode;
   });
-  const [prompt, setPrompt] = useState("");
-  const [lastResult, setLastResult] = useState<CreativeResult | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [outputImage, setOutputImage] = useState<string | null>(null);
 
-  const orchestrator = useMemo(() => CreativeOrchestrator.getInstance(), []);
+  const active = MODES.find((item) => item.key === mode) ?? MODES[0];
 
-  const handleGenerate = useCallback(async () => {
-    if (!prompt.trim() || busy) return;
-    setBusy(true);
-    try {
-      const result = await orchestrator.route(`${mode}: ${prompt}`);
-
-      if (result.artifact?.output) {
-        setOutputImage(result.artifact.output);
-        AgentEventBus.getInstance().emit({
-          type: "creative_artifact",
-          taskId: `vs-${Date.now()}`,
-          image: result.artifact.output,
-          label: `${mode} — ${prompt.slice(0, 60)}`,
-        });
-      }
-
-      setLastResult(result);
-      setPrompt("");
-    } catch (err) {
-      console.error("[VisualStudio] Generation failed:", err);
-    } finally {
-      setBusy(false);
-    }
-  }, [prompt, busy, mode, orchestrator]);
-
-  const modes: Array<{ key: StudioMode; glyph: string; label: string }> = [
-    { key: "render", glyph: "◍", label: "Render" },
-    { key: "sketch", glyph: "✎", label: "Sketch" },
-    { key: "avatar", glyph: "◉", label: "Avatar" },
-  ];
+  // A canvas editor needs the phone's usable height. As an inline sheet the
+  // Studio was only ~190px tall, so Sketch showed tabs and a clipped strip
+  // rather than a canvas. On a phone the visual Studio owns the screen;
+  // on desktop the normal floating window is unchanged.
+  useEffect(() => {
+    if (typeof window === "undefined" || window.innerWidth >= 720) return;
+    genesis.setModulePresentation("visualstudio", "expanded");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
-    <GenesisWindowFrame title="Visual Studio" onClose={onClose}>
-      {/* ── Mode tabs ── */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
-        {modes.map((m) => (
-          <button
-            key={m.key}
-            type="button"
-            onClick={() => setMode(m.key)}
-            style={tabChip(mode === m.key)}
-          >
-            <span aria-hidden>{m.glyph}</span>
-            {m.label}
-          </button>
-        ))}
-      </div>
-
-      {/* ── Prompt input ── */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <input
-          type="text"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              void handleGenerate();
-            }
-          }}
-          placeholder={
-            mode === "sketch"
-              ? "Describe what to sketch…"
-              : mode === "render"
-                ? "Describe the 3D scene…"
-                : "Describe avatar changes…"
-          }
-          style={{
-            flex: 1,
-            padding: "8px 14px",
-            borderRadius: 999,
-            border: "1px solid rgba(255,255,255,0.12)",
-            background: "rgba(8, 16, 38, 0.5)",
-            color: "#e2e8f0",
-            fontSize: 13,
-            fontFamily: "inherit",
-            outline: "none",
-          }}
-        />
-        <button
-          type="button"
-          onClick={() => void handleGenerate()}
-          disabled={busy || !prompt.trim()}
-          style={{
-            padding: "8px 16px",
-            borderRadius: 999,
-            border: "1px solid rgba(167, 139, 250, 0.45)",
-            background: busy
-              ? "rgba(167, 139, 250, 0.08)"
-              : "rgba(167, 139, 250, 0.15)",
-            color: busy ? "rgba(167, 139, 250, 0.5)" : "#d4c8ff",
-            fontSize: 12,
-            fontWeight: 600,
-            fontFamily: "inherit",
-            cursor: busy ? "not-allowed" : "pointer",
-          }}
-        >
-          {busy ? "…" : "Create"}
-        </button>
-      </div>
-
-      {/* ── Canvas area ── */}
-      <div
-        style={{
-          minHeight: 220,
-          borderRadius: 14,
-          border: "1px solid rgba(255,255,255,0.08)",
-          background: "rgba(2, 6, 23, 0.45)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden",
-          position: "relative",
-        }}
-      >
-        {outputImage ? (
-          <img
-            src={outputImage}
-            alt="Visual output"
-            style={{
-              maxWidth: "100%",
-              maxHeight: 320,
-              objectFit: "contain",
-              borderRadius: 8,
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              textAlign: "center",
-              color: "rgba(203, 228, 255, 0.35)",
-              fontSize: 13,
-              padding: "24px",
-            }}
-          >
-            {mode === "sketch"
-              ? "Describe your idea above — LÉLU will sketch it here."
-              : mode === "render"
-                ? "Describe your 3D scene above — LÉLU will render it here."
-                : "Describe avatar changes above — LÉLU will generate them here."}
-          </div>
-        )}
-      </div>
-
-      {/* ── Result feedback ── */}
-      {lastResult && (
+    <GenesisWindowFrame
+      eyebrow="LÉLU · Studio"
+      title="Visual Studio"
+      onClose={onClose}
+      width="min(97vw, 1240px)"
+      maxHeight="min(94vh, 960px)"
+      elevation="focus"
+      overflow="hidden"
+      zoomable={false}
+    >
+      <div data-lelu-visual-studio={mode} style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
         <div
           style={{
-            marginTop: 10,
-            padding: "8px 14px",
-            borderRadius: 10,
-            background: "rgba(52, 211, 153, 0.08)",
-            border: "1px solid rgba(52, 211, 153, 0.2)",
-            fontSize: 11.5,
-            color: "rgba(203, 228, 255, 0.65)",
-            lineHeight: 1.5,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            flexWrap: "wrap",
+            padding: "0 0 12px",
+            flexShrink: 0,
           }}
         >
-          <strong style={{ color: "#34d399" }}>{lastResult.status.toUpperCase()}</strong>:{" "}
-          {lastResult.message.slice(0, 200)}
+          {MODES.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              data-studio-mode={item.key}
+              data-on={mode === item.key ? "true" : "false"}
+              aria-pressed={mode === item.key}
+              onClick={() => setMode(item.key)}
+              style={tabChip(mode === item.key)}
+            >
+              <span aria-hidden>{item.glyph}</span>
+              {item.label}
+            </button>
+          ))}
+          <span style={{ marginLeft: "auto", fontSize: 11, color: "rgba(203,228,255,0.42)" }}>
+            {active.hint}
+          </span>
         </div>
-      )}
+
+        <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+          {mode === "sketch" ? <GenesisSketchPanel onClose={onClose} /> : null}
+          {mode === "render" ? <GenesisRenderPanel onClose={onClose} /> : null}
+          {mode === "avatar" ? <GenesisAvatarPanel onClose={onClose} /> : null}
+        </div>
+      </div>
     </GenesisWindowFrame>
   );
 }
