@@ -1,0 +1,92 @@
+{
+  "mission": "autonomy-closure",
+  "tag": "work",
+  "phase": 2,
+  "base": "http://127.0.0.1:3013/",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "profile": "/tmp/lelu-profile-ac",
+  "at": "2026-11-09T00:23:16.244Z",
+  "turns": [],
+  "console": [
+    "info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+    "table: {Stage: AIRuntime, Success: true, Message: Initializing, Provider: -, Duration: -, Confidence: -}",
+    "table: {Stage: AICore, Success: true, Message: Initializing, Provider: -, Duration: -, Confidence: -}",
+    "info: [AIProviderRegistry] Initializing Local (on-device)...",
+    "log: [scene-mount] GenesisV1Workspace MOUNT",
+    "warning: GoTrueClient@sb-nrehsldbfxthspikaxvr-auth-token:1 (2.112.3) 2026-11-09T00:23:19.811Z Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key.",
+    "info: [LocalInferenceProvider] Initialized {webRuntime: not-installed, localBackends: Array(0)}",
+    "info: [AIProviderRegistry] Local (on-device) initialized.",
+    "info: [AIProviderRegistry] Initializing OpenRouter...",
+    "info: [OpenRouterProvider] Initialized {hasKey: false, model: openrouter/free}",
+    "info: [AIProviderRegistry] OpenRouter initialized.",
+    "info: [AIProviderRegistry] Initializing Groq...",
+    "info: [GroqProvider] Initialized {hasKey: false, model: openai/gpt-oss-120b}",
+    "info: [AIProviderRegistry] Groq initialized.",
+    "info: [AIProviderRegistry] Initializing Cerebras...",
+    "info: [CerebrasProvider] Initialized {hasKey: false, model: gpt-oss-120b}",
+    "info: [AIProviderRegistry] Cerebras initialized.",
+    "info: [AIProviderRegistry] Initializing Mistral...",
+    "info: [MistralProvider] Initialized {hasKey: false, model: mistral-large-latest}",
+    "info: [AIProviderRegistry] Mistral initialized.",
+    "info: [AIProviderRegistry] Initializing Fireworks...",
+    "info: [FireworksProvider] Initialized {hasKey: false, model: accounts/fireworks/models/gpt-oss-120b, codingModel: accounts/fireworks/models/kimi-k3p1-pro}",
+    "info: [AIProviderRegistry] Fireworks initialized.",
+    "info: [AIProviderRegistry] Initializing GitHub Models...",
+    "info: [GitHubModelsProvider] Initialized {hasKey: false, model: openai/gpt-4o}",
+    "info: [AIProviderRegistry] GitHub Models initialized.",
+    "info: [AIProviderRegistry] Initializing Anthropic...",
+    "info: [AnthropicProvider] Initialized {hasKey: false, model: claude-opus-5-5}",
+    "info: [AIProviderRegistry] Anthropic initialized.",
+    "info: [AIProviderRegistry] Initializing Gemini...",
+    "info: [GeminiProvider] Initialized {hasKey: false, model: gemini-2.0-flash}",
+    "info: [AIProviderRegistry] Gemini initialized.",
+    "table: {Stage: AICore, Success: true, Message: Ready, Provider: -, Duration: -, Confidence: -}",
+    "error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "table: {Stage: AIRuntime, Success: true, Message: Ready, Provider: -, Duration: -, Confidence: -}",
+    "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "info: [perf] PROVIDER_READY @ 30786ms",
+    "startGroupCollapsed: 🟢 [12:23:47 AM] [ProviderResolver] Model routing decision",
+    "table: {Stage: ProviderResolver, Success: true, Message: Model routing decision, Provider: -, Duration: -, Confidence: -}",
+    "log: Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+    "startGroupCollapsed: 🟢 [12:23:47 AM] [ProviderResolver] Trying OpenRouter",
+    "table: {Stage: ProviderResolver, Success: true, Message: Trying OpenRouter, Provider: -, Duration: -, Confidence: -}",
+    "log: Metadata: {provider: OpenRouter, priority: 2, promptLength: 1197, requestedModel: undefined}",
+    "startGroupCollapsed: 🟢 [12:23:47 AM] [ProviderResolver] Request budget",
+    "table: {Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}",
+    "log: Metadata: {provider: OpenRouter, tier: FULL, messageCount: 2, systemBytes: 197, historyBytes: 1209}",
+    "info: [StartupDiagnostic] 15/15 checks passed:\n  ✓ AI provider — 3/9 provider(s) available (OpenRouter, Groq, GitHub Models)\n  ✓ Fallback provider chain — 9 provider(s) in the priority chain: Local (on-device) → OpenRouter → Groq → Cerebras → Mistral → Fireworks → Anthropic → Gemini → GitHub Models\n  ✓ Cognition runtime — AIRuntime initialized\n  ✓ Reasoning engine — ReasoningEngine constructs cleanly\n  ✓ Long-term memory — 5 record(s) readable\n  ✓ Short-term memory (conversation) — ConversationE"
+  ],
+  "modelRequests": [
+    {
+      "url": "/api/model/status",
+      "status": 200,
+      "at": 1794183799467
+    }
+  ],
+  "pageErrors": [],
+  "crashes": [],
+  "metrics": [
+    {
+      "label": "entered",
+      "heapMB": 87.3,
+      "nodes": 821,
+      "listeners": 1975,
+      "documents": 1
+    }
+  ],
+  "result": "ERROR",
+  "storageAtStart": null,
+  "entry": {
+    "composer": 0,
+    "viewport": "1440x900",
+    "storageAtStart": null
+  },
+  "error": "composer not found after guest entry",
+  "finishedAt": "2026-11-09T00:23:49.647Z"
+}

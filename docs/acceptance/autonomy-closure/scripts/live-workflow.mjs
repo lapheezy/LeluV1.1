@@ -50,12 +50,19 @@ const rec = {
 const file = path.join(OUT, `live-${TAG}-phase${PHASE}.json`);
 const save = () => fs.writeFileSync(file, JSON.stringify(rec, null, 2));
 
-const ctx = await chromium.launchPersistentContext(PROFILE, {
-  headless: true, executablePath: CHROME, viewport: { width: VW, height: VH },
-  reducedMotion: 'reduce', hasTouch: VW < 500, isMobile: VW < 500,
+const STATE = process.env.STATE ?? '/tmp/ac-state.json';
+const browser = await chromium.launch({
+  headless: true, executablePath: CHROME,
   args: ['--no-sandbox', '--headless=new', '--enable-unsafe-swiftshader', '--disable-dev-shm-usage'],
 });
-let page = ctx.pages()[0] ?? (await ctx.newPage());
+// A NEW browser process every phase. Storage travels as exported state, never a
+// profile a previous process might still hold — that lock is what closed the
+// context mid-run before, and it is not evidence about the application.
+const ctx = await browser.newContext({
+  viewport: { width: VW, height: VH }, reducedMotion: 'reduce', hasTouch: VW < 500, isMobile: VW < 500,
+  ...(fs.existsSync(STATE) ? { storageState: STATE } : {}),
+});
+const page = await ctx.newPage();
 rec.storageAtStart = await page.evaluate(() => Object.keys(localStorage).filter((k) => /environment|workspace|lelu/i.test(k))).catch(() => null);
 save();
 page.on('pageerror', (e) => { rec.pageErrors.push(String(e.message || e).slice(0, 300)); save(); });
@@ -105,16 +112,35 @@ const snap = () => page.evaluate(() => {
 const enter = async () => {
   await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 60_000 });
   await page.waitForTimeout(4000);
-  const cosmos = page.locator('button.lch-cosmos').first();
-  if (await cosmos.count()) { await cosmos.click().catch(() => {}); await page.waitForTimeout(2500); }
-  const guest = page.locator('button:has-text("Continue without an account")').first();
-  if (await guest.count()) { await guest.click({ force: true }).catch(() => {}); await page.waitForTimeout(3500); }
-  const COMPOSER = 'textarea[placeholder*="Message"]:visible, textarea:visible';
-  if (!(await page.locator(COMPOSER).count())) {
-    const pill = page.locator('button:has-text("Chat")').first();
-    if (await pill.count()) { await pill.click({ force: true }).catch(() => {}); await page.waitForTimeout(3000); }
+  const SELECTORS = [
+    'textarea[placeholder*="Message"]:visible',
+    'textarea:visible',
+    '[contenteditable="true"]:visible',
+  ];
+  const findComposer = async () => {
+    for (const sel of SELECTORS) {
+      const loc = page.locator(sel).first();
+      if (await loc.count().catch(() => 0)) return loc;
+    }
+    return null;
+  };
+  const deadline = Date.now() + 90_000;
+  while (Date.now() < deadline) {
+    const cosmos = page.locator('button.lch-cosmos').first();
+    if (await cosmos.count().catch(() => 0)) { await cosmos.click().catch(() => {}); await page.waitForTimeout(2000); }
+    for (const label of ['Continue without an account', 'Continue as guest', 'Guest']) {
+      const guest = page.locator(`button:has-text("${label}")`).first();
+      if (await guest.count().catch(() => 0)) { await guest.click({ force: true }).catch(() => {}); await page.waitForTimeout(2500); break; }
+    }
+    let box = await findComposer();
+    if (box) return box;
+    for (const pill of ['Chat', 'Universe', 'Studio']) {
+      const btn = page.locator(`button:has-text("${pill}")`).first();
+      if (await btn.count().catch(() => 0)) { await btn.click({ force: true }).catch(() => {}); await page.waitForTimeout(2500); box = await findComposer(); if (box) return box; }
+    }
+    await page.waitForTimeout(3000);
   }
-  return page.locator(COMPOSER).first();
+  return page.locator('textarea').first();
 };
 
 try {
@@ -134,7 +160,7 @@ try {
       let observed = t.before, changed = false;
       for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
         const a = { n: attempt, at: Date.now() };
-        box = page.locator('textarea[placeholder*="Message"]:visible, textarea:visible').first();
+        box = page.locator('textarea[placeholder*="Message"]:visible, textarea:visible, [contenteditable="true"]:visible').first();
         if (!(await box.count())) throw new Error('composer missing');
         await box.evaluate((el) => el.focus());
         await box.fill(turn.prompt).catch(async () => page.keyboard.insertText(turn.prompt));
@@ -200,7 +226,8 @@ try {
   save();
   console.log(JSON.stringify({ result: rec.result, error: rec.error }));
 } finally {
-  await ctx.close().catch(() => {});
+  await ctx.storageState({ path: STATE }).catch(() => {});
+  await browser.close().catch(() => {});
   rec.finishedAt = new Date().toISOString();
   save();
   console.log(JSON.stringify({ result: rec.result, turns: rec.turns.map((t) => ({ s: t.stage, r: t.result, w: t.waitedMs, win: t.observed?.windows, con: t.observed?.contents?.length, tools: t.toolEvidence?.slice(-3) })), modelRequests: rec.modelRequests.length, crashes: rec.crashes.length }, null, 1).slice(0, 3000));

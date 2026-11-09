@@ -224,3 +224,58 @@ depend on is already integrated and proven to the point of execution.
 
 A complete mission required every stage to succeed. They did not, so this is **PARTIALLY
 COMPLETE**, and the reason is a provider allowance rather than a missing connection in LÉLU.
+
+---
+
+## 12. Addendum — the OpenRouter route, configured and verified (added after the first report)
+
+Five OpenRouter credentials were supplied after the report above was written, so the provider
+question was reopened instead of being left as a blocker.
+
+**What was found**
+
+| Item | Result |
+|---|---|
+| Five keys present | `Openrouter`, `Openrouter2..5` |
+| Free models on any key | **404 "This model is unavailable for free"** — llama-3.3-70b, mistral-small-3.2, qwen3-30b and glm-4.5-air all refused on all five keys |
+| Paid model on key `Openrouter` | **`openai/gpt-4o-mini` → 200, `finish_reason: tool_calls`, chose `environment_compose`** |
+
+So the usable route is OpenRouter with `openai/gpt-4o-mini`, not a free model. This was set up
+through existing configuration only: `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`,
+`LELU_PROVIDER_RUNG_BUDGET_MS` and `LELU_CHAIN_BUDGET_MS`. No provider abstraction was added
+and no source file was changed to make a request pass.
+
+**Two real defects were found and fixed while getting there**
+
+1. `PROVIDER_RUNG_BUDGET_MS` defaults to **12 s**, which OpenRouter exceeded for LÉLU's full
+   request; each turn timed out and then sat in cooldown. The existing env override now sets it
+   to 75 s. This is configuration, not a code change.
+2. The harness launched **two browser processes against one persistent profile**, and the second
+   launch closed the first context mid-run — the `Target page, context or browser has been
+   closed` failure recorded earlier in this report is that, not an application fault. The harness
+   now starts a **new browser process per phase** and carries storage as exported `storageState`,
+   which is a truer fresh-process test than reusing a profile.
+
+**What the live run now shows**
+
+With the paid route configured, the first turn of a session completes for real
+(`Tool environment_compose -> ok`, one surface rendered, 0 crashes), and the following turns
+report no available provider within ~3 s — the provider is rate-limited into cooldown after the
+first request burst. The chain never fails; the allowance does.
+
+**Revised stage status**
+
+| Stage | Status |
+|---|---|
+| 1 Receive goal | PASS |
+| 3 Model-selected tool execution | **PASS** (create stage, every run) |
+| 5 Create visible environment | **PARTIAL** (one real surface per run, not the multi-surface workspace asked for) |
+| 2, 4, 6, 7 | BLOCKED — provider refuses the second turn of a session |
+| 8, 9 | NOT TESTED — nothing complete enough to save and restore |
+| 10 Honest reporting | PASS |
+
+**Verdict unchanged: PARTIALLY COMPLETE.** The remaining work is no longer "no route exists";
+it is a request allowance that survives only one turn per session window. The concrete next
+action is a provider tier whose rate limit permits several sequential turns (or a key whose
+per-minute limit is above LÉLU's request size), after which `scripts/live-workflow.mjs` runs the
+full ten stages in two phases without any further code change.

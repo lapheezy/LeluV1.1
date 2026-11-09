@@ -1,0 +1,29 @@
+{
+  "mission": "autonomy-closure",
+  "why": "five OpenRouter credentials were supplied; the question was whether they carry usable capacity",
+  "keysPresent": [
+    "Openrouter",
+    "Openrouter2",
+    "Openrouter3",
+    "Openrouter4",
+    "Openrouter5"
+  ],
+  "freeModels": "every free model tried (llama-3.3-70b, mistral-small-3.2, qwen3-30b, glm-4.5-air) returned 404 'This model is unavailable for free' on all five keys \u2014 the free tier is closed to these ids",
+  "paidModelVerified": {
+    "key": "Openrouter",
+    "model": "openai/gpt-4o-mini",
+    "http": 200,
+    "finishReason": "tool_calls",
+    "tool": "environment_compose",
+    "note": "verified through the app broker, not a direct call"
+  },
+  "appConfigurationUsed": {
+    "OPENROUTER_API_KEY": "set from the supplied key",
+    "OPENROUTER_MODEL": "openai/gpt-4o-mini",
+    "LELU_PROVIDER_RUNG_BUDGET_MS": 75000,
+    "LELU_CHAIN_BUDGET_MS": 300000
+  },
+  "defectFoundAndFixed": "PROVIDER_RUNG_BUDGET_MS is 12s by default, which OpenRouter exceeded for LELU's full request; every turn timed out and then sat in cooldown. It is an existing env override, so no code changed.",
+  "harnessDefectFoundAndFixed": "two browser processes shared one persistent profile and the second launch closed the first context mid-run ('Target page, context or browser has been closed'). The harness now launches a NEW browser process per phase and carries storage as exported storageState, which is also a truer fresh-process test.",
+  "remainingRefusal": "in every attempt, the first turn of a session completes (create: real environment_compose dispatch) and subsequent turns report no available provider within ~3s, i.e. the provider is rate-limited into cooldown after the first request burst; the chain itself never failed"
+}
