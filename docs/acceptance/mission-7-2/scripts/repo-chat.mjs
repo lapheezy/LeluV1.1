@@ -116,7 +116,7 @@ const enter = async () => {
     }
     let box = await findComposer();
     if (box) return box;
-    for (const pill of ['Chat', 'Universe']) {
+    for (const pill of ['Conversation', 'Chat', 'Universe']) {
       const btn = page.locator(`button:has-text("${pill}")`).first();
       if (await btn.count().catch(() => 0)) { await btn.click({ force: true }).catch(() => {}); await page.waitForTimeout(2500); box = await findComposer(); if (box) return box; }
     }
