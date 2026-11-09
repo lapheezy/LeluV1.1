@@ -33,13 +33,13 @@ A prior Mission 10 integration already existed on the remote as `integration/lel
 ### Already present / equivalent
 
 - Freebuff's Mission 7 acquisition core (store, types, approval gate, integrator, executive, executor, knowledge base) is blob-identical to Claude's canonical copy; only the additive runtime/pipeline/plugin/registry layers differed.
-- Jules Session 03 (`7fb4f23` and its four ancestors) is already in Freebuff's ancestry and therefore in this branch.
+- Jules Session 03's surface presentation, revision retention and broker reconciliation are present in the newer canonical files (`EnvironmentOrchestrationEngine`, `WorkspaceEngine`, `plugins/modelApi.ts`), but `7fb4f23` is **not** a literal ancestor; it was verified by content. Its forensic report path is the one document not recovered.
 - Codelazr/Jules Session 02 environment orchestration is already canonical through Claude's `0cd2d3d` integration. Their large Session 02 files were not copied over the newer canonical implementations.
 
 ### Newly integrated
 
 - **Freebuff Mission 8:** engineering command center, capability marketplace, persistent activation gate, seven-specialist council, creator studio, durable acquisition management (integrity/recovery/cleanup), bounded LRU cache and `memory.cache`, acquisition resolver in chat, five-tab panel, and 26 workforce tests. `repo.pipeline`, `capabilities.*`, `repo.maintenance`, `creator.build` and the extra `repo.*` tools were added to Claude's single dispatcher without shadowing its canonical `repo.research/acquire/inspect/status`.
-- **Jules:** the unique Session 02 acceptance tests (`e2e-demo-*`, `environment-orchestration-engine`), server runner, verification evidence and closure/recovery reports.
+- **Jules:** the unique Session 02 acceptance tests (`e2e-demo-*`, `environment-orchestration-engine`), server runner, verification evidence and closure/recovery reports. Jules's awaitable post-response consolidation (`waitForPendingConsolidations`, `a0458db`) was ported into the current `AIService`; its CI restructuring is present in a newer form.
 - **Codelazr:** the unique live-cognition acceptance tests (`environment-cognition-live`, `live-cognition-model-loop`) and the Session 02.1 integration report; `Bootstrap` now registers the environment tools their session introduced.
 - **Prior Mission 10 work:** provider key ring, request budget, fitted-request routing, Chat Universe approval card, acceptance evidence and its unified report, merged from `8789dfd` without replacing the four-workforce additions.
 - Home app catalog, Genesis panel union, module renderer, dock and ⌘K palette now expose the workforce as **Engineering Command**.
