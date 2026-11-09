@@ -53,6 +53,14 @@ import {
 import path from "node:path";
 import { inflateRawSync } from "node:zlib";
 import { identityConfigured, verifyRequestIdentity } from "./engineerIdentity.ts";
+import {
+  AcquisitionSingleFlight,
+  findReusableAcquisition,
+  normalizeRepositoryUrl,
+} from "../src/core/acquisition/AcquisitionIdentity.ts";
+
+/** One clone in flight per repository identity and ref, for the whole server. */
+const cloneFlights = new AcquisitionSingleFlight();
 import type {
   AcquisitionLicense,
   AcquisitionLogEntry,
@@ -964,17 +972,27 @@ export function createAcquisitionApi(adapter: AcquisitionAdapter): {
         : `https://github.com/${String(body.identifier ?? body.repository ?? "").trim()}`;
     const target = parseCloneUrl(rawUrl);
 
-    // Idempotent: the same repository at the same ref is one acquisition.
+    // Idempotent: the same repository at the same ref is one acquisition,
+    // whatever spelling of the URL arrived. The identity normalizer makes
+    // `owner/name`, `.git`, `www.`, ssh and http all resolve to one record;
+    // the single flight makes two concurrent requests share one clone instead
+    // of both missing the reuse check and cloning twice.
     const ref = typeof body.ref === "string" ? body.ref.trim() : "";
-    const existing = listRecords().find(
-      (record) =>
-        record.source.identifier.toLowerCase() === target.identifier.toLowerCase() &&
-        record.source.host === target.host &&
-        (!ref || record.ref === ref),
-    );
-    if (existing) return existing;
+    const identity = normalizeRepositoryUrl(target.url);
+    const flightKey = `${identity.host}/${identity.identifier}#${ref}`;
+    return cloneFlights.run(flightKey, async () => {
+      const existing = findReusableAcquisition(listRecords(), identity, ref);
+      if (existing) {
+        log(existing.id, {
+          at: Date.now(),
+          action: "reuse",
+          ok: true,
+          detail: `reused the existing acquisition for ${identity.identifier} at ${existing.ref}; nothing was cloned again`,
+        });
+        return existing;
+      }
 
-    if (listRecords().length >= MAX_ACQUISITIONS) {
+      if (listRecords().length >= MAX_ACQUISITIONS) {
       throw new Error(`The acquisition limit (${MAX_ACQUISITIONS}) is reached. Delete one before acquiring another.`);
     }
 
@@ -1029,9 +1047,10 @@ export function createAcquisitionApi(adapter: AcquisitionAdapter): {
       ok: true,
       detail: `cloned ${target.identifier} at ${branch} (${commit.slice(0, 10)}), ${record.fileCount} files, license ${record.license.spdx}`,
       durationMs: clone.durationMs,
-      exitCode: clone.status,
+        exitCode: clone.status,
+      });
+      return record;
     });
-    return record;
   }
 
   async function importArchive(body: Record<string, unknown>): Promise<AcquisitionRecord> {
