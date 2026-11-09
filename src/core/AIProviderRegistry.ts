@@ -172,6 +172,25 @@ export default class AIProviderRegistry {
   private readonly lastUsage = new Map<string, unknown>();
 
   /**
+   * When each provider was last let out of cooldown for a half-open probe.
+   *
+   * A cooldown is a guess about the future made from one past failure. When
+   * EVERY provider is inside one, returning nothing is not an honest answer
+   * — it is a stale guess that overrides live upstream inference. Measured
+   * live: one turn ran a real `environment_compose`, and every following
+   * turn answered with the offline notice within three seconds while the
+   * broker was returning 200s for the same credentials. Each failure had
+   * quarantined its provider, and `available()` reported the empty chain.
+   *
+   * This map bounds the recovery: one probe per provider per gap, so
+   * recovery cannot become a retry loop.
+   */
+  private readonly lastProbe = new Map<string, number>();
+
+  /** Minimum gap before the same provider is probed again. */
+  private static readonly PROBE_GAP_MS = 5_000;
+
+  /**
    * In-flight initialization promise. `initialize()` had no guard at
    * all — two concurrent callers (plausible: multiple components each
    * calling AIService.initialize() on mount, or React StrictMode's
@@ -279,19 +298,44 @@ export default class AIProviderRegistry {
     return this.all().filter((provider) => provider.enabled);
   }
 
+  /**
+   * The providers that may be attempted right now, in priority order.
+   *
+   * A provider inside its cooldown is normally skipped. But when that would
+   * leave the chain EMPTY, the caller does not hear "nothing is available" —
+   * it hears the offline notice, which is a claim about the provider, not
+   * about this registry's memory of it. So the chain half-opens: the
+   * provider whose cooldown ends soonest is admitted for one real attempt.
+   *
+   * Why the soonest, and why that rotates: a failed probe calls
+   * `markFailure`, which restarts that provider's window and makes some
+   * other cooled provider the soonest on the next turn. Recovery therefore
+   * walks the whole chain instead of re-testing the same broken rung, and
+   * the per-provider gap keeps it from becoming a retry loop.
+   *
+   * A probe is not a bypass: `isAvailable()` is still consulted, the
+   * attempt is a real request, and a real answer goes through the ordinary
+   * `markSuccess` path that clears the failure.
+   */
   public async available(): Promise<AIProvider[]> {
     const available: AIProvider[] = [];
     const now = Date.now();
+    /** The cooled-down provider whose cooldown ends soonest. */
+    let soonest: { provider: AIProvider; retryInMs: number } | null = null;
 
     for (const provider of this.enabled()) {
       const failure = this.failures.get(provider.name);
 
       const cooldown = this.cooldownFor(provider.name);
       if (failure && now - failure.lastFailure < cooldown) {
+        const retryInMs = cooldown - (now - failure.lastFailure);
+        if (!soonest || retryInMs < soonest.retryInMs) {
+          soonest = { provider, retryInMs };
+        }
         console.info(
           `[AIProviderRegistry] Skipping ${provider.name} during failure cooldown.`,
           {
-            retryInMs: cooldown - (now - failure.lastFailure),
+            retryInMs,
             reason: failure.reason,
             // Said plainly, because the two cases need different action
             // from whoever reads the log: fix the key, or wait.
@@ -317,6 +361,36 @@ export default class AIProviderRegistry {
           error,
         );
       }
+    }
+
+    if (available.length > 0 || !soonest) {
+      return available;
+    }
+
+    // Half-open: the chain is empty only because of cooldowns.
+    const candidate = soonest.provider;
+    const lastProbe = this.lastProbe.get(candidate.name) ?? 0;
+    if (now - lastProbe < AIProviderRegistry.PROBE_GAP_MS) {
+      return available;
+    }
+    this.lastProbe.set(candidate.name, now);
+
+    try {
+      if (await candidate.isAvailable()) {
+        console.info(
+          `[AIProviderRegistry] Half-open recovery: ${candidate.name} gets one real attempt ` +
+            `although its cooldown had ${Math.round(soonest.retryInMs / 1000)}s left.`,
+          { provider: candidate.name, reason: this.failures.get(candidate.name)?.reason },
+        );
+        return [candidate];
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.markFailure(candidate.name, reason);
+      console.error(
+        `[AIProviderRegistry] Half-open probe of ${candidate.name} failed its availability check.`,
+        error,
+      );
     }
 
     return available;
