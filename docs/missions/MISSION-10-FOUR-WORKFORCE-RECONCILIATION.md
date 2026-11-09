@@ -28,6 +28,8 @@
 
 `mission6-canonical-integration` (`fd649b9`, remote `claude/master-integration`) held five commits not in the autonomy line: non-modal first-run sign-in, workspace-to-rendered-system wiring, phone column, request budgeting and provider key-ring spending. Those were **merged**, not discarded.
 
+A prior Mission 10 integration already existed on the remote as `integration/lelu-four-workforce-consolidation` at `8789dfd`. It carried its own verified work — provider key ring (`ProviderKeyRing`), request budget (`RequestBudget`), the fitted-request router fix, Chat Universe approval rendering, Mission 7.2 live-turn evidence and the consolidated autonomy report. Its history was **merged into this branch** (`0eb3dfa`) after reconciling `ProviderResolver` and the autonomy report, rather than force-pushing over it.
+
 ### Already present / equivalent
 
 - Freebuff's Mission 7 acquisition core (store, types, approval gate, integrator, executive, executor, knowledge base) is blob-identical to Claude's canonical copy; only the additive runtime/pipeline/plugin/registry layers differed.
@@ -39,12 +41,13 @@
 - **Freebuff Mission 8:** engineering command center, capability marketplace, persistent activation gate, seven-specialist council, creator studio, durable acquisition management (integrity/recovery/cleanup), bounded LRU cache and `memory.cache`, acquisition resolver in chat, five-tab panel, and 26 workforce tests. `repo.pipeline`, `capabilities.*`, `repo.maintenance`, `creator.build` and the extra `repo.*` tools were added to Claude's single dispatcher without shadowing its canonical `repo.research/acquire/inspect/status`.
 - **Jules:** the unique Session 02 acceptance tests (`e2e-demo-*`, `environment-orchestration-engine`), server runner, verification evidence and closure/recovery reports.
 - **Codelazr:** the unique live-cognition acceptance tests (`environment-cognition-live`, `live-cognition-model-loop`) and the Session 02.1 integration report; `Bootstrap` now registers the environment tools their session introduced.
-- Home app catalog, Genesis panel union, module renderer and dock now expose the workforce as **Engineering Command**.
+- **Prior Mission 10 work:** provider key ring, request budget, fitted-request routing, Chat Universe approval card, acceptance evidence and its unified report, merged from `8789dfd` without replacing the four-workforce additions.
+- Home app catalog, Genesis panel union, module renderer, dock and ⌘K palette now expose the workforce as **Engineering Command**.
 
 ### Conflicts resolved
 
-- `src/core/router/ProviderResolver.ts` — kept Claude's newer `fitFor` request budgeting and refit loop, while preserving the autonomy line's `lean()` token reservation. The fallback path now sends the fitted messages with the lean reservation.
-- `docs/acceptance/autonomy-closure/AUTONOMY-CLOSURE-REPORT.md` — kept the newest autonomy report; the canonical copy was a duplicate of the same evidence.
+- `src/core/router/ProviderResolver.ts` — kept the newer `fitFor` request budgeting and refit loop, and removed the obsolete `lean()` reservation it replaced (the prior remote commit `2050f16` did the same deliberately). The fallback path now sends the fitted messages; `tests/usage-budget.test.ts` passes 26/26.
+- `docs/acceptance/autonomy-closure/AUTONOMY-CLOSURE-REPORT.md` — kept the newer consolidated autonomy report at its canonical path and archived the earlier Mission AC report as `MISSION-AC-REPORT-ARCHIVE.md`, so neither evidence set was discarded.
 - `tests/cognitive-behavior.test.ts` — a text search for “github” legitimately returns Acquisition tools that describe GitHub; the test now requires six GitHub-category tools and permits Acquisition results, instead of demanding every result be GitHub-categorised.
 
 ### Not integrated
@@ -60,12 +63,15 @@
 - **Autonomy successor merge:** `a270765` (`a5cfd05`)
 - **Canonical + autonomy merge:** `a92dc36` (`fd649b9`)
 - **Jules/Codelazr recovery:** `4282532`
-- **Report + app-library exposure:** this commit (remote HEAD is recorded in the push receipt).
+- **Report + app-library exposure:** `79d79ef`
+- **Prior remote Mission 10 merged:** `8789dfd` (merge commit `0eb3dfa`)
+- **Final reconciliation:** `0eb3dfa` plus the report/screenshot commit recorded by the remote HEAD.
 
 ## D. Feature verification
 
 - Claude's newest home/Cosmos interface, cinematic scene and navigation load in the browser preview.
-- The repository workforce is reachable from **App Library → Engineering Command**, and from the Command dock entry.
+- The repository workforce is reachable from **App Library → Engineering Command**, the **Command** dock entry, and the ⌘K palette.
+- Measured in the cloud browser at a 328×528 phone viewport: the panel mounted with **2 acquisition(s)**, **1.3 / 512 MB** workspace, **2/2 integrity OK**, both acquired repositories (`sindresorhus/quick-lru`, `krisk/Fuse`) and all five tabs (Acquisitions, Command Center, Executor Workbench, Capability Marketplace, Creator Studio). Screenshot: [mission-10-command-center-mobile.png](docs/missions/mission-10-command-center-mobile.png).
 - Acquisition records, integrity results and the 512 MB workspace limit come from the real Vite runtime (`/api/acquisition`).
 - Capability activation gates real tools at the dispatcher (`toolPermitted`), not only in the UI.
 - Chat routes acquisition objectives through `AcquisitionResolver`; the pipeline requires a named approval and a real passing test.
@@ -77,13 +83,14 @@
 | Check | Result |
 | --- | --- |
 | `npx tsc -b --force` | **pass** |
-| `npm run build` | **pass** (5.83 s, chunk-size warning only) |
+| `npm run build` | **pass** (11.36 s, chunk-size warning only) |
 | `npm test` | **1921 tests, 1915 pass, 6 skipped, 0 fail** |
 | Mission 8 workforce tests | **26/26 pass** |
 | Recovered Jules/Codelazr tests | **11/11 pass** |
-| Browser preview | application renders; Engineering Command entry present in App Library |
+| Browser preview | **pass for the mounted interface and workforce panel**; mobile Command Center rendered live values (screenshot above) |
+| Focused provider budget suite | **26/26 pass** (`tests/usage-budget.test.ts`) |
 
-Browser console during preview: manifest `403` through the preview proxy, provider calls `503` without configured live keys, and several asset `404`s; none prevented the application or the command panel from mounting. Mobile layout was exercised by the existing mobile test suites, not by a device screenshot in this run.
+Browser console during preview: manifest `403` through the preview proxy, provider calls `503`/`502` without configured live keys, and several asset `404`s; none prevented the application or the command panel from mounting. One real interaction defect was found and worked around: while a floating Projects window is open, a click at the library tile's coordinates can land on that window first. Opening the Command Center from a clean home state succeeds, and the new palette entry gives a window-independent route. Desktop-width screenshots remain unverified; the available browser viewport was the 328×528 phone size.
 
 ## F. Recovery information
 
@@ -97,7 +104,7 @@ git checkout fd649b9                       # canonical + workspace/provider work
 git checkout 11ab26e                       # Freebuff Mission 8 alone
 ```
 
-The unified branch is additive: it does not force-push, delete or rewrite any source branch.
+The unified branch is additive: it does not force-push, delete or rewrite any source branch. The earlier remote integration tip `8789dfd` remains an ancestor of the final branch through merge commit `0eb3dfa`; nothing on it was rewritten.
 
 ## G. Environment note
 
