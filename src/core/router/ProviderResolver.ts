@@ -60,6 +60,20 @@ const NO_PROGRESS_REPEATS = 3;
  * this shorter bound, and is then told to answer from what it found.
  */
 const RESEARCH_LOOP_BUDGET_MS = 3 * 60 * 1000;
+
+/**
+ * How many tokens a TOOL turn may reserve for its reply.
+ *
+ * Providers that meter prompt and `max_tokens` together refuse the whole
+ * request when their sum crosses a per-minute ceiling: measured on Groq's
+ * free tier, a 19.5k-token tool payload against an 8k TPM limit was refused
+ * outright. A 2048-token reply budget on top of an already-narrowed tool set
+ * leaves no room for a second round, so the loop dies after one tool call.
+ * This is a reservation, not a cap on what she can say in the final answer —
+ * only rounds that carry tools are trimmed, and the plain reply keeps its own
+ * budget.
+ */
+const TOOL_TURN_MAX_TOKENS = 768;
 const RESEARCH_LOOP_MAX_ROUNDS = 16;
 const RESEARCH_TOOL = /^(research|browser|memory)[._]/;
 
@@ -580,6 +594,12 @@ export default class ProviderResolver {
     // Tools are offered only on a conversational turn. Internal
     // structured-output calls (see AIRequest.allowTools) must reach the
     // provider exactly as they did before, or their parsers break.
+    /** The same request, with a reply reservation that fits a small TPM ceiling. */
+    const lean = (req: AIRequest): AIRequest => ({
+      ...req,
+      maxTokens: Math.min(req.maxTokens ?? TOOL_TURN_MAX_TOKENS, TOOL_TURN_MAX_TOKENS),
+    });
+
     const tools =
       toolMode !== "none" && provider.supportsTools === true && context.request.allowTools === true
         ? toolMode === "reduced"
@@ -606,7 +626,7 @@ export default class ProviderResolver {
     // the original single call, untouched. This is the fallback path —
     // ToolCallInterceptor still salvages tool markup from these.
     if (tools.length === 0) {
-      return gatedGenerate(provider, this.withRungSignal(context.request, rungSignal));
+      return gatedGenerate(provider, this.withRungSignal(lean(context.request), rungSignal));
     }
 
     const taskId = String(context.request.timestamp ?? Date.now());
@@ -625,7 +645,7 @@ export default class ProviderResolver {
     const requested: string[] = [];
 
     let response = await gatedGenerate(provider, {
-      ...this.withRungSignal(context.request, rungSignal),
+      ...this.withRungSignal(lean(context.request), rungSignal),
       messages,
       tools,
     });
@@ -753,7 +773,7 @@ export default class ProviderResolver {
       }
 
       response = await gatedGenerate(provider, {
-        ...this.withRungSignal(context.request, rungSignal),
+        ...this.withRungSignal(lean(context.request), rungSignal),
         messages,
         ...(stopReason ? {} : { tools }),
       });
