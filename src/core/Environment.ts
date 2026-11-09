@@ -280,7 +280,9 @@ function build(): LeluEnvironment {
 
     // Model overrides
     groqModel:        opt("VITE_GROQ_MODEL", "openai/gpt-oss-120b"),
-    openrouterModel:  opt("VITE_OPENROUTER_MODEL", "openrouter/auto"),
+    // Concrete, not `openrouter/auto`: the auto route prices the request, and on a
+    // key without credit it lands on the free tier, which refuses the turn outright.
+    openrouterModel:  opt("VITE_OPENROUTER_MODEL", "openai/gpt-4o-mini"),
     cerebrasModel:    opt("VITE_CEREBRAS_MODEL", "llama3.1-8b"),
     mistralModel:     opt("VITE_MISTRAL_MODEL", "mistral-small-latest"),
     fireworksModel:   opt("VITE_FIREWORKS_MODEL", "accounts/fireworks/models/llama-v3p1-8b-instruct"),

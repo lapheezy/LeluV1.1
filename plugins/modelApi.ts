@@ -395,6 +395,152 @@ function brokerAllows(providerId: string, readEnv: EnvReader): boolean {
   return raw !== undefined && POLICY_TRUE.has(raw.trim().toLowerCase());
 }
 
+/**
+ * WHAT WAS SENT, AS SIZES.
+ *
+ * The refusal that matters is about volume: a provider meters prompt and
+ * reserved output together, and LÉLU's full turn carries a system prompt, a
+ * tool schema set and history. Those three numbers are what make a refusal
+ * diagnosable, and none of them requires storing the text.
+ */
+interface SentShape {
+  model?: string;
+  promptChars: number;
+  toolChars: number;
+  systemChars: number;
+  messages: number;
+  maxTokens?: number;
+  stream?: boolean;
+}
+
+function shapeOf(body?: Buffer): SentShape {
+  const shape: SentShape = { promptChars: 0, toolChars: 0, systemChars: 0, messages: 0 };
+  if (!body || body.length === 0) return shape;
+  try {
+    const parsed = JSON.parse(body.toString("utf8")) as Record<string, unknown>;
+    if (typeof parsed.model === "string") shape.model = parsed.model;
+    const messages = Array.isArray(parsed.messages)
+      ? parsed.messages
+      : Array.isArray(parsed.contents)
+        ? parsed.contents
+        : [];
+    shape.messages = messages.length;
+    shape.promptChars = JSON.stringify(messages).length;
+    shape.toolChars = parsed.tools ? JSON.stringify(parsed.tools).length : 0;
+    const first = messages[0] as { role?: string } | undefined;
+    if (first && (first.role === "system" || first.role === "user") && messages.length > 1) {
+      shape.systemChars = JSON.stringify(first).length;
+    }
+    const max = parsed.max_tokens ?? parsed.max_completion_tokens ?? parsed.maxOutputTokens;
+    if (typeof max === "number") shape.maxTokens = max;
+    shape.stream = parsed.stream === true;
+  } catch {
+    // Not JSON (multipart audio shares this broker): the byte count is still
+    // the honest answer, and it is reported from requestBytes.
+  }
+  return shape;
+}
+
+/** Rough token count for sizing decisions. Four characters per token, which
+ *  is close enough for an English prompt and errs high on a tool schema. */
+const charsToTokens = (chars: number): number => Math.ceil(chars / 4);
+
+function sizingOf(body?: Buffer) {
+  const shape = shapeOf(body);
+  return {
+    ...shape,
+    promptTokens: charsToTokens(shape.promptChars),
+    toolTokens: charsToTokens(shape.toolChars),
+  };
+}
+
+/** Is per-turn tracing on? Failures are recorded either way. */
+function traceTurns(readEnv: EnvReader): boolean {
+  const raw = readEnv("LELU_BROKER_TRACE");
+  return raw !== undefined && POLICY_TRUE.has(raw.trim().toLowerCase());
+}
+
+/**
+ * Remove anything that could carry a credential out of a provider message.
+ *
+ * Provider errors quote the request; a quoted request can quote a header. The
+ * log is for diagnosis, so it keeps the shape of the message and drops the
+ * parts that look like secrets.
+ */
+function redact(text: string): string {
+  return text
+    .replace(/\b(sk|gsk|hf|pk|rk)[-_][A-Za-z0-9_-]{8,}/gi, "[redacted]")
+    .replace(/Bearer\s+[^\s"']+/gi, "Bearer [redacted]")
+    .replace(/\b[A-Za-z0-9_-]{40,}\b/g, "[redacted]")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 240);
+}
+
+/**
+ * The provider's own refusal, in the provider's own words.
+ *
+ * Groq says `error.code`; OpenRouter nests `error.metadata`; Anthropic uses
+ * `error.type`. The differences are exactly what a sizing fix has to respond
+ * to, so the code is kept verbatim and the message is shortened, not rewritten.
+ */
+function describeUpstreamError(body: string, status: number): string {
+  if (!body) return `HTTP ${status} with an empty body`;
+  try {
+    const parsed = JSON.parse(body) as {
+      error?: { message?: unknown; code?: unknown; type?: unknown; metadata?: unknown } | string;
+      message?: unknown;
+    };
+    const error = typeof parsed.error === "object" && parsed.error ? parsed.error : undefined;
+    if (!error) {
+      const direct = typeof parsed.message === "string" ? parsed.message : body;
+      return redact(direct);
+    }
+    const parts: string[] = [];
+    if (typeof error.type === "string") parts.push(`type=${error.type}`);
+    if (typeof error.code === "string" || typeof error.code === "number") parts.push(`code=${String(error.code)}`);
+    const message = typeof error.message === "string" ? error.message : typeof parsed.message === "string" ? parsed.message : "";
+    if (message) parts.push(message);
+    if (error.metadata !== undefined) {
+      // OpenRouter puts the binding limit here (e.g. per-day free-model usage).
+      parts.push(`metadata=${redact(JSON.stringify(error.metadata)).slice(0, 120)}`);
+    }
+    return redact(parts.join(" | ")) || `HTTP ${status}`;
+  } catch {
+    return redact(body) || `HTTP ${status}`;
+  }
+}
+
+interface TurnTrace {
+  provider: string;
+  model?: string;
+  status: number;
+  requestBytes: number;
+  promptChars: number;
+  toolChars: number;
+  systemChars: number;
+  messages: number;
+  maxTokens?: number;
+  stream?: boolean;
+  promptTokens: number;
+  toolTokens: number;
+  error: string;
+}
+
+/** One line, greppable, with no prompt text and no credential. */
+function logTurn(trace: TurnTrace): void {
+  const head =
+    `provider=${trace.provider} model=${trace.model ?? "?"} status=${trace.status} ` +
+    `bytes=${trace.requestBytes} messages=${trace.messages} ` +
+    `prompt≈${trace.promptTokens}tok tools≈${trace.toolTokens}tok system=${charsToTokens(trace.systemChars)}tok ` +
+    `max_tokens=${trace.maxTokens ?? "-"} stream=${trace.stream ? 1 : 0}`;
+  if (trace.status >= 200 && trace.status < 300) {
+    console.log(`[model broker] ${head}`);
+    return;
+  }
+  console.warn(`[model broker] REFUSED ${head} error="${trace.error}"`);
+}
+
 export function createModelApi(readEnv: EnvReader) {
   warnAboutPrefixedCredentials(readEnv);
   const limiter = createRateLimiter(rateLimitFromEnv(readEnv));
@@ -533,10 +679,11 @@ export function createModelApi(readEnv: EnvReader) {
     const clientGone = new AbortController();
     res.on?.("close", () => {
       if (!res.writableFinished) clientGone.abort();
-    });
-
-    const target = `${endpoint(provider.endpointId)}${rest ?? ""}`;
+    });      const target = `${endpoint(provider.endpointId)}${rest ?? ""}`;
     try {
+      // Held so the trace below can measure what was actually sent. Read once:
+      // the body stream cannot be consumed twice.
+      const sentBody = req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req);
       const upstream = await fetch(target, {
         method: req.method ?? "POST",
         headers: {
@@ -546,7 +693,7 @@ export function createModelApi(readEnv: EnvReader) {
           // is dropped: the browser is not a source of authority here.
           ...provider.authHeaders(key),
         },
-        body: req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req),
+        body: sentBody,
         signal: AbortSignal.any([AbortSignal.timeout(UPSTREAM_TIMEOUT_MS), clientGone.signal]),
       });
 
@@ -588,6 +735,21 @@ export function createModelApi(readEnv: EnvReader) {
       // actually came back rather than from the status code alone.
       const bodyText = isEventStream ? "" : await upstream.text();
       const wantsCompletion = /chat\/completions|\/messages|:generateContent/i.test(rest ?? "");
+
+      // One line per turn, from the only vantage point that sees both what
+      // LÉLU sent and what upstream said back. Failures always; successes when
+      // tracing is on. No credential, no message text: sizes, model, status
+      // and the provider's own error code are the facts needed to size a
+      // request correctly, and the prompt itself is nobody else's business.
+      if (!upstream.ok || traceTurns(readEnv)) {
+        logTurn({
+          provider: providerId,
+          status: upstream.status,
+          requestBytes: sentBody?.length ?? 0,
+          ...sizingOf(sentBody),
+          error: describeUpstreamError(bodyText, upstream.status),
+        });
+      }
 
       // MEASURED (2026-11-08): models.github.ai answered 200 text/plain "OK"
       // for EVERY path from this host — including with no credential at all —

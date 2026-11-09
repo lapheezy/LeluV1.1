@@ -32,6 +32,17 @@ import { resolveFirst } from "../core/resolveEnv";
 
 /** Free, image-capable on OpenRouter at the time of writing (see selectModel). */
 export const DEFAULT_VISION_MODEL = "google/gemma-4-31b-it:free";
+
+/**
+ * What an auto route resolves to when nothing concrete is configured.
+ *
+ * Verified live through the broker against this credential: 200, and a real
+ * `tool_calls` array in the body (not just prose about tools).
+ */
+export const DEFAULT_COMPAT_MODEL = "openai/gpt-4o-mini";
+
+/** Model ids that delegate the choice to OpenRouter's own pricing rules. */
+const AUTO_ROUTES = new Set(["openrouter/auto", "openrouter/free", "auto", "free"]);
 import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
 
@@ -55,6 +66,11 @@ export default class OpenRouterProvider implements AIProvider {
   private model = resolveModel("openrouter");
   private initialized = false;
 
+  /** The configured model when it names one, else the verified default. */
+  private concreteModel(): string {
+    return AUTO_ROUTES.has(this.model.toLowerCase()) ? DEFAULT_COMPAT_MODEL : this.model;
+  }
+
   /**
    * Pick a model for this request. With visual media attached a
    * vision-capable model is required — the configured model wins if
@@ -62,10 +78,21 @@ export default class OpenRouterProvider implements AIProvider {
    * is used. Text-only requests keep the configured model exactly
    * as before.
    */
+  /**
+   * Route aliases that choose by PRICE rather than by capability.
+   *
+   * `openrouter/auto` and `openrouter/free` do not name a model; they ask
+   * OpenRouter to pick one, and on an account without credit the pick is the
+   * free tier — which refuses the whole turn with "free-models-per-day …
+   * credits to unlock 1000 free model requests per day", measured live while
+   * this same credential answered 200 with real tool_calls on
+   * openai/gpt-4o-mini. A request that names no capability cannot be sized or
+   * verified, so an alias is resolved to a concrete configured model here.
+   */
   private selectModel(request: AIRequest): string {
     const requested = request.model?.trim() || this.model;
     if (!request.media?.length) {
-      return requested;
+      return AUTO_ROUTES.has(requested.toLowerCase()) ? this.concreteModel() : requested;
     }
     const lower = requested.toLowerCase();
     if (lower.includes("vision") || lower.includes("llava")) {

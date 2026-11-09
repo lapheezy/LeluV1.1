@@ -103,6 +103,15 @@ const snap = () => page.evaluate(() => {
     canvases: q('canvas'), elements: document.querySelectorAll('*').length, textLen: text.length,
     tail: text.split('\n').map((l) => l.trim()).filter(Boolean).slice(-16),
     toolMentions: (text.match(/environment\.[a-z_]+/g) || []).slice(-10),
+    // An IN-PLACE mutation changes a surface's TEXT without changing how many
+    // windows or contents exist, so counts alone reported a successful modify
+    // as NO_CHANGE. This signature moves whenever any surface's text does.
+    signature: (() => {
+      const surface = [...document.querySelectorAll('[data-lelu-module-window]')].map((e) => e.textContent || '').join('\u0001');
+      let hash = 0;
+      for (let i = 0; i < surface.length; i += 1) hash = (hash * 31 + surface.charCodeAt(i)) | 0;
+      return { hash, length: surface.length };
+    })(),
     snapshotMentions: (text.match(/snapshot-[a-z0-9]+/g) || []).slice(-6),
     storage: (() => { try { return Object.keys(localStorage).filter((k) => /environment|workspace|lelu/i.test(k)).slice(0, 24); } catch { return []; } })(),
     envState: (() => { try { const raw = localStorage.getItem('environment.snapshots') || localStorage.getItem('lelu.environment.snapshots'); return raw ? raw.slice(0, 400) : null; } catch { return null; } })(),
@@ -176,6 +185,7 @@ try {
           const now = await snap();
           const grew =
             now.windows !== observed.windows ||
+            now.signature?.hash !== observed.signature?.hash ||
             now.contents.length !== observed.contents.length ||
             now.toolMentions.length > (observed.toolMentions || []).length ||
             now.snapshotMentions.length > (observed.snapshotMentions || []).length;

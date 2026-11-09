@@ -68,8 +68,13 @@ export const MODEL_DEFAULTS = {
   },
   openrouter: {
     names: ["OPENROUTER_MODEL"],
-    fallback: "openrouter/free",
-    note: "OpenRouter's auto-routed free tier — an alias, not a specific model.",
+    fallback: "openai/gpt-4o-mini",
+    note:
+      "A concrete, tool-capable model, verified live through the broker (200 with real " +
+      "tool_calls). Was `openrouter/free`: an alias that routes to the free tier, which " +
+      "answered every turn with 429 'free-models-per-day … credits to unlock 1000 free " +
+      "model requests per day' while this same credential served openai/gpt-4o-mini " +
+      "normally. An alias describes a price, not a capability, so it cannot be a default.",
   },
   cerebras: {
     names: ["CEREBRAS_MODEL"],
