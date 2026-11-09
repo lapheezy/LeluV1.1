@@ -165,21 +165,17 @@ export default class MemoryEngine {
     const previous = existing.response;
     history.push(previous);
 
-    // The correction is authoritative, but the statement it corrects
-    // usually carries facts the correction says nothing about: "my
-    // studio is Aurelia and I work in rose gold", corrected to
-    // "platinum, not rose gold", must not take the studio name with it.
-    // Replacing `response` outright deleted those. The superseded text
-    // is kept alongside, explicitly labelled, so the unrelated facts
-    // stay retrievable while the correction clearly wins.
-    existing.response = previous && previous !== incoming.content
-      ? `${incoming.content}\n(Superseded earlier statement, kept for the details it still carries: ${previous})`
-      : incoming.content;
+    // The correction is authoritative: the active answer must prioritize
+    // the latest valid statement directly. Historical context and previous
+    // statement details are preserved in context.history and context.superseded
+    // so historical retrieval remains complete without polluting active recall.
+    existing.response = incoming.content;
     existing.keywords = [...new Set([...existing.keywords, ...incoming.keywords])];
     existing.importance = Math.max(existing.importance, incoming.importance);
     existing.context = {
       ...existing.context,
       history: history.slice(-8),
+      superseded: previous && previous !== incoming.content ? previous : existing.context?.superseded,
       corrected: now,
     };
     existing.successfulUses += 1;
