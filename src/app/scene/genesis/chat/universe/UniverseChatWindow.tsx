@@ -25,6 +25,7 @@ import ChatMarkdown from "../ChatMarkdown";
 import StudioArtifactCards from "../../studio/StudioArtifactCards";
 import { currentActivity, subscribeActivity } from "../activityRecorder";
 import GenesisWindowFrame from "../../GenesisWindowFrame";
+import GenesisExecutionTimeline from "../../GenesisExecutionTimeline";
 import { UNIVERSE_SEND_EVENT } from "./ChatUniverse";
 
 /** The turn running in this chat, from the same record the chat panel shows. */
@@ -81,6 +82,12 @@ export default function UniverseChatWindow({
       extraActions={conversation.processing ? <span className="lcu-live">Active</span> : null}
     >
       <div className="lcu-win-body" data-lelu-universe-window={conversation.id}>
+        {/* A consent point must be decidable where the person is looking. The
+            card lives in GenesisExecutionTimeline, but the chat panel is
+            mounted hidden behind this window and draws nothing — so the same
+            card, reading the same bus and the same durable ApprovalGate, is
+            rendered here. It is inert (renders nothing) without a request. */}
+        <GenesisExecutionTimeline key={conversation.id} conversationId={conversation.id} approvalsOnly />
         {hasVisibleActivity(liveActivity) ? (
           <div className="lcu-activity">
             <ChatActivityCard activity={liveActivity!} />
