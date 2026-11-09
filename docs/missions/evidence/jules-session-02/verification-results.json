@@ -1,0 +1,34 @@
+{
+  "timestamp": "2026-11-08T20:45:00.000Z",
+  "branch": "jules-246569610287923701-3250dd82",
+  "suites": {
+    "environment-orchestration-engine.test.ts": {
+      "passed": 6,
+      "failed": 0
+    },
+    "interface-orchestration.test.ts": {
+      "passed": 18,
+      "failed": 0
+    },
+    "e2e-demo-research.test.ts": {
+      "passed": 1,
+      "failed": 0
+    },
+    "e2e-demo-creation.test.ts": {
+      "passed": 1,
+      "failed": 0
+    },
+    "e2e-demo-development.test.ts": {
+      "passed": 1,
+      "failed": 0
+    }
+  },
+  "totalTests": 27,
+  "totalPassing": 27,
+  "totalFailing": 0,
+  "liveBrowserVerification": {
+    "target": "http://127.0.0.1:4173",
+    "status": "PASS",
+    "canaryLeakDetected": false
+  }
+}

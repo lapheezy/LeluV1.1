@@ -39,6 +39,7 @@ import { registerForgeTools } from "./forge/ForgeTools";
 import { registerWorldTools } from "./world/WorldTools";
 import { registerAgenticTools } from "./agentic/AgenticTools";
 import { registerInterfaceTools } from "./interface/InterfaceTools";
+import { registerEnvironmentTools } from "./orchestrator/EnvironmentTools";
 import { registerStudioTools } from "./studio/StudioTools";
 import { registerAtelierTools } from "./atelier/AtelierTools";
 import { registerCosmosTools } from "./cosmos/CosmosTools";
@@ -199,6 +200,9 @@ export default class Bootstrap {
       // environment (windows, typography, themes, 3D Cosmos); the user
       // approves before anything is applied.
       registerInterfaceTools();
+      // Session 02 environment orchestration: compose, present, mutate and
+      // manage real workspaces through the same tool table.
+      registerEnvironmentTools();
       // Creation Studio: documents, presentations and spreadsheets made,
       // revised, exported (and verified from the written bytes) in chat.
       registerStudioTools();
