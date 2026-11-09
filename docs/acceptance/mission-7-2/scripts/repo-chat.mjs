@@ -99,6 +99,26 @@ const snap = () => page.evaluate(() => {
 const enter = async () => {
   await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 60_000 });
   await page.waitForTimeout(4000);
+  // The sign-in card is a real surface above the workspace. Answer it the way a
+  // person does — "Continue without an account" — before opening anything, or
+  // every later press lands on the card instead of the control beneath it.
+  for (const label of ['Continue without an account', 'Continue as guest', 'Guest']) {
+    const guest = page.locator(`button:has-text("${label}")`).first();
+    if (await guest.count().catch(() => 0)) {
+      await guest.click({ force: true }).catch(() => {});
+      await page.waitForTimeout(1800);
+      break;
+    }
+  }
+  // The dock's conversation control is the real entry: it is the only press
+  // that renders the composer (measured in entry-probe2.json).
+  {
+    const dock = page.locator('button:has-text("\u2709")').first();
+    if (await dock.count().catch(() => 0)) {
+      await dock.click({ force: true }).catch(() => {});
+      await page.waitForTimeout(2500);
+    }
+  }
   const findComposer = async () => {
     for (const sel of ['textarea[placeholder*="Message"]:visible', 'textarea:visible', '[contenteditable="true"]:visible']) {
       const loc = page.locator(sel).first();
@@ -108,6 +128,8 @@ const enter = async () => {
   };
   const deadline = Date.now() + 90_000;
   while (Date.now() < deadline) {
+    const opened = await findComposer();
+    if (opened) return opened;
     const cosmos = page.locator('button.lch-cosmos').first();
     if (await cosmos.count().catch(() => 0)) { await cosmos.click().catch(() => {}); await page.waitForTimeout(2000); }
     for (const label of ['Continue without an account', 'Continue as guest', 'Guest']) {
@@ -135,7 +157,9 @@ try {
   if (!turn) throw new Error(`no turn ${TURN}`);
 
   await box.evaluate((el) => el.focus());
-  await box.fill(turn.prompt).catch(async () => page.keyboard.insertText(turn.prompt));
+  await box.click().catch(() => {});
+  // Bulk insert loses characters in this composer; real key events do not.
+  await page.keyboard.type(turn.prompt, { delay: 18 });
   await page.waitForTimeout(400);
   await box.evaluate((el) => el.focus());
   await page.keyboard.press('Enter');
