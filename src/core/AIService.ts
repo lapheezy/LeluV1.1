@@ -845,7 +845,13 @@ export default class AIService {
       // AFTER the response has been delivered. They do not block the
       // caller; a failure here is contained and never surfaces as a chat
       // error. All work uses the ONE existing memory/brain path.
-      const consolidationPromise = (async () => {
+      let resolveConsolidation!: () => void;
+      const consolidationPromise = new Promise<void>((resolve) => {
+        resolveConsolidation = resolve;
+      });
+      this.pendingConsolidations.add(consolidationPromise);
+
+      void (async () => {
         try {
           // Memory consolidation ALWAYS runs — online or offline.
           await this.memory.learn(message, response.text, taskId);
@@ -874,12 +880,11 @@ export default class AIService {
           });
         } catch (postErr) {
           console.error("[AIService] Post-response async work failed (contained)", postErr);
+        } finally {
+          this.pendingConsolidations.delete(consolidationPromise);
+          resolveConsolidation();
         }
       })();
-      this.pendingConsolidations.add(consolidationPromise);
-      void consolidationPromise.finally(() => {
-        this.pendingConsolidations.delete(consolidationPromise);
-      });
 
       return {
         ...response,

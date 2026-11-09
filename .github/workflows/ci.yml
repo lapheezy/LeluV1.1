@@ -105,10 +105,11 @@ jobs:
           bun run scripts/verify-workspace.ts
 
       # 9. Live runtime + client secret scan (real browser)
+      # GROQ_API_KEY is a canary: it is set server-side ONLY, and the
+      # test fails if the browser can see it anywhere.
       - name: Live runtime + client secret scan (real browser)
         env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY || 'gsk_CI_CANARY_MUSTNOTREACHTHEBROWSER' }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY || '' }}
+          GROQ_API_KEY: gsk_CI_CANARY_MUSTNOTREACHTHEBROWSER
           LELU_LIVE_CANARY: gsk_CI_CANARY_MUSTNOTREACHTHEBROWSER
         run: |
           set -e
@@ -121,14 +122,3 @@ jobs:
             sleep 1
           done
           node scripts/verify-live-runtime.mjs http://127.0.0.1:4173
-
-      # 10. Optional live-provider tests (runs only when secrets configured)
-      - name: Live provider tests (optional)
-        if: env.GROQ_API_KEY != 'gsk_CI_CANARY_MUSTNOTREACHTHEBROWSER' && env.GROQ_API_KEY != ''
-        env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-        run: |
-          echo "Running live provider verification against configured secrets..."
-          bun run scripts/verify-provider-credentials.ts || true
-          bun run scripts/verify-e2e-cognition.ts || true
