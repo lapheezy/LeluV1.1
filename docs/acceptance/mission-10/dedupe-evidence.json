@@ -1,0 +1,59 @@
+{
+  "base": "http://127.0.0.1:3013",
+  "steps": [
+    {
+      "label": "same repo, https .git",
+      "action": "clone",
+      "url": "https://github.com/typesense/typesense.git",
+      "status": 200,
+      "id": "acq-typesense-typesense-f7ve8",
+      "ok": true,
+      "error": null
+    },
+    {
+      "label": "same repo, bare owner/name",
+      "action": "clone",
+      "url": "typesense/typesense",
+      "status": 200,
+      "id": "acq-typesense-typesense-f7ve8",
+      "ok": true,
+      "error": null
+    },
+    {
+      "label": "same repo, www + no .git",
+      "action": "clone",
+      "url": "https://www.github.com/Typesense/Typesense",
+      "status": 200,
+      "id": "acq-typesense-typesense-f7ve8",
+      "ok": true,
+      "error": null
+    },
+    {
+      "label": "different repo",
+      "action": "clone",
+      "url": "https://github.com/octocat/Hello-World.git",
+      "status": 200,
+      "id": "acq-octocat-hello-world-impyw",
+      "ok": true,
+      "error": null
+    }
+  ],
+  "concurrent": {
+    "first": "acq-sindresorhus-is-ip88g",
+    "second": "acq-sindresorhus-is-ip88g",
+    "same": true,
+    "statuses": [
+      200,
+      200
+    ],
+    "errors": [
+      null,
+      null
+    ]
+  },
+  "verdict": {
+    "sameRepoReused": true,
+    "differentRepoDistinct": true,
+    "concurrentSingleRecord": true
+  }
+}

@@ -970,7 +970,11 @@ export function createAcquisitionApi(adapter: AcquisitionAdapter): {
       typeof body.url === "string" && body.url.trim()
         ? body.url.trim()
         : `https://github.com/${String(body.identifier ?? body.repository ?? "").trim()}`;
-    const target = parseCloneUrl(rawUrl);
+    // Normalize before the allow-list parse: `owner/name`, `www.`, `.git` and
+    // ssh spellings all name the same repository, and the canonical https URL
+    // is what the host allow-list is written against.
+    const identity = normalizeRepositoryUrl(rawUrl);
+    const target = parseCloneUrl(identity.url);
 
     // Idempotent: the same repository at the same ref is one acquisition,
     // whatever spelling of the URL arrived. The identity normalizer makes
@@ -978,9 +982,37 @@ export function createAcquisitionApi(adapter: AcquisitionAdapter): {
     // the single flight makes two concurrent requests share one clone instead
     // of both missing the reuse check and cloning twice.
     const ref = typeof body.ref === "string" ? body.ref.trim() : "";
-    const identity = normalizeRepositoryUrl(target.url);
     const flightKey = `${identity.host}/${identity.identifier}#${ref}`;
+    // A lock directory is atomic across processes, so the guard still holds
+    // when two requests are served by different workers.
+    const lockDir = path.join(path.dirname(dirOf("locks")), ".locks", flightKey.replace(/[^A-Za-z0-9._-]+/g, "_"));
+    mkdirSync(path.dirname(lockDir), { recursive: true });
     return cloneFlights.run(flightKey, async () => {
+      let waited = 0;
+      while (true) {
+        try {
+          mkdirSync(lockDir);
+          break;
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+          const running = findReusableAcquisition(listRecords(), identity, ref);
+          if (running) {
+            log(running.id, {
+              at: Date.now(),
+              action: "reuse",
+              ok: true,
+              detail: `reused ${identity.identifier}; another acquisition of it was already in flight`,
+            });
+            return running;
+          }
+          if (waited >= 300_000) {
+            throw new Error(`Another acquisition of ${identity.identifier} is still running.`);
+          }
+          await new Promise((resolve) => setTimeout(resolve, 250));
+          waited += 250;
+        }
+      }
+      try {
       const existing = findReusableAcquisition(listRecords(), identity, ref);
       if (existing) {
         log(existing.id, {
@@ -1050,6 +1082,9 @@ export function createAcquisitionApi(adapter: AcquisitionAdapter): {
         exitCode: clone.status,
       });
       return record;
+      } finally {
+        rmSync(lockDir, { recursive: true, force: true });
+      }
     });
   }
 
