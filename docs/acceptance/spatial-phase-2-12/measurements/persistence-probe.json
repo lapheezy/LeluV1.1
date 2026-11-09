@@ -1,0 +1,64 @@
+{
+  "at": "2026-11-07T16:44:27.845Z",
+  "base": "http://127.0.0.1:3013/",
+  "viewport": "1440x900",
+  "key": "lelu.lelu.spatial.portals.v1",
+  "bootMs": 30,
+  "beforeMount": {
+    "leluKeys": [
+      "lelu.lelu.layout.v2",
+      "lelu.proactive.session.v1",
+      "lelu.multichat.workspace.v1",
+      "lelu.lelu.self.v1",
+      "lelu.lelu.interface.windows.observed.v1",
+      "lelu.projects.v1",
+      "lelu.lelu.executive.probe",
+      "lelu.lelu.knowledge.v1",
+      "lelu.lelu.world.lifecycle.v2",
+      "lelu.agents.v1",
+      "lelu.lelu.queue.v1",
+      "lelu.proactive.runtime.checkpoint.v1"
+    ],
+    "portalKeys": [],
+    "portalRaw": null,
+    "storage": {
+      "writable": true,
+      "roundTrip": true
+    }
+  },
+  "created": {
+    "requestId": "probe-r2uww9",
+    "ok": true,
+    "portal": {
+      "id": "portal_studio_mw6mvf2o_6vrj",
+      "destination": "studio",
+      "label": "Probe atelier",
+      "createdBy": "agent",
+      "createdAt": 1794069859344,
+      "workspace": "default"
+    },
+    "rawPresent": true,
+    "rawLength": 153
+  },
+  "afterReload": {
+    "count": 1,
+    "ids": [
+      "portal_studio_mw6mvf2o_6vrj"
+    ],
+    "probeDestinations": [
+      "studio"
+    ],
+    "duplicates": 0,
+    "rawPrefix": "[{\"id\":\"portal_studio_mw6mvf2o_6vrj\",\"destination\":\"studio\",\"label\":\"Probe atelier\",\"createdBy\":\"agent\",\"createdAt\":1794069859344,\"workspace\":\"default\"}]"
+  },
+  "errors": [
+    "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "console: Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  ]
+}

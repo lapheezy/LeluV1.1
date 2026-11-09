@@ -147,6 +147,16 @@
 
 /* ----------------------------- frame ----------------------------- */
 
+/* LÉLU's face behind the conversation: above the sky, below the text. */
+.lelu-cc-face {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
 .lelu-cc-shell {
   position: relative;
   z-index: 1;

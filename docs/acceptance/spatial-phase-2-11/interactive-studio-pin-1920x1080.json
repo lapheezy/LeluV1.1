@@ -1,0 +1,28 @@
+{
+ "viewport": "1920x1080",
+ "at": "2026-11-07T21:37:43.689Z",
+ "shots": [],
+ "steps": [
+  "goto",
+  "gate",
+  "event-click open-studio",
+  "studio=true Creation Studio · 0",
+  "event-click pin",
+  "pin Pin Creation Studio -> Unpin Creation Studio",
+  "event-click open-panel",
+  "counters pinned=0 placed · 1 pinned"
+ ],
+ "checks": {
+  "studioVisible": true,
+  "studioTitle": "Creation Studio · 0",
+  "pinLabelBefore": "Pin Creation Studio",
+  "pinLabelAfter": "Unpin Creation Studio",
+  "pinPressed": "true",
+  "countersPinned": "0 placed · 1 pinned",
+  "dragHandle": {
+   "x": 906.2,
+   "y": 85.5
+  }
+ },
+ "errors": []
+}

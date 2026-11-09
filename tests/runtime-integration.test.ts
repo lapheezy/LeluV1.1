@@ -529,15 +529,18 @@ test("VITE_DEFAULT_PROVIDER leads, and the priority fallback still works when it
     };
 
     // Anthropic sits at priority 7 — last — yet is the configured default.
-    //
-    // The competing stub is Mistral rather than Groq ON PURPOSE. The
-    // router legitimately puts Groq/Cerebras/Fireworks ahead of the
-    // configured default on a low-memory device, so a Groq stub makes
-    // this test assert the hardware tier as much as the default
-    // provider — and the tier depends on whether anything has aliased
-    // `window` yet, which is an accident of test ordering. Mistral is
-    // never hardware-preferred, so what is measured here is only what
-    // this test is about: the configured default leads the chain.
+    // It must lead over Groq too: the low-memory hardware hint used to put
+    // Groq/Cerebras/Fireworks ahead of the configured default, which made
+    // the default depend on device memory (and on test ordering).
+    const regFast = new AIProviderRegistry();
+    regFast.register((await stubProvider("Groq", 1, "ok")) as never);
+    regFast.register((await stubProvider("Anthropic", 7, "ok")) as never);
+    await regFast.initialize();
+    const overFast = await new ProviderResolver().execute({
+      ...base, aiProviders: regFast, logger: new ExecutionLogger(),
+    } as never);
+    assert.equal(overFast.response?.provider, "Anthropic", "the configured default must lead over the hardware hint");
+
     const reg = new AIProviderRegistry();
     reg.register((await stubProvider("Mistral", 1, "ok")) as never);
     reg.register((await stubProvider("Anthropic", 7, "ok")) as never);

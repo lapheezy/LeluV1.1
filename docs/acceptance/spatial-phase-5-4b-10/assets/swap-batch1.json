@@ -1,0 +1,111 @@
+{
+  "mission": "5.4B.9",
+  "scenario": "swap",
+  "batch": 1,
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "records": [
+    {
+      "loadId": "swap-b1-l1",
+      "freshLoad": true,
+      "settledWorld": {
+        "entry": true,
+        "ready": true,
+        "scene": "core"
+      },
+      "destination": "files",
+      "aim": {
+        "x": 530,
+        "y": 669,
+        "portalId": "scene:files",
+        "destination": "files",
+        "neighbourId": "scene:media",
+        "neighbour": "media",
+        "boundary": {
+          "lastA": {
+            "x": 537,
+            "y": 688
+          },
+          "firstB": {
+            "x": 541,
+            "y": 697,
+            "id": "scene:media",
+            "name": "spatial-portal-hit-scene:media"
+          }
+        },
+        "gapPx": 10,
+        "mouthCentre": {
+          "x": 524,
+          "y": 653
+        }
+      },
+      "scenario": "swap",
+      "armed": {
+        "check0": {
+          "portalId": "scene:files",
+          "name": "spatial-portal-hit-scene:files",
+          "expected": "scene:files",
+          "ok": true
+        }
+      },
+      "pressVerifiedInsideMouth": true,
+      "aimAttempts": [
+        {
+          "x": 1097,
+          "y": 695,
+          "claimed": null
+        },
+        {
+          "x": 487,
+          "y": 705,
+          "claimed": null
+        },
+        {
+          "x": 509,
+          "y": 701,
+          "claimed": null
+        },
+        {
+          "x": 526,
+          "y": 684,
+          "claimed": null
+        }
+      ],
+      "claimAtDown": null,
+      "neighbourUnderPointerAtRelease": {
+        "id": "scene:browser",
+        "name": "spatial-portal-hit-scene:browser"
+      },
+      "heldMs": 24115,
+      "press": [],
+      "pressProbe": [
+        {
+          "x": 1097,
+          "y": 695,
+          "pick": null,
+          "object": "",
+          "element": "CANVAS"
+        }
+      ],
+      "claimedAtDown": null,
+      "resolvedAtUp": null,
+      "moved": null,
+      "outcome": null,
+      "refusal": null,
+      "onSelectCalls": 0,
+      "travel": {
+        "ms": 1759,
+        "finalScene": "core",
+        "dataset": "core",
+        "destination": null
+      },
+      "doubleActivation": false,
+      "identityHeld": false,
+      "travelled": false,
+      "outcomeClass": "no-claim",
+      "matches": false
+    }
+  ]
+}

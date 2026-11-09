@@ -128,7 +128,7 @@ test("a multipart body survives the broker byte for byte", async () => {
     Buffer.from("\r\n--bound--\r\n"),
   ]);
 
-  const { calls } = await call("/groq/openai/v1/audio/transcriptions", {
+  const { calls } = await call("/groq/audio/transcriptions", {
     body,
     headers: { "content-type": "multipart/form-data; boundary=bound" },
   });
@@ -143,7 +143,7 @@ test("a multipart body survives the broker byte for byte", async () => {
 });
 
 test("the caller's multipart content-type reaches the upstream with its boundary", async () => {
-  const { calls } = await call("/groq/openai/v1/audio/transcriptions", {
+  const { calls } = await call("/groq/audio/transcriptions", {
     body: Buffer.from("--b--"),
     headers: { "content-type": "multipart/form-data; boundary=b" },
   });
@@ -162,7 +162,7 @@ test("a chat request with no content-type still defaults to JSON", async () => {
 });
 
 test("audio carries the SERVER's credential and the browser sends none", async () => {
-  const { calls } = await call("/groq/openai/v1/audio/transcriptions", {
+  const { calls } = await call("/groq/audio/transcriptions", {
     body: Buffer.from("x"),
     headers: {
       "content-type": "multipart/form-data; boundary=b",

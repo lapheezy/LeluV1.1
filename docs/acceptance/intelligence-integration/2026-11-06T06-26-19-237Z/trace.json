@@ -1,0 +1,170 @@
+{
+  "traceId": "b5b909b96cd5bec2a5d22e72a97f1501",
+  "correlationId": "evidence-1793946379239",
+  "summary": {
+    "traceId": "b5b909b96cd5bec2a5d22e72a97f1501",
+    "rootName": "verify intelligence integration",
+    "rootSpanId": "6a0d6c3ee77c88c7",
+    "startedAt": 1793946379289,
+    "status": "failed",
+    "spanCount": 7,
+    "stages": [
+      "user_request",
+      "core",
+      "shaman",
+      "tool",
+      "model",
+      "result",
+      "verification"
+    ],
+    "correlationId": "evidence-1793946379239",
+    "endedAt": 1793946383320,
+    "durationMs": 4031
+  },
+  "chain": [
+    {
+      "stage": "user_request",
+      "name": "verify intelligence integration",
+      "status": "ok",
+      "durationMs": 259
+    },
+    {
+      "stage": "core",
+      "name": "LÉLU CORE — authorization preflight",
+      "status": "ok",
+      "durationMs": 259
+    },
+    {
+      "stage": "shaman",
+      "name": "SHAMAN — classify objective",
+      "status": "ok",
+      "durationMs": 1
+    },
+    {
+      "stage": "tool",
+      "name": "security gate — gitleaks over the working tree",
+      "status": "failed",
+      "durationMs": 3767
+    },
+    {
+      "stage": "model",
+      "name": "model gateway probes",
+      "status": "ok",
+      "durationMs": 1
+    },
+    {
+      "stage": "result",
+      "name": "collected evidence",
+      "status": "ok",
+      "durationMs": 0
+    },
+    {
+      "stage": "verification",
+      "name": "verify the gate and the parity",
+      "status": "ok",
+      "durationMs": 0
+    }
+  ],
+  "spans": [
+    {
+      "id": "6a0d6c3ee77c88c7",
+      "traceId": "b5b909b96cd5bec2a5d22e72a97f1501",
+      "parentId": null,
+      "stage": "user_request",
+      "name": "verify intelligence integration",
+      "startedAt": 1793946379290,
+      "status": "ok",
+      "attributes": {},
+      "children": [],
+      "endedAt": 1793946379549
+    },
+    {
+      "id": "91fde5f0c5518e83",
+      "traceId": "b5b909b96cd5bec2a5d22e72a97f1501",
+      "parentId": null,
+      "stage": "core",
+      "name": "LÉLU CORE — authorization preflight",
+      "startedAt": 1793946379290,
+      "status": "ok",
+      "attributes": {
+        "cases": 10,
+        "engine": "opa"
+      },
+      "children": [],
+      "endedAt": 1793946379549
+    },
+    {
+      "id": "089cb7067c8d77ed",
+      "traceId": "b5b909b96cd5bec2a5d22e72a97f1501",
+      "parentId": null,
+      "stage": "shaman",
+      "name": "SHAMAN — classify objective",
+      "startedAt": 1793946379549,
+      "status": "ok",
+      "attributes": {
+        "objective": "fix the failing parser test and show me the diff",
+        "classified": "engineering"
+      },
+      "children": [],
+      "endedAt": 1793946379550
+    },
+    {
+      "id": "7e58220b5e0bbd7f",
+      "traceId": "b5b909b96cd5bec2a5d22e72a97f1501",
+      "parentId": null,
+      "stage": "tool",
+      "name": "security gate — gitleaks over the working tree",
+      "startedAt": 1793946379550,
+      "status": "failed",
+      "attributes": {
+        "scannersRan": 1,
+        "findings": 74,
+        "gatePassed": false
+      },
+      "children": [],
+      "endedAt": 1793946383317
+    },
+    {
+      "id": "b861b9eed5ee4ae1",
+      "traceId": "b5b909b96cd5bec2a5d22e72a97f1501",
+      "parentId": null,
+      "stage": "model",
+      "name": "model gateway probes",
+      "startedAt": 1793946383318,
+      "status": "ok",
+      "attributes": {
+        "services": 10
+      },
+      "children": [],
+      "endedAt": 1793946383319
+    },
+    {
+      "id": "2209f1ff667f49d4",
+      "traceId": "b5b909b96cd5bec2a5d22e72a97f1501",
+      "parentId": null,
+      "stage": "result",
+      "name": "collected evidence",
+      "startedAt": 1793946383319,
+      "status": "ok",
+      "attributes": {},
+      "children": [],
+      "endedAt": 1793946383319
+    },
+    {
+      "id": "06e751f81509bcb0",
+      "traceId": "b5b909b96cd5bec2a5d22e72a97f1501",
+      "parentId": null,
+      "stage": "verification",
+      "name": "verify the gate and the parity",
+      "startedAt": 1793946383320,
+      "status": "ok",
+      "attributes": {
+        "parity": true,
+        "gateHonest": true,
+        "opaRan": true
+      },
+      "children": [],
+      "endedAt": 1793946383320
+    }
+  ]
+}

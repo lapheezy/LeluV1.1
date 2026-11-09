@@ -1,0 +1,26 @@
+{
+  "note": "Captured verbatim from the running Vite dev server on 2026-11-06 (port 5199), POST /api/integration/policy. Deny case: an agent attempting DEPLOY in production with a valid approval.",
+  "request": {
+    "subject": { "kind": "agent", "userId": null, "agentId": "agent-1", "sessionId": "s1" },
+    "action": "DEPLOY",
+    "resource": { "kind": "deployment", "id": "deployment:prod" },
+    "context": { "autonomyLevel": 5, "environment": "production", "approvalValid": true }
+  },
+  "response": {
+    "ok": true,
+    "decision": {
+      "allowed": false,
+      "requiresApproval": false,
+      "reason": "An agent may not DEPLOY — only the user may.",
+      "action": "DEPLOY",
+      "risk": "critical",
+      "engine": "opa",
+      "rules": ["deny_agent_action"]
+    },
+    "engine": "opa",
+    "detail": ".tools/opa Version: 1.22.2",
+    "durationMs": 138,
+    "reference": { "allowed": false, "requiresApproval": false, "rules": ["deny_agent_action"] },
+    "agrees": true
+  }
+}

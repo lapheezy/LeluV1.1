@@ -70,22 +70,12 @@ function publicEnvRecord(): Record<string, string | undefined> {
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
       VITE_VAPID_PUBLIC_KEY: import.meta.env.VITE_VAPID_PUBLIC_KEY,
 
-      /* ---- browser-called service keys ----
-       * NewsAPI, the YouTube Data API, Meshy (paid, avatar 3-D
-       * reconstruction) and GitHub repo search have been moved
-       * server-side and are deliberately ABSENT here: they relay through
-       * /api/knowledge/relay and /api/github/proxy.
-       *
-       * The four below are still read in the browser, so they are still
-       * shipped in the bundle. That is a real remaining exposure, stated
-       * plainly rather than glossed over (see ENV_VARS.md). Each is a
-       * free-tier key for a browser-only feature — the Earth fire layer
-       * and three secondary news fallbacks — and closing them means
-       * giving each the same relay treatment. */
-      VITE_GUARDIAN_API_KEY: import.meta.env.VITE_GUARDIAN_API_KEY,
-      VITE_GNEWS_API_KEY: import.meta.env.VITE_GNEWS_API_KEY,
-      VITE_NEWSDATA_API_KEY: import.meta.env.VITE_NEWSDATA_API_KEY,
-      VITE_FIRMS_API_KEY: import.meta.env.VITE_FIRMS_API_KEY,
+      /* ---- browser-called service keys: NONE ----
+       * NewsAPI, YouTube, Meshy, GitHub repo search and — since the
+       * master-integration security pass — Guardian, GNews, NewsData,
+       * NASA, Geoapify and FIRMS are relayed server-side
+       * (/api/knowledge/relay, /api/github/proxy, /api/forge). A key read
+       * here is compiled into the bundle, so none is. */
     };
   } catch {
     // No import.meta.env at all (a plain bun/node verification run).

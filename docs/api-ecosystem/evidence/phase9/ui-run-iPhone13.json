@@ -1,0 +1,13 @@
+{
+ "kind": "iPhone 13",
+ "before": "Not signed in: usage and budgets are kept on this device only.",
+ "after": "Synced to your account · 4:16:22 AM · totals above are across your devices",
+ "providerCallsForFirstTurn": 2,
+ "noticesBeforeBudget": 0,
+ "providerCallsAfterBudget": 0,
+ "notice": "I didn't send this to Fireworks: all AI providers: daily calls budget reached (1/1, 1 in flight). Raise or clear the budget to continue. This limit comes from this device's budget, so I stopped here instead of switching to another provider. You can raise or clear it in Settings → Usage & budgets.",
+ "errors": [
+  "Error: Supabase hydration timed out after 8000ms",
+  "Error: Supabase hydration timed out after 8000ms"
+ ]
+}

@@ -57,6 +57,8 @@
  * ==========================================================
  */
 
+import { createGuard, sendRefusal, type Guard, type GuardRequest } from "./requestGuard.ts";
+
 interface ConnectLikeReq {
   method?: string;
   url?: string;
@@ -88,6 +90,10 @@ interface UpstreamKnowledgeProvider {
   originVar?: string;
   /** Also relay POST (JSON body, bounded, same-origin only). */
   allowPost?: true;
+  /** Public credential used when none is configured (NASA's shared DEMO_KEY). */
+  defaultKey?: string;
+  /** The key is a PATH segment inserted right after pathPrefix (NASA FIRMS). */
+  keyInPath?: true;
 }
 
 /** Largest POST body relayed — an image-to-3D request carries the image as a data URI. */
@@ -117,6 +123,49 @@ const KNOWLEDGE_PROVIDERS: Record<string, UpstreamKnowledgeProvider> = {
     keyVars: ["MESHY_API_KEY", "VITE_MESHY_API_KEY"],
     bearer: true,
     allowPost: true,
+  },
+  // The five below were published into every served page by the runtime
+  // key bridge (window.__LELU_*__), so any visitor could read the keys from
+  // the HTML. They take their key as a query parameter, like news/youtube,
+  // and now stay on the server too.
+  guardian: {
+    origin: "https://content.guardianapis.com",
+    pathPrefix: "/search",
+    keyVars: ["GUARDIAN_API_KEY", "VITE_GUARDIAN_API_KEY"],
+    queryParam: "api-key",
+  },
+  gnews: {
+    origin: "https://gnews.io",
+    pathPrefix: "/api/v4/",
+    keyVars: ["GNEWS_API_KEY", "VITE_GNEWS_API_KEY"],
+    queryParam: "apikey",
+  },
+  newsdata: {
+    origin: "https://newsdata.io",
+    pathPrefix: "/api/1/",
+    keyVars: ["NEWSDATA_API_KEY", "VITE_NEWSDATA_API_KEY"],
+    queryParam: "apikey",
+  },
+  geoapify: {
+    origin: "https://api.geoapify.com",
+    pathPrefix: "/v1/",
+    keyVars: ["GEOAPIFY_API_KEY", "VITE_GEOAPIFY_API_KEY"],
+    queryParam: "apiKey",
+  },
+  nasa: {
+    origin: "https://api.nasa.gov",
+    pathPrefix: "/",
+    keyVars: ["NASA_API_KEY", "VITE_NASA_API_KEY"],
+    queryParam: "api_key",
+    defaultKey: "DEMO_KEY",
+  },
+  // NASA FIRMS (Earth fire layer): /api/area/csv/{MAP_KEY}/{SOURCE}/… —
+  // the client sends the path WITHOUT the key segment.
+  firms: {
+    origin: "https://firms.modaps.eosdis.nasa.gov",
+    pathPrefix: "/api/area/csv/",
+    keyVars: ["FIRMS_API_KEY", "VITE_FIRMS_API_KEY"],
+    keyInPath: true,
   },
 };
 
@@ -237,10 +286,18 @@ function warnAboutPrefixedCredentials(env: EnvReader): void {
   );
 }
 
-export function createAiProxyApi(env: EnvReader): {
+export interface AiProxyApiOptions {
+  /** Identity + rate gate for the relay (it spends the server's keys). Default: Supabase-verified user. */
+  guard?: Guard;
+}
+
+const KNOWLEDGE_LIMIT = { max: 60, windowMs: 60_000 };
+
+export function createAiProxyApi(env: EnvReader, options: AiProxyApiOptions = {}): {
   attach: (middlewares: { use: (path: string, handler: Handler) => void }) => void;
 } {
   warnAboutPrefixedCredentials(env);
+  const guard = options.guard ?? createGuard();
   return {
     attach(middlewares) {
       // ---- capability report: booleans only -------------------------
@@ -257,7 +314,7 @@ export function createAiProxyApi(env: EnvReader): {
         for (const [id, entry] of Object.entries(KNOWLEDGE_PROVIDERS)) {
           // Deliberately a boolean. Not the value, not a prefix, not a
           // length — nothing an attacker could use to narrow a key.
-          knowledge[id] = { configured: firstSetVar(env, entry.keyVars).length > 0 };
+          knowledge[id] = { configured: firstSetVar(env, entry.keyVars).length > 0 || Boolean(entry.defaultKey) };
         }
         sendJson(res, { ok: true, knowledge });
       });
@@ -276,6 +333,17 @@ export function createAiProxyApi(env: EnvReader): {
         }
 
         void (async () => {
+          // A signed-in user only: an anonymous caller would be spending the
+          // owner's provider quota through this server.
+          // The body (POST) is collected from the start, alongside the identity
+          // check, so no stream event can pass while the check is in flight.
+          const postBody = method === "POST" ? readBody(req, MAX_POST_BYTES) : null;
+          postBody?.catch(() => undefined);
+          const decision = await guard.check(req as unknown as GuardRequest, "user", "knowledge", KNOWLEDGE_LIMIT);
+          if (!decision.ok) {
+            sendRefusal(res, decision);
+            return;
+          }
           const query = new URL(req.url ?? "", "http://localhost").searchParams;
           const id = (query.get("provider") ?? "").toLowerCase();
           const entry = KNOWLEDGE_PROVIDERS[id];
@@ -305,7 +373,7 @@ export function createAiProxyApi(env: EnvReader): {
             return;
           }
 
-          const key = firstSetVar(env, entry.keyVars);
+          const key = firstSetVar(env, entry.keyVars) || entry.defaultKey || "";
           if (!key) {
             sendJson(res, { ok: false, error: `No server-side credential configured for "${id}".` }, 503);
             return;
@@ -313,7 +381,11 @@ export function createAiProxyApi(env: EnvReader): {
 
           try {
             const origin = ((entry.originVar && env(entry.originVar)?.trim()) || entry.origin).replace(/\/+$/, "");
-            const target = new URL(`${origin}${rawPath}`);
+            const target = new URL(
+              entry.keyInPath
+                ? `${origin}${entry.pathPrefix}${encodeURIComponent(key)}/${rawPath.slice(entry.pathPrefix.length)}`
+                : `${origin}${rawPath}`,
+            );
             const headers: Record<string, string> = { Accept: "application/json" };
             // A caller-supplied credential is overwritten, never honoured —
             // the server's key is the only one that goes out.
@@ -325,7 +397,7 @@ export function createAiProxyApi(env: EnvReader): {
             }
             let body: string | undefined;
             if (method === "POST") {
-              body = await readBody(req, MAX_POST_BYTES);
+              body = await postBody!;
               headers["Content-Type"] = "application/json";
             }
             const upstream = await fetch(target.toString(), {

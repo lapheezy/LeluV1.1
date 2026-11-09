@@ -11,7 +11,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 import GenesisWindowFrame from "./GenesisWindowFrame";
 
@@ -20,7 +20,7 @@ interface GenesisHistoryPanelProps {
 }
 
 export default function GenesisHistoryPanel({ onClose }: GenesisHistoryPanelProps) {
-  const { state, clearConversation } = useGenesis();
+  const { state, clearConversation } = useGenesisState();
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {

@@ -1,0 +1,48 @@
+{
+  "jobId": "fj_mvvfg2o3_ebd9c0",
+  "character": "lelu_character",
+  "kind": "multi-image-to-3d",
+  "purpose": "Hood-down base character (ref11 front + ref09_back_upper_body)",
+  "meshyTaskId": "01a18f49-94d7-777f-8f60-d072189c001a",
+  "request": {
+    "image_urls": [
+      "ref:ref11_front_apose_B",
+      "ref:ref09_back_upper_body"
+    ],
+    "ai_model": "meshy-7.1",
+    "geometry_resolution": "standard",
+    "should_texture": true,
+    "enable_pbr": true,
+    "texture_resolution": "2k",
+    "pose_mode": "a-pose",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 60000,
+    "save_pre_remeshed_model": true,
+    "image_enhancement": false,
+    "target_formats": [
+      "glb",
+      "fbx"
+    ],
+    "multi_view_thumbnails": true
+  },
+  "references": [
+    {
+      "id": "ref11_front_apose_B",
+      "sha256": "1e01242a0a2729614e8d97da418077df3279daab8a08daee6b01a1e056ba6f02",
+      "view": "front full-body A-pose",
+      "outfitVariant": "B-wire-cage-hood"
+    },
+    {
+      "id": "ref09_back_upper_body",
+      "sha256": "bec0f68f49ed752e21597b251cc95909ca6265197e454288a8f93bff746f5355",
+      "view": "back, head to upper thigh",
+      "outfitVariant": "mixed"
+    }
+  ],
+  "identityLock": "c90e0e46f7d2cb053aa6de43ba524c6eb13bf1a392b0b687ccce775a9e8336e9",
+  "estimatedCredits": 30,
+  "consumedCredits": 30,
+  "submittedAt": 1793405328554,
+  "finishedAt": 1793405616956
+}

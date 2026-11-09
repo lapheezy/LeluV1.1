@@ -1,0 +1,411 @@
+{
+  "total": 86,
+  "bySeverity": [
+    {
+      "severity": "HIGH",
+      "count": 32
+    },
+    {
+      "severity": "LOW",
+      "count": 11
+    },
+    {
+      "severity": "MEDIUM",
+      "count": 43
+    }
+  ],
+  "items": [
+    {
+      "id": "CVE-2025-13465",
+      "severity": "MEDIUM",
+      "pkg": "lodash-es",
+      "installed": "4.17.21",
+      "fixed": "4.17.23"
+    },
+    {
+      "id": "CVE-2025-71329",
+      "severity": "HIGH",
+      "pkg": "image-size",
+      "installed": "1.2.1",
+      "fixed": "2.0.3"
+    },
+    {
+      "id": "CVE-2025-71330",
+      "severity": "HIGH",
+      "pkg": "image-size",
+      "installed": "1.2.1",
+      "fixed": "2.0.3"
+    },
+    {
+      "id": "CVE-2026-102276",
+      "severity": "HIGH",
+      "pkg": "brace-expansion",
+      "installed": "5.0.9",
+      "fixed": "5.0.10, 3.0.7, 2.1.5, 1.1.19"
+    },
+    {
+      "id": "CVE-2026-102277",
+      "severity": "MEDIUM",
+      "pkg": "brace-expansion",
+      "installed": "5.0.9",
+      "fixed": "5.0.12, 3.0.9, 2.1.7, 1.1.21"
+    },
+    {
+      "id": "CVE-2026-102278",
+      "severity": "HIGH",
+      "pkg": "brace-expansion",
+      "installed": "5.0.9",
+      "fixed": "5.0.11, 3.0.8, 2.1.6, 1.1.20"
+    },
+    {
+      "id": "CVE-2026-103923",
+      "severity": "LOW",
+      "pkg": "katex",
+      "installed": "0.16.47",
+      "fixed": "0.18.2"
+    },
+    {
+      "id": "CVE-2026-109383",
+      "severity": "HIGH",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "6.29.1, 7.30.1, 8.12.2"
+    },
+    {
+      "id": "CVE-2026-109932",
+      "severity": "MEDIUM",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "6.29.1, 7.30.1, 8.12.2"
+    },
+    {
+      "id": "CVE-2026-112942",
+      "severity": "HIGH",
+      "pkg": "vite",
+      "installed": "8.0.3",
+      "fixed": "8.3.3, 8.2.4, 8.1.6, 7.3.7, 6.4.4"
+    },
+    {
+      "id": "CVE-2026-112943",
+      "severity": "MEDIUM",
+      "pkg": "vite",
+      "installed": "8.0.3",
+      "fixed": "8.3.3, 8.2.4, 8.1.6, 7.3.7, 6.4.4"
+    },
+    {
+      "id": "CVE-2026-112944",
+      "severity": "MEDIUM",
+      "pkg": "vite",
+      "installed": "8.0.3",
+      "fixed": "8.3.3, 8.2.4, 8.1.6, 7.3.7, 6.4.4"
+    },
+    {
+      "id": "CVE-2026-112945",
+      "severity": "LOW",
+      "pkg": "vite",
+      "installed": "8.0.3",
+      "fixed": "8.3.3, 8.2.4, 8.1.6, 7.3.7, 6.4.4"
+    },
+    {
+      "id": "CVE-2026-112946",
+      "severity": "MEDIUM",
+      "pkg": "vite",
+      "installed": "8.0.3",
+      "fixed": "8.3.3, 8.2.4, 8.1.6, 7.3.7, 6.4.4"
+    },
+    {
+      "id": "CVE-2026-11525",
+      "severity": "LOW",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "6.27.0, 7.28.0, 8.5.0"
+    },
+    {
+      "id": "CVE-2026-118764",
+      "severity": "MEDIUM",
+      "pkg": "minimatch",
+      "installed": "10.2.6",
+      "fixed": "11.0.1"
+    },
+    {
+      "id": "CVE-2026-118773",
+      "severity": "MEDIUM",
+      "pkg": "glob",
+      "installed": "13.0.6",
+      "fixed": "14.0.2"
+    },
+    {
+      "id": "CVE-2026-12151",
+      "severity": "HIGH",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "6.27.0, 7.28.0, 8.5.0"
+    },
+    {
+      "id": "CVE-2026-15157",
+      "severity": "MEDIUM",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "6.28.0, 7.29.0, 8.9.0"
+    },
+    {
+      "id": "CVE-2026-1525",
+      "severity": "MEDIUM",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "6.24.0, 7.24.0"
+    },
+    {
+      "id": "CVE-2026-1526",
+      "severity": "HIGH",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "6.24.0, 7.24.0"
+    },
+    {
+      "id": "CVE-2026-1527",
+      "severity": "MEDIUM",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "6.24.0, 7.24.0"
+    },
+    {
+      "id": "CVE-2026-16728",
+      "severity": "MEDIUM",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "6.28.0, 7.29.0, 8.9.0"
+    },
+    {
+      "id": "CVE-2026-16729",
+      "severity": "MEDIUM",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "6.28.0, 7.29.0, 8.9.0"
+    },
+    {
+      "id": "CVE-2026-18540",
+      "severity": "LOW",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "6.28.1, 7.29.1, 8.10.2"
+    },
+    {
+      "id": "CVE-2026-19481",
+      "severity": "HIGH",
+      "pkg": "@fastify/busboy",
+      "installed": "2.1.1",
+      "fixed": "3.2.1"
+    },
+    {
+      "id": "CVE-2026-22036",
+      "severity": "MEDIUM",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "7.18.2, 6.23.0"
+    },
+    {
+      "id": "CVE-2026-2229",
+      "severity": "HIGH",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "6.24.0, 7.24.0"
+    },
+    {
+      "id": "CVE-2026-39363",
+      "severity": "HIGH",
+      "pkg": "vite",
+      "installed": "8.0.3",
+      "fixed": "8.0.5, 7.3.2, 6.4.2"
+    },
+    {
+      "id": "CVE-2026-39364",
+      "severity": "HIGH",
+      "pkg": "vite",
+      "installed": "8.0.3",
+      "fixed": "8.0.5, 7.3.2"
+    },
+    {
+      "id": "CVE-2026-39365",
+      "severity": "MEDIUM",
+      "pkg": "vite",
+      "installed": "8.0.3",
+      "fixed": "8.0.5, 7.3.2, 6.4.2"
+    },
+    {
+      "id": "CVE-2026-41148",
+      "severity": "MEDIUM",
+      "pkg": "mermaid",
+      "installed": "11.12.0",
+      "fixed": "11.15.0, 10.9.6"
+    },
+    {
+      "id": "CVE-2026-41149",
+      "severity": "MEDIUM",
+      "pkg": "mermaid",
+      "installed": "11.12.0",
+      "fixed": "11.15.0, 10.9.6"
+    },
+    {
+      "id": "CVE-2026-41150",
+      "severity": "MEDIUM",
+      "pkg": "mermaid",
+      "installed": "11.12.0",
+      "fixed": "11.15.0, 10.9.6"
+    },
+    {
+      "id": "CVE-2026-41159",
+      "severity": "MEDIUM",
+      "pkg": "mermaid",
+      "installed": "11.12.0",
+      "fixed": "11.15.0, 10.9.6"
+    },
+    {
+      "id": "CVE-2026-41305",
+      "severity": "MEDIUM",
+      "pkg": "postcss",
+      "installed": "8.5.8",
+      "fixed": "8.5.10"
+    },
+    {
+      "id": "CVE-2026-41907",
+      "severity": "MEDIUM",
+      "pkg": "uuid",
+      "installed": "8.3.2",
+      "fixed": "11.1.1, 12.0.1, 13.0.1"
+    },
+    {
+      "id": "CVE-2026-45623",
+      "severity": "HIGH",
+      "pkg": "postcss",
+      "installed": "8.5.8",
+      "fixed": "8.5.12"
+    },
+    {
+      "id": "CVE-2026-4800",
+      "severity": "HIGH",
+      "pkg": "lodash-es",
+      "installed": "4.17.21",
+      "fixed": "4.18.0"
+    },
+    {
+      "id": "CVE-2026-50159",
+      "severity": "MEDIUM",
+      "pkg": "mermaid",
+      "installed": "11.12.0",
+      "fixed": "11.16.1, 10.9.8"
+    },
+    {
+      "id": "CVE-2026-53571",
+      "severity": "MEDIUM",
+      "pkg": "vite",
+      "installed": "8.0.3",
+      "fixed": "8.0.16, 7.3.5, 6.4.3"
+    },
+    {
+      "id": "CVE-2026-53632",
+      "severity": "MEDIUM",
+      "pkg": "vite",
+      "installed": "8.0.3",
+      "fixed": "8.0.16, 7.3.5, 6.4.3"
+    },
+    {
+      "id": "CVE-2026-67213",
+      "severity": "HIGH",
+      "pkg": "nanoid",
+      "installed": "3.3.11",
+      "fixed": "3.3.18, 5.1.6"
+    },
+    {
+      "id": "CVE-2026-67214",
+      "severity": "HIGH",
+      "pkg": "nanoid",
+      "installed": "3.3.11",
+      "fixed": "3.3.16, 5.1.16"
+    },
+    {
+      "id": "CVE-2026-6733",
+      "severity": "LOW",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "6.27.0, 7.28.0, 8.5.0"
+    },
+    {
+      "id": "CVE-2026-69153",
+      "severity": "MEDIUM",
+      "pkg": "postcss",
+      "installed": "8.5.8",
+      "fixed": "8.5.23"
+    },
+    {
+      "id": "CVE-2026-71436",
+      "severity": "MEDIUM",
+      "pkg": "mermaid",
+      "installed": "11.12.0",
+      "fixed": "10.9.8, 11.16.1"
+    },
+    {
+      "id": "CVE-2026-71437",
+      "severity": "MEDIUM",
+      "pkg": "mermaid",
+      "installed": "11.12.0",
+      "fixed": "11.16.1"
+    },
+    {
+      "id": "CVE-2026-71438",
+      "severity": "LOW",
+      "pkg": "mermaid",
+      "installed": "11.12.0",
+      "fixed": "11.16.1, 10.9.8"
+    },
+    {
+      "id": "CVE-2026-71439",
+      "severity": "MEDIUM",
+      "pkg": "mermaid",
+      "installed": "11.12.0",
+      "fixed": "11.16.1"
+    },
+    {
+      "id": "CVE-2026-73086",
+      "severity": "HIGH",
+      "pkg": "nanoid",
+      "installed": "3.3.11",
+      "fixed": "3.3.12, 5.1.11"
+    },
+    {
+      "id": "CVE-2026-73646",
+      "severity": "HIGH",
+      "pkg": "postcss",
+      "installed": "8.5.8",
+      "fixed": "8.5.18"
+    },
+    {
+      "id": "CVE-2026-74866",
+      "severity": "MEDIUM",
+      "pkg": "@fastify/busboy",
+      "installed": "2.1.1",
+      "fixed": "3.2.2"
+    },
+    {
+      "id": "CVE-2026-87018",
+      "severity": "HIGH",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "6.29.1, 7.30.1, 8.12.2"
+    },
+    {
+      "id": "CVE-2026-93749",
+      "severity": "HIGH",
+      "pkg": "source-map-js",
+      "installed": "1.2.1",
+      "fixed": "1.2.2"
+    },
+    {
+      "id": "CVE-2026-9679",
+      "severity": "MEDIUM",
+      "pkg": "undici",
+      "installed": "5.29.0",
+      "fixed": "6.27.0, 7.28.0, 8.5.0"
+    }
+  ]
+}

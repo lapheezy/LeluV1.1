@@ -1,324 +1,505 @@
 /**
  * ==========================================================
- * LÉLUVERSE
- * GENESIS V2 — LÉLU PRESENCE
+ * LÉLU — ONE 3D PRESENCE IN THE SHARED WORLD
  *
- * LÉLU herself, standing in the Cosmos: the same character rig
- * (core/avatar/LeluRig) the companion and the Avatar panel draw — the
- * owner's reference, cut out of its background, animated live: blinking,
- * gaze, expressions, head and body motion, and a mouth driven by her
- * actual speech (core/avatar/LeluAnimation, shared with every surface).
+ * The approved Forge rig is the ONLY body drawn here. There is no
+ * billboard, no saved-image plane, no procedural stand-in and no
+ * companion card in this scene. If the rig cannot load, she says so
+ * instead of silently becoming a different LÉLU.
  *
- * In the scene she is a camera-facing figure whose transparent pixels are
- * transparent: no card, no frame, no halo square, no platform — the
- * Cosmos is behind her. Embodied and hologram are two materials of the
- * same rig (LeluCharacterStore). Executive avatar commands (wave, nod,
- * bow, move…) are performed as real transform work and confirmed by
- * measured deltas, as before.
+ * She stands on the room floor in world coordinates. She can:
+ *   - walk to a sensible place for what she is doing,
+ *   - stay out of the Core, furniture, windows projected onto the floor,
+ *     the room wall and the person's space,
+ *   - be held and dragged with a pointer/touch, which pauses autonomy,
+ *   - remember the placement the person chose.
  *
- * The generic procedural figure and the flat saved-image billboard that
- * stood here are gone: the owner's reference is her identity.
+ * Window rectangles are raycast onto the floor, so an opened Browser or
+ * Studio window becomes a real occupied area she steps around. The DOM
+ * window itself is untouched: she never moves the user's work.
  * ==========================================================
  */
 
-import { useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
-import AvatarCommandBus, { type AvatarCommand } from "../../../core/avatar/AvatarCommandBus";
-import AgentEventBus from "../../../core/agent/AgentEvents";
-import ExecutiveRuntime from "../../../core/executive/ExecutiveRuntime";
-import LeluAnimation from "../../../core/avatar/LeluAnimation";
-import { loadLook, rigUniforms, viewFor, RIG_FRAGMENT_SHADER, type LoadedLook } from "../../../core/avatar/LeluRig";
-import { V2_LELU_POS } from "./GenesisV2CameraRig";
-import { useLeluCharacter } from "./avatar/useLeluCharacter";
 
+import AvatarStore from "../../../core/avatar/AvatarProfile";
+import ForgeClient, {
+  FORGE_CHANGED_EVENT,
+  type AvatarWorldState,
+  type WorldState,
+} from "../../../core/forge/ForgeClient";
+import LeluModelSource, { type LeluModelState } from "../../../core/avatar/LeluModelSource";
 import {
-  ACTIVITY_ACCENT,
-  useLeluActivity,
-  type LeluActivity,
-} from "./avatar/leluActivity";
+  clampToRoom,
+  isOccupied,
+  nearestFree,
+  planSpatialTarget,
+  stepTowards,
+  type SpatialBounds,
+  type SpatialObstacle,
+} from "../../../core/avatar/LeluSpatial";
+import { ACTIVITY_ACCENT, useLeluActivity } from "./avatar/leluActivity";
+import LeluBody from "./avatar/LeluBody";
+import { V2_LELU_POS } from "./GenesisV2CameraRig";
 
-export { useLeluActivity, type LeluActivity };
+const BODY_HEIGHT = 2.42;
+const CLEARANCE = 0.38;
+const WALK_SPEED = 1.15;
+const PLACE_KEY = "lelu.avatar.spatial.v1";
 
-/* --------------------- executive avatar commands ---------------------- */
+/** Fixed parts of the world that are never walkable. */
+const SCENE_OBSTACLES: SpatialObstacle[] = [
+  { id: "core", x: 0, z: 2.0, radius: 1.55 },
+  { id: "studio", x: -4.5, z: -1.05, radius: 0.8 },
+  { id: "lab", x: 4.5, z: -1.05, radius: 0.8 },
+  { id: "vault", x: 0, z: -2.1, radius: 0.8 },
+];
 
-/**
- * The DOWN-link executor. When the executive/chat layer issues an
- * avatar command (AvatarCommandBus), BOTH presence variants perform
- * it as real transform work and CONFIRM with measured deltas.
- *
- * A command is only confirmed when the renderer's own transforms
- * actually changed — if the scene is frozen or the presence absent,
- * the command times out upstream and LÉLU reports honest failure.
- */
-
-interface CommandRunState {
-  id: string;
-  startedAt: number;
-  basePosX: number;
-  basePosY: number;
+function readLocalPlace(): { position: [number, number, number]; facing: number } | null {
+  try {
+    const raw = window.localStorage.getItem(PLACE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { position?: unknown; facing?: unknown };
+    if (!Array.isArray(parsed.position) || parsed.position.length < 3) return null;
+    const [x, y, z] = parsed.position;
+    if (![x, y, z].every((n) => typeof n === "number" && Number.isFinite(n))) return null;
+    return { position: [x as number, y as number, z as number], facing: typeof parsed.facing === "number" ? parsed.facing : 0 };
+  } catch {
+    return null;
+  }
 }
 
-const COMMAND_DELTA_EPSILON = 0.002;
-
-function adoptCommand(
-  run: MutableRefObject<CommandRunState | null>,
-  command: AvatarCommand,
-  posX: number,
-  posY: number,
-): void {
-  run.current = { id: command.id, startedAt: performance.now(), basePosX: posX, basePosY: posY };
-  AgentEventBus.getInstance().emit({
-    type: "tool_started",
-    taskId: command.id,
-    tool: "avatar-motion",
-    label: command.label,
-  });
+function writeLocalPlace(position: THREE.Vector3, facing: number): void {
+  try {
+    window.localStorage.setItem(PLACE_KEY, JSON.stringify({ position: position.toArray(), facing, at: Date.now() }));
+  } catch {
+    /* storage can be unavailable; the server record is still attempted */
+  }
 }
 
-function settleCommand(
-  run: MutableRefObject<CommandRunState | null>,
-  command: AvatarCommand,
-  posX: number,
-  posY: number,
-): void {
-  const base = run.current;
-  if (!base) return;
-  const dx = Math.abs(posX - base.basePosX);
-  const dy = Math.abs(posY - base.basePosY);
-  run.current = null;
-  // VERIFICATION: only confirm when transforms measurably changed.
-  if (Math.max(dx, dy) <= COMMAND_DELTA_EPSILON) return; // timeout upstream reports the failure
-  AgentEventBus.getInstance().emit({
-    type: "tool_result",
-    taskId: command.id,
-    tool: "avatar-motion",
-    result: `${command.label} verified — transform Δx=${dx.toFixed(3)}, Δy=${dy.toFixed(3)}`,
-  });
-  AvatarCommandBus.getInstance().confirm(
-    command.id,
-    `${command.label} executed — position changed by Δx=${dx.toFixed(3)}, Δy=${dy.toFixed(3)} over ${(command.durationMs / 1000).toFixed(1)}s`,
-  );
-}
-
-function commandElapsed(command: AvatarCommand | null, run: CommandRunState | null): number {
-  if (!command || !run || run.id !== command.id) return -1;
-  return performance.now() - run.startedAt;
-}
-
-/* ------------------------------ her, in 3D ---------------------------- */
-
-/** Her height in scene units (feet to the top of her hair): whole in the LÉLU camera framing. */
-const LELU_HEIGHT = 1.9;
-
-const RIG_MESH_VERTEX = `
-varying vec2 vUv;
-void main() {
-  vUv = uv;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-}
-`;
-
-function toUniformValue(value: number | number[]): number | THREE.Vector2 | THREE.Vector3 | THREE.Vector4 {
-  if (typeof value === "number") return value;
-  if (value.length === 2) return new THREE.Vector2(value[0], value[1]);
-  if (value.length === 3) return new THREE.Vector3(value[0], value[1], value[2]);
-  return new THREE.Vector4(value[0], value[1], value[2], value[3]);
-}
-
-function RigAvatarPresence({ look, activity, form, position }: { look: LoadedLook; activity: LeluActivity; form: "embodied" | "hologram"; position?: THREE.Vector3 }) {
-  const pos = position ?? V2_LELU_POS;
-  const { camera } = useThree();
-  const group = useRef<THREE.Group>(null);
-  const telemetry = useRef({ lastReport: 0, lastY: 0 });
-  const cmdRun = useRef<CommandRunState | null>(null);
-  const cmdDone = useRef<string | null>(null);
-  const holo = useRef(form === "hologram" ? 1 : 0);
-  const accent = ACTIVITY_ACCENT[activity];
-
-  // The whole figure, hair to feet, with room for her arms and hem.
-  const view = useMemo(() => viewFor(look.rig, "full", 0.55), [look]);
-  const aspect = (view[2] - view[0]) / (view[3] - view[1]);
-
-  const material = useMemo(() => {
-    const texture = new THREE.Texture(look.image);
-    texture.premultiplyAlpha = true;
-    // The shader reads her image top-down (row 0 = the top of her hair).
-    texture.flipY = false;
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.minFilter = THREE.LinearMipmapLinearFilter;
-    texture.needsUpdate = true;
-    const uniforms: Record<string, THREE.IUniform> = { uTex: { value: texture } };
-    return new THREE.ShaderMaterial({
-      uniforms,
-      vertexShader: RIG_MESH_VERTEX,
-      fragmentShader: RIG_FRAGMENT_SHADER,
-      transparent: true,
-      premultipliedAlpha: true,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-      toneMapped: false,
-    });
-  }, [look]);
-  useEffect(() => () => {
-    (material.uniforms.uTex.value as THREE.Texture).dispose();
-    material.dispose();
-  }, [material]);
-
-  useEffect(() => LeluAnimation.getInstance().attach(), []);
-
-  useFrame(({ clock }, delta) => {
-    const t = clock.getElapsedTime();
-    if (!group.current) return;
-    // She faces you wherever you look from — never seen edge-on — and her
-    // "up" stays the world's up: the camera's roll never tips her over.
-    let posX = pos.x;
-    let posY = pos.y;
-    group.current.position.set(posX, posY, pos.z);
-    group.current.lookAt(camera.position);
-
-    // Executive avatar commands — real transform work, verified by deltas.
-    const bus = AvatarCommandBus.getInstance();
-    const command = bus.current;
-    if (command && cmdRun.current?.id !== command.id && cmdDone.current !== command.id) {
-      adoptCommand(cmdRun, command, posX, posY);
-      cmdDone.current = null;
-    }
-    const elapsed = commandElapsed(command, cmdRun.current);
-    if (command && elapsed >= 0) {
-      const p = Math.min(1, elapsed / command.durationMs);
-      const envelope = Math.sin(p * Math.PI);
-      switch (command.kind) {
-        case "wave":
-          group.current.rotateZ(Math.sin(elapsed / 90) * 0.12 * envelope);
-          posY += envelope * 0.05;
-          break;
-        case "move":
-          posX += Math.sin(p * Math.PI * 2) * 0.7;
-          break;
-        case "look":
-          group.current.rotateZ(Math.sin(elapsed / 260) * 0.06 * envelope);
-          posX += envelope * 0.04;
-          break;
-        case "dance":
-          posY += Math.abs(Math.sin(elapsed / 130)) * 0.18;
-          group.current.rotateZ(Math.sin(elapsed / 110) * 0.1);
-          break;
-        case "nod":
-          posY -= envelope * 0.08 * (0.5 + 0.5 * Math.sin(elapsed / 140));
-          break;
-        case "bow":
-          group.current.rotateZ(-envelope * 0.18);
-          posY -= envelope * 0.12;
-          break;
-      }
-      group.current.position.set(posX, posY, pos.z);
-      if (elapsed >= command.durationMs) {
-        cmdDone.current = command.id;
-        settleCommand(cmdRun, command, posX, posY);
-      }
-    }
-
-    // This moment of her — the same one every other surface draws.
-    const animation = LeluAnimation.getInstance();
-    animation.setActivity(activity);
-    const params = animation.frame(performance.now());
-    holo.current += ((form === "hologram" ? 1 : 0) - holo.current) * (1 - Math.exp(-6 * Math.min(0.1, delta)));
-    const uniforms = rigUniforms(look.rig, params, { view, framing: "full", holo: holo.current, time: t });
-    for (const [name, value] of Object.entries(uniforms)) {
-      const existing = material.uniforms[name];
-      const next = toUniformValue(value);
-      if (!existing) material.uniforms[name] = { value: next };
-      else if (typeof next === "number") existing.value = next;
-      else (existing.value as THREE.Vector2 | THREE.Vector3 | THREE.Vector4).copy(next as never);
-    }
-
-    const now = performance.now();
-    if (now - telemetry.current.lastReport > 1_000) {
-      telemetry.current.lastReport = now;
-      // Her breathing and sway move her every frame; a transform that never
-      // changes means the render loop has stopped.
-      ExecutiveRuntime.getInstance().reportAvatarFrame(
-        Math.abs(params.breath - telemetry.current.lastY) > 0.001 || Math.abs(group.current.position.y - pos.y) > 0.001,
-      );
-      telemetry.current.lastY = params.breath;
-    }
-  });
-
-  return (
-    <group ref={group} position={[pos.x, pos.y, pos.z]} name="V2LeluPresence">
-      <mesh scale={[LELU_HEIGHT * aspect, LELU_HEIGHT, 1]} raycast={() => null} material={material}>
-        <planeGeometry args={[1, 1]} />
-      </mesh>
-      {/* live activity label — the real state, not an idle animation */}
-      <Html
-        position={[0, LELU_HEIGHT / 2 + 0.14, 0]}
-        center
-        zIndexRange={[4, 0]}
-        style={{ pointerEvents: "none" }}
-      >
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "3px 9px",
-            borderRadius: 999,
-            border: `1px solid ${accent}66`,
-            background: "rgba(4, 8, 24, 0.55)",
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
-            color: "#ffffff",
-            fontSize: "clamp(9px, 0.7vw + 4px, 10.5px)",
-            fontWeight: 700,
-            letterSpacing: "0.16em",
-            textTransform: "uppercase",
-            whiteSpace: "nowrap",
-            textShadow: `0 0 10px ${accent}`,
-          }}
-        >
-          <span
-            aria-hidden
-            className="genesis-status-glow"
-            style={{ width: 5, height: 5, borderRadius: 999, background: accent, color: accent }}
-          />
-          {activity}
-        </div>
-      </Html>
-    </group>
-  );
-}
-
-/* --------------------------- the presence ----------------------------- */
-
-export default function LeluV2Presence({ position }: { position?: THREE.Vector3 }) {
+export default function LeluV2Presence({ position: positionProp }: { position?: THREE.Vector3 }) {
+  const { camera, gl } = useThree();
   const activity = useLeluActivity();
-  const character = useLeluCharacter();
-  const [look, setLook] = useState<LoadedLook | null>(null);
-  useEffect(() => {
-    let alive = true;
-    loadLook(character.look).then(
-      (loaded) => {
-        if (alive) setLook(loaded);
-      },
-      (error: unknown) => console.warn("[LeluV2Presence] her look did not load:", error),
-    );
-    return () => {
-      alive = false;
-    };
-  }, [character.look]);
+  const accent = ACTIVITY_ACCENT[activity];
+  const [modelState, setModelState] = useState<LeluModelState>(() => LeluModelSource.get());
+  const [world, setWorld] = useState<WorldState | null>(null);
+  const [place, setPlace] = useState<AvatarWorldState | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [walking, setWalking] = useState(false);
 
-  // Report unmount so diagnostics can distinguish "renderer not running"
-  // from "presence legitimately closed".
+  const group = useRef<THREE.Group>(null);
+  const position = useRef(new THREE.Vector3(...(positionProp?.toArray() ?? V2_LELU_POS.toArray())));
+  const target = useRef(position.current.clone());
+  const yaw = useRef(0);
+  const manual = useRef<[number, number] | null>(null);
+  const drag = useRef<{ pointerId: number; x: number; y: number; moved: boolean } | null>(null);
+  const windowObstacles = useRef<SpatialObstacle[]>([]);
+  const worldObstacles = useRef<SpatialObstacle[]>([]);
+  const lastWindowScan = useRef(0);
+  const lastTargetPlan = useRef(0);
+  const lastTelemetry = useRef(0);
+  const walkingRef = useRef(false);
+  const ray = useMemo(() => new THREE.Raycaster(), []);
+  const hit = useMemo(() => new THREE.Vector3(), []);
+  const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), -(position.current.y)), []);
+
+  useEffect(() => LeluModelSource.subscribe(setModelState), []);
   useEffect(() => {
-    return () => ExecutiveRuntime.getInstance().reportAvatarUnmounted();
+    const store = AvatarStore.getInstance();
+    return store.subscribe(() => {
+      /* The model source announces wardrobe/model changes; this keeps the
+         presence subscribed to the same character profile as every surface. */
+    });
   }, []);
 
-  return (
-    <group name="V2Lelu">
-      {look ? <RigAvatarPresence look={look} activity={activity} form={character.form} position={position} /> : null}
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      Promise.all([ForgeClient.world(), ForgeClient.avatar().catch(() => null)])
+        .then(([nextWorld, avatarResult]) => {
+          if (!alive) return;
+          setWorld(nextWorld);
+          const avatar = avatarResult?.avatar ?? nextWorld.avatar ?? null;
+          setPlace(avatar);
+          const local = readLocalPlace();
+          const chosen = avatar?.position ?? local?.position;
+          if (chosen && !positionProp) {
+            position.current.set(chosen[0], chosen[1], chosen[2]);
+            plane.constant = -chosen[1];
+          }
+          worldObstacles.current = (nextWorld.objects ?? [])
+            .map((o) => ({
+              id: `object:${o.id}`,
+              x: o.position[0],
+              z: o.position[2],
+              // Her own worn pieces are not obstacles; furniture and props are.
+              radius: o.attach ? 0 : Math.max(0.18, (o.height ?? 1) * 0.32),
+            }))
+            .filter((o) => o.radius > 0);
+          target.current.copy(position.current);
+          if (typeof yaw.current === "number" && avatar) yaw.current = avatar.facing;
+        })
+        .catch((error) => console.info("[LÉLU spatial] world unavailable", error instanceof Error ? error.message : error));
+    void load();
+    const changed = () => void load();
+    window.addEventListener(FORGE_CHANGED_EVENT, changed);
+    return () => {
+      alive = false;
+      window.removeEventListener(FORGE_CHANGED_EVENT, changed);
+    };
+  }, [positionProp, plane]);
 
+  useEffect(() => {
+    gl.domElement.dataset.leluAvatarRenderer = "3d";
+    gl.domElement.dataset.leluAvatarName = "LeluV2SpatialPresence";
+    return () => {
+      delete gl.domElement.dataset.leluAvatarRenderer;
+      delete gl.domElement.dataset.leluAvatarName;
+      delete document.body.dataset.leluAvatarHover;
+      delete document.body.dataset.leluAvatarDragging;
+    };
+  }, [gl]);
+
+  const bounds = useMemo<SpatialBounds>(
+    () => ({
+      centre: [world?.origin?.centre?.[0] ?? 0, world?.origin?.centre?.[1] ?? 2.2],
+      radius: world?.environment?.settings?.radius ?? 6.5,
+      floorY: world?.origin?.floorY ?? -2.55,
+    }),
+    [world],
+  );
+
+  /** Project visible workspace windows onto the floor as occupied footprints. */
+  function scanWindows(now: number): void {
+    if (now - lastWindowScan.current < 650) return;
+    lastWindowScan.current = now;
+    const doc = gl.domElement.ownerDocument;
+    const found: SpatialObstacle[] = [];
+    // Current module windows are authoritative. Their bodies may contain
+    // legacy .genesis-window-frame nodes; scanning both made one window two
+    // obstacles and left two stale frames in the room. Fall back to those
+    // classes only when no current module window exists.
+    const current = [...doc.querySelectorAll<HTMLElement>("[data-lelu-module-window]")];
+    const nodes: HTMLElement[] = current.length
+      ? current
+      : [...doc.querySelectorAll<HTMLElement>(
+        ".genesis-window-frame, [data-testid='lelu-companion'], [data-lelu-chat-window]",
+      )];
+    nodes.forEach((node, index) => {
+      const rect = node.getBoundingClientRect();
+      if (rect.width < 90 || rect.height < 70) return;
+      const style = doc.defaultView?.getComputedStyle(node);
+      if (style?.display === "none" || style?.visibility === "hidden") return;
+      const x = ((rect.left + rect.width / 2) / Math.max(1, window.innerWidth)) * 2 - 1;
+      // The centre of a tall window can sit above the camera horizon, so its
+      // ray never reaches the floor. The bottom edge is the part nearest the
+      // floor the person sees; project that instead.
+      const y = -(((Math.min(window.innerHeight - 1, rect.bottom - 4)) / Math.max(1, window.innerHeight)) * 2 - 1);
+      ray.setFromCamera(new THREE.Vector2(x, y), camera);
+      if (!ray.ray.intersectPlane(plane, hit)) return;
+      const inside = clampToRoom([hit.x, hit.z], bounds, CLEARANCE);
+      // A window covering a large part of the view projects to a large
+      // floor footprint; cap it so it can never fill the whole room.
+      const radius = THREE.MathUtils.clamp((rect.width / Math.max(1, window.innerWidth)) * 5.2, 0.55, 2.2);
+      const kind = node.dataset.leluModuleWindow ?? "surface";
+      found.push({ id: `window:${kind}:${index}:${rect.left.toFixed(0)}`, x: inside[0], z: inside[2], radius });
+    });
+    windowObstacles.current = found;
+  }
+
+  function obstacles(): SpatialObstacle[] {
+    return [...SCENE_OBSTACLES, ...worldObstacles.current, ...windowObstacles.current];
+  }
+
+  function viewerPoint(): [number, number] | null {
+    const d = Math.hypot(camera.position.x - bounds.centre[0], camera.position.z - bounds.centre[1]);
+    // A camera far outside the room is not a person standing in it.
+    return d < bounds.radius + 2.5 ? [camera.position.x, camera.position.z] : null;
+  }
+
+  function applyPosition(x: number, z: number): void {
+    const free = isOccupied([x, z], obstacles(), CLEARANCE, viewerPoint())
+      ? nearestFree([x, z], bounds, obstacles(), CLEARANCE, viewerPoint())
+      : clampToRoom([x, z], bounds, CLEARANCE);
+    position.current.set(free[0], bounds.floorY, free[2]);
+    target.current.set(free[0], bounds.floorY, free[2]);
+    plane.constant = -bounds.floorY;
+  }
+
+  async function persistPlacement(): Promise<void> {
+    const at = position.current;
+    writeLocalPlace(at, yaw.current);
+    try {
+      await ForgeClient.setAvatar({ position: [at.x, bounds.floorY, at.z], facing: yaw.current });
+    } catch (error) {
+      console.info("[LÉLU spatial] placement kept locally; server save unavailable", error instanceof Error ? error.message : error);
+    }
+    window.dispatchEvent(
+      new CustomEvent("lelu:spatial-state", {
+        detail: { position: at.toArray(), facing: yaw.current, persisted: true, manual: true },
+      }),
+    );
+  }
+
+  function beginDrag(event: ThreeEvent<PointerEvent>): void {
+    if (event.button !== 0 && event.pointerType !== "touch") return;
+    event.stopPropagation();
+    drag.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
+    gl.domElement.setPointerCapture?.(event.pointerId);
+    document.body.dataset.leluAvatarHover = "true";
+    document.body.dataset.leluAvatarDragging = "true";
+    setDragging(true);
+  }
+
+  function moveDrag(event: ThreeEvent<PointerEvent>): void {
+    const active = drag.current;
+    if (!active || active.pointerId !== event.pointerId) return;
+    event.stopPropagation();
+    ray.setFromCamera(event.pointer, camera);
+    if (!ray.ray.intersectPlane(plane, hit)) return;
+    active.moved = active.moved || Math.hypot(event.clientX - active.x, event.clientY - active.y) > 2;
+    applyPosition(hit.x, hit.z);
+    manual.current = [position.current.x, position.current.z];
+    // Write locally while the finger moves; the server save happens once on
+    // release, not on every pointer event.
+    writeLocalPlace(position.current, yaw.current);
+  }
+
+  function finishDrag(): void {
+    const active = drag.current;
+    if (!active) return;
+    const pointerId = active.pointerId;
+    drag.current = null;
+    try {
+      if (gl.domElement.hasPointerCapture?.(pointerId)) gl.domElement.releasePointerCapture(pointerId);
+    } catch {
+      /* the browser may already have released it */
+    }
+    delete document.body.dataset.leluAvatarDragging;
+    document.body.dataset.leluAvatarHover = "false";
+    gl.domElement.style.cursor = "";
+    setDragging(false);
+    void persistPlacement();
+  }
+
+  function endDrag(event: ThreeEvent<PointerEvent>): void {
+    const active = drag.current;
+    if (!active || active.pointerId !== event.pointerId) return;
+    event.stopPropagation();
+    finishDrag();
+  }
+
+  // Pointer capture can route the release to the canvas rather than to the
+  // R3F object. The window-level release is the authority: without it a drag
+  // stayed latched and the person's placement was never saved.
+  useEffect(() => {
+    const release = () => finishDrag();
+    window.addEventListener("pointerup", release);
+    window.addEventListener("pointercancel", release);
+    window.addEventListener("blur", release);
+    return () => {
+      window.removeEventListener("pointerup", release);
+      window.removeEventListener("pointercancel", release);
+      window.removeEventListener("blur", release);
+    };
+    // finishDrag reads refs and the current floor only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useFrame((_, delta) => {
+    const root = group.current;
+    if (!root || !modelState || modelState.status !== "ready") return;
+    const now = performance.now();
+    const dt = Math.min(0.05, delta);
+    scanWindows(now);
+
+    const isDragging = Boolean(drag.current);
+    if (!isDragging && now - lastTargetPlan.current > 900) {
+      lastTargetPlan.current = now;
+      const focus: [number, number] | null = ["WORKING", "BUILDING", "RENDERING", "SEARCHING", "BROWSING", "EXPLORING", "PRESENTING"].includes(activity)
+        ? [0, 0.4]
+        : null;
+      const next = planSpatialTarget({
+        activity,
+        current: [position.current.x, position.current.z],
+        preferred: manual.current,
+        viewer: viewerPoint(),
+        focus,
+        bounds,
+        obstacles: obstacles(),
+        clearance: CLEARANCE,
+      });
+      target.current.set(next[0], next[1], next[2]);
+    }
+
+    if (!isDragging) {
+      const to = target.current;
+      const d = Math.hypot(to.x - position.current.x, to.z - position.current.z);
+      if (d > 0.06) {
+        // Smooth acceleration/deceleration, no teleporting.
+        const speed = Math.min(WALK_SPEED, d * 1.8);
+        const step = stepTowards(
+          [position.current.x, position.current.z],
+          [to.x, to.z],
+          speed * dt,
+          bounds,
+          obstacles(),
+          CLEARANCE,
+          viewerPoint(),
+        );
+        if (step.moving) {
+          const fromX = position.current.x;
+          const fromZ = position.current.z;
+          position.current.set(step.position[0], bounds.floorY, step.position[1]);
+          const vx = step.position[0] - fromX;
+          const vz = step.position[1] - fromZ;
+          if (Math.abs(vx) + Math.abs(vz) > 0.0001) {
+            const wantedYaw = Math.atan2(vx, vz);
+            let diff = wantedYaw - yaw.current;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            yaw.current += diff * Math.min(1, dt * 7);
+          }
+        }
+        walkingRef.current = step.moving;
+      } else {
+        walkingRef.current = false;
+        // Idle: turn to the person, gently, from wherever she is.
+        if (!drag.current) {
+          const dx = camera.position.x - position.current.x;
+          const dz = camera.position.z - position.current.z;
+          if (Math.hypot(dx, dz) > 0.2) {
+            const wantedYaw = Math.atan2(dx, dz);
+            let diff = wantedYaw - yaw.current;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            yaw.current += diff * Math.min(1, dt * 1.6);
+          }
+        }
+      }
+    }
+
+    if (walkingRef.current !== walking) setWalking(walkingRef.current);
+    root.position.set(position.current.x, bounds.floorY, position.current.z);
+    root.rotation.y = yaw.current;
+
+    if (now - lastTelemetry.current > 1000) {
+      lastTelemetry.current = now;
+      // Screen projection of her chest, so interaction audits can press the
+      // real 3D body instead of guessing a pixel from a screenshot.
+      const screenWorld = new THREE.Vector3(position.current.x, bounds.floorY + 1.2, position.current.z).project(camera);
+      const canvasRect = gl.domElement.getBoundingClientRect();
+      const screen = {
+        x: Math.round(canvasRect.left + ((screenWorld.x + 1) / 2) * canvasRect.width),
+        y: Math.round(canvasRect.top + ((1 - screenWorld.y) / 2) * canvasRect.height),
+        visible: screenWorld.z > -1 && screenWorld.z < 1,
+      };
+      gl.domElement.dataset.leluAvatarScreen = JSON.stringify(screen);
+      const data = {
+        position: [Number(position.current.x.toFixed(3)), bounds.floorY, Number(position.current.z.toFixed(3))],
+        facing: Number(yaw.current.toFixed(3)),
+        activity,
+        walking: walkingRef.current,
+        dragging: isDragging,
+        obstacles: obstacles().length,
+        windowObstacles: windowObstacles.current.length,
+        windowObstacleDetail: windowObstacles.current,
+        worldObjectObstacles: worldObstacles.current.length,
+        environment: world?.environment?.id ?? null,
+        target: target.current.toArray().map((n) => Number(n.toFixed(3))),
+        camera: camera.position.toArray().map((n) => Number(n.toFixed(3))),
+        cameraRotation: [camera.rotation.x, camera.rotation.y, camera.rotation.z].map((n) => Number(n.toFixed(3))),
+        projectedChest: screen,
+        at: Date.now(),
+      };
+      gl.domElement.dataset.leluSpatial = JSON.stringify(data);
+      window.dispatchEvent(new CustomEvent("lelu:spatial-state", { detail: data }));
+    }
+  });
+
+  const model = modelState.status === "ready" ? modelState.model : null;
+  useEffect(() => {
+    if (!model) return;
+    gl.domElement.dataset.leluAvatarModel = model.key;
+    return () => {
+      delete gl.domElement.dataset.leluAvatarModel;
+    };
+  }, [gl, model]);
+  const initial = positionProp ?? (place ? new THREE.Vector3(...place.position) : V2_LELU_POS);
+
+  return (
+    <group
+      ref={group}
+      name="LeluV2SpatialPresence"
+      position={[initial.x, initial.y, initial.z]}
+      onPointerDown={beginDrag}
+      onPointerMove={moveDrag}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
+      onPointerOver={(event) => {
+        event.stopPropagation();
+        document.body.dataset.leluAvatarHover = "true";
+        if (gl.domElement.style.cursor !== "grabbing") gl.domElement.style.cursor = "grab";
+      }}
+      onPointerOut={() => {
+        if (!drag.current) {
+          document.body.dataset.leluAvatarHover = "false";
+          gl.domElement.style.cursor = "";
+        }
+      }}
+    >
+      <pointLight position={[0, 1.25, 0]} intensity={1.35} distance={5.5} color={accent} />
+
+      {model ? (
+        <LeluBody
+          glb={model.glb}
+          clips={model.clips}
+          activity={activity}
+          height={BODY_HEIGHT}
+          life={false}
+          walking={walking}
+        />
+      ) : (
+        <Html position={[0, 1.25, 0]} center zIndexRange={[4, 0]} style={{ pointerEvents: "none" }}>
+          <div
+            data-testid="lelu-avatar-unavailable"
+            style={{
+              maxWidth: 190,
+              padding: "7px 10px",
+              borderRadius: 9,
+              border: "1px solid rgba(251,113,133,0.55)",
+              background: "rgba(24,6,14,0.88)",
+              color: "#fecdd3",
+              font: "600 10px/1.4 system-ui, sans-serif",
+              textAlign: "center",
+            }}
+          >
+            {modelState.status === "loading" ? "Loading LÉLU’s 3D body…" : "LÉLU’s 3D body is unavailable — she will not be replaced by a 2D stand-in."}
+          </div>
+        </Html>
+      )}
+
+      {/* A real world-space hit volume: hold anywhere on her to move her. */}
+      <mesh position={[0, BODY_HEIGHT / 2, 0]} name="LeluDragHandle" userData={{ drag: true }}>
+        <cylinderGeometry args={[0.52, 0.62, BODY_HEIGHT, 12]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} colorWrite={false} />
+      </mesh>
+
+      <mesh position={[0, 0.006, 0]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
+        <ringGeometry args={[0.58, 0.78, 48]} />
+        <meshBasicMaterial
+          color={dragging ? "#fbbf24" : accent}
+          transparent
+          opacity={dragging ? 0.9 : 0.45}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          toneMapped={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
     </group>
   );
 }

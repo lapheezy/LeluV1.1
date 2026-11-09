@@ -1,0 +1,11 @@
+{
+ "question": "Is the failing assertion's 59px a layout fact or a font metric?",
+ "method": "the same fixture page as tests/self-view.test.ts, Identity button's min-content measured with different host font conditions",
+ "results": [
+  { "host": "author's machine (hard-coded expectation)", "minContent": 59 },
+  { "host": "this VM with FONTCONFIG_FILE=/tmp/lelu-fonts.conf", "minContent": 66 },
+  { "host": "this VM without a usable font configuration", "minContent": 16 },
+  { "host": "explicit Arial / DejaVu Sans / Liberation Sans / system-ui", "minContent": 16, "note": "no font files resolvable in this environment, so text has zero width" }
+ ],
+ "conclusion": "the number is text width + padding from whatever font the host resolves; the test now measures it from the same page instead of hard-coding it"
+}

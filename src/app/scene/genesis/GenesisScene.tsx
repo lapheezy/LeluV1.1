@@ -29,7 +29,7 @@
 import { Canvas } from "@react-three/fiber";
 
 import GenesisCore, {
-  useGenesis,
+  useGenesisState,
 } from "./GenesisCore";
 
 import GenesisErrorBoundary
@@ -74,8 +74,20 @@ import LeluCompanion
 import GenesisNotificationCenter
   from "./GenesisNotificationCenter";
 
+import SpatialExperience
+  from "../spatial/SpatialExperience";
+
 import CosmosSkyBackdrop
   from "./CosmosSkyBackdrop";
+
+import SceneFrameGovernor, { useSceneFrameloop }
+  from "./SceneFrameGovernor";
+
+import AdaptiveQuality
+  from "./AdaptiveQuality";
+
+import { DPR_START }
+  from "./qualityLimits";
 
 import { useLeluRuntime }
   from "../../../core/runtime/useLeluRuntime";
@@ -176,11 +188,12 @@ function CosmosPhaseHUD() {
 
   return (
     <div
+      className="lelu-phase-hud"
       style={{
         position: "fixed",
-        top: 12,
-        left: 12,
-        zIndex: 50,
+        /* Bottom-left (see .lelu-phase-hud): top-left belongs to the dock
+           rail and the Genesis chip, which this readout used to cover. */
+        zIndex: 2,
         pointerEvents: "none",
         display: "flex",
         flexDirection: "column",
@@ -291,6 +304,11 @@ function CosmosPhaseHUD() {
  */
 const GenesisV1Workspace = memo(function GenesisV1Workspace() {
   useSceneMountLog("GenesisV1Workspace");
+  const frameloop = useSceneFrameloop();
+  // Adaptive resolution: the ratio starts device-appropriate and follows
+  // the MEASURED frame rate (Appearance follows measured fps, never the
+  // display), publishing window.__leluRenderStats for the demo harness.
+  const [dpr, setDpr] = useState(DPR_START);
 
   return (
     <div
@@ -298,8 +316,8 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
       style={{
         position: "fixed",
         inset: 0,
-        width: "100vw",
-        height: "100vh",
+        width: "100%",
+        height: "100%",
         background: "#020617",
       }}
     >
@@ -327,8 +345,12 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
             <Canvas
               camera={{ position: [0, 0, 5], fov: 50 }}
               gl={{ alpha: true, antialias: true }}
+              dpr={dpr}
+              frameloop={frameloop}
               style={{ width: "100%", height: "100%" }}
             >
+              <SceneFrameGovernor />
+              <AdaptiveQuality onChange={setDpr} />
               <GenesisController />
             </Canvas>
           </ReactSuspense>
@@ -373,7 +395,7 @@ function GenesisV2Workspace({ onClose }: { onClose: () => void }) {
  * mounted scene, and no branch ever renders another scene's content.
  */
 function GenesisWorkspaceRouter() {
-  const { state, openPanel } = useGenesis();
+  const { state, openPanel } = useGenesisState();
   const { state: visualState } = useVisual();
 
   const surface = useSurface();
@@ -448,6 +470,10 @@ function GenesisWorkspaceRouter() {
       {/* LÉLU in companion mode: her figure over every surface, mounted
           once here so moving between surfaces never recreates her. */}
       <LeluCompanion />
+
+      {/* The spatial navigation rail: the Cosmos itself is the way around
+          the app — environments are destinations, chat is one of them. */}
+      <SpatialExperience />
       <VisualBridge />
       <DeepLinkIntake />
 

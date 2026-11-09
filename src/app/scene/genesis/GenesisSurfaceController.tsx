@@ -34,7 +34,7 @@
 import { useEffect, useRef } from "react";
 import { ownerForTask } from "../../../core/multichat/TurnOwnership";
 import AgentEventBus, { type AgentEvent } from "../../../core/agent/AgentEvents";
-import { useGenesis, type GenesisPanel } from "./GenesisCore";
+import { useGenesisState, type GenesisPanel } from "./GenesisCore";
 import VisualEngine from "../../../core/visual/VisualEngine";
 import MultiChatStore from "../../../core/multichat/MultiChatStore";
 import Workspace from "../../../core/ui/Workspace";
@@ -131,7 +131,7 @@ export default function GenesisSurfaceController() {
     setModuleStatus,
     setUiControl,
     setActiveScene,
-  } = useGenesis();
+  } = useGenesisState();
   const openedRef = useRef<Set<string>>(new Set());
   const queuedCameraRef = useRef<GenesisV2CameraCommand[]>([]);
   const uiControlRef = useRef(state.uiControl);
@@ -226,7 +226,10 @@ export default function GenesisSurfaceController() {
       if (!detail?.id || !detail?.presentation) return;
       switch (detail.presentation) {
         case "inline":
-          openModule(detail.id);
+          // An explicit inline request means inline on every screen. The old
+          // openModule path promoted phones to expanded, which made a second
+          // workspace cover the first instead of reaching the tiled layout.
+          setModulePresentation(detail.id, "inline");
           break;
         case "expanded":
           expandModule(detail.id);

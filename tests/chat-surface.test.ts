@@ -131,12 +131,14 @@ test("the AI bridges belong to the app, not to the v1 scene", () => {
 
 test("the interface leaves out Cosmos chrome while chat owns the screen", () => {
   const ui = code("src/app/scene/genesis/GenesisInterface.tsx");
-  assert.match(ui, /surface\.chatOwnsScreen \? null : <VisualInterface \/>/);
-  assert.match(ui, /\{surface\.chatOwnsScreen \? null : \(\s*<div/, "the top chrome is not drawn over the chat header");
-  assert.match(ui, /chatOwnsScreen=\{surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen\}/, "the dock is told");
-  const dock = code("src/app/scene/genesis/GenesisDock.tsx");
-  assert.match(dock, /const breakpoint: Breakpoint = chatOwnsScreen \? "mobile" : measuredBreakpoint;/,
-    "a landscape phone (844px wide) must not get a tablet rail beside the full-screen chat");
+  assert.match(ui, /surface\.chatOwnsScreen \|\| showHome \? null : <VisualInterface \/>/);
+  assert.match(ui, /\{surface\.chatOwnsScreen \|\| showHome \? null : \(\s*<div/, "the top chrome is not drawn over the chat header");
+  assert.match(
+    ui,
+    /const navHidden = state\.minimized \|\| surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen;/,
+    "the navigation is not told that the chat owns the screen",
+  );
+  assert.match(ui, /hidden=\{navHidden\}/, "the spatial navigation ignores navHidden");
 });
 
 /* ------------------------------ the chat ------------------------------ */
@@ -154,7 +156,9 @@ test("closing chat hides it; it is unmounted only with the whole interface", () 
   const ui = code("src/app/scene/genesis/GenesisInterface.tsx");
   assert.match(
     ui,
-    /\{state\.minimized \? null : \(\s*<ChatErrorBoundary onLeave=\{handleExitChat\}>\s*<GenesisChat\s+hidden=\{[\s\S]{0,200}surface\.workspaceOwnsScreen \|\| !\(state\.activePanel === "chat" \|\| openModuleIds\.length > 0\)\s*\}/,
+    // The send engine stays mounted (always hidden — the Chat Universe is
+    // the chat) and unmounts only with the whole interface.
+    /\{state\.minimized \? null : \(\s*<ChatErrorBoundary onLeave=\{handleExitChat\}>[\s\S]{0,160}<GenesisChat hidden \/>/,
   );
   const chat = code("src/app/scene/genesis/GenesisChat.tsx");
   assert.match(chat, /display: hidden \? "none" : "flex"/);
@@ -168,7 +172,6 @@ test("the phone chat is edge to edge: no dock inset, 100vw × 100dvh, keyboard-a
   const chat = code("src/app/scene/genesis/GenesisChat.tsx");
   assert.ok(!/useDockInset|dockInset/.test(chat), "nothing pushes the full-screen chat over");
   assert.ok(!/export function useDockInset/.test(code("src/app/scene/genesis/chat/chatLayout.ts")));
-  assert.ok(!/useDockInset/.test(code("src/app/scene/genesis/MultiChatTabs.tsx")));
   assert.match(chat, /left: 0,\s*right: 0,\s*top: workspace\.keyboardOpen \? workspace\.visibleTop : 0,\s*width: "100vw",\s*height: workspace\.keyboardOpen \? workspace\.visibleHeight : "100dvh",/);
   assert.match(chat, /paddingTop: isFullMobile \? "calc\(env\(safe-area-inset-top, 0px\) \+ 10px\)"/, "safe areas are padding inside the sky");
 });
@@ -230,7 +233,8 @@ test("on a phone a visible workspace owns the screen; chat waits underneath", ()
   assert.equal(minimized.chatOwnsScreen, true, "minimizing the module brings the chat back");
   const desktop = resolveSurface({ activePanel: "chat", minimized: false, openModuleCount: 1, visibleModuleCount: 1, compact: false });
   assert.equal(desktop.workspaceOwnsScreen, false, "on a desktop module windows float beside the chat");
-  assert.match(code("src/app/scene/genesis/GenesisInterface.tsx"), /state\.minimized \|\| surface\.workspaceOwnsScreen \? null : state\.activePanel === "chat" \? <MultiChatTabs \/>/);
+  // The old browser-style chat tab strip is gone; the Chat Universe is the chat.
+  assert.doesNotMatch(code("src/app/scene/genesis/GenesisInterface.tsx"), /<MultiChatTabs\b/);
 });
 
 test("the LÉLU menu sheet sits above its own backdrop", () => {
@@ -275,14 +279,29 @@ test("the chat is never counted as a module window", () => {
   assert.match(code("src/app/scene/genesis/surface/useSurface.ts"), /\.filter\(\(\[id\]\) => id !== "chat"\)/);
 });
 
-test("a panel inside a module window fills it on a phone, under the title bar", () => {
-  // Measured: the panel's own fixed 587px sheet rose over the 560px
-  // window's title bar, so ◎ Chat / — / ✕ could not be touched.
+test("a panel inside a module window is a body, not a second window", () => {
+  // Measured on a phone: the panel's own fixed 587px sheet rose over the
+  // 560px window's title bar, so ◎ Chat / — / ✕ could not be touched. On
+  // desktop the same panel drew a second full glass frame (border, shadow,
+  // its own "Exit Core") inside the host window — one window, two chromes.
   const host = code("src/app/scene/genesis/GenesisModuleHost.tsx");
   assert.equal(host.split("<InModuleWindow.Provider value={true}>").length - 1, 2, "both window shapes mark their panel");
   const frame = code("src/app/scene/genesis/GenesisWindowFrame.tsx");
-  assert.match(frame, /const frameStyle: CSSProperties = narrow && inModuleWindow\s*\?\s*\{[\s\S]{0,400}position: "relative",[\s\S]{0,200}boxSizing: "border-box",/);
-  assert.match(frame, /\{narrow && resizable && !inModuleWindow \? \(/, "the window has the resize handle, not the panel");
+
+  // ONE rule for both widths: inside the host the frame is a plain body.
+  assert.match(
+    frame,
+    /const frameStyle: CSSProperties = inModuleWindow\s*\?\s*\{[\s\S]{0,400}position: "relative",[\s\S]{0,200}boxSizing: "border-box",/,
+    "no viewport-dependent chrome inside a module window",
+  );
+  assert.match(frame, /background: "transparent",\s*border: "none",/, "no second glass pane inside the window");
+  assert.match(
+    frame,
+    /\{inModuleWindow \? \(\s*\/\*[\s\S]{0,400}data-lelu-panel-heading/,
+    "identity and counts stay; the window controls do not",
+  );
+  assert.match(frame, /\{resizable && !narrow && !inModuleWindow \? \(/, "the window has the resize handle, not the panel");
+  assert.match(frame, /\{narrow && resizable && !inModuleWindow \? \(/, "the sheet handle too");
 });
 
 test("nothing is toasted over a full-screen phone workspace either", () => {
@@ -292,4 +311,77 @@ test("nothing is toasted over a full-screen phone workspace either", () => {
     code("src/app/scene/genesis/GenesisNotificationCenter.tsx"),
     /const chatOwnsScreen = surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen;/,
   );
+});
+
+/* ---------------- Phase 2: the Chat Universe owns the phone ---------------- */
+
+test("an open Chat Universe (workspace mode) owns a phone screen: no Cosmos, no Home", () => {
+  const universe = resolveSurface({ activePanel: "none", minimized: false, openModuleCount: 0, visibleModuleCount: 0, compact: true, universeOwnsScreen: true });
+  assert.equal(universe.chatOwnsScreen, true);
+  assert.equal(universe.cosmosRendered, false);
+  // Floating mode keeps the live Cosmos behind the windows, by design.
+  const floating = resolveSurface({ activePanel: "none", minimized: false, openModuleCount: 0, visibleModuleCount: 0, compact: true, universeOwnsScreen: false });
+  assert.equal(floating.cosmosRendered, true);
+  // A desktop Universe never takes the screen.
+  const desktop = resolveSurface({ activePanel: "none", minimized: false, openModuleCount: 0, visibleModuleCount: 0, compact: false, universeOwnsScreen: true });
+  assert.equal(desktop.chatOwnsScreen, false);
+  assert.equal(desktop.cosmosRendered, true);
+  // Minimizing the whole interface returns Home even with the Universe open.
+  assert.equal(resolveSurface({ activePanel: "none", minimized: true, openModuleCount: 0, compact: true, universeOwnsScreen: true }).cosmosRendered, true);
+});
+
+test("the surface reads the Universe's open state from one shared store", () => {
+  const surface = readFileSync("src/app/scene/genesis/surface/useSurface.ts", "utf8");
+  assert.match(surface, /useUniverseOpen\(\)/);
+  assert.match(surface, /universeOpen && cosmosMode !== "floating"/);
+  const universe = readFileSync("src/app/scene/genesis/chat/universe/ChatUniverse.tsx", "utf8");
+  assert.match(universe, /const open = useUniverseOpen\(\)/, "the Universe uses the shared store, not a private useState");
+});
+
+test("Home and the spatial nav leave the tree (not hidden) while a conversation owns the phone", () => {
+  const ui = readFileSync("src/app/scene/genesis/GenesisInterface.tsx", "utf8");
+  assert.match(ui, /const showHome = [^;]*!surface\.chatOwnsScreen && !surface\.workspaceOwnsScreen;/);
+  assert.match(ui, /navHidden && \(surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen\) \? null : \(\s*<SpatialNav/);
+});
+
+test("on a phone a conversation window is the full visual viewport; one composer; apps above the chat panel", () => {
+  const host = readFileSync("src/app/scene/genesis/GenesisModuleHost.tsx", "utf8");
+  assert.match(host, /const phoneSheet = compactScreen && chatWindow;/);
+  assert.match(host, /top: viewport\.offsetTop,\s*width: viewportWidth,\s*height: viewportHeight,/, "follows the keyboard-shrunk visual viewport");
+  assert.match(host, /env\(safe-area-inset-bottom/);
+  assert.match(host, /Math\.max\(APP_WINDOW_Z, mod\.zIndex \?\? APP_WINDOW_Z \+ cascadeIndex\)/);
+  const universe = readFileSync("src/app/scene/genesis/chat/universe/ChatUniverse.tsx", "utf8");
+  assert.match(universe, /\{sheetOpen \? null : \(/, "the Universe composer leaves while a conversation sheet owns the screen");
+});
+
+test("Step 3: under a phone sheet LÉLU's single presence stays mounted, drawing slowly at an edge (no unmount, no hidden WebGL)", () => {
+  // Phase 2 unmounted her window under phone sheets (a hidden canvas stalled
+  // the GPU). Step 3 keeps ONE presence: under a sheet she rests visible at
+  // the least obstructive edge, paused (a live canvas beside a sheet stalled the page), and in a world view
+  // she is hidden AND paused — never a hidden canvas that keeps drawing.
+  const companion = readFileSync("src/app/scene/genesis/avatar/LeluCompanion.tsx", "utf8");
+  assert.doesNotMatch(companion, /return null;\s*\/\/ Where she belongs/, "no unmount under a sheet");
+  assert.match(companion, /paused=\{inWorld \|\| underSheet\}/, "hidden in a world, or beside a phone sheet ⇒ paused (measured stall otherwise)");
+  assert.match(companion, /scale\(\$\{scale\.toFixed\(4\)\}\)/, "under a sheet she is scaled, not resized (a resize clears her last frame)");
+  assert.match(companion, /underSheet \? CHAT_WINDOW_Z \+ 10/, "above the sheet, not hidden behind it");
+  assert.match(companion, /const underSheet = compact && !surface\.cosmosRendered;/);
+  const character3d = readFileSync("src/app/scene/genesis/avatar/LeluCharacter3D.tsx", "utf8");
+  assert.match(character3d, /if \(mode === "paused" \|\| paused\) return;/);
+});
+
+
+test("Universe replies render markdown with the shared renderer and never overflow the conversation", () => {
+  const window = readFileSync("src/app/scene/genesis/chat/universe/UniverseChatWindow.tsx", "utf8");
+  assert.match(window, /m\.role === "assistant" \? <ChatMarkdown text=\{m\.text\} \/> : <p>\{m\.text\}<\/p>/, "the same ChatMarkdown as the classic transcript, not a second renderer");
+  const css = readFileSync("src/app/scene/genesis/chat/universe/chatUniverse.css", "utf8");
+  // Measured on iPhone 13: thread scrollWidth 360 === clientWidth 360, 0 elements past its edges.
+  assert.match(css, /\.lcu-thread \{ overflow-x: hidden; \}/);
+  assert.match(css, /\.lcu-msg \{ min-width: 0; \}/);
+  assert.match(css, /\.lcu-bubble \{ min-width: 0; max-width: 100%; overflow-wrap: anywhere; \}/);
+});
+
+test("LÉLU's shared model fits its textures once at parse (measured: 240 → 96 MB uploaded per mount on iPhone 13)", () => {
+  const body = readFileSync("src/app/scene/genesis/avatar/LeluBody.tsx", "utf8");
+  assert.match(body, /export const SHARED_TEXTURE_LIMIT = 2048;/);
+  assert.match(body, /new GLTFLoader\(\)\.parseAsync\(bytes, ""\)\.then\(async \(gltf\) => \{\s*const resized = await fitTexturesTo\(gltf\.scene, SHARED_TEXTURE_LIMIT\);/);
 });

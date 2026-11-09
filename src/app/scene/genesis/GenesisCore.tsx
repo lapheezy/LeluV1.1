@@ -204,7 +204,15 @@ export type GenesisPanel =
   // Cosmos — infinite cosmos map + navigation
   | "cosmos"
   // LÉLU Personality Development — identity, traits, journal
-  | "identity";
+  | "identity"
+  // Creation Studio — documents, presentations, spreadsheets (library)
+  | "creation"
+  // Operational studios — live backend surfaces. Every value they show
+  // comes from the server's own probe or record; there are no placeholders.
+  | "eng-studio"
+  | "voice-studio"
+  | "infra-monitor"
+  | "security-center";
 
 
 /**
@@ -212,6 +220,49 @@ export type GenesisPanel =
  * Render, …) is ONE instance that can be shown in different presentations.
  * Changing presentation never duplicates the underlying singleton runtime.
  */
+/**
+ * Chat conversations are presented by the ONE window host too.
+ *
+ * A module id of `chat:<conversationId>` is the same single conversation
+ * the Chat Universe lists, opened as a module window: move, resize,
+ * z-order and saved geometry all come from the module state below, so the
+ * Universe adds no second window system. The prefix lives here because
+ * module ids are this file's vocabulary.
+ */
+export const CHAT_WINDOW_PREFIX = "chat:";
+
+export function chatWindowId(conversationId: string): string {
+  return `${CHAT_WINDOW_PREFIX}${conversationId}`;
+}
+
+/** The conversation a module id presents, or null for an application module. */
+export function conversationIdOf(moduleId: string): string | null {
+  return moduleId.startsWith(CHAT_WINDOW_PREFIX) ? moduleId.slice(CHAT_WINDOW_PREFIX.length) : null;
+}
+
+/**
+ * Chat windows float ABOVE the Chat Universe overlay (z-index 480): the
+ * Universe is where they open from, not a lid over them. Application panels
+ * stack among themselves below it, as before.
+ */
+export const CHAT_WINDOW_Z = 520;
+
+/**
+ * Application windows (Settings, Security Center, Studio …) stack just above
+ * the persistent chat panel (core/ui/Layers "panel" = 100) and below the
+ * navigation (200). At 30 they sat UNDER the chat panel, which covered them.
+ */
+export const APP_WINDOW_Z = 101;
+
+/**
+ * Windows that open FROM a conversation — the chat itself, and the
+ * documents and designs LÉLU makes in it — float above the chat panel
+ * like chat windows do; application panels stay below it.
+ */
+export function floatsAboveChat(moduleId: string): boolean {
+  return conversationIdOf(moduleId) !== null || moduleId.startsWith("artifact:") || moduleId.startsWith("atelier:");
+}
+
 export type ModulePresentation =
   | "closed"      // not rendered anywhere
   | "inline"      // floating window alongside the persistent Chat
@@ -230,6 +281,20 @@ export interface ModuleState {
   size?: { width: number; height: number };
   /** Stacking order among floating windows (raise = top-most). */
   zIndex?: number;
+  /** Tilt in degrees (interface orchestration: organic layouts). */
+  rotation?: number;
+  /** Windows sharing a group id move and arrange together. */
+  group?: string;
+}
+
+/** One module's target state in an approved interface layout. */
+export interface ModuleLayoutTarget {
+  presentation: ModulePresentation;
+  position?: { x: number; y: number };
+  size?: { width: number; height: number };
+  zIndex?: number;
+  rotation?: number;
+  group?: string;
 }
 
 /** Who decides module presentation: LÉLU (auto), LÉLU+approval (assisted), or the user (manual). */
@@ -591,6 +656,11 @@ export interface GenesisContextValue {
   moveModule(id:string, position:{x:number;y:number}):void;
   resizeModule(id:string, size:{width:number;height:number}):void;
   raiseModule(id:string):void;
+  /** Apply a whole approved layout (presentation + geometry + depth +
+      tilt + group for many modules) in ONE state update — the
+      InterfaceOrchestrator's apply path, so a layout never renders
+      half-applied. */
+  applyModuleLayout(layout:Record<string, ModuleLayoutTarget>):void;
 
   /** Switch the workspace SCENE without touching open panels/chat — scene
       changes are presentation only (v1 ↔ Gen V2), same LÉLU runtime. */
@@ -670,6 +740,15 @@ export interface GenesisContextValue {
 
 
 
+/** The context value without the 10 Hz universe snapshot. */
+export type GenesisStateValue = Omit<GenesisContextValue, "universe">;
+
+/** Action functions — identity-stable for the provider's lifetime. */
+type GenesisActions = Omit<
+  GenesisStateValue,
+  "state" | "engineRuntime" | "engineStatuses" | "runtimeReady" | "activeDestination"
+>;
+
 export const GenesisContext =
 
   createContext<GenesisContextValue | null>(
@@ -677,6 +756,39 @@ export const GenesisContext =
     null,
 
   );
+
+/**
+ * State-only context. DOM chrome that does not draw the universe (chat,
+ * tabs, dock, module windows) subscribes here so the simulation tick does
+ * not re-render it — that churn competed with typing on phones.
+ */
+export const GenesisStateContext =
+  createContext<GenesisStateValue | null>(null);
+
+/**
+ * ACTIONS ONLY, and stable: the action memo's identity does not change when
+ * the simulation ticks, so chrome that only CALLS the Core (chat, tabs,
+ * module windows, the dock) can drop its subscription to state it does not
+ * draw. Before this they read the whole context and re-rendered on every
+ * frame of the universe.
+ */
+export const GenesisActionsContext = createContext<GenesisActions | null>(null);
+
+export function useGenesisActions(): GenesisActions {
+  const context = useContext(GenesisActionsContext);
+  if (!context) {
+    throw new Error("useGenesisActions must be used inside GenesisCore");
+  }
+  return context;
+}
+
+export function useGenesisState(): GenesisStateValue {
+  const context = useContext(GenesisStateContext);
+  if (!context) {
+    throw new Error("useGenesisState must be used inside GenesisCore");
+  }
+  return context;
+}
 
 
 
@@ -728,6 +840,22 @@ interface GenesisCoreProps {
 
 
 
+
+/** Shallow equality for the 1 s engine-status poll. */
+function sameEngineStatuses(a: EngineStatus[], b: EngineStatus[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    const x = a[i] as unknown as Record<string, unknown>;
+    const y = b[i] as unknown as Record<string, unknown>;
+    const keys = Object.keys(x);
+    if (keys.length !== Object.keys(y).length) return false;
+    for (const key of keys) {
+      if (x[key] !== y[key]) return false;
+    }
+  }
+  return true;
+}
 
 export default function GenesisCore({
 
@@ -895,10 +1023,11 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
     // many scenes.
     activeScene:readStoredWorkspace() === "genesisv2" ? "genesisv2" : "genesis",
 
-    // The interface is tap-gated: the scene/runtime may initialize, but
-    // chat must remain closed until the user taps the Core/Genesis control.
-    // A restored Genesis v2 workspace still respects that gate.
-    minimized:true,
+    // The interface opens on the home (home/CosmosHome) over the Cosmos.
+    // The chat still stays closed until the user opens it — the home is
+    // what the person sees first, not the conversation. (This used to start
+    // minimized to keep the chat closed, which left a bare scene and a chip.)
+    minimized:false,
 
     activeWorkspace:null,
 
@@ -1087,10 +1216,12 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           return;
         }
 
-        setState(current => ({
-          ...current,
-          engineStatuses: runtime.getRegistry().getStatus(),
-        }));
+        const next = runtime.getRegistry().getStatus();
+        setState(current =>
+          sameEngineStatuses(current.engineStatuses, next)
+            ? current
+            : { ...current, engineStatuses: next },
+        );
       }, 1000);
 
     return () => {
@@ -1319,24 +1450,29 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
   }, [dispatch]);
 
 
-  const value =
+  /*
+   * STABLE ACTIONS.
+   *
+   * The action functions below used to be rebuilt inside the same
+   * useMemo as `state` and `universe`, so every universe publish (up to
+   * 10×/s) and every keystroke (setDialogue) gave every action a new
+   * identity. GenesisChat's mount effect depends on `exit`, which closes
+   * over `openPanel`/`setDialogue`; a new identity re-ran that effect,
+   * whose cleanup + setup each called setDialogue — a new state, new
+   * actions, and the effect ran again. That feedback loop froze typing
+   * and replayed the last exchange over in-flight replies.
+   *
+   * Actions only use functional setState updaters, plus stateRef for the
+   * few that need the live active conversation id, so they can be built
+   * once per provider.
+   */
 
-    useMemo<GenesisContextValue>(
+  const actions =
 
-      ()=>({        state,
+    useMemo<GenesisActions>(
 
-
-        universe,
-
+      ()=>({
         getLiveUniverse: () => universeRef.current,
-
-        engineRuntime: runtimeRef.current,
-
-        engineStatuses: state.engineStatuses,
-
-        runtimeReady: state.runtimeReady,
-
-        activeDestination: state.activeDestination,
 
         eventBus: eventBusRef.current,
 
@@ -1844,17 +1980,12 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
         setDialogue(phase){
 
-
-          setState(current=>({
-
-
-            ...current,
-
-
-            dialogue:phase,
-
-
-          }));
+          // Called on every keystroke — a same-phase update must not
+          // produce a new state object (and a re-render of every consumer).
+          setState(current=>
+            current.dialogue === phase
+              ? current
+              : { ...current, dialogue:phase });
 
 
         },
@@ -1894,6 +2025,16 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
 
         openPanel(panel){
+
+          // "Open the chat" — from the spatial nav, the companion, voice, a
+          // deep link, a briefing or LÉLU herself — opens the Chat Universe
+          // (the glass, windowed chat), not the old single-panel chat with
+          // the browser-style tab strip. That panel no longer exists.
+          if (panel === "chat") {
+            dispatch("genesis:panel-open", { panel });
+            window.dispatchEvent(new CustomEvent("lelu-open-universe"));
+            return;
+          }
 
           dispatch("genesis:panel-open", { panel });
 
@@ -1982,6 +2123,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
             const modules = {
               ...current.modules,
               [id]: {
+                ...current.modules[id],
                 presentation: normalizedPresentation,
                 status: current.modules[id]?.status ?? "idle",
                 updatedAt: Date.now(),
@@ -1992,9 +2134,11 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
               ...current,
               modules,
               minimized:false,
-              activePanel: normalizedPresentation === "closed"
-                ? (anyOpen ? current.activePanel : "none")
-                : (id as GenesisPanel),
+              activePanel: conversationIdOf(id)
+                ? current.activePanel
+                : normalizedPresentation === "closed"
+                  ? (anyOpen ? current.activePanel : "none")
+                  : (id as GenesisPanel),
             };
           });
         },
@@ -2012,9 +2156,12 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
                     : "inline";
             const modules = {
               ...current.modules,
-              [id]: { presentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...current.modules[id], presentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
-            return { ...current, modules, minimized:false, activePanel:id as GenesisPanel };
+            // A chat window is not an application panel: opening it must not
+            // take the panel slot from the app behind it (that slot drives
+            // the home and the single-chat surface).
+            return { ...current, modules, minimized:false, activePanel:conversationIdOf(id) ? current.activePanel : id as GenesisPanel };
           });
         },
 
@@ -2022,9 +2169,9 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           setState(current=>{
             const modules = {
               ...current.modules,
-              [id]: { presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...current.modules[id], presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
-            return { ...current, modules, minimized:false, activePanel:id as GenesisPanel };
+            return { ...current, modules, minimized:false, activePanel:conversationIdOf(id) ? current.activePanel : id as GenesisPanel };
           });
         },
 
@@ -2032,7 +2179,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           setState(current=>{
             const modules = {
               ...current.modules,
-              [id]: { presentation:"minimized" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...current.modules[id], presentation:"minimized" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
             return { ...current, modules, activePanel:id as GenesisPanel };
           });
@@ -2043,7 +2190,7 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
             const modules = { ...current.modules };
             delete modules[id];
             const anyOpen = Object.values(modules).some(m=>m.presentation !== "closed");
-            return { ...current, modules, activePanel:anyOpen ? current.activePanel : "none" };
+            return { ...current, modules, activePanel:conversationIdOf(id) || anyOpen ? current.activePanel : "none" };
           });
         },
 
@@ -2051,9 +2198,9 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           setState(current=>{
             const modules = {
               ...current.modules,
-              [id]: { presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
+              [id]: { ...current.modules[id], presentation:"expanded" as ModulePresentation, status: current.modules[id]?.status ?? "idle", updatedAt: Date.now() },
             };
-            return { ...current, modules, minimized:false, activePanel:id as GenesisPanel };
+            return { ...current, modules, minimized:false, activePanel:conversationIdOf(id) ? current.activePanel : id as GenesisPanel };
           });
         },
 
@@ -2107,14 +2254,51 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           setState(current=>{
             const existing = current.modules[id];
             if (!existing) return current;
-            const top = Math.max(30, ...Object.values(current.modules)
-              .map(m => m.zIndex ?? 30)) + 1;
+            // The stacking FLOOR depends on what the window is: application
+            // panels stack among panels, chat windows above the Universe.
+            const floor = floatsAboveChat(id) ? CHAT_WINDOW_Z : APP_WINDOW_Z;
+            const top = Math.max(floor, ...Object.values(current.modules)
+              .map(m => m.zIndex ?? floor)) + 1;
             return {
               ...current,
               modules: {
                 ...current.modules,
                 [id]: { ...existing, zIndex: top, updatedAt: Date.now() },
               },
+            };
+          });
+        },
+
+        applyModuleLayout(layout){
+          setState(current=>{
+            const modules = { ...current.modules };
+            for (const [id, target] of Object.entries(layout)) {
+              if (target.presentation === "closed") {
+                delete modules[id];
+                continue;
+              }
+              const existing = modules[id];
+              modules[id] = {
+                ...existing,
+                presentation: target.presentation,
+                status: existing?.status ?? "idle",
+                updatedAt: Date.now(),
+                ...(target.position ? { position: target.position } : {}),
+                ...(target.size ? { size: target.size } : {}),
+                ...(typeof target.zIndex === "number" ? { zIndex: target.zIndex } : {}),
+                rotation: target.rotation ?? 0,
+                ...(target.group ? { group: target.group } : { group: undefined }),
+              };
+            }
+            const open = Object.entries(modules).filter(([, m]) => m.presentation !== "closed");
+            const top = open.sort((a, b) => (b[1].zIndex ?? 0) - (a[1].zIndex ?? 0))[0]?.[0];
+            return {
+              ...current,
+              modules,
+              minimized:false,
+              // Chat stays mounted while any module is open; with none open
+              // the active surface is left exactly as it was.
+              activePanel: open.length ? (top as GenesisPanel) : current.activePanel,
             };
           });
         },
@@ -2376,20 +2560,33 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
           }));
 
         },
-
-
       }),
-
-
       [
-        state,
-        universe,
         dispatch,
         selectDestination,
         updateUniverse,
       ],
+    );
 
+  /* State-only value — what DOM chrome (chat, dock, tabs, module host)
+     needs. It changes with UI state, NOT with the 10 Hz universe tick. */
+  const stateValue =
+    useMemo<GenesisStateValue>(
+      () => ({
+        ...actions,
+        state,
+        engineRuntime: runtimeRef.current,
+        engineStatuses: state.engineStatuses,
+        runtimeReady: state.runtimeReady,
+        activeDestination: state.activeDestination,
+      }),
+      [actions, state],
+    );
 
+  const value =
+    useMemo<GenesisContextValue>(
+      () => ({ ...stateValue, universe }),
+      [stateValue, universe],
     );
 
 
@@ -2423,19 +2620,15 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
   return (
 
-    <GenesisContext.Provider
-
-      value={value}
-
-    >
-
-      <GenesisSceneContext.Provider value={sceneValue}>
-
-      {children}
-
-      </GenesisSceneContext.Provider>
-
-    </GenesisContext.Provider>
+    <GenesisActionsContext.Provider value={actions}>
+    <GenesisStateContext.Provider value={stateValue}>
+      <GenesisContext.Provider value={value}>
+        <GenesisSceneContext.Provider value={sceneValue}>
+          {children}
+        </GenesisSceneContext.Provider>
+      </GenesisContext.Provider>
+    </GenesisStateContext.Provider>
+    </GenesisActionsContext.Provider>
 
   );
 

@@ -52,7 +52,9 @@ export default function OgDockTabs({ railSize, iconSize }: OgDockTabsProps) {
   // Self-positioning, because the dock has three different shapes at three
   // breakpoints and the mount point is outside the rail container in all of
   // them. One fixed cluster keeps the OG entries in the same place whichever
-  // shape the dock is currently wearing.
+  // shape the dock is currently wearing. Top-right, under the command-palette
+  // row: the bottom-right corner belongs to the dock's own LÉLU / scene pill,
+  // which these buttons used to cover on phones.
   return (
     <div
       style={{

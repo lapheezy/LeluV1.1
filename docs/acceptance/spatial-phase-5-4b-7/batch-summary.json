@@ -1,0 +1,179 @@
+{
+  "mission": "5.4B.7",
+  "rows": [
+    {
+      "batch": "files-a",
+      "load": 1,
+      "dest": "files",
+      "gate": true,
+      "stable": 0,
+      "pt": [
+        127,
+        603
+      ],
+      "del": "scene:projects",
+      "land": "core",
+      "down": 1,
+      "ev": 1,
+      "ok": false,
+      "err": null
+    },
+    {
+      "batch": "files-a",
+      "load": 2,
+      "dest": "files",
+      "gate": true,
+      "stable": 0,
+      "pt": [
+        431,
+        709
+      ],
+      "del": null,
+      "land": "core",
+      "down": 1,
+      "ev": 0,
+      "ok": false,
+      "err": null
+    },
+    {
+      "batch": "files-a",
+      "load": 3,
+      "dest": "files",
+      "gate": true,
+      "stable": 0,
+      "pt": [
+        19,
+        694
+      ],
+      "del": "scene:files",
+      "land": "core",
+      "down": 1,
+      "ev": 1,
+      "ok": false,
+      "err": null
+    },
+    {
+      "batch": "files-b",
+      "load": 1,
+      "dest": "files",
+      "gate": true,
+      "stable": 0,
+      "pt": [
+        19,
+        690
+      ],
+      "del": "scene:files",
+      "land": "core",
+      "down": 1,
+      "ev": 1,
+      "ok": false,
+      "err": null
+    },
+    {
+      "batch": "files-b",
+      "load": 2,
+      "dest": "files",
+      "gate": true,
+      "stable": 0,
+      "pt": [
+        337,
+        465
+      ],
+      "del": "scene:files",
+      "land": "core",
+      "down": 1,
+      "ev": 1,
+      "ok": false,
+      "err": null
+    },
+    {
+      "batch": "studio-a",
+      "load": 1,
+      "dest": "studio",
+      "gate": true,
+      "stable": 0,
+      "pt": [
+        797,
+        426
+      ],
+      "del": "scene:studio",
+      "land": "core",
+      "down": 1,
+      "ev": 1,
+      "ok": false,
+      "err": null
+    },
+    {
+      "batch": "studio-a",
+      "load": 2,
+      "dest": "studio",
+      "gate": true,
+      "stable": 0,
+      "pt": [
+        803,
+        419
+      ],
+      "del": "scene:studio",
+      "land": "core",
+      "down": 1,
+      "ev": 1,
+      "ok": false,
+      "err": null
+    },
+    {
+      "batch": "studio-a",
+      "load": 3,
+      "dest": "studio",
+      "gate": true,
+      "stable": 0,
+      "pt": [
+        839,
+        427
+      ],
+      "del": "scene:studio",
+      "land": "core",
+      "down": 1,
+      "ev": 1,
+      "ok": false,
+      "err": null
+    },
+    {
+      "batch": "studio-b",
+      "load": 1,
+      "dest": "studio",
+      "gate": true,
+      "stable": 0,
+      "pt": [
+        772,
+        435
+      ],
+      "del": "scene:studio",
+      "land": "core",
+      "down": 1,
+      "ev": 1,
+      "ok": false,
+      "err": null
+    },
+    {
+      "batch": "studio-b",
+      "load": 2,
+      "dest": "studio",
+      "gate": true,
+      "stable": 0,
+      "pt": [
+        855,
+        446
+      ],
+      "del": "scene:studio",
+      "land": "core",
+      "down": 1,
+      "ev": 1,
+      "ok": false,
+      "err": null
+    }
+  ],
+  "totals": {
+    "files": 0,
+    "studio": 0
+  }
+}

@@ -1,0 +1,1141 @@
+{
+  "phases": {
+    "create": {
+      "phase": "create",
+      "errors": [
+        "console: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "console: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%",
+        "console: Failed to load resource: net::ERR_FAILED",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED"
+      ],
+      "mount": {
+        "present": true,
+        "count": 11,
+        "portals": [
+          {
+            "id": "scene:galaxy",
+            "destination": "galaxy",
+            "label": "Governor galaxy",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:planet",
+            "destination": "planet",
+            "label": "Creation world",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:portal",
+            "destination": "portal",
+            "label": "Dimensional portal",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:agents",
+            "destination": "agents",
+            "label": "Agent universes",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:browser",
+            "destination": "browser",
+            "label": "Browser",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:studio",
+            "destination": "studio",
+            "label": "Genesis Studios",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:research",
+            "destination": "research",
+            "label": "Research",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:projects",
+            "destination": "projects",
+            "label": "Projects",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:files",
+            "destination": "files",
+            "label": "Files",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:media",
+            "destination": "media",
+            "label": "Media",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:conversation",
+            "destination": "conversation",
+            "label": "Conversation",
+            "createdBy": "user"
+          }
+        ],
+        "duplicates": 0,
+        "scene": "core",
+        "canvases": 2,
+        "nodes": 52,
+        "heapMb": 221
+      },
+      "atCosmos": {
+        "present": true,
+        "count": 11,
+        "portals": [
+          {
+            "id": "scene:galaxy",
+            "destination": "galaxy",
+            "label": "Governor galaxy",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:planet",
+            "destination": "planet",
+            "label": "Creation world",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:portal",
+            "destination": "portal",
+            "label": "Dimensional portal",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:agents",
+            "destination": "agents",
+            "label": "Agent universes",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:browser",
+            "destination": "browser",
+            "label": "Browser",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:studio",
+            "destination": "studio",
+            "label": "Genesis Studios",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:research",
+            "destination": "research",
+            "label": "Research",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:projects",
+            "destination": "projects",
+            "label": "Projects",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:files",
+            "destination": "files",
+            "label": "Files",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:media",
+            "destination": "media",
+            "label": "Media",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:conversation",
+            "destination": "conversation",
+            "label": "Conversation",
+            "createdBy": "user"
+          }
+        ],
+        "duplicates": 0,
+        "scene": "cosmos",
+        "canvases": 3,
+        "nodes": 52,
+        "heapMb": 453
+      },
+      "panelOpened": true,
+      "notice": {
+        "first": "Portal “Client files” created.",
+        "second": "Portal “Sprint board” created."
+      },
+      "afterCreate": {
+        "present": true,
+        "count": 13,
+        "portals": [
+          {
+            "id": "scene:galaxy",
+            "destination": "galaxy",
+            "label": "Governor galaxy",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:planet",
+            "destination": "planet",
+            "label": "Creation world",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:portal",
+            "destination": "portal",
+            "label": "Dimensional portal",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:agents",
+            "destination": "agents",
+            "label": "Agent universes",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:browser",
+            "destination": "browser",
+            "label": "Browser",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:studio",
+            "destination": "studio",
+            "label": "Genesis Studios",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:research",
+            "destination": "research",
+            "label": "Research",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:projects",
+            "destination": "projects",
+            "label": "Projects",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:files",
+            "destination": "files",
+            "label": "Files",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:media",
+            "destination": "media",
+            "label": "Media",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:conversation",
+            "destination": "conversation",
+            "label": "Conversation",
+            "createdBy": "user"
+          },
+          {
+            "id": "portal_files_mw6nv7ek_wfx5",
+            "destination": "files",
+            "label": "Client files",
+            "createdBy": "user"
+          },
+          {
+            "id": "portal_projects_mw6nvzpt_0lyh",
+            "destination": "projects",
+            "label": "Sprint board",
+            "createdBy": "user"
+          }
+        ],
+        "duplicates": 0,
+        "scene": "cosmos",
+        "canvases": 3,
+        "nodes": 56,
+        "heapMb": 505
+      },
+      "afterReload": {
+        "present": true,
+        "count": 13,
+        "portals": [
+          {
+            "id": "scene:galaxy",
+            "destination": "galaxy",
+            "label": "Governor galaxy",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:planet",
+            "destination": "planet",
+            "label": "Creation world",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:portal",
+            "destination": "portal",
+            "label": "Dimensional portal",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:agents",
+            "destination": "agents",
+            "label": "Agent universes",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:browser",
+            "destination": "browser",
+            "label": "Browser",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:studio",
+            "destination": "studio",
+            "label": "Genesis Studios",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:research",
+            "destination": "research",
+            "label": "Research",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:projects",
+            "destination": "projects",
+            "label": "Projects",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:files",
+            "destination": "files",
+            "label": "Files",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:media",
+            "destination": "media",
+            "label": "Media",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:conversation",
+            "destination": "conversation",
+            "label": "Conversation",
+            "createdBy": "user"
+          },
+          {
+            "id": "portal_files_mw6nv7ek_wfx5",
+            "destination": "files",
+            "label": "Client files",
+            "createdBy": "user"
+          },
+          {
+            "id": "portal_projects_mw6nvzpt_0lyh",
+            "destination": "projects",
+            "label": "Sprint board",
+            "createdBy": "user"
+          }
+        ],
+        "duplicates": 0,
+        "scene": "core",
+        "canvases": 2,
+        "nodes": 56,
+        "heapMb": 195
+      }
+    },
+    "remove": {
+      "phase": "remove",
+      "errors": [
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "console: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "console: Failed to load resource: net::ERR_CONNECTION_REFUSED"
+      ],
+      "mount": {
+        "present": true,
+        "count": 11,
+        "portals": [
+          {
+            "id": "scene:galaxy",
+            "destination": "galaxy",
+            "label": "Governor galaxy",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:planet",
+            "destination": "planet",
+            "label": "Creation world",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:portal",
+            "destination": "portal",
+            "label": "Dimensional portal",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:agents",
+            "destination": "agents",
+            "label": "Agent universes",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:browser",
+            "destination": "browser",
+            "label": "Browser",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:studio",
+            "destination": "studio",
+            "label": "Genesis Studios",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:research",
+            "destination": "research",
+            "label": "Research",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:projects",
+            "destination": "projects",
+            "label": "Projects",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:files",
+            "destination": "files",
+            "label": "Files",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:media",
+            "destination": "media",
+            "label": "Media",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:conversation",
+            "destination": "conversation",
+            "label": "Conversation",
+            "createdBy": "user"
+          }
+        ],
+        "duplicates": 0,
+        "scene": "core",
+        "canvases": 3,
+        "nodes": 52,
+        "heapMb": 358
+      },
+      "panelOpened": true,
+      "notice": "Portal “Cutting room” created.",
+      "afterCreate": {
+        "present": true,
+        "count": 12,
+        "portals": [
+          {
+            "id": "scene:galaxy",
+            "destination": "galaxy",
+            "label": "Governor galaxy",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:planet",
+            "destination": "planet",
+            "label": "Creation world",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:portal",
+            "destination": "portal",
+            "label": "Dimensional portal",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:agents",
+            "destination": "agents",
+            "label": "Agent universes",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:browser",
+            "destination": "browser",
+            "label": "Browser",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:studio",
+            "destination": "studio",
+            "label": "Genesis Studios",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:research",
+            "destination": "research",
+            "label": "Research",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:projects",
+            "destination": "projects",
+            "label": "Projects",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:files",
+            "destination": "files",
+            "label": "Files",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:media",
+            "destination": "media",
+            "label": "Media",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:conversation",
+            "destination": "conversation",
+            "label": "Conversation",
+            "createdBy": "user"
+          },
+          {
+            "id": "portal_media_mw6nxh7g_2ukt",
+            "destination": "media",
+            "label": "Cutting room",
+            "createdBy": "user"
+          }
+        ],
+        "duplicates": 0,
+        "scene": "core",
+        "canvases": 3,
+        "nodes": 54,
+        "heapMb": 478
+      },
+      "afterReload": {
+        "present": true,
+        "count": 12,
+        "portals": [
+          {
+            "id": "scene:galaxy",
+            "destination": "galaxy",
+            "label": "Governor galaxy",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:planet",
+            "destination": "planet",
+            "label": "Creation world",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:portal",
+            "destination": "portal",
+            "label": "Dimensional portal",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:agents",
+            "destination": "agents",
+            "label": "Agent universes",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:browser",
+            "destination": "browser",
+            "label": "Browser",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:studio",
+            "destination": "studio",
+            "label": "Genesis Studios",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:research",
+            "destination": "research",
+            "label": "Research",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:projects",
+            "destination": "projects",
+            "label": "Projects",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:files",
+            "destination": "files",
+            "label": "Files",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:media",
+            "destination": "media",
+            "label": "Media",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:conversation",
+            "destination": "conversation",
+            "label": "Conversation",
+            "createdBy": "user"
+          },
+          {
+            "id": "portal_media_mw6nxh7g_2ukt",
+            "destination": "media",
+            "label": "Cutting room",
+            "createdBy": "user"
+          }
+        ],
+        "duplicates": 0,
+        "scene": "core",
+        "canvases": 2,
+        "nodes": 54,
+        "heapMb": 516
+      },
+      "panelReopened": true,
+      "removalTarget": "portal_media_mw6nxh7g_2ukt",
+      "removalNotice": "Portal removed.",
+      "afterRemove": {
+        "present": true,
+        "count": 11,
+        "portals": [
+          {
+            "id": "scene:galaxy",
+            "destination": "galaxy",
+            "label": "Governor galaxy",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:planet",
+            "destination": "planet",
+            "label": "Creation world",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:portal",
+            "destination": "portal",
+            "label": "Dimensional portal",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:agents",
+            "destination": "agents",
+            "label": "Agent universes",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:browser",
+            "destination": "browser",
+            "label": "Browser",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:studio",
+            "destination": "studio",
+            "label": "Genesis Studios",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:research",
+            "destination": "research",
+            "label": "Research",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:projects",
+            "destination": "projects",
+            "label": "Projects",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:files",
+            "destination": "files",
+            "label": "Files",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:media",
+            "destination": "media",
+            "label": "Media",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:conversation",
+            "destination": "conversation",
+            "label": "Conversation",
+            "createdBy": "user"
+          }
+        ],
+        "duplicates": 0,
+        "scene": "core",
+        "canvases": 3,
+        "nodes": 52,
+        "heapMb": 381
+      },
+      "afterRemoveReload": {
+        "present": true,
+        "count": 11,
+        "portals": [
+          {
+            "id": "scene:galaxy",
+            "destination": "galaxy",
+            "label": "Governor galaxy",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:planet",
+            "destination": "planet",
+            "label": "Creation world",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:portal",
+            "destination": "portal",
+            "label": "Dimensional portal",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:agents",
+            "destination": "agents",
+            "label": "Agent universes",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:browser",
+            "destination": "browser",
+            "label": "Browser",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:studio",
+            "destination": "studio",
+            "label": "Genesis Studios",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:research",
+            "destination": "research",
+            "label": "Research",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:projects",
+            "destination": "projects",
+            "label": "Projects",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:files",
+            "destination": "files",
+            "label": "Files",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:media",
+            "destination": "media",
+            "label": "Media",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:conversation",
+            "destination": "conversation",
+            "label": "Conversation",
+            "createdBy": "user"
+          }
+        ],
+        "duplicates": 0,
+        "scene": "core",
+        "canvases": 2,
+        "nodes": 52,
+        "heapMb": 455
+      }
+    },
+    "chat": {
+      "phase": "chat",
+      "errors": [
+        "console: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "console: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%",
+        "console: Failed to load resource: net::ERR_FAILED",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+      ],
+      "mount": {
+        "present": true,
+        "count": 11,
+        "portals": [
+          {
+            "id": "scene:galaxy",
+            "destination": "galaxy",
+            "label": "Governor galaxy",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:planet",
+            "destination": "planet",
+            "label": "Creation world",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:portal",
+            "destination": "portal",
+            "label": "Dimensional portal",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:agents",
+            "destination": "agents",
+            "label": "Agent universes",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:browser",
+            "destination": "browser",
+            "label": "Browser",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:studio",
+            "destination": "studio",
+            "label": "Genesis Studios",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:research",
+            "destination": "research",
+            "label": "Research",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:projects",
+            "destination": "projects",
+            "label": "Projects",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:files",
+            "destination": "files",
+            "label": "Files",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:media",
+            "destination": "media",
+            "label": "Media",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:conversation",
+            "destination": "conversation",
+            "label": "Conversation",
+            "createdBy": "user"
+          }
+        ],
+        "duplicates": 0,
+        "scene": "core",
+        "canvases": 3,
+        "nodes": 52,
+        "heapMb": 223
+      },
+      "chatOpened": true,
+      "chat": {
+        "selector": "[data-lelu-chat-window]",
+        "tag": "kept",
+        "text": "LÉLUhere with youWhat's on your mind?Ask, explore, or speak — LÉLU is listening."
+      },
+      "afterTravel": {
+        "present": true,
+        "count": 11,
+        "portals": [
+          {
+            "id": "scene:galaxy",
+            "destination": "galaxy",
+            "label": "Governor galaxy",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:planet",
+            "destination": "planet",
+            "label": "Creation world",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:portal",
+            "destination": "portal",
+            "label": "Dimensional portal",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:agents",
+            "destination": "agents",
+            "label": "Agent universes",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:browser",
+            "destination": "browser",
+            "label": "Browser",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:studio",
+            "destination": "studio",
+            "label": "Genesis Studios",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:research",
+            "destination": "research",
+            "label": "Research",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:projects",
+            "destination": "projects",
+            "label": "Projects",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:files",
+            "destination": "files",
+            "label": "Files",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:media",
+            "destination": "media",
+            "label": "Media",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:conversation",
+            "destination": "conversation",
+            "label": "Conversation",
+            "createdBy": "user"
+          }
+        ],
+        "duplicates": 0,
+        "scene": "core",
+        "canvases": 3,
+        "nodes": 52,
+        "heapMb": 473
+      },
+      "afterReturn": {
+        "present": true,
+        "count": 11,
+        "portals": [
+          {
+            "id": "scene:galaxy",
+            "destination": "galaxy",
+            "label": "Governor galaxy",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:planet",
+            "destination": "planet",
+            "label": "Creation world",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:portal",
+            "destination": "portal",
+            "label": "Dimensional portal",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:agents",
+            "destination": "agents",
+            "label": "Agent universes",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:browser",
+            "destination": "browser",
+            "label": "Browser",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:studio",
+            "destination": "studio",
+            "label": "Genesis Studios",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:research",
+            "destination": "research",
+            "label": "Research",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:projects",
+            "destination": "projects",
+            "label": "Projects",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:files",
+            "destination": "files",
+            "label": "Files",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:media",
+            "destination": "media",
+            "label": "Media",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:conversation",
+            "destination": "conversation",
+            "label": "Conversation",
+            "createdBy": "user"
+          }
+        ],
+        "duplicates": 0,
+        "scene": "core",
+        "canvases": 3,
+        "nodes": 52,
+        "heapMb": 478
+      },
+      "chatAfterReturn": {
+        "selector": "[data-lelu-chat-window]",
+        "present": true,
+        "sameNode": true,
+        "text": "LÉLUhere with youWhat's on your mind?Ask, explore, or speak — LÉLU is listening."
+      }
+    },
+    "transitions": {
+      "phase": "transitions",
+      "errors": [
+        "console: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "console: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "console: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%",
+        "console: Failed to load resource: net::ERR_FAILED",
+        "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+      ],
+      "mount": {
+        "present": true,
+        "count": 11,
+        "portals": [
+          {
+            "id": "scene:galaxy",
+            "destination": "galaxy",
+            "label": "Governor galaxy",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:planet",
+            "destination": "planet",
+            "label": "Creation world",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:portal",
+            "destination": "portal",
+            "label": "Dimensional portal",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:agents",
+            "destination": "agents",
+            "label": "Agent universes",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:browser",
+            "destination": "browser",
+            "label": "Browser",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:studio",
+            "destination": "studio",
+            "label": "Genesis Studios",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:research",
+            "destination": "research",
+            "label": "Research",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:projects",
+            "destination": "projects",
+            "label": "Projects",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:files",
+            "destination": "files",
+            "label": "Files",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:media",
+            "destination": "media",
+            "label": "Media",
+            "createdBy": "user"
+          },
+          {
+            "id": "scene:conversation",
+            "destination": "conversation",
+            "label": "Conversation",
+            "createdBy": "user"
+          }
+        ],
+        "duplicates": 0,
+        "scene": "core",
+        "canvases": 3,
+        "nodes": 52,
+        "heapMb": 232
+      },
+      "transitions": {
+        "count": 10,
+        "maxCanvases": 3,
+        "minCanvases": 3,
+        "maxNodes": 52,
+        "portalCounts": [
+          11
+        ],
+        "maxDuplicates": 0,
+        "heapBeforeMb": 232,
+        "heapAfterMb": 545,
+        "final": {
+          "scene": "projects",
+          "canvases": 3,
+          "count": 11
+        }
+      }
+    }
+  },
+  "at": "2026-11-07T17:26:11.339Z",
+  "base": "http://127.0.0.1:3013/"
+}

@@ -1,0 +1,17 @@
+{
+  "jobId": "fj_mvx4n6kw_cc62c4",
+  "character": "lelu_character",
+  "kind": "animation",
+  "purpose": "Phase H motion: sit_arms_crossed",
+  "meshyTaskId": "01a194a2-99aa-71aa-9bda-f7c984759ba5",
+  "request": {
+    "rig_task_id": "01a18f4e-8b2d-77fc-8179-76978df63364",
+    "action_id": 364
+  },
+  "references": [],
+  "identityLock": null,
+  "estimatedCredits": 3,
+  "consumedCredits": 3,
+  "submittedAt": 1793495046971,
+  "finishedAt": 1793495072058
+}

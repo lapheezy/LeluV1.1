@@ -26,6 +26,8 @@ import CoreToPlanet from "./CoreToPlanet";
 import { TestPlanet } from "./DebugPlanet";
 
 import { useGenesisScene } from "../useGenesisScene";
+import SpatialLayer from "../spatial/SpatialLayer";
+import SpatialPortals from "../../spatial/SpatialPortals";
 
 export default function GenesisRenderer() {
   const root = useRef<Group>(null);
@@ -62,6 +64,7 @@ export default function GenesisRenderer() {
   });
 
   return (
+    <>
     <group ref={root} name="GenesisWorld">
       <group name="Universe">
         <StarField />
@@ -88,6 +91,23 @@ export default function GenesisRenderer() {
       {/* ═══ TEST PLANET — lifecycle-connected, surrounds Core (r=2.0 vs Core r=0.9) ═══ */}
       <TestPlanet />
 
+      {/* Authored spatial objects — the live SpatialSceneGraph drawn with
+          this same renderer, in the default Genesis world as well as v2. */}
+      <SpatialLayer />
+
     </group>
+
+    {/* The portal ring: the registry's identities drawn in this same canvas,
+        so a portal a person or an agent created is a place in the world — not
+        a row in a panel. It consumes the one registry and creates no renderer,
+        camera or scene of its own.
+
+        It is a SIBLING of GenesisWorld, not a child: the world root rotates
+        slowly on its own axis, and a ring framed from the camera inside a
+        rotating parent drifts out of the view axis — measured: eleven portals
+        on screen, projected up to 770px to the right of where they were
+        framed. Outside that rotation the ring stays where the camera put it. */}
+    <SpatialPortals />
+    </>
   );
 }

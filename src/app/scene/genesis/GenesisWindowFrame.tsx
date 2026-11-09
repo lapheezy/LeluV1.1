@@ -331,10 +331,20 @@ export default function GenesisWindowFrame({
   /* ---------------------------------------------------------
    * Style computation
    * --------------------------------------------------------- */
-  const frameStyle: CSSProperties = narrow && inModuleWindow
+  /*
+   * INSIDE A MODULE WINDOW there is exactly ONE window chrome: the
+   * GenesisModuleHost title bar. The frame therefore renders as a plain
+   * body — no glass, no border, no shadow, no "Exit Core", no drag or
+   * resize handle — so a panel can never look like a window floating
+   * inside a window.
+   *
+   * This used to apply on phones only (`narrow && inModuleWindow`). On
+   * desktop every panel drew a second full glass frame with its own close
+   * button inside the host window, which is the doubled chrome that read
+   * as two competing interfaces. Same rule, both widths, one chrome.
+   */
+  const frameStyle: CSSProperties = inModuleWindow
     ? {
-        // Inside a module window on a phone: fill its body, under its
-        // title bar — never a second fixed sheet laid over it.
         position: "relative",
         // border-box: width 100% plus padding overran the window's right
         // edge by 22px (measured: frame 380px in a 358px body).
@@ -344,12 +354,14 @@ export default function GenesisWindowFrame({
         maxHeight: "100%",
         flex: 1,
         minHeight: 0,
-        overflowY: "hidden",
+        // The host body owns scrolling; a second scroller here produced
+        // two scrollbars for the same content.
+        overflow: "visible",
         pointerEvents: "auto",
-        background: background ?? genesisTheme.glass.panel,
+        background: "transparent",
+        border: "none",
         borderRadius: 0,
-        padding: 12,
-        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)",
+        padding: 0,
         color: "white",
         display: "flex",
         flexDirection: "column",
@@ -411,33 +423,41 @@ export default function GenesisWindowFrame({
         pointerEvents: "auto",
         background: background ?? genesisTheme.glass.panel,
         border: active ? genesisTheme.glass.borderAccent : genesisTheme.glass.border,
-        borderRadius: genesisTheme.radius.lg,
+        borderRadius: `var(--lelu-window-radius, ${genesisTheme.radius.lg}px)`,
         padding: 16,
-        color: "white",
+        color: "var(--lelu-color-text, white)",
         boxShadow: depth.boxShadow,
         backdropFilter: depth.backdropFilter,
         transformOrigin: "bottom center",
       };
 
+  // Inside a module window the frame is the host window's BODY (see
+  // frameStyle above, Session 1): one chrome, and the same element still
+  // carries data-lelu-surface / data-lelu-text so interface themes reach it.
   return (
     <motion.div
       key={motionKey}
       ref={frameRef}
-      initial={{ opacity: 0, x: "-50%", y: 24, scale: 0.96 }}
-      animate={{
-        opacity: 1,
-        x: narrow ? position.x : `calc(-50% + ${position.x + nudgeX}px)`,
-        y: narrow ? position.y : position.y,
-        scale: active ? 1.01 : 1,
-      }}
+      initial={inModuleWindow ? false : { opacity: 0, x: "-50%", y: 24, scale: 0.96 }}
+      animate={
+        inModuleWindow
+          ? { opacity: 1, x: 0, y: 0, scale: 1 }
+          : {
+              opacity: 1,
+              x: narrow ? position.x : `calc(-50% + ${position.x + nudgeX}px)`,
+              y: narrow ? position.y : position.y,
+              scale: active ? 1.01 : 1,
+            }
+      }
       exit={{ opacity: 0, x: "-50%", y: 20, scale: 0.96 }}
       transition={{ type: "spring", stiffness: 260, damping: 26, mass: 0.7 }}
       whileHover={
-        reduceMotion ? undefined : { y: -3, filter: "brightness(1.03)" }
+        reduceMotion || inModuleWindow ? undefined : { y: -3, filter: "brightness(1.03)" }
       }
       className={
         "genesis-window-frame" + (active ? " genesis-signal-active" : "")
       }
+      data-lelu-surface="panel"
       style={frameStyle}
     >
       {/* Mobile: drag handle at top for resizing the bottom sheet */}
@@ -487,6 +507,33 @@ export default function GenesisWindowFrame({
 
       {beforeHeader}
 
+      {inModuleWindow ? (
+        /* In-window heading: identity and live counts stay ("Memory · 12
+           stored"), the window controls do not — the host already owns
+           minimize / expand / close. Styled as content, not as a second
+           title bar. */
+        <div
+          data-lelu-panel-heading
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 10,
+            padding: "12px 14px 8px",
+            flexShrink: 0,
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            {/* No eyebrow here. Application identity is the host's title bar
+                (glyph + label); repeating "Genesis Core" above every panel's
+                own title is precisely the legacy chrome this phase removes. */}
+            <div style={{ fontWeight: 600, fontSize: 13, overflowWrap: "anywhere" }}>{title}</div>
+          </div>
+          {extraActions ? (
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>{extraActions}</div>
+          ) : null}
+        </div>
+      ) : (
       <div
         style={{
           display: "flex",
@@ -502,7 +549,7 @@ export default function GenesisWindowFrame({
       >
         <div style={{ minWidth: 0 }}>
           <div style={genesisTheme.text.eyebrow}>{eyebrow}</div>
-          <div style={{ fontWeight: 700, overflowWrap: "anywhere" }}>{title}</div>
+          <div data-lelu-text="title" style={{ fontWeight: 700, overflowWrap: "anywhere" }}>{title}</div>
         </div>
         <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
           {/* Mobile: zoom toggle button */}
@@ -541,9 +588,17 @@ export default function GenesisWindowFrame({
           </button>
         </div>
       </div>
+      )}
 
       {/* Content area — with pinch-to-zoom on mobile */}
-      {narrow && zoomable ? (
+      {inModuleWindow ? (
+        <div
+          data-lelu-panel-body
+          style={{ flex: 1, minHeight: 0, padding: "0 14px 14px", display: "flex", flexDirection: "column" }}
+        >
+          {children}
+        </div>
+      ) : narrow && zoomable ? (
         <PinchZoomContainer
           enabled={true}
           minScale={1}
@@ -569,8 +624,9 @@ export default function GenesisWindowFrame({
         children
       )}
 
-      {/* Desktop: resize from bottom-right corner */}
-      {resizable && !narrow ? (
+      {/* Desktop: resize from bottom-right corner. Never inside a module
+          window — the host owns that handle. */}
+      {resizable && !narrow && !inModuleWindow ? (
         <div
           aria-label="Resize window"
           role="presentation"

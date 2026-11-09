@@ -88,6 +88,12 @@ interface DiscoveryState {
   checkedAt: number;
 }
 
+/** True outside a browser (server/tests) or when the page is served from this machine. */
+function servedFromLocalhost(): boolean {
+  if (typeof location === "undefined") return true;
+  return ["localhost", "127.0.0.1", "[::1]", "::1"].includes(location.hostname);
+}
+
 function normalizeBaseUrl(input: string): string {
   return input.replace(/\/+$/, "");
 }
@@ -143,7 +149,11 @@ export default class LocalLLMAdapter {
   }
 
   private endpointSpecs(): BackendSpec[] {
-    const specs = [...DEFAULT_BACKENDS];
+    // The built-in candidates are localhost ports. They only mean "this machine"
+    // when the app itself is open on localhost; served from a public host they
+    // would probe each VISITOR's device (four refused connections per page). There
+    // only an explicitly configured endpoint is tried.
+    const specs = servedFromLocalhost() ? [...DEFAULT_BACKENDS] : [];
     const custom = this.getCustomEndpoint();
     if (custom?.baseUrl) {
       specs.push({

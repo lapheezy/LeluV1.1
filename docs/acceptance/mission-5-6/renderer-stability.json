@@ -1,0 +1,38 @@
+{
+  "result": "PARTIAL",
+  "long_session": {
+    "survived_ms": 338480,
+    "samples": 19,
+    "crashes": 0,
+    "page_errors": 0,
+    "heap_mb": [
+      141.2,
+      407.5
+    ],
+    "heap_growth_mb": 266.3,
+    "listeners": [
+      8961,
+      17424
+    ],
+    "listeners_growth": 8463,
+    "nodes": [
+      1150,
+      1055
+    ],
+    "final_dom": {
+      "windows": 0,
+      "canvases": 3,
+      "elements": 733,
+      "composer": 1,
+      "blank": false
+    }
+  },
+  "interpretation": "the renderer stays alive but retains event listeners and heap monotonically across pill/cosmos interactions (listeners nearly doubled in 5.6 minutes). That is consistent with the Mission 5.5 ~3-minute terminations being resource growth in the renderer/browser process rather than a deterministic app crash.",
+  "cause_status": "NOT DEFINITIVELY IDENTIFIED \u2014 the 5.5 crash did not reproduce in this run; no page error, no crash event, no OOM log captured",
+  "not_done_deliberately": "timeouts were not raised to mask the behaviour",
+  "alternative_verification_path": "per-turn evidence is written to disk immediately (probe-cycle56), so a mid-cycle renderer death loses no completed turn",
+  "evidence": [
+    "renderer-stability-long.json",
+    "stability-all.log"
+  ]
+}

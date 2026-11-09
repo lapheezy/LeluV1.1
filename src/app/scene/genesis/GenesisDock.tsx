@@ -16,8 +16,9 @@
  * ==========================================================
  */
 
+import { BASE_URL } from "../../../core/env/buildEnv";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { useGenesis, type GenesisPanel } from "./GenesisCore";
+import { useGenesisState, type GenesisPanel } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 import GenesisNavIcon, { type GenesisNavIconName } from "./GenesisNavIcons";
 import GenesisTabEditor from "./GenesisTabEditor";
@@ -66,6 +67,7 @@ export const DOCK_ITEMS: DockItem[] = [
   { id: "genesisv2", label: "Genesis v2", glyph: "⬡", icon: "lab", group: "core" },
   { id: "video", label: "Video", glyph: "▶", icon: "film", group: "core" },
   { id: "visualstudio", label: "Visual Studio", glyph: "◍", icon: "aperture", group: "core" },
+  { id: "creation", label: "Creation Studio", glyph: "▤", icon: "file", group: "core" },
   { id: "reasoning", label: "Reasoning", glyph: "✦", icon: "spark", group: "intelligence" },
   { id: "cognition", label: "Cognition", glyph: "◬", icon: "brain", group: "intelligence" },
   { id: "cognitive-trace", label: "Trace", glyph: "⌁", icon: "wave", group: "intelligence" },
@@ -74,6 +76,15 @@ export const DOCK_ITEMS: DockItem[] = [
   { id: "diagnostics", label: "Engines", glyph: "●", icon: "wave", group: "system" },
   { id: "executive", label: "Executive", glyph: "◉", icon: "brain", group: "system" },
   { id: "logs", label: "Logs", glyph: "▤", icon: "file", group: "system" },
+
+  // ── Operational studios ──
+  // Real backend surfaces added with the intelligence integration. They
+  // live in the deeper capability list (reachable from the tab editor and
+  // ⌘K) and from Settings, so the default rail keeps its environment shape.
+  { id: "eng-studio", label: "Engineering Studio", glyph: "⌗", icon: "brain", group: "system" },
+  { id: "voice-studio", label: "Voice Studio", glyph: "◍", icon: "wave", group: "system" },
+  { id: "infra-monitor", label: "Infrastructure", glyph: "◫", icon: "globe", group: "system" },
+  { id: "security-center", label: "Security Center", glyph: "⛨", icon: "sliders", group: "system" },
 ];
 
 /**
@@ -532,7 +543,7 @@ export default function GenesisDock({
      item launches the SAME one runtime (openModule for environments like
      Earth/Render/Sketch, onSelect for capability panels). No separate
      navigation state exists; the menu is a presentation of the dock. */
-  const { openModule } = useGenesis();
+  const { openModule } = useGenesisState();
   const tokens = sizeTokens(dockSettings.settings.size);
   const hasErrors = engineErrorCount > 0;
   const isLive = thinking || speaking;
@@ -593,7 +604,7 @@ export default function GenesisDock({
     return queue.subscribe(() => update());
   }, []);
 
-  const base = typeof import.meta.env.BASE_URL === "string" ? import.meta.env.BASE_URL : "/";
+  const base = BASE_URL;
   const zipHref = `${base}lelu-project.zip`;
 
   const statusColor = hasErrors
@@ -849,8 +860,10 @@ export default function GenesisDock({
         their own, so reaching them is navigation and the runtime under
         them is never rebuilt (§2, §18). Rendered at every breakpoint,
         because the dock has three different shapes and an interface
-        that only exists on tablets is not "exposed". */}
-        <OgDockTabs railSize={44} iconSize={16} />
+        that only exists on tablets is not "exposed". On phones they step
+        aside while the full-screen chat is open — they covered its
+        messages — and are listed in the LÉLU menu instead. */}
+        {!chatIsFullscreen ? <OgDockTabs railSize={44} iconSize={16} /> : null}
 
         {tabEditor}
       </>

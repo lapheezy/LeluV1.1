@@ -2,15 +2,19 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { MemoryRouter } from "react-router-dom";
 
 import GenesisInterface from "../src/app/scene/genesis/GenesisInterface";
 import GenesisCore from "../src/app/scene/genesis/GenesisCore";
 
 function renderInterface() {
   return renderToStaticMarkup(
+    // Mounted the way App.tsx mounts it: inside a router (GenesisInterface navigates).
+    <MemoryRouter>
     <GenesisCore>
       <GenesisInterface />
-    </GenesisCore>,
+    </GenesisCore>
+    </MemoryRouter>,
   );
 }
 
@@ -23,8 +27,9 @@ test("GenesisInterface does not render the placeholder overlay UI", () => {
 test("GenesisInterface renders interactive controls for the living scene", () => {
   const markup = renderInterface();
 
+  assert.match(markup, /data-lelu-home/, "the Cosmos home is the screen");
   assert.match(markup, /Chat/i);
-  assert.match(markup, /Core/i);
-  assert.match(markup, /Memory/i);
+  assert.match(markup, /App Library/i);
+  assert.match(markup, /Notifications/i);
   // Visual Studio is accessible through the side panel, not a separate dock destination.
 });

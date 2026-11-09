@@ -1,0 +1,1396 @@
+$ oxlint
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/GenesisChatSurface.tsx:51:17]
+ 50 | /** Tell the in-app browser panel to navigate to a real page. */
+ 51 | export function dispatchBrowserGoto(url: string): void {
+    :                 ^^^^^^^^^^^^^^^^^^^
+ 52 |   if (typeof window === "undefined") return;
+    `----
+
+  ! eslint(no-unused-vars): Variable 'first' is declared but never used. Unused variables should start with a '_'.
+    ,-[scripts/verify-workspace.ts:92:11]
+ 91 |     const engine = WorkspaceEngine.getInstance();
+ 92 |     const first = engine.openView({ id: "view-providers", kind: "providers", title: "Provider Map" });
+    :           ^^|^^
+    :             `-- 'first' is declared here
+ 93 |     const second = engine.openView({ id: "view-providers", kind: "providers", title: "Provider Map v2" });
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Variable 'temp' is declared but never used. Unused variables should start with a '_'.
+     ,-[scripts/verify-workspace.ts:196:11]
+ 195 |     const engine = WorkspaceEngine.getInstance();
+ 196 |     const temp = engine.openView({ kind: "chart", title: "Temp", temporary: true });
+     :           ^^|^
+     :             `-- 'temp' is declared here
+ 197 |     const pinned = engine.openView({ kind: "diagram", title: "Keep", temporary: true, pinned: true });
+     `----
+  help: Consider removing this declaration.
+
+  ! typescript(no-non-null-asserted-optional-chain): Optional chain expressions can return undefined by design: using a non-null assertion is unsafe and wrong.
+     ,-[scripts/verify-workspace.ts:223:71]
+ 222 |     assert.equal(state.focusId, b.id);
+ 223 |     assert.ok(state.views.find((item) => item.id === a.id)?.stackOrder! < state.views.find((item) => item.id === b.id)?.stackOrder!);
+     :                                                           |           |
+     :                                                           |           `-- non-null assertion made after optional chain
+     :                                                           `-- optional chain used
+ 224 |     engine.clear();
+     `----
+  help: Remove the non-null assertion.
+
+  ! typescript(no-non-null-asserted-optional-chain): Optional chain expressions can return undefined by design: using a non-null assertion is unsafe and wrong.
+     ,-[scripts/verify-workspace.ts:223:131]
+ 222 |     assert.equal(state.focusId, b.id);
+ 223 |     assert.ok(state.views.find((item) => item.id === a.id)?.stackOrder! < state.views.find((item) => item.id === b.id)?.stackOrder!);
+     :                                                                                                                       |           |
+     :                                                                                                                       |           `-- non-null assertion made after optional chain
+     :                                                                                                                       `-- optional chain used
+ 224 |     engine.clear();
+     `----
+  help: Remove the non-null assertion.
+
+  ! eslint(no-unused-vars): Variable 'bare' is declared but never used. Unused variables should start with a '_'.
+     ,-[scripts/verify-secrets.ts:109:9]
+ 108 |   const names = [secret.name, ...(secret.aliases ?? [])];
+ 109 |   const bare = secret.name.replace(/^VITE_/, "");
+     :         ^^|^
+     :           `-- 'bare' is declared here
+ 110 | 
+     `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Variable 'bootstrap' is declared but never used. Unused variables should start with a '_'.
+    ,-[verify/behavioral-continuity.mjs:28:7]
+ 27 | 
+ 28 | const bootstrap = `
+    :       ^^^^|^^^^
+    :           `-- 'bootstrap' is declared here
+ 29 |   const [{ default: AIService }, { default: ProjectStore }, { default: KvStore },
+    `----
+  help: Consider removing this declaration.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/og/compat/router.tsx:94:17]
+ 93 | /** TanStack calls navigate with an options object; react-router takes a path. */
+ 94 | export function useNavigate() {
+    :                 ^^^^^^^^^^^
+ 95 |   const navigate = useRRNavigate();
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/og/compat/router.tsx:103:17]
+ 102 | 
+ 103 | export function useParams<T = Record<string, string>>(_opts?: unknown): T {
+     :                 ^^^^^^^^^
+ 104 |   return useRRParams() as unknown as T;
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/og/compat/router.tsx:113:17]
+ 112 |  *  so the selector's return type is what callers get back. */
+ 113 | export function useRouterState<T = OgRouterState>(opts?: {
+     :                 ^^^^^^^^^^^^^^
+ 114 |   select?: (state: OgRouterState) => T;
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/og/compat/router.tsx:146:17]
+ 145 |  */
+ 146 | export function createFileRoute(_path: string) {
+     :                 ^^^^^^^^^^^^^^^
+ 147 |   return (config: OgRouteConfig) => ({
+     `----
+
+  ! eslint(no-unused-vars): Function 'grep' is declared but never used.
+    ,-[tests/voice-core-integration.test.ts:28:10]
+ 27 | 
+ 28 | function grep(pattern: string, flags = ""): string[] {
+    :          ^^|^
+    :            `-- 'grep' is declared here
+ 29 |   try {
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Identifier 'Brain' is imported but never used.
+     ,-[scripts/verify-offline-brain.ts:117:8]
+ 116 | // ---------------------------------------------------------------
+ 117 | import Brain from "../src/brain/Brain";
+     :        ^^|^^
+     :          `-- 'Brain' is imported here
+ 118 | import AIService from "../src/core/AIService";
+     `----
+  help: Consider removing this import.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+   ,-[src/og/routes/app/chats.archive.tsx:6:14]
+ 5 | 
+ 6 | export const Route = createFileRoute("/app/chats/archive")({ component: ArchivePage });
+   :              ^^^^^
+ 7 | 
+   `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+   ,-[src/og/routes/app/universes.$id.tsx:6:14]
+ 5 | 
+ 6 | export const Route = createFileRoute("/app/universes/$id")({ component: UniverseDetail });
+   :              ^^^^^
+ 7 | 
+   `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+   ,-[src/og/routes/app/agents.tsx:4:14]
+ 3 | 
+ 4 | export const Route = createFileRoute("/app/agents")({ component: AgentsPage });
+   :              ^^^^^
+ 5 | 
+   `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/og/routes/app/files.tsx:10:14]
+  9 | 
+ 10 | export const Route = createFileRoute("/app/files")({ component: FilesPage });
+    :              ^^^^^
+ 11 | 
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/og/routes/app/universes.tsx:10:14]
+  9 | 
+ 10 | export const Route = createFileRoute("/app/universes")({ component: UniversesPage });
+    :              ^^^^^
+ 11 | 
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/og/components/ui/toggle.tsx:42:18]
+ 41 | 
+ 42 | export { Toggle, toggleVariants };
+    :                  ^^^^^^^^^^^^^^
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/og/routes/app/chats.tsx:27:14]
+ 26 | 
+ 27 | export const Route = createFileRoute("/app/chats")({ component: ChatsPage });
+    :              ^^^^^
+ 28 | 
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/og/components/ui/button.tsx:58:18]
+ 57 | 
+ 58 | export { Button, buttonVariants }
+    :                  ^^^^^^^^^^^^^^
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/og/routes/app/queue.tsx:14:14]
+ 13 | 
+ 14 | export const Route = createFileRoute("/app/queue")({ component: QueuePage });
+    :              ^^^^^
+ 15 | 
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+   ,-[src/og/routes/app/settings.tsx:5:14]
+ 4 | 
+ 5 | export const Route = createFileRoute("/app/settings")({ component: SettingsPage });
+   :              ^^^^^
+ 6 | 
+   `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/og/routes/app/memories.tsx:10:14]
+  9 | 
+ 10 | export const Route = createFileRoute("/app/memories")({ component: MemoryGarden });
+    :              ^^^^^
+ 11 | 
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/og/routes/app/index.tsx:9:14]
+  8 | 
+  9 | export const Route = createFileRoute("/app/")({ component: AppHome });
+    :              ^^^^^
+ 10 | 
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+   ,-[src/og/routes/app/route.tsx:4:14]
+ 3 | 
+ 4 | export const Route = createFileRoute("/app")({
+   :              ^^^^^
+ 5 |   ssr: false,
+   `----
+
+  ! eslint(no-unused-vars): Identifier 'readFileSync' is imported but never used.
+    ,-[scripts/lelu-doctor.ts:25:22]
+ 24 | 
+ 25 | import { existsSync, readFileSync } from "node:fs";
+    :                      ^^^^^^|^^^^^
+    :                            `-- 'readFileSync' is imported here
+ 26 | import { loadEnv } from "vite";
+    `----
+  help: Consider removing this import.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/og/routes/core.tsx:12:14]
+ 11 | 
+ 12 | export const Route = createFileRoute("/core")({
+    :              ^^^^^
+ 13 |   ssr: false,
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/og/routes/chat.$threadId.tsx:9:14]
+  8 | 
+  9 | export const Route = createFileRoute("/chat/$threadId")({
+    :              ^^^^^
+ 10 |   ssr: false,
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/og/components/ui/sidebar.tsx:743:3]
+ 742 |   SidebarTrigger,
+ 743 |   useSidebar,
+     :   ^^^^^^^^^^
+ 744 | };
+     `----
+
+  ! eslint(no-unused-vars): Class 'NoImage' is declared but never used.
+    ,-[scripts/measure-glb.mjs:9:7]
+  8 | globalThis.self = globalThis;
+  9 | class NoImage {}
+    :       ^^^|^^^
+    :          `-- 'NoImage' is declared here
+ 10 | globalThis.createImageBitmap = undefined;
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Parameter 'parser' is declared but never used. Unused parameters should start with a '_'.
+    ,-[scripts/measure-glb.mjs:16:20]
+ 15 |   const loader = new GLTFLoader();
+ 16 |   loader.register((parser) => ({ name: "no-textures", loadTexture: () => Promise.resolve(new THREE.Texture()) }));
+    :                    ^^^|^^
+    :                       `-- 'parser' is declared here
+ 17 |   const gltf = await loader.parseAsync(ab, "");
+    `----
+  help: Consider removing this parameter.
+
+  ! eslint(no-unused-vars): Variable 'before' is declared but never used. Unused variables should start with a '_'.
+     ,-[scripts/verify-og-hybrid.mjs:101:11]
+ 100 |   if (composer) {
+ 101 |     const before = ((await page.textContent("body")) || "").length;
+     :           ^^^|^^
+     :              `-- 'before' is declared here
+ 102 |     // Assert that a reply ARRIVED, not that LÉLU parroted a phrase — she is
+     `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Identifier 'readFileSync' is imported but never used.
+    ,-[tests/forge-coat-weights.test.ts:14:34]
+ 13 | import assert from "node:assert/strict";
+ 14 | import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+    :                                  ^^^^^^|^^^^^
+    :                                        `-- 'readFileSync' is imported here
+ 15 | import { tmpdir } from "node:os";
+    `----
+  help: Consider removing this import.
+
+  ! eslint(no-unused-vars): Identifier 'checkCoatReport' is imported but never used.
+    ,-[tests/forge-coat-weights.test.ts:21:10]
+ 20 | import { inspectGlb } from "../src/core/forge/GlbInspector";
+ 21 | import { checkCoatReport, weightGarment, type CoatWeightsReport } from "../plugins/coatRig";
+    :          ^^^^^^^|^^^^^^^
+    :                 `-- 'checkCoatReport' is imported here
+ 22 | import { ForgeStore, type ForgeJob } from "../plugins/forgeStore";
+    `----
+  help: Consider removing this import.
+
+  ! react-hooks(exhaustive-deps): React hook useMemo depends on `rows`, which changes every render
+    ,-[src/og/components/core/panels/LogsPanel.tsx:40:76]
+ 38 | 
+ 39 |   const rows = q.data ?? [];
+    :         ^^|^
+    :           `-- `rows` is declared here
+ 40 |   const opRows = useMemo(() => rows.filter((r) => isOperational(r.kind)), [rows]);
+    :                                                                            ^^|^
+    :                                                                              `-- it will always cause this hook to re-evaluate
+ 41 |   const sysRows = useMemo(() => rows.filter((r) => !isOperational(r.kind)), [rows]);
+    `----
+  help: Try memoizing this variable with `useRef` or `useCallback`.
+
+  ! react-hooks(exhaustive-deps): React hook useMemo depends on `rows`, which changes every render
+    ,-[src/og/components/core/panels/LogsPanel.tsx:41:78]
+ 38 | 
+ 39 |   const rows = q.data ?? [];
+    :         ^^|^
+    :           `-- `rows` is declared here
+ 40 |   const opRows = useMemo(() => rows.filter((r) => isOperational(r.kind)), [rows]);
+ 41 |   const sysRows = useMemo(() => rows.filter((r) => !isOperational(r.kind)), [rows]);
+    :                                                                              ^^|^
+    :                                                                                `-- it will always cause this hook to re-evaluate
+ 42 | 
+    `----
+  help: Try memoizing this variable with `useRef` or `useCallback`.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/spatial/SavedWorlds.tsx:26:17]
+ 25 | /** Environments worth listing: real ones, not sandboxes under test. */
+ 26 | export function listedWorlds(world: Pick<WorldState, "environments"> | null): Environment[] {
+    :                 ^^^^^^^^^^^^
+ 27 |   return (world?.environments ?? []).filter((e) => !e.sandbox).slice(0, 12);
+    `----
+
+  ! eslint(no-unused-vars): Variable 'moved' is declared but never used. Unused variables should start with a '_'.
+    ,-[docs/audit/2026-11-07/evidence/step2-graph-drawing/canvas-e2e.mjs:74:9]
+ 73 |   await sleep(1500);
+ 74 |   const moved = (await studio()).find((a) => a.id === before.id);
+    :         ^^|^^
+    :           `-- 'moved' is declared here
+ 75 |   const shaman = await page.evaluate(async (id) => (await import("/src/core/studio/StudioStore.ts")).default.getInstance().get(id).revisions.at(-1).spec.nodes.find((n) => n.id === "shaman"), before.id);
+    `----
+  help: Consider removing this declaration.
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has a missing dependency: 'spatial'. Mutable values like 'spatial.current' aren't valid dependencies because mutating them doesn't re-render the component.
+     ,-[src/app/scene/spatial/SpatialExperience.tsx:215:6]
+ 208 |   useEffect(() => {
+ 209 |     document.body.dataset.spatialScene = spatial.current;
+     :                                          ^^^|^^^
+     :                                             `-- useEffect uses `spatial` here
+ 210 |     document.body.dataset.spatialTransition = spatial.transition?.kind ?? "";
+ 211 |     document.body.dataset.spatialProgress = String(
+ 212 |       spatial.transition ? Math.round(spatial.transition.progress * 100) : 100,
+ 213 |     );
+ 214 |     document.body.dataset.spatialBackend = spatial.backend;
+ 215 |   }, [spatial.current, spatial.transition, spatial.backend]);
+     :      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 216 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! eslint(no-unused-vars): Identifier 'writeFileSync' is imported but never used.
+   ,-[docs/audit/2026-11-07/evidence/step2-graph-drawing/touch-probe.mjs:2:21]
+ 1 | import { chromium } from "/home/user/LeluV1.1/node_modules/playwright/index.mjs";
+ 2 | import { mkdirSync, writeFileSync } from "node:fs";
+   :                     ^^^^^^|^^^^^^
+   :                           `-- 'writeFileSync' is imported here
+ 3 | const [W, H, OUT] = [Number(process.argv[2]), Number(process.argv[3]), process.argv[4]];
+   `----
+  help: Consider removing this import.
+
+  ! eslint(no-unused-vars): Variable 'rec' is declared but never used. Unused variables should start with a '_'.
+   ,-[docs/audit/2026-11-07/evidence/step2-graph-drawing/touch-probe.mjs:6:26]
+ 5 | mkdirSync(OUT, { recursive: true });
+ 6 | const checks = []; const rec = (n, ok, d = "") => { checks.push({ n, ok: !!ok, d }); console.log(`${ok ? "PASS" : "FAIL"} ${n}${d ? " — " + d : ""}`); };
+   :                          ^|^
+   :                           `-- 'rec' is declared here
+ 7 | const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+   `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Variable 'shot' is declared but never used. Unused variables should start with a '_'.
+    ,-[docs/audit/2026-11-07/evidence/step2-graph-drawing/touch-probe.mjs:13:7]
+ 12 | const cdp = await ctx.newCDPSession(page);
+ 13 | const shot = (n) => page.screenshot({ path: `${OUT}/${W}x${H}-${n}.png` });
+    :       ^^|^
+    :         `-- 'shot' is declared here
+ 14 | const sleep = (ms) => page.waitForTimeout(ms);
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Variable 'studio' is declared but never used. Unused variables should start with a '_'.
+    ,-[docs/audit/2026-11-07/evidence/step2-graph-drawing/touch-probe.mjs:23:7]
+ 22 | async function tap(loc, yFrac = 0.5) { const b = await loc.boundingBox(); if (!b) throw new Error("no box"); const x = b.x + b.width / 2, y = b.y + Math.max(3, b.height * yFrac); if (touch) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); }
+ 23 | const studio = () => page.evaluate(async () => { const S = (await import("/src/core/studio/StudioStore.ts")).default.getInstance(); return S.list().filter((a) => a.kind === "graph" || a.kind === "drawing").map((a) => { const s = a.revisions.at(-1).spec; return { id: a.id, kind: a.kind, revs: a.revisions.length, nodes: s.nodes?.length, edges: s.edges?.length, elements: s.scene?.elements?.length, first: s.nodes?.[0] && [s.nodes[0].id, s.nodes[0].x, s.nodes[0].y] }; }); });
+    :       ^^^|^^
+    :          `-- 'studio' is declared here
+ 24 | const overflow = () => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Variable 'overflow' is declared but never used. Unused variables should start with a '_'.
+    ,-[docs/audit/2026-11-07/evidence/step2-graph-drawing/touch-probe.mjs:24:7]
+ 23 | const studio = () => page.evaluate(async () => { const S = (await import("/src/core/studio/StudioStore.ts")).default.getInstance(); return S.list().filter((a) => a.kind === "graph" || a.kind === "drawing").map((a) => { const s = a.revisions.at(-1).spec; return { id: a.id, kind: a.kind, revs: a.revisions.length, nodes: s.nodes?.length, edges: s.edges?.length, elements: s.scene?.elements?.length, first: s.nodes?.[0] && [s.nodes[0].id, s.nodes[0].x, s.nodes[0].y] }; }); });
+ 24 | const overflow = () => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    :       ^^^^|^^^
+    :           `-- 'overflow' is declared here
+ 25 | const gate = async () => {
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Function 'openCard' is declared but never used.
+    ,-[docs/audit/2026-11-07/evidence/step2-graph-drawing/touch-probe.mjs:32:16]
+ 31 | };
+ 32 | async function openCard(id) {
+    :                ^^^^|^^^
+    :                    `-- 'openCard' is declared here
+ 33 |   const card = page.locator(`[data-lelu-studio-card='${id}']`);
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Parameter 'e' is declared but never used. Unused parameters should start with a '_'.
+    ,-[docs/audit/2026-11-07/evidence/step2-graph-drawing/touch-probe.mjs:57:192]
+ 56 |   await page.waitForFunction(() => document.querySelectorAll(".react-flow__node").length > 0, null, { timeout: 30000 }); await sleep(2000);
+ 57 |   await page.evaluate(() => { window.__ev = []; for (const t of ["pointerdown", "pointermove", "pointerup", "touchstart", "touchmove", "touchend", "mousedown"]) document.addEventListener(t, (e) => { const last = window.__ev.at(-1); if (last !== t) window.__ev.push(t); }, { capture: true, passive: true }); });
+    :                                                                                                                                                                                                |
+    :                                                                                                                                                                                                `-- 'e' is declared here
+ 58 |   const vp = () => page.evaluate(() => document.querySelector(".react-flow__viewport")?.style.transform);
+    `----
+  help: Consider removing this parameter.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/integration/StudioShell.tsx:181:14]
+ 180 | 
+ 181 | export const smallButton: CSSProperties = {
+     :              ^^^^^^^^^^^
+ 182 |   border: "1px solid rgba(125,211,252,0.35)",
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/integration/StudioShell.tsx:193:14]
+ 192 | 
+ 193 | export const ghostButton: CSSProperties = {
+     :              ^^^^^^^^^^^
+ 194 |   ...smallButton,
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/integration/StudioShell.tsx:200:14]
+ 199 | 
+ 200 | export const studioScroll: CSSProperties = {
+     :              ^^^^^^^^^^^^
+ 201 |   display: "flex",
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/integration/StudioShell.tsx:211:14]
+ 210 | 
+ 211 | export const codeText: CSSProperties = {
+     :              ^^^^^^^^
+ 212 |   fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/integration/StudioShell.tsx:218:14]
+ 217 | 
+ 218 | export const studioFrame = {
+     :              ^^^^^^^^^^^
+ 219 |   width: "min(94vw, 760px)",
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/integration/StudioShell.tsx:223:14]
+ 222 | 
+ 223 | export const elevated = genesisTheme.elevation.focus.boxShadow;
+     :              ^^^^^^^^
+     `----
+
+  ! react-hooks(exhaustive-deps): React Hook useMemo has unnecessary dependency: layoutVersion
+    ,-[src/app/scene/spatial/SpatialNavigator.tsx:98:56]
+ 97 |   useEffect(() => layoutStore.subscribe(() => setLayoutVersion((value) => value + 1)), [layoutStore]);
+ 98 |   const layout = useMemo(() => layoutStore.getState(), [layoutStore, layoutVersion]);
+    :                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 99 |   const manualCount = layout.entries.filter((entry) => entry.manual).length;
+    `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useMemo has unnecessary dependency: state.current
+     ,-[src/app/scene/spatial/SpatialPortals.tsx:735:6]
+ 734 |         };
+ 735 | ,->   }, [
+ 736 | |       size.width,
+ 737 | |       size.height,
+ 738 | |       state.current,
+ 739 | |       pose.position.x,
+ 740 | |       pose.position.y,
+ 741 | |       pose.position.z,
+ 742 | |       pose.target.x,
+ 743 | |       pose.target.y,
+ 744 | |       pose.target.z,
+ 745 | |       pose.fov,
+ 746 | `->   ]);
+ 747 |     
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useMemo has unnecessary dependency: anchorVersion
+     ,-[src/app/scene/spatial/SpatialPortals.tsx:764:5]
+ 763 |     // the real galaxy/agent positions still republishes the field's props.
+ 764 |     [placements, anchorVersion],
+     :     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 765 |   );
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/atelier/AtelierWindow.tsx:22:17]
+ 21 | 
+ 22 | export function useAtelierStore(): AtelierStore {
+    :                 ^^^^^^^^^^^^^^^
+ 23 |   const store = AtelierStore.getInstance();
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/GenesisCore.tsx:234:17]
+ 233 | 
+ 234 | export function chatWindowId(conversationId: string): string {
+     :                 ^^^^^^^^^^^^
+ 235 |   return `${CHAT_WINDOW_PREFIX}${conversationId}`;
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/GenesisCore.tsx:239:17]
+ 238 | /** The conversation a module id presents, or null for an application module. */
+ 239 | export function conversationIdOf(moduleId: string): string | null {
+     :                 ^^^^^^^^^^^^^^^^
+ 240 |   return moduleId.startsWith(CHAT_WINDOW_PREFIX) ? moduleId.slice(CHAT_WINDOW_PREFIX.length) : null;
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/GenesisCore.tsx:262:17]
+ 261 |  */
+ 262 | export function floatsAboveChat(moduleId: string): boolean {
+     :                 ^^^^^^^^^^^^^^^
+ 263 |   return conversationIdOf(moduleId) !== null || moduleId.startsWith("artifact:") || moduleId.startsWith("atelier:");
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/GenesisCore.tsx:777:17]
+ 776 | 
+ 777 | export function useGenesisActions(): GenesisActions {
+     :                 ^^^^^^^^^^^^^^^^^
+ 778 |   const context = useContext(GenesisActionsContext);
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/GenesisCore.tsx:785:17]
+ 784 | 
+ 785 | export function useGenesisState(): GenesisStateValue {
+     :                 ^^^^^^^^^^^^^^^
+ 786 |   const context = useContext(GenesisStateContext);
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/GenesisCore.tsx:797:17]
+ 796 | 
+ 797 | export function useGenesis(){
+     :                 ^^^^^^^^^^
+ 798 | 
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Move your React context(s) to a separate file.
+     ,-[src/app/scene/genesis/GenesisCore.tsx:752:14]
+ 751 | 
+ 752 | export const GenesisContext =
+     :              ^^^^^^^^^^^^^^
+ 753 | 
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Move your React context(s) to a separate file.
+     ,-[src/app/scene/genesis/GenesisCore.tsx:765:14]
+ 764 |  */
+ 765 | export const GenesisStateContext =
+     :              ^^^^^^^^^^^^^^^^^^^
+ 766 |   createContext<GenesisStateValue | null>(null);
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Move your React context(s) to a separate file.
+     ,-[src/app/scene/genesis/GenesisCore.tsx:775:14]
+ 774 |  */
+ 775 | export const GenesisActionsContext = createContext<GenesisActions | null>(null);
+     :              ^^^^^^^^^^^^^^^^^^^^^
+ 776 | 
+     `----
+
+  ! react-hooks(exhaustive-deps): React Hook useMemo has unnecessary dependency: universeVersion
+      ,-[src/app/scene/genesis/GenesisCore.tsx:1384:5]
+ 1383 |     
+ 1384 | ,->     [
+ 1385 | |   
+ 1386 | |         universeVersion,
+ 1387 | |   
+ 1388 | `->     ],
+ 1389 |     
+      `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has missing dependencies: 'mod.position', and 'mod.size'
+     ,-[src/app/scene/genesis/GenesisModuleHost.tsx:206:6]
+ 185 |     const store = ModuleLayoutStore.getInstance();
+ 186 |     if (!mod.position || !mod.size) {
+     :          ^^^              ^^^
+ 187 |       store.ensure(id);
+ 188 |       return;
+ 189 |     }
+ 190 |     const current = store.rectFor(id);
+ 191 |     if (
+ 192 |       current &&
+ 193 |       current.x === mod.position.x &&
+ 194 |       current.y === mod.position.y &&
+ 195 |       current.width === mod.size.width &&
+ 196 |       current.height === mod.size.height
+ 197 |     ) {
+ 198 |       return;
+ 199 |     }
+ 200 |     store.place(id, {
+ 201 |       x: mod.position.x,
+ 202 |       y: mod.position.y,
+ 203 |       width: mod.size.width,
+ 204 |       height: mod.size.height,
+ 205 |     });
+ 206 |   }, [id, mod.position?.x, mod.position?.y, mod.size?.width, mod.size?.height]);
+     :      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 207 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useCallback has a missing dependency: 'size.height'
+     ,-[src/app/scene/genesis/GenesisModuleHost.tsx:260:5]
+ 254 |           : Math.max(-size.width + 140, Math.min(x, viewportWidth - 96)),          y: isMobile
+ 255 |           ? Math.max(MOBILE_TOP_RESERVE, Math.min(y, viewportHeight - MOBILE_BOTTOM_RESERVE - size.height))
+     :                                                                                               ^^|^
+     :                                                                                                 `-- useCallback uses `size.height` here
+ 256 |           : Math.max(0, Math.min(y, viewportHeight - CHROME_HEIGHT - 16)),
+ 257 | 
+ 258 |       });
+ 259 |     },
+ 260 |     [id, moveModule, size.width, viewportWidth, viewportHeight, isMobile],
+     :     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 261 |   );
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '-'
+    ,-[src/core/router/DeflockResolver.ts:62:69]
+ 61 | const PLACE_PATTERNS = [
+ 62 |   /(?:around|near|in|at|for|covering|surrounding)\s+([A-Z][A-Za-z .'\-]{2,48})/,
+    :                                                                     ^^
+ 63 |   /(?:analy[sz]e|show|find|search)\s+(?:the\s+)?([A-Z][A-Za-z .'\-]{2,48})\b.*(?:alpr|camera|surveillance|plate)/i,
+    `----
+  help: Replace `\-` with `-`.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '-'
+    ,-[src/core/router/DeflockResolver.ts:63:65]
+ 62 |   /(?:around|near|in|at|for|covering|surrounding)\s+([A-Z][A-Za-z .'\-]{2,48})/,
+ 63 |   /(?:analy[sz]e|show|find|search)\s+(?:the\s+)?([A-Z][A-Za-z .'\-]{2,48})\b.*(?:alpr|camera|surveillance|plate)/i,
+    :                                                                 ^^
+ 64 | ];
+    `----
+  help: Replace `\-` with `-`.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '-'
+     ,-[src/core/router/DeflockResolver.ts:117:66]
+ 116 |         if (!from || !to) {
+ 117 |           const fromMatch = prompt.match(/from\s+([A-Z][A-Za-z .'\-]{2,48})/i);
+     :                                                                  ^^
+ 118 |           const toMatch = prompt.match(/to\s+([A-Z][A-Za-z .'\-]{2,48})/i);
+     `----
+  help: Replace `\-` with `-`.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '-'
+     ,-[src/core/router/DeflockResolver.ts:118:62]
+ 117 |           const fromMatch = prompt.match(/from\s+([A-Z][A-Za-z .'\-]{2,48})/i);
+ 118 |           const toMatch = prompt.match(/to\s+([A-Z][A-Za-z .'\-]{2,48})/i);
+     :                                                              ^^
+ 119 |           if (fromMatch?.[1] && toMatch?.[1]) {
+     `----
+  help: Replace `\-` with `-`.
+
+  ! react-hooks(exhaustive-deps): React Hook useMemo has a missing dependency: 'state'
+    ,-[src/app/scene/genesis/GenesisEarthMap.tsx:94:58]
+ 93 |   const center = useMemo(() => project(camera.lat, camera.lon, zoom), [camera.lat, camera.lon, zoom]);
+ 94 |   const entities = useMemo(() => visibleEntities(state), [state.entities, state.layers]);
+    :                                                  ^^|^^   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    :                                                    `-- useMemo uses `state` here
+ 95 |   const tileCount = 2 ** zoom;
+    `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useMemo has unnecessary dependency: state.entities
+    ,-[src/app/scene/genesis/GenesisEarthMap.tsx:94:58]
+ 93 |   const center = useMemo(() => project(camera.lat, camera.lon, zoom), [camera.lat, camera.lon, zoom]);
+ 94 |   const entities = useMemo(() => visibleEntities(state), [state.entities, state.layers]);
+    :                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 95 |   const tileCount = 2 ** zoom;
+    `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useMemo has unnecessary dependency: state.layers
+    ,-[src/app/scene/genesis/GenesisEarthMap.tsx:94:58]
+ 93 |   const center = useMemo(() => project(camera.lat, camera.lon, zoom), [camera.lat, camera.lon, zoom]);
+ 94 |   const entities = useMemo(() => visibleEntities(state), [state.entities, state.layers]);
+    :                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 95 |   const tileCount = 2 ** zoom;
+    `----
+  help: Either include it or remove the dependency array.
+
+  ! eslint(no-unused-vars): Identifier 'describeExecution' is imported but never used.
+     ,-[tests/workflows.test.ts:214:31]
+ 213 | 
+ 214 | import AgentWorkflowBridge, { describeExecution } from "../src/core/workflows/AgentWorkflowBridge";
+     :                               ^^^^^^^^|^^^^^^^^
+     :                                       `-- 'describeExecution' is imported here
+ 215 | import AgentStore from "../src/core/agents/AgentStore";
+     `----
+  help: Consider removing this import.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/chat/universe/ChatUniverse.tsx:61:17]
+ 60 | 
+ 61 | export function openChatUniverse(): void {
+    :                 ^^^^^^^^^^^^^^^^
+ 62 |   window.dispatchEvent(new CustomEvent(OPEN_UNIVERSE_EVENT));
+    `----
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has a missing dependency: 'setOpen'
+     ,-[src/app/scene/genesis/chat/universe/ChatUniverse.tsx:136:6]
+ 132 |   useEffect(() => {
+ 133 |     const show = () => setOpen(true);
+     :                        ^^^|^^^
+     :                           `-- useEffect uses `setOpen` here
+ 134 |     window.addEventListener(OPEN_UNIVERSE_EVENT, show);
+ 135 |     return () => window.removeEventListener(OPEN_UNIVERSE_EVENT, show);
+ 136 |   }, []);
+     :      ^^
+ 137 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has a missing dependency: 'setOpen'
+     ,-[src/app/scene/genesis/chat/universe/ChatUniverse.tsx:247:6]
+ 242 |       if (openKey) genesis.closeModule(chatWindowId(openKey.split("|").pop()!));
+ 243 |       else setOpen(false);
+     :            ^^^|^^^
+     :               `-- useEffect uses `setOpen` here
+ 244 |     };
+ 245 |     window.addEventListener("keydown", onKey);
+ 246 |     return () => window.removeEventListener("keydown", onKey);
+ 247 |   }, [open, openKey, genesis]);
+     :      ^^^^^^^^^^^^^^^^^^^^^^^^
+ 248 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/GenesisRuntimeUI.tsx:292:17]
+ 291 | /** Small helper for the UI Lab: summarize an element tree for preview lists. */
+ 292 | export function countElements(spec: UISpec): number {
+     :                 ^^^^^^^^^^^^^
+ 293 |   let count = 0;
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/GenesisDock.tsx:51:14]
+ 50 |  */
+ 51 | export const DOCK_ITEMS: DockItem[] = [
+    :              ^^^^^^^^^^
+ 52 |   // ── Primary destination — LÉLU's unified chat + visual environment ──
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/GenesisDock.tsx:96:14]
+ 95 |  */
+ 96 | export const ENVIRONMENT_MODULES: DockItem[] = [
+    :              ^^^^^^^^^^^^^^^^^^^
+ 97 |   { id: "earth", label: "Earth", glyph: "🌍", icon: "globe", group: "core" },
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/GenesisDock.tsx:107:14]
+ 106 | /** Side-panel catalog — environment modules first, then dock capabilities, deduped by id. */
+ 107 | export const MODULE_CATALOG: DockItem[] = [
+     :              ^^^^^^^^^^^^^^
+ 108 |   ...ENVIRONMENT_MODULES,
+     `----
+
+  ! react-hooks(exhaustive-deps): React Hook useCallback has a missing dependency: 'dockSettings'
+     ,-[src/app/scene/genesis/GenesisDock.tsx:557:5]
+ 554 |     (dragId: string, overId: string) => {
+ 555 |       dockSettings.moveTo(dragId as GenesisPanel, overId as GenesisPanel);
+     :       ^^^^^^|^^^^^
+     :             `-- useCallback uses `dockSettings` here
+ 556 |     },
+ 557 |     [dockSettings.moveTo],
+     :     ^^^^^^^^^^^^^^^^^^^^^
+ 558 |   );
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useCallback has unnecessary dependency: dockSettings.moveTo
+     ,-[src/app/scene/genesis/GenesisDock.tsx:557:5]
+ 556 |     },
+ 557 |     [dockSettings.moveTo],
+     :     ^^^^^^^^^^^^^^^^^^^^^
+ 558 |   );
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/VisualInterface.tsx:39:17]
+ 38 | /** Stage positions per mode — the shared geometry that makes transitions continuous. */
+ 39 | export function stagePositions(mode: string, width: number, height: number): Map<string, Point> {
+    :                 ^^^^^^^^^^^^^^
+ 40 |   const stages = COGNITION_STAGES;
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/VisualInterface.tsx:391:14]
+ 390 | 
+ 391 | export const MODE_LABELS: Record<string, string> = {
+     :              ^^^^^^^^^^^
+ 392 |   core: "Core",
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/VisualInterface.tsx:399:14]
+ 398 | 
+ 399 | export const modeCanvas: CSSProperties = {
+     :              ^^^^^^^^^^
+ 400 |   position: "absolute",
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/VisualInterface.tsx:405:71]
+ 404 | 
+ 405 | export { SignalDot, HeartbeatMode, MatrixMode, NerveMode, NeuronMode, useNow };
+     :                                                                       ^^^^^^
+ 406 | 
+     `----
+
+  ! eslint(no-unused-vars): Variable 'sentinelTick' is assigned a value but never used. Unused variables should start with a '_'.
+     ,-[src/app/scene/genesis/EngineTick.tsx:101:9]
+ 100 |     const sentinel = Sentinel.getInstance();
+ 101 |     let sentinelTick = 0;
+     :         ^^^^^^|^^^^^
+     :               `-- 'sentinelTick' is declared here
+ 102 |     const SENTINEL_INTERVAL = 10_000; // 10s between health reports
+ 103 | 
+ 104 |     let raf = 0;
+ 105 |     let last = performance.now();
+ 106 |     let lastSentinel = performance.now();
+ 107 | 
+ 108 |     const tick = (now: number) => {
+ 109 |       const delta = Math.min(0.1, Math.max(0.001, (now - last) / 1000));
+ 110 |       last = now;
+ 111 | 
+ 112 |       // Once per frame, from the live state — which is what the engine
+ 113 |       // needs and what the comment above always claimed.
+ 114 |       signalsRef.current = sampleSignals();
+ 115 | 
+ 116 |       // Read per frame, so a runtime that arrives after this effect
+ 117 |       // started is picked up on the next frame rather than never.
+ 118 |       const runtime = scene.engineRuntime;
+ 119 |       if (runtime) {
+ 120 |         updateUniverse((universeState) => {
+ 121 |           runtime.update(universeState, delta, signalsRef.current);
+ 122 |         });
+ 123 |       }
+ 124 | 
+ 125 |       // Periodic Sentinel health report
+ 126 |       if (now - lastSentinel >= SENTINEL_INTERVAL) {
+ 127 |         lastSentinel = now;
+ 128 |         sentinelTick++;
+     :         ^^^^^^|^^^^^
+     :               `-- it was last assigned here
+ 129 |         const sig = signalsRef.current;
+     `----
+  help: Did you mean to use this variable?
+
+  ! react-hooks(exhaustive-deps): React Hook useCallback has a missing dependency: 'openPanel'
+     ,-[src/app/scene/genesis/CoreHoldGesture.tsx:104:5]
+  88 |         // Ensure chat is open so voice responses appear over existing history
+  89 |         openPanel("chat");
+     :         ^^^^|^^^^
+     :             `-- useCallback uses `openPanel` here
+  90 |         // Toggle voice — same path as the mic button in chat
+  91 |         const engine = VoiceEngine.getInstance();
+  92 |         void engine.toggle();
+  93 |       }, threshold);
+  94 | 
+  95 |       holdRef.current = {
+  96 |         startX: event.clientX,
+  97 |         startY: event.clientY,
+  98 |         timer,
+  99 |         pointerType: event.pointerType,
+ 100 |       };
+ 101 | 
+ 102 |       animateProgress(threshold);
+ 103 |     },
+ 104 |     [cancelHold, animateProgress],
+     :     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 105 |   );
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useMemo has a missing dependency: 'partner.y'
+     ,-[src/app/scene/genesis/LivingSystemVisuals.tsx:651:6]
+ 646 |         x: 940 + Math.cos(-0.35 + index * 0.25) * 26,
+ 647 |         y: partner.y + Math.sin(-0.35 + index * 0.25) * 26,
+     :            ^^^|^^^
+     :               `-- useMemo uses `partner.y` here
+ 648 |         delay: index * 0.5,
+ 649 |       };
+ 650 |     });
+ 651 |   }, []);
+     :      ^^
+ 652 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/SceneFrameGovernor.tsx:30:17]
+ 29 | 
+ 30 | export function frameloopFor(mode: SceneRenderMode): Frameloop {
+    :                 ^^^^^^^^^^^^
+ 31 |   return mode === "full" ? "always" : mode === "paused" ? "never" : "demand";
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/SceneFrameGovernor.tsx:35:17]
+ 34 | /** The frameloop prop for a governed <Canvas>. */
+ 35 | export function useSceneFrameloop(): Frameloop {
+    :                 ^^^^^^^^^^^^^^^^^
+ 36 |   return frameloopFor(useSceneRenderMode());
+    `----
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has missing dependencies: 'selected.previewUrl', and 'selected'
+     ,-[src/app/scene/genesis/GenesisStudioPanel.tsx:165:6]
+ 160 |   useEffect(() => {
+ 161 |     if (!selected) return;
+     :          ^^^^^^^^
+ 162 |     void loadDir(selected.slug, ".");
+ 163 |     setOpenPath(null);
+ 164 |     setPreviewUrl(selected.previewUrl);
+     :                   ^^^^^^^^
+ 165 |   }, [selectedId, loadDir, selected?.slug]);
+     :      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 166 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/render/PlanetExplorer.tsx:88:14]
+ 87 | 
+ 88 | export const planetNavStore = {
+    :              ^^^^^^^^^^^^^^
+ 89 |   scaleLabel: "COSMOS" as PlanetScaleLabel,
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/avatar/LeluBody.tsx:41:17]
+ 40 | 
+ 41 | export function behaviourModeFor(activity: LeluActivity): BehaviourMode {
+    :                 ^^^^^^^^^^^^^^^^
+ 42 |   switch (activity) {
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/avatar/LeluBody.tsx:60:17]
+ 59 | 
+ 60 | export function expressionFor(activity: LeluActivity): Expression {
+    :                 ^^^^^^^^^^^^^
+ 61 |   switch (activity) {
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/home/SpatialNav.tsx:33:17]
+ 32 | 
+ 33 | export function openCommandPalette(): void {
+    :                 ^^^^^^^^^^^^^^^^^^
+ 34 |   window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true, bubbles: true }));
+    `----
+
+  ! react-hooks(exhaustive-deps): React Hook useMemo has a missing dependency: 'planetRadius'
+     ,-[src/app/scene/genesis/render/PlanetCivilization.tsx:384:6]
+ 371 |       const lon = i * 90 + Math.random() * 30;
+ 372 |       const altitude = planetRadius + 0.3 + Math.random() * 0.3;
+     :                        ^^^^^^|^^^^^
+     :                              `-- useMemo uses `planetRadius` here
+ 373 |       const buildings = Array.from({ length: 6 + Math.floor(Math.random() * 6) }, () => ({
+ 374 |         x: (Math.random() - 0.5) * 0.2,
+ 375 |         y: Math.random() * 0.15,
+ 376 |         z: (Math.random() - 0.5) * 0.2,
+ 377 |         w: 0.02 + Math.random() * 0.04,
+ 378 |         h: 0.03 + Math.random() * 0.12,
+ 379 |         d: 0.02 + Math.random() * 0.04,
+ 380 |         hue: 0.55 + Math.random() * 0.15,
+ 381 |       }));
+ 382 |       return { lat, lon, altitude, buildings, bobPhase: Math.random() * Math.PI * 2 };
+ 383 |     });
+ 384 |   }, []);
+     :      ^^
+ 385 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '"'
+     ,-[tests/personality-development.test.ts:200:68]
+ 199 |   // No pre-filled content strings
+ 200 |   const nonDateStrings = hardcodedStrings.filter((s) => !s.match(/^\"\d{4}-\d{2}-\d{2}\"$/));
+     :                                                                    ^^
+ 201 |   assert.ok(
+     `----
+  help: Replace `\"` with `"`.
+
+  ! eslint(no-useless-escape): Unnecessary escape character '"'
+     ,-[tests/personality-development.test.ts:200:87]
+ 199 |   // No pre-filled content strings
+ 200 |   const nonDateStrings = hardcodedStrings.filter((s) => !s.match(/^\"\d{4}-\d{2}-\d{2}\"$/));
+     :                                                                                       ^^
+ 201 |   assert.ok(
+     `----
+  help: Replace `\"` with `"`.
+
+  ! eslint(no-unused-vars): Identifier 'gsapDriving' is imported but never used.
+    ,-[tests/tween-driver.test.ts:13:10]
+ 12 | import * as gsapNamespace from "gsap";
+ 13 | import { gsapDriving, tweenProgress, tweenScalar } from "../src/app/scene/spatial/tweenDriver";
+    :          ^^^^^|^^^^^
+    :               `-- 'gsapDriving' is imported here
+ 14 | 
+    `----
+  help: Consider removing this import.
+
+  ! eslint(no-unused-vars): Function 'resolveGsap' is declared but never used.
+    ,-[tests/tween-driver.test.ts:19:10]
+ 18 | 
+ 19 | function resolveGsap(): { ticker?: TickerLike } | null {
+    :          ^^^^^|^^^^^
+    :               `-- 'resolveGsap' is declared here
+ 20 |   const namespace = gsapNamespace as unknown as Record<string, unknown>;
+    `----
+  help: Consider removing this declaration.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/avatar/LeluCompanion.tsx:89:17]
+ 88 |  */
+ 89 | export function dockedWindow(viewport: { width: number; height: number }, chat: Box | null, compact: boolean): Box {
+    :                 ^^^^^^^^^^^^
+ 90 |   const width = compact ? 120 : 200;
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/avatar/LeluCompanion.tsx:122:17]
+ 121 | /** The space planner's reading of the interface, plus the current shell's controls. Never her own box. */
+ 122 | export function readSpace(doc: Document = document): SpaceLayout {
+     :                 ^^^^^^^^^
+ 123 |   const space = measureSpace(doc);
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/avatar/LeluCompanion.tsx:136:17]
+ 135 | /** Does this box cover something you need (the composer, a control)? */
+ 136 | export function blocksSomething(box: Rect, space: SpaceLayout, margin = 4): boolean {
+     :                 ^^^^^^^^^^^^^^^
+ 137 |   if (space.composer && overlaps(box, space.composer, margin)) return true;
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/avatar/LeluCompanion.tsx:142:17]
+ 141 | /** Smallest edge rest that covers nothing — or the least bad one. */
+ 142 | export function edgeRest(space: SpaceLayout, compact: boolean): Box {
+     :                 ^^^^^^^^
+ 143 |   const { width: vw, height: vh } = space.viewport;
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/avatar/LeluCompanion.tsx:167:17]
+ 166 |  */
+ 167 | export function choosePlace(input: {
+     :                 ^^^^^^^^^^^
+ 168 |   inWorld: boolean;
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/avatar/LeluCompanion.tsx:189:17]
+ 188 |  */
+ 189 | export function nearestFree(drop: Box, space: SpaceLayout): Box | null {
+     :                 ^^^^^^^^^^^
+ 190 |   const { width: vw, height: vh } = space.viewport;
+     `----
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has a missing dependency: 'lifecycle'
+     ,-[src/app/scene/genesis/render/DebugPlanet.tsx:508:6]
+ 506 |   useEffect(() => {
+ 507 |     return lifecycle.subscribe((s) => setPhase(s.phase));
+     :            ^^^^|^^^^
+     :                `-- useEffect uses `lifecycle` here
+ 508 |   }, []);
+     :      ^^
+ 509 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! eslint(no-unused-vars): Variable 'adapter' is declared but never used. Unused variables should start with a '_'.
+    ,-[tests/spatial-integration.test.ts:31:7]
+ 30 | const composition = SpatialComposition.getInstance();
+ 31 | const adapter = SpatialAdapter.getInstance();
+    :       ^^^|^^^
+    :          `-- 'adapter' is declared here
+ 32 | const registry = SpatialObjectRegistry.getInstance();
+    `----
+  help: Consider removing this declaration.
+
+  ! eslint(no-unused-vars): Function 'providerFor' is declared but never used.
+    ,-[tests/spatial-integration.test.ts:66:10]
+ 65 | 
+ 66 | function providerFor(nodes: LiveSceneNode[]) {
+    :          ^^^^^|^^^^^
+    :               `-- 'providerFor' is declared here
+ 67 |   return {
+    `----
+  help: Consider removing this declaration.
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has a missing dependency: 'applyIntent'
+     ,-[src/app/scene/genesis/GenesisV2CameraRig.tsx:263:6]
+ 260 |   useEffect(() => {
+ 261 |     const unsub = genesisCameraIntentBus.subscribe(applyIntent);
+     :                                                    ^^^^^|^^^^^
+     :                                                         `-- useEffect uses `applyIntent` here
+ 262 |     return unsub;
+ 263 |   }, [camera]);
+     :      ^^^^^^^^
+ 264 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has missing dependencies: 'focusTarget', and 'applyIntent'
+     ,-[src/app/scene/genesis/GenesisV2CameraRig.tsx:338:6]
+ 272 |       if (!detail?.intent) return;
+ 273 |       if (detail.intent === "focus") focusTarget(detail.target);
+     :                                      ^^^^^^^^^^^
+ 274 |       else if (detail.intent === "fly") applyIntent({ type: "fly", position: detail.position, lookAt: detail.lookAt });
+     :                                         ^^^^^^^^^^^
+ 275 |       else if (detail.intent === "reset") applyIntent({ type: "reset" });
+ 276 |       else if (detail.intent === "fullscreen") requestV2Fullscreen();
+ 277 |     }
+ 278 |     function onMode(e: Event) {
+ 279 |       const detail = (e as CustomEvent).detail as { mode?: V2CameraMode };
+ 280 |       if (detail?.mode === "fly" || detail?.mode === "orbit") {
+ 281 |         mode.current = detail.mode;
+ 282 |         // Entering fly mode adopts the current camera pose so the switch
+ 283 |         // is seamless — no snap, no reset.
+ 284 |         if (detail.mode === "fly") {
+ 285 |           flyPos.current.copy(camera.position);
+ 286 |           const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, "YXZ");
+ 287 |           yaw.current = euler.y;
+ 288 |           pitch.current = clamp(euler.x, -Math.PI / 2.4, Math.PI / 2.4);
+ 289 |         } else {
+ 290 |           const offset = camera.position.clone().sub(orbitTarget.current);
+ 291 |           spherical.current.radius = Math.max(
+ 292 |             cfg.current.minDistance,
+ 293 |             Math.min(cfg.current.maxDistance, offset.length()),
+ 294 |           );
+ 295 |           spherical.current.theta = Math.atan2(offset.x, offset.z);
+ 296 |           spherical.current.phi = Math.acos(clamp(offset.y / Math.max(0.01, offset.length()), -1, 1));
+ 297 |         }
+ 298 |       }
+ 299 |     }
+ 300 |     function onKeyDown(e: KeyboardEvent) {
+ 301 |       const key = e.key.toLowerCase();
+ 302 |       if (
+ 303 |         ["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key) &&
+ 304 |         mode.current === "fly"
+ 305 |       ) {
+ 306 |         e.preventDefault();
+ 307 |       }
+ 308 |       keys.current[key] = true;
+ 309 |     }
+ 310 |     function onKeyUp(e: KeyboardEvent) {
+ 311 |       keys.current[e.key.toLowerCase()] = false;
+ 312 |     }
+ 313 |     function onBlur() {
+ 314 |       keys.current = {};
+ 315 |       pointers.current.clear();
+ 316 |       pinch.current = null;
+ 317 |       rightDown.current = false;
+ 318 |       userEnd();
+ 319 |     }
+ 320 |     function onContextMenu(e: Event) {
+ 321 |       e.preventDefault();
+ 322 |     }
+ 323 | 
+ 324 |     window.addEventListener("genesis-v2-camera", onCommand);
+ 325 |     window.addEventListener("genesis-v2-camera-mode", onMode);
+ 326 |     window.addEventListener("keydown", onKeyDown);
+ 327 |     window.addEventListener("keyup", onKeyUp);
+ 328 |     window.addEventListener("blur", onBlur);
+ 329 |     gl.domElement.addEventListener("contextmenu", onContextMenu);
+ 330 |     return () => {
+ 331 |       window.removeEventListener("genesis-v2-camera", onCommand);
+ 332 |       window.removeEventListener("genesis-v2-camera-mode", onMode);
+ 333 |       window.removeEventListener("keydown", onKeyDown);
+ 334 |       window.removeEventListener("keyup", onKeyUp);
+ 335 |       window.removeEventListener("blur", onBlur);
+ 336 |       gl.domElement.removeEventListener("contextmenu", onContextMenu);
+ 337 |     };
+ 338 |   }, [camera, gl]);
+     :      ^^^^^^^^^^^^
+ 339 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/ProposalEvidence.tsx:27:14]
+ 26 | 
+ 27 | export const ACTION_REQUIREMENTS = {
+    :              ^^^^^^^^^^^^^^^^^^^
+ 28 |   develop: "Generates the change with LÉLU's engineering agent and checks it in an isolated project copy. Needs autonomy L3.",
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/ProposalEvidence.tsx:33:17]
+ 32 | 
+ 33 | export function statusLabel(proposal: ImprovementProposal): string {
+    :                 ^^^^^^^^^^^
+ 34 |   return IMPROVEMENT_STATUS_LABELS[proposal.status] ?? proposal.status;
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/studio/GenesisCreationStudio.tsx:18:14]
+ 17 | 
+ 18 | export const KIND_ICON = { document: FileText, deck: Presentation, workbook: FileSpreadsheet, graph: Network, drawing: PenTool } as const;
+    :              ^^^^^^^^^
+ 19 | 
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/GenesisVisualStudio.tsx:33:17]
+ 32 | 
+ 33 | export function openStudioMode(mode: StudioMode): void {
+    :                 ^^^^^^^^^^^^^^
+ 34 |   requestedMode = mode;
+    `----
+
+  ! eslint(no-unused-vars): Parameter 'head' is declared but never used. Unused parameters should start with a '_'.
+    ,-[artifacts/https-proxy.mjs:38:36]
+ 37 | 
+ 38 | server.on("upgrade", (req, socket, head) => {
+    :                                    ^^|^
+    :                                      `-- 'head' is declared here
+ 39 |   const upstream = httpRequest({
+    `----
+  help: Consider removing this parameter.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/GenesisChatTranscript.tsx:31:14]
+ 30 | 
+ 31 | export const userBubbleStyle: CSSProperties = {
+    :              ^^^^^^^^^^^^^^^
+ 32 |   alignSelf: "flex-end",
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/GenesisChatTranscript.tsx:46:14]
+ 45 | 
+ 46 | export const assistantBlockStyle: CSSProperties = {
+    :              ^^^^^^^^^^^^^^^^^^^
+ 47 |   alignSelf: "stretch",
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/GenesisChatTranscript.tsx:61:17]
+ 60 |  */
+ 61 | export function transcriptMessages(
+    :                 ^^^^^^^^^^^^^^^^^^
+ 62 |   messages: readonly GenesisMessage[],
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/GenesisChatTranscript.tsx:73:17]
+ 72 | /** Attach each past exchange's extras to the first assistant reply at or after it started. */
+ 73 | export function anchorExtras(
+    :                 ^^^^^^^^^^^^
+ 74 |   messages: readonly GenesisMessage[],
+    `----
+
+  ! react-hooks(exhaustive-deps): React Hook useEffect has a missing dependency: 'openModuleIds'
+     ,-[src/app/scene/genesis/GenesisInterface.tsx:373:6]
+ 365 |       activeTab: state.activePanel !== "none" ? state.activePanel : null,
+ 366 |       openPanels: openModuleIds.length > 0 ? openModuleIds : state.activePanel !== "none" ? [state.activePanel] : [],
+     :                                              ^^^^^^|^^^^^^
+     :                                                    `-- useEffect uses `openModuleIds` here
+ 367 |       modulePresentations: Object.fromEntries(
+ 368 |         Object.entries(state.modules).map(([id, m]) => [id, m.presentation]),
+ 369 |       ),
+ 370 |       uiControl: state.uiControl,
+ 371 |       isChatOpen: state.activePanel === "chat" || openModuleIds.length > 0,
+ 372 |     });
+ 373 |   }, [state.activePanel, openModuleIds.length, state.modules, state.uiControl]);
+     :      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 374 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/GenesisExecutionTimeline.tsx:51:17]
+ 50 | /** Human "LÉLU is doing X" line for one event. */
+ 51 | export function executionEventLabel(event: AgentEvent): string {
+    :                 ^^^^^^^^^^^^^^^^^^^
+ 52 |   switch (event.type) {
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/GenesisExecutionTimeline.tsx:150:17]
+ 149 |  */
+ 150 | export function isExecutionEvent(event: AgentEvent): boolean {
+     :                 ^^^^^^^^^^^^^^^^
+ 151 |   switch (event.type) {
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/GenesisExecutionTimeline.tsx:309:17]
+ 308 | 
+ 309 | export function groupForEvent(event: AgentEvent): ActivityGroup | null {
+     :                 ^^^^^^^^^^^^^
+ 310 |   switch (event.type) {
+     `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+     ,-[src/app/scene/genesis/GenesisExecutionTimeline.tsx:363:17]
+ 362 | /** Only groups that really contain events, in a stable reading order. */
+ 363 | export function groupEvents(
+     :                 ^^^^^^^^^^^
+ 364 |   events: AgentEvent[],
+     `----
+
+  ! eslint(no-unused-vars): Parameter 'cwd' is declared but never used. Unused parameters should start with a '_'.
+     ,-[plugins/denoAdapters.ts:120:5]
+ 119 |     timeoutMs: number,
+ 120 |     cwd?: string,
+     :     ^|^
+     :      `-- 'cwd' is declared here
+ 121 |   ): Promise<EngineerCommandResult> {
+     `----
+  help: Consider removing this parameter.
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/WorkspaceVisual.tsx:34:14]
+ 33 | 
+ 34 | export const SURFACE_ACCENTS: Record<string, SurfaceAccent> = {
+    :              ^^^^^^^^^^^^^^^
+ 35 |   diagram: { color: "#67e8f9", glow: "rgba(103, 232, 249, 0.35)", label: "Architecture" },
+    `----
+
+  ! react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+    ,-[src/app/scene/genesis/WorkspaceVisual.tsx:52:17]
+ 51 | 
+ 52 | export function surfaceAccent(kind: string): SurfaceAccent {
+    :                 ^^^^^^^^^^^^^
+ 53 |   return SURFACE_ACCENTS[kind] ?? SURFACE_ACCENTS.activity;
+    `----
+
+  ! eslint(no-unused-vars): Variable 'entry' is declared but never used. Unused variables should start with a '_'.
+    ,-[docs/acceptance/spatial-phase-2-13/scripts/probe-reliable-clicks.mjs:76:9]
+ 75 |   await page.waitForTimeout(T(3600));
+ 76 |   const entry = await page.evaluate(() => ({ immersive: window.__leluImmersive ?? null }));
+    :         ^^|^^
+    :           `-- 'entry' is declared here
+ 77 |   const entryReady = await waitReady(page, T(8000));
+    `----
+  help: Consider removing this declaration.
+
+Found 134 warnings and 0 errors.
+Finished in 169ms on 1151 files with 104 rules using 8 threads.

@@ -1,0 +1,27 @@
+{
+  "gates": {
+    "A_provider_discovery": "PARTIAL",
+    "B_fallback_resilience": "PARTIAL",
+    "C_tool_budget": "PARTIAL",
+    "D_renderer_listeners": "PARTIAL",
+    "E_environment_construction": "BLOCKED",
+    "F_self_inspection": "BLOCKED",
+    "G_evolution_persistence": "BLOCKED / NOT TESTED",
+    "H_cosmos_presentation": "BLOCKED",
+    "I_memory_reflection": "PARTIAL",
+    "J_end_to_end_autonomy": "BLOCKED",
+    "mobile": "PARTIAL \u2014 3/4 viewports re-captured PASS; 430x932 last verified in 5.6"
+  },
+  "code_gates": {
+    "tsc": "exit 0",
+    "build": "exit 0",
+    "lint": "exit 0 (133 warnings, 0 errors)",
+    "full_suite": "exit 0 \u2014 1839 tests, 1839 pass, 0 fail, 0 skipped",
+    "targeted": "broker-consolidation 14/14, rung-budget 9/9, scoping 8/8"
+  },
+  "changed_source": [
+    "src/providers/GitHubModelsProvider.ts",
+    "tests/broker-consolidation.test.ts"
+  ],
+  "honesty": "no model execution claimed beyond what the evidence shows"
+}

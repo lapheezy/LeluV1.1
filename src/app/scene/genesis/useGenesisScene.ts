@@ -29,6 +29,7 @@
  * ==========================================================
  */
 
+import { IS_DEV } from "../../../core/env/buildEnv";
 import { createContext, useContext } from "react";
 import type EventBus from "../../../core/EventBus";
 import type EngineRuntime from "./engines/EngineRuntime";
@@ -63,7 +64,7 @@ export const GenesisSceneContext = createContext<GenesisSceneValue | null>(null)
  * message costs. It needs no GPU, no profiler and no React internals.
  *
  * Dev-only and branch-free in production: the whole block is behind
- * import.meta.env.DEV, which Vite replaces with `false` and drops.
+ * IS_DEV, which Vite replaces with `false` and drops.
  */
 export interface RenderLedger {
   scene: number;
@@ -73,7 +74,7 @@ export interface RenderLedger {
 }
 
 export function countRender(which: "scene" | "chat", who = "unnamed"): void {
-  if (!import.meta.env.DEV) return;
+  if (!IS_DEV) return;
   const host = globalThis as { __leluRenderLedger?: RenderLedger };
   const ledger = (host.__leluRenderLedger ??= { scene: 0, chat: 0, by: {} });
   ledger[which] += 1;

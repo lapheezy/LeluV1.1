@@ -1,0 +1,64 @@
+{
+  "steps": [
+    {
+      "step": "landmarks",
+      "render": 478,
+      "reference": 478
+    },
+    {
+      "step": "mask",
+      "vertices": 13523
+    },
+    {
+      "step": "maps",
+      "flattened": [
+        [
+          "Normal",
+          "normal.001"
+        ],
+        [
+          "Metallic",
+          "Image_1.001"
+        ]
+      ]
+    },
+    {
+      "step": "eye-patches",
+      "patches": [
+        {
+          "patch": "eye_patch_r",
+          "cropPx": [
+            179,
+            149
+          ],
+          "surfaceFitPoints": 245
+        },
+        {
+          "patch": "eye_patch_l",
+          "cropPx": [
+            176,
+            158
+          ],
+          "surfaceFitPoints": 248
+        }
+      ],
+      "finVerticesRemoved": 425
+    },
+    {
+      "step": "texture",
+      "image": "Image_0.001",
+      "size": [
+        4096,
+        4096
+      ],
+      "texelsWritten": 424693,
+      "texelsChanged": 274350
+    },
+    {
+      "step": "export",
+      "file": "lelu_face.glb",
+      "bytes": 41062080
+    }
+  ],
+  "warnings": []
+}

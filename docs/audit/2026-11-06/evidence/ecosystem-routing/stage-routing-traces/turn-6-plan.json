@@ -1,0 +1,24 @@
+{
+  "capturedAt": "2026-11-06",
+  "source": "window.__LELU_ROUTING_TRACE__ (live dev server :3013)",
+  "id": "route-mw5d9osb-np3fmp",
+  "prompt": "What would it take to enable OpenCode?",
+  "intent": "engineering",
+  "startedAt": 1793993262779,
+  "finishedAt": 1793993282526,
+  "stages": [
+    { "stage": "time", "handled": false, "durationMs": 2 },
+    { "stage": "cognitive-state", "handled": false, "durationMs": 0 },
+    { "stage": "brain", "handled": false, "durationMs": 4 },
+    { "stage": "intelligence", "handled": true, "durationMs": 5077, "provider": "intelligence", "model": "activation-plan" }
+  ],
+  "notes": [
+    { "at": 1793993277448, "stage": "intelligence.intent", "detail": "plan:What would it take to enable OpenCode?", "ok": true },
+    { "at": 1793993282524, "stage": "intelligence.fetch", "detail": "plan answered from live state (activation-plan)", "ok": true },
+    { "at": 1793993282526, "stage": "final", "detail": "owner=IntelligenceResolver provider=intelligence model=activation-plan chars=885", "ok": true }
+  ],
+  "owner": "IntelligenceResolver",
+  "provider": "intelligence",
+  "model": "activation-plan",
+  "renderedExcerpt": "…Restore engineering.workspace.runtime (BLOCKED) — awaiting_approval (observed: BLOCKED) … Nothing has run. Planning is not authorization and this plan has not run. Every step above is a proposal; execution stays with AdapterRegistry and EngineeringOrchestrator."
+}

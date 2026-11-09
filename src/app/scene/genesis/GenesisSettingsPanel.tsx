@@ -13,7 +13,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import GenesisWindowFrame from "./GenesisWindowFrame";
-import { useGenesis, type GenesisPanel } from "./GenesisCore";
+import { useGenesisState, type GenesisPanel } from "./GenesisCore";
 import AIService from "../../../core/AIService";
 import AvatarStore from "../../../core/avatar/AvatarProfile";
 import AgentStore from "../../../core/agents/AgentStore";
@@ -30,6 +30,7 @@ import type { LocalRuntimeStatus } from "../../../core/runtime/local/LocalRuntim
 import SupabasePersistence, { type SupabaseAuthState } from "../../../core/persistence/SupabasePersistence";
 import { getEnvironment } from "../../../core/Environment";
 import VoiceEngine from "../../../core/voice/VoiceEngine";
+import UsageSection from "./UsageSection";
 
 const LEVELS: { value: NotificationLevel; label: string }[] = [
   { value: "quiet", label: "Quiet" },
@@ -234,10 +235,14 @@ const LINKS: { id: GenesisPanel; label: string; description: string }[] = [
   { id: "browser", label: "Browser", description: "Live browser surface" },
   { id: "knowledge", label: "Knowledge", description: "Research / knowledge providers" },
   { id: "workspaces", label: "Projects", description: "The workspace / project system" },
+  { id: "eng-studio", label: "Engineering Studio", description: "Engines, workspace locks, test evidence and verification" },
+  { id: "voice-studio", label: "Voice Studio", description: "STT/TTS/VAD adapters, device audio and measured latency" },
+  { id: "infra-monitor", label: "Infrastructure", description: "Service health, provider routing and execution traces" },
+  { id: "security-center", label: "Security Center", description: "Policy decisions, permissions and scanner findings" },
 ];
 
 export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelProps) {
-  const { openPanel, clearConversation, state } = useGenesis();
+  const { openPanel, clearConversation, state } = useGenesisState();
   const [memoryCount, setMemoryCount] = useState<number | null>(null);
   const [avatarName, setAvatarName] = useState<string>("Lélu");
   const [exported, setExported] = useState(false);
@@ -606,6 +611,8 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
           </div>
 
           <VoiceSection />
+
+          <UsageSection />
 
           <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", opacity: 0.6, margin: "12px 0 8px" }}>
             Initiation level

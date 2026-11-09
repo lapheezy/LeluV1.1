@@ -47,6 +47,16 @@ export interface ActivityPage {
   error?: string;
 }
 
+/** A Creation Studio artifact this reply made, revised or exported (shown as a card on the reply). */
+export interface ActivityArtifact {
+  artifactId: string;
+  rev: number;
+  title: string;
+  kind: "document" | "deck" | "workbook" | "graph" | "drawing" | "design";
+  action: "created" | "revised" | "exported" | "restored" | "opened";
+  exports: Array<{ format: string; filename: string; ok: boolean; size: number }>;
+}
+
 export interface ChatActivity {
   status: "running" | "done" | "failed";
   startedAt: number;
@@ -54,6 +64,8 @@ export interface ChatActivity {
   steps: ActivityStep[];
   sources: ActivitySource[];
   pages: ActivityPage[];
+  /** Absent on replies recorded before artifacts existed. */
+  artifacts?: ActivityArtifact[];
 }
 
 const MAX_STEPS = 60;
@@ -253,6 +265,28 @@ export function reduceActivity(activity: ChatActivity, event: AgentEvent): ChatA
         });
       }
       return next;
+    }
+    case "studio_artifact": {
+      // One card per artifact: a later revision or export in the same turn updates it.
+      const list = [...(activity.artifacts ?? [])];
+      const at = list.findIndex((a) => a.artifactId === event.artifactId);
+      const prior = at >= 0 ? list[at] : undefined;
+      const sameRev = prior && prior.rev === event.rev;
+      // The latest export of each format wins.
+      const byFormat = new Map<string, ActivityArtifact["exports"][number]>();
+      for (const e of [...(sameRev ? prior.exports : []), ...(event.exports ?? [])]) byFormat.set(e.format, e);
+      const exports = [...byFormat.values()];
+      const card: ActivityArtifact = {
+        artifactId: event.artifactId,
+        rev: event.rev,
+        title: event.title,
+        kind: event.kind,
+        action: prior && event.action === "exported" ? prior.action : event.action,
+        exports,
+      };
+      if (at >= 0) list[at] = card;
+      else list.push(card);
+      return { ...activity, artifacts: list.slice(-12) };
     }
     case "user_steering":
       return push(activity, { kind: "steer", label: `Took in your new instruction: “${event.text.slice(0, 120)}”`, status: "info" });

@@ -1,0 +1,133 @@
+{
+ "viewport": "375x812",
+ "at": "2026-11-07T23:46:55.290Z",
+ "deviceScaleFactor": 1,
+ "touch": true,
+ "input": "real CDP touch events on the portal travel controls",
+ "method": "each transition is only counted after body[data-spatial-scene] equals the portal destination; the run aborts on the first transition that does not arrive",
+ "samples": [
+  {
+   "scene": "core",
+   "transition": "",
+   "canvases": 3,
+   "heapMB": 393,
+   "nodes": 1221,
+   "at": 1794095270802
+  },
+  {
+   "scene": "studio",
+   "transition": "",
+   "canvases": 1,
+   "heapMB": 350,
+   "nodes": 1010,
+   "at": 1794095295952
+  }
+ ],
+ "transitions": [
+  {
+   "step": 1,
+   "control": "studio",
+   "want": "studio",
+   "before": "core",
+   "after": "core",
+   "arrived": false,
+   "ms": 25149
+  }
+ ],
+ "errors": [],
+ "portalPanelTravelControls": 0,
+ "travelControls": [
+  {
+   "id": "core",
+   "text": "LÉLU unknown · unknown · production · built 2026-11-07 23:32Z\n        @keyframes cosmos-hurricane-spin {\n          from { transform: rotate(0deg); }\n          to { transform: rotate(360deg); }\n        }\n        @keyframes cosmos-rainbow-shimmer {\n          0%, 100% { filter: brightness(0.92); }\n          50% { filter: brightness(1.08); }\n        }\n      🏙 Nova Haven🏙 Skyreach🏙 Cloudspire🏙 Aetheria🏙 LuminaEARTHMOON♈Aries♉Taurus♊Gemini♋Cancer♌Leo♍Virgo♎Libra♏Scorpio♐Sagittarius♑Capricorn♒Aquarius♓Pisces☉ Sun☽ Moon☿ Mercury♀ Venus♂ Mars♃ Jupiter♄ Saturn⛢ Uranus♆ Neptune♇ Pluto✦ ZODIAC OBSERVATORY ✦LÉLUSHAMANLéluCaretakerEngineering & SystemsM.S. Ma'at SentinelArchitect ExecutiveAgent Forge ExecutiveRendererVideo DirectorResearcherJewelry DesignerFashion DesignerMarketing StrategistBuilderEngineering AgentDesignerArtistAtmosphereStormsunset 0.27static 0.25storm 1.00hurricane 0.77⚡ 0.88LÉLU+Workspace1Weather Use my locationNowFinishedLast: Self-study: What is causing this failure: STATIC SNAPSHOT — the engineering runtime is unreachable (/api/engineer/status responded )?ChatBrowserStudioWorkspacesAgentsFilesActive WorkspacesPlace in worldJewelry1 itemFashion0 itemsNotifications1LÉLU has a question“Fashion” is active but has no defined next outcome. What should I prioritize there?nowApp LibraryCreativity5Development5Research5Business7LÉLU — FinishedAsk her anything◎LÉLU◎🎙◇✉✦✦✺◉◈◫◬⬡⌁◍◍▶▤▤▥✉✉⌂⌂LÉLU's roomNew portalGovernor galaxyCreation worldDimensional portalAgent universesBrowserGenesis StudiosResearchProjectsFilesMediaConversationCreatePortalsOnly the built-in ring exists.LayoutAuto-arrangeRegenerate layout0 placed · 0 pinnedcore|idle|100",
+   "x": 188,
+   "y": 406,
+   "visible": true
+  },
+  {
+   "id": "cosmos",
+   "text": "✦",
+   "x": 70,
+   "y": 389,
+   "visible": true
+  },
+  {
+   "id": "galaxy",
+   "text": "✺",
+   "x": 105,
+   "y": 389,
+   "visible": true
+  },
+  {
+   "id": "planet",
+   "text": "◉",
+   "x": 141,
+   "y": 389,
+   "visible": true
+  },
+  {
+   "id": "portal",
+   "text": "◈",
+   "x": 175,
+   "y": 389,
+   "visible": true
+  },
+  {
+   "id": "browser",
+   "text": "◫",
+   "x": 211,
+   "y": 389,
+   "visible": true
+  },
+  {
+   "id": "agents",
+   "text": "⬡",
+   "x": 70,
+   "y": 423,
+   "visible": true
+  },
+  {
+   "id": "research",
+   "text": "⌁",
+   "x": 104,
+   "y": 423,
+   "visible": true
+  },
+  {
+   "id": "studio",
+   "text": "◍",
+   "x": 70,
+   "y": 457,
+   "visible": true
+  },
+  {
+   "id": "media",
+   "text": "▶",
+   "x": 105,
+   "y": 457,
+   "visible": true
+  },
+  {
+   "id": "projects",
+   "text": "▤",
+   "x": 71,
+   "y": 491,
+   "visible": true
+  },
+  {
+   "id": "files",
+   "text": "▥",
+   "x": 107,
+   "y": 491,
+   "visible": true
+  },
+  {
+   "id": "conversation",
+   "text": "✉",
+   "x": 70,
+   "y": 525,
+   "visible": true
+  }
+ ],
+ "result": "ABORTED at transition 1: scene core never reached studio"
+}

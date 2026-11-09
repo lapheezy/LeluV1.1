@@ -1,0 +1,6 @@
+{
+  "result": "BLOCKED",
+  "reason": "inspection needs model reasoning over state; no provider available",
+  "capability_audit": "CognitiveContext already injects workspaceArtifacts: describeWorkspace(WorkspaceEngine.getState()), so structural inspection has a real channel; there is no screenshot/visual channel to the model",
+  "requirement_two_kinds": "structural (available via context) vs visual (absent) \u2014 recorded so neither is claimed for the other"
+}

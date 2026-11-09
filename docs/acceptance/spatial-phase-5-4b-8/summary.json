@@ -1,0 +1,149 @@
+{
+  "mission": "5.4B.8",
+  "rows": [
+    {
+      "dest": "files",
+      "pt": [
+        253,
+        480
+      ],
+      "del": null,
+      "land": "core",
+      "down": 1,
+      "ev": 0,
+      "ok": false,
+      "err": null,
+      "sel": null
+    },
+    {
+      "dest": "files",
+      "pt": [
+        892,
+        435
+      ],
+      "del": "scene:files",
+      "land": "files",
+      "down": 1,
+      "ev": 1,
+      "ok": true,
+      "err": null,
+      "sel": 0
+    },
+    {
+      "dest": "files",
+      "pt": [
+        8,
+        750
+      ],
+      "del": "scene:files",
+      "land": "files",
+      "down": 1,
+      "ev": 1,
+      "ok": true,
+      "err": null,
+      "sel": 3
+    },
+    {
+      "dest": "files",
+      "pt": [
+        892,
+        422
+      ],
+      "del": "scene:files",
+      "land": "files",
+      "down": 1,
+      "ev": 1,
+      "ok": true,
+      "err": null,
+      "sel": 0
+    },
+    {
+      "dest": "files",
+      "pt": [
+        892,
+        435
+      ],
+      "del": "scene:files",
+      "land": "files",
+      "down": 1,
+      "ev": 1,
+      "ok": true,
+      "err": null,
+      "sel": 0
+    },
+    {
+      "dest": "studio",
+      "pt": [
+        778,
+        415
+      ],
+      "del": "scene:studio",
+      "land": "studio",
+      "down": 1,
+      "ev": 1,
+      "ok": true,
+      "err": null,
+      "sel": 0
+    },
+    {
+      "dest": "studio",
+      "pt": [
+        647,
+        464
+      ],
+      "del": "scene:studio",
+      "land": "studio",
+      "down": 1,
+      "ev": 1,
+      "ok": true,
+      "err": null,
+      "sel": 0
+    },
+    {
+      "dest": "studio",
+      "pt": [
+        847,
+        400
+      ],
+      "del": "scene:studio",
+      "land": "studio",
+      "down": 1,
+      "ev": 1,
+      "ok": true,
+      "err": null,
+      "sel": 0
+    },
+    {
+      "dest": "studio",
+      "pt": [
+        918,
+        346
+      ],
+      "del": "scene:studio",
+      "land": "studio",
+      "down": 1,
+      "ev": 1,
+      "ok": true,
+      "err": null,
+      "sel": 1
+    },
+    {
+      "dest": "studio",
+      "pt": [
+        852,
+        430
+      ],
+      "del": "scene:browser",
+      "land": "browser",
+      "down": 1,
+      "ev": 1,
+      "ok": false,
+      "err": null,
+      "sel": 0
+    }
+  ],
+  "totals": {
+    "files": 4,
+    "studio": 4
+  }
+}

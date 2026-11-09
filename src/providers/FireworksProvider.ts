@@ -12,6 +12,11 @@
  * __LELU_*__ runtime globals the platform's Keys UI injects,
  * or process.env. Never returns fake success — throws on
  * failure so the next provider in the chain is tried.
+ *
+ * CODING TURNS (request.workload === "coding") run on the
+ * dedicated coding model — FIREWORKS_CODING_MODEL, Kimi K3.1 Pro
+ * by default (core/ProviderModels.ts) — with a longer time budget.
+ * Every other turn uses FIREWORKS_MODEL, unchanged.
  */
 
 import type AIProvider from "./AIProvider";
@@ -50,19 +55,39 @@ export default class FireworksProvider implements AIProvider {
 
   private apiKey = "";
   private model = resolveModel("fireworks");
+  private codingModel = resolveModel("fireworksCoding");
   private initialized = false;
+
+  /**
+   * 30s suits a chat turn. A coding turn on a large model, or any turn
+   * replaying tool results, legitimately takes longer; cutting it off
+   * loses the work and drops to the next provider having done none.
+   */
+  private timeoutFor(request: AIRequest): number {
+    return request.workload === "coding" || request.tools?.length ? 180_000 : this.timeout;
+  }
+
+  /** Explicit model > coding model on coding turns > chat model. */
+  private selectModel(request: AIRequest): string {
+    const requested = request.model?.trim();
+    if (requested) return requested;
+    return request.workload === "coding" ? this.codingModel : this.model;
+  }
 
   async initialize(): Promise<void> {
     this.apiKey =
       resolveFirst("FIREWORKS_API_KEY") ?? "";
     this.model =
       resolveModel("fireworks");
+    this.codingModel =
+      resolveModel("fireworksCoding");
 
     this.initialized = true;
 
     console.info("[FireworksProvider] Initialized", {
       hasKey: this.apiKey.length > 0,
       model: this.model,
+      codingModel: this.codingModel,
     });
   }
 
@@ -116,15 +141,16 @@ export default class FireworksProvider implements AIProvider {
     ];
 
     const payload = {
-      model: request.model?.trim() || this.model,
+      model: this.selectModel(request),
       messages,
       ...openAIToolPayload(request),
       temperature: request.temperature ?? 0.7,
       ...(request.maxTokens ? { max_tokens: request.maxTokens } : {}),
       ...(request.stop?.length ? { stop: request.stop } : {}),
       // Stream whenever the turn wants progressive text — tool calls
-      // included (readOpenAIStream assembles them).
-      ...(request.onDelta ? { stream: true } : {}),
+      // included (readOpenAIStream assembles them). include_usage makes the
+      // final chunk carry real token counts (cost reporting).
+      ...(request.onDelta ? { stream: true, stream_options: { include_usage: true } } : {}),
     };
 
     let response: Response;
@@ -136,15 +162,15 @@ export default class FireworksProvider implements AIProvider {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Accept: "application/json",
+            Accept: payload.stream ? "text/event-stream" : "application/json",
             // Brokered: no credential leaves the browser — the server attaches
             // its own. Direct (server/tests): the real header.
             ...authHeaders("fireworks", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
           },
           body: JSON.stringify(payload),
           signal: request.signal
-            ? AbortSignal.any([request.signal, AbortSignal.timeout(this.timeout)])
-            : AbortSignal.timeout(this.timeout),
+            ? AbortSignal.any([request.signal, AbortSignal.timeout(this.timeoutFor(request))])
+            : AbortSignal.timeout(this.timeoutFor(request)),
         },
       );
     } catch (error) {
@@ -152,7 +178,11 @@ export default class FireworksProvider implements AIProvider {
       throw new Error(`Fireworks network error: ${message}`);
     }
 
-    if (payload.stream) {
+    // One stream reader for every OpenAI-compatible provider (openaiTools).
+    // Only a successful response is streamed; an error status falls through
+    // to the detailed error path below, which logs the model id (a coding
+    // model that is not deployed shows up there as a real 404).
+    if (payload.stream && response.ok) {
       const streamed = await readOpenAIStream(response, "Fireworks", request.onDelta!);
       if (!streamed.text.trim() && streamed.toolCalls.length === 0) {
         throw new Error("Fireworks returned no usable content.");
@@ -192,7 +222,7 @@ export default class FireworksProvider implements AIProvider {
         {
           status: response.status,
           message: apiMessage,
-          model: this.model,
+          model: payload.model,
         },
       );
 

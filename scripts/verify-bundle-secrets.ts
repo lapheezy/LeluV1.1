@@ -60,6 +60,11 @@ const FORBIDDEN: Record<string, string> = {
   VITE_GEMINI_API_KEY: "CANARYkkk11_MUSTNOTSHIP",
   VITE_NASA_API_KEY: "CANARYlll12_MUSTNOTSHIP",
   VITE_GEOAPIFY_API_KEY: "CANARYmmm13_MUSTNOTSHIP",
+  // Relayed in the master-integration security pass (were KNOWN_BROWSER_SIDE).
+  VITE_FIRMS_API_KEY: "CANARYnnn14_MUSTNOTSHIP",
+  VITE_GUARDIAN_API_KEY: "CANARYooo15_MUSTNOTSHIP",
+  VITE_GNEWS_API_KEY: "CANARYppp16_MUSTNOTSHIP",
+  VITE_NEWSDATA_API_KEY: "CANARYqqq17_MUSTNOTSHIP",
 };
 
 /**
@@ -72,10 +77,9 @@ const FORBIDDEN: Record<string, string> = {
  * measured on every run instead of being assumed or forgotten.
  */
 const KNOWN_BROWSER_SIDE: Record<string, string> = {
-  VITE_FIRMS_API_KEY: "CANARYbs1_BROWSERSIDE",
-  VITE_GUARDIAN_API_KEY: "CANARYbs3_BROWSERSIDE",
-  VITE_GNEWS_API_KEY: "CANARYbs4_BROWSERSIDE",
-  VITE_NEWSDATA_API_KEY: "CANARYbs5_BROWSERSIDE",
+  // Empty: FIRMS, Guardian, GNews and NewsData moved to the knowledge relay
+  // and are asserted in FORBIDDEN. A key added here is a documented,
+  // deliberate exposure and should be rare.
 };
 
 /**
@@ -99,6 +103,14 @@ const BRIDGE_MUST_NOT_PUBLISH: Record<string, string> = {
   GITHUB_TOKEN: "CANARYbr12_NOTONPAGE",
   SUPABASE_SERVICE_ROLE_KEY: "CANARYbr13_NOTONPAGE",
   LELU_ENGINEER_TOKEN: "CANARYbr14_NOTONPAGE",
+  // The bridge PUBLISHED these into every served page (dev and
+  // production server.ts) until the master-integration security pass.
+  NASA_API_KEY: "CANARYbr15_NOTONPAGE",
+  GEOAPIFY_API_KEY: "CANARYbr16_NOTONPAGE",
+  GNEWS_API_KEY: "CANARYbr17_NOTONPAGE",
+  GUARDIAN_API_KEY: "CANARYbr18_NOTONPAGE",
+  NEWSDATA_API_KEY: "CANARYbr19_NOTONPAGE",
+  FIRMS_API_KEY: "CANARYbr20_NOTONPAGE",
 };
 
 /**
@@ -112,6 +124,8 @@ const SERVER_ONLY: Record<string, string> = {
   AISSTREAM_API_KEY: "CANARYsrv3_SERVERONLY",
   INSTAGRAM_ACCESS_TOKEN: "CANARYsrv4_SERVERONLY",
   LELU_ENGINEER_TOKEN: "CANARYsrv5_SERVERONLY",
+  // Read only by the server-side 3D Forge; never referenced by client code.
+  MESHY_API_KEY: "CANARYsrv6_SERVERONLY",
 };
 
 const OUT_DIR = "dist-secret-scan";

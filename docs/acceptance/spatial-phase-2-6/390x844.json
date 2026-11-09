@@ -1,0 +1,445 @@
+{
+  "viewport": "390x844",
+  "capturedAt": "2026-11-06T21:02:51.816Z",
+  "steps": {
+    "initial": {
+      "homeDashboard": true,
+      "chatUniverse": false,
+      "canvases": [
+        {
+          "w": 390,
+          "h": 844
+        },
+        {
+          "w": 390,
+          "h": 844
+        },
+        {
+          "w": 162,
+          "h": 220
+        }
+      ],
+      "revision": 0,
+      "nodes": 29,
+      "objects": [],
+      "camera": {
+        "position": [
+          3,
+          2,
+          6.5
+        ],
+        "direction": [
+          -0.41,
+          -0.19,
+          -0.89
+        ],
+        "fov": 56
+      },
+      "reveal": null
+    },
+    "create": {
+      "homeDashboard": false,
+      "chatUniverse": true,
+      "canvases": [
+        {
+          "w": 120,
+          "h": 174
+        }
+      ],
+      "revision": 1,
+      "nodes": 0,
+      "objects": [
+        {
+          "name": "Nova",
+          "rendered": false,
+          "world": null,
+          "color": null
+        }
+      ],
+      "camera": {
+        "position": [
+          6,
+          2.5,
+          4
+        ],
+        "direction": [
+          -0.82,
+          -0.18,
+          -0.55
+        ],
+        "fov": 56
+      },
+      "reveal": null
+    },
+    "world": {
+      "homeDashboard": false,
+      "chatUniverse": false,
+      "canvases": [
+        {
+          "w": 390,
+          "h": 844
+        },
+        {
+          "w": 390,
+          "h": 844
+        },
+        {
+          "w": 120,
+          "h": 174
+        }
+      ],
+      "revision": 1,
+      "nodes": 28,
+      "objects": [
+        {
+          "name": "Nova",
+          "rendered": true,
+          "visible": true,
+          "world": [
+            2.28,
+            -1.35,
+            2.11
+          ],
+          "color": "#7c3aed"
+        }
+      ],
+      "camera": {
+        "position": [
+          4.3,
+          -0.01,
+          6.02
+        ],
+        "direction": [
+          -0.46,
+          -0.29,
+          -0.84
+        ],
+        "fov": 56
+      },
+      "reveal": {
+        "target": "Nova",
+        "requestedAt": 1793999021208,
+        "ok": true,
+        "message": "Framed \"Nova\" — camera at (4.3, -0.01, 6.02) looking at (2.2, -1.35, 2.2). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+        "camera": {
+          "position": {
+            "x": 4.299983652387789,
+            "y": -0.013646766662316567,
+            "z": 6.018152095250525
+          },
+          "target": {
+            "x": 2.2,
+            "y": -1.35,
+            "z": 2.2
+          },
+          "distance": 4.5578565935112545,
+          "fov": 56
+        },
+        "at": 1793999035635
+      }
+    },
+    "listed": {
+      "homeDashboard": true,
+      "chatUniverse": true,
+      "canvases": [
+        {
+          "w": 120,
+          "h": 174
+        }
+      ],
+      "revision": 1,
+      "nodes": 0,
+      "objects": [
+        {
+          "name": "Nova",
+          "rendered": false,
+          "world": null,
+          "color": null
+        }
+      ],
+      "camera": {
+        "position": [
+          6,
+          2.5,
+          4
+        ],
+        "direction": [
+          -0.82,
+          -0.18,
+          -0.55
+        ],
+        "fov": 56
+      },
+      "reveal": {
+        "target": "Nova",
+        "requestedAt": 1793999021208,
+        "ok": true,
+        "message": "Framed \"Nova\" — camera at (4.3, -0.01, 6.02) looking at (2.2, -1.35, 2.2). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+        "camera": {
+          "position": {
+            "x": 4.299983652387789,
+            "y": -0.013646766662316567,
+            "z": 6.018152095250525
+          },
+          "target": {
+            "x": 2.2,
+            "y": -1.35,
+            "z": 2.2
+          },
+          "distance": 4.5578565935112545,
+          "fov": 56
+        },
+        "at": 1793999035635
+      }
+    },
+    "orbit": {
+      "homeDashboard": true,
+      "chatUniverse": true,
+      "canvases": [
+        {
+          "w": 120,
+          "h": 174
+        }
+      ],
+      "revision": 1,
+      "nodes": 0,
+      "objects": [
+        {
+          "name": "Nova",
+          "rendered": false,
+          "world": null,
+          "color": null
+        }
+      ],
+      "camera": {
+        "position": [
+          6,
+          2.5,
+          4
+        ],
+        "direction": [
+          -0.82,
+          -0.18,
+          -0.55
+        ],
+        "fov": 56
+      },
+      "reveal": {
+        "target": "Nova",
+        "requestedAt": 1793999021208,
+        "ok": true,
+        "message": "Framed \"Nova\" — camera at (4.3, -0.01, 6.02) looking at (2.2, -1.35, 2.2). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+        "camera": {
+          "position": {
+            "x": 4.299983652387789,
+            "y": -0.013646766662316567,
+            "z": 6.018152095250525
+          },
+          "target": {
+            "x": 2.2,
+            "y": -1.35,
+            "z": 2.2
+          },
+          "distance": 4.5578565935112545,
+          "fov": 56
+        },
+        "at": 1793999035635
+      }
+    },
+    "worldReturn": {
+      "homeDashboard": false,
+      "chatUniverse": false,
+      "canvases": [
+        {
+          "w": 390,
+          "h": 844
+        },
+        {
+          "w": 390,
+          "h": 844
+        },
+        {
+          "w": 120,
+          "h": 174
+        }
+      ],
+      "revision": 1,
+      "nodes": 28,
+      "objects": [
+        {
+          "name": "Nova",
+          "rendered": true,
+          "visible": true,
+          "world": [
+            2.39,
+            -1.35,
+            1.99
+          ],
+          "color": "#7c3aed"
+        }
+      ],
+      "camera": {
+        "position": [
+          4.3,
+          -0.01,
+          6.02
+        ],
+        "direction": [
+          -0.46,
+          -0.29,
+          -0.84
+        ],
+        "fov": 56
+      },
+      "reveal": {
+        "target": "Nova",
+        "requestedAt": 1793999021208,
+        "ok": true,
+        "message": "Framed \"Nova\" — camera at (4.3, -0.01, 6.02) looking at (2.2, -1.35, 2.2). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+        "camera": {
+          "position": {
+            "x": 4.299983652387789,
+            "y": -0.013646766662316567,
+            "z": 6.018152095250525
+          },
+          "target": {
+            "x": 2.2,
+            "y": -1.35,
+            "z": 2.2
+          },
+          "distance": 4.5578565935112545,
+          "fov": 56
+        },
+        "at": 1793999118116
+      }
+    }
+  },
+  "screenshots": {
+    "initial": "docs/acceptance/spatial-phase-2-6/screenshots/390x844-01-home.png",
+    "create": "docs/acceptance/spatial-phase-2-6/screenshots/390x844-02-created.png",
+    "world": "docs/acceptance/spatial-phase-2-6/screenshots/390x844-03-world-nova.png",
+    "listed": "docs/acceptance/spatial-phase-2-6/screenshots/390x844-04-chat-scene.png",
+    "orbit": "docs/acceptance/spatial-phase-2-6/screenshots/390x844-05-chat-orbit.png",
+    "worldReturn": "docs/acceptance/spatial-phase-2-6/screenshots/390x844-06-world-after-reopen.png"
+  },
+  "events": [
+    {
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "kind": "console",
+      "text": "Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20needs%20provider%20docs%20%2B%20research%20t"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    }
+  ],
+  "crop": {
+    "path": "docs/acceptance/spatial-phase-2-6/screenshots/390x844-03-world-nova-crop.png",
+    "count": 46037,
+    "bbox": {
+      "x": 2,
+      "y": 152,
+      "w": 325,
+      "h": 528
+    },
+    "averageColour": [
+      166,
+      141,
+      204
+    ],
+    "viewportShare": 0.1399
+  },
+  "listTranscript": "create a cube called NovaCreated \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.what is in the sceneScene revision 1: 1 object — \"Nova\" (box) at (2.2, -1.35, 2.2).Send",
+  "orbitTranscript": "⚙️Working with tools1 tool usedWorkingcreate a cube called NovaCreated \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.what is in the sceneScene revision 1: 1 object — \"Nova\" (box) at (2.2, -1.35, 2.2).orbit around Nova by 30 degreesOrbited 30° around \"Nova\" — camera at (2.11, -0.01, 6.56) looking at (2.2, -1.35, 2.2). verification: graph only (graph, renderer, camera, framing, screenshot not measurable here). No scene object changed.Send",
+  "cropReturn": {
+    "path": "docs/acceptance/spatial-phase-2-6/screenshots/390x844-06-world-after-reopen-crop.png",
+    "count": 46120,
+    "bbox": {
+      "x": 0,
+      "y": 178,
+      "w": 327,
+      "h": 530
+    },
+    "averageColour": [
+      169,
+      146,
+      208
+    ],
+    "viewportShare": 0.1401
+  }
+}

@@ -1089,3 +1089,198 @@ html {
     transition: height 0.1s ease-out;
   }
 }
+
+/* ==========================================================
+ * COSMOS ↔ CHAT COEXISTENCE
+ * ========================================================== */
+
+/* Atmosphere readout — bottom-left, clear of the dock rail (≥720px)
+   and of the top chrome where it used to sit under the Genesis chip. */
+.lelu-phase-hud {
+  left: 12px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+}
+@media (min-width: 720px) {
+  .lelu-phase-hud {
+    left: 96px;
+  }
+}
+
+/* While the composer has focus, its own decorative cloud/star loops
+   hold still — nothing should repaint around the caret while typing. */
+[data-lelu-composer]:focus-within .lelu-tab-cloud::before,
+[data-lelu-composer]:focus-within .lelu-tab-cloud::after {
+  animation-play-state: paused;
+}
+
+/* Chat transcript markdown (GenesisChatTranscript). LÉLU often writes
+   plain text with single line breaks — keep them. */
+.lelu-markdown > :first-child { margin-top: 0; }
+.lelu-markdown > :last-child { margin-bottom: 0; }
+.lelu-markdown p { margin: 0 0 0.6em; white-space: pre-wrap; }
+.lelu-markdown ul, .lelu-markdown ol { margin: 0 0 0.6em; padding-left: 1.3em; }
+.lelu-markdown li { margin: 0.15em 0; }
+.lelu-markdown h1, .lelu-markdown h2, .lelu-markdown h3 { font-size: 1.05em; margin: 0.8em 0 0.4em; }
+.lelu-markdown a { color: #7dd3fc; text-decoration: underline; }
+.lelu-markdown code { font-family: ui-monospace, monospace; font-size: 0.88em; padding: 0.1em 0.35em; border-radius: 6px; background: rgba(148, 163, 184, 0.14); }
+.lelu-markdown pre { overflow-x: auto; padding: 10px 12px; border-radius: 10px; background: rgba(2, 6, 23, 0.6); border: 1px solid rgba(148, 163, 184, 0.16); text-shadow: none; }
+.lelu-markdown pre code { padding: 0; background: none; }
+
+/* ==========================================================
+ * LÉLU INTERFACE ORCHESTRATION — token-driven design layer
+ *
+ * Every rule here is scoped to html[data-lelu-theme], which the
+ * InterfaceRuntime sets ONLY when an approved (or previewed) theme
+ * differs from the original Genesis look. With the default theme
+ * none of this matches and the Cosmos renders exactly as before.
+ * Values come from CSS variables compiled from LÉLU's design
+ * tokens (src/core/interface/DesignTokens.ts).
+ * ========================================================== */
+
+html[data-lelu-theme] body {
+  font-family: var(--lelu-font-body);
+  font-weight: var(--lelu-font-weight-body);
+}
+
+html[data-lelu-theme] :is(button, input, textarea, select) {
+  font-family: inherit;
+}
+
+html[data-lelu-theme] [data-lelu-surface] {
+  letter-spacing: var(--lelu-letter-spacing);
+}
+
+html[data-lelu-theme] [data-lelu-surface] :is(code, pre, kbd, samp) {
+  font-family: var(--lelu-font-mono);
+}
+
+html[data-lelu-theme] :is([data-lelu-text="title"], [data-lelu-surface] :is(h1, h2, h3, h4)) {
+  font-family: var(--lelu-font-heading);
+  font-weight: var(--lelu-font-weight-heading);
+  letter-spacing: var(--lelu-heading-letter-spacing);
+  line-height: var(--lelu-heading-line-height);
+  text-transform: var(--lelu-heading-case);
+}
+
+html[data-lelu-theme] [data-lelu-surface] h1 { font-size: var(--lelu-font-size-h1); }
+html[data-lelu-theme] [data-lelu-surface] h2 { font-size: var(--lelu-font-size-h2); }
+html[data-lelu-theme] [data-lelu-surface] h3 { font-size: var(--lelu-font-size-h3); }
+html[data-lelu-theme] [data-lelu-surface] h4 { font-size: var(--lelu-font-size-h4); }
+
+/* Text animation profiles — applied as dialogue lines mount. */
+@keyframes lelu-text-rise {
+  from { opacity: 0; translate: 0 10px; filter: blur(3px); }
+  to { opacity: 1; translate: 0 0; filter: blur(0); }
+}
+@keyframes lelu-text-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes lelu-text-reveal {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes lelu-text-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+html[data-lelu-text-animation="rise"] [data-lelu-text="dialogue"] {
+  animation: lelu-text-rise calc(var(--lelu-motion-duration) * 2) var(--lelu-motion-easing) both;
+}
+html[data-lelu-text-animation="fade"] [data-lelu-text="dialogue"] {
+  animation: lelu-text-fade calc(var(--lelu-motion-duration) * 2) var(--lelu-motion-easing) both;
+}
+html[data-lelu-text-animation="typewriter"] [data-lelu-text="dialogue"] {
+  animation: lelu-text-reveal calc(var(--lelu-motion-duration) * 4) steps(28, end) both;
+}
+html[data-lelu-text-animation="shimmer"] [data-lelu-text="title"] {
+  background: linear-gradient(90deg, var(--lelu-color-text) 40%, var(--lelu-color-accent) 50%, var(--lelu-color-text) 60%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  animation: lelu-text-shimmer 6s linear infinite;
+}
+
+/* Idle float — windows drift gently in fluid/lively motion profiles.
+   Uses the independent `translate` property so it composes with a
+   window's tilt (`rotate`) and never fights drag geometry. */
+@keyframes lelu-window-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 calc(var(--lelu-float-amplitude) * -1); }
+}
+html[data-lelu-motion="fluid"] [data-lelu-surface="window"]:not([data-lelu-interacting]),
+html[data-lelu-motion="lively"] [data-lelu-surface="window"]:not([data-lelu-interacting]) {
+  animation: lelu-window-float 9s ease-in-out infinite;
+}
+html[data-lelu-motion="fluid"] [data-lelu-surface="window"]:nth-of-type(2n) {
+  animation-duration: 11s;
+  animation-delay: -3s;
+}
+
+/* Preview frame — while a proposal is previewed the user can always
+   tell this is not applied yet. */
+html[data-lelu-previewing]::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 8999;
+  box-shadow: inset 0 0 0 2px rgba(250, 204, 21, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-lelu-theme] [data-lelu-surface="window"],
+  html[data-lelu-theme] [data-lelu-text] {
+    animation: none !important;
+  }
+}
+
+/* Phase 2 — a conversation owns the phone screen: the build stamp must not
+   sit on the composer's edge (it is diagnostics, not part of the chat). */
+body:has([data-lelu-fullscreen]) [data-lelu-build] { display: none; }
+
+/*
+ * ---------------- immersive input routing ----------------
+ *
+ * The spatial interface floats over the live Genesis canvas. Panels, pills and
+ * layout containers are surfaces — painting, not targets — so they must not
+ * swallow a press meant for the world. Only genuine controls take the pointer
+ * back, and they do it for themselves, not for the space around them.
+ *
+ * Containers set `pointer-events: none` inline; this rule restores the pointer
+ * on the real controls inside them so every button, field and navigation item
+ * still works exactly as before.
+ */
+[data-spatial-nav],
+[data-spatial-groups],
+[data-portal-panel] {
+  pointer-events: none;
+}
+[data-spatial-nav] button,
+[data-spatial-nav] a,
+[data-spatial-nav] input,
+[data-spatial-nav] select,
+[data-spatial-groups] button,
+[data-spatial-groups] a,
+[data-spatial-groups] input,
+[data-spatial-groups] select,
+[data-portal-panel] button,
+[data-portal-panel] a,
+[data-portal-panel] input,
+[data-portal-panel] select,
+[data-portal-panel] textarea,
+[data-portal-panel] label {
+  pointer-events: auto;
+}
+
+/*
+ * The portal chips are the accessible twin of the portal mouth: keyboard Enter
+ * travels through the same `select()` as a click. They are positioned over the
+ * mouth, so they must not take the pointer — the canvas raycast is the owner of
+ * a pointer press, and it resolves the same portal id from the same surface.
+ * Keyboard focus and activation are unaffected by pointer-events.
+ */
+[data-portal-select] {
+  pointer-events: none !important;
+}

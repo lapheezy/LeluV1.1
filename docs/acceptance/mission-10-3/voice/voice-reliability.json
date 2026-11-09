@@ -1,0 +1,106 @@
+{
+ "ranAt": "2026-11-07T19:21:16.823Z",
+ "base": "http://127.0.0.1:5174/",
+ "results": {
+  "first-sentence": {
+   "line": "What is the capital of Peru? One sentence.",
+   "heard": "What is the capital of Peru? One sentence",
+   "sttLatencyMs": 5255,
+   "replyLatencyMs": 79584,
+   "response": "Here's what I found:\n\n1. List of TED Speakers — List of TED Speakers (source: Wikimedia Commons)\n   https://commons.wikimedia.org/wiki/List_of_TED_Speakers",
+   "failure": null,
+   "settled": true,
+   "herAudio": [],
+   "ttsStatuses": [],
+   "pass": false,
+   "history": [
+    {
+     "role": "user",
+     "text": "What is the capital of Peru? One sentence"
+    },
+    {
+     "role": "assistant",
+     "text": "Here's what I found:\n\n1. List of TED Speakers — List of TED Speakers (source: Wikimedia Commons)\n   https://commons.wikimedia.org/wiki/List_of_TED_Speakers"
+    }
+   ],
+   "events": [
+    {
+     "t": 1580,
+     "kind": "req",
+     "url": "/api/model/status"
+    },
+    {
+     "t": 11878,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 38363,
+     "kind": "req",
+     "url": "/api/voice/stt"
+    },
+    {
+     "t": 40205,
+     "kind": "res",
+     "url": "/api/voice/stt",
+     "status": 200
+    },
+    {
+     "t": 43569,
+     "kind": "utterance",
+     "text": "What is the capital of Peru? One sentence",
+     "at": 1794079188016
+    },
+    {
+     "t": 43570,
+     "kind": "turn",
+     "user": "What is the capital of Peru? One sentence",
+     "response": null,
+     "failure": null
+    },
+    {
+     "t": 72863,
+     "kind": "req",
+     "url": "/api/model/openrouter/chat/completions"
+    },
+    {
+     "t": 106312,
+     "kind": "req",
+     "url": "/api/model/groq/chat/completions"
+    },
+    {
+     "t": 112074,
+     "kind": "req",
+     "url": "/api/model/fireworks/chat/completions"
+    },
+    {
+     "t": 117896,
+     "kind": "turn",
+     "user": "What is the capital of Peru? One sentence",
+     "response": "Here's what I found:\n\n1. List of TED Speakers — List of TED Speakers (source: Wikimedia Commons)\n   https://commons.wikimedia.org/wiki/List_of_TED_Speakers",
+     "failure": null
+    },
+    {
+     "t": 117903,
+     "kind": "req",
+     "url": "/api/voice/tts"
+    },
+    {
+     "t": 120727,
+     "kind": "res",
+     "url": "/api/voice/tts",
+     "status": 502
+    },
+    {
+     "t": 120727,
+     "kind": "failure",
+     "failure": {
+      "kind": "playback-failure",
+      "message": "Her voice could not be played; the rest of the reply uses the browser voice. The answer itself is in the conversation.",
+      "at": 1794079265176
+     }
+    }
+   ]
+  }
+ }
+}

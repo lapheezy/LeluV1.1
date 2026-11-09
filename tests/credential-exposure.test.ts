@@ -27,6 +27,12 @@ import { join } from "node:path";
 import { bridgeScriptBody, BRIDGED_KEYS } from "../plugins/runtimeKeyBridge";
 import { createAiProxyApi } from "../plugins/aiProxyApi";
 
+// The relay now requires a signed-in user (plugins/requestGuard.ts, tested in
+// tests/security-containment.test.ts). These tests are about WHERE each key
+// goes, so they run as one admitted user.
+const admitted = { check: async () => ({ ok: true as const, userId: "test-user", email: null, role: "user" }) };
+
+
 const code = (path: string) => readFileSync(path, "utf8");
 
 /* ------------------------------ workflows ----------------------------- */
@@ -86,7 +92,8 @@ test("the browser env allowlist holds no relayed or brokered key", () => {
   }
   const avatar = code("src/core/avatar/Avatar3DReconstructor.ts");
   assert.ok(!/meshyApiKey|Authorization/.test(avatar), "the avatar reconstructor holds no Meshy key");
-  assert.match(avatar, /knowledgeFetch\("meshy"/, "Meshy is reached through the relay");
+  assert.ok(!/api\.meshy\.ai/.test(avatar), "the browser calls Meshy directly instead of the server");
+  assert.ok(!/Authorization/.test(avatar), "the browser sends a Meshy credential");
   assert.ok(!/meshyApiKey/.test(code("src/core/Environment.ts")), "no browser getter for the Meshy key");
 });
 
@@ -99,7 +106,7 @@ function relay(
   request: { method: string; url: string; headers?: Record<string, string>; body?: string },
 ): Promise<Sent> {
   const routes = new Map<string, (req: unknown, res: unknown, next: () => void) => void>();
-  createAiProxyApi((name) => env[name]).attach({ use: (path, handler) => routes.set(path, handler as never) });
+  createAiProxyApi((name) => env[name], { guard: admitted }).attach({ use: (path, handler) => routes.set(path, handler as never) });
   const path = request.url.split("?")[0];
   const handler = routes.get(path)!;
   return new Promise((resolve) => {

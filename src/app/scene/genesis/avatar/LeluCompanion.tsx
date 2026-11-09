@@ -1,49 +1,65 @@
 /**
  * ==========================================================
- * LÉLU — THE COMPANION
+ * LÉLU — HER PRESENCE (one, everywhere)
  *
- * LÉLU's avatar in companion mode: the look you chose (Avatar panel →
- * AvatarStore), floating over the whole app — chat, browser, workspace,
- * Cosmos — while you work. Not a panel, not a window: a figure.
+ * LÉLU is one presence that lives in the interface, not a window.
  *
- *   - Mounted ONCE at app level (GenesisScene), so navigating between
- *     surfaces never destroys and recreates her.
- *   - Only her figure takes touches. The overlay around her is
- *     pointer-events: none, so nothing beneath stops working.
- *   - Drag her anywhere: she stays there (pinned). Unpinned, she moves
- *     herself away from what you are using — the field you type in, the
- *     composer, keep-clear controls — and only when she is in the way.
- *   - She moves with what she is REALLY doing: the live activity
- *     (listening, thinking, browsing, working…) from the same reading the
- *     3D presence uses, and her speech as it actually plays — each word
- *     boundary from the speech engine is a beat of her body.
- *   - She says what she is doing in a small caption, taken from real
- *     events: the tool that started, the page she opened, the sentence
- *     she is speaking. Nothing invented.
+ *   ONE SURFACE  — she is mounted once (GenesisScene) with ONE
+ *                  LeluCharacter: one canvas, one model upload, one
+ *                  animation lifecycle for the whole session. Moving
+ *                  between Home, Chat, Studio, graphs, drawings and
+ *                  worlds changes where she stands and how she is
+ *                  framed — never who she is. Before, each presentation
+ *                  (face behind the chat, hero on Home, a floating
+ *                  window) mounted its own canvas: every switch rebuilt
+ *                  her and re-uploaded ~96 MB of textures.
  *
- * A photo cannot move its lips: with a saved image she speaks with her
- * whole presence, not a mouth. Real lip-sync needs a rigged model.
+ *   WHERE        — on Home she takes the hero spot the home reserves
+ *                  for her. Everywhere else the existing space planner
+ *                  (spatialPresence.planPresence) chooses: beside the
+ *                  conversation when there is room, leaning on the panel
+ *                  in use, resting at an edge — never over the composer
+ *                  or a control. When nothing fits she rests small at
+ *                  the least obstructive edge rather than vanish, so she
+ *                  stays reachable when Chat or Studio fill the screen.
+ *
+ *   YOUR HAND    — drag HER (there is no title bar) to put her
+ *                  somewhere; tap her to talk. Where you put her is
+ *                  kept (CompanionStore, the existing store) until it
+ *                  would cover a control — then she steps aside on her
+ *                  own and comes back when there is room. "Return"
+ *                  gives her back her own judgement.
+ *
+ *   WORLDS       — in Genesis v2 she stands IN the world (LeluV2Presence),
+ *                  so this presence hides and stops drawing, keeping her
+ *                  canvas for when you come back.
+ *
+ *   Cognition, memory, voice and personality are untouched: what she is
+ *   doing is read from useLeluActivity, the same signal as before.
  * ==========================================================
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { planPresence, presenceModeFor, sameSpace, type AvatarAnchor, type Rect, type SpaceLayout } from "./spatialPresence";
+import { choosePlace, clampBox, nearestFree, readSpace, rectOf } from "./presencePlacement";
 import AvatarStore from "../../../../core/avatar/AvatarProfile";
-import CompanionStore, {
-  companionDimensions,
-  chooseSpot,
-  figureRect,
-  type CompanionState,
-  type Rect,
-} from "../../../../core/avatar/CompanionStore";
-import AgentEventBus from "../../../../core/agent/AgentEvents";
-import VoiceEngine from "../../../../core/voice/VoiceEngine";
-import { within } from "../../../../core/ui/Layers";
-import { useGenesis } from "../GenesisCore";
-import { ACTIVITY_ACCENT, useLeluActivity } from "./leluActivity";
-import LeluCharacterStore from "../../../../core/avatar/LeluCharacterStore";
+import CompanionStore, { type CompanionState } from "../../../../core/avatar/CompanionStore";
+import { layer, within } from "../../../../core/ui/Layers";
+import { CHAT_WINDOW_Z, useGenesis } from "../GenesisCore";
+import { useSurface } from "../surface/useSurface";
+import { ACTIVITY_ACCENT, useLeluActivity, type LeluActivity } from "./leluActivity";
 import LeluCharacter from "./LeluCharacter";
-import { useLeluCharacter } from "./useLeluCharacter";
-import { captionForEvent } from "./companionCaption";
+import { FULL_BODY_COMMANDS } from "./LeluBody";
+import AvatarCommandBus from "../../../../core/avatar/AvatarCommandBus";
+
+/** Her tools at work: she steps forward to be seen working. */
+const TOOL_ACTIVITIES = new Set<LeluActivity>(["SEARCHING", "BROWSING", "WORKING", "BUILDING", "RENDERING", "EXPLORING", "PRESENTING"]);
+/** How long she stays forward after tool work ends (no flicker between steps). */
+const TOOL_HOLD_MS = 8000;
+/** A press that moves less than this is a tap (talk to her), not a drag. */
+const DRAG_SLOP = 6;
+
+type Box = Rect;
 
 function viewportSize(): { width: number; height: number } {
   const vv = typeof window !== "undefined" ? window.visualViewport : null;
@@ -53,311 +69,284 @@ function viewportSize(): { width: number; height: number } {
   };
 }
 
-/**
- * What she must not stand on: every control you could touch (buttons,
- * links, fields), dialogs, anything marked keep-clear — and, weighted
- * far above the rest, the field you are typing in right now.
- */
-const INTERACTIVE = "button, a[href], input, textarea, select, [role='button'], [role='tab'], [contenteditable='true'], [data-lelu-keep-clear], [role='dialog']";
-
-function keepClearRects(own: HTMLElement | null): Rect[] {
-  if (typeof document === "undefined") return [];
-  const { width, height } = viewportSize();
-  const rects: Rect[] = [];
-  const add = (element: Element, weight: number) => {
-    if (own && own.contains(element)) return;
-    const box = element.getBoundingClientRect();
-    if (box.width <= 0 || box.height <= 0) return;
-    if (box.right < 0 || box.bottom < 0 || box.left > width || box.top > height) return;
-    rects.push({ left: box.left, top: box.top, width: box.width, height: box.height, weight });
-  };
-  for (const element of document.querySelectorAll(INTERACTIVE)) add(element, 1);
-  const active = document.activeElement;
-  if (active && active !== document.body) add(active, 12);
-  return rects;
+/** The live layout, read from the interface. Polled: panels open and resize without a window event. */
+function useSpaceLayout(): SpaceLayout {
+  const [space, setSpace] = useState<SpaceLayout>(() => readSpace());
+  useEffect(() => {
+    const read = () => setSpace((current) => {
+      const next = readSpace();
+      return sameSpace(current, next) ? current : next;
+    });
+    read();
+    const timer = setInterval(read, 500);
+    window.addEventListener("resize", read);
+    window.addEventListener("orientationchange", read);
+    window.visualViewport?.addEventListener("resize", read);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("resize", read);
+      window.removeEventListener("orientationchange", read);
+      window.visualViewport?.removeEventListener("resize", read);
+    };
+  }, []);
+  return space;
 }
 
-const MOTION_STYLE = `
-@keyframes lelu-companion-in { from { opacity: 0; transform: translateY(18px) scale(0.86); } to { opacity: 1; transform: none; } }
-`;
+/** The home's hero spot, when the home is showing (its rect, followed live). */
+function useHeroRect(): Rect | null {
+  const [hero, setHero] = useState<Rect | null>(null);
+  useEffect(() => {
+    const read = () => {
+      const el = document.querySelector("[data-lelu-hero-host]");
+      const r = el ? rectOf(el) : null;
+      setHero((current) => (JSON.stringify(current) === JSON.stringify(r) ? current : r));
+    };
+    read();
+    const timer = setInterval(read, 400);
+    window.addEventListener("resize", read);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("resize", read);
+    };
+  }, []);
+  return hero;
+}
 
 export default function LeluCompanion() {
   const [companion, setCompanion] = useState<CompanionState>(() => CompanionStore.getInstance().get());
   useEffect(() => CompanionStore.getInstance().subscribe(setCompanion), []);
   if (!companion.enabled) return null;
-  return <CompanionFigure companion={companion} />;
+  return <Presence companion={companion} />;
 }
 
-function CompanionFigure({ companion }: { companion: CompanionState }) {
-  const store = CompanionStore.getInstance();
-  const { openPanel } = useGenesis();
+function Presence({ companion }: { companion: CompanionState }) {
+  const { state, openPanel } = useGenesis();
+  const surface = useSurface();
   const activity = useLeluActivity();
-  const accent = ACTIVITY_ACCENT[activity];
+  const space = useSpaceLayout();
+  const hero = useHeroRect();
+  const store = CompanionStore.getInstance();
+  const viewport = space.viewport.width > 0 ? space.viewport : viewportSize();
+  const compact = viewport.width < 600;
+
+  // Tool work keeps her forward a little after it ends (no flicker).
+  const [toolsUntil, setToolsUntil] = useState(0);
+  const turnActive = Boolean(state.thinking) || state.dialogue === "processing" || state.dialogue === "responding";
+  const toolsNow = turnActive && TOOL_ACTIVITIES.has(activity);
+  useEffect(() => {
+    if (toolsNow) setToolsUntil(Number.POSITIVE_INFINITY);
+    else setToolsUntil((until) => (until === Number.POSITIVE_INFINITY ? Date.now() + TOOL_HOLD_MS : until));
+  }, [toolsNow]);
+  const [, tick] = useState(0);
+  useEffect(() => {
+    if (!Number.isFinite(toolsUntil) || toolsUntil <= Date.now()) return;
+    const timer = setTimeout(() => tick((n) => n + 1), toolsUntil - Date.now() + 20);
+    return () => clearTimeout(timer);
+  }, [toolsUntil]);
+  const toolsInUse = toolsNow || toolsUntil > Date.now();
+
+  // Asked for something that needs all of her (dance, sit, walk off).
+  const [bodyUntil, setBodyUntil] = useState(0);
+  useEffect(
+    () =>
+      AvatarCommandBus.getInstance().subscribe((command) => {
+        if (!FULL_BODY_COMMANDS.has(command.kind)) return;
+        setBodyUntil(Date.now() + (command.kind === "sit" || command.kind === "leave" ? 120_000 : 20_000));
+      }),
+    [],
+  );
+  useEffect(() => {
+    if (bodyUntil <= Date.now()) return;
+    const timer = setTimeout(() => tick((n) => n + 1), bodyUntil - Date.now() + 20);
+    return () => clearTimeout(timer);
+  }, [bodyUntil]);
+  const bodyWanted = bodyUntil > Date.now();
 
   const [name, setName] = useState(() => AvatarStore.getInstance().get().identity.name || "LÉLU");
   useEffect(() => AvatarStore.getInstance().subscribe((profile) => setName(profile.identity.name || "LÉLU")), []);
-  const character = useLeluCharacter();
 
-  const [viewport, setViewport] = useState(viewportSize);
-  const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
-  const [controlsOpen, setControlsOpen] = useState(false);
-  const [caption, setCaption] = useState<{ text: string; at: number } | null>(null);
+  const modulesOpen = Object.entries(state.modules).some(
+    ([id, module]) => id !== "chat" && (module.presentation === "inline" || module.presentation === "expanded"),
+  );
+  const chatOpen = Boolean(space.chat) || state.activePanel === "chat";
+  const workspaceInUse = modulesOpen || surface.workspaceOwnsScreen || surface.mode === "workspace" || surface.mode === "agent";
+  const inWorld = state.activeScene === "genesisv2";
+  const underSheet = compact && !surface.cosmosRendered;
+  // Her last frame, captured as she paused beside a phone sheet.
+  const [still, setStill] = useState<string | null>(null);
+  const onHome = Boolean(hero) && state.activePanel === "none" && !workspaceInUse && !bodyWanted && !inWorld;
 
-  const rootRef = useRef<HTMLDivElement | null>(null);
-  const controlsRef = useRef<HTMLDivElement | null>(null);
-  // Measured once shown, so the controls can be kept inside the screen.
-  const [, remeasure] = useState(0);
-  useEffect(() => {
-    if (controlsOpen) requestAnimationFrame(() => remeasure((n) => n + 1));
-  }, [controlsOpen]);
+  const mode = presenceModeFor({ chatOpen, workspaceOpen: workspaceInUse, turnActive, dialogue: state.dialogue });
+  const plan: AvatarAnchor = planPresence(space, {
+    mode,
+    chatOpen,
+    workspaceOpen: workspaceInUse,
+    demonstrating: workspaceInUse && (toolsInUse || activity === "PRESENTING"),
+    speaking: Boolean(state.speaking) || state.dialogue === "responding",
+    listening: Boolean(state.listening) || state.dialogue === "listening",
+    interacting: false,
+    toolActive: toolsInUse,
+  });
 
-  /* ------------------------------ viewport ------------------------------ */
-  useEffect(() => {
-    const update = () => setViewport(viewportSize());
-    window.addEventListener("resize", update);
-    window.visualViewport?.addEventListener("resize", update);
-    return () => {
-      window.removeEventListener("resize", update);
-      window.visualViewport?.removeEventListener("resize", update);
-    };
-  }, []);
+  // Where you put her, while it covers nothing you need.
+  const saved = companion.window;
+  const placedBox = saved
+    ? clampBox({ left: saved.left * viewport.width, top: saved.top * viewport.height, width: saved.width * viewport.width, height: saved.height * viewport.height }, viewport)
+    : null;
 
-  /* ------------------- she moves herself out of the way ----------------- */
-  const reconsider = useCallback(() => {
-    const current = CompanionStore.getInstance().get();
-    if (current.pinned || drag) return;
-    const spot = chooseSpot({ x: current.x, y: current.y }, companionDimensions(current.size, current.framing), viewportSize(), keepClearRects(rootRef.current));
-    if (spot.moved) CompanionStore.getInstance().placeByLelu(spot.x, spot.y);
-  }, [drag]);
+  // Live drag.
+  const [live, setLive] = useState<Box | null>(null);
+  const gesture = useRef<{ x: number; y: number; start: Box; moved: boolean } | null>(null);
 
-  useEffect(() => {
-    reconsider();
-    const onFocus = () => setTimeout(reconsider, 50);
-    document.addEventListener("focusin", onFocus);
-    document.addEventListener("focusout", onFocus);
-    // The app changes under her (panels open, the keyboard rises): a cheap
-    // look every second and a half, moving only when she is in the way.
-    const timer = setInterval(reconsider, 1500);
-    return () => {
-      document.removeEventListener("focusin", onFocus);
-      document.removeEventListener("focusout", onFocus);
-      clearInterval(timer);
-    };
-  }, [reconsider, viewport, companion.size, companion.framing, companion.pinned]);
+  const { place, target } = choosePlace({ inWorld, placed: placedBox, onHome, hero, plan, space, compact });
+  const box = live ?? target;
+  // Her canvas size before a sheet took the screen: kept under the sheet,
+  // where she is scaled rather than resized (a resize clears the canvas).
+  const sizeBeforeSheet = useRef<{ width: number; height: number } | null>(null);
+  if (!underSheet) sizeBeforeSheet.current = { width: box.width, height: box.height };
+  const drawn = underSheet && sizeBeforeSheet.current ? sizeBeforeSheet.current : { width: box.width, height: box.height };
+  const scale = Math.min(1, box.width / drawn.width, box.height / drawn.height);
+  const framing = place === "hero" || box.height < 150 ? "face" : "full";
+  const duration = space.reducedMotion ? 0 : live ? 0 : Math.max(plan.durationMs, 520);
 
-  /* ------------------- what she says (real events only) ------------------ */
-  useEffect(() => {
-    const unsubscribeEvents = AgentEventBus.getInstance().subscribe((event) => {
-      const text = captionForEvent(event);
-      if (text) setCaption({ text: text.slice(0, 120), at: Date.now() });
-    });
-    const unsubscribeSpeech = VoiceEngine.getInstance().onSpeechActivity((speech) => {
-      if (speech.kind === "start" && speech.text) setCaption({ text: speech.text.slice(0, 140), at: Date.now() });
-    });
-    return () => {
-      unsubscribeEvents();
-      unsubscribeSpeech();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!caption) return;
-    const timer = setTimeout(() => setCaption((current) => (current?.at === caption.at ? null : current)), 6000);
-    return () => clearTimeout(timer);
-  }, [caption]);
-
-  /* ------------------------- drag: you place her ------------------------- */
-  const pressRef = useRef<{ x: number; y: number; moved: boolean; at: number } | null>(null);
-  const lastTapRef = useRef(0);
-  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    pressRef.current = { x: event.clientX, y: event.clientY, moved: false, at: Date.now() };
+  const begin = (event: ReactPointerEvent<HTMLElement>) => {
+    if ((event.target as HTMLElement).closest("button")) return;
+    gesture.current = { x: event.clientX, y: event.clientY, start: box, moved: false };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
-  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    const press = pressRef.current;
-    if (!press) return;
-    if (!press.moved && Math.hypot(event.clientX - press.x, event.clientY - press.y) < 6) return;
-    press.moved = true;
-    setDrag({ x: event.clientX / viewport.width, y: event.clientY / viewport.height });
+  const move = (event: ReactPointerEvent<HTMLElement>) => {
+    const g = gesture.current;
+    if (!g) return;
+    const dx = event.clientX - g.x;
+    const dy = event.clientY - g.y;
+    if (!g.moved && Math.hypot(dx, dy) < DRAG_SLOP) return;
+    g.moved = true;
+    setLive(clampBox({ ...g.start, left: g.start.left + dx, top: g.start.top + dy }, viewport));
   };
-  const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
-    const press = pressRef.current;
-    pressRef.current = null;
-    if (press?.moved) {
-      store.placeByUser(event.clientX / viewport.width, event.clientY / viewport.height);
-      setDrag(null);
+  const end = (event: ReactPointerEvent<HTMLElement>) => {
+    const g = gesture.current;
+    gesture.current = null;
+    if (!g) return;
+    if (!g.moved) {
+      // A tap: talk to her.
+      if (event.type === "pointerup") openPanel("chat");
       return;
     }
-    // The input event's own time, not when the handler happens to run: on
-    // a busy main thread two quick taps can be handled far apart.
-    const now = event.timeStamp;
-    if (now - lastTapRef.current < 350) {
-      openPanel("chat"); // double tap: talk to her
-      setControlsOpen(false);
-    } else {
-      setControlsOpen((open) => !open);
-    }
-    lastTapRef.current = now;
+    setLive((current) => {
+      // Dropped on a control: the nearest free spot instead of the control.
+      const spot = current ? nearestFree(current, readSpace()) : null;
+      if (spot) {
+        store.setWindow({ left: spot.left / viewport.width, top: spot.top / viewport.height, width: spot.width / viewport.width, height: spot.height / viewport.height });
+      }
+      return null;
+    });
+  };
+  const onKey = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.target !== event.currentTarget) return;
+    if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openPanel("chat"); }
+    if (event.key === "Escape" || event.key === "Home") { event.preventDefault(); store.dockWindow(); }
   };
 
-  const position = drag ?? { x: companion.x, y: companion.y };
-  const dimensions = companionDimensions(companion.size, companion.framing);
-  const rect = figureRect(position.x, position.y, dimensions, viewport);
-  const { width, height } = dimensions;
-  const captionLeftOfHer = rect.left > viewport.width / 2;
-  // The caption sits beside her and the controls under her — both kept
-  // inside the screen (measured on phones: centred controls ran off the
-  // right edge when she stood near it).
-  const captionRoom = Math.max(120, captionLeftOfHer ? rect.left - 16 : viewport.width - (rect.left + width) - 16);
-  const controlsWidth = controlsRef.current?.offsetWidth ?? 180;
-  const controlsLeft =
-    Math.min(Math.max(8, rect.left + width / 2 - controlsWidth / 2), Math.max(8, viewport.width - controlsWidth - 8)) - rect.left;
-  const nextSize = useMemo(() => (companion.size === "small" ? "medium" : companion.size === "medium" ? "large" : "small"), [companion.size]);
+  const accent = ACTIVITY_ACCENT[activity];
+  const ease = "cubic-bezier(.2,.8,.2,1)";
+  const style: CSSProperties = {
+    position: "fixed",
+    left: 0,
+    top: 0,
+    width: drawn.width,
+    height: drawn.height,
+    transformOrigin: "top left",
+    transform: `translate3d(${Math.round(box.left)}px, ${Math.round(box.top)}px, 0)${scale < 1 ? ` scale(${scale.toFixed(4)})` : ""}`,
+    transition: duration ? `transform ${duration}ms ${ease}, width ${duration}ms ${ease}, height ${duration}ms ${ease}, opacity 300ms` : "none",
+    // Above workspace windows (so she stays seen), below menus, the
+    // composer, notifications and dialogs. Over a phone's full-screen
+    // sheet she rests just above it, at the edge spot that avoids its
+    // controls — or she would be behind it, unreachable.
+    zIndex: live ? layer("panelActive") : underSheet ? CHAT_WINDOW_Z + 10 : within("panel", 45),
+    visibility: inWorld ? "hidden" : "visible",
+    opacity: inWorld ? 0 : place === "planned" ? plan.opacity : 1,
+    pointerEvents: "none",
+    userSelect: "none",
+    // No frame, no title bar: only her, with a soft light of what she is doing.
+    filter: `drop-shadow(0 10px 18px rgba(0,0,0,0.45)) drop-shadow(0 0 10px ${accent}33)`,
+  };
 
   return (
     <div
-      ref={rootRef}
       data-testid="lelu-companion"
+      data-presence={place}
       data-activity={activity}
-      data-pinned={companion.pinned ? "true" : "false"}
-      style={{
-        position: "fixed",
-        inset: 0,
-        // Above toasts, below the command palette and modals.
-        zIndex: within("notification", 50),
-        pointerEvents: "none", // the screen beneath keeps working
-      }}
+      data-framing={framing}
+      data-spatial-state={place === "planned" ? plan.state : place}
+      data-presence-mode={plan.mode}
+      data-posture={place === "planned" ? plan.posture : "stand"}
+      data-placement={place === "planned" ? plan.reason : place}
+      data-placed={saved ? "true" : "false"}
+      data-scene={state.activeScene}
+      data-panel={state.activePanel}
+      style={style}
     >
-      <style>{MOTION_STYLE}</style>
+      {/* Only her visible body takes touches: a posture (peek, lean) moves
+          the body inside the box, and the box itself must never block what
+          lies under it. */}
       <div
+        data-testid="lelu-companion-body"
+        role="button"
+        tabIndex={inWorld ? -1 : 0}
+        aria-label={`${name} — tap to talk, drag to move her${saved ? "; Escape returns her to her own place" : ""}`}
+        onPointerDown={begin}
+        onPointerMove={move}
+        onPointerUp={end}
+        onPointerCancel={end}
+        onKeyDown={onKey}
         style={{
           position: "absolute",
-          left: rect.left,
-          top: rect.top,
-          width,
-          height,
-          transition: drag ? "none" : "left 600ms cubic-bezier(.2,.8,.2,1), top 600ms cubic-bezier(.2,.8,.2,1)",
-          animation: "lelu-companion-in 420ms cubic-bezier(.2,.8,.2,1)",
+          inset: 0,
+          pointerEvents: inWorld ? "none" : "auto",
+          touchAction: "none",
+          cursor: live ? "grabbing" : "grab",
+          outline: "none",
+          transform: place === "planned" ? plan.transform : "none",
+          transformOrigin: "bottom center",
+          transition: duration ? `transform ${duration}ms ${ease}` : "none",
         }}
       >
-        {/* Her, and nothing around her: no card, no frame, no background.
-            The shadow follows her outline, not a box. */}
-        <div
-          role="button"
-          tabIndex={0}
-          aria-label={`${name} — companion. Drag to move, tap for options, double-tap to chat.`}
-          data-testid="lelu-companion-figure"
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={() => {
-            pressRef.current = null;
-            setDrag(null);
-          }}
-          onDoubleClick={() => {
-            // The browser's own double-click detection (mouse); touch uses
-            // the tap timing above.
-            openPanel("chat");
-            setControlsOpen(false);
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") openPanel("chat");
-          }}
+        {/* The one canvas: framing and size change, the surface never does. */}
+        {/* Under a phone sheet she stays visible and reachable, PAUSED on
+            her last frame: measured on iPhone 13 emulation, any drawing of
+            her canvas beside a full-screen sheet stalled the page (60 fps →
+            0 after ~15 s; 60 fps throughout with her paused or off). Her
+            canvas keeps its size and one captured frame of it is shown,
+            scaled to the edge spot; she animates again when it closes. */}
+        <LeluCharacter framing={framing} testId="lelu-companion-character" paused={inWorld || underSheet} onStill={underSheet ? setStill : undefined} />
+        {underSheet && still ? (
+          <img data-testid="lelu-companion-still" src={still} alt="" draggable={false} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", pointerEvents: "none" }} />
+        ) : null}
+      {saved ? (
+        <button
+          type="button"
+          data-testid="lelu-companion-return"
+          aria-label="Return LÉLU to her own place"
+          title="Let her choose her place again"
+          onClick={() => store.dockWindow()}
           style={{
-            pointerEvents: "auto",
-            width: "100%",
-            height: "100%",
-            cursor: drag ? "grabbing" : "grab",
-            touchAction: "none",
-            userSelect: "none",
-            filter: `drop-shadow(0 8px 12px rgba(0,0,0,0.45))${activity !== "IDLE" ? ` drop-shadow(0 0 7px ${accent}55)` : ""}`,
-            transition: "filter 300ms ease",
+            position: "absolute",
+            right: -6,
+            top: -6,
+            width: compact ? 44 : 28,
+            height: compact ? 44 : 28,
+            borderRadius: 999,
+            border: `1px solid ${accent}88`,
+            background: "rgba(20,12,36,0.82)",
+            color: "#efe7ff",
+            font: "600 13px system-ui, sans-serif",
+            cursor: "pointer",
+            padding: 0,
           }}
         >
-          <LeluCharacter framing={companion.framing} testId="lelu-companion-character" />
-        </div>
-
-        {caption && !drag ? (
-          <div
-            data-testid="lelu-companion-caption"
-            style={{
-              // Words, not a control: the caption never takes a touch, so it
-              // can never stand between the user and what is beneath it.
-              pointerEvents: "none",
-              position: "absolute",
-              top: 6,
-              ...(captionLeftOfHer ? { right: width + 8 } : { left: width + 8 }),
-              maxWidth: Math.min(260, captionRoom),
-              padding: "7px 10px",
-              borderRadius: 12,
-              background: "rgba(14,10,22,0.92)",
-              border: `1px solid ${accent}55`,
-              color: "#efe7ff",
-              font: "500 12px/1.35 system-ui, sans-serif",
-              boxShadow: "0 6px 18px rgba(0,0,0,0.35)",
-            }}
-          >
-            {caption.text}
-          </div>
-        ) : null}
-
-        {controlsOpen && !drag ? (
-          <div
-            ref={controlsRef}
-            data-testid="lelu-companion-controls"
-            style={{
-              pointerEvents: "auto",
-              position: "absolute",
-              left: controlsLeft,
-              ...(rect.top + height + 44 < viewport.height ? { top: height + 6 } : { bottom: height + 6 }),
-              display: "flex",
-              gap: 4,
-              padding: 4,
-              borderRadius: 12,
-              background: "rgba(14,10,22,0.94)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              whiteSpace: "nowrap",
-              // Six controls are wider than a phone: they wrap, inside the screen.
-              flexWrap: "wrap",
-              justifyContent: "center",
-              width: "max-content",
-              maxWidth: Math.max(160, viewport.width - 16),
-              boxSizing: "border-box", // the cap includes padding and border
-            }}
-          >
-            {[
-              { label: "Chat", act: () => openPanel("chat") },
-              { label: `Size: ${nextSize}`, act: () => store.setSize(nextSize) },
-              { label: companion.framing === "full" ? "Face" : "Full body", act: () => store.setFraming(companion.framing === "full" ? "face" : "full") },
-              {
-                label: character.form === "hologram" ? "Embodied" : "Hologram",
-                act: () => LeluCharacterStore.getInstance().setForm(character.form === "hologram" ? "embodied" : "hologram"),
-              },
-              ...(companion.pinned ? [{ label: "Let her choose", act: () => store.unpin() }] : []),
-              { label: "Hide", act: () => store.setEnabled(false) },
-            ].map((control) => (
-              <button
-                key={control.label}
-                type="button"
-                onClick={() => {
-                  control.act();
-                  setControlsOpen(false);
-                }}
-                style={{
-                  border: "none",
-                  borderRadius: 8,
-                  padding: "6px 8px",
-                  background: "rgba(255,255,255,0.08)",
-                  color: "#efe7ff",
-                  font: "600 11px system-ui, sans-serif",
-                  cursor: "pointer",
-                }}
-              >
-                {control.label}
-              </button>
-            ))}
-          </div>
-        ) : null}
+          ⤓
+        </button>
+      ) : null}
       </div>
     </div>
   );

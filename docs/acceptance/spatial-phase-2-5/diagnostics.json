@@ -1,0 +1,2581 @@
+{
+  "capturedAt": "2026-11-06T19:32:40.949Z",
+  "head": "58f845a14ba0fa81c27ee8586d9263677165af70",
+  "scenarios": [
+    {
+      "name": "desktop-continuous-camera",
+      "viewport": {
+        "w": 1440,
+        "h": 900
+      },
+      "runs": [
+        {
+          "text": "create a cube called Nova",
+          "typed": "create a cube called Nova",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "nodes": 29,
+            "objects": [],
+            "camera": {
+              "position": [
+                2.8905419733075712,
+                2.054729013346215,
+                6.554729013346213
+              ],
+              "direction": [
+                -0.3984330922507138,
+                -0.15788807957207468,
+                -0.9035056310441991
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 395,
+                "h": 330,
+                "x": 522,
+                "y": 42
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  0.3860309720253505,
+                  -1.35,
+                  3.0872285449310626
+                ],
+                "local": [
+                  2.2,
+                  -1.35,
+                  2.2
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                0.3001606666666666,
+                3.3499196666666675,
+                7.8499196666666675
+              ],
+              "direction": [
+                -0.036793961371287445,
+                -0.26966810853055,
+                -0.9622501315396967
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "x": 1229,
+                "y": 489
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "create a cube called Nova",
+              "paragraph": "create a cube called Nova",
+              "bubble": {
+                "w": 228,
+                "h": 43
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "assistant",
+              "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+              "paragraph": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+              "bubble": {
+                "w": 491,
+                "h": 64
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            }
+          ],
+          "transcriptLength": 2,
+          "scroll": {
+            "top": 0,
+            "height": 247,
+            "content": 247
+          },
+          "composers": [
+            {
+              "i": 0,
+              "rect": {
+                "x": 0,
+                "y": 0,
+                "w": 0,
+                "h": 0
+              },
+              "visible": false,
+              "disabled": false,
+              "label": "Message Lélu — type instructions for any attachments"
+            },
+            {
+              "i": 1,
+              "rect": {
+                "x": 506,
+                "y": 840,
+                "w": 817,
+                "h": 38
+              },
+              "visible": true,
+              "disabled": false,
+              "label": null
+            },
+            {
+              "i": 2,
+              "rect": {
+                "x": 103,
+                "y": 501,
+                "w": 516,
+                "h": 42
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message create a cube called Nova"
+            }
+          ],
+          "latencyMs": 7147
+        },
+        {
+          "text": "show me Nova",
+          "typed": "show me Nova",
+          "submitted": true,
+          "before": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  0.3860309720253505,
+                  -1.35,
+                  3.0872285449310626
+                ],
+                "local": [
+                  2.2,
+                  -1.35,
+                  2.2
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                1.9050009601629638,
+                2.547499519918518,
+                7.047499519918518
+              ],
+              "direction": [
+                -0.25629012656455596,
+                -0.18801320121286652,
+                -0.9481383903182141
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "x": 1229,
+                "y": 489
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  0.3860309720253505,
+                  -1.35,
+                  3.0872285449310626
+                ],
+                "local": [
+                  2.2,
+                  -1.35,
+                  2.2
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                1.744441831595251,
+                0.39090677083695713,
+                4.860755987751542
+              ],
+              "direction": [
+                -0.4796286115065909,
+                -0.6146805227420857,
+                -0.6261982513435947
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "x": 1229,
+                "y": 489
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900
+            }
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+              "paragraph": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+              "bubble": {
+                "w": 491,
+                "h": 64
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "user",
+              "text": "show me Nova",
+              "paragraph": "show me Nova",
+              "bubble": {
+                "w": 141,
+                "h": 43
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "assistant",
+              "text": "Framed \"Nova\" — camera at (1.74, 0.39, 4.86) looking at (0.39, -1.35, 3.09). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "paragraph": "Framed \"Nova\" — camera at (1.74, 0.39, 4.86) looking at (0.39, -1.35, 3.09). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "bubble": {
+                "w": 491,
+                "h": 106
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            }
+          ],
+          "transcriptLength": 4,
+          "scroll": {
+            "top": 53,
+            "height": 247,
+            "content": 300
+          },
+          "composers": [
+            {
+              "i": 0,
+              "rect": {
+                "x": 473,
+                "y": 755,
+                "w": 452,
+                "h": 40
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message Lélu — type instructions for any attachments"
+            },
+            {
+              "i": 1,
+              "rect": {
+                "x": 506,
+                "y": 840,
+                "w": 817,
+                "h": 38
+              },
+              "visible": true,
+              "disabled": false,
+              "label": null
+            },
+            {
+              "i": 2,
+              "rect": {
+                "x": 103,
+                "y": 501,
+                "w": 516,
+                "h": 42
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message create a cube called Nova"
+            }
+          ],
+          "latencyMs": 3011
+        },
+        {
+          "text": "orbit around Nova by 30 degrees",
+          "typed": "orbit around Nova by 30 degrees",
+          "submitted": true,
+          "before": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  0.3860309720253505,
+                  -1.35,
+                  3.0872285449310626
+                ],
+                "local": [
+                  2.2,
+                  -1.35,
+                  2.2
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                1.744441831595251,
+                0.39090677083695713,
+                4.860755987751542
+              ],
+              "direction": [
+                -0.4796286115065909,
+                -0.6146805227420857,
+                -0.6261982513435947
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "x": 1229,
+                "y": 489
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  0.3860309720253505,
+                  -1.35,
+                  3.0872285449310626
+                ],
+                "local": [
+                  2.2,
+                  -1.35,
+                  2.2
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                0.6756855637793002,
+                0.39090677083695713,
+                5.302353794507402
+              ],
+              "direction": [
+                -0.10227143627476756,
+                -0.6146805227420857,
+                -0.7821178992222418
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "x": 1229,
+                "y": 489
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900
+            }
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "text": "Framed \"Nova\" — camera at (1.74, 0.39, 4.86) looking at (0.39, -1.35, 3.09). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "paragraph": "Framed \"Nova\" — camera at (1.74, 0.39, 4.86) looking at (0.39, -1.35, 3.09). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "bubble": {
+                "w": 491,
+                "h": 106
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "user",
+              "text": "orbit around Nova by 30 degrees",
+              "paragraph": "orbit around Nova by 30 degrees",
+              "bubble": {
+                "w": 286,
+                "h": 43
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "assistant",
+              "text": "Orbited 30° around \"Nova\" — camera at (0.68, 0.39, 5.3) looking at (0.39, -1.35, 3.09). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "paragraph": "Orbited 30° around \"Nova\" — camera at (0.68, 0.39, 5.3) looking at (0.39, -1.35, 3.09). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "bubble": {
+                "w": 491,
+                "h": 106
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            }
+          ],
+          "transcriptLength": 6,
+          "scroll": {
+            "top": 222,
+            "height": 247,
+            "content": 469
+          },
+          "composers": [
+            {
+              "i": 0,
+              "rect": {
+                "x": 473,
+                "y": 755,
+                "w": 452,
+                "h": 40
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message Lélu — type instructions for any attachments"
+            },
+            {
+              "i": 1,
+              "rect": {
+                "x": 506,
+                "y": 840,
+                "w": 817,
+                "h": 38
+              },
+              "visible": true,
+              "disabled": false,
+              "label": null
+            },
+            {
+              "i": 2,
+              "rect": {
+                "x": 103,
+                "y": 501,
+                "w": 516,
+                "h": 42
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message create a cube called Nova"
+            }
+          ],
+          "latencyMs": 3335
+        },
+        {
+          "text": "zoom out",
+          "typed": "zoom out",
+          "submitted": true,
+          "before": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  0.3860309720253505,
+                  -1.35,
+                  3.0872285449310626
+                ],
+                "local": [
+                  2.2,
+                  -1.35,
+                  2.2
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                0.6756855637793002,
+                0.39090677083695713,
+                5.302353794507402
+              ],
+              "direction": [
+                -0.10227143627476756,
+                -0.6146805227420857,
+                -0.7821178992222418
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "x": 1229,
+                "y": 489
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  0.3860309720253505,
+                  -1.35,
+                  3.0872285449310626
+                ],
+                "local": [
+                  2.2,
+                  -1.35,
+                  2.2
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                0.7915474004808802,
+                1.0872694791717397,
+                6.188403894337938
+              ],
+              "direction": [
+                -0.10227143627476759,
+                -0.6146805227420857,
+                -0.7821178992222418
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "x": 1229,
+                "y": 489
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900
+            }
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "text": "Orbited 30° around \"Nova\" — camera at (0.68, 0.39, 5.3) looking at (0.39, -1.35, 3.09). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "paragraph": "Orbited 30° around \"Nova\" — camera at (0.68, 0.39, 5.3) looking at (0.39, -1.35, 3.09). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "bubble": {
+                "w": 491,
+                "h": 106
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "user",
+              "text": "zoom out",
+              "paragraph": "zoom out",
+              "bubble": {
+                "w": 100,
+                "h": 43
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "assistant",
+              "text": "Zoomed the camera out — camera at (0.79, 1.09, 6.19) looking at (0.39, -1.35, 3.09). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "paragraph": "Zoomed the camera out — camera at (0.79, 1.09, 6.19) looking at (0.39, -1.35, 3.09). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "bubble": {
+                "w": 491,
+                "h": 106
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            }
+          ],
+          "transcriptLength": 8,
+          "scroll": {
+            "top": 391,
+            "height": 247,
+            "content": 638
+          },
+          "composers": [
+            {
+              "i": 0,
+              "rect": {
+                "x": 473,
+                "y": 755,
+                "w": 452,
+                "h": 40
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message Lélu — type instructions for any attachments"
+            },
+            {
+              "i": 1,
+              "rect": {
+                "x": 506,
+                "y": 840,
+                "w": 817,
+                "h": 38
+              },
+              "visible": true,
+              "disabled": false,
+              "label": null
+            },
+            {
+              "i": 2,
+              "rect": {
+                "x": 103,
+                "y": 501,
+                "w": 516,
+                "h": 42
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message create a cube called Nova"
+            }
+          ],
+          "latencyMs": 3019
+        },
+        {
+          "text": "return to the original view",
+          "typed": "return to the original view",
+          "submitted": true,
+          "before": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  0.3860309720253505,
+                  -1.35,
+                  3.0872285449310626
+                ],
+                "local": [
+                  2.2,
+                  -1.35,
+                  2.2
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                0.7915474004808802,
+                1.0872694791717397,
+                6.188403894337938
+              ],
+              "direction": [
+                -0.10227143627476759,
+                -0.6146805227420857,
+                -0.7821178992222418
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "x": 1229,
+                "y": 489
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  0.3860309720253505,
+                  -1.35,
+                  3.0872285449310626
+                ],
+                "local": [
+                  2.2,
+                  -1.35,
+                  2.2
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                0,
+                4.1637991171010006e-16,
+                6.8
+              ],
+              "direction": [
+                0,
+                -6.123233995736766e-17,
+                -1
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "x": 1229,
+                "y": 489
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900
+            }
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "text": "Zoomed the camera out — camera at (0.79, 1.09, 6.19) looking at (0.39, -1.35, 3.09). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "paragraph": "Zoomed the camera out — camera at (0.79, 1.09, 6.19) looking at (0.39, -1.35, 3.09). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "bubble": {
+                "w": 491,
+                "h": 106
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "user",
+              "text": "return to the original view",
+              "paragraph": "return to the original view",
+              "bubble": {
+                "w": 230,
+                "h": 43
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "assistant",
+              "text": "Returned the camera to the opening Genesis view — camera at (0, 0, 6.8) looking at (0, 0, 0). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "paragraph": "Returned the camera to the opening Genesis view — camera at (0, 0, 6.8) looking at (0, 0, 0). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "bubble": {
+                "w": 491,
+                "h": 106
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            }
+          ],
+          "transcriptLength": 10,
+          "scroll": {
+            "top": 560,
+            "height": 247,
+            "content": 807
+          },
+          "composers": [
+            {
+              "i": 0,
+              "rect": {
+                "x": 473,
+                "y": 755,
+                "w": 452,
+                "h": 40
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message Lélu — type instructions for any attachments"
+            },
+            {
+              "i": 1,
+              "rect": {
+                "x": 506,
+                "y": 840,
+                "w": 817,
+                "h": 38
+              },
+              "visible": true,
+              "disabled": false,
+              "label": null
+            },
+            {
+              "i": 2,
+              "rect": {
+                "x": 103,
+                "y": 501,
+                "w": 516,
+                "h": 42
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message create a cube called Nova"
+            }
+          ],
+          "latencyMs": 2027
+        },
+        {
+          "text": "what is in the scene",
+          "typed": "what is in the scene",
+          "submitted": true,
+          "before": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  0.3860309720253505,
+                  -1.35,
+                  3.0872285449310626
+                ],
+                "local": [
+                  2.2,
+                  -1.35,
+                  2.2
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                0,
+                4.1637991171010006e-16,
+                6.8
+              ],
+              "direction": [
+                0,
+                -6.123233995736766e-17,
+                -1
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "x": 1229,
+                "y": 489
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 28,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": true,
+                "visible": true,
+                "world": [
+                  0.3860309720253505,
+                  -1.35,
+                  3.0872285449310626
+                ],
+                "local": [
+                  2.2,
+                  -1.35,
+                  2.2
+                ]
+              }
+            ],
+            "camera": {
+              "position": [
+                0,
+                4.1637991171010006e-16,
+                6.8
+              ],
+              "direction": [
+                0,
+                -6.123233995736766e-17,
+                -1
+              ],
+              "fov": 49
+            },
+            "canvases": [
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 1440,
+                "h": 900,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 200,
+                "h": 304,
+                "x": 1229,
+                "y": 489
+              }
+            ],
+            "viewport": {
+              "w": 1440,
+              "h": 900
+            }
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "text": "Returned the camera to the opening Genesis view — camera at (0, 0, 6.8) looking at (0, 0, 0). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "paragraph": "Returned the camera to the opening Genesis view — camera at (0, 0, 6.8) looking at (0, 0, 0). verification: camera pass, framing pass (graph, renderer, screenshot not measurable here). No scene object changed.",
+              "bubble": {
+                "w": 491,
+                "h": 106
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "user",
+              "text": "what is in the scene",
+              "paragraph": "what is in the scene",
+              "bubble": {
+                "w": 184,
+                "h": 43
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "assistant",
+              "text": "Scene revision 1: 1 object — \"Nova\" (box) at (2.2, -1.35, 2.2).",
+              "paragraph": "Scene revision 1: 1 object — \"Nova\" (box) at (2.2, -1.35, 2.2).",
+              "bubble": {
+                "w": 491,
+                "h": 64
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            }
+          ],
+          "transcriptLength": 12,
+          "scroll": {
+            "top": 605,
+            "height": 329,
+            "content": 934
+          },
+          "composers": [
+            {
+              "i": 0,
+              "rect": {
+                "x": 473,
+                "y": 755,
+                "w": 452,
+                "h": 40
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message Lélu — type instructions for any attachments"
+            },
+            {
+              "i": 1,
+              "rect": {
+                "x": 506,
+                "y": 840,
+                "w": 817,
+                "h": 38
+              },
+              "visible": true,
+              "disabled": false,
+              "label": null
+            },
+            {
+              "i": 2,
+              "rect": {
+                "x": 103,
+                "y": 501,
+                "w": 516,
+                "h": 42
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message create a cube called Nova"
+            }
+          ],
+          "latencyMs": 1990
+        }
+      ]
+    },
+    {
+      "name": "mobile-continuous-chat",
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "runs": [
+        {
+          "text": "add a sphere called Comet",
+          "typed": "add a sphere called Comet",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "nodes": 29,
+            "objects": [],
+            "camera": {
+              "position": [
+                0.1782178134727986,
+                1.5297029689121344,
+                4.970297031087868
+              ],
+              "direction": [
+                -0.0353654622100912,
+                -0.16110464014312012,
+                -0.9863034923425055
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 390,
+                "h": 844,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 390,
+                "h": 844,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 162,
+                "h": 220,
+                "x": 114,
+                "y": 14
+              }
+            ],
+            "viewport": {
+              "w": 390,
+              "h": 844
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 0,
+            "objects": [
+              {
+                "name": "Comet",
+                "rendered": false
+              }
+            ],
+            "camera": {
+              "position": [
+                6,
+                2.500000000000001,
+                4
+              ],
+              "direction": [
+                -0.8178418254902374,
+                -0.18401441073530356,
+                -0.5452278836601582
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 120,
+                "h": 174,
+                "x": 259,
+                "y": 555
+              }
+            ],
+            "viewport": {
+              "w": 390,
+              "h": 844
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "add a sphere called Comet",
+              "paragraph": "add a sphere called Comet",
+              "bubble": {
+                "w": 236,
+                "h": 43
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "assistant",
+              "text": "Created \"Comet\" (sphere) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+              "paragraph": "Created \"Comet\" (sphere) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+              "bubble": {
+                "w": 270,
+                "h": 85
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            }
+          ],
+          "transcriptLength": 2,
+          "scroll": {
+            "top": 0,
+            "height": 282,
+            "content": 282
+          },
+          "composers": [
+            {
+              "i": 0,
+              "rect": {
+                "x": 0,
+                "y": 0,
+                "w": 0,
+                "h": 0
+              },
+              "visible": false,
+              "disabled": false,
+              "label": "Message Lélu — type instructions for any attachments"
+            },
+            {
+              "i": 1,
+              "rect": {
+                "x": 171,
+                "y": 695,
+                "w": 117,
+                "h": 38
+              },
+              "visible": true,
+              "disabled": false,
+              "label": null
+            },
+            {
+              "i": 2,
+              "rect": {
+                "x": 23,
+                "y": 693,
+                "w": 270,
+                "h": 42
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message add a sphere called Comet"
+            }
+          ],
+          "latencyMs": 5146
+        },
+        {
+          "text": "what is in the scene",
+          "typed": "what is in the scene",
+          "submitted": true,
+          "before": {
+            "revision": 1,
+            "nodes": 0,
+            "objects": [
+              {
+                "name": "Comet",
+                "rendered": false
+              }
+            ],
+            "camera": {
+              "position": [
+                6,
+                2.500000000000001,
+                4
+              ],
+              "direction": [
+                -0.8178418254902374,
+                -0.18401441073530356,
+                -0.5452278836601582
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 120,
+                "h": 174,
+                "x": 259,
+                "y": 555
+              }
+            ],
+            "viewport": {
+              "w": 390,
+              "h": 844
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 0,
+            "objects": [
+              {
+                "name": "Comet",
+                "rendered": false
+              }
+            ],
+            "camera": {
+              "position": [
+                6,
+                2.500000000000001,
+                4
+              ],
+              "direction": [
+                -0.8178418254902374,
+                -0.18401441073530356,
+                -0.5452278836601582
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 120,
+                "h": 174,
+                "x": 259,
+                "y": 555
+              }
+            ],
+            "viewport": {
+              "w": 390,
+              "h": 844
+            }
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "text": "Created \"Comet\" (sphere) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+              "paragraph": "Created \"Comet\" (sphere) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+              "bubble": {
+                "w": 270,
+                "h": 85
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "user",
+              "text": "what is in the scene",
+              "paragraph": "what is in the scene",
+              "bubble": {
+                "w": 184,
+                "h": 43
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "assistant",
+              "text": "Scene revision 1: 1 object — \"Comet\" (sphere) at (2.2, -1.35, 2.2).",
+              "paragraph": "Scene revision 1: 1 object — \"Comet\" (sphere) at (2.2, -1.35, 2.2).",
+              "bubble": {
+                "w": 270,
+                "h": 85
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            }
+          ],
+          "transcriptLength": 4,
+          "scroll": {
+            "top": 0,
+            "height": 359,
+            "content": 359
+          },
+          "composers": [
+            {
+              "i": 0,
+              "rect": {
+                "x": 0,
+                "y": 0,
+                "w": 0,
+                "h": 0
+              },
+              "visible": false,
+              "disabled": false,
+              "label": "Message Lélu — type instructions for any attachments"
+            },
+            {
+              "i": 1,
+              "rect": {
+                "x": 171,
+                "y": 695,
+                "w": 117,
+                "h": 38
+              },
+              "visible": true,
+              "disabled": false,
+              "label": null
+            },
+            {
+              "i": 2,
+              "rect": {
+                "x": 23,
+                "y": 693,
+                "w": 270,
+                "h": 42
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message add a sphere called Comet"
+            }
+          ],
+          "latencyMs": 1425
+        },
+        {
+          "text": "show me Comet",
+          "typed": "show me Comet",
+          "submitted": true,
+          "before": {
+            "revision": 1,
+            "nodes": 0,
+            "objects": [
+              {
+                "name": "Comet",
+                "rendered": false
+              }
+            ],
+            "camera": {
+              "position": [
+                6,
+                2.500000000000001,
+                4
+              ],
+              "direction": [
+                -0.8178418254902374,
+                -0.18401441073530356,
+                -0.5452278836601582
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 120,
+                "h": 174,
+                "x": 259,
+                "y": 555
+              }
+            ],
+            "viewport": {
+              "w": 390,
+              "h": 844
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 0,
+            "objects": [
+              {
+                "name": "Comet",
+                "rendered": false
+              }
+            ],
+            "camera": {
+              "position": [
+                6,
+                2.500000000000001,
+                4
+              ],
+              "direction": [
+                -0.8178418254902374,
+                -0.18401441073530356,
+                -0.5452278836601582
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 120,
+                "h": 174,
+                "x": 259,
+                "y": 555
+              }
+            ],
+            "viewport": {
+              "w": 390,
+              "h": 844
+            }
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "text": "Scene revision 1: 1 object — \"Comet\" (sphere) at (2.2, -1.35, 2.2).",
+              "paragraph": "Scene revision 1: 1 object — \"Comet\" (sphere) at (2.2, -1.35, 2.2).",
+              "bubble": {
+                "w": 270,
+                "h": 85
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "user",
+              "text": "show me Comet",
+              "paragraph": "show me Comet",
+              "bubble": {
+                "w": 152,
+                "h": 43
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "assistant",
+              "text": "Framed \"Comet\" — camera at (2.8, -0.68, 4.07) looking at (2.2, -1.35, 2.2). verification: graph only (graph, renderer, camera, framing, screenshot not measurable here). No scene object changed.",
+              "paragraph": "Framed \"Comet\" — camera at (2.8, -0.68, 4.07) looking at (2.2, -1.35, 2.2). verification: graph only (graph, renderer, camera, framing, screenshot not measurable here). No scene object changed.",
+              "bubble": {
+                "w": 270,
+                "h": 169
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            }
+          ],
+          "transcriptLength": 6,
+          "scroll": {
+            "top": 250,
+            "height": 282,
+            "content": 532
+          },
+          "composers": [
+            {
+              "i": 0,
+              "rect": {
+                "x": 0,
+                "y": 0,
+                "w": 0,
+                "h": 0
+              },
+              "visible": false,
+              "disabled": false,
+              "label": "Message Lélu — type instructions for any attachments"
+            },
+            {
+              "i": 1,
+              "rect": {
+                "x": 171,
+                "y": 695,
+                "w": 117,
+                "h": 38
+              },
+              "visible": true,
+              "disabled": false,
+              "label": null
+            },
+            {
+              "i": 2,
+              "rect": {
+                "x": 23,
+                "y": 693,
+                "w": 270,
+                "h": 42
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message add a sphere called Comet"
+            }
+          ],
+          "latencyMs": 1498
+        },
+        {
+          "text": "zoom in",
+          "typed": "zoom in",
+          "submitted": true,
+          "before": {
+            "revision": 1,
+            "nodes": 0,
+            "objects": [
+              {
+                "name": "Comet",
+                "rendered": false
+              }
+            ],
+            "camera": {
+              "position": [
+                6,
+                2.500000000000001,
+                4
+              ],
+              "direction": [
+                -0.8178418254902374,
+                -0.18401441073530356,
+                -0.5452278836601582
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 120,
+                "h": 174,
+                "x": 259,
+                "y": 555
+              }
+            ],
+            "viewport": {
+              "w": 390,
+              "h": 844
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 0,
+            "objects": [
+              {
+                "name": "Comet",
+                "rendered": false
+              }
+            ],
+            "camera": {
+              "position": [
+                6,
+                2.500000000000001,
+                4
+              ],
+              "direction": [
+                -0.8178418254902374,
+                -0.18401441073530356,
+                -0.5452278836601582
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 120,
+                "h": 174,
+                "x": 259,
+                "y": 555
+              }
+            ],
+            "viewport": {
+              "w": 390,
+              "h": 844
+            }
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "text": "Framed \"Comet\" — camera at (2.8, -0.68, 4.07) looking at (2.2, -1.35, 2.2). verification: graph only (graph, renderer, camera, framing, screenshot not measurable here). No scene object changed.",
+              "paragraph": "Framed \"Comet\" — camera at (2.8, -0.68, 4.07) looking at (2.2, -1.35, 2.2). verification: graph only (graph, renderer, camera, framing, screenshot not measurable here). No scene object changed.",
+              "bubble": {
+                "w": 270,
+                "h": 169
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "user",
+              "text": "zoom in",
+              "paragraph": "zoom in",
+              "bubble": {
+                "w": 89,
+                "h": 43
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "assistant",
+              "text": "Zoomed the camera in — camera at (2.72, -0.77, 3.82) looking at (2.2, -1.35, 2.2). verification: graph only (graph, renderer, camera, framing, screenshot not measurable here). No scene object changed.",
+              "paragraph": "Zoomed the camera in — camera at (2.72, -0.77, 3.82) looking at (2.2, -1.35, 2.2). verification: graph only (graph, renderer, camera, framing, screenshot not measurable here). No scene object changed.",
+              "bubble": {
+                "w": 270,
+                "h": 190
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            }
+          ],
+          "transcriptLength": 8,
+          "scroll": {
+            "top": 503,
+            "height": 282,
+            "content": 785
+          },
+          "composers": [
+            {
+              "i": 0,
+              "rect": {
+                "x": 0,
+                "y": 0,
+                "w": 0,
+                "h": 0
+              },
+              "visible": false,
+              "disabled": false,
+              "label": "Message Lélu — type instructions for any attachments"
+            },
+            {
+              "i": 1,
+              "rect": {
+                "x": 171,
+                "y": 695,
+                "w": 117,
+                "h": 38
+              },
+              "visible": true,
+              "disabled": false,
+              "label": null
+            },
+            {
+              "i": 2,
+              "rect": {
+                "x": 23,
+                "y": 693,
+                "w": 270,
+                "h": 42
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message add a sphere called Comet"
+            }
+          ],
+          "latencyMs": 1499
+        }
+      ],
+      "sceneAfterClose": {
+        "probe": {
+          "revision": 1,
+          "nodes": 0,
+          "objects": [
+            {
+              "name": "Comet",
+              "rendered": false
+            }
+          ],
+          "camera": {
+            "position": [
+              6,
+              2.500000000000001,
+              4
+            ],
+            "direction": [
+              -0.8178418254902374,
+              -0.18401441073530356,
+              -0.5452278836601582
+            ],
+            "fov": 56
+          },
+          "canvases": [
+            {
+              "w": 120,
+              "h": 174,
+              "x": 259,
+              "y": 555
+            }
+          ],
+          "viewport": {
+            "w": 390,
+            "h": 844
+          }
+        },
+        "transcript": [
+          {
+            "role": "user",
+            "text": "add a sphere called Comet",
+            "paragraph": "add a sphere called Comet",
+            "bubble": {
+              "w": 236,
+              "h": 43
+            },
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "14.5px",
+            "opacity": "1"
+          },
+          {
+            "role": "assistant",
+            "text": "Created \"Comet\" (sphere) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+            "paragraph": "Created \"Comet\" (sphere) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+            "bubble": {
+              "w": 270,
+              "h": 85
+            },
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "14.5px",
+            "opacity": "1"
+          },
+          {
+            "role": "user",
+            "text": "what is in the scene",
+            "paragraph": "what is in the scene",
+            "bubble": {
+              "w": 184,
+              "h": 43
+            },
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "14.5px",
+            "opacity": "1"
+          },
+          {
+            "role": "assistant",
+            "text": "Scene revision 1: 1 object — \"Comet\" (sphere) at (2.2, -1.35, 2.2).",
+            "paragraph": "Scene revision 1: 1 object — \"Comet\" (sphere) at (2.2, -1.35, 2.2).",
+            "bubble": {
+              "w": 270,
+              "h": 85
+            },
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "14.5px",
+            "opacity": "1"
+          },
+          {
+            "role": "user",
+            "text": "show me Comet",
+            "paragraph": "show me Comet",
+            "bubble": {
+              "w": 152,
+              "h": 43
+            },
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "14.5px",
+            "opacity": "1"
+          },
+          {
+            "role": "assistant",
+            "text": "Framed \"Comet\" — camera at (2.8, -0.68, 4.07) looking at (2.2, -1.35, 2.2). verification: graph only (graph, renderer, camera, framing, screenshot not measurable here). No scene object changed.",
+            "paragraph": "Framed \"Comet\" — camera at (2.8, -0.68, 4.07) looking at (2.2, -1.35, 2.2). verification: graph only (graph, renderer, camera, framing, screenshot not measurable here). No scene object changed.",
+            "bubble": {
+              "w": 270,
+              "h": 169
+            },
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "14.5px",
+            "opacity": "1"
+          },
+          {
+            "role": "user",
+            "text": "zoom in",
+            "paragraph": "zoom in",
+            "bubble": {
+              "w": 89,
+              "h": 43
+            },
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "14.5px",
+            "opacity": "1"
+          },
+          {
+            "role": "assistant",
+            "text": "Zoomed the camera in — camera at (2.72, -0.77, 3.82) looking at (2.2, -1.35, 2.2). verification: graph only (graph, renderer, camera, framing, screenshot not measurable here). No scene object changed.",
+            "paragraph": "Zoomed the camera in — camera at (2.72, -0.77, 3.82) looking at (2.2, -1.35, 2.2). verification: graph only (graph, renderer, camera, framing, screenshot not measurable here). No scene object changed.",
+            "bubble": {
+              "w": 270,
+              "h": 190
+            },
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "14.5px",
+            "opacity": "1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "mobile-narrow-focus",
+      "viewport": {
+        "w": 375,
+        "h": 812
+      },
+      "runs": [
+        {
+          "text": "add a cube called Nova",
+          "typed": "add a cube called Nova",
+          "submitted": true,
+          "before": {
+            "revision": 0,
+            "nodes": 29,
+            "objects": [],
+            "camera": {
+              "position": [
+                0.1229229067212677,
+                3.4385385466393656,
+                7.938538546639369
+              ],
+              "direction": [
+                -0.014733965542734642,
+                -0.3071695521446921,
+                -0.951540738221236
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 375,
+                "h": 812,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 375,
+                "h": 812,
+                "x": 0,
+                "y": 0
+              },
+              {
+                "w": 157,
+                "h": 220,
+                "x": 109,
+                "y": 14
+              }
+            ],
+            "viewport": {
+              "w": 375,
+              "h": 812
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 0,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": false
+              }
+            ],
+            "camera": {
+              "position": [
+                3,
+                2,
+                6.5
+              ],
+              "direction": [
+                -0.41613519747009664,
+                -0.1179049726165274,
+                -0.9016262611852095
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 120,
+                "h": 174,
+                "x": 244,
+                "y": 523
+              }
+            ],
+            "viewport": {
+              "w": 375,
+              "h": 812
+            }
+          },
+          "transcript": [
+            {
+              "role": "user",
+              "text": "add a cube called Nova",
+              "paragraph": "add a cube called Nova",
+              "bubble": {
+                "w": 209,
+                "h": 43
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "assistant",
+              "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+              "paragraph": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+              "bubble": {
+                "w": 256,
+                "h": 85
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            }
+          ],
+          "transcriptLength": 2,
+          "scroll": {
+            "top": 0,
+            "height": 263,
+            "content": 263
+          },
+          "composers": [
+            {
+              "i": 0,
+              "rect": {
+                "x": 0,
+                "y": 0,
+                "w": 0,
+                "h": 0
+              },
+              "visible": false,
+              "disabled": false,
+              "label": "Message Lélu — type instructions for any attachments"
+            },
+            {
+              "i": 1,
+              "rect": {
+                "x": 166,
+                "y": 663,
+                "w": 107,
+                "h": 38
+              },
+              "visible": true,
+              "disabled": false,
+              "label": null
+            },
+            {
+              "i": 2,
+              "rect": {
+                "x": 23,
+                "y": 661,
+                "w": 255,
+                "h": 42
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message add a cube called Nova"
+            }
+          ],
+          "latencyMs": 5484
+        },
+        {
+          "text": "show me Nova",
+          "typed": "show me Nova",
+          "submitted": true,
+          "before": {
+            "revision": 1,
+            "nodes": 0,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": false
+              }
+            ],
+            "camera": {
+              "position": [
+                3,
+                2,
+                6.5
+              ],
+              "direction": [
+                -0.41613519747009664,
+                -0.1179049726165274,
+                -0.9016262611852095
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 120,
+                "h": 174,
+                "x": 244,
+                "y": 523
+              }
+            ],
+            "viewport": {
+              "w": 375,
+              "h": 812
+            }
+          },
+          "after": {
+            "revision": 1,
+            "nodes": 0,
+            "objects": [
+              {
+                "name": "Nova",
+                "rendered": false
+              }
+            ],
+            "camera": {
+              "position": [
+                3,
+                2,
+                6.5
+              ],
+              "direction": [
+                -0.41613519747009664,
+                -0.1179049726165274,
+                -0.9016262611852095
+              ],
+              "fov": 56
+            },
+            "canvases": [
+              {
+                "w": 120,
+                "h": 174,
+                "x": 244,
+                "y": 523
+              }
+            ],
+            "viewport": {
+              "w": 375,
+              "h": 812
+            }
+          },
+          "transcript": [
+            {
+              "role": "assistant",
+              "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+              "paragraph": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+              "bubble": {
+                "w": 256,
+                "h": 85
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "user",
+              "text": "show me Nova",
+              "paragraph": "show me Nova",
+              "bubble": {
+                "w": 141,
+                "h": 43
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            },
+            {
+              "role": "assistant",
+              "text": "Framed \"Nova\" — camera at (3.07, -0.38, 4.91) looking at (2.2, -1.35, 2.2). verification: graph only (graph, renderer, camera, framing, screenshot not measurable here). No scene object changed.",
+              "paragraph": "Framed \"Nova\" — camera at (3.07, -0.38, 4.91) looking at (2.2, -1.35, 2.2). verification: graph only (graph, renderer, camera, framing, screenshot not measurable here). No scene object changed.",
+              "bubble": {
+                "w": 256,
+                "h": 169
+              },
+              "color": "rgb(255, 255, 255)",
+              "fontSize": "14.5px",
+              "opacity": "1"
+            }
+          ],
+          "transcriptLength": 4,
+          "scroll": {
+            "top": 121,
+            "height": 263,
+            "content": 384
+          },
+          "composers": [
+            {
+              "i": 0,
+              "rect": {
+                "x": 0,
+                "y": 0,
+                "w": 0,
+                "h": 0
+              },
+              "visible": false,
+              "disabled": false,
+              "label": "Message Lélu — type instructions for any attachments"
+            },
+            {
+              "i": 1,
+              "rect": {
+                "x": 166,
+                "y": 663,
+                "w": 107,
+                "h": 38
+              },
+              "visible": true,
+              "disabled": false,
+              "label": null
+            },
+            {
+              "i": 2,
+              "rect": {
+                "x": 23,
+                "y": 661,
+                "w": 255,
+                "h": 42
+              },
+              "visible": true,
+              "disabled": false,
+              "label": "Message add a cube called Nova"
+            }
+          ],
+          "latencyMs": 1455
+        }
+      ],
+      "sceneAfterClose": {
+        "probe": {
+          "revision": 1,
+          "nodes": 0,
+          "objects": [
+            {
+              "name": "Nova",
+              "rendered": false
+            }
+          ],
+          "camera": {
+            "position": [
+              3,
+              2,
+              6.5
+            ],
+            "direction": [
+              -0.41613519747009664,
+              -0.1179049726165274,
+              -0.9016262611852095
+            ],
+            "fov": 56
+          },
+          "canvases": [
+            {
+              "w": 120,
+              "h": 174,
+              "x": 244,
+              "y": 523
+            }
+          ],
+          "viewport": {
+            "w": 375,
+            "h": 812
+          }
+        },
+        "transcript": [
+          {
+            "role": "user",
+            "text": "add a cube called Nova",
+            "paragraph": "add a cube called Nova",
+            "bubble": {
+              "w": 209,
+              "h": 43
+            },
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "14.5px",
+            "opacity": "1"
+          },
+          {
+            "role": "assistant",
+            "text": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+            "paragraph": "Created \"Nova\" (box) at (2.2, -1.35, 2.2). Scene revision 1 — 1 object.",
+            "bubble": {
+              "w": 256,
+              "h": 85
+            },
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "14.5px",
+            "opacity": "1"
+          },
+          {
+            "role": "user",
+            "text": "show me Nova",
+            "paragraph": "show me Nova",
+            "bubble": {
+              "w": 141,
+              "h": 43
+            },
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "14.5px",
+            "opacity": "1"
+          },
+          {
+            "role": "assistant",
+            "text": "Framed \"Nova\" — camera at (3.07, -0.38, 4.91) looking at (2.2, -1.35, 2.2). verification: graph only (graph, renderer, camera, framing, screenshot not measurable here). No scene object changed.",
+            "paragraph": "Framed \"Nova\" — camera at (3.07, -0.38, 4.91) looking at (2.2, -1.35, 2.2). verification: graph only (graph, renderer, camera, framing, screenshot not measurable here). No scene object changed.",
+            "bubble": {
+              "w": 256,
+              "h": 169
+            },
+            "color": "rgb(255, 255, 255)",
+            "fontSize": "14.5px",
+            "opacity": "1"
+          }
+        ]
+      }
+    }
+  ],
+  "browserEvents": [
+    {
+      "scope": "1440x900",
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "scope": "1440x900",
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "scope": "1440x900",
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "scope": "1440x900",
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "scope": "1440x900",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "scope": "1440x900",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "scope": "1440x900",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+    },
+    {
+      "scope": "1440x900",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+    },
+    {
+      "scope": "390x844",
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "scope": "390x844",
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "scope": "390x844",
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "scope": "390x844",
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "scope": "390x844",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "scope": "390x844",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "scope": "390x844",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "scope": "390x844",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "scope": "390x844",
+      "kind": "console",
+      "text": "Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20needs%20provider%20docs%20%2B%20research%20t"
+    },
+    {
+      "scope": "390x844",
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "scope": "390x844",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "scope": "390x844",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "scope": "390x844",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "scope": "390x844",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+    },
+    {
+      "scope": "390x844",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+    },
+    {
+      "scope": "375x812",
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "scope": "375x812",
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "scope": "375x812",
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "scope": "375x812",
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "scope": "375x812",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "scope": "375x812",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "scope": "375x812",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "scope": "375x812",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "scope": "375x812",
+      "kind": "console",
+      "text": "Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20needs%20provider%20docs%20%2B%20research%20t"
+    },
+    {
+      "scope": "375x812",
+      "kind": "console",
+      "text": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "scope": "375x812",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "scope": "375x812",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "scope": "375x812",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+    },
+    {
+      "scope": "375x812",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+    },
+    {
+      "scope": "375x812",
+      "kind": "console",
+      "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+    }
+  ]
+}

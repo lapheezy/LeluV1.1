@@ -1,0 +1,118 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "entry": {
+    "immersive": true,
+    "dataImmersive": "true",
+    "settle": {
+      "frame": 18,
+      "stableFrames": 0,
+      "deltaPosition": 0,
+      "deltaRotation": 0.0036,
+      "position": [
+        0,
+        3.5,
+        8
+      ],
+      "quaternion": [
+        -0.164,
+        0,
+        0,
+        0.9865
+      ]
+    }
+  },
+  "attempts": [
+    {
+      "destination": "files",
+      "aim": {
+        "found": {
+          "x": 402,
+          "y": 462
+        },
+        "centre": {
+          "x": 402,
+          "y": 462
+        },
+        "radius": 18,
+        "tried": 1,
+        "id": "scene:files"
+      },
+      "eventsBefore": 0,
+      "deliveredPortalId": null,
+      "deliveredDestination": null,
+      "clickPoint": {
+        "x": 402,
+        "y": 462
+      },
+      "projectedCentreAtClick": null,
+      "intersections": null,
+      "settleAtClick": null,
+      "landed": "core",
+      "deliveredMatches": false,
+      "sceneMatches": false
+    },
+    {
+      "destination": "studio",
+      "aim": {
+        "found": {
+          "x": 847,
+          "y": 392
+        },
+        "centre": {
+          "x": 847,
+          "y": 392
+        },
+        "radius": 18,
+        "tried": 1,
+        "id": "scene:studio"
+      },
+      "eventsBefore": 0,
+      "deliveredPortalId": "scene:studio",
+      "deliveredDestination": "studio",
+      "clickPoint": {
+        "x": 847,
+        "y": 392
+      },
+      "projectedCentreAtClick": {
+        "x": 847,
+        "y": 384
+      },
+      "intersections": [
+        {
+          "name": "GenesisCoreBody",
+          "portalId": null,
+          "distance": 4.222
+        },
+        {
+          "name": "spatial-portal-hit-scene:studio",
+          "portalId": "scene:studio",
+          "distance": 5.046
+        }
+      ],
+      "settleAtClick": {
+        "frame": 25,
+        "stableFrames": 0,
+        "deltaPosition": 0,
+        "deltaRotation": 0.0084,
+        "position": [
+          0,
+          1.5,
+          5
+        ],
+        "quaternion": [
+          -0.0481,
+          0,
+          0,
+          0.9988
+        ]
+      },
+      "landed": "studio",
+      "deliveredMatches": true,
+      "sceneMatches": true
+    }
+  ],
+  "errors": []
+}

@@ -17,7 +17,8 @@
  * ==========================================================
  */
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
+import LeluModelSource, { type LeluModelState } from "../../../../core/avatar/LeluModelSource";
 import LeluAnimation from "../../../../core/avatar/LeluAnimation";
 import LeluRigRenderer from "../../../../core/avatar/LeluRigRenderer";
 import { loadLook, lookUrl, viewFor, type LeluForm, type LeluFraming, type LeluLookId, type LoadedLook } from "../../../../core/avatar/LeluRig";
@@ -26,7 +27,95 @@ import { useLeluCharacter } from "./useLeluCharacter";
 
 const ATTENTIVE = new Set(["IDLE", "LISTENING", "SPEAKING", "PRESENTING", "COMPLETED"]);
 
-export default function LeluCharacter({
+// three.js loads with her body, not with the chat.
+const LeluCharacter3D = lazy(() => import("./LeluCharacter3D"));
+
+function useLeluModel(): LeluModelState {
+  const [state, setState] = useState<LeluModelState>(() => LeluModelSource.get());
+  useEffect(() => LeluModelSource.subscribe(setState), []);
+  return state;
+}
+
+function webglAvailable(): boolean {
+  if (typeof document === "undefined") return false;
+  try {
+    const canvas = document.createElement("canvas");
+    return Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl"));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * LÉLU on any surface. Her approved 3D model (the same one the Cosmos
+ * world shows, through the same LeluBody) whenever it exists; the 2D
+ * look rig only where there is no 3D model to show (no Forge server,
+ * nothing approved yet) or no WebGL.
+ */
+export default function LeluCharacter(props: {
+  framing: LeluFraming;
+  form?: LeluForm;
+  look?: LeluLookId;
+  fps?: number;
+  /** Keep her mounted but draw nothing (see LeluCharacter3D). */
+  paused?: boolean;
+  /** Receives one captured frame when she pauses (see LeluCharacter3D). */
+  onStill?: (dataUrl: string) => void;
+  style?: CSSProperties;
+  testId?: string;
+}) {
+  const model = useLeluModel();
+  const activity = useLeluActivity();
+  const [webgl] = useState(webglAvailable);
+  const testId = props.testId ?? "lelu-character";
+  if (model.status === "loading" && webgl) {
+    // Her model is on its way: show nothing rather than a different her.
+    return <div data-testid={testId} data-renderer="loading" style={{ width: "100%", height: "100%", pointerEvents: "none" }} />;
+  }
+  if (model.status === "ready" && webgl) {
+    return (
+      <Suspense fallback={<div data-testid={testId} data-renderer="loading" style={{ width: "100%", height: "100%" }} />}>
+        <LeluCharacter3D model={model.model} framing={props.framing} activity={activity} style={props.style} testId={testId} fps={props.fps ?? 30} paused={props.paused} onStill={props.onStill} />
+      </Suspense>
+    );
+  }
+  // No silent substitution. The old look rig was a different LÉLU; an
+  // honest unavailable state is better than pretending it is her body.
+  const reason = !webgl
+    ? "WebGL is unavailable on this device."
+    : model.status === "loading"
+      ? "LÉLU’s 3D body is loading."
+      : model.status === "unavailable"
+        ? model.reason || "No approved 3D model is available."
+        : "No approved 3D model is available.";
+  return (
+    <div
+      data-testid={testId}
+      data-renderer={model.status === "loading" ? "loading" : "unavailable"}
+      role="img"
+      aria-label={`LÉLU — ${reason}`}
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 12,
+        boxSizing: "border-box",
+        color: "rgba(254,205,211,0.9)",
+        textAlign: "center",
+        font: "600 10px/1.45 system-ui, sans-serif",
+        pointerEvents: "none",
+        ...props.style,
+      }}
+    >
+      {reason} She is not being replaced by a 2D stand-in.
+    </div>
+  );
+}
+
+/** Legacy authoring renderer, kept for reference but never mounted by the production path. */
+export function LeluCharacter2D({
   framing,
   form,
   look,
@@ -164,6 +253,7 @@ export default function LeluCharacter({
       <img
         data-testid={testId}
         data-look={lookId}
+        data-renderer="2d"
         data-fallback={error ? "missing" : "no-webgl"}
         src={lookUrl(lookId, "body.webp")}
         alt="LÉLU"
@@ -177,6 +267,7 @@ export default function LeluCharacter({
       ref={canvasRef}
       data-testid={testId}
       data-look={lookId}
+      data-renderer="2d"
       data-form={formId}
       data-framing={framing}
       data-ready={loaded ? "true" : "false"}

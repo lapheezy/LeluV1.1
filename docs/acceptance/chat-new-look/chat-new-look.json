@@ -1,0 +1,154 @@
+{
+ "ranAt": "2026-11-07T20:47:13.565Z",
+ "base": "http://127.0.0.1:5174/",
+ "results": [
+  {
+   "viewport": "desktop-1440x900",
+   "tappedNav": true,
+   "viaNavigator": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
+   },
+   "viaLelu": {
+    "universe": false,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
+   },
+   "typed": true,
+   "landed": true,
+   "afterSend": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
+   },
+   "attachPreview": false,
+   "imageSent": true,
+   "errors": [],
+   "pass": false
+  },
+  {
+   "viewport": "375x812",
+   "tappedNav": true,
+   "viaNavigator": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
+   },
+   "viaLelu": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
+   },
+   "typed": true,
+   "landed": true,
+   "afterSend": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": false,
+    "oldPanelInDom": false,
+    "attachButton": false,
+    "shareButton": false
+   },
+   "attachPreview": false,
+   "imageSent": false,
+   "errors": [],
+   "pass": false
+  },
+  {
+   "viewport": "390x844",
+   "tappedNav": true,
+   "viaNavigator": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
+   },
+   "viaLelu": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
+   },
+   "typed": true,
+   "landed": true,
+   "afterSend": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": false,
+    "oldPanelInDom": false,
+    "attachButton": false,
+    "shareButton": false
+   },
+   "attachPreview": false,
+   "imageSent": false,
+   "errors": [],
+   "pass": false
+  },
+  {
+   "viewport": "iPhone13",
+   "tappedNav": true,
+   "viaNavigator": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
+   },
+   "viaLelu": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": true,
+    "oldPanelInDom": false,
+    "attachButton": true,
+    "shareButton": true
+   },
+   "typed": true,
+   "landed": true,
+   "afterSend": {
+    "universe": true,
+    "oldComposer": false,
+    "oldTabStrip": false,
+    "universeComposer": false,
+    "oldPanelInDom": false,
+    "attachButton": false,
+    "shareButton": false
+   },
+   "attachPreview": false,
+   "imageSent": false,
+   "errors": [],
+   "pass": false
+  }
+ ]
+}

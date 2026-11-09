@@ -1,0 +1,70 @@
+{
+ "viewport": "375x812",
+ "at": "2026-11-08T04:47:21.988Z",
+ "touch": true,
+ "input": "real CDP touch events (touchStart → touchMove × 12 → touchEnd)",
+ "persistence": "page.reload() in the SAME tab: the renderer is destroyed and recreated by the app itself, never a second live canvas",
+ "steps": [
+  "tap studio: Studio"
+ ],
+ "checks": {
+  "openedVia": "studio:Studio",
+  "opened": {
+   "x": 16,
+   "y": 85,
+   "w": 343,
+   "h": 642
+  },
+  "canvasesBefore": 1,
+  "chrome": {
+   "x": 188,
+   "y": 107,
+   "w": 341,
+   "h": 41
+  },
+  "pointerEvents": {
+   "down": 1,
+   "move": 12,
+   "up": 1
+  },
+  "drag": {
+   "before": {
+    "x": 16,
+    "y": 85,
+    "w": 343,
+    "h": 642
+   },
+   "after": {
+    "x": 16,
+    "y": 85,
+    "w": 343,
+    "h": 642
+   },
+   "dx": 0,
+   "dy": 0,
+   "settledMs": 60127
+  },
+  "counter": "1 placed · 0 pinned",
+  "pinned": {
+   "label": "Unpin Visual Studio",
+   "pressed": "true"
+  },
+  "pinnedReposition": {
+   "before": {
+    "x": 16,
+    "y": 85,
+    "w": 343,
+    "h": 642
+   },
+   "after": null,
+   "dx": null,
+   "dy": null
+  },
+  "unpinned": null,
+  "placedRect": null,
+  "layoutBeforeReload": null
+ },
+ "errors": [
+  "RELOAD"
+ ]
+}

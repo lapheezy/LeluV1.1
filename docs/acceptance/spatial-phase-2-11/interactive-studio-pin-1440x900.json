@@ -1,0 +1,50 @@
+{
+ "viewport": "1440x900",
+ "at": "2026-11-07T22:17:39.186Z",
+ "deviceScaleFactor": 1,
+ "method": "DOM click dispatch on the control (pointer clicks time out under a load average > 6)",
+ "shots": [
+  "i31-creation-studio",
+  "i32-pinned-module"
+ ],
+ "steps": [
+  "OK-dom gate",
+  "OK-dom open-creation-studio",
+  "OK-dom create-document",
+  "OK-dom pin-module"
+ ],
+ "checks": {
+  "studioPanel": true,
+  "afterDoc": {
+   "title": [
+    "Creation Studio · 1"
+   ],
+   "manual": null,
+   "pins": 2,
+   "unpins": 0
+  },
+  "beforePin": {
+   "title": [
+    "Creation Studio · 1"
+   ],
+   "manual": null,
+   "pins": 2,
+   "unpins": 0
+  },
+  "afterPin": {
+   "title": [
+    "Creation Studio · 1"
+   ],
+   "manual": null,
+   "pins": 2,
+   "unpins": 1
+  },
+  "pinPressed": "true",
+  "pinLabel": "Unpin Creation Studio",
+  "dragHandle": {
+   "x": 387,
+   "y": 86
+  }
+ },
+ "errors": []
+}

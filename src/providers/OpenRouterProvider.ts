@@ -29,8 +29,13 @@ import type {
 } from "./AIProvider";
 import { endpointUrl } from "../core/Endpoints";
 import { resolveFirst } from "../core/resolveEnv";
+
+/** Free, image-capable on OpenRouter at the time of writing (see selectModel). */
+export const DEFAULT_VISION_MODEL = "google/gemma-4-31b-it:free";
 import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
+
+import ProviderKeyRing from "../core/model/ProviderKeyRing";
 
 export default class OpenRouterProvider implements AIProvider {
   readonly name = "OpenRouter";
@@ -68,7 +73,11 @@ export default class OpenRouterProvider implements AIProvider {
     if (lower.includes("vision") || lower.includes("llava")) {
       return requested;
     }
-    return "meta-llama/llama-3.2-11b-vision-instruct:free";
+    // Configurable, because free vision models come and go: the previous
+    // hard-coded "meta-llama/llama-3.2-11b-vision-instruct:free" was retired
+    // (OpenRouter 404, observed 2026-11-07) and every image turn routed here
+    // failed. The default is one OpenRouter listed as free + image-capable.
+    return resolveFirst("OPENROUTER_VISION_MODEL")?.trim() || DEFAULT_VISION_MODEL;
   }
 
   /**
@@ -135,6 +144,70 @@ export default class OpenRouterProvider implements AIProvider {
     return true;
   }
 
+  /**
+   * Send one payload, rotating across the configured OpenRouter accounts.
+   *
+   * Each account has its own free-model allowance, so a 401/403/429 that one
+   * account reports may be nothing to the next. The request itself does not
+   * change: model routing and preferences are preserved exactly. When every
+   * configured slot is cooling, the last response is returned and the caller
+   * reports it — the account-level cooldown stays the registry's job.
+   */
+  private async post(payload: unknown, request: AIRequest, deadline: AbortSignal): Promise<Response> {
+    const broker = isBrokered("openrouter");
+    const ring = ProviderKeyRing.for("openrouter");
+    const slots = broker ? 1 : Math.max(1, Math.min(ring.size(), 4));
+    let last: Response | null = null;
+    let lastError: unknown;
+
+    for (let attempt = 0; attempt < slots; attempt += 1) {
+      const credential = broker ? null : ring.next();
+      const key = credential?.key ?? this.apiKey;
+      if (!key && !broker) break;
+      try {
+        const response = await fetch(endpointUrl("openrouter", "chat/completions"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            // Brokered: no credential leaves the browser — the server attaches
+            // its own. Direct (server/tests): the real header.
+            ...authHeaders("openrouter", key, (value) => ({ Authorization: `Bearer ${value}` })),
+            "HTTP-Referer":
+              typeof window !== "undefined"
+                ? window.location.origin
+                : "https://freebuff.com",
+            "X-Title": "Lélu",
+          },
+          body: JSON.stringify(payload),
+          signal: request.signal ? AbortSignal.any([request.signal, deadline]) : deadline,
+        });
+        if (response.ok) {
+          if (credential) ring.markSuccess(credential.label);
+          return response;
+        }
+        const reason = await response.clone().text().catch(() => "");
+        const retryable = response.status === 401 || response.status === 403 || response.status === 429;
+        if (credential) {
+          ring.markFailure(credential.label, reason || `HTTP ${response.status}`);
+        }
+        if (retryable && ring.readyCount() > 0) {
+          last = response;
+          continue;
+        }
+        return response;
+      } catch (error) {
+        lastError = error;
+        if (credential) {
+          ring.markFailure(credential.label, error instanceof Error ? error.message : String(error));
+        }
+      }
+    }
+
+    if (last) return last;
+    throw lastError ?? new Error("OpenRouter: no usable credential.");
+  }
+
   async generate(request: AIRequest): Promise<AIResponse> {
     const started = Date.now();
 
@@ -173,37 +246,32 @@ export default class OpenRouterProvider implements AIProvider {
     };
 
     let response: Response;
+    // The provider's own cap must never be SHORTER than the budget the
+    // resolver gives this attempt: measured in the Mission 10.3 20-turn run,
+    // a 30 s cap under a 45 s rung budget cut every long answer off as
+    // "BodyStreamBuffer was aborted" — and that reached the person as
+    // "all providers unreachable". The resolver's rung signal still bounds it.
+    const timeoutMs = Math.max(this.timeout, Number(resolveFirst("LELU_PROVIDER_RUNG_BUDGET_MS")) || 0);
+    const deadline = AbortSignal.timeout(timeoutMs);
+    const timedOut = () => deadline.aborted && !request.signal?.aborted;
 
     try {
-      response = await fetch(
-        endpointUrl("openrouter", "chat/completions"),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            // Brokered: no credential leaves the browser — the server attaches
-            // its own. Direct (server/tests): the real header.
-            ...authHeaders("openrouter", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
-            "HTTP-Referer":
-              typeof window !== "undefined"
-                ? window.location.origin
-                : "https://freebuff.com",
-            "X-Title": "Lélu",
-          },
-          body: JSON.stringify(payload),
-          signal: request.signal
-            ? AbortSignal.any([request.signal, AbortSignal.timeout(this.timeout)])
-            : AbortSignal.timeout(this.timeout),
-        },
-      );
+      response = await this.post(payload, request, deadline);
     } catch (error) {
+      if (timedOut()) throw new Error(`OpenRouter timed out after ${Math.round(timeoutMs / 1000)}s.`);
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`OpenRouter network error: ${message}`);
     }
 
     if (payload.stream) {
-      const streamed = await readOpenAIStream(response, "OpenRouter", request.onDelta!);
+      let streamed: Awaited<ReturnType<typeof readOpenAIStream>>;
+      try {
+        streamed = await readOpenAIStream(response, "OpenRouter", request.onDelta!);
+      } catch (error) {
+        // Name a timeout as a timeout, not as the stream's internal abort.
+        if (timedOut()) throw new Error(`OpenRouter timed out after ${Math.round(timeoutMs / 1000)}s while answering.`);
+        throw error;
+      }
       if (!streamed.text.trim() && streamed.toolCalls.length === 0) {
         throw new Error("OpenRouter returned no usable content.");
       }

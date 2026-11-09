@@ -4,9 +4,13 @@
  */
 import { useMemo } from "react";
 import { useGenesis } from "../GenesisCore";
+import { useVisual } from "../../../../core/visual/useVisual";
 import { useWorkspace } from "../useWorkspace";
 import { chatFillsScreen } from "../chat/chatLayout";
+import { useChatExpanded } from "../chat/chatExpand";
 import { resolveSurface, type Surface } from "./Surface";
+import { useUniverseOpen } from "../chat/universe/universeOpen";
+import { useHomeStore } from "../home/useHomeLive";
 
 export function useSurface(): Surface {
   const { state } = useGenesis();
@@ -20,8 +24,17 @@ export function useSurface(): Surface {
   const openModuleCount = modules.filter((module) => module.presentation !== "closed").length;
   const visibleModuleCount = modules.filter((module) => module.presentation === "inline" || module.presentation === "expanded").length;
   const compact = chatFillsScreen(workspace);
+  // A floating phone chat does not own the screen: the Cosmos and the
+  // navigation stay, and only an expanded one takes everything.
+  const chatExpanded = useChatExpanded();
+  const universeOpen = useUniverseOpen();
+  const cosmosMode = useHomeStore().cosmosMode;
+  const universeOwnsScreen = universeOpen && cosmosMode !== "floating";
+  // The System environment is where LÉLU paints workspaces, so on a phone
+  // it outranks the expanded chat (the chat floats above it instead).
+  const systemEnvironmentActive = useVisual().state.interfaceFocus === "visual";
   return useMemo(
-    () => resolveSurface({ activePanel: state.activePanel, minimized: state.minimized, openModuleCount, visibleModuleCount, compact }),
-    [state.activePanel, state.minimized, openModuleCount, visibleModuleCount, compact],
+    () => resolveSurface({ activePanel: state.activePanel, minimized: state.minimized, openModuleCount, visibleModuleCount, compact, chatExpanded, universeOwnsScreen, systemEnvironmentActive }),
+    [state.activePanel, state.minimized, openModuleCount, visibleModuleCount, compact, chatExpanded, universeOwnsScreen, systemEnvironmentActive],
   );
 }

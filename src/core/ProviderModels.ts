@@ -86,9 +86,21 @@ export const MODEL_DEFAULTS = {
     fallback: "accounts/fireworks/models/gpt-oss-120b",
     note: "Serverless, tool-capable, 131k context; llama-v3p1-70b-instruct is no longer deployed.",
   },
+  fireworksCoding: {
+    // The model Fireworks uses for CODING turns (engineering intent).
+    // Ordinary chat keeps `fireworks` above.
+    names: ["FIREWORKS_CODING_MODEL"],
+    fallback: "accounts/fireworks/models/kimi-k3p1-pro",
+    note:
+      "Kimi K3.1 Pro: serverless, tool-capable, 1M context; verified live for streaming, tools, " +
+      "multi-turn and a real repo edit (2026-11-05/06). Kimi K2.7 Code " +
+      "(accounts/fireworks/models/kimi-k2p7-code) is Fireworks dedicated-deployment only " +
+      "(supportsServerless=false) and 404s 'not deployed' without one; once deployed, set " +
+      "FIREWORKS_CODING_MODEL to it.",
+  },
   anthropic: {
     names: ["ANTHROPIC_MODEL"],
-    fallback: "claude-sonnet-4-5",
+    fallback: "claude-opus-5-5",
     note: "Anthropic Messages API model id.",
   },
   gemini: {

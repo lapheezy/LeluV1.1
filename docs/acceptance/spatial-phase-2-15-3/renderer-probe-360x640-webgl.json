@@ -1,0 +1,232 @@
+{
+ "viewport": "360x640",
+ "mode": "webgl",
+ "at": "2026-11-08T05:43:42.005Z",
+ "timeline": [
+  {
+   "step": "loaded",
+   "t": 1794116627357
+  },
+  {
+   "step": "gate-dismissed",
+   "t": 1794116656779
+  },
+  {
+   "step": "module-open-attempted",
+   "t": 1794116661875
+  },
+  {
+   "step": "gesture-start",
+   "t": 1794116661991
+  },
+  {
+   "step": "move-1",
+   "t": 1794116662161
+  },
+  {
+   "step": "move-2",
+   "t": 1794116662256
+  },
+  {
+   "step": "move-3",
+   "t": 1794116662394
+  },
+  {
+   "step": "move-4",
+   "t": 1794116662508
+  },
+  {
+   "step": "move-5",
+   "t": 1794116662669
+  },
+  {
+   "step": "move-6",
+   "t": 1794116664834
+  },
+  {
+   "step": "released",
+   "t": 1794116668633
+  }
+ ],
+ "checks": {
+  "healthAfterOpen": {
+   "canvases": 1,
+   "canvasSizes": [
+    {
+     "w": 76,
+     "h": 104
+    }
+   ],
+   "windows": [
+    {
+     "id": "visualstudio",
+     "presentation": "expanded",
+     "host": null,
+     "x": 16,
+     "y": 50,
+     "w": 328,
+     "h": 540
+    }
+   ],
+   "chrome": [
+    {
+     "id": "visualstudio",
+     "y": 51,
+     "h": 41
+    }
+   ],
+   "content": [],
+   "visualViewport": {
+    "w": 360,
+    "h": 640
+   },
+   "inner": {
+    "w": 360,
+    "h": 640
+   }
+  },
+  "handle": {
+   "x": 180,
+   "y": 72,
+   "top": 51,
+   "h": 41
+  },
+  "healthAfterDown": {
+   "canvases": 1,
+   "canvasSizes": [
+    {
+     "w": 76,
+     "h": 104
+    }
+   ],
+   "windows": [
+    {
+     "id": "visualstudio",
+     "presentation": "expanded",
+     "host": null,
+     "x": 16,
+     "y": 50,
+     "w": 328,
+     "h": 540
+    }
+   ],
+   "chrome": [
+    {
+     "id": "visualstudio",
+     "y": 51,
+     "h": 41
+    }
+   ],
+   "content": [],
+   "visualViewport": {
+    "w": 360,
+    "h": 640
+   },
+   "inner": {
+    "w": 360,
+    "h": 640
+   }
+  },
+  "healthAfterMoves": {
+   "canvases": 1,
+   "canvasSizes": [
+    {
+     "w": 76,
+     "h": 104
+    }
+   ],
+   "windows": [
+    {
+     "id": "visualstudio",
+     "presentation": "expanded",
+     "host": null,
+     "x": 16,
+     "y": 50,
+     "w": 328,
+     "h": 540
+    }
+   ],
+   "chrome": [
+    {
+     "id": "visualstudio",
+     "y": 51,
+     "h": 41
+    }
+   ],
+   "content": [],
+   "visualViewport": {
+    "w": 360,
+    "h": 640
+   },
+   "inner": {
+    "w": 360,
+    "h": 640
+   }
+  },
+  "healthAfterRelease": {
+   "canvases": 1,
+   "canvasSizes": [
+    {
+     "w": 76,
+     "h": 104
+    }
+   ],
+   "windows": [
+    {
+     "id": "visualstudio",
+     "presentation": "expanded",
+     "host": null,
+     "x": 16,
+     "y": 50,
+     "w": 328,
+     "h": 540
+    }
+   ],
+   "chrome": [
+    {
+     "id": "visualstudio",
+     "y": 51,
+     "h": 41
+    }
+   ],
+   "content": [],
+   "visualViewport": {
+    "w": 360,
+    "h": 640
+   },
+   "inner": {
+    "w": 360,
+    "h": 640
+   }
+  },
+  "before": null,
+  "store": [
+   {
+    "moduleId": "visualstudio",
+    "x": 8,
+    "y": 16,
+    "w": 336,
+    "h": 528,
+    "manual": false,
+    "pinned": false
+   }
+  ],
+  "pass": false
+ },
+ "errors": [],
+ "console": [
+  "info: [build] LÉLU 78815d2+dirty · claude/mission-2-15-3-renderer-mobile-validation · production · built 2026-11-08 05:43Z (sha 78815d259af5a73c56945f25f78f150f4894d9cd)",
+  "warning: The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
+  "error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "error: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "warning: THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+  "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "warning: THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+  "error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+  "log: THREE.WebGLRenderer: Context Lost."
+ ],
+ "crashed": null
+}

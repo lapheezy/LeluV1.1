@@ -50,6 +50,11 @@ interface BrokeredProvider {
   keyNames: string[];
   /** Build the auth headers from the resolved credential. */
   authHeaders: (key: string) => Record<string, string>;
+  /**
+   * Request headers the browser MAY set, each with the pattern its value
+   * must match. Everything else the page sends is dropped.
+   */
+  passHeaders?: Record<string, RegExp>;
 }
 
 /**
@@ -62,8 +67,12 @@ interface BrokeredProvider {
 export const BROKERED: Record<string, BrokeredProvider> = {
   anthropic: {
     endpointId: "anthropic",
-    keyNames: ["VITE_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY", "CLAUDE_API_KEY"],
+    keyNames: ["VITE_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY", "LELU_ANTHROPIC_API_KEY", "CLAUDE_API_KEY"],
     authHeaders: (key) => ({ "x-api-key": key, "anthropic-version": "2023-06-01" }),
+    // Beta opt-ins (e.g. the server-side refusal fallback) are a property of
+    // the request, not of the credential, so the page chooses them — but
+    // only as comma-separated beta names, never as arbitrary header text.
+    passHeaders: { "anthropic-beta": /^[a-z0-9-]+(?:\s*,\s*[a-z0-9-]+)*$/ },
   },
   groq: {
     endpointId: "groq",
@@ -120,8 +129,11 @@ export function brokerPath(provider: string, path = ""): string {
   return tail ? `/api/model/${provider}/${tail}` : `/api/model/${provider}`;
 }
 
-interface ConnectLikeRes {
+export interface ConnectLikeRes {
   statusCode?: number;
+  /** Present on a real Node response; "close" fires when the client goes away. */
+  on?: (event: "close", fn: () => void) => void;
+  writableFinished?: boolean;
   setHeader: (name: string, value: string) => void;
   end: (body?: string) => void;
   /** Present on a real Node response; used to forward a stream chunk by chunk. */
@@ -131,11 +143,12 @@ interface ConnectLikeRes {
   headersSent?: boolean;
 }
 
-interface ConnectLikeReq {
+export interface ConnectLikeReq {
   method?: string;
   url?: string;
   headers?: Record<string, string | string[] | undefined>;
   on?: (event: "data" | "end" | "error", fn: (chunk?: unknown) => void) => void;
+  socket?: { remoteAddress?: string };
 }
 
 type Handler = (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void) => void;
@@ -159,7 +172,7 @@ function sendJson(res: ConnectLikeRes, payload: unknown, status = 200): void {
  * leaving the envelope readable — which fails upstream with a parse error that
  * looks like anything but an encoding bug.
  */
-function readBody(req: ConnectLikeReq): Promise<Buffer> {
+export function readBody(req: ConnectLikeReq): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     if (!req.on) return resolve(Buffer.alloc(0));
     const chunks: Buffer[] = [];
@@ -205,7 +218,7 @@ function headerValue(req: ConnectLikeReq, name: string): string {
  * same-process or CLI caller and is allowed through, matching the behaviour
  * the dedicated relay had before this became the single mechanism.
  */
-function crossOrigin(req: ConnectLikeReq): boolean {
+export function crossOrigin(req: ConnectLikeReq): boolean {
   const origin = headerValue(req, "origin");
   const referer = headerValue(req, "referer");
   const host = headerValue(req, "host");
@@ -288,6 +301,60 @@ function warnAboutPrefixedCredentials(readEnv: EnvReader): void {
   );
 }
 
+/** The headers from `provider.passHeaders` the request carries with a valid value. */
+function passedHeaders(req: ConnectLikeReq, provider: BrokeredProvider): Record<string, string> {
+  const passed: Record<string, string> = {};
+  for (const [name, pattern] of Object.entries(provider.passHeaders ?? {})) {
+    const value = headerValue(req, name).trim();
+    if (value && value.length <= 256 && pattern.test(value)) passed[name] = value;
+  }
+  return passed;
+}
+
+/**
+ * Per-client request budget for the credentialed routes.
+ *
+ * The broker spends the operator's quota on behalf of whoever reaches it.
+ * The origin check stops other WEBSITES driving it from a visitor's
+ * browser, but any non-browser client on the network can send a matching
+ * Origin header, so this bounds what one address can spend: a fixed
+ * window of LELU_BROKER_RATE_PER_MIN requests per minute (default 120;
+ * 0 disables). It is a ceiling on abuse, not an authentication scheme.
+ */
+export function createRateLimiter(perMinute: number, now: () => number = Date.now) {
+  const windows = new Map<string, { start: number; count: number }>();
+  return {
+    /** Seconds to wait, or 0 when the request may proceed. */
+    take(client: string): number {
+      if (perMinute <= 0) return 0;
+      const time = now();
+      let window = windows.get(client);
+      if (!window || time - window.start >= 60_000) {
+        // Bound memory: forget windows that have expired.
+        if (windows.size > 10_000) {
+          for (const [key, entry] of windows) {
+            if (time - entry.start >= 60_000) windows.delete(key);
+          }
+        }
+        window = { start: time, count: 0 };
+        windows.set(client, window);
+      }
+      if (window.count >= perMinute) {
+        return Math.max(1, Math.ceil((window.start + 60_000 - time) / 1000));
+      }
+      window.count += 1;
+      return 0;
+    },
+  };
+}
+
+function rateLimitFromEnv(readEnv: EnvReader): number {
+  const raw = readEnv("LELU_BROKER_RATE_PER_MIN");
+  if (raw === undefined || raw.trim() === "") return 120;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : 120;
+}
+
 /**
  * Providers whose credential the upstream has actually REJECTED.
  *
@@ -311,8 +378,41 @@ function isAuthFailure(status: number): boolean {
   return status === 401 || status === 403;
 }
 
+/**
+ * The Anthropic opt-in, enforced HERE as well as in the page.
+ *
+ * ProviderPolicy (src/core/model) turns Anthropic off by default, but only
+ * the page's AnthropicProvider consulted it: the broker still attached the
+ * server's Anthropic key to any same-origin request. A script, an old
+ * client or a future caller could therefore spend Anthropic credit with the
+ * policy "off". Premium escalation is manual: without
+ * LELU_ENABLE_ANTHROPIC=true on the SERVER, the broker refuses.
+ */
+const POLICY_TRUE = new Set(["1", "true", "yes", "on"]);
+function brokerAllows(providerId: string, readEnv: EnvReader): boolean {
+  if (providerId !== "anthropic") return true;
+  const raw = readEnv("LELU_ENABLE_ANTHROPIC");
+  return raw !== undefined && POLICY_TRUE.has(raw.trim().toLowerCase());
+}
+
 export function createModelApi(readEnv: EnvReader) {
   warnAboutPrefixedCredentials(readEnv);
+  const limiter = createRateLimiter(rateLimitFromEnv(readEnv));
+
+  /**
+   * WHAT THE SERVER HAS ACTUALLY SEEN, per provider.
+   *
+   * Configuration is not capability. A key string can exist while every
+   * request is refused, and reporting that as available sends each turn
+   * through a provider that cannot answer. This records the last real
+   * upstream outcome so /status can say what is KNOWN rather than what is
+   * merely configured. It costs no provider quota: it is filled by requests
+   * that were going to be made anyway.
+   */
+  const evidence = new Map<
+    string,
+    { state: string; httpStatus?: number; contentType?: string; at: number; note?: string }
+  >();
   const credentialFor = (provider: BrokeredProvider): string => {
     for (const name of provider.keyNames) {
       const value = readEnv(name);
@@ -322,18 +422,46 @@ export function createModelApi(readEnv: EnvReader) {
   };
 
   async function handle(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): Promise<void> {
-    const url = req.url ?? "";
+    // Connect (Vite) strips the mount path before calling a handler; the
+    // standalone server's router (server.ts) does not. Without this, every
+    // production request arrived as "/api/model/…" and was read as a call
+    // to a provider named "api".
+    const raw = req.url ?? "";
+    const url = raw.startsWith("/api/model/") || raw === "/api/model" ? raw.slice("/api/model".length) : raw;
 
     // WHICH PROVIDERS THE SERVER CAN REACH. Booleans only — a status
     // route that leaked the key would defeat the point of the broker.
     if (url === "/status" || url.startsWith("/status?")) {
       const status: Record<string, boolean> = {};
+      const states: Record<string, { state: string; at?: number; httpStatus?: number; note?: string }> = {};
       for (const [id, provider] of Object.entries(BROKERED)) {
         // Configured AND not known-rejected. A provider holding a revoked key
         // is not available, and saying otherwise sends every turn through it.
-        status[id] = credentialFor(provider).length > 0 && !unauthorized.has(id);
+        const configured = credentialFor(provider).length > 0;
+        status[id] = configured && !unauthorized.has(id) && brokerAllows(id, readEnv);
+
+        // CONFIGURED is the honest answer when nothing has been observed yet;
+        // it is NOT a capability claim. Every stronger state needs evidence.
+        const seen = evidence.get(id);
+        let state: string;
+        if (!configured) state = "UNCONFIGURED";
+        else if (!brokerAllows(id, readEnv)) state = "POLICY_DISABLED";
+        else if (unauthorized.has(id)) state = "COOLDOWN";
+        else state = seen?.state ?? "CONFIGURED";
+        states[id] = {
+          state,
+          ...(seen ? { at: seen.at, httpStatus: seen.httpStatus, ...(seen.note ? { note: seen.note } : {}) } : {}),
+        };
       }
-      sendJson(res, { ok: true, providers: status });
+      sendJson(res, {
+        ok: true,
+        // Back-compatible booleans: "should the chain try it".
+        providers: status,
+        // The distinction Mission 5.7 asked for. `CONFIGURED` means only that;
+        // `COMPLETION_VERIFIED` / `TOOL_CALLING_VERIFIED` mean a real 2xx came
+        // back, and tool-calling is only ever claimed from an actual tool call.
+        states,
+      });
       return;
     }
 
@@ -362,6 +490,15 @@ export function createModelApi(readEnv: EnvReader) {
       return;
     }
 
+    if (!brokerAllows(providerId, readEnv)) {
+      sendJson(
+        res,
+        { ok: false, error: "Anthropic is disabled by policy on this server (set LELU_ENABLE_ANTHROPIC=true to opt in)." },
+        403,
+      );
+      return;
+    }
+
     if (!safeUpstreamPath(rest ?? "")) {
       sendJson(res, { ok: false, error: "Invalid upstream path." }, 400);
       return;
@@ -383,29 +520,130 @@ export function createModelApi(readEnv: EnvReader) {
       return;
     }
 
+    const wait = limiter.take(req.socket?.remoteAddress ?? "local");
+    if (wait > 0) {
+      res.setHeader("Retry-After", String(wait));
+      sendJson(res, { ok: false, error: "Broker rate limit reached; retry shortly." }, 429);
+      return;
+    }
+
+    // A client that goes away (closed tab, aborted fetch, its own timeout)
+    // must stop the upstream too. Otherwise a long streamed generation kept
+    // running — and billing — for nobody, for up to two minutes.
+    const clientGone = new AbortController();
+    res.on?.("close", () => {
+      if (!res.writableFinished) clientGone.abort();
+    });
+
     const target = `${endpoint(provider.endpointId)}${rest ?? ""}`;
     try {
       const upstream = await fetch(target, {
         method: req.method ?? "POST",
         headers: {
           "Content-Type": forwardedContentType(req),
-          // The server's credential, always. Anything the page sent is
-          // dropped: the browser is not a source of authority here.
+          ...passedHeaders(req, provider),
+          // The server's credential, always. Anything else the page sent
+          // is dropped: the browser is not a source of authority here.
           ...provider.authHeaders(key),
         },
         body: req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req),
-        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+        signal: AbortSignal.any([AbortSignal.timeout(UPSTREAM_TIMEOUT_MS), clientGone.signal]),
       });
 
       // Learn from the real answer: a rejected credential takes the provider
       // out of the chain, a successful one puts it back.
       if (isAuthFailure(upstream.status)) {
         unauthorized.add(providerId);
+        evidence.set(providerId, {
+          state: "AUTHENTICATION_FAILED",
+          httpStatus: upstream.status,
+          at: Date.now(),
+          note: "provider rejected the credential",
+        });
+      } else if (upstream.status === 429) {
+        evidence.set(providerId, {
+          state: "CAPACITY_LIMITED",
+          httpStatus: 429,
+          at: Date.now(),
+          note: "rate limit / quota refusal",
+        });
+      } else if (upstream.status >= 500) {
+        evidence.set(providerId, {
+          state: "UNREACHABLE",
+          httpStatus: upstream.status,
+          at: Date.now(),
+        });
       } else if (upstream.ok) {
         unauthorized.delete(providerId);
+        evidence.set(providerId, {
+          state: "COMPLETION_VERIFIED",
+          httpStatus: upstream.status,
+          at: Date.now(),
+        });
       }
 
       const contentType = upstream.headers.get("content-type") ?? "application/json";
+      const isEventStream = contentType.includes("text/event-stream");
+      // Read a non-streamed body once, so the contract can be judged from what
+      // actually came back rather than from the status code alone.
+      const bodyText = isEventStream ? "" : await upstream.text();
+      const wantsCompletion = /chat\/completions|\/messages|:generateContent/i.test(rest ?? "");
+
+      // MEASURED (2026-11-08): models.github.ai answered 200 text/plain "OK"
+      // for EVERY path from this host — including with no credential at all —
+      // while the same egress refused arXiv outright. A 2xx that is not a
+      // completion is an intercepted or broken route, and passing it through
+      // as success makes the app parse "OK" as a model reply. Refuse it,
+      // truthfully, and record why.
+      // The truth test is the BODY, not the declared type: a provider may omit
+      // or mislabel content-type while still returning real JSON. "OK", a
+      // login page or an egress interceptor's greeting does not parse.
+      const isJsonBody = (() => {
+        const trimmed = bodyText.trim();
+        if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return false;
+        try {
+          JSON.parse(trimmed);
+          return true;
+        } catch {
+          return false;
+        }
+      })();
+
+      if (upstream.ok && wantsCompletion && !isEventStream && !isJsonBody) {
+        evidence.set(providerId, {
+          state: "CONTRACT_VIOLATION",
+          httpStatus: upstream.status,
+          contentType,
+          at: Date.now(),
+          note: "2xx body was not JSON, so not a completion",
+        });
+        sendJson(
+          res,
+          {
+            ok: false,
+            code: "BROKER_CONTRACT_VIOLATION",
+            provider: providerId,
+            error:
+              "Upstream answered 2xx without a JSON completion; refusing to report it as one.",
+            upstreamStatus: upstream.status,
+            upstreamContentType: contentType,
+            upstreamPreview: bodyText.replace(/\s+/g, " ").slice(0, 80),
+          },
+          502,
+        );
+        return;
+      }
+
+      // Tool-calling is claimed only from an actual tool call in a real body.
+      if (upstream.ok && bodyText.includes('"tool_calls"')) {
+        evidence.set(providerId, {
+          state: "TOOL_CALLING_VERIFIED",
+          httpStatus: upstream.status,
+          contentType,
+          at: Date.now(),
+        });
+      }
+
       res.statusCode = upstream.status;
       res.setHeader("Content-Type", contentType);
       res.setHeader("Cache-Control", "no-store");
@@ -420,16 +658,18 @@ export function createModelApi(readEnv: EnvReader) {
       // else is still returned whole, including the upstream's own errors: a
       // broker that rewrote a 401 into something friendlier would hide the
       // one fact the caller needs.
-      const isEventStream = contentType.includes("text/event-stream");
       if (isEventStream && upstream.body && typeof res.write === "function") {
         res.flushHeaders?.();
         const reader = upstream.body.getReader();
         try {
           for (;;) {
             const { done, value } = await reader.read();
-            if (done) break;
+            if (done || clientGone.signal.aborted) break;
             if (value) res.write(value);
           }
+        } catch {
+          // The client left mid-stream (or the upstream dropped); there is
+          // no one to send an error to — end what was started.
         } finally {
           reader.releaseLock();
           res.end();
@@ -437,8 +677,9 @@ export function createModelApi(readEnv: EnvReader) {
         return;
       }
 
-      res.end(await upstream.text());
+      res.end(bodyText);
     } catch (error) {
+      if (clientGone.signal.aborted) return;
       // Measured: an upstream stream that failed AFTER its headers were
       // forwarded (cut off mid-reply, timed out, the page gone) landed
       // here, sendJson's setHeader threw ERR_HTTP_HEADERS_SENT inside this

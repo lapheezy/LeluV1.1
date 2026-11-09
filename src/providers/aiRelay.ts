@@ -28,8 +28,10 @@
  * ==========================================================
  */
 
+import { sessionAuthHeader } from "../core/persistence/sessionAuth";
+
 /** Knowledge/research providers the relay can reach — see aiProxyApi.ts. */
-export type RelayKnowledgeId = "news" | "youtube" | "meshy";
+export type RelayKnowledgeId = "news" | "youtube" | "meshy" | "guardian" | "gnews" | "newsdata" | "geoapify" | "nasa" | "firms";
 
 /**
  * A knowledge-provider GET, with the credential added server-side.
@@ -49,7 +51,8 @@ export async function knowledgeFetch(
   const post = options?.method === "POST";
   return fetch(`/api/knowledge/relay?${query.toString()}`, {
     method: post ? "POST" : "GET",
-    headers: post ? { Accept: "application/json", "Content-Type": "application/json" } : { Accept: "application/json" },
+    // The relay spends the server's provider keys, so it requires a signed-in user.
+    headers: { ...sessionAuthHeader(), ...(post ? { Accept: "application/json", "Content-Type": "application/json" } : { Accept: "application/json" }) },
     ...(post ? { body: JSON.stringify(options?.body ?? {}) } : {}),
     ...(options?.signal ? { signal: options.signal } : {}),
   });
@@ -69,4 +72,33 @@ export async function knowledgeConfigured(provider: RelayKnowledgeId): Promise<b
   } catch {
     return false;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Synchronous availability for providers whose canSearch() is sync.   */
+/* ------------------------------------------------------------------ */
+
+let availability: Record<string, boolean> | null = null;
+let availabilityRequest: Promise<void> | null = null;
+
+/**
+ * Whether the server holds a key for `provider`: true / false once the
+ * server has answered, undefined before. The first call starts one
+ * request to /api/knowledge/providers (booleans only — no key ever
+ * reaches the browser); later calls read the cached answer.
+ */
+export function knowledgeAvailable(provider: RelayKnowledgeId): boolean | undefined {
+  if (availability) return availability[provider] === true;
+  if (!availabilityRequest && typeof fetch === "function") {
+    availabilityRequest = fetch("/api/knowledge/providers", { headers: { Accept: "application/json" } })
+      .then(async (response) => {
+        const data = response.ok ? ((await response.json()) as Record<string, unknown>) : {};
+        const knowledge = (data.knowledge ?? data) as Record<string, { configured?: boolean } | undefined>;
+        availability = Object.fromEntries(Object.entries(knowledge).map(([id, entry]) => [id, entry?.configured === true]));
+      })
+      .catch(() => {
+        availability = {};
+      });
+  }
+  return undefined;
 }

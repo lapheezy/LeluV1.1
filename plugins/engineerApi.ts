@@ -49,14 +49,19 @@
  *     the workspace root (path traversal is rejected).
  *   • origin guard — state-changing POSTs from a different origin
  *     are rejected (CSRF).
- *   • optional token — when LELU_ENGINEER_TOKEN is set, POSTs must
- *     carry `x-lelu-token`; without it the runtime returns 401 so
- *     the app reports "token required" honestly instead of failing
- *     silently.
+ *   • access token — REQUIRED, and enforced fail-closed through
+ *     plugins/engineerAuth.ts. With no LELU_ENGINEER_TOKEN configured
+ *     every route answers 503 (disabled): this reads source, runs
+ *     commands and spawns servers, so an unconfigured host must expose
+ *     none of it rather than all of it. A configured token is required
+ *     on EVERY route, status included.
  * ==========================================================
  */
 
-import { identityConfigured, verifyRequestIdentity } from "./engineerIdentity.ts";
+import { randomBytes } from "node:crypto";
+import { identityConfigured, reverifyPassword, verifyRequestIdentity } from "./engineerIdentity.ts";
+import { engineerAccessToken, engineerAuthVerdict, sendEngineerAuthFailure } from "./engineerAuth.ts";
+import { createServerAutonomyStore, SERVER_APPLY_LEVEL, type ServerAutonomyStore } from "./serverAutonomy.ts";
 
 export interface EngineerCommandResult {
   ok: boolean;
@@ -112,6 +117,8 @@ export interface EngineerAdapter {
   diffWorkspace: (workspaceId: string, includePatch?: boolean) => Promise<EngineerDiffEntry[]>;
   /** Copy the named changed files from the workspace back to the source. */
   applyWorkspace: (workspaceId: string, paths: string[]) => Promise<string[]>;
+  /** Restore what the last applyWorkspace overwrote. Optional: adapters without it answer 501. */
+  rollbackApply?: (workspaceId: string) => Promise<string[]>;
 
   /* ---- version control on the REAL project ---- */
 
@@ -184,6 +191,22 @@ export const ENGINEER_OPERATIONS: Record<string, string> = {
   inspect: "node --version && bun --version && pwd",
 };
 
+/**
+ * Whitelisted commands over caller-named files: a syntax-only parse of
+ * changed sources (TypeScript parser, syntax diagnostics only) and
+ * the relevant test files, instead of the whole 15-minute suite.
+ */
+export const TARGETED_OPERATIONS: Record<string, { command: string; pattern: RegExp }> = {
+  "syntax-files": {
+    command: "node scripts/syntax-check.mjs",
+    pattern: /^(src|plugins|tests)\/[A-Za-z0-9_./-]+\.(ts|tsx|js|mjs)$/,
+  },
+  "test-files": {
+    command: "npx tsx --tsconfig tsconfig.app.json --test --test-concurrency=1",
+    pattern: /^tests\/[A-Za-z0-9_.-]+\.test\.tsx?$/,
+  },
+};
+
 const DEFAULT_TIMEOUT_MS = 180_000;
 /** Operations that legitimately run longer than the default. Measured: `npm test` ≈ 6.5 min. */
 export const ENGINEER_OPERATION_TIMEOUT_MS: Record<string, number> = { test: 900_000 };
@@ -197,6 +220,7 @@ const ROUTES = [
   "/api/engineer/delete",
   "/api/engineer/workspace",
   "/api/engineer/git",
+  "/api/engineer/autonomy",
 ] as const;
 
 /**
@@ -217,7 +241,8 @@ const applyGrants = new Map<string, { nonce: string; issuedAt: number; userId: s
 const GRANT_TTL_MS = 10 * 60 * 1000;
 
 function issueGrant(workspaceId: string, userId: string): string {
-  const nonce = `grant_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  // Unguessable: a grant is an authorization token, so it comes from the CSPRNG.
+  const nonce = `grant_${randomBytes(24).toString("base64url")}`;
   applyGrants.set(workspaceId, { nonce, issuedAt: Date.now(), userId });
   return nonce;
 }
@@ -333,30 +358,46 @@ function applyCors(req: ConnectLikeReq, res: ConnectLikeRes): void {
   if (!allowed.includes("*") && !allowed.includes(origin)) return;
   res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Vary", "Origin");
-  res.setHeader("Access-Control-Allow-Headers", "content-type, x-lelu-token");
+  res.setHeader("Access-Control-Allow-Headers", "content-type, x-lelu-token, x-lelu-engineer-token");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Max-Age", "600");
-}
-
-function tokenRequired(): boolean {
-  return typeof process !== "undefined" && Boolean(process.env.LELU_ENGINEER_TOKEN);
-}
-
-/** Does this request carry the configured access token? */
-function hasValidToken(req: ConnectLikeReq): boolean {
-  if (typeof process === "undefined") return false;
-  const header = req.headers?.["x-lelu-token"];
-  const provided = Array.isArray(header) ? header[0] : header;
-  return typeof provided === "string" && provided === process.env.LELU_ENGINEER_TOKEN;
 }
 
 /* ------------------------------------------------------------------ */
 /* the API                                                             */
 /* ------------------------------------------------------------------ */
 
-export function createEngineerApi(adapter: EngineerAdapter): {
+export interface EngineerApiOptions {
+  /** Server-side autonomy store (default: .lelu-runtime/autonomy.json). */
+  autonomy?: ServerAutonomyStore;
+  /** Identity verification (default: Supabase). Injected only by tests. */
+  verifyIdentity?: typeof verifyRequestIdentity;
+  /** Password re-verification for RAISING autonomy (default: Supabase). */
+  reverifyPassword?: typeof reverifyPassword;
+}
+
+export function createEngineerApi(adapter: EngineerAdapter, options: EngineerApiOptions = {}): {
   attach: (middlewares: { use: (path: string, handler: Handler) => void }) => void;
 } {
+  const autonomy = options.autonomy ?? createServerAutonomyStore();
+  const verifyIdentity = options.verifyIdentity ?? verifyRequestIdentity;
+  const checkPassword = options.reverifyPassword ?? reverifyPassword;
+  /**
+   * The SERVER's answer to "may this verified user change the real project
+   * now?", read at execution time from the server-stored level — never from
+   * anything the page sends.
+   */
+  const autonomyAllowsApply = (userId: string): { ok: true } | { ok: false; reason: string } => {
+    const record = autonomy.get(userId);
+    return record.level >= SERVER_APPLY_LEVEL
+      ? { ok: true }
+      : {
+          ok: false,
+          reason:
+            `Your server-side autonomy level is L${record.level}; changing the real project needs ` +
+            `L${SERVER_APPLY_LEVEL}. Raise it in Settings (your password is required), then retry.`,
+        };
+  };
   function handleRoute(route: (typeof ROUTES)[number]) {
     return (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): void => {
       const method = req.method ?? "GET";
@@ -370,37 +411,39 @@ export function createEngineerApi(adapter: EngineerAdapter): {
       }
 
       /* ---- GET /api/engineer/status — runtime capability report ----
-         Deliberately reachable without a token: the client has to be
-         able to discover whether a runtime exists at all (and whether
-         a token is even required) before it can present one.
 
-         But an unauthenticated probe gets only the capability facts.
-         Absolute filesystem paths and engine/version details are
-         disclosed ONLY to a caller that already holds the token, so
-         enabling LELU_ENGINEER_TOKEN does not leave server internals
-         readable by anyone who can reach the port. */
+         Token-gated like everything else. This endpoint used to stay
+         open on the theory that a client must learn whether a token is
+         needed before it can present one — but it also disclosed the
+         absolute workspace path, the engine and version, and the
+         operation list, which is a map of the host handed to anyone who
+         could reach the port.
+
+         The refusal body still answers the one question a client
+         legitimately needs (`tokenRequired`), and nothing more: no
+         paths, no operations, no versions. */
       if (route === "/api/engineer/status") {
         if (method === "GET") {
-          const trusted = !tokenRequired() || hasValidToken(req);
+          const verdict = engineerAuthVerdict(req);
+          if (!verdict.ok) {
+            sendEngineerAuthFailure(res, verdict);
+            return;
+          }
           sendJson(res, {
             ok: true,
             runtime: adapter.runtime,
             available: true,
             operations: Object.keys(ENGINEER_OPERATIONS),
             workspace: adapter.workspaceRoot.split(/[\\/]/).pop() ?? "",
-            tokenRequired: tokenRequired(),
+            tokenRequired: true,
             // Whether this runtime can establish WHO is asking. When
             // false, apply is refused outright — the client shows that
             // as a real limitation rather than discovering it on use.
             identityVerification: identityConfigured(),
-            ...(trusted
-              ? {
-                  workspaceRoot: adapter.workspaceRoot,
-                  // Live runtime facts, so the client can report REAL
-                  // DEVELOPMENT RUNTIME rather than assuming one exists.
-                  runtimeInfo: adapter.runtimeInfo(),
-                }
-              : {}),
+            workspaceRoot: adapter.workspaceRoot,
+            // Live runtime facts, so the client can report REAL
+            // DEVELOPMENT RUNTIME rather than assuming one exists.
+            runtimeInfo: adapter.runtimeInfo(),
           });
           return;
         }
@@ -423,19 +466,87 @@ export function createEngineerApi(adapter: EngineerAdapter): {
         return;
       }
 
-      /* ---- optional token gate ---- */
-      if (tokenRequired() && !hasValidToken(req)) {
-        sendJson(
-          res,
-          { ok: false, error: "Engineering runtime requires an access token (LELU_ENGINEER_TOKEN)." },
-          401,
-        );
+      /* ---- authorization gate — FAIL CLOSED, never anonymous ----
+         Two authorities, and no third:
+           • LELU_ENGINEER_TOKEN configured → that token is required on every
+             route (status included), compared in constant time;
+           • not configured, identity available (Supabase, or injected by a
+             test/adapter) → a VERIFIED identity is required before any route
+             runs, and the routes that act on a project re-check it;
+           • neither configured → 503: there is no way to tell who is asking,
+             so the runtime must expose nothing.
+         There is no loopback exemption: behind a reverse proxy every request
+         arrives from 127.0.0.1, so one would be a total bypass. */
+      const tokenAuthority = engineerAccessToken().length > 0;
+      const identityAuthority = Boolean(options.verifyIdentity) || identityConfigured();
+      if (tokenAuthority) {
+        const authVerdict = engineerAuthVerdict(req);
+        if (!authVerdict.ok) {
+          sendEngineerAuthFailure(res, authVerdict);
+          return;
+        }
+      } else if (!identityAuthority) {
+        sendEngineerAuthFailure(res, {
+          ok: false,
+          status: 503,
+          disabled: true,
+          error:
+            "The engineering runtime is disabled on this deployment: neither LELU_ENGINEER_TOKEN nor " +
+            "Supabase identity is configured, so there is no way to tell who is asking.",
+        });
         return;
       }
 
       void (async () => {
         try {
+          /* No static token configured: the verified identity IS the access
+             credential. Without this check an identity-capable host would
+             expose command execution, source reads and apply to anyone. */
+          if (!tokenAuthority) {
+            const who = await verifyIdentity(req);
+            if (!who.ok || !who.identity) {
+              sendJson(res, { ok: false, error: who.reason }, who.status || 401);
+              return;
+            }
+          }
           const payload = await readJsonBody(req);
+
+          /* ---- POST /api/engineer/autonomy — the authoritative level ----
+             { action: "get" } → the verified user's server-stored level.
+             { action: "set", level, confirm: true, password? } → change it;
+             raising needs the password re-verified by Supabase here. */
+          if (route === "/api/engineer/autonomy") {
+            const who = await verifyIdentity(req);
+            if (!who.ok || !who.identity) {
+              sendJson(res, { ok: false, error: who.reason }, who.status);
+              return;
+            }
+            const action = String(payload.action ?? "get");
+            if (action === "get") {
+              sendJson(res, { ok: true, source: "server", ...autonomy.get(who.identity.userId), applyLevel: SERVER_APPLY_LEVEL });
+              return;
+            }
+            if (action === "set") {
+              const current = autonomy.get(who.identity.userId).level;
+              const raising = Number(payload.level) > current;
+              const passwordVerified = raising ? await checkPassword(who.identity.email, payload.password) : false;
+              const decision = await autonomy.change({
+                userId: who.identity.userId,
+                by: who.identity.email ?? who.identity.userId,
+                level: payload.level,
+                confirm: payload.confirm,
+                passwordVerified,
+              });
+              if (!decision.ok) {
+                sendJson(res, { ok: false, error: decision.reason }, decision.status);
+                return;
+              }
+              sendJson(res, { ok: true, source: "server", ...decision.record, applyLevel: SERVER_APPLY_LEVEL });
+              return;
+            }
+            sendJson(res, { ok: false, error: `Unknown autonomy action: ${action}` }, 400);
+            return;
+          }
 
           /* ---- POST /api/engineer/command (whitelisted) ---- */
           if (route === "/api/engineer/command") {
@@ -444,6 +555,27 @@ export function createEngineerApi(adapter: EngineerAdapter): {
             let command = "";
             if (operation && ENGINEER_OPERATIONS[operation]) {
               command = ENGINEER_OPERATIONS[operation];
+            } else if (operation && TARGETED_OPERATIONS[operation]) {
+              // A fixed command over files the caller names, each checked
+              // against a strict pattern so nothing but a project-relative
+              // source or test path can reach the command line.
+              const files = Array.isArray(payload.files) ? (payload.files as unknown[]).map(String) : [];
+              const spec = TARGETED_OPERATIONS[operation];
+              const bad = files.filter((file) => !spec.pattern.test(file) || file.split("/").includes(".."));
+              if (files.length === 0 || files.length > 20 || bad.length > 0) {
+                sendJson(
+                  res,
+                  {
+                    ok: false,
+                    error:
+                      `${operation} needs 1–20 files matching ${spec.pattern}` +
+                      (bad.length ? `; refused: ${bad.join(", ")}` : "."),
+                  },
+                  400,
+                );
+                return;
+              }
+              command = `${spec.command} ${files.join(" ")}`;
             } else if (rawCommand && Object.values(ENGINEER_OPERATIONS).includes(rawCommand)) {
               command = rawCommand; // backward compat: exact whitelist match only
             } else {
@@ -583,9 +715,14 @@ export function createEngineerApi(adapter: EngineerAdapter): {
               const id = safeWorkspaceId(payload.workspace);
               // Identity FIRST: a grant is only meaningful once we know
               // who it belongs to.
-              const who = await verifyRequestIdentity(req);
+              const who = await verifyIdentity(req);
               if (!who.ok || !who.identity) {
                 sendJson(res, { ok: false, error: who.reason }, who.status);
+                return;
+              }
+              const allowed = autonomyAllowsApply(who.identity.userId);
+              if (!allowed.ok) {
+                sendJson(res, { ok: false, error: allowed.reason, blocked: "autonomy" }, 403);
                 return;
               }
               const changes = await adapter.diffWorkspace(id);
@@ -609,13 +746,21 @@ export function createEngineerApi(adapter: EngineerAdapter): {
               // THREE independent conditions, all required, all checked
               // here on the server. A client-side "authorized: true" is
               // not one of them and never reaches this code.
-              const who = await verifyRequestIdentity(req);
+              const who = await verifyIdentity(req);
               if (!who.ok || !who.identity) {
                 sendJson(res, { ok: false, error: who.reason }, who.status);
                 return;
               }
               if (payload.confirm !== true) {
                 sendJson(res, { ok: false, error: "Apply requires confirm:true." }, 403);
+                return;
+              }
+              // Re-checked at execution time: lowering the level between
+              // request-apply and apply revokes the pending grant's use.
+              const allowedNow = autonomyAllowsApply(who.identity.userId);
+              if (!allowedNow.ok) {
+                applyGrants.delete(id);
+                sendJson(res, { ok: false, error: allowedNow.reason, blocked: "autonomy" }, 403);
                 return;
               }
               if (!consumeGrant(id, String(payload.grant ?? ""), who.identity.userId)) {
@@ -640,6 +785,29 @@ export function createEngineerApi(adapter: EngineerAdapter): {
                 workspace: id,
                 applied,
                 appliedBy: who.identity.email ?? who.identity.userId,
+              });
+              return;
+            }
+
+            if (action === "rollback-apply") {
+              const id = safeWorkspaceId(payload.workspace);
+              // Restoring the real project is still a write to it, so it
+              // carries the same identity requirement as apply itself.
+              const who = await verifyIdentity(req);
+              if (!who.ok || !who.identity) {
+                sendJson(res, { ok: false, error: who.reason }, who.status);
+                return;
+              }
+              if (!adapter.rollbackApply) {
+                sendJson(res, { ok: false, error: "This runtime cannot roll back an apply." }, 501);
+                return;
+              }
+              const restored = await adapter.rollbackApply(id);
+              sendJson(res, {
+                ok: true,
+                workspace: id,
+                restored,
+                rolledBackBy: who.identity.email ?? who.identity.userId,
               });
               return;
             }
@@ -685,7 +853,7 @@ export function createEngineerApi(adapter: EngineerAdapter): {
             }
 
             if (action === "commit") {
-              const who = await verifyRequestIdentity(req);
+              const who = await verifyIdentity(req);
               if (!who.ok || !who.identity) {
                 sendJson(res, { ok: false, error: who.reason }, who.status);
                 return;
@@ -745,7 +913,7 @@ export function createEngineerApi(adapter: EngineerAdapter): {
             }
 
             if (action === "push") {
-              const who = await verifyRequestIdentity(req);
+              const who = await verifyIdentity(req);
               if (!who.ok || !who.identity) {
                 sendJson(res, { ok: false, error: who.reason }, who.status);
                 return;

@@ -35,6 +35,15 @@ import WorldLifecycle from "../app/scene/genesis/engines/WorldLifecycle";
 import PersistentRuntime from "./proactive/PersistentRuntime";
 import SupabasePersistence from "./persistence/SupabasePersistence";
 import { registerEarthTools } from "./earth/EarthTools";
+import { registerForgeTools } from "./forge/ForgeTools";
+import { registerWorldTools } from "./world/WorldTools";
+import { registerAgenticTools } from "./agentic/AgenticTools";
+import { registerInterfaceTools } from "./interface/InterfaceTools";
+import { registerStudioTools } from "./studio/StudioTools";
+import { registerAtelierTools } from "./atelier/AtelierTools";
+import { registerCosmosTools } from "./cosmos/CosmosTools";
+import TaskExecutor from "./agentic/TaskExecutor";
+import DailyReflection from "./agentic/DailyReflection";
 import ToolRegistry from "./tools/ToolRegistry";
 import { markPerf } from "./perf/StartupTelemetry";
 import StartupDiagnostic from "./selfdev/StartupDiagnostic";
@@ -179,6 +188,31 @@ export default class Bootstrap {
       const tasks = TaskEngine.getInstance();
       // Earth Core tool registry (spatial capabilities for cognition)
       registerEarthTools();
+      // 3D Forge (character/asset generation through the server-side Meshy broker)
+      registerForgeTools();
+      registerWorldTools();
+      // Agency: capability discovery, delegation, multi-step tasks,
+      // approvals, reflection. Tasks cut off by the last shutdown are
+      // marked paused (resumable) rather than left "running" forever.
+      registerAgenticTools();
+      // Interface orchestration: LÉLU inspects, designs and previews her own
+      // environment (windows, typography, themes, 3D Cosmos); the user
+      // approves before anything is applied.
+      registerInterfaceTools();
+      // Creation Studio: documents, presentations and spreadsheets made,
+      // revised, exported (and verified from the written bytes) in chat.
+      registerStudioTools();
+      // Atelier: research-to-production design (directions, BOM, drawings,
+      // 3D models, dossiers), every file verified from its bytes.
+      registerAtelierTools();
+      // Cosmos: the navigable map and the workspace API, offered through the
+      // same dispatcher/gate/approval path as every other tool.
+      registerCosmosTools();
+      const interrupted = TaskExecutor.getInstance().recoverInterrupted();
+      if (interrupted.length) {
+        console.info(`[Bootstrap] ${interrupted.length} interrupted task(s) are paused and resumable.`);
+      }
+      DailyReflection.getInstance().start();
       // Recompute ToolRegistry availability from real runtime state
       // (autonomy gate, GitHub connection, device features) — it was
       // previously a catalog of hardcoded booleans nobody ever checked.

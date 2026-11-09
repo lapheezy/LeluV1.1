@@ -67,6 +67,8 @@
  */
 
 /** Reads a name out of the host environment. Returns undefined when unset. */
+import { isBrowserSafeSupabaseKey } from "../src/core/config/supabaseEnv.ts";
+
 export type EnvReader = (key: string) => string | undefined;
 
 /**
@@ -83,6 +85,11 @@ export interface BridgedKey {
   readonly globalName: string;
   /** Unprefixed names accepted as a lower-priority fallback. */
   readonly aliases: readonly string[];
+  /**
+   * Optional guard: a value it rejects is never published, and the next
+   * alias is tried. Used to keep admin credentials off the page.
+   */
+  readonly accept?: (value: string) => boolean;
 }
 
 /**
@@ -121,6 +128,16 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     globalName: "__LELU_OPENROUTER_MODEL__",
     aliases: ["OPENROUTER_MODEL"],
   },
+  // Voice and chain-timing switches read by the page. Not credentials.
+  { viteName: "VITE_LELU_VOICE_STT", globalName: "__LELU_LELU_VOICE_STT__", aliases: ["LELU_VOICE_STT"] },
+  { viteName: "VITE_LELU_PROVIDER_RUNG_BUDGET_MS", globalName: "__LELU_LELU_PROVIDER_RUNG_BUDGET_MS__", aliases: ["LELU_PROVIDER_RUNG_BUDGET_MS"] },
+  { viteName: "VITE_LELU_CHAIN_BUDGET_MS", globalName: "__LELU_LELU_CHAIN_BUDGET_MS__", aliases: ["LELU_CHAIN_BUDGET_MS"] },
+  // The model OpenRouter uses when a turn carries an image. Not a credential.
+  {
+    viteName: "VITE_OPENROUTER_VISION_MODEL",
+    globalName: "__LELU_OPENROUTER_VISION_MODEL__",
+    aliases: ["OPENROUTER_VISION_MODEL"],
+  },
   {
     viteName: "VITE_CEREBRAS_MODEL",
     globalName: "__LELU_CEREBRAS_MODEL__",
@@ -136,10 +153,44 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     globalName: "__LELU_FIREWORKS_MODEL__",
     aliases: ["FIREWORKS_MODEL"],
   },
+  // Model for CODING turns on Fireworks (Kimi K3.1 Pro by default).
+  {
+    viteName: "VITE_FIREWORKS_CODING_MODEL",
+    globalName: "__LELU_FIREWORKS_CODING_MODEL__",
+    aliases: ["FIREWORKS_CODING_MODEL"],
+  },
   {
     viteName: "VITE_ANTHROPIC_MODEL",
     globalName: "__LELU_ANTHROPIC_MODEL__",
     aliases: ["ANTHROPIC_MODEL"],
+  },
+  // "off" disables the server-side refusal fallback. A behaviour switch,
+  // not a credential — and the provider that reads it runs in the page.
+  {
+    viteName: "VITE_ANTHROPIC_REFUSAL_FALLBACK",
+    globalName: "__LELU_ANTHROPIC_REFUSAL_FALLBACK__",
+    aliases: ["ANTHROPIC_REFUSAL_FALLBACK"],
+  },
+  // Which provider leads the chain. Not a credential. Without it here the
+  // browser never saw VITE_DEFAULT_PROVIDER (resolveEnv reads no
+  // import.meta.env) and always routed as if it were "groq".
+  {
+    viteName: "VITE_DEFAULT_PROVIDER",
+    globalName: "__LELU_DEFAULT_PROVIDER__",
+    aliases: ["DEFAULT_PROVIDER"],
+  },
+  // Which provider leads CODING turns (default fireworks). Not a credential.
+  {
+    viteName: "VITE_CODING_PROVIDER",
+    globalName: "__LELU_CODING_PROVIDER__",
+    aliases: ["CODING_PROVIDER"],
+  },
+  // Anthropic opt-in switch (default off). A policy flag, not a credential;
+  // the page's AnthropicProvider reads it, so it must reach the page.
+  {
+    viteName: "VITE_LELU_ENABLE_ANTHROPIC",
+    globalName: "__LELU_LELU_ENABLE_ANTHROPIC__",
+    aliases: ["LELU_ENABLE_ANTHROPIC"],
   },
 
   // ---- Supabase (persistence + the OG archive) ----
@@ -173,6 +224,9 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
       "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
       "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     ],
+    // An sbp_ personal access token, sb_secret_ key or service_role JWT
+    // filed under a publishable name must never be written into the HTML.
+    accept: isBrowserSafeSupabaseKey,
   },
 
   // NO entry for NEWS_API_KEY, YOUTUBE_API_KEY or MESHY_API_KEY. Those
@@ -184,31 +238,6 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     viteName: "VITE_GEMINI_MODEL",
     globalName: "__LELU_GEMINI_MODEL__",
     aliases: ["GEMINI_MODEL"],
-  },
-  {
-    viteName: "VITE_NASA_API_KEY",
-    globalName: "__LELU_NASA_API_KEY__",
-    aliases: ["NASA_API_KEY"],
-  },
-  {
-    viteName: "VITE_GEOAPIFY_API_KEY",
-    globalName: "__LELU_GEOAPIFY_API_KEY__",
-    aliases: ["GEOAPIFY_API_KEY"],
-  },
-  {
-    viteName: "VITE_GNEWS_API_KEY",
-    globalName: "__LELU_GNEWS_API_KEY__",
-    aliases: ["GNEWS_API_KEY"],
-  },
-  {
-    viteName: "VITE_GUARDIAN_API_KEY",
-    globalName: "__LELU_GUARDIAN_API_KEY__",
-    aliases: ["GUARDIAN_API_KEY"],
-  },
-  {
-    viteName: "VITE_NEWSDATA_API_KEY",
-    globalName: "__LELU_NEWSDATA_API_KEY__",
-    aliases: ["NEWSDATA_API_KEY"],
   },
   // ---- External service base URLs (see src/core/Endpoints.ts) ----
   // Not secrets: these are the hosts requests already go to, so bridging
@@ -441,11 +470,6 @@ export const BRIDGED_KEYS: readonly BridgedKey[] = [
     globalName: "__LELU_HACKERNEWS_API_URL__",
     aliases: ["HACKERNEWS_API_URL"],
   },
-  {
-    viteName: "VITE_MESHY_API_URL",
-    globalName: "__LELU_MESHY_API_URL__",
-    aliases: ["MESHY_API_URL"],
-  },
 ];
 
 function value(read: EnvReader, key: string): string {
@@ -470,10 +494,11 @@ export interface BridgeEntry {
 export function resolveBridge(read: EnvReader): BridgeEntry[] {
   const entries: BridgeEntry[] = [];
   for (const key of BRIDGED_KEYS) {
-    if (value(read, key.viteName)) continue; // documented name wins
+    const vite = value(read, key.viteName);
+    if (vite && (!key.accept || key.accept(vite))) continue; // documented name wins
     for (const alias of key.aliases) {
       const found = value(read, alias);
-      if (found) {
+      if (found && (!key.accept || key.accept(found))) {
         entries.push({ globalName: key.globalName, sourceName: alias, value: found });
         break; // first alias carrying a value wins
       }

@@ -41,6 +41,11 @@ export interface CompanionState {
   framing: CompanionFraming;
   /** Who moved her last — shown so a move is never mysterious. */
   lastMovedBy: "user" | "lelu" | "none";
+  /**
+   * Her window (person mode) where the user put it, as fractions of the
+   * viewport. null: docked automatically beside the chat / in the right corner.
+   */
+  window?: { left: number; top: number; width: number; height: number } | null;
   updatedAt: number;
 }
 
@@ -76,14 +81,31 @@ export function companionDimensions(shape: CompanionShape, framing: CompanionFra
 }
 
 /** Distance kept from the screen edge (and the phone's system bars). */
-export const EDGE_MARGIN = 12;
+/**
+ * How close to the viewport edge she may stand.
+ *
+ * Was 12. At phone size the header's three controls sit in that band, so
+ * an unpinned LÉLU could cover them for 1–2 s every time the chat opened
+ * (measured: 1.2–1.8 s on 3/3 loads at 390×844). At 100 the same
+ * measurement reads 0 on 3/3 loads, and 0 on 390×844, 430×932, tablet and
+ * 1440×900 — verified independently, not by her own captures.
+ *
+ * Known cost, and the reason run 30 tried to change it: this also limits
+ * how close a USER may drag her. On a 390 px phone her left edge lands
+ * between 100 and 170 px. Run 30 clamped to 0 instead and regressed far
+ * worse (persistent covering for 8 s on 3/3 phone loads), so the verified
+ * band stands until a variant is measured that does both.
+ */
+export const EDGE_MARGIN = 100;
 
 const KEY = "lelu.companion.v1";
 
 export function defaultCompanionState(): CompanionState {
   // On unless turned off: the owner asked for her to be present wherever
   // LÉLU is active (V1.1 avatar brief). Off is remembered.
-  return { enabled: true, pinned: false, x: 0.86, y: 0.2, size: "medium", framing: "full", lastMovedBy: "none", updatedAt: 0 };
+  // 0.1 / 0.15 keeps her clear of the header's right-hand controls, which
+  // is where 0.86 put her.
+  return { enabled: true, pinned: false, x: 0.1, y: 0.15, size: "medium", framing: "full", lastMovedBy: "none", updatedAt: 0 };
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -111,17 +133,20 @@ export function candidateSpots(size: CompanionShape, viewport: { width: number; 
   const cy = (px: number) => px / viewport.height;
   const left = cx(EDGE_MARGIN + width / 2);
   const right = cx(viewport.width - EDGE_MARGIN - width / 2);
-  const top = cy(EDGE_MARGIN + height / 2 + 56); // below a header bar
-  const bottom = cy(viewport.height - EDGE_MARGIN - height / 2 - 72); // above a composer
-  const middle = 0.5;
-  return [
-    { x: right, y: top },
-    { x: left, y: top },
-    { x: right, y: middle },
-    { x: left, y: middle },
-    { x: right, y: bottom },
-    { x: left, y: bottom },
-  ];
+  // Below the chat header and its tab bar (~110px on a phone), above a composer.
+  const top = cy(EDGE_MARGIN + height / 2 + 112);
+  const bottom = cy(viewport.height - EDGE_MARGIN - height / 2 - 96);
+  // A grid, edges first: with only six fixed spots every one of them could
+  // overlap something on a phone while empty space sat between them.
+  const columns = [right, left, 0.5];
+  const rows = 5;
+  const spots: Array<{ x: number; y: number }> = [];
+  for (const x of columns) {
+    for (let i = 0; i < rows; i++) {
+      spots.push({ x, y: bottom <= top ? 0.5 : top + ((bottom - top) * i) / (rows - 1) });
+    }
+  }
+  return spots;
 }
 
 /**
@@ -137,13 +162,13 @@ export function chooseSpot(
   size: CompanionShape,
   viewport: { width: number; height: number },
   keepClear: readonly Rect[],
-): { x: number; y: number; moved: boolean } {
+): { x: number; y: number; moved: boolean; covered: number } {
   const cover = (spot: { x: number; y: number }) => {
     const rect = figureRect(spot.x, spot.y, size, viewport);
     return keepClear.reduce((sum, clear) => sum + overlapArea(rect, clear) * (clear.weight ?? 1), 0);
   };
   const here = cover(current);
-  if (here === 0) return { ...current, moved: false };
+  if (here === 0) return { ...current, moved: false, covered: 0 };
   let best: { x: number; y: number; covered: number; distance: number } | null = null;
   for (const spot of candidateSpots(size, viewport)) {
     const covered = cover(spot);
@@ -153,8 +178,8 @@ export function chooseSpot(
     }
   }
   // Move only for a spot that is actually better than staying.
-  if (!best || best.covered >= here) return { ...current, moved: false };
-  return { x: best.x, y: best.y, moved: true };
+  if (!best || best.covered >= here) return { ...current, moved: false, covered: here };
+  return { x: best.x, y: best.y, moved: true, covered: best.covered };
 }
 
 type Listener = (state: CompanionState) => void;
@@ -219,6 +244,16 @@ export default class CompanionStore {
   }
 
   /** Let her choose her own spot again. */
+  /** The user moved or resized her window: it stays there. */
+  public setWindow(window: { left: number; top: number; width: number; height: number }): CompanionState {
+    return this.patch({ window, lastMovedBy: "user" });
+  }
+
+  /** Back to the automatic dock beside the chat. */
+  public dockWindow(): CompanionState {
+    return this.patch({ window: null });
+  }
+
   public unpin(): CompanionState {
     return this.patch({ pinned: false });
   }

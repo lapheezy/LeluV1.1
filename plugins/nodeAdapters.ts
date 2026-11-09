@@ -11,6 +11,7 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { lineChangeCounts, unifiedPatch } from "./lineDiff.ts";
+import { assertSafeShellCommand } from "./commandSafety.ts";
 import { BASELINE_FILE, classifyChanges, isBinary, parseBaseline, serializeBaseline } from "./workspaceBaseline.ts";
 import {
   cpSync,
@@ -34,7 +35,8 @@ import {
 } from "./engineerApi.ts";
 
 /** Directories never worth listing back to the client. */
-const SKIPPED_DIRS = new Set([".git", "node_modules", "dist", ".cache", ".vite", SANDBOX_DIR_NAME()]);
+// .lelu-runtime holds server state (autonomy levels): never copied, diffed or applied.
+const SKIPPED_DIRS = new Set([".git", "node_modules", "dist", ".cache", ".vite", ".lelu-runtime", SANDBOX_DIR_NAME()]);
 
 /** Where isolated project copies live, relative to the project root. */
 function SANDBOX_DIR_NAME(): string {
@@ -74,6 +76,11 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
       throw new WorkspaceBoundaryError("Workspace id escapes the sandbox root.");
     }
     return dir;
+  }
+
+  /** Where applyWorkspace records the real files it is about to overwrite. */
+  function applyBackupPath(workspaceId: string): string {
+    return `${workspaceDir(workspaceId)}.apply-backup.json`;
   }
 
   /** Resolve a path inside one workspace copy; never outside it. */
@@ -147,6 +154,21 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
     cwd?: string,
   ): Promise<EngineerCommandResult> {
     const started = Date.now();
+    // The operation name was already checked against the whitelist; this checks
+    // the STRING that reaches bash. Without it, `shell: true` would let any
+    // metacharacter smuggled through a validated-looking argument start a
+    // second command. A refusal is reported as a failed command, not a crash.
+    try {
+      assertSafeShellCommand(command);
+    } catch (error) {
+      return {
+        ok: false,
+        status: 1,
+        stdout: "",
+        stderr: error instanceof Error ? error.message : "Command refused.",
+        durationMs: Date.now() - started,
+      };
+    }
     return new Promise((resolve) => {
       const child = spawn(command, {
         // A workspace copy runs its own validation, in its own directory.
@@ -399,6 +421,16 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
         );
       }
 
+      // What the real project held before this apply, so a failed
+      // post-apply verification can put it back (rollbackApply). A file
+      // the apply creates is recorded as null and removed on rollback.
+      const backup: Record<string, string | null> = {};
+      for (const change of selected) {
+        const target = path.join(workspaceRoot, change.path);
+        backup[change.path] = existsSync(target) ? readFileSync(target, "utf8") : null;
+      }
+      writeFileSync(applyBackupPath(workspaceId), JSON.stringify({ createdAt: Date.now(), files: backup }));
+
       const applied: string[] = [];
       for (const change of selected) {
         const target = path.join(workspaceRoot, change.path);
@@ -412,6 +444,33 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
         applied.push(change.path);
       }
       return applied;
+    },
+
+    /**
+     * Undo the last apply of this workspace: restore every file it wrote to
+     * the content recorded just before writing, and remove files it created.
+     * Only files named in the backup are touched.
+     */
+    async rollbackApply(workspaceId) {
+      const backupFile = applyBackupPath(workspaceId);
+      if (!existsSync(backupFile)) {
+        throw new Error(`No apply to roll back for workspace "${workspaceId}".`);
+      }
+      const { files } = JSON.parse(readFileSync(backupFile, "utf8")) as { files: Record<string, string | null> };
+      const restored: string[] = [];
+      for (const [relative, content] of Object.entries(files)) {
+        const target = path.resolve(workspaceRoot, relative);
+        if (!target.startsWith(workspaceRoot + path.sep)) continue;
+        if (content === null) {
+          rmSync(target, { force: true });
+        } else {
+          mkdirSync(path.dirname(target), { recursive: true });
+          writeFileSync(target, content);
+        }
+        restored.push(relative);
+      }
+      rmSync(backupFile, { force: true });
+      return restored;
     },
 
     /**

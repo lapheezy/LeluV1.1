@@ -1,0 +1,110 @@
+[
+  {
+    "label": "desktop",
+    "viewport": {
+      "w": 1440,
+      "h": 900
+    },
+    "afterCreate": {
+      "revision": 1,
+      "objects": [
+        {
+          "name": "Nova",
+          "rendered": true
+        }
+      ]
+    },
+    "probe": {
+      "canvases": [
+        {
+          "w": 1440,
+          "h": 900
+        },
+        {
+          "w": 1440,
+          "h": 900
+        },
+        {
+          "w": 395,
+          "h": 330
+        }
+      ],
+      "revision": 1,
+      "nodes": 28,
+      "objects": [
+        {
+          "name": "Nova",
+          "rendered": true,
+          "visible": true,
+          "world": [
+            -2.2938918172287446,
+            -1.35,
+            -2.10191825027783
+          ]
+        }
+      ],
+      "camera": {
+        "position": [
+          0,
+          1.14,
+          3.64
+        ],
+        "fov": 49
+      }
+    }
+  },
+  {
+    "label": "mobile",
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "afterCreate": {
+      "revision": 1,
+      "objects": [
+        {
+          "name": "Vega",
+          "rendered": false
+        }
+      ]
+    },
+    "probe": {
+      "canvases": [
+        {
+          "w": 390,
+          "h": 844
+        },
+        {
+          "w": 390,
+          "h": 844
+        },
+        {
+          "w": 162,
+          "h": 220
+        }
+      ],
+      "revision": 1,
+      "nodes": 28,
+      "objects": [
+        {
+          "name": "Vega",
+          "rendered": true,
+          "visible": true,
+          "world": [
+            2.24489482245865,
+            -1.35,
+            2.1541697324255455
+          ]
+        }
+      ],
+      "camera": {
+        "position": [
+          3,
+          2,
+          6.5
+        ],
+        "fov": 56
+      }
+    }
+  }
+]

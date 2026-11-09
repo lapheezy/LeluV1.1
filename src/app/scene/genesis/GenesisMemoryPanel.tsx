@@ -21,7 +21,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { useGenesis } from "./GenesisCore";
+import { useGenesisState } from "./GenesisCore";
 import { genesisTheme } from "./GenesisTheme";
 import AIService from "../../../core/AIService";
 import GenesisWindowFrame from "./GenesisWindowFrame";
@@ -54,7 +54,7 @@ interface GenesisMemoryPanelProps {
 }
 
 export default function GenesisMemoryPanel({ onClose }: GenesisMemoryPanelProps) {
-  const { state } = useGenesis();
+  const { state } = useGenesisState();
   const [memories, setMemories] = useState<MemoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");

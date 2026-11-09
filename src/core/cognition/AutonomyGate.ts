@@ -17,6 +17,7 @@
  * ==========================================================
  */
 
+import { REAL_PROJECT_APPLY_LEVEL } from "./AutonomyPolicy";
 import KvStore from "../storage/KvStore";
 
 export interface AutonomyLevel {
@@ -52,9 +53,26 @@ const KEY = "lelu.autonomy.v1";
  */
 const DEFAULT_LEVEL = 3;
 
+/** The server's record for the signed-in user (plugins/serverAutonomy.ts). */
+export interface ServerAutonomyState {
+  level: number;
+  updatedAt: number;
+  updatedBy: string;
+  applyLevel: number;
+}
+
+type Listener = () => void;
+
 export default class AutonomyGate {
   private static instance: AutonomyGate | null = null;
   private level: number;
+  /**
+   * Set once the SERVER has answered for a verified session. While set it
+   * is authoritative: getLevel() returns it and local setLevel() is refused,
+   * so browser state can never claim more than the server granted.
+   */
+  private server: ServerAutonomyState | null = null;
+  private readonly listeners = new Set<Listener>();
 
   private constructor() {
     const stored = KvStore.getInstance().get<{ level: number }>(KEY);
@@ -69,10 +87,83 @@ export default class AutonomyGate {
   }
 
   public getLevel(): number {
-    return this.level;
+    return this.server ? this.server.level : this.level;
   }
 
+  /** Where the level comes from: the server (signed in) or this browser. */
+  public source(): "server" | "local" {
+    return this.server ? "server" : "local";
+  }
+
+  public serverState(): ServerAutonomyState | null {
+    return this.server;
+  }
+
+  public subscribe(listener: Listener): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  private emit(): void {
+    for (const listener of this.listeners) {
+      try { listener(); } catch { /* contained */ }
+    }
+  }
+
+  /**
+   * Ask the engineering runtime for the signed-in user's authoritative level.
+   * `post` sends an identity-bearing request (EngineeringWorkspace.callRuntime
+   * with the session token). Returns false — and keeps local mode — when
+   * there is no runtime or no verified session.
+   */
+  public async syncFromServer(
+    post: (body: Record<string, unknown>) => Promise<Record<string, unknown>>,
+  ): Promise<boolean> {
+    try {
+      const data = await post({ action: "get" });
+      if (data.ok === true && typeof data.level === "number") {
+        this.server = {
+          level: data.level,
+          updatedAt: Number(data.updatedAt ?? 0),
+          updatedBy: String(data.updatedBy ?? ""),
+          applyLevel: Number(data.applyLevel ?? REAL_PROJECT_APPLY_LEVEL),
+        };
+        this.emit();
+        return true;
+      }
+    } catch {
+      /* no runtime / no session: local mode */
+    }
+    return false;
+  }
+
+  /**
+   * Change the level on the SERVER. Raising needs the user's password, which
+   * the server re-verifies with Supabase; the model's tools never call this
+   * (tests/permission-contract.test.ts).
+   */
+  public async requestServerChange(
+    post: (body: Record<string, unknown>) => Promise<Record<string, unknown>>,
+    level: number,
+    password?: string,
+  ): Promise<{ ok: true } | { ok: false; error: string }> {
+    const data = await post({ action: "set", level, confirm: true, ...(password ? { password } : {}) });
+    if (data.ok === true && typeof data.level === "number") {
+      this.server = {
+        level: data.level,
+        updatedAt: Number(data.updatedAt ?? Date.now()),
+        updatedBy: String(data.updatedBy ?? ""),
+        applyLevel: Number(data.applyLevel ?? REAL_PROJECT_APPLY_LEVEL),
+      };
+      this.emit();
+      return { ok: true };
+    }
+    return { ok: false, error: String(data.error ?? "The server refused the change.") };
+  }
+
+  /** Change the BROWSER-LOCAL level. Refused while the server is authoritative. */
   public setLevel(level: number): void {
+    if (this.server) return;
     const clamped = Math.max(0, Math.min(5, Math.round(level)));
     this.level = clamped;
     try {
@@ -80,11 +171,12 @@ export default class AutonomyGate {
     } catch {
       // best-effort
     }
+    this.emit();
   }
 
   /** Is the configured level sufficient for `required`? */
   public can(required: number): boolean {
-    return this.level >= required;
+    return this.getLevel() >= required;
   }
 
   public describe(required: number): string {

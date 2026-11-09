@@ -1,0 +1,35 @@
+{
+  "result": "PASS",
+  "viewports": [
+    {
+      "size": "360x640",
+      "result": "PASS",
+      "blank": false,
+      "composer": 1,
+      "elements": 286
+    },
+    {
+      "size": "375x812",
+      "result": "PASS",
+      "blank": false,
+      "composer": 1,
+      "elements": 280
+    },
+    {
+      "size": "390x844",
+      "result": "PASS",
+      "blank": false,
+      "composer": 1,
+      "elements": 280
+    },
+    {
+      "size": "430x932",
+      "result": "PASS",
+      "blank": false,
+      "composer": 1,
+      "elements": 280
+    }
+  ],
+  "checks": "no white screen, app shell rendered, live composer, cosmos control present, no duplicate surfaces on a fresh load (0 module windows is the correct baseline)",
+  "physical_device": "NOT TESTED"
+}

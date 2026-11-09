@@ -22,12 +22,14 @@
  */
 
 import AIService from "../AIService";
-import { bindTask } from "../multichat/TurnOwnership";
+import { bindTask, ownerForTask } from "../multichat/TurnOwnership";
+import { conversationArtifactsContext } from "../studio/StudioTools";
 import LeluRuntime from "../runtime/LeluRuntime";
 import WorkspaceRuntime, { type WorkspaceOperation } from "../engineering/WorkspaceRuntime";
 import TaskEngine, { type Task } from "../tasks/TaskEngine";
 import AgentEventBus from "../agent/AgentEvents";
-import AgentStore from "../agents/AgentStore";
+import TaskExecutor from "../agentic/TaskExecutor";
+import { createTask, planTask } from "../agentic/TaskPlanner";
 import ProjectStore from "../projects/ProjectStore";
 import GitHubIntegration from "../engineering/GitHubIntegration";
 
@@ -105,8 +107,6 @@ export default class Orchestrator {
     this.executingByConv.set(convKey, true);
     console.info("[Orchestrator] Processing request:", request.slice(0, 100));
     const runtime = LeluRuntime.getInstance();
-    const taskEngine = TaskEngine.getInstance();
-
     const actions: OrchestratorResult["actions"] = [];
     const memoryUpdates: string[] = [];
     const uiCommands: string[] = [];
@@ -142,55 +142,9 @@ export default class Orchestrator {
       const intent = this.classifyIntent(request);
 
       // PHASE 2: RETRIEVE CONTEXT — what does LÉLU already know?
-      //
-      // These two events used to be emitted back to back with nothing
-      // between them, and the retrieval count was the literal 0. So the
-      // timeline showed "Reading memory context / Memory context loaded"
-      // for a read that had not happened, and reported that nothing was
-      // recalled whatever had been. That is the exact failure this pass
-      // exists to remove: an execution event must describe an execution.
-      //
-      // A real recall happens here when the intent needs one, and the
-      // count comes from its result. When the intent does not need
-      // memory, nothing is claimed.
-      if (intent.needsMemory) {
-        this.emit({ type: "planning", message: "Retrieving context..." });
-        events.emit({
-          type: "execution_phase",
-          taskId,
-          phase: "memory_read_started",
-          label: "Reading memory context",
-          side: "backend",
-        });
-        let recalled = 0;
-        try {
-          recalled = (await AIService.getInstance().recall(request)).length;
-        } catch {
-          // A failed recall is reported as a failed recall, not as a
-          // completed one with nothing in it.
-          events.emit({
-            type: "execution_phase",
-            taskId,
-            phase: "error",
-            label: "Memory could not be read",
-            side: "backend",
-          });
-        }
-        events.emit({
-          type: "execution_phase",
-          taskId,
-          phase: "memory_read_completed",
-          label:
-            recalled > 0
-              ? `Recalled ${recalled} related memor${recalled === 1 ? "y" : "ies"}`
-              : "Nothing related in memory",
-          side: "backend",
-          detail: `${recalled} result(s)`,
-        });
-        events.emit({ type: "memory_retrieval", taskId, query: request, count: recalled });
-      }
-
-      // PHASE 3: PLAN — determine what steps are needed
+      // Memory is read by the chat/planning call itself (MemoryBridge),
+      // which emits its own retrieval events. Phases announcing a memory
+      // read that this method never performed were removed.
       this.emit({ type: "planning", message: "Planning approach..." });
       // "Project identified" was claimed here for any planning or
       // engineering request, and nothing in this method resolves a
@@ -212,21 +166,9 @@ export default class Orchestrator {
       // renders the Approve/Reject/Modify card). The request still
       // streams conversationally — consent is a surfaced decision, not
       // a hidden blocker.
-      const approval = this.needsApproval(request, intent.category);
-      if (approval) {
-        events.emit({
-          type: "approval_requested",
-          taskId,
-          approvalId: `approval-${taskId}`,
-          title: approval.title,
-          detail: approval.detail,
-          systemsAffected: approval.systemsAffected,
-        });
-        uiCommands.push("approval:requested");
-      }
-
-      // GITHUB INTEGRATION: when GitHub-related intent is detected,
-      // probe capabilities and include results in the response context.
+      // Approval is per ACTION, enforced where the action runs: a plan's
+      // sensitive step stops at the ApprovalGate until the user decides.
+      // (A request-level approval event that nothing waited for was removed.)
       if (intent.category === "github") {
         const gh = GitHubIntegration.getInstance();
         try {
@@ -252,105 +194,16 @@ export default class Orchestrator {
       // For simple requests, delegate to the existing chat pipeline
       // For complex multi-step requests, create a task
       const needsMultiStep = this.isMultiStepRequest(request);
-
       if (needsMultiStep) {
-        // Create a persistent task for complex requests
-        const task = taskEngine.create({
-          goal: request.slice(0, 200),
-          priority: intent.urgency ? "high" : "normal",
-          steps: this.planSteps(request, intent),
-          requiredTools: this.requiredTools(intent),
-        });
-
-        taskEngine.start(task.id);
-        events.emit({
-          type: "execution_phase",
-          taskId,
-          phase: "backend_task_started",
-          // "Executing N steps" was not true: nothing here executes the
-          // steps. A plan was recorded, so that is what is reported.
-          label: `Planned ${task.steps.length} step(s)`,
-          side: "backend",
-          detail: task.goal,
-        });
-
-        // Execute through the existing AI pipeline (with orchestration context)
-        const ai = AIService.getInstance();
-        const response = await ai.chat(request, undefined, context, { conversationId });
-
-        // Verify the response
-        events.emit({
-          type: "execution_phase",
-          taskId,
-          phase: "validation_started",
-          label: "Validating result",
-          side: "backend",
-        });
-        const verified = this.verifyResponse(response);
-        events.emit({
-          type: "execution_phase",
-          taskId,
-          phase: verified ? "validation_completed" : "error",
-          label: verified ? "Validation complete" : "Validation failed — recovering",
-          side: "backend",
-        });
-
-        // A RECORD IS NOT AN EXECUTION.
-        //
-        // Every pending step used to be marked completed here, with the
-        // model's reply text as each step's "result" — so a task whose
-        // steps nothing had run reported itself completed, and
-        // TaskEngine then marked the whole task completed because all
-        // its steps were. Nothing had executed. verifyResponse() only
-        // checks that the reply is a non-empty string from a provider
-        // that is not "error"; it says nothing about work being done.
-        //
-        // Steps are completed only by real execution. The reply is
-        // recorded against the step the task is on, and the task is left
-        // WAITING, which is what it is: answered conversationally, with
-        // its planned steps not yet run.
-        //
-        // Where work should actually be executed, the path is the one
-        // that already exists: an AgentObjective, picked up by
-        // AgentCognitionRuntime, dispatched through ToolDispatcher, and
-        // completed from metadata.toolsExecuted. This method does not
-        // execute, so it does not claim to.
-        const executedHere =
-          (response.metadata?.toolsExecuted as Array<{ tool: string; ok: boolean }> | undefined) ?? [];
-        if (verified) {
-          taskEngine.recordAnswer(
-            task.id,
-            response.text.slice(0, 400),
-            executedHere.filter((entry) => entry.ok).map((entry) => entry.tool),
-          );
+        const planned = await this.planAndExecute(request, context, taskId);
+        if (planned) {
+          runtime.recordActivity(`Task ${planned.task?.status ?? "run"}: ${request.slice(0, 80)}`);
+          memoryUpdates.push(request);
+          this.persistCheckpointFromRequest(request, planned.response, intent.category, []);
+          return { ...planned, memoryUpdates, uiCommands, actions: [...actions, ...planned.actions] };
         }
-
-        actions.push({
-          tool: "ai.generate",
-          status: verified ? "success" : "error",
-          result: typeof response.text === "string" ? response.text.slice(0, 200) : String(response.provider ?? "error"),
-        });
-
-        // Record in runtime
-        runtime.recordActivity(`Completed: ${request.slice(0, 80)}`);
-
-        // MEMORY: important requests deserve memory
-        memoryUpdates.push(request);
-
-        events.emit({ type: "execution_phase", taskId, phase: "execution_completed", label: "Execution complete", side: "both" });
-      events.emit({ type: "task_completed", taskId, label: request.slice(0, 120) });
-      this.emit({ type: "complete", message: "Task completed", taskId: task.id });
-
-      // CHECKPOINT: persist task state so LÉLU can resume after close/reopen
-      this.persistCheckpointFromRequest(request, response.text, intent.category, []);
-
-      return {
-        response: response.text,
-        actions,
-        task,
-        memoryUpdates,
-        uiCommands,
-      };
+        // No executable plan: answer as a normal turn. The model still has
+        // the native tools there, including task.start and agent.delegate.
       }
 
       // Simple request — direct pipeline
@@ -398,18 +251,6 @@ export default class Orchestrator {
 
       runtime.recordActivity(`Responded to: ${request.slice(0, 80)}`);
 
-      // AGENT DELEGATION: when research or engineering is detected,
-      // record the task on the best-fit agent so the cognitive loop
-      // can observe agent activity and the agent keeps history.
-      const delegatedAgent = this.delegateToAgent(request, intent.category, taskId);
-      if (delegatedAgent) {
-        actions.push({
-          tool: "agent-delegate",
-          status: "success",
-          result: `Delegated to agent "${delegatedAgent.name}" (${delegatedAgent.role})`,
-        });
-      }
-
       // MEMORY: important requests deserve memory
       memoryUpdates.push(request);
 
@@ -418,7 +259,7 @@ export default class Orchestrator {
       this.emit({ type: "complete", message: "Response generated" });
 
       // CHECKPOINT: persist task state so LÉLU can resume after close/reopen
-      this.persistCheckpointFromRequest(request, response.text, intent.category, delegatedAgent ? [delegatedAgent.name] : []);
+      this.persistCheckpointFromRequest(request, response.text, intent.category, []);
 
       return {
         response: response.text,
@@ -501,59 +342,6 @@ export default class Orchestrator {
     return request.length > 200 || textIndicators.some((pattern) => pattern.test(request));
   }
 
-  private planSteps(request: string, _intent: { category: string }): { title: string; description: string }[] {
-    // Basic step planning — enough to create the task structure
-    return [
-      { title: "Understand request", description: `Analyze: ${request.slice(0, 100)}` },
-      { title: "Execute", description: `Perform the requested action` },
-      { title: "Verify", description: `Confirm the result meets expectations` },
-    ];
-  }
-
-  private requiredTools(_intent: { category: string }): string[] {
-    const map: Record<string, string[]> = {
-      github: ["github.auth", "github.repos", "github.files"],
-      engineering: ["ai.generate", "project.manage", "workspace.typecheck", "workspace.test"],
-      "self-inspection": ["sandbox.read", "workspace.typecheck"],
-      memory: ["memory.recall", "memory.store"],
-      research: ["research.web"],
-      planning: ["plan.create"],
-      navigation: ["cosmos.navigate", "cosmos.openInterface"],
-      device: ["device.camera", "device.microphone", "device.tts"],
-      creative: ["ai.generate"],
-      chat: ["chat"],
-    };
-    return map[_intent.category] ?? ["chat"];
-  }
-
-  /**
-   * Detect operations that require explicit user approval before they
-   * should be treated as executed (external accounts, destructive or
-   * irreversible actions). Returns null when the request is safe to
-   * proceed conversationally.
-   */
-  private needsApproval(
-    request: string,
-    category: string,
-  ): { title: string; detail: string; systemsAffected: string[] } | null {
-    const lower = request.toLowerCase();
-    if (/\b(send|email|post|tweet|publish|deploy|pay|transfer|buy|sell)\b/.test(lower)) {
-      return {
-        title: "Send / publish to an external system",
-        detail: `${request.slice(0, 180)} — this reaches beyond the LÉLU runtime.`, 
-        systemsAffected: ["external", category === "engineering" ? "deployment" : "communication"],
-      };
-    }
-    if (/\b(delete|destroy|remove|reset|erase|wipe|uninstall|drop)\b/.test(lower)) {
-      return {
-        title: "Destructive operation detected",
-        detail: `${request.slice(0, 180)} — this removes or overwrites existing state.`,
-        systemsAffected: ["data", "projects", category === "engineering" ? "code" : "workspace"],
-      };
-    }
-    return null;
-  }
-
   private engineeringOperation(request: string, category: string): WorkspaceOperation | null {
     if (category !== "engineering") return null;
     const lower = request.toLowerCase();
@@ -565,55 +353,6 @@ export default class Orchestrator {
   }
 
   // ---------- AGENT DELEGATION ----------
-
-  /**
-   * Find the best-fit agent for the given intent and record the task.
-   * Returns the agent if delegation occurred, null otherwise.
-   */
-  private delegateToAgent(
-    request: string,
-    category: string,
-    taskId: string,
-  ): { name: string; role: string } | null {
-    const agentStore = AgentStore.getInstance();
-    const runnable = agentStore.runnable();
-    if (runnable.length === 0) return null;
-
-    // Match agent capabilities to intent category
-    const capabilityMap: Record<string, string[]> = {
-      research: ["web research", "source evaluation", "research"],
-      engineering: ["engineering", "coding", "testing"],
-      creative: ["creative", "design", "sketch"],
-      planning: ["planning", "organization"],
-    };
-
-    const targetCapabilities = capabilityMap[category] ?? ["chat"];
-    const bestFit = runnable.find((agent) =>
-      agent.capabilities.some((cap) =>
-        targetCapabilities.some((target) => cap.toLowerCase().includes(target.toLowerCase())),
-      ),
-    ) ?? runnable[0];
-
-    if (!bestFit) return null;
-
-    // Record the task on the agent
-    agentStore.recordTask(bestFit.id, {
-      label: request.slice(0, 120),
-      status: "running",
-    });
-
-    // Emit delegation event
-    AgentEventBus.getInstance().emit({
-      type: "tool_selected",
-      taskId,
-      tool: `agent:${bestFit.name}`,
-      label: `Delegated to ${bestFit.name} (${bestFit.role})`,
-    });
-
-    return { name: bestFit.name, role: bestFit.role };
-  }
-
-  // ---------- CHECKPOINT PERSISTENCE ----------
 
   /**
    * Persist a project checkpoint so LÉLU can resume work after close/reopen.
@@ -657,14 +396,6 @@ export default class Orchestrator {
     }
   }
 
-  private verifyResponse(response: any): boolean {
-    // Basic verification — response exists and isn't an error
-    if (!response || typeof response.text !== "string") return false;
-    if (response.text.trim().length === 0) return false;
-    if (response.provider === "error") return false;
-    return true;
-  }
-
   // ---------- MULTI-STEP EXECUTION ----------
 
   async executeTask(taskId: string): Promise<OrchestratorResult> {
@@ -673,6 +404,20 @@ export default class Orchestrator {
     const events = AgentEventBus.getInstance();
     if (!task) {
       return { response: "Task not found.", actions: [], memoryUpdates: [], uiCommands: [] };
+    }
+
+    // An executable task (steps with actions) is resumed by the executor,
+    // from the first step that did not finish.
+    if (task.steps.some((step) => step.action)) {
+      const executor = TaskExecutor.getInstance();
+      const resumed = await executor.resume(taskId);
+      return {
+        response: resumed ? executor.report(resumed) : "Task not found.",
+        actions: this.stepActions(resumed),
+        ...(resumed ? { task: resumed } : {}),
+        memoryUpdates: [],
+        uiCommands: [],
+      };
     }
     events.emit({ type: "execution_phase", taskId, phase: "backend_task_started", label: "Resuming task execution", side: "backend" });
 
@@ -779,6 +524,84 @@ export default class Orchestrator {
       memoryUpdates,
       uiCommands,
     };
+  }
+
+  // ---------- PLANNED EXECUTION ----------
+
+  /**
+   * Plan the request with the model, validate the plan against live
+   * capabilities, and execute it through the TaskExecutor. Returns null
+   * when no executable plan could be made, so the caller answers as a
+   * normal turn instead of inventing a task.
+   */
+  private async planAndExecute(
+    request: string,
+    context: string | undefined,
+    taskId: string,
+  ): Promise<Pick<OrchestratorResult, "response" | "actions" | "task"> | null> {
+    const events = AgentEventBus.getInstance();
+    this.emit({ type: "planning", message: "Planning steps..." });
+    // The planner sees what this conversation already made, so "change the
+    // chart in the brief" revises that artifact instead of starting anew.
+    const made = conversationArtifactsContext(ownerForTask(taskId));
+    const planContext = [context, made].filter(Boolean).join("\n\n");
+    const plan = await planTask(request, planContext ? { context: planContext } : {});
+    if (!plan.ok || !plan.validation) {
+      events.emit({
+        type: "execution_phase",
+        taskId,
+        phase: "backend_task_progress",
+        label: "No executable plan — answering directly",
+        side: "backend",
+        detail: plan.reason,
+      });
+      return null;
+    }
+
+    const task = createTask(request.slice(0, 200), plan.validation, "orchestrator");
+    // The task works for the conversation whose turn planned it: its step
+    // events and the artifacts its tools make belong to that chat.
+    const owner = ownerForTask(taskId);
+    if (owner) bindTask(task.id, owner);
+    this.emit({ type: "executing", message: "Working through the plan", taskId: task.id });
+    const executor = TaskExecutor.getInstance();
+    const finished = (await executor.run(task.id)) ?? task;
+    this.emit({
+      type: finished.status === "completed" ? "complete" : finished.status === "waiting" ? "executing" : "error",
+      message: finished.status,
+      taskId: task.id,
+    });
+
+    // The answer is the last step that produced content for the user (an
+    // agent or reasoning step); the verified step report follows it.
+    const answerStep = [...finished.steps]
+      .reverse()
+      .find((step) => step.status === "completed" && step.action && step.action.kind !== "tool");
+    const report = executor.report(finished);
+    const response =
+      finished.status === "completed" && answerStep?.output ? `${answerStep.output}\n\n—\n${report}` : report;
+    return { response, actions: this.stepActions(finished), task: finished };
+  }
+
+  /** The real per-step outcomes, in the OrchestratorResult action shape. */
+  private stepActions(task: Task | undefined): OrchestratorResult["actions"] {
+    if (!task) return [];
+    return task.steps
+      .filter((step) => step.action)
+      .map((step) => ({
+        tool:
+          step.action!.kind === "tool" ? step.action!.tool : step.action!.kind === "agent" ? `agent:${step.action!.agent}` : "reason",
+        status:
+          step.status === "completed"
+            ? ("success" as const)
+            : step.approvalId && step.status === "pending"
+              ? ("needs-permission" as const)
+              : step.status === "skipped" || step.status === "pending"
+                ? ("skipped" as const)
+                : ("error" as const),
+        ...(step.result ? { result: step.result } : {}),
+        ...(step.error ? { error: step.error } : {}),
+      }));
   }
 
   // ---------- SUBSCRIPTION ----------

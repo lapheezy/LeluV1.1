@@ -8,28 +8,61 @@ import glsl from "vite-plugin-glsl";
 import glslIncludes from "./plugins/glslIncludes.js";
 import { createAisBridge } from "./plugins/aisBridgePlugin.ts";
 import { engineerApiPlugin } from "./plugins/engineerApi.ts";
+import { createIntegrationApi } from "./plugins/integrationApi.ts";
 import { createNodeEngineerAdapter } from "./plugins/nodeAdapters.ts";
 import { createEnvApi } from "./plugins/envApi.ts";
 import { createModelApi } from "./plugins/modelApi.ts";
+import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
+import { createSourceCatalogApi } from "./plugins/sourceCatalogApi.ts";
 import { createSelfViewApi } from "./plugins/selfViewApi.ts";
+import { createStudioApi, stopAllStudioBackends } from "./plugins/studioApi.ts";
 import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
 import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { githubApiPlugin } from "./plugins/githubApi.ts";
+import { voiceApiPlugin } from "./plugins/voiceApi.ts";
 import { runtimeKeyBridgePlugin, bridgeReport } from "./plugins/runtimeKeyBridge.ts";
+import { fillBareSecretAliases } from "./plugins/bareSecretAliases.ts";
 import { readBuildInfo } from "./plugins/buildInfo.ts";
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), "");
+
+  // The platform writes .env.local from the project's secret store, under
+  // the SECRET names (`Anthropic`, `Groq`, `Supabase`) — names no code
+  // reads. Fill the documented names from them, only where the documented
+  // name is absent, so a regenerated file cannot put the providers back to
+  // "unconfigured" and the Supabase key cannot be orphaned again.
+  const filledFromBareNames = fillBareSecretAliases({
+    get: (key) => env[key],
+    set: (key, value) => {
+      env[key] = value;
+    },
+  });
+  if (filledFromBareNames.length > 0) {
+    console.info(`[env] bare secret names supplied ${filledFromBareNames.join(", ")}`);
+  }
   // AISStream key: server-only (non-VITE) — read once here, passed into
   // the bridge instance, never exposed to the browser bundle.
   const aisKey = process.env.AISSTREAM_API_KEY || env.AISSTREAM_API_KEY || "";
   const aisBridge = createAisBridge({ apiKey: aisKey });
 
   const envReader = (key: string) => env[key] ?? process.env[key] ?? "";
+
+  /*
+   * Exact extra hosts the Cloud Browser serves this dev server under. Vite's
+   * `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS` hook only applies when
+   * `allowedHosts` is already an array, so it is read here instead. Names come
+   * from the environment only: unset means no extra host is allowed, and there
+   * is no blanket allowlist.
+   */
+  const extraAllowedHosts = (process.env.LELU_ALLOWED_HOSTS ?? "")
+    .split(",")
+    .map((host) => host.trim())
+    .filter(Boolean);
 
   // Report — by NAME only, never by value — which provider keys were
   // supplied under an unprefixed platform name and are therefore being
@@ -54,6 +87,8 @@ export default defineConfig(({ mode }) => {
   // Server-side page reader: gives BrowserTool a CORS-free path so a
   // browsed page's TEXT can actually reach cognition (see browseApi.ts).
   const browseApi = createBrowseApi();
+  // Evaluated source inventory + gated public-apis discovery (sourceCatalogApi.ts).
+  const sourceCatalogApi = createSourceCatalogApi();
   // Server-side AI credential relay: the provider keys stay in the
   // server process and never reach the client bundle (aiProxyApi.ts).
   const aiProxyApi = createAiProxyApi(envReader);
@@ -63,14 +98,19 @@ export default defineConfig(({ mode }) => {
   // provider directly, which needs the provider's CORS and the page's
   // own egress — and puts the API key in the bundle.
   const modelApi = createModelApi(envReader);
+  // LÉLU 3D Forge: Meshy jobs, the credit ledger and the asset store. The
+  // Meshy key is read here, server-side, and nowhere else.
+  const forgeApi = createMeshyForgeApi(envReader, { poll: command === "serve" });
   function modelApiPlugin() {
     return {
       name: "model-api",
       configureServer(server: any) {
         modelApi.attach(server.middlewares);
+        forgeApi.attach(server.middlewares);
       },
       configurePreviewServer(server: any) {
         modelApi.attach(server.middlewares);
+        forgeApi.attach(server.middlewares);
       },
     };
   }
@@ -129,12 +169,60 @@ export default defineConfig(({ mode }) => {
       // is identical in dev and in the deployed runtime.
       engineerApiPlugin(createNodeEngineerAdapter("vite-dev")),
 
+      // The intelligence integrations: real service probes, real OPA
+      // decisions and real security scans (plugins/integrationApi.ts).
+      // Same middleware the standalone server mounts, so a deployed runtime
+      // reports the same real state instead of a dev-only view.
+      {
+        name: "lelu-integration-api",
+        configureServer(server: any) {
+          server.middlewares.use(createIntegrationApi({
+            workspaceRoot: process.cwd(),
+            runtime: "vite-dev",
+            // Vite's use(fn) does not strip a prefix, so the handler must
+            // claim its own paths explicitly or it answers every request.
+            mountPath: "/api/integration",
+            token: process.env.LELU_ENGINEER_TOKEN,
+            allowedOrigins: (process.env.LELU_ENGINEER_ALLOWED_ORIGINS ?? "")
+              .split(",")
+              .map((origin) => origin.trim())
+              .filter(Boolean),
+          }));
+        },
+        configurePreviewServer(server: any) {
+          server.middlewares.use(createIntegrationApi({
+            workspaceRoot: process.cwd(),
+            runtime: "vite-dev",
+            mountPath: "/api/integration",
+            token: process.env.LELU_ENGINEER_TOKEN,
+            allowedOrigins: (process.env.LELU_ENGINEER_ALLOWED_ORIGINS ?? "")
+              .split(",")
+              .map((origin) => origin.trim())
+              .filter(Boolean),
+          }));
+        },
+      },
+
       // Her eyes: headless capture of pages and her own UI, workspace
       // previews, and code search (plugins/selfViewApi.ts).
       {
         name: "lelu-self-view",
         configureServer(server: any) {
           createSelfViewApi().attach(server.middlewares);
+        },
+      },
+
+      // Session 3C — the software studio runtime: real scaffolds, builds,
+      // tests, same-origin previews, approvals and deployment preparation.
+      {
+        name: "lelu-studio",
+        configureServer(server: any) {
+          createStudioApi().attach(server.middlewares);
+          server.httpServer?.once("close", stopAllStudioBackends);
+        },
+        configurePreviewServer(server: any) {
+          createStudioApi().attach(server.middlewares);
+          server.httpServer?.once("close", stopAllStudioBackends);
         },
       },
 
@@ -164,9 +252,11 @@ export default defineConfig(({ mode }) => {
         name: "browse-api",
         configureServer(server: any) {
           browseApi.attach(server.middlewares);
+          sourceCatalogApi.attach(server.middlewares);
         },
         configurePreviewServer(server: any) {
           browseApi.attach(server.middlewares);
+          sourceCatalogApi.attach(server.middlewares);
         },
       },
 
@@ -200,7 +290,8 @@ export default defineConfig(({ mode }) => {
         },
       },
 
-      githubApiPlugin(),
+      githubApiPlugin(envReader),
+      voiceApiPlugin(envReader),
 
       glslIncludes(),
 
@@ -223,6 +314,7 @@ export default defineConfig(({ mode }) => {
       host: "0.0.0.0",
       port: 5173,
       strictPort: true,
+      allowedHosts: extraAllowedHosts.length ? extraAllowedHosts : undefined,
       hmr: false,
       // LÉLU's workspace copies live in .lelu-sandbox. Watching them made
       // every copy and every edit she made there force a full reload of the
@@ -244,6 +336,7 @@ export default defineConfig(({ mode }) => {
       host: "0.0.0.0",
       port: 4173,
       strictPort: true,
+      allowedHosts: extraAllowedHosts.length ? extraAllowedHosts : undefined,
       proxy: {
         "/api/ai": {
           target: "https://models.inference.ai.azure.com",
@@ -254,6 +347,15 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
+    },
+
+    // The graph (React Flow) and drawing (Excalidraw) editors are lazy
+    // chunks, so Vite would discover these only when one is first opened,
+    // re-bundle mid-session and reload — leaving two React copies on that
+    // page ("Cannot read properties of null (reading 'useState')").
+    // Pre-bundled at server start instead. Dev only; the build is unchanged.
+    optimizeDeps: {
+      include: ["@xyflow/react", "@excalidraw/excalidraw"],
     },
 
     resolve: {

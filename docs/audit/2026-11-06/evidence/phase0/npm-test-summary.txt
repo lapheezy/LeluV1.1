@@ -1,0 +1,8 @@
+# tests 1346
+# pass 1342
+# fail 0
+# skipped 4
+ok 1020 - the real OPA binary and the policy bundle are detected # SKIP opa is not present at /home/user/lelu-audit/.tools/opa; set LELU_OPA_BINARY or place it in .tools/
+ok 1021 - OPA and the reference evaluator agree on every case in the matrix # SKIP opa is not present; the Rego could not be compared with the reference
+ok 1023 - gitleaks finds a planted secret and never repeats its value # SKIP gitleaks is not present at /home/user/lelu-audit/.tools/gitleaks
+ok 1024 - a clean directory scans clean — and says it actually ran # SKIP gitleaks is not present at /home/user/lelu-audit/.tools/gitleaks

@@ -49,6 +49,8 @@ import {
   Menu,
   MessageCircle,
   Mic,
+  ScreenShare as ScreenShareIcon,
+  ScreenShareOff,
   Minimize2,
   PanelBottom,
   Plus,
@@ -57,6 +59,8 @@ import {
   Video,
   X,
 } from "lucide-react";
+import ScreenShare from "../../../core/perception/ScreenShare";
+import { explainScreenShareFailure, screenShareSupport } from "../../../core/perception/screenCapability";
 
 import AIService from "../../../core/AIService";
 import Orchestrator from "../../../core/orchestrator/Orchestrator";
@@ -70,7 +74,7 @@ import {
   processVideoFile,
   type ProcessedMedia,
 } from "../../../core/media/mediaProcessor";
-import { useGenesis, type GenesisMessage } from "./GenesisCore";
+import { useGenesisActions, useGenesisState, type GenesisMessage } from "./GenesisCore";
 import ExplorationController from "./ExplorationController";
 import ProactiveCore, { type ProactiveQuestion } from "../../../core/proactive/ProactiveCore";
 import { openWorkstream } from "../../../core/proactive/Workstream";
@@ -88,6 +92,7 @@ import { notifyTurnOutcome } from "../../../core/notifications/NotificationRouti
 import ChatTranscript from "./chat/ChatTranscript";
 import { describeFailure, isNearBottom, type ChatFailure } from "./chat/chatTranscript";
 import { chatFillsScreen } from "./chat/chatLayout";
+import { chatExpand, useChatExpanded } from "./chat/chatExpand";
 import "./chat/cloudChat.css";
 
 const ai = AIService.getInstance();
@@ -220,7 +225,10 @@ function fileContextPrompt(files: PendingFile[]): string {
  * ---------------------------------------------------------- */
 
 export default function GenesisChat({ onExit, hidden = false }: { onExit?: () => void; hidden?: boolean }) {
-  const { state, openPanel, addMessage, upsertMessage, setDialogue, notify, crossChatReference, createConversation, minimize } = useGenesis();
+  const { state } = useGenesisState();
+  // Actions come from the STABLE actions context, so a simulation tick does
+  // not re-render the conversation; only the state it draws does.
+  const { openPanel, addMessage, upsertMessage, setDialogue, notify, crossChatReference, createConversation, minimize } = useGenesisActions();
   const voiceView = useVoice();
   const navigate = useNavigate();
 
@@ -316,6 +324,8 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
   }, []);
 
   const [pendingMedia, setPendingMedia] = useState<ProcessedMedia[]>([]);
+  /** Attachments from the Chat Universe composer, consumed by the next send. */
+  const universeMediaRef = useRef<ProcessedMedia[]>([]);
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [mediaBusy, setMediaBusy] = useState(false);
   const [mediaOpen, setMediaOpen] = useState(false);
@@ -671,6 +681,17 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     try { voiceEngineRef.current.cancelSpeech(); } catch { /* best-effort */ }
   }, []);
 
+  // Screen sharing state (the browser's own consent picker starts it).
+  const [screenSharing, setScreenSharing] = useState(() => ScreenShare.getInstance().isActive());
+  const [screenShareError, setScreenShareError] = useState<string | null>(null);
+  // Capability, not user agent: iOS Safari has no getDisplayMedia, so the
+  // control is not offered there at all (desktop and Android keep it).
+  const canShareScreen = useMemo(() => screenShareSupport().supported, []);
+  useEffect(() => ScreenShare.getInstance().subscribe((stats) => {
+    setScreenSharing(stats.active);
+    if (stats.active) setScreenShareError(null);
+  }), []);
+
   const send = useCallback(async (): Promise<void> => {
     // "Try again" resends the failed words without touching the draft.
     const retrying = retryRef.current;
@@ -681,7 +702,9 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     followUpRef.current = null;
     const reused = retrying !== null || followUp !== null;
     const typed = (followUp?.text ?? retrying ?? input).trim();
-    const media = reused ? [] : pendingMedia;
+    // Media handed over by the Chat Universe composer rides with its words.
+    const handedMedia = retrying !== null ? universeMediaRef.current.splice(0) : [];
+    const media = reused ? handedMedia : pendingMedia;
     const files = reused ? [] : pendingFiles;
     if (!typed && media.length === 0 && files.length === 0) {
       return;
@@ -876,8 +899,12 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
 
       let assistantText: string;
       try {
-        if (media.length > 0) {
-          const response = await ai.chat(prompt, media, context, { conversationId: turnConversationId });
+        // A shared screen rides along with the user's turn (and only then):
+        // the latest kept frame, plus the one before it when they ask what
+        // changed. Same multimodal path as an attached image.
+        const turnMedia = [...media, ...ScreenShare.getInstance().attachmentsFor(prompt)];
+        if (turnMedia.length > 0) {
+          const response = await ai.chat(prompt, turnMedia, context, { conversationId: turnConversationId });
           assistantText = typeof response.text === "string" ? response.text : "";
         } else {
           const result = await Orchestrator.getInstance().process(prompt, undefined, context, turnConversationId);
@@ -908,6 +935,17 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         );
         setDialogue("listening");
         return;
+      }
+
+      // A reply the Orchestrator produced without ai.chat (a planned task's
+      // report, an engineering run) has not been through the message
+      // channel, so the conversation holds no reply for this turn. Deliver
+      // it there, once: the reply and its artifact card belong in the chat.
+      {
+        const stored = MultiChatStore.getInstance().get(turnConversationId)?.messages ?? [];
+        const anchor = stored.findIndex((message) => message.id === userMessageId);
+        const answered = anchor >= 0 && stored.slice(anchor + 1).some((message) => message.role === "assistant");
+        if (anchor >= 0 && !answered) ai.deliverReply(assistantText, turnConversationId);
       }
 
       // Finished in a chat the user has left: a pointer in NOTIFICATIONS.
@@ -974,7 +1012,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     } finally {
       // The activity is kept with the reply it produced, so coming back to
       // this conversation later still shows what LÉLU did for it.
-      const activity = finishActivity(recording.stop(), turnFailed);
+      const activity = recording.stop(turnFailed);
       if (hasVisibleActivity(activity)) {
         try {
           const stored = MultiChatStore.getInstance().get(turnConversationId)?.messages ?? [];
@@ -1040,6 +1078,41 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
   menusOpenRef.current = optionsOpen || mediaOpen;
   const headerRef = useRef<HTMLDivElement>(null);
   const dockRef = useRef<HTMLDivElement>(null);
+  /** Mirrors isMobileViewport (computed below) for the layout listener. */
+  const fillsScreenRef = useRef(false);
+  /** Exact size from an approved interface layout (null = size preset). */
+  const [chatCustomSize, setChatCustomSize] = useState<{ width: number; height: number } | null>(null);
+
+  /* Approved interface layouts place the chat like any other window
+     (InterfaceRuntime dispatches this after the user approves). On
+     phones the chat stays the full-screen base layer. */
+  useEffect(() => {
+    function onLayout(e: Event) {
+      const detail = (e as CustomEvent).detail as { x?: number; y?: number; width?: number; height?: number; presentation?: string } | undefined;
+      if (!detail) return;
+      if (detail.presentation === "minimized") {
+        setChatMinimized(true);
+        return;
+      }
+      setChatMinimized(false);
+      // Compactness comes from the chat's own measured workspace (the same
+      // chatFillsScreen() the layout uses), never from a window-width query,
+      // which cannot see the container the chat is mounted in.
+      if (fillsScreenRef.current) {
+        setChatPos({ x: -1, y: -1 });
+        return;
+      }
+      if (typeof detail.x === "number" && typeof detail.y === "number") {
+        setChatCorner(false);
+        setChatPos({ x: Math.round(detail.x), y: Math.round(detail.y) });
+      }
+      if (typeof detail.width === "number" && typeof detail.height === "number") {
+        setChatCustomSize({ width: Math.round(detail.width), height: Math.round(detail.height) });
+      }
+    }
+    window.addEventListener("lelu-interface-chat-layout", onLayout);
+    return () => window.removeEventListener("lelu-interface-chat-layout", onLayout);
+  }, []);
   const dragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0, posX: 0, posY: 0, height: 480 });
   // Measured from the workspace container, not the window — inside the
@@ -1061,6 +1134,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
   // Same rule as chat/chatLayout chatFillsScreen(): narrow OR short (a
   // landscape phone) gets the full-screen sky.
   const isMobileViewport = chatFillsScreen(workspace);
+  fillsScreenRef.current = isMobileViewport;
   /** Short screens (a phone on its side) fold the question card to one line. */
   const shortScreen = workspace.visibleHeight < 560;
   const [questionOpen, setQuestionOpen] = useState(false);
@@ -1077,7 +1151,9 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
    * leave its send control past the edge of the workspace.
    */
   const floatWidth = (() => {
-    const cap = chatSize === "compact" ? 400 : chatSize === "large" ? 860 : 620;
+    // An approved interface layout may give the chat an exact size; it is
+    // still clamped to the workspace like every other size.
+    const cap = chatCustomSize ? chatCustomSize.width : chatSize === "compact" ? 400 : chatSize === "large" ? 860 : 620;
     const available = Math.max(0, workspace.width - 16);
     return Math.min(available, isMobileViewport ? Math.min(available, 400) : cap);
   })();
@@ -1089,7 +1165,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
   const DESKTOP_TOP = 112;
   const floatHeight = (() => {
     const available = Math.max(320, workspace.visibleHeight - DESKTOP_TOP - 16);
-    const cap = chatSize === "compact" ? 480 : chatSize === "large" ? 900 : 700;
+    const cap = chatCustomSize ? chatCustomSize.height : chatSize === "compact" ? 480 : chatSize === "large" ? 900 : 700;
     return Math.min(cap, available);
   })();
 
@@ -1331,6 +1407,23 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     void sendRef.current();
   }, []);
 
+  // The Chat Universe's universal composer: it has already made its target
+  // the active conversation, and hands the words to this send path so the
+  // turn streams, queues and persists exactly like one typed here.
+  useEffect(() => {
+    const onUniverseSend = (event: Event) => {
+      const detail = (event as CustomEvent<{ text?: string; conversationId?: string; media?: ProcessedMedia[] }>).detail;
+      const media = Array.isArray(detail?.media) ? detail.media : [];
+      const text = detail?.text?.trim() || (media.length ? defaultMediaPrompt(media) : "");
+      if (!text) return;
+      if (detail?.conversationId && MultiChatStore.getInstance().getActiveId() !== detail.conversationId) return;
+      universeMediaRef.current = media;
+      retry(text);
+    };
+    window.addEventListener("lelu-universe-send", onUniverseSend);
+    return () => window.removeEventListener("lelu-universe-send", onUniverseSend);
+  }, [retry]);
+
   const visibleExchange =
     exchange && exchange.conversationId && exchange.conversationId !== state.activeConversationId ? null : exchange;
 
@@ -1398,8 +1491,22 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     </button>
   );
 
-  // Closed (Home): nothing is drawn, the turn bookkeeping stays alive.
-  if (hidden && chatMinimized) return null;
+  /**
+   * Hooks run on every render, including the two early returns below.
+   *
+   * Calling this after them made it a CONDITIONAL hook: React refuses that
+   * (the hook order changes the moment the chat is minimised), and the whole
+   * expanded state was discarded and re-read anyway every time the chat was
+   * minimised and reopened. Before the returns, the layout decision is stable
+   * for the lifetime of the component, which is what the transcript and the
+   * open turn depend on.
+   */
+  const phoneExpanded = useChatExpanded();
+
+  // The old single-panel chat is gone: the Chat Universe is the chat. This
+  // component stays mounted only as the send engine behind the Universe
+  // (streaming, queueing, persistence, voice turns) and draws nothing.
+  if (hidden) return null;
 
   // Minimized bubble
   if (chatMinimized) {
@@ -1424,6 +1531,8 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         data-lelu-chat-bubble
         aria-label="Open chat"
         onClick={() => setChatMinimized(false)}
+        data-lelu-window="chat"
+        data-lelu-chat-minimized=""
       >
         <span className="lelu-cc-orb" data-state={orbState} aria-hidden />
         <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.18em" }}>LÉLU</span>
@@ -1432,25 +1541,48 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
   }
 
   const isCentered = chatPos.x === -1;
-  const isFloatingMobile = isMobileViewport && chatPos.x >= 0;
-  const isFullMobile = isMobileViewport && !isFloatingMobile;
+  /**
+   * PHONE: a layer by default, not a takeover.
+   *
+   * Floating keeps the Cosmos and the navigation in view (surface/Surface
+   * keeps rendering them); expanding is one tap and is remembered. Nothing
+   * about the conversation changes either way — the transcript, the open
+   * turn and its stream all live in this component, which never unmounts
+   * for a layout decision.
+   */
+  const isSheetMobile = isMobileViewport && !phoneExpanded;
+  const isFloatingMobile = isSheetMobile;
+  const isFullMobile = isMobileViewport && phoneExpanded;
   const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 800;
-  const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 800;
   const mobileSheetHeight = mobileHeight ?? Math.min(viewportHeight * 0.82, 720);
-  const mobileFloatWidth = Math.min(viewportWidth - 16, 400);
+  /**
+   * The floating sheet's height: readable, bottom-anchored, and never taller
+   * than what a keyboard has left visible (workspace tracks the visual
+   * viewport, so the composer stays above the keys).
+   */
+  const sheetHeight = Math.max(
+    240,
+    Math.min(mobileSheetHeight, Math.max(240, workspace.visibleHeight - (workspace.keyboardOpen ? 72 : 128))),
+  );
 
   const windowStyle: CSSProperties = {
     position: "fixed",
     zIndex: layer("panel"),
     pointerEvents: "auto",
     ...(isMobileViewport
-      ? isFloatingMobile
+      ? isSheetMobile
         ? {
-            left: chatPos.x,
-            top: chatPos.y,
-            width: mobileFloatWidth,
-            height: mobileSheetHeight,
-            maxHeight: "calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px)",
+            // THE LAYER: a sheet above the spatial navigation, the Cosmos
+            // behind it. Bottom-anchored so the composer sits where a thumb
+            // expects it, and clear of the safe area and the orb.
+            left: 8,
+            right: 8,
+            width: "auto",
+            bottom: `calc(${workspace.keyboardOpen ? 8 : 92}px + env(safe-area-inset-bottom, 0px))`,
+            height: sheetHeight,
+            // A layer, not a takeover: at most 62% of the screen, so the
+            // Cosmos is visibly behind it and the navigation stays reachable.
+            maxHeight: "min(62dvh, calc(100dvh - 104px))",
           }
         : {
             // MOBILE: the chat owns the whole screen (surface/Surface) —
@@ -1484,9 +1616,11 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     // its layout or paint.
     display: hidden ? "none" : "flex",
     flexDirection: "column",
-    borderRadius: isFullMobile ? 0 : 30,
-    border: isFullMobile ? "none" : "1px solid rgba(255, 228, 248, 0.16)",
-    boxShadow: isFullMobile ? "none" : "0 30px 80px rgba(10, 4, 30, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.02) inset",
+    // Interface themes (InterfaceRuntime) restyle the chat through these
+    // variables; unset, each falls back to this chat's own value.
+    borderRadius: isFullMobile ? 0 : "var(--lelu-window-radius, 30px)",
+    border: isFullMobile ? "none" : "var(--lelu-border, 1px solid rgba(255, 228, 248, 0.16))",
+    boxShadow: isFullMobile ? "none" : "var(--lelu-shadow, 0 30px 80px rgba(10, 4, 30, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.02) inset)",
     overflow: "hidden",
     overscrollBehavior: "contain",
   };
@@ -1502,6 +1636,9 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
       className="lelu-cc"
       style={windowStyle}
       data-lelu-chat-window
+      data-lelu-surface="chat"
+      data-lelu-window="chat"
+      data-lelu-chat-minimized={chatMinimized ? "" : undefined}
       role="region"
       aria-label="Conversation with LÉLU"
     >
@@ -1511,6 +1648,10 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         <div className="lelu-cc-clouds lelu-cc-clouds--mid" />
         <div className="lelu-cc-clouds lelu-cc-clouds--near" />
       </div>
+
+      {/* LÉLU's face, behind the conversation (LeluCompanion, face mode).
+          Under the text, never over it, and it takes no touches. */}
+      <div className="lelu-cc-face" data-lelu-face-host aria-hidden />
 
       <div className="lelu-cc-shell">
         {/* Phone-only resize handle — only when floating (not fullscreen) */}
@@ -1532,14 +1673,14 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         <div
           ref={headerRef}
           className="lelu-cc-header"
-          onPointerDown={isFullMobile ? undefined : handlePointerDown}
-          onPointerMove={isFullMobile ? undefined : handlePointerMove}
-          onPointerUp={isFullMobile ? undefined : handlePointerUp}
-          onPointerCancel={isFullMobile ? undefined : handlePointerUp}
+          onPointerDown={isFullMobile || isSheetMobile ? undefined : handlePointerDown}
+          onPointerMove={isFullMobile || isSheetMobile ? undefined : handlePointerMove}
+          onPointerUp={isFullMobile || isSheetMobile ? undefined : handlePointerUp}
+          onPointerCancel={isFullMobile || isSheetMobile ? undefined : handlePointerUp}
           style={{
             position: "relative",
-            cursor: isFullMobile ? "default" : "grab",
-            touchAction: isFullMobile ? "auto" : "none",
+            cursor: isFullMobile || isSheetMobile ? "default" : "grab",
+            touchAction: isFullMobile || isSheetMobile ? "auto" : "none",
             paddingTop: isFullMobile ? "calc(env(safe-area-inset-top, 0px) + 10px)" : undefined,
           }}
         >
@@ -1549,6 +1690,18 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
             <span className="lelu-cc-status" aria-live="polite">{statusText}</span>
           </div>
           <div className="lelu-cc-controls" role="toolbar" aria-label="Chat controls">
+            {isMobileViewport ? (
+              <button
+                type="button"
+                className="lelu-cc-icon"
+                onClick={() => chatExpand.set(!phoneExpanded)}
+                title={phoneExpanded ? "Float the chat" : "Expand the chat"}
+                aria-label={phoneExpanded ? "Float the chat" : "Expand the chat"}
+                aria-pressed={phoneExpanded}
+              >
+                {phoneExpanded ? <Minimize2 size={19} aria-hidden /> : <Maximize2 size={19} aria-hidden />}
+              </button>
+            ) : null}
             <button
               type="button"
               className="lelu-cc-icon"
@@ -1597,14 +1750,20 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
               {menuItem("Search conversations", <Search size={17} aria-hidden />, () => window.dispatchEvent(new Event("lelu-multichat-search")))}
               <div className="lelu-cc-menu-sep" />
               {isMobileViewport ? (
-                isFloatingMobile ? menuItem("Dock chat to bottom", <PanelBottom size={17} aria-hidden />, () => setChatPos({ x: -1, y: -1 })) : null
+                phoneExpanded
+                  ? menuItem("Float the chat", <PanelBottom size={17} aria-hidden />, () => chatExpand.set(false))
+                  : menuItem("Expand the chat", <Maximize2 size={17} aria-hidden />, () => chatExpand.set(true))
               ) : (
                 <>
                   <div className="lelu-cc-menu-label">Window</div>
                   {menuItem(
                     `Size: ${chatSize === "compact" ? "compact → medium" : chatSize === "medium" ? "medium → large" : "large → compact"}`,
                     <Maximize2 size={17} aria-hidden />,
-                    () => setChatSize((size) => (size === "compact" ? "medium" : size === "medium" ? "large" : "compact")),
+                    () => {
+                      // A hand-picked size replaces any exact size an approved layout set.
+                      setChatCustomSize(null);
+                      setChatSize((size) => (size === "compact" ? "medium" : size === "medium" ? "large" : "compact"));
+                    },
                   )}
                   {menuItem(chatCorner ? "Float in the centre" : "Snap to corner", <PanelBottom size={17} aria-hidden />, () => {
                     setChatCorner((corner) => !corner);
@@ -1808,6 +1967,18 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
           }}
         >
           <SelectedArtifactChip />
+          {screenShareError ? (
+            <div
+              role="status"
+              data-lelu-screen-share-notice
+              style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", margin: "0 0 6px", borderRadius: 10, background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.35)", color: "#fde68a", font: "500 12px system-ui, sans-serif" }}
+            >
+              <span style={{ flex: 1 }}>{screenShareError}</span>
+              <button type="button" aria-label="Dismiss screen sharing notice" onClick={() => setScreenShareError(null)} className="lelu-cc-icon" style={{ width: 24, height: 24 }}>
+                <X size={12} aria-hidden />
+              </button>
+            </div>
+          ) : null}
           {pendingMedia.length > 0 || pendingFiles.length > 0 ? (
             <div className="lelu-cc-pending" aria-label="Attachments">
               {pendingMedia.map((media, index) => (
@@ -1907,6 +2078,24 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
                 <Square size={15} fill="currentColor" aria-hidden />
               </button>
             )}
+            {canShareScreen ? (
+            <button
+              type="button"
+              data-lelu-share-screen
+              onClick={() => {
+                const share = ScreenShare.getInstance();
+                if (share.isActive()) share.stop();
+                else void share.start().catch((error: unknown) => setScreenShareError(explainScreenShareFailure(error)));
+              }}
+              title={screenSharing ? "Stop sharing your screen" : "Share your screen with Lélu"}
+              aria-label={screenSharing ? "Stop sharing your screen" : "Share your screen with Lélu"}
+              aria-pressed={screenSharing}
+              data-active={screenSharing ? "true" : "false"}
+              className="lelu-cc-icon"
+            >
+              {screenSharing ? <ScreenShareOff size={19} aria-hidden /> : <ScreenShareIcon size={19} aria-hidden />}
+            </button>
+            ) : null}
             <button
               type="button"
               onClick={() => void voiceView.engine.toggle()}

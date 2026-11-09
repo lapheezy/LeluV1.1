@@ -1,0 +1,415 @@
+{
+ "viewport": "360x640",
+ "at": "2026-11-08T07:08:19.777Z",
+ "phases": [
+  {
+   "phase": "opened",
+   "health": {
+    "canvas": 1,
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 346,
+      "h": 329
+     }
+    ],
+    "handle": {
+     "y": 38,
+     "x": 181,
+     "h": 41
+    },
+    "content": [
+     "creation"
+    ],
+    "controls": [
+     {
+      "label": "Back to the chat — this keeps running"
+     },
+     {
+      "label": "Pin — keep this window where it is"
+     },
+     {
+      "label": "Minimize — keeps running"
+     },
+     {
+      "label": "Expand"
+     },
+     {
+      "label": "Close"
+     }
+    ],
+    "store": [
+     {
+      "moduleId": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 336,
+      "h": 528,
+      "manual": false,
+      "pinned": false
+     }
+    ],
+    "vv": {
+     "w": 360,
+     "h": 640
+    }
+   }
+  },
+  {
+   "phase": "dragged",
+   "health": {
+    "canvas": 1,
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 346,
+      "h": 329
+     }
+    ],
+    "handle": {
+     "y": 38,
+     "x": 181,
+     "h": 41
+    },
+    "content": [
+     "creation"
+    ],
+    "controls": [
+     {
+      "label": "Back to the chat — this keeps running"
+     },
+     {
+      "label": "Pin — keep this window where it is"
+     },
+     {
+      "label": "Minimize — keeps running"
+     },
+     {
+      "label": "Expand"
+     },
+     {
+      "label": "Close"
+     }
+    ],
+    "store": [
+     {
+      "moduleId": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 336,
+      "h": 528,
+      "manual": false,
+      "pinned": false
+     }
+    ],
+    "vv": {
+     "w": 360,
+     "h": 640
+    }
+   }
+  },
+  {
+   "phase": "released",
+   "health": {
+    "canvas": 1,
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 346,
+      "h": 329
+     }
+    ],
+    "handle": {
+     "y": 38,
+     "x": 181,
+     "h": 41
+    },
+    "content": [
+     "creation"
+    ],
+    "controls": [
+     {
+      "label": "Back to the chat — this keeps running"
+     },
+     {
+      "label": "Pin — keep this window where it is"
+     },
+     {
+      "label": "Minimize — keeps running"
+     },
+     {
+      "label": "Expand"
+     },
+     {
+      "label": "Close"
+     }
+    ],
+    "store": [
+     {
+      "moduleId": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 336,
+      "h": 528,
+      "manual": false,
+      "pinned": false
+     }
+    ],
+    "vv": {
+     "w": 360,
+     "h": 640
+    }
+   }
+  },
+  {
+   "phase": "pinned",
+   "health": {
+    "canvas": 1,
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 346,
+      "h": 329
+     }
+    ],
+    "handle": {
+     "y": 38,
+     "x": 181,
+     "h": 41
+    },
+    "content": [
+     "creation"
+    ],
+    "controls": [
+     {
+      "label": "Back to the chat — this keeps running"
+     },
+     {
+      "label": "Unpin — auto-arrange may tile it again"
+     },
+     {
+      "label": "Minimize — keeps running"
+     },
+     {
+      "label": "Expand"
+     },
+     {
+      "label": "Close"
+     }
+    ],
+    "store": [
+     {
+      "moduleId": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 336,
+      "h": 528,
+      "manual": false,
+      "pinned": true
+     }
+    ],
+    "vv": {
+     "w": 360,
+     "h": 640
+    }
+   }
+  },
+  {
+   "phase": "unpinned",
+   "health": {
+    "canvas": 1,
+    "wins": [
+     {
+      "id": "creation",
+      "presentation": "inline",
+      "host": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 346,
+      "h": 329
+     }
+    ],
+    "handle": {
+     "y": 38,
+     "x": 181,
+     "h": 41
+    },
+    "content": [
+     "creation"
+    ],
+    "controls": [
+     {
+      "label": "Back to the chat — this keeps running"
+     },
+     {
+      "label": "Pin — keep this window where it is"
+     },
+     {
+      "label": "Minimize — keeps running"
+     },
+     {
+      "label": "Expand"
+     },
+     {
+      "label": "Close"
+     }
+    ],
+    "store": [
+     {
+      "moduleId": "creation",
+      "x": 8,
+      "y": 16,
+      "w": 336,
+      "h": 528,
+      "manual": false,
+      "pinned": false
+     }
+    ],
+    "vv": {
+     "w": 360,
+     "h": 640
+    }
+   }
+  }
+ ],
+ "errors": [],
+ "identity": {
+  "moduleId": "creation",
+  "presentation": "inline",
+  "host": "creation",
+  "content": [
+   "creation"
+  ],
+  "canvases": 1
+ },
+ "placement": {
+  "before": {
+   "x": 8,
+   "y": 16,
+   "w": 346,
+   "h": 329
+  },
+  "after": {
+   "x": 8,
+   "y": 16,
+   "w": 346,
+   "h": 329
+  },
+  "dx": 0,
+  "dy": 0,
+  "storeEntry": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 16,
+   "w": 336,
+   "h": 528,
+   "manual": false,
+   "pinned": false
+  },
+  "safeArea": {
+   "top": 16,
+   "bottom": 295
+  },
+  "controls": [
+   {
+    "label": "Back to the chat — this keeps running"
+   },
+   {
+    "label": "Pin — keep this window where it is"
+   },
+   {
+    "label": "Minimize — keeps running"
+   },
+   {
+    "label": "Expand"
+   },
+   {
+    "label": "Close"
+   }
+  ],
+  "canvases": [
+   1,
+   1
+  ]
+ },
+ "pin": {
+  "pinnedEntry": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 16,
+   "w": 336,
+   "h": 528,
+   "manual": false,
+   "pinned": true
+  },
+  "unpinnedEntry": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 16,
+   "w": 336,
+   "h": 528,
+   "manual": false,
+   "pinned": false
+  }
+ },
+ "preReload": {
+  "rect": {
+   "x": 8,
+   "y": 16,
+   "w": 346,
+   "h": 329
+  },
+  "store": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 16,
+   "w": 336,
+   "h": 528,
+   "manual": false,
+   "pinned": false
+  }
+ },
+ "reload": {
+  "rect": {
+   "x": 8,
+   "y": 104,
+   "w": 346,
+   "h": 275
+  },
+  "windows": 1,
+  "presentation": "inline",
+  "storeEntry": {
+   "moduleId": "creation",
+   "x": 8,
+   "y": 104,
+   "w": 344,
+   "h": 273,
+   "manual": true,
+   "pinned": false
+  },
+  "canvases": 1,
+  "delta": {
+   "dx": 0,
+   "dy": 88,
+   "dw": 0,
+   "dh": -54
+  }
+ },
+ "result": "NO MOVEMENT"
+}
