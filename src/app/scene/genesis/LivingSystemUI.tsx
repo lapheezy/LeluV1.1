@@ -176,6 +176,7 @@ export default function LivingSystemUI() {
         focusId={workspaceState.focusId}
         selectedId={workspaceState.selectedId}
         besideChat={chatBox}
+        mobile={mobile}
         onSelectView={(id) => workspaceEngine.selectView(id)}
         onCloseView={(id) => workspaceEngine.closeView(id)}
         onOpenChat={() => {
@@ -578,6 +579,7 @@ function SystemWorkspace({
   focusId,
   selectedId,
   besideChat,
+  mobile,
   onSelectView,
   onCloseView,
   onOpenChat,
@@ -587,6 +589,8 @@ function SystemWorkspace({
   selectedId: string | null;
   /** The open chat window's horizontal extent: artifacts go beside it. */
   besideChat: { left: number; right: number } | null;
+  /** Phone layout: one scrollable column that stays inside the viewport. */
+  mobile: boolean;
   onSelectView: (id: string | null) => void;
   onCloseView: (id: string) => void;
   onOpenChat: () => void;
@@ -621,7 +625,36 @@ function SystemWorkspace({
   }
 
   return (
-    <div style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }}>
+    <div
+      style={
+        mobile
+          ? {
+              // Desktop places surfaces in a field around the core; a phone
+              // has no field to place them in. The measured phone result was
+              // cards at x = -88 (outside the viewport) because the desktop
+              // percentage slots and the chat-beside column were reused at
+              // 390 px. Here the same surfaces become one scrolling column
+              // between the navigation and the activity strip — nothing off
+              // screen, nothing under the core.
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 2,
+              pointerEvents: "auto",
+              overflowY: "auto",
+              WebkitOverflowScrolling: "touch",
+              overscrollBehavior: "contain",
+              boxSizing: "border-box",
+              display: "flex",
+              flexDirection: "column",
+              paddingTop: 92,
+              paddingBottom: 132,
+            }
+          : { position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }
+      }
+    >
       {ordered.map((view, index) => {
         const focused = view.id === focusId;
         const selected = view.id === selectedId;
@@ -634,13 +667,40 @@ function SystemWorkspace({
             data-kind={view.kind}
             data-selected={selected ? "true" : "false"}
             data-revision={view.revision}
+            /**
+             * Select on PRESS, not on click.
+             *
+             * A press that spans a re-render (the scene mounts, the layout
+             * settles, the chat opens) can end on a different element and
+             * never produce a click — measured: the first press after a
+             * compose left every surface data-selected="false" and the
+             * engine selectedId null, while the very next press worked.
+             * The press itself is the user's intent, so it is what selects.
+             * Controls inside the card keep their own behaviour.
+             */
+            onPointerDown={(event) => {
+              const target = event.target as HTMLElement | null;
+              if (target?.closest("button, a, input, select, textarea")) return;
+              onSelectView(view.id);
+            }}
             onClick={() => onSelectView(view.id)}
             style={{
-              position: "absolute",
-              ...position,
-              width: column ? column.width : focused ? "min(46vw, 460px)" : "min(30vw, 300px)",
-              minWidth: column ? undefined : focused ? 260 : 180,
-              maxHeight: column ? 224 : focused ? "min(46dvh, 420px)" : "min(34dvh, 300px)",
+              ...(mobile
+                ? {
+                    position: "relative" as const,
+                    margin: "0 12px 10px",
+                    width: "auto",
+                    minWidth: 0,
+                    maxHeight: "min(52dvh, 380px)",
+                    flexShrink: 0,
+                  }
+                : {
+                    position: "absolute" as const,
+                    ...position,
+                    width: column ? column.width : focused ? "min(46vw, 460px)" : "min(30vw, 300px)",
+                    minWidth: column ? undefined : focused ? 260 : 180,
+                    maxHeight: column ? 224 : focused ? "min(46dvh, 420px)" : "min(34dvh, 300px)",
+                  }),
               pointerEvents: "auto",
               overflow: "hidden",
               borderRadius: 14,

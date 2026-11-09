@@ -53,6 +53,18 @@ export interface SurfaceInput {
    * keeps the live Cosmos behind its windows by design, and still does.)
    */
   universeOwnsScreen?: boolean;
+  /**
+   * The LÉLU System environment owns the viewport
+   * (VisualEngine.interfaceFocus === "visual").
+   *
+   * On a phone this is the one case where the chat may not blank the
+   * field. LÉLU presents a workspace HERE — surfaces composed or restored
+   * by the environment engine paint inside this scene — and measured at
+   * 390×844 an expanded chat made cosmosRendered false, so the scene was
+   * unmounted and the workspace had zero [data-workspace-view] nodes. The
+   * chat keeps its floating phone sheet above the live field instead.
+   */
+  systemEnvironmentActive?: boolean;
 }
 
 export interface Surface {
@@ -84,6 +96,7 @@ export function resolveSurface(input: SurfaceInput): Surface {
   const mode = input.minimized ? "home" : modeFor(input.activePanel, input.openModuleCount);
   const workspaceOwnsScreen = input.compact && !input.minimized && (input.visibleModuleCount ?? 0) > 0;
   const chatOwnsScreen =
+    !input.systemEnvironmentActive &&
     input.compact && !input.minimized && !workspaceOwnsScreen &&
     ((mode === "chat" && (input.chatExpanded ?? true)) || Boolean(input.universeOwnsScreen));
   return { mode, chatOwnsScreen, workspaceOwnsScreen, cosmosRendered: !chatOwnsScreen && !workspaceOwnsScreen };

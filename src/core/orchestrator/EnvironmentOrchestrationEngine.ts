@@ -30,6 +30,7 @@ import InterfaceOrchestrator, {
 } from "../interface/InterfaceOrchestrator";
 import type { VisualSpec } from "../workspace/VisualSpec";
 import KvStore from "../storage/KvStore";
+import VisualEngine from "../visual/VisualEngine";
 
 export type EnvironmentTaskCategory =
   | "research"
@@ -146,6 +147,32 @@ export default class EnvironmentOrchestrationEngine {
       }
     } catch (e) {
       console.warn("[EnvironmentOrchestrationEngine] Storage hydration fallback:", e);
+    }
+  }
+
+  /**
+   * PRESENT THE WORK.
+   *
+   * Workspace surfaces paint in the System environment: GenesisScene mounts
+   * LivingSystemUI only when VisualEngine.interfaceFocus is "visual". A
+   * composed or restored environment was therefore invisible from the
+   * default world (measured in Mission 3.4: engine views present, zero
+   * [data-workspace-view] nodes). Chat and voice already ask for that
+   * environment through the existing `genesis-show-surface` channel, so
+   * this reuses that one presentation path instead of adding a second
+   * renderer or a parallel workspace.
+   *
+   * Idempotent: it returns when the environment is already showing, so it
+   * can never toggle the user back out of it. Presentation is best-effort:
+   * in a non-browser runtime the surfaces still exist and are still saved.
+   */
+  private presentWorkspace(): void {
+    if (typeof window === "undefined" || typeof window.dispatchEvent !== "function") return;
+    try {
+      if (VisualEngine.getInstance().getState().interfaceFocus === "visual") return;
+      window.dispatchEvent(new CustomEvent("genesis-show-surface", { detail: { panel: "visual" } }));
+    } catch {
+      // Nothing to present to; the workspace state is unaffected.
     }
   }
 
@@ -383,6 +410,9 @@ export default class EnvironmentOrchestrationEngine {
       this.workspace.focusView(createdViews[0].id);
     }
 
+    // The surfaces exist now; make sure the user can SEE them.
+    this.presentWorkspace();
+
     // 3. Optional Cosmos 3D Scene Objects update via InterfaceOrchestrator
     let sceneUpdated = false;
     if (request.sceneObjects && request.sceneObjects.length > 0) {
@@ -592,6 +622,9 @@ export default class EnvironmentOrchestrationEngine {
     });
     this.persistToStorage();
 
+    // An in-place revision is only a revision if it is on screen.
+    this.presentWorkspace();
+
     return { ok: true, view: updated };
   }
 
@@ -634,6 +667,9 @@ export default class EnvironmentOrchestrationEngine {
     for (const view of snapshot.workspaceSnapshot.views) {
       this.workspace.openView({
         id: view.id,
+        // A restored surface keeps the revision the snapshot captured;
+        // re-opening it is not a content change and must not rewind history.
+        revision: view.revision,
         kind: view.kind,
         title: view.title,
         spec: view.spec,
@@ -653,6 +689,9 @@ export default class EnvironmentOrchestrationEngine {
     if (snapshot.workspaceSnapshot.focusId) {
       this.workspace.focusView(snapshot.workspaceSnapshot.focusId);
     }
+
+    // Restored state is only a restoration if it is on screen.
+    this.presentWorkspace();
 
     return { ok: true, snapshot };
   }

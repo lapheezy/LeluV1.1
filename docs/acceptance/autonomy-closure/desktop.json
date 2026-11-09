@@ -1,0 +1,342 @@
+{
+  "startedAt": "2026-11-09T00:37:01.622Z",
+  "steps": [
+    {
+      "name": "navigated",
+      "at": "2026-11-09T00:37:03.284Z"
+    },
+    {
+      "name": "gate",
+      "at": "2026-11-09T00:38:07.668Z",
+      "present": true
+    },
+    {
+      "name": "past-signin",
+      "at": "2026-11-09T00:38:10.674Z",
+      "url": "http://127.0.0.1:4321/"
+    },
+    {
+      "name": "composed",
+      "at": "2026-11-09T00:38:11.182Z",
+      "ids": [
+        {
+          "id": "view-25ab79cb",
+          "revision": 1,
+          "title": "Findings"
+        },
+        {
+          "id": "view-d1c2833f",
+          "revision": 1,
+          "title": "Source table"
+        },
+        {
+          "id": "view-3a851cff",
+          "revision": 1,
+          "title": "Open questions"
+        }
+      ],
+      "focus": "visual",
+      "views": 3
+    },
+    {
+      "name": "mounted",
+      "at": "2026-11-09T00:38:19.303Z",
+      "hostPresent": true,
+      "count": 4
+    },
+    {
+      "name": "settled",
+      "at": "2026-11-09T00:38:27.465Z",
+      "cards": [
+        [
+          "view-providers",
+          374,
+          108,
+          "div[not-card]"
+        ],
+        [
+          "view-25ab79cb",
+          58,
+          162,
+          "div[not-card]"
+        ],
+        [
+          "view-d1c2833f",
+          58,
+          468,
+          "div[not-card]"
+        ],
+        [
+          "view-3a851cff",
+          720,
+          576,
+          "button[not-card]"
+        ]
+      ]
+    },
+    {
+      "name": "hittable",
+      "at": "2026-11-09T00:38:39.681Z",
+      "id": "view-providers",
+      "ok": false,
+      "top": "div[not-card]"
+    }
+  ],
+  "views": [
+    {
+      "id": "view-25ab79cb",
+      "revision": 1,
+      "title": "Findings"
+    },
+    {
+      "id": "view-d1c2833f",
+      "revision": 1,
+      "title": "Source table"
+    },
+    {
+      "id": "view-3a851cff",
+      "revision": 1,
+      "title": "Open questions"
+    }
+  ],
+  "selection": {},
+  "mutation": {},
+  "restore": {},
+  "errors": [],
+  "gateDismissed": false,
+  "mounted": {
+    "hostPresent": true,
+    "count": 4,
+    "focus": "lelu-system",
+    "cards": [
+      {
+        "id": "view-providers",
+        "revision": "3",
+        "selected": "false",
+        "rect": {
+          "x": 374,
+          "y": 108,
+          "w": 462,
+          "h": 416
+        },
+        "visible": true,
+        "center": {
+          "x": 605,
+          "y": 316
+        },
+        "topElement": "div"
+      },
+      {
+        "id": "view-25ab79cb",
+        "revision": "1",
+        "selected": "false",
+        "rect": {
+          "x": 374,
+          "y": 108,
+          "w": 462,
+          "h": 81
+        },
+        "visible": true,
+        "center": {
+          "x": 605,
+          "y": 149
+        },
+        "topElement": "div"
+      },
+      {
+        "id": "view-d1c2833f",
+        "revision": "1",
+        "selected": "false",
+        "rect": {
+          "x": 58,
+          "y": 162,
+          "w": 302,
+          "h": 113
+        },
+        "visible": true,
+        "center": {
+          "x": 209,
+          "y": 218
+        },
+        "topElement": "div"
+      },
+      {
+        "id": "view-3a851cff",
+        "revision": "1",
+        "selected": "false",
+        "rect": {
+          "x": 58,
+          "y": 468,
+          "w": 302,
+          "h": 81
+        },
+        "visible": true,
+        "center": {
+          "x": 209,
+          "y": 509
+        },
+        "topElement": "div"
+      }
+    ]
+  },
+  "settled": [
+    [
+      "view-providers",
+      374,
+      108,
+      462,
+      416
+    ],
+    [
+      "view-25ab79cb",
+      58,
+      162,
+      302,
+      81
+    ],
+    [
+      "view-d1c2833f",
+      58,
+      468,
+      302,
+      113
+    ],
+    [
+      "view-3a851cff",
+      720,
+      576,
+      302,
+      81
+    ]
+  ],
+  "settledCards": [
+    {
+      "id": "view-providers",
+      "revision": "4",
+      "selected": "false",
+      "rect": {
+        "x": 374,
+        "y": 108,
+        "w": 462,
+        "h": 416
+      },
+      "center": {
+        "x": 605,
+        "y": 316
+      },
+      "topElement": "div[not-card]"
+    },
+    {
+      "id": "view-25ab79cb",
+      "revision": "1",
+      "selected": "false",
+      "rect": {
+        "x": 58,
+        "y": 162,
+        "w": 302,
+        "h": 81
+      },
+      "center": {
+        "x": 209,
+        "y": 203
+      },
+      "topElement": "div[not-card]"
+    },
+    {
+      "id": "view-d1c2833f",
+      "revision": "1",
+      "selected": "false",
+      "rect": {
+        "x": 58,
+        "y": 468,
+        "w": 302,
+        "h": 113
+      },
+      "center": {
+        "x": 209,
+        "y": 524
+      },
+      "topElement": "div[not-card]"
+    },
+    {
+      "id": "view-3a851cff",
+      "revision": "1",
+      "selected": "false",
+      "rect": {
+        "x": 720,
+        "y": 576,
+        "w": 302,
+        "h": 81
+      },
+      "center": {
+        "x": 871,
+        "y": 617
+      },
+      "topElement": "button[not-card]"
+    }
+  ],
+  "blockedBy": {
+    "point": {
+      "x": 605,
+      "y": 316
+    },
+    "stack": [
+      {
+        "tag": "div",
+        "data": {},
+        "position": "static",
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "inCard": false
+      },
+      {
+        "tag": "div",
+        "data": {},
+        "position": "static",
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "inCard": false
+      },
+      {
+        "tag": "div",
+        "data": {
+          "data-lelu-signin-gate": "true",
+          "role": "dialog"
+        },
+        "position": "fixed",
+        "zIndex": "600",
+        "pointerEvents": "auto",
+        "inCard": false
+      },
+      {
+        "tag": "svg",
+        "data": {},
+        "position": "static",
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "inCard": true
+      },
+      {
+        "tag": "div",
+        "data": {},
+        "position": "static",
+        "zIndex": "auto",
+        "pointerEvents": "auto",
+        "inCard": true
+      }
+    ]
+  },
+  "hittable": {
+    "ok": false,
+    "x": 605,
+    "y": 316,
+    "top": "div[not-card]",
+    "rect": {
+      "x": 374,
+      "y": 108,
+      "w": 462,
+      "h": 416
+    }
+  },
+  "finishedAt": "2026-11-09T00:38:39.682Z"
+}
