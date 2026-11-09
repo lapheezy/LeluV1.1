@@ -45,10 +45,15 @@ import { ENVIRONMENT_EXECUTORS } from "../orchestrator/EnvironmentTools";
 // Repo Executor already do the real work; these four entries are how cognition
 // reaches them from a conversation.
 import { ACQUISITION_EXECUTORS } from "../orchestrator/AcquisitionTools";
+// Mission 8: the command center, marketplace, council, creator and bounded
+// cache join the same table. Ids Claude already dispatches are left alone.
+import COMMAND_CENTER_EXECUTORS from "../acquisition/CommandCenterExecutors";
 import { STUDIO_EXECUTORS } from "../studio/StudioTools";
 import { ATELIER_EXECUTORS } from "../atelier/AtelierTools";
 import EngineeringAuthorization from "../engineering/EngineeringAuthorization";
 import ApprovalGate from "../agentic/ApprovalGate";
+import AcquisitionApprovalGate from "../acquisition/ApprovalGate";
+import CapabilityActivation from "../acquisition/CapabilityActivation";
 import ToolStats from "../agentic/ToolStats";
 import MultiChatStore, { tokenizeText, type ChatConversation } from "../multichat/MultiChatStore";
 import { consentFor, findChat } from "../multichat/ChatConsent";
@@ -2588,6 +2593,12 @@ const BY_ID = new Map<string, ToolExecutor>(
   [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...ENVIRONMENT_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS, ...ACQUISITION_EXECUTORS].map((executor) => [executor.id, executor]),
 );
 
+// Mission 8's executors are additive: an id Claude already owns keeps its
+// canonical executor, so the newer repository tools are never shadowed.
+for (const executor of COMMAND_CENTER_EXECUTORS) {
+  if (!BY_ID.has(executor.id)) BY_ID.set(executor.id, executor);
+}
+
 /**
  * Add a tool at runtime: a new integration, a provider-backed capability,
  * a tool LÉLU wrote and the user approved. The executor joins the same
@@ -2653,6 +2664,17 @@ export function toolPermitted(id: string): boolean {
   if (id === "project.apply" || id === "project.commit") {
     return authorizedWorkspaceExists();
   }
+
+  // Acquisition writes are the same kind of act: a named approval opens
+  // the offer, and the dispatcher and runtime both re-check before write.
+  if (id === "repo.commit" && !AcquisitionApprovalGate.getInstance().hasAnyGrant("canonical-write")) return false;
+  if (id === "repo.rollback" && !AcquisitionApprovalGate.getInstance().hasAnyGrant("destructive")) return false;
+  if (id === "repo.pipeline" && !AcquisitionApprovalGate.getInstance().hasAnyGrant("canonical-write")) return false;
+  if (id === "capabilities.remove" && !AcquisitionApprovalGate.getInstance().hasAnyGrant("destructive")) return false;
+
+  // The marketplace is not a UI toggle: a deactivated capability's tools
+  // stop being offered here, at the same gate the dispatcher enforces.
+  if (!CapabilityActivation.getInstance().isToolEnabled(id)) return false;
 
   return true;
 }

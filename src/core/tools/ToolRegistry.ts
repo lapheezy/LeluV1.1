@@ -18,6 +18,7 @@
 
 
 import WorkspaceRuntime from "../engineering/WorkspaceRuntime";
+import COMMAND_CENTER_TOOL_DEFINITIONS from "../acquisition/CommandCenterToolDefinitions";
 import GitHubIntegration from "../engineering/GitHubIntegration";
 import SandboxFS from "../engineering/SandboxFS";
 import UIActionBus from "../cognition/UIActionBus";
@@ -57,6 +58,18 @@ export default class ToolRegistry {
 
   private constructor() {
     this.registerBuiltinTools();
+    this.registerCommandCenterTools();
+  }
+
+  /**
+   * Mission 8's workforce tools. Claude's canonical registry already declares
+   * repo.research/acquire/inspect/status, so the registrar never replaces an
+   * existing id: the newer definitions stay authoritative.
+   */
+  private registerCommandCenterTools(): void {
+    for (const tool of COMMAND_CENTER_TOOL_DEFINITIONS) {
+      if (!this.tools.has(tool.id)) this.tools.set(tool.id, tool);
+    }
   }
 
   static getInstance(): ToolRegistry {
@@ -344,6 +357,28 @@ export default class ToolRegistry {
       "project.commit",
     ]) {
       this.updateAvailability(id, runtimeReachable);
+    }
+
+    // Mission 8: one real acquisition-runtime probe governs the pipeline,
+    // maintenance and executor tools. When no runtime answers, cognition is
+    // not offered a tool this deployment cannot execute.
+    try {
+      const { default: AcquisitionRuntime } = await import("../acquisition/AcquisitionRuntime");
+      const acquisition = await AcquisitionRuntime.getInstance().status();
+      for (const id of [
+        "repo.search",
+        "repo.exec",
+        "repo.commit",
+        "repo.rollback",
+        "repo.pipeline",
+        "repo.maintenance",
+      ]) {
+        this.updateAvailability(id, acquisition.ok);
+      }
+    } catch {
+      for (const id of ["repo.search", "repo.exec", "repo.commit", "repo.rollback", "repo.pipeline", "repo.maintenance"]) {
+        this.updateAvailability(id, false);
+      }
     }
 
     // GitHub: one real probe (network/config), shared by every github.*

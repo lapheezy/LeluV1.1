@@ -68,6 +68,8 @@ export const ACQUISITION_DIR_NAME = ".lelu-acquisitions";
 export const MAX_ACQUISITIONS = 24;
 export const MAX_REPOSITORY_BYTES = 120 * 1024 * 1024;
 export const MAX_ARCHIVE_BYTES = 40 * 1024 * 1024;
+/** Total bytes across every acquisition: the managed workspace quota. */
+export const MAX_TOTAL_BYTES = 512 * 1024 * 1024;
 export const MAX_FILE_BYTES = 2 * 1024 * 1024;
 export const MAX_READ_BYTES = 512 * 1024;
 export const MAX_TREE_ENTRIES = 5000;
@@ -624,7 +626,33 @@ export function createAcquisitionApi(adapter: AcquisitionAdapter): {
     mkdirSync(dir, { recursive: true });
     const finished: AcquisitionRecord = { ...record, fingerprint: fingerprint(record) };
     writeFileSync(recordPath(record.id), JSON.stringify(finished, null, 2));
+    syncIndex();
     return finished;
+  }
+
+  /**
+   * A small durable index so a restart can list acquisitions without
+   * trusting the directory walk alone. It is rebuilt from the real
+   * records at every startup, never hand-edited.
+   */
+  function syncIndex(): void {
+    try {
+      const acquisitions = listRecords().map((record) => ({
+        id: record.id,
+        identifier: record.source.identifier,
+        commit: record.commit,
+        status: record.status,
+        capability: record.capability,
+        sizeBytes: record.sizeBytes,
+        updatedAt: record.updatedAt,
+      }));
+      writeFileSync(
+        path.join(root, "index.json"),
+        JSON.stringify({ updatedAt: Date.now(), acquisitions }, null, 2),
+      );
+    } catch {
+      /* the records themselves remain authoritative */
+    }
   }
 
   function patchRecord(id: string, patch: Partial<AcquisitionRecord>): AcquisitionRecord {
@@ -766,6 +794,14 @@ export function createAcquisitionApi(adapter: AcquisitionAdapter): {
       );
     }
     const license = detectLicense(repo);
+    const alreadyUsed = listRecords().reduce((sum, record) => sum + record.sizeBytes, 0);
+    if (alreadyUsed + measured.bytes > MAX_TOTAL_BYTES) {
+      rmSync(dirOf(input.id), { recursive: true, force: true });
+      throw new Error(
+        `The acquisition workspace quota is ${(MAX_TOTAL_BYTES / 1024 / 1024).toFixed(0)} MB; ` +
+          `this repository would take it to ${((alreadyUsed + measured.bytes) / 1024 / 1024).toFixed(1)} MB. Nothing was kept.`,
+      );
+    }
     return writeRecord({
       id: input.id,
       name: input.name,
@@ -792,6 +828,133 @@ export function createAcquisitionApi(adapter: AcquisitionAdapter): {
       timeoutMs,
       env: gitEnv(homeOf(id)),
     });
+  }
+
+  interface IntegrityFinding {
+    id: string;
+    identifier: string;
+    status: "ok" | "missing-repo" | "missing-record" | "fingerprint-mismatch" | "commit-mismatch";
+    detail: string;
+  }
+
+  /**
+   * Durable acquisition maintenance: integrity verification, recovery of
+   * interrupted acquisitions, and cleanup that can only ever remove
+   * experimental work.
+   */
+  async function maintenance(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+    if (!existsSync(root)) return { ok: true, findings: [], recovered: [], removed: [], kept: [] };
+    const operation = String(body.operation ?? "verify");
+
+    if (operation === "cleanup") {
+      const approver = consumeApproval(body, "destructive", "acquisition-maintenance");
+      const rawPolicy = (body.policy ?? {}) as Record<string, unknown>;
+      const maxAgeDays = Math.max(1, Math.min(3650, Number(rawPolicy.maxAgeDays ?? 30)));
+      const keepRecent = Math.max(0, Math.min(MAX_ACQUISITIONS, Number(rawPolicy.keepRecent ?? 5)));
+      const keepIntegrated = rawPolicy.keepIntegrated !== false;
+      const records = [...listRecords()].sort((a, b) => b.createdAt - a.createdAt);
+      const protectedIds = new Set<string>();
+      records.forEach((record, index) => {
+        if (index < keepRecent) protectedIds.add(record.id);
+        if (keepIntegrated && record.status === "integrated") protectedIds.add(record.id);
+      });
+      const cutoff = Date.now() - maxAgeDays * 86_400_000;
+      const removed: string[] = [];
+      const kept: string[] = [];
+      for (const record of records) {
+        if (protectedIds.has(record.id) || record.createdAt > cutoff) {
+          kept.push(record.id);
+          continue;
+        }
+        rmSync(dirOf(record.id), { recursive: true, force: true });
+        removed.push(record.id);
+      }
+      syncIndex();
+      return { ok: true, findings: [], recovered: [], removed, kept, approver };
+    }
+
+    if (operation === "recover") {
+      const recovered: string[] = [];
+      for (const entry of readdirSync(root, { withFileTypes: true })) {
+        if (!entry.isDirectory() || entry.name.startsWith(".")) continue;
+        if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(entry.name)) continue;
+        const id = entry.name;
+        if (existsSync(recordPath(id))) continue;
+        const repo = repoOf(id);
+        if (!existsSync(path.join(repo, ".git"))) continue;
+        const head = await gitIn(id, ["rev-parse", "HEAD"]);
+        const remote = await gitIn(id, ["remote", "get-url", "origin"]);
+        const url = remote.stdout.trim() || `https://github.com/${id}`;
+        let identifier = id;
+        let host = "github.com";
+        try {
+          const parsed = parseCloneUrl(url);
+          identifier = parsed.identifier;
+          host = parsed.host;
+        } catch {
+          /* keep the directory name when the remote is unusable */
+        }
+        finalizeAcquisition({
+          id,
+          name: identifier.split("/").pop() ?? identifier,
+          source: { kind: "github", identifier, url, host },
+          ref: "",
+          commit: head.ok ? head.stdout.trim() : "",
+          createdAt: Date.now(),
+        });
+        patchRecord(id, { notes: ["Recovered after an interrupted run."] });
+        recovered.push(id);
+      }
+      syncIndex();
+      return { ok: true, findings: [], recovered, removed: [], kept: [] };
+    }
+
+    // verify
+    const findings: IntegrityFinding[] = [];
+    for (const entry of readdirSync(root, { withFileTypes: true })) {
+      if (!entry.isDirectory() || entry.name.startsWith(".")) continue;
+      const id = entry.name;
+      if (!existsSync(recordPath(id))) {
+        findings.push({ id, identifier: "?", status: "missing-record", detail: "The directory has no acquisition.json." });
+        continue;
+      }
+      let record: AcquisitionRecord;
+      try {
+        record = readRecord(id);
+      } catch (error) {
+        findings.push({ id, identifier: "?", status: "missing-record", detail: String(error) });
+        continue;
+      }
+      const repo = repoOf(id);
+      if (!existsSync(repo)) {
+        findings.push({ id, identifier: record.source.identifier, status: "missing-repo", detail: "repo/ is absent." });
+        continue;
+      }
+      const { fingerprint: stored, ...rest } = record;
+      if (fingerprint(rest) !== stored) {
+        findings.push({
+          id,
+          identifier: record.source.identifier,
+          status: "fingerprint-mismatch",
+          detail: "The record body no longer matches its recorded fingerprint.",
+        });
+        continue;
+      }
+      if (record.status === "acquired" && record.commit) {
+        const head = await gitIn(id, ["rev-parse", "HEAD"]);
+        if (head.ok && head.stdout.trim() !== record.commit) {
+          findings.push({
+            id,
+            identifier: record.source.identifier,
+            status: "commit-mismatch",
+            detail: `Recorded ${record.commit.slice(0, 10)}, repository HEAD is ${head.stdout.trim().slice(0, 10)}.`,
+          });
+          continue;
+        }
+      }
+      findings.push({ id, identifier: record.source.identifier, status: "ok", detail: "Record, repo and fingerprint agree." });
+    }
+    return { ok: true, findings, recovered: [], removed: [], kept: [] };
   }
 
   async function cloneAcquisition(body: Record<string, unknown>): Promise<AcquisitionRecord> {
@@ -1055,6 +1218,7 @@ export function createAcquisitionApi(adapter: AcquisitionAdapter): {
             maxAcquisitions: MAX_ACQUISITIONS,
             maxRepositoryBytes: MAX_REPOSITORY_BYTES,
             maxArchiveBytes: MAX_ARCHIVE_BYTES,
+            maxTotalBytes: MAX_TOTAL_BYTES,
             maxFileBytes: MAX_FILE_BYTES,
             maxTimeoutMs: MAX_TIMEOUT_MS,
           },
@@ -1269,7 +1433,45 @@ export function createAcquisitionApi(adapter: AcquisitionAdapter): {
         const approver = consumeApproval(body, "destructive", id);
         const dir = dirOf(id);
         rmSync(dir, { recursive: true, force: true });
+        syncIndex();
         return { ok: true, id, approver };
+      }
+
+      case "selftest": {
+        // LÉLU's own integration tests, run in the runtime's workspace with
+        // a scrubbed environment. This is the evidence the pipeline requires
+        // before registration; it is not a simulated pass.
+        const result = await runProcess(
+          "npx",
+          [
+            "tsx",
+            "--test",
+            "tests/engineering-command-center.test.ts",
+            "tests/repository-acquisition.test.ts",
+          ],
+          { cwd: adapter.workspaceRoot, timeoutMs: 240_000, env: scrubbedEnv() },
+        );
+        return { ok: true, result: { ...result, operation: "selftest" } };
+      }
+
+      case "maintenance": {
+        return await maintenance(body);
+      }
+
+      case "upstream": {
+        const identifier = String(body.identifier ?? "").trim();
+        if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(identifier)) {
+          throw new Error("upstream requires owner/repository.");
+        }
+        const result = await runProcess(
+          "git",
+          ["ls-remote", `https://github.com/${identifier}.git`, "HEAD"],
+          { cwd: adapter.workspaceRoot, timeoutMs: 30_000, env: scrubbedEnv() },
+        );
+        if (!result.ok) throw new Error(`git ls-remote failed: ${(result.stderr || result.stdout).trim()}`);
+        const commit = (result.stdout.trim().split(/\s+/)[0] ?? "").padEnd(40, " ").slice(0, 40).trim();
+        if (!/^[0-9a-f]{40}$/.test(commit)) throw new Error("git ls-remote returned no usable commit.");
+        return { ok: true, identifier, commit };
       }
 
       case "logs": {

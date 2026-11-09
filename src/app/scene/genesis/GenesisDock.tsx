@@ -72,6 +72,7 @@ export const DOCK_ITEMS: DockItem[] = [
   { id: "cognition", label: "Cognition", glyph: "◬", icon: "brain", group: "intelligence" },
   { id: "cognitive-trace", label: "Trace", glyph: "⌁", icon: "wave", group: "intelligence" },
   { id: "evolution", label: "Evolution", glyph: "⬖", icon: "evolve", group: "intelligence" },
+  { id: "command", label: "Command", glyph: "⌘", icon: "brain", group: "intelligence" },
   { id: "device", label: "Device", glyph: "◮", icon: "phone", group: "system" },
   { id: "diagnostics", label: "Engines", glyph: "●", icon: "wave", group: "system" },
   { id: "executive", label: "Executive", glyph: "◉", icon: "brain", group: "system" },

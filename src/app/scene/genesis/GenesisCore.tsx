@@ -212,7 +212,10 @@ export type GenesisPanel =
   | "eng-studio"
   | "voice-studio"
   | "infra-monitor"
-  | "security-center";
+  | "security-center"
+  // Engineering workforce command center — acquisitions, executive,
+  // executor workbench, capability marketplace and creator studio.
+  | "command";
 
 
 /**

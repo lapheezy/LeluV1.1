@@ -207,6 +207,13 @@ export default class CapabilityManifest {
       ["sentinel-monitoring", "Sentinel Monitoring", "system", "Real-time system health and event monitoring"],
       ["architect-planning", "Architect Planning", "system", "System architecture analysis and planning"],
       ["engineering-sandbox", "Engineering Sandbox", "system", "Controlled code inspection and improvement"],
+      // Acquisition workforce: the local half is always present; the
+      // runtime-dependent half is registered below as not_configured and
+      // becomes "available" only when the acquisition runtime answers.
+      ["technology-knowledge-base", "Technology Knowledge Base", "knowledge", "Searchable record of researched and integrated technology"],
+      ["fuzzy-text-search", "Fuzzy Text Search", "knowledge", "Local Bitap approximate matching, adapted from Fuse (Apache-2.0)"],
+      ["repo-executive", "Repo Executive", "agents", "Strategic repository research, comparison and assignment"],
+      ["repo-executor", "Repo Executor", "agents", "Repository acquisition, adaptation, testing and integration"],
     ];
 
     for (const [id, name, category, description] of alwaysAvailable) {
@@ -219,6 +226,31 @@ export default class CapabilityManifest {
         providers: ["builtin"],
         lastSuccessful: now,
         lastChecked: now,
+      });
+    }
+
+    // Repository acquisition and its pipeline are real only where a
+    // server runtime serves /api/acquisition. They start unconfigured so
+    // cognition never advertises a capability this deployment cannot use;
+    // the runtime probe promotes them when it succeeds.
+    for (const [id, name, description] of [
+      ["repository-acquisition", "Repository Acquisition", "Secure server-side clone, ZIP import, inspection and isolated execution"],
+      ["capability-pipeline", "Repository-to-Capability Pipeline", "Discover → research → acquire → adapt → connect → test → approve → integrate → register → use"],
+      ["engineering-command-center", "Engineering Command Center", "Executive objectives, assignments, approvals, blocked work and completed acquisitions"],
+      ["capability-marketplace", "Capability Marketplace", "Inventory, activation, provenance, updates and safe removal of acquired capabilities"],
+      ["engineering-council", "Engineering Council", "Parallel architecture, security, testing, documentation, API, memory and UI review"],
+      ["creator-studio", "Creator Studio", "Objective to real project files through the engineering workspace, validated by its real toolchain"],
+    ] as const) {
+      this.capabilities.set(id, {
+        id,
+        name,
+        category: "tools",
+        description,
+        status: "not_configured",
+        providers: ["engineering-runtime"],
+        lastSuccessful: null,
+        lastChecked: now,
+        error: "No acquisition runtime has been reachable yet.",
       });
     }
   }

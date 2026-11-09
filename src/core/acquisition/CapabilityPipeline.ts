@@ -341,6 +341,9 @@ export default class CapabilityPipeline {
  * first acquisition (Bitap fuzzy search) that is `kb.search`.
  */
 function useToolsFor(capabilityId: string): string[] {
+  if (capabilityId.includes("cache") || capabilityId.includes("memory") || capabilityId.includes("lru")) {
+    return ["memory.cache"];
+  }
   if (capabilityId.includes("fuzzy") || capabilityId.includes("search")) return ["kb.search"];
   return [];
 }

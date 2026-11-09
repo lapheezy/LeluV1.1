@@ -78,6 +78,7 @@ import EngineeringStudioPanel from "./integration/EngineeringStudioPanel";
 import VoiceStudioPanel from "./integration/VoiceStudioPanel";
 import InfrastructureMonitorPanel from "./integration/InfrastructureMonitorPanel";
 import SecurityCenterPanel from "./integration/SecurityCenterPanel";
+import GenesisEngineeringCommandPanel from "./GenesisEngineeringCommandPanel";
 
 /**
  * ONE module set — the same instances the dock, palette, chat commands
@@ -119,6 +120,7 @@ const MODULE_RENDERERS: ModuleRenderers = {
   "voice-studio": ({ onClose }) => <VoiceStudioPanel onClose={onClose} />,
   "infra-monitor": ({ onClose }) => <InfrastructureMonitorPanel onClose={onClose} />,
   "security-center": ({ onClose }) => <SecurityCenterPanel onClose={onClose} />,
+  command: ({ onClose }) => <GenesisEngineeringCommandPanel onClose={onClose} />,
 };
 
 /** Every module that can be a window — what LÉLU's interface tools can see and arrange. */

@@ -20,6 +20,7 @@ import CreativeResolver from "./router/CreativeResolver";
 import ToolResolver from "./router/ToolResolver";
 import DeflockResolver from "./router/DeflockResolver";
 import TimeResolver from "./router/TimeResolver";
+import AcquisitionResolver from "./router/AcquisitionResolver";
 import ProjectResolver from "./router/ProjectResolver";
 import ToolCallInterceptor from "./router/ToolCallInterceptor";
 import ResponseBuilder from "./router/ResponseBuilder";
@@ -52,6 +53,7 @@ const ENVIRONMENT_REQUEST =
 
 export default class AIRouter {
   private readonly time = new TimeResolver();
+  private readonly acquisition = new AcquisitionResolver();
   private readonly interceptor = new ToolCallInterceptor();
 
   constructor(
@@ -239,6 +241,13 @@ export default class AIRouter {
     // no longer send a scene request into a scaffold.
     const spatial = await this.spatial.execute(context);
     if (spatial.handled && spatial.response) return spatial.response;
+
+    // 1.7 REPOSITORY WORKFORCE — chat prepares a real acquisition and the
+    // next explicit approval runs the pipeline. This runs before planning
+    // and research so an acquisition objective is never answered as a plan
+    // or a web search.
+    const acquisition = await this.acquisition.execute(context);
+    if (acquisition.handled && acquisition.response) return acquisition.response;
 
     await this.planning.execute(context);
     await this.reasoning.execute(context);

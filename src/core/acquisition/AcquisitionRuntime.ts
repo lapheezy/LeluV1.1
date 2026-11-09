@@ -31,6 +31,7 @@ export interface AcquisitionRuntimeStatus {
     maxAcquisitions: number;
     maxRepositoryBytes: number;
     maxArchiveBytes: number;
+    maxTotalBytes?: number;
     maxFileBytes: number;
     maxTimeoutMs: number;
   };
@@ -311,6 +312,52 @@ export default class AcquisitionRuntime {
     const data = await this.post({ action: "approve", ...input });
     if (data.ok !== true) return { ok: false, error: String(data.error ?? "approval refused") };
     return data as unknown as ApprovalGrant & { ok: true };
+  }
+
+  /**
+   * Run LÉLU's own acquisition integration tests in the runtime's
+   * workspace and return the real exit status. This is the evidence the
+   * pipeline requires before it will register an acquired capability.
+   */
+  async selftest(): Promise<RuntimeResult<{ result: ExecutionOutcome }>> {
+    const data = await this.post({ action: "selftest" });
+    if (data.ok !== true) return { ok: false, error: String(data.error ?? "selftest failed") };
+    return { ok: true, result: data.result as ExecutionOutcome };
+  }
+
+  /** Durable acquisition maintenance: verify, recover or clean up. */
+  async maintenance(
+    operation: "verify" | "recover" | "cleanup",
+    options: Record<string, unknown> = {},
+  ): Promise<
+    | { ok: true; findings: Array<{ id: string; identifier: string; status: string; detail: string }>; recovered: string[]; removed: string[]; kept: string[] }
+    | { ok: false; error: string; findings: []; recovered: []; removed: []; kept: [] }
+  > {
+    const data = await this.post({ action: "maintenance", operation, ...options });
+    if (data.ok !== true) {
+      return {
+        ok: false,
+        error: String(data.error ?? "maintenance failed"),
+        findings: [],
+        recovered: [],
+        removed: [],
+        kept: [],
+      };
+    }
+    return {
+      ok: true,
+      findings: (data.findings ?? []) as Array<{ id: string; identifier: string; status: string; detail: string }>,
+      recovered: (data.recovered ?? []) as string[],
+      removed: (data.removed ?? []) as string[],
+      kept: (data.kept ?? []) as string[],
+    };
+  }
+
+  /** The source repository's real HEAD, read over git (no API quota). */
+  async upstream(identifier: string): Promise<{ ok: true; commit: string } | { ok: false; error: string }> {
+    const data = await this.post({ action: "upstream", identifier });
+    if (data.ok !== true) return { ok: false, error: String(data.error ?? "upstream check failed") };
+    return { ok: true, commit: String(data.commit ?? "") };
   }
 
   /**
