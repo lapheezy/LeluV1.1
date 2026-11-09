@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-09T00:07:13.470Z",
+  "at": "2026-11-09T01:50:51.057Z",
   "timeline": [
     {
       "when": "immediately",
@@ -7,21 +7,21 @@
       "events": [
         {
           "type": "pointerdown",
-          "at": 1794182960936,
+          "at": 1794189139077,
           "target": "div",
           "inCard": false,
           "view": null
         },
         {
           "type": "pointerup",
-          "at": 1794182960942,
+          "at": 1794189139081,
           "target": "div",
           "inCard": false,
           "view": null
         },
         {
           "type": "click",
-          "at": 1794182960943,
+          "at": 1794189139082,
           "target": "div",
           "inCard": false,
           "view": null
@@ -35,21 +35,21 @@
       "events": [
         {
           "type": "pointerdown",
-          "at": 1794182960936,
+          "at": 1794189139077,
           "target": "div",
           "inCard": false,
           "view": null
         },
         {
           "type": "pointerup",
-          "at": 1794182960942,
+          "at": 1794189139081,
           "target": "div",
           "inCard": false,
           "view": null
         },
         {
           "type": "click",
-          "at": 1794182960943,
+          "at": 1794189139082,
           "target": "div",
           "inCard": false,
           "view": null
@@ -63,21 +63,21 @@
       "events": [
         {
           "type": "pointerdown",
-          "at": 1794182960936,
+          "at": 1794189139077,
           "target": "div",
           "inCard": false,
           "view": null
         },
         {
           "type": "pointerup",
-          "at": 1794182960942,
+          "at": 1794189139081,
           "target": "div",
           "inCard": false,
           "view": null
         },
         {
           "type": "click",
-          "at": 1794182960943,
+          "at": 1794189139082,
           "target": "div",
           "inCard": false,
           "view": null
@@ -91,42 +91,42 @@
       "events": [
         {
           "type": "pointerdown",
-          "at": 1794182960936,
+          "at": 1794189139077,
           "target": "div",
           "inCard": false,
           "view": null
         },
         {
           "type": "pointerup",
-          "at": 1794182960942,
+          "at": 1794189139081,
           "target": "div",
           "inCard": false,
           "view": null
         },
         {
           "type": "click",
-          "at": 1794182960943,
+          "at": 1794189139082,
           "target": "div",
           "inCard": false,
           "view": null
         },
         {
           "type": "pointerdown",
-          "at": 1794182967135,
+          "at": 1794189143259,
           "target": "div",
           "inCard": false,
           "view": null
         },
         {
           "type": "pointerup",
-          "at": 1794182967156,
+          "at": 1794189143285,
           "target": "div",
           "inCard": false,
           "view": null
         },
         {
           "type": "click",
-          "at": 1794182967156,
+          "at": 1794189143285,
           "target": "div",
           "inCard": false,
           "view": null
@@ -137,8 +137,8 @@
   ],
   "errors": [],
   "point": {
-    "x": 209,
-    "y": 203,
+    "x": 201,
+    "y": 199,
     "hit": "div",
     "inCard": false
   }
