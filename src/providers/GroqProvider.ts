@@ -19,6 +19,7 @@ import {
 } from "./openaiTools";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 import { endpointUrl } from "../core/Endpoints";
+import ProviderKeyRing from "../core/model/ProviderKeyRing";
 import { resolveFirst } from "../core/resolveEnv";
 import { authHeaders, isBrokered, providerConfigured } from "../core/model/BrokerTransport";
 import { resolveModel } from "../core/ProviderModels";
@@ -121,6 +122,68 @@ export default class GroqProvider implements AIProvider {
     return true;
   }
 
+  /**
+   * Send one payload, rotating across the configured Groq credentials.
+   *
+   * Free-tier capacity is per key, and this deployment may hold up to four.
+   * A refusal that another credential can fix (401/403/429) cools THIS slot in
+   * the ring and the next slot receives the same request; anything else is
+   * returned to the caller to report exactly as it is. A brokered send keeps
+   * its original single attempt — the server owns those credentials and the
+   * browser has none to rotate.
+   */
+  private async post(payload: unknown, request: AIRequest): Promise<Response> {
+    const broker = isBrokered("groq");
+    const ring = ProviderKeyRing.for("groq");
+    const slots = broker ? 1 : Math.max(1, Math.min(ring.size(), 4));
+    let last: Response | null = null;
+    let lastError: unknown;
+
+    for (let attempt = 0; attempt < slots; attempt += 1) {
+      const credential = broker ? null : ring.next();
+      const key = credential?.key ?? this.apiKey;
+      if (!key && !broker) break;
+      try {
+        const response = await fetch(endpointUrl("groq", "chat/completions"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            // Brokered: no credential leaves the browser — the server attaches
+            // its own. Direct (server/tests): the real header.
+            ...authHeaders("groq", key, (value) => ({ Authorization: `Bearer ${value}` })),
+          },
+          body: JSON.stringify(payload),
+          signal: request.signal
+            ? AbortSignal.any([request.signal, AbortSignal.timeout(this.timeout)])
+            : AbortSignal.timeout(this.timeout),
+        });
+        if (response.ok) {
+          if (credential) ring.markSuccess(credential.label);
+          return response;
+        }
+        const reason = await response.clone().text().catch(() => "");
+        const retryable = response.status === 401 || response.status === 403 || response.status === 429;
+        if (credential) {
+          ring.markFailure(credential.label, reason || `HTTP ${response.status}`);
+        }
+        if (retryable && ring.readyCount() > 0) {
+          last = response;
+          continue;
+        }
+        return response;
+      } catch (error) {
+        lastError = error;
+        if (credential) {
+          ring.markFailure(credential.label, error instanceof Error ? error.message : String(error));
+        }
+      }
+    }
+
+    if (last) return last;
+    throw lastError ?? new Error("Groq: no usable credential.");
+  }
+
   async generate(request: AIRequest): Promise<AIResponse> {
     const started = Date.now();
 
@@ -160,20 +223,7 @@ export default class GroqProvider implements AIProvider {
     let response: Response;
 
     try {
-      response = await fetch(endpointUrl("groq", "chat/completions"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          // Brokered: no credential leaves the browser — the server attaches
-          // its own. Direct (server/tests): the real header.
-          ...authHeaders("groq", this.apiKey, (key) => ({ Authorization: `Bearer ${key}` })),
-        },
-        body: JSON.stringify(payload),
-        signal: request.signal
-          ? AbortSignal.any([request.signal, AbortSignal.timeout(this.timeout)])
-          : AbortSignal.timeout(this.timeout),
-      });
+      response = await this.post(payload, request);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`Groq network error: ${message}`);

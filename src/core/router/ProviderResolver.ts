@@ -20,7 +20,7 @@ import AgentEventBus from "../agent/AgentEvents";
 import ModelRouter from "../model/ModelRouter";
 import { dispatchToolCall, latestCaptureMeasurements } from "../tools/ToolDispatcher";
 import { reducedToolSchemas, toolSchemasForRequest } from "../tools/ToolSchemas";
-import { describeRequestBudget } from "./RequestBudget";
+import { describeRequestBudget, fitRequestBudget, type SchemaTier } from "./RequestBudget";
 import { labelOtherChats } from "../multichat/ContextProvenance";
 import { BudgetExhaustedError, budgetNotice, gatedGenerate } from "../observability/UsageBudgetGate";
 
@@ -94,16 +94,64 @@ const MIN_RUNG_SLICE_MS = 1_500;
 export default class ProviderResolver {
   private readonly rungBudgetMs: number;
   private readonly chainBudgetMs: number;
+  /** Operator ceiling for one request body, in UTF-8 bytes. */
+  private readonly requestCeilingBytes?: number;
 
   /**
    * Budgets are injectable so a test can prove the cut-off in
    * milliseconds instead of waiting out the production numbers.
    */
-  constructor(budget: { rungBudgetMs?: number; chainBudgetMs?: number } = {}) {
+  constructor(budget: { rungBudgetMs?: number; chainBudgetMs?: number; requestCeilingBytes?: number } = {}) {
     // Operator overrides (defaults unchanged). A rung covers a whole tool
     // loop, so slow providers doing research can need more than 12 s.
     this.rungBudgetMs = budget.rungBudgetMs ?? configuredMs("LELU_PROVIDER_RUNG_BUDGET_MS") ?? PROVIDER_RUNG_BUDGET_MS;
     this.chainBudgetMs = budget.chainBudgetMs ?? configuredMs("LELU_CHAIN_BUDGET_MS") ?? CHAIN_BUDGET_MS;
+    this.requestCeilingBytes = budget.requestCeilingBytes ?? configuredMs("LELU_REQUEST_CEILING_BYTES") ?? undefined;
+  }
+
+  /**
+   * Apply the request ceiling BEFORE the request is handed to a provider.
+   *
+   * The degradation in `executeRung` reacts to a 413 that has already
+   * happened, and it resends the same history; a turn whose HISTORY is the
+   * problem is refused twice and then answers with no work done. This is the
+   * same decision made first: tool schemas first (from the end), then the
+   * oldest history, then the oldest text — never the prompt, never the most
+   * recent twelve messages. When nothing changes, the request is untouched.
+   */
+  private fitFor(
+    provider: AIProvider,
+    context: RouterContext,
+    messages: AIMessage[],
+    tools: Array<{ name: string; description?: string; parameters?: unknown }>,
+    tier: SchemaTier,
+  ) {
+    const fitted = fitRequestBudget({
+      messages,
+      prompt: context.request.prompt,
+      tools,
+      tier,
+      provider: provider.name,
+      model: context.request.model,
+      ...(context.request.maxTokens ? { maxTokens: context.request.maxTokens } : {}),
+      ...(this.requestCeilingBytes ? { limitBytes: this.requestCeilingBytes } : {}),
+      protectedTail: 12,
+    });
+    if (fitted.changed) {
+      context.logger.info("ProviderResolver", "Request budget enforced before send", {
+        provider: provider.name,
+        ceilingBytes: fitted.ceiling.bytes,
+        ceilingSource: fitted.ceiling.source,
+        tier: fitted.tier,
+        totalBytes: fitted.budget.totalBytes,
+        toolCount: fitted.budget.toolCount,
+        droppedTools: fitted.droppedTools,
+        droppedMessages: fitted.droppedMessages,
+        trimmedMessages: fitted.trimmedMessages,
+        notes: fitted.notes,
+      });
+    }
+    return fitted;
   }
 
   public async execute(context: RouterContext): Promise<ProviderResult> {
@@ -580,12 +628,22 @@ export default class ProviderResolver {
     // Tools are offered only on a conversational turn. Internal
     // structured-output calls (see AIRequest.allowTools) must reach the
     // provider exactly as they did before, or their parsers break.
-    const tools =
+    const offeredTools =
       toolMode !== "none" && provider.supportsTools === true && context.request.allowTools === true
         ? toolMode === "reduced"
           ? reducedToolSchemas(context.request.prompt, context.intent)
           : toolSchemasForRequest(context.request.prompt, context.intent)
         : [];
+    const requestedTier: SchemaTier =
+      toolMode === "reduced" ? "REDUCED" : toolMode === "none" ? "NONE" : "FULL";
+
+    /**
+     * THE CEILING, APPLIED HERE — the last point before a provider sees it.
+     * Everything below sends `fitted`, not the raw context, so a request that
+     * can only be refused is made acceptable first.
+     */
+    const fitted = this.fitFor(provider, context, context.request.messages ?? [], offeredTools, requestedTier);
+    const tools = fitted.tools;
 
     // The request as it will actually be sent, measured at the boundary where
     // it is assembled. Lengths and counts only: never content, never a key.
@@ -593,10 +651,10 @@ export default class ProviderResolver {
       "ProviderResolver",
       "Request budget",
       describeRequestBudget({
-        messages: context.request.messages as never,
+        messages: fitted.messages as never,
         prompt: context.request.prompt,
         tools,
-        tier: toolMode === "reduced" ? "REDUCED" : toolMode === "none" ? "NONE" : "FULL",
+        tier: fitted.tier,
         provider: provider.name,
         model: context.request.model,
       }) as unknown as Record<string, unknown>,
@@ -606,11 +664,14 @@ export default class ProviderResolver {
     // the original single call, untouched. This is the fallback path —
     // ToolCallInterceptor still salvages tool markup from these.
     if (tools.length === 0) {
-      return gatedGenerate(provider, this.withRungSignal(context.request, rungSignal));
+      return gatedGenerate(provider, {
+        ...this.withRungSignal(context.request, rungSignal),
+        messages: fitted.messages,
+      });
     }
 
     const taskId = String(context.request.timestamp ?? Date.now());
-    const messages: AIMessage[] = [...(context.request.messages ?? [])];
+    const messages: AIMessage[] = [...fitted.messages];
     const executed: Array<{ tool: string; ok: boolean }> = [];
     // What the model ASKED for, separately from what really ran.
     //
@@ -752,10 +813,21 @@ export default class ProviderResolver {
         });
       }
 
+      // The history grew while the tools ran: fit it again before the next
+      // round, so a long tool loop cannot walk into the same 413 the first
+      // request was trimmed to avoid. The most recent twelve messages are
+      // protected — that is this round's question and its results.
+      const refitted = this.fitFor(
+        provider,
+        context,
+        messages,
+        stopReason ? [] : tools,
+        stopReason ? "NONE" : tools.length === offeredTools.length ? requestedTier : "REDUCED",
+      );
       response = await gatedGenerate(provider, {
         ...this.withRungSignal(context.request, rungSignal),
-        messages,
-        ...(stopReason ? {} : { tools }),
+        messages: refitted.messages,
+        ...(refitted.tools.length ? { tools: refitted.tools } : {}),
       });
       onProgress?.();
 

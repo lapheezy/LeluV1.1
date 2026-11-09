@@ -163,6 +163,39 @@ try {
     await page.setViewportSize({ width, height });
     await page.waitForTimeout(900);
     const frame = await measure(`${width}x${height}`);
+    /**
+     * REACHABLE, not all-on-screen-at-once.
+     *
+     * A scrolling column legitimately holds cards below the fold; `allInside`
+     * reported that fold as an overflow and called 360x640 broken while the
+     * 640-tall phone simply showed fewer cards at a time. What must be true is
+     * that every surface is horizontally inside the viewport and that scrolling
+     * to the last one brings it fully into view.
+     */
+    frame.reach = await page.evaluate(async () => {
+      const cards = Array.from(document.querySelectorAll("[data-workspace-view]"));
+      if (cards.length === 0) return { count: 0, horizontallyInside: false, lastInside: false, unreachable: [] };
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const check = (node) => {
+        const rect = node.getBoundingClientRect();
+        return rect.x >= -2 && rect.right <= vw + 2 && rect.y >= -2 && rect.bottom <= vh + 2;
+      };
+      const horizontallyInside = cards.every((node) => {
+        const rect = node.getBoundingClientRect();
+        return rect.x >= -2 && rect.right <= vw + 2;
+      });
+      const last = cards[cards.length - 1];
+      last.scrollIntoView({ block: "end" });
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      return {
+        count: cards.length,
+        horizontallyInside,
+        lastInside: check(last),
+        unreachable: cards.filter((node) => !check(node)).map((node) => node.getAttribute("data-workspace-view")),
+      };
+    });
+    frame.pass = frame.reach.horizontallyInside && frame.reach.lastInside;
     result.viewports.push(frame);
     save();
     if (width === 360) await page.screenshot({ path: `${OUT}/shots/mobile-360.png` });

@@ -31,6 +31,19 @@ import { useWorkspace } from "./useWorkspace";
 /** Remembers that the user chose to carry on without an account. */
 const SKIP_KEY = "lelu.auth.skipped.v1";
 
+/**
+ * The guest choice, for THIS session, decided synchronously.
+ *
+ * The persisted answer is the durable one, but a dismissal must also hold
+ * across a remount — and the gate is remounted whenever the interface above it
+ * is rebuilt. `KvStore.set` writes through storage, and a component that came
+ * back before the next read saw its own answer would put the modal (and its
+ * full-screen backdrop) in front of the workspace again. Measured in
+ * docs/acceptance/autonomy-closure: the gate was gone in a warm session and
+ * back in a fresh one, above every press.
+ */
+let skippedThisSession = false;
+
 const persistence = SupabasePersistence.getInstance();
 
 export default function LeluSignInGate() {
@@ -39,7 +52,7 @@ export default function LeluSignInGate() {
     persistence.getAuthState(),
   );
   const [skipped, setSkipped] = useState<boolean>(
-    () => KvStore.getInstance().get<boolean>(SKIP_KEY) === true,
+    () => skippedThisSession || KvStore.getInstance().get<boolean>(SKIP_KEY) === true,
   );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -76,6 +89,7 @@ export default function LeluSignInGate() {
   }, []);
 
   const skip = useCallback(() => {
+    skippedThisSession = true;
     KvStore.getInstance().set(SKIP_KEY, true);
     setSkipped(true);
   }, []);
@@ -111,10 +125,23 @@ export default function LeluSignInGate() {
   // got told it had none.
   if (!probed || authState.status === "connecting") return null;
 
-  // Supabase genuinely cannot be reached: there is nothing to sign in to, so
-  // asking would be asking for something the user cannot give. State the real
-  // reason once and get out of the way.
-  const unconfigured = authState.status === "disabled";
+  /**
+   * Supabase cannot be reached: there is no account to sign in to, so there is
+   * no choice to make — and a choice that cannot be answered must not be a
+   * full-screen dialog.
+   *
+   * This used to render a "Continue" dialog here. It was the only thing a fresh
+   * guest could press, and its backdrop (`position: fixed`, `inset: 0`,
+   * `z-index: 600`, `pointer-events: auto`) sat between the person and the
+   * workspace: measured in docs/acceptance/autonomy-closure, every press on a
+   * surface landed on that backdrop instead of the surface. Saying nothing is
+   * the same answer the gate gives when someone is already signed in.
+   *
+   * Nothing is persisted on this path, on purpose: when the deployment later
+   * gains SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY, the gate must appear
+   * again, because then there really is something to sign in to.
+   */
+  if (authState.status === "disabled") return null;
 
   return (
     <div
@@ -164,21 +191,7 @@ export default function LeluSignInGate() {
           LÉLU · cloud identity
         </div>
 
-        {unconfigured ? (
-          <>
-            <p style={{ margin: "0 0 14px" }}>
-              Cloud sign-in is unavailable: this deployment has no Supabase URL
-              configured, so there is no account to sign in to. LÉLU runs
-              normally — memory, projects and conversations stay on this device.
-            </p>
-            <p style={{ margin: "0 0 16px", opacity: 0.68, fontSize: 12 }}>
-              To enable sync, set <code>SUPABASE_URL</code> and{" "}
-              <code>SUPABASE_PUBLISHABLE_KEY</code> in the environment and
-              reload.
-            </p>
-          </>
-        ) : (
-          <>
+        <>
             <p style={{ margin: "0 0 14px" }}>
               Sign in to carry memory, projects and conversations across your
               devices. You can also continue without an account — everything
@@ -248,8 +261,7 @@ export default function LeluSignInGate() {
                 </button>
               </div>
             </form>
-          </>
-        )}
+        </>
 
         <button
           type="button"
@@ -261,7 +273,7 @@ export default function LeluSignInGate() {
             borderColor: "rgba(255,255,255,0.14)",
           }}
         >
-          {unconfigured ? "Continue" : "Continue without an account"}
+          Continue without an account
         </button>
       </div>
     </div>

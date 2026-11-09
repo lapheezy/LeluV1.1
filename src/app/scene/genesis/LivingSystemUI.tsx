@@ -595,6 +595,27 @@ function SystemWorkspace({
   onCloseView: (id: string) => void;
   onOpenChat: () => void;
 }) {
+  /**
+   * A short phone (360x640 and smaller) needs DIFFERENT numbers, not smaller
+   * cards.
+   *
+   * The column reserved 92px at the top and 132px at the bottom for the core
+   * and the activity strip. On a 640px screen that left 416px of field, so the
+   * first surface started below the fold and every card had to be scrolled to
+   * before it could be read. The reserve is right for 844; it is not right for
+   * 640. This is measured off the viewport rather than inferred from the width,
+   * because the failing size has the SAME width as a taller phone that works.
+   */
+  const [shortViewport, setShortViewport] = useState(
+    () => typeof window !== "undefined" && window.innerHeight < 700,
+  );
+  useEffect(() => {
+    const onResize = () => setShortViewport(window.innerHeight < 700);
+    window.addEventListener("resize", onResize);
+    onResize();
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   const ordered = useMemo(() => {
     const list = [...views];
     // The user's selection first (status views refreshing must not push it
@@ -649,8 +670,8 @@ function SystemWorkspace({
               boxSizing: "border-box",
               display: "flex",
               flexDirection: "column",
-              paddingTop: 92,
-              paddingBottom: 132,
+              paddingTop: shortViewport ? 72 : 92,
+              paddingBottom: shortViewport ? "calc(env(safe-area-inset-bottom, 0px) + 96px)" : 132,
             }
           : { position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }
       }
@@ -688,10 +709,12 @@ function SystemWorkspace({
               ...(mobile
                 ? {
                     position: "relative" as const,
-                    margin: "0 12px 10px",
+                    margin: "0 12px 8px",
                     width: "auto",
                     minWidth: 0,
-                    maxHeight: "min(52dvh, 380px)",
+                    // Short screens get shorter cards so several are readable
+                    // without scrolling past the first one.
+                    maxHeight: shortViewport ? "min(42dvh, 240px)" : "min(52dvh, 380px)",
                     flexShrink: 0,
                   }
                 : {
