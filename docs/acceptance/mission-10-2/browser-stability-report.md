@@ -28,6 +28,21 @@ Frame rate, touch accessibility and chat/workspace transitions were not
 measured in this mission. White-screen crashes were not observed: no page errors
 were recorded beyond the harness's own entry failure.
 
+## The final attempt, in full
+
+A last run with the fixed query path was started and then cut short by the
+command's own 250-second timeout — the harness was killed, not the app:
+
+- 20 model requests and 5 acquisition-runtime requests had been made;
+- 0 approvals had been recorded at the moment it was killed;
+- the harness recorded `page.waitForTimeout: Target page, context or browser has
+  been closed`, which is the timeout killing the browser, not an application
+  crash.
+
+So the turn demonstrably reached the provider and the runtime on this build, and
+this report does not claim an approval cycle or a completed autonomous
+acquisition from it.
+
 ## Consequence for acceptance
 
 Gates that require a live browser turn (E, F, G, H, L) are **not** claimed as
