@@ -300,6 +300,13 @@ export default class WorkspaceEngine {
     temporary?: boolean;
     group?: string;
     source?: WorkspaceViewSource;
+    /**
+     * Restoring a saved environment re-opens views that already have a
+     * revision. Without this the new view was created at 1 and a snapshot
+     * silently rewound every surface's history (measured: mutate -> 2,
+     * restore -> 1).
+     */
+    revision?: number;
   }): WorkspaceView {
     const now = Date.now();
     const existing = input.id
@@ -346,7 +353,7 @@ export default class WorkspaceEngine {
       stackOrder: this.state.views.length,
       viewState: defaultViewState(),
       source: input.source,
-      revision: 1,
+      revision: input.revision ?? 1,
     };
     this.state = {
       ...this.state,
@@ -369,6 +376,13 @@ export default class WorkspaceEngine {
     temporary?: boolean;
     group?: string;
     source?: WorkspaceViewSource;
+    /**
+     * Restoring a saved environment re-opens views that already have a
+     * revision. Without this the new view was created at 1 and a snapshot
+     * silently rewound every surface's history (measured: mutate -> 2,
+     * restore -> 1).
+     */
+    revision?: number;
   }): WorkspaceView {
     this.upsertView(input);
     if (input.show !== false) {

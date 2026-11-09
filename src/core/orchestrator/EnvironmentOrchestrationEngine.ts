@@ -30,6 +30,7 @@ import InterfaceOrchestrator, {
 } from "../interface/InterfaceOrchestrator";
 import type { VisualSpec } from "../workspace/VisualSpec";
 import KvStore from "../storage/KvStore";
+import VisualEngine from "../visual/VisualEngine";
 
 export type EnvironmentTaskCategory =
   | "research"
@@ -146,6 +147,28 @@ export default class EnvironmentOrchestrationEngine {
       }
     } catch (e) {
       console.warn("[EnvironmentOrchestrationEngine] Storage hydration fallback:", e);
+    }
+  }
+
+  /**
+   * PRESENT THE WORK.
+   *
+   * The workspace surfaces paint in the System environment: GenesisScene
+   * mounts LivingSystemUI only when VisualEngine.interfaceFocus is "visual",
+   * so a composed or restored environment was invisible from the default
+   * world (measured: seven engine views, zero [data-workspace-view] nodes).
+   * Chat and voice already ask for that environment through the existing
+   * `genesis-show-surface` channel, so this reuses it rather than adding a
+   * second renderer or a parallel workspace. Idempotent: it never toggles the
+   * environment back off, and in a non-browser runtime it does nothing.
+   */
+  private presentWorkspace(): void {
+    if (typeof window === "undefined" || typeof window.dispatchEvent !== "function") return;
+    try {
+      if (VisualEngine.getInstance().getState().interfaceFocus === "visual") return;
+      window.dispatchEvent(new CustomEvent("genesis-show-surface", { detail: { panel: "visual" } }));
+    } catch {
+      // Presentation is best-effort: the surfaces exist and are saved either way.
     }
   }
 
@@ -383,6 +406,9 @@ export default class EnvironmentOrchestrationEngine {
       this.workspace.focusView(createdViews[0].id);
     }
 
+    // The surfaces exist now; make sure the user can SEE them.
+    this.presentWorkspace();
+
     // 3. Optional Cosmos 3D Scene Objects update via InterfaceOrchestrator
     let sceneUpdated = false;
     if (request.sceneObjects && request.sceneObjects.length > 0) {
@@ -592,6 +618,8 @@ export default class EnvironmentOrchestrationEngine {
     });
     this.persistToStorage();
 
+    this.presentWorkspace();
+
     return { ok: true, view: updated };
   }
 
@@ -634,6 +662,9 @@ export default class EnvironmentOrchestrationEngine {
     for (const view of snapshot.workspaceSnapshot.views) {
       this.workspace.openView({
         id: view.id,
+        // A restored surface keeps its revision, so the history a snapshot
+        // captured is the history that comes back.
+        revision: view.revision,
         kind: view.kind,
         title: view.title,
         spec: view.spec,
@@ -647,12 +678,13 @@ export default class EnvironmentOrchestrationEngine {
       if (view.weight > 1) {
         this.workspace.resizeView(view.id, view.weight);
       }
-    }
-
-    this.workspace.setLayout(snapshot.workspaceSnapshot.layout);
+    }    this.workspace.setLayout(snapshot.workspaceSnapshot.layout);
     if (snapshot.workspaceSnapshot.focusId) {
       this.workspace.focusView(snapshot.workspaceSnapshot.focusId);
     }
+
+    // Restored state is only a restoration if it is on screen.
+    this.presentWorkspace();
 
     return { ok: true, snapshot };
   }
