@@ -109,15 +109,26 @@ Verdict object written by the probe: `{sameRepoReused: true, differentRepoDistin
 
 ## 13. Live browser execution
 
-Run at `d2c4b9a` + this mission's changes, real browser, real provider
-(`docs/acceptance/mission-7-2/chat-turn1.json`, 12 model requests, 4 runtime requests):
+Run after integration, real browser, real provider
+(`docs/acceptance/mission-7-2/chat-turn1.json`, **28 model requests, 5 runtime
+requests, 0 approvals**):
 
-- LÉLU answered in her own words, rendered in the chat window: *"I could not
-  prepare that acquisition: No repository was found for … Give me a repository as
-  owner/name … and I will research it for real."* — a real failure reported
-  honestly, not a fabricated success.
-- **No approval cycle occurred in this run**: the model chose a direct acquire that
-  failed at research, so no `ApprovalGate` request was created (`approvals: 0`).
+- Entry to the composer was fixed and measured this mission: the sign-in card
+  sits above the workspace and the cosmos menu above the dock, so the dock's
+  conversation control is the only press that renders `Message LÉLU…`
+  (`docs/acceptance/mission-10/entry-probe2.json`).
+- The prompt reaching the model was still **truncated**: *"maintained could s
+  typo-tolerant search. Compare relevant candidates inspect their licenses
+  recommend best fit."* Typing with real key events (`delay: 18`) produced the
+  same result as bulk insert, so the composer is **not** the cause. The request
+  fitter that runs before a provider sees a request is dropping words — a real
+  product defect found by this mission.
+- Because the surviving text no longer named the subject, research found nothing
+  and LÉLU answered honestly in her own words: *"I could not prepare that
+  acquisition: No repository was found for … Give me a repository as owner/name
+  … and I will research it for real."* She did not fabricate an acquisition.
+- Consequently **no approval cycle occurred** in this run (`approvals: 0`): no
+  approval-requiring step was ever planned.
 
 Mission 7.2's approved-and-executed run remains the evidence for that path and is
 preserved at `docs/acceptance/mission-10/evidence/prior-chat-turn1.json`.
@@ -136,10 +147,10 @@ preserved at `docs/acceptance/mission-10/evidence/prior-chat-turn1.json`.
 
 ## 16. Remaining blockers
 
-1. **No approval cycle in the post-integration live run.** The prompt the composer
-   received was mangled (`"maintained could s typo-tolerant search…"`), so research
-   found nothing and no approval-requiring step was planned. Re-running with a clean
-   prompt is required to re-prove path A after integration.
+1. **The request fitter truncates the prompt before the provider sees it.** Three
+   post-integration runs all delivered a subject-less prompt, with bulk insert and
+   with real key events alike. This is the blocker for a clean approval cycle and
+   it is inside the repository, not the harness.
 2. `OPENROUTER_API_KEY` is absent from this shell's environment; the dev server
    answers model calls from whatever key the browser profile supplies, which makes
    runs dependent on prior session state.
