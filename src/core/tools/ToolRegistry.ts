@@ -507,6 +507,67 @@ export default class ToolRegistry {
         verificationMethod: "the restored views match the snapshot",
       },
 
+      // Repository workforce (Mission 9) — Mission 7's acquisition executives,
+      // finally reachable from a conversation. Each one has a real executor in
+      // orchestrator/AcquisitionTools.ts and runs through the same dispatcher;
+      // a registry entry with no executor is never offered, so these two halves
+      // have to stay together.
+      {
+        id: "repo.research",
+        name: "Research Repositories",
+        description:
+          "Search real code hosts for open-source repositories that could close a capability gap, ".concat(
+            "then rank them with their licence obligations and the risks they carry.",
+          ),
+        category: "Repository",
+        permissions: ["READ", "EXTERNAL_ACTION"],
+        riskLevel: 1,
+        available: true,
+        executionRoute: "RepoExecutive.proposals",
+        verificationMethod: "every candidate is a real repository whose findings were read back",
+      },
+      {
+        id: "repo.acquire",
+        name: "Acquire Repository Capability",
+        description:
+          "Acquire a repository into an isolated workspace, inspect its real files, adapt the useful ".concat(
+            "implementation, run the repository's own tests and prepare it for integration. ",
+            "A commit needs explicit authorization; canonical code is never modified without approval.",
+          ),
+        category: "Repository",
+        permissions: ["READ", "WRITE", "EXECUTE", "EXTERNAL_ACTION"],
+        riskLevel: 2,
+        available: true,
+        executionRoute: "RepoExecutor.execute",
+        verificationMethod: "the written files and the repository's own test exit codes are read back",
+      },
+      {
+        id: "repo.inspect",
+        name: "Inspect Acquired Repository",
+        description:
+          "Read an acquisition's real tree, manifest and licence instead of describing them from memory.",
+        category: "Repository",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "RepoExecutor.inspect",
+        verificationMethod: "the tree and licence come from the files on disk",
+      },
+      {
+        id: "repo.status",
+        name: "Repository Workforce Status",
+        description:
+          "Report what the repository workforce has acquired, which assignments exist and which ".concat(
+            "capabilities are registered, including what failed.",
+          ),
+        category: "Repository",
+        permissions: ["READ"],
+        riskLevel: 0,
+        available: true,
+        executionRoute: "AcquisitionStore and AcquisitionRuntime status",
+        verificationMethod: "the runtime and the store answer for themselves",
+      },
+
       // Research
       {
         id: "research.web",
