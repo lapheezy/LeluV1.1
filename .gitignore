@@ -82,3 +82,6 @@ docs/acceptance/**/traces/
 
 # Playwright browser libraries unpacked into the workspace (see docs/acceptance/spatial-phase-2-11/scripts/README.md)
 .apt/
+
+# Acquisition workspaces: real clones with their own .git, never tracked.
+.lelu-acquisitions/

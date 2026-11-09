@@ -46,6 +46,7 @@ import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { createGithubApi } from "./plugins/githubApi.ts";
 import { createModelApi } from "./plugins/modelApi.ts";
+import { createAcquisitionApi } from "./plugins/acquisitionApi.ts";
 import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 import { createAccessGate } from "./plugins/accessGate.ts";
 import { createIntegrationApi } from "./plugins/integrationApi.ts";
@@ -487,6 +488,14 @@ createAiProxyApi((key) => process.env[key]).attach(middlewares);
 // Same-origin model broker: the browser posts here, the server holds
 // the credential and talks to the provider.
 createModelApi((key) => process.env[key]).attach(middlewares);
+
+// Repository acquisition: real clones, inspections and isolated execution.
+// Mounted here as well as in Vite dev so both runtimes serve the same routes.
+createAcquisitionApi({
+  runtime: "node-server",
+  workspaceRoot: WORKSPACE_ROOT,
+  acquisitionsRoot: path.join(WORKSPACE_ROOT, ".lelu-acquisitions"),
+}).attach(middlewares);
 // LÉLU 3D Forge — the only holder of the Meshy credential (see meshyForgeApi.ts).
 createMeshyForgeApi((key) => process.env[key]).attach(middlewares);
 // The GitHub Models relay forwards with the SERVER's token, so it is for a

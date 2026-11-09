@@ -12,6 +12,7 @@ import { createIntegrationApi } from "./plugins/integrationApi.ts";
 import { createNodeEngineerAdapter } from "./plugins/nodeAdapters.ts";
 import { createEnvApi } from "./plugins/envApi.ts";
 import { createModelApi } from "./plugins/modelApi.ts";
+import { createAcquisitionApi } from "./plugins/acquisitionApi.ts";
 import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
@@ -144,6 +145,37 @@ export default defineConfig(({ mode, command }) => {
       // module evaluates, so every provider's initialize() sees them.
       runtimeKeyBridgePlugin(envReader),
       modelApiPlugin(),
+
+      // Repository acquisition: real git clones, isolated command execution,
+      // versioning and approvals. The same runtime the standalone server mounts,
+      // so a tool call in the browser reaches a real workspace operation.
+      {
+        name: "acquisition-api",
+        configureServer(server: any) {
+          createAcquisitionApi({
+            runtime: "vite-dev",
+            workspaceRoot: process.cwd(),
+            acquisitionsRoot: `${process.cwd()}/.lelu-acquisitions`,
+            githubToken: () =>
+              envReader("GITHUB_TOKEN") ||
+              envReader("GITHUB_READ_TOKEN") ||
+              envReader("VITE_GITHUB_TOKEN") ||
+              envReader("LELU_ACQUISITION_GITHUB_TOKEN"),
+          }).attach(server.middlewares);
+        },
+        configurePreviewServer(server: any) {
+          createAcquisitionApi({
+            runtime: "vite-preview",
+            workspaceRoot: process.cwd(),
+            acquisitionsRoot: `${process.cwd()}/.lelu-acquisitions`,
+            githubToken: () =>
+              envReader("GITHUB_TOKEN") ||
+              envReader("GITHUB_READ_TOKEN") ||
+              envReader("VITE_GITHUB_TOKEN") ||
+              envReader("LELU_ACQUISITION_GITHUB_TOKEN"),
+          }).attach(server.middlewares);
+        },
+      },
 
       // Tailwind v4 — utilities for the OG interfaces only; see src/og/og.css
       // for why preflight is deliberately not part of that build.

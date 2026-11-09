@@ -41,6 +41,10 @@ import { INTERFACE_EXECUTORS } from "../interface/InterfaceTools";
 // else. They are not a second registry or a parallel dispatch path: one
 // dispatchToolCall() runs them, with the same gate, events and result shape.
 import { ENVIRONMENT_EXECUTORS } from "../orchestrator/EnvironmentTools";
+// Mission 9: the repository workforce joins the same table. Repo Executive and
+// Repo Executor already do the real work; these four entries are how cognition
+// reaches them from a conversation.
+import { ACQUISITION_EXECUTORS } from "../orchestrator/AcquisitionTools";
 import { STUDIO_EXECUTORS } from "../studio/StudioTools";
 import { ATELIER_EXECUTORS } from "../atelier/AtelierTools";
 import EngineeringAuthorization from "../engineering/EngineeringAuthorization";
@@ -2581,7 +2585,7 @@ const EXECUTORS: ToolExecutor[] = [
 ];
 
 const BY_ID = new Map<string, ToolExecutor>(
-  [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...ENVIRONMENT_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS].map((executor) => [executor.id, executor]),
+  [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...ENVIRONMENT_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS, ...ACQUISITION_EXECUTORS].map((executor) => [executor.id, executor]),
 );
 
 /**

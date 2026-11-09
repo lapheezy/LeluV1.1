@@ -230,6 +230,223 @@
         "table: {Stage: ProviderResolver, Success: true, Message: OpenRouter generated response, Provider: -, Duration: -, Confidence: -}"
       ],
       "result": "RECORDED"
+    },
+    {
+      "stage": "continue",
+      "prompt": "Continue the restored work: add a section about Saturns rings to the existing document surface, updating it in place rather than making a new one.",
+      "at": 1794227667797,
+      "mark": 104,
+      "attempts": [
+        {
+          "n": 1,
+          "at": 1794227673918,
+          "sent": 1794227724496,
+          "waitedMs": 62935,
+          "changed": true,
+          "providerLimited": false,
+          "windows": 1,
+          "contents": 1,
+          "tools": [
+            "startGroupCollapsed: 🟢 [12:35:58 PM] [ProviderResolver] Tool environment_mutate_surface -> ok",
+            "table: {Stage: ProviderResolver, Success: true, Message: Tool environment_mutate_surface -> ok, Provider: -, Duration: -, Confidence: -}"
+          ]
+        }
+      ],
+      "before": {
+        "windows": 1,
+        "contents": [
+          "chat:7eefb392-29f5-4c12-8574-b745c245c556"
+        ],
+        "titles": [
+          "◍Create a working space about the pla📍—⤢✕Create a working space about the pla⚙️Working wi"
+        ],
+        "canvases": 3,
+        "elements": 714,
+        "textLen": 6183,
+        "tail": [
+          "◍",
+          "Genesis Studios",
+          "▶",
+          "Media",
+          "RESOURCES",
+          "▤",
+          "Projects",
+          "▥",
+          "Files",
+          "COMMUNICATION",
+          "✉",
+          "Conversation",
+          "YOUR WORLDS",
+          "⌂",
+          "LÉLU's room",
+          "core|idle|100"
+        ],
+        "toolMentions": [
+          "environment.compose",
+          "environment.present_artifact"
+        ],
+        "signature": {
+          "hash": 695809425,
+          "length": 4476
+        },
+        "snapshotMentions": [],
+        "storage": [
+          "lelu.lelu.background.v1",
+          "lelu.lelu.selfstudy.objectives.v1",
+          "lelu.lelu.proactive.suggestions.v1",
+          "lelu.lelu.reflection.last.v1",
+          "lelu.notifications.history.v1",
+          "lelu.lelu.self.v1",
+          "lelu.environment.revisions",
+          "lelu.lelu.tasks.v1",
+          "lelu.lelu.executive.probe",
+          "lelu.lelu.objective.lessons.v1",
+          "lelu.lelu.world.lifecycle.v2",
+          "lelu.agents.v1",
+          "lelu.lelu.runtime.health.v1",
+          "lelu.proactive.patterns.v1",
+          "lelu.daily.v1",
+          "lelu.lelu.exploration.v1",
+          "lelu.lelu.selfdev.engineering-memory.v1",
+          "lelu.proactive.session.v1",
+          "lelu.multichat.workspace.v1",
+          "lelu.lelu.runtime.activity.v1",
+          "lelu.lelu.toolstats.v1",
+          "lelu.avatar.v1",
+          "lelu.lelu.selfstudy.trace.v1",
+          "lelu.proactive.runtime.checkpoint.v1"
+        ],
+        "envState": "[{\"id\":\"snapshot-mw98jvhh\",\"name\":\"planets-closure\",\"timestamp\":1794227204645,\"category\":\"development\",\"workspaceSnapshot\":{\"views\":[{\"id\":\"view-executive\",\"kind\":\"executive\",\"title\":\"Lélu · Live Execution\",\"createdAt\":1794227005311,\"updatedAt\":1794227005331,\"minimized\":false,\"pinned\":false,\"temporary\":false,\"weight\":1,\"stackOrder\":0,\"viewState\":{\"zoom\":1,\"pan\":{\"x\":0,\"y\":0},\"highlighted\":[],\"sele"
+      },
+      "observed": {
+        "windows": 1,
+        "contents": [
+          "chat:7eefb392-29f5-4c12-8574-b745c245c556"
+        ],
+        "titles": [
+          "◍Create a working space about the pla📍—⤢✕Create a working space about the pla⚙️Working wi"
+        ],
+        "canvases": 3,
+        "elements": 720,
+        "textLen": 6529,
+        "tail": [
+          "◍",
+          "Genesis Studios",
+          "▶",
+          "Media",
+          "RESOURCES",
+          "▤",
+          "Projects",
+          "▥",
+          "Files",
+          "COMMUNICATION",
+          "✉",
+          "Conversation",
+          "YOUR WORLDS",
+          "⌂",
+          "LÉLU's room",
+          "core|idle|100"
+        ],
+        "toolMentions": [
+          "environment.compose",
+          "environment.present_artifact"
+        ],
+        "signature": {
+          "hash": -111223937,
+          "length": 4798
+        },
+        "snapshotMentions": [],
+        "storage": [
+          "lelu.lelu.background.v1",
+          "lelu.lelu.selfstudy.objectives.v1",
+          "lelu.lelu.proactive.suggestions.v1",
+          "lelu.lelu.reflection.last.v1",
+          "lelu.notifications.history.v1",
+          "lelu.lelu.self.v1",
+          "lelu.environment.revisions",
+          "lelu.lelu.tasks.v1",
+          "lelu.lelu.executive.probe",
+          "lelu.lelu.objective.lessons.v1",
+          "lelu.lelu.world.lifecycle.v2",
+          "lelu.agents.v1",
+          "lelu.lelu.runtime.health.v1",
+          "lelu.proactive.patterns.v1",
+          "lelu.daily.v1",
+          "lelu.lelu.exploration.v1",
+          "lelu.lelu.selfdev.engineering-memory.v1",
+          "lelu.proactive.session.v1",
+          "lelu.multichat.workspace.v1",
+          "lelu.lelu.runtime.activity.v1",
+          "lelu.lelu.toolstats.v1",
+          "lelu.avatar.v1",
+          "lelu.lelu.selfstudy.trace.v1",
+          "lelu.proactive.runtime.checkpoint.v1"
+        ],
+        "envState": "[{\"id\":\"snapshot-mw98jvhh\",\"name\":\"planets-closure\",\"timestamp\":1794227204645,\"category\":\"development\",\"workspaceSnapshot\":{\"views\":[{\"id\":\"view-executive\",\"kind\":\"executive\",\"title\":\"Lélu · Live Execution\",\"createdAt\":1794227005311,\"updatedAt\":1794227005331,\"minimized\":false,\"pinned\":false,\"temporary\":false,\"weight\":1,\"stackOrder\":0,\"viewState\":{\"zoom\":1,\"pan\":{\"x\":0,\"y\":0},\"highlighted\":[],\"sele"
+      },
+      "waitedMs": 62935,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "startGroupCollapsed: 🟢 [12:34:59 PM] [ProviderResolver] Model routing decision",
+        "table: {Stage: ProviderResolver, Success: true, Message: Model routing decision, Provider: -, Duration: -, Confidence: -}",
+        "log: Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+        "startGroupCollapsed: 🟢 [12:34:59 PM] [ProviderResolver] Trying OpenRouter",
+        "table: {Stage: ProviderResolver, Success: true, Message: Trying OpenRouter, Provider: -, Duration: -, Confidence: -}",
+        "log: Metadata: {provider: OpenRouter, priority: 2, promptLength: 1016, requestedModel: undefined}",
+        "startGroupCollapsed: 🟢 [12:34:59 PM] [ProviderResolver] Request budget",
+        "table: {Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}",
+        "log: Metadata: {provider: OpenRouter, tier: FULL, messageCount: 2, systemBytes: 197, historyBytes: 1028}",
+        "startGroupCollapsed: 🟢 [12:35:04 PM] [ProviderResolver] OpenRouter generated response",
+        "table: {Stage: ProviderResolver, Success: true, Message: OpenRouter generated response, Provider: -, Duration: -, Confidence: -}",
+        "log: Metadata: {provider: OpenRouter, model: openai/gpt-4o-mini, latencyMs: 5119, responseLength: 506, usage: Object}",
+        "info: [Orchestrator] Processing request: Continue the restored work: add a section about Saturns rings to the existing document surface, upda",
+        "table: {Stage: ReasoningResolver, Success: true, Message: Selected \"Ground the answer in the conversation/co… attached to this request.\" with confidence 0.75., Provider: -, Duration: -, Confidence: -}",
+        "startGroupCollapsed: 🟢 [12:35:45 PM] [ProviderResolver] Model routing decision",
+        "table: {Stage: ProviderResolver, Success: true, Message: Model routing decision, Provider: -, Duration: -, Confidence: -}",
+        "log: Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+        "startGroupCollapsed: 🟢 [12:35:45 PM] [ProviderResolver] Trying OpenRouter",
+        "table: {Stage: ProviderResolver, Success: true, Message: Trying OpenRouter, Provider: -, Duration: -, Confidence: -}",
+        "log: Metadata: {provider: OpenRouter, priority: 2, promptLength: 146, requestedModel: undefined}",
+        "startGroupCollapsed: 🟢 [12:35:45 PM] [ProviderResolver] Request budget",
+        "table: {Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}",
+        "log: Metadata: {provider: OpenRouter, tier: FULL, messageCount: 15, systemBytes: 832, historyBytes: 4551}",
+        "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "startGroupCollapsed: 🟢 [12:35:58 PM] [ProviderResolver] Tool environment_mutate_surface -> ok",
+        "table: {Stage: ProviderResolver, Success: true, Message: Tool environment_mutate_surface -> ok, Provider: -, Duration: -, Confidence: -}",
+        "log: Metadata: {tool: environment_mutate_surface, ok: true, round: 1}",
+        "startGroupCollapsed: 🟢 [12:36:07 PM] [ProviderResolver] OpenRouter generated response",
+        "table: {Stage: ProviderResolver, Success: true, Message: OpenRouter generated response, Provider: -, Duration: -, Confidence: -}",
+        "log: Metadata: {provider: OpenRouter, model: openai/gpt-4o-mini, latencyMs: 8801, responseLength: 177, usage: Object}",
+        "error: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+        "error: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+        "startGroupCollapsed: 🟢 [12:36:22 PM] [ProviderResolver] Model routing decision",
+        "table: {Stage: ProviderResolver, Success: true, Message: Model routing decision, Provider: -, Duration: -, Confidence: -}",
+        "log: Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+        "startGroupCollapsed: 🟢 [12:36:22 PM] [ProviderResolver] Trying OpenRouter",
+        "table: {Stage: ProviderResolver, Success: true, Message: Trying OpenRouter, Provider: -, Duration: -, Confidence: -}",
+        "log: Metadata: {provider: OpenRouter, priority: 2, promptLength: 1382, requestedModel: undefined}",
+        "startGroupCollapsed: 🟢 [12:36:22 PM] [ProviderResolver] Request budget",
+        "table: {Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}",
+        "log: Metadata: {provider: OpenRouter, tier: FULL, messageCount: 2, systemBytes: 197, historyBytes: 1394}"
+      ],
+      "toolEvidence": [
+        "startGroupCollapsed: 🟢 [12:35:58 PM] [ProviderResolver] Tool environment_mutate_surface -> ok",
+        "table: {Stage: ProviderResolver, Success: true, Message: Tool environment_mutate_surface -> ok, Provider: -, Duration: -, Confidence: -}",
+        "log: Metadata: {tool: environment_mutate_surface, ok: true, round: 1}"
+      ],
+      "provider": [
+        "startGroupCollapsed: 🟢 [12:34:59 PM] [ProviderResolver] Trying OpenRouter",
+        "table: {Stage: ProviderResolver, Success: true, Message: Trying OpenRouter, Provider: -, Duration: -, Confidence: -}",
+        "startGroupCollapsed: 🟢 [12:35:04 PM] [ProviderResolver] OpenRouter generated response",
+        "table: {Stage: ProviderResolver, Success: true, Message: OpenRouter generated response, Provider: -, Duration: -, Confidence: -}",
+        "startGroupCollapsed: 🟢 [12:35:45 PM] [ProviderResolver] Trying OpenRouter",
+        "table: {Stage: ProviderResolver, Success: true, Message: Trying OpenRouter, Provider: -, Duration: -, Confidence: -}",
+        "startGroupCollapsed: 🟢 [12:36:07 PM] [ProviderResolver] OpenRouter generated response",
+        "table: {Stage: ProviderResolver, Success: true, Message: OpenRouter generated response, Provider: -, Duration: -, Confidence: -}",
+        "startGroupCollapsed: 🟢 [12:36:22 PM] [ProviderResolver] Trying OpenRouter",
+        "table: {Stage: ProviderResolver, Success: true, Message: Trying OpenRouter, Provider: -, Duration: -, Confidence: -}"
+      ],
+      "result": "RECORDED"
     }
   ],
   "console": [
@@ -364,7 +581,36 @@
     "error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
     "startGroupCollapsed: 🟢 [12:35:58 PM] [ProviderResolver] Tool environment_mutate_surface -> ok",
     "table: {Stage: ProviderResolver, Success: true, Message: Tool environment_mutate_surface -> ok, Provider: -, Duration: -, Confidence: -}",
-    "log: Metadata: {tool: environment_mutate_surface, ok: true, round: 1}"
+    "log: Metadata: {tool: environment_mutate_surface, ok: true, round: 1}",
+    "startGroupCollapsed: 🟢 [12:36:07 PM] [ProviderResolver] OpenRouter generated response",
+    "table: {Stage: ProviderResolver, Success: true, Message: OpenRouter generated response, Provider: -, Duration: -, Confidence: -}",
+    "log: Metadata: {provider: OpenRouter, model: openai/gpt-4o-mini, latencyMs: 8801, responseLength: 177, usage: Object}",
+    "error: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "error: Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+    "startGroupCollapsed: 🟢 [12:36:22 PM] [ProviderResolver] Model routing decision",
+    "table: {Stage: ProviderResolver, Success: true, Message: Model routing decision, Provider: -, Duration: -, Confidence: -}",
+    "log: Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+    "startGroupCollapsed: 🟢 [12:36:22 PM] [ProviderResolver] Trying OpenRouter",
+    "table: {Stage: ProviderResolver, Success: true, Message: Trying OpenRouter, Provider: -, Duration: -, Confidence: -}",
+    "log: Metadata: {provider: OpenRouter, priority: 2, promptLength: 1382, requestedModel: undefined}",
+    "startGroupCollapsed: 🟢 [12:36:22 PM] [ProviderResolver] Request budget",
+    "table: {Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}",
+    "log: Metadata: {provider: OpenRouter, tier: FULL, messageCount: 2, systemBytes: 197, historyBytes: 1394}",
+    "startGroupCollapsed: 🟢 [12:36:46 PM] [ProviderResolver] OpenRouter generated response",
+    "table: {Stage: ProviderResolver, Success: true, Message: OpenRouter generated response, Provider: -, Duration: -, Confidence: -}",
+    "log: Metadata: {provider: OpenRouter, model: openai/gpt-4o-mini, latencyMs: 24412, responseLength: 539, usage: Object}",
+    "startGroupCollapsed: 🟢 [12:37:00 PM] [ProviderResolver] Model routing decision",
+    "table: {Stage: ProviderResolver, Success: true, Message: Model routing decision, Provider: -, Duration: -, Confidence: -}",
+    "log: Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+    "startGroupCollapsed: 🟢 [12:37:00 PM] [ProviderResolver] Trying OpenRouter",
+    "table: {Stage: ProviderResolver, Success: true, Message: Trying OpenRouter, Provider: -, Duration: -, Confidence: -}",
+    "log: Metadata: {provider: OpenRouter, priority: 2, promptLength: 418, requestedModel: undefined}",
+    "startGroupCollapsed: 🟢 [12:37:00 PM] [ProviderResolver] Request budget",
+    "table: {Stage: ProviderResolver, Success: true, Message: Request budget, Provider: -, Duration: -, Confidence: -}",
+    "log: Metadata: {provider: OpenRouter, tier: FULL, messageCount: 2, systemBytes: 127, historyBytes: 426}",
+    "startGroupCollapsed: 🟢 [12:37:23 PM] [ProviderResolver] OpenRouter generated response",
+    "table: {Stage: ProviderResolver, Success: true, Message: OpenRouter generated response, Provider: -, Duration: -, Confidence: -}",
+    "log: Metadata: {provider: OpenRouter, model: openai/gpt-4o-mini, latencyMs: 22853, responseLength: 164, usage: Object}"
   ],
   "modelRequests": [
     {
@@ -411,6 +657,16 @@
       "url": "/api/model/openrouter/chat/completions",
       "status": 200,
       "at": 1794227765004
+    },
+    {
+      "url": "/api/model/openrouter/chat/completions",
+      "status": 200,
+      "at": 1794227794046
+    },
+    {
+      "url": "/api/model/openrouter/chat/completions",
+      "status": 200,
+      "at": 1794227837613
     }
   ],
   "pageErrors": [],
@@ -429,13 +685,87 @@
       "nodes": 1111,
       "listeners": 9021,
       "documents": 1
+    },
+    {
+      "label": "turn-continue",
+      "heapMB": 140.7,
+      "nodes": 1199,
+      "listeners": 9220,
+      "documents": 1
     }
   ],
-  "result": "RUNNING",
+  "result": "RECORDED",
   "storageAtStart": null,
   "entry": {
     "composer": 1,
     "viewport": "1440x900",
     "storageAtStart": null
-  }
+  },
+  "finalState": {
+    "windows": 1,
+    "contents": [
+      "chat:7eefb392-29f5-4c12-8574-b745c245c556"
+    ],
+    "titles": [
+      "◍Create a working space about the pla📍—⤢✕Create a working space about the pla⚙️Working wi"
+    ],
+    "canvases": 3,
+    "elements": 720,
+    "textLen": 6540,
+    "tail": [
+      "◍",
+      "Genesis Studios",
+      "▶",
+      "Media",
+      "RESOURCES",
+      "▤",
+      "Projects",
+      "▥",
+      "Files",
+      "COMMUNICATION",
+      "✉",
+      "Conversation",
+      "YOUR WORLDS",
+      "⌂",
+      "LÉLU's room",
+      "core|idle|100"
+    ],
+    "toolMentions": [
+      "environment.compose",
+      "environment.present_artifact"
+    ],
+    "signature": {
+      "hash": -111223937,
+      "length": 4798
+    },
+    "snapshotMentions": [],
+    "storage": [
+      "lelu.lelu.background.v1",
+      "lelu.lelu.selfstudy.objectives.v1",
+      "lelu.lelu.proactive.suggestions.v1",
+      "lelu.lelu.reflection.last.v1",
+      "lelu.notifications.history.v1",
+      "lelu.lelu.self.v1",
+      "lelu.environment.revisions",
+      "lelu.lelu.tasks.v1",
+      "lelu.lelu.executive.probe",
+      "lelu.lelu.objective.lessons.v1",
+      "lelu.lelu.world.lifecycle.v2",
+      "lelu.agents.v1",
+      "lelu.lelu.runtime.health.v1",
+      "lelu.proactive.patterns.v1",
+      "lelu.daily.v1",
+      "lelu.lelu.exploration.v1",
+      "lelu.lelu.selfdev.engineering-memory.v1",
+      "lelu.proactive.session.v1",
+      "lelu.multichat.workspace.v1",
+      "lelu.lelu.runtime.activity.v1",
+      "lelu.lelu.toolstats.v1",
+      "lelu.avatar.v1",
+      "lelu.lelu.selfstudy.trace.v1",
+      "lelu.proactive.runtime.checkpoint.v1"
+    ],
+    "envState": "[{\"id\":\"snapshot-mw98jvhh\",\"name\":\"planets-closure\",\"timestamp\":1794227204645,\"category\":\"development\",\"workspaceSnapshot\":{\"views\":[{\"id\":\"view-executive\",\"kind\":\"executive\",\"title\":\"Lélu · Live Execution\",\"createdAt\":1794227005311,\"updatedAt\":1794227005331,\"minimized\":false,\"pinned\":false,\"temporary\":false,\"weight\":1,\"stackOrder\":0,\"viewState\":{\"zoom\":1,\"pan\":{\"x\":0,\"y\":0},\"highlighted\":[],\"sele"
+  },
+  "finishedAt": "2026-11-09T12:37:46.776Z"
 }
