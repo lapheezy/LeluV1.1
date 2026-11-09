@@ -113,6 +113,15 @@ page.on("response", async (response) => {
 
 try {
   console.log(`== The app loads and initialises (${BASE}) ==`);
+  // Seed the auth skipped flag in localStorage (with KvStore's prefix and JSON format) so the sign-in modal does not intercept pointer clicks
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem("lelu.lelu.auth.skipped.v1", JSON.stringify(true));
+      localStorage.setItem("lelu.auth.skipped.v1", JSON.stringify(true));
+    } catch {
+      // storage unavailable
+    }
+  });
   await page.goto(BASE, { waitUntil: "domcontentloaded", timeout: 60000 });
   await page.waitForSelector("button", { state: "visible", timeout: 30000 });
 
@@ -145,18 +154,25 @@ try {
   );
 
   console.log("\n== TEST 1 — a message typed into the existing chat input reaches the runtime ==");
+  // Dismiss sign-in gate if present so it doesn't intercept pointer events
+  const continueBtn = page.locator("[data-lelu-signin-gate] button, button", { hasText: /^Continue/i }).first();
+  if (await continueBtn.isVisible().catch(() => false)) {
+    await continueBtn.click().catch(() => {});
+    await page.waitForTimeout(500);
+  }
+
   // The chat surface lives behind the LÉLU dock button; it is not
   // mounted at load, which is why a plain textarea selector finds
   // nothing until this is clicked.
   await page.getByRole("button", { name: "LÉLU", exact: true }).first().click();
 
-  const input = page.locator('textarea[placeholder="Type instructions for Lélu…"]').first();
+  const input = page.locator('textarea[placeholder="Message LÉLU…"], textarea[placeholder="Type instructions for Lélu…"]').first();
   await input.waitFor({ state: "visible", timeout: 20000 });
   assert(true, "the existing chat input is present and visible (Phase 10)");
 
   const PROMPT = "Hello LÉLU.";
   await input.fill(PROMPT);
-  await page.getByRole("button", { name: /^send message$/i }).first().click();
+  await page.locator('button[aria-label="Send message"], button:has-text("Send")').first().click();
 
   // What is being proven is that the TURN ran, not that a particular
   // answer came back: with no provider credential LÉLU answers from her
