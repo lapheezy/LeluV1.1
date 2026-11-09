@@ -73,7 +73,6 @@ const RESEARCH_LOOP_BUDGET_MS = 3 * 60 * 1000;
  * only rounds that carry tools are trimmed, and the plain reply keeps its own
  * budget.
  */
-const TOOL_TURN_MAX_TOKENS = 768;
 const RESEARCH_LOOP_MAX_ROUNDS = 16;
 const RESEARCH_TOOL = /^(research|browser|memory)[._]/;
 
@@ -700,7 +699,7 @@ export default class ProviderResolver {
     const requested: string[] = [];
 
     let response = await gatedGenerate(provider, {
-      ...this.withRungSignal(lean(context.request), rungSignal),
+      ...this.withRungSignal(context.request, rungSignal),
       messages,
       tools,
     });
