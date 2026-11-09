@@ -19,7 +19,10 @@
  *   bun run scripts/verify-self-study.ts [baseUrl]
  */
 
+import { ManagedServer } from "./support/server-runner";
+
 const BASE = process.argv[2] ?? "http://127.0.0.1:5173";
+let managedServer: ManagedServer | null = null;
 
 /* ------------------------------------------------------------------ */
 /* browser surfaces Node does not have                                 */
@@ -156,6 +159,9 @@ const { default: AgentEventBus } = await import("../src/core/agent/AgentEvents")
 const { EXECUTIVE_AGENT_TEMPLATES } = await import("../src/core/agents/AgentTemplates");
 
 async function main(): Promise<void> {
+  managedServer = new ManagedServer({ port: 5173 });
+  await managedServer.start("/api/engineer/status");
+
   console.log("LÉLU AUTONOMOUS SELF-COGNITION VERIFICATION");
   console.log("===========================================\n");
 
@@ -379,11 +385,13 @@ async function main(): Promise<void> {
   }
 
   unsubscribe();
+  if (managedServer) managedServer.stop();
   console.log(`\n${failures === 0 ? "ALL SELF-COGNITION CHECKS PASSED" : `${failures} CHECK(S) FAILED`}`);
   process.exit(failures === 0 ? 0 : 1);
 }
 
 main().catch((error) => {
+  if (managedServer) managedServer.stop();
   console.error("Verification crashed:", error);
   process.exit(1);
 });

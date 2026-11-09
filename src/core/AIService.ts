@@ -136,6 +136,14 @@ export default class AIService {
   private readonly actionListeners = new Set<(event: AIActionEvent) => void>();
   private readonly cognitionListeners = new Set<(state: CognitionEvent) => void>();
   private readonly messageListeners = new Set<(message: AIMessageEvent) => void>();
+  private readonly pendingConsolidations = new Set<Promise<void>>();
+
+  /** Wait for any pending post-response memory consolidation or profile sync tasks to finish. */
+  public async waitForPendingConsolidations(): Promise<void> {
+    while (this.pendingConsolidations.size > 0) {
+      await Promise.allSettled([...this.pendingConsolidations]);
+    }
+  }
   /** Progressive assistant output during generation — same id as the final message. */
   private readonly streamListeners = new Set<(event: { id: string; text: string; conversationId?: string }) => void>();
   private readonly thinkingListeners = new Set<(value: boolean) => void>();
@@ -837,7 +845,7 @@ export default class AIService {
       // AFTER the response has been delivered. They do not block the
       // caller; a failure here is contained and never surfaces as a chat
       // error. All work uses the ONE existing memory/brain path.
-      void (async () => {
+      const consolidationPromise = (async () => {
         try {
           // Memory consolidation ALWAYS runs — online or offline.
           await this.memory.learn(message, response.text, taskId);
@@ -868,6 +876,10 @@ export default class AIService {
           console.error("[AIService] Post-response async work failed (contained)", postErr);
         }
       })();
+      this.pendingConsolidations.add(consolidationPromise);
+      void consolidationPromise.finally(() => {
+        this.pendingConsolidations.delete(consolidationPromise);
+      });
 
       return {
         ...response,

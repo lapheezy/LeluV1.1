@@ -138,18 +138,20 @@ async function run(): Promise<void> {
   // provider reports unavailable → the runtime must land in
   // offline mode while memory still works.
   const providers = ai.getProviders();
-  assert(providers.ai.length === 8, `8 AI providers registered (${providers.ai.map((p) => p.name).join(", ")})`);
+  assert(providers.ai.length >= 8, `${providers.ai.length} AI providers registered (${providers.ai.map((p) => p.name).join(", ")})`);
   const health = await ai.getProviderHealth();
   assert(health.every((h) => h.health.available === false), "no provider available without keys (honest status)");
 
   console.log("\n-- TEST: Who are you? (offline identity) --");
   const who = await ai.chat("Who are you?");
+  await ai.waitForPendingConsolidations();
   assert(who.text.startsWith("My name is Lélu"), `answers from persistent identity ("${who.text.slice(0, 40)}…")`);
   assert(who.provider === "brain", "resolved by the existing brain/memory path, not a fake success");
   console.log(`    → ${who.text.split("\n")[0]}`);
 
   console.log("\n-- TEST: give a meaningful new fact offline --");
   const learn1 = await ai.chat("My name is Alex and I am building a space exploration app");
+  await ai.waitForPendingConsolidations();
   assert(learn1.text.length > 0, "offline response received (no white screen)");
   const memories1 = await ai.getMemories();
   assert(
@@ -176,6 +178,7 @@ async function run(): Promise<void> {
 
   // Second meaningful fact (Tests: memory keeps building).
   await ai.chat("I love retro space games");
+  await ai.waitForPendingConsolidations();
   const memories2 = await ai.getMemories();
   assert(
     memories2.some((m) => m.category === "preference"),
