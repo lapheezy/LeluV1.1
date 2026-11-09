@@ -144,31 +144,43 @@ export default function LeluSignInGate() {
   if (authState.status === "disabled") return null;
 
   return (
+    /**
+     * NOT A MODAL.
+     *
+     * This was `inset: 0` with a full-screen dim and `pointer-events: auto`,
+     * which made a first-run question the only thing a session could interact
+     * with: every press on the workspace, the field and the chat landed on the
+     * gate's backdrop instead of the thing under the finger (measured in
+     * docs/acceptance/autonomy-closure/press-center.json — `elementFromPoint`
+     * returned the gate for a point in the middle of a surface).
+     *
+     * Asking for an account is worth doing. Blocking the product until the
+     * question is answered is not: the answer is optional, so the question
+     * must be. It is now a positioned card that covers only itself.
+     */
     <div
       data-lelu-signin-gate
-      role="dialog"
-      aria-modal="true"
+      role="region"
       aria-label="Sign in to LÉLU"
       style={{
         position: "fixed",
-        inset: 0,
+        left: 12,
+        right: 12,
+        bottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
         zIndex: layer("modal"),
-        pointerEvents: "auto",
+        pointerEvents: "none",
         display: "flex",
-        alignItems: "center",
         justifyContent: "center",
-        padding: 16,
-        background: "rgba(2, 6, 23, 0.72)",
-        backdropFilter: "blur(10px)",
-        WebkitBackdropFilter: "blur(10px)",
       }}
     >
       <div
         style={{
           width: workspace.compact ? "100%" : "min(92vw, 420px)",
           maxWidth: 420,
-          maxHeight: "90%",
+          maxHeight: "min(58dvh, 420px)",
           overflowY: "auto",
+          // The wrapper passes presses through; the card itself receives them.
+          pointerEvents: "auto",
           borderRadius: 18,
           border: "1px solid rgba(103, 232, 249, 0.22)",
           background: "rgba(8, 16, 38, 0.96)",

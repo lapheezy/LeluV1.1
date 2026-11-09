@@ -138,8 +138,17 @@ try {
   // Real touch tap on a surface header.
   const first = freshCards[0];
   if (first) {
-    const x = first.rect.x + 24;
-    const y = first.rect.y + 22;
+    /*
+     * Tap the BODY, not the header chrome.
+     *
+     * The header holds the close button and the kind badge, and a press on a
+     * control inside a surface is the control's business — the card is
+     * deliberately not selected from there. Tapping 22px into the header was
+     * measuring the button, not the surface, and read as "touch does not
+     * select" while the press was landing somewhere that should ignore it.
+     */
+    const x = Math.round(first.rect.x + first.rect.w / 2);
+    const y = Math.round(first.rect.y + Math.min(first.rect.h - 24, 120));
     await page.touchscreen.tap(x, y);
     await page.waitForTimeout(700);
     result.selection = await page.evaluate(async (id) => {
@@ -155,6 +164,19 @@ try {
       };
     }, first.id);
     result.selection.tapPoint = { x, y };
+    // What is actually under the finger, so a press that selects nothing can
+    // never be mistaken for a card that is not listening.
+    result.selection.hit = await page.evaluate(({ x: px, y: py }) => {
+      const node = document.elementFromPoint(px, py);
+      const card = node?.closest("[data-workspace-view]");
+      return {
+        tag: node?.tagName ?? null,
+        inCard: Boolean(card),
+        cardId: card?.getAttribute("data-workspace-view") ?? null,
+        closestDialog: node?.closest("[role='dialog'],[data-lelu-chat-window],[data-lelu-mobile-menu]")?.getAttribute("data-lelu-chat-window") !== null ? "chat" : null,
+        html: (node?.outerHTML ?? "").slice(0, 100),
+      };
+    }, { x, y });
     save();
   }
 

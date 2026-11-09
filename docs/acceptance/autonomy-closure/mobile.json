@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-08T23:56:00.469Z",
+  "at": "2026-11-09T02:05:48.319Z",
   "viewports": [
     {
       "label": "375x812",
@@ -16,7 +16,7 @@
       "cards": [
         {
           "id": "view-providers",
-          "revision": "4",
+          "revision": "3",
           "selected": "false",
           "rect": {
             "x": 12,
@@ -28,12 +28,12 @@
           "visible": true
         },
         {
-          "id": "view-5e322df7",
+          "id": "view-dbc82de9",
           "revision": "1",
           "selected": "false",
           "rect": {
             "x": 12,
-            "y": 484,
+            "y": 482,
             "w": 351,
             "h": 78
           },
@@ -41,12 +41,12 @@
           "visible": true
         },
         {
-          "id": "view-0f9f4ba1",
+          "id": "view-e5397ba9",
           "revision": "1",
           "selected": "false",
           "rect": {
             "x": 12,
-            "y": 572,
+            "y": 568,
             "w": 351,
             "h": 78
           },
@@ -54,19 +54,26 @@
           "visible": true
         },
         {
-          "id": "view-9455bc9d",
+          "id": "view-6d0cffdf",
           "revision": "1",
           "selected": "false",
           "rect": {
             "x": 12,
-            "y": 660,
+            "y": 654,
             "w": 351,
             "h": 78
           },
           "inside": true,
           "visible": true
         }
-      ]
+      ],
+      "reach": {
+        "count": 4,
+        "horizontallyInside": true,
+        "lastInside": true,
+        "unreachable": []
+      },
+      "pass": true
     },
     {
       "label": "360x640",
@@ -79,28 +86,28 @@
       "chatOpen": false,
       "chatRect": null,
       "allVisible": true,
-      "allInside": false,
+      "allInside": true,
       "cards": [
         {
           "id": "view-providers",
-          "revision": "4",
+          "revision": "3",
           "selected": "false",
           "rect": {
             "x": 12,
-            "y": 92,
+            "y": 72,
             "w": 336,
-            "h": 335
+            "h": 242
           },
           "inside": true,
           "visible": true
         },
         {
-          "id": "view-5e322df7",
+          "id": "view-dbc82de9",
           "revision": "1",
           "selected": "false",
           "rect": {
             "x": 12,
-            "y": 437,
+            "y": 322,
             "w": 336,
             "h": 78
           },
@@ -108,12 +115,12 @@
           "visible": true
         },
         {
-          "id": "view-0f9f4ba1",
+          "id": "view-e5397ba9",
           "revision": "1",
           "selected": "false",
           "rect": {
             "x": 12,
-            "y": 525,
+            "y": 408,
             "w": 336,
             "h": 78
           },
@@ -121,19 +128,26 @@
           "visible": true
         },
         {
-          "id": "view-9455bc9d",
+          "id": "view-6d0cffdf",
           "revision": "1",
           "selected": "false",
           "rect": {
             "x": 12,
-            "y": 613,
+            "y": 494,
             "w": 336,
             "h": 78
           },
-          "inside": false,
+          "inside": true,
           "visible": true
         }
-      ]
+      ],
+      "reach": {
+        "count": 4,
+        "horizontallyInside": true,
+        "lastInside": true,
+        "unreachable": []
+      },
+      "pass": true
     },
     {
       "label": "430x932",
@@ -150,24 +164,24 @@
       "cards": [
         {
           "id": "view-providers",
-          "revision": "4",
+          "revision": "3",
           "selected": "false",
           "rect": {
             "x": 12,
             "y": 92,
             "w": 406,
-            "h": 337
+            "h": 242
           },
           "inside": true,
           "visible": true
         },
         {
-          "id": "view-5e322df7",
+          "id": "view-dbc82de9",
           "revision": "1",
           "selected": "false",
           "rect": {
             "x": 12,
-            "y": 439,
+            "y": 342,
             "w": 406,
             "h": 78
           },
@@ -175,12 +189,12 @@
           "visible": true
         },
         {
-          "id": "view-0f9f4ba1",
+          "id": "view-e5397ba9",
           "revision": "1",
           "selected": "false",
           "rect": {
             "x": 12,
-            "y": 527,
+            "y": 428,
             "w": 406,
             "h": 78
           },
@@ -188,19 +202,26 @@
           "visible": true
         },
         {
-          "id": "view-9455bc9d",
+          "id": "view-6d0cffdf",
           "revision": "1",
           "selected": "false",
           "rect": {
             "x": 12,
-            "y": 615,
+            "y": 514,
             "w": 406,
             "h": 78
           },
           "inside": true,
           "visible": true
         }
-      ]
+      ],
+      "reach": {
+        "count": 4,
+        "horizontallyInside": true,
+        "lastInside": true,
+        "unreachable": []
+      },
+      "pass": true
     },
     {
       "label": "390x844",
@@ -217,7 +238,7 @@
       "cards": [
         {
           "id": "view-providers",
-          "revision": "4",
+          "revision": "3",
           "selected": "false",
           "rect": {
             "x": 12,
@@ -229,12 +250,12 @@
           "visible": true
         },
         {
-          "id": "view-5e322df7",
+          "id": "view-dbc82de9",
           "revision": "1",
           "selected": "false",
           "rect": {
             "x": 12,
-            "y": 484,
+            "y": 482,
             "w": 366,
             "h": 78
           },
@@ -242,12 +263,12 @@
           "visible": true
         },
         {
-          "id": "view-0f9f4ba1",
+          "id": "view-e5397ba9",
           "revision": "1",
           "selected": "false",
           "rect": {
             "x": 12,
-            "y": 572,
+            "y": 568,
             "w": 366,
             "h": 78
           },
@@ -255,19 +276,26 @@
           "visible": true
         },
         {
-          "id": "view-9455bc9d",
+          "id": "view-6d0cffdf",
           "revision": "1",
           "selected": "false",
           "rect": {
             "x": 12,
-            "y": 660,
+            "y": 654,
             "w": 366,
             "h": 78
           },
           "inside": true,
           "visible": true
         }
-      ]
+      ],
+      "reach": {
+        "count": 4,
+        "horizontallyInside": true,
+        "lastInside": true,
+        "unreachable": []
+      },
+      "pass": true
     }
   ],
   "selection": {
@@ -284,24 +312,32 @@
         "selected": "false"
       },
       {
-        "id": "view-5e322df7",
+        "id": "view-dbc82de9",
         "selected": "false"
       },
       {
-        "id": "view-0f9f4ba1",
+        "id": "view-e5397ba9",
         "selected": "false"
       },
       {
-        "id": "view-9455bc9d",
+        "id": "view-6d0cffdf",
         "selected": "false"
       }
     ],
     "tapPoint": {
-      "x": 36,
-      "y": 114
+      "x": 195,
+      "y": 212
+    },
+    "hit": {
+      "tag": "SECTION",
+      "inCard": false,
+      "cardId": null,
+      "closestDialog": null,
+      "html": "<section class=\"lcu-main\"><header class=\"lcu-head\"><button type=\"button\" class=\"lcu-icon lcu-menu\" a"
     }
   },
   "errors": [],
+  "gateDismissed": false,
   "initial": {
     "label": "390x844-before-chat",
     "viewport": {
@@ -317,7 +353,7 @@
     "cards": [
       {
         "id": "view-providers",
-        "revision": "1",
+        "revision": "3",
         "selected": "false",
         "rect": {
           "x": 12,
@@ -329,12 +365,12 @@
         "visible": true
       },
       {
-        "id": "view-5e322df7",
+        "id": "view-dbc82de9",
         "revision": "1",
         "selected": "false",
         "rect": {
           "x": 12,
-          "y": 484,
+          "y": 482,
           "w": 366,
           "h": 78
         },
@@ -342,12 +378,12 @@
         "visible": true
       },
       {
-        "id": "view-0f9f4ba1",
+        "id": "view-e5397ba9",
         "revision": "1",
         "selected": "false",
         "rect": {
           "x": 12,
-          "y": 572,
+          "y": 568,
           "w": 366,
           "h": 78
         },
@@ -355,12 +391,12 @@
         "visible": true
       },
       {
-        "id": "view-9455bc9d",
+        "id": "view-6d0cffdf",
         "revision": "1",
         "selected": "false",
         "rect": {
           "x": 12,
-          "y": 660,
+          "y": 654,
           "w": 366,
           "h": 78
         },
@@ -385,7 +421,7 @@
     "cards": [
       {
         "id": "view-providers",
-        "revision": "1",
+        "revision": "3",
         "selected": "false",
         "rect": {
           "x": 12,
@@ -397,12 +433,12 @@
         "visible": true
       },
       {
-        "id": "view-5e322df7",
+        "id": "view-dbc82de9",
         "revision": "1",
         "selected": "false",
         "rect": {
           "x": 12,
-          "y": 484,
+          "y": 482,
           "w": 366,
           "h": 78
         },
@@ -410,12 +446,12 @@
         "visible": true
       },
       {
-        "id": "view-0f9f4ba1",
+        "id": "view-e5397ba9",
         "revision": "1",
         "selected": "false",
         "rect": {
           "x": 12,
-          "y": 572,
+          "y": 568,
           "w": 366,
           "h": 78
         },
@@ -423,12 +459,12 @@
         "visible": true
       },
       {
-        "id": "view-9455bc9d",
+        "id": "view-6d0cffdf",
         "revision": "1",
         "selected": "false",
         "rect": {
           "x": 12,
-          "y": 660,
+          "y": 654,
           "w": 366,
           "h": 78
         },
@@ -437,5 +473,73 @@
       }
     ]
   },
-  "finishedAt": "2026-11-08T23:57:27.538Z"
+  "settled": [
+    [
+      "view-providers",
+      12,
+      92,
+      366,
+      382
+    ],
+    [
+      "view-dbc82de9",
+      12,
+      482,
+      366,
+      78
+    ],
+    [
+      "view-e5397ba9",
+      12,
+      568,
+      366,
+      78
+    ],
+    [
+      "view-6d0cffdf",
+      12,
+      654,
+      366,
+      78
+    ]
+  ],
+  "settledCards": [
+    {
+      "id": "view-providers",
+      "rect": {
+        "x": 12,
+        "y": 92,
+        "w": 366,
+        "h": 382
+      }
+    },
+    {
+      "id": "view-dbc82de9",
+      "rect": {
+        "x": 12,
+        "y": 482,
+        "w": 366,
+        "h": 78
+      }
+    },
+    {
+      "id": "view-e5397ba9",
+      "rect": {
+        "x": 12,
+        "y": 568,
+        "w": 366,
+        "h": 78
+      }
+    },
+    {
+      "id": "view-6d0cffdf",
+      "rect": {
+        "x": 12,
+        "y": 654,
+        "w": 366,
+        "h": 78
+      }
+    }
+  ],
+  "finishedAt": "2026-11-09T02:07:23.039Z"
 }
