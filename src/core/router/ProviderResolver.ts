@@ -25,6 +25,7 @@ import { labelOtherChats } from "../multichat/ContextProvenance";
 import { BudgetExhaustedError, budgetNotice, gatedGenerate } from "../observability/UsageBudgetGate";
 
 
+import { inspectRequest } from "../observability/RequestIntegrity";
 /**
  * TERMINATION, not a round quota.
  *
@@ -150,6 +151,36 @@ export default class ProviderResolver {
       ...(this.requestCeilingBytes ? { limitBytes: this.requestCeilingBytes } : {}),
       protectedTail: 12,
     });
+    // DID THE PERSON'S REQUEST SURVIVE? The fitter is allowed to drop tool
+    // schemas and old history, never the prompt. Comparing the payload with
+    // the prompt is the check that would have caught a subject-less request
+    // before it reached a provider.
+    const promptText = context.request.prompt ?? "";
+    if (promptText) {
+      const rawHadPrompt = (context.request.messages ?? []).some(
+        (message) => typeof message.content === "string" && message.content.includes(promptText),
+      );
+      const integrity = inspectRequest({
+        originalUserInput: promptText,
+        fitted,
+        payloadText: JSON.stringify(fitted.messages),
+        tier: fitted.tier,
+      });
+      if (rawHadPrompt && !integrity.providerPayload.promptPresent) {
+        context.logger.error("ProviderResolver", "The user's request is no longer in the payload", {
+          original: integrity.originalUserInput,
+          fitted: integrity.fittedRequest,
+          payload: integrity.providerPayload,
+          semantic: integrity.semanticPreservation,
+        });
+      } else if (!integrity.semanticPreservation.ok) {
+        context.logger.info("ProviderResolver", "Request kept; some references were shortened", {
+          missing: integrity.semanticPreservation.missing,
+          ceiling: integrity.fittedRequest.ceilingSource,
+        });
+      }
+    }
+
     if (fitted.changed) {
       context.logger.info("ProviderResolver", "Request budget enforced before send", {
         provider: provider.name,

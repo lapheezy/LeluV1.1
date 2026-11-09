@@ -33,6 +33,7 @@ import { isIdentityOrProfileQuestion } from "../../brain/LeluIdentity";
 import { withDeadline } from "../runtime/BackgroundTimer";
 import UsageLedger from "../observability/UsageLedger";
 
+import { isInstruction, querySubject } from "./RequestQuery";
 /** Current-information phrases: these force a live tool call.
  *  Deliberately NARROW — a bare "update", "now", "today" or "current"
  *  must never drag a local/execution command ("update your avatar…",
@@ -560,42 +561,35 @@ export default class ResearchResolver {
    * "What's the latest news about AI?" → "AI"). A subjectless
    * current-events ask becomes a general world-news query.
    */
+  /**
+   * The phrase this request should be searched with.
+   *
+   * This used to remove every word its filler list matched — "find", "could",
+   * "LÉLU" — and then keep only the first 120 characters, mid-word. A request
+   * for "a maintained open-source library … typo-tolerant search" therefore
+   * reached research as "maintained … typo-tolerant search. Compare relevant
+   * candidates, inspect their licenses, and rec", and the repository it should
+   * have found was never named. querySubject keeps the subject, protects URLs
+   * and owner/name identifiers, shortens only at a word boundary, and reports
+   * anything it lifted so the omission is visible instead of silent.
+   */
   private buildQuery(prompt: string, intent?: AIIntent): string {
-    const cleaned = prompt
-      .trim()
-      .replace(/[?.!]+$/g, "")
-      // Contraction tails ("what's" → "what") so no stray "'s"
-      // leaks into the provider query.
-      .replace(/[’']s\b/gi, "");
+    const news = intent === "news" || intent === "search";
+    const subject = querySubject(prompt, { maxChars: news ? 120 : 160 });
+    let query = subject.query;
 
-    // For news/search intent: preserve topic words + add "news" context.
-    // This ensures "What's Tampa news?" → "Tampa news" (not just "Tampa").
-    if (intent === "news" || intent === "search") {
-      const NEWS_KEEPER =
-        /\b(?:can|you|could|please|hey|lelu|lélu|tell|me|give|show|find|research|look|up|do|does|know|what|whats|who|whose|when|where|how|is|are|was|were|there|the|a|an|latest|current|recently|breaking|todays|happening|happened|going|on|in|about|with|for|of|right|now|world|worldwide|global|updates|headlines?|events?|anything|something)\b/gi;
-      let query = cleaned
-        .replace(NEWS_KEEPER, "")
-        .replace(/\s+/g, " ")
-        .trim();
-      if (!/news/i.test(query)) {
-        query = query ? `${query} news` : "major world news";
-      }
-      return query.slice(0, 120);
+    // Work to do, not a phrase to look up: the instruction is kept as written,
+    // because cutting it is how an approval requirement or a constraint
+    // disappears from a request that still looks complete.
+    if (isInstruction(prompt) && subject.method === "verbatim") {
+      return query.replace(/\s+/g, " ").trim();
     }
 
-    const FILLER =
-      /\b(?:can|you|could|please|hey|lelu|lélu|tell|me|give|show|find|search|research|look|up|do|does|know|what|whats|who|whose|when|where|how|is|are|was|were|there|the|a|an|latest|current|recently|recent|breaking|today|todays|happening|happened|going|on|in|about|with|for|of|right|now|world|worldwide|global|update|updates|news|headlines?|events?|anything|something)\b/gi;
-
-    let query = cleaned
-      .replace(FILLER, "")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    if (query.length < 2) {
-      query = "major world news";
+    if (news && !/news/i.test(query)) {
+      query = query ? `${query} news` : "major world news";
     }
-
-    return query.slice(0, 120);
+    if (query.length < 2) query = "major world news";
+    return query.replace(/\s+/g, " ").trim();
   }
 
   private fallbackQueries(query: string): string[] {
