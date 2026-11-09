@@ -36,6 +36,7 @@ export const APPS: HomeApp[] = [
   { id: "video", label: "Video", hint: "Watch and make video", icon: "Film", group: "creativity" },
   { id: "avatar", label: "Avatar", hint: "Her look and presence", icon: "UserRound", group: "creativity" },
   { id: "engineering", label: "Code", hint: "Engineering workspace", icon: "Code2", group: "development" },
+  { id: "command", label: "Engineering Command", hint: "Acquisitions, workforce and capabilities", icon: "Workflow", group: "development" },
   { id: "evolution", label: "Self Development", hint: "What she is improving", icon: "Sparkles", group: "development" },
   { id: "cognitive-trace", label: "Trace", hint: "Her reasoning, step by step", icon: "Activity", group: "development" },
   { id: "diagnostics", label: "Engines", hint: "Runtime engines", icon: "Gauge", group: "development" },
