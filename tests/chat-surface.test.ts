@@ -135,8 +135,13 @@ test("the interface leaves out Cosmos chrome while chat owns the screen", () => 
   assert.match(ui, /\{surface\.chatOwnsScreen \|\| showHome \? null : \(\s*<div/, "the top chrome is not drawn over the chat header");
   assert.match(
     ui,
-    /const navHidden = state\.minimized \|\| surface\.chatOwnsScreen \|\| surface\.workspaceOwnsScreen;/,
+    /const navHidden =[\s\S]{0,500}?surface\.chatOwnsScreen[\s\S]{0,200}?surface\.workspaceOwnsScreen/,
     "the navigation is not told that the chat owns the screen",
+  );
+  assert.match(
+    ui,
+    /state\.activePanel !== "none"[\s\S]{0,160}?window\.innerWidth < 720/,
+    "an open application window must also hide the phone navigation",
   );
   assert.match(ui, /hidden=\{navHidden\}/, "the spatial navigation ignores navHidden");
 });
