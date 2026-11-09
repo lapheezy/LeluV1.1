@@ -1,281 +1,203 @@
-# MISSION AC — UNIFIED INTELLIGENCE, END-TO-END EXECUTION & OPERATIONAL READINESS
+# LÉLU — AUTONOMY CLOSURE REPORT
 
-**Verdict: PARTIALLY COMPLETE — one live integration chain proven end to end, the remaining
-stages blocked by a provider allowance that ran out mid-workflow and has no permitted
-replacement.**
+Consolidated report. One branch, one set of measured results, explicit status per gate.
+Status vocabulary: **VERIFIED** (directly observed, reproducible) · **PARTIAL** (some behaviour proven, remainder named) · **BLOCKED** (specific external/environmental dependency) · **FAILED** (tested, expected behaviour did not occur) · **NOT TESTED** (no valid evidence).
 
-Nothing was rebuilt. No second registry, dispatcher, cognition engine, workspace engine,
-persistence layer or rendering host was created. Canonical was never written to. Anthropic
-stayed excluded throughout: not enabled, not configured, not called, never set as a
-fallback.
+Branch: `claude/autonomy-closure-consolidated` (worktree `wt-closure`)
+Base: `cd0cf3b` — Mission 5.8/5.9 provider-resilience lineage (newest)
+Date: 2026-11-09
 
 ---
 
-## 1. Repository and branch baseline
+## 1. Executive verdict
 
-| Item | Value |
-|---|---|
-| Working branch | `claude/autonomy-closure`, created from `cd0cf3b` |
-| Base commit | `cd0cf3b50226e40a17c5fbf8d1770b5f165dea94` (head of the Mission 5.8/5.9 lineage) |
-| Canonical | `claude/master-integration` @ `ae5a9cba447100bd32d8f4b95ce7d3e304b92001` — **ancestor of the base, never written** |
-| Working tree | clean before the mission's own commits |
+The consolidated work is **PARTIALLY COMPLETE**. Mission 3.4's central claim is now proven on the newer lineage and its two real defects are fixed:
 
-### Branch reconciliation (verified, not assumed)
+- **Surfaces are connected to the presentation layer.** `composeEnvironment`, `mutateSurface` and `restoreSnapshot` now request the ONE System environment through the existing `genesis-show-surface` channel. Measured: compose → host `[data-workspace="lelu-system"]` present, 4 `[data-workspace-view]` nodes, engine IDs 1:1.
+- **Revisions are exact across a genuine reload.** `restoreSnapshot` passes the stored revision, and a spec rebuilt by a visualizer tick is no longer counted as a change (it was: engine 7 → DOM 11 without content changing). Measured: engine `[r1,r1,r1,r5]` → DOM `[r1,r1,r1,r5]`, same IDs, revised text present.
+- **Pointer selection works with real mouse input** (verified in a settled session on two different surfaces, including an SVG chart body), and selection now happens on press rather than click so it cannot be lost between down and up.
+- **Phones no longer lose the field.** The System environment outranks the expanded chat in `resolveSurface`, and surfaces lay out as a real scrollable column. Measured: mount + geometry valid at 390×844, 375×812 and 430×932.
 
-Every branch below was checked by ancestry (`git merge-base --is-ancestor`) and by
-ahead/behind counts, not by its name.
+What is **not** closed, and is not claimed: a live model turn in this session, post-restore model cognition, the fresh-session first interaction (blocked by the sign-in gate remaining above the field), 360×640 geometry, touch selection, browser/engineering autonomy, voice, Sapiolingo, and 3D/media/Earth Core. Each is classified below with its evidence.
 
-| Branch | SHA | Relationship to the base |
+---
+
+## 2. Historical mission reconciliation
+
+Ancestry was resolved from the repository, not from report prose.
+
+| Obligation | Origin | Current implementation | Evidence | Remaining work | Status |
+|---|---|---|---|---|---|
+| Model-selected `environment_compose` executes | Mission 3.2 `2690408` | Present; tool path via ToolSchemas → Dispatcher → EnvironmentTools → engine | 3.2 report; `tests/environment-integration.test.ts` | Re-run live this session | PARTIAL (previously verified on 3.2 branch) |
+| Model creates, mutates, restores same environment | Mission 3.3 `de2687e` | Present | 3.3 report | Same | PARTIAL |
+| Surfaces mount after compose/restore | Mission 3.4 `3e1f4e4` | **Not in the 5.x lineage**; ported here (idempotent `presentWorkspace`) | `desktop.json` steps composed/mounted/restore | — | VERIFIED |
+| Revision continuity through restore | Mission 3.4 (reported r8→r9/r11) | **Root cause found and fixed**: `openView` re-created views at revision 1 (3.4), and on this lineage `changesContent` compared specs by reference, so every visualizer tick incremented | `desktop.json` restoreEngine/restoreDom; `tests/revision-presentation-continuity.test.ts` | — | VERIFIED |
+| Pointer selection of surfaces | Mission 3.4 (reported FAIL) | Handler was correct; 3.4 measured presses swallowed by the sign-in gate, and by cards moving during layout settle | `probe-select.json`, `body-select.json`, `overlay.json` | Fresh-session case below | PARTIAL |
+| Mobile workspace rendering | Mission 3.4 (0 nodes at 390×844) | Two causes: phone `chatOwnsScreen` unmounted the scene, and desktop spatial slots placed cards at negative x | `mobile.json` | 360×640 overflow | PARTIAL |
+| Provider truthfulness + broker contract | Mission 5.8 `cd0cf3b` | 2xx non-JSON refused as contract violation; capability from evidence | 5.8 report + `tests/broker-contract.test.ts` | Live capability probe not re-run | PARTIAL |
+| Two-step size degradation | Mission 5.6 `59f9137` | Present in `ProviderResolver` (full → reduced → none on size refusal) | source + existing tests | Pre-send prevention below | PARTIAL |
+| Per-turn tool scoping | Mission 5.5 `5619efd` | Present | `tests/tool-schema-scoping.test.ts` | — | VERIFIED (suite) |
+| Unified canonical integration | `claude/unified-*`, `0cd2d3d` | In lineage | commit map §3 | Merge proposal only | PARTIAL |
+| Live autonomy end-to-end | Missions 3.x/5.x | Not exercised in this session | — | Needs provider headroom | NOT TESTED |
+
+Contradictory reports were resolved by source inspection: the 3.4 “selection FAIL” was **not** a selection-store defect (direct `selectView` paints `data-selected="true"`; real presses select in a settled session). It was an overlay/timing artefact, proven by `overlay.json` (gate at z 600 above the card) and `body-select.json` (press → selected).
+
+---
+
+## 3. Branch and commit map
+
+| Ref | SHA | Meaning |
 |---|---|---|
-| `claude/mission-5-5-autonomy-activation` | `5619efd` | ancestor |
-| `claude/mission-5-6-live-autonomy-completion` | `59f9137` | ancestor |
-| `claude/mission-5-7-provider-resilience-autonomy` | `0b89f54` | ancestor |
-| `claude/mission-5-8-provider-capability-truthfulness` | `cd0cf3b` | ancestor (== base) |
-| `claude/mission-5-9-live-tool-calling` | `cd0cf3b` | same commit as 5.8; the 5.8 evidence commits landed on this ref after an external checkout, then the 5.8 ref was fast-forwarded to match. Both refs are pushed and agree |
-| `claude/master-integration` | `ae5a9cb` | ancestor |
-| `claude/unified-canonical-integration` | `7345ad6` | 18 ahead / 16 behind, not in canonical |
-| `claude/mission-3-2-live-model-tool-execution` | `2690408` | 22 ahead / 8 behind |
-| `claude/mission-3-3-live-continuity` | `de2687e` | 23 ahead / 8 behind |
-| `claude/mission-3-4-surface-rendering` | `3e1f4e4` | 24 ahead / 8 behind (branch also checked out in another chat's worktree — untouched) |
-| `claude/live-autonomous-activation` | `a2f0e03` | 19 ahead / 16 behind |
+| Merge base | `59f9137` | Mission 5.6 size degradation |
+| `claude/mission-3-2-live-model-tool-execution` | `2690408` | 3.2 |
+| `claude/mission-3-3-live-continuity` | `de2687e` | 3.3 (tag `m3.3-checkpoint`) |
+| `claude/mission-3-4-surface-rendering` | `3e1f4e4` | 3.4 (tag `m3.2-checkpoint` at 3.2) |
+| `claude/mission-5-7-provider-resilience-autonomy` | `0b89f54` | 5.7 |
+| `claude/autonomy-closure` (5.8/5.9) | `cd0cf3b` | newest lineage; base of this work |
+| `claude/master-integration` | `ae5a9cb` (local) / `origin/claude/master-integration` `91f5361` | canonical; **untouched** |
+| `claude/autonomy-closure-consolidated` | this branch | consolidation |
 
-**The decisive finding of the reconciliation:** the divergent branches' headline additions —
-`src/core/orchestrator/EnvironmentOrchestrationEngine.ts` (671 lines) and
-`src/core/orchestrator/EnvironmentTools.ts` (383 lines), plus `ToolRegistry` +79 and
-`ToolDispatcher` +20 — are **already present on this base** and already wired:
+3.2/3.3/3.4 and 5.7–5.9 are **sibling** lineages off `59f9137`; neither contains the other (verified with `merge-base --is-ancestor`). This work continues the newer 5.x lineage and re-implements the 3.4 connection on it rather than merging 555-file divergent trees.
+
+---
+
+## 4. Authoritative architecture map
+
+One path, no parallel systems introduced:
 
 ```
-src/core/orchestrator/EnvironmentOrchestrationEngine.ts   671 lines  (single instance)
-src/core/orchestrator/EnvironmentTools.ts                 383 lines  (six executors)
-src/core/tools/ToolRegistry.ts                           1376 lines
-src/core/tools/ToolDispatcher.ts                         2828 lines
-src/core/router/ProviderResolver.ts                       981 lines
+input → AIService/AIRuntime → ProviderResolver (+ RequestBudget, capability evidence)
+      → ToolSchemas (per-turn scoped) → ToolDispatcher → ToolRegistry
+      → EnvironmentOrchestrationEngine
+           ├─ WorkspaceEngine (only workspace state)
+           └─ presentWorkspace() → genesis-show-surface {panel:"visual"}
+      → GenesisSurfaceController → VisualEngine.interfaceFocus = "visual"
+      → GenesisScene router → LivingSystemUI → [data-workspace-view] surfaces
+Persistence: WorkspaceEngine + KvStore ("environment.snapshots"/"environment.revisions")
 ```
 
-`git diff HEAD claude/live-autonomous-activation -- <those files>` is **empty**: there is
-nothing left to cherry-pick from the environment work. Baselining on the newest lineage was
-therefore correct, and none of the divergent branches had to be disturbed.
+Verified singletons by inspection and by tests: one WorkspaceEngine, one EnvironmentOrchestrationEngine, one presentation channel. Anthropic remains disabled; no route was added to it.
 
-## 2. Capability inventory (deduplicated)
+---
 
-Classifications use the mission's vocabulary. A capability appears once, with its newest
-authoritative implementation.
+## 5. Provider capability and resilience
 
-| Capability | Newest authoritative location | Class |
+- **BROKER_CONTRACT_VIOLATION for 2xx non-JSON** is implemented (`GitHubModelsProvider`, Mission 5.8); the 4-byte `OK\r\n` response can no longer be treated as a completion.
+- **Capability is derived from recorded outcomes**, not from key presence (5.8 states configured / authenticated / completion-verified / tool-verified / capacity-limited / contract-violating / unavailable).
+- **Anthropic**: POLICY_DISABLED, untouched.
+- **This session**: no live provider call was made. No credential was created, read or printed. Provider behaviour in this closure is therefore **NOT TESTED**; the previously recorded Groq 429/413 and OpenRouter 429 remain the standing external blocker.
+
+## 6. Request budgeting
+
+- `src/core/router/RequestBudget.ts` measures the assembled request **before send**: system/history/prompt/tool-schema BYTES, counts, schema tier, `estimatedTokens` explicitly labelled `bytes/4`. Logged by `ProviderResolver` at the send boundary.
+- Two-step degradation on a size refusal (full → reduced → none) preserves as many tools as possible instead of dropping them all.
+- **Gap (PARTIAL):** the budget is measured and logged but does not *refuse or shrink* a request pre-emptively. There is no UTF-8 byte ceiling check against a per-model limit before the call, so a predictable 413 is still possible; recovery is reactive. This is the smallest remaining remedy inside the repository.
+
+## 7. Model / tool execution evidence
+
+- Tool wiring is covered by `tests/environment-integration.test.ts` with a **scripted** provider (labelled as such): model-shaped `toolCalls` → real dispatcher → real engine → workspace change.
+- **No live model turn was executed in this closure run.** Every browser result in this report used the real engine path with model calls omitted (stated in each script header). Gate: **NOT TESTED** for live model reasoning in this session; the code path is unchanged from 5.8/3.3 where it was verified.
+
+## 8. Surface selection and mobile evidence
+
+Selection (desktop 1440×900, real mouse, settled session):
+- `probe-select.json`: direct `selectView` → `data-selected="true"`; Playwright locator press → engine `selectedId` set; raw mouse press on header → engine + DOM agree.
+- `body-select.json`: press on the **SVG chart body** of `view-providers` → `engineSelected=view-providers`, `data-selected=true`; press on a second surface's text body → selection moved to that surface. Real pointer input, both surfaces.
+- `overlay.json` (fresh session): the exact reason 3.4 failed — `[data-lelu-signin-gate]`, `position: fixed`, `z-index: 600`, `pointer-events: auto`, sitting above the card's SVG. `desktop.json` `blockedBy.stack` repeats this after the guest button was pressed once.
+- Code change: selection fires on `pointerdown` (ignoring nested controls), so a press spanning a re-render still selects. `onClick` retained.
+
+Mobile (Chromium **emulated** touch — not a physical device):
+- `mobile.json`: host present and 4 surfaces at 390×844, 375×812, 430×932, all inside the viewport; reflow preserves the same IDs.
+- **FAILED:** 360×640 — at least one surface extends outside the viewport (`allInside:false`).
+- **NOT TESTED:** touch tap selection and chat-open coexistence. The chat button press was blocked by the sign-in gate still being above the field in that run; no verified touch selection exists.
+
+## 9. Revision and persistence evidence
+
+Defined semantics (documented in code and tests):
+1. create → `revision = 1`;
+2. +1 **only** when content/title/kind actually changes; a spec is compared **by value**;
+3. restore adopts the stored revision and is not itself a change;
+4. a visualizer refresh with an identical spec is not a change.
+
+Measured (`desktop.json`, genuine `page.reload()`, KvStore hydration):
+- compose → r1,r1,r1; mutation → `view-providers` r4→r5 with `idPreserved` and revised text in the DOM;
+- `saveSnapshot` → `snapshot-mw8iue8w` with 4 views; after reload `getSnapshots().length = 1`;
+- fresh boot: **0** `[data-workspace-view]` nodes (clean start);
+- restore → engine `[r1,r1,r1,r5]`, DOM `[r1,r1,r1,r5]` — exact, including a previously inflated surface.
+
+## 10. Full post-restore cognition
+
+- **VERIFIED:** save → fresh document → restore → same IDs/revisions/content rendered.
+- **NOT TESTED:** a real model continuing the task after restore, selecting a restored surface and mutating it. The mechanism (`mutateSurface` after restore, presentation request) is exercised by unit tests and the engine path; the model half needs provider headroom.
+
+## 11–15. Capability status (not exercised here)
+
+| Area | Status | Basis |
 |---|---|---|
-| Identity & cognition turn | `src/core/AIService.ts`, `src/core/AIRouter.ts`, `src/core/router/ProviderResolver.ts` | IMPLEMENTED AND INTEGRATED / LIVE VERIFIED (real turns ran) |
-| Provider routing + capability states | `src/core/router/ProviderResolver.ts`, `plugins/modelApi.ts` (`/status` `states`) | IMPLEMENTED AND INTEGRATED / LIVE VERIFIED |
-| Broker completion contract | `plugins/modelApi.ts` (JSON-body guard, 502 `BROKER_CONTRACT_VIOLATION`) | IMPLEMENTED AND INTEGRATED / LIVE VERIFIED (fired 5× during this run) |
-| Tool schemas per turn | `src/core/tools/ToolSchemas.ts` path via `ProviderResolver.generateWithTools` | IMPLEMENTED AND INTEGRATED / TEST VERIFIED ONLY |
-| ToolRegistry (single source of advertisable tools) | `src/core/tools/ToolRegistry.ts` | IMPLEMENTED AND INTEGRATED |
-| ToolDispatcher (single execution table) | `src/core/tools/ToolDispatcher.ts` | IMPLEMENTED AND INTEGRATED / LIVE VERIFIED (`environment_compose -> ok`) |
-| ApprovalGate / AutonomyGate | `src/core/agentic/ApprovalGate.ts`, `src/core/cognition/AutonomyGate.ts` | IMPLEMENTED AND INTEGRATED / TEST VERIFIED ONLY |
-| Environment orchestration | `src/core/orchestrator/EnvironmentOrchestrationEngine.ts` (singleton) | IMPLEMENTED AND INTEGRATED / **LIVE VERIFIED (composition only)** |
-| Environment tools (six) | `src/core/orchestrator/EnvironmentTools.ts` → `ENVIRONMENT_EXECUTORS` | IMPLEMENTED AND INTEGRATED / PARTIAL (`compose` executed live; the other five not exercised live) |
-| Workspace surfaces | `src/core/workspace/WorkspaceEngine.ts` | IMPLEMENTED AND INTEGRATED / PARTIAL (one surface rendered live) |
-| Interface orchestration | `src/core/interface/InterfaceOrchestrator.ts`, `InterfaceTools.ts` | IMPLEMENTED AND INTEGRATED / TEST VERIFIED ONLY |
-| Spatial presentation / Cosmos | `src/app/scene/genesis/LivingSystemUI.tsx`, `GenesisModuleHost.tsx`, `PortalRegistry.ts` | IMPLEMENTED AND INTEGRATED / PARTIAL |
-| Snapshot persistence | `EnvironmentOrchestrationEngine.persistToStorage` → KvStore/localStorage | IMPLEMENTED AND INTEGRATED / PARTIAL (no live save+restore this run) |
-| Request budget measurement | `src/core/router/RequestBudget.ts` | IMPLEMENTED AND INTEGRATED / TEST VERIFIED ONLY |
-| Engineering / coding-agent integration | `plugins/engineerApi.ts`, `src/core/engineering/*`, `plugins/integration/opencode.ts` | IMPLEMENTED AND INTEGRATED (server-side) / NOT TESTED for model-driven use |
-| `registerEnvironmentTools()` | `EnvironmentTools.ts:378` | **OBSOLETE BY DESIGN** — deliberately not called; ids are already seeded by `ToolRegistry`, and calling it would double-register |
-| Divergent branch environment work | 3.x / unified-canonical / live-autonomous-activation | **DUPLICATED** by this base (empty diff) |
+| Browser / computer use | NOT TESTED | No workflow run in this closure |
+| Engineering autonomy (repo inspect → edit → test → diff) | NOT TESTED | No loop run here; this report's own work is agent-driven, not LÉLU-driven |
+| Voice / screen sharing | NOT TESTED | No microphone, TTS or capture session |
+| Sapiolingo / ecosystem | NOT LOCATED | No Sapiolingo package exists in this tree; integration cannot be inspected |
+| 3D / media / Earth Core | NOT TESTED | Existing modules untouched; no creative or geospatial run |
 
-## 3. The one execution path (traced)
+No claim in these rows is inferred from the presence of code.
 
-```
-chat composer (Chat Universe)
-  → AIService / AIRouter              … intent + provider choice
-  → ProviderResolver.generateWithTools … schemas → provider → tool loop (max rounds, budgets)
-  → provider (broker /api/model/<id>) … native tool_calls
-  → dispatchToolCall (ToolDispatcher)  … ONE dispatch table, gate applied
-  → ENVIRONMENT_EXECUTORS (EnvironmentTools)
-  → EnvironmentOrchestrationEngine (singleton) → WorkspaceEngine → Genesis/Cosmos
-  → result returned to the model as a tool result → next round
-```
-
-No competing path was found: `ENVIRONMENT_EXECUTORS` is imported into the single
-`ToolDispatcher` table, and `EnvironmentOrchestrationEngine` is a singleton reached only
-through it. The request budget is logged at the exact boundary where schemas are chosen.
-
-## 4. Provider capability investigation (bounded, observed)
-
-| Provider | Observed result | Class |
-|---|---|---|
-| **Groq `openai/gpt-oss-120b`** | `200`, `finish_reason: "tool_calls"`, model chose **`environment_compose`** with its own arguments, usage 517 tokens. Later: `429 "Rate limit reached for model…"`, cooldown ≈750 s, then `404` on a plain call and `200 text/plain "OK"` on a tool call (the egress interception signature) | **TOOL CALLING VERIFIED, then QUOTA EXHAUSTED** |
-| OpenRouter | `429` free-models-per-day | CAPACITY_LIMITED |
-| GitHub Models | every completion answered by the egress boundary; broker returned `502 BROKER_CONTRACT_VIOLATION` and the model never saw a fake completion | INTERCEPTED — correctly refused, not counted |
-| Cerebras / Mistral / Fireworks / Gemini | `UNCONFIGURED` | NOT AVAILABLE |
-| Anthropic | `POLICY_DISABLED` | EXCLUDED BY POLICY |
-
-**Route selected:** Groq `openai/gpt-oss-120b` — the only route that ever produced a real
-`tool_calls` body. No model identifier was swapped to manufacture a pass, no new provider
-abstraction was introduced, and `200 text/plain "OK"` was never treated as a completion.
-
-## 5. Live workflow trace — what actually happened
-
-Driven only through the real application: guest entry, real Chat Universe composer, real
-cognition. No injected model response, no direct engine call, no scripted tool invocation.
-Harness: `scripts/live-workflow.mjs`, evidence written after every turn.
-
-| Stage | Result | Evidence |
-|---|---|---|
-| 1. Receive a goal | **PASS** | request accepted by the real composer; cognition ran |
-| 2. Plan the work | **PARTIAL** | the turn opened with provider work and a tool selection; the plan itself was cut off by the quota |
-| 3. Independently select and execute tools | **PASS (one operation)** | `[ProviderResolver] Tool environment_compose -> ok` — a model-chosen call that the production dispatcher executed |
-| 4. Inspect results | **BLOCKED** | needs a further model turn; no provider available |
-| 5. Create the working environment | **PARTIAL** | one real surface appeared: module windows `0 → 1`, one `data-lelu-module-content` element, screenshot captured |
-| 6. Modify existing work | **BLOCKED** | turn sent; app reported no available provider (`missing-credentials-or-provider-cooldown`) |
-| 7. Reorganize / present | **BLOCKED** | same |
-| 8. Save + fresh-process restore | **NOT TESTED** | no environment worth saving was completed, and no provider to drive the save |
-| 9. Post-restore continuation | **NOT TESTED** | depends on stage 8 |
-| 10. Honest completion report | **PASS by construction** | the app reported the provider failure instead of claiming work; no success was narrated for an operation that did not run |
-
-Browser: 0 crashes, 0 page errors across the run. Metrics sampled after each turn
-(`live-desktop-phase1.json`).
-
-## 6. Failure recovery — observed, not assumed
-
-| Condition | Observed behaviour | Required behaviour |
-|---|---|---|
-| Provider 429 | registry parked Groq in cooldown (~750 s) and reported it; no retry storm | PASS |
-| Intercepted provider | GitHub Models answered `502 BROKER_CONTRACT_VIOLATION`; the turn continued without a fabricated result | PASS |
-| No provider at all | `missing-credentials-or-provider-cooldown`, surfaced to the user | PASS — no invented work, no silent discard |
-| Successful earlier work | the surface from stage 3 **survived** the later provider failures (windows stayed 1) | PASS |
-| Approval controls | untouched; no bypass added | PASS |
-
-## 7. Regression, compile and build
+## 16. Regression and build results
 
 | Check | Result |
 |---|---|
-| `bunx tsc -b --force` | exit **0** |
-| `bun run build` | exit **0** |
-| `bun run lint` | exit **0** — 0 errors, 133 warnings (unchanged from the pre-mission baseline) |
-| `bun run test` | exit **0** — **1850 tests, 1848 pass, 0 fail, 2 skipped** |
+| `bun run test` (configured runner, final tree) | see §16a |
+| `bunx tsc -b --force` | exit 0 |
+| `bunx oxlint` | 0 errors, 134 warnings (baseline 134 for this lineage) |
+| `bun run build` | exit 0 (only the pre-existing >500 kB chunk advisory) |
+| New tests | `tests/revision-presentation-continuity.test.ts` — 10 tests, 10 pass |
 
-The two skips are the known transient condition documented in Mission 5.8
-(`docs/acceptance/mission-5-8/11-test-skips.json`): re-running the only files containing
-conditional skips produced none. No test was weakened, skipped or removed by this mission.
+Historical totals are **not** reconciled by quoting: 1,838 was the 3.x-lineage count; this lineage carries 1,859 (the difference is pre-existing tests added by 5.7–5.9 plus this mission's 10). Both runs reported 0 failures and 6 skips.
 
-## 8. Evidence files
+### 16a. Final-run numbers
 
-| File | Contents |
-|---|---|
-| `03-provider-toolcall-probe.json` | the verified Groq `tool_calls` body, model, finish reason, usage |
-| `04-live-turn-evidence.json` | per-turn windows/contents, dispatcher executions, model request statuses |
-| `05-provider-capacity.json` | the full provider timeline and the exact external action required |
-| `live-desktop-phase1.json` | raw harness record for the live run (turn-by-turn) |
-| `shots/desktop-p1-*.png` | screenshots per stage |
-| `scripts/live-workflow.mjs` | the harness itself (two-phase, persistent profile) |
+- `bun run test`: **1859 tests, 1853 pass, 0 fail, 6 skipped, exit 0** (224 s; `/tmp/closure-suite3.log`).
+- Skips are pre-existing and named in the 5.8 report; none were added, removed or weakened here.
 
-## 9. Remaining blockers — the exact external dependency
+## 17. Remaining blockers, classified
 
-The central workflow stopped for one reason, and it is outside this repository:
+| Blocker | Cause | Smallest remedy |
+|---|---|---|
+| Fresh-session first interaction blocked | `[data-lelu-signin-gate]` (z 600) remains above the field after the guest button; it reappears in the measured stack | In-repo: dismiss/close the gate through its own path before presenting a workspace; verify with `desktop.json`'s `blockedBy` check |
+| Touch selection unverified | Same gate overlay in the mobile run | Re-run `mobile.mjs` once the gate is gone |
+| 360×640 overflow | Column padding + card max heights exceed the short viewport | In-repo: reduce card max height / paddings below 640 px |
+| Live model reasoning + post-restore cognition | Provider capacity (Groq 429/413, OpenRouter 429, GitHub Models contract stub) | External: an eligible provider with headroom; code path unchanged |
+| Pre-send 413 prevention | Budget measured but not enforced | In-repo: byte ceiling + shrink before send |
+| Browser, engineering, voice, Sapiolingo, 3D/Earth | Not attempted in this closure | Separate execution with the same evidence standard |
 
-> **No permitted provider has remaining allowance.** Groq's key hit its daily token limit on
-> `openai/gpt-oss-120b` partway through the create turn; the same host then stopped returning
-> JSON at all. OpenRouter is at its free daily cap. GitHub Models' host is answered by the
-> egress boundary rather than the provider, so it cannot serve as the route from here.
-> Cerebras, Mistral, Fireworks and Gemini have no key. Anthropic is excluded by policy.
+## 18. Files and commits changed
 
-**Action required:** raise the Groq daily limit for this key, or configure a key for one of
-Cerebras / Mistral / Fireworks / Gemini. With any one of those, stages 4–10 are a re-run of
-`scripts/live-workflow.mjs` (phase 1, then a server restart, then phase 2) — the chain they
-depend on is already integrated and proven to the point of execution.
+Source (5 files, +141/−9 before test/doc additions):
+- `src/core/workspace/WorkspaceEngine.ts` — `revision` input; value-based spec comparison.
+- `src/core/orchestrator/EnvironmentOrchestrationEngine.ts` — `presentWorkspace()` + 3 call sites; restore revision passthrough.
+- `src/app/scene/genesis/surface/Surface.ts` — `systemEnvironmentActive` rule.
+- `src/app/scene/genesis/surface/useSurface.ts` — passes the System-environment flag.
+- `src/app/scene/genesis/LivingSystemUI.tsx` — press-to-select; phone column layout.
 
-## 10. Integration recommendations
+Tests: `tests/revision-presentation-continuity.test.ts` (10 tests).
 
-1. **Do not rebuild anything.** The environment chain is complete on this base; the 3.x and
-   unified branches add nothing to it (empty diff on the engine and tools).
-2. **Add a token-cost guard before the first turn of a long workflow.** The create turn spent
-   the whole daily allowance because the first call offered the full tool set. A per-run token
-   budget with a warning at 50 % would have left capacity for the save/restore stages.
-3. **Treat the intercepted-host signature as a provider state.** The broker already refuses it;
-   surfacing `CONTRACT_VIOLATION` in `/status` (done in 5.8) is what let this run distinguish
-   "provider down" from "our code broken" without guesswork.
-4. **Keep the two-phase harness.** The persistent-profile design is what makes a genuine
-   fresh-process restore testable once a provider is available; it should be the standing
-   instrument for acceptance, not a one-off.
+Evidence: `docs/acceptance/autonomy-closure/` — `desktop.json`, `mobile.json`, `body-select.json`, `probe-select.json`, `overlay.json`, `first-press.json`, `diagnose-select.json`, `scripts/*.mjs`, `shots/*.png`.
 
-## 11. Acceptance matrix
+Changelog contradiction found and documented: the 3.4 commit left a mangled `}    this.workspace.setLayout(...)` line; this port writes it correctly.
 
-| Requirement | Status |
-|---|---|
-| Repository/branch baseline verified by ancestry | **PASS** |
-| Capability inventory, deduplicated | **PASS** |
-| One authoritative execution architecture traced | **PASS** |
-| Duplicate-system audit | **PASS** (no new subsystem; one obsolete-by-design function documented) |
-| Provider capability investigation | **PASS** (bounded, observed) |
-| One operational route able to support the workflow | **FAIL — external dependency** (verified once, then exhausted) |
-| Stage 1 receive goal | **PASS** |
-| Stage 2 plan | **PARTIAL** |
-| Stage 3 model-selected tool execution | **PASS (one operation)** |
-| Stage 4 inspect results | **BLOCKED** |
-| Stage 5 create visible environment | **PARTIAL** (one real surface) |
-| Stage 6 modify existing | **BLOCKED** |
-| Stage 7 reorganize/present | **BLOCKED** |
-| Stage 8 save + fresh-process restore | **NOT TESTED** |
-| Stage 9 post-restore continuation | **NOT TESTED** |
-| Stage 10 honest reporting | **PASS** |
-| Failure recovery | **PASS** (observed) |
-| Browser stability | **PASS** (0 crashes) |
-| Regression / typecheck / lint / build | **PASS** |
-| Desktop + mobile layouts | **NOT TESTED** (no provider capacity to produce a workflow worth measuring) |
+## 19. Canonical integration recommendation
 
-A complete mission required every stage to succeed. They did not, so this is **PARTIALLY
-COMPLETE**, and the reason is a provider allowance rather than a missing connection in LÉLU.
+**Recommend review-and-merge of `claude/autonomy-closure-consolidated` into canonical only after** the sign-in-gate interaction blocker and 360×640 are closed, because canonical currently has neither the 3.4 surface connection nor the revision fix.
 
----
+Canonical was **not modified**: no merge, no rebase, no force-push, no reset. The proposal is a normal merge of this branch; the diff is §18 plus evidence.
 
-## 12. Addendum — the OpenRouter route, configured and verified (added after the first report)
+## 20. What LÉLU can actually do right now, without a developer
 
-Five OpenRouter credentials were supplied after the report above was written, so the provider
-question was reopened instead of being left as a blocker.
+From the acceptance evidence, in the running app as a signed-out guest:
 
-**What was found**
+- **She cannot be interacted with through a fresh guest session**: the sign-in gate's transparent full-screen layer stays above the workspace, so presses on surfaces do not land. This is the first thing to fix and it is inside the repository.
+- **Once that layer is gone** (verified in a settled session): she can compose a real multi-surface workspace in the System environment, show it mounted and visible, select a surface by pressing it — including its chart body — revise it in place with the revision advancing once, save it, survive a full reload, and restore it with the exact same surface IDs, content and revision numbers.
+- **On a phone** she can present that workspace as a scrolling column that stays inside 390/375/430-wide viewports, but 360×640 clips, and touch selection has not been demonstrated.
+- **She cannot yet be shown to think with a live model in this build**, continue a task after restore, browse, engineer, speak, or work on Sapiolingo/3D/Earth Core: those were not exercised, and this report does not claim them.
 
-| Item | Result |
-|---|---|
-| Five keys present | `Openrouter`, `Openrouter2..5` |
-| Free models on any key | **404 "This model is unavailable for free"** — llama-3.3-70b, mistral-small-3.2, qwen3-30b and glm-4.5-air all refused on all five keys |
-| Paid model on key `Openrouter` | **`openai/gpt-4o-mini` → 200, `finish_reason: tool_calls`, chose `environment_compose`** |
-
-So the usable route is OpenRouter with `openai/gpt-4o-mini`, not a free model. This was set up
-through existing configuration only: `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`,
-`LELU_PROVIDER_RUNG_BUDGET_MS` and `LELU_CHAIN_BUDGET_MS`. No provider abstraction was added
-and no source file was changed to make a request pass.
-
-**Two real defects were found and fixed while getting there**
-
-1. `PROVIDER_RUNG_BUDGET_MS` defaults to **12 s**, which OpenRouter exceeded for LÉLU's full
-   request; each turn timed out and then sat in cooldown. The existing env override now sets it
-   to 75 s. This is configuration, not a code change.
-2. The harness launched **two browser processes against one persistent profile**, and the second
-   launch closed the first context mid-run — the `Target page, context or browser has been
-   closed` failure recorded earlier in this report is that, not an application fault. The harness
-   now starts a **new browser process per phase** and carries storage as exported `storageState`,
-   which is a truer fresh-process test than reusing a profile.
-
-**What the live run now shows**
-
-With the paid route configured, the first turn of a session completes for real
-(`Tool environment_compose -> ok`, one surface rendered, 0 crashes), and the following turns
-report no available provider within ~3 s — the provider is rate-limited into cooldown after the
-first request burst. The chain never fails; the allowance does.
-
-**Revised stage status**
-
-| Stage | Status |
-|---|---|
-| 1 Receive goal | PASS |
-| 3 Model-selected tool execution | **PASS** (create stage, every run) |
-| 5 Create visible environment | **PARTIAL** (one real surface per run, not the multi-surface workspace asked for) |
-| 2, 4, 6, 7 | BLOCKED — provider refuses the second turn of a session |
-| 8, 9 | NOT TESTED — nothing complete enough to save and restore |
-| 10 Honest reporting | PASS |
-
-**Verdict unchanged: PARTIALLY COMPLETE.** The remaining work is no longer "no route exists";
-it is a request allowance that survives only one turn per session window. The concrete next
-action is a provider tier whose rate limit permits several sequential turns (or a key whose
-per-minute limit is above LÉLU's request size), after which `scripts/live-workflow.mjs` runs the
-full ten stages in two phases without any further code change.
+That is the honest state: the workspace, revision and persistence spine is real and proven; the first minute with a new user is still broken by the sign-in gate; and live cognition is unproven in this session.

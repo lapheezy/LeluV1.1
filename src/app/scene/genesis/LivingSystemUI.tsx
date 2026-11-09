@@ -176,6 +176,7 @@ export default function LivingSystemUI() {
         focusId={workspaceState.focusId}
         selectedId={workspaceState.selectedId}
         besideChat={chatBox}
+        mobile={mobile}
         onSelectView={(id) => workspaceEngine.selectView(id)}
         onCloseView={(id) => workspaceEngine.closeView(id)}
         onOpenChat={() => {
@@ -578,6 +579,7 @@ function SystemWorkspace({
   focusId,
   selectedId,
   besideChat,
+  mobile,
   onSelectView,
   onCloseView,
   onOpenChat,
@@ -587,10 +589,33 @@ function SystemWorkspace({
   selectedId: string | null;
   /** The open chat window's horizontal extent: artifacts go beside it. */
   besideChat: { left: number; right: number } | null;
+  /** Phone layout: one scrollable column that stays inside the viewport. */
+  mobile: boolean;
   onSelectView: (id: string | null) => void;
   onCloseView: (id: string) => void;
   onOpenChat: () => void;
 }) {
+  /**
+   * A short phone (360x640 and smaller) needs DIFFERENT numbers, not smaller
+   * cards.
+   *
+   * The column reserved 92px at the top and 132px at the bottom for the core
+   * and the activity strip. On a 640px screen that left 416px of field, so the
+   * first surface started below the fold and every card had to be scrolled to
+   * before it could be read. The reserve is right for 844; it is not right for
+   * 640. This is measured off the viewport rather than inferred from the width,
+   * because the failing size has the SAME width as a taller phone that works.
+   */
+  const [shortViewport, setShortViewport] = useState(
+    () => typeof window !== "undefined" && window.innerHeight < 700,
+  );
+  useEffect(() => {
+    const onResize = () => setShortViewport(window.innerHeight < 700);
+    window.addEventListener("resize", onResize);
+    onResize();
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   const ordered = useMemo(() => {
     const list = [...views];
     // The user's selection first (status views refreshing must not push it
@@ -621,7 +646,36 @@ function SystemWorkspace({
   }
 
   return (
-    <div style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }}>
+    <div
+      style={
+        mobile
+          ? {
+              // Desktop places surfaces in a field around the core; a phone
+              // has no field to place them in. The measured phone result was
+              // cards at x = -88 (outside the viewport) because the desktop
+              // percentage slots and the chat-beside column were reused at
+              // 390 px. Here the same surfaces become one scrolling column
+              // between the navigation and the activity strip — nothing off
+              // screen, nothing under the core.
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 2,
+              pointerEvents: "auto",
+              overflowY: "auto",
+              WebkitOverflowScrolling: "touch",
+              overscrollBehavior: "contain",
+              boxSizing: "border-box",
+              display: "flex",
+              flexDirection: "column",
+              paddingTop: shortViewport ? 72 : 92,
+              paddingBottom: shortViewport ? "calc(env(safe-area-inset-bottom, 0px) + 96px)" : 132,
+            }
+          : { position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }
+      }
+    >
       {ordered.map((view, index) => {
         const focused = view.id === focusId;
         const selected = view.id === selectedId;
@@ -634,13 +688,42 @@ function SystemWorkspace({
             data-kind={view.kind}
             data-selected={selected ? "true" : "false"}
             data-revision={view.revision}
+            /**
+             * Select on PRESS, not on click.
+             *
+             * A press that spans a re-render (the scene mounts, the layout
+             * settles, the chat opens) can end on a different element and
+             * never produce a click — measured: the first press after a
+             * compose left every surface data-selected="false" and the
+             * engine selectedId null, while the very next press worked.
+             * The press itself is the user's intent, so it is what selects.
+             * Controls inside the card keep their own behaviour.
+             */
+            onPointerDown={(event) => {
+              const target = event.target as HTMLElement | null;
+              if (target?.closest("button, a, input, select, textarea")) return;
+              onSelectView(view.id);
+            }}
             onClick={() => onSelectView(view.id)}
             style={{
-              position: "absolute",
-              ...position,
-              width: column ? column.width : focused ? "min(46vw, 460px)" : "min(30vw, 300px)",
-              minWidth: column ? undefined : focused ? 260 : 180,
-              maxHeight: column ? 224 : focused ? "min(46dvh, 420px)" : "min(34dvh, 300px)",
+              ...(mobile
+                ? {
+                    position: "relative" as const,
+                    margin: "0 12px 8px",
+                    width: "auto",
+                    minWidth: 0,
+                    // Short screens get shorter cards so several are readable
+                    // without scrolling past the first one.
+                    maxHeight: shortViewport ? "min(42dvh, 240px)" : "min(52dvh, 380px)",
+                    flexShrink: 0,
+                  }
+                : {
+                    position: "absolute" as const,
+                    ...position,
+                    width: column ? column.width : focused ? "min(46vw, 460px)" : "min(30vw, 300px)",
+                    minWidth: column ? undefined : focused ? 260 : 180,
+                    maxHeight: column ? 224 : focused ? "min(46dvh, 420px)" : "min(34dvh, 300px)",
+                  }),
               pointerEvents: "auto",
               overflow: "hidden",
               borderRadius: 14,
