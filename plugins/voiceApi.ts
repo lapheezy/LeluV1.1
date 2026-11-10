@@ -14,9 +14,12 @@
  *   - the response is audio bytes, nothing else
  *
  * Endpoints:
- *   GET  /api/voice/status  → { configured, stt, voiceId, modelId, sttModelId }  (no key, no network)
- *   POST /api/voice/tts     → audio/mpeg for { text }
- *   POST /api/voice/stt     → { text, languageCode } for raw audio bytes (ElevenLabs Scribe)
+ *   GET  /api/voice/status              → { configured, stt, voiceId, modelId, sttModelId }  (no key, no network)
+ *   POST /api/voice/tts                 → audio/mpeg for { text }
+ *   POST /api/voice/stt                 → { text, languageCode } for raw audio bytes (ElevenLabs Scribe)
+ *   GET  /api/voice/resources           → sanitized allowance, cooldowns, failures, history
+ *   POST /api/voice/resources/reconcile → fold ElevenLabs' own counters in (real network call)
+ *   POST /api/voice/resources/replenish → the operator says an account has allowance again
  *
  * Usage: ElevenLabs reports what each call cost in response headers
  * (`character-cost`, and for STT `fiat-cost-before-overages`). Both are
@@ -28,10 +31,19 @@
  * cap per TTS segment and a 12 MB cap per STT upload.
  *
  * Credentials: several free-tier accounts may be configured at once
- * (`ELEVENLABS_API_KEY`, `ELEVENLABS_API_KEY_2`, `ELEVENLABS_API_KEY_3`). A
- * refusal another account can fix (401/403/429) cools THAT credential in the
- * shared ProviderKeyRing and the next one receives the same request, so a spent
- * monthly quota does not silence her.
+ * (`ELEVENLABS_API_KEY`, `ELEVENLABS_API_KEY_2`, `ELEVENLABS_API_KEY_3`).
+ * src/core/voice/VoiceResourceManager.ts owns what each one has spent, what it
+ * has left, its cooldown and its failures; this route asks that one layer which
+ * account may spend a request and never decides it itself. A refusal another
+ * account can fix (401/403/429) cools THAT account for THAT modality and the
+ * next one receives the same request; a spent allowance is skipped instead of
+ * being retried on every sentence. Accounts are handed to the manager as opaque
+ * positional ids, so its status can be served without exposing a key or the
+ * name of an environment variable.
+ *
+ * Her voice does not travel with the account: voice id, model and speaking
+ * style come from src/core/voice/voiceIdentity.ts, so rotation changes which
+ * account pays, never who is speaking.
  *
  * Failure is reported as failure: a synthesis error returns a
  * JSON body with the upstream status, never silent audio and
@@ -41,25 +53,12 @@
 
 /** Anything that resolves an environment name, like vite's envReader. */
 import { createRateLimiter } from "./requestGuard.ts";
+import VoiceResourceManager, { isAnotherAccountWorthTrying } from "../src/core/voice/VoiceResourceManager.ts";
+import { resolveVoiceIdentity, voiceSettingsPayload } from "../src/core/voice/voiceIdentity.ts";
 
 type ReadEnv = (key: string) => string | undefined;
 
 const ELEVENLABS_BASE = "https://api.elevenlabs.io/v1";
-
-/**
- * Jessica — "Playful, Bright, Warm", American, conversational.
- * Chosen from the 21 voices this key can actually reach, for a
- * natural feminine speaking register rather than an announcer.
- * Override with ELEVENLABS_VOICE_ID without touching code.
- */
-const DEFAULT_VOICE_ID = "cgSgspJ2msm6clMCkdW9";
-
-/**
- * Eleven v3 is the expressive model on this account; turbo v2.5 is
- * the low-latency fallback if v3 is unavailable. Both are verified
- * against the live account before being reported as usable.
- */
-const DEFAULT_MODEL_ID = "eleven_v3";
 
 /** A single reply segment. Keeps one request inside the free quota. */
 const MAX_TEXT_LENGTH = 900;
@@ -69,6 +68,10 @@ const DEFAULT_STT_MODEL_ID = "scribe_v1";
 const MAX_AUDIO_BYTES = 12_000_000;
 const TTS_LIMIT = { max: 60, windowMs: 60_000 };
 const STT_LIMIT = { max: 40, windowMs: 60_000 };
+/** Status polling is cheap but not free: no network, still rate-limited. */
+const RESOURCES_LIMIT = { max: 120, windowMs: 60_000 };
+/** Asking the provider about every account is expensive and its answer lags. */
+const RECONCILE_LIMIT = { max: 6, windowMs: 60_000 };
 
 interface ConnectLikeReq {
   method?: string;
@@ -201,8 +204,10 @@ function clientKey(req: ConnectLikeReq): string {
   return first || req.socket?.remoteAddress || "unknown";
 }
 
+/** Her identity, independent of which account will pay for it. */
 export function voiceSettings(): { voiceId: string; modelId: string } {
-  return { voiceId: DEFAULT_VOICE_ID, modelId: DEFAULT_MODEL_ID };
+  const identity = resolveVoiceIdentity();
+  return { voiceId: identity.voiceId, modelId: identity.modelId };
 }
 
 export function createVoiceApi(readEnv?: ReadEnv): {
@@ -226,50 +231,41 @@ export function createVoiceApi(readEnv?: ReadEnv): {
     "Elevenlabs3",
   ] as const;
 
-  /** A refused or spent account will not fix itself in thirty seconds. */
-  const SPENT_CREDENTIAL_COOLDOWN_MS = 15 * 60_000;
+  /**
+   * Allowance, cooldowns, failures and history for every account, per
+   * modality. It is handed opaque positional ids and NEVER receives a key, so
+   * its snapshot is safe to log, render and serve.
+   */
+  const resources = new VoiceResourceManager();
 
-  /** Label → when it may be spent again. Labels only, never a key. */
-  const cooling = new Map<string, number>();
-
-  /** Her configured credentials, in spend order, deduplicated by value. */
-  function voiceCredentials(): Array<{ label: string; key: string }> {
-    const credentials: Array<{ label: string; key: string }> = [];
+  /** The accounts configured right now, in spend order, deduplicated by key. */
+  function voiceAccounts(): Array<{ id: string; key: string }> {
+    const accounts: Array<{ id: string; key: string }> = [];
+    const seen = new Set<string>();
     for (const name of VOICE_KEY_NAMES) {
       const key = readSecret(readEnv, [name]);
       if (key.length < 8) continue;
-      // The same key under two names is ONE credential.
-      if (credentials.some((entry) => entry.key === key)) continue;
-      credentials.push({ label: name, key });
+      // The same key under two names is ONE account.
+      if (seen.has(key)) continue;
+      seen.add(key);
+      accounts.push({ id: `account-${accounts.length + 1}`, key });
     }
-    return credentials;
+    // Nothing downstream ever sees `key` or the environment name it came from.
+    resources.sync(accounts.map((account) => account.id));
+    return accounts;
   }
 
-  /**
-   * The credentials one request may spend. A key that just refused is skipped
-   * for fifteen minutes, so a spent free tier costs one failed call rather than
-   * one per synthesis; when every account is cooling they are all offered again
-   * instead of going silent.
-   */
-  function spendableCredentials(): Array<{ label: string; key: string }> {
-    const all = voiceCredentials();
-    const now = Date.now();
-    const ready = all.filter((credential) => (cooling.get(credential.label) ?? 0) <= now);
-    return ready.length > 0 ? ready : all;
-  }
-
-  /** Only a refusal, a spent quota or a rate limit justifies sitting out. */
-  function coolCredential(label: string, upstreamStatus: number): void {
-    if (upstreamStatus !== 401 && upstreamStatus !== 403 && upstreamStatus !== 429) return;
-    cooling.set(label, Date.now() + SPENT_CREDENTIAL_COOLDOWN_MS);
+  /** Her voice — identity, never infrastructure. */
+  function voiceIdentity() {
+    return resolveVoiceIdentity(readEnv);
   }
 
   function voiceConfig(): { keyCount: number; voiceId: string; modelId: string; sttModelId: string } {
-    const configured = voiceSettings();
+    const identity = voiceIdentity();
     return {
-      keyCount: voiceCredentials().length,
-      voiceId: readSecret(readEnv, ["ELEVENLABS_VOICE_ID"]) || configured.voiceId,
-      modelId: readSecret(readEnv, ["ELEVENLABS_MODEL_ID"]) || configured.modelId,
+      keyCount: voiceAccounts().length,
+      voiceId: identity.voiceId,
+      modelId: identity.modelId,
       sttModelId: readSecret(readEnv, ["ELEVENLABS_STT_MODEL_ID"]) || DEFAULT_STT_MODEL_ID,
     };
   }
@@ -305,7 +301,7 @@ export function createVoiceApi(readEnv?: ReadEnv): {
     }
     if (!admit(req, res, "tts", TTS_LIMIT)) return;
     void (async () => {
-      const { keyCount, voiceId, modelId } = voiceConfig();
+      const { keyCount } = voiceConfig();
       if (keyCount === 0) {
         sendJson(res, { ok: false, error: "ElevenLabs is not configured." }, 503);
         return;
@@ -326,35 +322,84 @@ export function createVoiceApi(readEnv?: ReadEnv): {
         sendJson(res, { ok: false, error: `Text exceeds ${MAX_TEXT_LENGTH} characters.` }, 413);
         return;
       }
+      // Which account may spend what this sentence costs — decided from local
+      // accounting, before anything is sent to the provider.
+      const plan = resources.plan("tts", { text });
+      if (!plan.available) {
+        const retryAfterMs = plan.retryAfterMs ?? 60_000;
+        res.setHeader("Retry-After", String(Math.max(1, Math.ceil(retryAfterMs / 1000))));
+        sendJson(
+          res,
+          {
+            ok: false,
+            error:
+              plan.unavailableReason === "all_credentials_exhausted"
+                ? "Every voice account has spent its character allowance."
+                : plan.unavailableReason === "all_credentials_cooling"
+                  ? "Every voice account is cooling after a refusal."
+                  : plan.unavailableReason === "no_credentials"
+                    ? "ElevenLabs is not configured."
+                    : "No voice account has enough allowance for this request.",
+            reason: plan.unavailableReason,
+            retryAfterMs,
+            remainingCharacters: plan.remainingCharacters,
+            skipped: plan.skipped,
+          },
+          503,
+        );
+        return;
+      }
+      const identity = voiceIdentity();
+      const spokenStyle = voiceSettingsPayload(identity);
+      const accounts = new Map(voiceAccounts().map((account) => [account.id, account.key]));
       try {
         let lastStatus = 0;
-        for (const credential of spendableCredentials()) {
-          const upstream = await fetch(
-            `${ELEVENLABS_BASE}/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`,
-            {
-              method: "POST",
-              headers: {
-                "xi-api-key": credential.key,
-                "Content-Type": "application/json",
-                Accept: "audio/mpeg",
-              },
-              body: JSON.stringify({
-                text,
-                model_id: modelId,
-                voice_settings: {
-                  stability: 0.4,
-                  similarity_boost: 0.8,
-                  style: 0.2,
-                  use_speaker_boost: true,
+        for (const id of plan.candidates) {
+          const key = accounts.get(id);
+          if (!key) continue;
+          const started = Date.now();
+          let upstream: Response;
+          try {
+            upstream = await fetch(
+              `${ELEVENLABS_BASE}/text-to-speech/${encodeURIComponent(identity.voiceId)}?output_format=mp3_44100_128`,
+              {
+                method: "POST",
+                headers: {
+                  "xi-api-key": key,
+                  "Content-Type": "application/json",
+                  Accept: "audio/mpeg",
                 },
-              }),
-            },
-          );
+                body: JSON.stringify({
+                  text,
+                  model_id: identity.modelId,
+                  voice_settings: spokenStyle,
+                }),
+              },
+            );
+          } catch (error) {
+            // The network, not the account: recorded, and it does not cool it.
+            resources.recordFailure("tts", id, {
+              status: 0,
+              reason: `transport: ${(error as Error).message}`,
+              estimatedCharacters: plan.estimate,
+              latencyMs: Date.now() - started,
+            });
+            throw error;
+          }
+          const usage = usageFromHeaders(upstream.headers);
           if (upstream.ok) {
-            cooling.delete(credential.label);
+            resources.recordSuccess("tts", id, {
+              estimatedCharacters: plan.estimate,
+              reportedCharacters: usage.characterCost,
+              fiatCostUsd: usage.fiatCostUsd,
+              latencyMs: Date.now() - started,
+            });
             const audio = new Uint8Array(await upstream.arrayBuffer());
             res.statusCode = 200;
-            res.setHeader("X-Lelu-Usage", JSON.stringify(usageFromHeaders(upstream.headers)));
+            res.setHeader("X-Lelu-Usage", JSON.stringify(usage));
+            // Which account paid — an opaque id, never a key or env name.
+            res.setHeader("X-Lelu-Voice", id);
+            res.setHeader("X-Lelu-Remaining", String(resources.remainingCharacters(id) ?? ""));
             res.setHeader("Content-Type", "audio/mpeg");
             res.setHeader("Content-Length", String(audio.byteLength));
             res.setHeader("Cache-Control", "no-store");
@@ -362,11 +407,16 @@ export function createVoiceApi(readEnv?: ReadEnv): {
             return;
           }
           // A spent quota or a refused key may be another account's problem, so
-          // that credential cools and the next one receives the same request.
-          // Only the status is reported: an upstream body can echo the text.
+          // that account cools and the next one receives the same request. Only
+          // the status is recorded: an upstream body can echo her text.
           lastStatus = upstream.status;
-          coolCredential(credential.label, upstream.status);
-          if (upstream.status !== 401 && upstream.status !== 403 && upstream.status !== 429) break;
+          resources.recordFailure("tts", id, {
+            status: upstream.status,
+            reason: `ElevenLabs HTTP ${upstream.status}`,
+            estimatedCharacters: plan.estimate,
+            latencyMs: Date.now() - started,
+          });
+          if (!isAnotherAccountWorthTrying(upstream.status)) break;
         }
         sendJson(
           res,
@@ -417,11 +467,40 @@ export function createVoiceApi(readEnv?: ReadEnv): {
         return;
       }
       const lang = new URL(req.url ?? "/", "http://localhost").searchParams.get("lang") ?? "";
+      // Transcription is tracked apart from synthesis: a spent TTS allowance
+      // must not close her ears, and a transcription cooldown must not silence
+      // her mouth.
+      const plan = resources.plan("stt", { audioBytes: audio.byteLength });
+      if (!plan.available) {
+        const retryAfterMs = plan.retryAfterMs ?? 60_000;
+        res.setHeader("Retry-After", String(Math.max(1, Math.ceil(retryAfterMs / 1000))));
+        sendJson(
+          res,
+          {
+            ok: false,
+            error:
+              plan.unavailableReason === "all_credentials_cooling"
+                ? "Every voice account is cooling after a refusal."
+                : plan.unavailableReason === "no_credentials"
+                  ? "ElevenLabs is not configured."
+                  : "No voice account can transcribe right now.",
+            reason: plan.unavailableReason,
+            retryAfterMs,
+            skipped: plan.skipped,
+          },
+          503,
+        );
+        return;
+      }
       const started = Date.now();
+      const accounts = new Map(voiceAccounts().map((account) => [account.id, account.key]));
       let lastStatus = 0;
       let lastUsage: ElevenLabsUsage | null = null;
       try {
-        for (const credential of spendableCredentials()) {
+        for (const id of plan.candidates) {
+          const key = accounts.get(id);
+          if (!key) continue;
+          const attemptStarted = Date.now();
           // A FormData body is consumed by the send, so each attempt gets its own.
           const form = new FormData();
           form.append("model_id", sttModelId);
@@ -430,18 +509,28 @@ export function createVoiceApi(readEnv?: ReadEnv): {
           form.append("file", new Blob([audio], { type: type === "application/octet-stream" ? "audio/webm" : type }), "utterance");
           const upstream = await fetch(`${ELEVENLABS_BASE}/speech-to-text`, {
             method: "POST",
-            headers: { "xi-api-key": credential.key },
+            headers: { "xi-api-key": key },
             body: form,
           });
           const usage = usageFromHeaders(upstream.headers);
           if (!upstream.ok) {
             lastStatus = upstream.status;
             lastUsage = usage;
-            coolCredential(credential.label, upstream.status);
-            if (upstream.status !== 401 && upstream.status !== 403 && upstream.status !== 429) break;
+            resources.recordFailure("stt", id, {
+              status: upstream.status,
+              reason: `ElevenLabs HTTP ${upstream.status}`,
+              latencyMs: Date.now() - attemptStarted,
+            });
+            if (!isAnotherAccountWorthTrying(upstream.status)) break;
             continue;
           }
-          cooling.delete(credential.label);
+          resources.recordSuccess("stt", id, {
+            // No character estimate is invented for transcription.
+            estimatedCharacters: null,
+            reportedCharacters: usage.characterCost,
+            fiatCostUsd: usage.fiatCostUsd,
+            latencyMs: Date.now() - attemptStarted,
+          });
           const data = (await upstream.json()) as { text?: unknown; language_code?: unknown };
           sendJson(res, {
             ok: true,
@@ -450,6 +539,7 @@ export function createVoiceApi(readEnv?: ReadEnv): {
             model: sttModelId,
             latencyMs: Date.now() - started,
             usage,
+            account: id,
           });
           return;
         }
@@ -470,8 +560,144 @@ export function createVoiceApi(readEnv?: ReadEnv): {
     })();
   }
 
+  /**
+   * Sanitized operational status for the dashboard: allowance, cooldowns,
+   * failures, history and availability. No key, no environment name and no
+   * upstream response body ever appears here — accounts are opaque ids.
+   *
+   * Makes NO network call: every number is local accounting, labelled as such
+   * (`estimatedCharacters` vs `reportedCharacters`), so a poll cannot cost her
+   * a character or pretend a quota was checked.
+   */
+  function handleResources(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): void {
+    if ((req.method ?? "GET") !== "GET") {
+      next();
+      return;
+    }
+    if (!admit(req, res, "resources", RESOURCES_LIMIT)) return;
+    const identity = voiceIdentity();
+    sendJson(res, {
+      ok: true,
+      provider: identity.provider,
+      // Her voice, shown beside the infrastructure so a rotation can never be
+      // mistaken for a change of identity.
+      identity: {
+        name: identity.name,
+        voiceId: identity.voiceId,
+        modelId: identity.modelId,
+        speakingStyle: identity.speakingStyle,
+      },
+      ...resources.snapshot(),
+    });
+  }
+
+  /**
+   * Fold ElevenLabs' own counters in.
+   *
+   * The only route that asks the provider about quota, because it costs a round
+   * trip per account and the answer LAGS. The manager keeps the internal lower
+   * bound and reports the gap as `lagging` instead of trusting a stale number
+   * down; only the numbers come back, never the provider's response body.
+   */
+  function handleReconcile(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): void {
+    if ((req.method ?? "GET") !== "POST") {
+      next();
+      return;
+    }
+    if (isCrossOrigin(req)) {
+      sendJson(res, { ok: false, error: "Cross-origin requests are not allowed." }, 403);
+      return;
+    }
+    if (!admit(req, res, "reconcile", RECONCILE_LIMIT)) return;
+    void (async () => {
+      const accounts = voiceAccounts();
+      if (accounts.length === 0) {
+        sendJson(res, { ok: false, error: "ElevenLabs is not configured." }, 503);
+        return;
+      }
+      const reconciled: Array<Record<string, unknown>> = [];
+      for (const account of accounts) {
+        try {
+          const upstream = await fetch(`${ELEVENLABS_BASE}/user/subscription`, {
+            headers: { "xi-api-key": account.key, Accept: "application/json" },
+          });
+          if (!upstream.ok) {
+            reconciled.push({ account: account.id, ok: false, upstreamStatus: upstream.status });
+            continue;
+          }
+          const data = (await upstream.json()) as { character_count?: unknown; character_limit?: unknown };
+          const used = typeof data.character_count === "number" ? data.character_count : null;
+          const limit = typeof data.character_limit === "number" ? data.character_limit : null;
+          if (used === null || limit === null) {
+            reconciled.push({ account: account.id, ok: false, reason: "provider reported no character counters" });
+            continue;
+          }
+          const applied = resources.applyUpstreamUsage(account.id, { characterCount: used, characterLimit: limit });
+          reconciled.push({
+            account: account.id,
+            ok: true,
+            upstreamUsed: used,
+            upstreamLimit: limit,
+            internalUsed: applied?.internalUsed ?? null,
+            lagging: applied?.lagging ?? false,
+          });
+        } catch (error) {
+          reconciled.push({ account: account.id, ok: false, reason: (error as Error).message });
+        }
+      }
+      sendJson(res, {
+        ok: true,
+        reconciledAt: Date.now(),
+        accounts: reconciled,
+        note: "A provider counter can lag; a lower upstream number never lowers the internal lower bound.",
+      });
+    })();
+  }
+
+  /**
+   * The operator states an account has allowance again (top-up, new month).
+   * The internal counters restart — otherwise the account stays exhausted
+   * forever — while the usage history keeps what was really spent.
+   */
+  function handleReplenish(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): void {
+    if ((req.method ?? "GET") !== "POST") {
+      next();
+      return;
+    }
+    if (isCrossOrigin(req)) {
+      sendJson(res, { ok: false, error: "Cross-origin requests are not allowed." }, 403);
+      return;
+    }
+    if (!admit(req, res, "replenish", RECONCILE_LIMIT)) return;
+    void (async () => {
+      let body: Record<string, unknown> = {};
+      try {
+        body = await readJsonBody(req);
+      } catch {
+        sendJson(res, { ok: false, error: "Malformed request body." }, 400);
+        return;
+      }
+      const requested = typeof body.account === "string" ? body.account : "";
+      const reset = resources.replenish(requested ? [requested] : undefined);
+      if (reset.length === 0) {
+        sendJson(res, { ok: false, error: "No such voice account." }, 404);
+        return;
+      }
+      sendJson(res, {
+        ok: true,
+        replenished: reset,
+        at: Date.now(),
+        note: "Cooldowns and internal counters restarted; the usage history keeps what was actually spent.",
+      });
+    })();
+  }
+
   return {
     attach(middlewares) {
+      // Specific paths first: these middlewares match by prefix.
+      middlewares.use("/api/voice/resources/reconcile", handleReconcile);
+      middlewares.use("/api/voice/resources/replenish", handleReplenish);
+      middlewares.use("/api/voice/resources", handleResources);
       middlewares.use("/api/voice/status", handleStatus);
       middlewares.use("/api/voice/tts", handleTts);
       middlewares.use("/api/voice/stt", handleStt);

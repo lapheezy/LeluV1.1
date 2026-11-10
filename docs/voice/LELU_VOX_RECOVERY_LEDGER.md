@@ -315,9 +315,35 @@ again on a crash; mobile claims without a device.
 
 ---
 
+## 10. Mission 5.8 — voice resource intelligence (measured 2026-11-10)
+
+She speaks (`d586fdb`). This milestone made her **know what speaking costs**.
+
+Code added, nothing replaced: `src/core/voice/VoiceResourceManager.ts` (allowance, cooldowns, failures,
+reported-vs-estimated accounting, usage history — and it never receives a key), `voiceIdentity.ts` (voice
+id, model and speaking style, so rotation can never change who speaks), and `VoiceResourceSection.tsx`
+mounted inside the existing Settings panel beside her voice picker. `plugins/voiceApi.ts` now plans each
+request through the manager and exposes `GET /api/voice/resources`, `POST …/reconcile` and `POST …/replenish`;
+`/api/voice/status`, `/tts` and `/stt` keep their contracts.
+
+Measured live: real TTS 200 `audio/mpeg`, 81,545 B, 68 characters reported, account 2; real STT on that
+same audio returned her sentence with 6 characters and $0.0006; `reconcile` read the provider's own
+counters (account 1: 10,000/10,000, account 2: 152/10,000) and account 1 is now reported **exhausted**
+rather than retried per sentence. Neither resources payload contains a key or an environment-variable name.
+`tsc` exit 0, oxlint 0 warnings/0 errors, 1966 tests with 0 failures. Evidence:
+`docs/voice/evidence/2026-11-10-voice-resource-intelligence/`; report:
+`docs/voice/MISSION_5_8_VOICE_RESOURCE_INTELLIGENCE.md`.
+
+Not verified: audible playback in the UI (no Chromium, no audio device here), the panel's visual layout, and
+counters surviving a restart (they are per-process; `reconcile` is the durable truth).
+
+---
+
 ## 9. Next action (edit this line when you resume)
 
-> Credentials are proven (§6.1): cognition rotates 3 Groq + 3 OpenRouter, and `/api/voice/tts` returns real
-> `audio/mpeg` by rotating 3 ElevenLabs accounts. Next: supply `PW_CHROMIUM` and run
-> `LELU_BASE=http://127.0.0.1:5173/ node scripts/verify-voice-conversation.cjs <utteranceDir> <outDir>` for
-> the audible end-to-end check. Do not write VoxCPM2 code until a sidecar answers a health request.
+> Her voice speaks and now accounts for itself (§10): `/api/voice/tts` returns real audio through the voice
+> resource manager, the spent account is correctly reported as exhausted instead of retried, and
+> `/api/voice/resources` serves sanitized allowance, cooldown and history to the Settings panel. Next: supply
+> `PW_CHROMIUM` and run `LELU_BASE=http://127.0.0.1:5173/ node scripts/verify-voice-conversation.cjs
+> <utteranceDir> <outDir>` for the audible end-to-end check. Do not write VoxCPM2 code until a sidecar
+> answers a health request.

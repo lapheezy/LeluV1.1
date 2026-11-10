@@ -31,6 +31,7 @@ import SupabasePersistence, { type SupabaseAuthState } from "../../../core/persi
 import { getEnvironment } from "../../../core/Environment";
 import VoiceEngine from "../../../core/voice/VoiceEngine";
 import UsageSection from "./UsageSection";
+import VoiceResourceSection from "./VoiceResourceSection";
 
 const LEVELS: { value: NotificationLevel; label: string }[] = [
   { value: "quiet", label: "Quiet" },
@@ -611,6 +612,9 @@ export default function GenesisSettingsPanel({ onClose }: GenesisSettingsPanelPr
           </div>
 
           <VoiceSection />
+
+          {/* What her voice costs, what is left, and which account is paying. */}
+          <VoiceResourceSection />
 
           <UsageSection />
 
