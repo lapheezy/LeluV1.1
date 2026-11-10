@@ -23,7 +23,7 @@ const duration = Number(durationArg ?? 140) * 1000;
 
 (async () => {
   const browser = await chromium.launch({
-    executablePath: "/opt/pw-browsers/chromium",
+    executablePath: process.env.PW_CHROMIUM ?? "/opt/pw-browsers/chromium",
     args: [
       "--no-sandbox",
       "--use-fake-ui-for-media-stream",

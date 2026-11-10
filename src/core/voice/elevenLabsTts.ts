@@ -44,6 +44,13 @@ const STATUS_TTL_MS = 60_000;
 
 let statusCache: { at: number; configured: boolean } | null = null;
 let current: HTMLAudioElement | null = null;
+/**
+ * Resolves the segment currently being awaited. Pausing an element fires
+ * neither "ended" nor "error", so without this the serialised chain stayed
+ * pending forever: every reply after a barge-in (or any stop) was queued
+ * behind a promise that would never settle and was never spoken.
+ */
+let finishCurrent: (() => void) | null = null;
 let chain: Promise<void> = Promise.resolve();
 
 /** True once the server has confirmed it holds an ElevenLabs key. */
@@ -130,6 +137,7 @@ export function speakText(text: string, callbacks: SpeakCallbacks = {}): Promise
       current = audio;
       callbacks.onStart?.();
       await new Promise<void>((resolve, reject) => {
+        finishCurrent = resolve;
         audio.onended = () => resolve();
         audio.onerror = () => reject(new Error("playback failed"));
         void audio.play().catch(reject);
@@ -140,6 +148,7 @@ export function speakText(text: string, callbacks: SpeakCallbacks = {}): Promise
     } finally {
       if (url) URL.revokeObjectURL(url);
       current = null;
+      finishCurrent = null;
     }
   };
   chain = chain.then(run, run);
@@ -150,12 +159,18 @@ export function speakText(text: string, callbacks: SpeakCallbacks = {}): Promise
 export function stopSpeaking(): void {
   const audio = current;
   current = null;
-  if (!audio) return;
-  try {
-    audio.pause();
-    audio.removeAttribute("src");
-    audio.load();
-  } catch {
-    // A player that cannot be stopped fails closed: it is already paused.
+  // Release the chain FIRST: a paused element fires no "ended", so the
+  // segment being awaited is told it is over here instead of never.
+  const finish = finishCurrent;
+  finishCurrent = null;
+  if (audio) {
+    try {
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+    } catch {
+      // A player that cannot be stopped fails closed: it is already paused.
+    }
   }
+  finish?.();
 }

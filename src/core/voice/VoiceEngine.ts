@@ -430,6 +430,8 @@ class VoiceEngine {
   private streaming = false;
   /** speakResponse() is walking its chunk chain. */
   private chainActive = false;
+  /** Streamed segments handed to her server voice that have not finished. */
+  private streamSegmentsPending = 0;
   /** The recognizer is currently running (between onstart and onend). */
   private recognitionRunning = false;
   /** Barge-ins this session (diagnostics). */
@@ -1539,6 +1541,21 @@ class VoiceEngine {
   private elevenLabsSettled = false;
 
   /**
+   * Run `speak` once the one-time "does her server hold her voice?" answer is
+   * known, so a streamed reply is never split across two engines.
+   */
+  private whenVoiceSettled(speak: () => void): void {
+    if (this.elevenLabsSettled) {
+      speak();
+      return;
+    }
+    void this.probeElevenLabs().then(() => {
+      this.elevenLabsSettled = true;
+      speak();
+    });
+  }
+
+  /**
    * Speak the whole reply through ElevenLabs, one segment at a time.
    *
    * Segments are chained rather than queued blind so barge-in — which
@@ -1580,7 +1597,17 @@ class VoiceEngine {
           // rather than leaving the reply unspoken, and report the failure.
           this.elevenLabs = false;
           this.patchDiagnostics({ audioPlaying: false, ttsStage: "failed" });
-          this.noteFailure({ kind: "playback-failure", message: "Her voice could not be played; the rest of the reply uses the browser voice. The answer itself is in the conversation." });
+          // Only promise a browser voice when the browser actually has one.
+          // On a machine with no speech engine the old wording told the user
+          // the rest of the reply was being spoken while nothing played at all.
+          const browserVoice = typeof speechSynthesis !== "undefined" && (speechSynthesis.getVoices?.().length ?? 0) > 0;
+          if (!browserVoice) this.patchDiagnostics({ ttsAvailable: false });
+          this.noteFailure({
+            kind: "playback-failure",
+            message: browserVoice
+              ? "Her voice could not be played; the rest of the reply uses the browser voice. The answer itself is in the conversation."
+              : "Her own voice could not be played, and this browser has no speech engine — so nothing was spoken. The answer itself is in the conversation.",
+          });
           const rest = segments.slice(index - 1).join(" ").trim();
           index = segments.length;
           if (typeof speechSynthesis !== "undefined" && rest) {
@@ -1720,6 +1747,7 @@ class VoiceEngine {
     }
     this.streamFinalizing = false;
     this.streamCursor = 0;
+    this.streamSegmentsPending = 0;
   }
 
   /* ---------------------------------------------------------
@@ -1745,6 +1773,18 @@ class VoiceEngine {
   }
 
   feedStreamingSpeech(fullText: string): void {
+    // Which speaker to use is answered by the server ONCE per session. Before
+    // that answer arrives the browser engine used to take the first
+    // sentences — a different voice, on a machine that may have none at all —
+    // exactly the bug speakResponse already waits out. Wait for the same
+    // answer here, then speak the same text: the cursor has not moved, so
+    // nothing is said twice.
+    if (!this.elevenLabsSettled && typeof speechSynthesis === "undefined") {
+      // No browser engine to fall back on: wait for her server voice rather
+      // than silently dropping the first sentences of a streamed reply.
+      this.whenVoiceSettled(() => this.feedStreamingSpeech(fullText));
+      return;
+    }
     if (
       (typeof speechSynthesis === "undefined" && !this.elevenLabs) ||
       this.cancelFlag ||
@@ -1767,7 +1807,7 @@ class VoiceEngine {
     if (this.elevenLabs) {
       // speakText() serialises, so streamed sentences stay in order and in
       // the same voice.
-      void speakText(segment);
+      this.speakStreamSegment(segment);
       return;
     }
     try {
@@ -1778,6 +1818,10 @@ class VoiceEngine {
   }
 
   finishStreamingSpeech(fullText: string): void {
+    if (!this.elevenLabsSettled && typeof speechSynthesis === "undefined") {
+      this.whenVoiceSettled(() => this.finishStreamingSpeech(fullText));
+      return;
+    }
     this.streamFinalizing = true;
     this.streaming = false;
     if ((typeof speechSynthesis === "undefined" && !this.elevenLabs) || this.cancelFlag) {
@@ -1794,7 +1838,7 @@ class VoiceEngine {
     }
     for (const chunk of chunkForSpeech(rest)) {
       if (this.elevenLabs) {
-        void speakText(chunk);
+        this.speakStreamSegment(chunk);
         continue;
       }
       try {
@@ -1803,6 +1847,28 @@ class VoiceEngine {
         // ignore
       }
     }
+  }
+
+  /**
+   * Speak one streamed segment through her server voice, and COUNT it.
+   *
+   * Streamed playback used to be fire-and-forget: `isSpeaking()` stayed
+   * false for the whole of a streamed reply, so a user talking over one
+   * could not interrupt it (barge-in only worked for speakResponse), and
+   * nothing cleared the "speaking" phase when the last segment ended.
+   * Counting the segment makes both true for the path every typed reply
+   * and every streamed answer actually takes.
+   */
+  private speakStreamSegment(segment: string): void {
+    this.streamSegmentsPending += 1;
+    this.chainActive = true;
+    void speakText(segment).finally(() => {
+      this.streamSegmentsPending = Math.max(0, this.streamSegmentsPending - 1);
+      if (this.streamSegmentsPending === 0) {
+        this.chainActive = false;
+        this.settleSpeech();
+      }
+    });
   }
 
   /* ---------------------------------------------------------

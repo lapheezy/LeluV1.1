@@ -27,7 +27,7 @@ const TYPED_AFTER = Number(process.env.LELU_TYPED_AFTER ?? 15); // a typed turn 
 const TYPED = "(typed) Quick check by text: what's my favorite color again? One word.";
 
 (async () => {
-  const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium", args: ["--no-sandbox", "--autoplay-policy=no-user-gesture-required"] });
+  const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? "/opt/pw-browsers/chromium", args: ["--no-sandbox", "--autoplay-policy=no-user-gesture-required"] });
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, permissions: ["microphone"] });
   await ctx.route(/\/__mic\/u\d+\.mp3$/, (route) => {
     const name = new URL(route.request().url()).pathname.split("/").pop();
