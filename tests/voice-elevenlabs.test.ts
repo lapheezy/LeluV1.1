@@ -123,6 +123,50 @@ test("no key: both routes say so (503) and nothing is sent upstream", async () =
   } finally { stub.restore(); s.close(); }
 });
 
+test("a spent account cools and the next account speaks instead of failing", async () => {
+  const keys = new Map([
+    ["Elevenlabs", "xi-spent-key-1"],
+    ["Elevenlabs2", "xi-fresh-key-2"],
+    ["Elevenlabs3", "xi-fresh-key-3"],
+  ]);
+  const s = await serve((k) => keys.get(k));
+  const seen: string[] = [];
+  const stub = stubElevenLabs((_url, init) => {
+    const key = new Headers(init.headers).get("xi-api-key") ?? "";
+    seen.push(key);
+    // The first account's month is spent; the others still speak.
+    if (key === "xi-spent-key-1") {
+      return new Response(JSON.stringify({ detail: { status: "quota_exceeded" } }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    return new Response(new Uint8Array([0xff, 0xfb, 0x90, 0x00]), {
+      headers: { "content-type": "audio/mpeg", "character-cost": "9" },
+    });
+  });
+  const speak = () =>
+    fetch(`${s.base}/api/voice/tts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: "hello" }),
+    });
+  try {
+    const first = await speak();
+    assert.equal(first.status, 200, "a spent account must not silence her");
+    assert.equal(first.headers.get("content-type"), "audio/mpeg");
+    assert.equal(seen.at(-1), "xi-fresh-key-2", "the second account's key is the one that spoke");
+    const second = await speak();
+    assert.equal(second.status, 200);
+    assert.notEqual(seen.at(-1), "xi-spent-key-1", "a cooling credential is not handed out again");
+    assert.equal(
+      seen.filter((key) => key === "xi-spent-key-1").length,
+      1,
+      "the spent key is paid for once, not once per synthesis",
+    );
+  } finally { stub.restore(); s.close(); }
+});
+
 test("client STT is metered with ElevenLabs' reported character and USD cost, and a spent budget refuses before uploading", async () => {
   const ledger = UsageLedger.getInstance();
   const real = globalThis.fetch;

@@ -27,6 +27,12 @@
  * finite — the free tier is 10,000 characters a month), a 900-character
  * cap per TTS segment and a 12 MB cap per STT upload.
  *
+ * Credentials: several free-tier accounts may be configured at once
+ * (`ELEVENLABS_API_KEY`, `ELEVENLABS_API_KEY_2`, `ELEVENLABS_API_KEY_3`). A
+ * refusal another account can fix (401/403/429) cools THAT credential in the
+ * shared ProviderKeyRing and the next one receives the same request, so a spent
+ * monthly quota does not silence her.
+ *
  * Failure is reported as failure: a synthesis error returns a
  * JSON body with the upstream status, never silent audio and
  * never a 200 carrying an error string.
@@ -204,10 +210,64 @@ export function createVoiceApi(readEnv?: ReadEnv): {
 } {
   const limiter = createRateLimiter();
 
-  function voiceConfig(): { key: string; voiceId: string; modelId: string; sttModelId: string } {
+  /**
+   * The names her credentials can arrive under, in the order they are spent:
+   * the documented slot names first, then the platform's bare secret names so
+   * a runtime that exposes only those still speaks.
+   */
+  const VOICE_KEY_NAMES = [
+    "ELEVENLABS_API_KEY",
+    "ELEVENLABS_API_KEY_1",
+    "ELEVENLABS_API_KEY_2",
+    "ELEVENLABS_API_KEY_3",
+    "ELEVENLABS_API_KEY_4",
+    "Elevenlabs",
+    "Elevenlabs2",
+    "Elevenlabs3",
+  ] as const;
+
+  /** A refused or spent account will not fix itself in thirty seconds. */
+  const SPENT_CREDENTIAL_COOLDOWN_MS = 15 * 60_000;
+
+  /** Label → when it may be spent again. Labels only, never a key. */
+  const cooling = new Map<string, number>();
+
+  /** Her configured credentials, in spend order, deduplicated by value. */
+  function voiceCredentials(): Array<{ label: string; key: string }> {
+    const credentials: Array<{ label: string; key: string }> = [];
+    for (const name of VOICE_KEY_NAMES) {
+      const key = readSecret(readEnv, [name]);
+      if (key.length < 8) continue;
+      // The same key under two names is ONE credential.
+      if (credentials.some((entry) => entry.key === key)) continue;
+      credentials.push({ label: name, key });
+    }
+    return credentials;
+  }
+
+  /**
+   * The credentials one request may spend. A key that just refused is skipped
+   * for fifteen minutes, so a spent free tier costs one failed call rather than
+   * one per synthesis; when every account is cooling they are all offered again
+   * instead of going silent.
+   */
+  function spendableCredentials(): Array<{ label: string; key: string }> {
+    const all = voiceCredentials();
+    const now = Date.now();
+    const ready = all.filter((credential) => (cooling.get(credential.label) ?? 0) <= now);
+    return ready.length > 0 ? ready : all;
+  }
+
+  /** Only a refusal, a spent quota or a rate limit justifies sitting out. */
+  function coolCredential(label: string, upstreamStatus: number): void {
+    if (upstreamStatus !== 401 && upstreamStatus !== 403 && upstreamStatus !== 429) return;
+    cooling.set(label, Date.now() + SPENT_CREDENTIAL_COOLDOWN_MS);
+  }
+
+  function voiceConfig(): { keyCount: number; voiceId: string; modelId: string; sttModelId: string } {
     const configured = voiceSettings();
     return {
-      key: readSecret(readEnv, ["ELEVENLABS_API_KEY", "Elevenlabs"]),
+      keyCount: voiceCredentials().length,
       voiceId: readSecret(readEnv, ["ELEVENLABS_VOICE_ID"]) || configured.voiceId,
       modelId: readSecret(readEnv, ["ELEVENLABS_MODEL_ID"]) || configured.modelId,
       sttModelId: readSecret(readEnv, ["ELEVENLABS_STT_MODEL_ID"]) || DEFAULT_STT_MODEL_ID,
@@ -228,10 +288,10 @@ export function createVoiceApi(readEnv?: ReadEnv): {
       next();
       return;
     }
-    const { key, voiceId, modelId, sttModelId } = voiceConfig();
+    const { keyCount, voiceId, modelId, sttModelId } = voiceConfig();
     // Presence, not health: this makes no network call and claims nothing
-    // about whether the key is still accepted upstream.
-    sendJson(res, { configured: Boolean(key), stt: Boolean(key), voiceId, modelId, sttModelId });
+    // about whether a credential is still accepted upstream.
+    sendJson(res, { configured: keyCount > 0, stt: keyCount > 0, voiceId, modelId, sttModelId });
   }
 
   function handleTts(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): void {
@@ -245,8 +305,8 @@ export function createVoiceApi(readEnv?: ReadEnv): {
     }
     if (!admit(req, res, "tts", TTS_LIMIT)) return;
     void (async () => {
-      const { key, voiceId, modelId } = voiceConfig();
-      if (!key) {
+      const { keyCount, voiceId, modelId } = voiceConfig();
+      if (keyCount === 0) {
         sendJson(res, { ok: false, error: "ElevenLabs is not configured." }, 503);
         return;
       }
@@ -267,43 +327,53 @@ export function createVoiceApi(readEnv?: ReadEnv): {
         return;
       }
       try {
-        const upstream = await fetch(
-          `${ELEVENLABS_BASE}/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`,
-          {
-            method: "POST",
-            headers: {
-              "xi-api-key": key,
-              "Content-Type": "application/json",
-              Accept: "audio/mpeg",
-            },
-            body: JSON.stringify({
-              text,
-              model_id: modelId,
-              voice_settings: {
-                stability: 0.4,
-                similarity_boost: 0.8,
-                style: 0.2,
-                use_speaker_boost: true,
+        let lastStatus = 0;
+        for (const credential of spendableCredentials()) {
+          const upstream = await fetch(
+            `${ELEVENLABS_BASE}/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`,
+            {
+              method: "POST",
+              headers: {
+                "xi-api-key": credential.key,
+                "Content-Type": "application/json",
+                Accept: "audio/mpeg",
               },
-            }),
-          },
-        );
-        if (!upstream.ok) {
-          // Report the status, never an upstream body (it can echo the text).
-          sendJson(
-            res,
-            { ok: false, error: "ElevenLabs refused the request.", upstreamStatus: upstream.status },
-            upstream.status === 401 || upstream.status === 403 ? 502 : 502,
+              body: JSON.stringify({
+                text,
+                model_id: modelId,
+                voice_settings: {
+                  stability: 0.4,
+                  similarity_boost: 0.8,
+                  style: 0.2,
+                  use_speaker_boost: true,
+                },
+              }),
+            },
           );
-          return;
+          if (upstream.ok) {
+            cooling.delete(credential.label);
+            const audio = new Uint8Array(await upstream.arrayBuffer());
+            res.statusCode = 200;
+            res.setHeader("X-Lelu-Usage", JSON.stringify(usageFromHeaders(upstream.headers)));
+            res.setHeader("Content-Type", "audio/mpeg");
+            res.setHeader("Content-Length", String(audio.byteLength));
+            res.setHeader("Cache-Control", "no-store");
+            res.end(audio);
+            return;
+          }
+          // A spent quota or a refused key may be another account's problem, so
+          // that credential cools and the next one receives the same request.
+          // Only the status is reported: an upstream body can echo the text.
+          lastStatus = upstream.status;
+          coolCredential(credential.label, upstream.status);
+          if (upstream.status !== 401 && upstream.status !== 403 && upstream.status !== 429) break;
         }
-        const audio = new Uint8Array(await upstream.arrayBuffer());
-        res.statusCode = 200;
-        res.setHeader("X-Lelu-Usage", JSON.stringify(usageFromHeaders(upstream.headers)));
-        res.setHeader("Content-Type", "audio/mpeg");
-        res.setHeader("Content-Length", String(audio.byteLength));
-        res.setHeader("Cache-Control", "no-store");
-        res.end(audio);
+        sendJson(
+          res,
+          { ok: false, error: "ElevenLabs refused the request.", upstreamStatus: lastStatus },
+          502,
+        );
+        return;
       } catch (error) {
         sendJson(
           res,
@@ -325,8 +395,8 @@ export function createVoiceApi(readEnv?: ReadEnv): {
     }
     if (!admit(req, res, "stt", STT_LIMIT)) return;
     void (async () => {
-      const { key, sttModelId } = voiceConfig();
-      if (!key) {
+      const { keyCount, sttModelId } = voiceConfig();
+      if (keyCount === 0) {
         sendJson(res, { ok: false, error: "ElevenLabs is not configured." }, 503);
         return;
       }
@@ -347,32 +417,53 @@ export function createVoiceApi(readEnv?: ReadEnv): {
         return;
       }
       const lang = new URL(req.url ?? "/", "http://localhost").searchParams.get("lang") ?? "";
-      const form = new FormData();
-      form.append("model_id", sttModelId);
-      if (/^[a-z]{2,3}$/.test(lang)) form.append("language_code", lang);
-      form.append("tag_audio_events", "false");
-      form.append("file", new Blob([audio], { type: type === "application/octet-stream" ? "audio/webm" : type }), "utterance");
       const started = Date.now();
+      let lastStatus = 0;
+      let lastUsage: ElevenLabsUsage | null = null;
       try {
-        const upstream = await fetch(`${ELEVENLABS_BASE}/speech-to-text`, {
-          method: "POST",
-          headers: { "xi-api-key": key },
-          body: form,
-        });
-        const usage = usageFromHeaders(upstream.headers);
-        if (!upstream.ok) {
-          sendJson(res, { ok: false, error: "ElevenLabs refused the request.", upstreamStatus: upstream.status, usage }, 502);
+        for (const credential of spendableCredentials()) {
+          // A FormData body is consumed by the send, so each attempt gets its own.
+          const form = new FormData();
+          form.append("model_id", sttModelId);
+          if (/^[a-z]{2,3}$/.test(lang)) form.append("language_code", lang);
+          form.append("tag_audio_events", "false");
+          form.append("file", new Blob([audio], { type: type === "application/octet-stream" ? "audio/webm" : type }), "utterance");
+          const upstream = await fetch(`${ELEVENLABS_BASE}/speech-to-text`, {
+            method: "POST",
+            headers: { "xi-api-key": credential.key },
+            body: form,
+          });
+          const usage = usageFromHeaders(upstream.headers);
+          if (!upstream.ok) {
+            lastStatus = upstream.status;
+            lastUsage = usage;
+            coolCredential(credential.label, upstream.status);
+            if (upstream.status !== 401 && upstream.status !== 403 && upstream.status !== 429) break;
+            continue;
+          }
+          cooling.delete(credential.label);
+          const data = (await upstream.json()) as { text?: unknown; language_code?: unknown };
+          sendJson(res, {
+            ok: true,
+            text: typeof data.text === "string" ? data.text.trim() : "",
+            languageCode: typeof data.language_code === "string" ? data.language_code : null,
+            model: sttModelId,
+            latencyMs: Date.now() - started,
+            usage,
+          });
           return;
         }
-        const data = (await upstream.json()) as { text?: unknown; language_code?: unknown };
-        sendJson(res, {
-          ok: true,
-          text: typeof data.text === "string" ? data.text.trim() : "",
-          languageCode: typeof data.language_code === "string" ? data.language_code : null,
-          model: sttModelId,
-          latencyMs: Date.now() - started,
-          usage,
-        });
+        sendJson(
+          res,
+          {
+            ok: false,
+            error: "ElevenLabs refused the request.",
+            upstreamStatus: lastStatus,
+            usage: lastUsage ?? { characterCost: null, fiatCostUsd: null },
+          },
+          502,
+        );
+        return;
       } catch (error) {
         sendJson(res, { ok: false, error: `ElevenLabs request failed: ${(error as Error).message}` }, 502);
       }

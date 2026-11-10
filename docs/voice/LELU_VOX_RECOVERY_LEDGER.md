@@ -207,7 +207,7 @@ never as a Python install inside this repository.
 | Whisper/Kokoro/Pipecat configuration incomplete | **Still true.** Adapters exist and are tested; none is wired into the engine. `WHISPER_BASE_URL`, `KOKORO_BASE_URL`, `PIPECAT_BASE_URL` unset | code trace + environment probe |
 | Required environment variables missing | **Was true at audit time; superseded the same day — see §6.1.** No `.env*` existed then and `GET /api/voice/status` → `{"configured":false,"stt":false,…}`; the operator then provisioned platform secrets and the *names* were the blocker | live server |
 | Silero ONNX dependency absent | **Still true.** No `silero`/`onnxruntime` in `package.json` or `bun.lock`; code reports `silero-onnx (absent) — adaptive energy VAD in use` | dependency read |
-| Synthesis unavailable in the headless environment | **Still true, for a measured reason.** The ElevenLabs key is present and authenticates, but the free tier is fully spent (§6.1); `/opt/pw-browsers/chromium` is still absent, so the Playwright harness cannot launch without `PW_CHROMIUM` | filesystem probe + live TTS |
+| Synthesis unavailable in the headless environment | **Superseded — see §6.1.** `/api/voice/tts` returns real `audio/mpeg` now by rotating three accounts; what is still absent is `/opt/pw-browsers/chromium`, so the Playwright harness needs `PW_CHROMIUM` | filesystem probe + live TTS |
 | Microphone/engine backend and credentials not established | **Partly superseded — see §6.1.** Groq and ElevenLabs credentials are present and authenticate; Supabase is still absent, so `/api/integration/voice` still refuses | live server |
 
 **What VoxCPM2 can actually do (upstream, not integrated here):** 30-language synthesis, voice design
@@ -243,22 +243,25 @@ Measured after the fix (`vite dev`, live requests):
 | Key ring, one live request per credential | Groq ×3 → HTTP 200 AUTHENTICATED; OpenRouter ×3 → HTTP 200 AUTHENTICATED |
 | `POST /api/model/groq/chat/completions` | HTTP 200, served `openai/gpt-oss-120b` |
 | `POST /api/model/openrouter/chat/completions` | HTTP 200, routed to `liquid/lfm-3-1.7b:free` |
-| `GET elevenlabs.io/v1/user/subscription` | HTTP 200 — key valid, **10,000/10,000 characters used**, tier `free` |
-| `POST /api/voice/tts` | **HTTP 502 → upstream 401** (`quota_exceeded`) |
+| `GET elevenlabs.io/v1/user/subscription`, per account | `Elevenlabs` 10,000/10,000 · `Elevenlabs2` 0/10,000 · `Elevenlabs3` 0/10,000 — three valid keys, 20,000 characters unspent |
+| `POST /api/voice/tts`, before slot rotation | **HTTP 502 → upstream 401** (`quota_exceeded`) |
+| `POST /api/voice/tts`, after slot rotation | **HTTP 200 `audio/mpeg`**, 82,798 B and 71,514 B; `X-Lelu-Usage` reports 57 characters per call |
 
-**Conclusion:** the credential blocker is closed for cognition — three Groq and three OpenRouter
-credentials authenticate and the ring rotates them. Her **voice output** is still blocked, but now by the
-account's spent quota, not by configuration or code: topping it up (or a paid tier) is the only remaining
-gate. `stt:true` means voice *input* is live now.
+**Conclusion:** the credential blocker is closed. Cognition rotates across three Groq and three OpenRouter
+credentials, and **her voice speaks**: the three ElevenLabs accounts are separate free tiers, so
+`plugins/voiceApi.ts` spends them as slots — a spent account cools for fifteen minutes and the next one
+receives the same request — which turns the exhausted first account into one refused call instead of
+silence. Measured: two consecutive syntheses, both HTTP 200 `audio/mpeg`, 57 characters billed each.
+`stt:true` means voice *input* runs on the same rotation.
 
 ---
 
 ## 7. Consolidated implementation plan (prioritised)
 
-**P0 — restore the ability to prove anything (no new code). The credential half is DONE (§6.1):**
-`/api/voice/status` reports `configured:true, stt:true`, and the numbered provider credentials are mapped
-and rotating. What remains is **quota** (ElevenLabs free tier 10,000/10,000 → `/api/voice/tts` answers
-502/401) and a Chromium path via `PW_CHROMIUM`.
+**P0 — restore the ability to prove anything (no new code). DONE for credentials (§6.1):**
+`/api/voice/status` reports `configured:true, stt:true`, provider credentials are mapped and rotating, and
+`/api/voice/tts` returns real audio by spending the three ElevenLabs accounts in turn. What remains is a
+Chromium path via `PW_CHROMIUM` for the audible end-to-end harness.
 *Verification:* audible reply in `scripts/verify-voice-conversation.cjs`; transcripts in the ledger.
 *This is still the gate for every claim about her voice.*
 
@@ -314,8 +317,7 @@ again on a crash; mobile claims without a device.
 
 ## 9. Next action (edit this line when you resume)
 
-> P0's credential half is closed (§6.1): credentials resolve, `configured:true`, `stt:true`, and the key
-> ring rotates three Groq and three OpenRouter slots. Remaining gate: ElevenLabs characters (free tier
-> 10,000/10,000, TTS → 502/401) and `PW_CHROMIUM`. Once an audible provider or a Chromium path exists, run
-> `LELU_BASE=http://127.0.0.1:5173/ node scripts/verify-voice-conversation.cjs <utteranceDir> <outDir>`.
-> Do not write VoxCPM2 code until a sidecar answers a health request.
+> Credentials are proven (§6.1): cognition rotates 3 Groq + 3 OpenRouter, and `/api/voice/tts` returns real
+> `audio/mpeg` by rotating 3 ElevenLabs accounts. Next: supply `PW_CHROMIUM` and run
+> `LELU_BASE=http://127.0.0.1:5173/ node scripts/verify-voice-conversation.cjs <utteranceDir> <outDir>` for
+> the audible end-to-end check. Do not write VoxCPM2 code until a sidecar answers a health request.

@@ -113,6 +113,8 @@ test("every entry names a documented target and explains itself", () => {
     [
       "Anthropic",
       "Elevenlabs",
+      "Elevenlabs2",
+      "Elevenlabs3",
       "Github",
       "Groq",
       "Groq1",

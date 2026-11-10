@@ -133,7 +133,22 @@ export const BARE_SECRET_ALIASES: readonly BareSecretAlias[] = [
   {
     bare: "Elevenlabs",
     names: ["ELEVENLABS_API_KEY"],
-    why: "Voice synthesis reads ELEVENLABS_API_KEY on the server.",
+    why:
+      "Voice synthesis reads ELEVENLABS_API_KEY on the server. Extra free-tier accounts " +
+      "arrive as `Elevenlabs2` / `Elevenlabs3` (there is no `Elevenlabs1`), mapped below onto " +
+      "the numbered slots ProviderKeyRing rotates.",
+  },
+  {
+    bare: "Elevenlabs2",
+    names: ["ELEVENLABS_API_KEY_2"],
+    why:
+      "A second ElevenLabs account carries its own 10,000 free characters. Numbered rather " +
+      "than merged into the base name, so a spent key can cool while another one speaks.",
+  },
+  {
+    bare: "Elevenlabs3",
+    names: ["ELEVENLABS_API_KEY_3"],
+    why: "A third ElevenLabs account's free tier, for the same reason as Elevenlabs2.",
   },
   {
     bare: "Supabase",
