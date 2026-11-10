@@ -1,0 +1,65 @@
+{
+ "at": "2026-11-08T18:49:22.741Z",
+ "viewport": "1440x900",
+ "mobile": false,
+ "results": [
+  {
+   "path": "navigator-summon",
+   "selector": "[data-spatial-control=\"chat\"]",
+   "viewport": "1440x900",
+   "gate": {
+    "seen": false,
+    "dismissed": false,
+    "settleMs": null,
+    "homeWithoutGate": true,
+    "presentAfter": true
+   },
+   "hit": {
+    "present": true,
+    "cx": 858,
+    "cy": 614,
+    "rect": {
+     "x": 843,
+     "y": 599,
+     "w": 30,
+     "h": 30
+    },
+    "reachable": true,
+    "topAria": "SPAN"
+   },
+   "clickOutcome": "pointer-click",
+   "clickError": null,
+   "dialogMs": 295,
+   "state": {
+    "universeDialog": true,
+    "universeRoot": true,
+    "homeStillRendered": true,
+    "htmlUniverseFlag": "open",
+    "composer": {
+     "present": true,
+     "disabled": false,
+     "placeholder": "Message LÉLU…",
+     "ariaLabel": null
+    },
+    "chatWindows": 0,
+    "markedComposers": 0,
+    "cards": 2,
+    "chatsDetached": 4
+   },
+   "typed": "type-failed:TimeoutError: locator.click: Timeout 5000ms exceeded.",
+   "windowOpen": {
+    "clicked": true,
+    "chatWindows": 0,
+    "markedComposers": 0,
+    "textareas": 1
+   },
+   "pageErrors": [],
+   "consoleErrors": [
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+   ]
+  }
+ ]
+}

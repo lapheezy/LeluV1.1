@@ -1,0 +1,204 @@
+{
+ "tag": "gate-d",
+ "at": "2026-11-08T19:16:57.090Z",
+ "prompt": "Create an interactive research environment about emerging artificial intelligence. Organize the information into a visual overview, research sections, an interactive comparison, and a dedicated workspace for further investigation. Choose the presentation structure yourself.",
+ "composer": {
+  "disabled": false,
+  "placeholder": "Message LÉLU…",
+  "target": "New chat"
+ },
+ "typedChars": 274,
+ "sentAt": 1794165373120,
+ "elapsedMs": 43972,
+ "modelRequests": [
+  {
+   "at": 1794165238798,
+   "url": "/api/model/status",
+   "method": "GET",
+   "bytes": 0
+  },
+  {
+   "at": 1794165354968,
+   "url": "/api/model/openrouter/chat/completions",
+   "method": "POST",
+   "bytes": 5377
+  },
+  {
+   "at": 1794165355378,
+   "url": "/api/model/groq/chat/completions",
+   "method": "POST",
+   "bytes": 5381
+  }
+ ],
+ "modelResponses": [
+  {
+   "at": 1794165238940,
+   "status": 200,
+   "path": "/api/model/status"
+  },
+  {
+   "at": 1794165355353,
+   "status": 429,
+   "path": "/api/model/openrouter/chat/completions"
+  },
+  {
+   "at": 1794165355786,
+   "status": 429,
+   "path": "/api/model/groq/chat/completions"
+  }
+ ],
+ "toolMentions": [
+  "info:[AnthropicProvider] Initialized {hasKey: false, model: claude-opus-5-5}",
+  "info:[AIProviderRegistry] Anthropic initialized.",
+  "info:[AIProviderRegistry] Initializing Gemini...",
+  "info:[GeminiProvider] Initialized {hasKey: false, model: gemini-2.0-flash}",
+  "info:[AIProviderRegistry] Gemini initialized.",
+  "table:{Stage: AICore, Success: true, Message: Ready, Provider: -, Duration: -, Confidence: -}",
+  "table:{Stage: AIRuntime, Success: true, Message: Ready, Provider: -, Duration: -, Confidence: -}",
+  "info:[perf] PROVIDER_READY @ 108566ms",
+  "startGroupCollapsed:🟢 [7:15:54 PM] [ProviderResolver] Model routing decision",
+  "table:{Stage: ProviderResolver, Success: true, Message: Model routing decision, Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+  "startGroupCollapsed:🟢 [7:15:54 PM] [ProviderResolver] Trying OpenRouter",
+  "table:{Stage: ProviderResolver, Success: true, Message: Trying OpenRouter, Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: OpenRouter, priority: 2, promptLength: 1633, requestedModel: undefined}",
+  "info:[StartupDiagnostic] 15/15 checks passed:\n  ✓ AI provider — 3/9 provider(s) available (OpenRouter, Groq, GitHub Models)\n  ✓ Fallback provider chain — 9 provider(s) in the priority chain: Local (on-device) → OpenRouter → Groq → Cerebras → Mistral → Fireworks → Anthropic → Gemini → GitHub Models\n  ✓ Cognition runtime — AIRuntime initialized\n  ✓ Reasoning engine — ReasoningEngine constructs clean",
+  "startGroupCollapsed:🔴 [7:15:55 PM] [ProviderResolver] OpenRouter failed; falling back to the next provider.",
+  "table:{Stage: ProviderResolver, Success: false, Message: OpenRouter failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: OpenRouter, priority: 2, fallbackReason: OpenRouter HTTP 429: Rate limit exceeded: free-mod…redits to unlock 1000 free model requests per day, latencyMs: 448}",
+  "startGroupCollapsed:🟢 [7:15:55 PM] [ProviderResolver] Trying Groq",
+  "table:{Stage: ProviderResolver, Success: true, Message: Trying Groq, Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: Groq, priority: 2.5, promptLength: 1633, requestedModel: undefined}",
+  "startGroupCollapsed:🔴 [7:15:55 PM] [ProviderResolver] Groq failed; falling back to the next provider.",
+  "table:{Stage: ProviderResolver, Success: false, Message: Groq failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: Groq, priority: 2.5, fallbackReason: Groq failed 429: Rate limit reached for model `ope…oday at https://console.groq.com/settings/billing, latencyMs: 896}",
+  "startGroupCollapsed:🟢 [7:15:55 PM] [ProviderResolver] Trying GitHub Models",
+  "table:{Stage: ProviderResolver, Success: true, Message: Trying GitHub Models, Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: GitHub Models, priority: 10, promptLength: 1633, requestedModel: undefined}",
+  "startGroupCollapsed:🔴 [7:15:55 PM] [ProviderResolver] GitHub Models failed; falling back to the next provider.",
+  "table:{Stage: ProviderResolver, Success: false, Message: GitHub Models failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: GitHub Models, priority: 10, fallbackReason: GitHub Models token missing., latencyMs: 904}",
+  "startGroupCollapsed:🔴 [7:15:55 PM] [ProviderResolver] All available AI providers failed.",
+  "table:{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {attemptedProviders: Array(3), fallbackReason: provider-exhaustion}",
+  "info:[Orchestrator] Processing request: Create an interactive research environment about emerging artificial intelligence. Organize the info",
+  "info:[AIProviderRegistry] Skipping OpenRouter during failure cooldown. {retryInMs: 878981, reason: OpenRouter HTTP 429: Rate limit exceeded: free-mod…redits to unlock 1000 free model requests per day, credentialRefused: false}",
+  "info:[AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 879429, reason: Groq failed 429: Rate limit reached for model `ope…oday at https://console.groq.com/settings/billing, credentialRefused: false}",
+  "info:[AIProviderRegistry] Skipping GitHub Models during failure cooldown. {retryInMs: 9437, reason: GitHub Models token missing., credentialRefused: false}",
+  "startGroupCollapsed:🔴 [7:16:16 PM] [ProviderResolver] No AI providers are available.",
+  "table:{Stage: ProviderResolver, Success: false, Message: No AI providers are available., Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {reason: missing-credentials-or-provider-cooldown, registeredProviders: Array(9)}",
+  "info:[AIProviderRegistry] Skipping OpenRouter during failure cooldown. {retryInMs: 861449, reason: OpenRouter HTTP 429: Rate limit exceeded: free-mod…redits to unlock 1000 free model requests per day, credentialRefused: false}",
+  "info:[AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 861897, reason: Groq failed 429: Rate limit reached for model `ope…oday at https://console.groq.com/settings/billing, credentialRefused: false}",
+  "startGroupCollapsed:🟢 [7:16:33 PM] [ProviderResolver] Model routing decision",
+  "table:{Stage: ProviderResolver, Success: true, Message: Model routing decision, Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+  "startGroupCollapsed:🟢 [7:16:33 PM] [ProviderResolver] Trying GitHub Models",
+  "table:{Stage: ProviderResolver, Success: true, Message: Trying GitHub Models, Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: GitHub Models, priority: 10, promptLength: 76250, requestedModel: undefined}",
+  "startGroupCollapsed:🔴 [7:16:33 PM] [ProviderResolver] GitHub Models failed; falling back to the next provider.",
+  "table:{Stage: ProviderResolver, Success: false, Message: GitHub Models failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: GitHub Models, priority: 10, fallbackReason: GitHub Models token missing., latencyMs: 27}",
+  "startGroupCollapsed:🔴 [7:16:33 PM] [ProviderResolver] All available AI providers failed.",
+  "table:{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {attemptedProviders: Array(1), fallbackReason: provider-exhaustion}",
+  "info:[AIProviderRegistry] Skipping OpenRouter during failure cooldown. {retryInMs: 845144, reason: OpenRouter HTTP 429: Rate limit exceeded: free-mod…redits to unlock 1000 free model requests per day, credentialRefused: false}",
+  "info:[AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 845592, reason: Groq failed 429: Rate limit reached for model `ope…oday at https://console.groq.com/settings/billing, credentialRefused: false}",
+  "info:[AIProviderRegistry] Skipping GitHub Models during failure cooldown. {retryInMs: 13717, reason: GitHub Models token missing., credentialRefused: false}",
+  "startGroupCollapsed:🔴 [7:16:50 PM] [ProviderResolver] No AI providers are available.",
+  "table:{Stage: ProviderResolver, Success: false, Message: No AI providers are available., Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {reason: missing-credentials-or-provider-cooldown, registeredProviders: Array(9)}"
+ ],
+ "consoleTail": [
+  "info:[AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 861897, reason: Groq failed 429: Rate limit reached for model `ope…oday at https://console.groq.com/settings/billing, credentialRefused: false}",
+  "startGroupCollapsed:🟢 [7:16:33 PM] [ProviderResolver] Model routing decision",
+  "table:{Stage: ProviderResolver, Success: true, Message: Model routing decision, Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+  "endGroup:console.groupEnd",
+  "startGroupCollapsed:🟢 [7:16:33 PM] [ProviderResolver] Trying GitHub Models",
+  "table:{Stage: ProviderResolver, Success: true, Message: Trying GitHub Models, Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: GitHub Models, priority: 10, promptLength: 76250, requestedModel: undefined}",
+  "endGroup:console.groupEnd",
+  "startGroupCollapsed:🔴 [7:16:33 PM] [ProviderResolver] GitHub Models failed; falling back to the next provider.",
+  "table:{Stage: ProviderResolver, Success: false, Message: GitHub Models failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {provider: GitHub Models, priority: 10, fallbackReason: GitHub Models token missing., latencyMs: 27}",
+  "endGroup:console.groupEnd",
+  "startGroupCollapsed:🔴 [7:16:33 PM] [ProviderResolver] All available AI providers failed.",
+  "table:{Stage: ProviderResolver, Success: false, Message: All available AI providers failed., Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {attemptedProviders: Array(1), fallbackReason: provider-exhaustion}",
+  "endGroup:console.groupEnd",
+  "warning:GoTrueClient@sb-nrehsldbfxthspikaxvr-auth-token:2 (2.112.3) 2026-11-08T19:16:33.987Z Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key.",
+  "info:[AIProviderRegistry] Skipping OpenRouter during failure cooldown. {retryInMs: 845144, reason: OpenRouter HTTP 429: Rate limit exceeded: free-mod…redits to unlock 1000 free model requests per day, credentialRefused: false}",
+  "info:[AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 845592, reason: Groq failed 429: Rate limit reached for model `ope…oday at https://console.groq.com/settings/billing, credentialRefused: false}",
+  "info:[AIProviderRegistry] Skipping GitHub Models during failure cooldown. {retryInMs: 13717, reason: GitHub Models token missing., credentialRefused: false}",
+  "startGroupCollapsed:🔴 [7:16:50 PM] [ProviderResolver] No AI providers are available.",
+  "table:{Stage: ProviderResolver, Success: false, Message: No AI providers are available., Provider: -, Duration: -, Confidence: -}",
+  "log:Metadata: {reason: missing-credentials-or-provider-cooldown, registeredProviders: Array(9)}",
+  "endGroup:console.groupEnd"
+ ],
+ "samples": [
+  {
+   "t": 20364,
+   "chatWindow": false,
+   "msgs": 0,
+   "sending": null,
+   "lastLen": 0
+  },
+  {
+   "t": 24988,
+   "chatWindow": false,
+   "msgs": 0,
+   "sending": null,
+   "lastLen": 0
+  },
+  {
+   "t": 27014,
+   "chatWindow": false,
+   "msgs": 0,
+   "sending": null,
+   "lastLen": 0
+  },
+  {
+   "t": 29089,
+   "chatWindow": false,
+   "msgs": 0,
+   "sending": null,
+   "lastLen": 0
+  },
+  {
+   "t": 31095,
+   "chatWindow": false,
+   "msgs": 0,
+   "sending": null,
+   "lastLen": 0
+  },
+  {
+   "t": 33259,
+   "chatWindow": false,
+   "msgs": 0,
+   "sending": null,
+   "lastLen": 0
+  },
+  {
+   "t": 35280,
+   "chatWindow": false,
+   "msgs": 0,
+   "sending": null,
+   "lastLen": 0
+  }
+ ],
+ "finalDom": {
+  "messages": [],
+  "chatWindow": false,
+  "surfaces": [
+   "window",
+   "panel"
+  ],
+  "modules": [
+   "chat:6b48a755-9c59-4176-a9df-2741b0a5f6f4"
+  ],
+  "sending": null,
+  "bodyTail": "tation: “C\n3\nnow\nNew Chat\nCreate an interactive research envir\nQuick Chat Dock\nCreate an interactive research envir\nnow\nEngineering\nnow\n3\n1 window — minimize\n◍\nCREATE AN INTERACTIVE RESEARCH ENVIR\n📍\n—\n⤢\n✕\nCreate an interactive research envir\n⚙️\nWorking with tools\n1 tool used\n1 issue\n\nCreate an interactive research environment about emerging artificial intelligence. Organize the information into a visual overview, research sections, an interactive comparison, and a dedicated workspace for further investigation. Choose the presentation structure yourself.\n\nI did not change the scene: there are fewer than two objects to arrange — create something first. Revision is still 0.\n\nSend\ncore|idle|100"
+ },
+ "pageErrors": []
+}

@@ -1,0 +1,285 @@
+{
+ "gateDismissed": true,
+ "errors": [],
+ "surface": null,
+ "signInGate": false,
+ "home": true,
+ "chatRegion": false,
+ "buttons": [
+  {
+   "label": "Travel to Governor galaxy",
+   "visible": true
+  },
+  {
+   "label": "Travel to Creation world",
+   "visible": true
+  },
+  {
+   "label": "Travel to Dimensional portal",
+   "visible": true
+  },
+  {
+   "label": "Travel to Agent universes",
+   "visible": true
+  },
+  {
+   "label": "Travel to Browser",
+   "visible": true
+  },
+  {
+   "label": "Travel to Genesis Studios",
+   "visible": true
+  },
+  {
+   "label": "Travel to Research",
+   "visible": true
+  },
+  {
+   "label": "Travel to Projects",
+   "visible": true
+  },
+  {
+   "label": "Travel to Files",
+   "visible": true
+  },
+  {
+   "label": "Travel to Media",
+   "visible": true
+  },
+  {
+   "label": "Travel to Conversation",
+   "visible": true
+  },
+  {
+   "label": "Open the app library",
+   "visible": true
+  },
+  {
+   "label": "Cloud sync off — open settings",
+   "visible": true
+  },
+  {
+   "label": "Notifications, 1 unread",
+   "visible": true
+  },
+  {
+   "label": "Look at the Cosmos",
+   "visible": true
+  },
+  {
+   "label": "Weather",
+   "visible": true
+  },
+  {
+   "label": "What LÉLU is doing — open chat",
+   "visible": true
+  },
+  {
+   "label": "Chat",
+   "visible": true
+  },
+  {
+   "label": "Browser",
+   "visible": true
+  },
+  {
+   "label": "Studio",
+   "visible": true
+  },
+  {
+   "label": "Workspaces",
+   "visible": true
+  },
+  {
+   "label": "Agents",
+   "visible": true
+  },
+  {
+   "label": "Files",
+   "visible": true
+  },
+  {
+   "label": "Place in world: Jewelry",
+   "visible": true
+  },
+  {
+   "label": "Jewelry1 item",
+   "visible": true
+  },
+  {
+   "label": "Fashion0 items",
+   "visible": true
+  },
+  {
+   "label": "Notifications1",
+   "visible": true
+  },
+  {
+   "label": "App Library",
+   "visible": true
+  },
+  {
+   "label": "Creativity5",
+   "visible": true
+  },
+  {
+   "label": "Development5",
+   "visible": true
+  },
+  {
+   "label": "Research5",
+   "visible": true
+  },
+  {
+   "label": "Business7",
+   "visible": true
+  },
+  {
+   "label": "LÉLU — Self-study: Why is the development runtime unreachabl",
+   "visible": true
+  },
+  {
+   "label": "Home",
+   "visible": true
+  },
+  {
+   "label": "App library",
+   "visible": true
+  },
+  {
+   "label": "Open windows",
+   "visible": true
+  },
+  {
+   "label": "Search (⌘K)",
+   "visible": true
+  },
+  {
+   "label": "Worlds",
+   "visible": true
+  },
+  {
+   "label": "Settings",
+   "visible": true
+  },
+  {
+   "label": "Look at the Cosmos (hold to talk to LÉLU)",
+   "visible": true
+  },
+  {
+   "label": "Lélu — tap to talk, drag to move her",
+   "visible": true
+  },
+  {
+   "label": "Collapse spatial navigation",
+   "visible": true
+  },
+  {
+   "label": "Return to the core",
+   "visible": true
+  },
+  {
+   "label": "Talk to LÉLU",
+   "visible": true
+  },
+  {
+   "label": "Open Creation Studio",
+   "visible": true
+  },
+  {
+   "label": "Portals and layout",
+   "visible": true
+  },
+  {
+   "label": "Summon the chat",
+   "visible": true
+  },
+  {
+   "label": "Minimise the interface",
+   "visible": true
+  },
+  {
+   "label": "Travel to Cosmos",
+   "visible": true
+  },
+  {
+   "label": "Travel to Governor galaxy",
+   "visible": true
+  },
+  {
+   "label": "Travel to Creation world",
+   "visible": true
+  },
+  {
+   "label": "Travel to Dimensional portal",
+   "visible": true
+  },
+  {
+   "label": "Travel to Browser",
+   "visible": true
+  },
+  {
+   "label": "Travel to Agent universes",
+   "visible": true
+  },
+  {
+   "label": "Travel to Research",
+   "visible": true
+  },
+  {
+   "label": "Travel to Genesis Studios",
+   "visible": true
+  },
+  {
+   "label": "Travel to Media",
+   "visible": true
+  },
+  {
+   "label": "Travel to Projects",
+   "visible": true
+  },
+  {
+   "label": "Travel to Files",
+   "visible": true
+  },
+  {
+   "label": "Travel to Conversation",
+   "visible": true
+  },
+  {
+   "label": "Enter LÉLU's room",
+   "visible": true
+  }
+ ],
+ "textareas": [],
+ "storageKeys": [
+  "lelu.agents.v1",
+  "lelu.curiosity.v1",
+  "lelu.daily.v1",
+  "lelu.lelu.auth.skipped.v1",
+  "lelu.lelu.capabilities.v1",
+  "lelu.lelu.executive.probe",
+  "lelu.lelu.exploration.v1",
+  "lelu.lelu.improvements.v1",
+  "lelu.lelu.interface.windows.observed.v1",
+  "lelu.lelu.knowledge.v1",
+  "lelu.lelu.layout.v2",
+  "lelu.lelu.queue.v1",
+  "lelu.lelu.runtime.activity.v1",
+  "lelu.lelu.runtime.health.v1",
+  "lelu.lelu.self.v1",
+  "lelu.lelu.selfdev.engineering-memory.v1",
+  "lelu.lelu.selfstudy.objectives.v1",
+  "lelu.lelu.spatial.portals.v1",
+  "lelu.lelu.toolstats.v1",
+  "lelu.lelu.world.lifecycle.v2",
+  "lelu.multichat.workspace.v1",
+  "lelu.notifications.history.v1",
+  "lelu.proactive.questions.v1",
+  "lelu.proactive.runtime.checkpoint.v1",
+  "lelu.proactive.session.v1",
+  "lelu.projects.v1"
+ ],
+ "canvases": 2,
+ "bodyText": "LÉLU unknown · unknown · development · built 2026-11-08 13:53Z\n◈ Governor galaxy\n◈ Creation world\n◈ Dimensional portal\n◈ Agent universes\n◈ Browser\n◈ Genesis Studios\n◈ Research\n◈ Projects\n◈ Files\n◈ Media\n◈ Conversation\nATMOSPHERE\nDissipation\nLÉLU+\nWorkspace\n1\nWeather\nUse my location\nWORKING ON\nSelf-study: Why is the development runtime unreachable, and what can I still verify from the build-time snapshot?\nSelf-study: Why is the development runtime unreachable, and what can I still verify from the build-time snapshot?\nChat\nBrowser\nStudio\nWorkspaces\nAgents\nFiles\nActive Workspaces\nPlace in world\nJewelry\n1 item\nFashion\n0 items\nNotifications\n1\nLÉLU has a question\n“Fashion” is active but has no defined next outcome. What should I prioritize there?\nnow\nApp Library\nCreativity\n5\nDevelopment\n5\nResearch\n5\nBusiness\n7\nLÉLU — Self-study: Why is the development runtime unreachable, and what can I still "
+}

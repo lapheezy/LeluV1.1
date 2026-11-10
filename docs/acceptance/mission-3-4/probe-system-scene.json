@@ -1,0 +1,330 @@
+{
+ "startedAt": "2026-11-08T21:37:31.456Z",
+ "steps": [
+  {
+   "label": "boot",
+   "focus": "genesis",
+   "workspaceHost": false,
+   "cosmosRendered": false,
+   "domViewCount": 0,
+   "views": [],
+   "engine": {
+    "layout": "auto",
+    "focusId": "view-providers",
+    "views": [
+     "view-executive",
+     "view-providers"
+    ]
+   }
+  },
+  {
+   "label": "after-system-click",
+   "focus": "genesis",
+   "workspaceHost": false,
+   "cosmosRendered": false,
+   "domViewCount": 0,
+   "views": [],
+   "engine": {
+    "layout": "auto",
+    "focusId": "view-providers",
+    "views": [
+     "view-executive",
+     "view-providers"
+    ]
+   }
+  }
+ ],
+ "console": [
+  "[scene-mount] GenesisV1Workspace MOUNT"
+ ],
+ "controls": [
+  {
+   "label": "Travel to Governor galaxy",
+   "control": null,
+   "x": 720,
+   "y": 627,
+   "w": 273
+  },
+  {
+   "label": "Travel to Creation world",
+   "control": null,
+   "x": 859,
+   "y": 615,
+   "w": 245
+  },
+  {
+   "label": "Travel to Dimensional portal",
+   "control": null,
+   "x": 957,
+   "y": 564,
+   "w": 296
+  },
+  {
+   "label": "Travel to Agent universes",
+   "control": null,
+   "x": 985,
+   "y": 482,
+   "w": 272
+  },
+  {
+   "label": "Travel to Browser",
+   "control": null,
+   "x": 927,
+   "y": 397,
+   "w": 177
+  },
+  {
+   "label": "Travel to Genesis Studios",
+   "control": null,
+   "x": 799,
+   "y": 333,
+   "w": 287
+  },
+  {
+   "label": "Travel to Research",
+   "control": null,
+   "x": 641,
+   "y": 333,
+   "w": 197
+  },
+  {
+   "label": "Travel to Projects",
+   "control": null,
+   "x": 513,
+   "y": 397,
+   "w": 175
+  },
+  {
+   "label": "Travel to Files",
+   "control": null,
+   "x": 455,
+   "y": 482,
+   "w": 122
+  },
+  {
+   "label": "Travel to Media",
+   "control": null,
+   "x": 483,
+   "y": 564,
+   "w": 137
+  },
+  {
+   "label": "Travel to Conversation",
+   "control": null,
+   "x": 581,
+   "y": 615,
+   "w": 227
+  },
+  {
+   "label": "Open the app library",
+   "control": null,
+   "x": 194,
+   "y": 94,
+   "w": 44
+  },
+  {
+   "label": "Cloud sync off — open settings",
+   "control": null,
+   "x": 1142,
+   "y": 94,
+   "w": 44
+  },
+  {
+   "label": "Notifications, 1 unread",
+   "control": null,
+   "x": 1194,
+   "y": 94,
+   "w": 44
+  },
+  {
+   "label": "Look at the Cosmos",
+   "control": null,
+   "x": 1246,
+   "y": 94,
+   "w": 44
+  },
+  {
+   "label": "Weather",
+   "control": null,
+   "x": 358,
+   "y": 247,
+   "w": 372
+  },
+  {
+   "label": "What LÉLU is doing — open chat",
+   "control": null,
+   "x": 1082,
+   "y": 247,
+   "w": 372
+  },
+  {
+   "label": "Chat",
+   "control": null,
+   "x": 402,
+   "y": 416,
+   "w": 123
+  },
+  {
+   "label": "Browser",
+   "control": null,
+   "x": 529,
+   "y": 416,
+   "w": 123
+  },
+  {
+   "label": "Studio",
+   "control": null,
+   "x": 656,
+   "y": 416,
+   "w": 123
+  },
+  {
+   "label": "Workspaces",
+   "control": null,
+   "x": 784,
+   "y": 416,
+   "w": 123
+  },
+  {
+   "label": "Agents",
+   "control": null,
+   "x": 911,
+   "y": 416,
+   "w": 123
+  },
+  {
+   "label": "Files",
+   "control": null,
+   "x": 1038,
+   "y": 416,
+   "w": 123
+  },
+  {
+   "label": "Place in world: Jewelry",
+   "control": null,
+   "x": 428,
+   "y": 496,
+   "w": 108
+  },
+  {
+   "label": "Jewelry1 item",
+   "control": null,
+   "x": 303,
+   "y": 574,
+   "w": 237
+  },
+  {
+   "label": "Fashion0 items",
+   "control": null,
+   "x": 550,
+   "y": 574,
+   "w": 237
+  },
+  {
+   "label": "Notifications1",
+   "control": null,
+   "x": 863,
+   "y": 491,
+   "w": 270
+  },
+  {
+   "label": "App Library",
+   "control": null,
+   "x": 1138,
+   "y": 490,
+   "w": 257
+  },
+  {
+   "label": "Creativity5",
+   "control": null,
+   "x": 1077,
+   "y": 537,
+   "w": 115
+  },
+  {
+   "label": "Development5",
+   "control": null,
+   "x": 1200,
+   "y": 537,
+   "w": 115
+  },
+  {
+   "label": "Research5",
+   "control": null,
+   "x": 1077,
+   "y": 601,
+   "w": 115
+  },
+  {
+   "label": "Business7",
+   "control": null,
+   "x": 1200,
+   "y": 601,
+   "w": 115
+  },
+  {
+   "label": "LÉLU — Self-study: Why is the development runtime unreachabl",
+   "control": null,
+   "x": 998,
+   "y": 688,
+   "w": 541
+  },
+  {
+   "label": "Home",
+   "control": null,
+   "x": 488,
+   "y": 857,
+   "w": 46
+  },
+  {
+   "label": "App library",
+   "control": null,
+   "x": 565,
+   "y": 857,
+   "w": 46
+  },
+  {
+   "label": "Open windows",
+   "control": null,
+   "x": 643,
+   "y": 857,
+   "w": 46
+  },
+  {
+   "label": "Search (⌘K)",
+   "control": null,
+   "x": 797,
+   "y": 857,
+   "w": 46
+  },
+  {
+   "label": "Worlds",
+   "control": null,
+   "x": 875,
+   "y": 857,
+   "w": 46
+  },
+  {
+   "label": "Settings",
+   "control": null,
+   "x": 952,
+   "y": 857,
+   "w": 46
+  },
+  {
+   "label": "Look at the Cosmos (hold to talk to LÉLU)",
+   "control": null,
+   "x": 720,
+   "y": 841,
+   "w": 78
+  }
+ ],
+ "pickedControl": {
+  "label": "Return to the core",
+  "control": "core",
+  "x": 714,
+  "y": 614,
+  "w": 30
+ },
+ "finishedAt": "2026-11-08T21:39:33.358Z"
+}

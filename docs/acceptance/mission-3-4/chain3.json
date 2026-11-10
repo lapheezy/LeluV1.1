@@ -1,0 +1,333 @@
+{
+ "startedAt": "2026-11-08T21:57:37.604Z",
+ "turns": [
+  {
+   "label": "t1-restore",
+   "ms": 37029,
+   "tools": [
+    "🟢 [10:00:37 PM] [ProviderResolver] Tool environment_restore_state -> ok"
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "label": "fresh-boot",
+   "focus": "genesis",
+   "host": false,
+   "domCount": 0,
+   "views": [],
+   "engine": {
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 8,
+      "text": ""
+     }
+    ]
+   }
+  },
+  {
+   "label": "t1-restore",
+   "focus": "visual",
+   "host": true,
+   "domCount": 5,
+   "views": [
+    {
+     "id": "view-providers",
+     "rev": 11,
+     "title": "providers · ProvidersIn world✕Architectu",
+     "x": 374,
+     "y": 108,
+     "w": 462,
+     "h": 416,
+     "visible": true
+    },
+    {
+     "id": "view-memory",
+     "rev": 4,
+     "title": "memory · MemoryIn world✕Architecture · M",
+     "x": 58,
+     "y": 162,
+     "w": 302,
+     "h": 302,
+     "visible": true
+    },
+    {
+     "id": "view-executive",
+     "rev": 1,
+     "title": "executive · Lélu · Live ExecutionIn worl",
+     "x": 58,
+     "y": 468,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    },
+    {
+     "id": "view-3f851b81",
+     "rev": 1,
+     "title": "notes · Notes WorkspaceIn world✕Here you",
+     "x": 720,
+     "y": 576,
+     "w": 302,
+     "h": 81,
+     "visible": true
+    },
+    {
+     "id": "view-71170c30",
+     "rev": 1,
+     "title": "board · Research BoardIn world✕Place res",
+     "x": 1037,
+     "y": 144,
+     "w": 302,
+     "h": 81,
+     "visible": true
+    }
+   ],
+   "engine": {
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 11,
+      "text": ""
+     },
+     {
+      "id": "view-memory",
+      "title": "Memory",
+      "revision": 4,
+      "text": ""
+     },
+     {
+      "id": "view-3f851b81",
+      "title": "Notes Workspace",
+      "revision": 1,
+      "text": "Here you can jot down ideas."
+     },
+     {
+      "id": "view-71170c30",
+      "title": "Research Board",
+      "revision": 1,
+      "text": "Place research findings here."
+     }
+    ]
+   }
+  },
+  {
+   "label": "after-restore",
+   "focus": "visual",
+   "host": true,
+   "domCount": 5,
+   "views": [
+    {
+     "id": "view-providers",
+     "rev": 11,
+     "title": "providers · ProvidersIn world✕Architectu",
+     "x": 374,
+     "y": 108,
+     "w": 462,
+     "h": 416,
+     "visible": true
+    },
+    {
+     "id": "view-memory",
+     "rev": 4,
+     "title": "memory · MemoryIn world✕Architecture · M",
+     "x": 58,
+     "y": 162,
+     "w": 302,
+     "h": 302,
+     "visible": true
+    },
+    {
+     "id": "view-executive",
+     "rev": 1,
+     "title": "executive · Lélu · Live ExecutionIn worl",
+     "x": 58,
+     "y": 468,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    },
+    {
+     "id": "view-3f851b81",
+     "rev": 1,
+     "title": "notes · Notes WorkspaceIn world✕Here you",
+     "x": 720,
+     "y": 576,
+     "w": 302,
+     "h": 81,
+     "visible": true
+    },
+    {
+     "id": "view-71170c30",
+     "rev": 1,
+     "title": "board · Research BoardIn world✕Place res",
+     "x": 1037,
+     "y": 144,
+     "w": 302,
+     "h": 81,
+     "visible": true
+    }
+   ],
+   "engine": {
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 11,
+      "text": ""
+     },
+     {
+      "id": "view-memory",
+      "title": "Memory",
+      "revision": 4,
+      "text": ""
+     },
+     {
+      "id": "view-3f851b81",
+      "title": "Notes Workspace",
+      "revision": 1,
+      "text": "Here you can jot down ideas."
+     },
+     {
+      "id": "view-71170c30",
+      "title": "Research Board",
+      "revision": 1,
+      "text": "Place research findings here."
+     }
+    ]
+   }
+  }
+ ],
+ "console": [
+  "🟢 [10:00:37 PM] [ProviderResolver] Tool environment_restore_state -> ok",
+  "Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 4589, Requeste}",
+  "Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 4572, Requeste}",
+  "🔴 [10:00:38 PM] [ProviderResolver] Groq failed after running tools; not repeating them on another provider.",
+  "{Stage: ProviderResolver, Success: false, Message: Groq failed after running tools; not repeating them on another provider., Provider: -, Duration: -, Confidence: -}",
+  "Metadata: {provider: Groq, ran: Array(1), fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 4560, Requeste}",
+  "[AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 19505, reason: Groq failed 429: Rate limit reached for model `ope…oday at https://console.groq.com",
+  "Metadata: {provider: GitHub Models, priority: 10, fallbackReason: GitHub Models returned no usable content., latencyMs: 575}",
+  "[AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 14503, reason: Groq failed 429: Rate limit reached for model `ope…oday at https://console.groq.com",
+  "[AIProviderRegistry] Skipping GitHub Models during failure cooldown. {retryInMs: 25558, reason: GitHub Models returned no usable content., credentialRefused: false}",
+  "[AIProviderRegistry] Skipping Groq during failure cooldown. {retryInMs: 5129, reason: Groq failed 429: Rate limit reached for model `ope…oday at https://console.groq.com/",
+  "[AIProviderRegistry] Skipping GitHub Models during failure cooldown. {retryInMs: 16184, reason: GitHub Models returned no usable content., credentialRefused: false}",
+  "[AIProviderRegistry] Skipping GitHub Models during failure cooldown. {retryInMs: 8034, reason: GitHub Models returned no usable content., credentialRefused: false}"
+ ],
+ "restore": {
+  "focus": "visual",
+  "host": true,
+  "dom": 5,
+  "engine": [
+   {
+    "id": "view-executive",
+    "title": "Lélu · Live Execution",
+    "revision": 1,
+    "text": ""
+   },
+   {
+    "id": "view-providers",
+    "title": "Providers",
+    "revision": 11,
+    "text": ""
+   },
+   {
+    "id": "view-memory",
+    "title": "Memory",
+    "revision": 4,
+    "text": ""
+   },
+   {
+    "id": "view-3f851b81",
+    "title": "Notes Workspace",
+    "revision": 1,
+    "text": "Here you can jot down ideas."
+   },
+   {
+    "id": "view-71170c30",
+    "title": "Research Board",
+    "revision": 1,
+    "text": "Place research findings here."
+   }
+  ],
+  "domViews": [
+   {
+    "id": "view-providers",
+    "rev": 11,
+    "title": "providers · ProvidersIn world✕Architectu",
+    "x": 374,
+    "y": 108,
+    "w": 462,
+    "h": 416,
+    "visible": true
+   },
+   {
+    "id": "view-memory",
+    "rev": 4,
+    "title": "memory · MemoryIn world✕Architecture · M",
+    "x": 58,
+    "y": 162,
+    "w": 302,
+    "h": 302,
+    "visible": true
+   },
+   {
+    "id": "view-executive",
+    "rev": 1,
+    "title": "executive · Lélu · Live ExecutionIn worl",
+    "x": 58,
+    "y": 468,
+    "w": 302,
+    "h": 65,
+    "visible": true
+   },
+   {
+    "id": "view-3f851b81",
+    "rev": 1,
+    "title": "notes · Notes WorkspaceIn world✕Here you",
+    "x": 720,
+    "y": 576,
+    "w": 302,
+    "h": 81,
+    "visible": true
+   },
+   {
+    "id": "view-71170c30",
+    "rev": 1,
+    "title": "board · Research BoardIn world✕Place res",
+    "x": 1037,
+    "y": 144,
+    "w": 302,
+    "h": 81,
+    "visible": true
+   }
+  ]
+ },
+ "target": {
+  "id": "view-3f851b81",
+  "title": "Notes Workspace",
+  "revision": 1,
+  "text": "Here you can jot down ideas."
+ },
+ "mobile": [],
+ "elapsedMs": 229465
+}

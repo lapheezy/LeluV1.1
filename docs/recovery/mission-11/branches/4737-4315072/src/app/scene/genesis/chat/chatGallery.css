@@ -1,0 +1,570 @@
+/*
+ * ==========================================================
+ * LÉLU — CHAT GALLERY
+ *
+ * Conversation tiles in the chat's own twilight glass, grouped
+ * by recency. A visual browser, not a second chat: density is
+ * kept high (two tiles on a phone) and only transforms animate,
+ * so scrolling a hundred chats stays cheap.
+ * ==========================================================
+ */
+
+.lelu-ccg {
+  --ccg-ink: #f7f1ff;
+  --ccg-soft: rgba(238, 228, 255, 0.76);
+  --ccg-faint: rgba(224, 212, 248, 0.52);
+  --ccg-edge: rgba(255, 236, 252, 0.14);
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  color: var(--ccg-ink);
+  font-family: inherit;
+  text-align: left;
+  /*
+   * The interface layer that hosts this is pointer-events:none so the cosmos
+   * underneath stays reachable; pointer-events inherits, so a gallery that
+   * says nothing is visible but transparent to every touch. It is a dialog:
+   * it takes the touches it covers.
+   */
+  pointer-events: auto;
+  touch-action: manipulation;
+  background:
+    radial-gradient(120% 70% at 50% 118%, rgba(255, 176, 214, 0.22) 0%, rgba(255, 176, 214, 0) 62%),
+    linear-gradient(180deg, #120b2c 0%, #1f1446 34%, #352163 66%, #4a2a6b 100%);
+  overscroll-behavior: contain;
+}
+
+.lelu-ccg-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.lelu-ccg-heading {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.lelu-ccg-heading strong {
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+.lelu-ccg-heading span {
+  font-size: 11.5px;
+  color: var(--ccg-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lelu-ccg-back,
+.lelu-ccg-close {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--ccg-edge);
+  background: rgba(255, 240, 252, 0.07);
+  color: var(--ccg-ink);
+  cursor: pointer;
+  padding: 0;
+  touch-action: manipulation;
+}
+
+.lelu-ccg-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 0 12px;
+  min-height: 42px;
+  border-radius: 999px;
+  border: 1px solid var(--ccg-edge);
+  background: rgba(14, 8, 34, 0.55);
+  color: var(--ccg-faint);
+}
+.lelu-ccg-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--ccg-ink);
+  font: inherit;
+  /* 16px stops iOS zooming the page when the field is tapped. */
+  font-size: 16px;
+  min-height: 40px;
+}
+.lelu-ccg-search input::-webkit-search-cancel-button { display: none; }
+.lelu-ccg-search button {
+  border: none;
+  background: transparent;
+  color: var(--ccg-faint);
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+}
+
+.lelu-ccg-filters {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+  padding-bottom: 2px;
+}
+.lelu-ccg-filters::-webkit-scrollbar { display: none; }
+
+.lelu-ccg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  min-height: 34px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid var(--ccg-edge);
+  background: rgba(255, 240, 252, 0.06);
+  color: var(--ccg-soft);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.lelu-ccg-chip.is-on {
+  background: rgba(246, 184, 220, 0.22);
+  border-color: rgba(246, 184, 220, 0.55);
+  color: #fff;
+}
+.lelu-ccg-chip span {
+  font-size: 11px;
+  color: var(--ccg-faint);
+}
+
+.lelu-ccg-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 8px;
+}
+
+.lelu-ccg-section h3 {
+  margin: 0 0 7px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(244, 214, 238, 0.72);
+}
+.lelu-ccg-section h3 span { color: var(--ccg-faint); font-weight: 600; }
+
+.lelu-ccg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 8px;
+}
+
+.lelu-ccg-card {
+  position: relative;
+  min-width: 0;
+  border-radius: 16px;
+  border: 1px solid var(--ccg-edge);
+  background: rgba(20, 12, 44, 0.55);
+  overflow: hidden;
+  transition: transform 140ms ease, border-color 140ms ease;
+}
+.lelu-ccg-card.is-current {
+  border-color: rgba(246, 184, 220, 0.6);
+  background: rgba(52, 26, 74, 0.7);
+}
+.lelu-ccg-card.is-archived { opacity: 0.72; }
+@media (hover: hover) {
+  .lelu-ccg-card:hover { transform: translateY(-1px); border-color: rgba(255, 236, 252, 0.28); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lelu-ccg-card { transition: none; }
+}
+
+.lelu-ccg-open {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  min-height: 104px;
+  padding: 9px 10px 10px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.lelu-ccg-card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  /* Room for the options button only; the time sits with the badges, so the
+     title is not squeezed to "Spring c…" by a timestamp on a phone. */
+  padding-right: 24px;
+}
+.lelu-ccg-card-head strong {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 620;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.lelu-ccg-time {
+  margin-left: auto;
+  align-self: center;
+  font-size: 10.5px;
+  color: var(--ccg-faint);
+  flex-shrink: 0;
+}
+
+.lelu-ccg-preview {
+  flex: 1;
+  min-height: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ccg-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.lelu-ccg-preview em {
+  font-style: normal;
+  color: rgba(255, 240, 252, 0.5);
+}
+
+.lelu-ccg-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.lelu-ccg-badge {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  background: rgba(255, 240, 252, 0.09);
+  color: var(--ccg-soft);
+}
+.lelu-ccg-badge.is-unread { background: rgba(251, 191, 36, 0.22); color: #ffe9b8; }
+.lelu-ccg-badge.is-working { background: rgba(103, 232, 249, 0.2); color: #c8f6ff; }
+.lelu-ccg-badge.is-pinned { background: rgba(246, 184, 220, 0.22); color: #ffd9ee; }
+.lelu-ccg-badge.is-tag { color: var(--ccg-faint); }
+
+.lelu-ccg-options {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ccg-faint);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.lelu-ccg-menu {
+  position: absolute;
+  top: 34px;
+  right: 6px;
+  z-index: 2;
+  min-width: 168px;
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 236, 252, 0.16);
+  background: rgba(16, 9, 36, 0.97);
+  box-shadow: 0 18px 40px rgba(6, 2, 20, 0.5);
+}
+.lelu-ccg-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ccg-ink);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.lelu-ccg-menu button.is-danger { color: #ffc2d4; }
+.lelu-ccg-menu button.is-confirming {
+  background: rgba(255, 120, 160, 0.18);
+  font-weight: 600;
+}
+
+.lelu-ccg-rename {
+  display: flex;
+  gap: 4px;
+  padding: 0 6px 6px;
+}
+.lelu-ccg-rename input {
+  flex: 1;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--ccg-edge);
+  background: rgba(10, 5, 26, 0.6);
+  color: var(--ccg-ink);
+  font: inherit;
+  font-size: 16px;
+  outline: none;
+}
+.lelu-ccg-rename button {
+  width: 34px;
+  min-width: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--ccg-edge);
+  background: rgba(255, 240, 252, 0.08);
+  color: var(--ccg-ink);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lelu-ccg-empty {
+  margin-top: 12vh;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--ccg-faint);
+  padding: 0 24px;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 720px) {
+  .lelu-ccg {
+    padding: 16px max(16px, calc((100vw - 900px) / 2)) 18px;
+  }
+  .lelu-ccg-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+}
+
+/* ==========================================================
+ * MOTION
+ *
+ * The library arrives rather than appearing: the shell, then the
+ * controls, then the cards one after another, pinned section first
+ * (it is rendered first). Only the entrance animates every card, and
+ * only once — after it finishes the card is a plain element whose
+ * press transform is free to run.
+ * ========================================================== */
+
+.lelu-ccg {
+  animation: lelu-ccg-shell 170ms ease-out backwards;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.lelu-ccg-head { animation: lelu-ccg-rise 200ms ease-out backwards; }
+.lelu-ccg-search { animation: lelu-ccg-rise 200ms ease-out 30ms backwards; }
+.lelu-ccg-filters { animation: lelu-ccg-rise 200ms ease-out 55ms backwards; }
+.lelu-ccg-body { animation: lelu-ccg-results 170ms ease-out backwards; }
+
+.lelu-ccg-card {
+  /*
+   * backwards, not both: once the entrance is over, no animation style is
+   * applied, so :active can compress the tile and :has can recede its
+   * neighbours without fighting the keyframes.
+   */
+  animation: lelu-ccg-card-in 230ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: calc(var(--ccg-i, 0) * 26ms);
+  will-change: transform, opacity;
+}
+.lelu-ccg-card:active { transform: scale(0.972); transition-duration: 90ms; }
+
+/* Pressing one tile lets the others fall back, so the choice is visible. */
+.lelu-ccg-grid:has(.lelu-ccg-card:active) .lelu-ccg-card:not(:active) {
+  opacity: 0.82;
+  transform: scale(0.985);
+}
+
+/* The chosen tile grows as its conversation opens. */
+.lelu-ccg-card.is-chosen {
+  z-index: 2;
+  transform: scale(1.035);
+  border-color: rgba(246, 184, 220, 0.72);
+  box-shadow: 0 0 26px rgba(246, 184, 220, 0.28);
+  transition: transform 170ms ease, box-shadow 170ms ease, border-color 170ms ease;
+}
+.lelu-ccg.is-leaving { opacity: 0; transform: scale(1.015); }
+.lelu-ccg.is-leaving .lelu-ccg-card:not(.is-chosen) { opacity: 0.5; }
+
+/* A pinned chat breathes, slowly, on its own layer — no layout cost. */
+.lelu-ccg-card.is-pinned::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 18px rgba(246, 184, 220, 0.16);
+  animation: lelu-ccg-glow 5.5s ease-in-out infinite;
+}
+
+/* Working: a live dot. Unread: a slow pulse. Both stop when the state does. */
+.lelu-ccg-badge.is-working {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.lelu-ccg-badge.is-working::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #67e8f9;
+  box-shadow: 0 0 6px rgba(103, 232, 249, 0.8);
+  animation: lelu-ccg-pulse 1.4s ease-in-out infinite;
+}
+.lelu-ccg-card.is-unread .lelu-ccg-badge.is-unread { animation: lelu-ccg-unread 2.6s ease-in-out infinite; }
+
+/* ==========================================================
+ * ACTION QUEUE PREVIEW
+ *
+ * Where a working conversation actually is, read from the same
+ * queue store the chat uses. Dots only — the full queue lives in
+ * the conversation, so a hundred cards never animate at once.
+ * ========================================================== */
+
+.lelu-ccg-queue {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(14, 9, 34, 0.5);
+  border: 1px solid rgba(255, 236, 252, 0.1);
+  font-size: 10px;
+  color: rgba(226, 232, 248, 0.6);
+}
+.lelu-ccg-queue.is-running,
+.lelu-ccg-queue.is-asking,
+.lelu-ccg-queue.is-waiting {
+  border-color: rgba(103, 232, 249, 0.3);
+  color: rgba(212, 246, 255, 0.85);
+}
+.lelu-ccg-queue.is-failed { border-color: rgba(255, 140, 170, 0.32); color: rgba(255, 190, 208, 0.9); }
+.lelu-ccg-queue-trail { display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.lelu-ccg-queue-trail > span { font-size: 9px; line-height: 1; color: rgba(190, 246, 214, 0.7); }
+.lelu-ccg-queue-trail > span.is-failed { color: rgba(255, 178, 198, 0.9); }
+.lelu-ccg-queue-trail > span.is-queued { color: rgba(224, 212, 248, 0.45); }
+.lelu-ccg-queue-trail > span.is-asking { color: #ffe1ae; }
+.lelu-ccg-queue-orb {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, #fff 0%, #7ff0ff 50%, #3aa8d8 100%);
+  box-shadow: 0 0 5px rgba(123, 236, 255, 0.8);
+  animation: lelu-ccg-pulse 1.5s ease-in-out infinite;
+}
+.lelu-ccg-queue-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes lelu-ccg-shell {
+  from { opacity: 0; transform: scale(0.986); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lelu-ccg-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lelu-ccg-results {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lelu-ccg-card-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lelu-ccg-glow {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+@keyframes lelu-ccg-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+@keyframes lelu-ccg-unread {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/*
+ * Reduced motion: the same states, stated rather than moved. Nothing
+ * staggers, nothing breathes, and the chosen tile is marked by colour, so
+ * the feedback for a tap is still immediate.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .lelu-ccg,
+  .lelu-ccg-head,
+  .lelu-ccg-search,
+  .lelu-ccg-filters,
+  .lelu-ccg-body,
+  .lelu-ccg-card,
+  .lelu-ccg-card.is-pinned::after,
+  .lelu-ccg-badge.is-working::before,
+  .lelu-ccg-card.is-unread .lelu-ccg-badge.is-unread,
+  .lelu-ccg-queue-orb {
+    animation: none;
+    animation-delay: 0ms;
+  }
+  .lelu-ccg,
+  .lelu-ccg-card,
+  .lelu-ccg-card.is-chosen {
+    transition: opacity 120ms ease, border-color 120ms ease;
+  }
+  .lelu-ccg-card:active,
+  .lelu-ccg-grid:has(.lelu-ccg-card:active) .lelu-ccg-card:not(:active),
+  .lelu-ccg-card.is-chosen { transform: none; }
+  .lelu-ccg.is-leaving { opacity: 0; transform: none; }
+}

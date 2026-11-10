@@ -1,0 +1,102 @@
+{
+ "startedAt": "2026-11-08T21:42:05.994Z",
+ "steps": [
+  {
+   "label": "boot",
+   "focus": "genesis",
+   "systemHost": false,
+   "domCount": 0,
+   "views": [],
+   "engine": {
+    "layout": "auto",
+    "focusId": "view-providers",
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 2,
+      "text": ""
+     }
+    ]
+   }
+  },
+  {
+   "label": "after-compose",
+   "focus": "genesis",
+   "systemHost": false,
+   "domCount": 0,
+   "views": [],
+   "engine": {
+    "layout": "auto",
+    "focusId": "view-providers",
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 10,
+      "text": ""
+     },
+     {
+      "id": "view-memory",
+      "title": "Memory",
+      "revision": 2,
+      "text": ""
+     }
+    ]
+   }
+  }
+ ],
+ "turns": [
+  {
+   "label": "turn1-compose",
+   "prompt": "Create an environment titled Field Lab with two surfaces: a workspace for notes and a research board.",
+   "ms": 58113,
+   "tools": [],
+   "state": {
+    "label": "turn1-compose",
+    "focus": "genesis",
+    "systemHost": false,
+    "domCount": 0,
+    "views": [],
+    "engine": {
+     "layout": "auto",
+     "focusId": "view-providers",
+     "views": [
+      {
+       "id": "view-executive",
+       "title": "Lélu · Live Execution",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-providers",
+       "title": "Providers",
+       "revision": 10,
+       "text": ""
+      },
+      {
+       "id": "view-memory",
+       "title": "Memory",
+       "revision": 2,
+       "text": ""
+      }
+     ]
+    }
+   }
+  }
+ ],
+ "console": [],
+ "finishedAt": "2026-11-08T21:44:46.659Z"
+}

@@ -1,0 +1,49 @@
+{
+ "viewports_tested": [
+  "390x844"
+ ],
+ "results": [
+  {
+   "viewport": "390x844",
+   "entry": "navigator-summon",
+   "id": "navigator-summon",
+   "gate": {
+    "gate": true,
+    "labels": [
+     "Sign in",
+     "Create account",
+     "Continue without an account"
+    ],
+    "home": true,
+    "text": "L\u00c9LU \u00b7 CLOUD IDENTITY\n\nSign in to carry memory, projects and conversations across your devices. You can also continue without an account \u2014 everything works, it just stays here.\n\nSign in\nCreate account\nContinue without an",
+    "settleMs": 3064,
+    "dismissed": "detached",
+    "presentAfter": false
+   },
+   "hit": {
+    "present": true,
+    "cx": 316,
+    "cy": 738,
+    "reachable": true,
+    "topAria": "SPAN"
+   },
+   "click": "pointer-click",
+   "dialogMs": 1969,
+   "composer": {
+    "present": true,
+    "disabled": false,
+    "placeholder": "Message L\u00c9LU\u2026"
+   },
+   "typed": "Mission 3.1 entry check",
+   "typeError": null,
+   "pageErrors": []
+  }
+ ],
+ "not_tested": [
+  "360x640",
+  "375x812",
+  "430x932"
+ ],
+ "method": "Playwright with hasTouch/isMobile; NOT physical devices",
+ "verdict": "PARTIAL"
+}

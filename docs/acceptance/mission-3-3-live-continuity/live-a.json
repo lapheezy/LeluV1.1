@@ -1,0 +1,123 @@
+{
+ "phase": "a",
+ "startedAt": "2026-11-08T21:14:11.179Z",
+ "turns": [
+  {
+   "label": "turn1-create",
+   "prompt": "Create a studio environment titled Research Studio with three surfaces: a central workspace, a research area, and a presentation area.",
+   "ms": 13673,
+   "toolEvents": [
+    "660757:Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+    "661343:🟢 [9:17:41 PM] [ProviderResolver] Tool environment_compose -> ok",
+    "661556:Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 5567, Requeste}",
+    "661739:Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 5547, Requeste}",
+    "661982:🔴 [9:17:41 PM] [ProviderResolver] Groq failed after running tools; not repeating them on another provider.",
+    "661983:{Stage: ProviderResolver, Success: false, Message: Groq failed after running tools; not repeating them on another provider., Provider: -, Duration: -, Confidence: -}",
+    "661983:Metadata: {provider: Groq, ran: Array(1), fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 5502, Requeste}"
+   ],
+   "state": {
+    "dom": [],
+    "engine": {
+     "layout": "auto",
+     "focusId": "view-memory",
+     "views": [
+      {
+       "id": "view-executive",
+       "title": "Lélu · Live Execution",
+       "kind": "executive",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-providers",
+       "title": "Providers",
+       "kind": "providers",
+       "revision": 15,
+       "text": ""
+      },
+      {
+       "id": "view-memory",
+       "title": "Memory",
+       "kind": "memory",
+       "revision": 2,
+       "text": ""
+      },
+      {
+       "id": "view-f9883236",
+       "title": "Central Workspace",
+       "kind": "workspace",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-ba5c94a2",
+       "title": "Research Area",
+       "kind": "workspace",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-8a917f0c",
+       "title": "Presentation Area",
+       "kind": "workspace",
+       "revision": 1,
+       "text": ""
+      }
+     ]
+    },
+    "snapshots": [],
+    "revisions": [],
+    "chatTail": ".\n\nI did the work — I ran environment_compose — but Groq failed before it could write the summary: Groq failed 429: Rate limit reached for model openai/gpt-oss-20b in organization org_01m23qhezbeeb9d4t04bra28s6 service tier on_demand on tokens per minute (TPM): Limit 8000, Used 5502, Requested 5401. Please try again in 21.7725s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing. Nothing was repeated, and everything I ran is listed above.\n\nSend\ncore|idle|100"
+   }
+  }
+ ],
+ "console": [
+  "525741:Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+  "545407:🔴 [9:15:45 PM] [ProviderResolver] Groq failed; falling back to the next provider.",
+  "545408:{Stage: ProviderResolver, Success: false, Message: Groq failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}",
+  "565030:Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+  "565569:Metadata: {provider: GitHub Models, priority: 10, fallbackReason: GitHub Models returned no usable content., latencyMs: 547}",
+  "593227:[AIProviderRegistry] Skipping GitHub Models during failure cooldown. {retryInMs: 2343, reason: GitHub Models returned no usable content., credentialRefused: false}",
+  "593247:Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+  "644040:Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+  "660757:Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+  "661343:🟢 [9:17:41 PM] [ProviderResolver] Tool environment_compose -> ok",
+  "661556:Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 5567, Requeste}",
+  "661739:Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 5547, Requeste}",
+  "661982:🔴 [9:17:41 PM] [ProviderResolver] Groq failed after running tools; not repeating them on another provider.",
+  "661983:{Stage: ProviderResolver, Success: false, Message: Groq failed after running tools; not repeating them on another provider., Provider: -, Duration: -, Confidence: -}",
+  "661983:Metadata: {provider: Groq, ran: Array(1), fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 5502, Requeste}"
+ ],
+ "errors": [],
+ "states": [
+  {
+   "at": "after-boot",
+   "dom": [],
+   "engine": {
+    "layout": "auto",
+    "focusId": "view-providers",
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "kind": "executive",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "kind": "providers",
+      "revision": 13,
+      "text": ""
+     }
+    ]
+   },
+   "snapshots": [],
+   "revisions": [],
+   "chatTail": "nerate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.\n\nSend\n◎\nLÉLU\n◎\n🎙\n▤\n◇\n✉\n—\nENVIRONMENT\n✦\nCosmos\n✺\nGovernor galaxy\n◉\nCreation world\n◈\nDimensional portal\n◫\nBrowser\nINTELLIGENCE\n⬡\nAgent universes\n⌁\nResearch\nCREATION\n◍\nGenesis Studios\n▶\nMedia\nRESOURCES\n▤\nProjects\n▥\nFiles\nCOMMUNICATION\n✉\nConversation\nYOUR WORLDS\n⌂\nLÉLU's room\ncore|idle|100"
+  }
+ ],
+ "targetViewId": "view-executive",
+ "mobile": []
+}

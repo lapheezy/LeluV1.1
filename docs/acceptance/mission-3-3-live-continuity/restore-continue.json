@@ -1,0 +1,553 @@
+{
+ "startedAt": "2026-11-08T21:24:47.177Z",
+ "expected": {
+  "idsBeforeReload": [
+   "view-executive",
+   "view-providers",
+   "view-memory",
+   "view-655cb8be",
+   "view-4da30a7e",
+   "view-1ad7ea82",
+   "view-ac62bd07"
+  ],
+  "snapshotId": "snapshot-mw8c7qrp"
+ },
+ "turns": [
+  {
+   "label": "turn4-restore",
+   "prompt": "Restore the saved environment snapshot snapshot-mw8cao1i.",
+   "ms": 30873,
+   "tools": [
+    "🟢 [9:28:18 PM] [ProviderResolver] Tool environment_restore_state -> ok"
+   ],
+   "state": {
+    "engine": {
+     "layout": "split",
+     "focusId": "view-memory",
+     "views": [
+      {
+       "id": "view-executive",
+       "title": "Lélu · Live Execution",
+       "kind": "executive",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-providers",
+       "title": "Providers",
+       "kind": "providers",
+       "revision": 2,
+       "text": ""
+      },
+      {
+       "id": "view-memory",
+       "title": "Memory",
+       "kind": "memory",
+       "revision": 2,
+       "text": ""
+      },
+      {
+       "id": "view-655cb8be",
+       "title": "Research Board",
+       "kind": "workspace",
+       "revision": 1,
+       "text": "Research Board: sources, notes and open questions."
+      },
+      {
+       "id": "view-4da30a7e",
+       "title": "Research Area",
+       "kind": "research",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-1ad7ea82",
+       "title": "Presentation Area",
+       "kind": "presentation",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-ac62bd07",
+       "title": "Research Studio",
+       "kind": "browser",
+       "revision": 1,
+       "text": ""
+      }
+     ]
+    },
+    "dom": [],
+    "snapshots": [
+     {
+      "id": "snapshot-mw8c7qrp",
+      "name": "Research Studio v1",
+      "views": [
+       {
+        "id": "view-executive",
+        "title": "Lélu · Live Execution",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-providers",
+        "title": "Providers",
+        "revision": 5,
+        "text": ""
+       },
+       {
+        "id": "view-memory",
+        "title": "Memory",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-655cb8be",
+        "title": "Central Workspace",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-4da30a7e",
+        "title": "Research Area",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-1ad7ea82",
+        "title": "Presentation Area",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-ac62bd07",
+        "title": "Research Studio",
+        "revision": 1,
+        "text": ""
+       }
+      ]
+     },
+     {
+      "id": "snapshot-mw8cao1i",
+      "name": "studio-v1",
+      "views": [
+       {
+        "id": "view-executive",
+        "title": "Lélu · Live Execution",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-providers",
+        "title": "Providers",
+        "revision": 15,
+        "text": ""
+       },
+       {
+        "id": "view-memory",
+        "title": "Memory",
+        "revision": 5,
+        "text": ""
+       },
+       {
+        "id": "view-655cb8be",
+        "title": "Research Board",
+        "revision": 2,
+        "text": "Research Board: sources, notes and open questions."
+       },
+       {
+        "id": "view-4da30a7e",
+        "title": "Research Area",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-1ad7ea82",
+        "title": "Presentation Area",
+        "revision": 1,
+        "text": ""
+       },
+       {
+        "id": "view-ac62bd07",
+        "title": "Research Studio",
+        "revision": 1,
+        "text": ""
+       }
+      ]
+     }
+    ],
+    "revisions": [
+     {
+      "summary": "Mutated surface [view-655cb8be] \"Research Board\"",
+      "viewsAffected": [
+       "view-655cb8be"
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "console": [
+  "🟢 [9:28:18 PM] [ProviderResolver] Tool environment_restore_state -> ok",
+  "Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 5806, Requeste}",
+  "Metadata: {provider: Groq, fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 5783, Requeste}",
+  "🔴 [9:28:18 PM] [ProviderResolver] Groq failed after running tools; not repeating them on another provider.",
+  "{Stage: ProviderResolver, Success: false, Message: Groq failed after running tools; not repeating them on another provider., Provider: -, Duration: -, Confidence: -}",
+  "Metadata: {provider: Groq, ran: Array(1), fallbackReason: Groq failed 429: Rate limit reached for model `ope…per minute (TPM): Limit 8000, Used 5769, Requeste}"
+ ],
+ "checkpoints": {
+  "afterFreshBoot": {
+   "engine": {
+    "layout": "auto",
+    "focusId": "view-providers",
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "kind": "executive",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "kind": "providers",
+      "revision": 12,
+      "text": ""
+     }
+    ]
+   },
+   "dom": [],
+   "snapshots": [
+    {
+     "id": "snapshot-mw8c7qrp",
+     "name": "Research Studio v1",
+     "views": [
+      {
+       "id": "view-executive",
+       "title": "Lélu · Live Execution",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-providers",
+       "title": "Providers",
+       "revision": 5,
+       "text": ""
+      },
+      {
+       "id": "view-memory",
+       "title": "Memory",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-655cb8be",
+       "title": "Central Workspace",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-4da30a7e",
+       "title": "Research Area",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-1ad7ea82",
+       "title": "Presentation Area",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-ac62bd07",
+       "title": "Research Studio",
+       "revision": 1,
+       "text": ""
+      }
+     ]
+    },
+    {
+     "id": "snapshot-mw8cao1i",
+     "name": "studio-v1",
+     "views": [
+      {
+       "id": "view-executive",
+       "title": "Lélu · Live Execution",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-providers",
+       "title": "Providers",
+       "revision": 15,
+       "text": ""
+      },
+      {
+       "id": "view-memory",
+       "title": "Memory",
+       "revision": 5,
+       "text": ""
+      },
+      {
+       "id": "view-655cb8be",
+       "title": "Research Board",
+       "revision": 2,
+       "text": "Research Board: sources, notes and open questions."
+      },
+      {
+       "id": "view-4da30a7e",
+       "title": "Research Area",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-1ad7ea82",
+       "title": "Presentation Area",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-ac62bd07",
+       "title": "Research Studio",
+       "revision": 1,
+       "text": ""
+      }
+     ]
+    }
+   ],
+   "revisions": [
+    {
+     "summary": "Mutated surface [view-655cb8be] \"Research Board\"",
+     "viewsAffected": [
+      "view-655cb8be"
+     ]
+    }
+   ]
+  },
+  "persistedSnapshots": [
+   {
+    "id": "snapshot-mw8c7qrp",
+    "name": "Research Studio v1",
+    "viewCount": 7
+   },
+   {
+    "id": "snapshot-mw8cao1i",
+    "name": "studio-v1",
+    "viewCount": 7
+   }
+  ],
+  "snapshotUsed": "snapshot-mw8cao1i",
+  "afterRestore": {
+   "engine": {
+    "layout": "split",
+    "focusId": "view-memory",
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "kind": "executive",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "kind": "providers",
+      "revision": 2,
+      "text": ""
+     },
+     {
+      "id": "view-memory",
+      "title": "Memory",
+      "kind": "memory",
+      "revision": 2,
+      "text": ""
+     },
+     {
+      "id": "view-655cb8be",
+      "title": "Research Board",
+      "kind": "workspace",
+      "revision": 1,
+      "text": "Research Board: sources, notes and open questions."
+     },
+     {
+      "id": "view-4da30a7e",
+      "title": "Research Area",
+      "kind": "research",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-1ad7ea82",
+      "title": "Presentation Area",
+      "kind": "presentation",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-ac62bd07",
+      "title": "Research Studio",
+      "kind": "browser",
+      "revision": 1,
+      "text": ""
+     }
+    ]
+   },
+   "dom": [],
+   "snapshots": [
+    {
+     "id": "snapshot-mw8c7qrp",
+     "name": "Research Studio v1",
+     "views": [
+      {
+       "id": "view-executive",
+       "title": "Lélu · Live Execution",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-providers",
+       "title": "Providers",
+       "revision": 5,
+       "text": ""
+      },
+      {
+       "id": "view-memory",
+       "title": "Memory",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-655cb8be",
+       "title": "Central Workspace",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-4da30a7e",
+       "title": "Research Area",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-1ad7ea82",
+       "title": "Presentation Area",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-ac62bd07",
+       "title": "Research Studio",
+       "revision": 1,
+       "text": ""
+      }
+     ]
+    },
+    {
+     "id": "snapshot-mw8cao1i",
+     "name": "studio-v1",
+     "views": [
+      {
+       "id": "view-executive",
+       "title": "Lélu · Live Execution",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-providers",
+       "title": "Providers",
+       "revision": 15,
+       "text": ""
+      },
+      {
+       "id": "view-memory",
+       "title": "Memory",
+       "revision": 5,
+       "text": ""
+      },
+      {
+       "id": "view-655cb8be",
+       "title": "Research Board",
+       "revision": 2,
+       "text": "Research Board: sources, notes and open questions."
+      },
+      {
+       "id": "view-4da30a7e",
+       "title": "Research Area",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-1ad7ea82",
+       "title": "Presentation Area",
+       "revision": 1,
+       "text": ""
+      },
+      {
+       "id": "view-ac62bd07",
+       "title": "Research Studio",
+       "revision": 1,
+       "text": ""
+      }
+     ]
+    }
+   ],
+   "revisions": [
+    {
+     "summary": "Mutated surface [view-655cb8be] \"Research Board\"",
+     "viewsAffected": [
+      "view-655cb8be"
+     ]
+    }
+   ]
+  },
+  "idsAfterRestore": [
+   "view-executive",
+   "view-providers",
+   "view-memory",
+   "view-655cb8be",
+   "view-4da30a7e",
+   "view-1ad7ea82",
+   "view-ac62bd07"
+  ],
+  "sameIdsRestored": true,
+  "restoredRevisions": [
+   {
+    "id": "view-executive",
+    "title": "Lélu · Live Execution",
+    "revision": 1
+   },
+   {
+    "id": "view-providers",
+    "title": "Providers",
+    "revision": 2
+   },
+   {
+    "id": "view-memory",
+    "title": "Memory",
+    "revision": 2
+   },
+   {
+    "id": "view-655cb8be",
+    "title": "Research Board",
+    "revision": 1
+   },
+   {
+    "id": "view-4da30a7e",
+    "title": "Research Area",
+    "revision": 1
+   },
+   {
+    "id": "view-1ad7ea82",
+    "title": "Presentation Area",
+    "revision": 1
+   },
+   {
+    "id": "view-ac62bd07",
+    "title": "Research Studio",
+    "revision": 1
+   }
+  ]
+ },
+ "errors": []
+}

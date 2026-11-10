@@ -1,0 +1,32 @@
+{
+ "at": "2026-11-08",
+ "protected_claims_checked": {
+  "7c4a373_exists": true,
+  "7c4a373_ancestor_of_7345ad6": false,
+  "7c4a373_note": "merge-base is 61b27c8; 6 commits reachable only from 7c4a373, 18 only from 7345ad6. The mobile-orchestration branch was NOT merged into the Mission 3 start point; it is a sibling history.",
+  "a2f0e03_parent": "7345ad6",
+  "a2f0e03_contains_mission3_drivers": true,
+  "canonical": "ce768e08",
+  "canonical_ancestor_of_7345ad6": true,
+  "commits_canonical_to_7345ad6": 30,
+  "commits_7345ad6_to_canonical": 0,
+  "canonical_untouched": true,
+  "shared_worktree": "68fd4f9 [claude/m52-acceptance-completion]",
+  "shared_worktree_dirty_paths": [
+   "src/app/scene/spatial/PortalRegistry.ts",
+   "src/app/scene/spatial/SpatialNavigator.tsx",
+   "docs/acceptance/spatial-phase-2-13/",
+   "tests/portal-multiplicity.test.ts"
+  ],
+  "shared_worktree_dirty_paths_preserved": true
+ },
+ "remote_tips_verified": {
+  "claude/live-autonomous-activation": "a2f0e03",
+  "claude/master-integration": "ce768e08",
+  "claude/unified-canonical-integration": "7345ad6",
+  "claude/unified-mobile-orchestration-integration": "7c4a373"
+ },
+ "divergence": "7345ad6 is a strict superset of canonical ce768e08 (0 behind, 30 ahead). 7c4a373 and 7345ad6 diverged at 61b27c8 and were never merged; neither was rewritten.",
+ "mission_3_1_branch": "claude/mission-3-1-live-chat-recovery",
+ "mission_3_1_base": "a2f0e03"
+}

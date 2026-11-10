@@ -1,0 +1,316 @@
+{
+ "startedAt": "2026-11-08T21:45:19.124Z",
+ "turns": [
+  {
+   "label": "compose-1",
+   "prompt": "Use your environment tools: compose a new environment titled Field Lab with two surfaces — a notes workspace and a research board.",
+   "ms": 58339,
+   "tools": [
+    "🟢 [9:47:03 PM] [ProviderResolver] Tool environment_compose -> ok"
+   ],
+   "state": {
+    "label": "compose-1",
+    "focus": "visual",
+    "host": true,
+    "domCount": 5,
+    "views": [
+     {
+      "id": "view-providers",
+      "rev": 19,
+      "x": 374,
+      "y": 108,
+      "w": 462,
+      "h": 416,
+      "visible": true
+     },
+     {
+      "id": "view-memory",
+      "rev": 2,
+      "x": 58,
+      "y": 162,
+      "w": 302,
+      "h": 302,
+      "visible": true
+     },
+     {
+      "id": "view-46770120",
+      "rev": 1,
+      "x": 58,
+      "y": 468,
+      "w": 302,
+      "h": 65,
+      "visible": true
+     },
+     {
+      "id": "view-423838f6",
+      "rev": 1,
+      "x": 720,
+      "y": 576,
+      "w": 302,
+      "h": 65,
+      "visible": true
+     },
+     {
+      "id": "view-executive",
+      "rev": 1,
+      "x": 1037,
+      "y": 144,
+      "w": 302,
+      "h": 65,
+      "visible": true
+     }
+    ],
+    "engine": {
+     "layout": "auto",
+     "focusId": "view-providers",
+     "views": [
+      {
+       "id": "view-executive",
+       "title": "Lélu · Live Execution",
+       "revision": 1
+      },
+      {
+       "id": "view-providers",
+       "title": "Providers",
+       "revision": 19
+      },
+      {
+       "id": "view-memory",
+       "title": "Memory",
+       "revision": 2
+      },
+      {
+       "id": "view-46770120",
+       "title": "Notes Workspace",
+       "revision": 1
+      },
+      {
+       "id": "view-423838f6",
+       "title": "Research Board",
+       "revision": 1
+      }
+     ]
+    }
+   }
+  }
+ ],
+ "steps": [
+  {
+   "label": "boot",
+   "focus": "genesis",
+   "host": false,
+   "domCount": 0,
+   "views": [],
+   "engine": {
+    "layout": "auto",
+    "focusId": "view-providers",
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 2
+     }
+    ]
+   }
+  },
+  {
+   "label": "after-compose",
+   "focus": "visual",
+   "host": true,
+   "domCount": 5,
+   "views": [
+    {
+     "id": "view-providers",
+     "rev": 19,
+     "x": 374,
+     "y": 108,
+     "w": 462,
+     "h": 416,
+     "visible": true
+    },
+    {
+     "id": "view-memory",
+     "rev": 2,
+     "x": 58,
+     "y": 162,
+     "w": 302,
+     "h": 302,
+     "visible": true
+    },
+    {
+     "id": "view-46770120",
+     "rev": 1,
+     "x": 58,
+     "y": 468,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    },
+    {
+     "id": "view-423838f6",
+     "rev": 1,
+     "x": 720,
+     "y": 576,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    },
+    {
+     "id": "view-executive",
+     "rev": 1,
+     "x": 1037,
+     "y": 144,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    }
+   ],
+   "engine": {
+    "layout": "auto",
+    "focusId": "view-providers",
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 19
+     },
+     {
+      "id": "view-memory",
+      "title": "Memory",
+      "revision": 2
+     },
+     {
+      "id": "view-46770120",
+      "title": "Notes Workspace",
+      "revision": 1
+     },
+     {
+      "id": "view-423838f6",
+      "title": "Research Board",
+      "revision": 1
+     }
+    ]
+   }
+  },
+  {
+   "label": "after-click",
+   "focus": "visual",
+   "host": true,
+   "domCount": 5,
+   "views": [
+    {
+     "id": "view-providers",
+     "rev": 19,
+     "x": 374,
+     "y": 108,
+     "w": 462,
+     "h": 416,
+     "visible": true
+    },
+    {
+     "id": "view-memory",
+     "rev": 2,
+     "x": 58,
+     "y": 162,
+     "w": 302,
+     "h": 302,
+     "visible": true
+    },
+    {
+     "id": "view-46770120",
+     "rev": 1,
+     "x": 58,
+     "y": 468,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    },
+    {
+     "id": "view-423838f6",
+     "rev": 1,
+     "x": 720,
+     "y": 576,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    },
+    {
+     "id": "view-executive",
+     "rev": 1,
+     "x": 1037,
+     "y": 144,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    }
+   ],
+   "engine": {
+    "layout": "auto",
+    "focusId": "view-providers",
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 19
+     },
+     {
+      "id": "view-memory",
+      "title": "Memory",
+      "revision": 2
+     },
+     {
+      "id": "view-46770120",
+      "title": "Notes Workspace",
+      "revision": 1
+     },
+     {
+      "id": "view-423838f6",
+      "title": "Research Board",
+      "revision": 1
+     }
+    ]
+   }
+  }
+ ],
+ "console": [
+  "Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+  "🟢 [9:46:40 PM] [ProviderResolver] Trying OpenRouter",
+  "🟢 [9:46:56 PM] [ProviderResolver] Trying Groq",
+  "Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+  "🟢 [9:47:02 PM] [ProviderResolver] Trying Groq",
+  "🔴 [9:47:02 PM] [ProviderResolver] Groq failed; falling back to the next provider.",
+  "{Stage: ProviderResolver, Success: false, Message: Groq failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}",
+  "🟢 [9:47:02 PM] [ProviderResolver] Trying GitHub Models",
+  "🟢 [9:47:03 PM] [ProviderResolver] Tool environment_compose -> ok",
+  "Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+  "🟢 [9:47:16 PM] [ProviderResolver] Trying Groq",
+  "Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+  "🟢 [9:47:16 PM] [ProviderResolver] Trying Groq",
+  "🔴 [9:47:16 PM] [ProviderResolver] Groq failed; falling back to the next provider.",
+  "{Stage: ProviderResolver, Success: false, Message: Groq failed; falling back to the next provider., Provider: -, Duration: -, Confidence: -}",
+  "Metadata: {provider: Groq, priority: 2.5, fallbackReason: Groq failed 429: Rate limit reached for model `ope…oday at https://console.groq.com/settings/billing, latencyMs: 323}",
+  "🟢 [9:47:16 PM] [ProviderResolver] Trying GitHub Models",
+  "Metadata: {provider: GitHub Models, priority: 10, fallbackReason: GitHub Models returned no usable content., latencyMs: 2817}",
+  "[AIProviderRegistry] Skipping GitHub Models during failure cooldown. {retryInMs: 21911, reason: GitHub Models returned no usable content., credentialRefused: false}",
+  "Metadata: {modality: text, workload: general, hardwareTier: high, offlineEnabled: false, preferredProviders: Array(1)}",
+  "🟢 [9:47:27 PM] [ProviderResolver] Trying OpenRouter",
+  "🟢 [9:47:27 PM] [ProviderResolver] Trying Groq"
+ ],
+ "mobile": [],
+ "finishedAt": "2026-11-08T21:47:58.900Z"
+}

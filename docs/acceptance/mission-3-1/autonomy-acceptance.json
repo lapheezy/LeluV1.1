@@ -1,0 +1,22 @@
+{
+ "status": "NOT ACHIEVED",
+ "what_happened": "A real prompt was typed into the real Universe composer and submitted (274 characters, ~44 s observed). The app made two provider requests (openrouter 429, groq 429), then tried GitHub Models, which failed on the credential guard now fixed. Zero assistant messages rendered and no [data-lelu-chat-window] mounted.",
+ "requirement_status": {
+  "open Chat Universe": "NOT DEMONSTRATED",
+  "composer accepts text": "NOT DEMONSTRATED",
+  "model understands": "NOT DEMONSTRATED",
+  "model selects tools": "NOT DEMONSTRATED",
+  "dispatcher executes": "NOT DEMONSTRATED",
+  "Cosmos presents environment": "NOT DEMONSTRATED",
+  "self-inspection": "NOT DEMONSTRATED",
+  "correction": "NOT DEMONSTRATED",
+  "evolution": "NOT DEMONSTRATED",
+  "persistence": "NOT DEMONSTRATED",
+  "restore and continue": "NOT DEMONSTRATED"
+ },
+ "partial_credit": [
+  "open Chat Universe \u2014 PASS (Gate A)",
+  "composer accepts text \u2014 PASS (Gate A)"
+ ],
+ "verdict": "BLOCKED"
+}

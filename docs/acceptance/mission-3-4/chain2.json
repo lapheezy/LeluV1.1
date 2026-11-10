@@ -1,0 +1,401 @@
+{
+ "startedAt": "2026-11-08T21:52:14.130Z",
+ "turns": [
+  {
+   "label": "t1-compose",
+   "ms": 35174,
+   "tools": [
+    "🟢 [9:53:47 PM] [ProviderResolver] Tool environment_compose -> ok"
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "label": "boot",
+   "focus": "genesis",
+   "host": false,
+   "domCount": 0,
+   "views": [],
+   "engine": {
+    "selectedId": null,
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 2,
+      "text": ""
+     }
+    ]
+   },
+   "snapshots": []
+  },
+  {
+   "label": "t1-compose",
+   "focus": "visual",
+   "host": true,
+   "domCount": 5,
+   "views": [
+    {
+     "id": "view-memory",
+     "rev": 3,
+     "selected": "false",
+     "x": 374,
+     "y": 108,
+     "w": 462,
+     "h": 416,
+     "visible": true
+    },
+    {
+     "id": "view-providers",
+     "rev": 8,
+     "selected": "false",
+     "x": 58,
+     "y": 162,
+     "w": 302,
+     "h": 302,
+     "visible": true
+    },
+    {
+     "id": "view-3f851b81",
+     "rev": 1,
+     "selected": "false",
+     "x": 58,
+     "y": 468,
+     "w": 302,
+     "h": 81,
+     "visible": true
+    },
+    {
+     "id": "view-71170c30",
+     "rev": 1,
+     "selected": "false",
+     "x": 720,
+     "y": 576,
+     "w": 302,
+     "h": 81,
+     "visible": true
+    },
+    {
+     "id": "view-executive",
+     "rev": 1,
+     "selected": "false",
+     "x": 1037,
+     "y": 144,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    }
+   ],
+   "engine": {
+    "selectedId": null,
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 8,
+      "text": ""
+     },
+     {
+      "id": "view-memory",
+      "title": "Memory",
+      "revision": 3,
+      "text": ""
+     },
+     {
+      "id": "view-3f851b81",
+      "title": "Notes Workspace",
+      "revision": 1,
+      "text": "Here you can jot down ideas."
+     },
+     {
+      "id": "view-71170c30",
+      "title": "Research Board",
+      "revision": 1,
+      "text": "Place research findings here."
+     }
+    ]
+   },
+   "snapshots": []
+  },
+  {
+   "label": "after-pointer-click",
+   "focus": "visual",
+   "host": true,
+   "domCount": 5,
+   "views": [
+    {
+     "id": "view-memory",
+     "rev": 3,
+     "selected": "false",
+     "x": 374,
+     "y": 108,
+     "w": 462,
+     "h": 416,
+     "visible": true
+    },
+    {
+     "id": "view-providers",
+     "rev": 8,
+     "selected": "false",
+     "x": 58,
+     "y": 162,
+     "w": 302,
+     "h": 302,
+     "visible": true
+    },
+    {
+     "id": "view-3f851b81",
+     "rev": 1,
+     "selected": "false",
+     "x": 58,
+     "y": 468,
+     "w": 302,
+     "h": 81,
+     "visible": true
+    },
+    {
+     "id": "view-71170c30",
+     "rev": 1,
+     "selected": "false",
+     "x": 720,
+     "y": 576,
+     "w": 302,
+     "h": 81,
+     "visible": true
+    },
+    {
+     "id": "view-executive",
+     "rev": 1,
+     "selected": "false",
+     "x": 1037,
+     "y": 144,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    }
+   ],
+   "engine": {
+    "selectedId": null,
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 8,
+      "text": ""
+     },
+     {
+      "id": "view-memory",
+      "title": "Memory",
+      "revision": 3,
+      "text": ""
+     },
+     {
+      "id": "view-3f851b81",
+      "title": "Notes Workspace",
+      "revision": 1,
+      "text": "Here you can jot down ideas."
+     },
+     {
+      "id": "view-71170c30",
+      "title": "Research Board",
+      "revision": 1,
+      "text": "Place research findings here."
+     }
+    ]
+   },
+   "snapshots": []
+  },
+  {
+   "label": "after-engine-save",
+   "focus": "visual",
+   "host": true,
+   "domCount": 5,
+   "views": [
+    {
+     "id": "view-memory",
+     "rev": 3,
+     "selected": "false",
+     "x": 374,
+     "y": 108,
+     "w": 462,
+     "h": 416,
+     "visible": true
+    },
+    {
+     "id": "view-providers",
+     "rev": 8,
+     "selected": "false",
+     "x": 58,
+     "y": 162,
+     "w": 302,
+     "h": 302,
+     "visible": true
+    },
+    {
+     "id": "view-3f851b81",
+     "rev": 1,
+     "selected": "false",
+     "x": 58,
+     "y": 468,
+     "w": 302,
+     "h": 81,
+     "visible": true
+    },
+    {
+     "id": "view-71170c30",
+     "rev": 1,
+     "selected": "false",
+     "x": 720,
+     "y": 576,
+     "w": 302,
+     "h": 81,
+     "visible": true
+    },
+    {
+     "id": "view-executive",
+     "rev": 1,
+     "selected": "false",
+     "x": 1037,
+     "y": 144,
+     "w": 302,
+     "h": 65,
+     "visible": true
+    }
+   ],
+   "engine": {
+    "selectedId": null,
+    "views": [
+     {
+      "id": "view-executive",
+      "title": "Lélu · Live Execution",
+      "revision": 1,
+      "text": ""
+     },
+     {
+      "id": "view-providers",
+      "title": "Providers",
+      "revision": 8,
+      "text": ""
+     },
+     {
+      "id": "view-memory",
+      "title": "Memory",
+      "revision": 3,
+      "text": ""
+     },
+     {
+      "id": "view-3f851b81",
+      "title": "Notes Workspace",
+      "revision": 1,
+      "text": "Here you can jot down ideas."
+     },
+     {
+      "id": "view-71170c30",
+      "title": "Research Board",
+      "revision": 1,
+      "text": "Place research findings here."
+     }
+    ]
+   },
+   "snapshots": [
+    {
+     "id": "snapshot-mw8ddug9",
+     "name": {
+      "name": "field-lab-v1",
+      "category": "mission"
+     },
+     "views": [
+      {
+       "id": "view-executive",
+       "revision": 1
+      },
+      {
+       "id": "view-providers",
+       "revision": 8
+      },
+      {
+       "id": "view-memory",
+       "revision": 3
+      },
+      {
+       "id": "view-3f851b81",
+       "revision": 1
+      },
+      {
+       "id": "view-71170c30",
+       "revision": 1
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "console": [
+  "🟢 [9:53:47 PM] [ProviderResolver] Tool environment_compose -> ok",
+  "🟢 [9:55:50 PM] [ProviderResolver] Tool environment_compose -> ok"
+ ],
+ "target": {
+  "id": "view-3f851b81",
+  "title": "Notes Workspace",
+  "revision": 1,
+  "text": "Here you can jot down ideas."
+ },
+ "saveCall": {
+  "keys": [
+   "default"
+  ],
+  "methods": [
+   "saveSnapshot",
+   "restoreSnapshot",
+   "getSnapshots"
+  ],
+  "result": {
+   "id": "snapshot-mw8ddug9",
+   "name": {
+    "name": "field-lab-v1",
+    "category": "mission"
+   }
+  }
+ },
+ "snapshotId": "snapshot-mw8ddug9",
+ "beforeReload": [
+  {
+   "id": "view-executive",
+   "revision": 1
+  },
+  {
+   "id": "view-providers",
+   "revision": 8
+  },
+  {
+   "id": "view-memory",
+   "revision": 3
+  },
+  {
+   "id": "view-3f851b81",
+   "revision": 1
+  },
+  {
+   "id": "view-71170c30",
+   "revision": 1
+  }
+ ]
+}

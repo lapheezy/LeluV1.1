@@ -1,0 +1,5 @@
+{
+ "traces": [],
+ "status": "BLOCKED",
+ "reason": "No live turn attached the tool schemas (measured payload ~5.4 KB against a 30,442-byte schema block), and both non-GitHub providers were rate-limited during the window. A model-selected environment.compose call therefore could not occur."
+}
