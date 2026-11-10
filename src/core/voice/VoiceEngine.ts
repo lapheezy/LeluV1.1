@@ -18,7 +18,7 @@ import { postTranscription, transcriptionAvailable, WHISPER_NAME_HINT } from "./
 import { mapMediaError } from "./speechToText";
 import { detectTurnOnAudioThread } from "./vadWorklet";
 import { resolveFirst } from "../resolveEnv";
-import { elevenLabsReady, speakText, stopSpeaking } from "./elevenLabsTts";
+import { serverVoiceReady, speakText, stopSpeaking } from "./elevenLabsTts";
 import { failureFromError, failureFromResponse, type VoiceTurnFailure } from "./turnFailure";
 import { elevenLabsSttReady, transcribeWithElevenLabs } from "./elevenLabsStt";
 import UsageBudgetGate, { BudgetExhaustedError, budgetNotice } from "../observability/UsageBudgetGate";
@@ -1532,7 +1532,10 @@ class VoiceEngine {
    */
   private probeElevenLabs(): Promise<void> {
     if (this.elevenLabsProbe) return this.elevenLabsProbe;
-    this.elevenLabsProbe = elevenLabsReady().then((ready) => {
+    // "Her voice" = her cloned reference voice (VoxCPM2) or the configured
+    // server provider. Asking only about the provider demoted a runtime that
+    // holds the cloned voice to the browser's system voice.
+    this.elevenLabsProbe = serverVoiceReady().then((ready) => {
       this.elevenLabs = ready;
     });
     return this.elevenLabsProbe;

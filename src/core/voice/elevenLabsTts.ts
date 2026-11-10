@@ -20,6 +20,7 @@
  */
 
 import UsageBudgetGate from "../observability/UsageBudgetGate";
+import { speakWithVoxCpm, stopVoxCpm, voxCpmReady } from "./adapters/VoxCpmTts";
 
 interface ReportedUsage { characterCost: number | null; fiatCostUsd: number | null }
 
@@ -77,6 +78,20 @@ export function forgetElevenLabsStatus(): void {
   statusCache = null;
 }
 
+/**
+ * Can HER server voice answer at all — her cloned reference voice
+ * (VoxCPM2) or the configured provider behind it?
+ *
+ * VoiceEngine gates every reply on this one answer, so a runtime
+ * that holds only VoxCPM2 is not silently demoted to the browser's
+ * system voice. Neither provider is invented: both probes report a
+ * failure as unavailable.
+ */
+export async function serverVoiceReady(): Promise<boolean> {
+  if (await voxCpmReady()) return true;
+  return elevenLabsReady();
+}
+
 export interface SpeakCallbacks {
   onStart?: () => void;
   onEnd?: () => void;
@@ -97,6 +112,20 @@ export function speakText(text: string, callbacks: SpeakCallbacks = {}): Promise
     if (!trimmed) {
       callbacks.onEnd?.();
       return;
+    }
+    // Her cloned reference voice answers first; the configured provider
+    // remains the fallback so a failed clone never silences her reply.
+    if (await voxCpmReady()) {
+      const outcome = await speakWithVoxCpm(trimmed, { onStart: () => callbacks.onStart?.() });
+      if (outcome.spoke) {
+        callbacks.onEnd?.();
+        return;
+      }
+      console.warn(
+        "[LeluVoice] Her reference voice could not speak; using the configured server voice.",
+        outcome.detail,
+      );
+      forgetElevenLabsStatus();
     }
     let url = "";
     try {
@@ -157,6 +186,9 @@ export function speakText(text: string, callbacks: SpeakCallbacks = {}): Promise
 
 /** Stop whatever she is saying — barge-in, or a new reply taking over. */
 export function stopSpeaking(): void {
+  // Cancel a reference-voice generation too, so a stopped reply cannot
+  // start playing after the user interrupted it (stale audio).
+  stopVoxCpm();
   const audio = current;
   current = null;
   // Release the chain FIRST: a paused element fires no "ended", so the

@@ -1,0 +1,16 @@
+{
+  "measuredAt": "2026-11-10T08:21:04.444Z",
+  "runs": 7,
+  "route": "POST /api/voice/voxcpm/tts",
+  "reference": "lelu-voice-reference-44k-mono.wav",
+  "referencePayloadBytes": 5733824,
+  "upstreamCalls": 8,
+  "overheadMs": {
+    "median": 34.7,
+    "p95": 43.3,
+    "min": 16.7,
+    "max": 43.3
+  },
+  "audioBytes": 96044,
+  "excludes": "OpenBMB VoxCPM2 inference (GPU) — the upstream was stubbed to answer instantly. No time-to-first-audio or real-time factor is claimed for the model."
+}

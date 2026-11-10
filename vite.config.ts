@@ -25,6 +25,7 @@ import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { githubApiPlugin } from "./plugins/githubApi.ts";
 import { voiceApiPlugin } from "./plugins/voiceApi.ts";
+import { voxCpmApiPlugin } from "./plugins/voxcpmApi.ts";
 import { runtimeKeyBridgePlugin, bridgeReport } from "./plugins/runtimeKeyBridge.ts";
 import { fillBareSecretAliases } from "./plugins/bareSecretAliases.ts";
 import { readBuildInfo } from "./plugins/buildInfo.ts";
@@ -324,6 +325,9 @@ export default defineConfig(({ mode, command }) => {
 
       githubApiPlugin(envReader),
       voiceApiPlugin(envReader),
+      // Her cloned reference voice (VoxCPM2), conditioned on the committed
+      // recording. Mounted beside the provider route, not instead of it.
+      voxCpmApiPlugin(envReader),
 
       glslIncludes(),
 
