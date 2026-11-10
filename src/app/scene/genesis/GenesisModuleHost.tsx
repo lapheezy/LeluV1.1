@@ -26,6 +26,7 @@ import { chatFillsScreen } from "./chat/chatLayout";
 import { InModuleWindow } from "./moduleWindowContext";
 import { APP_WINDOW_Z, CHAT_WINDOW_Z, conversationIdOf, floatsAboveChat, useGenesisActions, useGenesisState, type ModuleState } from "./GenesisCore";
 import { MODULE_CATALOG } from "./GenesisDock";
+import { useUniverseOpen } from "./chat/universe/universeOpen";
 import ModuleLayoutStore from "./layout/ModuleLayoutStore";
 import { genesisTheme } from "./GenesisTheme";
 
@@ -52,6 +53,22 @@ const CHROME_HEIGHT = 40;
 const RESIZE_HANDLE = 28;
 const MIN_WIDTH = 280;
 const MIN_HEIGHT = 200;
+
+/**
+ * How much of the top of the screen the Universe's own header owns.
+ *
+ * `.lcu` is `inset: 0` at z-index 480 and a phone conversation window is a
+ * full-viewport sheet at `CHAT_WINDOW_Z` (520), so opening a conversation from
+ * the Universe painted a sheet over the ENTIRE Universe — header, cards and
+ * close control all disappeared behind the window, and the app looked as if
+ * pressing a chat had closed the Universe.
+ *
+ * The sheet now starts below that header (`.lcu-main` 10px padding + the
+ * `.lcu-head` 70px minimum, rounded up) instead of over it, so the Universe
+ * stays on screen, keeps its controls, and the conversation still owns the
+ * rest of the screen.
+ */
+const UNIVERSE_COMPACT_HEAD = 88;
 
 interface FloatingWindowProps {
   id: string;
@@ -211,12 +228,20 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       : rawPosition.y,
   };
   const chatWindow = floatsAboveChat(id);
+  /*
+   * Pressing a chat opens the conversation OVER the Universe, which owns the
+   * screen until it is closed. Reading its open state here is what lets the
+   * sheet stop painting over the Universe's own header.
+   */
+  const universeOpen = useUniverseOpen();
   /**
    * On a phone a conversation (and what it produced: an artifact, a design)
    * IS the screen — the full visual viewport above the keyboard, not a
    * floating card beside a second composer. Desktop keeps free windows.
    */
   const phoneSheet = compactScreen && chatWindow;
+  /** Zero unless the sheet would otherwise bury the open Universe. */
+  const universeHeadInset = phoneSheet && universeOpen ? UNIVERSE_COMPACT_HEAD : 0;
   // A chat window never sinks below the Universe overlay, not even when an
   // older session persisted a panel-level z-index for it.
   const zIndex = chatWindow
@@ -625,6 +650,18 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
               paddingLeft: "env(safe-area-inset-left, 0px)",
               paddingRight: "env(safe-area-inset-right, 0px)",
               boxSizing: "border-box" as const,
+              /*
+               * Clear the Universe's header (see UNIVERSE_COMPACT_HEAD). With
+               * the Universe closed this is empty and the sheet keeps the whole
+               * visual viewport, so a conversation opened straight from Home is
+               * unchanged.
+               */
+              ...(universeHeadInset
+                ? {
+                    top: viewport.offsetTop + universeHeadInset,
+                    height: viewportHeight - universeHeadInset,
+                  }
+                : null),
             }
           : {}),
         zIndex,

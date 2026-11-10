@@ -359,6 +359,25 @@ test("on a phone a conversation window is the full visual viewport; one composer
   assert.match(universe, /\{sheetOpen \? null : \(/, "the Universe composer leaves while a conversation sheet owns the screen");
 });
 
+test("opening a conversation over the Universe leaves the Universe on screen", () => {
+  const host = readFileSync("src/app/scene/genesis/GenesisModuleHost.tsx", "utf8");
+  assert.match(host, /const universeOpen = useUniverseOpen\(\);/, "the host reads the one Universe open store");
+  assert.match(
+    host,
+    /const universeHeadInset = phoneSheet && universeOpen \? UNIVERSE_COMPACT_HEAD : 0;/,
+    "only an open Universe lifts the sheet",
+  );
+  assert.match(
+    host,
+    /top: viewport\.offsetTop \+ universeHeadInset,\s*height: viewportHeight - universeHeadInset,/,
+    "the sheet starts below the Universe header instead of painting over it",
+  );
+  // The Universe is `inset: 0` at z-index 480; a full-viewport phone sheet at
+  // CHAT_WINDOW_Z 520 used to bury its header, cards and close control, which
+  // read as the Universe closing whenever a chat was pressed.
+  assert.match(host, /const UNIVERSE_COMPACT_HEAD = 88;/, "the header clearance is explicit");
+});
+
 test("Step 3: under a phone sheet LÉLU's single presence stays mounted, drawing slowly at an edge (no unmount, no hidden WebGL)", () => {
   // Phase 2 unmounted her window under phone sheets (a hidden canvas stalled
   // the GPU). Step 3 keeps ONE presence: under a sheet she rests visible at
