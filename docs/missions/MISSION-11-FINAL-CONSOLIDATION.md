@@ -121,17 +121,72 @@ No agent, tool loop or orchestration layer was recreated or removed.
 
 ## C. Cleanup
 
-Remote branches deleted (all except the two maintained branches): see the post-cleanup
-inventory below. Every deletion is accounted for in section B.2/B.3 and in the inventory
-TSV; no branch was deleted before its contributions were reconciled by the three tests.
+### C.1 Remote deletion — BLOCKED by missing credentials
 
-- **Retained remotely:** `main`, `integration/lelu-four-workforce-consolidation`.
-- **Retained locally:** `integration/lelu-four-workforce-consolidation`; local refs still
-  checked out by other chats' worktrees are reported, not forced.
-- **Not restored on purpose:** 18 browser-trace `.zip` recordings (1.2 GB) from
-  `backup/pre-trace-drop` (`d3eb456`); their reports and measurements are already in-tree.
-- **Could not be removed without breaking other chats:** local refs whose worktrees are
-  active (listed in the final report).
+50 of the 52 remote heads were queued for deletion after reconciliation. **Every deletion
+failed**, so the remote still has 52 heads:
+
+```
+fatal: could not read Username for 'https://github.com': No such device or address
+```
+
+Diagnosis performed in this workspace:
+
+- `git push origin --delete <branch>` → no credential helper is configured
+  (`git config --list` has no `credential.*` or `url.*.insteadOf` entry).
+- `gh auth status` → "You are not logged into any GitHub hosts".
+- No askpass (`GIT_ASKPASS` unset), no SSH agent, no token environment variable.
+- The repository is fetched and pushed through the chat's managed Git operation, which
+  supplies authentication for that operation only; it has no ref-deletion capability.
+
+Nothing was force-deleted and no partial deletion occurred: the failure is identical for
+all 50 branches and happens before the remote is contacted. This is an environment
+authentication limit, not a permission or reconciliation problem.
+
+**Exact commands to finish the cleanup** (run with an authenticated remote, e.g. a PAT in
+the clone URL, `gh` logged in, or the GitHub web UI):
+
+```bash
+# from any authenticated clone of lapheezy/LeluV1.1
+for b in $(git ls-remote --heads origin \
+  | awk '{print $2}' | sed 's#refs/heads/##' \
+  | grep -vxE 'main|integration/lelu-four-workforce-consolidation'); do
+  git push origin --delete "$b"
+done
+git fetch --prune origin
+git ls-remote --heads origin   # expect exactly 2 heads
+```
+
+Or with the GitHub API, one call per branch:
+
+```bash
+gh api -X DELETE "repos/lapheezy/LeluV1.1/git/refs/heads/<branch>"
+```
+
+The full branch list to delete is column 1 of
+[`branch-inventory.tsv`](../recovery/mission-11/branch-inventory.tsv), excluding the two
+retained targets.
+
+### C.2 Local cleanup — complete
+
+- **53 local branches deleted.** Every one is either an ancestor of the integration branch
+  or listed in the recovery archive; none was needed to keep the work reachable.
+- **20 local branches retained**, because other chats' worktrees currently have them
+  checked out and removing the ref would break those sessions (forbidden by the workspace
+  rules). They are: `claude/autonomy-closure-consolidated`, `claude/avatar-3d-world`,
+  `claude/m52-acceptance-completion`, `claude/mission-3-4-surface-rendering`,
+  `freebuff/15f5b4bb…`, `25a94cfd…`, `3985d767…`, `3f-integrated`, `4737-4315072`,
+  `972ad394…`, `avatar-phase1-647768f2`, `b3932de2…`, `b51087fe…`, `b6da3caf…`,
+  `c7bfbe3f…`, `f5fd72c2…`, `fe72aa70…`, `session3f-integration`,
+  `integration/m10-2-request-integrity`, `mission6-canonical-integration`.
+  These are local working refs only; they do not appear on the remote once C.1 is run.
+- **Retained locally:** `integration/lelu-four-workforce-consolidation` (the only
+  maintained local branch).
+
+### C.3 Deliberate exclusions
+
+- 18 browser-trace `.zip` recordings (1.2 GB) from `backup/pre-trace-drop` (`d3eb456`)
+  were not restored; their reports and measurements are already in-tree.
 
 ## D. Verification
 
@@ -157,10 +212,12 @@ suppressed or weakened.
 
 | Item | Value |
 | --- | --- |
-| `main` | `44bdd936892bc989b6b59fd5ecfb9502747e6a58` — unchanged |
-| `integration/lelu-four-workforce-consolidation` | tip of this branch (the commit containing this report) |
+| `main` | `44bdd936892bc989b6b59fd5ecfb9502747e6a58` — unchanged, never force-pushed |
+| `integration/lelu-four-workforce-consolidation` | branch tip (the commit containing this report) |
 | Commits added by this mission | `727ed6a` (evidence + archive), this report + recovery manifest |
-| Maintained branches | **2** |
+| Maintained branches, locally | **1** (`integration/lelu-four-workforce-consolidation`) |
+| Maintained branches, remotely | **not yet reduced — 52 heads remain; deletion blocked (C.1)** |
+| Intended final remote structure | `main` + `integration/lelu-four-workforce-consolidation` = **2** |
 
 No valuable unique commit was lost: 71 refs were already ancestors, 45 were superseded by
 equivalent or newer implementations, and the 6 remaining had their unique files preserved
