@@ -64,6 +64,30 @@ export interface BareSecretAlias {
   readonly accept?: (value: string) => boolean;
 }
 
+/** How many numbered slots the secret store provisions per provider. */
+const NUMBERED_SLOTS = 3;
+
+/**
+ * One provider's numbered credentials (`Groq1`…`Groq3`).
+ *
+ * Slot 1 also supplies the BASE name, because the single-key paths in the
+ * app (`plugins/modelApi.ts` keyNames, `/api/env-check`, and the
+ * `__LELU_GROQ_API_KEY__` channel voice transcription reads) ask only for
+ * the base name. The numbered ring names are what
+ * `src/core/model/ProviderKeyRing.ts` rotates through.
+ */
+function numberedSlots(barePrefix: string, documentedBase: string, why: string): BareSecretAlias[] {
+  const aliases: BareSecretAlias[] = [];
+  for (let slot = 1; slot <= NUMBERED_SLOTS; slot += 1) {
+    aliases.push({
+      bare: `${barePrefix}${slot}`,
+      names: slot === 1 ? [documentedBase, `${documentedBase}_${slot}`] : [`${documentedBase}_${slot}`],
+      why,
+    });
+  }
+  return aliases;
+}
+
 /**
  * The closed list. Only names that are actually provisioned in this
  * project's secret store appear here, and each maps to the canonical
@@ -126,6 +150,22 @@ export const BARE_SECRET_ALIASES: readonly BareSecretAlias[] = [
       "access token, which is NOT a publishable key, so only a browser-safe key fills.",
     accept: isBrowserSafeSupabaseKey,
   },
+
+  // The secret store now holds several credentials per provider, named
+  // `Groq1`…`Groq3` and `Openrouter1`…`Openrouter3`. Those are the names that
+  // arrive; nothing read them, so three valid keys per provider sat unused while
+  // the ring reported none — the same failure this module exists to prevent,
+  // one layer along.
+  ...numberedSlots(
+    "Groq",
+    "GROQ_API_KEY",
+    "Groq credentials are brokered; slot 1 also supplies the base name every single-key path reads, and the numbered names are what ProviderKeyRing rotates.",
+  ),
+  ...numberedSlots(
+    "Openrouter",
+    "OPENROUTER_API_KEY",
+    "OpenRouter credentials are brokered; slot 1 also supplies the base name every single-key path reads, and the numbered names are what ProviderKeyRing rotates.",
+  ),
 ];
 
 /** Trim, and treat whitespace-only as absent. */
@@ -135,8 +175,14 @@ function read(lookup: EnvLookup, name: string): string {
 }
 
 /**
- * Fill every documented name from its bare counterpart, ONLY where no
- * documented name is already set.
+ * Fill every documented name from its bare counterpart, ONLY where that
+ * documented name is not already set.
+ *
+ * The hole is judged per NAME, not per alias: `Groq1` supplies both
+ * `GROQ_API_KEY` and `GROQ_API_KEY_1`, and an operator who sets only
+ * `GROQ_API_KEY` by hand must still get the numbered slots filled from
+ * `Groq2` / `Groq3`. A documented name still always wins for itself, so this
+ * can fill a hole and never redirect a working configuration.
  *
  * Returns the names that were filled — names only, never values, so the
  * result is safe to log or serve from a diagnostics route.
@@ -147,9 +193,8 @@ export function fillBareSecretAliases(lookup: EnvLookup): string[] {
     const bare = read(lookup, alias.bare);
     if (!bare) continue;
     if (alias.accept && !alias.accept(bare)) continue;
-    // A documented name always wins: this can fill a hole, never redirect.
-    if (alias.names.some((name) => read(lookup, name) !== "")) continue;
     for (const name of alias.names) {
+      if (read(lookup, name) !== "") continue;
       lookup.set(name, bare);
       filled.push(name);
     }

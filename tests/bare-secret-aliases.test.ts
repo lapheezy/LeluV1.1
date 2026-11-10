@@ -110,7 +110,21 @@ test("every entry names a documented target and explains itself", () => {
   const bare = BARE_SECRET_ALIASES.map((a) => a.bare);
   assert.deepEqual(
     [...bare].sort(),
-    ["Anthropic", "Elevenlabs", "Github", "Groq", "Meshy", "Openrouter", "Supabase"],
+    [
+      "Anthropic",
+      "Elevenlabs",
+      "Github",
+      "Groq",
+      "Groq1",
+      "Groq2",
+      "Groq3",
+      "Meshy",
+      "Openrouter",
+      "Openrouter1",
+      "Openrouter2",
+      "Openrouter3",
+      "Supabase",
+    ],
     "the list is the set of secrets this project actually provisions",
   );
 });
@@ -129,4 +143,50 @@ test("an admin Supabase token is never published to the page by the bridge", asy
   assert.equal(entries.some((e) => e.globalName === "__LELU_SUPABASE_PUBLISHABLE_KEY__"), false);
   env.SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ok";
   assert.ok(resolveBridge((name) => env[name]).some((e) => e.globalName === "__LELU_SUPABASE_PUBLISHABLE_KEY__"));
+});
+
+test("numbered platform secrets fill the ring slots, and slot 1 also fills the base name", () => {
+  const env = lookupOf({ Groq1: "gsk_slot_1", Groq2: "gsk_slot_2", Groq3: "gsk_slot_3" });
+  const filled = fillBareSecretAliases(env);
+  assert.deepEqual(filled, ["GROQ_API_KEY", "GROQ_API_KEY_1", "GROQ_API_KEY_2", "GROQ_API_KEY_3"]);
+  assert.equal(env.valueOf("GROQ_API_KEY"), "gsk_slot_1", "slot 1 supplies the name every single-key path reads");
+  assert.equal(env.valueOf("GROQ_API_KEY_3"), "gsk_slot_3");
+  // Brokered: no numbered credential may become a browser-visible name.
+  for (const name of ["VITE_GROQ_API_KEY", "VITE_GROQ_API_KEY_1", "VITE_GROQ_API_KEY_2"]) {
+    assert.equal(env.has(name), false, `${name} would publish a credential to the page`);
+  }
+});
+
+test("setting the base name by hand does not block the numbered slots", () => {
+  const env = lookupOf({ GROQ_API_KEY: "gsk_from_operator", Groq1: "gsk_slot_1", Groq2: "gsk_slot_2" });
+  assert.deepEqual(fillBareSecretAliases(env), ["GROQ_API_KEY_1", "GROQ_API_KEY_2"]);
+  assert.equal(env.valueOf("GROQ_API_KEY"), "gsk_from_operator", "a documented name still wins for itself");
+});
+
+test("the runtime key ring rotates across one credential per numbered platform secret", async () => {
+  const touched = ["GROQ_API_KEY", "GROQ_API_KEY_1", "GROQ_API_KEY_2", "GROQ_API_KEY_3", "VITE_GROQ_API_KEY"];
+  const saved = new Map(touched.map((name) => [name, process.env[name]]));
+  const lookup = lookupOf({ Groq1: "gsk_alpha_0000001", Groq2: "gsk_bravo_0000002", Groq3: "gsk_charlie_00003" });
+  fillBareSecretAliases(lookup);
+  const { default: ProviderKeyRing } = await import("../src/core/model/ProviderKeyRing");
+  try {
+    for (const name of touched) delete process.env[name];
+    for (const name of touched.slice(0, 4)) process.env[name] = lookup.valueOf(name)!;
+
+    ProviderKeyRing.reset();
+    const ring = ProviderKeyRing.for("groq");
+    assert.equal(ring.size(), 3, "three platform secrets are three credentials, not one");
+    assert.equal(ring.readyCount(), 3);
+    assert.deepEqual(
+      [ring.next()?.label, ring.next()?.label, ring.next()?.label],
+      ["GROQ_API_KEY", "GROQ_API_KEY_2", "GROQ_API_KEY_3"],
+      "the duplicate base/_-1 key is one credential, and rotation reaches all three",
+    );
+  } finally {
+    for (const [name, value] of saved) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
+    ProviderKeyRing.reset();
+  }
 });
