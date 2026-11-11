@@ -1796,9 +1796,17 @@ class VoiceEngine {
     // exactly the bug speakResponse already waits out. Wait for the same
     // answer here, then speak the same text: the cursor has not moved, so
     // nothing is said twice.
-    if (!this.elevenLabsSettled && typeof speechSynthesis === "undefined") {
-      // No browser engine to fall back on: wait for her server voice rather
-      // than silently dropping the first sentences of a streamed reply.
+    // WHICH SPEAKER — decided before the first sentence, not after it.
+    //
+    // This used to wait only when the browser had NO speech engine, so on a
+    // machine that has browser voices the probe (async, below) had not
+    // answered yet, `this.elevenLabs` was still false, and the opening
+    // sentences of every reply were spoken in the browser's voice. That is
+    // the wrong voice, and it is what a listener hears as "the old voice".
+    // On a server without her voice the fallback is unchanged: the probe
+    // settles false and the browser engine speaks.
+    if (!this.elevenLabsSettled) {
+      void this.probeElevenLabs();
       this.whenVoiceSettled(() => this.feedStreamingSpeech(fullText));
       return;
     }
@@ -1835,7 +1843,10 @@ class VoiceEngine {
   }
 
   finishStreamingSpeech(fullText: string): void {
-    if (!this.elevenLabsSettled && typeof speechSynthesis === "undefined") {
+    // Same rule as feedStreamingSpeech: never let the browser's voice take
+    // the tail of a reply because the server's answer had not arrived yet.
+    if (!this.elevenLabsSettled) {
+      void this.probeElevenLabs();
       this.whenVoiceSettled(() => this.finishStreamingSpeech(fullText));
       return;
     }
