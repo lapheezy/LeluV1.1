@@ -144,6 +144,10 @@ export function speakText(text: string, callbacks: SpeakCallbacks = {}): Promise
       });
       callbacks.onEnd?.();
     } catch {
+      // A request that just failed is not evidence the server lost her voice.
+      // Forget the cached answer so the next attempt asks again instead of
+      // trusting a stale "configured" for a minute.
+      forgetElevenLabsStatus();
       callbacks.onFail?.();
     } finally {
       if (url) URL.revokeObjectURL(url);

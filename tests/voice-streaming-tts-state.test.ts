@@ -130,3 +130,25 @@ test("a refused voice is reported without promising a browser voice that is abse
   assert.match(failure?.message ?? "", /nothing was spoken/i);
   assert.equal(engine.getDiagnostics().ttsAvailable, false, "and diagnostics agree");
 });
+
+test("one refused segment does not silence her for the rest of the session", async () => {
+  // The refused call above demoted her. The server is healthy again on the
+  // next reply, and she must use her own voice for it rather than spend the
+  // session on a browser voice — or on nothing, where there is no browser one.
+  ttsStatus = 401;
+  engine.speakResponse("This segment cannot be spoken.");
+  await wait(150);
+  assert.equal(engine.getState().turnFailure?.kind, "playback-failure", "the refusal is reported");
+
+  const before = audios.length;
+  ttsStatus = 200;
+  engine.speakResponse("Her own voice is back on the next reply.");
+  await wait(150);
+  await playOut();
+
+  assert.ok(
+    audios.length > before,
+    "the next reply asked the server again and played her voice instead of staying demoted",
+  );
+  assert.equal(engine.getDiagnostics().audioPlaying, false, "and playback settled afterwards");
+});

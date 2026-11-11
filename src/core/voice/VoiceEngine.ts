@@ -18,7 +18,7 @@ import { postTranscription, transcriptionAvailable, WHISPER_NAME_HINT } from "./
 import { mapMediaError } from "./speechToText";
 import { detectTurnOnAudioThread } from "./vadWorklet";
 import { resolveFirst } from "../resolveEnv";
-import { elevenLabsReady, speakText, stopSpeaking } from "./elevenLabsTts";
+import { elevenLabsReady, forgetElevenLabsStatus, speakText, stopSpeaking } from "./elevenLabsTts";
 import { failureFromError, failureFromResponse, type VoiceTurnFailure } from "./turnFailure";
 import { elevenLabsSttReady, transcribeWithElevenLabs } from "./elevenLabsStt";
 import UsageBudgetGate, { BudgetExhaustedError, budgetNotice } from "../observability/UsageBudgetGate";
@@ -1538,6 +1538,23 @@ class VoiceEngine {
     return this.elevenLabsProbe;
   }
 
+  /**
+   * Her voice failed mid-reply. This reply falls back to the browser engine,
+   * but the session is NOT written off: the cached probe and the cached
+   * status answer are both cleared, so the next reply asks the server again.
+   *
+   * Found live (2026-11-11): one refused segment set elevenLabs = false and
+   * left elevenLabsProbe resolved for the rest of the session, so every later
+   * answer was handed to a browser voice — and on a runtime that has none, she
+   * stayed silent until the page was reloaded even though the server was fine.
+   */
+  private demoteFromElevenLabs(): void {
+    this.elevenLabs = false;
+    this.elevenLabsProbe = null;
+    this.elevenLabsSettled = false;
+    forgetElevenLabsStatus();
+  }
+
   private elevenLabsSettled = false;
 
   /**
@@ -1595,7 +1612,7 @@ class VoiceEngine {
         onFail: () => {
           // Her voice failed mid-reply: say the rest with the browser engine
           // rather than leaving the reply unspoken, and report the failure.
-          this.elevenLabs = false;
+          this.demoteFromElevenLabs();
           this.patchDiagnostics({ audioPlaying: false, ttsStage: "failed" });
           // Only promise a browser voice when the browser actually has one.
           // On a machine with no speech engine the old wording told the user
