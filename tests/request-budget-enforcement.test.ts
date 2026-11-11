@@ -118,7 +118,16 @@ test("the ceiling prefers the provider transport limit over a large context wind
     model: "llama-3.3-70b-versatile",
   });
   assert.equal(ceiling.source, "provider");
-  assert.equal(ceiling.bytes, 48_000, "a 131k-token context does not make a 12k-TPM body acceptable");
+  // Measured live, twice: `413 … (TPM): Limit 8000, Requested 10184`, and then
+  // `429 … TPM: Limit 8000, Used 2454, Requested 7846 … tools≈7868tok` for a
+  // 35,246-byte turn — the tool schemas alone were the entire minute, because
+  // JSON tokenises at ~3.2 bytes/token rather than the 4 assumed for prose.
+  // The ceiling therefore has to leave room for prompt, system and history.
+  assert.equal(ceiling.bytes, 12_000, "tools must not consume the whole per-minute budget");
+  assert.ok(
+    ceiling.bytes / 4 <= 8_000,
+    "the ceiling may never exceed the account's measured per-minute limit",
+  );
 });
 
 test("a known model without a provider transport limit uses its context window", () => {

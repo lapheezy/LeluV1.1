@@ -559,6 +559,14 @@ export function createModelApi(readEnv: EnvReader) {
     string,
     { state: string; httpStatus?: number; contentType?: string; at: number; note?: string }
   >();
+  // A refusal is an observation with a shelf life, not a property of the
+  // provider. MEASURED (2026-11-11): one probe's 429 left groq labelled
+  // CAPACITY_LIMITED for the rest of the session while later turns completed
+  // through it, so the status page showed a limit that had long expired.
+  // Transient evidence expires; verified evidence (a real 2xx) does not.
+  const TRANSIENT_STATES = new Set(["CAPACITY_LIMITED", "UNREACHABLE"]);
+  const TRANSIENT_STATE_TTL_MS = 120_000;
+
   const credentialFor = (provider: BrokeredProvider): string => {
     for (const name of provider.keyNames) {
       const value = readEnv(name);
@@ -588,6 +596,11 @@ export function createModelApi(readEnv: EnvReader) {
 
         // CONFIGURED is the honest answer when nothing has been observed yet;
         // it is NOT a capability claim. Every stronger state needs evidence.
+        const recorded = evidence.get(id);
+        if (recorded && TRANSIENT_STATES.has(recorded.state) && Date.now() - recorded.at > TRANSIENT_STATE_TTL_MS) {
+          // Expired: the provider is configured and nothing recent says otherwise.
+          evidence.delete(id);
+        }
         const seen = evidence.get(id);
         let state: string;
         if (!configured) state = "UNCONFIGURED";

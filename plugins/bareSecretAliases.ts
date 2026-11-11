@@ -135,6 +135,39 @@ function read(lookup: EnvLookup, name: string): string {
 }
 
 /**
+ * Read a bare name tolerantly, because the NAME a platform stores is not
+ * always the name this list spells.
+ *
+ * Two real differences have been observed on this project, and neither carries
+ * meaning:
+ *
+ *   1. CASING. The list says `Openrouter`; the store held `openrouter`.
+ *      Environment names are case-sensitive, so one letter of case made a
+ *      present credential invisible.
+ *   2. A NUMERIC UNIQUIFIER. Secret stores keep names unique, so a taken name
+ *      is stored with a suffix: `openrouter` became `openrouter1`. The suffix
+ *      identifies the slot, not the provider.
+ *
+ * So the base name must still equal the alias EXACTLY (a different provider's
+ * secret can never be adopted), while casing and a trailing single digit are
+ * treated as insignificant. The documented name still always wins when filling.
+ */
+function readBare(lookup: EnvLookup, bare: string): string {
+  const spellings = [bare, bare.toLowerCase(), bare.toUpperCase()];
+  for (const spelling of spellings) {
+    const direct = read(lookup, spelling);
+    if (direct) return direct;
+  }
+  for (const spelling of spellings) {
+    for (let suffix = 1; suffix <= 9; suffix += 1) {
+      const suffixed = read(lookup, `${spelling}${suffix}`);
+      if (suffixed) return suffixed;
+    }
+  }
+  return "";
+}
+
+/**
  * Fill every documented name from its bare counterpart, ONLY where no
  * documented name is already set.
  *
@@ -144,7 +177,7 @@ function read(lookup: EnvLookup, name: string): string {
 export function fillBareSecretAliases(lookup: EnvLookup): string[] {
   const filled: string[] = [];
   for (const alias of BARE_SECRET_ALIASES) {
-    const bare = read(lookup, alias.bare);
+    const bare = readBare(lookup, alias.bare);
     if (!bare) continue;
     if (alias.accept && !alias.accept(bare)) continue;
     // A documented name always wins: this can fill a hole, never redirect.
@@ -164,7 +197,7 @@ export function fillBareSecretAliases(lookup: EnvLookup): string[] {
 export function bareSecretAliasReport(lookup: Pick<EnvLookup, "get">): Array<{ bare: string; supplies: string[] }> {
   const report: Array<{ bare: string; supplies: string[] }> = [];
   for (const alias of BARE_SECRET_ALIASES) {
-    if (read(lookup as EnvLookup, alias.bare)) {
+    if (readBare(lookup as EnvLookup, alias.bare)) {
       report.push({ bare: alias.bare, supplies: [...alias.names] });
     }
   }
