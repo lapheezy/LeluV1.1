@@ -11,7 +11,7 @@
  * ==========================================================
  */
 
-import { useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import {
   Group,
@@ -22,6 +22,8 @@ import {
   InstancedMesh,
   Quaternion,
 } from "three";
+
+import { mobile } from "../qualityLimits";
 
 // ── City cluster data ──
 
@@ -65,14 +67,25 @@ function generateCityClusters(count: number): CityCluster[] {
   return cities;
 }
 
-function latLonToPos(lat: number, lon: number, radius: number): { pos: Vector3; normal: Vector3 } {
+/**
+ * Writes a lat/lon into `out` instead of allocating.
+ *
+ * The population and vehicle loops call this 180 times a frame; two fresh
+ * Vector3s per call was ~360 short-lived objects per frame, on the main
+ * thread, in the middle of the frame.
+ */
+function writeLatLon(lat: number, lon: number, radius: number, out: Vector3): Vector3 {
   const phi = (90 - lat) * (Math.PI / 180);
   const theta = (lon + 180) * (Math.PI / 180);
-  const pos = new Vector3(
+  return out.set(
     -radius * Math.sin(phi) * Math.cos(theta),
     radius * Math.cos(phi),
     radius * Math.sin(phi) * Math.sin(theta),
   );
+}
+
+function latLonToPos(lat: number, lon: number, radius: number): { pos: Vector3; normal: Vector3 } {
+  const pos = writeLatLon(lat, lon, radius, new Vector3());
   const normal = pos.clone().normalize();
   return { pos, normal };
 }
@@ -92,48 +105,56 @@ export function PlanetCities({
 }) {
   const meshRef = useRef<InstancedMesh>(null);
 
-  const cities = useMemo(() => generateCityClusters(18), []);
+  const cities = useMemo(() => generateCityClusters(mobile ? 12 : 18), []);
   const totalBuildings = useMemo(() => cities.reduce((sum, c) => sum + c.buildings.length, 0), [cities]);
 
   const dummy = useMemo(() => new Matrix4(), []);
 
-  useFrame(() => {
-    if (!meshRef.current || !visible) return;
+  /*
+   * CITIES DO NOT MOVE. Their instance matrices are built ONCE, when they
+   * become visible — not rebuilt on every frame.
+   *
+   * This block used to run inside useFrame: ~200 buildings, each costing a
+   * fresh Vector3 (twice), a fresh Quaternion per city, a fresh Color, and a
+   * full instance-colour buffer re-upload — every frame, to produce exactly
+   * the same numbers. That is the kind of cost that does not show up as
+   * triangles in a renderer stat and does show up as a stalled main thread.
+   * Building it in an effect also means the work is skipped entirely while
+   * the phase hides the cities.
+   */
+  useEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh || !visible) return;
+    const up = new Vector3(0, 1, 0);
+    const quat = new Quaternion();
+    const local = new Vector3();
+    const scale = new Vector3();
+    const color = new Color();
     let idx = 0;
 
     for (const city of cities) {
       const { pos, normal } = latLonToPos(city.lat, city.lon, planetRadius);
-
-      const up = new Vector3(0, 1, 0);
-      const quat = new Quaternion();
       quat.setFromUnitVectors(up, normal);
 
       for (const b of city.buildings) {
         if (idx >= totalBuildings) break;
 
-        const localPos = new Vector3(b.x, b.y, b.z);
-        localPos.applyQuaternion(quat);
-        localPos.add(pos);
-
-        const scale = new Vector3(b.w, b.h, b.d);
+        local.set(b.x, b.y, b.z).applyQuaternion(quat).add(pos);
+        scale.set(b.w, b.h, b.d);
         dummy.makeRotationFromQuaternion(quat);
-        dummy.setPosition(localPos);
+        dummy.setPosition(local);
         dummy.scale(scale);
-        meshRef.current.setMatrixAt(idx, dummy);
+        mesh.setMatrixAt(idx, dummy);
 
-        const cityColor = new Color().setHSL(
-          0.08 + (idx % 7) * 0.01,
-          0.7,
-          0.5 + (idx % 5) * 0.04,
-        );
-        meshRef.current.setColorAt(idx, cityColor);
+        color.setHSL(0.08 + (idx % 7) * 0.01, 0.7, 0.5 + (idx % 5) * 0.04);
+        mesh.setColorAt(idx, color);
 
-        idx++;
+        idx += 1;
       }
     }
-    meshRef.current.instanceMatrix.needsUpdate = true;
-    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
-  });
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }, [cities, totalBuildings, visible, planetRadius, dummy]);
 
   if (!visible) return null;
 
@@ -169,7 +190,7 @@ export function PlanetPopulation({
   opacity: number;
 }) {
   const meshRef = useRef<InstancedMesh>(null);
-  const count = 120;
+  const count = mobile ? 60 : 120;
   const dummy = useMemo(() => new Matrix4(), []);
 
   const people = useMemo(() => {
@@ -181,25 +202,49 @@ export function PlanetPopulation({
     });
   }, []);
 
-  useFrame(({ clock }) => {
-    if (!meshRef.current || !visible) return;
+  /*
+   * Colours are constant per person, so they are written ONCE; only the
+   * matrices move, and dots on a planet need 12 updates a second, not 60.
+   *
+   * Before: a fresh Color and Vector3 per instance per frame, the colour
+   * buffer re-uploaded every frame to say what it already said, and a full
+   * 120-matrix rewrite for motion too small to see at 60 Hz.
+   */
+  const scratch = useMemo(
+    () => ({ position: new Vector3(), scale: new Vector3(0.004, 0.004, 0.004), color: new Color() }),
+    [],
+  );
+  const elapsed = useRef(0);
+
+  useEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh || !visible) return;
+    for (let i = 0; i < count; i += 1) {
+      scratch.color.setHSL(0.55 + (i % 5) * 0.02, 0.3, 0.8);
+      mesh.setColorAt(i, scratch.color);
+    }
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }, [count, visible, scratch]);
+
+  useFrame(({ clock }, delta) => {
+    const mesh = meshRef.current;
+    if (!mesh || !visible) return;
+    elapsed.current += delta;
+    if (elapsed.current < 1 / 12) return;
+    elapsed.current = 0;
     const t = clock.elapsedTime;
 
     for (let i = 0; i < count; i++) {
       const p = people[i];
       const animLat = p.lat + Math.sin(t * p.speed + p.phase) * 2;
       const animLon = p.lon + Math.cos(t * p.speed * 0.7 + p.phase) * 2;
-      const { pos } = latLonToPos(animLat, animLon, planetRadius + 0.008);
+      writeLatLon(animLat, animLon, planetRadius + 0.008, scratch.position);
 
-      dummy.makeTranslation(pos.x, pos.y, pos.z);
-      dummy.scale(new Vector3(0.004, 0.004, 0.004));
-      meshRef.current.setMatrixAt(i, dummy);
-
-      const c = new Color().setHSL(0.55 + (i % 5) * 0.02, 0.3, 0.8);
-      meshRef.current.setColorAt(i, c);
+      dummy.makeTranslation(scratch.position.x, scratch.position.y, scratch.position.z);
+      dummy.scale(scratch.scale);
+      mesh.setMatrixAt(i, dummy);
     }
-    meshRef.current.instanceMatrix.needsUpdate = true;
-    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
+    mesh.instanceMatrix.needsUpdate = true;
   });
 
   if (!visible) return null;
@@ -230,7 +275,7 @@ export function PlanetVehicles({
   opacity: number;
 }) {
   const meshRef = useRef<InstancedMesh>(null);
-  const count = 60;
+  const count = mobile ? 30 : 60;
   const dummy = useMemo(() => new Matrix4(), []);
 
   const vehicles = useMemo(() => {
@@ -243,25 +288,40 @@ export function PlanetVehicles({
     });
   }, []);
 
-  useFrame(({ clock }) => {
-    if (!meshRef.current || !visible) return;
+  // Same treatment as the population: one colour write, throttled matrices.
+  const scratch = useMemo(
+    () => ({ position: new Vector3(), scale: new Vector3(0.006, 0.003, 0.003), color: new Color() }),
+    [],
+  );
+  const elapsed = useRef(0);
+
+  useEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh || !visible) return;
+    scratch.color.setHSL(0.12, 0.8, 0.8);
+    for (let i = 0; i < count; i += 1) mesh.setColorAt(i, scratch.color);
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }, [count, visible, scratch]);
+
+  useFrame(({ clock }, delta) => {
+    const mesh = meshRef.current;
+    if (!mesh || !visible) return;
+    elapsed.current += delta;
+    if (elapsed.current < 1 / 12) return;
+    elapsed.current = 0;
     const t = clock.elapsedTime;
 
     for (let i = 0; i < count; i++) {
       const v = vehicles[i];
       const animLon = v.lon + t * v.speed * v.direction;
       const animLat = v.lat + Math.sin(t * 0.3 + v.phase) * 1.5;
-      const { pos } = latLonToPos(animLat, animLon % 360, planetRadius + 0.01);
+      writeLatLon(animLat, animLon % 360, planetRadius + 0.01, scratch.position);
 
-      dummy.makeTranslation(pos.x, pos.y, pos.z);
-      dummy.scale(new Vector3(0.006, 0.003, 0.003));
-      meshRef.current.setMatrixAt(i, dummy);
-
-      const c = new Color().setHSL(0.12, 0.8, 0.8);
-      meshRef.current.setColorAt(i, c);
+      dummy.makeTranslation(scratch.position.x, scratch.position.y, scratch.position.z);
+      dummy.scale(scratch.scale);
+      mesh.setMatrixAt(i, dummy);
     }
-    meshRef.current.instanceMatrix.needsUpdate = true;
-    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
+    mesh.instanceMatrix.needsUpdate = true;
   });
 
   if (!visible) return null;
@@ -304,6 +364,13 @@ export function PlanetWeather({
     }));
   }, []);
 
+  /*
+   * Five storms, and this used to build two Vector3s per storm per frame —
+   * plus a fresh `latLonToPos` result — to move a shape a few pixels. The
+   * scratch pair is created once; the frame writes into it.
+   */
+  const scratch = useMemo(() => ({ position: new Vector3(), origin: new Vector3(0, 0, 0) }), []);
+
   useFrame(({ clock }) => {
     if (!groupRef.current || !visible) return;
     const t = clock.elapsedTime;
@@ -312,10 +379,10 @@ export function PlanetWeather({
       if (i >= storms.length) return;
       const s = storms[i];
       const animLon = s.lon + t * s.speed * 0.1;
-      const { pos } = latLonToPos(s.lat, animLon, planetRadius + 0.02);
+      writeLatLon(s.lat, animLon, planetRadius + 0.02, scratch.position);
 
-      child.position.copy(pos);
-      child.lookAt(new Vector3(0, 0, 0));
+      child.position.copy(scratch.position);
+      child.lookAt(scratch.origin);
       child.rotateZ(t * s.rotSpeed);
       child.scale.setScalar(s.radius);
     });

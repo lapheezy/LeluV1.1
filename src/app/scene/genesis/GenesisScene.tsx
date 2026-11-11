@@ -80,8 +80,14 @@ import SpatialExperience
 import CosmosSkyBackdrop
   from "./CosmosSkyBackdrop";
 
-import SceneFrameGovernor, { useSceneFrameloop }
+import { useUniverseOpen }
+  from "./chat/universe/universeOpen";
+
+import SceneFrameGovernor, { useSceneFrameloop, type Frameloop }
   from "./SceneFrameGovernor";
+
+import { getSceneRenderBudget }
+  from "./SceneRenderBudget";
 
 import AdaptiveQuality
   from "./AdaptiveQuality";
@@ -91,6 +97,9 @@ import { DPR_START }
 
 import { useLeluRuntime }
   from "../../../core/runtime/useLeluRuntime";
+
+import { IS_DEV }
+  from "../../../core/env/buildEnv";
 
 
 
@@ -126,6 +135,32 @@ function SceneLoadingFallback() {
   );
 }
 
+
+/**
+ * Whether this viewport is narrow enough that an open conversation covers
+ * the world.
+ *
+ * It was read as `window.innerWidth` during render, which is only as fresh
+ * as the last render of this component — so a phone rotating, or a desktop
+ * window narrowed, kept the old answer. This subscribes to the events that
+ * actually change it.
+ */
+function useNarrowScreen(maxWidth = 720): boolean {
+  const [narrow, setNarrow] = useState(
+    () => typeof window !== "undefined" && window.innerWidth <= maxWidth,
+  );
+  useEffect(() => {
+    const read = () => setNarrow(window.innerWidth <= maxWidth);
+    read();
+    window.addEventListener("resize", read);
+    window.visualViewport?.addEventListener("resize", read);
+    return () => {
+      window.removeEventListener("resize", read);
+      window.visualViewport?.removeEventListener("resize", read);
+    };
+  }, [maxWidth]);
+  return narrow;
+}
 
 /**
  * PAGE 1 — Gen V1 workspace: the 3D cosmic cosmos is the visual
@@ -304,7 +339,93 @@ function CosmosPhaseHUD() {
  */
 const GenesisV1Workspace = memo(function GenesisV1Workspace() {
   useSceneMountLog("GenesisV1Workspace");
-  const frameloop = useSceneFrameloop();
+  // The budget's own decision, before anything may override it. Kept in its
+  // own binding so the <Canvas> prop stays derived from the budget hook
+  // (see tests/cosmos-chat-experience.test.tsx) instead of a literal.
+  const budgetedFrameloop = useSceneFrameloop();
+  /*
+   * The Cosmos and her 3D body are two WebGL contexts drawing the same
+   * device's worth of frames at once. When a conversation is open over the
+   * world on a phone-sized screen, the world is behind an opaque sheet:
+   * paying for it is pure loss, and on a software renderer it is what made
+   * both of them stutter. The canvas keeps its scene, camera and state and
+   * simply stops painting until the conversation closes — the last frame
+   * stays behind the sheet, and the Cosmos is redrawn the moment it can be
+   * seen again. Desktop is untouched: windows float clear of the world.
+   */
+  const universeOpen = useUniverseOpen();
+  const narrowScreen = useNarrowScreen();
+  const worldCovered = universeOpen && narrowScreen;
+  /*
+   * A SOFTWARE renderer cannot draw this world at any interactive rate.
+   *
+   * Measured at 384x661 with the world mounted: 0-1 fps, 158 draw calls,
+   * 218k triangles — and the whole interface drags behind it, because every
+   * repaint waits on a rasteriser with no GPU. The DOM sky in
+   * CosmosSkyBackdrop was built for precisely this failure (“No WebGL, no
+   * GLSL, no GPU — this layer cannot fail to render”), so on a software
+   * renderer the canvas is simply not painted: the atmosphere, the phase
+   * HUD, the Core's state and every panel keep working, and the interface
+   * runs at the browser's own frame rate instead of the rasteriser's.
+   *
+   * Detected from the GL driver string, never guessed from the user agent:
+   * a machine with a real GPU keeps the world exactly as it is.
+   */
+  const [softwareGL, setSoftwareGL] = useState(false);
+  useEffect(() => {
+    try {
+      const probe = document.createElement("canvas");
+      const gl = (probe.getContext("webgl2") ?? probe.getContext("webgl")) as
+        | WebGLRenderingContext
+        | null;
+      if (!gl) {
+        setSoftwareGL(true);
+        return;
+      }
+      const info = gl.getExtension("WEBGL_debug_renderer_info");
+      const renderer = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : "";
+      if (/swiftshader|llvmpipe|softpipe|software|basic render/i.test(renderer)) {
+        setSoftwareGL(true);
+      }
+      // The probe holds a second context until it is told to let go.
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
+    } catch {
+      setSoftwareGL(true);
+    }
+  }, []);
+  /*
+   * A measurement affordance, development only.
+   *
+   * The software-renderer guard above deliberately refuses to paint the
+   * world, which is right for a person on llvmpipe and useless for an
+   * instrument: in a container with no GPU every run would measure the
+   * guard, not the scene, and would do so identically before and after any
+   * fix. `?perf-world` lets the harness drive the real scene path on this
+   * machine. It is stripped from production builds (IS_DEV is inlined to
+   * false) and cannot be reached by a link.
+   */
+  /*
+   * A covered world goes through the RENDER BUDGET, not through a second
+   * opinion on the frameloop.
+   *
+   * This used to force `frameloop="never"` from this component while every
+   * other surface (the phone chat, the Chat Universe) reported through
+   * SceneRenderBudget.setOccluded. Two mechanisms deciding the same thing is
+   * how a canvas ends up painting under an opaque sheet again the moment one
+   * of them is missed. The budget knows about every occluder at once, and
+   * the frameloop prop below is now derived from nothing else.
+   */
+  useEffect(() => {
+    const budget = getSceneRenderBudget();
+    budget.setOccluded("genesis-world-covered", worldCovered);
+    return () => budget.setOccluded("genesis-world-covered", false);
+  }, [worldCovered]);
+
+  const perfWorld =
+    IS_DEV &&
+    typeof window !== "undefined" &&
+    window.location.search.includes("perf-world");
+  const frameloop: Frameloop = softwareGL && !perfWorld ? "never" : budgetedFrameloop;
   // Adaptive resolution: the ratio starts device-appropriate and follows
   // the MEASURED frame rate (Appearance follows measured fps, never the
   // display), publishing window.__leluRenderStats for the demo harness.

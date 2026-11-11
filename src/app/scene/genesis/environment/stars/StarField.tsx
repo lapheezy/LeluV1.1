@@ -33,10 +33,16 @@ import {
 } from "three";
 
 import { useGenesisScene } from "../../useGenesisScene";
+import { mobile } from "../../qualityLimits";
 
-const STAR_COUNT = 2400;
-const NEAR_COUNT = 320;
-const MID_COUNT = 1100;
+/*
+ * The field is one draw call either way; what a weaker device cannot afford
+ * is fill rate. A phone gets a thinner sky at the same density (the shells
+ * keep their proportions), not a different one — no side goes dark.
+ */
+const STAR_COUNT = mobile ? 1400 : 2400;
+const NEAR_COUNT = mobile ? 200 : 320;
+const MID_COUNT = mobile ? 650 : 1100;
 
 const vertexShader = `
   attribute float aSize;

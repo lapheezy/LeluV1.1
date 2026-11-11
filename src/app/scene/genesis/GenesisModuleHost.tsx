@@ -21,7 +21,7 @@
  * ==========================================================
  */
 
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { chatFillsScreen } from "./chat/chatLayout";
 import { InModuleWindow } from "./moduleWindowContext";
 import { APP_WINDOW_Z, CHAT_WINDOW_Z, conversationIdOf, floatsAboveChat, useGenesisActions, useGenesisState, type ModuleState } from "./GenesisCore";
@@ -585,7 +585,13 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
           {chrome}
           <div data-lelu-module-content={id} style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", position: "relative" }}>
             <div style={{ flex: 1, display: "flex", flexDirection: "column", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}>
-              <InModuleWindow.Provider value={true}>{render({ onClose: () => closeModule(id) })}</InModuleWindow.Provider>
+              <InModuleWindow.Provider value={true}>
+                {/* Modules are code-split (see GenesisInterface): a panel's own
+                    chunk arrives on first open, so the window shows its empty
+                    content area for a moment rather than the boot paying for
+                    thirty panels nobody opened. */}
+                <Suspense fallback={null}>{render({ onClose: () => closeModule(id) })}</Suspense>
+              </InModuleWindow.Provider>
             </div>
           </div>
         </div>
@@ -653,7 +659,9 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
         data-lelu-module-content={id}
         style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", position: "relative", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}
       >
-        <InModuleWindow.Provider value={true}>{render({ onClose: () => closeModule(id) })}</InModuleWindow.Provider>
+        <InModuleWindow.Provider value={true}>
+          <Suspense fallback={null}>{render({ onClose: () => closeModule(id) })}</Suspense>
+        </InModuleWindow.Provider>
       </div>
       {/* Resize handle — bottom-right corner */}
       <div

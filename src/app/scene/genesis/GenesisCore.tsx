@@ -1417,7 +1417,14 @@ function persistWorkspace(workspace: "genesisv2" | null): void {
 
   publishUniverseRef.current = () => {
     const now = Date.now();
-    if (now - lastUniversePublishRef.current < 100) {
+    // 5 publishes a second, not 10.
+    //
+    // Every publish rebuilds the context value for every DOM consumer of
+    // useGenesis(), and this runs while a reply streams — during typing.
+    // The 3D scene reads the stable scene context now, so what is left is
+    // chrome, where 200ms is below what anyone can see in an ambient
+    // reading and halves the render work while a message arrives.
+    if (now - lastUniversePublishRef.current < 200) {
       return;
     }
 

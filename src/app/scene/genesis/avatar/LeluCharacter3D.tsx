@@ -33,10 +33,21 @@ const FOV = 26;
 function Framer({ framing, info }: { framing: LeluFraming; info: LeluBodyInfo | null }) {
   const { camera, size } = useThree();
   const target = useRef(new THREE.Vector3());
+  const applied = useRef("");
   useFrame(() => {
     const cam = camera as THREE.PerspectiveCamera;
     const aspect = size.width / Math.max(1, size.height);
     const headY = info?.headY ?? HEIGHT * 0.9;
+    /*
+     * Framing changes when the canvas is resized or she arrives — not every
+     * frame. This used to rebuild the camera position, the look-at and the
+     * projection matrix on every rendered frame: a matrix recompute plus a
+     * uniform upload to say what it already said. The signature check skips
+     * the whole thing when nothing that affects framing has moved.
+     */
+    const signature = `${framing}:${size.width}x${size.height}:${headY.toFixed(3)}`;
+    if (applied.current === signature) return;
+    applied.current = signature;
     // What must be in view: all of her, or her head and shoulders.
     const viewHeight = framing === "face" ? HEIGHT * 0.34 : HEIGHT * 1.06;
     const viewWidth = framing === "face" ? HEIGHT * 0.3 : HEIGHT * 0.5;
@@ -107,12 +118,13 @@ export default function LeluCharacter3D({
   activity,
   style,
   testId,
-  fps = 30,
+  fps = 24,
   paused = false,
   onStill,
 }: {
   model: LeluModel;
-  /** Frame cap: 30 is plenty for an overlay. */
+  /** Frame cap: 24 is plenty for an overlay, and half the cost of 30 on a
+   *  software renderer where the Cosmos canvas is drawing at the same time. */
   fps?: number;
   /** Draw nothing, keep everything (canvas, model, state). */
   paused?: boolean;
@@ -157,7 +169,9 @@ export default function LeluCharacter3D({
       <Canvas
         frameloop={paused ? "never" : "demand"}
         gl={{ alpha: true, antialias: true, powerPreference: "low-power", preserveDrawingBuffer: false }}
-        dpr={[1, 1.75]}
+        /* She is an overlay over a live 3D world: at 1.4 the silhouette is
+           indistinguishable and the buffer is ~45% smaller than 1.75. */
+        dpr={[1, 1.4]}
         camera={{ fov: FOV, position: [0, 1, 6] }}
         style={{ width: "100%", height: "100%", pointerEvents: "none", background: "transparent" }}
         onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
