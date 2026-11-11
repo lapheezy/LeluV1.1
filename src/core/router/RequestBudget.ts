@@ -122,9 +122,33 @@ const MODEL_CONTEXT_TOKENS: Array<[RegExp, number]> = [
  * context window printed on the model card. Being generous here is the
  * failure mode: the ceiling exists to stop a refusal that is already certain.
  */
-const PROVIDER_CEILING_BYTES: Record<string, number> = {
-  groq: 48_000,
+/**
+ * Tokens-per-minute ceilings, for providers that meter that way.
+ *
+ * Measured (2026-11-11) on this account: `413 ... tokens per minute (TPM):
+ * Limit 8000, Requested 10198` for gpt-oss-120b, with `tools≈11880tok` in the
+ * body. The old constant said 12,000 TPM (48KB) and also ignored the reply's
+ * `max_tokens`, which the provider counts against the same minute — so a
+ * request the fitter considered acceptable was certain to be refused, and the
+ * turn came back with nothing.
+ */
+const PROVIDER_TPM: Record<string, number> = {
+  groq: 8_000,
 };
+
+/** Room kept so a request that fills the minute still has room to answer. */
+const TPM_MARGIN_TOKENS = 256;
+
+/**
+ * The byte ceiling implied by a provider's per-minute metering, with the
+ * reply's own budget subtracted. Undefined when the provider is not metered
+ * this way, so an unknown provider is never given an invented number.
+ */
+function providerTransportBytes(providerKey: string, maxTokens: number): number | undefined {
+  const tpm = Object.entries(PROVIDER_TPM).find(([name]) => providerKey.includes(name))?.[1];
+  if (tpm === undefined) return undefined;
+  return Math.max(4_096, (tpm - Math.max(0, maxTokens) - TPM_MARGIN_TOKENS) * 4);
+}
 
 function byteLength(value: unknown): number {
   if (value === undefined || value === null) return 0;
@@ -155,9 +179,7 @@ export function requestCeiling(input: {
   }
 
   const providerKey = (input.provider ?? "").toLowerCase();
-  const transport = Object.entries(PROVIDER_CEILING_BYTES).find(([name]) =>
-    providerKey.includes(name),
-  )?.[1];
+  const transport = providerTransportBytes(providerKey, input.maxTokens ?? 1_024);
 
   let modelBytes: number | undefined;
   let modelDetail = "no model ceiling known";

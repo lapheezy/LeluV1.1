@@ -118,7 +118,14 @@ test("the ceiling prefers the provider transport limit over a large context wind
     model: "llama-3.3-70b-versatile",
   });
   assert.equal(ceiling.source, "provider");
-  assert.equal(ceiling.bytes, 48_000, "a 131k-token context does not make a 12k-TPM body acceptable");
+  // 8,000 TPM measured on this account, less the reply's default 1,024 tokens
+  // and the margin, at four bytes per token.
+  assert.equal(ceiling.bytes, 26_880, "a 131k-token context does not make an 8k-TPM body acceptable");
+  assert.equal(
+    requestCeiling({ provider: "Groq", model: "openai/gpt-oss-120b", maxTokens: 2_048 }).bytes,
+    22_784,
+    "the reply's own max_tokens is metered against the same minute",
+  );
 });
 
 test("a known model without a provider transport limit uses its context window", () => {
