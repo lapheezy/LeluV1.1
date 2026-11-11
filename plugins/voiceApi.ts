@@ -575,6 +575,11 @@ export function createVoiceApi(readEnv?: ReadEnv): {
       return;
     }
     if (!admit(req, res, "resources", RESOURCES_LIMIT)) return;
+    // Configured accounts are discovered here, not only as a side effect of
+    // synthesis: the panel polls this route FIRST, and a fresh process that had
+    // never spoken must still report three accounts rather than "not
+    // configured". Local only — reads the environment, makes no network call.
+    voiceAccounts();
     const identity = voiceIdentity();
     sendJson(res, {
       ok: true,

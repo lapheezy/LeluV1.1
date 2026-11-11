@@ -352,6 +352,34 @@ test("the resources endpoint is sanitized and reports allowance, rotation, failu
   }
 });
 
+test("the panel's first poll already knows which accounts exist, before anything has spoken", async () => {
+  // The dashboard polls /api/voice/resources before it does anything else. A
+  // fresh process therefore has to discover its accounts on that call alone,
+  // not as a side effect of a status probe or a synthesis.
+  const s = await serve((k) =>
+    k === "ELEVENLABS_API_KEY" ? "xi-key-one" : k === "ELEVENLABS_API_KEY_2" ? "xi-key-two" : k === "Elevenlabs3" ? "xi-key-three" : undefined,
+  );
+  try {
+    const response = await fetch(`${s.base}/api/voice/resources`);
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as {
+      availability: { tts: boolean; stt: boolean };
+      credentials: Array<{ label: string; health: string }>;
+      totals: { remainingCharacters: number };
+    };
+    assert.deepEqual(
+      body.credentials.map((credential) => credential.label),
+      ["account-1", "account-2", "account-3"],
+      "configured accounts are reported without a prior call",
+    );
+    assert.equal(body.availability.tts, true, "a page load must not claim her voice is blocked");
+    assert.equal(body.availability.stt, true);
+    assert.equal(body.totals.remainingCharacters, 30_000);
+  } finally {
+    s.close();
+  }
+});
+
 test("replenish and reconcile let a spent account speak again", async () => {
   const s = await serve((k) => (k === "Elevenlabs" ? "xi-test-key" : undefined));
   let refuse = true;
