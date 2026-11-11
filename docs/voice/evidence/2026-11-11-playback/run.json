@@ -1,0 +1,165 @@
+{
+  "mission": "5.8 — audible end-to-end check through the application",
+  "date": "2026-11-11",
+  "commit": "df9ae7d",
+  "branch": "freebuff/b088dc5ba2641bf17f787206",
+  "runtime": {
+    "server": "vite dev, 0.0.0.0:3000, LELU_ALLOWED_HOSTS=<preview host>",
+    "origin": "https://pv-b088dc5ba264-45772ec8-ec39-4059-a925-47221296ae8f.style.dev",
+    "browser": "Freebuff Cloud browser (headless Chromium), no /dev/snd present",
+    "note": "preview_playwright failed with a harness error (\"options.mode must be one of: 'strip'\"); the run used preview_evaluate, which executes in the page"
+  },
+  "steps": [
+    "loaded the running app (title LÉLU, WebGL scene mounted, no fatal console error)",
+    "dismissed the cloud-identity gate as a guest (DOM click, the repo's own probe pattern)",
+    "opened Settings through UIActionBus open_panel (the app's own path)",
+    "installed a hook on HTMLMediaElement.prototype.play before speaking",
+    "called the app's real client module: /src/core/voice/elevenLabsTts.ts → speakText(sentence)",
+    "clicked the panel's Refresh and read what it claims"
+  ],
+  "first_poll_after_restart": {
+    "route": "GET /api/voice/resources",
+    "http": 200,
+    "availability": {
+      "tts": true,
+      "stt": true
+    },
+    "accounts": [
+      {
+        "label": "account-1",
+        "health": "ready",
+        "used": 0,
+        "limit": 10000
+      },
+      {
+        "label": "account-2",
+        "health": "ready",
+        "used": 0,
+        "limit": 10000
+      },
+      {
+        "label": "account-3",
+        "health": "ready",
+        "used": 0,
+        "limit": 10000
+      }
+    ],
+    "remainingCharacters": 30000,
+    "regression": "before commit df9ae7d this same first request answered 0 accounts and TTS/STT blocked"
+  },
+  "synthesis": {
+    "request": "POST /api/voice/tts (from the page's own client module)",
+    "http": 200,
+    "contentType": "audio/mpeg",
+    "clientSynthesisMs": 4600,
+    "charactersReported": 76,
+    "accountUsed": "account-2",
+    "firstAccount": {
+      "label": "account-1",
+      "outcome": "HTTP 401",
+      "effect": "exhausted, skipped afterwards"
+    }
+  },
+  "playback": {
+    "element": "new Audio(blobUrl) created by elevenLabsTts.speakText",
+    "durationSeconds": 6.56,
+    "events": [
+      [
+        "loadedmetadata",
+        6.56,
+        19729
+      ],
+      [
+        "playing",
+        0,
+        19734
+      ],
+      [
+        "timeupdate",
+        6.14,
+        25912
+      ],
+      [
+        "timeupdate",
+        6.56,
+        31796
+      ],
+      [
+        "ended",
+        6.56,
+        31797
+      ]
+    ],
+    "eventTimesAreMsSincePlayCall": true,
+    "callbacks": {
+      "onStart": true,
+      "onEnd": true,
+      "onFail": false
+    },
+    "wallMsIncludingFetch": 36603,
+    "autoplayErrors": [],
+    "interpretation": "the media clock advanced through the full 6.56 s clip and fired ended; timeupdate and ended were delivered late because the page's main thread is saturated by the 3D scene, so wall time (about 32 s from play to ended) is longer than the audio"
+  },
+  "control_tone": {
+    "purpose": "separate a browser media problem from an application problem, without spending characters",
+    "source": "generated 0.4 s 440 Hz WAV data URI",
+    "events": [
+      [
+        "waiting",
+        0,
+        10
+      ],
+      [
+        "loadedmetadata",
+        0,
+        14
+      ],
+      [
+        "suspend",
+        0.06,
+        146
+      ],
+      [
+        "playing",
+        0.06,
+        146
+      ],
+      [
+        "timeupdate",
+        0.4,
+        4425
+      ],
+      [
+        "ended",
+        0.4,
+        4426
+      ]
+    ],
+    "result": "the browser's media pipeline works without an audio device: it decodes, clocks and ends a clip"
+  },
+  "dashboard": {
+    "mountedIn": "Settings panel, beside the existing voice picker",
+    "playbackLine": "Playback — 76 chars · 4,600 ms · 26s ago (client, last synthesis attempt)",
+    "recentUsage": [
+      "✓ TTS · account-2 · 76 chars",
+      "✗ TTS · account-1 · HTTP 401"
+    ],
+    "headingNote": "the section heading renders uppercase through CSS, so innerText shows VOICE RESOURCES"
+  },
+  "verified": [
+    "the panel renders inside Settings and reports the configured accounts on a cold server",
+    "a real character-billed synthesis succeeds from the page (200 audio/mpeg, 76 chars)",
+    "the returned audio is decoded and played to completion by a real media element",
+    "the panel reflects that attempt: characters, synthesis time, account, and the 401 that preceded it"
+  ],
+  "not_verified": [
+    "audible sound at a speaker: this VM has no /dev/snd, so nothing can be heard or recorded here",
+    "page screenshots: Page.captureScreenshot timed out (15 s) while the WebGL scene ran, so the visual was captured only with the 3D canvases paused",
+    "a human-visible listening test — the only real confirmation left for a person at a machine with audio"
+  ],
+  "screenshots": {
+    "settings-panel-open.png": "Settings panel mounted in the running app (video panel beside it), captured with the 3D canvases paused because Page.captureScreenshot timed out with them live",
+    "voice-resources-section.png": null
+  },
+  "screenshots_note": "The voice resources section itself was never captured: after the 3D canvases were paused the page's main thread stopped answering evaluations (10 s timeout) and screenshots (15 s timeout), and scrolling the Settings panel to that section therefore could not be done. Its rendered text was read instead and is recorded under dashboard."
+}
