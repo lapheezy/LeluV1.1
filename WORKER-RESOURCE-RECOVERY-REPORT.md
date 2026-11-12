@@ -15,7 +15,7 @@ container. The worker:
 - reaches READY only after a real generation;
 - produced speech that an independent ASR model transcribed word for word.
 
-It survives individual tool calls and a turn boundary (§9). It **cannot** outlive the cloud container. When the container is
+It survives individual tool calls and, as tested, a ~3.5-minute turn boundary (addendum). It **cannot** outlive the cloud container. When the container is
 reclaimed, the process, the 5.1 GB weight cache and the 2.4 GB Python environment all go with it. A worker that lasts beyond
 sessions needs a dedicated runtime (§11–12).
 
@@ -215,7 +215,7 @@ supervisor escalates to SIGKILL after 30 s if needed.
 | Question | Answer | Evidence |
 |---|---|---|
 | Does a setsid process survive the end of a tool call? | **Yes** | The probe, the worker and the heartbeat each started in one tool call and kept running through dozens of later calls. |
-| Does it survive the end of a turn? | **See the addendum below.** | The heartbeat (`.voxcpm/logs/heartbeat.log`, every 10 s) records worker liveness and uptime across the turn boundary. |
+| Does it survive the end of a turn? | **Yes** (see the addendum) | The heartbeat (`.voxcpm/logs/heartbeat.log`, every 10 s) records worker liveness and uptime across the turn boundary. |
 | Does it survive a container reclaim or a new session? | **No, by construction** | The container is ephemeral and reclaimed after inactivity. The process, `.venv-voxcpm` (2.4 GB), the HF cache (5.1 GB) and `.voxcpm/` all live on the container disk. A new session starts with no `torch` and no weights, which this session confirmed at its own start. |
 | Cost to rebuild in a fresh container (measured) | **about 2 minutes** | `install.sh` 54 s (from file timestamps), weight download ≤ 25 s (4.96 GB), start to READY about 29 s |
 | Is a dedicated runtime needed? | **Yes** | That is the only way to get a worker that outlives development sessions. |
@@ -282,4 +282,19 @@ VOXCPM_LIVE_URL=http://127.0.0.1:8788 npx tsx --tsconfig tsconfig.test.json \
 
 ## Addendum: turn-boundary persistence
 
-*Pending at commit time; filled in after the turn boundary.*
+**Survived: yes, within this container.**
+
+The turn ended at 23:54:50 UTC. The next turn was started by a scheduled wake at 23:58:28 UTC, about 3.5 min with no active turn.
+
+| Check | Result |
+|---|---|
+| Heartbeat (`heartbeat.log`, every 10 s) | Continuous through the boundary. No gap over 15 s anywhere in the log. Kernel uptime rose steadily (993.8 → 1224.6 s), so the VM was **not paused or snapshotted** between turns. |
+| Worker identity after the boundary | Same supervisor (PID 5159, start time 85008) and worker (PID 5160, start time 85014). Verified `owned`, state READY, RSS 6.59 GiB. |
+| Real inference after the boundary | "I stayed awake between turns." → 2.24 s of audio, RTF 5.04. ASR transcript: **"I stayed awake between turns."** (`post-boundary.wav`) |
+| Shutdown | `workerctl stop`: returncode 0, `stopped`, worker uptime 408.8 s. The heartbeat was ended by its own exact PID. Nothing was left running. |
+
+What this does **not** show: survival across a container reclaim or a new session. That is still **no** (§9). A 3.5-minute
+idle gap is shorter than the platform's inactivity reclaim, which this session did not try to trigger, because the work had
+not been pushed yet.
+
+So in §9, "Does it survive the end of a turn?" is **Yes**, with the evidence above.
