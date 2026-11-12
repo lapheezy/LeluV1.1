@@ -193,6 +193,11 @@ instruction or prompt — only from a step it depends on.
 
 Rules: use only listed capabilities; at most ${MAX_STEPS} steps; prefer the fewest steps
 that really accomplish the request; do not add steps that only restate the answer.
+A question about THIS conversation — what was said, what was asked, what we decided —
+or about your own state is answered from the conversation itself: reply
+{"steps":[],"reason":"answerable directly"} instead of planning a memory lookup.
+MEASURED (2026-11-11): "what did I ask you first?" was planned as a memory.recall
+step, memory held nothing, and the whole reply became a failure notice.
 If the request cannot be done with the listed capabilities, reply {"steps":[],"reason":"..."}.`;
 
 async function defaultGenerator(prompt: string, system: string): Promise<{ ok: boolean; text: string }> {

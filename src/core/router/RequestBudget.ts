@@ -116,11 +116,32 @@ const MODEL_CONTEXT_TOKENS: Array<[RegExp, number]> = [
  * Transport ceilings, in UTF-8 bytes, for providers whose HTTP body limit is
  * smaller than the model's context.
  *
- * Groq is the measured one: an 86,331-character request came back as 413, and
- * the account's ceiling is 12,000 tokens per minute — about 48KB of UTF-8 at
- * four bytes per token. That is what a request must fit, not the 131k-token
- * context window printed on the model card. Being generous here is the
- * failure mode: the ceiling exists to stop a refusal that is already certain.
+ * Groq is the measured one, twice over.
+ *
+ * First the limit itself: the account's ceiling is 8,000 TOKENS PER MINUTE,
+ * not 12,000. A chat turn came back `413 … Limit 8000, Requested 10184`.
+ *
+ * Then, once the byte ceiling was set to an 8,000-token equivalent, the
+ * broker still refused a 35,246-byte turn:
+ *
+ *   429 … TPM: Limit 8000, Used 2454, Requested 7846 … tools≈7868tok
+ *
+ * The tool schemas alone were 7,868 tokens — the whole minute, before the
+ * prompt or the system message were counted. JSON schemas tokenise far
+ * denser than prose: about 3.2 bytes per token here, not the 4 this module
+ * assumes for text. So a body sized to the limit by the text ratio still
+ * requests more than the limit once tools are attached, and every turn 429s
+ * until the window drains; degrading to zero tools then produced
+ *
+ *   400 tool_use_failed … "Tool choice is none, but model called a tool"
+ *
+ * Conversational turns do not need 53 schemas. This ceiling deliberately
+ * leaves room for prompt, system message and history, so the fitter withholds
+ * tools instead of spending the minute on them.
+ *
+ * That is what a request must fit, not the 131k-token context window printed
+ * on the model card. Being generous here is the failure mode: the ceiling
+ * exists to stop a refusal that is already certain.
  */
 /**
  * Tokens-per-minute ceilings, for providers that meter that way.

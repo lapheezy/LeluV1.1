@@ -578,6 +578,27 @@ export default class Orchestrator {
       .reverse()
       .find((step) => step.status === "completed" && step.action && step.action.kind !== "tool");
     const report = executor.report(finished);
+    // A plan that accomplished nothing has no report worth being the reply.
+    // MEASURED (2026-11-11): "what was the very first thing I asked you?" was
+    // planned as a memory.recall step, memory held nothing, and the turn's
+    // entire answer became "Not completed: … 1. [failed] … (memory.recall)" —
+    // a status dump in place of an answer the conversation already held.
+    // When no step completed, answer the request directly through the normal
+    // path (which has the conversation in front of it) and keep the failure
+    // visible as an event, not as the reply. `waiting` is excluded: there the
+    // report IS the approval prompt the user needs to act on.
+    const produced = finished.steps.some((step) => step.status === "completed");
+    if (finished.status !== "waiting" && !produced) {
+      events.emit({
+        type: "execution_phase",
+        taskId,
+        phase: "backend_task_progress",
+        label: "No step completed — answering directly",
+        side: "backend",
+        detail: report,
+      });
+      return null;
+    }
     const response =
       finished.status === "completed" && answerStep?.output ? `${answerStep.output}\n\n—\n${report}` : report;
     return { response, actions: this.stepActions(finished), task: finished };

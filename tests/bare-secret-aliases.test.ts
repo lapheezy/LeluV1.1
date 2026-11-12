@@ -50,6 +50,59 @@ test("a documented name always wins, and the bare name never overrides it", () =
   assert.equal(env.valueOf("GROQ_API_KEY"), "gsk_from_documented", "the documented name must keep winning");
 });
 
+test("a platform secret named in lower case still reaches the documented name", () => {
+  // The platform normalises secret names: this project's OpenRouter secret is
+  // `openrouter`, while this list spells it `Openrouter`. Environment names are
+  // case-sensitive, so that casing difference alone made a real credential
+  // invisible and every provider report itself unconfigured.
+  const env = lookupOf({ openrouter: "sk-or-example" });
+  assert.deepEqual(fillBareSecretAliases(env), ["OPENROUTER_API_KEY"]);
+  assert.equal(env.valueOf("OPENROUTER_API_KEY"), "sk-or-example");
+});
+
+test("a secret the store had to uniquify with a digit still reaches the documented name", () => {
+  // Secret stores keep names unique. `openrouter` was taken, so this project's
+  // key is stored as `openrouter1`. The suffix identifies the slot, not the
+  // provider, and nothing in the code could see the key without this.
+  const env = lookupOf({ openrouter1: "sk-or-suffixed" });
+  // The digit is ambiguous by design: the store uniquified the BASE name, and
+  // the list also provisions numbered slots. So this fills the base name and
+  // slot 1 — which is ONE credential, not two: ProviderKeyRing dedupes
+  // identical values (pinned below), so rotation never spends the key twice.
+  assert.deepEqual(fillBareSecretAliases(env), ["OPENROUTER_API_KEY", "OPENROUTER_API_KEY_1"]);
+  assert.equal(env.valueOf("OPENROUTER_API_KEY"), "sk-or-suffixed");
+});
+
+test("the base name must still match exactly: a different secret is never adopted", () => {
+  // Tolerance covers casing and a trailing digit, not a different provider.
+  const env = lookupOf({ openrouter_old: "stale", my_openrouter1: "other", Openrouterx: "typo" });
+  assert.deepEqual(fillBareSecretAliases(env), []);
+  assert.equal(env.has("OPENROUTER_API_KEY"), false);
+});
+
+test("casing never decides whether a secret is found, and never overrides a documented name", () => {
+  for (const bare of ["openrouter", "Openrouter", "OPENROUTER", "openrouter1", "OPENROUTER9"]) {
+    const env = lookupOf({ [bare]: "sk-or-casing" });
+    fillBareSecretAliases(env);
+    assert.equal(env.valueOf("OPENROUTER_API_KEY"), "sk-or-casing", `${bare} was not recognised`);
+  }
+  const targets: Record<string, string> = {
+    groq: "GROQ_API_KEY",
+    anthropic: "ANTHROPIC_API_KEY",
+    supabase: "SUPABASE_PUBLISHABLE_KEY",
+  };
+  for (const [bare, target] of Object.entries(targets)) {
+    const value = bare === "supabase" ? "sb_publishable_example" : "example";
+    const env = lookupOf({ [bare]: value });
+    fillBareSecretAliases(env);
+    assert.equal(env.valueOf(target), value, `${bare} did not reach ${target}`);
+  }
+  // A lower-case bare name is still only allowed to fill a hole.
+  const guarded = lookupOf({ openrouter: "from_bare", OPENROUTER_API_KEY: "from_documented" });
+  assert.deepEqual(fillBareSecretAliases(guarded), []);
+  assert.equal(guarded.valueOf("OPENROUTER_API_KEY"), "from_documented");
+});
+
 test("no model credential is ever published under a VITE_ prefix", () => {
   // Vite's dev server exposes every VITE_ variable to anyone who can reach
   // it, and the model keys are brokered precisely so they never reach the
