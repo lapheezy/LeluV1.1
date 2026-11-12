@@ -85,3 +85,12 @@ docs/acceptance/**/traces/
 
 # Acquisition workspaces: real clones with their own .git, never tracked.
 .lelu-acquisitions/
+
+# VoxCPM2 sidecar: python env, model cache and generated reference audio
+.venv-voxcpm/
+.voxcpm/
+services/voxcpm/.cache/
+
+# python bytecode from the voxcpm sidecar
+__pycache__/
+*.pyc
