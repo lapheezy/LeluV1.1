@@ -153,7 +153,7 @@ test("a covered world pauses through the budget, not through its own frameloop",
   assert.match(source, /budget\.setOccluded\("genesis-world-covered", worldCovered\)/);
   assert.match(
     source,
-    /const frameloop: Frameloop = softwareGL && !perfWorld \? "never" : budgetedFrameloop;/,
+    /const frameloop: Frameloop = paintWorld \? budgetedFrameloop : "never";/,
     "the canvas frameloop must come from the budget (plus the device guard), never from a local override",
   );
   assert.match(source, /frameloop=\{frameloop\}/, "the canvas takes the budgeted prop");
@@ -175,7 +175,7 @@ test("either occluder alone keeps the world paused; both must clear to resume", 
 test("the diagnostics can tell a paused world from a slow one", () => {
   const source = read(`${GENESIS}/AdaptiveQuality.tsx`);
   assert.match(source, /frames: painted\.current/, "a painted-frame counter, so 0 frames is observable");
-  assert.match(source, /mode: getSceneRenderBudget\(\)\.mode\(\)/, "and the budget mode it is in");
+  assert.match(source, /const mode = getSceneRenderBudget\(\)\.mode\(\)/, "and the budget mode it is in");
 });
 
 /* ------------------------------ persistence ------------------------------ */

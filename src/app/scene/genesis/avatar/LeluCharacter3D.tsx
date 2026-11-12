@@ -20,6 +20,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { REDUCED_FRAME_MS, useSceneRenderMode } from "../SceneRenderBudget";
+import RenderContextGuard from "../render/RenderContextGuard";
 import * as THREE from "three";
 import type { LeluFraming } from "../../../../core/avatar/LeluRig";
 import type { LeluModel } from "../../../../core/avatar/LeluModelSource";
@@ -179,6 +180,7 @@ export default function LeluCharacter3D({
         <hemisphereLight args={["#fff1f8", "#2a1840", 0.9]} />
         <directionalLight position={[1.5, 3, 4]} intensity={1.6} color="#fff4ea" />
         <directionalLight position={[-2.5, 1.5, -2]} intensity={0.7} color="#f0abfc" />
+        <RenderContextGuard id="lelu-avatar" kind="avatar" />
         <FrameCap fps={fps} paused={paused} />
         <StillCapture paused={paused} onStill={onStill} />
         <Framer framing={framing} info={info} />

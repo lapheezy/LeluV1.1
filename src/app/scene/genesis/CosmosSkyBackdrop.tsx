@@ -28,6 +28,7 @@ import { useEffect, useRef } from "react";
 
 import { sampleCosmosAtmosphere } from "./cosmos/CosmosAtmosphere";
 import { getSceneRenderBudget } from "./SceneRenderBudget";
+import { getSceneRenderManager, skyPaintInterval } from "./SceneRenderManager";
 
 function clamp255(value: number): number {
   return Math.max(0, Math.min(255, Math.round(value)));
@@ -48,8 +49,15 @@ interface SkyState {
   rainbow: number;
 }
 
-/** Mix the current atmosphere phase into a bright, unmistakable sky. */
-function buildSky(timeSeconds: number): SkyState {
+/**
+ * Mix the current atmosphere phase into a bright, unmistakable sky.
+ *
+ * Exported because it is the whole per-paint cost of this layer, and the
+ * only part of the render policy that can be measured without a browser
+ * (scripts/measure-render-policy.mjs). A cost that is claimed must be a
+ * cost that can be measured.
+ */
+export function buildSky(timeSeconds: number): SkyState {
   const atmosphere = sampleCosmosAtmosphere(timeSeconds);
 
   // Start from a visible deep-space blue — never pure black.
@@ -114,6 +122,38 @@ const RAINBOW_BARS =
   "#7a3fd0 71.42%, #7a3fd0 85.71%, " +
   "#d9438f 85.71%, #d9438f 100%)";
 
+/**
+ * One frame of TV static, written into an existing ImageData buffer.
+ *
+ * Extracted and exported so the cost of this layer can be MEASURED
+ * rather than estimated (scripts/measure-render-policy.mjs): at 480×270
+ * this writes 129,600 pixels and it runs on every second paint of the sky
+ * for an entire atmosphere phase. Measured at 3.63 ms per call, it was
+ * the single largest main-thread cost in the DOM layer — 109 ms of every
+ * second, taken from the frames the chat was waiting on.
+ *
+ * Two Math.random() calls per pixel were the whole of it. This uses one
+ * step of a linear congruential generator instead: the high bit gives the
+ * same 50/50 bimodal split, the middle byte the same uniform speckle
+ * brightness. Same snow, a fraction of the work — and no allocation.
+ */
+let noiseSeed = 0x9e3779b9;
+
+export function fillStaticNoise(data: Uint8ClampedArray): void {
+  let seed = noiseSeed;
+  for (let i = 0; i < data.length; i += 4) {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    // Bimodal speckle: dark dots + bright dots = authentic snow.
+    const level = ((seed >>> 16) & 0xff) / 255;
+    const v = (seed & 0x1000000) !== 0 ? 185 + level * 70 : 15 + level * 45;
+    data[i] = v;
+    data[i + 1] = v;
+    data[i + 2] = v + 12; // slight blue cast (Uint8ClampedArray clamps)
+    data[i + 3] = 255;
+  }
+  noiseSeed = seed;
+}
+
 export default function CosmosSkyBackdrop() {
   const skyRef = useRef<HTMLDivElement>(null);
   const sunsetRef = useRef<HTMLDivElement>(null);
@@ -141,6 +181,7 @@ export default function CosmosSkyBackdrop() {
     }
 
     let frame = 0;
+    let lastPaint = 0;
     const budget = getSceneRenderBudget();
     const tick = () => {
       // Covered by the full-screen chat, or the user is typing on a phone:
@@ -148,6 +189,22 @@ export default function CosmosSkyBackdrop() {
       if (!budget.allowFrame("cosmos-sky")) {
         raf = requestAnimationFrame(tick);
         return;
+      }
+      /*
+       * The PROFILE slows this layer down; it never removes it. On a light
+       * device this sky IS the cosmos, so it keeps moving — and at 12.5 fps
+       * a gradient is indistinguishable from one at 60, while the four
+       * million gradient interpolations a minute that nobody can see are
+       * main-thread time the chat was waiting on.
+       */
+      const cadence = skyPaintInterval(getSceneRenderManager().profile());
+      if (cadence > 0) {
+        const at = performance.now();
+        if (at - lastPaint < cadence) {
+          raf = requestAnimationFrame(tick);
+          return;
+        }
+        lastPaint = at;
       }
       const sky = buildSky(performance.now() / 1000);
       frame += 1;
@@ -162,16 +219,7 @@ export default function CosmosSkyBackdrop() {
 
       // TV static snow — redraw at ~30fps (real snow is coarse and flickery).
       if (ctx && image && sky.static > 0.02 && frame % 2 === 0) {
-        const data = image.data;
-        for (let i = 0; i < data.length; i += 4) {
-          // Bimodal speckle: dark dots + bright dots = authentic snow.
-          const bright = Math.random() < 0.5;
-          const v = bright ? 185 + Math.random() * 70 : 15 + Math.random() * 45;
-          data[i] = v;
-          data[i + 1] = v;
-          data[i + 2] = Math.min(255, v + 12); // slight blue cast
-          data[i + 3] = 255;
-        }
+        fillStaticNoise(image.data);
         ctx.putImageData(image, 0, 0);
       }
       if (staticWrapRef.current) {

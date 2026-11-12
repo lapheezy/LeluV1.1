@@ -34,14 +34,9 @@ import GenesisCore, {
 
 import GenesisErrorBoundary
   from "./GenesisErrorBoundary";
-import GenesisInterface
-  from "./GenesisInterface";
 
-import GenesisController from "./GenesisController";
 
-import GenesisBridge from "./GenesisBridge";
-import ProactiveBridge from "./ProactiveBridge";
-import VoiceBridge from "./VoiceBridge";
+
 import { useSurface } from "./surface/useSurface";
 import CoreHoldGesture from "./CoreHoldGesture";
 
@@ -53,29 +48,21 @@ import { sampleCosmosAtmosphere } from "./cosmos/CosmosAtmosphere";
 import useVisual
   from "../../../core/visual/useVisual";
 
-import WorkspaceBridge
-  from "./WorkspaceBridge";
 
-import GenesisSurfaceController
-  from "./GenesisSurfaceController";
 
-import VisualBridge
-  from "./VisualBridge";
 
-import DeepLinkIntake
-  from "./DeepLinkIntake";
 
-import EngineTick
-  from "./EngineTick";
 
-import LeluCompanion
-  from "./avatar/LeluCompanion";
 
-import GenesisNotificationCenter
-  from "./GenesisNotificationCenter";
 
-import SpatialExperience
-  from "../spatial/SpatialExperience";
+
+
+
+
+
+
+
+
 
 import CosmosSkyBackdrop
   from "./CosmosSkyBackdrop";
@@ -92,7 +79,16 @@ import { getSceneRenderBudget }
 import AdaptiveQuality
   from "./AdaptiveQuality";
 
-import { DPR_START }
+import {
+  getSceneRenderManager,
+  SOFTWARE_GL_RENDERER,
+  useRenderProfile,
+} from "./SceneRenderManager";
+
+import RenderContextGuard
+  from "./render/RenderContextGuard";
+
+import { DPR_START, mobile }
   from "./qualityLimits";
 
 import { useLeluRuntime }
@@ -112,6 +108,55 @@ import { IS_DEV }
 const GenesisLab = lazy(() => import("./GenesisLab"));
 const LivingSystemUI = lazy(() => import("./LivingSystemUI"));
 const CosmosOverview = lazy(() => import("./cosmos/CosmosOverview"));
+
+/*
+ * The interface, the 3D world's contents, her companion figure and the
+ * spatial rail are four separate downloads, not part of the boot byte bill.
+ *
+ * Measured with scripts/map-static-graph.mjs (--impact): importing them
+ * statically kept 1.35 MB of source on the cold-boot graph — the chat and its
+ * markdown/timeline stack (GenesisChat), the world's renderer (planets,
+ * cosmic field, portals), her body/rig/clips, and the Cosmos portal rail —
+ * for a landing screen that can paint from the DOM sky alone. Each is still
+ * mounted at exactly the same place in the tree, with the same props and the
+ * same lifetime; only the moment its code is *fetched* moves, from "before
+ * the first pixel" to "right after the shell is up". A Suspense boundary of
+ * `null` means the frame that appears is the Cosmos, not a spinner.
+ *
+ * Names are preserved deliberately: these are the same components, loaded
+ * later, so every mount point, test and invariant that names them is
+ * unchanged.
+ */
+const GenesisInterface = lazy(() => import("./GenesisInterface"));
+const GenesisController = lazy(() => import("./GenesisController"));
+const LeluCompanion = lazy(() => import("./avatar/LeluCompanion"));
+const SpatialExperience = lazy(() => import("../spatial/SpatialExperience"));
+
+/*
+ * The intelligence wiring is a download of its own.
+ *
+ * These five components are the app's connection to AIService, the agent event
+ * bus and the voice engine. Measured with scripts/map-static-graph.mjs, the
+ * import of ONE of them (DeepLinkIntake) was the whole reason the entire
+ * intelligence tower — AIService, AIRuntime, AIRouter, the tool dispatcher and
+ * every provider behind it, ~1.6 MB of source and the largest single block of
+ * requests on the boot path — was fetched before the Cosmos could appear.
+ *
+ * They are unchanged, mounted in the same place, with the same lifetime and
+ * the same effects; they simply arrive one chunk after the shell instead of
+ * before it. Nothing here is a "deferred feature": each one subscribes to
+ * events that only exist once a user acts, and the first frame is the landing
+ * screen, not a chat turn.
+ */
+const GenesisBridge = lazy(() => import("./GenesisBridge"));
+const ProactiveBridge = lazy(() => import("./ProactiveBridge"));
+const VoiceBridge = lazy(() => import("./VoiceBridge"));
+const WorkspaceBridge = lazy(() => import("./WorkspaceBridge"));
+const DeepLinkIntake = lazy(() => import("./DeepLinkIntake"));
+const VisualBridge = lazy(() => import("./VisualBridge"));
+const GenesisSurfaceController = lazy(() => import("./GenesisSurfaceController"));
+const GenesisNotificationCenter = lazy(() => import("./GenesisNotificationCenter"));
+const EngineTick = lazy(() => import("./EngineTick"));
 
 /** Minimal full-screen fallback shown while a code-split scene loads. */
 function SceneLoadingFallback() {
@@ -344,6 +389,14 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
   // (see tests/cosmos-chat-experience.test.tsx) instead of a literal.
   const budgetedFrameloop = useSceneFrameloop();
   /*
+   * The quality profile the RENDER MANAGER settled on for this device:
+   * "full", "balanced" (same world, fewer paints) or "light" (no
+   * continuous WebGL; the DOM cosmos carries it). It is evidence about the
+   * device and about the frame rate actually measured — not a guess from
+   * the user agent.
+   */
+  const profile = useRenderProfile();
+  /*
    * The Cosmos and her 3D body are two WebGL contexts drawing the same
    * device's worth of frames at once. When a conversation is open over the
    * world on a phone-sized screen, the world is behind an opaque sheet:
@@ -373,6 +426,17 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
    */
   const [softwareGL, setSoftwareGL] = useState(false);
   useEffect(() => {
+    /*
+     * The same probe now also tells the RENDER MANAGER what this device is,
+     * so the decision is made once, in one place, and every surface reads
+     * it. `narrow` is a viewport measurement and `mobile` a hint: a phone
+     * with a real GPU is "balanced", never "light".
+     */
+    const manager = getSceneRenderManager();
+    const narrow = window.innerWidth <= 720;
+    const saveData = Boolean(
+      (navigator as unknown as { connection?: { saveData?: boolean } }).connection?.saveData,
+    );
     try {
       const probe = document.createElement("canvas");
       const gl = (probe.getContext("webgl2") ?? probe.getContext("webgl")) as
@@ -380,17 +444,20 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
         | null;
       if (!gl) {
         setSoftwareGL(true);
+        manager.setCapability({ webgl: false, narrow, saveData });
         return;
       }
       const info = gl.getExtension("WEBGL_debug_renderer_info");
       const renderer = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : "";
-      if (/swiftshader|llvmpipe|softpipe|software|basic render/i.test(renderer)) {
+      if (SOFTWARE_GL_RENDERER.test(renderer)) {
         setSoftwareGL(true);
       }
+      manager.setCapability({ renderer, webgl: true, narrow, mobile, saveData });
       // The probe holds a second context until it is told to let go.
       gl.getExtension("WEBGL_lose_context")?.loseContext();
     } catch {
       setSoftwareGL(true);
+      manager.setCapability({ webgl: false, narrow, saveData });
     }
   }, []);
   /*
@@ -425,7 +492,18 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
     IS_DEV &&
     typeof window !== "undefined" &&
     window.location.search.includes("perf-world");
-  const frameloop: Frameloop = softwareGL && !perfWorld ? "never" : budgetedFrameloop;
+  /*
+   * Two independent reasons not to paint the world, one expression:
+   * the DEVICE cannot (a software rasteriser, or the manager profiled it
+   * "light" from a renderer string, Save-Data or a measured frame rate),
+   * and the BUDGET says this frame is not worth drawing.
+   *
+   * The budget stays the only authority on the second. The profile is
+   * evidence about the device, which the budget cannot know — and it never
+   * writes a frameloop of its own (see SceneRenderManager).
+   */
+  const paintWorld = (!softwareGL || Boolean(perfWorld)) && profile !== "light";
+  const frameloop: Frameloop = paintWorld ? budgetedFrameloop : "never";
   // Adaptive resolution: the ratio starts device-appropriate and follows
   // the MEASURED frame rate (Appearance follows measured fps, never the
   // display), publishing window.__leluRenderStats for the demo harness.
@@ -434,6 +512,7 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
   return (
     <div
       data-workspace="genesis-v1"
+      data-render-profile={profile}
       style={{
         position: "fixed",
         inset: 0,
@@ -472,7 +551,17 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
             >
               <SceneFrameGovernor />
               <AdaptiveQuality onChange={setDpr} />
-              <GenesisController />
+              {/* Registry + context-loss recovery for this canvas. */}
+              <RenderContextGuard id="genesis-world" kind="world" />
+              {/*
+                * The boundary lives INSIDE the canvas: R3F renders through its
+                * own reconciler, so a component that suspends here has to be
+                * caught by a boundary in the same tree — the one outside
+                * <Canvas> above governs the host tree, not this one.
+                */}
+              <Suspense fallback={null}>
+                <GenesisController />
+              </Suspense>
             </Canvas>
           </ReactSuspense>
         </CoreHoldGesture>
@@ -534,9 +623,11 @@ function GenesisWorkspaceRouter() {
         * no scene could be left out while chat owns a phone screen.
         * They belong to the app, not to a scene.
         */}
-      <GenesisBridge />
-      <ProactiveBridge />
-      <VoiceBridge />
+      <Suspense fallback={null}>
+        <GenesisBridge />
+        <ProactiveBridge />
+        <VoiceBridge />
+      </Suspense>
 
       {!surface.cosmosRendered ? (
         /* Chat owns the phone screen: no scene is rendered beneath it —
@@ -577,7 +668,9 @@ function GenesisWorkspaceRouter() {
         * only — LÉLU does not reset.
         */}
       <GenesisErrorBoundary>
-        <GenesisInterface />
+        <Suspense fallback={null}>
+          <GenesisInterface />
+        </Suspense>
       </GenesisErrorBoundary>
 
       {/*
@@ -585,23 +678,37 @@ function GenesisWorkspaceRouter() {
         * bridges, deeplink intake. They produce no workspace visuals —
         * the workspace scene above is the only visible layer.
         */}
-      <WorkspaceBridge />
-      <GenesisSurfaceController />
+      <Suspense fallback={null}>
+        <WorkspaceBridge />
+      </Suspense>
+      <Suspense fallback={null}>
+        <GenesisSurfaceController />
+      </Suspense>
 
       {/* LÉLU in companion mode: her figure over every surface, mounted
           once here so moving between surfaces never recreates her. */}
-      <LeluCompanion />
+      <Suspense fallback={null}>
+        <LeluCompanion />
+      </Suspense>
 
       {/* The spatial navigation rail: the Cosmos itself is the way around
           the app — environments are destinations, chat is one of them. */}
-      <SpatialExperience />
-      <VisualBridge />
-      <DeepLinkIntake />
+      <Suspense fallback={null}>
+        <SpatialExperience />
+      </Suspense>
+      <Suspense fallback={null}>
+        <VisualBridge />
+      </Suspense>
+      <Suspense fallback={null}>
+        <DeepLinkIntake />
+      </Suspense>
 
       {/* The ONE simulation heartbeat — runs while ANY workspace owns
           the viewport, so the Core keeps morphing and evolving in
           Genesis v2 (the v1 canvas only renders, it never ticks). */}
-      <EngineTick />
+      <Suspense fallback={null}>
+        <EngineTick />
+      </Suspense>
 
       {/*
         * COSMOS UI — floating navigation and overview.
@@ -620,7 +727,9 @@ function GenesisWorkspaceRouter() {
         * while v2 owns the viewport they unmount entirely.
         */}
       {v2Active ? null : (
-        <GenesisNotificationCenter />
+        <Suspense fallback={null}>
+          <GenesisNotificationCenter />
+        </Suspense>
       )}
     </>
   );

@@ -73,10 +73,17 @@ function viewportSize(): { width: number; height: number } {
 function useSpaceLayout(): SpaceLayout {
   const [space, setSpace] = useState<SpaceLayout>(() => readSpace());
   useEffect(() => {
-    const read = () => setSpace((current) => {
-      const next = readSpace();
-      return sameSpace(current, next) ? current : next;
-    });
+    const read = () => {
+      // A hidden page cannot change its layout, and this poll is a
+      // querySelector walk, a handful of getBoundingClientRect calls and a
+      // JSON.stringify of the result — twice a second, forever, in every
+      // mode. Nothing it could learn exists while the page is hidden.
+      if (document.hidden) return;
+      setSpace((current) => {
+        const next = readSpace();
+        return sameSpace(current, next) ? current : next;
+      });
+    };
     read();
     const timer = setInterval(read, 500);
     window.addEventListener("resize", read);
@@ -97,6 +104,7 @@ function useHeroRect(): Rect | null {
   const [hero, setHero] = useState<Rect | null>(null);
   useEffect(() => {
     const read = () => {
+      if (document.hidden) return;
       const el = document.querySelector("[data-lelu-hero-host]");
       const r = el ? rectOf(el) : null;
       setHero((current) => (JSON.stringify(current) === JSON.stringify(r) ? current : r));
