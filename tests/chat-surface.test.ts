@@ -385,8 +385,15 @@ test("Universe replies render markdown with the shared renderer and never overfl
   assert.match(css, /\.lcu-bubble \{ min-width: 0; max-width: 100%; overflow-wrap: anywhere; \}/);
 });
 
-test("LÉLU's shared model fits its textures once at parse (measured: 240 → 96 MB uploaded per mount on iPhone 13)", () => {
+test("LÉLU's shared model fits its textures once at parse (the 2048² fit measured 240 → 96 MB per mount on iPhone 13; the budget is now 1024²)", () => {
   const body = readFileSync("src/app/scene/genesis/avatar/LeluBody.tsx", "utf8");
-  assert.match(body, /export const SHARED_TEXTURE_LIMIT = 2048;/);
+  /*
+   * 1024², not 2048². The model ships 4096² textures and the fit exists to
+   * stop every mount uploading all of them; 2048² was still a quarter of the
+   * file on the main thread, and she is drawn at a few hundred CSS pixels on
+   * a phone. The structural half of this test — parse once, fit once, cached
+   * per buffer — is what makes "once" true, and it is asserted below.
+   */
+  assert.match(body, /export const SHARED_TEXTURE_LIMIT = 1024;/);
   assert.match(body, /new GLTFLoader\(\)\.parseAsync\(bytes, ""\)\.then\(async \(gltf\) => \{\s*const resized = await fitTexturesTo\(gltf\.scene, SHARED_TEXTURE_LIMIT\);/);
 });

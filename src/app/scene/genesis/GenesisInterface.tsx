@@ -22,7 +22,7 @@
  * ==========================================================
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useWorkspaceRoot } from "./useWorkspace";
 import { conversationIdOf, useGenesis, type GenesisPanel } from "./GenesisCore";
 import GenesisModuleHost, { type ModuleRenderers } from "./GenesisModuleHost";
@@ -33,12 +33,23 @@ import UIStateStore from "../../../core/cognition/UIStateStore";
 import UIActionBus from "../../../core/cognition/UIActionBus";
 import { MODULE_CATALOG } from "./GenesisDock";
 import GenesisErrorBoundary from "./GenesisErrorBoundary";
-import GenesisCreationStudio from "./studio/GenesisCreationStudio";
-import StudioArtifactWindow from "./studio/StudioArtifactWindow";
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisCreationStudio = lazy(() => import("./studio/GenesisCreationStudio"));
+/*
+ * Boot-graph cuts.
+ *
+ * These four surfaces are opened by the user, never shown at boot, yet all
+ * four were STATIC imports of the interface — so a cold start fetched the
+ * artifact window, the Atelier window (geometry, readback, file handling)
+ * and both Chat Universe surfaces before drawing anything. Measured with
+ * scripts/measure-boot-graph.mjs, the boot graph was 676 chunks / 5.41 MB.
+ * A lazy panel that appears in the boot graph is not lazy.
+ */
+const StudioArtifactWindow = lazy(() => import("./studio/StudioArtifactWindow"));
 import { artifactIdOf, artifactWindowId } from "./studio/useStudio";
 import StudioStore from "../../../core/studio/StudioStore";
 import { STUDIO_OPEN_EVENT } from "../../../core/studio/StudioTools";
-import AtelierWindow from "./atelier/AtelierWindow";
+const AtelierWindow = lazy(() => import("./atelier/AtelierWindow"));
 import AtelierStore from "../../../core/atelier/AtelierStore";
 import { ATELIER_OPEN_EVENT } from "../../../core/atelier/AtelierTools";
 
@@ -48,37 +59,66 @@ import { genesisTheme } from "./GenesisTheme";
 import GenesisChat from "./GenesisChat";
 import ChatErrorBoundary from "./chat/ChatErrorBoundary";
 import { useSurface } from "./surface/useSurface";
-import GenesisReasoningPanel from "./GenesisReasoningPanel";
-import GenesisDiagnosticsPanel from "./GenesisDiagnosticsPanel";
-import GenesisExecutivePanel from "./GenesisExecutivePanel";
-import GenesisMemoryPanel from "./GenesisMemoryPanel";
-import GenesisDevicePanel from "./GenesisDevicePanel";
-import GenesisKnowledgePanel from "./GenesisKnowledgePanel";
-import GenesisHistoryPanel from "./GenesisHistoryPanel";
-import GenesisLogsPanel from "./GenesisLogsPanel";
-import GenesisBrowserPanel from "./GenesisBrowserPanel";
-import GenesisAgentsPanel from "./GenesisAgentsPanel";
-import GenesisSketchPanel from "./GenesisSketchPanel";
-import GenesisRenderPanel from "./GenesisRenderPanel";
-import GenesisVideoPanel from "./GenesisVideoPanel";
-import GenesisAvatarPanel from "./GenesisAvatarPanel";
-import GenesisProjectsPanel from "./GenesisProjectsPanel";
-import GenesisSettingsPanel from "./GenesisSettingsPanel";
-import GenesisCognitionPanel from "./GenesisCognitionPanel";
-import GenesisCognitiveTracePanel from "./GenesisCognitiveTracePanel";
-import GenesisEngineeringPanel from "./GenesisEngineeringPanel";
-import GenesisSelfDevPanel from "./GenesisSelfDevPanel";
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisReasoningPanel = lazy(() => import("./GenesisReasoningPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisDiagnosticsPanel = lazy(() => import("./GenesisDiagnosticsPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisExecutivePanel = lazy(() => import("./GenesisExecutivePanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisMemoryPanel = lazy(() => import("./GenesisMemoryPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisDevicePanel = lazy(() => import("./GenesisDevicePanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisKnowledgePanel = lazy(() => import("./GenesisKnowledgePanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisHistoryPanel = lazy(() => import("./GenesisHistoryPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisLogsPanel = lazy(() => import("./GenesisLogsPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisBrowserPanel = lazy(() => import("./GenesisBrowserPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisAgentsPanel = lazy(() => import("./GenesisAgentsPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisSketchPanel = lazy(() => import("./GenesisSketchPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisRenderPanel = lazy(() => import("./GenesisRenderPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisVideoPanel = lazy(() => import("./GenesisVideoPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisAvatarPanel = lazy(() => import("./GenesisAvatarPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisProjectsPanel = lazy(() => import("./GenesisProjectsPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisSettingsPanel = lazy(() => import("./GenesisSettingsPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisCognitionPanel = lazy(() => import("./GenesisCognitionPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisCognitiveTracePanel = lazy(() => import("./GenesisCognitiveTracePanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisEngineeringPanel = lazy(() => import("./GenesisEngineeringPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisSelfDevPanel = lazy(() => import("./GenesisSelfDevPanel"));
 import GenesisSelfEvolutionPanel from "./GenesisSelfEvolutionPanel";
-import GenesisNotificationsPanel from "./GenesisNotificationsPanel";
-import GenesisVisualStudio from "./GenesisVisualStudio";
-import GenesisEarthCore from "./GenesisEarthCore";
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisNotificationsPanel = lazy(() => import("./GenesisNotificationsPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisVisualStudio = lazy(() => import("./GenesisVisualStudio"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisEarthCore = lazy(() => import("./GenesisEarthCore"));
 import GenesisCosmosPanel from "./GenesisCosmosPanel";
-import GenesisIdentityPanel from "./GenesisIdentityPanel";
-import EngineeringStudioPanel from "./integration/EngineeringStudioPanel";
-import VoiceStudioPanel from "./integration/VoiceStudioPanel";
-import InfrastructureMonitorPanel from "./integration/InfrastructureMonitorPanel";
-import SecurityCenterPanel from "./integration/SecurityCenterPanel";
-import GenesisEngineeringCommandPanel from "./GenesisEngineeringCommandPanel";
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisIdentityPanel = lazy(() => import("./GenesisIdentityPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const EngineeringStudioPanel = lazy(() => import("./integration/EngineeringStudioPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const VoiceStudioPanel = lazy(() => import("./integration/VoiceStudioPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const InfrastructureMonitorPanel = lazy(() => import("./integration/InfrastructureMonitorPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const SecurityCenterPanel = lazy(() => import("./integration/SecurityCenterPanel"));
+// Code-split: this panel's chunk loads the first time it is opened.
+const GenesisEngineeringCommandPanel = lazy(() => import("./GenesisEngineeringCommandPanel"));
 
 /**
  * ONE module set — the same instances the dock, palette, chat commands
@@ -133,9 +173,10 @@ import useVisual from "../../../core/visual/useVisual";
 import VisualEngine from "../../../core/visual/VisualEngine";
 import CosmosHome from "./home/CosmosHome";
 import SpatialNav, { type HomeSheet } from "./home/SpatialNav";
-import ChatUniverse from "./chat/universe/ChatUniverse";
+const ChatUniverse = lazy(() => import("./chat/universe/ChatUniverse"));
+import { useUniverseOpen } from "./chat/universe/universeOpen";
 import SpatialRevealBridge from "./spatial/SpatialRevealBridge";
-import UniverseChatWindow from "./chat/universe/UniverseChatWindow";
+const UniverseChatWindow = lazy(() => import("./chat/universe/UniverseChatWindow"));
 import { useHomeStore } from "./home/useHomeLive";
 import AgentEventBus from "../../../core/agent/AgentEvents";
 import ExplorationController from "./ExplorationController";
@@ -146,7 +187,7 @@ import CosmosEntityRegistry from "../../../core/cosmos/CosmosEntityRegistry";
 import Sentinel from "../../../core/sentinel/Sentinel";
 import CapabilityManifest from "../../../core/capabilities/CapabilityManifest";
 import LeluSignInGate from "./LeluSignInGate";
-import GenesisBriefingsPanel from "./GenesisBriefingsPanel";
+const GenesisBriefingsPanel = lazy(() => import("./GenesisBriefingsPanel"));
 
 /** Fullscreen toggle — real requestFullscreen / exitFullscreen. */
 function GenesisFullscreenButton() {
@@ -675,10 +716,18 @@ export default function GenesisInterface() {
   // On a phone, when chat (or a window) owns the screen, Home is not rendered
   // at all — it is not hidden under the conversation.
   const showHome = !state.minimized && state.activePanel === "none" && !sceneIsV2 && !systemEnvironmentActive && !homeStore.immersive && !surface.chatOwnsScreen && !surface.workspaceOwnsScreen;
+  const universeOpen = useUniverseOpen();
+  const narrowScreen = typeof window !== "undefined" && window.innerWidth <= 720;
   const navHidden =
     state.minimized ||
     surface.chatOwnsScreen ||
     surface.workspaceOwnsScreen ||
+    // A conversation is open above the Cosmos (the floating Universe mode),
+    // which is nearly the whole screen on a phone: the rail sat ACROSS the
+    // composer and the send button. On a narrow screen it steps aside and
+    // comes back the moment the conversation closes. Desktop keeps it —
+    // there the windows float clear of it.
+    (universeOpen && narrowScreen) ||
     // On a phone an application window is the screen. The bottom nav was
     // painting over its last controls and composer; the window's own close
     // and the ⌘K palette remain the way out.
@@ -700,16 +749,26 @@ export default function GenesisInterface() {
     (id: string) => {
       const artifactId = artifactIdOf(id);
       if (artifactId) {
-        return ({ onClose }: { onClose: () => void }) => <StudioArtifactWindow artifactId={artifactId} onClose={onClose} />;
+        return ({ onClose }: { onClose: () => void }) => (
+          <Suspense fallback={null}>
+            <StudioArtifactWindow artifactId={artifactId} onClose={onClose} />
+          </Suspense>
+        );
       }
       if (id.startsWith(ATELIER_WINDOW_PREFIX)) {
         const projectId = id.slice(ATELIER_WINDOW_PREFIX.length);
-        return ({ onClose }: { onClose: () => void }) => <AtelierWindow projectId={projectId} onClose={onClose} />;
+        return ({ onClose }: { onClose: () => void }) => (
+          <Suspense fallback={null}>
+            <AtelierWindow projectId={projectId} onClose={onClose} />
+          </Suspense>
+        );
       }
       const conversationId = conversationIdOf(id);
       if (!conversationId) return undefined;
       return ({ onClose }: { onClose: () => void }) => (
-        <UniverseChatWindow conversationId={conversationId} onClose={onClose} />
+        <Suspense fallback={null}>
+          <UniverseChatWindow conversationId={conversationId} onClose={onClose} />
+        </Suspense>
       );
     },
     [],
@@ -876,7 +935,9 @@ export default function GenesisInterface() {
         </ChatErrorBoundary>
       )}
 
-      <ChatUniverse />
+      <Suspense fallback={null}>
+        <ChatUniverse />
+      </Suspense>
       {/* A chat-created object is revealed in the live Genesis world: closing
           chat lands on the world framed on it instead of the home dashboard. */}
       <SpatialRevealBridge />

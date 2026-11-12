@@ -22,6 +22,15 @@ export interface RenderStats {
   calls: number;
   triangles: number;
   mobile: boolean;
+  /** Frames this canvas has painted since mount.
+   *  A rising number means the canvas is drawing; a frozen one means the
+   *  scene is not consuming the budget (see SceneRenderBudget). Frame RATE
+   *  hides that: a paused canvas reports the same "fps" as a slow one. */
+  frames: number;
+  /** The render budget's current mode, so a paused world is observable. */
+  mode: string;
+  /** The manager's quality profile: full / balanced / light. */
+  profile: string;
 }
 
 declare global {
@@ -31,6 +40,8 @@ declare global {
 }
 
 import { DPR_MAX, DPR_MIN, DPR_START, mobile } from "./qualityLimits";
+import { getSceneRenderBudget } from "./SceneRenderBudget";
+import { getSceneRenderManager } from "./SceneRenderManager";
 
 /**
  * Inside a <Canvas dpr={dpr}> whose `dpr` is React state: measures fps
@@ -47,9 +58,11 @@ export default function AdaptiveQuality({ onChange }: { onChange: (dpr: number) 
   const slow = useRef(0);
   const fast = useRef(0);
   const lastChange = useRef(0);
+  const painted = useRef(0);
 
   useFrame(() => {
     frames.current += 1;
+    painted.current += 1;
     const now = performance.now();
     if (now - since.current < 1000) return;
     const fps = (frames.current * 1000) / (now - since.current);
@@ -75,6 +88,18 @@ export default function AdaptiveQuality({ onChange }: { onChange: (dpr: number) 
       onChange(next);
     }
 
+    /*
+     * One measured second is also the manager's adaptation sample.
+     *
+     * It is told whether the canvas actually PAINTED that second, which is
+     * not the same as how fast it painted: a paused canvas reports no
+     * frames at all, and "no frames" must never be read as "slow" — that
+     * is how a backgrounded tab turns into a permanently degraded scene.
+     */
+    const mode = getSceneRenderBudget().mode();
+    const manager = getSceneRenderManager();
+    manager.reportFrameRate(fps, mode === "full");
+
     window.__leluRenderStats = {
       fps: Math.round(fps),
       dpr: gl.getPixelRatio(),
@@ -82,6 +107,9 @@ export default function AdaptiveQuality({ onChange }: { onChange: (dpr: number) 
       calls: gl.info.render.calls,
       triangles: gl.info.render.triangles,
       mobile,
+      frames: painted.current,
+      mode,
+      profile: manager.profile(),
     };
   });
   return null;

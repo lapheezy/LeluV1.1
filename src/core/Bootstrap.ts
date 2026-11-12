@@ -48,7 +48,6 @@ import DailyReflection from "./agentic/DailyReflection";
 import ToolRegistry from "./tools/ToolRegistry";
 import { markPerf } from "./perf/StartupTelemetry";
 import StartupDiagnostic from "./selfdev/StartupDiagnostic";
-import AnthropicEngineeringAgent from "./engineering/AnthropicEngineeringAgent";
 
 // -- types ---------------------------------------------------------------
 
@@ -227,16 +226,28 @@ export default class Bootstrap {
       // key that starts the session, and a repository token for the clone.
       // Declaring it available without them would put a capability in the
       // catalogue that fails the moment cognition tries to use it.
-      try {
-        const engineering = AnthropicEngineeringAgent.getInstance().availability();
-        ToolRegistry.getInstance().updateAvailability("engineering.remote", engineering.available);
-        if (!engineering.available) {
-          console.info("[Bootstrap] Remote engineering agent unavailable —", engineering.reason);
-        }
-      } catch (error) {
-        ToolRegistry.getInstance().updateAvailability("engineering.remote", false);
-        console.warn("[Bootstrap] Remote engineering availability check failed (contained)", error);
-      }
+      /*
+       * Deferred, not imported: this module is 175 KB (measured with
+       * scripts/measure-boot-graph.mjs) and startup needs exactly one boolean
+       * from it — whether the remote engineering capability can run. Loading
+       * it before first paint spent that download on every launch, including
+       * the launches that never use remote engineering. The flag is still set,
+       * a moment later, from the same real availability() call.
+       */
+      void import("./engineering/AnthropicEngineeringAgent")
+        .then(({ default: AnthropicEngineeringAgent }) => {
+          try {
+            const engineering = AnthropicEngineeringAgent.getInstance().availability();
+            ToolRegistry.getInstance().updateAvailability("engineering.remote", engineering.available);
+            if (!engineering.available) {
+              console.info("[Bootstrap] Remote engineering agent unavailable —", engineering.reason);
+            }
+          } catch (error) {
+            ToolRegistry.getInstance().updateAvailability("engineering.remote", false);
+            console.warn("[Bootstrap] Remote engineering availability check failed (contained)", error);
+          }
+        })
+        .catch(() => ToolRegistry.getInstance().updateAvailability("engineering.remote", false));
       steps.push(step("services", "DONE",
         `OK — ${tasks.list().length} tasks, proactive + background engines started`));
     } catch (error) {
