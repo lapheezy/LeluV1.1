@@ -22,7 +22,7 @@
  * ==========================================================
  */
 
-import { lazy, useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useWorkspaceRoot } from "./useWorkspace";
 import { conversationIdOf, useGenesis, type GenesisPanel } from "./GenesisCore";
 import GenesisModuleHost, { type ModuleRenderers } from "./GenesisModuleHost";
@@ -35,11 +35,21 @@ import { MODULE_CATALOG } from "./GenesisDock";
 import GenesisErrorBoundary from "./GenesisErrorBoundary";
 // Code-split: this panel's chunk loads the first time it is opened.
 const GenesisCreationStudio = lazy(() => import("./studio/GenesisCreationStudio"));
-import StudioArtifactWindow from "./studio/StudioArtifactWindow";
+/*
+ * Boot-graph cuts.
+ *
+ * These four surfaces are opened by the user, never shown at boot, yet all
+ * four were STATIC imports of the interface — so a cold start fetched the
+ * artifact window, the Atelier window (geometry, readback, file handling)
+ * and both Chat Universe surfaces before drawing anything. Measured with
+ * scripts/measure-boot-graph.mjs, the boot graph was 676 chunks / 5.41 MB.
+ * A lazy panel that appears in the boot graph is not lazy.
+ */
+const StudioArtifactWindow = lazy(() => import("./studio/StudioArtifactWindow"));
 import { artifactIdOf, artifactWindowId } from "./studio/useStudio";
 import StudioStore from "../../../core/studio/StudioStore";
 import { STUDIO_OPEN_EVENT } from "../../../core/studio/StudioTools";
-import AtelierWindow from "./atelier/AtelierWindow";
+const AtelierWindow = lazy(() => import("./atelier/AtelierWindow"));
 import AtelierStore from "../../../core/atelier/AtelierStore";
 import { ATELIER_OPEN_EVENT } from "../../../core/atelier/AtelierTools";
 
@@ -163,10 +173,10 @@ import useVisual from "../../../core/visual/useVisual";
 import VisualEngine from "../../../core/visual/VisualEngine";
 import CosmosHome from "./home/CosmosHome";
 import SpatialNav, { type HomeSheet } from "./home/SpatialNav";
-import ChatUniverse from "./chat/universe/ChatUniverse";
+const ChatUniverse = lazy(() => import("./chat/universe/ChatUniverse"));
 import { useUniverseOpen } from "./chat/universe/universeOpen";
 import SpatialRevealBridge from "./spatial/SpatialRevealBridge";
-import UniverseChatWindow from "./chat/universe/UniverseChatWindow";
+const UniverseChatWindow = lazy(() => import("./chat/universe/UniverseChatWindow"));
 import { useHomeStore } from "./home/useHomeLive";
 import AgentEventBus from "../../../core/agent/AgentEvents";
 import ExplorationController from "./ExplorationController";
@@ -739,16 +749,26 @@ export default function GenesisInterface() {
     (id: string) => {
       const artifactId = artifactIdOf(id);
       if (artifactId) {
-        return ({ onClose }: { onClose: () => void }) => <StudioArtifactWindow artifactId={artifactId} onClose={onClose} />;
+        return ({ onClose }: { onClose: () => void }) => (
+          <Suspense fallback={null}>
+            <StudioArtifactWindow artifactId={artifactId} onClose={onClose} />
+          </Suspense>
+        );
       }
       if (id.startsWith(ATELIER_WINDOW_PREFIX)) {
         const projectId = id.slice(ATELIER_WINDOW_PREFIX.length);
-        return ({ onClose }: { onClose: () => void }) => <AtelierWindow projectId={projectId} onClose={onClose} />;
+        return ({ onClose }: { onClose: () => void }) => (
+          <Suspense fallback={null}>
+            <AtelierWindow projectId={projectId} onClose={onClose} />
+          </Suspense>
+        );
       }
       const conversationId = conversationIdOf(id);
       if (!conversationId) return undefined;
       return ({ onClose }: { onClose: () => void }) => (
-        <UniverseChatWindow conversationId={conversationId} onClose={onClose} />
+        <Suspense fallback={null}>
+          <UniverseChatWindow conversationId={conversationId} onClose={onClose} />
+        </Suspense>
       );
     },
     [],
@@ -915,7 +935,9 @@ export default function GenesisInterface() {
         </ChatErrorBoundary>
       )}
 
-      <ChatUniverse />
+      <Suspense fallback={null}>
+        <ChatUniverse />
+      </Suspense>
       {/* A chat-created object is revealed in the live Genesis world: closing
           chat lands on the world framed on it instead of the home dashboard. */}
       <SpatialRevealBridge />

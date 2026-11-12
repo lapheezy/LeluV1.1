@@ -342,6 +342,28 @@ export default defineConfig(({ mode, command }) => {
       }),
     ],
 
+    build: {
+      /*
+       * NO modulepreload LIST.
+       *
+       * This build emits ~1,700 chunks, and Vite was injecting a
+       * <link rel="modulepreload"> for 674 of them into index.html. The
+       * browser therefore started 674 script fetches the moment it read the
+       * document — including every lazily-code-split panel, which is exactly
+       * what code splitting exists to avoid. Measured through the preview
+       * proxy: a burst of 120 requests returns 96x200 + 24x503, so the tail
+       * of that storm fails, one chunk of the entry graph never arrives, and
+       * the app never mounts; on any connection-limited network it is simply
+       * the multi-second stall before the first frame.
+       *
+       * Chunks still load — every import and dynamic import fetches what it
+       * needs. What is gone is the speculative prefetch of the entire
+       * application at boot. Panels now load when they are opened, which is
+       * what their lazy() already promised.
+       */
+      modulePreload: false,
+    },
+
     server: {
       host: "0.0.0.0",
       port: 5173,
