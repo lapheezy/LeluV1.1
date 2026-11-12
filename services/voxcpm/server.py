@@ -66,6 +66,7 @@ import hashlib
 import io
 import json
 import os
+import signal
 import subprocess
 import sys
 import threading
@@ -75,6 +76,20 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_REFERENCE = ROOT / "public" / "audio" / "voice" / "lelu-voice-reference.m4a"
+
+
+def _memory() -> dict:
+    """Current and peak RSS of this process, in GiB (Linux /proc only)."""
+    out: dict = {}
+    try:
+        with open("/proc/self/status", encoding="utf-8") as handle:
+            for line in handle:
+                if line.startswith(("VmRSS:", "VmHWM:")):
+                    key, value = line.split(":", 1)
+                    out["rssGiB" if key == "VmRSS" else "peakGiB"] = round(int(value.split()[0]) / 1048576, 2)
+    except OSError:
+        pass
+    return out
 
 
 def _env(name: str, default: str) -> str:
@@ -146,6 +161,68 @@ class Engine:
         self.last: "dict | None" = None
         self.reference_path: "Path | None" = None
         self.reference_meta: dict = {}
+        # Lifecycle. READY is only ever set after a real generation has
+        # produced non-silent audio (see `_selftest`), never on "loaded".
+        self.state = "STARTING"
+        self.state_since = time.time()
+        self.state_error: "str | None" = None
+        self.phases: dict = {}
+        self.selftest_result: "dict | None" = None
+        self.state_file = Path(_env("VOXCPM_STATE_FILE", "")) if _env("VOXCPM_STATE_FILE", "") else None
+        self._set_state("STARTING")
+
+    # -- lifecycle -------------------------------------------------------
+
+    def _set_state(self, state: str, error: "str | None" = None) -> None:
+        self.state = state
+        self.state_since = time.time()
+        self.state_error = error
+        self.phases[state] = round(self.state_since, 3)
+        sys.stderr.write(json.dumps({"event": "state", "state": state, "error": error, **_memory()}) + "\n")
+        sys.stderr.flush()
+        if self.state_file is None:
+            return
+        payload = {
+            "state": state,
+            "error": error,
+            "pid": os.getpid(),
+            "since": self.state_since,
+            "phases": self.phases,
+            "loadSeconds": self.load_seconds,
+            "selftest": self.selftest_result,
+            "memory": _memory(),
+        }
+        temporary = self.state_file.with_suffix(".tmp")
+        temporary.parent.mkdir(parents=True, exist_ok=True)
+        temporary.write_text(json.dumps(payload, indent=2))
+        temporary.replace(self.state_file)
+
+    def _selftest(self, model) -> dict:
+        """One real generation from the reference clip. Silence is failure."""
+        import numpy as np
+
+        text = _env("VOXCPM_SELFTEST_TEXT", "Hello, I am ready.")
+        started = time.time()
+        with self._generation_lock:
+            wav = model.generate(
+                text=text,
+                reference_wav_path=str(self.reference_path),
+                cfg_value=self.config.cfg_value,
+                inference_timesteps=self.config.timesteps,
+            )
+        samples = np.asarray(wav, dtype="float32").reshape(-1)
+        rate = self.sample_rate or 24000
+        seconds = len(samples) / float(rate) if rate else 0.0
+        rms = float(np.sqrt(np.mean(samples**2))) if len(samples) else 0.0
+        result = {
+            "text": text,
+            "ms": int((time.time() - started) * 1000),
+            "audioSeconds": round(seconds, 2),
+            "rms": round(rms, 4),
+            "peak": round(float(np.max(np.abs(samples))) if len(samples) else 0.0, 3),
+        }
+        result["ok"] = seconds >= 0.3 and rms >= 0.005
+        return result
 
     # -- reference audio -------------------------------------------------
 
@@ -213,8 +290,9 @@ class Engine:
                 self.load_error = f"voxcpm import failed: {type(exc).__name__}: {exc}"
                 raise RuntimeError(self.load_error) from exc
             started = time.time()
+            self._set_state("LOADING")
             try:
-                self._model = VoxCPM.from_pretrained(
+                model = VoxCPM.from_pretrained(
                     self.config.model_id,
                     load_denoiser=False,
                     device=self.config.device,
@@ -222,9 +300,23 @@ class Engine:
                 )
             except Exception as exc:
                 self.load_error = f"{type(exc).__name__}: {exc}"
+                self._set_state("FAILED", f"load: {self.load_error}")
                 raise
             self.load_seconds = round(time.time() - started, 1)
             self.load_error = None
+            # Loaded is not ready: prove the weights speak before saying so.
+            self._model = model
+            self._set_state("INITIALIZING")
+            try:
+                self.prepare_reference()
+                self.selftest_result = self._selftest(model)
+            except Exception as exc:
+                self.selftest_result = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+            if not self.selftest_result.get("ok"):
+                self._model = None  # never serve weights that failed to speak
+                self._set_state("FAILED", f"selftest: {self.selftest_result}")
+                raise RuntimeError(f"self-test failed: {self.selftest_result}")
+            self._set_state("READY")
             return self._model
 
     @property
@@ -363,6 +455,13 @@ class Engine:
         loaded = self._model is not None
         payload = {
             "ok": True,
+            "state": self.state,
+            "ready": self.state == "READY",
+            "stateSince": round(self.state_since, 3),
+            "stateError": self.state_error,
+            "selftest": self.selftest_result,
+            "pid": os.getpid(),
+            "memory": _memory(),
             "engine": "voxcpm2",
             "modelId": self.config.model_id,
             "device": self.config.device,
@@ -641,8 +740,20 @@ def main() -> int:
 
         threading.Thread(target=warm, daemon=True).start()
 
-    server = ThreadingHTTPServer((config.host, config.port), Handler)
+    try:
+        server = ThreadingHTTPServer((config.host, config.port), Handler)
+    except OSError as exc:
+        engine._set_state("FAILED", f"bind {config.host}:{config.port}: {exc}")
+        return 98  # EADDRINUSE-style exit so the supervisor can classify it
     server.daemon_threads = True
+
+    def _graceful(signum, _frame) -> None:
+        sys.stderr.write(json.dumps({"event": "signal", "signal": signum}) + "\n")
+        # shutdown() blocks until serve_forever returns, so not on this thread.
+        threading.Thread(target=server.shutdown, daemon=True).start()
+
+    signal.signal(signal.SIGTERM, _graceful)
+    signal.signal(signal.SIGINT, _graceful)
     sys.stderr.write(
         json.dumps(
             {
@@ -662,6 +773,8 @@ def main() -> int:
         pass
     finally:
         server.server_close()
+    if engine.state != "FAILED":
+        engine._set_state("STOPPED")
     return 0
 
 
