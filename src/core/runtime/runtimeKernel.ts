@@ -47,6 +47,8 @@ import SelfHealing from "../cognition/SelfHealing";
 import ToolRegistry from "../tools/ToolRegistry";
 import UIOrchestrator from "../ui/UIOrchestrator";
 import WorldLifecycle from "../../app/scene/genesis/engines/WorldLifecycle";
+import { exposeReadinessOnWindow, readiness } from "./readiness";
+import { startReadinessProbes } from "./domProbes";
 
 export interface RuntimeKernel {
   runtime: LeluRuntime;
@@ -95,6 +97,22 @@ export function loadRuntimeKernel(): Promise<RuntimeKernel> {
   load = (async () => {
     const k = kernel();
     const runtime = k.runtime;
+
+    /*
+     * Readiness starts reporting with the kernel, not with a page reload. The
+     * snapshot is mirrored on `window.__leluReadiness` so the real state can
+     * be read from a browser without a build flag, and the probes watch for
+     * the composer and the world actually being laid out.
+     */
+    exposeReadinessOnWindow();
+    readiness().confirm(
+      "shell",
+      typeof performance !== "undefined"
+        ? `React root mounted; kernel started at ${Math.round(performance.now())} ms.`
+        : "React root mounted; kernel started.",
+    );
+    startReadinessProbes();
+    installBootstrapReadiness();
 
     // Snapshots are pushed to whoever is listening now, not captured once:
     // subscribers may attach before or after the first snapshot resolves.
@@ -158,8 +176,82 @@ export async function retainRuntimeKernel(): Promise<RuntimeHandle> {
       CognitiveLoop.getInstance().stop();
       WorldLifecycle.getInstance().shutdown();
       k.runtime.shutdown();
+      // A stopped runtime is not a ready one: the next mount must re-verify
+      // everything rather than inherit a READY claim nothing checked.
+      readiness().reset("Runtime stopped.");
       started = false;
       load = null;
     },
   };
+}
+
+let readinessWired = false;
+
+/**
+ * Translate Bootstrap's own step report into readiness states.
+ *
+ * Bootstrap already runs each subsystem and RECORDS the outcome per step, so
+ * this reads that record instead of re-deciding anything: no second scheduler,
+ * no duplicated health checks. Each mapping is deliberately conservative —
+ * DONE means the step's own call returned, which for providers, tools and
+ * agents is an investment of code, not yet proof of a working turn. Those stay
+ * INITIALIZING until a real event confirms them (a provider reply for
+ * cognition, a tool result for tools, orchestration output for agents).
+ *
+ * Subscribed once; Bootstrap publishes one report per start.
+ */
+function installBootstrapReadiness(): void {
+  if (readinessWired) return;
+  readinessWired = true;
+
+  Bootstrap.getInstance().subscribe((report) => {
+    const r = readiness();
+
+    // The report carries both RUNNING and final entries per step; the last one
+    // for a name is the outcome.
+    const latest = new Map<string, { status: string; detail: string }>();
+    for (const step of report.steps) {
+      latest.set(step.step, { status: step.status, detail: step.detail });
+    }
+
+    for (const [step, outcome] of latest) {
+      const { status, detail } = outcome;
+      switch (step) {
+        case "environment":
+          if (status === "FAILED") r.fail("network", detail);
+          break;
+        case "providers":
+          if (status === "FAILED") r.fail("cognition", detail);
+          else if (status === "DONE") {
+            r.begin("cognition", `Provider runtime initialized (${detail}). Awaiting a verified reply.`);
+          } else r.begin("cognition", detail);
+          break;
+        case "runtime":
+          if (status === "FAILED") r.fail("memory", detail);
+          else if (status === "DONE") {
+            // The runtime's own health check is not a read/write proof.
+            r.degrade("memory", `Runtime health: ${detail}. No read/write verified.`);
+          } else r.begin("memory", detail);
+          break;
+        case "services":
+          if (status === "FAILED") r.fail("tools", detail);
+          else if (status === "DONE") {
+            r.begin("tools", `Tool registrars ran (${detail}). Awaiting a real invocation.`);
+          } else r.begin("tools", detail);
+          break;
+        case "cognition":
+          if (status === "FAILED") r.fail("agents", detail);
+          else if (status === "DONE") {
+            r.begin("agents", `Cognition loop started (${detail}). Awaiting orchestration.`);
+          } else r.begin("agents", detail);
+          break;
+        case "world":
+          if (status === "FAILED") r.fail("cosmos", detail);
+          else r.begin("cosmos", `World lifecycle: ${detail}. Awaiting the mounted canvas.`);
+          break;
+        default:
+          break;
+      }
+    }
+  });
 }

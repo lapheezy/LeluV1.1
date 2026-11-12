@@ -158,6 +158,17 @@ const GenesisSurfaceController = lazy(() => import("./GenesisSurfaceController")
 const GenesisNotificationCenter = lazy(() => import("./GenesisNotificationCenter"));
 const EngineTick = lazy(() => import("./EngineTick"));
 
+/*
+ * The readiness dashboard is an INTERNAL surface: it exists so "the app is
+ * loaded" and "LÉLU is operational" can be told apart, and it is rendered
+ * only for `?diagnostics`, so it costs nothing on a normal load — its chunk
+ * is never fetched and it cannot clutter the Cosmos.
+ */
+const ReadinessDashboard = lazy(() => import("./runtime/ReadinessDashboard"));
+const DIAGNOSTICS_OPEN =
+  typeof window !== "undefined" &&
+  new URLSearchParams(window.location.search).has("diagnostics");
+
 /** Minimal full-screen fallback shown while a code-split scene loads. */
 function SceneLoadingFallback() {
   return (
@@ -729,6 +740,12 @@ function GenesisWorkspaceRouter() {
       {v2Active ? null : (
         <Suspense fallback={null}>
           <GenesisNotificationCenter />
+        </Suspense>
+      )}
+
+      {DIAGNOSTICS_OPEN && (
+        <Suspense fallback={null}>
+          <ReadinessDashboard />
         </Suspense>
       )}
     </>
