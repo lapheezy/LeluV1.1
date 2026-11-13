@@ -79,9 +79,11 @@ EXIT_FILE = RUN / "worker.exit.json"
 LOCK_FILE = RUN / "worker.lock"
 WORKER_LOG = RUN / "worker.log"
 SUPERVISOR_LOG = RUN / "supervisor.log"
-READY_MARKER = ROOT / ".voxcpm" / "state" / "model-ready.json"
+READY_MARKER = Path(os.environ.get("VOXCPM_READY_MARKER", str(ROOT / ".voxcpm" / "state" / "model-ready.json")))
 VENV_PY = Path(os.environ.get("VOXCPM_PYTHON", str(ROOT / ".venv-voxcpm" / "bin" / "python")))
-SERVER = HERE / "server.py"
+# The speech worker this manager supervises. Default VoxCPM2; the MOSS-TTS-Nano
+# candidate speaks the same contract (services/mossnano/server.py).
+SERVER = Path(os.environ.get("VOXCPM_SERVER", str(HERE / "server.py")))
 
 HOST = os.environ.get("VOXCPM_HOST", "127.0.0.1")
 PORT = int(os.environ.get("VOXCPM_PORT", "8788"))

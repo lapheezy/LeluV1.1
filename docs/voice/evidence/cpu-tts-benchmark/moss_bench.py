@@ -65,7 +65,7 @@ def main() -> int:
     parser.add_argument("--ref", required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--threads", type=int, default=4)
-    parser.add_argument("--mode", default="full", choices=["full", "stability", "worker", "quality"])
+    parser.add_argument("--mode", default="full", choices=["full", "stability", "worker", "quality", "name"])
     parser.add_argument("--repeat", type=int, default=10)
     parser.add_argument("--label", default="")
     parser.add_argument("--no-spin", action="store_true", help="disable ORT intra-op thread spinning in every session")
@@ -229,6 +229,20 @@ def main() -> int:
             write_wav(out / f"q{i:02d}.wav", audio, sample_rate)
             (out / f"q{i:02d}.txt").write_text(text)
             emit("quality", i=i, **r)
+    elif args.mode == "name":
+        variants = ["Lélu", "Lelu", "LÉLU", "Lay-loo", "Laylu", "Leh-loo", "Lélou"]
+        frames = ["Hi, I'm {}. How can I help you today?", "{} here. I found three new messages for you."]
+        for v_i, v in enumerate(variants):
+            for f_i, frame in enumerate(frames):
+                for seed in range(4):
+                    rt.rng = np.random.default_rng(5000 + seed)
+                    text = frame.format(v)
+                    r = synth(text)
+                    audio = r.pop("_audio")
+                    stem = f"v{v_i}-f{f_i}-s{seed}"
+                    write_wav(out / f"{stem}.wav", audio, sample_rate)
+                    (out / f"{stem}.json").write_text(json.dumps({"variant": v, "frame": f_i, "seed": seed, "text": text}))
+                    emit("name", variant=v, frame=f_i, seed=seed, **r)
     elif args.mode == "worker":  # used for concurrency: one process per simultaneous request
         synth("Warm up.")
         barrier = Path(args.out) / "go"

@@ -98,3 +98,7 @@ __pycache__/
 # LiveKit runtime (keys, logs) and voice agent env — never committed
 .livekit/
 .venv-livekit-agent/
+
+# MOSS-TTS-Nano candidate worker (code, weights, env) — fetched by services/mossnano/install.sh
+.mossnano/
+.venv-mossnano/

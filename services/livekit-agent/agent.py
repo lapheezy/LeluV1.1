@@ -64,6 +64,10 @@ IDLE_LEAVE_SECONDS = float(os.environ.get("LELU_AGENT_IDLE_LEAVE", "120"))
 # "stream": play chunks as they arrive — right only when the worker is faster
 #   than real time (a GPU).
 PLAYBACK = os.environ.get("LELU_AGENT_PLAYBACK", "sentence")
+# Stream mode only: hold this much audio before her voice starts, so a worker
+# running near real time on a shared CPU does not stall mid-sentence. Measured
+# for MOSS-TTS-Nano on 4 shared vCPU: worst stall up to ~0.9 s without it.
+PREBUFFER_MS = int(os.environ.get("LELU_AGENT_PREBUFFER_MS", "0"))
 
 
 def log(event: str, **fields) -> None:
@@ -113,7 +117,7 @@ class RoomSession:
         self.agent = agent
         self.room_name = room_name
         self.room = rtc.Room()
-        self.source = rtc.AudioSource(OUT_RATE, 1, queue_size_ms=1000)
+        self.source = rtc.AudioSource(OUT_RATE, 1, queue_size_ms=max(1000, PREBUFFER_MS + 1000))
         self.turn = 0
         self.speaking_turn: int | None = None
         self.speak_task: asyncio.Task | None = None
@@ -296,6 +300,23 @@ class RoomSession:
         first = True
         started = time.time()
         samples_out = 0
+        held: list = []  # frames waiting for the prebuffer to fill (stream mode)
+        held_samples = 0
+        # Underrun accounting: playback began at play_t0; by wall time T the
+        # listener has heard (T - play_t0 - stalled) s; if fewer seconds had
+        # been supplied, the difference was silence she did not mean.
+        clock = {"t0": None, "supplied": 0.0, "stalled": 0.0, "underruns": 0}
+
+        async def play(out_frame) -> None:
+            now = time.time()
+            if clock["t0"] is None:
+                clock["t0"] = now
+            lag = (now - clock["t0"]) - clock["supplied"] - clock["stalled"]
+            if lag > 0.02:
+                clock["stalled"] += lag
+                clock["underruns"] += 1
+            clock["supplied"] += out_frame.samples_per_channel / OUT_RATE
+            await self.source.capture_frame(out_frame)
         try:
             for piece in sentences(text):
                 async with self.agent.http.post(
@@ -332,18 +353,33 @@ class RoomSession:
                         if resampler:
                             frames = resampler.push(frames[0])
                         for frame in (piece for f in frames for piece in split_frame(f)):
-                            if first:
-                                first = False
-                                log("first_audio", room=self.room_name, turn=turn, ms=int((time.time() - started) * 1000))
-                                await self.send({"type": "speaking", "turnId": turn})
-                            samples_out += frame.samples_per_channel
-                            await self.source.capture_frame(frame)
+                            if first and PLAYBACK == "stream" and held_samples < OUT_RATE * PREBUFFER_MS // 1000:
+                                held.append(frame)
+                                held_samples += frame.samples_per_channel
+                                continue
+                            for out_frame in [*held, frame]:
+                                if first:
+                                    first = False
+                                    log("first_audio", room=self.room_name, turn=turn, ms=int((time.time() - started) * 1000), prebufferMs=PREBUFFER_MS)
+                                    await self.send({"type": "speaking", "turnId": turn})
+                                samples_out += out_frame.samples_per_channel
+                                await play(out_frame)
+                            held, held_samples = [], 0
+            for out_frame in held:  # a reply shorter than the prebuffer
+                if first:
+                    first = False
+                    log("first_audio", room=self.room_name, turn=turn, ms=int((time.time() - started) * 1000), prebufferMs=PREBUFFER_MS)
+                    await self.send({"type": "speaking", "turnId": turn})
+                samples_out += out_frame.samples_per_channel
+                await play(out_frame)
+            held = []
             if samples_out == 0:
                 log("tts_empty", room=self.room_name, turn=turn)
                 await self.send({"type": "error", "where": "tts", "detail": "the speech worker returned no audio"})
                 return
             await self.source.wait_for_playout()
-            log("spoke", room=self.room_name, turn=turn, seconds=round(samples_out / OUT_RATE, 2), ms=int((time.time() - started) * 1000))
+            log("spoke", room=self.room_name, turn=turn, seconds=round(samples_out / OUT_RATE, 2), ms=int((time.time() - started) * 1000),
+                stallMs=int(clock["stalled"] * 1000), underruns=clock["underruns"], playback=PLAYBACK, prebufferMs=PREBUFFER_MS)
             await self.send({"type": "spoke", "turnId": turn})
         finally:
             if self.speaking_turn == turn:
