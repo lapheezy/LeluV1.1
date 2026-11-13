@@ -169,11 +169,21 @@ export default class ResearchResolver {
     // encyclopedia sources come back empty).
     const toolFocus = context.researchFocus;
     const invokedAsTool = (context as { toolInvoked?: boolean }).toolInvoked === true;
+    const selected = this.selectProviders(context, prompt);
+    // "news" is appended to the query only when a NEWS source will read it.
+    // For an encyclopedia question classified "search" ("what is the capital
+    // of Australia?") it made Wikipedia, Wikidata and Wikimedia all return
+    // nothing for "…capital of Australia news", which then ran two more
+    // fallback rounds: measured 5.2 s of research before the model ran.
+    const newsSourceSelected = selected.some((provider) =>
+      (provider.capabilities ?? []).some((cap: string) => cap === "news" || cap === "current-events"),
+    );
+    const queryIntent: AIIntent | undefined =
+      intent === "search" && !newsSourceSelected ? ("chat" as AIIntent) : intent;
     const query =
       invokedAsTool && !(toolFocus ?? []).includes("news")
         ? this.buildQuery(prompt, "chat")
-        : this.buildQuery(prompt, intent);
-    const selected = this.selectProviders(context, prompt);
+        : this.buildQuery(prompt, queryIntent);
 
     // WHO ASKED FOR THIS SEARCH?
     //
@@ -461,23 +471,28 @@ export default class ResearchResolver {
     const collected: KnowledgeResult[] = [];
     const started = Date.now();
 
-    for (const provider of providers) {
-      if (collected.length >= MAX_RESULTS) {
-        break;
-      }
-
-      // Stop the moment the phase is out of time. Without this the loop
-      // spends a full per-provider timeout on every remaining provider
-      // even when the turn has already waited too long.
+    /*
+     * The providers of one round run CONCURRENTLY.
+     *
+     * They are independent sources for the same query, and this used to
+     * await them one after another: measured on a real turn, Wikipedia,
+     * Wikidata and Wikimedia each took ~0.7 s in sequence, per round. Every
+     * guarantee is kept per provider — canSearch, the usage budget checked
+     * before the call, a timeout capped by the shared phase deadline, the
+     * ledger record and the attempted list — and results are still taken in
+     * the providers' priority order, up to MAX_RESULTS.
+     */
+    const run = async (provider: any): Promise<KnowledgeResult[]> => {
+      // Never start once the phase is out of time.
       const remaining = deadline - Date.now();
       if (remaining <= 0) {
         attempted.push({ provider: provider.name, error: "research-budget-exhausted" });
-        continue;
+        return [];
       }
 
       if (!provider.canSearch?.(query)) {
         attempted.push({ provider: provider.name, error: "provider-cannot-handle-query" });
-        continue;
+        return [];
       }
 
       // A configured budget is a hard cap, checked before the call. A
@@ -487,7 +502,7 @@ export default class ResearchResolver {
       const budget = ledger.check("api", provider.name);
       if (!budget.allowed) {
         attempted.push({ provider: provider.name, error: budget.reason ?? "budget-reached" });
-        continue;
+        return [];
       }
       if (budget.warning) context.logger.info("ResearchResolver", `Budget warning: ${budget.warning}`, { provider: provider.name });
 
@@ -508,12 +523,8 @@ export default class ResearchResolver {
         // Validate the response shape before accepting it — an HTTP
         // 200 with a malformed/empty payload is a failure, not success.
         const usable = Array.isArray(results)
-          ? results.filter((result) => result && typeof result.title === "string" && result.title.trim().length > 0)
+          ? results.filter((result: KnowledgeResult) => result && typeof result.title === "string" && result.title.trim().length > 0)
           : [];
-
-        for (const result of usable.slice(0, MAX_RESULTS - collected.length)) {
-          collected.push(result);
-        }
 
         ledger.record({ kind: "api", source: provider.name, operation: "search", ok: true, latencyMs: Date.now() - providerStarted, results: usable.length });
 
@@ -526,6 +537,7 @@ export default class ResearchResolver {
         if (usable.length === 0) {
           attempted.push({ provider: provider.name, error: "0-usable-results" });
         }
+        return usable;
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
         attempted.push({ provider: provider.name, error: reason });
@@ -543,7 +555,16 @@ export default class ResearchResolver {
           reason,
           latencyMs: Date.now() - providerStarted,
         });
+        return [];
       }
+    };
+
+    const perProvider = await Promise.all(providers.map((provider) => run(provider)));
+    for (const usable of perProvider) {
+      for (const result of usable.slice(0, MAX_RESULTS - collected.length)) {
+        collected.push(result);
+      }
+      if (collected.length >= MAX_RESULTS) break;
     }
 
     context.logger.info("ResearchResolver", "Research complete", {

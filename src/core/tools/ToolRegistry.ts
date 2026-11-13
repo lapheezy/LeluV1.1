@@ -321,14 +321,26 @@ export default class ToolRegistry {
     // offered at L3 with no runtime to run it on, and project.read's
     // answer depended on which of the two had run last. This is the
     // single writer now; EngineeringWorkspace answers and writes nothing.
-    let runtimeReachable = false;
-    try {
+    //
+    // The three network probes (development runtime, acquisition runtime,
+    // GitHub) are independent and used to run one after another. A chat
+    // turn awaits this refresh whenever it is stale, and the serial chain
+    // was measured at ~1.6 s of a real turn before the model was called.
+    // They start together now; each result is applied exactly as before.
+    const probeRuntime = (async () => {
       const { default: EngineeringWorkspace } = await import("../engineering/EngineeringWorkspace");
-      runtimeReachable = await EngineeringWorkspace.getInstance().runtimeReachable();
-    } catch {
-      // Unreachable means unavailable, never "assume yes".
-      runtimeReachable = false;
-    }
+      return EngineeringWorkspace.getInstance().runtimeReachable();
+    })();
+    const probeAcquisition = (async () => {
+      const { default: AcquisitionRuntime } = await import("../acquisition/AcquisitionRuntime");
+      return AcquisitionRuntime.getInstance().status();
+    })();
+    const probeGitHub = GitHubIntegration.getInstance().getStatus();
+    // Settled up front so no probe can reject unobserved while another is awaited.
+    const [runtimeProbe, acquisitionProbe, githubProbe] = await Promise.allSettled([probeRuntime, probeAcquisition, probeGitHub]);
+
+    // Unreachable means unavailable, never "assume yes".
+    const runtimeReachable = runtimeProbe.status === "fulfilled" ? runtimeProbe.value : false;
 
     // Workspace commands need BOTH: the same autonomy-gate check
     // WorkspaceRuntime itself enforces, AND a runtime to run on. Either
@@ -363,8 +375,8 @@ export default class ToolRegistry {
     // maintenance and executor tools. When no runtime answers, cognition is
     // not offered a tool this deployment cannot execute.
     try {
-      const { default: AcquisitionRuntime } = await import("../acquisition/AcquisitionRuntime");
-      const acquisition = await AcquisitionRuntime.getInstance().status();
+      if (acquisitionProbe.status === "rejected") throw acquisitionProbe.reason;
+      const acquisition = acquisitionProbe.value;
       for (const id of [
         "repo.search",
         "repo.exec",
@@ -386,7 +398,8 @@ export default class ToolRegistry {
     // so claiming per-entry granularity nothing actually differentiates
     // would just be a more specific-looking guess.
     try {
-      const status = await GitHubIntegration.getInstance().getStatus();
+      if (githubProbe.status === "rejected") throw githubProbe.reason;
+      const status = githubProbe.value;
       for (const id of ["github.auth", "github.repos", "github.files", "github.branches", "github.commits", "github.prs"]) {
         this.updateAvailability(id, status.configured);
       }
