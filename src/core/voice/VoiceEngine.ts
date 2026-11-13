@@ -426,6 +426,8 @@ class VoiceEngine {
 
   /** Utterances queued in speechSynthesis that have not ended yet. */
   private pendingUtterances = 0;
+  /** Streamed speech deferred until the server says which voice speaks. */
+  private awaitingVoice = 0;
   /** A streamed reply is being spoken (begin → feed… → finish). */
   private streaming = false;
   /** speakResponse() is walking its chunk chain. */
@@ -600,7 +602,12 @@ class VoiceEngine {
    * real voice, so barge-in never fired on it (found live, 2026-11-07).
    */
   isSpeaking(): boolean {
-    return this.pendingUtterances > 0 || (this.chainActive && this.elevenLabs) || this.livekitSpeaking;
+    return (
+      this.pendingUtterances > 0 ||
+      this.awaitingVoice > 0 ||
+      (this.chainActive && this.elevenLabs) ||
+      this.livekitSpeaking
+    );
   }
 
   /** How many times the user has interrupted her this session. */
@@ -1758,10 +1765,20 @@ class VoiceEngine {
       speak();
       return;
     }
-    void this.probeElevenLabs().then(() => {
-      this.elevenLabsSettled = true;
-      speak();
-    });
+    // A reply waiting on "which voice?" is already committed to be spoken.
+    // Counted as speaking so barge-in and the echo guard cover that window
+    // too, instead of reading "silent" until the probe answers.
+    this.awaitingVoice += 1;
+    void this.probeElevenLabs()
+      .catch(() => {
+        // An unanswerable probe means "no server voice known": the browser
+        // fallback speaks, and settling here keeps speak() from re-deferring.
+      })
+      .finally(() => {
+        this.elevenLabsSettled = true;
+        this.awaitingVoice = Math.max(0, this.awaitingVoice - 1);
+        speak();
+      });
   }
 
   /**
