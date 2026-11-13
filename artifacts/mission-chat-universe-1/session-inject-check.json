@@ -1,0 +1,36 @@
+{
+  "email": "lelu.session.1794596402134@example.com",
+  "signup": {
+    "status": 200,
+    "hasAccessToken": true,
+    "userId": "bf8a60ab-a1d7-4dcc-8aa4-d98e98255c13"
+  },
+  "afterReload": {
+    "gatePresent": false,
+    "token": {
+      "hasAccess": true,
+      "userId": "bf8a60ab-a1d7-4dcc-8aa4-d98e98255c13",
+      "email": "lelu.session.1794596402134@example.com"
+    }
+  },
+  "hydrationLogs": [],
+  "reply": "",
+  "logs": [
+    "log: [Lélu ProjectScheduler] Started — checking every 60s",
+    "info: [build] LÉLU 91df941 · mission/chat-universe-reinforcement-1 · development · built 2026-11-13 18:32Z (sha 91df9411d776f862a00a1354c8aca62928def264)",
+    "info: [build] LÉLU 91df941 · mission/chat-universe-reinforcement-1 · development · built 2026-11-13 18:32Z (sha 91df9411d776f862a00a1354c8aca62928def264)",
+    "log: [Lélu ProjectScheduler] Started — checking every 60s",
+    "info: [build] LÉLU 91df941 · mission/chat-universe-reinforcement-1 · development · built 2026-11-13 18:32Z (sha 91df9411d776f862a00a1354c8aca62928def264)",
+    "info: [build] LÉLU 91df941 · mission/chat-universe-reinforcement-1 · development · built 2026-11-13 18:32Z (sha 91df9411d776f862a00a1354c8aca62928def264)",
+    "info: [Bootstrap] Remote engineering agent unavailable — Anthropic is disabled by policy (set LELU_ENABLE_ANTHROPIC=true to opt in).",
+    "info: [StartupDiagnostic] 15/15 checks passed:\n  ✓ AI provider — 3/9 provider(s) available (OpenRouter, Groq, GitHub Models)\n  ✓ Fallback provider chain — 9 provider(s) in the priority chain: Local (on-device) → OpenRouter → G",
+    "info: [Lélu Body] 3 texture(s) fitted to 2048px",
+    "info: [Lélu Body] avatar controls {face: Array(12), bones: Array(7)} motion [idle, idle_1, idle_3, idle_look_around, talk_open, talk_right, talk_hip, talk_passionate, listen, agree, wave, wave_big, bow, shrug, hand_on_hip, che",
+    "warning: [Lélu] Supabase proactive_questions sync degraded duplicate key value violates unique constraint \"proactive_questions_pkey\"",
+    "info: [Lélu Body] avatar controls {face: Array(12), bones: Array(7)} motion [idle, idle_1, idle_3, idle_look_around, talk_open, talk_right, talk_hip, talk_passionate, listen, agree, wave, wave_big, bow, shrug, hand_on_hip, che",
+    "log: Metadata: {prompt: L, memoryCount: 3}",
+    "startGroupCollapsed: 🟢 [7:00:41 PM] [ReasoningResolver] Selected \"Ground the answer in patterns Lélu has already learned.\" with confidence 0.8.",
+    "table: {Stage: ReasoningResolver, Success: true, Message: Selected \"Ground the answer in patterns Lélu has already learned.\" with confidence 0.8., Provider: -, Duration: -, Confidence: -}",
+    "log: Metadata: {intent: chat, hypothesisId: recalled-memory}"
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "email": "lelu.gate.1794595945753@example.com",
+  "base": "http://127.0.0.1:3001/",
+  "gate": {
+    "gate": true,
+    "gateBox": {
+      "x": 12,
+      "y": 574,
+      "w": 366,
+      "h": 175
+    },
+    "gateZ": "600",
+    "gatePointerEvents": "none",
+    "cardBox": {
+      "x": 12,
+      "y": 574,
+      "w": 366,
+      "h": 175
+    },
+    "cardBackground": "rgba(8, 16, 38, 0.96)",
+    "topElementAtGateCentre": "form.",
+    "topElementInsideGate": true,
+    "gateText": ""
+  },
+  "buttonBox": {
+    "x": 71,
+    "y": 672.5,
+    "width": 30,
+    "height": 20
+  },
+  "buttonHit": "button.",
+  "afterSignup": {
+    "gate": true,
+    "gateBox": {
+      "x": 12,
+      "y": 566,
+      "w": 366,
+      "h": 183
+    },
+    "gateZ": "600",
+    "gatePointerEvents": "none",
+    "cardBox": {
+      "x": 12,
+      "y": 566,
+      "w": 366,
+      "h": 183
+    },
+    "cardBackground": "rgba(8, 16, 38, 0.96)",
+    "topElementAtGateCentre": "form.",
+    "topElementInsideGate": true,
+    "gateText": ""
+  },
+  "authAfterSignup": {
+    "status": "signed_out",
+    "hasSession": false,
+    "userId": null,
+    "email": null
+  },
+  "authAfterWait": {
+    "status": "signed_out",
+    "hasSession": false,
+    "userId": null
+  },
+  "logs": [
+    "log: [Lélu ProjectScheduler] Started — checking every 60s",
+    "info: [build] LÉLU 91df941 · mission/chat-universe-reinforcement-1 · development · built 2026-11-13 18:32Z (sha 91df9411d776f862a00a1354c8aca62928def264)",
+    "info: [build] LÉLU 91df941 · mission/chat-universe-reinforcement-1 · development · built 2026-11-13 18:32Z (sha 91df9411d776f862a00a1354c8aca62928def264)",
+    "warning: GoTrueClient@sb-nrehsldbfxthspikaxvr-auth-token:1 (2.117.3) 2026-11-13T18:52:27.448Z Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce ",
+    "log: [Lélu ProjectScheduler] Started — checking every 60s",
+    "info: [build] LÉLU 91df941 · mission/chat-universe-reinforcement-1 · development · built 2026-11-13 18:32Z (sha 91df9411d776f862a00a1354c8aca62928def264)",
+    "info: [build] LÉLU 91df941 · mission/chat-universe-reinforcement-1 · development · built 2026-11-13 18:32Z (sha 91df9411d776f862a00a1354c8aca62928def264)",
+    "warning: GoTrueClient@sb-nrehsldbfxthspikaxvr-auth-token:1 (2.117.3) 2026-11-13T18:52:28.507Z Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce ",
+    "info: [Bootstrap] Remote engineering agent unavailable — Anthropic is disabled by policy (set LELU_ENABLE_ANTHROPIC=true to opt in).",
+    "info: [StartupDiagnostic] 15/15 checks passed:\n  ✓ AI provider — 3/9 provider(s) available (OpenRouter, Groq, GitHub Models)\n  ✓ Fallback provider chain — 9 provider(s) in the priority chain: Local (on-device) → OpenRouter → G",
+    "info: [Lélu Body] 3 texture(s) fitted to 2048px",
+    "info: [Lélu Body] avatar controls {face: Array(12), bones: Array(7)} motion [idle, idle_1, idle_3, idle_look_around, talk_open, talk_right, talk_hip, talk_passionate, listen, agree, wave, wave_big, bow, shrug, hand_on_hip, che"
+  ]
+}
