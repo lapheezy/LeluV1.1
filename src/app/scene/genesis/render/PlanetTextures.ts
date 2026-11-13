@@ -71,12 +71,41 @@ function fbm(noise: (x: number, y: number) => number, x: number, y: number, octa
   return value;
 }
 
-// ── Generate Earth Surface Texture ──
-export function generateEarthSurface(size = 512): HTMLCanvasElement {
+// ── Pixel buffers ──
+//
+// Each generator used to draw ONE fillRect per pixel with a freshly
+// formatted CSS colour string: three 1024² textures = 3.1 M canvas calls
+// on the main thread, measured at ~1.8 s of the cold boot (the largest
+// single block of it). The colour formulas below are unchanged; they now
+// write straight into one RGBA buffer that is put on the canvas once.
+//
+// A source-over fillRect of rgba(r,g,b,a) onto a transparent pixel leaves
+// exactly (r, g, b, round(a·255)), channels clamped to 0–255 — which is
+// what writeRgba stores, so the texture is the same.
+
+function writeRgba(out: Uint8ClampedArray, o: number, r: number, g: number, b: number, alpha: number): void {
+  const a = Math.round(Math.max(0, Math.min(1, alpha)) * 255);
+  if (a === 0) return; // transparent stays (0,0,0,0), as an alpha-0 fill left it
+  out[o] = r;
+  out[o + 1] = g;
+  out[o + 2] = b;
+  out[o + 3] = a;
+}
+
+function toCanvas(pixels: Uint8ClampedArray, size: number): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext("2d")!;
+  const image = ctx.createImageData(size, size);
+  image.data.set(pixels);
+  ctx.putImageData(image, 0, 0);
+  return canvas;
+}
+
+// ── Generate Earth Surface Texture ──
+export function earthSurfacePixels(size = 512): Uint8ClampedArray {
+  const out = new Uint8ClampedArray(size * size * 4);
   const noise = createNoise(42);
   const noise2 = createNoise(137);
   const noise3 = createNoise(256);
@@ -162,19 +191,23 @@ export function generateEarthSurface(size = 512): HTMLCanvasElement {
       g = Math.max(0, Math.min(255, Math.round(g)));
       b = Math.max(0, Math.min(255, Math.round(b)));
 
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
-      ctx.fillRect(x, y, 1, 1);
+      const o = (y * size + x) * 4;
+      out[o] = r;
+      out[o + 1] = g;
+      out[o + 2] = b;
+      out[o + 3] = 255;
     }
   }
-  return canvas;
+  return out;
+}
+
+export function generateEarthSurface(size = 512): HTMLCanvasElement {
+  return toCanvas(earthSurfacePixels(size), size);
 }
 
 // ── Generate Cloud Texture ──
-export function generateCloudTexture(size = 512): HTMLCanvasElement {
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d")!;
+export function cloudPixels(size = 512): Uint8ClampedArray {
+  const out = new Uint8ClampedArray(size * size * 4);
   const noise = createNoise(777);
 
   for (let y = 0; y < size; y++) {
@@ -196,19 +229,19 @@ export function generateCloudTexture(size = 512): HTMLCanvasElement {
       const alpha = Math.min(1, density * polarReduction);
       const brightness = Math.round(220 + density * 35);
 
-      ctx.fillStyle = `rgba(${brightness},${brightness + 5},${brightness + 10},${alpha})`;
-      ctx.fillRect(x, y, 1, 1);
+      writeRgba(out, (y * size + x) * 4, brightness, brightness + 5, brightness + 10, alpha);
     }
   }
-  return canvas;
+  return out;
+}
+
+export function generateCloudTexture(size = 512): HTMLCanvasElement {
+  return toCanvas(cloudPixels(size), size);
 }
 
 // ── Generate Night Side City Lights ──
-export function generateCityLightsTexture(size = 512): HTMLCanvasElement {
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d")!;
+export function cityLightsPixels(size = 512): Uint8ClampedArray {
+  const out = new Uint8ClampedArray(size * size * 4);
   const noise = createNoise(999);
 
   for (let y = 0; y < size; y++) {
@@ -234,11 +267,14 @@ export function generateCityLightsTexture(size = 512): HTMLCanvasElement {
       const brightness = Math.round(80 + cityNoise * 175);
       const alpha = latFactor * cityNoise * 0.8;
 
-      ctx.fillStyle = `rgba(${brightness},${Math.round(brightness * 0.9)},${Math.round(brightness * 0.6)},${alpha})`;
-      ctx.fillRect(x, y, 1, 1);
+      writeRgba(out, (y * size + x) * 4, brightness, Math.round(brightness * 0.9), Math.round(brightness * 0.6), alpha);
     }
   }
-  return canvas;
+  return out;
+}
+
+export function generateCityLightsTexture(size = 512): HTMLCanvasElement {
+  return toCanvas(cityLightsPixels(size), size);
 }
 
 // ── Canvas to Three.js Texture ──

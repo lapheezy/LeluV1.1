@@ -20,17 +20,12 @@ import {
   Group,
   Mesh,
   Color,
-  CanvasTexture,
   AdditiveBlending,
   DoubleSide,
 } from "three";
 import WorldLifecycle from "../engines/WorldLifecycle";
 import { WorldPhase, type WorldPhaseType } from "../engines/EngineDomains";
-import {
-  generateEarthSurface,
-  generateCloudTexture,
-  generateCityLightsTexture,
-} from "./PlanetTextures";
+import { createPlanetTexture } from "./planetTextureSource";
 import {
   PlanetCities,
   PlanetPopulation,
@@ -268,21 +263,11 @@ export function TestPlanet() {
     });
   }, []);
 
-  // Generate procedural textures (once)
-  const surfaceTexture = useMemo(() => {
-    const canvas = generateEarthSurface(1024);
-    return new CanvasTexture(canvas);
-  }, []);
-
-  const cloudTexture = useMemo(() => {
-    const canvas = generateCloudTexture(1024);
-    return new CanvasTexture(canvas);
-  }, []);
-
-  const cityLightsTexture = useMemo(() => {
-    const canvas = generateCityLightsTexture(1024);
-    return new CanvasTexture(canvas);
-  }, []);
+  // Procedural textures: usable at once, filled in off the main thread
+  // (see ./planetTextureSource — this was 1.8 s of synchronous boot work).
+  const surfaceTexture = useMemo(() => createPlanetTexture("earth", 1024, "rgb(15,60,120)"), []);
+  const cloudTexture = useMemo(() => createPlanetTexture("clouds", 1024), []);
+  const cityLightsTexture = useMemo(() => createPlanetTexture("cityLights", 1024), []);
 
   // Phase-driven values
   const isRebirth = phase === WorldPhase.REBIRTH;
