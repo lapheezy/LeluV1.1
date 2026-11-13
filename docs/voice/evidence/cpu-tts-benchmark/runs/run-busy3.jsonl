@@ -1,0 +1,10 @@
+{"event": "start", "t": 0.008, "threads": 3, "mode": "stability", "label": "", "peakMiB": 28, "rssMiB": 28}
+{"event": "imported", "t": 1.016, "peakMiB": 286, "rssMiB": 286}
+{"event": "loaded", "t": 4.104, "loadSeconds": 3.09, "loadCpuSeconds": 3.06, "peakMiB": 1502, "rssMiB": 1502}
+{"event": "reference_encoded", "t": 9.354, "seconds": 5.25, "promptFrames": 150, "peakMiB": 2539, "rssMiB": 1660}
+{"event": "repeat", "t": 16.206, "i": 1, "chars": 67, "firstAudioMs": 508, "totalMs": 6830, "audioSeconds": 5.52, "rtf": 1.237, "cpuSeconds": 10.11, "cancelled": false, "codecMs": 2084, "gaplessPrebufferMs": 848, "chunks": 69, "peakMiB": 2539, "rssMiB": 1837}
+{"event": "repeat", "t": 23.045, "i": 2, "chars": 67, "firstAudioMs": 396, "totalMs": 6832, "audioSeconds": 5.6, "rtf": 1.22, "cpuSeconds": 10.1, "cancelled": false, "codecMs": 2118, "gaplessPrebufferMs": 880, "chunks": 70, "peakMiB": 2539, "rssMiB": 1850}
+{"event": "repeat", "t": 32.032, "i": 3, "chars": 67, "firstAudioMs": 417, "totalMs": 8981, "audioSeconds": 7.52, "rtf": 1.194, "cpuSeconds": 13.3, "cancelled": false, "codecMs": 2773, "gaplessPrebufferMs": 1087, "chunks": 94, "peakMiB": 2539, "rssMiB": 1861}
+{"event": "repeat", "t": 38.397, "i": 4, "chars": 67, "firstAudioMs": 423, "totalMs": 6359, "audioSeconds": 5.04, "rtf": 1.262, "cpuSeconds": 9.39, "cancelled": false, "codecMs": 1941, "gaplessPrebufferMs": 943, "chunks": 63, "peakMiB": 2539, "rssMiB": 1861}
+{"event": "repeat", "t": 65.655, "i": 5, "chars": 67, "firstAudioMs": 389, "totalMs": 27230, "audioSeconds": 22.64, "rtf": 1.203, "cpuSeconds": 39.86, "cancelled": false, "codecMs": 8319, "gaplessPrebufferMs": 4246, "chunks": 283, "peakMiB": 2539, "rssMiB": 1909}
+{"event": "done", "t": 65.656, "peakMiB": 2539, "rssMiB": 1909}
