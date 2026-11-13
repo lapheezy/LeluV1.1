@@ -104,3 +104,13 @@ test("live worker is READY through the pool", { skip: !live && "VOXCPM_LIVE_URL 
   assert.equal(chosen.state, "READY");
   assert.equal(chosen.loaded, true);
 });
+
+test("a configured loopback worker and the loopback default never share an id", async () => {
+  const { parseVoxcpmWorkers } = await import("../src/core/voice/gpuWorkers");
+  const env: Record<string, string> = { VOXCPM_BASE_URL: "http://127.0.0.1:8789" };
+  const workers = parseVoxcpmWorkers((name) => env[name]);
+  const ids = workers.map((w) => w.id);
+  assert.equal(new Set(ids).size, ids.length, `ids must be unique: ${ids.join(", ")}`);
+  assert.equal(workers[0].id, "local", "the configured worker keeps its id");
+  assert.equal(workers[0].url, "http://127.0.0.1:8789");
+});

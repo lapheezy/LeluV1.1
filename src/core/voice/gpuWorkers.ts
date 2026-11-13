@@ -123,11 +123,29 @@ function asKind(value: unknown): VoxcpmWorkerKind {
 export function parseVoxcpmWorkers(read?: EnvReader): VoxcpmWorker[] {
   const workers: VoxcpmWorker[] = [];
   const seen = new Set<string>();
+  const ids = new Set<string>();
   const add = (worker: VoxcpmWorker) => {
     if (!/^https?:\/\//i.test(worker.url)) return;
     if (seen.has(worker.url)) return;
     seen.add(worker.url);
-    workers.push(worker);
+    // Health, cooldown and choice are all keyed by id. Two workers sharing
+    // one ("local" for a configured loopback worker AND the loopback
+    // default) made the dead one's ECONNREFUSED overwrite the live one's
+    // state: measured, /vox/health chose a READY worker while /vox/speech
+    // answered "no VoxCPM2 worker is READY". The first keeps its id; a
+    // later duplicate is told apart by its host.
+    let id = worker.id;
+    if (ids.has(id)) {
+      let host = worker.url;
+      try {
+        host = new URL(worker.url).host;
+      } catch {
+        /* keep the url */
+      }
+      id = `${worker.id}@${host}`;
+    }
+    ids.add(id);
+    workers.push({ ...worker, id });
   };
 
   const json = rawEnv(read, "VOXCPM_WORKERS");
