@@ -366,6 +366,32 @@ export default defineConfig(({ mode, command }) => {
        * what their lazy() already promised.
        */
       modulePreload: false,
+
+      /*
+       * THE BOOT GRAPH IN TWO CHUNKS, NOT 154.
+       *
+       * Measured on the production build: a cold boot had to fetch 154
+       * chunks (eight levels deep) before the first paint, because automatic
+       * splitting cuts every module shared between the shell and some lazy
+       * panel into its own file. Over HTTP/1.1 (six connections, 120 ms RTT)
+       * that was most of a 4.2 s first paint on a phone profile.
+       *
+       * `$initial` is rolldown's own tag for "on the entry's static import
+       * chain" — exactly the boot graph, maintained by the bundler, not by a
+       * hand-written list. Vendor and app code stay separate so a deploy
+       * that changes only app code leaves the larger vendor chunk cached.
+       * Lazy panels are untouched: they still load when they are opened.
+       */
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              { name: "boot-vendor", tags: ["$initial"], test: /node_modules[\\/]/, priority: 2 },
+              { name: "boot-app", tags: ["$initial"], priority: 1 },
+            ],
+          },
+        },
+      },
     },
 
     server: {
