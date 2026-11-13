@@ -1,7 +1,7 @@
 # LÉLU worker recovery and resource forensics report
 
-**Date:** 2026-11-12 · **Repository:** `lapheezy/LeluV1.1` · **Recovery branch:** `claude/lelu-worker-recovery-4fio20`
-**Starting commit:** `098dd3e` (canonical tip, verified) · **Not pushed, not merged.**
+**Date:** 2026-11-12, finalized 2026-11-13 · **Repository:** `lapheezy/LeluV1.1` · **Recovery branch:** `claude/lelu-worker-recovery-4fio20`
+**Starting commit:** `098dd3e` (canonical tip, verified) · **Pushed to the recovery branch only, with authorization; not merged into canonical.**
 
 ## Verdict
 
@@ -15,7 +15,8 @@ container. The worker:
 - reaches READY only after a real generation;
 - produced speech that an independent ASR model transcribed word for word.
 
-It survives individual tool calls and, as tested, a ~3.5-minute turn boundary (addendum). It **cannot** outlive the cloud container. When the container is
+It survives individual tool calls and two turn boundaries (the addendum and §13). It kept its model loaded across them
+and did not reload. It **cannot** outlive the cloud container. When the container is
 reclaimed, the process, the 5.1 GB weight cache and the 2.4 GB Python environment all go with it. A worker that lasts beyond
 sessions needs a dedicated runtime (§11–12).
 
@@ -23,6 +24,27 @@ The repeated failure was not a mystery bug. **Loading VoxCPM2 on CPU peaks at ab
 the library building all 2.29 B parameters in fp32 before casting them. The earlier session loaded the model on a shared
 ~15 GB machine where another chat's worker already held about 5 GB. There was no memory check, and the load ran inside an
 interactive turn.
+
+### Capability status
+
+| Capability | Status | Evidence |
+|---|---|---|
+| Model weights present and verified | **VERIFIED** | `bootstrap.py` exit 0; 9 files, 4.96 GB |
+| Model load on CPU, bf16 as published | **VERIFIED** | 7 loads, 16.4–17.7 s each |
+| Memory forensics (peak and steady) | **VERIFIED** | VmHWM 10.85–11.15 GiB, RSS 6.3–6.7 GiB |
+| Root cause on the *earlier* machine | **PARTIAL** | The arithmetic is proven: an 11 GiB peak does not fit in ~10 GB without swap. That machine could not be inspected, so its kill signal is unknown. |
+| Real inference (cloned voice from the committed reference clip) | **VERIFIED** | 4 requested sentences plus self-tests; independent ASR matched every word except the name spelling |
+| Speaker similarity to the reference | **UNVERIFIED** | No listening test or speaker-embedding comparison yet |
+| Real-time speed on CPU | **FAILED** | RTF 4–5 (slower than real time) |
+| Single instance, PID ownership, start-time verification | **VERIFIED** | §7 |
+| Memory preflight | **VERIFIED** | Refused a second load: 8.31 GiB available < 11.5 GiB required |
+| Startup timeout, exit capture, failure classification | **VERIFIED** | §7 |
+| Graceful stop, controlled restart, recovery after external kill | **VERIFIED** | §7, §13 |
+| Classifying a true kernel OOM kill (`oom_killed`) | **UNVERIFIED** | The code path exists, but no OOM was provoked; this container had 0 OOM kills |
+| Survives tool calls and turn boundaries (same container) | **VERIFIED** | Addendum, §13 |
+| Survives a container reclaim or a new session | **FAILED, by platform design** | §9 |
+| Pool selects only READY workers | **VERIFIED** | 6/6 tests, one of them live |
+| App speech routed through the worker (`voiceApi.ts` → pool) | **UNVERIFIED (not built)** | §10 |
 
 ---
 
@@ -44,7 +66,14 @@ Commits on the recovery branch, on top of `098dd3e`:
 | `fdad947` | memory probe and first measured inference (evidence) |
 | `36bf4e2` | worker manager (`workerctl.py`), server lifecycle and self-test |
 | `7e76c1a` | pool selects a worker only when it is READY; tests; ASR evidence |
-| *(this commit)* | this report |
+| `809b458` | this report |
+| `1093321` | turn-boundary persistence addendum |
+| *(finalization)* | capability matrix, finalization run, LiveKit handoff |
+
+**Publication (2026-11-13).** The remote recovery branch had been **deleted** since this session began; it was at
+`fd649b9`, so it had not advanced. The authorized `git push -u origin claude/lelu-worker-recovery-4fio20` recreated it without
+force at **`1093321`**. Afterwards local and remote matched, all five recovery commits were on the remote on top of `098dd3e`,
+canonical was still `098dd3e`, and no tags were pushed.
 
 ## 2. Recovered implementation
 
@@ -265,6 +294,35 @@ supervisor escalates to SIGKILL after 30 s if needed.
    - tests against a fake sidecar, with timeouts scaled to text length.
 4. **Optionally, with approval,** prototype the low-peak loader (§5) behind a flag, gated on a tensor-equality test and an
    ASR comparison.
+
+## 13. Finalization run (2026-11-13): persistence, inference, restart
+
+This ran in the same container as the rest of the report. Kernel uptime was continuous (1438 s at 00:02:05Z), and the venv and
+the weights were still on disk.
+
+| Check | Result |
+|---|---|
+| State on entering this turn | STOPPED. That was deliberate: the earlier check ended with `workerctl stop` (rc 0, `stopped`). Nothing killed it. |
+| Controlled start | READY. Load 16.4 s, peak 11.11 GiB, steady 6.55 GiB, self-test 2.08 s of audio, RMS 0.114 |
+| Fresh `/health` | `state: READY`, `ready: true`, `loaded: true`, worker PID 6582 |
+| Kept across a turn boundary and ~2 minutes of unrelated work | The same verified worker (supervisor 6581, worker 6582, start time 144531) was still READY, with no second LOADING and an unchanged peak. **The model stayed loaded.** |
+| Real inference on that worker | "My model stayed loaded while you were working." → 2.56 s of audio, 12.8 s, RTF 5.0. ASR transcript: **"My model stayed loaded while you were working."** (`finalization-speech.wav`) |
+| Controlled `restart` | 32.4 s end to end. The old worker exited rc 0 (`stopped`). The new owned worker (supervisor 7735, worker 7736) reached READY with a passing self-test (1.6 s of audio, RMS 0.136). |
+| Final state | Stopped on purpose (rc 0, `stopped`). No `server.py` or supervisor process is left running. |
+
+**What the persistence evidence does and does not establish.** In all of this, persistence was judged from a live process
+whose kernel start time matched the record, a `/health` answer from that same PID, and a successful generation; never from a
+PID file alone. `setsid` did keep the worker alive past the shell that launched it, and the platform did not end it at any turn
+boundary seen here. What was **not** tested is the platform's inactivity reclaim. That reclaim removes the whole container, so
+it would remove the worker, the weights and the venv no matter how the process is detached.
+
+**Infrastructure required for a worker that outlives sessions:**
+- a host that is not a session container, managed by systemd or an equivalent with restart on failure;
+- at least 11.5 GiB available RAM at load (CPU), or a GPU with at least 12 GB VRAM;
+- about 8 GB of disk for the venv and weights;
+- an authenticated tunnel (`VOXCPM_TOKEN`) so LÉLU can reach it.
+
+See §12.
 
 ## Reproduce
 
