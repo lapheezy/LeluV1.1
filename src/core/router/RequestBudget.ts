@@ -157,6 +157,24 @@ const PROVIDER_TPM: Record<string, number> = {
   groq: 8_000,
 };
 
+/**
+ * How many calls one TURN spends from the same minute.
+ *
+ * MEASURED (2026-11-13), on this account: a studio turn ran its tools and then
+ * asked for the summary, and the second call was refused with
+ *
+ *   429 … Limit 8000, Used 4332, Requested 3971
+ *
+ * — 8,303 against 8,000. The first call alone fitted, so the ceiling had been
+ * sized for ONE request. A tool turn is at least two (decide, then summarise),
+ * so the ceiling is now a share of the minute rather than all of it. At two
+ * shares each call may use ~3,400 tokens including its reply reservation, and
+ * a finished tool run stops being thrown away for the last 300 tokens.
+ */
+const TPM_CALLS_PER_TURN: Record<string, number> = {
+  groq: 2,
+};
+
 /** Room kept so a request that fills the minute still has room to answer. */
 const TPM_MARGIN_TOKENS = 256;
 
@@ -166,9 +184,12 @@ const TPM_MARGIN_TOKENS = 256;
  * this way, so an unknown provider is never given an invented number.
  */
 function providerTransportBytes(providerKey: string, maxTokens: number): number | undefined {
-  const tpm = Object.entries(PROVIDER_TPM).find(([name]) => providerKey.includes(name))?.[1];
-  if (tpm === undefined) return undefined;
-  return Math.max(4_096, (tpm - Math.max(0, maxTokens) - TPM_MARGIN_TOKENS) * 4);
+  const entry = Object.entries(PROVIDER_TPM).find(([name]) => providerKey.includes(name));
+  if (!entry) return undefined;
+  const [name, tpm] = entry;
+  const calls = Math.max(1, TPM_CALLS_PER_TURN[name] ?? 1);
+  const share = tpm / calls;
+  return Math.max(4_096, Math.floor(share - Math.max(0, maxTokens) - TPM_MARGIN_TOKENS) * 4);
 }
 
 function byteLength(value: unknown): number {
