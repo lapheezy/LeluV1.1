@@ -35,9 +35,14 @@ type Handler = (req: IncomingMessage, res: ServerResponse, next: () => void) => 
 const MAX_BODY = 65_536;
 const MAX_CHARS = 900;
 
-/** ≈ 0.07 s of speech per character × RTF 5, plus load slack; capped. */
+/**
+ * ≈ 0.07 s of speech per character × RTF 5 is ~0.35 s/char on an idle CPU.
+ * A shared CPU (the app, a browser, the agent) measured 4× slower, and a
+ * timeout that fires mid-sentence is worse than a late one: allow 1 s/char
+ * plus 90 s of slack, capped at 10 minutes.
+ */
 export function speechTimeoutMs(chars: number): number {
-  return Math.min(600_000, 30_000 + chars * 450);
+  return Math.min(600_000, 90_000 + chars * 1000);
 }
 
 function json(res: ServerResponse, status: number, payload: unknown): void {
@@ -154,9 +159,13 @@ export function createVoxApi(options: { readEnv?: ReadEnv; fetchImpl?: typeof fe
         if (!res.write(value)) await new Promise((resolve) => res.once("drain", resolve));
       }
       res.end();
-    } catch {
-      // client closed (STOP) or worker died mid-stream: nothing more to send
-      if (!res.writableEnded) res.end();
+    } catch (error) {
+      // Client closed (STOP): nothing more to send. Worker died or timed out
+      // mid-stream: DESTROY the response, so the caller sees a failed
+      // transfer instead of a short "successful" one (an empty 200 looked
+      // like speech that said nothing).
+      if (!res.writableEnded) res.destroy(error as Error);
+      if (!String(controller.signal.reason ?? "").includes("client closed")) pool.markFailure(worker.id);
     } finally {
       clearTimeout(timer);
     }

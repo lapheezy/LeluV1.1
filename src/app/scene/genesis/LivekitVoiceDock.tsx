@@ -62,7 +62,7 @@ export default function LivekitVoiceDock() {
   const live = Boolean(status && status.connection !== "disconnected" && status.connection !== "idle" && status.connection !== "failed");
   const phase = state.phase;
   const statusText = status ? LABEL[status.connection] ?? status.connection : LABEL.idle;
-  const detail = live ? `${statusText}${status?.agentPresent ? " · LÉLU listening" : " · waiting for voice agent"} · ${phase}` : statusText;
+  const detail = live ? `${statusText}${status?.agentListening ? " · LÉLU listening" : status?.agentPresent ? " · connecting her ears…" : " · waiting for voice agent"} · ${phase}` : statusText;
 
   return (
     <div
@@ -86,7 +86,7 @@ export default function LivekitVoiceDock() {
           </button>
         </>
       )}
-      <span data-testid="lk-status" data-connection={status?.connection ?? "idle"} data-phase={phase} style={{ color: "#ddd", fontSize: 12, textShadow: "0 1px 2px #000" }}>
+      <span data-testid="lk-status" data-connection={status?.connection ?? "idle"} data-listening={status?.agentListening ? "1" : "0"} data-phase={phase} style={{ color: "#ddd", fontSize: 12, textShadow: "0 1px 2px #000" }}>
         {detail}
         {state.error ? ` — ${state.error}` : ""}
       </span>

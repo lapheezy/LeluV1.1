@@ -35,6 +35,7 @@ const MAX_REJOINS = 5;
 
 export type AgentMessage =
   | { type: "ready" }
+  | { type: "listening" }
   | { type: "user_speaking" }
   | { type: "transcript"; turnId: number; text: string; audioSeconds?: number }
   | { type: "speaking"; turnId: number }
@@ -48,6 +49,8 @@ export interface LivekitStatus {
   connection: LivekitConnection;
   room: string | null;
   agentPresent: boolean;
+  /** The agent is receiving the user's microphone track: speech will be heard. */
+  agentListening: boolean;
   micMuted: boolean;
   error: string | null;
   rejoins: number;
@@ -65,7 +68,7 @@ export class LivekitVoiceTransport {
   private room: Room | null = null;
   private audio: HTMLAudioElement | null = null;
   private wanted = false;
-  private status: LivekitStatus = { connection: "idle", room: null, agentPresent: false, micMuted: false, error: null, rejoins: 0 };
+  private status: LivekitStatus = { connection: "idle", room: null, agentPresent: false, agentListening: false, micMuted: false, error: null, rejoins: 0 };
 
   constructor(private readonly handlers: LivekitTransportHandlers) {}
 
@@ -112,7 +115,7 @@ export class LivekitVoiceTransport {
     this.room = room;
     this.wireRoom(room);
     await room.connect(url, token);
-    this.patch({ connection: "connected", room: roomName, agentPresent: this.agentIn(room) });
+    this.patch({ connection: "connected", room: roomName, agentPresent: this.agentIn(room), agentListening: false });
     try {
       // The browser's echo cancellation is what keeps her own voice, played
       // through the speaker, from barging in on herself.
@@ -146,12 +149,13 @@ export class LivekitVoiceTransport {
       });
     });
     room.on(RoomEvent.ParticipantConnected, () => this.patch({ agentPresent: this.agentIn(room) }));
-    room.on(RoomEvent.ParticipantDisconnected, () => this.patch({ agentPresent: this.agentIn(room) }));
+    room.on(RoomEvent.ParticipantDisconnected, () => this.patch({ agentPresent: this.agentIn(room), agentListening: this.agentIn(room) && this.status.agentListening }));
     room.on(RoomEvent.DataReceived, (payload: Uint8Array, participant?: RemoteParticipant, _kind?: unknown, topic?: string) => {
       if (topic !== VOICE_TOPIC || participant?.identity !== "lelu-voice-agent") return;
       try {
         const message = JSON.parse(new TextDecoder().decode(payload)) as AgentMessage;
         if (message.type === "speaking" && this.audio) this.audio.muted = false;
+        if (message.type === "listening") this.patch({ agentListening: true });
         this.handlers.onMessage(message);
       } catch {
         // not ours
@@ -163,7 +167,7 @@ export class LivekitVoiceTransport {
       this.audio?.remove();
       this.audio = null;
       if (!this.wanted || reason === DisconnectReason.CLIENT_INITIATED) {
-        this.patch({ connection: "disconnected", agentPresent: false });
+        this.patch({ connection: "disconnected", agentPresent: false, agentListening: false });
         return;
       }
       void this.rejoin(String(reason ?? "unknown"));

@@ -338,9 +338,20 @@ def supervise(launch_id: str) -> int:
     signal.signal(signal.SIGHUP, signal.SIG_IGN)  # survive the launching shell
 
     term_sent_at = None
+    reached_ready = False
     while child.poll() is None:
         state = (_read_json(STATE_FILE) or {}).get("state")
-        if state not in ("READY", "FAILED") and not timed_out and time.time() - started > STARTUP_TIMEOUT:
+        reached_ready = reached_ready or state == "READY"
+        # The watchdog guards STARTUP only: once READY was seen, or a stop was
+        # asked for (the worker then reports STOPPED while it shuts down), a
+        # long uptime is not a startup that never finished.
+        if (
+            not reached_ready
+            and not requested["stop"]
+            and state not in ("READY", "FAILED", "STOPPED")
+            and not timed_out
+            and time.time() - started > STARTUP_TIMEOUT
+        ):
             timed_out = True
             _log("startup_timeout", seconds=STARTUP_TIMEOUT, lastState=state)
             child.send_signal(signal.SIGTERM)

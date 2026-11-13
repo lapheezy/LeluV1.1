@@ -720,6 +720,9 @@ class VoiceEngine {
         break;
       case "spoke":
       case "stopped":
+        // Only the reply we are waiting on may end "speaking": a late notice
+        // about an older, superseded turn must not flip a new reply to listening.
+        if (message.turnId !== null && message.turnId !== undefined && message.turnId !== this.livekitTurn) break;
         if (this.livekitSpeaking) this.emitSpeechActivity({ speaking: false, kind: "end", text: "", at: Date.now() });
         this.livekitSpeaking = false;
         this.patchDiagnostics({ audioPlaying: false, ttsStage: "idle" });

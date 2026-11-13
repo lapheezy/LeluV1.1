@@ -146,6 +146,9 @@ class RoomSession:
                     old.cancel()
                 self.listen_tasks[participant.identity] = asyncio.create_task(self.listen(track, participant.identity))
                 log("listening", room=self.room_name, participant=participant.identity)
+                # Only now can she hear: say so, so the page never invites
+                # the user to speak into a microphone nobody is receiving.
+                asyncio.create_task(self.send({"type": "listening"}))
 
         @self.room.on("participant_connected")
         def _on_join(participant: rtc.RemoteParticipant) -> None:
@@ -274,6 +277,8 @@ class RoomSession:
     async def stop_speaking(self, reason: str) -> None:
         task, turn = self.speak_task, self.speaking_turn
         self.speak_task = None
+        if task is not None and task.done():
+            task, turn = None, None  # already finished: nothing was interrupted
         if task and not task.done():
             task.cancel()
             try:
@@ -281,7 +286,7 @@ class RoomSession:
             except (asyncio.CancelledError, Exception):
                 pass
         self.source.clear_queue()  # drop buffered audio: silence now, not after the buffer drains
-        if task is not None:
+        if task is not None and turn is not None:
             self.speaking_turn = None
             log("stopped", room=self.room_name, turn=turn, reason=reason)
             await self.send({"type": "stopped", "turnId": turn, "reason": reason})
@@ -332,6 +337,10 @@ class RoomSession:
                                 await self.send({"type": "speaking", "turnId": turn})
                             samples_out += frame.samples_per_channel
                             await self.source.capture_frame(frame)
+            if samples_out == 0:
+                log("tts_empty", room=self.room_name, turn=turn)
+                await self.send({"type": "error", "where": "tts", "detail": "the speech worker returned no audio"})
+                return
             await self.source.wait_for_playout()
             log("spoke", room=self.room_name, turn=turn, seconds=round(samples_out / OUT_RATE, 2), ms=int((time.time() - started) * 1000))
             await self.send({"type": "spoke", "turnId": turn})
