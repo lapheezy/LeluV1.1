@@ -246,7 +246,7 @@ export default class CapabilityPipeline {
 
     /* ----------------------------- INTEGRATE ---------------------------- */
     const capabilityId = `acquired.${evidence.capability.replace(/^acquired\./, "")}`;
-    const tools = useToolsFor(capabilityId);
+    const tools = toolsForCapability(capabilityId);
     const registration = this.integrator.register({
       capabilityId,
       name: `Acquired — ${top.requestedCapability}`,
@@ -340,7 +340,7 @@ export default class CapabilityPipeline {
  * route into a capability is a tool that already executes it. For the
  * first acquisition (Bitap fuzzy search) that is `kb.search`.
  */
-function useToolsFor(capabilityId: string): string[] {
+function toolsForCapability(capabilityId: string): string[] {
   if (capabilityId.includes("cache") || capabilityId.includes("memory") || capabilityId.includes("lru")) {
     return ["memory.cache"];
   }
