@@ -1,0 +1,8 @@
+{
+  "asr": "faster-whisper 1.2.1, small.en, int8, CPU (independent of VoxCPM2; scratch venv, not a project dependency)",
+  "results": [
+    {"file": "probe-run1.wav", "requested": "Hello. I am Lélu, and this is my own voice.", "transcript": "Hello, I am Lulu, and this is my own voice."},
+    {"file": "worker-speech-1.wav", "requested": "Good evening. I'm Lélu, and this voice is running on a worker I manage myself.", "transcript": "Good evening, I'm Leilu, and this voice is running on a worker I manage myself."}
+  ],
+  "note": "Every word matches except the name, which English ASR spells phonetically. This verifies intelligible speech of the requested text; it is not speaker verification."
+}

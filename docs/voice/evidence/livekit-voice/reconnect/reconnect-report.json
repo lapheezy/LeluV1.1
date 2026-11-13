@@ -1,0 +1,187 @@
+{
+ "realDevice": false,
+ "recoveredMs": 8064,
+ "connections": [
+  "connecting",
+  "connected",
+  "connected",
+  "connected",
+  "connected",
+  "rejoining",
+  "rejoining",
+  "rejoining",
+  "rejoining",
+  "rejoining",
+  "rejoining",
+  "rejoining",
+  "connected",
+  "connected"
+ ],
+ "timeline": [
+  {
+   "t": 14053,
+   "kind": "livekit",
+   "connection": "connecting",
+   "listening": false,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 14279,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": false,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 14357,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": false,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 14385,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": true,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 14396,
+   "kind": "listening-before"
+  },
+  {
+   "t": 14396,
+   "kind": "kill-livekit-server"
+  },
+  {
+   "t": 22424,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": false,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 22425,
+   "kind": "livekit",
+   "connection": "rejoining",
+   "listening": false,
+   "rejoins": 1,
+   "error": "connection lost (3); rejoining"
+  },
+  {
+   "t": 22425,
+   "kind": "livekit",
+   "connection": "rejoining",
+   "listening": false,
+   "rejoins": 1,
+   "error": "LiveKit server unavailable: fetch failed"
+  },
+  {
+   "t": 22426,
+   "kind": "livekit",
+   "connection": "rejoining",
+   "listening": false,
+   "rejoins": 2,
+   "error": "connection lost (3); rejoining"
+  },
+  {
+   "t": 22432,
+   "kind": "livekit",
+   "connection": "rejoining",
+   "listening": false,
+   "rejoins": 2,
+   "error": "LiveKit server unavailable: fetch failed"
+  },
+  {
+   "t": 22432,
+   "kind": "livekit",
+   "connection": "rejoining",
+   "listening": false,
+   "rejoins": 3,
+   "error": "connection lost (3); rejoining"
+  },
+  {
+   "t": 22432,
+   "kind": "livekit",
+   "connection": "rejoining",
+   "listening": false,
+   "rejoins": 3,
+   "error": "LiveKit server unavailable: fetch failed"
+  },
+  {
+   "t": 22433,
+   "kind": "livekit",
+   "connection": "rejoining",
+   "listening": false,
+   "rejoins": 4,
+   "error": "connection lost (3); rejoining"
+  },
+  {
+   "t": 22433,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": false,
+   "rejoins": 4,
+   "error": "connection lost (3); rejoining"
+  },
+  {
+   "t": 22454,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": true,
+   "rejoins": 4,
+   "error": "connection lost (3); rejoining"
+  },
+  {
+   "t": 22457,
+   "kind": "loss-observed",
+   "connections": [
+    "connecting",
+    "connected",
+    "connected",
+    "connected",
+    "connected",
+    "rejoining",
+    "rejoining",
+    "rejoining",
+    "rejoining",
+    "rejoining",
+    "rejoining",
+    "rejoining",
+    "connected",
+    "connected"
+   ]
+  },
+  {
+   "t": 22460,
+   "kind": "recovered",
+   "recoveredMs": 8064
+  },
+  {
+   "t": 102884,
+   "kind": "utterance",
+   "text": "Hey Lélu, what is the capital of France? Answer in one short sentence."
+  },
+  {
+   "t": 102906,
+   "kind": "post-recovery-utterance-processing"
+  },
+  {
+   "t": 105662,
+   "kind": "reply",
+   "text": "Paris is the capital of France."
+  },
+  {
+   "t": 134338,
+   "kind": "result",
+   "pass": true
+  }
+ ],
+ "pass": true
+}

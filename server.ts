@@ -26,6 +26,8 @@
 
 import { createSelfViewApi } from "./plugins/selfViewApi.ts";
 import { createVoiceApi } from "./plugins/voiceApi.ts";
+import { createLivekitApi } from "./plugins/livekitApi.ts";
+import { createVoxApi } from "./plugins/voxApi.ts";
 import { createStudioApi, stopAllStudioBackends } from "./plugins/studioApi.ts";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
@@ -485,6 +487,8 @@ createSourceCatalogApi().attach(middlewares);
 // Her voice and ears (ElevenLabs TTS + STT). Was mounted only in Vite dev, so
 // the deployed runtime had no ElevenLabs voice at all; the key stays here.
 createVoiceApi((key) => process.env[key]).attach(middlewares);
+createLivekitApi({ readEnv: (key) => process.env[key] }).attach(middlewares);
+createVoxApi({ readEnv: (key) => process.env[key] }).attach(middlewares);
 createAiProxyApi((key) => process.env[key]).attach(middlewares);
 // Same-origin model broker: the browser posts here, the server holds
 // the credential and talks to the provider.

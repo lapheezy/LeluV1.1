@@ -25,6 +25,8 @@ import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { githubApiPlugin } from "./plugins/githubApi.ts";
 import { voiceApiPlugin } from "./plugins/voiceApi.ts";
+import { livekitApiPlugin } from "./plugins/livekitApi.ts";
+import { voxApiPlugin } from "./plugins/voxApi.ts";
 import { runtimeKeyBridgePlugin, bridgeReport } from "./plugins/runtimeKeyBridge.ts";
 import { fillBareSecretAliases } from "./plugins/bareSecretAliases.ts";
 import { readBuildInfo } from "./plugins/buildInfo.ts";
@@ -324,6 +326,8 @@ export default defineConfig(({ mode, command }) => {
 
       githubApiPlugin(envReader),
       voiceApiPlugin(envReader),
+      livekitApiPlugin(envReader),
+      voxApiPlugin(envReader),
 
       glslIncludes(),
 

@@ -142,6 +142,18 @@ export function createAccessGate(readEnv: EnvReader, log: (line: string) => void
     log("[LÉLU access] LELU_SESSION_SECRET is not set — sessions will not survive a restart.");
   }
 
+  // The LiveKit voice agent (services/livekit-agent) is a server process with
+  // no browser session. It may reach EXACTLY the two routes it needs —
+  // transcription through the broker and speech through the VoxCPM2 route —
+  // when it presents LELU_VOICE_AGENT_TOKEN. Nothing else is opened by it.
+  const agentToken = (readEnv("LELU_VOICE_AGENT_TOKEN") ?? "").trim();
+  const AGENT_ROUTES = new Set(["/api/model/groq/audio/transcriptions", "/api/voice/vox/speech"]);
+  const voiceAgentAllowed = (req: IncomingMessage, url: string): boolean => {
+    if (!agentToken || req.method !== "POST" || !AGENT_ROUTES.has(url)) return false;
+    const presented = req.headers["x-lelu-agent-token"];
+    return typeof presented === "string" && sameSecret(presented, agentToken);
+  };
+
   const sign = (expiry: number) => createHmac("sha256", secret).update(`lelu:${expiry}`).digest("base64url");
 
   const gate: AccessGate = {
@@ -210,6 +222,7 @@ export function createAccessGate(readEnv: EnvReader, log: (line: string) => void
       }
       if (PUBLIC_PATHS.has(url)) return next();
       if (gate.verify(parseCookies(req.headers.cookie)[COOKIE])) return next();
+      if (voiceAgentAllowed(req, url)) return next();
 
       if (url.startsWith("/api/")) {
         res.statusCode = 401;

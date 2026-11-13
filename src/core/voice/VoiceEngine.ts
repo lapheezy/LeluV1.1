@@ -437,6 +437,15 @@ class VoiceEngine {
   /** Barge-ins this session (diagnostics). */
   private bargeIns = 0;
 
+  /* LiveKit transport mode (see livekitTransport.ts). When set, the mic is
+   * LiveKit's, transcripts arrive from the voice agent, and replies are spoken
+   * by the agent through the VoxCPM2 worker. Cognition does not move. */
+  private livekit: import("./livekitTransport").LivekitVoiceTransport | null = null;
+  private livekitStatus: import("./livekitTransport").LivekitStatus | null = null;
+  private livekitSpeaking = false;
+  private livekitTurn = 0;
+  private readonly livekitListeners = new Set<(status: import("./livekitTransport").LivekitStatus | null) => void>();
+
   /** How long each recording chunk is (ms) before sending to Whisper. */
   private static readonly WHISPER_CHUNK_MS = 5000;
 
@@ -520,6 +529,16 @@ class VoiceEngine {
   }
 
   async toggle(): Promise<void> {
+    if (this.livekit) {
+      await this.endLivekitSession();
+      return;
+    }
+    // iOS: audio may only be unlocked inside the tap itself, before any await.
+    this.unlockAudio();
+    if (!this._state.active && (await this.livekitPreferred())) {
+      await this.startLivekitSession();
+      return;
+    }
     if (this._state.active) {
       this.stop();
     } else {
@@ -581,7 +600,7 @@ class VoiceEngine {
    * real voice, so barge-in never fired on it (found live, 2026-11-07).
    */
   isSpeaking(): boolean {
-    return this.pendingUtterances > 0 || (this.chainActive && this.elevenLabs);
+    return this.pendingUtterances > 0 || (this.chainActive && this.elevenLabs) || this.livekitSpeaking;
   }
 
   /** How many times the user has interrupted her this session. */
@@ -594,6 +613,179 @@ class VoiceEngine {
     return () => {
       this.errorListeners.delete(listener);
     };
+  }
+
+  /* ---------------------------------------------------------
+   * LiveKit voice session (transport only)
+   * --------------------------------------------------------- */
+
+  onLivekitStatus(listener: (status: import("./livekitTransport").LivekitStatus | null) => void): () => void {
+    this.livekitListeners.add(listener);
+    listener(this.livekitStatus);
+    return () => {
+      this.livekitListeners.delete(listener);
+    };
+  }
+
+  private livekitProbe: Promise<boolean> | null = null;
+  private livekitProbedAt = 0;
+
+  /**
+   * Is a LiveKit voice transport configured on this server? Asked once and
+   * re-asked after a minute if the answer was no, so every existing voice
+   * entry point (composer mic, navigator mic, holding the planet) uses LiveKit
+   * where it exists and the browser voice where it does not.
+   */
+  livekitPreferred(): Promise<boolean> {
+    if (this.livekitProbe && (Date.now() - this.livekitProbedAt < 60_000)) return this.livekitProbe;
+    this.livekitProbedAt = Date.now();
+    this.livekitProbe = (typeof fetch === "undefined"
+      ? Promise.resolve(false)
+      : fetch("/api/livekit/status")
+          .then((response) => (response.ok ? response.json() : null))
+          .then((body: { configured?: boolean } | null) => Boolean(body?.configured))
+          .catch(() => false)).then((configured) => {
+      if (configured) this.livekitProbedAt = Number.POSITIVE_INFINITY; // stable: do not re-ask
+      return configured;
+    });
+    return this.livekitProbe;
+  }
+
+  /** Called from a tap when iOS refused to start her audio. */
+  async enableLivekitAudio(): Promise<void> {
+    this.unlockAudio();
+    await this.livekit?.unlock();
+  }
+
+  getLivekitStatus(): import("./livekitTransport").LivekitStatus | null {
+    return this.livekitStatus;
+  }
+
+  private publishLivekitStatus(status: import("./livekitTransport").LivekitStatus | null): void {
+    this.livekitStatus = status;
+    for (const listener of this.livekitListeners) listener(status);
+  }
+
+  /**
+   * Start a voice session over LiveKit. Must be called from a user gesture
+   * (iOS audio). The browser-voice session, if running, is stopped first: one
+   * microphone, one engine.
+   */
+  async startLivekitSession(): Promise<void> {
+    if (this.livekit) return;
+    if (this._state.active) this.stop();
+    this.unlockAudio();
+    if (typeof window !== "undefined" && !window.isSecureContext) {
+      this.setError("Microphone requires HTTPS. Open this page over HTTPS.", "insecure");
+      return;
+    }
+    const [{ LivekitVoiceTransport }, { sessionAuthHeader }] = await Promise.all([
+      import("./livekitTransport"),
+      import("../persistence/sessionAuth"),
+    ]);
+    const transport = new LivekitVoiceTransport({
+      authHeader: sessionAuthHeader,
+      onStatus: (status) => {
+        this.publishLivekitStatus(status);
+        if (status.connection === "failed" && this.livekit === transport) {
+          this.setError(status.error ?? "Voice session failed.", "network");
+        }
+      },
+      onMicError: (error) => {
+        const diagnosis = mapMediaError(error instanceof DOMException || error instanceof Error ? error : { name: String(error) });
+        this.updateState({ ...this._state, permission: diagnosis.kind === "permission" ? "denied" : this._state.permission });
+        this.setError(diagnosis.message, diagnosis.kind);
+      },
+      onMessage: (message) => this.onAgentMessage(message),
+    });
+    this.livekit = transport;
+    try {
+      await transport.connect();
+      await transport.unlock();
+      this.patchDiagnostics({ micStreamActive: true, micPermission: "granted" });
+      this.updateState({ ...this._state, active: true, phase: "listening", permission: "granted", error: null, errorKind: null });
+    } catch (error) {
+      this.livekit = null;
+      await transport.disconnect().catch(() => {});
+      if (!this._state.error) this.setError((error as Error).message || "Voice session failed.", "network");
+    }
+  }
+
+  /** End the voice session. The conversation stays where it is: text chat continues it. */
+  async endLivekitSession(): Promise<void> {
+    const transport = this.livekit;
+    if (!transport) return;
+    transport.stop();
+    this.cancelInFlightTurn("voice session ended");
+    this.livekit = null;
+    this.livekitSpeaking = false;
+    await transport.disconnect();
+    this.updateState({ ...this._state, active: false, phase: "idle", error: null, errorKind: null });
+    this.emitInterim("");
+    this.emitTurn(null);
+  }
+
+  async setMicMuted(muted: boolean): Promise<void> {
+    await this.livekit?.setMicMuted(muted);
+  }
+
+  /**
+   * STOP button: she stops talking now (local audio muted at once, the agent
+   * drops queued audio and its generation) and any reply still being
+   * thought about is cancelled.
+   */
+  stopSpeakingNow(): void {
+    this.cancelSpeech();
+    this.cancelInFlightTurn("stopped by user");
+  }
+
+  private onAgentMessage(message: import("./livekitTransport").AgentMessage): void {
+    switch (message.type) {
+      case "transcript":
+        this.emitInterim("");
+        void this.handleUserSpeech(message.text);
+        break;
+      case "user_speaking":
+        if (this.livekitSpeaking) this.bargeIns += 1;
+        break;
+      case "speaking":
+        this.livekitSpeaking = true;
+        this.patchDiagnostics({ ttsRequested: true, audioGenerated: true, audioPlaying: true, ttsStage: "playing" });
+        this.updateState({ ...this._state, phase: "speaking" });
+        this.emitSpeechActivity({ speaking: true, kind: "start", text: this.lastSpokenText, at: Date.now() });
+        break;
+      case "spoke":
+      case "stopped":
+        // Only the reply we are waiting on may end "speaking": a late notice
+        // about an older, superseded turn must not flip a new reply to listening.
+        if (message.turnId !== null && message.turnId !== undefined && message.turnId !== this.livekitTurn) break;
+        if (this.livekitSpeaking) this.emitSpeechActivity({ speaking: false, kind: "end", text: "", at: Date.now() });
+        this.livekitSpeaking = false;
+        this.patchDiagnostics({ audioPlaying: false, ttsStage: "idle" });
+        if (this._state.phase === "speaking") this.updateState({ ...this._state, phase: this._state.active ? "listening" : "idle" });
+        break;
+      case "error":
+        this.noteFailure({ kind: message.where === "stt" ? "transcription-failure" : "playback-failure", message: `Voice ${message.where} failed: ${message.detail}` });
+        if (message.where === "tts" && this._state.phase === "speaking") this.updateState({ ...this._state, phase: "listening" });
+        break;
+      default:
+        break;
+    }
+  }
+
+  /** Hand a finished reply to the agent to be spoken in her VoxCPM2 voice. */
+  private speakThroughLivekit(text: string): void {
+    const clean = text.trim();
+    this.patchDiagnostics({ responseReceived: true });
+    if (!clean || !this.livekit) {
+      this.updateState({ ...this._state, phase: "listening" });
+      return;
+    }
+    this.lastSpokenText = clean;
+    this.livekitTurn += 1;
+    this.patchDiagnostics({ ttsRequested: true, ttsStage: "requested" });
+    this.updateState({ ...this._state, phase: "speaking" });
+    this.livekit.sendReply(this.livekitTurn, clean);
   }
 
   /* ---------------------------------------------------------
@@ -1644,6 +1836,10 @@ class VoiceEngine {
   }
 
   speakResponse(text: string): void {
+    if (this.livekit) {
+      this.speakThroughLivekit(text);
+      return;
+    }
     // Decide the voice only once the server has answered whether it holds
     // hers (bounded: an unreachable server is a "no" after the fetch fails).
     if (!this.elevenLabsSettled) {
@@ -1739,6 +1935,12 @@ class VoiceEngine {
   }
 
   cancelSpeech(): void {
+    // LiveKit: mute locally now and tell the agent to drop audio + generation.
+    if (this.livekit) {
+      this.livekit.stop();
+      if (this.livekitSpeaking) this.emitSpeechActivity({ speaking: false, kind: "end", text: "", at: Date.now() });
+      this.livekitSpeaking = false;
+    }
     this.cancelFlag = true;
     this.chainActive = false;
     this.streaming = false;
@@ -1780,6 +1982,11 @@ class VoiceEngine {
   private streamFinalizing = false;
 
   beginStreamingSpeech(): void {
+    if (this.livekit) {
+      // The agent speaks whole replies; nothing is queued per token here.
+      this.cancelSpeech();
+      return;
+    }
     this.cancelSpeech();
     this.cancelFlag = false;
     this.streamCursor = 0;
@@ -1790,6 +1997,7 @@ class VoiceEngine {
   }
 
   feedStreamingSpeech(fullText: string): void {
+    if (this.livekit) return;
     // Which speaker to use is answered by the server ONCE per session. Before
     // that answer arrives the browser engine used to take the first
     // sentences — a different voice, on a machine that may have none at all —
@@ -1843,6 +2051,10 @@ class VoiceEngine {
   }
 
   finishStreamingSpeech(fullText: string): void {
+    if (this.livekit) {
+      this.speakThroughLivekit(fullText);
+      return;
+    }
     // Same rule as feedStreamingSpeech: never let the browser's voice take
     // the tail of a reply because the server's answer had not arrived yet.
     if (!this.elevenLabsSettled) {

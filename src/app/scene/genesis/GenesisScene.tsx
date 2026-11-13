@@ -36,7 +36,6 @@ import GenesisErrorBoundary
   from "./GenesisErrorBoundary";
 
 
-
 import { useSurface } from "./surface/useSurface";
 import CoreHoldGesture from "./CoreHoldGesture";
 
@@ -151,6 +150,7 @@ const SpatialExperience = lazy(() => import("../spatial/SpatialExperience"));
 const GenesisBridge = lazy(() => import("./GenesisBridge"));
 const ProactiveBridge = lazy(() => import("./ProactiveBridge"));
 const VoiceBridge = lazy(() => import("./VoiceBridge"));
+const LivekitVoiceDock = lazy(() => import("./LivekitVoiceDock"));
 const WorkspaceBridge = lazy(() => import("./WorkspaceBridge"));
 const DeepLinkIntake = lazy(() => import("./DeepLinkIntake"));
 const VisualBridge = lazy(() => import("./VisualBridge"));
@@ -638,6 +638,7 @@ function GenesisWorkspaceRouter() {
         <GenesisBridge />
         <ProactiveBridge />
         <VoiceBridge />
+        <LivekitVoiceDock />
       </Suspense>
 
       {!surface.cosmosRendered ? (

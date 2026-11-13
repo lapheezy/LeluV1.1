@@ -73,6 +73,8 @@ export interface VoxcpmHealth {
   device: string | null;
   gpu: boolean;
   loaded: boolean;
+  /** Worker lifecycle (STARTING…READY/FAILED) when the worker reports one; null for older workers. */
+  state: string | null;
   sampleRate: number | null;
   loadSeconds: number | null;
   loadError: string | null;
@@ -198,6 +200,7 @@ export async function probeVoxcpmWorker(
     device: null,
     gpu: false,
     loaded: false,
+    state: null,
     sampleRate: null,
     loadSeconds: null,
     loadError: null,
@@ -229,19 +232,28 @@ export async function probeVoxcpmWorker(
     const reference = (payload.reference ?? null) as Record<string, unknown> | null;
     const loadError = typeof payload.loadError === "string" ? payload.loadError : null;
     const loaded = payload.loaded === true;
+    // A lifecycle-aware worker says READY only after a real generation
+    // produced audio; loaded-but-untested is not available. Older workers
+    // report no state, and for them "loaded" is all there is to go on.
+    const state = typeof payload.state === "string" ? payload.state : null;
+    const stateError = typeof payload.stateError === "string" ? payload.stateError : null;
+    const ready = state === null ? loaded : payload.ready === true && state === "READY";
     const gpu = hardware.cuda === true || (device !== null && /cuda|mps/i.test(device));
     return {
       ...base,
-      available: loaded,
-      reason: loaded ? "ok" : loadError ? "model-unavailable" : "model-unavailable",
-      detail: loaded
+      available: ready,
+      reason: ready ? "ok" : "model-unavailable",
+      detail: ready
         ? `${String(payload.engine ?? "voxcpm")} on ${String(hardware.deviceName ?? device ?? "unknown device")}`
-        : loadError ?? "model is not loaded yet",
+        : state !== null
+          ? `worker is ${state}${stateError ? `: ${stateError}` : ""}`
+          : loadError ?? "model is not loaded yet",
       latencyMs,
       modelId: typeof payload.modelId === "string" ? payload.modelId : null,
       device,
       gpu,
       loaded,
+      state,
       sampleRate,
       loadSeconds: typeof payload.loadSeconds === "number" ? payload.loadSeconds : null,
       loadError,
@@ -380,6 +392,7 @@ export class VoxcpmPool {
                 device: last.device,
                 gpu: last.gpu,
                 loaded: last.loaded,
+                state: last.state,
                 sampleRate: last.sampleRate,
                 loadSeconds: last.loadSeconds,
                 loadError: last.loadError,
