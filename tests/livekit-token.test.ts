@@ -107,3 +107,16 @@ test("live: token issued, room created, real participant joins", { skip: !liveEn
   assert.notEqual(claims.video.room, roomForUser("someone-else"));
   await rooms.deleteRoom(body.room);
 });
+
+test("the local dev identity works only against loopback LiveKit and never in production", async () => {
+  const base = { LIVEKIT_API_KEY: "APItest", LIVEKIT_API_SECRET: SECRET, LELU_LIVEKIT_DEV_IDENTITY: "me" };
+  const refuse = async () => ({ ok: false, status: 401, reason: "no session" });
+  const remote = createLivekitApi({ readEnv: (k) => ({ ...base, LIVEKIT_URL: "wss://lelu.livekit.cloud" } as Record<string, string>)[k], verifyIdentity: refuse });
+  assert.equal((await remote.issue({ headers: {} })).status, 401, "a deployed LiveKit ignores the dev identity");
+  const prod = createLivekitApi({ readEnv: (k) => ({ ...base, LIVEKIT_URL: "ws://127.0.0.1:1", NODE_ENV: "production" } as Record<string, string>)[k], verifyIdentity: refuse });
+  assert.equal((await prod.issue({ headers: {} })).status, 401, "production ignores the dev identity");
+  const publicFront = createLivekitApi({ readEnv: (k) => ({ ...base, LIVEKIT_URL: "ws://127.0.0.1:1", LIVEKIT_PUBLIC_URL: "wss://voice.example.com" } as Record<string, string>)[k], verifyIdentity: refuse });
+  assert.equal((await publicFront.issue({ headers: {} })).status, 401, "a public browser URL ignores the dev identity");
+  const local = createLivekitApi({ readEnv: (k) => ({ ...base, LIVEKIT_URL: "ws://127.0.0.1:1" } as Record<string, string>)[k], verifyIdentity: refuse });
+  assert.equal((await local.issue({ headers: {} })).status, 502, "local loopback: identity accepted, then the (absent) server is reported");
+});

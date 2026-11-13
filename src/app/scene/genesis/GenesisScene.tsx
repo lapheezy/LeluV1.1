@@ -42,6 +42,7 @@ import GenesisController from "./GenesisController";
 import GenesisBridge from "./GenesisBridge";
 import ProactiveBridge from "./ProactiveBridge";
 import VoiceBridge from "./VoiceBridge";
+import LivekitVoiceDock from "./LivekitVoiceDock";
 import { useSurface } from "./surface/useSurface";
 import CoreHoldGesture from "./CoreHoldGesture";
 
@@ -416,6 +417,7 @@ function GenesisWorkspaceRouter() {
       <GenesisBridge />
       <ProactiveBridge />
       <VoiceBridge />
+      <LivekitVoiceDock />
 
       {!surface.cosmosRendered ? (
         /* Chat owns the phone screen: no scene is rendered beneath it —

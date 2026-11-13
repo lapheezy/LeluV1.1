@@ -117,6 +117,21 @@ export function createLivekitApi(options: LivekitApiOptions = {}): {
     return hits.length > LIMIT;
   }
 
+  /**
+   * LOCAL DEVELOPMENT ONLY. With LELU_LIVEKIT_DEV_IDENTITY set, tokens are
+   * issued for that fixed user without a Supabase session — but only when
+   * BOTH the server and the browser LiveKit URLs are loopback and
+   * NODE_ENV is not "production". A deployed LiveKit (any non-loopback
+   * public URL) can therefore never be reached this way.
+   */
+  function devIdentity(settings: LivekitSettings): IdentityCheck | null {
+    const id = (read("LELU_LIVEKIT_DEV_IDENTITY") ?? "").trim();
+    if (!id) return null;
+    const loopback = (url: string) => /^wss?:\/\/(127\.0\.0\.1|localhost|\[::1\])(:\d+)?(\/|$)/i.test(url);
+    if ((read("NODE_ENV") ?? "") === "production" || !loopback(settings.serverUrl) || !loopback(settings.publicUrl)) return null;
+    return { ok: true, status: 200, reason: "local development identity", identity: { userId: `dev-${id.replace(/[^A-Za-z0-9_-]/g, "")}`, email: null } };
+  }
+
   async function dispatchAgent(settings: LivekitSettings, room: string): Promise<{ dispatched: boolean; detail: string }> {
     if (!settings.agentToken) return { dispatched: false, detail: "LELU_VOICE_AGENT_TOKEN is not set; the agent is not dispatched" };
     try {
@@ -138,7 +153,7 @@ export function createLivekitApi(options: LivekitApiOptions = {}): {
     if (!settings) {
       return { status: 503, body: { ok: false, error: "LiveKit is not configured on this server (LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET)." } };
     }
-    const identity = await verify(req);
+    const identity = devIdentity(settings) ?? (await verify(req));
     if (!identity.ok || !identity.identity) {
       return { status: identity.status || 401, body: { ok: false, error: identity.reason } };
     }
