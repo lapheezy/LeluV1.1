@@ -117,7 +117,7 @@ export class LivekitVoiceTransport {
     this.room = room;
     this.wireRoom(room);
     await room.connect(url, token);
-    this.patch({ connection: "connected", room: roomName, agentPresent: this.agentIn(room), agentListening: false });
+    this.patch({ connection: "connected", room: roomName, agentPresent: this.agentIn(room), agentListening: false, error: null });
     try {
       // The browser's echo cancellation is what keeps her own voice, played
       // through the speaker, from barging in on herself.
