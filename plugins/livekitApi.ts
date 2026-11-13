@@ -60,7 +60,8 @@ export function livekitSettings(read: ReadEnv): LivekitSettings | null {
   const apiKey = (read("LIVEKIT_API_KEY") ?? "").trim();
   const apiSecret = (read("LIVEKIT_API_SECRET") ?? "").trim();
   if (!serverUrl || !apiKey || !apiSecret) return null;
-  const ttl = Number(read("LIVEKIT_TOKEN_TTL_SECONDS") ?? "600");
+  // Readers may return "" for an unset name; that means "default", not 0.
+  const ttl = Number((read("LIVEKIT_TOKEN_TTL_SECONDS") ?? "").trim() || "600");
   return {
     serverUrl,
     publicUrl: (read("LIVEKIT_PUBLIC_URL") ?? "").trim() || serverUrl,

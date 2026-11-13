@@ -684,17 +684,27 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("X-Sample-Rate", str(sample_rate))
         self.send_header("X-Lelu-Engine", "voxcpm2")
         self.end_headers()
+        cancelled = False
         try:
             for chunk in self.engine.stream_for(text, cfg_value, timesteps):
                 self.wfile.write(f"{len(chunk):X}\r\n".encode("ascii"))
                 self.wfile.write(chunk)
                 self.wfile.write(b"\r\n")
                 self.wfile.flush()
+        except (BrokenPipeError, ConnectionResetError):
+            # The client closed (STOP / barge-in). Leaving the loop closes the
+            # generator, which ends the generation: that is the cancellation.
+            cancelled = True
+            sys.stderr.write(json.dumps({"event": "stream_cancelled", "chars": len(text)}) + "\n")
         except Exception as exc:
             sys.stderr.write(json.dumps({"event": "stream_error", "error": str(exc)}) + "\n")
         finally:
-            self.wfile.write(b"0\r\n\r\n")
-            self.wfile.flush()
+            if not cancelled:
+                try:
+                    self.wfile.write(b"0\r\n\r\n")
+                    self.wfile.flush()
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
 
 
 def main() -> int:
