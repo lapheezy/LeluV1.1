@@ -59,6 +59,11 @@ TTS_URL = os.environ.get("LELU_TTS_URL", f"{APP_URL}/api/voice/vox/speech")
 WHISPER_MODEL = os.environ.get("LELU_STT_MODEL", "whisper-large-v3-turbo")
 WHISPER_NAME_HINT = "Talking with Lélu."  # same hint the page uses (transcriptionTransport.ts)
 IDLE_LEAVE_SECONDS = float(os.environ.get("LELU_AGENT_IDLE_LEAVE", "120"))
+# "sentence": synthesise a whole sentence, then play it — no gaps, more latency.
+#   Right for a CPU worker (RTF ~5): streamed playback would starve and stutter.
+# "stream": play chunks as they arrive — right only when the worker is faster
+#   than real time (a GPU).
+PLAYBACK = os.environ.get("LELU_AGENT_PLAYBACK", "sentence")
 
 
 def log(event: str, **fields) -> None:
@@ -81,6 +86,16 @@ def sentences(text: str, limit: int = 220) -> list[str]:
         else:
             out.append(part)
     return out
+
+
+def split_frame(frame: rtc.AudioFrame, ms: int = 20):
+    """Hand LiveKit 20 ms frames: capture_frame paces playout per frame, and a
+    multi-second frame would overflow the source queue."""
+    step = frame.sample_rate * ms // 1000
+    data = np.frombuffer(frame.data, dtype=np.int16)
+    for start in range(0, len(data), step):
+        part = data[start : start + step]
+        yield rtc.AudioFrame(part.tobytes(), frame.sample_rate, 1, len(part))
 
 
 def wav_bytes(pcm: np.ndarray, rate: int) -> bytes:
@@ -292,7 +307,15 @@ class RoomSession:
                     rate = int(match.group(1)) if match else OUT_RATE
                     resampler = rtc.AudioResampler(rate, OUT_RATE) if rate != OUT_RATE else None
                     carry = b""
-                    async for chunk in response.content.iter_any():
+                    chunks = response.content.iter_any()
+                    if PLAYBACK == "sentence":
+                        whole = b"".join([part async for part in chunks])
+
+                        async def _once(data=whole):
+                            yield data
+
+                        chunks = _once()
+                    async for chunk in chunks:
                         data = carry + chunk
                         usable = len(data) - (len(data) % 2)
                         carry = data[usable:]
@@ -302,7 +325,7 @@ class RoomSession:
                         frames = [rtc.AudioFrame(pcm.tobytes(), rate, 1, len(pcm))]
                         if resampler:
                             frames = resampler.push(frames[0])
-                        for frame in frames:
+                        for frame in (piece for f in frames for piece in split_frame(f)):
                             if first:
                                 first = False
                                 log("first_audio", room=self.room_name, turn=turn, ms=int((time.time() - started) * 1000))
