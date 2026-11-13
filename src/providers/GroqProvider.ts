@@ -13,6 +13,7 @@ import {
   extractOpenAIToolCalls,
   extractOpenAIText,
   describeEmptyChoice,
+  isTruncating,
   openAIToolPayload,
   toOpenAIMessages,
   trailingUserTurn,
@@ -281,6 +282,10 @@ export default class GroqProvider implements AIProvider {
       metadata: {
         usage: data?.usage,
         finishReason: choices?.[0]?.finish_reason,
+        // A 200 is not the same as a whole answer: `length` means the output
+        // budget ran out mid-sentence. Named here so nothing downstream — a
+        // claim check, a report, the UI — has to parse the reason itself.
+        truncated: isTruncating(choices?.[0]?.finish_reason),
       },
     };
   }
@@ -338,6 +343,7 @@ export default class GroqProvider implements AIProvider {
       metadata: {
         usage: streamed.usage,
         finishReason: streamed.finishReason,
+        truncated: isTruncating(streamed.finishReason),
         streamed: true,
       },
     };

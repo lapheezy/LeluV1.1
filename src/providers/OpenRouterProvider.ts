@@ -19,6 +19,7 @@ import {
   toOpenAIMessages,
   trailingUserTurn,
   readOpenAIStream,
+  isTruncating,
 } from "./openaiTools";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 
@@ -313,7 +314,13 @@ export default class OpenRouterProvider implements AIProvider {
         processingTime: Date.now() - started,
         ...(streamed.toolCalls.length ? { toolCalls: streamed.toolCalls } : {}),
         stopReason: streamed.finishReason,
-        metadata: { usage: streamed.usage, finishReason: streamed.finishReason, streamed: true },
+        metadata: {
+          usage: streamed.usage,
+          finishReason: streamed.finishReason,
+          // 200 ≠ complete: see GroqProvider for why this is named.
+          truncated: isTruncating(streamed.finishReason),
+          streamed: true,
+        },
       };
     }
 
@@ -356,6 +363,7 @@ export default class OpenRouterProvider implements AIProvider {
       metadata: {
         usage: data?.usage,
         finishReason: data?.choices?.[0]?.finish_reason,
+        truncated: isTruncating(data?.choices?.[0]?.finish_reason),
       },
     };
   }
