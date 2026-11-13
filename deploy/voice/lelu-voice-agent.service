@@ -1,0 +1,52 @@
+# ==========================================================
+# LÉLU — LiveKit voice agent (transport only), systemd unit
+#
+# Runs BESIDE lelu.service on the Contabo VPS. It holds no model and
+# little memory (~0.5 GB with Silero VAD); the heavy speech model is NOT
+# here — see lelu-voxcpm.service, which needs its own host.
+#
+#   sudo -u lelu bash -c 'cd /opt/lelu/app && uv venv .venv-livekit-agent --python 3.12 && \
+#     uv pip install --python .venv-livekit-agent/bin/python -r services/livekit-agent/requirements.txt'
+#   sudo cp deploy/voice/lelu-voice-agent.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now lelu-voice-agent
+#
+# NOT TESTED on the VPS (no host access from the development container).
+# ==========================================================
+
+[Unit]
+Description=LÉLU LiveKit voice agent (mic → STT → page; reply → VoxCPM2 → LiveKit)
+After=network-online.target lelu.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lelu
+Group=lelu
+WorkingDirectory=/opt/lelu/app
+# LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET, LELU_VOICE_AGENT_TOKEN
+EnvironmentFile=/etc/lelu/lelu.env
+# The agent reaches LÉLU on loopback; its token passes the access gate for
+# exactly two routes (transcription, VoxCPM2 speech) and nothing else.
+Environment=LELU_APP_URL=http://127.0.0.1:4173
+Environment=LELU_VOICE_AGENT_PORT=8790
+# CPU worker (RTF ~5): play whole sentences. Use "stream" for a GPU worker.
+Environment=LELU_AGENT_PLAYBACK=sentence
+ExecStart=/opt/lelu/app/.venv-livekit-agent/bin/python services/livekit-agent/agent.py
+Restart=always
+RestartSec=3
+TimeoutStopSec=15
+KillSignal=SIGTERM
+MemoryHigh=1G
+MemoryMax=1500M
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/opt/lelu
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lelu-voice-agent
+
+[Install]
+WantedBy=multi-user.target

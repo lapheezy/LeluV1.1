@@ -91,3 +91,31 @@ test("login attempts are rate limited per address", async () => {
     await s.close();
   }
 });
+
+test("the voice agent's token opens exactly its two routes, nothing else", async () => {
+  const s = await serve({ LELU_ACCESS_PASSWORD: "pass", LELU_VOICE_AGENT_TOKEN: "agent-token-123" });
+  try {
+    const post = (path: string, token?: string) =>
+      fetch(`${s.base}${path}`, { method: "POST", headers: token ? { "X-Lelu-Agent-Token": token } : {}, body: "{}" });
+    assert.equal((await post("/api/voice/vox/speech", "agent-token-123")).status, 200);
+    assert.equal((await post("/api/model/groq/audio/transcriptions", "agent-token-123")).status, 200);
+    assert.equal((await post("/api/voice/vox/speech", "wrong")).status, 401, "wrong token");
+    assert.equal((await post("/api/voice/vox/speech")).status, 401, "no token");
+    assert.equal((await post("/api/model/groq/chat/completions", "agent-token-123")).status, 401, "chat is not the agent's");
+    assert.equal((await post("/api/livekit/token", "agent-token-123")).status, 401, "nor is the token endpoint");
+    const get = await fetch(`${s.base}/api/voice/vox/speech`, { headers: { "X-Lelu-Agent-Token": "agent-token-123" } });
+    assert.equal(get.status, 401, "POST only");
+  } finally {
+    await s.close();
+  }
+});
+
+test("without LELU_VOICE_AGENT_TOKEN configured, no agent header opens anything", async () => {
+  const s = await serve({ LELU_ACCESS_PASSWORD: "pass" });
+  try {
+    const r = await fetch(`${s.base}/api/voice/vox/speech`, { method: "POST", headers: { "X-Lelu-Agent-Token": "" }, body: "{}" });
+    assert.equal(r.status, 401);
+  } finally {
+    await s.close();
+  }
+});

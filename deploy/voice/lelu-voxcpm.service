@@ -1,0 +1,57 @@
+# ==========================================================
+# LÉLU — VoxCPM2 speech worker, systemd unit
+#
+# NOT FOR THE CONTABO VPS 4 (8 GB RAM): loading VoxCPM2 on CPU peaks at
+# ~11 GiB (measured, WORKER-RESOURCE-RECOVERY-REPORT.md). Run this on a
+# host with >= 16 GB RAM (CPU, RTF ~4-5) or an NVIDIA GPU >= 12 GB VRAM.
+#
+# Under systemd, systemd IS the supervisor: one instance, restart on
+# failure, journald logs, start on boot. (workerctl.py does the same job
+# on hosts without systemd, e.g. a development container.)
+#
+#   bash services/voxcpm/install.sh && .venv-voxcpm/bin/python services/voxcpm/bootstrap.py
+#   sudo cp deploy/voice/lelu-voxcpm.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now lelu-voxcpm
+#   curl -s 127.0.0.1:8788/health | jq '{state, ready}'      # READY = proven by a real generation
+#
+# Expose it to the VPS only through an authenticated tunnel or private
+# network, with VOXCPM_TOKEN set on both sides. NOT TESTED on such a host.
+# ==========================================================
+
+[Unit]
+Description=LÉLU VoxCPM2 speech worker (sidecar)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lelu
+Group=lelu
+WorkingDirectory=/opt/lelu/app
+# VOXCPM_TOKEN (required off loopback), optional VOXCPM_* tuning
+EnvironmentFile=/etc/lelu/voxcpm.env
+Environment=VOXCPM_HOST=127.0.0.1
+Environment=VOXCPM_PORT=8788
+Environment=VOXCPM_WARMUP=1
+Environment=HF_HUB_OFFLINE=1
+Environment=VOXCPM_STATE_FILE=/opt/lelu/app/.voxcpm/run/worker.state.json
+ExecStartPre=/opt/lelu/app/.venv-voxcpm/bin/python services/voxcpm/bootstrap.py --check
+ExecStart=/opt/lelu/app/.venv-voxcpm/bin/python services/voxcpm/server.py
+Restart=on-failure
+RestartSec=10
+# A cold first load from disk took 320 s in testing; READY includes a real generation.
+TimeoutStartSec=900
+TimeoutStopSec=30
+KillSignal=SIGTERM
+MemoryMax=14G
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/lelu/app/.voxcpm /opt/lelu/.cache
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lelu-voxcpm
+
+[Install]
+WantedBy=multi-user.target

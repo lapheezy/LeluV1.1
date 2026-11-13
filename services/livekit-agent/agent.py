@@ -243,7 +243,7 @@ class RoomSession:
         form.add_field("response_format", "json")
         form.add_field("prompt", WHISPER_NAME_HINT)
         try:
-            async with self.agent.http.post(STT_URL, data=form, timeout=aiohttp.ClientTimeout(total=30)) as response:
+            async with self.agent.http.post(STT_URL, data=form, headers=self.agent.app_headers, timeout=aiohttp.ClientTimeout(total=30)) as response:
                 body = await response.text()
                 if response.status != 200:
                     log("stt_failed", status=response.status, body=body[:200])
@@ -301,6 +301,7 @@ class RoomSession:
                 async with self.agent.http.post(
                     TTS_URL,
                     json={"input": piece, "stream": True, "response_format": "pcm"},
+                    headers=self.agent.app_headers,
                     timeout=aiohttp.ClientTimeout(total=600, sock_read=120),
                 ) as response:
                     if response.status != 200:
@@ -355,6 +356,8 @@ class Agent:
         self.key = os.environ["LIVEKIT_API_KEY"]
         self.secret = os.environ["LIVEKIT_API_SECRET"]
         self.control_token = os.environ.get("LELU_VOICE_AGENT_TOKEN", "")
+        # Lets the agent through LÉLU's access gate to its two routes only.
+        self.app_headers = {"X-Lelu-Agent-Token": self.control_token} if self.control_token else {}
         self.sessions: dict[str, RoomSession] = {}
         self.vad = silero.VAD.load(min_silence_duration=0.7, min_speech_duration=0.15, activation_threshold=0.5)
         self.http: aiohttp.ClientSession | None = None
