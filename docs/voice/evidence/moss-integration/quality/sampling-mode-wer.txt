@@ -1,0 +1,18 @@
+run-quality            content WER 0.029  exact 8/10
+     q02: Are you here? I found three new messages for you.
+     q07: I saved the document and shared it with your project folder.
+run-quality-greedy     content WER 0.644  exact 2/10
+     q00: Off. Off.
+     q02: Hey!
+     q03: The weather today.
+     q04: I'm sorry. I didn't catch that.
+     q06: Hello.
+     q07: I shaved the document.
+     q08: Sure.
+     q09: Good night.
+run-quality-full       content WER 0.058  exact 5/10
+     q01: That's a good question. Think about it for a moment.
+     q02: You, I found three new messages for you.
+     q04: I'm sorry. I didn't touch that. Could you say it again?
+     q05: The meeting with the design team starts in 15 minutes.
+     q06: Hello. Just lovely to hear from you again.

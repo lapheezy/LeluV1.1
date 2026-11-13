@@ -1,0 +1,59 @@
+{
+ "model": "speechbrain/spkrec-ecapa-voxceleb (cosine)",
+ "rows": [
+  {
+   "item": "REF 12-30s vs REF 30-48s (same speaker, real)",
+   "vs_heldout_mean": 0.771
+  },
+  {
+   "item": "MOSS q00",
+   "vs_heldout_mean": 0.402,
+   "vs_conditioning": 0.392
+  },
+  {
+   "item": "MOSS q01",
+   "vs_heldout_mean": 0.339,
+   "vs_conditioning": 0.361
+  },
+  {
+   "item": "MOSS q02",
+   "vs_heldout_mean": 0.355,
+   "vs_conditioning": 0.527
+  },
+  {
+   "item": "MOSS q03",
+   "vs_heldout_mean": 0.346,
+   "vs_conditioning": 0.45
+  },
+  {
+   "item": "MOSS q04",
+   "vs_heldout_mean": 0.374,
+   "vs_conditioning": 0.39
+  },
+  {
+   "item": "MOSS q05",
+   "vs_heldout_mean": 0.225,
+   "vs_conditioning": 0.306
+  },
+  {
+   "item": "MOSS q06",
+   "vs_heldout_mean": 0.454,
+   "vs_conditioning": 0.319
+  },
+  {
+   "item": "MOSS q07",
+   "vs_heldout_mean": 0.353,
+   "vs_conditioning": 0.326
+  },
+  {
+   "item": "MOSS q08",
+   "vs_heldout_mean": 0.35,
+   "vs_conditioning": 0.339
+  },
+  {
+   "item": "MOSS q09",
+   "vs_heldout_mean": 0.387,
+   "vs_conditioning": 0.493
+  }
+ ]
+}

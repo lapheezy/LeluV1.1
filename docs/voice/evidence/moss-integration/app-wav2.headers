@@ -1,0 +1,17 @@
+HTTP/1.1 200 OK
+Vary: Origin
+content-type: audio/wav
+x-lelu-audio-seconds: 6.7
+x-lelu-cached: 0
+x-lelu-engine: moss-tts-nano
+x-lelu-first-audio-ms: 275
+x-lelu-rtf: 0.946
+x-lelu-synthesis-ms: 6340
+x-lelu-voice: lelu-reference
+Cache-Control: no-store
+X-Lelu-Worker: local
+Date: Fri, 13 Nov 2026 18:28:07 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Transfer-Encoding: chunked
+

@@ -1,0 +1,6 @@
+{"event": "start", "t": 0.008, "threads": 3, "mode": "worker", "label": "b", "peakMiB": 28, "rssMiB": 28}
+{"event": "imported", "t": 1.181, "peakMiB": 286, "rssMiB": 286}
+{"event": "loaded", "t": 4.487, "loadSeconds": 3.31, "loadCpuSeconds": 3.26, "peakMiB": 1502, "rssMiB": 1502}
+{"event": "reference_encoded", "t": 8.339, "seconds": 3.85, "promptFrames": 150, "peakMiB": 2760, "rssMiB": 2760}
+{"event": "concurrent", "t": 28.447, "chars": 67, "firstAudioMs": 361, "totalMs": 7466, "audioSeconds": 6.56, "rtf": 1.138, "cpuSeconds": 11.17, "cancelled": false, "codecMs": 2372, "gaplessPrebufferMs": 597, "chunks": 82, "peakMiB": 3133, "rssMiB": 3133}
+{"event": "done", "t": 28.447, "peakMiB": 3133, "rssMiB": 3133}

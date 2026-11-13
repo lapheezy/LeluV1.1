@@ -1,0 +1,292 @@
+{
+ "base": "http://127.0.0.1:5173/",
+ "ranAt": "2026-11-13T18:44:25.324Z",
+ "realDevice": false,
+ "mic": "fake (WAV file)",
+ "stop": {
+  "rmsBeforeStopMax": 0.21275236089748353,
+  "lastAudibleAfterStopMs": 102,
+  "elementMutedAfterStop": true
+ },
+ "phaseAfterStop": "listening",
+ "continuity": {
+  "found": true,
+  "reply": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+  "conversationLength": 6,
+  "roles": [
+   "user",
+   "assistant",
+   "user",
+   "assistant",
+   "user",
+   "assistant"
+  ]
+ },
+ "timeline": [
+  {
+   "t": 18369,
+   "kind": "chat-open"
+  },
+  {
+   "t": 19895,
+   "kind": "livekit",
+   "connection": "connecting",
+   "agent": false,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 20320,
+   "kind": "agent-audio-attached",
+   "index": 1
+  },
+  {
+   "t": 20322,
+   "kind": "livekit",
+   "connection": "connected",
+   "agent": true,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 20344,
+   "kind": "connected"
+  },
+  {
+   "t": 20453,
+   "kind": "livekit",
+   "connection": "connected",
+   "agent": true,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 20454,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 20473,
+   "kind": "livekit",
+   "connection": "connected",
+   "agent": true,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 20492,
+   "kind": "agent-listening"
+  },
+  {
+   "t": 55894,
+   "kind": "utterance",
+   "text": "Hey Lélu, what is the capital of France? Answer in one short sentence."
+  },
+  {
+   "t": 55895,
+   "kind": "turn",
+   "user": "Hey Lélu, what is the capital of France? Answer in one short sentence.",
+   "response": null
+  },
+  {
+   "t": 55895,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 55916,
+   "kind": "q1-heard"
+  },
+  {
+   "t": 59036,
+   "kind": "turn",
+   "user": "Hey Lélu, what is the capital of France? Answer in one short sentence.",
+   "response": "The capital of France is Paris."
+  },
+  {
+   "t": 59038,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 59038,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 59054,
+   "kind": "q1-speaking"
+  },
+  {
+   "t": 60446,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 63567,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 63587,
+   "kind": "q1-spoke"
+  },
+  {
+   "t": 210614,
+   "kind": "utterance",
+   "text": "Lélu, tell me a long story about the ocean with at least six sentences."
+  },
+  {
+   "t": 210614,
+   "kind": "turn",
+   "user": "Lélu, tell me a long story about the ocean with at least six sentences.",
+   "response": null
+  },
+  {
+   "t": 210615,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 210634,
+   "kind": "q2-heard"
+  },
+  {
+   "t": 215220,
+   "kind": "turn",
+   "user": "Lélu, tell me a long story about the ocean with at least six sentences.",
+   "response": "The ocean stretched out before the small fishing village like a living, breathing tapestry of blues and greens, its waves whispering ancient secrets to anyone who would listen. Every dawn, Mira would stand on the weather‑worn pier, watching the sunrise melt into the water and feeling the salty mist kiss her cheeks as she imagined the world beyond the horizon. One morning, a luminous dolphin leapt "
+  },
+  {
+   "t": 215221,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 215221,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 216549,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 216667,
+   "kind": "q2-audible"
+  },
+  {
+   "t": 218721,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 218753,
+   "kind": "stop-clicked"
+  },
+  {
+   "t": 222759,
+   "kind": "stop-measured",
+   "rmsBeforeStopMax": 0.21275236089748353,
+   "lastAudibleAfterStopMs": 102,
+   "elementMutedAfterStop": true
+  },
+  {
+   "t": 222761,
+   "kind": "phase-after-stop",
+   "phase": "listening"
+  },
+  {
+   "t": 222761,
+   "kind": "livekit-server-killed"
+  },
+  {
+   "t": 230787,
+   "kind": "recovered-after-server-restart"
+  },
+  {
+   "t": 233859,
+   "kind": "livekit",
+   "connection": "disconnected",
+   "agent": false,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 233861,
+   "kind": "livekit",
+   "connection": "disconnected",
+   "agent": false,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 233861,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "error": null
+  },
+  {
+   "t": 233969,
+   "kind": "ended"
+  },
+  {
+   "t": 236355,
+   "kind": "state",
+   "phase": "speaking",
+   "active": false,
+   "error": null
+  },
+  {
+   "t": 236463,
+   "kind": "typed",
+   "question": "In one sentence: what was the first thing I asked you by voice a moment ago?"
+  },
+  {
+   "t": 237774,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "error": null
+  },
+  {
+   "t": 238029,
+   "kind": "continuity",
+   "found": true,
+   "reply": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still recording this conversation locally. Try asking \"who are you\", \"who am I\", or about something we've discussed.",
+   "conversationLength": 6,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant"
+   ]
+  }
+ ]
+}

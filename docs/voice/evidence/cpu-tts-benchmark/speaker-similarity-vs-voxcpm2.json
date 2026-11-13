@@ -1,0 +1,64 @@
+{
+ "model": "speechbrain/spkrec-ecapa-voxceleb (cosine)",
+ "rows": [
+  {
+   "item": "REF 12-30s vs REF 30-48s (same speaker, real)",
+   "vs_heldout_mean": 0.771
+  },
+  {
+   "item": "MOSS short (t4)",
+   "vs_heldout_mean": 0.251,
+   "vs_conditioning": 0.312
+  },
+  {
+   "item": "MOSS medium (t4)",
+   "vs_heldout_mean": 0.412,
+   "vs_conditioning": 0.401
+  },
+  {
+   "item": "MOSS long (t4)",
+   "vs_heldout_mean": 0.356,
+   "vs_conditioning": 0.42
+  },
+  {
+   "item": "MOSS short (ns3)",
+   "vs_heldout_mean": 0.251,
+   "vs_conditioning": 0.312
+  },
+  {
+   "item": "MOSS medium (ns3)",
+   "vs_heldout_mean": 0.412,
+   "vs_conditioning": 0.401
+  },
+  {
+   "item": "MOSS long (ns3)",
+   "vs_heldout_mean": 0.356,
+   "vs_conditioning": 0.42
+  },
+  {
+   "item": "VoxCPM2 worker-speech-1",
+   "vs_heldout_mean": 0.353,
+   "vs_conditioning": 0.352
+  },
+  {
+   "item": "VoxCPM2 finalization",
+   "vs_heldout_mean": 0.442,
+   "vs_conditioning": 0.544
+  },
+  {
+   "item": "VoxCPM2 app-speech",
+   "vs_heldout_mean": 0.433,
+   "vs_conditioning": 0.395
+  },
+  {
+   "item": "NEG elevenlabs-jessica-0",
+   "vs_heldout_mean": -0.063,
+   "vs_conditioning": -0.023
+  },
+  {
+   "item": "NEG elevenlabs-jessica-1",
+   "vs_heldout_mean": -0.044,
+   "vs_conditioning": -0.023
+  }
+ ]
+}

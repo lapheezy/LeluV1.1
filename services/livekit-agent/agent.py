@@ -64,6 +64,10 @@ IDLE_LEAVE_SECONDS = float(os.environ.get("LELU_AGENT_IDLE_LEAVE", "120"))
 # "stream": play chunks as they arrive — right only when the worker is faster
 #   than real time (a GPU).
 PLAYBACK = os.environ.get("LELU_AGENT_PLAYBACK", "sentence")
+# Stream mode only: hold this much audio before her voice starts, so a worker
+# running near real time on a shared CPU does not stall mid-sentence. Measured
+# for MOSS-TTS-Nano on 4 shared vCPU: worst stall up to ~0.9 s without it.
+PREBUFFER_MS = int(os.environ.get("LELU_AGENT_PREBUFFER_MS", "0"))
 
 
 def log(event: str, **fields) -> None:
@@ -113,13 +117,14 @@ class RoomSession:
         self.agent = agent
         self.room_name = room_name
         self.room = rtc.Room()
-        self.source = rtc.AudioSource(OUT_RATE, 1, queue_size_ms=1000)
+        self.source = rtc.AudioSource(OUT_RATE, 1, queue_size_ms=max(1000, PREBUFFER_MS + 1000))
         self.turn = 0
         self.speaking_turn: int | None = None
         self.speak_task: asyncio.Task | None = None
         self.listen_tasks: dict[str, asyncio.Task] = {}
         self.last_user_seen = time.time()
         self.closed = asyncio.Event()
+        self.closing = False
 
     # -- plumbing ------------------------------------------------------
 
@@ -177,6 +182,12 @@ class RoomSession:
         def _on_disconnected(reason=None) -> None:
             log("room_disconnected", room=self.room_name, reason=str(reason))
             self.closed.set()
+            if not self.closing:
+                # Not asked to leave: the server or network dropped us. The
+                # browser may resume WITHOUT asking for a new token (LiveKit's
+                # own reconnect), so nobody would dispatch us again; come back
+                # by ourselves.
+                asyncio.create_task(self.agent.rejoin(self.room_name))
 
         await self.room.connect(self.agent.url, token)
         track = rtc.LocalAudioTrack.create_audio_track("lelu-voice", self.source)
@@ -196,6 +207,7 @@ class RoomSession:
                 return
 
     async def close(self) -> None:
+        self.closing = True
         await self.stop_speaking("closing")
         for task in self.listen_tasks.values():
             task.cancel()
@@ -296,6 +308,23 @@ class RoomSession:
         first = True
         started = time.time()
         samples_out = 0
+        held: list = []  # frames waiting for the prebuffer to fill (stream mode)
+        held_samples = 0
+        # Underrun accounting: playback began at play_t0; by wall time T the
+        # listener has heard (T - play_t0 - stalled) s; if fewer seconds had
+        # been supplied, the difference was silence she did not mean.
+        clock = {"t0": None, "supplied": 0.0, "stalled": 0.0, "underruns": 0}
+
+        async def play(out_frame) -> None:
+            now = time.time()
+            if clock["t0"] is None:
+                clock["t0"] = now
+            lag = (now - clock["t0"]) - clock["supplied"] - clock["stalled"]
+            if lag > 0.02:
+                clock["stalled"] += lag
+                clock["underruns"] += 1
+            clock["supplied"] += out_frame.samples_per_channel / OUT_RATE
+            await self.source.capture_frame(out_frame)
         try:
             for piece in sentences(text):
                 async with self.agent.http.post(
@@ -332,18 +361,33 @@ class RoomSession:
                         if resampler:
                             frames = resampler.push(frames[0])
                         for frame in (piece for f in frames for piece in split_frame(f)):
-                            if first:
-                                first = False
-                                log("first_audio", room=self.room_name, turn=turn, ms=int((time.time() - started) * 1000))
-                                await self.send({"type": "speaking", "turnId": turn})
-                            samples_out += frame.samples_per_channel
-                            await self.source.capture_frame(frame)
+                            if first and PLAYBACK == "stream" and held_samples < OUT_RATE * PREBUFFER_MS // 1000:
+                                held.append(frame)
+                                held_samples += frame.samples_per_channel
+                                continue
+                            for out_frame in [*held, frame]:
+                                if first:
+                                    first = False
+                                    log("first_audio", room=self.room_name, turn=turn, ms=int((time.time() - started) * 1000), prebufferMs=PREBUFFER_MS)
+                                    await self.send({"type": "speaking", "turnId": turn})
+                                samples_out += out_frame.samples_per_channel
+                                await play(out_frame)
+                            held, held_samples = [], 0
+            for out_frame in held:  # a reply shorter than the prebuffer
+                if first:
+                    first = False
+                    log("first_audio", room=self.room_name, turn=turn, ms=int((time.time() - started) * 1000), prebufferMs=PREBUFFER_MS)
+                    await self.send({"type": "speaking", "turnId": turn})
+                samples_out += out_frame.samples_per_channel
+                await play(out_frame)
+            held = []
             if samples_out == 0:
                 log("tts_empty", room=self.room_name, turn=turn)
                 await self.send({"type": "error", "where": "tts", "detail": "the speech worker returned no audio"})
                 return
             await self.source.wait_for_playout()
-            log("spoke", room=self.room_name, turn=turn, seconds=round(samples_out / OUT_RATE, 2), ms=int((time.time() - started) * 1000))
+            log("spoke", room=self.room_name, turn=turn, seconds=round(samples_out / OUT_RATE, 2), ms=int((time.time() - started) * 1000),
+                stallMs=int(clock["stalled"] * 1000), underruns=clock["underruns"], playback=PLAYBACK, prebufferMs=PREBUFFER_MS)
             await self.send({"type": "spoke", "turnId": turn})
         finally:
             if self.speaking_turn == turn:
@@ -379,6 +423,32 @@ class Agent:
             }
         )
 
+    async def ensure_session(self, room: str) -> bool:
+        session = self.sessions.get(room)
+        if session and not session.closed.is_set():
+            return True
+        session = RoomSession(self, room)
+        self.sessions[room] = session
+        try:
+            await session.start()
+            return True
+        except Exception as exc:
+            self.sessions.pop(room, None)
+            log("join_failed", room=room, error=str(exc))
+            return False
+
+    async def rejoin(self, room: str) -> None:
+        """Back into a room we were dropped from, with backoff, for up to ~2 min."""
+        for attempt, delay in enumerate((1, 2, 4, 8, 15, 30, 60), 1):
+            await asyncio.sleep(delay)
+            current = self.sessions.get(room)
+            if current is not None and not current.closed.is_set():
+                return  # already back (a dispatch got there first)
+            if await self.ensure_session(room):
+                log("rejoined", room=room, attempt=attempt)
+                return
+        log("rejoin_gave_up", room=room)
+
     async def join(self, request: web.Request) -> web.Response:
         if not self.authorised(request):
             return web.json_response({"ok": False, "error": "unauthorised"}, status=401)
@@ -386,18 +456,10 @@ class Agent:
         room = str(body.get("room") or "")
         if not re.fullmatch(r"lelu-[A-Za-z0-9_-]{1,80}", room):
             return web.json_response({"ok": False, "error": "invalid room"}, status=400)
-        session = self.sessions.get(room)
-        if session and not session.closed.is_set():
-            return web.json_response({"ok": True, "room": room, "already": True})
-        session = RoomSession(self, room)
-        self.sessions[room] = session
-        try:
-            await session.start()
-        except Exception as exc:
-            self.sessions.pop(room, None)
-            log("join_failed", room=room, error=str(exc))
-            return web.json_response({"ok": False, "error": str(exc)}, status=502)
-        return web.json_response({"ok": True, "room": room})
+        already = bool(self.sessions.get(room)) and not self.sessions[room].closed.is_set()
+        if not await self.ensure_session(room):
+            return web.json_response({"ok": False, "error": "could not join the room"}, status=502)
+        return web.json_response({"ok": True, "room": room, **({"already": True} if already else {})})
 
     async def leave(self, request: web.Request) -> web.Response:
         if not self.authorised(request):
