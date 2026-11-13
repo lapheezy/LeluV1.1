@@ -1,5 +1,9 @@
 # Zero-cost CPU voice: backend comparison and recommendation
 
+> **Follow-up (same day): `MOSS-INTEGRATION-DECISION.md`.** MOSS is now an opt-in worker behind the existing
+> interface, and VoxCPM2 stays the default. The VPS run and the listening test are still blocked. Paired tests
+> found MOSS less accurate (11.1% vs 3.7% word error) and less similar (0.346 vs 0.425) than VoxCPM2.
+
 **Date:** 2026-11-13 · **Branch:** `claude/lelu-worker-recovery-4fio20` · **Committed locally only (not pushed, not merged).**
 **Production code:** unchanged. This is an isolated benchmark, and integration waits for your decision.
 

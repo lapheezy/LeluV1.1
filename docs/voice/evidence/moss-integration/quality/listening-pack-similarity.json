@@ -1,0 +1,89 @@
+{
+ "model": "speechbrain/spkrec-ecapa-voxceleb (cosine)",
+ "rows": [
+  {
+   "item": "REF 12-30s vs REF 30-48s (same speaker, real)",
+   "vs_heldout_mean": 0.771
+  },
+  {
+   "item": "moss-tts-nano 01-A",
+   "vs_heldout_mean": 0.346,
+   "vs_conditioning": 0.372
+  },
+  {
+   "item": "voxcpm2 01-B",
+   "vs_heldout_mean": 0.168,
+   "vs_conditioning": 0.292
+  },
+  {
+   "item": "moss-tts-nano 02-A",
+   "vs_heldout_mean": 0.361,
+   "vs_conditioning": 0.387
+  },
+  {
+   "item": "voxcpm2 02-B",
+   "vs_heldout_mean": 0.429,
+   "vs_conditioning": 0.446
+  },
+  {
+   "item": "moss-tts-nano 03-A",
+   "vs_heldout_mean": 0.242,
+   "vs_conditioning": 0.209
+  },
+  {
+   "item": "voxcpm2 03-B",
+   "vs_heldout_mean": 0.421,
+   "vs_conditioning": 0.504
+  },
+  {
+   "item": "voxcpm2 04-A",
+   "vs_heldout_mean": 0.446,
+   "vs_conditioning": 0.422
+  },
+  {
+   "item": "moss-tts-nano 04-B",
+   "vs_heldout_mean": 0.359,
+   "vs_conditioning": 0.429
+  },
+  {
+   "item": "moss-tts-nano 05-A",
+   "vs_heldout_mean": 0.331,
+   "vs_conditioning": 0.394
+  },
+  {
+   "item": "voxcpm2 05-B",
+   "vs_heldout_mean": 0.462,
+   "vs_conditioning": 0.438
+  },
+  {
+   "item": "voxcpm2 06-A",
+   "vs_heldout_mean": 0.314,
+   "vs_conditioning": 0.322
+  },
+  {
+   "item": "moss-tts-nano 06-B",
+   "vs_heldout_mean": 0.347,
+   "vs_conditioning": 0.347
+  },
+  {
+   "item": "moss-tts-nano 07-A",
+   "vs_heldout_mean": 0.288,
+   "vs_conditioning": 0.38
+  },
+  {
+   "item": "voxcpm2 07-B",
+   "vs_heldout_mean": 0.302,
+   "vs_conditioning": 0.355
+  },
+  {
+   "item": "moss-tts-nano 08-A",
+   "vs_heldout_mean": 0.418,
+   "vs_conditioning": 0.499
+  },
+  {
+   "item": "voxcpm2 08-B",
+   "vs_heldout_mean": 0.429,
+   "vs_conditioning": 0.5
+  }
+ ]
+}

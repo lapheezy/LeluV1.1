@@ -87,8 +87,10 @@ SERVER = Path(os.environ.get("VOXCPM_SERVER", str(HERE / "server.py")))
 
 HOST = os.environ.get("VOXCPM_HOST", "127.0.0.1")
 PORT = int(os.environ.get("VOXCPM_PORT", "8788"))
-# Measured on CPU: peak 10.85 GiB during load. Require that plus margin.
-REQUIRED_GIB = float(os.environ.get("VOXCPM_REQUIRED_GIB", "11.5"))
+# Measured on CPU: peak 10.85-11.15 GiB during load. 11.5 GiB was not enough
+# margin: with 12.1 GiB available and other services running, a load was
+# OOM-killed (2026-11-13). Require 12.5 GiB for VoxCPM2.
+REQUIRED_GIB = float(os.environ.get("VOXCPM_REQUIRED_GIB", "12.5"))
 STARTUP_TIMEOUT = float(os.environ.get("VOXCPM_STARTUP_TIMEOUT", "600"))
 STOP_GRACE = float(os.environ.get("VOXCPM_STOP_GRACE", "30"))
 

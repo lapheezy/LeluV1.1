@@ -69,6 +69,7 @@ def main() -> int:
     parser.add_argument("--repeat", type=int, default=10)
     parser.add_argument("--label", default="")
     parser.add_argument("--no-spin", action="store_true", help="disable ORT intra-op thread spinning in every session")
+    parser.add_argument("--sample-mode", default="fixed", choices=["fixed", "greedy", "full"])
     parser.add_argument("--lean", action="store_true", help="also disable ORT's CPU memory arena and memory-pattern planning")
     args = parser.parse_args()
     out = Path(args.out)
@@ -102,8 +103,8 @@ def main() -> int:
     emit("reference_encoded", seconds=round(time.perf_counter() - w0, 2), promptFrames=len(prompt_codes))
     sample_rate = int(rt.codec_meta["codec_config"]["sample_rate"])
     gd = rt.manifest["generation_defaults"]
-    gd["sample_mode"] = "fixed"
-    gd["do_sample"] = True
+    gd["sample_mode"] = args.sample_mode
+    gd["do_sample"] = args.sample_mode != "greedy"
 
     def synth(text: str, cancel_after_first: bool = False) -> dict:
         """The published streaming path, with a chunk timestamp and a cancel check."""

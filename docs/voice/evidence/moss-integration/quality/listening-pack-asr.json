@@ -1,0 +1,146 @@
+[
+ {
+  "item": "01",
+  "system": "moss-tts-nano",
+  "seconds": 4.08,
+  "heard": "Hi, I'm Lélu. How can I help you today?",
+  "wordErrors": 0,
+  "refWords": 8,
+  "nameOk": true
+ },
+ {
+  "item": "01",
+  "system": "voxcpm2",
+  "seconds": 3.04,
+  "heard": "Hi, I'm Lélu. How can I help you today?",
+  "wordErrors": 0,
+  "refWords": 8,
+  "nameOk": true
+ },
+ {
+  "item": "02",
+  "system": "moss-tts-nano",
+  "seconds": 4.73,
+  "heard": "Lélu here. I found three new messages for you.",
+  "wordErrors": 0,
+  "refWords": 8,
+  "nameOk": true
+ },
+ {
+  "item": "02",
+  "system": "voxcpm2",
+  "seconds": 3.52,
+  "heard": "Lélu here. I found three new messages for you.",
+  "wordErrors": 0,
+  "refWords": 8,
+  "nameOk": true
+ },
+ {
+  "item": "03",
+  "system": "moss-tts-nano",
+  "seconds": 3.1,
+  "heard": "Of course, I'll remind you tomorrow morning and tomorrow.",
+  "wordErrors": 2,
+  "refWords": 9,
+  "nameOk": null
+ },
+ {
+  "item": "03",
+  "system": "voxcpm2",
+  "seconds": 3.52,
+  "heard": "Of course, I'll remind you tomorrow morning at nine.",
+  "wordErrors": 0,
+  "refWords": 9,
+  "nameOk": null
+ },
+ {
+  "item": "04",
+  "system": "voxcpm2",
+  "seconds": 2.72,
+  "heard": "That's a good question. Let me think about it for a moment.",
+  "wordErrors": 0,
+  "refWords": 12,
+  "nameOk": null
+ },
+ {
+  "item": "04",
+  "system": "moss-tts-nano",
+  "seconds": 3.24,
+  "heard": "That's a good question. Let me think about it for a moment.",
+  "wordErrors": 0,
+  "refWords": 12,
+  "nameOk": null
+ },
+ {
+  "item": "05",
+  "system": "moss-tts-nano",
+  "seconds": 4.0,
+  "heard": "Your meeting with the design team starts in 15 minutes.",
+  "wordErrors": 1,
+  "refWords": 10,
+  "nameOk": null
+ },
+ {
+  "item": "05",
+  "system": "voxcpm2",
+  "seconds": 3.68,
+  "heard": "Your meeting with the design team starts in 15 minutes.",
+  "wordErrors": 1,
+  "refWords": 10,
+  "nameOk": null
+ },
+ {
+  "item": "06",
+  "system": "voxcpm2",
+  "seconds": 3.36,
+  "heard": "I've saved the document and shared it with your project folder.",
+  "wordErrors": 0,
+  "refWords": 11,
+  "nameOk": null
+ },
+ {
+  "item": "06",
+  "system": "moss-tts-nano",
+  "seconds": 3.49,
+  "heard": "Can I save the document and share it with your powder?",
+  "wordErrors": 6,
+  "refWords": 11,
+  "nameOk": null
+ },
+ {
+  "item": "07",
+  "system": "moss-tts-nano",
+  "seconds": 4.08,
+  "heard": "I'm sorry. I didn't catch that. Could you say it again?",
+  "wordErrors": 0,
+  "refWords": 11,
+  "nameOk": null
+ },
+ {
+  "item": "07",
+  "system": "voxcpm2",
+  "seconds": 2.56,
+  "heard": "I'm sorry, I didn't catch that. Could you say it again?",
+  "wordErrors": 0,
+  "refWords": 11,
+  "nameOk": null
+ },
+ {
+  "item": "08",
+  "system": "moss-tts-nano",
+  "seconds": 5.18,
+  "heard": "Good night, sleep well, and I'll be here when you wake up.",
+  "wordErrors": 0,
+  "refWords": 12,
+  "nameOk": null
+ },
+ {
+  "item": "08",
+  "system": "voxcpm2",
+  "seconds": 3.36,
+  "heard": "Goodnight, sleep well, and I'll be here when you wake up.",
+  "wordErrors": 2,
+  "refWords": 12,
+  "nameOk": null
+ }
+]
