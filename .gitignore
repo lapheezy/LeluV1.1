@@ -94,3 +94,7 @@ services/voxcpm/.cache/
 # python bytecode from the voxcpm sidecar
 __pycache__/
 *.pyc
+
+# LiveKit runtime (keys, logs) and voice agent env — never committed
+.livekit/
+.venv-livekit-agent/
