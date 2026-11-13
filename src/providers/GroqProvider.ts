@@ -6,6 +6,7 @@
  */
 
 import type AIProvider from "./AIProvider";
+import { DEFAULT_OUTPUT_TOKENS } from "./AIProvider";
 import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import {
@@ -213,7 +214,9 @@ export default class GroqProvider implements AIProvider {
       messages,
       ...openAIToolPayload(request),
       temperature: request.temperature ?? 0.7,
-      ...(request.maxTokens ? { max_tokens: request.maxTokens } : {}),
+      // The reply's own budget is metered against Groq's TPM minute, so it is
+      // always named rather than left to the provider's default.
+      max_tokens: request.maxTokens ?? DEFAULT_OUTPUT_TOKENS,
       ...(request.stop?.length ? { stop: request.stop } : {}),
       // True token streaming whenever the caller wants progressive
       // output — no artificial pacing, raw provider chunks.

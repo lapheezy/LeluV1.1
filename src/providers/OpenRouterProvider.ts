@@ -22,6 +22,7 @@ import {
 } from "./openaiTools";
 import { LELU_SYSTEM_PROMPT } from "./LeluSystemPrompt";
 
+import { DEFAULT_OUTPUT_TOKENS } from "./AIProvider";
 import type {
   AIRequest,
   AIResponse,
@@ -265,7 +266,10 @@ export default class OpenRouterProvider implements AIProvider {
       messages,
       ...openAIToolPayload(request),
       temperature: request.temperature ?? 0.7,
-      ...(request.maxTokens ? { max_tokens: request.maxTokens } : {}),
+      // Always name the output budget: an unset max_tokens is read as the
+      // model's full ceiling, and the account is refused (402) for credits
+      // it was never going to spend.
+      max_tokens: request.maxTokens ?? DEFAULT_OUTPUT_TOKENS,
       ...(request.stop?.length ? { stop: request.stop } : {}),
       // Stream whenever the turn wants progressive text — tool calls
       // included (readOpenAIStream assembles them).
