@@ -51,6 +51,8 @@ export interface LivekitStatus {
   agentPresent: boolean;
   /** The agent is receiving the user's microphone track: speech will be heard. */
   agentListening: boolean;
+  /** The browser refused to start playback (iOS without a gesture): show "Enable audio". */
+  audioBlocked: boolean;
   micMuted: boolean;
   error: string | null;
   rejoins: number;
@@ -68,7 +70,7 @@ export class LivekitVoiceTransport {
   private room: Room | null = null;
   private audio: HTMLAudioElement | null = null;
   private wanted = false;
-  private status: LivekitStatus = { connection: "idle", room: null, agentPresent: false, agentListening: false, micMuted: false, error: null, rejoins: 0 };
+  private status: LivekitStatus = { connection: "idle", room: null, agentPresent: false, agentListening: false, audioBlocked: false, micMuted: false, error: null, rejoins: 0 };
 
   constructor(private readonly handlers: LivekitTransportHandlers) {}
 
@@ -161,6 +163,7 @@ export class LivekitVoiceTransport {
         // not ours
       }
     });
+    room.on(RoomEvent.AudioPlaybackStatusChanged, () => this.patch({ audioBlocked: !room.canPlaybackAudio }));
     room.on(RoomEvent.Reconnecting, () => this.patch({ connection: "reconnecting" }));
     room.on(RoomEvent.Reconnected, () => this.patch({ connection: "connected", error: null }));
     room.on(RoomEvent.Disconnected, (reason?: DisconnectReason) => {
@@ -214,6 +217,7 @@ export class LivekitVoiceTransport {
   async unlock(): Promise<void> {
     await this.room?.startAudio().catch(() => {});
     await this.audio?.play().catch(() => {});
+    if (this.room) this.patch({ audioBlocked: !this.room.canPlaybackAudio });
   }
 
   async disconnect(): Promise<void> {

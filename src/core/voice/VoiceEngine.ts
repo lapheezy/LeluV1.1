@@ -533,6 +533,12 @@ class VoiceEngine {
       await this.endLivekitSession();
       return;
     }
+    // iOS: audio may only be unlocked inside the tap itself, before any await.
+    this.unlockAudio();
+    if (!this._state.active && (await this.livekitPreferred())) {
+      await this.startLivekitSession();
+      return;
+    }
     if (this._state.active) {
       this.stop();
     } else {
@@ -619,6 +625,36 @@ class VoiceEngine {
     return () => {
       this.livekitListeners.delete(listener);
     };
+  }
+
+  private livekitProbe: Promise<boolean> | null = null;
+  private livekitProbedAt = 0;
+
+  /**
+   * Is a LiveKit voice transport configured on this server? Asked once and
+   * re-asked after a minute if the answer was no, so every existing voice
+   * entry point (composer mic, navigator mic, holding the planet) uses LiveKit
+   * where it exists and the browser voice where it does not.
+   */
+  livekitPreferred(): Promise<boolean> {
+    if (this.livekitProbe && (Date.now() - this.livekitProbedAt < 60_000)) return this.livekitProbe;
+    this.livekitProbedAt = Date.now();
+    this.livekitProbe = (typeof fetch === "undefined"
+      ? Promise.resolve(false)
+      : fetch("/api/livekit/status")
+          .then((response) => (response.ok ? response.json() : null))
+          .then((body: { configured?: boolean } | null) => Boolean(body?.configured))
+          .catch(() => false)).then((configured) => {
+      if (configured) this.livekitProbedAt = Number.POSITIVE_INFINITY; // stable: do not re-ask
+      return configured;
+    });
+    return this.livekitProbe;
+  }
+
+  /** Called from a tap when iOS refused to start her audio. */
+  async enableLivekitAudio(): Promise<void> {
+    this.unlockAudio();
+    await this.livekit?.unlock();
   }
 
   getLivekitStatus(): import("./livekitTransport").LivekitStatus | null {

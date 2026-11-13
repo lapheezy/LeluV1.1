@@ -10,14 +10,15 @@
  *   node scripts/verify-livekit-voice-e2e.cjs FAKE_MIC.wav OUT_DIR
  *
  * Sequence (the WAV holds Q1 at 30 s and Q2 ~185 s after the mic opens, then silence):
- *   1. click Start voice → connected, agent present
+ *   1. iPhone 13 profile, chat open (as on a phone), tap the composer's existing
+ *      "Talk to LÉLU" mic → connected, agent present, agent LISTENING
  *   2. Q1 → transcript → her reply spoken over LiveKit (recorded for ASR)
  *   3. Q2 → long reply → click STOP 2 s into it → measure audio after STOP
  *   4. kill livekit-server, restart it → session must come back by itself
  *   5. click End → open text chat → ask about the voice turn → continuity
  * Env: LELU_BASE (default http://127.0.0.1:5173/), LIVEKIT_RESTART_CMD.
  */
-const { chromium } = require("playwright");
+const { chromium, devices } = require("playwright");
 const fs = require("node:fs");
 const path = require("node:path");
 const { execSync } = require("node:child_process");
@@ -31,7 +32,7 @@ const [micWav, outDir] = process.argv.slice(2);
     executablePath: process.env.PW_CHROMIUM ?? "/opt/pw-browsers/chromium",
     args: ["--no-sandbox", "--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${path.resolve(micWav)}`, "--autoplay-policy=no-user-gesture-required"],
   });
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 }, permissions: ["microphone"] });
+  const ctx = await browser.newContext({ ...devices["iPhone 13"], permissions: ["microphone"] });
   const page = await ctx.newPage();
   const t0 = Date.now();
   const timeline = [];
@@ -50,8 +51,14 @@ const [micWav, outDir] = process.argv.slice(2);
     if (await page.evaluate(() => [...document.querySelectorAll("button")].some((b) => b.textContent.trim() === "Continue without an account")).catch(() => false)) break;
   }
   await page.evaluate(() => [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Continue without an account")?.click());
-  await page.waitForSelector('[data-testid="lk-start"]', { timeout: 240000 });
-  log("dock-visible");
+  // Open the chat first: on a phone the chat owns the screen and the 3D scene stops rendering.
+  await page.waitForFunction(async () => { try { await import("/src/core/cognition/UIActionBus.ts"); return true; } catch { return false; } }, null, { timeout: 240000 });
+  await page.evaluate(async () => {
+    const { default: Bus } = await import("/src/core/cognition/UIActionBus.ts");
+    Bus.getInstance().dispatch({ type: "open_panel", target: "chat", reason: "verify", initiatedBy: "user" });
+  });
+  await page.waitForSelector('button[aria-label="Talk to LÉLU"]', { timeout: 240000 });
+  log("chat-open");
 
   // Observe the ONE engine, and measure / record the agent's audio track as received.
   await page.evaluate(async () => {
@@ -100,8 +107,8 @@ const [micWav, outDir] = process.argv.slice(2);
   const connectionIs = (c, timeout = 60000) => page.waitForFunction((x) => document.querySelector('[data-testid="lk-status"]')?.dataset.connection === x, c, { timeout });
   const perfNow = () => page.evaluate(() => performance.now());
 
-  // 1. Start (a real click: the user gesture iOS needs for audio)
-  await page.click('[data-testid="lk-start"]');
+  // 1. Start with the EXISTING mic button (a real tap: the gesture iOS needs for audio)
+  await page.tap('button[aria-label="Talk to LÉLU"]');
   await connectionIs("connected");
   log("connected");
 
@@ -126,7 +133,7 @@ const [micWav, outDir] = process.argv.slice(2);
   log("q2-audible");
   await page.waitForTimeout(2000);
   const stopAt = await perfNow();
-  await page.click('[data-testid="lk-stop"]');
+  await page.tap('[data-testid="lk-stop"]');
   log("stop-clicked");
   await page.waitForTimeout(4000);
   const stopReport = await page.evaluate((at) => {
@@ -153,22 +160,17 @@ const [micWav, outDir] = process.argv.slice(2);
   }
 
   // 5. End voice, continue in text
-  await page.click('[data-testid="lk-end"]');
-  await connectionIs("disconnected");
+  await page.tap('[data-testid="lk-end"]');
+  await page.waitForSelector('[data-testid="lk-dock"]', { state: "detached", timeout: 30000 });
   log("ended");
   await page.evaluate(() => (window.__recorders ?? []).forEach((r) => r.state !== "inactive" && r.stop()));
   await page.waitForTimeout(1500);
-  await page.evaluate(async () => {
-    const { default: Bus } = await import("/src/core/cognition/UIActionBus.ts");
-    Bus.getInstance().dispatch({ type: "open_panel", target: "chat", reason: "verify", initiatedBy: "user" });
-  });
-  await page.waitForTimeout(2500);
   if (!(await page.evaluate(() => { const t = document.querySelector(".lcu-composer textarea"); return t && !t.disabled; }))) {
     await page.click(".lcu-card").catch(() => {});
     await page.waitForTimeout(1200);
   }
   const question = "In one sentence: what was the first thing I asked you by voice a moment ago?";
-  await page.click(".lcu-composer textarea");
+  await page.tap(".lcu-composer textarea");
   await page.keyboard.type(question, { delay: 2 });
   await page.keyboard.press("Enter");
   log("typed", { question });
