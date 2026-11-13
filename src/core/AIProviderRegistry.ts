@@ -126,7 +126,7 @@ export function classifyProviderFailure(reason: string): ProviderFailureKind {
   // failed round-trip to it before every single fallback.
   if (
     /\b402\b|out of credit|payment required|insufficient.{0,20}(credit|fund)/.test(text) ||
-    /account[^.]{0,40}suspended|spending limit|past invoices|precondition_failed/.test(text)
+    /account[^.]{0,40}suspended|spending limit|past invoices|precondition_failed|credit balance is too low/.test(text)
   ) {
     return "billing";
   }

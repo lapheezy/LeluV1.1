@@ -374,6 +374,13 @@ test("a billing-suspended account classifies as billing and sits out like a spen
     'Fireworks failed 412: {"error":{"message":"Account acme is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices.","code":"PRECONDITION_FAILED"}}';
   assert.equal(classifyProviderFailure(reason), "billing");
   assert.equal(classifyProviderFailure("OpenRouter failed 402: Payment Required"), "billing");
+  // Anthropic's own wording for an empty balance (HTTP 400), measured live.
+  assert.equal(
+    classifyProviderFailure(
+      'Anthropic failed 400: {"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API."}',
+    ),
+    "billing",
+  );
 
   const registry = new AIProviderRegistry();
   registry.markFailure("Fireworks", reason);

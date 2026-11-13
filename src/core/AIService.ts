@@ -826,6 +826,14 @@ export default class AIService {
       // ONE canonical recall per turn: enrich() owns it, and the
       // memories it produced are handed forward so BrainResolver and
       // composeFromMemory consume them instead of re-querying.
+      //
+      // The router awaits a fresh tool-availability probe before its first
+      // stage. Started here it overlaps with recall (measured 1.5-2.1 s of
+      // archive search on a real turn) instead of starting after it; the
+      // router then awaits this same in-flight refresh, never a second one.
+      void import("./tools/ToolRegistry")
+        .then(({ default: ToolRegistry }) => ToolRegistry.getInstance().ensureAvailability())
+        .catch(() => undefined);
       const { request: enriched, memories: recalledForTurn } = await this.memory.enrich(request);
       // T2: provider request is about to begin.
       latencyMark("T2");
