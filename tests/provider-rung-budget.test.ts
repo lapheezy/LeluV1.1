@@ -362,3 +362,25 @@ test("a rung that already ran tools is not replayed on the next provider", async
   assert.equal(result.response?.metadata?.toolsExecuted?.length, 1);
   assert.equal(result.response?.metadata?.toolLoopStopped, "provider-failed-after-tools");
 });
+
+/**
+ * A provider that suspended the ACCOUNT for billing refuses every request
+ * until someone pays. Measured live: Fireworks answered 412 to every
+ * self-study cycle (~49 s apart) because the failure read as "unknown" and
+ * cooled for 30 s, so each cycle paid a failed round-trip before falling back.
+ */
+test("a billing-suspended account classifies as billing and sits out like a spent quota", () => {
+  const reason =
+    'Fireworks failed 412: {"error":{"message":"Account acme is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices.","code":"PRECONDITION_FAILED"}}';
+  assert.equal(classifyProviderFailure(reason), "billing");
+  assert.equal(classifyProviderFailure("OpenRouter failed 402: Payment Required"), "billing");
+
+  const registry = new AIProviderRegistry();
+  registry.markFailure("Fireworks", reason);
+  assert.equal(registry.cooldownFor("Fireworks"), 15 * 60_000);
+  assert.equal(registry.isInCooldown("Fireworks"), true);
+
+  // A transient failure still clears quickly.
+  registry.markFailure("Groq", "Groq failed 503: service unavailable");
+  assert.equal(registry.cooldownFor("Groq"), 30_000);
+});

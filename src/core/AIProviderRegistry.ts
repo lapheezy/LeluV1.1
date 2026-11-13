@@ -117,7 +117,17 @@ export function classifyProviderFailure(reason: string): ProviderFailureKind {
   const text = reason.toLowerCase();
   // 402 / credit-exhausted phrases — fix in the provider dashboard, not
   // in code. Must come before the generic server check.
-  if (/\b402\b|out of credit|payment required|insufficient.{0,20}(credit|fund)/.test(text)) {
+  //
+  // Also an account that the provider has SUSPENDED for billing. Measured
+  // live: Fireworks answers `412 PRECONDITION_FAILED — "Account … is
+  // suspended, possibly due to reaching the monthly spending limit or
+  // failure to pay past invoices"` to every request, and it fell through
+  // to "unknown" and a 30-second cooldown, so continuous cognition paid a
+  // failed round-trip to it before every single fallback.
+  if (
+    /\b402\b|out of credit|payment required|insufficient.{0,20}(credit|fund)/.test(text) ||
+    /account[^.]{0,40}suspended|spending limit|past invoices|precondition_failed/.test(text)
+  ) {
     return "billing";
   }
   // A DAILY quota that is already spent. Distinct from a per-minute limit,
@@ -420,6 +430,10 @@ export default class AIProviderRegistry {
     // A spent daily quota is as unresponsive as a wrong key, and retrying
     // it every thirty seconds is what made the chain slow.
     if (failure?.kind === "quota-exhausted") return QUOTA_COOLDOWN_MS;
+    // An account out of credit, or suspended for billing, is fixed in a
+    // dashboard — never by trying again in thirty seconds. Same finite
+    // window as a spent quota, so a top-up is still picked up in-session.
+    if (failure?.kind === "billing") return QUOTA_COOLDOWN_MS;
     return FAILURE_COOLDOWN_MS;
   }
 
