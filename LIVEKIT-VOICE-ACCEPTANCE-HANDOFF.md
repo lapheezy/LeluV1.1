@@ -1,5 +1,13 @@
 # LiveKit voice acceptance: handoff
 
+> **Superseded on 2026-11-13 by `LIVEKIT-VOICE-ACCEPTANCE-REPORT.md`.** LiveKit is now installed and wired.
+> The token endpoint, the voice agent, VoiceEngine's LiveKit mode and the VoxCPM2 routes exist and were verified
+> in a container. The "no LiveKit implementation" findings below describe the state *before* that work and are
+> kept as history. Decisions this handoff asked for, as built:
+> - LiveKit stays **transport only**: cognition remains in the page (`AIService`).
+> - Silero VAD runs in the agent.
+> - The browser's barge-in rules were not forked into the agent.
+
 **Prepared:** 2026-11-13, on `claude/lelu-worker-recovery-4fio20` (canonical base `098dd3e`).
 **Scope:** an inventory and an acceptance plan only. **No LiveKit work was started.** Every statement below is labelled with
 how it was established: by reading code, by a measured run, or as a proposal.

@@ -356,3 +356,19 @@ idle gap is shorter than the platform's inactivity reclaim, which this session d
 not been pushed yet.
 
 So in §9, "Does it survive the end of a turn?" is **Yes**, with the evidence above.
+
+## Addendum (2026-11-13, Mission 6.3): the worker in service
+
+- **Now a service of the app.** `plugins/voxApi.ts` (`/api/voice/vox/health`, `/api/voice/vox/speech`) selects
+  READY workers through `VoxcpmPool`, relays WAV or chunked PCM, and aborts the worker's generation when the
+  caller disconnects. The LiveKit voice agent speaks through it. See `LIVEKIT-VOICE-ACCEPTANCE-REPORT.md`.
+- **Cold first load after a container restore: 320 s** (I/O pressure 86–94%), against 16–24 s with a warm page
+  cache. Size startup timeouts for the cold case; `deploy/voice/lelu-voxcpm.service` allows 900 s.
+- **Bug fixed in `workerctl.py`:** the startup watchdog read the `STOPPED` a worker reports while shutting down
+  as an unfinished startup, SIGTERMed it a second time, and classified a requested stop as `startup_timeout`.
+  It now guards startup only. Verified: with a 40 s timeout and more than 50 s of uptime, a stop is `stopped`
+  with returncode 0.
+- **Cancelled streams** are logged as one `stream_cancelled` event instead of a `BrokenPipe` traceback.
+- **Hosting:** the Contabo VPS 4 (8 GB RAM) cannot load this model on CPU (peak about 11 GiB). The worker needs
+  its own host: GPU, or ≥ 16 GB RAM (`deploy/voice/README.md`).
+
