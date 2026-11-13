@@ -409,12 +409,16 @@ interface SentShape {
   toolChars: number;
   systemChars: number;
   messages: number;
+  /** How many `role: "tool"` results this request carried back to the model.
+   *  That number is the server's own evidence a tool really ran, without
+   *  reading any prompt text. */
+  toolResults: number;
   maxTokens?: number;
   stream?: boolean;
 }
 
 function shapeOf(body?: Buffer): SentShape {
-  const shape: SentShape = { promptChars: 0, toolChars: 0, systemChars: 0, messages: 0 };
+  const shape: SentShape = { promptChars: 0, toolChars: 0, systemChars: 0, messages: 0, toolResults: 0 };
   if (!body || body.length === 0) return shape;
   try {
     const parsed = JSON.parse(body.toString("utf8")) as Record<string, unknown>;
@@ -425,6 +429,7 @@ function shapeOf(body?: Buffer): SentShape {
         ? parsed.contents
         : [];
     shape.messages = messages.length;
+    shape.toolResults = (messages as Array<{ role?: string }>).filter((message) => message.role === "tool").length;
     shape.promptChars = JSON.stringify(messages).length;
     shape.toolChars = parsed.tools ? JSON.stringify(parsed.tools).length : 0;
     const first = messages[0] as { role?: string } | undefined;
@@ -520,6 +525,7 @@ interface TurnTrace {
   toolChars: number;
   systemChars: number;
   messages: number;
+  toolResults: number;
   maxTokens?: number;
   stream?: boolean;
   promptTokens: number;
@@ -531,7 +537,7 @@ interface TurnTrace {
 function logTurn(trace: TurnTrace): void {
   const head =
     `provider=${trace.provider} model=${trace.model ?? "?"} status=${trace.status} ` +
-    `bytes=${trace.requestBytes} messages=${trace.messages} ` +
+    `bytes=${trace.requestBytes} messages=${trace.messages} toolResults=${trace.toolResults ?? 0} ` +
     `prompt≈${trace.promptTokens}tok tools≈${trace.toolTokens}tok system=${charsToTokens(trace.systemChars)}tok ` +
     `max_tokens=${trace.maxTokens ?? "-"} stream=${trace.stream ? 1 : 0}`;
   if (trace.status >= 200 && trace.status < 300) {

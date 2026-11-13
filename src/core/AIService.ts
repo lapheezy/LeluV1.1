@@ -28,6 +28,7 @@ import {
   type CapabilityResult,
 } from "./native";
 import type { AIRequest, AIResponse, MediaAttachment } from "../providers/AIProvider";
+import { fitPlannerPrompt } from "./agentic/PlannerContextBudget";
 import type { AIIntent } from "./router/AIIntent";
 import type { ReasoningResult } from "./reasoning/ReasoningEngine";
 import type { Plan } from "./planning/PlanningEngine";
@@ -1321,9 +1322,12 @@ export default class AIService {
     if (!this.initialized) {
       await this.initialize();
     }
+    // The prompt travels as `prompt` ONLY. Every provider appends it as the
+    // trailing user turn (trailingUserTurn), so also putting it in `messages`
+    // sent the whole thing twice — measured at 91,463 duplicated characters
+    // per planning call, which doubled the request and got it refused.
     const messages = [
       ...(options.system ? [{ role: "system" as const, content: options.system }] : []),
-      { role: "user" as const, content: prompt },
     ];
     try {
       return await this.runtime.reason({
@@ -1357,15 +1361,22 @@ export default class AIService {
       await this.initialize();
     }
 
+    // Same rule as deliberate(): the prompt is the trailing turn the provider
+    // adds. Duplicating it here doubled every internal reasoning request.
     const messages = [
       ...(options.system ? [{ role: "system" as const, content: options.system }] : []),
-      { role: "user" as const, content: prompt },
     ];
+
+    // The planner's catalogue of every tool schema is the one internal prompt
+    // that outgrows a provider's context. It is fitted here, at the seam where
+    // the request is actually dispatched, so no planning logic changes shape.
+    const planning = /task planner/i.test(options.system ?? "");
+    const fittedPrompt = planning ? fitPlannerPrompt(prompt) : prompt;
 
     try {
       return await this.runtime.reason({
         messages,
-        prompt,
+        prompt: fittedPrompt,
         model: options.model,
         temperature: options.temperature,
         maxTokens: options.maxTokens,

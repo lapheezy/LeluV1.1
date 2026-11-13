@@ -161,7 +161,11 @@ export function reduceActivity(activity: ChatActivity, event: AgentEvent): ChatA
       const kind = kindForTool(event.tool);
       const count = Array.isArray(event.results) ? event.results.length : undefined;
       const failed = event.status === "error" || event.status === "blocked";
-      const detail = (event.result ?? "").replace(/\s+/g, " ").trim().slice(0, 200) || undefined;
+      // A measured execution says how long it took; unmeasured ones say nothing
+      // rather than "0ms", which would read as instant.
+      const spent = typeof event.durationMs === "number" ? `${Math.max(1, Math.round(event.durationMs))}ms` : undefined;
+      const detail =
+        [(event.result ?? "").replace(/\s+/g, " ").trim().slice(0, 190) || undefined, spent].filter(Boolean).join(" · ") || undefined;
       const index = lastRunning(activity.steps, event.tool);
       // browser.read reports the page twice — browser_result, then its
       // tool_result. The page step already says how it went; a second

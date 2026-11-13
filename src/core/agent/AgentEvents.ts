@@ -123,8 +123,17 @@ export type AgentEvent =
       query?: string;
       provider?: string;
       status?: "complete" | "blocked" | "error";
+      /** How long the executor actually ran, when it was measured. */
+      durationMs?: number;
     }
   | { type: "tool_failed"; taskId: string; tool: string; error?: string }
+  /**
+   * One stage of one REAL tool invocation, produced only by the code that
+   * observed it (the dispatcher). Carries an execution id so every stage of
+   * the same call can be stitched together, and so a suppressed duplicate is
+   * never mistaken for a second execution.
+   */
+  | { type: "execution_evidence"; taskId: string; record: import("../tools/ExecutionEvidence").ExecutionRecord }
   /**
    * What LÉLU said she was doing while she called tools — the text a
    * model returns alongside a tool request ("I'm checking current

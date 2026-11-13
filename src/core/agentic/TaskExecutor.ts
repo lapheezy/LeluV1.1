@@ -54,7 +54,7 @@ export interface StepResult {
 
 /** The three execution paths, injectable so tests can count calls. */
 export interface ExecutorDeps {
-  dispatch: (call: ToolCall, taskId: string, options?: { approvalId?: string }) => Promise<ToolExecutionResult>;
+  dispatch: (call: ToolCall, taskId: string, options?: { approvalId?: string; stepId?: string }) => Promise<ToolExecutionResult>;
   runAgent: (agent: string, instruction: string, taskId: string) => Promise<StepResult>;
   reason: (prompt: string) => Promise<StepResult>;
   sleep: (ms: number) => Promise<void>;
@@ -100,9 +100,9 @@ const NOT_RETRYABLE = [
 
 /* --------------------------- default dependencies --------------------------- */
 
-async function realDispatch(call: ToolCall, taskId: string, options?: { approvalId?: string }) {
+async function realDispatch(call: ToolCall, taskId: string, options?: { approvalId?: string; stepId?: string }) {
   const { dispatchToolCall } = await import("../tools/ToolDispatcher");
-  return dispatchToolCall(call, taskId, await conversationContext(taskId), options);
+  return dispatchToolCall(call, taskId, await conversationContext(taskId), { ...options, path: "task" });
 }
 
 /**
@@ -526,7 +526,7 @@ export default class TaskExecutor {
     let last: StepResult = { ok: false, content: "not run" };
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
       step.attempts = attempt;
-      last = await this.perform(action, task.id, approvalId);
+      last = await this.perform(action, task.id, approvalId, step.id);
       const check = last.ok ? verifyOutput(last.content, step.verify) : { ok: false, detail: last.content };
 
       if (last.ok && check.ok) {
@@ -569,6 +569,7 @@ export default class TaskExecutor {
     action: NonNullable<TaskStep["action"]>,
     taskId: string,
     approvalId: string | undefined,
+    stepId?: string,
   ): Promise<StepResult> {
     try {
       if (action.kind === "tool") {
@@ -576,7 +577,7 @@ export default class TaskExecutor {
         const result = await this.deps.dispatch(
           { id: `task-${taskId}-${Date.now()}`, name: toolNameForModel(action.tool), arguments: action.args ?? {} },
           taskId,
-          approvalId ? { approvalId } : undefined,
+          { ...(approvalId ? { approvalId } : {}), ...(stepId ? { stepId } : {}) },
         );
         return { ok: result.ok, content: result.content };
       }

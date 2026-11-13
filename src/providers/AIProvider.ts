@@ -7,6 +7,19 @@
 
 import type { AIIntent } from "../core/router/AIIntent";
 
+/**
+ * The output budget a conversational request asks for when nothing named one.
+ *
+ * Leaving `max_tokens` unset is not neutral: OpenRouter assumes the model's
+ * whole 16,384-token ceiling and refuses the request when the account cannot
+ * afford it — measured in Mission 6.1.4 after the tool payload had already
+ * been cut from ~21,756 to 531 tokens: `402 … You requested up to 16384
+ * tokens, but can only afford 14696`. 2,048 leaves room for a real answer, a
+ * streamed reply and a tool call, at a fraction of the tokens the unset
+ * request reserves.
+ */
+export const DEFAULT_OUTPUT_TOKENS = 2_048;
+
 export interface AIMessage {
 
   role:

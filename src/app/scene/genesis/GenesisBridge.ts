@@ -21,6 +21,7 @@ import Sentinel from "../../../core/sentinel/Sentinel";
 import { bindMessage } from "../../../core/multichat/TurnOwnership";
 import CapabilityManifest from "../../../core/capabilities/CapabilityManifest";
 import { cleanAssistantText } from "../../../core/router/ToolMarkup";
+import { readiness } from "../../../core/runtime/readiness";
 
 const ai = AIService.getInstance();
 
@@ -51,10 +52,17 @@ export default function GenesisBridge() {
       .then(() => {
         sentinel.info("runtime_start", "AI service initialized", "GenesisBridge");
         caps.updateStatus("ai-chat", "available");
+        // Initialized, not proven: cognition becomes READY on a real reply
+        // (see subscribeMessages below), never on this promise resolving.
+        readiness().begin("cognition", "AI service initialized. Awaiting a verified reply.");
       })
       .catch((err) => {
         sentinel.error("provider_error", `AI init failed: ${err instanceof Error ? err.message : String(err)}`, "GenesisBridge");
         caps.updateStatus("ai-chat", "unavailable", String(err));
+        readiness().fail(
+          "cognition",
+          `AI service failed to initialize: ${err instanceof Error ? err.message : String(err)}`,
+        );
       });
 
     const removeActions = ai.subscribeActions((event: AIActionEvent) => {
@@ -89,6 +97,22 @@ export default function GenesisBridge() {
       // A reply that names its conversation goes there — never to
       // whichever conversation holds the claim or is on screen.
       if (message.conversationId) bindMessage(message.id, message.conversationId);
+      /*
+       * The only honest proof that cognition works: an assistant message with
+       * text in it actually arrived. Its provider is recorded with the
+       * evidence so a fallback reply is visibly a fallback, and an offline or
+       * local answer never reports the network as connected.
+       */
+      if (message.role === "assistant" && message.text?.trim()) {
+        const via = message.provider ? ` via ${message.provider}` : "";
+        readiness().confirm(
+          "cognition",
+          `Reply received${via} (${message.text.trim().length} chars).`,
+        );
+        if (message.provider && !/offline|local|fallback|none/i.test(message.provider)) {
+          readiness().confirm("network", `Provider ${message.provider} answered.`);
+        }
+      }
       latest.current.upsertMessage({
         id: message.id,
         role: message.role,

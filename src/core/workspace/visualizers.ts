@@ -376,6 +376,8 @@ const EVENT_STATUS: Record<AgentEvent["type"], TimelineEvent["status"]> = {
   cognition: "ok",
   tool_selected: "running",
   tool_started: "running",
+  // An execution stage is a recorded fact about one call, not progress.
+  execution_evidence: "ok",
   tool_progress: "running",
   tool_narration: "running",
   user_steering: "ok",

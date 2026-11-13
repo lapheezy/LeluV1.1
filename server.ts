@@ -46,6 +46,7 @@ import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { createGithubApi } from "./plugins/githubApi.ts";
 import { createModelApi } from "./plugins/modelApi.ts";
+import { createExecutionEvidenceApi } from "./plugins/executionEvidenceApi.ts";
 import { createAcquisitionApi } from "./plugins/acquisitionApi.ts";
 import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 import { createAccessGate } from "./plugins/accessGate.ts";
@@ -489,6 +490,10 @@ createAiProxyApi((key) => process.env[key]).attach(middlewares);
 // the credential and talks to the provider.
 createModelApi((key) => process.env[key]).attach(middlewares);
 
+// Execution evidence: the server's own copy of what really ran, for both the
+// chat tool loop and the task engine. Client records are sanitized on arrival.
+createExecutionEvidenceApi().attach(middlewares);
+
 // Repository acquisition: real clones, inspections and isolated execution.
 // Mounted here as well as in Vite dev so both runtimes serve the same routes.
 createAcquisitionApi({
@@ -546,7 +551,20 @@ const server = createServer((req, res) => {
   res.setHeader("Referrer-Policy", "same-origin");
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
   accessGate.handle(req, res, () => {
-    if ((req.url ?? "").split("?")[0] === "/healthz") {
+    /*
+     * `/api/health` answers with the SAME liveness JSON as `/healthz`.
+     *
+     * Measured before this: `/api/health` (the path the API plugins document)
+     * fell through to the SPA fallback and returned **200 text/html** — a
+     * health probe reading only the status code would report the runtime
+     * healthy while talking to index.html, and a probe reading the body would
+     * find a page. The endpoint that actually exists is `/healthz`; this is an
+     * alias to it rather than a second health mechanism, and it still reports
+     * liveness (dist present, uptime, memory, version) — never "intelligence
+     * operational".
+     */
+    const path = (req.url ?? "").split("?")[0];
+    if (path === "/healthz" || path === "/api/health") {
       healthz(res);
       return;
     }

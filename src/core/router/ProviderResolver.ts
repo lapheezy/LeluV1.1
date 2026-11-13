@@ -803,11 +803,54 @@ export default class ProviderResolver {
         ...(response.providerBlocks ? { providerBlocks: response.providerBlocks } : {}),
       });
 
+      // A model that asks for the same call twice in one round must not run
+      // it twice: a side-effecting tool would apply its change again. The
+      // repeat reuses the first result and says so.
+      const seenThisRound = new Map<string, { ok: boolean; content: string }>();
+
       for (const call of calls) {
         // Never start a tool after the user pressed stop.
         throwIfStopped(context);
         requested.push(call.name);
-        const result = await dispatchToolCall(call, taskId, context);
+        const callKey = `${call.name}:${JSON.stringify(call.arguments ?? {})}`;
+        const already = seenThisRound.get(callKey);
+        if (already) {
+          executed.push({ tool: call.name, ok: already.ok });
+          // A suppressed repeat is evidence of its own: it was NOT executed a
+          // second time, and the record must never read as another success.
+          AgentEventBus.getInstance().emit({
+            type: "execution_evidence",
+            taskId,
+            record: {
+              executionId: `chat-suppressed-${Date.now().toString(36)}-${call.id}`,
+              taskId,
+              path: "chat",
+              tool: call.name,
+              approval: "not-required",
+              stage: "suppressed",
+              outcome: "suppressed",
+              reason: `Repeated ${call.name} with identical arguments in the same round; the first result was reused instead of running it again.`,
+            },
+          });
+          context.logger.info(
+            "ProviderResolver",
+            `Tool ${call.name} was requested twice in one round; the repeat reused the first result`,
+            { tool: call.name, round },
+          );
+          messages.push({
+            role: "tool",
+            content: `Not run again: ${call.name} was already executed with these exact arguments in this round. Its result was:\n\n${already.content}`,
+            toolCallId: call.id,
+            toolName: call.name,
+            toolError: !already.ok,
+          });
+          continue;
+        }
+        const result = await dispatchToolCall(call, taskId, context, {
+          path: "chat",
+          turnSignature: context.request.prompt,
+        });
+        seenThisRound.set(callKey, { ok: result.ok, content: result.content });
         // A tool that finished running is progress, however long it took.
         onProgress?.();
         executed.push({ tool: call.name, ok: result.ok });

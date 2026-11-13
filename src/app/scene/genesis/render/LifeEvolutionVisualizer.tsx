@@ -21,10 +21,12 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { Color, Group, Mesh, MeshBasicMaterial } from "three";
 
-import { useGenesis } from "../GenesisCore";
+import { useGenesisScene } from "../useGenesisScene";
 
 export default function LifeEvolutionVisualizer() {
-  const { engineRuntime } = useGenesis();
+  // Stable scene context: 24 motes are built once; the runtime is read per
+  // frame, so a token or a universe publish never rebuilds them.
+  const scene = useGenesisScene("LifeEvolutionVisualizer");
 
   const lifeGroup = useRef<Group>(null);
 
@@ -43,7 +45,7 @@ export default function LifeEvolutionVisualizer() {
 
     // The ONE visual state — the motes are internal layers of the
     // same Core, never an independent system.
-    const vs = engineRuntime?.getEngineBus().getVisualState();
+    const vs = scene.engineRuntime?.getEngineBus().getVisualState();
     if (!vs) {
       return;
     }

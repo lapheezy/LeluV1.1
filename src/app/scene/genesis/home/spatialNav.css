@@ -12,6 +12,30 @@
   transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 240ms ease;
 }
 .lsn[data-hidden="true"] { transform: translate(-50%, 130%); opacity: 0; }
+/* A hidden rail is gone, not just invisible.
+   The bar and the orb each restore pointer-events: auto, so translating the
+   rail off-screen left an invisible strip over the bottom of the app that
+   still swallowed taps intended for the composer underneath it. Hiding the
+   rail now also takes it out of the hit-testing and the accessibility tree. */
+.lsn[data-hidden="true"] .lsn-bar,
+.lsn[data-hidden="true"] .lsn-orb { pointer-events: none; }
+.lsn[data-hidden="true"] { visibility: hidden; transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 240ms ease, visibility 0s linear 320ms; }
+.lsn:not([data-hidden="true"]) { visibility: visible; transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 240ms ease, visibility 0s; }
+
+/*
+ * The first-run identity card shares this band with the rails.
+ *
+ * The gate anchors itself 96px above the safe area; the spatial pill sits
+ * 84px above it and the app rail occupies the last 66px. Measured at 384x661
+ * on opening the app: the pill painted straight over "Continue without an
+ * account", so the one control that mattered was the one covered. While the
+ * gate is on screen there is nothing else to do there, so both rails stand
+ * down and come back the moment it is answered or skipped.
+ */
+body:has([data-lelu-signin-gate]) .lsn,
+body:has([data-lelu-signin-gate]) [data-spatial-nav] {
+  display: none !important;
+}
 .lsn-bar {
   pointer-events: auto;
   position: absolute;

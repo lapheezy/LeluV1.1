@@ -38,6 +38,7 @@ import {
   PlanetWeather,
   PlanetFloatingCities,
 } from "./PlanetCivilization";
+import { lifecycleView, type LifecycleView } from "./lifecycleView";
 import {
   PlanetSurfaceLOD,
   AtlantisWorld,
@@ -240,10 +241,30 @@ export function TestPlanet() {
   );
   const [progress, setProgress] = useState(0);
 
+  /*
+   * The lifecycle ticks every 100 ms and hands subscribers a fresh snapshot.
+   *
+   * This used to copy BOTH fields into state on every emit, so the planet —
+   * and every civilization layer under it, and the LOD patch and the country
+   * boundaries — re-rendered ten times a second for a phase that changes
+   * about once a minute and a progress value that only matters while the
+   * world is forming or collapsing.
+   *
+   * Phase is always taken (it gates whole layers). Progress is quantised to
+   * ~4% steps and only while something reads it; React bails out when the
+   * value is identical, so a stable phase now costs this subtree nothing at
+   * all.
+   */
+  const view = useRef<LifecycleView>({ phase, progress });
   useEffect(() => {
     return WorldLifecycle.getInstance().subscribe((state) => {
-      setPhase(state.phase);
-      setProgress(state.phaseProgress);
+      const next = lifecycleView(state.phase, state.phaseProgress, view.current);
+      // Same object: nothing visible moved, so nothing is set and React is
+      // not asked to re-render this subtree. See ./lifecycleView.
+      if (next === view.current) return;
+      view.current = next;
+      setPhase(next.phase);
+      setProgress(next.progress);
     });
   }, []);
 
@@ -340,8 +361,18 @@ export function TestPlanet() {
       {/* Main planet group (scales with lifecycle) */}
       <group ref={groupRef} scale={[planetScale, planetScale, planetScale]}>
         {/* Surface sphere with procedural Earth texture */}
+        {/*
+          Segment counts are a MEASURED cost, not a taste.
+
+          At 384x661 the world was drawing 228k triangles and 147 calls for
+          about 1 fps on a software renderer. This planet alone was the bulk of
+          it: 128x128 (32k tris) surface plus two 96x96 shells (18k each) for a
+          sphere that fills a few hundred pixels. 64/48 keeps the silhouette
+          and the terminator smooth at every camera distance the scene uses and
+          removes roughly three quarters of that geometry.
+        */}
         <mesh ref={surfaceRef} renderOrder={150}>
-          <sphereGeometry args={[2.0, 128, 128]} />
+          <sphereGeometry args={[2.0, 64, 64]} />
           <meshStandardMaterial
             map={surfaceTexture}
             emissive={isSunset ? new Color(0.4, 0.15, 0.05) : new Color(0x050a15)}
@@ -356,7 +387,7 @@ export function TestPlanet() {
         {/* Cloud sphere */}
         {showClouds && (
           <mesh ref={cloudsRef} renderOrder={152}>
-            <sphereGeometry args={[2.03, 96, 96]} />
+            <sphereGeometry args={[2.03, 48, 48]} />
             <meshStandardMaterial
               map={cloudTexture}
               transparent
@@ -370,7 +401,7 @@ export function TestPlanet() {
         {/* City lights (visible on dark side) */}
         {showCityLights && (
           <mesh ref={cityLightsRef} renderOrder={153}>
-            <sphereGeometry args={[2.01, 96, 96]} />
+            <sphereGeometry args={[2.01, 48, 48]} />
             <meshBasicMaterial
               map={cityLightsTexture}
               transparent
@@ -384,7 +415,7 @@ export function TestPlanet() {
         {/* Night-side warm glow */}
         {showNightGlow && (
           <mesh ref={nightGlowRef} renderOrder={154}>
-            <sphereGeometry args={[2.06, 48, 48]} />
+            <sphereGeometry args={[2.06, 32, 32]} />
             <meshBasicMaterial
               color={new Color(0.8, 0.5, 0.2)}
               transparent
@@ -397,7 +428,7 @@ export function TestPlanet() {
 
         {/* Atmosphere (rim glow) */}
         <mesh ref={atmosphereRef} renderOrder={160}>
-          <sphereGeometry args={[2.2, 64, 64]} />
+          <sphereGeometry args={[2.2, 40, 40]} />
           <meshBasicMaterial
             color={atmosphereColor}
             transparent
@@ -411,7 +442,7 @@ export function TestPlanet() {
         {/* Rebirth flash */}
         {isRebirth && (
           <mesh renderOrder={170}>
-            <sphereGeometry args={[3.0, 32, 32]} />
+            <sphereGeometry args={[3.0, 24, 24]} />
             <meshBasicMaterial
               color={new Color(1.0, 0.9, 0.7)}
               transparent

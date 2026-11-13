@@ -19,7 +19,12 @@
  */
 
 import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import * as Icons from "lucide-react";
+import {
+  Activity, Aperture, BarChart3, Bell, BookOpen, Box, Brain, Circle, Code2, Compass,
+  Crown, FileText, Film, Fingerprint, Flower2, Folder, Gauge, Globe2, History, Layers,
+  Layers3, Lightbulb, MessageCircle, Newspaper, Orbit, PenLine, ScrollText, Settings,
+  Settings2, Smartphone, Sparkles, UserRound, Workflow,
+} from "lucide-react";
 import { useGenesis, type GenesisPanel } from "../GenesisCore";
 import { useLeluActivity, ACTIVITY_ACCENT, type LeluActivity } from "../avatar/leluActivity";
 import { APPS, GROUPS, PRIMARY, appFor, type AppGroup } from "./homeCatalog";
@@ -30,10 +35,27 @@ import { launch, restoreLayout } from "./homeActions";
 import PlaceInWorldButton from "../spatial/PlaceInWorldButton";
 import "./cosmosHome.css";
 
-type IconName = keyof typeof Icons;
+/*
+ * Only the icons the home catalog can actually ask for.
+ *
+ * This file used `import * as Icons from "lucide-react"` and looked a name up
+ * at runtime, which pulled the ENTIRE icon library into the boot graph:
+ * measured, `lucide-react` was a single 733 KB chunk — 13.6% of the 5.38 MB a
+ * cold start had to download — to draw the home screen, which uses exactly
+ * one of them. The map is the same runtime lookup, with the same Circle
+ * fallback, over a set a bundler can shake.
+ */
+const HOME_ICONS = {
+  Activity, Aperture, BarChart3, Bell, BookOpen, Box, Brain, Circle, Code2, Compass,
+  Crown, FileText, Film, Fingerprint, Flower2, Folder, Gauge, Globe2, History, Layers,
+  Layers3, Lightbulb, MessageCircle, Newspaper, Orbit, PenLine, ScrollText, Settings,
+  Settings2, Smartphone, Sparkles, UserRound, Workflow,
+} as const;
+
+type IconName = keyof typeof HOME_ICONS;
 
 export function HomeIcon({ name, size = 20, style }: { name: string; size?: number; style?: CSSProperties }) {
-  const Icon = (Icons[name as IconName] ?? Icons.Circle) as unknown as (props: { size?: number; style?: CSSProperties; strokeWidth?: number; "aria-hidden"?: boolean }) => ReactNode;
+  const Icon = (HOME_ICONS[name as IconName] ?? Circle) as unknown as (props: { size?: number; style?: CSSProperties; strokeWidth?: number; "aria-hidden"?: boolean }) => ReactNode;
   return <Icon size={size} style={style} strokeWidth={1.7} aria-hidden />;
 }
 

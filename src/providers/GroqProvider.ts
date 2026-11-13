@@ -6,12 +6,14 @@
  */
 
 import type AIProvider from "./AIProvider";
+import { DEFAULT_OUTPUT_TOKENS } from "./AIProvider";
 import type { AIRequest, AIResponse, AIProviderHealth } from "./AIProvider";
 import { contextMessages } from "./contextMessages";
 import {
   extractOpenAIToolCalls,
   extractOpenAIText,
   describeEmptyChoice,
+  isTruncating,
   openAIToolPayload,
   toOpenAIMessages,
   trailingUserTurn,
@@ -213,7 +215,9 @@ export default class GroqProvider implements AIProvider {
       messages,
       ...openAIToolPayload(request),
       temperature: request.temperature ?? 0.7,
-      ...(request.maxTokens ? { max_tokens: request.maxTokens } : {}),
+      // The reply's own budget is metered against Groq's TPM minute, so it is
+      // always named rather than left to the provider's default.
+      max_tokens: request.maxTokens ?? DEFAULT_OUTPUT_TOKENS,
       ...(request.stop?.length ? { stop: request.stop } : {}),
       // True token streaming whenever the caller wants progressive
       // output — no artificial pacing, raw provider chunks.
@@ -278,6 +282,10 @@ export default class GroqProvider implements AIProvider {
       metadata: {
         usage: data?.usage,
         finishReason: choices?.[0]?.finish_reason,
+        // A 200 is not the same as a whole answer: `length` means the output
+        // budget ran out mid-sentence. Named here so nothing downstream — a
+        // claim check, a report, the UI — has to parse the reason itself.
+        truncated: isTruncating(choices?.[0]?.finish_reason),
       },
     };
   }
@@ -335,6 +343,7 @@ export default class GroqProvider implements AIProvider {
       metadata: {
         usage: streamed.usage,
         finishReason: streamed.finishReason,
+        truncated: isTruncating(streamed.finishReason),
         streamed: true,
       },
     };

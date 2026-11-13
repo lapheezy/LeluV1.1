@@ -141,7 +141,20 @@ const parsedClips = new WeakMap<ArrayBuffer, Promise<THREE.AnimationClip[]>>();
  * context, so each return to Home added another ~240 MB. Fitted to 2048²,
  * each mount uploads a quarter of that; every later view reuses them.
  */
-export const SHARED_TEXTURE_LIMIT = 2048;
+/*
+ * 1024, not 2048.
+ *
+ * Measured on the real build: her model file is 48 MB and ships 4096²
+ * textures, and every mount of her canvas uploads them into WebGL on the
+ * main thread — the same thread the cosmos is drawing on. Fitting to 2048²
+ * cut that to a quarter; the phone hero is 162×166 CSS px and the largest
+ * view of her is a few hundred pixels tall, so 1024² is still more than
+ * twice the pixels she is ever drawn at. The fit runs through
+ * createImageBitmap, which decodes and rescales off the main thread, and
+ * at "medium" quality it stops spending high-quality resampling time on an
+ * image that is about to be minified by the GPU anyway.
+ */
+export const SHARED_TEXTURE_LIMIT = 1024;
 function parseModel(bytes: ArrayBuffer): Promise<GLTF> {
   let parsed = parsedModels.get(bytes);
   if (!parsed) {
@@ -188,7 +201,7 @@ async function fitTexturesTo(scene: THREE.Object3D, maxSize: number): Promise<nu
     if (!img?.width || !img.height || Math.max(img.width, img.height) <= maxSize) return;
     const scale = maxSize / Math.max(img.width, img.height);
     try {
-      t.image = await createImageBitmap(img as ImageBitmapSource, { resizeWidth: Math.round(img.width * scale), resizeHeight: Math.round(img.height * scale), resizeQuality: "high" });
+      t.image = await createImageBitmap(img as ImageBitmapSource, { resizeWidth: Math.round(img.width * scale), resizeHeight: Math.round(img.height * scale), resizeQuality: "medium" });
       t.needsUpdate = true;
       resized += 1;
     } catch {

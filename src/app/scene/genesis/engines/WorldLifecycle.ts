@@ -201,6 +201,18 @@ const PHASE_ORDER: WorldPhaseType[] = [
 const CYCLE_KEY = "lelu.world.lifecycle.v2"; // v2: added developmental state
 const HISTORY_KEY = "lelu.world.cycleHistory.v1";
 
+/**
+ * How often the cycle is persisted while it runs.
+ *
+ * The lifecycle ticks every 100 ms and used to save on every tick: a
+ * synchronous JSON stringify of the whole cycle state plus a localStorage
+ * write, ten times a second, for the life of the session — on the same main
+ * thread that draws the cosmos and takes what you type. This state is for
+ * RESUME, not a transaction log: a session that resumes is at most this far
+ * behind inside the current phase, and a phase change still saves at once.
+ */
+export const SAVE_INTERVAL_MS = 2000;
+
 // ── WORLD LIFECYCLE ──
 
 export default class WorldLifecycle {
@@ -212,6 +224,7 @@ export default class WorldLifecycle {
   private phaseCallbacks = new Map<WorldPhaseType, Array<() => void | Promise<void>>>();
   private paused = false;
   private speed = 1; // multiplier
+  private lastSavedAt = 0;
 
   private constructor() {
     this.state = this.loadOrCreateState();
@@ -299,6 +312,7 @@ export default class WorldLifecycle {
   }
 
   private saveState(): void {
+    this.lastSavedAt = Date.now();
     try {
       KvStore.getInstance().set(CYCLE_KEY, this.state);
     } catch { /* ignore */ }
@@ -443,7 +457,8 @@ export default class WorldLifecycle {
     }
 
     this.emit();
-    this.saveState();
+    // Throttled: see SAVE_INTERVAL_MS. A phase boundary saves immediately.
+    if (Date.now() - this.lastSavedAt >= SAVE_INTERVAL_MS) this.saveState();
   }
 
   private getNextPhase(current: WorldPhaseType): WorldPhaseType | null {
@@ -494,6 +509,8 @@ export default class WorldLifecycle {
     }
 
     this.emit();
+    // A new phase is worth a write even if the interval has not elapsed.
+    this.saveState();
   }
 
   /** Complete the current cycle and start the next */
