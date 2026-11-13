@@ -56,6 +56,7 @@
 
 import { createReadStream, existsSync, statSync } from "node:fs";
 import path from "node:path";
+import { ensureGzipCopy, isCompressibleAsset, selectAssetBody } from "./compressedAsset.ts";
 import { crossOrigin, readBody, type ConnectLikeReq, type ConnectLikeRes } from "./modelApi.ts";
 import { ForgeStore, type CharacterSlot, type ForgeJob } from "./forgeStore.ts";
 import { buildRecords, type ReferenceClassification, type ReferenceRecord } from "./forgeReferences.ts";
@@ -166,7 +167,28 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
   const root = options.assetRoot || readEnv("FORGE_ASSET_ROOT") || path.join(process.cwd(), "leluverse", "assets");
   const forge = new MeshyForge({ store: new ForgeStore(root), readEnv });
   const world = new WorldEngine(forge.store);
-  if (options.poll !== false) forge.startPolling();
+  if (options.poll !== false) {
+    forge.startPolling();
+    // Pre-compress her current model and clips off the request path, so the
+    // first visitor after a deploy already gets the smaller download. Only
+    // in the long-lived server (poll on), never in tests.
+    setTimeout(() => {
+      try {
+        const active = forge.activeCharacter("lelu_character");
+        const files = [active.model?.file, ...Object.values(active.animations).map((a) => a?.file)].filter(Boolean) as string[];
+        void files.reduce(
+          (chain, file) =>
+            chain.then(() => {
+              const absolute = forge.store.safeAssetPath(file);
+              if (absolute && existsSync(absolute) && isCompressibleAsset(absolute, statSync(absolute).size)) return ensureGzipCopy(absolute);
+            }).catch(() => undefined),
+          Promise.resolve(),
+        );
+      } catch {
+        /* no character yet: nothing to warm */
+      }
+    }, 5_000).unref?.();
+  }
 
   async function handle(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): Promise<void> {
     const method = (req.method ?? "GET").toUpperCase();
@@ -414,17 +436,22 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
           sendJson(res, { ok: false, error: "No such asset." }, 404);
           return;
         }
+        // A large model goes out gzip-compressed from a once-made copy
+        // (see compressedAsset.ts): 49.5 MB → 32.6 MB for her rig, lossless.
+        const body = selectAssetBody(file, (req as unknown as { headers?: Record<string, unknown> }).headers ?? {});
         res.statusCode = 200;
         res.setHeader("Content-Type", MIME[path.extname(file).toLowerCase()] ?? "application/octet-stream");
-        res.setHeader("Content-Length", String(statSync(file).size));
+        res.setHeader("Content-Length", String(body.size));
+        if (body.encoding) res.setHeader("Content-Encoding", body.encoding);
+        if (body.vary) res.setHeader("Vary", "Accept-Encoding");
         // Version folders are never rewritten, so an asset URL's bytes never change.
         res.setHeader("Cache-Control", "private, max-age=31536000, immutable");
         const pipeTarget = res as unknown as NodeJS.WritableStream;
         if (typeof (pipeTarget as { write?: unknown }).write === "function") {
-          createReadStream(file).pipe(pipeTarget);
+          createReadStream(body.path).pipe(pipeTarget);
         } else {
           const { readFileSync } = await import("node:fs");
-          res.end(readFileSync(file) as unknown as string);
+          res.end(readFileSync(body.path) as unknown as string);
         }
         return;
       }

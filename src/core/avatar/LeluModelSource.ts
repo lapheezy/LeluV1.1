@@ -73,7 +73,7 @@ class LeluModelSourceImpl {
         const key = [active.model.file, ...clipFiles].join("|");
         // A placement or mood changed, not her model: nothing to reload.
         if (this.state.status === "ready" && this.state.model.key === key) return;
-        const [glb, ...clips] = await Promise.all([active.model.file, ...clipFiles].map((file) => ForgeClient.assetBytes(file)));
+        const [glb, ...clips] = await Promise.all([active.model.file, ...clipFiles].map((file) => ForgeClient.assetBytes(file, { background: true })));
         this.set({ status: "ready", model: { key, glb, clips } });
       } catch (error) {
         // Keep a model already shown; only report absence when there is none.

@@ -377,8 +377,13 @@ export const ForgeClient = {
 
   assetUrl: (file: string) => `${BASE}/assets/${file.split("/").map(encodeURIComponent).join("/")}`,
 
-  async assetBytes(file: string): Promise<ArrayBuffer> {
-    const res = await fetch(ForgeClient.assetUrl(file));
+  /**
+   * `background` lowers the request's network priority: her model is tens
+   * of MB and must not compete with the scripts and API calls the interface
+   * needs first on a cold boot. Same bytes, same cache entry.
+   */
+  async assetBytes(file: string, options: { background?: boolean } = {}): Promise<ArrayBuffer> {
+    const res = await fetch(ForgeClient.assetUrl(file), options.background ? ({ priority: "low" } as RequestInit) : undefined);
     if (!res.ok) throw new Error(`Asset download failed (HTTP ${res.status}).`);
     return res.arrayBuffer();
   },

@@ -102,3 +102,6 @@ __pycache__/
 # MOSS-TTS-Nano candidate worker (code, weights, env) — fetched by services/mossnano/install.sh
 .mossnano/
 .venv-mossnano/
+
+# Pre-compressed copies of immutable Forge assets (plugins/compressedAsset.ts)
+.cache/asset-gzip/
