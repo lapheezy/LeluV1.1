@@ -1,0 +1,48 @@
+{
+  "email": "lelu.click.1794596152304@example.com",
+  "before": {
+    "gatePresent": true,
+    "gateText": "LÉLU · cloud identitySign in to carry memory, projects and conversations across your devices. You can also continue without an account — everything works, it just stays here.Sign inCreate accountContinue without an account",
+    "storageKeys": [
+      "lelu.proactive.session.v1",
+      "lelu.lelu.executive.probe",
+      "lelu.lelu.world.lifecycle.v2",
+      "lelu.lelu.self.v1",
+      "lelu.lelu.queue.v1",
+      "lelu.proactive.runtime.checkpoint.v1",
+      "lelu.lelu.interface.windows.observed.v1"
+    ],
+    "token": null
+  },
+  "after": {
+    "gatePresent": true,
+    "gateText": "LÉLU · cloud identitySign in to carry memory, projects and conversations across your devices. You can also continue without an account — everything works, it just stays here.Enter your email and password.Sign inCreate accountContinue without an account",
+    "storageKeys": [
+      "lelu.lelu.selfstudy.objectives.v1",
+      "lelu.notifications.history.v1",
+      "lelu.lelu.self.v1",
+      "lelu.lelu.capabilities.v1",
+      "lelu.lelu.interface.windows.observed.v1",
+      "lelu.lelu.executive.probe",
+      "lelu.lelu.world.lifecycle.v2",
+      "lelu.lelu.improvements.v1",
+      "lelu.lelu.runtime.health.v1",
+      "lelu.curiosity.v1"
+    ],
+    "token": null
+  },
+  "logs": [
+    "log: [Lélu ProjectScheduler] Started — checking every 60s",
+    "info: [build] LÉLU 91df941 · mission/chat-universe-reinforcement-1 · development · built 2026-11-13 18:32Z (sha 91df9411d776f862a00a1354c8aca62928def264)",
+    "info: [build] LÉLU 91df941 · mission/chat-universe-reinforcement-1 · development · built 2026-11-13 18:32Z (sha 91df9411d776f862a00a1354c8aca62928def264)",
+    "warning: GoTrueClient@sb-nrehsldbfxthspikaxvr-auth-token:1 (2.117.3) 2026-11-13T18:55:53.803Z Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoide",
+    "log: [Lélu ProjectScheduler] Started — checking every 60s",
+    "info: [build] LÉLU 91df941 · mission/chat-universe-reinforcement-1 · development · built 2026-11-13 18:32Z (sha 91df9411d776f862a00a1354c8aca62928def264)",
+    "info: [build] LÉLU 91df941 · mission/chat-universe-reinforcement-1 · development · built 2026-11-13 18:32Z (sha 91df9411d776f862a00a1354c8aca62928def264)",
+    "warning: GoTrueClient@sb-nrehsldbfxthspikaxvr-auth-token:1 (2.117.3) 2026-11-13T18:55:54.713Z Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoide",
+    "info: [Bootstrap] Remote engineering agent unavailable — Anthropic is disabled by policy (set LELU_ENABLE_ANTHROPIC=true to opt in).",
+    "info: [StartupDiagnostic] 15/15 checks passed:\n  ✓ AI provider — 3/9 provider(s) available (OpenRouter, Groq, GitHub Models)\n  ✓ Fallback provider chain — 9 provider(s) in the priority chain: Local (on-devi",
+    "info: [Lélu Body] 3 texture(s) fitted to 2048px",
+    "info: [Lélu Body] avatar controls {face: Array(12), bones: Array(7)} motion [idle, idle_1, idle_3, idle_look_around, talk_open, talk_right, talk_hip, talk_passionate, listen, agree, wave, wave_big, bow, shr"
+  ]
+}

@@ -76,12 +76,18 @@ export const BROKERED: Record<string, BrokeredProvider> = {
   },
   groq: {
     endpointId: "groq",
-    keyNames: ["VITE_GROQ_API_KEY", "GROQ_API_KEY"],
+    keyNames: ["VITE_GROQ_API_KEY", "GROQ_API_KEY", "GROQ_API_KEY_2", "GROQ_API_KEY_3"],
     authHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
   openrouter: {
     endpointId: "openrouter",
-    keyNames: ["VITE_OPENROUTER_API_KEY", "OPENROUTER_API_KEY", "OPEN_ROUTER_API_KEY"],
+    keyNames: [
+      "VITE_OPENROUTER_API_KEY",
+      "OPENROUTER_API_KEY",
+      "OPEN_ROUTER_API_KEY",
+      "OPENROUTER_API_KEY_2",
+      "OPENROUTER_API_KEY_3",
+    ],
     authHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
   cerebras: {
@@ -581,6 +587,27 @@ export function createModelApi(readEnv: EnvReader) {
     return "";
   };
 
+  /**
+   * Every credential this provider can be tried with, in configured order.
+   *
+   * One key per provider made a free tier's daily ceiling the app's ceiling:
+   * `.env.local` here carries Groq1/Groq2 and Openrouter1..3, but only the
+   * first of each was ever read, so a 429 on one account took the provider out
+   * of the chain while a fresh account sat unused. Duplicates collapse, because
+   * the same key stored under two names is one key.
+   */
+  const credentialsFor = (provider: BrokeredProvider): string[] => {
+    const keys: string[] = [];
+    for (const name of provider.keyNames) {
+      const value = readEnv(name)?.trim();
+      if (value && !keys.includes(value)) keys.push(value);
+    }
+    return keys;
+  };
+
+  /** Statuses another credential can fix: refused, forbidden, or out of quota. */
+  const CREDENTIAL_RETRY_STATUS = new Set([401, 403, 429]);
+
   async function handle(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): Promise<void> {
     // Connect (Vite) strips the mount path before calling a handler; the
     // standalone server's router (server.ts) does not. Without this, every
@@ -669,7 +696,8 @@ export function createModelApi(readEnv: EnvReader) {
       return;
     }
 
-    const key = credentialFor(provider);
+    const keys = credentialsFor(provider);
+    const key = keys[0] ?? "";
     if (!key) {
       // A missing credential is reported as a missing credential, not as
       // a network error — the difference is what an operator has to fix.
@@ -703,18 +731,62 @@ export function createModelApi(readEnv: EnvReader) {
       // Held so the trace below can measure what was actually sent. Read once:
       // the body stream cannot be consumed twice.
       const sentBody = req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req);
-      const upstream = await fetch(target, {
-        method: req.method ?? "POST",
-        headers: {
-          "Content-Type": forwardedContentType(req),
-          ...passedHeaders(req, provider),
-          // The server's credential, always. Anything else the page sent
-          // is dropped: the browser is not a source of authority here.
-          ...provider.authHeaders(key),
-        },
-        body: sentBody,
-        signal: AbortSignal.any([AbortSignal.timeout(UPSTREAM_TIMEOUT_MS), clientGone.signal]),
-      });
+      const sendUpstream = (credential: string) =>
+        fetch(target, {
+          method: req.method ?? "POST",
+          headers: {
+            "Content-Type": forwardedContentType(req),
+            ...passedHeaders(req, provider),
+            // The server's credential, always. Anything else the page sent
+            // is dropped: the browser is not a source of authority here.
+            ...provider.authHeaders(credential),
+          },
+          body: sentBody,
+          signal: AbortSignal.any([AbortSignal.timeout(UPSTREAM_TIMEOUT_MS), clientGone.signal]),
+        });
+
+      let upstream = await sendUpstream(key);
+      let slot = 0;
+      /**
+       * A refusal another credential or a short pause can fix is retried before
+       * the provider is reported as failed.
+       *
+       * MEASURED: a Groq tool turn spent 4,332 tokens and then asked for 3,971
+       * more against an 8,000 TPM free tier; the second call answered 429 "try
+       * again in 2.2725s" — a per-minute window, not a spent account. Treating
+       * that as provider-wide exhaustion threw away a finished tool run and
+       * told the user the model was unreachable. A short retry-after is waited
+       * out on the SAME key; only a refusal without one rotates credentials.
+       */
+      for (let guard = 0; guard < 4 && CREDENTIAL_RETRY_STATUS.has(upstream.status); guard += 1) {
+        let waitMs = 0;
+        if (upstream.status === 429) {
+          const body = await upstream
+            .clone()
+            .text()
+            .catch(() => "");
+          const retry = /try again in\s*([\d.]+)\s*s/i.exec(body);
+          if (retry) waitMs = Math.min(15_000, Math.ceil(Number(retry[1]) * 1000) + 300);
+        }
+        await upstream.body?.cancel().catch(() => undefined);
+        if (waitMs > 0) {
+          await new Promise((resolve) => setTimeout(resolve, waitMs));
+          upstream = await sendUpstream(keys[slot] ?? key);
+          continue;
+        }
+        if (slot + 1 < keys.length) {
+          slot += 1;
+          evidence.set(providerId, {
+            state: "CREDENTIAL_ROTATED",
+            httpStatus: upstream.status,
+            at: Date.now(),
+            note: `slot ${slot} refused; tried the next configured credential`,
+          });
+          upstream = await sendUpstream(keys[slot] as string);
+          continue;
+        }
+        break;
+      }
 
       // Learn from the real answer: a rejected credential takes the provider
       // out of the chain, a successful one puts it back.
