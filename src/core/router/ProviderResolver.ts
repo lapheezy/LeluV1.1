@@ -816,6 +816,22 @@ export default class ProviderResolver {
         const already = seenThisRound.get(callKey);
         if (already) {
           executed.push({ tool: call.name, ok: already.ok });
+          // A suppressed repeat is evidence of its own: it was NOT executed a
+          // second time, and the record must never read as another success.
+          AgentEventBus.getInstance().emit({
+            type: "execution_evidence",
+            taskId,
+            record: {
+              executionId: `chat-suppressed-${Date.now().toString(36)}-${call.id}`,
+              taskId,
+              path: "chat",
+              tool: call.name,
+              approval: "not-required",
+              stage: "suppressed",
+              outcome: "suppressed",
+              reason: `Repeated ${call.name} with identical arguments in the same round; the first result was reused instead of running it again.`,
+            },
+          });
           context.logger.info(
             "ProviderResolver",
             `Tool ${call.name} was requested twice in one round; the repeat reused the first result`,
@@ -830,7 +846,10 @@ export default class ProviderResolver {
           });
           continue;
         }
-        const result = await dispatchToolCall(call, taskId, context);
+        const result = await dispatchToolCall(call, taskId, context, {
+          path: "chat",
+          turnSignature: context.request.prompt,
+        });
         seenThisRound.set(callKey, { ok: result.ok, content: result.content });
         // A tool that finished running is progress, however long it took.
         onProgress?.();

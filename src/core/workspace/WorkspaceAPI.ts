@@ -390,6 +390,16 @@ export default class WorkspaceAPI {
                 ? tasks.resume(call.taskId)
                 : tasks.cancel(call.taskId);
         if (!task) return fail(call.action, `task ${call.taskId} cannot ${call.action.replace("-task", "")} from where it is`);
+        // Resuming used to only flip the status: the task said "running" and
+        // nothing ever executed again, so the button looked broken. Drive the
+        // real executor from its checkpoint.
+        if (call.action === "resume-task") {
+          // Dynamic import keeps the module graph acyclic; start() is async in
+          // the background and reports through the event bus.
+          void import("../agentic/TaskExecutor").then(({ default: TaskExecutor }) => {
+            TaskExecutor.getInstance().start(task.id);
+          });
+        }
         return ok(`Task ${task.status}: ${task.goal}`);
       }
 

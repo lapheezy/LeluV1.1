@@ -46,6 +46,7 @@ import { createQuad9Api } from "./plugins/quad9Plugin.ts";
 import { createNekoApi } from "./plugins/nekoApi.ts";
 import { createGithubApi } from "./plugins/githubApi.ts";
 import { createModelApi } from "./plugins/modelApi.ts";
+import { createExecutionEvidenceApi } from "./plugins/executionEvidenceApi.ts";
 import { createAcquisitionApi } from "./plugins/acquisitionApi.ts";
 import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 import { createAccessGate } from "./plugins/accessGate.ts";
@@ -488,6 +489,10 @@ createAiProxyApi((key) => process.env[key]).attach(middlewares);
 // Same-origin model broker: the browser posts here, the server holds
 // the credential and talks to the provider.
 createModelApi((key) => process.env[key]).attach(middlewares);
+
+// Execution evidence: the server's own copy of what really ran, for both the
+// chat tool loop and the task engine. Client records are sanitized on arrival.
+createExecutionEvidenceApi().attach(middlewares);
 
 // Repository acquisition: real clones, inspections and isolated execution.
 // Mounted here as well as in Vite dev so both runtimes serve the same routes.

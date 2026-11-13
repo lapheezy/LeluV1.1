@@ -31,6 +31,9 @@ import type { ToolCall } from "../../providers/AIProvider";
 import type RouterContext from "../router/RouterContext";
 import AgentEventBus from "../agent/AgentEvents";
 import { ToolTimeoutError, toolTimeoutMs, withDeadline } from "./ToolDeadline";
+import ExecutionTelemetry from "./ExecutionTelemetry";
+import ExecutionLedger, { isSideEffecting } from "./ExecutionLedger";
+import { newExecutionId, withReason, type ExecutionPath, type ExecutionRecord } from "./ExecutionEvidence";
 import AutonomyGate from "../cognition/AutonomyGate";
 import ToolRegistry, { type RiskLevel, type ToolDefinition } from "./ToolRegistry";
 import { studioToolExecutors } from "../studio/StudioToolExecutors";
@@ -2774,12 +2777,49 @@ export async function dispatchToolCall(
      * autonomy level run once at "Execute approved" (L3).
      */
     approvalId?: string;
+    /** Which orchestration path drove this call. Recorded, never guessed. */
+    path?: ExecutionPath;
+    /** Plan step, when the task engine is the one asking. */
+    stepId?: string;
+    /**
+     * Identifies the request that asked for this call (the prompt). Used only
+     * to recognise a retry of the SAME request after an interruption.
+     */
+    turnSignature?: string;
   } = {},
 ): Promise<ToolExecutionResult> {
   const events = AgentEventBus.getInstance();
   const stats = ToolStats.getInstance();
   const id = registryIdForToolName(call.name);
+
   const executor = BY_ID.get(id);
+
+  // One identity for this invocation, shared by every stage below.
+  const path: ExecutionPath = options.path ?? "unknown";
+  const startedAt = Date.now();
+  const execution = {
+    executionId: newExecutionId(path, taskId),
+    taskId,
+    path,
+    tool: id,
+    ...(call.name !== id ? { requestedName: call.name } : {}),
+    ...(options.stepId ? { stepId: options.stepId } : {}),
+  };
+  const evidence = (
+    record: Omit<ExecutionRecord, "executionId" | "taskId" | "path" | "tool" | "stepId" | "requestedName">,
+  ): void => {
+    try {
+      events.emit({ type: "execution_evidence", taskId, record: { ...execution, ...record } });
+    } catch {
+      /* evidence must never break an execution */
+    }
+  };
+  try {
+    ExecutionTelemetry.getInstance().start();
+  } catch {
+    /* no telemetry is better than no turn */
+  }
+  evidence({ approval: "not-required", stage: "requested" });
 
   if (!executor) {
     // Registered is not the same as runnable: say which this is.
@@ -2787,6 +2827,7 @@ export async function dispatchToolCall(
     const content = registered
       ? `"${id}" is registered but has no executor — there is no real dispatch for it, so nothing was executed.`
       : `There is no tool named "${call.name}", so nothing was executed.`;
+    evidence(withReason({ approval: "not-required", stage: "failed", outcome: "failed" }, content));
     stats.record(call.name, "refused", 0, content);
     return { ok: false, content };
   }
@@ -2807,6 +2848,7 @@ export async function dispatchToolCall(
     // a false reason, which sends the user to fix the wrong thing.
     const result = { ok: false, content: refusalReason(id) };
     stats.record(id, "refused", 0, result.content);
+    evidence(withReason({ approval: "refused", stage: "refused", outcome: "refused" }, result.content));
     events.emit({
       type: "tool_result",
       taskId,
@@ -2825,6 +2867,25 @@ export async function dispatchToolCall(
   }
 
   const started = Date.now();
+  const approvalState = consumed ? "approved" : "not-required";
+
+  // An interrupted write has an unknown outcome. Refuse to repeat it inside the
+  // same request; a completed one may be run again, because that is a new
+  // instruction rather than a retry of a broken one.
+  let ledgerKey: string | undefined;
+  if (path === "chat" && options.turnSignature && isSideEffecting(id)) {
+    const attempt = ExecutionLedger.getInstance().begin(id, call.arguments ?? {}, options.turnSignature, taskId);
+    if (attempt.blocked) {
+      const content = attempt.reason ?? `"${id}" was not run again.`;
+      evidence(withReason({ approval: approvalState, stage: "suppressed", outcome: "suppressed", startedAt, finishedAt: Date.now(), durationMs: 0 }, content));
+      stats.record(id, "refused", 0, content);
+      events.emit({ type: "tool_result", taskId, tool: id, result: content, results: [], status: "error" });
+      return { ok: false, content };
+    }
+    ledgerKey = attempt.key;
+  }
+  evidence({ approval: approvalState, stage: "authorized", startedAt });
+  evidence({ approval: approvalState, stage: "started", startedAt });
   try {
     const result = await withDeadline(
       executor.run(call.arguments ?? {}, context),
@@ -2832,6 +2893,11 @@ export async function dispatchToolCall(
       id,
     );
     stats.record(id, result.ok ? "succeeded" : "failed", Date.now() - started, result.ok ? undefined : result.content);
+    const finishedAt = Date.now();
+    evidence(result.ok
+      ? { approval: approvalState, stage: "succeeded", outcome: "succeeded", startedAt, finishedAt, durationMs: finishedAt - started }
+      : withReason({ approval: approvalState, stage: "failed", outcome: "failed", startedAt, finishedAt, durationMs: finishedAt - started }, result.content));
+    if (ledgerKey) ExecutionLedger.getInstance().finish(ledgerKey);
     if (!executor.emitsOwnEvents) {
       events.emit({
         type: "tool_result",
@@ -2850,6 +2916,9 @@ export async function dispatchToolCall(
       // Say what is true: it was stopped, and nothing is claimed as done.
       const content = `${message}. It was stopped, so nothing is reported as done.`;
       stats.record(id, "failed", Date.now() - started, content);
+      const stoppedAt = Date.now();
+      evidence(withReason({ approval: approvalState, stage: "timed-out", outcome: "timed-out", startedAt, finishedAt: stoppedAt, durationMs: stoppedAt - started }, content));
+      if (ledgerKey) ExecutionLedger.getInstance().finish(ledgerKey);
       events.emit({
         type: "tool_result",
         taskId,
@@ -2862,6 +2931,9 @@ export async function dispatchToolCall(
       return { ok: false, content };
     }
     stats.record(id, "failed", Date.now() - started, message);
+    const failedAt = Date.now();
+    evidence(withReason({ approval: approvalState, stage: "failed", outcome: "failed", startedAt, finishedAt: failedAt, durationMs: failedAt - started }, message));
+    if (ledgerKey) ExecutionLedger.getInstance().finish(ledgerKey);
     events.emit({
       type: "tool_result",
       taskId,

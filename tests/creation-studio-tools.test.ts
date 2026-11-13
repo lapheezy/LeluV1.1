@@ -124,7 +124,7 @@ test("the orchestrator binds a planned task to the conversation whose turn plann
   const source = readFileSync(new URL("../src/core/orchestrator/Orchestrator.ts", import.meta.url), "utf8");
   assert.match(source, /const owner = ownerForTask\(taskId\);\s*if \(owner\) bindTask\(task\.id, owner\);/);
   const executor = readFileSync(new URL("../src/core/agentic/TaskExecutor.ts", import.meta.url), "utf8");
-  assert.match(executor, /dispatchToolCall\(call, taskId, await conversationContext\(taskId\), options\)/);
+  assert.match(executor, /dispatchToolCall\(call, taskId, await conversationContext\(taskId\), \{ \.\.\.options, path: "task" \}\)/);
 });
 
 test("a planned export step finds the artifact through the create step's output", async () => {

@@ -370,11 +370,24 @@ test("browser.read reports a page it could not open as a structured failure, wit
     assert.match(result.content, /Could not read https:\/\/blocked\.example\/page: The site refused the reader\./);
     assert.match(result.content, /Try another source/);
     assert.ok(!/undefined/.test(result.content));
+    // Execution evidence rides the same bus now (Mission 6.1.7): those stages
+    // are asserted separately below, so this list stays the browser's own story.
+    const browserEvents = seen.filter((event) => event.type !== "execution_evidence");
     assert.deepEqual(
-      seen.map((event) => event.type),
+      browserEvents.map((event) => event.type),
       ["tool_selected", "tool_started", "browser_opened", "browser_navigation", "browser_result", "tool_result"],
     );
-    const final = seen.at(-1) as Extract<AgentEvent, { type: "tool_result" }>;
+    const evidence = seen.filter((event) => event.type === "execution_evidence");
+    assert.ok(evidence.length > 0, "the failed page read left no execution evidence");
+    const identities = new Set(
+      evidence.map((event) => (event as Extract<AgentEvent, { type: "execution_evidence" }>).record.executionId),
+    );
+    assert.equal(identities.size, 1, "the page read's evidence was not tied to one execution");
+    assert.ok(
+      evidence.some((event) => (event as Extract<AgentEvent, { type: "execution_evidence" }>).record.stage === "failed"),
+      "a failed page read was not recorded as a failure",
+    );
+    const final = browserEvents.at(-1) as Extract<AgentEvent, { type: "tool_result" }>;
     assert.equal(final.status, "blocked");
   } finally {
     unsubscribe();
