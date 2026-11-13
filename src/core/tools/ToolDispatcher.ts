@@ -30,6 +30,7 @@ import type { MeasuredCapture } from "./ClaimGrounding";
 import type { ToolCall } from "../../providers/AIProvider";
 import type RouterContext from "../router/RouterContext";
 import AgentEventBus from "../agent/AgentEvents";
+import { ToolTimeoutError, toolTimeoutMs, withDeadline } from "./ToolDeadline";
 import AutonomyGate from "../cognition/AutonomyGate";
 import ToolRegistry, { type RiskLevel, type ToolDefinition } from "./ToolRegistry";
 import { studioToolExecutors } from "../studio/StudioToolExecutors";
@@ -2825,7 +2826,11 @@ export async function dispatchToolCall(
 
   const started = Date.now();
   try {
-    const result = await executor.run(call.arguments ?? {}, context);
+    const result = await withDeadline(
+      executor.run(call.arguments ?? {}, context),
+      toolTimeoutMs(),
+      id,
+    );
     stats.record(id, result.ok ? "succeeded" : "failed", Date.now() - started, result.ok ? undefined : result.content);
     if (!executor.emitsOwnEvents) {
       events.emit({
@@ -2835,11 +2840,27 @@ export async function dispatchToolCall(
         result: result.content.slice(0, 2000),
         results: [],
         status: result.ok ? "complete" : "error",
+        durationMs: Date.now() - started,
       });
     }
     return result;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    if (error instanceof ToolTimeoutError) {
+      // Say what is true: it was stopped, and nothing is claimed as done.
+      const content = `${message}. It was stopped, so nothing is reported as done.`;
+      stats.record(id, "failed", Date.now() - started, content);
+      events.emit({
+        type: "tool_result",
+        taskId,
+        tool: id,
+        result: content,
+        results: [],
+        status: "error",
+        durationMs: Date.now() - started,
+      });
+      return { ok: false, content };
+    }
     stats.record(id, "failed", Date.now() - started, message);
     events.emit({
       type: "tool_result",
@@ -2848,6 +2869,7 @@ export async function dispatchToolCall(
       result: `Tool execution failed: ${message}`,
       results: [],
       status: "error",
+      durationMs: Date.now() - started,
     });
     return { ok: false, content: `"${id}" failed: ${message}` };
   }

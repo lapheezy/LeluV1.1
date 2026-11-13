@@ -123,6 +123,8 @@ export type AgentEvent =
       query?: string;
       provider?: string;
       status?: "complete" | "blocked" | "error";
+      /** How long the executor actually ran, when it was measured. */
+      durationMs?: number;
     }
   | { type: "tool_failed"; taskId: string; tool: string; error?: string }
   /**
