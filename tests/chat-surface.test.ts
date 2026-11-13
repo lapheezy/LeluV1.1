@@ -359,6 +359,40 @@ test("on a phone a conversation window is the full visual viewport; one composer
   assert.match(universe, /\{sheetOpen \? null : \(/, "the Universe composer leaves while a conversation sheet owns the screen");
 });
 
+test("opening a conversation over the Universe leaves the Universe header on screen", () => {
+  // Measured at 390×844 before this: `.lcu-head` occupied y 10–80 while the
+  // conversation sheet covered y 0–844, so an 80px overlap buried the header,
+  // its cards and its close control and the app read as if the Universe had
+  // closed. The sheet must start below the header whenever the Universe is
+  // open, and keep the whole visual viewport when it is not.
+  const host = readFileSync("src/app/scene/genesis/GenesisModuleHost.tsx", "utf8");
+  assert.match(host, /const universeOpen = useUniverseOpen\(\);/, "the host reads the one Universe open store");
+  assert.match(
+    host,
+    /const universeHeadInset = phoneSheet && universeOpen \? UNIVERSE_COMPACT_HEAD : 0;/,
+    "only an open Universe lifts the sheet, and only on a phone sheet",
+  );
+  assert.match(host, /const UNIVERSE_COMPACT_HEAD = 88;/, "the header clearance is explicit");
+  assert.match(
+    host,
+    /top: `calc\(\$\{viewport\.offsetTop\}px \+ \$\{universeHeadInset\}px \+ env\(safe-area-inset-top, 0px\)\)`/,
+    "the sheet starts below the Universe header, including the device's top safe area",
+  );
+  assert.match(
+    host,
+    /height: `calc\(\$\{viewportHeight\}px - \$\{universeHeadInset\}px - env\(safe-area-inset-top, 0px\)\)`/,
+    "the sheet keeps the remaining visual viewport (keyboard-shrunk, not the layout viewport)",
+  );
+  assert.match(host, /paddingTop: 0,/, "the safe area is above the sheet, so it is not padded twice");
+  // The correction lives inside the `phoneSheet ? …` block: desktop windows are
+  // untouched, and a phone chat opened straight from Home still fills the screen.
+  assert.match(
+    host,
+    /const phoneSheet = compactScreen && chatWindow;[\s\S]{0,400}const universeHeadInset = phoneSheet && universeOpen/,
+    "the inset is phone-only and gated on the Universe being open",
+  );
+});
+
 test("Step 3: under a phone sheet LÉLU's single presence stays mounted, drawing slowly at an edge (no unmount, no hidden WebGL)", () => {
   // Phase 2 unmounted her window under phone sheets (a hidden canvas stalled
   // the GPU). Step 3 keeps ONE presence: under a sheet she rests visible at

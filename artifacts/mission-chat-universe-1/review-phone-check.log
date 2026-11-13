@@ -1,0 +1,58 @@
+
+== iPhone portrait (390x844) ==
+  PASS  Universe opens on the phone
+  PASS  Universe header is on screen before opening a conversation  — y=10..80
+  PASS  conversation sheet opens  — top=88 h=756
+  PASS  Universe stays open behind the conversation
+  PASS  Universe header remains visible  — y=10..80
+  PASS  conversation sheet does not paint over the header  — header bottom=80 sheet top=88 overlap=-8px
+  PASS  header controls are hit-testable (not covered)  — hit <div> inHead=true inSheet=false
+  PASS  Universe close control stays reachable
+  PASS  conversation still owns the rest of the screen (composer on screen)  — composer 787..829 of 844
+  PASS  switching conversations keeps the header clear  — header bottom=80 sheet top=88 cards=2
+  PASS  closing the conversation returns to the Universe  — universe=true sheet=false
+  PASS  Universe cards are usable again after closing  — inUniverse=true
+  PASS  reopening the same conversation keeps the header clear  — header bottom=80 sheet top=88
+  PASS  scrolling the conversation leaves the header in place  — header y=10 sheet top=88
+
+== small Android portrait (360x740) ==
+  PASS  Universe opens on the phone
+  PASS  Universe header is on screen before opening a conversation  — y=10..80
+  PASS  conversation sheet opens  — top=88 h=652
+  PASS  Universe stays open behind the conversation
+  PASS  Universe header remains visible  — y=10..80
+  PASS  conversation sheet does not paint over the header  — header bottom=80 sheet top=88 overlap=-8px
+  PASS  header controls are hit-testable (not covered)  — hit <div> inHead=true inSheet=false
+  PASS  Universe close control stays reachable
+  PASS  conversation still owns the rest of the screen (composer on screen)  — composer 683..725 of 740
+  PASS  switching conversations keeps the header clear  — header bottom=80 sheet top=88 cards=2
+  PASS  closing the conversation returns to the Universe  — universe=true sheet=false
+  PASS  Universe cards are usable again after closing  — inUniverse=true
+  PASS  reopening the same conversation keeps the header clear  — header bottom=80 sheet top=88
+  PASS  scrolling the conversation leaves the header in place  — header y=10 sheet top=88
+
+== iPhone landscape (844x390) ==
+  PASS  Universe opens on the phone
+  PASS  Universe header is on screen before opening a conversation  — y=10..80
+  PASS  conversation sheet opens  — top=88 h=302
+  PASS  Universe stays open behind the conversation
+  PASS  Universe header remains visible  — y=10..80
+  PASS  conversation sheet does not paint over the header  — header bottom=80 sheet top=88 overlap=-8px
+  PASS  header controls are hit-testable (not covered)  — hit <div> inHead=true inSheet=false
+  PASS  Universe close control stays reachable
+  PASS  conversation still owns the rest of the screen (composer on screen)  — composer 333..375 of 390
+  PASS  switching conversations keeps the header clear  — header bottom=80 sheet top=88 cards=2
+  PASS  closing the conversation returns to the Universe  — universe=true sheet=false
+  PASS  Universe cards are usable again after closing  — inUniverse=true
+  PASS  reopening the same conversation keeps the header clear  — header bottom=80 sheet top=88
+  PASS  scrolling the conversation leaves the header in place  — header y=10 sheet top=88
+
+42/42 checks passed
+
+console/page errors:
+  - iPhone portrait: console Failed to load resource: net::ERR_CONNECTION_REFUSED
+  - iPhone portrait: console Failed to load resource: the server responded with a status of 503 (Service Unavailable)
+  - small Android portrait: console Failed to load resource: net::ERR_CONNECTION_REFUSED
+  - small Android portrait: console Failed to load resource: the server responded with a status of 503 (Service Unavailable)
+  - iPhone landscape: console Failed to load resource: net::ERR_CONNECTION_REFUSED
+  - iPhone landscape: console Failed to load resource: the server responded with a status of 503 (Service Unavailable)

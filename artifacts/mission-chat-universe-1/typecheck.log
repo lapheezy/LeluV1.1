@@ -1,0 +1,5 @@
+
+> lelu@0.0.0 typecheck
+> tsc -b --force
+
+EXIT=0

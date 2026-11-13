@@ -1,0 +1,226 @@
+{
+  "ranAt": "2026-11-13T18:17:22.853Z",
+  "base": "http://127.0.0.1:3001/",
+  "results": [
+    {
+      "name": "Universe opens on the phone",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Universe header is on screen before opening a conversation",
+      "ok": true,
+      "detail": "y=10..80"
+    },
+    {
+      "name": "conversation sheet opens",
+      "ok": true,
+      "detail": "top=88 h=756"
+    },
+    {
+      "name": "Universe stays open behind the conversation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Universe header remains visible",
+      "ok": true,
+      "detail": "y=10..80"
+    },
+    {
+      "name": "conversation sheet does not paint over the header",
+      "ok": true,
+      "detail": "header bottom=80 sheet top=88 overlap=-8px"
+    },
+    {
+      "name": "header controls are hit-testable (not covered)",
+      "ok": true,
+      "detail": "hit <div> inHead=true inSheet=false"
+    },
+    {
+      "name": "Universe close control stays reachable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "conversation still owns the rest of the screen (composer on screen)",
+      "ok": true,
+      "detail": "composer 787..829 of 844"
+    },
+    {
+      "name": "switching conversations keeps the header clear",
+      "ok": true,
+      "detail": "header bottom=80 sheet top=88 cards=2"
+    },
+    {
+      "name": "closing the conversation returns to the Universe",
+      "ok": true,
+      "detail": "universe=true sheet=false"
+    },
+    {
+      "name": "Universe cards are usable again after closing",
+      "ok": true,
+      "detail": "inUniverse=true"
+    },
+    {
+      "name": "reopening the same conversation keeps the header clear",
+      "ok": true,
+      "detail": "header bottom=80 sheet top=88"
+    },
+    {
+      "name": "scrolling the conversation leaves the header in place",
+      "ok": true,
+      "detail": "header y=10 sheet top=88"
+    },
+    {
+      "name": "Universe opens on the phone",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Universe header is on screen before opening a conversation",
+      "ok": true,
+      "detail": "y=10..80"
+    },
+    {
+      "name": "conversation sheet opens",
+      "ok": true,
+      "detail": "top=88 h=652"
+    },
+    {
+      "name": "Universe stays open behind the conversation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Universe header remains visible",
+      "ok": true,
+      "detail": "y=10..80"
+    },
+    {
+      "name": "conversation sheet does not paint over the header",
+      "ok": true,
+      "detail": "header bottom=80 sheet top=88 overlap=-8px"
+    },
+    {
+      "name": "header controls are hit-testable (not covered)",
+      "ok": true,
+      "detail": "hit <div> inHead=true inSheet=false"
+    },
+    {
+      "name": "Universe close control stays reachable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "conversation still owns the rest of the screen (composer on screen)",
+      "ok": true,
+      "detail": "composer 683..725 of 740"
+    },
+    {
+      "name": "switching conversations keeps the header clear",
+      "ok": true,
+      "detail": "header bottom=80 sheet top=88 cards=2"
+    },
+    {
+      "name": "closing the conversation returns to the Universe",
+      "ok": true,
+      "detail": "universe=true sheet=false"
+    },
+    {
+      "name": "Universe cards are usable again after closing",
+      "ok": true,
+      "detail": "inUniverse=true"
+    },
+    {
+      "name": "reopening the same conversation keeps the header clear",
+      "ok": true,
+      "detail": "header bottom=80 sheet top=88"
+    },
+    {
+      "name": "scrolling the conversation leaves the header in place",
+      "ok": true,
+      "detail": "header y=10 sheet top=88"
+    },
+    {
+      "name": "Universe opens on the phone",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Universe header is on screen before opening a conversation",
+      "ok": true,
+      "detail": "y=10..80"
+    },
+    {
+      "name": "conversation sheet opens",
+      "ok": true,
+      "detail": "top=88 h=302"
+    },
+    {
+      "name": "Universe stays open behind the conversation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Universe header remains visible",
+      "ok": true,
+      "detail": "y=10..80"
+    },
+    {
+      "name": "conversation sheet does not paint over the header",
+      "ok": true,
+      "detail": "header bottom=80 sheet top=88 overlap=-8px"
+    },
+    {
+      "name": "header controls are hit-testable (not covered)",
+      "ok": true,
+      "detail": "hit <div> inHead=true inSheet=false"
+    },
+    {
+      "name": "Universe close control stays reachable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "conversation still owns the rest of the screen (composer on screen)",
+      "ok": true,
+      "detail": "composer 333..375 of 390"
+    },
+    {
+      "name": "switching conversations keeps the header clear",
+      "ok": true,
+      "detail": "header bottom=80 sheet top=88 cards=2"
+    },
+    {
+      "name": "closing the conversation returns to the Universe",
+      "ok": true,
+      "detail": "universe=true sheet=false"
+    },
+    {
+      "name": "Universe cards are usable again after closing",
+      "ok": true,
+      "detail": "inUniverse=true"
+    },
+    {
+      "name": "reopening the same conversation keeps the header clear",
+      "ok": true,
+      "detail": "header bottom=80 sheet top=88"
+    },
+    {
+      "name": "scrolling the conversation leaves the header in place",
+      "ok": true,
+      "detail": "header y=10 sheet top=88"
+    }
+  ],
+  "errors": [
+    "iPhone portrait: console Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "iPhone portrait: console Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "small Android portrait: console Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "small Android portrait: console Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "iPhone landscape: console Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "iPhone landscape: console Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  ],
+  "passed": 42,
+  "total": 42
+}
