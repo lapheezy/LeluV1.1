@@ -35,6 +35,9 @@ services:
       # Runtime state that must outlive a container: forge ledger,
       # generated artifacts and anything written to data/.
       - lelu-data:/app/data
+      # Capability ledger, spend authorizations/audit and resource-intelligence
+      # records (server authority shared by every signed-in device).
+      - lelu-state:/app/.lelu-state
     # Deliberately no `ports:` — the app is reachable only through Caddy.
     # Publishing 4173 would expose it over plain HTTP and bypass the
     # proxy-level block on /api/engineer/*.
@@ -80,5 +83,6 @@ services:
 
 volumes:
   lelu-data:
+  lelu-state:
   caddy-data:
   caddy-config:
