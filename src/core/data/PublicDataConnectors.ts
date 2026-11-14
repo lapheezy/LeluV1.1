@@ -83,6 +83,42 @@ const int = (v: unknown, fallback: number, lo: number, hi: number) => { const n 
 const enc = encodeURIComponent;
 const VERIFIED_AT = "2026-11-14";
 
+/** Hosts a feed address may never point at: the fetch happens server-side too. */
+const PRIVATE_HOST = /^(localhost|127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0$|\[::1\]|::1$)/i;
+
+/** Text of the first matching tag in an XML block, CDATA unwrapped, whitespace collapsed. */
+function tagText(block: string, names: string[]): string {
+  for (const name of names) {
+    const m = new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)</${name}>`, "i").exec(block);
+    if (m) return decodeXml(m[1]);
+  }
+  return "";
+}
+
+function decodeXml(value: string): string {
+  return value
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** RSS <item> and Atom <entry> blocks, tolerating either's element names. */
+function feedItems(body: string): Array<Record<string, string>> {
+  const blocks = body.match(/<(item|entry)(?:\s[^>]*)?>[\s\S]*?<\/\1>/gi) ?? [];
+  return blocks.map((block) => {
+    const href = /<link[^>]*href="([^"]+)"/i.exec(block)?.[1];
+    return {
+      title: tagText(block, ["title"]),
+      published: tagText(block, ["pubDate", "published", "updated", "dc:date"]).slice(0, 80),
+      summary: tagText(block, ["description", "summary", "content"]).slice(0, 240),
+      link: href ? decodeXml(href) : tagText(block, ["link"]),
+    };
+  });
+}
+
 const CONNECTORS: ConnectorImpl[] = [
   {
     profile: {
@@ -290,6 +326,75 @@ const CONNECTORS: ConnectorImpl[] = [
       return { columns: ["place", "latitude", "longitude", "type", "importance"], rows, summary: rows[0] ? `${rows[0].place} at ${rows[0].latitude}, ${rows[0].longitude}` : "No match.", citationTitle: `OpenStreetMap — ${str(q.query)}` };
     },
   },
+  {
+    profile: {
+      id: "gdelt.articles", name: "GDELT news articles", description: "Global news coverage: headline, outlet, source country, language and when it was seen.",
+      docs: "https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/", auth: "none", limits: "One request every 5 seconds; keep queries narrow", terms: "GDELT public data; cite the GDELT Project",
+      attribution: "The GDELT Project", cors: true, minIntervalMs: 6000, cacheTtlMs: 15 * 60 * 1000, params: { query: "keywords or a quoted phrase", limit: "1–50 (default 10)", timespan: "window such as 24h or 7d" },
+      verified: { at: VERIFIED_AT, status: "rate-limited", note: "429 from this build's shared IP (“limit requests to one every 5 seconds”); the 6 s pacing below stays inside it" },
+    },
+    url: (q) => (str(q.query) ? `https://api.gdeltproject.org/api/v2/doc/doc?query=${enc(str(q.query))}&mode=artlist&format=json&maxrecords=${int(q.limit, 10, 1, 50)}${str(q.timespan) ? `&timespan=${enc(str(q.timespan))}` : ""}` : { error: "query is required" }),
+    parse: (body, q) => {
+      // GDELT answers a rate-limited or over-narrow query with prose, not JSON.
+      if (!/^\s*\{/.test(body)) throw new Error(body.replace(/\s+/g, " ").slice(0, 160));
+      const j = JSON.parse(body) as { articles?: Array<{ url?: string; title?: string; seendate?: string; domain?: string; language?: string; sourcecountry?: string }> };
+      const rows = (j.articles ?? []).map((a) => ({ title: a.title ?? "", outlet: a.domain ?? "", country: a.sourcecountry ?? "", language: a.language ?? "", seen: (a.seendate ?? "").slice(0, 8), url: a.url ?? "" }));
+      return { columns: ["title", "outlet", "country", "language", "seen", "url"], rows, summary: `${rows.length} articles for “${str(q.query)}”${str(q.timespan) ? ` in the last ${str(q.timespan)}` : ""}.`, citationTitle: `GDELT — ${str(q.query)}` };
+    },
+  },
+  {
+    profile: {
+      id: "sec.filings", name: "SEC EDGAR filings", description: "A US public company's recent SEC filings: form type, filed and report dates, accession and document link.",
+      docs: "https://www.sec.gov/edgar/sec-api-documentation", auth: "none", limits: "10 requests per second; a descriptive User-Agent is required (sent)", terms: "SEC public data; fair-access policy",
+      attribution: "U.S. Securities and Exchange Commission (EDGAR)", cors: false, minIntervalMs: 200, cacheTtlMs: 6 * H, params: { cik: "company CIK, digits (e.g. 320193)", limit: "1–50 (default 20)" },
+      verified: { at: VERIFIED_AT, status: "ok", note: "CIK 320193 answered 200 with its submissions JSON; no CORS header assumed, so a browser routes it through the relay" },
+    },
+    url: (q) => {
+      const digits = str(q.cik).replace(/\D/g, "");
+      return digits ? `https://data.sec.gov/submissions/CIK${digits.padStart(10, "0")}.json` : { error: "cik must be the company's numeric CIK" };
+    },
+    parse: (body, q) => {
+      const j = JSON.parse(body) as { name?: string; tickers?: string[]; filings?: { recent?: { form?: string[]; filingDate?: string[]; reportDate?: string[]; accessionNumber?: string[]; primaryDocument?: string[] } } };
+      const recent = j.filings?.recent;
+      const cikNum = str(q.cik).replace(/\D/g, "").replace(/^0+/, "");
+      const rows = (recent?.form ?? []).slice(0, int(q.limit, 20, 1, 50)).map((form, i) => {
+        const accession = recent?.accessionNumber?.[i] ?? "";
+        const doc = recent?.primaryDocument?.[i] ?? "";
+        return {
+          form, filed: recent?.filingDate?.[i] ?? "", report: recent?.reportDate?.[i] ?? "",
+          accession,
+          document: accession && doc ? `https://www.sec.gov/Archives/edgar/data/${cikNum}/${accession.replace(/-/g, "")}/${doc}` : `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${cikNum}`,
+        };
+      });
+      return { columns: ["form", "filed", "report", "accession", "document"], rows, summary: `${rows.length} recent filings by ${j.name ?? `CIK ${cikNum}`}${j.tickers?.length ? ` (${j.tickers.join(", ")})` : ""}.`, citationTitle: `SEC EDGAR — ${j.name ?? `CIK ${cikNum}`}` };
+    },
+  },
+  {
+    profile: {
+      id: "rss.latest", name: "RSS / Atom feed", description: "The latest items of any public RSS or Atom feed: title, link, date, summary.",
+      docs: "https://www.rssboard.org/rss-specification", auth: "none", limits: "The publisher's own limits; one request per feed per cache window", terms: "The publisher's terms; the feed is read as published",
+      attribution: "Feed content belongs to its publisher", cors: false, minIntervalMs: 1000, cacheTtlMs: 15 * 60 * 1000, params: { url: "feed address (http/https, public host)", limit: "1–50 (default 10)" },
+      verified: { at: VERIFIED_AT, status: "ok", note: "verified against https://hnrss.org/frontpage (RSS 2.0, 17 KB)" },
+    },
+    accept: "application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.8",
+    url: (q) => {
+      const raw = str(q.url);
+      if (!raw) return { error: "url is required" };
+      let parsed: URL;
+      try { parsed = new URL(raw); } catch { return { error: "url must be an absolute http(s) feed address" }; }
+      if (!/^https?:$/.test(parsed.protocol)) return { error: "url must be http or https" };
+      /* Refuse anything that is not a public host: a feed address comes from the
+       * caller, and the server-side fetch must not become a probe of the LAN. */
+      if (PRIVATE_HOST.test(parsed.hostname)) return { error: "url must be a public host (not localhost or a private address)" };
+      return parsed.toString();
+    },
+    parse: (body, q) => {
+      const feed = /<channel(?:\s[^>]*)?>([\s\S]*?)<\/channel>/i.exec(body)?.[1] ?? body;
+      const feedTitle = tagText(feed, ["title"]) || "feed";
+      const rows = feedItems(body).slice(0, int(q.limit, 10, 1, 50));
+      return { columns: ["title", "published", "summary", "link"], rows, summary: `${rows.length} items from ${feedTitle}.`, citationTitle: `${feedTitle} (feed)` };
+    },
+  },
 ];
 
 const BY_ID = new Map(CONNECTORS.map((c) => [c.profile.id, c]));
@@ -300,7 +405,9 @@ export function connectorProfiles(): ConnectorProfile[] {
 
 /** Every host a connector may contact — checked by the spend-policy test (all keyless, none bills). */
 export function connectorHosts(): string[] {
-  return ["en.wikipedia.org", "query.wikidata.org", "api.crossref.org", "export.arxiv.org", "api.openalex.org", "earthquake.usgs.gov", "api.weather.gov", "api.open-meteo.com", "hacker-news.firebaseio.com", "api.github.com", "nominatim.openstreetmap.org"];
+  // rss.latest is absent by design: its host is whatever public feed the caller
+  // names, so it is validated in its own url() instead of being listed here.
+  return ["en.wikipedia.org", "query.wikidata.org", "api.crossref.org", "export.arxiv.org", "api.openalex.org", "earthquake.usgs.gov", "api.weather.gov", "api.open-meteo.com", "hacker-news.firebaseio.com", "api.github.com", "nominatim.openstreetmap.org", "api.gdeltproject.org", "data.sec.gov", "www.sec.gov"];
 }
 
 /* ------------------------------------------------------------------ *

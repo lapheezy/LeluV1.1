@@ -200,6 +200,42 @@ test("connectors fail precisely: a daily 429 is not hammered, bad parameters nev
   assert.match(bad.ok ? "" : bad.reason, /owner\/name/);
 });
 
+test("GDELT, SEC EDGAR and RSS/Atom parse the shapes those services really send", async () => {
+  clearConnectorCache();
+  const seen: string[] = [];
+  const gdelt = JSON.stringify({ articles: [{ url: "https://example.org/a", title: "Record heat across the north", seendate: "20260114T101500Z", domain: "example.org", language: "English", sourcecountry: "United States" }] });
+  const sec = JSON.stringify({ name: "Apple Inc.", tickers: ["AAPL"], filings: { recent: { form: ["10-K", "8-K"], filingDate: ["2026-11-01", "2026-10-30"], reportDate: ["2026-09-26", "2026-10-29"], accessionNumber: ["0000320193-26-000010", "0000320193-26-000011"], primaryDocument: ["aapl-20260926.htm", "aapl-8k.htm"] } } });
+  const rss = `<?xml version="1.0"?><rss version="2.0"><channel><title>Example feed</title><item><title>One &amp; two</title><link>https://example.org/1</link><pubDate>Sat, 14 Nov 2026 10:00:00 GMT</pubDate><description><![CDATA[<p>Hello</p>]]></description></item></channel></rss>`;
+  const serve = (body: string) => async (u: string) => { seen.push(u); return new Response(body, { status: 200 }); };
+
+  const g = await queryConnector("gdelt.articles", { query: "heat", limit: "5" }, { fetchImpl: serve(gdelt) });
+  assert.ok(g.ok, g.ok ? "" : g.reason);
+  assert.equal(g.ok && g.rows[0].title, "Record heat across the north");
+  assert.equal(g.ok && g.rows[0].seen, "20260114");
+
+  const s = await queryConnector("sec.filings", { cik: "320193", limit: "2" }, { fetchImpl: serve(sec) });
+  assert.ok(s.ok, s.ok ? "" : s.reason);
+  assert.equal(s.ok && s.rows.length, 2);
+  assert.equal(s.ok && s.rows[0].form, "10-K");
+  // SEC's archive path uses the CIK without leading zeros, and the accession without dashes.
+  assert.match(String(s.ok ? s.rows[0].document : ""), /\/data\/320193\/000032019326000010\/aapl-20260926\.htm$/);
+
+  const r = await queryConnector("rss.latest", { url: "https://hnrss.org/frontpage", limit: "5" }, { fetchImpl: serve(rss) });
+  assert.ok(r.ok, r.ok ? "" : r.reason);
+  assert.equal(r.ok && r.rows[0].title, "One & two", "entities are decoded and CDATA unwrapped");
+  assert.equal(r.ok && r.rows[0].summary, "Hello");
+
+  // A feed address comes from the caller: a private host must never be fetched.
+  const private_ = await queryConnector("rss.latest", { url: "http://127.0.0.1/feed.xml" }, { fetchImpl: async () => { throw new Error("must not be called"); } });
+  assert.equal(private_.ok, false);
+  assert.match(private_.ok ? "" : private_.reason, /public host/);
+
+  // GDELT and SEC are fixed, documented hosts; a feed host is the caller's, so
+  // it is validated as public instead of being added to the static list.
+  assert.ok(connectorHosts().includes("api.gdeltproject.org") && connectorHosts().includes("data.sec.gov"));
+  assert.equal(new URL(seen.find((u) => u.includes("hnrss"))!).hostname, "hnrss.org");
+});
+
 test("no connector host is a paid or model-inference endpoint", () => {
   const forbidden = /openai|anthropic|groq|openrouter|cerebras|fireworks|mistral|gemini|googleapis|meshy|elevenlabs|replicate|stability|firecrawl/;
   for (const h of connectorHosts()) assert.ok(!forbidden.test(h), `${h} is a data host`);
