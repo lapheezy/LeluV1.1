@@ -768,6 +768,13 @@ export function createModelApi(readEnv: EnvReader) {
           const retry = /try again in\s*([\d.]+)\s*s/i.exec(body);
           if (retry) waitMs = Math.min(15_000, Math.ceil(Number(retry[1]) * 1000) + 300);
         }
+        // Nothing left to try: keep THIS refusal intact for the caller. The
+        // body used to be cancelled before this decision, so the final 429
+        // (no retry hint, no other key) reached the code below already
+        // consumed and went out as a 502 "Body is unusable: Body has already
+        // been read" — measured on Groq tool turns. A quota refusal then read
+        // as a server fault and its real reason never reached the page.
+        if (waitMs <= 0 && slot + 1 >= keys.length) break;
         await upstream.body?.cancel().catch(() => undefined);
         if (waitMs > 0) {
           await new Promise((resolve) => setTimeout(resolve, waitMs));
