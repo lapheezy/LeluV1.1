@@ -20,6 +20,7 @@ import CreativeResolver from "./router/CreativeResolver";
 import ToolResolver from "./router/ToolResolver";
 import DeflockResolver from "./router/DeflockResolver";
 import TimeResolver from "./router/TimeResolver";
+import DirectResolver from "./router/DirectResolver";
 import AcquisitionResolver from "./router/AcquisitionResolver";
 import ProjectResolver from "./router/ProjectResolver";
 import ToolCallInterceptor from "./router/ToolCallInterceptor";
@@ -57,6 +58,7 @@ const WORLD_REQUEST =
 
 export default class AIRouter {
   private readonly time = new TimeResolver();
+  private readonly direct = new DirectResolver();
   private readonly acquisition = new AcquisitionResolver();
   private readonly interceptor = new ToolCallInterceptor();
 
@@ -226,6 +228,20 @@ export default class AIRouter {
     // 0. TIME — deterministic local capability, no external API needed
     const timeResult = await this.traced(context, "time", () => this.time.execute(context));
     if (timeResult.handled && timeResult.response) return timeResult.response;
+
+    // 0.2 DIRECT EXECUTION — creative and data tools need no model. An
+    // explicit command ("/scene forest") always runs here; a natural-language
+    // creative/data request runs here only when no model provider can take
+    // the turn, so the work still happens (and nothing is billed).
+    const directPlan = this.direct.plan(context);
+    if (directPlan && (directPlan.explicit || !(await this.direct.providersAvailable(context)))) {
+      const done = await this.traced(context, "direct", () => this.direct.execute(context, directPlan, directPlan.explicit ? "command" : "no-provider"));
+      if (done.handled && done.response) return done.response;
+    }
+    if (!directPlan) {
+      const unknown = this.direct.unknownCommand(context);
+      if (unknown.handled && unknown.response) return unknown.response;
+    }
 
     // 0.5 COGNITIVE STATE — "what are you thinking about?" REPORTS the
     // autonomous self-study state that already exists. It is a pure read:
@@ -416,6 +432,12 @@ export default class AIRouter {
     if (workspace.handled && workspace.response) return this.attachThinking(context, workspace.response);
 
     const provider = await this.traced(context, "provider", () => this.providers.execute(context));
+    // Every provider failed (quota, network, outage): the request is still
+    // executable without a model, so execute it instead of apologising.
+    if (directPlan && provider.handled && provider.response && provider.response.provider === "offline") {
+      const done = await this.traced(context, "direct", () => this.direct.execute(context, directPlan, "no-provider"));
+      if (done.handled && done.response) return done.response;
+    }
     if (provider.handled && provider.response) {
       // Intercept raw tool-call markup before it reaches chat
       const intercepted = await this.interceptor.intercept(provider.response, context);

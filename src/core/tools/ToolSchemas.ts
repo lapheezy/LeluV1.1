@@ -82,7 +82,13 @@ export function scopeToolSchemas(
 ): ToolSchema[] {
   const environmentTurn = Boolean(intent && /environment/i.test(intent)) || ENVIRONMENT_REQUEST.test(prompt);
   if (!environmentTurn) return schemas;
-  const narrowed = schemas.filter((schema) => schema.name.startsWith(ENVIRONMENT_TOOL_PREFIX));
+  // "Build a 3D environment", "make a diagram", "chart the earthquakes" are
+  // environment-shaped words, but the work itself is a creative-kit or data
+  // tool: keep the ones the turn's own vocabulary raises next to the
+  // environment family, or the turn could present but never make the thing.
+  const kit = new Set<string>();
+  for (const [pattern, names] of FAMILY_HINTS) if (pattern.test(prompt)) for (const name of names) if (/^(creative_|data_|research_board)/.test(name)) kit.add(name);
+  const narrowed = schemas.filter((schema) => schema.name.startsWith(ENVIRONMENT_TOOL_PREFIX) || kit.has(String(schema.name)));
   return narrowed.length > 0 ? narrowed : schemas;
 }
 
@@ -170,6 +176,17 @@ const FAMILY_HINTS: Array<[RegExp, string[]]> = [
   // drawing tool (studio_create, kind "drawing") was never offered and the
   // model answered with an invented image link, then ASCII art.
   [/\b(draw|drawing|drawn|sketch\w*|doodle|illustrat\w*|paint\w*|cartoon|storyboard)\b/i, ["studio_create", "studio_preview", "artifact_create"]],
+  // Job 2 creative kit + public data. Each family raises the tool that
+  // executes the request directly (no image/video API involved).
+  [/\b(generative|procedural|abstract art|pattern|artwork|wallpaper|texture|moodboard|mood board|p5|creative coding)\b/i, ["creative_art", "creative_export"]],
+  [/\b(diagram|flowchart|flow chart|architecture|sequence diagram|mind ?map|mermaid|timeline|org chart|gantt|er diagram|class diagram)\b/i, ["creative_diagram", "creative_export"]],
+  [/\b(visuali[sz]\w*|chart|graph|plot|dashboard|data viz|infographic)\b/i, ["creative_chart", "data_query", "creative_export"]],
+  [/\b(earthquakes?|seismic|forecast|preprints?|papers?|citations?|wikidata|crossref|openalex|hacker news|releases?|geocode|coordinates|public data|dataset)\b/i, ["data_query", "data_sources", "creative_chart"]],
+  [/\b(3d|3-d|scene|environment|landscape|glb|gltf|model|terrain|runway|garment|collection)\b/i, ["creative_scene3d", "creative_export"]],
+  [/\b(film|video|movie|clip|trailer|animation|animated|reel|montage|webm)\b/i, ["creative_film", "creative_export"]],
+  [/\b(research|investigate|study|literature|sources?|cite|citations?)\b/i, ["research_board", "data_query"]],
+  [/\b(export|download|save as|svg|png|glb|excalidraw|file)\b/i, ["creative_export"]],
+  [/\b(capabilit\w*|webgpu|webgl|webcodecs|what can you (?:do|run)|tools?|offline)\b/i, ["device_capabilities", "tools_catalog"]],
   // 3D and her world: the world.* executors build real objects in the Cosmos.
   [/\b(3d|3-d|sculpt\w*|mesh|statue|hologram|world|cosmos|universe)\b/i, ["world_object", "world_generate", "world_state", "world_environment"]],
 ];

@@ -75,6 +75,7 @@ async function render(spec: ArtifactSpec, format: ExportFormat): Promise<{ bytes
       return plain(utf8(workbookToMarkdown(spec)));
     case "graph":
     case "drawing":
+    case "visual":
       // Unreachable: FORMATS_BY_KIND lists no Studio format for them.
       throw new Error(`A ${spec.kind} has no Studio file format.`);
   }
@@ -131,7 +132,7 @@ function expectationOf(spec: ArtifactSpec, format: ExportFormat): Expectation {
       notes: format === "pptx" || format === "md" ? notes : undefined,
     };
   }
-  if (spec.kind === "graph" || spec.kind === "drawing") return { title: spec.title, texts };
+  if (spec.kind === "graph" || spec.kind === "drawing" || spec.kind === "visual") return { title: spec.title, texts };
   const sheets = format === "csv" ? [spec.sheets[0]] : spec.sheets;
   const formulas: string[] = [];
   const csvFormulas: string[] = [];

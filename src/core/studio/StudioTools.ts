@@ -26,6 +26,7 @@ import ToolRegistry, { type ToolDefinition } from "../tools/ToolRegistry";
 import type { ToolExecutionResult } from "../tools/ToolDispatcher";
 import type RouterContext from "../router/RouterContext";
 import { summarizeVerification } from "./StudioExport";
+import { describeVisual } from "../creative/kit/VisualArtifacts";
 import { normalizeSpec, type StudioOp } from "./StudioOps";
 import StudioStore, { type StudioArtifact } from "./StudioStore";
 import { FORMATS_BY_KIND, type ArtifactSpec, type ExportFormat } from "./StudioTypes";
@@ -245,6 +246,8 @@ export function describeArtifactSpec(spec: ArtifactSpec, max = 5000): string {
       const e = el as { id?: string; type?: string; text?: string; x?: number; y?: number };
       lines.push(`element [${e.id ?? "?"}] ${e.type ?? "?"}${e.text ? ` “${e.text}”` : ""} at ${Math.round(e.x ?? 0)},${Math.round(e.y ?? 0)}`);
     });
+  } else if (spec.kind === "visual") {
+    lines.push(describeVisual(spec, max).split("\n").slice(1).join("\n"));
   } else {
     for (const sh of spec.sheets) {
       lines.push(`sheet ${sh.name}: ${sh.columns.join(" | ")}`);

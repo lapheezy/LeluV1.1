@@ -154,7 +154,27 @@ export interface DrawingSpec {
   links?: string[];
 }
 
-export type ArtifactSpec = DocumentSpec | DeckSpec | WorkbookSpec | GraphSpec | DrawingSpec;
+/**
+ * A computed visual: generative artwork, Mermaid diagram, interactive
+ * chart, 3D scene or short film. `program` is the creative kit's own
+ * normalized program for the medium (src/core/creative/kit) — the
+ * artifact is the program, and every file (SVG, PNG, HTML, GLB, WebM…)
+ * is produced from it on demand, so a revision changes one parameter
+ * and nothing is stored twice.
+ */
+export type VisualMedium = "generative" | "diagram" | "chart" | "scene3d" | "video";
+export interface VisualSpec {
+  kind: "visual";
+  title: string;
+  author?: string;
+  medium: VisualMedium;
+  program: Record<string, unknown>;
+  notes?: string;
+  sources?: Source[];
+  links?: string[];
+}
+
+export type ArtifactSpec = DocumentSpec | DeckSpec | WorkbookSpec | GraphSpec | DrawingSpec | VisualSpec;
 
 export type ExportFormat = "docx" | "pdf" | "md" | "html" | "txt" | "rtf" | "pptx" | "xlsx" | "csv";
 
@@ -167,6 +187,9 @@ export const FORMATS_BY_KIND: Record<ArtifactSpec["kind"], ExportFormat[]> = {
   // .excalidraw and exports PNG/SVG natively. No Studio writer is added.
   graph: [],
   drawing: [],
+  // Produced by the creative kit's own exporters (VisualExport): SVG, PNG,
+  // HTML, Mermaid, GLB/glTF, WebM — see VISUAL_FORMATS.
+  visual: [],
 };
 
 export const MIME: Record<ExportFormat, string> = {

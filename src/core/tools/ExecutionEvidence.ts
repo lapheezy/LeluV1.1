@@ -14,7 +14,7 @@
  * ==========================================================
  */
 
-export type ExecutionPath = "chat" | "task" | "unknown";
+export type ExecutionPath = "chat" | "task" | "direct" | "unknown";
 
 /** The lifecycle of one real invocation. */
 export type ExecutionStage =

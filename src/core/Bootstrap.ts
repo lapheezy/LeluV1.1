@@ -42,6 +42,7 @@ import { registerInterfaceTools } from "./interface/InterfaceTools";
 import { registerEnvironmentTools } from "./orchestrator/EnvironmentTools";
 import { registerStudioTools } from "./studio/StudioTools";
 import { registerAtelierTools } from "./atelier/AtelierTools";
+import { registerCreativeKitTools } from "./creative/kit/CreativeKitTools";
 import { registerCosmosTools } from "./cosmos/CosmosTools";
 import TaskExecutor from "./agentic/TaskExecutor";
 import DailyReflection from "./agentic/DailyReflection";
@@ -208,6 +209,10 @@ export default class Bootstrap {
       // Atelier: research-to-production design (directions, BOM, drawings,
       // 3D models, dossiers), every file verified from its bytes.
       registerAtelierTools();
+      // Creative kit + public data: generative art, Mermaid, interactive
+      // charts, three.js scenes → GLB, films → WebM, public no-key data,
+      // device capabilities and the tool capability catalog.
+      registerCreativeKitTools();
       // Cosmos: the navigable map and the workspace API, offered through the
       // same dispatcher/gate/approval path as every other tool.
       registerCosmosTools();
