@@ -20,7 +20,7 @@
  */
 
 import type { DrawingSpec, VisualMedium, VisualSpec } from "../../studio/StudioTypes";
-import { normalizeGenerative, renderGenerative, type GenerativeProgram } from "./GenerativeArt";
+import { normalizeGenerative, PALETTES, renderGenerative, type GenerativeProgram } from "./GenerativeArt";
 import { normalizeDiagram, renderDiagramSvg, type DiagramProgram } from "./Diagram";
 import { normalizeViz, vizHtml, vizSvg, type VizProgram } from "./InteractiveViz";
 import { exportScene, inspectGlb, normalizeScene, type Scene3DProgram } from "./Scene3D";
@@ -70,7 +70,12 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 export function visualPreviewHtml(spec: VisualSpec): string {
   const shell = (body: string) => `<!DOCTYPE html><html><head><meta charset="utf-8"/><style>body{margin:0;font:14px system-ui;color:#2a2440;background:#fff}svg{display:block;width:100%;height:auto}.pad{padding:16px}pre{white-space:pre-wrap;background:#f6f3ff;padding:12px;border-radius:8px}</style></head><body>${body}</body></html>`;
   const p = spec.program as unknown;
-  if (spec.medium === "generative") return shell(renderGenerative(p as GenerativeProgram).svg);
+  if (spec.medium === "generative") {
+    // The artwork fills the frame on its own background (no white band below a wide piece on a tall phone window).
+    const g = p as GenerativeProgram;
+    const bg = g.background ?? PALETTES[g.palette]?.background ?? "#0b0816";
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"/><style>html,body{margin:0;height:100%;background:${bg}}body{display:flex;align-items:center;justify-content:center}svg{max-width:100%;max-height:100%;width:auto;height:auto}</style></head><body>${renderGenerative(g).svg}</body></html>`;
+  }
   if (spec.medium === "chart") return shell(`<div class="pad"><h1 style="font-size:17px">${esc(spec.title)}</h1>${vizSvg(p as VizProgram, { background: "#ffffff" })}</div>`);
   if (spec.medium === "diagram") return shell(`<div class="pad"><h1 style="font-size:17px">${esc(spec.title)}</h1><pre>${esc((p as DiagramProgram).source)}</pre></div>`);
   return shell(`<div class="pad"><h1 style="font-size:17px">${esc(spec.title)}</h1><p>${esc(visualGist(spec))}</p></div>`);
