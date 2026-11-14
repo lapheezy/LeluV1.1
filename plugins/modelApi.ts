@@ -76,7 +76,9 @@ export const BROKERED: Record<string, BrokeredProvider> = {
   },
   groq: {
     endpointId: "groq",
-    keyNames: ["VITE_GROQ_API_KEY", "GROQ_API_KEY", "GROQ_API_KEY_2", "GROQ_API_KEY_3"],
+    // Same slots as src/core/model/ProviderKeyRing.ts (base + _1.._4): the
+    // stored environment holds four Groq and four OpenRouter keys.
+    keyNames: ["VITE_GROQ_API_KEY", "GROQ_API_KEY", "GROQ_API_KEY_1", "GROQ_API_KEY_2", "GROQ_API_KEY_3", "GROQ_API_KEY_4"],
     authHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
   openrouter: {
@@ -85,8 +87,10 @@ export const BROKERED: Record<string, BrokeredProvider> = {
       "VITE_OPENROUTER_API_KEY",
       "OPENROUTER_API_KEY",
       "OPEN_ROUTER_API_KEY",
+      "OPENROUTER_API_KEY_1",
       "OPENROUTER_API_KEY_2",
       "OPENROUTER_API_KEY_3",
+      "OPENROUTER_API_KEY_4",
     ],
     authHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },

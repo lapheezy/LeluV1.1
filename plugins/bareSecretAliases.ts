@@ -65,10 +65,10 @@ export interface BareSecretAlias {
 }
 
 /** How many numbered slots the secret store provisions per provider. */
-const NUMBERED_SLOTS = 3;
+const NUMBERED_SLOTS = 4;
 
 /**
- * One provider's numbered credentials (`Groq1`…`Groq3`).
+ * One provider's numbered credentials (`Groq1`…`Groq4`).
  *
  * Slot 1 also supplies the BASE name, because the single-key paths in the
  * app (`plugins/modelApi.ts` keyNames, `/api/env-check`, and the

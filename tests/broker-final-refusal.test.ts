@@ -121,3 +121,23 @@ test("a 402 that leaves too little to be useful, or names no amount, is passed t
     assert.equal(out.status, 402); assert.match(out.body, /Insufficient credits/); assert.deepEqual(seen, [2048]);
   } finally { globalThis.fetch = real; }
 });
+
+test("all four configured Groq keys are tried before the provider is refused", async () => {
+  const real = globalThis.fetch;
+  const seen: string[] = [];
+  globalThis.fetch = (async (_u: unknown, init: RequestInit) => {
+    const auth = String((init.headers as Record<string, string>).Authorization ?? "");
+    seen.push(auth.slice(-2));
+    return auth.endsWith("k4")
+      ? new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), { status: 200, headers: { "content-type": "application/json" } })
+      : new Response(JSON.stringify({ error: { message: "tokens per day (TPD) spent" } }), { status: 429, headers: { "content-type": "application/json" } });
+  }) as typeof fetch;
+  try {
+    const env: Record<string, string> = { GROQ_API_KEY: "gsk_k1", GROQ_API_KEY_2: "gsk_k2", GROQ_API_KEY_3: "gsk_k3", GROQ_API_KEY_4: "gsk_k4" };
+    const out = await call(createModelApi((n) => env[n]), "/groq/chat/completions");
+    assert.equal(out.status, 200, out.body);
+    assert.deepEqual(seen, ["k1", "k2", "k3", "k4"]);
+  } finally {
+    globalThis.fetch = real;
+  }
+});
