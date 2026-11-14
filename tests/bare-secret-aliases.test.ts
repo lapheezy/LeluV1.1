@@ -245,3 +245,16 @@ test("the runtime key ring rotates across one credential per numbered platform s
     ProviderKeyRing.reset();
   }
 });
+
+test("a documented VITE_ configuration name reaches the page (the browser has no import.meta.env rung)", async () => {
+  const { resolveBridge } = await import("../plugins/runtimeKeyBridge");
+  const env: Record<string, string> = { VITE_DEFAULT_PROVIDER: "anthropic", DEFAULT_PROVIDER: "groq", VITE_LELU_ENABLE_ANTHROPIC: "true" };
+  const entries = resolveBridge((name) => env[name]);
+  const provider = entries.find((e) => e.globalName === "__LELU_DEFAULT_PROVIDER__");
+  assert.equal(provider?.value, "anthropic", "the VITE_ name wins over the bare alias");
+  assert.equal(provider?.sourceName, "VITE_DEFAULT_PROVIDER");
+  assert.equal(entries.find((e) => e.globalName === "__LELU_LELU_ENABLE_ANTHROPIC__")?.value, "true");
+  // The accept guard still applies to the VITE_ name: an admin token is never published.
+  const admin = resolveBridge((name) => ({ VITE_SUPABASE_PUBLISHABLE_KEY: "sbp_0123456789abcdef" } as Record<string, string>)[name]);
+  assert.equal(admin.some((e) => e.globalName === "__LELU_SUPABASE_PUBLISHABLE_KEY__"), false);
+});

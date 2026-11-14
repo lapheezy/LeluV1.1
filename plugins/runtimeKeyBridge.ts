@@ -487,15 +487,26 @@ export interface BridgeEntry {
 }
 
 /**
- * Work out which globals need publishing. A key whose VITE_ name is
- * already set is SKIPPED — rung 1 wins and must keep winning, so the
- * bridge never changes which key a working provider resolves.
+ * Work out which globals need publishing.
+ *
+ * The documented VITE_ name wins over every alias — and it is PUBLISHED.
+ * This used to SKIP a key whose VITE_ name was set, on the assumption that
+ * the page already had it from import.meta.env. It does not: resolveEnv has
+ * no import.meta.env rung (deliberately — a dynamic read inlines every
+ * VITE_ value into the bundle), so these globals are the browser's only
+ * source. Measured: a server started with VITE_DEFAULT_PROVIDER=anthropic
+ * served a page with no __LELU_DEFAULT_PROVIDER__ and routed every turn as
+ * if nothing had been set. Every entry here is non-secret configuration,
+ * and a key's `accept` guard still applies to whichever name supplies it.
  */
 export function resolveBridge(read: EnvReader): BridgeEntry[] {
   const entries: BridgeEntry[] = [];
   for (const key of BRIDGED_KEYS) {
     const vite = value(read, key.viteName);
-    if (vite && (!key.accept || key.accept(vite))) continue; // documented name wins
+    if (vite && (!key.accept || key.accept(vite))) {
+      entries.push({ globalName: key.globalName, sourceName: key.viteName, value: vite });
+      continue; // documented name wins
+    }
     for (const alias of key.aliases) {
       const found = value(read, alias);
       if (found && (!key.accept || key.accept(found))) {
