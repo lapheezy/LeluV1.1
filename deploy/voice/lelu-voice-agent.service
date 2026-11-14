@@ -14,8 +14,8 @@
 # ==========================================================
 
 [Unit]
-Description=LÉLU LiveKit voice agent (mic → STT → page; reply → VoxCPM2 → LiveKit)
-After=network-online.target lelu.service
+Description=LÉLU LiveKit voice agent (mic → STT → page; reply → speech worker → LiveKit)
+After=network-online.target lelu.service lelu-moss.service
 Wants=network-online.target
 
 [Service]
@@ -29,8 +29,11 @@ EnvironmentFile=/etc/lelu/lelu.env
 # exactly two routes (transcription, VoxCPM2 speech) and nothing else.
 Environment=LELU_APP_URL=http://127.0.0.1:4173
 Environment=LELU_VOICE_AGENT_PORT=8790
-# CPU worker (RTF ~5): play whole sentences. Use "stream" for a GPU worker.
-Environment=LELU_AGENT_PLAYBACK=sentence
+# MOSS-TTS-Nano runs near real time on this CPU (RTF 0.8-1.3): stream with a
+# 900 ms prebuffer. Measured over LiveKit: first audio 1.3-1.6 s after the
+# reply, 0 stalls, 0 underruns. With VoxCPM2 on CPU (RTF ~5) use "sentence".
+Environment=LELU_AGENT_PLAYBACK=stream
+Environment=LELU_AGENT_PREBUFFER_MS=900
 ExecStart=/opt/lelu/app/.venv-livekit-agent/bin/python services/livekit-agent/agent.py
 Restart=always
 RestartSec=3

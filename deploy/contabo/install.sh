@@ -3,7 +3,13 @@
 # LÉLU V1.1 — first install on a fresh Contabo VPS (Ubuntu 24.04 LTS)
 #
 #   sudo LELU_DOMAIN=lelu.example.com LELU_ACME_EMAIL=you@example.com \
-#        LELU_BRANCH=claude/avatar-3d-world bash install.sh
+#        [LELU_VOICE=1] bash install.sh
+#
+# On the provisioned VPS it VERIFIES what already exists (user lelu,
+# /opt/lelu, Docker, the lelu-internal network and the Postgres/Redis
+# volumes) and never recreates or deletes it. LÉLU itself uses neither
+# Postgres nor Redis (persistence is Supabase + files under /opt/lelu/app),
+# so those volumes are reported and left untouched.
 #
 # Idempotent: safe to re-run. It does NOT write secrets: it creates
 # /etc/lelu/lelu.env from the template once and stops so you can fill
@@ -14,9 +20,20 @@ set -euo pipefail
 : "${LELU_DOMAIN:?set LELU_DOMAIN (DNS A record must point at this VPS)}"
 : "${LELU_ACME_EMAIL:?set LELU_ACME_EMAIL (ACME / Let-s-Encrypt contact address)}"
 LELU_REPO="${LELU_REPO:-https://github.com/lapheezy/LeluV1.1.git}"
-LELU_BRANCH="${LELU_BRANCH:-claude/avatar-3d-world}"
+LELU_BRANCH="${LELU_BRANCH:-integration/lelu-four-workforce-consolidation}"
 APP=/opt/lelu/app
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "== 0. preflight: what already exists (read-only)"
+id lelu 2>/dev/null && echo "   user lelu: present (home $(getent passwd lelu | cut -d: -f6))" || echo "   user lelu: absent (will be created)"
+[ -d /opt/lelu ] && echo "   /opt/lelu: present" || echo "   /opt/lelu: absent (will be created)"
+if command -v docker >/dev/null; then
+  docker network inspect lelu-internal >/dev/null 2>&1 && echo "   docker network lelu-internal: present (not used by LÉLU; left as is)"
+  docker volume ls --format '{{.Name}}' | grep -Ei 'postgres|redis|pg' | sed 's/^/   docker volume (left untouched, not used by LÉLU): /' || true
+  # Nothing Docker-managed may be published on a public interface.
+  docker ps --format '{{.Names}} {{.Ports}}' | grep -E '0\.0\.0\.0:|:::' && echo "!! a container publishes a port publicly — review before continuing" || true
+fi
+free -g | awk 'NR==2{print "   RAM GiB total/available: "$2"/"$7}'
 
 echo "== 1. system packages"
 apt-get update -y
@@ -38,8 +55,9 @@ id lelu >/dev/null 2>&1 || useradd --system --create-home --home-dir /opt/lelu -
 install -d -o lelu -g lelu -m 0750 /opt/lelu /opt/lelu/backups
 
 echo "== 4. Bun (for the lelu user)"
+# BUN_INSTALL pins the location: the provisioned lelu user's home may not be /opt/lelu.
 if [ ! -x /opt/lelu/.bun/bin/bun ]; then
-  sudo -u lelu -H bash -c 'curl -fsSL https://bun.sh/install | bash'
+  sudo -u lelu -H env BUN_INSTALL=/opt/lelu/.bun bash -c 'curl -fsSL https://bun.sh/install | bash'
 fi
 sudo -u lelu /opt/lelu/.bun/bin/bun --version
 
@@ -87,12 +105,33 @@ install -m 0644 "$HERE/lelu-health.timer" /etc/systemd/system/lelu-health.timer
 install -m 0755 "$HERE/backup.sh" /usr/local/bin/lelu-backup
 install -m 0755 "$HERE/healthcheck.sh" /usr/local/bin/lelu-healthcheck
 install -m 0755 "$HERE/update.sh" /usr/local/bin/lelu-update
+install -m 0755 "$HERE/verify.sh" /usr/local/bin/lelu-verify
 systemctl daemon-reload
 systemctl enable --now lelu.service lelu-backup.timer lelu-health.timer
 # journald keeps logs across reboots, bounded.
 install -d /etc/systemd/journald.conf.d
 printf '[Journal]\nStorage=persistent\nSystemMaxUse=1G\n' > /etc/systemd/journald.conf.d/lelu.conf
 systemctl restart systemd-journald
+
+echo "== 9b. voice (optional: LELU_VOICE=1) — MOSS-TTS-Nano worker + LiveKit agent"
+if [ "${LELU_VOICE:-0}" = "1" ]; then
+  # Ubuntu 24.04 refuses `pip install --user` (PEP 668), which the voice
+  # install scripts fall back to: install uv system-wide first.
+  command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+  apt-get install -y python3.12-venv >/dev/null
+  sudo -u lelu -H bash -c "cd $APP && bash services/mossnano/install.sh"
+  sudo -u lelu -H bash -c "cd $APP && uv venv -q .venv-livekit-agent --python 3.12 && uv pip install -q --python .venv-livekit-agent/bin/python -r services/livekit-agent/requirements.txt"
+  install -m 0644 "$APP/deploy/voice/lelu-moss.service" /etc/systemd/system/lelu-moss.service
+  install -m 0644 "$APP/deploy/voice/lelu-voice-agent.service" /etc/systemd/system/lelu-voice-agent.service
+  systemctl daemon-reload
+  systemctl enable --now lelu-moss.service
+  if grep -q '^LIVEKIT_URL=.\+' /etc/lelu/lelu.env && grep -q '^LELU_VOICE_AGENT_TOKEN=.\+' /etc/lelu/lelu.env; then
+    systemctl enable --now lelu-voice-agent.service
+  else
+    echo "!! LIVEKIT_* / LELU_VOICE_AGENT_TOKEN not set in /etc/lelu/lelu.env — the voice agent was installed but not started."
+  fi
+  systemctl restart lelu   # picks up VOXCPM_BASE_URL / LIVEKIT_*
+fi
 
 echo "== 10. Caddy (HTTPS reverse proxy)"
 if ! command -v caddy >/dev/null; then

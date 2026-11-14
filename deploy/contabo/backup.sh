@@ -25,7 +25,7 @@ OUT="$DEST/lelu-$STAMP.tar.zst"
 install -d -m 0700 "$DEST"
 
 PATHS=(/opt/lelu/app/leluverse/assets /etc/lelu/lelu.env /etc/caddy/Caddyfile)
-for p in /opt/lelu/app/.lelu-workspace /opt/lelu/app/.lelu-workspaces /opt/lelu/app/cosmos; do
+for p in /opt/lelu/app/.lelu-workspace /opt/lelu/app/.lelu-workspaces /opt/lelu/app/cosmos /opt/lelu/app/.lelu-acquisitions /opt/lelu/app/.lelu-studio /etc/lelu/voxcpm.env; do
   [ -e "$p" ] && PATHS+=("$p")
 done
 EXISTING=()

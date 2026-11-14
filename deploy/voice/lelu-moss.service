@@ -1,0 +1,51 @@
+# ==========================================================
+# LÉLU — MOSS-TTS-Nano speech worker, systemd unit (the Contabo VPS voice)
+#
+# Measured on 4 vCPU (CPU only): 1.7 GiB RSS, ~39 s load, first audio
+# 250-300 ms, real-time factor 0.8-1.3. Fits the 8 GB VPS beside the app and
+# the voice agent; VoxCPM2 (lelu-voxcpm.service) does not.
+#
+#   sudo -u lelu bash /opt/lelu/app/services/mossnano/install.sh   # env + weights (~1.6 GB)
+#   sudo cp deploy/voice/lelu-moss.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now lelu-moss
+#   curl -s 127.0.0.1:8789/health | jq '{state, modelId}'          # READY
+#
+# Loopback only. The app reaches it through VOXCPM_BASE_URL=http://127.0.0.1:8789.
+# ==========================================================
+
+[Unit]
+Description=LÉLU MOSS-TTS-Nano speech worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lelu
+Group=lelu
+WorkingDirectory=/opt/lelu/app
+Environment=MOSS_HOST=127.0.0.1
+Environment=MOSS_PORT=8789
+# One core stays free for the app, Caddy and the agent.
+Environment=MOSS_THREADS=3
+Environment=HF_HUB_OFFLINE=1
+ExecStartPre=/usr/bin/test -f /opt/lelu/app/.mossnano/state/model-ready.json
+ExecStart=/opt/lelu/app/.venv-mossnano/bin/python services/mossnano/server.py --warmup
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=300
+TimeoutStopSec=20
+KillSignal=SIGTERM
+MemoryHigh=2500M
+MemoryMax=3G
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/lelu/app/.mossnano
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lelu-moss
+
+[Install]
+WantedBy=multi-user.target

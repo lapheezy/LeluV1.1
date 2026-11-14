@@ -33,7 +33,7 @@ dev server provides. Nothing here depends on the dev server or a Codespace.
 ```bash
 ssh root@<vps-ip>
 apt-get update && apt-get install -y git
-git clone --branch claude/avatar-3d-world https://github.com/lapheezy/LeluV1.1.git /root/lelu-src
+git clone --branch integration/lelu-four-workforce-consolidation https://github.com/lapheezy/LeluV1.1.git /root/lelu-src
 cd /root/lelu-src/deploy/contabo
 LELU_DOMAIN=lelu.yourdomain.com LELU_ACME_EMAIL=you@example.com bash install.sh
 ```
