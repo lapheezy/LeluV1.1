@@ -9,6 +9,7 @@
  * configured provider is attempted immediately.
  */
 
+import { continuationContext } from "./continuationContext";
 import { resolveFirst } from "../resolveEnv";
 import { classifyChainFailure } from "../voice/turnFailure";
 import { contradictedCaptureClaims, contradictionNote, groundingNote, ungroundedClaims } from "../tools/ClaimGrounding";
@@ -913,6 +914,9 @@ export default class ProviderResolver {
       );
       response = await gatedGenerate(provider, {
         ...this.withRungSignal(context.request, rungSignal),
+        // A continuation round re-reads tool results; LÉLU's full self-state
+        // was given on round 0 and is not re-sent (see continuationContext).
+        context: continuationContext(context.request.context),
         messages: refitted.messages,
         ...(refitted.tools.length ? { tools: refitted.tools } : {}),
       });
