@@ -178,3 +178,6 @@ allowance of keys 1–2. Broker fixes (`9104b92`): rotate before waiting, rememb
 ready time, never wait past the page's 12 s stall watchdog, log the provider's reason. Verified: the
 chain now moves on at once (Groq 429 → OpenRouter 402 → Cerebras 401 → offline) instead of stalling.
 **To make multi-step tool turns reliable: a paid Groq tier, or credit on one OpenRouter account.**
+
+### Full gate after these changes (`9104b92`)
+`tsc -b --force` exit 0 · `oxlint` 0 errors · `npm test` **2,108 pass, 0 fail, 6 skipped** (2,114).
