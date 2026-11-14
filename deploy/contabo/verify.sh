@@ -31,8 +31,13 @@ code=$(curl -s -o /dev/null -w '%{http_code}' $H/healthz); [ "$code" = 200 ] && 
 echo "== providers (real requests through the server broker)"
 set -a; . /etc/lelu/lelu.env; set +a
 curl -s $H/api/model/status | python3 -c "import json,sys;d=json.load(sys.stdin);print('INFO  provider states', {k:v.get('state') for k,v in d.get('states',{}).items()})"
-r=$(curl -s -X POST $H/api/model/anthropic/messages -H 'content-type: application/json' -d '{"model":"claude-haiku-5-5","max_tokens":20,"messages":[{"role":"user","content":"Reply with exactly: ok"}]}')
-echo "$r" | grep -q '"type":"message"' && ok "Anthropic answered" || bad "Anthropic: $(echo "$r" | head -c 220)"
+# Anthropic is only exercised when the operator enabled it (it spends credit).
+if grep -qiE '^LELU_ENABLE_ANTHROPIC=(1|true|yes|on)$' /etc/lelu/lelu.env; then
+  r=$(curl -s -X POST $H/api/model/anthropic/messages -H 'content-type: application/json' -d '{"model":"claude-haiku-5-5","max_tokens":20,"messages":[{"role":"user","content":"Reply with exactly: ok"}]}')
+  echo "$r" | grep -q '"type":"message"' && ok "Anthropic answered" || bad "Anthropic: $(echo "$r" | head -c 220)"
+else
+  info "Anthropic disabled by policy (LELU_ENABLE_ANTHROPIC not true) — not called"
+fi
 r=$(curl -s -X POST $H/api/model/groq/chat/completions -H 'content-type: application/json' -d '{"model":"openai/gpt-oss-120b","max_tokens":300,"messages":[{"role":"user","content":"Reply with exactly: ok"}]}')
 echo "$r" | grep -q '"choices"' && ok "Groq answered" || bad "Groq: $(echo "$r" | head -c 220)"
 curl -s $H/ | grep -o '__LELU_\(DEFAULT_PROVIDER\|LELU_ENABLE_ANTHROPIC\)__"\] = "[^"]*"' | sed 's/^/INFO  page config /'
