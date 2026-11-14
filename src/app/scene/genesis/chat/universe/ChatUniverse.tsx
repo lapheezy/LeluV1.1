@@ -75,7 +75,12 @@ interface UniverseFile {
   type: string;
   size: number;
   preview: string;
+  /** A 3D file's own bytes, so the reply can show it in three.js. */
+  dataUrl?: string;
 }
+
+/** The upload cap for a 3D model: past this the bytes are kept on disk only. */
+const MODEL_UPLOAD_LIMIT = 24 * 1024 * 1024;
 
 function useArchived() {
   const store = MultiChatStore.getInstance();
@@ -315,12 +320,28 @@ export default function ChatUniverse() {
           (/^text\/|json|javascript|typescript|xml|yaml|markdown|html|css|svg/.test(file.type) ||
             /\.(txt|md|json|js|ts|tsx|jsx|py|css|html|xml|yml|yaml|csv|log|env|gitignore)$/i.test(file.name));
         if (textLike) preview = (await file.text()).slice(0, 800);
+        // GLB/GLTF/STL/OBJ: carry the uploaded bytes themselves, so the reply
+        // can open the user's file in three.js without any re-encoding.
+        let dataUrl: string | undefined;
+        if (/\.(glb|gltf|stl|obj)$/i.test(file.name)) {
+          if (file.size > MODEL_UPLOAD_LIMIT) {
+            setAttachNotice(`${file.name} is larger than ${Math.round(MODEL_UPLOAD_LIMIT / 1024 / 1024)} MB — it was attached by name only, so it cannot be previewed.`);
+          } else {
+            dataUrl = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(String(reader.result));
+              reader.onerror = () => reject(reader.error ?? new Error("the file could not be read"));
+              reader.readAsDataURL(file);
+            });
+          }
+        }
         nextFiles.push({
           id: crypto.randomUUID(),
           name: file.name,
           type: file.type,
           size: file.size,
           preview,
+          ...(dataUrl ? { dataUrl } : {}),
         });
       } catch (error) {
         setAttachNotice(`Could not attach ${file.name}: ${error instanceof Error ? error.message : String(error)}`);
@@ -557,7 +578,7 @@ export default function ChatUniverse() {
           <input
             ref={mediaRef}
             type="file"
-            accept="image/*,video/*,.txt,.md,.json,.js,.ts,.tsx,.jsx,.py,.css,.html,.xml,.yml,.yaml,.csv,.log,.pdf,.doc,.docx"
+            accept="image/*,video/*,.txt,.md,.json,.js,.ts,.tsx,.jsx,.py,.css,.html,.xml,.yml,.yaml,.csv,.log,.pdf,.doc,.docx,.glb,.gltf,.stl,.obj"
             multiple
             hidden
             onChange={(e) => { void onAttach(e.target.files); e.target.value = ""; }}

@@ -290,7 +290,7 @@ export const STUDIO_EXECUTORS: StudioExecutor[] = [
     parameters: OBJ({
       ...SPEC_PROPERTIES,
       export: { type: "array", items: { type: "string", enum: ALL_FORMATS }, description: "formats to write now (e.g. ['pptx','pdf']); each is verified" },
-      open: { type: "boolean", description: "show it as a Cosmos window (default true)" },
+      open: { type: "boolean", description: "also open it as a Cosmos window (default false — the chat card is the surface, and the user expands it there)" },
     }, ["kind", "title"]),
     run: async (args, context) => {
       const store = StudioStore.getInstance();
@@ -300,11 +300,13 @@ export const STUDIO_EXECUTORS: StudioExecutor[] = [
       announce(context, a, "created");
       const { formats, refused } = formatsFrom(args, a.kind);
       const exported = await exportAll(store, a, formats, context);
-      const opened = args.open === false ? false : openInCosmos([a.id]);
+      // The conversation is the output surface: a chat card renders the artifact
+      // in place. A separate window opens only when it is asked for.
+      const opened = args.open === true ? openInCosmos([a.id]) : false;
       return {
         ok: exported.ok,
         content: [
-          `Created [${a.id}] ${a.kind} “${a.title}” (revision 1)${opened ? "; it is open in a Cosmos window and shown as a card in the chat" : ""}.`,
+          `Created [${a.id}] ${a.kind} “${a.title}” (revision 1)${opened ? "; it is open in a Cosmos window" : " and shown as a card in the chat"}.`,
           ...exported.lines,
           refused.length ? `Not exported: ${refused.join(", ")} (a ${a.kind} can be ${FORMATS_BY_KIND[a.kind].join(", ")}).` : "",
           `Change it with studio_revise (artifact: "${a.id}"). The user can download each verified file from the card.`,
@@ -353,7 +355,9 @@ export const STUDIO_EXECUTORS: StudioExecutor[] = [
       announce(context, a, "revised");
       const { formats } = formatsFrom(args, a.kind);
       const exported = await exportAll(store, a, formats, context);
-      openInCosmos([a.id]);
+      // A revision updates the card the chat already shows; it does not raise a
+      // window the user did not ask for.
+      if (args.open === true) openInCosmos([a.id]);
       return {
         ok: exported.ok,
         content: [`Revised [${a.id}] “${a.title}”: revision ${r.revision.rev} (from ${r.revision.basedOn}; earlier revisions are kept).`, `Changes: ${r.changes.join("; ") || "none"}`, ...(kept.length ? [`Kept content the new spec left out (not asked to remove): ${kept.join("; ")}.`] : []), ...exported.lines].join("\n"),

@@ -97,6 +97,11 @@ function ChatActivityCardImpl({ activity }: { activity: ChatActivity }) {
   // her browse should not need a click.
   const livePage = running ? [...activity.pages].reverse().find((page) => page.status === "loading" || page.status === "read") : undefined;
   const lastPage = activity.pages.at(-1);
+  // What she read stays in the conversation after the turn ends: the reply is
+  // only useful with the page it came from beside it. A failed read is not
+  // green-ticked here — it stays in the expanded steps, with its reason.
+  const readPage = !running ? [...activity.pages].reverse().find((page) => page.status === "read") : undefined;
+  const shownPage = livePage ?? readPage;
 
   return (
     <section className="lelu-cc-activity-card" data-lelu-activity={activity.status} aria-label={`${summary.title}: ${summary.facts.join(", ")}`}>
@@ -120,7 +125,7 @@ function ChatActivityCardImpl({ activity }: { activity: ChatActivity }) {
           <Loader2 size={13} className="lelu-cc-spin" aria-hidden /> {summary.current}
         </div>
       ) : null}
-      {!open && livePage ? <BrowserView page={livePage} /> : null}
+      {!open && shownPage ? <BrowserView page={shownPage} /> : null}
 
       {open ? (
         <div className="lelu-cc-activity-body">
@@ -144,7 +149,7 @@ function ChatActivityCardImpl({ activity }: { activity: ChatActivity }) {
               </li>
             ))}
           </ol>
-          {lastPage ? <BrowserView page={livePage ?? lastPage} /> : null}
+          {lastPage ? <BrowserView page={shownPage ?? lastPage} /> : null}
           {activity.pages.length > 1 ? (
             <div className="lelu-cc-activity-pages">
               {activity.pages.map((page) => (

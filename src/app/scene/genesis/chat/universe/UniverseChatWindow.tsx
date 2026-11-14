@@ -26,6 +26,16 @@ import StudioArtifactCards from "../../studio/StudioArtifactCards";
 import { currentActivity, subscribeActivity } from "../activityRecorder";
 import GenesisWindowFrame from "../../GenesisWindowFrame";
 import GenesisExecutionTimeline from "../../GenesisExecutionTimeline";
+import Model3DView from "../Model3DView";
+
+interface PendingAttachment {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  preview: string;
+  dataUrl?: string;
+}
 import { UNIVERSE_SEND_EVENT } from "./ChatUniverse";
 
 /** The turn running in this chat, from the same record the chat panel shows. */
@@ -51,6 +61,10 @@ export default function UniverseChatWindow({
   const liveActivity = useLiveActivity(conversationId);
   const [draft, setDraft] = useState("");
   const [controlsOpen, setControlsOpen] = useState(false);
+  // Files attached here ride with the message into the thread; a 3D file keeps
+  // its own bytes so the reply can open it in three.js.
+  const [attached, setAttached] = useState<PendingAttachment[]>([]);
+  const fileRef = useRef<HTMLInputElement>(null);
   const moduleId = chatWindowId(conversationId);
   const presentation = genesis.state.modules[moduleId]?.presentation ?? "inline";
   const threadRef = useRef<HTMLDivElement>(null);
@@ -67,12 +81,36 @@ export default function UniverseChatWindow({
     );
   }
 
+  const attach = async (list: FileList | null) => {
+    if (!list?.length) return;
+    const next: PendingAttachment[] = [];
+    for (const file of [...list].slice(0, 4)) {
+      let dataUrl: string | undefined;
+      if (/\.(glb|gltf|stl|obj)$/i.test(file.name) && file.size <= 24 * 1024 * 1024) {
+        try {
+          dataUrl = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result));
+            reader.onerror = () => reject(reader.error ?? new Error("unreadable"));
+            reader.readAsDataURL(file);
+          });
+        } catch {
+          dataUrl = undefined;
+        }
+      }
+      next.push({ id: crypto.randomUUID(), name: file.name, type: file.type, size: file.size, preview: "", ...(dataUrl ? { dataUrl } : {}) });
+    }
+    setAttached((current) => [...current, ...next].slice(-4));
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
   const send = () => {
     const text = draft.trim();
-    if (!text) return;
+    if (!text && attached.length === 0) return;
     if (conversation.id !== MultiChatStore.getInstance().getActiveId()) genesis.switchConversation(conversation.id);
-    window.dispatchEvent(new CustomEvent(UNIVERSE_SEND_EVENT, { detail: { text, conversationId: conversation.id } }));
+    window.dispatchEvent(new CustomEvent(UNIVERSE_SEND_EVENT, { detail: { text, conversationId: conversation.id, files: attached } }));
     setDraft("");
+    setAttached([]);
   };
 
   const action = (label: string, run: () => void, pressed?: boolean) => (
@@ -149,6 +187,16 @@ export default function UniverseChatWindow({
               <div className="lcu-bubble">
                 {/* LÉLU writes markdown; the same renderer as the classic chat transcript. */}
                 {m.role === "assistant" ? <ChatMarkdown text={m.text} /> : <p>{m.text}</p>}
+                {/* A 3D file the user attached to this message, opened in the thread. */}
+                {m.role === "user" && m.models?.length
+                  ? (
+                    <div className="lelu-cc-models">
+                      {m.models.map((model) => (
+                        <Model3DView key={`${m.id}-${model.name}`} model={model} />
+                      ))}
+                    </div>
+                  )
+                  : null}
                 {/* Documents, decks, spreadsheets and designs this reply made, with their verified files. */}
                 {m.role === "assistant" && m.activity?.artifacts?.length ? <StudioArtifactCards artifacts={m.activity.artifacts} /> : null}
               </div>
@@ -167,6 +215,30 @@ export default function UniverseChatWindow({
             send();
           }}
         >
+          {attached.length ? (
+            <div className="lcu-attached" aria-label="Attachments">
+              {attached.map((file) => (
+                <span key={file.id} className="lcu-attached-file" title={file.name}>
+                  {file.name}
+                  <button
+                    type="button"
+                    className="lcu-icon sm"
+                    aria-label={`Remove ${file.name}`}
+                    onClick={() => setAttached((current) => current.filter((item) => item.id !== file.id))}
+                  >×</button>
+                </span>
+              ))}
+            </div>
+          ) : null}
+          <button type="button" className="lcu-icon" aria-label="Attach a file" onClick={() => fileRef.current?.click()}>+</button>
+          <input
+            ref={fileRef}
+            type="file"
+            multiple
+            accept="image/*,video/*,.txt,.md,.json,.csv,.pdf,.glb,.gltf,.stl,.obj"
+            hidden
+            onChange={(event) => void attach(event.target.files)}
+          />
           <textarea
             rows={1}
             value={draft}
@@ -181,7 +253,7 @@ export default function UniverseChatWindow({
               }
             }}
           />
-          <button type="submit" className="lcu-send" disabled={!draft.trim()} aria-label={`Send to ${conversation.title}`}>
+          <button type="submit" className="lcu-send" disabled={!draft.trim() && attached.length === 0} aria-label={`Send to ${conversation.title}`}>
             Send
           </button>
         </form>
