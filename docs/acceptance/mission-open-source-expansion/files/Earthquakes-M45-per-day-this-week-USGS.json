@@ -1,0 +1,51 @@
+{
+  "lelu": "visual",
+  "version": 1,
+  "title": "Earthquakes M4.5+ per day this week (USGS)",
+  "medium": "chart",
+  "program": {
+    "kind": "column",
+    "title": "Earthquakes M4.5+ per day this week (USGS)",
+    "labels": [
+      "2026-11-07",
+      "2026-11-08",
+      "2026-11-09",
+      "2026-11-10",
+      "2026-11-11",
+      "2026-11-12",
+      "2026-11-13",
+      "2026-11-14"
+    ],
+    "series": [
+      {
+        "name": "count",
+        "values": [
+          6,
+          8,
+          20,
+          20,
+          19,
+          12,
+          23,
+          14
+        ]
+      }
+    ],
+    "xLabel": "day",
+    "sources": [
+      {
+        "title": "USGS — USGS Magnitude 4.5+ Earthquakes, Past Week",
+        "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson",
+        "accessed": "2026-11-14"
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "S1",
+      "title": "USGS — USGS Magnitude 4.5+ Earthquakes, Past Week",
+      "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson",
+      "accessed": "2026-11-14"
+    }
+  ]
+}
