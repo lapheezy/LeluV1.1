@@ -1,0 +1,133 @@
+{
+ "realDevice": false,
+ "recoveredMs": 28297,
+ "connections": [
+  "connecting",
+  "connected",
+  "connected",
+  "connected",
+  "reconnecting",
+  "reconnecting",
+  "reconnecting",
+  "connected",
+  "connected"
+ ],
+ "timeline": [
+  {
+   "t": 4143,
+   "kind": "livekit",
+   "connection": "connecting",
+   "listening": false,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 5221,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": false,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 5300,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": false,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 5328,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": true,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 5343,
+   "kind": "listening-before"
+  },
+  {
+   "t": 5343,
+   "kind": "kill-livekit-server"
+  },
+  {
+   "t": 22501,
+   "kind": "livekit",
+   "connection": "reconnecting",
+   "listening": true,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 22507,
+   "kind": "loss-observed",
+   "connections": [
+    "connecting",
+    "connected",
+    "connected",
+    "connected",
+    "reconnecting"
+   ]
+  },
+  {
+   "t": 31580,
+   "kind": "livekit",
+   "connection": "reconnecting",
+   "listening": false,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 31730,
+   "kind": "livekit",
+   "connection": "reconnecting",
+   "listening": true,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 33635,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": true,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 33636,
+   "kind": "livekit",
+   "connection": "connected",
+   "listening": true,
+   "rejoins": 0,
+   "error": null
+  },
+  {
+   "t": 33640,
+   "kind": "recovered",
+   "recoveredMs": 28297
+  },
+  {
+   "t": 97138,
+   "kind": "utterance",
+   "text": "Hey Lélu, what is the capital of France? Answer in one short sentence."
+  },
+  {
+   "t": 97176,
+   "kind": "post-recovery-utterance-processing"
+  },
+  {
+   "t": 98344,
+   "kind": "reply",
+   "text": "I'm in offline mode right now — all AI providers are unreachable or unconfigured, so I can't generate new answers. My local memory, your profile and our shared history are still here and I'm still rec"
+  },
+  {
+   "t": 98376,
+   "kind": "result",
+   "pass": true
+  }
+ ],
+ "pass": true
+}
