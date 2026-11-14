@@ -67,3 +67,57 @@ test("a 429 on the first of two keys still rotates to the second", async () => {
     globalThis.fetch = real;
   }
 });
+
+function fakeOpenRouter(afford: number | null, seen: number[]) {
+  return (async (_u: unknown, init: RequestInit) => {
+    const asked = Number(JSON.parse(String(init.body)).max_tokens);
+    seen.push(asked);
+    if (afford !== null && asked <= afford) {
+      return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    const message = afford === null
+      ? "Insufficient credits. Add more using https://openrouter.ai/settings/credits"
+      : `This request requires more credits, or fewer max_tokens. You requested up to ${asked} tokens, but can only afford ${afford}.`;
+    return new Response(JSON.stringify({ error: { message, code: 402 } }), { status: 402, headers: { "content-type": "application/json" } });
+  }) as typeof fetch;
+}
+
+async function orCall(maxTokens: number) {
+  let handler: ((req: unknown, res: unknown, next: () => void) => void) | null = null;
+  const api = createModelApi((n) => (n === "OPENROUTER_API_KEY" ? "sk-or-test" : undefined));
+  api.attach({ use: (_p, fn) => (handler = fn as never) });
+  const out = { status: 200, body: "" };
+  await new Promise<void>((resolve) => {
+    const res = { set statusCode(v: number) { out.status = v; }, get statusCode() { return out.status; }, setHeader: () => undefined,
+      write: (c: unknown) => { out.body += String(c); return true; }, end: (b?: unknown) => { if (b !== undefined) out.body += typeof b === "string" ? b : Buffer.from(b as Uint8Array).toString(); resolve(); },
+      on: () => undefined, writableFinished: false, flushHeaders: () => undefined };
+    const body = JSON.stringify({ model: "openai/gpt-4o-mini", max_tokens: maxTokens, messages: [{ role: "user", content: "hi" }] });
+    handler!({ method: "POST", url: "/openrouter/chat/completions", headers: { "content-type": "application/json" },
+      on: (e: string, fn: (c?: unknown) => void) => { if (e === "data") fn(Buffer.from(body)); if (e === "end") fn(); } }, res, () => resolve());
+  });
+  return out;
+}
+
+test("a 402 naming an affordable amount is retried once, smaller, and served", async () => {
+  const real = globalThis.fetch; const seen: number[] = [];
+  globalThis.fetch = fakeOpenRouter(1709, seen);
+  try {
+    const out = await orCall(2048);
+    assert.equal(out.status, 200, out.body);
+    assert.deepEqual(seen, [2048, Math.floor(1709 * 0.95)], "one retry, never above what the account can afford");
+  } finally { globalThis.fetch = real; }
+});
+
+test("a 402 that leaves too little to be useful, or names no amount, is passed through untouched", async () => {
+  const real = globalThis.fetch;
+  try {
+    let seen: number[] = [];
+    globalThis.fetch = fakeOpenRouter(120, seen);
+    let out = await orCall(2048);
+    assert.equal(out.status, 402); assert.deepEqual(seen, [2048]);
+    seen = [];
+    globalThis.fetch = fakeOpenRouter(null, seen);
+    out = await orCall(2048);
+    assert.equal(out.status, 402); assert.match(out.body, /Insufficient credits/); assert.deepEqual(seen, [2048]);
+  } finally { globalThis.fetch = real; }
+});

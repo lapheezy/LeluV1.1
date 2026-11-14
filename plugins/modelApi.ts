@@ -731,7 +731,7 @@ export function createModelApi(readEnv: EnvReader) {
       // Held so the trace below can measure what was actually sent. Read once:
       // the body stream cannot be consumed twice.
       const sentBody = req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req);
-      const sendUpstream = (credential: string) =>
+      const sendUpstream = (credential: string, body: Buffer | undefined = sentBody) =>
         fetch(target, {
           method: req.method ?? "POST",
           headers: {
@@ -741,7 +741,7 @@ export function createModelApi(readEnv: EnvReader) {
             // is dropped: the browser is not a source of authority here.
             ...provider.authHeaders(credential),
           },
-          body: sentBody,
+          body,
           signal: AbortSignal.any([AbortSignal.timeout(UPSTREAM_TIMEOUT_MS), clientGone.signal]),
         });
 
@@ -793,6 +793,40 @@ export function createModelApi(readEnv: EnvReader) {
           continue;
         }
         break;
+      }
+
+      /*
+       * A 402 that names what the account CAN still afford is retried once,
+       * smaller, instead of being a hard failure.
+       *
+       * LÉLU asks for DEFAULT_OUTPUT_TOKENS (2,048). Measured: OpenRouter
+       * answered `402 … You requested up to 2048 tokens, but can only afford
+       * 1709` to every turn, so a key with credit left served nothing and the
+       * chain ended offline. One retry with max_tokens reduced to fit (never
+       * raised, never below a useful 256) serves the turn; anything else is
+       * passed through unchanged.
+       */
+      if (upstream.status === 402 && sentBody) {
+        const refusal = await upstream.clone().text().catch(() => "");
+        const affordable = Number(/can only afford\s+(\d+)/i.exec(refusal)?.[1] ?? NaN);
+        let resized: Buffer | null = null;
+        try {
+          const parsed = JSON.parse(sentBody.toString("utf8")) as Record<string, unknown>;
+          const field = "max_completion_tokens" in parsed ? "max_completion_tokens" : "max_tokens";
+          const asked = Number(parsed[field]);
+          const fit = Math.floor(affordable * 0.95);
+          if (Number.isFinite(affordable) && fit >= 256 && Number.isFinite(asked) && fit < asked) {
+            parsed[field] = fit;
+            resized = Buffer.from(JSON.stringify(parsed));
+            console.info(`[model broker] ${providerId}: 402 at max_tokens=${asked}; retrying once at ${fit} (account can afford ${affordable})`);
+          }
+        } catch {
+          resized = null; // not JSON: nothing to resize
+        }
+        if (resized) {
+          await upstream.body?.cancel().catch(() => undefined);
+          upstream = await sendUpstream(keys[slot] ?? key, resized);
+        }
       }
 
       // Learn from the real answer: a rejected credential takes the provider
