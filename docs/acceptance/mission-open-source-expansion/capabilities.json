@@ -1,0 +1,31 @@
+{
+  "paths": {
+    "render3d": "webgl2",
+    "video": "webcodecs",
+    "videoCodec": "vp9",
+    "audio": "offline-audio",
+    "raster": "offscreen",
+    "save": "file-system-access"
+  },
+  "webgpu": {
+    "available": false,
+    "detail": "no adapter (blocklisted GPU or headless)"
+  },
+  "webgl2": {
+    "available": true,
+    "detail": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+  },
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "codecs": {
+    "available": true,
+    "detail": "encodes vp9"
+  },
+  "audio": {
+    "available": true,
+    "detail": "opus"
+  },
+  "mr": {
+    "available": true,
+    "detail": "video/webm;codecs=vp9"
+  }
+}
