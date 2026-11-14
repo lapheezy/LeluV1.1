@@ -221,7 +221,8 @@ test("setting the base name by hand does not block the numbered slots", () => {
 });
 
 test("the runtime key ring rotates across one credential per numbered platform secret", async () => {
-  const touched = ["GROQ_API_KEY", "GROQ_API_KEY_1", "GROQ_API_KEY_2", "GROQ_API_KEY_3", "VITE_GROQ_API_KEY"];
+  // _4 and GROQ_API_KEYS are cleared too: a real environment with a fourth key must not leak in.
+  const touched = ["GROQ_API_KEY", "GROQ_API_KEY_1", "GROQ_API_KEY_2", "GROQ_API_KEY_3", "VITE_GROQ_API_KEY", "GROQ_API_KEY_4", "GROQ_API_KEYS"];
   const saved = new Map(touched.map((name) => [name, process.env[name]]));
   const lookup = lookupOf({ Groq1: "gsk_alpha_0000001", Groq2: "gsk_bravo_0000002", Groq3: "gsk_charlie_00003" });
   fillBareSecretAliases(lookup);

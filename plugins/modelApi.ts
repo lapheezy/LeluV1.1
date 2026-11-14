@@ -609,6 +609,31 @@ export function createModelApi(readEnv: EnvReader) {
     return keys;
   };
 
+  /**
+   * When each key may be used again, learned from the provider's own
+   * "try again in 35m36.2s" on a 429. In memory only; never logged.
+   *
+   * Measured on a world-building turn: Groq key 1 had spent its daily
+   * tokens ("try again in 35m36s") yet was tried FIRST on every round, a
+   * wasted round trip each time, while keys 2-4 had room. A request now
+   * starts with the keys that are ready; cooling keys are a last resort.
+   */
+  const keyReadyAt = new Map<string, number>();
+  const byReadiness = (keys: string[]): string[] => {
+    const now = Date.now();
+    const ready = keys.filter((k) => (keyReadyAt.get(k) ?? 0) <= now);
+    return [...ready, ...keys.filter((k) => !ready.includes(k))];
+  };
+  const noteRetryAfter = (key: string, body: string): void => {
+    const m = /try again in\s*(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:([\d.]+)s)?/i.exec(body);
+    if (!m || !(m[1] || m[2] || m[3])) return;
+    const ms = (Number(m[1] ?? 0) * 3600 + Number(m[2] ?? 0) * 60 + Number(m[3] ?? 0)) * 1000;
+    if (ms > 0) keyReadyAt.set(key, Date.now() + Math.min(ms, 24 * 3600_000));
+  };
+
+  /** Longest same-key wait the broker will make (below the page's 12 s rung watchdog). */
+  const MAX_BROKER_WAIT_MS = 8_000;
+
   /** Statuses another credential can fix: refused, forbidden, or out of quota. */
   const CREDENTIAL_RETRY_STATUS = new Set([401, 403, 429]);
 
@@ -700,7 +725,7 @@ export function createModelApi(readEnv: EnvReader) {
       return;
     }
 
-    const keys = credentialsFor(provider);
+    const keys = byReadiness(credentialsFor(provider));
     const key = keys[0] ?? "";
     if (!key) {
       // A missing credential is reported as a missing credential, not as
@@ -762,15 +787,27 @@ export function createModelApi(readEnv: EnvReader) {
        * told the user the model was unreachable. A short retry-after is waited
        * out on the SAME key; only a refusal without one rotates credentials.
        */
-      for (let guard = 0; guard < 4 && CREDENTIAL_RETRY_STATUS.has(upstream.status); guard += 1) {
+      // Every key once, plus one wait on the last: bounded by the key count.
+      for (let guard = 0; guard < keys.length + 1 && CREDENTIAL_RETRY_STATUS.has(upstream.status); guard += 1) {
         let waitMs = 0;
+        let reason = "";
         if (upstream.status === 429) {
           const body = await upstream
             .clone()
             .text()
             .catch(() => "");
+          reason = (/"message"\s*:\s*"([^"]{0,220})/.exec(body)?.[1] ?? "").replace(/organization `[^`]*`/g, "organization `…`");
+          noteRetryAfter(keys[slot] ?? key, body);
           const retry = /try again in\s*([\d.]+)\s*s/i.exec(body);
-          if (retry) waitMs = Math.min(15_000, Math.ceil(Number(retry[1]) * 1000) + 300);
+          // Wait only when the wait fits inside the page's 12 s stall
+          // watchdog (ProviderResolver). A longer wait was always killed by it
+          // — measured: "waiting 15s" ended as "timed out after its 12.0s
+          // budget" — so the next provider never got its turn. Past this, the
+          // real 429 goes back at once and the chain moves on.
+          if (retry) {
+            const asked = Math.ceil(Number(retry[1]) * 1000) + 300;
+            waitMs = asked <= MAX_BROKER_WAIT_MS ? asked : 0;
+          }
         }
         // Nothing left to try: keep THIS refusal intact for the caller. The
         // body used to be cancelled before this decision, so the final 429
@@ -780,12 +817,20 @@ export function createModelApi(readEnv: EnvReader) {
         // as a server fault and its real reason never reached the page.
         if (waitMs <= 0 && slot + 1 >= keys.length) break;
         await upstream.body?.cancel().catch(() => undefined);
-        if (waitMs > 0) {
+        // Another key first; wait only when there is none. Each Groq key
+        // has its own per-minute allowance, so with four keys a "try again
+        // in 8s" on one is served at once by the next. Waiting on the same
+        // key was silent and, measured on a 3-round world-building turn,
+        // left the final round past the 12 s stall watchdog — the objects
+        // were built but her reply never came.
+        if (waitMs > 0 && slot + 1 >= keys.length) {
+          console.info(`[model broker] ${providerId}: ${upstream.status} on the last key; waiting ${Math.round(waitMs / 1000)}s as the provider asked — ${reason}`);
           await new Promise((resolve) => setTimeout(resolve, waitMs));
           upstream = await sendUpstream(keys[slot] ?? key);
           continue;
         }
         if (slot + 1 < keys.length) {
+          if (reason) console.info(`[model broker] ${providerId}: slot ${slot + 1} ${upstream.status}; trying slot ${slot + 2} — ${reason}`);
           slot += 1;
           evidence.set(providerId, {
             state: "CREDENTIAL_ROTATED",

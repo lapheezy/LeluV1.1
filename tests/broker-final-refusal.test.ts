@@ -141,3 +141,65 @@ test("all four configured Groq keys are tried before the provider is refused", a
     globalThis.fetch = real;
   }
 });
+
+test("a rate-limited key with a retry hint hands over to the next key instead of waiting", async () => {
+  const real = globalThis.fetch;
+  const seen: string[] = [];
+  globalThis.fetch = (async (_u: unknown, init: RequestInit) => {
+    const auth = String((init.headers as Record<string, string>).Authorization ?? "");
+    seen.push(auth.slice(-2));
+    return auth.endsWith("k1")
+      ? new Response(JSON.stringify({ error: { message: "Rate limit reached on tokens per minute (TPM). Please try again in 8.5s." } }), { status: 429, headers: { "content-type": "application/json" } })
+      : new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), { status: 200, headers: { "content-type": "application/json" } });
+  }) as typeof fetch;
+  try {
+    const started = Date.now();
+    const out = await call(createModelApi((n) => ({ GROQ_API_KEY: "gsk_k1", GROQ_API_KEY_2: "gsk_k2" } as Record<string, string>)[n]), "/groq/chat/completions");
+    assert.equal(out.status, 200, out.body);
+    assert.deepEqual(seen, ["k1", "k2"]);
+    assert.ok(Date.now() - started < 2000, "no 8.5 s wait when another key exists");
+  } finally {
+    globalThis.fetch = real;
+  }
+});
+
+test("a key the provider said to rest is not tried first on the next request", async () => {
+  const real = globalThis.fetch;
+  const seen: string[] = [];
+  globalThis.fetch = (async (_u: unknown, init: RequestInit) => {
+    const auth = String((init.headers as Record<string, string>).Authorization ?? "");
+    seen.push(auth.slice(-2));
+    return auth.endsWith("k1")
+      ? new Response(JSON.stringify({ error: { message: "Rate limit reached on tokens per day (TPD). Please try again in 35m36.2s." } }), { status: 429, headers: { "content-type": "application/json" } })
+      : new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), { status: 200, headers: { "content-type": "application/json" } });
+  }) as typeof fetch;
+  try {
+    const api = createModelApi((n) => ({ GROQ_API_KEY: "gsk_k1", GROQ_API_KEY_2: "gsk_k2", GROQ_API_KEY_3: "gsk_k3" } as Record<string, string>)[n]);
+    assert.equal((await call(api, "/groq/chat/completions")).status, 200);
+    assert.deepEqual(seen, ["k1", "k2"], "first request learns that k1 must rest");
+    seen.length = 0;
+    assert.equal((await call(api, "/groq/chat/completions")).status, 200);
+    assert.deepEqual(seen, ["k2"], "the next request starts with a ready key");
+  } finally {
+    globalThis.fetch = real;
+  }
+});
+
+test("a retry-after longer than the page's stall watchdog is not waited out on the last key", async () => {
+  const real = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = (async () => {
+    calls += 1;
+    return new Response(JSON.stringify({ error: { message: "Rate limit reached on tokens per minute (TPM). Please try again in 28.65s." } }), { status: 429, headers: { "content-type": "application/json" } });
+  }) as typeof fetch;
+  try {
+    const started = Date.now();
+    const out = await call(createModelApi((n) => (n === "GROQ_API_KEY" ? "gsk_only" : undefined)), "/groq/chat/completions");
+    assert.equal(out.status, 429);
+    assert.match(out.body, /28\.65s/);
+    assert.equal(calls, 1);
+    assert.ok(Date.now() - started < 2000, "returned at once so the chain can fall back");
+  } finally {
+    globalThis.fetch = real;
+  }
+});
