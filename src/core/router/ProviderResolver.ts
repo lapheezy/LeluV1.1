@@ -27,6 +27,7 @@ import { BudgetExhaustedError, budgetNotice, gatedGenerate } from "../observabil
 
 
 import { inspectRequest } from "../observability/RequestIntegrity";
+import { assessTurn, checkCall, inLoopNote, qualityNotice, type QualityCall } from "./qualityCheckpoint";
 import { partialWorkReply, summarizeToolResult, type ToolRunRecord } from "./partialWork";
 /**
  * TERMINATION, not a round quota.
@@ -717,6 +718,8 @@ export default class ProviderResolver {
     const taskId = String(context.request.timestamp ?? Date.now());
     const messages: AIMessage[] = [...fitted.messages];
     const executed: Array<ToolRunRecord> = [];
+    // What the tools produced, for the quality checkpoint (arguments only — no model).
+    const qualityCalls: QualityCall[] = [];
     // What the model ASKED for, separately from what really ran.
     //
     // These are the same list on this path, by construction — every
@@ -865,9 +868,12 @@ export default class ProviderResolver {
           ok: result.ok,
           round,
         });
+        const qualityCall: QualityCall = { name: call.name, args: (call.arguments ?? {}) as Record<string, unknown>, ok: result.ok };
+        qualityCalls.push(qualityCall);
+        const deficiency = checkCall(context.request.prompt ?? "", qualityCall);
         messages.push({
           role: "tool",
-          content: result.content,
+          content: deficiency ? `${result.content}${inLoopNote(deficiency)}` : result.content,
           toolCallId: call.id,
           toolName: call.name,
           toolError: !result.ok,
@@ -951,11 +957,14 @@ export default class ProviderResolver {
         claims: contradicted.map((claim) => `${claim.target}: ${claim.claimed}`),
       });
     }
+    // Quality checkpoint: what is still below the bar is said, not hidden.
+    const deficiencies = assessTurn(context.request.prompt ?? "", qualityCalls);
     return {
       ...response,
-      text: `${response.text ?? ""}${groundingNote(ungrounded)}${contradictionNote(contradicted)}`,
+      text: `${response.text ?? ""}${groundingNote(ungrounded)}${contradictionNote(contradicted)}${qualityNotice(deficiencies)}`,
       metadata: {
         ...response.metadata,
+        ...(deficiencies.length ? { qualityDeficiencies: deficiencies } : {}),
         ...(ungrounded.length ? { ungroundedClaims: ungrounded.map((claim) => claim.label) } : {}),
         ...(contradicted.length ? { contradictedClaims: contradicted.map((claim) => `${claim.target}: ${claim.claimed}`) } : {}),
         nativeTools: true,
