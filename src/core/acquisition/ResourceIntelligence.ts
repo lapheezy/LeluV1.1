@@ -332,7 +332,7 @@ export const GAP_SIGNATURES: GapSignature[] = [
   { id: "function-plot", label: "Plot mathematical functions", match: /\b(plot|graph)\s+(?:the\s+)?(?:function|equation|y\s*=|f\(x\))/i, tools: ["math.plot", "creative.chart"], reuse: [], search: ["function plot", "math function graph"] },
   { id: "qr-code", label: "Generate QR codes", match: /\bqr[- ]?codes?\b/i, tools: ["qr.create"], reuse: [], search: ["qr code generator", "qrcode svg"] },
   { id: "video-webm", label: "Render a short video (WebM)", match: /\b(webm|encode (?:a |the )?video|render (?:a |the )?video|make (?:a |the )?(?:short )?(?:video|film))\b/i, tools: ["creative.film", "media.encode"], reuse: [], search: ["webm encoder", "webcodecs muxer"] },
-  { id: "video-mp4", label: "Write MP4 video", match: /\bmp4\b/i, tools: ["media.mp4"], reuse: [], search: ["mp4 muxer", "ffmpeg wasm"] },
+  { id: "video-mp4", label: "Write MP4 video", match: /\bmp4\b/i, tools: ["media.mp4"], reuse: ["mediabunny/package.json"], search: ["mp4 muxer", "ffmpeg wasm"] },
   { id: "audio-convert", label: "Convert audio formats", match: /\b(mp3|wav|ogg|flac)\b.{0,20}\b(to|into)\b/i, tools: ["media.convert"], reuse: [], search: ["audio encoder wasm", "mp3 encoder"] },
   { id: "image-heic", label: "Read HEIC/HEIF images", match: /\bhei[cf]\b/i, tools: ["media.convert"], reuse: [], search: ["heic decoder", "heic to jpeg"] },
   { id: "pdf-text", label: "Extract text from PDFs", match: /\b(read|parse|extract)\b.{0,30}\bpdf\b/i, tools: ["pdf.read", "studio.read"], reuse: ["pdfjs-dist/build/pdf.mjs"], search: ["pdf text extraction", "pdf parser"] },

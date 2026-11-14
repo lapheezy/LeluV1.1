@@ -1,0 +1,49 @@
+CONSOLEARGS ["🟢 [6:41:04 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:41:04 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS ["🟢 [6:42:01 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:42:01 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+[{"t":82,"m":"GET","u":"/api/github/status","done":1416},
+{"t":82,"m":"POST","u":"/api/acquisition","done":1417},
+{"t":1432,"m":"POST","u":"/api/resources/gap","done":2190},
+{"t":2192,"m":"POST","u":"/api/resources/discover","done":2961},
+{"t":2978,"m":"POST","u":"/api/resources/evaluate","done":4518},
+{"t":4579,"m":"GET","u":"/api/voice/status","done":4581},
+{"t":21962,"m":"GET","u":"/api/knowledge/relay?provider=youtube&path=%2Fyoutube%2Fv3%2Fsearch%3Fpart%3Dsnippet%26q%3"},
+{"t":22538,"m":"GET","u":"/api/knowledge/relay?provider=guardian&path=%2Fsearch%3Fq%3DProcedural%2520environment%252"}]
+ROUTING_TRACE {
+ "intent": "search",
+ "stages": "time:0 cognitive-state:0 brain:2 intelligence:1 surface:0",
+ "notes": [
+  "final: owner=acquisition provider=acquisition model=repo-workforce chars=2178"
+ ]
+}
+APPCALLS []
+{
+ "prompt": "What are you missing to give me my film as an MP4? Find a free open-source option.",
+ "firstAnswerTextMs": null,
+ "settledMs": 18539,
+ "modelRequests": 1,
+ "reqs": [
+  {
+   "t": -1,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 4449,
+   "msgs": 3,
+   "sys": 2,
+   "tools": "",
+   "max": 700,
+   "status": 200,
+   "tResp": -1
+  }
+ ],
+ "answer": "Missing capability: Write MP4 video.\nInstalled already, reusable with no new dependency: mediabunny/package.json.\n\nEvaluated (public registry data, no keys, no model call):\n\nmediabunny@1.66.0 [npm] — RECOMMENDED (score 0.94). browser-native: Uses device/browser capabilities. License MPL-2.0 (weak-copyleft); maintenance active (last release 1 d ago); 2 runtime deps (light); 11.3 MB; security low. already installed: no new dependency needed.\n@boundsvg/video@0.11.0 [npm] — RECOMMENDED (score 0.98). browser-native: Uses device/browser capabilities. License MIT OR Apache-2.0 (permissive); maintenan"
+}
+CONSOLEARGS ["🟢 [6:42:59 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:42:59 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS []
+CONSOLEARGS []
