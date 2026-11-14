@@ -21,6 +21,7 @@
  * ==========================================================
  */
 
+import { captureSpendConsent } from "../../../core/spend/SpendConsent";
 import {
   useCallback,
   useEffect,
@@ -898,6 +899,16 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         voiceEngineRef.current.beginStreamingSpeech();
       } catch {
         // contained
+      }
+
+      // The user's OWN words are the only source of spending consent
+      // (core/spend/SpendConsent → plugins/spendPolicy). Agents, tools and
+      // background jobs never reach this line.
+      try {
+        const consent = await captureSpendConsent(prompt || "", "typed");
+        if (consent) context = [context, consent.note].filter((value) => value && value.trim()).join("\n\n");
+      } catch {
+        // Consent capture must never block a turn.
       }
 
       let assistantText: string;

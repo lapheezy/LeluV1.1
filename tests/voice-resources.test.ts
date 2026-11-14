@@ -25,6 +25,10 @@ import type { AddressInfo } from "node:net";
 import { createVoiceApi } from "../plugins/voiceApi";
 import VoiceResourceManager, { isAnotherAccountWorthTrying } from "../src/core/voice/VoiceResourceManager";
 import { DEFAULT_VOICE_IDENTITY, resolveVoiceIdentity } from "../src/core/voice/voiceIdentity";
+import { authorizePaidForTests } from "./support/spendAuthorized";
+
+// These tests exercise paid paths AFTER the user authorized them (see spend-policy.test.ts for the default).
+authorizePaidForTests();
 
 async function serve(readEnv: (k: string) => string | undefined) {
   const api = createVoiceApi(readEnv);

@@ -53,6 +53,7 @@
 
 /** Anything that resolves an environment name, like vite's envReader. */
 import { createRateLimiter } from "./requestGuard.ts";
+import { spendPolicy, spendRefusal } from "./spendPolicy.ts";
 import VoiceResourceManager, { isAnotherAccountWorthTrying } from "../src/core/voice/VoiceResourceManager.ts";
 import { resolveVoiceIdentity, voiceSettingsPayload } from "../src/core/voice/voiceIdentity.ts";
 
@@ -286,8 +287,12 @@ export function createVoiceApi(readEnv?: ReadEnv): {
     }
     const { keyCount, voiceId, modelId, sttModelId } = voiceConfig();
     // Presence, not health: this makes no network call and claims nothing
-    // about whether a credential is still accepted upstream.
-    sendJson(res, { configured: keyCount > 0, stt: keyCount > 0, voiceId, modelId, sttModelId });
+    // about whether a credential is still accepted upstream. ElevenLabs is
+    // paid: without the user's authorization it is reported unavailable, so
+    // the page speaks through LÉLU's free local worker instead.
+    const spend = spendPolicy().check("elevenlabs", { operation: "tts" }, { peek: true });
+    const usable = keyCount > 0 && spend.allowed;
+    sendJson(res, { configured: usable, stt: usable, voiceId, modelId, sttModelId, ...(keyCount > 0 && !spend.allowed ? { spend: spend.code } : {}) });
   }
 
   function handleTts(req: ConnectLikeReq, res: ConnectLikeRes, next: () => void): void {
@@ -352,6 +357,12 @@ export function createVoiceApi(readEnv?: ReadEnv): {
       const identity = voiceIdentity();
       const spokenStyle = voiceSettingsPayload(identity);
       const accounts = new Map(voiceAccounts().map((account) => [account.id, account.key]));
+      const ttsSpend = spendPolicy().check("elevenlabs", { operation: "tts" });
+      if (!ttsSpend.allowed) {
+        sendJson(res, spendRefusal("elevenlabs", ttsSpend, { operation: "tts" }), 402);
+        return;
+      }
+      spendPolicy().consume(ttsSpend.grantId);
       try {
         let lastStatus = 0;
         for (const id of plan.candidates) {
@@ -492,6 +503,12 @@ export function createVoiceApi(readEnv?: ReadEnv): {
         );
         return;
       }
+      const sttSpend = spendPolicy().check("elevenlabs", { operation: "stt" });
+      if (!sttSpend.allowed) {
+        sendJson(res, spendRefusal("elevenlabs", sttSpend, { operation: "stt" }), 402);
+        return;
+      }
+      spendPolicy().consume(sttSpend.grantId);
       const started = Date.now();
       const accounts = new Map(voiceAccounts().map((account) => [account.id, account.key]));
       let lastStatus = 0;

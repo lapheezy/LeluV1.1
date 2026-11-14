@@ -57,6 +57,7 @@
 import { createReadStream, existsSync, statSync } from "node:fs";
 import path from "node:path";
 import { ensureGzipCopy, isCompressibleAsset, selectAssetBody } from "./compressedAsset.ts";
+import { spendPolicy, spendRefusal } from "./spendPolicy.ts";
 import { crossOrigin, readBody, type ConnectLikeReq, type ConnectLikeRes } from "./modelApi.ts";
 import { ForgeStore, type CharacterSlot, type ForgeJob } from "./forgeStore.ts";
 import { buildRecords, type ReferenceClassification, type ReferenceRecord } from "./forgeReferences.ts";
@@ -372,6 +373,17 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
         }
         if (parts.length === 1 && method === "POST") {
           const body = await jsonBody(req);
+          // Planning a job is free; submitting it (approve: true) spends
+          // Meshy credits and needs the user's authorization — the model's
+          // forge.approve tool cannot grant itself one.
+          if (body.approve === true) {
+            const spend = spendPolicy().check("meshy", { operation: "generate" });
+            if (!spend.allowed) {
+              sendJson(res, spendRefusal("meshy", spend, { operation: "generate" }), 402);
+              return;
+            }
+            spendPolicy().consume(spend.grantId);
+          }
           const result = await forge.request({
             character: String(body.character ?? ""),
             kind: String(body.kind ?? ""),
@@ -391,6 +403,12 @@ export function createMeshyForgeApi(readEnv: EnvReader, options: { assetRoot?: s
           return;
         }
         if (id && parts[2] === "approve" && method === "POST") {
+          const spend = spendPolicy().check("meshy", { operation: "generate" });
+          if (!spend.allowed) {
+            sendJson(res, spendRefusal("meshy", spend, { operation: "generate" }), 402);
+            return;
+          }
+          spendPolicy().consume(spend.grantId);
           const body = await jsonBody(req);
           sendJson(res, { ok: true, job: publicJob(await forge.approve(id, { resubmitUncertain: body.resubmitUncertain === true })) });
           return;

@@ -41,7 +41,8 @@ export const DEFAULT_VISION_MODEL = "google/gemma-4-31b-it:free";
  * Verified live through the broker against this credential: 200, and a real
  * `tool_calls` array in the body (not just prose about tools).
  */
-export const DEFAULT_COMPAT_MODEL = "openai/gpt-4o-mini";
+// $0 by default (zero-spend policy); verified to return real tool_calls at cost 0.
+export const DEFAULT_COMPAT_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free";
 
 /** Model ids that delegate the choice to OpenRouter's own pricing rules. */
 const AUTO_ROUTES = new Set(["openrouter/auto", "openrouter/free", "auto", "free"]);

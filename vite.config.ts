@@ -17,6 +17,7 @@ import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
+import { createSpendApi } from "./plugins/spendPolicy.ts";
 import { createSourceCatalogApi } from "./plugins/sourceCatalogApi.ts";
 import { createSelfViewApi } from "./plugins/selfViewApi.ts";
 import { createStudioApi, stopAllStudioBackends } from "./plugins/studioApi.ts";
@@ -286,6 +287,7 @@ export default defineConfig(({ mode, command }) => {
         name: "browse-api",
         configureServer(server: any) {
           browseApi.attach(server.middlewares);
+          createSpendApi().attach(server.middlewares);
           sourceCatalogApi.attach(server.middlewares);
         },
         configurePreviewServer(server: any) {

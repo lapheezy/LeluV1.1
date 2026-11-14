@@ -68,9 +68,13 @@ export const MODEL_DEFAULTS = {
   },
   openrouter: {
     names: ["OPENROUTER_MODEL"],
-    fallback: "openai/gpt-4o-mini",
+    // Zero-spend policy (plugins/spendPolicy.ts): a concrete $0 ":free" model.
+    // Verified 2026-11-14: correct tool_calls, usage.cost 0. Free models share
+    // OpenRouter's daily free-request allowance; a paid model needs the user's
+    // explicit authorization and is refused by the broker without it.
+    fallback: "nvidia/nemotron-3-ultra-550b-a55b:free",
     note:
-      "A concrete, tool-capable model, verified live through the broker (200 with real " +
+      "Was openai/gpt-4o-mini (paid). Earlier: a concrete, tool-capable model, verified live through the broker (200 with real " +
       "tool_calls). Was `openrouter/free`: an alias that routes to the free tier, which " +
       "answered every turn with 429 'free-models-per-day … credits to unlock 1000 free " +
       "model requests per day' while this same credential served openai/gpt-4o-mini " +

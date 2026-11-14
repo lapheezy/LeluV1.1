@@ -282,7 +282,9 @@ function build(): LeluEnvironment {
     groqModel:        opt("VITE_GROQ_MODEL", "openai/gpt-oss-120b"),
     // Concrete, not `openrouter/auto`: the auto route prices the request, and on a
     // key without credit it lands on the free tier, which refuses the turn outright.
-    openrouterModel:  opt("VITE_OPENROUTER_MODEL", "openai/gpt-4o-mini"),
+    // A $0 ":free" model by default (zero-spend policy, plugins/spendPolicy.ts);
+    // a paid model here is refused by the broker unless the user authorized it.
+    openrouterModel:  opt("VITE_OPENROUTER_MODEL", "nvidia/nemotron-3-ultra-550b-a55b:free"),
     cerebrasModel:    opt("VITE_CEREBRAS_MODEL", "llama3.1-8b"),
     mistralModel:     opt("VITE_MISTRAL_MODEL", "mistral-small-latest"),
     fireworksModel:   opt("VITE_FIREWORKS_MODEL", "accounts/fireworks/models/llama-v3p1-8b-instruct"),

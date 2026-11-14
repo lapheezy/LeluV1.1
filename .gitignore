@@ -105,3 +105,6 @@ __pycache__/
 
 # Pre-compressed copies of immutable Forge assets (plugins/compressedAsset.ts)
 .cache/asset-gzip/
+
+# Runtime state (spend authorizations + audit: plugins/spendPolicy.ts)
+.lelu-state/

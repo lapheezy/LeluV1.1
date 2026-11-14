@@ -24,6 +24,10 @@ import test from "node:test";
 
 import { createModelApi, BROKERED, brokerPath } from "../plugins/modelApi";
 import { endpointUrl, endpoint } from "../src/core/Endpoints";
+import { authorizePaidForTests } from "./support/spendAuthorized";
+
+// These tests exercise paid paths AFTER the user authorized them (see spend-policy.test.ts for the default).
+authorizePaidForTests();
 
 /* ------------------------------ harness ------------------------------ */
 

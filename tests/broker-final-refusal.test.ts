@@ -8,6 +8,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createModelApi } from "../plugins/modelApi";
+import { authorizePaidForTests } from "./support/spendAuthorized";
+
+// These tests exercise paid paths AFTER the user authorized them (see spend-policy.test.ts for the default).
+authorizePaidForTests();
 
 async function call(api: ReturnType<typeof createModelApi>, url: string) {
   let handler: ((req: unknown, res: unknown, next: () => void) => void) | null = null;

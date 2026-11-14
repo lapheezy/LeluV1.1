@@ -11,6 +11,10 @@ import type { AddressInfo } from "node:net";
 import { createVoiceApi, usageFromHeaders } from "../plugins/voiceApi";
 import { normalizeHerName, transcribeWithElevenLabs } from "../src/core/voice/elevenLabsStt";
 import UsageLedger from "../src/core/observability/UsageLedger";
+import { authorizePaidForTests } from "./support/spendAuthorized";
+
+// These tests exercise paid paths AFTER the user authorized them (see spend-policy.test.ts for the default).
+authorizePaidForTests();
 
 async function serve(readEnv: (k: string) => string | undefined) {
   const api = createVoiceApi(readEnv);

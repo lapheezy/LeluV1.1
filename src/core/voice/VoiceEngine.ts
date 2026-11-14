@@ -1675,7 +1675,10 @@ class VoiceEngine {
       // A shared screen rides along with the spoken turn, as with typed ones.
       const { default: ScreenShare } = await import("../perception/ScreenShare");
       const seen = ScreenShare.getInstance().attachmentsFor(text);
-      const response = await ai.chat(text, seen.length > 0 ? seen : undefined, undefined, conversationId ? { conversationId } : undefined);
+      // Spoken words are the user's own: the second (and last) consent source.
+      const { captureSpendConsent } = await import("../spend/SpendConsent");
+      const consent = await captureSpendConsent(text, "spoken").catch(() => null);
+      const response = await ai.chat(text, seen.length > 0 ? seen : undefined, consent?.note, conversationId ? { conversationId } : undefined);
 
       if (this._turn?.id === turnId) {
         // A failure notice is not her answer: it is shown in the

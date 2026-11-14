@@ -26,6 +26,10 @@ import { join } from "node:path";
 
 import { bridgeScriptBody, BRIDGED_KEYS } from "../plugins/runtimeKeyBridge";
 import { createAiProxyApi } from "../plugins/aiProxyApi";
+import { authorizePaidForTests } from "./support/spendAuthorized";
+
+// These tests exercise paid paths AFTER the user authorized them (see spend-policy.test.ts for the default).
+authorizePaidForTests();
 
 // The relay now requires a signed-in user (plugins/requestGuard.ts, tested in
 // tests/security-containment.test.ts). These tests are about WHERE each key

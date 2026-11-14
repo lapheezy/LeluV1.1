@@ -15,6 +15,7 @@
  * ==========================================================
  */
 
+import { createSpendPolicy, setSpendPolicyForTests } from "../plugins/spendPolicy";
 import assert from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { createServer } from "node:http";
@@ -30,7 +31,9 @@ import { dispatchToolCall } from "../src/core/tools/ToolDispatcher";
 import ToolRegistry from "../src/core/tools/ToolRegistry";
 import AutonomyGate from "../src/core/cognition/AutonomyGate";
 
-test("LÉLU plans with forge.plan; forge.approve spends only at autonomy level 3", async () => {
+test("LÉLU plans with forge.plan; forge.approve spends only at autonomy level 3 AND with the user's authorization", async () => {
+  const spend = createSpendPolicy({ stateDir: mkdtempSync(path.join(tmpdir(), "lelu-spend-")), read: () => undefined });
+  setSpendPolicyForTests(spend);
   const fake = await startFakeMeshy();
   const root = mkdtempSync(path.join(tmpdir(), "lelu-forge-tools-"));
   const api = createMeshyForgeApi((n) => ({ MESHY_API_KEY: KEY, MESHY_API_URL: fake.base })[n], { assetRoot: root, poll: false });
@@ -83,6 +86,15 @@ test("LÉLU plans with forge.plan; forge.approve spends only at autonomy level 3
     assert.equal(fake.seen.filter((s) => s.method === "POST").length, 0, "nothing reached Meshy");
 
     gate.setLevel(3);
+    // Autonomy level 3 is NOT permission to spend: without the user's own
+    // authorization the model's forge_approve is refused on the server.
+    const unpaid = await dispatchToolCall({ id: "c3b", name: "forge_approve", arguments: { jobId } }, "t-forge");
+    assert.equal(unpaid.ok, false);
+    assert.match(unpaid.content, /paid|authori[sz]/i);
+    assert.equal(fake.seen.filter((s) => s.method === "POST").length, 0, "still nothing reached Meshy");
+
+    // The user authorizes Meshy for this job (what their own words create).
+    spend.authorize({ service: "meshy", maxRequests: 1, consent: "typed: I authorize Meshy for this job" });
     const approved = await dispatchToolCall({ id: "c4", name: "forge_approve", arguments: { jobId } }, "t-forge");
     assert.equal(approved.ok, true, approved.content);
     assert.match(approved.content, /PENDING/);
@@ -92,6 +104,7 @@ test("LÉLU plans with forge.plan; forge.approve spends only at autonomy level 3
     assert.equal(job.ok, true, job.content);
     assert.match(job.content, /IN_PROGRESS at 40%/);
   } finally {
+    setSpendPolicyForTests(null);
     gate.setLevel(previousLevel);
     globalThis.fetch = realFetch;
     await new Promise<void>((resolve) => server.close(() => resolve()));

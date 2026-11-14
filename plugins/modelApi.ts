@@ -38,6 +38,7 @@
  * ==========================================================
  */
 
+import { spendPolicy, spendRefusal } from "./spendPolicy.ts";
 import { endpoint, type EndpointId } from "../src/core/Endpoints.ts";
 
 export type EnvReader = (name: string) => string | undefined;
@@ -557,6 +558,13 @@ function logTurn(trace: TurnTrace): void {
   console.warn(`[model broker] REFUSED ${head} error="${trace.error}"`);
 }
 
+/**
+ * OpenRouter's default when no model is configured: a $0 ":free" model that
+ * makes tool calls (verified 2026-11-14: correct world_object call, cost 0).
+ * Must match src/core/Environment.ts.
+ */
+export const DEFAULT_FREE_OPENROUTER_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free";
+
 export function createModelApi(readEnv: EnvReader) {
   warnAboutPrefixedCredentials(readEnv);
   const limiter = createRateLimiter(rateLimitFromEnv(readEnv));
@@ -600,6 +608,12 @@ export function createModelApi(readEnv: EnvReader) {
    * of the chain while a fresh account sat unused. Duplicates collapse, because
    * the same key stored under two names is one key.
    */
+  /** The model the page asks this provider for by default (status decides availability on it). */
+  const defaultModelFor = (id: string): string | undefined => {
+    if (id !== "openrouter") return undefined;
+    return (readEnv("VITE_OPENROUTER_MODEL") || readEnv("OPENROUTER_MODEL") || DEFAULT_FREE_OPENROUTER_MODEL).trim();
+  };
+
   const credentialsFor = (provider: BrokeredProvider): string[] => {
     const keys: string[] = [];
     for (const name of provider.keyNames) {
@@ -654,7 +668,10 @@ export function createModelApi(readEnv: EnvReader) {
         // Configured AND not known-rejected. A provider holding a revoked key
         // is not available, and saying otherwise sends every turn through it.
         const configured = credentialFor(provider).length > 0;
-        status[id] = configured && !unauthorized.has(id) && brokerAllows(id, readEnv);
+        // Paid capacity without authorization is not available: the page
+        // must not even try it (and so never loops on a refusal).
+        const spendOk = spendPolicy().check(id, { model: defaultModelFor(id), operation: "chat" }, { peek: true }).allowed;
+        status[id] = configured && !unauthorized.has(id) && brokerAllows(id, readEnv) && spendOk;
 
         // CONFIGURED is the honest answer when nothing has been observed yet;
         // it is NOT a capability claim. Every stronger state needs evidence.
@@ -667,6 +684,7 @@ export function createModelApi(readEnv: EnvReader) {
         let state: string;
         if (!configured) state = "UNCONFIGURED";
         else if (!brokerAllows(id, readEnv)) state = "POLICY_DISABLED";
+        else if (!spendOk) state = "SPEND_NOT_AUTHORIZED";
         else if (unauthorized.has(id)) state = "COOLDOWN";
         else state = seen?.state ?? "CONFIGURED";
         states[id] = {
@@ -760,6 +778,28 @@ export function createModelApi(readEnv: EnvReader) {
       // Held so the trace below can measure what was actually sent. Read once:
       // the body stream cannot be consumed twice.
       const sentBody = req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req);
+
+      /*
+       * GLOBAL SPENDING POLICY (plugins/spendPolicy.ts). Every billable
+       * model call passes here, from any page code, agent, background job
+       * or delegated tool. A paid provider/model without the user's explicit,
+       * scoped authorization is refused BEFORE anything leaves the server.
+       */
+      let spendModel: string | undefined;
+      try {
+        const parsed = sentBody && sentBody.length ? (JSON.parse(sentBody.toString("utf8")) as { model?: unknown }) : null;
+        spendModel = typeof parsed?.model === "string" ? parsed.model : undefined;
+      } catch {
+        spendModel = undefined;
+      }
+      const spendOperation = /audio\/transcriptions/.test(rest ?? "") ? "transcription" : "chat";
+      const spend = req.method === "GET" || req.method === "HEAD"
+        ? { allowed: true, cost: "free" as const, why: "listing", code: "free" }
+        : spendPolicy().check(providerId, { model: spendModel, operation: spendOperation });
+      if (!spend.allowed) {
+        sendJson(res, spendRefusal(providerId, spend, { model: spendModel, operation: spendOperation }), 402);
+        return;
+      }
       const sendUpstream = (credential: string, body: Buffer | undefined = sentBody) =>
         fetch(target, {
           method: req.method ?? "POST",
@@ -915,6 +955,18 @@ export function createModelApi(readEnv: EnvReader) {
       // Read a non-streamed body once, so the contract can be judged from what
       // actually came back rather than from the status code alone.
       const bodyText = isEventStream ? "" : await upstream.text();
+      if (spend.code === "authorized" && upstream.ok) {
+        // What the authorized call actually cost, where the provider says
+        // (OpenRouter reports usage.cost); otherwise the request is counted.
+        let usd: number | undefined;
+        try {
+          const cost = (JSON.parse(bodyText || "{}") as { usage?: { cost?: unknown } }).usage?.cost;
+          usd = typeof cost === "number" ? cost : undefined;
+        } catch {
+          usd = undefined;
+        }
+        spendPolicy().consume((spend as { grantId?: string }).grantId, { usd });
+      }
       const wantsCompletion = /chat\/completions|\/messages|:generateContent/i.test(rest ?? "");
 
       // One line per turn, from the only vantage point that sees both what

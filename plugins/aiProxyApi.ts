@@ -57,6 +57,7 @@
  * ==========================================================
  */
 
+import { spendPolicy, spendRefusal } from "./spendPolicy.ts";
 import { createGuard, sendRefusal, type Guard, type GuardRequest } from "./requestGuard.ts";
 
 interface ConnectLikeReq {
@@ -358,6 +359,16 @@ export function createAiProxyApi(env: EnvReader, options: AiProxyApiOptions = {}
           if (method === "POST" && isCrossOrigin(req)) {
             sendJson(res, { ok: false, error: "Cross-origin requests may not use this server's credentials." }, 403);
             return;
+          }
+          // A relayed POST to a paid API (Meshy generation) spends money:
+          // the global spending policy decides, not the caller.
+          if (method === "POST") {
+            const spend = spendPolicy().check(id, { operation: "generate" });
+            if (!spend.allowed) {
+              sendJson(res, spendRefusal(id, spend, { operation: "generate" }), 402);
+              return;
+            }
+            spendPolicy().consume(spend.grantId);
           }
 
           // The client sends the upstream path AND its query string as one

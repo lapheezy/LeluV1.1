@@ -29,6 +29,10 @@ import AnthropicProvider, {
 } from "../src/providers/AnthropicProvider";
 import type { AIMessage, AIRequest } from "../src/providers/AIProvider";
 import { createModelApi, createRateLimiter } from "../plugins/modelApi";
+import { authorizePaidForTests } from "./support/spendAuthorized";
+
+// These tests exercise paid paths AFTER the user authorized them (see spend-policy.test.ts for the default).
+authorizePaidForTests();
 
 // These tests exercise the Anthropic adapter itself, which is opt-in
 // (core/model/ProviderPolicy). Each test file runs in its own process.
