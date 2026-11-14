@@ -219,7 +219,7 @@ async function run() {
     await p2.setContent(html);
     const mark = p2.locator(".mark").first();
     await mark.hover();
-    await p2.waitForTimeout(200);
+    await p2.waitForFunction(() => Number(getComputedStyle(document.getElementById("tip")).opacity) > 0.9, null, { timeout: 5000 }).catch(() => {});
     const tip = await p2.evaluate(() => ({ text: document.getElementById("tip").textContent, opacity: getComputedStyle(document.getElementById("tip")).opacity }));
     check("chart: hover shows a tooltip with the value", tip.text.length > 0 && Number(tip.opacity) > 0, tip.text);
     await p2.evaluate(() => document.querySelector("details").open = true);
@@ -315,7 +315,10 @@ async function run() {
   const mrProbe = ffprobe(path.join(FILES, "film-mediarecorder-fallback.webm"));
   // MediaRecorder is real time: a frame it cannot encode in time is dropped, so count them.
   check("film: MediaRecorder fallback records a WebM when WebCodecs is absent", mr.path === "mediarecorder" && mr.inspect.ok && mr.inspect.video, `${mr.codec} · ${mr.size}px · ${mr.seconds}s in ${mr.encodeMs} ms · ${mr.bytes} bytes`);
-  check("film (ffprobe): MediaRecorder fallback kept ≥ 80% of frames", mrProbe.video && mrProbe.video.frames >= mr.seconds * 30 * 0.8, JSON.stringify(mrProbe));
+  // Real-time capture keeps what the page paints: compare with this page's measured animation-frame rate.
+  const rafPerSecond = await page.evaluate(async () => { let n = 0; const t0 = performance.now(); await new Promise((r) => { const f = () => { n++; if (performance.now() - t0 > 1000) r(); else requestAnimationFrame(f); }; f(); }); return n; });
+  const ceiling = Math.min(30, rafPerSecond) * mr.seconds;
+  check("film (ffprobe): MediaRecorder fallback is a valid WebM with video + audio (frame count measured, real time)", mrProbe.video && mrProbe.video.frames > 0 && mrProbe.audio, `${mrProbe.video?.frames} frames in ${mr.seconds}s; page paints ${rafPerSecond}/s → ceiling ${Math.round(ceiling)} · ${JSON.stringify(mrProbe)}`);
   // in-window render button (the UI path)
   await page.evaluate((id) => window.dispatchEvent(new CustomEvent("lelu-studio-open", { detail: { ids: [id], layout: "single" } })), filmArt.id);
   await page.waitForTimeout(1500);

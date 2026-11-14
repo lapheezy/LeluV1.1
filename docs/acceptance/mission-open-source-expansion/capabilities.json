@@ -1,6 +1,6 @@
 {
   "paths": {
-    "render3d": "webgl2",
+    "render3d": "webgpu",
     "video": "webcodecs",
     "videoCodec": "vp9",
     "audio": "offline-audio",
@@ -8,8 +8,8 @@
     "save": "file-system-access"
   },
   "webgpu": {
-    "available": false,
-    "detail": "no adapter (blocklisted GPU or headless)"
+    "available": true,
+    "detail": "google swiftshader"
   },
   "webgl2": {
     "available": true,

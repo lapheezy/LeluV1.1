@@ -396,7 +396,15 @@ export async function renderFilm(program: VideoProgram, options: RenderOptions |
   const MR = (globalThis as unknown as { MediaRecorder?: typeof MediaRecorder }).MediaRecorder;
   const type = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"].find((t) => MR?.isTypeSupported(t));
   if (!MR || !type || typeof canvas.captureStream !== "function") throw new Error("this browser can neither encode video with WebCodecs nor record a canvas with MediaRecorder");
-  const stream = canvas.captureStream(p.fps);
+  // Explicit frames: captureStream(0) + requestFrame() after every draw, on a
+  // canvas attached to the page. A detached canvas with a timed capture kept
+  // 4 of 180 frames in the app (measured); real-time capture can only keep
+  // what the page actually paints, so the result is limited by the device's
+  // animation frame rate (≈16/s on the headless VM used for acceptance).
+  Object.assign(canvas.style, { position: "fixed", left: "-10000px", top: "0", pointerEvents: "none" });
+  document.body.appendChild(canvas);
+  const stream = canvas.captureStream(0);
+  const videoTrack = stream.getVideoTracks()[0] as MediaStreamTrack & { requestFrame?: () => void };
   let audioCtx: AudioContext | null = null;
   if (audio) {
     audioCtx = new AudioContext({ sampleRate: audio.sampleRate });
@@ -417,6 +425,7 @@ export async function renderFilm(program: VideoProgram, options: RenderOptions |
     const tick = () => {
       const t = (performance.now() - t0) / 1000;
       drawFrame(ctx, p, Math.min(t, seconds - 1e-3), images);
+      videoTrack.requestFrame?.();
       onProgress?.(t / seconds);
       if (t >= seconds) resolve(); else requestAnimationFrame(tick);
     };
@@ -425,6 +434,7 @@ export async function renderFilm(program: VideoProgram, options: RenderOptions |
   recorder.stop();
   await done;
   await audioCtx?.close();
+  canvas.remove();
   const bytes = new Uint8Array(await new Blob(chunks, { type }).arrayBuffer());
   return { bytes, mime: "video/webm", seconds, frames, path: "mediarecorder", codec: type, audio: !!audio, encodeMs: Math.round(performance.now() - started), width: p.width, height: p.height, sizing: size.sizing };
 }
