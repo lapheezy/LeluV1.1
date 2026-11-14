@@ -137,7 +137,13 @@ export function sceneAt(p: VideoProgram, t: number): { index: number; local: num
 type Ctx = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 type Drawable = CanvasImageSource | null;
 
-async function svgToImage(svg: string): Promise<Drawable> {
+/**
+ * Decode an SVG once and rasterise it ONCE, at the largest size a camera move
+ * needs (×1.12). Measured: drawing the vector image every frame made Chromium
+ * re-rasterise a 340 KB flow-field SVG 30 times a second, and a 17 s film did
+ * not finish in 14 minutes on a 4-vCPU machine; a bitmap is a texture copy.
+ */
+async function svgToImage(svg: string, w: number, h: number): Promise<Drawable> {
   const blob = new Blob([svg], { type: "image/svg+xml" });
   const url = URL.createObjectURL(blob);
   try {
@@ -145,18 +151,23 @@ async function svgToImage(svg: string): Promise<Drawable> {
     img.decoding = "async";
     img.src = url;
     await img.decode();
-    return img;
+    const bw = Math.round(w * 1.12), bh = Math.round(h * 1.12);
+    const canvas = typeof OffscreenCanvas !== "undefined" ? new OffscreenCanvas(bw, bh) : Object.assign(document.createElement("canvas"), { width: bw, height: bh });
+    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
+    if (!ctx) return img;
+    ctx.drawImage(img, 0, 0, bw, bh);
+    return typeof createImageBitmap === "function" ? await createImageBitmap(canvas) : (canvas as CanvasImageSource);
   } finally {
-    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    URL.revokeObjectURL(url);
   }
 }
 
 async function prepareVisual(v: SceneVisual, w: number, h: number): Promise<Drawable> {
-  if (v.type === "generative") return svgToImage(renderGenerative(v.program).svg);
-  if (v.type === "chart") return svgToImage(vizSvg(v.program, { width: Math.round(w * 0.8), height: Math.round(h * 0.7), background: "#ffffff" }));
+  if (v.type === "generative") return svgToImage(renderGenerative(v.program).svg, w, h);
+  if (v.type === "chart") return svgToImage(vizSvg(v.program, { width: Math.round(w * 0.8), height: Math.round(h * 0.7), background: "#ffffff" }), w * 0.8, h * 0.7);
   if (v.type === "diagram") {
     const r = await renderDiagramSvg(v.program);
-    return r.ok ? svgToImage(r.svg.replace(/<svg /, `<svg width="${Math.round(w * 0.8)}" height="${Math.round(h * 0.7)}" `)) : null;
+    return r.ok ? svgToImage(r.svg.replace(/<svg /, `<svg width="${Math.round(w * 0.8)}" height="${Math.round(h * 0.7)}" `), w * 0.8, h * 0.7) : null;
   }
   if (v.type === "image") { const img = new Image(); img.src = v.dataUrl; await img.decode(); return img; }
   return null;
