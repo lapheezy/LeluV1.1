@@ -21,6 +21,7 @@
  * ==========================================================
  */
 
+import { useHomeInFront } from "../genesis/home/homePresence";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { ThreeEvent } from "@react-three/fiber";
@@ -708,6 +709,7 @@ export default function SpatialPortals() {
 
   // LOD: the portal field belongs to the wide Cosmos view. Once you are
   // inside an environment the portals dim rather than paint under it.
+  const homeShowing = useHomeInFront();
   const wide = state.current === "core" || state.current === "cosmos" || state.current === "portal";
   const records = usePortalRecords();
   // The ring is fitted to the real drawing surface, so the same field is
@@ -999,7 +1001,7 @@ export default function SpatialPortals() {
           state={state}
           position={portal.position}
           selected={selected === portal.id}
-          showLabel={wide}
+          showLabel={wide && !homeShowing}
           onPressStart={beginPress}
           onPressCancel={cancelPress}
           onActivateClick={handleActivateClick}

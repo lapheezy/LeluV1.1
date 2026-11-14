@@ -18,7 +18,7 @@
  * ==========================================================
  */
 
-import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   Activity, Aperture, BarChart3, Bell, BookOpen, Box, Brain, Circle, Code2, Compass,
   Crown, FileText, Film, Fingerprint, Flower2, Folder, Gauge, Globe2, History, Layers,
@@ -33,6 +33,7 @@ import { useCloud, useExecutive, useHomeStore, useNotifications, useProjects, us
 import { describeWeather } from "./homeWeather";
 import { launch, restoreLayout } from "./homeActions";
 import PlaceInWorldButton from "../spatial/PlaceInWorldButton";
+import { announceHome } from "./homePresence";
 import "./cosmosHome.css";
 
 /*
@@ -116,6 +117,8 @@ export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLib
   const home = useHomeStore();
   const { weather, error: weatherError, needsPlace, locate } = useWeather();
   const rootRef = useRef<HTMLDivElement | null>(null);
+  // While the home is in front, the scene's portal name chips stay hidden (they showed through the cards).
+  useEffect(() => announceHome(), []);
 
   const open = (id: GenesisPanel, from?: Element | null) => launch(genesis, id, from ?? null);
 

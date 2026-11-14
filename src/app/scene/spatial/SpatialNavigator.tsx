@@ -98,7 +98,10 @@ export default function SpatialNavigator() {
   const surface = useSurface();
   const workspace = useWorkspace();
   const compact = chatFillsScreen(workspace);
-  const [open, setOpen] = useState(() => !compact);
+  /* Collapsed until the person opens it. Opened by default it covered the
+     home's Notifications and App Library cards on desktop right after guest
+     entry; the rail itself stays visible, one tap away. */
+  const [open, setOpen] = useState(false);
 
   /* Portals and the workspace layout are part of THIS interface, not a
      separate settings screen: the rail that navigates the world also names
@@ -219,6 +222,17 @@ export default function SpatialNavigator() {
       if (frame) cancelAnimationFrame(frame);
     };
   }, [chatOpen, hidden, open]);
+
+  /* A tap or click outside the open menu closes it, like any menu. */
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const nav = navRef.current;
+      if (nav && event.target instanceof Node && !nav.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => document.removeEventListener("pointerdown", onPointerDown, true);
+  }, [open]);
 
   if (hidden) return null;
 
