@@ -19,6 +19,8 @@ import "./studio.css";
 // Each editor (and its library) loads only when an artifact of its kind is opened.
 const GraphEditor = lazy(() => import("./GraphEditor"));
 const DrawingEditor = lazy(() => import("./DrawingEditor"));
+// Generative art, Mermaid, interactive charts, 3D scenes and films (creative kit).
+const VisualViewer = lazy(() => import("./VisualViewer"));
 
 export default function StudioArtifactWindow({ artifactId, onClose }: { artifactId: string; onClose: () => void }) {
   const store = useStudioStore();
@@ -103,13 +105,20 @@ export default function StudioArtifactWindow({ artifactId, onClose }: { artifact
           </div>
         ) : null}
 
-        {revision.spec.kind === "graph" || revision.spec.kind === "drawing" ? (
+        {revision.spec.kind === "visual" ? (
+          <Suspense fallback={<p className="lst-note" role="status">Opening the {revision.spec.medium} view…</p>}>
+            <VisualViewer key={revision.rev} artifact={artifact} rev={revision.rev} spec={revision.spec} />
+          </Suspense>
+        ) : revision.spec.kind === "graph" || revision.spec.kind === "drawing" ? (
           <Suspense fallback={<p className="lst-note" role="status">Opening the {revision.spec.kind === "graph" ? "graph" : "drawing"} editor…</p>}>
             {/* "latest" keeps one editor across its own saves; an earlier revision opens read-only. */}
             {revision.spec.kind === "graph" ? (
               <GraphEditor key={viewRev ?? "latest"} artifactId={artifact.id} spec={revision.spec} readOnly={revision.rev !== latest.rev} />
             ) : (
-              <DrawingEditor key={viewRev ?? "latest"} artifactId={artifact.id} spec={revision.spec} readOnly={revision.rev !== latest.rev} />
+              <>
+                <DrawingEditor key={viewRev ?? "latest"} artifactId={artifact.id} spec={revision.spec} readOnly={revision.rev !== latest.rev} />
+                <VisualViewer artifact={artifact} rev={revision.rev} spec={revision.spec} />
+              </>
             )}
           </Suspense>
         ) : (

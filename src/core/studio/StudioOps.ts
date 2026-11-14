@@ -13,6 +13,7 @@
  * ==========================================================
  */
 
+import { describeVisual, normalizeVisualSpec } from "../creative/kit/VisualArtifacts";
 import type { ArtifactSpec, Block, Cell, ChartKind, ChartSpec, DeckSpec, DocumentSpec, DrawingSpec, GraphEdgeSpec, GraphNodeSpec, GraphSpec, SheetSpec, SlideSpec, Source, WorkbookSpec } from "./StudioTypes";
 
 export type Normalized = { ok: true; spec: ArtifactSpec } | { ok: false; reason: string };
@@ -243,7 +244,8 @@ export function normalizeSpec(input: unknown): Normalized {
     };
     return { ok: true, spec };
   }
-  return { ok: false, reason: `unknown kind “${kind}”: use document, deck, workbook, graph or drawing` };
+  if (kind === "visual") return normalizeVisualSpec(input, title, author);
+  return { ok: false, reason: `unknown kind “${kind}”: use document, deck, workbook, graph, drawing or visual` };
 }
 
 /* ------------------------------------------------------------------ *
@@ -289,7 +291,7 @@ function mergeChart(base: ChartSpec, patch: Record<string, unknown>, where: stri
 export function applyOps(spec: ArtifactSpec, ops: StudioOp[]): OpsResult {
   const next = JSON.parse(JSON.stringify(spec)) as ArtifactSpec;
   const changes: string[] = [];
-  if (next.kind === "graph" || next.kind === "drawing") {
+  if (next.kind === "graph" || next.kind === "drawing" || next.kind === "visual") {
     // Graphs and drawings are edited in their own editors and revised
     // with a full spec; the only op they take is a new title.
     for (const [n, op] of ops.entries()) {
@@ -436,6 +438,7 @@ export function compareSpecs(a: ArtifactSpec, b: ArtifactSpec): string[] {
     s.kind === "document" ? s.blocks.map((x) => `${x.type}: ${x.type === "chart" ? `${x.chart.kind} ${x.chart.title ?? ""} ${x.chart.series.map((se) => `${se.name}=${se.values.join("/")}`).join(" ")}` : x.type === "table" ? `${x.columns.join("|")} ×${x.rows.length}` : x.type === "bullets" ? x.items.join(" · ") : x.type === "image" ? x.caption ?? "image" : x.text}`)
     : s.kind === "graph" ? [...s.nodes.map((x) => `node ${x.label}${x.type ? ` (${x.type})` : ""}${x.group ? ` in ${x.group}` : ""}`), ...s.edges.map((e) => `edge ${e.from} → ${e.to}${e.label ? ` “${e.label}”` : ""}`)]
     : s.kind === "drawing" ? s.scene.elements.map((el) => { const e = el as { type?: string; text?: string; id?: string }; return `${e.type ?? "element"}${e.text ? `: ${e.text}` : ""} [${e.id ?? "?"}]`; })
+    : s.kind === "visual" ? describeVisual(s).split("\n")
     : s.kind === "deck" ? s.slides.map((x, i) => `slide ${i + 1}: ${x.title}${x.bullets ? ` — ${x.bullets.join(" · ")}` : ""}${x.chart ? ` [${x.chart.kind} chart]` : ""}${x.table ? " [table]" : ""}${x.notes ? ` (notes: ${x.notes})` : ""}`)
     : s.sheets.flatMap((sh) => [`sheet ${sh.name}: ${sh.columns.join("|")}`, ...sh.rows.map((r, i) => `${sh.name} row ${i + 2}: ${r.map((c) => (typeof c === "object" && c ? `=${(c as { formula: string }).formula}` : String(c ?? ""))).join("|")}`), ...(sh.charts ?? []).map((c) => `${sh.name} chart: ${c.kind}`)]);
   const la = lines(a);

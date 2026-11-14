@@ -22,6 +22,7 @@ import COMMAND_CENTER_TOOL_DEFINITIONS from "../acquisition/CommandCenterToolDef
 import GitHubIntegration from "../engineering/GitHubIntegration";
 import SandboxFS from "../engineering/SandboxFS";
 import UIActionBus from "../cognition/UIActionBus";
+import type { CapabilityProfile } from "../creative/kit/CapabilityProfiles";
 
 export type RiskLevel = 0 | 1 | 2 | 3 | 4;
 
@@ -47,6 +48,8 @@ export interface ToolDefinition {
   dependency?: string;
   executionRoute?: string;
   verificationMethod?: string;
+  /** Where it runs, offline/network/credentials, limits, license, resources, fallbacks. */
+  profile?: CapabilityProfile;
 }
 
 type ToolListener = (tools: ToolDefinition[]) => void;

@@ -5,7 +5,7 @@
  */
 
 import { useRef, useState } from "react";
-import { FilePlus2, FileSpreadsheet, FileText, Network, PenTool, Presentation, Upload, Workflow } from "lucide-react";
+import { FilePlus2, FileSpreadsheet, FileText, Network, PenTool, Presentation, Sparkles, Upload, Workflow } from "lucide-react";
 import GenesisWindowFrame from "../GenesisWindowFrame";
 import { artifactGist, firstChartSvg } from "../../../../core/studio/StudioPreview";
 import type { StudioArtifact } from "../../../../core/studio/StudioStore";
@@ -15,7 +15,7 @@ import { KIND_LABEL, openArtifacts, useStudioStore } from "./useStudio";
 import PlaceInWorldButton from "../spatial/PlaceInWorldButton";
 import "./studio.css";
 
-export const KIND_ICON = { document: FileText, deck: Presentation, workbook: FileSpreadsheet, graph: Network, drawing: PenTool } as const;
+export const KIND_ICON = { document: FileText, deck: Presentation, workbook: FileSpreadsheet, graph: Network, drawing: PenTool, visual: Sparkles } as const;
 
 const BLANK = {
   document: { kind: "document", title: "Untitled document", blocks: [{ type: "heading", level: 1, text: "Untitled document" }, { type: "paragraph", text: "Ask LÉLU to write or revise this." }] },

@@ -87,3 +87,12 @@ test("'find a free open-source tool' goes to resource intelligence, not the stor
   assert.equal(detectIntelligenceIntent("What capability are you missing to typeset LaTeX? Find free open-source tools for it."), null);
   assert.equal(detectIntelligenceIntent("which repository could provide the missing capability?")?.kind, "repositories");
 });
+
+test("Job 2's creative-kit tools count as coverage; MP4 stays a real gap", () => {
+  const tools = ["creative.film", "creative.scene3d", "creative.export", "creative.chart", "data.query", "world.export"];
+  const video = detectCapabilityGaps("make a short video and also give me an mp4", tools);
+  assert.deepEqual(video.covered.map((c) => c.tool), ["creative.film"]);
+  assert.deepEqual(video.missing.map((m) => m.id), ["video-mp4"]);
+  assert.equal(detectCapabilityGaps("export it as a glb", tools).missing.length, 0);
+  assert.equal(detectCapabilityGaps("find the arxiv papers on this", tools).missing.length, 0);
+});

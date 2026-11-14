@@ -82,3 +82,17 @@
 .lst-graph, .lst-drawing { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; gap: 6px; }
 .lst-graph-canvas, .lst-drawing-canvas { position: relative; flex: 1 1 auto; min-height: 320px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255, 236, 252, 0.14); background: #120d24; touch-action: none; }
 .lst-input { min-width: 0; flex: 0 1 220px; padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255, 236, 252, 0.2); background: rgba(24, 16, 52, 0.7); color: inherit; font: inherit; }
+
+/* Creative kit visuals (generative art, diagrams, charts, 3D, films) */
+.lst-visual { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.lst-visual .lst-preview { min-height: 360px; }
+.lst-diagram { background: #120e24; border-radius: 10px; padding: 12px; overflow: auto; max-height: 60vh; }
+.lst-diagram svg { max-width: 100%; height: auto; }
+.lst-scene-canvas { width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: #0b0816; }
+.lst-scene-canvas canvas { display: block; width: 100% !important; height: 100% !important; }
+.lst-film { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.lst-film-video { width: 100%; border-radius: 10px; background: #000; }
+.lst-visual-report { white-space: pre-wrap; font-size: 11.5px; margin: 0; padding: 8px 10px; border-radius: 8px; background: rgba(52, 211, 153, 0.08); }
+.lst-visual-report.bad { background: rgba(248, 113, 113, 0.1); }
+.lst-visual .spin { animation: lst-spin 1s linear infinite; }
+@keyframes lst-spin { to { transform: rotate(360deg); } }

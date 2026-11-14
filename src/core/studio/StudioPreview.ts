@@ -7,6 +7,7 @@
  */
 
 import { chartToSvg } from "./ChartSvg";
+import { visualGist, visualPreviewHtml } from "../creative/kit/VisualArtifacts";
 import { cellText, DEFAULT_THEME, type ArtifactSpec, type ChartSpec, type DeckSpec, type GraphSpec, type SlideSpec } from "./StudioTypes";
 import { documentToHtml, workbookToHtml } from "./writers/textWriters";
 import { slideLayoutOf } from "./writers/pptxWriter";
@@ -48,6 +49,7 @@ img{max-width:100%;max-height:70%;display:block;margin:auto}.num{position:absolu
 export function previewHtml(spec: ArtifactSpec): string {
   if (spec.kind === "graph") return graphPreviewHtml(spec);
   if (spec.kind === "drawing") return `<!DOCTYPE html><html><head><meta charset="utf-8"/></head><body style="font:14px system-ui;color:#2a2440;padding:16px"><h1 style="font-size:18px">${esc(spec.title)}</h1><p>${spec.scene.elements.length} drawing element${spec.scene.elements.length === 1 ? "" : "s"} — open it to draw.</p></body></html>`;
+  if (spec.kind === "visual") return visualPreviewHtml(spec);
   if (spec.kind === "deck") return deckPreviewHtml(spec);
   if (spec.kind === "workbook") return workbookToHtml(spec);
   return documentToHtml(spec);
@@ -68,6 +70,7 @@ export function graphPreviewHtml(spec: GraphSpec): string {
 export function artifactGist(spec: ArtifactSpec): string {
   if (spec.kind === "graph") return `${spec.nodes.length} node${spec.nodes.length === 1 ? "" : "s"} · ${spec.edges.length} connection${spec.edges.length === 1 ? "" : "s"}`;
   if (spec.kind === "drawing") return `${spec.scene.elements.length} drawing element${spec.scene.elements.length === 1 ? "" : "s"}`;
+  if (spec.kind === "visual") return visualGist(spec);
   if (spec.kind === "deck") return `${spec.slides.length} slide${spec.slides.length === 1 ? "" : "s"} · ${spec.slides.map((s) => s.title).slice(0, 3).join(" · ")}`;
   if (spec.kind === "workbook") return `${spec.sheets.length} sheet${spec.sheets.length === 1 ? "" : "s"} · ${spec.sheets.map((s) => `${s.name} (${s.rows.length} rows)`).join(" · ")}`;
   const headings = spec.blocks.filter((b) => b.type === "heading").map((b) => (b as { text: string }).text);

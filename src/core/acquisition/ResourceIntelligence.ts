@@ -327,17 +327,18 @@ export interface GapSignature {
 export const GAP_SIGNATURES: GapSignature[] = [
   { id: "3d-export-stl", label: "Export 3D objects as STL (3D printing)", match: /\b(stl|3d[- ]?print\w*)\b/i, tools: ["world.export"], reuse: ["three/examples/jsm/exporters/STLExporter.js"], search: ["stl exporter", "stl serializer"] },
   { id: "3d-export-obj", label: "Export 3D objects as Wavefront OBJ", match: /\b(\.obj|obj file|wavefront)\b/i, tools: ["world.export"], reuse: ["three/examples/jsm/exporters/OBJExporter.js"], search: ["obj exporter 3d", "wavefront obj writer"] },
-  { id: "3d-export-gltf", label: "Export 3D scenes as glTF/GLB", match: /\b(gltf|glb)\b/i, tools: ["world.export"], reuse: ["three/examples/jsm/exporters/GLTFExporter.js"], search: ["gltf exporter", "gltf transform"] },
+  { id: "3d-export-gltf", label: "Export 3D scenes as glTF/GLB", match: /\b(gltf|glb)\b/i, tools: ["creative.scene3d", "creative.export"], reuse: ["three/examples/jsm/exporters/GLTFExporter.js"], search: ["gltf exporter", "gltf transform"] },
   { id: "math-typesetting", label: "Typeset LaTeX math", match: /\b(latex|katex|typeset\w*|equation rendering)\b/i, tools: ["math.render"], reuse: ["katex/dist/katex.mjs"], search: ["latex math renderer", "math typesetting"] },
-  { id: "function-plot", label: "Plot mathematical functions", match: /\b(plot|graph)\s+(?:the\s+)?(?:function|equation|y\s*=|f\(x\))/i, tools: ["math.plot"], reuse: [], search: ["function plot", "math function graph"] },
+  { id: "function-plot", label: "Plot mathematical functions", match: /\b(plot|graph)\s+(?:the\s+)?(?:function|equation|y\s*=|f\(x\))/i, tools: ["math.plot", "creative.chart"], reuse: [], search: ["function plot", "math function graph"] },
   { id: "qr-code", label: "Generate QR codes", match: /\bqr[- ]?codes?\b/i, tools: ["qr.create"], reuse: [], search: ["qr code generator", "qrcode svg"] },
-  { id: "video-encode", label: "Encode or render video (MP4/WebM/GIF)", match: /\b(mp4|webm|animated gif|encode (?:a |the )?video|render (?:a |the )?video|make (?:a |the )?video)\b/i, tools: ["media.encode"], reuse: [], search: ["ffmpeg wasm", "webm encoder"] },
+  { id: "video-webm", label: "Render a short video (WebM)", match: /\b(webm|encode (?:a |the )?video|render (?:a |the )?video|make (?:a |the )?(?:short )?(?:video|film))\b/i, tools: ["creative.film", "media.encode"], reuse: [], search: ["webm encoder", "webcodecs muxer"] },
+  { id: "video-mp4", label: "Write MP4 video", match: /\bmp4\b/i, tools: ["media.mp4"], reuse: [], search: ["mp4 muxer", "ffmpeg wasm"] },
   { id: "audio-convert", label: "Convert audio formats", match: /\b(mp3|wav|ogg|flac)\b.{0,20}\b(to|into)\b/i, tools: ["media.convert"], reuse: [], search: ["audio encoder wasm", "mp3 encoder"] },
   { id: "image-heic", label: "Read HEIC/HEIF images", match: /\bhei[cf]\b/i, tools: ["media.convert"], reuse: [], search: ["heic decoder", "heic to jpeg"] },
   { id: "pdf-text", label: "Extract text from PDFs", match: /\b(read|parse|extract)\b.{0,30}\bpdf\b/i, tools: ["pdf.read", "studio.read"], reuse: ["pdfjs-dist/build/pdf.mjs"], search: ["pdf text extraction", "pdf parser"] },
   { id: "animation-keyframes", label: "Keyframe animation of 3D objects", match: /\b(keyframes?|animate (?:the|this|my|a) (?:object|model|cube|sphere))\b/i, tools: ["world.animate"], reuse: ["gsap/dist/gsap.js"], search: ["keyframe animation library", "tween engine"] },
   { id: "engineering-fea", label: "Structural / fluid simulation (FEA/CFD)", match: /\b(finite element|\bfea\b|stress analysis|cfd|fluid (?:dynamics|simulation))\b/i, tools: ["sim.fea"], reuse: [], search: ["finite element javascript", "fea solver wasm"] },
-  { id: "arxiv-papers", label: "Read research papers from arXiv", match: /\barxiv\b/i, tools: ["research.arxiv"], reuse: [], search: ["arxiv api client"] },
+  { id: "arxiv-papers", label: "Read research papers from arXiv", match: /\barxiv\b/i, tools: ["research.arxiv", "data.query"], reuse: [], search: ["arxiv api client"] },
 ];
 
 export interface GapReport {
