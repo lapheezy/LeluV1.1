@@ -14,7 +14,7 @@ blocker surfaced: **every model account available to LÉLU is spent or refused**
 | | |
 |---|---|
 | Baseline | `5eee649` (contains `main` and the GitHub default branch) |
-| Branch / commit | see `GATE` line in §7 (HEAD of `claude/lelu-integration-performance-eai80a`) |
+| Branch / commit | `integration/lelu-four-workforce-consolidation` fast-forwarded to the reviewed HEAD of `claude/lelu-integration-performance-eai80a` (this commit) — what the runbook deploys |
 | New commits on other branches | none since 2026-11-13 |
 | Review | `5eee649..HEAD` reviewed before deployment; findings fixed in `d4739fe` (§2.4) |
 
@@ -107,7 +107,9 @@ voice still listens and speaks.
 | `lelu-verify` | **Implemented**, dry-run locally; not run in production |
 
 ## 7. Test results
-GATE: see the final line of this section (filled from the run at HEAD).
+Full gate on the final code (`43aa332`; later commits are documentation only):
+`tsc -b --force` exit 0 · `oxlint` 0 errors · `npm test` **2,098 pass, 0 fail, 6 skipped** (2,104).
+Targeted: broker suites 68/68, memory suites 299/299, voice suites pass; voice E2E items in §4.
 
 ## 8. Remaining blockers — and exactly who unblocks them
 1. VPS access: run the runbook from a computer with SSH, or connect one through Remote Control.
