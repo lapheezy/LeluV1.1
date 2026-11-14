@@ -1,0 +1,364 @@
+{
+ "base": "http://127.0.0.1:5173/",
+ "ranAt": "2026-11-14T03:35:30.465Z",
+ "realDevice": false,
+ "mic": "fake (WAV file)",
+ "stop": {
+  "rmsBeforeStopMax": 0.19880573779911076,
+  "lastAudibleAfterStopMs": 151,
+  "elementMutedAfterStop": true
+ },
+ "phaseAfterStop": "listening",
+ "continuity": {
+  "found": true,
+  "reply": "You asked me to tell you a long story about the ocean with at least six sentences.",
+  "conversationLength": 6,
+  "roles": [
+   "user",
+   "assistant",
+   "user",
+   "assistant",
+   "user",
+   "assistant"
+  ]
+ },
+ "timeline": [
+  {
+   "t": 4078,
+   "kind": "chat-open"
+  },
+  {
+   "t": 4935,
+   "kind": "livekit",
+   "connection": "connecting",
+   "agent": false,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 5104,
+   "kind": "agent-audio-attached",
+   "index": 1
+  },
+  {
+   "t": 5105,
+   "kind": "livekit",
+   "connection": "connected",
+   "agent": true,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 5111,
+   "kind": "connected"
+  },
+  {
+   "t": 5193,
+   "kind": "livekit",
+   "connection": "connected",
+   "agent": true,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 5194,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 5215,
+   "kind": "livekit",
+   "connection": "connected",
+   "agent": true,
+   "error": null,
+   "rejoins": 0
+  },
+  {
+   "t": 5227,
+   "kind": "agent-listening"
+  },
+  {
+   "t": 40509,
+   "kind": "utterance",
+   "text": "Hey Lélu, what is the capital of France? Answer in one short sentence."
+  },
+  {
+   "t": 40510,
+   "kind": "turn",
+   "user": "Hey Lélu, what is the capital of France? Answer in one short sentence.",
+   "response": null
+  },
+  {
+   "t": 40512,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 40532,
+   "kind": "q1-heard"
+  },
+  {
+   "t": 42482,
+   "kind": "turn",
+   "user": "Hey Lélu, what is the capital of France? Answer in one short sentence.",
+   "response": "The capital of France is Paris."
+  },
+  {
+   "t": 42482,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 42484,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 42512,
+   "kind": "q1-speaking"
+  },
+  {
+   "t": 43826,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 46148,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 46163,
+   "kind": "q1-spoke"
+  },
+  {
+   "t": 195718,
+   "kind": "utterance",
+   "text": "Lélu, tell me a long story about the ocean with at least six sentences."
+  },
+  {
+   "t": 195719,
+   "kind": "turn",
+   "user": "Lélu, tell me a long story about the ocean with at least six sentences.",
+   "response": null
+  },
+  {
+   "t": 195719,
+   "kind": "state",
+   "phase": "processing",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 195738,
+   "kind": "q2-heard"
+  },
+  {
+   "t": 200971,
+   "kind": "turn",
+   "user": "Lélu, tell me a long story about the ocean with at least six sentences.",
+   "response": "Once upon a time, in a faraway land, there was a vast and mysterious ocean that stretched as far as the eye could see. This ocean was home to countless creatures, from the tiniest shimmering fish to the majestic whales that sang haunting melodies beneath the waves. Each day, the sun would rise, casting golden rays that danced upon the water, creating a magical world where colors blended and sparkl"
+  },
+  {
+   "t": 200972,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 200972,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 202554,
+   "kind": "state",
+   "phase": "speaking",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 202798,
+   "kind": "q2-audible"
+  },
+  {
+   "t": 204871,
+   "kind": "state",
+   "phase": "listening",
+   "active": true,
+   "error": null
+  },
+  {
+   "t": 204895,
+   "kind": "stop-clicked"
+  },
+  {
+   "t": 208899,
+   "kind": "stop-measured",
+   "rmsBeforeStopMax": 0.19880573779911076,
+   "lastAudibleAfterStopMs": 151,
+   "elementMutedAfterStop": true
+  },
+  {
+   "t": 208901,
+   "kind": "phase-after-stop",
+   "phase": "listening"
+  },
+  {
+   "t": 208901,
+   "kind": "livekit-server-killed"
+  },
+  {
+   "t": 214922,
+   "kind": "livekit",
+   "connection": "rejoining",
+   "agent": true,
+   "error": "connection lost (3); rejoining",
+   "rejoins": 1
+  },
+  {
+   "t": 214969,
+   "kind": "livekit",
+   "connection": "rejoining",
+   "agent": true,
+   "error": "LiveKit server unavailable: fetch failed",
+   "rejoins": 1
+  },
+  {
+   "t": 214969,
+   "kind": "livekit",
+   "connection": "rejoining",
+   "agent": true,
+   "error": "connection lost (3); rejoining",
+   "rejoins": 2
+  },
+  {
+   "t": 214974,
+   "kind": "livekit",
+   "connection": "rejoining",
+   "agent": true,
+   "error": "LiveKit server unavailable: fetch failed",
+   "rejoins": 2
+  },
+  {
+   "t": 214974,
+   "kind": "livekit",
+   "connection": "rejoining",
+   "agent": true,
+   "error": "connection lost (3); rejoining",
+   "rejoins": 3
+  },
+  {
+   "t": 214974,
+   "kind": "livekit",
+   "connection": "rejoining",
+   "agent": true,
+   "error": "LiveKit server unavailable: fetch failed",
+   "rejoins": 3
+  },
+  {
+   "t": 214974,
+   "kind": "livekit",
+   "connection": "rejoining",
+   "agent": true,
+   "error": "connection lost (3); rejoining",
+   "rejoins": 4
+  },
+  {
+   "t": 216614,
+   "kind": "livekit",
+   "connection": "connected",
+   "agent": true,
+   "error": null,
+   "rejoins": 4
+  },
+  {
+   "t": 216617,
+   "kind": "recovered-after-server-restart"
+  },
+  {
+   "t": 216700,
+   "kind": "livekit",
+   "connection": "connected",
+   "agent": true,
+   "error": null,
+   "rejoins": 4
+  },
+  {
+   "t": 219694,
+   "kind": "livekit",
+   "connection": "disconnected",
+   "agent": false,
+   "error": null,
+   "rejoins": 4
+  },
+  {
+   "t": 219695,
+   "kind": "livekit",
+   "connection": "disconnected",
+   "agent": false,
+   "error": null,
+   "rejoins": 4
+  },
+  {
+   "t": 219696,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "error": null
+  },
+  {
+   "t": 219718,
+   "kind": "ended"
+  },
+  {
+   "t": 221945,
+   "kind": "state",
+   "phase": "speaking",
+   "active": false,
+   "error": null
+  },
+  {
+   "t": 222007,
+   "kind": "typed",
+   "question": "In one sentence: what was the first thing I asked you by voice a moment ago?"
+  },
+  {
+   "t": 223970,
+   "kind": "state",
+   "phase": "idle",
+   "active": false,
+   "error": null
+  },
+  {
+   "t": 225092,
+   "kind": "continuity",
+   "found": true,
+   "reply": "You asked me to tell you a long story about the ocean with at least six sentences.",
+   "conversationLength": 6,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant"
+   ]
+  }
+ ]
+}
