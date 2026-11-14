@@ -192,6 +192,10 @@ export default class Bootstrap {
       // 3D Forge (character/asset generation through the server-side Meshy broker)
       registerForgeTools();
       registerWorldTools();
+      // Capability ledger (server authority shared by every session/device):
+      // applies its cached snapshot, then hydrates. Loaded lazily — no
+      // cold-start cost beyond a dynamic import.
+      void import("./acquisition/CapabilityLedgerClient").then((m) => m.default.getInstance().init()).catch(() => undefined);
       // Agency: capability discovery, delegation, multi-step tasks,
       // approvals, reflection. Tasks cut off by the last shutdown are
       // marked paused (resumable) rather than left "running" forever.

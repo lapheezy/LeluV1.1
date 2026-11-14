@@ -1678,7 +1678,10 @@ class VoiceEngine {
       // Spoken words are the user's own: the second (and last) consent source.
       const { captureSpendConsent } = await import("../spend/SpendConsent");
       const consent = await captureSpendConsent(text, "spoken").catch(() => null);
-      const response = await ai.chat(text, seen.length > 0 ? seen : undefined, consent?.note, conversationId ? { conversationId } : undefined);
+      const { captureCapabilityDecision } = await import("../acquisition/CapabilityLedgerClient");
+      const decision = await captureCapabilityDecision(text, "spoken").catch(() => null);
+      const note = [consent?.note, decision?.note].filter(Boolean).join("\n\n") || undefined;
+      const response = await ai.chat(text, seen.length > 0 ? seen : undefined, note, conversationId ? { conversationId } : undefined);
 
       if (this._turn?.id === turnId) {
         // A failure notice is not her answer: it is shown in the

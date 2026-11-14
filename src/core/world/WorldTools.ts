@@ -70,6 +70,14 @@ export const WORLD_TOOLS: ToolDefinition[] = [
     { format: "stl|obj", ids: "string[]" },
   ),
   tool(
+    "world.gltf",
+    "Export Objects as glTF/GLB",
+    "Export the current environment's built-in shapes (or chosen objects/groups) as one binary glTF (.glb) for game engines, viewers and AR. Runs locally with the three.js exporter LÉLU already has. Off until the capability world-export-gltf is approved and registered",
+    0,
+    ["READ"],
+    { ids: "string[]" },
+  ),
+  tool(
     "world.avatar",
     "Move Myself",
     "Where LÉLU stands in the current environment, which way she faces and her resting mood — remembered across reloads and devices. Walk to a spot or next to an object, turn towards an object or the user, or set her mood",
@@ -368,6 +376,33 @@ export const WORLD_EXECUTORS: WorldExecutor[] = [
           `${download ? ` — [download ${filename}](${download})` : ""}.` +
           `${result.skipped.length ? ` Skipped: ${result.skipped.map((s) => `${s.label} (${s.reason})`).join("; ")}.` : ""}`,
         data: { filename, format, bytes: result.bytes, faces: result.faces, exported: result.exported, skipped: result.skipped, download },
+      };
+    },
+  },
+  {
+    id: "world.gltf",
+    parameters: OBJECT({
+      ids: { type: "array", items: { type: "string" }, description: "Optional object ids or furniture groups; default: every built-in shape here." },
+    }),
+    run: async (args) => {
+      const ids = Array.isArray(args.ids) ? args.ids.map(String) : undefined;
+      const state = await ForgeClient.world();
+      const { exportPlacementsGlb } = await import("./WorldExport");
+      const result = await exportPlacementsGlb(state.objects, ids);
+      if (result.meshes === 0) return { ok: false, content: `Nothing to export: ${state.objects.length ? "no built-in shapes match" : "this environment has no objects"}.` };
+      if (!result.valid) return { ok: false, content: "The exporter returned a file that is not a valid GLB, so nothing was offered." };
+      const filename = `${state.environment.name || state.current}-${Date.now()}.glb`.replace(/[^\p{L}\p{N}._-]+/gu, "-");
+      let download = "";
+      if (typeof URL !== "undefined" && typeof Blob !== "undefined" && typeof URL.createObjectURL === "function") {
+        download = URL.createObjectURL(new Blob([result.glb], { type: "model/gltf-binary" }));
+      }
+      return {
+        ok: true,
+        content:
+          `Exported ${result.meshes} object(s) as GLB (binary glTF 2.0, ${result.bytes} bytes, header verified)` +
+          `${download ? ` — [download ${filename}](${download})` : ""}.` +
+          `${result.skipped.length ? ` Skipped: ${result.skipped.map((s) => `${s.label} (${s.reason})`).join("; ")}.` : ""}`,
+        data: { filename, bytes: result.bytes, meshes: result.meshes, valid: result.valid, skipped: result.skipped, download },
       };
     },
   },

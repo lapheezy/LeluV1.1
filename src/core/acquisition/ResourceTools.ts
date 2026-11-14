@@ -35,7 +35,7 @@ export const RESOURCE_TOOL_DEFINITIONS: ToolDefinition[] = [
   def("resources.discover", "Discover Open-Source Resources", "Search public sources (npm, GitHub, GitLab) for free open-source tools for a capability. No keys, no cost; GitHub's free search is rate limited.", ["READ", "EXTERNAL_ACTION"], 0),
   def("resources.evaluate", "Evaluate Resources", "Evaluate npm/PyPI packages or GitHub repos: license, maintenance, dependencies, size, install scripts, known vulnerabilities, local/browser/public/free-limited/local-inference/paid class, overlap with what is installed. Ranked verdicts; paid ones are blocked.", ["READ", "EXTERNAL_ACTION"], 0),
   def("resources.sandbox", "Test a Resource in Isolation", "Install a package (scripts disabled) or link an installed module into a throwaway sandbox and run a small proof of concept with no network, no secrets, no child processes and file access only inside the sandbox. probe:true proves the isolation.", ["READ", "EXECUTE"], 1),
-  def("resources.register", "Register a Verified Capability", "Record a new capability once its tool is executable and its sandbox proof passed: provenance, version, license and tests go into the capability registry.", ["WRITE"], 1),
+  def("resources.register", "Register a Verified Capability", "Propose a capability whose tool has an executor and whose sandbox proof passed. It waits for the user's approval (they say \"approve capability <id>\"); once approved it is registered in the capability ledger every session and device shares. It cannot approve itself.", ["WRITE"], 1),
   def("resources.audit", "Audit LÉLU's Dependencies", "Check LÉLU's own dependencies for vulnerabilities, deprecation, abandonment, major versions behind, paid-API SDKs and duplicates. Findings only — nothing is replaced automatically.", ["READ", "EXTERNAL_ACTION"], 0),
 ];
 
@@ -43,7 +43,9 @@ async function call(route: string, body: Record<string, unknown>): Promise<{ sta
   if (typeof fetch === "undefined") throw new Error("no network client in this runtime");
   const response = await fetch(`/api/resources/${route}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...sessionAuthHeader() },
+    // Marks every request from the tool layer: the server refuses approval
+    // and revocation from anything carrying it.
+    headers: { "Content-Type": "application/json", "x-lelu-tool-call": "1", ...sessionAuthHeader() },
     body: JSON.stringify(body),
   });
   const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
@@ -56,7 +58,10 @@ const strings = (value: unknown): string[] => (Array.isArray(value) ? value.map(
 async function liveTools(): Promise<string[]> {
   const [{ default: ToolRegistry }, dispatcher] = await Promise.all([import("../tools/ToolRegistry"), import("../tools/ToolDispatcher")]);
   const executable = new Set(dispatcher.executableToolIds());
-  return ToolRegistry.getInstance().available().map((tool) => tool.id).filter((id) => executable.has(id));
+  // A capability switched off (unapproved or revoked) is not something she can do.
+  const { default: CapabilityActivation } = await import("./CapabilityActivation");
+  const activation = CapabilityActivation.getInstance();
+  return ToolRegistry.getInstance().available().map((tool) => tool.id).filter((id) => executable.has(id) && activation.isToolEnabled(id));
 }
 
 export const RESOURCE_EXECUTORS: ToolExecutor[] = [
@@ -81,6 +86,7 @@ export const RESOURCE_EXECUTORS: ToolExecutor[] = [
     parameters: {
       type: "object",
       properties: {
+        capability: { type: "string", description: "Optional lifecycle id of the capability this work is for (e.g. world-export-gltf); records the step in the capability ledger." },
         query: { type: "string", description: "The capability to look for, in a few words (e.g. \"stl exporter\")." },
         sources: { type: "array", items: { type: "string", enum: ["npm", "github", "gitlab"] } },
         limit: { type: "number" },
@@ -88,7 +94,7 @@ export const RESOURCE_EXECUTORS: ToolExecutor[] = [
       required: ["query"],
     },
     run: async (args) => {
-      const { status, data } = await call("discover", { query: str(args, "query"), sources: strings(args.sources), limit: args.limit });
+      const { status, data } = await call("discover", { query: str(args, "query"), sources: strings(args.sources), limit: args.limit, capability: str(args, "capability") || undefined });
       if (status !== 200) return { ok: false, content: String(data.error ?? `discover failed (${status})`) };
       const results = (data.results as Array<{ source: string; name: string; description?: string; license?: string; updated?: string; stars?: number }>) ?? [];
       const errors = Object.entries((data.errors as Record<string, string>) ?? {}).map(([s, e]) => `${s}: ${e}`);
@@ -107,13 +113,14 @@ export const RESOURCE_EXECUTORS: ToolExecutor[] = [
     parameters: {
       type: "object",
       properties: {
+        capability: { type: "string", description: "Optional lifecycle id of the capability this work is for (e.g. world-export-gltf); records the step in the capability ledger." },
         names: { type: "array", items: { type: "string" }, description: "Package names (npm/PyPI) or owner/repo (GitHub)." },
         source: { type: "string", enum: ["npm", "pypi", "github"] },
       },
       required: ["names"],
     },
     run: async (args) => {
-      const { status, data } = await call("evaluate", { names: strings(args.names), source: str(args, "source") || "npm" });
+      const { status, data } = await call("evaluate", { names: strings(args.names), source: str(args, "source") || "npm", capability: str(args, "capability") || undefined });
       if (status !== 200) return { ok: false, content: String(data.error ?? `evaluate failed (${status})`) };
       const summary = (data.summary as string[]) ?? [];
       const errors = Object.entries((data.errors as Record<string, string>) ?? {}).map(([n, e]) => `${n}: ${e}`);
@@ -125,6 +132,7 @@ export const RESOURCE_EXECUTORS: ToolExecutor[] = [
     parameters: {
       type: "object",
       properties: {
+        capability: { type: "string", description: "Optional lifecycle id of the capability this work is for (e.g. world-export-gltf); records the step in the capability ledger." },
         package: { type: "string", description: "npm package to install into the sandbox (scripts disabled)." },
         version: { type: "string" },
         reuse: { type: "string", description: "An INSTALLED module path to test instead, e.g. three/examples/jsm/exporters/STLExporter.js." },
@@ -133,7 +141,7 @@ export const RESOURCE_EXECUTORS: ToolExecutor[] = [
       },
     },
     run: async (args) => {
-      const { data } = await call("sandbox", { package: str(args, "package") || undefined, version: str(args, "version") || undefined, reuse: str(args, "reuse") || undefined, code: str(args, "code"), probe: args.probe === true });
+      const { data } = await call("sandbox", { capability: str(args, "capability") || undefined, package: str(args, "package") || undefined, version: str(args, "version") || undefined, reuse: str(args, "reuse") || undefined, code: str(args, "code"), probe: args.probe === true });
       if (data.refused) return { ok: false, content: `Sandbox refused: ${String(data.refused)}`, data };
       const isolation = data.isolation as Record<string, string> | undefined;
       return {
@@ -160,26 +168,38 @@ export const RESOURCE_EXECUTORS: ToolExecutor[] = [
       required: ["capability", "tool", "sandboxId"],
     },
     run: async (args) => {
-      const capability = str(args, "capability");
+      const capability = str(args, "capability").toLowerCase();
       const tool = str(args, "tool");
       const sandboxId = str(args, "sandboxId");
-      if (!(await liveTools()).includes(tool)) return { ok: false, content: `Not registered: "${tool}" is not an executable tool, so the capability would be a claim, not a capability.` };
-      const { status, data } = await call("verified", { sandboxId });
-      if (status !== 200) return { ok: false, content: `Not registered: ${String(data.error ?? "no passing sandbox run with that id")}.` };
-      const { default: CapabilityRegistry } = await import("../selfdev/CapabilityRegistry");
-      const registry = CapabilityRegistry.getInstance();
-      const entry = {
-        name: str(args, "name") || capability,
-        description: `Verified by resource intelligence: sandbox ${sandboxId} passed; provided by ${str(args, "source") || tool}.`,
-        status: "available" as const,
-        requiredTools: [tool],
-        dependencies: [str(args, "source")].filter(Boolean),
-        tests: [`sandbox ${sandboxId}`],
-        version: new Date().toISOString().slice(0, 10),
+      // The tool must exist with a real executor. It may still be switched off
+      // (a capability is inactive until approved), so availability is not required.
+      const [{ default: ToolRegistry }, dispatcher] = await Promise.all([import("../tools/ToolRegistry"), import("../tools/ToolDispatcher")]);
+      if (!ToolRegistry.getInstance().get(tool) || !dispatcher.executableToolIds().includes(tool)) {
+        return { ok: false, content: `Not registered: "${tool}" has no executor, so the capability would be a claim, not a capability.` };
+      }
+      const proposed = await call("capabilities/propose", { capability, name: str(args, "name") || capability, tool, sandboxId, source: str(args, "source") || undefined });
+      if (proposed.data.ok !== true) return { ok: false, content: `Not registered: ${String(proposed.data.error ?? `refused (${proposed.status})`)}`, data: proposed.data };
+      const record = proposed.data.capability as { id: string; state: string } | undefined;
+      // Approved by the user already (e.g. after an interrupted registration): finish it.
+      if (record?.state === "approved") {
+        const registered = await call("capabilities/register", { capability });
+        if (registered.data.ok === true) {
+          const { default: CapabilityLedgerClient } = await import("./CapabilityLedgerClient");
+          await CapabilityLedgerClient.getInstance().hydrate();
+          return { ok: true, content: `Registered capability "${capability}" → ${tool}.`, data: registered.data };
+        }
+        return { ok: false, content: `Not registered: ${String(registered.data.error)}`, data: registered.data };
+      }
+      if (record && (record.state === "registered" || record.state === "runtime-verified")) {
+        return { ok: true, content: `"${capability}" is already ${record.state} — nothing was registered twice.`, data: proposed.data };
+      }
+      return {
+        ok: true,
+        content:
+          `Proposed "${capability}" → ${tool} (sandbox proof ${sandboxId}). It is AWAITING YOUR APPROVAL and is not active yet. ` +
+          `To approve, the user types or says: "approve capability ${capability}". I cannot approve it myself.`,
+        data: proposed.data,
       };
-      if (registry.get(capability)) registry.update(capability, entry);
-      else registry.add({ id: capability, requiredProviders: [], requiredAgents: [], requiredKnowledge: [], limitations: [], ...entry });
-      return { ok: true, content: `Registered capability "${capability}" → ${tool} (proof: sandbox ${sandboxId}).`, data: registry.get(capability) };
     },
   },
   {

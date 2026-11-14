@@ -65,6 +65,17 @@ const NEVER_COPIED = new Set([
 ]);
 
 /** Build the adapter bound to the current working directory. */
+
+/** Variable names that carry credentials. Matched case-insensitively. */
+const SECRET_ENV = /(KEY|TOKEN|SECRET|PASSWORD|PASSPHRASE|CREDENTIAL|COOKIE|_PAT|PRIVATE)/i;
+
+/** The process environment minus every credential-bearing variable. */
+export function withoutSecrets(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  const out: NodeJS.ProcessEnv = {};
+  for (const [name, value] of Object.entries(env)) if (!SECRET_ENV.test(name)) out[name] = value;
+  return out;
+}
+
 export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
   const workspaceRoot = process.cwd();
   const sandboxRoot = path.join(workspaceRoot, SANDBOX_DIR_NAME());
@@ -176,7 +187,12 @@ export function createNodeEngineerAdapter(runtime: string): EngineerAdapter {
         shell: true,
         // Its own process group, so a timeout can stop the whole tree.
         detached: process.platform !== "win32",
-        env: { ...process.env, FORCE_COLOR: "0" },
+        // Model-written code runs here (sandbox.execute). It gets the
+        // environment WITHOUT secrets: no provider keys, no access-gate
+        // passphrase or session secret — so it can neither read credentials
+        // nor log in to this server to approve, consent or spend on the
+        // user's behalf (Mission 4 security acceptance).
+        env: { ...withoutSecrets(process.env), FORCE_COLOR: "0" },
         stdio: ["ignore", "pipe", "pipe"],
       });
       let stdout = "";

@@ -907,6 +907,11 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
       try {
         const consent = await captureSpendConsent(prompt || "", "typed");
         if (consent) context = [context, consent.note].filter((value) => value && value.trim()).join("\n\n");
+        // "approve capability X" / "revoke capability X": the same rule — only
+        // the user's own words, decided on the server.
+        const { captureCapabilityDecision } = await import("../../../core/acquisition/CapabilityLedgerClient");
+        const decision = await captureCapabilityDecision(prompt || "", "typed");
+        if (decision) context = [context, decision.note].filter((value) => value && value.trim()).join("\n\n");
       } catch {
         // Consent capture must never block a turn.
       }

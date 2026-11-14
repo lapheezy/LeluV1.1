@@ -40,6 +40,8 @@ import {
   analyzeDependencies, detectCapabilityGaps, describeEvaluation, evaluateResource, rankEvaluations,
   type DependencyFact, type ResourceEvaluation, type ResourceEvidence,
 } from "../src/core/acquisition/ResourceIntelligence.ts";
+import { createCapabilityLedger, isActive, parseCapabilityDecision, TransitionError, type CapabilityRecord, type LifecycleState } from "./capabilityLedger.ts";
+import { spendPolicy } from "./spendPolicy.ts";
 
 type Req = { url?: string; method?: string; headers?: Record<string, string | string[] | undefined>; on?: (event: string, cb: (chunk?: unknown) => void) => void };
 type Res = { statusCode: number; setHeader: (k: string, v: string) => void; end: (body?: string) => void };
@@ -91,6 +93,39 @@ function log(entry: Record<string, unknown>): void {
     mkdirSync(STATE, { recursive: true });
     appendFileSync(path.join(STATE, "log.jsonl"), `${JSON.stringify({ at: new Date().toISOString(), ...entry })}\n`);
   } catch { /* the log must never break a request */ }
+}
+
+let ledgerInstance: ReturnType<typeof createCapabilityLedger> | null = null;
+export function capabilityLedger() {
+  ledgerInstance ??= createCapabilityLedger(STATE);
+  return ledgerInstance;
+}
+export function setCapabilityLedgerForTests(ledger: ReturnType<typeof createCapabilityLedger> | null): void {
+  ledgerInstance = ledger;
+}
+
+/** Lifecycle bookkeeping attached to discover/evaluate/sandbox: best effort, never blocks the work. */
+function lifecycle(capability: unknown, state: LifecycleState, actor: string, evidence: Record<string, unknown>, init?: Parameters<ReturnType<typeof createCapabilityLedger>["transition"]>[4]): void {
+  if (typeof capability !== "string" || !capability) return;
+  try {
+    const current = capabilityLedger().get(capability);
+    if (current && isActive(current)) return; // an active capability is not re-discovered
+    capabilityLedger().transition(capability, state, actor, evidence, init);
+  } catch { /* an out-of-order report is recorded nowhere rather than corrupting the ledger */ }
+}
+
+/** Why a ledger record can no longer be trusted as-is. */
+function staleness(record: CapabilityRecord): string[] {
+  const reasons: string[] = [];
+  if (record.sandboxId && !existsSync(path.join(STATE, `verified-${record.sandboxId.replace(/[^\w-]/g, "")}.json`))) reasons.push("its sandbox evidence is missing");
+  const pkg = record.source?.match(/^((?:@[\w.-]+\/)?[\w.-]+)@([\w.+-]+)$/);
+  if (pkg) {
+    const here = installedInfo(pkg[1]);
+    if (record.source?.startsWith("installed:") || here) {
+      if (here?.version && here.version !== pkg[2]) reasons.push(`installed version is ${here.version}, verified ${pkg[2]}`);
+    }
+  }
+  return reasons;
 }
 
 const safeName = (name: string) => /^(@[a-z0-9][\w.-]*\/)?[a-z0-9][\w.-]*$/i.test(name) && name.length <= 214;
@@ -157,7 +192,7 @@ export async function npmEvidence(name: string): Promise<ResourceEvidence> {
     const m = latest.body as {
       version: string; description?: string; keywords?: string[]; license?: string | { type?: string }; deprecated?: string;
       dependencies?: Record<string, string>; peerDependencies?: Record<string, string>; scripts?: Record<string, string>;
-      engines?: Record<string, string>; dist?: { unpackedSize?: number };
+      engines?: Record<string, string>; dist?: { unpackedSize?: number; integrity?: string };
     };
     const abbreviated = await getJson(`https://registry.npmjs.org/${name.replace("/", "%2F")}`, { headers: { Accept: "application/vnd.npm.install-v1+json" } }, 20_000);
     const a = abbreviated.body as { modified?: string; versions?: Record<string, unknown> };
@@ -193,6 +228,7 @@ export async function npmEvidence(name: string): Promise<ResourceEvidence> {
       scripts: m.scripts,
       engines: m.engines,
       unpackedSize: m.dist?.unpackedSize,
+      integrity: m.dist?.integrity,
       vulnerabilities: await osvCount("npm", name, m.version),
       installed: Boolean(here),
       installedVersion: here?.version,
@@ -220,7 +256,7 @@ async function pypiEvidence(name: string): Promise<ResourceEvidence> {
       latestVersion: d.info.version,
       lastRelease: files[0]?.upload_time_iso_8601,
       releaseCount: d.releases ? Object.keys(d.releases).length : undefined,
-      dependencies: (d.info.requires_dist ?? []).filter((r) => !/extra ==/.test(r)).map((r) => r.split(/[\s;<>=!~(\[]/)[0]),
+      dependencies: (d.info.requires_dist ?? []).filter((r) => !/extra ==/.test(r)).map((r) => r.split(/[\s;<>=!~([]/)[0]),
       unpackedSize: files[0]?.size,
       vulnerabilities: await osvCount("PyPI", name, d.info.version),
     };
@@ -305,12 +341,24 @@ function run(executable: string, args: string[], options: { cwd: string; env: Re
   });
 }
 
+/**
+ * The ONE install command the sandbox uses (exported so the security tests
+ * run exactly it against a hostile package). Lifecycle scripts never run;
+ * the user's ~/.npmrc (registry overrides, tokens) is replaced by an empty
+ * one inside the sandbox; only proxy/CA plumbing is passed through.
+ */
+export async function sandboxInstall(spec: string, dir: string) {
+  const env: Record<string, string> = { PATH: process.env.PATH ?? "/usr/bin:/bin", HOME: dir, npm_config_cache: path.join(dir, ".npm-cache"), npm_config_userconfig: path.join(dir, ".npmrc"), npm_config_registry: "https://registry.npmjs.org/", CI: "1" };
+  for (const key of NETWORK_PLUMBING) if (process.env[key]) env[key] = process.env[key]!;
+  return run("npm", ["install", spec, "--ignore-scripts", "--no-audit", "--no-fund", "--omit=dev", "--no-package-lock", "--prefix", dir], { cwd: dir, env, timeoutMs: INSTALL_TIMEOUT_MS });
+}
+
 export interface SandboxResult {
   ok: boolean;
   id: string;
-  package?: { name: string; version: string; installedBytes?: number; installMs?: number };
+  package?: { name: string; version: string; integrity?: string; installedBytes?: number; installMs?: number };
   reuse?: string;
-  isolation: { network: string; filesystem: string; processes: string; environment: string; timeoutMs: number };
+  isolation: { network: string; filesystem: string; memory: string; processes: string; environment: string; timeoutMs: number };
   exitCode: number | null;
   timedOut: boolean;
   stdout: string;
@@ -337,7 +385,8 @@ export async function runSandbox(input: { package?: string; version?: string; re
   const netns = networkIsolationAvailable();
   const isolation = {
     network: netns ? "none — fresh network namespace" : "disabled by preload guard (no network namespace on this host)",
-    filesystem: "read only inside the sandbox folder (plus a reused installed module); writes only to sandbox/out",
+    filesystem: "read only inside the sandbox folder (plus a reused installed module); no writes anywhere",
+    memory: "heap capped at 256 MB",
     processes: "child processes, workers and native addons denied (Node permission model)",
     environment: "empty: no API keys or tokens",
     timeoutMs: RUN_TIMEOUT_MS,
@@ -359,9 +408,7 @@ export async function runSandbox(input: { package?: string; version?: string; re
       return { ...base, refused: `not installed: ${evaluation.reasons.join("; ")}` };
     }
     if ((evidence.unpackedSize ?? 0) > MAX_SANDBOX_BYTES) return { ...base, refused: `too large for the sandbox (${evidence.unpackedSize} bytes)` };
-    const env: Record<string, string> = { PATH: process.env.PATH ?? "/usr/bin:/bin", HOME: dir, npm_config_cache: path.join(dir, ".npm-cache"), npm_config_userconfig: path.join(dir, ".npmrc"), CI: "1" };
-    for (const key of NETWORK_PLUMBING) if (process.env[key]) env[key] = process.env[key]!;
-    const install = await run("npm", ["install", `${name}@${version}`, "--ignore-scripts", "--no-audit", "--no-fund", "--omit=dev", "--no-package-lock", "--prefix", dir], { cwd: dir, env, timeoutMs: INSTALL_TIMEOUT_MS });
+    const install = await sandboxInstall(`${name}@${version}`, dir);
     rmSync(path.join(dir, ".npm-cache"), { recursive: true, force: true });
     if (install.code !== 0) {
       log({ action: "sandbox-install-failed", name, version });
@@ -372,7 +419,11 @@ export async function runSandbox(input: { package?: string; version?: string; re
       rmSync(dir, { recursive: true, force: true });
       return { ...base, refused: `installed size ${installedBytes} bytes exceeds the sandbox limit` };
     }
-    base.package = { name, version, installedBytes, installMs: install.ms };
+    // The registry's integrity hash for exactly this version: npm verified the
+    // tarball against it on install, and promotion pins it, so the package
+    // integrated later is byte-for-byte the one that was tested here.
+    const integrity = version === evidence.latestVersion ? evidence.integrity : undefined;
+    base.package = { name, version, integrity, installedBytes, installMs: install.ms };
   }
 
   if (input.reuse) {
@@ -387,7 +438,9 @@ export async function runSandbox(input: { package?: string; version?: string; re
   }
 
   writeFileSync(path.join(dir, "poc.mjs"), input.code);
-  const nodeArgs = ["--permission", ...readPaths.map((p) => `--allow-fs-read=${p}`), `--allow-fs-write=${path.join(dir, "out")}`];
+  // No --allow-fs-write at all: a proof of concept reports on stdout, so it
+  // cannot fill the disk. The heap is capped so it cannot exhaust memory.
+  const nodeArgs = ["--permission", "--max-old-space-size=256", "--stack-size=4000", ...readPaths.map((p) => `--allow-fs-read=${p}`)];
   if (!netns) {
     writeFileSync(path.join(dir, "guard.mjs"), NETWORK_GUARD);
     nodeArgs.push("--import", path.join(dir, "guard.mjs"));
@@ -481,6 +534,9 @@ export function createResourceApi() {
           spends: "nothing: every source is free and public",
         });
       }
+      if (method === "GET" && url === "/capabilities") {
+        return json(res, { ok: true, capabilities: capabilityLedger().list().map((r) => ({ ...r, active: isActive(r), stale: staleness(r) })) });
+      }
       if (method !== "POST") return next();
       const body = await readBody(req);
 
@@ -512,6 +568,7 @@ export function createResourceApi() {
           return terms.filter((t) => text.includes(t)).length >= need;
         });
         log({ action: "discover", query, sources, found: relevant.length, dropped: lists.flat().length - relevant.length });
+        lifecycle(body.capability, "discovered", "resource-intelligence", { query, found: relevant.length, candidates: relevant.slice(0, 6).map((r) => `${r.source}:${r.name}`) });
         return json(res, { ok: true, query, results: relevant, droppedAsIrrelevant: lists.flat().length - relevant.length, errors, githubRateRemaining: githubRemaining, modelCalls: 0 });
       }
 
@@ -526,6 +583,7 @@ export function createResourceApi() {
         }));
         const ranked = rankEvaluations(evaluations);
         log({ action: "evaluate", source, names, verdicts: ranked.map((e) => `${e.name}:${e.verdict}`) });
+        lifecycle(body.capability, "evaluated", "resource-intelligence", { verdicts: ranked.map((e) => `${e.name}@${e.version ?? "?"}:${e.verdict}:${e.license.spdx}:${e.classification.class}`) });
         return json(res, { ok: true, evaluations: ranked, summary: ranked.map(describeEvaluation), errors, modelCalls: 0 });
       }
 
@@ -542,12 +600,16 @@ export function createResourceApi() {
 
       if (url === "/sandbox") {
         const probe = body.probe === true;
+        lifecycle(body.capability, "sandbox-testing", "resource-intelligence", { package: body.package ?? null, reuse: body.reuse ?? null });
         const result = await runSandbox({
           package: body.package ? String(body.package) : undefined,
           version: body.version ? String(body.version) : undefined,
           reuse: body.reuse ? String(body.reuse) : undefined,
           code: probe ? ESCAPE_PROBE : String(body.code ?? ""),
         });
+        lifecycle(body.capability, result.ok ? "sandbox-verified" : "evaluated", "resource-intelligence", {
+          sandboxId: result.id, ok: result.ok, exitCode: result.exitCode, network: result.isolation.network, refused: result.refused ?? null, stdout: result.stdout.slice(0, 300),
+        }, result.ok ? { sandboxId: result.id, source: result.package ? `${result.package.name}@${result.package.version}` : result.reuse ? `installed:${result.reuse}` : undefined } : undefined);
         return json(res, result, result.refused ? 422 : 200);
       }
 
@@ -556,6 +618,97 @@ export function createResourceApi() {
         const file = path.join(STATE, `verified-${id}.json`);
         if (!id || !existsSync(file)) return json(res, { ok: false, error: "no passing sandbox run with that id" }, 404);
         return json(res, { ok: true, record: JSON.parse(readFileSync(file, "utf8")) });
+      }
+
+      if (url === "/capabilities") {
+        const records = capabilityLedger().list().map((r) => ({ ...r, active: isActive(r), stale: staleness(r) }));
+        return json(res, { ok: true, capabilities: records });
+      }
+
+      if (url === "/capabilities/propose") {
+        const id = String(body.capability ?? "").trim().toLowerCase();
+        const tools = (Array.isArray(body.tools) ? body.tools : [body.tool]).map(String).filter(Boolean);
+        const sandboxId = String(body.sandboxId ?? "").replace(/[^\w-]/g, "");
+        if (!tools.length) return json(res, { ok: false, code: "no_tool", error: "a capability must name the executable tool that provides it" }, 400);
+        const existing = capabilityLedger().get(id);
+        if (existing && (isActive(existing) || existing.state === "approved" || existing.state === "awaiting-approval")) {
+          return json(res, { ok: true, duplicate: true, capability: existing, note: `"${id}" is already ${existing.state}; nothing was registered twice.` });
+        }
+        const owner = capabilityLedger().list().find((r) => r.id !== id && isActive(r) && r.tools.some((t) => tools.includes(t)) && r.name === String(body.name ?? r.name));
+        if (owner) return json(res, { ok: true, duplicate: true, capability: owner, note: `"${owner.id}" already provides ${tools.join(", ")}.` });
+        const verifiedFile = path.join(STATE, `verified-${sandboxId}.json`);
+        if (!sandboxId || !existsSync(verifiedFile)) return json(res, { ok: false, code: "not_verified", error: "No passing sandbox run with that id: a capability is proposed only after its proof passed." }, 409);
+        const verified = JSON.parse(readFileSync(verifiedFile, "utf8")) as { package?: { name: string; version: string }; reuse?: string; stdout?: string };
+        if (verified.package) {
+          const evaluation = evaluateResource(await npmEvidence(verified.package.name));
+          if (evaluation.classification.class === "paid" && !spendPolicy().check(verified.package.name, {}, { peek: true }).allowed) {
+            return json(res, { ok: false, code: "spend_not_authorized", error: `${verified.package.name} is paid: not proposed without your explicit spending authorization.` }, 402);
+          }
+          if (evaluation.verdict === "blocked") return json(res, { ok: false, code: "blocked", error: evaluation.reasons.join("; ") }, 409);
+        }
+        try {
+          const init = {
+            name: String(body.name ?? id).slice(0, 120), tools, sandboxId,
+            source: verified.package ? `${verified.package.name}@${verified.package.version}` : verified.reuse ? `installed:${verified.reuse}` : String(body.source ?? "").slice(0, 160) || undefined,
+            license: body.license ? String(body.license).slice(0, 40) : undefined,
+          };
+          // A first proposal may arrive without the earlier lifecycle reports.
+          if (!existing) capabilityLedger().transition(id, "sandbox-verified", "resource-intelligence", { sandboxId, stdout: verified.stdout?.slice(0, 300) ?? "" }, init);
+          const record = capabilityLedger().transition(id, "awaiting-approval", "resource-intelligence", { sandboxId, proposedBy: req.headers?.["x-lelu-tool-call"] ? "tool call" : "direct request" }, init);
+          return json(res, { ok: true, capability: record, next: `Awaiting the user's approval: they say "approve capability ${id}".` });
+        } catch (error) {
+          const e = error as TransitionError;
+          return json(res, { ok: false, code: e.code ?? "error", error: e.message }, e.status ?? 409);
+        }
+      }
+
+      if (url === "/capabilities/register") {
+        const id = String(body.capability ?? "").trim().toLowerCase();
+        const record = capabilityLedger().get(id);
+        if (!record) return json(res, { ok: false, code: "not_found", error: `No capability "${id}".` }, 404);
+        if (isActive(record)) return json(res, { ok: true, duplicate: true, capability: record });
+        if (record.state !== "approved") {
+          log({ action: "register-refused", id, state: record.state });
+          return json(res, { ok: false, code: "approval_required", error: `"${id}" is ${record.state}: registration needs the user's approval first.` }, 403);
+        }
+        const stale = staleness(record);
+        if (stale.length) return json(res, { ok: false, code: "stale", error: `Not registered: ${stale.join("; ")}.` }, 409);
+        return json(res, { ok: true, capability: capabilityLedger().transition(id, "registered", "resource-intelligence", { tools: record.tools }) });
+      }
+
+      if (url === "/capabilities/runtime-verified") {
+        const id = String(body.capability ?? "").trim().toLowerCase();
+        const record = capabilityLedger().get(id);
+        if (!record || !isActive(record)) return json(res, { ok: false, code: "not_active", error: `"${id}" is not registered.` }, 409);
+        return json(res, { ok: true, capability: capabilityLedger().transition(id, "runtime-verified", "runtime", { tool: String(body.tool ?? ""), result: String(body.result ?? "").slice(0, 300) }) });
+      }
+
+      if (url === "/capabilities/decision") {
+        // HUMAN ONLY. The words must be the user's own (the composer or voice
+        // capture sends them with x-lelu-user-consent); a tool call is marked
+        // x-lelu-tool-call by the tool layer and is refused outright; another
+        // website cannot drive this from a visitor's browser.
+        const consent = String(req.headers?.["x-lelu-user-consent"] ?? "");
+        const fetchSite = String(req.headers?.["sec-fetch-site"] ?? "");
+        const refuse = (code: string, error: string) => {
+          log({ action: "decision-refused", code, text: String(body.text ?? "").slice(0, 120) });
+          return json(res, { ok: false, code, error }, 403);
+        };
+        if (req.headers?.["x-lelu-tool-call"]) return refuse("tool_call_cannot_decide", "A tool call cannot approve or revoke a capability.");
+        if (fetchSite === "cross-site") return refuse("cross_site", "Cross-site requests cannot decide capabilities.");
+        if (consent !== "typed" && consent !== "spoken") return refuse("user_words_required", "Approval and revocation come only from the user's own typed or spoken words.");
+        const decision = parseCapabilityDecision(String(body.text ?? ""));
+        if (!decision) return json(res, { ok: false, code: "no_decision", error: "No \"approve capability X\" or \"revoke capability X\" in the words." }, 400);
+        const approver = process.env.LELU_ACCESS_PASSWORD ? "owner (access-gate session)" : "local operator (access gate off)";
+        try {
+          const record = decision.action === "approve"
+            ? capabilityLedger().approve(decision.id, { approver, basis: process.env.LELU_ACCESS_PASSWORD ? "owner-session" : "local-runtime", consent })
+            : capabilityLedger().revoke(decision.id, approver, String(body.text ?? "").slice(0, 200));
+          return json(res, { ok: true, action: decision.action, capability: record });
+        } catch (error) {
+          const e = error as TransitionError;
+          return json(res, { ok: false, code: e.code ?? "error", error: e.message }, e.status ?? 409);
+        }
       }
 
       if (url === "/audit") return json(res, { ok: true, ...(await auditDependencies()), modelCalls: 0 });
@@ -577,7 +730,7 @@ export function createResourceApi() {
           return json(res, { ok: false, code: "approval_required", error: "Integration into production needs your explicit approval." }, 403);
         }
         const plan = verified.package
-          ? { install: `npm install ${verified.package.name}@${verified.package.version} --save-exact --ignore-scripts`, rollback: "git revert the integration commit; package.json/package-lock.json restore the previous tree" }
+          ? { install: `npm install ${verified.package.name}@${verified.package.version} --save-exact --ignore-scripts`, integrity: (verified.package as { integrity?: string }).integrity ?? "not recorded (non-latest version)", rollback: "git revert the integration commit; package.json/package-lock.json restore the previous tree" }
           : { install: `no new dependency: reuse ${verified.reuse}`, rollback: "git revert the integration commit" };
         log({ action: "promote-approved", name, sandboxId, plan, consent });
         return json(res, { ok: true, plan, note: "Recorded for the engineering workspace, which applies it with its own approval, tests and rollback." });

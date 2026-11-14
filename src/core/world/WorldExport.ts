@@ -49,8 +49,7 @@ function geometryFor(shape: NonNullable<CosmosPlacement["primitive"]>["shape"], 
   }
 }
 
-/** Rebuild the primitives as meshes and export them as one file. */
-export function exportPlacements(placements: CosmosPlacement[], format: WorldExportFormat, only?: string[]): WorldExportResult {
+function buildGroup(placements: CosmosPlacement[], only?: string[]) {
   const group = new Group();
   const exported: WorldExportResult["exported"] = [];
   const skipped: WorldExportResult["skipped"] = [];
@@ -73,8 +72,40 @@ export function exportPlacements(placements: CosmosPlacement[], format: WorldExp
     exported.push({ id: placement.id, label: placement.label, shape: placement.primitive.shape });
   }
   group.updateMatrixWorld(true);
+  return { group, exported, skipped };
+}
+
+/** Rebuild the primitives as meshes and export them as one file. */
+export function exportPlacements(placements: CosmosPlacement[], format: WorldExportFormat, only?: string[]): WorldExportResult {
+  const { group, exported, skipped } = buildGroup(placements, only);
   const text = exported.length === 0 ? "" : format === "stl" ? (new STLExporter().parse(group) as string) : new OBJExporter().parse(group);
   const faces = format === "stl" ? (text.match(/facet normal/g) ?? []).length : (text.match(/^f /gm) ?? []).length;
   for (const child of group.children) (child as Mesh).geometry.dispose();
   return { format, text, bytes: new TextEncoder().encode(text).length, exported, skipped, faces };
+}
+
+export interface WorldGlbResult {
+  glb: ArrayBuffer;
+  bytes: number;
+  meshes: number;
+  /** The file begins with the binary glTF magic and declares version 2. */
+  valid: boolean;
+  exported: WorldExportResult["exported"];
+  skipped: WorldExportResult["skipped"];
+}
+
+/**
+ * The same rebuilt primitives as one binary glTF (GLB) — the capability
+ * "world-export-gltf", activated only once the capability ledger says it is
+ * approved and registered (the tool is off until then).
+ */
+export async function exportPlacementsGlb(placements: CosmosPlacement[], only?: string[]): Promise<WorldGlbResult> {
+  const { group, exported, skipped } = buildGroup(placements, only);
+  if (exported.length === 0) return { glb: new ArrayBuffer(0), bytes: 0, meshes: 0, valid: false, exported, skipped };
+  const { GLTFExporter } = await import("three/examples/jsm/exporters/GLTFExporter.js");
+  const glb = (await new GLTFExporter().parseAsync(group, { binary: true })) as ArrayBuffer;
+  const view = new DataView(glb);
+  const valid = glb.byteLength > 12 && view.getUint32(0, true) === 0x46546c67 && view.getUint32(4, true) === 2;
+  for (const child of group.children) (child as Mesh).geometry.dispose();
+  return { glb, bytes: glb.byteLength, meshes: exported.length, valid, exported, skipped };
 }

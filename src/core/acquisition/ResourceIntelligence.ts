@@ -54,6 +54,8 @@ export interface ResourceEvidence {
   dependencies?: string[];
   peerDependencies?: string[];
   unpackedSize?: number;
+  /** The registry's dist.integrity for latestVersion (sha512). */
+  integrity?: string;
   scripts?: Record<string, string>;
   engines?: Record<string, string>;
   /** Known vulnerabilities for the evaluated version (OSV). */
@@ -327,6 +329,7 @@ export interface GapSignature {
 export const GAP_SIGNATURES: GapSignature[] = [
   { id: "3d-export-stl", label: "Export 3D objects as STL (3D printing)", match: /\b(stl|3d[- ]?print\w*)\b/i, tools: ["world.export"], reuse: ["three/examples/jsm/exporters/STLExporter.js"], search: ["stl exporter", "stl serializer"] },
   { id: "3d-export-obj", label: "Export 3D objects as Wavefront OBJ", match: /\b(\.obj|obj file|wavefront)\b/i, tools: ["world.export"], reuse: ["three/examples/jsm/exporters/OBJExporter.js"], search: ["obj exporter 3d", "wavefront obj writer"] },
+  { id: "world-export-gltf", label: "Export my world's objects as glTF/GLB", match: /(?:\b(?:world|room|environment|objects?|scene i built)\b.{0,60}\b(?:gltf|glb)\b|\b(?:gltf|glb)\b.{0,60}\b(?:world|room|environment|objects)\b)/i, tools: ["world.gltf"], reuse: ["three/examples/jsm/exporters/GLTFExporter.js"], search: ["gltf exporter", "gltf transform"] },
   { id: "3d-export-gltf", label: "Export 3D scenes as glTF/GLB", match: /\b(gltf|glb)\b/i, tools: ["creative.scene3d", "creative.export"], reuse: ["three/examples/jsm/exporters/GLTFExporter.js"], search: ["gltf exporter", "gltf transform"] },
   { id: "math-typesetting", label: "Typeset LaTeX math", match: /\b(latex|katex|typeset\w*|equation rendering)\b/i, tools: ["math.render"], reuse: ["katex/dist/katex.mjs"], search: ["latex math renderer", "math typesetting"] },
   { id: "function-plot", label: "Plot mathematical functions", match: /\b(plot|graph)\s+(?:the\s+)?(?:function|equation|y\s*=|f\(x\))/i, tools: ["math.plot", "creative.chart"], reuse: [], search: ["function plot", "math function graph"] },

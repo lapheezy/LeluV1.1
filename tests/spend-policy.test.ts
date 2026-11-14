@@ -147,7 +147,11 @@ test("only the composer and spoken input can send consent; no agent, tool or bac
   };
   walk("src");
   const senders = files.filter((f) => /captureSpendConsent\(|\/api\/spend\/consent|x-lelu-user-consent/.test(readFileSync(f, "utf8"))).map((f) => f.replace(/\\/g, "/")).sort();
-  assert.deepEqual(senders, ["src/app/scene/genesis/GenesisChat.tsx", "src/core/spend/SpendConsent.ts", "src/core/voice/VoiceEngine.ts"]);
+  // CapabilityLedgerClient sends the user's own words for capability approval
+  // and revocation (same rule, same two callers — checked just below).
+  assert.deepEqual(senders, ["src/app/scene/genesis/GenesisChat.tsx", "src/core/acquisition/CapabilityLedgerClient.ts", "src/core/spend/SpendConsent.ts", "src/core/voice/VoiceEngine.ts"]);
+  const deciders = files.filter((f) => /captureCapabilityDecision\(/.test(readFileSync(f, "utf8"))).map((f) => f.replace(/\\/g, "/")).sort();
+  assert.deepEqual(deciders, ["src/app/scene/genesis/GenesisChat.tsx", "src/core/acquisition/CapabilityLedgerClient.ts", "src/core/voice/VoiceEngine.ts"]);
 });
 
 test("Meshy (paid 3D generation) cannot be approved without authorization — not even by the model's forge.approve tool", async () => {
