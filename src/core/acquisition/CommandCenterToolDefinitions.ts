@@ -4,6 +4,7 @@
  * skipped by the registrar so its newer definitions stay authoritative.
  */
 import type { ToolDefinition } from "../tools/ToolRegistry";
+import { RESOURCE_TOOL_DEFINITIONS } from "./ResourceTools";
 
 const definitions: ToolDefinition[] = [
     {
@@ -218,5 +219,7 @@ const definitions: ToolDefinition[] = [
       dependency: "engineering runtime (/api/engineer)",
     },
   ];
+
+definitions.push(...RESOURCE_TOOL_DEFINITIONS);
 
 export default definitions;

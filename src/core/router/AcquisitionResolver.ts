@@ -170,6 +170,22 @@ export default class AcquisitionResolver {
     events.emit({ type: "tool_selected", taskId, tool: "repo.research", label: "repository research" });
     events.emit({ type: "tool_started", taskId, tool: "repo.research", label: "discovering and researching" });
 
+    // No repository named: find real candidates first (gap → installed
+    // reuse → public discovery → deterministic evaluation). No model call.
+    if (!repository) {
+      events.emit({ type: "tool_selected", taskId, tool: "resources.gaps", label: "capability gap + resource scan" });
+      try {
+        const { scanForResources } = await import("../acquisition/ResourceTools");
+        const scan = await scanForResources(prompt, keywords);
+        if (scan) {
+          events.emit({ type: "tool_result", taskId, tool: "resources.gaps", status: "complete", result: `${scan.gaps.length} gap(s), ${scan.evaluated} evaluated` });
+          return { handled: true, response: response(context, scan.text, { resourceScan: { gaps: scan.gaps.map((g) => g.id), evaluated: scan.evaluated, discovered: scan.discovered }, modelCalls: 0 }) };
+        }
+      } catch (error) {
+        context.logger.info("AcquisitionResolver", "Resource scan unavailable; using repository research", { reason: error instanceof Error ? error.message : String(error) });
+      }
+    }
+
     try {
       const prepared = await center.prepare(prompt, {
         repository,

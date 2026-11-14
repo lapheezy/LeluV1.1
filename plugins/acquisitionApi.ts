@@ -1156,7 +1156,9 @@ export function createAcquisitionApi(adapter: AcquisitionAdapter): {
         return { executable: "npx", args: ["--yes", "yarn", "install", "--ignore-scripts", "--frozen-lockfile"] };
       }
       if (existsSync(path.join(repo, "requirements.txt"))) {
-        return { executable: "python3", args: ["-m", "pip", "install", "-r", "requirements.txt"] };
+        // Wheels only: building an sdist runs its setup.py (arbitrary code).
+        // Installed into the acquisition's own folder, never the system.
+        return { executable: "python3", args: ["-m", "pip", "install", "--only-binary=:all:", "--no-input", "--target", ".lelu-pydeps", "-r", "requirements.txt"] };
       }
       return null;
     },

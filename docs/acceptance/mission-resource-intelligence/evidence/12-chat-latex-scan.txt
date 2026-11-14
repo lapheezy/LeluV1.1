@@ -1,0 +1,44 @@
+CONSOLEARGS ["🟢 [6:28:38 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:28:38 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS ["🟢 [6:29:38 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:29:38 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+[{"t":72,"m":"GET","u":"/api/github/status","done":1221},
+{"t":72,"m":"POST","u":"/api/acquisition","done":1220},
+{"t":1854,"console":"🟢 [6:30:10 PM] [BrainResolver] Memories passed to cognition as context (provider will reason over them)."},
+{"t":1861,"m":"POST","u":"/api/resources/gap","done":2497},
+{"t":3099,"m":"POST","u":"/api/resources/discover","done":3783},
+{"t":3785,"m":"POST","u":"/api/resources/evaluate","done":4992},
+{"t":5031,"m":"GET","u":"/api/voice/status","done":5633}]
+ROUTING_TRACE {
+ "intent": "search",
+ "stages": "time:0 cognitive-state:0 brain:2 intelligence:1 surface:0",
+ "notes": [
+  "final: owner=acquisition provider=acquisition model=repo-workforce chars=1948"
+ ]
+}
+APPCALLS []
+{
+ "prompt": "What capability are you missing to typeset LaTeX equations? Find free open-source tools for it and evaluate them.",
+ "firstAnswerTextMs": null,
+ "settledMs": 15835,
+ "modelRequests": 1,
+ "reqs": [
+  {
+   "t": -1,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 4449,
+   "msgs": 3,
+   "sys": 2,
+   "tools": "",
+   "max": 700,
+   "status": 200,
+   "tResp": -1
+  }
+ ],
+ "answer": "Missing capability: Typeset LaTeX math.\nInstalled already, reusable with no new dependency: katex/dist/katex.mjs.\n\nEvaluated (public registry data, no keys, no model call):\n\nkatex@0.19.1 [npm] — RECOMMENDED (score 0.98). local: Executes without an external service. License MIT (permissive); maintenance active (last release 21 d ago); 1 runtime deps (light); 3.9 MB; security medium — install-time scripts: prepare (never run here: installs use --ignore-scripts); test:perf: runs inline code. already installed: no new dependency needed.\nmathml-to-latex@1.8.0 [npm] — RECOMMENDED (score 0.96). local"
+}

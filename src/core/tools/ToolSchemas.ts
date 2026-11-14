@@ -172,6 +172,10 @@ const FAMILY_HINTS: Array<[RegExp, string[]]> = [
   [/\b(draw|drawing|drawn|sketch\w*|doodle|illustrat\w*|paint\w*|cartoon|storyboard)\b/i, ["studio_create", "studio_preview", "artifact_create"]],
   // 3D and her world: the world.* executors build real objects in the Cosmos.
   [/\b(3d|3-d|sculpt\w*|mesh|statue|hologram|world|cosmos|universe)\b/i, ["world_object", "world_generate", "world_state", "world_environment"]],
+  // Exporting what she built: STL for printing, OBJ for other 3D tools.
+  [/\b(stl|obj|3d[- ]?print\w*|export\w*)\b/i, ["world_export", "world_state"]],
+  // Resource intelligence: finding, judging and testing tools for herself.
+  [/\b(open[- ]?source|free (?:tool|library|alternative)|alternative|missing|capabilit\w*|expand|improve your|dependenc\w*|library|libraries|package|npm|github|gitlab)\b/i, ["resources_gaps", "resources_discover", "resources_evaluate", "resources_sandbox", "resources_register", "resources_audit"]],
 ];
 
 /**

@@ -62,6 +62,14 @@ export const WORLD_TOOLS: ToolDefinition[] = [
     { description: "string", name: "string", kind: "string", items: "array", furnishCurrent: "boolean", replace: "boolean" },
   ),
   tool(
+    "world.export",
+    "Export Objects as a 3D File",
+    "Export the current environment's built-in shapes (or chosen objects/groups) as an STL file for 3D printing or an OBJ file for other 3D tools. Runs locally with the three.js exporters LÉLU already has. Spends nothing",
+    0,
+    ["READ"],
+    { format: "stl|obj", ids: "string[]" },
+  ),
+  tool(
     "world.avatar",
     "Move Myself",
     "Where LÉLU stands in the current environment, which way she faces and her resting mood — remembered across reloads and devices. Walk to a spot or next to an object, turn towards an object or the user, or set her mood",
@@ -331,6 +339,36 @@ export const WORLD_EXECUTORS: WorldExecutor[] = [
       }
       const { history } = await ForgeClient.history(id);
       return { ok: true, content: `${id}: ${history.map((h) => `v${h.version} ${h.reason} (${h.objects} objects)`).join("; ")}`, data: history };
+    },
+  },
+  {
+    id: "world.export",
+    parameters: OBJECT({
+      format: { type: "string", enum: ["stl", "obj"], description: "stl for 3D printing, obj for other 3D tools." },
+      ids: { type: "array", items: { type: "string" }, description: "Optional object ids or furniture groups; default: every built-in shape here." },
+    }),
+    run: async (args) => {
+      const format = str(args, "format").toLowerCase() === "obj" ? "obj" : "stl";
+      const ids = Array.isArray(args.ids) ? args.ids.map(String) : undefined;
+      const state = await ForgeClient.world();
+      const { exportPlacements } = await import("./WorldExport");
+      const result = exportPlacements(state.objects, format, ids);
+      if (result.exported.length === 0) {
+        return { ok: false, content: `Nothing to export: ${state.objects.length ? "no built-in shapes match" : "this environment has no objects"}.${result.skipped.length ? ` Skipped: ${result.skipped.map((s) => `${s.label} (${s.reason})`).join("; ")}.` : ""}` };
+      }
+      const filename = `${state.environment.name || state.current}-${Date.now()}.${format}`.replace(/[^\p{L}\p{N}._-]+/gu, "-");
+      let download = "";
+      if (typeof URL !== "undefined" && typeof Blob !== "undefined" && typeof URL.createObjectURL === "function") {
+        download = URL.createObjectURL(new Blob([result.text], { type: format === "stl" ? "model/stl" : "model/obj" }));
+      }
+      return {
+        ok: true,
+        content:
+          `Exported ${result.exported.length} object(s) as ${format.toUpperCase()} — ${result.faces} ${format === "stl" ? "facets" : "faces"}, ${result.bytes} bytes` +
+          `${download ? ` — [download ${filename}](${download})` : ""}.` +
+          `${result.skipped.length ? ` Skipped: ${result.skipped.map((s) => `${s.label} (${s.reason})`).join("; ")}.` : ""}`,
+        data: { filename, format, bytes: result.bytes, faces: result.faces, exported: result.exported, skipped: result.skipped, download },
+      };
     },
   },
   {

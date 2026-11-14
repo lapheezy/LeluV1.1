@@ -86,7 +86,11 @@ export function detectIntelligenceIntent(prompt: string): IntelligenceIntent | n
 
   if (STUDIO_STATUS.test(text)) return { kind: "snapshot" };
 
-  if (REPOS.test(text) && /\b(which|what|capabilit|blocked|missing|install)\b/i.test(text)) {
+  // "Find / discover / compare a free open-source tool for X" is a request
+  // to go and LOOK (resource intelligence tools), not a question about the
+  // repositories LÉLU already assessed.
+  const seeking = /\b(find|search|discover|look for|look up|alternatives?|evaluate|compare|recommend)\b/i.test(text);
+  if (REPOS.test(text) && !seeking && /\b(which|what|capabilit|blocked|missing|install)\b/i.test(text)) {
     return { kind: "repositories", topic: text.slice(0, 200) };
   }
 

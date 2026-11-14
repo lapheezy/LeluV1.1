@@ -18,6 +18,7 @@ import { createInstagramApi } from "./plugins/instagramApi.ts";
 import { createRssApi } from "./plugins/rssApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
 import { createSpendApi } from "./plugins/spendPolicy.ts";
+import { createResourceApi } from "./plugins/resourceApi.ts";
 import { createSourceCatalogApi } from "./plugins/sourceCatalogApi.ts";
 import { createSelfViewApi } from "./plugins/selfViewApi.ts";
 import { createStudioApi, stopAllStudioBackends } from "./plugins/studioApi.ts";
@@ -288,6 +289,7 @@ export default defineConfig(({ mode, command }) => {
         configureServer(server: any) {
           browseApi.attach(server.middlewares);
           createSpendApi().attach(server.middlewares);
+          createResourceApi().attach(server.middlewares);
           sourceCatalogApi.attach(server.middlewares);
         },
         configurePreviewServer(server: any) {

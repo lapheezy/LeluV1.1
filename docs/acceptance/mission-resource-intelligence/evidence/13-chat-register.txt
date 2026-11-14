@@ -1,0 +1,171 @@
+CONSOLEARGS ["🟢 [6:31:43 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:31:43 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS ["🟢 [6:32:32 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:32:32 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS ["🟢 [6:33:37 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:33:37 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS ["🟢 [6:34:18 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:34:18 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS ["🟢 [6:34:25 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:34:25 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS ["🟢 [6:34:39 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:34:39 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS ["🟢 [6:34:40 PM] [ProviderResolver] Model routing decision"]
+CONSOLEARGS ["🟢 [6:34:40 PM] [ProviderResolver] Trying Groq"]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Model routing decision","Provider":"-","Duration":"-","Confidence":"-"}]
+CONSOLEARGS [{"Stage":"ProviderResolver","Success":true,"Message":"Trying Groq","Provider":"-","Duration":"-","Confidence":"-"}]
+[{"t":1955,"console":"🟢 [6:34:18 PM] [ProviderResolver] Model routing decision"},
+{"t":1959,"console":"🟢 [6:34:18 PM] [ProviderResolver] Trying Groq"},
+{"t":1961,"console":"🟢 [6:34:18 PM] [ProviderResolver] Request kept; some references were shortened"},
+{"t":1961,"console":"🟢 [6:34:18 PM] [ProviderResolver] Request budget"},
+{"t":1964,"m":"POST","u":"/api/model/groq/chat/completions","done":4758},
+{"t":4760,"console":"🟢 [6:34:21 PM] [ProviderResolver] Groq generated response"},
+{"t":4769,"m":"POST","u":"/api/resources/verified","done":5554},
+{"t":5552,"m":"POST","u":"/api/execution/events"},
+{"t":7034,"m":"POST","u":"/api/execution/events"},
+{"t":7039,"m":"POST","u":"/api/resources/verified","done":7050},
+{"t":7704,"m":"POST","u":"/api/execution/events"},
+{"t":7721,"m":"GET","u":"/api/github/status","done":8365},
+{"t":7721,"m":"GET","u":"/api/engineer/status"},
+{"t":7721,"m":"POST","u":"/api/acquisition","done":8365},
+{"t":8366,"console":"🟢 [6:34:24 PM] [BrainResolver] Memories passed to cognition as context (provider will reason over them)."},
+{"t":9534,"console":"🟢 [6:34:25 PM] [ProviderResolver] Model routing decision"},
+{"t":9535,"console":"🟢 [6:34:25 PM] [ProviderResolver] Trying Groq"},
+{"t":9539,"console":"🟢 [6:34:26 PM] [ProviderResolver] Request kept; some references were shortened"},
+{"t":9540,"console":"🟢 [6:34:26 PM] [ProviderResolver] Request budget"},
+{"t":9544,"m":"POST","u":"/api/model/groq/chat/completions","done":24929},
+{"t":11338,"m":"POST","u":"/api/resources/verified","done":11352},
+{"t":11355,"console":"🟢 [6:34:27 PM] [ProviderResolver] Tool resources_register -> ok"},
+{"t":11362,"m":"POST","u":"/api/model/groq/chat/completions","done":26239},
+{"t":12014,"m":"POST","u":"/api/execution/events"},
+{"t":12593,"m":"GET","u":"/api/voice/status","done":12616},
+{"t":13192,"console":"🟢 [6:34:29 PM] [ProviderResolver] Groq generated response"},
+{"t":22974,"console":"🟢 [6:34:39 PM] [ProviderResolver] Model routing decision"},
+{"t":22980,"console":"🟢 [6:34:39 PM] [ProviderResolver] Trying Groq"},
+{"t":22982,"console":"🟢 [6:34:39 PM] [ProviderResolver] Request kept; some references were shortened"},
+{"t":22982,"console":"🟢 [6:34:39 PM] [ProviderResolver] Request budget enforced before send"},
+{"t":22982,"console":"🟢 [6:34:39 PM] [ProviderResolver] Request budget"},
+{"t":22983,"m":"POST","u":"/api/model/groq/chat/completions"},
+{"t":23662,"m":"GET","u":"/api/engineer/status"},
+{"t":23687,"console":"🟢 [6:34:40 PM] [ProviderResolver] Model routing decision"},
+{"t":23688,"console":"🟢 [6:34:40 PM] [ProviderResolver] Trying Groq"},
+{"t":23688,"console":"🟢 [6:34:40 PM] [ProviderResolver] Request kept; some references were shortened"},
+{"t":23689,"console":"🟢 [6:34:40 PM] [ProviderResolver] Request budget"},
+{"t":23689,"m":"POST","u":"/api/model/groq/chat/completions"},
+{"t":24932,"console":"🟢 [6:34:41 PM] [ProviderResolver] Groq generated response"},
+{"t":26241,"console":"🟢 [6:34:42 PM] [ProviderResolver] Groq generated response"}]
+ROUTING_TRACE {
+ "intent": "project",
+ "stages": "time:0 cognitive-state:0 brain:2 intelligence:1 surface:0 engineering:1156 avatar:0 deflock:1 workspace:1 provider:3661*",
+ "notes": [
+  "final: owner=Groq provider=Groq model=openai/gpt-oss-120b chars=246"
+ ]
+}
+APPCALLS []
+{
+ "prompt": "Register the verified capability 3d-export-stl (name: STL export for 3D printing): tool world.export, sandbox id mwgq81qd-bo8sl, source three STLExporter (MIT, already installed). Use your resources_register tool.",
+ "firstAnswerTextMs": null,
+ "settledMs": 43450,
+ "modelRequests": 7,
+ "reqs": [
+  {
+   "t": -1,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 4449,
+   "msgs": 3,
+   "sys": 2,
+   "tools": "",
+   "max": 700,
+   "status": 200,
+   "tResp": -1
+  },
+  {
+   "t": -1,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 3631,
+   "msgs": 3,
+   "sys": 2,
+   "tools": "",
+   "max": 700,
+   "status": 200,
+   "tResp": -1
+  },
+  {
+   "t": 1965,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 23637,
+   "msgs": 3,
+   "sys": 2,
+   "tools": "",
+   "max": 2500,
+   "status": 200,
+   "tResp": 4750
+  },
+  {
+   "t": 9544,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 27530,
+   "msgs": 4,
+   "sys": 2,
+   "tools": "system_config,capabilities_list,capabilities_activate,world_export,resources_register,resources_sandbox,resources_gaps,resources_discover,sandbox_execute,sandbox_read,sandbox_write,resources_evaluate,world_environment,world_state",
+   "max": 2048,
+   "stream": true,
+   "status": 200,
+   "tResp": 10149
+  },
+  {
+   "t": 11362,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 18063,
+   "msgs": 6,
+   "sys": 2,
+   "tools": "system_config,capabilities_list,capabilities_activate,world_export,resources_register,resources_sandbox,resources_gaps,resources_discover,sandbox_execute,sandbox_read,sandbox_write,resources_evaluate,world_environment,world_state",
+   "max": 2048,
+   "stream": true,
+   "status": 200,
+   "tResp": 12023
+  },
+  {
+   "t": 22983,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 8648,
+   "msgs": 3,
+   "sys": 2,
+   "tools": "system_config,capabilities_list,capabilities_activate,world_export,resources_gaps,workflow_run,resources_register,sandbox_execute,resources_sandbox",
+   "max": 2048,
+   "status": 200,
+   "tResp": 24929
+  },
+  {
+   "t": 23689,
+   "path": "model/groq/chat/completions",
+   "model": "openai/gpt-oss-120b",
+   "bytes": 4553,
+   "msgs": 3,
+   "sys": 2,
+   "tools": "",
+   "max": 700,
+   "status": 200,
+   "tResp": 26239
+  }
+ ],
+ "answer": "✅ The verified capability 3d-export-stl (STL export for 3D printing) has been registered successfully, linking the world.export tool with the sandbox proof mwgq81qd-bo8sl. Let me know if you’d like to export a model or need anything else!"
+}

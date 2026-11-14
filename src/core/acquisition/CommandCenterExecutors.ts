@@ -7,6 +7,7 @@
 import type { ToolExecutor } from "../tools/ToolDispatcher";
 import ToolRegistry from "../tools/ToolRegistry";
 import ApprovalGate from "./ApprovalGate";
+import { RESOURCE_EXECUTORS } from "./ResourceTools";
 
 function str(args: Record<string, unknown>, key: string): string {
   const value = args[key];
@@ -498,5 +499,6 @@ const COMMAND_CENTER_EXECUTORS: ToolExecutor[] = [
   },
 ];
 
+COMMAND_CENTER_EXECUTORS.push(...RESOURCE_EXECUTORS);
 
 export default COMMAND_CENTER_EXECUTORS;

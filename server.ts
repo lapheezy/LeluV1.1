@@ -55,6 +55,7 @@ import { createAccessGate } from "./plugins/accessGate.ts";
 import { createIntegrationApi } from "./plugins/integrationApi.ts";
 import { createBrowseApi } from "./plugins/browseApi.ts";
 import { createSpendApi } from "./plugins/spendPolicy.ts";
+import { createResourceApi } from "./plugins/resourceApi.ts";
 import { createSourceCatalogApi } from "./plugins/sourceCatalogApi.ts";
 import { createGuard, sendRefusal } from "./plugins/requestGuard.ts";
 import { createAiProxyApi } from "./plugins/aiProxyApi.ts";
@@ -485,6 +486,7 @@ createGithubApi().attach(middlewares);
 createBrowseApi().attach(middlewares);
 // Global spending policy: status + the user's own consent (plugins/spendPolicy.ts).
 createSpendApi().attach(middlewares);
+createResourceApi().attach(middlewares);
 // Source catalog + gated discovery (fixed catalog URL only, via safeFetch).
 createSourceCatalogApi().attach(middlewares);
 // Her voice and ears (ElevenLabs TTS + STT). Was mounted only in Vite dev, so
