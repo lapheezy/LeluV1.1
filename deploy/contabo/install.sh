@@ -35,6 +35,27 @@ if command -v docker >/dev/null; then
 fi
 free -g | awk 'NR==2{print "   RAM GiB total/available: "$2"/"$7}'
 
+echo "== 0b. back up existing state before changing anything"
+# Everything this script may touch, as it is now. Docker volumes are not
+# touched by this script and are not copied (use `docker run --rm -v ...`
+# for those if you want a copy).
+STAMP=$(date +%Y%m%d-%H%M%S)
+PRE=()
+for p in /opt/lelu /etc/lelu /etc/caddy/Caddyfile /etc/systemd/system/lelu.service; do [ -e "$p" ] && PRE+=("$p"); done
+if [ "${#PRE[@]}" -gt 0 ]; then
+  # Runs before any package install, so use whatever compressor exists.
+  if command -v zstd >/dev/null; then ZFLAG=--zstd; EXT=tar.zst; else ZFLAG=--gzip; EXT=tar.gz; fi
+  OUT="/root/lelu-preinstall/lelu-preinstall-$STAMP.$EXT"
+  install -d -m 0700 /root/lelu-preinstall
+  tar "$ZFLAG" -cpf "$OUT" \
+    --exclude='/opt/lelu/app/node_modules' --exclude='/opt/lelu/app/.venv-*' \
+    --exclude='/opt/lelu/app/.mossnano/models' --exclude='/opt/lelu/backups' "${PRE[@]}"
+  chmod 0600 "$OUT"
+  echo "   saved $OUT ($(du -h "$OUT" | cut -f1)); restore: tar -xpf $OUT -C /"
+else
+  echo "   nothing to back up (fresh host)"
+fi
+
 echo "== 1. system packages"
 apt-get update -y
 DEBIAN_FRONTEND=noninteractive apt-get install -y \
@@ -52,7 +73,15 @@ systemctl enable --now fail2ban
 
 echo "== 3. service user"
 id lelu >/dev/null 2>&1 || useradd --system --create-home --home-dir /opt/lelu --shell /bin/bash lelu
-install -d -o lelu -g lelu -m 0750 /opt/lelu /opt/lelu/backups
+# Create only what is missing: an existing (provisioned) /opt/lelu keeps its
+# owner and mode. The app needs to write /opt/lelu/app and /opt/lelu/.bun,
+# which are created below as lelu-owned.
+[ -d /opt/lelu ] || install -d -o lelu -g lelu -m 0750 /opt/lelu
+[ -d /opt/lelu/backups ] || install -d -o lelu -g lelu -m 0750 /opt/lelu/backups
+[ -d /opt/lelu/.bun ] || install -d -o lelu -g lelu -m 0755 /opt/lelu/.bun
+[ -e "$APP" ] || install -d -o lelu -g lelu -m 0750 "$APP"
+# git clone needs the parent writable or the target empty and lelu-owned.
+[ -d "$APP/.git" ] || [ -z "$(ls -A "$APP" 2>/dev/null)" ] || { echo "!! $APP exists, is not a git checkout and is not empty — inspect it; nothing was changed."; exit 1; }
 
 echo "== 4. Bun (for the lelu user)"
 # BUN_INSTALL pins the location: the provisioned lelu user's home may not be /opt/lelu.
@@ -119,8 +148,10 @@ if [ "${LELU_VOICE:-0}" = "1" ]; then
   # install scripts fall back to: install uv system-wide first.
   command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
   apt-get install -y python3.12-venv >/dev/null
-  sudo -u lelu -H bash -c "cd $APP && bash services/mossnano/install.sh"
-  sudo -u lelu -H bash -c "cd $APP && uv venv -q .venv-livekit-agent --python 3.12 && uv pip install -q --python .venv-livekit-agent/bin/python -r services/livekit-agent/requirements.txt"
+  # System Python only: a uv-managed interpreter would live in the lelu
+  # user's home, which the voice units cannot read (ProtectHome).
+  sudo -u lelu -H env UV_PYTHON_PREFERENCE=only-system bash -c "cd $APP && bash services/mossnano/install.sh"
+  sudo -u lelu -H env UV_PYTHON_PREFERENCE=only-system bash -c "cd $APP && uv venv -q .venv-livekit-agent --python 3.12 && uv pip install -q --python .venv-livekit-agent/bin/python -r services/livekit-agent/requirements.txt"
   install -m 0644 "$APP/deploy/voice/lelu-moss.service" /etc/systemd/system/lelu-moss.service
   install -m 0644 "$APP/deploy/voice/lelu-voice-agent.service" /etc/systemd/system/lelu-voice-agent.service
   systemctl daemon-reload
