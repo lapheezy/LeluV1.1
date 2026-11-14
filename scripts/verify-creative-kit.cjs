@@ -14,6 +14,16 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { chromium } = require("playwright");
+const { execFileSync } = require("node:child_process");
+/** Independent read-back with ffprobe (when installed): codec, size, decoded frame count, duration. */
+function ffprobe(file) {
+  try {
+    const out = execFileSync("ffprobe", ["-v", "error", "-count_frames", "-show_entries", "stream=codec_type,codec_name,width,height,nb_read_frames:format=duration", "-of", "json", file], { encoding: "utf8" });
+    const j = JSON.parse(out);
+    const v = j.streams.find((x) => x.codec_type === "video"), a = j.streams.find((x) => x.codec_type === "audio");
+    return { video: v && { codec: v.codec_name, width: v.width, height: v.height, frames: Number(v.nb_read_frames) }, audio: a && { codec: a.codec_name, frames: Number(a.nb_read_frames) }, duration: Number(j.format.duration) || null };
+  } catch (e) { return { error: String(e).slice(0, 200) }; }
+}
 
 const BASE = process.env.LELU_BASE ?? "http://127.0.0.1:5174/";
 const OUT = path.resolve(process.argv[2] ?? "docs/acceptance/mission-open-source-expansion");
@@ -284,6 +294,9 @@ async function run() {
   check("film: plays in a <video> element, frames are not blank", play.played > 0.5 && play.brightness > 5, JSON.stringify(play));
   check("film: soundtrack decodes with audible signal", play.audio && play.audio.peak > 0.01, JSON.stringify(play.audio));
   fs.copyFileSync(path.join(FILES, webm.filename), path.join(FILES, "film-webcodecs.webm"));
+  const probe = ffprobe(path.join(FILES, "film-webcodecs.webm"));
+  const expected = Math.round(17.5 * 30);
+  check("film (ffprobe): every frame present, VP9 + Opus", probe.video && probe.video.frames >= expected * 0.98 && probe.audio, JSON.stringify(probe));
   // MediaRecorder fallback: the same film with VideoEncoder hidden from the page
   const mr = await page.evaluate(async (id) => {
     const S = (await import("/src/core/studio/StudioStore.ts")).default.getInstance();
@@ -295,18 +308,21 @@ async function run() {
       prog.scenes = prog.scenes.slice(0, 2);
       const film = await V.renderFilm(prog);
       let s = ""; for (let i = 0; i < film.bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, film.bytes.subarray(i, i + 0x8000));
-      return { path: film.path, codec: film.codec, seconds: film.seconds, encodeMs: film.encodeMs, size: film.bytes.length, inspect: V.inspectWebm(film.bytes), b64: btoa(s) };
+      return { path: film.path, codec: film.codec, seconds: film.seconds, encodeMs: film.encodeMs, bytes: film.bytes.length, size: `${film.width}x${film.height}`, inspect: V.inspectWebm(film.bytes), b64: btoa(s) };
     } finally { window.VideoEncoder = saved; }
   }, filmArt.id);
   fs.writeFileSync(path.join(FILES, "film-mediarecorder-fallback.webm"), Buffer.from(mr.b64, "base64"));
-  check("film: MediaRecorder fallback records a WebM when WebCodecs is absent", mr.path === "mediarecorder" && mr.inspect.ok && mr.inspect.video, `${mr.codec} · ${mr.seconds}s in ${mr.encodeMs} ms · ${mr.size} bytes`);
+  const mrProbe = ffprobe(path.join(FILES, "film-mediarecorder-fallback.webm"));
+  // MediaRecorder is real time: a frame it cannot encode in time is dropped, so count them.
+  check("film: MediaRecorder fallback records a WebM when WebCodecs is absent", mr.path === "mediarecorder" && mr.inspect.ok && mr.inspect.video, `${mr.codec} · ${mr.size}px · ${mr.seconds}s in ${mr.encodeMs} ms · ${mr.bytes} bytes`);
+  check("film (ffprobe): MediaRecorder fallback kept ≥ 80% of frames", mrProbe.video && mrProbe.video.frames >= mr.seconds * 30 * 0.8, JSON.stringify(mrProbe));
   // in-window render button (the UI path)
   await page.evaluate((id) => window.dispatchEvent(new CustomEvent("lelu-studio-open", { detail: { ids: [id], layout: "single" } })), filmArt.id);
   await page.waitForTimeout(1500);
   const rb = page.locator("[data-lelu-film-render]").first();
   if (await rb.count()) {
     await rb.click();
-    await page.waitForSelector("[data-lelu-film-ready]", { timeout: 120000 }).catch(() => {});
+    await page.waitForSelector("[data-lelu-film-ready]", { timeout: 300000 }).catch(() => {});
     const info = await page.evaluate(() => document.querySelector("[data-lelu-film-info]")?.textContent ?? null);
     await page.screenshot({ path: path.join(SHOTS, "23-film-window.png"), timeout: 90000 }).catch(() => {});
     check("film: rendered and playable from the window's button", !!info, info);

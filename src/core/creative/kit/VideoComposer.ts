@@ -296,28 +296,80 @@ export interface RenderedFilm {
   codec: string;
   audio: boolean;
   encodeMs: number;
+  /** The size actually encoded (may be below the program's on a slow encoder). */
+  width: number;
+  height: number;
+  /** Why the size was chosen. */
+  sizing: string;
 }
+
+const MIRROR_WEBCODECS = { vp9: "vp09.00.10.08", vp8: "vp8", av1: "av01.0.04M.08" } as Record<string, string>;
+
+/** Milliseconds per frame this device's encoder needs at a size (3 frames after a warm-up). */
+async function encoderCost(codec: string, width: number, height: number): Promise<number> {
+  const c = new OffscreenCanvas(width, height);
+  const g = c.getContext("2d")!;
+  const enc = new VideoEncoder({ output: () => undefined, error: () => undefined });
+  enc.configure({ codec: MIRROR_WEBCODECS[codec] ?? codec, width, height, bitrate: 4_000_000, framerate: 30 });
+  const frame = (i: number) => { g.fillStyle = `hsl(${i * 40},60%,50%)`; g.fillRect(0, 0, width, height); g.fillStyle = "#fff"; g.fillRect(i * 20, height / 4, width / 4, height / 4); return new VideoFrame(c, { timestamp: i * 33_333 }); };
+  const f0 = frame(0); enc.encode(f0, { keyFrame: true }); f0.close(); await enc.flush();
+  const t = performance.now();
+  for (let i = 1; i <= 3; i += 1) { const f = frame(i); enc.encode(f); f.close(); }
+  await enc.flush();
+  enc.close();
+  return (performance.now() - t) / 3;
+}
+
+const even = (n: number) => Math.max(2, Math.round(n / 2) * 2);
+
+/**
+ * The largest size (100 %, 75 %, 50 % of the program's) whose measured encode
+ * time fits the budget. Measured on a 4-vCPU cloud VM with software VP9:
+ * 274 ms/frame at 1280×720, 28 at 960×540, 16 at 640×360 — the full-size
+ * 17.5 s film took 18 minutes; at 540p it takes well under one.
+ */
+async function chooseSize(p: VideoProgram, codec: string, frames: number, budgetMs: number): Promise<{ width: number; height: number; sizing: string }> {
+  for (const scale of [1, 0.75, 0.5]) {
+    const w = even(p.width * scale), h = even(p.height * scale);
+    const cost = await encoderCost(codec, w, h).catch(() => Number.POSITIVE_INFINITY);
+    const estimate = cost * frames;
+    if (estimate <= budgetMs || scale === 0.5) {
+      return { width: w, height: h, sizing: `${w}×${h}${scale < 1 ? ` (encoder measured ${Math.round(cost)} ms/frame here; full ${p.width}×${p.height} would exceed the ${Math.round(budgetMs / 1000)} s budget)` : ` (encoder ${Math.round(cost)} ms/frame)`}` };
+    }
+  }
+  return { width: p.width, height: p.height, sizing: "program size" };
+}
+
+export interface RenderOptions { onProgress?: (fraction: number) => void; /** Encode-time budget before the size steps down (default max(60 s, 4× film length)). */ budgetMs?: number; /** Never step the size down. */ fullSize?: boolean }
 
 /**
  * Render a film to WebM on this device. WebCodecs (faster than real time)
  * when the browser can encode an open codec; MediaRecorder in real time
  * otherwise. Throws with the exact reason when neither exists.
  */
-export async function renderFilm(p: VideoProgram, onProgress?: (fraction: number) => void): Promise<RenderedFilm> {
+export async function renderFilm(program: VideoProgram, options: RenderOptions | ((fraction: number) => void) = {}): Promise<RenderedFilm> {
   if (typeof document === "undefined") throw new Error("film rendering needs a browser (Canvas + WebCodecs or MediaRecorder)");
+  const opts: RenderOptions = typeof options === "function" ? { onProgress: options } : options;
+  const onProgress = opts.onProgress;
   const started = performance.now();
-  const seconds = filmDuration(p);
-  const frames = Math.round(seconds * p.fps);
+  const seconds = filmDuration(program);
+  const frames = Math.round(seconds * program.fps);
+  const audio = await renderSoundtrack(program, seconds).catch(() => null);
+  const mb = await import("mediabunny");
+  const codec = typeof VideoEncoder !== "undefined" ? await mb.getFirstEncodableVideoCodec(["vp9", "vp8", "av1"], { width: program.width, height: program.height }) : null;
+  // Size: measured against this device's encoder (WebCodecs), or capped at
+  // 640×360 for real-time MediaRecorder, which drops frames it cannot encode
+  // in time (measured: 4 of 180 frames kept at 720p on a 4-vCPU VM).
+  const size = codec
+    ? (opts.fullSize ? { width: program.width, height: program.height, sizing: "program size (requested)" } : await chooseSize(program, codec, frames, opts.budgetMs ?? Math.max(60_000, seconds * 4000)))
+    : program.height > 360 ? { width: even((program.width * 360) / program.height), height: 360, sizing: "640×360 cap for real-time MediaRecorder" } : { width: program.width, height: program.height, sizing: "program size" };
+  const p: VideoProgram = { ...program, width: size.width, height: size.height };
   const images = await Promise.all(p.scenes.map((s) => prepareVisual(s.visual, p.width, p.height).catch(() => null)));
   const canvas = document.createElement("canvas");
   canvas.width = p.width;
   canvas.height = p.height;
   const ctx = canvas.getContext("2d", { alpha: false });
   if (!ctx) throw new Error("this browser refused a 2D canvas");
-  const audio = await renderSoundtrack(p, seconds).catch(() => null);
-
-  const mb = await import("mediabunny");
-  const codec = typeof VideoEncoder !== "undefined" ? await mb.getFirstEncodableVideoCodec(["vp9", "vp8", "av1"], { width: p.width, height: p.height }) : null;
   if (codec) {
     const output = new mb.Output({ format: new mb.WebMOutputFormat(), target: new mb.BufferTarget() });
     const video = new mb.CanvasSource(canvas, { codec, quality: mb.QUALITY_HIGH, keyFrameInterval: 2 });
@@ -337,7 +389,7 @@ export async function renderFilm(p: VideoProgram, onProgress?: (fraction: number
     await output.finalize();
     const buf = (output.target as InstanceType<typeof mb.BufferTarget>).buffer;
     if (!buf) throw new Error("the encoder finished without producing a file");
-    return { bytes: new Uint8Array(buf), mime: "video/webm", seconds, frames, path: "webcodecs", codec, audio: !!audioSource, encodeMs: Math.round(performance.now() - started) };
+    return { bytes: new Uint8Array(buf), mime: "video/webm", seconds, frames, path: "webcodecs", codec, audio: !!audioSource, encodeMs: Math.round(performance.now() - started), width: p.width, height: p.height, sizing: size.sizing };
   }
 
   // MediaRecorder fallback: real time, but available far more widely.
@@ -374,7 +426,7 @@ export async function renderFilm(p: VideoProgram, onProgress?: (fraction: number
   await done;
   await audioCtx?.close();
   const bytes = new Uint8Array(await new Blob(chunks, { type }).arrayBuffer());
-  return { bytes, mime: "video/webm", seconds, frames, path: "mediarecorder", codec: type, audio: !!audio, encodeMs: Math.round(performance.now() - started) };
+  return { bytes, mime: "video/webm", seconds, frames, path: "mediarecorder", codec: type, audio: !!audio, encodeMs: Math.round(performance.now() - started), width: p.width, height: p.height, sizing: size.sizing };
 }
 
 /** Read back a WebM: EBML magic, DocType "webm", and whether Video/Audio track entries exist. */

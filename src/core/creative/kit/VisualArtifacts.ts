@@ -226,7 +226,7 @@ export async function exportVisual(spec: VisualSpec, format: VisualFormat): Prom
   const film = await renderFilm(p as VideoProgram);
   const r = inspectWebm(film.bytes);
   return out(film.bytes, [{ name: "WebM container", ok: r.ok, detail: r.reason ?? r.docType }, { name: "video track", ok: r.video === true }, { name: "audio track (when a soundtrack was asked for)", ok: (p as VideoProgram).soundtrack.mood === "none" || !film.audio || r.audio === true, detail: film.audio ? "opus" : "none" }],
-    { path: film.path, codec: film.codec, seconds: Number(film.seconds.toFixed(2)), frames: film.frames, encodeMs: film.encodeMs, realtimeFactor: Number(((film.seconds * 1000) / Math.max(1, film.encodeMs)).toFixed(2)) });
+    { path: film.path, codec: film.codec, size: `${film.width}x${film.height}`, sizing: film.sizing, seconds: Number(film.seconds.toFixed(2)), frames: film.frames, encodeMs: film.encodeMs, realtimeFactor: Number(((film.seconds * 1000) / Math.max(1, film.encodeMs)).toFixed(2)) });
 }
 
 /** The existing Excalidraw drawings, exported without a model: .excalidraw is the editable file. */

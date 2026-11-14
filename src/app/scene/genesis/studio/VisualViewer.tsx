@@ -151,7 +151,7 @@ function FilmView({ program, title }: { program: VideoProgram; title: string }) 
     try {
       const film = await renderFilm(program, (p) => setState((s) => ({ ...s, progress: p })));
       const url = URL.createObjectURL(new Blob([film.bytes as BlobPart], { type: film.mime }));
-      setState({ url, info: `${film.path === "webcodecs" ? "WebCodecs" : "MediaRecorder"} · ${film.codec} · ${film.seconds.toFixed(1)} s · ${film.frames} frames · ${(film.bytes.byteLength / 1024).toFixed(0)} KB · encoded in ${(film.encodeMs / 1000).toFixed(1)} s${film.audio ? " · soundtrack" : ""}` });
+      setState({ url, info: `${film.path === "webcodecs" ? "WebCodecs" : "MediaRecorder"} · ${film.codec} · ${film.width}×${film.height} · ${film.seconds.toFixed(1)} s · ${film.frames} frames · ${(film.bytes.byteLength / 1024).toFixed(0)} KB · encoded in ${(film.encodeMs / 1000).toFixed(1)} s${film.audio ? " · soundtrack" : ""}` });
     } catch (error) {
       setState({ error: error instanceof Error ? error.message : String(error) });
     }
