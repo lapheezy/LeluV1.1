@@ -136,3 +136,45 @@ Targeted: broker suites 68/68, memory suites 299/299, voice suites pass; voice E
 - **OpenRouter:** the key shows a $100 *cap* with $99.80 left, but the account has
   `total_credits: 0`; with no credit it limits prompt size (7,674 > 2,384 tokens) and output size,
   so LÉLU's tool turns are refused. Needs account credit, or keys from accounts that have it.
+
+
+## Addendum 2 — keys renamed, Firecrawl connected, chat capabilities validated (2026-11-14, afternoon)
+
+### Keys (verified directly against each provider; values never printed)
+| Keys | Result |
+|---|---|
+| Groq 1–4 | all valid. Key 4 (and OpenRouter 4, Firecrawl 2–3) were stored with a trailing space; the server trims, so they work |
+| OpenRouter 1 | valid, account credit $0 (prompt-size limits apply) |
+| OpenRouter 2–4 | **403 "Key limit exceeded (total limit)"** — their caps are spent |
+| Firecrawl 1–3 | valid: 1,000 / 1,025 / 1,025 credits |
+
+### Firecrawl — Implemented + Tested locally (live keys) — `778c464`
+Was catalogued but never wired ("defer"). Now the rendering fallback of the existing reader
+(`browser.read` → BrowserTool → `/api/browse` → direct | Firecrawl), every key rotated server-side.
+Live: excalidraw.com and app.diagrams.net (script-built) read via Firecrawl after thin direct reads;
+server-rendered pages stay direct (free); all three keys spent credits (rotation proven).
+Note: `/api/browse` requires a signed-in user (unchanged) — guests cannot use the page reader.
+
+### Home layout — Tested locally
+Desktop + iPhone 13: renders, 3 canvases, avatar, 0 page errors, no horizontal overflow.
+**Defects (not fixed):** floating Cosmos portal labels overlap cards and the dock on iPhone; the
+Spatial menu is open over Notifications/App Library on desktop after guest entry.
+
+### Sketch in chat — was FAIL, now PASS (`90e9fda`)
+Before: no drawing tool offered; the model replied with an invented image link / ASCII art.
+After: `studio_create` called; a real Excalidraw drawing opened ("Cat on Crescent Moon Sketch",
+6 elements) — `sketch-in-chat.png`.
+
+### 3D in chat — was FAIL, now PASS for creation (`90e9fda`, `9104b92`)
+Before: claimed by the keyword project stage ("Project created" + a web search; nothing built).
+After: the model receives the world tools and builds — live, `world_object` ×2 →
+`POST 201 forge/world/objects`; her world then held `crystal-base` [0,−2.55,0] and
+`crystal-cone` [0,−1.55,0] (a tower). Her closing reply failed on provider capacity (below).
+
+### Provider capacity — the limit now
+Each tool round is ~6,000 tokens; Groq's free tier allows 8,000 tokens/minute per key on the only two
+chat models available (gpt-oss-120b/20b) and 200,000/day; today's validation spent the daily
+allowance of keys 1–2. Broker fixes (`9104b92`): rotate before waiting, remember each key's
+ready time, never wait past the page's 12 s stall watchdog, log the provider's reason. Verified: the
+chain now moves on at once (Groq 429 → OpenRouter 402 → Cerebras 401 → offline) instead of stalling.
+**To make multi-step tool turns reliable: a paid Groq tier, or credit on one OpenRouter account.**
