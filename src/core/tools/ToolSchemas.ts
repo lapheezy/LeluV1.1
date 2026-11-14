@@ -166,6 +166,12 @@ const FAMILY_HINTS: Array<[RegExp, string[]]> = [
   [/\b(avatar|body|gesture|wave|dance|companion)\b/i, ["avatar_gesture", "avatar_companion"]],
   [/\b(artifact|diagram|table|chart|note|document)\b/i, ["artifact_create", "artifact_edit", "artifact_read", "environment_present_artifact"]],
   [/\b(agent|delegate|workforce|task force)\b/i, ["agent_delegate", "agent_status", "agent_resume"]],
+  // Measured: "Draw me a quick sketch of a cat…" matched no family, so the
+  // drawing tool (studio_create, kind "drawing") was never offered and the
+  // model answered with an invented image link, then ASCII art.
+  [/\b(draw|drawing|drawn|sketch\w*|doodle|illustrat\w*|paint\w*|cartoon|storyboard)\b/i, ["studio_create", "studio_preview", "artifact_create"]],
+  // 3D and her world: the world.* executors build real objects in the Cosmos.
+  [/\b(3d|3-d|sculpt\w*|mesh|statue|hologram|world|cosmos|universe)\b/i, ["world_object", "world_generate", "world_state", "world_environment"]],
 ];
 
 /**

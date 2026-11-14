@@ -51,6 +51,10 @@ import { asksForStudioChange } from "./studio/StudioIntent";
 const ENVIRONMENT_REQUEST =
   /\b(?:open|build|compose|create|make|set ?up|arrange|rearrange|lay ?out|present|show|display|update|revise|change|modify|highlight|trace|compare|save|restore)\b[^.?!]{0,48}\b(?:workspace|environment|surfaces?|layout|artifact|diagram|table|chart|panel|window|on screen|in place)\b/i;
 
+/** A request to make something in 3D or put something in her world. */
+const WORLD_REQUEST =
+  /\b(?:3d|3-d|three[- ]?d|sculpt\w*|mesh|statue|hologram)\b|\b(?:place|put|add|spawn|build|create|make|grow|raise)\b[^.?!]{0,80}\b(?:in|into|to|inside)\s+(?:my|the|her|our|your)\s+(?:world|cosmos|universe|room|scene|garden)\b/i;
+
 export default class AIRouter {
   private readonly time = new TimeResolver();
   private readonly acquisition = new AcquisitionResolver();
@@ -143,6 +147,26 @@ export default class AIRouter {
     }
     if (!offered) return false;
     return ENVIRONMENT_REQUEST.test(context.request.prompt ?? "");
+  }
+
+  /**
+   * Can the MODEL build this in her 3D world itself?
+   *
+   * Measured: "Make a 3D crystal tower and place it in my world." was
+   * classified `project`, and ProjectResolver answered "Project created:
+   * 3D Crystal Tower" with planning tasks and a web search — no object was
+   * made. world.object / world.generate are real executors; when they are
+   * offered and the request asks for 3D or for something placed in her
+   * world, the model takes the turn, exactly like the studio and workflow
+   * cases above.
+   */
+  private modelCanShapeWorld(context: RouterContext): boolean {
+    if (!WORLD_REQUEST.test(context.request.prompt ?? "")) return false;
+    try {
+      return toolSchemasForModel().some((schema) => schema.name === "world_object" || schema.name === "world_generate");
+    } catch {
+      return false;
+    }
   }
 
   private modelCanRunWorkflow(context: RouterContext): boolean {
@@ -316,6 +340,7 @@ export default class AIRouter {
       !this.modelCanComposeEnvironment(context) &&
       !this.modelCanRunWorkflow(context) &&
       !namesTool &&
+      !this.modelCanShapeWorld(context) &&
       // "Change the chart in the Lumo brief…" is a revision of an artifact
       // this conversation made, which the model does with studio.revise.
       // Measured: ProjectResolver claimed it and answered "Project created".
