@@ -361,6 +361,11 @@ test("a rung that already ran tools is not replayed on the next provider", async
   );
   assert.equal(result.response?.metadata?.toolsExecuted?.length, 1);
   assert.equal(result.response?.metadata?.toolLoopStopped, "provider-failed-after-tools");
+  // Provider exhaustion preserves completed work and never claims completion.
+  assert.match(result.response?.text ?? "", /NOT complete/);
+  assert.match(result.response?.text ?? "", /Still needs reasoning/);
+  assert.match(result.response?.text ?? "", /did not switch to any paid service/);
+  assert.equal(result.response?.metadata?.success, false);
 });
 
 /**

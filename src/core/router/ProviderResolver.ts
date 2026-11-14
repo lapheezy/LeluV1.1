@@ -27,6 +27,7 @@ import { BudgetExhaustedError, budgetNotice, gatedGenerate } from "../observabil
 
 
 import { inspectRequest } from "../observability/RequestIntegrity";
+import { partialWorkReply, summarizeToolResult, type ToolRunRecord } from "./partialWork";
 /**
  * TERMINATION, not a round quota.
  *
@@ -210,7 +211,7 @@ export default class ProviderResolver {
      * outlives the attempt and is attached to whatever answer is
      * finally returned, including the offline one.
      */
-    const toolsReallyRun: Array<{ tool: string; ok: boolean }> = [];
+    const toolsReallyRun: Array<ToolRunRecord> = [];
     /** Why each provider in the chain failed — so the final notice can say timeout vs network vs unavailable. */
     const chainErrors: string[] = [];
 
@@ -459,9 +460,7 @@ export default class ProviderResolver {
           return {
             handled: true,
             response: {
-              text:
-                `I did the work — I ran ${names.join(", ")} — but ${provider.name} failed before it could ` +
-                `write the summary: ${message}. Nothing was repeated, and everything I ran is listed above.`,
+              text: partialWorkReply(ranThisRung, provider.name, message),
               provider: provider.name,
               model: context.request.model ?? "unknown",
               processingTime: Date.now() - context.started,
@@ -569,7 +568,7 @@ export default class ProviderResolver {
   private async executeRung(
     provider: AIProvider,
     context: RouterContext,
-    toolsReallyRun: Array<{ tool: string; ok: boolean }> | undefined,
+    toolsReallyRun: Array<ToolRunRecord> | undefined,
     budgetMs: number,
   ): Promise<AIResponse> {
     const rung = new AbortController();
@@ -665,7 +664,7 @@ export default class ProviderResolver {
   private async generateWithTools(
     provider: AIProvider,
     context: RouterContext,
-    toolsReallyRun?: Array<{ tool: string; ok: boolean }>,
+    toolsReallyRun?: Array<ToolRunRecord>,
     rungSignal?: AbortSignal,
     toolMode: "full" | "reduced" | "none" = "full",
     onProgress?: () => void,
@@ -717,7 +716,7 @@ export default class ProviderResolver {
 
     const taskId = String(context.request.timestamp ?? Date.now());
     const messages: AIMessage[] = [...fitted.messages];
-    const executed: Array<{ tool: string; ok: boolean }> = [];
+    const executed: Array<ToolRunRecord> = [];
     // What the model ASKED for, separately from what really ran.
     //
     // These are the same list on this path, by construction — every
@@ -860,7 +859,7 @@ export default class ProviderResolver {
         // round the chain falls through, and without this the cycle
         // would report "no action taken" about a workflow it really
         // created.
-        toolsReallyRun?.push({ tool: call.name, ok: result.ok });
+        toolsReallyRun?.push({ tool: call.name, ok: result.ok, summary: summarizeToolResult(result.content) });
         context.logger.info("ProviderResolver", `Tool ${call.name} -> ${result.ok ? "ok" : "failed"}`, {
           tool: call.name,
           ok: result.ok,
@@ -972,7 +971,7 @@ export default class ProviderResolver {
   private async executeProvider(
     provider: AIProvider,
     context: RouterContext,
-    toolsReallyRun?: Array<{ tool: string; ok: boolean }>,
+    toolsReallyRun?: Array<ToolRunRecord>,
     rungSignal?: AbortSignal,
     toolMode: "full" | "reduced" | "none" = "full",
     onProgress?: () => void,
@@ -1022,7 +1021,7 @@ export default class ProviderResolver {
    */
   private withRealTools(
     response: AIResponse,
-    toolsReallyRun: Array<{ tool: string; ok: boolean }>,
+    toolsReallyRun: Array<ToolRunRecord>,
   ): AIResponse {
     if (toolsReallyRun.length === 0) return response;
     return {
