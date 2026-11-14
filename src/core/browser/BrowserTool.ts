@@ -110,7 +110,9 @@ export default class BrowserTool {
   ): Promise<{ title: string; text: string; url: string } | { error: string } | null> {
     try {
       const response = await fetch(`/api/browse?url=${encodeURIComponent(url)}`, {
-        signal: AbortSignal.timeout(timeoutMs),
+        // The server may render the page with Firecrawl after a failed or
+        // empty direct read; that takes longer than a plain fetch.
+        signal: AbortSignal.timeout(Math.max(timeoutMs, 30_000)),
         // The reader runs on the server and requires a signed-in user.
         headers: sessionAuthHeader(),
       });

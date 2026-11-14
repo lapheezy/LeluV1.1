@@ -34,6 +34,7 @@
 
 import { safeFetch, SafeFetchError, type SafeFetchOptions } from "./safeFetch.ts";
 import { createGuard, sendRefusal, type Guard, type GuardRequest } from "./requestGuard.ts";
+import { createFirecrawl, FirecrawlError, type FirecrawlClient } from "./firecrawl.ts";
 
 interface ConnectLikeReq {
   method?: string;
@@ -115,7 +116,15 @@ export interface BrowseApiOptions {
   guard?: Guard;
   /** Passed to safeFetch (tests inject a resolver and a fixture dialler). */
   fetchOptions?: SafeFetchOptions;
+  /** Rendering fallback. Default: Firecrawl with every FIRECRAWL_API_KEY* configured. */
+  firecrawl?: FirecrawlClient;
 }
+
+/**
+ * Below this, a "read" page is a script shell or an interstitial, not the
+ * page: the same threshold idea as browser.read's own MIN_READABLE_CHARS.
+ */
+export const THIN_PAGE_CHARS = 200;
 
 const BROWSE_LIMIT = { max: 30, windowMs: 60_000 };
 
@@ -124,13 +133,43 @@ export function createBrowseApi(options: BrowseApiOptions = {}): {
   handle: Handler;
 } {
   const guard = options.guard ?? createGuard();
+  const firecrawl = options.firecrawl ?? createFirecrawl((name) => process.env[name]);
+
+  /**
+   * Render the page with Firecrawl. The same address rules as the direct
+   * fetch apply first: an internal host is refused here, never forwarded.
+   */
+  const rendered = async (target: string) => {
+    let parsed: URL;
+    try {
+      parsed = new URL(target);
+    } catch {
+      return null;
+    }
+    if (!/^https?:$/.test(parsed.protocol) || isBlockedHost(parsed.hostname)) return null;
+    return firecrawl.scrape(parsed.toString());
+  };
+
   const handle: Handler = (req, res, next) => {
     if ((req.method ?? "GET") !== "GET") {
       next();
       return;
     }
     const requestUrl = new URL(req.url ?? "", "http://localhost");
+    if (requestUrl.pathname.replace(/\/+$/, "").endsWith("/status")) {
+      void (async () => {
+        const decision = await guard.check(req as unknown as GuardRequest, "user", "browse", BROWSE_LIMIT);
+        if (!decision.ok) {
+          sendRefusal(res, decision);
+          return;
+        }
+        sendJson(res, { ok: true, firecrawl: { configured: firecrawl.configured(), keys: firecrawl.keyCount(), slots: firecrawl.configured() ? await firecrawl.credits() : [] } });
+      })();
+      return;
+    }
     const target = requestUrl.searchParams.get("url")?.trim() ?? "";
+    // render=1 asks for the rendered page first (a site known to be script-built).
+    const renderFirst = requestUrl.searchParams.get("render") === "1";
     void (async () => {
       // Who is asking comes first: an anonymous caller learns nothing,
       // not even whether the URL would have been allowed.
@@ -143,14 +182,38 @@ export function createBrowseApi(options: BrowseApiOptions = {}): {
         sendJson(res, { ok: false, error: "Missing ?url=" }, 400);
         return;
       }
+      /*
+       * Direct fetch first (free); Firecrawl when the direct read is refused
+       * by the site, errors, or comes back as a near-empty script shell.
+       * Measured reason: script-built pages extracted to a few dozen
+       * characters and browser.read reported them unreadable.
+       */
+      const tryRendered = async (why: string): Promise<boolean> => {
+        if (!firecrawl.configured()) return false;
+        try {
+          const page = await rendered(target);
+          if (!page || page.text.length === 0) return false;
+          sendJson(res, { ok: true, url: page.url, title: page.title, text: page.text, truncated: false, via: "firecrawl", reason: why });
+          return true;
+        } catch (error) {
+          if (error instanceof FirecrawlError) console.warn(`[browse] firecrawl fallback failed (${why}): ${error.message} ${JSON.stringify(error.attempts)}`);
+          return false;
+        }
+      };
+      if (renderFirst && (await tryRendered("requested"))) return;
       try {
         const page = await safeFetch(target, options.fetchOptions);
         const { title, text } = /html|xml/i.test(page.contentType)
           ? extractReadable(page.body)
           : { title: "", text: page.body.replace(/\s+/g, " ").trim() };
-        sendJson(res, { ok: true, url: page.url, title, text, truncated: page.truncated, redirects: page.redirects.length });
+        if (text.length < THIN_PAGE_CHARS && !renderFirst && (await tryRendered("thin page"))) return;
+        sendJson(res, { ok: true, url: page.url, title, text, truncated: page.truncated, redirects: page.redirects.length, via: "direct" });
       } catch (error) {
         if (error instanceof SafeFetchError) {
+          // An internal address or a bad URL is final; a site that refused
+          // or failed the plain fetch may still render.
+          const final = ["blocked_address", "port_not_allowed", "invalid_url", "unsupported_protocol"].includes(error.code);
+          if (!final && !renderFirst && (await tryRendered(error.code))) return;
           const status = error.code === "blocked_address" || error.code === "port_not_allowed" ? 403
             : error.code === "invalid_url" || error.code === "unsupported_protocol" ? 400
             : error.code === "unsupported_content" ? 415
@@ -159,6 +222,7 @@ export function createBrowseApi(options: BrowseApiOptions = {}): {
           sendJson(res, { ok: false, url: target, code: error.code, error: error.message }, status);
           return;
         }
+        if (!renderFirst && (await tryRendered("fetch failed"))) return;
         // Never echo an internal error message: it can name hosts or paths.
         sendJson(res, { ok: false, url: target, error: "The page could not be read." }, 502);
       }
@@ -167,7 +231,7 @@ export function createBrowseApi(options: BrowseApiOptions = {}): {
   return {
     handle,
     attach(middlewares) {
-      middlewares.use("/api/browse", handle);
+      middlewares.use("/api/browse", handle); // includes /api/browse/status
     },
   };
 }

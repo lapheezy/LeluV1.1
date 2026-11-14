@@ -145,9 +145,10 @@ export const SOURCE_CATALOG: readonly CatalogSource[] = [
   {
     id: "firecrawl", name: "Firecrawl", url: "https://github.com/firecrawl/firecrawl",
     category: "extraction", kind: "service", capabilities: ["crawl", "markdown-extraction"],
-    access: "freemium", auth: "api-key", envVars: ["FIRECRAWL_API_KEY"], limits: "Hosted free credits; self-host needs Redis + workers",
-    license: "AGPL-3.0", cors: false, decision: "defer", reason: "Same niche as Crawl4AI; overlaps browseApi. Deferred.",
-    verified: notProbed,
+    access: "freemium", auth: "api-key", envVars: ["FIRECRAWL_API_KEY", "FIRECRAWL_API_KEY_2", "FIRECRAWL_API_KEY_3"], limits: "Hosted credits per key (1,000/month each on the free plan)",
+    license: "AGPL-3.0", cors: false, decision: "integrated",
+    reason: "Rendering fallback of the existing page reader (plugins/browseApi.ts → plugins/firecrawl.ts): used when a direct read is refused, fails or is a near-empty script shell, and on render=1. Every FIRECRAWL_API_KEY* is rotated server-side; browser.read gets it with no new tool.",
+    verified: ok("live 2026-11-14: excalidraw.com and app.diagrams.net read via Firecrawl after thin direct reads; all three keys spent credits"),
   },
 
   /* ---------- Knowledge and reference ---------- */

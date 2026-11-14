@@ -22,6 +22,19 @@ import type { AddressInfo } from "node:net";
 import { isBlockedAddress, isBlockedHostname, safeFetch, SafeFetchError, MAX_BYTES, type SafeFetchOptions } from "../plugins/safeFetch";
 import { createGuard, type IdentityVerifier } from "../plugins/requestGuard";
 import { createBrowseApi } from "../plugins/browseApi";
+import type { FirecrawlClient, FirecrawlPage } from "../plugins/firecrawl";
+
+/** Tests never reach the real Firecrawl: a disabled client, or a recording stub. */
+const noFirecrawl: FirecrawlClient = { configured: () => false, keyCount: () => 0, scrape: async () => { throw new Error("not configured"); }, credits: async () => [] };
+function stubFirecrawl(page: Partial<FirecrawlPage> = {}) {
+  const asked: string[] = [];
+  const client: FirecrawlClient = {
+    configured: () => true, keyCount: () => 3,
+    scrape: async (url) => { asked.push(url); return { url, title: "Rendered", text: "Rendered by a real browser: " + "x".repeat(300), slot: 2, ...page }; },
+    credits: async () => [{ slot: 1, remaining: 1000, cooling: false }],
+  };
+  return { client, asked };
+}
 import { createIntegrationApi } from "../plugins/integrationApi";
 import { createAiProxyApi } from "../plugins/aiProxyApi";
 
@@ -224,7 +237,7 @@ async function serve(mount: (use: (path: string, h: (req: http.IncomingMessage, 
 }
 
 test("browse relay: anonymous, invalid and expired sessions are refused; a signed-in user reads; internal targets stay blocked", async () => {
-  const api = createBrowseApi({ guard: createGuard({ verify }), fetchOptions: opts() });
+  const api = createBrowseApi({ guard: createGuard({ verify }), fetchOptions: opts(), firecrawl: noFirecrawl });
   const s = await serve((use) => api.attach({ use }));
   try {
     assert.equal((await s.call("/api/browse?url=http://public.test/ok")).status, 401, "anonymous");
@@ -241,7 +254,7 @@ test("browse relay: anonymous, invalid and expired sessions are refused; a signe
 });
 
 test("browse relay: a user is rate-limited", async () => {
-  const api = createBrowseApi({ guard: createGuard({ verify }), fetchOptions: opts() });
+  const api = createBrowseApi({ guard: createGuard({ verify }), fetchOptions: opts(), firecrawl: noFirecrawl });
   const s = await serve((use) => api.attach({ use }));
   try {
     const statuses: number[] = [];
@@ -292,4 +305,43 @@ test("production server mounts the same guarded routes as development", () => {
   const browse = readFileSync("plugins/browseApi.ts", "utf8");
   assert.doesNotMatch(browse, /redirect:\s*"follow"/, "no automatic redirect following");
   assert.doesNotMatch(browse, /response\.text\(\)/, "no whole-body buffering");
+});
+
+
+/* ---------------- Firecrawl fallback ---------------- */
+
+test("a near-empty direct read falls back to Firecrawl; an internal target is never forwarded", async () => {
+  const fc = stubFirecrawl();
+  const api = createBrowseApi({ guard: createGuard({ verify }), fetchOptions: opts(), firecrawl: fc.client });
+  const s = await serve((use) => api.attach({ use }));
+  try {
+    // "/ok" extracts to a few characters: a script-shell-sized page.
+    const thin = await s.call("/api/browse?url=http://public.test/ok", "user-token");
+    assert.equal(thin.status, 200);
+    assert.equal(thin.body.via, "firecrawl");
+    assert.equal(thin.body.reason, "thin page");
+    assert.match(String(thin.body.text), /Rendered by a real browser/);
+    // A redirect to cloud metadata stays refused and is NOT handed to Firecrawl.
+    const blocked = await s.call(`/api/browse?url=${encodeURIComponent("http://public.test/to-metadata")}`, "user-token");
+    assert.equal(blocked.status, 403);
+    // A literal internal URL is never forwarded either, even when rendering is requested.
+    const direct = await s.call(`/api/browse?url=${encodeURIComponent("http://169.254.169.254/latest/meta-data/")}&render=1`, "user-token");
+    assert.notEqual(direct.status, 200);
+    assert.deepEqual(fc.asked, ["http://public.test/ok"], "only the public page reached Firecrawl");
+    // Status reports slots and credits, never key material; anonymous callers get nothing.
+    assert.equal((await s.call("/api/browse/status")).status, 401);
+    const status = await s.call("/api/browse/status", "user-token");
+    assert.deepEqual(status.body.firecrawl, { configured: true, keys: 3, slots: [{ slot: 1, remaining: 1000, cooling: false }] });
+  } finally { s.close(); }
+});
+
+test("without Firecrawl the direct read is returned exactly as before", async () => {
+  const api = createBrowseApi({ guard: createGuard({ verify }), fetchOptions: opts(), firecrawl: noFirecrawl });
+  const s = await serve((use) => api.attach({ use }));
+  try {
+    const ok = await s.call("/api/browse?url=http://public.test/ok", "user-token");
+    assert.equal(ok.status, 200);
+    assert.equal(ok.body.via, "direct");
+    assert.equal(ok.body.title, "Fine");
+  } finally { s.close(); }
 });
