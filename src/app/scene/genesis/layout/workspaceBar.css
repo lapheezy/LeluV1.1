@@ -1,0 +1,131 @@
+/* LÉLU — workspace bar (WorkspaceBar.tsx). */
+.lws {
+  font: 500 12px/1.2 var(--lelu-font-ui, "Inter", system-ui, sans-serif);
+  color: #ece6ff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+.lws-desktop {
+  padding: 6px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(28, 18, 64, 0.82), rgba(10, 14, 38, 0.86));
+  border: 1px solid rgba(196, 170, 255, 0.28);
+  box-shadow: 0 18px 50px rgba(4, 2, 20, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(22px) saturate(1.4);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  max-width: min(1100px, calc(100vw - 24px));
+}
+.lws-compact {
+  height: 48px;
+  flex-shrink: 0;
+  padding: 0 6px;
+  background: linear-gradient(180deg, rgba(22, 14, 54, 0.96), rgba(12, 10, 34, 0.94));
+  border-bottom: 1px solid rgba(196, 170, 255, 0.18);
+}
+.lws-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-width: 0;
+  flex: 1 1 auto;
+  -webkit-overflow-scrolling: touch;
+}
+.lws-tabs::-webkit-scrollbar { display: none; }
+.lws-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(236, 230, 255, 0.72);
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  max-width: 190px;
+  font: inherit;
+  isolation: isolate;
+}
+.lws-tab[data-state="minimized"], .lws-tab[data-state="tab"] { border-style: dashed; border-color: rgba(196, 170, 255, 0.22); }
+.lws-tab[data-on="true"] { color: #fff; }
+.lws-tab-label { overflow: hidden; text-overflow: ellipsis; }
+.lws-tab-glyph { opacity: 0.85; }
+.lws-tab-glow, .lws-mode-glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.55), rgba(56, 189, 248, 0.4));
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.45);
+}
+.lws-modes { display: flex; gap: 2px; padding: 2px; border-radius: 999px; background: rgba(255, 255, 255, 0.05); flex-shrink: 0; }
+.lws-modes button {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(236, 230, 255, 0.7);
+  font: inherit;
+  cursor: pointer;
+}
+.lws-modes button[data-on="true"] { color: #fff; }
+.lws-sep { width: 1px; height: 22px; background: rgba(196, 170, 255, 0.22); flex-shrink: 0; }
+.lws-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(196, 170, 255, 0.22);
+  background: rgba(255, 255, 255, 0.05);
+  color: #ece6ff;
+  font: 600 15px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+.lws-why {
+  position: absolute;
+  right: 6px;
+  bottom: calc(100% + 10px);
+  width: min(360px, calc(100vw - 24px));
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(14, 10, 40, 0.96);
+  border: 1px solid rgba(196, 170, 255, 0.3);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  z-index: 5;
+}
+.lws-compact .lws-why { top: calc(100% + 6px); bottom: auto; }
+.lws-why ul { margin: 8px 0; padding-left: 18px; color: rgba(236, 230, 255, 0.85); }
+.lws-why li { margin: 3px 0; }
+.lws-why p { margin: 4px 0 0; color: rgba(236, 230, 255, 0.7); }
+.lws-why .lws-zero { color: #6ee7b7; font-weight: 600; }
+.lws-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 6px;
+  padding: 6px;
+  border-radius: 18px;
+  background: rgba(14, 10, 40, 0.96);
+  border: 1px solid rgba(196, 170, 255, 0.3);
+  z-index: 5;
+}
+.lws-menu .lws-modes { flex-wrap: wrap; max-width: 300px; border-radius: 14px; }
+@media (max-width: 900px) { .lws-desktop .lws-mode-label { display: none; } }
+
+/* Panels reflow by their WINDOW's width, not the screen's: a phone-wide
+   window inside a desktop, or a desktop panel inside a phone sheet. */
+@container (max-width: 640px) {
+  [data-lelu-module-content] [data-lelu-reflow="columns"] { grid-template-columns: 1fr !important; flex-direction: column !important; }
+  [data-lelu-module-content] [data-lelu-reflow="columns"] > * { min-width: 0 !important; width: auto !important; max-width: 100% !important; }
+}

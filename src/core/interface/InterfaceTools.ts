@@ -63,6 +63,20 @@ export const INTERFACE_TOOLS: ToolDefinition[] = [
   tool("interface.themes", "Interface Themes", "List saved themes and environment presets, save the current (or previewed) design as a reusable theme, propose applying a saved theme, or propose deleting one (destructive — the user must confirm)", 1, ["WRITE"]),
   tool("interface.recommend", "Recommend an Environment", "Suggest which interface environment and window arrangement suits a kind of work (research, coding, creative, project management, casual conversation). Advisory only", 0, ["READ"]),
   tool(
+    "workspace.arrange",
+    "Organise My Windows",
+    "Rearrange LÉLU's open windows right now, locally (no model, no approval needed: it only moves/resizes, never closes). layout: auto (fit everything readably, resolve overlaps/overflow), tile, split (side by side), focus (one main + others beside), stack, fullscreen. modules: windows to open and bring into focus first, e.g. [\"browser\"] for 'put the browser beside the chat'. Windows that cannot fit readably become tabs and keep running. On a phone one window is the screen and the rest are tabs. Use for any request to tidy, tile, split, focus, maximise or organise the workspace",
+    0,
+    ["READ"],
+  ),
+  tool(
+    "workspace.stage",
+    "Stage the Conversation",
+    "Transform how a conversation is presented, right now, locally: conversation (plain chat), cinematic (immersive full-bleed reading with media), board (an editable research board / knowledge graph built from the conversation), gallery (its images and media), present (full-screen slides from its sections), spatial (a 3D environment of its ideas). Use for 'make this cinematic', 'turn this into a research board', 'expand this into 3D', 'show the images'",
+    0,
+    ["READ"],
+  ),
+  tool(
     "spatial.portal.create",
     "Create a Spatial Portal",
     "Create a named portal in LÉLU's spatial ring that leads to one real environment. It is stored in the canonical portal registry, appears in the ring immediately and can be removed later. Only destinations that exist in the scene graph are accepted; an unknown one is refused with a reason rather than creating a portal that opens nothing",
@@ -193,7 +207,37 @@ const SCENE_OP_SCHEMA = {
   required: ["op"],
 };
 
+async function uiBus() {
+  return (await import("../cognition/UIActionBus")).default.getInstance();
+}
+
 export const INTERFACE_EXECUTORS: InterfaceExecutor[] = [
+  {
+    id: "workspace.arrange",
+    parameters: OBJ({
+      layout: { type: "string", enum: ["auto", "tile", "split", "focus", "stack", "fullscreen"], description: "default auto" },
+      modules: { type: "array", items: { type: "string" }, description: "window ids to open and focus first (e.g. browser, projects, eng-studio)" },
+    }),
+    run: async (args) => {
+      const layout = str(args, "layout") || "auto";
+      const modules = Array.isArray(args.modules) ? args.modules.filter((m): m is string => typeof m === "string") : [];
+      const result = (await uiBus()).dispatch({ type: "arrange_workspace", target: layout, modules, reason: "workspace.arrange", initiatedBy: "lelu" });
+      return { ok: result.ok, content: result.detail, data: { layout, modules, modelCalls: 0 } };
+    },
+  },
+  {
+    id: "workspace.stage",
+    parameters: OBJ({
+      stage: { type: "string", enum: ["conversation", "cinematic", "board", "gallery", "present", "spatial"] },
+      conversationId: { type: "string", description: "defaults to the active conversation" },
+    }),
+    run: async (args) => {
+      const stage = str(args, "stage") || "conversation";
+      const conversationId = str(args, "conversationId") || undefined;
+      const result = (await uiBus()).dispatch({ type: "set_stage", target: stage, conversationId, reason: "workspace.stage", initiatedBy: "lelu" });
+      return { ok: result.ok, content: result.detail, data: { stage, modelCalls: 0 } };
+    },
+  },
   {
     id: "interface.inspect",
     parameters: OBJ({ section: { type: "string", enum: ["all", "environment", "windows", "design", "scene", "history", "capabilities"], description: "default all" } }),

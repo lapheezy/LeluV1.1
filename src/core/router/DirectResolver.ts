@@ -22,11 +22,30 @@ import type { AIResponse } from "../../providers/AIProvider";
 import type RouterContext from "./RouterContext";
 import type { BrainResult } from "./RouterResults";
 import { compileDirect, DIRECT_COMMANDS, type DirectPlan } from "../creative/kit/DirectCompiler";
+import { parseWorkspaceCommand } from "../interface/WorkspaceSteward";
+
+/**
+ * "Tile my windows", "put the browser beside the chat", "make this
+ * cinematic", "turn this into a research board": organising LÉLU's own
+ * environment is deterministic, so it is always executed here, through the
+ * real workspace.* tools, and never sent to a model. Explicit by design.
+ */
+export function workspacePlan(prompt: string): DirectPlan | null {
+  const command = parseWorkspaceCommand(prompt);
+  if (!command) return null;
+  const steps: DirectPlan["steps"] = [];
+  if (command.mode || command.open?.length) {
+    steps.push({ tool: "workspace.arrange", args: { layout: command.mode ?? "auto", modules: command.open ?? [] }, label: command.summary });
+  }
+  if (command.stage) steps.push({ tool: "workspace.stage", args: { stage: command.stage }, label: command.summary });
+  return steps.length ? { steps, summary: command.summary, explicit: true } : null;
+}
 
 export default class DirectResolver {
   /** The plan for this turn, if it has one. Pure. */
   public plan(context: RouterContext): DirectPlan | null {
-    return compileDirect(context.request.prompt ?? "");
+    const prompt = context.request.prompt ?? "";
+    return workspacePlan(prompt) ?? compileDirect(prompt);
   }
 
   /** Is any model provider able to take the turn right now? */
@@ -55,7 +74,10 @@ export default class DirectResolver {
       lines.push(`${result.ok ? "✓" : "✗"} ${step.label} (${step.tool})\n${result.content.split("\n").map((l) => `  ${l}`).join("\n")}`);
     }
     const okCount = ran.filter((r) => r.ok).length;
-    const preface = reason === "no-provider"
+    const workspace = plan.steps.every((step) => step.tool.startsWith("workspace."));
+    const preface = workspace
+      ? `${plan.summary}. I rearranged my own workspace locally — 0 model calls, nothing sent anywhere.`
+      : reason === "no-provider"
       ? `No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: ${plan.summary}.`
       : `Done directly with my own tools (no model involved): ${plan.summary}.`;
     const response: AIResponse = {

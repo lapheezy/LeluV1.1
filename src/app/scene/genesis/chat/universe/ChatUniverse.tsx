@@ -32,13 +32,12 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import * as Icons from "lucide-react";
-import { chatWindowId, conversationIdOf, floatsAboveChat, useGenesis } from "../../GenesisCore";
+import { chatWindowId, conversationIdOf, useGenesis } from "../../GenesisCore";
 import { setUniverseOpen, useUniverseOpen } from "./universeOpen";
 import { processImageFile, processVideoFile, type ProcessedMedia } from "../../../../../core/media/mediaProcessor";
 import ScreenShare from "../../../../../core/perception/ScreenShare";
 import { explainScreenShareFailure, screenShareSupport } from "../../../../../core/perception/screenCapability";
 import VoiceEngine from "../../../../../core/voice/VoiceEngine";
-import { useSurface } from "../../surface/useSurface";
 import MultiChatStore, { type ChatConversation } from "../../../../../core/multichat/MultiChatStore";
 import { goHome } from "../../home/homeActions";
 import HomeStore from "../../home/homeStore";
@@ -176,10 +175,9 @@ export default function ChatUniverse() {
 
   // On a phone an open conversation window fills the screen and has its own
   // composer; the Universe's composer leaves the tree so there is exactly one.
-  const surface = useSurface();
-  const sheetOpen = surface.workspaceOwnsScreen && Object.entries(modules).some(
-    ([id, m]) => floatsAboveChat(id) && (m.presentation === "inline" || m.presentation === "expanded"),
-  );
+  // Any window on screen owns the workspace (the Workspace Steward lays them
+  // out over the Universe); each chat window brings its own composer.
+  const sheetOpen = Object.values(modules).some((m) => m.presentation === "inline" || m.presentation === "expanded");
   const geometryKey = useMemo(
     () =>
       Object.entries(modules)
