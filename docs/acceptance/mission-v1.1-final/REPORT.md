@@ -118,3 +118,21 @@ Targeted: broker suites 68/68, memory suites 299/299, voice suites pass; voice E
 4. At least one funded model account (Groq Dev tier, OpenRouter credit, or authorized Anthropic).
 5. Supabase URL + publishable key in `/etc/lelu/lelu.env`.
 6. A consented voice recording, if the likeness finding in §3 matters to you.
+
+
+## Addendum — four keys per provider; tests re-run (2026-11-14, later)
+- **Cause found:** the cloud environment stores the extra keys as `2.GROQ_API_KEY`, `3.GROQ_API_KEY`,
+  `4.GROQ_API_KEY`, `2.OPENROUTER_API_KEY`, `3. OPENROUTER_API_KEY`, `4. OPENROUTER_API_KEY`. Names that
+  start with a digit or contain `.`/space are not valid environment variable names and never reach the
+  process, so LÉLU ran on one key per provider. They must be renamed `GROQ_API_KEY_2..4` and
+  `OPENROUTER_API_KEY_2..4`, then a new session started.
+- **Code (`548209e`):** the broker now reads base + `_1`..`_4` for both providers (it read only up to
+  `_3`); test proves the 4th key is reached when 1–3 refuse.
+- **Re-run with the primary keys:** two real chat turns on the production build answered by Groq
+  (200/200, 4.2–4.5 s). Full LiveKit voice E2E **passed with real cognition**: "Paris is the capital of
+  France." and a real ocean story spoken; STOP 160 ms; LiveKit server killed → recovered by itself
+  8 s after the kill (incl. a 6 s deliberate pause). The final typed continuity turn timed out on Groq
+  and OpenRouter refused it.
+- **OpenRouter:** the key shows a $100 *cap* with $99.80 left, but the account has
+  `total_credits: 0`; with no credit it limits prompt size (7,674 > 2,384 tokens) and output size,
+  so LÉLU's tool turns are refused. Needs account credit, or keys from accounts that have it.
