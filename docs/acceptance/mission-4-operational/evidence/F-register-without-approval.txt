@@ -1,0 +1,7 @@
+# F — registration without approval (2026-11-14T19:35:27Z), authenticated owner session
+## POST /capabilities/register (direct API)
+{"ok":false,"code":"approval_required","error":"\"3d-export-stl\" is awaiting-approval: registration needs the user's approval first."}  HTTP 403
+## POST /capabilities/register as a tool call
+{"ok":false,"code":"approval_required","error":"\"3d-export-stl\" is awaiting-approval: registration needs the user's approval first."}  HTTP 403
+# F — world-export-gltf before approval (2026-11-14T19:51:15Z)
+{"ok":false,"code":"approval_required","error":"\"world-export-gltf\" is awaiting-approval: registration needs the user's approval first."}  HTTP 403

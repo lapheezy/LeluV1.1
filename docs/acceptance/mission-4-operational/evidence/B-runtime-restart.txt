@@ -1,0 +1,10 @@
+# B — runtime restart (2026-11-14T19:52:29Z)
+before restart:
+  3d-export-stl awaiting-approval history 2
+  world-export-gltf awaiting-approval history 5
+server pid before: 6117
+access gate ON, version c58f339
+server pid after: 7055
+after restart (same session cookie):
+  3d-export-stl awaiting-approval history 2 stale []
+  world-export-gltf awaiting-approval history 5 stale []

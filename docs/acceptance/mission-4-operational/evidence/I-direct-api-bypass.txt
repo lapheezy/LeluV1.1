@@ -1,0 +1,13 @@
+# I — approval bypass attempts against the live gated server (2026-11-14T19:42:50Z)
+1. unauthenticated:
+{"ok":false,"error":"Sign in to LÉLU first.","login":"/auth/login"}  HTTP 401
+2. owner session, no user-words header:
+{"ok":false,"code":"user_words_required","error":"Approval and revocation come only from the user's own typed or spoken words."}  HTTP 403
+3. owner session, tool call claiming user words:
+{"ok":false,"code":"tool_call_cannot_decide","error":"A tool call cannot approve or revoke a capability."}  HTTP 403
+4. owner session, cross-site request claiming user words:
+{"ok":false,"code":"cross_site","error":"Cross-site requests cannot decide capabilities."}  HTTP 403
+5. model's web tool aimed at the approval route (server-side fetch to loopback):
+{"ok":false,"error":"This runtime cannot verify who is asking: no Supabase project is configured (VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY — the same names the app itself uses, see env.ex
+6. ledger after all attempts:
+[('3d-export-stl', 'awaiting-approval')]

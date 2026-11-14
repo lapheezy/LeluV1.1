@@ -10,6 +10,20 @@ import path from "node:path";
 import { createCapabilityLedger, parseCapabilityDecision } from "../plugins/capabilityLedger";
 import { createResourceApi, runSandbox, setCapabilityLedgerForTests } from "../plugins/resourceApi";
 
+// The browser's storage, as the existing runtime tests provide it.
+if (typeof globalThis.window === "undefined") (globalThis as Record<string, unknown>).window = globalThis;
+if (typeof localStorage === "undefined") {
+  const store: Record<string, string> = {};
+  (globalThis as Record<string, unknown>).localStorage = {
+    getItem: (key: string) => store[key] ?? null,
+    setItem: (key: string, value: string) => { store[key] = value; },
+    removeItem: (key: string) => { delete store[key]; },
+    clear: () => { for (const key of Object.keys(store)) delete store[key]; },
+    key: (i: number) => Object.keys(store)[i] ?? null,
+    get length() { return Object.keys(store).length; },
+  };
+}
+
 type Resp = { status: number; body: any };
 function api() {
   const { handle } = createResourceApi();
@@ -132,4 +146,38 @@ test("stale evidence is detected: a record whose sandbox proof is gone is flagge
   assert.match(listed.stale.join(" "), /sandbox evidence is missing/);
   assert.equal((await call("/capabilities/register", { capability: "cap-s" })).body.code, "stale");
   setCapabilityLedgerForTests(null);
+});
+
+test("the dispatcher refuses a ledger-gated tool until its capability is active, and again after revocation", async () => {
+  const { registerWorldTools } = await import("../src/core/world/WorldTools");
+  const { dispatchToolCall, toolPermitted } = await import("../src/core/tools/ToolDispatcher");
+  const { default: KvStore } = await import("../src/core/storage/KvStore");
+  const { default: CapabilityLedgerClient } = await import("../src/core/acquisition/CapabilityLedgerClient");
+  registerWorldTools();
+  const boot = async (records: unknown[]) => {
+    KvStore.getInstance().set("lelu.capabilityLedger.v1", records);
+    CapabilityLedgerClient.resetForTests();
+    CapabilityLedgerClient.getInstance().init();
+    await new Promise((r) => setTimeout(r, 200));
+  };
+  const record = (state: string, active: boolean) => ({ id: "world-export-gltf", name: "glTF", tools: ["world.gltf"], state, active, stale: [], history: [] });
+
+  await boot([record("awaiting-approval", false)]);
+  assert.equal(toolPermitted("world.gltf"), false, "not offered to the model");
+  const refused = await dispatchToolCall({ id: "g1", name: "world_gltf", arguments: {} }, "t-gate");
+  assert.equal(refused.ok, false, "a model-generated call is refused by the dispatcher");
+
+  await boot([record("registered", true)]);
+  assert.equal(toolPermitted("world.gltf"), true, "on once registered");
+
+  await boot([{ ...record("revoked", false) }]);
+  assert.equal(toolPermitted("world.gltf"), false, "off again after revocation");
+});
+
+test("world exports run without a model (direct path) and GLB still goes through the capability gate", async () => {
+  const { compileDirect } = await import("../src/core/creative/kit/DirectCompiler");
+  assert.deepEqual(compileDirect("Export the objects in my world as an STL file")?.steps.map((s) => [s.tool, s.args.format]), [["world.export", "stl"]]);
+  assert.deepEqual(compileDirect("/world obj")?.steps.map((s) => s.tool), ["world.export"]);
+  assert.deepEqual(compileDirect("export my world as a GLB")?.steps.map((s) => s.tool), ["world.gltf"]);
+  assert.equal(compileDirect("what is an stl file?"), null);
 });

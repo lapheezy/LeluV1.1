@@ -238,18 +238,43 @@ const packageOf = (spec: string) => (spec.startsWith("@") ? spec.split("/").slic
  */
 export async function scanForResources(prompt: string, fallbackQuery: string): Promise<ResourceScan | null> {
   const gap = await call("gap", { request: prompt, tools: await liveTools() });
-  const missing = ((gap.data.missing as Array<{ id: string; label: string; reuseAvailable: string[]; search: string[] }>) ?? []);
+  const missing = ((gap.data.missing as Array<{ id: string; label: string; reuseAvailable: string[]; search: string[]; tools: string[]; proof?: string }>) ?? []);
   const covered = ((gap.data.covered as Array<{ label: string; tool: string }>) ?? []);
   // Covered and nothing missing: no search at all — never scan without purpose.
   if (covered.length && !missing.length) {
     return { text: covered.map((c) => `Already covered: ${c.label} — my ${c.tool} tool does it now. No new dependency needed.`).join("\n"), gaps: [], evaluated: 0, discovered: 0 };
   }
   const queries = missing.length ? missing.flatMap((m) => m.search.slice(0, 1)) : [fallbackQuery];
-  const discoveries = await Promise.all(queries.slice(0, 2).map((query) => call("discover", { query, sources: ["npm", "github"], limit: 5 })));
+  const discoveries = await Promise.all(queries.slice(0, 2).map((query, i) => call("discover", { query, sources: ["npm", "github"], limit: 5, capability: missing[i]?.id })));
   const results = discoveries.flatMap((d) => (d.data.results as Array<{ source: string; name: string; description?: string; stars?: number; license?: string }>) ?? []);
   const reuse = missing.flatMap((m) => m.reuseAvailable.map(packageOf));
   const npmNames = [...new Set([...reuse, ...results.filter((r) => r.source === "npm").map((r) => r.name)])].slice(0, 5);
-  const evaluation = npmNames.length ? await call("evaluate", { names: npmNames, source: "npm" }) : { data: {} as Record<string, unknown> };
+  const evaluation = npmNames.length ? await call("evaluate", { names: npmNames, source: "npm", capability: missing[0]?.id }) : { data: {} as Record<string, unknown> };
+
+  // Prove the installed candidate in the sandbox and propose it for the
+  // user's approval — curated proofs only, so no model writes code here.
+  const ledger = ((await call("capabilities", {})).data.capabilities as Array<{ id: string; state: string; active: boolean }>) ?? [];
+  const proven: string[] = [];
+  for (const gap of missing) {
+    const existing = ledger.find((r) => r.id === gap.id);
+    if (existing && ["awaiting-approval", "approved", "registered", "runtime-verified"].includes(existing.state)) {
+      proven.push(`${gap.id} is already ${existing.state}${existing.state === "awaiting-approval" ? ` — say "approve capability ${gap.id}" to switch it on` : ""}.`);
+      continue;
+    }
+    if (!gap.proof || !gap.reuseAvailable.length || !gap.tools.length) continue;
+    const sandbox = await call("sandbox", { capability: gap.id, reuse: gap.reuseAvailable[0], code: gap.proof });
+    if (sandbox.data.ok !== true) {
+      proven.push(`Sandbox proof for ${gap.id} FAILED (${String(sandbox.data.refused ?? `exit ${String(sandbox.data.exitCode)}`)}): nothing was proposed.`);
+      continue;
+    }
+    const proposal = await call("capabilities/propose", { capability: gap.id, name: gap.label, tool: gap.tools[0], sandboxId: sandbox.data.id });
+    proven.push(
+      proposal.data.ok === true
+        ? `Sandbox-verified ${gap.reuseAvailable[0]} (run ${String(sandbox.data.id)}, network: ${String((sandbox.data.isolation as { network?: string } | undefined)?.network ?? "?")}): ${String(sandbox.data.stdout ?? "").trim().slice(0, 160)}. ` +
+          `Proposed as capability "${gap.id}" → ${gap.tools[0]}, AWAITING YOUR APPROVAL — say "approve capability ${gap.id}". I cannot approve it myself.`
+        : `Sandbox-verified (run ${String(sandbox.data.id)}), but the proposal was refused: ${String(proposal.data.error)}.`,
+    );
+  }
   const summary = (evaluation.data.summary as string[]) ?? [];
   const repos = results.filter((r) => r.source === "github").slice(0, 3);
   if (!missing.length && !covered.length && !summary.length && !repos.length) return null;
@@ -270,7 +295,8 @@ export async function scanForResources(prompt: string, fallbackQuery: string): P
   }
   const errors = discoveries.flatMap((d) => Object.entries((d.data.errors as Record<string, string>) ?? {}).map(([s, e]) => `${s}: ${e}`));
   if (errors.length) lines.push("", `Unavailable right now: ${errors.join("; ")}.`);
-  if (missing.length) {
+  if (proven.length) lines.push("", ...proven);
+  if (missing.length && !proven.length) {
     lines.push(
       "",
       "Next: I can prove the best option in my isolated sandbox (no network, no secrets, no access outside it) before anything touches my runtime. " +

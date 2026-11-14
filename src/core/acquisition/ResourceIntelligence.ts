@@ -324,12 +324,36 @@ export interface GapSignature {
   reuse: string[];
   /** Discovery queries for open-source alternatives. */
   search: string[];
+  /**
+   * A curated proof of concept for the installed reuse candidate: an ES
+   * module run in the sandbox that prints its evidence and exits non-zero on
+   * failure. With it, the whole lifecycle up to "awaiting approval" runs
+   * without a model writing code.
+   */
+  proof?: string;
 }
 
+/** Browser FileReader for Node, so three's GLTFExporter can be proven in the sandbox. */
+const FILE_READER_SHIM =
+  "globalThis.FileReader=class{readAsArrayBuffer(b){b.arrayBuffer().then(r=>{this.result=r;this.onloadend&&this.onloadend()})}" +
+  "readAsDataURL(b){b.arrayBuffer().then(r=>{this.result='data:application/octet-stream;base64,'+Buffer.from(r).toString('base64');this.onloadend&&this.onloadend()})}};";
+
+const PROOF_GLB =
+  FILE_READER_SHIM +
+  "const T=await import('three');const {GLTFExporter}=await import('three/examples/jsm/exporters/GLTFExporter.js');" +
+  "const g=new T.Group();const a=new T.Mesh(new T.BoxGeometry(1,1,1));const b=new T.Mesh(new T.SphereGeometry(0.5,16,12));b.position.set(2,0,0);g.add(a,b);" +
+  "const glb=await new GLTFExporter().parseAsync(g,{binary:true});const v=new DataView(glb);" +
+  "const ok=v.getUint32(0,true)===0x46546c67&&v.getUint32(4,true)===2;console.log(JSON.stringify({glbBytes:glb.byteLength,magic:'glTF',version:2,meshes:2,ok}));if(!ok)process.exit(1);";
+
+const PROOF_STL =
+  "const T=await import('three');const {STLExporter}=await import('three/examples/jsm/exporters/STLExporter.js');" +
+  "const s=new T.Scene();s.add(new T.Mesh(new T.BoxGeometry(1,1,1)));s.updateMatrixWorld(true);" +
+  "const n=(new STLExporter().parse(s).match(/facet normal/g)||[]).length;console.log(JSON.stringify({stlFacets:n}));if(n!==12)process.exit(1);";
+
 export const GAP_SIGNATURES: GapSignature[] = [
-  { id: "3d-export-stl", label: "Export 3D objects as STL (3D printing)", match: /\b(stl|3d[- ]?print\w*)\b/i, tools: ["world.export"], reuse: ["three/examples/jsm/exporters/STLExporter.js"], search: ["stl exporter", "stl serializer"] },
+  { id: "3d-export-stl", label: "Export 3D objects as STL (3D printing)", match: /\b(stl|3d[- ]?print\w*)\b/i, tools: ["world.export"], reuse: ["three/examples/jsm/exporters/STLExporter.js"], search: ["stl exporter", "stl serializer"], proof: PROOF_STL },
   { id: "3d-export-obj", label: "Export 3D objects as Wavefront OBJ", match: /\b(\.obj|obj file|wavefront)\b/i, tools: ["world.export"], reuse: ["three/examples/jsm/exporters/OBJExporter.js"], search: ["obj exporter 3d", "wavefront obj writer"] },
-  { id: "world-export-gltf", label: "Export my world's objects as glTF/GLB", match: /(?:\b(?:world|room|environment|objects?|scene i built)\b.{0,60}\b(?:gltf|glb)\b|\b(?:gltf|glb)\b.{0,60}\b(?:world|room|environment|objects)\b)/i, tools: ["world.gltf"], reuse: ["three/examples/jsm/exporters/GLTFExporter.js"], search: ["gltf exporter", "gltf transform"] },
+  { id: "world-export-gltf", label: "Export my world's objects as glTF/GLB", match: /(?:\b(?:world|room|environment|objects?|scene i built)\b.{0,60}\b(?:gltf|glb)\b|\b(?:gltf|glb)\b.{0,60}\b(?:world|room|environment|objects)\b)/i, tools: ["world.gltf"], reuse: ["three/examples/jsm/exporters/GLTFExporter.js"], search: ["gltf exporter", "gltf transform"], proof: PROOF_GLB },
   { id: "3d-export-gltf", label: "Export 3D scenes as glTF/GLB", match: /\b(gltf|glb)\b/i, tools: ["creative.scene3d", "creative.export"], reuse: ["three/examples/jsm/exporters/GLTFExporter.js"], search: ["gltf exporter", "gltf transform"] },
   { id: "math-typesetting", label: "Typeset LaTeX math", match: /\b(latex|katex|typeset\w*|equation rendering)\b/i, tools: ["math.render"], reuse: ["katex/dist/katex.mjs"], search: ["latex math renderer", "math typesetting"] },
   { id: "function-plot", label: "Plot mathematical functions", match: /\b(plot|graph)\s+(?:the\s+)?(?:function|equation|y\s*=|f\(x\))/i, tools: ["math.plot", "creative.chart"], reuse: [], search: ["function plot", "math function graph"] },
@@ -350,7 +374,7 @@ export interface GapReport {
   /** Touched and already covered by an available tool. */
   covered: Array<{ id: string; label: string; tool: string }>;
   /** Touched and not covered: the real gaps. */
-  missing: Array<{ id: string; label: string; reuse: string[]; search: string[] }>;
+  missing: Array<{ id: string; label: string; reuse: string[]; search: string[]; tools: string[]; proof?: string }>;
 }
 
 /**
@@ -366,7 +390,7 @@ export function detectCapabilityGaps(request: string, availableTools: Iterable<s
     report.touched.push(sig.id);
     const tool = sig.tools.find((id) => tools.has(id));
     if (tool) report.covered.push({ id: sig.id, label: sig.label, tool });
-    else report.missing.push({ id: sig.id, label: sig.label, reuse: sig.reuse, search: sig.search });
+    else report.missing.push({ id: sig.id, label: sig.label, reuse: sig.reuse, search: sig.search, tools: sig.tools, proof: sig.proof });
   }
   return report;
 }

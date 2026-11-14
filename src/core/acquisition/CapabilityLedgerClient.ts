@@ -78,9 +78,12 @@ export default class CapabilityLedgerClient {
     }
     void this.apply(this.records, false);
     void this.hydrate();
-    if (typeof window !== "undefined") {
-      setInterval(() => void this.hydrate(), REFRESH_MS);
+    const timer = setInterval(() => void this.hydrate(), REFRESH_MS) as unknown as { unref?: () => void };
+    timer.unref?.();
+    if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
       window.addEventListener("focus", () => void this.hydrate());
+    }
+    if (typeof document !== "undefined") {
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") void this.hydrate();
       });

@@ -1,0 +1,22 @@
+{
+ "device": "desktop",
+ "started": "2026-11-14T20:06:34.684Z",
+ "prompt": "/world glb",
+ "settledMs": 29019,
+ "tools": [],
+ "modelRequests": 1,
+ "modelRequestDetail": [
+  {
+   "path": "model/groq/chat/completions",
+   "tools": 0,
+   "toolNames": "",
+   "system": "You are Lélu — a personal AI companion with a persistent visual identity and real tools.\n\n",
+   "user": "QUESTION I AM INVESTIGATING: What is the state of cognition?\nWHY IT MATTERS: Surfaced whil"
+  }
+ ],
+ "answer": "Done directly with my own tools (no model involved): world objects → GLB.\n\n✗ GLB export (world.gltf)\n\"world.gltf\" is not permitted right now, so it was not run.\n\n0 of 1 steps succeeded; the failures are shown with their reasons.",
+ "ledger": [
+  "3d-export-stl:awaiting-approval",
+  "world-export-gltf:awaiting-approval"
+ ]
+}

@@ -91,8 +91,12 @@ function scrub(evidence: Record<string, unknown>): Record<string, unknown> {
 }
 
 export class TransitionError extends Error {
-  constructor(message: string, public readonly code: string, public readonly status = 409) {
+  readonly code: string;
+  readonly status: number;
+  constructor(message: string, code: string, status = 409) {
     super(message);
+    this.code = code;
+    this.status = status;
   }
 }
 

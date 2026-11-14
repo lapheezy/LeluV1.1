@@ -2711,6 +2711,12 @@ function refusalReason(id: string): string {
   if (!AutonomyGate.getInstance().can(riskToAutonomy(definition.riskLevel))) {
     return `"${id}" is not permitted at the current autonomy level, so it was not run.`;
   }
+  if (!CapabilityActivation.getInstance().isToolEnabled(id)) {
+    return (
+      `"${id}" was NOT run: the capability that provides it is switched off — either it is awaiting the user's approval ` +
+      `(they say "approve capability <id>") or it was revoked. Nothing was executed.`
+    );
+  }
   return `"${id}" is not permitted right now, so it was not run.`;
 }
 

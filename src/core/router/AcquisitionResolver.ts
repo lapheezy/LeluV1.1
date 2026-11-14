@@ -53,6 +53,8 @@ function extractRepository(prompt: string): string | undefined {
   const slug = REPO_SLUG.exec(prompt);
   if (!slug) return undefined;
   const candidate = slug[1];
+  // "@scope/name" is an npm package, not a GitHub repository.
+  if (prompt[slug.index - 1] === "@") return undefined;
   // Reject file paths and prose like "and/or".
   if (/^(and|or|the|a|an)\//i.test(candidate)) return undefined;
   if (/\.(ts|tsx|js|json|md|css|html)$/i.test(candidate)) return undefined;
@@ -159,7 +161,13 @@ export default class AcquisitionResolver {
       }
     }
 
-    if (!PREPARE_VERB.test(prompt) || !SUBJECT.test(prompt)) return { handled: false };
+    // "What capability are you missing to …?" is answered from the real
+    // gap check and capability ledger (the no-repository scan below).
+    const askingWhatsMissing = /\bwhat (?:capabilit\w*|tools?|abilit\w*) (?:are|do) you (?:missing|lack|need)\b/i.test(prompt);
+    if (!askingWhatsMissing && (!PREPARE_VERB.test(prompt) || !SUBJECT.test(prompt))) return { handled: false };
+    // An explicit hand-off to an agent goes to the agent (SHAMAN → Agent
+    // Forge), not to this resolver's own research path.
+    if (/\b(delegate|hand (?:this|it) (?:off|over)|agent forge|resource intelligence agent|ask (?:the|your) \w+ agent)\b/i.test(prompt)) return { handled: false };
     if (/\b(how do i|how to|explain|what is)\b/i.test(prompt)) return { handled: false };
     if (context.intent === "avatar" || context.intent === "time") return { handled: false };
 

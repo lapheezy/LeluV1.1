@@ -1,0 +1,43 @@
+{
+ "device": "desktop",
+ "started": "2026-11-14T20:14:51.969Z",
+ "prompt": "What capability are you missing to give me my film as an MP4? Find a free open-source option.",
+ "settledMs": 19825,
+ "tools": [],
+ "modelRequests": 4,
+ "modelRequestDetail": [
+  {
+   "path": "model/groq/chat/completions",
+   "tools": 0,
+   "toolNames": "",
+   "system": "You are Lélu — a personal AI companion with a persistent visual identity and real tools.\n\n",
+   "user": "QUESTION I AM INVESTIGATING: What is causing this failure: STATIC SNAPSHOT — the engineeri"
+  },
+  {
+   "path": "model/openrouter/chat/completions",
+   "tools": 0,
+   "toolNames": "",
+   "system": "You are Lélu — a personal AI companion with a persistent visual identity and real tools.\n\n",
+   "user": "QUESTION I AM INVESTIGATING: What is causing this failure: STATIC SNAPSHOT — the engineeri"
+  },
+  {
+   "path": "model/openrouter/chat/completions",
+   "tools": 0,
+   "toolNames": "",
+   "system": "You are Lélu — a personal AI companion with a persistent visual identity and real tools.\n\n",
+   "user": "HERU SAID: What capability are you missing to give me my film as an MP4? Find a free open-"
+  },
+  {
+   "path": "model/openrouter/chat/completions",
+   "tools": 0,
+   "toolNames": "",
+   "system": "You are Lélu — a personal AI companion with a persistent visual identity and real tools.\n\n",
+   "user": "QUESTION I AM INVESTIGATING: What do I actually know about Latest frontier model architect"
+  }
+ ],
+ "answer": "Missing capability: Write MP4 video.\nInstalled already, reusable with no new dependency: mediabunny/package.json.\n\nEvaluated (public registry data, no keys, no model call):\n\nmediabunny@1.66.0 [npm] — RECOMMENDED (score 0.94). browser-native: Uses device/browser capabilities. License MPL-2.0 (weak-copyleft); maintenance active (last release 1 d ago); 2 runtime deps (light); 11.3 MB; security low. already installed: no new dependency needed.\n@boundsvg/video@0.11.0 [npm] — RECOMMENDED (score 0.98). browser-native: Uses device/browser capabilities. License MIT OR Apache-2.0 (permissive); maintenance active (last release 2 d ago); 0 runtime deps (none); 525 KB; security low.\njmuxer@2.1.4 [npm] — BLOCKED (score 0.2). local: Executes without an external service. License UNKNOWN (unknown); maintenance active (last release 68 d ago); 0 runtime deps (none); 285 KB; security low. no recognised license: cannot be integrated until clarified.\nuupaa.mp4muxer.js@0.0.15 [npm] — BLOCKED (score 0.2). local: Executes without an external service. License Apache License Version 2.0 (unknown); maintenance abandoned (last release 3588 d ago); 3 runtime deps (light); unknown size; security low. no recognised license: cannot be integrated until clarified.\nmp4maker@1.1.5 [npm] — BLOCKED (score 0.2). browser-native: Uses device/browser capabilities. License UNKNOWN (unknown); maintenance stale (last release 729 d ago); 2 runtime deps (light); 46 KB; security low. no recognised license: cannot be integrated until clarified.\n\nAlso on GitHub:\n\njustdan96/tsMuxer (Apache-2.0), ★1057 — tsMuxer is a transport stream muxer for remuxing/muxing elementary streams, EVO/VOB/MPG, M\nwebstream-labs/jmuxer (NOASSERTION), ★648 — jMuxer - a simple javascript mp4 muxer that works in both browser and node environment.\nVanilagy/mp4-muxer (MIT), ★619 — MP4 multiplexer in pure TypeScript with support for WebCodecs API, video & audio.\n\nNext: I can prove the best option in my isolated sandbox (no network, no secrets, no access outside it) before anything touches my runtime. Integration into production needs your approval; paid options stay blocked unless you authorize them.",
+ "ledger": [
+  "3d-export-stl:awaiting-approval",
+  "world-export-gltf:awaiting-approval"
+ ]
+}

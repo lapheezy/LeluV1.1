@@ -1,0 +1,12 @@
+# J — sandbox escape attempts through the LIVE server (2026-11-14T19:43:04.485204Z)
+- escape-probe (built-in): ok=True exit=0 167ms stdout='{"readProject":"denied:ERR_ACCESS_DENIED","readSystem":"denied:ERR_ACCESS_DENIED","spawn":"denied:ERR_ACCESS_DENIED","secrets":0,"network":"denied:EAI_AGAIN"}'
+- raw TCP to 1.1.1.1:53: ok=True exit=0 42ms stdout='denied:ENETUNREACH'
+- read project .env: ok=True exit=0 42ms stdout='denied:ERR_ACCESS_DENIED'
+- symlink to project file: ok=True exit=0 43ms stdout='denied:ERR_ACCESS_DENIED'
+- write anywhere: ok=True exit=0 36ms stdout='denied:ERR_ACCESS_DENIED'
+- spawn a shell: ok=True exit=0 39ms stdout='denied:ERR_ACCESS_DENIED'
+- environment: ok=True exit=0 34ms stdout='["PATH","HOME","NODE_OPTIONS"]'
+- memory bomb: ok=False exit=None 397ms stdout=''
+isolation reported: {"network": "none \u2014 fresh network namespace", "filesystem": "read only inside the sandbox folder (plus a reused installed module); no writes anywhere", "memory": "heap capped at 256 MB", "processes": "child processes, workers and native addons denied (Node permission model)", "environment": "empty: no API keys or tokens", "timeoutMs": 20000}
+1. evaluation of its manifest: blocked — suspicious install-time behaviour | install-time scripts: preinstall, install, postinstall, prepare (never run here: installs use --ignore-scripts); preinstall: runs inline code; install: runs inline code; postinstall: pipes a download straight into a shell; postinstall: downloads during install; postinstall: runs inline code; prepare: runs inline code
+2. forced install with the sandbox's own command: exit 0 | installed: .package-lock.json,evil-pkg | any lifecycle script ran: false

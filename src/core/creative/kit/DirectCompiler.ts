@@ -144,6 +144,9 @@ export function compileDirect(prompt: string): DirectPlan | null {
   if (slash) return compileCommand(slash[1].toLowerCase(), slash[2].trim());
   const nl = (cmd: string, rest: string): DirectPlan | null => { const plan = compileCommand(cmd, rest); return plan ? { ...plan, explicit: false } : null; };
   const verb = /\b(make|create|build|generate|construct|render|draw|design|produce|compose|assemble|give me|show me|i want|i'd like)\b/i;
+  // Exporting what she built in her world (Job 3/4: world.export, world.gltf).
+  const worldFile = /\b(stl|obj|glb|gltf)\b/i.exec(t);
+  if (worldFile && has(/\b(export|download|save|give me|turn)\b/i, t) && has(/\b(world|room|environment|objects?)\b/i, t)) return nl("world", worldFile[1]);
   if (has(/\b(fashion|couture)\b/i, t) && has(/\bcollection\b/i, t) && has(verb, t)) return nl("collection", subjectOf(t));
   if (has(/\b(film|movie|video|trailer|reel|montage)\b/i, t) && has(verb, t)) return nl("film", subjectOf(t));
   if (has(/\b(3d|3-d)\b|\b(environment|landscape|scene)\b/i, t) && has(verb, t) && !has(/\b(diagram|chart)\b/i, t)) return nl("scene", t);
@@ -221,6 +224,14 @@ function compileCommand(cmd: string, rest: string): DirectPlan | null {
       return { explicit, summary: "device capabilities and offline tools", steps: [{ tool: "device.capabilities", label: "device", args: {} }, { tool: "tools.catalog", label: "offline tools", args: { filter: "offline" } }] };
     case "tools":
       return { explicit, summary: "tool catalog", steps: [{ tool: "tools.catalog", label: "catalog", args: { filter: rest } }] };
+    case "world": {
+      const format = (/\b(stl|obj|glb|gltf)\b/i.exec(rest)?.[1] ?? "stl").toLowerCase();
+      // GLB is its own capability (world-export-gltf): the dispatcher refuses
+      // it until the user has approved it, exactly as for a model's call.
+      return format === "glb" || format === "gltf"
+        ? { explicit, summary: "world objects → GLB", steps: [{ tool: "world.gltf", label: "GLB export", args: {} }] }
+        : { explicit, summary: `world objects → ${format.toUpperCase()}`, steps: [{ tool: "world.export", label: `${format.toUpperCase()} export`, args: { format } }] };
+    }
     case "export": {
       const m = /^(.*\S)\s+(svg|png|json|mmd|html|csv|glb|gltf|webm|excalidraw)$/i.exec(rest);
       return m ? { explicit, summary: `export ${m[1]} as ${m[2]}`, steps: [{ tool: "creative.export", label: "export", args: { artifact: m[1], format: m[2].toLowerCase() } }] } : null;
@@ -231,4 +242,4 @@ function compileCommand(cmd: string, rest: string): DirectPlan | null {
 }
 
 /** Every command the direct path understands (shown when a command is unknown). */
-export const DIRECT_COMMANDS = ["/art", "/diagram", "/scene", "/film", "/chart earthquakes", "/research", "/data", "/sketch", "/collection", "/capabilities", "/tools", "/export"];
+export const DIRECT_COMMANDS = ["/world stl|obj|glb", "/art", "/diagram", "/scene", "/film", "/chart earthquakes", "/research", "/data", "/sketch", "/collection", "/capabilities", "/tools", "/export"];

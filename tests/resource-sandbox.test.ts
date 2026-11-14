@@ -85,3 +85,13 @@ test("resource intelligence makes no model call", async () => {
     assert.doesNotMatch(src, /\/api\/model|ai\.chat|generate\(|AIProviderRegistry/, file);
   }
 });
+
+test("curated proofs for reusable installed modules pass in the sandbox (no model writes this code)", async () => {
+  const { GAP_SIGNATURES } = await import("../src/core/acquisition/ResourceIntelligence");
+  for (const id of ["world-export-gltf", "3d-export-stl"]) {
+    const sig = GAP_SIGNATURES.find((s) => s.id === id)!;
+    const result = await runSandbox({ reuse: sig.reuse[0], code: sig.proof! });
+    assert.equal(result.ok, true, `${id}: ${result.stderr}`);
+    assert.match(result.stdout, id === "world-export-gltf" ? /"ok":true/ : /"stlFacets":12/);
+  }
+});
