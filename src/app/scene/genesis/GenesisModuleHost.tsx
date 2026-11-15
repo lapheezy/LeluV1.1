@@ -21,14 +21,24 @@
  * ==========================================================
  */
 
-import { Suspense, useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import WorkspaceStewardStore from "../../../core/interface/WorkspaceStewardStore";
+import { isCompact, planWorkspace, type StewardWindow } from "../../../core/interface/WorkspaceSteward";
+import WorkspaceBar from "./layout/WorkspaceBar";
+import { useContentOverflowWatch, useStewardViewport } from "./layout/stewardHooks";
 import { chatFillsScreen } from "./chat/chatLayout";
 import { InModuleWindow } from "./moduleWindowContext";
 import { APP_WINDOW_Z, CHAT_WINDOW_Z, conversationIdOf, floatsAboveChat, useGenesisActions, useGenesisState, type ModuleState } from "./GenesisCore";
 import { MODULE_CATALOG } from "./GenesisDock";
 import { useUniverseOpen } from "./chat/universe/universeOpen";
 import ModuleLayoutStore from "./layout/ModuleLayoutStore";
+
+/* The layout store's manual/pinned flags feed the plan. */
+let layoutTick = 0;
+const subscribeLayout = (cb: () => void) => ModuleLayoutStore.getInstance().subscribe(() => { layoutTick += 1; cb(); });
+const layoutSnapshot = () => layoutTick;
 import { genesisTheme } from "./GenesisTheme";
+import { kindOf, type StewardPlacement } from "../../../core/interface/WorkspaceSteward";
 
 const STATUS_DOT: Record<string, string> = {
   idle: "#64748b",
@@ -77,6 +87,14 @@ interface FloatingWindowProps {
   label: string;
   glyph: string;
   cascadeIndex: number;
+  /** Where the Workspace Steward put this window (absent: legacy geometry). */
+  placement?: StewardPlacement;
+  /** Open and running, but folded into the workspace tabs. */
+  folded?: boolean;
+  /** Stacking base for this workspace (above the Universe while it is open). */
+  zBase?: number;
+  /** Replaces the title bar on a phone sheet: the workspace bar with every open window. */
+  sheetBar?: ReactNode;
 }
 
 /**
@@ -86,7 +104,7 @@ interface FloatingWindowProps {
  * toggle, detach, close), all through the canonical module actions
  * in GenesisCore — the same actions LÉLU's structured tool calls use.
  */
-function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: FloatingWindowProps) {
+function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, placement, folded = false, zBase, sheetBar }: FloatingWindowProps) {
   const { moveModule, resizeModule, raiseModule, minimizeModule, expandModule, setModulePresentation, closeModule, openPanel } = useGenesisActions();
   const [viewport, setViewport] = useState(() => ({
     width: typeof window !== "undefined" ? window.visualViewport?.width ?? window.innerWidth : 1280,
@@ -252,6 +270,24 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       ? Math.max(MOBILE_TOP_RESERVE, Math.min(rawPosition.y, Math.max(MOBILE_TOP_RESERVE, viewportHeight - MOBILE_BOTTOM_RESERVE - size.height)))
       : Math.max(8, Math.min(rawPosition.y, Math.max(8, viewportHeight - size.height - 8))),
   };
+  /*
+   * The Workspace Steward owns geometry at rest. During a gesture the live
+   * module geometry leads (it was seeded from the placement on pointerdown),
+   * so a drag follows the finger 1:1 and lands as a manual placement the
+   * steward keeps while it stays valid.
+   */
+  if (placement) {
+    if (!interacting) {
+      position.x = placement.rect.x;
+      position.y = placement.rect.y;
+      size.width = placement.rect.width;
+      size.height = placement.rect.height;
+    } else if (mod.size) {
+      size.width = mod.size.width;
+      size.height = mod.size.height;
+    }
+  }
+  const stewardSheet = Boolean(placement?.sheet);
   const chatWindow = floatsAboveChat(id);
   /*
    * Pressing a chat opens the conversation OVER the Universe, which owns the
@@ -264,14 +300,16 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
    * IS the screen — the full visual viewport above the keyboard, not a
    * floating card beside a second composer. Desktop keeps free windows.
    */
-  const phoneSheet = compactScreen && chatWindow;
+  const phoneSheet = placement ? stewardSheet : compactScreen && chatWindow;
   /** Zero unless the sheet would otherwise bury the open Universe. */
   const universeHeadInset = phoneSheet && universeOpen ? UNIVERSE_COMPACT_HEAD : 0;
   // A chat window never sinks below the Universe overlay, not even when an
   // older session persisted a panel-level z-index for it.
-  const zIndex = chatWindow
-    ? Math.max(CHAT_WINDOW_Z, mod.zIndex ?? CHAT_WINDOW_Z)
-    : Math.max(APP_WINDOW_Z, mod.zIndex ?? APP_WINDOW_Z + cascadeIndex);
+  const zIndex = placement && zBase !== undefined
+    ? zBase + placement.rank
+    : chatWindow
+      ? Math.max(CHAT_WINDOW_Z, mod.zIndex ?? CHAT_WINDOW_Z)
+      : Math.max(APP_WINDOW_Z, mod.zIndex ?? APP_WINDOW_Z + cascadeIndex);
 
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; baseX: number; baseY: number } | null>(null);
   const resizeRef = useRef<{ pointerId: number; startX: number; startY: number; baseW: number; baseH: number } | null>(null);
@@ -330,12 +368,11 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
     ) {
       return;
     }
-    store.place(id, {
-      x: mod.position.x,
-      y: mod.position.y,
-      width: mod.size.width,
-      height: mod.size.height,
-    });
+    // Geometry the steward or a re-render produced is NOT a hand placement:
+    // only endDrag (a real gesture) writes a manual rect. Seeding the store
+    // keeps it aware of the module without claiming the person put it there.
+    if (!placement) store.place(id, { x: mod.position.x, y: mod.position.y, width: mod.size.width, height: mod.size.height });
+    else store.ensure(id);
   }, [id, mod.position?.x, mod.position?.y, mod.size?.width, mod.size?.height]);
 
   /*
@@ -365,12 +402,17 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       if (target?.closest("button, input, select, textarea, a")) return;
       e.preventDefault();
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+      if (stewardSheet) return; // a phone sheet is the screen: nothing to drag
       dragRef.current = { pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, baseX: position.x, baseY: position.y };
       gesturing.current = true;
+      if (placement) {
+        moveModule(id, { x: position.x, y: position.y });
+        resizeModule(id, { width: size.width, height: size.height });
+      }
       setInteracting(true);
       raiseModule(id);
     },
-    [id, position.x, position.y, raiseModule],
+    [id, position.x, position.y, size.width, size.height, raiseModule, moveModule, resizeModule, placement, stewardSheet],
   );
 
   const handlePointerMove = useCallback(
@@ -408,10 +450,14 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       e.stopPropagation();
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
       resizeRef.current = { pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, baseW: size.width, baseH: size.height };
+      if (placement) {
+        moveModule(id, { x: position.x, y: position.y });
+        resizeModule(id, { width: size.width, height: size.height });
+      }
       setInteracting(true);
       raiseModule(id);
     },
-    [id, size.width, size.height, raiseModule],
+    [id, size.width, size.height, position.x, position.y, raiseModule, moveModule, resizeModule, placement],
   );
 
   const handleResizeMove = useCallback(
@@ -489,7 +535,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
    * reload — the window came back through the inline host, so "restore" could
    * never be exact. `expandModule` still works on a phone: it means the sheet.
    */
-  const isExpanded = mod.presentation === "expanded" && !isMobile;
+  const isExpanded = mod.presentation === "expanded" && !isMobile && !placement && zBase === undefined;
 
   const controlButton: React.CSSProperties = {
     width: 26,
@@ -586,6 +632,8 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
     </div>
   );
 
+  const header = stewardSheet && sheetBar ? sheetBar : chrome;
+
   if (isExpanded) {
     return (
       <div
@@ -658,6 +706,10 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
       data-lelu-surface="window"
       data-lelu-window={id}
       data-lelu-fullscreen={phoneSheet ? "" : undefined}
+      data-lelu-steward={placement ? (stewardSheet ? "sheet" : "placed") : undefined}
+      data-lelu-steward-rect={placement ? `${placement.rect.x},${placement.rect.y},${placement.rect.width},${placement.rect.height}` : undefined}
+      data-lelu-folded={folded ? "" : undefined}
+      aria-hidden={folded || undefined}
       data-lelu-interacting={interacting ? "" : undefined}
       style={{
         position: "fixed",
@@ -700,14 +752,24 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
                 : null),
             }
           : {}),
+        ...(stewardSheet
+          ? {
+              left: 0,
+              top: viewport.offsetTop,
+              width: viewportWidth,
+              height: viewportHeight,
+              paddingTop: "env(safe-area-inset-top, 0px)",
+              border: "none",
+            }
+          : {}),
         zIndex,
         pointerEvents: "auto",
-        display: "flex",
+        display: folded ? "none" : "flex",
         flexDirection: "column",
         background: `var(--lelu-surface-bg, ${genesisTheme.glass.panel})`,
         backdropFilter: `var(--lelu-backdrop, ${genesisTheme.elevation.float.backdropFilter})`,
         WebkitBackdropFilter: `var(--lelu-backdrop, ${genesisTheme.elevation.float.backdropFilter})`,
-        borderRadius: `var(--lelu-window-radius, ${genesisTheme.radius.md}px)`,
+        borderRadius: stewardSheet ? 0 : `var(--lelu-window-radius, ${genesisTheme.radius.md}px)`,
         border: `var(--lelu-border, ${genesisTheme.glass.borderAccent})`,
         boxShadow: `var(--lelu-shadow, ${genesisTheme.elevation.float.boxShadow})`,
         overflow: "hidden",
@@ -715,23 +777,26 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
         // with the idle float animation instead of fighting it. Phones
         // never tilt: a rotated sheet would push controls off-screen.
         rotate: !isMobile && mod.rotation ? `${mod.rotation}deg` : undefined,
-        transition: interacting ? "none" : "left var(--lelu-motion-duration, 0ms) var(--lelu-motion-easing, ease), top var(--lelu-motion-duration, 0ms) var(--lelu-motion-easing, ease), width var(--lelu-motion-duration, 0ms) var(--lelu-motion-easing, ease), height var(--lelu-motion-duration, 0ms) var(--lelu-motion-easing, ease), rotate var(--lelu-motion-duration, 0ms) ease",
+        transition: interacting || stewardSheet ? "none" : placement
+          ? "left 420ms cubic-bezier(.22,1,.36,1), top 420ms cubic-bezier(.22,1,.36,1), width 420ms cubic-bezier(.22,1,.36,1), height 420ms cubic-bezier(.22,1,.36,1)"
+          : "left var(--lelu-motion-duration, 0ms) var(--lelu-motion-easing, ease), top var(--lelu-motion-duration, 0ms) var(--lelu-motion-easing, ease), width var(--lelu-motion-duration, 0ms) var(--lelu-motion-easing, ease), height var(--lelu-motion-duration, 0ms) var(--lelu-motion-easing, ease), rotate var(--lelu-motion-duration, 0ms) ease",
       }}
     >
-      {chrome}
+      {header}
       {/* position: relative contains panels' absolutely-positioned layers
           (e.g. the browser's overlays) inside the content area, so they can
           never paint over the title bar and steal its drag gesture. */}
       <div
         data-lelu-module-content={id}
-        style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", position: "relative", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}
+        data-lelu-content-kind={kindOf(id)}
+        style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", position: "relative", containerType: "inline-size", zoom: "var(--lelu-density, 1)" } as React.CSSProperties}
       >
         <InModuleWindow.Provider value={true}>
           <Suspense fallback={null}>{render({ onClose: () => closeModule(id) })}</Suspense>
         </InModuleWindow.Provider>
       </div>
-      {/* Resize handle — bottom-right corner */}
-      <div
+      {/* Resize handle — bottom-right corner (a phone sheet is the screen: none) */}
+      {stewardSheet ? null : <div
         onPointerDown={handleResizeDown}
         onPointerMove={handleResizeMove}
         onPointerUp={endDrag}
@@ -749,7 +814,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex }: F
           opacity: 0.8,
           borderBottomRightRadius: 14,
         }}
-      />
+      />}
     </div>
   );
 }
@@ -766,20 +831,88 @@ export default function GenesisModuleHost({
   labelFor?: (id: string) => string | undefined;
 }) {
   const { state } = useGenesisState();
-  const { expandModule } = useGenesisActions();
-
-  if (state.minimized) return null;
+  const universeOpen = useUniverseOpen();
+  const viewport = useStewardViewport();
+  const steward = useSyncExternalStore(WorkspaceStewardStore.subscribe, WorkspaceStewardStore.get, WorkspaceStewardStore.get);
+  const layoutVersion = useSyncExternalStore(subscribeLayout, layoutSnapshot, layoutSnapshot);
+  const lastPlacements = useRef<Record<string, StewardPlacement>>({});
 
   const entries = Object.entries(state.modules) as Array<[string, ModuleState]>;
   // Legacy detached state is still restored as the same inline module window;
   // it never gets a tab or an independent application surface.
-  const floating = entries.filter(([, m]) =>
-    m.presentation === "inline" || m.presentation === "expanded",
+  const floating = entries.filter(([id, m]) =>
+    (m.presentation === "inline" || m.presentation === "expanded") && Boolean(renderers[id] ?? resolve?.(id)),
   );
-  const minimized = entries.filter(([, m]) => m.presentation === "minimized");
-
   const labelOf = (id: string) => labelFor?.(id) ?? MODULE_CATALOG.find((m) => m.id === id)?.label ?? id;
   const glyphOf = (id: string) => MODULE_CATALOG.find((m) => m.id === id)?.glyph ?? (conversationIdOf(id) ? "◍" : "◈");
+
+  /*
+   * ONE plan for the whole workspace (WorkspaceSteward). Recomputed on every
+   * open/close/raise, viewport change, measured overflow or mode change —
+   * locally, in microseconds, with no model involved.
+   */
+  const floatKey = floating.map(([id, m]) => `${id}:${m.presentation}:${m.zIndex ?? 0}:${m.updatedAt}`).join("|");
+  const plan = useMemo(() => {
+    const store = ModuleLayoutStore.getInstance();
+    // The most recently raised maximised window, if any, owns the workspace.
+    const expanded = floating
+      .filter(([, m]) => m.presentation === "expanded")
+      .sort((a, b) => (b[1].zIndex ?? 0) - (a[1].zIndex ?? 0) || b[1].updatedAt - a[1].updatedAt)[0]?.[0];
+    const windows: StewardWindow[] = floating.map(([id, m]) => ({
+      id,
+      label: labelOf(id),
+      order: (m.zIndex ?? 0) * 1e13 + m.updatedAt,
+      presentation: m.presentation === "expanded" ? "expanded" : "inline",
+      rect: store.isManual(id) ? store.rectFor(id) : lastPlacements.current[id]?.rect ?? null,
+      manual: store.isManual(id),
+      pinned: store.getState().entries.find((e) => e.moduleId === id)?.pinned ?? false,
+      neededWidth: steward.needs[id],
+    }));
+    const universeDesktop = universeOpen && !isCompact(viewport);
+    return planWorkspace({
+      viewport,
+      windows,
+      mode: expanded ? "fullscreen" : steward.mode,
+      focusId: expanded ?? (steward.focusId && windows.some((w) => w.id === steward.focusId) ? steward.focusId : null),
+      insets: isCompact(viewport)
+        ? { top: 0 }
+        : universeDesktop
+          ? { top: 84, left: 16, right: 16, bottom: 64 }
+          // The home dock owns the bottom ~84px; the workspace bar sits above it.
+          : { top: 64, left: 96, right: 16, bottom: 148 },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [floatKey, viewport.width, viewport.height, steward.mode, steward.focusId, steward.needs, universeOpen, layoutVersion]);
+  lastPlacements.current = plan.placements;
+
+  /* Record what the steward decided and why — visible proof, zero model calls. */
+  const planSignature = `${plan.layout}|${Object.keys(plan.placements).join(",")}|${plan.tabs.join(",")}`;
+  useEffect(() => {
+    if (!floating.length) return;
+    WorkspaceStewardStore.record({ by: "auto", what: `${plan.layout} · ${Object.keys(plan.placements).length} shown${plan.tabs.length ? ` · ${plan.tabs.length} tabbed` : ""}`, reasons: plan.reasons });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planSignature]);
+
+  /* Content wider than its window is measured, so the next plan gives it room. */
+  useContentOverflowWatch(floatKey);
+
+  if (state.minimized) return null;
+
+  const zBase = universeOpen ? CHAT_WINDOW_Z : APP_WINDOW_Z;
+  const tabbed = new Set(plan.tabs);
+  const shownIds = Object.keys(plan.placements);
+  const bar = (
+    <WorkspaceBar
+      compact={plan.compact}
+      ids={floating.map(([id]) => id)}
+      shown={shownIds}
+      labelOf={labelOf}
+      glyphOf={glyphOf}
+      mode={steward.mode}
+      layout={plan.layout}
+      reasons={plan.reasons}
+    />
+  );
 
   return (
     <>
@@ -795,65 +928,18 @@ export default function GenesisModuleHost({
             label={labelOf(id)}
             glyph={glyphOf(id)}
             cascadeIndex={index}
+            placement={plan.placements[id]}
+            folded={tabbed.has(id) || !plan.placements[id]}
+            zBase={zBase}
+            sheetBar={plan.compact ? bar : undefined}
           />
         );
       })}
 
-      {minimized.length > 0 ? (
-        <div
-          style={{
-            position: "fixed",
-            bottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 32,
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "center",
-            gap: 6,
-            pointerEvents: "auto",
-            maxWidth: "calc(100vw - 24px)",
-          }}
-        >
-          {minimized.map(([id, mod]) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => expandModule(id)}
-              title={`Restore ${labelOf(id)} — it is still running in the background`}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                background: "rgba(8,16,38,0.9)",
-                border: "1px solid rgba(125,211,252,0.35)",
-                borderRadius: 999,
-                padding: "6px 12px",
-                color: "#dbeafe",
-                fontSize: 11,
-                cursor: "pointer",
-                fontFamily: "inherit",
-                boxShadow: "0 6px 20px rgba(2,6,23,0.5)",
-                backdropFilter: "blur(14px)",
-              }}
-            >
-              <span style={{ fontSize: 12 }}>{glyphOf(id)}</span>
-              <span>{labelOf(id)}</span>
-              <span
-                title={`status: ${mod.status}`}
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: 999,
-                  background: STATUS_DOT[mod.status] ?? "#64748b",
-                  boxShadow: `0 0 6px ${STATUS_DOT[mod.status] ?? "#64748b"}`,
-                }}
-              />
-              <span style={{ fontSize: 9, opacity: 0.6 }}>{mod.status}</span>
-            </button>
-          ))}
-        </div>
-      ) : null}
+      {/* Desktop: the workspace bar floats under the windows' work area. */}
+      {!plan.compact && floating.length > 0 ? <div style={{ position: "fixed", zIndex: zBase + floating.length + 2, left: "50%", bottom: universeOpen ? "calc(12px + env(safe-area-inset-bottom, 0px))" : "calc(92px + env(safe-area-inset-bottom, 0px))", transform: "translateX(-50%)", pointerEvents: "auto", maxWidth: "calc(100vw - 24px)" }}>{bar}</div> : null}
+
+      {/* Minimized windows are tabs in the workspace bar (still running). */}
     </>
   );
 }

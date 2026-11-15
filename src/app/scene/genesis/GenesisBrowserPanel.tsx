@@ -19,16 +19,20 @@
  * ==========================================================
  */
 
-import { useCallback, useEffect, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from "react";
-import { useGenesisState } from "./GenesisCore";
-import { genesisTheme } from "./GenesisTheme";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { LayoutGroup, motion } from "framer-motion";
+import { chatWindowId, useGenesis, useGenesisState } from "./GenesisCore";
+import KvStore from "../../../core/storage/KvStore";
+import WorkspaceStewardStore from "../../../core/interface/WorkspaceStewardStore";
+import { arrangeWorkspace } from "./layout/stewardActions";
+import { addSourceToBoard } from "./chat/stage/boardSources";
+import "./browser/browser.css";
 import AIService from "../../../core/AIService";
 import MultiChatStore from "../../../core/multichat/MultiChatStore";
 import { bindMessage, ownerForTask } from "../../../core/multichat/TurnOwnership";
 import BrowserTool from "../../../core/browser/BrowserTool";
 import { getEnvironment } from "../../../core/Environment";
 import AgentEventBus, { type AgentEvent, type AgentResultItem } from "../../../core/agent/AgentEvents";
-import GenesisWindowFrame from "./GenesisWindowFrame";
 
 const ai = AIService.getInstance();
 
@@ -69,7 +73,64 @@ function researchFromEvent(event: AgentEvent): LiveResearch | null {
   return null;
 }
 
-export default function GenesisBrowserPanel({ onClose }: GenesisBrowserPanelProps) {
+interface BrowserTab {
+  id: string;
+  url: string;
+  title: string;
+  history: string[];
+  index: number;
+  view: "page" | "reader";
+  nonce: number;
+  loaded?: boolean;
+  slow?: boolean;
+  hintDismissed?: boolean;
+  /** Restored from a previous session: shown as a resume card, nothing mounted until tapped. */
+  dormant?: boolean;
+  /** The reader's verdict: true/false, null = no reader available to ask, undefined = not asked yet. */
+  embeddable?: boolean | null;
+  reader?: { status: "loading" | "read" | "failed"; title: string; text: string; error?: string };
+}
+
+const TABS_KEY = "lelu.browser.tabs.v1";
+const QUICK = [
+  { label: "Wikipedia", url: "https://en.wikipedia.org/wiki/Bioluminescence" },
+  { label: "NASA", url: "https://www.nasa.gov" },
+  { label: "OpenStreetMap", url: "https://www.openstreetmap.org" },
+  { label: "arXiv", url: "https://arxiv.org" },
+];
+
+function blankTab(): BrowserTab {
+  return { id: `tab-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`, url: "", title: "", history: [], index: -1, view: "page", nonce: 0 };
+}
+
+function hostOf(url: string): string {
+  try {
+    return url ? new URL(url).hostname.replace(/^www\./, "") : "";
+  } catch {
+    return url;
+  }
+}
+
+function loadTabs(): BrowserTab[] {
+  try {
+    const saved = KvStore.getInstance().get<{ tabs?: BrowserTab[] }>(TABS_KEY);
+    const tabs = (saved?.tabs ?? []).filter((t) => t && typeof t.id === "string").map((t) => ({ ...t, view: "page" as const, nonce: t.nonce ?? 0, dormant: Boolean(t.url) }));
+    return tabs.length ? tabs : [blankTab()];
+  } catch {
+    return [blankTab()];
+  }
+}
+
+function loadActive(tabs: BrowserTab[]): string {
+  try {
+    const id = KvStore.getInstance().get<{ activeId?: string }>(TABS_KEY)?.activeId;
+    return id && tabs.some((t) => t.id === id) ? id : tabs[0].id;
+  } catch {
+    return tabs[0].id;
+  }
+}
+
+export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowserPanelProps) {
   const { addMessage, notify } = useGenesisState();
   // Neko (m1k1o/neko) self-hosted virtual browser: when VITE_NEKO_URL is
   // configured the panel can switch the embedded surface to the LIVE Neko
@@ -87,7 +148,161 @@ export default function GenesisBrowserPanel({ onClose }: GenesisBrowserPanelProp
   // spatial transition — measured: the renderer died during the next scene
   // change with the embedded page mounted.
   const [address, setAddress] = useState("");
-  const [current, setCurrent] = useState("");
+  /*
+   * Tabs: several real browsing sessions, each with its own back/forward
+   * history and its own view (the page, or LÉLU's reader of it). Persisted,
+   * so a reload — or the Workspace Steward folding this window into a tab —
+   * never loses what was open.
+   */
+  const [tabs, setTabs] = useState<BrowserTab[]>(loadTabs);
+  const [activeId, setActiveId] = useState<string>(() => loadActive(tabs));
+  const [notice, setNotice] = useState<string | null>(null);
+  const genesis = useGenesis();
+  const activeTab = tabs.find((t) => t.id === activeId) ?? tabs[0];
+  const current = activeTab?.url ?? "";
+  useEffect(() => {
+    try {
+      KvStore.getInstance().set(TABS_KEY, { tabs: tabs.map(({ reader: _r, slow: _s, embeddable: _e, hintDismissed: _h, dormant: _d, ...t }) => t), activeId });
+    } catch {
+      /* best-effort */
+    }
+  }, [tabs, activeId]);
+  const patchTab = useCallback((id: string, patch: Partial<BrowserTab> | ((t: BrowserTab) => Partial<BrowserTab>)) => {
+    setTabs((all) => all.map((t) => (t.id === id ? { ...t, ...(typeof patch === "function" ? patch(t) : patch) } : t)));
+  }, []);
+  /** Navigate the active tab (pushes its history). */
+  const setCurrent = useCallback((url: string) => {
+    setTabs((all) => {
+      const id = all.some((t) => t.id === activeIdRef.current) ? activeIdRef.current : all[0]?.id;
+      return all.map((t) => {
+        if (t.id !== id || t.history[t.index] === url) return t;
+        const history = [...t.history.slice(0, t.index + 1), url];
+        return { ...t, url, title: hostOf(url), history, index: history.length - 1, view: "page", reader: undefined, slow: false, loaded: false, embeddable: undefined, dormant: false, nonce: t.nonce + 1 };
+      });
+    });
+  }, []);
+  const activeIdRef = useRef(activeId);
+  activeIdRef.current = activeId;
+  const selectTab = (id: string) => {
+    setActiveId(id);
+    setAddress(tabs.find((t) => t.id === id)?.url ?? "");
+  };
+  const newTab = (url?: string) => {
+    const tab = blankTab();
+    setTabs((all) => [...all, tab]);
+    setActiveId(tab.id);
+    activeIdRef.current = tab.id;
+    setAddress("");
+    if (url) setTimeout(() => go(url), 0);
+  };
+  const closeTab = (id: string) => {
+    setTabs((all) => {
+      const rest = all.filter((t) => t.id !== id);
+      const next = rest.length ? rest : [blankTab()];
+      if (id === activeIdRef.current) {
+        setActiveId(next[next.length - 1].id);
+        setAddress(next[next.length - 1].url);
+      }
+      return next;
+    });
+  };
+  const step = (delta: number) => {
+    if (!activeTab) return;
+    const index = Math.max(0, Math.min(activeTab.history.length - 1, activeTab.index + delta));
+    const url = activeTab.history[index];
+    patchTab(activeTab.id, { index, url, title: hostOf(url), view: "page", reader: undefined, slow: false, loaded: false, embeddable: undefined, dormant: false, nonce: activeTab.nonce + 1 });
+    setAddress(url);
+  };
+  const reload = () => activeTab && patchTab(activeTab.id, (t) => ({ nonce: t.nonce + 1, loaded: false, slow: false, dormant: false }));
+  const markLoaded = (id: string) => {
+    patchTab(id, { loaded: true, slow: false });
+    // The "blank?" hint is a moment's offer, not a fixture over the page.
+    setTimeout(() => patchTab(id, { hintDismissed: true }), 7000);
+  };
+  // Before trusting the frame, ask the reader whether this site may be
+  // embedded at all. A refusal switches the tab to Reader with the text
+  // already fetched; no answer (no reader here) leaves the hint strip.
+  useEffect(() => {
+    const tab = activeTab;
+    if (!tab?.url || tab.dormant || tab.embeddable !== undefined || mode === "neko") return;
+    let cancelled = false;
+    const { id, url } = tab;
+    void BrowserTool.probe(url).then((verdict) => {
+      if (cancelled) return;
+      if (!verdict) {
+        patchTab(id, (t) => (t.url === url ? { embeddable: null } : {}));
+        return;
+      }
+      patchTab(id, (t) =>
+        t.url !== url
+          ? {}
+          : verdict.embeddable
+            ? { embeddable: true }
+            : { embeddable: false, view: "reader", title: verdict.title || t.title, reader: { status: verdict.text ? "read" : "failed", title: verdict.title, text: verdict.text, error: "The site refuses to be embedded and returned no readable text." } },
+      );
+      if (!verdict.embeddable) {
+        setNotice(`${hostOf(url)} refuses to be embedded — showing LÉLU's reader`);
+        setTimeout(() => setNotice(null), 4000);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Keyed on the tab's identity and URL, not on every change to the tab object.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab?.id, activeTab?.url, activeTab?.embeddable, mode, patchTab]);
+
+  // A page that never reports loading is most often a site refusing to be
+  // embedded: say so and offer the reader instead of a blank white box.
+  useEffect(() => {
+    if (!activeTab?.url || activeTab.dormant || activeTab.loaded || activeTab.view !== "page") return;
+    const id = activeTab.id;
+    const timer = setTimeout(() => patchTab(id, (t) => (t.loaded ? {} : { slow: true })), 9000);
+    return () => clearTimeout(timer);
+  }, [activeTab?.id, activeTab?.url, activeTab?.nonce, activeTab?.loaded, activeTab?.view, activeTab?.dormant, patchTab]);
+  const toggleReader = async () => {
+    if (!activeTab?.url) return;
+    if (activeTab.view === "reader") {
+      patchTab(activeTab.id, { view: "page" });
+      return;
+    }
+    const id = activeTab.id;
+    patchTab(id, { view: "reader", slow: false, reader: activeTab.reader ?? { status: "loading", title: "", text: "" } });
+    if (activeTab.reader && activeTab.reader.status !== "loading") return;
+    const page = await BrowserTool.visit(activeTab.url);
+    patchTab(id, {
+      title: page.title || hostOf(page.url),
+      reader: page.status === "read" ? { status: "read", title: page.title, text: page.text } : { status: "failed", title: page.title, text: "", error: page.error ?? "The page could not be read." },
+    });
+  };
+  /** Browser beside the conversation: the Workspace Steward's split, locally. */
+  const besideChat = () => {
+    const conversationId = genesis.state.activeConversationId;
+    const result = arrangeWorkspace(
+      {
+        modules: () => genesis.state.modules,
+        openModule: genesis.openModule,
+        setModulePresentation: genesis.setModulePresentation,
+        raiseModule: genesis.raiseModule,
+        activeConversationId: () => conversationId ?? null,
+      },
+      "split",
+      ["browser", ...(conversationId ? [chatWindowId(conversationId)] : [])],
+      "user",
+    );
+    setNotice(result.ok ? "Beside the chat" : result.detail);
+    setTimeout(() => setNotice(null), 2500);
+  };
+  /** Browser → canvas: this page becomes a source on the conversation's research board. */
+  const toBoard = () => {
+    const conversationId = genesis.state.activeConversationId;
+    if (!activeTab?.url || !conversationId) return;
+    addSourceToBoard(conversationId, { title: activeTab.title || hostOf(activeTab.url), href: activeTab.url });
+    WorkspaceStewardStore.setStage(conversationId, "board");
+    besideChat();
+    setNotice("Added to the research board");
+    setTimeout(() => setNotice(null), 2500);
+  };
   const [reading, setReading] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
   const [research, setResearch] = useState<LiveResearch | null>(null);
@@ -140,7 +355,7 @@ export default function GenesisBrowserPanel({ onClose }: GenesisBrowserPanelProp
         setSummary(event.excerpt ?? event.error ?? null);
       }
     });
-  }, []);
+  }, [setCurrent]);
 
   // Real navigation → real event: the canonical bus records it, the
   // surface controller opens this panel, and chat renders the browser
@@ -158,7 +373,7 @@ export default function GenesisBrowserPanel({ onClose }: GenesisBrowserPanelProp
       taskId: `browser-${Date.now()}`,
       url: target,
     });
-  }, [address]);
+  }, [address, setCurrent]);
 
   // Chat surfaces (search results, page cards) navigate this panel by
   // dispatching genesis-browser-goto — the same surface the user sees.
@@ -179,7 +394,7 @@ export default function GenesisBrowserPanel({ onClose }: GenesisBrowserPanelProp
     }
     window.addEventListener("genesis-browser-goto", onGoto);
     return () => window.removeEventListener("genesis-browser-goto", onGoto);
-  }, []);
+  }, [setCurrent]);
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -280,246 +495,186 @@ export default function GenesisBrowserPanel({ onClose }: GenesisBrowserPanelProp
     }
   }, [addMessage, current, notify, reading]);
 
+  const active = tabs.find((t) => t.id === activeId) ?? tabs[0];
+  const host = (() => {
+    try {
+      return active?.url ? new URL(active.url).hostname.replace(/^www\./, "") : "";
+    } catch {
+      return active?.url ?? "";
+    }
+  })();
+
   return (
-    <GenesisWindowFrame
-      eyebrow="Lélu Browser"
-      title="Browser · in-app layer"
-      onClose={onClose}
-      width="min(94vw, 860px)"
-      maxHeight="min(78vh, 640px)"
-      zoomable={false}
-    >
-      <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "100%" }}>
-        {/* Address bar */}
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+    <div className="lbr" data-lelu-browser data-view={active?.view ?? "page"}>
+      {/* Tabs: real sessions, each with its own history; kept across reloads. */}
+      <LayoutGroup id="lbr-tabs">
+        <div className="lbr-tabs" role="tablist" aria-label="Browser tabs">
+          {tabs.map((t) => (
+            <motion.div layout key={t.id} className="lbr-tab" data-on={t.id === active?.id} role="tab" aria-selected={t.id === active?.id} onClick={() => selectTab(t.id)}>
+              {t.id === active?.id ? <motion.span layoutId="lbr-tab-glow" className="lbr-tab-glow" transition={{ type: "spring", stiffness: 420, damping: 34 }} /> : null}
+              <span className="lbr-fav" aria-hidden>{(t.title || hostOf(t.url) || "N").slice(0, 1).toUpperCase()}</span>
+              <span className="lbr-tab-title">{t.title || hostOf(t.url) || "New tab"}</span>
+              {tabs.length > 1 ? (
+                <button type="button" className="lbr-x" aria-label={`Close tab ${t.title || hostOf(t.url) || "New tab"}`} onClick={(e) => { e.stopPropagation(); closeTab(t.id); }}>×</button>
+              ) : null}
+            </motion.div>
+          ))}
+          <button type="button" className="lbr-new" aria-label="New tab" onClick={() => newTab()}>+</button>
+        </div>
+      </LayoutGroup>
+
+      <div className="lbr-bar">
+        <button type="button" className="lbr-ico" aria-label="Back" disabled={!active || active.index <= 0} onClick={() => step(-1)}>‹</button>
+        <button type="button" className="lbr-ico" aria-label="Forward" disabled={!active || active.index >= active.history.length - 1} onClick={() => step(1)}>›</button>
+        <button type="button" className="lbr-ico" aria-label="Reload" disabled={!active?.url} onClick={reload}>⟳</button>
+        <div className="lbr-address">
+          <span aria-hidden className="lbr-lock">{active?.url.startsWith("https://") ? "🔒" : "◌"}</span>
           <input
             value={address}
             onChange={(event) => setAddress(event.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={(e) => e.currentTarget.select()}
             enterKeyHint="go"
             spellCheck={false}
             aria-label="Browser address"
-            placeholder="Enter a web address…"
-            style={{
-              flex: 1,
-              minWidth: 180,
-              background: "rgba(8, 16, 38, 0.55)",
-              border: `1px solid rgba(148, 163, 184, 0.22)`,
-              borderRadius: genesisTheme.radius.md,
-              color: "white",
-              padding: "8px 12px",
-              fontSize: 13,
-              outline: "none",
-            }}
+            placeholder="Search or enter a web address"
           />
-          <button
-            type="button"
-            onClick={() => go()}
-            style={actionButtonStyle(genesisTheme.status.ok)}
-          >
-            Go
-          </button>
-          <button
-            type="button"
-            onClick={readForLelu}
-            disabled={reading || mode === "neko"}
-            style={actionButtonStyle(reading ? genesisTheme.status.idle : genesisTheme.status.accent)}
-            title="Extract this page's content and have Lélu read it through her chat pipeline"
-          >
-            {reading ? "Reading…" : "Read for Lélu"}
-          </button>
-          {nekoStatus === "reachable" ? (
-            <button
-              type="button"
-              onClick={() => setMode((m) => (m === "neko" ? "inline" : "neko"))}
-              style={actionButtonStyle(mode === "neko" ? "#f472b6" : "#94a3b8")}
-              title="Switch to the verified live Neko (m1k1o/neko) virtual browser session"
-            >
-              {mode === "neko" ? "◉ NEKO LIVE — SWITCH TO INLINE" : "NEKO LIVE BROWSER"}
-            </button>
-          ) : null}
+          <button type="button" className="lbr-go" onClick={() => go()} aria-label="Go">→</button>
         </div>
-
-        {research ? (
-          <div
-            data-lelu-live-research
-            style={{
-              borderRadius: genesisTheme.radius.md,
-              border: `1px solid ${research.status === "error" ? "rgba(248,113,113,0.38)" : "rgba(103,232,249,0.28)"}`,
-              background: "linear-gradient(135deg, rgba(8,16,38,0.9), rgba(14,24,52,0.72))",
-              padding: 12,
-              maxHeight: 260,
-              overflowY: "auto",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <strong style={{ color: "#a5f3fc", fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                LÉLU · Research execution
-              </strong>
-              <span style={{ color: research.status === "running" ? "#fbbf24" : research.status === "error" ? "#f87171" : "#34d399", fontSize: 11 }}>
-                {research.status === "running" ? "live" : research.status}
-              </span>
-            </div>
-            <div style={{ marginTop: 6, color: "rgba(226,240,255,0.9)", fontSize: 12 }}>
-              Search: {research.query || "current request"}
-            </div>
-            <div style={{ marginTop: 3, color: "rgba(148,163,184,0.82)", fontSize: 10.5 }}>
-              Source: {research.provider}
-            </div>
-            {research.results.length > 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 9 }}>
-                {research.results.slice(0, 10).map((item, index) => (
-                  <div key={`${item.url ?? item.title ?? "result"}-${index}`} style={{ padding: "7px 8px", borderRadius: 9, background: "rgba(255,255,255,0.045)", border: "1px solid rgba(148,163,184,0.14)" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ color: "#67e8f9", fontSize: 10 }}>{item.type ?? "result"}</span>
-                      <strong style={{ color: "#e0f2fe", fontSize: 11.5, flex: 1 }}>{item.title ?? "Untitled result"}</strong>
-                      {item.url ? <button type="button" onClick={() => dispatchResearchUrl(item.url!)} style={miniButtonStyle}>Open</button> : null}
-                    </div>
-                    {item.content ? <div style={{ marginTop: 4, color: "rgba(226,240,255,0.74)", fontSize: 10.5, lineHeight: 1.45 }}>{item.content.slice(0, 280)}</div> : null}
-                    {item.source ? <div style={{ marginTop: 4, color: "rgba(148,163,184,0.72)", fontSize: 9.5 }}>{item.source}{item.timestamp ? ` · ${item.timestamp}` : ""}</div> : null}
-                  </div>
-                ))}
-              </div>
-            ) : research.status === "running" ? (
-              <div style={{ marginTop: 9, color: "rgba(226,240,255,0.68)", fontSize: 11 }}>Waiting for the real provider response...</div>
-            ) : (
-              <div style={{ marginTop: 9, color: "rgba(226,240,255,0.68)", fontSize: 11 }}>{research.message ?? "No structured results were returned."}</div>
-            )}
-          </div>
+      </div>
+      <div className="lbr-actions">
+        <button type="button" className="lbr-chip" data-on={active?.view === "reader"} aria-pressed={active?.view === "reader"} disabled={!active?.url || mode === "neko"} onClick={toggleReader}>
+          ☰ Reader
+        </button>
+        <button type="button" className="lbr-chip" onClick={readForLelu} disabled={reading || mode === "neko"} title="Extract this page's content and have Lélu read it through her chat pipeline">
+          {reading ? "Reading…" : "✦ Read for Lélu"}
+        </button>
+        <button type="button" className="lbr-chip" onClick={besideChat} title="Put this browser beside the conversation">◫ Beside chat</button>
+        <button type="button" className="lbr-chip" onClick={toBoard} disabled={!active?.url} title="Add this page to the conversation's research board">⌘ To board</button>
+        {nekoStatus === "reachable" ? (
+          <button type="button" className="lbr-chip" data-on={mode === "neko"} onClick={() => setMode((m) => (m === "neko" ? "inline" : "neko"))} title="Switch to the verified live Neko (m1k1o/neko) virtual browser session">
+            {mode === "neko" ? "◉ Neko live" : "Neko live browser"}
+          </button>
         ) : null}
+        {notice ? <span className="lbr-notice" role="status">{notice}</span> : null}
+      </div>
 
-        {/* Embedded page — the in-app browser surface. In NEKO mode this
-            is the LIVE Neko virtual browser session (m1k1o/neko). */}
-        <div
-          style={{
-            flex: 1,
-            minHeight: 320,
-            borderRadius: genesisTheme.radius.md,
-            overflow: "hidden",
-            background: mode === "neko" ? "#05070f" : "white",
-            border: "1px solid rgba(148, 163, 184, 0.25)",
-            position: "relative",
-          }}
-        >
-          {mode === "neko" && nekoUrl ? (
+      {research ? (
+        <details className="lbr-research" data-lelu-live-research open={research.status === "running"}>
+          <summary>
+            <strong>LÉLU · Research</strong>
+            <span data-status={research.status}>{research.status === "running" ? "live" : research.status}</span>
+            <span className="lbr-research-q">{research.query || "current request"} · {research.provider}</span>
+          </summary>
+          {research.results.length > 0 ? (
+            <div className="lbr-results">
+              {research.results.slice(0, 10).map((item, index) => (
+                <div key={`${item.url ?? item.title ?? "result"}-${index}`} className="lbr-result">
+                  <div>
+                    <span>{item.type ?? "result"}</span>
+                    <strong>{item.title ?? "Untitled result"}</strong>
+                    {item.url ? <button type="button" onClick={() => newTab(item.url!)}>Open</button> : null}
+                  </div>
+                  {item.content ? <p>{item.content.slice(0, 280)}</p> : null}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="lbr-muted">{research.status === "running" ? "Waiting for the real provider response..." : research.message ?? "No structured results were returned."}</p>
+          )}
+        </details>
+      ) : null}
+
+      {/* The page. NEKO mode is the LIVE Neko virtual browser session (m1k1o/neko). */}
+      <div className="lbr-page" data-mode={mode}>
+        {mode === "neko" && nekoUrl ? (
+          <iframe src={nekoUrl} title="Neko virtual browser (m1k1o/neko)" allow="clipboard-read; clipboard-write; fullscreen; autoplay; camera; microphone" />
+        ) : active?.url && active.dormant ? (
+          <div className="lbr-idle" data-lelu-browser-idle data-dormant>
+            <h2>{active.title || host}</h2>
+            <p>Kept from your last session. Nothing is loaded until you resume it.</p>
+            <div className="lbr-quick">
+              <button type="button" className="lbr-chip" onClick={reload}>Resume {host}</button>
+            </div>
+          </div>
+        ) : active?.url ? (
+          <>
             <iframe
-              src={nekoUrl}
-              title="Neko virtual browser (m1k1o/neko)"
-              allow="clipboard-read; clipboard-write; fullscreen; autoplay; camera; microphone"
-              style={{ width: "100%", height: "100%", border: "none", display: "block" }}
-            />
-          ) : current ? (
-            <iframe
-              src={current}
+              key={`${active.id}:${active.url}:${active.nonce}`}
+              src={active.url}
               title="Lélu in-app browser"
               referrerPolicy="no-referrer-when-downgrade"
               loading="lazy"
-              style={{ width: "100%", height: "100%", border: "none", display: "block" }}
+              onLoad={() => markLoaded(active.id)}
+              style={{ visibility: active.view === "reader" ? "hidden" : "visible" }}
             />
-          ) : (
-            <div
-              data-lelu-browser-idle
-              style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                textAlign: "center",
-                padding: 24,
-                color: "rgba(203, 228, 255, 0.55)",
-                fontSize: 12.5,
-                lineHeight: 1.6,
-              }}
-            >
-              The in-app browser is ready. Enter an address above, or ask LÉLU to read a page — nothing is
-              loaded until you do.
+            {active.view === "reader" ? (
+              <article className="lbr-reader" data-lelu-browser-reader data-status={active.reader?.status ?? "loading"}>
+                {!active.reader || active.reader.status === "loading" ? (
+                  <p className="lbr-muted">Reading {host} with LÉLU's page reader…</p>
+                ) : active.reader.status === "read" ? (
+                  <>
+                    <span className="lbr-eyebrow">{host} · reader view</span>
+                    <h1>{active.reader.title}</h1>
+                    {active.reader.text.split(/\n{2,}/).slice(0, 80).map((para, i) => <p key={i}>{para}</p>)}
+                  </>
+                ) : (
+                  <>
+                    <span className="lbr-eyebrow">{host}</span>
+                    <h1>This page couldn't be read here</h1>
+                    <p>{active.reader.error}</p>
+                    <p className="lbr-muted">The page view above may still show it; sites that refuse embedding and reading can be opened in your own browser.</p>
+                    <a href={active.url} target="_blank" rel="noreferrer" className="lbr-chip">Open {host} in a new browser tab ↗</a>
+                  </>
+                )}
+              </article>
+            ) : null}
+            {active.view === "page" && !active.slow && active.embeddable === null && active.loaded && !active.hintDismissed ? (
+              <div className="lbr-hint" role="note">
+                Blank?
+                <button type="button" className="lbr-chip" onClick={toggleReader}>Reader</button>
+                <a className="lbr-chip" href={active.url} target="_blank" rel="noreferrer">Open ↗</a>
+                <button type="button" className="lbr-x" aria-label="Dismiss" onClick={() => patchTab(active.id, { hintDismissed: true })}>×</button>
+              </div>
+            ) : null}
+            {active.view === "page" && active.slow ? (
+              <div className="lbr-slow" role="status">
+                {host} hasn't finished showing — some sites refuse to be embedded.
+                <button type="button" className="lbr-chip" onClick={toggleReader}>Open Reader</button>
+                <a className="lbr-chip" href={active.url} target="_blank" rel="noreferrer">Open externally ↗</a>
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <div className="lbr-idle" data-lelu-browser-idle>
+            <h2>Where to?</h2>
+            <p>Type an address or a search. Nothing loads until you do.</p>
+            <div className="lbr-quick">
+              {QUICK.map((q) => <button key={q.url} type="button" className="lbr-chip" onClick={() => go(q.url)}>{q.label}</button>)}
             </div>
-          )}
-          {mode === "neko" ? (
-            <span
-              style={{
-                position: "absolute",
-                top: 8,
-                left: 8,
-                borderRadius: 999,
-                background: "rgba(244,114,182,0.92)",
-                color: "#170b12",
-                fontSize: 10,
-                fontWeight: 800,
-                letterSpacing: "0.08em",
-                padding: "3px 10px",
-                pointerEvents: "none",
-              }}
-            >
-              ● NEKO · LIVE BROWSER SESSION
-            </span>
-          ) : null}
-        </div>
-
-        {summary ? (
-          <div
-            style={{
-              borderRadius: genesisTheme.radius.md,
-              border: `1px solid rgba(103, 232, 249, 0.22)`,
-              background: "rgba(8, 16, 38, 0.5)",
-              padding: "10px 12px",
-              color: "rgba(228, 244, 255, 0.92)",
-              fontSize: 12.5,
-              lineHeight: 1.5,
-              maxHeight: 180,
-              overflowY: "auto",
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            <strong style={{ color: genesisTheme.status.accent, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-              Lélu read it
-            </strong>
-            <div style={{ marginTop: 6 }}>{summary}</div>
           </div>
-        ) : null}
-
-        <p style={{ margin: 0, fontSize: 11, color: "rgba(148, 163, 184, 0.85)", lineHeight: 1.5 }}>
-          {mode === "neko" && nekoUrl && nekoStatus === "reachable"
-            ? `Verified Neko web client at ${nekoUrl}. WebRTC still requires Neko's UDP 52000–52100 ports and NAT address to be reachable.`
-            : nekoUrl && nekoStatus === "unavailable"
-              ? "Neko is configured but its web client is not reachable; the live mode is disabled until the separate service responds."
-              : nekoUrl && nekoStatus === "checking"
-                ? "Checking the configured Neko web client…"
-                : BrowserTool.nativeLaunchAvailable()
-              ? "Native browser launch detected."
-              : "In-app layer: some sites block embedding or direct reading — “Read for Lélu” reports exactly what happened and text chat always keeps working."}
-        </p>
+        )}
       </div>
-    </GenesisWindowFrame>
+
+      {summary ? (
+        <div className="lbr-summary">
+          <strong>Lélu read it</strong>
+          <div>{summary}</div>
+        </div>
+      ) : null}
+
+      <p className="lbr-foot">
+        {mode === "neko" && nekoUrl && nekoStatus === "reachable"
+          ? `Verified Neko web client at ${nekoUrl}. WebRTC still requires Neko's UDP 52000–52100 ports and NAT address to be reachable.`
+          : nekoUrl && nekoStatus === "unavailable"
+            ? "Neko is configured but its web client is not reachable; the live mode is disabled until the separate service responds."
+            : nekoUrl && nekoStatus === "checking"
+              ? "Checking the configured Neko web client…"
+              : BrowserTool.nativeLaunchAvailable()
+                ? "Native browser launch detected."
+                : "In-app layer: some sites block embedding or direct reading — Reader and “Read for Lélu” report exactly what happened."}
+      </p>
+    </div>
   );
 }
 
-function dispatchResearchUrl(url: string): void {
-  window.dispatchEvent(new CustomEvent("genesis-browser-goto", { detail: { url } }));
-  window.dispatchEvent(new CustomEvent("genesis-show-surface", { detail: { panel: "browser" } }));
-}
-
-const miniButtonStyle: CSSProperties = {
-  border: "1px solid rgba(103,232,249,0.35)",
-  borderRadius: 6,
-  background: "rgba(103,232,249,0.1)",
-  color: "#cffafe",
-  padding: "3px 7px",
-  fontSize: 10,
-  cursor: "pointer",
-  fontFamily: "inherit",
-};
-
-function actionButtonStyle(color: string): CSSProperties {
-  return {
-    border: `1px solid ${color}55`,
-    borderRadius: genesisTheme.radius.md,
-    background: `${color}14`,
-    color: "white",
-    padding: "8px 14px",
-    fontSize: 12.5,
-    cursor: "pointer",
-    whiteSpace: "nowrap",
-  };
-}

@@ -32,13 +32,12 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import * as Icons from "lucide-react";
-import { chatWindowId, conversationIdOf, floatsAboveChat, useGenesis } from "../../GenesisCore";
+import { chatWindowId, conversationIdOf, useGenesis } from "../../GenesisCore";
 import { setUniverseOpen, useUniverseOpen } from "./universeOpen";
 import { processImageFile, processVideoFile, type ProcessedMedia } from "../../../../../core/media/mediaProcessor";
 import ScreenShare from "../../../../../core/perception/ScreenShare";
 import { explainScreenShareFailure, screenShareSupport } from "../../../../../core/perception/screenCapability";
 import VoiceEngine from "../../../../../core/voice/VoiceEngine";
-import { useSurface } from "../../surface/useSurface";
 import MultiChatStore, { type ChatConversation } from "../../../../../core/multichat/MultiChatStore";
 import { goHome } from "../../home/homeActions";
 import HomeStore from "../../home/homeStore";
@@ -57,6 +56,7 @@ import {
   type ChatPreview,
   type TimelineRange,
 } from "./universeModel";
+import { openEvolutionTrail } from "./evolutionTrail";
 import "./chatUniverse.css";
 
 export const OPEN_UNIVERSE_EVENT = "lelu-open-universe";
@@ -181,10 +181,9 @@ export default function ChatUniverse() {
 
   // On a phone an open conversation window fills the screen and has its own
   // composer; the Universe's composer leaves the tree so there is exactly one.
-  const surface = useSurface();
-  const sheetOpen = surface.workspaceOwnsScreen && Object.entries(modules).some(
-    ([id, m]) => floatsAboveChat(id) && (m.presentation === "inline" || m.presentation === "expanded"),
-  );
+  // Any window on screen owns the workspace (the Workspace Steward lays them
+  // out over the Universe); each chat window brings its own composer.
+  const sheetOpen = Object.values(modules).some((m) => m.presentation === "inline" || m.presentation === "expanded");
   const geometryKey = useMemo(
     () =>
       Object.entries(modules)
@@ -473,6 +472,16 @@ export default function ChatUniverse() {
               <button type="button" data-on={view === "grid"} onClick={() => setView("grid")} aria-label="Grid view"><Icons.LayoutGrid size={17} /></button>
               <button type="button" data-on={view === "carousel"} onClick={() => setView("carousel")} aria-label="Carousel view"><Icons.GalleryHorizontal size={17} /></button>
             </div>
+            <button
+              type="button"
+              className="lcu-icon"
+              data-lelu-evolution-trail
+              title="Evolution trail — how this interface was rebuilt, with screenshots"
+              aria-label="Open the evolution trail"
+              onClick={() => { void openEvolutionTrail().then((id) => id && openChat(id)); }}
+            >
+              <Icons.Sparkles size={18} />
+            </button>
             <button type="button" className="lcu-icon" onClick={newChat} aria-label="New chat"><Icons.Plus size={19} /></button>
             <button type="button" className="lcu-icon" onClick={() => setOpen(false)} aria-label="Close Chat Universe"><Icons.X size={19} /></button>
           </div>
