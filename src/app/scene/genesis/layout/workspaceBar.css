@@ -129,3 +129,23 @@
   [data-lelu-module-content] [data-lelu-reflow="columns"] { grid-template-columns: 1fr !important; flex-direction: column !important; }
   [data-lelu-module-content] [data-lelu-reflow="columns"] > * { min-width: 0 !important; width: auto !important; max-width: 100% !important; }
 }
+
+/*
+ * One reflow rule for EVERY window's content, keyed to the window's own
+ * width (container query on [data-lelu-module-content]), so a phone sheet
+ * and a narrow desktop tile both reflow instead of clipping. Panels keep
+ * their own inline layouts at normal widths; below 640px:
+ *   - fields never exceed their window,
+ *   - flex rows may shrink their children,
+ *   - auto-fill grids use cells that fit, fixed grids collapse to one column.
+ * Measured before: Agents +124px and Visual Studio +97px past the window on
+ * iPhone 15 Pro; see scripts/evolution/audit-panels.mjs.
+ */
+@container (max-width: 640px) {
+  [data-lelu-module-content] :is(input, select, textarea) { max-width: 100% !important; min-width: 0 !important; }
+  [data-lelu-module-content] [style*="display: flex"] > * { min-width: 0; max-width: 100%; }
+  [data-lelu-module-content] [style*="auto-fill"], [data-lelu-module-content] [style*="auto-fit"] { grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr)) !important; }
+  [data-lelu-module-content] [style*="grid-template-columns"]:not([style*="auto-fill"]):not([style*="auto-fit"]) { grid-template-columns: minmax(0, 1fr) !important; }
+  [data-lelu-module-content] :is(img, video, canvas, iframe, pre, table) { max-width: 100%; }
+  [data-lelu-module-content] pre { overflow-x: auto; }
+}

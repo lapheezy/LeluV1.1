@@ -218,7 +218,7 @@ export default function GenesisAvatarPanel({ onClose }: GenesisAvatarPanelProps)
       maxHeight="min(92vh, 920px)"
       elevation="focus"
     >
-      <div style={{ display: "flex", gap: 14, minHeight: "min(70vh, 660px)" }}>
+      <div data-lelu-reflow="columns" style={{ display: "flex", gap: 14, minHeight: "min(70vh, 660px)" }}>
         {/* ---------------------------------------------- reference */}
         <div
           style={{

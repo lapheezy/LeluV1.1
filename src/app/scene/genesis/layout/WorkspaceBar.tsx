@@ -34,18 +34,25 @@ export function useStewardViewport(): { width: number; height: number } {
   const [vp, setVp] = useState(read);
   useEffect(() => {
     let frame = 0;
+    let settle: ReturnType<typeof setTimeout> | null = null;
+    const apply = () => setVp((prev) => {
+      const next = read();
+      return prev.width === next.width && prev.height === next.height ? prev : next;
+    });
     const update = () => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => setVp((prev) => {
-        const next = read();
-        return prev.width === next.width && prev.height === next.height ? prev : next;
-      }));
+      frame = requestAnimationFrame(apply);
+      // visualViewport can report the old size for a moment after a resize or
+      // rotation; read again once it has settled so the plan is never a step behind.
+      if (settle) clearTimeout(settle);
+      settle = setTimeout(apply, 250);
     };
     window.addEventListener("resize", update);
     window.addEventListener("orientationchange", update);
     window.visualViewport?.addEventListener("resize", update);
     return () => {
       cancelAnimationFrame(frame);
+      if (settle) clearTimeout(settle);
       window.removeEventListener("resize", update);
       window.removeEventListener("orientationchange", update);
       window.visualViewport?.removeEventListener("resize", update);

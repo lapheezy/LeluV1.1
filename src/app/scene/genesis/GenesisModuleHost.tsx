@@ -681,6 +681,7 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
       data-lelu-window={id}
       data-lelu-fullscreen={phoneSheet ? "" : undefined}
       data-lelu-steward={placement ? (stewardSheet ? "sheet" : "placed") : undefined}
+      data-lelu-steward-rect={placement ? `${placement.rect.x},${placement.rect.y},${placement.rect.width},${placement.rect.height}` : undefined}
       data-lelu-folded={folded ? "" : undefined}
       aria-hidden={folded || undefined}
       data-lelu-interacting={interacting ? "" : undefined}
@@ -851,7 +852,8 @@ export default function GenesisModuleHost({
         ? { top: 0 }
         : universeDesktop
           ? { top: 84, left: 16, right: 16, bottom: 64 }
-          : { top: 64, left: 96, right: 16, bottom: 64 },
+          // The home dock owns the bottom ~84px; the workspace bar sits above it.
+          : { top: 64, left: 96, right: 16, bottom: 148 },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [floatKey, viewport.width, viewport.height, steward.mode, steward.focusId, steward.needs, universeOpen, layoutVersion]);
@@ -909,7 +911,7 @@ export default function GenesisModuleHost({
       })}
 
       {/* Desktop: the workspace bar floats under the windows' work area. */}
-      {!plan.compact && floating.length > 0 ? <div style={{ position: "fixed", zIndex: zBase + floating.length + 2, left: "50%", bottom: "calc(12px + env(safe-area-inset-bottom, 0px))", transform: "translateX(-50%)", pointerEvents: "auto", maxWidth: "calc(100vw - 24px)" }}>{bar}</div> : null}
+      {!plan.compact && floating.length > 0 ? <div style={{ position: "fixed", zIndex: zBase + floating.length + 2, left: "50%", bottom: universeOpen ? "calc(12px + env(safe-area-inset-bottom, 0px))" : "calc(92px + env(safe-area-inset-bottom, 0px))", transform: "translateX(-50%)", pointerEvents: "auto", maxWidth: "calc(100vw - 24px)" }}>{bar}</div> : null}
 
       {/* Minimized windows are tabs in the workspace bar (still running). */}
     </>
