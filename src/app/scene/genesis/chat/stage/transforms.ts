@@ -219,3 +219,46 @@ export function toFilmScenes(model: StageConversation): Array<Record<string, unk
   });
   return scenes;
 }
+
+/**
+ * What a chart's numbers say — arithmetic, not inference: per series the
+ * total, mean, peak and low (with their labels) and the change from first
+ * to last; for a scatter, the correlation. Every sentence is checkable
+ * against the chart.
+ */
+export function explainChart(p: { title?: string; kind?: string; labels?: string[]; series?: Array<{ name: string; values: number[] }>; x?: number[]; xLabel?: string; yLabel?: string }): string[] {
+  const labels = p.labels ?? [];
+  const out: string[] = [];
+  const fmt = (n: number) => (Math.abs(n) >= 100 ? Math.round(n).toLocaleString("en-US") : (Math.round(n * 100) / 100).toString());
+  if (p.kind === "scatter" && p.x?.length && p.series?.[0]) {
+    const xs = p.x;
+    const ys = p.series[0].values;
+    const n = Math.min(xs.length, ys.length);
+    const mx = xs.slice(0, n).reduce((a, b) => a + b, 0) / n;
+    const my = ys.slice(0, n).reduce((a, b) => a + b, 0) / n;
+    let sxy = 0, sxx = 0, syy = 0;
+    for (let i = 0; i < n; i += 1) { sxy += (xs[i] - mx) * (ys[i] - my); sxx += (xs[i] - mx) ** 2; syy += (ys[i] - my) ** 2; }
+    const r = sxx && syy ? sxy / Math.sqrt(sxx * syy) : 0;
+    const strength = Math.abs(r) > 0.7 ? "strong" : Math.abs(r) > 0.4 ? "moderate" : Math.abs(r) > 0.2 ? "weak" : "no clear";
+    out.push(`${n} points. ${strength === "no clear" ? "No clear relationship" : `A ${strength} ${r > 0 ? "positive" : "negative"} relationship`} between ${p.xLabel ?? "x"} and ${p.yLabel ?? p.series[0].name} (r = ${r.toFixed(2)}).`);
+    return out;
+  }
+  for (const s of p.series ?? []) {
+    const v = s.values.filter((x) => Number.isFinite(x));
+    if (!v.length) continue;
+    const total = v.reduce((a, b) => a + b, 0);
+    const maxI = s.values.indexOf(Math.max(...v));
+    const minI = s.values.indexOf(Math.min(...v));
+    const first = v[0];
+    const last = v[v.length - 1];
+    const change = first ? ((last - first) / Math.abs(first)) * 100 : 0;
+    out.push(`${s.name}: ${fmt(total)} in total across ${v.length} ${v.length === 1 ? "value" : "values"} (mean ${fmt(total / v.length)}).`);
+    out.push(`Highest: ${fmt(v[maxI] ?? Math.max(...v))}${labels[maxI] ? ` (${labels[maxI]})` : ""}; lowest: ${fmt(v[minI] ?? Math.min(...v))}${labels[minI] ? ` (${labels[minI]})` : ""}.`);
+    // A period that has not ended (today's date) would make any trend a fake one.
+    const today = new Date().toISOString().slice(0, 10);
+    const partial = String(labels[v.length - 1] ?? "").startsWith(today);
+    if (v.length > 2 && partial) out.push(`${labels[v.length - 1]} is today and still in progress, so it is not compared as a full period.`);
+    else if (v.length > 2) out.push(`From ${labels[0] ?? "the first"} to ${labels[v.length - 1] ?? "the last"} it ${Math.abs(change) < 5 ? "stayed roughly level" : `${change > 0 ? "rose" : "fell"} ${Math.abs(Math.round(change))}%`}.`);
+  }
+  return out;
+}

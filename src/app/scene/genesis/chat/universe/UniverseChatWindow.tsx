@@ -44,6 +44,8 @@ interface PendingAttachment {
   dataUrl?: string;
 }
 import { buildStage, contentMessages } from "../stage/conversationModel";
+import { specOf, useWorks } from "../stage/works";
+import type { DeckSpec } from "../../../../../core/studio/StudioTypes";
 import { artifactKey, environmentOf, recommendEnvironment } from "../../../../../core/interface/Environments";
 import { parseWorkspaceCommand } from "../../../../../core/interface/WorkspaceSteward";
 import StudioStore from "../../../../../core/studio/StudioStore";
@@ -103,6 +105,10 @@ export default function UniverseChatWindow({
   const [draft, setDraft] = useState("");
   const [controlsOpen, setControlsOpen] = useState(false);
   const [spatialTab, setSpatialTab] = useState<"scenes" | "ideas">("scenes");
+  // A deck built in this conversation is what Present plays.
+  const conversationWorks = useWorks(conversationId);
+  const deckWork = conversationWorks.find((w) => w.kind === "deck");
+  const deck = deckWork ? (specOf(deckWork) as DeckSpec) : null;
   // Files attached here ride with the message into the thread.
   const [attached, setAttached] = useState<PendingAttachment[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -326,7 +332,7 @@ export default function UniverseChatWindow({
       body = (
         <div className="lst-stack">
           <Suspense fallback={null}><DeckExport conversationId={conversation.id} model={model} /></Suspense>
-          <PresentStage model={model} onExit={() => setStage("conversation")} />
+          <PresentStage model={model} deck={deck} onExit={() => setStage("conversation")} />
         </div>
       );
       break;

@@ -30,8 +30,8 @@ import { useGenesis, chatWindowId } from "../../GenesisCore";
 import { arrangeWorkspace } from "../../layout/stewardActions";
 import { addSourceToBoard } from "./boardSources";
 import type { StageConversation } from "./conversationModel";
-import { codeBlocksOf, prototypeDoc, runnable, tableToChart, tableToWorkbook, tablesOf, toDeck, toDocument, toFilmScenes, toMermaid, type CodeBlock } from "./transforms";
-import { createWork, exportWork, imagesAsDataUrls, mediumOf, reviseWork, say, specOf, useWorks } from "./works";
+import { explainChart, codeBlocksOf, prototypeDoc, runnable, tableToChart, tableToWorkbook, tablesOf, toDeck, toDocument, toFilmScenes, toMermaid, type CodeBlock } from "./transforms";
+import { createWork, exportWork, imagesAsDataUrls, mediumOf, recordInConversation, reviseWork, say, specOf, useWorks } from "./works";
 
 const VisualViewer = lazy(() => import("../../studio/VisualViewer"));
 const Model3DView = lazy(() => import("../Model3DView"));
@@ -404,7 +404,33 @@ function DataEnv({ conversationId, model }: EnvProps) {
       <WorkTabs works={works} selected={selected?.id ?? null} onSelect={(id) => { select(id); setNote(null); }} empty="Charts and workbooks you make appear here." />
       {selected?.kind === "visual" ? <VisualOf artifact={selected} /> : null}
       {selected?.kind === "workbook" ? <><WorkbookView spec={specOf(selected) as WorkbookSpec} /><ExportRow conversationId={conversationId} artifact={selected} formats={["xlsx", "csv"]} /></> : null}
-      {selected?.kind === "visual" ? <Btn onClick={() => { const spec = specOf(selected) as VisualSpec; const p = spec.program as { title?: string }; const r = createWork(conversationId, { kind: "deck", title: `${p.title ?? selected.title} — findings`, slides: [{ title: p.title ?? selected.title, layout: "title", subtitle: "Findings from the data" }, { title: "What the data shows", layout: "content", bullets: [spec.notes ?? "See the chart.", ...(spec.sources ?? []).map((s) => `Source: ${s.title}`)] }] }, "Turned the chart's findings into slides"); setNote(r.ok ? "Slides created — open Present → Export." : r.reason); }}>Findings → slides</Btn> : null}
+      {selected?.kind === "visual" ? (() => {
+        const spec = specOf(selected) as VisualSpec;
+        const p = spec.program as Parameters<typeof explainChart>[0] & { title?: string; labels?: string[]; series?: Array<{ name: string; values: number[] }> };
+        const findings = explainChart(p);
+        const sources = (spec.sources ?? []).map((s) => `${s.title}${s.url ? ` — ${s.url}` : ""}`);
+        return (
+          <section className="lev-panel" data-lelu-data-findings>
+            <h4>What the data shows</h4>
+            {findings.length ? <ul>{findings.map((f) => <li key={f}>{f}</li>)}</ul> : <p className="lev-empty">This chart has no numeric series to analyse.</p>}
+            {spec.notes ? <p className="lev-hint">{spec.notes}</p> : null}
+            <div className="lev-row">
+              <Btn onClick={() => recordInConversation(conversationId, [`**What the data shows — ${p.title ?? selected.title}**`, "", ...findings.map((f) => `- ${f}`), "", spec.notes ? `_${spec.notes}_` : "", "Computed on this device from the chart's own numbers — no model call."].join("\n"), [])}>Explain in the chat</Btn>
+              <Btn tone="primary" onClick={() => {
+                const table = p.labels && p.series?.length ? { columns: ["", ...p.series.map((x) => x.name)], rows: p.labels.slice(0, 12).map((l, i) => [l, ...p.series!.map((x) => x.values[i] ?? "")]) } : undefined;
+                const slides = [
+                  { title: p.title ?? selected.title, layout: "title" as const, subtitle: "Findings from the data" },
+                  { title: "What the data shows", layout: "content" as const, bullets: findings.slice(0, 6) },
+                  ...(table ? [{ title: "The numbers", layout: "table" as const, table }] : []),
+                  { title: "Sources", layout: "content" as const, bullets: sources.length ? sources : [spec.notes ?? "See the chart's notes."] },
+                ];
+                const r = createWork(conversationId, { kind: "deck", title: `${p.title ?? selected.title} — findings`, slides }, "Turned the chart's findings into a presentation");
+                setNote(r.ok ? "Presentation created — open Present to play or export it." : r.reason);
+              }}>Findings → presentation</Btn>
+            </div>
+          </section>
+        );
+      })() : null}
     </div>
   );
 }

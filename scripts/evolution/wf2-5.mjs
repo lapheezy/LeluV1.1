@@ -68,11 +68,18 @@ if (!only || only === "data") {
   await page.waitForTimeout(2000); await goStage(page, "data"); await page.waitForTimeout(1500);
   out.dataReply = await page.evaluate(async (cid) => { const { default: S } = await import("/src/core/multichat/MultiChatStore.ts"); const m = S.getInstance().get(cid).messages; return m[m.length - 1]?.text.slice(0, 500); }, id);
   await page.locator('[data-lelu-env-view="data"] .lev-works button').first().click().catch(() => {});
-  await page.waitForTimeout(4000); await shot(page, `wf4-${label}-1-chart`);
-  await page.locator('[data-lelu-env-view="data"] .lev-btn', { hasText: "Findings → slides" }).click().catch(() => {}); await page.waitForTimeout(1500);
-  await goStage(page, "present"); await page.waitForTimeout(2500);
+  await page.waitForTimeout(4000);
+  await page.locator(".lev-visual").first().scrollIntoViewIfNeeded().catch(() => {});
+  await page.waitForTimeout(1500); await shot(page, `wf4-${label}-1-chart`);
+  out.findings = await page.locator("[data-lelu-data-findings] li").allInnerTexts().catch(() => []);
+  await page.locator("[data-lelu-data-findings]").scrollIntoViewIfNeeded().catch(() => {});
+  await page.locator('[data-lelu-data-findings] .lev-btn', { hasText: "Explain in the chat" }).click().catch(() => {}); await page.waitForTimeout(800);
+  await shot(page, `wf4-${label}-2-findings`);
+  await page.locator('[data-lelu-data-findings] .lev-btn', { hasText: "Findings → presentation" }).click().catch(() => {}); await page.waitForTimeout(1500);
+  await goStage(page, "present"); await page.waitForTimeout(2000);
+  await page.keyboard.press("ArrowRight"); await page.waitForTimeout(1200);
   out.pptx = await download(() => page.locator(".lev-deckbar .lev-btn", { hasText: "⇣ PPTX" }).first().click());
-  await shot(page, `wf4-${label}-2-presentation`);
+  await shot(page, `wf4-${label}-3-presentation`);
   out.dataWorks = await works(page, id);
 }
 

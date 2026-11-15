@@ -71,3 +71,14 @@ test("language → transforms and environments, compiled to tools (no model)", (
   assert.deepEqual(plan.steps.map((s) => s.tool), ["workspace.transform", "workspace.stage"]);
   assert.ok(INTERFACE_TOOLS.some((t) => t.id === "workspace.transform" && t.riskLevel === 0));
 });
+
+test("chart explanations are arithmetic, and never trend over an unfinished day", async () => {
+  const { explainChart } = await import("../src/app/scene/genesis/chat/stage/transforms");
+  const today = new Date().toISOString().slice(0, 10);
+  const lines = explainChart({ kind: "column", labels: ["2026-01-01", "2026-01-02", today], series: [{ name: "count", values: [10, 30, 2] }] });
+  assert.match(lines[0], /42 in total across 3 values \(mean 14\)/);
+  assert.match(lines[1], /Highest: 30 \(2026-01-02\); lowest: 2/);
+  assert.match(lines[2], /still in progress/);
+  const r = explainChart({ kind: "scatter", x: [1, 2, 3, 4], series: [{ name: "y", values: [2, 4, 6, 8] }], xLabel: "depth" });
+  assert.match(r[0], /strong positive relationship between depth and y \(r = 1\.00\)/);
+});

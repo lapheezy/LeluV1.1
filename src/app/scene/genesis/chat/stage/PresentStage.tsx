@@ -6,10 +6,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import ChatMarkdown from "../ChatMarkdown";
-import { slidesOf, type StageConversation } from "./conversationModel";
+import { slidesOf, type Slide, type StageConversation } from "./conversationModel";
+import type { DeckSpec } from "../../../../../core/studio/StudioTypes";
 
-export default function PresentStage({ model, onExit }: { model: StageConversation; onExit: () => void }) {
-  const slides = useMemo(() => slidesOf(model), [model]);
+/** A built deck's slides, as the stage shows them (bullets and tables as markdown). */
+function deckSlides(deck: DeckSpec): Slide[] {
+  return deck.slides.map((sl, i) => {
+    const bullets = (sl.bullets ?? []).map((b) => `- ${b}`).join("\n");
+    const table = sl.table ? [`| ${sl.table.columns.join(" | ")} |`, `|${sl.table.columns.map(() => "---").join("|")}|`, ...sl.table.rows.map((r) => `| ${r.join(" | ")} |`)].join("\n") : "";
+    return { id: `deck-${i}`, kind: sl.layout === "title" ? "title" : sl.layout === "section" ? "question" : "section", heading: sl.title, text: [sl.subtitle ?? "", bullets, table].filter(Boolean).join("\n\n"), media: null };
+  });
+}
+
+export default function PresentStage({ model, onExit, deck }: { model: StageConversation; onExit: () => void; deck?: DeckSpec | null }) {
+  const slides = useMemo(() => (deck?.slides.length ? deckSlides(deck) : slidesOf(model)), [model, deck]);
   const [[index, dir], setIndex] = useState<[number, number]>([0, 0]);
   const go = (delta: number) => setIndex(([i]) => [Math.max(0, Math.min(slides.length - 1, i + delta)), delta]);
   useEffect(() => {

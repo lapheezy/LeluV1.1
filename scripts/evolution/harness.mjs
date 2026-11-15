@@ -70,8 +70,11 @@ export async function seed(page) {
 }
 
 export async function openUniverse(page) {
-  await page.evaluate(() => window.dispatchEvent(new CustomEvent("lelu-open-universe")));
-  await page.waitForSelector(".lcu", { state: "visible", timeout: 15000 });
+  // The Universe is a lazy chunk; on a cold dev server it can take a while to arrive.
+  for (let i = 0; i < 4; i += 1) {
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent("lelu-open-universe")));
+    if (await page.waitForSelector(".lcu", { state: "visible", timeout: 15000 }).then(() => true).catch(() => false)) break;
+  }
   await page.waitForTimeout(700);
 }
 
