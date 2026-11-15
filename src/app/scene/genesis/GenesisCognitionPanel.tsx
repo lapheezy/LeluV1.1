@@ -936,6 +936,9 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
                                   {provider.lastFailureAt
                                     ? ` · last failure ${new Date(provider.lastFailureAt).toLocaleString()}${provider.lastFailureStatus ? ` (HTTP ${provider.lastFailureStatus})` : ""}`
                                     : ""}
+                                  {provider.retryAfterAt
+                                    ? ` · retry in ${provider.retryAfterSeconds ?? "?"}s`
+                                    : ""}
                                 </span>
                               </span>
                             </div>

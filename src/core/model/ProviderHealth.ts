@@ -296,6 +296,9 @@ export interface BrokerProviderObservation {
   lastFailureAt: number | null;
   lastFailureStatus: number | null;
   lastFailureNote: string | null;
+  /** Provider-declared time this provider may be usable again, if cooling. */
+  retryAfterAt: number | null;
+  retryAfterSeconds: number | null;
   /** When LÉLU read this provider's row from the status endpoint. */
   observedAt: number;
 }
@@ -336,6 +339,8 @@ interface BrokerState {
   lastFailureAt?: number;
   lastFailureStatus?: number;
   lastFailureNote?: string;
+  retryAfterAt?: number;
+  retryAfterSeconds?: number;
 }
 
 const numberOrNull = (value: unknown): number | null =>
@@ -397,6 +402,7 @@ export function deriveBrokerHealth(
     } else if (name === "CONFIGURED") availability = "unverified";
     else availability = "unknown";
 
+    const retryAfterAt = numberOrNull(state.retryAfterAt);
     return {
       id,
       available,
@@ -407,6 +413,10 @@ export function deriveBrokerHealth(
       lastFailureAt,
       lastFailureStatus,
       lastFailureNote,
+      retryAfterAt,
+      retryAfterSeconds:
+        numberOrNull(state.retryAfterSeconds) ??
+        (retryAfterAt !== null ? Math.max(1, Math.ceil((retryAfterAt - observedAt) / 1000)) : null),
       observedAt,
     };
   });

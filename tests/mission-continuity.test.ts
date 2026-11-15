@@ -413,7 +413,7 @@ test("provider health separates configured from working and keeps both timestamp
       providers: { groq: true, openrouter: true, githubModels: true, anthropic: false },
       states: {
         groq: { state: "COMPLETION_VERIFIED", at: 1_000, httpStatus: 200, lastSuccessAt: 2_000 },
-        openrouter: { state: "CONFIGURED" },
+        openrouter: { state: "CONFIGURED", retryAfterAt: 9_000 },
         githubModels: {
           state: "CONTRACT_VIOLATION",
           at: 3_000,
@@ -431,6 +431,8 @@ test("provider health separates configured from working and keeps both timestamp
   assert.equal(byId.get("groq")!.availability, "verified");
   assert.equal(byId.get("groq")!.lastSuccessAt, 2_000);
   assert.equal(byId.get("openrouter")!.availability, "unverified", "a configured key is not a working provider");
+  assert.equal(byId.get("openrouter")!.retryAfterAt, 9_000);
+  assert.equal(byId.get("openrouter")!.retryAfterSeconds, 4, "the reset window reaches the self-model");
   assert.equal(byId.get("githubModels")!.availability, "failing");
   assert.equal(byId.get("githubModels")!.lastFailureNote, "2xx body was not JSON, so not a completion");
   assert.equal(byId.get("anthropic")!.availability, "blocked");

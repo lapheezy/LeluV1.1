@@ -216,6 +216,8 @@ No existing file was deleted, renamed or overwritten destructively.
 | Focused tests | `npx tsx … --test tests/mission-continuity.test.ts` | **16/16 pass**, exit 0 |
 | Full suite | `npm test` | **2188 pass / 2 fail / 8 skipped of 2198**, exit 1 |
 | Lint | `npx oxlint` | **0 errors**, 169 warnings (pre-existing style warnings) |
+| Follow-up suite (14.2) | `npm test` | **2191 pass / 2 fail / 8 skipped of 2201**, exit 1 — same two failures |
+| Follow-up lint/build (14.2) | `npx oxlint`; `npm run build` | **exit 0** (409 warnings, 0 errors); **exit 0**, built in 6.00 s |
 | Verification script | `npx tsx scripts/verify-mission-continuity.ts` | **16/16 checks pass**; JSON regenerated |
 
 ### The two full-suite failures (not caused by this change)
@@ -319,3 +321,17 @@ No monitoring, tracking or private-surveillance capability was added.
 - `UNAVAILABLE`: any invocable skill executor (the catalogue is read-only); live engineering runtime (`/api/engineer/status` 503).
 - `PROPOSED`: Cosmos Composition Engine, Earth Core adoption, Eagle Eye absorption, full offline sync.
 - `SIMULATED`: nothing in this slice is presented as live; tests use injected event buses and in-memory stores only where stated.
+
+---
+
+## 11. Follow-up slices — Mission 14.1 and 14.2 (2026-11-15)
+
+### Mission 14.1 — cross-conversation resumption: **BLOCKED**
+
+A genuinely new conversation reached the continuity ledger (`mission.list` succeeded), but the final answer came from local fallback, selected the active duplicate `m-4863de4f`, and never called `mission.brief` on `m-406ecd7d`. Two retries were stopped by Groq's 8,000 TPM limit and a `tool_use_failed` response. No model-authored continuation was persisted. See [`CROSS_CONVERSATION.md`](CROSS_CONVERSATION.md).
+
+### Mission 14.2 — provider resilience: **PARTIAL**
+
+The broker now learns per-credential reset windows from body text, `Retry-After` and `X-RateLimit-Reset`, refuses a fully cooling provider without another upstream call, exposes the reset window in status, removes it from the offered chain, and clears cooldowns on a real 2xx. Live: OpenRouter's second request was served locally with a 29,334 s reset; Groq returned a real 200 and `COMPLETION_VERIFIED`. Long-window recovery and a tool turn under 8k TPM remain blocked. See [`PROVIDER_RESILIENCE.md`](PROVIDER_RESILIENCE.md).
+
+No branch was merged. Phase 6–9, voice and the mobile runtime were not touched.

@@ -650,11 +650,48 @@ export function createModelApi(readEnv: EnvReader) {
     const ready = keys.filter((k) => (keyReadyAt.get(k) ?? 0) <= now);
     return [...ready, ...keys.filter((k) => !ready.includes(k))];
   };
-  const noteRetryAfter = (key: string, body: string): void => {
+  /**
+   * Learn a key's next usable time from every hint the provider gives:
+   * the `try again in 35m36.2s` body text Groq uses, an HTTP `Retry-After`
+   * header, or an `X-RateLimit-Reset` epoch. Without the header/epoch path a
+   * daily free-tier 429 ("free-models-per-day … credits to unlock") carried
+   * no duration and the same spent key was retried on every round.
+   */
+  const noteRetryAfter = (key: string, body: string, headers?: Headers): void => {
+    let ms = 0;
     const m = /try again in\s*(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:([\d.]+)s)?/i.exec(body);
-    if (!m || !(m[1] || m[2] || m[3])) return;
-    const ms = (Number(m[1] ?? 0) * 3600 + Number(m[2] ?? 0) * 60 + Number(m[3] ?? 0)) * 1000;
-    if (ms > 0) keyReadyAt.set(key, Date.now() + Math.min(ms, 24 * 3600_000));
+    if (m && (m[1] || m[2] || m[3])) {
+      ms = (Number(m[1] ?? 0) * 3600 + Number(m[2] ?? 0) * 60 + Number(m[3] ?? 0)) * 1000;
+    }
+    if (ms <= 0 && headers) {
+      const retry = headers.get("retry-after")?.trim() ?? "";
+      if (/^\d+(?:\.\d+)?$/.test(retry)) {
+        ms = Number(retry) * 1000;
+      } else if (retry) {
+        const at = Date.parse(retry);
+        if (Number.isFinite(at)) ms = at - Date.now();
+      }
+      if (ms <= 0) {
+        const reset = headers.get("x-ratelimit-reset")?.trim() ?? "";
+        if (/^\d+(?:\.\d+)?$/.test(reset)) {
+          const value = Number(reset);
+          // Providers send either a Unix second or a Unix millisecond stamp.
+          ms = (value > 1e12 ? value : value * 1000) - Date.now();
+        }
+      }
+    }
+    if (ms <= 0) {
+      // OpenRouter reports the reset inside the JSON error metadata, not as a
+      // header on every route.
+      const reset = /"X-RateLimit-Reset"\s*:\s*"?(\d+)(?:\.\d+)?"?/i.exec(body)?.[1];
+      if (reset) {
+        const value = Number(reset);
+        ms = (value > 1e12 ? value : value * 1000) - Date.now();
+      }
+    }
+    if (ms <= 0) return;
+    const until = Date.now() + Math.min(ms, 24 * 3600_000);
+    keyReadyAt.set(key, Math.max(keyReadyAt.get(key) ?? 0, until));
   };
 
   /** Longest same-key wait the broker will make (below the page's 12 s rung watchdog). */
@@ -683,7 +720,11 @@ export function createModelApi(readEnv: EnvReader) {
         // Paid capacity without authorization is not available: the page
         // must not even try it (and so never loops on a refusal).
         const spendOk = spendPolicy().check(id, { model: defaultModelFor(id), operation: "chat" }, { peek: true }).allowed;
-        status[id] = configured && !unauthorized.has(id) && brokerAllows(id, readEnv) && spendOk;
+        const providerCredentials = credentialsFor(provider);
+        const allCooling =
+          providerCredentials.length > 0 &&
+          providerCredentials.every((credential) => (keyReadyAt.get(credential) ?? 0) > Date.now());
+        status[id] = configured && !unauthorized.has(id) && brokerAllows(id, readEnv) && spendOk && !allCooling;
 
         // CONFIGURED is the honest answer when nothing has been observed yet;
         // it is NOT a capability claim. Every stronger state needs evidence.
@@ -698,7 +739,10 @@ export function createModelApi(readEnv: EnvReader) {
         else if (!brokerAllows(id, readEnv)) state = "POLICY_DISABLED";
         else if (!spendOk) state = "SPEND_NOT_AUTHORIZED";
         else if (unauthorized.has(id)) state = "COOLDOWN";
-        else state = seen?.state ?? "CONFIGURED";
+        else state = seen?.state ?? (allCooling ? "CAPACITY_LIMITED" : "CONFIGURED");
+        const cooldownUntil = providerCredentials
+          .map((credential) => keyReadyAt.get(credential) ?? 0)
+          .filter((until) => until > Date.now());
         states[id] = {
           state,
           ...(seen ? { at: seen.at, httpStatus: seen.httpStatus, ...(seen.note ? { note: seen.note } : {}) } : {}),
@@ -708,6 +752,12 @@ export function createModelApi(readEnv: EnvReader) {
                 lastFailureAt: lastFailure.get(id)?.at,
                 lastFailureStatus: lastFailure.get(id)?.httpStatus,
                 lastFailureNote: lastFailure.get(id)?.note,
+              }
+            : {}),
+          ...(cooldownUntil.length > 0
+            ? {
+                retryAfterAt: Math.min(...cooldownUntil),
+                retryAfterSeconds: Math.max(1, Math.ceil((Math.min(...cooldownUntil) - Date.now()) / 1000)),
               }
             : {}),
         };
@@ -763,7 +813,8 @@ export function createModelApi(readEnv: EnvReader) {
       return;
     }
 
-    const keys = byReadiness(credentialsFor(provider));
+    const providerKeys = credentialsFor(provider);
+    const keys = byReadiness(providerKeys);
     const key = keys[0] ?? "";
     if (!key) {
       // A missing credential is reported as a missing credential, not as
@@ -776,6 +827,43 @@ export function createModelApi(readEnv: EnvReader) {
           expected: provider.keyNames,
         },
         503,
+      );
+      return;
+    }
+
+    // Every credential is inside a provider-declared cooldown. Asking upstream
+    // again cannot succeed and is exactly the retry loop Mission 14.2 removes:
+    // answer at once with the provider's own reset window instead.
+    const nowMs = Date.now();
+    const cooling = providerKeys
+      .map((credential) => keyReadyAt.get(credential) ?? 0)
+      .filter((until) => until > nowMs);
+    if (providerKeys.length > 0 && cooling.length === providerKeys.length) {
+      const retryAfterAt = Math.min(...cooling);
+      const retryAfterSeconds = Math.max(1, Math.ceil((retryAfterAt - nowMs) / 1000));
+      lastFailure.set(providerId, {
+        at: nowMs,
+        httpStatus: 429,
+        note: "provider cooldown; request not sent",
+      });
+      evidence.set(providerId, {
+        state: "CAPACITY_LIMITED",
+        httpStatus: 429,
+        at: nowMs,
+        note: "provider cooldown; request not sent",
+      });
+      res.setHeader("Retry-After", String(retryAfterSeconds));
+      sendJson(
+        res,
+        {
+          ok: false,
+          code: "PROVIDER_COOLDOWN",
+          error: `${providerId} is cooling down after a rate limit; retry in ${retryAfterSeconds}s.`,
+          provider: providerId,
+          retryAfterAt,
+          retryAfterSeconds,
+        },
+        429,
       );
       return;
     }
@@ -857,7 +945,7 @@ export function createModelApi(readEnv: EnvReader) {
             .text()
             .catch(() => "");
           reason = (/"message"\s*:\s*"([^"]{0,220})/.exec(body)?.[1] ?? "").replace(/organization `[^`]*`/g, "organization `…`");
-          noteRetryAfter(keys[slot] ?? key, body);
+          noteRetryAfter(keys[slot] ?? key, body, upstream.headers);
           const retry = /try again in\s*([\d.]+)\s*s/i.exec(body);
           // Wait only when the wait fits inside the page's 12 s stall
           // watchdog (ProviderResolver). A longer wait was always killed by it
@@ -978,6 +1066,9 @@ export function createModelApi(readEnv: EnvReader) {
         });
       } else if (upstream.ok) {
         unauthorized.delete(providerId);
+        // A real completion clears this key's cooldown: recovery is observed,
+        // not assumed, and a provider must not stay marked unhealthy forever.
+        keyReadyAt.delete(keys[slot] ?? key);
         // Record success HERE, not after body inspection: streaming responses
         // return before the later point, and a real 200 stream is still a
         // success. A 2xx body that turns out not to be a completion deletes
