@@ -56,6 +56,7 @@ import {
   type ChatPreview,
   type TimelineRange,
 } from "./universeModel";
+import { openEvolutionTrail } from "./evolutionTrail";
 import "./chatUniverse.css";
 
 export const OPEN_UNIVERSE_EVENT = "lelu-open-universe";
@@ -450,6 +451,16 @@ export default function ChatUniverse() {
               <button type="button" data-on={view === "grid"} onClick={() => setView("grid")} aria-label="Grid view"><Icons.LayoutGrid size={17} /></button>
               <button type="button" data-on={view === "carousel"} onClick={() => setView("carousel")} aria-label="Carousel view"><Icons.GalleryHorizontal size={17} /></button>
             </div>
+            <button
+              type="button"
+              className="lcu-icon"
+              data-lelu-evolution-trail
+              title="Evolution trail — how this interface was rebuilt, with screenshots"
+              aria-label="Open the evolution trail"
+              onClick={() => { void openEvolutionTrail().then((id) => id && openChat(id)); }}
+            >
+              <Icons.Sparkles size={18} />
+            </button>
             <button type="button" className="lcu-icon" onClick={newChat} aria-label="New chat"><Icons.Plus size={19} /></button>
             <button type="button" className="lcu-icon" onClick={() => setOpen(false)} aria-label="Close Chat Universe"><Icons.X size={19} /></button>
           </div>
