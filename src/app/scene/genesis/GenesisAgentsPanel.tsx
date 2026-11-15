@@ -156,7 +156,7 @@ export default function GenesisAgentsPanel({ onClose }: GenesisAgentsPanelProps)
       maxHeight="min(90vh, 900px)"
       elevation="focus"
     >
-      <div style={{ display: "flex", gap: 14, minHeight: "min(70vh, 640px)" }}>
+      <div data-lelu-reflow="columns" style={{ display: "flex", gap: 14, minHeight: "min(70vh, 640px)" }}>
         {/* ------------------------------------------------ agent list */}
         <div
           style={{

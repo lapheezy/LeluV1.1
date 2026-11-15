@@ -14,6 +14,7 @@ import { previewHtml } from "../../../../core/studio/StudioPreview";
 import type { ReadResult } from "../../../../core/studio/StudioReader";
 import { FORMATS_BY_KIND, type ExportFormat } from "../../../../core/studio/StudioTypes";
 import { downloadBytes, formatBytes, KIND_LABEL, useStudioStore } from "./useStudio";
+import EmbedBoundary from "./EmbedBoundary";
 import "./studio.css";
 
 // Each editor (and its library) loads only when an artifact of its kind is opened.
@@ -106,10 +107,13 @@ export default function StudioArtifactWindow({ artifactId, onClose }: { artifact
         ) : null}
 
         {revision.spec.kind === "visual" ? (
+          <EmbedBoundary>
           <Suspense fallback={<p className="lst-note" role="status">Opening the {revision.spec.medium} view…</p>}>
             <VisualViewer key={revision.rev} artifact={artifact} rev={revision.rev} spec={revision.spec} />
           </Suspense>
+          </EmbedBoundary>
         ) : revision.spec.kind === "graph" || revision.spec.kind === "drawing" ? (
+          <EmbedBoundary>
           <Suspense fallback={<p className="lst-note" role="status">Opening the {revision.spec.kind === "graph" ? "graph" : "drawing"} editor…</p>}>
             {/* "latest" keeps one editor across its own saves; an earlier revision opens read-only. */}
             {revision.spec.kind === "graph" ? (
@@ -121,6 +125,7 @@ export default function StudioArtifactWindow({ artifactId, onClose }: { artifact
               </>
             )}
           </Suspense>
+          </EmbedBoundary>
         ) : (
           <iframe className={`lst-preview kind-${artifact.kind}`} title={`Preview of ${artifact.title}`} sandbox="" srcDoc={html} />
         )}

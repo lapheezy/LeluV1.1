@@ -22,6 +22,9 @@
  * ==========================================================
  */
 
+import { arrangeWorkspace, setStage, type StewardHost } from "./layout/stewardActions";
+import { transformConversation } from "./chat/stage/transformActions";
+import { TRANSFORM_TARGETS, type TransformTarget } from "../../../core/interface/WorkspaceSteward";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useWorkspaceRoot } from "./useWorkspace";
 import { conversationIdOf, useGenesis, type GenesisPanel } from "./GenesisCore";
@@ -452,6 +455,9 @@ export default function GenesisInterface() {
    * ------------------------------------------------------------- */
   const activePanelRef = useRef(state.activePanel);
   activePanelRef.current = state.activePanel;
+  // The steward reads the live module set, not the one captured at mount.
+  const stewardStateRef = useRef(state);
+  stewardStateRef.current = state;
   useEffect(() => {
     // The real, currently-rendered panel set — module-hosted panels plus
     // the special-cased full-page surfaces below (chat/self-evolution/
@@ -460,6 +466,13 @@ export default function GenesisInterface() {
     // and "workspaces" are type values with no renderer at all, so they
     // correctly stay unsupported rather than silently accepted.
     const supportedPanels = [...Object.keys(MODULE_RENDERERS), "chat", "self-evolution", "cosmos", "none"];
+    const stewardHost = (): StewardHost => ({
+      modules: () => stewardStateRef.current.modules,
+      openModule: (id) => openModule(id),
+      setModulePresentation: (id, p) => setModulePresentation(id, p),
+      raiseModule: (id) => raiseModule(id),
+      activeConversationId: () => stewardStateRef.current.activeConversationId ?? null,
+    });
     const unregister = UIActionBus.getInstance().registerHandlers({
       supportedPanels,
       openPanel: (panel) => openPanel(panel as GenesisPanel),
@@ -467,6 +480,15 @@ export default function GenesisInterface() {
       minimizeModule: (id) => minimizeModule(id),
       closeModule: (id) => closeModule(id),
       getActivePanel: () => activePanelRef.current,
+      // Workspace Steward: LÉLU's layout and staging requests run here, locally.
+      arrangeWorkspace: (mode, modules, by) => arrangeWorkspace(stewardHost(), mode, modules, by),
+      setStage: (stage, conversationId, by) => setStage(stewardHost(), stage, conversationId, by),
+      transformConversation: (target, conversationId) => {
+        const id = conversationId ?? stewardStateRef.current.activeConversationId;
+        if (!id) return { ok: false, detail: "There is no conversation to work from." };
+        if (!(TRANSFORM_TARGETS as string[]).includes(target)) return { ok: false, detail: `Unknown target "${target}". Targets: ${TRANSFORM_TARGETS.join(", ")}.` };
+        return transformConversation(id, target as TransformTarget);
+      },
     });
     return unregister;
     // Registered once per mount — handlers close over stable useGenesis

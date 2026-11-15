@@ -324,7 +324,7 @@ export default function GenesisEngineeringPanel({ onClose }: GenesisEngineeringP
           ) : null}
         </div>
 
-        <div style={{ display: "flex", gap: 12, minHeight: "min(62vh, 560px)" }}>
+        <div data-lelu-reflow="columns" style={{ display: "flex", gap: 12, minHeight: "min(62vh, 560px)" }}>
           {/* ---------------- file tree ---------------- */}
           <div style={{ width: 260, flexShrink: 0, display: "flex", flexDirection: "column", gap: 8, maxHeight: "min(62vh, 560px)", overflowY: "auto", paddingRight: 4 }}>
             <div style={labelStyle}>Sandbox files</div>

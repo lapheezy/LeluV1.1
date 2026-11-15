@@ -583,7 +583,7 @@ export default function GenesisWindowFrame({
             </button>
           ) : null}
           {extraActions}
-          <button type="button" onClick={onClose} style={genesisTheme.closeButton}>
+          <button type="button" onClick={onClose} style={genesisTheme.closeButton} aria-label="Close window">
             {closeLabel}
           </button>
         </div>

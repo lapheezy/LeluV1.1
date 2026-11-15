@@ -150,6 +150,11 @@ function loadMermaid(): Promise<MermaidApi> {
       mermaid.initialize({
         startOnLoad: false,
         securityLevel: "strict",
+        // SVG <text> labels, not HTML in <foreignObject>: a canvas that draws
+        // foreignObject is tainted in Chromium, so PNG export failed with
+        // "Tainted canvases may not be exported" (measured in the demo run).
+        htmlLabels: false,
+        flowchart: { htmlLabels: false },
         theme: "base",
         themeVariables: { primaryColor: "#2a2152", primaryTextColor: "#f4f0ff", primaryBorderColor: "#b98cff", lineColor: "#d4a94e", fontFamily: "Inter, Helvetica, Arial, sans-serif", background: "#120e24" },
       });

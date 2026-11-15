@@ -1,0 +1,107 @@
+{
+ "initial_files": {
+  "before": 1,
+  "after": 1,
+  "delta": 0
+ },
+ "initial_raw": {
+  "before": 374542,
+  "after": 374584,
+  "delta": 42
+ },
+ "initial_gzip": {
+  "before": 114893,
+  "after": 114929,
+  "delta": 36
+ },
+ "js_files": {
+  "before": 1320,
+  "after": 1340,
+  "delta": 20
+ },
+ "js_raw": {
+  "before": 26480958,
+  "after": 28378083,
+  "delta": 1897125
+ },
+ "js_gzip": {
+  "before": 8403273,
+  "after": 8941228,
+  "delta": 537955
+ },
+ "new_chunks": {
+  "prod": {
+   "raw": 1098626,
+   "gzip": 344130
+  },
+  "three.webgpu": {
+   "raw": 664616,
+   "gzip": 184341
+  },
+  "GLTFExporter": {
+   "raw": 36565,
+   "gzip": 10581
+  },
+  "Scene3D": {
+   "raw": 35431,
+   "gzip": 10608
+  },
+  "PublicDataConnectors": {
+   "raw": 32874,
+   "gzip": 9972
+  },
+  "CreativeKitTools": {
+   "raw": 27988,
+   "gzip": 9023
+  },
+  "VideoComposer": {
+   "raw": 24726,
+   "gzip": 8711
+  },
+  "VisualArtifacts": {
+   "raw": 19925,
+   "gzip": 6645
+  },
+  "DirectCompiler": {
+   "raw": 18430,
+   "gzip": 6667
+  },
+  "InteractiveViz": {
+   "raw": 16641,
+   "gzip": 5890
+  },
+  "GenerativeArt": {
+   "raw": 13283,
+   "gzip": 4495
+  },
+  "BrowserCapabilities": {
+   "raw": 11469,
+   "gzip": 3818
+  },
+  "Diagram": {
+   "raw": 9217,
+   "gzip": 3635
+  },
+  "CapabilityProfiles": {
+   "raw": 7484,
+   "gzip": 2590
+  },
+  "VisualViewer": {
+   "raw": 6326,
+   "gzip": 2643
+  },
+  "DirectResolver": {
+   "raw": 4034,
+   "gzip": 1799
+  },
+  "Rng": {
+   "raw": 2614,
+   "gzip": 1127
+  },
+  "film": {
+   "raw": 447,
+   "gzip": 268
+  }
+ },
+ "new_chunks_in_initial_load": []
+}

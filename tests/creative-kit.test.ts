@@ -291,3 +291,18 @@ test("an editable drawing exports as a .excalidraw file that re-opens with every
   const file = JSON.parse(new TextDecoder().decode(visualFile(id, 1, "excalidraw")!.bytes));
   assert.equal(file.type, "excalidraw");
 });
+
+test("merged direct planners: a thing to MAKE beats a stage word; a stage change about the conversation stays a stage change", async () => {
+  const { directPlanFor } = await import("../src/core/router/DirectResolver");
+  const tools = (t: string) => directPlanFor(t)?.steps.map((s) => s.tool).join(",") ?? "none";
+  // Measured on the merged tree: the Workspace Steward's stage parser claimed these and nothing was made.
+  assert.equal(tools("Make an architecture diagram of LÉLU"), "creative.diagram");
+  assert.equal(tools("Make a movie about ocean tides"), "creative.film");
+  assert.equal(tools("Make me a 3D forest scene"), "creative.scene3d");
+  // The Steward keeps its own requests.
+  assert.equal(tools("turn this into a research board"), "workspace.stage");
+  assert.equal(tools("make the chat a diagram board"), "workspace.stage");
+  assert.equal(tools("make this cinematic"), "workspace.stage");
+  assert.equal(tools("tile my windows"), "workspace.arrange");
+  assert.equal(tools("put the browser beside the chat"), "workspace.arrange");
+});

@@ -1,0 +1,86 @@
+[
+  {
+    "id": "wikipedia.summary",
+    "ok": false,
+    "ms": 148,
+    "rows": 0,
+    "detail": "Wikipedia page summary refused with 429 (rate limit: Wikimedia REST: no fixed quota; keep under ~200 req/s and identify the client)"
+  },
+  {
+    "id": "wikipedia.search",
+    "ok": true,
+    "ms": 230,
+    "rows": 5,
+    "detail": "5 articles for “coral bleaching”."
+  },
+  {
+    "id": "wikidata.sparql",
+    "ok": true,
+    "ms": 512,
+    "rows": 5,
+    "detail": "5 result rows."
+  },
+  {
+    "id": "crossref.works",
+    "ok": true,
+    "ms": 382,
+    "rows": 5,
+    "detail": "5 works for “coral bleaching”."
+  },
+  {
+    "id": "arxiv.search",
+    "ok": true,
+    "ms": 298,
+    "rows": 3,
+    "detail": "3 preprints for “coral reef”."
+  },
+  {
+    "id": "openalex.works",
+    "ok": true,
+    "ms": 500,
+    "rows": 3,
+    "detail": "3 works for “coral bleaching”."
+  },
+  {
+    "id": "usgs.earthquakes",
+    "ok": true,
+    "ms": 161,
+    "rows": 122,
+    "detail": "122 earthquakes (USGS Magnitude 4.5+ Earthquakes, Past Week). Strongest: M6.4 30 km WSW of Lata, Solomon Islan"
+  },
+  {
+    "id": "nws.forecast",
+    "ok": true,
+    "ms": 1050,
+    "rows": 14,
+    "detail": "This Afternoon: 49°F, Partly Sunny; Tonight: 44°F, Partly Cloudy"
+  },
+  {
+    "id": "openmeteo.forecast",
+    "ok": true,
+    "ms": 129,
+    "rows": 7,
+    "detail": "7-day forecast."
+  },
+  {
+    "id": "hackernews.top",
+    "ok": true,
+    "ms": 149,
+    "rows": 5,
+    "detail": "5 top stories."
+  },
+  {
+    "id": "github.releases",
+    "ok": false,
+    "ms": 61,
+    "rows": 0,
+    "detail": "GitHub releases answered HTTP 403: {\"message\":\"API rate limit exceeded for 34.29.163.239. (But here's the good news: Authenticated requests get a higher rate li"
+  },
+  {
+    "id": "nominatim.search",
+    "ok": true,
+    "ms": 267,
+    "rows": 1,
+    "detail": "Lisboa, Portugal at 38.7077507, -9.1365919"
+  }
+]
