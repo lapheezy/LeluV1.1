@@ -129,32 +129,38 @@ export default function UniverseChatWindow({
    * person chose; explicit layout commands already staged themselves.
    */
   const [autoNote, setAutoNote] = useState<{ stage: StageMode; reason: string } | null>(null);
-  const wasProcessing = useRef(conversation?.processing ?? false);
+  // Keyed on the reply itself arriving (a finished assistant message), not on
+  // a processing flag: direct-command turns never set one. Replies that were
+  // already here when the window opened are history, not new work.
+  const lastMsg = conversation?.messages[conversation.messages.length - 1];
+  const seenReply = useRef<string | null>(lastMsg?.id ?? null);
+  const lastStatus = lastMsg?.activity?.status;
   useEffect(() => {
-    const was = wasProcessing.current;
-    wasProcessing.current = conversation?.processing ?? false;
-    if (!conversation || !was || conversation.processing) return;
+    if (!conversation || !lastMsg || lastMsg.role !== "assistant" || lastMsg.id === seenReply.current) return;
+    if (lastStatus === "running" || conversation.processing) return;
+    seenReply.current = lastMsg.id;
+    if (lastMsg.provider === "lelu-environment" || lastMsg.provider === "lelu-trail") return;
     if (WorkspaceStewardStore.stageOf(conversation.id) !== "conversation") return;
     if (autoEnvironmentsOff()) return;
     const msgs = conversation.messages;
     const lastUser = [...msgs].reverse().find((m) => m.role === "user");
-    const reply = msgs[msgs.length - 1];
-    if (!lastUser || reply?.role !== "assistant" || parseWorkspaceCommand(lastUser.text)) return;
+    if (!lastUser || parseWorkspaceCommand(lastUser.text)) return;
     const studio = StudioStore.getInstance();
-    const made = (reply.activity?.artifacts ?? []).map((a) => {
+    const made = (lastMsg.activity?.artifacts ?? []).map((a) => {
       const art = studio.get(a.artifactId);
       const medium = art ? (studio.latest(art).spec as { medium?: string }).medium : undefined;
       return artifactKey({ kind: art?.kind ?? a.kind, medium });
     });
     const asked = lastUser.text.replace(/^\/(research|chart|scene|film|diagram|art|data|sketch|collection)\b/, (_m, c: string) => ({ research: "research", chart: "chart of", scene: "3d scene", film: "film", diagram: "diagram", art: "artwork", data: "data on", sketch: "sketch", collection: "fashion collection" })[c] ?? c);
-    const rec = recommendEnvironment(asked, made);
+    // Research briefs are documents, but the work was research: the request leads there.
+    const rec = /^\/research\b/.test(lastUser.text) ? recommendEnvironment(asked) : recommendEnvironment(asked, made);
     if (!rec || rec.stage === "conversation") return;
     WorkspaceStewardStore.setStage(conversation.id, rec.stage);
     if (environmentOf(rec.stage).layout === "fullscreen") WorkspaceStewardStore.setMode("fullscreen", chatWindowId(conversation.id));
     WorkspaceStewardStore.record({ by: "lelu", what: `environment → ${rec.stage}`, reasons: [`opened ${environmentOf(rec.stage).label} because ${rec.reason} (no model call)`] });
     setAutoNote(rec);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversation?.processing]);
+  }, [lastMsg?.id, lastStatus, conversation?.processing]);
 
   if (!conversation) {
     return (

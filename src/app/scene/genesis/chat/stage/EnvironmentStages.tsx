@@ -151,13 +151,34 @@ function ResearchEnv({ conversationId, model, messages, setStage }: EnvProps) {
     model.links.forEach((l) => add(l.href, l.label, `cited in scene ${l.turn + 1}`));
     for (const w of works) {
       const spec = specOf(w) as DocumentSpec;
+      // The papers themselves: a brief's tables carry their DOIs — those are the readable sources.
+      for (const b of spec.blocks ?? []) {
+        if (b.type !== "table") continue;
+        const doi = b.columns.findIndex((c) => /^doi$/i.test(String(c)));
+        const title = b.columns.findIndex((c) => /title/i.test(String(c)));
+        const link = b.columns.findIndex((c) => /^(url|link)$/i.test(String(c)));
+        for (const r of b.rows) {
+          const d = doi >= 0 ? String(r[doi] ?? "").trim() : "";
+          const u = link >= 0 ? String(r[link] ?? "").trim() : "";
+          const href = /^10\./.test(d) ? `https://doi.org/${d}` : /^https?:/.test(u) ? u : "";
+          add(href, title >= 0 ? String(r[title] ?? "") : undefined, `paper in “${w.title}”`);
+        }
+      }
       (spec.sources ?? []).forEach((s) => add(s.url, s.title, `source of “${w.title}”`));
     }
-    return [...seen.values()];
+    // An API query is provenance, not a page to read: label it, list it last.
+    return [...seen.values()]
+      .map((x) => (/^api\.|\/api\/|\/w\/api\.php|export\.arxiv\.org\/api/.test(new URL(x.url).hostname + new URL(x.url).pathname) ? { ...x, where: `${x.where} · API query`, api: true } : { ...x, api: false }))
+      .sort((a, b) => Number(a.api) - Number(b.api));
   }, [messages, model.links, works]);
 
   const openInBrowser = (url: string) => {
-    window.dispatchEvent(new CustomEvent("genesis-browser-goto", { detail: { url } }));
+    // The browser panel is a lazy chunk: deliver the address once it is mounted.
+    const deliver = (attempt: number) => {
+      if (document.querySelector("[data-lelu-browser]")) window.dispatchEvent(new CustomEvent("genesis-browser-goto", { detail: { url } }));
+      else if (attempt < 20) setTimeout(() => deliver(attempt + 1), 250);
+    };
+    setTimeout(() => deliver(0), 50);
     arrangeWorkspace({ modules: () => genesis.state.modules, openModule: genesis.openModule, setModulePresentation: genesis.setModulePresentation, raiseModule: genesis.raiseModule, activeConversationId: () => conversationId }, "split", ["browser", chatWindowId(conversationId)], "user");
   };
 

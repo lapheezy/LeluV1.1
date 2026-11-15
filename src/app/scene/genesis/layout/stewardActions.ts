@@ -43,7 +43,7 @@ export function arrangeWorkspace(host: StewardHost, rawMode: string, modules: st
     if (m.presentation === "expanded" && mode !== "fullscreen") host.setModulePresentation(id, "inline");
   }
   const focus = modules[0] ?? null;
-  WorkspaceStewardStore.setMode(mode, focus);
+  WorkspaceStewardStore.setMode(mode, focus, modules);
   const count = Object.values(host.modules()).filter(open).length + modules.filter((id) => !host.modules()[id]).length;
   const detail = `Workspace arranged as "${mode}"${focus ? ` with ${focus} in focus` : ""} — ${count} window(s). Done locally, no model call.`;
   WorkspaceStewardStore.record({ by, what: `layout → ${mode}${focus ? ` (${focus})` : ""}`, reasons: [detail] });

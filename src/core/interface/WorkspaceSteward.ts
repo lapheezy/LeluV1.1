@@ -93,6 +93,8 @@ export interface StewardInput {
   mode: StewardMode;
   /** The window a "focus"/"split" should centre on; defaults to the top one. */
   focusId?: string | null;
+  /** Windows named together ("browser beside the chat"): they lead, in this order. */
+  focusIds?: string[];
   /** Chrome the workspace must not cover (Universe header, dock rail…). */
   insets?: Partial<Viewport["insets"]>;
 }
@@ -228,13 +230,16 @@ export function planWorkspace(input: StewardInput): StewardPlan {
 
   if (!ordered.length) return { compact: isCompact(viewport), layout: "free", placements, tabs: [], reasons: ["no windows open"], before };
 
-  const focus = ordered.find((w) => w.id === input.focusId) ?? ordered[0];
+  const named = (input.focusIds ?? []).map((id) => ordered.find((w) => w.id === id)).filter((w): w is StewardWindow => Boolean(w));
+  const focus = named[0] ?? ordered.find((w) => w.id === input.focusId) ?? ordered[0];
+  // Named windows lead, then the rest by recency.
+  const lead = [focus, ...named.filter((w) => w.id !== focus.id), ...ordered.filter((w) => w.id !== focus.id && !named.some((n) => n.id === w.id))];
 
   /* ---------------- phones: one window is the screen ---------------- */
   if (isCompact(viewport)) {
     const landscapeSplit = mode === "split" && viewport.width >= 640 && ordered.length >= 2;
     if (landscapeSplit) {
-      const pair = [focus, ordered.find((w) => w.id !== focus.id)!];
+      const pair = [lead[0], lead[1]];
       const full = area(viewport, { top: input.insets?.top ?? 0, left: 0, right: 0, bottom: 0 });
       const [l, r] = [
         { ...full, width: (full.width - 6) / 2 },
@@ -267,7 +272,7 @@ export function planWorkspace(input: StewardInput): StewardPlan {
   }
 
   // Focus first, then by recency.
-  const queue = [focus, ...ordered.filter((w) => w.id !== focus.id)];
+  const queue = lead;
   const cap = Math.min(mode === "tile" ? 6 : mode === "split" ? 2 : mode === "stack" ? 8 : 4, capacity(queue, a));
   const shown = queue.slice(0, Math.max(1, cap));
   const tabs = queue.slice(shown.length).map((w) => w.id);

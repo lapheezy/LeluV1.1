@@ -102,3 +102,60 @@ export async function openSeededChat(page) {
   }
   return false;
 }
+
+/** A fresh, real conversation opened as a window; returns its id. */
+export async function newConversation(page, title) {
+  const id = await page.evaluate(async (t) => {
+    const { default: Store } = await import("/src/core/multichat/MultiChatStore.ts");
+    const c = Store.getInstance().create(t);
+    Store.getInstance().switchActive(c.id);
+    return c.id;
+  }, title);
+  await page.waitForTimeout(500);
+  for (let i = 0; i < 4; i += 1) {
+    await page.evaluate((t) => [...document.querySelectorAll(".lcu-card")].find((c) => (c.textContent || "").includes(t))?.click(), title);
+    if (await page.waitForSelector('[data-lelu-module-window^="chat:"]', { timeout: 3000 }).then(() => true).catch(() => false)) break;
+  }
+  await page.waitForTimeout(600);
+  return id;
+}
+
+/** Type into the window's composer and send, the way a person does. */
+export async function send(page, text, waitMs = 4000) {
+  const box = page.locator(".lst-composer textarea").first();
+  await box.fill(text);
+  await box.press("Enter");
+  await page.waitForTimeout(waitMs);
+}
+
+export async function stage(page) {
+  return page.locator(".lst-root").first().getAttribute("data-stage").catch(() => null);
+}
+
+export async function works(page, conversationId) {
+  return page.evaluate(async (id) => {
+    const { default: S } = await import("/src/core/studio/StudioStore.ts");
+    const s = S.getInstance();
+    return s.list().filter((a) => a.conversationId === id).map((a) => ({ id: a.id, title: a.title, kind: a.kind, medium: s.latest(a).spec.medium, revs: a.revisions.length, exports: a.exports.map((e) => `${e.format}:${e.size}:${e.ok}`) }));
+  }, conversationId);
+}
+
+export async function goStage(page, s) {
+  for (let k = 0; k < 4 && (await stage(page)) !== s; k += 1) {
+    await page.locator(`[data-lelu-stage="${s}"]`).first().click({ timeout: 4000 }).catch(() => {});
+    await page.waitForTimeout(700);
+  }
+}
+
+/** Wait until the conversation's turn has really finished (its own processing flag). */
+export async function waitTurn(page, conversationId, timeout = 150000) {
+  const t0 = Date.now();
+  await page.waitForTimeout(800);
+  while (Date.now() - t0 < timeout) {
+    // Finished = the last message is LÉLU's reply and its activity is not still running.
+    const busy = await page.evaluate(async (id) => { const { default: S } = await import("/src/core/multichat/MultiChatStore.ts"); const c = S.getInstance().get(id); const last = c?.messages[c.messages.length - 1]; return !last || last.role !== "assistant" || last.activity?.status === "running" || Boolean(c?.processing); }, conversationId);
+    if (!busy) return Date.now() - t0;
+    await page.waitForTimeout(1000);
+  }
+  return -1;
+}

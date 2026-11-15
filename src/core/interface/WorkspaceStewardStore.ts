@@ -29,6 +29,8 @@ export interface StewardDecision {
 export interface WorkspaceStewardState {
   mode: StewardMode;
   focusId: string | null;
+  /** Windows named together by the last explicit arrangement, in order. */
+  focusIds: string[];
   stages: Record<string, StageMode>;
   needs: Record<string, number>;
   log: StewardDecision[];
@@ -49,7 +51,7 @@ function load(): WorkspaceStewardState {
   const stages = Object.fromEntries(
     Object.entries(saved?.stages ?? {}).filter(([, s]) => STAGE_MODES.includes(s as StageMode)),
   ) as Record<string, StageMode>;
-  return { mode, focusId: saved?.focusId ?? null, stages, needs: {}, log: [] };
+  return { mode, focusId: saved?.focusId ?? null, focusIds: Array.isArray(saved?.focusIds) ? saved!.focusIds!.filter((x) => typeof x === "string").slice(0, 6) : [], stages, needs: {}, log: [] };
 }
 
 let state: WorkspaceStewardState | null = null;
@@ -63,7 +65,7 @@ function current(): WorkspaceStewardState {
 function commit(next: WorkspaceStewardState): void {
   state = next;
   try {
-    KvStore.getInstance().set(KEY, { mode: next.mode, focusId: next.focusId, stages: next.stages });
+    KvStore.getInstance().set(KEY, { mode: next.mode, focusId: next.focusId, focusIds: next.focusIds, stages: next.stages });
   } catch {
     /* persistence is best-effort; the live state still changed */
   }
@@ -76,12 +78,12 @@ const WorkspaceStewardStore = {
     listeners.add(listener);
     return () => listeners.delete(listener);
   },
-  setMode(mode: StewardMode, focusId?: string | null): void {
+  setMode(mode: StewardMode, focusId?: string | null, focusIds?: string[]): void {
     const s = current();
-    commit({ ...s, mode, focusId: focusId === undefined ? s.focusId : focusId });
+    commit({ ...s, mode, focusId: focusId === undefined ? s.focusId : focusId, focusIds: focusIds ?? (focusId ? [focusId] : s.focusIds) });
   },
   setFocus(focusId: string | null): void {
-    commit({ ...current(), focusId });
+    commit({ ...current(), focusId, focusIds: focusId ? [focusId] : [] });
   },
   stageOf(conversationId: string): StageMode {
     return current().stages[conversationId] ?? "conversation";
@@ -108,7 +110,7 @@ const WorkspaceStewardStore = {
   },
   /** Test hook. */
   reset(): void {
-    state = { mode: "auto", focusId: null, stages: {}, needs: {}, log: [] };
+    state = { mode: "auto", focusId: null, focusIds: [], stages: {}, needs: {}, log: [] };
     for (const l of listeners) l();
   },
 };

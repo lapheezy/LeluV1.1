@@ -874,6 +874,7 @@ export default function GenesisModuleHost({
       windows,
       mode: expanded ? "fullscreen" : steward.mode,
       focusId: expanded ?? (steward.focusId && windows.some((w) => w.id === steward.focusId) ? steward.focusId : null),
+      focusIds: expanded ? [expanded] : steward.focusIds,
       insets: isCompact(viewport)
         ? { top: 0 }
         : universeDesktop
@@ -882,7 +883,7 @@ export default function GenesisModuleHost({
           : { top: 64, left: 96, right: 16, bottom: 148 },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [floatKey, viewport.width, viewport.height, steward.mode, steward.focusId, steward.needs, universeOpen, layoutVersion]);
+  }, [floatKey, viewport.width, viewport.height, steward.mode, steward.focusId, steward.focusIds, steward.needs, universeOpen, layoutVersion]);
   lastPlacements.current = plan.placements;
 
   /* Record what the steward decided and why — visible proof, zero model calls. */
