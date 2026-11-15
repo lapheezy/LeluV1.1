@@ -21,6 +21,8 @@ out.sources = await page.locator(".lev-source").count();
 if (out.sources) { await page.locator(".lev-source .lev-btn", { hasText: "Open" }).first().click(); await page.waitForTimeout(9000); }
 out.browserUrl = await page.evaluate(() => document.querySelector('[data-lelu-browser] input[aria-label="Browser address"]')?.value ?? null);
 await shot(page, `wf1-${label}-2-source-in-browser`);
+// On a phone the browser is now the screen and the chat a tab: tap back to the chat, as a person would.
+await page.locator(".lws-tab", { hasText: "Coral reef" }).first().click().catch(() => {}); await page.waitForTimeout(1200);
 // Source → board, then save the board as a graph.
 if (out.sources) await page.locator(".lev-source .lev-btn", { hasText: "+ Board" }).first().click().catch(() => {});
 await page.locator('[data-lelu-module-window^="chat:"]').first().click({ position: { x: 30, y: 10 } }).catch(() => {});

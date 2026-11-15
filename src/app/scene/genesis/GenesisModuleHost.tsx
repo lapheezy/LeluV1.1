@@ -855,9 +855,10 @@ export default function GenesisModuleHost({
   const plan = useMemo(() => {
     const store = ModuleLayoutStore.getInstance();
     // The most recently raised maximised window, if any, owns the workspace.
-    const expanded = floating
-      .filter(([, m]) => m.presentation === "expanded")
-      .sort((a, b) => (b[1].zIndex ?? 0) - (a[1].zIndex ?? 0) || b[1].updatedAt - a[1].updatedAt)[0]?.[0];
+    // …but only while it is the top window: raising another (a tab tap) must
+    // bring that one forward, or a phone could be stuck behind a maximised app.
+    const top = [...floating].sort((a, b) => (b[1].zIndex ?? 0) - (a[1].zIndex ?? 0) || b[1].updatedAt - a[1].updatedAt)[0];
+    const expanded = top && top[1].presentation === "expanded" ? top[0] : undefined;
     const windows: StewardWindow[] = floating.map(([id, m]) => ({
       id,
       label: labelOf(id),
