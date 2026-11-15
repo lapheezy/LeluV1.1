@@ -44,6 +44,7 @@ import { registerStudioTools } from "./studio/StudioTools";
 import { registerAtelierTools } from "./atelier/AtelierTools";
 import { registerCreativeKitTools } from "./creative/kit/CreativeKitTools";
 import { registerCosmosTools } from "./cosmos/CosmosTools";
+import { registerCoutureTools } from "./couture/CoutureTools";
 import TaskExecutor from "./agentic/TaskExecutor";
 import DailyReflection from "./agentic/DailyReflection";
 import ToolRegistry from "./tools/ToolRegistry";
@@ -220,6 +221,10 @@ export default class Bootstrap {
       // Cosmos: the navigable map and the workspace API, offered through the
       // same dispatcher/gate/approval path as every other tool.
       registerCosmosTools();
+      // The creative engine: patterns, garments, products and the object
+      // lifecycle (place in cosmos, float, detach, reattach, remove without
+      // deleting). Same registry, same dispatcher, same gate.
+      registerCoutureTools();
       const interrupted = TaskExecutor.getInstance().recoverInterrupted();
       if (interrupted.length) {
         console.info(`[Bootstrap] ${interrupted.length} interrupted task(s) are paused and resumable.`);

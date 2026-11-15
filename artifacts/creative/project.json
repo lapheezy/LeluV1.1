@@ -1,0 +1,2955 @@
+{
+  "format": "lelu.creative.project",
+  "version": 1,
+  "generator": "LÉLU creative engine",
+  "offline": true,
+  "mission": "18",
+  "generatedAt": "2026-11-15T20:54:00.716Z",
+  "objects": [
+    {
+      "id": "obj-pattern-1",
+      "kind": "pattern",
+      "name": "Aurelia pattern (M) — library",
+      "revision": 2,
+      "location": "library",
+      "workspaceId": "chat-universe",
+      "roomId": null,
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "motion": {
+        "kind": "none",
+        "speed": 2,
+        "radiusMm": 380,
+        "amplitudeMm": 40,
+        "paused": false
+      },
+      "visible": true,
+      "locked": false,
+      "anchored": false,
+      "archived": false,
+      "components": [
+        {
+          "id": "c-piece-bodice-front",
+          "name": "Bodice front",
+          "kind": "pattern-piece",
+          "partIds": [
+            "p-piece-bodice-front"
+          ],
+          "materialId": "pattern-paper",
+          "status": "attached",
+          "patternPieceId": "bodice-front",
+          "dimensions": {
+            "widthMm": 240,
+            "heightMm": 415,
+            "areaMm2": 167698,
+            "cut": 1,
+            "seamAllowanceMm": 10
+          },
+          "note": "Cut 1 on the fold, 10 mm allowance. Cut 1 on folded cloth: it mirrors to the full panel. Cut a second set for a lining."
+        },
+        {
+          "id": "c-piece-bodice-back",
+          "name": "Bodice back",
+          "kind": "pattern-piece",
+          "partIds": [
+            "p-piece-bodice-back"
+          ],
+          "materialId": "pattern-paper",
+          "status": "attached",
+          "patternPieceId": "bodice-back",
+          "dimensions": {
+            "widthMm": 240,
+            "heightMm": 415,
+            "areaMm2": 173616,
+            "cut": 1,
+            "seamAllowanceMm": 10
+          },
+          "note": "Cut 1 on the fold, 10 mm allowance. Cut 1 on folded cloth: it mirrors to the full panel. Cut a second set for a lining."
+        },
+        {
+          "id": "c-piece-skirt-front",
+          "name": "Skirt front",
+          "kind": "pattern-piece",
+          "partIds": [
+            "p-piece-skirt-front"
+          ],
+          "materialId": "pattern-paper",
+          "status": "attached",
+          "patternPieceId": "skirt-front",
+          "dimensions": {
+            "widthMm": 488.3,
+            "heightMm": 1094,
+            "areaMm2": 676143,
+            "cut": 1,
+            "seamAllowanceMm": 12
+          },
+          "note": "Cut 1 on the fold, 12 mm allowance. Hem width 488 mm from centre to side (fit-and-flare)."
+        },
+        {
+          "id": "c-piece-skirt-back",
+          "name": "Skirt back",
+          "kind": "pattern-piece",
+          "partIds": [
+            "p-piece-skirt-back"
+          ],
+          "materialId": "pattern-paper",
+          "status": "attached",
+          "patternPieceId": "skirt-back",
+          "dimensions": {
+            "widthMm": 488.3,
+            "heightMm": 1094,
+            "areaMm2": 676143,
+            "cut": 1,
+            "seamAllowanceMm": 12
+          },
+          "note": "Cut 1 on the fold, 12 mm allowance. Hem width 488 mm from centre to side (fit-and-flare)."
+        },
+        {
+          "id": "c-piece-sleeve",
+          "name": "Sleeve",
+          "kind": "pattern-piece",
+          "partIds": [
+            "p-piece-sleeve"
+          ],
+          "materialId": "pattern-paper",
+          "status": "attached",
+          "patternPieceId": "sleeve",
+          "dimensions": {
+            "widthMm": 214,
+            "heightMm": 704.8,
+            "areaMm2": 110974,
+            "cut": 2,
+            "seamAllowanceMm": 10
+          },
+          "note": "Cut 2, 10 mm allowance. Cut 2 (a mirror pair)."
+        }
+      ],
+      "sockets": [],
+      "attachment": null,
+      "absorbedInto": null,
+      "source": {
+        "artifactId": "obj-pattern-1",
+        "artifactRevision": 1,
+        "tool": "couture.pattern"
+      },
+      "data": {
+        "patternId": "pat_356638",
+        "size": "M",
+        "measurements": {
+          "height": 1680,
+          "bust": 920,
+          "underbust": 780,
+          "waist": 740,
+          "hip": 980,
+          "neck": 370,
+          "shoulder": 400,
+          "armLength": 590,
+          "bicep": 300,
+          "wrist": 170,
+          "backLength": 415,
+          "frontLength": 430,
+          "acrossBack": 360,
+          "acrossFront": 340,
+          "depthRatio": 0.72,
+          "hipDepth": 195,
+          "waistToKnee": 470
+        },
+        "style": {
+          "category": "gown",
+          "neckline": "sweetheart",
+          "sleeves": "long",
+          "length": "floor",
+          "silhouette": "fit-and-flare",
+          "darts": true,
+          "waistSeam": true
+        },
+        "seams": [
+          {
+            "id": "shoulder",
+            "a": {
+              "piece": "bodice-front",
+              "edge": "shoulder"
+            },
+            "b": {
+              "piece": "bodice-back",
+              "edge": "shoulder"
+            },
+            "type": "french",
+            "allowanceMm": 10,
+            "description": "Front shoulder to back shoulder, right sides together, notches matched."
+          },
+          {
+            "id": "side",
+            "a": {
+              "piece": "bodice-front",
+              "edge": "side-seam"
+            },
+            "b": {
+              "piece": "bodice-back",
+              "edge": "side-seam"
+            },
+            "type": "french",
+            "allowanceMm": 10,
+            "description": "Front side seam to back side seam, underarm to waist."
+          },
+          {
+            "id": "skirt-side",
+            "a": {
+              "piece": "skirt-front",
+              "edge": "side-seam"
+            },
+            "b": {
+              "piece": "skirt-back",
+              "edge": "side-seam"
+            },
+            "type": "french",
+            "allowanceMm": 12,
+            "description": "Skirt front to skirt back, hip notch matched."
+          },
+          {
+            "id": "waist",
+            "a": {
+              "piece": "bodice-front",
+              "edge": "waist"
+            },
+            "b": {
+              "piece": "skirt-front",
+              "edge": "waist"
+            },
+            "type": "plain",
+            "allowanceMm": 10,
+            "description": "Front bodice waist to skirt waist, darts aligned."
+          },
+          {
+            "id": "waist-back",
+            "a": {
+              "piece": "bodice-back",
+              "edge": "waist"
+            },
+            "b": {
+              "piece": "skirt-back",
+              "edge": "waist"
+            },
+            "type": "plain",
+            "allowanceMm": 10,
+            "description": "Back bodice waist to skirt waist, darts aligned."
+          },
+          {
+            "id": "sleeve-underarm",
+            "a": {
+              "piece": "sleeve",
+              "edge": "underarm"
+            },
+            "b": {
+              "piece": "sleeve",
+              "edge": "underarm-front"
+            },
+            "type": "french",
+            "allowanceMm": 10,
+            "description": "Sleeve underarm seam: the front and back underarm edges joined."
+          },
+          {
+            "id": "sleeve-cap-front",
+            "a": {
+              "piece": "sleeve",
+              "edge": "cap-front"
+            },
+            "b": {
+              "piece": "bodice-front",
+              "edge": "armscye"
+            },
+            "type": "plain",
+            "allowanceMm": 10,
+            "description": "Front half of the cap eased into the front armscye."
+          },
+          {
+            "id": "sleeve-cap-back",
+            "a": {
+              "piece": "sleeve",
+              "edge": "cap-back"
+            },
+            "b": {
+              "piece": "bodice-back",
+              "edge": "armscye"
+            },
+            "type": "plain",
+            "allowanceMm": 10,
+            "description": "Back half of the cap eased into the back armscye."
+          }
+        ],
+        "checks": [
+          {
+            "name": "shoulder: seam lengths",
+            "ok": true,
+            "detail": "117.4 mm against 117.4 mm — ease 0 mm (allowed ±2.5 mm)"
+          },
+          {
+            "name": "side: seam lengths",
+            "ok": true,
+            "detail": "264.6 mm against 264.6 mm — ease 0 mm (allowed ±2.5 mm)"
+          },
+          {
+            "name": "skirt-side: seam lengths",
+            "ok": true,
+            "detail": "812.6 mm against 812.6 mm — ease 0 mm (allowed ±2.5 mm)"
+          },
+          {
+            "name": "waist: seam lengths",
+            "ok": true,
+            "detail": "191 mm against 191 mm — ease 0 mm (allowed ±2.5 mm)"
+          },
+          {
+            "name": "waist-back: seam lengths",
+            "ok": true,
+            "detail": "191 mm against 191 mm — ease 0 mm (allowed ±2.5 mm)"
+          },
+          {
+            "name": "sleeve-underarm: seam lengths",
+            "ok": true,
+            "detail": "566.4 mm against 566.4 mm — ease 0 mm (allowed ±2.5 mm)"
+          },
+          {
+            "name": "sleeve-cap-front: seam lengths",
+            "ok": true,
+            "detail": "161.3 mm against 155.1 mm — ease 6.2 mm (allowed 0–9% ease)"
+          },
+          {
+            "name": "sleeve-cap-back: seam lengths",
+            "ok": true,
+            "detail": "161.3 mm against 155.1 mm — ease 6.2 mm (allowed 0–9% ease)"
+          },
+          {
+            "name": "bodice-front: outline",
+            "ok": true,
+            "detail": "117 outline points, 1677 cm² per cut piece"
+          },
+          {
+            "name": "bodice-front: simple outline",
+            "ok": true,
+            "detail": "no self-intersection detected"
+          },
+          {
+            "name": "bodice-front: grainline inside",
+            "ok": true,
+            "detail": "the grainline runs through the piece"
+          },
+          {
+            "name": "bodice-front: seam allowance",
+            "ok": true,
+            "detail": "10 mm (a garment seam is 8–15 mm)"
+          },
+          {
+            "name": "bodice-front: triangulates",
+            "ok": true,
+            "detail": "115 triangles for area and the 3D mapping"
+          },
+          {
+            "name": "bodice-back: outline",
+            "ok": true,
+            "detail": "117 outline points, 1736 cm² per cut piece"
+          },
+          {
+            "name": "bodice-back: simple outline",
+            "ok": true,
+            "detail": "no self-intersection detected"
+          },
+          {
+            "name": "bodice-back: grainline inside",
+            "ok": true,
+            "detail": "the grainline runs through the piece"
+          },
+          {
+            "name": "bodice-back: seam allowance",
+            "ok": true,
+            "detail": "10 mm (a garment seam is 8–15 mm)"
+          },
+          {
+            "name": "bodice-back: triangulates",
+            "ok": true,
+            "detail": "115 triangles for area and the 3D mapping"
+          },
+          {
+            "name": "skirt-front: outline",
+            "ok": true,
+            "detail": "104 outline points, 6761 cm² per cut piece"
+          },
+          {
+            "name": "skirt-front: simple outline",
+            "ok": true,
+            "detail": "no self-intersection detected"
+          },
+          {
+            "name": "skirt-front: grainline inside",
+            "ok": true,
+            "detail": "the grainline runs through the piece"
+          },
+          {
+            "name": "skirt-front: seam allowance",
+            "ok": true,
+            "detail": "12 mm (a garment seam is 8–15 mm)"
+          },
+          {
+            "name": "skirt-front: triangulates",
+            "ok": true,
+            "detail": "102 triangles for area and the 3D mapping"
+          },
+          {
+            "name": "skirt-back: outline",
+            "ok": true,
+            "detail": "104 outline points, 6761 cm² per cut piece"
+          },
+          {
+            "name": "skirt-back: simple outline",
+            "ok": true,
+            "detail": "no self-intersection detected"
+          },
+          {
+            "name": "skirt-back: grainline inside",
+            "ok": true,
+            "detail": "the grainline runs through the piece"
+          },
+          {
+            "name": "skirt-back: seam allowance",
+            "ok": true,
+            "detail": "12 mm (a garment seam is 8–15 mm)"
+          },
+          {
+            "name": "skirt-back: triangulates",
+            "ok": true,
+            "detail": "102 triangles for area and the 3D mapping"
+          },
+          {
+            "name": "sleeve: outline",
+            "ok": true,
+            "detail": "143 outline points, 1110 cm² per cut piece"
+          },
+          {
+            "name": "sleeve: simple outline",
+            "ok": true,
+            "detail": "no self-intersection detected"
+          },
+          {
+            "name": "sleeve: grainline inside",
+            "ok": true,
+            "detail": "the grainline runs through the piece"
+          },
+          {
+            "name": "sleeve: seam allowance",
+            "ok": true,
+            "detail": "10 mm (a garment seam is 8–15 mm)"
+          },
+          {
+            "name": "sleeve: triangulates",
+            "ok": true,
+            "detail": "141 triangles for area and the 3D mapping"
+          }
+        ],
+        "fabricWidthMm": 1400,
+        "draft": {
+          "style": {
+            "category": "gown",
+            "neckline": "sweetheart",
+            "sleeves": "long",
+            "length": "floor",
+            "silhouette": "fit-and-flare",
+            "darts": true,
+            "waistSeam": true
+          },
+          "measurements": {},
+          "size": "M"
+        }
+      },
+      "provenance": {
+        "createdBy": "lelu",
+        "method": "creative engine",
+        "offline": true,
+        "derivedFrom": []
+      },
+      "checks": [
+        {
+          "name": "pattern pieces exported as geometry",
+          "ok": true,
+          "detail": "5 triangulated pieces"
+        },
+        {
+          "name": "pattern checks",
+          "ok": true,
+          "detail": "33/33"
+        }
+      ],
+      "history": [
+        {
+          "revision": 1,
+          "at": 1794776022700,
+          "action": "create",
+          "detail": "pattern with 5 part(s), 575 triangles"
+        },
+        {
+          "revision": 2,
+          "at": 1794776039055,
+          "action": "save-to-library",
+          "detail": "reusable asset; geometry and component hierarchy kept"
+        }
+      ],
+      "parts": [
+        {
+          "id": "p-piece-bodice-front",
+          "label": "Bodice front (net)",
+          "componentId": "c-piece-bodice-front",
+          "materialId": "pattern-paper",
+          "color": "#f0e6d2",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 115,
+          "vertices": 117
+        },
+        {
+          "id": "p-piece-bodice-back",
+          "label": "Bodice back (net)",
+          "componentId": "c-piece-bodice-back",
+          "materialId": "pattern-paper",
+          "color": "#f0e6d2",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 115,
+          "vertices": 117
+        },
+        {
+          "id": "p-piece-skirt-front",
+          "label": "Skirt front (net)",
+          "componentId": "c-piece-skirt-front",
+          "materialId": "pattern-paper",
+          "color": "#f0e6d2",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 102,
+          "vertices": 104
+        },
+        {
+          "id": "p-piece-skirt-back",
+          "label": "Skirt back (net)",
+          "componentId": "c-piece-skirt-back",
+          "materialId": "pattern-paper",
+          "color": "#f0e6d2",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 102,
+          "vertices": 104
+        },
+        {
+          "id": "p-piece-sleeve",
+          "label": "Sleeve (net)",
+          "componentId": "c-piece-sleeve",
+          "materialId": "pattern-paper",
+          "color": "#e9dcc4",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 141,
+          "vertices": 143
+        }
+      ]
+    },
+    {
+      "id": "obj-garment-2",
+      "kind": "garment",
+      "name": "Aurelia gown",
+      "revision": 13,
+      "location": "cosmos",
+      "workspaceId": "couture-studio",
+      "roomId": "cosmos-core",
+      "transform": {
+        "position": [
+          -300,
+          0,
+          40
+        ],
+        "rotation": [
+          0,
+          18,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "motion": {
+        "kind": "spin",
+        "speed": 4,
+        "radiusMm": 380,
+        "amplitudeMm": 40,
+        "paused": true
+      },
+      "visible": true,
+      "locked": false,
+      "anchored": false,
+      "archived": false,
+      "components": [
+        {
+          "id": "c-l-01",
+          "name": "Bodice & skirt shell (Silk velvet)",
+          "kind": "shell",
+          "partIds": [
+            "p-l-01"
+          ],
+          "materialId": "silk-mikado",
+          "status": "attached",
+          "dimensions": {
+            "areaMm2": 1858694,
+            "massG": 520.4,
+            "offsetMm": 0,
+            "simulated": 1
+          },
+          "note": "Simulated 70 steps × 10 iterations (0.146s of motion), settled to 0.355 mm; hem fold amplitude now 168% of the cut amplitude.",
+          "socket": {
+            "id": "socket-shell",
+            "accepts": [
+              "sleeve",
+              "collar",
+              "panel",
+              "boning",
+              "overskirt",
+              "lining"
+            ],
+            "positionMm": [
+              0,
+              0,
+              405
+            ],
+            "rotationDeg": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "c-s-01",
+          "name": "Rib cage",
+          "kind": "boning",
+          "partIds": [
+            "p-s-01"
+          ],
+          "materialId": "metallic-lame",
+          "status": "attached",
+          "dimensions": {
+            "vertical": 1,
+            "count": 11,
+            "outwardMm": 5,
+            "zStartMm": 220,
+            "zEndMm": -140,
+            "tubeMm": 3.4,
+            "spanDeg": 236,
+            "triangles": 8448
+          },
+          "note": "Curved structural ribs held off the body — the corsetry/armature layer."
+        },
+        {
+          "id": "c-s-02",
+          "name": "Standing collar",
+          "kind": "collar",
+          "partIds": [
+            "p-s-02"
+          ],
+          "materialId": "silk-mikado",
+          "status": "attached",
+          "dimensions": {
+            "heightMm": 66,
+            "flareMm": 18,
+            "gapDeg": 30,
+            "triangles": 1440
+          },
+          "note": "A flared band around the neck: the couture collar that frames the face."
+        },
+        {
+          "id": "c-s-03",
+          "name": "Modular panels",
+          "kind": "panel",
+          "partIds": [
+            "p-s-03"
+          ],
+          "materialId": "velvet-silk",
+          "status": "attached",
+          "dimensions": {
+            "count": 8,
+            "flareMm": 150,
+            "gapDeg": 12,
+            "zStartMm": -320,
+            "zEndMm": -820,
+            "crownMm": 30,
+            "triangles": 1536
+          },
+          "note": "Discrete curved panels with gaps — a modular silhouette."
+        },
+        {
+          "id": "c-sleeve-left",
+          "name": "Left sleeve",
+          "kind": "sleeve",
+          "partIds": [
+            "p-sleeve-left"
+          ],
+          "materialId": "velvet-silk",
+          "status": "attached",
+          "patternPieceId": "sleeve",
+          "dimensions": {
+            "capHeightMm": 139.7,
+            "bicepHalfMm": 107,
+            "wristHalfMm": 107,
+            "lengthMm": 565,
+            "triangles": 1856
+          },
+          "note": "Drafted from the sleeve piece: cap 139.7 mm solved to the armscye, 565 mm long."
+        },
+        {
+          "id": "c-sleeve-right",
+          "name": "Right sleeve",
+          "kind": "sleeve",
+          "partIds": [
+            "p-sleeve-right"
+          ],
+          "materialId": "velvet-silk",
+          "status": "attached",
+          "patternPieceId": "sleeve",
+          "dimensions": {
+            "capHeightMm": 139.7,
+            "bicepHalfMm": 107,
+            "wristHalfMm": 107,
+            "lengthMm": 565,
+            "triangles": 1856
+          },
+          "note": "Drafted from the sleeve piece: cap 139.7 mm solved to the armscye, 565 mm long."
+        }
+      ],
+      "sockets": [
+        {
+          "id": "socket-sleeve-left",
+          "accepts": [
+            "sleeve"
+          ],
+          "positionMm": [
+            -354.7159204474515,
+            0,
+            385
+          ],
+          "rotationDeg": [
+            0,
+            0,
+            -8
+          ]
+        },
+        {
+          "id": "socket-sleeve-right",
+          "accepts": [
+            "sleeve"
+          ],
+          "positionMm": [
+            354.7159204474515,
+            0,
+            385
+          ],
+          "rotationDeg": [
+            0,
+            0,
+            8
+          ]
+        }
+      ],
+      "attachment": null,
+      "absorbedInto": null,
+      "source": {
+        "artifactId": "obj-garment-2",
+        "artifactRevision": 1,
+        "tool": "couture.garment"
+      },
+      "data": {
+        "garmentId": "gar_272040",
+        "patternId": "pat_356638",
+        "style": {
+          "category": "gown",
+          "neckline": "sweetheart",
+          "sleeves": "long",
+          "length": "floor",
+          "silhouette": "fit-and-flare",
+          "darts": true,
+          "waistSeam": true
+        },
+        "measurements": {
+          "height": 1680,
+          "bust": 920,
+          "underbust": 780,
+          "waist": 740,
+          "hip": 980,
+          "neck": 370,
+          "shoulder": 400,
+          "armLength": 590,
+          "bicep": 300,
+          "wrist": 170,
+          "backLength": 415,
+          "frontLength": 430,
+          "acrossBack": 360,
+          "acrossFront": 340,
+          "depthRatio": 0.72,
+          "hipDepth": 195,
+          "waistToKnee": 470
+        },
+        "material": "Silk velvet",
+        "triangles": 19264,
+        "massG": 520.4,
+        "simulationMs": 1877,
+        "fabric": {
+          "netAreaM2": 1.916,
+          "grossAreaM2": 2.145,
+          "metres": 1.87,
+          "widthMm": 1400,
+          "byPiece": [
+            {
+              "piece": "bodice-front",
+              "netAreaM2": 0.168,
+              "cut": 1
+            },
+            {
+              "piece": "bodice-back",
+              "netAreaM2": 0.174,
+              "cut": 1
+            },
+            {
+              "piece": "skirt-front",
+              "netAreaM2": 0.676,
+              "cut": 1
+            },
+            {
+              "piece": "skirt-back",
+              "netAreaM2": 0.676,
+              "cut": 1
+            },
+            {
+              "piece": "sleeve",
+              "netAreaM2": 0.222,
+              "cut": 2
+            }
+          ],
+          "note": "Estimated from net piece area with 12% for seam allowances and 82% packing efficiency. This is not a marker/lay plan: a cutter should lay the pieces on the cloth."
+        },
+        "checks": [
+          {
+            "name": "pattern checks",
+            "ok": true,
+            "detail": "33/33 pattern checks passed"
+          },
+          {
+            "name": "avatar built",
+            "ok": true,
+            "detail": "12 measured levels from neck to hem"
+          },
+          {
+            "name": "cloth layers",
+            "ok": true,
+            "detail": "L-01 Silk velvet (shell)"
+          },
+          {
+            "name": "L-01 simulation converged",
+            "ok": true,
+            "detail": "residual 0.355 mm, 3617 contacts, 1877 ms"
+          },
+          {
+            "name": "L-01 mean strain within material limit",
+            "ok": true,
+            "detail": "0.12% mean strain, 2.38% at the worst single edge (Silk velvet allows 6%)"
+          },
+          {
+            "name": "S-01 rib-cage",
+            "ok": true,
+            "detail": "8448 triangles, rigid, metallic-lame"
+          },
+          {
+            "name": "S-02 standing-collar",
+            "ok": true,
+            "detail": "1440 triangles, rigid, silk-mikado"
+          },
+          {
+            "name": "S-03 modular-panels",
+            "ok": true,
+            "detail": "1536 triangles, rigid, velvet-silk"
+          }
+        ],
+        "notes": [
+          "The shell is simulated; sculptural parts are generated rigid geometry.",
+          "Collision is against the mannequin and the floor. Self-collision between layers is not solved in this build.",
+          "Pleat retention is the hem's radial fold amplitude after the solve divided by its amplitude as cut.",
+          "No external generation API is involved: geometry, simulation and checks are computed locally."
+        ]
+      },
+      "provenance": {
+        "createdBy": "lelu",
+        "method": "creative engine",
+        "offline": true,
+        "derivedFrom": []
+      },
+      "checks": [
+        {
+          "name": "sleeves drafted from the pattern",
+          "ok": true,
+          "detail": "565 mm sleeve, cap 139.7 mm, wrist 214 mm"
+        },
+        {
+          "name": "every component has geometry",
+          "ok": true,
+          "detail": "6 components, 6 parts"
+        },
+        {
+          "name": "every part belongs to a component",
+          "ok": true,
+          "detail": "0 orphans"
+        }
+      ],
+      "history": [
+        {
+          "revision": 1,
+          "at": 1794776024711,
+          "action": "create",
+          "detail": "garment with 6 part(s), 22976 triangles"
+        },
+        {
+          "revision": 2,
+          "at": 1794776025583,
+          "action": "material",
+          "detail": "silk-mikado on 1 part(s); geometry untouched"
+        },
+        {
+          "revision": 3,
+          "at": 1794776026450,
+          "action": "place-in-cosmos",
+          "detail": "in cosmos-core at 0, 0, 0 mm"
+        },
+        {
+          "revision": 4,
+          "at": 1794776026466,
+          "action": "motion",
+          "detail": "spin at 4/min"
+        },
+        {
+          "revision": 5,
+          "at": 1794776028119,
+          "action": "transform",
+          "detail": "pos 380,0,40 rot 0,0,0"
+        },
+        {
+          "revision": 6,
+          "at": 1794776028135,
+          "action": "transform",
+          "detail": "pos 380,0,40 rot 0,18,0"
+        },
+        {
+          "revision": 7,
+          "at": 1794776028169,
+          "action": "detach-component",
+          "detail": "Right sleeve → obj-garment-component-3"
+        },
+        {
+          "revision": 8,
+          "at": 1794776031024,
+          "action": "attach-component",
+          "detail": "Right sleeve ← obj-garment-component-3"
+        },
+        {
+          "revision": 9,
+          "at": 1794776031907,
+          "action": "remove-from-cosmos",
+          "detail": "returned to its workspace; record, geometry and history kept"
+        },
+        {
+          "revision": 10,
+          "at": 1794776032639,
+          "action": "place-in-cosmos",
+          "detail": "in cosmos-core at 380, 0, 40 mm"
+        },
+        {
+          "revision": 11,
+          "at": 1794776036369,
+          "action": "transform",
+          "detail": "pos 80,0,40 rot 0,18,0"
+        },
+        {
+          "revision": 12,
+          "at": 1794776039022,
+          "action": "move-to-workspace",
+          "detail": "couture-studio"
+        },
+        {
+          "revision": 13,
+          "at": 1794776039088,
+          "action": "place-in-cosmos",
+          "detail": "in cosmos-core at -300, 0, 40 mm"
+        }
+      ],
+      "parts": [
+        {
+          "id": "p-l-01",
+          "label": "shell · Silk velvet",
+          "componentId": "c-l-01",
+          "materialId": "silk-mikado",
+          "color": "#3a1030",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 7840,
+          "vertices": 4032
+        },
+        {
+          "id": "p-s-01",
+          "label": "rib-cage · Metallic lamé",
+          "componentId": "c-s-01",
+          "materialId": "metallic-lame",
+          "color": "#c9a45c",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 8448,
+          "vertices": 4312
+        },
+        {
+          "id": "p-s-02",
+          "label": "standing-collar · Silk mikado",
+          "componentId": "c-s-02",
+          "materialId": "silk-mikado",
+          "color": "#efe9e2",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 1440,
+          "vertices": 819
+        },
+        {
+          "id": "p-s-03",
+          "label": "modular-panels · Silk velvet",
+          "componentId": "c-s-03",
+          "materialId": "velvet-silk",
+          "color": "#3a1030",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 1536,
+          "vertices": 952
+        },
+        {
+          "id": "p-sleeve-left",
+          "label": "left sleeve · Silk velvet",
+          "componentId": "c-sleeve-left",
+          "materialId": "velvet-silk",
+          "color": "#3a1030",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 1856,
+          "vertices": 992
+        },
+        {
+          "id": "p-sleeve-right",
+          "label": "right sleeve · Silk velvet",
+          "componentId": "c-sleeve-right",
+          "materialId": "velvet-silk",
+          "color": "#3a1030",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 1856,
+          "vertices": 992
+        }
+      ]
+    },
+    {
+      "id": "obj-garment-component-3",
+      "kind": "garment-component",
+      "name": "Aurelia gown — Right sleeve",
+      "revision": 8,
+      "location": "workspace",
+      "workspaceId": "chat-universe",
+      "roomId": null,
+      "transform": {
+        "position": [
+          720,
+          60,
+          60
+        ],
+        "rotation": [
+          0,
+          24,
+          18
+        ],
+        "scale": [
+          1.22,
+          1.22,
+          1.22
+        ]
+      },
+      "motion": {
+        "kind": "spin",
+        "speed": 5,
+        "radiusMm": 0,
+        "amplitudeMm": 40,
+        "paused": true
+      },
+      "visible": true,
+      "locked": false,
+      "anchored": false,
+      "archived": false,
+      "components": [
+        {
+          "id": "c-sleeve-right-copy",
+          "name": "Right sleeve",
+          "kind": "sleeve",
+          "partIds": [
+            "p-sleeve-right"
+          ],
+          "materialId": "metallic-lame",
+          "status": "attached",
+          "dimensions": {
+            "capHeightMm": 139.7,
+            "bicepHalfMm": 107,
+            "wristHalfMm": 107,
+            "lengthMm": 565,
+            "triangles": 1856
+          },
+          "note": "extracted from obj-garment-2 at revision 6"
+        }
+      ],
+      "sockets": [],
+      "attachment": {
+        "parentObjectId": "obj-garment-2",
+        "parentComponentId": "c-sleeve-right",
+        "relative": {
+          "position": [
+            720,
+            60,
+            60
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "absorbedInto": "obj-garment-2",
+      "source": {
+        "artifactId": "obj-garment-component-3",
+        "artifactRevision": 1,
+        "tool": "couture"
+      },
+      "data": {},
+      "provenance": {
+        "createdBy": "lelu",
+        "method": "component extraction",
+        "offline": true,
+        "derivedFrom": [
+          "obj-garment-2"
+        ]
+      },
+      "checks": [],
+      "history": [
+        {
+          "revision": 1,
+          "at": 1794776028159,
+          "action": "create",
+          "detail": "garment-component with 1 part(s), 1856 triangles"
+        },
+        {
+          "revision": 2,
+          "at": 1794776028186,
+          "action": "transform",
+          "detail": "pos 720,60,60 rot 0,24,-8"
+        },
+        {
+          "revision": 3,
+          "at": 1794776028203,
+          "action": "motion",
+          "detail": "spin at 5/min"
+        },
+        {
+          "revision": 4,
+          "at": 1794776028987,
+          "action": "material",
+          "detail": "metallic-lame on 1 part(s); geometry untouched"
+        },
+        {
+          "revision": 5,
+          "at": 1794776029002,
+          "action": "transform",
+          "detail": "pos 720,60,60 rot 0,24,-8"
+        },
+        {
+          "revision": 6,
+          "at": 1794776029019,
+          "action": "transform",
+          "detail": "pos 720,60,60 rot 0,24,18"
+        },
+        {
+          "revision": 7,
+          "at": 1794776030096,
+          "action": "reused",
+          "detail": "geometry reused in Aurelia mikado second look (obj-garment-4)"
+        },
+        {
+          "revision": 8,
+          "at": 1794776031009,
+          "action": "absorbed",
+          "detail": "reunited with Aurelia gown (obj-garment-2)"
+        }
+      ],
+      "parts": [
+        {
+          "id": "p-sleeve-right",
+          "label": "right sleeve · Silk velvet",
+          "componentId": "c-sleeve-right-copy",
+          "materialId": "metallic-lame",
+          "color": "#3a1030",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 1856,
+          "vertices": 992
+        }
+      ]
+    },
+    {
+      "id": "obj-garment-4",
+      "kind": "garment",
+      "name": "Aurelia mikado second look",
+      "revision": 4,
+      "location": "workspace",
+      "workspaceId": "couture-studio",
+      "roomId": "cosmos-core",
+      "transform": {
+        "position": [
+          -520,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "motion": {
+        "kind": "none",
+        "speed": 2,
+        "radiusMm": 380,
+        "amplitudeMm": 40,
+        "paused": false
+      },
+      "visible": true,
+      "locked": false,
+      "anchored": false,
+      "archived": false,
+      "components": [
+        {
+          "id": "c-l-01",
+          "name": "Bodice & skirt shell (Silk mikado)",
+          "kind": "shell",
+          "partIds": [
+            "p-l-01"
+          ],
+          "materialId": "silk-mikado",
+          "status": "attached",
+          "dimensions": {
+            "areaMm2": 1684154,
+            "massG": 370.5,
+            "offsetMm": 0,
+            "simulated": 1
+          },
+          "note": "Simulated 30 steps × 6 iterations (0.063s of motion), settled to 0.187 mm; hem fold amplitude now 119% of the cut amplitude.",
+          "socket": {
+            "id": "socket-shell",
+            "accepts": [
+              "sleeve",
+              "collar",
+              "panel",
+              "boning",
+              "overskirt",
+              "lining"
+            ],
+            "positionMm": [
+              0,
+              0,
+              405
+            ],
+            "rotationDeg": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "c-sleeve-left",
+          "name": "Left sleeve",
+          "kind": "sleeve",
+          "partIds": [
+            "p-sleeve-left"
+          ],
+          "materialId": "silk-mikado",
+          "status": "attached",
+          "patternPieceId": "sleeve",
+          "dimensions": {
+            "capHeightMm": 139.7,
+            "bicepHalfMm": 107,
+            "wristHalfMm": 107,
+            "lengthMm": 565,
+            "triangles": 1856
+          },
+          "note": "Drafted from the sleeve piece: cap 139.7 mm solved to the armscye, 565 mm long."
+        },
+        {
+          "id": "c-sleeve-right",
+          "name": "Right sleeve",
+          "kind": "sleeve",
+          "partIds": [
+            "p-sleeve-right"
+          ],
+          "materialId": "silk-mikado",
+          "status": "attached",
+          "patternPieceId": "sleeve",
+          "dimensions": {
+            "capHeightMm": 139.7,
+            "bicepHalfMm": 107,
+            "wristHalfMm": 107,
+            "lengthMm": 565,
+            "triangles": 1856
+          },
+          "note": "Drafted from the sleeve piece: cap 139.7 mm solved to the armscye, 565 mm long."
+        },
+        {
+          "id": "c-reused-5",
+          "name": "Aurelia gown — Right sleeve (reused)",
+          "kind": "sleeve",
+          "partIds": [
+            "c-reused-5-p1"
+          ],
+          "materialId": "metallic-lame",
+          "status": "attached",
+          "dimensions": {
+            "capHeightMm": 139.7,
+            "bicepHalfMm": 107,
+            "wristHalfMm": 107,
+            "lengthMm": 565,
+            "triangles": 1856
+          },
+          "note": "reused from obj-garment-component-3 into obj-garment-4 at socket socket-sleeve-left"
+        }
+      ],
+      "sockets": [
+        {
+          "id": "socket-sleeve-left",
+          "accepts": [
+            "sleeve"
+          ],
+          "positionMm": [
+            -343.6344482800553,
+            0,
+            385
+          ],
+          "rotationDeg": [
+            0,
+            0,
+            -8
+          ]
+        },
+        {
+          "id": "socket-sleeve-right",
+          "accepts": [
+            "sleeve"
+          ],
+          "positionMm": [
+            343.6344482800553,
+            0,
+            385
+          ],
+          "rotationDeg": [
+            0,
+            0,
+            8
+          ]
+        }
+      ],
+      "attachment": null,
+      "absorbedInto": null,
+      "source": {
+        "artifactId": "obj-garment-4",
+        "artifactRevision": 1,
+        "tool": "couture.garment"
+      },
+      "data": {
+        "garmentId": "gar_106280",
+        "patternId": "pat_356638",
+        "style": {
+          "category": "gown",
+          "neckline": "sweetheart",
+          "sleeves": "long",
+          "length": "floor",
+          "silhouette": "fit-and-flare",
+          "darts": true,
+          "waistSeam": true
+        },
+        "measurements": {
+          "height": 1680,
+          "bust": 920,
+          "underbust": 780,
+          "waist": 740,
+          "hip": 980,
+          "neck": 370,
+          "shoulder": 400,
+          "armLength": 590,
+          "bicep": 300,
+          "wrist": 170,
+          "backLength": 415,
+          "frontLength": 430,
+          "acrossBack": 360,
+          "acrossFront": 340,
+          "depthRatio": 0.72,
+          "hipDepth": 195,
+          "waistToKnee": 470
+        },
+        "material": "Silk mikado",
+        "triangles": 2688,
+        "massG": 370.5,
+        "simulationMs": 229,
+        "fabric": {
+          "netAreaM2": 1.916,
+          "grossAreaM2": 2.145,
+          "metres": 1.87,
+          "widthMm": 1400,
+          "byPiece": [
+            {
+              "piece": "bodice-front",
+              "netAreaM2": 0.168,
+              "cut": 1
+            },
+            {
+              "piece": "bodice-back",
+              "netAreaM2": 0.174,
+              "cut": 1
+            },
+            {
+              "piece": "skirt-front",
+              "netAreaM2": 0.676,
+              "cut": 1
+            },
+            {
+              "piece": "skirt-back",
+              "netAreaM2": 0.676,
+              "cut": 1
+            },
+            {
+              "piece": "sleeve",
+              "netAreaM2": 0.222,
+              "cut": 2
+            }
+          ],
+          "note": "Estimated from net piece area with 12% for seam allowances and 82% packing efficiency. This is not a marker/lay plan: a cutter should lay the pieces on the cloth."
+        },
+        "checks": [
+          {
+            "name": "pattern checks",
+            "ok": true,
+            "detail": "33/33 pattern checks passed"
+          },
+          {
+            "name": "avatar built",
+            "ok": true,
+            "detail": "12 measured levels from neck to hem"
+          },
+          {
+            "name": "cloth layers",
+            "ok": true,
+            "detail": "L-01 Silk mikado (shell)"
+          },
+          {
+            "name": "L-01 simulation converged",
+            "ok": true,
+            "detail": "residual 0.187 mm, 1755 contacts, 229 ms"
+          },
+          {
+            "name": "L-01 mean strain within material limit",
+            "ok": true,
+            "detail": "0.04% mean strain, 0.83% at the worst single edge (Silk mikado allows 4%)"
+          }
+        ],
+        "notes": [
+          "The shell is simulated; sculptural parts are generated rigid geometry.",
+          "Collision is against the mannequin and the floor. Self-collision between layers is not solved in this build.",
+          "Pleat retention is the hem's radial fold amplitude after the solve divided by its amplitude as cut.",
+          "No external generation API is involved: geometry, simulation and checks are computed locally."
+        ]
+      },
+      "provenance": {
+        "createdBy": "lelu",
+        "method": "creative engine",
+        "offline": true,
+        "derivedFrom": []
+      },
+      "checks": [],
+      "history": [
+        {
+          "revision": 1,
+          "at": 1794776030052,
+          "action": "create",
+          "detail": "garment with 3 part(s), 6400 triangles"
+        },
+        {
+          "revision": 2,
+          "at": 1794776030074,
+          "action": "place-in-cosmos",
+          "detail": "in cosmos-core at -520, 0, 0 mm"
+        },
+        {
+          "revision": 3,
+          "at": 1794776030106,
+          "action": "reuse-component",
+          "detail": "Aurelia gown — Right sleeve seated at socket-sleeve-left"
+        },
+        {
+          "revision": 4,
+          "at": 1794776030988,
+          "action": "move-to-workspace",
+          "detail": "couture-studio"
+        }
+      ],
+      "parts": [
+        {
+          "id": "p-l-01",
+          "label": "shell · Silk mikado",
+          "componentId": "c-l-01",
+          "materialId": "silk-mikado",
+          "color": "#efe9e2",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 2688,
+          "vertices": 1408
+        },
+        {
+          "id": "p-sleeve-left",
+          "label": "left sleeve · Silk mikado",
+          "componentId": "c-sleeve-left",
+          "materialId": "silk-mikado",
+          "color": "#efe9e2",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 1856,
+          "vertices": 992
+        },
+        {
+          "id": "p-sleeve-right",
+          "label": "right sleeve · Silk mikado",
+          "componentId": "c-sleeve-right",
+          "materialId": "silk-mikado",
+          "color": "#efe9e2",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 1856,
+          "vertices": 992
+        },
+        {
+          "id": "c-reused-5-p1",
+          "label": "right sleeve · Silk velvet",
+          "componentId": "c-reused-5",
+          "materialId": "metallic-lame",
+          "color": "#3a1030",
+          "opacity": 1,
+          "thin": true,
+          "triangles": 1856,
+          "vertices": 992
+        }
+      ]
+    },
+    {
+      "id": "obj-jewelry-5",
+      "kind": "jewelry",
+      "name": "Copper pendant",
+      "revision": 5,
+      "location": "cosmos",
+      "workspaceId": "chat-universe",
+      "roomId": "cosmos-core",
+      "transform": {
+        "position": [
+          -260,
+          120,
+          260
+        ],
+        "rotation": [
+          -90,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "motion": {
+        "kind": "spin",
+        "speed": 6,
+        "radiusMm": 380,
+        "amplitudeMm": 40,
+        "paused": false
+      },
+      "visible": true,
+      "locked": false,
+      "anchored": false,
+      "archived": false,
+      "components": [
+        {
+          "id": "c-body",
+          "name": "Pendant body",
+          "kind": "body",
+          "partIds": [
+            "p-body"
+          ],
+          "materialId": "copper",
+          "status": "attached",
+          "dimensions": {
+            "diameterMm": 26,
+            "thicknessMm": 2.4
+          },
+          "note": "Copper (C110); hammered face."
+        },
+        {
+          "id": "c-setting",
+          "name": "Bezel setting",
+          "kind": "setting",
+          "partIds": [
+            "p-bezel"
+          ],
+          "materialId": "copper",
+          "status": "attached",
+          "dimensions": {
+            "stoneDiameterMm": 11,
+            "wallMm": 1.4,
+            "seatMm": 2.42
+          },
+          "note": "Bezel wall rolled over the girdle.",
+          "socket": {
+            "id": "socket-stone",
+            "accepts": [
+              "stone"
+            ],
+            "positionMm": [
+              0,
+              0,
+              1.3499999999999999
+            ],
+            "rotationDeg": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "c-stone",
+          "name": "Stone",
+          "kind": "stone",
+          "partIds": [
+            "p-stone"
+          ],
+          "materialId": "diamond",
+          "status": "attached",
+          "dimensions": {
+            "diameterMm": 11,
+            "crownMm": 1.76,
+            "pavilionMm": 4.62
+          },
+          "note": "Diamond (brilliant), brilliant cut, refractive index 2.417."
+        },
+        {
+          "id": "c-bail",
+          "name": "Bail",
+          "kind": "bail",
+          "partIds": [
+            "p-bail"
+          ],
+          "materialId": "copper",
+          "status": "attached",
+          "dimensions": {
+            "radiusMm": 5
+          },
+          "note": "Soldered bail, 1.15 mm wire."
+        }
+      ],
+      "sockets": [
+        {
+          "id": "socket-bail",
+          "accepts": [
+            "chain"
+          ],
+          "positionMm": [
+            0,
+            -17,
+            0
+          ],
+          "rotationDeg": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "socket-setting",
+          "accepts": [
+            "setting"
+          ],
+          "positionMm": [
+            0,
+            0,
+            1.2
+          ],
+          "rotationDeg": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "attachment": null,
+      "absorbedInto": null,
+      "source": {
+        "artifactId": "obj-jewelry-5",
+        "artifactRevision": 1,
+        "tool": "couture.product"
+      },
+      "data": {
+        "metal": "Copper (C110)",
+        "metalDensity": 8.96,
+        "estimatedMetalVolumeMm3": 1612,
+        "estimatedWeightG": 14.44,
+        "stone": "Diamond (brilliant)",
+        "notes": [
+          "Volume is the closed mesh volume of body, bezel and bail.",
+          "The stone volume is excluded from the metal weight."
+        ],
+        "template": "pendant",
+        "variables": [
+          {
+            "name": "discDiameter",
+            "label": "Disc diameter",
+            "unit": "mm",
+            "value": 26,
+            "min": 18,
+            "max": 60,
+            "derived": false,
+            "source": "override"
+          },
+          {
+            "name": "thickness",
+            "label": "Metal thickness",
+            "unit": "mm",
+            "value": 2.4,
+            "min": 1.2,
+            "max": 5,
+            "derived": false,
+            "source": "override"
+          },
+          {
+            "name": "stoneDiameter",
+            "label": "Stone diameter",
+            "unit": "mm",
+            "value": 11,
+            "min": 3,
+            "max": 20,
+            "derived": false,
+            "source": "override"
+          },
+          {
+            "name": "bezelWall",
+            "label": "Bezel wall",
+            "unit": "mm",
+            "value": 1.4,
+            "min": 0.6,
+            "max": 3,
+            "derived": false,
+            "source": "override"
+          },
+          {
+            "name": "stoneSeat",
+            "label": "Stone seat depth (derived)",
+            "unit": "mm",
+            "value": 2.42,
+            "min": 0,
+            "max": 12,
+            "derived": true,
+            "source": "= min(3, max(1.2, stoneDiameter * 0.22))"
+          },
+          {
+            "name": "bailRadius",
+            "label": "Bail radius",
+            "unit": "mm",
+            "value": 5,
+            "min": 3,
+            "max": 9,
+            "derived": false,
+            "source": "override"
+          }
+        ]
+      },
+      "provenance": {
+        "createdBy": "lelu",
+        "method": "creative engine",
+        "offline": true,
+        "derivedFrom": []
+      },
+      "checks": [
+        {
+          "name": "stone fits the disc",
+          "ok": true,
+          "detail": "13.8 mm bezel inside a 26 mm disc"
+        },
+        {
+          "name": "bezel wall is thick enough to roll",
+          "ok": true,
+          "detail": "1.4 mm wall"
+        },
+        {
+          "name": "bail is clear of the setting",
+          "ok": true,
+          "detail": "bail centre 17.0 mm from the disc centre, stone radius 5.5 mm"
+        }
+      ],
+      "history": [
+        {
+          "revision": 1,
+          "at": 1794776033438,
+          "action": "create",
+          "detail": "jewelry with 4 part(s), 2496 triangles"
+        },
+        {
+          "revision": 2,
+          "at": 1794776033470,
+          "action": "place-in-cosmos",
+          "detail": "in cosmos-core at -260, 120, 260 mm"
+        },
+        {
+          "revision": 3,
+          "at": 1794776033501,
+          "action": "motion",
+          "detail": "spin at 6/min"
+        },
+        {
+          "revision": 4,
+          "at": 1794776034762,
+          "action": "detach-component",
+          "detail": "Stone → obj-jewelry-component-6"
+        },
+        {
+          "revision": 5,
+          "at": 1794776035440,
+          "action": "attach-component",
+          "detail": "Stone ← obj-jewelry-component-6"
+        }
+      ],
+      "parts": [
+        {
+          "id": "p-body",
+          "label": "Disc ⌀26 mm",
+          "componentId": "c-body",
+          "materialId": "copper",
+          "color": "#b4633a",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 768,
+          "vertices": 386
+        },
+        {
+          "id": "p-bezel",
+          "label": "Bezel ⌀13.8 mm",
+          "componentId": "c-setting",
+          "materialId": "copper",
+          "color": "#b4633a",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 640,
+          "vertices": 384
+        },
+        {
+          "id": "p-stone",
+          "label": "Diamond (brilliant) ⌀11 mm",
+          "componentId": "c-stone",
+          "materialId": "diamond",
+          "color": "#eef4ff",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 128,
+          "vertices": 66
+        },
+        {
+          "id": "p-bail",
+          "label": "Bail",
+          "componentId": "c-bail",
+          "materialId": "copper",
+          "color": "#b4633a",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 960,
+          "vertices": 480
+        }
+      ]
+    },
+    {
+      "id": "obj-jewelry-component-6",
+      "kind": "jewelry-component",
+      "name": "Copper pendant — Stone",
+      "revision": 4,
+      "location": "workspace",
+      "workspaceId": "chat-universe",
+      "roomId": null,
+      "transform": {
+        "position": [
+          -215,
+          120,
+          300
+        ],
+        "rotation": [
+          -70,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "motion": {
+        "kind": "spin",
+        "speed": 9,
+        "radiusMm": 0,
+        "amplitudeMm": 40,
+        "paused": true
+      },
+      "visible": true,
+      "locked": false,
+      "anchored": false,
+      "archived": false,
+      "components": [
+        {
+          "id": "c-stone-copy",
+          "name": "Stone",
+          "kind": "stone",
+          "partIds": [
+            "p-stone"
+          ],
+          "materialId": "diamond",
+          "status": "attached",
+          "dimensions": {
+            "diameterMm": 11,
+            "crownMm": 1.76,
+            "pavilionMm": 4.62
+          },
+          "note": "extracted from obj-jewelry-5 at revision 3"
+        }
+      ],
+      "sockets": [],
+      "attachment": {
+        "parentObjectId": "obj-jewelry-5",
+        "parentComponentId": "c-stone",
+        "relative": {
+          "position": [
+            -215,
+            120,
+            300
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "absorbedInto": "obj-jewelry-5",
+      "source": {
+        "artifactId": "obj-jewelry-component-6",
+        "artifactRevision": 1,
+        "tool": "couture"
+      },
+      "data": {},
+      "provenance": {
+        "createdBy": "lelu",
+        "method": "component extraction",
+        "offline": true,
+        "derivedFrom": [
+          "obj-jewelry-5"
+        ]
+      },
+      "checks": [],
+      "history": [
+        {
+          "revision": 1,
+          "at": 1794776034746,
+          "action": "create",
+          "detail": "jewelry-component with 1 part(s), 128 triangles"
+        },
+        {
+          "revision": 2,
+          "at": 1794776034793,
+          "action": "motion",
+          "detail": "spin at 9/min"
+        },
+        {
+          "revision": 3,
+          "at": 1794776034823,
+          "action": "transform",
+          "detail": "pos -215,120,300 rot -70,0,0"
+        },
+        {
+          "revision": 4,
+          "at": 1794776035426,
+          "action": "absorbed",
+          "detail": "reunited with Copper pendant (obj-jewelry-5)"
+        }
+      ],
+      "parts": [
+        {
+          "id": "p-stone",
+          "label": "Diamond (brilliant) ⌀11 mm",
+          "componentId": "c-stone-copy",
+          "materialId": "diamond",
+          "color": "#eef4ff",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 128,
+          "vertices": 66
+        }
+      ]
+    },
+    {
+      "id": "obj-jewelry-7",
+      "kind": "jewelry",
+      "name": "Gold pendant (copy)",
+      "revision": 9,
+      "location": "cosmos",
+      "workspaceId": "chat-universe",
+      "roomId": "cosmos-core",
+      "transform": {
+        "position": [
+          -190,
+          120,
+          260
+        ],
+        "rotation": [
+          -90,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "motion": {
+        "kind": "spin",
+        "speed": 4,
+        "radiusMm": 380,
+        "amplitudeMm": 40,
+        "paused": true
+      },
+      "visible": true,
+      "locked": false,
+      "anchored": false,
+      "archived": false,
+      "components": [
+        {
+          "id": "c-body",
+          "name": "Pendant body",
+          "kind": "body",
+          "partIds": [
+            "p-body"
+          ],
+          "materialId": "gold-18k-yellow",
+          "status": "attached",
+          "dimensions": {
+            "diameterMm": 26,
+            "thicknessMm": 2.4
+          },
+          "note": "Copper (C110); hammered face."
+        },
+        {
+          "id": "c-setting",
+          "name": "Bezel setting",
+          "kind": "setting",
+          "partIds": [
+            "p-bezel"
+          ],
+          "materialId": "gold-18k-yellow",
+          "status": "attached",
+          "dimensions": {
+            "stoneDiameterMm": 11,
+            "wallMm": 1.4,
+            "seatMm": 2.42
+          },
+          "note": "Bezel wall rolled over the girdle.",
+          "socket": {
+            "id": "socket-stone",
+            "accepts": [
+              "stone"
+            ],
+            "positionMm": [
+              0,
+              0,
+              1.3499999999999999
+            ],
+            "rotationDeg": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "c-stone",
+          "name": "Stone",
+          "kind": "stone",
+          "partIds": [
+            "p-stone"
+          ],
+          "materialId": "diamond",
+          "status": "attached",
+          "dimensions": {
+            "diameterMm": 11,
+            "crownMm": 1.76,
+            "pavilionMm": 4.62
+          },
+          "note": "Diamond (brilliant), brilliant cut, refractive index 2.417."
+        },
+        {
+          "id": "c-bail",
+          "name": "Bail",
+          "kind": "bail",
+          "partIds": [
+            "p-bail"
+          ],
+          "materialId": "gold-18k-yellow",
+          "status": "attached",
+          "dimensions": {
+            "radiusMm": 5
+          },
+          "note": "Soldered bail, 1.15 mm wire."
+        }
+      ],
+      "sockets": [
+        {
+          "id": "socket-bail",
+          "accepts": [
+            "chain"
+          ],
+          "positionMm": [
+            0,
+            -17,
+            0
+          ],
+          "rotationDeg": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "socket-setting",
+          "accepts": [
+            "setting"
+          ],
+          "positionMm": [
+            0,
+            0,
+            1.2
+          ],
+          "rotationDeg": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "attachment": null,
+      "absorbedInto": null,
+      "source": {
+        "artifactId": "obj-jewelry-5",
+        "artifactRevision": 5,
+        "tool": "couture.product"
+      },
+      "data": {
+        "metal": "Copper (C110)",
+        "metalDensity": 8.96,
+        "estimatedMetalVolumeMm3": 1612,
+        "estimatedWeightG": 14.44,
+        "stone": "Diamond (brilliant)",
+        "notes": [
+          "Volume is the closed mesh volume of body, bezel and bail.",
+          "The stone volume is excluded from the metal weight."
+        ],
+        "template": "pendant",
+        "variables": [
+          {
+            "name": "discDiameter",
+            "label": "Disc diameter",
+            "unit": "mm",
+            "value": 26,
+            "min": 18,
+            "max": 60,
+            "derived": false,
+            "source": "override"
+          },
+          {
+            "name": "thickness",
+            "label": "Metal thickness",
+            "unit": "mm",
+            "value": 2.4,
+            "min": 1.2,
+            "max": 5,
+            "derived": false,
+            "source": "override"
+          },
+          {
+            "name": "stoneDiameter",
+            "label": "Stone diameter",
+            "unit": "mm",
+            "value": 11,
+            "min": 3,
+            "max": 20,
+            "derived": false,
+            "source": "override"
+          },
+          {
+            "name": "bezelWall",
+            "label": "Bezel wall",
+            "unit": "mm",
+            "value": 1.4,
+            "min": 0.6,
+            "max": 3,
+            "derived": false,
+            "source": "override"
+          },
+          {
+            "name": "stoneSeat",
+            "label": "Stone seat depth (derived)",
+            "unit": "mm",
+            "value": 2.42,
+            "min": 0,
+            "max": 12,
+            "derived": true,
+            "source": "= min(3, max(1.2, stoneDiameter * 0.22))"
+          },
+          {
+            "name": "bailRadius",
+            "label": "Bail radius",
+            "unit": "mm",
+            "value": 5,
+            "min": 3,
+            "max": 9,
+            "derived": false,
+            "source": "override"
+          }
+        ]
+      },
+      "provenance": {
+        "createdBy": "lelu",
+        "method": "duplicate of obj-jewelry-5",
+        "offline": true,
+        "derivedFrom": [
+          "obj-jewelry-5"
+        ]
+      },
+      "checks": [
+        {
+          "name": "stone fits the disc",
+          "ok": true,
+          "detail": "13.8 mm bezel inside a 26 mm disc"
+        },
+        {
+          "name": "bezel wall is thick enough to roll",
+          "ok": true,
+          "detail": "1.4 mm wall"
+        },
+        {
+          "name": "bail is clear of the setting",
+          "ok": true,
+          "detail": "bail centre 17.0 mm from the disc centre, stone radius 5.5 mm"
+        }
+      ],
+      "history": [
+        {
+          "revision": 1,
+          "at": 1794776035471,
+          "action": "create",
+          "detail": "jewelry with 4 part(s), 2496 triangles"
+        },
+        {
+          "revision": 2,
+          "at": 1794776035491,
+          "action": "duplicate",
+          "detail": "from obj-jewelry-5 revision 5"
+        },
+        {
+          "revision": 3,
+          "at": 1794776035524,
+          "action": "transform",
+          "detail": "pos -190,120,260 rot -90,0,0"
+        },
+        {
+          "revision": 4,
+          "at": 1794776035555,
+          "action": "material",
+          "detail": "gold-18k-yellow on 1 part(s); geometry untouched"
+        },
+        {
+          "revision": 5,
+          "at": 1794776035586,
+          "action": "material",
+          "detail": "gold-18k-yellow on 1 part(s); geometry untouched"
+        },
+        {
+          "revision": 6,
+          "at": 1794776035619,
+          "action": "material",
+          "detail": "gold-18k-yellow on 1 part(s); geometry untouched"
+        },
+        {
+          "revision": 7,
+          "at": 1794776035655,
+          "action": "motion",
+          "detail": "spin at 4/min"
+        },
+        {
+          "revision": 8,
+          "at": 1794776036303,
+          "action": "remove-from-cosmos",
+          "detail": "returned to its workspace; record, geometry and history kept"
+        },
+        {
+          "revision": 9,
+          "at": 1794776036335,
+          "action": "place-in-cosmos",
+          "detail": "in cosmos-core at -190, 120, 260 mm"
+        }
+      ],
+      "parts": [
+        {
+          "id": "p-body",
+          "label": "Disc ⌀26 mm",
+          "componentId": "c-body",
+          "materialId": "gold-18k-yellow",
+          "color": "#b4633a",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 768,
+          "vertices": 386
+        },
+        {
+          "id": "p-bezel",
+          "label": "Bezel ⌀13.8 mm",
+          "componentId": "c-setting",
+          "materialId": "gold-18k-yellow",
+          "color": "#b4633a",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 640,
+          "vertices": 384
+        },
+        {
+          "id": "p-stone",
+          "label": "Diamond (brilliant) ⌀11 mm",
+          "componentId": "c-stone",
+          "materialId": "diamond",
+          "color": "#eef4ff",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 128,
+          "vertices": 66
+        },
+        {
+          "id": "p-bail",
+          "label": "Bail",
+          "componentId": "c-bail",
+          "materialId": "gold-18k-yellow",
+          "color": "#b4633a",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 960,
+          "vertices": 480
+        }
+      ]
+    },
+    {
+      "id": "obj-product-8",
+      "kind": "product",
+      "name": "Oak side chair",
+      "revision": 5,
+      "location": "cosmos",
+      "workspaceId": "chat-universe",
+      "roomId": "cosmos-core",
+      "transform": {
+        "position": [
+          -680,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "motion": {
+        "kind": "none",
+        "speed": 2,
+        "radiusMm": 380,
+        "amplitudeMm": 40,
+        "paused": false
+      },
+      "visible": true,
+      "locked": false,
+      "anchored": false,
+      "archived": false,
+      "components": [
+        {
+          "id": "c-seat",
+          "name": "Seat",
+          "kind": "seat",
+          "partIds": [
+            "p-seat"
+          ],
+          "materialId": "oak-wood",
+          "status": "attached",
+          "dimensions": {
+            "widthMm": 470,
+            "depthMm": 430,
+            "thicknessMm": 32
+          },
+          "note": "Solid seat panel."
+        },
+        {
+          "id": "c-leg-front-left",
+          "name": "front left leg",
+          "kind": "leg",
+          "partIds": [
+            "p-leg-front-left"
+          ],
+          "materialId": "oak-wood",
+          "status": "attached",
+          "dimensions": {
+            "lengthMm": 420,
+            "sectionMm": 34
+          },
+          "note": "Square section, tenons into the seat."
+        },
+        {
+          "id": "c-leg-front-right",
+          "name": "front right leg",
+          "kind": "leg",
+          "partIds": [
+            "p-leg-front-right"
+          ],
+          "materialId": "oak-wood",
+          "status": "attached",
+          "dimensions": {
+            "lengthMm": 420,
+            "sectionMm": 34
+          },
+          "note": "Square section, tenons into the seat."
+        },
+        {
+          "id": "c-leg-back-left",
+          "name": "back left leg",
+          "kind": "leg",
+          "partIds": [
+            "p-leg-back-left"
+          ],
+          "materialId": "oak-wood",
+          "status": "attached",
+          "dimensions": {
+            "lengthMm": 420,
+            "sectionMm": 34
+          },
+          "note": "Square section, tenons into the seat."
+        },
+        {
+          "id": "c-leg-back-right",
+          "name": "back right leg",
+          "kind": "leg",
+          "partIds": [
+            "p-leg-back-right"
+          ],
+          "materialId": "oak-wood",
+          "status": "attached",
+          "dimensions": {
+            "lengthMm": 420,
+            "sectionMm": 34
+          },
+          "note": "Square section, tenons into the seat."
+        },
+        {
+          "id": "c-back",
+          "name": "Back",
+          "kind": "back",
+          "partIds": [
+            "p-back"
+          ],
+          "materialId": "oak-wood",
+          "status": "attached",
+          "dimensions": {
+            "heightMm": 450,
+            "widthMm": 470
+          },
+          "note": "Rakes back 6° in the drawn assembly."
+        },
+        {
+          "id": "c-stretcher",
+          "name": "Front stretcher",
+          "kind": "other",
+          "partIds": [
+            "p-stretcher"
+          ],
+          "materialId": "oak-wood",
+          "status": "attached",
+          "dimensions": {
+            "heightMm": 140
+          },
+          "note": "Ties the front legs."
+        }
+      ],
+      "sockets": [
+        {
+          "id": "socket-front-left",
+          "accepts": [
+            "leg"
+          ],
+          "positionMm": [
+            -218,
+            -198,
+            420
+          ],
+          "rotationDeg": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "socket-front-right",
+          "accepts": [
+            "leg"
+          ],
+          "positionMm": [
+            218,
+            -198,
+            420
+          ],
+          "rotationDeg": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "socket-back-left",
+          "accepts": [
+            "leg"
+          ],
+          "positionMm": [
+            -218,
+            198,
+            420
+          ],
+          "rotationDeg": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "socket-back-right",
+          "accepts": [
+            "leg"
+          ],
+          "positionMm": [
+            218,
+            198,
+            420
+          ],
+          "rotationDeg": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "attachment": null,
+      "absorbedInto": null,
+      "source": {
+        "artifactId": "obj-product-8",
+        "artifactRevision": 1,
+        "tool": "couture.product"
+      },
+      "data": {
+        "seatHeight": 452,
+        "joints": "mortise and tenon (drawn, not validated)",
+        "template": "chair",
+        "variables": [
+          {
+            "name": "legHeight",
+            "label": "Leg height",
+            "unit": "mm",
+            "value": 420,
+            "min": 320,
+            "max": 520,
+            "derived": false,
+            "source": "template default"
+          },
+          {
+            "name": "seatThickness",
+            "label": "Seat thickness",
+            "unit": "mm",
+            "value": 32,
+            "min": 18,
+            "max": 60,
+            "derived": false,
+            "source": "template default"
+          },
+          {
+            "name": "seatHeight",
+            "label": "Seat height (derived)",
+            "unit": "mm",
+            "value": 452,
+            "min": 320,
+            "max": 560,
+            "derived": true,
+            "source": "= legHeight + seatThickness"
+          },
+          {
+            "name": "seatWidth",
+            "label": "Seat width",
+            "unit": "mm",
+            "value": 470,
+            "min": 340,
+            "max": 600,
+            "derived": false,
+            "source": "override"
+          },
+          {
+            "name": "seatDepth",
+            "label": "Seat depth",
+            "unit": "mm",
+            "value": 430,
+            "min": 340,
+            "max": 600,
+            "derived": false,
+            "source": "template default"
+          },
+          {
+            "name": "backHeight",
+            "label": "Back height",
+            "unit": "mm",
+            "value": 450,
+            "min": 200,
+            "max": 560,
+            "derived": false,
+            "source": "override"
+          },
+          {
+            "name": "legThickness",
+            "label": "Leg section",
+            "unit": "mm",
+            "value": 34,
+            "min": 22,
+            "max": 70,
+            "derived": false,
+            "source": "template default"
+          }
+        ],
+        "limitations": [
+          "No structural analysis: joint strength, racking and load capacity are not simulated."
+        ],
+        "rebuiltWith": {
+          "seatWidth": 520
+        }
+      },
+      "provenance": {
+        "createdBy": "lelu",
+        "method": "creative engine",
+        "offline": true,
+        "derivedFrom": []
+      },
+      "checks": [
+        {
+          "name": "seat height is consistent",
+          "ok": true,
+          "detail": "452 mm = 420 + 32"
+        },
+        {
+          "name": "legs support the seat",
+          "ok": true,
+          "detail": "leg height equals seat underside"
+        }
+      ],
+      "history": [
+        {
+          "revision": 1,
+          "at": 1794776036402,
+          "action": "create",
+          "detail": "product with 7 part(s), 84 triangles"
+        },
+        {
+          "revision": 2,
+          "at": 1794776036435,
+          "action": "place-in-cosmos",
+          "detail": "in cosmos-core at -680, 0, 0 mm"
+        },
+        {
+          "revision": 3,
+          "at": 1794776037650,
+          "action": "detach-component",
+          "detail": "front right leg → obj-garment-component-9"
+        },
+        {
+          "revision": 4,
+          "at": 1794776038364,
+          "action": "attach-component",
+          "detail": "front right leg ← obj-garment-component-9"
+        },
+        {
+          "revision": 5,
+          "at": 1794776038988,
+          "action": "data",
+          "detail": "edited rebuiltWith"
+        }
+      ],
+      "parts": [
+        {
+          "id": "p-seat",
+          "label": "Seat 470×430 mm",
+          "componentId": "c-seat",
+          "materialId": "oak-wood",
+          "color": "#9a6b45",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 12,
+          "vertices": 8
+        },
+        {
+          "id": "p-leg-front-left",
+          "label": "front-left leg",
+          "componentId": "c-leg-front-left",
+          "materialId": "oak-wood",
+          "color": "#9a6b45",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 12,
+          "vertices": 8
+        },
+        {
+          "id": "p-leg-front-right",
+          "label": "front-right leg",
+          "componentId": "c-leg-front-right",
+          "materialId": "oak-wood",
+          "color": "#9a6b45",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 12,
+          "vertices": 8
+        },
+        {
+          "id": "p-leg-back-left",
+          "label": "back-left leg",
+          "componentId": "c-leg-back-left",
+          "materialId": "oak-wood",
+          "color": "#9a6b45",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 12,
+          "vertices": 8
+        },
+        {
+          "id": "p-leg-back-right",
+          "label": "back-right leg",
+          "componentId": "c-leg-back-right",
+          "materialId": "oak-wood",
+          "color": "#9a6b45",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 12,
+          "vertices": 8
+        },
+        {
+          "id": "p-back",
+          "label": "Back panel",
+          "componentId": "c-back",
+          "materialId": "oak-wood",
+          "color": "#9a6b45",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 12,
+          "vertices": 8
+        },
+        {
+          "id": "p-stretcher",
+          "label": "Front stretcher",
+          "componentId": "c-stretcher",
+          "materialId": "oak-wood",
+          "color": "#9a6b45",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 12,
+          "vertices": 8
+        }
+      ]
+    },
+    {
+      "id": "obj-garment-component-9",
+      "kind": "garment-component",
+      "name": "Oak side chair — front right leg",
+      "revision": 2,
+      "location": "workspace",
+      "workspaceId": "chat-universe",
+      "roomId": null,
+      "transform": {
+        "position": [
+          -360,
+          0,
+          260
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "motion": {
+        "kind": "spin",
+        "speed": 3,
+        "radiusMm": 0,
+        "amplitudeMm": 40,
+        "paused": true
+      },
+      "visible": true,
+      "locked": false,
+      "anchored": false,
+      "archived": false,
+      "components": [
+        {
+          "id": "c-leg-front-right-copy",
+          "name": "front right leg",
+          "kind": "leg",
+          "partIds": [
+            "p-leg-front-right"
+          ],
+          "materialId": "oak-wood",
+          "status": "attached",
+          "dimensions": {
+            "lengthMm": 420,
+            "sectionMm": 34
+          },
+          "note": "extracted from obj-product-8 at revision 2"
+        }
+      ],
+      "sockets": [],
+      "attachment": {
+        "parentObjectId": "obj-product-8",
+        "parentComponentId": "c-leg-front-right",
+        "relative": {
+          "position": [
+            -360,
+            0,
+            260
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "absorbedInto": "obj-product-8",
+      "source": {
+        "artifactId": "obj-garment-component-9",
+        "artifactRevision": 1,
+        "tool": "couture"
+      },
+      "data": {},
+      "provenance": {
+        "createdBy": "lelu",
+        "method": "component extraction",
+        "offline": true,
+        "derivedFrom": [
+          "obj-product-8"
+        ]
+      },
+      "checks": [],
+      "history": [
+        {
+          "revision": 1,
+          "at": 1794776037633,
+          "action": "create",
+          "detail": "garment-component with 1 part(s), 12 triangles"
+        },
+        {
+          "revision": 2,
+          "at": 1794776038347,
+          "action": "absorbed",
+          "detail": "reunited with Oak side chair (obj-product-8)"
+        }
+      ],
+      "parts": [
+        {
+          "id": "p-leg-front-right",
+          "label": "front-right leg",
+          "componentId": "c-leg-front-right-copy",
+          "materialId": "oak-wood",
+          "color": "#9a6b45",
+          "opacity": 1,
+          "thin": false,
+          "triangles": 12,
+          "vertices": 8
+        }
+      ]
+    }
+  ]
+}

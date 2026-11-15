@@ -32,7 +32,9 @@ export type SpatialKind =
   | "task"
   | "file"
   | "conversation"
-  | "note";
+  | "note"
+  /** A real creative object (garment, component, product, jewellery) from the creative store. */
+  | "object";
 
 /** The record this object stands for. Never optional, never generated. */
 export interface RecordLink {
