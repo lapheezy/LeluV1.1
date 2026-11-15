@@ -146,6 +146,27 @@ export default class BrowserTool {
   }
 
   /**
+   * Ask LÉLU's server reader about a page before the frame shows it:
+   * whether the site allows embedding (a verdict only — the server never
+   * returns headers) and its readable text. null when no reader is
+   * available (static deployment, not signed in): the caller then keeps
+   * its own fallbacks rather than guessing.
+   */
+  static async probe(rawUrl: string): Promise<{ embeddable: boolean; title: string; text: string; url: string } | null> {
+    const url = BrowserTool.normalizeUrl(rawUrl);
+    if (!url) return null;
+    try {
+      const response = await fetch(`/api/browse?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(20_000), headers: sessionAuthHeader() });
+      if (!response.ok) return null;
+      const payload = (await response.json()) as { ok?: boolean; embeddable?: boolean; title?: string; text?: string; url?: string };
+      if (payload.ok !== true || typeof payload.embeddable !== "boolean") return null;
+      return { embeddable: payload.embeddable, title: payload.title ?? "", text: payload.text ?? "", url: payload.url ?? url };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Read a page: fetch it (with timeout + redirects), extract the
    * readable text, and return it for cognition. Tries the direct
    * browser fetch first, then falls back to LÉLU's server-side reader

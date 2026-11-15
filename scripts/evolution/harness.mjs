@@ -13,7 +13,8 @@ export const BASE = process.env.LELU_BASE ?? "http://127.0.0.1:5173/";
 export const OUT = path.resolve("public/evolution");
 
 export async function launch() {
-  return chromium.launch({ executablePath: "/opt/pw-browsers/chromium", args: ["--no-sandbox", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
+  const proxy = process.env.HTTPS_PROXY || process.env.https_proxy;
+  return chromium.launch({ executablePath: "/opt/pw-browsers/chromium", ...(proxy ? { proxy: { server: proxy, bypass: "localhost,127.0.0.1" } } : {}), args: ["--no-sandbox", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
 }
 
 export async function desktop(browser) {

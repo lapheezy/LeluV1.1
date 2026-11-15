@@ -12,7 +12,7 @@
  * Everything here is local rendering. No model is asked to "draw" the board.
  */
 
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
   BackgroundVariant,
@@ -34,6 +34,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import KvStore from "../../../../../core/storage/KvStore";
 import { stripMarkdown, type StageConversation } from "./conversationModel";
+import { BOARD_SOURCE_EVENT } from "./boardSources";
 
 type Kind = "question" | "answer" | "section" | "media" | "link" | "note";
 interface CardData extends Record<string, unknown> {
@@ -181,6 +182,28 @@ function Board({ conversationId, model }: { conversationId: string; model: Stage
     setEdges(initial.edges);
   }, [initial, setNodes, setEdges]);
 
+  // Re-fit when the board's container settles or changes size (a window the
+  // steward just resized, a phone sheet) and when nodes are added.
+  const boxRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    let t: ReturnType<typeof setTimeout> | null = null;
+    const ro = new ResizeObserver(() => {
+      if (t) clearTimeout(t);
+      t = setTimeout(() => void flow.fitView({ padding: 0.15, duration: 300 }), 120);
+    });
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      if (t) clearTimeout(t);
+    };
+  }, [flow]);
+  useEffect(() => {
+    const t = setTimeout(() => void flow.fitView({ padding: 0.15, duration: 300 }), 80);
+    return () => clearTimeout(t);
+  }, [initial.nodes.length, flow]);
+
   const save = useCallback(
     (next: BoardEdits) => {
       setEdits(next);
@@ -192,6 +215,15 @@ function Board({ conversationId, model }: { conversationId: string; model: Stage
     },
     [conversationId],
   );
+
+  // A page sent from the browser lands on this board while it is open.
+  useEffect(() => {
+    const onSource = (e: Event) => {
+      if ((e as CustomEvent<{ conversationId: string }>).detail?.conversationId === conversationId) setEdits(loadEdits(conversationId));
+    };
+    window.addEventListener(BOARD_SOURCE_EVENT, onSource);
+    return () => window.removeEventListener(BOARD_SOURCE_EVENT, onSource);
+  }, [conversationId]);
 
   useEffect(() => {
     const onRename = (e: Event) => {
@@ -222,7 +254,7 @@ function Board({ conversationId, model }: { conversationId: string; model: Stage
   );
 
   return (
-    <div className="lbd" data-lelu-stage-view="board" data-nodes={nodes.length} data-edges={edges.length}>
+    <div ref={boxRef} className="lbd" data-lelu-stage-view="board" data-nodes={nodes.length} data-edges={edges.length}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
