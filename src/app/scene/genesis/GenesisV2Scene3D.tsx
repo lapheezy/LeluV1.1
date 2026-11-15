@@ -51,6 +51,7 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Html, useContextBridge } from "@react-three/drei";
 import SpatialLayer from "./spatial/SpatialLayer";
+import CreativeObjects3D from "./cosmos/CreativeObjects3D";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AdditiveBlending,
@@ -1459,6 +1460,9 @@ export default function GenesisV2Scene3D({
         {/* Authorial spatial objects — the live SpatialSceneGraph rendered
             with the EXISTING renderer, as siblings of the Core. */}
         <SpatialLayer />
+        {/* The creative engine's actual geometry — garment, sleeve, pendant,
+            stone, chair — drawn from the same store the tools write to. */}
+        <CreativeObjects3D />
         {SATELLITES.map((seed) => (
           <V2Satellite
             key={seed.id}

@@ -412,6 +412,7 @@ export default class CreativeObjects {
   private sequence = 0;
   private undoStack: string[] = [];
   private redoStack: string[] = [];
+  private listeners = new Set<() => void>();
   private readonly storage: CreativeStorage;
   private readonly now: () => number;
 
@@ -453,6 +454,28 @@ export default class CreativeObjects {
   private persist(): void {
     const objects = [...this.objects.values()];
     this.storage.write(JSON.stringify({ version: 1, sequence: this.sequence, objects }));
+    this.notify();
+  }
+
+  /**
+   * Subscribe to any committed change. A renderer subscribes here instead of
+   * polling, so the store stays the only authority on what exists.
+   */
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  private notify(): void {
+    for (const listener of this.listeners) {
+      try {
+        listener();
+      } catch (error) {
+        console.error("[CreativeObjects] listener failed:", error);
+      }
+    }
   }
 
   private snapshot(): void {

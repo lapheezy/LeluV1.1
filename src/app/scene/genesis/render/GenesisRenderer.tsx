@@ -27,6 +27,7 @@ import { TestPlanet } from "./DebugPlanet";
 
 import { useGenesisScene } from "../useGenesisScene";
 import SpatialLayer from "../spatial/SpatialLayer";
+import CreativeObjects3D from "../cosmos/CreativeObjects3D";
 import SpatialPortals from "../../spatial/SpatialPortals";
 
 export default function GenesisRenderer() {
@@ -96,6 +97,11 @@ export default function GenesisRenderer() {
       <SpatialLayer />
 
     </group>
+
+    {/* Creative objects render in the default Genesis world too, from the same
+        store. A sibling of the rotating world (like the portal ring) so a
+        garment stays where the person put it instead of orbiting the Core. */}
+    <CreativeObjects3D />
 
     {/* The portal ring: the registry's identities drawn in this same canvas,
         so a portal a person or an agent created is a place in the world — not

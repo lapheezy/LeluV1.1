@@ -16,6 +16,7 @@
  */
 
 import CreativeObjects from "../couture/objects";
+import { creativePositionToScene } from "../couture/sceneTransform";
 import SpatialObjects from "./SpatialObjects";
 
 export interface PlacementResult {
@@ -35,7 +36,11 @@ export default class CreativeObjectBridge {
     const object = store.get(objectId);
     if (!object) return { ok: false, message: `no creative object ${objectId}` };
     const roomId = options.roomId ?? object.roomId ?? "cosmos-core";
-    const placed = store.placeInCosmos(objectId, { roomId, ...(options.position ? { position: options.position } : {}) });
+    // The creative store is millimetres, z-up; the Cosmos placement is metres,
+    // y-up. Convert once, here, so neither side guesses the other's units.
+    const creativePosition = options.position ?? object.transform.position;
+    const spatialPosition = creativePositionToScene(creativePosition);
+    const placed = store.placeInCosmos(objectId, { roomId, position: creativePosition });
     if (!placed) return { ok: false, message: `could not place ${objectId}` };
 
     const spatial = SpatialObjects.getInstance().place({
@@ -43,7 +48,7 @@ export default class CreativeObjectBridge {
       title: object.name,
       link: { kind: "creative", id: object.id },
       roomId,
-      ...(options.position ? { position: options.position } : {}),
+      position: spatialPosition,
     });
     if (!spatial.ok) return { ok: false, message: `placement refused: ${spatial.error}` };
 
