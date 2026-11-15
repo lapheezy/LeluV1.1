@@ -22,6 +22,25 @@ import type { AIResponse } from "../../providers/AIProvider";
 import type RouterContext from "./RouterContext";
 import type { BrainResult } from "./RouterResults";
 import { compileDirect, DIRECT_COMMANDS, type DirectPlan } from "../creative/kit/DirectCompiler";
+import { parseWorkspaceCommand } from "../interface/WorkspaceSteward";
+
+/**
+ * "Tile my windows", "put the browser beside the chat", "make this
+ * cinematic", "turn this into a research board": organising LÉLU's own
+ * environment is deterministic, so it is always executed here, through the
+ * real workspace.* tools, and never sent to a model. Explicit by design.
+ */
+export function workspacePlan(prompt: string): DirectPlan | null {
+  const command = parseWorkspaceCommand(prompt);
+  if (!command) return null;
+  const steps: DirectPlan["steps"] = [];
+  if (command.mode || command.open?.length) {
+    steps.push({ tool: "workspace.arrange", args: { layout: command.mode ?? "auto", modules: command.open ?? [] }, label: command.summary });
+  }
+  if (command.transform) steps.push({ tool: "workspace.transform", args: { to: command.transform }, label: command.summary });
+  if (command.stage) steps.push({ tool: "workspace.stage", args: { stage: command.stage }, label: command.transform ? `Showed it in the ${command.stage} workspace` : command.summary });
+  return steps.length ? { steps, summary: command.summary, explicit: true } : null;
+}
 
 /**
  * How much of a step's output belongs in the reply.
@@ -64,10 +83,31 @@ function readingOf(content: string, max = 420): string {
   return `${cut > max * 0.6 ? head.slice(0, cut) : head}… (the page is open in the conversation above)`;
 }
 
+/**
+ * One plan per request, when both direct planners recognise it.
+ *
+ * The Workspace Steward reads "diagram", "movie" and "3D" as STAGE words
+ * ("turn this into a board", "make it cinematic", "go 3D"); the creative kit
+ * reads them as things to MAKE ("make an architecture diagram of LÉLU",
+ * "make a movie about tides", "make me a 3D forest"). Measured on the merged
+ * tree: the stage parser claimed all three and no artifact was made. A stage
+ * change wins only when the request points at the conversation itself;
+ * window organisation (tile, split, focus…) is never a creative request.
+ */
+export function directPlanFor(prompt: string): DirectPlan | null {
+  const workspace = workspacePlan(prompt);
+  const creative = compileDirect(prompt);
+  if (!workspace) return creative;
+  if (!creative) return workspace;
+  const stageOnly = workspace.steps.every((step) => step.tool === "workspace.stage");
+  const aboutTheConversation = /\b(this|it|the (chat|conversation|thread|workspace|view|screen)|our (chat|conversation)|my (chat|conversation|workspace))\b/i.test(prompt);
+  return stageOnly && !aboutTheConversation ? creative : workspace;
+}
+
 export default class DirectResolver {
   /** The plan for this turn, if it has one. Pure. */
   public plan(context: RouterContext): DirectPlan | null {
-    return compileDirect(context.request.prompt ?? "");
+    return directPlanFor(context.request.prompt ?? "");
   }
 
   /** Is any model provider able to take the turn right now? */
@@ -98,8 +138,11 @@ export default class DirectResolver {
     }
     const okCount = ran.filter((r) => r.ok).length;
     const onScene = plan.steps.every((step) => step.tool.startsWith("cosmos.object."));
+    const workspace = plan.steps.every((step) => step.tool.startsWith("workspace."));
     const preface = onScene
       ? `Done locally on the Cosmos scene${reason === "no-provider" ? " (no model provider is reachable, and none was needed)" : " — no model involved"}: ${plan.summary}.`
+      : workspace
+      ? `${plan.summary}. Done on this device — 0 model calls, nothing sent anywhere.`
       : reason === "no-provider"
       ? `No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: ${plan.summary}.`
       : reason === "construction"

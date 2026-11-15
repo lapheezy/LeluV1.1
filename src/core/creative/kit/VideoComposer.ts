@@ -137,7 +137,13 @@ export function sceneAt(p: VideoProgram, t: number): { index: number; local: num
 type Ctx = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 type Drawable = CanvasImageSource | null;
 
-async function svgToImage(svg: string): Promise<Drawable> {
+/**
+ * Decode an SVG once and rasterise it ONCE, at the largest size a camera move
+ * needs (×1.12). Measured: drawing the vector image every frame made Chromium
+ * re-rasterise a 340 KB flow-field SVG 30 times a second, and a 17 s film did
+ * not finish in 14 minutes on a 4-vCPU machine; a bitmap is a texture copy.
+ */
+async function svgToImage(svg: string, w: number, h: number): Promise<Drawable> {
   const blob = new Blob([svg], { type: "image/svg+xml" });
   const url = URL.createObjectURL(blob);
   try {
@@ -145,18 +151,23 @@ async function svgToImage(svg: string): Promise<Drawable> {
     img.decoding = "async";
     img.src = url;
     await img.decode();
-    return img;
+    const bw = Math.round(w * 1.12), bh = Math.round(h * 1.12);
+    const canvas = typeof OffscreenCanvas !== "undefined" ? new OffscreenCanvas(bw, bh) : Object.assign(document.createElement("canvas"), { width: bw, height: bh });
+    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
+    if (!ctx) return img;
+    ctx.drawImage(img, 0, 0, bw, bh);
+    return typeof createImageBitmap === "function" ? await createImageBitmap(canvas) : (canvas as CanvasImageSource);
   } finally {
-    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    URL.revokeObjectURL(url);
   }
 }
 
 async function prepareVisual(v: SceneVisual, w: number, h: number): Promise<Drawable> {
-  if (v.type === "generative") return svgToImage(renderGenerative(v.program).svg);
-  if (v.type === "chart") return svgToImage(vizSvg(v.program, { width: Math.round(w * 0.8), height: Math.round(h * 0.7), background: "#ffffff" }));
+  if (v.type === "generative") return svgToImage(renderGenerative(v.program).svg, w, h);
+  if (v.type === "chart") return svgToImage(vizSvg(v.program, { width: Math.round(w * 0.8), height: Math.round(h * 0.7), background: "#ffffff" }), w * 0.8, h * 0.7);
   if (v.type === "diagram") {
     const r = await renderDiagramSvg(v.program);
-    return r.ok ? svgToImage(r.svg.replace(/<svg /, `<svg width="${Math.round(w * 0.8)}" height="${Math.round(h * 0.7)}" `)) : null;
+    return r.ok ? svgToImage(r.svg.replace(/<svg /, `<svg width="${Math.round(w * 0.8)}" height="${Math.round(h * 0.7)}" `), w * 0.8, h * 0.7) : null;
   }
   if (v.type === "image") { const img = new Image(); img.src = v.dataUrl; await img.decode(); return img; }
   return null;
@@ -285,28 +296,80 @@ export interface RenderedFilm {
   codec: string;
   audio: boolean;
   encodeMs: number;
+  /** The size actually encoded (may be below the program's on a slow encoder). */
+  width: number;
+  height: number;
+  /** Why the size was chosen. */
+  sizing: string;
 }
+
+const MIRROR_WEBCODECS = { vp9: "vp09.00.10.08", vp8: "vp8", av1: "av01.0.04M.08" } as Record<string, string>;
+
+/** Milliseconds per frame this device's encoder needs at a size (3 frames after a warm-up). */
+async function encoderCost(codec: string, width: number, height: number): Promise<number> {
+  const c = new OffscreenCanvas(width, height);
+  const g = c.getContext("2d")!;
+  const enc = new VideoEncoder({ output: () => undefined, error: () => undefined });
+  enc.configure({ codec: MIRROR_WEBCODECS[codec] ?? codec, width, height, bitrate: 4_000_000, framerate: 30 });
+  const frame = (i: number) => { g.fillStyle = `hsl(${i * 40},60%,50%)`; g.fillRect(0, 0, width, height); g.fillStyle = "#fff"; g.fillRect(i * 20, height / 4, width / 4, height / 4); return new VideoFrame(c, { timestamp: i * 33_333 }); };
+  const f0 = frame(0); enc.encode(f0, { keyFrame: true }); f0.close(); await enc.flush();
+  const t = performance.now();
+  for (let i = 1; i <= 3; i += 1) { const f = frame(i); enc.encode(f); f.close(); }
+  await enc.flush();
+  enc.close();
+  return (performance.now() - t) / 3;
+}
+
+const even = (n: number) => Math.max(2, Math.round(n / 2) * 2);
+
+/**
+ * The largest size (100 %, 75 %, 50 % of the program's) whose measured encode
+ * time fits the budget. Measured on a 4-vCPU cloud VM with software VP9:
+ * 274 ms/frame at 1280×720, 28 at 960×540, 16 at 640×360 — the full-size
+ * 17.5 s film took 18 minutes; at 540p it takes well under one.
+ */
+async function chooseSize(p: VideoProgram, codec: string, frames: number, budgetMs: number): Promise<{ width: number; height: number; sizing: string }> {
+  for (const scale of [1, 0.75, 0.5]) {
+    const w = even(p.width * scale), h = even(p.height * scale);
+    const cost = await encoderCost(codec, w, h).catch(() => Number.POSITIVE_INFINITY);
+    const estimate = cost * frames;
+    if (estimate <= budgetMs || scale === 0.5) {
+      return { width: w, height: h, sizing: `${w}×${h}${scale < 1 ? ` (encoder measured ${Math.round(cost)} ms/frame here; full ${p.width}×${p.height} would exceed the ${Math.round(budgetMs / 1000)} s budget)` : ` (encoder ${Math.round(cost)} ms/frame)`}` };
+    }
+  }
+  return { width: p.width, height: p.height, sizing: "program size" };
+}
+
+export interface RenderOptions { onProgress?: (fraction: number) => void; /** Encode-time budget before the size steps down (default max(60 s, 4× film length)). */ budgetMs?: number; /** Never step the size down. */ fullSize?: boolean }
 
 /**
  * Render a film to WebM on this device. WebCodecs (faster than real time)
  * when the browser can encode an open codec; MediaRecorder in real time
  * otherwise. Throws with the exact reason when neither exists.
  */
-export async function renderFilm(p: VideoProgram, onProgress?: (fraction: number) => void): Promise<RenderedFilm> {
+export async function renderFilm(program: VideoProgram, options: RenderOptions | ((fraction: number) => void) = {}): Promise<RenderedFilm> {
   if (typeof document === "undefined") throw new Error("film rendering needs a browser (Canvas + WebCodecs or MediaRecorder)");
+  const opts: RenderOptions = typeof options === "function" ? { onProgress: options } : options;
+  const onProgress = opts.onProgress;
   const started = performance.now();
-  const seconds = filmDuration(p);
-  const frames = Math.round(seconds * p.fps);
+  const seconds = filmDuration(program);
+  const frames = Math.round(seconds * program.fps);
+  const audio = await renderSoundtrack(program, seconds).catch(() => null);
+  const mb = await import("mediabunny");
+  const codec = typeof VideoEncoder !== "undefined" ? await mb.getFirstEncodableVideoCodec(["vp9", "vp8", "av1"], { width: program.width, height: program.height }) : null;
+  // Size: measured against this device's encoder (WebCodecs), or capped at
+  // 640×360 for real-time MediaRecorder, which drops frames it cannot encode
+  // in time (measured: 4 of 180 frames kept at 720p on a 4-vCPU VM).
+  const size = codec
+    ? (opts.fullSize ? { width: program.width, height: program.height, sizing: "program size (requested)" } : await chooseSize(program, codec, frames, opts.budgetMs ?? Math.max(60_000, seconds * 4000)))
+    : program.height > 360 ? { width: even((program.width * 360) / program.height), height: 360, sizing: "640×360 cap for real-time MediaRecorder" } : { width: program.width, height: program.height, sizing: "program size" };
+  const p: VideoProgram = { ...program, width: size.width, height: size.height };
   const images = await Promise.all(p.scenes.map((s) => prepareVisual(s.visual, p.width, p.height).catch(() => null)));
   const canvas = document.createElement("canvas");
   canvas.width = p.width;
   canvas.height = p.height;
   const ctx = canvas.getContext("2d", { alpha: false });
   if (!ctx) throw new Error("this browser refused a 2D canvas");
-  const audio = await renderSoundtrack(p, seconds).catch(() => null);
-
-  const mb = await import("mediabunny");
-  const codec = typeof VideoEncoder !== "undefined" ? await mb.getFirstEncodableVideoCodec(["vp9", "vp8", "av1"], { width: p.width, height: p.height }) : null;
   if (codec) {
     const output = new mb.Output({ format: new mb.WebMOutputFormat(), target: new mb.BufferTarget() });
     const video = new mb.CanvasSource(canvas, { codec, quality: mb.QUALITY_HIGH, keyFrameInterval: 2 });
@@ -326,14 +389,22 @@ export async function renderFilm(p: VideoProgram, onProgress?: (fraction: number
     await output.finalize();
     const buf = (output.target as InstanceType<typeof mb.BufferTarget>).buffer;
     if (!buf) throw new Error("the encoder finished without producing a file");
-    return { bytes: new Uint8Array(buf), mime: "video/webm", seconds, frames, path: "webcodecs", codec, audio: !!audioSource, encodeMs: Math.round(performance.now() - started) };
+    return { bytes: new Uint8Array(buf), mime: "video/webm", seconds, frames, path: "webcodecs", codec, audio: !!audioSource, encodeMs: Math.round(performance.now() - started), width: p.width, height: p.height, sizing: size.sizing };
   }
 
   // MediaRecorder fallback: real time, but available far more widely.
   const MR = (globalThis as unknown as { MediaRecorder?: typeof MediaRecorder }).MediaRecorder;
   const type = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"].find((t) => MR?.isTypeSupported(t));
   if (!MR || !type || typeof canvas.captureStream !== "function") throw new Error("this browser can neither encode video with WebCodecs nor record a canvas with MediaRecorder");
-  const stream = canvas.captureStream(p.fps);
+  // Explicit frames: captureStream(0) + requestFrame() after every draw, on a
+  // canvas attached to the page. A detached canvas with a timed capture kept
+  // 4 of 180 frames in the app (measured); real-time capture can only keep
+  // what the page actually paints, so the result is limited by the device's
+  // animation frame rate (≈16/s on the headless VM used for acceptance).
+  Object.assign(canvas.style, { position: "fixed", left: "-10000px", top: "0", pointerEvents: "none" });
+  document.body.appendChild(canvas);
+  const stream = canvas.captureStream(0);
+  const videoTrack = stream.getVideoTracks()[0] as MediaStreamTrack & { requestFrame?: () => void };
   let audioCtx: AudioContext | null = null;
   if (audio) {
     audioCtx = new AudioContext({ sampleRate: audio.sampleRate });
@@ -354,6 +425,7 @@ export async function renderFilm(p: VideoProgram, onProgress?: (fraction: number
     const tick = () => {
       const t = (performance.now() - t0) / 1000;
       drawFrame(ctx, p, Math.min(t, seconds - 1e-3), images);
+      videoTrack.requestFrame?.();
       onProgress?.(t / seconds);
       if (t >= seconds) resolve(); else requestAnimationFrame(tick);
     };
@@ -362,8 +434,9 @@ export async function renderFilm(p: VideoProgram, onProgress?: (fraction: number
   recorder.stop();
   await done;
   await audioCtx?.close();
+  canvas.remove();
   const bytes = new Uint8Array(await new Blob(chunks, { type }).arrayBuffer());
-  return { bytes, mime: "video/webm", seconds, frames, path: "mediarecorder", codec: type, audio: !!audio, encodeMs: Math.round(performance.now() - started) };
+  return { bytes, mime: "video/webm", seconds, frames, path: "mediarecorder", codec: type, audio: !!audio, encodeMs: Math.round(performance.now() - started), width: p.width, height: p.height, sizing: size.sizing };
 }
 
 /** Read back a WebM: EBML magic, DocType "webm", and whether Video/Audio track entries exist. */

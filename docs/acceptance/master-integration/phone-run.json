@@ -1,0 +1,49 @@
+{
+  "base": "http://127.0.0.1:5174/",
+  "mode": "phone",
+  "at": "2026-11-15T01:53:27.968Z",
+  "modelCalls": [],
+  "errors": [],
+  "results": [
+    {
+      "name": "02-scene: “/scene ocean” → executed inline, no model",
+      "ok": true,
+      "detail": "4670 ms · embeds [scene3d] · overflow 0px · Done directly with my own tools (no model involved): 3D ocean environment → GLB."
+    },
+    {
+      "name": "03-diagram: “Make an architecture diagram of LÉLU” → executed inline, no model",
+      "ok": true,
+      "detail": "4346 ms · embeds [scene3d,diagram] · overflow 0px · No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: diagram (LÉLU architecture)."
+    },
+    {
+      "name": "04-chart: “/chart earthquakes” → executed inline, no model",
+      "ok": true,
+      "detail": "4097 ms · embeds [scene3d,diagram,chart,chart] · overflow 0px · Done directly with my own tools (no model involved): earthquakes this week (USGS) → interactive chart."
+    },
+    {
+      "name": "phone: inline cards fit the screen, no horizontal overflow",
+      "ok": true,
+      "detail": "[[\"scene3d\",303],[\"diagram\",303],[\"chart\",303],[\"chart\",303]] overflow 0"
+    },
+    {
+      "name": "phone: inline 3D scene renders",
+      "ok": true,
+      "detail": "[{\"medium\":\"scene3d\",\"diagram\":false,\"chart\":false,\"excalidraw\":false,\"film\":false,\"sceneColours\":69,\"width\":303}]"
+    },
+    {
+      "name": "conversations and artifacts survive a reload",
+      "ok": true,
+      "detail": "{\"artifacts\":4,\"messages\":9} → {\"artifacts\":4,\"messages\":9}"
+    },
+    {
+      "name": "no model calls during the run",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

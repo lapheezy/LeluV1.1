@@ -1,0 +1,1199 @@
+{
+  "base": "http://127.0.0.1:5174/",
+  "at": "2026-11-14T22:02:30.209Z",
+  "boot": {
+    "dclMs": 813,
+    "entryMs": 9493,
+    "heapMB": 297,
+    "kitAtBoot": [
+      "http://127.0.0.1:5174/src/core/creative/kit/VisualArtifacts.ts",
+      "http://127.0.0.1:5174/src/core/creative/kit/GenerativeArt.ts",
+      "http://127.0.0.1:5174/src/core/creative/kit/Diagram.ts",
+      "http://127.0.0.1:5174/src/core/creative/kit/InteractiveViz.ts",
+      "http://127.0.0.1:5174/src/core/creative/kit/VideoComposer.ts",
+      "http://127.0.0.1:5174/src/core/creative/kit/Scene3D.ts",
+      "http://127.0.0.1:5174/src/core/creative/kit/CreativeKitTools.ts",
+      "http://127.0.0.1:5174/src/core/creative/kit/Rng.ts",
+      "http://127.0.0.1:5174/src/core/creative/kit/CapabilityProfiles.ts",
+      "http://127.0.0.1:5174/src/core/creative/kit/BrowserCapabilities.ts",
+      "http://127.0.0.1:5174/src/core/creative/kit/DirectCompiler.ts"
+    ]
+  },
+  "memoryMB": {
+    "boot": 297,
+    "beforeFilm": 923,
+    "afterFilm": 591,
+    "end": 547
+  },
+  "chat": [
+    {
+      "id": "01-art-command",
+      "text": "/art flowfield ocean",
+      "ms": 5464,
+      "provider": "lelu-direct",
+      "modelAttempts": 0,
+      "ticks": 4,
+      "crosses": 0,
+      "reply": "Done directly with my own tools (no model involved): generative flowfield artwork (ocean).\n\n✓ artwork (creative.art)\n  Created generative visual “Flowfield — Ocean” [art_0bc36b474f4b] — flowfield artwork · seed 3364062401 · 1200×800 · ocean.\n  It is open as a window and shown in the chat.\n  Files it can be written as: svg, png, json (creative.export).\n  ✓ Flowfield-Ocean.svg (332.9 KB, sha256 fdb73ec32686…) [renderMs 27]\n      ✓ file is not empty — 340894 bytes\n      ✓ SVG document — 332.9 KB\n\nEverything above ran and was verified."
+    },
+    {
+      "id": "02-art-natural",
+      "text": "Make me a generative artwork of a coral tree in forest colours",
+      "ms": 4436,
+      "provider": "lelu-direct",
+      "modelAttempts": 0,
+      "ticks": 4,
+      "crosses": 0,
+      "reply": "No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: generative tree artwork (forest).\n\n✓ artwork (creative.art)\n  Created generative visual “Tree — Forest” [art_262265fbc16b] — tree artwork · seed 1708791754 · 1200×800 · forest.\n  It is open as a window and shown in the chat.\n  Files it can be written as: svg, png, json (creative.export).\n  ✓ Tree-Forest.svg (571.7 KB, sha256 833e864b4173…) [renderMs 13]\n      ✓ file is not empty — 585385 bytes\n      ✓ SVG document — 571.7 KB\n\nEverything above ran and was verified."
+    },
+    {
+      "id": "03-diagram-arrows",
+      "text": "/diagram chat -> router -> tools, router -> public data, tools -> files",
+      "ms": 3555,
+      "provider": "lelu-direct",
+      "modelAttempts": 0,
+      "ticks": 4,
+      "crosses": 0,
+      "reply": "Done directly with my own tools (no model involved): diagram (from arrows).\n\n✓ diagram (creative.diagram)\n  Created diagram visual “Diagram — chat - router - tools router - public da” [art_9bf401548ec9] — flowchart diagram · 10 lines.\n  It is open as a window and shown in the chat.\n  Files it can be written as: mmd, svg, png (creative.export).\n  ✓ Diagram-chat---router---tools-router---public-da.mmd (0.1 KB, sha256 fec1392c4fd6…)\n      ✓ file is not empty — 136 bytes\n      ✓ Mermaid source re-reads as the same diagram type — flowchart\n\nEverything above ran and was verified."
+    },
+    {
+      "id": "04-diagram-natural",
+      "text": "Make an architecture diagram of LÉLU",
+      "ms": 4548,
+      "provider": "lelu-direct",
+      "modelAttempts": 0,
+      "ticks": 4,
+      "crosses": 0,
+      "reply": "No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: diagram (LÉLU architecture).\n\n✓ diagram (creative.diagram)\n  Created diagram visual “LÉLU architecture” [art_d48f84fda7ce] — flowchart diagram · 17 lines.\n  It is open as a window and shown in the chat.\n  Files it can be written as: mmd, svg, png (creative.export).\n  ✓ LELU-architecture.mmd (0.9 KB, sha256 e074fd2f6af7…)\n      ✓ file is not empty — 884 bytes\n      ✓ Mermaid source re-reads as the same diagram type — flowchart\n\nEverything above ran and was verified."
+    },
+    {
+      "id": "05-chart-earthquakes",
+      "text": "/chart earthquakes",
+      "ms": 5266,
+      "provider": "lelu-direct",
+      "modelAttempts": 0,
+      "ticks": 10,
+      "crosses": 0,
+      "reply": "Done directly with my own tools (no model involved): earthquakes this week (USGS) → interactive chart.\n\n✓ magnitude vs depth (creative.chart)\n  Created chart visual “Earthquakes M4.5+ this week — magnitude vs depth (USGS)” [art_95086850fdeb] — scatter chart · 1 series · 40 points · 1 source.\n  It is open as a window and shown in the chat.\n  Files it can be written as: html, svg, png, csv, json (creative.export).\n  ✓ Earthquakes-M45-this-week-magnitude-vs-depth-USGS.html (15.5 KB, sha256 5927a9e5f064…)\n      ✓ file is not empty — 15833 bytes\n      ✓ every value is an interactive mark — 40/40\n      ✓ sources are cited — 1\n✓ count per day (creative.chart)\n  Created chart visual “Earthquakes M4.5+ per day this week (USGS)” [art_0f66e1ee9f37] — column chart · 1 series · 8 points · 1 source.\n  It is open as a window and shown in the chat.\n  Files it can be written as: html, svg, png, csv, json (creative.export).\n  ✓ Earthquakes-M45-per-day-this-week-USGS.html (6.6 KB, sha256 84f6febfb7aa…)\n      ✓ file is not empty — 6794 bytes\n      ✓ every value is an interactive mark — 8/8\n      ✓ sources are cited — 1\n\nEverything above ran and was verified."
+    },
+    {
+      "id": "06-scene-command",
+      "text": "/scene forest",
+      "ms": 24427,
+      "provider": "lelu-direct",
+      "modelAttempts": 0,
+      "ticks": 5,
+      "crosses": 0,
+      "reply": "Done directly with my own tools (no model involved): 3D forest environment → GLB.\n\n✓ 3D scene (creative.scene3d)\n  Created scene3d visual “Forest environment” [art_c94a079f650e] — 3D scene (forest) · 4 object groups · 2 lights · 0 animated.\n  It is open as a window and shown in the chat.\n  Files it can be written as: glb, gltf, json (creative.export).\n  ✓ Forest-environment.glb (1281.3 KB, sha256 5c0617e1789c…) [meshes 228, triangles 25972, lights 2, animated 0, exportMs 599]\n      ✓ file is not empty — 1312044 bytes\n      ✓ GLB header, version and length — glTF 2\n      ✓ meshes and nodes present — 301 nodes, 228 meshes, 0 animations\n\nEverything above ran and was verified."
+    },
+    {
+      "id": "07-scene-natural",
+      "text": "Build a 3D desert environment",
+      "ms": 3727,
+      "provider": "lelu-direct",
+      "modelAttempts": 0,
+      "ticks": 5,
+      "crosses": 0,
+      "reply": "No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: 3D desert environment → GLB.\n\n✓ 3D scene (creative.scene3d)\n  Created scene3d visual “Desert environment” [art_db355d4b0225] — 3D scene (desert) · 3 object groups · 2 lights · 0 animated.\n  It is open as a window and shown in the chat.\n  Files it can be written as: glb, gltf, json (creative.export).\n  ✓ Desert-environment.glb (777.9 KB, sha256 33d4b4b3593e…) [meshes 11, triangles 30264, lights 2, animated 0, exportMs 314]\n      ✓ file is not empty — 796620 bytes\n      ✓ GLB header, version and length — glTF 2\n      ✓ meshes and nodes present — 27 nodes, 11 meshes, 0 animations\n\nEverything above ran and was verified."
+    },
+    {
+      "id": "08-film",
+      "text": "Make a short film about ocean tides",
+      "ms": 3528,
+      "provider": "lelu-direct",
+      "modelAttempts": 0,
+      "ticks": 1,
+      "crosses": 0,
+      "reply": "No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: short film about “ocean tides” (WebM, calm soundtrack).\n\n✓ film (creative.film)\n  Created video visual “Ocean Tides — short film” [art_76caa98e1c82] — film · 17.5 s · 6 scenes · 1280×720 @ 30 fps · soundtrack calm.\n  It is open as a window and shown in the chat.\n  Files it can be written as: webm, json (creative.export).\n\nEverything above ran and was verified."
+    },
+    {
+      "id": "09-sketch",
+      "text": "/sketch evening gown",
+      "ms": 5285,
+      "provider": "lelu-direct",
+      "modelAttempts": 0,
+      "ticks": 1,
+      "crosses": 0,
+      "reply": "Done directly with my own tools (no model involved): editable Excalidraw sketch of “evening gown”.\n\n✓ sketch (studio.create)\n  Created [art_ee902131c1b2] drawing “Sketch — Evening Gown” (revision 1); it is open in a Cosmos window and shown as a card in the chat.\n  Change it with studio_revise (artifact: \"art_ee902131c1b2\"). The user can download each verified file from the card.\n\nEverything above ran and was verified."
+    },
+    {
+      "id": "10-collection",
+      "text": "Make me a concept fashion collection called Nocturne",
+      "ms": 7626,
+      "provider": "lelu-direct",
+      "modelAttempts": 0,
+      "ticks": 14,
+      "crosses": 0,
+      "reply": "No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: fashion collection “Nocturne”: moodboard, sketches, concept map, 3D runway.\n\n✓ moodboard texture (creative.art)\n  Created generative visual “Nocturne — moodboard” [art_50a259b137ed] — orbits artwork · seed 535786191 · 1200×800 · lelu.\n  It is open as a window and shown in the chat.\n  Files it can be written as: svg, png, json (creative.export).\n  ✓ Nocturne-moodboard.svg (73.2 KB, sha256 0af3b883ebb5…) [renderMs 3]\n      ✓ file is not empty — 74925 bytes\n      ✓ SVG document — 73.2 KB\n✓ editable sketches (studio.create)\n  Created [art_4a1447658856] drawing “Nocturne — line-up sketches” (revision 1); it is open in a Cosmos window and shown as a card in the chat.\n  Change it with studio_revise (artifact: \"art_4a1447658856\"). The user can download each verified file from the card.\n✓ concept map (creative.diagram)\n  Created diagram visual “Nocturne — concept” [art_bd92638c2dc1] — mindmap diagram · 14 lines.\n  It is open as a window and shown in the chat.\n  Files it can be written as: mmd, svg, png (creative.export).\n  ✓ Nocturne-concept.mmd (0.2 KB, sha256 f9b459c4180f…)\n      ✓ file is not empty — 198 bytes\n      ✓ Mermaid source re-reads as the same diagram type — mindmap\n✓ 3D runway (creative.scene3d)\n  Created scene3d visual “Nocturne — runway” [art_1d40f7c20df9] — 3D scene (runway) · 8 object groups · 3 lights · 0 animated.\n  It is open as a window and shown in the"
+    },
+    {
+      "id": "11-research",
+      "text": "Research coral reef bleaching and show me what you find",
+      "ms": 30810,
+      "provider": "lelu-direct",
+      "modelAttempts": 0,
+      "ticks": 1,
+      "crosses": 0,
+      "reply": "No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: research board on “coral reef bleaching and show me what you find” from public sources.\n\n✓ research (research.board)\n  Research board “coral reef bleaching and show me what you find” [art_62269ab7c61a] and mind map [art_612ca81f3337] from 1 public source:\n  Most cited (Crossref): “I studied what happens to reef fish after coral bleaching. What I saw still make” (2020, 0 citations, doi:10.64628/aa.k7pfere9f); “Coral Bleaching and Global Warming” (1999, 0 citations, doi:10.1093/oso/9780195123647.003.0013); “Severe coral bleaching endangers Great Barrier Reef” (n.d., 0 citations, doi:10.1036/1097-8542.br0321171)\n  Sources:\n  [S1] Crossref — coral reef bleaching and show me what you find — https://api.crossref.org/works?query=coral%20reef%20bleaching%20and%20show%20me%20what%20you%20find&rows=8&select=DOI,title,author,issued,container-title,is-referenced-by-count,URL (retrieved 2026-11-14; Metadata from Crossref)\n  Unavailable: wikipedia.search: Wikipedia search refused with 429 (rate limit: MediaWiki API etiquette: serial requests, identify the client); arxiv.search: arXiv preprints could not be reached (signal timed out)\n\nEverything above ran and was verified."
+    },
+    {
+      "id": "12-capabilities",
+      "text": "/capabilities",
+      "ms": 10932,
+      "provider": "lelu-direct",
+      "modelAttempts": 0,
+      "ticks": 21,
+      "crosses": 2,
+      "reply": "Done directly with my own tools (no model involved): device capabilities and offline tools.\n\n✓ device (device.capabilities)\n  Runtime: browser · 4 cores · ~16 GB · GPU ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)\n  GPU: WebGPU ✗ (no adapter (blocklisted GPU or headless)) · WebGL2 ✓ · WebGL ✓\n  Canvas: 2D ✓ · OffscreenCanvas ✓ · Workers ✓ · WASM ✓\n  Media: WebCodecs video ✓ (encodes vp9) · audio ✓ · MediaRecorder ✓ · Web Audio ✓ · Web Animations ✓ · WebRTC ✓\n  Storage: IndexedDB ✓ · File System Access ✓ · OPFS ✓ · Compression ✓ · quota 4096 MB\n  Speech: synthesis ✓ · recognition ✓ · Clipboard ✓ · Share ✗\n  Paths here: 3D webgl2 · video webcodecs (vp9) · audio offline-audio · raster offscreen · save file-system-access\n✓ offline tools (tools.catalog)\n  creative.art — procedural / generative artwork\n    in: style, seed, palette, density, size → out: SVG (editable), PNG, JSON program\n    runs: browser (any) · offline: yes · network: none · credentials: none · limits: ≤ 4096×4096; ~6k primitives\n    license: LÉLU code (no third-party art library) · resources: CPU, < 1 s, < 1 MB · fallbacks: PNG via Canvas → SVG only outside a browser\n  creative.diagram — diagrams from text or structure\n    in: Mermaid source or nodes/edges/groups → out: .mmd source, SVG, PNG\n    runs: browser (any) · offline: yes · network: none · credentials: none · limits: 40k characters of source\n    license: Mermaid — MIT · resources: Mermaid chunk loaded on first"
+    }
+  ],
+  "exports": [
+    {
+      "title": "Style flowfield",
+      "format": "svg",
+      "ok": true,
+      "file": "Style-flowfield.svg",
+      "ms": 30,
+      "facts": {
+        "renderMs": 26
+      },
+      "line": "✓ Style-flowfield.svg (337.8 KB, sha256 b434dc9abaad…) [renderMs 26]"
+    },
+    {
+      "title": "Style flowfield",
+      "format": "png",
+      "ok": true,
+      "file": "Style-flowfield.png",
+      "ms": 2818,
+      "facts": {
+        "renderMs": 2815
+      },
+      "line": "✓ Style-flowfield.png (269.9 KB, sha256 bae6cd3e6198…) [renderMs 2815]"
+    },
+    {
+      "title": "Style circlepack",
+      "format": "svg",
+      "ok": true,
+      "file": "Style-circlepack.svg",
+      "ms": 109,
+      "facts": {
+        "renderMs": 108
+      },
+      "line": "✓ Style-circlepack.svg (54.4 KB, sha256 d48d8ca7da14…) [renderMs 108]"
+    },
+    {
+      "title": "Style circlepack",
+      "format": "png",
+      "ok": true,
+      "file": "Style-circlepack.png",
+      "ms": 3803,
+      "facts": {
+        "renderMs": 3799
+      },
+      "line": "✓ Style-circlepack.png (458.5 KB, sha256 75688dd15b35…) [renderMs 3799]"
+    },
+    {
+      "title": "Style ridgelines",
+      "format": "svg",
+      "ok": true,
+      "file": "Style-ridgelines.svg",
+      "ms": 16,
+      "facts": {
+        "renderMs": 14
+      },
+      "line": "✓ Style-ridgelines.svg (116.5 KB, sha256 f1fc5730df30…) [renderMs 14]"
+    },
+    {
+      "title": "Style ridgelines",
+      "format": "png",
+      "ok": true,
+      "file": "Style-ridgelines.png",
+      "ms": 2589,
+      "facts": {
+        "renderMs": 2588
+      },
+      "line": "✓ Style-ridgelines.png (159.3 KB, sha256 391d9824accb…) [renderMs 2588]"
+    },
+    {
+      "title": "Style constellation",
+      "format": "svg",
+      "ok": true,
+      "file": "Style-constellation.svg",
+      "ms": 3,
+      "facts": {
+        "renderMs": 2
+      },
+      "line": "✓ Style-constellation.svg (61.4 KB, sha256 a2285ecc4c94…) [renderMs 2]"
+    },
+    {
+      "title": "Style constellation",
+      "format": "png",
+      "ok": true,
+      "file": "Style-constellation.png",
+      "ms": 2868,
+      "facts": {
+        "renderMs": 2867
+      },
+      "line": "✓ Style-constellation.png (175.5 KB, sha256 2628a13f052c…) [renderMs 2867]"
+    },
+    {
+      "title": "Style truchet",
+      "format": "svg",
+      "ok": true,
+      "file": "Style-truchet.svg",
+      "ms": 1,
+      "facts": {
+        "renderMs": 0
+      },
+      "line": "✓ Style-truchet.svg (34.3 KB, sha256 c53a2b3ec351…) [renderMs 0]"
+    },
+    {
+      "title": "Style truchet",
+      "format": "png",
+      "ok": true,
+      "file": "Style-truchet.png",
+      "ms": 2136,
+      "facts": {
+        "renderMs": 2133
+      },
+      "line": "✓ Style-truchet.png (178.2 KB, sha256 72c8e8d2351c…) [renderMs 2133]"
+    },
+    {
+      "title": "Style tree",
+      "format": "svg",
+      "ok": true,
+      "file": "Style-tree.svg",
+      "ms": 15,
+      "facts": {
+        "renderMs": 11
+      },
+      "line": "✓ Style-tree.svg (572.4 KB, sha256 137adc9b59f2…) [renderMs 11]"
+    },
+    {
+      "title": "Style tree",
+      "format": "png",
+      "ok": true,
+      "file": "Style-tree.png",
+      "ms": 2980,
+      "facts": {
+        "renderMs": 2977
+      },
+      "line": "✓ Style-tree.png (259.6 KB, sha256 32711214c1f5…) [renderMs 2977]"
+    },
+    {
+      "title": "Style mosaic",
+      "format": "svg",
+      "ok": true,
+      "file": "Style-mosaic.svg",
+      "ms": 2,
+      "facts": {
+        "renderMs": 1
+      },
+      "line": "✓ Style-mosaic.svg (36.4 KB, sha256 87dbc247c82e…) [renderMs 1]"
+    },
+    {
+      "title": "Style mosaic",
+      "format": "png",
+      "ok": true,
+      "file": "Style-mosaic.png",
+      "ms": 3037,
+      "facts": {
+        "renderMs": 3034
+      },
+      "line": "✓ Style-mosaic.png (217.9 KB, sha256 22c9e2320d52…) [renderMs 3034]"
+    },
+    {
+      "title": "Style orbits",
+      "format": "svg",
+      "ok": true,
+      "file": "Style-orbits.svg",
+      "ms": 6,
+      "facts": {
+        "renderMs": 5
+      },
+      "line": "✓ Style-orbits.svg (72.9 KB, sha256 aff62ddbffc8…) [renderMs 5]"
+    },
+    {
+      "title": "Style orbits",
+      "format": "png",
+      "ok": true,
+      "file": "Style-orbits.png",
+      "ms": 2257,
+      "facts": {
+        "renderMs": 2254
+      },
+      "line": "✓ Style-orbits.png (202.8 KB, sha256 af6c894ceb99…) [renderMs 2254]"
+    },
+    {
+      "title": "Diagram — chat - router - tools router - public da",
+      "format": "mmd",
+      "ok": true,
+      "file": "Diagram-chat---router---tools-router---public-da.mmd",
+      "ms": 1,
+      "facts": {},
+      "line": "✓ Diagram-chat---router---tools-router---public-da.mmd (0.1 KB, sha256 fec1392c4fd6…)"
+    },
+    {
+      "title": "Diagram — chat - router - tools router - public da",
+      "format": "svg",
+      "ok": true,
+      "file": "Diagram-chat---router---tools-router---public-da.svg",
+      "ms": 470,
+      "facts": {
+        "renderMs": 469
+      },
+      "line": "✓ Diagram-chat---router---tools-router---public-da.svg (16.6 KB, sha256 13ffbe252c0b…) [renderMs 469]"
+    },
+    {
+      "title": "Diagram — chat - router - tools router - public da",
+      "format": "png",
+      "ok": true,
+      "file": "Diagram-chat---router---tools-router---public-da.png",
+      "ms": 2510,
+      "facts": {
+        "renderMs": 2509
+      },
+      "line": "✓ Diagram-chat---router---tools-router---public-da.png (23.9 KB, sha256 45bf6c2ccd55…) [renderMs 2509]"
+    },
+    {
+      "title": "LÉLU architecture",
+      "format": "mmd",
+      "ok": true,
+      "file": "LELU-architecture.mmd",
+      "ms": 1,
+      "facts": {},
+      "line": "✓ LELU-architecture.mmd (0.9 KB, sha256 e074fd2f6af7…)"
+    },
+    {
+      "title": "LÉLU architecture",
+      "format": "svg",
+      "ok": true,
+      "file": "LELU-architecture.svg",
+      "ms": 188,
+      "facts": {
+        "renderMs": 186
+      },
+      "line": "✓ LELU-architecture.svg (81.8 KB, sha256 f64380194755…) [renderMs 186]"
+    },
+    {
+      "title": "LÉLU architecture",
+      "format": "png",
+      "ok": true,
+      "file": "LELU-architecture.png",
+      "ms": 2858,
+      "facts": {
+        "renderMs": 2855
+      },
+      "line": "✓ LELU-architecture.png (335.1 KB, sha256 d0cbcd67194f…) [renderMs 2855]"
+    },
+    {
+      "title": "Earthquakes M4.5+ per day this week (USGS)",
+      "format": "html",
+      "ok": true,
+      "file": "Earthquakes-M45-per-day-this-week-USGS.html",
+      "ms": 2,
+      "facts": {},
+      "line": "✓ Earthquakes-M45-per-day-this-week-USGS.html (6.6 KB, sha256 84f6febfb7aa…)"
+    },
+    {
+      "title": "Earthquakes M4.5+ per day this week (USGS)",
+      "format": "svg",
+      "ok": true,
+      "file": "Earthquakes-M45-per-day-this-week-USGS.svg",
+      "ms": 1,
+      "facts": {},
+      "line": "✓ Earthquakes-M45-per-day-this-week-USGS.svg (3.1 KB, sha256 4976cc5e5073…)"
+    },
+    {
+      "title": "Earthquakes M4.5+ per day this week (USGS)",
+      "format": "png",
+      "ok": true,
+      "file": "Earthquakes-M45-per-day-this-week-USGS.png",
+      "ms": 2195,
+      "facts": {},
+      "line": "✓ Earthquakes-M45-per-day-this-week-USGS.png (47.9 KB, sha256 be51cdf0260a…)"
+    },
+    {
+      "title": "Earthquakes M4.5+ per day this week (USGS)",
+      "format": "csv",
+      "ok": true,
+      "file": "Earthquakes-M45-per-day-this-week-USGS.csv",
+      "ms": 2,
+      "facts": {},
+      "line": "✓ Earthquakes-M45-per-day-this-week-USGS.csv (0.1 KB, sha256 c227dfae9a73…)"
+    },
+    {
+      "title": "Earthquakes M4.5+ per day this week (USGS)",
+      "format": "json",
+      "ok": true,
+      "file": "Earthquakes-M45-per-day-this-week-USGS.json",
+      "ms": 1,
+      "facts": {},
+      "line": "✓ Earthquakes-M45-per-day-this-week-USGS.json (1.1 KB, sha256 1467f173abf3…)"
+    },
+    {
+      "title": "Earthquakes M4.5+ this week — magnitude vs depth (USGS)",
+      "format": "html",
+      "ok": true,
+      "file": "Earthquakes-M45-this-week-magnitude-vs-depth-USGS.html",
+      "ms": 7,
+      "facts": {},
+      "line": "✓ Earthquakes-M45-this-week-magnitude-vs-depth-USGS.html (15.5 KB, sha256 5927a9e5f064…)"
+    },
+    {
+      "title": "Preset forest",
+      "format": "glb",
+      "ok": true,
+      "file": "Preset-forest.glb",
+      "ms": 330,
+      "facts": {
+        "meshes": 228,
+        "triangles": 25972,
+        "lights": 2,
+        "animated": 0,
+        "exportMs": 315
+      },
+      "line": "✓ Preset-forest.glb (1281.3 KB, sha256 5c0617e1789c…) [meshes 228, triangles 25972, lights 2, animated 0, exportMs 315]"
+    },
+    {
+      "title": "Preset forest",
+      "format": "gltf",
+      "ok": true,
+      "file": "Preset-forest.gltf",
+      "ms": 251,
+      "facts": {
+        "meshes": 228,
+        "triangles": 25972,
+        "lights": 2,
+        "animated": 0,
+        "exportMs": 232
+      },
+      "line": "✓ Preset-forest.gltf (1867.2 KB, sha256 9d4afb713e1b…) [meshes 228, triangles 25972, lights 2, animated 0, exportMs 232]"
+    },
+    {
+      "title": "Preset city",
+      "format": "glb",
+      "ok": true,
+      "file": "Preset-city.glb",
+      "ms": 81,
+      "facts": {
+        "meshes": 409,
+        "triangles": 4894,
+        "lights": 3,
+        "animated": 1,
+        "exportMs": 71
+      },
+      "line": "✓ Preset-city.glb (779.2 KB, sha256 64842f3bab57…) [meshes 409, triangles 4894, lights 3, animated 1, exportMs 71]"
+    },
+    {
+      "title": "Preset city",
+      "format": "gltf",
+      "ok": true,
+      "file": "Preset-city.gltf",
+      "ms": 102,
+      "facts": {
+        "meshes": 409,
+        "triangles": 4894,
+        "lights": 3,
+        "animated": 1,
+        "exportMs": 89
+      },
+      "line": "✓ Preset-city.gltf (1279.5 KB, sha256 4ed820195d03…) [meshes 409, triangles 4894, lights 3, animated 1, exportMs 89]"
+    },
+    {
+      "title": "Preset desert",
+      "format": "glb",
+      "ok": true,
+      "file": "Preset-desert.glb",
+      "ms": 242,
+      "facts": {
+        "meshes": 11,
+        "triangles": 30264,
+        "lights": 2,
+        "animated": 0,
+        "exportMs": 230
+      },
+      "line": "✓ Preset-desert.glb (777.9 KB, sha256 0007daf84c2d…) [meshes 11, triangles 30264, lights 2, animated 0, exportMs 230]"
+    },
+    {
+      "title": "Preset desert",
+      "format": "gltf",
+      "ok": true,
+      "file": "Preset-desert.gltf",
+      "ms": 301,
+      "facts": {
+        "meshes": 11,
+        "triangles": 30264,
+        "lights": 2,
+        "animated": 0,
+        "exportMs": 288
+      },
+      "line": "✓ Preset-desert.gltf (1045.3 KB, sha256 45f09589d16a…) [meshes 11, triangles 30264, lights 2, animated 0, exportMs 288]"
+    },
+    {
+      "title": "Preset ocean",
+      "format": "glb",
+      "ok": true,
+      "file": "Preset-ocean.glb",
+      "ms": 73,
+      "facts": {
+        "meshes": 47,
+        "triangles": 18268,
+        "lights": 2,
+        "animated": 10,
+        "exportMs": 70
+      },
+      "line": "✓ Preset-ocean.glb (289.7 KB, sha256 f39e526eb5f3…) [meshes 47, triangles 18268, lights 2, animated 10, exportMs 70]"
+    },
+    {
+      "title": "Preset ocean",
+      "format": "gltf",
+      "ok": true,
+      "file": "Preset-ocean.gltf",
+      "ms": 103,
+      "facts": {
+        "meshes": 47,
+        "triangles": 18268,
+        "lights": 2,
+        "animated": 10,
+        "exportMs": 100
+      },
+      "line": "✓ Preset-ocean.gltf (412.6 KB, sha256 4bc6b7388153…) [meshes 47, triangles 18268, lights 2, animated 10, exportMs 100]"
+    },
+    {
+      "title": "Preset space",
+      "format": "glb",
+      "ok": true,
+      "file": "Preset-space.glb",
+      "ms": 143,
+      "facts": {
+        "meshes": 128,
+        "triangles": 32928,
+        "lights": 2,
+        "animated": 6,
+        "exportMs": 121
+      },
+      "line": "✓ Preset-space.glb (2356.8 KB, sha256 b42b6df4cd86…) [meshes 128, triangles 32928, lights 2, animated 6, exportMs 121]"
+    },
+    {
+      "title": "Preset space",
+      "format": "gltf",
+      "ok": true,
+      "file": "Preset-space.gltf",
+      "ms": 232,
+      "facts": {
+        "meshes": 128,
+        "triangles": 32928,
+        "lights": 2,
+        "animated": 6,
+        "exportMs": 196
+      },
+      "line": "✓ Preset-space.gltf (3212.7 KB, sha256 7371d33378d6…) [meshes 128, triangles 32928, lights 2, animated 6, exportMs 196]"
+    },
+    {
+      "title": "Preset crystal-cave",
+      "format": "glb",
+      "ok": true,
+      "file": "Preset-crystal-cave.glb",
+      "ms": 169,
+      "facts": {
+        "meshes": 42,
+        "triangles": 8532,
+        "lights": 3,
+        "animated": 1,
+        "exportMs": 163
+      },
+      "line": "✓ Preset-crystal-cave.glb (275.4 KB, sha256 687398067094…) [meshes 42, triangles 8532, lights 3, animated 1, exportMs 163]"
+    },
+    {
+      "title": "Preset crystal-cave",
+      "format": "gltf",
+      "ok": true,
+      "file": "Preset-crystal-cave.gltf",
+      "ms": 74,
+      "facts": {
+        "meshes": 42,
+        "triangles": 8532,
+        "lights": 3,
+        "animated": 1,
+        "exportMs": 70
+      },
+      "line": "✓ Preset-crystal-cave.gltf (394.3 KB, sha256 c7e107021c8a…) [meshes 42, triangles 8532, lights 3, animated 1, exportMs 70]"
+    },
+    {
+      "title": "Preset runway",
+      "format": "glb",
+      "ok": true,
+      "file": "Preset-runway.glb",
+      "ms": 29,
+      "facts": {
+        "meshes": 34,
+        "triangles": 26028,
+        "lights": 3,
+        "animated": 0,
+        "exportMs": 28
+      },
+      "line": "✓ Preset-runway.glb (122.7 KB, sha256 7a33b7fe4c24…) [meshes 34, triangles 26028, lights 3, animated 0, exportMs 28]"
+    },
+    {
+      "title": "Preset runway",
+      "format": "gltf",
+      "ok": true,
+      "file": "Preset-runway.gltf",
+      "ms": 36,
+      "facts": {
+        "meshes": 34,
+        "triangles": 26028,
+        "lights": 3,
+        "animated": 0,
+        "exportMs": 34
+      },
+      "line": "✓ Preset-runway.gltf (176.2 KB, sha256 1029f1887025…) [meshes 34, triangles 26028, lights 3, animated 0, exportMs 34]"
+    },
+    {
+      "title": "Custom pavilion",
+      "format": "glb",
+      "ok": true,
+      "file": "Custom-pavilion.glb",
+      "ms": 123,
+      "facts": {
+        "meshes": 24,
+        "triangles": 15740,
+        "lights": 2,
+        "animated": 2,
+        "exportMs": 120
+      },
+      "line": "✓ Custom-pavilion.glb (394.2 KB, sha256 6cdf1a0e17c0…) [meshes 24, triangles 15740, lights 2, animated 2, exportMs 120]"
+    },
+    {
+      "title": "Nocturne — line-up sketches",
+      "format": "excalidraw",
+      "ok": true,
+      "ms": 407,
+      "facts": {},
+      "line": "✓ Nocturne-line-up-sketches.excalidraw (14.0 KB, sha256 820c770e417f…) [elements 25]"
+    },
+    {
+      "title": "Nocturne — line-up sketches",
+      "format": "svg",
+      "ok": true,
+      "ms": 578,
+      "facts": {},
+      "line": "✓ Nocturne-line-up-sketches.svg (34.4 KB, sha256 e0e2f759457d…) [elements 25]"
+    },
+    {
+      "title": "Nocturne — line-up sketches",
+      "format": "png",
+      "ok": true,
+      "ms": 2539,
+      "facts": {},
+      "line": "✓ Nocturne-line-up-sketches.png (78.8 KB, sha256 510e09cc8fb3…) [elements 25]"
+    }
+  ],
+  "sceneInfo": {
+    "info": "WebGL2 · 228 meshes · 25,972 triangles · 2 lights — drag to orbit",
+    "colours": 81,
+    "w": 972,
+    "h": 547
+  },
+  "sceneReadyMs": 2785,
+  "play": {
+    "duration": 17.52,
+    "played": 1.460053,
+    "width": 640,
+    "height": 360,
+    "brightness": 127.92447916666667,
+    "audio": {
+      "seconds": 17.513492063492063,
+      "channels": 2,
+      "peak": 0.12399844080209732
+    }
+  },
+  "mediaRecorder": {
+    "path": "mediarecorder",
+    "codec": "video/webm;codecs=vp9,opus",
+    "seconds": 6,
+    "encodeMs": 7028,
+    "bytes": 136578,
+    "size": "640x360",
+    "inspect": {
+      "ok": true,
+      "docType": "webm",
+      "video": true,
+      "audio": true
+    }
+  },
+  "gpu": {
+    "paths": {
+      "render3d": "webgpu",
+      "video": "webcodecs",
+      "videoCodec": "vp9",
+      "audio": "offline-audio",
+      "raster": "offscreen",
+      "save": "file-system-access"
+    },
+    "webgpu": {
+      "available": true,
+      "detail": "google swiftshader"
+    },
+    "webgl2": {
+      "available": true,
+      "detail": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    },
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "codecs": {
+      "available": true,
+      "detail": "encodes vp9"
+    },
+    "audio": {
+      "available": true,
+      "detail": "opus"
+    },
+    "mr": {
+      "available": true,
+      "detail": "video/webm;codecs=vp9"
+    }
+  },
+  "modelAttempts": [],
+  "externalHosts": [
+    "cdn.jsdelivr.net",
+    "nrehsldbfxthspikaxvr.supabase.co",
+    "localhost",
+    "earthquake.usgs.gov",
+    "export.arxiv.org",
+    "esm.sh",
+    "api.crossref.org",
+    "en.wikipedia.org",
+    "api.allorigins.win"
+  ],
+  "pageErrors": [],
+  "consoleErrors": [
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  ],
+  "results": [
+    {
+      "name": "boot: entry screen interactive",
+      "ok": true,
+      "detail": "DOMContentLoaded 813 ms, entry button 9493 ms, heap 297 MB"
+    },
+    {
+      "name": "boot: no creative-kit renderer chunks loaded (lazy)",
+      "ok": true,
+      "detail": "src/core/creative/kit/VisualArtifacts.ts, src/core/creative/kit/GenerativeArt.ts, src/core/creative/kit/Diagram.ts, src/core/creative/kit/InteractiveViz.ts, src/core/creative/kit/VideoComposer.ts, src/core/creative/kit/Scene3D.ts, src/core/creative/kit/CreativeKitTools.ts, src/core/creative/kit/Rng.ts, src/core/creative/kit/CapabilityProfiles.ts, src/core/creative/kit/BrowserCapabilities.ts, src/c"
+    },
+    {
+      "name": "chat 01-art-command: “/art flowfield ocean” executed without a model",
+      "ok": true,
+      "detail": "5464 ms · ✓4 ✗0 · model attempts 0 · Done directly with my own tools (no model involved): generative flowfield artwork (ocean)."
+    },
+    {
+      "name": "chat 02-art-natural: “Make me a generative artwork of a coral tree in forest colours” executed without a model",
+      "ok": true,
+      "detail": "4436 ms · ✓4 ✗0 · model attempts 0 · No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: generative tree artwork (for"
+    },
+    {
+      "name": "chat 03-diagram-arrows: “/diagram chat -> router -> tools, router -> public data, tools -> files” executed without a model",
+      "ok": true,
+      "detail": "3555 ms · ✓4 ✗0 · model attempts 0 · Done directly with my own tools (no model involved): diagram (from arrows)."
+    },
+    {
+      "name": "chat 04-diagram-natural: “Make an architecture diagram of LÉLU” executed without a model",
+      "ok": true,
+      "detail": "4548 ms · ✓4 ✗0 · model attempts 0 · No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: diagram (LÉLU architecture)."
+    },
+    {
+      "name": "chat 05-chart-earthquakes: “/chart earthquakes” executed without a model",
+      "ok": true,
+      "detail": "5266 ms · ✓10 ✗0 · model attempts 0 · Done directly with my own tools (no model involved): earthquakes this week (USGS) → interactive chart."
+    },
+    {
+      "name": "chat 06-scene-command: “/scene forest” executed without a model",
+      "ok": true,
+      "detail": "24427 ms · ✓5 ✗0 · model attempts 0 · Done directly with my own tools (no model involved): 3D forest environment → GLB."
+    },
+    {
+      "name": "chat 07-scene-natural: “Build a 3D desert environment” executed without a model",
+      "ok": true,
+      "detail": "3727 ms · ✓5 ✗0 · model attempts 0 · No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: 3D desert environment → GLB."
+    },
+    {
+      "name": "chat 08-film: “Make a short film about ocean tides” executed without a model",
+      "ok": true,
+      "detail": "3528 ms · ✓1 ✗0 · model attempts 0 · No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: short film about “ocean tide"
+    },
+    {
+      "name": "chat 09-sketch: “/sketch evening gown” executed without a model",
+      "ok": true,
+      "detail": "5285 ms · ✓1 ✗0 · model attempts 0 · Done directly with my own tools (no model involved): editable Excalidraw sketch of “evening gown”."
+    },
+    {
+      "name": "chat 10-collection: “Make me a concept fashion collection called Nocturne” executed without a model",
+      "ok": true,
+      "detail": "7626 ms · ✓14 ✗0 · model attempts 0 · No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: fashion collection “Nocturne"
+    },
+    {
+      "name": "chat 11-research: “Research coral reef bleaching and show me what you find” executed without a model",
+      "ok": true,
+      "detail": "30810 ms · ✓1 ✗0 · model attempts 0 · No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: research board on “coral ree"
+    },
+    {
+      "name": "chat 12-capabilities: “/capabilities” executed without a model",
+      "ok": true,
+      "detail": "10932 ms · ✓21 ✗2 · model attempts 0 · Done directly with my own tools (no model involved): device capabilities and offline tools."
+    },
+    {
+      "name": "chat cards rendered for the artifacts",
+      "ok": true,
+      "detail": "16 cards, 16 artifacts"
+    },
+    {
+      "name": "export Style flowfield → svg",
+      "ok": true,
+      "detail": "✓ Style-flowfield.svg (337.8 KB, sha256 b434dc9abaad…) [renderMs 26] |     ✓ file is not empty — 345928 bytes |     ✓ SVG document — 337.8 KB"
+    },
+    {
+      "name": "export Style flowfield → png",
+      "ok": true,
+      "detail": "✓ Style-flowfield.png (269.9 KB, sha256 bae6cd3e6198…) [renderMs 2815] |     ✓ file is not empty — 276334 bytes |     ✓ PNG signature and size — 1200×800"
+    },
+    {
+      "name": "export Style circlepack → svg",
+      "ok": true,
+      "detail": "✓ Style-circlepack.svg (54.4 KB, sha256 d48d8ca7da14…) [renderMs 108] |     ✓ file is not empty — 55669 bytes |     ✓ SVG document — 54.4 KB"
+    },
+    {
+      "name": "export Style circlepack → png",
+      "ok": true,
+      "detail": "✓ Style-circlepack.png (458.5 KB, sha256 75688dd15b35…) [renderMs 3799] |     ✓ file is not empty — 469541 bytes |     ✓ PNG signature and size — 1200×800"
+    },
+    {
+      "name": "export Style ridgelines → svg",
+      "ok": true,
+      "detail": "✓ Style-ridgelines.svg (116.5 KB, sha256 f1fc5730df30…) [renderMs 14] |     ✓ file is not empty — 119313 bytes |     ✓ SVG document — 116.5 KB"
+    },
+    {
+      "name": "export Style ridgelines → png",
+      "ok": true,
+      "detail": "✓ Style-ridgelines.png (159.3 KB, sha256 391d9824accb…) [renderMs 2588] |     ✓ file is not empty — 163106 bytes |     ✓ PNG signature and size — 1200×800"
+    },
+    {
+      "name": "export Style constellation → svg",
+      "ok": true,
+      "detail": "✓ Style-constellation.svg (61.4 KB, sha256 a2285ecc4c94…) [renderMs 2] |     ✓ file is not empty — 62878 bytes |     ✓ SVG document — 61.4 KB"
+    },
+    {
+      "name": "export Style constellation → png",
+      "ok": true,
+      "detail": "✓ Style-constellation.png (175.5 KB, sha256 2628a13f052c…) [renderMs 2867] |     ✓ file is not empty — 179746 bytes |     ✓ PNG signature and size — 1200×800"
+    },
+    {
+      "name": "export Style truchet → svg",
+      "ok": true,
+      "detail": "✓ Style-truchet.svg (34.3 KB, sha256 c53a2b3ec351…) [renderMs 0] |     ✓ file is not empty — 35086 bytes |     ✓ SVG document — 34.3 KB"
+    },
+    {
+      "name": "export Style truchet → png",
+      "ok": true,
+      "detail": "✓ Style-truchet.png (178.2 KB, sha256 72c8e8d2351c…) [renderMs 2133] |     ✓ file is not empty — 182437 bytes |     ✓ PNG signature and size — 1200×800"
+    },
+    {
+      "name": "export Style tree → svg",
+      "ok": true,
+      "detail": "✓ Style-tree.svg (572.4 KB, sha256 137adc9b59f2…) [renderMs 11] |     ✓ file is not empty — 586122 bytes |     ✓ SVG document — 572.4 KB"
+    },
+    {
+      "name": "export Style tree → png",
+      "ok": true,
+      "detail": "✓ Style-tree.png (259.6 KB, sha256 32711214c1f5…) [renderMs 2977] |     ✓ file is not empty — 265834 bytes |     ✓ PNG signature and size — 1200×800"
+    },
+    {
+      "name": "export Style mosaic → svg",
+      "ok": true,
+      "detail": "✓ Style-mosaic.svg (36.4 KB, sha256 87dbc247c82e…) [renderMs 1] |     ✓ file is not empty — 37223 bytes |     ✓ SVG document — 36.4 KB"
+    },
+    {
+      "name": "export Style mosaic → png",
+      "ok": true,
+      "detail": "✓ Style-mosaic.png (217.9 KB, sha256 22c9e2320d52…) [renderMs 3034] |     ✓ file is not empty — 223175 bytes |     ✓ PNG signature and size — 1200×800"
+    },
+    {
+      "name": "export Style orbits → svg",
+      "ok": true,
+      "detail": "✓ Style-orbits.svg (72.9 KB, sha256 aff62ddbffc8…) [renderMs 5] |     ✓ file is not empty — 74691 bytes |     ✓ SVG document — 72.9 KB"
+    },
+    {
+      "name": "export Style orbits → png",
+      "ok": true,
+      "detail": "✓ Style-orbits.png (202.8 KB, sha256 af6c894ceb99…) [renderMs 2254] |     ✓ file is not empty — 207688 bytes |     ✓ PNG signature and size — 1200×800"
+    },
+    {
+      "name": "export Diagram — chat - router - tools router - public da → mmd",
+      "ok": true,
+      "detail": "✓ Diagram-chat---router---tools-router---public-da.mmd (0.1 KB, sha256 fec1392c4fd6…) |     ✓ file is not empty — 136 bytes |     ✓ Mermaid source re-reads as the same diagram type — flowchart"
+    },
+    {
+      "name": "export Diagram — chat - router - tools router - public da → svg",
+      "ok": true,
+      "detail": "✓ Diagram-chat---router---tools-router---public-da.svg (16.6 KB, sha256 13ffbe252c0b…) [renderMs 469] |     ✓ file is not empty — 17038 bytes |     ✓ SVG document — 16.6 KB"
+    },
+    {
+      "name": "export Diagram — chat - router - tools router - public da → png",
+      "ok": true,
+      "detail": "✓ Diagram-chat---router---tools-router---public-da.png (23.9 KB, sha256 45bf6c2ccd55…) [renderMs 2509] |     ✓ file is not empty — 24485 bytes |     ✓ PNG signature and size — 1208×332"
+    },
+    {
+      "name": "export LÉLU architecture → mmd",
+      "ok": true,
+      "detail": "✓ LELU-architecture.mmd (0.9 KB, sha256 e074fd2f6af7…) |     ✓ file is not empty — 884 bytes |     ✓ Mermaid source re-reads as the same diagram type — flowchart"
+    },
+    {
+      "name": "export LÉLU architecture → svg",
+      "ok": true,
+      "detail": "✓ LELU-architecture.svg (81.8 KB, sha256 f64380194755…) [renderMs 186] |     ✓ file is not empty — 83715 bytes |     ✓ SVG document — 81.7 KB"
+    },
+    {
+      "name": "export LÉLU architecture → png",
+      "ok": true,
+      "detail": "✓ LELU-architecture.png (335.1 KB, sha256 d0cbcd67194f…) [renderMs 2855] |     ✓ file is not empty — 343181 bytes |     ✓ PNG signature and size — 3973×1354"
+    },
+    {
+      "name": "export Earthquakes M4.5+ per day this week (USGS) → html",
+      "ok": true,
+      "detail": "✓ Earthquakes-M45-per-day-this-week-USGS.html (6.6 KB, sha256 84f6febfb7aa…) |     ✓ file is not empty — 6794 bytes |     ✓ every value is an interactive mark — 8/8"
+    },
+    {
+      "name": "export Earthquakes M4.5+ per day this week (USGS) → svg",
+      "ok": true,
+      "detail": "✓ Earthquakes-M45-per-day-this-week-USGS.svg (3.1 KB, sha256 4976cc5e5073…) |     ✓ file is not empty — 3200 bytes |     ✓ SVG document — 3.1 KB"
+    },
+    {
+      "name": "export Earthquakes M4.5+ per day this week (USGS) → png",
+      "ok": true,
+      "detail": "✓ Earthquakes-M45-per-day-this-week-USGS.png (47.9 KB, sha256 be51cdf0260a…) |     ✓ file is not empty — 49002 bytes |     ✓ PNG signature and size — 1520×840"
+    },
+    {
+      "name": "export Earthquakes M4.5+ per day this week (USGS) → csv",
+      "ok": true,
+      "detail": "✓ Earthquakes-M45-per-day-this-week-USGS.csv (0.1 KB, sha256 c227dfae9a73…) |     ✓ file is not empty — 121 bytes |     ✓ row count — 8 rows"
+    },
+    {
+      "name": "export Earthquakes M4.5+ per day this week (USGS) → json",
+      "ok": true,
+      "detail": "✓ Earthquakes-M45-per-day-this-week-USGS.json (1.1 KB, sha256 1467f173abf3…) |     ✓ file is not empty — 1102 bytes |     ✓ re-opened program is valid — chart"
+    },
+    {
+      "name": "export Earthquakes M4.5+ this week — magnitude vs depth (USGS) → html",
+      "ok": true,
+      "detail": "✓ Earthquakes-M45-this-week-magnitude-vs-depth-USGS.html (15.5 KB, sha256 5927a9e5f064…) |     ✓ file is not empty — 15833 bytes |     ✓ every value is an interactive mark — 40/40"
+    },
+    {
+      "name": "export Preset forest → glb",
+      "ok": true,
+      "detail": "✓ Preset-forest.glb (1281.3 KB, sha256 5c0617e1789c…) [meshes 228, triangles 25972, lights 2, animated 0, exportMs 315] |     ✓ file is not empty — 1312044 bytes |     ✓ GLB header, version and length — glTF 2"
+    },
+    {
+      "name": "export Preset forest → gltf",
+      "ok": true,
+      "detail": "✓ Preset-forest.gltf (1867.2 KB, sha256 9d4afb713e1b…) [meshes 228, triangles 25972, lights 2, animated 0, exportMs 232] |     ✓ file is not empty — 1912013 bytes |     ✓ glTF 2.0 JSON with meshes — 228 meshes (buffers embedded)"
+    },
+    {
+      "name": "export Preset city → glb",
+      "ok": true,
+      "detail": "✓ Preset-city.glb (779.2 KB, sha256 64842f3bab57…) [meshes 409, triangles 4894, lights 3, animated 1, exportMs 71] |     ✓ file is not empty — 797908 bytes |     ✓ GLB header, version and length — glTF 2"
+    },
+    {
+      "name": "export Preset city → gltf",
+      "ok": true,
+      "detail": "✓ Preset-city.gltf (1279.5 KB, sha256 4ed820195d03…) [meshes 409, triangles 4894, lights 3, animated 1, exportMs 89] |     ✓ file is not empty — 1310163 bytes |     ✓ glTF 2.0 JSON with meshes — 409 meshes (buffers embedded)"
+    },
+    {
+      "name": "export Preset desert → glb",
+      "ok": true,
+      "detail": "✓ Preset-desert.glb (777.9 KB, sha256 0007daf84c2d…) [meshes 11, triangles 30264, lights 2, animated 0, exportMs 230] |     ✓ file is not empty — 796604 bytes |     ✓ GLB header, version and length — glTF 2"
+    },
+    {
+      "name": "export Preset desert → gltf",
+      "ok": true,
+      "detail": "✓ Preset-desert.gltf (1045.3 KB, sha256 45f09589d16a…) [meshes 11, triangles 30264, lights 2, animated 0, exportMs 288] |     ✓ file is not empty — 1070392 bytes |     ✓ glTF 2.0 JSON with meshes — 11 meshes (buffers embedded)"
+    },
+    {
+      "name": "export Preset ocean → glb",
+      "ok": true,
+      "detail": "✓ Preset-ocean.glb (289.7 KB, sha256 f39e526eb5f3…) [meshes 47, triangles 18268, lights 2, animated 10, exportMs 70] |     ✓ file is not empty — 296644 bytes |     ✓ GLB header, version and length — glTF 2"
+    },
+    {
+      "name": "export Preset ocean → gltf",
+      "ok": true,
+      "detail": "✓ Preset-ocean.gltf (412.6 KB, sha256 4bc6b7388153…) [meshes 47, triangles 18268, lights 2, animated 10, exportMs 100] |     ✓ file is not empty — 422454 bytes |     ✓ glTF 2.0 JSON with meshes — 38 meshes (buffers embedded)"
+    },
+    {
+      "name": "export Preset space → glb",
+      "ok": true,
+      "detail": "✓ Preset-space.glb (2356.8 KB, sha256 b42b6df4cd86…) [meshes 128, triangles 32928, lights 2, animated 6, exportMs 121] |     ✓ file is not empty — 2413316 bytes |     ✓ GLB header, version and length — glTF 2"
+    },
+    {
+      "name": "export Preset space → gltf",
+      "ok": true,
+      "detail": "✓ Preset-space.gltf (3212.7 KB, sha256 7371d33378d6…) [meshes 128, triangles 32928, lights 2, animated 6, exportMs 196] |     ✓ file is not empty — 3289821 bytes |     ✓ glTF 2.0 JSON with meshes — 124 meshes (buffers embedded)"
+    },
+    {
+      "name": "export Preset crystal-cave → glb",
+      "ok": true,
+      "detail": "✓ Preset-crystal-cave.glb (275.4 KB, sha256 687398067094…) [meshes 42, triangles 8532, lights 3, animated 1, exportMs 163] |     ✓ file is not empty — 281960 bytes |     ✓ GLB header, version and length — glTF 2"
+    },
+    {
+      "name": "export Preset crystal-cave → gltf",
+      "ok": true,
+      "detail": "✓ Preset-crystal-cave.gltf (394.3 KB, sha256 c7e107021c8a…) [meshes 42, triangles 8532, lights 3, animated 1, exportMs 70] |     ✓ file is not empty — 403746 bytes |     ✓ glTF 2.0 JSON with meshes — 42 meshes (buffers embedded)"
+    },
+    {
+      "name": "export Preset runway → glb",
+      "ok": true,
+      "detail": "✓ Preset-runway.glb (122.7 KB, sha256 7a33b7fe4c24…) [meshes 34, triangles 26028, lights 3, animated 0, exportMs 28] |     ✓ file is not empty — 125624 bytes |     ✓ GLB header, version and length — glTF 2"
+    },
+    {
+      "name": "export Preset runway → gltf",
+      "ok": true,
+      "detail": "✓ Preset-runway.gltf (176.2 KB, sha256 1029f1887025…) [meshes 34, triangles 26028, lights 3, animated 0, exportMs 34] |     ✓ file is not empty — 180384 bytes |     ✓ glTF 2.0 JSON with meshes — 11 meshes (buffers embedded)"
+    },
+    {
+      "name": "export Custom pavilion → glb",
+      "ok": true,
+      "detail": "✓ Custom-pavilion.glb (394.2 KB, sha256 6cdf1a0e17c0…) [meshes 24, triangles 15740, lights 2, animated 2, exportMs 120] |     ✓ file is not empty — 403688 bytes |     ✓ GLB header, version and length — glTF 2"
+    },
+    {
+      "name": "export Nocturne — line-up sketches → excalidraw",
+      "ok": true,
+      "detail": "✓ Nocturne-line-up-sketches.excalidraw (14.0 KB, sha256 820c770e417f…) [elements 25] |     ✓ re-opens as an Excalidraw scene — 25 editable elements"
+    },
+    {
+      "name": "export Nocturne — line-up sketches → svg",
+      "ok": true,
+      "detail": "✓ Nocturne-line-up-sketches.svg (34.4 KB, sha256 e0e2f759457d…) [elements 25] |     ✓ SVG document — 34.4 KB"
+    },
+    {
+      "name": "export Nocturne — line-up sketches → png",
+      "ok": true,
+      "detail": "✓ Nocturne-line-up-sketches.png (78.8 KB, sha256 510e09cc8fb3…) [elements 25] |     ✓ PNG signature and size — 780×540"
+    },
+    {
+      "name": "chart: hover shows a tooltip with the value",
+      "ok": true,
+      "detail": "2026-11-07: 4"
+    },
+    {
+      "name": "chart: clicking a header sorts the table",
+      "ok": true,
+      "detail": "4 → 4, 8, 12, 14, 19"
+    },
+    {
+      "name": "chart: sources cited with links",
+      "ok": true,
+      "detail": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson"
+    },
+    {
+      "name": "capabilities probed in Chromium",
+      "ok": true,
+      "detail": "{\"render3d\":\"webgpu\",\"video\":\"webcodecs\",\"videoCodec\":\"vp9\",\"audio\":\"offline-audio\",\"raster\":\"offscreen\",\"save\":\"file-system-access\"}"
+    },
+    {
+      "name": "3D: forest renders live with WebGL2 (non-blank)",
+      "ok": true,
+      "detail": "WebGL2 · 228 meshes · 25,972 triangles · 2 lights — drag to orbit · 81 colour bins · ready 2785 ms"
+    },
+    {
+      "name": "film: WebM encoded in Chromium with WebCodecs + mediabunny",
+      "ok": true,
+      "detail": "✓ Ocean-Tides-short-film.webm (1215.3 KB, sha256 2e699dbd8f81…) [path webcodecs, codec vp9, size 640x360, sizing 640×360 (encoder measured 2486 ms/frame here; full 1280×720 would exceed the 70 s budget), seconds 17.5, frames 525, encodeMs 1203106, realtimeFactor 0.01] · heap 923→591 MB"
+    },
+    {
+      "name": "film: plays in a <video> element, frames are not blank",
+      "ok": true,
+      "detail": "{\"duration\":17.52,\"played\":1.460053,\"width\":640,\"height\":360,\"brightness\":127.92447916666667,\"audio\":{\"seconds\":17.513492063492063,\"channels\":2,\"peak\":0.12399844080209732}}"
+    },
+    {
+      "name": "film: soundtrack decodes with audible signal",
+      "ok": true,
+      "detail": "{\"seconds\":17.513492063492063,\"channels\":2,\"peak\":0.12399844080209732}"
+    },
+    {
+      "name": "film (ffprobe): every frame present, VP9 + Opus",
+      "ok": true,
+      "detail": "{\"video\":{\"codec\":\"vp9\",\"width\":640,\"height\":360,\"frames\":525},\"audio\":{\"codec\":\"opus\",\"frames\":876},\"duration\":17.52}"
+    },
+    {
+      "name": "film: MediaRecorder fallback records a WebM when WebCodecs is absent",
+      "ok": true,
+      "detail": "video/webm;codecs=vp9,opus · 640x360px · 6s in 7028 ms · 136578 bytes"
+    },
+    {
+      "name": "film (ffprobe): MediaRecorder fallback is a valid WebM with video + audio (frame count measured, real time)",
+      "ok": true,
+      "detail": "5 frames in 6s; page paints 4/s → ceiling 24 · {\"video\":{\"codec\":\"vp9\",\"width\":640,\"height\":360,\"frames\":5},\"audio\":{\"codec\":\"opus\",\"frames\":100},\"duration\":null}"
+    },
+    {
+      "name": "film: rendered and playable from the window's button",
+      "ok": false,
+      "detail": "null"
+    },
+    {
+      "name": "a chat card's Open button shows the artifact window",
+      "ok": true,
+      "detail": "3 windows"
+    },
+    {
+      "name": "artifacts survive navigation and reload",
+      "ok": true,
+      "detail": "31 visuals/drawings after reload (16 made in chat)"
+    },
+    {
+      "name": "a diagram re-opens and renders after reload",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no model route was contacted during the run",
+      "ok": true,
+      "detail": "0 attempts: "
+    }
+  ]
+}

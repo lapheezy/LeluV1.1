@@ -141,9 +141,23 @@ function SceneView({ program }: { program: Scene3DProgram }) {
       const mixer = built.clips.length ? new T.AnimationMixer(built.scene) : null;
       if (mixer) for (const clip of built.clips) mixer.clipAction(clip).play();
       const clock = new T.Clock();
-      renderer.setAnimationLoop(() => { mixer?.update(clock.getDelta()); controls.update(); renderer.render(built.scene, built.camera); });
+      // Render only while the view is on screen and the tab is visible: a
+      // window scrolled away or behind another must not keep the GPU (or a
+      // software rasteriser) busy. Measured: several open 3D windows held a
+      // 4-vCPU machine at ~310% CPU and starved a film encode.
+      let onScreen = true;
+      const io = typeof IntersectionObserver !== "undefined" ? new IntersectionObserver((entries) => { onScreen = entries.some((e) => e.isIntersecting); }) : null;
+      io?.observe(el);
+      const frame = () => {
+        const dt = clock.getDelta();
+        if (!onScreen || document.hidden) return;
+        mixer?.update(dt);
+        controls.update();
+        renderer.render(built.scene, built.camera);
+      };
+      renderer.setAnimationLoop(frame);
       setInfo(`${mode === "webgpu" ? "WebGPU" : "WebGL2"} · ${built.stats.meshes} meshes · ${built.stats.triangles.toLocaleString()} triangles · ${built.stats.lights} lights${built.clips.length ? " · animated" : ""} — drag to orbit`);
-      cleanup = () => { renderer.setAnimationLoop(null); controls.dispose(); disposeScene(built.scene); renderer.dispose(); renderer.domElement.remove(); };
+      cleanup = () => { io?.disconnect(); renderer.setAnimationLoop(null); controls.dispose(); disposeScene(built.scene); renderer.dispose(); renderer.domElement.remove(); };
     })().catch((error) => setInfo(`The live view could not start (${error instanceof Error ? error.message : String(error)}); GLB export still works.`));
     return () => { disposed = true; cleanup(); };
   }, [program, mode]);
@@ -164,7 +178,7 @@ function FilmView({ program, title }: { program: VideoProgram; title: string }) 
     try {
       const film = await renderFilm(program, (p) => setState((s) => ({ ...s, progress: p })));
       const url = URL.createObjectURL(new Blob([film.bytes as BlobPart], { type: film.mime }));
-      setState({ url, info: `${film.path === "webcodecs" ? "WebCodecs" : "MediaRecorder"} · ${film.codec} · ${film.seconds.toFixed(1)} s · ${film.frames} frames · ${(film.bytes.byteLength / 1024).toFixed(0)} KB · encoded in ${(film.encodeMs / 1000).toFixed(1)} s${film.audio ? " · soundtrack" : ""}` });
+      setState({ url, info: `${film.path === "webcodecs" ? "WebCodecs" : "MediaRecorder"} · ${film.codec} · ${film.width}×${film.height} · ${film.seconds.toFixed(1)} s · ${film.frames} frames · ${(film.bytes.byteLength / 1024).toFixed(0)} KB · encoded in ${(film.encodeMs / 1000).toFixed(1)} s${film.audio ? " · soundtrack" : ""}` });
     } catch (error) {
       setState({ error: error instanceof Error ? error.message : String(error) });
     }

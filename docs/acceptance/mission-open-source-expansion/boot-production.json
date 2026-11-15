@@ -1,0 +1,48 @@
+{
+  "before": [
+    {
+      "entryMs": 2035,
+      "jsFiles": 260,
+      "jsBytes": 5736644,
+      "heapMB": 77,
+      "kitFiles": []
+    },
+    {
+      "entryMs": 1251,
+      "jsFiles": 260,
+      "jsBytes": 5736644,
+      "heapMB": 104,
+      "kitFiles": []
+    },
+    {
+      "entryMs": 1259,
+      "jsFiles": 260,
+      "jsBytes": 5736644,
+      "heapMB": 94,
+      "kitFiles": []
+    }
+  ],
+  "after": [
+    {
+      "entryMs": 1434,
+      "jsFiles": 261,
+      "jsBytes": 5874509,
+      "heapMB": 101,
+      "kitFiles": []
+    },
+    {
+      "entryMs": 1466,
+      "jsFiles": 261,
+      "jsBytes": 5874509,
+      "heapMB": 91,
+      "kitFiles": []
+    },
+    {
+      "entryMs": 1899,
+      "jsFiles": 261,
+      "jsBytes": 5874509,
+      "heapMB": 96,
+      "kitFiles": []
+    }
+  ]
+}

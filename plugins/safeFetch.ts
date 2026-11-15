@@ -69,6 +69,22 @@ export interface SafeFetchResult {
   truncated: boolean;
   bytes: number;
   redirects: string[];
+  /** Whether the site lets other origins embed it (X-Frame-Options / CSP frame-ancestors). Never the headers themselves. */
+  embeddable: boolean;
+}
+
+/**
+ * Does this response allow being shown in a frame on another origin?
+ * Only the verdict leaves the server — the headers never do.
+ */
+export function embeddableFrom(xfo: string, csp: string): boolean {
+  if (/\b(deny|sameorigin)\b/i.test(xfo)) return false;
+  const directive = csp.split(";").map((d) => d.trim()).find((d) => /^frame-ancestors\b/i.test(d));
+  if (!directive) return true;
+  const sources = directive.split(/\s+/).slice(1);
+  if (sources.includes("*")) return true;
+  // 'none', 'self' or a named host list all exclude an unrelated origin.
+  return false;
 }
 
 /* ---------------- address classification ---------------- */
@@ -182,7 +198,7 @@ async function checkTarget(url: URL, resolve: Resolver): Promise<{ address: stri
   return { ...addresses[0], port };
 }
 
-interface HopResult { status: number; location?: string; contentType: string; body: string; truncated: boolean; bytes: number }
+interface HopResult { status: number; location?: string; contentType: string; body: string; truncated: boolean; bytes: number; embeddable?: boolean }
 
 function requestOnce(url: URL, target: { address: string; family: number; port: number }, options: Required<Pick<SafeFetchOptions, "maxBytes">> & SafeFetchOptions, signal: AbortSignal): Promise<HopResult> {
   return new Promise((resolvePromise, reject) => {
@@ -236,7 +252,7 @@ function requestOnce(url: URL, target: { address: string; family: number; port: 
       const chunks: Buffer[] = [];
       const finish = () => {
         const body = Buffer.concat(chunks).subarray(0, options.maxBytes).toString("utf8");
-        resolvePromise({ status, contentType, body, truncated, bytes: decoded });
+        resolvePromise({ status, contentType, body, truncated, bytes: decoded, embeddable: embeddableFrom(String(res.headers["x-frame-options"] ?? ""), String(res.headers["content-security-policy"] ?? "")) });
       };
       const stop = () => {
         // Stop the download now: no more bytes are read from the network.
@@ -318,7 +334,7 @@ export async function safeFetch(rawUrl: string, options: SafeFetchOptions = {}):
         continue;
       }
       if (result.status >= 400 || result.status === 0) throw new SafeFetchError("http_error", `HTTP ${result.status}`, result.status);
-      return { url: url.toString(), status: result.status, contentType: result.contentType, body: result.body, truncated: result.truncated, bytes: result.bytes, redirects };
+      return { url: url.toString(), status: result.status, contentType: result.contentType, body: result.body, truncated: result.truncated, bytes: result.bytes, redirects, embeddable: result.embeddable ?? true };
     }
   } finally {
     clearTimeout(timer);

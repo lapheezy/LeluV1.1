@@ -179,6 +179,14 @@ function Presence({ companion }: { companion: CompanionState }) {
   const chatOpen = Boolean(space.chat) || state.activePanel === "chat";
   const workspaceInUse = modulesOpen || surface.workspaceOwnsScreen || surface.mode === "workspace" || surface.mode === "agent";
   const inWorld = state.activeScene === "genesisv2";
+  /*
+   * When the Workspace Steward has filled the screen with windows there is no
+   * free spot left for her, and the planner's "best" spot is on top of
+   * someone's work. She yields instead (the Universe portrait and the chat
+   * orb still show her state) and comes back the moment there is room.
+   */
+  const windowCover = space.panels.reduce((sum, r) => sum + r.width * r.height, 0) / Math.max(1, viewport.width * viewport.height);
+  const yielded = modulesOpen && windowCover > 0.5;
   const underSheet = compact && !surface.cosmosRendered;
   // Her last frame, captured as she paused beside a phone sheet.
   const [still, setStill] = useState<string | null>(null);
@@ -271,8 +279,8 @@ function Presence({ companion }: { companion: CompanionState }) {
     // sheet she rests just above it, at the edge spot that avoids its
     // controls — or she would be behind it, unreachable.
     zIndex: live ? layer("panelActive") : underSheet ? CHAT_WINDOW_Z + 10 : within("panel", 45),
-    visibility: inWorld ? "hidden" : "visible",
-    opacity: inWorld ? 0 : place === "planned" ? plan.opacity : 1,
+    visibility: inWorld || (yielded && !live) ? "hidden" : "visible",
+    opacity: inWorld || (yielded && !live) ? 0 : place === "planned" ? plan.opacity : 1,
     pointerEvents: "none",
     userSelect: "none",
     // No frame, no title bar: only her, with a soft light of what she is doing.
@@ -282,7 +290,7 @@ function Presence({ companion }: { companion: CompanionState }) {
   return (
     <div
       data-testid="lelu-companion"
-      data-presence={place}
+      data-presence={yielded && !live ? "yielded" : place}
       data-activity={activity}
       data-framing={framing}
       data-spatial-state={place === "planned" ? plan.state : place}
