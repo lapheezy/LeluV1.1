@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-15T00:05:15.834Z",
+  "generatedAt": "2026-11-15T01:18:41.441Z",
   "repository": "lapheezy/LeluV1.1",
   "branch": "freebuff/8994d7c2e03123fc8927b6fc",
-  "commit": "1ba90af965d7dc676d9bc016a964d46fa5f35944",
+  "commit": "6218b0468838f14788b991637633292bc5000e1f",
   "worktree": "/workspace/chats/8994d7c2e03123fc8927b6fc",
   "checks": [
     {
@@ -43,7 +43,7 @@
     {
       "name": "every self-model claim carries exactly one evidence label",
       "ok": true,
-      "detail": "36/36"
+      "detail": "37/37"
     },
     {
       "name": "skills are reported UNAVAILABLE rather than invented",
@@ -63,7 +63,27 @@
     {
       "name": "the report is prompt-safe and labelled",
       "ok": true,
-      "detail": "evidence: 12 verified · 3 reported · 14 partial · 0 blocked · 7 unavailable · 0 proposed · 0 simulated"
+      "detail": "evidence: 12 verified · 3 reported · 14 partial · 0 blocked · 8 unavailable · 0 proposed · 0 simulated"
+    },
+    {
+      "name": "a 2xx completion with a later refusal is failing, not working",
+      "ok": true,
+      "detail": "verified/failing"
+    },
+    {
+      "name": "no credential is BLOCKED, while a credential with no evidence is only UNVERIFIED",
+      "ok": true,
+      "detail": "blocked/unverified"
+    },
+    {
+      "name": "a real SKILL.md parses to a non-invocable catalogue entry",
+      "ok": true,
+      "detail": "demo invocable=false"
+    },
+    {
+      "name": "under a plain Node runner the catalogue is honestly empty, not fabricated",
+      "ok": true,
+      "detail": "0 entries"
     }
   ],
   "passed": true,
@@ -78,12 +98,12 @@
     "failed": []
   },
   "ledger": {
-    "id": "m-c3b45b65",
+    "id": "m-f17af708",
     "status": "active",
     "evidence": "REPORTED",
     "durability": "persisted",
     "nextSafeAction": "review the report and run the signed-in acceptance pass",
-    "resumeBrief": "MISSION CONTINUITY — 1 open workstream\n- [ACTIVE · REPORTED] Mission 14 — cognitive continuity (m-c3b45b65)\n  objective: Evidence-labelled self-model, durable mission ledger and bounded cognitive pulse.\n  next safe action: review the report and run the signed-in acceptance pass\n  where: lapheezy/LeluV1.1 @ freebuff/8994d7c2e03123fc8927b6fc (1ba90af)"
+    "resumeBrief": "MISSION CONTINUITY — 1 open workstream\n- [ACTIVE · REPORTED] Mission 14 — cognitive continuity (m-f17af708)\n  objective: Evidence-labelled self-model, durable mission ledger and bounded cognitive pulse.\n  next safe action: review the report and run the signed-in acceptance pass\n  where: lapheezy/LeluV1.1 @ freebuff/8994d7c2e03123fc8927b6fc (6218b04)"
   },
   "pulse": {
     "summary": {
@@ -103,13 +123,75 @@
     },
     "digest": "COGNITIVE PULSE — 2 recorded (2 need attention, 0 critical)\n  00:00:26 [degradation/attention] Provider openrouter reported failed\n  00:00:01 [failure/attention] Tool cosmos.workspace failed: not permitted"
   },
+  "brokerHealth": [
+    {
+      "id": "cerebras",
+      "available": false,
+      "configured": false,
+      "state": "UNCONFIGURED",
+      "availability": "blocked",
+      "lastSuccessAt": null,
+      "lastFailureAt": null,
+      "lastFailureStatus": null,
+      "lastFailureNote": null,
+      "observedAt": 3000
+    },
+    {
+      "id": "githubModels",
+      "available": true,
+      "configured": true,
+      "state": "CONFIGURED",
+      "availability": "unverified",
+      "lastSuccessAt": null,
+      "lastFailureAt": null,
+      "lastFailureStatus": null,
+      "lastFailureNote": null,
+      "observedAt": 3000
+    },
+    {
+      "id": "groq",
+      "available": true,
+      "configured": true,
+      "state": "COMPLETION_VERIFIED",
+      "availability": "verified",
+      "lastSuccessAt": 1000,
+      "lastFailureAt": null,
+      "lastFailureStatus": null,
+      "lastFailureNote": null,
+      "observedAt": 3000
+    },
+    {
+      "id": "openrouter",
+      "available": true,
+      "configured": true,
+      "state": "COMPLETION_VERIFIED",
+      "availability": "failing",
+      "lastSuccessAt": 1000,
+      "lastFailureAt": 2000,
+      "lastFailureStatus": 429,
+      "lastFailureNote": "rate limit / quota refusal",
+      "observedAt": 3000
+    }
+  ],
+  "skills": {
+    "parsedFixture": {
+      "id": "demo",
+      "name": "demo-skill",
+      "description": "A fixture skill body.",
+      "source": ".agents/skills/demo/SKILL.md",
+      "evidence": "REPORTED",
+      "invocable": false,
+      "reason": "The skill body is authoring guidance. No dispatcher executor is registered for it, so LÉLU can read its catalogue entry but cannot invoke it."
+    },
+    "nodeCatalogueSize": 0
+  },
   "selfModel": {
     "counts": {
       "VERIFIED": 12,
       "REPORTED": 3,
       "PARTIAL": 14,
       "BLOCKED": 0,
-      "UNAVAILABLE": 7,
+      "UNAVAILABLE": 8,
       "PROPOSED": 0,
       "SIMULATED": 0
     },
@@ -163,6 +245,11 @@
         "id": "capability.engineering-sandbox",
         "state": "VERIFIED",
         "source": "src/core/capabilities/CapabilityManifest.ts"
+      },
+      {
+        "id": "providers.health",
+        "state": "UNAVAILABLE",
+        "source": "src/core/model/ProviderHealth.ts → GET /api/model/status"
       },
       {
         "id": "tools.registry",
@@ -255,11 +342,6 @@
         "source": "src/core/cognition/SelfModel.ts → unfinished"
       },
       {
-        "id": "limitation.28",
-        "state": "UNAVAILABLE",
-        "source": "src/core/cognition/SelfModel.ts → limitations"
-      },
-      {
         "id": "limitation.29",
         "state": "UNAVAILABLE",
         "source": "src/core/cognition/SelfModel.ts → limitations"
@@ -270,12 +352,17 @@
         "source": "src/core/cognition/SelfModel.ts → limitations"
       },
       {
+        "id": "limitation.31",
+        "state": "UNAVAILABLE",
+        "source": "src/core/cognition/SelfModel.ts → limitations"
+      },
+      {
         "id": "missions.continuity",
         "state": "VERIFIED",
         "source": "src/core/projects/MissionLedger.ts"
       },
       {
-        "id": "mission.m-c3b45b65",
+        "id": "mission.m-f17af708",
         "state": "REPORTED",
         "source": "src/core/projects/MissionLedger.ts"
       },
@@ -285,17 +372,17 @@
         "source": "src/core/cognition/CognitivePulse.ts"
       },
       {
-        "id": "observation.pulse-650f9731",
+        "id": "observation.pulse-326b820d",
         "state": "PARTIAL",
         "source": "src/core/cognition/CognitivePulse.ts"
       },
       {
-        "id": "observation.pulse-71fbceb1",
+        "id": "observation.pulse-29a3a8f5",
         "state": "PARTIAL",
         "source": "src/core/cognition/CognitivePulse.ts"
       }
     ],
     "unreadableSources": [],
-    "report": "OPERATIONAL SELF — LÉLU at 2026-11-15T00:05:15.833Z\nevidence: 12 verified · 3 reported · 14 partial · 0 blocked · 7 unavailable · 0 proposed · 0 simulated\nautonomy: L3 · network: offline\nCLAIMS:\n  [REPORTED] LÉLU: A persistent cognitive companion — I think, remember, learn and create inside this environment. My self-model updates as I work.\n  [PARTIAL] 30 of 37 declared capabilities are available or degraded; 7 need configuration and 0 are unavailable.\n  [PARTIAL] AI provider chain is available (via groq, openrouter, cerebras, fireworks, anthropic, github-models)\n  [VERIFIED] Long-term memory is available (via builtin)\n  [VERIFIED] Short-term memory is available (via builtin)\n  [VERIFIED] Agent registry is available (via builtin)\n  [VERIFIED] Executive board is available (via builtin)\n  [VERIFIED] Task engine is available (via builtin)\n  [VERIFIED] Cosmos navigation is available (via builtin)\n  [VERIFIED] Engineering sandbox is available (via builtin)\n  [PARTIAL] 80 of 112 registered tools are marked available. Registration is not execution; only tool calls recorded in the pulse count as run.\n  [PARTIAL] Engineering: 6/21 tools available\n  [PARTIAL] Acquisition: 11/17 tools available\n  [PARTIAL] Studio: 13/13 tools available\n  [PARTIAL] Device: 3/8 tools available\n  [PARTIAL] Memory: 6/6 tools available\n  [PARTIAL] Environment: 6/6 tools available\n  [UNAVAILABLE] GitHub: 0/6 tools available\n  [PARTIAL] Continuity: 5/5 tools available\n  [UNAVAILABLE] No runtime skill registry is exposed to cognition. Authoring-time skills exist under .agents/skills, but they are not discoverable or invocable by LÉLU at runtime.\n  [PARTIAL] 11 agent(s) stored; 11 currently active or running.\n  [REPORTED] 29 applications are catalogued in the home (5 groups). A catalog entry means the panel is registered, not that every workflow inside it has been exercised.\n  [VERIFIED] The workspace runtime is present; no panes are open in this snapshot.\n  [VERIFIED] 2 project(s) stored; 2 active.\n  [VERIFIED] Unknown / Web browser; offline; 8 cores; WebGL absent; storage quota unknown bytes.\n  [VERIFIED] Autonomy is at L3; actions above it require approval or are refused.\n  [UNAVAILABLE] No active goals are recorded.\n  [UNAVAILABLE] No unfinished work is recorded.\n  … 8 more claim(s) not shown.\nOPEN WORKSTREAMS:\n  [ACTIVE · REPORTED] Mission 14 — cognitive continuity — next: review the report and run the signed-in acceptance pass"
+    "report": "OPERATIONAL SELF — LÉLU at 2026-11-15T01:18:41.440Z\nevidence: 12 verified · 3 reported · 14 partial · 0 blocked · 8 unavailable · 0 proposed · 0 simulated\nautonomy: L3 · network: offline\nCLAIMS:\n  [REPORTED] LÉLU: A persistent cognitive companion — I think, remember, learn and create inside this environment. My self-model updates as I work.\n  [PARTIAL] 30 of 37 declared capabilities are available or degraded; 7 need configuration and 0 are unavailable.\n  [PARTIAL] AI provider chain is available (via groq, openrouter, cerebras, fireworks, anthropic, github-models)\n  [VERIFIED] Long-term memory is available (via builtin)\n  [VERIFIED] Short-term memory is available (via builtin)\n  [VERIFIED] Agent registry is available (via builtin)\n  [VERIFIED] Executive board is available (via builtin)\n  [VERIFIED] Task engine is available (via builtin)\n  [VERIFIED] Cosmos navigation is available (via builtin)\n  [VERIFIED] Engineering sandbox is available (via builtin)\n  [UNAVAILABLE] Provider health has not been probed in this runtime.\n  [PARTIAL] 80 of 112 registered tools are marked available. Registration is not execution; only tool calls recorded in the pulse count as run.\n  [PARTIAL] Engineering: 6/21 tools available\n  [PARTIAL] Acquisition: 11/17 tools available\n  [PARTIAL] Studio: 13/13 tools available\n  [PARTIAL] Device: 3/8 tools available\n  [PARTIAL] Memory: 6/6 tools available\n  [PARTIAL] Environment: 6/6 tools available\n  [UNAVAILABLE] GitHub: 0/6 tools available\n  [PARTIAL] Continuity: 5/5 tools available\n  [UNAVAILABLE] No runtime skill registry is exposed to cognition. Authoring-time skills exist under .agents/skills, but they are not discoverable or invocable by LÉLU at runtime.\n  [PARTIAL] 11 agent(s) stored; 11 currently active or running.\n  [REPORTED] 29 applications are catalogued in the home (5 groups). A catalog entry means the panel is registered, not that every workflow inside it has been exercised.\n  [VERIFIED] The workspace runtime is present; no panes are open in this snapshot.\n  [VERIFIED] 2 project(s) stored; 2 active.\n  [VERIFIED] Unknown / Web browser; offline; 8 cores; WebGL absent; storage quota unknown bytes.\n  [VERIFIED] Autonomy is at L3; actions above it require approval or are refused.\n  [UNAVAILABLE] No active goals are recorded.\n  … 9 more claim(s) not shown.\nOPEN WORKSTREAMS:\n  [ACTIVE · REPORTED] Mission 14 — cognitive continuity — next: review the report and run the signed-in acceptance pass"
   }
 }

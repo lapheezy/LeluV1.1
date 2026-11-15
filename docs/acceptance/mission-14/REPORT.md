@@ -1,6 +1,6 @@
-# MISSION 14 — COGNITIVE CONTINUITY (PHASE 0–3 SLICE)
+# MISSION 14 — COGNITIVE CONTINUITY (PHASE 0–4 SLICES)
 
-Date: 2026-11-14
+Date: 2026-11-15 (first slice 2026-11-14)
 Repository: `lapheezy/LeluV1.1`
 Branch: `freebuff/8994d7c2e03123fc8927b6fc`
 Starting commit: `1ba90af` ("Finish the inline chat experience: page reading, no pop-ups, 3D files")
@@ -37,7 +37,7 @@ It reads and labels:
 | Who/what she is | `SelfModel.identity` | `REPORTED` |
 | Cognition, memory, models, agents, tasks | `CapabilityManifest` | per capability: `VERIFIED` only with a recent real success, else `PARTIAL`/`BLOCKED` |
 | Tools / capabilities | `ToolRegistry` | `PARTIAL` (registered ≠ executed) |
-| Skills | `.agents/skills`, `skills-lock.json` | **`UNAVAILABLE`** — no runtime skill registry exists |
+| Skills | `SkillRegistry` over `.agents/skills` | **`PARTIAL`** — 2 real bodies catalogued, **0 invocable** (authoring guidance, not an executor) |
 | Agents | `AgentStore` | `PARTIAL` |
 | Applications | `homeCatalog.APPS` | `REPORTED` |
 | Workspaces | `WorkspaceEngine.getState()` | `VERIFIED` (live read) |
@@ -95,7 +95,69 @@ Evidence status: **VERIFIED** (registered + executable in the dispatcher; execut
 ### 1.6 Wiring and surface
 
 - `src/core/Bootstrap.ts`: registers continuity tools and starts the pulse once, after Cosmos tools. Registration failures are logged, not hidden.
-- `src/app/scene/genesis/GenesisCognitionPanel.tsx`: new **Continuity** tab showing evidence counts, claims with sources, open workstreams (status/evidence/durability/next safe action/blockers) and the live pulse digest. The self-model is assembled on tab open or on "Read now", not polled.
+- `src/app/scene/genesis/GenesisCognitionPanel.tsx`: new **Continuity** tab showing evidence counts, claims with sources, per-provider broker observations (availability, last success, last failure), open workstreams (status/evidence/durability/next safe action/blockers) and the live pulse digest. The self-model is assembled on tab open or on "Read now", not polled.
+
+### 1.7 Next slice — real conversation, provider health, recovery, skills
+
+This slice did not rebuild the continuity foundation. It exercised it and fixed what the exercise exposed.
+
+#### 1.7.1 A real signed-in conversation
+
+Turn 1 (real model, real dispatcher, no injected fixture):
+
+| Step | Observed |
+|---|---|
+| Inspect | `self.operational` returned `13 verified · 4 reported · 16 partial · 0 blocked · 5 unavailable` (38 claims). |
+| Create | `mission.record` created `m-406ecd7d`, title "Mission 14 conversational proof", `durability: persisted`. |
+| Reply | The model reported the real id and counts; no invented result. |
+
+Turn 2 (a second real turn, same conversation): `mission.update` ran three times and the persisted record changed at 01:02:30–01:02:36 UTC: decision `chat tool loop works end to end`, blocker `providers are rate limited`, next action `read the resume brief and continue`. The final assistant text for that turn never arrived because both remote providers were rate-limited mid-loop. The state change is real; the missing reply is not presented as success.
+
+**Defect found and fixed:** the turn where the model said it lacked `mission_update` was not a model lie. A real turn log showed only a subset of tools offered. `src/core/tools/ToolSchemas.ts` now pins the five continuity tools as one family when a turn is about continuity, so the model sees the whole family (tested).
+
+#### 1.7.2 Provider health from the existing broker
+
+`plugins/modelApi.ts` now records, server-side, `lastSuccessAt` (only on a real 2xx completion), `lastFailureAt`, `lastFailureStatus` and `lastFailureNote`; a 2xx whose body is not a completion deletes the success it briefly recorded. `ProviderHealth.ts` gained a separate `BrokerHealth` reader (not a second provider registry) that persists the `/api/model/status` observation in `lelu.provider-health.v1`. The Continuity tab renders each provider with availability, last success and last failure.
+
+Live observation from this run (no keys shown):
+
+| Provider | State | Evidence |
+|---|---|---|
+| `openrouter` | `COMPLETION_VERIFIED` | last success 20:06:43; later 429s recorded as failures, so it is not called healthy now |
+| `groq` | `CONFIGURED` | no success observed after restart; last failure HTTP 429 (daily token cap) |
+| `githubModels` | `CONTRACT_VIOLATION` | HTTP 200 `text/plain` body, correctly refused as not-a-completion |
+| `anthropic`, `cerebras`, `fireworks`, `gemini`, `mistral` | `UNCONFIGURED` | **blocked**, not "ready" |
+
+**Defect found and fixed:** `BrokerHealth` stored the global `fetch` and called it as a method; in the browser this threw `Illegal invocation`, so every probe stored an empty provider list. It now binds the function. The screenshot below is from the fixed path.
+
+#### 1.7.3 Runtime skills — a real catalogue, not an executor
+
+`src/core/skills/SkillRegistry.ts` reads the actual `.agents/skills/*/SKILL.md` bodies through Vite's raw glob at build time and parses name/description/source. Every entry is `invocable: false` with a stated reason: the body is authoring guidance and no dispatcher executor is registered for it. Nothing was invented.
+
+Live self-model claim (read in the page):
+
+```
+[PARTIAL] 2 runtime skill(s) catalogued from .agents/skills; 0 invocable.
+Catalogue: supabase, supabase-postgres-best-practices.
+```
+
+Under a plain Node runner Vite's glob is absent, so the catalogue is honestly empty and the self-model returns to `UNAVAILABLE`; the verification script asserts both behaviours and parses a fixture `SKILL.md`.
+
+#### 1.7.4 Interruption and recovery
+
+After the conversational turn, the page was reloaded and a fresh browser tab was opened. `m-406ecd7d` was still present in `lelu.lelu.missions.v1` with `durability: persisted`, its decision, its blocker and its next action. The real dispatcher then ran `mission.brief` against that persisted record after reload:
+
+```
+Mission 14 conversational proof (m-406ecd7d)
+  status: blocked · evidence: REPORTED · owner: lelu
+  objective: Prove the continuity tools work in a real conversation
+  next safe action: read the resume brief and continue
+  blockers: providers are rate limited [REPORTED]
+  decisions: chat tool loop works end to end
+  durability: persisted · updated 2026-11-15T01:02:36.762Z
+```
+
+That is the saved state, including completed vs unfinished work and the next safe action. **Not verified:** a model-authored resume sentence in a new conversation. Every remote provider was out of free quota at that point (`429`), so the local fallback replied without tools. This is recorded as **BLOCKED**, not as a pass.
 
 ---
 
@@ -120,6 +182,7 @@ No LangGraph/LangChain. No Anthropic call. No paid dependency added. No LiveKit/
 
 New:
 - `src/core/operational-intelligence/evidence.ts`
+- `src/core/skills/SkillRegistry.ts` (read-only runtime catalogue)
 - `src/core/projects/MissionLedger.ts`
 - `src/core/cognition/CognitivePulse.ts`
 - `src/core/cognition/OperationalSelfModel.ts`
@@ -130,8 +193,14 @@ New:
 - `docs/acceptance/mission-14/continuity-evidence.json` (generated)
 
 Modified:
-- `src/core/Bootstrap.ts` (imports; registration + pulse start)
-- `src/app/scene/genesis/GenesisCognitionPanel.tsx` (Continuity tab)
+- `src/core/Bootstrap.ts` (imports; registration + pulse start + broker refresh)
+- `src/app/scene/genesis/GenesisCognitionPanel.tsx` (Continuity tab, provider rows)
+- `src/core/model/ProviderHealth.ts` (broker reader; bound `fetch`)
+- `src/core/tools/ToolSchemas.ts` (continuity tool family pinned per turn)
+- `src/core/cognition/OperationalSelfModel.ts` (provider/skills claims)
+- `plugins/modelApi.ts` (server-side last success/failure timestamps)
+- `tests/mission-continuity.test.ts` (16 tests)
+- `scripts/verify-mission-continuity.ts` (broker/skill checks)
 
 No existing file was deleted, renamed or overwritten destructively.
 
@@ -144,9 +213,10 @@ No existing file was deleted, renamed or overwritten destructively.
 | TypeScript | `npx tsc -b --force` | **exit 0** |
 | Lint | `npx oxlint` | **0 errors**, 168 pre-existing warnings; no warning in the new files |
 | Build | `npm run build` | **exit 0**, built in 5.92 s |
-| Focused tests | `npx tsx … --test tests/mission-continuity.test.ts` | **13/13 pass**, exit 0 |
-| Full suite | `npm test` | **2185 pass / 2 fail / 8 skipped of 2195**, exit 1 |
-| Verification script | `npx tsx scripts/verify-mission-continuity.ts` | see generated JSON |
+| Focused tests | `npx tsx … --test tests/mission-continuity.test.ts` | **16/16 pass**, exit 0 |
+| Full suite | `npm test` | **2188 pass / 2 fail / 8 skipped of 2198**, exit 1 |
+| Lint | `npx oxlint` | **0 errors**, 169 warnings (pre-existing style warnings) |
+| Verification script | `npx tsx scripts/verify-mission-continuity.ts` | **16/16 checks pass**; JSON regenerated |
 
 ### The two full-suite failures (not caused by this change)
 
@@ -176,6 +246,14 @@ MISSION CONTINUITY — 1 open workstream
   where: lapheezy/LeluV1.1 @ freebuff/8994d7c2e03123fc8927b6fc (1ba90af)
 ```
 
+### 5.1 This slice's screenshots
+
+- `artifacts/mission-14-next/chat-turn1.png` — the real Chat Universe turn: user prompt, "2 tools used", and the continuity prompt in the thread.
+- `artifacts/mission-14-next/continuity-providers.png` — Continuity tab after the fetch fix: `OPERATIONAL SELF · EVIDENCE-LABELLED`, counts, and the real `PROVIDERS · OBSERVED` rows (`openrouter COMPLETION_VERIFIED`, `groq CONFIGURED` with a 429 failure, `githubModels CONTRACT_VIOLATION`, unconfigured providers `blocked`).
+- `artifacts/mission-14-next/boot.png` — page state used for the first turn (browser-only visual anomaly in this VM; it is not evidence of the app's normal render).
+
+The screenshots are of the real page. The chat-turn1 image was reviewed and shows the tool activity, not the whole final answer; the answer text itself is quoted in §1.7.1 from the live DOM. The provider image was reviewed after the fix.
+
 Console/network during the run: no page error from the new code. Pre-existing 403s on `manifest.webmanifest` and 503s on `/api/engineer/status` remain (the engineering runtime is not running in this VM); they are not claimed as working.
 
 ---
@@ -185,10 +263,10 @@ Console/network during the run: no page error from the new code. Pre-existing 40
 | Phase | Status | Evidence / existing implementation |
 |---|---|---|
 | 0 — Inspect architecture, branches, worktrees | **VERIFIED** | This worktree at `1ba90af`; own branch; no sibling worktree touched. Existing map in `docs/audit/EXISTING_CAPABILITY_INVENTORY.md`. |
-| 1 — Operational self-model | **VERIFIED** (first slice) | `OperationalSelfModel` + 7 evidence labels + live browser tab. Live-provider health is not probed; it is labelled `PARTIAL`. |
+| 1 — Operational self-model | **VERIFIED** | `OperationalSelfModel` + 7 evidence labels + live browser tab. Broker-observed provider health is recorded with per-provider timestamps; `CONFIGURED` is never reported as working. |
 | 2 — Project Brain + Mission Continuity Ledger | **VERIFIED** (ledger + resume brief); **PARTIAL** (broad project graph) | Ledger persists workstreams, files, decisions, blockers, next actions. A repository/branch/commit graph is recorded per mission but not automatically crawled. Existing project/agents/tasks stores were reused. |
 | 3 — Cognitive Pulse / event-driven awareness | **VERIFIED** (bounded) | Existing `AgentEventBus` reducer, dedupe, persistence, live 16-event digest. No polling, no fabricated background awareness. |
-| 4 — Skill/capability/application/workspace registries | **PARTIAL** | Tool registry, capability manifest, app catalog, workspace state are now distinguished in one self-model. **Skills have no runtime registry — `UNAVAILABLE`.** No competing registry was created. |
+| 4 — Skill/capability/application/workspace registries | **PARTIAL** | Tool registry, capability manifest, app catalog and workspace state are distinguished in one self-model. **Skills:** a real, read-only catalogue of 2 bodies exists; **0 are invocable**, and the claim states that limit. No competing registry was created. |
 | 5 — Persistent Workspace Runtime | **NOT CHANGED / PARTIAL** | Existing `WorkspaceEngine` and module host remain authoritative; the self-model reads live panes. Multi-pane persistence already exists; it was not duplicated. |
 | 6 — Cosmos Composition Engine/Forge | **PROPOSED** | Existing `core/cosmos`, `core/forge`, `WorkspaceAPI` are the foundation. No composition pipeline was implemented this session. |
 | 7 — Earth Core | **PROPOSED** | Existing `core/earth` and `core/spatial` remain; no second spatial engine built, no `three-live` adoption. |
@@ -224,9 +302,9 @@ No monitoring, tracking or private-surveillance capability was added.
 
 ## 9. Remaining gaps and next safe actions
 
-1. **Skills registry is genuinely absent** (`UNAVAILABLE`). Next safe action: define one runtime skill contract over the existing authoring skills, without creating a fourth registry.
+1. **Skills are catalogued but not invocable** (`PARTIAL`). Next safe action: define one runtime skill contract and register an executor per skill deliberately; do not mark existing bodies as runnable.
 2. **Project graph breadth is narrow.** The ledger records repo/branch/commit per workstream but does not crawl branches, worktrees or commits automatically. Next safe action: a read-only repository indexer feeding the ledger, with explicit paths and no writes.
-3. **Live provider health is not probed** by the self-model; it is labelled `PARTIAL`. Next safe action: reuse the existing `/api/model/status` probe and record the timestamp as evidence.
+3. **Provider capacity, not provider health, blocks the conversational resume.** `/api/model/status` is now live and timestamped; every configured remote provider was out of free quota during the final pass. Next safe action: retry the resume turn when quota is available, or add a genuinely local completion model; do not weaken the 429 handling.
 4. **Offline sync/recovery** is foundation-only (`export`/`mergeRemote`). Next safe action: wire the existing Supabase persistence and define conflict UI before claiming cross-device continuity.
 5. **Cosmos/Forge, Earth Core, Eagle Eye** remain `PROPOSED`; each needs its own reviewed slice and licence decision.
 6. **Two full-suite failures** are environment/dependency issues in untouched paths; neither is fixed or hidden here.
@@ -235,9 +313,9 @@ No monitoring, tracking or private-surveillance capability was added.
 
 ## 10. Evidence labels for this report
 
-- `VERIFIED`: typecheck, lint, build, focused tests, browser boot, Continuity tab, persisted ledger record, live pulse digest.
-- `PARTIAL`: self-model provider health, skills, project-graph breadth, offline sync foundation.
-- `BLOCKED`: none introduced by this slice.
-- `UNAVAILABLE`: runtime skill registry; live engineering runtime (`/api/engineer/status` 503).
+- `VERIFIED`: typecheck, lint, build, focused tests, browser boot, Continuity tab, persisted ledger record, live pulse digest, real inspect/create/update turns, persisted `mission.brief` after reload, two catalogued skill bodies, bound broker probe.
+- `PARTIAL`: provider availability over time (real 2xx then 429), skills (catalogued, not invocable), project-graph breadth, offline sync foundation.
+- `BLOCKED`: model-authored resume reply in a fresh conversation (every configured remote provider returned 429 during the final pass).
+- `UNAVAILABLE`: any invocable skill executor (the catalogue is read-only); live engineering runtime (`/api/engineer/status` 503).
 - `PROPOSED`: Cosmos Composition Engine, Earth Core adoption, Eagle Eye absorption, full offline sync.
 - `SIMULATED`: nothing in this slice is presented as live; tests use injected event buses and in-memory stores only where stated.
