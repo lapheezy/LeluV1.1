@@ -4,7 +4,7 @@
  * those that did not (marked, never offered as ready).
  */
 
-import { memo, useState } from "react";
+import { lazy, memo, Suspense, useState } from "react";
 import { Boxes, Check, Download, ExternalLink, Maximize2, Minimize2, TriangleAlert } from "lucide-react";
 import { useAtelierStore } from "../atelier/AtelierWindow";
 import { openAtelier } from "../../../../core/atelier/AtelierTools";
@@ -13,8 +13,10 @@ import { artifactGist, firstChartSvg } from "../../../../core/studio/StudioPrevi
 import type { ExportFormat } from "../../../../core/studio/StudioTypes";
 import { KIND_ICON } from "./GenesisCreationStudio";
 import { downloadBytes, formatBytes, KIND_LABEL, openArtifacts, useStudioStore } from "./useStudio";
-import VisualViewer from "./VisualViewer";
-import DrawingEditor from "./DrawingEditor";
+// The inline editors load when a card actually embeds one: a static import put
+// Excalidraw (~1.1 MB) on the path of every chat window that shows a card.
+const VisualViewer = lazy(() => import("./VisualViewer"));
+const DrawingEditor = lazy(() => import("./DrawingEditor"));
 import "./studio.css";
 
 const ACTION: Record<ActivityArtifact["action"], string> = { created: "Created", revised: "Revised", exported: "Exported", restored: "Restored", opened: "Opened" };
@@ -107,11 +109,13 @@ function VisualCard({ card }: { card: ActivityArtifact }) {
       </header>
       {live && embedded ? (
         <div className="lst-chat-embed">
-          {embedded.kind === "drawing"
-            // Excalidraw itself, editable in the thread: the user draws here, it
-            // saves to this artifact, and Expand gives it the height it needs.
-            ? <DrawingEditor artifactId={card.artifactId} spec={embedded} readOnly={false} />
-            : <VisualViewer artifact={live} rev={card.rev} spec={embedded} />}
+          <Suspense fallback={<p className="lst-note" role="status">Opening…</p>}>
+            {embedded.kind === "drawing"
+              // Excalidraw itself, editable in the thread: the user draws here, it
+              // saves to this artifact, and Expand gives it the height it needs.
+              ? <DrawingEditor artifactId={card.artifactId} spec={embedded} readOnly={false} />
+              : <VisualViewer artifact={live} rev={card.rev} spec={embedded} />}
+          </Suspense>
         </div>
       ) : (
         <p className="lst-gist">Not on this device — this reply was recorded elsewhere.</p>
