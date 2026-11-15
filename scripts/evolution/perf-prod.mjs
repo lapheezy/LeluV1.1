@@ -27,7 +27,7 @@ for (const [label, mk] of [["desktop", () => desktop(browser)], ["iphone", () =>
   await boot(page); await openUniverse(page);
   let t = Date.now(); await openSeededChat(page); await page.waitForSelector(".lst-root"); const chatOpen = Date.now() - t;
   const stageMs = {};
-  for (const [s, sel] of [["cinematic", ".lst-cine-chapter"], ["board", ".lbd-card"], ["spatial", ".lsp-card"], ["gallery", ".lst-tile img"]]) {
+  for (const [s, sel] of [["cinematic", ".lst-cine-chapter"], ["board", ".lbd-card"], ["spatial", "[data-lelu-env-view=\"scenes\"]"], ["gallery", ".lst-tile img"], ["document", "[data-lelu-env-view=\"document\"]"], ["research", "[data-lelu-env-view=\"research\"]"], ["data", "[data-lelu-env-view=\"data\"]"]]) {
     t = Date.now();
     await page.locator(`[data-lelu-stage="${s}"]`).first().click();
     await page.waitForSelector(sel, { timeout: 30000 }).catch(() => {});
