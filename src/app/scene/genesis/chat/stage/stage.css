@@ -290,3 +290,6 @@
 .lst-autonote { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 8px 10px 0; padding: 8px 10px 8px 14px; border-radius: 14px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.18)); border: 1px solid rgba(240, 171, 252, 0.35); color: #fdf4ff; font: 500 12.5px system-ui; flex-shrink: 0; animation: lev-in 280ms ease both; }
 .lst-autonote span { flex: 1 1 200px; }
 .lst-autonote button { min-height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.25); background: rgba(0, 0, 0, 0.15); color: #fff; font: 600 12px system-ui; cursor: pointer; }
+/* Panels scroll; their contents keep their size (a 16:9 3D view must never be squashed). */
+.lev > * { flex-shrink: 0; }
+.lst-stack > .lev[data-lelu-env-view="scenes"] { max-height: none; flex: 1 1 auto; }
