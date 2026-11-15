@@ -92,6 +92,8 @@ interface BrowserTab {
 }
 
 const TABS_KEY = "lelu.browser.tabs.v1";
+/** Set by whoever opens the browser on an address (e.g. a research source). */
+export const PENDING_URL_KEY = "lelu.browser.pending-url";
 const QUICK = [
   { label: "Wikipedia", url: "https://en.wikipedia.org/wiki/Bioluminescence" },
   { label: "NASA", url: "https://www.nasa.gov" },
@@ -393,6 +395,17 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
       }
     }
     window.addEventListener("genesis-browser-goto", onGoto);
+    // An address left for a browser that was not mounted yet (or remounting):
+    // collected here, so a hand-off can never be lost to timing.
+    try {
+      const pending = window.sessionStorage.getItem(PENDING_URL_KEY);
+      if (pending) {
+        window.sessionStorage.removeItem(PENDING_URL_KEY);
+        onGoto(new CustomEvent("genesis-browser-goto", { detail: { url: pending } }));
+      }
+    } catch {
+      /* storage unavailable: the event path still works */
+    }
     return () => window.removeEventListener("genesis-browser-goto", onGoto);
   }, [setCurrent]);
 

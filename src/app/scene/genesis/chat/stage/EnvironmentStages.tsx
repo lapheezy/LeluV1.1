@@ -173,10 +173,14 @@ function ResearchEnv({ conversationId, model, messages, setStage }: EnvProps) {
   }, [messages, model.links, works]);
 
   const openInBrowser = (url: string) => {
-    // The browser panel is a lazy chunk: deliver the address once it is mounted.
+    // The browser panel is a lazy chunk: leave the address for it (collected on
+    // mount) and also tell a panel that is already mounted.
+    try { window.sessionStorage.setItem("lelu.browser.pending-url", url); } catch { /* event path below */ }
     const deliver = (attempt: number) => {
-      if (document.querySelector("[data-lelu-browser]")) window.dispatchEvent(new CustomEvent("genesis-browser-goto", { detail: { url } }));
-      else if (attempt < 20) setTimeout(() => deliver(attempt + 1), 250);
+      if (document.querySelector("[data-lelu-browser]")) {
+        try { window.sessionStorage.removeItem("lelu.browser.pending-url"); } catch { /* fine */ }
+        window.dispatchEvent(new CustomEvent("genesis-browser-goto", { detail: { url } }));
+      } else if (attempt < 20) setTimeout(() => deliver(attempt + 1), 250);
     };
     setTimeout(() => deliver(0), 50);
     arrangeWorkspace({ modules: () => genesis.state.modules, openModule: genesis.openModule, setModulePresentation: genesis.setModulePresentation, raiseModule: genesis.raiseModule, activeConversationId: () => conversationId }, "split", ["browser", chatWindowId(conversationId)], "user");

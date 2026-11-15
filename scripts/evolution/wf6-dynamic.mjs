@@ -23,6 +23,9 @@ await page.locator(".lws-tab", { hasText: "Deep-sea" }).first().click().catch(()
 await send(page, "put the browser beside the chat", 3000);
 out.split = await page.evaluate(() => [...document.querySelectorAll("[data-lelu-steward]")].filter((e) => getComputedStyle(e).display !== "none").map((e) => e.getAttribute("data-lelu-module-window").slice(0, 10)));
 await shot(page, `wf6-${label}-beside`);
+out.phoneReason = await page.evaluate(async () => (await import("/src/core/interface/WorkspaceStewardStore.ts")).default.get().log.slice(-1)[0]?.reasons?.[0] ?? null);
+// On a portrait phone "beside" means one at a time: tap back to the chat, as a person would.
+if (label === "iphone") { await page.locator(".lws-tab", { hasText: "Deep-sea" }).first().click().catch(() => {}); await page.waitForTimeout(1200); }
 await send(page, "tile my windows", 3000);
 out.tile = await page.evaluate(() => [...document.querySelectorAll("[data-lelu-steward]")].filter((e) => getComputedStyle(e).display !== "none").map((e) => e.getAttribute("data-lelu-module-window").slice(0, 10)));
 out.reply = await page.evaluate(async (cid) => { const m = (await import("/src/core/multichat/MultiChatStore.ts")).default.getInstance().get(cid).messages; const r = m[m.length - 1]; return { provider: r.provider, text: r.text.slice(0, 160) }; }, id);
