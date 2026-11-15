@@ -1,129 +1,99 @@
-# LÉLU V1.1 — Master integration: report (pass 1)
+# LÉLU master integration — Claude + Freebuff in one system
 
-**Overall: NOT COMPLETE.** Phase A (forensics) and Phase B (security) are done. Phase C is
-partly done. Phases D–F are **owned by two sessions that are running right now**, and merging
-them needs the owner's authorization (§3). Phases G–H are not started. Nothing in this report
-is marked verified without the evidence named beside it.
+Branch **`integration/lelu-master-integration`** (new; created from
+`integration/lelu-four-workforce-consolidation` @ `1632fe2`). No source branch was
+modified, rewritten or deleted; nothing was force-pushed; nothing was merged into
+`main` or the existing integration branch.
 
-## 1. Initial repository state (measured 2026-11-05 ~20:25Z, not taken from the brief)
+## 1. Freebuff work recovered — every branch and commit
 
-| Branch | Head | Owner | State |
-|---|---|---|---|
-| `claude/cosmos-chat-experience-z6xja0` (this work) | `d077ba9` → now `9b0cd3e` + this report | Session 2/3 (this session) | clean; pushed |
-| `claude/avatar-3d-world` | `e39201d` (was `fb6e7a8` in the brief) | Session 1, **running** (phone test after `e39201d`) | 4 new commits: Phase 1A (Workspace/Floating Cosmos switch, evidence), Phase 1B (chat windows are managed module windows `chat:<id>`; they no longer summon the old GenesisChat; they sit above the home outside the Universe) |
-| `claude/lelu-interface-control-d2sfdl` | `0b776fc` | a separate session, **running** (live desktop run) | NEW: 5,116-line interface orchestration — design tokens, fonts, spatial layout solver, 3D scene model, environment presets, `InterfaceOrchestrator` (propose → preview → decision → versioned apply, undo/redo, scope policy, stale protection), `interface.*` tools in the existing ToolRegistry, consent bar. Based on the old `d3e6e75`: it has neither Session 1's Phase 1 nor Phase 6. |
+Inspected all 33 remote branches (`git fetch --all`, GitHub branch list) and the
+repository list (only `lapheezy/LeluV1.1` exists).
 
-The brief's sections 3–4 (Cosmos visual control, preview, approval) are what
-`claude/lelu-interface-control-d2sfdl` is building. Sections 5A–5B overlap Session 1's Phase 1B.
-**Building either again here would be the duplication the brief prohibits.**
-
-## 2. Branch coordination and integration strategy
-
-Trial merge in a throwaway local worktree, never pushed (`records/trial-merge.txt`):
-
-| Step | Result |
-|---|---|
-| this branch + Session 1 (`e39201d`) | **clean** |
-| … + interface-control (`0b776fc`) | **4 files conflict**, 24 auto-merge: `GenesisModuleHost.tsx` (8 hunks), `GenesisChat.tsx` (5), `GenesisInterface.tsx` (1), `index.css` (1) |
-
-The conflicts are mostly the same lines styled two ways: Session 1's chrome uses `genesisTheme`
-values, and interface-control replaced them with CSS variables whose fallback is the old value.
-The data attributes also differ (`data-lelu-module-window` vs `data-lelu-window`), and both can be kept.
-
-**Proposed strategy (needs authorization — two of the files are Session 1's active ones):**
-1. Wait until both sessions report their current runs finished (their branches stop moving).
-2. Create `claude/master-integration` from this branch, merge Session 1 (clean), then
-   interface-control. Resolve each hunk by keeping Session 1's behaviour and adopting
-   interface-control's variable with Session 1's value as the fallback. Keep both data attributes.
-3. Run both sessions' own tests (`interface-orchestration`, the Phase 1 suites) and the full
-   typecheck on the merge. Push the integration branch only; neither source branch is touched.
-4. Then Phase E: one permission contract over `interface.*` (visual, reversible) and
-   `selfdev.*` (source code). These are separate handlers with one audit record and risk class.
-
-## 3. Phase B — Security (done)
-
-**Incident:** `plugins/runtimeKeyBridge.ts` published five data-API keys into every served
-page as `window.__LELU_*__`. This happened in the dev server and in the production `server.ts`
-(`injectRuntimeKeyBridge`): NASA, Geoapify, GNews, Guardian and NewsData. Separately,
-`src/core/env/publicEnv.ts` statically read `VITE_` copies of Guardian, GNews, NewsData and FIRMS,
-which a production build inlines into the bundle. The NASA EPIC provider also put `api_key` in
-result image links.
-
-**Not exposed:** model keys (Anthropic, Groq, OpenRouter …) already go through the server
-broker, and there is no Supabase service-role key on the client (asserted by the scanner). The
-Supabase URL and publishable key are public by design and protected by row-level security.
-
-**Remediation (`9b0cd3e`):**
-- The existing knowledge relay (`plugins/aiProxyApi.ts`, which already held the NewsAPI, YouTube
-  and Meshy keys) now also relays `guardian`, `gnews`, `newsdata`, `geoapify`, `nasa` (with a
-  server-side `DEMO_KEY` fallback) and `firms` (key inserted as a path segment). Each is limited
-  to its host and path prefix; a client-supplied key is overwritten, and keys are never echoed.
-- The five keys are removed from the bridge allowlist. `publicEnv` reads no service key. The
-  providers call through `knowledgeFetch`. `canSearch()` reads a cached `/api/knowledge/providers`
-  answer, which is booleans only. EPIC links use the keyless `epic.gsfc.nasa.gov`.
-- `scripts/verify-bundle-secrets.ts`: the four "known browser-side" keys are now **forbidden**,
-  and the bridge is checked for the six unprefixed names.
-
-| Check | Status | Evidence |
+| Freebuff work | Where it is | Status in this branch |
 |---|---|---|
-| Real production build with canary values | TESTED — **ALL BUNDLE SECRET CHECKS PASSED**, 0 failures | `records/bundle-secret-scan.txt` |
-| Live dev server: keys that are set (Geoapify, Guardian, NewsData) absent from served HTML; the only remaining bridged value is a base URL | VERIFIED LIVE | §3 command output in this session |
-| Relay live: Geoapify 200 with the server's key; NASA 200 via DEMO_KEY; path escape 400 | VERIFIED LIVE | same |
-| NewsData | the configured key is **rejected by NewsData (401)** — the key needs checking | same |
-| Guardian | could not be reached from this container ("Blocked by egress policy") — environment limit | same |
-| Regression tests | TESTED — `knowledge-relay-security` 5/5; `credential-exposure` 6/6, `bare-secret-aliases` 9/9, `broker-*` 26/26, `supabase-config` 9/9, `config-status` 6/6 | |
+| `4b272ce` keyless connectors (GDELT, SEC EDGAR, RSS) + evidence route | `freebuff/capability-expansion`, integration | **included** (0 commits left out) |
+| `520a5d4` visual artifacts inside the reply | integration | **included**; static imports made lazy (`ac54e77`) |
+| `1ba90af` page reading as guest, no pop-ups, GLB/glTF/STL/OBJ in the thread | integration | **included**; 3D attachments re-homed into the redesigned window (merge conflict) |
+| `1632fe2` engine built and presented inside the conversation; multi-page `/read` | integration | **included** |
+| `157d9df` keep the Universe on screen when a phone chat opens | `freebuff/44c122e…` | **already in integration** in equivalent form (`UNIVERSE_COMPACT_HEAD`, `useUniverseOpen`) |
+| `de4a265`, `e1ee9ae` VoxCPM2 reference-voice route (`plugins/voxcpmApi.ts`) + its verify script | `freebuff/44c122e…` (Nov 10) | **not merged as code — superseded**: integration already serves VoxCPM2 through the later worker-pool route (`plugins/voxApi.ts`, `gpuWorkers.ts`, Nov 13, streaming + cancellable). A second route to the same model would duplicate it. Its distinct idea — a **consent gate** before cloning — matters because the reference recording was previously identified as likely an actress's film dialogue (V1.1 report); that policy is yours to decide. The branch stays preserved on GitHub. |
+| `1549194` and older Freebuff branch `freebuff/1fb0099…` | separate (pre-consolidation) lineage | content present in integration; the only file missing (`MultiChatTabs.tsx`) is superseded by Chat Universe |
+| **`c4194b3` Mobile Sovereign Runtime, `d620ac5` Mobile Settings entry points, `1227738` / `6218b04` Mission 14 cognitive continuity** | **not on GitHub** | **NOT INTEGRATED — they do not exist in the repository.** Not on any branch, not fetchable by SHA (`git fetch origin <sha>`: "couldn't find remote ref"), not resolvable through the GitHub API (`No commit found for SHA`), and no commit in any branch's history mentions Transformers.js/ONNX runtime, IndexedDB governor, mission ledger, self-model or cognitive pulse. They must be pushed from wherever they were made before they can be integrated. |
 
-**Owner actions (not done here):** rotate the Geoapify, Guardian and NewsData keys. They were
-readable by anyone who loaded a page from a running LÉLU server. Also check the NewsData key.
-No values appear in this report, the commits or any screenshot.
+Older lineages (`main`, `claude/master-integration`, the Jules/codelazr session
+branches, `claude/gallant-ritchie…`, `claude/avatar-3d-world`, …) share no merge base
+with integration; their source files are present in it except
+`MultiChatTabs.tsx` (superseded), `companionCaption.ts` (deliberately removed in
+`97f161a`, "no caption cards") and `ModuleWindowContext.ts` (case variant of the
+present `moduleWindowContext.ts`).
 
-## 4. Phase C — Phase 6 completion and permission model
+## 2. Claude work preserved
 
-| Item | Status |
+| Branch | Commits | Result |
+|---|---|---|
+| `claude/chat-universe-evolution-skidcz` | `bda6199` Workspace Steward (LÉLU AIR), `20bf848` Chat Universe stages, `cb93eb3` Browser, `f0c4d42` app reflow, `77b987b` gate fixes, `1ac4149` Evolution Trail | merged (`509d7fc`), 0 left out |
+| `claude/lelu-open-source-expansion-qz626l` | 11 Job 2 acceptance commits `d80a69c`…`dd62487` | merged (`4facdcd`), 0 left out |
+| already in integration | Job 2/3, Mission 4, worker recovery, chat-universe reinforcement, 6.1.6 | 0 left out |
+
+Cosmos and its backdrop, mobile navigation, the workspace runtime and existing
+chat/agent integrations were not modified except where listed in §4.
+
+## 3. Branch, commits, push
+
+| | |
 |---|---|
-| Phase 6 pipeline (generate → copy → checks → diff → gates → apply → verify → rollback) | IMPLEMENTED, TESTED, VERIFIED LIVE up to the identity gate (`../session-2/phase-6/REPORT.md`) |
-| Test A (apply → Integrated) and Test B (apply → Rolled Back) end-to-end | **BLOCKED** — no dedicated test Supabase project or test user exists (only production `nrehsldbfxthspikaxvr`). Rollback mechanics are tested against the real Node adapter. |
-| LÉLU cannot raise her own autonomy | TESTED — `tests/permission-contract.test.ts`: only the two owner settings panels (and the self-test, which restores the level) set it; no tool or agentic module does |
-| Server-enforced apply (verified identity, explicit confirm, single-use grant bound to that identity, copy-only writes) | TESTED (source contract) + VERIFIED LIVE (apply refused without identity) |
-| Autonomy **level** enforced by the server | **NOT IMPLEMENTED.** The level is a per-browser setting. The server enforces identity and grant, not the level. Making it authoritative needs a server-stored per-user setting, changed only through an authenticated owner action with a human-presence step. That's a design decision for the owner (§7). |
-| Execution-time identity + permission re-check, retry revalidates | IMPLEMENTED (every apply/retry re-runs the gates; `EngineeringWorkspace.apply` re-checks the grant before writing) |
+| Integration branch | `integration/lelu-master-integration` |
+| Final SHA | the commit adding this report — see `git log -1` / `git ls-remote` (confirmed after push) |
+| Integration commits | `509d7fc` merge evolution · `4facdcd` merge Job 2 acceptance · `ac54e77` lazy inline editors · `b0e7e78` planner precedence + card-first research · `611f73b`/`cd4b932` demo scripts, evidence, trail · `64a7d54` offline crash fix · report commit |
+| Remote | every push verified with `git ls-remote` (last verified before the report: `cd4b932`) |
 
-**Lowest-cost test environment for A/B:** a new **free-tier** Supabase project, if the
-organization has a free slot (Supabase branches of the existing project are billed by the
-hour). Then one test user, and the test server started with that project's URL and anon key.
-Creating either is the owner's call.
+## 4. Conflicts and integration defects — resolved
 
-## 5. Phase G — Cognition (status check only)
+| Where | What happened | Resolution |
+|---|---|---|
+| `UniverseChatWindow.tsx` (git conflict) | evolution split the window into staged `thread`/`composer`; Freebuff added 3D-file attachment to the old body | kept the staged structure; re-homed `Model3DView`, attach button, pending files, GLB/glTF/STL/OBJ accept into it |
+| `StudioArtifactCards.tsx` | Freebuff's static `DrawingEditor`/`VisualViewer` imports put Excalidraw (~1.1 MB) on every chat window's path; `tests/genesis-interface.test.tsx` failed in the merged tree | both lazy behind Suspense (`ac54e77`) |
+| `DirectResolver.ts` (auto-merged, semantically wrong) | Workspace Steward's stage words captured "make an architecture diagram / a movie / a 3D scene" — nothing was made | `directPlanFor`: something to make beats a stage word unless the request points at the conversation; regression test both ways (`b0e7e78`) |
+| `research.board` | opened a window on every call, against Freebuff's card-first rule (`1ba90af`) | window only when asked (`b0e7e78`) |
+| lazy viewers offline (found by the production test) | a sketch made offline → Excalidraw chunk not cached → **GENESIS CRASH** over the whole UI | `EmbedBoundary` keeps the failure inside the card, artifact saved, Retry (`64a7d54`) |
 
-`DailyReflection` **is now wired**: `Bootstrap.ts:198` starts it, `CognitiveLoop.ts` runs due
-reflections, and `AgenticTools` exposes it as a tool. The earlier "never called" finding is
-resolved. TESTED (`development-loop` 44/44, including "reflection: invoked at the daily
-boundary"); not verified live in this pass. Anthropic is the primary provider and was verified
-live in Phase 6 (`Anthropic/claude-opus-5-5` generated the change). Nothing else in Phase G
-was started.
+No LangGraph/LangChain, paid API, new credential, new dependency or infrastructure was added.
 
-## 6. Live demonstrations
+## 5. Gates on the final code
 
-| Demo | Status |
+| Check | Result |
 |---|---|
-| 1 Cosmos transformation, 2 window manipulation, 4 integrated intelligence | **NOT RUN** — needs the interface-control work integrated (§2) |
-| 3 Self-development | VERIFIED LIVE up to the apply gate (Phase 6) |
-| 5 Failure and recovery | Partially VERIFIED LIVE: Failed, Blocked, interrupted-run recovery (Phase 6); Rolled Back BLOCKED (§4) |
+| `tsc -b --force` | exit 0 |
+| `oxlint` | exit 0, **0 errors** (169 warnings; those in touched files are existing patterns, one of mine fixed) |
+| `npm test` | **2,197 tests: 2,191 pass, 0 fail, 6 skipped** (security suites included: access-gate, sandbox, containment, hardening, spend-policy, knowledge-relay) |
+| `npm run build` | exit 0 |
+| `verify:bundle` (no tests in bundle) | PASS |
+| `verify-bundle-secrets.ts` | **FAIL — pre-existing, not changed by me.** It reports `VITE_APP_PLUS_EXPORT_PUBLIC_KEY` and `VITE_KEY`. The first is a public constant inside `@excalidraw/excalidraw`'s own published build (also present in the `184b9cd` build, before this session); the second is documentation text (`` `VITE_KEY: "value"` ``) in `StudioSecurity`. Neither is a LÉLU credential. I prepared a narrow allowlist but did **not** apply it: changing a security check is your call. |
 
-## 7. Decisions needed from the owner
+## 6. Demonstrations (Chromium, real app, typed into Chat Universe)
 
-1. **Authorize the integration merge** (§2) once both running sessions stop, or tell me to
-   coordinate with them first.
-2. **Test identity for apply/rollback:** create a free-tier test project (or a billed branch), or
-   authorize me to.
-3. **Rotate** the Geoapify, Guardian and NewsData keys, and check the NewsData key.
-4. **Server-side autonomy:** should the autonomy level become a server-stored, owner-only
-   setting? This changes how L5 is granted.
+| Run | Result | Evidence |
+|---|---|---|
+| Desktop, no model provider (generation routes aborted and counted) | **18/18** — research board + Mermaid mind map inline, live USGS charts inline, 3D forest rendering inline, architecture diagram, editable Excalidraw inline, film card, `/read` Wikipedia (6,087 chars); film encoded from its card (ffprobe 525 frames VP9 + Opus, 17.52 s); GLB attached in the thread opens in three.js; Workspace Steward tiles 4 windows 700×372 in a 2×2 grid, overlap 0, nothing off screen; Cosmos present with the Universe closed; reload keeps 8 artifacts / 21 messages; **0 model calls**, 0 page errors | `desktop-run.json`, `screenshots/desktop-*` |
+| Steward commands | "tile my windows" → Tile, "stack the windows" → Stack ("…0 model calls") | `screenshots/desktop-steward-*` |
+| iPhone 13 **emulation** | **8/8** — 3D, diagram, chart cards 303 px, 0 overflow, 0 model calls | `phone-run.json`, `screenshots/phone-*` |
+| Production build + service worker, network cut | **10/10** — worker controls the page; sketch made offline; offline reload boots from the worker without a crash; all data valid and present after reconnecting | `offline-run.json`, `screenshots/offline-*` |
+| Provider chat (free tiers; Anthropic not configured, 0 Anthropic requests) | creative request answered by an OpenRouter free model that chose `creative_art` (artifact verified) — **pass**. Plain chat fell to the offline notice: OpenRouter free daily limit on 2 of 3 keys, Groq daily tokens exhausted on all 4 keys, Cerebras key rejected (401) — quota/credentials, not code. Retry: a "Done! I've created…" reply whose message carried no artifact record although "2 tools used" — **open item** | `provider-run-1.json`, `provider-run.json`, `screenshots/provider-*` |
+| Visual checkpoints in Chat Universe | 7 integration checkpoints added to the Evolution Trail and opened in the app (19 entries) | `screenshots/trail-*`, `public/evolution/trail/` |
 
-## 8. Commits (this pass)
+## 7. Remaining blockers and unverified behaviour
 
-- `9b0cd3e` Security: data-API keys no longer published into the served page or bundle
-- this report + `tests/permission-contract.test.ts` (next commit)
-
-All pushed to `claude/cosmos-chat-experience-z6xja0`. Session 1's branch and the
-interface-control branch were not written to.
+1. **Mobile Sovereign Runtime, Mobile Settings, Mission 14 cognitive continuity** — not in the
+   repository (§1). Local inference (Transformers.js/ONNX), IndexedDB memory, Storage Governor,
+   provider-independent sync and the self-model/mission-ledger tools are therefore **not integrated
+   and not verified**. Push those commits and they can be merged here.
+2. **No real iPhone / Safari** — phone results are Chromium emulation.
+3. **No GPU** — WebGPU not demonstrated on hardware; films encode at 360–540p here.
+4. **Bundle-secrets check fails** (pre-existing, §5) pending your decision.
+5. **Provider turns** depend on free quotas that were exhausted; one reply/artifact link to re-check.
+6. **Background autonomy** spends model quota on its own when keys are present (7 calls during a
+   run that typed nothing).
+7. **VoxCPM2 reference-voice consent** — Freebuff's consent gate not adopted; decide whether
+   cloning from the current reference recording should require attestation.
+8. Page-reading excerpt starts with site navigation text (cosmetic).

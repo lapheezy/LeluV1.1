@@ -25,7 +25,6 @@ const ffprobe = (file) => {
   const v = j.streams.find((x) => x.codec_type === "video"), a = j.streams.find((x) => x.codec_type === "audio");
   return { video: v && { codec: v.codec_name, width: v.width, height: v.height, frames: Number(v.nb_read_frames) }, audio: a && { codec: a.codec_name, frames: Number(a.nb_read_frames) }, duration: Number(j.format.duration) || null };
 };
-const b64 = (u8) => Buffer.from(u8).toString("base64");
 
 (async () => {
   const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium", args: ["--no-sandbox"] });
