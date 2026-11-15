@@ -106,6 +106,7 @@ The original attempts above stay recorded as BLOCKED. They are not overwritten.
 - Conversation: `4903d20a-4cbb-4389-a441-16ac463ed39a`, created 16:46:00 UTC
 - Prompt: natural language only, **no mission id**
 - Provider: **Groq**, model `openai/gpt-oss-20b`; stored message has `provider: Groq`, `source: ai`
+- Broker status immediately after the turn: Groq `COMPLETION_VERIFIED`, HTTP 200, `lastSuccessAt: 1794761830984`; OpenRouter still `CAPACITY_LIMITED`; GitHub Models still `CONTRACT_VIOLATION`
 - Tool calls, in order:
   1. `mission.find` — succeeded 16:46:10.889 UTC
   2. `mission.brief` — succeeded 16:46:11.836 UTC

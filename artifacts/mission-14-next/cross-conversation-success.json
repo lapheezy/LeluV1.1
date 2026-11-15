@@ -77,5 +77,25 @@
   "limitations": [
     "The UI persisted tool names, success and labels, not the raw tool-call argument JSON. The resolved id and persisted note are the evidence of those arguments.",
     "The successful provider call was not broker-trace-logged; the stored message provider/source and the natural final text are the evidence, plus the preceding 429/failover logs."
-  ]
+  ],
+  "providerStatusAfterRun": {
+    "checkedAt": "2026-11-15T16:58:04.000Z",
+    "groq": {
+      "state": "COMPLETION_VERIFIED",
+      "httpStatus": 200,
+      "lastSuccessAt": 1794761830984
+    },
+    "openrouter": {
+      "state": "CAPACITY_LIMITED",
+      "retryAfterSeconds": 25326
+    },
+    "githubModels": {
+      "state": "CONTRACT_VIOLATION"
+    },
+    "providersOffered": {
+      "groq": true,
+      "openrouter": false,
+      "githubModels": true
+    }
+  }
 }
