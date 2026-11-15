@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-15T17:59:40.438Z",
+  "at": "2026-11-15T18:23:12.198Z",
   "results": [
     {
       "name": "desktop: Home renders through the composition engine",
@@ -134,7 +134,7 @@
     {
       "name": "iPhone: a swipe starting on the nav orb does not leave the Home",
       "status": "VERIFIED",
-      "detail": "first move after 99 ms"
+      "detail": "first move after 579 ms"
     },
     {
       "name": "iPhone: touch scrolling the Home works while editing",
@@ -182,5 +182,16 @@
       "detail": "19 uncaught from the existing THREE.WebGLRenderer (\"THREE.WebGLRenderer: Error creating WebGL context.\"); the 2D Home stays usable"
     }
   ],
-  "consoleErrors": []
+  "consoleErrors": [
+    "console: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "console: [CerebrasProvider] API request failed {status: 401, message: Wrong API Key, model: gpt-oss-120b}",
+    "console: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20need",
+    "console: Failed to load resource: net::ERR_FAILED",
+    "console: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "console: [CerebrasProvider] API request failed {status: 401, message: Wrong API Key, model: gpt-oss-120b}",
+    "console: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Procedural%20environment%20generation%20Techniques%20for%20generating%20terrain%2C%20textures%20and%20environments%20from%20rule",
+    "console: Failed to load resource: net::ERR_FAILED",
+    "console: Access to fetch at 'https://export.arxiv.org/api/query?search_query=all:Latest%20frontier%20model%20architectures%20Current%20SOTA%20model%20families%2C%20benchmarks%20and%20pricing%20%E2%80%94%20need",
+    "console: Failed to load resource: net::ERR_FAILED"
+  ]
 }

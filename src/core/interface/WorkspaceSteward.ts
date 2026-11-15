@@ -388,7 +388,12 @@ export function parseWorkspaceCommand(raw: string): WorkspaceCommand | null {
   const mentionsChat = /\b(chat|conversation)\b/.test(text);
 
   // Make real work from the conversation: a versioned Studio artifact.
-  const making = /\b(turn|convert|make|export|save|write|build|create|render|chart|plot|draw|visuali[sz]e)\b/.test(text) && /\b(this|it|the conversation|the chat|these|that)\b/.test(text);
+  // A *board* (or a workspace) is a way to lay the conversation out,
+  // not an artifact to produce: "make the chat a diagram board" is a stage
+  // change. Reconciles 015afda (make → transform) with b0e7e78 (boards stay
+  // stages), which landed on separate branches and met in the Mission 15 merge.
+  const layoutWord = /\b(board|workspace)\b/.test(text);
+  const making = !layoutWord && /\b(turn|convert|make|export|save|write|build|create|render|chart|plot|draw|visuali[sz]e)\b/.test(text) && /\b(this|it|the conversation|the chat|these|that)\b/.test(text);
   if (making) {
     if (/\b(slide ?deck|deck|pptx|power ?point)\b/.test(text)) return { transform: "deck", stage: "present", summary: "Built a slide deck from the conversation" };
     if (/\b(document|report|word doc|docx|pdf|write-?up|brief)\b/.test(text)) return { transform: "document", stage: "document", summary: "Wrote a document from the conversation" };
