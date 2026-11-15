@@ -290,7 +290,7 @@ export const CREATIVE_KIT_EXECUTORS: KitExecutor[] = [
   {
     id: "research.board",
     parameters: OBJ({ topic: { type: "string" }, papers: { type: "number", description: "how many papers (default 8)" } }, ["topic"]),
-    run: async (args, context) => researchBoard(s(args, "topic"), Number(args.papers) || 8, context),
+    run: async (args, context) => researchBoard(s(args, "topic"), Number(args.papers) || 8, context, args.open === true),
   },
   {
     id: "device.capabilities",
@@ -325,7 +325,7 @@ export function formatProfile(id: string, p: CapabilityProfile): string {
  * Research board: public sources → a cited document + a mind map
  * ------------------------------------------------------------------ */
 
-async function researchBoard(topic: string, papers: number, context: RouterContext | undefined): Promise<ToolExecutionResult> {
+async function researchBoard(topic: string, papers: number, context: RouterContext | undefined, open = false): Promise<ToolExecutionResult> {
   if (!topic) return { ok: false, content: "A research board needs a topic." };
   const store = StudioStore.getInstance();
   const [search, crossref, arxiv] = await Promise.all([
@@ -366,7 +366,9 @@ async function researchBoard(topic: string, papers: number, context: RouterConte
   if (arxiv.ok && arxiv.rows.length) { mm.push("    Preprints"); for (const p of arxiv.rows.slice(0, 4)) mm.push(`      ${clean(String(p.title))}`); }
   const map = store.create({ kind: "visual", title: `Map — ${topic}`, medium: "diagram", program: { source: mm.join("\n") }, sources }, { by: "lelu", conversationId: conversationOf(context) });
   if (map.ok) announce(context, map.artifact, "created");
-  openWindow(doc.artifact.id);
+  // The conversation is the surface (Freebuff 1ba90af): both cards render in
+  // the reply; a window opens only when asked for.
+  if (open) openWindow(doc.artifact.id);
   const lines = [
     `Research board “${topic}” [${doc.artifact.id}]${map.ok ? ` and mind map [${map.artifact.id}]` : ""} from ${used.length} public source${used.length > 1 ? "s" : ""}:`,
     ...(summary && summary.ok ? [`Overview: ${String(summary.rows[0].extract ?? "").slice(0, 400)}`] : []),

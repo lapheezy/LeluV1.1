@@ -82,11 +82,31 @@ function readingOf(content: string, max = 420): string {
   return `${cut > max * 0.6 ? head.slice(0, cut) : head}… (the page is open in the conversation above)`;
 }
 
+/**
+ * One plan per request, when both direct planners recognise it.
+ *
+ * The Workspace Steward reads "diagram", "movie" and "3D" as STAGE words
+ * ("turn this into a board", "make it cinematic", "go 3D"); the creative kit
+ * reads them as things to MAKE ("make an architecture diagram of LÉLU",
+ * "make a movie about tides", "make me a 3D forest"). Measured on the merged
+ * tree: the stage parser claimed all three and no artifact was made. A stage
+ * change wins only when the request points at the conversation itself;
+ * window organisation (tile, split, focus…) is never a creative request.
+ */
+export function directPlanFor(prompt: string): DirectPlan | null {
+  const workspace = workspacePlan(prompt);
+  const creative = compileDirect(prompt);
+  if (!workspace) return creative;
+  if (!creative) return workspace;
+  const stageOnly = workspace.steps.every((step) => step.tool === "workspace.stage");
+  const aboutTheConversation = /\b(this|it|the (chat|conversation|thread|workspace|view|screen)|our (chat|conversation)|my (chat|conversation|workspace))\b/i.test(prompt);
+  return stageOnly && !aboutTheConversation ? creative : workspace;
+}
+
 export default class DirectResolver {
   /** The plan for this turn, if it has one. Pure. */
   public plan(context: RouterContext): DirectPlan | null {
-    const prompt = context.request.prompt ?? "";
-    return workspacePlan(prompt) ?? compileDirect(prompt);
+    return directPlanFor(context.request.prompt ?? "");
   }
 
   /** Is any model provider able to take the turn right now? */
