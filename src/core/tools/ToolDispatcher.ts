@@ -56,6 +56,7 @@ import { STUDIO_EXECUTORS } from "../studio/StudioTools";
 import { ATELIER_EXECUTORS } from "../atelier/AtelierTools";
 // Job 2: the open-source creative kit and public data connectors — same table, same gate.
 import { CREATIVE_KIT_EXECUTORS } from "../creative/kit/CreativeKitTools";
+import { COSMOS_OBJECT_EXECUTORS } from "../cosmos/objects/CosmosObjectTools";
 import EngineeringAuthorization from "../engineering/EngineeringAuthorization";
 import ApprovalGate from "../agentic/ApprovalGate";
 import AcquisitionApprovalGate from "../acquisition/ApprovalGate";
@@ -2596,7 +2597,7 @@ const EXECUTORS: ToolExecutor[] = [
 ];
 
 const BY_ID = new Map<string, ToolExecutor>(
-  [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...ENVIRONMENT_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS, ...ACQUISITION_EXECUTORS, ...CREATIVE_KIT_EXECUTORS].map((executor) => [executor.id, executor]),
+  [...EXECUTORS, ...FORGE_EXECUTORS, ...WORLD_EXECUTORS, ...AGENTIC_EXECUTORS, ...INTERFACE_EXECUTORS, ...ENVIRONMENT_EXECUTORS, ...STUDIO_EXECUTORS, ...ATELIER_EXECUTORS, ...ACQUISITION_EXECUTORS, ...CREATIVE_KIT_EXECUTORS, ...COSMOS_OBJECT_EXECUTORS].map((executor) => [executor.id, executor]),
 );
 
 // Mission 8's executors are additive: an id Claude already owns keeps its

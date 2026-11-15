@@ -28,6 +28,7 @@ import { PRESETS } from "./Scene3D";
 import { seedFrom } from "./Rng";
 import { connectorProfiles } from "../../data/PublicDataConnectors";
 import { findBuilder, describeRequest } from "./build";
+import CosmosObjectStore from "../../cosmos/objects/CosmosObjectStore";
 
 export interface DirectStep { tool: string; args: Record<string, unknown>; label: string }
 export interface DirectPlan { steps: DirectStep[]; summary: string; explicit: boolean }
@@ -155,6 +156,14 @@ export function compileDirect(prompt: string): DirectPlan | null {
    * Modification is checked first, because "make the gear bigger" names a
    * subject too and must change the artifact on screen rather than build one.
    */
+  /*
+   * Cosmos objects, before construction: "put it in the Cosmos", "move the
+   * engine next to the cabin", "separate the transmission". These are local
+   * operations on objects that already exist, so they run with no model at
+   * all — the same rule as a construction, for the same reason.
+   */
+  const cosmos = cosmosPlan(t);
+  if (cosmos) return { ...cosmos, explicit: false };
   const changeWords = /\b(bigger|smaller|larger|taller|wider|deeper|steeper|shallower|flatter|no idler|add an idler|space[- ]filling|ball[- ]and[- ]stick|more bays|one more storey|another floor|faster output|slower output|more torque|fewer storeys)\b/i;
   const wantsChange = /\b(make|change|set|turn|update|increase|decrease|give it|modify|edit|adjust|remove|add)\b/i;
   if (has(changeWords, t) && has(wantsChange, t)) return nl("modify", t);
@@ -168,6 +177,116 @@ export function compileDirect(prompt: string): DirectPlan | null {
   if (has(/\bearthquakes?\b/i, t) && has(/\b(chart|graph|plot|visuali[sz]\w*|map|show)\b/i, t)) return nl("chart", "earthquakes");
   if (has(/\b(research|investigate|look into|find out about|literature on|sources on)\b/i, t)) return nl("research", after(t, /\b(research|investigate|look into|find out about|literature on|sources on)\b/i) || subjectOf(t));
   if (has(/\b(what can you (?:do|run)|your capabilities|device capabilities|webgpu|webcodecs)\b/i, t)) return nl("capabilities", "");
+  return null;
+}
+
+/**
+ * Cosmos object operations, in words.
+ *
+ * Every branch maps to one local tool call. Nothing here guesses a position
+ * the user did not ask for; "next to the cabin" is resolved from the actual
+ * object, and an object that does not exist is refused by the tool, not
+ * invented here.
+ */
+function cosmosPlan(t: string): DirectPlan | null {
+  const lower = t.toLowerCase();
+  // Operations on objects only make sense when there is a Cosmos to act on,
+  // unless the sentence says "cosmos" itself. Without this, "remove the idler"
+  // would be read as removing an object instead of changing a gearbox.
+  const cosmosWords = /\b(cosmos|floating object|in the scene)\b/i.test(t);
+  const hasObjects = (() => {
+    try {
+      return CosmosObjectStore.getInstance().list().length > 0;
+    } catch {
+      return false;
+    }
+  })();
+  const gated = cosmosWords || hasObjects;
+  const one = (tool: string, label: string, args: Record<string, unknown>, summary: string): DirectPlan => ({ explicit: false, summary, steps: [{ tool, label, args }] });
+  const objectName = (after: RegExp): string => (after.exec(t)?.[1] ?? "").trim().replace(/[.?!]+$/, "");
+
+  if (/\b(show|list|what('s| is)|every object|my objects)\b/i.test(t) && /\b(cosmos|objects?|scene)\b/i.test(t)) {
+    return one("cosmos.object.list", "objects", { trash: /\btrash|removed|deleted\b/i.test(t) }, "every object in the Cosmos");
+  }
+  if (/\bpause all\b|\bstop (all|everything|them)\b|\bfreeze\b/i.test(t) && /\b(objects?|floating|everything|motion|animation)\b/i.test(t)) {
+    return one("cosmos.object.animate", "pause", { all: true, paused: true }, "pause every floating object");
+  }
+  if (/\bresume all\b|\bunpause\b|\bstart (them|all) (again|moving)\b/i.test(t)) {
+    return one("cosmos.object.animate", "resume", { all: true, paused: false }, "resume every floating object");
+  }
+  if (/\b(return|reset|put)\b.*\b(original|initial|back)\b.*\bpositions?\b|\breset (all )?(the )?(object|positions?)\b/i.test(t)) {
+    return one("cosmos.object.select", "reset", { clear: true }, "return the objects to their starting arrangement");
+  }
+
+  const spawn = /\b(put|spawn|place|bring|drop|move)\b([\s\S]*)\b(cosmos|scene|space)\b/i.exec(t);
+  if (spawn) {
+    const named = /\b(?:put|spawn|place|bring|drop)\s+(?:the|my|that)\s+([\w\s-]{3,40}?)\s+(?:into|in|to)\s+(?:the\s+)?cosmos/i.exec(t)?.[1]?.trim();
+    return one("cosmos.object.spawn", "spawn", { artifact: named ?? "it" }, `put ${named ? `the ${named}` : "it"} into the Cosmos`);
+  }
+
+  const integrate = /\b(connect|attach|integrate|mount)\s+(?:the\s+)?([\w\s-]{2,30})\s+(?:into|to|on|inside|in)\s+(?:the\s+)?([\w\s-]{2,30})$/i.exec(t.trim());
+  if (integrate && !/\bcosmos\b/i.test(t)) {
+    return one("cosmos.object.integrate", "integrate", { object: integrate[2].trim(), into: integrate[3].trim() }, `put the ${integrate[2].trim()} inside the ${integrate[3].trim()}`);
+  }
+
+  const extract = /\b(separate|extract|take|remove|pull|detach)\s+(?:out\s+)?(?:the\s+)?([\w\s-]{2,30}?)(?:\s+(?:out|from|of)\b[\s\S]*)?$/i.exec(t.trim());
+  if (extract && /\b(separate|extract|detach|take\s+(?:the\s+)?[\w\s-]{2,24}?\s+out|pull\s+(?:the\s+)?[\w\s-]{2,24}?\s+out|remove from)\b/i.test(t)) {
+    const wantsWorkspace = /\bworkspace|studio|open it|edit it\b/i.test(t);
+    return one("cosmos.object.extract", "extract", { object: extract[2].trim(), ...(wantsWorkspace ? { open: "workspace" } : {}) }, `take the ${extract[2].trim()} out and keep it as its own object`);
+  }
+
+  const duplicate = /\bduplicate|copy\b/i.exec(t);
+  if (duplicate) {
+    const of = /\b(?:duplicate|copy)\s+(?:the\s+)?([\w\s-]{2,30}?)(?:\s+and\b|\s*$)/i.exec(t)?.[1]?.trim();
+    const smaller = /\bsmaller|half the size|scale it down\b/i.test(t);
+    return one("cosmos.object.duplicate", "duplicate", { object: of ?? "it", ...(smaller ? { scale: 0.6 } : {}) }, `duplicate ${of ?? "it"}${smaller ? ", smaller" : ""}`);
+  }
+
+  // From here the verbs are shared with ordinary language ("remove the idler",
+  // "make it smaller"), so they only mean Cosmos operations when there is a
+  // Cosmos to act on, or the sentence says so.
+  if (!gated) return null;
+
+  if (/\b(isolate|only show|show only)\b/i.test(t) && /\b(object|engine|cabin|one)\b/i.test(t)) {
+    const target = /\b(?:isolate|only show|show only)\s+(?:the\s+)?([\w\s-]{2,30})$/i.exec(t.trim())?.[1]?.trim();
+    return one("cosmos.object.isolate", "isolate", { object: target ?? "" }, `show ${target ?? "the selected object"} alone`);
+  }
+  if (/\b(show all|everything back|unhide)\b/i.test(t)) return one("cosmos.object.isolate", "show all", { showAll: true }, "show every object again");
+
+  if (/\b(group|collect|collection)\b/i.test(t) && /\bobjects?|them|into one|together\b/i.test(t)) {
+    return one("cosmos.object.group", "group", { objects: [], name: /\bcalled\s+([\w\s-]{2,30})$/i.exec(t)?.[1]?.trim() }, "group the objects into one collection");
+  }
+  if (/\bungroup|split (them|the group) up\b/i.test(t)) {
+    return one("cosmos.object.ungroup", "ungroup", { group: /\b(?:ungroup|split)\s+(?:the\s+)?([\w\s-]{2,30})$/i.exec(t.trim())?.[1]?.trim() ?? "" }, "ungroup them");
+  }
+
+  if (/\b(delete|remove|bin|get rid of)\b/i.test(t) && /\b(object|engine|cabin|it)\b/i.test(t)) {
+    return one("cosmos.object.remove", "remove", { object: objectName(/\b(?:delete|remove|get rid of)\s+(?:the\s+)?([\w\s-]{2,30})/i) }, "remove it from the Cosmos (it stays in the trash)");
+  }
+
+  const motion = /\b(float|spin|rotate|orbit|bob|drift|turn|hover)\b/i.exec(t);
+  if (motion && /\b(it|object|engine|cabin|molecule|everything)\b/i.test(t)) {
+    const kind = /\borbit\b/i.test(t) ? "orbit" : /\bbob|hover\b/i.test(t) ? "bob" : /\bdrift|float away\b/i.test(t) ? "drift" : "spin";
+    const slow = /\bslow(ly)?\b/i.test(t);
+    const paused = /\bstop\b/i.test(t) && !/pause all/.test(lower);
+    return one("cosmos.object.animate", "animate", { motion: kind, ...(slow ? { speed: 0.05 } : {}), ...(paused ? { paused: true } : {}) }, `make it ${kind}${slow ? " slowly" : ""}`);
+  }
+
+  const near = /\b(?:next to|beside|near|by|behind|above|in front of)\s+(?:the\s+)?([\w\s-]{2,30})$/i.exec(t.trim());
+  if (near && /\b(move|put|place|shift)\b/i.test(t)) {
+    return one("cosmos.object.position", "move", { object: /\b(?:move|put|place|shift)\s+(?:the\s+)?([\w\s-]{2,25}?)\s+(?:next to|beside|near|by|behind|above|in front of)\b/i.exec(t)?.[1]?.trim() ?? "it", near: near[1].trim() }, `move it next to the ${near[1].trim()}`);
+  }
+
+  const transform = /\b(make (?:it|the \w+) (?:bigger|smaller)|scale (?:it|them) (?:up|down)|rotate (?:it|them)\s+(\d{1,3})|turn (?:it|them)\s+(\d{1,3}))\b/i.exec(t);
+  if (transform) {
+    const smaller = /\bsmaller|down\b/i.test(t);
+    const degrees = transform[2] ?? transform[3];
+    return one("cosmos.object.transform", "transform", {
+      ...(degrees ? { rotation: [0, Number(degrees), 0] } : { scale: smaller ? 0.6 : 1.6 }),
+      relative: false,
+    }, degrees ? `turn it ${degrees}°` : `make it ${smaller ? "smaller" : "bigger"}`);
+  }
+
   return null;
 }
 
@@ -238,6 +357,11 @@ function compileCommand(cmd: string, rest: string): DirectPlan | null {
     }
     case "domains": {
       return { explicit, summary: "what can be constructed", steps: [{ tool: "creative.domains", label: "domains", args: {} }] };
+    }
+    case "cosmos": {
+      if (!rest) return { explicit, summary: "every object in the Cosmos", steps: [{ tool: "cosmos.object.list", label: "objects", args: {} }] };
+      const plan = cosmosPlan(rest);
+      return plan ? { ...plan, explicit, summary: `cosmos: ${plan.summary}` } : { explicit, summary: "every object in the Cosmos", steps: [{ tool: "cosmos.object.list", label: "objects", args: {} }] };
     }
     case "engine": {
       return {

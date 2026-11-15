@@ -21,8 +21,12 @@ import {
 import { cabinBuilder, describeCabinRequest } from "./Architecture";
 import { gearboxBuilder, describeGearboxRequest } from "./Mechanical";
 import { moleculeBuilder, describeMoleculeRequest } from "./Science";
+import { v8Builder, describeV8Request } from "./V8";
+import { circuitBuilder, describeCircuitRequest } from "./Electrical";
+import { cellBuilder, describeCellRequest } from "./Biology";
+import { fabricBuilder, describeFabricRequest } from "./Textiles";
 
-export const BUILDERS: BuildBuilder[] = [gearboxBuilder, cabinBuilder, moleculeBuilder];
+export const BUILDERS: BuildBuilder[] = [gearboxBuilder, v8Builder, cabinBuilder, moleculeBuilder, circuitBuilder, cellBuilder, fabricBuilder];
 
 export function builderById(id: string): BuildBuilder | undefined {
   return BUILDERS.find((b) => b.id === id.toLowerCase());
@@ -214,6 +218,84 @@ export function parseModification(text: string, program: BuildProgram): ParsedMo
     }
   }
 
+  if (builder === "v8") {
+    const next = (key: string, delta: number, min: number, max: number) => Math.min(max, Math.max(min, Number(program.params[key] ?? 0) + delta));
+    if (/\b(bigger|larger|more power|increase displacement)\b/.test(lower) && !("bore" in changes)) {
+      changes.bore = next("bore", 0.004, 0.06, 0.13);
+      changes.stroke = next("stroke", 0.004, 0.05, 0.12);
+      because.push(`longer stroke and wider bore (${program.params.bore} × ${program.params.stroke} m)`);
+    }
+    if (/\b(narrower|tighter) (the )?v\b|\b(60|75)\s*(?:°|deg)/.test(lower) && !("vAngle" in changes)) {
+      changes.vAngle = Math.max(45, Number(program.params.vAngle ?? 90) - 30);
+      because.push(`narrower V (${program.params.vAngle}° → ${changes.vAngle}°)`);
+    }
+    if (/\b(wider|broader) (the )?v\b/.test(lower) && !("vAngle" in changes)) {
+      changes.vAngle = Math.min(120, Number(program.params.vAngle ?? 90) + 15);
+      because.push(`wider V (${program.params.vAngle}° → ${changes.vAngle}°)`);
+    }
+    if (/\bmore cylinders\b/.test(lower) && !("cylindersPerBank" in changes)) {
+      changes.cylindersPerBank = Math.min(6, Number(program.params.cylindersPerBank ?? 4) + 1);
+      because.push(`one more cylinder per bank (${program.params.cylindersPerBank} → ${changes.cylindersPerBank})`);
+    }
+  }
+
+  if (builder === "circuit") {
+    const volts = /\b(\d+(?:\.\d+)?)\s*(?:v|volts?)\b/.exec(lower);
+    if (volts && !("volts" in changes)) {
+      changes.volts = Number(volts[1]);
+      because.push(`source ${volts[1]} V`);
+    }
+    if (/\b(open|switch off|off)\b/.test(lower) && !("switchClosed" in changes)) {
+      changes.switchClosed = "open";
+      because.push("the switch is open, so no current flows");
+    }
+    if (/\b(closed|switch on|switch it on)\b/.test(lower) && !("switchClosed" in changes)) {
+      changes.switchClosed = "closed";
+      because.push("the switch is closed and the loop is complete");
+    }
+    if (/\b(more|another) resistor\b/.test(lower) && !("resistors" in changes)) {
+      changes.resistors = Math.min(6, Number(program.params.resistors ?? 2) + 1);
+      because.push(`one more resistor (${program.params.resistors} → ${changes.resistors})`);
+    }
+  }
+
+  if (builder === "cell") {
+    if (/\b(bigger|larger)\b/.test(lower) && !("radius" in changes)) {
+      changes.radius = Math.min(0.08, Number(program.params.radius ?? 0.03) * 1.3);
+      because.push(`a larger cell (radius ${program.params.radius} → ${changes.radius} m)`);
+    }
+    if (/\b(smaller|compact)\b/.test(lower) && !("radius" in changes)) {
+      changes.radius = Math.max(0.008, Number(program.params.radius ?? 0.03) / 1.3);
+      because.push(`a smaller cell (radius ${program.params.radius} → ${changes.radius} m)`);
+    }
+    if (/\bmore mitochondri/i.test(lower) && !("mitochondria" in changes)) {
+      changes.mitochondria = Math.min(16, Number(program.params.mitochondria ?? 6) + 2);
+      because.push(`more mitochondria (${program.params.mitochondria} → ${changes.mitochondria})`);
+    }
+  }
+
+  if (builder === "fabric") {
+    for (const weave of ["plain", "twill", "satin"]) {
+      if (new RegExp(`\\b${weave}\\b`).test(lower) && weave !== String(program.params.weave)) {
+        changes.weave = weave;
+        because.push(`${weave} weave instead`);
+      }
+    }
+    if (/\b(denser|more ends|tighter)\b/.test(lower) && !("density" in changes)) {
+      changes.density = Math.min(60, Number(program.params.density ?? 24) + 8);
+      because.push(`denser cloth (${program.params.density} → ${changes.density} ends/cm)`);
+    }
+    if (/\b(looser|more open|airier)\b/.test(lower) && !("density" in changes)) {
+      changes.density = Math.max(8, Number(program.params.density ?? 24) - 8);
+      because.push(`more open cloth (${program.params.density} → ${changes.density} ends/cm)`);
+    }
+    if (/\b(bigger|wider|larger)\b/.test(lower) && !("threads" in changes)) {
+      changes.threads = Math.min(22, Number(program.params.threads ?? 10) + 4);
+      changes.rows = Math.min(22, Number(program.params.rows ?? 10) + 4);
+      because.push(`a larger panel (${program.params.threads}×${program.params.rows} → ${changes.threads}×${changes.rows})`);
+    }
+  }
+
   const asksBigger = /\b(bigger|larger|taller|wider|deeper|more)\b/.test(lower);
   if (Object.keys(changes).length === 0 && asksBigger) {
     unsupported.push("nothing in that request maps to a parameter of this build");
@@ -227,6 +309,10 @@ export function describeRequest(builder: BuildBuilder, text: string): Record<str
   if (builder.id === "gearbox") return describeGearboxRequest(text);
   if (builder.id === "cabin") return describeCabinRequest(text);
   if (builder.id === "molecule") return describeMoleculeRequest(text);
+  if (builder.id === "v8") return describeV8Request(text);
+  if (builder.id === "circuit") return describeCircuitRequest(text);
+  if (builder.id === "cell") return describeCellRequest(text);
+  if (builder.id === "fabric") return describeFabricRequest(text);
   return {};
 }
 

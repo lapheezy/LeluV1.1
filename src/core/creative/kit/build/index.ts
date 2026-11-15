@@ -15,3 +15,7 @@ export type { ParsedModification } from "./Registry";
 export { gearboxBuilder, buildGearbox } from "./Mechanical";
 export { cabinBuilder, buildCabin } from "./Architecture";
 export { moleculeBuilder, buildMolecule } from "./Science";
+export { v8Builder, buildV8 } from "./V8";
+export { circuitBuilder, buildCircuit } from "./Electrical";
+export { cellBuilder, buildCell } from "./Biology";
+export { fabricBuilder, buildFabric, warpOnTop } from "./Textiles";

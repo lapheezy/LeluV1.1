@@ -97,7 +97,10 @@ export default class DirectResolver {
       lines.push(`${result.ok ? "✓" : "✗"} ${step.label} (${step.tool})\n${detail.split("\n").map((l) => `  ${l}`).join("\n")}`);
     }
     const okCount = ran.filter((r) => r.ok).length;
-    const preface = reason === "no-provider"
+    const onScene = plan.steps.every((step) => step.tool.startsWith("cosmos.object."));
+    const preface = onScene
+      ? `Done locally on the Cosmos scene${reason === "no-provider" ? " (no model provider is reachable, and none was needed)" : " — no model involved"}: ${plan.summary}.`
+      : reason === "no-provider"
       ? `No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: ${plan.summary}.`
       : reason === "construction"
         ? `Built by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: ${plan.summary}.`

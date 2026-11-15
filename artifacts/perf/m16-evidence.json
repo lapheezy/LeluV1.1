@@ -1,0 +1,75 @@
+{
+  "mission": 16,
+  "generated": "2026-11-15",
+  "baseCommit": "a4f5df3",
+  "preservedCommits": ["1632fe2", "2513e90", "a4f5df3"],
+  "branch": "freebuff/capability-expansion",
+  "pushedTo": "integration/lelu-four-workforce-consolidation",
+  "checks": {
+    "typecheck": { "command": "npx tsc -b --force", "exit": 0 },
+    "build": { "command": "npm run build", "exit": 0, "seconds": 5.59 },
+    "tests": {
+      "cosmos-objects": { "pass": 10, "fail": 0 },
+      "creative-build": { "pass": 18, "fail": 0 },
+      "creative-kit": { "pass": 17, "fail": 0 },
+      "creation-studio-tools": { "pass": 9, "fail": 0 },
+      "chat-surface": { "pass": 31, "fail": 0 },
+      "module-layout": { "pass": 11, "fail": 0 },
+      "security-containment": { "pass": 18, "fail": 0 }
+    }
+  },
+  "domains": {
+    "mechanical": ["gearbox", "v8"],
+    "architecture": ["cabin"],
+    "science": ["molecule"],
+    "electrical": ["circuit"],
+    "biology": ["cell"],
+    "textiles": ["fabric"],
+    "count": 6
+  },
+  "derivedExamples": {
+    "v8": { "configuration": "V8 (90°)", "boreStroke": "92 × 82 mm", "displacement": "4.36 L", "crankRadius": "41.0 mm", "parts": 36 },
+    "circuit": { "volts": 9, "ohms": "2 × 100", "current": "45.0 mA", "power": "0.41 W", "openSwitchCurrent": "0.0 mA" },
+    "cell": { "radius": "30 mm", "surface": "4πr²", "volume": "4/3πr³" },
+    "fabric": { "weaveRules": ["plain", "twill", "satin"], "crossings": 64 }
+  },
+  "workflows": [
+    {
+      "id": 1,
+      "name": "Mechanical construction → Cosmos → integrate → extract",
+      "status": "VERIFIED",
+      "steps": [
+        "build a V8 engine -> v8 builder, 36 parts, 4.36 L",
+        "Put the V8 engine in the Cosmos. -> obj_2 @[3,0,-12.8] scale 4",
+        "Make it float and rotate slowly. -> motion spin 0.05",
+        "connect the V8 engine to the gear train -> obj_2 parent=obj_1",
+        "separate the V8 engine -> obj_2 parent=null, 36 parts, motion kept"
+      ],
+      "modelCalls": 0
+    },
+    {
+      "id": 6,
+      "name": "Persistence across reload",
+      "status": "VERIFIED",
+      "detail": "obj_1, obj_2, obj_3 restored from lelu.cosmos.objects.v1 with ids, positions, motion, groups and sources"
+    },
+    { "id": 2, "name": "Cabin + furniture + chair", "status": "BLOCKED", "why": "no furniture/chair builder exists yet" },
+    { "id": 3, "name": "Fabric → garment → extract panel", "status": "BLOCKED", "why": "fabric builder exists; garment component builder does not" },
+    { "id": 4, "name": "Molecule collection, group, isolate, reopen", "status": "PARTIAL", "why": "group/isolate/reopen covered by store tests, not run in-app" },
+    { "id": 5, "name": "Chat → Cosmos → modify → back to chat → export", "status": "PARTIAL", "why": "spawn/integrate/extract verified; export of a Cosmos object not wired to a button yet" },
+    { "id": 7, "name": "Zero-model-call operation", "status": "VERIFIED", "detail": "direct plans for creative.build/modify/inspect and cosmos.object.* run before the provider stage; response metadata records modelCalls: 0" }
+  ],
+  "cosmosObjects": {
+    "storageKey": "lelu.lelu.cosmos.objects.v1",
+    "tools": 15,
+    "operations": ["spawn", "position", "transform", "animate", "select", "group", "ungroup", "integrate", "extract", "isolate", "duplicate", "remove", "restore", "reset", "list"],
+    "cap": 120,
+    "layer": "src/app/scene/genesis/cosmos/CosmosObjectsLayer.tsx (mounted in CosmosLayer)"
+  },
+  "notVerified": [
+    "the objects were never seen floating in the Cosmos — the view could not be reached unobstructed at 384x661",
+    "no drag/gizmo manipulation, no undo stack",
+    "workflows 2 and 3 cannot run: no furniture or garment builders",
+    "wide viewport and physical device untested"
+  ]
+}

@@ -36,6 +36,7 @@ import {
 } from "./CosmosVisuals";
 import SolarSystem from "./SolarSystem";
 import CosmosRooms3D from "./CosmosRooms3D";
+import CosmosObjectsLayer from "./CosmosObjectsLayer";
 
 /* ------------------------------------------------------------------
  * CAMERA BLEND — smoothly transitions between Genesis view and Cosmos view
@@ -709,6 +710,11 @@ export default function CosmosLayer() {
           you are in. Added to this scene; nothing already drawn here is
           replaced. */}
       <CosmosRooms3D />
+
+      {/* ─── USER OBJECTS ─── */}
+      {/* What was built and placed here: real objects with their own ids,
+          transforms and motion, drawn from their own construction. */}
+      <CosmosObjectsLayer />
 
       {/* ─── EXISTING ENTITY LAYER ─── */}
       {state.entities.filter((e) => e.level === "lelu-core").map((entity) => (

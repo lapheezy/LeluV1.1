@@ -43,6 +43,7 @@ import { registerEnvironmentTools } from "./orchestrator/EnvironmentTools";
 import { registerStudioTools } from "./studio/StudioTools";
 import { registerAtelierTools } from "./atelier/AtelierTools";
 import { registerCreativeKitTools } from "./creative/kit/CreativeKitTools";
+import { registerCosmosObjectTools } from "./cosmos/objects/CosmosObjectTools";
 import { registerCosmosTools } from "./cosmos/CosmosTools";
 import TaskExecutor from "./agentic/TaskExecutor";
 import DailyReflection from "./agentic/DailyReflection";
@@ -217,6 +218,9 @@ export default class Bootstrap {
       // charts, three.js scenes → GLB, films → WebM, public no-key data,
       // device capabilities and the tool capability catalog.
       registerCreativeKitTools();
+      // Cosmos objects: a construction becomes an independent object in the
+      // scene, locally, with no model call per move.
+      registerCosmosObjectTools();
       // Cosmos: the navigable map and the workspace API, offered through the
       // same dispatcher/gate/approval path as every other tool.
       registerCosmosTools();

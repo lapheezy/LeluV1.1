@@ -18,9 +18,9 @@ import type { Scene3DProgram, SceneObject } from "../Scene3D";
 /** A point or direction in world space (metres). */
 export type Vec3 = [number, number, number];
 
-export type BuildDomain = "mechanical" | "architecture" | "science" | "environment" | "art";
+export type BuildDomain = "mechanical" | "architecture" | "science" | "electrical" | "biology" | "textiles" | "environment" | "art";
 
-export const BUILD_DOMAINS: BuildDomain[] = ["mechanical", "architecture", "science", "environment", "art"];
+export const BUILD_DOMAINS: BuildDomain[] = ["mechanical", "architecture", "science", "electrical", "biology", "textiles", "environment", "art"];
 
 export interface BuildPart {
   id: string;
