@@ -57,7 +57,7 @@ function pickStyle(t: string): GenerativeStyle { const named = GENERATIVE_STYLES
 function pickPalette(t: string): string { const named = Object.keys(PALETTES).find((p) => new RegExp(`\\b${p}\\b`, "i").test(t)); return named ?? PALETTE_WORDS.find(([re]) => re.test(t))?.[1] ?? "lelu"; }
 function pickPreset(t: string): string { const named = Object.keys(PRESETS).find((p) => t.toLowerCase().includes(p)); return named ?? PRESET_WORDS.find(([re]) => re.test(t))?.[1] ?? "crystal-cave"; }
 function subjectOf(t: string): string {
-  return t.replace(/^\/\w+\s*/, "").replace(/\b(please|can you|could you|make|create|build|generate|construct|render|draw|give me|show me|me|a|an|the|some|short|quick|new|detailed|interactive|of|about|for|on|with|in|style|colou?rs?)\b/gi, " ").replace(/[^\p{L}\p{N}\s-]/gu, " ").replace(/\s+/g, " ").trim().slice(0, 60) || "LÉLU";
+  return t.replace(/^\/\w+\s*/, "").replace(/\b(please|can you|could you|make|create|build|generate|construct|render|draw|give me|show me|me|a|an|the|some|short|quick|new|detailed|interactive|of|about|for|on|with|in|style|colou?rs?|film|movie|video|trailer|reel|montage|sketch|drawing|doodle|concept|fashion|collection|called|named|titled)\b/gi, " ").replace(/[^\p{L}\p{N}\s-]/gu, " ").replace(/\s+/g, " ").trim().slice(0, 60) || "LÉLU";
 }
 
 /** "a -> b -> c, b -> d" → a structured flowchart. */
