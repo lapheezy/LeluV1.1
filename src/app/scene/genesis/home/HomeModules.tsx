@@ -22,6 +22,7 @@ import {
   Home, Layers, Layers3, LayoutGrid, Lightbulb, Lock, LockOpen, MapPin, Maximize2, Menu, MessageCircle, Minimize2, Minus,
   Monitor, Moon, Navigation, Newspaper, Orbit, PanelBottom, PenLine, Pencil, Pin, Plus, Redo2, RotateCcw, ScrollText,
   Search, Settings, Settings2, Smartphone, Sparkles, Sun, Tablet, Undo2, UserRound, Workflow, X,
+  Wand2, Palette, Type, Shuffle, Combine, GitMerge, BookMarked, NotebookPen, Flame, Droplets, Snowflake, Save, Trash2, Star,
 } from "lucide-react";
 import { useGenesis, type GenesisPanel } from "../GenesisCore";
 import { useLeluActivity, ACTIVITY_ACCENT, type LeluActivity } from "../avatar/leluActivity";
@@ -45,6 +46,7 @@ const HOME_ICONS = {
   Home, Layers, Layers3, LayoutGrid, Lightbulb, Lock, LockOpen, MapPin, Maximize2, Menu, MessageCircle, Minimize2, Minus,
   Monitor, Moon, Navigation, Newspaper, Orbit, PanelBottom, PenLine, Pencil, Pin, Plus, Redo2, RotateCcw, ScrollText,
   Search, Settings, Settings2, Smartphone, Sparkles, Sun, Tablet, Undo2, UserRound, Workflow, X,
+  Wand2, Palette, Type, Shuffle, Combine, GitMerge, BookMarked, NotebookPen, Flame, Droplets, Snowflake, Save, Trash2, Star,
 } as const;
 
 type IconName = keyof typeof HOME_ICONS;
@@ -413,6 +415,38 @@ function ActivityModule({ preview }: HomeModuleProps) {
   );
 }
 
+/**
+ * Ask LÉLU: a command/search field as a Home surface (command-bar,
+ * search-first, chat-is-home and voice-first layouts). It hands the
+ * words to the Chat Universe's composer — the person sends them there,
+ * so nothing is sent from the Home on its own.
+ */
+function AskModule({ preview }: HomeModuleProps) {
+  const [text, setText] = useState("");
+  const submit = (value: string) => {
+    if (preview) return;
+    window.dispatchEvent(new CustomEvent("lelu-open-universe", value.trim() ? { detail: { draft: value.trim() } } : undefined));
+    setText("");
+  };
+  return (
+    <form
+      className="lch-glass lch-ask"
+      role="search"
+      aria-label="Ask LÉLU"
+      onSubmit={(e) => {
+        e.preventDefault();
+        submit(text);
+      }}
+    >
+      <HomeIcon name="Sparkles" size={18} />
+      <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Ask LÉLU, or type a command…" aria-label="Ask LÉLU" enterKeyHint="send" disabled={preview} />
+      <button type="submit" aria-label="Open in the conversation" disabled={preview}>
+        <HomeIcon name="MessageCircle" size={16} />
+      </button>
+    </form>
+  );
+}
+
 export const HOME_MODULE_VIEWS: Record<HomeModuleId, (props: HomeModuleProps) => ReactNode> = {
   weather: WeatherModule,
   lelu: LeluModule,
@@ -422,6 +456,7 @@ export const HOME_MODULE_VIEWS: Record<HomeModuleId, (props: HomeModuleProps) =>
   notifications: NotificationsModule,
   library: LibraryModule,
   activity: ActivityModule,
+  ask: AskModule,
 };
 
 export function HomeModuleView({ id, ...props }: HomeModuleProps & { id: HomeModuleId }) {

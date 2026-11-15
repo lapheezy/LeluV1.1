@@ -164,3 +164,19 @@ The engine families referenced below are `bento`, `grid`, `masonry`, `split`, `o
 - The twelfth prototype, **LÉLU Central** (the default Home), combines #19 layered glass, #29 recents + pinned and #44 the activity-driven hero.
 - #51 is the recommended next step.
 - Nothing above is claimed as implemented unless it is BUILT or SUPPORTED, and those are backed by `tests/home-composition.test.ts` and `scripts/home/verify-home.mjs`.
+
+---
+
+## Mission 15.1 — all sixty now work
+
+The labels above are the Mission 15 *catalog verdicts* and are kept as written. Since Mission 15.1, every one of the sixty concepts is also a **working layout**. The eleven BUILT concepts point at their built-in composition. The other forty-nine each have their own recipe in `src/app/scene/genesis/home/homeConcepts.ts`, solved by the same engine and rendered with the same live modules on phone, tablet and desktop. The Design Studio lists all sixty, shows the research notes above, and lets her use, edit, blend, merge and restyle each one.
+
+| Verdict in the catalog | Count | Now |
+|---|---|---|
+| built | 11 | working (built-in composition) |
+| supported | 21 | working (own recipe) |
+| proposed | 15 | working (own recipe) |
+| rejected | 12 | working (own recipe; the reasons for rejection still stand as advice) |
+| blocked | 1 | working layout (#40); still no calendar data, so no appointments are shown |
+
+New engine families added for them: `column`, `strip`, `rows`, `stage`, `lanes`, `radial`, `constellation`, `scatter`, `twozone`. There is also a ninth, optional module, **Ask LÉLU**, used by #10, #20, #28, #36, #54 and #55. The research notes in the app are generated from this file by `scripts/home/concepts-from-md.py`.

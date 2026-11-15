@@ -62,8 +62,9 @@ import "./chatUniverse.css";
 export const OPEN_UNIVERSE_EVENT = "lelu-open-universe";
 export const UNIVERSE_SEND_EVENT = "lelu-universe-send";
 
-export function openChatUniverse(): void {
-  window.dispatchEvent(new CustomEvent(OPEN_UNIVERSE_EVENT));
+/** Open the Universe; `draft` (optional) is put in its composer for the person to send. */
+export function openChatUniverse(draft?: string): void {
+  window.dispatchEvent(new CustomEvent(OPEN_UNIVERSE_EVENT, draft ? { detail: { draft } } : undefined));
 }
 
 const ART_BASE = `${import.meta.env?.BASE_URL ?? "/"}universe/`.replace(/\/\/+/g, "/");
@@ -148,7 +149,14 @@ export default function ChatUniverse() {
   const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const show = () => setOpen(true);
+    const show = (event: Event) => {
+      setOpen(true);
+      const draft = (event as CustomEvent<{ draft?: string } | null>).detail?.draft;
+      if (typeof draft === "string" && draft.trim()) {
+        setDraft(draft.slice(0, 2000));
+        requestAnimationFrame(() => inputRef.current?.focus());
+      }
+    };
     window.addEventListener(OPEN_UNIVERSE_EVENT, show);
     return () => window.removeEventListener(OPEN_UNIVERSE_EVENT, show);
   }, []);

@@ -301,3 +301,15 @@ button.lch-glass { text-align: left; padding: 0; }
 .lch.lch-m15[data-device="phone"] .hc-field select, .lch.lch-m15[data-device="phone"] .hc-field input { max-width: none; width: 100%; }
 .lch.lch-m15[data-device="phone"] .hc-actions { margin-left: 0; }
 .lch.lch-m15[data-device="phone"] .hc-device { display: none; }
+
+/* Mission 15.1: the look's backdrop tint over the Cosmos (theme), under the Home. */
+.lch-tint {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  pointer-events: none;
+  background:
+    radial-gradient(90% 60% at 30% 0%, var(--hc-tint-a, transparent), transparent 72%),
+    radial-gradient(80% 60% at 90% 100%, var(--hc-tint-b, transparent), transparent 72%);
+}
+.lch :is(.lch-brand-name, strong) { font-family: var(--hc-heading, inherit); }
