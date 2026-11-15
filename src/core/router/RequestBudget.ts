@@ -29,6 +29,8 @@ export interface RequestBudget {
   systemBytes: number;
   historyBytes: number;
   promptBytes: number;
+  /** Bytes in the provider-appended memory context system message. */
+  contextBytes?: number;
   toolCount: number;
   toolSchemaBytes: number;
   totalBytes: number;
@@ -50,6 +52,8 @@ export function describeRequestBudget(input: {
   tier?: SchemaTier;
   provider?: string;
   model?: string;
+  /** Provider-appended context. It is sent as a system message but is not in `messages` yet. */
+  context?: string;
 }): RequestBudget {
   const messages = input.messages ?? [];
   const tools = input.tools ?? [];
@@ -64,7 +68,8 @@ export function describeRequestBudget(input: {
 
   const promptBytes = bytes(input.prompt);
   const toolSchemaBytes = tools.length > 0 ? bytes(tools) : 0;
-  const totalBytes = systemBytes + historyBytes + promptBytes + toolSchemaBytes;
+  const contextBytes = bytes(input.context);
+  const totalBytes = systemBytes + historyBytes + promptBytes + toolSchemaBytes + contextBytes;
 
   return {
     ...(input.provider ? { provider: input.provider } : {}),
@@ -74,6 +79,7 @@ export function describeRequestBudget(input: {
     systemBytes,
     historyBytes,
     promptBytes,
+    ...(input.context ? { contextBytes } : {}),
     toolCount: tools.length,
     toolSchemaBytes,
     totalBytes,
@@ -290,6 +296,8 @@ export function fitRequestBudget<
   model?: string;
   maxTokens?: number;
   limitBytes?: number;
+  /** Provider-appended context, counted against the same ceiling. */
+  context?: string;
   /** How many of the most recent messages must survive untouched. */
   protectedTail?: number;
 }): FittedRequest<M, T> {
@@ -311,6 +319,7 @@ export function fitRequestBudget<
       tier,
       provider: input.provider,
       model: input.model,
+      ...(input.context ? { context: input.context } : {}),
     });
 
   let budget = measure();

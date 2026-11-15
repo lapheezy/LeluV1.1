@@ -47,6 +47,17 @@ test("an empty tool list costs no schema bytes", () => {
   assert.equal(budget.toolSchemaBytes, 0);
 });
 
+test("provider-appended context is counted in the same ceiling", () => {
+  const context = "self state ".repeat(500);
+  const budget = describeRequestBudget({ prompt: "hi", context, tools: [] });
+  assert.ok((budget.contextBytes ?? 0) > 4_000);
+  assert.equal(budget.totalBytes, budget.promptBytes + (budget.contextBytes ?? 0));
+  assert.ok(
+    budget.totalBytes > describeRequestBudget({ prompt: "hi", tools: [] }).totalBytes,
+    "context that the provider sends was not counted",
+  );
+});
+
 test("no message content is copied into the budget", () => {
   const secretish = "my private diary entry";
   const budget = describeRequestBudget({ messages: [{ role: "user", content: secretish }], tools: [] });

@@ -6,6 +6,7 @@
  *
  *   self.operational  read the evidence-labelled self-model
  *   mission.list      read the continuity ledger
+ *   mission.find      resolve one record by id, words and provenance
  *   mission.record    open a workstream (local state, risk 1)
  *   mission.update    advance it: status, files, decisions,
  *                     blockers, next safe action, evidence
@@ -69,13 +70,30 @@ export const CONTINUITY_TOOLS: ToolDefinition[] = [
   definition(
     "mission.list",
     "List Workstreams",
-    "Read the mission continuity ledger: open workstreams, their status, evidence, blockers, where the work lives and the next safe action.",
+    "Read the mission continuity ledger: open workstreams, their status, evidence, blockers, where the work lives and the next safe action. Titles can repeat after a retry; use the stable id, objective, status and provenance, and call mission_find when several records look alike.",
     0,
     {
       type: "object",
       properties: {
         includeClosed: { type: "boolean", description: "Include completed and abandoned workstreams." },
       },
+    },
+  ),
+  definition(
+    "mission.find",
+    "Find One Workstream",
+    "Resolve the single workstream that matches an id, title, objective, repository or branch. Use this when titles collide or the request names a state (for example, the blocked original). It returns the stable id, status, objective, provenance, project identity and the full brief for the best match, plus any alternatives. Never choose a record by title alone.",
+    0,
+    {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "Id, title, objective words, repository or branch." },
+        status: { type: "string", enum: [...MISSION_STATUSES], description: "Optional status filter." },
+        repository: { type: "string", description: "Optional exact repository filter." },
+        branch: { type: "string", description: "Optional exact branch filter." },
+        includeClosed: { type: "boolean", description: "Include completed and abandoned records." },
+      },
+      required: ["query"],
     },
   ),
   definition(
@@ -112,7 +130,7 @@ export const CONTINUITY_TOOLS: ToolDefinition[] = [
         id: { type: "string", description: "The mission id from mission_list or mission_record." },
         action: {
           type: "string",
-          enum: ["status", "evidence", "next", "blocker", "clear-blocker", "file", "decision", "note"],
+          enum: ["status", "evidence", "next", "blocker", "clear-blocker", "file", "decision", "note", "duplicate"],
         },
         value: { type: "string", description: "The status, basis, action, blocker text, file path, decision or note." },
         blockerId: { type: "string", description: "For clear-blocker; defaults to the most recent open blocker." },
@@ -216,6 +234,66 @@ export const CONTINUITY_EXECUTORS: ToolExecutor[] = [
   },
 
   {
+    id: "mission.find",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string" },
+        status: { type: "string", enum: [...MISSION_STATUSES] },
+        repository: { type: "string" },
+        branch: { type: "string" },
+        includeClosed: { type: "boolean" },
+      },
+      required: ["query"],
+    },
+    run: async (args): Promise<ToolExecutionResult> => {
+      const ledger = MissionLedgerStore.getInstance();
+      const query = str(args, "query");
+      if (!query) return { ok: false, content: "mission_find needs a query: an id, title, objective, repository or branch." };
+      const statusText = str(args, "status");
+      const status = statusText ? asStatus(statusText) : undefined;
+      if (statusText && !status) {
+        return { ok: false, content: `"${statusText}" is not a mission status. One of: ${MISSION_STATUSES.join(", ")}.` };
+      }
+      const matches = ledger.find(query, {
+        ...(status ? { status } : {}),
+        ...(str(args, "repository") ? { repository: str(args, "repository") } : {}),
+        ...(str(args, "branch") ? { branch: str(args, "branch") } : {}),
+        includeClosed: args.includeClosed === true,
+      });
+      if (matches.length === 0) {
+        return {
+          ok: true,
+          content: `No workstream matches "${query}" in the ledger. Do not invent one: call mission_list or ask which record is meant.`,
+          data: { matches: 0 },
+        };
+      }
+
+      const top = matches[0];
+      const sameTitle = ledger.list().filter((mission) => mission.title === top.title);
+      const alternatives = matches.slice(1).map(
+        (mission) => `- ${mission.id} · ${mission.status} · ${mission.objective || mission.title}`,
+      );
+      const collision =
+        sameTitle.length > 1
+          ? `\nNote: ${sameTitle.length} records share the title "${top.title}" (${sameTitle
+              .map((mission) => `${mission.id}=${mission.status}${mission.duplicateOf ? ` duplicate of ${mission.duplicateOf}` : ""}`)
+              .join("; ")}). The stable id ${top.id} is authoritative for this match; do not substitute another record by title.`
+          : "";
+      return {
+        ok: true,
+        content:
+          `Best match: ${top.id} (${top.status}, ${top.evidence}).\n${formatMission(top)}${collision}` +
+          (alternatives.length > 0 ? `\n\nOther matches:\n${alternatives.join("\n")}` : ""),
+        data: {
+          id: top.id,
+          candidates: matches.map((mission) => ({ id: mission.id, title: mission.title, status: mission.status })),
+        },
+      };
+    },
+  },
+
+  {
     id: "mission.record",
     parameters: {
       type: "object",
@@ -281,7 +359,7 @@ export const CONTINUITY_EXECUTORS: ToolExecutor[] = [
         id: { type: "string" },
         action: {
           type: "string",
-          enum: ["status", "evidence", "next", "blocker", "clear-blocker", "file", "decision", "note"],
+          enum: ["status", "evidence", "next", "blocker", "clear-blocker", "file", "decision", "note", "duplicate"],
         },
         value: { type: "string" },
         blockerId: { type: "string" },
@@ -337,10 +415,15 @@ export const CONTINUITY_EXECUTORS: ToolExecutor[] = [
           if (!value) return { ok: false, content: "note needs text." };
           mission = ledger.note(id, value, evidence ?? "REPORTED");
           break;
+        case "duplicate":
+          if (!value) return { ok: false, content: "duplicate needs the stable id of the canonical record." };
+          mission = ledger.markDuplicate(id, value, evidence ? `evidence ${evidence}` : undefined);
+          if (!mission) return { ok: false, content: `Cannot mark ${id} as a duplicate of "${value}": both records must exist and differ.` };
+          break;
         default:
           return {
             ok: false,
-            content: `"${action}" is not a mission update. One of: status, evidence, next, blocker, clear-blocker, file, decision, note.`,
+            content: `"${action}" is not a mission update. One of: status, evidence, next, blocker, clear-blocker, file, decision, note, duplicate.`,
           };
       }
 

@@ -17,6 +17,8 @@ import test from "node:test";
 import AIProviderRegistry, { classifyProviderFailure } from "../src/core/AIProviderRegistry";
 import ExecutionLogger from "../src/core/ExecutionLogger";
 import ProviderResolver from "../src/core/router/ProviderResolver";
+import { flattenToolHistory } from "../src/core/router/finalRound";
+import { isMissionResume, missionResumeContext } from "../src/core/router/continuationContext";
 import type AIProvider from "../src/providers/AIProvider";
 import type { AIRequest, AIResponse } from "../src/providers/AIProvider";
 
@@ -104,6 +106,70 @@ test("a slow provider is cut off at its own budget and the next one answers", as
   const failure = context.aiProviders.failure("Slow");
   assert.match(failure?.reason ?? "", /budget/, "the cut-off was not recorded as the provider's failure");
   assert.equal(failure?.kind, "timeout");
+});
+
+test("a final no-tool round replaces tool protocol history with plain evidence", async () => {
+  const requests: AIRequest[] = [];
+  const provider = fakeProvider(
+    "Groq",
+    1,
+    async (request) => {
+      requests.push(request);
+      if (request.tools?.length) {
+        return {
+          text: "",
+          provider: "Groq",
+          model: "groq-1",
+          processingTime: 1,
+          toolCalls: [{ id: "call-1", name: "lelu_no_such_tool_for_final_round", arguments: {} }],
+        };
+      }
+      // The measured refusal: a no-tool request still carrying assistant
+      // tool_calls / role:"tool" history.
+      if (request.messages?.some((message) => message.role === "tool" || message.toolCalls?.length)) {
+        throw new Error('Groq failed 400: {"type":"invalid_request_error","code":"tool_use_failed","message":"Tool choice is none, but model called a tool"}');
+      }
+      return { text: "The mission is blocked by providers; next is to read the brief.", provider: "Groq", model: "groq-1", processingTime: 1 };
+    },
+    true,
+  );
+
+  const { context } = harness([provider], { allowTools: true });
+  const result = await new ProviderResolver({ rungBudgetMs: 5_000 }).execute(context);
+
+  assert.equal(result.response?.provider, "Groq", "the final round was not answered after its tools ran");
+  assert.match(result.response?.text ?? "", /read the brief/);
+  const finalRequest = requests[requests.length - 1];
+  assert.equal(finalRequest.tools, undefined, "the final round still offered tools");
+  assert.ok(
+    !finalRequest.messages?.some((message) => message.role === "tool" || message.toolCalls?.length),
+    "tool protocol history survived into the no-tool round",
+  );
+  assert.match(JSON.stringify(finalRequest.messages), /lelu_no_such_tool_for_final_round/);
+  assert.match(JSON.stringify(finalRequest.messages), /No tools are available in this final round/);
+});
+
+test("flattening keeps the result text and removes only the tool envelope", () => {
+  const flattened = flattenToolHistory([
+    { role: "user", content: "resume the mission" },
+    { role: "assistant", content: "", toolCalls: [{ id: "c1", name: "mission.list", arguments: {} }] },
+    { role: "tool", content: "m-406ecd7d blocked: providers are rate limited", toolCallId: "c1", toolName: "mission.list" },
+  ]);
+  assert.equal(flattened.length, 2);
+  assert.equal(flattened[0].content, "resume the mission");
+  assert.match(String(flattened[1].content), /m-406ecd7d blocked/);
+  assert.match(String(flattened[1].content), /mission\.list/);
+  assert.ok(!flattened.some((message) => message.role === "tool" || message.toolCalls?.length));
+});
+
+test("a resume turn drops self-description but keeps live retrieval evidence", () => {
+  assert.equal(isMissionResume("Resume the blocked Mission 14 workstream and read its brief"), true);
+  assert.equal(isMissionResume("write me a short poem about the sea"), false);
+  const context = `## LÉLU SELF STATE\n${"self ".repeat(5_000)}\n## LIVE RETRIEVAL RESULTS\nA real earthquake was recorded at 10:04.`;
+  const reduced = missionResumeContext(context) ?? "";
+  assert.ok(reduced.length < 600, `resume context was ${reduced.length} chars`);
+  assert.match(reduced, /A real earthquake was recorded/);
+  assert.match(reduced, /mission ledger is the source of truth/);
 });
 
 test("a request refused for its size degrades its tool set instead of dropping every tool", async () => {

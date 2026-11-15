@@ -29,6 +29,7 @@ import AgentEventBus from "../agent/AgentEvents";
 import type { OperationalSnapshot } from "../operational-intelligence/types.ts";
 import { repositoryCoverage, REPOSITORY_CATALOG } from "../operational-intelligence/repositories.ts";
 import { note } from "./RoutingTrace";
+import { isMissionResume } from "./continuationContext";
 
 export type IntelligenceIntent =
   | { kind: "snapshot" }
@@ -70,6 +71,12 @@ const REPOS = /\b(repositor(y|ies)|open.?source|which (project|package)|what wou
 export function detectIntelligenceIntent(prompt: string): IntelligenceIntent | null {
   const text = prompt.trim();
   if (!text) return null;
+  // "what is blocked" belongs to the mission ledger when the same request
+  // names a mission or workstream and asks to resume it. Answering it from
+  // the operational snapshot hides the persisted blocker the user asked for.
+  if (isMissionResume(text) && !/\b(?:studios?|capabilit(?:y|ies)|openhands|opencode)\b/i.test(text)) {
+    return null;
+  }
 
   const named = CAPABILITY_HINTS.find((hint) => hint.pattern.test(text));
 

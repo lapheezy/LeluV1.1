@@ -9,7 +9,8 @@
  * configured provider is attempted immediately.
  */
 
-import { continuationContext } from "./continuationContext";
+import { continuationContext, isMissionResume, missionResumeContext } from "./continuationContext";
+import { flattenToolHistory } from "./finalRound";
 import { resolveFirst } from "../resolveEnv";
 import { classifyChainFailure } from "../voice/turnFailure";
 import { contradictedCaptureClaims, contradictionNote, groundingNote, ungroundedClaims } from "../tools/ClaimGrounding";
@@ -142,6 +143,7 @@ export default class ProviderResolver {
     messages: AIMessage[],
     tools: Array<{ name: string; description?: string; parameters?: unknown }>,
     tier: SchemaTier,
+    contextText?: string,
   ) {
     const fitted = fitRequestBudget({
       messages,
@@ -150,6 +152,7 @@ export default class ProviderResolver {
       tier,
       provider: provider.name,
       model: context.request.model,
+      ...(contextText ? { context: contextText } : {}),
       ...(context.request.maxTokens ? { maxTokens: context.request.maxTokens } : {}),
       ...(this.requestCeilingBytes ? { limitBytes: this.requestCeilingBytes } : {}),
       protectedTail: 12,
@@ -682,12 +685,21 @@ export default class ProviderResolver {
     const requestedTier: SchemaTier =
       toolMode === "reduced" ? "REDUCED" : toolMode === "none" ? "NONE" : "FULL";
 
+    // A resume turn is answered from the ledger, not from the self-description
+    // block the provider appends as a second system message. Keeping that
+    // block off the request is the difference between two small mission
+    // records fitting Groq's minute and a 23 KB request that cannot.
+    const resumeTurn = isMissionResume(context.request.prompt);
+    const requestContext = resumeTurn ? missionResumeContext(context.request.context) : context.request.context;
+
     /**
      * THE CEILING, APPLIED HERE — the last point before a provider sees it.
      * Everything below sends `fitted`, not the raw context, so a request that
-     * can only be refused is made acceptable first.
+     * can only be refused is made acceptable first. The provider-appended
+     * context is counted too; it used to arrive after the fitter and blow the
+     * ceiling it had just measured.
      */
-    const fitted = this.fitFor(provider, context, context.request.messages ?? [], offeredTools, requestedTier);
+    const fitted = this.fitFor(provider, context, context.request.messages ?? [], offeredTools, requestedTier, requestContext);
     const tools = fitted.tools;
 
     // The request as it will actually be sent, measured at the boundary where
@@ -712,6 +724,7 @@ export default class ProviderResolver {
       return gatedGenerate(provider, {
         ...this.withRungSignal(context.request, rungSignal),
         messages: fitted.messages,
+        ...(resumeTurn ? { context: requestContext ?? "" } : {}),
       });
     }
 
@@ -736,6 +749,7 @@ export default class ProviderResolver {
       ...this.withRungSignal(context.request, rungSignal),
       messages,
       tools,
+      ...(resumeTurn ? { context: requestContext ?? "" } : {}),
     });
     // A round that came back is proof the rung is alive.
     onProgress?.();
@@ -916,13 +930,21 @@ export default class ProviderResolver {
         messages,
         stopReason ? [] : tools,
         stopReason ? "NONE" : tools.length === offeredTools.length ? requestedTier : "REDUCED",
+        requestContext,
       );
+      // With no tools offered, the tool-call protocol has no channel left.
+      // Keeping `assistant.tool_calls` / `role:"tool"` in history makes some
+      // providers answer 400 tool_use_failed instead of a final reply; the
+      // same results become plain evidence below.
+      const finalMessages = refitted.tools.length === 0
+        ? flattenToolHistory(refitted.messages)
+        : refitted.messages;
       response = await gatedGenerate(provider, {
         ...this.withRungSignal(context.request, rungSignal),
         // A continuation round re-reads tool results; LÉLU's full self-state
         // was given on round 0 and is not re-sent (see continuationContext).
-        context: continuationContext(context.request.context),
-        messages: refitted.messages,
+        context: continuationContext(requestContext),
+        messages: finalMessages,
         ...(refitted.tools.length ? { tools: refitted.tools } : {}),
       });
       onProgress?.();

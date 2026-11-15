@@ -49,6 +49,7 @@ export type MissionLogKind =
   | "blocker-cleared"
   | "next-action"
   | "note"
+  | "duplicate"
   | "merged";
 
 export interface MissionLogEntry {
@@ -89,6 +90,8 @@ export interface MissionRecord {
   dependencies: string[];
   nextSafeAction: string | null;
   provenance: MissionProvenance;
+  /** The stable id of the record this one duplicates, when known. */
+  duplicateOf?: string;
   createdAt: number;
   updatedAt: number;
   /** Bounded, newest-first? No — chronological, oldest first. */
@@ -116,6 +119,7 @@ export interface CreateMissionInput {
   nextSafeAction?: string | null;
   files?: string[];
   provenance?: Partial<MissionProvenance>;
+  duplicateOf?: string;
 }
 
 export interface MissionPatch {
@@ -126,6 +130,7 @@ export interface MissionPatch {
   branch?: string;
   commit?: string;
   dependencies?: string[];
+  duplicateOf?: string | null;
 }
 
 const KEY = "lelu.missions.v1";
@@ -243,6 +248,9 @@ function normalizeRecord(raw: unknown, at: number): MissionRecord | null {
     blockers,
     dependencies: list(item.dependencies, DEPENDENCY_LIMIT),
     nextSafeAction: typeof item.nextSafeAction === "string" ? redactText(item.nextSafeAction).trim() || null : null,
+    ...(typeof item.duplicateOf === "string" && item.duplicateOf.trim()
+      ? { duplicateOf: item.duplicateOf.trim() }
+      : {}),
     provenance: {
       createdBy:
         item.provenance && typeof item.provenance === "object" && typeof (item.provenance as Record<string, unknown>).createdBy === "string"
@@ -367,6 +375,7 @@ export class MissionLedger {
       blockers: [],
       dependencies: list(input.dependencies ?? [], DEPENDENCY_LIMIT),
       nextSafeAction: input.nextSafeAction ? text(input.nextSafeAction) : null,
+      ...(input.duplicateOf ? { duplicateOf: text(input.duplicateOf) } : {}),
       provenance: {
         createdBy: input.provenance?.createdBy ?? "lelu",
         ...(input.provenance?.session ? { session: input.provenance.session } : {}),
@@ -395,6 +404,11 @@ export class MissionLedger {
     if (patch.branch !== undefined) mission.branch = text(patch.branch) || undefined;
     if (patch.commit !== undefined) mission.commit = text(patch.commit) || undefined;
     if (patch.dependencies !== undefined) mission.dependencies = list(patch.dependencies, DEPENDENCY_LIMIT);
+    if (patch.duplicateOf !== undefined) {
+      const canonical = patch.duplicateOf ? text(patch.duplicateOf) : "";
+      if (canonical && canonical !== mission.id && this.get(canonical)) mission.duplicateOf = canonical;
+      if (!canonical) delete mission.duplicateOf;
+    }
     this.touch(mission);
     this.save();
     return mission;
@@ -513,6 +527,88 @@ export class MissionLedger {
     return mission;
   }
 
+  /**
+   * Mark a record as a duplicate of a canonical one. The duplicate is
+   * abandoned rather than deleted, so the history and its original session
+   * survive, while open lists stop offering two identical titles. Refuses a
+   * self-reference or a canonical id that does not exist.
+   */
+  public markDuplicate(id: string, canonicalId: string, note?: string): MissionRecord | null {
+    const mission = this.get(id);
+    const canonical = this.get(canonicalId);
+    if (!mission || !canonical || id === canonicalId) return null;
+    mission.duplicateOf = canonicalId;
+    if (mission.status !== "abandoned") mission.status = "abandoned";
+    this.logEntry(
+      mission,
+      "duplicate",
+      note ? `Duplicate of ${canonicalId}: ${note}` : `Duplicate of ${canonicalId}`,
+      mission.evidence,
+      "mission-ledger",
+    );
+    this.touch(mission);
+    this.save();
+    return mission;
+  }
+
+  /**
+   * Resolve a mission by stable id or by its own words, not by title alone.
+   * A shared title is common after a retry (two records opened for one job);
+   * the id, status, objective, project identity and provenance are what tell
+   * them apart. Results are ranked, never silently collapsed.
+   */
+  public find(
+    query: string,
+    options: { status?: MissionStatus; repository?: string; branch?: string; includeClosed?: boolean } = {},
+  ): MissionRecord[] {
+    const needle = text(query).toLowerCase();
+    if (!needle) return [];
+    const tokens = needle.split(/[^a-z0-9]+/).filter((token) => token.length >= 3);
+    const candidates = (options.includeClosed ? this.list() : this.open()).filter((mission) => {
+      if (options.status && mission.status !== options.status) return false;
+      if (options.repository && mission.repository !== options.repository) return false;
+      if (options.branch && mission.branch !== options.branch) return false;
+      return true;
+    });
+
+    const scored = candidates.map((mission) => {
+      const fields = [
+        mission.id,
+        mission.title,
+        mission.objective,
+        mission.nextSafeAction ?? "",
+        mission.repository ?? "",
+        mission.branch ?? "",
+        mission.provenance.createdBy,
+        ...mission.decisions,
+        ...mission.files,
+      ]
+        .join(" ")
+        .toLowerCase();
+      let score = 0;
+      if (mission.id.toLowerCase() === needle) score += 1_000;
+      else if (mission.id.toLowerCase().includes(needle)) score += 300;
+      if (mission.title.toLowerCase() === needle) score += 200;
+      else if (mission.title.toLowerCase().includes(needle)) score += 100;
+      if (mission.objective.toLowerCase().includes(needle)) score += 50;
+      for (const token of tokens) if (fields.includes(token)) score += 5;
+      if (mission.duplicateOf) score -= 40;
+      if (mission.status === "blocked") score += 2;
+      return { mission, score };
+    });
+
+    return scored
+      .filter((entry) => entry.score > 0)
+      .sort(
+        (a, b) =>
+          b.score - a.score ||
+          STATUS_ORDER[a.mission.status] - STATUS_ORDER[b.mission.status] ||
+          b.mission.updatedAt - a.mission.updatedAt,
+      )
+      .slice(0, 5)
+      .map((entry) => entry.mission);
+  }
+
   public note(id: string, note: string, evidence: MissionEvidence = "REPORTED"): MissionRecord | null {
     const mission = this.get(id);
     const detail = text(note);
@@ -602,6 +698,9 @@ export function formatMission(mission: MissionRecord): string {
   return [
     `${mission.title} (${mission.id})`,
     `  status: ${mission.status} · evidence: ${mission.evidence} · owner: ${mission.owner}`,
+    `  identity: ${mission.id} · created by ${mission.provenance.createdBy}` +
+      `${mission.provenance.session ? ` (session ${mission.provenance.session})` : ""} · created ${new Date(mission.createdAt).toISOString()}`,
+    mission.duplicateOf ? `  duplicate of: ${mission.duplicateOf}` : "",
     mission.objective ? `  objective: ${mission.objective}` : "",
     mission.repository || mission.branch || mission.commit
       ? `  where: ${mission.repository ?? "unknown repo"}${mission.branch ? ` @ ${mission.branch}` : ""}${mission.commit ? ` (${mission.commit})` : ""}`

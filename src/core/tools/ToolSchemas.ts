@@ -28,6 +28,7 @@ import {
   toolNameForModel,
   toolPermitted,
 } from "./ToolDispatcher";
+import { isMissionResume } from "../router/continuationContext";
 
 /**
  * Every tool that is registered, executable and currently permitted,
@@ -141,6 +142,7 @@ export const DISCOVERY_TOOL_NAMES: readonly string[] = [
 export const CONTINUITY_TOOL_NAMES: readonly string[] = [
   "self_operational",
   "mission_list",
+  "mission_find",
   "mission_record",
   "mission_update",
   "mission_brief",
@@ -148,6 +150,20 @@ export const CONTINUITY_TOOL_NAMES: readonly string[] = [
 
 /** How many schemas one conversational turn may carry. */
 export const TURN_TOOL_LIMIT = 14;
+
+/**
+ * A resume turn needs these four, and nothing else: find the record, read its
+ * brief, advance it, and list if the find is ambiguous. Discovery tools and
+ * self.operational are useful on open-ended turns but were measured as spent
+ * Groq TPM on a blocked Mission 14 retry (system.config + self.operational
+ * before any mission read).
+ */
+export const MISSION_RESUME_TOOL_NAMES: readonly string[] = [
+  "mission_list",
+  "mission_find",
+  "mission_brief",
+  "mission_update",
+];
 
 /**
  * How many bytes of schema one conversational turn may carry.
@@ -194,7 +210,7 @@ const FAMILY_HINTS: Array<[RegExp, string[]]> = [
   // lexical tools were offered and the model truthfully answered that it
   // could not see mission_update. The five tools are one set: a turn that
   // can open a workstream must also be able to advance and resume it.
-  [/(?:\b(missions?|workstreams?|continuity|resuming?|brief|ledger|blockers?)\b|\boperational state\b|mission_(?:list|record|update|brief)|self_operational)/i, ["self_operational", "mission_list", "mission_record", "mission_update", "mission_brief"]],
+  [/(?:\b(missions?|workstreams?|continuity|resuming?|brief|ledger|blockers?)\b|\boperational state\b|mission_(?:list|find|record|update|brief)|self_operational)/i, ["self_operational", "mission_list", "mission_find", "mission_record", "mission_update", "mission_brief"]],
   // Measured: "Draw me a quick sketch of a cat…" matched no family, so the
   // drawing tool (studio_create, kind "drawing") was never offered and the
   // model answered with an invented image link, then ASCII art.
@@ -264,6 +280,14 @@ export function selectToolSchemas(
   prompt = "",
   intent?: string,
 ): ToolSchema[] {
+  // A mission resume is a closed read/advance turn. Offering the discovery
+  // and self-inspection families alongside it invited detours that consumed
+  // the provider's minute before the ledger was read.
+  if (isMissionResume(prompt)) {
+    const resume = schemas.filter((schema) => MISSION_RESUME_TOOL_NAMES.includes(String(schema.name)));
+    if (resume.length > 0) return resume;
+  }
+
   // An environment turn keeps its existing, narrower contract.
   const environmentTurn = Boolean(intent && /environment/i.test(intent)) || ENVIRONMENT_REQUEST.test(prompt);
   if (environmentTurn) {

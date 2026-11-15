@@ -38,6 +38,19 @@ export default class IntentDetector {
       return "chat";
     }
 
+    // -- Mission/workstream resumption is a continuity read, not project
+    // management. "Resume the blocked Mission 14 workstream" contains
+    // "resume the", which the project gate below claims before cognition can
+    // see it; the result was a text project created from the user's own
+    // sentence. The ledger tools answer this turn.
+    if (
+      /\b(?:missions?|workstreams?|continuity ledger|mission ledger)\b/i.test(text) &&
+      /\b(?:resume|resuming|pick up|continue|brief|blocked|blocking|blockers?)\b/i.test(text) &&
+      !/\bproject\b/i.test(text)
+    ) {
+      return "chat";
+    }
+
     // -- Project commands — MUST be detected before news/search:
     // "Start a project to get current Tampa news every day" contains
     // "news" but is a project command, not a news lookup.

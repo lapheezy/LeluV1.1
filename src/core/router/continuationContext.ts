@@ -43,7 +43,21 @@ const DROP_ON_CONTINUATION = [
   /^Agents\b/,
   /^Self\b/,
   /^Creative capability\b/,
+  /^Memory context\b/,
 ];
+
+/**
+ * Is this turn asking to pick a workstream back up, rather than asking about
+ * the world? Resume turns must be answered from the ledger, not from a
+ * self-description block that is re-sent on every round.
+ */
+export function isMissionResume(prompt: string | undefined): boolean {
+  if (!prompt) return false;
+  return (
+    /\b(missions?|workstreams?|continuity|ledger|brief|blockers?)\b/i.test(prompt) &&
+    /\b(resume|resuming|pick up|continue|read|retrieve|find|blocked|blocking)\b/i.test(prompt)
+  );
+}
 
 /** The request context for a continuation round; unchanged when there is nothing to drop. */
 export function continuationContext(context: string | undefined): string | undefined {
@@ -56,4 +70,25 @@ export function continuationContext(context: string | undefined): string | undef
   });
   if (kept.length === sections.length) return context;
   return `${kept.join("\n")}\n\n(Self-description sections are omitted on this continuation round: they were given at the start of this task and have not changed.)`;
+}
+
+/**
+ * The context a mission-RESUME turn needs.
+ *
+ * A resume asks what was already recorded, so the ledger tools are the
+ * source of truth. The full self-description block is not: measured on the
+ * blocked Mission 14 retry, it was ~21 KB of a ~23 KB request, and it was
+ * re-sent while the model was trying to read two small mission records. Keep
+ * live retrieval if it is present (it is evidence for this turn); otherwise
+ * replace the block with a short statement of where the facts come from.
+ */
+export function missionResumeContext(context: string | undefined): string | undefined {
+  if (!context || context.trim().length === 0) return context;
+  const live = /## LIVE RETRIEVAL RESULTS[\s\S]*?(?=\n## |$)/i.exec(context)?.[0]?.trim();
+  return (
+    "Mission resumption: the persistent mission ledger is the source of truth for this turn. " +
+    "Use the continuity tools to find the record, read its brief and persist any update. " +
+    "Self-description and unrelated context are omitted because they are not evidence about the mission." +
+    (live ? `\n\n${live}` : "")
+  );
 }

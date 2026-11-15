@@ -8,6 +8,7 @@
 import { refersToConversationArtifact } from "./studio/StudioTools";
 import type { AIResponse } from "../providers/AIProvider";
 import type RouterContext from "./router/RouterContext";
+import { isMissionResume } from "./router/continuationContext";
 import BrainResolver from "./router/BrainResolver";
 import PlanningResolver from "./router/PlanningResolver";
 import ReasoningResolver from "./router/ReasoningResolver";
@@ -241,6 +242,21 @@ export default class AIRouter {
     if (!directPlan) {
       const unknown = this.direct.unknownCommand(context);
       if (unknown.handled && unknown.response) return unknown.response;
+    }
+
+    // 0.4 MISSION RESUMPTION — a request to pick a recorded workstream back
+    // up is answered by the continuity tools, not by whichever deterministic
+    // resolver happens to recognise a word in it. Measured: "resume the
+    // blocked Mission 14 workstream, find the record, tell me what is blocked"
+    // was claimed by ProjectResolver ("resume the"), then by the operational
+    // intelligence snapshot ("what is blocked"), and the ledger was never
+    // read. This route is narrow: it requires mission/workstream vocabulary
+    // AND a resume/read verb, and it stands aside for a genuine studio or
+    // capability question.
+    const resumePrompt = context.request.prompt ?? "";
+    if (isMissionResume(resumePrompt) && !/\b(?:studios?|capabilit(?:y|ies)|openhands|opencode)\b/i.test(resumePrompt)) {
+      const continuity = await this.traced(context, "provider", () => this.providers.execute(context));
+      if (continuity.handled && continuity.response) return this.attachThinking(context, continuity.response);
     }
 
     // 0.5 COGNITIVE STATE — "what are you thinking about?" REPORTS the

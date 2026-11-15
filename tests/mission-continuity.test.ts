@@ -49,7 +49,7 @@ import {
   redactText,
   countEvidence,
 } from "../src/core/operational-intelligence/evidence";
-import { MissionLedger } from "../src/core/projects/MissionLedger";
+import { MissionLedger, formatMission } from "../src/core/projects/MissionLedger";
 import MissionLedgerStore from "../src/core/projects/MissionLedger";
 import CognitivePulseStore from "../src/core/cognition/CognitivePulse";
 import {
@@ -163,6 +163,45 @@ test("a workstream survives reconstruction with its blockers, files and next saf
   assert.equal(restored!.decisions.length, 1);
   assert.equal(restored!.nextSafeAction, "run the focused continuity tests");
   assert.equal(restored!.durability, "persisted");
+});
+
+test("duplicate titles are resolved by stable id, status and provenance, and survive reload", () => {
+  const kv = memoryKv();
+  const ledger = new MissionLedger({ kv });
+  const original = ledger.create({
+    title: "Mission 14 conversational proof",
+    objective: "Prove the continuity tools work in a real conversation",
+    status: "blocked",
+    provenance: { createdBy: "lelu", session: "original-session" },
+    nextSafeAction: "read the resume brief and continue",
+  }).mission!;
+  const duplicate = ledger.create({
+    title: "Mission 14 conversational proof",
+    objective: "Advance Fashion: a different job that reused the title",
+    status: "active",
+    provenance: { createdBy: "lelu", session: "fashion-session" },
+  }).mission!;
+
+  // Both exist until the duplicate relationship is recorded; a title alone
+  // cannot tell them apart.
+  assert.equal(ledger.find("Mission 14 conversational proof").length, 2);
+
+  const marked = ledger.markDuplicate(duplicate.id, original.id, "same title, different objective");
+  assert.equal(marked?.status, "abandoned");
+  assert.equal(marked?.duplicateOf, original.id);
+  assert.ok(!ledger.open().some((mission) => mission.id === duplicate.id), "the duplicate is no longer offered as open work");
+  assert.match(formatMission(marked!), /duplicate of: m-/);
+
+  const resolved = ledger.find("blocked Mission 14 conversational proof");
+  assert.equal(resolved[0]?.id, original.id, "the blocked original is the best match");
+  assert.equal(resolved.length, 1, "the abandoned duplicate is not a competing open match");
+
+  // The relationship is stored, not just held in this instance.
+  const reloaded = new MissionLedger({ kv });
+  assert.equal(reloaded.get(duplicate.id)?.duplicateOf, original.id);
+  assert.equal(reloaded.get(duplicate.id)?.status, "abandoned");
+  assert.match(reloaded.brief(duplicate.id), /duplicate of: m-/);
+  assert.equal(reloaded.find("Fashion", { includeClosed: true })[0]?.id, duplicate.id);
 });
 
 test("a refused storage write is reported as memory-only, never as durability", () => {
@@ -496,6 +535,7 @@ test("continuity tools register through the one dispatcher and refuse unknown mi
   assert.deepEqual(registration.failed, []);
   assert.deepEqual(registration.registered.sort(), [
     "mission.brief",
+    "mission.find",
     "mission.list",
     "mission.record",
     "mission.update",
@@ -520,6 +560,12 @@ test("continuity tools register through the one dispatcher and refuse unknown mi
   const list = CONTINUITY_EXECUTORS.find((executor) => executor.id === "mission.list")!;
   assert.match((await list.run({})).content, /status: active/);
 
+  const find = CONTINUITY_EXECUTORS.find((executor) => executor.id === "mission.find")!;
+  const found = await find.run({ query: "Tool-created workstream" });
+  assert.equal(found.ok, true);
+  assert.match(found.content, /identity:/, "the match carries its stable identity, not just a title");
+  assert.equal((found.data as { id?: string }).id, created.data?.id);
+
   const update = CONTINUITY_EXECUTORS.find((executor) => executor.id === "mission.update")!;
   const unknown = await update.run({ id: "m-does-not-exist", action: "status", value: "completed" });
   assert.equal(unknown.ok, false);
@@ -537,9 +583,20 @@ test("a continuity turn is offered the whole family, including the self-read", (
     toolSchemasForModel(),
     "Call mission_update on m-406ecd7d, then mission_brief and mission_list. Report durability.",
   );
-  for (const name of ["self_operational", "mission_list", "mission_record", "mission_update", "mission_brief"]) {
+  for (const name of ["self_operational", "mission_list", "mission_find", "mission_record", "mission_update", "mission_brief"]) {
     assert.ok(selection.names.includes(name), `${name} must be offered on a continuity turn: ${selection.names.join(", ")}`);
   }
+});
+
+test("a mission-resume turn is offered only the four ledger tools", () => {
+  registerContinuityTools();
+  const selection = describeToolSelection(
+    toolSchemasForModel(),
+    "Resume the blocked Mission 14 conversational-proof workstream and tell me what is blocking it.",
+  );
+  assert.deepEqual(selection.names.sort(), ["mission_brief", "mission_find", "mission_list", "mission_update"]);
+  assert.ok(!selection.names.includes("system_config"), "a resume turn paid for discovery it did not need");
+  assert.ok(!selection.names.includes("self_operational"), "a resume turn paid for the self-model it did not read");
 });
 
 test("the pulse is not listening twice after a repeated bootstrap", () => {
