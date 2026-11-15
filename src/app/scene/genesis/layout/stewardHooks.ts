@@ -55,9 +55,18 @@ export function useContentOverflowWatch(key: string): void {
         let right = box.right;
         const nodes = content.querySelectorAll<HTMLElement>("*");
         const limit = Math.min(nodes.length, 600);
+        // Content inside a container that scrolls or clips on purpose (a tab
+        // strip, a toolbar, a table wrapper) is not "content that doesn't fit".
+        const deliberate = (el: Element): boolean => {
+          for (let p = el.parentElement; p && p !== content; p = p.parentElement) {
+            const ox = getComputedStyle(p).overflowX;
+            if (ox === "auto" || ox === "scroll" || ox === "hidden" || ox === "clip") return true;
+          }
+          return false;
+        };
         for (let i = 0; i < limit; i += 1) {
           const r = nodes[i].getBoundingClientRect();
-          if (r.width > 0 && r.height > 0 && r.right > right) right = r.right;
+          if (r.width > 0 && r.height > 0 && r.right > right && !deliberate(nodes[i])) right = r.right;
         }
         const overflow = right - box.right;
         if (overflow > 6) WorkspaceStewardStore.reportNeed(id, box.width + overflow + 24);

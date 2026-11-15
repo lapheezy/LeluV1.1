@@ -43,7 +43,7 @@ interface PendingAttachment {
   preview: string;
   dataUrl?: string;
 }
-import { buildStage } from "../stage/conversationModel";
+import { buildStage, contentMessages } from "../stage/conversationModel";
 import { artifactKey, environmentOf, recommendEnvironment } from "../../../../../core/interface/Environments";
 import { parseWorkspaceCommand } from "../../../../../core/interface/WorkspaceSteward";
 import StudioStore from "../../../../../core/studio/StudioStore";
@@ -112,7 +112,7 @@ export default function UniverseChatWindow({
   const messageCount = conversation?.messages.length ?? 0;
   const lastText = conversation?.messages[messageCount - 1]?.text ?? "";
   const model = useMemo(
-    () => buildStage(conversation?.title ?? "", conversation?.messages ?? []),
+    () => buildStage(conversation?.title ?? "", contentMessages(conversation?.messages ?? [])),
     // Rebuilt when the conversation grows or its last (streaming) message changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [conversation?.title, messageCount, lastText],

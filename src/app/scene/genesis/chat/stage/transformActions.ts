@@ -7,7 +7,7 @@
  */
 import MultiChatStore from "../../../../../core/multichat/MultiChatStore";
 import type { TransformTarget } from "../../../../../core/interface/WorkspaceSteward";
-import { buildStage } from "./conversationModel";
+import { buildStage, contentMessages } from "./conversationModel";
 import { tableToChart, tableToWorkbook, tablesOf, toDeck, toDocument, toFilmScenes, toMermaid } from "./transforms";
 import { createWork } from "./works";
 
@@ -15,7 +15,7 @@ export function transformConversation(conversationId: string, target: TransformT
   const c = MultiChatStore.getInstance().get(conversationId);
   if (!c) return { ok: false, detail: "That conversation no longer exists." };
   if (!c.messages.length) return { ok: false, detail: "The conversation is empty — there is nothing to turn into work yet." };
-  const model = buildStage(c.title, c.messages);
+  const model = buildStage(c.title, contentMessages(c.messages));
   const title = c.title || "Conversation";
   let spec: unknown;
   let note: string;

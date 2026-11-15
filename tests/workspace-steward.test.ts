@@ -153,3 +153,13 @@ test("workspace tools are registered and drive the UI action bus", async () => {
     unregister();
   }
 });
+
+test("an over-wide measured need never collapses a split to one window", () => {
+  const plan = planWorkspace({
+    viewport: { width: 1440, height: 900 },
+    mode: "split",
+    focusIds: ["browser", "chat:a"],
+    windows: [win("browser", 3, { neededWidth: 5000 }), win("artifact:x", 2), win("chat:a", 1)],
+  });
+  assert.deepEqual(Object.keys(plan.placements).sort(), ["browser", "chat:a"], "the named pair, not the most recent pair");
+});

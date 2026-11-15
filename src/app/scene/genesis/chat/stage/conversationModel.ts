@@ -197,3 +197,24 @@ export function slidesOf(stage: StageConversation): Slide[] {
   }
   return slides;
 }
+
+/**
+ * The conversation's substance for staging: LÉLU's own bookkeeping (what an
+ * environment made, exports) and the transcript of direct commands are
+ * process, not content — they stay in the thread, out of boards and documents.
+ */
+export function contentMessages<T extends { role: string; text: string; provider?: string }>(messages: T[]): T[] {
+  const out: T[] = [];
+  for (let i = 0; i < messages.length; i += 1) {
+    const m = messages[i];
+    if (m.provider === "lelu-environment" || m.provider === "lelu-trail") continue;
+    if (m.role === "user" && /^\//.test(m.text.trim())) {
+      // A command and the tool log that answered it.
+      if (messages[i + 1]?.role === "assistant" && messages[i + 1]?.provider === "lelu-direct") i += 1;
+      continue;
+    }
+    if (m.provider === "lelu-direct") continue;
+    out.push(m);
+  }
+  return out;
+}

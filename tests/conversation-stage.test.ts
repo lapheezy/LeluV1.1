@@ -27,3 +27,15 @@ test("gists and slides", () => {
   assert.ok(slides.some((s) => s.kind === "question" && s.heading.startsWith("Compare")));
   assert.equal(slides.filter((s) => s.kind === "section").length, 3);
 });
+
+test("command transcripts and LÉLU's bookkeeping are process, not content", async () => {
+  const { contentMessages } = await import("../src/app/scene/genesis/chat/stage/conversationModel");
+  const kept = contentMessages([
+    { role: "user", text: "/research reefs" },
+    { role: "assistant", text: "Done directly…", provider: "lelu-direct" },
+    { role: "assistant", text: "Saved the board", provider: "lelu-environment" },
+    { role: "user", text: "Why do reefs bleach?" },
+    { role: "assistant", text: "Heat stress.", provider: "anthropic" },
+  ]);
+  assert.deepEqual(kept.map((m) => m.text), ["Why do reefs bleach?", "Heat stress."]);
+});

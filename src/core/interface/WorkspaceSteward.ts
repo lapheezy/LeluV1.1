@@ -154,7 +154,8 @@ function capacity(ordered: StewardWindow[], a: Rect): number {
   const rows = a.height >= MIN_HEIGHT * 2 + GAP + 180 ? 2 : 1;
   let fit = 0;
   // Greedy: columns of the widest-needed windows first, `rows` per column.
-  const widths = ordered.map(minWidthOf);
+  // A need wider than the whole workspace can only ever be met by the whole workspace.
+  const widths = ordered.map((w) => Math.min(minWidthOf(w), a.width));
   let used = 0;
   for (let i = 0; i < widths.length; i += rows) {
     const col = Math.max(...widths.slice(i, i + rows));

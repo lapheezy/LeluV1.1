@@ -266,7 +266,21 @@ function DocumentEnv({ conversationId, model }: EnvProps) {
   const draft = useRef<DocumentSpec | null>(null);
   const make = async () => {
     const images = await imagesAsDataUrls(model.media.map((m) => m.src));
-    const r = createWork(conversationId, toDocument(model, images), "Wrote a document from this conversation");
+    // The report: the conversation's substance, then the findings of every
+    // research brief made in it, with their sources renumbered together.
+    const base = toDocument(model, images);
+    const briefs = works.filter((w) => /^Research board/i.test(w.title)).map((w) => specOf(w) as DocumentSpec);
+    const sources = [...(base.sources ?? [])];
+    const blocks = model.turns.length ? [...base.blocks] : [];
+    for (const b of briefs) {
+      const offset = sources.length;
+      blocks.push({ type: "heading", level: 2, text: b.title.replace(/^Research board\s*—\s*/i, "Findings: ") });
+      blocks.push(...b.blocks.map((x) => (x.type === "heading" && x.level === 1 ? { ...x, level: 3 as const } : x)));
+      (b.sources ?? []).forEach((src, i) => sources.push({ ...src, id: `S${offset + i + 1}` }));
+    }
+    if (!blocks.length) blocks.push({ type: "paragraph", text: "Nothing to write yet: ask LÉLU something or research a topic first." });
+    const spec: DocumentSpec = { ...base, subtitle: briefs.length ? `${briefs.length} research brief${briefs.length === 1 ? "" : "s"} · ${sources.length} sources` : base.subtitle, blocks, sources };
+    const r = createWork(conversationId, spec, briefs.length ? "Wrote a report from this conversation and its research" : "Wrote a document from this conversation");
     if (r.ok) select(r.artifact.id);
     setNote(r.ok ? null : r.reason);
   };
