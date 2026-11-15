@@ -363,10 +363,10 @@ function NotificationsModule({ preview }: HomeModuleProps) {
 function LibraryModule({ preview, onOpenLibrary }: HomeModuleProps) {
   const go = (group?: AppGroup) => (preview ? undefined : onOpenLibrary?.(group));
   return (
-    <section className="lch-glass lch-library" aria-label="App library">
+    <section className="lch-glass lch-library" aria-label="Infinite Library">
       <button type="button" className="lch-section-head lch-link" onClick={() => go()}>
         <HomeIcon name="LayoutGrid" size={18} />
-        <span>App Library</span>
+        <span>Infinite Library</span>
         <HomeIcon name="ChevronRight" size={16} style={{ marginLeft: "auto" }} />
       </button>
       <div className="lch-groups">

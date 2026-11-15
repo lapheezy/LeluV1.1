@@ -11,15 +11,15 @@
  * aside), tap again to come back; press and hold to talk to LÉLU (the
  * same voice pipeline as the chat's mic).
  *
- * Library and Windows open sheets (HomeSheets); Search is the ⌘K
- * command palette; Worlds switches the scene (Cosmos, her 3D world,
+ * Library (the Infinite Library: interfaces, Legacy UIs, compositions
+ * and apps) and Windows open sheets (HomeSheets); Search is the ⌘K
+ * command palette; Worlds switches the scene (Cosmos, LÉLU's Room,
  * Earth). Every action goes through GenesisCore.
  * ==========================================================
  */
 
 import { useRef, useState } from "react";
 import { useGenesis } from "../GenesisCore";
-import VisualEngine from "../../../../core/visual/VisualEngine";
 import { HomeIcon } from "./CosmosHome";
 import HomeStore from "./homeStore";
 import { goHome, launch } from "./homeActions";
@@ -28,7 +28,7 @@ import { LibrarySheet, WindowsSheet, WorldsSheet } from "./HomeSheets";
 import type { AppGroup } from "./homeCatalog";
 import "./spatialNav.css";
 
-export type HomeSheet = { kind: "library"; group?: AppGroup } | { kind: "windows" } | { kind: "worlds" } | null;
+export type HomeSheet = { kind: "library"; group?: AppGroup | "interfaces" } | { kind: "windows" } | { kind: "worlds" } | null;
 
 export function openCommandPalette(): void {
   window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true, bubbles: true }));
@@ -100,7 +100,7 @@ export default function SpatialNav({
             if (atHome) HomeStore.setImmersive(false);
             else goHome(genesis);
           })}
-          {item("library", "App library", "LayoutGrid", sheet?.kind === "library", () => setSheet(sheet?.kind === "library" ? null : { kind: "library" }))}
+          {item("library", "Infinite Library", "LayoutGrid", sheet?.kind === "library", () => setSheet(sheet?.kind === "library" ? null : { kind: "library" }))}
           {item("windows", "Open windows", "AppWindow", sheet?.kind === "windows", () => setSheet(sheet?.kind === "windows" ? null : { kind: "windows" }), openWindows || undefined)}
           <span className="lsn-orb-slot" />
           {item("search", "Search (⌘K)", "Search", false, () => {
@@ -147,10 +147,7 @@ export default function SpatialNav({
           onClose={() => setSheet(null)}
           selfExploration={selfExploration}
           onToggleSelfExploration={onToggleSelfExploration}
-          onSystem={() => {
-            const engine = VisualEngine.getInstance();
-            engine.setInterfaceFocus(engine.getState().interfaceFocus === "visual" ? "genesis" : "visual");
-          }}
+          onOpenLibrary={() => setSheet({ kind: "library", group: "interfaces" })}
         />
       ) : null}
     </>

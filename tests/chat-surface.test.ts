@@ -115,7 +115,9 @@ test("the router renders no scene while chat owns the screen", () => {
   for (const scenePart of ["<GenesisV2Workspace", "<LivingSystemUI", "<GenesisV1Workspace"]) {
     assert.ok(router.indexOf(scenePart) > gate, `${scenePart} sits behind the gate`);
   }
-  assert.match(router, /surface\.cosmosRendered && !v2Active && !systemActive && \(\s*<Suspense fallback=\{null\}>\s*<CosmosOverview/);
+  // Mission 17: the Cosmos chrome also steps aside while an interface
+  // composition is open (the composition has its own jump bar).
+  assert.match(router, /surface\.cosmosRendered && !v2Active && !systemActive && !compositionOpen && \(\s*<Suspense fallback=\{null\}>\s*<CosmosOverview/);
 });
 
 test("the AI bridges belong to the app, not to the v1 scene", () => {

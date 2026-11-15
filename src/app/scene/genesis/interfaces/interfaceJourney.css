@@ -1,0 +1,474 @@
+/* Mission 17 — the continuous interface. Above the world, below every
+   panel and the navigation (LAYERS.panel = 100), so the shared chat,
+   windows and the nav bar still open over it. */
+.ij {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  color: #e2e8f0;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  pointer-events: auto;
+}
+
+.ij-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: max(8px, env(safe-area-inset-top)) 12px 8px;
+  background: rgba(4, 7, 20, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  min-height: 52px;
+}
+.ij-bar button,
+.ij-drawer button,
+.ij-end button,
+.ij-region-bar button,
+.ij-seam-go {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.ij-icon,
+.ij-actions button {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.7);
+}
+.ij-actions button[data-on="true"] {
+  border-color: rgba(192, 132, 252, 0.7);
+  background: rgba(88, 28, 135, 0.45);
+}
+.ij-actions {
+  display: flex;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+.ij-title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 0 1 220px;
+}
+.ij-title strong {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ij-title small {
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ij-jump {
+  flex: 1 1 auto;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-width: 0;
+}
+.ij-jump::-webkit-scrollbar {
+  display: none;
+}
+.ij-jump button {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.6);
+  white-space: nowrap;
+}
+.ij-jump button[data-on="true"] {
+  border-color: var(--ij-accent);
+  box-shadow: 0 0 0 1px var(--ij-accent) inset, 0 0 14px color-mix(in srgb, var(--ij-accent) 40%, transparent);
+}
+
+.ij-scroller {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* No scroll-snap: measured, "proximity" pulled every wheel step back to the
+     start of the region, so you could never scroll THROUGH a seam. The
+     interface is continuous; the jump bar is how you land exactly. */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.ij[data-flow="horizontal"] .ij-scroller {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.ij[data-flow="horizontal"] .ij-slot {
+  display: flex;
+  flex: 0 0 auto;
+  height: 100%;
+}
+
+.ij-slot {
+  height: auto;
+}
+.ij-region {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--ij-bg);
+}
+/* Vertical sizes: a fraction of the scroller's height. */
+.ij[data-flow="vertical"] .ij-slot {
+  height: auto;
+}
+.ij[data-flow="vertical"] .ij-region {
+  height: var(--ij-h, calc(100dvh - 60px));
+}
+.ij[data-flow="vertical"] .ij-region[data-size="tall"] {
+  height: calc(var(--ij-h, calc(100dvh - 60px)) * 0.8);
+}
+.ij[data-flow="vertical"] .ij-region[data-size="compact"] {
+  height: calc(var(--ij-h, calc(100dvh - 60px)) * 0.55);
+}
+.ij[data-flow="horizontal"] .ij-region {
+  width: 100vw;
+}
+.ij[data-flow="horizontal"] .ij-region[data-size="tall"] {
+  width: 80vw;
+}
+.ij[data-flow="horizontal"] .ij-region[data-size="compact"] {
+  width: 55vw;
+}
+
+.ij-region-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  background: color-mix(in srgb, var(--ij-accent) 14%, rgba(2, 6, 23, 0.86));
+  border-top: 1px solid color-mix(in srgb, var(--ij-accent) 45%, transparent);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  color: #f1f5f9;
+  pointer-events: auto;
+}
+.ij-region-bar small {
+  color: #94a3b8;
+}
+.ij-region-tools {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+.ij-region-tools button {
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(15, 23, 42, 0.6);
+  padding: 4px 8px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* The containing block for an interface written as a full-screen scene:
+   transform makes its position:fixed descendants fill THIS box. */
+.ij-region-body {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  transform: translateZ(0);
+  contain: layout paint;
+  isolation: isolate;
+}
+.ij-region[data-interface="cosmos"] .ij-region-body {
+  overflow: hidden;
+}
+
+.ij-cosmos-window {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: end center;
+  padding-bottom: 18px;
+  background: transparent;
+}
+.ij-cosmos-caption {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.72);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+/* Exploring: hands go through to the real world behind the composition. */
+.ij[data-exploring="true"] .ij-scroller {
+  pointer-events: none;
+}
+.ij[data-exploring="true"] .ij-region-bar {
+  pointer-events: auto;
+}
+
+.ij-preview,
+.ij-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+  padding: 24px;
+  color: #cbd5e1;
+  background: radial-gradient(60% 50% at 50% 45%, color-mix(in srgb, var(--ij-accent) 22%, transparent), transparent 70%);
+}
+.ij-preview small {
+  max-width: 420px;
+  color: #94a3b8;
+}
+.ij-preview-icon {
+  color: var(--ij-accent);
+}
+
+.ij-seam {
+  position: relative;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(to bottom, var(--ij-from), var(--ij-to));
+}
+.ij[data-flow="horizontal"] .ij-seam {
+  height: 100%;
+  width: 72px;
+  background: linear-gradient(to right, var(--ij-from), var(--ij-to));
+}
+.ij-seam[data-seam="portal"]::before {
+  content: "";
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid var(--ij-to-accent);
+  box-shadow: 0 0 24px var(--ij-to-accent), inset 0 0 18px var(--ij-from-accent);
+  animation: ij-portal 3.2s ease-in-out infinite;
+}
+.ij-seam[data-seam="cut"] {
+  height: 2px;
+  background: rgba(148, 163, 184, 0.3);
+}
+.ij[data-flow="horizontal"] .ij-seam[data-seam="cut"] {
+  width: 2px;
+}
+.ij-seam-go {
+  position: relative;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--ij-to-accent) 60%, transparent);
+  background: rgba(2, 6, 23, 0.7);
+}
+.ij[data-flow="horizontal"] .ij-seam-go {
+  writing-mode: vertical-rl;
+}
+@keyframes ij-portal {
+  50% {
+    transform: scale(1.15);
+    opacity: 0.7;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ij-seam[data-seam="portal"]::before {
+    animation: none;
+  }
+}
+
+.ij-end {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 40px 16px 120px;
+  background: #020617;
+  color: #94a3b8;
+}
+.ij[data-flow="horizontal"] .ij-end {
+  flex: 0 0 320px;
+  flex-direction: column;
+  padding: 16px;
+}
+.ij-end button {
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(15, 23, 42, 0.7);
+  padding: 8px 12px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ij-drawer {
+  position: fixed;
+  top: 64px;
+  right: 12px;
+  width: min(360px, calc(100vw - 24px));
+  max-height: calc(100dvh - 160px);
+  overflow: auto;
+  z-index: 61;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(8, 12, 30, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+  font-size: 13px;
+}
+.ij-drawer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ij-drawer-head button {
+  border: 0;
+  background: transparent;
+}
+.ij-drawer button,
+.ij-drawer select,
+.ij-drawer input {
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.8);
+  color: inherit;
+  padding: 5px 9px;
+  font: inherit;
+}
+.ij-drawer button[data-on="true"] {
+  border-color: #c084fc;
+  background: rgba(88, 28, 135, 0.5);
+}
+.ij-drawer button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.ij-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ij-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.ij-row > span {
+  min-width: 48px;
+  color: #94a3b8;
+}
+.ij-regions {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ij-regions li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(30, 41, 59, 0.5);
+}
+.ij-region-actions {
+  display: flex;
+  gap: 4px;
+}
+.ij-region-actions button {
+  padding: 3px 5px;
+}
+.ij-note {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 12px;
+}
+.ij-danger {
+  border-color: rgba(248, 113, 113, 0.5) !important;
+}
+.ij-variant-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ij-variant-list li {
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(30, 41, 59, 0.55);
+}
+.ij-variant-list small {
+  color: #94a3b8;
+}
+.ij-strip {
+  display: flex;
+  gap: 3px;
+  height: 10px;
+}
+.ij-strip i {
+  flex: 1;
+  border-radius: 3px;
+}
+.ij-notice {
+  position: fixed;
+  left: 50%;
+  bottom: 110px;
+  transform: translateX(-50%);
+  z-index: 62;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(192, 132, 252, 0.5);
+  font-size: 13px;
+  max-width: calc(100vw - 24px);
+}
+
+@media (max-width: 720px) {
+  .ij-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .ij-title {
+    flex: 1 1 0;
+  }
+  .ij-jump {
+    order: 3;
+    flex-basis: 100%;
+  }
+  .ij-drawer {
+    top: auto;
+    bottom: 96px;
+    max-height: 60dvh;
+  }
+}

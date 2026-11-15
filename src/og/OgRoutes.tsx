@@ -21,9 +21,10 @@
  * ==========================================================
  */
 
-import { Component, Suspense, lazy, useState, type ReactNode } from "react";
+import { Component, Suspense, lazy, useMemo, useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Route, Routes } from "react-router-dom";
+import { OgEmbedContext } from "./compat/router";
 import "./og.css";
 
 const OgCore = lazy(() => import("./routes/core"));
@@ -135,15 +136,14 @@ function OgFrame({ children }: { children: ReactNode }) {
   );
 }
 
-/** Mounted by the app router under /og/*. */
-export default function OgRoutes() {
-  // Created once per mount of the OG tree rather than at module scope, so the
-  // cache does not outlive the interfaces and leak between sessions.
-  const [queryClient] = useState(makeOgQueryClient);
-
+/**
+ * The OG route table. `location` is given only when an OG interface is
+ * embedded in a composition region (OgEmbedded): it is matched against the
+ * region's own location instead of the browser's.
+ */
+function OgRouteTable({ location }: { location?: string }) {
   return (
-    <QueryClientProvider client={queryClient}>
-    <Routes>
+    <Routes location={location}>
       <Route path="core" element={<OgFrame><OgCore /></OgFrame>} />
 
       {/* Inner Sky: the shell is the layout, its pages are nested children,
@@ -172,6 +172,52 @@ export default function OgRoutes() {
 
       <Route path="*" element={<OgFrame><OgCore /></OgFrame>} />
     </Routes>
+  );
+}
+
+/** Mounted by the app router under /og/*. */
+export default function OgRoutes() {
+  // Created once per mount of the OG tree rather than at module scope, so the
+  // cache does not outlive the interfaces and leak between sessions.
+  const [queryClient] = useState(makeOgQueryClient);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <OgRouteTable />
+    </QueryClientProvider>
+  );
+}
+
+/**
+ * An OG interface as a REGION of an interface composition (Mission 17).
+ *
+ * The same route table and the same components as /og/*, matched against
+ * a location the region owns: following a link inside the region changes
+ * the region, not the app's URL, so the person stays in the composition.
+ * "/" (OG's "leave to Genesis") returns the region to where it started.
+ * Same AIService, same conversations — only the router location is local.
+ */
+export function OgEmbedded({ entry }: { entry: "app" | "core" }) {
+  const [queryClient] = useState(makeOgQueryClient);
+  const home = `/og/${entry}`;
+  const [pathname, setPathname] = useState(home);
+  const embed = useMemo(
+    () => ({
+      pathname,
+      go: (to: string) => {
+        const path = to.split("?")[0];
+        setPathname(path.startsWith("/og/") ? path : home);
+      },
+    }),
+    [pathname, home],
+  );
+  return (
+    <QueryClientProvider client={queryClient}>
+      <OgEmbedContext.Provider value={embed}>
+        <div data-og-embedded={entry} data-og-path={pathname} style={{ minHeight: "100%" }}>
+          <OgRouteTable location={pathname.slice(3)} />
+        </div>
+      </OgEmbedContext.Provider>
     </QueryClientProvider>
   );
 }

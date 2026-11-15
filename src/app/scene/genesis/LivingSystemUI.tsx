@@ -57,7 +57,19 @@ const FIELD_BG =
 
 /* ------------------------------ shell --------------------------------- */
 
-export default function LivingSystemUI() {
+/**
+ * `embedded` (Mission 17): the System UI as a region of an interface
+ * composition. It then renders whatever the shared interface focus is —
+ * it is not the scene that owns the screen — and its two ways out (back to
+ * Genesis, into the Room) are the composition's to decide. Everything else
+ * is the same component reading the same VisualEngine.
+ */
+export interface LivingSystemEmbedding {
+  onExit: () => void;
+  onOpenRoom: () => void;
+}
+
+export default function LivingSystemUI({ embedded }: { embedded?: LivingSystemEmbedding } = {}) {
   // TEMP DEBUG — scene-isolation lifecycle log (see useSceneMountLog).
   useSceneMountLog("LivingSystemUI");
 
@@ -110,7 +122,7 @@ export default function LivingSystemUI() {
   // If the shared state somehow no longer points at this environment,
   // render nothing rather than a wrong-looking shell (the switch UI
   // calls setInterfaceFocus, so this only happens during transition).
-  if (interfaceFocus !== "visual") {
+  if (interfaceFocus !== "visual" && !embedded) {
     return null;
   }
 
@@ -119,6 +131,7 @@ export default function LivingSystemUI() {
   return (
     <div
       data-workspace="lelu-system"
+      data-embedded={embedded ? "true" : undefined}
       className="lelu-living-system-ui"
       style={{
         position: "fixed",
@@ -153,11 +166,15 @@ export default function LivingSystemUI() {
         views={workspaceState.views.filter((view) => !view.minimized)}
         focusId={workspaceState.focusId}
         onFocusView={(id) => workspaceEngine.focusView(id)}
-        onExit={() => visualEngine.setInterfaceFocus("genesis")}
-        onOpenLab={() => {
-          visualEngine.setInterfaceFocus("genesis");
-          openPanel("genesisv2");
-        }}
+        onExit={embedded ? embedded.onExit : () => visualEngine.setInterfaceFocus("genesis")}
+        onOpenLab={
+          embedded
+            ? embedded.onOpenRoom
+            : () => {
+                visualEngine.setInterfaceFocus("genesis");
+                openPanel("genesisv2");
+              }
+        }
       />
 
       {/* The central presence — click to talk to LÉLU. */}

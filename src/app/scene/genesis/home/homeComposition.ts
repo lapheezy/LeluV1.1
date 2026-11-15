@@ -110,7 +110,7 @@ export const MODULE_LABEL: Record<HomeModuleId, string> = {
   apps: "Apps",
   workspaces: "Active Workspaces",
   notifications: "Notifications",
-  library: "App Library",
+  library: "Infinite Library",
   activity: "Activity",
 };
 
