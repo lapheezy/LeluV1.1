@@ -89,7 +89,7 @@ if (!only || only === "film") {
   await page.locator('[data-lelu-env-view="film"] .lev-btn', { hasText: "Film from this conversation" }).click(); await page.waitForTimeout(2000);
   const t0 = Date.now();
   await page.locator("[data-lelu-film-render]").first().click().catch(() => {});
-  await page.waitForSelector("[data-lelu-film-ready]", { timeout: 240000 }).catch(() => {});
+  await page.waitForSelector("[data-lelu-film-ready]", { timeout: 1500000 }).catch(() => {});
   out.filmRenderMs = Date.now() - t0;
   out.filmInfo = await page.locator("[data-lelu-film-info]").first().innerText().catch(() => null);
   out.filmPlays = await page.evaluate(async () => { const v = document.querySelector("[data-lelu-film-ready]"); if (!v) return null; v.muted = true; try { await v.play(); } catch (e) { return `play failed: ${e.message}`; } await new Promise((r) => setTimeout(r, 1500)); return { currentTime: v.currentTime, duration: v.duration, w: v.videoWidth, h: v.videoHeight, paused: v.paused }; });

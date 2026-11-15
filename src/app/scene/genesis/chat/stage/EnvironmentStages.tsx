@@ -24,7 +24,7 @@ import StudioStore, { type StudioArtifact } from "../../../../../core/studio/Stu
 import type { DocumentSpec, DeckSpec, WorkbookSpec, GraphSpec, VisualSpec, DrawingSpec, Block } from "../../../../../core/studio/StudioTypes";
 import MultiChatStore from "../../../../../core/multichat/MultiChatStore";
 import WorkspaceStewardStore from "../../../../../core/interface/WorkspaceStewardStore";
-import { ENVIRONMENTS, environmentOf } from "../../../../../core/interface/Environments";
+import { environmentOf } from "../../../../../core/interface/Environments";
 import type { StageMode } from "../../../../../core/interface/WorkspaceSteward";
 import { useGenesis, chatWindowId } from "../../GenesisCore";
 import { arrangeWorkspace } from "../../layout/stewardActions";
@@ -700,4 +700,3 @@ export default function EnvironmentStage(props: EnvProps & { stage: StageMode })
   return <div className="lev-scroll lev-enter">{body}</div>;
 }
 
-export const ENVIRONMENT_IDS = ENVIRONMENTS.map((e) => e.id);

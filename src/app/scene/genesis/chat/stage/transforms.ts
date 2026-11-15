@@ -147,7 +147,7 @@ export function toDeck(model: StageConversation): DeckSpec {
   return { kind: "deck", title: model.title || "Conversation", author: "LÉLU", slides, sources: sourcesOf(model) };
 }
 
-const mmd = (t: string) => t.replace(/["\[\](){}<>|#;]/g, " ").replace(/\s+/g, " ").trim().slice(0, 48) || "…";
+const mmd = (t: string) => t.replace(/["[\](){}<>|#;]/g, " ").replace(/\s+/g, " ").trim().slice(0, 48) || "…";
 
 /** A flowchart of the conversation: title → questions → sections, in order. */
 export function toMermaid(model: StageConversation): string {
