@@ -124,7 +124,13 @@ function vec(v: unknown, fallback: Vec3): Vec3 {
  * correctly and invisible on screen. This is the difference the mission is
  * about — a position that renders.
  */
-export function ringSlot(index: number, radius = 3.2, z = 4, y = 0.9): Vec3 {
+/*
+ * The ring objects are born on. It sits IN FRONT of the core and its rooms:
+ * measured in the running scene, the default z = 4 dropped a chair inside the
+ * Earth/room cluster at the origin — drawn, and hidden by decor. z = 7.2 clears
+ * that cluster, so a new object is in open space the moment it exists.
+ */
+export function ringSlot(index: number, radius = 3.2, z = 7.2, y = 0.9): Vec3 {
   const angle = (index * Math.PI * 2) / 6;
   return [Math.round(Math.cos(angle) * radius * 100) / 100, y, Math.round((z + Math.sin(angle) * radius * 100) / 100) / 100];
 }

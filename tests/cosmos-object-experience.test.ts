@@ -65,8 +65,18 @@ test("the camera fits real geometry, and a narrow viewport backs off further", (
   const landscape = framePose(bounds, { fov: 50, aspect: 16 / 9 });
   const portrait = framePose(bounds, { fov: 50, aspect: 9 / 16 });
   assert.ok(portrait.distance > landscape.distance, "portrait must stand further back than landscape");
-  // The subject must be inside the frustum: radius / distance ≤ sin(fov/2).
-  assert.ok(bounds.radius / landscape.distance <= Math.sin((50 * Math.PI) / 360) + 1e-9);
+  // Every corner of the subject's box must be inside the frustum. Fitting the
+  // box axis by axis (not the sphere around it) is what keeps a phone from
+  // backing off until the object is a speck, so the check is the corners.
+  const insideFrustum = (pose: { distance: number }, aspect: number) => {
+    const hFov = 2 * Math.atan(Math.tan((50 * Math.PI) / 360) * aspect);
+    const near = pose.distance - (bounds.max[2] - bounds.min[2]) / 2;
+    const halfX = (bounds.max[0] - bounds.min[0]) / 2;
+    const halfY = (bounds.max[1] - bounds.min[1]) / 2;
+    return halfX / near <= Math.tan(hFov / 2) + 1e-9 && halfY / near <= Math.tan((50 * Math.PI) / 360) + 1e-9;
+  };
+  assert.ok(insideFrustum(landscape, 16 / 9), "landscape must contain the box");
+  assert.ok(insideFrustum(portrait, 9 / 16), "portrait must contain the box");
   assert.ok(Math.abs(landscape.lookAt[0] - bounds.center[0]) < 1e-9);
 });
 

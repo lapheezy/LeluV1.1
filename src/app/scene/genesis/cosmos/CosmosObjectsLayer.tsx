@@ -27,7 +27,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
-import { Group, MeshStandardMaterial, PerspectiveCamera, Plane, Raycaster, Vector2, Vector3 } from "three";
+import type { Object3D as ThreeObject } from "three";
+import { Frustum, Group, Matrix4, MeshStandardMaterial, PerspectiveCamera, Plane, Raycaster, Vector2, Vector3 } from "three";
 import CosmosObjectStore from "../../../../core/cosmos/objects/CosmosObjectStore";
 import type { CosmosObject, CosmosObjectState } from "../../../../core/cosmos/objects/CosmosObjectTypes";
 import { cosmosCameraBus, poseFor, objectBounds, type CameraPose } from "../../../../core/cosmos/objects/CosmosObjectCamera";
@@ -61,13 +62,12 @@ function ndcOf(event: PointerEvent, element: HTMLCanvasElement): Vector2 {
 function ObjectBody({
   object,
   selected,
-  onSelect,
-  onBeginDrag,
+  register,
 }: {
   object: CosmosObject;
   selected: boolean;
-  onSelect: (add: boolean) => void;
-  onBeginDrag: (object: CosmosObject) => void;
+  /** The layer keeps the group so it can raycast its own objects directly. */
+  register: (group: Group | null) => void;
 }) {
   const group = useRef<Group>(null);
   const [hovered, setHovered] = useState(false);
@@ -100,17 +100,16 @@ function ObjectBody({
 
   return (
     <group
-      ref={group}
+      ref={(node) => {
+        group.current = node;
+        register(node);
+      }}
       renderOrder={900}
+      userData={{ cosmosObjectId: object.id }}
       position={object.frame.position}
       rotation={(object.frame.rotation.map((d) => (d * Math.PI) / 180) as [number, number, number])}
       scale={object.frame.scale}
       visible={object.visible}
-      onPointerDown={(event) => {
-        event.stopPropagation();
-        onSelect(event.shiftKey === true);
-        if (!object.locked) onBeginDrag(object);
-      }}
       onPointerOver={() => setHovered(true)}
       onPointerOut={() => setHovered(false)}
     >
@@ -296,7 +295,7 @@ interface CameraStatus {
 }
 
 function ObjectCameraBridge() {
-  const { camera, size } = useThree();
+  const { camera, size, scene, gl } = useThree();
   // The scene's own default OrbitControls (makeDefault), so a framed pose is
   // the pose the user can then orbit around — not a second camera.
   const controls = useThree((state) => state.controls) as unknown as { target?: Vector3; update?: () => void } | null;
@@ -366,13 +365,31 @@ function ObjectCameraBridge() {
    * "the store has an object" and "the object is on screen" are different
    * claims, and only the second one is what a person sees.
    */
+  /*
+   * The camera's own aspect, kept in step with the canvas. A remount after
+   * chat owned the phone screen left the projection matrix from the previous
+   * size, so taps landed ~57 px from the pixels the user was pointing at and
+   * an object could be drawn in one place and picked in another.
+   */
+  useEffect(() => {
+    const perspective = camera as PerspectiveCamera;
+    if (!perspective.isPerspectiveCamera) return;
+    const aspect = size.width / Math.max(1, size.height);
+    if (Math.abs(perspective.aspect - aspect) > 1e-4) {
+      perspective.aspect = aspect;
+      perspective.updateProjectionMatrix();
+    }
+  }, [camera, size.width, size.height]);
+
   useEffect(() => {
     const perspective = camera as PerspectiveCamera;
     (window as unknown as { __cosmosObjectsProbe?: () => unknown }).__cosmosObjectsProbe = () => {
       const store = CosmosObjectStore.getInstance();
-      const objects = store.list();
       const height = Math.max(1, size.height);
-      return objects.map((object) => {
+      const frustum = new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+
+      /* 1. what the store has */
+      const fromStore = store.list().map((object) => {
         const point = new Vector3(...object.frame.position).project(camera);
         const distance = camera.position.distanceTo(new Vector3(...object.frame.position));
         const fovRad = ((perspective.fov ?? 50) * Math.PI) / 180;
@@ -382,14 +399,121 @@ function ObjectCameraBridge() {
           place: object.place,
           visible: object.visible,
           scale: object.frame.scale,
-          meshes: object.scene.objects.length,
+          sceneParts: object.scene.objects.length,
           distance: Number(distance.toFixed(2)),
           screen: [Math.round(((point.x + 1) / 2) * size.width), Math.round(((1 - point.y) / 2) * height)],
           inFront: point.z < 1,
-          /** how many pixels one world metre covers at that distance */
           pixelsPerMetre: Math.round((height / 2) / Math.tan(fovRad / 2) / Math.max(0.001, distance)),
+          inFrustum: frustum.containsPoint(new Vector3(...object.frame.position)),
         };
       });
+
+      /* 2. what the RENDER SCENE actually holds, found by traversing it */
+      const groups: Array<Record<string, unknown>> = [];
+      let sceneMeshes = 0;
+      scene.traverse((node: import("three").Object3D) => {
+        const any = node as unknown as { isMesh?: boolean; userData?: Record<string, unknown> };
+        if (any.isMesh) sceneMeshes += 1;
+        if (!any.userData || typeof any.userData.cosmosObjectId !== "string") return;
+        const group = node as unknown as Group;
+        let meshes = 0;
+        let materials: Array<Record<string, unknown>> = [];
+        group.traverse((child) => {
+          const mesh = child as unknown as { isMesh?: boolean; material?: unknown };
+          if (!mesh.isMesh) return;
+          meshes += 1;
+          const material = mesh.material as { type?: string; color?: { getHexString?: () => string }; transparent?: boolean; opacity?: number; depthTest?: boolean; visible?: boolean; wireframe?: boolean } | undefined;
+          if (materials.length < 2 && material) {
+            materials.push({
+              type: material.type,
+              color: material.color?.getHexString?.(),
+              transparent: material.transparent,
+              opacity: material.opacity,
+              depthTest: material.depthTest,
+              wireframe: material.wireframe,
+            });
+          }
+        });
+        const world = new Vector3();
+        group.getWorldPosition(world);
+        // Visibility is inherited: a visible group under a hidden parent is not drawn.
+        let chainVisible = true;
+        let cursor: Group | null = group;
+        while (cursor) {
+          if (cursor.visible === false) chainVisible = false;
+          cursor = cursor.parent as Group | null;
+        }
+        groups.push({
+          id: any.userData.cosmosObjectId,
+          meshes,
+          worldPosition: [Number(world.x.toFixed(2)), Number(world.y.toFixed(2)), Number(world.z.toFixed(2))],
+          worldScale: [group.scale.x, group.scale.y, group.scale.z],
+          renderOrder: group.renderOrder,
+          layers: group.layers.mask,
+          groupVisible: group.visible,
+          chainVisible,
+          parentType: group.parent?.type,
+          inFrustum: frustum.containsPoint(world),
+          materials,
+        });
+      });
+
+      const storeIds = fromStore.map((o) => o.id);
+      const sceneIds = groups.map((g) => g.id);
+      const parentScene = camera.parent as unknown as { type?: string; children?: unknown[] } | null;
+      const canvases = Array.from(document.querySelectorAll("canvas")).map((canvas, index) => ({
+        index,
+        connected: canvas.isConnected,
+        size: [canvas.clientWidth, canvas.clientHeight],
+        isOurs: canvas === gl.domElement,
+        hasContext: Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl")),
+      }));
+      return {
+        wiring: {
+          ourCanvas: { connected: gl.domElement.isConnected, size: [gl.domElement.clientWidth, gl.domElement.clientHeight], style: gl.domElement.style.cssText.slice(0, 120) },
+          cameraParentType: parentScene?.type ?? null,
+          cameraParentChildren: parentScene?.children?.length ?? null,
+          storeSceneChildren: scene.children.length,
+          sameScene: (parentScene as unknown) === (scene as unknown),
+          canvases,
+        },
+        camera: {
+          aspect: Number((perspective.aspect ?? 0).toFixed(3)),
+          viewport: [size.width, size.height],
+          position: [Number(camera.position.x.toFixed(2)), Number(camera.position.y.toFixed(2)), Number(camera.position.z.toFixed(2))],
+          layersMask: camera.layers.mask,
+          near: perspective.near,
+          far: perspective.far,
+          fov: perspective.fov,
+        },
+        selection: store.selectionIds(),
+        /* What a click at (x, y) actually hits, in order — the same walk the
+           pointer handler does. */
+        hit: (x: number, y: number) => {
+          const ray = new Raycaster();
+          ray.setFromCamera(new Vector2((x / Math.max(1, size.width)) * 2 - 1, -(y / Math.max(1, height)) * 2 + 1), camera);
+          return ray.intersectObjects(scene.children, true).slice(0, 4).map((h) => {
+            let owner: string | null = null;
+            let cursor: ThreeObject | null = h.object;
+            while (cursor && !owner) {
+              if (cursor.userData?.cosmosObjectId) owner = cursor.userData.cosmosObjectId as string;
+              cursor = cursor.parent;
+            }
+            const geometry = (h.object as unknown as { geometry?: { type?: string; parameters?: Record<string, unknown> } }).geometry;
+            return {
+              dist: Number(h.distance.toFixed(2)),
+              owner,
+              geometry: geometry?.type ?? null,
+              params: geometry?.parameters ? Object.entries(geometry.parameters).map(([k, v]) => `${k}=${v}`).slice(0, 4).join(" ") : null,
+              point: [Number(h.point.x.toFixed(1)), Number(h.point.y.toFixed(1)), Number(h.point.z.toFixed(1))],
+            };
+          });
+        },
+        scene: { meshes: sceneMeshes, children: scene.children.length, groups },
+        store: fromStore,
+        mounted: storeIds.filter((id) => sceneIds.includes(id)),
+        missing: storeIds.filter((id) => !sceneIds.includes(id)),
+      };
     };
   }, [camera, size.width, size.height]);
 
@@ -403,10 +527,21 @@ function ObjectCameraBridge() {
 export default function CosmosObjectsLayer() {
   const store = CosmosObjectStore.getInstance();
   const [state, setState] = useState<CosmosObjectState>(() => store.getState());
-  const { camera, gl } = useThree();
+  const { camera, gl, invalidate } = useThree();
   const raycaster = useRef(new Raycaster());
+  /** object id → its group in this scene, for the layer's own hit test. */
+  const registry = useRef(new Map<string, Group>());
 
-  useEffect(() => store.subscribe(setState), [store]);
+  /*
+   * The world canvas runs on demand. A store change re-rendered React but
+   * never asked for a frame, so a move/rotate/resize was applied to the
+   * objects' transforms and the screen kept showing the previous picture
+   * until something else happened to invalidate it.
+   */
+  useEffect(() => store.subscribe(() => {
+    setState(store.getState());
+    invalidate();
+  }), [store, invalidate]);
 
   /* A drag holds the plane it started on and moves the selection along it. */
   const beginDrag = (object: CosmosObject) => {
@@ -452,6 +587,39 @@ export default function CosmosObjectsLayer() {
     window.addEventListener("pointercancel", onUp);
   };
 
+  /*
+   * Taps belong to the objects. R3F's own event walk raycasts the whole
+   * scene, so a decoration standing in front of a chair (<2 m from the
+   * camera) took the pointerdown and the chair was never selectable —
+   * the objects rendered, and could not be touched. This hit test looks
+   * at the objects only: nothing else in the Cosmos can eat their taps.
+   */
+  const beginDragRef = useRef(beginDrag);
+  beginDragRef.current = beginDrag;
+  useEffect(() => {
+    const element = gl.domElement;
+    const onDown = (event: PointerEvent) => {
+      const targets = [...registry.current.values()].filter((group) => group.visible);
+      if (!targets.length) return;
+      raycaster.current.setFromCamera(ndcOf(event, element), camera);
+      const hit = raycaster.current.intersectObjects(targets, true)[0];
+      if (!hit) return;
+      let owner: ThreeObject | null = hit.object;
+      let id: string | null = null;
+      while (owner && !id) {
+        if (typeof owner.userData?.cosmosObjectId === "string") id = owner.userData.cosmosObjectId as string;
+        owner = owner.parent;
+      }
+      if (!id) return;
+      const object = store.get(id);
+      if (!object || !object.visible) return;
+      store.select(id, { add: event.shiftKey === true });
+      if (!object.locked) beginDragRef.current(object);
+    };
+    element.addEventListener("pointerdown", onDown);
+    return () => element.removeEventListener("pointerdown", onDown);
+  }, [camera, gl, store]);
+
   const visible = state.objects.filter((object) => object.visible && (object.place === "cosmos" || object.place === "gallery"));
 
   return (
@@ -465,8 +633,10 @@ export default function CosmosObjectsLayer() {
           key={object.id}
           object={object}
           selected={state.selection.includes(object.id) || state.selected === object.id}
-          onSelect={(add) => store.select(object.id, { add })}
-          onBeginDrag={beginDrag}
+          register={(node) => {
+            if (node) registry.current.set(object.id, node);
+            else registry.current.delete(object.id);
+          }}
         />
       ))}
     </group>

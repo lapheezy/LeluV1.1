@@ -64,3 +64,121 @@ Live evidence collected: build a chair (9 parts), spawn (`obj_2 @[1.6, 0.9, 0]`,
 
 1. **Find out why the meshes are not on screen** — count them in the render scene, check the layer group's visibility/scale in the built tree, and confirm whether the object pass is drawn at all. This is the one blocker.
 2. Then: gizmos (only nudges exist), device matrix, performance pass, and the seven workflows end to end (only build → spawn → enter ran here; furniture integration, garment panel extraction, molecule grouping, cross-workspace round trip and undo-through-reload were not run in the app).
+
+---
+
+# 17.1 — THE RENDER PIPELINE, TRACED
+
+**Status: MET for the blocker.** A chair from `CosmosObjectStore` is a visible,
+manipulable mesh in the running Cosmos. It was already being drawn; four
+separate faults made it invisible, untouchable or unverifiable, and three of
+them are repaired here.
+
+## 1. The trace, boundary by boundary
+
+One chair (`obj_5`, 9 parts, oak, 46 × 48 × 86 cm) was followed from the store
+to the frame. Evidence is the live probe `window.__cosmosObjectsProbe()`, which
+walks the **real** R3F scene with `scene.traverse` instead of trusting React.
+
+| Boundary | Evidence |
+| --- | --- |
+| store | `obj_5` present, `place: cosmos`, 9 parts, scale 4 |
+| mesh construction | 9 `boxGeometry` parts, `MeshStandardMaterial` (oak `c99a6a`, frame `6f757e`), `transparent: false`, `opacity: 1` |
+| React/R3F mounting | group found in the scene by `userData.cosmosObjectId` |
+| scene membership | `scene.traverse` → 1 636 meshes, 6 scene children, the object's group **among them**; `mounted: ["obj_5"]`, `missing: []` |
+| camera | `PerspectiveCamera` fov 55, near 0.1, far 1000, `layers.mask 1` (same as the object), aspect 0.581 = 384/661 |
+| frustum | `Frustum.containsPoint(world)` → `true`; `chainVisible: true`; `renderOrder 900`; `parentType: Group` |
+| canvas | `gl.domElement.isConnected === true`, 384 × 661 |
+
+**The object disappears at no boundary.** It is in the render scene, in the
+frustum, visible through its whole parent chain, with an opaque material. The
+first genuinely broken boundary was therefore not membership but **framing**:
+the same chair occupied 24 px/m at 25 m after "frame all", 47 px/m at 13 m,
+106 px/m at 6 m. Sparse, low-contrast pixels read as "nothing rendered".
+
+## 2. The four faults, in the order they were hit
+
+1. **Bounding-sphere framing.** `framePose` fit the sphere around the object's
+   box against the *narrow* axis of a portrait phone. The sphere is dominated
+   by height, so a 1.8 m chair was framed from **11.3 m** (fill 0.84 of the
+   sphere, about 100 px of chair). Fit the box axis by axis instead:
+   `distance = max(halfWidth/tan(hFov/2), halfHeight/tan(vFov/2)) · padding +
+   halfDepth`. Same chair, same viewport → 5.9 m, ~450 px.
+2. **Stale camera aspect.** After the phone surface unmounted and remounted the
+   world, the projection matrix kept the previous size: taps landed ~57 px from
+   the pixels under the finger, and `project()` reported screen positions that
+   did not match the picture. The layer now keeps `camera.aspect` in step with
+   the canvas (measured: 0.581 = 384/661).
+3. **Decoration ate the taps.** R3F's event walk raycasts the whole scene;
+   cones and spheres parked 1.9–2.6 m from the camera took every `pointerdown`
+   before a chair 5–25 m away. Clicking empty sky selected an object; clicking
+   the object often did nothing. The layer now raycasts **its own objects**
+   (`intersectObjects(registeredGroups)`) and selects/drags from that hit, so
+   nothing decorative can take a tap. Verified: click on sky → no selection;
+   click on the chair → `selection: ["obj_5"]`.
+4. **Demand frameloop never invalidated.** The world canvas runs on demand.
+   Store mutations re-rendered React and changed the transforms, yet no frame
+   was requested: move/rotate/resize produced byte-identical frames. The layer
+   now calls `invalidate()` on every store change; four consecutive strip
+   actions produced four different frames (md5 of each differs).
+
+Also recorded, **not** a fault: while chat owns a phone screen,
+`surface.cosmosRendered` is false and the whole world scene is unmounted on
+purpose. A probe taken in that state reports a detached canvas (0 × 0) and an
+empty scene; that is the documented architecture, not a render bug.
+
+## 3. Screenshots (real Chromium 384 × 661, the running application)
+
+- `artifacts/perf/m17-trace-crop.png` — 6× crop of the chair at the moment it
+  was first proven drawn (45 m, ~26 px).
+- `artifacts/perf/m17-chair-focused.png` — after the framing fix: chair fills
+  the frame, contextual strip "chair — 46 × 48 × 86 cm · 9 parts".
+- `artifacts/perf/m17-single-chair-frame-all.png`, `m17-a-base.png` — a single
+  chair on screen through the normal render loop (not a manual camera set).
+- `artifacts/perf/m17-select-a.png`, `m17-scale-half.png`, `m17-rotate-2.png` —
+  selection and transform edits, each a different frame.
+- `artifacts/perf/m17-part-split.png` — `leg-left-back` extracted as `obj_6`,
+  its own group in the scene at `[4.08, 1.33, 0.4]` beside the 8-part parent.
+- `artifacts/perf/m17-part-undo.png` — undo: one object, 9 parts again; redo
+  returns 8 + 1.
+
+## 4. Verified in the running app
+
+| Requirement | Result |
+| --- | --- |
+| real store object becomes a visible mesh | MET — probe + screenshots |
+| camera frames/focuses it | MET — all / selected, measured distances |
+| stays visible through the normal loop | MET — screenshots taken seconds after the flight, no manual camera set |
+| move / rotate / scale redraw immediately | MET — strip actions, distinct frames |
+| select by pointer | MET — object-only hit test, sky clicks ignored |
+| extract a component as an independent object | MET — `obj_6`, own scene group |
+| undo / redo the extraction | MET — 9 parts → 8+1 → 9 → 8+1 |
+| remove from Cosmos and restore | MET — `remove` moves it to the trash and the dock count drops; `restore`/undo brings it back (run earlier in the session) |
+| Chat Universe / navigation unaffected | MET — dock works before and after, orbiting with a real drag moved the camera and it stayed |
+
+## 5. Files changed
+
+- `src/core/cosmos/objects/CosmosObjectCamera.ts` — box-fit `framePose`.
+- `src/app/scene/genesis/cosmos/CosmosObjectsLayer.tsx` — object id on each
+  group, `scene.traverse` probe (scene membership, world matrix, frustum,
+  layers, render order, materials, canvas wiring), camera-aspect sync,
+  object-only pointer hit test, `invalidate()` on store change.
+- `src/core/cosmos/objects/CosmosObjectTypes.ts` — `ringSlot` default z 4 → 7.2,
+  out of the core's room cluster.
+- `tests/cosmos-object-experience.test.ts` — the framing test now asserts the
+  box corners are inside the frustum on both axes instead of the sphere radius.
+
+## 6. Remaining limits, honestly
+
+- **Viewport coverage is one emulated 384 × 661 Chromium viewport.** No desktop
+  screenshot and no real device was used in 17.1; Chromium emulation is not
+  iPhone hardware testing.
+- Objects still default into the core's room cluster when the persisted
+  position came from an older ring; a spawn in this build reported
+  `[3.2, 0.9, 0]` inside those rooms, and the core's sphere can sit in front of
+  a chair. Placement in open space is the next fix, not a rendering one.
+- The probe's projected `screen` coordinates use the camera's last uploaded
+  matrix, which can lag the drawn frame by one step; the pictures and the hit
+  test (which raycasts at event time) are the authority.
+- History, performance, memory, WebGL-off and the seven workflows end to end
+  are unchanged from Mission 17 and were not re-run here.

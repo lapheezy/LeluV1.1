@@ -1,76 +1,234 @@
 {
   "mission": 17,
   "title": "Cosmos Object Experience",
-  "status": "PARTIAL",
+  "status": "BLOCKER RESOLVED \u2014 visible rendering and direct manipulation demonstrated on one emulated portrait viewport",
   "baseCommit": "8101ec2",
-  "preservedCommits": ["1632fe2", "2513e90", "a4f5df3", "8101ec2"],
+  "preservedCommits": [
+    "1632fe2",
+    "2513e90",
+    "a4f5df3",
+    "8101ec2"
+  ],
   "pushedTo": "integration/lelu-four-workforce-consolidation",
   "acceptance": {
-    "1_enter_cosmos_and_see_objects": "NOT MET — the Cosmos opens unobstructed, but no object was captured rendering",
-    "2_spawned_objects_framed": "MET — deterministic fit, measured arrival",
-    "3_independent_floating_selectable": "PARTIAL — state, motion and selection exist; not seen on screen",
-    "4_direct_manipulation": "IMPLEMENTED, NOT VERIFIED — drag + strip, no 3D gizmos",
-    "5_local_tool_manipulation": "MET — 21 cosmos tools, zero model calls",
-    "6_assemble_separate_extract": "MET in tests (integrate/extract/splitPart), not run end to end in the app",
-    "7_undo_redo": "MET in tests — identity and relationships restored, one step per drag",
-    "8_furniture_and_garment": "MET in tests — builders exist and derive real figures; not run as workflows",
-    "9_cross_workspace": "PARTIAL — place cosmos/workspace/gallery + ids preserved; no round trip run",
-    "10_responsive": "NOT TESTED — one 384x661 Chromium viewport",
-    "11_zero_model_calls": "MET for every step executed (direct path, metadata modelCalls: 0)",
+    "1_enter_cosmos_and_see_objects": "MET \u2014 a chair from CosmosObjectStore is drawn in the live scene; probe: mounted, inFrustum, chainVisible, 9 opaque meshes; screenshots artifacts/perf/m17-chair-focused.png, m17-single-chair-frame-all.png",
+    "2_spawned_objects_framed": "MET \u2014 box-fit framing; measured 25 m -> 13 m -> 5.9 m for the same chair, fill 0.66-0.84",
+    "3_independent_floating_selectable": "MET \u2014 leg-left-back extracted as obj_6, its own scene group at [4.08,1.33,0.4]; artefacts/perf/m17-part-split.png",
+    "4_direct_manipulation": "MET for strip move/rotate/resize + pointer selection; each action produced a distinct frame; no 3D gizmos (not in scope)",
+    "5_local_tool_manipulation": "MET \u2014 local \"no model involved\" path used for spawn/remove",
+    "6_assemble_separate_extract": "MET \u2014 splitPart then undo/redo, verified in the scene (9 parts -> 8+1 -> 9 -> 8+1)",
+    "7_undo_redo": "MET \u2014 extraction undone and redone in the running app",
+    "8_furniture_and_garment": "MET in tests only; not run as an end-to-end workflow in 17.1",
+    "9_cross_workspace": "PARTIAL \u2014 place cosmos/workspace/gallery exists; remove-to-trash + restore exercised, gallery round trip not",
+    "10_responsive": "NOT TESTED \u2014 one emulated 384x661 Chromium viewport; no desktop, no real device",
+    "11_zero_model_calls": "MET \u2014 every step in 17.1 used the direct path (modelCalls: 0)",
     "12_persistence": "MET for store state; undo history persists 4 steps"
   },
   "rootCausesFound": [
-    "the Chat Universe is its own surface (universeOpen) and kept rendering over the canvas regardless of activePanel",
-    "spawned objects defaulted to z = -18, behind the opaque LÉLU core/backdrop volume",
-    "GenesisCameraController lerps the OrbitControls target back to the origin every frame unless a cinematic claim is held",
-    "on a 384-px portrait viewport an object at x = 1.6, five metres away, projects to screen x = 396 — just off the right edge"
+    "objects were never missing from the render scene: scene.traverse found the group, 9 meshes, inFrustum true, chainVisible true, opaque material \u2014 the picture was the problem, not the pipeline",
+    "framePose fitted the bounding SPHERE against the narrow axis of a portrait phone, parking the camera 11.3 m from a 1.8 m chair (~100 px on screen)",
+    "camera.aspect was stale after the phone surface unmounted and remounted the world, so taps and project() disagreed with the drawn pixels",
+    "R3F's whole-scene event raycast let decorations 1.9-2.6 m from the camera take every pointerdown before a chair further away",
+    "the world canvas runs on demand and store mutations never invalidated it, so move/rotate/resize changed the transforms and not the frame"
   ],
   "fixed": [
-    "ChatUniverse is not rendered while the Cosmos owns the screen; entering closes its flag, leaving restores it",
-    "ringSlot now places objects in front of the core at [x, 0.9, 4], radius 3.2",
-    "cosmos frames claim the cinematic camera; the bridge verifies arrival and sets the pose through the same OrbitControls if a fly was swallowed",
-    "objects are drawn with depthTest false in their own render pass (unproven on screen)"
+    "framePose fits the object's box axis by axis (width/tan(hFov/2), height/tan(vFov/2), + halfDepth) instead of the sphere",
+    "CosmosObjectsLayer keeps camera.aspect equal to canvas width/height",
+    "CosmosObjectsLayer raycasts only its own object groups for selection and drag; decorations can no longer eat a tap",
+    "CosmosObjectsLayer calls invalidate() on every store change",
+    "ringSlot default moved from z 4 to z 7.2, out of the core's room cluster",
+    "window.__cosmosObjectsProbe() now reports scene membership, world matrix, frustum, layers, render order, materials, canvas wiring and a hit test"
   ],
   "camera": {
     "module": "src/core/cosmos/objects/CosmosObjectCamera.ts",
-    "modes": ["all", "focus", "selected", "assembly", "zoom", "home", "previous"],
-    "measured": { "requested": { "position": [6, 4.06, -7.36], "lookAt": [6, 1.72, -18], "distance": 10.89 }, "liveDistance": 11.38, "owner": "cinematic" }
+    "modes": [
+      "all",
+      "focus",
+      "selected",
+      "assembly",
+      "zoom",
+      "home",
+      "previous"
+    ],
+    "measured": {
+      "requested": {
+        "position": [
+          6,
+          4.06,
+          -7.36
+        ],
+        "lookAt": [
+          6,
+          1.72,
+          -18
+        ],
+        "distance": 10.89
+      },
+      "liveDistance": 11.38,
+      "owner": "cinematic"
+    }
   },
   "tools": {
     "total": 21,
-    "added": ["cosmos.view.open", "cosmos.view.frame", "cosmos.object.undo", "cosmos.object.redo", "cosmos.object.split", "cosmos.object.place"]
+    "added": [
+      "cosmos.view.open",
+      "cosmos.view.frame",
+      "cosmos.object.undo",
+      "cosmos.object.redo",
+      "cosmos.object.split",
+      "cosmos.object.place"
+    ]
   },
   "builders": {
     "count": 9,
     "domains": 10,
-    "added": ["furniture", "garment"],
-    "furnitureKinds": ["chair", "table", "desk", "shelf", "bed", "sofa", "cabinet"],
-    "garmentKinds": ["shirt", "hoodie", "jacket", "pants", "skirt", "dress"],
+    "added": [
+      "furniture",
+      "garment"
+    ],
+    "furnitureKinds": [
+      "chair",
+      "table",
+      "desk",
+      "shelf",
+      "bed",
+      "sofa",
+      "cabinet"
+    ],
+    "garmentKinds": [
+      "shirt",
+      "hoodie",
+      "jacket",
+      "pants",
+      "skirt",
+      "dress"
+    ],
     "garmentClassification": "pattern-based textile representation; NOT a graded manufacturing-ready pattern"
   },
   "checks": {
-    "typecheck": { "command": "npx tsc -b --force", "exit": 0 },
-    "build": { "command": "npm run build", "exit": 0 },
-    "lint": "not run — no lint script",
+    "tsc": "exit 0",
+    "build": "exit 0",
     "tests": {
-      "cosmos-object-experience": { "pass": 11, "fail": 0 },
-      "cosmos-objects": { "pass": 10, "fail": 0 },
-      "creative-build": { "pass": 18, "fail": 0 },
-      "creative-kit": { "pass": 17, "fail": 0 },
-      "creation-studio-tools": { "pass": 9, "fail": 0 },
-      "chat-surface": { "pass": 31, "fail": 0 },
-      "module-layout": { "pass": 11, "fail": 0 },
-      "security-containment": { "pass": 18, "fail": 0 }
-    }
+      "cosmos-object-experience": "11 pass",
+      "cosmos-objects": "10 pass",
+      "creative-build": "18 pass",
+      "creative-kit": "17 pass",
+      "creation-studio-tools": "9 pass",
+      "chat-surface": "31 pass",
+      "module-layout": "11 pass",
+      "security-containment": "18 pass"
+    },
+    "notRun": [
+      "full suite",
+      "lint (no script)",
+      "desktop viewport",
+      "real device",
+      "performance/memory",
+      "WebGL-off"
+    ]
   },
   "workflows": [
-    { "id": 1, "name": "V8 engine", "status": "PARTIAL", "detail": "build -> spawn -> enter -> framed ran; rotate/resize/float by tool; crankshaft split only in tests" },
-    { "id": 2, "name": "Furniture", "status": "PARTIAL", "detail": "chair built and spawned (9 parts); integrate/extract/reload not run" },
-    { "id": 3, "name": "Fashion", "status": "NOT RUN", "detail": "builders verified by tests only" },
-    { "id": 4, "name": "Molecules and grouping", "status": "NOT RUN" },
-    { "id": 5, "name": "Cross-workspace continuity", "status": "NOT RUN" },
-    { "id": 6, "name": "Undo and recovery", "status": "PARTIAL", "detail": "undo/redo verified by tests, not through the UI" },
-    { "id": 7, "name": "Zero model calls", "status": "MET", "detail": "every executed step ran on the direct path with metadata modelCalls: 0" }
+    {
+      "id": 1,
+      "name": "V8 engine",
+      "status": "PARTIAL",
+      "detail": "build -> spawn -> enter -> framed ran; rotate/resize/float by tool; crankshaft split only in tests"
+    },
+    {
+      "id": 2,
+      "name": "Furniture",
+      "status": "PARTIAL",
+      "detail": "chair built and spawned (9 parts); integrate/extract/reload not run"
+    },
+    {
+      "id": 3,
+      "name": "Fashion",
+      "status": "NOT RUN",
+      "detail": "builders verified by tests only"
+    },
+    {
+      "id": 4,
+      "name": "Molecules and grouping",
+      "status": "NOT RUN"
+    },
+    {
+      "id": 5,
+      "name": "Cross-workspace continuity",
+      "status": "NOT RUN"
+    },
+    {
+      "id": 6,
+      "name": "Undo and recovery",
+      "status": "PARTIAL",
+      "detail": "undo/redo verified by tests, not through the UI"
+    },
+    {
+      "id": 7,
+      "name": "Zero model calls",
+      "status": "MET",
+      "detail": "every executed step ran on the direct path with metadata modelCalls: 0"
+    }
   ],
-  "blocker": "the object meshes were not observed on screen; the render path has not been proven in the built app"
+  "blocker": "the object meshes were not observed on screen; the render path has not been proven in the built app",
+  "submission": "17.1",
+  "trace": {
+    "object": "obj_5 chair 9 parts oak",
+    "sceneMeshes": 1636,
+    "sceneChildren": 6,
+    "mounted": [
+      "obj_5"
+    ],
+    "missing": [],
+    "inFrustum": true,
+    "chainVisible": true,
+    "renderOrder": 900,
+    "layersMask": 1,
+    "materials": [
+      {
+        "type": "MeshStandardMaterial",
+        "color": "c99a6a",
+        "transparent": false,
+        "opacity": 1
+      },
+      {
+        "type": "MeshStandardMaterial",
+        "color": "6f757e",
+        "transparent": false,
+        "opacity": 1
+      }
+    ],
+    "camera": {
+      "fov": 55,
+      "near": 0.1,
+      "far": 1000,
+      "aspect": 0.581,
+      "viewport": [
+        384,
+        661
+      ]
+    },
+    "measuredDistances": {
+      "sphereFit": 11.3,
+      "boxFit": 5.9,
+      "frameAllThreeObjects": 25.0,
+      "pxPerMetreAt6m": 106,
+      "pxPerMetreAt25m": 24
+    }
+  },
+  "screenshots": {
+    "firstProofDrawnAt45m": "artifacts/perf/m17-trace-crop.png",
+    "focusedChairAfterFramingFix": "artifacts/perf/m17-chair-focused.png",
+    "singleChairFrameAll": "artifacts/perf/m17-single-chair-frame-all.png",
+    "selectedWithStrip": "artifacts/perf/m17-select-a.png",
+    "scaled": "artifacts/perf/m17-scale-half.png",
+    "rotated": "artifacts/perf/m17-rotate-2.png",
+    "componentExtracted": "artifacts/perf/m17-part-split.png",
+    "extractionUndone": "artifacts/perf/m17-part-undo.png"
+  },
+  "limitations": [
+    "one emulated 384x661 Chromium viewport; Chromium emulation is not hardware testing",
+    "objects persisted from older rings can still sit inside the core's room cluster, where the core's sphere may stand in front of them",
+    "the probe's projected screen coordinates can lag the drawn frame by one step",
+    "no 3D gizmos: manipulation is the contextual strip, drag and typed commands"
+  ]
 }

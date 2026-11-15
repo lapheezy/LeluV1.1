@@ -150,14 +150,28 @@ export function framePose(bounds: Bounds3, viewport: CameraViewport, opts?: { pa
   const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
   // The tighter of the two axes decides: a narrow phone in portrait must back
   // off further than a wide desktop, or the object is clipped at the sides.
-  const limiting = Math.min(vFov, hFov);
-  const distance = Math.max(0.6, (bounds.radius / Math.sin(limiting / 2)) * padding);
+  /*
+   * Fit the BOX, axis by axis — not the sphere around it. The sphere is
+   * dominated by the object's tallest measurement, and on a portrait phone
+   * (horizontal FOV is the narrow one) spreading that height across the
+   * narrow axis parked the camera 11 m from a 1.8 m chair: framed by the
+   * numbers, 100 px on screen, read as "the object did not render".
+   */
+  const half: Vec3 = [
+    Math.max(1e-3, (bounds.max[0] - bounds.min[0]) / 2),
+    Math.max(1e-3, (bounds.max[1] - bounds.min[1]) / 2),
+    Math.max(1e-3, (bounds.max[2] - bounds.min[2]) / 2),
+  ];
+  const fitWidth = half[0] / Math.tan(hFov / 2);
+  const fitHeight = half[1] / Math.tan(vFov / 2);
+  const reach = Math.max(fitWidth, fitHeight) * padding + half[2];
+  const distance = Math.max(0.6, reach);
   const dir = normalize(opts?.direction ?? [0, 0.22, 1]);
   return {
     position: [bounds.center[0] + dir[0] * distance, bounds.center[1] + dir[1] * distance, bounds.center[2] + dir[2] * distance],
     lookAt: bounds.center,
     distance,
-    fill: Math.min(1, bounds.radius / distance / Math.sin(limiting / 2)),
+    fill: Math.min(1, Math.max(fitWidth, fitHeight) * padding / distance),
   };
 }
 
