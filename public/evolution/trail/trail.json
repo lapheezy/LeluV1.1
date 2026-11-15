@@ -134,6 +134,53 @@
       "image": "wf7b.webp",
       "title": "16 · Workflow 7 — iPhone (data, workspace, persistence)",
       "working": "Data → findings → presentation; one window at a time with tabs; reload restores."
+    },
+    {
+      "image": "integration-research.webp",
+      "title": "17 · Master integration — research inside the conversation",
+      "changed": "Freebuff's inline artifacts (520a5d4) + Claude's creative kit + the Chat Universe stages merged on integration/lelu-master-integration.",
+      "working": "“/research coral reef bleaching”: Wikipedia, Crossref and arXiv read with no model; a cited board and a Mermaid mind map render inside the reply."
+    },
+    {
+      "image": "integration-read.webp",
+      "title": "18 · A page read in the thread",
+      "changed": "Freebuff 1ba90af: a guest may read a public page; the page stays in the reply.",
+      "working": "“/read …Coral_bleaching”: 6,087 characters read, shown in the activity card with Open in LÉLU's browser.",
+      "incomplete": "The excerpt still starts with the site's navigation text."
+    },
+    {
+      "image": "integration-film.webp",
+      "title": "19 · A film encoded in its own card",
+      "changed": "Inline film card (520a5d4) on the Job 2 encoder.",
+      "working": "Render in the reply → WebM 525 frames VP9 + Opus, 17.52 s (ffprobe).",
+      "incomplete": "Encoded at 640×360 on this no-GPU machine (encoder measured too slow for 720p)."
+    },
+    {
+      "image": "integration-glb.webp",
+      "title": "20 · A 3D file attached in the conversation",
+      "changed": "GLB/glTF/STL/OBJ attachment re-homed into the redesigned window (merge conflict).",
+      "working": "A runway GLB attached in the composer opens in three.js inside the thread."
+    },
+    {
+      "image": "integration-steward.webp",
+      "title": "21 · LÉLU AIR organises the results",
+      "changed": "Large views of the inline artifacts handed to the Workspace Steward.",
+      "working": "“tile my windows”: four windows 700×372 in a 2×2 grid, 0 overlap, nothing off screen, 0 model calls.",
+      "failed": "Merged tree: the Steward's stage words stole “make an architecture diagram / a movie / a 3D scene” from the creative kit — fixed with one precedence rule (b0e7e78)."
+    },
+    {
+      "image": "integration-phone.webp",
+      "title": "22 · iPhone-sized (Chromium emulation)",
+      "changed": "Same merged build at 390×844.",
+      "working": "3D scene, diagram and live USGS chart as cards 303 px wide, no horizontal overflow.",
+      "incomplete": "Not real Safari: WebKit is not installed here."
+    },
+    {
+      "image": "integration-offline.webp",
+      "title": "23 · Offline reload, production build",
+      "changed": "Service worker serves the shell; viewers that cannot load stay inside their card.",
+      "working": "Sketch made with the network cut, reload offline, back online: every message and artifact present and valid.",
+      "failed": "The first offline reload showed GENESIS CRASH (Excalidraw chunk not cached) — fixed with EmbedBoundary (64a7d54)."
     }
   ]
 }

@@ -250,6 +250,7 @@ export default function UniverseChatWindow({
           ))}
         </div>
       ) : null}
+      {/* Attach images, documents or a 3D file (GLB/glTF/STL/OBJ) to open in the thread (Freebuff 1ba90af). */}
       <button type="button" className="lcu-icon" aria-label="Attach a file" onClick={() => fileRef.current?.click()}>+</button>
       <input ref={fileRef} type="file" multiple accept="image/*,video/*,.txt,.md,.json,.csv,.pdf,.glb,.gltf,.stl,.obj" hidden onChange={(event) => void attach(event.target.files)} />
       <textarea
@@ -295,7 +296,7 @@ export default function UniverseChatWindow({
             <div className="lcu-bubble">
               {/* LÉLU writes markdown; the same renderer as the classic chat transcript. */}
               {m.role === "assistant" ? <ChatMarkdown text={m.text} /> : <p>{m.text}</p>}
-              {/* A 3D file the user attached to this message, opened in the thread. */}
+              {/* A 3D file the user attached to this message, opened in the thread (Freebuff 1ba90af). */}
               {m.role === "user" && m.models?.length ? (
                 <div className="lelu-cc-models">
                   {m.models.map((model) => <Model3DView key={`${m.id}-${model.name}`} model={model} />)}
