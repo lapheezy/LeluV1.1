@@ -106,6 +106,9 @@ async function run() {
     for (let i = 0; i < 40; i++) { await page.waitForTimeout(1000); if (await page.evaluate(() => [...document.querySelectorAll("button")].some((b) => b.textContent.trim() === "Continue without an account")).catch(() => false)) break; }
     await page.evaluate(() => [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Continue without an account")?.click());
     await page.waitForTimeout(2500);
+    // The bar is put away by default (Mission 15.2): open it from its side tab.
+    await page.evaluate(() => document.querySelector("[data-spatial-nav-tab]")?.click());
+    await page.waitForTimeout(600);
 
     // Voice from the navigator's own control, before the chat is summoned.
     const voiceBtn = await probe(page, '[data-spatial-control="voice"], button[aria-label="Talk to LÉLU"]');

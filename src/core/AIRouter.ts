@@ -225,6 +225,11 @@ export default class AIRouter {
       new Promise((resolve) => setTimeout(resolve, 8000)),
     ]);
 
+    // 0.0 The Spatial bar: "open the spatial menu" / "hide the spatial bar".
+    // First, so no creative or 3D stage reads "spatial" as a scene request.
+    const spatialNav = this.surfaces.spatialNav(context);
+    if (spatialNav.handled && spatialNav.response) return spatialNav.response;
+
     // 0. TIME — deterministic local capability, no external API needed
     const timeResult = await this.traced(context, "time", () => this.time.execute(context));
     if (timeResult.handled && timeResult.response) return timeResult.response;

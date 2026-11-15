@@ -83,6 +83,34 @@ export default class SurfaceResolver {
   /** Injected by AIRouter — multi-surface views reuse ITS builders. */
   constructor(private readonly workspace: WorkspaceResolver) {}
 
+  /**
+   * The Spatial bar is put away by default; "open the spatial menu" shows
+   * it, "hide the spatial bar" puts it back on the left edge. AIRouter runs
+   * this first, before any stage that would read "spatial" as a 3D request.
+   */
+  public spatialNav(context: RouterContext): BrainResult {
+    const text = (context.request.prompt ?? "").toLowerCase().trim();
+    const spatialNav = parseSpatialNavCommand(text);
+    if (spatialNav === null) return { handled: false };
+    {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("lelu-spatial-nav", { detail: { open: spatialNav } }));
+      }
+      return {
+        handled: true,
+        response: {
+          text: spatialNav
+            ? "The spatial bar is open at the bottom. Say “hide the spatial bar” or press ✕ to put it away again."
+            : "Put away. It is on the left edge whenever you want it.",
+          provider: "browser",
+          model: "surface-command",
+          processingTime: Date.now() - context.started,
+          metadata: { intent: "navigation", success: typeof window !== "undefined", timestamp: Date.now() },
+        },
+      };
+    }
+  }
+
   public async execute(context: RouterContext): Promise<BrainResult> {
     const prompt = context.request.prompt ?? "";
     const text = prompt.toLowerCase().trim();
@@ -347,4 +375,17 @@ export default class SurfaceResolver {
     };
     return { handled: true, response };
   }
+}
+
+/**
+ * "open the spatial menu" → true, "hide the spatial bar" → false, anything
+ * else → null. Needs a verb and the word "spatial" with a menu-like noun,
+ * so talk about spatial computing is never taken as a command.
+ */
+export function parseSpatialNavCommand(text: string): boolean | null {
+  const t = text.toLowerCase().replace(/^(?:l[eé]lu[,\s]+|please\s+|can you\s+|could you\s+)+/, "").trim();
+  if (!/\bspatial\s+(?:menu|bar|nav|navigation|navigator|rail|controls?)\b/.test(t)) return null;
+  if (/^(?:hide|close|dismiss|put\s+away|remove|get\s+rid\s+of|turn\s+off|collapse)\b/.test(t)) return false;
+  if (/^(?:open|show(?:\s+me)?|bring\s+up|bring\s+back|display|pull\s+up|turn\s+on|give\s+me)\b/.test(t)) return true;
+  return null;
 }
