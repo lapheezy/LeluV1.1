@@ -12,7 +12,7 @@
  * This module (and three / mermaid / mediabunny) loads only when a visual opens.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { Download, Film, Loader2, TriangleAlert } from "lucide-react";
 import type { StudioArtifact } from "../../../../core/studio/StudioStore";
 import type { DrawingSpec, VisualSpec } from "../../../../core/studio/StudioTypes";
@@ -21,6 +21,7 @@ import { exportArtifactFile, visualFile } from "../../../../core/creative/kit/Cr
 import { renderDiagramSvg, type DiagramProgram } from "../../../../core/creative/kit/Diagram";
 import { vizHtml, type VizProgram } from "../../../../core/creative/kit/InteractiveViz";
 import type { Scene3DProgram } from "../../../../core/creative/kit/Scene3D";
+import type { EngineProgram } from "../../../../core/creative/kit/EngineAssembly";
 import { renderFilm, type VideoProgram } from "../../../../core/creative/kit/VideoComposer";
 import { capabilities } from "../../../../core/creative/kit/BrowserCapabilities";
 
@@ -54,10 +55,24 @@ export default function VisualViewer({ artifact, rev, spec }: { artifact: Studio
   );
 }
 
+// The engine experience (layers, exploded view, the four strokes).
+const EngineView = lazy(() => import("./EngineView"));
+
 function VisualBody({ spec }: { spec: VisualSpec }) {
   if (spec.medium === "chart") return <iframe className="lst-preview" title={`Interactive ${spec.title}`} sandbox="allow-scripts" srcDoc={vizHtml(spec.program as unknown as VizProgram)} />;
   if (spec.medium === "diagram") return <DiagramView program={spec.program as unknown as DiagramProgram} />;
-  if (spec.medium === "scene3d") return <SceneView program={spec.program as unknown as Scene3DProgram} />;
+  if (spec.medium === "scene3d") {
+    // An engine program is a scene plus what makes it understandable.
+    const engine = (spec.program as { engine?: EngineProgram }).engine;
+    if (engine?.kind === "engine") {
+      return (
+        <Suspense fallback={<p className="lst-note" role="status">Building the engine…</p>}>
+          <EngineView program={engine} />
+        </Suspense>
+      );
+    }
+    return <SceneView program={spec.program as unknown as Scene3DProgram} />;
+  }
   if (spec.medium === "video") return <FilmView program={spec.program as unknown as VideoProgram} title={spec.title} />;
   return <iframe className="lst-preview" title={spec.title} sandbox="" srcDoc={visualPreviewHtml(spec)} />;
 }

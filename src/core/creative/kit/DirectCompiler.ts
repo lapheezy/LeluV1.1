@@ -147,6 +147,7 @@ export function compileDirect(prompt: string): DirectPlan | null {
   // Exporting what she built in her world (Job 3/4: world.export, world.gltf).
   const worldFile = /\b(stl|obj|glb|gltf)\b/i.exec(t);
   if (worldFile && has(/\b(export|download|save|give me|turn)\b/i, t) && has(/\b(world|room|environment|objects?)\b/i, t)) return nl("world", worldFile[1]);
+  if (/\b(internal[- ]combustion|four[- ]stroke|4[- ]stroke|piston engine|engine assembly)\b/i.test(t) && has(verb, t)) return nl("engine", t);
   if (has(/\b(fashion|couture)\b/i, t) && has(/\bcollection\b/i, t) && has(verb, t)) return nl("collection", subjectOf(t));
   if (has(/\b(film|movie|video|trailer|reel|montage)\b/i, t) && has(verb, t)) return nl("film", subjectOf(t));
   if (has(/\b(3d|3-d)\b|\b(environment|landscape|scene)\b/i, t) && has(verb, t) && !has(/\b(diagram|chart)\b/i, t)) return nl("scene", t);
@@ -172,6 +173,24 @@ function compileCommand(cmd: string, rest: string): DirectPlan | null {
       const args = mermaid ? { source: mermaid } : structure ?? { source: LELU_ARCHITECTURE };
       const title = mermaid || structure ? `Diagram — ${subjectOf(rest).slice(0, 40)}` : "LÉLU architecture";
       return { explicit, summary: `diagram (${mermaid ? "Mermaid source" : structure ? "from arrows" : "LÉLU architecture"})`, steps: [{ tool: "creative.diagram", label: "diagram", args: { title, ...args, export: ["mmd"] } }] };
+    }
+    case "read": {
+      // Reading pages directly — one, or several at once so the conversation
+      // can hold the research side by side. No model is involved.
+      const urls = rest.split(/\s+/).map((v) => v.trim()).filter((v) => /^https?:\/\//i.test(v)).slice(0, 5);
+      if (urls.length === 0) return { explicit, summary: "read a page", steps: [{ tool: "browser.read", label: "page", args: { url: rest.trim() } }] };
+      return {
+        explicit,
+        summary: urls.length === 1 ? `read ${urls[0]}` : `read ${urls.length} pages`,
+        steps: urls.map((url) => ({ tool: "browser.read", label: "page", args: { url } })),
+      };
+    }
+    case "engine": {
+      return {
+        explicit,
+        summary: "four-stroke engine — assembly, layers, exploded view, cycle",
+        steps: [{ tool: "creative.engine", label: "engine", args: { title: "Four-stroke engine — interactive assembly", export: ["glb"] } }],
+      };
     }
     case "scene": {
       const preset = pickPreset(rest);

@@ -24,6 +24,10 @@ export interface TranscriptMessage {
   activity?: ChatActivity;
   /** The chat this message came from, when it was carried into a merged chat. */
   origin?: { conversationId: string; title: string };
+  /** Images the user attached to this message. */
+  attachments?: string[];
+  /** 3D files the user attached, shown in the thread that holds the message. */
+  models?: Array<{ name: string; format: "glb" | "gltf" | "stl" | "obj"; src: string; size: number }>;
 }
 
 /** The live turn, as GenesisChat tracks it. */

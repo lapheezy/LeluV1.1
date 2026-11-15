@@ -91,6 +91,7 @@ import { finishActivity, hasVisibleActivity, type ChatActivity } from "../../../
 import { recordTurnActivity } from "./chat/activityRecorder";
 import { notifyTurnOutcome } from "../../../core/notifications/NotificationRouting";
 import ChatTranscript from "./chat/ChatTranscript";
+import { modelFormatOf, type ModelAttachment } from "./chat/Model3DView";
 import { describeFailure, isNearBottom, type ChatFailure } from "./chat/chatTranscript";
 import { chatFillsScreen } from "./chat/chatLayout";
 import { chatExpand, useChatExpanded } from "./chat/chatExpand";
@@ -134,6 +135,8 @@ interface Exchange {
   userMessageId?: string;
   /** Images the user attached to this turn (data URLs), shown with their message. */
   attachments?: string[];
+  /** 3D files the user attached to this turn, shown in three.js with their message. */
+  models?: ModelAttachment[];
   /** A failure LÉLU explains in the conversation instead of a raw error string. */
   error?: ChatFailure;
 }
@@ -193,6 +196,8 @@ interface PendingFile {
   type: string;
   size: number;
   preview: string;
+  /** The uploaded file's own bytes (data URL) when it is a 3D model we can show. */
+  dataUrl?: string;
 }
 
 function formatFileSize(bytes: number): string {
@@ -658,12 +663,28 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
           } catch {
             // binary or unreadable
           }
+          // A 3D file rides with the message as its own bytes, so the reply can
+          // open it in three.js. Past the cap it is attached by name only.
+          let dataUrl: string | undefined;
+          if (/\.(glb|gltf|stl|obj)$/i.test(file.name) && file.size <= 24 * 1024 * 1024) {
+            try {
+              dataUrl = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(String(reader.result));
+                reader.onerror = () => reject(reader.error ?? new Error("unreadable"));
+                reader.readAsDataURL(file);
+              });
+            } catch {
+              // No bytes: it stays a named attachment and is not previewed.
+            }
+          }
           attached.push({
             id: crypto.randomUUID(),
             name: file.name,
             type: file.type,
             size: file.size,
             preview,
+            ...(dataUrl ? { dataUrl } : {}),
           });
         }
         setPendingFiles((current) => [...current, ...attached].slice(-4));
@@ -749,6 +770,11 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
     }
     const userMessageId = followUp?.userMessageId ?? crypto.randomUUID();
     const attachments = media.map((item) => item.dataUrl);
+    // An attached 3D file rides with the message it belongs to, parsed from its
+    // own bytes — the upload is never re-encoded.
+    const models: ModelAttachment[] = files
+      .filter((file) => file.dataUrl && modelFormatOf(file.name))
+      .map((file) => ({ name: file.name, format: modelFormatOf(file.name)!, src: file.dataUrl!, size: file.size }));
 
     // Which conversation this turn belongs to, read from the STORE rather
     // than from this component's mirror of it — a switch that did not come
@@ -760,6 +786,11 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
       text: display,
       timestamp: Date.now(),
       source: "local",
+      // Attachments stay with the message that carried them, so the thread can
+      // still show the file after the turn is over. A model too large to keep
+      // in the conversation is stored without its bytes (no preview, no lie).
+      ...(attachments.length ? { attachments } : {}),
+      ...(models.length ? { models: models.map((model) => (model.src.length <= 3_000_000 ? model : { ...model, src: "" })) } : {}),
     };
 
     // LIVE STEERING. While LÉLU is working on a turn in this conversation,
@@ -822,7 +853,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
       MultiChatStore.getInstance().getActiveId() === turnConversationId;
 
     artifactImagesRef.current = [];
-    const liveTurn: Exchange = { id: exchangeId, user: display, assistant: "", fast: false, userMessageId, attachments, conversationId: turnConversationId };
+    const liveTurn: Exchange = { id: exchangeId, user: display, assistant: "", fast: false, userMessageId, attachments, models, conversationId: turnConversationId };
     liveTurnsRef.current.set(turnConversationId, liveTurn);
     // Painting the exchange is only right while this conversation is the
     // one being looked at. A queued turn may start after a switch, and
@@ -985,6 +1016,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
           userMessageId,
           conversationId: turnConversationId,
           attachments,
+          models,
         });
         setDialogue("responding");
       }
@@ -2203,6 +2235,7 @@ export default function GenesisChat({ onExit, hidden = false }: { onExit?: () =>
         ref={fileInputRef}
         type="file"
         multiple
+        accept="*/*, .glb, .gltf, .stl, .obj"
         onChange={(event) => void attachFiles(event.target.files)}
         style={{ display: "none" }}
         aria-hidden

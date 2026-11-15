@@ -12,6 +12,7 @@ import { createIntegrationApi } from "./plugins/integrationApi.ts";
 import { createNodeEngineerAdapter } from "./plugins/nodeAdapters.ts";
 import { createEnvApi } from "./plugins/envApi.ts";
 import { createModelApi } from "./plugins/modelApi.ts";
+import { createExecutionEvidenceApi } from "./plugins/executionEvidenceApi.ts";
 import { createAcquisitionApi } from "./plugins/acquisitionApi.ts";
 import { createMeshyForgeApi } from "./plugins/meshyForgeApi.ts";
 import { createInstagramApi } from "./plugins/instagramApi.ts";
@@ -149,6 +150,21 @@ export default defineConfig(({ mode, command }) => {
       // module evaluates, so every provider's initialize() sees them.
       runtimeKeyBridgePlugin(envReader),
       modelApiPlugin(),
+
+      // The server's own record of what executed. Mission 6.1.7 mounted this in
+      // server.ts only, so any browser-served build POSTed its stages to a route
+      // that did not exist (404) and nothing reached the log. Same middleware
+      // the standalone server mounts, so evidence is not lost by which runtime
+      // served the page.
+      {
+        name: "execution-evidence-api",
+        configureServer(server: any) {
+          createExecutionEvidenceApi().attach(server.middlewares);
+        },
+        configurePreviewServer(server: any) {
+          createExecutionEvidenceApi().attach(server.middlewares);
+        },
+      },
 
       // Repository acquisition: real git clones, isolated command execution,
       // versioning and approvals. The same runtime the standalone server mounts,

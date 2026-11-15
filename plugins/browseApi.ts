@@ -33,7 +33,7 @@
  */
 
 import { safeFetch, SafeFetchError, type SafeFetchOptions } from "./safeFetch.ts";
-import { createGuard, sendRefusal, type Guard, type GuardRequest } from "./requestGuard.ts";
+import { createGuard, createRateLimiter, sendRefusal, type Guard, type GuardRequest } from "./requestGuard.ts";
 import { createFirecrawl, FirecrawlError, type FirecrawlClient } from "./firecrawl.ts";
 
 interface ConnectLikeReq {
@@ -49,6 +49,33 @@ interface ConnectLikeRes {
 
 type Handler = (req: ConnectLikeReq, res: ConnectLikeRes, next: () => void) => void;
 
+
+/** One header value, as Node gives it. */
+function header(req: { headers?: Record<string, string | string[] | undefined> }, name: string): string {
+  const value = req.headers?.[name];
+  return (Array.isArray(value) ? value[0] : value) ?? "";
+}
+
+/**
+ * Is this the app's OWN page asking (not a third party driving the relay)?
+ *
+ * Reading a public page is not an action on the user's project, so LÉLU's
+ * page may do it without a Supabase session — a guest chat, or a local
+ * preview where no project is configured, would otherwise have a browser
+ * that can never read anything. Everything that needs identity still does.
+ */
+function fromOwnPage(req: { headers?: Record<string, string | string[] | undefined> }): boolean {
+  const site = header(req, "sec-fetch-site");
+  if (site) return site === "same-origin";
+  const origin = header(req, "origin");
+  const host = header(req, "host");
+  if (!origin || !host) return false;
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
 
 function sendJson(res: ConnectLikeRes, payload: unknown, status = 200): void {
   res.statusCode = status;
@@ -134,6 +161,33 @@ export function createBrowseApi(options: BrowseApiOptions = {}): {
 } {
   const guard = options.guard ?? createGuard();
   const firecrawl = options.firecrawl ?? createFirecrawl((name) => process.env[name]);
+  // Guest reads are still capped, per address, and well below a signed-in user's.
+  const anonymousLimiter = createRateLimiter();
+
+  /**
+   * The gate: identity first. A same-origin reader (the app's own page) may
+   * read public pages without a session, at a lower rate; a cross-origin
+   * caller without a session is refused exactly as before.
+   */
+  const allowed = async (req: GuardRequest, res: ConnectLikeRes): Promise<boolean> => {
+    const decision = await guard.check(req, "user", "browse", BROWSE_LIMIT);
+    if (decision.ok) return true;
+    // 401 (no session) and 503 (no project configured to verify one) are the
+    // two "nobody to authenticate" cases; a 403/429 refusal stays a refusal.
+    if ((decision.status === 401 || decision.status === 503) && fromOwnPage(req)) {
+      const address = req.socket?.remoteAddress ?? "local";
+      const take = anonymousLimiter.take(`browse-local:${address}`, { max: 30, windowMs: 60_000 });
+      if (take.ok) return true;
+      res.statusCode = 429;
+      res.setHeader("Content-Type", "application/json");
+      res.setHeader("Cache-Control", "no-store");
+      res.setHeader("Retry-After", String(take.retryAfterSeconds));
+      res.end(JSON.stringify({ ok: false, error: "Too many page reads from this address; try again shortly." }));
+      return false;
+    }
+    sendRefusal(res, decision);
+    return false;
+  };
 
   /**
    * Render the page with Firecrawl. The same address rules as the direct
@@ -158,11 +212,7 @@ export function createBrowseApi(options: BrowseApiOptions = {}): {
     const requestUrl = new URL(req.url ?? "", "http://localhost");
     if (requestUrl.pathname.replace(/\/+$/, "").endsWith("/status")) {
       void (async () => {
-        const decision = await guard.check(req as unknown as GuardRequest, "user", "browse", BROWSE_LIMIT);
-        if (!decision.ok) {
-          sendRefusal(res, decision);
-          return;
-        }
+        if (!(await allowed(req as unknown as GuardRequest, res))) return;
         sendJson(res, { ok: true, firecrawl: { configured: firecrawl.configured(), keys: firecrawl.keyCount(), slots: firecrawl.configured() ? await firecrawl.credits() : [] } });
       })();
       return;
@@ -173,11 +223,7 @@ export function createBrowseApi(options: BrowseApiOptions = {}): {
     void (async () => {
       // Who is asking comes first: an anonymous caller learns nothing,
       // not even whether the URL would have been allowed.
-      const decision = await guard.check(req as unknown as GuardRequest, "user", "browse", BROWSE_LIMIT);
-      if (!decision.ok) {
-        sendRefusal(res, decision);
-        return;
-      }
+      if (!(await allowed(req as unknown as GuardRequest, res))) return;
       if (!target) {
         sendJson(res, { ok: false, error: "Missing ?url=" }, 400);
         return;

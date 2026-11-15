@@ -60,6 +60,7 @@ import { genesisTheme } from "./GenesisTheme";
 import GenesisChat from "./GenesisChat";
 import ChatErrorBoundary from "./chat/ChatErrorBoundary";
 import { useSurface } from "./surface/useSurface";
+import ModuleLayoutStore from "./layout/ModuleLayoutStore";
 // Code-split: this panel's chunk loads the first time it is opened.
 const GenesisReasoningPanel = lazy(() => import("./GenesisReasoningPanel"));
 // Code-split: this panel's chunk loads the first time it is opened.
@@ -327,6 +328,33 @@ export default function GenesisInterface() {
   } = useGenesis();
   const voice = useVoice();
   const surface = useSurface();
+
+  /*
+   * A screen that changes size re-fits the arrangement.
+   *
+   * Rotating a phone, resizing a desktop window or opening on a different
+   * device used to leave windows at their old pixel size — a phone-width
+   * conversation stayed a 354 px column on a 1300 px screen. The layout
+   * store keeps hand-placed windows proportionally and re-tiles the rest.
+   */
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const onResize = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        const width = Math.max(1, window.visualViewport?.width ?? window.innerWidth);
+        const height = Math.max(1, window.visualViewport?.height ?? window.innerHeight);
+        ModuleLayoutStore.getInstance().viewportChanged({ width, height });
+      }, 160);
+    };
+    window.addEventListener("resize", onResize);
+    window.visualViewport?.addEventListener("resize", onResize);
+    return () => {
+      if (timer) clearTimeout(timer);
+      window.removeEventListener("resize", onResize);
+      window.visualViewport?.removeEventListener("resize", onResize);
+    };
+  }, []);
 
   /* Creation Studio: LÉLU's studio.* tools and the chat cards ask for
      artifacts to be shown; each is its own `artifact:<id>` window in the

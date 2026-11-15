@@ -210,10 +210,27 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
           Math.min(committedRect?.height ?? mod.size?.height ?? mobileSheetHeight, Math.min(mobileSheetHeight, mobileHeight)),
         ),
       }
-    : {
-        width: Math.min(storedRect?.width ?? mod.size?.width ?? 620, viewportWidth - 24),
-        height: Math.min(storedRect?.height ?? mod.size?.height ?? 480, viewportHeight - CHROME_HEIGHT - 24),
-      };
+    : (() => {
+        /*
+         * A conversation on a wide screen is a document, not a stamp.
+         *
+         * The live module size was measured on whatever screen opened it: a
+         * session started at phone width reopened on a desktop as a 407 px
+         * column because `mod.size` outranked the room available. Unless the
+         * person placed the window by hand, a chat fills a comfortable column
+         * of the current screen — the same rule its sheet follows on a phone.
+         */
+        const isChat = id.startsWith("chat:");
+        const comfortableWidth = isChat ? Math.min(960, viewportWidth - 48) : 620;
+        const comfortableHeight = isChat
+          ? Math.max(420, Math.min(viewportHeight - CHROME_HEIGHT - 32, 900))
+          : 480;
+        const base = id.startsWith("chat:") && !committedRect ? null : storedRect;
+        return {
+          width: Math.min(base?.width ?? mod.size?.width ?? comfortableWidth, viewportWidth - 24),
+          height: Math.min(base?.height ?? mod.size?.height ?? comfortableHeight, viewportHeight - CHROME_HEIGHT - 24),
+        };
+      })();
   /*
    * A placement the person made (or auto-arrange computed) is authoritative:
    * it is where the window was actually left, and the layout store is the one
@@ -237,13 +254,21 @@ function FloatingModuleWindow({ id, mod, render, label, glyph, cascadeIndex, pla
       : storedRect
         ? { x: storedRect.x, y: storedRect.y }
         : mod.position ?? defaultPosition;
+  /*
+   * A desktop window is kept on screen too.
+   *
+   * A rectangle placed on a smaller screen (or left over from a phone-width
+   * session) used to keep its pixel position after the screen grew: the
+   * conversation reopened at y 408 with a 740 px height and its lower half —
+   * the composer included — hung off the bottom of the display.
+   */
   const position = {
     x: isMobile
       ? Math.max(0, Math.min(rawPosition.x, Math.max(0, viewportWidth - size.width)))
-      : rawPosition.x,
+      : Math.max(8, Math.min(rawPosition.x, Math.max(8, viewportWidth - size.width - 8))),
     y: isMobile
       ? Math.max(MOBILE_TOP_RESERVE, Math.min(rawPosition.y, Math.max(MOBILE_TOP_RESERVE, viewportHeight - MOBILE_BOTTOM_RESERVE - size.height)))
-      : rawPosition.y,
+      : Math.max(8, Math.min(rawPosition.y, Math.max(8, viewportHeight - size.height - 8))),
   };
   /*
    * The Workspace Steward owns geometry at rest. During a gesture the live

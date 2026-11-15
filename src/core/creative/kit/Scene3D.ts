@@ -65,6 +65,12 @@ export interface Scene3DProgram {
   seed: number;
   /** Preset used to start the scene, if any (recorded for revisions). */
   preset?: string;
+  /**
+   * A richer program that only this scene carries (the engine's layers and
+   * cycle). Kept through normalisation so the viewer can use it, while the
+   * object list stays a valid scene for every existing exporter.
+   */
+  engine?: unknown;
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -146,6 +152,7 @@ export function normalizeScene(input: unknown): Scene3DProgram | string {
     duration: num(v.duration, 6, 1, 120),
     seed,
     preset: base ? String(v.preset) : undefined,
+    ...(isObj(v.engine) ? { engine: v.engine } : {}),
   };
 }
 

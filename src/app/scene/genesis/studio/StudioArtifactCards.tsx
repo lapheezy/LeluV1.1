@@ -4,8 +4,8 @@
  * those that did not (marked, never offered as ready).
  */
 
-import { memo } from "react";
-import { Boxes, Check, Download, ExternalLink, TriangleAlert } from "lucide-react";
+import { memo, useState } from "react";
+import { Boxes, Check, Download, ExternalLink, Maximize2, Minimize2, TriangleAlert } from "lucide-react";
 import { useAtelierStore } from "../atelier/AtelierWindow";
 import { openAtelier } from "../../../../core/atelier/AtelierTools";
 import type { ActivityArtifact } from "../../../../core/multichat/TurnActivity";
@@ -13,6 +13,8 @@ import { artifactGist, firstChartSvg } from "../../../../core/studio/StudioPrevi
 import type { ExportFormat } from "../../../../core/studio/StudioTypes";
 import { KIND_ICON } from "./GenesisCreationStudio";
 import { downloadBytes, formatBytes, KIND_LABEL, openArtifacts, useStudioStore } from "./useStudio";
+import VisualViewer from "./VisualViewer";
+import DrawingEditor from "./DrawingEditor";
 import "./studio.css";
 
 const ACTION: Record<ActivityArtifact["action"], string> = { created: "Created", revised: "Revised", exported: "Exported", restored: "Restored", opened: "Opened" };
@@ -23,6 +25,10 @@ function StudioArtifactCardsImpl({ artifacts }: { artifacts: ActivityArtifact[] 
     <div className="lst-chat-cards">
       {artifacts.map((card) => {
         if (card.kind === "design") return <DesignCard key={card.artifactId} card={card} />;
+        // A visual artifact is shown HERE, in the reply that made it: the same
+        // live viewer (chart, Mermaid, three.js, film) the Studio window uses,
+        // with Expand growing it in place instead of sending the user away.
+        if (card.kind === "visual" || card.kind === "drawing") return <VisualCard key={card.artifactId} card={card} />;
         const live = store.get(card.artifactId);
         const rev = live ? store.revision(live, card.rev) : undefined;
         const Icon = KIND_ICON[card.kind as keyof typeof KIND_ICON];
@@ -62,6 +68,77 @@ function StudioArtifactCardsImpl({ artifacts }: { artifacts: ActivityArtifact[] 
         );
       })}
     </div>
+  );
+}
+
+/**
+ * A visual artifact embedded in its own reply: the real, interactive preview
+ * (chart iframe · Mermaid SVG · live three.js · on-device film) plus the
+ * verified files. Expand grows the same component in place — the message, its
+ * revision and its exports never leave the thread.
+ */
+function VisualCard({ card }: { card: ActivityArtifact }) {
+  const store = useStudioStore();
+  const live = store.get(card.artifactId);
+  const rev = live ? store.revision(live, card.rev) : undefined;
+  const spec = rev?.spec;
+  const [expanded, setExpanded] = useState(false);
+  const Icon = KIND_ICON[card.kind as keyof typeof KIND_ICON];
+  // Only a visual or a drawing has an inline viewer; a document/deck/workbook
+  // keeps its card and its files.
+  const embedded = spec && (spec.kind === "visual" || spec.kind === "drawing") ? spec : undefined;
+  const medium = embedded ? (embedded.kind === "visual" ? embedded.medium : "drawing") : null;
+  return (
+    <section
+      className={`lst-chat-card lst-chat-card-visual${expanded ? " is-expanded" : ""}`}
+      data-lelu-chat-artifact={card.artifactId}
+      data-lelu-chat-embed={medium ?? "none"}
+      aria-label={`${KIND_LABEL[card.kind as keyof typeof KIND_LABEL]} ${card.title}`}
+    >
+      <header>
+        <Icon size={16} aria-hidden />
+        <span className="title"><strong>{card.title}</strong><em>{ACTION[card.action]} · {KIND_LABEL[card.kind as keyof typeof KIND_LABEL]} · revision {card.rev}</em></span>
+        {live && rev ? (
+          <button type="button" className="lst-btn ghost" onClick={() => setExpanded((v) => !v)} aria-expanded={expanded} data-lelu-chat-expand>
+            {expanded ? <Minimize2 size={13} aria-hidden /> : <Maximize2 size={13} aria-hidden />} {expanded ? "Collapse" : "Expand"}
+          </button>
+        ) : null}
+        {live ? <button type="button" className="lst-btn ghost" onClick={() => openArtifacts([card.artifactId])}><ExternalLink size={13} aria-hidden /> Large view</button> : null}
+      </header>
+      {live && embedded ? (
+        <div className="lst-chat-embed">
+          {embedded.kind === "drawing"
+            // Excalidraw itself, editable in the thread: the user draws here, it
+            // saves to this artifact, and Expand gives it the height it needs.
+            ? <DrawingEditor artifactId={card.artifactId} spec={embedded} readOnly={false} />
+            : <VisualViewer artifact={live} rev={card.rev} spec={embedded} />}
+        </div>
+      ) : (
+        <p className="lst-gist">Not on this device — this reply was recorded elsewhere.</p>
+      )}
+      {card.exports.length ? (
+        <div className="lst-chat-files">
+          {card.exports.map((e) => (
+            <button
+              key={e.format}
+              type="button"
+              className={`lst-file ${e.ok ? "ok" : "bad"}`}
+              disabled={!e.ok || !live}
+              data-verified={e.ok}
+              title={e.ok ? "Re-opened and verified after writing" : "This file failed verification and is not offered"}
+              onClick={async () => {
+                const bytes = await store.fileOf(card.artifactId, card.rev, e.format as ExportFormat);
+                if (bytes) downloadBytes(bytes, e.filename, e.format as ExportFormat);
+              }}
+            >
+              {e.ok ? <Check size={13} aria-hidden /> : <TriangleAlert size={13} aria-hidden />}
+              {e.filename} <span>{formatBytes(e.size)}</span>
+              {e.ok ? <Download size={13} aria-hidden /> : null}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </section>
   );
 }
 

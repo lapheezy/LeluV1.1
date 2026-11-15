@@ -239,6 +239,42 @@ export function reflowForViewport(
   return autoArrange(clamped, viewport, insets);
 }
 
+/**
+ * The same arrangement on a different screen.
+ *
+ * A window the person placed keeps its intent: a conversation that filled
+ * 92% of a phone stays around 92% of a desktop, instead of reopening as a
+ * 354 px column in the corner of a 1300 px screen. Only manual entries are
+ * scaled (auto ones are re-tiled); the factor is clamped so a tiny phone
+ * rectangle does not become a 3000 px window when the machine rotates back.
+ */
+export function scaleToViewport(
+  entries: ModuleLayoutEntry[],
+  from: LayoutViewport,
+  to: LayoutViewport,
+): ModuleLayoutEntry[] {
+  if (from.width <= 0 || from.height <= 0) return entries;
+  const fx = Math.max(0.35, Math.min(3, to.width / from.width));
+  const fy = Math.max(0.35, Math.min(3, to.height / from.height));
+  if (Math.abs(fx - 1) < 0.02 && Math.abs(fy - 1) < 0.02) return entries;
+  return entries.map((entry) =>
+    entry.manual
+      ? {
+          ...entry,
+          rect: saneRect(
+            {
+              x: Math.round(entry.rect.x * fx),
+              y: Math.round(entry.rect.y * fy),
+              width: Math.round(entry.rect.width * fx),
+              height: Math.round(entry.rect.height * fy),
+            },
+            to,
+          ),
+        }
+      : entry,
+  );
+}
+
 export function addEntry(
   entries: ModuleLayoutEntry[],
   moduleId: string,
