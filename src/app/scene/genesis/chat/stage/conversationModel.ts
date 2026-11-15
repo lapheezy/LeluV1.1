@@ -208,7 +208,8 @@ export function contentMessages<T extends { role: string; text: string; provider
   for (let i = 0; i < messages.length; i += 1) {
     const m = messages[i];
     if (m.provider === "lelu-environment" || m.provider === "lelu-trail") continue;
-    if (m.role === "user" && /^\//.test(m.text.trim())) {
+    // A command — slash or in words — is whatever LÉLU answered directly with her tools.
+    if (m.role === "user" && (/^\//.test(m.text.trim()) || messages[i + 1]?.provider === "lelu-direct")) {
       // A command and the tool log that answered it.
       if (messages[i + 1]?.role === "assistant" && messages[i + 1]?.provider === "lelu-direct") i += 1;
       continue;

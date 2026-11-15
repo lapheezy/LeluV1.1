@@ -29,7 +29,7 @@ import type { StageMode } from "../../../../../core/interface/WorkspaceSteward";
 import { useGenesis, chatWindowId } from "../../GenesisCore";
 import { arrangeWorkspace } from "../../layout/stewardActions";
 import { addSourceToBoard } from "./boardSources";
-import type { StageConversation } from "./conversationModel";
+import { contentMessages, type StageConversation } from "./conversationModel";
 import { explainChart, codeBlocksOf, prototypeDoc, runnable, tableToChart, tableToWorkbook, tablesOf, toDeck, toDocument, toFilmScenes, toMermaid, type CodeBlock } from "./transforms";
 import { createWork, exportWork, imagesAsDataUrls, mediumOf, recordInConversation, reviseWork, say, specOf, useWorks } from "./works";
 
@@ -134,7 +134,7 @@ function VisualOf({ artifact }: { artifact: StudioArtifact }) {
 
 function ResearchEnv({ conversationId, model, messages, setStage }: EnvProps) {
   const genesis = useGenesis();
-  const lastQuestion = [...messages].reverse().find((m) => m.role === "user")?.text ?? model.title;
+  const lastQuestion = [...contentMessages(messages)].reverse().find((m) => m.role === "user")?.text ?? model.title;
   const [q, setQ] = useState(() => lastQuestion.replace(/^\/\w+\s*/, "").slice(0, 120));
   const [history, setHistory] = useState<ReturnType<MultiChatStore["search"]> | null>(null);
   const works = useWorks(conversationId).filter((w) => w.kind === "document" || w.kind === "graph");

@@ -34,6 +34,8 @@ test("command transcripts and LÉLU's bookkeeping are process, not content", asy
     { role: "user", text: "/research reefs" },
     { role: "assistant", text: "Done directly…", provider: "lelu-direct" },
     { role: "assistant", text: "Saved the board", provider: "lelu-environment" },
+    { role: "user", text: "tile my windows" },
+    { role: "assistant", text: "Tiled the windows.", provider: "lelu-direct" },
     { role: "user", text: "Why do reefs bleach?" },
     { role: "assistant", text: "Heat stress.", provider: "anthropic" },
   ]);
