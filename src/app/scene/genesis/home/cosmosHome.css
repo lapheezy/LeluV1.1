@@ -274,3 +274,30 @@ button.lch-glass { text-align: left; padding: 0; }
 @media (prefers-reduced-motion: reduce) {
   .lch, .lch-cosmos-core, .lch-wave[data-live="true"] i, .lch-progress i[data-running="true"] { animation: none !important; }
 }
+
+/* ---------------- Mission 15: the Home is a composition ---------------- */
+.lch.lch-m15 { grid-template-columns: minmax(0, 1fr); }
+.lch.lch-m15 > .hc { grid-column: 1 / -1; }
+.lch.lch-m15[data-device="tablet"] { max-width: 980px; }
+.lch.lch-m15[data-device="desktop"] { max-width: 1280px; grid-template-columns: minmax(0, 1fr); }
+.lch.lch-m15[data-device="desktop"] > * { grid-column: 1 / -1; grid-row: auto; }
+.lch.lch-m15 .lch-weather, .lch.lch-m15 .lch-now { grid-column: auto; grid-row: auto; }
+.lch.lch-m15 .lch-apps { max-width: none; }
+
+.hc-editbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 10px; padding: 10px 12px; }
+.hc-field { display: flex; flex-direction: column; gap: 3px; font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; min-width: 0; }
+.hc-field select, .hc-field input {
+  min-height: 36px; max-width: 220px; border-radius: 12px; border: 1px solid var(--edge); background: rgba(20, 6, 40, 0.6); color: var(--ink);
+  box-sizing: border-box; font: inherit; font-size: 16px; /* 16px: iOS Safari does not zoom the page on focus */ text-transform: none; letter-spacing: 0; padding: 0 10px;
+}
+.hc-actions { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+.hc-actions button { min-width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--edge); background: rgba(255, 255, 255, 0.06); display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 9px; font-size: 12.5px; }
+.hc-actions button:disabled { opacity: 0.35; cursor: default; }
+.hc-studio-btn { background: linear-gradient(135deg, rgba(168, 85, 247, 0.7), rgba(219, 39, 119, 0.6)) !important; border-color: rgba(255, 220, 255, 0.5) !important; }
+.hc-device { flex-basis: 100%; font-size: 11px; color: var(--ink-3); }
+.lch[data-editing="true"] .hc { margin-top: 14px; }
+.lch.lch-m15[data-device="phone"] .hc-editbar { gap: 6px 8px; padding: 8px 10px; }
+.lch.lch-m15[data-device="phone"] .hc-field { flex: 1 1 44%; }
+.lch.lch-m15[data-device="phone"] .hc-field select, .lch.lch-m15[data-device="phone"] .hc-field input { max-width: none; width: 100%; }
+.lch.lch-m15[data-device="phone"] .hc-actions { margin-left: 0; }
+.lch.lch-m15[data-device="phone"] .hc-device { display: none; }

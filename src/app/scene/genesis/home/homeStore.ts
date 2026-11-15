@@ -30,6 +30,18 @@
 import KvStore from "../../../../core/storage/KvStore";
 import type { GenesisPanel, ModuleState } from "../GenesisCore";
 import { loadCosmosMode, saveCosmosMode, type CosmosMode } from "../chat/universe/universeModel";
+import {
+  applyHomeOp,
+  presentationFromTemplate,
+  profileFromTemplate,
+  readPresentation,
+  templateFor,
+  DEVICE_CLASSES,
+  type DeviceClass,
+  type HomeOp,
+  type HomePresentation,
+  type TemplateId,
+} from "./homeComposition";
 
 export type { CosmosMode };
 
@@ -56,11 +68,27 @@ export interface UniverseState {
   geometry: Record<string, NormalizedRect>;
 }
 
+/**
+ * Mission 15: the Home's saved presentations (homeComposition). One is
+ * active; each keeps independent phone/tablet/desktop profiles. A reset
+ * keeps a restore point, so nothing the person arranged is silently lost.
+ */
+export interface HomePresentationsState {
+  list: HomePresentation[];
+  activeId: string;
+  restorePoint: HomePresentation | null;
+  /** Edit mode (not persisted). */
+  editing: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
+}
+
 export interface HomeState {
   layout: SavedLayout | null;
   immersive: boolean;
   cosmosMode: CosmosMode;
   universe: UniverseState;
+  presentations: HomePresentationsState;
 }
 
 /** Chat conversations open as module windows are owned by `universe`, not
@@ -68,6 +96,17 @@ export interface HomeState {
 const CHAT_MODULE_PREFIX = "chat:";
 
 const KEY = "lelu.home.v1";
+/** Presentations have their own key: a large arrangement never rewrites the window memory. */
+export const PRESENTATIONS_KEY = "lelu.home.presentations.v1";
+const HISTORY_LIMIT = 50;
+
+function loadPresentations(): HomePresentationsState {
+  const saved = typeof window !== "undefined" ? KvStore.getInstance().get<{ list?: unknown[]; activeId?: string; restorePoint?: unknown }>(PRESENTATIONS_KEY) : null;
+  const list = (saved?.list ?? []).map(readPresentation).filter((p): p is HomePresentation => Boolean(p));
+  if (!list.length) list.push(presentationFromTemplate("lelu-central", "My Home", 0));
+  const activeId = list.some((p) => p.id === saved?.activeId) ? saved!.activeId! : list[0].id;
+  return { list, activeId, restorePoint: readPresentation(saved?.restorePoint), editing: false, canUndo: false, canRedo: false };
+}
 type Listener = (state: HomeState) => void;
 
 class HomeStoreImpl {
@@ -84,7 +123,147 @@ class HomeStoreImpl {
         open: Array.isArray(saved?.universe?.open) ? saved!.universe!.open.filter((id) => typeof id === "string") : [],
         geometry: saved?.universe?.geometry ?? {},
       },
+      presentations: loadPresentations(),
     };
+  }
+
+  /* ---------------- Mission 15: Home presentations ---------------- */
+
+  private undoStack: HomePresentation[] = [];
+  private redoStack: HomePresentation[] = [];
+
+  activePresentation(): HomePresentation {
+    const { list, activeId } = this.state.presentations;
+    return list.find((p) => p.id === activeId) ?? list[0];
+  }
+
+  setEditing(editing: boolean): void {
+    this.patchPresentations({ editing });
+  }
+
+  /** One edit to the ACTIVE presentation's profile for this device class. Undoable. */
+  applyHomeOp(device: DeviceClass, op: HomeOp): boolean {
+    const before = this.activePresentation();
+    const after = applyHomeOp(before, device, op);
+    if (after === before) return false;
+    this.undoStack.push(before);
+    if (this.undoStack.length > HISTORY_LIMIT) this.undoStack.shift();
+    this.redoStack = [];
+    this.replacePresentation(after);
+    return true;
+  }
+
+  undo(): boolean {
+    const previous = this.undoStack.pop();
+    if (!previous) return false;
+    this.redoStack.push(this.activePresentation());
+    this.replacePresentation(previous, previous.id);
+    return true;
+  }
+
+  redo(): boolean {
+    const next = this.redoStack.pop();
+    if (!next) return false;
+    this.undoStack.push(this.activePresentation());
+    this.replacePresentation(next, next.id);
+    return true;
+  }
+
+  /** A NEW presentation from a composition; the current one is untouched. */
+  createPresentation(template: TemplateId, name?: string): HomePresentation {
+    const taken = new Set(this.state.presentations.list.map((p) => p.name));
+    let label = name?.trim() || templateFor(template).name;
+    for (let n = 2; taken.has(label); n += 1) label = `${name?.trim() || templateFor(template).name} ${n}`;
+    const created = presentationFromTemplate(template, label);
+    this.switchTo(created.id, [...this.state.presentations.list, created]);
+    return created;
+  }
+
+  /** Save an arrangement made elsewhere (the Design Studio) as a NEW presentation. */
+  adoptPresentation(source: HomePresentation, name: string): HomePresentation {
+    const taken = new Set(this.state.presentations.list.map((p) => p.name));
+    let label = name.trim().slice(0, 60) || source.name;
+    for (let n = 2; taken.has(label); n += 1) label = `${name.trim()} ${n}`;
+    const now = Date.now();
+    const copy = { ...structuredCloneSafe(source), id: presentationFromTemplate(source.template, undefined, now).id, name: label, createdAt: now, updatedAt: now };
+    this.switchTo(copy.id, [...this.state.presentations.list, copy]);
+    return copy;
+  }
+
+  duplicatePresentation(id: string): HomePresentation | null {
+    const source = this.state.presentations.list.find((p) => p.id === id);
+    if (!source) return null;
+    const copy = { ...structuredCloneSafe(source), id: presentationFromTemplate(source.template).id, name: `${source.name} copy`, createdAt: Date.now(), updatedAt: Date.now() };
+    this.switchTo(copy.id, [...this.state.presentations.list, copy]);
+    return copy;
+  }
+
+  renamePresentation(id: string, name: string): void {
+    const clean = name.trim().slice(0, 60);
+    if (!clean) return;
+    this.patchPresentations({ list: this.state.presentations.list.map((p) => (p.id === id ? { ...p, name: clean, updatedAt: Date.now() } : p)) });
+  }
+
+  applyPresentation(id: string): void {
+    if (!this.state.presentations.list.some((p) => p.id === id)) return;
+    this.switchTo(id, this.state.presentations.list);
+  }
+
+  deletePresentation(id: string): boolean {
+    const list = this.state.presentations.list;
+    if (list.length <= 1) return false;
+    const gone = list.find((p) => p.id === id);
+    if (!gone) return false;
+    const rest = list.filter((p) => p.id !== id);
+    // The deleted arrangement becomes the restore point: a delete is undoable too.
+    this.patchPresentations({ restorePoint: gone });
+    this.switchTo(this.state.presentations.activeId === id ? rest[0].id : this.state.presentations.activeId, rest);
+    return true;
+  }
+
+  /** Back to the composition's defaults — for one device, or all. Keeps a restore point. */
+  resetPresentation(device?: DeviceClass): void {
+    const current = this.activePresentation();
+    const template = templateFor(current.template);
+    const profiles = { ...current.profiles };
+    for (const d of device ? [device] : DEVICE_CLASSES) profiles[d] = profileFromTemplate(template, d);
+    this.patchPresentations({ restorePoint: current });
+    this.undoStack.push(current);
+    this.replacePresentation({ ...current, profiles, updatedAt: Date.now() });
+  }
+
+  /** Bring back the arrangement a reset or delete replaced. */
+  restorePresentation(): boolean {
+    const point = this.state.presentations.restorePoint;
+    if (!point) return false;
+    const exists = this.state.presentations.list.some((p) => p.id === point.id);
+    const list = exists ? this.state.presentations.list.map((p) => (p.id === point.id ? point : p)) : [...this.state.presentations.list, point];
+    this.patchPresentations({ restorePoint: null });
+    this.switchTo(point.id, list);
+    return true;
+  }
+
+  private switchTo(activeId: string, list: HomePresentation[]): void {
+    // History belongs to one presentation: switching starts a fresh one.
+    this.undoStack = [];
+    this.redoStack = [];
+    this.patchPresentations({ list, activeId });
+  }
+
+  private replacePresentation(next: HomePresentation, activeId = this.state.presentations.activeId): void {
+    const list = this.state.presentations.list.map((p) => (p.id === next.id ? next : p));
+    this.patchPresentations({ list, activeId });
+  }
+
+  private patchPresentations(next: Partial<HomePresentationsState>): void {
+    const presentations = { ...this.state.presentations, ...next, canUndo: this.undoStack.length > 0, canRedo: this.redoStack.length > 0 };
+    this.state = { ...this.state, presentations };
+    try {
+      KvStore.getInstance().set(PRESENTATIONS_KEY, { list: presentations.list, activeId: presentations.activeId, restorePoint: presentations.restorePoint });
+    } catch {
+      // storage unavailable: this session only
+    }
+    for (const listener of this.listeners) listener(this.state);
   }
 
   get(): HomeState {
@@ -182,6 +361,10 @@ class HomeStoreImpl {
     }
     for (const listener of this.listeners) listener(this.state);
   }
+}
+
+function structuredCloneSafe<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
 }
 
 const HomeStore = new HomeStoreImpl();

@@ -56,21 +56,26 @@ export default function SpatialNav({
   const openWindows = Object.entries(state.modules).filter(([id, m]) => id !== "chat" && m.presentation !== "closed").length;
 
   // The orb: tap = look at the Cosmos / come back; hold = talk.
-  const hold = useRef<{ timer: ReturnType<typeof setTimeout> | null; fired: boolean }>({ timer: null, fired: false });
+  const hold = useRef<{ timer: ReturnType<typeof setTimeout> | null; fired: boolean; x: number; y: number }>({ timer: null, fired: false, x: 0, y: 0 });
   const [holding, setHolding] = useState(false);
-  const orbDown = () => {
+  const orbDown = (e: { clientX: number; clientY: number }) => {
     hold.current.fired = false;
+    hold.current.x = e.clientX;
+    hold.current.y = e.clientY;
     hold.current.timer = setTimeout(() => {
       hold.current.fired = true;
       setHolding(true);
       onHoldVoice();
     }, 450);
   };
-  const orbUp = () => {
+  const orbUp = (e: { clientX: number; clientY: number }) => {
     if (hold.current.timer) clearTimeout(hold.current.timer);
     hold.current.timer = null;
     setHolding(false);
     if (hold.current.fired) return;
+    // A swipe that merely started on the orb (scrolling the Home on a phone)
+    // is not a tap: it must not flip the screen to the Cosmos. (Mission 15)
+    if (Math.hypot(e.clientX - hold.current.x, e.clientY - hold.current.y) > 12) return;
     if (!atHome) {
       goHome(genesis);
       HomeStore.setImmersive(true);
@@ -117,6 +122,14 @@ export default function SpatialNav({
           title="Tap: the Cosmos · Hold: talk to LÉLU"
           onPointerDown={orbDown}
           onPointerUp={orbUp}
+          onPointerMove={(e) => {
+            // A finger travelling off the orb is a swipe, not a hold: with
+            // touch, pointerleave only fires on release, so cancel here.
+            if (hold.current.timer && Math.hypot(e.clientX - hold.current.x, e.clientY - hold.current.y) > 12) {
+              clearTimeout(hold.current.timer);
+              hold.current.timer = null;
+            }
+          }}
           onPointerLeave={() => {
             if (hold.current.timer) clearTimeout(hold.current.timer);
             hold.current.timer = null;
