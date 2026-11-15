@@ -52,7 +52,7 @@ test("six domains construct, and each derives its own facts", () => {
   assert.equal(fabric.derived.find((d) => d.label === "Intersections")?.value, "64");
   assert.equal(fabric.parts.filter((p) => p.id.startsWith("cross-")).length, 64);
 
-  assert.deepEqual(new Set(BUILDERS.map((b) => b.domain)).size, 6, "six domains, one framework");
+  assert.deepEqual(new Set(BUILDERS.map((b) => b.domain)).size, 8, "eight domains, one framework");
 });
 
 test("the weave rules are the rules, not decoration", () => {

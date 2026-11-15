@@ -25,8 +25,10 @@ import { v8Builder, describeV8Request } from "./V8";
 import { circuitBuilder, describeCircuitRequest } from "./Electrical";
 import { cellBuilder, describeCellRequest } from "./Biology";
 import { fabricBuilder, describeFabricRequest } from "./Textiles";
+import { furnitureBuilder, describeFurnitureRequest } from "./Furniture";
+import { garmentBuilder, describeGarmentRequest } from "./Garment";
 
-export const BUILDERS: BuildBuilder[] = [gearboxBuilder, v8Builder, cabinBuilder, moleculeBuilder, circuitBuilder, cellBuilder, fabricBuilder];
+export const BUILDERS: BuildBuilder[] = [gearboxBuilder, v8Builder, cabinBuilder, moleculeBuilder, circuitBuilder, cellBuilder, fabricBuilder, furnitureBuilder, garmentBuilder];
 
 export function builderById(id: string): BuildBuilder | undefined {
   return BUILDERS.find((b) => b.id === id.toLowerCase());
@@ -296,6 +298,51 @@ export function parseModification(text: string, program: BuildProgram): ParsedMo
     }
   }
 
+  if (builder === "furniture") {
+    const grow = (key: string, delta: number, min: number, max: number, why: string) => {
+      if (key in changes) return;
+      changes[key] = Math.min(max, Math.max(min, Number(program.params[key] ?? 0) + delta));
+      because.push(why);
+    };
+    if (/\b(taller|higher)\b/.test(lower) && !/\bseat\b/.test(lower)) {
+      grow("height", 0.08, 0.3, 2.2, `taller (${program.params.height} → ${Number(program.params.height ?? 0) + 0.08} m)`);
+      if (!("seatHeight" in changes)) grow("seatHeight", 0.03, 0.28, 1.1, "and the seat rises with it");
+    }
+    if (/\b(lower|shorter)\b/.test(lower) && !/\bseat\b/.test(lower)) grow("height", -0.08, 0.3, 2.2, `lower (${program.params.height} → ${Math.max(0.3, Number(program.params.height ?? 0) - 0.08)} m)`);
+    if (/\b(wider|longer)\b/.test(lower)) grow("width", 0.1, 0.3, 2.4, `wider (${program.params.width} → ${Number(program.params.width ?? 0) + 0.1} m)`);
+    if (/\b(deeper)\b/.test(lower)) grow("depth", 0.08, 0.3, 1.2, `deeper (${program.params.depth} → ${Number(program.params.depth ?? 0) + 0.08} m)`);
+    if (/\b(seat|sit) (?:higher|up)\b|\bhigher seat\b/.test(lower)) grow("seatHeight", 0.04, 0.28, 1.1, "a higher seat");
+    if (/\b(seat|sit) (?:lower|down)\b|\blower seat\b/.test(lower)) grow("seatHeight", -0.04, 0.28, 1.1, "a lower seat");
+    for (const material of ["oak", "walnut", "birch", "steel", "upholstered"]) {
+      if (new RegExp(`\\b${material}\\b`).test(lower) && material !== String(program.params.material)) {
+        changes.material = material;
+        because.push(`in ${material}`);
+      }
+    }
+  }
+
+  if (builder === "garment") {
+    const grow = (key: string, delta: number, min: number, max: number, why: string) => {
+      if (key in changes) return;
+      changes[key] = Math.min(max, Math.max(min, Number(program.params[key] ?? 0) + delta));
+      because.push(why);
+    };
+    if (/\b(longer|taller)\b/.test(lower) && /\b(sleeve|arm)\b/.test(lower)) grow("sleeve", 4, 0, 90, `longer sleeves (${program.params.sleeve} → ${Number(program.params.sleeve ?? 0) + 4} cm)`);
+    else if (/\b(shorter)\b/.test(lower) && /\b(sleeve|arm)\b/.test(lower)) grow("sleeve", -4, 0, 90, "shorter sleeves");
+    else if (/\b(longer|taller)\b/.test(lower)) grow("length", 5, 30, 150, `longer (${program.params.length} → ${Number(program.params.length ?? 0) + 5} cm)`);
+    else if (/\b(shorter|cropped)\b/.test(lower)) grow("length", -5, 30, 150, "shorter");
+    if (/\b(looser|bigger|wider)\b/.test(lower)) grow("chest", 6, 60, 160, `a looser chest (${program.params.chest} → ${Number(program.params.chest ?? 0) + 6} cm)`);
+    if (/\b(tighter|slimmer|narrower)\b/.test(lower)) grow("chest", -6, 60, 160, "a slimmer fit");
+    if (/\bsleeveless\b/.test(lower)) changes.sleeve = 0;
+    for (const weave of ["plain", "twill", "satin", "knit"]) {
+      if (new RegExp(`\\b${weave}\\b`).test(lower) && weave !== String(program.params.weave)) {
+        changes.weave = weave;
+        because.push(`cut from ${weave}`);
+      }
+    }
+    if (/\b(denser|tighter cloth)\b/.test(lower)) grow("density", 6, 8, 60, "denser cloth");
+  }
+
   const asksBigger = /\b(bigger|larger|taller|wider|deeper|more)\b/.test(lower);
   if (Object.keys(changes).length === 0 && asksBigger) {
     unsupported.push("nothing in that request maps to a parameter of this build");
@@ -313,6 +360,8 @@ export function describeRequest(builder: BuildBuilder, text: string): Record<str
   if (builder.id === "circuit") return describeCircuitRequest(text);
   if (builder.id === "cell") return describeCellRequest(text);
   if (builder.id === "fabric") return describeFabricRequest(text);
+  if (builder.id === "furniture") return describeFurnitureRequest(text);
+  if (builder.id === "garment") return describeGarmentRequest(text);
   return {};
 }
 

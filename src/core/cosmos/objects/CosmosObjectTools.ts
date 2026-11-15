@@ -19,6 +19,7 @@ import ToolRegistry, { type ToolDefinition } from "../../tools/ToolRegistry";
 import type { ToolExecutionResult } from "../../tools/ToolDispatcher";
 import StudioStore from "../../studio/StudioStore";
 import CosmosObjectStore from "./CosmosObjectStore";
+import { cosmosCameraBus, cosmosViewBus, type CosmosCameraMode } from "./CosmosObjectCamera";
 import { describeObject, type CosmosObject } from "./CosmosObjectTypes";
 import type { BuildProgram } from "../../creative/kit/build";
 import type { Scene3DProgram } from "../../creative/kit/Scene3D";
@@ -133,6 +134,7 @@ export const COSMOS_OBJECT_EXECUTORS: CosmosExecutor[] = [
       rotation: { type: "array", items: { type: "number" }, description: "degrees [x, y, z]" },
       relative: { type: "boolean", description: "add to the current position instead of replacing it" },
       near: { type: "string", description: "an object to sit beside — its position is read, never guessed" },
+      side: { type: "string", description: "left | right | up | down | front | behind, relative to `near`" },
     }),
     run: async (args) => {
       const store = CosmosObjectStore.getInstance();
@@ -145,12 +147,21 @@ export const COSMOS_OBJECT_EXECUTORS: CosmosExecutor[] = [
         if (!anchor) return bad(`Nothing moved: there is no “${near}” in the Cosmos to sit beside.`);
         if (anchor.id === object.id) return bad("Nothing moved: an object cannot sit beside itself.");
         const reach = Math.max(anchor.frame.scale * 1.4, object.frame.scale * 1.4);
-        position = [anchor.frame.position[0] + reach, anchor.frame.position[1], anchor.frame.position[2]];
+        // Where "beside" is depends on the word: the offset is a real world
+        // direction from the anchor's own position, not a guess at the camera.
+        const side = s(args, "side") || "right";
+        const offset: [number, number, number] =
+          side === "left" ? [-reach, 0, 0] : side === "up" ? [0, reach, 0] : side === "down" ? [0, -reach, 0] : side === "front" ? [0, 0, reach] : side === "behind" ? [0, 0, -reach] : [reach, 0, 0];
+        position = [anchor.frame.position[0] + offset[0], anchor.frame.position[1] + offset[1], anchor.frame.position[2] + offset[2]];
       }
+      const scaleArg = n(args, "scale");
+      // A relative scale is a factor ("twice as large"), an absolute one is the
+      // value the object should end up at.
+      const scale = scaleArg === undefined ? undefined : args.relative === true ? object.frame.scale * scaleArg : scaleArg;
       const result = store.transform(object.id, {
         position,
         rotation: vec(args.rotation),
-        scale: n(args, "scale"),
+        scale,
         absolute: args.relative !== true,
       });
       if (!result.ok) return bad(`Nothing moved: ${result.reason}.`);
@@ -201,16 +212,18 @@ export const COSMOS_OBJECT_EXECUTORS: CosmosExecutor[] = [
   },
   {
     id: "cosmos.object.select",
-    parameters: OBJ({ object: { type: "string" }, clear: { type: "boolean" } }),
+    parameters: OBJ({ object: { type: "string" }, clear: { type: "boolean" }, add: { type: "boolean", description: "add to the selection instead of replacing it" } }),
     run: async (args) => {
       const store = CosmosObjectStore.getInstance();
       if (args.clear === true) {
         store.select(null);
         return ok("Selection cleared.");
       }
-      const result = store.select(s(args, "object") || null);
+      const result = store.select(s(args, "object") || null, { add: args.add === true });
       if (!result.ok) return bad(`Nothing selected: ${result.reason}.`);
-      return result.value ? ok(`Selected ${describeObject(result.value)}.`, { objectId: result.value.id }) : ok("Selection cleared.");
+      if (!result.value) return ok("Selection cleared.");
+      const many = store.selectionIds();
+      return ok(many.length > 1 ? `Selected ${many.length} objects: ${many.join(", ")}.` : `Selected ${describeObject(result.value)}.`, { objectId: result.value.id, selection: many });
     },
   },
   {
@@ -349,6 +362,100 @@ export const COSMOS_OBJECT_EXECUTORS: CosmosExecutor[] = [
       );
     },
   },
+  {
+    id: "cosmos.object.split",
+    parameters: OBJ({ object: { type: "string" }, part: { type: "string", description: "a part of that object: “crank”, “seat”, “sleeve”" } }, ["object", "part"]),
+    run: async (args) => {
+      const store = CosmosObjectStore.getInstance();
+      const object = store.resolve(s(args, "object"));
+      if (!object) return bad(`Nothing split: no object matches “${s(args, "object")}”.`);
+      const result = store.splitPart(object.id, s(args, "part"));
+      if (!result.ok) return bad(`Nothing split: ${result.reason}.`);
+      const { source, part } = result.value;
+      return ok(
+        `Took ${part.name.split(" · ").pop()} out of “${source.name}” as its own object: ${describeObject(part)}. It sits where it was, keeps its material, and “${source.name}” still has its own id and ${source.partCount} parts.`,
+        { objectId: part.id, sourceId: source.id },
+      );
+    },
+  },
+  {
+    id: "cosmos.object.place",
+    parameters: OBJ({ object: { type: "string" }, place: { type: "string", description: "cosmos | workspace | gallery" } }, ["object", "place"]),
+    run: async (args) => {
+      const store = CosmosObjectStore.getInstance();
+      const object = store.resolve(s(args, "object"));
+      if (!object) return bad(`Nothing moved: no object matches “${s(args, "object")}”.`);
+      const result = store.setPlace(object.id, s(args, "place") as "cosmos" | "workspace" | "gallery");
+      if (!result.ok) return bad(`Nothing moved: ${result.reason}.`);
+      return ok(`Moved “${result.value.name}” to the ${result.value.place} — the same object, with its id, geometry and revision history intact.`, { objectId: result.value.id, place: result.value.place });
+    },
+  },
+  {
+    id: "cosmos.object.undo",
+    parameters: OBJ({}),
+    run: async () => {
+      const store = CosmosObjectStore.getInstance();
+      const result = store.undo();
+      if (!result.ok) return bad(`Nothing undone: ${result.reason}.`);
+      const depth = store.historyDepth();
+      return ok(`Undone. ${store.list().length} object${store.list().length === 1 ? "" : "s"} in the Cosmos now, with their ids and geometry as they were. ${depth.undo} more step${depth.undo === 1 ? "" : "s"} can be taken back.`, { undo: depth.undo, redo: depth.redo });
+    },
+  },
+  {
+    id: "cosmos.object.redo",
+    parameters: OBJ({}),
+    run: async () => {
+      const store = CosmosObjectStore.getInstance();
+      const result = store.redo();
+      if (!result.ok) return bad(`Nothing redone: ${result.reason}.`);
+      const depth = store.historyDepth();
+      return ok(`Redone. ${store.list().length} object${store.list().length === 1 ? "" : "s"} in the Cosmos. ${depth.redo} more step${depth.redo === 1 ? "" : "s"} can be redone.`, { undo: depth.undo, redo: depth.redo });
+    },
+  },
+  {
+    id: "cosmos.view.open",
+    parameters: OBJ({ open: { type: "boolean", description: "true to enter the Cosmos, false to go back to the workspace" }, frame: { type: "boolean" } }),
+    run: async (args) => {
+      const store = CosmosObjectStore.getInstance();
+      const open = args.open !== false;
+      if (!cosmosViewBus.live) {
+        return bad("The Cosmos view is not mounted in this build, so it cannot be opened from here.");
+      }
+      cosmosViewBus.request({ mode: open ? "open" : "close", frame: args.frame !== false });
+      if (!open) return ok("Back to the workspace. The objects stay where they were.", { open });
+      const objects = store.list();
+      return ok(
+        objects.length
+          ? `Opened the Cosmos with ${objects.length} object${objects.length === 1 ? "" : "s"} in it${args.frame === false ? "" : ", framed to fit"}. Tap one to select it; drag it to move it.`
+          : "Opened the Cosmos. It is empty — build something and put it here.",
+        { open, count: objects.length },
+      );
+    },
+  },
+  {
+    id: "cosmos.view.frame",
+    parameters: OBJ({
+      mode: { type: "string", description: "all | selected | assembly | focus | home | previous | zoom" },
+      object: { type: "string" },
+      factor: { type: "number" },
+    }),
+    run: async (args) => {
+      const store = CosmosObjectStore.getInstance();
+      const mode = (s(args, "mode") || "all") as CosmosCameraMode;
+      const modes: CosmosCameraMode[] = ["all", "selected", "assembly", "focus", "home", "previous", "zoom"];
+      if (!modes.includes(mode)) return bad(`Nothing framed: “${mode}” is not a camera mode — use ${modes.join(", ")}.`);
+      const selected = store.selectedId();
+      const object = s(args, "object") || (mode === "selected" && selected ? selected : "");
+      if (mode === "selected" && !object) return bad("Nothing framed: no object is selected.");
+      if (!cosmosCameraBus.live) {
+        return bad("The Cosmos scene is not open, so there is no camera to move. Open the Cosmos and ask again — the objects themselves are safe in the store.");
+      }
+      cosmosCameraBus.request({ mode, object: object || undefined, factor: n(args, "factor"), because: "tool" });
+      const target = object ? store.resolve(object) : undefined;
+      const what = mode === "all" ? `all ${store.list().filter((o) => o.visible).length} objects` : mode === "home" ? "the home view" : mode === "previous" ? "the previous view" : `“${target?.name ?? object}”`;
+      return ok(`Framed ${what}. The camera move is bounded by the Cosmos' own navigation, and your next drag takes over.`, { mode, objectId: target?.id ?? null });
+    },
+  },
 ];
 
 export const COSMOS_OBJECT_TOOLS: ToolDefinition[] = [
@@ -357,7 +464,7 @@ export const COSMOS_OBJECT_TOOLS: ToolDefinition[] = [
   def("cosmos.object.transform", "Rotate or Resize an Object", "The same operation as cosmos.object.position, for rotation and scale.", 1, ["WRITE"], { object: "string", rotation: "number[3]", scale: "number", position: "number[3]", relative: "boolean" }),
   def("cosmos.object.animate", "Float, Spin or Pause Objects", "Give an object a motion (spin, orbit, bob, drift) or stop it, and pause or resume every floating object at once.", 1, ["WRITE"], { object: "string", motion: "string", speed: "number", axis: "string", paused: "boolean", all: "boolean" }),
   def("cosmos.object.reset", "Reset the Arrangement", "Return every object to the ring slot it was first placed in, unrotated and at scale 1. Local, reversible by moving things again.", 1, ["WRITE"], {}),
-  def("cosmos.object.select", "Select an Object", "Select one object in the Cosmos (the selection the controls and later commands act on), or clear the selection.", 0, ["READ"], { object: "string", clear: "boolean" }),
+  def("cosmos.object.select", "Select an Object", "Select one object in the Cosmos — or add it to the selection — for the controls and later commands to act on. Clear it when done.", 0, ["READ"], { object: "string", clear: "boolean", add: "boolean" }),
   def("cosmos.object.group", "Group Objects", "Group two or more objects into a named collection. Their identities, positions and construction data are unchanged.", 1, ["WRITE"], { objects: "string[]", name: "string" }),
   def("cosmos.object.ungroup", "Ungroup Objects", "Dissolve a group; every member becomes independent again.", 1, ["WRITE"], { group: "string" }),
   def("cosmos.object.integrate", "Put an Object Inside Another", "Make one object part of a larger environment or assembly (engine into chassis, chair into cabin). The child keeps its identity and can be extracted again.", 1, ["WRITE"], { object: "string", into: "string" }),
@@ -367,6 +474,12 @@ export const COSMOS_OBJECT_TOOLS: ToolDefinition[] = [
   def("cosmos.object.remove", "Remove an Object", "Take an object out of the Cosmos into the trash (restorable). Refuses to silently drop the objects inside it.", 1, ["WRITE"], { object: "string", confirm: "boolean" }),
   def("cosmos.object.restore", "Restore an Object", "Put a removed object back exactly as it was.", 1, ["WRITE"], { object: "string" }),
   def("cosmos.object.list", "Every Object in the Cosmos", "List the objects in the Cosmos — or the trash — with their ids, positions, groups and sources.", 0, ["READ"], { domain: "string", group: "string", query: "string", trash: "boolean" }),
+  def("cosmos.object.split", "Take One Part Out as an Object", "Split one part of an object out as its own object — the crankshaft out of an engine, a seat out of a chair, a panel out of a garment — keeping its material and where it stood. Local and undoable.", 1, ["WRITE"], { object: "string", part: "string" }),
+  def("cosmos.object.place", "Move an Object Between Workspaces", "Move an object between the Cosmos, the construction workspace and the gallery. It is the same object with the same id and history.", 1, ["WRITE"], { object: "string", place: "string" }),
+  def("cosmos.object.undo", "Undo the Last Change", "Take back the last change to the Cosmos. Ids, geometry, relationships and provenance are restored rather than re-created.", 1, ["WRITE"], {}),
+  def("cosmos.object.redo", "Redo the Change", "Put back the change that was taken back.", 1, ["WRITE"], {}),
+  def("cosmos.view.open", "Open the Cosmos", "Enter the live Cosmos with the objects in view, closing the conversation over it without losing it; or go back to the workspace. Local navigation, no model involved.", 0, ["READ"], { open: "boolean", frame: "boolean" }),
+  def("cosmos.view.frame", "Frame the Objects", "Move the Cosmos camera deterministically: frame everything, focus or zoom on one object or an assembly, return to the previous view or to the home view. Computed from real bounding boxes and the real viewport; no model involved.", 0, ["READ"], { mode: "string", object: "string", factor: "number" }),
 ];
 
 export function registerCosmosObjectTools(): void {

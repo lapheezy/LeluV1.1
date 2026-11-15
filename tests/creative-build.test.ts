@@ -236,7 +236,9 @@ test("a request resolves to the builder that can make it", () => {
   assert.equal(findBuilder("a two-storey cabin")?.id, "cabin");
   assert.equal(findBuilder("benzene ring")?.id, "molecule");
   assert.equal(findBuilder("a spaceship")?.id, undefined, "nothing is invented for an unknown subject");
-  assert.equal(new Set(BUILDERS.map((b) => b.domain)).size, 6, "Mission 16 added electrical, biology and textiles");
+  assert.equal(findBuilder("a chair")?.id, "furniture");
+  assert.equal(findBuilder("a twill hoodie")?.id, "garment");
+  assert.equal(new Set(BUILDERS.map((b) => b.domain)).size, 8, "Mission 17 added furniture and fashion");
 });
 
 test("words compile to real tool calls, with parameters", () => {

@@ -238,7 +238,7 @@ export default class AIRouter {
     // same artifact. So it runs here even when a model is reachable, rather
     // than depending on the model choosing the right tool. "Build a cabin"
     // must produce a cabin; the model is not needed to hope so.
-    const construction = Boolean(directPlan && !directPlan.explicit && directPlan.steps.length > 0 && directPlan.steps.every((step) => /^creative\.(build|modify|inspect)$/.test(step.tool) || /^cosmos\.object\./.test(step.tool)));
+    const construction = Boolean(directPlan && !directPlan.explicit && directPlan.steps.length > 0 && directPlan.steps.every((step) => /^creative\.(build|modify|inspect)$/.test(step.tool) || /^cosmos\.(object|view)\./.test(step.tool)));
     if (directPlan && (directPlan.explicit || construction || !(await this.direct.providersAvailable(context)))) {
       const reason = directPlan.explicit ? "command" : construction ? "construction" : "no-provider";
       const done = await this.traced(context, "direct", () => this.direct.execute(context, directPlan, reason));

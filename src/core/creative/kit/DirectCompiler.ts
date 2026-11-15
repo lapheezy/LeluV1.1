@@ -188,6 +188,120 @@ export function compileDirect(prompt: string): DirectPlan | null {
  * object, and an object that does not exist is refused by the tool, not
  * invented here.
  */
+/**
+ * /cosmos <verb> <argument>… — parsed as arguments, not as a sentence.
+ *
+ * The words after the verb are read for what they are (a number, a position,
+ * a list of names, a flag), so a typed command cannot be "understood" as
+ * something else. Anything without a verb falls through to the sentence
+ * matcher instead of pretending to be structured.
+ */
+function cosmosCommand(rest: string): DirectPlan | null {
+  const one = (tool: string, label: string, args: Record<string, unknown>, summary: string): DirectPlan => ({ explicit: true, summary, steps: [{ tool, label, args }] });
+  const [verbRaw, ...words] = rest.trim().split(/\s+/);
+  const verb = (verbRaw ?? "").toLowerCase();
+  const arg = words.join(" ").trim();
+  const names = (text: string) => text.split(/\s*,\s*|\s+and\s+/).map((v) => v.trim()).filter(Boolean);
+  const nums = (text: string) => text.split(/[\s,]+/).map(Number).filter((n) => Number.isFinite(n));
+  switch (verb) {
+    case "open":
+    case "enter":
+      return one("cosmos.view.open", "open", { open: true, frame: !/\bno-?frame\b/i.test(arg) }, "open the Cosmos");
+    case "close":
+    case "leave":
+    case "exit":
+      return one("cosmos.view.open", "close", { open: false }, "back to the workspace");
+    case "list":
+    case "objects":
+      return one("cosmos.object.list", "objects", /\btrash\b/i.test(arg) ? { trash: true } : {}, "every object in the Cosmos");
+    case "frame":
+    case "fit":
+      if (/^all\b|^everything\b|^$/i.test(arg)) return one("cosmos.view.frame", "frame all", { mode: "all" }, "frame all the objects");
+      if (/^assembly\b/i.test(arg)) return one("cosmos.view.frame", "frame assembly", { mode: "assembly", object: arg.replace(/^assembly\s*/i, "").trim() || undefined }, "frame the assembly");
+      return one("cosmos.view.frame", "frame", { mode: "focus", object: arg }, `frame “${arg}”`);
+    case "focus":
+      return one("cosmos.view.frame", "focus", { mode: "focus", object: arg }, `frame “${arg}”`);
+    case "zoom":
+      return one("cosmos.view.frame", "zoom", { mode: "zoom", object: arg, factor: 1.6 }, `closer on “${arg}”`);
+    case "home":
+    case "reset":
+      return one("cosmos.view.frame", "home", { mode: "home" }, "the home view");
+    case "prev":
+    case "previous":
+    case "back":
+      return one("cosmos.view.frame", "previous", { mode: "previous" }, "the previous view");
+    case "undo":
+      return one("cosmos.object.undo", "undo", {}, "take back the last change");
+    case "redo":
+      return one("cosmos.object.redo", "redo", {}, "put the last change back");
+    case "position":
+    case "move": {
+      const match = /^(.+?)\s+(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)[\s,]+(-?\d+(?:\.\d+)?)$/.exec(arg);
+      if (!match) return null;
+      return one("cosmos.object.position", "move", { object: match[1].trim(), position: [Number(match[2]), Number(match[3]), Number(match[4])], relative: false }, `move “${match[1].trim()}” to [${match[2]}, ${match[3]}, ${match[4]}]`);
+    }
+    case "rotate":
+    case "turn": {
+      const match = /^(.+?)\s+(-?\d+(?:\.\d+)?)(?:\s*(?:°|deg|degrees))?$/i.exec(arg);
+      if (!match) return null;
+      return one("cosmos.object.transform", "turn", { object: match[1].trim(), rotation: [0, Number(match[2]), 0], relative: false }, `turn “${match[1].trim()}” ${match[2]}°`);
+    }
+    case "scale": {
+      const match = /^(.+?)\s+(\d+(?:\.\d+)?)$/.exec(arg);
+      if (!match) return null;
+      return one("cosmos.object.transform", "resize", { object: match[1].trim(), scale: Number(match[2]), relative: false }, `scale “${match[1].trim()}” to ${match[2]}`);
+    }
+    case "spawn":
+      return one("cosmos.object.spawn", "spawn", { artifact: arg || "it" }, `put ${arg || "it"} into the Cosmos`);
+    case "extract":
+    case "separate":
+      return one("cosmos.object.extract", "extract", { object: arg }, `take “${arg}” out`);
+    case "split": {
+      const parts = /^(.+?)\s*::\s*(.+)$/.exec(arg) ?? /^(.+?)\s+(?:part\s+)?(\S+)$/.exec(arg);
+      if (!parts) return null;
+      return one("cosmos.object.split", "split", { object: parts[1].trim(), part: parts[2].trim() }, `take ${parts[2].trim()} out of “${parts[1].trim()}”`);
+    }
+    case "integrate":
+    case "connect": {
+      const parts = /^(.+?)\s+(?:into|to|inside)\s+(.+)$/i.exec(arg);
+      if (!parts) return null;
+      return one("cosmos.object.integrate", "integrate", { object: parts[1].trim(), into: parts[2].trim() }, `put “${parts[1].trim()}” inside “${parts[2].trim()}”`);
+    }
+    case "group":
+      return names(arg.replace(/\bcalled\b/i, ",")).length >= 2
+        ? one("cosmos.object.group", "group", { objects: names(arg), name: /\bcalled\s+(.+)$/i.exec(arg)?.[1]?.trim() }, "group the objects")
+        : null;
+    case "ungroup":
+      return one("cosmos.object.ungroup", "ungroup", { group: arg }, `ungroup “${arg}”`);
+    case "remove":
+    case "delete":
+      return one("cosmos.object.remove", "remove", { object: arg.replace(/\s*confirm(=|:)?\s*(true|yes)\s*/i, " ").trim(), confirm: /\bconfirm\b/i.test(arg) }, "remove it from the Cosmos");
+    case "restore":
+      return one("cosmos.object.restore", "restore", { object: arg }, `restore “${arg}”`);
+    case "place":
+    case "workspace":
+    case "gallery": {
+      if (verb === "workspace" || verb === "gallery") return one("cosmos.object.place", "move place", { object: arg, place: verb }, `move “${arg}” to the ${verb}`);
+      const parts = /^(.+?)(?:\s+to)?\s+(cosmos|workspace|gallery)$/i.exec(arg);
+      return parts ? one("cosmos.object.place", "move place", { object: parts[1].trim(), place: parts[2].toLowerCase() }, `move “${parts[1].trim()}” to the ${parts[2].toLowerCase()}`) : null;
+    }
+    case "select":
+      return one("cosmos.object.select", "select", /^none$|^clear$/i.test(arg) ? { clear: true } : { object: arg, add: /\+add\b/i.test(arg) }, `select “${arg}”`);
+    case "animate":
+    case "float": {
+      const kind = /^(orbit|bob|drift|spin|still)\b/i.exec(arg)?.[1]?.toLowerCase() ?? "spin";
+      const speed = nums(arg.replace(/^\w+/, ""))[0];
+      return one("cosmos.object.animate", kind === "float" ? "float" : "animate", { object: arg.replace(/^(orbit|bob|drift|spin|still|float)\s*/i, "").replace(/\b-?\d+(?:\.\d+)?\b/, "").trim(), motion: kind === "still" ? "spin" : kind, speed, paused: /\bpause\b/i.test(arg) }, `${kind} motion`);
+    }
+    case "pause":
+      return one("cosmos.object.animate", "pause", { all: true, paused: true }, "pause every floating object");
+    case "resume":
+      return one("cosmos.object.animate", "resume", { all: true, paused: false }, "resume every floating object");
+    default:
+      return null;
+  }
+}
+
 function cosmosPlan(t: string): DirectPlan | null {
   const lower = t.toLowerCase();
   // Operations on objects only make sense when there is a Cosmos to act on,
@@ -205,6 +319,22 @@ function cosmosPlan(t: string): DirectPlan | null {
   const one = (tool: string, label: string, args: Record<string, unknown>, summary: string): DirectPlan => ({ explicit: false, summary, steps: [{ tool, label, args }] });
   const objectName = (after: RegExp): string => (after.exec(t)?.[1] ?? "").trim().replace(/[.?!]+$/, "");
 
+  /* ---- the Cosmos itself: open, leave, undo, frame ------------------ */
+  if (/\b(open|enter|go to|take me to)\b[\s\S]*\b(cosmos|universe)\b/i.test(t) || /^(?:show me|let me see)\s+(?:my|the)\s+cosmos\b/i.test(t.trim())) {
+    return one("cosmos.view.open", "open", { open: true }, "open the Cosmos");
+  }
+  if (/\b(close (the )?cosmos|leave the cosmos|exit the cosmos)\b/i.test(t) || /^(?:back|return)\s+to\s+(?:my\s+)?(?:home|workspace)\b/i.test(t.trim())) {
+    return one("cosmos.view.open", "close", { open: false }, "back to the workspace");
+  }
+  if (/\bundo (that|it|the last|my last)\b|^undo$/i.test(t.trim())) return one("cosmos.object.undo", "undo", {}, "take back the last change");
+  if (/\bredo (that|it|the last)|^redo$/i.test(t.trim())) return one("cosmos.object.redo", "redo", {}, "put the last change back");
+  if (/\b(frame|fit)\s+(all|everything|them|my objects|every object)\b/i.test(t)) return one("cosmos.view.frame", "frame all", { mode: "all" }, "frame all the objects");
+  if (/\b(home view|default (cosmos )?view|reset the (camera|view))\b/i.test(t)) return one("cosmos.view.frame", "home view", { mode: "home" }, "back to the home view");
+  if (/\b(previous|last) (camera )?view\b|\bback to the (previous|last) view\b/i.test(t)) return one("cosmos.view.frame", "previous view", { mode: "previous" }, "the previous camera view");
+  const focus = /\b(?:frame|focus(?: on)?|zoom(?: in)? (?:on|to)|show me)\s+(?:the\s+|my\s+)?([\w\s-]{2,32})$/i.exec(t.trim());
+  if (focus && !/\b(all|everything|them|cosmos|objects?)\b/i.test(focus[1]) && (hasObjects || cosmosWords || /\b(frame|focus|zoom)\b/i.test(t))) {
+    return one("cosmos.view.frame", "focus", { mode: /\bzoom\b/i.test(t) ? "zoom" : "focus", object: focus[1].trim() }, `frame “${focus[1].trim()}”`);
+  }
   if (/\b(show|list|what('s| is)|every object|my objects)\b/i.test(t) && /\b(cosmos|objects?|scene)\b/i.test(t)) {
     return one("cosmos.object.list", "objects", { trash: /\btrash|removed|deleted\b/i.test(t) }, "every object in the Cosmos");
   }
@@ -265,18 +395,34 @@ function cosmosPlan(t: string): DirectPlan | null {
   }
 
   const motion = /\b(float|spin|rotate|orbit|bob|drift|turn|hover)\b/i.exec(t);
-  if (motion && /\b(it|object|engine|cabin|molecule|everything)\b/i.test(t)) {
+  const isNumberedTurn = /\b(?:rotate|turn)\s+(?:the\s+)?[\w\s-]{2,25}?\s+(?:by\s+)?\d{1,3}\s*(?:°|deg|degrees)?\b/i.test(t);
+  if (motion && !isNumberedTurn && /\b(it|object|engine|cabin|molecule|everything)\b/i.test(t)) {
     const kind = /\borbit\b/i.test(t) ? "orbit" : /\bbob|hover\b/i.test(t) ? "bob" : /\bdrift|float away\b/i.test(t) ? "drift" : "spin";
     const slow = /\bslow(ly)?\b/i.test(t);
     const paused = /\bstop\b/i.test(t) && !/pause all/.test(lower);
     return one("cosmos.object.animate", "animate", { motion: kind, ...(slow ? { speed: 0.05 } : {}), ...(paused ? { paused: true } : {}) }, `make it ${kind}${slow ? " slowly" : ""}`);
   }
 
+  const side = /\b(?:move|put|place|shift)\s+(?:the\s+)?([\w\s-]{2,25}?)\s+(?:to\s+)?(?:the\s+)?(left of|right of|above|below|in front of|behind)\s+(?:the\s+)?([\w\s-]{2,25})$/i.exec(t.trim());
+  if (side) {
+    const where = side[2].toLowerCase();
+    const direction = where.startsWith("left") ? "left" : where.startsWith("right") ? "right" : where === "above" ? "up" : where === "below" ? "down" : where.startsWith("in front") ? "front" : "behind";
+    return one("cosmos.object.position", "move", { object: side[1].trim(), near: side[3].trim(), side: direction }, `move the ${side[1].trim()} to the ${direction} of the ${side[3].trim()}`);
+  }
   const near = /\b(?:next to|beside|near|by|behind|above|in front of)\s+(?:the\s+)?([\w\s-]{2,30})$/i.exec(t.trim());
   if (near && /\b(move|put|place|shift)\b/i.test(t)) {
     return one("cosmos.object.position", "move", { object: /\b(?:move|put|place|shift)\s+(?:the\s+)?([\w\s-]{2,25}?)\s+(?:next to|beside|near|by|behind|above|in front of)\b/i.exec(t)?.[1]?.trim() ?? "it", near: near[1].trim() }, `move it next to the ${near[1].trim()}`);
   }
 
+  const twice = /\b(?:make|scale)\s+(?:the\s+)?([\w\s-]{2,25}?)\s+(twice|two times|half)\s+(?:as\s+)?(?:large|big|small)\b/i.exec(t.trim());
+  if (twice) {
+    const factor = /half/i.test(twice[2]) ? 0.5 : 2;
+    return one("cosmos.object.transform", "resize", { object: twice[1].trim(), scale: factor, relative: true }, `make the ${twice[1].trim()} ${factor === 2 ? "twice as large" : "half the size"}`);
+  }
+  const namedTurn = /\b(?:rotate|turn)\s+(?:the\s+)?([\w\s-]{2,25}?)\s+(?:by\s+)?(\d{1,3})\s*(?:°|deg|degrees)?\b/i.exec(t.trim());
+  if (namedTurn && !/\ball|everything|them\b/i.test(namedTurn[1])) {
+    return one("cosmos.object.transform", "turn", { object: namedTurn[1].trim(), rotation: [0, Number(namedTurn[2]), 0], relative: false }, `turn the ${namedTurn[1].trim()} ${namedTurn[2]}°`);
+  }
   const transform = /\b(make (?:it|the \w+) (?:bigger|smaller)|scale (?:it|them) (?:up|down)|rotate (?:it|them)\s+(\d{1,3})|turn (?:it|them)\s+(\d{1,3}))\b/i.exec(t);
   if (transform) {
     const smaller = /\bsmaller|down\b/i.test(t);
@@ -360,6 +506,8 @@ function compileCommand(cmd: string, rest: string): DirectPlan | null {
     }
     case "cosmos": {
       if (!rest) return { explicit, summary: "every object in the Cosmos", steps: [{ tool: "cosmos.object.list", label: "objects", args: {} }] };
+      const structured = cosmosCommand(rest);
+      if (structured) return { ...structured, explicit };
       const plan = cosmosPlan(rest);
       return plan ? { ...plan, explicit, summary: `cosmos: ${plan.summary}` } : { explicit, summary: "every object in the Cosmos", steps: [{ tool: "cosmos.object.list", label: "objects", args: {} }] };
     }

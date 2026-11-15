@@ -84,10 +84,14 @@ export interface CosmosObjectState {
   trash: CosmosObject[];
   /** the object the user is looking at */
   selected: string | null;
+  /** everything selected, for grouping and moving several at once */
+  selection: string[];
   revision: number;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
-export const DEFAULT_FRAME: ObjectFrame = { position: [0, 0, -18], rotation: [0, 0, 0], scale: 1 };
+export const DEFAULT_FRAME: ObjectFrame = { position: [0, 0, 4], rotation: [0, 0, 0], scale: 1 };
 
 export const DEFAULT_MOTION: ObjectMotion = { kind: "still", speed: 0.08, axis: "y", paused: false };
 
@@ -110,10 +114,19 @@ function vec(v: unknown, fallback: Vec3): Vec3 {
   return nums;
 }
 
-/** Places objects on a ring, so "spawn it in the Cosmos" is never a pile at the origin. */
-export function ringSlot(index: number, radius = 4, z = -18): Vec3 {
+/**
+ * Places objects on a ring, so "spawn it in the Cosmos" is never a pile at the
+ * origin.
+ *
+ * The ring sits in FRONT of the LÉLU core, between it and the default camera,
+ * not behind it: the deep cosmos is a backdrop several dozen units away and
+ * the core's own sphere is opaque, so an object parked back there is stored
+ * correctly and invisible on screen. This is the difference the mission is
+ * about — a position that renders.
+ */
+export function ringSlot(index: number, radius = 3.2, z = 4, y = 0.9): Vec3 {
   const angle = (index * Math.PI * 2) / 6;
-  return [Math.round(Math.cos(angle) * radius * 100) / 100, 0, Math.round((z + Math.sin(angle) * radius) * 100) / 100];
+  return [Math.round(Math.cos(angle) * radius * 100) / 100, y, Math.round((z + Math.sin(angle) * radius * 100) / 100) / 100];
 }
 
 /** A short, human line about one object — used by the tools and the panel. */

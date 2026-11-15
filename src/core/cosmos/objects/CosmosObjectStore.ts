@@ -33,6 +33,10 @@ import {
 
 const STORE_KEY = "lelu.cosmos.objects.v1";
 const MAX_OBJECTS = 120;
+/** How far back undo goes in one session. */
+const HISTORY_MAX = 30;
+/** How much of that survives a reload — enough to take back the last few things. */
+const HISTORY_PERSISTED = 4;
 
 export interface SpawnInput {
   name: string;
@@ -53,8 +57,42 @@ export type StoreResult<T> = { ok: true; value: T } | { ok: false; reason: strin
 
 type Listener = (state: CosmosObjectState) => void;
 
+/** A whole-Cosmos snapshot: what undo restores, without duplicating objects. */
+interface CosmosSnapshot {
+  objects: CosmosObject[];
+  groups: CosmosGroups;
+  trash: CosmosObject[];
+  selected: string | null;
+  selection: string[];
+  ids: number;
+}
+
+function cloneObject(object: CosmosObject): CosmosObject {
+  return {
+    ...object,
+    params: { ...object.params },
+    scene: { ...object.scene, objects: object.scene.objects.map((part) => ({ ...part, size: { ...part.size }, position: [...part.position] as Vec3, rotation: [...part.rotation] as Vec3, scale: [...part.scale] as Vec3 })) },
+    frame: { ...object.frame, position: [...object.frame.position] as Vec3, rotation: [...object.frame.rotation] as Vec3 },
+    motion: { ...object.motion },
+    parent: object.parent,
+    children: [...object.children],
+    provenance: object.provenance.map((p) => ({ ...p })),
+  };
+}
+
 function now(): number {
   return Date.now();
+}
+
+function cloneSnapshot(snapshot: CosmosSnapshot): CosmosSnapshot {
+  return {
+    objects: snapshot.objects.map(cloneObject),
+    groups: JSON.parse(JSON.stringify(snapshot.groups)) as CosmosGroups,
+    trash: snapshot.trash.map(cloneObject),
+    selected: snapshot.selected,
+    selection: [...snapshot.selection],
+    ids: snapshot.ids,
+  };
 }
 
 export default class CosmosObjectStore {
@@ -64,10 +102,17 @@ export default class CosmosObjectStore {
   private groups: CosmosGroups = {};
   private trash: CosmosObject[] = [];
   private selected: string | null = null;
+  /** multi-selection: the objects the next group/move acts on */
+  private selection: string[] = [];
   private listeners = new Set<Listener>();
   private ids = 0;
   private revision = 0;
   private snapshot: CosmosObjectState;
+  /** whole-Cosmos states, newest last: the "before" of each operation */
+  private undoStack: CosmosSnapshot[] = [];
+  private redoStack: CosmosSnapshot[] = [];
+  /** the state as of the last commit — what the next operation started from */
+  private last: CosmosSnapshot;
 
   static getInstance(): CosmosObjectStore {
     if (!CosmosObjectStore.instance) CosmosObjectStore.instance = new CosmosObjectStore();
@@ -82,6 +127,7 @@ export default class CosmosObjectStore {
   private constructor(private persist = true) {
     if (this.persist) this.load();
     this.snapshot = this.build();
+    this.last = this.serialize();
   }
 
   /* ------------------------------------------------------------------ */
@@ -157,7 +203,7 @@ export default class CosmosObjectStore {
     // property the user can change ("make it smaller").
     const wanted = { ...(input.frame ?? {}) };
     if (wanted.scale === undefined) wanted.scale = 4;
-    if (!wanted.position) wanted.position = ringSlot(siblings.length, 6);
+    if (!wanted.position) wanted.position = ringSlot(siblings.length);
     const frame = frameOf(wanted);
     const object: CosmosObject = {
       id,
@@ -187,7 +233,11 @@ export default class CosmosObjectStore {
     return { ok: true, value: object };
   }
 
-  public transform(id: string, change: { position?: Vec3; rotation?: Vec3; scale?: number; absolute?: boolean }): StoreResult<CosmosObject> {
+  public transform(
+    id: string,
+    change: { position?: Vec3; rotation?: Vec3; scale?: number; absolute?: boolean },
+    opts?: { history?: boolean },
+  ): StoreResult<CosmosObject> {
     const object = this.objects.get(id);
     if (!object) return { ok: false, reason: `no object ${id}` };
     if (object.locked) return { ok: false, reason: `“${object.name}” is locked — unlock it before moving it` };
@@ -205,7 +255,7 @@ export default class CosmosObjectStore {
     if (typeof change.scale === "number") object.frame.scale = clampScale(change.scale);
     object.updatedAt = now();
     object.provenance.push({ at: object.updatedAt, action: "transformed", detail: `${change.position ? "moved" : ""}${change.rotation ? " rotated" : ""}${typeof change.scale === "number" ? " rescaled" : ""}`.trim() });
-    this.commit(`moved ${object.name}`);
+    this.commit(`moved ${object.name}`, opts?.history !== false);
     return { ok: true, value: object };
   }
 
@@ -238,16 +288,179 @@ export default class CosmosObjectStore {
     return count;
   }
 
-  public select(id: string | null): StoreResult<CosmosObject | null> {
+  public select(id: string | null, opts?: { add?: boolean }): StoreResult<CosmosObject | null> {
     if (id === null) {
       this.selected = null;
-      this.commit("cleared the selection");
+      this.selection = [];
+      this.commit("cleared the selection", false);
       return { ok: true, value: null };
     }
     const object = this.objects.get(id) ?? this.resolve(id);
     if (!object) return { ok: false, reason: `no object matching “${id}”` };
     this.selected = object.id;
-    this.commit(`selected ${object.name}`);
+    if (opts?.add) {
+      this.selection = this.selection.includes(object.id) ? this.selection.filter((s) => s !== object.id) : [...this.selection, object.id];
+      if (!this.selection.includes(object.id)) this.selected = this.selection[this.selection.length - 1] ?? null;
+    } else {
+      this.selection = [object.id];
+    }
+    // Selection is a view state, not a change to the Cosmos: it is not undoable.
+    this.commit(`selected ${object.name}`, false);
+    return { ok: true, value: object };
+  }
+
+  /** The objects a group/move command should act on. */
+  public selectionIds(): string[] {
+    return [...this.selection];
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* history                                                             */
+  /* ------------------------------------------------------------------ */
+
+  public canUndo(): boolean {
+    return this.undoStack.length > 0;
+  }
+
+  public canRedo(): boolean {
+    return this.redoStack.length > 0;
+  }
+
+  public historyDepth(): { undo: number; redo: number } {
+    return { undo: this.undoStack.length, redo: this.redoStack.length };
+  }
+
+  /** Take back the last operation. Ids and geometry are restored, not re-created. */
+  public undo(): StoreResult<string> {
+    const previous = this.undoStack.pop();
+    if (!previous) return { ok: false, reason: "there is nothing to take back yet" };
+    this.redoStack.push(cloneSnapshot(this.serialize()));
+    if (this.redoStack.length > HISTORY_MAX) this.redoStack.shift();
+    this.applySnapshot(previous);
+    this.commit("undone", false);
+    return { ok: true, value: "undid the last change" };
+  }
+
+  public redo(): StoreResult<string> {
+    const next = this.redoStack.pop();
+    if (!next) return { ok: false, reason: "there is nothing to redo" };
+    this.undoStack.push(cloneSnapshot(this.serialize()));
+    if (this.undoStack.length > HISTORY_MAX) this.undoStack.shift();
+    this.applySnapshot(next);
+    this.commit("redone", false);
+    return { ok: true, value: "redid the change" };
+  }
+
+  /**
+   * Split one part out of an object as its own object: the crankshaft out of an
+   * engine, a panel out of a garment, a chair out of a furniture assembly. The
+   * part keeps its size, material and world position; the parent keeps its id
+   * and loses only that part.
+   */
+  public splitPart(id: string, partRef: string): StoreResult<{ source: CosmosObject; part: CosmosObject }> {
+    const source = this.objects.get(id) ?? this.resolve(id);
+    if (!source) return { ok: false, reason: `no object matching “${id}”` };
+    if (this.objects.size >= MAX_OBJECTS) return { ok: false, reason: `the Cosmos is holding ${MAX_OBJECTS} objects — remove one first` };
+    const key = (partRef ?? "").trim().toLowerCase();
+    const index = source.scene.objects.findIndex((p) => p.id.toLowerCase() === key) >= 0
+      ? source.scene.objects.findIndex((p) => p.id.toLowerCase() === key)
+      : source.scene.objects.findIndex((p) => p.id.toLowerCase().includes(key));
+    if (index < 0) {
+      const available = [...new Set(source.scene.objects.map((p) => p.id))].slice(0, 14).join(", ");
+      return { ok: false, reason: `“${source.name}” has no part called “${partRef}” — its parts are: ${available}${source.scene.objects.length > 14 ? " …" : ""}` };
+    }
+    const part = source.scene.objects[index];
+    const s = source.frame.scale;
+    const theta = (source.frame.rotation[1] * Math.PI) / 180;
+    const localX = part.position[0] * s;
+    const localZ = part.position[2] * s;
+    // Keep the part where it was on screen: rotate its offset into the parent's
+    // orientation, then re-centre the geometry on its own origin so it can be
+    // turned and scaled like any other object.
+    const worldPosition: Vec3 = [
+      source.frame.position[0] + localX * Math.cos(theta) + localZ * Math.sin(theta),
+      source.frame.position[1] + part.position[1] * s,
+      source.frame.position[2] - localX * Math.sin(theta) + localZ * Math.cos(theta),
+    ];
+    const at = now();
+    const newId = this.newId("obj");
+    const piece: CosmosObject = {
+      id: newId,
+      name: `${source.name} · ${part.id}`.slice(0, 80),
+      description: `the ${part.id} taken out of “${source.name}”`,
+      domain: source.domain,
+      builder: source.builder,
+      source: source.source,
+      params: { ...source.params },
+      scene: {
+        ...source.scene,
+        objects: [{ ...part, id: `${part.id}-part`, position: [0, 0, 0], rotation: [...part.rotation] as Vec3, scale: [...part.scale] as Vec3, size: { ...part.size } }],
+      },
+      partCount: 1,
+      frame: { position: worldPosition, rotation: [...source.frame.rotation] as Vec3, scale: s },
+      motion: { ...DEFAULT_MOTION },
+      parent: null,
+      children: [],
+      group: source.group,
+      visible: true,
+      locked: false,
+      place: source.place,
+      createdAt: at,
+      updatedAt: at,
+      provenance: [{ at, action: "split out", detail: `part ${part.id} of ${source.id} “${source.name}”` }],
+    };
+    // Take the part out of the parent, and record both sides of the change.
+    source.scene = { ...source.scene, objects: source.scene.objects.filter((_, i) => i !== index) };
+    source.partCount = Math.max(1, source.scene.objects.length);
+    source.updatedAt = at;
+    source.provenance.push({ at, action: "part removed", detail: `${part.id} → ${newId}` });
+    this.objects.set(newId, piece);
+    if (piece.group) this.addToGroup(piece.group, newId);
+    this.commit(`split ${part.id} out of ${source.name}`);
+    return { ok: true, value: { source, part: piece } };
+  }
+
+  /**
+   * Move several objects at once, recording ONE undo step: dragging a
+   * multi-selection must be one thing to take back, not five.
+   */
+  public nudge(ids: string[], delta: Vec3, opts?: { history?: boolean; silent?: boolean }): StoreResult<CosmosObject[]> {
+    const moved: CosmosObject[] = [];
+    const blocked: string[] = [];
+    for (const id of [...new Set(ids)]) {
+      const object = this.objects.get(id);
+      if (!object) continue;
+      if (object.locked) {
+        blocked.push(object.name);
+        continue;
+      }
+      object.frame.position = [object.frame.position[0] + delta[0], object.frame.position[1] + delta[1], object.frame.position[2] + delta[2]];
+      object.updatedAt = now();
+      moved.push(object);
+    }
+    if (blocked.length && !moved.length) return { ok: false, reason: `“${blocked.join("”, “")}” is locked — unlock it before moving it` };
+    if (!moved.length) return { ok: false, reason: "nothing to move" };
+    if (opts?.silent) {
+      // A drag in progress: the scene must follow the finger, but the whole
+      // gesture is ONE undo step, recorded when the finger lifts.
+      this.touch();
+      return { ok: true, value: moved };
+    }
+    this.commit(`moved ${moved.length === 1 ? moved[0].name : `${moved.length} objects`}`, opts?.history !== false);
+    return { ok: true, value: moved };
+  }
+
+  /** Move an object between the Cosmos, the workspace and the gallery. */
+  public setPlace(id: string, place: CosmosObject["place"]): StoreResult<CosmosObject> {
+    const object = this.objects.get(id) ?? this.resolve(id);
+    if (!object) return { ok: false, reason: `no object matching “${id}”` };
+    const places: Array<CosmosObject["place"]> = ["cosmos", "workspace", "gallery"];
+    if (!places.includes(place)) return { ok: false, reason: `“${place}” is not a place — it can live in ${places.join(", ")}` };
+    const before = object.place;
+    object.place = place;
+    object.updatedAt = now();
+    object.provenance.push({ at: object.updatedAt, action: "moved place", detail: `${before} → ${place}` });
+    this.commit(`moved ${object.name} to the ${place}`);
     return { ok: true, value: object };
   }
 
@@ -526,9 +739,29 @@ export default class CosmosObjectStore {
     return candidate;
   }
 
-  private commit(_why: string): void {
+  /** Update the scene without recording history and without moving the baseline. */
+  private touch(): void {
     this.revision += 1;
     this.snapshot = this.build();
+    if (this.persist) this.save();
+    for (const listener of this.listeners) {
+      try {
+        listener(this.snapshot);
+      } catch {
+        /* a broken panel must not break the Cosmos */
+      }
+    }
+  }
+
+  private commit(_why: string, keepHistory = true): void {
+    if (keepHistory) {
+      this.undoStack.push(this.last);
+      if (this.undoStack.length > HISTORY_MAX) this.undoStack.shift();
+      this.redoStack = [];
+    }
+    this.revision += 1;
+    this.snapshot = this.build();
+    this.last = this.serialize();
     if (this.persist) this.save();
     for (const listener of this.listeners) {
       try {
@@ -545,13 +778,46 @@ export default class CosmosObjectStore {
       groups: this.groups,
       trash: this.trash,
       selected: this.selected,
+      selection: [...this.selection],
       revision: this.revision,
+      canUndo: this.undoStack.length > 0,
+      canRedo: this.redoStack.length > 0,
     };
+  }
+
+  private serialize(): CosmosSnapshot {
+    return {
+      objects: [...this.objects.values()].map(cloneObject),
+      groups: JSON.parse(JSON.stringify(this.groups)) as CosmosGroups,
+      trash: this.trash.map(cloneObject),
+      selected: this.selected,
+      selection: [...this.selection],
+      ids: this.ids,
+    };
+  }
+
+  private applySnapshot(snapshot: CosmosSnapshot): void {
+    const copy = cloneSnapshot(snapshot);
+    this.objects = new Map(copy.objects.map((o) => [o.id, o]));
+    this.groups = copy.groups;
+    this.trash = copy.trash;
+    this.selected = copy.selected;
+    this.selection = copy.selection;
+    this.ids = copy.ids;
   }
 
   private save(): void {
     try {
-      KvStore.getInstance().set(STORE_KEY, { objects: this.list(), groups: this.groups, trash: this.trash, ids: this.ids });
+      KvStore.getInstance().set(STORE_KEY, {
+        objects: this.list(),
+        groups: this.groups,
+        trash: this.trash,
+        ids: this.ids,
+        // Only the last few operations are kept on disk: a full history of
+        // geometry snapshots would fill the browser's storage with copies of
+        // copies, and the recent ones are what recovery actually needs.
+        history: this.undoStack.slice(-HISTORY_PERSISTED),
+      });
     } catch {
       /* storage blocked: the Cosmos still works for this session */
     }
@@ -559,8 +825,9 @@ export default class CosmosObjectStore {
 
   private load(): void {
     try {
-      const saved = KvStore.getInstance().get<{ objects?: CosmosObject[]; groups?: CosmosGroups; trash?: CosmosObject[]; ids?: number }>(STORE_KEY);
+      const saved = KvStore.getInstance().get<{ objects?: CosmosObject[]; groups?: CosmosGroups; trash?: CosmosObject[]; ids?: number; history?: CosmosSnapshot[] }>(STORE_KEY);
       if (!saved) return;
+      this.undoStack = Array.isArray(saved.history) ? saved.history.map(cloneSnapshot) : [];
       for (const object of saved.objects ?? []) {
         if (!object?.id || !object.scene?.objects) continue;
         this.objects.set(object.id, { ...object, children: [...(object.children ?? [])], provenance: [...(object.provenance ?? [])] });

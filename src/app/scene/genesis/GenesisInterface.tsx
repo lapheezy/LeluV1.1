@@ -174,6 +174,7 @@ import useVisual from "../../../core/visual/useVisual";
 import VisualEngine from "../../../core/visual/VisualEngine";
 import CosmosHome from "./home/CosmosHome";
 import SpatialNav, { type HomeSheet } from "./home/SpatialNav";
+import CosmosObjectsDock from "./cosmos/CosmosObjectsDock";
 const ChatUniverse = lazy(() => import("./chat/universe/ChatUniverse"));
 import { useUniverseOpen } from "./chat/universe/universeOpen";
 import SpatialRevealBridge from "./spatial/SpatialRevealBridge";
@@ -963,12 +964,20 @@ export default function GenesisInterface() {
         </ChatErrorBoundary>
       )}
 
-      <Suspense fallback={null}>
-        <ChatUniverse />
-      </Suspense>
+      {/* The Universe is the workspace. Looking at the Cosmos is not the
+          workspace, so while the world owns the screen the Universe is not
+          rendered at all — it is not hidden under the scene, and its
+          conversations are kept by HomeStore. */}
+      {homeStore.immersive ? null : (
+        <Suspense fallback={null}>
+          <ChatUniverse />
+        </Suspense>
+      )}
       {/* A chat-created object is revealed in the live Genesis world: closing
           chat lands on the world framed on it instead of the home dashboard. */}
       <SpatialRevealBridge />
+      {/* The door into the Cosmos, and the camera controls once inside. */}
+      <CosmosObjectsDock />
       
       {/* Unmounted (not hidden) while a conversation or window owns the phone screen. */}
       {navHidden && (surface.chatOwnsScreen || surface.workspaceOwnsScreen) ? null : (

@@ -19,3 +19,5 @@ export { v8Builder, buildV8 } from "./V8";
 export { circuitBuilder, buildCircuit } from "./Electrical";
 export { cellBuilder, buildCell } from "./Biology";
 export { fabricBuilder, buildFabric, warpOnTop } from "./Textiles";
+export { furnitureBuilder, buildFurniture } from "./Furniture";
+export { garmentBuilder, buildGarment, garmentFromFabric, fabricOf } from "./Garment";
