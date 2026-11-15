@@ -1,0 +1,99 @@
+{
+  "base": "http://127.0.0.1:5174/",
+  "mode": "desktop",
+  "at": "2026-11-15T01:52:26.799Z",
+  "modelCalls": [],
+  "errors": [],
+  "results": [
+    {
+      "name": "02-research: “/research coral reef bleaching” → executed inline, no model",
+      "ok": true,
+      "detail": "25446 ms · embeds [diagram] · overflow 0px · Done directly with my own tools (no model involved): research board on “coral reef bleaching” from public sources."
+    },
+    {
+      "name": "03-chart: “/chart earthquakes” → executed inline, no model",
+      "ok": true,
+      "detail": "5767 ms · embeds [diagram,chart,chart] · overflow 0px · Done directly with my own tools (no model involved): earthquakes this week (USGS) → interactive chart."
+    },
+    {
+      "name": "04-scene: “/scene forest” → executed inline, no model",
+      "ok": true,
+      "detail": "8198 ms · embeds [diagram,chart,chart,scene3d] · overflow 0px · Done directly with my own tools (no model involved): 3D forest environment → GLB."
+    },
+    {
+      "name": "05-diagram: “Make an architecture diagram of LÉLU” → executed inline, no model",
+      "ok": true,
+      "detail": "3245 ms · embeds [diagram,chart,chart,scene3d,diagram] · overflow 0px · No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: diagram (LÉLU architecture)."
+    },
+    {
+      "name": "06-sketch: “/sketch evening gown” → executed inline, no model",
+      "ok": true,
+      "detail": "4362 ms · embeds [diagram,chart,chart,scene3d,diagram,drawing] · overflow 0px · Done directly with my own tools (no model involved): editable Excalidraw sketch of “evening gown”."
+    },
+    {
+      "name": "07-film: “Make a movie about ocean tides” → executed inline, no model",
+      "ok": true,
+      "detail": "3912 ms · embeds [diagram,chart,chart,scene3d,diagram,drawing,video] · overflow 0px · No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: short film about “ocean tides” (WebM, "
+    },
+    {
+      "name": "08-read: “/read https://en.wikipedia.org/wiki/Coral_bleaching” → executed inline, no model",
+      "ok": true,
+      "detail": "4540 ms · embeds [diagram,chart,chart,scene3d,diagram,drawing,video] · overflow 0px · Done directly with my own tools (no model involved): read https://en.wikipedia.org/wiki/Coral_bleaching."
+    },
+    {
+      "name": "inline diagram rendered by Mermaid (research mind map + architecture)",
+      "ok": true,
+      "detail": "[{\"medium\":\"diagram\",\"diagram\":true,\"chart\":false,\"excalidraw\":false,\"film\":false,\"sceneColours\":0,\"width\":608},{\"medium\":\"diagram\",\"diagram\":true,\"chart\":false,\"excalidraw\":false,\"film\":false,\"sceneColours\":0,\"width\":608}]"
+    },
+    {
+      "name": "inline interactive chart (iframe)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "inline 3D scene renders (non-blank canvas)",
+      "ok": true,
+      "detail": "[{\"medium\":\"scene3d\",\"diagram\":false,\"chart\":false,\"excalidraw\":false,\"film\":false,\"sceneColours\":68,\"width\":608}]"
+    },
+    {
+      "name": "inline Excalidraw editor in the reply",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "film encoded from its inline card (ffprobe)",
+      "ok": true,
+      "detail": "{\"video\":{\"codec\":\"vp9\",\"w\":640,\"h\":360,\"frames\":525},\"audio\":{\"codec\":\"opus\"},\"duration\":17.52}"
+    },
+    {
+      "name": "GLB attached in the thread opens in three.js",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Workspace Steward tiles the windows: no overlap, nothing off screen",
+      "ok": true,
+      "detail": "{\"wins\":[\"chat:f7ff4e72-5812-4926-82dd-f4465cd10943 700×372@16,84\",\"artifact:art_e564c054e9b8 700×372@726,466\",\"artifact:art_32c95f9e5195 700×372@16,466\",\"artifact:art_b244e8673690 700×372@726,84\"],\"overlap\":0,\"off\":[],\"why\":null}"
+    },
+    {
+      "name": "Cosmos and the open windows are there with the Universe closed",
+      "ok": true,
+      "detail": "{\"canvases\":7,\"windows\":4}"
+    },
+    {
+      "name": "conversations and artifacts survive a reload",
+      "ok": true,
+      "detail": "{\"artifacts\":8,\"messages\":21} → {\"artifacts\":8,\"messages\":21}"
+    },
+    {
+      "name": "no model calls during the run",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

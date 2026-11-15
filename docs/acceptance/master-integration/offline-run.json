@@ -1,0 +1,115 @@
+{
+  "base": "http://127.0.0.1:4173/",
+  "at": "2026-11-15T02:02:45.975Z",
+  "online": {
+    "studio": {
+      "present": true,
+      "valid": true,
+      "bytes": 444
+    },
+    "chats": {
+      "present": true,
+      "valid": true,
+      "bytes": 3063
+    },
+    "artifacts": 1,
+    "messages": 5
+  },
+  "during": {
+    "studio": {
+      "present": true,
+      "valid": true,
+      "bytes": 3413
+    },
+    "chats": {
+      "present": true,
+      "valid": true,
+      "bytes": 4393
+    },
+    "artifacts": 2,
+    "messages": 7
+  },
+  "offlineBoot": {
+    "navigated": true,
+    "title": "LÉLU",
+    "root": true,
+    "crash": false,
+    "unavailableCards": 1,
+    "entry": false
+  },
+  "back": {
+    "studio": {
+      "present": true,
+      "valid": true,
+      "bytes": 18019
+    },
+    "chats": {
+      "present": true,
+      "valid": true,
+      "bytes": 4393
+    },
+    "artifacts": 2,
+    "messages": 7,
+    "titles": [
+      "\"title\":\"Orbits — Neon\"",
+      "\"title\":\"Orbits — Neon\"",
+      "\"title\":\"Sketch — Offline Evening Gown\"",
+      "\"title\":\"Sketch — Offline Evening Gown\"",
+      "\"title\":\"Sketch — Offline Evening Gown\""
+    ]
+  },
+  "modelCalls": 0,
+  "errors": [],
+  "results": [
+    {
+      "name": "production service worker registered and controlling the page",
+      "ok": true,
+      "detail": "{\"ready\":true,\"scope\":\"http://127.0.0.1:4173/\",\"controlled\":true}"
+    },
+    {
+      "name": "online: an artwork made with a direct command is stored",
+      "ok": true,
+      "detail": "{\"studio\":{\"present\":true,\"valid\":true,\"bytes\":444},\"chats\":{\"present\":true,\"valid\":true,\"bytes\":3063},\"artifacts\":1,\"messages\":5}"
+    },
+    {
+      "name": "offline: no crash screen after making the sketch",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "offline: a direct command still works and stores its artifact",
+      "ok": true,
+      "detail": "1 → 2 artifacts"
+    },
+    {
+      "name": "offline: stored data stays valid JSON, nothing lost",
+      "ok": true,
+      "detail": "{\"studio\":{\"present\":true,\"valid\":true,\"bytes\":3413},\"chats\":{\"present\":true,\"valid\":true,\"bytes\":4393},\"artifacts\":2,\"messages\":7}"
+    },
+    {
+      "name": "offline reload: the app shell is served by the service worker and does not crash",
+      "ok": true,
+      "detail": "{\"navigated\":true,\"title\":\"LÉLU\",\"root\":true,\"crash\":false,\"unavailableCards\":1,\"entry\":false}"
+    },
+    {
+      "name": "offline reload: stored data still intact",
+      "ok": true,
+      "detail": "{\"studio\":{\"present\":true,\"valid\":true,\"bytes\":3413},\"chats\":{\"present\":true,\"valid\":true,\"bytes\":4393},\"artifacts\":2,\"messages\":7}"
+    },
+    {
+      "name": "back online: every artifact and message from before and during the outage is present and valid",
+      "ok": true,
+      "detail": "{\"artifacts\":2,\"messages\":7} · \"title\":\"Orbits — Neon\" \"title\":\"Orbits — Neon\" \"title\":\"Sketch — Offline Evening Gown\" \"title\":\"Sketch — Offline Evening Gown\" \"title\":\"Sketch — Offline Evening Gown\""
+    },
+    {
+      "name": "no model calls",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}
