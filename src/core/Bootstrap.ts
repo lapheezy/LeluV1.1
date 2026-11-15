@@ -44,6 +44,8 @@ import { registerStudioTools } from "./studio/StudioTools";
 import { registerAtelierTools } from "./atelier/AtelierTools";
 import { registerCreativeKitTools } from "./creative/kit/CreativeKitTools";
 import { registerCosmosTools } from "./cosmos/CosmosTools";
+import { registerContinuityTools } from "./cognition/ContinuityTools";
+import CognitivePulseStore from "./cognition/CognitivePulse";
 import TaskExecutor from "./agentic/TaskExecutor";
 import DailyReflection from "./agentic/DailyReflection";
 import ToolRegistry from "./tools/ToolRegistry";
@@ -220,6 +222,16 @@ export default class Bootstrap {
       // Cosmos: the navigable map and the workspace API, offered through the
       // same dispatcher/gate/approval path as every other tool.
       registerCosmosTools();
+      // Mission continuity: the evidence-labelled self-model and the durable
+      // workstream ledger, reachable through the same dispatcher as every
+      // other capability. Registration is reported, never assumed.
+      const continuity = registerContinuityTools();
+      if (continuity.failed.length > 0) {
+        console.warn("[Bootstrap] Continuity tools not registered:", continuity.failed);
+      }
+      // Event-driven awareness. Subscribes once to the existing AgentEventBus;
+      // no timer, no polling, no second bus. Idempotent across re-bootstrap.
+      CognitivePulseStore.getInstance().start();
       const interrupted = TaskExecutor.getInstance().recoverInterrupted();
       if (interrupted.length) {
         console.info(`[Bootstrap] ${interrupted.length} interrupted task(s) are paused and resumable.`);
