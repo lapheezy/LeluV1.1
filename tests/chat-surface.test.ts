@@ -262,14 +262,15 @@ test("framed panels scroll with one finger at 1×; pinch zoom still works", () =
 
 /* ------------------------- phone: the Browser ------------------------- */
 
-test("on a phone, LÉLU browsing for the chat on screen opens the Browser full screen", () => {
+test("LÉLU reading a page for a chat never opens the Browser over it", () => {
+  // This used to open the Browser module full screen on a phone, and the
+  // person had to find their way back to what they were reading. The page
+  // now arrives in the conversation (the activity card's browser view) on
+  // every screen, so nothing else may take the screen while she reads.
   const controller = code("src/app/scene/genesis/GenesisSurfaceController.tsx");
-  assert.match(
-    controller,
-    /surface === "browser" &&\s*isLiveResearchSurface &&\s*ownedByChat &&\s*ownerForTask\(event\.taskId\) === MultiChatStore\.getInstance\(\)\.getActiveId\(\) &&\s*chatFillsScreen\(Workspace\.getInstance\(\)\.get\(\)\)/,
-    "only for the conversation being looked at, only on a phone",
-  );
-  assert.match(controller, /const key = `\$\{event\.taskId\}:browser-module`;[\s\S]{0,120}openModule\("browser"\)/, "once per task: minimizing it is not undone by the next page");
+  assert.doesNotMatch(controller, /openModule\("browser"\)/, "no module is opened for her research");
+  assert.doesNotMatch(controller, /chatFillsScreen\(/, "the phone is not a special case any more");
+  assert.match(code("src/app/scene/genesis/chat/ChatActivity.tsx"), /data-lelu-browser-stack/, "the pages render in the conversation");
 });
 
 test("the chat is one tap away from a phone workspace", () => {

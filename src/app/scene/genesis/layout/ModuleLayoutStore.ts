@@ -27,6 +27,7 @@ import {
   releaseManual,
   reorder,
   reflowForViewport,
+  scaleToViewport,
   removeEntry,
   restoreAutoLayout,
   setMinimized,
@@ -68,6 +69,7 @@ export default class ModuleLayoutStore {
   private layout: WorkspaceLayout;
   private listeners = new Set<Listener>();
   private migration: LayoutMigrationReport = { skipped: 0, migrated: [] };
+  private viewport: LayoutViewport = defaultViewport();
 
   private constructor() {
     const stored = readJson<WorkspaceLayout>(LAYOUT_STORAGE_KEY);
@@ -186,7 +188,50 @@ export default class ModuleLayoutStore {
   }
 
   reflow(viewport = defaultViewport()): void {
+    this.viewport = viewport;
     this.commit(reflowForViewport(this.layout.entries, viewport));
+  }
+
+  /**
+   * The screen changed size (rotation, a desktop window, a device emulation).
+   * Hand-placed windows keep their relative place and size; auto windows are
+   * re-tiled. Called by the shell on resize, never by a timer.
+   */
+  viewportChanged(next: LayoutViewport): void {
+    const previous = this.viewport;
+    this.viewport = next;
+    if (Math.abs(previous.width - next.width) < 2 && Math.abs(previous.height - next.height) < 2) return;
+    const scaled = scaleToViewport(this.layout.entries, previous, next);
+    const reflowed = reflowForViewport(scaled, next);
+    /*
+     * The conversation is the primary surface. Auto-arrange gives a dock
+     * module the minimum tile, which on a wide screen left the chat a 407×160
+     * stamp in the corner. One open conversation opens like a document
+     * instead; several keep the tiled arrangement.
+     */
+    const chats = reflowed.filter((entry) => entry.moduleId.startsWith("chat:"));
+    const entries =
+      next.width >= 900 && chats.length === 1
+        ? reflowed.map((entry) =>
+            entry.moduleId.startsWith("chat:")
+              ? {
+                  ...entry,
+                  rect: {
+                    x: 24,
+                    y: 72,
+                    width: Math.min(960, next.width - 48),
+                    height: Math.max(420, Math.min(next.height - 150, 900)),
+                  },
+                }
+              : entry,
+          )
+        : reflowed;
+    this.commit(entries);
+  }
+
+  /** The viewport this arrangement was last known to fit. */
+  currentViewport(): LayoutViewport {
+    return this.viewport;
   }
 
   pin(moduleId: string, pinned: boolean): void {

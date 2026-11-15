@@ -45,6 +45,12 @@ export const CAPABILITY_PROFILES: Record<string, CapabilityProfile> = {
     runtime: "browser (any)", offline: true, network: "none", credentials: "none", limits: "5,000 points, 12 series",
     license: "LÉLU code", resources: "CPU, milliseconds", fallbacks: ["static SVG", "CSV table"],
   },
+  "creative.engine": {
+    purpose: "an interactive four-stroke engine", input: "nothing (a fixed, complete engine program)", output: "GLB, glTF (embedded), JSON program; layered live view with the animated cycle",
+    runtime: "browser (any)", offline: true, network: "none", credentials: "none", limits: "8 layers, 33 parts, 4 strokes, 720° of crankshaft",
+    license: "three.js — MIT", resources: "GPU for the live view (one canvas); CPU for export (20–120 ms)",
+    fallbacks: ["WebGPU", "WebGL2", "export-only (no live view)"],
+  },
   "creative.scene3d": {
     purpose: "3D scenes and environments", input: "preset and/or objects, lights, camera, animation", output: "GLB, glTF (embedded), JSON program; live view",
     runtime: "browser (any)", offline: true, network: "none", credentials: "none", limits: "400 object groups, 4,000 instances",

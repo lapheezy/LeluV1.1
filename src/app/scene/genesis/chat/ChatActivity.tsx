@@ -44,8 +44,34 @@ function StepStatus({ status }: { status: ActivityStep["status"] }) {
 }
 
 /** The page LÉLU opened, as she read it: address, title, extracted text. */
-function BrowserView({ page }: { page: ActivityPage }) {
+function BrowserView({ page, collapsible = false, defaultOpen = true }: { page: ActivityPage; collapsible?: boolean; defaultOpen?: boolean }) {
   const [more, setMore] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
+  const body = (
+    <div className="lelu-cc-browser-body">
+      <strong>{page.title?.trim() || host(page.url)}</strong>
+      {page.excerpt ? (
+        <p className={more ? "" : "is-clamped"}>{page.excerpt}</p>
+      ) : page.status === "loading" ? (
+        <p className="is-muted">Reading the page…</p>
+      ) : page.error ? (
+        <p className="is-muted">{page.error}</p>
+      ) : null}
+      <div className="lelu-cc-browser-actions">
+        {page.excerpt && page.excerpt.length > 260 ? (
+          <button type="button" className="lelu-cc-chip" onClick={() => setMore((v) => !v)} aria-expanded={more}>
+            {more ? "Less" : "More of what she read"}
+          </button>
+        ) : null}
+        <button type="button" className="lelu-cc-chip" onClick={() => dispatchBrowserGoto(page.url)} title="Open this page in LÉLU's browser panel">
+          <PanelRight size={13} aria-hidden /> Open in LÉLU's browser
+        </button>
+        <a className="lelu-cc-chip" href={page.url} target="_blank" rel="noopener noreferrer">
+          <ExternalLink size={13} aria-hidden /> Original
+        </a>
+      </div>
+    </div>
+  );
   return (
     <figure className="lelu-cc-browser" aria-label={`Page: ${page.title ?? page.url}`} data-lelu-browser-view={page.status}>
       <div className="lelu-cc-browser-bar">
@@ -60,32 +86,34 @@ function BrowserView({ page }: { page: ActivityPage }) {
         <span className={`lelu-cc-browser-state is-${page.status}`}>
           {page.status === "loading" ? "Opening…" : page.status === "read" ? "Read" : page.status === "blocked" ? "Blocked" : "Failed"}
         </span>
+        {collapsible ? (
+          <button type="button" className="lelu-cc-browser-fold" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+            {open ? "Collapse" : "Open"}
+          </button>
+        ) : null}
       </div>
       {page.status === "loading" ? <div className="lelu-cc-browser-progress" aria-hidden /> : null}
-      <div className="lelu-cc-browser-body">
-        <strong>{page.title?.trim() || host(page.url)}</strong>
-        {page.excerpt ? (
-          <p className={more ? "" : "is-clamped"}>{page.excerpt}</p>
-        ) : page.status === "loading" ? (
-          <p className="is-muted">Reading the page…</p>
-        ) : page.error ? (
-          <p className="is-muted">{page.error}</p>
-        ) : null}
-        <div className="lelu-cc-browser-actions">
-          {page.excerpt && page.excerpt.length > 260 ? (
-            <button type="button" className="lelu-cc-chip" onClick={() => setMore((v) => !v)} aria-expanded={more}>
-              {more ? "Less" : "More of what she read"}
-            </button>
-          ) : null}
-          <button type="button" className="lelu-cc-chip" onClick={() => dispatchBrowserGoto(page.url)} title="Open this page in LÉLU's browser panel">
-            <PanelRight size={13} aria-hidden /> Open in LÉLU's browser
-          </button>
-          <a className="lelu-cc-chip" href={page.url} target="_blank" rel="noopener noreferrer">
-            <ExternalLink size={13} aria-hidden /> Original
-          </a>
-        </div>
-      </div>
+      {open ? body : null}
     </figure>
+  );
+}
+
+/**
+ * Several pages in one conversation: the one being read is open, the rest wait
+ * as collapsed panels with their own address and title. On a phone they stack;
+ * when there is room for two, they sit side by side.
+ */
+function BrowserStack({ pages }: { pages: ActivityPage[] }) {
+  const read = pages.filter((page) => page.status === "read" || page.status === "loading").slice(-4);
+  const shown = read.length ? read : pages.slice(-1);
+  if (shown.length === 0) return null;
+  if (shown.length === 1) return <BrowserView page={shown[0]} />;
+  return (
+    <div className="lelu-cc-browser-stack" data-lelu-browser-stack={shown.length} aria-label={`${shown.length} pages read`}>
+      {shown.map((page, index) => (
+        <BrowserView key={`${page.url}-${index}`} page={page} collapsible defaultOpen={index === shown.length - 1} />
+      ))}
+    </div>
   );
 }
 
@@ -93,15 +121,9 @@ function ChatActivityCardImpl({ activity }: { activity: ChatActivity }) {
   const [open, setOpen] = useState(false);
   const summary = summarizeActivity(activity);
   const running = activity.status === "running";
-  // The page being read right now is shown even when collapsed: watching
-  // her browse should not need a click.
-  const livePage = running ? [...activity.pages].reverse().find((page) => page.status === "loading" || page.status === "read") : undefined;
-  const lastPage = activity.pages.at(-1);
-  // What she read stays in the conversation after the turn ends: the reply is
-  // only useful with the page it came from beside it. A failed read is not
-  // green-ticked here — it stays in the expanded steps, with its reason.
-  const readPage = !running ? [...activity.pages].reverse().find((page) => page.status === "read") : undefined;
-  const shownPage = livePage ?? readPage;
+  // Pages are shown whether the turn is running or over: what she read stays
+  // beside the reply that came from it (a failed read keeps its reason in the
+  // expanded steps, and is never shown as if it had been read).
 
   return (
     <section className="lelu-cc-activity-card" data-lelu-activity={activity.status} aria-label={`${summary.title}: ${summary.facts.join(", ")}`}>
@@ -125,7 +147,7 @@ function ChatActivityCardImpl({ activity }: { activity: ChatActivity }) {
           <Loader2 size={13} className="lelu-cc-spin" aria-hidden /> {summary.current}
         </div>
       ) : null}
-      {!open && shownPage ? <BrowserView page={shownPage} /> : null}
+      {!open ? <BrowserStack pages={activity.pages} /> : null}
 
       {open ? (
         <div className="lelu-cc-activity-body">
@@ -149,7 +171,7 @@ function ChatActivityCardImpl({ activity }: { activity: ChatActivity }) {
               </li>
             ))}
           </ol>
-          {lastPage ? <BrowserView page={shownPage ?? lastPage} /> : null}
+          <BrowserStack pages={activity.pages} />
           {activity.pages.length > 1 ? (
             <div className="lelu-cc-activity-pages">
               {activity.pages.map((page) => (

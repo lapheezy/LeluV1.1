@@ -1172,3 +1172,46 @@
   .lelu-cc-models { max-width: 100%; }
   .lelu-cc-model-meta { display: none; }
 }
+
+/* Several research pages in one conversation: side by side when there is
+   room, stacked on a phone — each one collapsible, none nested-scrolling. */
+.lelu-cc-browser-stack {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 8px;
+  margin-top: 8px;
+  align-items: start;
+}
+
+.lelu-cc-browser-stack .lelu-cc-browser { margin: 0; }
+
+.lelu-cc-browser-fold {
+  min-height: 26px;
+  padding: 0 8px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  font: inherit;
+  font-size: 10.5px;
+  cursor: pointer;
+}
+
+@media (max-width: 560px) {
+  .lelu-cc-browser-stack { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ------------------------------------------------------------------ *
+ * A reply that carries a visual card gets the conversation's width.
+ *
+ * The 90% reply column is right for prose, but it also held the engine
+ * and the model viewers: a 3D experience, a diagram or a page reading was
+ * 260 px wide inside a 354 px thread. The cards fill the column, and the
+ * bubble drops its padding so the artwork is not double-inset.
+ * ------------------------------------------------------------------ */
+.lcu-msg[data-role="assistant"]:has(.lst-chat-cards) { width: 100%; }
+.lcu-bubble:has(.lst-chat-cards) { width: 100%; padding: 6px; }
+.lcu-bubble .lst-chat-cards { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.lcu-bubble .lst-chat-card { width: 100%; }
+/* The reply column caps at 90% for prose; a card-bearing reply is the column. */
+.lcu-msg[data-role="assistant"]:has(.lst-chat-cards) { max-width: 100%; }

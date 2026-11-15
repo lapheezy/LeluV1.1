@@ -34,6 +34,7 @@ import { describeCapabilities, capabilities } from "./BrowserCapabilities";
 import { exportDrawing, exportVisual, VISUAL_FORMATS, visualGist, type VisualFile, type VisualFormat } from "./VisualArtifacts";
 import { GENERATIVE_STYLES, PALETTES } from "./GenerativeArt";
 import { PRESETS, PRIMITIVES, COMPOUNDS } from "./Scene3D";
+import { buildEngineProgram } from "./EngineAssembly";
 import { CAPABILITY_PROFILES, profileFor, type CapabilityProfile } from "./CapabilityProfiles";
 
 export const VISUAL_OPEN_EVENT = "lelu-studio-open";
@@ -132,7 +133,9 @@ async function createVisual(medium: VisualMedium, args: Record<string, unknown>,
     if (!r.ok) ok = false;
   }
   if (records.length) announce(context, a, "exported", records);
-  const opened = args.open === false ? false : openWindow(a.id);
+  // The conversation is the output surface; a separate window opens only when
+  // it is asked for (the same rule the Studio tools follow).
+  const opened = args.open === true ? openWindow(a.id) : false;
   const spec = store.latest(a).spec as VisualSpec;
   return {
     ok,
@@ -218,6 +221,25 @@ export const CREATIVE_KIT_EXECUTORS: KitExecutor[] = [
       export: EXPORT,
     }),
     run: async (args, context) => createVisual("scene3d", args, args, context, s(args, "preset") ? `${s(args, "preset")} scene` : "3D scene"),
+  },
+  {
+    id: "creative.engine",
+    // The engine is a scene plus its layer/cycle data: GLB export and the live
+    // view use the same program, so nothing is drawn twice.
+    parameters: OBJ({
+      title: { type: "string" },
+      export: EXPORT,
+      open: { type: "boolean", description: "also show it as a window (default false: the chat card is the surface)" },
+    }),
+    run: async (args, context) => {
+      const engine = buildEngineProgram(s(args, "title") || undefined);
+      // The stored program is a valid Scene3D program (objects, camera, lights)
+      // with the engine data alongside it, so every existing exporter works.
+      const program = { ...engine.scene, engine };
+      return createVisual("scene3d", args, program, context, engine.title, {
+        notes: engine.notes.join(" "),
+      });
+    },
   },
   {
     id: "creative.film",
@@ -369,6 +391,7 @@ export const CREATIVE_KIT_TOOLS: ToolDefinition[] = [
   def("creative.art", "Generative Art", "Make procedural/generative artwork on the device (flow fields, circle packing, ridgelines, constellations, Truchet, trees, mosaics, orbits) — an editable SVG, exportable as PNG. Use for 'generative art', 'procedural pattern', 'make me an abstract visual', moodboard textures. No image API.", 1, ["WRITE"]),
   def("creative.diagram", "Diagram (Mermaid)", "Draw a diagram from Mermaid source or from nodes/edges: architecture, flowchart, sequence, class, ER, state, mind map, timeline, gantt. Exports .mmd, SVG, PNG.", 1, ["WRITE"]),
   def("creative.chart", "Interactive Visualization", "Build a working interactive chart (hover tooltips, legend toggles, sortable table, cited sources) from given numbers or live public data via a data connector. Exports HTML, SVG, PNG, CSV.", 1, ["WRITE"]),
+  def("creative.engine", "Engine Experience", "Build a complete four-stroke internal combustion engine as an interactive scene: every part, eight toggleable layers (block, piston & crank, valvetrain, fuel & ignition, intake/exhaust, cooling, lubrication, output), exploded view, labels and the animated cycle driven by real slider-crank kinematics — exported as GLB.", 1, ["WRITE"]),
   def("creative.scene3d", "3D Scene → GLB", "Construct a detailed 3D scene with three.js — presets (forest, city, desert, ocean, space, crystal-cave, runway) and/or objects (primitives, terrain, trees, rocks, buildings, crystals, garment forms), arrays, materials, lights, camera, animation — and export GLB/glTF.", 1, ["WRITE"]),
   def("creative.film", "Short Film → WebM", "Assemble a short film on the device: scenes of generative art, charts, diagrams or gradients with titles, camera moves, crossfades and a synthesised soundtrack, encoded to WebM with WebCodecs (MediaRecorder fallback). No video API.", 1, ["WRITE"]),
   def("creative.export", "Export a Visual or Drawing", "Write a visual (svg, png, json, mmd, html, csv, glb, gltf, webm) or an Excalidraw drawing (excalidraw, svg, png) as a file, re-open it and verify it.", 1, ["WRITE"]),
