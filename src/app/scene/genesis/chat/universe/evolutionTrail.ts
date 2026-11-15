@@ -20,9 +20,12 @@ export async function openEvolutionTrail(): Promise<string | null> {
   const store = MultiChatStore.getInstance();
   const existing = store.listAll().find((c) => c.title === trail.title);
   const conversation = existing ?? store.create(trail.title);
-  if (!existing) {
+  // Checkpoints added since the trail was last opened are appended, never duplicated.
+  const have = new Set(conversation.messages.map((m) => m.id));
+  {
     const now = Date.now();
     trail.entries.forEach((e, i) => {
+      if (have.has(`trail-${i}`)) return;
       const lines = [`## ${e.title}`, "", `![${e.title}](${BASE}${e.image})`, ""];
       if (e.changed) lines.push(`**What changed** — ${e.changed}`, "");
       if (e.working) lines.push(`**Working** — ${e.working}`, "");

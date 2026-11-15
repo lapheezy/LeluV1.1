@@ -1,17 +1,139 @@
 {
   "title": "LÉLU · Evolution Trail",
   "entries": [
-    { "image": "before-iphone.webp", "title": "1 · Before — iPhone", "changed": "Nothing yet: the baseline.", "working": "Home, Cosmos, Chat Universe cards, chat windows.", "failed": "Apps opened over the Universe reported success but were invisible; LÉLU's figure painted over chat content; three stacked headers on a phone." },
-    { "image": "before-wide.webp", "title": "1 · Before — desktop and landscape", "changed": "Nothing yet.", "working": "Chat window with markdown and images.", "failed": "Projects, Browser and Engineering Studio opened invisibly behind the chat; no layout system." },
-    { "image": "steward-phone.webp", "title": "2 · Workspace Steward — phone", "changed": "One plan for every window (WorkspaceSteward over SpatialModel). On a phone, one window is the screen; the rest are tabs that keep running.", "working": "Newest window fills the screen; split in landscape; 'why' shows reasons and 0 model calls.", "failed": "First version picked the oldest maximised window and showed folded windows through the old modal path — fixed before this capture." },
-    { "image": "steward-desktop.webp", "title": "2 · Workspace Steward — desktop", "changed": "The same four windows that were hidden now tile without overlap; LÉLU's workspace.arrange tool and the bar's modes drive it.", "working": "Auto, tile, split, focus, stack, full.", "failed": "The bar overlapped the Universe composer; fixed by letting windows own the workspace." },
-    { "image": "stages-desktop.webp", "title": "3 · Conversation stages — desktop", "changed": "Cinematic, Gallery, Present (Motion), Board (React Flow) and 3D (existing three/R3F/drei) built from the same stored messages.", "working": "All six stages render real content.", "incomplete": "3D takes ~3s to appear on a phone-sized production build (chunk + textures)." },
-    { "image": "stages-iphone.webp", "title": "3 · Conversation stages — iPhone", "changed": "The same stages on a phone sheet.", "working": "All stages; board re-fits to the sheet." },
-    { "image": "self-evolution.webp", "title": "4 · Self-evolution by words", "changed": "Typed 'Turn this into a visual research board' and 'Make this cinematic' into the composer.", "working": "DirectResolver ran workspace.stage locally; reply provider lelu-direct; 0 model calls; network showed only local status/event endpoints." },
-    { "image": "browser-desktop.webp", "title": "5 · Browser — desktop", "changed": "Tabs with history, full-height page, Reader, Beside chat (steward split), To board (page becomes a board source).", "working": "Real Wikipedia renders in-app.", "failed": "GitHub refuses embedding; the first watchdog missed it because Chrome fires load for the error page. Now the server returns an 'embeddable' verdict and the tab offers Reader/Open." },
-    { "image": "browser-iphone.webp", "title": "5 · Browser — iPhone", "changed": "Same browser on a phone sheet.", "working": "Real pages, tabs, honest reader failures, board link.", "incomplete": "Server reader needs a signed-in deployment; this capture had none, so the Reader says so instead of inventing text." },
-    { "image": "panels-iphone.webp", "title": "6 · Every app adapts", "changed": "One container-query reflow rule for all window content; two-pane apps stack below 640px.", "working": "Measured clipping 0px in all 10 apps on iPhone (was +124px Agents, +97px Visual Studio)." },
-    { "image": "fit.webp", "title": "7 · Reorganising as space changes", "changed": "8 windows open while the screen shrinks 1440 → 1024 → 820 → phone.", "working": "What fits readably is shown; the rest become tabs, still running.", "failed": "The steward first read the viewport before it settled (one step behind); fixed with a settle read." },
-    { "image": "cosmos.webp", "title": "8 · Cosmos intact", "changed": "Nothing removed.", "working": "Cosmos button, backdrop toggle, Universe round trip keep windows, stage and board.", "incomplete": "On a phone a full-screen sheet covers the floating backdrop by design." }
+    {
+      "image": "before-iphone.webp",
+      "title": "1 · Before — iPhone",
+      "changed": "Nothing yet: the baseline.",
+      "working": "Home, Cosmos, Chat Universe cards, chat windows.",
+      "failed": "Apps opened over the Universe reported success but were invisible; LÉLU's figure painted over chat content; three stacked headers on a phone."
+    },
+    {
+      "image": "before-wide.webp",
+      "title": "1 · Before — desktop and landscape",
+      "changed": "Nothing yet.",
+      "working": "Chat window with markdown and images.",
+      "failed": "Projects, Browser and Engineering Studio opened invisibly behind the chat; no layout system."
+    },
+    {
+      "image": "steward-phone.webp",
+      "title": "2 · Workspace Steward — phone",
+      "changed": "One plan for every window (WorkspaceSteward over SpatialModel). On a phone, one window is the screen; the rest are tabs that keep running.",
+      "working": "Newest window fills the screen; split in landscape; 'why' shows reasons and 0 model calls.",
+      "failed": "First version picked the oldest maximised window and showed folded windows through the old modal path — fixed before this capture."
+    },
+    {
+      "image": "steward-desktop.webp",
+      "title": "2 · Workspace Steward — desktop",
+      "changed": "The same four windows that were hidden now tile without overlap; LÉLU's workspace.arrange tool and the bar's modes drive it.",
+      "working": "Auto, tile, split, focus, stack, full.",
+      "failed": "The bar overlapped the Universe composer; fixed by letting windows own the workspace."
+    },
+    {
+      "image": "stages-desktop.webp",
+      "title": "3 · Conversation stages — desktop",
+      "changed": "Cinematic, Gallery, Present (Motion), Board (React Flow) and 3D (existing three/R3F/drei) built from the same stored messages.",
+      "working": "All six stages render real content.",
+      "incomplete": "3D takes ~3s to appear on a phone-sized production build (chunk + textures)."
+    },
+    {
+      "image": "stages-iphone.webp",
+      "title": "3 · Conversation stages — iPhone",
+      "changed": "The same stages on a phone sheet.",
+      "working": "All stages; board re-fits to the sheet."
+    },
+    {
+      "image": "self-evolution.webp",
+      "title": "4 · Self-evolution by words",
+      "changed": "Typed 'Turn this into a visual research board' and 'Make this cinematic' into the composer.",
+      "working": "DirectResolver ran workspace.stage locally; reply provider lelu-direct; 0 model calls; network showed only local status/event endpoints."
+    },
+    {
+      "image": "browser-desktop.webp",
+      "title": "5 · Browser — desktop",
+      "changed": "Tabs with history, full-height page, Reader, Beside chat (steward split), To board (page becomes a board source).",
+      "working": "Real Wikipedia renders in-app.",
+      "failed": "GitHub refuses embedding; the first watchdog missed it because Chrome fires load for the error page. Now the server returns an 'embeddable' verdict and the tab offers Reader/Open."
+    },
+    {
+      "image": "browser-iphone.webp",
+      "title": "5 · Browser — iPhone",
+      "changed": "Same browser on a phone sheet.",
+      "working": "Real pages, tabs, honest reader failures, board link.",
+      "incomplete": "Server reader needs a signed-in deployment; this capture had none, so the Reader says so instead of inventing text."
+    },
+    {
+      "image": "panels-iphone.webp",
+      "title": "6 · Every app adapts",
+      "changed": "One container-query reflow rule for all window content; two-pane apps stack below 640px.",
+      "working": "Measured clipping 0px in all 10 apps on iPhone (was +124px Agents, +97px Visual Studio)."
+    },
+    {
+      "image": "fit.webp",
+      "title": "7 · Reorganising as space changes",
+      "changed": "8 windows open while the screen shrinks 1440 → 1024 → 820 → phone.",
+      "working": "What fits readably is shown; the rest become tabs, still running.",
+      "failed": "The steward first read the viewport before it settled (one step behind); fixed with a settle read."
+    },
+    {
+      "image": "cosmos.webp",
+      "title": "8 · Cosmos intact",
+      "changed": "Nothing removed.",
+      "working": "Cosmos button, backdrop toggle, Universe round trip keep windows, stage and board.",
+      "incomplete": "On a phone a full-screen sheet covers the floating backdrop by design."
+    },
+    {
+      "image": "wf1.webp",
+      "title": "9 · Workflow 1 — research → creation",
+      "changed": "Research environment over Wikipedia, Crossref, arXiv and OpenAlex; sources with provenance; browser and board hand-offs; diagram; report from findings.",
+      "working": "Live retrieval (~24 s); LÉLU opened Research herself; a cited paper in the browser beside the chat; report DOCX + PDF verified.",
+      "failed": "Found and fixed: auto-staging never fired for commands; split ignored the windows named; the browser was measured wider than the screen; the report was a transcript.",
+      "incomplete": "Publishers often refuse embedding (Reader/Open offered); the server reader needs a signed-in deployment."
+    },
+    {
+      "image": "wf2.webp",
+      "title": "10 · Workflow 2 — visual creation",
+      "changed": "Gallery compositions: create, restyle, compare versions, export.",
+      "working": "Two revisions survive a reload; PNG 1200×800 verified with sha256."
+    },
+    {
+      "image": "wf3.webp",
+      "title": "11 · Workflow 3 — 3D",
+      "changed": "Scenes: presets, add/recolour/remove components, GLB/glTF/STL/OBJ, reopen the exported file.",
+      "working": "GLB 780 KB (glTF ✓) and STL 6.3 MB reopened: 30,272 triangles, same as the live scene.",
+      "failed": "The viewer was squashed to a strip — fixed."
+    },
+    {
+      "image": "wf4.webp",
+      "title": "12 · Workflow 4 — data → explanation → presentation",
+      "changed": "Live keyless data, interactive charts, findings computed from the chart's numbers, deck, PPTX.",
+      "working": "USGS M4.5+ week: 120 quakes, peak 24 on Nov 13; PPTX 101.5 KB verified.",
+      "failed": "First analysis reported a fake 71% fall (today unfinished) — it now says so."
+    },
+    {
+      "image": "wf5.webp",
+      "title": "13 · Workflow 5 — film",
+      "changed": "Storyboard from the conversation → WebM on this device.",
+      "working": "VP9 · 12 s · 288 frames · soundtrack · 919 KB, EBML ✓, plays.",
+      "incomplete": "345–390 s to encode on this GPU-less sandbox (stepped down to 480×270 by measurement); far faster on real hardware."
+    },
+    {
+      "image": "wf6.webp",
+      "title": "14 · Workflow 6 — dynamic workspace",
+      "changed": "Environments keep the work; LÉLU arranges windows from words.",
+      "working": "10 environment switches lose nothing; 'beside' and 'tile' with 0 model calls; reload restores."
+    },
+    {
+      "image": "wf7a.webp",
+      "title": "15 · Workflow 7 — iPhone (research, visual, 3D)",
+      "working": "Same flows at iPhone 15 Pro size.",
+      "failed": "Fixed: a maximised window trapped the chat; the browser could open empty.",
+      "incomplete": "Chromium emulation, not Safari on an iPhone."
+    },
+    {
+      "image": "wf7b.webp",
+      "title": "16 · Workflow 7 — iPhone (data, workspace, persistence)",
+      "working": "Data → findings → presentation; one window at a time with tabs; reload restores."
+    }
   ]
 }
