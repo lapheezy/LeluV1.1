@@ -143,6 +143,7 @@ export function trailingUserTurn(
   content: unknown,
 ): WireMessage[] {
   const history = request.messages ?? [];
+  if (request.promptAlreadyInHistory === true) return [];
   if (history[history.length - 1]?.role === "tool") return [];
   return [{ role: "user", content }];
 }

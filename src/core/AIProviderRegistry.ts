@@ -71,6 +71,9 @@ interface ProviderFailure {
   count: number;
   lastFailure: number;
   reason: string;
+  /** Provider-declared time this provider may be usable again, if supplied. */
+  retryAfterAt?: number;
+  retryAfterSeconds?: number;
   /**
    * The server refused the credential itself. A different thing from a
    * timeout, a 500 or an unreachable host, and it deserves a different
@@ -112,6 +115,47 @@ export function isAuthRejection(reason: string): boolean {
  * short, network means nothing left the machine, server means the
  * provider is unwell, and unknown is honestly unknown.
  */
+/**
+ * Read the provider's own reset window out of the refusal text.
+ *
+ * Measured refusals include `try again in 6.255s` (Groq per-minute),
+ * `try again in 35m36.2s` (Groq daily), and `X-RateLimit-Reset` inside an
+ * OpenRouter JSON error. A provider that has told us when it will be ready
+ * must not be retried before then; the old registry only knew a generic
+ * 15-minute quota cooldown and could retry a seven-hour window after fifteen
+ * minutes. Returns milliseconds, capped at seven days, or null when the
+ * refusal carries no usable hint.
+ */
+export function retryAfterMsFrom(reason: string): number | null {
+  if (!reason) return null;
+  const text = reason.replace(/\u00a0/g, " ");
+  let ms = 0;
+
+  const duration = /try again in\s*(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:([\d.]+)s)?/i.exec(text);
+  if (duration && (duration[1] || duration[2] || duration[3])) {
+    ms =
+      (Number(duration[1] ?? 0) * 3600 +
+        Number(duration[2] ?? 0) * 60 +
+        Number(duration[3] ?? 0)) *
+      1000;
+  }
+  if (ms <= 0) {
+    const seconds = /(?:retry[- ]after|reset in|try again in)\s*:?\s*(\d+(?:\.\d+)?)\s*(?:seconds?|secs?|s)?\b/i.exec(text);
+    if (seconds) ms = Number(seconds[1]) * 1000;
+  }
+  if (ms <= 0) {
+    const header = /(?:retry-after|x-ratelimit-reset)\s*[":=]*\s*"?(\d+(?:\.\d+)?)"?/i.exec(text);
+    if (header) {
+      const value = Number(header[1]);
+      // A bare Retry-After is seconds; an X-RateLimit-Reset is an epoch in
+      // seconds or milliseconds. Only the epoch form is larger than a day.
+      ms = value > 1_000_000_000 ? (value > 1e12 ? value : value * 1000) - Date.now() : value * 1000;
+    }
+  }
+  if (!Number.isFinite(ms) || ms <= 0) return null;
+  return Math.min(ms, 7 * 24 * 3600_000);
+}
+
 export function classifyProviderFailure(reason: string): ProviderFailureKind {
   if (isAuthRejection(reason)) return "credential-refused";
   const text = reason.toLowerCase();
@@ -379,6 +423,17 @@ export default class AIProviderRegistry {
 
     // Half-open: the chain is empty only because of cooldowns.
     const candidate = soonest.provider;
+    // A provider that told us its own reset time is NOT stale state to probe.
+    // Retrying it after five seconds spends a request that is certain to be
+    // refused, and a daily 429 can name hours. Wait for the declared time.
+    const candidateFailure = this.failures.get(candidate.name);
+    if (candidateFailure?.retryAfterAt && now < candidateFailure.retryAfterAt) {
+      console.info(
+        `[AIProviderRegistry] ${candidate.name} declared a reset at ` +
+          `${new Date(candidateFailure.retryAfterAt).toISOString()}; not probing before it.`,
+      );
+      return available;
+    }
     const lastProbe = this.lastProbe.get(candidate.name) ?? 0;
     if (now - lastProbe < AIProviderRegistry.PROBE_GAP_MS) {
       return available;
@@ -411,30 +466,43 @@ export default class AIProviderRegistry {
     // Sticky: once a credential has been refused, a later ordinary
     // failure must not quietly shorten the cooldown back to 30s.
     const authRejected = previous?.authRejected === true || isAuthRejection(reason);
+    const now = Date.now();
+    const retryAfterMs = retryAfterMsFrom(reason);
     this.failures.set(name, {
       count: (previous?.count ?? 0) + 1,
-      lastFailure: Date.now(),
+      lastFailure: now,
       reason,
       authRejected,
       // Auth stays sticky for the same reason the cooldown does; every
       // other kind describes the failure that just happened, so a
       // recovered network does not keep reading as a timeout.
       kind: authRejected ? "credential-refused" : classifyProviderFailure(reason),
+      ...(retryAfterMs !== null
+        ? {
+            retryAfterAt: now + retryAfterMs,
+            retryAfterSeconds: Math.max(1, Math.ceil(retryAfterMs / 1000)),
+          }
+        : {}),
     });
   }
 
   /** How long this provider sits out, given why it failed. */
   public cooldownFor(name: string): number {
     const failure = this.failures.get(name);
-    if (failure?.authRejected === true) return AUTH_FAILURE_COOLDOWN_MS;
+    let base = FAILURE_COOLDOWN_MS;
+    if (failure?.authRejected === true) base = AUTH_FAILURE_COOLDOWN_MS;
     // A spent daily quota is as unresponsive as a wrong key, and retrying
     // it every thirty seconds is what made the chain slow.
-    if (failure?.kind === "quota-exhausted") return QUOTA_COOLDOWN_MS;
+    else if (failure?.kind === "quota-exhausted") base = QUOTA_COOLDOWN_MS;
     // An account out of credit, or suspended for billing, is fixed in a
     // dashboard — never by trying again in thirty seconds. Same finite
     // window as a spent quota, so a top-up is still picked up in-session.
-    if (failure?.kind === "billing") return QUOTA_COOLDOWN_MS;
-    return FAILURE_COOLDOWN_MS;
+    else if (failure?.kind === "billing") base = QUOTA_COOLDOWN_MS;
+    // A provider that supplied its own reset time keeps this rung out until
+    // then. The base cooldown is a minimum, not a substitute: a seven-hour
+    // daily window must not be retried after fifteen minutes.
+    const declared = failure?.retryAfterAt ? failure.retryAfterAt - failure.lastFailure : 0;
+    return Math.max(base, declared);
   }
 
   /**

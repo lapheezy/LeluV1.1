@@ -31,6 +31,10 @@ export interface RequestBudget {
   promptBytes: number;
   /** Bytes in the provider-appended memory context system message. */
   contextBytes?: number;
+  /** The shared LÉLU system prompt plus context-envelope text added by providers. */
+  providerOverheadBytes?: number;
+  /** True when the prompt is already one of `messages` and is not sent twice. */
+  promptIncluded: boolean;
   toolCount: number;
   toolSchemaBytes: number;
   totalBytes: number;
@@ -54,6 +58,10 @@ export function describeRequestBudget(input: {
   model?: string;
   /** Provider-appended context. It is sent as a system message but is not in `messages` yet. */
   context?: string;
+  /** Bytes the provider adds itself: shared identity prompt and context envelope. */
+  providerOverheadBytes?: number;
+  /** Set when `prompt` is already present verbatim in `messages`. */
+  promptIncluded?: boolean;
 }): RequestBudget {
   const messages = input.messages ?? [];
   const tools = input.tools ?? [];
@@ -61,15 +69,23 @@ export function describeRequestBudget(input: {
   let systemBytes = 0;
   let historyBytes = 0;
   for (const message of messages) {
-    const size = bytes(message.content) + bytes(message.role);
+    // Count the WHOLE message, not just its prose. A tool turn also carries
+    // `toolCalls`, and a result carries its call id, tool name and error flag;
+    // those fields are sent over the wire and were previously free in the
+    // budget, so a tool-heavy request could be approved at a size it did not
+    // actually have.
+    const size = bytes(message);
     if (message.role === "system") systemBytes += size;
     else historyBytes += size;
   }
 
-  const promptBytes = bytes(input.prompt);
+  const promptIncluded = input.promptIncluded === true;
+  const promptBytes = promptIncluded ? 0 : bytes(input.prompt);
   const toolSchemaBytes = tools.length > 0 ? bytes(tools) : 0;
   const contextBytes = bytes(input.context);
-  const totalBytes = systemBytes + historyBytes + promptBytes + toolSchemaBytes + contextBytes;
+  const providerOverheadBytes = Math.max(0, Math.floor(input.providerOverheadBytes ?? 0));
+  const totalBytes =
+    systemBytes + historyBytes + promptBytes + toolSchemaBytes + contextBytes + providerOverheadBytes;
 
   return {
     ...(input.provider ? { provider: input.provider } : {}),
@@ -80,6 +96,8 @@ export function describeRequestBudget(input: {
     historyBytes,
     promptBytes,
     ...(input.context ? { contextBytes } : {}),
+    ...(providerOverheadBytes > 0 ? { providerOverheadBytes } : {}),
+    promptIncluded,
     toolCount: tools.length,
     toolSchemaBytes,
     totalBytes,
@@ -298,6 +316,10 @@ export function fitRequestBudget<
   limitBytes?: number;
   /** Provider-appended context, counted against the same ceiling. */
   context?: string;
+  /** Bytes the provider adds itself: shared identity prompt and context envelope. */
+  providerOverheadBytes?: number;
+  /** Set when `prompt` is already present verbatim in `messages`. */
+  promptIncluded?: boolean;
   /** How many of the most recent messages must survive untouched. */
   protectedTail?: number;
 }): FittedRequest<M, T> {
@@ -320,6 +342,8 @@ export function fitRequestBudget<
       provider: input.provider,
       model: input.model,
       ...(input.context ? { context: input.context } : {}),
+      ...(input.providerOverheadBytes ? { providerOverheadBytes: input.providerOverheadBytes } : {}),
+      ...(input.promptIncluded ? { promptIncluded: true } : {}),
     });
 
   let budget = measure();
@@ -341,9 +365,15 @@ export function fitRequestBudget<
   }
 
   // 2. OLDEST HISTORY, keeping system prompts and the recent tail.
+  const isPrompt = (message: M): boolean =>
+    Boolean(input.prompt) &&
+    message.role === "user" &&
+    message.content === input.prompt;
   const oldestDroppable = (list: M[]): number => {
     const from = Math.max(0, list.length - protectedTail);
-    return list.findIndex((message, index) => index < from && message.role !== "system");
+    return list.findIndex(
+      (message, index) => index < from && message.role !== "system" && !isPrompt(message),
+    );
   };
   while (budget.totalBytes > ceiling.bytes) {
     const index = oldestDroppable(messages);
@@ -376,6 +406,7 @@ export function fitRequestBudget<
       (message, position) =>
         position < from &&
         message.role !== "system" &&
+        !isPrompt(message) &&
         typeof message.content === "string" &&
         byteLength(message.content) > MIN_TRIMMED_BYTES,
     );

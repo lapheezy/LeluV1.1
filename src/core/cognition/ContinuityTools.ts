@@ -344,9 +344,10 @@ export const CONTINUITY_EXECUTORS: ToolExecutor[] = [
         ok: true,
         content:
           `Workstream recorded as ${result.mission.id}. This is ${result.durability} local state` +
+          ` (sync ${result.mission.sync ?? "local"}: not synchronized to another device)` +
           `${result.durability === "memory-only" ? " — storage refused the write, so it will NOT survive a reload" : ""}.\n` +
           formatMission(result.mission),
-        data: { id: result.mission.id, durability: result.durability },
+        data: { id: result.mission.id, durability: result.durability, sync: result.mission.sync ?? "local" },
       };
     },
   },
@@ -373,7 +374,14 @@ export const CONTINUITY_EXECUTORS: ToolExecutor[] = [
       const value = str(args, "value");
       const ledger = MissionLedgerStore.getInstance();
       if (!id) return { ok: false, content: "mission_update needs an id." };
-      if (!ledger.get(id)) return { ok: false, content: `No workstream named "${id}". Nothing changed.` };
+      const resolved = ledger.resolveCanonical(id);
+      if (!resolved) return { ok: false, content: `No workstream named "${id}". Nothing changed.` };
+      // A duplicate is history, not a second workstream. Advancing it would
+      // leave the canonical record stale, so every non-duplicate action is
+      // applied to the stable original and the redirect is stated.
+      const targetId = action === "duplicate" ? id : resolved.canonical.id;
+      const redirect =
+        targetId === id ? "" : `\n(${id} is a duplicate of ${targetId}; the update was applied to the canonical record.)`;
 
       const evidenceArg = str(args, "evidence");
       const evidence = evidenceArg ? asEvidence(evidenceArg) : null;
@@ -383,37 +391,37 @@ export const CONTINUITY_EXECUTORS: ToolExecutor[] = [
         case "status": {
           const status = asStatus(value);
           if (!status) return { ok: false, content: `"${value}" is not a mission status. One of: ${MISSION_STATUSES.join(", ")}.` };
-          mission = ledger.setStatus(id, status);
+          mission = ledger.setStatus(targetId, status);
           break;
         }
         case "evidence": {
           if (!evidence) return { ok: false, content: `evidence needs one of: ${EVIDENCE_STATES.join(", ")}.` };
           if (!value) return { ok: false, content: "evidence needs a basis: what was actually observed." };
-          mission = ledger.setEvidence(id, evidence, value);
+          mission = ledger.setEvidence(targetId, evidence, value);
           break;
         }
         case "next":
-          mission = ledger.setNextAction(id, value || null);
+          mission = ledger.setNextAction(targetId, value || null);
           break;
         case "blocker":
           if (!value) return { ok: false, content: "blocker needs the blocker text." };
-          mission = ledger.addBlocker(id, value, evidence ?? "REPORTED");
+          mission = ledger.addBlocker(targetId, value, evidence ?? "REPORTED");
           break;
         case "clear-blocker":
-          mission = ledger.clearBlocker(id, str(args, "blockerId") || undefined, value || undefined);
+          mission = ledger.clearBlocker(targetId, str(args, "blockerId") || undefined, value || undefined);
           if (!mission) return { ok: false, content: "There is no open blocker to clear on that workstream." };
           break;
         case "file":
           if (!value) return { ok: false, content: "file needs a path." };
-          mission = ledger.addFile(id, value);
+          mission = ledger.addFile(targetId, value);
           break;
         case "decision":
           if (!value) return { ok: false, content: "decision needs the decision text." };
-          mission = ledger.addDecision(id, value);
+          mission = ledger.addDecision(targetId, value);
           break;
         case "note":
           if (!value) return { ok: false, content: "note needs text." };
-          mission = ledger.note(id, value, evidence ?? "REPORTED");
+          mission = ledger.note(targetId, value, evidence ?? "REPORTED");
           break;
         case "duplicate":
           if (!value) return { ok: false, content: "duplicate needs the stable id of the canonical record." };
@@ -431,9 +439,16 @@ export const CONTINUITY_EXECUTORS: ToolExecutor[] = [
       return {
         ok: true,
         content:
-          `Updated ${mission.id} (${mission.status}, ${mission.evidence}, durability ${mission.durability}).\n` +
+          `Updated ${mission.id} (${mission.status}, ${mission.evidence}, durability ${mission.durability}, sync ${mission.sync ?? "local"}).${redirect}\n` +
           formatMission(mission),
-        data: { id: mission.id, status: mission.status, evidence: mission.evidence, durability: mission.durability },
+        data: {
+          id: mission.id,
+          requestedId: id,
+          status: mission.status,
+          evidence: mission.evidence,
+          durability: mission.durability,
+          sync: mission.sync ?? "local",
+        },
       };
     },
   },
@@ -447,6 +462,13 @@ export const CONTINUITY_EXECUTORS: ToolExecutor[] = [
     run: async (args): Promise<ToolExecutionResult> => {
       const ledger = MissionLedgerStore.getInstance();
       const id = str(args, "id");
+      if (id && !ledger.resolveCanonical(id)) {
+        return {
+          ok: false,
+          content: `No workstream named "${id}". Nothing was read; use mission_find or mission_list to resolve the record.`,
+          data: { open: ledger.open().length },
+        };
+      }
       return {
         ok: true,
         content: id ? ledger.brief(id) : ledger.resumeBrief(),

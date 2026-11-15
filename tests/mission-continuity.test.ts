@@ -62,6 +62,7 @@ import type { MissionRecord } from "../src/core/projects/MissionLedger";
 import type { SelfModelState } from "../src/core/cognition/SelfModel";
 import KvStore from "../src/core/storage/KvStore";
 import { deriveBrokerHealth, type BrokerHealthSnapshot } from "../src/core/model/ProviderHealth";
+import { groundingNote, ungroundedClaims } from "../src/core/tools/ClaimGrounding";
 import { parseSkillFile } from "../src/core/skills/SkillRegistry";
 
 /** Isolated storage per test. Never the process's shared native storage. */
@@ -200,8 +201,159 @@ test("duplicate titles are resolved by stable id, status and provenance, and sur
   const reloaded = new MissionLedger({ kv });
   assert.equal(reloaded.get(duplicate.id)?.duplicateOf, original.id);
   assert.equal(reloaded.get(duplicate.id)?.status, "abandoned");
-  assert.match(reloaded.brief(duplicate.id), /duplicate of: m-/);
+  assert.match(reloaded.brief(duplicate.id), /is a duplicate of m-/);
   assert.equal(reloaded.find("Fashion", { includeClosed: true })[0]?.id, duplicate.id);
+});
+
+test("identical titles across repositories and branches stay separate and explicit", () => {
+  const ledger = new MissionLedger({ kv: memoryKv() });
+  const repoA = ledger.create({
+    title: "Release the continuity workstream",
+    objective: "Ship the same named job in repository A",
+    repository: "owner/repo-a",
+    branch: "main",
+  }).mission!;
+  const repoB = ledger.create({
+    title: "Release the continuity workstream",
+    objective: "Ship the same named job in repository B",
+    repository: "owner/repo-b",
+    branch: "main",
+  }).mission!;
+  const branch = ledger.create({
+    title: "Release the continuity workstream",
+    objective: "A branch experiment with a deliberately similar objective",
+    repository: "owner/repo-a",
+    branch: "feature/continuity",
+  }).mission!;
+
+  assert.equal(ledger.find("Release the continuity workstream").length, 3, "a shared title must not collapse records");
+  assert.deepEqual(ledger.find("Release the continuity workstream", { repository: "owner/repo-b" }).map((m) => m.id), [repoB.id]);
+  assert.deepEqual(ledger.find("Release the continuity workstream", { branch: "feature/continuity" }).map((m) => m.id), [branch.id]);
+  assert.equal(new Set([repoA, repoB, branch].map((m) => m.id)).size, 3, "stable ids are distinct");
+
+  // The same words in a different project are not a reason to merge.
+  assert.notEqual(repoA.id, repoB.id);
+  assert.equal(ledger.get(repoA.id)?.repository, "owner/repo-a");
+  assert.equal(ledger.get(repoB.id)?.repository, "owner/repo-b");
+});
+
+test("a blocked original outranks an active record with the same title, and alternatives stay visible", () => {
+  const ledger = new MissionLedger({ kv: memoryKv() });
+  const blocked = ledger.create({
+    title: "Continuity proof",
+    status: "blocked",
+    objective: "The original blocked work",
+    provenance: { createdBy: "lelu", session: "blocked-session" },
+  }).mission!;
+  const active = ledger.create({
+    title: "Continuity proof",
+    status: "active",
+    objective: "A newer active retry",
+    provenance: { createdBy: "lelu", session: "active-session" },
+  }).mission!;
+  const matches = ledger.find("Continuity proof");
+  assert.equal(matches[0]?.id, blocked.id, "the blocked original is the best match");
+  assert.equal(matches[1]?.id, active.id, "the active alternative is not hidden");
+});
+
+test("duplicates chain to one canonical original, never form a cycle, and remain auditable after abandonment", () => {
+  const kv = memoryKv();
+  const ledger = new MissionLedger({ kv });
+  const original = ledger.create({ title: "Canonical job", objective: "The one record history belongs to" }).mission!;
+  const first = ledger.create({ title: "Canonical job (retry)" }).mission!;
+  const second = ledger.create({ title: "Canonical job (another retry)" }).mission!;
+  const third = ledger.create({ title: "Canonical job (third retry)" }).mission!;
+
+  assert.equal(ledger.markDuplicate(first.id, original.id)?.duplicateOf, original.id);
+  assert.equal(ledger.markDuplicate(second.id, first.id)?.duplicateOf, original.id, "a duplicate chain resolves to the root");
+  assert.equal(ledger.markDuplicate(third.id, original.id)?.duplicateOf, original.id);
+  assert.equal(ledger.markDuplicate(original.id, third.id), null, "a cycle is refused");
+  assert.equal(ledger.markDuplicate(original.id, original.id), null, "a self-reference is refused");
+
+  for (const duplicate of [first, second, third]) {
+    const stored = ledger.get(duplicate.id)!;
+    assert.equal(stored.status, "abandoned");
+    assert.equal(stored.duplicateOf, original.id);
+  }
+  assert.equal(ledger.open().some((mission) => mission.id === original.id), true);
+  assert.equal(ledger.open().some((mission) => mission.id === first.id), false);
+
+  // An exact id remains retrievable without includeClosed; that is how an
+  // abandoned record is audited. A title search still prefers open work.
+  assert.equal(ledger.find(first.id).length, 1);
+  assert.equal(ledger.find(first.id)[0]?.status, "abandoned");
+  assert.equal(ledger.find("Canonical job").some((mission) => mission.id === first.id), false);
+  assert.equal(ledger.find("Canonical job", { includeClosed: true }).length, 4);
+
+  const brief = ledger.brief(first.id);
+  assert.match(brief, /is a duplicate of/);
+  assert.match(brief, /Canonical job \(m-/);
+
+  const reloaded = new MissionLedger({ kv });
+  assert.equal(reloaded.brief(first.id), brief, "the canonical redirect survives reconstruction");
+  assert.equal(reloaded.get(second.id)?.duplicateOf, original.id);
+  assert.equal(reloaded.get(original.id)?.duplicateOf, undefined);
+  assert.match(reloaded.brief(original.id), /sync: local \(not synchronized\)/);
+});
+
+test("a local write invalidates synchronized state, and create-time duplicate chains resolve to the root", () => {
+  const kv = memoryKv();
+  const ledger = new MissionLedger({ kv });
+  const root = ledger.create({ title: "Root job", nextSafeAction: "continue" }).mission!;
+  const first = ledger.create({ title: "Root retry", duplicateOf: root.id }).mission!;
+  const second = ledger.create({ title: "Root retry two", duplicateOf: first.id }).mission!;
+
+  assert.equal(first.status, "abandoned", "a record opened as a duplicate is history, not active work");
+  assert.equal(first.duplicateOf, root.id);
+  assert.equal(second.duplicateOf, root.id, "create-time duplicate chains were not canonicalized");
+
+  // A record marked synchronized on another device is no longer synchronized
+  // after this device changes it: there is no transport here to carry the edit.
+  root.sync = "synchronized";
+  ledger.note(root.id, "a local observation");
+  assert.equal(ledger.get(root.id)?.sync, "local");
+
+  const reloaded = new MissionLedger({ kv });
+  assert.equal(reloaded.get(second.id)?.duplicateOf, root.id, "the canonical relationship survives reload");
+});
+
+test("repository, branch, commit and provenance are redacted on write and on load", () => {
+  const kv = memoryKv();
+  const ledger = new MissionLedger({ kv });
+  const created = ledger.create({
+    title: "Redaction check",
+    repository: "owner/repo?token=ghp_abcdefghijklmnopqrstuvwxyz123456",
+    branch: "main?key=sk-abcdefghijklmnop1234567890",
+    commit: "password=hunter2hunter2",
+    provenance: { createdBy: "lelu sk-abcdefghijklmnop1234567890", session: "ghp_abcdefghijklmnopqrstuvwxyz123456" },
+  });
+  const serialized = JSON.stringify(created.mission);
+  for (const secret of ["sk-abc", "ghp_abc", "hunter2"]) {
+    assert.ok(!serialized.includes(secret), `${secret} survived redaction: ${serialized}`);
+  }
+  const reloaded = new MissionLedger({ kv }).get(created.mission!.id);
+  assert.ok(reloaded);
+  assert.ok(!JSON.stringify(reloaded).includes("ghp_abc"), "redaction was not applied on load");
+});
+
+test("a mission remains findable after its repository and branch change, and an unknown duplicate is refused", () => {
+  const ledger = new MissionLedger({ kv: memoryKv() });
+  const mission = ledger.create({
+    title: "Moved workstream",
+    repository: "owner/old-repo",
+    branch: "old-branch",
+  }).mission!;
+  ledger.update(mission.id, { repository: "owner/new-repo", branch: "new-branch" });
+
+  assert.equal(ledger.find(mission.id)[0]?.id, mission.id);
+  assert.equal(ledger.find("Moved workstream", { repository: "owner/new-repo" })[0]?.id, mission.id);
+  assert.equal(ledger.find("Moved workstream", { branch: "old-branch" }).length, 0);
+  assert.equal(ledger.get(mission.id)?.branch, "new-branch", "the moved location is the current one");
+
+  const invalid = ledger.create({ title: "Orphan duplicate", duplicateOf: "m-does-not-exist" });
+  assert.equal(invalid.ok, false);
+  assert.match(invalid.error ?? "", /does not exist/);
+  assert.equal(ledger.list().some((entry) => entry.title === "Orphan duplicate"), false);
 });
 
 test("a refused storage write is reported as memory-only, never as durability", () => {
@@ -586,6 +738,48 @@ test("a continuity turn is offered the whole family, including the self-read", (
   for (const name of ["self_operational", "mission_list", "mission_find", "mission_record", "mission_update", "mission_brief"]) {
     assert.ok(selection.names.includes(name), `${name} must be offered on a continuity turn: ${selection.names.join(", ")}`);
   }
+});
+
+test("mission.brief and mission.update operate on the canonical original, never a duplicate", async () => {
+  registerContinuityTools();
+  const ledger = new MissionLedger({ kv: memoryKv() });
+  MissionLedgerStore.setForTests(ledger);
+  const original = ledger.create({
+    title: "Canonical tool target",
+    status: "blocked",
+    nextSafeAction: "read the brief",
+  }).mission!;
+  const duplicate = ledger.create({ title: "Canonical tool target (retry)" }).mission!;
+  ledger.markDuplicate(duplicate.id, original.id, "same job");
+
+  const brief = CONTINUITY_EXECUTORS.find((executor) => executor.id === "mission.brief")!;
+  const canonicalBrief = await brief.run({ id: duplicate.id });
+  assert.match(canonicalBrief.content, /is a duplicate of/);
+  assert.match(canonicalBrief.content, new RegExp(original.id), "the brief was not redirected to the original");
+
+  const update = CONTINUITY_EXECUTORS.find((executor) => executor.id === "mission.update")!;
+  const result = await update.run({ id: duplicate.id, action: "next", value: "continue the original" });
+  assert.equal(result.ok, true, result.content);
+  assert.equal((result.data as { id?: string }).id, original.id, "the duplicate was updated instead of the original");
+  assert.equal(ledger.get(original.id)?.nextSafeAction, "continue the original");
+  assert.match(result.content, /duplicate of/);
+
+  const duplicateAction = await update.run({ id: duplicate.id, action: "duplicate", value: original.id });
+  assert.equal(duplicateAction.ok, true, "the duplicate relationship itself must remain updateable");
+  assert.equal(ledger.get(duplicate.id)?.duplicateOf, original.id);
+});
+
+test("a failed mission update cannot be reported as a successful update", () => {
+  const reply = "I updated mission m-406ecd7d with the blocker and saved the next action.";
+  const failed = ungroundedClaims(reply, [{ tool: "mission.brief", ok: true }]);
+  assert.equal(failed.length, 1, "a claimed update with no successful mission_update was accepted");
+  assert.match(failed[0]!.label, /mission update/);
+  assert.match(groundingNote(failed), /did not run successfully/);
+
+  const succeeded = ungroundedClaims(reply, [{ tool: "mission_update", ok: true }]);
+  assert.equal(succeeded.length, 0, "a real successful update was treated as ungrounded");
+  const explicitlyFailed = ungroundedClaims("I could not update mission m-406ecd7d.", [{ tool: "mission.brief", ok: true }]);
+  assert.equal(explicitlyFailed.length, 0, "an honest failure was treated as a false success claim");
 });
 
 test("a mission-resume turn is offered only the four ledger tools", () => {

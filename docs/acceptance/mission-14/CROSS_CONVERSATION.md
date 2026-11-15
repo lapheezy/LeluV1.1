@@ -155,3 +155,46 @@ The conversation still exists with `assistantProvider: Groq`.
 - `artifacts/mission-14-next/provider-resilience.json`
 
 Labels for the follow-up: correct-record retrieval **VERIFIED**; brief read **VERIFIED**; model-authored reply **VERIFIED (remote Groq)**; persisted update **VERIFIED**; reload survival **VERIFIED**; duplicate identity **VERIFIED**.
+
+---
+
+# HARDENED REVIEW RERUN — VERIFIED (2026-11-15, final review)
+
+This rerun was made after reviewing the actual implementation, not the report. The earlier successful evidence is preserved above; this section records the hardened build and a second independent acceptance run.
+
+## Defects corrected before the rerun
+
+1. **Final-round untrusted boundary.** Tool results are wrapped in a tag chosen after all result text is known, with `tool`, `call` and authoritative `status` attributes (`ok` / `FAILED` / `MISSING`). Every result is kept verbatim. The final turn is now a trusted runtime guard (`src/core/router/finalRound.ts`), so the last text the model reads cannot be an injected line from a webpage or file.
+2. **Budget measured only prose.** `RequestBudget` counted `role` + `content`, omitting `toolCalls`, call ids, tool names and error flags that are actually sent. It now counts the whole message object.
+3. **The prompt could be dropped while its provider append was suppressed.** The fitter now refuses to drop a user message whose content is the materialized prompt. A test pins this.
+4. **A local edit could retain `sync: synchronized`.** Every local mutation now sets `sync: local`; only a record that actually came from a future transport may say otherwise.
+5. **Create-time duplicate chains and redaction.** `duplicateOf` is canonicalized to the root at creation, duplicate records are abandoned, and repository/branch/commit/provenance are redacted on write and load.
+6. **Claim grounding rejected `0 failed`.** The negation filter now ignores a count-negated failure (`0 failed`) while still treating an explicit `failed` / `attempted` / `tried` as non-success.
+
+## Independent new conversations (no mission id in any prompt)
+
+| Conversation | Prompt theme | Remote provider | Tool sequence | Persisted result |
+|---|---|---|---|---|
+| `4d7bf3c8-2f6a-4f45-9e14-c37ea311ef82` | resume the unfinished Mission 14 work | Groq, `source: ai` | `mission.find` 20:32:43.615Z → `mission.update` 20:32:44.718Z | note: “User asked to resume; confirmed blockers … and next safe action (continue).” |
+| `7517f545-fa0e-42d9-b18f-84609bd69454` | “I’m back. What was the unfinished work …?” | Groq, `source: ai` | `mission.find` 20:37:45.911Z → `mission.brief` 20:37:47.406Z → `mission.update` 20:37:48.280Z | note: “Mission 14 unfinished work: objective is … blocker … next safe step: continue.” |
+| `ba5fdda2-4d63-4e08-9ac8-7038eb7c742f` | “What unfinished Mission 14 work is in the ledger …?” | Groq, `source: ai` | `mission.find` 20:38:36.254Z → `mission.update` 20:38:36.925Z | note: “Checked status, blockers, and next action per user request.” |
+
+All three resolved **`m-406ecd7d`** (the blocked original), not the abandoned duplicate `m-4863de4f`. The assistant messages are stored with `provider: Groq`, `source: ai`; none is the offline/project fallback. Server logs show the corresponding `POST /api/model/groq/chat/completions → 200` calls and the `mission.find` / `mission.brief` / `mission.update` execution stages.
+
+The UI activity card exposes `mission.find (Mission 14)` and `mission.update (note)`. The runtime deliberately does not persist raw argument JSON, so **exact argument bytes are PARTIAL**: the query/action come from the card and the id/value from the canonical response and ledger note. Raw argument JSON is not claimed as captured.
+
+## Reload after the latest update
+
+A complete page reload was performed. The third note, the `blocked` status, next action `continue`, `durability: persisted`, `sync: local`, and `m-4863de4f` / `duplicateOf: m-406ecd7d` were all still present; the conversation still stored `provider: Groq`, `source: ai`.
+
+## Checks
+
+- Focused suite: **74/74 pass** (claim-grounding, mission-continuity, provider-rung-budget, request-budget, request-budget-enforcement, provider-cooldown-recovery).
+- Full suite: **2215 pass / 2 fail / 8 skipped of 2225**. The two failures are `tests/genesis-interface.test.tsx` (`@excalidraw/excalidraw/index.css` not exported under this dependency/Node combination) and `tests/sandbox-security.test.ts` (host network sandbox reports empty output). Both reproduce on a detached worktree at **`97fe447`**, independently of these changes.
+- Typecheck **exit 0**; lint **0 errors** (818 existing warnings); production build **exit 0** (6.53 s).
+
+## Labels for the hardened rerun
+
+Correct-record retrieval **VERIFIED** (three conversations); brief read **VERIFIED**; remote model authorship **VERIFIED (Groq)**; persisted update **VERIFIED**; reload survival **VERIFIED**; local-vs-synchronized distinction **VERIFIED**; exact raw tool arguments **PARTIAL** (not persisted); full suite **PARTIAL** (two reproduced environmental failures).
+
+Evidence: `artifacts/mission-14-next/hardened-live-acceptance.json`.

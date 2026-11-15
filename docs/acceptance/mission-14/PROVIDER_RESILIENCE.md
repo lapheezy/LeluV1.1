@@ -101,6 +101,19 @@ Three new defects were measured and fixed while making 14.1 pass:
 
 Routing fixes were also required: `ProjectResolver` claimed “resume the …” and `IntelligenceResolver` claimed “what is blocked”. A mission-resume turn now goes to the provider before those deterministic stages, and `Orchestrator` no longer sends a long resume prompt into task planning.
 
+## Final review hardening (2026-11-15)
+
+The final review added the following, all covered by tests:
+
+- declared reset windows are stored as `retryAfterAt` and the half-open probe is refused until that time;
+- a key slot keeps the longer of its policy cooldown and the provider's declared reset;
+- a spent daily allowance is not retried smaller, while a size refusal still degrades through reduced and no-tool rounds;
+- the no-tool final round now ends with a trusted runtime guard after the nonce-delimited untrusted evidence;
+- request accounting now includes whole tool messages, provider context and the identity prompt, and cannot drop the materialized prompt while suppressing the provider append;
+- a local mission edit clears `sync: synchronized`.
+
+Live broker observation after the acceptance turns: Groq recorded `lastSuccessAt 2026-11-15T20:39:41.632Z`, then a later real 429 put it in `CAPACITY_LIMITED` with `retryAfterAt 20:58:48.531Z`. The accepted turn's 200s are not rewritten as healthy now. Focused tests: **74/74 pass**. Full suite: **2215 pass / 2 fail / 8 skipped of 2225**, with both failures reproduced at baseline `97fe447`.
+
 ## Limits
 
 - A turn still cannot wait out a 30–45 s provider window inside the 12 s rung watchdog. The broker returns the truthful reset window instead of blocking the UI.

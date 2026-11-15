@@ -39,6 +39,17 @@ export type MissionStatus = (typeof MISSION_STATUSES)[number];
 
 export type MissionOwner = "user" | "lelu" | "agent" | "unknown";
 
+/**
+ * How far a record has travelled beyond this browser.
+ *
+ * There is no mission sync transport in this build, so every write starts at
+ * `local`. The other values exist so a future transport can report them
+ * honestly instead of overloading `durability` (which only says whether the
+ * local write reached a storage backend). A local record is never described
+ * as synchronized merely because it was saved.
+ */
+export type MissionSyncState = "local" | "queued" | "synchronized" | "failed";
+
 export type MissionLogKind =
   | "created"
   | "status"
@@ -98,6 +109,8 @@ export interface MissionRecord {
   log: MissionLogEntry[];
   /** Whether the LAST write actually reached a storage backend. */
   durability: "persisted" | "memory-only";
+  /** Whether this record has been queued/synchronized, never inferred from durability. */
+  sync?: MissionSyncState;
 }
 
 export interface MissionSnapshot {
@@ -150,6 +163,10 @@ const STATUS_ORDER: Record<MissionStatus, number> = {
 
 function isStatus(value: unknown): value is MissionStatus {
   return typeof value === "string" && (MISSION_STATUSES as readonly string[]).includes(value);
+}
+
+function isSyncState(value: unknown): value is MissionSyncState {
+  return value === "local" || value === "queued" || value === "synchronized" || value === "failed";
 }
 
 function isEvidence(value: unknown): value is MissionEvidence {
@@ -240,9 +257,9 @@ function normalizeRecord(raw: unknown, at: number): MissionRecord | null {
     owner,
     status,
     evidence,
-    ...(typeof item.repository === "string" ? { repository: item.repository } : {}),
-    ...(typeof item.branch === "string" ? { branch: item.branch } : {}),
-    ...(typeof item.commit === "string" ? { commit: item.commit } : {}),
+    ...(typeof item.repository === "string" ? { repository: text(item.repository) } : {}),
+    ...(typeof item.branch === "string" ? { branch: text(item.branch) } : {}),
+    ...(typeof item.commit === "string" ? { commit: text(item.commit) } : {}),
     files: list(item.files, FILE_LIMIT),
     decisions: list(item.decisions, DECISION_LIMIT),
     blockers,
@@ -254,12 +271,12 @@ function normalizeRecord(raw: unknown, at: number): MissionRecord | null {
     provenance: {
       createdBy:
         item.provenance && typeof item.provenance === "object" && typeof (item.provenance as Record<string, unknown>).createdBy === "string"
-          ? String((item.provenance as Record<string, unknown>).createdBy)
+          ? redactText(String((item.provenance as Record<string, unknown>).createdBy)).trim() || "unknown"
           : "unknown",
       ...(item.provenance &&
       typeof item.provenance === "object" &&
       typeof (item.provenance as Record<string, unknown>).session === "string"
-        ? { session: String((item.provenance as Record<string, unknown>).session) }
+        ? { session: redactText(String((item.provenance as Record<string, unknown>).session)).trim() }
         : {}),
     },
     createdAt: typeof item.createdAt === "number" ? item.createdAt : at,
@@ -268,6 +285,7 @@ function normalizeRecord(raw: unknown, at: number): MissionRecord | null {
     // A record read from storage WAS stored; the flag is re-evaluated on
     // the next write. It never means "written by this process".
     durability: "persisted",
+    sync: isSyncState(item.sync) ? item.sync : "local",
   };
 }
 
@@ -316,6 +334,11 @@ export class MissionLedger {
 
   private touch(mission: MissionRecord): void {
     mission.updatedAt = this.now();
+    // Every caller of touch() is a LOCAL change. A record imported or
+    // acknowledged as synchronized must not keep that label after this device
+    // edits it: there is no mission sync transport in this build, so the edit
+    // exists only here until a future transport says otherwise.
+    mission.sync = "local";
   }
 
   private logEntry(
@@ -358,27 +381,47 @@ export class MissionLedger {
   public create(input: CreateMissionInput): { ok: boolean; mission?: MissionRecord; error?: string; durability: string } {
     const title = text(input.title);
     if (!title) return { ok: false, error: "a mission needs a title", durability: "memory-only" };
+    const id = newId("m");
+    let duplicateOf: string | undefined;
+    if (input.duplicateOf) {
+      const requested = text(input.duplicateOf);
+      const canonical = requested ? this.canonicalTarget(id, requested) : null;
+      if (!canonical) {
+        return {
+          ok: false,
+          error: `the canonical mission "${requested}" does not exist or is not a valid canonical record`,
+          durability: "memory-only",
+        };
+      }
+      // A duplicate of a duplicate belongs to the ROOT, never to the middle of
+      // the chain. This is the same rule markDuplicate and update use.
+      duplicateOf = canonical.id;
+    }
 
     const at = this.now();
     const mission: MissionRecord = {
-      id: newId("m"),
+      id,
       title,
       objective: text(input.objective),
-      owner: input.owner ?? "unknown",
-      status: input.status ?? "active",
-      evidence: input.evidence ?? "REPORTED",
-      ...(input.repository ? { repository: input.repository } : {}),
-      ...(input.branch ? { branch: input.branch } : {}),
-      ...(input.commit ? { commit: input.commit } : {}),
+      owner:
+        input.owner === "user" || input.owner === "lelu" || input.owner === "agent"
+          ? input.owner
+          : "unknown",
+      status: duplicateOf ? "abandoned" : isStatus(input.status) ? input.status : "active",
+      evidence: isEvidence(input.evidence) ? input.evidence : "REPORTED",
+      ...(input.repository ? { repository: text(input.repository) } : {}),
+      ...(input.branch ? { branch: text(input.branch) } : {}),
+      ...(input.commit ? { commit: text(input.commit) } : {}),
       files: list(input.files ?? [], FILE_LIMIT),
       decisions: [],
       blockers: [],
       dependencies: list(input.dependencies ?? [], DEPENDENCY_LIMIT),
       nextSafeAction: input.nextSafeAction ? text(input.nextSafeAction) : null,
-      ...(input.duplicateOf ? { duplicateOf: text(input.duplicateOf) } : {}),
+      ...(duplicateOf ? { duplicateOf } : {}),
+      sync: "local",
       provenance: {
-        createdBy: input.provenance?.createdBy ?? "lelu",
-        ...(input.provenance?.session ? { session: input.provenance.session } : {}),
+        createdBy: text(input.provenance?.createdBy ?? "lelu") || "lelu",
+        ...(input.provenance?.session ? { session: text(input.provenance.session) } : {}),
       },
       createdAt: at,
       updatedAt: at,
@@ -405,9 +448,16 @@ export class MissionLedger {
     if (patch.commit !== undefined) mission.commit = text(patch.commit) || undefined;
     if (patch.dependencies !== undefined) mission.dependencies = list(patch.dependencies, DEPENDENCY_LIMIT);
     if (patch.duplicateOf !== undefined) {
-      const canonical = patch.duplicateOf ? text(patch.duplicateOf) : "";
-      if (canonical && canonical !== mission.id && this.get(canonical)) mission.duplicateOf = canonical;
-      if (!canonical) delete mission.duplicateOf;
+      const canonicalId = patch.duplicateOf ? text(patch.duplicateOf) : "";
+      if (!canonicalId) {
+        delete mission.duplicateOf;
+      } else {
+        const canonical = this.canonicalTarget(mission.id, canonicalId);
+        if (!canonical) return null;
+        mission.duplicateOf = canonical.id;
+        if (mission.status !== "abandoned") mission.status = "abandoned";
+        this.logEntry(mission, "duplicate", `Duplicate of ${canonical.id}`, mission.evidence, "mission-ledger");
+      }
     }
     this.touch(mission);
     this.save();
@@ -535,20 +585,56 @@ export class MissionLedger {
    */
   public markDuplicate(id: string, canonicalId: string, note?: string): MissionRecord | null {
     const mission = this.get(id);
-    const canonical = this.get(canonicalId);
-    if (!mission || !canonical || id === canonicalId) return null;
-    mission.duplicateOf = canonicalId;
+    const canonical = mission ? this.canonicalTarget(id, canonicalId) : null;
+    if (!mission || !canonical) return null;
+    mission.duplicateOf = canonical.id;
     if (mission.status !== "abandoned") mission.status = "abandoned";
     this.logEntry(
       mission,
       "duplicate",
-      note ? `Duplicate of ${canonicalId}: ${note}` : `Duplicate of ${canonicalId}`,
+      note ? `Duplicate of ${canonical.id}: ${note}` : `Duplicate of ${canonical.id}`,
       mission.evidence,
       "mission-ledger",
     );
     this.touch(mission);
     this.save();
     return mission;
+  }
+
+  /**
+   * Follow a duplicate chain to the canonical original. Refuses a missing,
+   * self-referential or cyclic target instead of creating an unresolvable
+   * record. The returned record is the one history belongs to.
+   */
+  private canonicalTarget(id: string, canonicalId: string): MissionRecord | null {
+    if (!canonicalId || id === canonicalId) return null;
+    let current = this.get(canonicalId);
+    if (!current) return null;
+    const seen = new Set<string>([id]);
+    while (current.duplicateOf) {
+      if (seen.has(current.id)) return null;
+      seen.add(current.id);
+      const parent = this.get(current.duplicateOf);
+      if (!parent) return null;
+      current = parent;
+    }
+    return current.id === id ? null : current;
+  }
+
+  /** Resolve the canonical record and the record the caller named. */
+  public resolveCanonical(id: string): { requested: MissionRecord; canonical: MissionRecord } | null {
+    const requested = this.get(id);
+    if (!requested) return null;
+    const seen = new Set<string>();
+    let canonical = requested;
+    while (canonical.duplicateOf) {
+      if (seen.has(canonical.id)) break;
+      seen.add(canonical.id);
+      const next = this.get(canonical.duplicateOf);
+      if (!next) break;
+      canonical = next;
+    }
+    return { requested, canonical };
   }
 
   /**
@@ -564,7 +650,15 @@ export class MissionLedger {
     const needle = text(query).toLowerCase();
     if (!needle) return [];
     const tokens = needle.split(/[^a-z0-9]+/).filter((token) => token.length >= 3);
-    const candidates = (options.includeClosed ? this.list() : this.open()).filter((mission) => {
+    const all = this.list();
+    // An exact stable id is always resolvable, including an abandoned
+    // duplicate. Hiding it by default would make the record impossible to
+    // audit after a duplicate merge; the status still says it is abandoned.
+    const exactId = all.find((mission) => mission.id.toLowerCase() === needle);
+    const candidates = all.filter((mission) => {
+      if (!options.includeClosed && mission.status !== "active" && mission.status !== "paused" && mission.status !== "blocked") {
+        if (mission.id !== exactId?.id) return false;
+      }
       if (options.status && mission.status !== options.status) return false;
       if (options.repository && mission.repository !== options.repository) return false;
       if (options.branch && mission.branch !== options.branch) return false;
@@ -658,8 +752,15 @@ export class MissionLedger {
   /* ------------------------------- briefs ------------------------------ */
 
   public brief(id: string): string {
-    const mission = this.get(id);
-    return mission ? formatMission(mission) : `No mission named "${id}".`;
+    const resolved = this.resolveCanonical(id);
+    if (!resolved) return `No mission named "${id}".`;
+    const requested = resolved.requested;
+    const mission = resolved.canonical;
+    const redirect =
+      requested.id === mission.id
+        ? ""
+        : `Requested ${requested.id} is a duplicate of ${mission.id}; the canonical record is shown.\n\n`;
+    return `${redirect}${formatMission(mission)}`;
   }
 
   /**
@@ -710,7 +811,7 @@ export function formatMission(mission: MissionRecord): string {
     mission.files.length > 0 ? `  files: ${mission.files.slice(-8).join(", ")}` : "",
     mission.decisions.length > 0 ? `  decisions: ${mission.decisions.slice(-3).join(" · ")}` : "",
     mission.dependencies.length > 0 ? `  depends on: ${mission.dependencies.join(", ")}` : "",
-    `  durability: ${mission.durability} · updated ${new Date(mission.updatedAt).toISOString()}`,
+    `  durability: ${mission.durability} · sync: ${mission.sync ?? "local"}${mission.sync === "synchronized" ? "" : " (not synchronized)"} · updated ${new Date(mission.updatedAt).toISOString()}`,
   ]
     .filter(Boolean)
     .join("\n");

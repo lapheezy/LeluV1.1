@@ -1,0 +1,164 @@
+{
+  "mission": "14.1",
+  "date": "2026-11-15",
+  "branch": "freebuff/8994d7c2e03123fc8927b6fc",
+  "localHeadBeforeReviewCommit": "97fe447b20a1d3c7872aa62a6263cbe5c963b8d7",
+  "remoteHeadBeforeReviewCommit": "e1db35586a608b6363158d3210a0eafc8c33caed",
+  "previewHost": "pv-8994d7c2e031-dc7a1735-7155-496a-aded-d018e95f79e2.style.dev",
+  "scenario": "Restore the real ledger from the prior preview origin, create genuinely new conversations with no mission id in the prompt, and ask naturally what unfinished Mission 14 work is blocked.",
+  "liveRuns": [
+    {
+      "conversationId": "4d7bf3c8-2f6a-4f45-9e14-c37ea311ef82",
+      "createdAt": "2026-11-15T20:31:03.946Z",
+      "userTimestamp": "2026-11-15T20:32:40.072Z",
+      "prompt": "Please resume the unfinished Mission 14 work I was doing. Read the ledger, tell me what is blocked and the next safe action, and record what you find.",
+      "assistantProvider": "Groq",
+      "assistantSource": "ai",
+      "assistantTimestamp": "2026-11-15T20:32:45.445Z",
+      "toolSequence": [
+        {
+          "name": "mission.find",
+          "status": "succeeded",
+          "timestamp": "2026-11-15T20:32:43.615Z",
+          "arguments": "not persisted by the runtime; toolstat records only name/outcome/time"
+        },
+        {
+          "name": "mission.update",
+          "status": "succeeded",
+          "timestamp": "2026-11-15T20:32:44.718Z",
+          "arguments": "not persisted by the runtime; ledger note and canonical id are the evidence"
+        }
+      ],
+      "resolvedMissionId": "m-406ecd7d",
+      "ledgerNote": "User asked to resume; confirmed blockers (providers are rate limited) and next safe action (continue).",
+      "ledgerUpdatedAt": "2026-11-15T20:32:44.718Z",
+      "durability": "persisted",
+      "sync": "local"
+    },
+    {
+      "conversationId": "7517f545-fa0e-42d9-b18f-84609bd69454",
+      "createdAt": "2026-11-15T20:37:37.481Z",
+      "prompt": "I'm back. What was the unfinished Mission 14 work, what is blocking it right now, and what is the next safe step? Look it up and put the answer in the record.",
+      "assistantProvider": "Groq",
+      "assistantSource": "ai",
+      "assistantTimestamp": "2026-11-15T20:37:49.245Z",
+      "toolSequence": [
+        {
+          "name": "mission.find",
+          "status": "succeeded",
+          "timestamp": "2026-11-15T20:37:45.911Z"
+        },
+        {
+          "name": "mission.brief",
+          "status": "succeeded",
+          "timestamp": "2026-11-15T20:37:47.406Z"
+        },
+        {
+          "name": "mission.update",
+          "status": "succeeded",
+          "timestamp": "2026-11-15T20:37:48.280Z"
+        }
+      ],
+      "uiActivity": "3 tools used, 1 other chat used; activity log shows mission.find, mission.brief, mission.update.",
+      "resolvedMissionId": "m-406ecd7d",
+      "ledgerNote": "Mission 14 unfinished work: objective is to prove the continuity tools work in a real conversation. Current blocker: providers are rate limited (REPORTED). Next safe step: continue.",
+      "ledgerUpdatedAt": "2026-11-15T20:37:48.279Z",
+      "durability": "persisted",
+      "sync": "local"
+    },
+    {
+      "conversationId": "ba5fdda2-4d63-4e08-9ac8-7038eb7c742f",
+      "createdAt": "2026-11-15T20:38:33.205Z",
+      "prompt": "What unfinished Mission 14 work is in the ledger, what is blocking it, and what is the next safe step? Check the record and add a short note about this check.",
+      "assistantProvider": "Groq",
+      "assistantSource": "ai",
+      "assistantTimestamp": "2026-11-15T20:38:38.121Z",
+      "uiCard": [
+        "Running mission.find (Mission 14)",
+        "Running mission.update (note)"
+      ],
+      "toolSequence": [
+        {
+          "name": "mission.find",
+          "status": "succeeded",
+          "timestamp": "2026-11-15T20:38:36.254Z",
+          "displayedArguments": {
+            "query": "Mission 14"
+          }
+        },
+        {
+          "name": "mission.update",
+          "status": "succeeded",
+          "timestamp": "2026-11-15T20:38:36.925Z",
+          "displayedArguments": {
+            "action": "note"
+          },
+          "resolvedArguments": {
+            "id": "m-406ecd7d",
+            "action": "note",
+            "value": "Checked status, blockers, and next action per user request."
+          }
+        }
+      ],
+      "resolvedMissionId": "m-406ecd7d",
+      "ledgerNote": "Checked status, blockers, and next action per user request.",
+      "ledgerUpdatedAt": "2026-11-15T20:38:36.924Z",
+      "durability": "persisted",
+      "sync": "local"
+    }
+  ],
+  "rawToolArgumentsLimit": "The runtime deliberately logs tool name, outcome and timing, not argument JSON. The third run's UI card exposed the find query and update action; the exact id/value are corroborated by the canonical id and persisted ledger note. Reports must call this PARTIAL, not exact-argument VERIFIED.",
+  "reloadVerification": {
+    "at": "2026-11-15T20:39:00Z",
+    "mission": {
+      "id": "m-406ecd7d",
+      "status": "blocked",
+      "durability": "persisted",
+      "sync": "local",
+      "nextSafeAction": "continue",
+      "lastLog": {
+        "kind": "note",
+        "detail": "Checked status, blockers, and next action per user request.",
+        "evidence": "REPORTED",
+        "at": "2026-11-15T20:38:36.924Z"
+      }
+    },
+    "duplicate": {
+      "id": "m-4863de4f",
+      "status": "abandoned",
+      "duplicateOf": "m-406ecd7d"
+    },
+    "conversationAfterReload": {
+      "id": "ba5fdda2-4d63-4e08-9ac8-7038eb7c742f",
+      "assistantProvider": "Groq",
+      "assistantSource": "ai"
+    }
+  },
+  "broker": {
+    "endpoint": "/api/model/status",
+    "observedAt": "2026-11-15T20:50:08.064Z",
+    "groq": {
+      "state": "CAPACITY_LIMITED",
+      "httpStatus": 429,
+      "lastSuccessAt": "2026-11-15T20:39:41.632Z",
+      "retryAfterAt": "2026-11-15T20:58:48.531Z",
+      "retryAfterSeconds": 516
+    },
+    "note": "The provider later hit its real rate limit after the accepted turn. That does not erase the completed 200 responses; it does mean the broker is currently reporting capacity-limited, not healthy."
+  },
+  "implementation": {
+    "finalRound": "Nonce-delimited untrusted evidence, explicit tool/status attributes, no tools available, and a final trusted runtime guard.",
+    "requestBudget": "Counts whole message objects (including tool metadata), provider context and identity prompt, and refuses to drop the materialized user prompt.",
+    "missionIdentity": "Stable ids outrank titles; duplicate chains canonicalize; local edits clear synchronized state; provenance/repository fields are redacted.",
+    "providerCooldown": "Parses declared reset windows, stores retryAfterAt, blocks half-open probes until the reset, and applies the longer window to key slots.",
+    "claimGrounding": "A mission update claim needs a successful mission_update; explicit failure/negation is not treated as a success claim, and '0 failed' is not a negation."
+  },
+  "checks": {
+    "focused": "74/74 pass across claim-grounding, mission-continuity, provider-rung-budget, request-budget, request-budget-enforcement and provider-cooldown-recovery",
+    "fullSuite": "2215 pass / 2 fail / 8 skipped of 2225 (npm test, exit 1)",
+    "baseline": "Detached worktree at 97fe447 reproduces genesis-interface and sandbox network failures; the worktree also lacked dependencies for one extra sandbox artifact, which is environmental",
+    "typecheck": "exit 0",
+    "lint": "exit 0, 0 errors, 818 existing warnings",
+    "build": "exit 0, built in 6.53 s"
+  }
+}

@@ -58,6 +58,35 @@ test("provider-appended context is counted in the same ceiling", () => {
   );
 });
 
+test("provider overhead is counted and a materialized prompt is not charged twice", () => {
+  const prompt = "resume the blocked work";
+  const budget = describeRequestBudget({
+    messages: [
+      { role: "system", content: "identity" },
+      { role: "user", content: prompt },
+    ],
+    prompt,
+    promptIncluded: true,
+    context: "mission context",
+    providerOverheadBytes: 1_000,
+    tools: [],
+    tier: "NONE",
+  });
+  const utf8 = (value: string) => new TextEncoder().encode(value).length;
+  assert.equal(budget.promptBytes, 0, "the prompt was sent twice");
+  assert.equal(budget.contextBytes, utf8("mission context"));
+  assert.equal(budget.providerOverheadBytes, 1_000);
+  assert.equal(budget.promptIncluded, true);
+  assert.equal(
+    budget.totalBytes,
+    utf8(JSON.stringify({ role: "system", content: "identity" })) +
+      utf8(JSON.stringify({ role: "user", content: prompt })) +
+      utf8("mission context") +
+      1_000,
+  );
+  assert.equal(budget.estimatedTokens, Math.ceil(budget.totalBytes / 4));
+});
+
 test("no message content is copied into the budget", () => {
   const secretish = "my private diary entry";
   const budget = describeRequestBudget({ messages: [{ role: "user", content: secretish }], tools: [] });

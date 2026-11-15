@@ -211,6 +211,19 @@ export interface AIRequest {
   prompt:
     string;
 
+  /**
+   * The prompt is already present verbatim in `messages`.
+   *
+   * Mid-tool-loop the providers avoid appending it again when the tail is a
+   * tool result. A final no-tool round converts those results into a plain
+   * user turn, so the tail is no longer a tool result and the provider would
+   * append the same question twice. This flag says the question is already
+   * there and must not be repeated. Default false, so every existing caller
+   * keeps its behaviour.
+   */
+  promptAlreadyInHistory?:
+    boolean;
+
 
 
   /**
