@@ -1,0 +1,17 @@
+flowchart LR
+  user(["Person: chat · voice · files"]) --> chat["Chat Universe"]
+  chat --> router{"AIRouter stages"}
+  router -->|"deterministic"| direct["Direct execution (no model)"]
+  router -->|"reasoning"| broker["Model broker · free tiers only"]
+  broker --> dispatcher
+  direct --> dispatcher["ToolDispatcher + AutonomyGate"]
+  subgraph tools["Tool registry"]
+    kit["Creative kit: art · Mermaid · charts · three.js → GLB · films → WebM"]
+    studio["Creation Studio: docs · decks · sheets · Excalidraw"]
+    data["Public data: Wikipedia · Wikidata · Crossref · arXiv · USGS · NWS"]
+    web["Page reader: direct → Firecrawl fallback"]
+    world["Cosmos world · Forge"]
+  end
+  dispatcher --> kit & studio & data & web & world
+  kit --> files[("Files: SVG · PNG · GLB · WebM · HTML")]
+  spend["Spend policy: zero paid use without consent"] -.-> broker
