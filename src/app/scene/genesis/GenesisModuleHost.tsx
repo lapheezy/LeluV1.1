@@ -24,7 +24,8 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import WorkspaceStewardStore from "../../../core/interface/WorkspaceStewardStore";
 import { isCompact, planWorkspace, type StewardWindow } from "../../../core/interface/WorkspaceSteward";
-import WorkspaceBar, { useContentOverflowWatch, useStewardViewport } from "./layout/WorkspaceBar";
+import WorkspaceBar from "./layout/WorkspaceBar";
+import { useContentOverflowWatch, useStewardViewport } from "./layout/stewardHooks";
 import { chatFillsScreen } from "./chat/chatLayout";
 import { InModuleWindow } from "./moduleWindowContext";
 import { APP_WINDOW_Z, CHAT_WINDOW_Z, conversationIdOf, floatsAboveChat, useGenesisActions, useGenesisState, type ModuleState } from "./GenesisCore";

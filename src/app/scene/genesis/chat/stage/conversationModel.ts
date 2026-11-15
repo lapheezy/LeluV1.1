@@ -62,7 +62,7 @@ interface MessageLike {
 
 const IMAGE = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
 const LINK = /(?<!!)\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
-const BARE = /(?<![(\[])\bhttps?:\/\/[^\s)>\]]+/g;
+const BARE = /(?<![([])\bhttps?:\/\/[^\s)>\]]+/g;
 
 export function stripMarkdown(text: string): string {
   return text

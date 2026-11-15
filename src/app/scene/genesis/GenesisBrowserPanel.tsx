@@ -84,6 +84,8 @@ interface BrowserTab {
   loaded?: boolean;
   slow?: boolean;
   hintDismissed?: boolean;
+  /** Restored from a previous session: shown as a resume card, nothing mounted until tapped. */
+  dormant?: boolean;
   /** The reader's verdict: true/false, null = no reader available to ask, undefined = not asked yet. */
   embeddable?: boolean | null;
   reader?: { status: "loading" | "read" | "failed"; title: string; text: string; error?: string };
@@ -112,7 +114,7 @@ function hostOf(url: string): string {
 function loadTabs(): BrowserTab[] {
   try {
     const saved = KvStore.getInstance().get<{ tabs?: BrowserTab[] }>(TABS_KEY);
-    const tabs = (saved?.tabs ?? []).filter((t) => t && typeof t.id === "string").map((t) => ({ ...t, view: t.view === "reader" ? "reader" as const : "page" as const, nonce: t.nonce ?? 0 }));
+    const tabs = (saved?.tabs ?? []).filter((t) => t && typeof t.id === "string").map((t) => ({ ...t, view: "page" as const, nonce: t.nonce ?? 0, dormant: Boolean(t.url) }));
     return tabs.length ? tabs : [blankTab()];
   } catch {
     return [blankTab()];
@@ -160,7 +162,7 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
   const current = activeTab?.url ?? "";
   useEffect(() => {
     try {
-      KvStore.getInstance().set(TABS_KEY, { tabs: tabs.map(({ reader: _r, slow: _s, embeddable: _e, hintDismissed: _h, ...t }) => t), activeId });
+      KvStore.getInstance().set(TABS_KEY, { tabs: tabs.map(({ reader: _r, slow: _s, embeddable: _e, hintDismissed: _h, dormant: _d, ...t }) => t), activeId });
     } catch {
       /* best-effort */
     }
@@ -175,7 +177,7 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
       return all.map((t) => {
         if (t.id !== id || t.history[t.index] === url) return t;
         const history = [...t.history.slice(0, t.index + 1), url];
-        return { ...t, url, title: hostOf(url), history, index: history.length - 1, view: "page", reader: undefined, slow: false, loaded: false, embeddable: undefined, nonce: t.nonce + 1 };
+        return { ...t, url, title: hostOf(url), history, index: history.length - 1, view: "page", reader: undefined, slow: false, loaded: false, embeddable: undefined, dormant: false, nonce: t.nonce + 1 };
       });
     });
   }, []);
@@ -208,10 +210,10 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
     if (!activeTab) return;
     const index = Math.max(0, Math.min(activeTab.history.length - 1, activeTab.index + delta));
     const url = activeTab.history[index];
-    patchTab(activeTab.id, { index, url, title: hostOf(url), view: "page", reader: undefined, slow: false, loaded: false, embeddable: undefined, nonce: activeTab.nonce + 1 });
+    patchTab(activeTab.id, { index, url, title: hostOf(url), view: "page", reader: undefined, slow: false, loaded: false, embeddable: undefined, dormant: false, nonce: activeTab.nonce + 1 });
     setAddress(url);
   };
-  const reload = () => activeTab && patchTab(activeTab.id, (t) => ({ nonce: t.nonce + 1, loaded: false, slow: false }));
+  const reload = () => activeTab && patchTab(activeTab.id, (t) => ({ nonce: t.nonce + 1, loaded: false, slow: false, dormant: false }));
   const markLoaded = (id: string) => {
     patchTab(id, { loaded: true, slow: false });
     // The "blank?" hint is a moment's offer, not a fixture over the page.
@@ -222,7 +224,7 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
   // already fetched; no answer (no reader here) leaves the hint strip.
   useEffect(() => {
     const tab = activeTab;
-    if (!tab?.url || tab.embeddable !== undefined || mode === "neko") return;
+    if (!tab?.url || tab.dormant || tab.embeddable !== undefined || mode === "neko") return;
     let cancelled = false;
     const { id, url } = tab;
     void BrowserTool.probe(url).then((verdict) => {
@@ -246,16 +248,18 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
     return () => {
       cancelled = true;
     };
+    // Keyed on the tab's identity and URL, not on every change to the tab object.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab?.id, activeTab?.url, activeTab?.embeddable, mode, patchTab]);
 
   // A page that never reports loading is most often a site refusing to be
   // embedded: say so and offer the reader instead of a blank white box.
   useEffect(() => {
-    if (!activeTab?.url || activeTab.loaded || activeTab.view !== "page") return;
+    if (!activeTab?.url || activeTab.dormant || activeTab.loaded || activeTab.view !== "page") return;
     const id = activeTab.id;
     const timer = setTimeout(() => patchTab(id, (t) => (t.loaded ? {} : { slow: true })), 9000);
     return () => clearTimeout(timer);
-  }, [activeTab?.id, activeTab?.url, activeTab?.nonce, activeTab?.loaded, activeTab?.view, patchTab]);
+  }, [activeTab?.id, activeTab?.url, activeTab?.nonce, activeTab?.loaded, activeTab?.view, activeTab?.dormant, patchTab]);
   const toggleReader = async () => {
     if (!activeTab?.url) return;
     if (activeTab.view === "reader") {
@@ -351,7 +355,7 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
         setSummary(event.excerpt ?? event.error ?? null);
       }
     });
-  }, []);
+  }, [setCurrent]);
 
   // Real navigation → real event: the canonical bus records it, the
   // surface controller opens this panel, and chat renders the browser
@@ -369,7 +373,7 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
       taskId: `browser-${Date.now()}`,
       url: target,
     });
-  }, [address]);
+  }, [address, setCurrent]);
 
   // Chat surfaces (search results, page cards) navigate this panel by
   // dispatching genesis-browser-goto — the same surface the user sees.
@@ -390,7 +394,7 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
     }
     window.addEventListener("genesis-browser-goto", onGoto);
     return () => window.removeEventListener("genesis-browser-goto", onGoto);
-  }, []);
+  }, [setCurrent]);
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -585,6 +589,14 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
       <div className="lbr-page" data-mode={mode}>
         {mode === "neko" && nekoUrl ? (
           <iframe src={nekoUrl} title="Neko virtual browser (m1k1o/neko)" allow="clipboard-read; clipboard-write; fullscreen; autoplay; camera; microphone" />
+        ) : active?.url && active.dormant ? (
+          <div className="lbr-idle" data-lelu-browser-idle data-dormant>
+            <h2>{active.title || host}</h2>
+            <p>Kept from your last session. Nothing is loaded until you resume it.</p>
+            <div className="lbr-quick">
+              <button type="button" className="lbr-chip" onClick={reload}>Resume {host}</button>
+            </div>
+          </div>
         ) : active?.url ? (
           <>
             <iframe
@@ -592,6 +604,7 @@ export default function GenesisBrowserPanel({ onClose: _onClose }: GenesisBrowse
               src={active.url}
               title="Lélu in-app browser"
               referrerPolicy="no-referrer-when-downgrade"
+              loading="lazy"
               onLoad={() => markLoaded(active.id)}
               style={{ visibility: active.view === "reader" ? "hidden" : "visible" }}
             />

@@ -351,7 +351,9 @@ test("Home and the spatial nav leave the tree (not hidden) while a conversation 
 
 test("on a phone a conversation window is the full visual viewport; one composer; apps above the chat panel", () => {
   const host = readFileSync("src/app/scene/genesis/GenesisModuleHost.tsx", "utf8");
-  assert.match(host, /const phoneSheet = compactScreen && chatWindow;/);
+  // The Workspace Steward decides sheets for EVERY window on a phone (apps
+  // too, not only chats); the legacy rule remains for unplaced windows.
+  assert.match(host, /const phoneSheet = placement \? stewardSheet : compactScreen && chatWindow;/);
   assert.match(host, /top: viewport\.offsetTop,\s*width: viewportWidth,\s*height: viewportHeight,/, "follows the keyboard-shrunk visual viewport");
   assert.match(host, /env\(safe-area-inset-bottom/);
   assert.match(host, /Math\.max\(APP_WINDOW_Z, mod\.zIndex \?\? APP_WINDOW_Z \+ cascadeIndex\)/);
@@ -359,38 +361,19 @@ test("on a phone a conversation window is the full visual viewport; one composer
   assert.match(universe, /\{sheetOpen \? null : \(/, "the Universe composer leaves while a conversation sheet owns the screen");
 });
 
-test("opening a conversation over the Universe leaves the Universe header on screen", () => {
-  // Measured at 390×844 before this: `.lcu-head` occupied y 10–80 while the
-  // conversation sheet covered y 0–844, so an 80px overlap buried the header,
-  // its cards and its close control and the app read as if the Universe had
-  // closed. The sheet must start below the header whenever the Universe is
-  // open, and keep the whole visual viewport when it is not.
+test("a phone sheet owns the screen and the Universe stays one tap away (no stacked headers)", () => {
+  // Before: the sheet started 88px below the Universe header, under its own
+  // title bar and an in-window title — three headers on a 393px screen (the
+  // owner's iPhone screenshot). Now the sheet is the whole visual viewport and
+  // its single bar carries every open window as a tab plus a way back to the
+  // Universe; the windows keep running when it is used.
   const host = readFileSync("src/app/scene/genesis/GenesisModuleHost.tsx", "utf8");
   assert.match(host, /const universeOpen = useUniverseOpen\(\);/, "the host reads the one Universe open store");
-  assert.match(
-    host,
-    /const universeHeadInset = phoneSheet && universeOpen \? UNIVERSE_COMPACT_HEAD : 0;/,
-    "only an open Universe lifts the sheet, and only on a phone sheet",
-  );
-  assert.match(host, /const UNIVERSE_COMPACT_HEAD = 88;/, "the header clearance is explicit");
-  assert.match(
-    host,
-    /top: `calc\(\$\{viewport\.offsetTop\}px \+ \$\{universeHeadInset\}px \+ env\(safe-area-inset-top, 0px\)\)`/,
-    "the sheet starts below the Universe header, including the device's top safe area",
-  );
-  assert.match(
-    host,
-    /height: `calc\(\$\{viewportHeight\}px - \$\{universeHeadInset\}px - env\(safe-area-inset-top, 0px\)\)`/,
-    "the sheet keeps the remaining visual viewport (keyboard-shrunk, not the layout viewport)",
-  );
-  assert.match(host, /paddingTop: 0,/, "the safe area is above the sheet, so it is not padded twice");
-  // The correction lives inside the `phoneSheet ? …` block: desktop windows are
-  // untouched, and a phone chat opened straight from Home still fills the screen.
-  assert.match(
-    host,
-    /const phoneSheet = compactScreen && chatWindow;[\s\S]{0,400}const universeHeadInset = phoneSheet && universeOpen/,
-    "the inset is phone-only and gated on the Universe being open",
-  );
+  assert.match(host, /\.\.\.\(stewardSheet\s*\?\s*\{\s*left: 0,\s*top: viewport\.offsetTop,\s*width: viewportWidth,\s*height: viewportHeight,/, "a steward sheet is the full visual viewport");
+  assert.match(host, /const header = stewardSheet && sheetBar \? sheetBar : chrome;/, "one bar, not a title bar plus a header");
+  const bar = readFileSync("src/app/scene/genesis/layout/WorkspaceBar.tsx", "utf8");
+  assert.match(bar, /aria-label="Back to the Universe — windows keep running" onClick=\{\(\) => \{ hideAll\(\); setUniverseOpen\(true\); \}\}/);
+  assert.match(bar, /const hideAll = \(\) => \{\s*for \(const id of ids\) actions\.minimizeModule\(id\);/, "back minimizes (keeps running), never closes");
 });
 
 test("Step 3: under a phone sheet LÉLU's single presence stays mounted, drawing slowly at an edge (no unmount, no hidden WebGL)", () => {

@@ -76,7 +76,7 @@ function hostOf(href: string): string {
 }
 
 /** The conversation as a graph, laid out in columns by exchange. Pure. */
-export function generateGraph(model: StageConversation): { nodes: CardNode[]; edges: Edge[] } {
+function generateGraph(model: StageConversation): { nodes: CardNode[]; edges: Edge[] } {
   const nodes: CardNode[] = [];
   const edges: Edge[] = [];
   const edge = (source: string, target: string, label?: string) =>
