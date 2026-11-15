@@ -35,6 +35,8 @@ import "@xyflow/react/dist/style.css";
 import KvStore from "../../../../../core/storage/KvStore";
 import { stripMarkdown, type StageConversation } from "./conversationModel";
 import { BOARD_SOURCE_EVENT } from "./boardSources";
+import { toGraph } from "./transforms";
+import { createWork } from "./works";
 
 type Kind = "question" | "answer" | "section" | "media" | "link" | "note";
 interface CardData extends Record<string, unknown> {
@@ -284,6 +286,7 @@ function Board({ conversationId, model }: { conversationId: string; model: Stage
       <div className="lbd-tools">
         <button type="button" className="lst-chip" onClick={() => { const c = flow.screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 }); addNote(c.x, c.y); }}>+ Note</button>
         <button type="button" className="lst-chip" onClick={() => flow.fitView({ padding: 0.15, duration: 500 })}>Fit</button>
+        <button type="button" className="lst-chip" data-lelu-board-save onClick={() => { createWork(conversationId, toGraph(`${model.title || "Research"} — board`, nodes, edges), "Saved the research board as a graph"); }} title="Keep this board as a versioned graph in the Studio">Save graph</button>
         <button type="button" className="lst-chip" onClick={() => save(emptyEdits())} title="Forget your moves, notes and links; regenerate from the conversation">Reset</button>
         <span className="lbd-count">{nodes.length} nodes · {edges.length} links</span>
       </div>

@@ -335,12 +335,22 @@ export function planWorkspace(input: StewardInput): StewardPlan {
  * a layout request never costs a model call.
  * ------------------------------------------------------------------ */
 
-export type StageMode = "conversation" | "cinematic" | "board" | "gallery" | "present" | "spatial";
-export const STAGE_MODES: StageMode[] = ["conversation", "cinematic", "board", "gallery", "present", "spatial"];
+export type StageMode =
+  | "conversation" | "cinematic" | "board" | "gallery" | "present" | "spatial"
+  | "research" | "document" | "diagram" | "data" | "code" | "film" | "voice" | "studio";
+export const STAGE_MODES: StageMode[] = [
+  "conversation", "cinematic", "board", "gallery", "present", "spatial",
+  "research", "document", "diagram", "data", "code", "film", "voice", "studio",
+];
+
+export type TransformTarget = "document" | "deck" | "diagram" | "chart" | "workbook" | "film";
+export const TRANSFORM_TARGETS: TransformTarget[] = ["document", "deck", "diagram", "chart", "workbook", "film"];
 
 export interface WorkspaceCommand {
   mode?: StewardMode;
   stage?: StageMode;
+  /** Make a real artifact from the conversation (Studio), then show it. */
+  transform?: TransformTarget;
   /** Module ids to open/raise as part of the command, in focus order. */
   open?: string[];
   summary: string;
@@ -365,15 +375,33 @@ export function parseWorkspaceCommand(raw: string): WorkspaceCommand | null {
   const text = raw.toLowerCase().replace(/[“”"'’]/g, "").trim();
   if (!text || text.length > 160 || /\?\s*$/.test(text)) return null;
   if (/^(why|how|what|can you explain|explain|tell me)\b/.test(text)) return null;
-  const verb = /\b(make|turn|switch|change|put|move|show|open|tile|split|organi[sz]e|tidy|arrange|clean ?up|stack|focus|maximi[sz]e|full ?screen|expand|go|present|fix|lay ?out|rearrange|sort out)\b/;
+  const verb = /\b(make|turn|switch|change|put|move|show|open|tile|split|organi[sz]e|tidy|arrange|clean ?up|stack|focus|maximi[sz]e|full ?screen|expand|go|present|fix|lay ?out|rearrange|sort out|chart|plot|draw|visuali[sz]e|write|build|create|render|export|save|convert|bring up|take me)\b/;
   if (!verb.test(text)) return null;
 
   const opens = MODULE_WORDS.filter(([re]) => re.test(text)).map(([, id]) => id);
   const mentionsChat = /\b(chat|conversation)\b/.test(text);
 
+  // Make real work from the conversation: a versioned Studio artifact.
+  const making = /\b(turn|convert|make|export|save|write|build|create|render|chart|plot|draw|visuali[sz]e)\b/.test(text) && /\b(this|it|the conversation|the chat|these|that)\b/.test(text);
+  if (making) {
+    if (/\b(slide ?deck|deck|pptx|power ?point)\b/.test(text)) return { transform: "deck", stage: "present", summary: "Built a slide deck from the conversation" };
+    if (/\b(document|report|word doc|docx|pdf|write-?up|brief)\b/.test(text)) return { transform: "document", stage: "document", summary: "Wrote a document from the conversation" };
+    if (/\b(spreadsheet|workbook|xlsx|excel)\b/.test(text)) return { transform: "workbook", stage: "data", summary: "Collected the conversation's tables into a workbook" };
+    if (/\b(chart|plot|graph the|visuali[sz]e)\b/.test(text)) return { transform: "chart", stage: "data", summary: "Charted the conversation's data" };
+    if (/\b(diagram|flow ?chart|mermaid|system map)\b/.test(text)) return { transform: "diagram", stage: "diagram", summary: "Drew a diagram of the conversation" };
+    if (/\b(film|video|movie|animation)\b/.test(text) && !/\bfilm ?mode\b/.test(text)) return { transform: "film", stage: "film", summary: "Storyboarded a film from the conversation" };
+  }
+  // Open an environment by name.
+  const envWord = /\b(research|document|diagram|data|code|film|voice|workbench|3d|gallery|board|presentation)\b/.exec(text);
+  if (envWord && /\b(open|show|switch to|go to|take me to|bring up)\b/.test(text) && /\b(workspace|environment|view|mode|studio|tab|space)\b/.test(text)) {
+    const map: Record<string, StageMode> = { research: "research", document: "document", diagram: "diagram", data: "data", code: "code", film: "film", voice: "voice", workbench: "studio", "3d": "spatial", gallery: "gallery", board: "board", presentation: "present" };
+    return { stage: map[envWord[1]], summary: `Opened the ${envWord[1]} workspace` };
+  }
+
   // Stage transformations of the conversation itself.
   if (/\bcinematic|immersive|movie|film ?mode\b/.test(text)) return { stage: "cinematic", summary: "Made the conversation cinematic" };
-  if (/\b(research|visual|knowledge|idea|mind) ?(board|map|graph|canvas)\b|\bboard\b|\bknowledge graph\b|\bcanvas\b|\bdiagram\b/.test(text))
+  if (/\b(diagram|flow ?chart)\b/.test(text)) return { stage: "diagram", summary: "Opened the diagram workspace" };
+  if (/\b(research|visual|knowledge|idea|mind) ?(board|map|graph|canvas)\b|\bboard\b|\bknowledge graph\b|\bcanvas\b/.test(text))
     return { stage: "board", summary: "Turned the conversation into a research board" };
   if (/\b(gallery|images|pictures|photos|media)\b/.test(text) && !opens.length) {
     return /\bbeside|next to|alongside\b/.test(text)

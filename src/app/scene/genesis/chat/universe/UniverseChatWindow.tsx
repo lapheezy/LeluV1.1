@@ -44,6 +44,17 @@ interface PendingAttachment {
   dataUrl?: string;
 }
 import { buildStage } from "../stage/conversationModel";
+import { artifactKey, environmentOf, recommendEnvironment } from "../../../../../core/interface/Environments";
+import { parseWorkspaceCommand } from "../../../../../core/interface/WorkspaceSteward";
+import StudioStore from "../../../../../core/studio/StudioStore";
+
+const AUTO_OFF_KEY = "lelu.autoEnvironments.off";
+function autoEnvironmentsOff(): boolean {
+  try { return window.localStorage.getItem(AUTO_OFF_KEY) === "1"; } catch { return false; }
+}
+function setAutoEnvironmentsOff(off: boolean): void {
+  try { if (off) window.localStorage.setItem(AUTO_OFF_KEY, "1"); else window.localStorage.removeItem(AUTO_OFF_KEY); } catch { /* best-effort */ }
+}
 import StageSwitcher from "../stage/StageSwitcher";
 import CinematicStage from "../stage/CinematicStage";
 import GalleryStage from "../stage/GalleryStage";
@@ -51,6 +62,11 @@ import PresentStage from "../stage/PresentStage";
 import "../stage/stage.css";
 
 const BoardStage = lazy(() => import("../stage/BoardStage"));
+// The making/finding environments and their Studio wiring: one lazy chunk.
+const EnvironmentStage = lazy(() => import("../stage/EnvironmentStages"));
+const ScenesPanel = lazy(() => import("../stage/EnvironmentStages").then((m) => ({ default: m.ScenesPanel })));
+const VisualsPanel = lazy(() => import("../stage/EnvironmentStages").then((m) => ({ default: m.VisualsPanel })));
+const DeckExport = lazy(() => import("../stage/EnvironmentStages").then((m) => ({ default: m.DeckExport })));
 const SpatialStage = lazy(() => import("../stage/SpatialStage"));
 
 /** The turn running in this chat, from the same record the chat panel shows. */
@@ -86,6 +102,7 @@ export default function UniverseChatWindow({
   const stage = useStage(conversationId);
   const [draft, setDraft] = useState("");
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [spatialTab, setSpatialTab] = useState<"scenes" | "ideas">("scenes");
   // Files attached here ride with the message into the thread.
   const [attached, setAttached] = useState<PendingAttachment[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -104,6 +121,40 @@ export default function UniverseChatWindow({
   useEffect(() => {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
   }, [messageCount, conversation?.processing, stage]);
+
+  /*
+   * LÉLU arranges the environment for the work, when a turn finishes:
+   * what was asked and what was made decide (Environments.recommendEnvironment,
+   * rules — no model call). Only from plain Chat, never over a stage the
+   * person chose; explicit layout commands already staged themselves.
+   */
+  const [autoNote, setAutoNote] = useState<{ stage: StageMode; reason: string } | null>(null);
+  const wasProcessing = useRef(conversation?.processing ?? false);
+  useEffect(() => {
+    const was = wasProcessing.current;
+    wasProcessing.current = conversation?.processing ?? false;
+    if (!conversation || !was || conversation.processing) return;
+    if (WorkspaceStewardStore.stageOf(conversation.id) !== "conversation") return;
+    if (autoEnvironmentsOff()) return;
+    const msgs = conversation.messages;
+    const lastUser = [...msgs].reverse().find((m) => m.role === "user");
+    const reply = msgs[msgs.length - 1];
+    if (!lastUser || reply?.role !== "assistant" || parseWorkspaceCommand(lastUser.text)) return;
+    const studio = StudioStore.getInstance();
+    const made = (reply.activity?.artifacts ?? []).map((a) => {
+      const art = studio.get(a.artifactId);
+      const medium = art ? (studio.latest(art).spec as { medium?: string }).medium : undefined;
+      return artifactKey({ kind: art?.kind ?? a.kind, medium });
+    });
+    const asked = lastUser.text.replace(/^\/(research|chart|scene|film|diagram|art|data|sketch|collection)\b/, (_m, c: string) => ({ research: "research", chart: "chart of", scene: "3d scene", film: "film", diagram: "diagram", art: "artwork", data: "data on", sketch: "sketch", collection: "fashion collection" })[c] ?? c);
+    const rec = recommendEnvironment(asked, made);
+    if (!rec || rec.stage === "conversation") return;
+    WorkspaceStewardStore.setStage(conversation.id, rec.stage);
+    if (environmentOf(rec.stage).layout === "fullscreen") WorkspaceStewardStore.setMode("fullscreen", chatWindowId(conversation.id));
+    WorkspaceStewardStore.record({ by: "lelu", what: `environment → ${rec.stage}`, reasons: [`opened ${environmentOf(rec.stage).label} because ${rec.reason} (no model call)`] });
+    setAutoNote(rec);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversation?.processing]);
 
   if (!conversation) {
     return (
@@ -148,7 +199,7 @@ export default function UniverseChatWindow({
   const setStage = (next: StageMode) => {
     genesis.raiseModule(moduleId);
     WorkspaceStewardStore.setStage(conversation.id, next);
-    if (next === "present" || next === "spatial" || next === "cinematic") WorkspaceStewardStore.setMode("fullscreen", moduleId);
+    if (environmentOf(next).layout === "fullscreen") WorkspaceStewardStore.setMode("fullscreen", moduleId);
     else if (WorkspaceStewardStore.get().mode === "fullscreen") WorkspaceStewardStore.setMode("auto", moduleId);
     WorkspaceStewardStore.record({ by: "user", what: `stage → ${next}`, reasons: [`${conversation.title} staged as ${next}`] });
   };
@@ -258,10 +309,34 @@ export default function UniverseChatWindow({
       body = <CinematicStage model={model} processing={conversation.processing} />;
       break;
     case "gallery":
-      body = <GalleryStage model={model} thread={thread} />;
+      body = (
+        <div className="lst-stack">
+          <Suspense fallback={null}><VisualsPanel conversationId={conversation.id} model={model} /></Suspense>
+          <GalleryStage model={model} thread={thread} />
+        </div>
+      );
       break;
     case "present":
-      body = <PresentStage model={model} onExit={() => setStage("conversation")} />;
+      body = (
+        <div className="lst-stack">
+          <Suspense fallback={null}><DeckExport conversationId={conversation.id} model={model} /></Suspense>
+          <PresentStage model={model} onExit={() => setStage("conversation")} />
+        </div>
+      );
+      break;
+    case "research":
+    case "document":
+    case "diagram":
+    case "data":
+    case "code":
+    case "film":
+    case "voice":
+    case "studio":
+      body = (
+        <Suspense fallback={<StageLoading label={stage} />}>
+          <EnvironmentStage stage={stage} conversationId={conversation.id} model={model} messages={conversation.messages} setStage={setStage} />
+        </Suspense>
+      );
       break;
     case "board":
       body = (
@@ -272,9 +347,15 @@ export default function UniverseChatWindow({
       break;
     case "spatial":
       body = (
-        <Suspense fallback={<StageLoading label="3D environment" />}>
-          <SpatialStage model={model} />
-        </Suspense>
+        <div className="lst-stack" data-spatial-tab={spatialTab}>
+          <div className="lst-subtabs" role="tablist" aria-label="3D">
+            <button type="button" role="tab" aria-selected={spatialTab === "scenes"} data-on={spatialTab === "scenes"} onClick={() => setSpatialTab("scenes")}>Scenes &amp; models</button>
+            <button type="button" role="tab" aria-selected={spatialTab === "ideas"} data-on={spatialTab === "ideas"} onClick={() => setSpatialTab("ideas")}>Ideas in space</button>
+          </div>
+          <Suspense fallback={<StageLoading label="3D environment" />}>
+            {spatialTab === "ideas" ? <SpatialStage model={model} /> : <ScenesPanel conversationId={conversation.id} model={model} />}
+          </Suspense>
+        </div>
       );
       break;
     default:
@@ -299,6 +380,14 @@ export default function UniverseChatWindow({
           </button>
         </span>
       </div>
+      {autoNote && autoNote.stage === stage ? (
+        <div className="lst-autonote" role="status" data-lelu-auto-environment={autoNote.stage}>
+          <span>✦ LÉLU opened <strong>{environmentOf(autoNote.stage).label}</strong> — {autoNote.reason}.</span>
+          <button type="button" onClick={() => { setAutoNote(null); setStage("conversation"); }}>Back to chat</button>
+          <button type="button" onClick={() => { setAutoNote(null); setAutoEnvironmentsOff(true); }}>Don't switch automatically</button>
+          <button type="button" aria-label="Dismiss" onClick={() => setAutoNote(null)}>×</button>
+        </div>
+      ) : null}
       <div className="lcu-win-controls" data-open={controlsOpen ? "true" : "false"}>
         <div className="lcu-win-controls-row" role="menu" aria-label={`${conversation.title} controls`}>
           {action(conversation.pinned ? "Unpin conversation" : "Pin conversation", () => MultiChatStore.getInstance().pin(conversation.id), conversation.pinned)}

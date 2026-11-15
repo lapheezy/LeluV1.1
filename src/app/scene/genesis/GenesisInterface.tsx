@@ -23,6 +23,8 @@
  */
 
 import { arrangeWorkspace, setStage, type StewardHost } from "./layout/stewardActions";
+import { transformConversation } from "./chat/stage/transformActions";
+import { TRANSFORM_TARGETS, type TransformTarget } from "../../../core/interface/WorkspaceSteward";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useWorkspaceRoot } from "./useWorkspace";
 import { conversationIdOf, useGenesis, type GenesisPanel } from "./GenesisCore";
@@ -481,6 +483,12 @@ export default function GenesisInterface() {
       // Workspace Steward: LÉLU's layout and staging requests run here, locally.
       arrangeWorkspace: (mode, modules, by) => arrangeWorkspace(stewardHost(), mode, modules, by),
       setStage: (stage, conversationId, by) => setStage(stewardHost(), stage, conversationId, by),
+      transformConversation: (target, conversationId) => {
+        const id = conversationId ?? stewardStateRef.current.activeConversationId;
+        if (!id) return { ok: false, detail: "There is no conversation to work from." };
+        if (!(TRANSFORM_TARGETS as string[]).includes(target)) return { ok: false, detail: `Unknown target "${target}". Targets: ${TRANSFORM_TARGETS.join(", ")}.` };
+        return transformConversation(id, target as TransformTarget);
+      },
     });
     return unregister;
     // Registered once per mount — handlers close over stable useGenesis

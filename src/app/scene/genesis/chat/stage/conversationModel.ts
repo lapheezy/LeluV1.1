@@ -74,7 +74,15 @@ export function stripMarkdown(text: string): string {
 }
 
 export function gistOf(text: string, max = 90): string {
-  const plain = stripMarkdown(text.replace(/^#+ .*$/m, ""));
+  // Prose only: tables, code and list markers are not a title.
+  const prose = text
+    .replace(/^#+ .*$/m, "")
+    .replace(/```[\s\S]*?```/g, " ")
+    .split("\n")
+    .filter((l) => !/^\s*\|/.test(l))
+    .map((l) => l.replace(/^\s*([-*+]|\d+[.)])\s+/, ""))
+    .join(" ");
+  const plain = stripMarkdown(prose);
   const first = plain.split(/(?<=[.!?])\s/)[0] ?? plain;
   return first.length > max ? `${first.slice(0, max - 1).trimEnd()}…` : first;
 }

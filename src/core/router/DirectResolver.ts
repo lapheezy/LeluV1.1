@@ -37,7 +37,8 @@ export function workspacePlan(prompt: string): DirectPlan | null {
   if (command.mode || command.open?.length) {
     steps.push({ tool: "workspace.arrange", args: { layout: command.mode ?? "auto", modules: command.open ?? [] }, label: command.summary });
   }
-  if (command.stage) steps.push({ tool: "workspace.stage", args: { stage: command.stage }, label: command.summary });
+  if (command.transform) steps.push({ tool: "workspace.transform", args: { to: command.transform }, label: command.summary });
+  if (command.stage) steps.push({ tool: "workspace.stage", args: { stage: command.stage }, label: command.transform ? `Showed it in the ${command.stage} workspace` : command.summary });
   return steps.length ? { steps, summary: command.summary, explicit: true } : null;
 }
 
@@ -118,7 +119,7 @@ export default class DirectResolver {
     const okCount = ran.filter((r) => r.ok).length;
     const workspace = plan.steps.every((step) => step.tool.startsWith("workspace."));
     const preface = workspace
-      ? `${plan.summary}. I rearranged my own workspace locally — 0 model calls, nothing sent anywhere.`
+      ? `${plan.summary}. Done on this device — 0 model calls, nothing sent anywhere.`
       : reason === "no-provider"
       ? `No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: ${plan.summary}.`
       : `Done directly with my own tools (no model involved): ${plan.summary}.`;

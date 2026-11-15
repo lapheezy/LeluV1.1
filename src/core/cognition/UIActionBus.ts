@@ -44,7 +44,9 @@ export type UIActionType =
   /** Workspace Steward: target = auto|tile|split|focus|stack|fullscreen; `modules` opened first. */
   | "arrange_workspace"
   /** Stage a conversation: target = conversation|cinematic|board|gallery|present|spatial. */
-  | "set_stage";
+  | "set_stage"
+  /** Make a Studio artifact from a conversation: target = document|deck|diagram|chart|workbook|film. */
+  | "transform_conversation";
 
 export interface UIAction {
   type: UIActionType;
@@ -79,6 +81,7 @@ export interface UIActionHandlers {
   /** Workspace Steward hooks — present when the live interface supports them. */
   arrangeWorkspace?(mode: string, modules: string[], by: "lelu" | "user"): UIActionResult;
   setStage?(stage: string, conversationId: string | undefined, by: "lelu" | "user"): UIActionResult;
+  transformConversation?(target: string, conversationId: string | undefined): UIActionResult;
 }
 
 export default class UIActionBus {
@@ -209,6 +212,10 @@ export default class UIActionBus {
       case "set_stage": {
         if (!this.handlers.setStage) return { ok: false, detail: "This interface cannot stage conversations." };
         return this.handlers.setStage(action.target ?? "conversation", action.conversationId, action.initiatedBy);
+      }
+      case "transform_conversation": {
+        if (!this.handlers.transformConversation) return { ok: false, detail: "This interface cannot make artifacts from a conversation." };
+        return this.handlers.transformConversation(action.target ?? "document", action.conversationId);
       }
       case "return_to_previous": {
         if (this.previousPanel === null) {

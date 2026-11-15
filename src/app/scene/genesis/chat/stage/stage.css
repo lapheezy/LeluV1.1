@@ -198,3 +198,95 @@
 .lst-slide-copy { padding-bottom: 86px; }
 .lst-composer textarea { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lst-composer textarea:focus { white-space: pre-wrap; }
+
+/* ---------- environments (EnvironmentStages.tsx) ---------- */
+.lst-switch-sep { width: 1px; align-self: stretch; margin: 6px 3px; background: rgba(196, 170, 255, 0.22); flex-shrink: 0; }
+.lst-stack { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.lst-stack > .lst-gallery, .lst-stack > .lst-present, .lst-stack > .lsp, .lst-stack > .lev-scroll { flex: 1; min-height: 0; }
+.lst-subtabs { display: flex; gap: 4px; padding: 8px 10px 0; flex-shrink: 0; }
+.lst-subtabs button { height: 30px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(196, 170, 255, 0.22); background: transparent; color: rgba(239, 234, 255, 0.75); font: 600 12px system-ui; cursor: pointer; }
+.lst-subtabs button[data-on="true"] { background: rgba(139, 92, 246, 0.45); color: #fff; border-color: transparent; }
+.lev-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.lev { padding: 14px clamp(12px, 3cqi, 28px) 120px; display: flex; flex-direction: column; gap: 12px; color: #efeaff; font: 14px/1.5 var(--lelu-font-ui, "Inter", system-ui, sans-serif); text-align: left; }
+.lst-stack > .lev-visuals, .lst-stack > .lev { padding-bottom: 12px; flex-shrink: 0; max-height: 55%; overflow-y: auto; }
+.lev-head { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; padding: 14px 16px; border-radius: 18px; background: linear-gradient(135deg, rgba(76, 29, 149, 0.35), rgba(14, 116, 144, 0.18)); border: 1px solid rgba(196, 170, 255, 0.16); }
+.lev-head p { margin: 4px 0 0; color: rgba(239, 234, 255, 0.82); max-width: 640px; }
+.lev-eyebrow { font: 700 10.5px system-ui; letter-spacing: 0.16em; text-transform: uppercase; color: #f0abfc; }
+.lev-actions, .lev-row, .lev-export, .lev-versions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.lev-btn { min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(196, 170, 255, 0.28); background: rgba(255, 255, 255, 0.05); color: #efeaff; font: 600 12.5px system-ui; cursor: pointer; white-space: nowrap; }
+.lev-btn[data-tone="primary"] { background: linear-gradient(135deg, #8b5cf6, #ec4899); border-color: transparent; box-shadow: 0 8px 24px rgba(168, 85, 247, 0.35); }
+.lev-btn:disabled { opacity: 0.4; cursor: default; }
+.lev-btn:not(:disabled):active { transform: scale(0.97); }
+.lev select { min-height: 36px; border-radius: 999px; padding: 0 12px; background: rgba(255, 255, 255, 0.06); color: #efeaff; border: 1px solid rgba(196, 170, 255, 0.28); }
+.lev-search { display: flex; gap: 6px; flex-wrap: wrap; }
+.lev-search input { flex: 1 1 220px; min-width: 0; min-height: 42px; padding: 0 16px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(196, 170, 255, 0.28); color: #fff; font: 500 15px system-ui; }
+.lev-hint { margin: 0; color: rgba(239, 234, 255, 0.6); font-size: 12.5px; }
+.lev-empty { color: rgba(239, 234, 255, 0.55); margin: 4px 0; }
+.lev-notice { margin: 0; color: #6ee7b7; font: 600 12.5px system-ui; }
+.lev-error { color: #fca5a5; font: 500 12.5px ui-monospace, monospace; white-space: pre-wrap; }
+.lev-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+@container (max-width: 760px) { .lev-split { grid-template-columns: minmax(0, 1fr); } }
+.lev-panel { padding: 12px 14px; border-radius: 16px; background: rgba(18, 12, 46, 0.72); border: 1px solid rgba(196, 170, 255, 0.14); min-width: 0; }
+.lev-panel h4, .lev-toc h4 { margin: 0 0 8px; font: 700 11px system-ui; letter-spacing: 0.14em; text-transform: uppercase; color: #c4b5fd; }
+.lev-source { display: flex; gap: 6px; align-items: center; padding: 8px 0; border-top: 1px solid rgba(196, 170, 255, 0.1); }
+.lev-source > div { flex: 1; min-width: 0; }
+.lev-source strong, .lev-hit strong { display: block; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lev-source span, .lev-hit span { display: block; color: rgba(239, 234, 255, 0.6); font-size: 12px; }
+.lev-hit { display: block; width: 100%; text-align: left; padding: 8px 10px; border-radius: 12px; border: 0; background: rgba(255, 255, 255, 0.04); color: inherit; margin-top: 6px; cursor: pointer; }
+.lev-works { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.lev-works button { flex-shrink: 0; text-align: left; padding: 8px 12px; border-radius: 14px; border: 1px solid rgba(196, 170, 255, 0.2); background: rgba(255, 255, 255, 0.04); color: #efeaff; cursor: pointer; max-width: 260px; }
+.lev-works button[data-on="true"] { border-color: #f0abfc; background: rgba(168, 85, 247, 0.22); }
+.lev-works strong { display: block; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lev-works span { font-size: 11px; color: rgba(239, 234, 255, 0.6); }
+.lev-doc { padding: clamp(16px, 4cqi, 48px); border-radius: 18px; background: #fbf8ff; color: #1d1530; font: 16px/1.7 Georgia, "Iowan Old Style", serif; max-width: 860px; }
+.lev-doc[data-compact="true"] { padding: 14px; font-size: 14px; background: rgba(251, 248, 255, 0.96); }
+.lev-doc h1 { font: 700 clamp(26px, 4cqi, 40px)/1.1 "Fraunces", Georgia, serif; margin: 0 0 6px; color: #2e1065; }
+.lev-doc h2 { font: 700 22px/1.25 "Fraunces", Georgia, serif; color: #4c1d95; margin: 1.3em 0 0.4em; }
+.lev-doc h3 { font: 700 17px/1.3 system-ui; color: #6d28d9; margin: 1em 0 0.3em; }
+.lev-doc [contenteditable="true"] { outline: 2px dashed rgba(124, 58, 237, 0.35); outline-offset: 3px; border-radius: 4px; }
+.lev-doc blockquote { margin: 0.8em 0; padding: 0.4em 1em; border-left: 3px solid #a855f7; color: #4c1d95; white-space: pre-wrap; }
+.lev-doc img { max-width: 100%; border-radius: 12px; }
+.lev-doc figcaption { font-size: 13px; color: #6b5f86; }
+.lev-sub { color: #6b5f86; margin: 0 0 1em; }
+.lev-sources { margin-top: 1.5em; font-size: 13px; }
+.lev-table { overflow-x: auto; max-width: 100%; }
+.lev-table table { border-collapse: collapse; font: 13px system-ui; min-width: 100%; }
+.lev-table th, .lev-table td { padding: 6px 10px; border-bottom: 1px solid rgba(124, 58, 237, 0.18); text-align: left; white-space: nowrap; }
+.lev .lev-table th { color: #c4b5fd; }
+.lev-doc .lev-table th { color: #4c1d95; }
+.lev-tablecard { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; border-top: 1px solid rgba(196, 170, 255, 0.1); }
+.lev-toc ol { margin: 0; padding-left: 20px; }
+.lev-toc li { margin: 4px 0; }
+.lev-code { width: 100%; min-height: 260px; resize: vertical; box-sizing: border-box; padding: 12px; border-radius: 12px; background: #07051a; color: #e9d5ff; border: 1px solid rgba(196, 170, 255, 0.2); font: 12.5px/1.55 ui-monospace, "SF Mono", Menlo, monospace; tab-size: 2; }
+.lev-svg { background: #fff; border-radius: 12px; padding: 10px; overflow: auto; max-height: 520px; }
+.lev-svg svg { max-width: 100%; height: auto; }
+.lev-frame { width: 100%; min-height: 320px; border: 0; border-radius: 12px; background: #fff; }
+.lev-chipsel { height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(196, 170, 255, 0.22); background: transparent; color: #efeaff; font: 600 12px ui-monospace, monospace; cursor: pointer; }
+.lev-chipsel[data-on="true"] { background: rgba(139, 92, 246, 0.45); }
+.lev-board { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.lev-board li strong { display: block; }
+.lev-board li span { color: rgba(239, 234, 255, 0.7); font-size: 12.5px; }
+.lev-board li em { color: #c4b5fd; font-size: 11px; }
+.lev-readalong { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
+.lev-readalong li { padding: 8px 10px; border-radius: 12px; }
+.lev-readalong li[data-on="true"] { background: rgba(168, 85, 247, 0.22); box-shadow: inset 3px 0 0 #f0abfc; }
+.lev-readalong button { border: 0; background: none; color: #fde68a; font: 700 14px system-ui; padding: 0; cursor: pointer; text-align: left; }
+.lev-readalong p { margin: 4px 0 0; color: rgba(239, 234, 255, 0.78); font-size: 13px; }
+.lev-pick { display: grid; gap: 6px; }
+.lev-pick label { display: flex; gap: 8px; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(196, 170, 255, 0.14); cursor: pointer; }
+.lev-pick label[data-on="true"] { border-color: #f0abfc; }
+.lev-pick span { margin-left: auto; color: rgba(239, 234, 255, 0.55); font-size: 12px; }
+.lev-objects { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.lev-objects span { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.05); font: 12px ui-monospace, monospace; }
+.lev-objects input[type="color"] { width: 26px; height: 26px; border: 0; background: none; padding: 0; }
+.lev-objects button { border: 0; background: none; color: #fca5a5; cursor: pointer; font-size: 15px; }
+.lev-diff { margin: 4px 0 0; padding-left: 18px; width: 100%; font-size: 12.5px; color: rgba(239, 234, 255, 0.8); }
+.lev-visual { border-radius: 16px; overflow: hidden; background: rgba(6, 4, 22, 0.6); }
+.lev-deckbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 8px 12px; flex-shrink: 0; border-bottom: 1px solid rgba(196, 170, 255, 0.12); }
+.lev-wb h4 { margin: 10px 0 4px; }
+.lev-enter { animation: lev-in 280ms cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes lev-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .lev-enter { animation: none; } }
+.lst-autonote { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 8px 10px 0; padding: 8px 10px 8px 14px; border-radius: 14px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.18)); border: 1px solid rgba(240, 171, 252, 0.35); color: #fdf4ff; font: 500 12.5px system-ui; flex-shrink: 0; animation: lev-in 280ms ease both; }
+.lst-autonote span { flex: 1 1 200px; }
+.lst-autonote button { min-height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.25); background: rgba(0, 0, 0, 0.15); color: #fff; font: 600 12px system-ui; cursor: pointer; }

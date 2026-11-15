@@ -77,6 +77,13 @@ export const INTERFACE_TOOLS: ToolDefinition[] = [
     ["READ"],
   ),
   tool(
+    "workspace.transform",
+    "Turn the Conversation into Work",
+    "Make a real, versioned Studio artifact from the current conversation, locally (no model call): document (DOCX/PDF/MD), deck (PPTX), diagram (Mermaid, SVG/PNG), chart (from its tables), workbook (XLSX) or film (WebM storyboard). Use for 'turn this into a report/presentation/diagram/chart/spreadsheet/film'",
+    0,
+    ["READ"],
+  ),
+  tool(
     "spatial.portal.create",
     "Create a Spatial Portal",
     "Create a named portal in LÉLU's spatial ring that leads to one real environment. It is stored in the canonical portal registry, appears in the ring immediately and can be removed later. Only destinations that exist in the scene graph are accepted; an unknown one is refused with a reason rather than creating a portal that opens nothing",
@@ -223,6 +230,18 @@ export const INTERFACE_EXECUTORS: InterfaceExecutor[] = [
       const modules = Array.isArray(args.modules) ? args.modules.filter((m): m is string => typeof m === "string") : [];
       const result = (await uiBus()).dispatch({ type: "arrange_workspace", target: layout, modules, reason: "workspace.arrange", initiatedBy: "lelu" });
       return { ok: result.ok, content: result.detail, data: { layout, modules, modelCalls: 0 } };
+    },
+  },
+  {
+    id: "workspace.transform",
+    parameters: OBJ({
+      to: { type: "string", enum: ["document", "deck", "diagram", "chart", "workbook", "film"] },
+      conversationId: { type: "string", description: "defaults to the active conversation" },
+    }, ["to"]),
+    run: async (args) => {
+      const to = str(args, "to") || "document";
+      const result = (await uiBus()).dispatch({ type: "transform_conversation", target: to, conversationId: str(args, "conversationId") || undefined, reason: "workspace.transform", initiatedBy: "lelu" });
+      return { ok: result.ok, content: result.detail, data: { to, modelCalls: 0 } };
     },
   },
   {
