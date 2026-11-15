@@ -81,4 +81,76 @@ No new progress was persisted because no valid model-authored continuation compl
 - `artifacts/mission-14-next/chat-turn1.png` (the earlier Mission 14 turn, not this attempt)
 - Provider errors in `artifacts/mission-14-next/provider-resilience.json`
 
-Labels: cross-conversation **tool access = VERIFIED once**; model-authored correct-record retrieval **BLOCKED**; model-authored continuation **BLOCKED**; persistence across reload **VERIFIED (unchanged record)**.
+Labels for this attempt: cross-conversation **tool access = VERIFIED once**; model-authored correct-record retrieval **BLOCKED**; model-authored continuation **BLOCKED**; persistence across reload **VERIFIED (unchanged record)**.
+
+---
+
+# FOLLOW-UP — VERIFIED (2026-11-15, later session)
+
+The original attempts above stay recorded as BLOCKED. They are not overwritten.
+
+## Result
+
+**VERIFIED.** A genuinely new conversation discovered the correct blocked record, read its brief, answered from it, and persisted a new update. The final reply was produced by the remote **Groq** provider, not by the local projector.
+
+## What changed first
+
+1. **Duplicate identity.** `m-4863de4f` is now `status: abandoned`, `duplicateOf: m-406ecd7d`, with the relationship stored in the ledger. The record survives reload.
+2. **Resolution tool.** `mission.find` ranks by stable id, title, objective, status, project identity and provenance, returns the best match plus alternatives, and warns when a title is shared. `mission.list`/`formatMission` now print an `identity:` line with the id, creator, session and creation time, plus `duplicate of` where set.
+3. **Routing.** `Resume the blocked Mission 14 workstream` no longer becomes a project task, a task-plan (`task.resume`), or an operational snapshot. A mission-resume turn goes to the provider with only `mission_list`, `mission_find`, `mission_brief` and `mission_update`.
+4. **Final-round protocol.** A no-tool final round converts assistant `tool_calls`/`role:"tool"` history into plain evidence text. Measured Groq error on the old shape: `400 tool_use_failed — "Tool choice is none, but model called a tool"`.
+5. **Context budget.** Provider-appended context is now counted against the request ceiling. A resume turn omits the self-description block, preserving live retrieval evidence; measured old request was ~23,672 bytes / 5,890 prompt tokens before the final failure.
+
+## Successful conversation
+
+- Conversation: `4903d20a-4cbb-4389-a441-16ac463ed39a`, created 16:46:00 UTC
+- Prompt: natural language only, **no mission id**
+- Provider: **Groq**, model `openai/gpt-oss-20b`; stored message has `provider: Groq`, `source: ai`
+- Tool calls, in order:
+  1. `mission.find` — succeeded 16:46:10.889 UTC
+  2. `mission.brief` — succeeded 16:46:11.836 UTC
+  3. `mission.update` (`note`) — succeeded 16:46:13.354 UTC
+- Resolved record: **`m-406ecd7d`** (the blocked original), not the duplicate.
+
+Model-authored reply, verbatim:
+
+> **Mission 14 – conversational-proof workstream (m‑406ecd7d)**
+> - **What’s done:** The objective is still pending – we haven’t yet advanced past the “blocked” state.
+> - **What’s blocked:** Provider rate limits are preventing the continuation step.
+> - **Next safe action:** **continue** – attempt to resume the workstream once the rate limits clear.
+>
+> I’ve added a note that the continuation attempt failed due to provider limits and updated the record accordingly. The mission ledger now reflects this status.
+
+Persisted update on `m-406ecd7d`: `note` — “Attempted to continue but providers are rate limited”, `REPORTED`, at 16:46:13.354 UTC, durability `persisted`, `updatedAt: 1794761173354`.
+
+The update is **persisted local state**: the ledger write reached the browser store. It is not synchronized to another device, not queued for a backend, and not memory-only. Those four states remain distinct in the record (`durability` plus the absence of any sync/queue path).
+
+## Reload verification
+
+After a full page reload:
+
+```text
+m-406ecd7d
+status: blocked
+next: continue
+durability: persisted
+updatedAt: 1794761173354
+last log: Attempted to continue but providers are rate limited
+m-4863de4f: abandoned · duplicateOf m-406ecd7d
+```
+
+The conversation still exists with `assistantProvider: Groq`.
+
+## Honest limits
+
+- The UI stored tool names, success, timestamps and activity labels, not raw tool-call argument JSON. The persisted id and note are the argument evidence.
+- The successful provider call was not broker-trace-logged. Its remote identity rests on the stored `provider: Groq` / `source: ai` message, the natural reply text (not the partial-work or text-project fallback), and the failing OpenRouter/Groq log immediately before it.
+- “Next safe action: continue” is the model’s own recorded next step; the blocker itself was not cleared because it remains true.
+
+## Evidence
+
+- `artifacts/mission-14-next/cross-conversation-success.json`
+- `artifacts/mission-14-next/cross-conversation-attempt.json` (the preserved earlier BLOCKED attempt)
+- `artifacts/mission-14-next/provider-resilience.json`
+
+Labels for the follow-up: correct-record retrieval **VERIFIED**; brief read **VERIFIED**; model-authored reply **VERIFIED (remote Groq)**; persisted update **VERIFIED**; reload survival **VERIFIED**; duplicate identity **VERIFIED**.

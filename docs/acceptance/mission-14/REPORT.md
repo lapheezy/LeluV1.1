@@ -157,7 +157,7 @@ Mission 14 conversational proof (m-406ecd7d)
   durability: persisted · updated 2026-11-15T01:02:36.762Z
 ```
 
-That is the saved state, including completed vs unfinished work and the next safe action. **Not verified:** a model-authored resume sentence in a new conversation. Every remote provider was out of free quota at that point (`429`), so the local fallback replied without tools. This is recorded as **BLOCKED**, not as a pass.
+That is the saved state, including completed vs unfinished work and the next safe action. **Not verified at that time:** a model-authored resume sentence in a new conversation. Every remote provider was out of free quota at that point (`429`), so the local fallback replied without tools. This is recorded as **BLOCKED**, not as a pass. (Superseded by the §11 follow-up, where the remote Groq model completed the resume.)
 
 ---
 
@@ -216,7 +216,7 @@ No existing file was deleted, renamed or overwritten destructively.
 | Focused tests | `npx tsx … --test tests/mission-continuity.test.ts` | **16/16 pass**, exit 0 |
 | Full suite | `npm test` | **2188 pass / 2 fail / 8 skipped of 2198**, exit 1 |
 | Lint | `npx oxlint` | **0 errors**, 169 warnings (pre-existing style warnings) |
-| Follow-up suite (14.2) | `npm test` | **2191 pass / 2 fail / 8 skipped of 2201**, exit 1 — same two failures |
+| Follow-up suite (14.2 + 14.1 fixes) | `npm test` | **2198 pass / 2 fail / 8 skipped of 2208**, exit 1 — same two failures |
 | Follow-up lint/build (14.2) | `npx oxlint`; `npm run build` | **exit 0** (409 warnings, 0 errors); **exit 0**, built in 6.00 s |
 | Verification script | `npx tsx scripts/verify-mission-continuity.ts` | **16/16 checks pass**; JSON regenerated |
 
@@ -317,7 +317,7 @@ No monitoring, tracking or private-surveillance capability was added.
 
 - `VERIFIED`: typecheck, lint, build, focused tests, browser boot, Continuity tab, persisted ledger record, live pulse digest, real inspect/create/update turns, persisted `mission.brief` after reload, two catalogued skill bodies, bound broker probe.
 - `PARTIAL`: provider availability over time (real 2xx then 429), skills (catalogued, not invocable), project-graph breadth, offline sync foundation.
-- `BLOCKED`: model-authored resume reply in a fresh conversation (every configured remote provider returned 429 during the final pass).
+- `BLOCKED` at the time: model-authored resume reply in a fresh conversation (every configured remote provider returned 429 during that pass). Superseded by the §11 follow-up: **VERIFIED** with remote Groq.
 - `UNAVAILABLE`: any invocable skill executor (the catalogue is read-only); live engineering runtime (`/api/engineer/status` 503).
 - `PROPOSED`: Cosmos Composition Engine, Earth Core adoption, Eagle Eye absorption, full offline sync.
 - `SIMULATED`: nothing in this slice is presented as live; tests use injected event buses and in-memory stores only where stated.
@@ -326,12 +326,14 @@ No monitoring, tracking or private-surveillance capability was added.
 
 ## 11. Follow-up slices — Mission 14.1 and 14.2 (2026-11-15)
 
-### Mission 14.1 — cross-conversation resumption: **BLOCKED**
+### Mission 14.1 — cross-conversation resumption: **BLOCKED earlier → VERIFIED on follow-up**
 
-A genuinely new conversation reached the continuity ledger (`mission.list` succeeded), but the final answer came from local fallback, selected the active duplicate `m-4863de4f`, and never called `mission.brief` on `m-406ecd7d`. Two retries were stopped by Groq's 8,000 TPM limit and a `tool_use_failed` response. No model-authored continuation was persisted. See [`CROSS_CONVERSATION.md`](CROSS_CONVERSATION.md).
+The first attempts are preserved as **BLOCKED**: a genuinely new conversation reached the ledger, but the final answer came from local fallback, selected the active duplicate `m-4863de4f`, and never called `mission.brief` on `m-406ecd7d`. Two retries were stopped by Groq's 8,000 TPM limit and `tool_use_failed`.
+
+The follow-up fixed duplicate identity (`m-4863de4f` is now `abandoned`/`duplicateOf m-406ecd7d`), added `mission.find` with id/status/project/provenance ranking, routed resume turns to the provider with only the four mission tools, flattened tool history on no-tool final rounds, and stripped the non-evidence self-state from resume requests. In conversation `4903d20a-4cbb-4389-a441-16ac463ed39a` the remote **Groq** model called `mission.find → mission.brief → mission.update` on `m-406ecd7d`, reported the blocker and next action, and persisted the note `Attempted to continue but providers are rate limited`; it survived reload. See [`CROSS_CONVERSATION.md`](CROSS_CONVERSATION.md) and `artifacts/mission-14-next/cross-conversation-success.json`.
 
 ### Mission 14.2 — provider resilience: **PARTIAL**
 
-The broker now learns per-credential reset windows from body text, `Retry-After` and `X-RateLimit-Reset`, refuses a fully cooling provider without another upstream call, exposes the reset window in status, removes it from the offered chain, and clears cooldowns on a real 2xx. Live: OpenRouter's second request was served locally with a 29,334 s reset; Groq returned a real 200 and `COMPLETION_VERIFIED`. Long-window recovery and a tool turn under 8k TPM remain blocked. See [`PROVIDER_RESILIENCE.md`](PROVIDER_RESILIENCE.md).
+The broker now learns per-credential reset windows from body text, `Retry-After` and `X-RateLimit-Reset`, refuses a fully cooling provider without another upstream call, exposes the reset window in status, removes it from the offered chain, and clears cooldowns on a real 2xx. Live: OpenRouter's second request was served locally with a 29,334 s reset; Groq returned a real 200 and `COMPLETION_VERIFIED`. The follow-up also converts tool history to plain evidence on no-tool final rounds, counts provider context in the request ceiling, and narrows a resume turn to the four mission schemas. A real tool-enabled conversation then completed after an OpenRouter→Groq switch; long-window OpenRouter recovery remains unobserved. See [`PROVIDER_RESILIENCE.md`](PROVIDER_RESILIENCE.md).
 
 No branch was merged. Phase 6–9, voice and the mobile runtime were not touched.
