@@ -1,0 +1,114 @@
+{
+  "mission": 15,
+  "generated": "2026-11-15",
+  "baseCommit": "1632fe2",
+  "branch": "freebuff/capability-expansion",
+  "pushedTo": "integration/lelu-four-workforce-consolidation",
+  "checks": {
+    "typecheck": { "command": "npx tsc -b --force", "exit": 0 },
+    "build": { "command": "npm run build", "exit": 0, "bundle": "dist/assets/index-CZFMGD6c.js", "bundleKb": 376.55, "gzipKb": 116.84, "seconds": 5.83 },
+    "tests": {
+      "creative-build": { "pass": 18, "fail": 0 },
+      "creative-kit": { "pass": 17, "fail": 0 },
+      "creation-studio-tools": { "pass": 9, "fail": 0 },
+      "chat-surface": { "pass": 31, "fail": 0 },
+      "module-layout": { "pass": 11, "fail": 0 }
+    }
+  },
+  "domains": [
+    {
+      "domain": "mechanical",
+      "request": "build a gear train with 16 driver teeth and 30 output teeth",
+      "artifact": "art_31bb6bec577a",
+      "parts": 85,
+      "layers": 5,
+      "steps": 5,
+      "derived": ["Driver pitch radius 48.0 mm", "Output pitch radius 90.0 mm", "Centre distance 258.0 mm (108.0 + 150.0)", "Ratio 1.88 : 1", "Output speed 800 rpm"],
+      "status": "VERIFIED"
+    },
+    {
+      "domain": "architecture",
+      "request": "design a cabin with 2 storeys and 4 bays",
+      "artifact": "art_98903e492873",
+      "parts": 34,
+      "layers": 6,
+      "derived": ["Footprint 6 x 4.5 m", "Floor area 54.0 m2", "Bay spacing 2.00 m", "Roof rise 1.05 m", "Ridge height 6.40 m", "Windows 6"],
+      "status": "VERIFIED"
+    },
+    {
+      "domain": "science",
+      "request": "build a methane molecule with ball and stick bonds",
+      "artifact": "art_8424ab9d8f16",
+      "parts": 9,
+      "layers": 3,
+      "derived": ["Formula CH4", "Bond angle 109.5°", "Bond length 1.60 Å (drawn at 160 mm)", "Atoms 5", "Bonds 4"],
+      "status": "VERIFIED"
+    }
+  ],
+  "modifications": [
+    {
+      "request": "make the output gear bigger",
+      "artifact": "art_31bb6bec577a",
+      "revision": 2,
+      "why": "larger output gear: 30 -> 34 teeth (the ratio follows)",
+      "diff": ["Output teeth 30 -> 34", "Output pitch radius 90.0 -> 102.0 mm", "Centre distance 258.0 -> 270.0 mm", "Ratio 1.88 -> 2.13 : 1", "Output speed 800 -> 706 rpm", "Components 85 -> 89"],
+      "identityPreserved": true
+    },
+    {
+      "request": "add another floor to the cabin",
+      "artifact": "art_98903e492873",
+      "revision": 2,
+      "why": "one more storey (2 -> 3)",
+      "diff": ["Storeys 2 -> 3", "Floor area 54.0 -> 81.0 m2", "Ridge height 6.40 -> 9.00 m", "Windows 6 -> 9", "Components 34 -> 37"],
+      "identityPreserved": true
+    },
+    {
+      "request": "make it space-filling",
+      "artifact": "art_8424ab9d8f16",
+      "revision": 2,
+      "why": "space-filling model",
+      "diff": ["Model style ball-and-stick -> space-filling"],
+      "identityPreserved": true
+    }
+  ],
+  "persistence": {
+    "test": "full page reload",
+    "result": "four construction cards restored with canvases and revision badges",
+    "status": "VERIFIED"
+  },
+  "export": {
+    "command": "/export cabin glb",
+    "file": "3-bay-cabin-6-45-m.glb",
+    "bytes": 76216,
+    "sha256Prefix": "cb11300ca580",
+    "checks": ["file is not empty", "GLB header, version and length — glTF 2", "79 nodes / 37 meshes / 0 animations"],
+    "exportMs": 117,
+    "status": "VERIFIED"
+  },
+  "explanation": {
+    "command": "/explain lubrication",
+    "answer": "Oil sump, Oil pump, Oil filter, Oil galleries — read from the artifact's own layer notes",
+    "status": "VERIFIED"
+  },
+  "researchToCreation": {
+    "command": "/build gearbox teethIn=12 teethOut=36 source=https://en.wikipedia.org/wiki/Gear_train",
+    "fromSources": "idler teeth 20 (the page states “20” next to “teeth”)",
+    "assumed": ["driver teeth 12", "output teeth 36", "module 0.006", "face width 0.016", "input 1500"],
+    "rejectedChecks": ["any digits anywhere in the article", "12 matched inside 12.2 km/h"],
+    "status": "PARTIAL"
+  },
+  "regression": {
+    "command": "/engine",
+    "cardHeightPx": 782,
+    "canvas": true,
+    "status": "VERIFIED"
+  },
+  "limitations": [
+    "no physical validation — schematics only, not manufacturing drawings",
+    "three domains only (mechanical, architecture, science)",
+    "mobile evidence is a 384x661 simulated viewport; no hardware, no landscape, no touch gestures",
+    "wide desktop layout not viewed in this mission (Playwright unavailable)",
+    "research-to-creation is one page and caller-chosen parameters, not autonomous derivation",
+    "each revision appears as an additional card in the thread"
+  ]
+}
