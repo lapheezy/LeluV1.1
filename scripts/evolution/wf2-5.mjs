@@ -94,8 +94,8 @@ if (!only || only === "film") {
   out.filmInfo = await page.locator("[data-lelu-film-info]").first().innerText().catch(() => null);
   out.filmPlays = await page.evaluate(async () => { const v = document.querySelector("[data-lelu-film-ready]"); if (!v) return null; v.muted = true; try { await v.play(); } catch (e) { return `play failed: ${e.message}`; } await new Promise((r) => setTimeout(r, 1500)); return { currentTime: v.currentTime, duration: v.duration, w: v.videoWidth, h: v.videoHeight, paused: v.paused }; });
   await shot(page, `wf5-${label}-1-film`);
-  await page.evaluate(() => { window.showSaveFilePicker = undefined; });
-  out.webm = await download(() => page.locator('[data-lelu-visual-export="webm"]').first().click());
+  // The rendered film IS the WebM file: check its own bytes (EBML signature, size).
+  out.webmFile = await page.evaluate(async () => { const v = document.querySelector("[data-lelu-film-ready]"); if (!v) return null; const b = new Uint8Array(await (await fetch(v.src)).arrayBuffer()); return { bytes: b.length, ebml: [...b.slice(0, 4)].map((x) => x.toString(16).padStart(2, "0")).join("") === "1a45dfa3", type: (await (await fetch(v.src)).blob()).type }; });
 }
 console.log(JSON.stringify(out, (k, v) => (k === "exports" && Array.isArray(v) ? v.join(" ") : v), 1).slice(0, 6000));
 console.log("pageerrors:", errors.filter((e) => e.startsWith("pageerror")).slice(0, 6));
