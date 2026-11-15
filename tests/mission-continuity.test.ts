@@ -57,9 +57,12 @@ import {
   registerContinuityTools,
 } from "../src/core/cognition/ContinuityTools";
 import { executableToolIds } from "../src/core/tools/ToolDispatcher";
+import { describeToolSelection, toolSchemasForModel } from "../src/core/tools/ToolSchemas";
 import type { MissionRecord } from "../src/core/projects/MissionLedger";
 import type { SelfModelState } from "../src/core/cognition/SelfModel";
 import KvStore from "../src/core/storage/KvStore";
+import { deriveBrokerHealth, type BrokerHealthSnapshot } from "../src/core/model/ProviderHealth";
+import { parseSkillFile } from "../src/core/skills/SkillRegistry";
 
 /** Isolated storage per test. Never the process's shared native storage. */
 function memoryKv(): KvStore {
@@ -355,6 +358,8 @@ function sources(overrides: Partial<SelfModelSources> = {}): SelfModelSources {
     workspaces: () => ({ views: [{ id: "v1", kind: "cognition", title: "Cognition" }], focusId: "v1" }),
     missions: () => [sampleMission()],
     pulse: () => [],
+    providers: () => null,
+    skills: () => [],
     environment: () => ({
       updatedAt: 1,
       platform: "iPhone",
@@ -381,7 +386,7 @@ test("the self-model labels an available capability PARTIAL until a real success
   assert.equal(byId.get("capability.ai-chat")!.state, "PARTIAL", "a declaration is not a verified run");
   assert.equal(byId.get("capability.long-term-memory")!.state, "VERIFIED", "a recent success is evidence");
   assert.equal(byId.get("capability.short-term-memory")!.state, "BLOCKED", "missing configuration is an obstacle");
-  assert.equal(byId.get("skills.registry")!.state, "UNAVAILABLE", "there is no runtime skill registry");
+  assert.equal(byId.get("skills.registry")!.state, "UNAVAILABLE", "an empty catalogue is not a runtime skill registry");
   assert.equal(byId.get("missions.continuity")!.state, "VERIFIED");
   assert.equal(byId.get("workspace.runtime")!.state, "VERIFIED");
   assert.equal(byId.get("runtime.environment")!.state, "VERIFIED");
@@ -400,6 +405,66 @@ test("the self-model labels an available capability PARTIAL until a real success
   assert.match(report, /OPERATIONAL SELF/);
   assert.match(report, /evidence:/);
   assert.match(report, /PARTIAL/);
+});
+
+test("provider health separates configured from working and keeps both timestamps", () => {
+  const observations = deriveBrokerHealth(
+    {
+      providers: { groq: true, openrouter: true, githubModels: true, anthropic: false },
+      states: {
+        groq: { state: "COMPLETION_VERIFIED", at: 1_000, httpStatus: 200, lastSuccessAt: 2_000 },
+        openrouter: { state: "CONFIGURED" },
+        githubModels: {
+          state: "CONTRACT_VIOLATION",
+          at: 3_000,
+          httpStatus: 200,
+          lastFailureAt: 3_000,
+          lastFailureStatus: 200,
+          lastFailureNote: "2xx body was not JSON, so not a completion",
+        },
+        anthropic: { state: "UNCONFIGURED" },
+      },
+    },
+    5_000,
+  );
+  const byId = new Map(observations.map((provider) => [provider.id, provider]));
+  assert.equal(byId.get("groq")!.availability, "verified");
+  assert.equal(byId.get("groq")!.lastSuccessAt, 2_000);
+  assert.equal(byId.get("openrouter")!.availability, "unverified", "a configured key is not a working provider");
+  assert.equal(byId.get("githubModels")!.availability, "failing");
+  assert.equal(byId.get("githubModels")!.lastFailureNote, "2xx body was not JSON, so not a completion");
+  assert.equal(byId.get("anthropic")!.availability, "blocked");
+  assert.equal(byId.get("groq")!.observedAt, 5_000);
+
+  const snapshot: BrokerHealthSnapshot = {
+    at: 5_000,
+    endpoint: "/api/model/status",
+    providers: observations,
+    probeError: null,
+    durability: "persisted",
+  };
+  const self = assembleOperationalSelf(sources({ providers: () => snapshot }), 5_000);
+  const claims = new Map(self.claims.map((claim) => [claim.id, claim]));
+  assert.equal(claims.get("provider.groq")!.state, "VERIFIED");
+  assert.equal(claims.get("provider.openrouter")!.state, "PARTIAL");
+  assert.equal(claims.get("provider.githubModels")!.state, "UNAVAILABLE");
+  assert.equal(claims.get("provider.anthropic")!.state, "BLOCKED");
+  assert.match(claims.get("provider.groq")!.statement, /last success 1970-01-01T00:00:02\.000Z/);
+  assert.match(claims.get("providers.health")!.statement, /1 of 3 configured provider/);
+});
+
+test("a skill body is catalogued with an honest non-invocable contract", () => {
+  const skill = parseSkillFile(
+    '---\nname: demo\ndescription: "Use when doing demo work."\n---\n\n# Demo\n',
+    "/repo/.agents/skills/demo/SKILL.md",
+  );
+  assert.ok(skill);
+  assert.equal(skill!.id, "demo");
+  assert.equal(skill!.name, "demo");
+  assert.equal(skill!.source, ".agents/skills/demo/SKILL.md");
+  assert.equal(skill!.invocable, false);
+  assert.equal(skill!.evidence, "REPORTED");
+  assert.match(skill!.reason, /No dispatcher executor/);
 });
 
 test("a source that throws is UNAVAILABLE and does not hide the rest", () => {
@@ -462,6 +527,17 @@ test("continuity tools register through the one dispatcher and refuse unknown mi
   const selfResult = await selfTool.run({});
   assert.equal(selfResult.ok, true);
   assert.match(selfResult.content, /OPERATIONAL SELF/);
+});
+
+test("a continuity turn is offered the whole family, including the self-read", () => {
+  registerContinuityTools();
+  const selection = describeToolSelection(
+    toolSchemasForModel(),
+    "Call mission_update on m-406ecd7d, then mission_brief and mission_list. Report durability.",
+  );
+  for (const name of ["self_operational", "mission_list", "mission_record", "mission_update", "mission_brief"]) {
+    assert.ok(selection.names.includes(name), `${name} must be offered on a continuity turn: ${selection.names.join(", ")}`);
+  }
 });
 
 test("the pulse is not listening twice after a repeated bootstrap", () => {

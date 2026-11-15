@@ -47,6 +47,7 @@ import OperationalSelfModel, {
 } from "../../../core/cognition/OperationalSelfModel";
 import MissionLedgerStore from "../../../core/projects/MissionLedger";
 import CognitivePulseStore from "../../../core/cognition/CognitivePulse";
+import { BrokerHealthStore, type BrokerHealthSnapshot } from "../../../core/model/ProviderHealth";
 import type { MissionEvidence } from "../../../core/operational-intelligence/evidence";
 
 const labelStyle: CSSProperties = {
@@ -136,6 +137,9 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
   const [missionState, setMissionState] = useState<MissionState>(() => mission.get());
   const [studyBusy, setStudyBusy] = useState(false);
   const [continuity, setContinuity] = useState<OperationalSelfSnapshot | null>(null);
+  const [providerHealth, setProviderHealth] = useState<BrokerHealthSnapshot | null>(() =>
+    BrokerHealthStore.getInstance().get(),
+  );
   const [loopRunning, setLoopRunning] = useState(true);
   const [search, setSearch] = useState("");
   const [addField, setAddField] = useState("");
@@ -869,7 +873,16 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
                 </div>
                 <button
                   type="button"
-                  onClick={() => setContinuity(OperationalSelfModel.getInstance().snapshot())}
+                  onClick={() => {
+                    // Read immediately from the last observation, then ask the
+                    // broker and re-read: the button must never imply a fresh
+                    // provider check it did not make.
+                    setContinuity(OperationalSelfModel.getInstance().snapshot());
+                    void BrokerHealthStore.getInstance().refresh().then((health) => {
+                      setProviderHealth(health);
+                      setContinuity(OperationalSelfModel.getInstance().snapshot());
+                    });
+                  }}
                   style={{ ...chipButton, padding: "5px 12px", fontSize: 11, background: "rgba(34, 211, 238, 0.2)" }}
                 >
                   Read now
@@ -897,6 +910,40 @@ export default function GenesisCognitionPanel({ onClose }: GenesisCognitionPanel
                       </span>
                     ))}
                   </div>
+                  {providerHealth && providerHealth.providers.length > 0 ? (
+                    <div style={{ marginTop: 10 }}>
+                      <div style={labelStyle}>
+                        Providers · observed {new Date(providerHealth.at).toLocaleTimeString()}
+                        {providerHealth.probeError ? ` · probe failed: ${providerHealth.probeError}` : ""}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                        {providerHealth.providers.map((provider) => {
+                          const color =
+                            provider.availability === "verified"
+                              ? "#4ade80"
+                              : provider.availability === "unverified"
+                                ? "#facc15"
+                                : provider.availability === "failing"
+                                  ? "#fb923c"
+                                  : "#f87171";
+                          return (
+                            <div key={provider.id} style={{ display: "flex", gap: 8, fontSize: 11.5 }}>
+                              <span style={{ color, minWidth: 74, fontWeight: 700 }}>{provider.availability}</span>
+                              <span style={{ flex: 1 }}>
+                                {provider.id} · {provider.state}
+                                <span style={{ opacity: 0.55 }}>
+                                  {" "}· last success {provider.lastSuccessAt ? new Date(provider.lastSuccessAt).toLocaleString() : "never observed"}
+                                  {provider.lastFailureAt
+                                    ? ` · last failure ${new Date(provider.lastFailureAt).toLocaleString()}${provider.lastFailureStatus ? ` (HTTP ${provider.lastFailureStatus})` : ""}`
+                                    : ""}
+                                </span>
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
                   <div style={{ marginTop: 10, fontSize: 11, opacity: 0.7 }}>
                     {continuity.identity.name} · autonomy {continuity.autonomyLevel === null ? "unreadable" : `L${continuity.autonomyLevel}`} ·{" "}
                     network {continuity.environment.online === null ? "unknown" : continuity.environment.online ? "online" : "offline"}

@@ -23,6 +23,8 @@ import {
   registerContinuityTools,
 } from "../src/core/cognition/ContinuityTools";
 import { MissionLedger } from "../src/core/projects/MissionLedger";
+import { deriveBrokerHealth } from "../src/core/model/ProviderHealth";
+import { parseSkillFile, SkillRegistry } from "../src/core/skills/SkillRegistry";
 import { missionEvidenceFromOperational } from "../src/core/operational-intelligence/evidence";
 import { executableToolIds } from "../src/core/tools/ToolDispatcher";
 import type KvStore from "../src/core/storage/KvStore";
@@ -164,6 +166,69 @@ async function main(): Promise<void> {
   const report = model.report();
   check("the report is prompt-safe and labelled", report.includes("OPERATIONAL SELF") && report.includes("[PARTIAL]"), report.split("\n")[1] ?? "");
 
+  /* 4b. Broker health: a configured key is not a working provider. */
+  const broker = deriveBrokerHealth(
+    {
+      providers: { groq: true, openrouter: true, cerebras: false, githubModels: true },
+      states: {
+        groq: {
+          state: "COMPLETION_VERIFIED",
+          at: 1_000,
+          httpStatus: 200,
+          lastSuccessAt: 1_000,
+        },
+        openrouter: {
+          state: "COMPLETION_VERIFIED",
+          at: 2_000,
+          httpStatus: 200,
+          lastSuccessAt: 1_000,
+          lastFailureAt: 2_000,
+          lastFailureStatus: 429,
+          lastFailureNote: "rate limit / quota refusal",
+        },
+        cerebras: { state: "UNCONFIGURED" },
+        githubModels: { state: "CONFIGURED" },
+      },
+    },
+    3_000,
+  );
+  const byId = new Map(broker.map((entry) => [entry.id, entry]));
+  check(
+    "a 2xx completion with a later refusal is failing, not working",
+    byId.get("groq")?.availability === "verified" &&
+      byId.get("openrouter")?.availability === "failing" &&
+      byId.get("openrouter")?.lastFailureStatus === 429,
+    `${byId.get("groq")?.availability}/${byId.get("openrouter")?.availability}`,
+  );
+  check(
+    "no credential is BLOCKED, while a credential with no evidence is only UNVERIFIED",
+    byId.get("cerebras")?.availability === "blocked" &&
+      byId.get("githubModels")?.availability === "unverified" &&
+      byId.get("githubModels")?.configured === true,
+    `${byId.get("cerebras")?.availability}/${byId.get("githubModels")?.availability}`,
+  );
+
+  /* 4c. Skill body parser, on a fixture with the real frontmatter shape. */
+  const parsedSkill = parseSkillFile(
+    '---\nname: demo-skill\ndescription: "A fixture skill body."\n---\n\nSteps.\n',
+    ".agents/skills/demo/SKILL.md",
+  );
+  check(
+    "a real SKILL.md parses to a non-invocable catalogue entry",
+    parsedSkill?.id === "demo" &&
+      parsedSkill.name === "demo-skill" &&
+      parsedSkill.description === "A fixture skill body." &&
+      parsedSkill.invocable === false &&
+      parsedSkill.source === ".agents/skills/demo/SKILL.md",
+    parsedSkill ? `${parsedSkill.id} invocable=${parsedSkill.invocable}` : "not parsed",
+  );
+  const nodeCatalogue = new SkillRegistry({}).list();
+  check(
+    "under a plain Node runner the catalogue is honestly empty, not fabricated",
+    nodeCatalogue.length === 0,
+    `${nodeCatalogue.length} entries`,
+  );
+
   /* 5. Persist evidence. */
   const outDir = path.join(process.cwd(), "docs", "acceptance", "mission-14");
   mkdirSync(outDir, { recursive: true });
@@ -185,6 +250,8 @@ async function main(): Promise<void> {
       resumeBrief: reloaded.resumeBrief(),
     },
     pulse: { summary: pulse.summary(), digest: pulse.digest(6) },
+    brokerHealth: broker,
+    skills: { parsedFixture: parsedSkill, nodeCatalogueSize: nodeCatalogue.length },
     selfModel: {
       counts: snapshot.counts,
       claims: snapshot.claims.map((claim) => ({ id: claim.id, state: claim.state, source: claim.source })),

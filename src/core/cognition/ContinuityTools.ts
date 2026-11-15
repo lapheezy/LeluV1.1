@@ -28,6 +28,7 @@ import MissionLedgerStore, {
   type MissionOwner,
   type MissionStatus,
 } from "../projects/MissionLedger.ts";
+import { BrokerHealthStore } from "../model/ProviderHealth.ts";
 import type { MissionEvidence } from "../operational-intelligence/evidence.ts";
 
 const EVIDENCE_STATES: MissionEvidence[] = [
@@ -158,6 +159,10 @@ export const CONTINUITY_EXECUTORS: ToolExecutor[] = [
     id: "self.operational",
     parameters: { type: "object", properties: {} },
     run: async (): Promise<ToolExecutionResult> => {
+      // Probe before reporting: a self-model that only reads a cached boolean
+      // is the configuration claim this mission exists to remove. A failed
+      // probe is recorded on the snapshot instead of aborting the read.
+      const health = await BrokerHealthStore.getInstance().refresh();
       const snapshot = OperationalSelfModel.getInstance().snapshot();
       return {
         ok: true,
@@ -166,6 +171,16 @@ export const CONTINUITY_EXECUTORS: ToolExecutor[] = [
           counts: snapshot.counts,
           sourcesUnreadable: snapshot.sourceFailures.map((failure) => failure.source),
           openWorkstreams: snapshot.missions.length,
+          providerHealth: {
+            at: health.at,
+            probeError: health.probeError,
+            providers: health.providers.map((provider) => ({
+              id: provider.id,
+              availability: provider.availability,
+              lastSuccessAt: provider.lastSuccessAt,
+              lastFailureAt: provider.lastFailureAt,
+            })),
+          },
         },
       };
     },

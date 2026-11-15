@@ -38,6 +38,7 @@
 
 import type AIProviderRegistry from "../AIProviderRegistry";
 import { BudgetExhaustedError, gatedGenerate } from "../observability/UsageBudgetGate";
+import KvStore from "../storage/KvStore.ts";
 
 /** Why a provider is or is not usable right now. */
 export type ProviderAvailability =
@@ -255,5 +256,269 @@ export default class ProviderHealth {
       `  live verification attempted: ${report.liveVerificationAttempted}`,
       ...lines,
     ].join("\n");
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * BROKER-OBSERVED HEALTH — Mission 14
+ *
+ * The class above reads the page's own registry. For BROKERED providers the
+ * page holds no key and the server is the only authority: `/api/model/status`
+ * is where a real 2xx, a 429, a rejected credential and their timestamps are
+ * recorded. This section reuses that endpoint and keeps the observation.
+ *
+ * It does not replace the registry inspection above, and it does not claim
+ * a configured key is a working provider. A row is `verified` only from an
+ * observed completion; `unverified` means configured but never observed
+ * succeeding. A failed probe keeps the previous real rows and records the
+ * probe error separately, so "I could not check" never becomes "fine".
+ * ------------------------------------------------------------------ */
+
+export type BrokerAvailability =
+  | "verified"
+  | "unverified"
+  | "failing"
+  | "blocked"
+  | "unknown";
+
+export interface BrokerProviderObservation {
+  id: string;
+  /** The server's "the chain may try this provider" boolean. */
+  available: boolean;
+  /** Whether a credential is configured at all. */
+  configured: boolean;
+  /** The broker's evidence state, verbatim (COMPLETION_VERIFIED, …). */
+  state: string;
+  availability: BrokerAvailability;
+  /** When a real 2xx completion was last observed, if ever. */
+  lastSuccessAt: number | null;
+  /** When a refusal/limit/outage was last observed, if ever. */
+  lastFailureAt: number | null;
+  lastFailureStatus: number | null;
+  lastFailureNote: string | null;
+  /** When LÉLU read this provider's row from the status endpoint. */
+  observedAt: number;
+}
+
+export interface BrokerHealthSnapshot {
+  at: number;
+  endpoint: string;
+  providers: BrokerProviderObservation[];
+  /** Set when the status endpoint itself could not be read. */
+  probeError: string | null;
+  durability: "persisted" | "memory-only";
+}
+
+const BROKER_KEY = "provider-health.v1";
+const BROKER_ENDPOINT = "/api/model/status";
+
+const VERIFIED_STATES = new Set(["COMPLETION_VERIFIED", "TOOL_CALLING_VERIFIED"]);
+const BLOCKED_STATES = new Set([
+  "UNCONFIGURED",
+  "POLICY_DISABLED",
+  "SPEND_NOT_AUTHORIZED",
+  "AUTHENTICATION_FAILED",
+  "COOLDOWN",
+]);
+const FAILING_STATES = new Set([
+  "CAPACITY_LIMITED",
+  "UNREACHABLE",
+  "CONTRACT_VIOLATION",
+  "CREDENTIAL_ROTATED",
+]);
+
+interface BrokerState {
+  state?: string;
+  at?: number;
+  httpStatus?: number;
+  note?: string;
+  lastSuccessAt?: number;
+  lastFailureAt?: number;
+  lastFailureStatus?: number;
+  lastFailureNote?: string;
+}
+
+const numberOrNull = (value: unknown): number | null =>
+  typeof value === "number" && Number.isFinite(value) ? value : null;
+
+const stringOrNull = (value: unknown): string | null =>
+  typeof value === "string" && value.trim() ? value.trim() : null;
+
+/**
+ * Turn the broker's status body into observations. Pure, so the
+ * classification can be tested without a server or a browser.
+ */
+export function deriveBrokerHealth(
+  body: unknown,
+  observedAt: number = Date.now(),
+): BrokerProviderObservation[] {
+  if (!body || typeof body !== "object") return [];
+  const record = body as {
+    providers?: Record<string, unknown>;
+    states?: Record<string, unknown>;
+  };
+  const providers = record.providers && typeof record.providers === "object" ? record.providers : {};
+  const states = record.states && typeof record.states === "object" ? record.states : {};
+  const ids = [...new Set([...Object.keys(providers), ...Object.keys(states)])].sort();
+
+  return ids.map((id) => {
+    const rawState = states[id];
+    const state: BrokerState =
+      rawState && typeof rawState === "object" ? (rawState as BrokerState) : {};
+    const available = providers[id] === true;
+    // The server only sets `providers[id]` true when a credential exists and
+    // no policy refusal applies. UNCONFIGURED is the authoritative "no key".
+    const configured = state.state !== "UNCONFIGURED" && (available || state.state !== undefined);
+    const name = state.state ?? "UNKNOWN";
+
+    const explicitSuccess = numberOrNull(state.lastSuccessAt);
+    const explicitFailure = numberOrNull(state.lastFailureAt);
+    const lastSuccessAt =
+      explicitSuccess ?? (VERIFIED_STATES.has(name) ? numberOrNull(state.at) : null);
+    const lastFailureAt =
+      explicitFailure ?? (BLOCKED_STATES.has(name) || FAILING_STATES.has(name) ? numberOrNull(state.at) : null);
+    const lastFailureStatus =
+      numberOrNull(state.lastFailureStatus) ??
+      (lastFailureAt !== null ? numberOrNull(state.httpStatus) : null);
+    const lastFailureNote =
+      stringOrNull(state.lastFailureNote) ??
+      (lastFailureAt !== null ? stringOrNull(state.note) ?? name : null);
+
+    let availability: BrokerAvailability;
+    if (!configured) availability = "blocked";
+    else if (BLOCKED_STATES.has(name)) availability = "blocked";
+    else if (FAILING_STATES.has(name)) availability = "failing";
+    else if (VERIFIED_STATES.has(name)) {
+      // A later failure means the provider worked once and is not working now.
+      availability =
+        lastFailureAt !== null && (lastSuccessAt === null || lastFailureAt > lastSuccessAt)
+          ? "failing"
+          : "verified";
+    } else if (name === "CONFIGURED") availability = "unverified";
+    else availability = "unknown";
+
+    return {
+      id,
+      available,
+      configured,
+      state: name,
+      availability,
+      lastSuccessAt,
+      lastFailureAt,
+      lastFailureStatus,
+      lastFailureNote,
+      observedAt,
+    };
+  });
+}
+
+export interface BrokerHealthOptions {
+  kv?: KvStore;
+  now?: () => number;
+  fetchImpl?: typeof fetch;
+  endpoint?: string;
+}
+
+export class BrokerHealth {
+  private readonly kv: KvStore;
+  private readonly now: () => number;
+  private readonly fetchImpl: typeof fetch | undefined;
+  private readonly endpoint: string;
+  private snapshot: BrokerHealthSnapshot | null;
+
+  constructor(options: BrokerHealthOptions = {}) {
+    this.kv = options.kv ?? KvStore.getInstance();
+    this.now = options.now ?? (() => Date.now());
+    // Bind the global: an extracted `fetch` called as `this.fetchImpl(...)`
+    // throws "Illegal invocation" in browsers, which made every health probe
+    // fail before it left the page and stored an empty provider list.
+    this.fetchImpl =
+      options.fetchImpl ?? (typeof fetch === "function" ? fetch.bind(globalThis) : undefined);
+    this.endpoint = options.endpoint ?? BROKER_ENDPOINT;
+    this.snapshot = this.load();
+  }
+
+  private load(): BrokerHealthSnapshot | null {
+    try {
+      const stored = this.kv.get<BrokerHealthSnapshot>(BROKER_KEY);
+      if (!stored || !Array.isArray(stored.providers)) return null;
+      return stored;
+    } catch {
+      return null;
+    }
+  }
+
+  private persist(snapshot: BrokerHealthSnapshot): BrokerHealthSnapshot {
+    let wrote = false;
+    try {
+      wrote = this.kv.set(BROKER_KEY, snapshot);
+    } catch {
+      wrote = false;
+    }
+    return { ...snapshot, durability: wrote ? "persisted" : "memory-only" };
+  }
+
+  /** The last observation — possibly from a previous session. Never a probe. */
+  public get(): BrokerHealthSnapshot | null {
+    return this.snapshot;
+  }
+
+  /** Ask the broker now. A failure keeps the previous rows and records why. */
+  public async refresh(): Promise<BrokerHealthSnapshot> {
+    const at = this.now();
+    if (!this.fetchImpl) {
+      return this.recordFailure(at, "No fetch implementation is available in this runtime.");
+    }
+    try {
+      const response = await this.fetchImpl(this.endpoint, {
+        headers: { Accept: "application/json" },
+        signal:
+          typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function"
+            ? AbortSignal.timeout(8_000)
+            : undefined,
+      });
+      if (!response.ok) {
+        return this.recordFailure(at, `GET ${this.endpoint} returned HTTP ${response.status}.`);
+      }
+      const body = (await response.json()) as unknown;
+      const snapshot: BrokerHealthSnapshot = {
+        at,
+        endpoint: this.endpoint,
+        providers: deriveBrokerHealth(body, at),
+        probeError: null,
+        durability: "memory-only",
+      };
+      this.snapshot = this.persist(snapshot);
+      return this.snapshot;
+    } catch (error) {
+      return this.recordFailure(at, error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  private recordFailure(at: number, error: string): BrokerHealthSnapshot {
+    const previous = this.snapshot;
+    const snapshot: BrokerHealthSnapshot = {
+      at,
+      endpoint: this.endpoint,
+      // Keep the last real answer; its own observedAt stays truthful.
+      providers: previous?.providers ?? [],
+      probeError: error,
+      durability: "memory-only",
+    };
+    this.snapshot = this.persist(snapshot);
+    return this.snapshot;
+  }
+}
+
+export class BrokerHealthStore {
+  private static instance: BrokerHealth | null = null;
+
+  public static getInstance(): BrokerHealth {
+    if (!BrokerHealthStore.instance) BrokerHealthStore.instance = new BrokerHealth();
+    return BrokerHealthStore.instance;
+  }
+
+  public static setForTests(instance: BrokerHealth | null): void {
+    BrokerHealthStore.instance = instance;
   }
 }

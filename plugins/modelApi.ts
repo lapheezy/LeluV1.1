@@ -591,6 +591,18 @@ export function createModelApi(readEnv: EnvReader) {
   const TRANSIENT_STATES = new Set(["CAPACITY_LIMITED", "UNREACHABLE"]);
   const TRANSIENT_STATE_TTL_MS = 120_000;
 
+  /**
+   * What actually happened, kept apart from the current state.
+   *
+   * `evidence` is overwritten by each request, so a 429 after a successful
+   * turn erased the only proof that the provider had ever worked. These two
+   * maps keep both timestamps; status reports them together so a caller can
+   * say "last worked at T, last failed at U" instead of inferring one from
+   * the other. No key, prompt or body is stored.
+   */
+  const lastSuccess = new Map<string, number>();
+  const lastFailure = new Map<string, { at: number; httpStatus?: number; note?: string }>();
+
   const credentialFor = (provider: BrokeredProvider): string => {
     for (const name of provider.keyNames) {
       const value = readEnv(name);
@@ -690,6 +702,14 @@ export function createModelApi(readEnv: EnvReader) {
         states[id] = {
           state,
           ...(seen ? { at: seen.at, httpStatus: seen.httpStatus, ...(seen.note ? { note: seen.note } : {}) } : {}),
+          ...(lastSuccess.has(id) ? { lastSuccessAt: lastSuccess.get(id) } : {}),
+          ...(lastFailure.has(id)
+            ? {
+                lastFailureAt: lastFailure.get(id)?.at,
+                lastFailureStatus: lastFailure.get(id)?.httpStatus,
+                lastFailureNote: lastFailure.get(id)?.note,
+              }
+            : {}),
         };
       }
       sendJson(res, {
@@ -922,6 +942,11 @@ export function createModelApi(readEnv: EnvReader) {
       // out of the chain, a successful one puts it back.
       if (isAuthFailure(upstream.status)) {
         unauthorized.add(providerId);
+        lastFailure.set(providerId, {
+          at: Date.now(),
+          httpStatus: upstream.status,
+          note: "provider rejected the credential",
+        });
         evidence.set(providerId, {
           state: "AUTHENTICATION_FAILED",
           httpStatus: upstream.status,
@@ -929,6 +954,11 @@ export function createModelApi(readEnv: EnvReader) {
           note: "provider rejected the credential",
         });
       } else if (upstream.status === 429) {
+        lastFailure.set(providerId, {
+          at: Date.now(),
+          httpStatus: 429,
+          note: "rate limit / quota refusal",
+        });
         evidence.set(providerId, {
           state: "CAPACITY_LIMITED",
           httpStatus: 429,
@@ -936,6 +966,11 @@ export function createModelApi(readEnv: EnvReader) {
           note: "rate limit / quota refusal",
         });
       } else if (upstream.status >= 500) {
+        lastFailure.set(providerId, {
+          at: Date.now(),
+          httpStatus: upstream.status,
+          note: "provider server error",
+        });
         evidence.set(providerId, {
           state: "UNREACHABLE",
           httpStatus: upstream.status,
@@ -943,6 +978,11 @@ export function createModelApi(readEnv: EnvReader) {
         });
       } else if (upstream.ok) {
         unauthorized.delete(providerId);
+        // Record success HERE, not after body inspection: streaming responses
+        // return before the later point, and a real 200 stream is still a
+        // success. A 2xx body that turns out not to be a completion deletes
+        // this below, so the contract violation cannot keep a false success.
+        lastSuccess.set(providerId, Date.now());
         evidence.set(providerId, {
           state: "COMPLETION_VERIFIED",
           httpStatus: upstream.status,
@@ -1005,6 +1045,12 @@ export function createModelApi(readEnv: EnvReader) {
       })();
 
       if (upstream.ok && wantsCompletion && !isEventStream && !isJsonBody) {
+        lastSuccess.delete(providerId);
+        lastFailure.set(providerId, {
+          at: Date.now(),
+          httpStatus: upstream.status,
+          note: "2xx body was not JSON, so not a completion",
+        });
         evidence.set(providerId, {
           state: "CONTRACT_VIOLATION",
           httpStatus: upstream.status,

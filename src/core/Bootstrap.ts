@@ -46,6 +46,7 @@ import { registerCreativeKitTools } from "./creative/kit/CreativeKitTools";
 import { registerCosmosTools } from "./cosmos/CosmosTools";
 import { registerContinuityTools } from "./cognition/ContinuityTools";
 import CognitivePulseStore from "./cognition/CognitivePulse";
+import { BrokerHealthStore } from "./model/ProviderHealth";
 import TaskExecutor from "./agentic/TaskExecutor";
 import DailyReflection from "./agentic/DailyReflection";
 import ToolRegistry from "./tools/ToolRegistry";
@@ -232,6 +233,19 @@ export default class Bootstrap {
       // Event-driven awareness. Subscribes once to the existing AgentEventBus;
       // no timer, no polling, no second bus. Idempotent across re-bootstrap.
       CognitivePulseStore.getInstance().start();
+      // Observed provider health: ask the one broker endpoint the app already
+      // trusts, and keep its timestamps. Non-blocking — a cold start must not
+      // wait on a network probe, and the self-model tool refreshes explicitly.
+      void BrokerHealthStore.getInstance()
+        .refresh()
+        .then((health) => {
+          const verified = health.providers.filter((provider) => provider.availability === "verified").length;
+          console.info(
+            `[Bootstrap] Provider health: ${verified}/${health.providers.length} verified` +
+              `${health.probeError ? ` (probe error: ${health.probeError})` : ""}`,
+          );
+        })
+        .catch((error) => console.warn("[Bootstrap] Provider health probe failed (contained)", error));
       const interrupted = TaskExecutor.getInstance().recoverInterrupted();
       if (interrupted.length) {
         console.info(`[Bootstrap] ${interrupted.length} interrupted task(s) are paused and resumable.`);

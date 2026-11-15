@@ -38,6 +38,12 @@ import { APPS } from "../../app/scene/genesis/home/homeCatalog.ts";
 import MissionLedgerStore, { type MissionRecord } from "../projects/MissionLedger.ts";
 import CognitivePulseStore, { type PulseEntry } from "./CognitivePulse.ts";
 import {
+  BrokerHealthStore,
+  type BrokerHealthSnapshot,
+  type BrokerProviderObservation,
+} from "../model/ProviderHealth.ts";
+import SkillRegistryStore, { type RuntimeSkill } from "../skills/SkillRegistry.ts";
+import {
   countEvidence,
   evidenceClaim,
   type EvidenceClaim,
@@ -94,6 +100,8 @@ export interface SelfModelSources {
   workspaces: () => SelfWorkspace;
   missions: () => MissionRecord[];
   pulse: () => PulseEntry[];
+  providers: () => BrokerHealthSnapshot | null;
+  skills: () => RuntimeSkill[];
   environment: () => SystemEnvironmentState;
   applications: () => SelfApplication[];
   autonomyLevel: () => number;
@@ -142,6 +150,8 @@ function defaultSources(): SelfModelSources {
     workspaces: () => WorkspaceEngine.getInstance().getState(),
     missions: () => MissionLedgerStore.getInstance().list(),
     pulse: () => CognitivePulseStore.getInstance().recent(20),
+    providers: () => BrokerHealthStore.getInstance().get(),
+    skills: () => SkillRegistryStore.getInstance().list(),
     environment: () => SystemEnvironment.getInstance().get(),
     applications: () => APPS.map((app) => ({ id: app.id, label: app.label, group: app.group })),
     autonomyLevel: () => AutonomyGate.getInstance().getLevel(),
@@ -156,6 +166,22 @@ function capabilityEvidence(capability: SelfCapability, now: number): MissionEvi
   // "available" is a declaration plus, at best, a past success.
   if (capability.lastSuccessful !== null && now - capability.lastSuccessful <= DAY_MS) return "VERIFIED";
   return "PARTIAL";
+}
+
+/** Evidence for one observed provider row. */
+function providerEvidence(provider: BrokerProviderObservation): MissionEvidence {
+  switch (provider.availability) {
+    case "verified":
+      return "VERIFIED";
+    case "unverified":
+      return "PARTIAL";
+    case "failing":
+      return "UNAVAILABLE";
+    case "blocked":
+      return "BLOCKED";
+    default:
+      return "UNAVAILABLE";
+  }
 }
 
 function readSource<T>(
@@ -276,6 +302,62 @@ export function assembleOperationalSelf(
     );
   }
 
+  /* ------------------------------ providers ---------------------------- */
+  // A configured key, a registered provider and a working provider are three
+  // different facts. Only the broker's observed 2xx is allowed to reach
+  // VERIFIED; everything else stays partial, failing or blocked.
+  const providers = readSource("ProviderHealth", sources.providers, failures);
+  if (providers && providers.providers.length > 0) {
+    const configured = providers.providers.filter((provider) => provider.configured);
+    const verified = configured.filter((provider) => provider.availability === "verified");
+    const failing = configured.filter((provider) => provider.availability === "failing");
+    claims.push(
+      evidenceClaim(
+        "providers.health",
+        `${verified.length} of ${configured.length} configured provider(s) have an observed successful completion; ` +
+          `${failing.length} are currently failing. Last probe: ${new Date(providers.at).toISOString()}.`,
+        providers.probeError ? "UNAVAILABLE" : "PARTIAL",
+        `GET ${providers.endpoint}`,
+        providers.at,
+        providers.probeError
+          ? `The health probe itself failed (${providers.probeError}). Rows below are the last real observation, not a fresh one.`
+          : "A provider is VERIFIED only from an observed 2xx completion, never from a configured key.",
+      ),
+    );
+    for (const provider of providers.providers) {
+      claims.push(
+        evidenceClaim(
+          `provider.${provider.id}`,
+          `${provider.id}: ${provider.availability} (${provider.state}); ` +
+            `last success ${provider.lastSuccessAt ? new Date(provider.lastSuccessAt).toISOString() : "never observed"}` +
+            (provider.lastFailureAt
+              ? `; last failure ${new Date(provider.lastFailureAt).toISOString()}` +
+                `${provider.lastFailureStatus ? ` HTTP ${provider.lastFailureStatus}` : ""}` +
+                `${provider.lastFailureNote ? ` — ${provider.lastFailureNote}` : ""}`
+              : "; no failure observed") +
+            `.`,
+          providerEvidence(provider),
+          `GET ${providers.endpoint}`,
+          provider.observedAt,
+          `Observed at ${new Date(provider.observedAt).toISOString()}; server availability=${provider.available}; configured=${provider.configured}.`,
+        ),
+      );
+    }
+  } else {
+    claims.push(
+      evidenceClaim(
+        "providers.health",
+        providers
+          ? `No provider health observation exists${providers.probeError ? `: ${providers.probeError}` : ""}.`
+          : "Provider health has not been probed in this runtime.",
+        "UNAVAILABLE",
+        "src/core/model/ProviderHealth.ts → GET /api/model/status",
+        providers?.at ?? at,
+        "Configuration is not a working-provider claim; nothing is asserted until the broker answers.",
+      ),
+    );
+  }
+
   /* -------------------------------- tools ------------------------------ */
   const tools = readSource("ToolRegistry", sources.tools, failures);
   if (tools) {
@@ -313,17 +395,33 @@ export function assembleOperationalSelf(
   }
 
   /* -------------------------------- skills ----------------------------- */
-  claims.push(
-    evidenceClaim(
-      "skills.registry",
-      "No runtime skill registry is exposed to cognition. Authoring-time skills exist under .agents/skills, " +
-        "but they are not discoverable or invocable by LÉLU at runtime.",
-      "UNAVAILABLE",
-      ".agents/skills + skills-lock.json",
-      at,
-      "This is a real gap, not a configured skill system. Capabilities and skills are not the same thing.",
-    ),
-  );
+  const skills = readSource("SkillRegistry", sources.skills, failures);
+  if (skills && skills.length > 0) {
+    const invocable = skills.filter((skill) => skill.invocable);
+    claims.push(
+      evidenceClaim(
+        "skills.registry",
+        `${skills.length} runtime skill(s) catalogued from .agents/skills; ${invocable.length} invocable. ` +
+          `Catalogue: ${skills.map((skill) => skill.name).join(", ")}.`,
+        "PARTIAL",
+        "src/core/skills/SkillRegistry.ts → .agents/skills",
+        at,
+        "A skill body is authoring guidance, not a dispatcher executor. The catalogue is real; invocation is not offered.",
+      ),
+    );
+  } else {
+    claims.push(
+      evidenceClaim(
+        "skills.registry",
+        "No runtime skill registry is exposed to cognition. Authoring-time skills exist under .agents/skills, " +
+          "but they are not discoverable or invocable by LÉLU at runtime.",
+        "UNAVAILABLE",
+        ".agents/skills + skills-lock.json",
+        at,
+        "This is a real gap, not a configured skill system. Capabilities and skills are not the same thing.",
+      ),
+    );
+  }
 
   /* ------------------------------- agents ------------------------------ */
   const agents = readSource("AgentStore", sources.agents, failures);
