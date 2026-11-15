@@ -234,8 +234,14 @@ export default class AIRouter {
     // creative/data request runs here only when no model provider can take
     // the turn, so the work still happens (and nothing is billed).
     const directPlan = this.direct.plan(context);
-    if (directPlan && (directPlan.explicit || !(await this.direct.providersAvailable(context)))) {
-      const done = await this.traced(context, "direct", () => this.direct.execute(context, directPlan, directPlan.explicit ? "command" : "no-provider"));
+    // A construction is deterministic: the same parameters always yield the
+    // same artifact. So it runs here even when a model is reachable, rather
+    // than depending on the model choosing the right tool. "Build a cabin"
+    // must produce a cabin; the model is not needed to hope so.
+    const construction = Boolean(directPlan && !directPlan.explicit && directPlan.steps.length > 0 && directPlan.steps.every((step) => /^creative\.(build|modify|inspect)$/.test(step.tool)));
+    if (directPlan && (directPlan.explicit || construction || !(await this.direct.providersAvailable(context)))) {
+      const reason = directPlan.explicit ? "command" : construction ? "construction" : "no-provider";
+      const done = await this.traced(context, "direct", () => this.direct.execute(context, directPlan, reason));
       if (done.handled && done.response) return done.response;
     }
     if (!directPlan) {

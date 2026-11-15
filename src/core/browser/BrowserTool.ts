@@ -104,6 +104,17 @@ export default class BrowserTool {
    * static deployment with no runtime), so the caller can report the
    * honest "blocked" result rather than inventing content.
    */
+  /**
+   * Read one page, for callers that are not the browser tool itself.
+   *
+   * Construction uses this to check a page before citing it: a source is only
+   * called verified when the page was actually read. Returns the same shape as
+   * the private reader, so "no reader" and "the site refused" stay distinct.
+   */
+  public static readPage(url: string, timeoutMs = 20_000): Promise<{ title: string; text: string; url: string } | { error: string } | null> {
+    return BrowserTool.readViaServer(url, timeoutMs);
+  }
+
   private static async readViaServer(
     url: string,
     timeoutMs: number,

@@ -80,7 +80,7 @@ export default class DirectResolver {
     }
   }
 
-  public async execute(context: RouterContext, plan: DirectPlan, reason: "command" | "no-provider"): Promise<BrainResult> {
+  public async execute(context: RouterContext, plan: DirectPlan, reason: "command" | "construction" | "no-provider"): Promise<BrainResult> {
     const { dispatchToolCall, toolNameForModel } = await import("../tools/ToolDispatcher");
     const taskId = String(context.request.timestamp ?? Date.now());
     const lines: string[] = [];
@@ -99,7 +99,9 @@ export default class DirectResolver {
     const okCount = ran.filter((r) => r.ok).length;
     const preface = reason === "no-provider"
       ? `No model provider is reachable right now, so I did this directly with my own tools — no model, no paid service: ${plan.summary}.`
-      : `Done directly with my own tools (no model involved): ${plan.summary}.`;
+      : reason === "construction"
+        ? `Built by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: ${plan.summary}.`
+        : `Done directly with my own tools (no model involved): ${plan.summary}.`;
     const response: AIResponse = {
       text: [preface, "", ...lines, "", okCount === ran.length ? "Everything above ran and was verified." : `${okCount} of ${ran.length} steps succeeded; the failures are shown with their reasons.`].join("\n"),
       provider: "lelu-direct",
@@ -113,7 +115,7 @@ export default class DirectResolver {
   /** "/something-unknown" — say which commands exist instead of sending it to a model. */
   public unknownCommand(context: RouterContext): BrainResult {
     const prompt = (context.request.prompt ?? "").trim();
-    if (!/^\/(art|diagram|scene|film|chart|research|data|sketch|collection|capabilities|tools|export)\b/i.test(prompt)) return { handled: false };
+    if (!/^\/(art|diagram|scene|film|chart|research|data|sketch|collection|build|modify|explain|domains|capabilities|tools|export)\b/i.test(prompt)) return { handled: false };
     return {
       handled: true,
       response: { text: `That command needs more detail. Direct commands: ${DIRECT_COMMANDS.join(", ")}. E.g. “/scene forest”, “/diagram chat -> router -> tools”, “/export <artifact> glb”.`, provider: "lelu-direct", model: "tools", processingTime: 0, metadata: { direct: true } },

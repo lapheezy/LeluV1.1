@@ -27,6 +27,7 @@ import { GENERATIVE_STYLES, PALETTES, type GenerativeStyle } from "./GenerativeA
 import { PRESETS } from "./Scene3D";
 import { seedFrom } from "./Rng";
 import { connectorProfiles } from "../../data/PublicDataConnectors";
+import { findBuilder, describeRequest } from "./build";
 
 export interface DirectStep { tool: string; args: Record<string, unknown>; label: string }
 export interface DirectPlan { steps: DirectStep[]; summary: string; explicit: boolean }
@@ -148,6 +149,16 @@ export function compileDirect(prompt: string): DirectPlan | null {
   const worldFile = /\b(stl|obj|glb|gltf)\b/i.exec(t);
   if (worldFile && has(/\b(export|download|save|give me|turn)\b/i, t) && has(/\b(world|room|environment|objects?)\b/i, t)) return nl("world", worldFile[1]);
   if (/\b(internal[- ]combustion|four[- ]stroke|4[- ]stroke|piston engine|engine assembly)\b/i.test(t) && has(verb, t)) return nl("engine", t);
+  /*
+   * Construction from words, before any generic scene rule: "build a gear
+   * train", "model a water molecule", "a 3-storey cabin with 4 bays".
+   * Modification is checked first, because "make the gear bigger" names a
+   * subject too and must change the artifact on screen rather than build one.
+   */
+  const changeWords = /\b(bigger|smaller|larger|taller|wider|deeper|steeper|shallower|flatter|no idler|add an idler|space[- ]filling|ball[- ]and[- ]stick|more bays|one more storey|another floor|faster output|slower output|more torque|fewer storeys)\b/i;
+  const wantsChange = /\b(make|change|set|turn|update|increase|decrease|give it|modify|edit|adjust|remove|add)\b/i;
+  if (has(changeWords, t) && has(wantsChange, t)) return nl("modify", t);
+  if (findBuilder(t) && has(/\b(make|create|build|generate|construct|model|assemble|give me|show me|i want|i'd like|design)\b/i, t)) return nl("build", t);
   if (has(/\b(fashion|couture)\b/i, t) && has(/\bcollection\b/i, t) && has(verb, t)) return nl("collection", subjectOf(t));
   if (has(/\b(film|movie|video|trailer|reel|montage)\b/i, t) && has(verb, t)) return nl("film", subjectOf(t));
   if (has(/\b(3d|3-d)\b|\b(environment|landscape|scene)\b/i, t) && has(verb, t) && !has(/\b(diagram|chart)\b/i, t)) return nl("scene", t);
@@ -184,6 +195,49 @@ function compileCommand(cmd: string, rest: string): DirectPlan | null {
         summary: urls.length === 1 ? `read ${urls[0]}` : `read ${urls.length} pages`,
         steps: urls.map((url) => ({ tool: "browser.read", label: "page", args: { url } })),
       };
+    }
+    case "build": {
+      // /build gearbox teethOut=36 | /build "a 2-storey cabin 7 by 5 m" | /build benzene
+      // | /build gearbox teethIn=12 teethOut=36 source=https://… (a page is read
+      //   and the figures are checked against it before anything is called sourced)
+      const pairs: Record<string, string> = {};
+      const sourced: string[] = [];
+      let subject = rest;
+      for (const token of rest.split(/\s+/)) {
+        const source = /^source=(https?:\/\/\S+)$/i.exec(token);
+        if (source) { sourced.push(source[1]); subject = subject.replace(token, " ").trim(); continue; }
+        const m = /^([A-Za-z]\w*)=(.*)$/.exec(token);
+        if (!m) continue;
+        pairs[m[1]] = m[2];
+        subject = subject.replace(token, " ").trim();
+      }
+      const builder = findBuilder(subject || rest);
+      if (!builder && Object.keys(pairs).length === 0) return { explicit, summary: "what can be built", steps: [{ tool: "creative.domains", label: "domains", args: {} }] };
+      const fromWords = builder && subject ? describeRequest(builder, subject) : {};
+      const params: Record<string, unknown> = { ...fromWords, ...pairs };
+      // Values that look numeric are numbers; the builder validates them.
+      for (const [k, v] of Object.entries(params)) if (typeof v === "string" && /^-?\d+(\.\d+)?$/.test(v)) params[k] = Number(v);
+      return {
+        explicit,
+        summary: `construct ${builder ? builder.label : "an artifact"}${subject ? ` — “${subject.slice(0, 40)}”` : ""}${sourced.length ? ` from ${sourced.length} source${sourced.length === 1 ? "" : "s"}` : ""}`,
+        steps: [{ tool: "creative.build", label: "build", args: { ...(builder ? { builder: builder.id } : {}), subject, params, ...(sourced.length ? { sources: sourced.map((url) => ({ url })) } : {}), export: ["glb"] } }],
+      };
+    }
+    case "modify": {
+      if (!rest) return { explicit, summary: "change a construction", steps: [{ tool: "creative.modify", label: "modify", args: {} }] };
+      const wantsExport = /\bexport|glb|gltf\b/i.test(rest);
+      return {
+        explicit,
+        summary: `change the construction: “${rest.slice(0, 60)}”`,
+        steps: [{ tool: "creative.modify", label: "modify", args: { request: rest, ...(wantsExport ? { export: ["glb"] } : {}) } }],
+      };
+    }
+    case "explain": {
+      const topic = rest || "the whole thing";
+      return { explicit, summary: `explain ${topic}`, steps: [{ tool: "creative.inspect", label: "explain", args: { topic } }] };
+    }
+    case "domains": {
+      return { explicit, summary: "what can be constructed", steps: [{ tool: "creative.domains", label: "domains", args: {} }] };
     }
     case "engine": {
       return {
@@ -261,4 +315,4 @@ function compileCommand(cmd: string, rest: string): DirectPlan | null {
 }
 
 /** Every command the direct path understands (shown when a command is unknown). */
-export const DIRECT_COMMANDS = ["/world stl|obj|glb", "/art", "/diagram", "/scene", "/film", "/chart earthquakes", "/research", "/data", "/sketch", "/collection", "/capabilities", "/tools", "/export"];
+export const DIRECT_COMMANDS = ["/build <subject> [param=value]", "/modify <change>", "/explain <layer or step>", "/domains", "/engine", "/read <url…>", "/world stl|obj|glb", "/art", "/diagram", "/scene", "/film", "/chart earthquakes", "/research", "/data", "/sketch", "/collection", "/capabilities", "/tools", "/export"];

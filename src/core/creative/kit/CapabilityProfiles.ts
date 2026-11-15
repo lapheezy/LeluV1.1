@@ -45,6 +45,27 @@ export const CAPABILITY_PROFILES: Record<string, CapabilityProfile> = {
     runtime: "browser (any)", offline: true, network: "none", credentials: "none", limits: "5,000 points, 12 series",
     license: "LÉLU code", resources: "CPU, milliseconds", fallbacks: ["static SVG", "CSV table"],
   },
+  "creative.build": {
+    purpose: "construct an artifact from parameters", input: "builder (or a subject in words) + parameter overrides", output: "GLB, glTF, JSON; layered live view with steps and derivation",
+    runtime: "browser (any)", offline: true, network: "none", credentials: "none", limits: "400 objects per scene; builders: gearbox, cabin, molecule",
+    license: "three.js — MIT", resources: "CPU for construction (< 5 ms), GPU for the live view",
+    fallbacks: ["WebGPU", "WebGL2", "export-only (no live view)"],
+  },
+  "creative.modify": {
+    purpose: "change a construction as a new revision", input: "artifact + words or explicit parameters", output: "a new revision of the same artifact, with what changed",
+    runtime: "browser (any)", offline: true, network: "none", credentials: "none", limits: "the builder's own parameter ranges",
+    license: "three.js — MIT", resources: "CPU (< 5 ms per revision)", fallbacks: ["rebuild from the previous parameters if the builder cannot honour a change"],
+  },
+  "creative.inspect": {
+    purpose: "explain one system of a construction", input: "a topic (layer or step) and optionally an artifact", output: "the layer note, its parts and their notes, the matching step",
+    runtime: "browser+server", offline: true, network: "none", credentials: "none", limits: "only what the artifact itself records",
+    license: "—", resources: "none", fallbacks: ["says which layers it does have instead of inventing one"],
+  },
+  "creative.domains": {
+    purpose: "list what can be built", input: "none", output: "builder ids, domains, labels, keywords",
+    runtime: "browser+server", offline: true, network: "none", credentials: "none", limits: "—",
+    license: "—", resources: "none", fallbacks: [],
+  },
   "creative.engine": {
     purpose: "an interactive four-stroke engine", input: "nothing (a fixed, complete engine program)", output: "GLB, glTF (embedded), JSON program; layered live view with the animated cycle",
     runtime: "browser (any)", offline: true, network: "none", credentials: "none", limits: "8 layers, 33 parts, 4 strokes, 720° of crankshaft",

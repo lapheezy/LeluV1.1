@@ -22,6 +22,7 @@ import { renderDiagramSvg, type DiagramProgram } from "../../../../core/creative
 import { vizHtml, type VizProgram } from "../../../../core/creative/kit/InteractiveViz";
 import type { Scene3DProgram } from "../../../../core/creative/kit/Scene3D";
 import type { EngineProgram } from "../../../../core/creative/kit/EngineAssembly";
+import type { BuildProgram } from "../../../../core/creative/kit/build";
 import { renderFilm, type VideoProgram } from "../../../../core/creative/kit/VideoComposer";
 import { capabilities } from "../../../../core/creative/kit/BrowserCapabilities";
 
@@ -42,7 +43,7 @@ export default function VisualViewer({ artifact, rev, spec }: { artifact: Studio
 
   return (
     <div className="lst-visual" data-lelu-visual={spec.kind === "drawing" ? "drawing" : spec.medium}>
-      {spec.kind === "visual" ? <VisualBody spec={spec} /> : null}
+      {spec.kind === "visual" ? <VisualBody spec={spec} artifactId={artifact.id} /> : null}
       <div className="lst-toolbar" aria-label="Export">
         {formats.map((f) => (
           <button key={f} type="button" className="lst-btn" disabled={busy !== null} onClick={() => void doExport(f)} data-lelu-visual-export={f}>
@@ -57,8 +58,10 @@ export default function VisualViewer({ artifact, rev, spec }: { artifact: Studio
 
 // The engine experience (layers, exploded view, the four strokes).
 const EngineView = lazy(() => import("./EngineView"));
+// A constructed artifact (gearbox, cabin, molecule, …): same idea, any domain.
+const BuildView = lazy(() => import("./BuildView"));
 
-function VisualBody({ spec }: { spec: VisualSpec }) {
+function VisualBody({ spec, artifactId }: { spec: VisualSpec; artifactId?: string }) {
   if (spec.medium === "chart") return <iframe className="lst-preview" title={`Interactive ${spec.title}`} sandbox="allow-scripts" srcDoc={vizHtml(spec.program as unknown as VizProgram)} />;
   if (spec.medium === "diagram") return <DiagramView program={spec.program as unknown as DiagramProgram} />;
   if (spec.medium === "scene3d") {
@@ -68,6 +71,15 @@ function VisualBody({ spec }: { spec: VisualSpec }) {
       return (
         <Suspense fallback={<p className="lst-note" role="status">Building the engine…</p>}>
           <EngineView program={engine} />
+        </Suspense>
+      );
+    }
+    // A build program is a scene plus its layers, steps and parameters.
+    const build = (spec.program as { build?: BuildProgram }).build;
+    if (build?.kind === "build" && Array.isArray(build.parts)) {
+      return (
+        <Suspense fallback={<p className="lst-note" role="status">Assembling…</p>}>
+          <BuildView program={build} artifactId={artifactId} />
         </Suspense>
       );
     }

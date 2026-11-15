@@ -35,6 +35,9 @@ import { exportDrawing, exportVisual, VISUAL_FORMATS, visualGist, type VisualFil
 import { GENERATIVE_STYLES, PALETTES } from "./GenerativeArt";
 import { PRESETS, PRIMITIVES, COMPOUNDS } from "./Scene3D";
 import { buildEngineProgram } from "./EngineAssembly";
+import { BUILDERS, BUILD_DOMAINS, builderById, builderForDomain, catalog, describeRequest, findBuilder, modifyProgram, parseModification, type BuildProgram, type BuildSource } from "./build";
+import type { EngineProgram } from "./EngineAssembly";
+import BrowserTool from "../../browser/BrowserTool";
 import { CAPABILITY_PROFILES, profileFor, type CapabilityProfile } from "./CapabilityProfiles";
 
 export const VISUAL_OPEN_EVENT = "lelu-studio-open";
@@ -113,6 +116,89 @@ export async function exportArtifactFile(a: StudioArtifact, format: VisualFormat
   } catch (error) {
     return { ok: false, line: `✗ ${format}: ${error instanceof Error ? error.message : String(error)}` };
   }
+}
+
+/** The most recent constructed artifact in a conversation (or overall). */
+function latestBuild(store: StudioStore, conversationId?: string): StudioArtifact | undefined {
+  const builds = store.list().filter((a) => {
+    const spec = store.latest(a).spec;
+    return spec.kind === "visual" && Boolean((spec.program as { build?: unknown }).build);
+  });
+  if (conversationId) {
+    const own = builds.find((a) => a.conversationId === conversationId);
+    if (own) return own;
+  }
+  return builds[0];
+}
+
+/**
+ * Sources, checked rather than trusted.
+ *
+ * A citation is only "verified" when the page was actually read AND the figure
+ * appears in its text. Everything else is reported as an assumption — a
+ * schematic that leans on a remembered number never passes for a sourced one.
+ */
+async function resolveBuildSources(raw: unknown, program: BuildProgram): Promise<{ sources: BuildSource[]; covered: string[] }> {
+  const list = Array.isArray(raw) ? (raw as Array<Record<string, unknown>>).slice(0, 3) : [];
+  const out: BuildSource[] = [];
+  const covered: string[] = [];
+  for (const entry of list) {
+    const url = typeof entry?.url === "string" ? entry.url.trim() : "";
+    if (!/^https?:\/\//i.test(url)) continue;
+    const title = typeof entry.title === "string" && entry.title.trim() ? entry.title.trim() : undefined;
+    const used = typeof entry.used === "string" && entry.used.trim() ? entry.used.trim() : undefined;
+    const declared = entry.basis === "verified" || entry.basis === "assumption" ? entry.basis : null;
+    if (declared === "assumption") { out.push({ url, title, used: used ?? "consulted; nothing taken from it", basis: "assumption" }); continue; }
+    const page = await BrowserTool.readPage(url);
+    if (!page || "error" in page) {
+      out.push({ url, title, used: `${used ?? "nothing"} — the page could not be read, so nothing is sourced to it`, basis: "assumption" });
+      continue;
+    }
+    const text = page.text;
+    // A figure counts as sourced only when the page states it *with its name*
+    // nearby (“36 teeth”), not when the digits happen to appear somewhere in a
+    // long article. Loose matching would let any article"verify" any number.
+    // The figure must also be a standalone number: "12" inside "12.2 km/h" is
+    // not twelve of anything, and matching it would be a false citation.
+    const states = (value: number, words: string[]): string | null => {
+      const pattern = new RegExp(`(?<![\\d])${String(value).replace(".", "\\.")}(?![\\d])(?!\\.\\d)`, "g");
+      let hit: RegExpExecArray | null;
+      while ((hit = pattern.exec(text))) {
+        const around = text.slice(Math.max(0, hit.index - 60), hit.index + String(value).length + 60).toLowerCase();
+        const word = words.find((w) => around.includes(w));
+        if (word) return word.trim();
+        if (hit.index === pattern.lastIndex) break;
+      }
+      return null;
+    };
+    const found = program.paramSpecs
+      .filter((spec) => typeof spec.value === "number")
+      .map((spec) => ({ spec, word: states(Number(spec.value), ["teeth", "tooth", "gear", "bay", "storey", "story", "floor", "pitch", "module", "bond", "rpm", "metre", "meter"]) }))
+      .filter((entry) => entry.word)
+      .map(({ spec, word }) => {
+        covered.push(spec.key);
+        return `${spec.label.toLowerCase()} ${spec.value} (the page states “${spec.value}” next to “${word}”)`;
+      });
+    out.push(found.length
+      ? { url, title: title ?? page.title, used: found.join("; "), basis: "verified" }
+      : { url, title: title ?? page.title, used: `${used ?? "the parameters"} — the page was read, but it does not state these figures, so they stay assumptions`, basis: "assumption" });
+  }
+  return { sources: out, covered };
+}
+
+/** The latest construction (engine or build) in a conversation. */
+function latestConstruction(store: StudioStore, conversationId?: string): StudioArtifact | undefined {
+  const constructions = store.list().filter((a) => {
+    const spec = store.latest(a).spec;
+    if (spec.kind !== "visual") return false;
+    const program = spec.program as { build?: unknown; engine?: unknown };
+    return Boolean(program.build) || Boolean(program.engine);
+  });
+  if (conversationId) {
+    const own = constructions.find((a) => a.conversationId === conversationId);
+    if (own) return own;
+  }
+  return constructions[0];
 }
 
 async function createVisual(medium: VisualMedium, args: Record<string, unknown>, program: Record<string, unknown>, context: RouterContext | undefined, fallbackTitle: string, extra: Partial<VisualSpec> = {}): Promise<ToolExecutionResult> {
@@ -240,6 +326,195 @@ export const CREATIVE_KIT_EXECUTORS: KitExecutor[] = [
         notes: engine.notes.join(" "),
       });
     },
+  },
+  {
+    id: "creative.build",
+    /*
+     * The general construction path: any registered builder, from a subject in
+     * words plus parameters. It creates a scene3d visual whose program carries
+     * the build (parts, layers, steps, parameters) beside the object list, so
+     * the in-thread viewer, GLB export and revisions all work on one artifact.
+     */
+    parameters: OBJ({
+      subject: { type: "string", description: "what to build, e.g. “a gear train 18:36”, “a 2-storey cabin 7 by 5 m”, “benzene”" },
+      builder: { type: "string", enum: BUILDERS.map((b) => b.id), description: "or name the builder directly" },
+      domain: { type: "string", enum: BUILD_DOMAINS, description: "or ask for a domain (mechanical, architecture, science)" },
+      params: { type: "object", description: "parameter overrides — the builder reports its own keys and ranges" },
+      title: { type: "string" },
+      sources: {
+        type: "array",
+        description: "where the numbers came from: url, optional title/used, and basis (verified | assumption). A cited page is read and its text checked before any figure is called verified.",
+        items: OBJ({ url: { type: "string" }, title: { type: "string" }, used: { type: "string" }, basis: { type: "string", enum: ["verified", "assumption"] } }, ["url", "used", "basis"]),
+      },
+      export: EXPORT,
+    }),
+    run: async (args, context) => {
+      const subject = s(args, "subject");
+      const named = s(args, "builder");
+      const domain = s(args, "domain");
+      const builder =
+        (named ? builderById(named) : undefined) ??
+        (subject ? findBuilder(subject) : undefined) ??
+        (domain ? builderForDomain(domain)[0] : undefined);
+      if (!builder) {
+        return {
+          ok: false,
+          content: `Nothing was built: I have no builder for “${subject || domain || "that"}”. This engine can construct: ${catalog().map((b) => `${b.label} (${b.id}, ${b.domain})`).join("; ")}.`,
+        };
+      }
+      const fromWords = subject ? describeRequest(builder, subject) : {};
+      const override = args.params && typeof args.params === "object" ? (args.params as Record<string, unknown>) : {};
+      const outcome = builder.build({ ...fromWords, ...override }, s(args, "title") || undefined);
+      if (!outcome.ok || !outcome.program) {
+        return { ok: false, content: `Nothing was built: ${outcome.reason ?? "the builder refused these parameters"}.${outcome.rejected.length ? `\n${outcome.rejected.map((r) => `- ${r.key}: ${r.reason}`).join("\n")}` : ""}` };
+      }
+      const built = outcome.program;
+      // Research that informed the build travels with the artifact, marked as
+      // read-from-source or assumed, so the card can say which is which.
+      const resolved = await resolveBuildSources(args.sources, built);
+      const sources = resolved.sources;
+      if (sources.length) built.sources = sources;
+      const result = await createVisual("scene3d", args, { ...built.scene, build: built }, context, built.title, { notes: built.notes.join(" ") });
+      const facts = built.derived.map((d) => `- ${d.label}: ${d.value}`).join("\n");
+      const params = built.paramSpecs.map((p) => `${p.key} ${p.value}${p.unit ? ` ${p.unit}` : ""}`).join(" · ");
+      const rejection = outcome.rejected.length ? `\nNot applied: ${outcome.rejected.map((r) => `${r.key} (${r.reason})`).join("; ")}` : "";
+      return {
+        ok: result.ok,
+        content: [
+          `Built “${built.title}” — ${built.domain} · ${built.parts.length} parts · ${built.layers.length} layers · ${built.steps.length} steps${rejection}`,
+          facts,
+          `Parameters: ${params}`,
+          ...(sources.length ? [
+            `From sources: ${sources.filter((x) => x.basis === "verified").map((x) => `${x.used} — ${x.title ?? x.url}`).join("; ") || "none"}`,
+            `Assumed (no page states them): ${built.paramSpecs.filter((p) => typeof p.value === "number" && !resolved.covered.includes(p.key)).map((p) => `${p.label.toLowerCase()} ${p.value}`).join("; ") || "none"}`,
+          ] : []),
+          `Change it in words (“make the gear bigger”, “a steeper roof”, “no idler”) or with creative.modify and its own parameter names.`,
+          String(result.content).split("\n").slice(0, 2).join("\n"),
+        ].join("\n"),
+        data: { ...(result.data as Record<string, unknown>), builder: built.builder, params: built.params },
+      };
+    },
+  },
+  {
+    id: "creative.modify",
+    // One artifact, one new revision: the id stays, dependants are recomputed.
+    parameters: OBJ({
+      artifact: { type: "string", description: "artifact id or title (defaults to the latest build in this conversation)" },
+      request: { type: "string", description: "the change in words: “make the output gear bigger”, “space-filling”" },
+      changes: { type: "object", description: "or explicit parameters: {teethOut: 36, teethIn: 18}" },
+      title: { type: "string" },
+      export: EXPORT,
+    }),
+    run: async (args, context) => {
+      const store = StudioStore.getInstance();
+      const target = s(args, "artifact");
+      const a = target
+        ? store.resolve(target, conversationOf(context))
+        : latestBuild(store, conversationOf(context));
+      if (!a) return { ok: false, content: `Nothing was changed: no build artifact${target ? ` matches “${target}”` : " in this conversation"}.` };
+      const revision = store.latest(a);
+      const spec = revision.spec;
+      const previous = spec.kind === "visual" ? (spec.program as { build?: BuildProgram }).build : undefined;
+      if (!previous || previous.kind !== "build") return { ok: false, content: `Nothing was changed: “${a.title}” is a ${spec.kind === "visual" ? spec.medium : spec.kind}, not a constructed artifact.` };
+      const explicit = args.changes && typeof args.changes === "object" ? (args.changes as Record<string, unknown>) : {};
+      const request = s(args, "request");
+      const parsed = request ? parseModification(request, previous) : { changes: {}, because: [], unsupported: [] };
+      const changes = { ...parsed.changes, ...explicit };
+      if (Object.keys(changes).length === 0) {
+        const keys = previous.paramSpecs.map((p) => `${p.key}${p.min !== undefined ? ` (${p.min}…${p.max})` : ""}`).join(", ");
+        return {
+          ok: false,
+          content: `Nothing was changed: I could not read a change for this build in “${request || "that request"}”.${parsed.unsupported.length ? ` ${parsed.unsupported.join("; ")}.` : ""} Its parameters are ${keys} — e.g. “make the output gear bigger” or changes:{teethOut: 32}.`,
+        };
+      }
+      const result = modifyProgram(previous, changes);
+      if (!result.ok || !result.program) {
+        return { ok: false, content: `Nothing was changed: ${result.reason ?? "the builder refused it"}.${result.rejected.length ? `\n${result.rejected.map((r) => `- ${r.key}: ${r.reason}`).join("\n")}` : ""}` };
+      }
+      const next = result.program;
+      const revised = store.revise(a.id, {
+        spec: { kind: "visual", title: s(args, "title") || next.title, medium: "scene3d", program: { ...next.scene, build: next }, notes: next.notes.join(" ") },
+        note: `modified: ${result.changes.join("; ") || Object.keys(changes).join(", ")}`,
+        by: "lelu",
+      });
+      if (!revised.ok) return { ok: false, content: `Nothing was changed: ${revised.reason}` };
+      announce(context, revised.artifact, "revised");
+      const lines: string[] = [];
+      const records: Array<{ format: string; filename: string; ok: boolean; size: number }> = [];
+      for (const f of (Array.isArray(args.export) ? args.export : []).map(String)) {
+        if (!(VISUAL_FORMATS.scene3d as string[]).includes(f)) continue;
+        const r = await exportArtifactFile(revised.artifact, f as VisualFormat);
+        lines.push(r.line);
+        if (r.record) records.push(r.record);
+      }
+      if (records.length) announce(context, revised.artifact, "exported", records);
+      const because = parsed.because.length ? `\nWhy: ${parsed.because.join("; ")}.` : "";
+      return {
+        ok: true,
+        content: [
+          `Revised “${revised.artifact.title}” [${a.id}] to revision ${revised.revision.rev} — ${next.parts.length} parts, ${next.layers.length} layers.${because}`,
+          ...result.changes.map((l) => `- ${l}`),
+          result.rejected.length ? `Not applied: ${result.rejected.map((r) => `${r.key} (${r.reason})`).join("; ")}` : "",
+          ...lines,
+        ].filter(Boolean).join("\n"),
+        data: { artifactId: a.id, rev: revised.revision.rev, builder: next.builder, params: next.params, changes: result.changes },
+      };
+    },
+  },
+  {
+    id: "creative.inspect",
+    /*
+     * Explaining what exists, from the artifact itself.
+     *
+     * Asked to explain a system, LÉLU reads the layer notes and the step that
+     * is about it — the same text the viewer shows, so the answer cannot drift
+     * from the model on screen.
+     */
+    parameters: OBJ({
+      topic: { type: "string", description: "the system or part to explain: “cooling”, “valvetrain”, “gearing”, “roof”" },
+      artifact: { type: "string", description: "optional: the artifact to explain (defaults to the latest construction in this conversation)" },
+    }, ["topic"]),
+    run: async (args, context) => {
+      const store = StudioStore.getInstance();
+      const topic = s(args, "topic").toLowerCase();
+      const a = s(args, "artifact") ? store.resolve(s(args, "artifact"), conversationOf(context)) : latestConstruction(store, conversationOf(context));
+      if (!a) return { ok: false, content: "Nothing to explain: there is no constructed artifact in this conversation yet." };
+      const spec = store.latest(a).spec;
+      const program = spec.kind === "visual" ? (spec.program as { engine?: EngineProgram; build?: BuildProgram }) : {};
+      const engine = program.engine;
+      const build = program.build;
+      if (!engine && !build) return { ok: false, content: `Nothing to explain: “${a.title}” is not a construction with layers.` };
+      const layers = (engine?.layers ?? build?.layers ?? []).map((l) => ({ id: l.id, label: l.label, note: l.note, parts: l.parts.length }));
+      const parts = (engine?.parts ?? build?.parts ?? []) as Array<{ id: string; name: string; layer: string; note: string }>;
+      const steps = (engine ? engine.strokes.map((s2) => ({ name: s2.name, summary: s2.summary, detail: s2.detail })) : (build?.steps ?? []).map((s2) => ({ name: s2.name, summary: s2.summary, detail: s2.detail })));
+      const words = topic.split(/\s+/).filter((w) => w.length > 2);
+      const hitLayer = layers.find((l) => words.some((w) => l.label.toLowerCase().includes(w) || l.id.toLowerCase().includes(w)));
+      const hitStep = steps.find((st) => words.some((w) => `${st.name} ${st.summary} ${st.detail}`.toLowerCase().includes(w)));
+      if (!hitLayer && !hitStep) {
+        return {
+          ok: false,
+          content: `I cannot explain “${s(args, "topic")}” from “${a.title}”: it has layers ${layers.map((l) => l.label).join(", ")}. Ask about one of those.`,
+        };
+      }
+      const lines: string[] = [`“${a.title}” — ${s(args, "topic")}`];
+      if (hitLayer) {
+        const members = parts.filter((p) => p.layer === hitLayer.id);
+        lines.push(`${hitLayer.label}: ${hitLayer.note}`, `It has ${members.length} part${members.length === 1 ? "" : "s"}: ${members.slice(0, 8).map((p) => `${p.name} — ${p.note}`).join("; ")}${members.length > 8 ? `; …and ${members.length - 8} more` : ""}.`);
+      }
+      if (hitStep) lines.push(`${hitStep.name}: ${hitStep.detail}`);
+      if (build) lines.push(`Relationships: ${build.derived.map((d) => `${d.label} ${d.value}`).join(", ")}.`);
+      lines.push("Isolate it in the card to see just those parts; the layer chips switch the rest off.");
+      return { ok: true, content: lines.join("\n"), data: { artifactId: a.id, layer: hitLayer?.id ?? null } };
+    },
+  },
+  {
+    id: "creative.domains",
+    parameters: OBJ({}),
+    run: async () => ({
+      ok: true,
+      content: [`${BUILDERS.length} builders, deterministic and offline:`, ...catalog().map((b) => `- ${b.id} (${b.domain}) — ${b.label}; ask for it with “${b.keywords[0]}”`)].join("\n"),
+      data: catalog(),
+    }),
   },
   {
     id: "creative.film",
@@ -391,6 +666,10 @@ export const CREATIVE_KIT_TOOLS: ToolDefinition[] = [
   def("creative.art", "Generative Art", "Make procedural/generative artwork on the device (flow fields, circle packing, ridgelines, constellations, Truchet, trees, mosaics, orbits) — an editable SVG, exportable as PNG. Use for 'generative art', 'procedural pattern', 'make me an abstract visual', moodboard textures. No image API.", 1, ["WRITE"]),
   def("creative.diagram", "Diagram (Mermaid)", "Draw a diagram from Mermaid source or from nodes/edges: architecture, flowchart, sequence, class, ER, state, mind map, timeline, gantt. Exports .mmd, SVG, PNG.", 1, ["WRITE"]),
   def("creative.chart", "Interactive Visualization", "Build a working interactive chart (hover tooltips, legend toggles, sortable table, cited sources) from given numbers or live public data via a data connector. Exports HTML, SVG, PNG, CSV.", 1, ["WRITE"]),
+  def("creative.build", "Construct an Artifact", "Build a complete, layered, interactive artifact from validated parameters: a gear train, a bay-framed cabin, a molecular model — every part with its layer and explanation, exported as GLB and shown in the conversation.", 1, ["WRITE"]),
+  def("creative.modify", "Modify a Constructed Artifact", "Change an existing construction through its own parameters, as a new revision of the same artifact: dependants are recomputed, valid keys and ranges enforced, and what changed is reported.", 1, ["WRITE"]),
+  def("creative.inspect", "Explain a Constructed System", "Explain one system of an artifact from its own layer notes, part notes and steps — the same text the viewer shows, so the answer cannot drift from what is on screen.", 1, ["READ"]),
+  def("creative.domains", "Construction Domains", "The builders this engine has, their domains and the words that select them.", 0, ["READ"]),
   def("creative.engine", "Engine Experience", "Build a complete four-stroke internal combustion engine as an interactive scene: every part, eight toggleable layers (block, piston & crank, valvetrain, fuel & ignition, intake/exhaust, cooling, lubrication, output), exploded view, labels and the animated cycle driven by real slider-crank kinematics — exported as GLB.", 1, ["WRITE"]),
   def("creative.scene3d", "3D Scene → GLB", "Construct a detailed 3D scene with three.js — presets (forest, city, desert, ocean, space, crystal-cave, runway) and/or objects (primitives, terrain, trees, rocks, buildings, crystals, garment forms), arrays, materials, lights, camera, animation — and export GLB/glTF.", 1, ["WRITE"]),
   def("creative.film", "Short Film → WebM", "Assemble a short film on the device: scenes of generative art, charts, diagrams or gradients with titles, camera moves, crossfades and a synthesised soundtrack, encoded to WebM with WebCodecs (MediaRecorder fallback). No video API.", 1, ["WRITE"]),

@@ -71,6 +71,12 @@ export interface Scene3DProgram {
    * object list stays a valid scene for every existing exporter.
    */
   engine?: unknown;
+  /**
+   * A constructed artifact (the build engine's layers, steps and parameters).
+   * Kept through normalisation for the same reason: the object list stays a
+   * valid scene, and the viewer gets the structure that explains it.
+   */
+  build?: unknown;
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -153,6 +159,7 @@ export function normalizeScene(input: unknown): Scene3DProgram | string {
     seed,
     preset: base ? String(v.preset) : undefined,
     ...(isObj(v.engine) ? { engine: v.engine } : {}),
+    ...(isObj(v.build) ? { build: v.build } : {}),
   };
 }
 
