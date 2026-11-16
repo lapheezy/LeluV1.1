@@ -41,6 +41,12 @@ const TYPE_COLOR: Record<NeuralEntity["type"], string> = {
   interface: "#38bdf8",
   composition: "#60a5fa",
   record: "#64748b",
+  conversation: "#f472b6",
+  artifact: "#2dd4bf",
+  project: "#fb923c",
+  file: "#a3e635",
+  folder: "#84cc16",
+  app: "#e879f9",
 };
 
 const TYPES = Object.keys(TYPE_COLOR) as NeuralEntity["type"][];
@@ -102,7 +108,7 @@ export default function NeuralMapView({ embedded = false }: { embedded?: boolean
 
   const style: CSSProperties | undefined = embedded ? { position: "absolute", inset: 0 } : undefined;
   return (
-    <div className="nm-standalone" data-neural-map-view data-embedded={embedded ? "true" : "false"} style={style} role="region" aria-label="Neural Map">
+    <div className="nm-standalone" data-neural-map-view data-embedded={embedded ? "true" : "false"} data-layer={view.standalone.layer ?? "base"} data-from={view.standalone.from ?? ""} style={style} role="region" aria-label="Neural Map">
       <header className="nm-top">
         <strong>Neural Map</strong>
         <small data-neural-stats>

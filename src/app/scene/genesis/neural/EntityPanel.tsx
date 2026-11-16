@@ -12,21 +12,35 @@ import { useNeuralEntity, useNeuralRelations, runNeuralOperation } from "./useNe
 
 /** Object operations a person can press. The ids are the existing tools. */
 const BUTTONS: Array<{ tool: string; label: string; args: (e: NeuralEntity) => Record<string, unknown>; when?: (e: NeuralEntity) => boolean }> = [
-  { tool: "cosmos.object.select", label: "Show in Cosmos", args: (e) => ({ object: e.sourceId }) },
+  { tool: "cosmos.object.select", label: "Show in Cosmos", args: (e) => ({ object: e.sourceId }), when: (e) => e.type === "object" },
   { tool: "cosmos.object.duplicate", label: "Duplicate", args: (e) => ({ object: e.sourceId }) },
   { tool: "cosmos.object.extract", label: "Take out", args: (e) => ({ object: e.sourceId }), when: (e) => neuralMap().relations(e.id, { direction: "out", types: ["attached-to"] }).length > 0 },
   { tool: "cosmos.object.remove", label: "Remove", args: (e) => ({ object: e.sourceId }) },
   { tool: "cosmos.object.restore", label: "Restore", args: (e) => ({ object: e.sourceId }) },
+  /* WP02: the other interfaces' entities, through their existing tools. */
+  { tool: "studio.open", label: "Open in Studio", args: (e) => ({ artifacts: [e.sourceId] }), when: (e) => e.type === "artifact" },
+  { tool: "studio.read", label: "Read revisions", args: (e) => ({ artifact: e.sourceId }), when: (e) => e.type === "artifact" },
+  { tool: "sandbox.read", label: "Read file", args: (e) => ({ path: e.sourceId }), when: (e) => e.type === "file" },
+  { tool: "interface.open", label: "Open", args: (e) => (e.type === "composition" ? { composition: e.sourceId } : { interface: e.sourceId }), when: (e) => e.type === "interface" || e.type === "composition" },
 ];
+
+/** A host interface's own action on an entity (e.g. Chat Universe: open this chat). Not a tool. */
+export interface HostAction {
+  id: string;
+  label: string;
+  when: (e: NeuralEntity) => boolean;
+  run: (e: NeuralEntity) => void;
+}
 
 const ORDER: NeuralRelationType[] = ["attached-to", "contains", "part-of", "located-in", "member-of", "derived-from", "extracted-from", "created-from", "references", "presents", "orbits", "connected-to", "aligned-with", "operated-by"];
 
-export default function EntityPanel({ id, onFollow, compact = false }: { id: string; onFollow: (id: string) => void; compact?: boolean }) {
+export default function EntityPanel({ id, onFollow, compact = false, hostActions = [] }: { id: string; onFollow: (id: string) => void; compact?: boolean; hostActions?: HostAction[] }) {
   const entity = useNeuralEntity(id);
   const relations = useNeuralRelations(id);
   const [busy, setBusy] = useState<string | null>(null);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
 
   if (!entity) {
     return (
@@ -43,6 +57,7 @@ export default function EntityPanel({ id, onFollow, compact = false }: { id: str
   }
   const keys = [...groups.keys()].sort((a, b) => ORDER.indexOf(a.split(":")[0] as NeuralRelationType) - ORDER.indexOf(b.split(":")[0] as NeuralRelationType));
   const ops = BUTTONS.filter((b) => entity.operations.includes(b.tool) && (!b.when || b.when(entity)));
+  const local = hostActions.filter((a) => a.when(entity));
 
   return (
     <div className="nm-panel" data-neural-entity={entity.id} data-state={entity.state} data-type={entity.type}>
@@ -76,9 +91,9 @@ export default function EntityPanel({ id, onFollow, compact = false }: { id: str
             </dd>
           </>
         ) : null}
-        {compact
-          ? null
-          : Object.entries(entity.facts).map(([k, v]) => (
+        {Object.entries(entity.facts)
+          .slice(0, compact ? 5 : 40)
+          .map(([k, v]) => (
               <span key={k} style={{ display: "contents" }}>
                 <dt>{k}</dt>
                 <dd>{String(v)}</dd>
@@ -95,7 +110,7 @@ export default function EntityPanel({ id, onFollow, compact = false }: { id: str
             <div key={key} className="nm-rel-group" data-relation={type} data-direction={dir}>
               <span className="nm-rel-word">{RELATION_WORDS[type][dir]}</span>
               <span className="nm-rel-items">
-                {items.slice(0, compact ? 6 : 40).map((n) => {
+                {items.slice(0, expanded.has(key) ? 400 : compact ? 6 : 40).map((n) => {
                   const otherId = dir === "out" ? n.relation.to : n.relation.from;
                   return (
                     <button key={n.relation.id} type="button" className="nm-chip" data-to={otherId} data-entity-type={n.entity?.type} onClick={() => onFollow(otherId)} title={otherId}>
@@ -103,7 +118,11 @@ export default function EntityPanel({ id, onFollow, compact = false }: { id: str
                     </button>
                   );
                 })}
-                {items.length > (compact ? 6 : 40) ? <span className="nm-muted">+{items.length - (compact ? 6 : 40)} more</span> : null}
+                {items.length > (compact ? 6 : 40) && !expanded.has(key) ? (
+                  <button type="button" className="nm-link" data-more={key} onClick={() => setExpanded(new Set([...expanded, key]))}>
+                    +{items.length - (compact ? 6 : 40)} more
+                  </button>
+                ) : null}
               </span>
             </div>
           );
@@ -135,8 +154,13 @@ export default function EntityPanel({ id, onFollow, compact = false }: { id: str
         </div>
       ) : null}
 
-      {ops.length ? (
+      {ops.length || local.length ? (
         <div className="nm-ops" aria-label="Operations">
+          {local.map((a) => (
+            <button key={a.id} type="button" data-host-action={a.id} onClick={() => a.run(entity)}>
+              {a.label}
+            </button>
+          ))}
           {ops.map((b) => (
             <button
               key={b.tool}

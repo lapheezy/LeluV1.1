@@ -178,6 +178,11 @@
   font: 13px/1.45 Inter, system-ui, sans-serif;
   pointer-events: auto;
 }
+/* Opened from an interface above the Cosmos (Chat Universe 480, windows
+   520, the System UI): the map opens over it; Return lands back there. */
+.nm-standalone[data-layer="over"] {
+  z-index: 640;
+}
 .nm-top {
   display: flex;
   align-items: center;
@@ -295,4 +300,62 @@
   .nm-side {
     border-left: 0;
   }
+}
+
+/* WP02 — the card an interface places in its own layout. */
+.nm-embed {
+  /* In a host's flex column it keeps its own height (it must not be squeezed to a line). */
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: min(340px, calc(100vw - 24px));
+  max-height: min(70dvh, 560px);
+  overflow: auto;
+  border-radius: 16px;
+  background: rgba(8, 10, 28, 0.94);
+  border: 1px solid rgba(167, 139, 250, 0.38);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+  color: #e2e8f0;
+  font: 13px/1.45 Inter, system-ui, sans-serif;
+  text-align: left;
+  pointer-events: auto;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.nm-embed button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.nm-embed .nm-inspector-bar button {
+  border-radius: 9px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(30, 41, 59, 0.7);
+  padding: 4px 9px;
+  font-size: 12px;
+}
+.nm-embed .nm-inspector-bar button:disabled {
+  opacity: 0.4;
+}
+.nm-embed .nm-ops button {
+  border-radius: 9px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(30, 41, 59, 0.7);
+  padding: 4px 9px;
+  font-size: 12px;
+}
+.nm-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 12px 0;
+}
+.nm-context .nm-chip[data-on="true"] {
+  background: rgba(124, 58, 237, 0.55);
+}
+.nm-context .nm-chip[data-indexed="false"] {
+  opacity: 0.55;
+}
+.nm-embed-empty,
+.nm-unindexed {
+  padding: 4px 12px 10px;
 }

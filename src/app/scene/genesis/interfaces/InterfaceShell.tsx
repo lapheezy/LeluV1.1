@@ -61,6 +61,14 @@ export default function InterfaceShell() {
     return () => window.clearTimeout(t);
   }, []);
 
+  // WP02: the Home's catalog joins the Neural Map with the rest of the
+  // shell (its own chunk, after first paint), so LÉLU's neural tools see
+  // it before any card is opened.
+  useEffect(() => {
+    const t = window.setTimeout(() => void import("../neural/useNeural").then((m) => m.ensureNeuralMap()), 1200);
+    return () => window.clearTimeout(t);
+  }, []);
+
   // Coming back to the Home (orb / Home button) leaves the composition:
   // the composition lives in the Cosmos view, the Home steps back over it.
   useEffect(() => {

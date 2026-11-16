@@ -24,6 +24,10 @@ import ToolRegistry from "../tools/ToolRegistry";
 import { INTERFACES } from "../interface/InterfaceCatalog";
 import InterfaceCompositionStore from "../interface/InterfaceCompositionStore";
 import {
+  artifactsPartition,
+  conversationsPartition,
+  projectsPartition,
+  sandboxPartition,
   capabilitiesPartition,
   cosmosObjectsPartition,
   interfacesPartition,
@@ -96,10 +100,60 @@ export function connectNeuralMap(): () => void {
     }),
   );
 
+  // WP02: the authorities behind Chat Universe, Creation Studio, Projects
+  // and the Code workspace. Imported on demand so the entry chunk does not
+  // grow; each partition appears a tick after boot and then stays live.
+  let stopped = false;
+  void connectInterfaceAuthorities(map, stops, () => stopped);
+
   connected = () => {
+    stopped = true;
     for (const stop of stops) stop();
     if (toolTimer) clearTimeout(toolTimer);
     connected = null;
   };
   return connected;
+}
+
+async function connectInterfaceAuthorities(map: ReturnType<typeof neuralMap>, stops: Array<() => void>, isStopped: () => boolean): Promise<void> {
+  const [{ default: MultiChatStore }, { default: StudioStore }, { default: ProjectStore }, { default: SandboxFS }] = await Promise.all([
+    import("../multichat/MultiChatStore"),
+    import("../studio/StudioStore"),
+    import("../projects/ProjectStore"),
+    import("../engineering/SandboxFS"),
+  ]);
+  if (isStopped()) return;
+
+  // Chats stream token by token: re-derive only when what the map shows
+  // (titles, membership, links, counts) changes — never per token.
+  const chats = MultiChatStore.getInstance();
+  const chatSig = () =>
+    chats
+      .listAll()
+      .map((c) => `${c.id}|${c.title}|${c.archived}|${c.pinned}|${c.projectId}|${c.linkedIds.join(",")}|${c.messages.length}|${c.topic}|${c.tags.join(",")}`)
+      .join("\n");
+  let lastChats = "";
+  const syncChats = () => {
+    const sig = chatSig();
+    if (sig === lastChats) return;
+    lastChats = sig;
+    map.setPartition(conversationsPartition(chats.listAll()));
+  };
+  syncChats();
+  stops.push(chats.subscribe(syncChats));
+
+  const studio = StudioStore.getInstance();
+  const syncStudio = () => map.setPartition(artifactsPartition(studio.list()));
+  syncStudio();
+  stops.push(studio.subscribe(syncStudio));
+
+  const projects = ProjectStore.getInstance();
+  const syncProjects = () => map.setPartition(projectsPartition(projects.list()));
+  syncProjects();
+  stops.push(projects.subscribe(syncProjects));
+
+  const sandbox = SandboxFS.getInstance();
+  const syncSandbox = () => map.setPartition(sandboxPartition(sandbox.list()));
+  syncSandbox();
+  stops.push(sandbox.subscribe(syncSandbox));
 }

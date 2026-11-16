@@ -20,7 +20,8 @@
 
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useGenesis, type GenesisPanel } from "../GenesisCore";
-import { type AppGroup } from "./homeCatalog";
+import { PRIMARY, APPS, type AppGroup } from "./homeCatalog";
+import { NeuralEmbedSlot, NeuralToggle } from "../neural/NeuralEmbedSlot";
 import HomeStore from "./homeStore";
 import { useCloud, useHomeStore, useNotifications } from "./useHomeLive";
 import { launch } from "./homeActions";
@@ -60,6 +61,7 @@ export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLib
   const signals = useHomeSignals();
   const device = useDeviceClass();
   const [studio, setStudio] = useState(() => typeof location !== "undefined" && new URLSearchParams(location.search).has("homeStudio"));
+  const [neural, setNeural] = useState(false);
   // While the home is in front, the scene's portal name chips stay hidden (they showed through the cards).
   useEffect(() => announceHome(), []);
   // Arranging belongs to this visit: leaving Home (a window, the Universe) ends it.
@@ -116,6 +118,7 @@ export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLib
             <HomeIcon name="Bell" />
             {notes.unread ? <span className="lch-badge">{notes.unread > 9 ? "9+" : notes.unread}</span> : null}
           </button>
+          <NeuralToggle host="home" open={neural} onToggle={() => setNeural(!neural)} style={{ alignSelf: "center" }} />
           <button type="button" className="lch-round lch-cosmos" aria-label="Look at the Cosmos" title="Look at the Cosmos" onClick={() => HomeStore.setImmersive(true)}>
             <span className="lch-cosmos-core" />
           </button>
@@ -134,6 +137,19 @@ export default function CosmosHome({ onOpenLibrary, onOpenWindows }: { onOpenLib
         onOpenWindows={onOpenWindows}
       />
     </div>
+    {/* M17.2-WP02: the Home's place in the Neural Map — the Home, its apps
+        and the interfaces it leads to — in the Home itself. */}
+    <NeuralEmbedSlot
+      open={neural}
+      host="home"
+      hostLabel="Home"
+      focus="app:home"
+      context={[{ id: "app:home", label: "Home" }, ...PRIMARY.filter((p) => p !== "workspaces").map((p) => ({ id: `app:${p}`, label: APPS.find((a) => a.id === p)?.label ?? p })), { id: "interface:cosmos", label: "Cosmos" }, { id: "interface:lelu-room", label: "LÉLU's Room" }]}
+      hostActions={[{ id: "open-app", label: "Open app", when: (e) => e.type === "app" && APPS.some((a) => a.id === e.sourceId), run: (e) => open(e.sourceId as GenesisPanel) }]}
+      unindexed="the Home's arrangement (presentations, module positions) — presentation state, kept out of the map on purpose"
+      onClose={() => setNeural(false)}
+      style={{ position: "fixed", top: 74, right: 12, zIndex: 41 }}
+    />
     {studio ? (
       <Suspense fallback={null}>
         <HomeDesignStudio onClose={() => setStudio(false)} />

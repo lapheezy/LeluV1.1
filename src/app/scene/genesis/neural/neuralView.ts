@@ -18,7 +18,7 @@ export interface NeuralViewState {
   /** The embedded inspector's entity (in Cosmos or any host interface). */
   inspecting: string | null;
   /** The standalone Neural Map: open, and focused on which entity. */
-  standalone: { open: boolean; focus: string | null; history: string[] };
+  standalone: { open: boolean; focus: string | null; history: string[]; layer?: "base" | "over"; from?: string };
   revision: number;
 }
 
@@ -43,9 +43,22 @@ export const NeuralView = {
   inspect(id: string | null): void {
     if (state.inspecting !== id) commit({ inspecting: id });
   },
-  openStandalone(focus?: string | null): void {
+  /**
+   * `over`: opened from an interface that sits above the Cosmos (Chat
+   * Universe, a window, the System UI): the map opens over it, and
+   * Return lands back in that same interface. `from` names the host.
+   */
+  openStandalone(focus?: string | null, opts: { over?: boolean; from?: string } = {}): void {
     const f = focus ?? state.standalone.focus ?? state.inspecting;
-    commit({ standalone: { open: true, focus: f, history: f && state.standalone.focus !== f ? [...state.standalone.history, ...(state.standalone.focus ? [state.standalone.focus] : [])].slice(-30) : state.standalone.history } });
+    commit({
+      standalone: {
+        open: true,
+        focus: f,
+        history: f && state.standalone.focus !== f ? [...state.standalone.history, ...(state.standalone.focus ? [state.standalone.focus] : [])].slice(-30) : state.standalone.history,
+        layer: opts.over ? "over" : "base",
+        ...(opts.from ? { from: opts.from } : {}),
+      },
+    });
   },
   focus(id: string): void {
     const s = state.standalone;

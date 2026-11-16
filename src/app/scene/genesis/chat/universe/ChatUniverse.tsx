@@ -32,7 +32,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import * as Icons from "lucide-react";
-import { chatWindowId, conversationIdOf, useGenesis } from "../../GenesisCore";
+import { CHAT_WINDOW_Z, chatWindowId, conversationIdOf, useGenesis } from "../../GenesisCore";
 import { setUniverseOpen, useUniverseOpen } from "./universeOpen";
 import { processImageFile, processVideoFile, type ProcessedMedia } from "../../../../../core/media/mediaProcessor";
 import ScreenShare from "../../../../../core/perception/ScreenShare";
@@ -57,6 +57,7 @@ import {
   type TimelineRange,
 } from "./universeModel";
 import { openEvolutionTrail } from "./evolutionTrail";
+import { NeuralEmbedSlot, NeuralToggle } from "../../neural/NeuralEmbedSlot";
 import "./chatUniverse.css";
 
 export const OPEN_UNIVERSE_EVENT = "lelu-open-universe";
@@ -138,6 +139,8 @@ export default function ChatUniverse() {
   const open = useUniverseOpen();
   const setOpen = setUniverseOpen;
   const [range, setRange] = useState<TimelineRange>("24h");
+  // M17.2-WP02: the Neural Map card inside the Universe.
+  const [neural, setNeural] = useState(false);
   const [filter, setFilter] = useState<"all" | "active" | "archived">("all");
   const [view, setView] = useState<"grid" | "carousel">("grid");
   const [railOpen, setRailOpen] = useState(false);
@@ -490,10 +493,29 @@ export default function ChatUniverse() {
             >
               <Icons.Sparkles size={18} />
             </button>
+            <NeuralToggle host="chat-universe" open={neural} onToggle={() => setNeural(!neural)} style={{ alignSelf: "center" }} />
             <button type="button" className="lcu-icon" onClick={newChat} aria-label="New chat"><Icons.Plus size={19} /></button>
             <button type="button" className="lcu-icon" onClick={() => setOpen(false)} aria-label="Close Chat Universe"><Icons.X size={19} /></button>
           </div>
         </header>
+        <NeuralEmbedSlot
+          open={neural}
+          host="chat-universe"
+          hostLabel="Chat Universe"
+          focus={target ? `record:conversation:${target.id}` : null}
+          context={[
+            ...(target ? [{ id: `record:conversation:${target.id}`, label: `This chat · ${target.title || "Untitled"}` }] : []),
+            ...[...openIds, ...recent.map((p) => p.id)]
+              .filter((id, i, all) => id !== target?.id && all.indexOf(id) === i)
+              .slice(0, 6)
+              .map((id) => ({ id: `record:conversation:${id}`, label: byId.get(id)?.title || "Untitled" })),
+          ]}
+          hostActions={[{ id: "open-chat", label: "Open chat", when: (e) => e.type === "conversation" && byId.has(e.sourceId), run: (e) => openChat(e.sourceId) }]}
+          unindexed="message text and attachments (a chat is indexed as a whole, with its links, merges, project and the artifacts made in it)"
+          onClose={() => setNeural(false)}
+          layer={CHAT_WINDOW_Z + 40}
+          style={{ top: "calc(env(safe-area-inset-top, 0px) + 96px)", right: 16 }}
+        />
 
         <div className="lcu-timeline" aria-label="Chat activity timeline">
           <span className="lcu-tl-label"><Icons.Clock size={15} /> Chat Activity</span>

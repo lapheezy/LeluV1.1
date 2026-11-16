@@ -44,6 +44,7 @@ import { useSceneMountLog } from "./useSceneMountLog";
 import LivingSystemVisuals from "./LivingSystemVisuals";
 import WorkspaceVisual from "./WorkspaceVisual";
 import PlaceInWorldButton from "./spatial/PlaceInWorldButton";
+import { NeuralEmbedSlot, NeuralToggle } from "./neural/NeuralEmbedSlot";
 import {
   type VisualStateRuntime,
   type VisualStateStructure,
@@ -87,6 +88,8 @@ export default function LivingSystemUI({ embedded }: { embedded?: LivingSystemEm
     return () => window.removeEventListener("resize", update);
   }, []);
 
+  // M17.2-WP02: the Neural Map card inside the System UI.
+  const [neural, setNeural] = useState(false);
   const { state: visualState, engine: visualEngine } = useVisual();
   const { state: workspaceState, engine: workspaceEngine } = useWorkspace();
   const { openPanel, setDialogue, engineRuntime, state: genesisState } = useGenesis();
@@ -166,6 +169,8 @@ export default function LivingSystemUI({ embedded }: { embedded?: LivingSystemEm
         views={workspaceState.views.filter((view) => !view.minimized)}
         focusId={workspaceState.focusId}
         onFocusView={(id) => workspaceEngine.focusView(id)}
+        neuralOpen={neural}
+        onNeural={() => setNeural(!neural)}
         onExit={embedded ? embedded.onExit : () => visualEngine.setInterfaceFocus("genesis")}
         onOpenLab={
           embedded
@@ -175,6 +180,23 @@ export default function LivingSystemUI({ embedded }: { embedded?: LivingSystemEm
                 openPanel("genesisv2");
               }
         }
+      />
+
+      <NeuralEmbedSlot
+        open={neural}
+        host="system"
+        hostLabel="LÉLU System"
+        focus="interface:lelu-system"
+        context={[
+          { id: "interface:lelu-system", label: "LÉLU System UI" },
+          { id: "interface:lelu-room", label: "LÉLU's Room" },
+          { id: "interface:cosmos", label: "Cosmos" },
+          { id: "capability:interface.open", label: "interface.open" },
+          { id: "capability:neural.inspect", label: "neural.inspect" },
+        ]}
+        unindexed={`the live modes (Heartbeat, Matrix, Nerve, Neuron, Core) and the ${workspaceState.views.length} workspace view(s) — runtime signals and presentation state that no authority exposes as entities`}
+        onClose={() => setNeural(false)}
+        style={{ position: "absolute", top: "calc(env(safe-area-inset-top, 0px) + 60px)", right: 16, zIndex: 5 }}
       />
 
       {/* The central presence — click to talk to LÉLU. */}
@@ -315,6 +337,8 @@ function SystemNav({
   views,
   focusId,
   onFocusView,
+  neuralOpen,
+  onNeural,
   onExit,
   onOpenLab,
 }: {
@@ -324,6 +348,8 @@ function SystemNav({
   views: WorkspaceView[];
   focusId: string | null;
   onFocusView: (id: string) => void;
+  neuralOpen: boolean;
+  onNeural: () => void;
   onExit: () => void;
   onOpenLab: () => void;
 }) {
@@ -411,6 +437,8 @@ function SystemNav({
       >
         Views {views.length > 0 ? `· ${views.length}` : ""}
       </button>
+
+      <NeuralToggle host="system" open={neuralOpen} onToggle={onNeural} style={{ flexShrink: 0, fontSize: 10.5 }} />
 
       {/* UI #3 — Genesis v2 Transformation Lab, reachable from this
           environment too: it switches to the primary environment and

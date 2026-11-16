@@ -32,6 +32,12 @@ export type NeuralAuthority =
   | "room.scene"
   | "tools"
   | "interfaces"
+  /** WP02: the authorities behind the other interfaces. */
+  | "chats"
+  | "studio"
+  | "projects"
+  | "sandbox"
+  | "home"
   /** A record another authority POINTS at (a project, a conversation…). */
   | "referenced";
 
@@ -47,7 +53,14 @@ export type NeuralEntityType =
   | "capability"
   | "interface"
   | "composition"
-  | "record";
+  | "record"
+  /* WP02 */
+  | "conversation"
+  | "artifact"
+  | "project"
+  | "file"
+  | "folder"
+  | "app";
 
 /**
  * Relationship vocabulary. Every relation is directed (from → to) and
@@ -158,6 +171,15 @@ export const NID = {
   interface: (id: string) => `interface:${id}`,
   composition: (id: string) => `composition:${id}`,
   record: (kind: string, id: string) => `record:${kind}:${id}`,
+  /* WP02. Conversations, artifacts and projects keep the record id other
+     authorities already point at (record:conversation:…, record:artifact:…,
+     record:project:…): their owner now claims it, so a reference and the
+     thing itself are ONE entity. */
+  conversation: (id: string) => `record:conversation:${id}`,
+  artifact: (id: string) => `record:artifact:${id}`,
+  project: (id: string) => `record:project:${id}`,
+  sandbox: (path: string) => `sandbox:${path}`,
+  app: (id: string) => `app:${id}`,
 } as const;
 
 /** The Cosmos core's canonical id (CosmosNavigation's root). */

@@ -15,6 +15,7 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import GenesisWindowFrame from "./GenesisWindowFrame";
+import { NeuralEmbedSlot, NeuralToggle } from "./neural/NeuralEmbedSlot";
 import SandboxFS, { PROJECT_TEMPLATES, type AnalysisResult, type SandboxNode } from "../../../core/engineering/SandboxFS";
 import SandboxRuntime, { type SandboxRunResult } from "../../../core/engineering/SandboxRuntime";
 import { buildReport, inspectDocument, type VisualReport } from "../../../core/selfdev/VisualInspection";
@@ -73,6 +74,8 @@ export default function GenesisEngineeringPanel({ onClose }: GenesisEngineeringP
   const [runBusy, setRunBusy] = useState(false);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [visualReport, setVisualReport] = useState<VisualReport | null>(null);
+  // M17.2-WP02: the Neural Map card inside the Code workspace.
+  const [neural, setNeural] = useState(false);
   const previewRef = useRef<HTMLIFrameElement | null>(null);
 
   function refresh(keepSelection = selected) {
@@ -207,7 +210,32 @@ export default function GenesisEngineeringPanel({ onClose }: GenesisEngineeringP
           <span style={{ borderRadius: 999, padding: "3px 10px", background: "rgba(74, 222, 128, 0.12)", color: "#86efac" }}>
             Real isolated execution — JavaScript runs in a worker (no network, no DOM, no node_modules)
           </span>
+          <NeuralToggle host="engineering" open={neural} onToggle={() => setNeural(!neural)} style={{ marginLeft: "auto" }} />
         </div>
+        <NeuralEmbedSlot
+          open={neural}
+          host="engineering"
+          hostLabel="Code"
+          focus={selected ? `sandbox:${selected}` : null}
+          context={[
+            ...(selected ? [{ id: `sandbox:${selected}`, label: `This file · ${selected.split("/").at(-1)}` }] : []),
+            ...(selected
+              ? selected
+                  .split("/")
+                  .slice(0, -1)
+                  .map((_, i, parts) => parts.slice(0, i + 1).join("/"))
+                  .reverse()
+                  .map((dir) => ({ id: `sandbox:${dir}`, label: `${dir}/` }))
+              : []),
+            { id: "capability:sandbox.read", label: "sandbox.read" },
+            { id: "capability:sandbox.write", label: "sandbox.write" },
+            { id: "capability:project.manage", label: "project.manage" },
+          ]}
+          hostActions={[{ id: "open-file", label: "Open in editor", when: (e) => e.type === "file" && e.authority === "sandbox", run: (e) => select(e.sourceId) }]}
+          unindexed="file contents, analysis and run results; imports between files are not parsed into relationships"
+          onClose={() => setNeural(false)}
+          style={{ width: "100%", maxWidth: 560, maxHeight: 420 }}
+        />
 
         {/* project generator */}
         <div style={{ border: "1px solid rgba(125, 211, 252, 0.28)", borderRadius: 14, padding: 12, background: "rgba(34, 211, 238, 0.05)" }}>

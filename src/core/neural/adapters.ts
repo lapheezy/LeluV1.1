@@ -18,6 +18,10 @@ import type { SpatialSceneSnapshot } from "../spatial/SpatialTypes";
 import type { ToolDefinition } from "../tools/ToolRegistry";
 import type { InterfaceEntry } from "../interface/InterfaceCatalog";
 import type { InterfaceComposition } from "../interface/interfaceComposition";
+import type { ChatConversation } from "../multichat/MultiChatStore";
+import type { StudioArtifact } from "../studio/StudioStore";
+import type { LeluProject } from "../projects/ProjectStore";
+import type { SandboxNode } from "../engineering/SandboxFS";
 import {
   COSMOS_CORE_NID,
   NID,
@@ -263,8 +267,11 @@ export function roomScenePartition(snapshot: Pick<SpatialSceneSnapshot, "objects
 /* ------------------------------------------------------------------ */
 
 /** The Cosmos-facing tools as capabilities. Which entity each operates is on the entity (`operations`). */
+/** The tools an indexed entity can list as an operation (WP02 adds the other interfaces' authorities). */
+export const CAPABILITY_TOOLS = /^(cosmos\.|interface\.(list|open|compose)$|neural\.|spatial\.|chats\.(list|read|link|merge)$|studio\.(open|read|list|export|restore|compare|revise)$|project\.manage$|sandbox\.(read|write)$|engineering\.remote$)/;
+
 export function capabilitiesPartition(tools: ToolDefinition[]): NeuralPartition {
-  const wanted = tools.filter((t) => /^(cosmos\.|interface\.(list|open|compose)$|neural\.|spatial\.)/.test(t.id));
+  const wanted = tools.filter((t) => CAPABILITY_TOOLS.test(t.id));
   const entities: NeuralEntity[] = wanted.map((t) => ({
     id: NID.capability(t.id),
     type: "capability",
@@ -317,6 +324,164 @@ export function interfacesPartition(catalog: readonly InterfaceEntry[], composit
     if (c.parentId && compositions.some((x) => x.id === c.parentId)) relations.push(relation(id, "derived-from", NID.composition(c.parentId), "interfaces"));
   }
   return { authority: "interfaces", entities, relations };
+}
+
+/* ------------------------------------------------------------------ */
+/* WP02 — the authorities behind the other interfaces                  */
+/* ------------------------------------------------------------------ */
+
+/** Conversations (MultiChatStore) — what Chat Universe shows. */
+export function conversationsPartition(conversations: ChatConversation[]): NeuralPartition {
+  const entities: NeuralEntity[] = [];
+  const relations: NeuralRelation[] = [];
+  const ids = new Set(conversations.map((c) => c.id));
+  for (const c of conversations) {
+    const id = NID.conversation(c.id);
+    // Merged chats carry each message's origin: that is real lineage.
+    const origins = [...new Set(c.messages.map((m) => m.origin?.conversationId).filter((o): o is string => !!o && o !== c.id))];
+    entities.push({
+      id,
+      type: "conversation",
+      label: c.title || "Untitled chat",
+      authority: "chats",
+      sourceId: c.id,
+      state: c.archived ? "archived" : "active",
+      provenance: [
+        { at: c.createdAt, action: "started", detail: `${c.messages.length} message(s)` },
+        ...origins.map((o) => ({ at: c.createdAt, action: "merged", detail: `messages from ${o}`, ref: NID.conversation(o) })),
+      ],
+      operations: ["chats.read", "chats.link"],
+      facts: { messages: c.messages.length, pinned: c.pinned, topic: c.topic || "—", tags: c.tags.join(", ") || "—" },
+      updatedAt: c.updatedAt,
+    });
+    for (const o of origins) if (ids.has(o)) relations.push(relation(id, "created-from", NID.conversation(o), "chats"));
+    for (const l of c.linkedIds) if (ids.has(l) && l !== c.id) relations.push(relation(id, "connected-to", NID.conversation(l), "chats"));
+    if (c.projectId) {
+      relations.push(relation(id, "part-of", NID.project(c.projectId), "chats"));
+      entities.push(referencedRecord("project", c.projectId, `Project ${c.projectId}`, "chats"));
+    }
+  }
+  return { authority: "chats", entities: dedupe(entities), relations: dedupeRelations(relations) };
+}
+
+/** Artifacts (StudioStore) — what Creation Studio and the Creative Kit make. */
+export function artifactsPartition(artifacts: StudioArtifact[]): NeuralPartition {
+  const entities: NeuralEntity[] = [];
+  const relations: NeuralRelation[] = [];
+  for (const a of artifacts) {
+    const id = NID.artifact(a.id);
+    const latest = a.revisions.at(-1);
+    entities.push({
+      id,
+      type: "artifact",
+      label: a.title,
+      authority: "studio",
+      sourceId: a.id,
+      state: "active",
+      provenance: [
+        ...a.revisions.map((r) => ({ at: r.at, action: r.rev === 1 ? "created" : "revised", detail: `r${r.rev} by ${r.by}${r.note ? ` — ${r.note}` : ""}` })),
+        ...a.exports.slice(-6).map((e) => ({ at: e.at, action: "exported", detail: `r${e.rev} ${e.filename} ${e.ok ? "verified" : "failed"}` })),
+      ].sort((x, y) => x.at - y.at),
+      operations: ["studio.open", "studio.read"],
+      facts: { kind: a.kind, revisions: latest?.rev ?? 0, exports: a.exports.length, ...(a.original ? { imported: a.original.name } : {}) },
+      updatedAt: a.updatedAt,
+    });
+    if (a.conversationId) {
+      relations.push(relation(id, "created-from", NID.conversation(a.conversationId), "studio"));
+      entities.push(referencedRecord("conversation", a.conversationId, `Chat ${a.conversationId}`, "studio"));
+    }
+  }
+  return { authority: "studio", entities: dedupe(entities), relations };
+}
+
+/** Projects (ProjectStore) — the Files / projects workspace. */
+export function projectsPartition(projects: LeluProject[]): NeuralPartition {
+  const entities: NeuralEntity[] = projects.map((p) => ({
+    id: NID.project(p.id),
+    type: "project",
+    label: p.name,
+    authority: "projects",
+    sourceId: p.id,
+    state: p.status === "archived" ? "archived" : "active",
+    provenance: [
+      { at: p.createdAt, action: "created", detail: p.description || p.name },
+      ...p.items.slice(-10).map((i) => ({ at: i.createdAt, action: `added ${i.kind}`, detail: i.title })),
+    ],
+    operations: ["project.manage"],
+    facts: { status: p.status, items: p.items.length, agents: p.agentIds.length, ...(p.objective ? { objective: p.objective } : {}), ...(p.location ? { subsystem: p.location } : {}) },
+    updatedAt: p.updatedAt,
+  }));
+  return { authority: "projects", entities, relations: [] };
+}
+
+/** The engineering sandbox's files (SandboxFS) — the Code workspace. */
+export function sandboxPartition(nodes: SandboxNode[]): NeuralPartition {
+  const entities: NeuralEntity[] = [];
+  const relations: NeuralRelation[] = [];
+  const paths = new Set(nodes.map((n) => n.path));
+  for (const n of nodes) {
+    const id = NID.sandbox(n.path);
+    const name = n.path.split("/").filter(Boolean).at(-1) ?? n.path;
+    entities.push({
+      id,
+      type: n.type === "dir" ? "folder" : "file",
+      label: name,
+      authority: "sandbox",
+      sourceId: n.path,
+      state: "active",
+      provenance: [],
+      operations: n.type === "file" ? ["sandbox.read", "sandbox.write"] : [],
+      facts: { path: n.path },
+      updatedAt: 0,
+    });
+    const parent = n.path.split("/").filter(Boolean).slice(0, -1).join("/");
+    if (parent && paths.has(parent)) relations.push(relation(id, "part-of", NID.sandbox(parent), "sandbox"));
+  }
+  return { authority: "sandbox", entities, relations };
+}
+
+/**
+ * The Home (its own catalog, app/scene/genesis/home/homeCatalog.ts): the
+ * Home itself, every app it lists, and the interfaces it offers as
+ * destinations. `aliases` names an app that IS an interface (the
+ * "LÉLU's Room" app is the lelu-room interface) — a fact of the catalog.
+ */
+export function homePartition(
+  apps: Array<{ id: string; label: string; hint: string; group: string; operations?: string[] }>,
+  interfaceIds: readonly string[],
+  aliases: Record<string, string> = {},
+): NeuralPartition {
+  const home = NID.app("home");
+  const entities: NeuralEntity[] = [
+    {
+      id: home,
+      type: "app",
+      label: "Home",
+      authority: "home",
+      sourceId: "home",
+      state: "active",
+      provenance: [],
+      operations: ["interface.list", "interface.open"],
+      facts: { apps: apps.length, destinations: interfaceIds.length },
+      updatedAt: 0,
+    },
+  ];
+  const relations: NeuralRelation[] = [];
+  for (const a of apps) {
+    const id = NID.app(a.id);
+    entities.push({ id, type: "app", label: a.label, authority: "home", sourceId: a.id, state: "active", provenance: [], operations: [...(a.operations ?? [])], facts: { group: a.group, hint: a.hint }, updatedAt: 0 });
+    relations.push(relation(home, "presents", id, "home"));
+    // The tools this app runs its work through (stated by the app's own entry).
+    for (const tool of a.operations ?? []) relations.push(relation(id, "operated-by", NID.capability(tool), "home"));
+    const alias = aliases[a.id];
+    if (alias && interfaceIds.includes(alias)) relations.push(relation(id, "presents", NID.interface(alias), "home"));
+  }
+  for (const i of interfaceIds) relations.push(relation(home, "presents", NID.interface(i), "home"));
+  return { authority: "home", entities, relations };
+}
+
+function dedupeRelations(relations: NeuralRelation[]): NeuralRelation[] {
+  return [...new Map(relations.map((r) => [r.id, r])).values()];
 }
 
 function dedupe(entities: NeuralEntity[]): NeuralEntity[] {

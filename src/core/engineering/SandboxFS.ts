@@ -147,6 +147,24 @@ export default class SandboxFS {
     } catch {
       // best-effort — sandbox stays in memory if storage is blocked
     }
+    for (const listener of this.listeners) {
+      try {
+        listener();
+      } catch {
+        /* a listener's failure never blocks a write */
+      }
+    }
+  }
+
+  /* M17.2-WP02: change notifications, so views (the Neural Map) follow
+     writes instead of polling. Every write already ends in persist(). */
+  private readonly listeners = new Set<() => void>();
+
+  public subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
   }
 
   private totalBytes(): number {

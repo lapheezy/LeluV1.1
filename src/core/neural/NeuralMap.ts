@@ -55,7 +55,7 @@ export interface Neighbor {
 type Listener = (update: NeuralUpdate) => void;
 
 const signature = (e: NeuralEntity) =>
-  `${e.label}|${e.state}|${e.updatedAt}|${e.spatial?.position.join(",") ?? ""}|${e.provenance.length}`;
+  `${e.label}|${e.state}|${e.updatedAt}|${e.spatial?.position.join(",") ?? ""}|${e.spatial?.scale ?? ""}|${e.provenance.length}|${e.operations.join(",")}|${JSON.stringify(e.facts)}`;
 
 export class NeuralMapIndex {
   private readonly partitions = new Map<NeuralAuthority, NeuralPartition>();
@@ -66,6 +66,7 @@ export class NeuralMapIndex {
   private readonly listeners = new Set<Listener>();
   private version = 0;
   private updates: NeuralUpdate[] = [];
+  private noops = 0;
 
   /** Replace one authority's partition. Cost is proportional to that partition only. */
   setPartition(next: NeuralPartition): NeuralUpdate {
@@ -105,6 +106,13 @@ export class NeuralMapIndex {
       changed.add(to);
     }
     this.partitions.set(next.authority, next);
+    if (before && changed.size === 0) {
+      // The authority notified but nothing the map holds changed (a store
+      // that re-emits on unrelated writes): swap silently — no new version,
+      // no listener wake-up, no re-render anywhere.
+      this.noops += 1;
+      return { authority: next.authority, ms: 0, entities: next.entities.length, relations: next.relations.length, changed: [], version: this.version };
+    }
     this.version += 1;
     const t1 = typeof performance !== "undefined" ? performance.now() : Date.now();
     const update: NeuralUpdate = {
@@ -243,6 +251,16 @@ export class NeuralMapIndex {
     return () => {
       this.listeners.delete(listener);
     };
+  }
+
+  /** Authority notifications that changed nothing in the map (skipped). */
+  noopCount(): number {
+    return this.noops;
+  }
+
+  /** How many views are listening — so a test (and the verifier) can see subscriptions are released. */
+  listenerCount(): number {
+    return this.listeners.size;
   }
 
   clear(): void {
