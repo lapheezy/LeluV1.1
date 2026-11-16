@@ -1,0 +1,50 @@
+{
+  "app": "Studio",
+  "label": "wp04-1",
+  "longTasks": 4,
+  "longTaskMs": 818,
+  "worst": 353,
+  "byOwner": [
+    "894ms (no src) (program)",
+    "353ms (no src) loseContext",
+    "62ms GenesisRenderPanel src/app/scene/genesis/GenesisRenderPanel.tsx:62",
+    "60ms (no src) (garbage collector)",
+    "51ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "47ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "44ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "43ms (no src) exports.createElement",
+    "40ms (anon) src/app/scene/genesis/GenesisRenderPanel.tsx:411",
+    "36ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "35ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "31ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "30ms (anon) src/app/scene/genesis/VisualInterface.tsx:493",
+    "30ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "28ms (no src) run",
+    "28ms (anon) src/app/scene/genesis/VisualInterface.tsx:412",
+    "27ms box src/app/scene/genesis/avatar/LeluSofa.tsx:45",
+    "26ms (anon) src/app/scene/genesis/VisualInterface.tsx:579"
+  ],
+  "byLeaf": [
+    "894ms (program) ",
+    "715ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "353ms loseContext ",
+    "60ms (garbage collector) ",
+    "51ms update EngineRegistry.ts",
+    "43ms exports.createElement react.js",
+    "43ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "41ms ReactElement react_jsx-dev-runtime.js",
+    "28ms createTask ",
+    "27ms run ",
+    "17ms now ",
+    "16ms exports.jsx react_jsx-runtime.js",
+    "15ms updateViewport GenesisModuleHost.tsx",
+    "15ms react_stack_bottom_frame react-dom_client.js",
+    "14ms setValueForStyles react-dom_client.js",
+    "13ms removeChild react-three-fiber.esm-DeNFsCiz.js",
+    "12ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "12ms updateProperties react-dom_client.js"
+  ],
+  "stacks": [
+    "984 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

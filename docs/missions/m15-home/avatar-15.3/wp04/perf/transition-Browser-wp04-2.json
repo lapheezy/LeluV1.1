@@ -1,0 +1,50 @@
+{
+  "app": "Browser",
+  "label": "wp04-2",
+  "longTasks": 6,
+  "longTaskMs": 892,
+  "worst": 417,
+  "byOwner": [
+    "829ms (no src) (program)",
+    "417ms (no src) loseContext",
+    "78ms (no src) (garbage collector)",
+    "65ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "55ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "53ms GenesisBrowserPanel src/app/scene/genesis/GenesisBrowserPanel.tsx:121",
+    "52ms (no src) exports.createElement",
+    "48ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "48ms (no src) run",
+    "45ms (anon) src/app/scene/genesis/VisualInterface.tsx:277",
+    "37ms (anon) src/app/scene/genesis/VisualInterface.tsx:220",
+    "33ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "30ms HeartbeatMode src/app/scene/genesis/VisualInterface.tsx:65",
+    "29ms FlyingCar src/app/scene/genesis/cosmos/CosmosVisuals.tsx:386",
+    "29ms FloatingModuleWindow src/app/scene/genesis/GenesisModuleHost.tsx:79",
+    "27ms (no src) commitUpdate",
+    "27ms (anon) src/app/scene/genesis/layout/WorkspaceBar.tsx:148",
+    "25ms (anon) src/app/scene/genesis/VisualInterface.tsx:579"
+  ],
+  "byLeaf": [
+    "829ms (program) ",
+    "651ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "417ms loseContext ",
+    "86ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "78ms (garbage collector) ",
+    "55ms update EngineRegistry.ts",
+    "52ms exports.createElement react.js",
+    "47ms run ",
+    "35ms createTask ",
+    "24ms now ",
+    "23ms measureScroll framer-motion.js",
+    "23ms exports.jsx react_jsx-runtime.js",
+    "17ms react_stack_bottom_frame react-dom_client.js",
+    "14ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "13ms validateProperty react-dom_client.js",
+    "12ms commitUpdate react-dom_client.js",
+    "12ms setValueForStyles react-dom_client.js",
+    "12ms runWithFiberInDEV react-dom_client.js"
+  ],
+  "stacks": [
+    "1145 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}

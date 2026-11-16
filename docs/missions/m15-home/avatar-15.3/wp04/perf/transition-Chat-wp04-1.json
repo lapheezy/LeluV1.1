@@ -1,0 +1,50 @@
+{
+  "app": "Chat",
+  "label": "wp04-1",
+  "longTasks": 8,
+  "longTaskMs": 2634,
+  "worst": 1937,
+  "byOwner": [
+    "1938ms (no src) loseContext",
+    "943ms (no src) (program)",
+    "222ms (no src) exports.createElement",
+    "165ms ChatUniverse src/app/scene/genesis/chat/universe/ChatUniverse.tsx:176",
+    "114ms update src/app/scene/genesis/engines/EngineRegistry.ts:81",
+    "81ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144",
+    "78ms (no src) (garbage collector)",
+    "61ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:579",
+    "53ms card src/app/scene/genesis/chat/universe/ChatUniverse.tsx:436",
+    "41ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1002",
+    "40ms (no src) run",
+    "34ms (anon) src/app/scene/genesis/chat/universe/ChatUniverse.tsx:1418",
+    "29ms GenesisWorkspaceRouter src/app/scene/genesis/GenesisScene.tsx:631",
+    "27ms (no src) commitUpdate",
+    "26ms GenesisInterface src/app/scene/genesis/GenesisInterface.tsx:445",
+    "24ms (no src) ReactElement",
+    "23ms (no src) ",
+    "22ms Portal src/app/scene/spatial/SpatialPortals.tsx:113"
+  ],
+  "byLeaf": [
+    "1938ms loseContext ",
+    "943ms (program) ",
+    "689ms exports.jsxDEV react_jsx-dev-runtime.js",
+    "222ms exports.createElement react.js",
+    "114ms update EngineRegistry.ts",
+    "78ms (garbage collector) ",
+    "76ms jsxDEVImpl react_jsx-dev-runtime.js",
+    "39ms run ",
+    "38ms createTask ",
+    "22ms ReactElement react.js",
+    "21ms getBoundingClientRect ",
+    "21ms now ",
+    "20ms commitUpdate react-three-fiber.esm-DeNFsCiz.js",
+    "15ms updateProperties react-dom_client.js",
+    "14ms update EngineRuntime.ts",
+    "13ms react_stack_bottom_frame react-dom_client.js",
+    "12ms validateProperty react-dom_client.js",
+    "12ms beginWork react-dom_client.js"
+  ],
+  "stacks": [
+    "5306 samples: loseContext <- WebGLRenderer.forceContextLoss@three.js:9782 <- (anon)@react-three-fiber.esm-DeNFsCiz.js:9077 <- (root)@:-1"
+  ]
+}
