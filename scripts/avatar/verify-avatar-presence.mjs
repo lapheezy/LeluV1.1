@@ -449,11 +449,13 @@ if (only === "all" || only === "panel") {
        * showed the tap always landed and her attribute lagged up to 4.2 s.)
        */
       const label = (await close.count()) ? await close.getAttribute("aria-label") : null;
-      const t0 = Date.now();
       if (label) { if (mobile) await close.tap(); else await close.click(); } else await goHome(p);
-      let away = null;
+      // The 2 s run from the moment the tap/click was delivered (as in WP02),
+      // and she is sampled at least once.
+      const t0 = Date.now();
+      let away = await her(p);
       let panelGone = false;
-      while (Date.now() - t0 <= 2000) {
+      for (let first = true; first || Date.now() - t0 <= 2000; first = false) {
         away = await her(p);
         panelGone = await p.evaluate(() => !document.querySelector("[data-lelu-preview-host]"));
         if (panelGone && away.presence !== "preview") break;
