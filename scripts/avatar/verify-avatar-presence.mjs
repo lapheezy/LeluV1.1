@@ -207,7 +207,7 @@ if (only === "all" || only === "contexts") {
  * (the module Vite serves to the app) and listens to the presence's own
  * telemetry; it changes nothing she does. Written to wp03/ per run.
  */
-const TRACE_OUT = "docs/missions/m15-home/avatar-15.3/wp03";
+const TRACE_OUT = process.env.LELU_TRACE_OUT ?? "docs/missions/m15-home/avatar-15.3/wp03";
 const RUN_TAG = process.env.LELU_RUN_TAG ?? only;
 async function installTrace(p) {
   await p.evaluate(async () => {
