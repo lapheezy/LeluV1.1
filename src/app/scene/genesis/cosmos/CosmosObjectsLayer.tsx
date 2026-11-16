@@ -700,9 +700,23 @@ function ObjectCameraBridge() {
         };
         const before = grab();
         const found = setObjectVisible(id, false);
-        const after = grab();
-        setObjectVisible(id, true);
-        gl.render(scene, camera);
+        let after: Uint8Array;
+        try {
+          after = grab();
+        } finally {
+          /*
+           * Restored in a `finally`: a capture that throws halfway through
+           * (a lost context, a driver hiccup) must not leave an object
+           * invisible in a scene the user is looking at. The repaint after
+           * the restore is best-effort for the same reason.
+           */
+          setObjectVisible(id, true);
+          try {
+            gl.render(scene, camera);
+          } catch {
+            /* the frame loop will repaint when it next runs */
+          }
+        }
         if (!found) return null;
 
         const luminance = (buffer: Uint8Array, index: number) =>
