@@ -1,0 +1,160 @@
+{
+  "at": "2026-11-16T16:48:58.784Z",
+  "base": "http://127.0.0.1:5173/",
+  "calls": [
+    "openrouter 429",
+    "groq 200",
+    "groq 200",
+    "groq 200",
+    "groq 200",
+    "groq 200",
+    "groq 200",
+    "openrouter 429"
+  ],
+  "results": [
+    {
+      "cat": "browser",
+      "name": "1. app boots without a fatal runtime exception",
+      "ok": true,
+      "detail": "no page errors"
+    },
+    {
+      "cat": "browser",
+      "name": "2. main interface renders",
+      "ok": true,
+      "detail": "7 root children"
+    },
+    {
+      "cat": "browser",
+      "name": "3. chat opens",
+      "ok": true,
+      "detail": "composer visible"
+    },
+    {
+      "cat": "live-provider",
+      "name": "attempts",
+      "ok": true,
+      "detail": "#1: [groq 200] → Groq"
+    },
+    {
+      "cat": "browser",
+      "name": "4. a user message can be submitted",
+      "ok": true,
+      "detail": "reply in 10 s"
+    },
+    {
+      "cat": "live-provider",
+      "name": "5. response received through an available provider",
+      "ok": true,
+      "detail": "model requests [groq 200] · provider field Groq · “A coral reef is a thriving underwater ecosystem formed by calcium‑carbonate skeletons secreted by coral polyps.”"
+    },
+    {
+      "cat": "live-provider",
+      "name": "no request to Anthropic",
+      "ok": true,
+      "detail": "openrouter 429, groq 200, groq 200"
+    },
+    {
+      "cat": "browser",
+      "name": "10. spatial command reaches the authorized tool path",
+      "ok": true,
+      "detail": "tools [\"cosmos.object.position:done\"] · “Done locally on the Cosmos scene — no model involved: move the acceptance gear to the left of the acceptance cabin.\n\n✓ move (cosmos.object.position)\n  Moved to the left of “acceptance cabin”: obj_1 “a”"
+    },
+    {
+      "cat": "browser",
+      "name": "10b. the gear now sits to the LEFT of the cabin (same y/z)",
+      "ok": true,
+      "detail": "gear [3.2,0.9,7.2] → [-7.2,0.9,9.97]; cabin [-1.6,0.9,9.97]"
+    },
+    {
+      "cat": "browser",
+      "name": "unknown object refused; nothing moved",
+      "ok": true,
+      "detail": "“Not done — nothing in the Cosmos changed; the reason is below (move the spaceship beside the acceptance cabin). 0 model calls.\n\n✗ move (cosmos.object.position)\n  No object matches “spaceship” — nothin” · 2 objects unchanged"
+    },
+    {
+      "cat": "browser",
+      "name": "8a. 'Open my Cosmos' runs cosmos.view.open",
+      "ok": true,
+      "detail": "tools [\"cosmos.view.open:done\"] · “Built by my construction engine from the parameters in your sentence — deterministic, so the same words always give the same model: open the Cosmos.\n\n✓ open (co”"
+    },
+    {
+      "cat": "browser",
+      "name": "8. Cosmos opens",
+      "ok": true,
+      "detail": "{\"immersive\":\"true\",\"count\":\"2 objects\",\"canvases\":2}"
+    },
+    {
+      "cat": "browser",
+      "name": "8b. nothing of the Chat Universe is drawn over the Cosmos",
+      "ok": true,
+      "detail": "0 Universe dialog(s) in the DOM"
+    },
+    {
+      "cat": "browser",
+      "name": "9. existing objects render (dock count, live WebGL canvas, screenshot)",
+      "ok": true,
+      "detail": "2 objects · 2 large canvas(es)"
+    },
+    {
+      "cat": "browser",
+      "name": "12b. leaving the Cosmos puts the conversation back where it was",
+      "ok": true,
+      "detail": "1 Universe dialog(s) after Back"
+    },
+    {
+      "cat": "browser",
+      "name": "12c. the same chat keeps working after Room/Cosmos round trip",
+      "ok": true,
+      "detail": "“Done locally on the Cosmos scene — no model involved: every object in the Cosmos.\n\n✓ objects (cosmos.object.list)\n  2 objects in the Cosmos:\n  - obj_1 “acceptan”"
+    },
+    {
+      "cat": "browser",
+      "name": "12a. Cosmos → workspace keeps objects and positions",
+      "ok": true,
+      "detail": "2 objects"
+    },
+    {
+      "cat": "browser",
+      "name": "no page errors during the run",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "cat": "browser",
+      "name": "13a. reload keeps the conversation",
+      "ok": true,
+      "detail": "10 messages in 03374dcf-f361-4bfa-ba8d-b370a04a6f7a"
+    },
+    {
+      "cat": "browser",
+      "name": "13b. reload keeps Cosmos objects at their moved positions",
+      "ok": true,
+      "detail": "gear [-7.2,0.9,9.97]"
+    },
+    {
+      "cat": "offline",
+      "name": "6. provider failure is surfaced honestly (all model calls blocked)",
+      "ok": true,
+      "detail": "blocked 4 model call(s) [openrouter, groq, cerebras] · “The network failed while I was reaching the model providers. Nothing was lost; ask me again once you're back online.”"
+    },
+    {
+      "cat": "offline",
+      "name": "7. local/offline capability still answers (time, no provider)",
+      "ok": true,
+      "detail": "“Right now it's 4:48:48 PM UTC on Monday, November 16, 2026 (2026-11-16 16:48:48 UTC).”"
+    },
+    {
+      "cat": "offline",
+      "name": "7b. local Cosmos tools run with providers down",
+      "ok": true,
+      "detail": "“Done locally on the Cosmos scene — no model involved: every object in the Cosmos.\n\n✓ objects (cosmos.object.list)\n  The Cosmos holds no objects yet. Build somet”"
+    },
+    {
+      "cat": "offline",
+      "name": "no page errors with providers down",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}
