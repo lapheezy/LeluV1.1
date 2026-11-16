@@ -64,3 +64,6 @@ PASS 63 phone-panel-form-choice-auto → full/embodied; same canvas true
 PASS 64 phone-panel-framing-choice-auto → full/embodied; same canvas true
 PASS 65 phone-panel-close-reopen-1 tapped “Close Avatar”; panel closed true, she left it (planned) within 2553 ms; reopened: preview; same canvas true; same model true; page WebGL contexts +3 since start
 PASS 66 phone-panel-close-reopen-2 tapped “Close Avatar”; panel closed true, she left it (planned) within 27 ms; reopened: preview; same canvas true; same model true; page WebGL contexts +6 since start
+PASS 67 reacts-to-real-turn activities observed during a real chat turn: COMPLETED → IDLE → SPEAKING → LISTENING
+PASS 68 transition-stress 12 transitions (Chat, Home, Browser, Home ×3): frozen on 0; her canvas the same element throughout true; page WebGL contexts created during the loop (Cosmos included): 0
+68/68 verified
