@@ -255,6 +255,7 @@ export default class SupabasePersistence {
     const config = resolveSupabaseConfig({
       url: [env.VITE_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_URL],
       key: [env.VITE_SUPABASE_PUBLISHABLE_KEY, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY],
+      usePublicDefault: env.VITE_SUPABASE_USE_PUBLIC_DEFAULT,
     });
     if (!config) {
       this.status = "disabled";
@@ -339,6 +340,27 @@ export default class SupabasePersistence {
       void this.realtimeChannel.unsubscribe();
       this.realtimeChannel = null;
     }
+  }
+
+  /**
+   * Test seam: return the optional adapter to its unconfigured state.
+   * Never called by production code, and it performs no network request.
+   */
+  public resetForTests(): void {
+    this.detachRuntime();
+    this.authSubscription?.unsubscribe();
+    this.authSubscription = null;
+    for (const timer of this.developmentTimers.values()) timer.stop();
+    this.developmentTimers.clear();
+    this.client = null;
+    this.userId = null;
+    this.status = "disabled";
+    this.authSession = null;
+    this.configError = null;
+    this.hydrated = false;
+    this.historyHydrated = false;
+    this.historyProgress = { loaded: 0, total: 0 };
+    this.authListeners.clear();
   }
 
   private async applySession(session: Session | null): Promise<void> {

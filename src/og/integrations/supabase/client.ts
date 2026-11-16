@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { brokeredPreviewStorage } from './previewAuthStorage';
 import { resolveSupabaseConfig } from "../../../core/config/supabaseEnv";
+import { publicEnvVar } from "../../../core/env/publicEnv";
 
 /**
  * Thrown when Supabase-backed OG functionality is invoked with no Supabase
@@ -53,7 +54,9 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
  * while the other reported "not connected".
  */
 function readConfig(): { url: string; key: string } | null {
-  const config = resolveSupabaseConfig();
+  const config = resolveSupabaseConfig({
+    usePublicDefault: publicEnvVar("VITE_SUPABASE_USE_PUBLIC_DEFAULT"),
+  });
   if (!config) return null;
   return { url: config.url, key: config.publishableKey };
 }
