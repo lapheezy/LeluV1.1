@@ -48,7 +48,13 @@ export type MissionOwner = "user" | "lelu" | "agent" | "unknown";
  * local write reached a storage backend). A local record is never described
  * as synchronized merely because it was saved.
  */
-export type MissionSyncState = "local" | "queued" | "synchronized" | "failed";
+export type MissionSyncState =
+  | "local"
+  | "queued"
+  | "synchronizing"
+  | "synchronized"
+  | "conflict"
+  | "failed";
 
 export type MissionLogKind =
   | "created"
@@ -105,6 +111,8 @@ export interface MissionRecord {
   duplicateOf?: string;
   createdAt: number;
   updatedAt: number;
+  /** Monotonic local revision. Incremented by every local mutation. */
+  revision: number;
   /** Bounded, newest-first? No — chronological, oldest first. */
   log: MissionLogEntry[];
   /** Whether the LAST write actually reached a storage backend. */
@@ -117,6 +125,26 @@ export interface MissionSnapshot {
   version: 1;
   exportedAt: number;
   missions: MissionRecord[];
+}
+
+/** What the last local load could recover from storage. */
+export interface MissionRecoveryReport {
+  loaded: number;
+  rejected: number;
+  duplicateIdsRemoved: number;
+  source: "empty" | "storage" | "corrupt";
+  storageError: boolean;
+}
+
+/** Counts across the whole local ledger, never evidence of remote success. */
+export interface MissionSyncSummary {
+  total: number;
+  local: number;
+  queued: number;
+  synchronizing: number;
+  synchronized: number;
+  conflict: number;
+  failed: number;
 }
 
 export interface CreateMissionInput {
@@ -166,7 +194,20 @@ function isStatus(value: unknown): value is MissionStatus {
 }
 
 function isSyncState(value: unknown): value is MissionSyncState {
-  return value === "local" || value === "queued" || value === "synchronized" || value === "failed";
+  return (
+    value === "local" ||
+    value === "queued" ||
+    value === "synchronizing" ||
+    value === "synchronized" ||
+    value === "conflict" ||
+    value === "failed"
+  );
+}
+
+function revisionOf(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 1
+    ? Math.floor(value)
+    : 1;
 }
 
 function isEvidence(value: unknown): value is MissionEvidence {
@@ -281,6 +322,7 @@ function normalizeRecord(raw: unknown, at: number): MissionRecord | null {
     },
     createdAt: typeof item.createdAt === "number" ? item.createdAt : at,
     updatedAt: typeof item.updatedAt === "number" ? item.updatedAt : at,
+    revision: revisionOf(item.revision),
     log,
     // A record read from storage WAS stored; the flag is re-evaluated on
     // the next write. It never means "written by this process".
@@ -291,6 +333,13 @@ function normalizeRecord(raw: unknown, at: number): MissionRecord | null {
 
 export class MissionLedger {
   private missions: MissionRecord[] = [];
+  private recovery: MissionRecoveryReport = {
+    loaded: 0,
+    rejected: 0,
+    duplicateIdsRemoved: 0,
+    source: "empty",
+    storageError: false,
+  };
   private readonly kv: KvStore;
   private readonly now: () => number;
 
@@ -302,16 +351,51 @@ export class MissionLedger {
 
   private load(): void {
     let stored: { version?: unknown; missions?: unknown } | null = null;
+    let storageError = false;
     try {
       stored = this.kv.get<{ version?: unknown; missions?: unknown }>(KEY);
     } catch {
-      stored = null;
+      storageError = true;
     }
+
+    const corrupt = !storageError && stored !== null && !Array.isArray(stored?.missions);
     const raw = stored && Array.isArray(stored.missions) ? stored.missions : [];
     const at = this.now();
-    this.missions = raw
-      .map((item) => normalizeRecord(item, at))
-      .filter((item): item is MissionRecord => item !== null);
+    const accepted: MissionRecord[] = [];
+    const seen = new Set<string>();
+    let rejected = 0;
+    let duplicateIdsRemoved = 0;
+
+    for (const item of raw) {
+      const record = normalizeRecord(item, at);
+      if (!record) {
+        rejected += 1;
+        continue;
+      }
+      // A duplicate id is ambiguous ownership, not a second mission. Keep the
+      // first valid copy and report the second rather than letting a corrupt
+      // write silently replace the record it collided with.
+      if (seen.has(record.id)) {
+        duplicateIdsRemoved += 1;
+        continue;
+      }
+      seen.add(record.id);
+      accepted.push(record);
+    }
+
+    this.missions = accepted;
+    this.recovery = {
+      loaded: accepted.length,
+      rejected,
+      duplicateIdsRemoved,
+      source: corrupt || storageError ? "corrupt" : stored === null ? "empty" : "storage",
+      storageError,
+    };
+  }
+
+  /** What the constructor recovered, for diagnostics and tests. */
+  public recoveryReport(): MissionRecoveryReport {
+    return { ...this.recovery };
   }
 
   /**
@@ -334,6 +418,7 @@ export class MissionLedger {
 
   private touch(mission: MissionRecord): void {
     mission.updatedAt = this.now();
+    mission.revision = revisionOf(mission.revision) + 1;
     // Every caller of touch() is a LOCAL change. A record imported or
     // acknowledged as synchronized must not keep that label after this device
     // edits it: there is no mission sync transport in this build, so the edit
@@ -374,6 +459,27 @@ export class MissionLedger {
   /** Missions that still need work, most urgent first. */
   public open(): MissionRecord[] {
     return this.list().filter((mission) => mission.status !== "completed" && mission.status !== "abandoned");
+  }
+
+  /**
+   * Aggregate local sync labels. This reports what the ledger actually knows;
+   * it never infers `synchronized` from a storage write or cloud connectivity.
+   */
+  public syncSummary(): MissionSyncSummary {
+    const summary: MissionSyncSummary = {
+      total: this.missions.length,
+      local: 0,
+      queued: 0,
+      synchronizing: 0,
+      synchronized: 0,
+      conflict: 0,
+      failed: 0,
+    };
+    for (const mission of this.missions) {
+      const sync = mission.sync ?? "local";
+      summary[sync] += 1;
+    }
+    return summary;
   }
 
   /* ------------------------------- writes ------------------------------ */
@@ -425,6 +531,7 @@ export class MissionLedger {
       },
       createdAt: at,
       updatedAt: at,
+      revision: 1,
       log: [],
       durability: "memory-only",
     };
@@ -437,6 +544,10 @@ export class MissionLedger {
   public update(id: string, patch: MissionPatch): MissionRecord | null {
     const mission = this.get(id);
     if (!mission) return null;
+    // An abandoned duplicate is history. Updating it directly would let a
+    // retry diverge from the canonical record while looking authoritative;
+    // callers must resolve the canonical id first.
+    if (mission.duplicateOf) return null;
     if (patch.title !== undefined) {
       const title = text(patch.title);
       if (title) mission.title = title;
@@ -726,14 +837,31 @@ export class MissionLedger {
    */
   public mergeRemote(records: MissionRecord[]): { merged: number; kept: number; persisted: boolean } {
     const byId = new Map(this.missions.map((mission) => [mission.id, mission]));
+    const knownIds = new Set<string>([
+      ...byId.keys(),
+      ...records
+        .map((record) => (record && typeof record === "object" ? record.id : ""))
+        .filter((id): id is string => typeof id === "string" && id.length > 0),
+    ]);
     let merged = 0;
     let kept = 0;
     const at = this.now();
     for (const remote of records) {
       const normalized = normalizeRecord(remote, at);
       if (!normalized) continue;
+      // A duplicate relationship that points outside the merged set is
+      // corrupt provenance. Refuse it rather than importing an orphan whose
+      // canonical owner cannot be resolved.
+      if (normalized.duplicateOf && !knownIds.has(normalized.duplicateOf)) {
+        kept += 1;
+        continue;
+      }
       const current = byId.get(normalized.id);
-      if (!current || normalized.updatedAt > current.updatedAt) {
+      const newer =
+        !current ||
+        normalized.updatedAt > current.updatedAt ||
+        (normalized.updatedAt === current.updatedAt && normalized.revision > current.revision);
+      if (newer) {
         normalized.durability = "persisted";
         byId.set(normalized.id, normalized);
         merged += 1;
@@ -799,7 +927,7 @@ export function formatMission(mission: MissionRecord): string {
   return [
     `${mission.title} (${mission.id})`,
     `  status: ${mission.status} · evidence: ${mission.evidence} · owner: ${mission.owner}`,
-    `  identity: ${mission.id} · created by ${mission.provenance.createdBy}` +
+    `  identity: ${mission.id} · revision ${mission.revision} · created by ${mission.provenance.createdBy}` +
       `${mission.provenance.session ? ` (session ${mission.provenance.session})` : ""} · created ${new Date(mission.createdAt).toISOString()}`,
     mission.duplicateOf ? `  duplicate of: ${mission.duplicateOf}` : "",
     mission.objective ? `  objective: ${mission.objective}` : "",

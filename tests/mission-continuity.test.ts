@@ -375,6 +375,123 @@ test("a refused storage write is reported as memory-only, never as durability", 
   assert.equal(throwingLedger.create({ title: "Throwing storage" }).durability, "memory-only");
 });
 
+test("a created and updated mission survives reload with a monotonic local revision", () => {
+  const kv = memoryKv();
+  let now = 5_000;
+  const ledger = new MissionLedger({ kv, now: () => now });
+  const created = ledger.create({
+    title: "Reloadable mission",
+    repository: "owner/old-repo",
+    branch: "old-branch",
+  }).mission!;
+  assert.equal(created.revision, 1);
+  now += 10;
+  const updated = ledger.update(created.id, {
+    repository: "owner/new-repo",
+    branch: "new-branch",
+  })!;
+  assert.equal(updated.revision, 2);
+  assert.equal(updated.sync, "local", "a local edit is never inferred as synchronized");
+
+  const reloaded = new MissionLedger({ kv, now: () => now });
+  const after = reloaded.get(created.id)!;
+  assert.equal(after.repository, "owner/new-repo");
+  assert.equal(after.branch, "new-branch");
+  assert.equal(after.revision, 2);
+  assert.equal(after.sync, "local");
+  assert.equal(reloaded.recoveryReport().loaded, 1);
+  assert.equal(reloaded.recoveryReport().source, "storage");
+});
+
+test("duplicate canonicalization survives reload and an abandoned duplicate cannot be updated directly", () => {
+  const kv = memoryKv();
+  const ledger = new MissionLedger({ kv });
+  const original = ledger.create({ title: "Canonical survives reload", nextSafeAction: "keep going" }).mission!;
+  const duplicate = ledger.create({ title: "Canonical retry" }).mission!;
+  ledger.markDuplicate(duplicate.id, original.id, "same workstream");
+
+  const reloaded = new MissionLedger({ kv });
+  assert.equal(reloaded.get(duplicate.id)?.duplicateOf, original.id);
+  assert.equal(reloaded.get(duplicate.id)?.status, "abandoned");
+  assert.equal(
+    reloaded.update(duplicate.id, { nextSafeAction: "corrupt the history" }),
+    null,
+    "the abandoned duplicate accepted a direct overwrite",
+  );
+  assert.equal(reloaded.get(original.id)?.nextSafeAction, "keep going");
+  assert.equal(reloaded.get(duplicate.id)?.nextSafeAction, null);
+});
+
+test("corrupted and duplicate-id records are reported without destroying the valid copy", () => {
+  const kv = memoryKv();
+  const ledger = new MissionLedger({ kv });
+  const valid = ledger.create({ title: "Recoverable record", objective: "keep this" }).mission!;
+  const stored = kv.get<{ version: number; missions: unknown[] }>("lelu.missions.v1")!;
+
+  kv.set("lelu.missions.v1", {
+    version: 1,
+    missions: [
+      stored.missions[0],
+      { id: "m-broken" },
+      { ...(stored.missions[0] as Record<string, unknown>), title: "duplicate id overwrite" },
+    ],
+  });
+  const reloaded = new MissionLedger({ kv });
+  assert.equal(reloaded.list().length, 1);
+  assert.equal(reloaded.get(valid.id)?.title, "Recoverable record");
+  assert.equal(reloaded.recoveryReport().rejected, 1);
+  assert.equal(reloaded.recoveryReport().duplicateIdsRemoved, 1);
+
+  kv.set("lelu.missions.v1", { version: 1, missions: "not an array" });
+  const corrupt = new MissionLedger({ kv });
+  assert.equal(corrupt.list().length, 0);
+  assert.equal(corrupt.recoveryReport().source, "corrupt");
+  assert.equal(corrupt.recoveryReport().storageError, false);
+});
+
+test("a corrupt top-level ledger does not crash the next write", () => {
+  const kv = memoryKv();
+  kv.set("lelu.missions.v1", { version: 1, missions: null });
+  const ledger = new MissionLedger({ kv });
+  const created = ledger.create({ title: "After corruption" });
+  assert.equal(created.ok, true);
+  assert.equal(ledger.recoveryReport().source, "corrupt");
+  assert.equal(new MissionLedger({ kv }).get(created.mission!.id)?.title, "After corruption");
+});
+
+test("newer local revisions win a tie and orphan remote duplicates are refused", () => {
+  const ledger = new MissionLedger({ kv: memoryKv() });
+  const local = ledger.create({ title: "Tie revision" }).mission!;
+  const sameTimeNewer = {
+    ...local,
+    title: "Remote revision two",
+    updatedAt: local.updatedAt,
+    revision: 2,
+  };
+  ledger.mergeRemote([sameTimeNewer]);
+  assert.equal(ledger.get(local.id)?.revision, 2);
+
+  const orphan = {
+    ...local,
+    id: "m-orphan",
+    title: "Orphan duplicate",
+    duplicateOf: "m-missing",
+    updatedAt: local.updatedAt + 1_000,
+  };
+  const refused = ledger.mergeRemote([orphan]);
+  assert.equal(refused.merged, 0);
+  assert.equal(ledger.get("m-orphan"), null);
+  assert.deepEqual(ledger.syncSummary(), {
+    total: 1,
+    local: 1,
+    queued: 0,
+    synchronizing: 0,
+    synchronized: 0,
+    conflict: 0,
+    failed: 0,
+  });
+});
+
 test("remote merge keeps the newer record and never deletes on absence", () => {
   const ledger = new MissionLedger({ kv: memoryKv() });
   const created = ledger.create({ title: "Local version" });
