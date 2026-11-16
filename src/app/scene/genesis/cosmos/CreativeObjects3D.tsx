@@ -225,7 +225,14 @@ export default function CreativeObjects3D() {
   });
 
   useEffect(() => {
-    setCreativeCamera(camera as unknown as Parameters<typeof setCreativeCamera>[0]);
+    setCreativeCamera({
+      position: camera.position,
+      getDirection: () => {
+        const forward = new THREE.Vector3();
+        camera.getWorldDirection(forward);
+        return { x: forward.x, y: forward.y, z: forward.z };
+      },
+    });
     return () => setCreativeCamera(null);
   }, [camera]);
 
@@ -244,6 +251,34 @@ export default function CreativeObjects3D() {
       positions: objects.map((object) => object.transform.position),
     };
   }, [objects, gl, camera, scene, frameloop]);
+
+  // On-demand projection for the acceptance harness: where each creation
+  // currently lands on the canvas, in CSS pixels. Computed when asked, so it
+  // costs nothing per frame and writes nothing to the store.
+  useEffect(() => {
+    (window as unknown as { __leluCreativeScreen?: unknown }).__leluCreativeScreen = () => {
+      const rect = gl.domElement.getBoundingClientRect();
+      return objects.map((object) => {
+        const [x, y, z] = creativePositionToScene(object.transform.position);
+        // Aim at the geometry, not the origin: a chair's origin is the floor
+        // between its legs, and a ray through that point hits nothing.
+        const node = root.current?.getObjectByName(`creative-object:${object.id}`);
+        const point = new THREE.Vector3(x, y, z);
+        if (node) new THREE.Box3().setFromObject(node).getCenter(point);
+        const projected = point.clone().project(camera);
+        return {
+          id: object.id,
+          name: object.name,
+          x: rect.left + ((projected.x + 1) / 2) * rect.width,
+          y: rect.top + ((1 - projected.y) / 2) * rect.height,
+          onScreen: projected.z > -1 && projected.z < 1 && Math.abs(projected.x) <= 1 && Math.abs(projected.y) <= 1,
+        };
+      });
+    };
+    return () => {
+      delete (window as unknown as { __leluCreativeScreen?: unknown }).__leluCreativeScreen;
+    };
+  }, [objects, camera, gl, root]);
 
   // The Cosmos paints on demand. A creative change is a reason to paint: the
   // store, the selection and a drag each ask the existing renderer for the
@@ -283,9 +318,20 @@ export default function CreativeObjects3D() {
    * one, so it sees the gesture lock and never starts an orbit.
    */
   useEffect(() => {
-    const element = gl.domElement;
     const onDown = (event: PointerEvent) => {
       if (event.button !== 0 && event.pointerType === "mouse") return;
+      // A press on a creation does not arrive on this canvas: the scene's
+      // canvases are stacked and the Cosmos covers the world with its own
+      // navigation surface, so the press lands on a DOM element above us and
+      // our canvas never hears it. Listen at window capture and treat "not a
+      // control" as "the world": anything inside a button, link, field, panel
+      // or the dock itself is left alone, and everything else is raycast.
+      // Measured: with a canvas-only guard, selection never fired.
+      const pressed = event.target as Element | null;
+      const control = pressed?.closest?.(
+        'button, a, input, textarea, select, [role="button"], [data-lelu-creative-dock], [data-lelu-no-creative-pick]',
+      );
+      if (control) return;
       const hit = pick(event.clientX, event.clientY);
       if (!hit) {
         selectCreativeObject(null);
@@ -296,6 +342,11 @@ export default function CreativeObjects3D() {
       selectCreativeObject(hit);
       setSelection({ objectId: hit.objectId, componentId: hit.componentId });
       const mode = getCreativeTool();
+      (window as unknown as { __leluCreativeLastGesture?: unknown }).__leluCreativeLastGesture = {
+        hit: hit.objectId,
+        component: hit.componentId ?? null,
+        mode,
+      };
       if (mode === "select") return;
 
       const scenePosition = creativePositionToScene(target.transform.position);
@@ -322,8 +373,8 @@ export default function CreativeObjects3D() {
       };
       render((n) => n + 1);
     };
-    element.addEventListener("pointerdown", onDown, { capture: true });
-    return () => element.removeEventListener("pointerdown", onDown, { capture: true });
+    window.addEventListener("pointerdown", onDown, { capture: true });
+    return () => window.removeEventListener("pointerdown", onDown, { capture: true });
   }, [camera, gl, pick, store]);
 
   /** The drag: window-level, so a finger leaving the mesh keeps control. */
@@ -362,6 +413,10 @@ export default function CreativeObjects3D() {
       previewRef.current = null;
       if (state && preview) {
         const position = scenePositionToCreative([preview.position.x, preview.position.y, preview.position.z]);
+        (window as unknown as { __leluCreativeLastCommit?: unknown }).__leluCreativeLastCommit = {
+          mode: state.mode,
+          position: scenePositionToCreative([preview.position.x, preview.position.y, preview.position.z]),
+        };
         store.setTransform(state.objectId, {
           ...(state.mode === "move" ? { position } : {}),
           ...(state.mode === "rotate" ? { rotation: preview.rotation.map((n) => Number(n.toFixed(2))) as [number, number, number] } : {}),

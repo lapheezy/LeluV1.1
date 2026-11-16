@@ -75,7 +75,8 @@ export type CreativeTool = "select" | "move" | "rotate" | "scale";
  */
 type CameraLike = {
   position: { x: number; y: number; z: number };
-  getWorldDirection: (target: { x: number; y: number; z: number; set: (x: number, y: number, z: number) => unknown }) => unknown;
+  /** The camera's forward axis. Supplied by the layer, which owns the THREE camera. */
+  getDirection: () => { x: number; y: number; z: number };
 };
 
 let liveCamera: CameraLike | null = null;
@@ -87,14 +88,18 @@ export function setCreativeCamera(camera: CameraLike | null): void {
 /** Creative-store millimetres (z-up) for a point `metres` in front of the eye. */
 export function creativePlacementInFront(metres = 2.2, side = 0): [number, number, number] | null {
   if (!liveCamera) return null;
-  const dir = { x: 0, y: 0, z: -1, set(x: number, y: number, z: number) { this.x = x; this.y = y; this.z = z; return this; } };
-  liveCamera.getWorldDirection(dir);
-  const rightX = -dir.z;
-  const rightZ = dir.x;
-  const length = Math.hypot(rightX, rightZ) || 1;
-  const x = liveCamera.position.x + (dir.x / Math.hypot(dir.x, dir.y, dir.z || 1)) * metres + (rightX / length) * side;
-  const y = liveCamera.position.y + (dir.y / Math.hypot(dir.x, dir.y, dir.z || 1)) * metres;
-  const z = liveCamera.position.z + (dir.z / Math.hypot(dir.x, dir.y, dir.z || 1)) * metres + (rightZ / length) * side;
+  const dir = liveCamera.getDirection();
+  const length = Math.hypot(dir.x, dir.y, dir.z) || 1;
+  const fx = dir.x / length;
+  const fy = dir.y / length;
+  const fz = dir.z / length;
+  // Right-hand horizontal perpendicular: forward × up.
+  const rightX = -fz;
+  const rightZ = fx;
+  const rightLength = Math.hypot(rightX, rightZ) || 1;
+  const x = liveCamera.position.x + fx * metres + (rightX / rightLength) * side;
+  const y = liveCamera.position.y + fy * metres;
+  const z = liveCamera.position.z + fz * metres + (rightZ / rightLength) * side;
   return [x * 1000, -z * 1000, y * 1000];
 }
 let tool: CreativeTool = "select";

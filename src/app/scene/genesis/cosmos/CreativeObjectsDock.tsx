@@ -16,7 +16,6 @@
  */
 
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
-import { createPortal } from "react-dom";
 import CreativeObjects, { type CreativeObject } from "../../../../core/couture/objects";
 import { garmentAssembly } from "../../../../core/couture/components";
 import { buildGarment } from "../../../../core/couture/garment";
@@ -181,11 +180,7 @@ export default function CreativeObjectsDock() {
 
   const parked = store.list({ location: "workspace", includeArchived: false }).filter((o) => o.kind !== "pattern-piece");
 
-  // Portalled to the body: the Cosmos HUD and the home cards each sit in their
-  // own stacking context above the interface root, so a panel drawn inside it
-  // is painted under them and swallows every tap. On the body the dock is in
-  // the root context and a thumb always reaches its buttons.
-  return createPortal(
+  return (
     <div
       data-lelu-creative-dock="ready"
       style={{
@@ -207,6 +202,9 @@ export default function CreativeObjectsDock() {
         color: "#dbeafe",
         fontFamily: "system-ui, sans-serif",
         zIndex: 2147483000,
+        // The interface root sets pointer-events: none so the scene stays
+        // draggable through it; a panel that wants the press must say so.
+        pointerEvents: "auto",
         overflowY: "auto",
         touchAction: "manipulation",
       }}
@@ -277,7 +275,6 @@ export default function CreativeObjectsDock() {
 
       {notice ? <div data-lelu-creative-notice="ready" style={{ fontSize: 10, color: "#a7f3d0", lineHeight: 1.35 }}>{notice}</div> : null}
       </>)}
-    </div>,
-    document.body,
+    </div>
   );
 }

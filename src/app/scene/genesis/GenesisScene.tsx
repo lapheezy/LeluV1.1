@@ -513,7 +513,17 @@ const GenesisV1Workspace = memo(function GenesisV1Workspace() {
    * evidence about the device, which the budget cannot know — and it never
    * writes a frameloop of its own (see SceneRenderManager).
    */
-  const paintWorld = (!softwareGL || Boolean(perfWorld)) && profile !== "light";
+  /*
+   * `?perf-world` exists so an instrument can drive the real scene on a
+   * machine the governor refuses to paint. It has to lift BOTH refusals or it
+   * measures nothing: the software-renderer check, and the "light" profile
+   * that the same renderer string produces as this device's ceiling. Measured
+   * here: with only the first lifted the canvas stayed `frameloop="never"`
+   * and every screenshot was a frozen frame — the affordance was inert in the
+   * exact container it was written for.
+   */
+  const forceWorld = Boolean(perfWorld);
+  const paintWorld = (forceWorld || !softwareGL) && (forceWorld || profile !== "light");
   const frameloop: Frameloop = paintWorld ? budgetedFrameloop : "never";
   // Adaptive resolution: the ratio starts device-appropriate and follows
   // the MEASURED frame rate (Appearance follows measured fps, never the
