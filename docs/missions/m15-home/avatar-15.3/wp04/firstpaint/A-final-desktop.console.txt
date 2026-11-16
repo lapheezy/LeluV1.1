@@ -1,2 +1,142 @@
 shot home-ready (page t 21181)
 shot worlds-menu (page t 26081)
+shot world-+3s (page t 33408)
+shot world-+8s (page t 44876)
+shot world-+15s (page t 57772)
+shot end (page t 63605)
+world-canvas programs linked BEFORE profile start: 0; AFTER: 21
+  after:
+    16× ? []
+    2× eye_patch_l_mat [skin morph]
+    1× lelu_mouth [skin]
+    1× Material_0 [skin]
+    1× Material_0.001 [skin morph]
+  before:
+    
+blocking GL queries > 15 ms after profile start:
+  +10215 230ms getProgramInfoLog ? [] (canvas 1461)
+  +10445 267ms getShaderInfoLog (shader) (canvas 1461)
+  +10712 21ms getProgramParameter ? [] (canvas 1461)
+  +10734 22ms getProgramInfoLog ? [] (canvas 1461)
+  +10757 84ms getShaderInfoLog (shader) (canvas 1461)
+  +10848 21ms getProgramInfoLog ? [] (canvas 1461)
+  +10868 64ms getShaderInfoLog (shader) (canvas 1461)
+  +10935 24ms getProgramInfoLog ? [] (canvas 1461)
+  +10959 54ms getShaderInfoLog (shader) (canvas 1461)
+  +11013 22ms getProgramParameter ? [] (canvas 1461)
+  +11092 24ms getProgramInfoLog ? [] (canvas 1461)
+  +11117 160ms getShaderInfoLog (shader) (canvas 1461)
+  +11277 21ms getProgramParameter ? [] (canvas 1461)
+  +11299 28ms getProgramInfoLog ? [] (canvas 1461)
+  +11327 125ms getShaderInfoLog (shader) (canvas 1461)
+  +11452 20ms getShaderInfoLog (shader) (canvas 1461)
+  +11479 19ms getProgramInfoLog ? [] (canvas 1461)
+  +11498 68ms getShaderInfoLog (shader) (canvas 1461)
+  +11567 22ms getProgramParameter ? [] (canvas 1461)
+  +11597 21ms getProgramInfoLog ? [] (canvas 1461)
+  +11618 365ms getShaderInfoLog (shader) (canvas 1461)
+  +11987 37ms getShaderInfoLog (shader) (canvas 1461)
+  +12024 20ms getShaderInfoLog (shader) (canvas 1461)
+  +12045 19ms getProgramInfoLog ? [] (canvas 1461)
+  +12064 43ms getShaderInfoLog (shader) (canvas 1461)
+  +12109 21ms getProgramInfoLog ? [] (canvas 1461)
+  +12130 184ms getShaderInfoLog (shader) (canvas 1461)
+  +12316 24ms getProgramInfoLog ? [] (canvas 1461)
+  +12340 83ms getShaderInfoLog (shader) (canvas 1461)
+  +12424 30ms getProgramParameter ? [] (canvas 1461)
+long tasks 22, 14614 ms, worst 4402 ms
+  +780ms 198ms
+  +1842ms 83ms
+  +2058ms 123ms
+  +3359ms 104ms
+  +3471ms 107ms
+  +4023ms 149ms
+  +4406ms 191ms
+  +4988ms 75ms
+  +5359ms 70ms
+  +5435ms 144ms
+  +6359ms 138ms
+  +6500ms 197ms
+marks:
+  +0 profile-start {}
+  +1085 frame-gap {"from":23490,"ms":1070}
+  +1838 frame-gap {"from":24560,"ms":767}
+  +2680 frame-gap {"from":25543,"ms":633}
+  +4232 frame-gap {"from":26193,"ms":1533}
+  +4985 frame-gap {"from":27726,"ms":750}
+  +5214 world-clicked {}
+  +5664 frame-gap {"from":28476,"ms":683}
+  +6702 frame-gap {"from":29160,"ms":883}
+  +7339 frame-gap {"from":30043,"ms":783}
+  +9903 frame-gap {"from":30826,"ms":1017}
+  +10183 frame-gap {"from":31843,"ms":1567}
+  +10188 her-world-first-frame {}
+  +12483 world-data-start {"url":"/api/forge/world"}
+  +12484 world-data-start {"url":"/api/forge/world/avatar/lelu_character"}
+  +12485 world-data-start {"url":"/api/forge/world"}
+  +12734 frame-gap {"from":33409,"ms":2533}
+  +12758 world-data-done {"url":"/api/forge/world"}
+  +12758 world-data-done {"url":"/api/forge/world/avatar/lelu_character"}
+  +12758 world-data-done {"url":"/api/forge/world"}
+  +12774 frame-gap {"from":35943,"ms":300}
+  +15453 frame-gap {"from":36343,"ms":2550}
+  +16546 frame-gap {"from":39226,"ms":817}
+  +20998 frame-gap {"from":40042,"ms":4433}
+  +22582 frame-gap {"from":44809,"ms":1267}
+  +25563 frame-gap {"from":46092,"ms":2967}
+  +26948 frame-gap {"from":49059,"ms":1383}
+  +28447 frame-gap {"from":50442,"ms":1500}
+  +29735 frame-gap {"from":51942,"ms":1283}
+  +31170 frame-gap {"from":53225,"ms":1433}
+  +32474 frame-gap {"from":54659,"ms":1300}
+  +33889 frame-gap {"from":55959,"ms":1417}
+  +35156 frame-gap {"from":57375,"ms":1267}
+  +36539 frame-gap {"from":58658,"ms":1367}
+  +39149 frame-gap {"from":60025,"ms":2617}
+  +39596 profile-stop {}
+  +40572 frame-gap {"from":62642,"ms":1417}
+  +41816 frame-gap {"from":64075,"ms":1233}
+  +46030 frame-gap {"from":65325,"ms":4200}
+by owner:
+  4085ms (no src) getShaderInfoLog
+  2264ms (no src) getContext
+  1319ms (no src) (program)
+  1223ms (no src) WebGLRenderer.setSize
+  1124ms (no src) getProgramInfoLog
+  848ms (no src) texSubImage2D
+  689ms (anon) src/app/scene/genesis/avatar/LeluCharacter3D.tsx:112
+  500ms (no src) bufferData
+  421ms (no src) (garbage collector)
+  273ms (anon) src/app/scene/genesis/cosmos/CosmosVisuals.tsx:144
+  260ms (anon) src/app/scene/genesis/avatar/LeluBody.tsx:183
+  259ms (no src) exports.createElement
+  232ms (anon) src/app/scene/genesis/avatar/LeluBody.tsx:273
+  217ms (no src) getProgramParameter
+  191ms (no src) texSubImage3D
+by leaf:
+  4686ms getShaderInfoLog 
+  2265ms getContext 
+  1924ms exports.jsxDEV react_jsx-dev-runtime.js
+  1319ms (program) 
+  1223ms WebGLRenderer.setSize three.js
+  1175ms getProgramInfoLog 
+  848ms texSubImage2D 
+  500ms bufferData 
+  421ms (garbage collector) 
+  262ms createImageBitmap 
+  259ms exports.createElement react.js
+  243ms getProgramParameter 
+  239ms jsxDEVImpl react_jsx-dev-runtime.js
+  191ms texSubImage3D 
+  164ms applyBoneTransform three.core-DC1ULSR-.js
+by package:
+  12277ms three
+  2343ms react_jsx-dev-runtime
+  1319ms (native) (program)
+  826ms react-three-fiber
+  456ms react-dom_client
+  421ms (native) (garbage collector)
+  304ms react
+  263ms src/app/scene/genesis/avatar/LeluBody.tsx
+  177ms three_examples_jsm_loaders_GLTFLoader__js
+  111ms scheduler-CpdqvMxI
