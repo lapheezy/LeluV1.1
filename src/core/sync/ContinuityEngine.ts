@@ -251,6 +251,7 @@ export default class ContinuityEngine {
       state: "pending_upload",
       payload: record,
       expectedCloudRevision: meta.cloudRevision,
+      baseRecordHash: meta.lastSyncedHash,
       lastError: null,
       nextAttemptAt: null,
     });
@@ -497,6 +498,23 @@ export default class ContinuityEngine {
     this.save();
   }
 
+  private pendingFor(authority: ContinuityAuthority, id: string): ContinuityOutboxOperation[] {
+    return this.state.outbox.filter((operation) =>
+      operation.authority === authority && operation.recordId === id);
+  }
+
+  private rebasePending(
+    authority: ContinuityAuthority,
+    id: string,
+    cloudRevision: string | null,
+    baseRecordHash: string | null,
+  ): void {
+    for (const operation of this.pendingFor(authority, id)) {
+      operation.expectedCloudRevision = cloudRevision;
+      operation.baseRecordHash = baseRecordHash;
+    }
+  }
+
   private async pullAll(): Promise<void> {
     if (!this.transport) return;
     for (const adapter of AUTHORITY_ADAPTERS) {
@@ -529,6 +547,46 @@ export default class ContinuityEngine {
         const localChanged = !sameRevision(meta.localRevision, meta.lastSyncedRevision) ||
           (meta.lastSyncedHash !== null && meta.hash !== meta.lastSyncedHash);
         const remoteChanged = remote.cloudRevision !== null && remote.cloudRevision !== meta.cloudRevision;
+
+        // First observation of an existing cloud record. A device that just
+        // hydrated will have seeded this record as a new local revision with
+        // no base. Without this branch it would upload with `expected: null`
+        // and turn every hydrated record into a false conflict.
+        if (meta.lastSyncedRevision === 0 && meta.lastSyncedHash === null) {
+          if (!local || meta.hash === remoteHash) {
+            // Content already agrees: adopt the cloud revision and drop the
+            // unnecessary upload.
+            meta.hash = remoteHash;
+            meta.lastSyncedRevision = meta.localRevision;
+            meta.lastSyncedHash = remoteHash;
+            meta.cloudRevision = remote.cloudRevision;
+            meta.state = "synced";
+            meta.lastError = null;
+            this.state.outbox = this.state.outbox.filter((operation) =>
+              operation.authority !== adapter.authority || operation.recordId !== remote.id);
+          } else if (local.updatedAt >= remote.updatedAt) {
+            // A genuine local edit made before this engine started is newer
+            // than the cloud copy. Rebase the pending upload onto the cloud
+            // revision instead of guessing or overwriting blindly.
+            meta.cloudRevision = remote.cloudRevision;
+            meta.state = "pending_upload";
+            this.rebasePending(adapter.authority, remote.id, remote.cloudRevision, remoteHash);
+          } else {
+            // Hydrated content differs only because the local copy is older
+            // or volatile fields changed. Keep the canonical cloud record.
+            adapter.apply(remote, { force: true });
+            meta.hash = remoteHash;
+            meta.lastSyncedRevision = meta.localRevision;
+            meta.lastSyncedHash = remoteHash;
+            meta.cloudRevision = remote.cloudRevision;
+            meta.state = "synced";
+            meta.lastError = null;
+            this.state.outbox = this.state.outbox.filter((operation) =>
+              operation.authority !== adapter.authority || operation.recordId !== remote.id);
+          }
+          continue;
+        }
+
         if (!localChanged && remoteChanged) {
           adapter.apply(remote, { force: true });
           meta.hash = remoteHash;
@@ -537,6 +595,16 @@ export default class ContinuityEngine {
           meta.cloudRevision = remote.cloudRevision;
           meta.state = "synced";
           meta.lastError = null;
+        } else if (localChanged && remoteChanged && remoteHash === meta.hash) {
+          // Both sides made the same content change. Agreeing is not a
+          // conflict; adopt the cloud revision and drop the upload.
+          meta.lastSyncedRevision = meta.localRevision;
+          meta.lastSyncedHash = remoteHash;
+          meta.cloudRevision = remote.cloudRevision;
+          meta.state = "synced";
+          meta.lastError = null;
+          this.state.outbox = this.state.outbox.filter((operation) =>
+            operation.authority !== adapter.authority || operation.recordId !== remote.id);
         } else if (localChanged && remoteChanged && remoteHash !== meta.lastSyncedHash && remoteHash !== meta.hash) {
           this.recordConflictFromRecords(adapter.authority, local, remote, meta, remote.cloudRevision,
             "Local and cloud revisions both changed since the last synchronization.");
@@ -544,6 +612,7 @@ export default class ContinuityEngine {
           // The cloud still has the last synchronized value; the local
           // revision is safe to upload against that expected revision.
           meta.cloudRevision = remote.cloudRevision;
+          this.rebasePending(adapter.authority, remote.id, remote.cloudRevision, remoteHash);
         }
       }
     }

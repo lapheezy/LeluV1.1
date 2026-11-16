@@ -79,6 +79,13 @@ export interface ContinuityOutboxOperation {
   payload: ContinuityRecord;
   /** The cloud revision this upload was based on; null means "new record". */
   expectedCloudRevision: string | null;
+  /**
+   * Semantic hash of the record at the last acknowledged cloud revision.
+   * Null means this device has never synchronized this record. The real
+   * transport uses it to tell an unrelated document change from a genuine
+   * same-record conflict.
+   */
+  baseRecordHash: string | null;
   lastError: string | null;
   nextAttemptAt: number | null;
 }

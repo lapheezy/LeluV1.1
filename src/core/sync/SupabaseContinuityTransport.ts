@@ -25,18 +25,24 @@ import type { KnowledgeEntry } from "../cognition/KnowledgeLibrary";
 import type { SpatialObject } from "../cosmos/SpatialObjects";
 import type { NavNode } from "../cosmos/CosmosNavigation";
 import type { PersistedKnowledgeGraphEnvelope } from "../cognition/KnowledgeGraph";
-import type {
-  ContinuityAuthority,
-  ContinuityOutboxOperation,
-  ContinuityPullResult,
-  ContinuityPushResult,
-  ContinuityRecord,
-  ContinuityTransport,
+import {
+  continuityContentHash,
+  type ContinuityAuthority,
+  type ContinuityOutboxOperation,
+  type ContinuityPullResult,
+  type ContinuityPushResult,
+  type ContinuityRecord,
+  type ContinuityTransport,
 } from "./ContinuityTypes";
 
 type Row = Record<string, any>;
 
+type ContinuitySession = { client: SupabaseClient; userId: string };
+type SessionProvider = () => ContinuitySession | null;
+
 const DOC_FORMAT = "lelu.continuity.doc.v1";
+const REVISION_PREFIX = "rev:";
+const TIMESTAMP_PREFIX = "ts:";
 
 const DOC_KEYS: Partial<Record<ContinuityAuthority, string>> = {
   knowledgeGraph: "lelu_sync_knowledge_graph",
@@ -56,6 +62,68 @@ function iso(value: number): string {
 
 function number(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : Date.parse(String(value)) || Date.now();
+}
+
+/**
+ * A strict revision token. `continuity_revision` is written only by the
+ * database trigger in migration 202611160001; `updated_at` is retained as a
+ * compatibility fallback for a project that has not applied that migration.
+ */
+function cloudRevisionOf(row: Row): string {
+  if (row?.continuity_revision != null && Number.isFinite(Number(row.continuity_revision))) {
+    return `${REVISION_PREFIX}${Number(row.continuity_revision)}`;
+  }
+  return `${TIMESTAMP_PREFIX}${String(row?.updated_at ?? "")}`;
+}
+
+function hasStrictRevision(row: Row | null | undefined): boolean {
+  return Boolean(row && row.continuity_revision != null && Number.isFinite(Number(row.continuity_revision)));
+}
+
+/** M14.4 stored plain `updated_at` strings, so they remain valid bases. */
+function expectedMatches(expected: string | null, row: Row): boolean {
+  if (!expected) return false;
+  if (expected === cloudRevisionOf(row)) return true;
+  if (expected === `${TIMESTAMP_PREFIX}${String(row.updated_at ?? "")}`) return true;
+  if (!expected.startsWith(REVISION_PREFIX) && !expected.startsWith(TIMESTAMP_PREFIX)) {
+    return expected === String(row.updated_at ?? "");
+  }
+  return false;
+}
+
+function recordHash(record: ContinuityRecord): string {
+  // The row mapper materializes optional project arrays that a locally
+  // created project does not carry. They are representation defaults, not
+  // content, so both sides compare without them.
+  let data = record.data;
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    const copy = { ...(data as Row) };
+    for (const key of ["actionableTasks", "executionPlan"]) {
+      if (Array.isArray(copy[key]) && copy[key].length === 0) delete copy[key];
+    }
+    data = copy;
+  }
+  return continuityContentHash(data, record.deleted === true);
+}
+
+function failure(error: unknown, label: string): Extract<ContinuityPushResult, { status: "authentication_required" | "cloud_unavailable" | "retry_required" }> {
+  const value = error as { message?: string; code?: string; status?: number } | null;
+  const message = value?.message ?? String(error);
+  const status = value?.status;
+  const code = value?.code ?? "";
+  if (status === 401 || status === 403 || code === "PGRST301" || code === "42501" || /jwt|not authenticated|permission denied/i.test(message)) {
+    return { status: "authentication_required", reason: `${label}: ${message}` };
+  }
+  if (/failed to fetch|network|timeout|abort/i.test(message)) {
+    return { status: "cloud_unavailable", reason: `${label}: ${message}` };
+  }
+  return { status: "retry_required", reason: `${label}: ${message}`, retryAfterMs: 2_000 };
+}
+
+/** `updated_at` must advance even on a project without the revision column. */
+function nextTimestamp(previous: unknown): string {
+  const parsed = typeof previous === "string" || typeof previous === "number" ? Date.parse(String(previous)) : NaN;
+  return new Date(Math.max(Date.now(), Number.isFinite(parsed) ? parsed + 1 : 0)).toISOString();
 }
 
 function projectRow(project: LeluProject, userId: string): Row {
@@ -214,8 +282,17 @@ function knowledgeFromRow(row: Row): KnowledgeEntry {
 export default class SupabaseContinuityTransport implements ContinuityTransport {
   public readonly kind = "supabase" as const;
 
-  private session(): { client: SupabaseClient; userId: string } | null {
-    return SupabasePersistence.getInstance().continuitySession();
+  /**
+   * The provider seam lets the real-cloud harness use an independently
+   * authenticated client without fabricating a SupabasePersistence session.
+   * Production uses the singleton session.
+   */
+  constructor(
+    private readonly sessionProvider: SessionProvider = () => SupabasePersistence.getInstance().continuitySession(),
+  ) {}
+
+  private session(): ContinuitySession | null {
+    return this.sessionProvider();
   }
 
   public availability(): "ready" | "authentication_required" | "cloud_unavailable" {
@@ -234,24 +311,13 @@ export default class SupabaseContinuityTransport implements ContinuityTransport 
       }
       if (operation.authority === "conversations") {
         const conversation = operation.payload.data as ChatConversation;
-        const result = await this.upsertRow(
+        return await this.upsertRow(
           session,
           "conversations",
           conversation.id,
           conversationRow(conversation, session.userId),
           operation,
         );
-        if (result.status !== "applied") return result;
-        const messages = messageRows(conversation, session.userId);
-        if (messages.length > 0) {
-          const { error } = await session.client
-            .from("messages")
-            .upsert(messages, { onConflict: "id,user_id" });
-          if (error) {
-            return { status: "retry_required", reason: `messages: ${error.message}`, retryAfterMs: 2_000 };
-          }
-        }
-        return result;
       }
       if (operation.authority === "knowledge") {
         const entry = operation.payload.data as KnowledgeEntry;
@@ -262,11 +328,7 @@ export default class SupabaseContinuityTransport implements ContinuityTransport 
       }
       return { status: "retry_required", reason: `No Supabase continuity mapping for ${operation.authority}.` };
     } catch (error) {
-      return {
-        status: "retry_required",
-        reason: error instanceof Error ? error.message : String(error),
-        retryAfterMs: 2_000,
-      };
+      return failure(error, operation.authority);
     }
   }
 
@@ -281,7 +343,7 @@ export default class SupabaseContinuityTransport implements ContinuityTransport 
           id: String(row.id),
           updatedAt: number(row.updated_at),
           data: projectFromRow(row),
-          cloudRevision: String(row.updated_at),
+          cloudRevision: cloudRevisionOf(row),
         })),
       };
     }
@@ -297,7 +359,7 @@ export default class SupabaseContinuityTransport implements ContinuityTransport 
           id: String(row.id),
           updatedAt: number(row.updated_at),
           data: conversationFromRow(row, messages ?? []),
-          cloudRevision: String(row.updated_at),
+          cloudRevision: cloudRevisionOf(row),
         })),
       };
     }
@@ -309,7 +371,7 @@ export default class SupabaseContinuityTransport implements ContinuityTransport 
           id: String(row.id),
           updatedAt: number(row.updated_at),
           data: knowledgeFromRow(row),
-          cloudRevision: String(row.updated_at),
+          cloudRevision: cloudRevisionOf(row),
         })),
       };
     }
@@ -317,7 +379,7 @@ export default class SupabaseContinuityTransport implements ContinuityTransport 
     if (!key) return { records: [] };
     const { data, error } = await session.client
       .from("user_preferences")
-      .select("value, updated_at")
+      .select("*")
       .eq("user_id", session.userId)
       .eq("preference_key", key)
       .maybeSingle();
@@ -328,13 +390,42 @@ export default class SupabaseContinuityTransport implements ContinuityTransport 
     return {
       records: document.records.map((record) => ({
         ...record,
-        cloudRevision: String(data.updated_at),
+        cloudRevision: cloudRevisionOf(data),
       })),
     };
   }
 
+  private conditional(query: any, existing: Row): any {
+    if (hasStrictRevision(existing)) {
+      return query.eq("continuity_revision", Number(existing.continuity_revision));
+    }
+    return query.eq("updated_at", existing.updated_at);
+  }
+
+  private revisionSelect(existing: Row): string {
+    return hasStrictRevision(existing)
+      ? "continuity_revision, updated_at"
+      : "updated_at";
+  }
+
+  private async syncMessages(
+    session: ContinuitySession,
+    conversation: ChatConversation,
+    ignoreDuplicates = false,
+  ): Promise<{ message: string } | null> {
+    const messages = messageRows(conversation, session.userId);
+    if (messages.length === 0) return null;
+    const { error } = await session.client
+      .from("messages")
+      .upsert(messages, {
+        onConflict: "id,user_id",
+        ...(ignoreDuplicates ? { ignoreDuplicates: true } : {}),
+      });
+    return error ? { message: error.message } : null;
+  }
+
   private async upsertRow(
-    session: { client: SupabaseClient; userId: string },
+    session: ContinuitySession,
     table: string,
     id: string,
     row: Row,
@@ -346,51 +437,86 @@ export default class SupabaseContinuityTransport implements ContinuityTransport 
       .eq("id", id)
       .eq("user_id", session.userId)
       .maybeSingle();
-    if (readError) {
-      return { status: "retry_required", reason: `${table}: ${readError.message}`, retryAfterMs: 2_000 };
-    }
+    if (readError) return failure(readError, table);
+
+    const localHash = recordHash(operation.payload);
 
     if (existing) {
-      if (operation.expectedCloudRevision === null || String(existing.updated_at) !== operation.expectedCloudRevision) {
+      const remote = await this.remoteRecord(session, table, existing);
+      const remoteHash = recordHash(remote);
+
+      if (operation.type === "delete") {
+        if (!expectedMatches(operation.expectedCloudRevision, existing)) {
+          return {
+            status: "conflict",
+            cloudRevision: cloudRevisionOf(existing),
+            remote,
+            reason: "The cloud row changed after this device's last synchronized revision.",
+          };
+        }
+        const query = this.conditional(
+          session.client.from(table).delete().eq("id", id).eq("user_id", session.userId),
+          existing,
+        );
+        const { data: deleted, error } = await query.select("id");
+        if (error) return failure(error, table);
+        if (!Array.isArray(deleted) || deleted.length === 0) {
+          return {
+            status: "conflict",
+            cloudRevision: cloudRevisionOf(existing),
+            remote,
+            reason: "The conditional delete matched no row; another device changed it.",
+          };
+        }
+        return { status: "applied", cloudRevision: `deleted:${cloudRevisionOf(existing)}` };
+      }
+
+      // A repeated delivery of an already-applied operation is successful,
+      // not a conflict. This is the real lost-acknowledgement case: an
+      // insert leaves `expected === null`, and an update leaves the old
+      // base revision even though the new content is already in the row.
+      if (remoteHash === localHash) {
+        if (table === "conversations") {
+          const messageError = await this.syncMessages(session, operation.payload.data as ChatConversation, true);
+          if (messageError) return failure(messageError, "messages");
+        }
+        return { status: "applied", cloudRevision: cloudRevisionOf(existing) };
+      }
+
+      if (!expectedMatches(operation.expectedCloudRevision, existing)) {
         return {
           status: "conflict",
-          cloudRevision: String(existing.updated_at),
-          // Fetch the full cloud value only on an actual conflict; a normal
-          // conversation update must not pay for a second message read.
-          remote: await this.remoteRecord(session, table, existing),
+          cloudRevision: cloudRevisionOf(existing),
+          remote,
           reason: "The cloud row changed after this device's last synchronized revision.",
         };
       }
-      if (operation.type === "delete") {
-        const { error } = await session.client
-          .from(table)
-          .delete()
-          .eq("id", id)
-          .eq("user_id", session.userId)
-          .eq("updated_at", existing.updated_at);
-        if (error) return { status: "retry_required", reason: `${table}: ${error.message}`, retryAfterMs: 2_000 };
-        return { status: "applied", cloudRevision: String(existing.updated_at) };
-      }
-      const { data, error } = await session.client
-        .from(table)
-        .update(row)
-        .eq("id", id)
-        .eq("user_id", session.userId)
-        .eq("updated_at", existing.updated_at)
-        .select("updated_at")
-        .maybeSingle();
-      if (error) return { status: "retry_required", reason: `${table}: ${error.message}`, retryAfterMs: 2_000 };
+
+      const update = { ...row };
+      delete update.continuity_revision;
+      if (!hasStrictRevision(existing)) update.updated_at = nextTimestamp(existing.updated_at);
+      const query = this.conditional(
+        session.client.from(table).update(update).eq("id", id).eq("user_id", session.userId),
+        existing,
+      );
+      const { data, error } = await query.select(this.revisionSelect(existing)).maybeSingle();
+      if (error) return failure(error, table);
       if (!data) {
         return {
           status: "conflict",
-          cloudRevision: null,
-          remote: null,
+          cloudRevision: cloudRevisionOf(existing),
+          remote,
           reason: "The conditional update matched no row; another device changed it.",
         };
       }
-      return { status: "applied", cloudRevision: String(data.updated_at) };
+      if (table === "conversations") {
+        const messageError = await this.syncMessages(session, operation.payload.data as ChatConversation);
+        if (messageError) return failure(messageError, "messages");
+      }
+      return { status: "applied", cloudRevision: cloudRevisionOf(data) };
     }
 
+    if (operation.type === "delete") return { status: "applied", cloudRevision: "deleted" };
     if (operation.expectedCloudRevision !== null) {
       return {
         status: "conflict",
@@ -399,30 +525,52 @@ export default class SupabaseContinuityTransport implements ContinuityTransport 
         reason: "The expected cloud row no longer exists.",
       };
     }
-    if (operation.type === "delete") return { status: "applied", cloudRevision: operation.expectedCloudRevision ?? "deleted" };
 
+    const insert = { ...row };
+    delete insert.continuity_revision;
     const { data, error } = await session.client
       .from(table)
-      .insert(row)
-      .select("updated_at")
+      .insert(insert)
+      .select("*")
       .maybeSingle();
     if (error) {
-      // A duplicate id is a conflict, not an instruction to overwrite.
+      // A duplicate id after a lost insert acknowledgement is idempotent
+      // when the cloud content matches this exact payload.
       if (error.code === "23505") {
+        const { data: raced } = await session.client
+          .from(table)
+          .select("*")
+          .eq("id", id)
+          .eq("user_id", session.userId)
+          .maybeSingle();
+        if (raced) {
+          const remote = await this.remoteRecord(session, table, raced);
+          if (recordHash(remote) === localHash) {
+            if (table === "conversations") {
+              const messageError = await this.syncMessages(session, operation.payload.data as ChatConversation, true);
+              if (messageError) return failure(messageError, "messages");
+            }
+            return { status: "applied", cloudRevision: cloudRevisionOf(raced) };
+          }
+        }
         return {
           status: "conflict",
-          cloudRevision: null,
-          remote: null,
-          reason: "The cloud already has a row with this id.",
+          cloudRevision: raced ? cloudRevisionOf(raced) : null,
+          remote: raced ? await this.remoteRecord(session, table, raced) : null,
+          reason: "The cloud already has a different row with this id.",
         };
       }
-      return { status: "retry_required", reason: `${table}: ${error.message}`, retryAfterMs: 2_000 };
+      return failure(error, table);
     }
-    return { status: "applied", cloudRevision: String(data?.updated_at ?? row.updated_at) };
+    if (table === "conversations") {
+      const messageError = await this.syncMessages(session, operation.payload.data as ChatConversation);
+      if (messageError) return failure(messageError, "messages");
+    }
+    return { status: "applied", cloudRevision: cloudRevisionOf(data ?? row) };
   }
 
   private async remoteRecord(
-    session: { client: SupabaseClient; userId: string },
+    session: ContinuitySession,
     table: string,
     row: Row,
   ): Promise<ContinuityRecord & { cloudRevision: string }> {
@@ -441,23 +589,23 @@ export default class SupabaseContinuityTransport implements ContinuityTransport 
       id: String(row.id),
       updatedAt: number(row.updated_at),
       data,
-      cloudRevision: String(row.updated_at),
+      cloudRevision: cloudRevisionOf(row),
     };
   }
 
   private async pushDocument(
-    session: { client: SupabaseClient; userId: string },
+    session: ContinuitySession,
     operation: ContinuityOutboxOperation,
   ): Promise<ContinuityPushResult> {
     const key = DOC_KEYS[operation.authority];
     if (!key) return { status: "retry_required", reason: "No document key." };
     const { data, error } = await session.client
       .from("user_preferences")
-      .select("value, updated_at")
+      .select("*")
       .eq("user_id", session.userId)
       .eq("preference_key", key)
       .maybeSingle();
-    if (error) return { status: "retry_required", reason: `user_preferences: ${error.message}`, retryAfterMs: 2_000 };
+    if (error) return failure(error, "user_preferences");
 
     const existing = data?.value && typeof data.value === "object"
       ? data.value as Partial<DocumentValue>
@@ -466,23 +614,45 @@ export default class SupabaseContinuityTransport implements ContinuityTransport 
       ? existing.records
       : [];
     const remoteRecord = existingRecords.find((record) => record.id === operation.recordId) ?? null;
-    const remoteRevision = data?.updated_at ? String(data.updated_at) : null;
+    const localHash = recordHash(operation.payload);
+    const remoteHash = remoteRecord ? recordHash(remoteRecord) : null;
+    const alreadyApplied = Boolean(remoteRecord && remoteHash === localHash);
 
-    if (data && (operation.expectedCloudRevision === null || remoteRevision !== operation.expectedCloudRevision)) {
-      return {
-        status: "conflict",
-        cloudRevision: remoteRevision,
-        remote: remoteRecord,
-        reason: "The cloud document changed after this device's last synchronized revision.",
-      };
+    if (data && alreadyApplied) {
+      return { status: "applied", cloudRevision: cloudRevisionOf(data) };
     }
-    if (!data && operation.expectedCloudRevision !== null) {
-      return {
-        status: "conflict",
-        cloudRevision: null,
-        remote: null,
-        reason: "The expected cloud document no longer exists.",
-      };
+
+    if (!data) {
+      if (operation.type === "delete") return { status: "applied", cloudRevision: "deleted" };
+      if (operation.expectedCloudRevision !== null) {
+        return {
+          status: "conflict",
+          cloudRevision: null,
+          remote: null,
+          reason: "The expected cloud document no longer exists.",
+        };
+      }
+    } else if (!expectedMatches(operation.expectedCloudRevision, data)) {
+      // A document can change because a different record in the same
+      // authority was written. If this exact record is untouched, the
+      // update can safely rebase onto the current document revision.
+      if (operation.type === "delete" && !remoteRecord) {
+        return { status: "applied", cloudRevision: cloudRevisionOf(data) };
+      }
+      if (remoteRecord && remoteHash !== localHash) {
+        // The document moved because another record changed, while this
+        // record is still exactly the base this device last synchronized.
+        // Rebase is safe; only a changed same-record target is a conflict.
+        const targetUnchanged = operation.baseRecordHash !== null && remoteHash === operation.baseRecordHash;
+        if (!targetUnchanged) {
+          return {
+            status: "conflict",
+            cloudRevision: cloudRevisionOf(data),
+            remote: remoteRecord,
+            reason: "The cloud record changed after this device's last synchronized revision.",
+          };
+        }
+      }
     }
 
     const nextRecords = existingRecords.filter((record) => record.id !== operation.recordId);
@@ -495,30 +665,61 @@ export default class SupabaseContinuityTransport implements ContinuityTransport 
     };
     const updatedAt = new Date().toISOString();
     if (data) {
-      const { data: updated, error: updateError } = await session.client
-        .from("user_preferences")
-        .update({ value, updated_at: updatedAt })
-        .eq("user_id", session.userId)
-        .eq("preference_key", key)
-        .eq("updated_at", data.updated_at)
-        .select("updated_at")
+      const update: Row = { value };
+      if (!hasStrictRevision(data)) update.updated_at = nextTimestamp(data.updated_at);
+      const query = this.conditional(
+        session.client
+          .from("user_preferences")
+          .update(update)
+          .eq("user_id", session.userId)
+          .eq("preference_key", key),
+        data,
+      );
+      const { data: updated, error: updateError } = await query
+        .select(this.revisionSelect(data))
         .maybeSingle();
-      if (updateError) return { status: "retry_required", reason: `user_preferences: ${updateError.message}`, retryAfterMs: 2_000 };
-      if (!updated) return { status: "conflict", cloudRevision: null, remote: null, reason: "The conditional document update matched no row." };
-      return { status: "applied", cloudRevision: String(updated.updated_at) };
+      if (updateError) return failure(updateError, "user_preferences");
+      if (!updated) {
+        return {
+          status: "conflict",
+          cloudRevision: cloudRevisionOf(data),
+          remote: remoteRecord,
+          reason: "The conditional document update matched no row.",
+        };
+      }
+      return { status: "applied", cloudRevision: cloudRevisionOf(updated) };
     }
+
     const { data: inserted, error: insertError } = await session.client
       .from("user_preferences")
       .insert({ user_id: session.userId, preference_key: key, value, updated_at: updatedAt })
-      .select("updated_at")
+      .select("*")
       .maybeSingle();
     if (insertError) {
       if (insertError.code === "23505") {
-        return { status: "conflict", cloudRevision: null, remote: null, reason: "The cloud document already exists." };
+        const { data: raced } = await session.client
+          .from("user_preferences")
+          .select("*")
+          .eq("user_id", session.userId)
+          .eq("preference_key", key)
+          .maybeSingle();
+        const racedRecords = raced?.value?.format === DOC_FORMAT && Array.isArray(raced.value.records)
+          ? raced.value.records as ContinuityRecord[]
+          : [];
+        const racedRecord = racedRecords.find((record) => record.id === operation.recordId) ?? null;
+        if (racedRecord && recordHash(racedRecord) === localHash) {
+          return { status: "applied", cloudRevision: cloudRevisionOf(raced) };
+        }
+        return {
+          status: "conflict",
+          cloudRevision: raced ? cloudRevisionOf(raced) : null,
+          remote: racedRecord,
+          reason: "The cloud document already exists with a different revision.",
+        };
       }
-      return { status: "retry_required", reason: `user_preferences: ${insertError.message}`, retryAfterMs: 2_000 };
+      return failure(insertError, "user_preferences");
     }
-    return { status: "applied", cloudRevision: String(inserted?.updated_at ?? updatedAt) };
+    return { status: "applied", cloudRevision: cloudRevisionOf(inserted ?? { updated_at: updatedAt }) };
   }
 }
 

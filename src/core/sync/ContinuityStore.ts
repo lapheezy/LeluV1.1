@@ -95,6 +95,7 @@ function sanitizeOperation(value: unknown): ContinuityOutboxOperation | null {
     state: state(operation.state),
     payload: operation.payload as ContinuityOutboxOperation["payload"],
     expectedCloudRevision: nullableString(operation.expectedCloudRevision),
+    baseRecordHash: nullableString(operation.baseRecordHash),
     lastError: nullableString(operation.lastError),
     nextAttemptAt: operation.nextAttemptAt == null ? null : finite(operation.nextAttemptAt),
   };
