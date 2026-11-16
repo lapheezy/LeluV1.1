@@ -48,6 +48,11 @@ import type {
   CognitionCycleRecord,
   ObjectiveOutcome,
 } from "../src/core/cognition/AgentObjectives";
+import { grantBackgroundAllowance } from "./support/isolation";
+
+// These tests exercise autonomous behaviour, not the budget: the owner grants
+// a large background allowance, as only the owner can.
+await grantBackgroundAllowance();
 
 /* ------------------------------------------------------------------ *
  * FIXTURES — plain data, so these tests are about the predicate and

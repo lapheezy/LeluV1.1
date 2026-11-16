@@ -32,6 +32,7 @@ import Sentinel from "../sentinel/Sentinel";
 import ImprovementQueue from "../selfdev/ImprovementQueue";
 import ToolRegistry from "../tools/ToolRegistry";
 import SelfStudyEngine, { type CognitiveStateView } from "./SelfStudyEngine";
+import UsageBudgetGate, { type BackgroundAllowance } from "../observability/UsageBudgetGate";
 import EngineeringWorkspace from "../engineering/EngineeringWorkspace";
 import WorkspaceEngine from "../workspace/WorkspaceEngine";
 import { describeWorkspace } from "../workspace/WorkspaceArtifacts";
@@ -759,6 +760,14 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   // of inventing one.
   sections.push(formatSelfStudyState(ctx.selfStudy));
 
+  // Her background model allowance — a fact she works within, set by the
+  // owner. Guarded: accounting must never break context assembly.
+  try {
+    sections.push(formatBackgroundAllowance(UsageBudgetGate.getInstance().backgroundAllowance()));
+  } catch {
+    // allowance unavailable — omit rather than guess
+  }
+
   // Autonomy
   sections.push(`## AUTONOMY LEVEL: ${ctx.autonomyLevel}`);
 
@@ -787,6 +796,24 @@ ${ctx.self.knows.length > 0 ? `Knowledge: ${ctx.self.knows.slice(0, 5).join(", "
   }
 
   return sections.join("\n\n");
+}
+
+/** The background allowance as she should understand it. */
+export function formatBackgroundAllowance(allowance: BackgroundAllowance): string {
+  const state =
+    allowance.blockedBy === "paused"
+      ? `paused until ${new Date(allowance.nextAllowedAt).toISOString()} (${allowance.paused?.reason})`
+      : allowance.blockedBy === "cap"
+        ? `used up for today; resets ${new Date(allowance.nextAllowedAt).toISOString()}`
+        : allowance.blockedBy === "pacing"
+          ? `next call allowed ${new Date(allowance.nextAllowedAt).toISOString()} (calls are spread over the day)`
+          : "a call may be made now";
+  return [
+    "## BACKGROUND MODEL ALLOWANCE",
+    `Background work shares ${allowance.cap} model call(s) per day on this device${allowance.ownerSet ? " (set by the owner)" : " (the owner's minimal starting allowance)"}. Used today: ${allowance.usedToday}; remaining: ${allowance.remaining}; ${state}.`,
+    "First claim on each call: objectives the owner gave me, then self-study conclusions, then objectives I set myself, then curiosity.",
+    "Conversation with the owner is never limited by this. Only the owner can raise it; spend it where a model's judgement matters, and conclude from evidence otherwise.",
+  ].join("\n");
 }
 
 /**

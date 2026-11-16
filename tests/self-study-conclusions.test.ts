@@ -45,6 +45,17 @@ import AIProviderRegistry from "../src/core/AIProviderRegistry";
 import ExecutionLogger from "../src/core/ExecutionLogger";
 import ProviderResolver from "../src/core/router/ProviderResolver";
 import UsageLedger from "../src/core/observability/UsageLedger";
+import UsageBudgetGate from "../src/core/observability/UsageBudgetGate";
+
+/**
+ * Earlier tests in this file run real cycles that spend (and pace) the
+ * background allowance. Tests that measure self-study's own rules start
+ * from an unspent allowance so the gate is not what they observe.
+ */
+function freshAllowance(): void {
+  (UsageLedger as unknown as { instance: unknown }).instance = new UsageLedger(() => Date.now(), null);
+  (UsageBudgetGate as unknown as { instance: unknown }).instance = null;
+}
 import Brain from "../src/brain/Brain";
 import LeluIdentity from "../src/core/identity/LeluIdentity";
 import KvStore from "../src/core/storage/KvStore";
@@ -268,6 +279,7 @@ test("with no provider reachable, studies still conclude", { timeout: 60_000 }, 
 
 test("a model is called only to conclude, labelled self-study, and within the hourly cap", { timeout: 120_000 }, async () => {
   reset();
+  freshAllowance();
   const engine = SelfStudyEngine.getInstance();
   const operations: (string | undefined)[] = [];
   const reason: Reason = async (_prompt, options) => {
@@ -301,6 +313,7 @@ test("a model is called only to conclude, labelled self-study, and within the ho
 });
 
 test("the operation label reaches the usage ledger", async () => {
+  freshAllowance();
   const registry = new AIProviderRegistry();
   const health: AIProviderHealth = { available: true, initialized: true, lastChecked: Date.now() };
   const provider: AIProvider = {

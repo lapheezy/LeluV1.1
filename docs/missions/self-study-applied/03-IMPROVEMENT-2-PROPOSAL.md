@@ -1,6 +1,6 @@
 # Improvement 2 — "Background work has its own budget and yields to conversation"
 
-Status: **PROPOSAL AWAITING GATE 1 APPROVAL.** Nothing has been changed for this improvement.
+Status: **APPROVED at Gate 1 (2026-11-16) with the owner's amendment: the background allowance starts at 10 model calls a day, raised only by the owner.** Implementation and evidence: `04-IMPROVEMENT-2-GATE-2.md`.
 
 Prerequisite: improvement 1 ("A study must conclude") was accepted on 2026-11-16.
 

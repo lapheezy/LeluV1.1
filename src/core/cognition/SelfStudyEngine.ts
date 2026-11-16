@@ -62,6 +62,7 @@ import StudyAgentRouter, { type Investigation } from "./StudyAgentRouter";
 import { backgroundTimeout, type BackgroundTimer } from "../runtime/BackgroundTimer";
 import { computePriority, type PriorityAdjustment } from "./Prioritization";
 import ImprovementQueue, { PENDING_APPROVAL_STATUSES } from "../selfdev/ImprovementQueue";
+import UsageBudgetGate from "../observability/UsageBudgetGate";
 import {
   categoryFor,
   deterministicConclusion,
@@ -1474,6 +1475,18 @@ export default class SelfStudyEngine {
     }
 
     const purpose = objective.purpose ?? purposeFor(objective.origin, objective.domain, objective.target);
+    // Ask the gate first: when the background allowance cannot spend a call
+    // now, do not build the prompt or spend a slot of the hourly cap.
+    const allowance = UsageBudgetGate.getInstance().backgroundAllowance();
+    if (allowance.blockedBy) {
+      // The need still counts: when the next call becomes available,
+      // self-study's claim on it is known.
+      UsageBudgetGate.getInstance().noteDemand("self-study");
+      return plain({
+        ...deterministic,
+        note: `Background budget ${allowance.blockedBy === "cap" ? `used (${allowance.usedToday}/${allowance.cap} today)` : allowance.blockedBy === "paused" ? `paused: ${allowance.paused?.reason}` : `pacing (${allowance.remaining} of ${allowance.cap} left today)`}; concluded from the evidence alone.`,
+      });
+    }
     this.synthesisTimes.push(Date.now());
     try {
       const response = await AIService.getInstance().reason(
@@ -1489,8 +1502,14 @@ export default class SelfStudyEngine {
       const succeeded =
         response.metadata?.success !== false && response.provider !== "offline" && response.text.trim().length > 0;
       if (!succeeded) {
+        const refused = response.metadata?.budgetExhausted as { reason?: string } | undefined;
         return plain(
-          { ...deterministic, note: "No AI provider was reachable; concluded from the evidence alone." },
+          {
+            ...deterministic,
+            note: refused
+              ? `Not sent — ${refused.reason ?? "background budget"} Concluded from the evidence alone.`
+              : "No AI provider was reachable; concluded from the evidence alone.",
+          },
           true,
         );
       }

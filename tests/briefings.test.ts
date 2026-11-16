@@ -50,9 +50,12 @@ import ProjectStore from "../src/core/projects/ProjectStore";
 import MultiChatStore from "../src/core/multichat/MultiChatStore";
 import AIService from "../src/core/AIService";
 import { openWorkstream } from "../src/core/proactive/Workstream";
-import { stopBackgroundCognition } from "./support/isolation";
+import { grantBackgroundAllowance, stopBackgroundCognition } from "./support/isolation";
 
 await stopBackgroundCognition();
+// These tests exercise autonomous behaviour, not the budget: the owner grants
+// a large background allowance, as only the owner can.
+await grantBackgroundAllowance();
 
 const briefings = BriefingStore.getInstance();
 const objectives = AgentObjectives.getInstance();

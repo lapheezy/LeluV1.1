@@ -924,7 +924,7 @@ export default class ProviderResolver {
         context: continuationContext(context.request.context),
         messages: refitted.messages,
         ...(refitted.tools.length ? { tools: refitted.tools } : {}),
-      }, context.request.operation);
+      }, context.request.operation, { continuation: true });
       onProgress?.();
 
       if (stopReason) break;
