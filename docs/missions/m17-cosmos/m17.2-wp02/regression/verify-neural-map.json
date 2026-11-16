@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-16T07:53:38.183Z",
+  "at": "2026-11-16T08:06:02.217Z",
   "results": [
     {
       "objective": "O07",
@@ -27,25 +27,25 @@
       "objective": "O02",
       "name": "Each object has its canonical identity in the map, located in the Cosmos core, created from its artifact",
       "status": "VERIFIED",
-      "detail": "cosmos.object:obj_2: created-from>record:artifact:art_3330f5226dc1, located-in>cosmos.place:cosmos-core"
+      "detail": "cosmos.object:obj_2: created-from>record:artifact:art_e23c2ef9ab66, located-in>cosmos.place:cosmos-core"
     },
     {
       "objective": "O03",
       "name": "Chat: attach the gearbox into the cabin → attached-to the cabin, no longer loose in the core",
       "status": "VERIFIED",
-      "detail": "attached-to>cosmos.object:obj_1, created-from>record:artifact:art_3330f5226dc1"
+      "detail": "attached-to>cosmos.object:obj_1, created-from>record:artifact:art_e23c2ef9ab66"
     },
     {
       "objective": "O03",
       "name": "Chat: take it out → extracted-from the cabin, located in the core again, same identity",
       "status": "VERIFIED",
-      "detail": "created-from>record:artifact:art_3330f5226dc1, extracted-from>cosmos.object:obj_1, located-in>cosmos.place:cosmos-core"
+      "detail": "created-from>record:artifact:art_e23c2ef9ab66, extracted-from>cosmos.object:obj_1, located-in>cosmos.place:cosmos-core"
     },
     {
       "objective": "O03",
       "name": "Chat: duplicate → a NEW identity derived-from the original (the original unchanged)",
       "status": "VERIFIED",
-      "detail": "cosmos.object:obj_3: created-from>record:artifact:art_3330f5226dc1, derived-from>cosmos.object:obj_2, located-in>cosmos.place:cosmos-core"
+      "detail": "cosmos.object:obj_3: created-from>record:artifact:art_e23c2ef9ab66, derived-from>cosmos.object:obj_2, located-in>cosmos.place:cosmos-core"
     },
     {
       "objective": "O11",
@@ -64,7 +64,7 @@
       "objective": "O10",
       "name": "A move updates ONLY the objects partition and reports only the moved object as changed",
       "status": "VERIFIED",
-      "detail": "[{\"a\":\"cosmos.objects\",\"ms\":0.1,\"changed\":[\"cosmos.object:obj_2\"]}]"
+      "detail": "[{\"a\":\"cosmos.objects\",\"ms\":0,\"changed\":[\"cosmos.object:obj_2\"]}]"
     },
     {
       "objective": "O02",
@@ -164,15 +164,15 @@
     },
     {
       "objective": "O10",
-      "name": "Every object operation in the session updated the map in < 5 ms; no other Cosmos-side partition was rebuilt (the chat's own chats/projects updates are real changes since WP02)",
-      "status": "FAILED",
-      "detail": "{\"n\":7,\"maxMs\":0.2,\"avgMs\":0.1} · other partitions rebuilt: 2"
+      "name": "Every object operation in the session updated the map in < 5 ms; no other Cosmos-side partition was rebuilt (the chat turn's own chats/projects/studio updates are real changes since WP02)",
+      "status": "VERIFIED",
+      "detail": "{\"n\":7,\"maxMs\":0.1,\"avgMs\":0.029} · other partitions rebuilt: 0"
     },
     {
       "objective": "O10",
       "name": "Per-operation timings (chat round trip incl. UI; map update per authority)",
       "status": "MEASURED",
-      "detail": "[{\"text\":\"/build cabin\",\"ms\":733,\"map\":[{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"studio\",\"ms\":0,\"changed\":2},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"put it into the cosmos\",\"ms\":6090,\"map\":[{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0.1,\"changed\":3},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0.1,\"changed\":1},{\"authority\":\"projects\",\"ms\":0.1,\"changed\":1}]},{\"text\":\"/build gearbox\",\"ms\":8445,\"map\":[{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"studio\",\"ms\":0.1,\"changed\":2},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"put it into the cosmos\",\"ms\":416,\"map\":[{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0.2,\"changed\":3},{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"attach the gear into the cabin\",\"ms\":1742,\"map\":[{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0.1,\"changed\":3},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"take the gear out\",\"ms\":596,\"map\":[{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0.1,\"changed\":3},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"duplicate the gear\",\"ms\":415,\"map\":[{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0,\"changed\":4},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"move the gear next to the cabin\",\"ms\":854,\"map\":[{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"cosmos.object.transform position\",\"ms\":5.4,\"map\":[{\"authority\":\"cosmos.objects\",\"ms\":0.1,\"changed\":1}]},{\"text\":\"attach obj_2 into the cabin\",\"ms\":598,\"map\":[{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0.1,\"changed\":3},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]}]",
+      "detail": "[{\"text\":\"/build cabin\",\"ms\":829,\"map\":[{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"studio\",\"ms\":0,\"changed\":2},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"put it into the cosmos\",\"ms\":8435,\"map\":[{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0,\"changed\":3},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"/build gearbox\",\"ms\":12479,\"map\":[{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"studio\",\"ms\":0,\"changed\":2},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0.1,\"changed\":1}]},{\"text\":\"put it into the cosmos\",\"ms\":442,\"map\":[{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0,\"changed\":3},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"attach the gear into the cabin\",\"ms\":441,\"map\":[{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0.1,\"changed\":3},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0.2,\"changed\":1}]},{\"text\":\"take the gear out\",\"ms\":515,\"map\":[{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0,\"changed\":3},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"duplicate the gear\",\"ms\":522,\"map\":[{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0.1,\"changed\":4},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"move the gear next to the cabin\",\"ms\":919,\"map\":[{\"authority\":\"chats\",\"ms\":0.1,\"changed\":1},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0,\"changed\":1}]},{\"text\":\"cosmos.object.transform position\",\"ms\":6.2,\"map\":[{\"authority\":\"cosmos.objects\",\"ms\":0,\"changed\":1}]},{\"text\":\"attach obj_2 into the cabin\",\"ms\":1019,\"map\":[{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"cosmos.objects\",\"ms\":0,\"changed\":3},{\"authority\":\"chats\",\"ms\":0,\"changed\":1},{\"authority\":\"projects\",\"ms\":0.1,\"changed\":1}]}]",
       "informational": true
     },
     {
@@ -192,7 +192,7 @@
     {
       "via": "chat",
       "text": "/build cabin",
-      "ms": 733,
+      "ms": 829,
       "provider": "lelu-direct",
       "tools": [
         "engineering:done",
@@ -201,7 +201,7 @@
       "mapUpdates": [
         {
           "authority": "chats",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 1
         },
         {
@@ -224,7 +224,7 @@
     {
       "via": "chat",
       "text": "put it into the cosmos",
-      "ms": 6090,
+      "ms": 8435,
       "provider": "lelu-direct",
       "tools": [
         "cosmos.object.spawn:done"
@@ -232,12 +232,12 @@
       "mapUpdates": [
         {
           "authority": "chats",
-          "ms": 0.1,
+          "ms": 0,
           "changed": 1
         },
         {
           "authority": "cosmos.objects",
-          "ms": 0.1,
+          "ms": 0,
           "changed": 3
         },
         {
@@ -247,12 +247,7 @@
         },
         {
           "authority": "projects",
-          "ms": 0.1,
-          "changed": 1
-        },
-        {
-          "authority": "projects",
-          "ms": 0.1,
+          "ms": 0,
           "changed": 1
         }
       ]
@@ -260,7 +255,7 @@
     {
       "via": "chat",
       "text": "/build gearbox",
-      "ms": 8445,
+      "ms": 12479,
       "provider": "lelu-direct",
       "tools": [
         "engineering:done",
@@ -269,12 +264,12 @@
       "mapUpdates": [
         {
           "authority": "chats",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 1
         },
         {
           "authority": "studio",
-          "ms": 0.1,
+          "ms": 0,
           "changed": 2
         },
         {
@@ -284,7 +279,7 @@
         },
         {
           "authority": "projects",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 1
         }
       ]
@@ -292,7 +287,7 @@
     {
       "via": "chat",
       "text": "put it into the cosmos",
-      "ms": 416,
+      "ms": 442,
       "provider": "lelu-direct",
       "tools": [
         "cosmos.object.spawn:done"
@@ -305,12 +300,12 @@
         },
         {
           "authority": "cosmos.objects",
-          "ms": 0.2,
+          "ms": 0,
           "changed": 3
         },
         {
           "authority": "chats",
-          "ms": 0.1,
+          "ms": 0,
           "changed": 1
         },
         {
@@ -323,7 +318,7 @@
     {
       "via": "chat",
       "text": "attach the gear into the cabin",
-      "ms": 1742,
+      "ms": 441,
       "provider": "lelu-direct",
       "tools": [
         "cosmos.object.integrate:done"
@@ -346,7 +341,7 @@
         },
         {
           "authority": "projects",
-          "ms": 0,
+          "ms": 0.2,
           "changed": 1
         }
       ]
@@ -354,7 +349,7 @@
     {
       "via": "chat",
       "text": "take the gear out",
-      "ms": 596,
+      "ms": 515,
       "provider": "lelu-direct",
       "tools": [
         "cosmos.object.extract:done"
@@ -362,12 +357,12 @@
       "mapUpdates": [
         {
           "authority": "chats",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 1
         },
         {
           "authority": "cosmos.objects",
-          "ms": 0.1,
+          "ms": 0,
           "changed": 3
         },
         {
@@ -385,7 +380,7 @@
     {
       "via": "chat",
       "text": "duplicate the gear",
-      "ms": 415,
+      "ms": 522,
       "provider": "lelu-direct",
       "tools": [
         "cosmos.object.duplicate:done"
@@ -393,12 +388,12 @@
       "mapUpdates": [
         {
           "authority": "chats",
-          "ms": 0.1,
+          "ms": 0,
           "changed": 1
         },
         {
           "authority": "cosmos.objects",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 4
         },
         {
@@ -416,7 +411,7 @@
     {
       "via": "chat",
       "text": "move the gear next to the cabin",
-      "ms": 854,
+      "ms": 919,
       "provider": "lelu-direct",
       "tools": [
         "workspace.arrange:done"
@@ -429,7 +424,7 @@
         },
         {
           "authority": "chats",
-          "ms": 0.1,
+          "ms": 0,
           "changed": 1
         },
         {
@@ -442,11 +437,11 @@
     {
       "via": "dispatcher",
       "text": "cosmos.object.transform position",
-      "ms": 5.4,
+      "ms": 6.2,
       "mapUpdates": [
         {
           "authority": "cosmos.objects",
-          "ms": 0.1,
+          "ms": 0,
           "changed": 1
         }
       ]
@@ -454,7 +449,7 @@
     {
       "via": "chat",
       "text": "attach obj_2 into the cabin",
-      "ms": 598,
+      "ms": 1019,
       "provider": "lelu-direct",
       "tools": [
         "cosmos.object.integrate:done"
@@ -462,12 +457,12 @@
       "mapUpdates": [
         {
           "authority": "chats",
-          "ms": 0.1,
+          "ms": 0,
           "changed": 1
         },
         {
           "authority": "cosmos.objects",
-          "ms": 0.1,
+          "ms": 0,
           "changed": 3
         },
         {
@@ -477,7 +472,7 @@
         },
         {
           "authority": "projects",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 1
         }
       ]
