@@ -47,7 +47,8 @@ profile.samples.forEach((id) => {
 });
 const top = (m) => [...m.entries()].sort((a, c) => c[1] - a[1]).slice(0, 18).map(([k, v]) => `${Math.round(v)}ms ${k}`);
 const res = { app, label, longTasks: lt.length, longTaskMs: lt.reduce((a, c) => a + c, 0), worst: Math.max(0, ...lt), byOwner: top(owner), byLeaf: top(leaf), stacks: Object.entries(stacks).sort((a, c) => c[1] - a[1]).slice(0, 4).map(([k, v]) => `${v} samples: ${k}`) };
-fs.mkdirSync("docs/missions/m15-home/avatar-15.3/wp02", { recursive: true });
-fs.writeFileSync(`docs/missions/m15-home/avatar-15.3/wp02/transition-${app}-${label}.json`, JSON.stringify(res, null, 2));
+const PROFILE_OUT = process.env.LELU_PROFILE_OUT ?? "docs/missions/m15-home/avatar-15.3/wp02";
+fs.mkdirSync(PROFILE_OUT, { recursive: true });
+fs.writeFileSync(`${PROFILE_OUT}/transition-${app}-${label}.json`, JSON.stringify(res, null, 2));
 console.log(JSON.stringify(res, null, 1));
 await b.close();
