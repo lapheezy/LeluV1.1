@@ -1,0 +1,16 @@
+PASS  1 approved-model-3d model characters/lelu_character/rig/v005_faceshapes_mvwaqbim/lelu.…; 32 clips
+PASS  2 home-presentation home → face/embodied (home)
+PASS  3 chat-become-a-hologram → full/hologram; same model & same canvas (no rebuild) true; drew 3 frames; reply “Projected. I'm a hologram everywhere now; say “become embodied” to bring me back.”
+PASS  4 chat-show-me-all-of-you → full/hologram; same model & same canvas (no rebuild) true; drew 3 frames; reply “All of me, everywhere I appear.”
+PASS  5 chat-just-your-face → face/hologram; same model & same canvas (no rebuild) true; drew 3 frames; reply “Just my face now, everywhere I appear.”
+PASS  6 chat-become-embodied → face/embodied; same model & same canvas (no rebuild) true; drew 3 frames; reply “Back as myself, everywhere.”
+PASS  7 chat-choose-your-own-form → full/embodied; same model & same canvas (no rebuild) true; drew 3 frames; reply “I'll choose how I appear in each interface again.”
+PASS  8 desktop-home home → face/embodied; drew 7 frames in 3 s; same canvas true; page WebGL contexts +0
+PASS  9 desktop-chat chat → face/embodied; drew 8 frames in 3 s; same canvas true; page WebGL contexts +0
+PASS 10 desktop-home-after-chat home → face/embodied; drew 5 frames in 3 s; same canvas true; page WebGL contexts +0
+PASS 11 desktop-browser browser → face/hologram; drew 5 frames in 3 s; same canvas true; page WebGL contexts +0
+PASS 12 desktop-home-after-browser home → face/embodied; drew 5 frames in 3 s; same canvas true; page WebGL contexts +0
+PASS 13 desktop-studio creative → full/embodied; drew 4 frames in 3 s; same canvas true; page WebGL contexts +0
+PASS 14 desktop-home-after-studio home → face/embodied; drew 4 frames in 3 s; same canvas true; page WebGL contexts +0
+PASS 15 desktop-code engineering → face/hologram; drew 5 frames in 3 s; same canvas true; page WebGL contexts +0
+PASS 16 desktop-home-after-code home → face/embodied; drew 4 frames in 3 s; same canvas true; page WebGL contexts +0
