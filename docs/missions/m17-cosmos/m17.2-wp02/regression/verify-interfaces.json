@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-16T07:34:29.862Z",
+  "at": "2026-11-16T07:50:05.571Z",
   "results": [
     {
       "name": "Infinite Library lists Cosmos, Legacy UIs and Compositions",
@@ -19,12 +19,12 @@
     {
       "name": "System UI mode Heartbeat",
       "status": "VERIFIED",
-      "detail": "transitions heartbeat · now heartbeat"
+      "detail": "transitions heartbeat→matrix · now heartbeat"
     },
     {
       "name": "System UI mode Matrix",
       "status": "VERIFIED",
-      "detail": "transitions matrix · now heartbeat"
+      "detail": "transitions matrix · now matrix"
     },
     {
       "name": "System UI mode Nerve",
@@ -34,7 +34,7 @@
     {
       "name": "System UI mode Neuron",
       "status": "VERIFIED",
-      "detail": "transitions neuron→heartbeat→matrix · now matrix"
+      "detail": "transitions matrix→heartbeat→neuron · now neuron"
     },
     {
       "name": "System UI mode Core",
@@ -43,8 +43,8 @@
     },
     {
       "name": "System UI: modes moved by LÉLU's own live activity during the run",
-      "status": "OBSERVED",
-      "detail": "Matrix→heartbeat, Neuron→matrix",
+      "status": "NONE",
+      "detail": "no automatic change in this run",
       "informational": true
     },
     {
@@ -205,12 +205,12 @@
     {
       "name": "O01 her 3D body is loaded and on camera in the composed Room",
       "status": "VERIFIED",
-      "detail": "{\"chest\":{\"x\":753,\"y\":606,\"visible\":true},\"unavailable\":0}"
+      "detail": "{\"chest\":{\"x\":762,\"y\":613,\"visible\":true},\"unavailable\":0}"
     },
     {
       "name": "Editing a built-in forks a copy; One LÉLU is unchanged",
       "status": "VERIFIED",
-      "detail": "comp-mwiy15iz-9-k75g"
+      "detail": "comp-mwiylslo-9-384"
     },
     {
       "name": "Clone makes an independent copy with lineage",
@@ -245,7 +245,7 @@
     {
       "name": "O03 Split makes two parts (3 + 3), opens part 1, keeps the source",
       "status": "VERIFIED",
-      "detail": "[{\"id\":\"comp-mwiy1x3j-x-hw7k\",\"n\":3},{\"id\":\"comp-mwiy1x3i-q-4hac\",\"n\":3}]"
+      "detail": "[{\"id\":\"comp-mwiymkqu-x-hceq\",\"n\":3},{\"id\":\"comp-mwiymkqt-q-cx1h\",\"n\":3}]"
     },
     {
       "name": "O03 Trash removes it and closes the view",

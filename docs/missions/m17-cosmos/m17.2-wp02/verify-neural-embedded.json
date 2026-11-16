@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-16T07:20:30.938Z",
+  "at": "2026-11-16T07:59:53.133Z",
   "results": [
     {
       "objective": "O01",
@@ -55,13 +55,13 @@
       "objective": "O02",
       "name": "Chat Universe: its ◈ Neural toggle opens the card in the Universe on the current chat (record:conversation:…, owned by chats)",
       "status": "VERIFIED",
-      "detail": "record:conversation:17b7a130-56cd-432d-91ac-41256c4e8c1c"
+      "detail": "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
     },
     {
       "objective": "O05",
       "name": "Chat Universe: the chat shows what it created — the cabin's artifact (created-from, read from the Studio's own record)",
       "status": "VERIFIED",
-      "detail": "created-from:in>record:artifact:art_d63552d1b54f"
+      "detail": "created-from:in>record:artifact:art_e6b29e9de556"
     },
     {
       "objective": "O02",
@@ -73,7 +73,7 @@
       "objective": "O04",
       "name": "Create (live): with the card open, the new gearbox artifact appears on the chat without reopening it",
       "status": "VERIFIED",
-      "detail": "created-from:in>record:artifact:art_64f26f65a723, created-from:in>record:artifact:art_d63552d1b54f"
+      "detail": "created-from:in>record:artifact:art_6e6217422665, created-from:in>record:artifact:art_e6b29e9de556"
     },
     {
       "objective": "O07",
@@ -85,13 +85,13 @@
       "objective": "O03",
       "name": "Chat Universe: follow → the artifact is ONE entity, owned by the Studio (not a copy, not a placeholder)",
       "status": "VERIFIED",
-      "detail": "record:artifact:art_64f26f65a723 · studio"
+      "detail": "record:artifact:art_6e6217422665 · studio"
     },
     {
       "objective": "O03",
       "name": "Chat Universe: follow → the Cosmos object made from it — the same canonical id the Cosmos uses",
       "status": "VERIFIED",
-      "detail": "located-in:out>cosmos.place:cosmos-core, created-from:out>record:artifact:art_64f26f65a723"
+      "detail": "located-in:out>cosmos.place:cosmos-core, created-from:out>record:artifact:art_6e6217422665"
     },
     {
       "objective": "O06",
@@ -163,13 +163,13 @@
       "objective": "O02",
       "name": "Creation Studio: an artifact card's ◈ Neural opens the card inside the Studio on that artifact",
       "status": "VERIFIED",
-      "detail": "record:artifact:art_64f26f65a723"
+      "detail": "record:artifact:art_6e6217422665"
     },
     {
       "objective": "O03",
       "name": "Creation Studio: the SAME id Chat Universe showed, with the same relations (the chat it came from; the Cosmos object made from it)",
       "status": "VERIFIED",
-      "detail": "created-from:out>record:conversation:17b7a130-56cd-432d-91ac-41256c4e8c1c, created-from:in>cosmos.object:obj_2, created-from:in>cosmos.object:obj_3"
+      "detail": "created-from:out>record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2, created-from:in>cosmos.object:obj_2, created-from:in>cosmos.object:obj_3"
     },
     {
       "objective": "O05",
@@ -193,37 +193,37 @@
       "objective": "O06",
       "name": "Creation Studio: Open map → the standalone Neural Map opens OVER Creation Studio on the same canonical id",
       "status": "VERIFIED",
-      "detail": "record:conversation:17b7a130-56cd-432d-91ac-41256c4e8c1c → record:conversation:17b7a130-56cd-432d-91ac-41256c4e8c1c · layer over · on top true"
+      "detail": "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2 → record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2 · layer over · on top true"
     },
     {
       "objective": "O06",
       "name": "Creation Studio: Return → back in Creation Studio, its card still on the same entity",
       "status": "VERIFIED",
-      "detail": "record:conversation:17b7a130-56cd-432d-91ac-41256c4e8c1c"
+      "detail": "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
     },
     {
       "objective": "O02",
       "name": "Projects: its ◈ Neural toggle opens the card on the selected project (record:project:…, owned by projects)",
       "status": "VERIFIED",
-      "detail": "record:project:64c8ee46-faf4-44ba-8288-625e1d50eb26"
+      "detail": "record:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cf"
     },
     {
       "objective": "O05",
       "name": "Projects: status, items and agents read from the project; the interface's own action is offered",
       "status": "VERIFIED",
-      "detail": "Identityrecord:project:64c8ee46-faf4-44ba-8288-625e1d50eb26Owned byprojects · 64c8ee46-faf4-44ba-8288-625e1d50eb26status"
+      "detail": "Identityrecord:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cfOwned byprojects · ca920f97-4a27-4d39-b0b6-ad502e08c2cfstatus"
     },
     {
       "objective": "O06",
       "name": "Projects: Open map → the standalone Neural Map opens OVER Projects on the same canonical id",
       "status": "VERIFIED",
-      "detail": "record:project:64c8ee46-faf4-44ba-8288-625e1d50eb26 → record:project:64c8ee46-faf4-44ba-8288-625e1d50eb26 · layer over · on top true"
+      "detail": "record:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cf → record:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cf · layer over · on top true"
     },
     {
       "objective": "O06",
       "name": "Projects: Return → back in Projects, its card still on the same entity",
       "status": "VERIFIED",
-      "detail": "record:project:64c8ee46-faf4-44ba-8288-625e1d50eb26"
+      "detail": "record:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cf"
     },
     {
       "objective": "O02",
@@ -313,7 +313,7 @@
       "objective": "O06",
       "name": "Deep link ?interface=neural-map&entity=<chat> still opens the standalone map on that chat (no card involved)",
       "status": "VERIFIED",
-      "detail": "record:conversation:17b7a130-56cd-432d-91ac-41256c4e8c1c"
+      "detail": "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
     },
     {
       "objective": "O06",
@@ -329,9 +329,16 @@
     },
     {
       "objective": "O07",
-      "name": "Opening and closing cards 6 times in two interfaces leaves the map's subscriber count where it was (no leaked subscriptions)",
+      "name": "A card subscribes while open and releases every subscription when closed: 6 open/close cycles in two interfaces leave the count where it was",
       "status": "VERIFIED",
-      "detail": "0 → 0"
+      "detail": "0 → peak 10 while open → 0 after"
+    },
+    {
+      "objective": "O09",
+      "name": "FINDING (open): chat 'move the gear next to the cabin' runs the workspace tools, not cosmos.object.position",
+      "status": "OBSERVED",
+      "informational": true,
+      "detail": "{\"provider\":\"lelu-direct\",\"tools\":[\"workspace.arrange:done\"],\"gearPositionBefore\":[7,1,-12],\"gearPositionAfter\":[7,1,-12],\"reply\":\"Split the workspace side by side. Done on this device — 0 model calls, nothing sent anywhere.\\n\\n✓ Split the workspace side by side (workspace.arrange)\\n  Workspac\"}"
     },
     {
       "objective": "O08",
@@ -374,7 +381,7 @@
     {
       "via": "chat",
       "text": "/build cabin",
-      "ms": 1151,
+      "ms": 981,
       "provider": "lelu-direct",
       "tools": [
         "engineering:done",
@@ -383,7 +390,7 @@
       "mapUpdates": [
         {
           "authority": "chats",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 1
         },
         {
@@ -393,7 +400,7 @@
         },
         {
           "authority": "chats",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 1
         },
         {
@@ -411,7 +418,7 @@
     {
       "via": "chat",
       "text": "put it into the cosmos",
-      "ms": 7772,
+      "ms": 7373,
       "provider": "lelu-direct",
       "tools": [
         "cosmos.object.spawn:done"
@@ -429,7 +436,7 @@
         },
         {
           "authority": "chats",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 1
         },
         {
@@ -442,7 +449,7 @@
     {
       "via": "chat",
       "text": "/build gearbox",
-      "ms": 5599,
+      "ms": 5672,
       "provider": "lelu-direct",
       "tools": [
         "engineering:done",
@@ -456,12 +463,12 @@
         },
         {
           "authority": "studio",
-          "ms": 0,
+          "ms": 0.2,
           "changed": 2
         },
         {
           "authority": "chats",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 1
         },
         {
@@ -474,7 +481,7 @@
     {
       "via": "chat",
       "text": "put it into the cosmos",
-      "ms": 779,
+      "ms": 832,
       "provider": "lelu-direct",
       "tools": [
         "cosmos.object.spawn:done"
@@ -487,17 +494,17 @@
         },
         {
           "authority": "cosmos.objects",
-          "ms": 0,
+          "ms": 0.2,
           "changed": 3
         },
         {
           "authority": "chats",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 1
         },
         {
           "authority": "projects",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 1
         }
       ]
@@ -505,7 +512,7 @@
     {
       "via": "chat",
       "text": "attach obj_2 into the cabin",
-      "ms": 750,
+      "ms": 711,
       "provider": "lelu-direct",
       "tools": [
         "cosmos.object.integrate:done"
@@ -518,17 +525,17 @@
         },
         {
           "authority": "cosmos.objects",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 3
         },
         {
           "authority": "chats",
-          "ms": 0.1,
+          "ms": 0,
           "changed": 1
         },
         {
           "authority": "projects",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 1
         }
       ]
@@ -542,12 +549,12 @@
           "ms": 0,
           "changed": 1,
           "ids": [
-            "record:conversation:17b7a130-56cd-432d-91ac-41256c4e8c1c"
+            "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
           ]
         },
         {
           "authority": "cosmos.objects",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 3,
           "ids": [
             "cosmos.object:obj_1",
@@ -557,18 +564,18 @@
         },
         {
           "authority": "chats",
-          "ms": 0.1,
+          "ms": 0,
           "changed": 1,
           "ids": [
-            "record:conversation:17b7a130-56cd-432d-91ac-41256c4e8c1c"
+            "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
           ]
         },
         {
           "authority": "projects",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 1,
           "ids": [
-            "record:project:64c8ee46-faf4-44ba-8288-625e1d50eb26"
+            "record:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cf"
           ]
         }
       ]
@@ -576,7 +583,7 @@
     {
       "via": "chat",
       "text": "take the gear out",
-      "ms": 801,
+      "ms": 2945,
       "provider": "lelu-direct",
       "tools": [
         "cosmos.object.extract:done"
@@ -599,7 +606,7 @@
         },
         {
           "authority": "projects",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 1
         }
       ]
@@ -613,7 +620,7 @@
           "ms": 0,
           "changed": 1,
           "ids": [
-            "record:conversation:17b7a130-56cd-432d-91ac-41256c4e8c1c"
+            "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
           ]
         },
         {
@@ -631,15 +638,15 @@
           "ms": 0,
           "changed": 1,
           "ids": [
-            "record:conversation:17b7a130-56cd-432d-91ac-41256c4e8c1c"
+            "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
           ]
         },
         {
           "authority": "projects",
-          "ms": 0,
+          "ms": 0.1,
           "changed": 1,
           "ids": [
-            "record:project:64c8ee46-faf4-44ba-8288-625e1d50eb26"
+            "record:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cf"
           ]
         }
       ]
@@ -664,7 +671,7 @@
       "mapUpdates": [
         {
           "authority": "cosmos.objects",
-          "ms": 0.1,
+          "ms": 0,
           "changed": 1,
           "ids": [
             "cosmos.object:obj_2"
@@ -675,7 +682,7 @@
     {
       "via": "chat",
       "text": "duplicate the gear",
-      "ms": 710,
+      "ms": 781,
       "provider": "lelu-direct",
       "tools": [
         "cosmos.object.duplicate:done"
@@ -688,7 +695,7 @@
         },
         {
           "authority": "cosmos.objects",
-          "ms": 0,
+          "ms": 0.2,
           "changed": 4
         },
         {
@@ -712,18 +719,18 @@
           "ms": 0,
           "changed": 1,
           "ids": [
-            "record:conversation:17b7a130-56cd-432d-91ac-41256c4e8c1c"
+            "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
           ]
         },
         {
           "authority": "cosmos.objects",
-          "ms": 0,
+          "ms": 0.2,
           "changed": 4,
           "ids": [
             "cosmos.object:obj_3",
             "cosmos.place:cosmos-core",
             "cosmos.object:obj_2",
-            "record:artifact:art_64f26f65a723"
+            "record:artifact:art_6e6217422665"
           ]
         },
         {
@@ -731,7 +738,7 @@
           "ms": 0,
           "changed": 1,
           "ids": [
-            "record:conversation:17b7a130-56cd-432d-91ac-41256c4e8c1c"
+            "record:conversation:9c44ffc3-1819-4c32-b135-e8a41c82c9a2"
           ]
         },
         {
@@ -739,7 +746,7 @@
           "ms": 0,
           "changed": 1,
           "ids": [
-            "record:project:64c8ee46-faf4-44ba-8288-625e1d50eb26"
+            "record:project:ca920f97-4a27-4d39-b0b6-ad502e08c2cf"
           ]
         }
       ]
@@ -750,7 +757,7 @@
       "mapUpdates": [
         {
           "authority": "cosmos.objects",
-          "ms": 0.2,
+          "ms": 0,
           "changed": 2,
           "ids": [
             "cosmos.object:obj_2",
@@ -765,12 +772,38 @@
       "mapUpdates": [
         {
           "authority": "cosmos.objects",
-          "ms": 0.1,
+          "ms": 0.2,
           "changed": 2,
           "ids": [
             "cosmos.object:obj_2",
             "cosmos.place:cosmos-core"
           ]
+        }
+      ]
+    },
+    {
+      "via": "chat",
+      "text": "move the gear next to the cabin",
+      "ms": 8973,
+      "provider": "lelu-direct",
+      "tools": [
+        "workspace.arrange:done"
+      ],
+      "mapUpdates": [
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "chats",
+          "ms": 0,
+          "changed": 1
+        },
+        {
+          "authority": "projects",
+          "ms": 0.1,
+          "changed": 1
         }
       ]
     }
@@ -784,6 +817,10 @@
       {
         "at": "before open/close cycles",
         "n": 0
+      },
+      {
+        "at": "peak while a card was open",
+        "n": 10
       },
       {
         "at": "after 6 open/close cycles in 2 interfaces",
@@ -815,6 +852,10 @@
         "entities": 42,
         "relations": 0
       },
+      "home": {
+        "entities": 32,
+        "relations": 44
+      },
       "chats": {
         "entities": 2,
         "relations": 0
@@ -830,10 +871,6 @@
       "sandbox": {
         "entities": 7,
         "relations": 6
-      },
-      "home": {
-        "entities": 32,
-        "relations": 44
       }
     },
     "entities": 102,
